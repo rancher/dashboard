@@ -33,6 +33,34 @@ const SHORTCUTS = [
  * All of the state lives in the `view` prop so the owning table can apply it; this
  * component only owns the saved view list (stored as a user preference).
  */
+/**
+ * How long the pointer is given to cross one row of the View menu on its way to the sub menu
+ * another row opened, before that row is taken to be the one you meant.
+ *
+ * The sub menus open alongside the menu rather than below the row, so reaching anything but the
+ * first entry means travelling diagonally - straight across whichever rows lie between. Acting
+ * on those the moment they are touched made the lower half of a sub menu unreachable: the menu
+ * you were heading for was replaced before you arrived.
+ */
+const SUB_MENU_GRACE_MS = 300;
+
+/** How close to an end of the tab strip a held tab has to come before the strip runs that way */
+const TAB_SCROLL_EDGE = 56;
+
+/** How fast it runs, per frame */
+const TAB_SCROLL_STEP = 12;
+
+/** How long to wait for that run to finish before marking the tab anyway */
+const TAB_SCROLL_SETTLE_MAX_MS = 1200;
+
+/** How long the tab that moved is marked for afterwards - the wash's own length */
+const TAB_FLASH_MS = 600;
+
+/** The table's own tab has no id, and null is also what "nothing" looks like - so it is named */
+function tabKey(tab) {
+  return tab.id || 'all';
+}
+
 export default {
   name: 'TableViewsBar',
 
@@ -96,6 +124,16 @@ export default {
      * `fields` - server side only indexed fields can be grouped on. Defaults to all fields.
      */
     groupFields: {
+      type:    Array,
+      default: null
+    },
+
+    /**
+     * Fields offered as filter suggestions. Narrower than `fields` for the same reason
+     * `groupFields` is - server side only indexed fields can be filtered on. Defaults to all
+     * fields.
+     */
+    filterFields: {
       type:    Array,
       default: null
     },
@@ -175,40 +213,61 @@ export default {
        * picked", or a saved view holding the same config as it is matched instead.
        */
       /** True while the caret is in the query box, so it is not corrected mid-word */
-      queryFocused:   false,
-      pickedViewId:   undefined,
+      queryFocused:      false,
+      pickedViewId:      undefined,
       /**
        * Unsaved edits, per tab, for as long as the page is open. Leaving a tab with changes on it
        * holds on to them so coming back finds them where they were, and the tab keeps its mark
        * while you are elsewhere. A reload is where they end - nothing here is written down.
        */
-      drafts:         {},
+      drafts:            {},
       /** Which modal is open, if any: { kind: 'new' | 'export', view } */
-      modal:          null,
+      modal:             null,
       /**
        * Which sub menu of the View menu is open - 'group', 'columns', or null. A menu item has
        * no trigger of its own, so the row that opens one says so here and the menu takes its
        * open state from it.
        */
-      subMenu:        null,
+      subMenu:           null,
+      /**
+       * Whether the pointer is inside the open sub menu. The row that opened it takes the
+       * highlight back while it is, so the menu says where you are rather than what you last
+       * passed over on the way there.
+       */
+      subMenuHovered:    false,
       /** Name being typed in the new view modal */
-      modalName:      '',
+      modalName:         '',
       /** id of the view being renamed in place, and the name being typed for it */
-      renamingId:     null,
-      renameDraft:    '',
+      renamingId:        null,
+      renameDraft:       '',
       /**
        * Column picker drag. `dragId` is the row being held; `dragOrder` is the ids in the order
        * the list is showing them mid-drag, which is what lets the rows shuffle under the cursor
        * instead of waiting for the drop. `dragSlots` are the places the rows sat when the drag
        * began - see captureColumnSlots for why they are taken once rather than read live.
        */
-      dragId:         null,
-      dragOrder:      null,
-      dragMoved:      false,
-      dragFrom:       null,
-      dragPointerY:   0,
-      dragSlots:      null,
-      dragStartOrder: null,
+      dragId:            null,
+      dragOrder:         null,
+      dragMoved:         false,
+      dragFrom:          null,
+      dragPointerY:      0,
+      dragSlots:         null,
+      dragStartOrder:    null,
+      /**
+       * Tab drag, the same shape as the column one a few lines up but along the strip rather than
+       * down a list. `tabDragOrder` is the tab keys in the order the pointer has put them.
+       */
+      tabDragFrom:       null,
+      tabDragId:         null,
+      tabDragMoved:      false,
+      tabDragPointerX:   0,
+      tabDragBounds:     null,
+      tabDragOrder:      null,
+      tabDragStartOrder: null,
+      /** Which tab's own menu is open, so it can be closed when the strip moves under it */
+      openTabMenuId:     null,
+      /** The tab to draw attention to once the strip has finished running back to it */
+      flashTabId:        null,
     };
   },
 
@@ -218,6 +277,11 @@ export default {
         this.$emit('tab-queries', queries);
       },
       immediate: true,
+    },
+
+    /** Whatever was under the pointer belonged to the menu that has just gone */
+    subMenu() {
+      this.subMenuHovered = false;
     },
   },
 
@@ -230,7 +294,11 @@ export default {
 
   beforeUnmount() {
     window.removeEventListener('keydown', this.onShortcut);
+    clearTimeout(this._subMenuTimer);
+    clearTimeout(this._flashTimer);
+    cancelAnimationFrame(this._flashFrame);
     this.endColumnDrag(false);
+    this.endTabDrag(false);
   },
 
   computed: {
@@ -289,12 +357,56 @@ export default {
     },
 
     /** The default tab plus every saved view, in the order they are shown */
-    tabs() {
-      return [{
+    /**
+     * The strip: the table as it comes, then the saved views.
+     *
+     * Except that the view the list opens on leads, and the table's own tab follows it. The first
+     * tab is the one you land on, so the one that is actually applied on arrival belongs there -
+     * and having marked a view as the default, watching it stay wherever it happened to sit was
+     * the menu saying one thing and the strip another. Neither of those two can be dragged out of
+     * the first two places; see `firstMovableTabIndex`.
+     */
+    /** The strip as it is saved, before a drag in progress rearranges it - see `tabs` */
+    baseTabs() {
+      const all = {
         id: null, name: this.t('tableViews.tabs.all'), isDefaultTab: true
-      }].concat(this.savedViews.map((saved) => ({
-        id: saved.id, name: saved.name, view: saved
-      })));
+      };
+      const saved = this.savedViews.map((view) => ({
+        id: view.id, name: view.name, view
+      }));
+      const lead = this.defaultViewId ? saved.findIndex((tab) => tab.view.id === this.defaultViewId) : -1;
+
+      if (lead === -1) {
+        return [all].concat(saved);
+      }
+
+      return [saved[lead], all].concat(saved.filter((_, i) => i !== lead));
+    },
+
+    /** Mid-drag the strip follows the pointer rather than the saved order */
+    tabs() {
+      if (!this.tabDragOrder) {
+        return this.baseTabs;
+      }
+
+      const byKey = {};
+
+      this.baseTabs.forEach((tab) => {
+        byKey[tabKey(tab)] = tab;
+      });
+
+      return this.tabDragOrder.map((key) => byKey[key]).filter(Boolean);
+    },
+
+    /**
+     * How many tabs at the head of the strip are held there.
+     *
+     * The view the list opens on leads, because it is the one you arrive at, and the table's own
+     * tab follows it - and with no default set that tab leads on its own. Neither can be dragged
+     * away from the front, and nothing can be dropped in front of them.
+     */
+    lockedTabCount() {
+      return this.defaultViewId && this.baseTabs.some((tab) => tab.view?.id === this.defaultViewId) ? 2 : 1;
     },
 
     columnFields() {
@@ -750,8 +862,235 @@ export default {
       }
     },
 
+    /**
+     * Press on a tab: arm a possible drag.
+     *
+     * Nothing is picked up here. A press on a tab is far more often the start of a click that
+     * selects the view, so the tab is only taken once the pointer has travelled DRAG_THRESHOLD
+     * with it held - and the click that would follow the drop is swallowed in endTabDrag.
+     */
+    startTabDrag(tab, event) {
+      const key = tabKey(tab);
+
+      if (event.button !== 0 || this.renamingId || this.baseTabs.findIndex((t) => tabKey(t) === key) < this.lockedTabCount) {
+        return;
+      }
+
+      this.tabDragFrom = { key, x: event.clientX };
+      this.tabDragMoved = false;
+
+      window.addEventListener('mousemove', this.onTabDragMove, true);
+      window.addEventListener('mouseup', this.onTabDragEnd, true);
+      window.addEventListener('keydown', this.onTabDragKey, true);
+    },
+
+    onTabDragMove(event) {
+      if (!this.tabDragFrom) {
+        return;
+      }
+
+      this.tabDragPointerX = event.clientX;
+
+      if (!this.tabDragMoved && Math.abs(event.clientX - this.tabDragFrom.x) < DRAG_THRESHOLD) {
+        return;
+      }
+
+      this.beginTabDrag();
+      this.placeDraggedTab();
+    },
+
+    beginTabDrag() {
+      if (this.tabDragMoved || !this.tabDragFrom) {
+        return;
+      }
+
+      this.tabDragMoved = true;
+      this.closeTabMenus();
+      this.tabDragId = this.tabDragFrom.key;
+      this.tabDragOrder = this.baseTabs.map(tabKey);
+      this.tabDragStartOrder = [...this.tabDragOrder];
+      this.captureTabSlots();
+      // Otherwise the pointer selects the tab names it crosses on the way
+      window.getSelection()?.removeAllRanges();
+      document.body.style.cursor = 'grabbing';
+      this.runTabScroll();
+    },
+
+    /**
+     * The places the tabs occupy, measured once as the drag begins.
+     *
+     * Fixed, and that is the whole point. Working the places out from the order the pointer has
+     * currently put things in feeds the answer back into the question: passing the tab to your
+     * right swaps the two, which puts the boundary you just crossed back under the pointer, so
+     * it swaps again - and the pair flickers between the two arrangements while you hold still.
+     * Measuring once leaves a fixed ladder to read the pointer against.
+     *
+     * Kept relative to the list rather than to the window, so the strip scrolling under a held
+     * tab does not move the rungs.
+     */
+    captureTabSlots() {
+      const list = this.$refs.tabStrip?.querySelector('.view-tabs-list');
+
+      if (!list) {
+        return;
+      }
+
+      const base = list.getBoundingClientRect().left;
+      const boxes = this.baseTabs.map((tab) => {
+        const rect = this.tabWrap(tab)?.getBoundingClientRect();
+
+        return rect ? { left: rect.left - base, right: rect.right - base } : null;
+      }).filter(Boolean);
+
+      // The line between one tab and the next, which is the middle of the gap they sit either
+      // side of. A tab changes places when the pointer crosses one of these, the way a column row
+      // changes places when the pointer enters the row below it - not at the far tab's middle,
+      // which meant carrying a tab halfway across its neighbour before anything happened.
+      this.tabDragBounds = boxes.slice(0, -1).map((box, i) => (box.right + boxes[i + 1].left) / 2);
+    },
+
+    /** Where along the strip the pointer is, in the strip's own scrolled-out width */
+    tabContentX() {
+      const strip = this.$refs.tabStrip;
+      const list = strip?.querySelector('.view-tabs-list');
+
+      if (!strip || !list) {
+        return 0;
+      }
+
+      return this.tabDragPointerX - list.getBoundingClientRect().left;
+    },
+
+    /** How many of the lines measured at the start the pointer has crossed */
+    tabIndexAt(contentX) {
+      const bounds = this.tabDragBounds || [];
+      let i = 0;
+
+      while (i < bounds.length && contentX >= bounds[i]) {
+        i++;
+      }
+
+      return i;
+    },
+
+    /** Put the held tab where the pointer is, so the rest shuffle around it as it travels */
+    placeDraggedTab() {
+      if (!this.tabDragOrder) {
+        return;
+      }
+
+      const order = [...this.tabDragOrder];
+      const from = order.indexOf(this.tabDragId);
+      const to = Math.max(this.tabIndexAt(this.tabContentX()), this.lockedTabCount);
+
+      if (from === -1 || from === to) {
+        return;
+      }
+
+      order.splice(to, 0, ...order.splice(from, 1));
+      this.tabDragOrder = order;
+    },
+
+    /**
+     * Carrying a tab to an end of the strip runs the strip that way, so a tab can be taken
+     * somewhere that is not on screen yet. A frame loop rather than something driven by the
+     * pointer: holding still at the edge should keep going.
+     */
+    runTabScroll() {
+      const step = () => {
+        if (!this.tabDragMoved) {
+          return;
+        }
+
+        const strip = this.$refs.tabStrip;
+
+        if (strip) {
+          const rect = strip.getBoundingClientRect();
+
+          if (this.tabDragPointerX < rect.left + TAB_SCROLL_EDGE) {
+            strip.scrollLeft -= TAB_SCROLL_STEP;
+            this.placeDraggedTab();
+          } else if (this.tabDragPointerX > rect.right - TAB_SCROLL_EDGE) {
+            strip.scrollLeft += TAB_SCROLL_STEP;
+            this.placeDraggedTab();
+          }
+        }
+
+        this._tabScrollFrame = requestAnimationFrame(step);
+      };
+
+      cancelAnimationFrame(this._tabScrollFrame);
+      this._tabScrollFrame = requestAnimationFrame(step);
+    },
+
+    /** Escape abandons the drag: the strip snaps back to the saved order, and nothing is written */
+    onTabDragKey(event) {
+      if (event.key === 'Escape') {
+        this.endTabDrag(false);
+      }
+    },
+
+    onTabDragEnd() {
+      this.endTabDrag(this.tabDragMoved);
+    },
+
+    endTabDrag(commit) {
+      window.removeEventListener('mousemove', this.onTabDragMove, true);
+      window.removeEventListener('mouseup', this.onTabDragEnd, true);
+      window.removeEventListener('keydown', this.onTabDragKey, true);
+      cancelAnimationFrame(this._tabScrollFrame);
+
+      const started = this.tabDragStartOrder || [];
+      const order = this.tabDragOrder;
+      const moved = !!order && order.some((key, i) => key !== started[i]);
+
+      if (this.tabDragMoved) {
+        // The click that follows this mouseup would land on whichever tab the pointer ended over,
+        // applying it. A drag is not a click, so it is swallowed.
+        const swallow = (event) => {
+          event.stopPropagation();
+          event.preventDefault();
+        };
+
+        window.addEventListener('click', swallow, { capture: true, once: true });
+        setTimeout(() => window.removeEventListener('click', swallow, true), 0);
+      }
+
+      document.body.style.cursor = '';
+
+      this.tabDragFrom = null;
+      this.tabDragId = null;
+      this.tabDragMoved = false;
+      this.tabDragBounds = null;
+      this.tabDragStartOrder = null;
+
+      if (commit && moved) {
+        const byId = {};
+
+        this.savedViews.forEach((view) => {
+          byId[view.id] = view;
+        });
+
+        this.persist(order.map((key) => byId[key]).filter(Boolean));
+      }
+
+      this.tabDragOrder = null;
+    },
+
     setGroupBy(id) {
       this.update({ groupBy: id });
+    },
+
+    /**
+     * Picking a grouping from the menu, where picking the one already applied undoes it.
+     *
+     * The rows are how the grouping is read as much as how it is set, so the obvious move on
+     * seeing the tick against the field you are grouped by is to click it again - and a menu
+     * that answers by doing nothing leaves you hunting for None or Reset to say what the row you
+     * just clicked was already saying.
+     */
+    toggleGroupBy(id) {
+      this.setGroupBy(id === this.view.groupBy ? null : id);
     },
 
     resetColumns() {
@@ -920,6 +1259,48 @@ export default {
      * it is opened by a row of the menu above. So the row takes focus back, leaving the keyboard
      * where it was rather than at the top of the page.
      */
+    /**
+     * A row of the View menu coming under the pointer.
+     *
+     * Opening one is immediate; taking an open one away from another row is not - see
+     * SUB_MENU_GRACE_MS. `key` is null for the rows that open nothing, which close what is open
+     * on the same terms.
+     */
+    hoverSubMenu(key) {
+      clearTimeout(this._subMenuTimer);
+
+      if (this.subMenu === key) {
+        return;
+      }
+
+      if (!this.subMenu) {
+        this.subMenu = key;
+
+        return;
+      }
+
+      this._subMenuTimer = setTimeout(() => {
+        this.subMenu = key;
+      }, SUB_MENU_GRACE_MS);
+    },
+
+    /** Clicking a row says which menu you want outright, with none of the waiting */
+    openSubMenu(key) {
+      clearTimeout(this._subMenuTimer);
+      this.subMenu = key;
+    },
+
+    /** The pointer has left a row without settling on it, so it never meant to choose it */
+    cancelSubMenuSwitch() {
+      clearTimeout(this._subMenuTimer);
+    },
+
+    /** The pointer has arrived in the sub menu, which is the end of any journey across the rows */
+    enterSubMenu() {
+      clearTimeout(this._subMenuTimer);
+      this.subMenuHovered = true;
+    },
+
     closeSubMenu(key, open) {
       if (!open && this.subMenu === key) {
         this.subMenu = null;
@@ -1054,6 +1435,8 @@ export default {
      * only when the keyboard is where it was left, or a click elsewhere would be dragged back.
      */
     onTabMenuToggle(tab, open) {
+      this.openTabMenuId = open ? tabKey(tab) : null;
+
       if (open) {
         return;
       }
@@ -1063,6 +1446,47 @@ export default {
           this.tabButton(tab)?.focus();
         }
       });
+    },
+
+    /**
+     * Mark a tab once the strip has actually arrived at the start.
+     *
+     * Waiting on the scroll rather than on a guess at how long it takes: a fixed delay fired
+     * while the strip was still moving, which is the one moment the mark is no use - it is there
+     * to answer "why did that just move", and it has to land after the moving has stopped. The
+     * cap is for a scroll that never finishes, so nothing is left waiting on it.
+     */
+    flashTabWhenScrolled(strip, key) {
+      clearTimeout(this._flashTimer);
+      cancelAnimationFrame(this._flashFrame);
+
+      const deadline = Date.now() + TAB_SCROLL_SETTLE_MAX_MS;
+
+      const settle = () => {
+        if (strip.scrollLeft > 1 && Date.now() < deadline) {
+          this._flashFrame = requestAnimationFrame(settle);
+
+          return;
+        }
+
+        this.flashTabId = key;
+        this._flashTimer = setTimeout(() => {
+          this.flashTabId = null;
+        }, TAB_FLASH_MS);
+      };
+
+      settle();
+    },
+
+    /**
+     * Shut whichever tab's menu is open.
+     *
+     * The menu is positioned against its tab, so anything that moves the tab out from under it -
+     * the strip scrolling, or the tab itself being picked up - leaves the menu pointing at
+     * nothing. Closing it is the honest answer.
+     */
+    closeTabMenus() {
+      this.openTabMenuId = null;
     },
 
     /**
@@ -1165,6 +1589,9 @@ export default {
       this.persist(this.savedViews.concat([copy]));
       this.applyView(copy);
       this.focusTab(copy.id, true);
+      // A copy is named after the thing it was copied from, which is never what you wanted it
+      // called - so the name is already open for typing by the time the tab is in front of you
+      this.$nextTick(() => this.openRename(copy));
     },
 
     duplicateCurrent() {
@@ -1181,6 +1608,26 @@ export default {
      */
     setDefaultView(tab) {
       this.persistAll(this.savedViews, tab.isDefaultTab ? null : tab.view?.id || null);
+
+      // The tab has just been moved to the head of the strip, which is no use if the strip is
+      // scrolled somewhere else - so the strip goes back to the start to show it happening,
+      // whether or not the tab that moved is the one being looked at.
+      //
+      // And then the tab itself is flashed, once the strip has stopped: a strip that jumps to its
+      // start on its own says nothing about why, and the mark is the one a dragged tab wears, so
+      // it reads as "this one" rather than as something new to learn.
+      const key = tabKey(tab.isDefaultTab ? { id: null } : { id: tab.view?.id });
+
+      this.$nextTick(() => {
+        const strip = this.$refs.tabStrip;
+
+        if (!strip) {
+          return;
+        }
+
+        strip.scrollTo({ left: 0, behavior: 'smooth' });
+        this.flashTabWhenScrolled(strip, key);
+      });
     },
 
     /** Is this the tab the list opens on? With nothing set, that is the default tab */
@@ -1302,11 +1749,17 @@ export default {
       <div
         ref="tabStrip"
         class="view-tabs"
+        @scroll="closeTabMenus"
       >
         <!-- One tab stop for the whole strip, the way the product's own tabs work: the arrows walk
              it, Tab leaves it for Add View. -->
-        <div
+        <!-- The tabs reorder under the pointer on the TransitionGroup's own FLIP move, the same
+             way the column picker's rows do. -->
+        <TransitionGroup
+          tag="div"
+          name="view-tab"
           class="view-tabs-list"
+          :class="{ 'is-reordering': tabDragId !== null }"
           role="tablist"
           :aria-label="t('tableViews.tabs.label')"
         >
@@ -1315,7 +1768,12 @@ export default {
             :key="tab.id || 'all'"
             :ref="`tab-wrap-${ tab.id }`"
             class="view-tab-wrap"
-            :class="{ active: selectedViewId === tab.id }"
+            :class="{
+              active: selectedViewId === tab.id,
+              held: tabDragId === (tab.id || 'all'),
+              flash: flashTabId === (tab.id || 'all'),
+            }"
+            @mousedown="startTabDrag(tab, $event)"
           >
             <!-- Renaming happens on the tab itself, so the name is edited where it is read. The
                  default tab is excluded outright: it has no name of its own to change, and its id is
@@ -1363,6 +1821,7 @@ export default {
                  positioned against the tab: flush with the start of the name and 9 below the line the
                  tab draws under itself. -->
             <rc-dropdown
+              :open="openTabMenuId === (tab.id || 'all')"
               :placement="'bottom-start'"
               :distance="9"
               :reference-node="() => tabWrap(tab)"
@@ -1493,7 +1952,7 @@ export default {
               </template>
             </rc-dropdown>
           </div>
-        </div>
+        </TransitionGroup>
 
         <button
           type="button"
@@ -1515,6 +1974,7 @@ export default {
         <TableViewQueryInput
           :value="view.query"
           :fields="fields"
+          :filter-fields="filterFields"
           :rows="rows"
           :field-values="fieldValues"
           @update:value="update({ query: $event })"
@@ -1533,19 +1993,28 @@ export default {
           role="alert"
           :data-testid="queryStatus === 'error' ? 'table-views-query-problem' : 'table-views-unsupported'"
         >
-          <!-- The circle, not the triangle: the design draws the message with the same round
-               mark the notification centre gives a warning. -->
+          <!-- Both marks come from the same drawn-outline set, so the two things the box can
+               say about itself read as one kind of message - `icon-info` is a filled bubble and
+               stood out as something else entirely beside the warning. -->
           <i
             class="icon"
-            :class="queryStatus === 'error' ? 'icon-notify-warning' : 'icon-info'"
+            :class="queryStatus === 'error' ? 'icon-notify-warning' : 'icon-notify-info'"
           />
           <span v-clean-html="queryStatusMessage" />
         </p>
       </div>
 
       <!-- Single "View" popup - Group by and Columns each open their own nested dropdown
-           beside the row, GitHub style. -->
-      <rc-dropdown :placement="'bottom-end'">
+           beside the row, GitHub style.
+
+           `shift` off, here and on both sub menus. Left on, the menus slide sideways to stay
+           inside the window, so narrowing it walked them out from under the button that opened
+           them while the button itself stayed put on the toolbar's own minimum. They belong to
+           the button: if the window is too narrow for them, the page scrolls to them. -->
+      <rc-dropdown
+        :placement="'bottom-end'"
+        :shift="false"
+      >
         <rc-dropdown-trigger
           variant="tertiary"
           class="view-control-btn"
@@ -1567,9 +2036,11 @@ export default {
                  a sub menu belongs alongside the menu, top with top. -->
             <rc-dropdown-item
               :close-on-click="false"
+              :class="{ 'owns-sub-menu': subMenu === 'group' && subMenuHovered }"
               data-testid="table-views-view-group"
-              @mouseenter="subMenu = 'group'"
-              @click="subMenu = 'group'"
+              @mouseenter="hoverSubMenu('group')"
+              @mouseleave="cancelSubMenuSwitch()"
+              @click="openSubMenu('group')"
             >
               {{ t('tableViews.view.groupBy') }}
               <template #after>
@@ -1583,18 +2054,23 @@ export default {
               :distance="-1"
               :skidding="-11"
               :flip="false"
+              :shift="false"
               :reference-node="() => $refs.viewMenu"
               @update:open="(open) => closeSubMenu('group', open)"
             >
               <template #dropdownCollection>
-                <div class="menu-panel">
+                <div
+                  class="menu-panel"
+                  @mouseenter="enterSubMenu()"
+                  @mouseleave="subMenuHovered = false"
+                >
                   <rc-dropdown-item
                     v-for="option in groupOptions"
                     :key="option.id || 'none'"
                     :class="{ selected: option.id === view.groupBy }"
                     :close-on-click="false"
                     :data-testid="`table-views-group-${ option.id || 'none' }`"
-                    @click="setGroupBy(option.id)"
+                    @click="toggleGroupBy(option.id)"
                   >
                     {{ option.label }}
                     <template
@@ -1619,9 +2095,11 @@ export default {
 
             <rc-dropdown-item
               :close-on-click="false"
+              :class="{ 'owns-sub-menu': subMenu === 'columns' && subMenuHovered }"
               data-testid="table-views-view-columns"
-              @mouseenter="subMenu = 'columns'"
-              @click="subMenu = 'columns'"
+              @mouseenter="hoverSubMenu('columns')"
+              @mouseleave="cancelSubMenuSwitch()"
+              @click="openSubMenu('columns')"
             >
               {{ t('tableViews.view.columnsConfiguration') }}
               <template #after>
@@ -1635,6 +2113,7 @@ export default {
               :distance="-1"
               :skidding="-11"
               :flip="false"
+              :shift="false"
               :reference-node="() => $refs.viewMenu"
               @update:open="(open) => closeSubMenu('columns', open)"
             >
@@ -1642,6 +2121,8 @@ export default {
                 <div
                   ref="columnsPanel"
                   class="menu-panel columns-panel"
+                  @mouseenter="enterSubMenu()"
+                  @mouseleave="subMenuHovered = false"
                 >
                   <!-- The list reorders live under the cursor and the rows shuffle on the
                        TransitionGroup's own FLIP move, the same way the pinned shelf does -->
@@ -1713,8 +2194,10 @@ export default {
             <rc-dropdown-separator />
             <rc-dropdown-item
               class="menu-reset"
+              :close-on-click="false"
               data-testid="table-views-reset"
-              @mouseenter="subMenu = null"
+              @mouseenter="hoverSubMenu(null)"
+              @mouseleave="cancelSubMenuSwitch()"
               @click="resetView"
             >
               {{ t('tableViews.view.reset') }}
@@ -1788,6 +2271,13 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+// Lifting and settling, and the shuffle of whatever is going past - the same curves and timings
+// the pinned shelf in the side nav uses, so a drag feels the same wherever it is done. At the top
+// of the sheet because both the column rows and the view tabs are dragged, and a variable declared
+// inside one selector's block cannot be seen from another's.
+$drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
+$drag-drop-curve: cubic-bezier(0.2, 1, 0.1, 1);
+
 // An icon beside a label is drawn smaller than the square it occupies, so the labels sit in the
 // same place whichever icon they are next to. The glyph is centred in that square both ways
 // rather than left to the line box, whose metrics are the icon font's own.
@@ -1802,10 +2292,30 @@ export default {
   line-height: 1;
 }
 
+// How narrow the toolbar is allowed to get.
+//
+// Two things want room, and the wider of them wins. The row itself needs the filter box at its
+// own minimum (240), the gap (16) and the View button (80) - 336, without which the box carried
+// on shrinking until it ran underneath the button. And the View menu needs to be able to open:
+// it hangs off the button's right edge, 300 wide, with its sub menus opening another 240 to the
+// left of it, and it does not flip to the other side when it runs out of room - it just goes
+// under the nav, which is where the Group By list went on a narrow window.
+//
+// So the floor is that pair - 540, plus the 1px the menu sits inside the button's right edge,
+// rounded up to the 8 the rest of the spacing works on. The table beside it already scrolls
+// sideways, so there is somewhere for this to go.
+//
+// Written out rather than measured because the two rows of the toolbar are separate rows of the
+// masthead grid, and a grid row cannot take its width from a sibling. The row that holds the box
+// carries `min-content` as well, so a language with a longer word than "View" still gets a row
+// wide enough - it just grows past this.
+$toolbar-min-width: 544px;
+
 .table-views {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: $toolbar-min-width;
 
   // Both parts are grid items in the table masthead, so they own neither the gap nor the margin
   &.part-controls,
@@ -1815,9 +2325,19 @@ export default {
     width: 100%;
   }
 
+  // The floor for the whole toolbar. `min-content` rather than a number: it comes out as the
+  // filter box at its own minimum, the gap, and the View button at whatever its label needs -
+  // so it is right in every language rather than right in this one.
+  //
+  // Both parts are `width: 100%` of the same masthead column, so the tabs strip above takes the
+  // same floor from this without being told. Without it the row kept shrinking after the box had
+  // stopped, and the box carried on underneath the View button instead of the page admitting it
+  // had run out of room. The table beside it already scrolls sideways, so there is somewhere for
+  // this to go.
   &.part-controls .view-controls {
     flex-wrap: nowrap;
     width: 100%;
+    min-width: min-content;
   }
 
   // Holds the rule the tabs sit on, so it runs the full width whatever the strip inside is doing
@@ -1876,8 +2396,101 @@ export default {
     }
   }
 
+  // Only while a tab is actually being carried. TransitionGroup's FLIP writes a transform
+  // whenever the tabs look to have moved - which they do every time the strip is rebuilt, a view
+  // is renamed or a count changes - so easing it the rest of the time slid the whole strip about
+  // for reasons that had nothing to do with dragging.
+  .view-tabs-list.is-reordering {
+    cursor: grabbing;
+
+    .view-tab-move {
+      transition: transform 0.2s $drag-displace-curve;
+    }
+
+    .view-tab,
+    .view-tab-caret,
+    .view-tab-wrap {
+      cursor: grabbing;
+    }
+
+    // The one under the pointer leads: it travels over the tabs it is passing rather than through
+    // them. Lifted the same way the column picker lifts a held row - the product's own tint, a
+    // little bigger, and a shadow under it - so a drag looks the same wherever it is done.
+    // The same lift the app bar's pinned shelf and the column list both use, so a drag looks the
+    // same wherever it is done.
+    //
+    // The one addition is room around the name, given back as margin so the strip does not have
+    // to re-lay itself out around a tab that has grown. Those rows sit in a list and carry their
+    // own padding; a tab is only as wide as its own text, and a tint drawn to that edge reads as
+    // the text being selected rather than as the tab being carried.
+    .view-tab-wrap.held {
+      position: relative;
+      z-index: 1;
+      transform: scale(1.02);
+      transition: transform 0.2s $drag-displace-curve;
+
+      // The active tab's rule would otherwise run across the bottom of the tint it is now sitting in
+      border-bottom-color: transparent;
+
+      // Painted behind the tab rather than given to it as padding. Padding and a negative margin
+      // leave the strip's layout alone but not the tab's own box, which started 12px further
+      // left the instant it was picked up - and the move transition eased it there, which is the
+      // flick you saw on grabbing. Nothing here changes the box, so there is nothing to ease.
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0 -12px;
+        z-index: -1;
+        border-radius: var(--border-radius);
+        background: color-mix(in srgb, var(--primary) 14%, transparent);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+      }
+    }
+  }
+
+  // Saying "this one, here" after the strip has run back to its start on its own. The same card a
+  // dragged tab wears, pulsed once - a mark already learned rather than a new one to read.
+  // Arriving at the head of the strip, drawn the way the app bar draws a cluster arriving on the
+  // pinned shelf: in from the left, with a wash of the same colour draining off it. Same curves,
+  // same timings, same tint - a strip that has just run back to its start is saying "this one",
+  // which is the thing the shelf says when something lands on it.
+  @keyframes view-tab-arrive {
+    0%   { opacity: 0; transform: translateX(-6px) scale(0.985); }
+    100% { opacity: 1; transform: none; }
+  }
+
+  @keyframes view-tab-wash {
+    0%   { background: color-mix(in srgb, var(--primary) 15%, transparent); }
+    100% { background: transparent; }
+  }
+
+  .view-tab-wrap.flash {
+    position: relative;
+    animation: view-tab-arrive 0.16s ease-out;
+
+    // Behind the tab, for the same reason the held one is - a mark that moved the tab as it
+    // landed would be answering "why did this move" by moving it again
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0 -12px;
+      z-index: -1;
+      border-radius: var(--border-radius);
+      animation: view-tab-wash 0.6s ease-out;
+    }
+  }
+
+  // Someone who has asked not to be moved about keeps the wash and loses the travel
+  @media (prefers-reduced-motion: reduce) {
+    .view-tab-wrap.flash {
+      animation: none;
+    }
+  }
+
   // A tab and its caret menu, sharing one active underline
   .view-tab-wrap {
+    // Dragging one would otherwise select the names it passes over
+    user-select: none;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1887,7 +2500,16 @@ export default {
     // The tab is the name and the chevron together - one thing to the eye, and one thing to the
     // keyboard now that the strip is a single tab stop. So the ring goes round the pair rather
     // than round whichever of them happens to hold the focus.
-    &:has(:focus-visible) {
+    //
+    // Two exceptions, and both are about what the ring is for - saying where the keyboard is.
+    //
+    // The chevron is `tabindex="-1"`, so the keyboard never arrives on it: anything that focuses
+    // it is its own menu handing focus back on the way out, which is not somewhere the user has
+    // navigated to. Ringing the tab then drew a keyboard mark around a tab that had been clicked.
+    //
+    // And renaming: the field is its own control with a border of its own, so ringing the whole
+    // tab around it drew attention to the tab rather than to the thing being typed into.
+    &:has(> .view-tab:focus-visible):not(:has(.rename-input)) {
       @include focus-outline;
       outline-offset: 1px;
       border-radius: var(--border-radius);
@@ -1895,9 +2517,16 @@ export default {
 
     // The wrap draws the ring for the pair, so neither half draws one of its own. Only the halves
     // inside a wrap: Add View wears the same class and has no wrap, so it keeps its own ring.
+    //
+    // `!important`, and `:focus` as well as `:focus-visible`: the chevron is an RcButton, whose
+    // own rule (`&:focus-visible { @include focus-outline; outline-offset: 2px; }`) carries the
+    // component's scope attribute and so outranks anything reachable from out here - which is
+    // what put a blue ring around the chevron alone when it was clicked.
+    .view-tab:focus,
     .view-tab:focus-visible,
+    .view-tab-caret:focus,
     .view-tab-caret:focus-visible {
-      outline: none;
+      outline: none !important;
     }
 
     // The same colours the tabs elsewhere in the product use: every tab reads as a link, and the
@@ -1958,6 +2587,20 @@ export default {
       color: var(--input-text);
       font: inherit;
       outline: none;
+
+      // It is the thing being typed into, so it carries its own ring rather than borrowing the
+      // tab's - which put a second, larger outline around a field that already has a border.
+      //
+      // `!important`, and written out rather than taken from the mixin, for the same reason the
+      // cluster switcher's search box does it: the app's rule for text inputs
+      // (`input[type="text"]:focus:not(…):not(…):not(…)`) sets `outline: none` at a specificity
+      // nothing reachable from in here can beat, and the mixin no longer carries one - so the
+      // ring was being declared and then thrown away. Inset by a pixel so it sits on the field's
+      // own border rather than outside it.
+      &:focus-visible {
+        outline: 2px solid var(--primary-keyboard-focus) !important;
+        outline-offset: -1px;
+      }
     }
 
     // Standing in the tab row, it reads as a link the way the tabs beside it do
@@ -2028,6 +2671,10 @@ export default {
   // words in the colour that says how to take them, and no box of its own - a tint and a rule
   // would make one line about what was typed read like a notice about the page.
   //
+  // One colour for both things the box can say, because both are the same news: what you typed
+  // is not what is being answered. Written in body text the ignored-field line read as a caption
+  // about the list rather than as something about the query.
+  //
   // `--error` and not one of the warning colours. The warm ones the product already holds are
   // each built for a background rather than for words: `--warning` is the yellow a warning is
   // drawn on (1.26:1 over the toolbar) and `--rc-warning` is the brown written on that yellow,
@@ -2038,13 +2685,9 @@ export default {
     align-items: center;
     gap: 8px;
     margin: 0;
-    color: var(--body-text);
+    color: var(--error);
     font-size: 12px;
     line-height: 16px;
-
-    &.error {
-      color: var(--error);
-    }
 
     .icon {
       flex: none;
@@ -2138,6 +2781,14 @@ export default {
   // RcDropdownItem, so these menus are the same as the row action menu and each other - only the
   // width below is ours, so the labels have room beside the values they sit against.
 
+  // The one exception, and it is about where you are rather than how a row looks: while the
+  // pointer is inside a sub menu it is over none of the rows here, so the row that opened it
+  // would go dark and the menu would stop saying which of them you are in. It keeps the same
+  // highlight hovering gives, so the hand back is invisible.
+  :deep([dropdown-menu-item].owns-sub-menu) {
+    background-color: var(--dropdown-hover-bg);
+  }
+
   // A row with no icon still holds the space one would take, so every label in a menu starts in
   // the same place. Not called anything with `icon-` in it: the icon font claims
   // `[class*=" icon-"]` with an !important and would set the whole row in it.
@@ -2224,11 +2875,6 @@ export default {
     color: var(--active, var(--primary));
   }
 
-
-  // Lifting and settling, and the shuffle of the rows going past - the same curves and timings the
-  // pinned shelf in the side nav uses, so a drag feels the same wherever it is done
-  $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
-  $drag-drop-curve: cubic-bezier(0.2, 1, 0.1, 1);
 
   // TransitionGroup's own FLIP move. Re-timed only while a drag is actually in progress, so the
   // rows travel with the held one rather than teleporting into their new slots.
@@ -2320,6 +2966,8 @@ export default {
     }
 
     // The row being carried, lifted off the list the way a dragged shelf row is
+    // Lifted exactly the way the app bar's pinned shelf lifts a row it is carrying - the same
+    // tint, scale, shadow and timings - so a drag looks the same everywhere in the product.
     &.held {
       position: relative;
       z-index: 1;
