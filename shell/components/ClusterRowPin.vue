@@ -29,7 +29,7 @@ const pinnable = computed(() => pinnableCluster(props.cluster));
   // control wherever it is: primary once pinned, muted while it is only on offer. Matched on the
   // control's own `.icon` class as well, which outweighs its `color: inherit` without `!important`.
   .cluster-row-pin.icon {
-    margin-left: 6px;
+    margin-left: 8px;
     opacity: 0;
     color: var(--muted);
     transition: opacity 0.1s ease;
