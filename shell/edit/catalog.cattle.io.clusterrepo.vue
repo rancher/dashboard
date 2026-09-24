@@ -1,4 +1,7 @@
 <script lang="ts">
+import { useStore } from 'vuex';
+import { useFormValidation } from '@shell/composables/useFormValidation';
+import { useI18n } from '@shell/composables/useI18n';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import AsyncButton from '@shell/components/AsyncButton.vue';
 import Footer from '@shell/components/form/Footer.vue';
@@ -42,6 +45,38 @@ export default {
   },
 
   mixins: [CreateEditView],
+
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+    const { getRules, isFormValid } = useFormValidation(
+      t,
+      [
+        {
+          path:           'metadata.name',
+          rules:          ['required'],
+          translationKey: 'nameNsDescription.name.label',
+        },
+        {
+          path:           'gitRepo',
+          rules:          ['required'],
+          translationKey: 'catalog.repo.gitRepo.label',
+        },
+        {
+          path:           'helmUrl',
+          rules:          ['required'],
+          translationKey: 'catalog.repo.url.label',
+        },
+        {
+          path:           'ociUrl',
+          rules:          ['required'],
+          translationKey: 'catalog.repo.oci.urlLabel',
+        },
+      ]
+    );
+
+    return { getRules, isFormValid };
+  },
 
   data() {
     // Determine the cluster repo type based on existing values (for edit mode)
@@ -321,6 +356,8 @@ export default {
       :mode="mode"
       :namespaced="isNamespaced"
       :name-col-span="6"
+      name-field-name="metadata.name"
+      :rules="{ name: getRules('metadata.name'), namespace: [], description: [] }"
       @update:value="$emit('input', $event)"
     />
 
@@ -340,7 +377,9 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model:value.trim="value.spec.gitRepo"
+            name="gitRepo"
             :required="true"
+            :rules="getRules('gitRepo')"
             :label="t('catalog.repo.gitRepo.label')"
             :placeholder="t('catalog.repo.gitRepo.placeholder', {}, true)"
             :mode="mode"
@@ -363,7 +402,9 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model:value.trim="value.spec.url"
+            name="ociUrl"
             :required="true"
+            :rules="getRules('ociUrl')"
             :label="t('catalog.repo.oci.urlLabel')"
             :placeholder="t('catalog.repo.oci.placeholder', {}, true)"
             :mode="mode"
@@ -376,7 +417,9 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model:value.trim="value.spec.url"
+            name="ociUrl"
             :required="true"
+            :rules="getRules('ociUrl')"
             :label="t('catalog.repo.oci.urlLabel')"
             :placeholder="t('catalog.repo.oci.placeholder', {}, true)"
             :mode="mode"
@@ -392,7 +435,9 @@ export default {
       >
         <LabeledInput
           v-model:value.trim="value.spec.url"
+          name="helmUrl"
           :required="true"
+          :rules="getRules('helmUrl')"
           :label="t('catalog.repo.url.label')"
           :placeholder="t('catalog.repo.url.placeholder', {}, true)"
           :mode="mode"
@@ -545,6 +590,7 @@ export default {
       data-testid="clusterrepo-footer"
       :mode="mode"
       :errors="errors"
+      :disable-save="!isFormValid"
       @save="save"
       @done="done"
     >
@@ -554,6 +600,7 @@ export default {
       >
         <AsyncButton
           :action-label="t('catalog.repo.add')"
+          :disabled="!isFormValid"
           @click="save"
         />
       </template>
