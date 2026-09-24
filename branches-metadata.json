@@ -119,7 +119,7 @@
     "release-2.11": {
       "milestone": {
         "version": "v2.11.19",
-        "codeFreeze": false
+        "codeFreeze": true 
       },
       "e2e": {
         "rancher-image": {
