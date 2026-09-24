@@ -63,8 +63,6 @@ export default {
       requestFilters: {
         filters:              [],
         projectsOrNamespaces: [],
-        // Filters from the table views toolbar (server-side). These are PaginationParamFilter[]
-        tableView:            [],
       },
 
       paginationFromList: null,
@@ -93,7 +91,7 @@ export default {
 
       this.paginationFromList = event;
       const {
-        page, perPage, filter, sort, descending
+        page, perPage, filter, sort, descending, viewFilters
       } = event;
       const stateFilters = parseStateFilter(this.$route?.query?.stateFilter) || [];
       const searchFilters = filter.searchQuery ? filter.searchFields.map((field) => new PaginationFilterField({
@@ -114,7 +112,7 @@ export default {
           new PaginationParamFilter({ fields: searchFilters }),
           new PaginationParamFilter({ fields: stateFilters }),
           ...this.requestFilters.filters, // Apply the additional filters. these aren't from the user but from ns filtering
-          ...this.requestFilters.tableView, // Table views toolbar filters (AND'd with everything else)
+          ...(viewFilters || []), // Table views toolbar filters (AND'd with everything else)
         ]
       });
 
@@ -144,17 +142,6 @@ export default {
      *
      * @param {PaginationParamFilter[]} filters
      */
-    setTableViewFilters(filters) {
-      this.requestFilters.tableView = filters || [];
-
-      if (this.paginationFromList) {
-        this.paginationFromList = {
-          ...this.paginationFromList,
-          page: 1,
-        };
-      }
-    },
-
     calcCanPaginate() {
       if (!this.resource) {
         return false;
@@ -360,10 +347,6 @@ export default {
     },
 
     'requestFilters.projectsOrNamespaces'() {
-      this.paginationChanged(this.paginationFromList);
-    },
-
-    'requestFilters.tableView'() {
       this.paginationChanged(this.paginationFromList);
     },
 

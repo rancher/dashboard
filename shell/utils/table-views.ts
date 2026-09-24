@@ -360,6 +360,20 @@ export function moveInOrder<T>(order: T[], from: number, to: number): T[] {
   return next;
 }
 
+/**
+ * One of a table's bulk actions, as the table hands them out.
+ *
+ * `icon` is a font class and `svg` a file an extension supplied; a given action has one or the
+ * other. `enabled` is false when the action exists but cannot be run on what is selected.
+ */
+export interface TableAction {
+  action: string;
+  label?: string;
+  icon?: string;
+  svg?: string;
+  enabled?: boolean;
+}
+
 export function findField(fields: ViewField[], id: string): ViewField | undefined {
   if (!id) {
     return undefined;

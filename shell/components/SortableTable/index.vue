@@ -155,6 +155,18 @@ export default {
     },
 
     /**
+     * The view's server side filters, handed down by the table above.
+     *
+     * They ride on `pagination-changed` with the page and the sort rather than on a channel of
+     * their own: they are one more thing that means "this list is asking for something different
+     * now, go and fetch it", which is what that event already says.
+     */
+    viewFilters: {
+      type:    Array,
+      default: () => []
+    },
+
+    /**
      * Lay the masthead out for the table views toolbar: the page's own title and buttons keep
      * the top row, the view tabs take a second, and the filter shares a third with the selection
      * actions. Off by default, so every other table keeps its single row masthead exactly as-is.
@@ -477,6 +489,23 @@ export default {
   },
 
   watch: {
+    /**
+     * A different set of view filters is a different question to ask the api, so the list is told
+     * the same way a page or sort change tells it. Back to the first page with it: the row that
+     * was on page three of the old filter is not on page three of the new one.
+     *
+     * Compared by value - the array is rebuilt whenever the view is, and asking again for filters
+     * that have not actually changed is a wasted round trip.
+     */
+    viewFilters(neu, old) {
+      if (JSON.stringify(neu || []) === JSON.stringify(old || [])) {
+        return;
+      }
+
+      this.setPage(1);
+      this.debouncedPaginationChanged();
+    },
+
     eventualSearchQuery: debounce(function(q) {
       this.searchQuery = q;
 
@@ -1151,8 +1180,9 @@ export default {
           searchFields: this.searchFields,
           searchQuery:  this.searchQuery
         },
-        sort:       this.sortFields,
-        descending: this.descending
+        sort:        this.sortFields,
+        descending:  this.descending,
+        viewFilters: this.viewFilters
       });
     }
   }
