@@ -390,6 +390,8 @@ export const HCI = {
   DASHBOARD:        'harvesterhci.io.dashboard',
   IMAGE:            'harvesterhci.io.virtualmachineimage',
   VGPU_DEVICE:      'devices.harvesterhci.io.vgpudevice',
+  PCI_DEVICE:       'devices.harvesterhci.io.pcidevice',
+  PCI_DEVICE_CLAIM: 'devices.harvesterhci.io.pcideviceclaim',
   SETTING:          'harvesterhci.io.setting',
   RESOURCE_QUOTA:   'harvesterhci.io.resourcequota',
   HARVESTER_CONFIG: 'rke-machine-config.cattle.io.harvesterconfig',
