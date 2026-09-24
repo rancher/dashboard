@@ -1,6 +1,7 @@
-import ResourceTable from '@shell/components/ResourceTable.vue';
+import ResourceTableViews from '@shell/mixins/resource-table-views';
 
-const { summaryBaseUrl, listScopeFilters, listScopeNamespaces } = (ResourceTable as any).computed;
+// The table views half of ResourceTable is its own mixin, so that is where these live
+const { summaryBaseUrl, listScopeFilters, listScopeNamespaces } = (ResourceTableViews as any).computed;
 
 describe('ResourceTable', () => {
   describe('summaryBaseUrl', () => {
