@@ -951,12 +951,16 @@ export function serverPathFor(field: ViewField): string | string[] | null {
   // An explicit `search` is the column saying what it is searched on, so it wins. The cluster
   // list is the one that matters: its name column searches `spec.displayName`, because a
   // management cluster's `metadata.name` is an id (`c-m-zv88n64p`) and never what is on screen.
-  if (typeof header?.search === 'string') {
+  if (typeof header?.search === 'string' && header.search) {
     return header.search;
   }
 
   if (Array.isArray(header?.search)) {
-    return header.search;
+    const paths = header.search.filter((path: unknown) => typeof path === 'string' && path);
+
+    if (paths.length) {
+      return paths;
+    }
   }
 
   // Then the handful of ids we know the canonical path for, which covers the columns that say
@@ -969,7 +973,11 @@ export function serverPathFor(field: ViewField): string | string[] | null {
     return null;
   }
 
-  if (typeof header.value === 'string') {
+  // Only a path that actually names something. A column drawn entirely by a formatter carries
+  // `value: ''` - the cluster list's CPU, Memory and Pods all do - and handing that back as a
+  // path had them offered as things the list could be filtered by, on a filter naming no field
+  // at all.
+  if (typeof header.value === 'string' && header.value) {
     return header.value;
   }
 
