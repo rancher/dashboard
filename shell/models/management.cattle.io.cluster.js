@@ -4,7 +4,7 @@ import {
   NORMAN,
   HCI
 } from '@shell/config/types';
-import { insertAt, removeObject, uniq } from '@shell/utils/array';
+import { insertAt, uniq } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
@@ -16,7 +16,7 @@ import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KEV1 } from './management.cattle.io.kontainerdriver';
 import { requireAsset } from '@shell/utils/require-asset';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
-import { commitAndReconcile } from '@shell/utils/cluster-pref-writer';
+import { commitAndReconcile, setPinned } from '@shell/utils/cluster-pref-writer';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
@@ -669,6 +669,14 @@ export default class MgmtCluster extends SteveModel {
    * cluster, so the ids need to be de-duplicated (spec.clusters is a set)
    */
   kubeConfigClusterIds(items = []) {
+    return this.mgmtClusterIds(items);
+  }
+
+  /**
+   * The unique management cluster ids behind a set of selected rows, whichever kind of cluster row was
+   * selected: a cluster management row hands over a provisioning cluster.
+   */
+  mgmtClusterIds(items = []) {
     return uniq(items.map((item) => item.mgmt?.id || item.id).filter((id) => !!id));
   }
 
@@ -821,18 +829,7 @@ export default class MgmtCluster extends SteveModel {
    * serialized writer so this write can't race the store's cluster-navigation write and 409.
    */
   pin() {
-    return commitAndReconcile(this.clusterPrefDispatch, [{
-      key:   PINNED_CLUSTERS,
-      apply: (pinned) => {
-        const current = Array.isArray(pinned) ? pinned : [];
-
-        // At the TOP of the shelf, which renders this pref in order. A cluster is pinned to keep it to
-        // hand, so it goes where the hand is — appending buried each new pin under everything pinned
-        // before it, furthest from the pointer and first to be scrolled out of a long shelf.
-        // Re-pinning an already-pinned cluster moves it up rather than duplicating it.
-        return [this.id, ...current.filter((id) => id !== this.id)];
-      },
-    }]);
+    return this.pinBulk([this]);
   }
 
   /**
@@ -843,16 +840,17 @@ export default class MgmtCluster extends SteveModel {
    * cluster-navigation write and 409.
    */
   unpin() {
-    return commitAndReconcile(this.clusterPrefDispatch, [{
-      key:   PINNED_CLUSTERS,
-      apply: (pinned) => {
-        const next = [...(Array.isArray(pinned) ? pinned : [])];
+    return this.unpinBulk([this]);
+  }
 
-        removeObject(next, this.id);
+  /** Pin every cluster in the selection, in one write. */
+  pinBulk(clusters) {
+    return commitAndReconcile(this.clusterPrefDispatch, [setPinned(this.mgmtClusterIds(clusters), true)]);
+  }
 
-        return next;
-      },
-    }]);
+  /** Unpin every cluster in the selection, in one write. */
+  unpinBulk(clusters) {
+    return commitAndReconcile(this.clusterPrefDispatch, [setPinned(this.mgmtClusterIds(clusters), false)]);
   }
 
   get canExplore() {

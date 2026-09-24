@@ -2019,6 +2019,8 @@ cluster:
   explore: Explore
   importAction: Import Existing
   manageAction: Manage
+  pinAction: Pin Cluster
+  unpinAction: Unpin Cluster
   kubeConfig:
     error:
       title: Unable to generate KubeConfig

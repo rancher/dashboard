@@ -57,6 +57,21 @@ export const movePinned = (id: string, index: number, onShelf: string[]): Mutati
   },
 });
 
+/**
+ * Pin or unpin clusters in ONE write, whatever the count — a bulk action over a selection must not
+ * queue a round-trip per row. New pins go to the TOP of the shelf, in the order given, and re-pinning
+ * a cluster moves it up rather than duplicating it: a cluster is pinned to keep it to hand, so it
+ * goes where the hand is.
+ */
+export const setPinned = (ids: string[], pinned: boolean): Mutation => ({
+  key:   PINNED_CLUSTERS,
+  apply: (current) => {
+    const rest = (Array.isArray(current) ? current : []).filter((id) => !ids.includes(id));
+
+    return pinned ? [...ids, ...rest] : rest;
+  },
+});
+
 // Declared locally so this writer stays free of component/composable imports.
 type Translate = (key: string, args?: unknown, raw?: boolean) => string;
 // The store rather than a bare `dispatch`, so the lookup stays inside the failure branch — callers mount
