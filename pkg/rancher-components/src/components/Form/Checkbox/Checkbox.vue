@@ -383,11 +383,10 @@ $fontColor: var(--input-label);
   display: inline-flex;
   flex-direction: column;
   &-description {
-    color: $fontColor;
+    color: var(--deemphasized);
     font-size: 12px;
     margin-left: 19px;
     margin-top: 4px;
-    opacity: 0.8;
   }
   &-extra {
     font-size: 14px;
