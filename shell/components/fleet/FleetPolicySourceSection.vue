@@ -47,6 +47,17 @@ const setField = (field: keyof FleetPolicySource, value: string | string[]) => {
 const allowedSecrets = computed(() => (props.value[secretFields.value.allowed] as string[]) || []);
 const restricted = defineModel<boolean>('restricted', { default: false });
 
+const optionName = (option: FleetPolicyNameOption) => (typeof option === 'string' ? option : option.value);
+
+/**
+ * A select in the dashboard has no clear button, so a default that has been set is unset by
+ * picking None. Its null value never matches the stored name, so the field falls back to its
+ * placeholder once it is chosen.
+ */
+const withNone = (options: FleetPolicyNameOption[]) => [{ label: t('generic.none'), value: null }, ...options];
+
+const defaultServiceAccountOptions = computed(() => withNone(props.serviceAccountOptions));
+
 const defaultServiceAccount = computed({
   get: () => props.value.defaultServiceAccount || '',
   set: (val: string) => {
@@ -58,6 +69,20 @@ const defaultSecret = computed({
   get: () => (props.value[secretFields.value.default] as string) || '',
   set: (val: string) => setField(secretFields.value.default, val || ''),
 });
+
+// A name the policy would reject is not worth offering, so once the secrets are restricted the
+// default is chosen from the allowed ones - including any allowed name that has no secret yet
+const defaultSecretOptions = computed(() => {
+  if (!restricted.value) {
+    return props.secretOptions;
+  }
+
+  return allowedSecrets.value.map((name) => {
+    return props.secretOptions.find((option) => optionName(option) === name) || { label: name, value: name };
+  });
+});
+
+const defaultSecretSelectOptions = computed(() => withNone(defaultSecretOptions.value));
 
 const restrictOptions = computed(() => [
   { value: false, label: t(`${ prefix.value }.restrict.all`) },
@@ -94,7 +119,7 @@ const createOption = (name: string) => ({ label: name, value: name });
         <div class="col span-6 policy-field">
           <LabeledSelect
             v-model:value="defaultServiceAccount"
-            :options="props.serviceAccountOptions"
+            :options="defaultServiceAccountOptions"
             :label="t(`${ prefix }.defaultServiceAccount.label`)"
             :placeholder="t('fleet.policy.placeholder.serviceAccount')"
             :mode="props.mode"
@@ -133,7 +158,7 @@ const createOption = (name: string) => ({ label: name, value: name });
         <div class="col span-6 policy-field">
           <LabeledSelect
             v-model:value="defaultSecret"
-            :options="props.secretOptions"
+            :options="defaultSecretSelectOptions"
             :label="t(`${ prefix }.defaultSecret.label`)"
             :placeholder="t('fleet.policy.placeholder.secret')"
             :mode="props.mode"
