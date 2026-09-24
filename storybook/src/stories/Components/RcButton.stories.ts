@@ -1,15 +1,20 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { RcButton } from '@components/RcButton';
-import { ButtonVariant, ButtonSize } from '@components/RcButton/types';
+import { ButtonVariant, ButtonSize, ButtonSeverity } from '@components/RcButton/types';
 import { RcIconTypeToClass } from '@components/RcIcon/types';
 
 const meta: Meta<typeof RcButton> = {
   component: RcButton,
   argTypes:  {
     variant: {
-      options:     ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost', 'destructive'] as ButtonVariant[],
+      options:     ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'] as ButtonVariant[],
       control:     { type: 'select' },
-      description: 'Determines the visual style and purpose of the button. Primary for main actions, secondary for supporting actions, tertiary for less prominent actions, link for navigation, multiAction for dropdown buttons, ghost for transparent buttons, and destructive for destructive actions.'
+      description: 'Determines the visual style and purpose of the button. Primary for main actions, secondary for supporting actions, tertiary for less prominent actions, link for navigation, multiAction for dropdown buttons, and ghost for transparent buttons.'
+    },
+    severity: {
+      options:     [undefined, 'destructive'] as (ButtonSeverity | undefined)[],
+      control:     { type: 'select' },
+      description: 'Colours the button for a destructive action, independently of the variant.'
     },
     size: {
       options:     ['small', 'medium', 'large'] as ButtonSize[],
@@ -59,7 +64,7 @@ export const AllVariants: Story = {
   render: () => ({
     components: { RcButton },
     setup() {
-      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost', 'destructive'];
+      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'];
 
       return { variants };
     },
@@ -90,7 +95,7 @@ export const DisabledVariants: Story = {
   render: () => ({
     components: { RcButton },
     setup() {
-      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost', 'destructive'];
+      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'];
 
       return { variants };
     },

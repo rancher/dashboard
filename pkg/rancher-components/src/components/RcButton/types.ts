@@ -9,10 +9,16 @@ export type RcButtonType = {
   focus: () => void;
 }
 
-export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'link' | 'multiAction' | 'ghost' | 'destructive';
+export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'link' | 'multiAction' | 'ghost';
+
+export type ButtonSeverity = 'destructive';
 
 export type ButtonVariantNewProps = {
   variant?: ButtonVariant;
+}
+
+export type ButtonSeverityProps = {
+  severity?: ButtonSeverity;
 }
 
 /**
