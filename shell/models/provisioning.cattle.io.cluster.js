@@ -13,6 +13,7 @@ import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { SETTING } from '@shell/config/settings';
 import { createOperationCR } from '@shell/utils/operation-cr';
+import { reportPinWriteFailure } from '@shell/utils/cluster-pref-writer';
 import jsyaml from 'js-yaml';
 import { defineAsyncComponent, markRaw } from 'vue';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
@@ -609,20 +610,32 @@ export default class ProvCluster extends SteveModel {
     return this.mgmt?.copyKubeConfigBulk(items);
   }
 
+  /**
+   * A failed preference write RESOLVES with `{ type, status }` rather than throwing, and the optimistic
+   * pin is already on screen by then — so every surface that pins has to surface it. The row's own pin
+   * control does this in `Pinned`; these actions write through the same model and must say it the same
+   * way, or a pin from the row menu or the bulk bar fails in silence.
+   */
+  reportPin(write) {
+    const dispatch = (action, payload) => this.$dispatch(action, payload, { root: true });
+
+    return reportPinWriteFailure({ dispatch }, this.t, write);
+  }
+
   pinCluster() {
-    return this.mgmt?.pin();
+    return this.reportPin(this.mgmt?.pin());
   }
 
   unpinCluster() {
-    return this.mgmt?.unpin();
+    return this.reportPin(this.mgmt?.unpin());
   }
 
   pinClusterBulk(items) {
-    return this.mgmt?.pinBulk(items);
+    return this.reportPin(this.mgmt?.pinBulk(items));
   }
 
   unpinClusterBulk(items) {
-    return this.mgmt?.unpinBulk(items);
+    return this.reportPin(this.mgmt?.unpinBulk(items));
   }
 
   async snapshotAction() {
