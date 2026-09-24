@@ -833,12 +833,12 @@ export default defineComponent({
 
     .conditions-alert-icon {
       color: var(--error);
-      margin-left: 4px;
+      margin-left: 8px;
     }
 
     .rke1-unsupported-icon {
       color: var(--warning);
-      margin-left: 4px;
+      margin-left: 8px;
     }
   }
 
