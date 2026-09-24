@@ -21,6 +21,12 @@ export default {
     container: {
       type:     Object,
       required: true
+    },
+
+    // validators for each mount path
+    rules: {
+      type:    Array,
+      default: () => []
     }
   },
 
@@ -98,6 +104,7 @@ export default {
           :id="`mount-path-${i}`"
           v-model:value="volumeMount.mountPath"
           :mode="mode"
+          :rules="rules"
         />
       </div>
       <div>

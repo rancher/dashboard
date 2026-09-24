@@ -40,7 +40,7 @@ export default {
     isFormValid() {
       const hasContainerErrors = this.allContainers.some(this.hasContainerError);
 
-      return this.fvFormIsValid && !hasContainerErrors;
+      return this.fvFormIsValid && !hasContainerErrors && !this.tabErrors.podStorage && !this.tabErrors.volumeClaimTemplates;
     },
 
     serviceOptions() {
@@ -419,9 +419,11 @@ export default {
               :label="t('workload.storage.title')"
               name="storage"
               :weight="tabWeightMap['storage']"
+              :error="!!tab.error.storage"
             >
               <ContainerMountPaths
                 v-model:container="allContainers[i]"
+                :rules="volumeMountPathRules"
                 :value="podTemplateSpec"
                 :namespace="value.metadata.namespace"
                 :register-before-hook="registerBeforeHook"
@@ -481,7 +483,7 @@ export default {
           :label="t('workload.tabs.labels.pod')"
           :name="'pod'"
           :weight="98"
-          :error="tabErrors.podSecurityContext"
+          :error="tabErrors.podSecurityContext || tabErrors.podStorage || tabErrors.volumeClaimTemplates"
         >
           <Tabbed
             name="podTabs"
@@ -493,11 +495,13 @@ export default {
               :label="t('workload.storage.title')"
               name="storage-pod"
               :weight="tabWeightMap['storage']"
+              :error="tabErrors.podStorage"
               @active="$refs.storage.refresh()"
             >
               <Storage
                 ref="storage"
                 v-model:value="podTemplateSpec"
+                :rules="volumeRules"
                 :namespace="value.metadata.namespace"
                 :register-before-hook="registerBeforeHook"
                 :mode="mode"
@@ -622,10 +626,12 @@ export default {
               :label="t('workload.container.titles.volumeClaimTemplates')"
               name="volumeClaimTemplates-pod"
               :weight="tabWeightMap['volumeClaimTemplates']"
+              :error="tabErrors.volumeClaimTemplates"
             >
               <VolumeClaimTemplate
                 v-model:value="spec"
                 :mode="mode"
+                :mount-path-rules="volumeMountPathRules"
               />
             </Tab>
             <Tab

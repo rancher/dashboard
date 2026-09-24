@@ -17,7 +17,11 @@ export default {
     mode: {
       type:    String,
       default: 'create'
-    }
+    },
+    rules: {
+      type:    Object,
+      default: () => ({})
+    },
   },
 
   computed: { ...mapGetters({ t: 'i18n/t' }) }
@@ -30,6 +34,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="value.name"
+          :rules="rules.name"
           :required="true"
           :mode="mode"
           :label="t('workload.storage.volumeName')"
@@ -47,6 +52,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="value.awsElasticBlockStore.volumeID"
+          :rules="rules['awsElasticBlockStore.volumeID']"
           :required="true"
           :mode="mode"
           :label="t('workload.storage.csi.volumeID')"
