@@ -192,6 +192,29 @@ describe('serverPathFor', () => {
       id: 'restarts', label: 'Restarts', isLabel: false, header: { name: 'restarts' }
     })).toBeNull();
   });
+
+  it('has no path for a column drawn entirely by a formatter', () => {
+    // The cluster list's CPU column is written this way - nothing to read, the formatter works
+    // it out from the row - and an empty string is not a path the api can be asked about
+    expect(serverPathFor({
+      id:      'cpu',
+      label:   'CPU',
+      isLabel: false,
+      header:  {
+        name: 'cpu', value: '', sort: false
+      }
+    })).toBeNull();
+  });
+
+  it('keeps only the paths a search list actually names', () => {
+    expect(serverPathFor({
+      id: 'name', label: 'Name', isLabel: false, header: { search: ['', 'spec.displayName'] }
+    })).toStrictEqual(['spec.displayName']);
+
+    expect(serverPathFor({
+      id: 'cpu', label: 'CPU', isLabel: false, header: { search: [''] }
+    })).toBeNull();
+  });
 });
 
 describe('summaryToValues', () => {
