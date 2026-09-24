@@ -138,11 +138,19 @@ describe('rcButton.vue', () => {
       expect(button.classes()).toContain('variant-ghost');
     });
 
-    it('applies variant-destructive class when variant="destructive"', () => {
-      const wrapper = mount(RcButton, { props: { variant: 'destructive' } });
+    it('applies severity-destructive alongside the variant when severity="destructive"', () => {
+      const wrapper = mount(RcButton, { props: { variant: 'primary', severity: 'destructive' } });
       const button = wrapper.find('button');
 
-      expect(button.classes()).toContain('variant-destructive');
+      expect(button.classes()).toContain('variant-primary');
+      expect(button.classes()).toContain('severity-destructive');
+    });
+
+    it('applies no severity class when severity is not set', () => {
+      const wrapper = mount(RcButton, { props: { variant: 'primary' } });
+      const button = wrapper.find('button');
+
+      expect(button.classes().some((c) => c.startsWith('severity-'))).toBe(false);
     });
   });
 

@@ -59,7 +59,8 @@ export default {
       </rc-button>
       <div class="spacer" />
       <rc-button
-        variant="destructive"
+        variant="primary"
+        severity="destructive"
         size="large"
         class="ml-10"
         :data-testid="componentTestid + '-confirm-button'"
