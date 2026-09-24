@@ -10,9 +10,9 @@ import * as cmLangYaml from '@codemirror/lang-yaml';
 import * as cmLanguage from '@codemirror/language';
 import * as cmSearch from '@codemirror/search';
 import * as cmState from '@codemirror/state';
-import * as cmThemeOneDark from '@codemirror/theme-one-dark';
 import * as cmView from '@codemirror/view';
 import * as lezerCommon from '@lezer/common';
+import * as lezerHighlight from '@lezer/highlight';
 import * as cmVim from '@replit/codemirror-vim';
 
 // Load any plugins that are present as npm modules
@@ -45,16 +45,16 @@ export default function({
   // CodeMirror 6 relies on object identity across its packages (a second copy of @codemirror/state
   // rejects extensions from the first), so extensions share the host's copy. Keyed by package name
   window.__codemirror = {
-    '@codemirror/autocomplete':   cmAutocomplete,
-    '@codemirror/commands':       cmCommands,
-    '@codemirror/lang-json':      cmLangJson,
-    '@codemirror/lang-yaml':      cmLangYaml,
-    '@codemirror/language':       cmLanguage,
-    '@codemirror/search':         cmSearch,
-    '@codemirror/state':          cmState,
-    '@codemirror/theme-one-dark': cmThemeOneDark,
-    '@codemirror/view':           cmView,
-    '@lezer/common':              lezerCommon,
-    '@replit/codemirror-vim':     cmVim,
+    '@codemirror/autocomplete': cmAutocomplete,
+    '@codemirror/commands':     cmCommands,
+    '@codemirror/lang-json':    cmLangJson,
+    '@codemirror/lang-yaml':    cmLangYaml,
+    '@codemirror/language':     cmLanguage,
+    '@codemirror/search':       cmSearch,
+    '@codemirror/state':        cmState,
+    '@codemirror/view':         cmView,
+    '@lezer/common':            lezerCommon,
+    '@lezer/highlight':         lezerHighlight,
+    '@replit/codemirror-vim':   cmVim,
   };
 }

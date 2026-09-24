@@ -134,9 +134,9 @@ describe('component: CodeMirror.vue', () => {
     });
 
     it.each([
-      ['dark', 'one-dark'],
-      ['light', 'none'],
-    ])('should map theme preference %p to theme %p', (pref, theme) => {
+      ['dark', 'rancher'],
+      ['light', 'rancher'],
+    ])('should use the Rancher theme with %p preference', (pref, theme) => {
       const rc = createWrapper({}, { 'prefs/theme': pref }).findComponent(RcCodeMirror);
 
       expect(rc.props('theme')).toStrictEqual(theme);
