@@ -7143,13 +7143,13 @@ tableViews:
     menu: View options
     rename: Rename View
     duplicate: Duplicate View
-    copySuffix: copy
+    copySuffix: (copy)
     renameSave: Rename
     saveChanges: Save Changes
     delete: Delete View
     setDefault: Set as Default View
     isDefault: Default View
-    newViewName: New View
+    newViewName: Untitled
   bulk:
     selected: "{count} Selected"
     deleteSelected: Delete Selected
@@ -7223,15 +7223,9 @@ tableViews:
       doneMessage: The {name} view has been exported to {file}.
       failedTitle: Export failed
       failedMessage: The {name} view could not be exported.
-  shortcut:
-    save: CMD-S
-    saveAsNew: CMD-Shift-S
-    duplicate: CMD-D
   save:
     label: Save
     save: Save
-    newView: Save as new view
-    namePlaceholder: View name
     updateExisting: Update saved view
     delete: Delete view
     share: Share
