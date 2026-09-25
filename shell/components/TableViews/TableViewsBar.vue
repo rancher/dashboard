@@ -2582,7 +2582,6 @@ $toolbar-min-width: 544px;
     // simply stays on: less precise, but the strip never clips a tab silently.
     &.new-view-tab {
       position: sticky;
-      right: 0;
       // Sticky alone is not enough to win. With `z-index: auto` it is painted among its siblings,
       // and a tab whose box reaches under it comes out on top for those few pixels - which is a
       // bead of the active tab's underline showing through the button's own background. Naming a
@@ -2595,7 +2594,7 @@ $toolbar-min-width: 544px;
       // strip is laid out exactly as it was. The 24 of gap does nothing once the tabs pass
       // underneath rather than beside - a name ran right up to the `+` and stopped dead against
       // it. This is the button's own background reaching further left than its text does.
-      padding: 0 0 0 8px;
+      padding: 0 3px 0 8px;
       // Standing in the strip's own box, top to bottom, which is what a tab's wrap stands in - so
       // a tab passing behind is covered for the whole of its height, its underline included. That
       // underline is the last thing to go: the strip hangs its final pixel over the row's rule so
@@ -2604,7 +2603,12 @@ $toolbar-min-width: 544px;
       //
       // Covering that pixel means covering the row's rule too, so the button draws the rule back
       // along its own bottom edge. Inset, so it costs the box nothing.
+      // Out to the strip's edge on both sides. `right: 0` pins a sticky element to the padding
+      // edge, which left the strip's own 3 of padding uncovered - a slot the tabs slid through on
+      // their way past. The padding is given back inside so the label does not move.
+      right: -3px;
       margin-left: -8px;
+      margin-right: -3px;
       align-self: stretch;
       background: var(--body-bg);
       box-shadow: inset 0 -1px 0 var(--border);
@@ -2620,8 +2624,12 @@ $toolbar-min-width: 544px;
         position: absolute;
         top: 0;
         bottom: 0;
-        right: 100%;
-        width: 16px;
+        // Four pixels under the button rather than flush against it. Flush left a hairline of
+        // whatever was passing behind showing between the two, which on the active tab is a bead
+        // of its underline. The end of the fade is the page's own colour, so the overlap lands on
+        // the button's own background and cannot be seen.
+        right: calc(100% - 4px);
+        width: 20px;
         pointer-events: none;
         background:
           linear-gradient(90deg, transparent 50%, color-mix(in srgb, var(--body-text) 8%, transparent) 100%),
