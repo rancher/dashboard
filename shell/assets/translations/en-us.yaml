@@ -2019,6 +2019,8 @@ cluster:
   explore: Explore
   importAction: Import Existing
   manageAction: Manage
+  pinAction: Pin
+  unpinAction: Unpin
   kubeConfig:
     error:
       title: Unable to generate KubeConfig
@@ -7205,6 +7207,7 @@ tableHeaders:
   accessModes: Access Modes
   address: Address
   age: Age
+  badge: Badge
   apiGroup: API Groups
   apikey: API Key
   available: Available

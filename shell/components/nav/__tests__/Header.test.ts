@@ -1,7 +1,8 @@
 import { shallowMount } from '@vue/test-utils';
 import { isReactive, markRaw } from 'vue';
 import Header from '@shell/components/nav/Header.vue';
-import { isMac } from '@shell/utils/platform';
+import ClusterBadge from '@shell/components/ClusterBadge.vue';
+import ClusterPinControl from '@shell/components/ClusterPinControl.vue';
 
 describe('component: Header', () => {
   const defaultStoreMock = {
@@ -285,106 +286,24 @@ describe('component: Header', () => {
       'features/get': () => false,
     }, { getDynamic: jest.fn() }, {}, stubs);
 
-    // A stand-in for the pin control that records the toggle, so these tests assert the shortcut reaches
-    // it rather than re-testing the control itself.
-    const pinStub = (toggle: jest.Mock) => ({ Pinned: { template: '<span />', methods: { toggle } } });
+    it('hands the cluster being explored to the pin control', () => {
+      const currentCluster = cluster();
 
-    it('offers a pin for the cluster being explored', () => {
-      const vm = withCluster(cluster()).vm as any;
-
-      expect(vm.pinnableCluster).toMatchObject({ pinned: false, label: 'prod' });
+      expect(withCluster(currentCluster).findComponent(ClusterPinControl).props('cluster')).toStrictEqual(currentCluster);
     });
 
-    // `local` holds a fixed slot in the nav and is filtered out of PINNED, so a pin on it would be an
-    // affordance that changes nothing.
-    it.each([
-      ['local', cluster({ isLocal: true, nameDisplay: 'local' })],
-      ['no cluster', null],
-    ])('offers no pin for %s', (_label, currentCluster) => {
-      expect((withCluster(currentCluster).vm as any).pinnableCluster).toBeNull();
-    });
-
-    it('names the action for the state the pin is in', () => {
-      // The suite renders keys rather than copy, so match the key each state resolves to.
-      expect((withCluster(cluster()).vm as any).pinTooltip).toContain('nav.header.pinCluster');
-      expect((withCluster(cluster({ pinned: true })).vm as any).pinTooltip).toContain('nav.header.unpinCluster');
-    });
-
-    // The tooltip advertises the shortcut, so the label has to name the key the handler below listens
-    // for — Alt, which a Mac keyboard calls Option and prints ⌥.
-    // The label and the announced name have to name the keys the binding actually registers, or the
-    // tooltip and a screen reader advertise a shortcut that does nothing.
-    it('advertises the keys it binds', () => {
-      const vm = withCluster(cluster()).vm as any;
-
-      expect(vm.pinShortcutKeys).toStrictEqual({ windows: ['alt', 'p'], mac: ['meta', 'shift', 'p'] });
-      // Whichever platform this runs on, the label and the announced name describe the same combo. Keyed
-      // off the platform rather than off the label's own text: comparing against the label meant a change
-      // to how it is WRITTEN silently sent this assertion down the other platform's branch.
-      expect(vm.pinShortcutLabel).toBe(isMac ? '⌘-Shift-P' : 'Alt-P');
-      expect(vm.pinAriaShortcut).toBe(isMac ? 'Meta+Shift+P' : 'Alt+P');
-    });
-
-    describe('the pin shortcut', () => {
-      // Matching, and staying out of text fields, is the `v-shortkey` directive's job — this handler runs
-      // only once the directive has decided the shortcut fired.
-      it('toggles the pin through the control, so the write and the animation stay on one path', () => {
-        const toggle = jest.fn();
-        const vm = withCluster(cluster(), pinStub(toggle)).vm as any;
-
-        vm.onPinShortcut();
-
-        expect(toggle).toHaveBeenCalledWith();
-      });
-
-      it('does nothing on a cluster that cannot be pinned', () => {
-        const toggle = jest.fn();
-        const vm = withCluster(cluster({ isLocal: true }), pinStub(toggle)).vm as any;
-
-        vm.onPinShortcut();
-
-        expect(toggle).not.toHaveBeenCalled();
-      });
-    });
-
-    // The shortcut fires from anywhere on the page, so the toggle usually lands with focus somewhere
-    // else and the control's own `aria-pressed` is never spoken. The live region covers that case —
-    // and stays quiet when the control DOES have focus, or the change would be announced twice.
-    describe('announcing the toggle', () => {
-      const ctx = (focused = false) => {
-        const el = document.createElement('button');
-
-        if (focused) {
-          document.body.appendChild(el);
-          el.focus();
+    it('places the pin after the cluster badge', () => {
+      const wrapper = withCluster(cluster({
+        badge: {
+          text: 'live', color: '#fff', textColor: '#000'
         }
+      }));
+      const children = Array.from(wrapper.find('.cluster').element.children);
+      const badge = children.indexOf(wrapper.findComponent(ClusterBadge).element);
+      const pin = children.indexOf(wrapper.findComponent(ClusterPinControl).element);
 
-        return {
-          pinAnnouncement: '',
-          $refs:           { clusterPin: { $el: el } },
-          t:               (key: string, args: any) => `${ key }:${ JSON.stringify(args) }`,
-          $nextTick:       (fn: () => void) => fn(),
-        };
-      };
-
-      it.each([
-        ['pinned', true, 'nav.switcher.aria.pinnedCluster'],
-        ['unpinned', false, 'nav.switcher.aria.unpinnedCluster'],
-      ])('should announce a cluster being %s when the pin does not hold focus', (_l, pinned, key) => {
-        const c = ctx();
-
-        (Header as any).methods.announcePin.call(c, { label: 'prod' }, pinned);
-
-        expect(c.pinAnnouncement).toStrictEqual(`${ key }:{"cluster":"prod"}`);
-      });
-
-      it('should stay silent when the pin itself has focus', () => {
-        const c = ctx(true);
-
-        (Header as any).methods.announcePin.call(c, { label: 'prod' }, true);
-
-        expect(c.pinAnnouncement).toStrictEqual('');
-      });
+      expect(badge).toBeGreaterThan(-1);
+      expect(pin).toBeGreaterThan(badge);
     });
   });
 
