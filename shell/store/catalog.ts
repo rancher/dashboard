@@ -638,6 +638,12 @@ function addChart(ctx: CatalogContext, map: Record<string, any>, chart: any, rep
   }
 
   const isDeprecated = !!chart.deprecated || chart.annotations?.[CATALOG_ANNOTATIONS.DEPRECATED] === 'true';
+  const isRestricted = chart.annotations?.[CATALOG_ANNOTATIONS.VISIBILITY] === CATALOG_ANNOTATIONS._RESTRICTED;
+
+  // Don't add restricted charts to the catalog
+  if ( isRestricted ) {
+    return;
+  }
 
   if ( isDeprecated ) {
     sideLabel = DEPRECATED;

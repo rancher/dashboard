@@ -266,6 +266,7 @@ export default {
       let all = this.charts
         .filter((c) => isUIPlugin(c))
         .filter((c) => !uiPluginHasAnnotation(c, CATALOG_ANNOTATIONS.HIDDEN, 'true'))
+        .filter((c) => !uiPluginHasAnnotation(c, CATALOG_ANNOTATIONS.VISIBILITY, CATALOG_ANNOTATIONS._RESTRICTED))
         .map((chart) => this.mapChartToPluginItem(chart))
         .filter((c) => c.versions.length > 0);
 
