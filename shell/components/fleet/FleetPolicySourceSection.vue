@@ -166,6 +166,7 @@ const createOption = (name: string) => ({ label: name, value: name });
             :searchable="true"
             :clearable="true"
             :create-option="createOption"
+            :muted-value="!props.defaultSecretAllowed"
             :data-testid="`${ testid }-default-secret`"
           />
           <p class="sub-description">

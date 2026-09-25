@@ -125,6 +125,14 @@ describe('component: FleetPolicySourceSection', () => {
     ]);
   });
 
+  it('should mute the default secret while it is not one of the allowed secrets', () => {
+    const allowed = mountSection({ restricted: true });
+    const notAllowed = mountSection({ restricted: true, defaultSecretAllowed: false });
+
+    expect(selectWithTestid(allowed, 'fleet-policy-git-repo-default-secret').props('mutedValue')).toBe(false);
+    expect(selectWithTestid(notAllowed, 'fleet-policy-git-repo-default-secret').props('mutedValue')).toBe(true);
+  });
+
   it('should warn when the default secret is not one of the allowed secrets', () => {
     const notAllowed = '[data-testid="fleet-policy-git-repo-default-secret-not-allowed"]';
 
