@@ -4,7 +4,6 @@ import Pinned from '@shell/components/nav/Pinned.vue';
 import { pinnableCluster } from '@shell/utils/cluster';
 
 interface Props {
-  /** A cluster list row: either a management or a provisioning cluster. */
   cluster: any;
 }
 
@@ -23,11 +22,7 @@ const pinnable = computed(() => pinnableCluster(props.cluster));
 </template>
 
 <style lang="scss" scoped>
-  // Pinned is the state, so it stays on screen; the empty pin is an offer, so it waits for the cell
-  // the way the switcher's rows do — and for the keyboard, which has no hover to make it with.
-  // Same two colours the app bar and the cluster title give the pin, so one control reads as one
-  // control wherever it is: primary once pinned, muted while it is only on offer. Matched on the
-  // control's own `.icon` class as well, which outweighs its `color: inherit` without `!important`.
+  // Matched on `.icon` too, to outweigh the control's own `color: inherit` on specificity.
   .cluster-row-pin.icon {
     margin-left: 8px;
     opacity: 0;

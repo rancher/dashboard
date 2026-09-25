@@ -3,8 +3,6 @@
 exports[`component: TitleBar/index should match the full component snapshot 1`] = `
 <div class="title-bar">
   <div class="top">
-    <!-- The pin and anything else a page hangs on the title are siblings of the heading, not children:
-           an \`h1\` takes phrasing content only, and whatever sits inside it is read out as part of it. -->
     <div class="title-row">
       <h1 class="title">
         <!----><a class="resource-link">RESOURCE_TYPE_LABEL: </a><span class="resource-name masthead-resource-title">RESOURCE_NAME</span><span class="badge-state bg-success badge-state"><!--v-if--><span class="msg">Active</span></span>

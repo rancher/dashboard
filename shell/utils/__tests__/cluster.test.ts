@@ -509,8 +509,6 @@ describe('fx: clusterChip', () => {
     });
   });
 
-  // The cluster management list can hand over a provisioning cluster, which keeps all of this on the
-  // management cluster behind it.
   it('should read through a provisioning cluster to its management cluster', () => {
     expect(clusterChip({ nameDisplay: 'prov', mgmt })).toMatchObject({ label: 'prod', pinned: true });
   });
@@ -541,7 +539,6 @@ describe('fx: pinnableCluster', () => {
     expect(pinnableCluster({ nameDisplay: 'prov', mgmt: cluster({ pinned: true }) })).toMatchObject({ pinned: true, label: 'prod' });
   });
 
-  // `local` holds a fixed slot on the shelf, and a row with no pin of its own has no toggle to offer.
   it.each([
     ['nothing', undefined],
     ['local', {

@@ -21,8 +21,6 @@ export const CLUSTER_BADGE = {
   value:     'nameDisplay',
   formatter: 'ClusterBadgeIcon',
   align:     'center',
-  // The chip is ~32px, so the rest of the column is the air around it: enough that the badge reads as
-  // its own column rather than as punctuation between the state and the name.
   width:     90,
   sort:      false,
   search:    false,

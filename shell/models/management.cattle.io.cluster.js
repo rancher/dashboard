@@ -672,10 +672,7 @@ export default class MgmtCluster extends SteveModel {
     return this.mgmtClusterIds(items);
   }
 
-  /**
-   * The unique management cluster ids behind a set of selected rows, whichever kind of cluster row was
-   * selected: a cluster management row hands over a provisioning cluster.
-   */
+  // A cluster management row hands over a provisioning cluster, so resolve either kind.
   mgmtClusterIds(items = []) {
     return uniq(items.map((item) => item.mgmt?.id || item.id).filter((id) => !!id));
   }
@@ -843,12 +840,10 @@ export default class MgmtCluster extends SteveModel {
     return this.unpinBulk([this]);
   }
 
-  /** Pin every cluster in the selection, in one write. */
   pinBulk(clusters) {
     return commitAndReconcile(this.clusterPrefDispatch, [setPinned(this.mgmtClusterIds(clusters), true)]);
   }
 
-  /** Unpin every cluster in the selection, in one write. */
   unpinBulk(clusters) {
     return commitAndReconcile(this.clusterPrefDispatch, [setPinned(this.mgmtClusterIds(clusters), false)]);
   }

@@ -63,8 +63,6 @@ describe('component: TitleBar/index', () => {
     expect(span.element.innerHTML).toStrictEqual(resourceName);
   });
 
-  // An `h1` takes phrasing content only, and a screen reader reads whatever is inside it as part of the
-  // heading — so a page's own control on the title sits beside the heading, not in it.
   it('should render the title-suffix slot outside the heading', () => {
     const wrapper = mount(TitleBar, {
       props: {

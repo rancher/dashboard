@@ -163,10 +163,8 @@ export default class ProvCluster extends SteveModel {
     const pinnable = !!this.mgmt && !isLocal;
 
     const actions = [
-      // The bulk bar sorts by weight, and its fallback — the order the actions are first MET across the
-      // rows — would scatter this pair: `unpinCluster` is enabled only on a pinned cluster, so it is
-      // not met until the first pinned row, however far down the list that is. Weighted above the
-      // unweighted actions, which is where the pair belongs: it leads the bar, pin then unpin.
+      // Weighted, or the bulk bar splits the pair: unweighted it falls back to the order the actions are
+      // first met across the rows, and `unpinCluster` is enabled only on a pinned cluster.
       {
         action:     'pinCluster',
         bulkAction: 'pinClusterBulk',
@@ -611,12 +609,8 @@ export default class ProvCluster extends SteveModel {
     return this.mgmt?.copyKubeConfigBulk(items);
   }
 
-  /**
-   * A failed preference write RESOLVES with `{ type, status }` rather than throwing, and the optimistic
-   * pin is already on screen by then — so every surface that pins has to surface it. The row's own pin
-   * control does this in `Pinned`; these actions write through the same model and must say it the same
-   * way, or a pin from the row menu or the bulk bar fails in silence.
-   */
+  // A failed preference write RESOLVES with `{ type, status }` rather than throwing, and the optimistic
+  // pin is on screen by then — so it has to be reported, as `Pinned` reports the row control's write.
   reportPin(write) {
     const dispatch = (action, payload) => this.$dispatch(action, payload, { root: true });
 

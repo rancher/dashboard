@@ -170,11 +170,10 @@ export function filterHiddenLocalCluster(mgmtClusters, store) {
 }
 
 /**
- * Shape a cluster for the nav's chip (`ClusterIconMenu`), which takes the plain object the app bar
- * builds rather than a model — spreading a model would drop the getters the chip reads. Takes either
- * kind of cluster row: a provisioning cluster keeps the pin state on its management cluster.
+ * Shape a cluster for the nav's chip, which takes the plain object the app bar builds rather than a
+ * model — spreading a model would drop the getters the chip reads.
  *
- * @param {*} cluster a management or provisioning cluster model
+ * @param {*} cluster a management or provisioning cluster
  * @returns {*} the fields the chip renders
  */
 export function clusterChip(cluster) {
@@ -192,11 +191,11 @@ export function clusterChip(cluster) {
 }
 
 /**
- * Shape a cluster for the nav's pin control (`Pinned`), or null where there is nothing to pin:
- * `local` holds a fixed slot on the shelf, and a row that cannot pin itself has no toggle to offer.
+ * Shape a cluster for the nav's pin control, or null where there is nothing to pin: `local` holds a
+ * fixed slot on the shelf, and a row that cannot pin itself has no toggle to offer.
  *
- * @param {*} cluster a management or provisioning cluster model
- * @returns {*} the pin control's cluster, or null when the cluster cannot be pinned
+ * @param {*} cluster a management or provisioning cluster
+ * @returns {*} the pin control's cluster, or null when it cannot be pinned
  */
 export function pinnableCluster(cluster) {
   const target = cluster?.mgmt || cluster;

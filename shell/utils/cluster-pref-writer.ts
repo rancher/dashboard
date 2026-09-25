@@ -57,12 +57,8 @@ export const movePinned = (id: string, index: number, onShelf: string[]): Mutati
   },
 });
 
-/**
- * Pin or unpin clusters in ONE write, whatever the count — a bulk action over a selection must not
- * queue a round-trip per row. New pins go to the TOP of the shelf, in the order given, and re-pinning
- * a cluster moves it up rather than duplicating it: a cluster is pinned to keep it to hand, so it
- * goes where the hand is.
- */
+// One write whatever the count: the shared Preference is a read-modify-write, so one per row is one
+// race per row. New pins go to the top, and re-pinning moves rather than duplicates.
 export const setPinned = (ids: string[], pinned: boolean): Mutation => ({
   key:   PINNED_CLUSTERS,
   apply: (current) => {

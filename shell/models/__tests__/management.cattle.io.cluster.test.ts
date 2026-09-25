@@ -376,8 +376,6 @@ describe('class MgmtCluster', () => {
       expect(mutations[0].apply(['local', 'c-b'])).toStrictEqual(['c-b']);
     });
 
-    // A bulk action over a selection must not queue a round-trip per row: the shared Preference is one
-    // read-modify-write, so N of them is N chances to race.
     it('pinBulk pins a whole selection in one write, in the order selected', async() => {
       const { cluster, calls } = makeCluster('c-a');
 
