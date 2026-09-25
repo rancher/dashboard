@@ -1580,12 +1580,14 @@ const deleteView = (saved?: SavedView) => {
     focusTab(before.id);
   }
 
-  // `info` rather than `success`: a growl raised as a success is copied into the notification
-  // centre, which is written down - and an undo cannot be. The offer only means anything while
-  // the growl is on screen, so it lives and dies there.
-  store.dispatch('growl/info', {
-    title:   t('tableViews.tab.deleted', { name: saved.name }),
-    message: t('tableViews.tab.deletedMessage'),
+  // The undo rides on the growl and nowhere else: the copy of this kept in the notification
+  // centre is written down, and a callback cannot be. So the offer lives and dies on screen,
+  // and what is read back later is the plain report that the view was deleted.
+  store.dispatch('growl/success', {
+    title:   t('tableViews.tab.deleted'),
+    // Raw, because the growl prints its message as text: escaped, the quotes around the name
+    // would arrive as `&quot;` and be shown as that. Vue escapes it again on the way in.
+    message: t('tableViews.tab.deletedMessage', { name: saved.name }, true),
     timeout: UNDO_TIMEOUT,
     action:  {
       label: t('tableViews.tab.undo'),
