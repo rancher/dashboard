@@ -48,6 +48,20 @@ export default [
 
 You do **not** have to change anything to keep `yarn lint` / CI working — the launcher keeps your legacy `.eslintrc.*` on ESLint 7. Make sure your `lint` script points at the launcher (as above) so the selection happens.
 
+### Extra ESLint plugins
+
+The ESLint 7 toolchain ships a fixed set of plugins (Vue, TypeScript-ESLint, standard, import, node, promise, Cypress). If your `.eslintrc.*` references a plugin outside that set — for example `eslint-plugin-jest` — declare it in your `package.json` so the launcher installs it **into** the isolated toolchain, where it resolves against ESLint 7 (rather than the flat-config ESLint 10 hoisted in your project, which the legacy plugin cannot run against):
+
+```json
+"@rancher/shell": {
+  "eslintLegacyPackages": {
+    "eslint-plugin-jest": "^24"
+  }
+}
+```
+
+Pin a version compatible with ESLint 7 (e.g. `eslint-plugin-jest@^24` rather than the newer releases built for ESLint 8+). The launcher installs these the first time you lint and skips them once present.
+
 When you are ready to move to ESLint 10 / flat config:
 
 1. Delete `.eslintrc.*` and `.eslintignore`.
