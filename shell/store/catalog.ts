@@ -1,4 +1,6 @@
-import { CATALOG, EXPERIMENTAL, DEPRECATED, CATALOG_SORT_OPTIONS } from '@shell/config/types';
+import {
+  CATALOG, EXPERIMENTAL, DEPRECATED, RESTRICTED, CATALOG_SORT_OPTIONS
+} from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addParams } from '@shell/utils/url';
 import { allHash, allHashSettled } from '@shell/utils/promise';
@@ -624,6 +626,27 @@ export function parseKey(key: string) {
   };
 }
 
+/**
+ * Helper to determine priority of a sideLabel for chart versions.
+ * Lower numbers = higher priority.
+ */
+function getSideLabelPriority(label: string | null): number {
+  if (label === DEPRECATED) {
+    return 1;
+  }
+  if (label === EXPERIMENTAL) {
+    return 2;
+  }
+  if (label === RESTRICTED) {
+    return 3;
+  }
+  if (label) {
+    return 4; // Custom certified labels
+  }
+
+  return 99; // null/undefined
+}
+
 function addChart(ctx: CatalogContext, map: Record<string, any>, chart: any, repo: any, allowedVisibility: string[]) {
   const repoType = (repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace');
   const repoName = repo.metadata.name;
@@ -654,10 +677,21 @@ function addChart(ctx: CatalogContext, map: Record<string, any>, chart: any, rep
     }
   }
 
+  // Calculate sideLabel for this version
+  // Priority order (only one can be shown):
+  // 1. Deprecated (most critical - chart may be broken/removed)
+  // 2. Experimental (beta/unstable)
+  // 3. Restricted (user opted-in to see this visibility level)
+  // 4. Custom certified labels (least priority)
+  let versionSideLabel = null;
+
   if ( isDeprecated ) {
-    sideLabel = DEPRECATED;
+    versionSideLabel = DEPRECATED;
   } else if ( chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] ) {
-    sideLabel = EXPERIMENTAL;
+    versionSideLabel = EXPERIMENTAL;
+  } else if ( visibility && visibility !== 'visible' && allowedVisibility.includes(visibility) ) {
+    // Chart has restricted visibility but user allowed it
+    versionSideLabel = RESTRICTED;
   } else if (
     !repo.isRancherSource &&
     certifiedAnnotation &&
@@ -665,10 +699,11 @@ function addChart(ctx: CatalogContext, map: Record<string, any>, chart: any, rep
     certified === CATALOG_ANNOTATIONS._OTHER
   ) {
     // But anybody can set the side label
-    sideLabel = certifiedAnnotation;
+    versionSideLabel = certifiedAnnotation;
   }
 
   if ( !obj ) {
+    sideLabel = versionSideLabel;
     if ( ctx ) { }
 
     const primeOnly = chart.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true';
@@ -730,6 +765,15 @@ function addChart(ctx: CatalogContext, map: Record<string, any>, chart: any, rep
     });
 
     map[key] = obj;
+  } else {
+    // Chart object already exists (processing another version)
+    // Update sideLabel if this version has a higher priority label
+    const currentPriority = getSideLabelPriority(obj.sideLabel);
+    const newPriority = getSideLabelPriority(versionSideLabel);
+
+    if (newPriority < currentPriority) {
+      obj.sideLabel = versionSideLabel;
+    }
   }
 
   chart.key = `${ key }/${ chart.version }`;

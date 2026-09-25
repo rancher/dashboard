@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import day from 'dayjs';
-import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
+import { mapPref, PLUGIN_DEVELOPER, ALLOWED_CHART_VISIBILITY } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
 import { allHash } from '@shell/utils/promise';
@@ -137,7 +137,8 @@ export default {
   },
 
   computed: {
-    pluginDeveloper: mapPref(PLUGIN_DEVELOPER),
+    pluginDeveloper:        mapPref(PLUGIN_DEVELOPER),
+    allowedChartVisibility: mapPref(ALLOWED_CHART_VISIBILITY),
 
     ...mapGetters({ uiplugins: 'uiplugins/plugins' }),
     ...mapGetters({ uiErrors: 'uiplugins/errors' }),
@@ -266,7 +267,16 @@ export default {
       let all = this.charts
         .filter((c) => isUIPlugin(c))
         .filter((c) => !uiPluginHasAnnotation(c, CATALOG_ANNOTATIONS.HIDDEN, 'true'))
-        .filter((c) => !uiPluginHasAnnotation(c, CATALOG_ANNOTATIONS.VISIBILITY, CATALOG_ANNOTATIONS._RESTRICTED))
+        .filter((c) => {
+          // Filter out charts with restricted visibility unless user has allowed them
+          const visibility = uiPluginAnnotation(c, CATALOG_ANNOTATIONS.VISIBILITY);
+
+          if (visibility && visibility !== 'visible') {
+            return this.allowedChartVisibility.includes(visibility);
+          }
+
+          return true;
+        })
         .map((chart) => this.mapChartToPluginItem(chart))
         .filter((c) => c.versions.length > 0);
 

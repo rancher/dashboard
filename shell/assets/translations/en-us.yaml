@@ -136,6 +136,7 @@ generic:
   primeOnly: Prime Only
 
   deprecated: Deprecated
+  restricted: Restricted
   upgradeable: Upgradeable
   installed: Installed
   installedMultiple: Installed (multiple)
