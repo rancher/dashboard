@@ -10,7 +10,7 @@ import LandingPagePreference from '@shell/components/LandingPagePreference';
 import {
   mapPref, THEME, KEYMAP, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE,
   VIEW_IN_API, ALL_NAMESPACES, THEME_SHORTCUT, PLUGIN_DEVELOPER, SCALE_POOL_PROMPT
-  , MENU_MAX_CLUSTERS
+  , MENU_MAX_CLUSTERS, ALLOWED_CHART_VISIBILITY
 } from '@shell/store/prefs';
 
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -29,17 +29,18 @@ export default {
     return { admin: isAdminUser(this.$store.getters) };
   },
   computed: {
-    keymap:            mapPref(KEYMAP),
-    viewInApi:         mapPref(VIEW_IN_API),
-    allNamespaces:     mapPref(ALL_NAMESPACES),
-    themeShortcut:     mapPref(THEME_SHORTCUT),
-    dateFormat:        mapPref(DATE_FORMAT),
-    timeFormat:        mapPref(TIME_FORMAT),
-    perPage:           mapPref(ROWS_PER_PAGE),
-    hideDesc:          mapPref(HIDE_DESC),
-    showPreRelease:    mapPref(SHOW_PRE_RELEASE),
-    pluginDeveloper:   mapPref(PLUGIN_DEVELOPER),
-    scalingDownPrompt: mapPref(SCALE_POOL_PROMPT),
+    keymap:                 mapPref(KEYMAP),
+    viewInApi:              mapPref(VIEW_IN_API),
+    allNamespaces:          mapPref(ALL_NAMESPACES),
+    themeShortcut:          mapPref(THEME_SHORTCUT),
+    dateFormat:             mapPref(DATE_FORMAT),
+    timeFormat:             mapPref(TIME_FORMAT),
+    perPage:                mapPref(ROWS_PER_PAGE),
+    hideDesc:               mapPref(HIDE_DESC),
+    showPreRelease:         mapPref(SHOW_PRE_RELEASE),
+    allowedChartVisibility: mapPref(ALLOWED_CHART_VISIBILITY),
+    pluginDeveloper:        mapPref(PLUGIN_DEVELOPER),
+    scalingDownPrompt:      mapPref(SCALE_POOL_PROMPT),
 
     ...mapGetters(['isSingleProduct']),
     ...mapGetters({ hasMultipleLocales: 'i18n/hasMultipleLocales' }),
@@ -113,6 +114,19 @@ export default {
       });
     },
 
+    restrictedChartOptions() {
+      return [
+        {
+          labelKey: 'prefs.helm.visibility.hide',
+          value:    false
+        },
+        {
+          labelKey: 'prefs.helm.visibility.show',
+          value:    true
+        }
+      ];
+    },
+
     pm() {
       const time = day().hour(18).minute(0).second(0);
 
@@ -171,6 +185,27 @@ export default {
         }
 
         this.hideDesc = val;
+      }
+    },
+
+    /**
+     * Convert between boolean (for ButtonGroup) and array (for storage).
+     * ButtonGroup can't handle array values with === comparison, so we use boolean.
+     */
+    showRestrictedCharts: {
+      get() {
+        return this.allowedChartVisibility.includes('restricted');
+      },
+
+      set(neu) {
+        if ( neu ) {
+          const val = this.allowedChartVisibility.slice();
+
+          addObject(val, 'restricted');
+          this.allowedChartVisibility = val;
+        } else {
+          this.allowedChartVisibility = this.allowedChartVisibility.filter((x) => x !== 'restricted');
+        }
       }
     },
   }
@@ -364,18 +399,35 @@ export default {
     <!-- Helm Charts -->
     <div
       v-if="!isSingleProduct"
-      class="col mt-10 mb-40"
+      class="col mt-10 mb-10"
     >
       <RcSeparator />
       <RcHeading
         v-t="'prefs.helm.label'"
         :size="4"
       />
-      <ButtonGroup
-        v-model:value="showPreRelease"
-        data-testid="prefs__helmOptions"
-        :options="helmOptions"
-      />
+      <div class="row mt-20">
+        <div class="col span-6">
+          <label class="text-label">
+            {{ t('prefs.helm.versions.label') }}
+          </label>
+          <ButtonGroup
+            v-model:value="showPreRelease"
+            data-testid="prefs__helmOptions"
+            :options="helmOptions"
+          />
+        </div>
+        <div class="col span-6">
+          <label class="text-label">
+            {{ t('prefs.helm.visibility.label') }}
+          </label>
+          <ButtonGroup
+            v-model:value="showRestrictedCharts"
+            data-testid="prefs__restrictedChartOptions"
+            :options="restrictedChartOptions"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>

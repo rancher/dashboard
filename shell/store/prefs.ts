@@ -121,6 +121,7 @@ export const HIDE_REPOS = create('hide-repos', [], { parseJSON });
 export const HIDE_DESC = create('hide-desc', [], { parseJSON });
 export const HIDE_SENSITIVE = create('hide-sensitive', true, { options: [true, false], parseJSON });
 export const SHOW_PRE_RELEASE = create('show-pre-release', false, { options: [false, true], parseJSON });
+export const ALLOWED_CHART_VISIBILITY = create('allowed-chart-visibility', [], { parseJSON });
 
 export const DATE_FORMAT = create('date-format', 'ddd, MMM D YYYY', {
   options: [

@@ -106,6 +106,9 @@ export const CATALOG = {
   REQUESTS_CPU:     'catalog.cattle.io/requests-cpu',
   REQUESTS_MEMORY:  'catalog.cattle.io/requests-memory',
 
+  VISIBILITY:  'catalog.cattle.io/visibility',
+  _RESTRICTED: 'restricted',
+
   SCOPE:       'catalog.cattle.io/scope',
   _MANAGEMENT: 'management',
   _DOWNSTREAM: 'downstream',

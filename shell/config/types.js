@@ -448,6 +448,7 @@ export const DEFAULT_GRAFANA_STORAGE_SIZE = '10Gi';
 
 export const DEPRECATED = 'Deprecated';
 export const EXPERIMENTAL = 'Experimental';
+export const RESTRICTED = 'Restricted';
 export const AUTOSCALER_CONFIG_MAP_ID = 'kube-system/cluster-autoscaler-status';
 export const HOSTED_PROVIDER = 'hostedprovider';
 

@@ -205,6 +205,15 @@ export default class Chart extends SteveModel {
       });
     }
 
+    // Check if chart has restricted visibility (meaning user opted-in to see it)
+    const visibility = this.versions?.[0]?.annotations?.[CATALOG_ANNOTATIONS.VISIBILITY];
+
+    if (visibility && visibility !== 'visible') {
+      statuses.push({
+        icon: 'icon-warning', color: 'warning', tooltip: { key: 'generic.restricted' }
+      });
+    }
+
     if (this.upgradeable) {
       statuses.push({
         icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }

@@ -136,6 +136,7 @@ generic:
   primeOnly: Prime Only
 
   deprecated: Deprecated
+  restricted: Restricted
   upgradeable: Upgradeable
   installed: Installed
   installedMultiple: Installed (multiple)
@@ -6010,6 +6011,12 @@ prefs:
     'true': Include Prerelease Versions
     'false': Show Releases Only
     label: Helm Charts
+    versions:
+      label: Chart Versions
+    visibility:
+      label: Chart Visibility
+      hide: Hide Restricted Charts
+      show: Show Restricted Charts
   confirmationSetting:
     title: Confirmation Setting
     scalingDownPrompt: Do not ask for confirmation when scaling down node pools.
