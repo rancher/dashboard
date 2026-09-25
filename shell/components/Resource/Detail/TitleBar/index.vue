@@ -201,16 +201,20 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
   }
 
   // The title row takes the remaining space; min-width: 0 lets the heading's children (resource-name)
-  // shrink so the action buttons stay visible on narrow viewports.
+  // shrink so the action buttons stay visible on narrow viewports. The row carries the heading's bottom
+  // margin as well: left on the heading it counts towards the row's height, and everything centred
+  // beside the heading — the pin — sits half that margin below the title it belongs to.
   .title-row {
     display: flex;
     align-items: center;
     flex: 1 1 auto;
     min-width: 0;
+    margin-bottom: 10px;
   }
 
   .title {
     min-width: 0;
+    margin-bottom: 0;
   }
 
   .resource-name {
