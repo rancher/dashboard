@@ -2778,7 +2778,7 @@ cluster:
         label: Cron Schedule
       snapshotRetention:
         label: Local snapshot retention count
-        tooltip: Each backup records 1 snapshot per etcd node. If you specify 3 snapshots and you have 3 etcd nodes you will only retain 1 full backup.
+        tooltip: Number of scheduled snapshots kept on each etcd/server node's local disk. Retention is per node (for example, 5 on 3 etcd nodes keeps about 15 local snapshot files).
       exportMetric:
         label: Metrics
         false: Only available inside the cluster
@@ -2789,10 +2789,11 @@ cluster:
         snapshotRetention:
           title: S3 Snapshot Retention
           label: S3 Snapshot Retention Count
+          tooltip: Number of snapshot objects kept in the S3 bucket/folder for the whole cluster (not per node). Each schedule cycle typically uploads one snapshot per etcd node, so the same number as local yields fewer restore points in S3. To keep about C cycles with N etcd nodes, set this to approximately C × N (for example, 3 nodes × 2 cycles → 6).
           options:
             manual: Set manually
-            localDefined: Same as local ({count} Snapshots)
-            localUndefined: Same as local
+            localDefined: Same count as local ({count}) — not the same restore history depth
+            localUndefined: Same count as local — not the same restore history depth
         bucket:
           label: Bucket
         folder:
