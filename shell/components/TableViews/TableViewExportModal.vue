@@ -172,8 +172,12 @@ const download = async() => {
     </div>
 
     <div class="export-actions">
+      <!-- Large, which is the size a modal's own actions are drawn at across the product - the
+           plain `.btn` these were before is that size, and RcButton's default is a step under
+           it. -->
       <RcButton
         variant="link"
+        size="large"
         data-testid="table-views-export-cancel"
         @click="emit('close')"
       >
@@ -184,6 +188,7 @@ const download = async() => {
            the same way. -->
       <RcButton
         variant="primary"
+        size="large"
         left-icon="download"
         data-testid="table-views-export-download"
         @click="download"
