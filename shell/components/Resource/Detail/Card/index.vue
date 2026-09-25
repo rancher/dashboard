@@ -37,6 +37,7 @@ const { title } = defineProps<CardProps>();
     .heading {
       display: flex;
       justify-content: space-between;
+      align-items: center;
 
       height: 32px;
 
