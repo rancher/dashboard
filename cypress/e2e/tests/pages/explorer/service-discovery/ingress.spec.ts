@@ -401,6 +401,13 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
       ingressListPagePo.list().resourceTable().sortableTable().groupByButtons(1)
         .click();
 
+      // Grouping moves the Namespace column out of the header row and into the group headers, but
+      // the table only re-renders once the click has been applied. Reading the headers straight
+      // after the click can still see the flat set ("expected 'Namespace' to equal 'Target'"), so
+      // wait for a group row to appear first.
+      ingressListPagePo.list().resourceTable().sortableTable().groupElementWithName('Namespace: cattle-system')
+        .should('exist');
+
       //  check table headers are visible
       const expectedHeaders = ['State', 'Name', 'Target', 'Default', 'Ingress Class', 'Age'];
 
