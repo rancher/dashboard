@@ -12,6 +12,7 @@ import { applyQueryExpression } from '@shell/utils/table-views/filter-rows';
 import { parseQuery, parseQueryExpression } from '@shell/utils/table-views/query';
 import { queryToServerFilters } from '@shell/utils/table-views/server-filters';
 import { decodeView } from '@shell/utils/table-views/views';
+import { SEARCH_DEBOUNCE } from '@shell/config/search';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 
@@ -120,17 +121,24 @@ export default {
       tabQueries: [],
 
       /**
-       * The filters handed down to the table, and the debounce that settles them.
+       * The query the table acts on, which trails the one being typed.
        *
-       * Half a second, because this changes on every keystroke in the filter box and each change
-       * is a request. Picking a saved view is a single act with nothing following it, so that
-       * flushes instead of waiting - see the watcher.
+       * Everything downstream of this is expensive - the rows re-filtered and re-drawn, a request
+       * to the api, a count fetched for every tab - and doing all of it per keystroke turned
+       * typing into a series of jolts. The box itself is not held back: what you type appears at
+       * once, and so do its suggestions. This is only how long the table waits before answering.
+       *
+       * Picking a saved view is a single act with nothing following it, so that flushes instead
+       * of waiting - see the watcher.
        */
-      appliedViewFilters: [],
+      settledQuery: shared?.query || '',
 
-      debouncedApplyViewFilters: debounce(function(filters) {
-        this.appliedViewFilters = filters;
-      }, 500),
+      debouncedSettleQuery: debounce(function(query) {
+        this.settledQuery = query;
+      }, SEARCH_DEBOUNCE),
+
+      /** The filters handed down to the table, worked out from the settled query */
+      appliedViewFilters: [],
 
       // Serialized form of the last emitted filters, to skip redundant emits. Starts as
       // the empty state so an initial empty query doesn't fire (matches the fallback path)
@@ -156,7 +164,6 @@ export default {
 
       supersededViewFilters: [],
 
-      lastViewShapeKey: null,
 
       debouncedFetchViewCounts: debounce(() => this.fetchViewCounts(), 800),
 
@@ -172,6 +179,7 @@ export default {
 
   beforeUnmount() {
     clearTimeout(this.viewSwitchTimer);
+    this.debouncedSettleQuery.cancel();
   },
 
   watch: {
@@ -232,13 +240,28 @@ export default {
       this.pendingViewFilters = filters;
       this.lastViewFiltersKey = key;
       this.beginViewSwitch();
-      this.debouncedApplyViewFilters(filters.length ? filters : []);
+      // No wait of its own: these are worked out from `settledQuery`, so by the time they change
+      // the typing they came from has already stopped.
+      this.appliedViewFilters = filters.length ? filters : [];
+    },
 
-      // The wait exists to let someone finish typing. Picking a view is a single act with nothing
-      // more coming, so it is asked for at once rather than half a second later.
-      if (this.viewShapeKey !== this.lastViewShapeKey) {
-        this.lastViewShapeKey = this.viewShapeKey;
-        this.debouncedApplyViewFilters.flush();
+    /**
+     * Hold what is typed back from the table for a moment - see `settledQuery`.
+     *
+     * Only what was typed. A query arriving whole - a saved view applied, a shared one from the
+     * url - is a single act with nothing following it, and waiting on it would leave the tab
+     * underlined before its rows had been asked for. Typing only ever adds to or takes from the
+     * end, so one query being the start of the other is what tells the two apart.
+     */
+    'view.query'(neu, old) {
+      const query = neu || '';
+      const previous = old || '';
+      const typed = query.startsWith(previous) || previous.startsWith(query);
+
+      this.debouncedSettleQuery(query);
+
+      if (!typed) {
+        this.debouncedSettleQuery.flush();
       }
     },
 
@@ -510,7 +533,7 @@ export default {
 
 
     viewTerms() {
-      return parseQuery(this.view.query, this.viewFields);
+      return parseQuery(this.settledQuery, this.viewFields);
     },
 
 
@@ -519,7 +542,7 @@ export default {
      * filters, both here and at the api.
      */
     viewQuery() {
-      return parseQueryExpression(this.view.query, this.viewFields);
+      return parseQueryExpression(this.settledQuery, this.viewFields);
     },
 
 
