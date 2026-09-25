@@ -62,6 +62,18 @@ const props = withDefaults(
      */
     flip?: boolean;
     placement?: Placement;
+    /**
+     * What the menu has to stay inside, instead of the window.
+     *
+     * A menu opened low on the page is slid back up to stay on screen, and "on screen" is not
+     * always the right edge to stop at - a page with a fixed masthead has the menu run underneath
+     * it. Naming the element the menu belongs in gives `shift` the right box to work against.
+     */
+    // eslint-disable-next-line vue/require-default-prop
+    boundary?: Element;
+    /** How close to an edge of that boundary the menu may come */
+    // eslint-disable-next-line vue/require-default-prop
+    overflowPadding?: number;
   }>(),
   // `shift` carries floating-vue's own default: a boolean prop left alone would come through as
   // false and stop every menu in the product being nudged back into view. `open` false is the
@@ -138,7 +150,14 @@ const onEscape = (e: KeyboardEvent) => {
 };
 
 const applyShow = () => {
-  setDropdownDimensions(dropdownTarget.value);
+  // `setDropdownDimensions` measures against the window and keeps a fixed 32 off each edge. A
+  // menu given a `boundary` has already said what it must stay inside and how far off its edges
+  // to stop, and the popper has been positioned to match - so the blunt measure would only fight
+  // it, pinning a height that leaves the menu short of the room it was placed in.
+  if (!props.boundary) {
+    setDropdownDimensions(dropdownTarget.value);
+  }
+
   registerDropdownCollection(dropdownTarget.value);
   setFocus('down');
 };
@@ -158,6 +177,8 @@ const applyShow = () => {
     :reference-node="referenceNode"
     :shift="shift"
     :flip="flip"
+    :boundary="boundary"
+    :overflow-padding="overflowPadding"
     @apply-show="applyShow"
   >
     <slot name="default">
