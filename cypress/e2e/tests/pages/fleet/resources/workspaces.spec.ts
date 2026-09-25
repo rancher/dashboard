@@ -360,6 +360,13 @@ describe('Workspaces', { testIsolation: false, tags: ['@fleet', '@adminUser'] },
     it('can create a fleet workspace', () => {
       const fleetWorkspaceCreateEditPage = new FleetWorkspaceCreateEditPo();
 
+      // testIsolation is off and the workspace name is fixed for the whole describe, so a retry of
+      // this test runs against the workspace the previous attempt already created and the create
+      // comes back 409 ("expected 409 to equal 201") - taking the rest of the CRUD tests with it.
+      // Remove any leftover, and wait for it to actually be gone before re-creating it.
+      cy.deleteRancherResource('v3', 'fleetWorkspaces', customWorkspace, false);
+      cy.waitForRancherResource('v3', 'fleetWorkspaces', customWorkspace, (resp: any) => resp?.status === 404, 10, { failOnStatusCode: false });
+
       cy.intercept('POST', '/v3/fleetworkspaces').as('createWorkspace');
 
       fleetWorkspacesListPage.goTo();
