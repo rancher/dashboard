@@ -423,13 +423,22 @@ describe('component: SideNav', () => {
       expect(types).toStrictEqual([]);
     });
 
-    it('queues a nav refresh when visible count types change', () => {
+    it('queues a nav refresh when a type goes from zero to a positive count', () => {
+      const queueUpdate = jest.fn();
+      const logSideNavDebug = jest.fn();
+
+      watchCountTypes.call({ queueUpdate, logSideNavDebug }, ['a.io.visible', 'b.io.visible'], ['a.io.visible']);
+
+      expect(queueUpdate).toHaveBeenCalledWith();
+    });
+
+    it('does not queue a nav refresh when a type goes back to zero', () => {
       const queueUpdate = jest.fn();
       const logSideNavDebug = jest.fn();
 
       watchCountTypes.call({ queueUpdate, logSideNavDebug }, ['a.io.visible'], ['a.io.visible', 'b.io.visible']);
 
-      expect(queueUpdate).toHaveBeenCalledWith();
+      expect(queueUpdate).not.toHaveBeenCalled();
     });
 
     it('does not queue a nav refresh when visible count types are unchanged', () => {

@@ -66,12 +66,13 @@ export default {
     },
 
     /**
-     * When new resource types appear in (or are removed from) the count data,
-     * it means a CRD was added or removed.  Re-build the nav so the new group
-     * shows up under "More Resources" without requiring a page refresh.
+     * Only re-build the nav when a type goes from zero to a positive count, so it shows up
+     * under "More Resources" without a page refresh. Counts change often, so ignore everything else.
      */
     countTypes(a, b) {
-      if ( !sameContents(a, b) ) {
+      const previous = new Set(b);
+
+      if ( a.some((type) => !previous.has(type)) ) {
         this.queueUpdate();
       }
     },
@@ -194,8 +195,7 @@ export default {
      * Returns the sorted list of resource type IDs that currently have
      * resources in the COUNT data.
      * Watching this allows the nav to react when a CRD type transitions from
-     * hidden to visible (count goes from 0 to >0) or vice-versa so it appears
-     * under "More Resources" without a page refresh.
+     * hidden to visible (count goes from 0 to >0).
      */
     countTypes() {
       const managementReady = this.managementReady;
