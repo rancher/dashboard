@@ -184,6 +184,12 @@ const createOption = (name: string) => ({ label: name, value: name });
 </template>
 
 <style lang="scss" scoped>
+// A banner carries 15px of its own above and below, which doubles up with the gap the content
+// group already puts between its children
+.rc-content-group > .banner {
+  margin: 0;
+}
+
 .policy-field {
   display: flex;
   flex-direction: column;
