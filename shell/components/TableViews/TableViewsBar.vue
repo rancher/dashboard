@@ -2658,11 +2658,17 @@ $toolbar-min-width: 544px;
       }
 
       // No wrap to draw one for it, so it wears the same ring the tabs beside it wear rather
-      // than the one the browser would draw by itself
+      // than the one the browser would draw by itself.
+      //
+      // Drawn inside, and square. This button now reaches the strip's own edges, so there is no
+      // longer any room outside it for a ring to stand in - offset outwards it fell in the
+      // scroller's overflow and was clipped away entirely, which left the keyboard with nowhere
+      // visible to be. Inside, it has the whole of the button to sit in, and squaring it lets it
+      // take that whole space rather than leaving the corners of what it covers showing.
       &:focus-visible {
         @include focus-outline;
-        outline-offset: 1px;
-        border-radius: var(--border-radius);
+        outline-offset: -2px;
+        border-radius: 0;
       }
 
       .icon {
