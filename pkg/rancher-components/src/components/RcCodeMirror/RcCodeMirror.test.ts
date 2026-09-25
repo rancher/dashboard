@@ -117,12 +117,55 @@ describe('component: RcCodeMirror', () => {
       expect(getView(wrapper).contentDOM.getAttribute('contenteditable')).toBe('false');
     });
 
+    it('should keep the read-only textbox in the tab order', () => {
+      mountEditor({ readOnly: true });
+
+      expect(getView(wrapper).contentDOM.tabIndex).toStrictEqual(0);
+    });
+
+    it('should let the read-only textbox receive focus', () => {
+      mountEditor({ readOnly: true });
+      const view = getView(wrapper);
+
+      view.contentDOM.focus();
+
+      expect(document.activeElement).toBe(view.contentDOM);
+    });
+
+    it('should select read-only content from the keyboard', () => {
+      mountEditor({ readOnly: true, modelValue: 'foo: bar' });
+      const view = getView(wrapper);
+
+      view.contentDOM.focus();
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'a', ctrlKey: true, bubbles: true, cancelable: true
+      }));
+
+      expect([view.state.selection.main.from, view.state.selection.main.to]).toStrictEqual([0, view.state.doc.length]);
+    });
+
     it('should toggle editability when readOnly changes', async() => {
       mountEditor();
 
       await wrapper.setProps({ readOnly: true });
 
       expect(getView(wrapper).contentDOM.getAttribute('contenteditable')).toBe('false');
+    });
+
+    it('should add the tab stop when readOnly changes to true', async() => {
+      mountEditor();
+
+      await wrapper.setProps({ readOnly: true });
+
+      expect(getView(wrapper).contentDOM.tabIndex).toStrictEqual(0);
+    });
+
+    it('should remove the explicit tab stop when readOnly changes to false', async() => {
+      mountEditor({ readOnly: true });
+
+      await wrapper.setProps({ readOnly: false });
+
+      expect(getView(wrapper).contentDOM.hasAttribute('tabindex')).toBe(false);
     });
 
     it('should make the state read only when readOnly is true', () => {
@@ -436,6 +479,18 @@ describe('component: RcCodeMirror', () => {
       expect(wrapper.attributes('aria-label')).toBeUndefined();
     });
 
+    it('should forward a custom tabindex to the textbox', () => {
+      mountEditor({ readOnly: true }, { tabindex: -1 });
+
+      expect(getView(wrapper).contentDOM.tabIndex).toStrictEqual(-1);
+    });
+
+    it('should not put a custom tabindex on the container', () => {
+      mountEditor({ readOnly: true }, { tabindex: -1 });
+
+      expect(wrapper.attributes('tabindex')).toBeUndefined();
+    });
+
     it('should keep other attributes on the container', () => {
       mountEditor({}, { 'data-testid': 'editor' });
 
@@ -475,6 +530,18 @@ describe('component: RcCodeMirror', () => {
       });
       const view = getView(wrapper);
 
+      pressFoldKey(view, '[');
+
+      expect(foldCount(view)).toStrictEqual(1);
+    });
+
+    it('should fold read-only content from the keyboard', () => {
+      mountEditor({
+        modelValue: doc, readOnly: true, foldOptions: { strategy: 'indent' }
+      });
+      const view = getView(wrapper);
+
+      view.contentDOM.focus();
       pressFoldKey(view, '[');
 
       expect(foldCount(view)).toStrictEqual(1);

@@ -24,8 +24,8 @@
  * The underlying EditorView is emitted with `ready` and exposed as `view` on
  * the component ref for anything the props do not cover.
  *
- * ARIA attributes (e.g. `aria-label`, `aria-labelledby`) are forwarded to the
- * editor's textbox, so give every instance an accessible name with one of them.
+ * ARIA attributes (e.g. `aria-label`, `aria-labelledby`) and `tabindex` are
+ * forwarded to the editor's textbox. Give every instance an accessible name.
  */
 import {
   ref, shallowRef, computed, onMounted, onBeforeUnmount, watch, useAttrs
@@ -86,22 +86,28 @@ const attrs = useAttrs();
 const container = ref<HTMLDivElement>();
 const view = shallowRef<EditorView>();
 
-function isAriaAttribute(name: string): boolean {
-  return name.startsWith('aria-');
+function isEditorAttribute(name: string): boolean {
+  return name.startsWith('aria-') || name.toLowerCase() === 'tabindex';
 }
 
-// CodeMirror renders the focusable textbox inside the container, so ARIA attributes go on
-// that rather than the container. Everything else still falls through to the container
+// CodeMirror renders the textbox inside the container, so its ARIA attributes and tab order
+// belong there. Everything else still falls through to the container.
 const containerAttrs = computed(() => Object.fromEntries(
-  Object.entries(attrs).filter(([name]) => !isAriaAttribute(name))
+  Object.entries(attrs).filter(([name]) => !isEditorAttribute(name))
 ));
 
-function ariaAttributes(): Record<string, string> {
-  return Object.fromEntries(
+function editorAttributes(): Record<string, string> {
+  const attributes = Object.fromEntries(
     Object.entries(attrs)
-      .filter(([name, value]) => isAriaAttribute(name) && value !== undefined && value !== null)
-      .map(([name, value]) => [name, String(value)])
+      .filter(([name, value]) => isEditorAttribute(name) && value !== undefined && value !== null)
+      .map(([name, value]) => [name.toLowerCase() === 'tabindex' ? 'tabindex' : name, String(value)])
   );
+
+  if (props.readOnly && attributes.tabindex === undefined) {
+    attributes.tabindex = '0';
+  }
+
+  return attributes;
 }
 
 // Compartments for hot-swappable extensions
@@ -206,7 +212,7 @@ onMounted(() => {
       lineNumbersCompartment.of(getLineNumbersExtension(showLineNumbers())),
       lineWrappingCompartment.of(getLineWrappingExtension(wrapLines())),
       readOnlyCompartment.of(getReadOnlyExtension(props.readOnly ?? false)),
-      contentAttributesCompartment.of(getContentAttributesExtension(ariaAttributes())),
+      contentAttributesCompartment.of(getContentAttributesExtension(editorAttributes())),
       updateListener,
       ...(props.extensions ?? [])
     ]
@@ -306,9 +312,9 @@ watch(
   }
 );
 
-// Hot-swap ARIA attributes
+// Hot-swap editor attributes, including the read-only tab stop
 watch(
-  ariaAttributes,
+  editorAttributes,
   (attributes) => {
     view.value?.dispatch({ effects: contentAttributesCompartment.reconfigure(getContentAttributesExtension(attributes)) });
   }
