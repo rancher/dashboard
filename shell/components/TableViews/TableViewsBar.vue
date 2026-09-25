@@ -2639,6 +2639,11 @@ $toolbar-min-width: 544px;
       // move.
       margin: -3px 0 -3px -8px;
       align-self: stretch;
+      // Square, because this is a cover as much as it is a button. The product rounds every
+      // `button` by default, which left its background not quite filling its own corners - and a
+      // tab passing behind showed through the four little arcs that were left, most visibly as
+      // the ends of a focused tab's ring against the strip's edge.
+      border-radius: 0;
       // The page's colour, with the row's rule drawn back on top of it - one pixel, its underside
       // three up from this button's bottom edge, which is where the row's own rule runs before
       // the button covers it. Placed as a background layer rather than as an inset shadow: a
@@ -2697,10 +2702,7 @@ $toolbar-min-width: 544px;
         inset: 3px 3px 4px 3px;
         pointer-events: none;
         border: 2px solid var(--primary-keyboard-focus);
-        // Square for now, while the ring a tab wears behind this button is still showing its own
-        // corners against the strip's right edge - two rounded shapes meeting there read as one
-        // mistake rather than two.
-        border-radius: 0;
+        border-radius: var(--border-radius);
       }
 
       .icon {
