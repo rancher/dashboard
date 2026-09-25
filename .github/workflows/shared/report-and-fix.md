@@ -67,7 +67,9 @@ One candidate at a time, finished before the next starts: re-verify, change, gat
 **Confirmed** — fix it:
 
 1. Make the change, and everything it transitively requires
-2. Run `yarn lint`, `yarn type-check` and `yarn test:ci`. Any fails: fix the fallout or abandon the change. Never open a pull request with a failing gate
+2. Run `yarn lint`, `yarn type-check:ci` and `yarn test:ci`. Any fails: fix the fallout or abandon the change. Never open a pull request with a failing gate
+
+   Use `type-check:ci`, not the plain `yarn type-check`. The plain variant runs the full `vue-tsc` compilation, which is slow and not what CI checks. `type-check:ci` runs a diff-only check that matches what CI gates verify
 
    **A gate that could not run has not passed.** A command erroring on a missing dependency, a runtime version, or anything other than your change is a failed gate. Open no pull request, and name in the run summary which command failed and what it printed. Never reason about what the gate would have said — your reasoning is the thing it exists to check
 3. Change touches the UI: capture evidence, see "Capturing UI evidence"
@@ -210,7 +212,7 @@ The evidence in the issue was not reused. Every check below was re-run against t
 All three must have actually executed. "Expected to pass", "cannot run" or "no source file was modified so nothing can break" are not results, and a pull request carrying one of them should not have been opened.
 
 - `yarn lint` — [pass, or the failure output]
-- `yarn type-check` — [pass, or the failure output]
+- `yarn type-check:ci` — [pass, or the failure output] (`type-check:ci` runs a diff-only check, not the full `vue-tsc` that the plain `yarn type-check` runs; `:ci` is the right command here, and is the one that matches what CI gates check)
 - `yarn test:ci` — [pass, with the suite/test counts it printed]
 
 ### Lessons (added)
