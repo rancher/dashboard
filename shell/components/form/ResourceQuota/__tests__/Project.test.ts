@@ -1,5 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import Project from '@shell/components/form/ResourceQuota/Project.vue';
+import ResourceQuotaEntry from '@shell/components/form/ResourceQuota/ResourceQuotaEntry.vue';
 import { TYPES } from '@shell/components/form/ResourceQuota/shared';
 
 describe('project', () => {
@@ -305,6 +306,114 @@ describe('project', () => {
 
       expect(emitted).toBeTruthy();
       expect(emitted[emitted.length - 1]).toStrictEqual([true]);
+    });
+
+    it('should emit validationChanged with false when two extended quotas share a resource identifier', async() => {
+      const wrapper: any = shallowMount(Project, { props: defaultProps });
+
+      await wrapper.setData({
+        resourceQuotas: [
+          {
+            id:                    '1',
+            resourceType:          TYPES.EXTENDED,
+            resourceIdentifier:    'requests.nvidia.com/gpu',
+            projectLimit:          '5',
+            namespaceDefaultLimit: '3',
+          },
+          {
+            id:                    '2',
+            resourceType:          TYPES.EXTENDED,
+            resourceIdentifier:    'requests.nvidia.com/gpu',
+            projectLimit:          '10',
+            namespaceDefaultLimit: '6',
+          }
+        ]
+      });
+
+      const emitted = wrapper.emitted('validationChanged');
+
+      expect(emitted).toBeTruthy();
+      expect(emitted[emitted.length - 1]).toStrictEqual([false]);
+    });
+
+    it('should emit validationChanged with true once a duplicate resource identifier is renamed', async() => {
+      const wrapper: any = shallowMount(Project, { props: defaultProps });
+
+      await wrapper.setData({
+        resourceQuotas: [
+          {
+            id:                    '1',
+            resourceType:          TYPES.EXTENDED,
+            resourceIdentifier:    'requests.nvidia.com/gpu',
+            projectLimit:          '5',
+            namespaceDefaultLimit: '3',
+          },
+          {
+            id:                    '2',
+            resourceType:          TYPES.EXTENDED,
+            resourceIdentifier:    'requests.nvidia.com/gpu',
+            projectLimit:          '10',
+            namespaceDefaultLimit: '6',
+          }
+        ]
+      });
+
+      wrapper.vm.resourceQuotas[1].resourceIdentifier = 'requests.amd.com/gpu';
+      await wrapper.vm.$nextTick();
+
+      const emitted = wrapper.emitted('validationChanged');
+
+      expect(emitted[emitted.length - 1]).toStrictEqual([true]);
+    });
+  });
+
+  describe('duplicateIdentifiers', () => {
+    const extendedQuota = (id: string, resourceIdentifier: string) => ({
+      id,
+      resourceType:          TYPES.EXTENDED,
+      resourceIdentifier,
+      projectLimit:          '5',
+      namespaceDefaultLimit: '3',
+    });
+
+    it.each([
+      ['unique extended identifiers', [extendedQuota('1', 'gpu'), extendedQuota('2', 'fpga')], []],
+      ['a shared extended identifier', [extendedQuota('1', 'gpu'), extendedQuota('2', 'gpu')], ['gpu']],
+      ['an identifier shared by three rows', [extendedQuota('1', 'gpu'), extendedQuota('2', 'gpu'), extendedQuota('3', 'gpu')], ['gpu']],
+      ['empty extended identifiers', [extendedQuota('1', ''), extendedQuota('2', '')], []],
+      ['identifiers differing only in case', [extendedQuota('1', 'gpu'), extendedQuota('2', 'GPU')], []],
+      ['a standard type matching an extended identifier', [
+        {
+          id:                    '1',
+          resourceType:          'configMaps',
+          resourceIdentifier:    'configMaps',
+          projectLimit:          '20',
+          namespaceDefaultLimit: '10',
+        },
+        extendedQuota('2', 'configMaps')
+      ], []],
+    ])('should handle %s', async(_, resourceQuotas, expected) => {
+      const wrapper: any = shallowMount(Project, { props: defaultProps });
+
+      await wrapper.setData({ resourceQuotas });
+
+      expect(wrapper.vm.duplicateIdentifiers).toStrictEqual(expected);
+    });
+
+    it('should mark only the rows that share an identifier as duplicate', async() => {
+      const wrapper: any = shallowMount(Project, { props: defaultProps });
+
+      await wrapper.setData({
+        resourceQuotas: [
+          extendedQuota('1', 'gpu'),
+          extendedQuota('2', 'fpga'),
+          extendedQuota('3', 'gpu'),
+        ]
+      });
+
+      const rows = wrapper.findAllComponents(ResourceQuotaEntry as any);
+
+      expect(rows.map((row: any) => row.props('duplicate'))).toStrictEqual([true, false, true]);
     });
   });
 });

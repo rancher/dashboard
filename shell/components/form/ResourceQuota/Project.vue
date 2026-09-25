@@ -3,7 +3,7 @@ import { QUOTA_COMPUTED, TYPES } from './shared';
 import Banner from '@components/Banner/Banner.vue';
 import ResourceQuota from '@shell/components/form/ResourceQuota/ResourceQuotaEntry.vue';
 import { RcButton } from '@components/RcButton';
-import { uniqueId } from 'lodash';
+import { uniq, uniqueId } from 'lodash';
 
 export default {
   emits: [
@@ -61,14 +61,29 @@ export default {
         const hasMissingExtendedIdentifier = this.resourceQuotas.some(
           (quota) => quota.resourceType === TYPES.EXTENDED && !quota.resourceIdentifier
         );
+        const hasDuplicateExtendedIdentifier = this.duplicateIdentifiers.length > 0;
 
-        this.$emit('validationChanged', !hasMissingExtendedIdentifier);
+        this.$emit('validationChanged', !hasMissingExtendedIdentifier && !hasDuplicateExtendedIdentifier);
       },
       { deep: true }
     );
   },
 
-  computed: { ...QUOTA_COMPUTED },
+  computed: {
+    ...QUOTA_COMPUTED,
+
+    /**
+     * Custom resource identifiers used by more than one row. Each identifier is a single key in the spec, so
+     * saving would keep one of the rows and silently drop the rest
+     */
+    duplicateIdentifiers() {
+      const identifiers = this.resourceQuotas
+        .filter((quota) => quota.resourceType === TYPES.EXTENDED && quota.resourceIdentifier)
+        .map((quota) => quota.resourceIdentifier);
+
+      return uniq(identifiers.filter((identifier, index) => identifiers.indexOf(identifier) !== index));
+    },
+  },
 
   methods: {
     addResource() {
@@ -83,6 +98,10 @@ export default {
 
     removeResource(id) {
       this.resourceQuotas = this.resourceQuotas.filter((quota) => quota.id !== id);
+    },
+
+    isDuplicateIdentifier(quota) {
+      return quota.resourceType === TYPES.EXTENDED && this.duplicateIdentifiers.includes(quota.resourceIdentifier);
     },
 
     remainingTypes(currentType) {
@@ -217,6 +236,7 @@ export default {
         v-model:namespace-default-limit="resourceQuota.namespaceDefaultLimit"
         :index="resourceQuotaIndex + 1"
         :types="remainingTypes(resourceQuota.resourceType)"
+        :duplicate="isDuplicateIdentifier(resourceQuota)"
         :mode="mode"
         @remove="removeResource"
       />
