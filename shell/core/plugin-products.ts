@@ -3,6 +3,7 @@ import { BasePluginProduct } from '@shell/core/plugin-products-base';
 import { TopLevelPluginProduct } from '@shell/core/plugin-products-top-level';
 import { ExtendingPluginProduct } from '@shell/core/plugin-products-extending';
 import { ProductChild, ProductMetadata, ProductMetadataSinglePage, StandardProductName } from '@shell/core/plugin-products-external';
+import { AdvancedProductConfigOptionsInternal } from '@shell/core/plugin-products-internal';
 import { ProductFunction } from '@shell/core/plugin';
 
 /**
@@ -13,13 +14,13 @@ import { ProductFunction } from '@shell/core/plugin';
 export class PluginProduct {
   private instance: BasePluginProduct;
 
-  constructor(plugin: IExtension, product: StandardProductName | string | ProductMetadata | ProductMetadataSinglePage | ProductFunction, pages: ProductChild[]) {
+  constructor(plugin: IExtension, product: StandardProductName | string | ProductMetadata | ProductMetadataSinglePage | ProductFunction, pages: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptionsInternal) {
     if (typeof product === 'object' && product.name) {
       // This is a new product being added
-      this.instance = new TopLevelPluginProduct(plugin, product, pages);
+      this.instance = new TopLevelPluginProduct(plugin, product, pages, advancedProdConfig);
     } else if (typeof product === 'string') {
       // This is extending an existing standard product
-      this.instance = new ExtendingPluginProduct(plugin, product, pages);
+      this.instance = new ExtendingPluginProduct(plugin, product, pages, advancedProdConfig);
     } else {
       // at this point we may not know the product name
       throw new Error('Extensions product registration error ::: Invalid product');
@@ -30,10 +31,10 @@ export class PluginProduct {
    * Convenience/bridge method: create a new top-level product from just a name string.
    * The product will use EmptyProductPage as its default page.
    */
-  static fromName(plugin: IExtension, productName: string): PluginProduct {
+  static fromName(plugin: IExtension, productName: string, advancedProdConfig?: AdvancedProductConfigOptionsInternal): PluginProduct {
     const instance = Object.create(PluginProduct.prototype);
 
-    instance.instance = new TopLevelPluginProduct(plugin, productName, []);
+    instance.instance = new TopLevelPluginProduct(plugin, productName, [], advancedProdConfig);
 
     return instance;
   }
