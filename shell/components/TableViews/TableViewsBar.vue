@@ -2643,7 +2643,11 @@ $toolbar-min-width: 544px;
         content: "";
         position: absolute;
         top: 0;
-        bottom: 0;
+        // Down to the rule and no further. The rule is the row's, not the strip's - it does not
+        // move - so a shadow laid over it tinted a line that never scrolls and made it look as
+        // though it did. The 4 is the 3 this button reaches past the rule into the strip's
+        // padding, plus the rule's own pixel.
+        bottom: 4px;
         right: 100%;
         width: 8px;
         pointer-events: none;
