@@ -12,7 +12,9 @@ const MAX_GROWLS = 5;
  *
  * `run` is a function, so a growl carrying one is not serialisable - which is fine, because the
  * stack only ever lives in memory. The notification centre is the other half of this pair and is
- * persisted, which is exactly why its own actions are limited to a link.
+ * persisted, which is why {@link forNotification} takes the action back off again before a growl
+ * is copied into it: a callback cannot be written down, and an offer to undo would be meaningless
+ * by the time it was read back.
  */
 export interface GrowlAction {
   label: string;
@@ -60,6 +62,16 @@ export interface GrowlState {
 }
 
 type GrowlContext = ActionContext<GrowlState, any>;
+
+/**
+ * The part of a growl that can be kept: everything but the action, whose `run` is a live callback
+ * and so cannot survive being encrypted into local storage.
+ */
+function forNotification(data: GrowlData): Omit<GrowlData, 'action'> {
+  const { action, ...rest } = data;
+
+  return rest;
+}
 
 export const state = function(): GrowlState {
   return {
@@ -132,7 +144,7 @@ export const actions = {
   async success({ commit, dispatch }: GrowlContext, data: GrowlData) {
     // Send a notification for the growl
     const notification: string = await dispatch('notifications/fromGrowl', {
-      ...data,
+      ...forNotification(data),
       level: NotificationLevel.Success
     }, { root: true });
 
@@ -157,7 +169,7 @@ export const actions = {
   async warning({ commit, dispatch }: GrowlContext, data: GrowlData) {
     // Send a notification for the growl
     const notification: string = await dispatch('notifications/fromGrowl', {
-      ...data,
+      ...forNotification(data),
       level: NotificationLevel.Warning
     }, { root: true });
 
@@ -173,7 +185,7 @@ export const actions = {
   async error({ commit, dispatch }: GrowlContext, data: GrowlData) {
     // Send a notification for the growl
     const notification: string = await dispatch('notifications/fromGrowl', {
-      ...data,
+      ...forNotification(data),
       level: NotificationLevel.Error
     }, { root: true });
 
