@@ -2621,7 +2621,8 @@ $toolbar-min-width: 544px;
   .query-column {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    // What stands between the box and what it has to say about itself
+    gap: 8px;
     min-width: 0;
   }
 

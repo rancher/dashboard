@@ -803,14 +803,17 @@ export default defineComponent({
 
 <style lang="scss">
 .home-page {
-  // The row the table's own controls stand in, at the height they are drawn: 32, the same as
-  // every other medium control in the product. It was 39, measured for the search input this page
-  // used to carry - which left 7px hanging under the toolbar that replaced it, so the controls
-  // read as sitting high in their row.
+  // The row the table's own controls stand in, no shorter than the 32 they are drawn at - the
+  // same as every other medium control in the product. It was a flat 39, measured for the search
+  // input this page used to carry, which left 7px hanging under the toolbar that replaced it.
+  //
+  // A floor rather than a height, because the row holds more than the controls: the filter box
+  // says underneath itself when a query cannot be read, and a fixed height gave that message
+  // nowhere to go - it hung over the table instead of moving it down.
   .search {
     align-items: center;
     display: flex;
-    height: 32px;
+    min-height: 32px;
 
     > INPUT {
       background-color: transparent;
