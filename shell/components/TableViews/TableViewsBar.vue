@@ -2618,6 +2618,11 @@ $toolbar-min-width: 544px;
       margin: -3px -3px -3px -8px;
       align-self: stretch;
       background: var(--body-bg);
+      // The row's rule, drawn back along the line it actually sits on - one pixel, three up from
+      // this button's bottom edge, which is where the row's own rule runs before the button
+      // covers it. A shadow rather than a pseudo-element because both of those are spoken for:
+      // one carries the scroll shadow, the other the focus ring.
+      box-shadow: inset 0 -4px 0 -3px var(--border);
       color: var(--link);
 
       // The app bar's shadow turned on its side - the same 8, the same wash, the same reveal, and
@@ -2625,20 +2630,6 @@ $toolbar-min-width: 544px;
       // behind; what was showing turned out to be a focused tab's ring escaping above and below
       // the button, which the button covers itself now. Content showing faintly through a shadow
       // is what a shadow is.
-      // The row's rule, drawn back along the line it actually sits on. It used to be an inset
-      // shadow on the button's own bottom edge, which was right while the two were the same line
-      // and wrong the moment the button reached past it into the strip's padding.
-      &::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 3px;
-        height: 1px;
-        pointer-events: none;
-        background: var(--border);
-      }
-
       &::before {
         content: "";
         position: absolute;
@@ -2661,18 +2652,25 @@ $toolbar-min-width: 544px;
         }
       }
 
-      // No wrap to draw one for it, so it wears the same ring the tabs beside it wear rather
-      // than the one the browser would draw by itself.
+      // The ring is drawn rather than outlined. An outline follows the border box, and this
+      // button's border box is the strip's whole height including the padding either side - so
+      // an outline either sat outside it, where the scroller clipped it away, or inside it,
+      // where it crossed the row's rule and touched the strip's edges.
       //
-      // Drawn inside, and square. This button now reaches the strip's own edges, so there is no
-      // longer any room outside it for a ring to stand in - offset outwards it fell in the
-      // scroller's overflow and was clipped away entirely, which left the keyboard with nowhere
-      // visible to be. Inside, it has the whole of the button to sit in, and squaring it lets it
-      // take that whole space rather than leaving the corners of what it covers showing.
+      // Drawn, it can stand exactly where a tab's ring stands: inside the strip's padding on
+      // three sides, above the rule on the fourth, and carrying the same radius the tabs' rings
+      // carry.
       &:focus-visible {
-        @include focus-outline;
-        outline-offset: -2px;
-        border-radius: 0;
+        outline: none;
+      }
+
+      &:focus-visible::after {
+        content: "";
+        position: absolute;
+        inset: 3px 3px 4px 3px;
+        pointer-events: none;
+        border: 2px solid var(--primary-keyboard-focus);
+        border-radius: var(--border-radius);
       }
 
       .icon {
