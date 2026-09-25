@@ -279,7 +279,9 @@ defineExpose({ view });
   --rc-cm-text: #16181D;
   --rc-cm-gutter: #5B626C;
 
-  display: contents;
+  display: block;
+  height: 100%;
+  box-sizing: border-box;
 
   :deep(.cm-editor) {
     height: 100%;
