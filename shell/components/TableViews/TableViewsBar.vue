@@ -65,6 +65,14 @@ const TAB_SCROLL_SETTLE_MAX_MS = 1200;
 /** How long the tab that moved is marked for afterwards - the wash's own length */
 const TAB_FLASH_MS = 600;
 
+/**
+ * How close to an edge of the page's content region a sub menu may come.
+ *
+ * Applied to every edge, so a menu slid up to stay on screen stops this far under the masthead
+ * and a menu at the bottom stops this far above the fold.
+ */
+const MENU_GUTTER = 16;
+
 interface Tab {
   id: string | null;
   name: string;
@@ -167,6 +175,17 @@ const root = ref<HTMLElement | null>(null);
 const tabStrip = ref<HTMLElement | null>(null);
 const viewMenu = ref<HTMLElement | null>(null);
 const columnsPanel = ref<HTMLElement | null>(null);
+
+/**
+ * What a sub menu has to stay inside, so it can be slid back into view without going somewhere
+ * it cannot be read.
+ *
+ * The window is the wrong edge to stop at. The page's masthead is fixed, so a menu pushed up to
+ * fit ran underneath it - the top of the list went behind the header and the rows that mattered
+ * were the ones you could no longer see. The content region below the masthead is the box the
+ * page actually owns. Null where a page has no such region, which leaves the window as it was.
+ */
+const menuBoundary = ref<Element | undefined>(undefined);
 
 /**
  * The tab-level elements, by tab key. Function refs rather than named ones because there is a
@@ -1586,6 +1605,8 @@ watch(subMenu, () => {
 });
 
 onMounted(() => {
+  menuBoundary.value = root.value?.closest('#main-content') || undefined;
+
   // Only the tabs instance listens, so a bar rendered as two parts doesn't act on each key twice
   if (props.part !== 'controls') {
     window.addEventListener('keydown', onShortcut);
@@ -1876,10 +1897,12 @@ onBeforeUnmount(() => {
       <!-- Single "View" popup - Group by and Columns each open their own nested dropdown
            beside the row.
 
-           `shift` off, here and on both sub menus. Left on, the menus slide sideways to stay
-           inside the window, so narrowing it walked them out from under the button that opened
-           them while the button itself stayed put on the toolbar's own minimum. They belong to
-           the button: if the window is too narrow for them, the page scrolls to them. -->
+           `shift` off on this one. It opens downwards, so what it would slide along is the
+           horizontal: left on, the menu walked sideways out from under the button that opened it
+           as the window narrowed, while the button itself stayed put on the toolbar's own
+           minimum. It belongs to the button - if the window is too narrow for it, the page
+           scrolls to it. The sub menus open sideways, so sliding moves them up and down instead,
+           which is what they want; see below. -->
       <rc-dropdown
         :placement="'bottom-end'"
         :shift="false"
@@ -1902,7 +1925,15 @@ onBeforeUnmount(() => {
             <!-- The View button sits at the right hand end of the toolbar, so the sub menus
                  open to the left of it rather than off screen. They are positioned against this
                  menu rather than the row that opens them: the rows are inset from its edges, and
-                 a sub menu belongs alongside the menu, top with top. -->
+                 a sub menu belongs alongside the menu, top with top - which lines its first row
+                 up with the row that opened it, both panels being inset by the same 3.
+
+                 Opening sideways means the axis they can slide along is the vertical, so `shift`
+                 is left on: a list with more rows than there is room below it rides up rather
+                 than opening at its placement and scrolling while the space above it goes
+                 unused. `menuBoundary` is the region it rides up within; the panel's own
+                 max-height caps it at what that region leaves, so a list too long even for the
+                 whole of it is the only one that scrolls. -->
             <rc-dropdown-item
               :close-on-click="false"
               :class="{ 'owns-sub-menu': subMenu === 'group' && subMenuHovered }"
@@ -1921,9 +1952,10 @@ onBeforeUnmount(() => {
               :open="subMenu === 'group'"
               :placement="'left-start'"
               :distance="-1"
-              :skidding="-11"
+              :skidding="-8"
               :flip="false"
-              :shift="false"
+              :boundary="menuBoundary"
+              :overflow-padding="MENU_GUTTER"
               :reference-node="() => viewMenu"
               @update:open="(open) => closeSubMenu('group', open)"
             >
@@ -1980,9 +2012,10 @@ onBeforeUnmount(() => {
               :open="subMenu === 'columns'"
               :placement="'left-start'"
               :distance="-1"
-              :skidding="-11"
+              :skidding="-8"
               :flip="false"
-              :shift="false"
+              :boundary="menuBoundary"
+              :overflow-padding="MENU_GUTTER"
               :reference-node="() => viewMenu"
               @update:open="(open) => closeSubMenu('columns', open)"
             >
@@ -2103,6 +2136,22 @@ onBeforeUnmount(() => {
 // inside one selector's block cannot be seen from another's.
 $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
 $drag-drop-curve: cubic-bezier(0.2, 1, 0.1, 1);
+
+// How close to an edge of that region a menu may come. The same number the script holds as
+// MENU_GUTTER, which is what stops a menu being slid into the masthead - the two have to agree,
+// or a menu is capped at one height and positioned as if it were another.
+$menu-gutter: 16px;
+
+// What the popper adds around a menu panel - its own padding and border, less the panel's
+// negative margin. Measured off a running build rather than added up from the parts: the padding
+// is the product's own popper styling, not this component's, and the two margins do not simply
+// add.
+//
+// It is the popper that gets positioned, so this is what has to come off the cap. Too small a
+// number and the popper ends up taller than the room it is being slid into, so it stops short of
+// the gutter instead of reaching it - the menu ends further under the masthead than it should,
+// with rows behind a scrollbar and the space above it going unused.
+$menu-popper-chrome: 16px;
 
 // An icon beside a label is drawn smaller than the square it occupies, so the labels sit in the
 // same place whichever icon they are next to. The glyph is centred in that square both ways
@@ -2569,11 +2618,16 @@ $toolbar-min-width: 544px;
     min-width: 300px;
   }
 
-  // As tall as the window allows rather than a fraction of it. The popper slides a panel that
-  // would hang off the bottom back up, so a cap well short of the viewport only made a panel
-  // scroll while there was still room above it to move into. The 48 leaves room for the popper's
-  // own padding either side of this.
-  max-height: 100%;
+  // As tall as the region the menu is allowed to stand in: the window less the masthead above and
+  // the shell drawer below - the same three rows the app's own grid is built from - less the
+  // gutter at each end and the popper this panel is wrapped in.
+  //
+  // Written out rather than left as `100%`: a percentage resolves against the popper's own box,
+  // and the popper's height comes from this panel - so the cap was derived from the thing it was
+  // capping and settled a few pixels short, which made a list scroll while it still had room.
+  max-height: calc(
+    100vh - var(--header-height) - var(--wm-height, 0px) - #{$menu-gutter * 2} - #{$menu-popper-chrome}
+  );
   // Only ever downwards. Naming one axis leaves the other computing to `auto`, and a panel whose
   // width lands on a fraction is enough to raise a scrollbar along the bottom with nothing to
   // scroll to.
