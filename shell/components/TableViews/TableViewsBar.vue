@@ -2337,8 +2337,13 @@ $toolbar-min-width: 544px;
     // Three of room on every side, taken straight back off the outside, so the ring comes out
     // whole and the tabs sit where they always did - the bottom takes the extra 3 as well as the
     // 1 that puts an active tab's underline over the row's rule rather than a pixel above it.
-    padding: 3px;
-    margin: -3px -3px -4px;
+    // No padding on the right. The other three sides keep it so a tab's focus ring is not clipped,
+    // but on the right the padding sits outside what a scroll container clips to - so it is a band
+    // nothing inside the strip can paint over, and a focused tab passing behind Add View showed
+    // the edges of its ring in it. Nothing needs the room there: the only thing at that edge is
+    // Add View, and its ring is drawn inside itself.
+    padding: 3px 0 3px 3px;
+    margin: -3px 0 -4px -3px;
 
     // A tab keeps its width - the strip scrolls instead of the tabs being squeezed
     > * {
@@ -2625,14 +2630,14 @@ $toolbar-min-width: 544px;
       // Out to the strip's edge on both sides. `right: 0` pins a sticky element to the padding
       // edge, which left the strip's own 3 of padding uncovered - a slot the tabs slid through on
       // their way past. The padding is given back inside so the label does not move.
-      right: -3px;
+      right: 0;
       // Out to the strip's own edges, padding and all - not just its content box. The strip keeps
       // 3 of padding on every side precisely so a tab's focus ring, which is drawn outside the
       // tab, is not clipped. A button that stopped at the content box therefore left that ring a
       // pixel of room above and below it, and a focused tab scrolling behind drew its ring's top
       // and bottom edges straight past. The space is given back inside, so the label does not
       // move.
-      margin: -3px -3px -3px -8px;
+      margin: -3px 0 -3px -8px;
       align-self: stretch;
       // The page's colour, with the row's rule drawn back on top of it - one pixel, its underside
       // three up from this button's bottom edge, which is where the row's own rule runs before
