@@ -1066,11 +1066,10 @@ $query-height: 32px;
   padding: 0 12px;
 
   &.focused {
-    // The border a select's field takes while its list is open, so the two read as the same
-    // control. Not `--primary`, which is one value for both themes - 1px of it on the dark input
-    // background measures 2.93:1, under the 3:1 a control's boundary needs. `--primary-border` is
-    // the one that is tuned per theme, and it is what the namespace picker is drawn with.
-    border-color: var(--primary-border);
+    // Not `--primary`, which is one value for both themes: 1px of it on the dark input background
+    // measured 2.93:1, under the 3:1 a control's boundary needs. This is the same blue the
+    // product's focus ring uses, which is the one that is tuned per theme.
+    border-color: var(--primary-keyboard-focus);
   }
 
   .query-input {
@@ -1214,41 +1213,27 @@ $query-height: 32px;
 //
 // The shared level is the floor, not the answer: a slide-in panel puts itself above the whole of
 // that scale, so a box opened inside one hands down what it has to clear and the higher wins.
-// Dressed the way the product dresses the dropdown of a select - the namespace picker and every
-// other one - so a list of suggestions is not its own kind of thing. The numbers are the ones in
-// `vendor/vue-select.scss`: 10 of padding above and below, the same 350 ceiling, the primary
-// border it takes while open, and no shadow.
-//
-// Two of them are deliberately not copied. A select's dropdown is welded to the field above it, so
-// it squares the corners they meet at and takes the field's width; this one follows the caret
-// along the box and sits a couple of pixels clear of it, so it keeps all four corners and is only
-// as wide as its entries need. Welding it to a box it is no longer under would draw a join that
-// is not there.
 .table-view-query-menu {
   position: fixed;
   z-index: max(#{z-index('dropdownContent')}, var(--query-menu-stack, 0));
   min-width: 260px;
   max-width: 380px;
   margin: 0;
-  padding: 10px 0;
+  padding: 4px 0;
   list-style: none;
-  max-height: 350px;
+  max-height: 320px;
   overflow-y: auto;
   background: var(--dropdown-bg);
-  border: 1px solid var(--primary-border);
+  border: 1px solid var(--dropdown-border);
   border-radius: var(--border-radius);
+  box-shadow: 0 2px 8px var(--shadow);
 
   li {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
-    // An option's own inset, which a select sets to half the padding the list carries. The rows
-    // hold two columns rather than one, so the gap above is what keeps them apart rather than
-    // padding of their own.
-    padding: 0 5px;
-    line-height: 20px;
-    color: var(--dropdown-text);
+    padding: 6px 12px;
     cursor: pointer;
 
     &.active {
@@ -1265,7 +1250,7 @@ $query-height: 32px;
     cursor: default;
 
     hr {
-      margin: 5px 0;
+      margin: 7px 0;
     }
   }
 
