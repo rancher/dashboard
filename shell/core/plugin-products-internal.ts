@@ -3,7 +3,7 @@ import {
   ProductChildResourcePage,
   ProductChildCustomPage,
 } from '@shell/core/plugin-products-external';
-import { PaginationHeaderOptions, PluginRouteRecordRaw } from '@shell/core/types';
+import { PluginRouteRecordRaw } from '@shell/core/types';
 
 /**
  * Product registration route generation options
@@ -51,14 +51,6 @@ export type ProductChildCustomPageInternal = ProductChildCustomPage & {
 export type ProductChildResourcePageInternal = ProductChildResourcePage & {
   /** Control how all lists that show this resource behave  */
   listConfig?: {
-    /**
-     * Table headers for this resource type when it renders under server-side pagination. `sort`/`search`
-     * on these must be string paths to fields the backend indexes; see `enableServerSidePagination`.
-     *
-     * `localHeaders` (for local pagination) is defined on the external `ProductChildResourcePage`.
-     */
-    headers?: PaginationHeaderOptions[];
-
     /**
      * Whether this custom page has list groups (definition for grouping items in the list view)
      */

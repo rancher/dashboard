@@ -871,6 +871,10 @@ export default class Resource {
   }
 
   isCondition(condition, withStatus = 'True') {
+    if ( !this.status || !this.status.conditions ) {
+      return false;
+    }
+
     const entry = this.condition(condition);
 
     if ( !entry ) {
