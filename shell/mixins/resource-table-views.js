@@ -519,11 +519,24 @@ export default {
      * by hand is still read, and still answered for.
      */
     viewFilterFields() {
+      // Labels are left out, and not because they cannot be filtered on - they can. The api
+      // indexes every `metadata.labels[key]` path, so a label typed by hand filters exactly and
+      // its values are counted across the whole set.
+      //
+      // What cannot be done is list them. There is no call that returns which label keys exist -
+      // `summary=metadata.labels` is refused, and the schema only describes the table's columns -
+      // so the only way to name them is to scan the rows in hand. That makes the list whatever
+      // the rows currently loaded happen to carry: empty while a fetch is in flight, shorter the
+      // moment a query narrows the rows, and never the whole truth on a list of more than one
+      // page. A menu that empties itself as you type towards the thing you wanted is worse than
+      // no menu, so labels are left to be typed.
+      const suggestable = this.viewFields.filter((field) => !field.isLabel);
+
       if (!this.serverSideTableViews) {
-        return this.viewFields;
+        return suggestable;
       }
 
-      return this.viewFields.filter((field) => {
+      return suggestable.filter((field) => {
         const raw = serverPathFor(field);
         const paths = Array.isArray(raw) ? raw : [raw];
 
