@@ -474,7 +474,7 @@ if [ "${GITHUB_BUILD}" == "false" ]; then
   echo -e "${CYAN}Extension version: ${EXT_VERSION}${RESET}"
 
   # Build the container image
-  ${SCRIPT_DIR}/bundle "${BASE_EXT}" "${EXT_VERSION}" "${REGISTRY}" "${REGISTRY_ORG}" "${IMAGE_PREFIX}" "${PUSH}" "${PODMAN_CONTAINER}"
+  ${SCRIPT_DIR}/bundle "${BASE_EXT}" "${EXT_VERSION}" "${REGISTRY}" "${REGISTRY_ORG}" "${IMAGE_PREFIX}" "${PUSH}" "${PODMAN_CONTAINER}" || exit 1
 else
   rm -rf ${CHART_TEMPLATE}
 fi
