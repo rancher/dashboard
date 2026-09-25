@@ -1,6 +1,7 @@
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import CloudCredentialsPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { qase } from '@/cypress/support/qase';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Cloud Credentials', { tags: ['@manager', '@jenkins', '@adminUser', '@standardUser'] }, () => {
@@ -25,7 +26,7 @@ describe('Cloud Credentials', { tags: ['@manager', '@jenkins', '@adminUser', '@s
     cy.createE2EResourceName('cloudCredential').as('cloudCredentialName');
   });
 
-  it('can see error when authentication fails', function() {
+  qase(2189, it('can see error when authentication fails', function() {
     cloudCredentialsPage.goTo();
     cloudCredentialsPage.waitForPage();
     cloudCredentialsPage.create();
@@ -39,9 +40,9 @@ describe('Cloud Credentials', { tags: ['@manager', '@jenkins', '@adminUser', '@s
     cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveOrCreate()
       .click();
     cy.contains('Authentication test failed, please check your credentials').should('be.visible');
-  });
+  }));
 
-  it('can create aws cloud credentials', function() {
+  qase(2191, it('can create aws cloud credentials', function() {
     cloudCredentialsPage.goTo();
     cloudCredentialsPage.waitForPage();
     cloudCredentialsPage.create();
@@ -72,9 +73,9 @@ describe('Cloud Credentials', { tags: ['@manager', '@jenkins', '@adminUser', '@s
 
     // check list details
     cloudCredentialsPage.list().details(this.cloudCredentialName, 2).should('be.visible');
-  });
+  }));
 
-  it('can edit cloud credentials', function() {
+  qase(2190, it('can edit cloud credentials', function() {
     cloudCredentialsPage.goTo();
     cloudCredentialsPage.waitForPage();
     cloudCredentialsPage.list().actionMenu(this.cloudCredentialName).getMenuItem('Edit Config').click();
@@ -91,9 +92,9 @@ describe('Cloud Credentials', { tags: ['@manager', '@jenkins', '@adminUser', '@s
     // check list details
     cloudCredentialsPage.list().details(`${ this.cloudCredentialName }-name-edit`, 2).should('be.visible');
     cloudCredentialsPage.list().details(`${ this.cloudCredentialName }-description-edit`, 3).should('be.visible');
-  });
+  }));
 
-  it('can clone cloud credentials', function() {
+  qase(2192, it('can clone cloud credentials', function() {
     cloudCredentialsPage.goTo();
     cloudCredentialsPage.waitForPage();
     cloudCredentialsPage.list().actionMenu(`${ this.cloudCredentialName }-description-edit`).getMenuItem('Clone').click();
@@ -108,9 +109,9 @@ describe('Cloud Credentials', { tags: ['@manager', '@jenkins', '@adminUser', '@s
     // check list details
     cloudCredentialsPage.list().details(`${ this.cloudCredentialName }-clone`, 1).should('be.visible');
     cloudCredentialsPage.list().details(`${ this.cloudCredentialName }-description-edit`, 3).should('be.visible');
-  });
+  }));
 
-  it('can delete cloud credentials', function() {
+  qase(2188, it('can delete cloud credentials', function() {
     cloudCredentialsPage.goTo();
     cloudCredentialsPage.waitForPage();
     // delete clone cloud credential
@@ -125,9 +126,9 @@ describe('Cloud Credentials', { tags: ['@manager', '@jenkins', '@adminUser', '@s
 
     // check list details
     cy.contains(`${ this.cloudCredentialName }-clone`).should('not.exist');
-  });
+  }));
 
-  it('can delete cloud credentials via bulk actions', function() {
+  qase(2193, it('can delete cloud credentials via bulk actions', function() {
     cloudCredentialsPage.goTo();
     cloudCredentialsPage.waitForPage();
     // delete original cloud credential
@@ -145,5 +146,5 @@ describe('Cloud Credentials', { tags: ['@manager', '@jenkins', '@adminUser', '@s
 
     // check list details
     cy.contains(this.cloudCredentialName).should('not.exist');
-  });
+  }));
 });
