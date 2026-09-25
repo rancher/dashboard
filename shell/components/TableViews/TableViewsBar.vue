@@ -2466,7 +2466,7 @@ $toolbar-min-width: 544px;
     padding: 0;
 
     .icon {
-      font-size: 12px;
+      font-size: 14px;
     }
   }
 
@@ -2512,8 +2512,11 @@ $toolbar-min-width: 544px;
     gap: 8px;
     margin: 0;
     color: var(--error);
-    font-size: 12px;
-    line-height: 16px;
+    // Body text, the size the product writes its own validation message under a field in. It was
+    // set two steps down from that, which read as a caption about the list rather than as
+    // something the box was saying about what had just been typed into it.
+    font-size: 14px;
+    line-height: 20px;
 
     .icon {
       flex: none;
@@ -2530,7 +2533,7 @@ $toolbar-min-width: 544px;
     white-space: nowrap;
 
     .icon {
-      @include toolbar-icon(14px, 12px);
+      @include toolbar-icon(14px, 14px);
     }
   }
 }
@@ -2629,11 +2632,12 @@ $toolbar-min-width: 544px;
     // Sitting in the menu's top corners, it takes their rounding with them
     border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
     padding: 0 17px;
-    // Mixed from the live token rather than `--accent-btn`: that is compiled from the scss
-    // palette, so it stayed Rancher blue on a Prime install where everything around it is green.
-    background: color-mix(in srgb, var(--primary) 12%, transparent);
+    // The same wash an informative state badge is drawn on - what this row says is news about the
+    // tab, not a result of anything. Mixing it from `--primary` instead tied it to the brand, so
+    // it came out green on a Prime install and read as a success message.
+    background: var(--info-badge, var(--info-banner));
     color: var(--body-text);
-    font-size: 13px;
+    font-size: 14px;
 
     // The dot stands in the icons' column, so the notice reads off the same left edge as the
     // rows below it. A transparent border widens the box without growing the dot itself.
