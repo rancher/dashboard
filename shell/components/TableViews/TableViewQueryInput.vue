@@ -106,8 +106,6 @@ const focused = ref(false);
  * keystroke brings the list back.
  */
 const dismissed = ref(false);
-/** Whether the pointer is over the box, which is when the clear is offered */
-const hovered = ref(false);
 const activeIndex = ref(0);
 /** Where to put the caret once the tokens have been re-rendered, if we own it */
 const pendingCaret = ref<number | null>(null);
@@ -275,14 +273,14 @@ const connectiveSuggestions = computed<Suggestion[]>(() => {
 });
 
 /**
- * Whether to offer the clear in place of the lens.
- *
- * Only under the pointer: the mark is there to be reached for, and standing in the box for the
- * whole time a query is being written it was one more thing to read past. The keyboard is not left
- * without a way out - Escape empties the box, which is why this can be a pointer-only affordance
- * rather than something that has to stay reachable by Tab.
- */
-const showClear = computed(() => !!props.value && hovered.value);
+  * Whether to offer the clear in place of the lens.
+  *
+  * Shown for as long as there is a query to clear, pointer or no pointer. It was hover-only for a
+  * while, on the grounds that the mark is there to be reached for - but a way out of a filter that
+  * only appears once you go looking for it is not one most people find, and it left the slot empty
+  * for the whole time a query was being written.
+  */
+const showClear = computed(() => !!props.value);
 
 /** The fields offered by name, which can be narrower than the ones a query may mention */
 const suggestableFields = computed<ViewField[]>(() => props.filterFields || props.fields);
@@ -873,8 +871,6 @@ onBeforeUnmount(() => {
     ref="root"
     class="table-view-query"
     :class="{ focused }"
-    @mouseenter="hovered = true"
-    @mouseleave="hovered = false"
   >
     <!-- The tokens are the editable content, so a badge's margin is ordinary layout rather than
          something that has to be kept in step with a separate input.
@@ -1100,20 +1096,20 @@ $query-height: 32px;
     font-style: italic;
   }
 
-  // The one slot, kept at the lens's width whatever is in it - see the template
+  // The one slot, kept at the icon's width whatever is in it - see the template
   > .query-affordance {
     flex: none;
     display: flex;
     align-items: center;
     justify-content: center;
     align-self: stretch;
-    width: 16px;
+    width: 14px;
     margin-left: 8px;
   }
 
   .icon-search {
     color: var(--muted);
-    font-size: 16px;
+    font-size: 14px;
   }
 
   // Filling the slot, and no taller than the row around it.
