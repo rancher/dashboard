@@ -8,6 +8,7 @@ import { generatePodsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloa
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { qase } from '@/cypress/support/qase';
 
 const localCluster = 'local';
 
@@ -59,7 +60,7 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
         });
     });
 
-    it('pagination is visible and user is able to navigate through pods data', () => {
+    qase(4009, it('pagination is visible and user is able to navigate through pods data', () => {
       ClusterDashboardPagePo.goToAndConfirmNsValues(localCluster, { nsProject: { values: [nsName1, nsName2] } });
 
       WorkloadsPodsListPagePo.navTo();
@@ -161,9 +162,9 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
             .leftButton()
             .isDisabled();
         });
-    });
+    }));
 
-    it('sorting changes the order of paginated pods data', () => {
+    qase(3957, it('sorting changes the order of paginated pods data', () => {
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
       // use filter to only show test data
@@ -201,9 +202,9 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodPage.list().resourceTable().sortableTable().rowElementWithName(podNamesList[0])
         .scrollIntoView()
         .should('be.visible');
-    });
+    }));
 
-    it('filter pods', () => {
+    qase(3956, it('filter pods', () => {
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
 
@@ -222,9 +223,9 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
       workloadsPodPage.list().resourceTable().sortableTable().rowElementWithName(uniquePod)
         .should('be.visible');
-    });
+    }));
 
-    it('pagination is hidden', () => {
+    qase(3954, it('pagination is hidden', () => {
       cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', '{"local":[]}');
 
       // generate small set of pods data
@@ -241,7 +242,7 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodPage.list().resourceTable().sortableTable().checkRowCount(false, 3);
       workloadsPodPage.list().resourceTable().sortableTable().pagination()
         .checkNotExists();
-    });
+    }));
 
     after('clean up', () => {
       // Ensure the default rows per page value is set after running the tests
@@ -257,11 +258,11 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodPage.goTo();
     });
 
-    it('should open a pod shell', () => {
+    qase(3967, it('should open a pod shell', () => {
       const shellPodPo = new PodPo();
 
       shellPodPo.openPodShell();
-    });
+    }));
   });
 
   describe('When cloning a pod', () => {
@@ -285,7 +286,7 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       createPodPo.createPodViaKubectl(createPodBlueprint);
     });
 
-    it(`Should have same spec as the original pod`, () => {
+    qase(3968, it(`Should have same spec as the original pod`, () => {
       const cloneCreatePodPage = new WorkLoadsPodDetailsPagePo(origPodName, { mode: 'clone' });
 
       cloneCreatePodPage.goTo();
@@ -341,13 +342,13 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
           expect(clonedSpec).to.deep.eq(origPodSpec);
           expect(clonedSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
         });
-    });
+    }));
   });
 
   describe('When creating a pod using the web Form', () => {
     const singlePodName = Cypress._.uniqueId(Date.now().toString());
 
-    it(`should have the default input units displayed`, () => {
+    qase(6557, it(`should have the default input units displayed`, () => {
       workloadsPodPage.goTo();
       workloadsPodPage.createPod();
 
@@ -378,9 +379,9 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodPage.list().resourceTable().sortableTable().rowElementWithName(singlePodName)
         .scrollIntoView()
         .should('be.visible');
-    });
+    }));
 
-    it('Footer controls should stick to bottom in YAML Editor', () => {
+    qase(6558, it('Footer controls should stick to bottom in YAML Editor', () => {
       // testing https://github.com/rancher/dashboard/issues/10880
       const workloadsPodEditPage = new WorkLoadsPodEditPagePo(singlePodName);
 
@@ -407,9 +408,9 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
         expect(elementRect.bottom).to.be.closeTo(pageHeight, 0.1);
         expect(elementRect.bottom).to.be.closeTo(viewportHeight, 0.1);
       });
-    });
+    }));
 
-    it(`should properly add container tabs to the tablist`, () => {
+    qase(7832, it(`should properly add container tabs to the tablist`, () => {
       workloadsPodPage.goTo();
       workloadsPodPage.createPod();
 
@@ -424,10 +425,10 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
         cy.get('[data-testid="btn-container-1"]').should('contain.text', 'container-1');
         cy.get('[data-testid="workload-button-add-container"]').should('contain.text', 'Add Container');
       });
-    });
+    }));
 
     // testing https://github.com/rancher/dashboard/issues/14071
-    it('should remove the correct environment variable from the workload form', () => {
+    qase(8562, it('should remove the correct environment variable from the workload form', () => {
       cy.viewport(1280, 720);
       const podDetails = new PodPo();
 
@@ -467,7 +468,7 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
         podDetails.environmentVariables().getVariableAtIndex(index).find('.name input').should('have.value', key);
       });
       podDetails.environmentVariables().getVariableByName('SECOND_VAR').should('not.exist');
-    });
+    }));
   });
 
   // describe.skip('[Vue3 Skip]: should delete pod', () => {

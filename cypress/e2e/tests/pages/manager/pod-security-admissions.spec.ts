@@ -4,6 +4,7 @@ import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { createPayloadData, updatePayloadData } from '@/cypress/e2e/blueprints/cluster_management/pod-security-admissions-payload';
+import { qase } from '@/cypress/support/qase';
 
 describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo();
@@ -18,15 +19,15 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
     cy.viewport(1380, 720);
     cy.createE2EResourceName('podsecurityadmissions').as('podSecurityAdmissionsName');
   });
-  it('can open "Edit as YAML"', () => {
+  qase(4943, it('can open "Edit as YAML"', () => {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.create();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().editAsYaml().click();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().yamlEditor().checkExists();
-  });
+  }));
 
-  it('can create a policy security admission', function() {
+  qase(2198, it('can create a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.create();
@@ -56,9 +57,9 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
 
     // check list details
     podSecurityAdmissionsPage.list().details(this.podSecurityAdmissionsName, 1).should('be.visible');
-  });
+  }));
 
-  it('can edit a policy security admission', function() {
+  qase(2199, it('can edit a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Edit Config').click();
@@ -84,9 +85,9 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
 
     // check list details
     podSecurityAdmissionsPage.list().details(`${ this.podSecurityAdmissionsName }-description-edit`, 1).should('be.visible');
-  });
+  }));
 
-  it('can clone a policy security admission', function() {
+  qase(2195, it('can clone a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Clone').click();
@@ -97,9 +98,9 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
 
     // check list details
     podSecurityAdmissionsPage.list().details(`${ this.podSecurityAdmissionsName }-clone`, 1).should('be.visible');
-  });
+  }));
 
-  it('can download YAML for a policy security admission', function() {
+  qase(2196, it('can download YAML for a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Download YAML').click({ force: true });
@@ -114,9 +115,9 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
       expect(obj.metadata.name).to.equal(this.podSecurityAdmissionsName);
       expect(obj.kind).to.equal('PodSecurityAdmissionConfigurationTemplate');
     });
-  });
+  }));
 
-  it('can delete a policy security admission', function() {
+  qase(2194, it('can delete a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
 
@@ -138,9 +139,9 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
         podSecurityAdmissionsPage.waitForPage();
         cy.contains(`${ this.podSecurityAdmissionsName }-clone`).should('not.exist');
       });
-  });
+  }));
 
-  it('can delete a policy security admission via bulk actions', function() {
+  qase(2197, it('can delete a policy security admission via bulk actions', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
 
@@ -164,7 +165,7 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
         podSecurityAdmissionsPage.waitForPage();
         cy.contains(this.podSecurityAdmissionsName).should('not.exist');
       });
-  });
+  }));
 });
 
 describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
@@ -173,7 +174,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.applyDefaultTestTheme();
   });
 
-  it('should display Pod Security Admissions list page', () => {
+  qase(18426, it('should display Pod Security Admissions list page', () => {
     const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo();
 
     PodSecurityAdmissionsPagePo.goTo('_');
@@ -188,7 +189,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
 
     // takes percy snapshot.
     cy.percySnapshot('Pod Security Admissions list page');
-  });
+  }));
 
   after(() => {
     cy.restoreProductDefaultTestTheme();
