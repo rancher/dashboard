@@ -105,6 +105,10 @@ defineExpose({
     flex: 0 0 auto;
     margin-left: 12px;
     color: var(--muted);
+    // Buttons carry a 40px min-height, which on a title row is taller than the heading and would set
+    // the row's height — pushing the title, and the page under it, down. Sized to the heading instead.
+    min-height: 0;
+    height: 28px;
 
     &.is-pinned {
       color: var(--primary);
