@@ -193,33 +193,35 @@ export function foldByLineMatch(pattern: RegExp): Extension {
   });
 }
 
-/** Walks a Key node's ancestor Pairs to reconstruct the full dot-notation path. */
-function getKeyPath(keyNode: SyntaxNode, state: EditorState): string[] {
-  const path: string[] = [state.doc.sliceString(keyNode.from, keyNode.to).trim()];
-  // Key → Pair → BlockMapping → Pair → BlockMapping → ...
-  let cur: SyntaxNode | null = keyNode.parent; // Pair
+/** Walks a Key node's ancestors to reconstruct its path from the document root. */
+function getKeyPath(keyNode: SyntaxNode, state: EditorState): string {
+  const segments: string[] = [];
 
-  while (cur) {
-    cur = cur.parent; // BlockMapping
-    if (!cur) {
-      break;
-    }
-    cur = cur.parent; // parent Pair
-    if (!cur || cur.name !== 'Pair') {
-      break;
-    }
-    const parentKey = cur.firstChild;
+  for (let cur: SyntaxNode | null = keyNode.parent; cur; cur = cur.parent) {
+    if (cur.name === 'Pair') {
+      const key = cur.firstChild;
 
-    if (parentKey?.name === 'Key') {
-      path.unshift(state.doc.sliceString(parentKey.from, parentKey.to).trim());
+      if (key?.name === 'Key') {
+        segments.unshift(state.doc.sliceString(key.from, key.to).trim());
+      }
+    } else if (cur.name === 'Item') {
+      let index = 0;
+
+      for (let sibling = cur.prevSibling; sibling; sibling = sibling.prevSibling) {
+        if (sibling.name === 'Item') {
+          index++;
+        }
+      }
+      segments.unshift(`[${ index }]`);
     }
   }
 
-  return path;
+  return segments.reduce((path, segment) => segment.startsWith('[') ? `${ path }${ segment }` : path ? `${ path }.${ segment }` : segment, '');
 }
 
 /**
- * Declarative fold service: marks the line at the given YAML dot-notation path as foldable.
+ * Declarative fold service: marks the line at the given YAML path as foldable.
+ * Use zero-based indexes for list items, for example `spec.containers[0].resources`.
  * Requires a YAML language extension to be active (uses the lezer syntax tree).
  */
 export function foldByYamlPath(path: string): Extension {
@@ -242,7 +244,7 @@ export function foldByYamlPath(path: string): Extension {
         if (state.doc.sliceString(node.from, node.to).trim() !== lastSegment) {
           return;
         }
-        if (getKeyPath(node.node, state).join('.') === path) {
+        if (getKeyPath(node.node, state) === path) {
           keyNode = node.node;
 
           return false;
@@ -411,7 +413,8 @@ export function foldMatchingLines(view: EditorView, pattern: RegExp): void {
 }
 
 /**
- * Imperative: folds the line at the given YAML dot-notation path. Call in a `ready` handler.
+ * Imperative: folds the line at the given YAML path. List items use zero-based indexes.
+ * Call in a `ready` handler.
  */
 export function foldYamlPath(view: EditorView, path: string): void {
   parseDocument(view);
@@ -434,7 +437,7 @@ export function foldYamlPath(view: EditorView, path: string): void {
       if (state.doc.sliceString(node.from, node.to).trim() !== lastSegment) {
         return;
       }
-      if (getKeyPath(node.node, state).join('.') === path) {
+      if (getKeyPath(node.node, state) === path) {
         targetFrom = state.doc.lineAt(node.from).from;
 
         return false;

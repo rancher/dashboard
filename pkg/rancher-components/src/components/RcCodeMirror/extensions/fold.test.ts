@@ -58,6 +58,21 @@ const yamlDoc = [
   '    app: b', //  7
 ].join('\n');
 
+const yamlListDoc = [
+  'spec:',
+  '  containers:',
+  '    - name: web',
+  '      ports:',
+  '        - containerPort: 80',
+  '      resources:',
+  '        limits:',
+  '          cpu: 500m',
+  '    - name: api',
+  '      resources:',
+  '        limits:',
+  '          memory: 2Gi',
+].join('\n');
+
 describe('fold extensions', () => {
   describe('indentFoldService', () => {
     it('should fold the indented block below a line', () => {
@@ -207,8 +222,8 @@ describe('fold extensions', () => {
   describe('foldByYamlPath', () => {
     // The YAML language folds every mapping on its own, so call the service
     // directly to see only what foldByYamlPath contributes.
-    function yamlPathRangeAt(path: string, lineNumber: number) {
-      const state = createState(yamlDoc, [yaml(), foldByYamlPath(path)]);
+    function yamlPathRangeAt(path: string, lineNumber: number, doc = yamlDoc) {
+      const state = createState(doc, [yaml(), foldByYamlPath(path)]);
       const [service] = state.facet(foldService);
       const line = state.doc.line(lineNumber);
 
@@ -221,6 +236,21 @@ describe('fold extensions', () => {
 
     it('should not fold a key with the same name at a different path', () => {
       expect(yamlPathRangeAt('metadata.labels', 6)).toBeNull();
+    });
+
+    it('should not claim a key inside a list as a root key', () => {
+      expect(yamlPathRangeAt('ports', 4, yamlListDoc)).toBeNull();
+    });
+
+    it.each([
+      ['spec.containers[0].ports', 4],
+      ['spec.containers[1].resources', 10],
+    ])('should match the indexed path %s', (path, lineNumber) => {
+      expect(yamlPathRangeAt(path, lineNumber, yamlListDoc)).not.toBeNull();
+    });
+
+    it('should not match a different list item', () => {
+      expect(yamlPathRangeAt('spec.containers[0].resources', 10, yamlListDoc)).toBeNull();
     });
   });
 
@@ -289,6 +319,23 @@ describe('fold extensions', () => {
       foldYamlPath(view, 'spec.missing');
 
       expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('should not fold a key inside a list for a root path', () => {
+      const view = createView(yamlListDoc, [yaml(), indentFoldService]);
+      const dispatch = jest.spyOn(view, 'dispatch');
+
+      foldYamlPath(view, 'resources');
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('should fold a key at an indexed list path', () => {
+      const view = createView(yamlListDoc, [yaml(), indentFoldService]);
+
+      foldYamlPath(view, 'spec.containers[1].resources');
+
+      expect(folded(view)).toStrictEqual([{ from: view.state.doc.line(10).to, to: view.state.doc.line(12).to }]);
     });
   });
 });
