@@ -129,6 +129,15 @@
   }
 }
 
+// Open and close outright, with none of the fade a menu is otherwise given. For a menu that
+// appears under the pointer rather than on a click - a sub menu opened by hovering a row - the
+// fade is time spent between two states rather than a transition anyone reads as one, and walking
+// a list of rows that each open one made it feel like lag.
+.v-popper__popper.popper-no-fade,
+.v-popper__popper.popper-no-fade > .v-popper__wrapper {
+  transition: none !important;
+}
+
 .v-popper__popper.v-popper--theme-dropdown {
   z-index: z-index('tooltip');
 

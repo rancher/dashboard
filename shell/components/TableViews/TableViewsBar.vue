@@ -2033,7 +2033,7 @@ onBeforeUnmount(() => {
               :flip="false"
               :boundary="menuBoundary"
               :overflow-padding="MENU_GUTTER"
-              skip-transition
+              popper-class="popper-no-fade"
               :reference-node="() => viewMenu"
               @update:open="(open) => closeSubMenu('group', open)"
             >
@@ -2095,7 +2095,7 @@ onBeforeUnmount(() => {
               :flip="false"
               :boundary="menuBoundary"
               :overflow-padding="MENU_GUTTER"
-              skip-transition
+              popper-class="popper-no-fade"
               :reference-node="() => viewMenu"
               @update:open="(open) => closeSubMenu('columns', open)"
             >
@@ -2620,17 +2620,11 @@ $toolbar-min-width: 544px;
       background: var(--body-bg);
       color: var(--link);
 
-      // Two gradients, and they do different jobs. Underneath, the page's own colour fading in
-      // towards the button, so a tab is gone before it reaches it rather than sliding out from
-      // behind a hard edge with half a letter showing. Over that, the shadow itself - the app
-      // bar's 8px, unchanged, which is why this band is wider than that: the fade runs the whole
-      // of it and the shadow only the half nearest the button.
-      //
-      // The fade reaches the page's colour at 65% rather than at the very end. A gradient that is
-      // still arriving when it meets the button leaves its last few pixels part transparent, and
-      // what was behind them - the active tab's underline, most visibly - showed through as a
-      // bead of colour against the button's edge. Solid for the last third means there is nothing
-      // left to see through by the time the two meet.
+      // The app bar's shadow turned on its side - the same 8, the same wash, the same reveal, and
+      // nothing else. An opaque fade was layered under it for a while to hide what was passing
+      // behind; what was showing turned out to be a focused tab's ring escaping above and below
+      // the button, which the button covers itself now. Content showing faintly through a shadow
+      // is what a shadow is.
       // The row's rule, drawn back along the line it actually sits on. It used to be an inset
       // shadow on the button's own bottom edge, which was right while the two were the same line
       // and wrong the moment the button reached past it into the strip's padding.
@@ -2650,16 +2644,10 @@ $toolbar-min-width: 544px;
         position: absolute;
         top: 0;
         bottom: 0;
-        // Four pixels under the button rather than flush against it. Flush left a hairline of
-        // whatever was passing behind showing between the two, which on the active tab is a bead
-        // of its underline. The end of the fade is the page's own colour, so the overlap lands on
-        // the button's own background and cannot be seen.
-        right: calc(100% - 4px);
-        width: 20px;
+        right: 100%;
+        width: 8px;
         pointer-events: none;
-        background:
-          linear-gradient(90deg, transparent 50%, color-mix(in srgb, var(--body-text) 8%, transparent) 100%),
-          linear-gradient(90deg, transparent 0%, var(--body-bg) 65%, var(--body-bg) 100%);
+        background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--body-text) 8%, transparent) 100%);
         opacity: 0;
         animation: view-tab-scroll-shadow linear both;
         animation-timeline: scroll(nearest inline);
