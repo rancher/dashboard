@@ -100,7 +100,6 @@ export default defineComponent({
   .buttons {
     display: grid;
     grid-template-areas:  "left right";
-    grid-template-columns: "min-content auto";
 
     .left {
       grid-area: left;

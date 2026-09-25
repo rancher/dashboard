@@ -149,7 +149,7 @@ export default {
       v-if="showText"
       :x="center"
       :y="center"
-      style="font-size: 25; dominant-baseline:  middle; text-anchor:middle;"
+      style="font-size: 25px; dominant-baseline:  middle; text-anchor:middle;"
       :fill="`url(#${primaryStrokeColorId})`"
     >
       {{ parsePercentage }}%
