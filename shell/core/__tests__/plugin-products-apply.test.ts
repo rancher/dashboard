@@ -1,6 +1,7 @@
 import { PluginProduct } from '@shell/core/plugin-products';
 import { IExtension } from '@shell/core/types';
 import { ProductChildGroup, ProductChildPage, ProductMetadata, StandardProductNames } from '@shell/core/plugin-products-external';
+import { ProductChildResourcePageInternal } from '@shell/core/plugin-products-internal';
 import { IF_HAVE } from '@shell/store/type-map';
 
 // Mock the helper functions
@@ -1125,7 +1126,7 @@ describe('pluginProduct', () => {
           type:     'management.cattle.io.user',
           label:    'Users',
           sideMenu: { hideFromNav: true },
-        },
+        } as ProductChildResourcePageInternal,
       ]);
 
       pluginProduct.apply(mockPlugin, mockStore);
