@@ -2551,15 +2551,22 @@ $toolbar-min-width: 544px;
       background: var(--body-bg);
       color: var(--link);
 
+      // Two gradients, and they do different jobs. Underneath, the page's own colour fading in
+      // towards the button, so a tab is gone before it reaches it rather than sliding out from
+      // behind a hard edge with half a letter showing. Over that, the shadow itself - the app
+      // bar's 8px, unchanged, which is why this band is twice that wide: the fade runs the whole
+      // 16 and the shadow only the 8 nearest the button.
       &::before {
         content: "";
         position: absolute;
         top: 0;
         bottom: 0;
         right: 100%;
-        width: 8px;
+        width: 16px;
         pointer-events: none;
-        background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--body-text) 8%, transparent) 100%);
+        background:
+          linear-gradient(90deg, transparent 50%, color-mix(in srgb, var(--body-text) 8%, transparent) 100%),
+          linear-gradient(90deg, transparent 0%, var(--body-bg) 100%);
         opacity: 0;
         animation: view-tab-scroll-shadow linear both;
         animation-timeline: scroll(nearest inline);
