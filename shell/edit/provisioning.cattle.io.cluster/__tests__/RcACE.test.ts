@@ -1,5 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import RcACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/RcACE.vue';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import { _EDIT } from '@shell/config/query-params';
 
 // The default shallow-mount stub doesn't render its default slot, which would hide the content under test
@@ -62,7 +64,7 @@ describe('component: RcACE', () => {
   it('should emit fqdn-changed when the FQDN changes', () => {
     const wrapper = mountComponent({ enabled: true });
 
-    wrapper.findComponent('[data-testid="ace-fqdn-input"]').vm.$emit('update:value', 'example.com');
+    wrapper.findComponent(LabeledInput).vm.$emit('update:value', 'example.com');
 
     expect(wrapper.emitted('fqdn-changed')).toStrictEqual([['example.com']]);
   });
@@ -70,7 +72,7 @@ describe('component: RcACE', () => {
   it('should emit ca-certs-changed when the CA certificates change', () => {
     const wrapper = mountComponent({ enabled: true });
 
-    wrapper.findComponent('[data-testid="ace-cacerts-input"]').vm.$emit('update:value', 'cert');
+    wrapper.findComponent(FileSelectorTextArea).vm.$emit('update:value', 'cert');
 
     expect(wrapper.emitted('ca-certs-changed')).toStrictEqual([['cert']]);
   });
