@@ -147,6 +147,25 @@ export const ReadOnly: Story = {
   args: { readOnly: true },
 };
 
+export const ReadOnlyKeyboard: Story = {
+  render: (args: any) => ({
+    components: { RcCodeMirror },
+    setup() {
+      const value = ref(yaml);
+
+      return { args, value };
+    },
+    template: `
+      <div style="display: grid; grid-template-rows: auto 240px auto; gap: 8px; width: 500px;">
+        <button type="button">Before editor</button>
+        <RcCodeMirror v-bind="args" v-model="value" aria-label="Read-only deployment" />
+        <button type="button">After editor</button>
+      </div>
+    `,
+  }),
+  args: { readOnly: true },
+};
+
 export const CustomFolding: Story = {
   render: (args: any) => ({
     components: { RcCodeMirror },
