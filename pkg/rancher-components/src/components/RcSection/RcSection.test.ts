@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import RcContentGroup from '@components/Layout/RcContentGroup/RcContentGroup.vue';
 import RcSection from './RcSection.vue';
@@ -365,6 +366,70 @@ describe('component: RcSection', () => {
       const wrapper = mount(RcSection, { props: { ...defaultProps, background: 'secondary' } });
 
       expect(wrapper.find('.counter').exists()).toBe(false);
+    });
+  });
+
+  describe('table of contents navigation', () => {
+    // jsdom doesn't implement scrollIntoView
+    const scrollIntoView = jest.fn();
+
+    beforeEach(() => {
+      scrollIntoView.mockReset();
+      Element.prototype.scrollIntoView = scrollIntoView;
+    });
+
+    const navigateTo = async(wrapper: ReturnType<typeof mount>) => {
+      (wrapper.vm as unknown as { summary: { scrollTo: () => void } }).summary.scrollTo();
+      await nextTick();
+    };
+
+    it('should expand a collapsed expandable section', async() => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: false
+        }
+      });
+
+      await navigateTo(wrapper);
+
+      expect(wrapper.emitted('update:expanded')).toStrictEqual([[true]]);
+    });
+
+    it('should render the content of a collapsed expandable section after navigating to it', async() => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: false
+        },
+        slots: { default: '<p class="slot-content">Content</p>' },
+      });
+
+      await navigateTo(wrapper);
+
+      expect(wrapper.find('.slot-content').exists()).toBe(true);
+    });
+
+    it('should not change the expanded state of a non-expandable section', async() => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: false, expanded: false
+        }
+      });
+
+      await navigateTo(wrapper);
+
+      expect(wrapper.emitted('update:expanded')).toBeUndefined();
+    });
+
+    it('should scroll the section to the top of the view', async() => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: false
+        }
+      });
+
+      await navigateTo(wrapper);
+
+      expect(scrollIntoView).toHaveBeenCalledWith(true);
     });
   });
 });
