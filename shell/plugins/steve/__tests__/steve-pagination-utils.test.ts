@@ -500,4 +500,16 @@ describe('class StevePaginationUtils', () => {
       expect(result).toBe(`filter=metadata.name=${ y }`);
     });
   });
+
+  describe('method: formatSortParam', () => {
+    it.each([
+      ['metadata.name', true, 'metadata.name'],
+      ['metadata.name', false, '-metadata.name'],
+      ['metadata.fields.5', true, 'metadata.fields[5]'],
+      ['ip(status.podIP)', true, 'ip(status.podIP)'],
+      ['ip(status.podIP)', false, 'ip(-status.podIP)'],
+    ])('formats %s asc=%s as %s', (field, asc, expected) => {
+      expect(stevePaginationUtils['formatSortParam'](field, asc)).toBe(expected);
+    });
+  });
 });

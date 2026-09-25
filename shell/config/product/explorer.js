@@ -446,7 +446,13 @@ export function init(store) {
         search:   false,
         sort:     [POD_RESTARTS_LAST_FIELD, POD_RESTARTS_COUNT_FIELD, 'metadata.name'],
       },
-      'IP',
+      {
+        name:   'ip',
+        label:  'IP',
+        value:  'status.podIP',
+        sort:   ['ip(status.podIP)'],
+        search: 'status.podIP',
+      },
       {
         ...NODE_COL,
         search: 'spec.nodeName'
