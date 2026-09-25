@@ -2684,14 +2684,9 @@ $toolbar-min-width: 544px;
         }
       }
 
-      // The ring is drawn rather than outlined. An outline follows the border box, and this
-      // button's border box is the strip's whole height including the padding either side - so
-      // an outline either sat outside it, where the scroller clipped it away, or inside it,
-      // where it crossed the row's rule and touched the strip's edges.
-      //
-      // Drawn, it can stand exactly where a tab's ring stands: inside the strip's padding on
-      // three sides, above the rule on the fourth, and carrying the same radius the tabs' rings
-      // carry.
+      // The ring is drawn rather than outlined, because an outline sits outside the border box
+      // and the scroller clipped it away at the strip's edge. Drawn on top, it follows the
+      // button's own box and carries the same radius every other focus ring carries.
       &:focus-visible {
         outline: none;
       }
@@ -2699,7 +2694,7 @@ $toolbar-min-width: 544px;
       &:focus-visible::after {
         content: "";
         position: absolute;
-        inset: 3px 3px 4px 3px;
+        inset: 0;
         pointer-events: none;
         border: 2px solid var(--primary-keyboard-focus);
         border-radius: var(--border-radius);
