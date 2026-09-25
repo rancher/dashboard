@@ -2079,11 +2079,13 @@ function ifHave(getters, option) {
 
 // Could list a larger set of resources that typically only an admin user would have
 export function isAdminUser(getters) {
-  const canEditSettings = (getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT');
-  const canEditFeatureFlags = (getters['management/schemaFor'](MANAGEMENT.FEATURE)?.resourceMethods || []).includes('PUT');
-  const canInstallApps = (getters['management/schemaFor'](CATALOG.APP)?.resourceMethods || []).includes('PUT');
-  const canAddRepos = (getters['management/schemaFor'](CATALOG.CLUSTER_REPO)?.resourceMethods || []).includes('PUT');
-  const canPutHelmOperations = (getters['management/schemaFor'](CATALOG.OPERATION)?.resourceMethods || []).includes('PUT');
+  // `allowThrow: false` — with no schemas loaded `schemaFor` throws rather than returning null,
+  // which the optional chaining below cannot guard against. Treat that as "not an admin".
+  const canEditSettings = (getters['management/schemaFor'](MANAGEMENT.SETTING, false, false)?.resourceMethods || []).includes('PUT');
+  const canEditFeatureFlags = (getters['management/schemaFor'](MANAGEMENT.FEATURE, false, false)?.resourceMethods || []).includes('PUT');
+  const canInstallApps = (getters['management/schemaFor'](CATALOG.APP, false, false)?.resourceMethods || []).includes('PUT');
+  const canAddRepos = (getters['management/schemaFor'](CATALOG.CLUSTER_REPO, false, false)?.resourceMethods || []).includes('PUT');
+  const canPutHelmOperations = (getters['management/schemaFor'](CATALOG.OPERATION, false, false)?.resourceMethods || []).includes('PUT');
 
   return canEditSettings && canEditFeatureFlags && canInstallApps && canAddRepos && canPutHelmOperations;
 }
