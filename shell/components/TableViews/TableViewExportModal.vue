@@ -16,6 +16,7 @@ import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 
 import { RadioGroup } from '@components/Form/Radio';
+import { RcButton } from '@components/RcButton';
 import { downloadFile } from '@shell/utils/download';
 import { escapeHtml } from '@shell/utils/string';
 import { exportColumnsFor, rowsToCsv, rowsToJson } from '@shell/utils/table-views/export';
@@ -171,22 +172,24 @@ const download = async() => {
     </div>
 
     <div class="export-actions">
-      <button
-        type="button"
-        class="btn role-link"
+      <RcButton
+        variant="link"
         data-testid="table-views-export-cancel"
         @click="emit('close')"
       >
         {{ t('generic.cancel') }}
-      </button>
-      <button
-        type="button"
-        class="btn role-primary"
+      </RcButton>
+      <!-- `left-icon` rather than an `<i>` of its own: the button places and sizes the mark
+           against its own label, which is what keeps every button in the product carrying one
+           the same way. -->
+      <RcButton
+        variant="primary"
+        left-icon="download"
         data-testid="table-views-export-download"
         @click="download"
       >
         {{ t('tableViews.export.download') }}
-      </button>
+      </RcButton>
     </div>
   </div>
 </template>

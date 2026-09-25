@@ -7202,7 +7202,7 @@ tableViews:
   export:
     label: Export All View Contents
     title: Export All View Contents
-    intro: 'You are about to <b>export all items ({count})</b> from the <b>{name}</b> view. Depending on the format you choose, the structure of the export will match the current view settings (selected grouping method and / of columns configuration).'
+    intro: 'You are about to <b>export all items ({count})</b> from the <b>{name}</b> view. Depending on the format you choose, the structure of the export will match the current view settings (selected grouping method and / or columns configuration).'
     choose: '<b>Please choose a format</b> below to continue...'
     # What the same modal says when it was opened for a selection rather than for a whole view
     selectionTitle: Export As...
@@ -7210,7 +7210,7 @@ tableViews:
       You are about to <b>export {count, plural,
       one {1 selected item}
       other {{count} selected items}
-      }</b>. Depending on the context and the format you choose, the structure of the export will match the current view settings (selected grouping method and / of columns configuration, if any).
+      }</b>. Depending on the context and the format you choose, the structure of the export will match the current view settings (selected grouping method and / or columns configuration, if any).
     download: Download
     format:
       yaml: YAML
