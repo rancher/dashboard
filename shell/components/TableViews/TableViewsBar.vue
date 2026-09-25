@@ -66,6 +66,15 @@ const TAB_SCROLL_SETTLE_MAX_MS = 1200;
 const TAB_FLASH_MS = 600;
 
 /**
+ * How long a deleted view can be had back.
+ *
+ * Longer than a growl's usual five seconds: this one is not telling you something you already
+ * know, it is the only way back from something that is otherwise gone, and it takes a moment to
+ * notice a tab has vanished and decide you wanted it.
+ */
+const UNDO_TIMEOUT = 10000;
+
+/**
  * How close to an edge of the page's content region a sub menu may come.
  *
  * Applied to every edge, so a menu slid up to stay on screen stops this far under the masthead
@@ -1533,12 +1542,27 @@ const setDefaultView = (tab: Tab) => {
 /** Is this the tab the list opens on? With nothing set, that is the default tab */
 const isDefaultTab = (tab: Tab) => (tab.isDefaultTab ? !defaultViewId.value : defaultViewId.value === tab.view?.id);
 
+/**
+ * Delete a view, and offer it back.
+ *
+ * A view is a few minutes of somebody's arrangement and there is nothing else holding it, so
+ * losing one to a misclick costs real work. Asking first would put a modal in front of every
+ * delete, including the many that are meant; saying afterwards and offering it back costs
+ * nothing when the delete was meant and everything when it was not.
+ *
+ * Everything the view had is kept, not just the view: where it sat in the strip, whether it was
+ * the one the list opens on, and any unsaved edits being held for it. Undo that put the view
+ * back on the end, unmarked, with its edits dropped would be a different view wearing its name.
+ */
 const deleteView = (saved?: SavedView) => {
   if (!saved) {
     return;
   }
 
   const wasSelected = selectedViewId.value === saved.id;
+  const wasDefault = defaultViewId.value === saved.id;
+  const at = savedViews.value.findIndex((v) => v.id === saved.id);
+  const draft = drafts.value[draftKey(saved.id)];
   // The tab the keyboard falls back to. Taken before the view goes, because afterwards there
   // is nothing left to measure from - and it is the one in front of the gap, not the one
   // that slides into it, that the user was last looking at.
@@ -1555,6 +1579,32 @@ const deleteView = (saved?: SavedView) => {
   if (before) {
     focusTab(before.id);
   }
+
+  // `info` rather than `success`: a growl raised as a success is copied into the notification
+  // centre, which is written down - and an undo cannot be. The offer only means anything while
+  // the growl is on screen, so it lives and dies there.
+  store.dispatch('growl/info', {
+    title:   t('tableViews.tab.deleted', { name: saved.name }),
+    message: t('tableViews.tab.deletedMessage'),
+    timeout: UNDO_TIMEOUT,
+    action:  {
+      label: t('tableViews.tab.undo'),
+      run:   () => {
+        const views = [...savedViews.value];
+
+        views.splice(Math.min(Math.max(at, 0), views.length), 0, saved);
+        persistAll(views, wasDefault ? saved.id : defaultViewId.value);
+
+        if (draft) {
+          drafts.value = { ...drafts.value, [draftKey(saved.id)]: draft };
+        }
+
+        if (wasSelected) {
+          applyView(saved);
+        }
+      },
+    },
+  });
 };
 
 const doExport = (format: string) => {
@@ -2533,6 +2583,11 @@ $toolbar-min-width: 544px;
     &.new-view-tab {
       position: sticky;
       right: 0;
+      // Sticky alone is not enough to win. With `z-index: auto` it is painted among its siblings,
+      // and a tab whose box reaches under it comes out on top for those few pixels - which is a
+      // bead of the active tab's underline showing through the button's own background. Naming a
+      // layer settles it.
+      z-index: 1;
       gap: 8px;
       height: auto;
       min-height: 32px;
