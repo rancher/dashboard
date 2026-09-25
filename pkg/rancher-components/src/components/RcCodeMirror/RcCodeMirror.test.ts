@@ -21,8 +21,10 @@ function replaceDoc(view: EditorView, insert: string) {
 describe('component: RcCodeMirror', () => {
   let wrapper: Wrapper;
 
-  function mountEditor(props: Record<string, unknown> = {}): Wrapper {
-    wrapper = shallowMount(RcCodeMirror, { props, attachTo: document.body }) as Wrapper;
+  function mountEditor(props: Record<string, unknown> = {}, attrs: Record<string, unknown> = {}): Wrapper {
+    wrapper = shallowMount(RcCodeMirror, {
+      props, attrs, attachTo: document.body
+    }) as Wrapper;
 
     return wrapper;
   }
@@ -115,12 +117,55 @@ describe('component: RcCodeMirror', () => {
       expect(getView(wrapper).contentDOM.getAttribute('contenteditable')).toBe('false');
     });
 
+    it('should keep the read-only textbox in the tab order', () => {
+      mountEditor({ readOnly: true });
+
+      expect(getView(wrapper).contentDOM.tabIndex).toStrictEqual(0);
+    });
+
+    it('should let the read-only textbox receive focus', () => {
+      mountEditor({ readOnly: true });
+      const view = getView(wrapper);
+
+      view.contentDOM.focus();
+
+      expect(document.activeElement).toBe(view.contentDOM);
+    });
+
+    it('should select read-only content from the keyboard', () => {
+      mountEditor({ readOnly: true, modelValue: 'foo: bar' });
+      const view = getView(wrapper);
+
+      view.contentDOM.focus();
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'a', ctrlKey: true, bubbles: true, cancelable: true
+      }));
+
+      expect([view.state.selection.main.from, view.state.selection.main.to]).toStrictEqual([0, view.state.doc.length]);
+    });
+
     it('should toggle editability when readOnly changes', async() => {
       mountEditor();
 
       await wrapper.setProps({ readOnly: true });
 
       expect(getView(wrapper).contentDOM.getAttribute('contenteditable')).toBe('false');
+    });
+
+    it('should add the tab stop when readOnly changes to true', async() => {
+      mountEditor();
+
+      await wrapper.setProps({ readOnly: true });
+
+      expect(getView(wrapper).contentDOM.tabIndex).toStrictEqual(0);
+    });
+
+    it('should remove the explicit tab stop when readOnly changes to false', async() => {
+      mountEditor({ readOnly: true });
+
+      await wrapper.setProps({ readOnly: false });
+
+      expect(getView(wrapper).contentDOM.hasAttribute('tabindex')).toBe(false);
     });
 
     it('should make the state read only when readOnly is true', () => {
@@ -379,6 +424,104 @@ describe('component: RcCodeMirror', () => {
       const line = state.doc.line(1);
 
       expect(foldable(state, line.from, line.to)).toStrictEqual({ from: 5, to: 12 });
+    });
+  });
+
+  describe('aria attributes', () => {
+    it.each([
+      ['aria-label', 'YAML'],
+      ['aria-labelledby', 'label-id'],
+      ['aria-describedby', 'description-id'],
+    ])('should forward %s to the textbox', (name, value) => {
+      mountEditor({}, { [name]: value });
+
+      expect(getView(wrapper).contentDOM.getAttribute(name)).toStrictEqual(value);
+    });
+
+    it('should not put aria-label on the container', () => {
+      mountEditor({}, { 'aria-label': 'YAML' });
+
+      expect(wrapper.attributes('aria-label')).toBeUndefined();
+    });
+
+    it('should forward a custom tabindex to the textbox', () => {
+      mountEditor({ readOnly: true }, { tabindex: -1 });
+
+      expect(getView(wrapper).contentDOM.tabIndex).toStrictEqual(-1);
+    });
+
+    it('should not put a custom tabindex on the container', () => {
+      mountEditor({ readOnly: true }, { tabindex: -1 });
+
+      expect(wrapper.attributes('tabindex')).toBeUndefined();
+    });
+
+    it('should keep other attributes on the container', () => {
+      mountEditor({}, { 'data-testid': 'editor' });
+
+      expect(wrapper.attributes('data-testid')).toStrictEqual('editor');
+    });
+
+    it('should update the textbox when aria-label changes', async() => {
+      mountEditor({}, { 'aria-label': 'YAML' });
+
+      await wrapper.setProps({ 'aria-label': 'JSON' } as Record<string, unknown>);
+
+      expect(getView(wrapper).contentDOM.getAttribute('aria-label')).toStrictEqual('JSON');
+    });
+  });
+
+  describe('fold key bindings', () => {
+    const doc = 'spec:\n  a: 1';
+
+    function pressFoldKey(view: EditorView, key: '[' | ']') {
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key:        key === '[' ? '{' : '}',
+        keyCode:    key === '[' ? 219 : 221,
+        ctrlKey:    true,
+        shiftKey:   true,
+        bubbles:    true,
+        cancelable: true
+      }));
+    }
+
+    function foldCount(view: EditorView): number {
+      return foldedRanges(view.state).size;
+    }
+
+    it.each(['default', 'emacs', 'vim'])('should fold the line at the cursor with the %s keymap', (keymap) => {
+      mountEditor({
+        modelValue: doc, keymap, foldOptions: { strategy: 'indent' }
+      });
+      const view = getView(wrapper);
+
+      pressFoldKey(view, '[');
+
+      expect(foldCount(view)).toStrictEqual(1);
+    });
+
+    it('should fold read-only content from the keyboard', () => {
+      mountEditor({
+        modelValue: doc, readOnly: true, foldOptions: { strategy: 'indent' }
+      });
+      const view = getView(wrapper);
+
+      view.contentDOM.focus();
+      pressFoldKey(view, '[');
+
+      expect(foldCount(view)).toStrictEqual(1);
+    });
+
+    it.each(['default', 'emacs', 'vim'])('should unfold the line at the cursor with the %s keymap', (keymap) => {
+      mountEditor({
+        modelValue: doc, keymap, foldOptions: { strategy: 'indent' }
+      });
+      const view = getView(wrapper);
+
+      view.dispatch({ effects: foldEffect.of({ from: 5, to: 12 }) });
+      pressFoldKey(view, ']');
+
+      expect(foldCount(view)).toStrictEqual(0);
     });
   });
 

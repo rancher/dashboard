@@ -23,9 +23,12 @@
  *
  * The underlying EditorView is emitted with `ready` and exposed as `view` on
  * the component ref for anything the props do not cover.
+ *
+ * ARIA attributes (e.g. `aria-label`, `aria-labelledby`) and `tabindex` are
+ * forwarded to the editor's textbox. Give every instance an accessible name.
  */
 import {
-  ref, shallowRef, onMounted, onBeforeUnmount, watch
+  ref, shallowRef, computed, onMounted, onBeforeUnmount, watch, useAttrs
 } from 'vue';
 import type { Extension } from '@codemirror/state';
 import { EditorState, Compartment } from '@codemirror/state';
@@ -54,6 +57,8 @@ import { buildFoldExtension } from './extensions/fold';
 import { rancherInputTheme, rancherTheme } from './extensions/theme';
 import type { RcCodeMirrorProps, RcCodeMirrorTheme, RcCodeMirrorVariant } from './types';
 
+defineOptions({ inheritAttrs: false });
+
 const props = withDefaults(defineProps<RcCodeMirrorProps>(), {
   modelValue:   '',
   language:     undefined,
@@ -76,8 +81,33 @@ const emit = defineEmits<{
   'ready': [view: EditorView];
 }>();
 
+const attrs = useAttrs();
 const container = ref<HTMLDivElement>();
 const view = shallowRef<EditorView>();
+
+function isEditorAttribute(name: string): boolean {
+  return name.startsWith('aria-') || name.toLowerCase() === 'tabindex';
+}
+
+// CodeMirror renders the textbox inside the container, so its ARIA attributes and tab order
+// belong there. Everything else still falls through to the container.
+const containerAttrs = computed(() => Object.fromEntries(
+  Object.entries(attrs).filter(([name]) => !isEditorAttribute(name))
+));
+
+function editorAttributes(): Record<string, string> {
+  const attributes = Object.fromEntries(
+    Object.entries(attrs)
+      .filter(([name, value]) => isEditorAttribute(name) && value !== undefined && value !== null)
+      .map(([name, value]) => [name.toLowerCase() === 'tabindex' ? 'tabindex' : name, String(value)])
+  );
+
+  if (props.readOnly && attributes.tabindex === undefined) {
+    attributes.tabindex = '0';
+  }
+
+  return attributes;
+}
 
 // Compartments for hot-swappable extensions
 const languageCompartment = new Compartment();
@@ -86,6 +116,7 @@ const themeCompartment = new Compartment();
 const readOnlyCompartment = new Compartment();
 const lineNumbersCompartment = new Compartment();
 const lineWrappingCompartment = new Compartment();
+const contentAttributesCompartment = new Compartment();
 
 function getThemeExtension(theme?: RcCodeMirrorTheme, variant?: RcCodeMirrorVariant): Extension {
   if (theme === 'rancher') {
@@ -117,6 +148,10 @@ function getReadOnlyExtension(readOnly: boolean): Extension {
 
 function getLineWrappingExtension(wrap: boolean): Extension {
   return wrap ? EditorView.lineWrapping : [];
+}
+
+function getContentAttributesExtension(attributes: Record<string, string>): Extension {
+  return EditorView.contentAttributes.of(attributes);
 }
 
 onMounted(() => {
@@ -166,6 +201,7 @@ onMounted(() => {
       lineNumbersCompartment.of(getLineNumbersExtension(showLineNumbers())),
       lineWrappingCompartment.of(getLineWrappingExtension(wrapLines())),
       readOnlyCompartment.of(getReadOnlyExtension(props.readOnly ?? false)),
+      contentAttributesCompartment.of(getContentAttributesExtension(editorAttributes())),
       updateListener,
       ...(props.extensions ?? [])
     ]
@@ -257,11 +293,20 @@ watch(
   }
 );
 
+// Hot-swap editor attributes, including the read-only tab stop
+watch(
+  editorAttributes,
+  (attributes) => {
+    view.value?.dispatch({ effects: contentAttributesCompartment.reconfigure(getContentAttributesExtension(attributes)) });
+  }
+);
+
 defineExpose({ view });
 </script>
 
 <template>
   <div
+    v-bind="containerAttrs"
     ref="container"
     class="rc-code-mirror"
     :class="`rc-code-mirror--${ variant }`"

@@ -27,6 +27,10 @@ Styles and classes passed to `RcCodeMirror` apply to its outer box. Set a height
 
 <Canvas of={RcCodeMirrorStories.ReadOnly} />
 
+Use Tab to focus the read-only editor. Keyboard selection, copy, and fold shortcuts remain available. An explicit `tabindex` on `RcCodeMirror` applies to the editor's textbox.
+
+<Canvas of={RcCodeMirrorStories.ReadOnlyKeyboard} />
+
 ## Input
 
 The `input` variant is a multi-line form input rather than a code editor. It has no gutters, uses the body font and is styled like the other form inputs. Line breaks are marked with ↵ so values that contain them are distinguishable.
