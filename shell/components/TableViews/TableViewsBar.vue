@@ -2033,6 +2033,7 @@ onBeforeUnmount(() => {
               :flip="false"
               :boundary="menuBoundary"
               :overflow-padding="MENU_GUTTER"
+              skip-transition
               :reference-node="() => viewMenu"
               @update:open="(open) => closeSubMenu('group', open)"
             >
@@ -2094,6 +2095,7 @@ onBeforeUnmount(() => {
               :flip="false"
               :boundary="menuBoundary"
               :overflow-padding="MENU_GUTTER"
+              skip-transition
               :reference-node="() => viewMenu"
               @update:open="(open) => closeSubMenu('columns', open)"
             >
