@@ -9447,6 +9447,7 @@ resourceQuota:
     label: Add Resource
   errors:
     customTypeRequired: Resource identifier is required
+    duplicateIdentifier: Resource identifier must be unique
   tooltip:
     reserved: 'Other Namespaces:'
     namespace: 'This Namespace:'
