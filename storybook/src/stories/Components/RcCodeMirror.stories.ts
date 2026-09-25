@@ -118,6 +118,25 @@ export const Default: Story = {
   }),
 };
 
+export const ForwardedStyle: Story = {
+  render: (args: any) => ({
+    components: { RcCodeMirror },
+    setup() {
+      const value = ref(yaml);
+
+      return { args, value };
+    },
+    template: `
+      <RcCodeMirror
+        v-bind="args"
+        v-model="value"
+        aria-label="Deployment"
+        style="width: 500px; height: 240px; margin: 16px; padding: 8px; border: 2px solid #737373;"
+      />
+    `,
+  }),
+};
+
 export const Json: Story = {
   ...Default,
   args: { language: 'json' },
