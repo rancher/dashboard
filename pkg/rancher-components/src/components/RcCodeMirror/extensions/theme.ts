@@ -80,6 +80,7 @@ const rancherEditorTheme = EditorView.theme({
     color:           'inherit',
     fontSize:        '12px',
     fontStyle:       'normal',
+    lineHeight:      '1',
     margin:          '0 1px',
     padding:         '0'
   }
