@@ -2697,7 +2697,10 @@ $toolbar-min-width: 544px;
         inset: 3px 3px 4px 3px;
         pointer-events: none;
         border: 2px solid var(--primary-keyboard-focus);
-        border-radius: var(--border-radius);
+        // Square for now, while the ring a tab wears behind this button is still showing its own
+        // corners against the strip's right edge - two rounded shapes meeting there read as one
+        // mistake rather than two.
+        border-radius: 0;
       }
 
       .icon {
