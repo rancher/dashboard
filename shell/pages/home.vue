@@ -803,25 +803,20 @@ export default defineComponent({
 
 <style lang="scss">
 .home-page {
+  // The row the table's own controls stand in, at the height they are drawn: 32, the same as
+  // every other medium control in the product. It was 39, measured for the search input this page
+  // used to carry - which left 7px hanging under the toolbar that replaced it, so the controls
+  // read as sitting high in their row.
   .search {
     align-items: center;
     display: flex;
-    height: 39px;
+    height: 32px;
 
     > INPUT {
       background-color: transparent;
       height: 30px;
       padding: 8px;
     }
-  }
-
-  // The 39 above was measured for the search input this page used to carry - a 30px input in a
-  // row of its own. The table views toolbar brings its own 32px row and fills it, so the fixed
-  // height only leaves 7px hanging under the controls, which read as the toolbar sitting high in
-  // its row. Left in place for a table that is not in the views layout, which still has that
-  // input.
-  .fixed-header-actions.table-views-layout .search {
-    height: auto;
   }
 
   h2 {
