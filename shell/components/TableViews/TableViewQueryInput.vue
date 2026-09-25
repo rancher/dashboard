@@ -580,7 +580,10 @@ const updateMenuPos = () => {
     const at = (caretLeft() ?? rect.left) - MENU_TEXT_INSET;
 
     menuPos.value = {
-      top:   rect.bottom + 2,
+      // Over the box's bottom border rather than under it. The list and the box each draw a 1px
+      // edge, and a select has the two land on each other so the join reads as one line - which is
+      // also why the corners they meet at are square.
+      top:   rect.bottom - 1,
       left:  Math.min(Math.max(at, MENU_VIEWPORT_MARGIN), rightmost),
       width: rect.width
     };
@@ -928,7 +931,7 @@ onBeforeUnmount(() => {
   <div
     ref="root"
     class="table-view-query"
-    :class="{ focused }"
+    :class="{ focused, 'list-open': showSuggestions }"
   >
     <!-- The tokens are the editable content, so a badge's margin is ordinary layout rather than
          something that has to be kept in step with a separate input.
@@ -1006,7 +1009,7 @@ onBeforeUnmount(() => {
         v-if="showSuggestions"
         :id="menuId"
         ref="menu"
-        class="table-view-query-menu"
+        class="vs__dropdown-menu table-view-query-menu"
         role="listbox"
         :aria-label="t('tableViews.query.suggestions')"
         :style="menuStyle"
@@ -1067,9 +1070,16 @@ $query-height: 32px;
 
   &.focused {
     // Not `--primary`, which is one value for both themes: 1px of it on the dark input background
-    // measured 2.93:1, under the 3:1 a control's boundary needs. This is the same blue the
-    // product's focus ring uses, which is the one that is tuned per theme.
-    border-color: var(--primary-keyboard-focus);
+    // measured 2.93:1, under the 3:1 a control's boundary needs. `--primary-border` is the one
+    // that is tuned per theme, and it is what a select's field is drawn with while it is open.
+    border-color: var(--primary-border);
+  }
+
+  // The other half of the join - the list squares the corners it meets this box at, and so does
+  // this box, so the two read as one control rather than as a box with another box behind it.
+  &.list-open {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
   }
 
   .query-input {
@@ -1213,20 +1223,23 @@ $query-height: 32px;
 //
 // The shared level is the floor, not the answer: a slide-in panel puts itself above the whole of
 // that scale, so a box opened inside one hands down what it has to clear and the higher wins.
+// The container is a select's dropdown, and wears the product's own class to say so - the border
+// it takes while open, the padding above and below, the ceiling it scrolls at, the squared top
+// corners, all of it comes from `vendor/vue-select.scss` rather than from a copy kept here.
+//
+// What is overridden is only what has to be. That sheet positions a dropdown against the field it
+// is bolted under, absolutely, at the field's own width; this one is placed by hand against the
+// caret and is as wide as its entries need. The rows inside are this component's own: they carry
+// two columns rather than one, so they keep their own spacing.
 .table-view-query-menu {
   position: fixed;
+  left: auto;
   z-index: max(#{z-index('dropdownContent')}, var(--query-menu-stack, 0));
+  width: auto;
   min-width: 260px;
   max-width: 380px;
   margin: 0;
-  padding: 4px 0;
   list-style: none;
-  max-height: 320px;
-  overflow-y: auto;
-  background: var(--dropdown-bg);
-  border: 1px solid var(--dropdown-border);
-  border-radius: var(--border-radius);
-  box-shadow: 0 2px 8px var(--shadow);
 
   li {
     display: flex;
