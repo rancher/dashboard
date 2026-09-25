@@ -324,9 +324,9 @@ defineExpose({ view });
       padding: 0;
     }
 
-    // Mark line breaks so multi-line values are distinguishable
+    // Mark line breaks visually without adding the marker to the spoken value
     .cm-line:not(:last-child)::after {
-      content: '↵';
+      content: '↵' / '';
       margin-left: 2px;
       color: var(--muted);
       pointer-events: none;
