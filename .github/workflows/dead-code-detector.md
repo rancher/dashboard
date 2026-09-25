@@ -93,7 +93,7 @@ safe-outputs:
     target: "*"
     max: 6
 tools:
-  # Bash access is required: remediation runs yarn lint, yarn type-check and yarn test:ci,
+  # Bash access is required: remediation runs yarn lint, yarn type-check:ci and yarn test:ci,
   # and detection uses git, grep and wc. Declared explicitly because min-integrity: none
   # requires it in strict mode.
   bash:

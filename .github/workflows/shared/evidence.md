@@ -14,6 +14,10 @@ safe-outputs:
     # stop a runaway recording being committed to the assets branch.
     max-size: 20480
     max: 6
+    # NOTE: gh-aw does not support `expires` on upload-asset (only on issues/PRs).
+    # Assets accumulate on the assets branch indefinitely. Target retention is six
+    # months; prune the assets branch manually or via a scheduled cleanup workflow
+    # when it grows large. See shared/maintenance-notes.md for details.
 ---
 
 ## Capturing UI evidence
@@ -32,7 +36,7 @@ A change to what the dashboard renders needs a recording of the dashboard still 
 
 ### Capture
 
-Capture only **after** `yarn lint` and `yarn test:ci` have passed. A recording of a broken build shows nothing worth reviewing.
+Capture only **after** `yarn lint`, `yarn type-check:ci` and `yarn test:ci` have passed. A recording of a broken build shows nothing worth reviewing.
 
 1. Serve the dashboard from the working tree, against the Rancher described under "Runtime environment", and wait for the first compile:
 
