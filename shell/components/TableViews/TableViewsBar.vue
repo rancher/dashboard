@@ -1338,8 +1338,8 @@ const enterSubMenu = () => {
  * it is opened by a row of the menu above. So the row takes focus back, leaving the keyboard
  * where it was rather than at the top of the page.
  */
-const closeSubMenu = (key: string, open: boolean) => {
-  if (!open && subMenu.value === key) {
+const closeSubMenu = (key: string | null, open: boolean) => {
+  if (!open && key && subMenu.value === key) {
     subMenu.value = null;
     nextTick(() => (viewMenu.value?.querySelector(`[data-testid="table-views-view-${ key }"]`) as HTMLElement)?.focus());
   }
@@ -2025,8 +2025,30 @@ onBeforeUnmount(() => {
                 <i class="icon icon-chevron-right" />
               </template>
             </rc-dropdown-item>
+
+            <rc-dropdown-item
+              :close-on-click="false"
+              :class="{ 'owns-sub-menu': subMenu === 'columns' && subMenuHovered }"
+              data-testid="table-views-view-columns"
+              @mouseenter="hoverSubMenu('columns')"
+              @mouseleave="cancelSubMenuSwitch()"
+              @click="openSubMenu('columns')"
+            >
+              {{ t('tableViews.view.columnsConfiguration') }}
+              <template #after>
+                <span class="menu-nav-value">{{ columnsSummary }}</span>
+                <i class="icon icon-chevron-right" />
+              </template>
+            </rc-dropdown-item>
+            <!-- One popper for both lists, not one each.
+
+                 Two of them meant that moving from one row to the other closed a menu and opened
+                 a menu, and those do not happen together: hiding is immediate, showing waits for
+                 the popper to be placed. Measured, that left an 18ms window with both mounted and
+                 neither shown - which is the blink. With one popper the lists simply change place
+                 in it, and there is no moment when nothing is there. -->
             <rc-dropdown
-              :open="subMenu === 'group'"
+              :open="subMenu !== null"
               :placement="'left-start'"
               :distance="-1"
               :skidding="-8"
@@ -2035,10 +2057,11 @@ onBeforeUnmount(() => {
               :overflow-padding="MENU_GUTTER"
               popper-class="popper-no-fade"
               :reference-node="() => viewMenu"
-              @update:open="(open) => closeSubMenu('group', open)"
+              @update:open="(open) => closeSubMenu(subMenu, open)"
             >
               <template #dropdownCollection>
                 <div
+                  v-if="subMenu === 'group'"
                   ref="groupPanel"
                   class="menu-panel"
                   @mouseenter="enterSubMenu()"
@@ -2070,37 +2093,8 @@ onBeforeUnmount(() => {
                     {{ t('tableViews.view.reset') }}
                   </rc-dropdown-item>
                 </div>
-              </template>
-            </rc-dropdown>
-
-            <rc-dropdown-item
-              :close-on-click="false"
-              :class="{ 'owns-sub-menu': subMenu === 'columns' && subMenuHovered }"
-              data-testid="table-views-view-columns"
-              @mouseenter="hoverSubMenu('columns')"
-              @mouseleave="cancelSubMenuSwitch()"
-              @click="openSubMenu('columns')"
-            >
-              {{ t('tableViews.view.columnsConfiguration') }}
-              <template #after>
-                <span class="menu-nav-value">{{ columnsSummary }}</span>
-                <i class="icon icon-chevron-right" />
-              </template>
-            </rc-dropdown-item>
-            <rc-dropdown
-              :open="subMenu === 'columns'"
-              :placement="'left-start'"
-              :distance="-1"
-              :skidding="-8"
-              :flip="false"
-              :boundary="menuBoundary"
-              :overflow-padding="MENU_GUTTER"
-              popper-class="popper-no-fade"
-              :reference-node="() => viewMenu"
-              @update:open="(open) => closeSubMenu('columns', open)"
-            >
-              <template #dropdownCollection>
                 <div
+                  v-else
                   ref="columnsPanel"
                   class="menu-panel columns-panel"
                   @mouseenter="enterSubMenu()"
