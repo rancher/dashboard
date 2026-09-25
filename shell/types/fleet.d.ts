@@ -58,3 +58,33 @@ export interface Target {
   clusterGroup?: string,
   clusterGroupSelector?: Selector
 }
+
+/**
+ * An option for one of the policy's name selects. A policy stores plain names, so a secret is
+ * offered as its name under the richer label the GitRepo and HelmOp forms give it.
+ */
+export type FleetPolicyNameOption = string | { label: string, value: string };
+
+export interface FleetPolicySource {
+  defaultServiceAccount?: string,
+  defaultClientSecretName?: string,
+  allowedClientSecretNames?: string[],
+  allowedRepoPatterns?: string[],
+  defaultHelmSecretName?: string,
+  allowedHelmSecretNames?: string[],
+  allowedHelmRepoPatterns?: string[],
+  allowedChartPatterns?: string[]
+}
+
+export interface FleetPolicy {
+  metadata?: {
+    name?: string,
+    namespace?: string,
+    annotations?: Record<string, string>
+  },
+  requireServiceAccount?: boolean,
+  allowedServiceAccounts?: string[],
+  allowNamespaceCreation?: boolean,
+  gitRepo?: FleetPolicySource,
+  helmOp?: FleetPolicySource
+}
