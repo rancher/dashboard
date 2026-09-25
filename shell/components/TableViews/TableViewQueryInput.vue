@@ -769,6 +769,64 @@ const pick = (suggestion?: Suggestion) => {
   focus();
 };
 
+/**
+ * True while the keyboard is the thing moving the highlight.
+ *
+ * The two ways of moving it interfere. Arrowing scrolls the list, which slides a different entry
+ * under a pointer that has not moved, and the `mouseenter` that fires takes the highlight straight
+ * back - so arrowing past the edge of what is on screen went nowhere. The pointer gets it again
+ * the moment it actually moves.
+ */
+const keyboardNav = ref(false);
+
+/**
+ * Walk the list, wrapping at either end, and bring what the keyboard lands on into view.
+ *
+ * The list is taller than the room it is given, so an entry out of sight is the same as no entry
+ * at all: arrowing down the list appeared to stop at the last one on screen, and wrapping round to
+ * the top was invisible. `nearest` scrolls by as little as will show it, which keeps the list
+ * still while the highlight moves within it.
+ */
+const moveActive = (delta: number) => {
+  const count = suggestions.value.length;
+
+  if (!count) {
+    return;
+  }
+
+  keyboardNav.value = true;
+  activeIndex.value = (activeIndex.value + delta + count) % count;
+
+  nextTick(() => {
+    const list = menu.value;
+    const at = activeIndex.value;
+
+    if (!list) {
+      return;
+    }
+
+    // At either end, all the way to it. `nearest` stops the moment the entry is on screen, which
+    // at the top leaves the list's own padding still scrolled off - so wrapping round from the
+    // bottom landed on the first entry with the list looking like it had more above it.
+    if (at === 0 || at === suggestions.value.length - 1) {
+      list.scrollTop = at === 0 ? 0 : list.scrollHeight;
+
+      return;
+    }
+
+    list.querySelector(`[id="${ optionId(at) }"]`)?.scrollIntoView({ block: 'nearest' });
+  });
+};
+
+/** The pointer only takes the highlight when it is the thing that moved - see `keyboardNav` */
+const onSuggestionHover = (index: number) => {
+  if (keyboardNav.value) {
+    return;
+  }
+
+  activeIndex.value = index;
+};
+
 const onKeyDown = (event: KeyboardEvent) => {
   // One line only - Enter picks a suggestion, it never breaks the query in two
   if (event.key === 'Enter') {
@@ -787,10 +845,10 @@ const onKeyDown = (event: KeyboardEvent) => {
 
   if (event.key === 'ArrowDown') {
     event.preventDefault();
-    activeIndex.value = (activeIndex.value + 1) % suggestions.value.length;
+    moveActive(1);
   } else if (event.key === 'ArrowUp') {
     event.preventDefault();
-    activeIndex.value = (activeIndex.value - 1 + suggestions.value.length) % suggestions.value.length;
+    moveActive(-1);
   } else if (event.key === 'Enter') {
     event.preventDefault();
     pick(suggestions.value[activeIndex.value]);
@@ -953,6 +1011,7 @@ onBeforeUnmount(() => {
         :aria-label="t('tableViews.query.suggestions')"
         :style="menuStyle"
         data-testid="table-views-suggestions"
+        @mousemove="keyboardNav = false"
       >
         <template
           v-for="(group, g) in suggestionGroups"
@@ -975,7 +1034,7 @@ onBeforeUnmount(() => {
             :aria-selected="entry.index === activeIndex ? 'true' : 'false'"
             :class="{ active: entry.index === activeIndex }"
             @mousedown.prevent="pick(entry)"
-            @mouseenter="activeIndex = entry.index"
+            @mouseenter="onSuggestionHover(entry.index)"
           >
             <span
               class="suggestion-label"
@@ -1007,10 +1066,11 @@ $query-height: 32px;
   padding: 0 12px;
 
   &.focused {
-    // Not `--primary`, which is one value for both themes: 1px of it on the dark input background
-    // measured 2.93:1, under the 3:1 a control's boundary needs. This is the same blue the
-    // product's focus ring uses, which is the one that is tuned per theme.
-    border-color: var(--primary-keyboard-focus);
+    // The border a select's field takes while its list is open, so the two read as the same
+    // control. Not `--primary`, which is one value for both themes - 1px of it on the dark input
+    // background measures 2.93:1, under the 3:1 a control's boundary needs. `--primary-border` is
+    // the one that is tuned per theme, and it is what the namespace picker is drawn with.
+    border-color: var(--primary-border);
   }
 
   .query-input {
@@ -1154,27 +1214,41 @@ $query-height: 32px;
 //
 // The shared level is the floor, not the answer: a slide-in panel puts itself above the whole of
 // that scale, so a box opened inside one hands down what it has to clear and the higher wins.
+// Dressed the way the product dresses the dropdown of a select - the namespace picker and every
+// other one - so a list of suggestions is not its own kind of thing. The numbers are the ones in
+// `vendor/vue-select.scss`: 10 of padding above and below, the same 350 ceiling, the primary
+// border it takes while open, and no shadow.
+//
+// Two of them are deliberately not copied. A select's dropdown is welded to the field above it, so
+// it squares the corners they meet at and takes the field's width; this one follows the caret
+// along the box and sits a couple of pixels clear of it, so it keeps all four corners and is only
+// as wide as its entries need. Welding it to a box it is no longer under would draw a join that
+// is not there.
 .table-view-query-menu {
   position: fixed;
   z-index: max(#{z-index('dropdownContent')}, var(--query-menu-stack, 0));
   min-width: 260px;
   max-width: 380px;
   margin: 0;
-  padding: 4px 0;
+  padding: 10px 0;
   list-style: none;
-  max-height: 320px;
+  max-height: 350px;
   overflow-y: auto;
   background: var(--dropdown-bg);
-  border: 1px solid var(--dropdown-border);
+  border: 1px solid var(--primary-border);
   border-radius: var(--border-radius);
-  box-shadow: 0 2px 8px var(--shadow);
 
   li {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
-    padding: 6px 12px;
+    // An option's own inset, which a select sets to half the padding the list carries. The rows
+    // hold two columns rather than one, so the gap above is what keeps them apart rather than
+    // padding of their own.
+    padding: 0 5px;
+    line-height: 20px;
+    color: var(--dropdown-text);
     cursor: pointer;
 
     &.active {
@@ -1191,7 +1265,7 @@ $query-height: 32px;
     cursor: default;
 
     hr {
-      margin: 7px 0;
+      margin: 5px 0;
     }
   }
 
