@@ -227,14 +227,17 @@ describe('Apps', () => {
           // Wait for the repository to become active again
           appRepoList.list().state('Rancher').contains('Active', MEDIUM_TIMEOUT_OPT).should('be.visible');
 
-          // Wait for the charts (in repo) to be fetched again
-          cy.wait('@rancherCharts3').its('response.statusCode').should('eq', 200);
+          // Wait for the charts (in repo) to be fetched again. The refresh re-downloads the repo
+          // from github before the chart index is re-read, so this first fetch regularly lands
+          // outside cy.wait's default 5s budget ("No request ever occurred") - give it the same
+          // allowance as the refresh and the Active check above.
+          cy.wait('@rancherCharts3', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
 
           // Nav to the summary page for a specific chart
           ChartPage.navTo(clusterId, 'Rancher Backups');
           chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
           // The specific version of the chart should be fetched (as the cache was cleared)
-          cy.wait('@rancherCharts3').its('request.url').should('include', 'version=');
+          cy.wait('@rancherCharts3', MEDIUM_TIMEOUT_OPT).its('request.url').should('include', 'version=');
         });
       });
 
