@@ -219,7 +219,11 @@ describe('Apps', () => {
 
           // Refresh the Rancher repo (clears caches)
           cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/rancher-charts`).as('refreshRepo');
-          cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/rancher-charts?*`).as('rancherCharts3');
+          // Match the two fetches this test cares about precisely, rather than by their position in
+          // a shared `rancher-charts?*` alias: the charts list also fires a `link=icon` request per
+          // chart card, so which request is "the 1st" or "the 2nd" is not stable.
+          cy.intercept('GET', /\/v1\/catalog\.cattle\.io\.clusterrepos\/rancher-charts\?.*link=index/).as('rancherChartsIndex');
+          cy.intercept('GET', /\/v1\/catalog\.cattle\.io\.clusterrepos\/rancher-charts\?.*chartName=rancher-backup.*version=/).as('rancherChartsVersion');
           appRepoList.list().refreshRepo('Rancher');
           // Wait for the refresh operation to complete
           cy.wait('@refreshRepo', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
@@ -227,17 +231,15 @@ describe('Apps', () => {
           // Wait for the repository to become active again
           appRepoList.list().state('Rancher').contains('Active', MEDIUM_TIMEOUT_OPT).should('be.visible');
 
-          // Wait for the charts (in repo) to be fetched again. The refresh re-downloads the repo
-          // from github before the chart index is re-read, so this first fetch regularly lands
-          // outside cy.wait's default 5s budget ("No request ever occurred") - give it the same
-          // allowance as the refresh and the Active check above.
-          cy.wait('@rancherCharts3', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-
-          // Nav to the summary page for a specific chart
+          // Nav to the summary page for a specific chart. The refresh cleared the caches, so both
+          // the repo's chart index and the specific chart version have to be fetched again.
+          // Both fetches are driven by this navigation - nothing on the repositories list page
+          // re-reads the chart index, so waiting for the index fetch before navigating (as this
+          // test used to) waits for a request that simply never comes.
           ChartPage.navTo(clusterId, 'Rancher Backups');
           chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
-          // The specific version of the chart should be fetched (as the cache was cleared)
-          cy.wait('@rancherCharts3', MEDIUM_TIMEOUT_OPT).its('request.url').should('include', 'version=');
+          cy.wait('@rancherChartsIndex', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+          cy.wait('@rancherChartsVersion', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
         });
       });
 
