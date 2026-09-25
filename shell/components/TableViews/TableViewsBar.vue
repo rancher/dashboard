@@ -2644,10 +2644,10 @@ $toolbar-min-width: 544px;
     gap: 8px;
     margin: 0;
     color: var(--error);
-    // Body text, the size the product writes its own validation message under a field in. It was
-    // set two steps down from that, which read as a caption about the list rather than as
-    // something the box was saying about what had just been typed into it.
-    font-size: 14px;
+    // A step under body text - the size the design gives this message. It was two steps under,
+    // which read as a caption about the list rather than as something the box was saying about
+    // what had just been typed into it.
+    font-size: 13px;
     line-height: 20px;
 
     .icon {
