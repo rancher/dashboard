@@ -125,6 +125,20 @@ describe('component: FleetPolicySourceSection', () => {
     ]);
   });
 
+  it('should keep the label of a default secret that is no longer allowed', () => {
+    const value = { defaultClientSecretName: 'tenant-1-git-credentials', allowedClientSecretNames: ['tenant-2-git-credentials'] };
+    const wrapper = mountSection({
+      value, secretOptions, restricted: true
+    });
+
+    // the allowed one, then the default it holds, each with the label its secret is known by
+    expect(selectWithTestid(wrapper, 'fleet-policy-git-repo-default-secret').props('options')).toStrictEqual([
+      none,
+      secretOptions[1],
+      secretOptions[0],
+    ]);
+  });
+
   it('should mute the default secret while it is not one of the allowed secrets', () => {
     const allowed = mountSection({ restricted: true });
     const notAllowed = mountSection({ restricted: true, defaultSecretAllowed: false });

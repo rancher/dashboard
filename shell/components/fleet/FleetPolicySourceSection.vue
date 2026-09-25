@@ -72,14 +72,23 @@ const defaultSecret = computed({
 
 // A name the policy would reject is not worth offering, so once the secrets are restricted the
 // default is chosen from the allowed ones - including any allowed name that has no secret yet
+const optionFor = (name: string) => props.secretOptions.find((option) => optionName(option) === name) || { label: name, value: name };
+
 const defaultSecretOptions = computed(() => {
   if (!restricted.value) {
     return props.secretOptions;
   }
 
-  return allowedSecrets.value.map((name) => {
-    return props.secretOptions.find((option) => optionName(option) === name) || { label: name, value: name };
-  });
+  const options = allowedSecrets.value.map(optionFor);
+  const current = defaultSecret.value;
+
+  // A select shows a value it holds no option for as the bare name, losing the type and user the
+  // rest of the list carries, so a default that is no longer allowed keeps its own option
+  if (current && !options.some((option) => optionName(option) === current)) {
+    options.push(optionFor(current));
+  }
+
+  return options;
 });
 
 const defaultSecretSelectOptions = computed(() => withNone(defaultSecretOptions.value));
