@@ -175,6 +175,7 @@ const root = ref<HTMLElement | null>(null);
 const tabStrip = ref<HTMLElement | null>(null);
 const viewMenu = ref<HTMLElement | null>(null);
 const columnsPanel = ref<HTMLElement | null>(null);
+const groupPanel = ref<HTMLElement | null>(null);
 
 /**
  * What a sub menu has to stay inside, so it can be slid back into view without going somewhere
@@ -1604,6 +1605,32 @@ watch(subMenu, () => {
   subMenuHovered.value = false;
 });
 
+/**
+ * A list that opens taller than its room opens on the field it is grouped by, not at the top.
+ *
+ * Otherwise the tick is simply out of sight: the row saying what the table is doing right now is
+ * the one thing the list is opened to check, and on a short window it sits below the fold with
+ * nothing to say it is there. `nearest` scrolls by as little as will show it, so a grouping near
+ * the top does not move the list at all.
+ *
+ * Keyed on the panel arriving rather than on `subMenu` changing. The two are not the same: the
+ * menu remembers which sub menu was last open, so re-opening the View menu and going back to the
+ * same row puts the list on screen again without that value ever changing - and a watcher on it
+ * would not run.
+ *
+ * A frame after that, because the popper is placed and sized by a layout pass of its own, and
+ * scrolling a box before it has been given its height does nothing at all.
+ */
+watch(groupPanel, (panel) => {
+  if (!panel) {
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    panel.querySelector(`[data-testid="table-views-group-${ props.view.groupBy || 'none' }"]`)?.scrollIntoView({ block: 'nearest' });
+  });
+});
+
 onMounted(() => {
   menuBoundary.value = root.value?.closest('#main-content') || undefined;
 
@@ -1961,6 +1988,7 @@ onBeforeUnmount(() => {
             >
               <template #dropdownCollection>
                 <div
+                  ref="groupPanel"
                   class="menu-panel"
                   @mouseenter="enterSubMenu()"
                   @mouseleave="subMenuHovered = false"
