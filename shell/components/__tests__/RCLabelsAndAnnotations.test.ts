@@ -80,13 +80,13 @@ describe('component: RCLabelsAndAnnotations', () => {
     expect(sections[0].props('expanded')).toBe(false);
   });
 
-  it('should not make the nested secondary sections expandable', () => {
+  it('should make the nested secondary sections expandable', () => {
     const wrapper = mountComponent();
 
     const sections = wrapper.findAllComponents(RcSectionStub);
 
-    expect(sections[1].props('expandable')).toBe(false);
-    expect(sections[2].props('expandable')).toBe(false);
+    expect(sections[1].props('expandable')).toBe(true);
+    expect(sections[2].props('expandable')).toBe(true);
   });
 
   it('should configure the Labels-only instance to show labels but not annotations', () => {
