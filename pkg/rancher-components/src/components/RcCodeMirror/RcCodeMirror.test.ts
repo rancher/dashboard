@@ -405,6 +405,24 @@ describe('component: RcCodeMirror', () => {
   });
 
   describe('foldGutter prop', () => {
+    it('should center the expanded caret while leaving the collapsed caret in place', () => {
+      mountEditor({ language: 'yaml', modelValue: 'metadata:\n  name: test\nkind: Pod' });
+      const view = getView(wrapper);
+      const open = wrapper.get('.cm-foldGutter span[title="Fold line"]');
+
+      expect((open.element as HTMLElement).style.transform).toStrictEqual('translateY(-0.25em)');
+
+      const range = foldable(view.state, 0, view.state.doc.line(1).to);
+
+      expect(range).not.toBeNull();
+      view.dispatch({ effects: foldEffect.of(range!) });
+
+      const closed = wrapper.findAll('.cm-foldGutter span[title="Unfold line"]')
+        .find((marker) => (marker.element.parentElement as HTMLElement).style.visibility !== 'hidden');
+
+      expect((closed?.element as HTMLElement).style.transform).toStrictEqual('');
+    });
+
     it('should show the design marker on folded content and unfold when clicked', () => {
       mountEditor({ language: 'yaml', modelValue: 'metadata:\n  name: test\nkind: Pod' });
       const view = getView(wrapper);
