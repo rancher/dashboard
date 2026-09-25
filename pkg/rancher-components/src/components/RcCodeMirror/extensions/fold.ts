@@ -57,56 +57,85 @@ export const indentFoldService: Extension = foldService.of(
   }
 );
 
-/**
- * Folds matching bracket pairs: {}, [], ()
- */
+/** Match positions are cached for each immutable editor state so gutter checks share one scan. */
+const bracketPairs = new WeakMap<EditorState, Map<number, number>>();
+
+function getBracketPairs(state: EditorState): Map<number, number> {
+  const cached = bracketPairs.get(state);
+
+  if (cached) {
+    return cached;
+  }
+
+  const pairs = new Map<number, number>();
+  const braces: number[] = [];
+  const brackets: number[] = [];
+  const parentheses: number[] = [];
+  const text = state.doc.toString();
+
+  for (let pos = 0; pos < text.length; pos++) {
+    switch (text[pos]) {
+    case '{':
+      braces.push(pos);
+      break;
+    case '}':
+      if (braces.length) {
+        pairs.set(braces.pop()!, pos);
+      }
+      break;
+    case '[':
+      brackets.push(pos);
+      break;
+    case ']':
+      if (brackets.length) {
+        pairs.set(brackets.pop()!, pos);
+      }
+      break;
+    case '(':
+      parentheses.push(pos);
+      break;
+    case ')':
+      if (parentheses.length) {
+        pairs.set(parentheses.pop()!, pos);
+      }
+      break;
+    }
+  }
+
+  bracketPairs.set(state, pairs);
+
+  return pairs;
+}
+
+/** Folds matching bracket pairs: {}, [], (). */
 export const bracketFoldService: Extension = foldService.of(
   (state: EditorState, lineStart: number): { from: number; to: number } | null => {
     const line = state.doc.lineAt(lineStart);
     const text = line.text;
-
-    const openBrackets: Record<string, string> = {
-      '{': '}', '[': ']', '(': ')'
-    };
-    let openChar: string | null = null;
     let openPos = -1;
 
     for (let i = 0; i < text.length; i++) {
       const ch = text.charAt(i);
 
-      if (ch in openBrackets) {
-        openChar = ch;
+      if (ch === '{' || ch === '[' || ch === '(') {
         openPos = line.from + i;
         break;
       }
     }
 
-    if (!openChar || openPos === -1) {
+    if (openPos === -1) {
       return null;
     }
 
-    const closeChar = openBrackets[openChar];
-    let depth = 0;
+    const closePos = getBracketPairs(state).get(openPos);
 
-    for (let pos = openPos; pos < state.doc.length; pos++) {
-      const ch = state.doc.sliceString(pos, pos + 1);
-
-      if (ch === openChar) {
-        depth++;
-      } else if (ch === closeChar) {
-        depth--;
-        if (depth === 0) {
-          const closeLine = state.doc.lineAt(pos);
-
-          if (closeLine.number > line.number) {
-            return { from: line.to, to: closeLine.from - 1 };
-          }
-          break;
-        }
-      }
+    if (closePos === undefined) {
+      return null;
     }
 
-    return null;
+    const closeLine = state.doc.lineAt(closePos);
+
+    return closeLine.number > line.number ? { from: line.to, to: closeLine.from - 1 } : null;
   }
 );
 

@@ -102,6 +102,20 @@ describe('fold extensions', () => {
       expect(foldableAt(state, 1)).toStrictEqual({ from: 1, to: 9 });
     });
 
+    it('should recompute bracket pairs after the document changes', () => {
+      const state = createState('{\n  1\n}', [bracketFoldService]);
+
+      foldableAt(state, 1);
+      const closingLine = state.doc.line(3);
+      const updated = state.update({
+        changes: {
+          from: closingLine.from, to: closingLine.to, insert: 'no closing bracket'
+        }
+      }).state;
+
+      expect(foldableAt(updated, 1)).toBeNull();
+    });
+
     it('should not fold brackets that close on the same line', () => {
       const state = createState('{ a: 1 }\nb', [bracketFoldService]);
 
