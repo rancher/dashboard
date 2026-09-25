@@ -62,6 +62,14 @@
 - encryption.ts: polyfill `globalThis.crypto` from `import { webcrypto } from 'crypto'` in `beforeAll` — jsdom has no Web Crypto API; Node 24 does
 - encryption.ts: use real crypto (not mocked); tamper tests verify AES-GCM authentication tag rejection
 
+## Testing Notes (socket)
+
+- socket.js: jsdom does NOT provide a controllable `WebSocket` (it exists as a stub type but can't be driven deterministically) — install a minimal `MockWebSocket` class as `global.WebSocket` in `beforeEach`, capturing instances in a static array so tests can trigger `onopen`/`onmessage`/`onclose` manually
+- socket.js: `warningShown`/`wasConnected` are module-level singletons — use `jest.resetModules()` + dynamic `require()` in `beforeEach` for fresh state per test
+- socket.js: use `jest.useFakeTimers()` + `jest.advanceTimersByTime()` for the frame-timeout watchdog and the reconnect backoff (`Math.max(1000, Math.min(1000*tries, 30000))`)
+- socket.js: first-ever failed close (before any successful `onopen`) permanently disables `autoReconnect` and fires `EVENT_CONNECT_ERROR` — this only happens once per module load (`warningShown` global flag), so only the *first* test in a file exercises this path unless `resetModules()` is used
+- socket.js: mocking `window.location.protocol` requires `delete (window as any).location` then reassigning a plain object — `jest.spyOn(window.location, 'protocol', 'get')` fails with "Property protocol is not declared configurable" in jsdom
+
 - projectAndNamespaceFiltering.utils.ts: rootGetters is plain object (bracket notation), not function; mock with `{ currentProduct: {...}, 'management/byId': () => ({...}) }`; exclude param overwrites include when both present
 - useUserRetentionValidation.ts: mock `@shell/composables/useI18n` and `vuex`; `parseDuration` regex `^(\d+)h|(\d+)m|(\d+)s$` uses alternation (not fully anchored), so `6h30m` matches `6h`; split it.each into separate pass/fail blocks to satisfy jest/no-conditional-expect
 
@@ -74,9 +82,15 @@
 5. `shell/utils/grafana.js` — `allDashboardsExist` (skipped; thin wrapper over dashboardExists)
 6. `shell/utils/custom-validators.js` — thin lookup object mapping validator names to imported functions (low value; check if individual validators under `shell/utils/validators/` already have coverage before skipping)
 7. `shell/utils/v-sphere.ts` — DONE 2026-09-24 (see Completed Work)
+8. `shell/utils/socket.js` — DONE 2026-09-25 (see Completed Work)
+9. `shell/utils/axios.js` (168 lines) — untested; candidate for next run
+10. `shell/utils/stream.js` (49 lines) — untested; candidate for next run
+11. Remaining untested `shell/utils` files are trivial (`clipboard.js` 9 lines, `config.js` 4 lines, `scroll.js` 7 lines, `type-helpers.ts` 9 lines, `object.d.ts` 0 lines) — low value, skip
+12. All `shell/composables/*.ts` now have tests except `drawer.ts` (item 4 above, low value thin wrapper) — composables directory is essentially fully covered structurally; next composable work should focus on deepening existing test branch coverage rather than new files
 
 ## Completed Work (Summary — recent only)
 
+- 2026-09-25: PR (test-assist/socket-utils-tests): 26 new tests for `shell/utils/socket.js` `Socket` class (websocket reconnect/backoff/watchdog); 0%→91.44% stmts, 0%→84.14% branches, 0%→88.88% fns. Used a minimal `MockWebSocket` on `global.WebSocket` (jsdom doesn't provide a controllable one) + Jest fake timers for watchdog/backoff. Verified PR #19245 and #19213's CI failures (a11y-test/e2e flakiness, milestone-config check) are unrelated to the test-only changes — no action needed there.
 - 2026-09-24: PR (test-assist/v-sphere-utils-tests): 11 new tests for VSphereUtils (handleVsphereCpiSecret/handleVsphereCsiSecret); 0%→99.3% stmts, 0%→67.7% branches, 0%→100% fns. Tests reach private methods (findSecret/findOrCreateSecret/findChartValues) only via the two public entry points since class methods are `private`. Noted (no code change): `findOrCreateSecret` always dispatches `management/create` with whatever was found/built — it doesn't do an update-in-place despite what "reuse" implies from the name.
 - 2026-09-24: Posted comment on PR #18972 with the exact JSDoc fix for its type-check CI failure — could NOT push directly this run (git network access to github.com blocked: `git fetch`/`git checkout -b pr-branch` fails with 403 CONNECT tunnel). CORRECTION: the 2026-09-23 memory entry claiming this fix was already pushed to #18972 was WRONG — verified via MCP `list_commits`/`get_file_contents` that no such commit exists on the PR branch and master's grafana.js still lacks the JSDoc annotation. Root cause of the confusion unclear; always verify pushed-fix claims against actual branch commits before trusting past memory.
 - 2026-09-23: PR (test-assist/project-permissions-tests): 9 new tests for `fetchProjectMembershipPermissions`; 0%→100% stmts/fns/lines, 0%→82.6% branches.
@@ -97,10 +111,11 @@
 
 ## Environment Notes
 
-- **No network git access**: `git fetch origin ...` fails with `403 CONNECT tunnel failed` in this sandbox. Cannot checkout/append commits to existing open PR branches (`push_to_pull_request_branch` requires a local checkout of that exact branch first). When an existing Test Improver PR has a CI fix needed, post the fix as a PR comment instead of trying to push it, and verify via MCP tools (list_commits/get_file_contents) whether a claimed prior fix actually landed before trusting old memory notes.
+- **No network git access**: `git fetch origin ...` fails with `403 CONNECT tunnel failed` in this sandbox (still true as of 2026-09-25). Cannot checkout/append commits to existing open PR branches (`push_to_pull_request_branch` requires a local checkout of that exact branch first). When an existing Test Improver PR has a CI fix needed, post the fix as a PR comment instead of trying to push it, and verify via MCP tools (list_commits/get_file_contents) whether a claimed prior fix actually landed before trusting old memory notes.
 
 ## Task Round-Robin History (recent)
 
+- 2026-09-25: Task 3 (new PR: socket.js) + Task 4 (verified #19245/#19213 CI failures unrelated to test PRs, no action needed) + Task 7
 - 2026-09-24: Task 3 (new PR: v-sphere.ts) + Task 4 (commented fix on #18972, verified #19213 CI green) + Task 7
 - 2026-09-23: Task 3 (new PR + PR fix/maintenance) + Task 7
 - 2026-09-01: Task 3 + Task 7
