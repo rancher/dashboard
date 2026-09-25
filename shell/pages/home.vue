@@ -815,6 +815,15 @@ export default defineComponent({
     }
   }
 
+  // The 39 above was measured for the search input this page used to carry - a 30px input in a
+  // row of its own. The table views toolbar brings its own 32px row and fills it, so the fixed
+  // height only leaves 7px hanging under the controls, which read as the toolbar sitting high in
+  // its row. Left in place for a table that is not in the views layout, which still has that
+  // input.
+  .fixed-header-actions.table-views-layout .search {
+    height: auto;
+  }
+
   h2 {
     font-size: 16px;
   }
