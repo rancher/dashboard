@@ -37,7 +37,7 @@ describe('component: ClusterBadgeIcon', () => {
     ['the custom icon text', {
       nameDisplay: 'production', ready: true, badge: { iconText: 'PRD' }
     }, 'PRD'],
-    ['the abbreviation', { nameDisplay: 'world-wide-web', ready: true }, 'wwb'],
+    ['the abbreviation, as the chip draws it', { nameDisplay: 'world-wide-web', ready: true }, 'WWB'],
     ['the local cluster', {
       nameDisplay: 'local', ready: true, isLocal: true
     }, 'nav.ariaLabel.localClusterIcon'],
