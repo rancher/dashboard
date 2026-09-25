@@ -74,12 +74,20 @@ const props = withDefaults(
     /** How close to an edge of that boundary the menu may come */
     // eslint-disable-next-line vue/require-default-prop
     overflowPadding?: number;
+    /**
+     * Open and close outright, with none of the fade a menu is otherwise given.
+     *
+     * For a menu that appears under the pointer rather than on a click - a sub menu opened by
+     * hovering a row - where the fade is time spent between two states rather than a transition
+     * anyone reads as one.
+     */
+    skipTransition?: boolean;
   }>(),
   // `shift` carries floating-vue's own default: a boolean prop left alone would come through as
   // false and stop every menu in the product being nudged back into view. `open` false is the
   // state every menu starts in, so a caller that never passes it is left to open itself.
   {
-    placement: 'bottom-end', shift: true, flip: true, open: false
+    placement: 'bottom-end', shift: true, flip: true, open: false, skipTransition: false
   }
 );
 
@@ -179,6 +187,7 @@ const applyShow = () => {
     :flip="flip"
     :boundary="boundary"
     :overflow-padding="overflowPadding"
+    :skip-transition="skipTransition"
     @apply-show="applyShow"
   >
     <slot name="default">
