@@ -2534,21 +2534,25 @@ $toolbar-min-width: 544px;
       position: sticky;
       right: 0;
       gap: 8px;
-      height: 32px;
+      height: auto;
       min-height: 32px;
       // Room on its left for a tab to disappear into, taken straight back off the outside so the
       // strip is laid out exactly as it was. The 24 of gap does nothing once the tabs pass
       // underneath rather than beside - a name ran right up to the `+` and stopped dead against
       // it. This is the button's own background reaching further left than its text does.
       padding: 0 0 0 8px;
-      // Lifted onto the same line as the tabs beside it. It has always sat a pixel lower than
-      // them - the strip hangs its last pixel over the row's rule so an active tab's underline
-      // lands on it, and this button, having no wrap of its own, was left on that pixel. Harmless
-      // while it was transparent; the moment it had a background to hold the tabs off, that
-      // background was painting over the rule and the row's line stopped short of the end.
-      margin: -1px 0 0 -8px;
-      align-self: flex-start;
+      // Standing in the strip's own box, top to bottom, which is what a tab's wrap stands in - so
+      // a tab passing behind is covered for the whole of its height, its underline included. That
+      // underline is the last thing to go: the strip hangs its final pixel over the row's rule so
+      // an active tab's mark lands on the line rather than above it, and a button that stopped a
+      // pixel short left a bead of green sliding past underneath.
+      //
+      // Covering that pixel means covering the row's rule too, so the button draws the rule back
+      // along its own bottom edge. Inset, so it costs the box nothing.
+      margin-left: -8px;
+      align-self: stretch;
       background: var(--body-bg);
+      box-shadow: inset 0 -1px 0 var(--border);
       color: var(--link);
 
       // Two gradients, and they do different jobs. Underneath, the page's own colour fading in
