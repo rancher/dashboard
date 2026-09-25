@@ -280,10 +280,8 @@ $spacing-property-map: (
   cursor: help;
 }
 
-// Mirror an icon horizontally. The pin points left wherever it is drawn — the nav's control and the
-// cluster chip's overlay both flip it — but an action's icon is only a class name, so a menu or
-// bulk-bar pin needs the flip handed to it. Not named `icon-*`: that prefix puts a whole subtree in
-// the icon font.
+// Mirror an icon, for an action whose icon is only a class name. Not named `icon-*`: that prefix puts
+// a whole subtree in the icon font.
 .flip-x {
   transform: scaleX(-1);
 }

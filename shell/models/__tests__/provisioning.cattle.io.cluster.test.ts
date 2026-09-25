@@ -656,11 +656,9 @@ describe('class ProvCluster', () => {
   });
 
   describe('pin / unpin', () => {
-    // The pin is kept against the management cluster on every surface, so a provisioning row delegates.
     const dispatch = jest.fn();
 
     const provCluster = (mgmt: any) => {
-      // The other actions read the management cluster too, so give every stand-in the shape they expect.
       mgmt = {
         links: {}, hasAction: () => false, ...mgmt
       };
@@ -720,7 +718,6 @@ describe('class ProvCluster', () => {
       expect(pinAction(pinned, 'unpinCluster').enabled).toBe(true);
     });
 
-    // `local` holds a fixed slot on the shelf, so it is never pinned from anywhere.
     it('offers neither for local', () => {
       const local = provCluster({ pinned: false, isLocal: true });
 
@@ -728,9 +725,6 @@ describe('class ProvCluster', () => {
       expect(pinAction(local, 'unpinCluster').enabled).toBe(false);
     });
 
-    // A failed preference write resolves with `{ type, status }` rather than throwing, and the pin is
-    // already on screen by then — so a rejected write from the menu or the bulk bar has to be said out
-    // loud, exactly as the row's own pin control says it.
     it.each([
       ['pinCluster', 'pin'],
       ['unpinCluster', 'unpin'],
@@ -752,8 +746,6 @@ describe('class ProvCluster', () => {
       expect(dispatch).not.toHaveBeenCalled();
     });
 
-    // The bulk bar sorts by weight and otherwise keeps the order the actions were first met across the
-    // rows, which would split the pair: the unpin is enabled only on a pinned cluster.
     it('leads the bulk actions, pin before unpin', () => {
       const bulk = actionsOf(provCluster({ pinned: false, isLocal: false }))
         .filter((a: any) => a.bulkable)
@@ -763,7 +755,6 @@ describe('class ProvCluster', () => {
       expect(bulk.slice(0, 2)).toStrictEqual(['pinCluster', 'unpinCluster']);
     });
 
-    // Pinning is a preference, not a cluster operation, so the RKE1 clamp on cluster actions leaves it be.
     it('keeps the pin on an RKE1 cluster, which cannot take most other actions', () => {
       const cluster = provCluster({ pinned: false, isLocal: false });
 

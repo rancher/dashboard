@@ -549,8 +549,6 @@ export default {
             class="ml-10"
             :alt="t('branding.logos.label')"
           />
-          <!-- Pin/unpin the cluster being explored, without going back to the nav for it. It follows the
-               badge: the title reads as the cluster's name and comment, then what can be done to it. -->
           <ClusterPinControl :cluster="currentCluster" />
           <div
             v-if="!currentCluster && !$route.path.startsWith('/c/')"

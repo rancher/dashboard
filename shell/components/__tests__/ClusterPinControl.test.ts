@@ -10,10 +10,8 @@ describe('component: ClusterPinControl', () => {
     id: 'c-abc', nameDisplay: 'prod', isLocal: false, pinned: false, pin: jest.fn(), unpin: jest.fn(), ...over
   });
 
-  // The control reads the store for its growl on a failed write, so it needs a real one injected.
   const mountControl = (value: any, stubs: any = {}, attached = false) => mount(ClusterPinControl as any, {
     props:    { cluster: value },
-    // Focus only lands on an element that is in the document, which one test needs.
     attachTo: attached ? document.body : undefined,
     global:   {
       plugins:    [createStore({})],
@@ -22,8 +20,6 @@ describe('component: ClusterPinControl', () => {
     },
   });
 
-  // A stand-in for the pin that records the toggle, so these tests assert the shortcut reaches it
-  // rather than re-testing the control it reaches.
   const pinStub = (toggle: jest.Mock) => ({ Pinned: { template: '<span />', methods: { toggle } } });
 
   it('offers a pin for the cluster the page is about', () => {
@@ -33,8 +29,6 @@ describe('component: ClusterPinControl', () => {
     expect((wrapper.vm as any).pinnable).toMatchObject({ pinned: false, label: 'prod' });
   });
 
-  // `local` holds a fixed slot in the nav and is filtered out of PINNED, so a pin on it would be an
-  // affordance that changes nothing.
   it.each([
     ['local', cluster({ isLocal: true, nameDisplay: 'local' })],
     ['no cluster', null],
@@ -45,8 +39,6 @@ describe('component: ClusterPinControl', () => {
     expect((wrapper.vm as any).pinnable).toBeNull();
   });
 
-  // The cluster management row hands over a provisioning cluster; the pin is kept against the
-  // management cluster behind it.
   it('reaches the management cluster behind a provisioning cluster', () => {
     const wrapper = mountControl({ nameDisplay: 'prov', mgmt: cluster({ pinned: true }) });
 
@@ -54,27 +46,19 @@ describe('component: ClusterPinControl', () => {
   });
 
   it('names the action for the state the pin is in', () => {
-    // The suite renders keys rather than copy, so match the key each state resolves to.
     expect((mountControl(cluster()).vm as any).tooltip).toContain('nav.header.pinCluster');
     expect((mountControl(cluster({ pinned: true })).vm as any).tooltip).toContain('nav.header.unpinCluster');
   });
 
-  // The label and the announced name have to name the keys the binding actually registers, or the
-  // tooltip and a screen reader advertise a shortcut that does nothing.
   it('advertises the keys it binds', () => {
     const vm = mountControl(cluster()).vm as any;
 
     expect(vm.shortcutKeys).toStrictEqual({ windows: ['alt', 'p'], mac: ['meta', 'shift', 'p'] });
-    // Whichever platform this runs on, the label and the announced name describe the same combo. Keyed
-    // off the platform rather than off the label's own text: comparing against the label meant a change
-    // to how it is WRITTEN silently sent this assertion down the other platform's branch.
     expect(vm.shortcut).toBe(isMac ? '⌘-Shift-P' : 'Alt-P');
     expect(vm.ariaShortcut).toBe(isMac ? 'Meta+Shift+P' : 'Alt+P');
   });
 
   describe('the pin shortcut', () => {
-    // Matching, and staying out of text fields, is the `v-shortkey` directive's job — this handler runs
-    // only once the directive has decided the shortcut fired.
     it('toggles the pin through the control, so the write and the animation stay on one path', () => {
       const toggle = jest.fn();
       const vm = mountControl(cluster(), pinStub(toggle)).vm as any;
@@ -94,9 +78,6 @@ describe('component: ClusterPinControl', () => {
     });
   });
 
-  // The shortcut fires from anywhere on the page, so the toggle usually lands with focus somewhere
-  // else and the control's own `aria-pressed` is never spoken. The live region covers that case —
-  // and stays quiet when the control DOES have focus, or the change would be announced twice.
   describe('announcing the toggle', () => {
     it.each([
       ['pinned', true, 'nav.switcher.aria.pinnedCluster'],
@@ -105,8 +86,7 @@ describe('component: ClusterPinControl', () => {
       const wrapper = mountControl(cluster());
 
       (wrapper.vm as any).announce({ label: 'prod' }, pinned);
-      // The announcement is cleared first and set on the next tick, so it takes one tick to land and
-      // another to render.
+      // Cleared first and set on the next tick: one tick to land, another to render.
       await wrapper.vm.$nextTick();
       await wrapper.vm.$nextTick();
 

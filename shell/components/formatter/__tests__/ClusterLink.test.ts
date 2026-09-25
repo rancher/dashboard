@@ -92,7 +92,6 @@ describe('component: ClusterLink', () => {
       expect(mountLink({ hasError: false, status: {} }).find(PIN_SELECTOR).exists()).toBe(false);
     });
 
-    // Whatever else the cell has to say about the cluster comes first: the pin is the one control in it.
     it('should come after the error icons', () => {
       const wrapper = mountLink(row({
         hasError: true,

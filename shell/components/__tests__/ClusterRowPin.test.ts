@@ -14,7 +14,6 @@ describe('component: ClusterRowPin', () => {
     ...over,
   });
 
-  // The pin control reads the store for its growl on a failed write, so it needs a real one injected.
   const mountPin = (row: any) => mount(ClusterRowPin as any, {
     props:  { cluster: row },
     global: { plugins: [createStore({})] },
@@ -26,7 +25,6 @@ describe('component: ClusterRowPin', () => {
     expect(wrapper.find(PIN_SELECTOR).exists()).toBe(true);
   });
 
-  // `local` holds a fixed slot on the shelf, and a row that cannot pin itself has no toggle to offer.
   it.each([
     ['local', {
       nameDisplay: 'local', isLocal: true, pin: jest.fn()
@@ -47,8 +45,6 @@ describe('component: ClusterRowPin', () => {
     expect((row as any)[method]).toHaveBeenCalledWith();
   });
 
-  // The cluster management list hands over provisioning clusters; the pin is kept against the
-  // management cluster behind them.
   it('should toggle the management cluster behind a provisioning row', async() => {
     const mgmt = cluster({ pinned: true });
 

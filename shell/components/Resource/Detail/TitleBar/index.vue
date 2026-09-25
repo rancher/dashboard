@@ -71,8 +71,6 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
 <template>
   <div class="title-bar">
     <Top>
-      <!-- The pin and anything else a page hangs on the title are siblings of the heading, not children:
-           an `h1` takes phrasing content only, and whatever sits inside it is read out as part of it. -->
       <div class="title-row">
         <Title class="title">
           <TabTitle :show-child="false">
@@ -200,10 +198,9 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
     max-width: 60%;
   }
 
-  // The title row takes the remaining space; min-width: 0 lets the heading's children (resource-name)
-  // shrink so the action buttons stay visible on narrow viewports. The row carries the heading's bottom
-  // margin as well: left on the heading it counts towards the row's height, and everything centred
-  // beside the heading — the pin — sits half that margin below the title it belongs to.
+  // The row holds the heading and whatever a page hangs beside it — an `h1` takes phrasing content
+  // only, and a screen reader reads whatever is inside it as part of the heading. It carries the
+  // heading's bottom margin too, which on the heading would count towards the row's height.
   .title-row {
     display: flex;
     align-items: center;

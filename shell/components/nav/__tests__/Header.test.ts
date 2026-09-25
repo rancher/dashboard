@@ -286,16 +286,12 @@ describe('component: Header', () => {
       'features/get': () => false,
     }, { getDynamic: jest.fn() }, {}, stubs);
 
-    // The control owns the pin, its shortcut and what is announced — this suite only has to show that
-    // the header hands it the cluster being explored, and where it sits.
     it('hands the cluster being explored to the pin control', () => {
       const currentCluster = cluster();
 
       expect(withCluster(currentCluster).findComponent(ClusterPinControl).props('cluster')).toStrictEqual(currentCluster);
     });
 
-    // The title reads as the cluster's name and the comment on it, then what can be done to it — so the
-    // control comes after everything that describes the cluster.
     it('places the pin after the cluster badge', () => {
       const wrapper = withCluster(cluster({
         badge: {
