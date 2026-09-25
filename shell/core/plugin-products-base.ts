@@ -13,9 +13,10 @@ import {
   ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage, ProductMetadata, ProductMetadataSinglePage
 } from '@shell/core/plugin-products-external';
 import { TypeMapConfigureType, TypeMapProduct, TypeMapVirtualType } from '@shell/types/store/type-map';
-import { ProductChildCustomPageInternal, ProductChildResourcePageInternal, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
+import { AdvancedProductConfigOptionsInternal, ProductChildCustomPageInternal, ProductChildResourcePageInternal, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
 import { RouteRecordRaw } from 'vue-router';
 import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
+import { DSLRegistrationsPerProduct, registeredRoutes } from '@shell/core/productDebugger';
 
 /**
  * What's the point of this?
@@ -49,6 +50,10 @@ export abstract class BasePluginProduct {
 
   protected addedResourceRoutes = false;
 
+  protected advIsDebuggerEnabled?: boolean = false;
+
+  protected startRouteWithProduct?: boolean;
+
   protected registeredPageNames: Set<string> = new Set();
 
   // Maps user-friendly group name → internal resolved name (e.g. 'monitoring' → 'myapp-monitoring')
@@ -63,10 +68,16 @@ export abstract class BasePluginProduct {
 
   protected DSLMethods: any;
 
+  protected store: any;
+
   protected config: ProductChild[];
 
-  constructor(config: ProductChild[]) {
+  constructor(config: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptionsInternal) {
     this.config = config;
+
+    if (advancedProdConfig?.debuggerEnabled) {
+      this.advIsDebuggerEnabled = advancedProdConfig?.debuggerEnabled;
+    }
   }
 
   /**
@@ -113,6 +124,7 @@ export abstract class BasePluginProduct {
    * This is where we register the product and its children via the DSL
    */
   apply(plugin: IExtension, store: any): void {
+    this.store = store;
     // store the DSL methods for easier access
     this.DSLMethods = plugin.DSL(store, this.name);
 
@@ -143,6 +155,11 @@ export abstract class BasePluginProduct {
     // so that the groupNameMap is fully populated for moveToGroup resolution
     if (this.product) {
       this.processProductLevelDSLOptions();
+    }
+
+    if (this.advIsDebuggerEnabled) {
+      DSLRegistrationsPerProduct(store, this.name);
+      registeredRoutes(store, this.name);
     }
   }
 
@@ -246,38 +263,42 @@ export abstract class BasePluginProduct {
             if (isProductChildWithType(entryChild)) {
               const entry = entryChild as ProductChildResourcePage;
 
-              defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, entry, { omitPath: true, extendProduct: !this.isNewProduct });
+              defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, entry, {
+                omitPath: true, extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct
+              });
             } else if (isProductChildWithComponent(entryChild)) {
               const entry = entryChild as ProductChildCustomPage;
 
               defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, entry.name, {
-                omitPath: true, extendProduct: !this.isNewProduct, component: entry.component
+                omitPath: true, extendProduct: !this.isNewProduct, component: entry.component, startRouteWithProduct: this.startRouteWithProduct
               });
             }
           } else {
             // generateMetadataForGroupOverviewPageRouting
             // Group with component - route to the group overview page (which will render the group's component and side-menu)
             defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, firstConfig.name, {
-              omitPath: true, extendProduct: !this.isNewProduct, component: firstConfig.component
+              omitPath: true, extendProduct: !this.isNewProduct, component: firstConfig.component, startRouteWithProduct: this.startRouteWithProduct
             });
           }
         } else if (firstConfig.component) {
           // Group with component but no children - route to the group page itself
           defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, firstConfig.name, {
-            omitPath: true, extendProduct: !this.isNewProduct, component: firstConfig.component
+            omitPath: true, extendProduct: !this.isNewProduct, component: firstConfig.component, startRouteWithProduct: this.startRouteWithProduct
           });
         }
       } else if (isProductChildWithType(firstConfig)) {
         // Simple configureType page (resource page)
         const config = firstConfig as ProductChildResourcePage;
 
-        defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, config, { omitPath: true, extendProduct: !this.isNewProduct });
+        defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, config, {
+          omitPath: true, extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct
+        });
       } else if (isProductChildWithComponent(firstConfig)) {
         // Simple virtual type page (custom page)
         const config = firstConfig as ProductChildCustomPage;
 
         defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, config.name, {
-          omitPath: true, extendProduct: !this.isNewProduct, component: config.component
+          omitPath: true, extendProduct: !this.isNewProduct, component: config.component, startRouteWithProduct: this.startRouteWithProduct
         });
       }
     } else if (this.isNewProduct) {
@@ -439,9 +460,13 @@ export abstract class BasePluginProduct {
         virtualTypeConfig.exact = true;
         virtualTypeConfig.overview = true;
         // Pass group metadata as pageChild so the route gets a unique path segment (e.g. /product/c/:cluster/groupName)
-        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, { extendProduct: !this.isNewProduct, component: item.component });
+        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, {
+          extendProduct: !this.isNewProduct, component: item.component, startRouteWithProduct: this.startRouteWithProduct
+        });
       } else {
-        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, { extendProduct: !this.isNewProduct, component: item.component });
+        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, {
+          extendProduct: !this.isNewProduct, component: item.component, startRouteWithProduct: this.startRouteWithProduct
+        });
       }
 
       if (isProductChildWithComponent(item)) {
@@ -471,7 +496,7 @@ export abstract class BasePluginProduct {
       this.registeredPageNames.add(typeValue);
       this.pageIdMap.set(typeValue, typeValue);
 
-      const route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, item, { extendProduct: !this.isNewProduct });
+      const route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, item, { extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct });
 
       const configureTypeConfig: TypeMapConfigureType = {
         isCreatable: itemRP.can?.create ?? true,
@@ -514,6 +539,54 @@ export abstract class BasePluginProduct {
       if (itemRP.sideMenu?.weight !== undefined) {
         weightType(typeValue, itemRP.sideMenu?.weight, true);
       }
+
+      if (!itemRP.sideMenu?.hideFromNav) {
+        this.warnIfIgnoredType(typeValue);
+      }
+    }
+  }
+
+  /**
+   * Emits a console.warn if a resource page type is globally ignored by type-map rules,
+   * surfacing a silent misconfiguration that would cause the nav entry to never appear.
+   */
+  private warnIfIgnoredType(type: string): void {
+    const typeMapState = this.store?.state?.['type-map'];
+
+    if (!typeMapState) {
+      return;
+    }
+
+    const typeIgnoreRules: string[] = typeMapState.typeIgnore ?? [];
+    const groupIgnoreRules: (string | { type: string; cb: Function })[] = typeMapState.groupIgnore ?? [];
+
+    for (const rule of typeIgnoreRules) {
+      if (new RegExp(rule).test(type)) {
+        console.warn(`[Extensions] Product "${ this.name }": resource page type "${ type }" is globally ignored via ignoreType() and will not appear in the navigation. Use a ProductChildCustomPage with a custom component instead.`); // eslint-disable-line no-console
+
+        return;
+      }
+    }
+
+    const schema = this.store?.getters?.['management/schemaFor']?.(type);
+    const group = schema?.attributes?.group;
+
+    if (!group) {
+      return;
+    }
+
+    for (const rule of groupIgnoreRules) {
+      if (typeof rule === 'string' && new RegExp(rule).test(group)) {
+        console.warn(`[Extensions] Product "${ this.name }": resource page type "${ type }" belongs to API group "${ group }" which is globally ignored and will not appear in the navigation. Use a ProductChildCustomPage with a custom component instead.`); // eslint-disable-line no-console
+
+        return;
+      }
+
+      if (typeof rule === 'object' && rule !== null && rule.type && new RegExp(rule.type).test(group)) {
+        console.warn(`[Extensions] Product "${ this.name }": resource page type "${ type }" belongs to API group "${ group }" which is conditionally ignored at runtime. The nav entry may not appear depending on the current cluster context.`); // eslint-disable-line no-console
+
+        return;
+      }
     }
   }
 
@@ -539,9 +612,11 @@ export abstract class BasePluginProduct {
             component: EmptyProductPage
           };
 
-          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, pageForRoute.name, { extendProduct: !this.isNewProduct });
+          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, pageForRoute.name, { extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct });
         } else {
-          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, child.name, { component: child.component, extendProduct: !this.isNewProduct });
+          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, child.name, {
+            component: child.component, extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct
+          });
         }
 
         // add the route for the group page/parent
@@ -555,7 +630,9 @@ export abstract class BasePluginProduct {
           this.surfaceError('Custom pages cannot have a "type" property - only resource pages can use "type".');
         }
 
-        const route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, child.name, { component: child.component, extendProduct: !this.isNewProduct });
+        const route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, child.name, {
+          component: child.component, extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct
+        });
 
         plugin.addRoute(route);
       } else if (isProductChildWithType(child)) {
@@ -567,7 +644,7 @@ export abstract class BasePluginProduct {
         if (!this.addedResourceRoutes) {
           this.addedResourceRoutes = true;
 
-          const resourceRoutes = pluginProductsHelpers.generateResourceRoutes(parentName, child, { extendProduct: !this.isNewProduct });
+          const resourceRoutes = pluginProductsHelpers.generateResourceRoutes(parentName, child, { extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct });
 
           resourceRoutes.forEach((resRoute) => {
             plugin.addRoute(resRoute);
