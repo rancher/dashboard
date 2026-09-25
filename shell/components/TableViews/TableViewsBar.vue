@@ -2181,6 +2181,20 @@ $menu-gutter: 16px;
 // with rows behind a scrollbar and the space above it going unused.
 $menu-popper-chrome: 16px;
 
+// The tab strip's scroll-edge shadow, the same shape the app bar's list uses for its own - see
+// `cluster-scroll-shadow` in TopLevelMenu. Driven by `animation-timeline: scroll()`, so 0% is the
+// start of the scroll and 100% the end: on the whole way along, gone once there is nothing left
+// to reach.
+@keyframes view-tab-scroll-shadow {
+  0%, 88% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
 // An icon beside a label is drawn smaller than the square it occupies, so the labels sit in the
 // same place whichever icon they are next to. The glyph is centred in that square both ways
 // rather than left to the line box, whose metrics are the icon font's own.
@@ -2507,12 +2521,53 @@ $toolbar-min-width: 544px;
     }
 
     // Standing in the tab row, it reads as a link the way the tabs beside it do
+    // Held at the end of the strip while the tabs run under it, so the way to make a view is in
+    // the same place whether there are three of them or thirty.
+    //
+    // It needs something to sit on, or the tabs show through it as they pass. And it casts the
+    // shadow that says they are passing: the app bar's list does the same at its bottom edge, and
+    // this is that rule turned on its side - hidden by default, so a strip with nothing to scroll
+    // draws nothing, revealed by the scroll itself, and faded back out at the far end where there
+    // is no longer anything behind it. Where scroll-driven animations aren't supported the shadow
+    // simply stays on: less precise, but the strip never clips a tab silently.
     &.new-view-tab {
+      position: sticky;
+      right: 0;
       gap: 8px;
       height: 32px;
       min-height: 32px;
-      padding: 0;
+      // Room on its left for a tab to disappear into, taken straight back off the outside so the
+      // strip is laid out exactly as it was. The 24 of gap does nothing once the tabs pass
+      // underneath rather than beside - a name ran right up to the `+` and stopped dead against
+      // it. This is the button's own background reaching further left than its text does.
+      padding: 0 0 0 8px;
+      // Lifted onto the same line as the tabs beside it. It has always sat a pixel lower than
+      // them - the strip hangs its last pixel over the row's rule so an active tab's underline
+      // lands on it, and this button, having no wrap of its own, was left on that pixel. Harmless
+      // while it was transparent; the moment it had a background to hold the tabs off, that
+      // background was painting over the rule and the row's line stopped short of the end.
+      margin: -1px 0 0 -8px;
+      align-self: flex-start;
+      background: var(--body-bg);
       color: var(--link);
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 100%;
+        width: 8px;
+        pointer-events: none;
+        background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--body-text) 8%, transparent) 100%);
+        opacity: 0;
+        animation: view-tab-scroll-shadow linear both;
+        animation-timeline: scroll(nearest inline);
+
+        @supports not (animation-timeline: scroll()) {
+          opacity: 1;
+        }
+      }
 
       // No wrap to draw one for it, so it wears the same ring the tabs beside it wear rather
       // than the one the browser would draw by itself
