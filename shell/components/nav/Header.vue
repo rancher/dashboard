@@ -70,8 +70,6 @@ export default {
 
     return {
       authInfo:                {},
-      // The pin shortcut fires from anywhere on the page, so the toggle usually happens with focus
-      // elsewhere and its `aria-pressed` change is never spoken. This says what happened.
       show:                    false,
       showTooltip:             false,
       isUserMenuOpen:          false,
@@ -379,19 +377,6 @@ export default {
         product.style.width = `${ w }px`;
       }
     },
-    /**
-     * Pin or unpin the cluster being explored — the shortcut the switcher flyout binds to the row under
-     * its cursor, here bound to the one the page is already showing.
-     *
-     * Toggling THROUGH the control rather than writing the pref keeps the write, the growl and the pop
-     * animation on one path, so the shortcut and a click are the same action.
-     *
-     * `.anywhere`, so it works from a text field as well — a filter box holding the caret is no reason not
-     * to pin the cluster you are looking at.
-     *
-     * Nothing here has to know about the flyout: it is registered as a shortcut-silencing container, and
-     * it takes this combo at the window besides, so while it is open the key never reaches this binding.
-     */
     showMenu(show) {
       this.isUserMenuOpen = show;
     },
