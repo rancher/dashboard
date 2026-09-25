@@ -2617,12 +2617,17 @@ $toolbar-min-width: 544px;
       // move.
       margin: -3px -3px -3px -8px;
       align-self: stretch;
-      background: var(--body-bg);
-      // The row's rule, drawn back along the line it actually sits on - one pixel, three up from
-      // this button's bottom edge, which is where the row's own rule runs before the button
-      // covers it. A shadow rather than a pseudo-element because both of those are spoken for:
-      // one carries the scroll shadow, the other the focus ring.
-      box-shadow: inset 0 -4px 0 -3px var(--border);
+      // The page's colour, with the row's rule drawn back on top of it - one pixel, its underside
+      // three up from this button's bottom edge, which is where the row's own rule runs before
+      // the button covers it. Placed as a background layer rather than as an inset shadow: a
+      // shadow's spread and offset have to be worked backwards from the edge it grows out of, and
+      // getting that wrong puts the line a few pixels low, which is exactly what it did. A
+      // position says where the line goes and nothing else.
+      background-color: var(--body-bg);
+      background-image: linear-gradient(var(--border), var(--border));
+      background-repeat: no-repeat;
+      background-position: left calc(100% - 3px);
+      background-size: 100% 1px;
       color: var(--link);
 
       // The app bar's shadow turned on its side - the same 8, the same wash, the same reveal, and
