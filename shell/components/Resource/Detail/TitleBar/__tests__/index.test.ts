@@ -45,7 +45,7 @@ describe('component: TitleBar/index', () => {
       global: { stubs: { 'router-link': RouterLinkStub }, provide: { store } }
     });
 
-    const span = wrapper.find('.top > .title > .resource-text');
+    const span = wrapper.find('.top > .title-row > .title > .resource-text');
 
     expect(span.element.innerHTML.trim()).toStrictEqual(`${ resourceTypeLabel }:`);
   });
@@ -58,9 +58,24 @@ describe('component: TitleBar/index', () => {
       global: { stubs: { 'router-link': RouterLinkStub }, provide: { store } }
     });
 
-    const span = wrapper.find('.top > .title > .resource-name');
+    const span = wrapper.find('.top > .title-row > .title > .resource-name');
 
     expect(span.element.innerHTML).toStrictEqual(resourceName);
+  });
+
+  // An `h1` takes phrasing content only, and a screen reader reads whatever is inside it as part of the
+  // heading — so a page's own control on the title sits beside the heading, not in it.
+  it('should render the title-suffix slot outside the heading', () => {
+    const wrapper = mount(TitleBar, {
+      props: {
+        resource: {}, resourceTypeLabel, resourceName
+      },
+      global: { stubs: { 'router-link': RouterLinkStub }, provide: { store } },
+      slots:  { 'title-suffix': '<button class="title-pin" />' },
+    });
+
+    expect(wrapper.find('.top > .title-row > .title-pin').exists()).toBe(true);
+    expect(wrapper.find('.title .title-pin').exists()).toBe(false);
   });
 
   it('should hide the ShowConfiguration button if onShowConfiguration is not defined', async() => {

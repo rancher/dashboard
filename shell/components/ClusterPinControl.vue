@@ -30,7 +30,10 @@ const announcement = ref('');
 // with no effect.
 const pinnable = computed(() => pinnableCluster(props.cluster));
 
-// Cmd+Shift+P on a Mac, Alt+P elsewhere.
+// Cmd+Shift+P on a Mac, Alt+P elsewhere. Bound `.anywhere`, so it works from a text field too — a
+// filter box holding the caret is no reason not to pin the cluster you are looking at. The switcher
+// flyout binds the same combo to the row under its cursor and silences shortcuts while it is open, so
+// the two never both fire.
 const shortcutKeys = { windows: ['alt', 'p'], mac: ['meta', 'shift', 'p'] };
 const shortcut = computed(() => shortcutLabel(isMac ? ['⌘', 'Shift', 'P'] : ['Alt', 'P']));
 // The same shortcut in the form `aria-keyshortcuts` is defined to take.
