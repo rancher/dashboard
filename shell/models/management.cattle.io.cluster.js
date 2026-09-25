@@ -10,6 +10,7 @@ import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
 import { isEmpty, isEqual } from '@shell/utils/object';
 import { HARVESTER_NAME as HARVESTER, IMPORTED_DAY_2_OPS } from '@shell/config/features';
+import { isMachinePoolAutoscaling } from '@shell/utils/autoscaler-utils';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
@@ -889,9 +890,7 @@ export default class MgmtCluster extends SteveModel {
       return false;
     }
 
-    return !!this.provCluster.spec?.rkeConfig?.machinePools?.some((pool) => {
-      return typeof pool.autoscalingMinSize !== 'undefined' || typeof pool.autoscalingMaxSize !== 'undefined';
-    });
+    return !!this.provCluster.spec?.rkeConfig?.machinePools?.some((pool) => isMachinePoolAutoscaling(pool));
   }
 
   _statusInfoWarned = false;
