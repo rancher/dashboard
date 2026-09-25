@@ -2648,7 +2648,7 @@ $toolbar-min-width: 544px;
     // which read as a caption about the list rather than as something the box was saying about
     // what had just been typed into it.
     font-size: 13px;
-    line-height: 20px;
+    line-height: 18px;
 
     .icon {
       flex: none;
