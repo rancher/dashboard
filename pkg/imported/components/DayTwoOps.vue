@@ -5,6 +5,7 @@ import Banner from '@components/Banner/Banner.vue';
 import { RadioGroup } from '@components/Form/Radio';
 import { useStore } from 'vuex';
 import { DAY_2_OPS_DEFAULT as DEFAULT } from '@pkg/imported/util/shared.ts';
+import { RcSection, SECTION_TYPE } from '@components/RcSection';
 
 defineOptions({ name: 'DayTwoOps' });
 const props = defineProps({
@@ -73,15 +74,20 @@ const showBanner = computed(() => {
 </script>
 
 <template>
-  <div class="mt-10">
-    <h3>{{ t('imported.basics.dayTwoOpsEnabled.title') }}</h3>
-    <p class="mb-10">
+  <RcSection
+    :title="t('imported.basics.dayTwoOpsEnabled.title')"
+    mode="with-header"
+    :type="SECTION_TYPE.SECONDARY"
+    :expandable="true"
+  >
+    <p>
       {{ t('imported.basics.dayTwoOpsEnabled.description') }}
     </p>
     <Banner
       v-if="showBanner"
       color="info"
       data-testid="day-two-ops-banner"
+      class="m-0"
     >
       {{ dayTwoOpsInfo }}
     </Banner>
@@ -93,15 +99,15 @@ const showBanner = computed(() => {
       data-testid="imported-day-two-ops-radio"
       @update:value="$emit('update:value', $event)"
     />
-    <div class="col mt-10">
-      <label
+    <div class="col">
+      <p
         v-clean-html="globalConfigurationText"
         class="summary"
-      /><br>
-      <label
+      />
+      <p
         v-clean-html="clusterConfigurationText"
-        class="summary mb-10"
+        class="summary"
       />
     </div>
-  </div>
+  </RcSection>
 </template>
