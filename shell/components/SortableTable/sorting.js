@@ -11,7 +11,9 @@ const DEFAULT_MANDATORY_SORT = ['nameSort', 'id'];
 export default {
   computed: {
     sortFields() {
-      let fromGroup = ( this.groupBy ? this.groupSort || this.groupBy : null) || [];
+      // A `groupBy` function has no property path behind it, so it can't contribute to the sort
+      const groupField = this.groupSort || (typeof this.groupBy === 'function' ? null : this.groupBy);
+      let fromGroup = ( this.groupBy ? groupField : null) || [];
       let fromColumn = [];
 
       const column = (this.columns || this.headers).find((x) => x && x.name && x.name.toLowerCase() === this.sortBy.toLowerCase());
@@ -123,7 +125,16 @@ export default {
   },
 
   watch: {
-    sortFields() {
+    sortFields(neu, old) {
+      // `sortFields` is a computed array, so every re-render hands back a new one whose contents
+      // are usually identical. Emitting on that asks the list to fetch again for the sort it is
+      // already showing, and when a server side filter is in play the answer comes back as a fresh
+      // set of rows, which recomputes this, which emits again - the list then refetches forever.
+      // Only a sort that really changed is worth a request.
+      if (neu?.join(',') === old?.join(',')) {
+        return;
+      }
+
       this.debouncedPaginationChanged();
     },
 

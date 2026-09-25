@@ -3,6 +3,64 @@ import sorting from '@shell/components/SortableTable/sorting';
 const { arrangedRows } = sorting.computed;
 
 describe('sorting mixin', () => {
+  describe('sortFields', () => {
+    const { sortFields } = sorting.computed;
+
+    function createContext({
+      groupBy = null as any,
+      groupSort = null as string | string[] | null,
+      sortBy = '',
+      headers = [] as any[],
+      mandatorySort = ['nameSort', 'id'] as string[] | null,
+    } = {}) {
+      return {
+        groupBy, groupSort, sortBy, headers, mandatorySort, columns: null
+      };
+    }
+
+    it('should not sort by a function groupBy, as it has no property path behind it', () => {
+      const ctx = createContext({ groupBy: (row: any) => row.name });
+
+      expect(sortFields.call(ctx)).toStrictEqual(['nameSort', 'id']);
+    });
+
+    it('should sort by groupSort first when groupBy is a function', () => {
+      const ctx = createContext({ groupBy: (row: any) => row.name, groupSort: 'metadata.state.name' });
+
+      expect(sortFields.call(ctx)).toStrictEqual(['metadata.state.name', 'nameSort', 'id']);
+    });
+
+    it('should sort by a string groupBy when no groupSort is given', () => {
+      const ctx = createContext({ groupBy: 'metadata.namespace' });
+
+      expect(sortFields.call(ctx)).toStrictEqual(['metadata.namespace', 'nameSort', 'id']);
+    });
+
+    it('should prefer groupSort over a string groupBy', () => {
+      const ctx = createContext({ groupBy: 'groupByLabel', groupSort: 'metadata.namespace' });
+
+      expect(sortFields.call(ctx)).toStrictEqual(['metadata.namespace', 'nameSort', 'id']);
+    });
+
+    it('should ignore groupSort when nothing is grouped', () => {
+      const ctx = createContext({ groupSort: 'metadata.state.name' });
+
+      expect(sortFields.call(ctx)).toStrictEqual(['nameSort', 'id']);
+    });
+
+    it('should combine the group, the sorted column and the mandatory sort, without duplicates', () => {
+      const ctx = createContext({
+        groupBy:       (row: any) => row.name,
+        groupSort:     'metadata.state.name',
+        sortBy:        'Name',
+        headers:       [{ name: 'Name', sort: ['metadata.name', 'nameSort'] }],
+        mandatorySort: ['nameSort', 'id'],
+      });
+
+      expect(sortFields.call(ctx)).toStrictEqual(['metadata.state.name', 'metadata.name', 'nameSort', 'id']);
+    });
+  });
+
   describe('arrangedRows', () => {
     function createContext({
       rows = [] as any[],

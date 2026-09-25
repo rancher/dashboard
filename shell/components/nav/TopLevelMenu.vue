@@ -19,6 +19,7 @@ import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { debounce } from 'lodash';
+import { SEARCH_DEBOUNCE } from '@shell/config/search';
 import { sameContents } from '@shell/utils/array';
 import { RcSeparator } from '@components/RcSeparator';
 import { commitAndReconcile, movePinned, reportPinWriteFailure } from '@shell/utils/cluster-pref-writer';
@@ -30,7 +31,6 @@ const PINNED_TOOLTIP_DISTANCE = 44;
 // Every search that fires re-measures the flyout, so the panel resizes under the cursor. At 200ms that
 // landed inside an ordinary typing rhythm and the height moved on almost every character; this sits past
 // it, so the list settles when you pause rather than while you are still typing.
-const SEARCH_DEBOUNCE = 400;
 
 export default {
   components: {

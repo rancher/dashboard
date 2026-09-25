@@ -1627,16 +1627,50 @@ export default class Resource {
     this.currentRouter().push(location);
   }
 
-  async download() {
+  /**
+   * The action reads "Export As..." now and offers YAML alongside the other formats, so picking it
+   * asks which before doing anything. Choosing YAML runs `downloadYaml` below - the same download
+   * this action has always done.
+   *
+   * The action keeps its name: models up and down the product name `download` to hide or keep it.
+   */
+  download() {
+    return this.openExportModal([this]);
+  }
+
+  downloadBulk(items) {
+    return this.openExportModal(items);
+  }
+
+  async openExportModal(items) {
+    // Pulled in on demand - the store layer has no business dragging a component into every bundle
+    const { default: TableViewExportModal } = await import('@shell/components/TableViews/TableViewExportModal.vue');
+
+    this.$ctx.commit('modal/openModal', {
+      component:           markRaw(TableViewExportModal),
+      componentProps:      { count: items.length, isSelection: true },
+      resources:           items,
+      closeOnClickOutside: true,
+      modalWidth:          '640px',
+    }, { root: true });
+  }
+
+  async downloadYaml() {
     const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
     const data = await this.cleanForDownload(value.data);
 
     downloadFile(`${ this.nameDisplay }.yaml`, data, 'application/yaml');
   }
 
-  async downloadBulk(items) {
+  /**
+   * @param items the resources to write into the zip
+   * @param onProgress called with (done, total) as each resource comes back, for a caller that is
+   *        showing how far along this is - it is a request per resource, so it can take a while
+   */
+  async downloadYamlBulk(items, onProgress) {
     const files = {};
     const names = [];
+    let done = 0;
 
     for ( const item of items ) {
       let name = `${ item.nameDisplay }.yaml`;
@@ -1655,6 +1689,7 @@ export default class Resource {
         const cleanedYaml = await this.cleanForDownload(yaml);
 
         files[`resources/${ names[idx] }`] = cleanedYaml;
+        onProgress?.(++done, items.length);
       });
     });
 

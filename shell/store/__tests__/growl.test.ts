@@ -221,6 +221,20 @@ describe('growl store', () => {
           message:      'ok',
         });
       });
+
+      it('keeps an action on the growl but does not send it to the notification centre', async() => {
+        // The notification is encrypted into local storage, which a callback cannot survive
+        const action = { label: 'Undo', run: jest.fn() };
+
+        dispatch.mockResolvedValue('notif-undo');
+
+        await actions.success({ commit, dispatch } as any, {
+          title: 'Done', message: 'ok', action
+        });
+
+        expect(dispatch.mock.calls[0][1]).not.toHaveProperty('action');
+        expect(commit.mock.calls[0][1]).toMatchObject({ action });
+      });
     });
 
     describe('info', () => {

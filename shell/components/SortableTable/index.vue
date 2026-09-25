@@ -9,6 +9,7 @@ import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
 import ActionDropdown from '@shell/components/ActionDropdown';
+import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
 import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
 import THead from './THead';
@@ -25,9 +26,8 @@ import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import TableSelectionActions from '@shell/components/TableViews/TableSelectionActions.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
-import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
-import { RcButton } from '@components/RcButton';
 import { useTabCountUpdater } from '@shell/components/form/ResourceTabs/composable';
 
 // Uncomment for table performance debugging
@@ -63,12 +63,12 @@ export default {
     Checkbox,
     AsyncButton,
     ActionDropdown,
+    ActionDropdownShell,
     LabeledSelect,
     LabeledInput,
     ButtonMultiAction,
     ActionMenu,
-    ActionDropdownShell,
-    RcButton,
+    TableSelectionActions,
   },
 
   mixins: [
@@ -125,13 +125,14 @@ export default {
     },
 
     groupBy: {
-      // Field to group rows by, row[groupBy] must be something that can be a map key
-      type:    String,
+      // Field to group rows by, row[groupBy] must be something that can be a map key.
+      // A function receiving the row can be given instead, for keys that aren't a simple path
+      type:    [String, Function],
       default: null
     },
     groupRef: {
       // Object to provide as the reference for rendering the grouping row
-      type:    String,
+      type:    [String, Function],
       default: null,
     },
     groupSort: {
@@ -149,6 +150,35 @@ export default {
 
     tableActions: {
       // Show bulk table actions
+      type:    Boolean,
+      default: true
+    },
+
+    /**
+     * The view's server side filters, handed down by the table above.
+     *
+     * They ride on `pagination-changed` with the page and the sort rather than on a channel of
+     * their own: they are one more thing that means "this list is asking for something different
+     * now, go and fetch it", which is what that event already says.
+     */
+    viewFilters: {
+      type:    Array,
+      default: () => []
+    },
+
+    /**
+     * Lay the masthead out for the table views toolbar: the page's own title and buttons keep
+     * the top row, the view tabs take a second, and the filter shares a third with the selection
+     * actions.
+     *
+     * On by default. A list page should get the toolbar without having to ask for it - otherwise
+     * every extension with a list page of its own has to know the prop exists to opt in, and the
+     * feature only ever reaches the tables we remembered to flip. The rows the layout adds
+     * collapse when nothing fills them, so a table with neither its own buttons nor saved view
+     * tabs still renders a single row masthead. Pass `false` for a table that must keep the
+     * original masthead - the inline bulk action buttons rather than the "N selected" menu.
+     */
+    tableViewsLayout: {
       type:    Boolean,
       default: true
     },
@@ -466,6 +496,23 @@ export default {
   },
 
   watch: {
+    /**
+     * A different set of view filters is a different question to ask the api, so the list is told
+     * the same way a page or sort change tells it. Back to the first page with it: the row that
+     * was on page three of the old filter is not on page three of the new one.
+     *
+     * Compared by value - the array is rebuilt whenever the view is, and asking again for filters
+     * that have not actually changed is a wasted round trip.
+     */
+    viewFilters(neu, old) {
+      if (JSON.stringify(neu || []) === JSON.stringify(old || [])) {
+        return;
+      }
+
+      this.setPage(1);
+      this.debouncedPaginationChanged();
+    },
+
     eventualSearchQuery: debounce(function(q) {
       this.searchQuery = q;
 
@@ -648,6 +695,27 @@ export default {
 
     noRows() {
       return !this.noResults && (this.rows || []).length === 0;
+    },
+
+    /**
+     * Whether the top row of the table views header has anything to hold.
+     *
+     * That row is where a page puts its own table level actions, and plenty of lists have none.
+     * Empty, it still reserved its height and the gap beneath it, which read as a band of dead
+     * space between the page's heading and the view tabs.
+     */
+    tableViewsTopRowEmpty() {
+      return this.tableViewsLayout && !this.$slots['header-left'] && !this.$slots['header-middle'];
+    },
+
+    /**
+     * Whether the view tabs row has anything to hold.
+     *
+     * A table embedded in a detail page takes the filter and the selection actions without the
+     * saved view tabs, so the row they would have sat on has to go rather than hold its height.
+     */
+    tableViewsTabsEmpty() {
+      return this.tableViewsLayout && !this.$slots['table-views'];
     },
 
     showHeaderRow() {
@@ -1119,8 +1187,9 @@ export default {
           searchFields: this.searchFields,
           searchQuery:  this.searchQuery
         },
-        sort:       this.sortFields,
-        descending: this.descending
+        sort:        this.sortFields,
+        descending:  this.descending,
+        viewFilters: this.viewFilters
       });
     }
   }
@@ -1130,6 +1199,7 @@ export default {
 <template>
   <div
     ref="container"
+    :class="{ 'has-table-views': tableViewsLayout }"
     :data-testid="componentTestid + '-list-container'"
   >
     <div
@@ -1140,14 +1210,14 @@ export default {
       <div
         v-if="showHeaderRow"
         class="fixed-header-actions"
-        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering}"
+        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering, 'table-views-layout': tableViewsLayout, 'no-top-row': tableViewsTopRowEmpty, 'no-views-row': tableViewsTabsEmpty}"
       >
         <div
           :class="bulkActionsClass"
           class="bulk"
         >
           <slot name="header-left">
-            <template v-if="tableActions">
+            <template v-if="tableActions && !tableViewsLayout">
               <RcButton
                 v-for="(act) in availableActions"
                 :id="act.action"
@@ -1241,6 +1311,17 @@ export default {
         >
           <slot name="header-middle" />
         </div>
+        <!-- Table views puts its tabs on a row of their own between the page's own masthead and
+             the filter, so the slot is a grid item here rather than a block above the header.
+             It comes after the top row in source order as well as on screen: the grid decides
+             where these land, but the keyboard follows the document, and tabbing used to reach
+             the tabs before the buttons drawn above them. -->
+        <div
+          v-if="tableViewsLayout && !tableViewsTabsEmpty"
+          class="table-views-row"
+        >
+          <slot name="table-views" />
+        </div>
 
         <div
           v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || $slots['header-right']"
@@ -1263,6 +1344,18 @@ export default {
               <div class="bg" />
             </li>
           </ul>
+          <!-- Table views mode collapses every bulk action into one "N Selected" menu, which
+               shares the filter's row and is only there when there is a selection to act on -->
+          <TableSelectionActions
+            v-if="tableViewsLayout && tableActions"
+            :actions="availableActions"
+            :count="selectedRows.length"
+            :action-tooltip="actionTooltip"
+            :testid="componentTestid"
+            @click="applyTableAction"
+            @mouseover="setBulkActionOfInterest"
+            @mouseleave="setBulkActionOfInterest"
+          />
           <slot name="watch-controls" />
           <slot name="header-right" />
           <AsyncButton
@@ -2174,6 +2267,16 @@ export default {
     grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 350px);
   }
 
+  // The toolbar above this table opens menus over the rows, and a row can be left carrying a
+  // z-index of its own by something outside this component - the AI extension leaves one on every
+  // state chip the pointer has passed over - which would then paint over those menus. Giving the
+  // table a stacking context of its own keeps whatever the rows do contained to the rows, without
+  // moving anything up the shared scale.
+  .has-table-views .sortable-table {
+    position: relative;
+    z-index: 0;
+  }
+
   $header-padding: 20px;
   .sub-header-row {
     padding: 0 0 calc($header-padding / 2) 0;
@@ -2194,6 +2297,96 @@ export default {
 
     &.advanced-filtering {
       grid-template-columns: [bulk] auto [middle] minmax(min-content, auto) [search] minmax(min-content, auto);
+    }
+
+    // Table views mode: three rows rather than one. The page's own masthead keeps the top row,
+    // the view tabs get the second, and the filter shares the third with the selection actions.
+    // Gated on the class — every other table keeps the default single row grid above untouched.
+    &.table-views-layout {
+      grid-template-columns: [left] auto [middle] minmax(0, 1fr);
+      grid-template-areas:
+        "bulk   middle"
+        "views  views"
+        "filter filter";
+      align-items: center;
+      // 16 from the page's own heading down to the tabs, 24 from the tabs to the filter, 24 from
+      // the filter to the table. One grid gap can't be two sizes, so it carries the 16 and the
+      // filter row makes up the rest.
+      row-gap: 16px;
+      padding-bottom: 24px;
+
+      // Nothing to put on the top row, so it goes rather than sitting there holding its height
+      // and the gap under it open between the page's heading and the tabs
+      &.no-top-row {
+        grid-template-areas:
+          "views  views"
+          "filter filter";
+
+        .bulk {
+          display: none;
+        }
+      }
+
+      // No saved view tabs - the filter and the selection actions on their own, under whatever
+      // the page put on the top row
+      &.no-views-row {
+        grid-template-areas:
+          "bulk   middle"
+          "filter filter";
+      }
+
+      &.no-top-row.no-views-row {
+        grid-template-areas: "filter filter";
+
+        .bulk {
+          display: none;
+        }
+      }
+
+      .bulk {
+        grid-area: bulk;
+        height: 32px;
+      }
+
+      // Whatever the page puts here - its own action buttons - sits at the far right of the
+      // heading row, lined up with the table's right hand edge
+      .middle {
+        grid-area: middle;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        height: 32px;
+      }
+      .table-views-row { grid-area: views; }
+
+      // Row three, the full width of the table: the selection actions (when there are any) and
+      // then the filter, which takes the rest
+      .search {
+        grid-area: filter;
+        display: flex;
+        align-items: flex-start;
+        align-self: start;
+        // Pinned to the height of what it holds. Left to size itself the cell came out 7px
+        // taller than the filter inside it, and the row gap either side inherited the slack.
+        // A minimum rather than a fixed height, and held to the top of the cell: the filter can
+        // grow a line under it to say what is wrong with what was typed, and centring a taller
+        // row in a fixed cell took the filter itself up the page as the line appeared.
+        min-height: 32px;
+        margin-top: 8px;
+        justify-content: flex-start;
+        gap: 10px;
+        max-width: none;
+        width: 100%;
+        margin-left: 0;
+        text-align: left;
+
+        // `.row`'s clearfix pseudo elements become flex items here, and with a gap either side
+        // they push the filter 10px in from the table it sits above
+        &::before,
+        &::after {
+          display: none;
+        }
+      }
     }
 
     .bulk {

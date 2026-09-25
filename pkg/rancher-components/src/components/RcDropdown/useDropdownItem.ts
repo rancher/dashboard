@@ -76,9 +76,12 @@ export const useDropdownItem = () => {
       return;
     }
 
+    // `nearest` rather than `center`: centring asks every scrollport on the way up to move,
+    // including the document, so arrowing through a menu that fits on screen scrolled the page
+    // under it. This brings a row into view only when it is out of it.
     target?.scrollIntoView({
       behavior: 'smooth',
-      block:    'center',
+      block:    'nearest',
       inline:   'nearest',
     });
   };

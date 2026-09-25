@@ -4,7 +4,15 @@
  */
 import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
 
-const props = defineProps({ disabled: Boolean });
+const props = defineProps({
+  disabled:     Boolean,
+  /**
+   * Whether picking this item closes the menu. Off for items that are settings rather than
+   * commands - a column toggle is one of several the user is likely to want in a row, and a menu
+   * that shuts after each one has to be reopened to make the next change.
+   */
+  closeOnClick: { type: Boolean, default: true },
+});
 const emits = defineEmits(['click']);
 
 const {
@@ -20,7 +28,10 @@ const handleClick = (e: MouseEvent) => {
   }
 
   emits('click', e);
-  close();
+
+  if (props.closeOnClick) {
+    close();
+  }
 };
 
 </script>
@@ -45,6 +56,14 @@ const handleClick = (e: MouseEvent) => {
     <slot name="default">
       <!--Empty slot content-->
     </slot>
+    <!-- Trailing content - a tick on the chosen item, a keyboard shortcut - pushed to the far
+         end of the row. Matches the before/after pair RcDropdownTrigger already takes. -->
+    <span
+      v-if="$slots.after"
+      class="dropdown-item-after"
+    >
+      <slot name="after" />
+    </span>
   </div>
 </template>
 
@@ -61,7 +80,9 @@ const handleClick = (e: MouseEvent) => {
       cursor: pointer;
       background-color: var(--dropdown-hover-bg);
     }
-    &:focus-visible, &:focus {
+    // Only when the keyboard put the focus here. Clicking an item focuses it too, and a ring
+    // drawn then is the menu answering a mouse with something only a keyboard needs.
+    &:focus-visible {
       @include focus-outline;
       outline-offset: 0;
     }
@@ -70,6 +91,13 @@ const handleClick = (e: MouseEvent) => {
       &:hover {
         cursor: not-allowed;
       }
+    }
+
+    .dropdown-item-after {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+      padding-left: 16px;
     }
   }
 </style>

@@ -10,8 +10,11 @@ import { findBy } from '@shell/utils/array';
 import { ExtensionPoint, TableColumnLocation, TableLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
+import { fieldValue, stringifyValue } from '@shell/utils/table-views/fields';
+import ResourceTableViews from '@shell/mixins/resource-table-views';
 import ResourceTableWatch from '@shell/mixins/resource-table-watch';
 import paginationUtils from '@shell/utils/pagination-utils';
+import TableViewsBar from '@shell/components/TableViews/TableViewsBar';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -48,11 +51,13 @@ export default {
   emits: ['clickedActionButton'],
 
   components: {
-    ButtonGroup, SortableTable, ToggleSwitch
+    ButtonGroup, SortableTable, TableViewsBar, ToggleSwitch
   },
 
   mixins: [
-    ResourceTableWatch
+    ResourceTableWatch,
+    // The table views toolbar: the view, its fields, its rows and columns, its counts, its export
+    ResourceTableViews
   ],
 
   props: {
@@ -126,6 +131,17 @@ export default {
      * Field to group rows by, row[groupBy] must be something that can be a map key
      */
     groupBy: {
+      type:    String,
+      default: null
+    },
+
+    /**
+     * Field to order groups by, defaults to `groupBy`.
+     *
+     * Declared here (rather than left to fall through in `$attrs`) so a caller supplied value
+     * doesn't clobber the path the table views toolbar works out - see `viewGroupSort`.
+     */
+    groupSort: {
       type:    String,
       default: null
     },
@@ -223,6 +239,26 @@ export default {
       default: undefined,
     },
 
+    /**
+     * The pagination args the owning list is currently using, filters and all. Needed to export
+     * every matching row rather than just the page on screen.
+     */
+    externalPaginationArgs: {
+      type:    Object,
+      default: null
+    },
+
+    /**
+     * What scopes the list no matter what the user has typed - the namespace/project selection
+     * and the page's own filters. Used to count and to suggest values against the whole of what
+     * this list can show, rather than against the query being typed.
+     */
+    externalPaginationScope: {
+      type:    Object,
+      default: null
+    },
+
+
   },
 
   data() {
@@ -231,15 +267,18 @@ export default {
 
     return {
       inStore,
+
       /**
        * Override the sortGenerationFn given changes in the rows we pass through to sortable table
        *
        * Primary purpose is to directly connect an iteration of `rows` with a sortGeneration string. This avoids
        * reactivity issues where `rows` hasn't yet changed but something like workspaces has (stale values stored against fresh key)
        */
-      sortGeneration:               undefined,
+      sortGeneration: undefined,
+
       listAutoRefreshToggleEnabled: paginationUtils.listAutoRefreshToggleEnabled({ rootGetters: this.$store.getters }),
-      hasSearchFilter:              false,
+
+      hasSearchFilter: false,
     };
   },
 
@@ -256,7 +295,6 @@ export default {
       },
       immediate: true
     },
-
   },
 
   computed: {
@@ -519,6 +557,15 @@ export default {
     },
 
     computedGroupBy() {
+      // A group chosen in the table views toolbar wins - it can be any field, including a label,
+      // so the key is a function rather than a path
+      if (this.viewGroupField) {
+        const field = this.viewGroupField;
+        const empty = this.t('tableViews.group.empty');
+
+        return (row) => stringifyValue(fieldValue(row, field)) || empty;
+      }
+
       // If we're not showing grouping options we shouldn't have a group by property
       if (!this.showGrouping) {
         return null;
@@ -628,7 +675,7 @@ export default {
      * Whether we should show namespace counts in group tabs
      */
     showNamespaceCounts() {
-      return (this.group === 'namespace' || this.group === 'metadata.namespace') && this.isNamespaced && !this.hasSearchFilter;
+      return (this.group === 'namespace' || this.group === 'metadata.namespace') && this.isNamespaced && !this.hasSearchFilter && !this.viewGroupField;
     },
   },
 
@@ -703,7 +750,8 @@ export default {
       }
 
       this.hasSearchFilter = !!arg?.filtering?.searchQuery;
-    }
+      this.recordSort(arg?.sorting);
+    },
   }
 };
 </script>
@@ -712,14 +760,16 @@ export default {
   <SortableTable
     ref="table"
     v-bind="$attrs"
-    :headers="_headers"
-    :rows="filteredRows"
-    :loading="loading"
-    :alt-loading="altLoading"
+    :headers="viewHeaders"
+    :rows="viewRows"
+    :loading="loading || viewSwitching"
+    :alt-loading="altLoading && !viewSwitching"
     :group-by="computedGroupBy"
+    :group-sort="viewGroupSort"
     :group="group"
     :group-options="_groupOptions"
-    :search="search"
+    :search="showTableViews ? false : search"
+    :table-views-layout="showTableViews"
     :paging="true"
     :paging-params="parsedPagingParams"
     :paging-label="pagingLabel"
@@ -740,6 +790,7 @@ export default {
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     :external-pagination-enabled="externalPaginationEnabled"
     :external-pagination-result="externalPaginationResult"
+    :view-filters="appliedViewFilters"
     :mandatory-sort="_mandatorySort"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
@@ -747,7 +798,33 @@ export default {
     @sortable-table-interaction="handleSortableTableInteraction"
   >
     <template
-      v-if="showGrouping && _groupOptions.length > 1"
+      v-if="showTableViewTabs"
+      #table-views
+    >
+      <TableViewsBar
+        part="tabs"
+        :view="view"
+        :fields="viewFields"
+        :group-fields="viewGroupFields"
+        :filter-fields="viewFilterFields"
+        :field-values="fieldValues"
+        :rows="filteredRows"
+        :match-count="viewMatchCount"
+        :view-counts="tabCounts"
+        :resource-label="resourceLabel"
+        :resource-type="schema ? schema.id : ''"
+        :unsupported-fields="unsupportedViewFields"
+        :default-columns="defaultColumnIds"
+        :core-columns="coreColumnIds"
+        @update:view="view = $event"
+        @request-values="fetchFieldValues"
+        @tab-queries="tabQueries = $event"
+        @export="handleExport"
+      />
+    </template>
+
+    <template
+      v-if="showGrouping && _groupOptions.length > 1 && !showTableViews"
       #header-middle
     >
       <slot name="more-header-middle" />
@@ -760,9 +837,31 @@ export default {
     </template>
 
     <template
-      v-if="showGrouping"
+      v-if="showGrouping || showTableViews"
       #header-right
     >
+      <!-- In table-views mode the filter + single "View" popup live in the core masthead's
+           search/right cell so they share the .fixed-header-actions grid row with .bulk. -->
+      <TableViewsBar
+        v-if="showTableViews"
+        part="controls"
+        :view="view"
+        :fields="viewFields"
+        :group-fields="viewGroupFields"
+        :filter-fields="viewFilterFields"
+        :field-values="fieldValues"
+        :rows="filteredRows"
+        :match-count="viewMatchCount"
+        :view-counts="tabCounts"
+        :resource-label="resourceLabel"
+        :resource-type="schema ? schema.id : ''"
+        :unsupported-fields="unsupportedViewFields"
+        :default-columns="defaultColumnIds"
+        :core-columns="coreColumnIds"
+        @update:view="view = $event"
+        @request-values="fetchFieldValues"
+        @export="handleExport"
+      />
       <slot
         name="header-right"
       />
@@ -795,9 +894,15 @@ export default {
       </div>
     </template>
 
-    <!-- Pass down templates provided by the caller -->
+    <!-- Pass down templates provided by the caller.
+
+         Minus the ones this component fills in itself and renders the caller's inside, which is
+         `header-right`. Vue keeps the last template given for a slot name, so passing it straight
+         through here replaced the filter and the View button with the caller's own content - the
+         cluster dashboard's events table puts a link and a page-size menu there, and had no
+         filter at all as a result. -->
     <template
-      v-for="(_, slot) of $slots"
+      v-for="(_, slot) of passthroughSlots"
       :key="slot"
       v-slot:[slot]="scope"
     >

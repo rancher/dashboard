@@ -32,6 +32,22 @@ export default {
 
   mixins: [CreateEditView],
 
+  /**
+   * The default for tables under these tabs: no saved view tabs.
+   *
+   * Every table in here is one resource's own list - this deployment's pods, this cluster's events
+   * - rather than the type's list. Saved views are keyed by type and kept per user, so there is
+   * nothing for a view of "all events" to mean, and saving one would put it on the real list.
+   * The tables keep the filter and the View menu and lose the tabs.
+   *
+   * Supplied rather than worked out by each table, because a table has no way of knowing what it
+   * has been embedded in and the route only says so when the page happens to name a resource in
+   * it. A default and not a decision: a table that wants the tabs in here passes the prop and wins.
+   */
+  provide() {
+    return { showTableViewTabs: false };
+  },
+
   props: {
     // resource instance
     value: {
@@ -210,7 +226,7 @@ export default {
 
       // Determine the field and value based on type
       const field = this.isNamespace ? 'metadata.namespace' : 'involvedObject.uid';
-      const value = this.isNamespace ? this.value.metadata.name : this.value.metadata.uid;
+      const value = this.isNamespace ? this.value?.metadata?.name : this.value?.metadata?.uid;
 
       // Check if a filter for this field already exists
       const existing = pagination.filters.find((f) => f.fields.some((ff) => ff.field === field));

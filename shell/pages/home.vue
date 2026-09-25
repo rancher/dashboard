@@ -4,17 +4,18 @@ import { mapPref, AFTER_LOGIN_ROUTE, HIDE_HOME_PAGE_CARDS } from '@shell/store/p
 import BannerGraphic from '@shell/components/BannerGraphic.vue';
 import IndentedPanel from '@shell/components/IndentedPanel.vue';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
-import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks.vue';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo.vue';
 import DynamicContentBanner from '@shell/components/DynamicContent/DynamicContentBanner.vue';
 import DynamicContentPanel from '@shell/components/DynamicContent/DynamicContentPanel.vue';
 import { mapGetters, mapState } from 'vuex';
-import { MANAGEMENT, CAPI, COUNT, SAVED_COUNTS } from '@shell/config/types';
+import { MANAGEMENT, CAPI, COUNT } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
-import { AGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_PROVIDER, STATE } from '@shell/config/table-headers';
+import {
+  AGE, MGMT_CLUSTER_CPU, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_MEMORY, MGMT_CLUSTER_PODS, MGMT_CLUSTER_PROVIDER, STATE
+} from '@shell/config/table-headers';
 import { MODE, _IMPORT } from '@shell/config/query-params';
-import { createMemoryFormat, formatSi, parseSi, createMemoryValues } from '@shell/utils/units';
+import { parseSi, createMemoryValues } from '@shell/utils/units';
 import { markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
@@ -44,7 +45,6 @@ export default defineComponent({
     BannerGraphic,
     IndentedPanel,
     PaginatedResourceTable,
-    BadgeState,
     CommunityLinks,
     SingleClusterInfo,
     TabTitle,
@@ -72,29 +72,9 @@ export default defineComponent({
       query: { [MODE]: _IMPORT }
     };
 
-    const cpuHeader = {
-      label:  this.t('tableHeaders.cpu'),
-      value:  '',
-      name:   'cpu',
-      sort:   ['status.allocatable.cpuRaw'],
-      search: ['status.allocatable.cpuRaw'],
-    };
-    const memoryHeader = {
-      label:  this.t('tableHeaders.memory'),
-      value:  '',
-      name:   'memory',
-      sort:   ['status.allocatable.memoryRaw'],
-      search: ['status.allocatable.memoryRaw'],
-    };
-    const podsHeader = {
-      label:        this.t('tableHeaders.pods'),
-      name:         'pods',
-      value:        '',
-      sort:         ['status.allocatable.pods', 'status.requested.pods'],
-      search:       ['status.allocatable.pods', 'status.requested.pods'],
-      formatter:    'PodsUsage',
-      delayLoading: true
-    };
+    const cpuHeader = MGMT_CLUSTER_CPU;
+    const memoryHeader = MGMT_CLUSTER_MEMORY;
+    const podsHeader = MGMT_CLUSTER_PODS;
 
     return {
       HIDE_HOME_PAGE_CARDS,
@@ -234,12 +214,6 @@ export default defineComponent({
       return this.tooManyClusters && !this.altClusterListDisabled;
     },
 
-    clusterCountDisplay() {
-      // If we have the cluster count from the store, use that instead
-      const savedCount = this.$store.getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);
-
-      return typeof savedCount !== 'undefined' ? savedCount : this.clusterCount;
-    }
   },
 
   watch: {
@@ -277,7 +251,30 @@ export default defineComponent({
      * Of type #PagTableFetchSecondaryResources
      */
     fetchSecondaryResources(opts: PagTableFetchSecondaryResourcesOpts): PagTableFetchSecondaryResourcesReturns {
-      return Promise.all(ManagementClusterUtils.fetchSecondaryResources(opts, { $store: this.$store }));
+      const promises = ManagementClusterUtils.fetchSecondaryResources(opts, { $store: this.$store });
+
+      // What the Machines column draws its bar from. A cluster's machine states come from its
+      // machine deployments, and without them the column can only show a count - which is what
+      // it did here, because only Cluster Management was asking for them.
+      this.fetchMachineStates();
+
+      return Promise.all(promises);
+    },
+
+    /**
+     * The machine deployments and node pools behind the Machines column's bar.
+     *
+     * Deliberately not awaited: the column falls back to a plain count until they land, so the
+     * clusters do not wait on them to be listed.
+     */
+    fetchMachineStates() {
+      if (this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT)) {
+        this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
+      }
+
+      if (this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL)) {
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      }
     },
 
     async fetchPageSecondaryResources({
@@ -288,6 +285,8 @@ export default defineComponent({
       const promises = await ManagementClusterUtils.fetchPageSecondaryResources({
         canPaginate, force, page, pagResult
       }, { $store: this.$store });
+
+      this.fetchMachineStates();
 
       await Promise.all(promises);
     },
@@ -312,17 +311,6 @@ export default defineComponent({
 
     cpuUsed(cluster: any) {
       return parseSi(cluster.status?.requested?.cpu);
-    },
-
-    cpuAllocatable(cluster: any) {
-      return parseSi(cluster.status?.allocatable?.cpu);
-    },
-
-    memoryAllocatable(cluster: any) {
-      const parsedAllocatable = (parseSi(cluster.status?.allocatable?.memory) || 0).toString();
-      const format = createMemoryFormat(parsedAllocatable);
-
-      return formatSi(parsedAllocatable, format);
     },
 
     memoryReserved(cluster: any) {
@@ -505,18 +493,19 @@ export default defineComponent({
                   v-if="canCreateCluster || !!provClusterSchema"
                   #header-middle
                 >
-                  <div class="table-heading">
+                  <div class="table-heading cluster-actions">
                     <rc-button
-                      v-if="!!provClusterSchema"
+                      v-if="canCreateCluster"
                       variant="secondary"
-                      :to="manageLocation"
-                      data-testid="cluster-management-manage-button"
-                      :aria-label="t('cluster.manageAction')"
+                      :to="createLocation"
+                      data-testid="cluster-create-button"
+                      :aria-label="t('generic.create')"
                     >
-                      {{ t('cluster.manageAction') }}
+                      {{ t('generic.create') }}
                     </rc-button>
                     <rc-button
                       v-if="canCreateCluster"
+                      variant="secondary"
                       :to="importLocation"
                       data-testid="cluster-create-import-button"
                       :aria-label="t('cluster.importAction')"
@@ -524,12 +513,12 @@ export default defineComponent({
                       {{ t('cluster.importAction') }}
                     </rc-button>
                     <rc-button
-                      v-if="canCreateCluster"
-                      :to="createLocation"
-                      data-testid="cluster-create-button"
-                      :aria-label="t('generic.create')"
+                      v-if="!!provClusterSchema"
+                      :to="manageLocation"
+                      data-testid="cluster-management-manage-button"
+                      :aria-label="t('cluster.manageAction')"
                     >
-                      {{ t('generic.create') }}
+                      {{ t('cluster.manageAction') }}
                     </rc-button>
                   </div>
                 </template>
@@ -582,22 +571,6 @@ export default defineComponent({
                     </div>
                   </td>
                 </template>
-                <template #col:cpu="{row}">
-                  <td v-if="row.mgmt && cpuAllocatable(row.mgmt)">
-                    {{ `${cpuAllocatable(row.mgmt)} ${t('landing.clusters.cores', {count:cpuAllocatable(row.mgmt) })}` }}
-                  </td>
-                  <td v-else>
-                    &mdash;
-                  </td>
-                </template>
-                <template #col:memory="{row}">
-                  <td v-if="row.mgmt && memoryAllocatable(row.mgmt) && !memoryAllocatable(row.mgmt).match(/^0 [a-zA-z]/)">
-                    {{ memoryAllocatable(row.mgmt) }}
-                  </td>
-                  <td v-else>
-                    &mdash;
-                  </td>
-                </template>
               </ResourceTable>
             </div>
             <div
@@ -630,11 +603,6 @@ export default defineComponent({
                     <h1 class="mb-0">
                       {{ t('landing.clusters.title') }}
                     </h1>
-                    <BadgeState
-                      v-if="clusterCount && !tooManyClusters"
-                      :label="clusterCountDisplay.toString()"
-                      color="bg-info ml-20 mr-20"
-                    />
                   </div>
                 </template>
                 <template
@@ -650,18 +618,19 @@ export default defineComponent({
                   v-if="canCreateCluster || !!provClusterSchema"
                   #header-middle
                 >
-                  <div class="table-heading">
+                  <div class="table-heading cluster-actions">
                     <rc-button
-                      v-if="!!provClusterSchema"
+                      v-if="canCreateCluster"
                       variant="secondary"
-                      :to="manageLocation"
-                      data-testid="cluster-management-manage-button"
-                      :aria-label="t('cluster.manageAction')"
+                      :to="createLocation"
+                      data-testid="cluster-create-button"
+                      :aria-label="t('generic.create')"
                     >
-                      {{ t('cluster.manageAction') }}
+                      {{ t('generic.create') }}
                     </rc-button>
                     <rc-button
                       v-if="canCreateCluster"
+                      variant="secondary"
                       :to="importLocation"
                       data-testid="cluster-create-import-button"
                       :aria-label="t('cluster.importAction')"
@@ -669,12 +638,12 @@ export default defineComponent({
                       {{ t('cluster.importAction') }}
                     </rc-button>
                     <rc-button
-                      v-if="canCreateCluster"
-                      :to="createLocation"
-                      data-testid="cluster-create-button"
-                      :aria-label="t('generic.create')"
+                      v-if="!!provClusterSchema"
+                      :to="manageLocation"
+                      data-testid="cluster-management-manage-button"
+                      :aria-label="t('cluster.manageAction')"
                     >
-                      {{ t('generic.create') }}
+                      {{ t('cluster.manageAction') }}
                     </rc-button>
                   </div>
                 </template>
@@ -708,22 +677,6 @@ export default defineComponent({
                         {{ row.description }}
                       </p>
                     </div>
-                  </td>
-                </template>
-                <template #col:cpu="{row}">
-                  <td v-if="cpuAllocatable(row)">
-                    {{ `${cpuAllocatable(row)} ${t('landing.clusters.cores', {count:cpuAllocatable(row) })}` }}
-                  </td>
-                  <td v-else>
-                    &mdash;
-                  </td>
-                </template>
-                <template #col:memory="{row}">
-                  <td v-if="memoryAllocatable(row) && !memoryAllocatable(row).match(/^0 [a-zA-z]/)">
-                    {{ memoryAllocatable(row) }}
-                  </td>
-                  <td v-else>
-                    &mdash;
                   </td>
                 </template>
               </PaginatedResourceTable>
@@ -776,11 +729,17 @@ export default defineComponent({
   .table-heading {
     align-items: center;
     display: flex;
-    height: 39px;
+    height: 32px;
 
     & > a {
       margin-left: 10px;
     }
+  }
+
+  // The cluster actions sit at the right hand end of the heading row, above the table's own edge
+  .cluster-actions {
+    justify-content: flex-end;
+    gap: 10px;
   }
   .panel:not(:first-child) {
     margin-top: 20px;
@@ -844,10 +803,17 @@ export default defineComponent({
 
 <style lang="scss">
 .home-page {
+  // The row the table's own controls stand in, no shorter than the 32 they are drawn at - the
+  // same as every other medium control in the product. It was a flat 39, measured for the search
+  // input this page used to carry, which left 7px hanging under the toolbar that replaced it.
+  //
+  // A floor rather than a height, because the row holds more than the controls: the filter box
+  // says underneath itself when a query cannot be read, and a fixed height gave that message
+  // nowhere to go - it hung over the table instead of moving it down.
   .search {
     align-items: center;
     display: flex;
-    height: 39px;
+    min-height: 32px;
 
     > INPUT {
       background-color: transparent;

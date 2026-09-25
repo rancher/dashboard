@@ -7197,6 +7197,111 @@ storageClass:
       placeholder: Storage class name on the host [[Harvester]] cluster
       tooltip: By default the default storage class on the host [[Harvester]] cluster is used.
 
+tableViews:
+  tabs:
+    all: Explorer
+    label: Saved views
+    newView: Add View
+    count: "{name} ({count})"
+  view:
+    label: View
+    unsaved: You have unsaved changes...
+    unsavedShort: Unsaved changes
+    discard: Discard Changes
+    saveChanges: Save Changes
+    saveAsNew: Save Changes to New View
+    groupBy: Group By
+    columnsConfiguration: Columns Configuration
+    columnsDefault: Default
+    columnsCount: "{shown} / {total}"
+    reset: Reset to Default
+  tab:
+    menu: View options
+    rename: Rename View
+    duplicate: Duplicate View
+    copySuffix: (copy)
+    renameSave: Rename
+    saveChanges: Save Changes
+    delete: Delete View
+    setDefault: Set as Default View
+    isDefault: Default View
+    newViewName: Untitled
+    deleted: View Deleted
+    deletedMessage: The "{name}" view has been successfully deleted.
+    undo: Undo
+  bulk:
+    selected: "{count} Selected"
+    deleteSelected: Delete Selected
+  query:
+    placeholder: 'Filter across all columns or only specific ones (e.g. state:error)'
+    clear: Clear filter
+    inUse: "{count} in use"
+    label: Label
+    suggestions: Filter suggestions
+    suggestionsAvailable: |-
+      {count, plural,
+      one {1 suggestion available}
+      other {{count} suggestions available}
+      }
+    connective:
+      and: Both must match
+      or: Either can match
+      not: Leave these out
+    # What the toolbar says about a query it cannot read as written. Nothing here stops the query
+    # running - the table filters by as much of it as it can.
+    problem:
+      emptyValue: '<b>{label}</b> has no value to match.'
+      trailingOperator: 'The query ends with <b>{text}</b>.'
+      leadingJoiner: '<b>{text}</b> has nothing before it to join.'
+      consecutiveOperators: '<b>{text}</b> follows another operator.'
+      danglingNegation: '<b>{text}</b> on its own negates nothing.'
+      unbalancedQuote: 'A quote is opened and never closed.'
+      noTerms: 'There is nothing to filter by.'
+    # Shown when part of a query names something this list cannot be filtered by on the server
+    unsupported: |-
+      {count, plural,
+      one {<b>{fields}</b> cannot be filtered on this list, so that part of the query was ignored.}
+      other {<b>{fields}</b> cannot be filtered on this list, so those parts of the query were ignored.}
+      }
+  columns:
+    label: Columns
+    tableColumns: Table columns
+    labelColumns: Show label as column
+    selectAll: Select All Columns
+    reset: Reset to Default
+    locked: This column cannot be hidden
+    reorder: Drag to reorder
+  group:
+    label: 'Group: {field}'
+    byLabel: Group By
+    none: None
+    empty: (none)
+  export:
+    label: Export All View Contents
+    title: Export All View Contents
+    intro: 'You are about to <b>export all items ({count})</b> from the <b>{name}</b> view. Depending on the format you choose, the structure of the export will match the current view settings (selected grouping method and / or columns configuration).'
+    choose: '<b>Please choose a format</b> below to continue...'
+    # What the same modal says when it was opened for a selection rather than for a whole view
+    selectionTitle: Export As...
+    selectionIntro: |-
+      You are about to <b>export {count, plural,
+      one {1 selected item}
+      other {{count} selected items}
+      }</b>. Depending on the context and the format you choose, the structure of the export will match the current view settings (selected grouping method and / or columns configuration, if any).
+    download: Download
+    format:
+      yaml: YAML
+      json: JSON
+      csv: CSV
+    # What the notification centre shows while the export runs, and what that entry becomes once
+    # it is done. The file can take a while, so the export is watched there rather than blocking.
+    notification:
+      title: Export in progress
+      message: Exporting all items from the {name} view as {format}...
+      doneTitle: Export completed
+      doneMessage: The {name} view has been exported to {file}.
+      failedTitle: Export failed
+      failedMessage: The {name} view could not be exported.
 tableHeaders:
   assuredConcurrencyShares: Assured Concurrency Shares
   autoscaler: Autoscaler
@@ -9099,7 +9204,7 @@ action:
     showPass: Show {area}
   clone: Clone
   disable: Disable
-  download: Download YAML
+  download: Export As...
   edit: Edit Config
   editYaml: Edit YAML
   enable: Enable
