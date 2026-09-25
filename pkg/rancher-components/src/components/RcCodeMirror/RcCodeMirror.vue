@@ -137,8 +137,22 @@ function showLineNumbers(): boolean {
   return props.variant !== 'input' && (props.lineNumbers ?? true);
 }
 
+function foldMarkerDOM(open: boolean): HTMLElement {
+  const span = document.createElement('span');
+
+  span.textContent = open ? '⌄' : '›';
+  span.title = open ? 'Fold line' : 'Unfold line';
+  if (open) {
+    // The down glyph sits below the text center in the editor font.
+    span.style.display = 'inline-block';
+    span.style.transform = 'translateY(-0.25em)';
+  }
+
+  return span;
+}
+
 function getFoldGutterExtension(show: boolean): Extension {
-  return show ? cmFoldGutter() : [];
+  return show ? cmFoldGutter({ markerDOM: foldMarkerDOM }) : [];
 }
 
 // The input variant has no gutters. Folding itself stays enabled without the gutter, so folds
