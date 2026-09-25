@@ -1656,6 +1656,22 @@ watch(subMenu, () => {
 });
 
 /**
+ * Which list the sub menu is showing, which is not quite the same as which one is open.
+ *
+ * It follows `subMenu` on the way in and ignores it on the way out. Closing empties `subMenu`, and
+ * a list rendered straight off that would unmount while the popper was still on screen - the panel
+ * collapsing to nothing for a frame, which reads as the list jumping upward just as it goes. This
+ * way it leaves with the contents it had.
+ */
+const shownSubMenu = ref<string | null>(null);
+
+watch(subMenu, (key) => {
+  if (key) {
+    shownSubMenu.value = key;
+  }
+});
+
+/**
  * A list that opens taller than its room opens on the field it is grouped by, not at the top.
  *
  * Otherwise the tick is simply out of sight: the row saying what the table is doing right now is
@@ -2061,7 +2077,7 @@ onBeforeUnmount(() => {
             >
               <template #dropdownCollection>
                 <div
-                  v-if="subMenu === 'group'"
+                  v-if="shownSubMenu === 'group'"
                   ref="groupPanel"
                   class="menu-panel"
                   @mouseenter="enterSubMenu()"
@@ -2472,10 +2488,17 @@ $toolbar-min-width: 544px;
     //
     // And renaming: the field is its own control with a border of its own, so ringing the whole
     // tab around it drew attention to the tab rather than to the thing being typed into.
+    // Drawn rather than outlined. An outline is painted after everything else in its stacking
+    // context, so no amount of layering puts it under anything - a focused tab passing behind Add
+    // View drew its two rounded corners straight over the button's edge. A shadow paints with the
+    // element it belongs to, so it goes under the button with the rest of the tab.
+    //
+    // The two rings together stand in for `outline-offset: 1px`: a pixel of the page's own colour,
+    // then the ring itself.
     &:has(> .view-tab:focus-visible):not(:has(.rename-input)) {
-      @include focus-outline;
-      outline-offset: 1px;
       border-radius: var(--border-radius);
+      outline: none;
+      box-shadow: 0 0 0 1px var(--body-bg), 0 0 0 3px var(--primary-keyboard-focus);
     }
 
     // The wrap draws the ring for the pair, so neither half draws one of its own. Only the halves
