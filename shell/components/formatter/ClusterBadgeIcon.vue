@@ -24,12 +24,10 @@ const cluster = computed(() => clusterChip(props.row));
 // header that claims to describe them.
 const label = computed(() => {
   const { badge, isLocal, label: name } = cluster.value;
+  const text = badge?.iconText || (isLocal ? '' : abbreviateClusterName(name));
 
-  if (badge?.iconText) {
-    return badge.iconText;
-  }
-
-  return isLocal ? t('nav.ariaLabel.localClusterIcon') : abbreviateClusterName(name);
+  // The chip draws its text uppercase, so the name says what is on screen rather than the raw value.
+  return text ? text.toUpperCase() : t('nav.ariaLabel.localClusterIcon');
 });
 </script>
 
