@@ -6,6 +6,16 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import PaginationPo from '@/cypress/e2e/po/components/pagination.po';
 import HeaderRowPo from '@/cypress/e2e/po/components/header-row.po';
 
+/**
+ * Matches only a list's real resource rows.
+ *
+ * A bare `tbody tr` also matches the `tr.group-row` headers rendered when the list is grouped (for
+ * example the `Namespace: <name>` headers of a namespace-grouped list) and the sub-rows some
+ * resources expand into. Those rows carry no per-row action button and no select checkbox, so a
+ * lookup that lands on one can never resolve them.
+ */
+export const RESOURCE_ROW_SELECTOR = 'tbody tr:not(.sub-row):not(.group-row):not(.additional-sub-row)';
+
 export default class SortableTablePo extends ComponentPo {
   /**
    * Create a name that should, when sorted by name, by default appear first
@@ -130,15 +140,21 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   rowElements(options?: any) {
-    return this.self().find('tbody tr:not(.sub-row):not(.group-row):not(.additional-sub-row)', options);
+    return this.self().find(RESOURCE_ROW_SELECTOR, options);
   }
 
-  rowElementWithName(name: string, options?: GetOptions) {
+  /**
+   * @param resourceRowsOnly restrict the lookup to real resource rows, skipping group headers and
+   * sub-rows. Needed when the name also appears in a group header - a namespaced resource that
+   * shares its namespace's name matches the `Namespace: <name>` header first, and that row has no
+   * action button or checkbox to act on. Defaults to the historic `tbody tr` match.
+   */
+  rowElementWithName(name: string, options?: GetOptions, resourceRowsOnly = false) {
     // Assert the container exists before .contains() runs. Under Cypress 12's
     // grouped-query retries, a transiently empty container (e.g. during SPA
     // navigation) would otherwise flow an empty jQuery{0} subject into
     // .contains(), which rejects it ("requires a DOM element").
-    return this.self().should('exist').contains('tbody tr', new RegExp(`${ name }`), options);
+    return this.self().should('exist').contains(resourceRowsOnly ? RESOURCE_ROW_SELECTOR : 'tbody tr', new RegExp(`${ name }`), options);
   }
 
   rowElementWithPartialName(name: string, options?: GetOptions) {
@@ -178,8 +194,11 @@ export default class SortableTablePo extends ComponentPo {
     return new ListRowPo(this.rowElementWithPartialName(name, options));
   }
 
-  rowWithName(name: string) {
-    return new ListRowPo(this.rowElementWithName(name));
+  /**
+   * @param resourceRowsOnly see `rowElementWithName`
+   */
+  rowWithName(name: string, resourceRowsOnly = false) {
+    return new ListRowPo(this.rowElementWithName(name, undefined, resourceRowsOnly));
   }
 
   /**
@@ -242,8 +261,8 @@ export default class SortableTablePo extends ComponentPo {
   /**
    * For a row with the given name open it's action menu and return the drop down
    */
-  rowActionMenuOpen(name: string, skipNoActionAvailableCheck?: boolean) {
-    this.rowWithName(name).actionBtn()
+  rowActionMenuOpen(name: string, skipNoActionAvailableCheck?: boolean, resourceRowsOnly = false) {
+    this.rowWithName(name, resourceRowsOnly).actionBtn()
       .click().then((el) => {
         expect(el).to.have.attr('aria-expanded', 'true');
       });

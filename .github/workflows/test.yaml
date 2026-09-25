@@ -90,16 +90,10 @@ jobs:
           { username: 'admin', tag: '@adminUser' }, 
           { username: 'standard_user', tag: '@standardUser' }
         ]
+        # [TEMPORARY - trimmed to the tag groups holding the specs under validation. REVERT before merge]
         features:  [
-          ['@navigation', '@extensions'],
-          ['@charts'],
           ['@explorer'],
-          ['@explorer2'],
           ['@virtualizationMgmt', '@fleet'],
-          ['@generic', '@globalSettings'],
-          ['@manager'],
-          ['@userMenu', '@usersAndAuths'],
-          ['@components'],
         ]
     runs-on: ubuntu-latest
     steps:

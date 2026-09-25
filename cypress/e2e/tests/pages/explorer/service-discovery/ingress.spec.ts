@@ -147,7 +147,7 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
           expect(response?.body.spec.tls[1]).to.have.property('secretName', secretsNamesList[1]);
         });
       ingressListPagePo.waitForPage();
-      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName, true)
         .checkVisible();
     });
 
@@ -158,20 +158,26 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
 
       ingressListPagePo.goTo();
       ingressListPagePo.waitForPage();
+      // These ingresses live in a namespace created with the same generated name as the ingress
+      // itself, and grouping the list by namespace is a persisted user preference - so whether this
+      // list renders grouped depends on what ran before it. When it is grouped, the
+      // `Namespace: <name>` header row matches the plain row lookup before the ingress's own row
+      // does, and a group header has no action button, so opening the row's action menu can never
+      // succeed ([data-testid*="action-button"] never found). Scope the lookups to real resource
+      // rows so this test is unaffected by the grouping state.
       // Wait for the ingress created by the previous test to render in the list before acting on it.
-      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName, true)
         .checkVisible();
       // Confirm the list has finished loading before opening the row action menu: the row can
-      // render before its action button, so a still-loading list makes actionMenu miss it
-      // ([data-testid*="action-button"] never found).
+      // render before its action button, so a still-loading list makes actionMenu miss it.
       ingressListPagePo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       // The row's per-resource action button hydrates after its cells (available actions load
       // separately), so the table load-gate above is not always enough - wait for the button
       // itself, with a longer timeout, before opening the menu.
-      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName, true)
         .actionBtn(LONG_TIMEOUT_OPT)
         .should('be.visible');
-      ingressListPagePo.list().actionMenu(ingressName).getMenuItem('Edit Config').click();
+      ingressListPagePo.list().actionMenu(ingressName, true).getMenuItem('Edit Config').click();
 
       const ingressEditPage = new IngressCreateEditPo('local', namespace, ingressName);
 
@@ -229,7 +235,7 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
           });
         });
       ingressListPagePo.waitForPage();
-      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName, true)
         .checkVisible();
     });
 
@@ -394,6 +400,13 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
       // group by namespace
       ingressListPagePo.list().resourceTable().sortableTable().groupByButtons(1)
         .click();
+
+      // Grouping moves the Namespace column out of the header row and into the group headers, but
+      // the table only re-renders once the click has been applied. Reading the headers straight
+      // after the click can still see the flat set ("expected 'Namespace' to equal 'Target'"), so
+      // wait for a group row to appear first.
+      ingressListPagePo.list().resourceTable().sortableTable().groupElementWithName('Namespace: cattle-system')
+        .should('exist');
 
       //  check table headers are visible
       const expectedHeaders = ['State', 'Name', 'Target', 'Default', 'Ingress Class', 'Age'];

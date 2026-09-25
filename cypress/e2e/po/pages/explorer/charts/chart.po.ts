@@ -25,6 +25,11 @@ export class ChartPage extends PagePo {
     const chartsPage = new ChartsPage(clusterId);
 
     ChartsPage.navTo();
+    // The charts page renders its search box together with the chart cards, once the repo's chart
+    // data has loaded. Typing straight after navigating races that render and the input is never
+    // found ([data-testid="charts-filter-input"]), so wait for the page to settle first.
+    chartsPage.waitForPage();
+    chartsPage.chartCards().should('have.length.at.least', 1);
     chartsPage.chartsSearchFilterInput().type(chartName);
     // Wait for the URL to update and then assert the 'q' parameter's value.
     cy.location().should((loc) => {
