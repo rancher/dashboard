@@ -7149,6 +7149,9 @@ tableViews:
     setDefault: Set as Default View
     isDefault: Default View
     newViewName: Untitled
+    deleted: '{name} deleted'
+    deletedMessage: The view and everything it held has been removed.
+    undo: Undo
   bulk:
     selected: "{count} Selected"
     deleteSelected: Delete Selected

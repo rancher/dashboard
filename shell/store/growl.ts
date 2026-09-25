@@ -8,6 +8,18 @@ const DEFAULT_TIMEOUT = 5000;
 const MAX_GROWLS = 5;
 
 /**
+ * Something the growl offers to do, shown as a button beside its message.
+ *
+ * `run` is a function, so a growl carrying one is not serialisable - which is fine, because the
+ * stack only ever lives in memory. The notification centre is the other half of this pair and is
+ * persisted, which is exactly why its own actions are limited to a link.
+ */
+export interface GrowlAction {
+  label: string;
+  run: () => void;
+}
+
+/**
  * A growl on the stack, as built by the `add` mutation. `id` and `started` are
  * always set there, everything else comes from the data given to the actions.
  */
@@ -31,6 +43,12 @@ export interface Growl {
    * Epoch ms before which the growl should not be closed.
    */
   earliestClose?: number;
+  /**
+   * - **{@link GrowlAction}**
+   *
+   * One thing the growl offers to do - undoing what it is reporting, most usefully.
+   */
+  action?: GrowlAction;
 }
 
 export type GrowlData = Omit<Growl, 'id' | 'started'>;
