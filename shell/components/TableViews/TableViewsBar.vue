@@ -2594,7 +2594,7 @@ $toolbar-min-width: 544px;
       // strip is laid out exactly as it was. The 24 of gap does nothing once the tabs pass
       // underneath rather than beside - a name ran right up to the `+` and stopped dead against
       // it. This is the button's own background reaching further left than its text does.
-      padding: 0 3px 0 8px;
+      padding: 3px 3px 3px 8px;
       // Standing in the strip's own box, top to bottom, which is what a tab's wrap stands in - so
       // a tab passing behind is covered for the whole of its height, its underline included. That
       // underline is the last thing to go: the strip hangs its final pixel over the row's rule so
@@ -2607,11 +2607,15 @@ $toolbar-min-width: 544px;
       // edge, which left the strip's own 3 of padding uncovered - a slot the tabs slid through on
       // their way past. The padding is given back inside so the label does not move.
       right: -3px;
-      margin-left: -8px;
-      margin-right: -3px;
+      // Out to the strip's own edges, padding and all - not just its content box. The strip keeps
+      // 3 of padding on every side precisely so a tab's focus ring, which is drawn outside the
+      // tab, is not clipped. A button that stopped at the content box therefore left that ring a
+      // pixel of room above and below it, and a focused tab scrolling behind drew its ring's top
+      // and bottom edges straight past. The space is given back inside, so the label does not
+      // move.
+      margin: -3px -3px -3px -8px;
       align-self: stretch;
       background: var(--body-bg);
-      box-shadow: inset 0 -1px 0 var(--border);
       color: var(--link);
 
       // Two gradients, and they do different jobs. Underneath, the page's own colour fading in
@@ -2625,6 +2629,20 @@ $toolbar-min-width: 544px;
       // what was behind them - the active tab's underline, most visibly - showed through as a
       // bead of colour against the button's edge. Solid for the last third means there is nothing
       // left to see through by the time the two meet.
+      // The row's rule, drawn back along the line it actually sits on. It used to be an inset
+      // shadow on the button's own bottom edge, which was right while the two were the same line
+      // and wrong the moment the button reached past it into the strip's padding.
+      &::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 3px;
+        height: 1px;
+        pointer-events: none;
+        background: var(--border);
+      }
+
       &::before {
         content: "";
         position: absolute;
