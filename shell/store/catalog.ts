@@ -442,6 +442,9 @@ export const actions = {
       versionInfos = { ...state.versionInfos };
     }
 
+    // Fetch allowed visibility levels once for performance (avoids repeated getter calls in addChart)
+    const allowedVisibility = rootGetters['prefs/get']('allowed-chart-visibility') || [];
+
     const errors = [];
 
     for ( const key of Object.keys(res) ) {
@@ -477,7 +480,7 @@ export const actions = {
 
       for ( const k in obj.value.entries ) {
         for ( const entry of obj.value.entries[k] ) {
-          addChart(ctx, charts, entry, repo);
+          addChart(ctx, charts, entry, repo, allowedVisibility);
         }
       }
 
@@ -526,9 +529,12 @@ export const actions = {
       const index = await repo.followLink('index');
       const charts = { ...state.charts };
 
+      // Fetch allowed visibility levels once for performance
+      const allowedVisibility = rootGetters['prefs/get']('allowed-chart-visibility') || [];
+
       for (const k in index?.entries) {
         for (const entry of index.entries[k]) {
-          addChart(ctx, charts, entry, repo);
+          addChart(ctx, charts, entry, repo, allowedVisibility);
         }
       }
 
@@ -618,7 +624,7 @@ export function parseKey(key: string) {
   };
 }
 
-function addChart(ctx: CatalogContext, map: Record<string, any>, chart: any, repo: any) {
+function addChart(ctx: CatalogContext, map: Record<string, any>, chart: any, repo: any, allowedVisibility: string[]) {
   const repoType = (repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace');
   const repoName = repo.metadata.name;
   const key = generateKey(repoType, repoName, chart.name);
@@ -638,11 +644,14 @@ function addChart(ctx: CatalogContext, map: Record<string, any>, chart: any, rep
   }
 
   const isDeprecated = !!chart.deprecated || chart.annotations?.[CATALOG_ANNOTATIONS.DEPRECATED] === 'true';
-  const isRestricted = chart.annotations?.[CATALOG_ANNOTATIONS.VISIBILITY] === CATALOG_ANNOTATIONS._RESTRICTED;
+  const visibility = chart.annotations?.[CATALOG_ANNOTATIONS.VISIBILITY];
 
-  // Don't add restricted charts to the catalog
-  if ( isRestricted ) {
-    return;
+  // Filter charts based on visibility annotation and user preferences
+  // If visibility is set (and not 'visible'), check if user has allowed that visibility level
+  if ( visibility && visibility !== 'visible' ) {
+    if (!allowedVisibility.includes(visibility)) {
+      return;
+    }
   }
 
   if ( isDeprecated ) {
