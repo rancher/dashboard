@@ -170,17 +170,27 @@ export abstract class BasePluginProduct {
       this.surfaceError('Children defined for group are not in an array format');
     }
 
+    // "enableOverviewPage" gates the group's overview page, so without a component there's nothing to
+    // gate. The types already rule this out, but extensions written in JS can still get here, hence the
+    // loosely typed alias (narrowing `itemGroup` itself would leave it as `never` inside the branch).
+    const untypedGroup = itemGroup as { enableOverviewPage?: unknown, component?: unknown };
+
+    if (untypedGroup.enableOverviewPage && !untypedGroup.component) {
+      this.surfaceError(`Group "${ itemGroup.name }" has an "enableOverviewPage" block but no "component". "enableOverviewPage" gates the group's overview page, so the group must define a "component".`);
+    }
+
     const navNames = this.getIDsForGroupsOrBasicTypes(groupName, itemGroup.sideMenu.children);
 
     // Build the full hierarchical path with :: separators for the store's _ensureGroup function
     // For example: "explorer-root::explorer-root-group1" tells the store to nest group1 inside root
     const hierarchicalPath = parentHierarchicalPath ? `${ parentHierarchicalPath }::${ groupName }` : groupName;
 
-    // For root-level groups (no parent), add the group itself to establish its identity.
-    // For nested groups, skip this - they're already registered in their parent's basicType.
-    // Adding nested groups here would overwrite their parent registration and make them
-    // appear at the wrong level in the hierarchy.
-    if (!parentGroupName) {
+    // Add the group itself so that its own overview page lands inside it rather than beside it.
+    // Root-level groups need this to establish their identity. Nested groups are already listed in
+    // their parent's basicType call, which puts their overview page in the parent group - only a
+    // group that actually has an overview page needs to override that, and it can, because this
+    // registration runs after the parent's and therefore wins.
+    if (!parentGroupName || itemGroup.component) {
       navNames.push(groupName);
     }
 
@@ -436,10 +446,21 @@ export abstract class BasePluginProduct {
       // if the item with COMPONENT has children then it's a GROUP virtualType, so set "exact" and "overview" to "true"
       // so that when navigating to the group page, it shows the custom page for the group
       if (isProductChildGroup(item)) {
+        const itemGroup = item as ProductChildGroup;
+
         virtualTypeConfig.exact = true;
         virtualTypeConfig.overview = true;
         // Pass group metadata as pageChild so the route gets a unique path segment (e.g. /product/c/:cluster/groupName)
         virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, { extendProduct: !this.isNewProduct, component: item.component });
+
+        // The conditions gate the group's overview page only, never its children. The side menu only
+        // creates a group once it has a visible child, so hiding the overview - along with children
+        // that hide themselves when their resource type is absent - takes the whole group out of the
+        // navigation.
+        applyIfDefined(itemGroup.enableOverviewPage?.ifHave, () => virtualTypeConfig.ifHave = itemGroup.enableOverviewPage?.ifHave); // eslint-disable-line no-return-assign
+        applyIfDefined(itemGroup.enableOverviewPage?.ifFeature, () => virtualTypeConfig.ifFeature = itemGroup.enableOverviewPage?.ifFeature); // eslint-disable-line no-return-assign
+        applyIfDefined(itemGroup.enableOverviewPage?.ifHaveType, () => virtualTypeConfig.ifHaveType = itemGroup.enableOverviewPage?.ifHaveType); // eslint-disable-line no-return-assign
+        applyIfDefined(itemGroup.enableOverviewPage?.ifHaveVerb, () => virtualTypeConfig.ifHaveVerb = itemGroup.enableOverviewPage?.ifHaveVerb); // eslint-disable-line no-return-assign
       } else {
         virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, { extendProduct: !this.isNewProduct, component: item.component });
       }

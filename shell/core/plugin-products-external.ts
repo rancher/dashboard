@@ -165,14 +165,59 @@ export type ProductChildPage = ProductChildCustomPage | ProductChildResourcePage
 export type ProductChild = ProductChildGroup | ProductChildPage; // eslint-disable-line no-use-before-define
 
 /**
+ * Conditions that determine when a group's overview page is shown.
+ *
+ * These apply to the overview page only, never to the group's children. The side menu materialises a
+ * group once it has at least one visible child, so hiding the overview removes the whole group from
+ * the navigation only when every remaining child is hidden too (resource pages hide themselves when
+ * their type is absent).
+ */
+type ProductChildGroupOverviewPageEnable = {
+  /** Display only if condition is met (relates to IF_HAVE in shell/store/type-map) */
+  ifHave?: boolean;
+  /** Display only if feature is present (relates to shell/store/features) */
+  ifFeature?: string;
+  /** Display only if resource type exists */
+  ifHaveType?: string;
+  /** Used in conjunction with "ifHaveType", display only if resource type allows this verb (GET, POST, PUT, DELETE) */
+  ifHaveVerb?: string;
+};
+
+/**
+ * A group's overview page. `enableOverviewPage` gates that page, so it can only be used by a group
+ * that has a `component` to gate.
+ */
+type ProductChildGroupOverviewPage = (
+  | {
+    /** Component to render for this group's overview page */
+    component: VueRouteComponent;
+
+    /**
+     * Determine when this group's overview page is shown. Only available on a group that defines a
+     * `component`, as that component is what gets gated.
+     *
+     * This does NOT cascade to the group's children. The side menu only materialises a group once it
+     * has at least one visible child, so gating the overview away hides the group as a whole only
+     * when the remaining children are hidden too (resource pages hide themselves when their type is
+     * absent). A group whose children are always visible stays in the navigation, minus its overview,
+     * with the group header rendered as plain text rather than a link.
+     */
+    enableOverviewPage?: ProductChildGroupOverviewPageEnable;
+  }
+  | {
+    component?: undefined;
+
+    /** Not available without a `component` - there would be no overview page to gate */
+    enableOverviewPage?: never;
+  }
+)
+
+/**
  * Represents a group of child pages in a product configuration
  */
-export type ProductChildGroup = LabelOrLabelKey & {
+export type ProductChildGroup = LabelOrLabelKey & ProductChildGroupOverviewPage & {
   /** Product name/unique identifier for the product */
   name: string;
-
-  /** Component to render for this group */
-  component?: VueRouteComponent;
 
   /** Control how the child displays menu items in the side menu  */
   sideMenu: {

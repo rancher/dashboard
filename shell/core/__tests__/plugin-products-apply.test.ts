@@ -69,6 +69,19 @@ function createMockStore(extendableProducts: string[] = Object.values(StandardPr
   };
 }
 
+function createMockDSL() {
+  return {
+    product:             jest.fn(),
+    basicType:           jest.fn(),
+    labelGroup:          jest.fn(),
+    setGroupDefaultType: jest.fn(),
+    weightGroup:         jest.fn(),
+    virtualType:         jest.fn(),
+    configureType:       jest.fn(),
+    weightType:          jest.fn(),
+  };
+}
+
 describe('pluginProduct', () => {
   describe('apply stage - product registration', () => {
     it('should register new product via DSL during apply', () => {
@@ -380,6 +393,84 @@ describe('pluginProduct', () => {
       );
     });
 
+    it('should register a nested group with a component under its own hierarchical path', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const config: ProductChildGroup[] = [
+        {
+          name:      'parent',
+          label:     'Parent',
+          component: { name: 'ParentOverview' },
+          sideMenu:  {
+            children: [
+              {
+                name:      'nested',
+                label:     'Nested',
+                component: { name: 'NestedOverview' },
+                sideMenu:  {
+                  children: [{
+                    name: 'leaf', label: 'Leaf', component: { name: 'LeafComponent' }
+                  }]
+                },
+              },
+            ],
+          },
+        },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'nested-overview', label: 'Nested Overview' }, config);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      // Without this the nested group's overview page is registered in the parent group, which puts it
+      // beside the nested group rather than inside it, and the nested header can never link to it
+      expect(mockDSL.basicType).toHaveBeenCalledWith(
+        expect.arrayContaining(['nestedoverview-parent-nested']),
+        'nestedoverview-parent::nestedoverview-parent-nested'
+      );
+    });
+
+    it('should not register a nested group without a component under its own hierarchical path', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const config: ProductChildGroup[] = [
+        {
+          name:     'parent',
+          label:    'Parent',
+          sideMenu: {
+            children: [
+              {
+                name:     'nested',
+                label:    'Nested',
+                sideMenu: {
+                  children: [{
+                    name: 'leaf', label: 'Leaf', component: { name: 'LeafComponent' }
+                  }]
+                },
+              },
+            ],
+          },
+        },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'nested-plain', label: 'Nested Plain' }, config);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(mockDSL.basicType).toHaveBeenCalledWith(
+        ['nestedplain-parent-nested-leaf'],
+        'nestedplain-parent::nestedplain-parent-nested'
+      );
+    });
+
     it('should apply group weight when specified', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore();
@@ -426,6 +517,157 @@ describe('pluginProduct', () => {
         50,
         true
       );
+    });
+  });
+
+  describe('group enableOverviewPage conditions', () => {
+    const groupWithComponent = (enableOverviewPage?: ProductChildGroup['enableOverviewPage']): ProductChildGroup[] => [
+      {
+        name:      'certmanager',
+        label:     'Cert Manager',
+        component: { name: 'CertManagerOverview' },
+        enableOverviewPage,
+        sideMenu:  { children: [{ type: 'cert-manager.io.certificate' }] },
+      },
+    ];
+
+    const overviewCallFor = (mockDSL: ReturnType<typeof createMockDSL>, name: string) => mockDSL.virtualType.mock.calls.find((call) => call[0].name === name)?.[0];
+
+    it('should reject enableOverviewPage on a group with no component at compile time', () => {
+      // The only thing wrong with this literal is "enableOverviewPage" without a "component" - drop that
+      // one property and it type checks. If the constraint is ever lost the directive below becomes an
+      // unused-directive error of its own, so the suite stops compiling either way.
+      // @ts-expect-error - "enableOverviewPage" is only available on a group that defines a "component"
+      const invalidGroup: ProductChildGroup = {
+        name:               'nocomponent',
+        label:              'No Component',
+        sideMenu:           { children: [] },
+        enableOverviewPage: { ifHaveType: 'test.io.thing' },
+      };
+
+      expect(invalidGroup.name).toStrictEqual('nocomponent');
+    });
+
+    it('should apply every enableOverviewPage condition to the group overview virtualType', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const config = groupWithComponent({
+        ifHave:     true,
+        ifFeature:  'some-feature',
+        ifHaveType: 'cert-manager.io.certificate',
+        ifHaveVerb: 'GET',
+      });
+
+      new PluginProduct(mockPlugin, { name: 'gated', label: 'Gated' }, config).apply(mockPlugin, mockStore);
+
+      expect(overviewCallFor(mockDSL, 'gated-certmanager')).toStrictEqual({
+        label:      'Cert Manager',
+        labelKey:   undefined,
+        namespaced: false,
+        name:       'gated-certmanager',
+        weight:     undefined,
+        exact:      true,
+        overview:   true,
+        route:      expect.any(Object),
+        ifHave:     true,
+        ifFeature:  'some-feature',
+        ifHaveType: 'cert-manager.io.certificate',
+        ifHaveVerb: 'GET',
+      });
+    });
+
+    it('should leave the group overview virtualType ungated when no enableOverviewPage block is given', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      new PluginProduct(mockPlugin, { name: 'ungated', label: 'Ungated' }, groupWithComponent()).apply(mockPlugin, mockStore);
+
+      const call = overviewCallFor(mockDSL, 'ungated-certmanager');
+
+      expect(call).not.toHaveProperty('ifHave');
+      expect(call).not.toHaveProperty('ifFeature');
+      expect(call).not.toHaveProperty('ifHaveType');
+      expect(call).not.toHaveProperty('ifHaveVerb');
+    });
+
+    it('should gate a nested group on its own enableOverviewPage conditions', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const config: ProductChildGroup[] = [
+        {
+          name:      'certmanager',
+          label:     'Cert Manager',
+          component: { name: 'CertManagerOverview' },
+          sideMenu:  {
+            children: [
+              {
+                name:               'advanced',
+                label:              'Advanced',
+                component:          { name: 'AdvancedOverview' },
+                enableOverviewPage: { ifHaveType: 'cert-manager.io.clusterissuer' },
+                sideMenu:           { children: [{ type: 'cert-manager.io.clusterissuer' }] },
+              },
+            ],
+          },
+        },
+      ];
+
+      new PluginProduct(mockPlugin, { name: 'nestedgate', label: 'Nested Gate' }, config).apply(mockPlugin, mockStore);
+
+      expect(overviewCallFor(mockDSL, 'nestedgate-certmanager-advanced')).toMatchObject({
+        overview:   true,
+        ifHaveType: 'cert-manager.io.clusterissuer',
+      });
+      // the parent is not gated just because a child is
+      expect(overviewCallFor(mockDSL, 'nestedgate-certmanager')).not.toHaveProperty('ifHaveType');
+    });
+
+    it.each([
+      ['a root group', undefined],
+      ['a nested group', 'nested'],
+    ])('should throw when %s declares enableOverviewPage but has no component', (_label, nestedName) => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const enableOverviewPage = { ifHaveType: 'cert-manager.io.certificate' };
+      const leaf = {
+        name: 'leaf', label: 'Leaf', component: { name: 'LeafComponent' }
+      };
+
+      // deliberately invalid - the types forbid "enableOverviewPage" without a "component", but
+      // extensions written in JS get no such protection, so the runtime guard has to catch it
+      const config = (nestedName ? [
+        {
+          name:      'parent',
+          label:     'Parent',
+          component: { name: 'ParentOverview' },
+          sideMenu:  {
+            children: [{
+              name: nestedName, label: 'Nested', enableOverviewPage, sideMenu: { children: [leaf] }
+            }],
+          },
+        },
+      ] : [{
+        name: 'parent', label: 'Parent', enableOverviewPage, sideMenu: { children: [leaf] }
+      }]) as unknown as ProductChildGroup[];
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'badgate', label: 'Bad Gate' }, config);
+
+      expect(() => pluginProduct.apply(mockPlugin, mockStore)).toThrow(/has an "enableOverviewPage" block but no "component"/);
     });
   });
 
