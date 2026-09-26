@@ -405,22 +405,40 @@ describe('component: RcCodeMirror', () => {
   });
 
   describe('foldGutter prop', () => {
-    it('should center the expanded caret while leaving the collapsed caret in place', () => {
+    it('should place the fold gutter after the line numbers', () => {
+      mountEditor({ language: 'yaml', modelValue: 'metadata:\n  name: test' });
+
+      expect(wrapper.findAll('.cm-gutters > .cm-gutter').map((gutter) => gutter.classes())).toStrictEqual([
+        ['cm-gutter', 'cm-lineNumbers'], ['cm-gutter', 'cm-foldGutter']
+      ]);
+    });
+
+    it('should show down and right triangle markers for expanded and collapsed lines', () => {
       mountEditor({ language: 'yaml', modelValue: 'metadata:\n  name: test\nkind: Pod' });
       const view = getView(wrapper);
-      const open = wrapper.get('.cm-foldGutter span[title="Fold line"]');
+      const open = wrapper.get('.cm-foldGutter .rc-cm-fold-marker[title="Fold line"]');
 
-      expect((open.element as HTMLElement).style.transform).toStrictEqual('translateY(-0.25em)');
+      expect(open.get('svg path').attributes('d')).toStrictEqual('M2.5 3 7.5 3 5 7.5z');
 
       const range = foldable(view.state, 0, view.state.doc.line(1).to);
 
       expect(range).not.toBeNull();
       view.dispatch({ effects: foldEffect.of(range!) });
 
-      const closed = wrapper.findAll('.cm-foldGutter span[title="Unfold line"]')
+      const closed = wrapper.findAll('.cm-foldGutter .rc-cm-fold-marker[title="Unfold line"]')
         .find((marker) => (marker.element.parentElement as HTMLElement).style.visibility !== 'hidden');
 
-      expect((closed?.element as HTMLElement).style.transform).toStrictEqual('');
+      expect(closed?.get('svg path').attributes('d')).toStrictEqual('M3 2.5 7.5 5 3 7.5z');
+    });
+
+    it('should fold when the gutter cell around a marker is clicked', () => {
+      mountEditor({ language: 'yaml', modelValue: 'metadata:\n  name: test\nkind: Pod' });
+      const view = getView(wrapper);
+      const marker = wrapper.get('.cm-foldGutter .rc-cm-fold-marker[title="Fold line"]');
+
+      marker.element.parentElement?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      expect(foldedRanges(view.state).size).toStrictEqual(1);
     });
 
     it('should show the design marker on folded content and unfold when clicked', () => {
