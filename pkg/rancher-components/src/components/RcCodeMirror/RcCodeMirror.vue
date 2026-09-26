@@ -139,14 +139,16 @@ function showLineNumbers(): boolean {
 
 function foldMarkerDOM(open: boolean): HTMLElement {
   const span = document.createElement('span');
+  const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  const triangle = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 
-  span.textContent = open ? '⌄' : '›';
+  span.className = 'rc-cm-fold-marker';
   span.title = open ? 'Fold line' : 'Unfold line';
-  if (open) {
-    // The down glyph sits below the text center in the editor font.
-    span.style.display = 'inline-block';
-    span.style.transform = 'translateY(-0.25em)';
-  }
+  icon.setAttribute('viewBox', '0 0 10 10');
+  icon.setAttribute('aria-hidden', 'true');
+  triangle.setAttribute('d', open ? 'M2.5 3 7.5 3 5 7.5z' : 'M3 2.5 7.5 5 3 7.5z');
+  icon.appendChild(triangle);
+  span.appendChild(icon);
 
   return span;
 }
@@ -219,11 +221,11 @@ onMounted(() => {
       autocompletion(),
       search(),
       buildFoldExtension(props.foldOptions),
-      foldGutterCompartment.of(getFoldGutterExtension(showFoldGutter())),
       languageCompartment.of(getLanguageExtension(props.language)),
       keymapCompartment.of(getKeymapExtension(props.keymap)),
       themeCompartment.of(getThemeExtension(props.theme, props.variant)),
       lineNumbersCompartment.of(getLineNumbersExtension(showLineNumbers())),
+      foldGutterCompartment.of(getFoldGutterExtension(showFoldGutter())),
       lineWrappingCompartment.of(getLineWrappingExtension(wrapLines())),
       readOnlyCompartment.of(getReadOnlyExtension(props.readOnly ?? false)),
       contentAttributesCompartment.of(getContentAttributesExtension(editorAttributes())),
@@ -356,6 +358,7 @@ defineExpose({ view });
   --rc-cm-comment: #5B616D;
   --rc-cm-text: #16181D;
   --rc-cm-gutter: #5B626C;
+  --rc-cm-fold-hover: #E8ECF2;
 
   display: block;
   height: 100%;
@@ -367,6 +370,43 @@ defineExpose({ view });
 
   :deep(.cm-editor.cm-focused) {
     outline: none;
+  }
+
+  &.rc-code-mirror--editor :deep(.cm-foldGutter) {
+    width: 22px;
+
+    .cm-gutterElement {
+      width: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+
+      &:has(.rc-cm-fold-marker) {
+        cursor: pointer;
+      }
+
+      &:has(.rc-cm-fold-marker):hover {
+        background-color: var(--rc-cm-fold-hover);
+      }
+    }
+
+    .rc-cm-fold-marker {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 0;
+    }
+
+    svg {
+      display: block;
+      width: 10px;
+      height: 10px;
+      fill: currentColor;
+    }
   }
 
   &.rc-code-mirror--editor :deep(.cm-editor.cm-focused) {
@@ -430,5 +470,6 @@ defineExpose({ view });
   --rc-cm-comment: #9AA1AC;
   --rc-cm-text: #E6E9EF;
   --rc-cm-gutter: #9AA1AC;
+  --rc-cm-fold-hover: #3C4655;
 }
 </style>
