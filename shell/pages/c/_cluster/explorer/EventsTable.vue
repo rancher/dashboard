@@ -7,7 +7,7 @@ import { STEVE_EVENT_FIRST_SEEN, STEVE_EVENT_LAST_SEEN, STEVE_EVENT_OBJECT, STEV
 import { headerFromSchemaColString } from '@shell/store/type-map.utils';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { ROWS_PER_PAGE } from '@shell/store/prefs';
-import { RcDropdown, RcDropdownTrigger, RcDropdownItem } from '@components/RcDropdown';
+import EventsTableLink from './EventsTableLink';
 import { isImprovedTablesEnabled } from '@shell/utils/table-views/feature';
 
 const reason = {
@@ -40,12 +40,7 @@ const ROWS_PREF_USE_TABLE = -1;
 const ROWS_COUNT_DEFAULT = 10;
 
 export default {
-  components: {
-    PaginatedResourceTable,
-    RcDropdown,
-    RcDropdownItem,
-    RcDropdownTrigger
-  },
+  components: { PaginatedResourceTable, EventsTableLink },
 
   data() {
     const tableRowOptions = this.$store.getters['prefs/options'](ROWS_PER_PAGE);
@@ -152,7 +147,7 @@ export default {
 
 <template>
   <div>
-    <!-- Where this link goes depends on whether the table has a toolbar of its own. With the
+    <!-- Where the link goes depends on whether the table has a toolbar of its own. With the
          improved tables feature on it sits above, the way the Certificates tab puts its own -
          the table's header row belongs to the toolbar and there is no room beside it. With the
          feature off the table has its ordinary header row, so the link goes back into it. -->
@@ -160,35 +155,12 @@ export default {
       v-if="!!schema && improvedTables"
       class="events-table-link-row"
     >
-      <router-link
-        data-testid="events-link"
+      <EventsTableLink
+        :rows-per-page="rowsPerPage"
         :to="allEventsLink"
-        class="events-link"
-      >
-        <span>{{ t('glance.eventsTable') }}</span>
-      </router-link>
-      <rc-dropdown>
-        <rc-dropdown-trigger
-          data-testid="events-list-row-count-menu-toggle"
-          :aria-label="t('glance.changeEventsListRowCount')"
-          variant="ghost"
-          size="small"
-        >
-          <i class="icon icon-gear" />
-        </rc-dropdown-trigger>
-        <template #dropdownCollection>
-          <rc-dropdown-item
-            v-for="(item, i) in rowOptions"
-            :key="i"
-            :value="item.value"
-            @click.stop="updateRowsCount(item.value)"
-          >
-            <span :class="{ 'selected-pagesize-option': rowsPerPage === item.value }">
-              {{ item.label }}
-            </span>
-          </rc-dropdown-item>
-        </template>
-      </rc-dropdown>
+        :options="rowOptions"
+        @update:rows-per-page="updateRowsCount"
+      />
     </div>
     <PaginatedResourceTable
       v-if="!!schema"
@@ -207,45 +179,18 @@ export default {
         v-if="!improvedTables"
         #header-right
       >
-        <router-link
-          data-testid="events-link"
+        <EventsTableLink
+          :rows-per-page="rowsPerPage"
           :to="allEventsLink"
-          class="events-link"
-        >
-          <span>{{ t('glance.eventsTable') }}</span>
-        </router-link>
-        <rc-dropdown>
-          <rc-dropdown-trigger
-            data-testid="events-list-row-count-menu-toggle"
-            :aria-label="t('glance.changeEventsListRowCount')"
-            variant="ghost"
-            size="small"
-          >
-            <i class="icon icon-gear" />
-          </rc-dropdown-trigger>
-          <template #dropdownCollection>
-            <rc-dropdown-item
-              v-for="(item, i) in rowOptions"
-              :key="i"
-              :value="item.value"
-              @click.stop="updateRowsCount(item.value)"
-            >
-              <span :class="{ 'selected-pagesize-option': rowsPerPage === item.value }">
-                {{ item.label }}
-              </span>
-            </rc-dropdown-item>
-          </template>
-        </rc-dropdown>
+          :options="rowOptions"
+          @update:rows-per-page="updateRowsCount"
+        />
       </template>
     </PaginatedResourceTable>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.icon.icon-gear {
-  color: var(--primary);
-  padding: 0 8px;
-}
 // The same shape the Certificates tab gives its own link - pushed to the right, clear of the
 // table below it
 .events-table-link-row {
@@ -253,15 +198,5 @@ export default {
   align-items: center;
   justify-content: flex-end;
   margin-bottom: 20px;
-}
-
-.events-link {
-  align-self: center;
-  margin-right: 10px;
-  white-space: nowrap;
-}
-
-.selected-pagesize-option {
-  font-weight: bold;
 }
 </style>
