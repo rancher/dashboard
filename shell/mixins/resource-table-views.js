@@ -15,6 +15,9 @@ import { queryToServerFilters } from '@shell/utils/table-views/server-filters';
 import { SEARCH_DEBOUNCE } from '@shell/config/search';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
+import { DEFAULT_MANDATORY_SORT } from '@shell/components/SortableTable/sorting';
+import { sortBy } from '@shell/utils/sort';
+import { uniq } from '@shell/utils/array';
 
 /**
  * Most rows an "all matching" export will fetch.
@@ -770,77 +773,13 @@ export default {
      * returns rows grouped across every page.
      */
     viewGroupSort() {
-      if (!this.viewGroupField) {
-        return this.groupSort;
-      }
-
-      // The column's own sort path first, which is the one the table uses when its header is
-      // clicked - so grouping orders the rows exactly as sorting by that column would. `sort` is
-      // often a list whose later entries are only tie breakers, and can carry a `:desc` suffix.
-      const sort = this.viewGroupField.header?.sort;
-      const first = Array.isArray(sort) ? sort[0] : sort;
-
-      if (typeof first === 'string' && first) {
-        return first.split(':')[0];
-      }
-
-      // Labels have no header of their own, and neither does a column that says nothing about
-      // how it sorts
-      const path = serverPathFor(this.viewGroupField);
-
-      return typeof path === 'string' ? path : this.groupSort;
+      return (this.viewGroupField && this.groupSortFor(this.viewGroupField)) || this.groupSort;
     },
 
 
-    /**
-     * The headers to show, after the view has hidden columns and added label columns
-     */
+    /** The headers to show for the view in front of the user - see headersForView */
     viewHeaders() {
-      const headers = this._headers;
-
-      if (!this.showTableViews) {
-        return headers;
-      }
-
-      let out = headers;
-
-      if (this.view.columns) {
-        // Chosen from everything the type has rather than only what this page shows, so a column
-        // the page left out can be added. Core columns are always kept, even if a saved view
-        // omits them.
-        out = this.availableHeaders.filter((header) => isIgnoredColumn(header) || this.coreColumnIds.includes(headerFieldId(header)) || !this.viewFields.find((f) => !f.isLabel && f.id === headerFieldId(header)) || this.view.columns.includes(headerFieldId(header)));
-      }
-
-      if (this.view.columnOrder?.length) {
-        // Only the data columns are reordered; `check`, `actions` and the rest are structural
-        // and stay where the table put them
-        const order = this.view.columnOrder;
-        const movable = out.filter((header) => !isIgnoredColumn(header) && order.includes(headerFieldId(header)));
-        const sorted = movable.slice().sort((a, b) => order.indexOf(headerFieldId(a)) - order.indexOf(headerFieldId(b)));
-        let next = 0;
-
-        out = out.map((header) => (movable.includes(header) ? sorted[next++] : header));
-      }
-
-      if (this.view.labelColumns?.length) {
-        out = out.slice();
-
-        // Put label columns after age, or at the end if there's no age column
-        const ageIndex = out.findIndex((header) => header.name === AGE.name);
-        const at = ageIndex >= 0 ? ageIndex : out.length;
-
-        this.view.labelColumns.forEach((key, i) => {
-          out.splice(at + i, 0, {
-            name:   `${ LABEL_FIELD_PREFIX }${ key }`,
-            label:  key,
-            value:  (row) => row?.metadata?.labels?.[key] || '',
-            sort:   false,
-            search: false,
-          });
-        });
-      }
-
-      return out;
+      return this.headersForView(this.view);
     },
 
 
@@ -852,13 +791,8 @@ export default {
       const stored = this.$store.getters['prefs/get'](TABLE_VIEWS)?.[this.schema?.id];
 
       // Older preferences held the array directly, before a default view had to live beside it
-      return stored?.views || (Array.isArray(stored) ? stored : []) || [];
+      return Array.isArray(stored) ? stored : stored?.views || [];
     },
-
-    /**
-     * Every tab that needs a count: the default one (no query) and each saved view. Keyed by
-     * the query, because that is all a count depends on.
-     */
 
     /**
      * Every distinct query a tab needs counted: the default tab's (nothing), each saved view's,
@@ -925,6 +859,83 @@ export default {
   },
 
   methods: {
+    /**
+     * The headers a view shows: the table's own, after the view has hidden columns and added label
+     * columns. A method rather than only a computed, so a view that is not the one on screen - a
+     * tab being exported from its own menu - can be drawn up the same way.
+     */
+    headersForView(view) {
+      const headers = this._headers;
+
+      if (!this.showTableViews) {
+        return headers;
+      }
+
+      let out = headers;
+
+      if (view.columns) {
+        // Chosen from everything the type has rather than only what this page shows, so a column
+        // the page left out can be added. Core columns are always kept, even if a saved view
+        // omits them.
+        out = this.availableHeaders.filter((header) => isIgnoredColumn(header) || this.coreColumnIds.includes(headerFieldId(header)) || !this.viewFields.find((f) => !f.isLabel && f.id === headerFieldId(header)) || view.columns.includes(headerFieldId(header)));
+      }
+
+      if (view.columnOrder?.length) {
+        // Only the data columns are reordered; `check`, `actions` and the rest are structural
+        // and stay where the table put them
+        const order = view.columnOrder;
+        const movable = out.filter((header) => !isIgnoredColumn(header) && order.includes(headerFieldId(header)));
+        const sorted = movable.slice().sort((a, b) => order.indexOf(headerFieldId(a)) - order.indexOf(headerFieldId(b)));
+        let next = 0;
+
+        out = out.map((header) => (movable.includes(header) ? sorted[next++] : header));
+      }
+
+      if (view.labelColumns?.length) {
+        out = out.slice();
+
+        // Put label columns after age, or at the end if there's no age column
+        const ageIndex = out.findIndex((header) => header.name === AGE.name);
+        const at = ageIndex >= 0 ? ageIndex : out.length;
+
+        view.labelColumns.forEach((key, i) => {
+          out.splice(at + i, 0, {
+            name:   `${ LABEL_FIELD_PREFIX }${ key }`,
+            label:  key,
+            value:  (row) => row?.metadata?.labels?.[key] || '',
+            sort:   false,
+            search: false,
+          });
+        });
+      }
+
+      return out;
+    },
+
+
+    /**
+     * The field path a grouping by `field` sorts on, or null when it has none.
+     *
+     * The column's own sort path first, which is the one the table uses when its header is
+     * clicked - so grouping orders the rows exactly as sorting by that column would. `sort` is
+     * often a list whose later entries are only tie breakers, and can carry a `:desc` suffix.
+     */
+    groupSortFor(field) {
+      const sort = field?.header?.sort;
+      const first = Array.isArray(sort) ? sort[0] : sort;
+
+      if (typeof first === 'string' && first) {
+        return first.split(':')[0];
+      }
+
+      // Labels have no header of their own, and neither does a column that says nothing about
+      // how it sorts
+      const path = field ? serverPathFor(field) : null;
+
+      return typeof path === 'string' ? path : null;
+    },
+
+
     /**
      * Fetch the values in use for a field, so the query input can suggest real values rather
      * than only those on the page in front of us.
@@ -1128,13 +1139,8 @@ export default {
 
 
     /**
-     * Every row the current filter matches, not just the page on screen.
-     *
-     * Re-runs the list's own request with `transient`, which fetches without writing to the store,
-     * so the table the user is looking at is left alone. It is fetched a page at a time rather
-     * than in one go so there is something to report against, and every page after the first is
-     * pinned to the revision the first came back at, so a list that changes underneath can not
-     * drop or repeat a row between two pages.
+     * Every row the current filter matches, not just the page on screen - see fetchEveryPage.
+     * Without a paginated list to ask, the rows on the page are all there are.
      *
      * @param onProgress called with (done, total) after each page arrives
      * @param limit most rows to fetch - see the two export ceilings
@@ -1144,6 +1150,28 @@ export default {
         return this.viewRows;
       }
 
+      // Whatever arrived before a failure is still worth writing out. Only an export that got
+      // nowhere falls back to what is on screen.
+      return this.fetchEveryPage(this.externalPaginationArgs, onProgress, limit, () => this.viewRows);
+    },
+
+
+    /**
+     * Every row a request matches, a page at a time.
+     *
+     * Re-runs the list's request with `transient`, which fetches without writing to the store,
+     * so the table the user is looking at is left alone. It is fetched a page at a time rather
+     * than in one go so there is something to report against, and every page after the first is
+     * pinned to the revision the first came back at, so a list that changes underneath can not
+     * drop or repeat a row between two pages.
+     *
+     * @param pagination what to ask for; the page and its size are filled in here
+     * @param onProgress called with (done, total) after each page arrives
+     * @param limit most rows to fetch
+     * @param fallback what to answer with if the very first page fails. Without one the failure
+     *        is thrown, for a caller with nothing better to offer than saying so.
+     */
+    async fetchEveryPage(pagination, onProgress, limit, fallback) {
       const rows = [];
       let total = null;
       let revision;
@@ -1157,7 +1185,7 @@ export default {
               watch:      false,
               revision,
               pagination: {
-                ...this.externalPaginationArgs,
+                ...pagination,
                 page,
                 pageSize: EXPORT_PAGE_SIZE,
               },
@@ -1181,10 +1209,12 @@ export default {
           }
         }
       } catch (e) {
-        // Whatever arrived before the failure is still worth writing out. Only an export that
-        // got nowhere falls back to what is on screen.
         if (!rows.length) {
-          return this.viewRows;
+          if (fallback) {
+            return fallback();
+          }
+
+          throw e;
         }
       }
 
@@ -1193,11 +1223,56 @@ export default {
 
 
     /**
-     * Write the view out, one file per format asked for.
+     * Every row a view that is not on screen matches, in the order that view would show them.
      *
-     * What gets exported is every row the view matches, not the page on screen - the view is
-     * what the user picked, the page is just where they happen to be in it.
+     * The export of a tab picked from its own menu. Its rows are worked out the way the list
+     * would work them out on opening it: its query applied to the rows on the page, or on a
+     * paginated list, asked of the api under the list's own scope - the same request its count
+     * on the tab came from. Nothing on screen is disturbed.
      */
+    async rowsForView(view, onProgress, limit) {
+      const parsed = parseQueryExpression(view.query || '', this.viewFields);
+      let rows;
+
+      if (this.serverSideTableViews) {
+        // A term the api cannot answer is left out, as it is when the list shows that view -
+        // the tab says so under its box when it is opened
+        const { filters } = queryToServerFilters(parsed, this.viewFields, { isAllowed: (p) => stevePaginationUtils.isValidPaginationField(this.schema, p) });
+
+        rows = await this.fetchEveryPage({
+          filters:              (this.listScopeFilters || []).concat(filters),
+          projectsOrNamespaces: this.listScopeNamespaces,
+          sort:                 [],
+        }, onProgress, limit);
+      } else {
+        rows = parsed.clauses.length ? applyQueryExpression(this.filteredRows, parsed, this.viewFields) : this.filteredRows;
+      }
+
+      return this.orderRowsFor(view, rows);
+    },
+
+
+    /**
+     * Rows in the order `view` would show them, by the table's own sort: its grouping first, then
+     * the column it sorts by - or the table's default if that column is not among its own - and
+     * then the tie breakers every table falls back on. The same fields and the same comparison
+     * the table uses, so an exported tab reads the way the tab does.
+     */
+    orderRowsFor(view, rows) {
+      const headers = this.headersForView(view);
+      const own = !!view.sort && headers.some((header) => header?.name === view.sort);
+      const sortName = own ? view.sort : this.defaultSort?.sortBy;
+      const descending = own ? !!view.sortDescending : !!this.defaultSort?.descending;
+      const column = sortName ? headers.find((header) => header?.name?.toLowerCase() === sortName.toLowerCase()) : null;
+      const fromColumn = typeof column?.sort === 'string' || Array.isArray(column?.sort) ? [].concat(column.sort) : [];
+      const group = view.groupBy ? this.groupSortFor(findField(this.viewFields, view.groupBy)) : null;
+      const fields = uniq([].concat(group || [], fromColumn).concat(this._mandatorySort || DEFAULT_MANDATORY_SORT));
+
+      return sortBy(rows, fields, descending);
+    },
+
+
+    /** Keep the table loading until the rows of the view being switched to arrive */
     beginViewSwitch() {
       this.viewSwitching = true;
       clearTimeout(this.viewSwitchTimer);
@@ -1227,8 +1302,11 @@ export default {
      * same entry turned into a success once the file lands. The store is dispatched to directly
      * rather than going through the shell notification api, which can move a task's progress along
      * but can not turn it into anything else.
+     *
+     * `view` is there when a tab other than the one on screen is being exported, and is that tab's
+     * view; without it the export is of what the user is looking at.
      */
-    async handleExport({ format, name }) {
+    async handleExport({ format, name, view }) {
       const viewName = name || this.t('tableViews.tabs.all');
       const id = await this.$store.dispatch('notifications/add', {
         level:    NotificationLevel.Task,
@@ -1246,14 +1324,18 @@ export default {
 
       try {
         const limit = format === 'yaml' ? EXPORT_ROW_LIMIT_YAML : EXPORT_ROW_LIMIT;
-        const rows = await this.allMatchingRows((done, total) => report(done, total, 0, fetchShare), limit);
+        const onFetch = (done, total) => report(done, total, 0, fetchShare);
+        // A tab exported from its own menu while another is on screen comes with its view: its
+        // rows and its columns, not the ones in front of the user
+        const rows = view ? await this.rowsForView(view, onFetch, limit) : await this.allMatchingRows(onFetch, limit);
 
         if (!rows.length || !format) {
           // Nothing was written, so there is nothing to tell the user about afterwards either
           return this.$store.dispatch('notifications/remove', id);
         }
 
-        const file = await this.writeExport(rows, format, (done, total) => report(done, total, fetchShare, 100));
+        const columns = view ? exportColumnsFor(this.headersForView(view), (key) => this.t(key)) : this.exportColumns;
+        const file = await this.writeExport(rows, format, (done, total) => report(done, total, fetchShare, 100), columns);
 
         return this.$store.dispatch('notifications/update', {
           id,
@@ -1282,7 +1364,7 @@ export default {
      * action already gives - the manifests as the cluster holds them, not the table's columns
      * written out in YAML. So it is that action rather than a second thing wearing its name.
      */
-    async writeExport(rows, format, onProgress) {
+    async writeExport(rows, format, onProgress, columns = this.exportColumns) {
       if (format === 'yaml' && typeof rows[0]?.downloadYaml === 'function') {
         if (rows.length === 1) {
           await rows[0].downloadYaml();
@@ -1295,7 +1377,6 @@ export default {
         return 'resources.zip';
       }
 
-      const columns = this.exportColumns;
       const name = (this.schema?.id || 'resources').replace(/[^a-z0-9]+/gi, '-');
       const writers = {
         yaml: { write: rowsToYaml, type: 'application/yaml;charset=utf-8' },

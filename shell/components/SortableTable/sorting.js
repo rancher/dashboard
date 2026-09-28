@@ -6,7 +6,7 @@ import { uniq } from '@shell/utils/array';
  *
  * Can be overriden
  */
-const DEFAULT_MANDATORY_SORT = ['nameSort', 'id'];
+export const DEFAULT_MANDATORY_SORT = ['nameSort', 'id'];
 
 export default {
   computed: {

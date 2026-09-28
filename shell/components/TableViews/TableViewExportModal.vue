@@ -37,8 +37,11 @@ const SLOW_EXPORT_ROWS = 1000;
 type Format = typeof FORMATS[number];
 
 const props = withDefaults(defineProps<{
-  /** How many rows are being exported */
-  count?: number,
+  /**
+   * How many rows are being exported, or null when that is not known - a view whose query the
+   * api could not count is exported all the same, but there is no true number to show for it
+   */
+  count?: number | null,
   /** The view being exported, for the sentence naming it */
   viewName?: string,
   /**
@@ -105,7 +108,7 @@ const selectionColumns = computed(() => {
 const title = computed(() => (props.isSelection ? t('tableViews.export.selectionTitle') : t('tableViews.export.title')));
 
 const intro = computed(() => {
-  const slow = props.count > SLOW_EXPORT_ROWS;
+  const slow = (props.count ?? 0) > SLOW_EXPORT_ROWS;
 
   if (props.isSelection) {
     return t(slow ? 'tableViews.export.selectionIntroSlow' : 'tableViews.export.selectionIntro', { count: props.count }, true);
@@ -113,7 +116,13 @@ const intro = computed(() => {
 
   // The sentence around it is markup, so it is rendered as html - but the name is a name the user
   // typed, not markup, and a view called `<b>live</b>` should read as its own name
-  return t(slow ? 'tableViews.export.introSlow' : 'tableViews.export.intro', { count: props.count, name: escapeHtml(props.viewName) }, true);
+  const name = escapeHtml(props.viewName);
+
+  if (props.count === null) {
+    return t('tableViews.export.introUncounted', { name }, true);
+  }
+
+  return t(slow ? 'tableViews.export.introSlow' : 'tableViews.export.intro', { count: props.count, name }, true);
 });
 
 /**

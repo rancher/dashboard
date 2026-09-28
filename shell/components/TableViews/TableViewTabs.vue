@@ -80,7 +80,7 @@ const props = withDefaults(defineProps<{
    * without opening it.
    */
   viewCounts?: Record<string, number | null>,
-  /** How many rows the view query leaves, for the export modal */
+  /** How many rows the view on screen holds, for the export modal when that is the one exported */
   matchCount?: number,
   /** Key the saved views are stored under, normally the resource type */
   resourceType?: string,
@@ -97,7 +97,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   'update:view': [view: TableViewState],
-  export: [args: { format: string, name: string }],
+  export: [args: { format: string, name: string, view?: TableViewState }],
   'tab-queries': [queries: string[]],
 }>();
 
@@ -150,8 +150,11 @@ const pickedViewId = ref<string | null | undefined>(props.initialViewId);
  */
 const drafts = ref<Record<string, TableViewState>>({});
 
-/** Which modal is open, if any: { kind: 'export', view } */
-const modal = ref<{ kind: string, view: TableViewSaved | null } | null>(null);
+/**
+ * Which modal is open, if any. For an export: the name of the tab being exported, how many rows
+ * it holds - null when that is not known - and, for a tab other than the one on screen, its view.
+ */
+const modal = ref<{ kind: 'export', name: string, count: number | null, view?: TableViewState } | null>(null);
 
 /** id of the view being renamed in place, and the name being typed for it */
 const renamingId = ref<string | null>(null);
@@ -857,8 +860,36 @@ const cancelRename = () => {
  * Export needs a format, which is more than belongs in a menu - ask in a modal.
  * `view` is only used to label it, the rows exported are whatever the view matches.
  */
-const openExport = (saved?: TableViewSaved | null) => {
-  modal.value = { kind: 'export', view: saved || null };
+const openExport = (tab: Tab) => {
+  // The tab on screen is what the table is showing, and is exported as it stands, unsaved
+  // changes and all. Any other tab is exported as it would open: with the edits held for it if
+  // it was left with some, which is also what its count on the strip is counting.
+  if (tab.id === selectedViewId.value) {
+    modal.value = {
+      kind: 'export', name: tab.name, count: props.matchCount
+    };
+
+    return;
+  }
+
+  const draft = drafts.value[draftKey(tab.id)];
+  const saved = tab.view;
+  const count = tabCount(tab);
+
+  modal.value = {
+    kind:  'export',
+    name:  tab.name,
+    count: typeof count === 'number' ? count : null,
+    view:  draft ? { ...draft } : {
+      query:          saved?.query || '',
+      columns:        saved?.columns || null,
+      columnOrder:    saved?.columnOrder || null,
+      labelColumns:   saved?.labelColumns || [],
+      groupBy:        saved?.groupBy || null,
+      sort:           saved?.sort || null,
+      sortDescending: saved?.sortDescending || false,
+    },
+  };
 };
 
 const closeModal = () => {
@@ -989,9 +1020,11 @@ const deleteView = (saved?: TableViewSaved) => {
 const doExport = (format: string) => {
   // The name goes with it: the export is watched in the notification centre, and by the time
   // it finishes the modal that knew which view was picked is long gone
-  const name = modal.value?.view?.name || t('tableViews.tabs.all');
+  const name = modal.value?.name || t('tableViews.tabs.all');
 
-  emit('export', { format, name });
+  emit('export', {
+    format, name, view: modal.value?.view
+  });
   closeModal();
 };
 
@@ -1214,7 +1247,7 @@ onBeforeUnmount(() => {
 
                   <rc-dropdown-item
                     :data-testid="tab.isDefaultTab ? 'table-views-export-all' : `table-views-export-${ tab.id }`"
-                    @click="openExport(tab.view)"
+                    @click="openExport(tab)"
                   >
                     <template #before>
                       <i class="menu-gutter" />
@@ -1281,8 +1314,8 @@ onBeforeUnmount(() => {
     @close="closeModal"
   >
     <TableViewExportModal
-      :count="matchCount"
-      :view-name="modal.view ? modal.view.name : t('tableViews.tabs.all')"
+      :count="modal.count"
+      :view-name="modal.name"
       @close="closeModal"
       @export="doExport"
     />

@@ -3,6 +3,7 @@ import ResourceTableViews from '@shell/mixins/resource-table-views';
 
 // The table views half of ResourceTable is its own mixin, so that is where these live
 const { viewGroupSort } = (ResourceTableViews as any).computed;
+const { groupSortFor } = (ResourceTableViews as any).methods;
 
 describe('ResourceTable', () => {
   describe('groupSort prop', () => {
@@ -19,7 +20,9 @@ describe('ResourceTable', () => {
       viewGroupField = null as any,
       groupSort = null as string | null,
     } = {}) {
-      return { viewGroupField, groupSort };
+      return {
+        viewGroupField, groupSort, groupSortFor
+      };
     }
 
     it('should fall back to the groupSort prop when the toolbar is not grouping', () => {
