@@ -7,6 +7,7 @@ import { dasherize, ucFirst, randomStr } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { valueFor as columnValueFor } from '@shell/utils/table-columns';
 import { isImprovedTablesEnabled } from '@shell/utils/table-views/feature';
+import { RcButton } from '@components/RcButton';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
@@ -71,6 +72,9 @@ export default {
     ButtonMultiAction,
     ActionMenu,
     TableSelectionActions,
+    // Only rendered with the table views feature off, where the bulk actions are buttons in the
+    // masthead rather than the "N selected" menu
+    RcButton,
   },
 
   mixins: [
