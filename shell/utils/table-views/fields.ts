@@ -23,13 +23,6 @@ export const LABEL_FIELD_PREFIX = 'label:';
 export const CORE_FIELD_IDS = [STATE.name, NAME.name];
 
 /**
- * Is this a column the user must not be able to remove?
- */
-export function isCoreField(fieldId?: string): boolean {
-  return !!fieldId && CORE_FIELD_IDS.includes(fieldId);
-}
-
-/**
  * The columns a table will not let go of, given the ones it shows by default.
  *
  * Whatever a row is identified by leads the table, so that is what cannot be hidden: state and

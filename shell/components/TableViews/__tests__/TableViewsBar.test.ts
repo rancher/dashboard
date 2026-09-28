@@ -35,7 +35,7 @@ describe('TableViewsBar', () => {
       expect(selectedViewIdFor(saved, { ...EMPTY }, null)).toBeNull();
     });
 
-    it('should select the matching view when one arrives in a shared url', () => {
+    it('should select the view that changes add up to, before any tab is picked', () => {
       // Nothing picked here, so the config is the only handle on it
       expect(selectedViewIdFor(saved, applied, undefined)).toBe('aaa');
     });
@@ -64,6 +64,36 @@ describe('TableViewsBar', () => {
 
     it('should report the All tab itself as clean', () => {
       expect(isViewDirty([sameAsAll], { ...EMPTY }, null)).toBe(false);
+    });
+  });
+
+  describe('opening on the default view', () => {
+    // Two empty views and an empty All tab: nothing tells them apart but which one was picked
+    const first = makeView('aaa', 'Untitled');
+    const second = makeView('bbb', 'Untitled 2');
+
+    function createWrapper(initialViewId?: string) {
+      const stored = { test: { views: [first, second], defaultViewId: 'bbb' } };
+      const store = createStore({
+        getters: { 'prefs/get': () => (key: string) => (key === TABLE_VIEWS ? stored : undefined) },
+        actions: { 'prefs/set': jest.fn() },
+      });
+
+      return mount(TableViewsBar, {
+        props: {
+          view: { ...EMPTY }, resourceType: 'test', part: 'tabs', initialViewId
+        },
+        global:  { plugins: [store] },
+        shallow: true,
+      });
+    }
+
+    it('should select the view the list opened on, even when its config matches others', () => {
+      expect((createWrapper('bbb').vm as any).selectedViewId).toBe('bbb');
+    });
+
+    it('should select the All tab when the list did not open on a saved view', () => {
+      expect((createWrapper().vm as any).selectedViewId).toBeNull();
     });
   });
 

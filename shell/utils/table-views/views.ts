@@ -2,8 +2,8 @@
  * Table Views - saved views.
  *
  * A view is a filter query, a set of columns and a group by, kept per user and per resource
- * type. Here is what one holds, whether two of them are the same, which one a tab bar should
- * light up, and how one travels in a url.
+ * type. Here is what one holds, whether two of them are the same, and which one a tab bar should
+ * light up.
  */
 
 import isEqual from 'lodash/isEqual';
@@ -44,18 +44,18 @@ function comparable(view: Partial<TableViewState>): Record<string, unknown> {
  * Do these two hold the same view? By what they hold rather than by who they are, so a saved
  * view can be recognised in whatever is currently applied.
  */
-export function isSameViewConfig(a: Partial<TableViewState>, b: Partial<TableViewState>): boolean {
+function isSameViewConfig(a: Partial<TableViewState>, b: Partial<TableViewState>): boolean {
   return isEqual(comparable(a), comparable(b));
 }
 
 /** Has anything at all been asked of the table, or is this the list as it comes? */
-export function isViewModified(view: Partial<TableViewState>): boolean {
+function isViewModified(view: Partial<TableViewState>): boolean {
   return !!view.query || !!view.groupBy || !!view.columns || !!view.labelColumns?.length ||
     !!view.columnOrder || !!view.sort;
 }
 
 /** Which saved view (if any) the state in front of the user matches */
-export function matchingViewId(savedViews: TableViewSaved[], view: Partial<TableViewState>): string | null {
+function matchingViewId(savedViews: TableViewSaved[], view: Partial<TableViewState>): string | null {
   return savedViews.find((saved) => isSameViewConfig(saved, view))?.id || null;
 }
 
@@ -63,12 +63,13 @@ export function matchingViewId(savedViews: TableViewSaved[], view: Partial<Table
  * Which saved view a tab bar shows as selected.
  *
  * `pickedViewId` is the tab the user picked: `undefined` if nothing has been picked yet, `null`
- * for the table's own tab, or the id of a saved view.
+ * for the table's own tab, or the id of a saved view. A list that opens on the user's default
+ * view starts with that view picked.
  *
  * The view the user picked wins. Two saved views can hold the same config, and matching on
  * config alone would always light up the first of them - so picking the second looked like
- * nothing happened. Fall back to the config when nothing has been picked, so a view arriving in
- * the URL still shows as selected.
+ * nothing happened. Only before anything is picked does the config decide, so changes made on a
+ * list that opened with no view picked light up the saved view they amount to.
  */
 export function selectedViewIdFor(savedViews: TableViewSaved[], view: Partial<TableViewState>, pickedViewId?: string | null): string | null {
   if (pickedViewId !== undefined) {
@@ -113,56 +114,4 @@ export function moveInOrder<T>(order: T[], from: number, to: number): T[] {
   next.splice(to, 0, ...next.splice(from, 1));
 
   return next;
-}
-
-/**
- * Encode a view so it can be dropped in a url and shared with someone else
- */
-export function encodeView(view: Partial<TableViewSaved>): string {
-  const payload = JSON.stringify({
-    n: view.name || '',
-    q: view.query || '',
-    c: view.columns || null,
-    o: view.columnOrder || null,
-    l: view.labelColumns || [],
-    g: view.groupBy || null,
-  });
-
-  try {
-    return window.btoa(encodeURIComponent(payload));
-  } catch (e) {
-    return '';
-  }
-}
-
-export function decodeView(encoded: string): Partial<TableViewSaved> | null {
-  if (!encoded) {
-    return null;
-  }
-
-  try {
-    const payload = JSON.parse(decodeURIComponent(window.atob(encoded)));
-
-    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-      return null;
-    }
-
-    // Every field is checked rather than taken. This arrives in a url that someone else wrote, and
-    // what comes out of it is applied to the toolbar and can be saved as the user's own view - so
-    // anything that is not the shape it claims to be is dropped rather than carried inwards.
-    const str = (v: unknown): string => (typeof v === 'string' ? v : '');
-    const strOrNull = (v: unknown): string | null => (typeof v === 'string' && v ? v : null);
-    const strList = (v: unknown): string[] | null => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : null);
-
-    return {
-      name:         str(payload.n),
-      query:        str(payload.q),
-      columns:      strList(payload.c),
-      columnOrder:  strList(payload.o),
-      labelColumns: strList(payload.l) || [],
-      groupBy:      strOrNull(payload.g),
-    };
-  } catch (e) {
-    return null;
-  }
 }

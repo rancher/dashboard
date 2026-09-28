@@ -803,6 +803,7 @@ export default {
     >
       <TableViewsBar
         part="tabs"
+        :initial-view-id="openedViewId"
         :view="view"
         :fields="viewFields"
         :group-fields="viewGroupFields"
