@@ -25,6 +25,14 @@ import { useI18n } from '@shell/composables/useI18n';
 /** The formats a selection or a view can be written out as */
 const FORMATS = ['yaml', 'json', 'csv'] as const;
 
+/**
+ * Above how many rows the modal says the export might take a while.
+ *
+ * A thousand is what an "all matching" export fetches at a time, so past it there is more than
+ * one round trip to wait for and the warning is worth the line it takes.
+ */
+const SLOW_EXPORT_ROWS = 1000;
+
 type Format = typeof FORMATS[number];
 
 const props = withDefaults(defineProps<{
@@ -96,13 +104,15 @@ const selectionColumns = computed(() => {
 const title = computed(() => (props.isSelection ? t('tableViews.export.selectionTitle') : t('tableViews.export.title')));
 
 const intro = computed(() => {
+  const slow = props.count > SLOW_EXPORT_ROWS;
+
   if (props.isSelection) {
-    return t('tableViews.export.selectionIntro', { count: props.count }, true);
+    return t(slow ? 'tableViews.export.selectionIntroSlow' : 'tableViews.export.selectionIntro', { count: props.count }, true);
   }
 
   // The sentence around it is markup, so it is rendered as html - but the name is a name the user
   // typed, not markup, and a view called `<b>live</b>` should read as its own name
-  return t('tableViews.export.intro', { count: props.count, name: escapeHtml(props.viewName) }, true);
+  return t(slow ? 'tableViews.export.introSlow' : 'tableViews.export.intro', { count: props.count, name: escapeHtml(props.viewName) }, true);
 });
 
 /**
