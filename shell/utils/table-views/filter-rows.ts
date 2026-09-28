@@ -1,5 +1,7 @@
 
-import { fieldValue, findField, rawFieldValue, stringifyValue } from '@shell/utils/table-views/fields';
+import {
+  dateText, fieldValue, findField, rawFieldValue, stringifyValue
+} from '@shell/utils/table-views/fields';
 import type {
   TableViewField, TableViewGroup, TableViewQuery, TableViewRow, TableViewTerm
 } from '@shell/types/table-views';
@@ -9,11 +11,14 @@ import type {
  * server side alike
  */
 function fieldContains(row: TableViewRow, field: TableViewField, needle: string): boolean {
-  if (stringifyValue(fieldValue(row, field)).toLowerCase().includes(needle)) {
+  // A date matches as a date, however the row happens to hold it
+  const text = field.isDate ? dateText : stringifyValue;
+
+  if (text(fieldValue(row, field)).toLowerCase().includes(needle)) {
     return true;
   }
 
-  return stringifyValue(rawFieldValue(row, field)).toLowerCase().includes(needle);
+  return text(rawFieldValue(row, field)).toLowerCase().includes(needle);
 }
 
 function matchesTerm(row: TableViewRow, term: TableViewTerm, fields: TableViewField[]): boolean {

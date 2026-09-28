@@ -22,6 +22,10 @@ export interface TableViewField {
   label: string;
   isLabel: boolean;
   labelKey?: string;
+  /** Holds moments in time: filtered and suggested as dates, grouped by only by month */
+  isDate?: boolean;
+  /** The Group By entry that gathers a date column's rows by the month they fall in */
+  byMonth?: boolean;
   header?: TableViewColumn;
   /**
    * The column as a paginated list defines it. Only this one says how the api searches it, and it

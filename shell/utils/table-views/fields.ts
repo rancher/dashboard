@@ -153,6 +153,10 @@ export function stringifyValue(value: unknown): string {
     return value.map((v) => stringifyValue(v)).filter((v) => !!v).join(', ');
   }
 
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? '' : value.toISOString();
+  }
+
   if (typeof value === 'object') {
     // Some columns return render objects, eg `{ label, color }`
     const { label } = value as { label?: unknown };
@@ -192,6 +196,7 @@ export function fieldsFor(
   const seen: Record<string, boolean> = {};
 
   const byId: Record<string, PaginationHeaderOptions> = {};
+  const scanRows = (rows || []).slice(0, SCAN_LIMIT);
 
   (paginationHeaders || []).forEach((header) => {
     const id = headerFieldId(header);
@@ -219,9 +224,15 @@ export function fieldsFor(
     }
 
     seen[id] = true;
-    out.push({
+    const field: TableViewField = {
       id, label, isLabel: false, header, paginationHeader: byId[id]
-    });
+    };
+
+    if (isDateColumn(header) || holdsTimestamps(scanRows, field)) {
+      field.isDate = true;
+    }
+
+    out.push(field);
   });
 
   const labelKeys: Record<string, boolean> = {};
@@ -260,9 +271,10 @@ export function findField(fields: TableViewField[], id: string): TableViewField 
 }
 
 /**
- * The api path(s) to filter a field on, or null to filter it on the rows instead. Only the
- * paginated definition's `search` is trusted: `value` is as likely to be a display value the api
- * doesn't know
+ * The api path(s) to filter a field on, or null to filter it on the rows instead.
+ * Only the paginated definition is read: its search path, else the path it sorts by - a column the
+ * api sorts by is one it has indexed. `value` is as likely to be a display value the api doesn't know.
+ * `search: false` keeps a column out of free text, not out of a term that names it
  */
 export function serverPathFor(field: TableViewField): string | string[] | null {
   if (!field) {
@@ -273,7 +285,7 @@ export function serverPathFor(field: TableViewField): string | string[] | null {
     return field.labelKey ? `metadata.labels[${ field.labelKey }]` : null;
   }
 
-  const search = field.paginationHeader?.search;
+  const { search, sort } = field.paginationHeader || {};
 
   if (typeof search === 'string' && search) {
     return search;
@@ -283,10 +295,15 @@ export function serverPathFor(field: TableViewField): string | string[] | null {
     // Eg the cluster list's name is also searched on `spec.displayName`
     const paths = search.filter((path: unknown) => typeof path === 'string' && path);
 
-    return paths.length ? paths : null;
+    if (paths.length) {
+      return paths;
+    }
   }
 
-  return null;
+  // Only the first sort entry: the rest are tie breakers
+  const first = Array.isArray(sort) ? sort[0] : sort;
+
+  return typeof first === 'string' && first ? first.split(':')[0] : null;
 }
 
 interface SummaryResponse {
@@ -324,4 +341,90 @@ export function valuesInUse(rows: TableViewRow[], field: TableViewField, max = 2
     .map(([value, count]) => ({ value, count }))
     .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value))
     .slice(0, max);
+}
+
+/** Columns drawn as a moment in time. The rest are found by their values - see holdsTimestamps */
+const DATE_FORMATTERS = ['LiveDate', 'Date'];
+
+export function isDateColumn(header?: TableViewColumn): boolean {
+  return DATE_FORMATTERS.includes(header?.formatter || '');
+}
+
+const TIMESTAMP = /^\d{4}-\d{2}-\d{2}T/;
+
+/** A column no definition says is a date, but whose values are timestamps - a resource's own printer column */
+function holdsTimestamps(rows: TableViewRow[], field: TableViewField): boolean {
+  const values: string[] = [];
+
+  for (const row of rows) {
+    const value = stringifyValue(fieldValue(row, field));
+
+    if (value) {
+      values.push(value);
+    }
+    if (values.length === 25) {
+      break;
+    }
+  }
+
+  return values.length > 0 && values.filter((value) => TIMESTAMP.test(value)).length >= values.length * 0.8;
+}
+
+/** Does this date column hold any actual dates in the rows in hand, rather than text such as "23m"? */
+export function holdsDates(rows: TableViewRow[], field: TableViewField): boolean {
+  let seen = 0;
+
+  for (const row of rows) {
+    const text = dateText(fieldValue(row, field));
+
+    if (TIMESTAMP.test(text)) {
+      return true;
+    }
+    if (text && ++seen === 25) {
+      return false;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * A date as the text a date term matches: an ISO timestamp, whether it came as one or as epoch
+ * milliseconds. Zero is the models' way of saying there is none. Anything else is left as it reads
+ */
+export function dateText(value: unknown): string {
+  const text = stringifyValue(value).trim();
+
+  if (!text || text === '0') {
+    return '';
+  }
+
+  if (/^\d{11,13}$/.test(text)) {
+    return new Date(Number(text)).toISOString();
+  }
+
+  return text;
+}
+
+/**
+ * Dates rolled up into the months they fall in, newest first, and the years above them when there
+ * is more than one. A date term matches by prefix, so each of these is a filter in itself
+ */
+export function dateBuckets(values: TableViewValueSuggestion[]): TableViewValueSuggestion[] {
+  const months: Record<string, number> = {};
+  const years: Record<string, number> = {};
+
+  values.forEach(({ value, count }) => {
+    const date = dateText(value);
+
+    if (TIMESTAMP.test(date)) {
+      months[date.slice(0, 7)] = (months[date.slice(0, 7)] || 0) + count;
+      years[date.slice(0, 4)] = (years[date.slice(0, 4)] || 0) + count;
+    }
+  });
+
+  const newestFirst = (counts: Record<string, number>) => Object.keys(counts).sort().reverse().map((value) => ({ value, count: counts[value] }));
+  const yearly = newestFirst(years);
+
+  return (yearly.length > 1 ? yearly : []).concat(newestFirst(months));
 }

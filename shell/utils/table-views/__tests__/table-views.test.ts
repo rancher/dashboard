@@ -5,6 +5,9 @@ import {
   moveInOrder,
   serverPathFor,
   summaryToValues,
+  dateBuckets,
+  dateText,
+  stringifyValue,
   termsToServerFilters
 } from '@shell/utils/table-views';
 import type { TableViewField } from '@shell/types/table-views';
@@ -230,8 +233,7 @@ describe('serverPathFor', () => {
     })).toBeNull();
   });
 
-  it('has no path for a column the pagination api does not say how to search', () => {
-    // `value` and `sort` are for drawing and ordering; neither is a filterable path
+  it('filters a column that is not searched, when a term names it, on the path it sorts by', () => {
     expect(serverPathFor({
       id:               'age',
       label:            'Age',
@@ -239,7 +241,17 @@ describe('serverPathFor', () => {
       paginationHeader: {
         value: 'metadata.creationTimestamp', sort: 'metadata.creationTimestamp:desc', search: false
       },
-    })).toBeNull();
+    })).toBe('metadata.creationTimestamp');
+  });
+
+  it('filters a column that names no search on the path it sorts by, which the api has indexed', () => {
+    expect(serverPathFor({
+      id: 'cpu', label: 'CPU', isLabel: false, paginationHeader: { sort: ['status.allocatable.cpuRaw', 'metadata.name'] }
+    })).toStrictEqual('status.allocatable.cpuRaw');
+
+    expect(serverPathFor({
+      id: 'age', label: 'Age', isLabel: false, paginationHeader: { sort: 'metadata.creationTimestamp:desc' }
+    })).toStrictEqual('metadata.creationTimestamp');
   });
 
   it('keeps only the paths a search list actually names', () => {
@@ -250,6 +262,10 @@ describe('serverPathFor', () => {
     expect(serverPathFor({
       id: 'cpu', label: 'CPU', isLabel: false, paginationHeader: { search: [''] }
     })).toBeNull();
+
+    expect(serverPathFor({
+      id: 'cpu', label: 'CPU', isLabel: false, paginationHeader: { search: [''], sort: 'status.allocatable.cpuRaw' }
+    })).toStrictEqual('status.allocatable.cpuRaw');
   });
 });
 
@@ -299,13 +315,57 @@ describe('fx: termsToServerFilters', () => {
     },
   ];
 
-  const opts = { isAllowed: () => true };
   const pathsOf = (filter: PaginationParamFilter) => filter.fields.map((f) => f.field);
+
+  it('should read a field named twice as either value, each a partial match - as `or` does', () => {
+    const { filters } = termsToServerFilters([
+      {
+        field: 'namespace', value: 'kube', negated: false
+      },
+      {
+        field: 'namespace', value: 'default', negated: false
+      },
+    ], FIELDS);
+
+    expect(filters).toHaveLength(1);
+    expect(filters[0].fields.map((f) => `${ f.field }~${ f.value }:${ f.equality }`)).toStrictEqual([
+      'metadata.namespace~kube:~', 'metadata.namespace~default:~'
+    ]);
+  });
+
+  it('should keep out every value of a field negated twice, each a partial match', () => {
+    const { filters } = termsToServerFilters([
+      {
+        field: 'namespace', value: 'kube', negated: true
+      },
+      {
+        field: 'namespace', value: 'default', negated: true
+      },
+    ], FIELDS);
+
+    expect(filters.map((f) => f.fields.map((x) => `${ x.value }:${ x.equality }`).join())).toStrictEqual(['kube:!~', 'default:!~']);
+  });
+
+  it('should leave a column that is not searched out of free text, and filter it when named', () => {
+    const age: TableViewField = {
+      id: 'age', label: 'Age', isLabel: false, paginationHeader: { sort: 'metadata.creationTimestamp', search: false }
+    };
+    const free = termsToServerFilters([{
+      field: null, value: '2026', negated: false
+    }], [...FIELDS, age]);
+    const named = termsToServerFilters([{
+      field: 'age', value: '2026-09', negated: false
+    }], [...FIELDS, age]);
+
+    expect(pathsOf(free.filters[0])).not.toContain('metadata.creationTimestamp');
+    expect(named.unsupported).toStrictEqual([]);
+    expect(pathsOf(named.filters[0])).toStrictEqual(['metadata.creationTimestamp']);
+  });
 
   it('should search every ordinary column for a free text term', () => {
     const { filters, unsupported } = termsToServerFilters([{
       field: null, value: 'nginx', negated: false
-    }], FIELDS, opts);
+    }], FIELDS);
 
     expect(unsupported).toStrictEqual([]);
     expect(filters).toHaveLength(1);
@@ -317,7 +377,7 @@ describe('fx: termsToServerFilters', () => {
     // them together hangs it - see the comment in termsToServerFilters
     const { filters } = termsToServerFilters([{
       field: null, value: 'nginx', negated: false
-    }], FIELDS, opts);
+    }], FIELDS);
 
     expect(pathsOf(filters[0]).some((p) => p?.includes('labels'))).toBe(false);
   });
@@ -325,7 +385,7 @@ describe('fx: termsToServerFilters', () => {
   it('should still search a label when the term names one', () => {
     const { filters, unsupported } = termsToServerFilters([{
       field: 'label:app', value: 'nginx', negated: false
-    }], FIELDS, opts);
+    }], FIELDS);
 
     expect(unsupported).toStrictEqual([]);
     expect(filters).toHaveLength(1);
@@ -336,7 +396,7 @@ describe('fx: termsToServerFilters', () => {
     const terms = [{
       field: null, value: 'nginx', negated: false
     }];
-    const { filters, unsupported } = termsToServerFilters(terms, [FIELDS[2]], opts);
+    const { filters, unsupported } = termsToServerFilters(terms, [FIELDS[2]]);
 
     expect(filters).toStrictEqual([]);
     expect(unsupported).toStrictEqual(terms);
@@ -412,8 +472,7 @@ describe('fx: applyQueryExpression', () => {
 describe('fx: queryToServerFilters', () => {
   // Server filters only exist for a paginated list, so the fields carry the pagination headers
   const fields = fieldsFor(HEADERS, ROWS, undefined, PAGINATION_HEADERS);
-  const isAllowed = () => true;
-  const build = (query: string) => queryToServerFilters(parseQueryExpression(query, fields), fields, { isAllowed });
+  const build = (query: string) => queryToServerFilters(parseQueryExpression(query, fields), fields);
 
   it('should give one param per group when the clauses are AND\'d', () => {
     const { filters } = build('state:Error and name:nginx');
@@ -440,12 +499,10 @@ describe('fx: queryToServerFilters', () => {
   });
 
   it('should filter nothing when one side of an "or" cannot be asked for', () => {
-    // Nothing is filterable, so the side that could be asked for must not narrow the list alone
-    const { filters, unsupported } = queryToServerFilters(
-      parseQueryExpression('state:Error or name:nginx', fields),
-      fields,
-      { isAllowed: (path: string) => path === 'stateDisplay' }
-    );
+    // Only state has a paginated definition, so name cannot be asked of the api - and the side
+    // that could be must not narrow the list alone
+    const stateOnly = fieldsFor(HEADERS, ROWS, undefined, PAGINATION_HEADERS.filter((header) => header.name === 'state'));
+    const { filters, unsupported } = queryToServerFilters(parseQueryExpression('state:Error or name:nginx', stateOnly), stateOnly);
 
     expect(filters).toHaveLength(0);
     expect(unsupported.map((t) => t.value)).toStrictEqual(['Error', 'nginx']);
@@ -587,5 +644,96 @@ describe('fx: validateQuery', () => {
     const [problem] = validateQuery('state:Error and', fields);
 
     expect('state:Error and'.substring(problem.start, problem.end)).toBe('and');
+  });
+});
+
+describe('dateBuckets', () => {
+  const at = (value: string, count = 1) => ({ value, count });
+
+  it('should roll timestamps up into months, newest first, each with its count', () => {
+    expect(dateBuckets([at('2026-09-28T19:02:29Z', 2), at('2026-09-01T00:00:00Z'), at('2026-08-15T10:00:00Z')])).toStrictEqual([
+      at('2026-09', 3), at('2026-08', 1)
+    ]);
+  });
+
+  it('should read epoch milliseconds as the dates they are, and zero as none', () => {
+    expect(dateBuckets([at(String(Date.UTC(2026, 8, 3))), at('0', 5)])).toStrictEqual([at('2026-09', 1)]);
+  });
+
+  it('should put the years above the months when there is more than one', () => {
+    expect(dateBuckets([at('2026-01-02T00:00:00Z'), at('2025-12-31T00:00:00Z', 4)])).toStrictEqual([
+      at('2026', 1), at('2025', 4), at('2026-01', 1), at('2025-12', 4)
+    ]);
+  });
+
+  it('should leave out anything that is not a timestamp', () => {
+    expect(dateBuckets([at('5 minutes ago'), at('')])).toStrictEqual([]);
+  });
+});
+
+describe('dateText', () => {
+  it.each([
+    ['an ISO timestamp as it is', '2026-09-28T19:02:29Z', '2026-09-28T19:02:29Z'],
+    ['epoch milliseconds as an ISO timestamp', Date.UTC(2026, 8, 28, 19, 2, 29), '2026-09-28T19:02:29.000Z'],
+    ['zero, the models\' "none", as nothing', 0, ''],
+    ['anything else as it reads', '23m', '23m'],
+    ['a Date as an ISO timestamp', new Date(Date.UTC(2035, 0, 2)), '2035-01-02T00:00:00.000Z'],
+  ])('should give %s', (_, value, expected) => {
+    expect(dateText(value)).toBe(expected);
+  });
+});
+
+describe('dates in fields and filters', () => {
+  const at = (ms: number) => ({ metadata: { name: `${ ms }` }, lastLogin: ms });
+  const headers = [
+    {
+      name: 'name', label: 'Name', value: 'metadata.name'
+    },
+    {
+      name: 'user-last-login', label: 'Last Login', value: 'lastLogin', sort: 'lastLogin', formatter: 'LiveDate'
+    },
+    {
+      name: 'age', label: 'Age', value: 'creationTimestamp', formatter: 'LiveDate'
+    },
+    {
+      name: 'seen', label: 'Seen', value: 'seen'
+    },
+    // Text that reads as time - relative, like an event's last seen - is not a date
+    {
+      name: 'lastSeen', label: 'Last Seen', value: 'lastSeenText'
+    },
+  ];
+  const rows = [
+    {
+      ...at(Date.UTC(2026, 8, 3)), seen: '2026-09-03T00:00:00Z', lastSeenText: '23m'
+    },
+    {
+      ...at(Date.UTC(2025, 11, 1)), seen: '2025-12-01T00:00:00Z', lastSeenText: '2h'
+    },
+    {
+      ...at(0), seen: '2025-12-02T00:00:00Z', lastSeenText: '5d'
+    },
+  ];
+  const fields = fieldsFor(headers, rows);
+  const dates = fields.filter((field) => field.isDate).map((field) => field.id);
+
+  it('should know a date by how it is drawn or by holding timestamps, and not by its name', () => {
+    expect(dates).toStrictEqual(['user-last-login', 'age', 'seen']);
+  });
+
+  it('should match a typed date against epoch milliseconds, and never match an empty one', () => {
+    const names = (query: string) => applyQuery(rows, parseQuery(query, fields), fields).map((r) => r.metadata.name);
+
+    expect(names('user-last-login:2026-09')).toStrictEqual([`${ Date.UTC(2026, 8, 3) }`]);
+    expect(names('user-last-login:2025')).toStrictEqual([`${ Date.UTC(2025, 11, 1) }`]);
+    // The row that never logged in holds 0, which must not read as the first of January 1970
+    expect(names('user-last-login:1970')).toStrictEqual([]);
+  });
+});
+
+describe('stringifyValue with dates', () => {
+  it('should write a Date as its ISO timestamp, so an export or a filter has something to read', () => {
+    expect(stringifyValue(new Date(Date.UTC(2035, 0, 2)))).toBe('2035-01-02T00:00:00.000Z');
+    expect(stringifyValue(new Date('not a date'))).toBe('');
   });
 });

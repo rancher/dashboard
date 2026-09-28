@@ -35,6 +35,8 @@ const props = withDefaults(defineProps<{
   groupFields?: TableViewField[] | null,
   /** Defaults to `fields` */
   filterFields?: TableViewField[] | null,
+  /** Ids of the fields that hold dates */
+  dateFields?: string[],
   fieldValues?: Record<string, { value: string, count: number }[]>,
   /** All rows, before the view's query is applied */
   rows?: TableViewRow[],
@@ -45,6 +47,7 @@ const props = withDefaults(defineProps<{
   fields:            () => [],
   groupFields:       null,
   filterFields:      null,
+  dateFields:        () => [],
   fieldValues:       () => ({}),
   rows:              () => [],
 });
@@ -356,6 +359,7 @@ onBeforeUnmount(() => {
           :value="view.query"
           :fields="fields"
           :filter-fields="filterFields"
+          :date-fields="dateFields"
           :rows="rows"
           :field-values="fieldValues"
           @update:value="update({ query: $event })"
