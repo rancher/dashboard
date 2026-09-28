@@ -852,3 +852,141 @@ export function objectRoute(cluster: string, {
     },
   };
 }
+
+// ---- a cluster's component status ------------------------------------------------------------------
+
+/** The dashboard's own states for a component chip. `loading` is its spinner, while an agent is read. */
+export type ServiceState = 'healthy' | 'warning' | 'unhealthy' | 'loading';
+
+/** One chip of the component status row. */
+export interface ServiceStatus {
+  /** 'etcd', 'scheduler', 'controller-manager', 'cattle' or 'fleet' - the dashboard's own names. */
+  name: string;
+  state: ServiceState;
+  /** An i18n key, or text as it came from the cluster. */
+  tooltip?: string;
+  tooltipKey?: string;
+  /** The deployment behind an agent chip that is not healthy, in the widget's cluster. */
+  target?: RouteLocationRaw;
+}
+
+// The control-plane components the dashboard reports, from the cluster's own status.
+const CLUSTER_COMPONENTS = ['etcd', 'scheduler', 'controller-manager'];
+
+/** A deployment, as much of it as the agent status reads. */
+interface RawDeployment {
+  metadata?: { name?: string; namespace?: string; state?: { error?: boolean; message?: string } };
+  spec?: { replicas?: number };
+  status?: { readyReplicas?: number; unavailableReplicas?: number; conditions?: { status?: string }[] };
+}
+
+/**
+ * Read one agent deployment. null when it is not there, or not readable by this user - the
+ * dashboard hides the chip then. 'unreachable' when the cluster itself did not answer, which is
+ * what the dashboard means by a disconnected agent.
+ */
+async function readDeployment(store: Store<unknown>, cluster: string, id: string): Promise<RawDeployment | null | 'unreachable'> {
+  try {
+    return await store.dispatch('management/request', { url: clusterUrl(cluster, `apps.deployments/${ id }`) });
+  } catch (e) {
+    const status = (e as { _status?: number })?._status;
+
+    return status === 404 || status === 403 ? null : 'unreachable';
+  }
+}
+
+/** The dashboard's agent verdict over one or more deployments (see its getAgentStatus). */
+function agentStatus(name: string, cluster: string, resources: (RawDeployment | null | 'unreachable')[]): ServiceStatus | null {
+  if (resources.length === 1 && resources[0] === null) {
+    return null;
+  }
+
+  const route = (d: RawDeployment): RouteLocationRaw => ({
+    name:   'c-cluster-product-resource-namespace-id',
+    params: {
+      cluster, product: 'explorer', resource: 'apps.deployment', namespace: d.metadata?.namespace || '', id: d.metadata?.name || ''
+    },
+  });
+
+  for (const d of resources) {
+    if (!d || d === 'unreachable' || d.status?.conditions?.some((c) => c.status !== 'True') || d.metadata?.state?.error) {
+      const known = d && d !== 'unreachable' ? d : null;
+
+      return {
+        name,
+        state:      'unhealthy',
+        tooltip:    known?.metadata?.state?.message,
+        tooltipKey: known?.metadata?.state?.message ? undefined : 'clusterIndexPage.sections.componentStatus.tooltip.disconnected',
+        target:     known ? route(known) : undefined,
+      };
+    }
+  }
+
+  for (const d of resources as RawDeployment[]) {
+    if (d.spec?.replicas !== d.status?.readyReplicas || (d.status?.unavailableReplicas || 0) > 0) {
+      return {
+        name,
+        state:      'warning',
+        tooltip:    d.metadata?.state?.message,
+        tooltipKey: d.metadata?.state?.message ? undefined : 'clusterIndexPage.sections.componentStatus.tooltip.unavailableReplicas',
+        target:     route(d),
+      };
+    }
+  }
+
+  return { name, state: 'healthy' };
+}
+
+/**
+ * The control-plane chips - etcd, the scheduler, the controller manager - from the cluster's own
+ * status on its management cluster. Any condition that is not True makes a component unhealthy; a
+ * component the status does not mention counts as healthy, as the dashboard counts it.
+ */
+export async function fetchComponentHealth(store: Store<unknown>, cluster: string): Promise<ServiceStatus[]> {
+  const mgmt = await fetchManagementCluster<{ status?: { componentStatuses?: { name: string; conditions?: { status?: string; message?: string }[] }[] } }>(store, cluster);
+
+  return CLUSTER_COMPONENTS.map((name) => {
+    const failing = (mgmt?.status?.componentStatuses || [])
+      .filter((s) => s.name.startsWith(name))
+      .map((s) => (s.conditions || []).find((c) => c.status !== 'True'))
+      .find(Boolean);
+
+    return failing ? {
+      name, state: 'unhealthy', tooltip: failing.message
+    } : { name, state: 'healthy' };
+  });
+}
+
+/**
+ * The agents a cluster's row reports: Rancher's own (cattle) - except on the local cluster, which
+ * runs Rancher itself - and Fleet's.
+ */
+export function expectedAgents(cluster: string): ('cattle' | 'fleet')[] {
+  return cluster === 'local' ? ['fleet'] : ['cattle', 'fleet'];
+}
+
+/**
+ * One agent's chip, from its deployments in the cluster; null when it is not there or not readable,
+ * which hides it, as the dashboard hides it.
+ *
+ * Read on its own, and apart from the control-plane chips, because a cluster whose agent is down
+ * takes its time to fail - around thirty seconds here - and nothing else should wait on it. On the
+ * local cluster Fleet is the agent AND the controller; the controller alone decides while the agent
+ * is still being created, as it can be for a while after Rancher starts.
+ */
+export async function fetchAgentHealth(store: Store<unknown>, cluster: string, agent: 'cattle' | 'fleet'): Promise<ServiceStatus | null> {
+  if (agent === 'cattle') {
+    return agentStatus('cattle', cluster, [await readDeployment(store, cluster, 'cattle-system/cattle-cluster-agent')]);
+  }
+
+  if (cluster !== 'local') {
+    return agentStatus('fleet', cluster, [await readDeployment(store, cluster, 'cattle-fleet-system/fleet-agent')]);
+  }
+
+  const [fleetAgent, controller] = await Promise.all([
+    readDeployment(store, cluster, 'cattle-fleet-local-system/fleet-agent'),
+    readDeployment(store, cluster, 'cattle-fleet-system/fleet-controller'),
+  ]);
+
+  return agentStatus('fleet', cluster, fleetAgent ? [fleetAgent, controller] : [controller]);
+}
