@@ -50,7 +50,7 @@ export interface WidgetSpec {
   columns: string[];
   sortBy: string;
   sortDir: SortDir;
-  /** How many rows a list shows; 0 means no limit. */
+  /** Rows per page of a table; 0 means the default. */
   limit: number;
   links: WidgetLink[];
   subtitle?: string;
@@ -119,6 +119,8 @@ export type Panel = LayoutPanel | StockPanel;
 export interface View {
   panels: Panel[];
   defaultPanelId?: string;
+  /** The scope is switched off: it renders nothing, and the scope beneath it shows instead. */
+  disabled?: boolean;
 }
 
 /**
