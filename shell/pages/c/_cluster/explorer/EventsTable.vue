@@ -8,6 +8,7 @@ import { headerFromSchemaColString } from '@shell/store/type-map.utils';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { ROWS_PER_PAGE } from '@shell/store/prefs';
 import { RcDropdown, RcDropdownTrigger, RcDropdownItem } from '@components/RcDropdown';
+import { isImprovedTablesEnabled } from '@shell/utils/table-views/feature';
 
 const reason = {
   ...REASON,
@@ -102,6 +103,11 @@ export default {
   },
 
   computed: {
+    /** Whether the table below has a toolbar of its own, which decides where the link goes */
+    improvedTables() {
+      return isImprovedTablesEnabled(this.$store);
+    },
+
     userPrefRowsPerPage() {
       return parseInt(this.$store.getters['prefs/get'](ROWS_PER_PAGE), 10) || undefined;
     },
@@ -146,11 +152,12 @@ export default {
 
 <template>
   <div>
-    <!-- Above the table rather than beside the filter, which is where the Certificates tab puts
-         its own link. Both tabs are a list of one cluster's things with a way out to the full
-         list, and they should read the same way. -->
+    <!-- Where this link goes depends on whether the table has a toolbar of its own. With the
+         improved tables feature on it sits above, the way the Certificates tab puts its own -
+         the table's header row belongs to the toolbar and there is no room beside it. With the
+         feature off the table has its ordinary header row, so the link goes back into it. -->
     <div
-      v-if="!!schema"
+      v-if="!!schema && improvedTables"
       class="events-table-link-row"
     >
       <router-link
@@ -195,7 +202,42 @@ export default {
       :row-actions="false"
       :groupable="false"
       :rows-per-page="rowsPerPage"
-    />
+    >
+      <template
+        v-if="!improvedTables"
+        #header-right
+      >
+        <router-link
+          data-testid="events-link"
+          :to="allEventsLink"
+          class="events-link"
+        >
+          <span>{{ t('glance.eventsTable') }}</span>
+        </router-link>
+        <rc-dropdown>
+          <rc-dropdown-trigger
+            data-testid="events-list-row-count-menu-toggle"
+            :aria-label="t('glance.changeEventsListRowCount')"
+            variant="ghost"
+            size="small"
+          >
+            <i class="icon icon-gear" />
+          </rc-dropdown-trigger>
+          <template #dropdownCollection>
+            <rc-dropdown-item
+              v-for="(item, i) in rowOptions"
+              :key="i"
+              :value="item.value"
+              @click.stop="updateRowsCount(item.value)"
+            >
+              <span :class="{ 'selected-pagesize-option': rowsPerPage === item.value }">
+                {{ item.label }}
+              </span>
+            </rc-dropdown-item>
+          </template>
+        </rc-dropdown>
+      </template>
+    </PaginatedResourceTable>
   </div>
 </template>
 
