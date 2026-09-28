@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { BUILT_IN_STOCK_ID } from '../templating/view-model';
 import type { Panel } from '../templating/types';
 
-// The bar under the app header — the Home's own navigation, and the only place a view is switched,
-// renamed, created or published.
+// The bar under the app header — a configurable page's own navigation, and the only place a panel
+// is switched, renamed, created or published.
 //
 // It has two faces:
 //
@@ -31,6 +32,8 @@ type BarEmits = {
 };
 
 const props = withDefaults(defineProps<{
+  /** The page's name, at the start of the bar: "Home", "Cluster Dashboard". */
+  title?: string;
   views?: Panel[];
   activeId?: string | null;
   editing?: boolean;
@@ -43,6 +46,7 @@ const props = withDefaults(defineProps<{
   /** Where a new view was started from, shown beside "New view". */
   startedFrom?: string;
 }>(), {
+  title:       'Home',
   views:       () => [],
   activeId:    '',
   editing:     false,
@@ -77,6 +81,10 @@ const isDefault = computed(() => !!props.activeId && props.activeId === props.de
 // A published panel is everyone's: the menu offers taking it back out rather than publishing it
 // again, and the wording says "unpublish" so nobody reads it as deleting their own copy.
 const isPublished = computed(() => !!activeView.value?.org);
+
+// Rancher's own page, offered as a tab without ever being saved: there is nothing stored to rename,
+// publish or delete, so the menu does not offer to.
+const isBuiltIn = computed(() => activeView.value?.id === BUILT_IN_STOCK_ID);
 
 function closeMenu(): void {
   menuOpen.value = false;
@@ -147,7 +155,7 @@ defineExpose({ selectName });
     :class="{ 'vbar--editing': editing }"
   >
     <h1 class="vbar__home">
-      Home
+      {{ title }}
     </h1>
 
     <!-- The views. While editing, the one being edited is renamed in place and the rest go quiet:
@@ -248,7 +256,7 @@ defineExpose({ selectName });
               Duplicate this panel
             </button>
           </li>
-          <li>
+          <li v-if="!isBuiltIn">
             <button @click="closeMenu(); $emit('rename-start')">
               Rename
             </button>
@@ -261,17 +269,19 @@ defineExpose({ selectName });
               {{ isDefault ? 'This is my default' : 'Set as my default' }}
             </button>
           </li>
-          <li class="vbar__menu-sep" />
-          <li v-if="!isPublished">
-            <button @click="closeMenu(); $emit('publish')">
-              Publish as organization template
-            </button>
-          </li>
-          <li
-            v-if="!isPublished"
-            class="vbar__menu-sep"
-          />
-          <li>
+          <template v-if="!isBuiltIn">
+            <li class="vbar__menu-sep" />
+            <li v-if="!isPublished">
+              <button @click="closeMenu(); $emit('publish')">
+                Publish as organization template
+              </button>
+            </li>
+            <li
+              v-if="!isPublished"
+              class="vbar__menu-sep"
+            />
+          </template>
+          <li v-if="!isBuiltIn">
             <button
               :disabled="views.length < 2"
               @click="closeMenu(); $emit('delete')"

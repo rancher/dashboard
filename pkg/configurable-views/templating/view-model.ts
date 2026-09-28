@@ -390,6 +390,23 @@ export function newPanel(name?: string, opts: PanelOptions = {}): LayoutPanel {
   };
 }
 
+/**
+ * The id of the built-in STOCK panel: Rancher's own page, offered as a tab on every configurable
+ * page whether or not a stock panel was ever saved (see builtInStockPanel).
+ */
+export const BUILT_IN_STOCK_ID = 'built-in-stock';
+
+/**
+ * Rancher's own page as a panel, when nothing stored is one. Not saved anywhere - it is always there,
+ * so it cannot be deleted, published or renamed, and a page with no stored panels at all still shows
+ * the page Rancher already had, as a tab.
+ */
+export function builtInStockPanel(name: string): StockPanel {
+  return {
+    id: BUILT_IN_STOCK_ID, name, kind: PANEL_STOCK
+  };
+}
+
 /** True when a panel renders the stock Rancher home rather than a grid of widgets. */
 export function isStockPanel(panel: unknown): panel is StockPanel {
   return isObject(panel) && panel.kind === PANEL_STOCK;
@@ -422,9 +439,9 @@ function normalizePanel(panel: Loose): Panel {
   return out;
 }
 
-/** A new empty VIEW — one panel. */
+/** A VIEW with nothing saved in it. The page still shows its stock tab (see builtInStockPanel). */
 function emptyView(): View {
-  return { panels: [newPanel('Home')] };
+  return { panels: [] };
 }
 
 /**
@@ -435,10 +452,14 @@ function emptyView(): View {
  *   - the legacy single name     "home"
  *
  * The two legacy shapes pointed at template ConfigMaps, which are gone; their tabs survive, empty.
+ *
+ * An empty list stays empty. It used to be replaced by a new panel named "Home" - the old way of
+ * making sure a page had a tab - which invented a panel with a fresh id on every read, and named it
+ * "Home" on pages that are not the Home. Every page now has its stock tab instead, stored or not.
  */
 export function migrateToView(value: unknown): View {
   const finish = (panels: Panel[], source: Loose | null): View => {
-    const out: View = { panels: panels.length ? panels : [newPanel('Home')] };
+    const out: View = { panels };
     const defaultId = str(source?.defaultPanelId);
 
     // Which view opens first. Dropped when it names a view that no longer exists.
@@ -463,9 +484,9 @@ export function migrateToView(value: unknown): View {
     return finish(value.tabs.filter(isObject).map((t) => newPanel(str(t.name), { id: str(t.id) || undefined })), value);
   }
 
-  // Legacy: a single applied template name.
+  // Legacy: a single applied template name. The template is gone, so there is nothing to show.
   if (typeof value === 'string' && value) {
-    return finish([newPanel('Home')], null);
+    return finish([], null);
   }
 
   return emptyView();
