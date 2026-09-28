@@ -363,4 +363,5 @@ export const AUTOSCALER_CONFIG_MAP_ID: 'kube-system/cluster-autoscaler-status';
 export const HOSTED_PROVIDER: 'hostedprovider';
 export const SAVED_COUNTS: {
     K8S_CLUSTERS: string;
+    PROJECT_SCOPED_SECRETS: string;
 };

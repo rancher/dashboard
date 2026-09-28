@@ -453,4 +453,7 @@ export const HOSTED_PROVIDER = 'hostedprovider';
 
 // Named saved counts
 
-export const SAVED_COUNTS = { K8S_CLUSTERS: 'k8sClusters' };
+export const SAVED_COUNTS = {
+  K8S_CLUSTERS:           'k8sClusters',
+  PROJECT_SCOPED_SECRETS: 'projectScopedSecrets',
+};
