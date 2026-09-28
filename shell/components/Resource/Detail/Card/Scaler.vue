@@ -54,6 +54,7 @@ const i18n = useI18n(store);
 .scaler {
   display: inline-flex;
   align-items: center;
+  height: 32px;
   background-color: var(--accent-btn);
   border-radius: var(--border-radius-md);
   border: solid thin var(--primary);

@@ -863,6 +863,10 @@ export default class Resource {
     }, `link=${ name }`, undefined, undefined);
   }
 
+  condition(condition) {
+    return findBy((this.status?.conditions || []), 'type', condition);
+  }
+
   hasCondition(condition) {
     return this.isCondition(condition, null);
   }
@@ -872,7 +876,7 @@ export default class Resource {
       return false;
     }
 
-    const entry = findBy((this.status.conditions || []), 'type', condition);
+    const entry = this.condition(condition);
 
     if ( !entry ) {
       return false;

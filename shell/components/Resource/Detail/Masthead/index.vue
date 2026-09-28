@@ -26,6 +26,12 @@ const props = defineProps<MastheadProps>();
         <slot name="additional-actions" />
       </template>
     </TitleBar>
+    <!--
+      Optional banner between the title and the metadata - the slot a page uses to surface a state
+      error the way the legacy masthead did. The new masthead has no banner of its own, so adopters
+      pass one in here (see useResourceDetailBannerProps).
+    -->
+    <slot name="banner" />
     <Metadata
       v-if="props.metadataProps"
       class="metadata-section"
