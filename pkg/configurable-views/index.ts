@@ -7,6 +7,7 @@ import { fetchTemplatingConfigMaps, toggleTemplating } from './templating/templa
 import routing from './routing/index';
 import { PAGINATED_RESOURCES } from './templating/widget-catalog';
 import Home from './pages/Home.vue';
+import ClusterDashboard from './pages/ClusterDashboard.vue';
 
 /**
  * What the shell leaves on `window` that this file uses: the running app, for its router and store
@@ -26,13 +27,7 @@ const shellWindow = window as ShellWindow;
 // (no cluster) — so the component never mounts. The home layout parent route is unnamed, so we
 // can't target it via the extension API. Instead we add the route directly on the live router,
 // nesting our Home under an imported copy of the home layout (templates/home.vue).
-function installHomeRoute(): boolean {
-  const router = shellWindow.$globalApp?.$router;
-
-  if (!router) {
-    return false;
-  }
-
+function installHomeRoute(router: Router): void {
   // COPY the stock route, swapping only the page. Read before adding: adding a route named 'home'
   // removes the existing one.
   //
@@ -52,13 +47,41 @@ function installHomeRoute(): boolean {
       path: page?.path || '/home', name: 'home', component: Home, meta: { ...page?.meta }
     }],
   });
+}
 
-  // This runs at plugin-init, AFTER the initial route has resolved — so a hard load of /home
-  // still shows the stock home. If we're currently on /home, force a re-resolve so ours renders.
+const CLUSTER_DASHBOARD_ROUTE = 'c-cluster-explorer';
+const CLUSTER_DASHBOARD_LAYOUT = 'default';
+
+// Take over a cluster's dashboard the same way, with one difference: its layout route is NAMED
+// ('default'), so the page can be replaced in place as that route's child - no copy of the layout.
+// The stock child's path and meta are copied, and adding a route with its name replaces it.
+function installClusterDashboardRoute(router: Router): void {
+  const stock = router.getRoutes().find((r) => r.name === CLUSTER_DASHBOARD_ROUTE);
+
+  router.addRoute(CLUSTER_DASHBOARD_LAYOUT, {
+    path:      stock?.path || '/c/:cluster/explorer',
+    name:      CLUSTER_DASHBOARD_ROUTE,
+    component: ClusterDashboard,
+    meta:      { ...stock?.meta },
+  });
+}
+
+function installRoutes(): boolean {
+  const router = shellWindow.$globalApp?.$router;
+
+  if (!router) {
+    return false;
+  }
+
+  installHomeRoute(router);
+  installClusterDashboardRoute(router);
+
+  // This runs at plugin-init, AFTER the initial route has resolved — so a hard load of either page
+  // still shows the stock one. If we are on one of them now, force a re-resolve so ours renders.
   const cur = router.currentRoute.value;
 
-  if (cur && cur.path === '/home') {
-    router.replace({ path: '/home', force: true }).catch(() => {});
+  if (cur.name === 'home' || cur.name === CLUSTER_DASHBOARD_ROUTE) {
+    router.replace({ path: cur.fullPath, force: true }).catch(() => {});
   }
 
   return true;
@@ -115,7 +138,7 @@ export default function(plugin: IPlugin): void {
 
   // Retry until the live router exists (plugin init can run before $globalApp is set).
   const tryInstall = () => {
-    if (!installHomeRoute()) {
+    if (!installRoutes()) {
       setTimeout(tryInstall, 300);
     }
   };

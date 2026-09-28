@@ -1,8 +1,12 @@
-// Where the configurable Home is STORED: two labeled ConfigMaps in the local cluster's `default`
+// Where the configurable pages are STORED: two labeled ConfigMaps in the local cluster's `default`
 // namespace, read and written through the management store (Steve `/v1/`).
 //
-//   templating-home    data.home — every saved view: { global: <View>, users: { <uid>: <View> } }
-//   templating-config  data.enabled — the kill switch; 'false' turns the feature off
+//   templating-home    one key per PAGE, each holding every saved view of that page:
+//                        data.home              the Home
+//                        data.clusterDashboard  the cluster dashboard - one set of panels for every
+//                                               cluster, whose widgets follow the cluster they are on
+//                      each shaped { global: <View>, users: { <uid>: <View> } }
+//   templating-config  data.enabled — the kill switch; 'false' turns the feature off, everywhere
 //
 // Two ConfigMaps rather than one so that writing the Home can never flip the switch. ConfigMaps in
 // `default` are a prototype's storage: per-user state belongs in a user preference and the published
@@ -28,6 +32,9 @@ const CONFIG_NAME = 'templating-config';
 const HOME_CONFIG_NAME = 'templating-home';
 
 const configLabels = { [LABEL_MARKER]: 'true', [LABEL_TYPE]: TYPE_CONFIG };
+
+/** A page that can be configured, and the key its views are stored under in templating-home. */
+export type PageKey = 'home' | 'clusterDashboard';
 
 // This package's product and route names, kept here so product.ts and routing/index.ts agree.
 export const PRODUCT_NAME = 'configurable-views';
@@ -100,20 +107,20 @@ export async function fetchTemplatingConfigMaps(store: Store<unknown>): Promise<
   }).catch(() => undefined);
 }
 
-function homeConfig(getters: Getters): HomeConfig {
-  const home = cmNamed(getters, HOME_CONFIG_NAME);
+function pageConfig(getters: Getters, page: PageKey): HomeConfig {
+  const stored = cmNamed(getters, HOME_CONFIG_NAME)?.data?.[page];
 
-  if (home?.data?.home !== undefined) {
-    return parse(home.data.home);
+  if (stored !== undefined) {
+    return parse(stored);
   }
 
   // The Home used to live in the kill-switch ConfigMap. Still read there until the next save moves it.
-  return parse(cmNamed(getters, CONFIG_NAME)?.data?.home);
+  return page === 'home' ? parse(cmNamed(getters, CONFIG_NAME)?.data?.home) : {};
 }
 
-/** The raw stored config ({ global, users }) - for the Home Layouts YAML editor. */
-export function getHomeConfig(getters: Getters): HomeConfig {
-  return homeConfig(getters);
+/** A page's raw stored config ({ global, users }) - for the Home Layouts YAML editor. */
+export function getHomeConfig(getters: Getters, page: PageKey = 'home'): HomeConfig {
+  return pageConfig(getters, page);
 }
 
 /**
@@ -121,8 +128,8 @@ export function getHomeConfig(getters: Getters): HomeConfig {
  * organization's, and a disabled view is skipped so the scope beneath it shows. Old stored shapes
  * are migrated on read (see migrateToView).
  */
-export function appliedViewScopes(getters: Getters, userId?: string | null): ViewScopes {
-  const home = homeConfig(getters);
+export function appliedViewScopes(getters: Getters, userId?: string | null, page: PageKey = 'home'): ViewScopes {
+  const home = pageConfig(getters, page);
   const rawGlobal = home.global || null;
   const rawUser = (userId && home.users?.[userId]) || null;
 
@@ -173,14 +180,15 @@ export async function toggleTemplating(store: Store<unknown>, enabled?: boolean)
 // ---- writing ------------------------------------------------------------------------------------------
 
 /**
- * Write the whole stored config to `templating-home`, creating it if needed. Only data.home is ever
- * written there, so saving the Home cannot touch the kill switch.
+ * Write one page's whole stored config to `templating-home`, creating it if needed. Each page is its
+ * own key, and the other pages' keys are written back as they were; nothing here touches the kill
+ * switch, which is a different ConfigMap.
  */
-async function persistHome(store: Store<unknown>, home: HomeConfig): Promise<void> {
+async function persistPage(store: Store<unknown>, page: PageKey, config: HomeConfig): Promise<void> {
   const existing = cmNamed(store.getters, HOME_CONFIG_NAME);
 
   if (existing && existing.metadata.labels?.[LABEL_TYPE] === TYPE_CONFIG) {
-    existing.data = { ...(existing.data || {}), home: JSON.stringify(home) };
+    existing.data = { ...(existing.data || {}), [page]: JSON.stringify(config) };
     await existing.save();
   } else {
     const cm: ConfigMapModel = await store.dispatch('management/create', {
@@ -188,21 +196,21 @@ async function persistHome(store: Store<unknown>, home: HomeConfig): Promise<voi
       metadata: {
         name: HOME_CONFIG_NAME, namespace: NAMESPACE, labels: configLabels
       },
-      data: { home: JSON.stringify(home) },
+      data: { [page]: JSON.stringify(config) },
     });
 
     await cm.save();
   }
 }
 
-/** Write a raw stored config - from the Home Layouts YAML editor. */
-export async function saveHomeConfig(store: Store<unknown>, home: HomeConfig | null): Promise<void> {
-  await persistHome(store, home || {});
+/** Write a page's raw stored config - from the Home Layouts YAML editor. */
+export async function saveHomeConfig(store: Store<unknown>, config: HomeConfig | null, page: PageKey = 'home'): Promise<void> {
+  await persistPage(store, page, config || {});
 }
 
-/** Save one scope's view. `null` clears that scope. */
-export async function saveView(store: Store<unknown>, scope: 'global' | 'user', view: View | null, userId?: string | null): Promise<void> {
-  const home = homeConfig(store.getters);
+/** Save one scope's view of a page. `null` clears that scope. */
+export async function saveView(store: Store<unknown>, scope: 'global' | 'user', view: View | null, userId?: string | null, page: PageKey = 'home'): Promise<void> {
+  const home = pageConfig(store.getters, page);
 
   if (scope === 'user') {
     if (!userId) {
@@ -219,5 +227,5 @@ export async function saveView(store: Store<unknown>, scope: 'global' | 'user', 
     delete home.global;
   }
 
-  await persistHome(store, home);
+  await persistPage(store, page, home);
 }
