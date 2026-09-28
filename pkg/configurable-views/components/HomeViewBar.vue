@@ -57,6 +57,8 @@ const emit = defineEmits<BarEmits>();
 
 const menuOpen = ref(false);
 const menuWrap = ref<HTMLElement | null>(null);
+// The editable name - inside the tab loop, so a list; at most one is rendered, the active panel's.
+const nameInput = ref<HTMLInputElement[]>([]);
 
 const activeView = computed(() => props.views.find((v) => v.id === props.activeId) || null);
 
@@ -127,6 +129,16 @@ onBeforeUnmount(stopWatchingForClose);
 function onName(ev: Event): void {
   emit('rename', (ev.target as HTMLInputElement).value);
 }
+
+/**
+ * Select the panel's name, ready to be typed over. The ⋮ menu's Rename opens the editor and calls
+ * this: the name is edited in one place, here in the bar, rather than in a second naming dialog.
+ */
+function selectName(): void {
+  nameInput.value[0]?.select();
+}
+
+defineExpose({ selectName });
 </script>
 
 <template>
@@ -151,6 +163,7 @@ function onName(ev: Event): void {
       >
         <input
           v-if="editing && view.id === activeId"
+          ref="nameInput"
           class="vbar__name"
           :value="view.name"
           aria-label="Panel name"
