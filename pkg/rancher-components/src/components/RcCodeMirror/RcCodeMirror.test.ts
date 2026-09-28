@@ -724,6 +724,72 @@ describe('component: RcCodeMirror', () => {
 
       expect(view.state.selection.main).toMatchObject({ from: 0, to: view.state.doc.length });
     });
+
+    // The Emacs handler looks keys up by physical key code, so punctuation codes have to map to the
+    // characters its bindings are written with.
+    describe('bindings on punctuation keys', () => {
+      function pressAltKey(view: EditorView, key: string, code: string, shiftKey = false): KeyboardEvent {
+        const event = new KeyboardEvent('keydown', {
+          key,
+          code,
+          altKey:     true,
+          shiftKey,
+          bubbles:    true,
+          cancelable: true
+        });
+
+        view.contentDOM.dispatchEvent(event);
+
+        return event;
+      }
+
+      it('should toggle a YAML line comment with Alt-;', () => {
+        mountEditor({
+          keymap: 'emacs', language: 'yaml', modelValue: 'foo: bar'
+        });
+        const view = getView(wrapper);
+
+        pressAltKey(view, ';', 'Semicolon');
+
+        expect(view.state.doc.toString()).toStrictEqual('# foo: bar');
+      });
+
+      it.each([
+        ['<', 'Comma', 9, 0],
+        ['>', 'Period', 0, 12]
+      ])('should move the cursor with Alt-%s', (key, code, from, to) => {
+        mountEditor({ keymap: 'emacs', modelValue: 'first\nsecond' });
+        const view = getView(wrapper);
+
+        view.dispatch({ selection: { anchor: from } });
+        pressAltKey(view, key, code, true);
+
+        expect(view.state.selection.main.head).toStrictEqual(to);
+      });
+
+      it('should type punctuation without a modifier as text', () => {
+        mountEditor({ keymap: 'emacs', modelValue: 'a' });
+        const view = getView(wrapper);
+        const event = new KeyboardEvent('keydown', {
+          key: ',', code: 'Comma', bubbles: true, cancelable: true
+        });
+
+        view.contentDOM.dispatchEvent(event);
+
+        expect(event.defaultPrevented).toBe(false);
+      });
+    });
+
+    it('should delete the character before the cursor with Ctrl-H', () => {
+      mountEditor({ keymap: 'emacs', modelValue: 'first' });
+      const view = getView(wrapper);
+
+      view.dispatch({ selection: { anchor: 5 } });
+      const event = pressKey(view, 'h', 'KeyH');
+
+      expect(view.state.doc.toString()).toStrictEqual('firs');
+      expect(event.defaultPrevented).toBe(true);
+    });
   });
 
   describe('unmounting', () => {

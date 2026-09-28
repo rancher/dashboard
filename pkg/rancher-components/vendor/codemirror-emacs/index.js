@@ -283,6 +283,7 @@ var specialKey = {
     ArrowLeft: 'Left', ArrowRight: 'Right', ArrowUp: 'Up', ArrowDown: 'Down',
     Enter: 'Return', Divide: '/', Slash: '/', Multiply: '*',
     Subtract: '-', Minus: "-", Equal: '=',
+    Semicolon: ';', Comma: ',', Period: '.',
 };
 var ignoredKeys = { Shift: 1, Alt: 1, Command: 1, Control: 1, CapsLock: 1 };
 const commandKeyBinding = {};
