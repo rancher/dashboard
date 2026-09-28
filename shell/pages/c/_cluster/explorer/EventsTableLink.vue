@@ -1,11 +1,5 @@
 <script setup lang="ts">
-/**
- * The way out of this cluster's events to the full list, with the row count beside it.
- *
- * Its own component only because it has two homes: above the table when the improved tables
- * feature gives that table a toolbar of its own, and inside the table's header row when it does
- * not. Written twice it would be two things to keep in step.
- */
+/** The link to the full event list with the row count menu, placed above or in the table's header */
 import { useStore } from 'vuex';
 import type { RouteLocationRaw } from 'vue-router';
 
@@ -13,11 +7,8 @@ import { RcDropdown, RcDropdownTrigger, RcDropdownItem } from '@components/RcDro
 import { useI18n } from '@shell/composables/useI18n';
 
 defineProps<{
-  /** Where the "Events" link goes - the full event list */
   to: RouteLocationRaw,
-  /** The row counts on offer, as { label, value } */
   options: { label: string, value: number }[],
-  /** The count currently in force, so it can be ticked */
   rowsPerPage: number,
 }>();
 

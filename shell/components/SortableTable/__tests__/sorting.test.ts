@@ -7,10 +7,10 @@ describe('sorting mixin', () => {
     const { sortFields } = sorting.computed;
 
     function createContext({
-      groupBy = null as any,
+      groupBy = null as string | ((row: { name: string }) => string) | null,
       groupSort = null as string | string[] | null,
       sortBy = '',
-      headers = [] as any[],
+      headers = [] as { name: string, sort?: string[] }[],
       mandatorySort = ['nameSort', 'id'] as string[] | null,
     } = {}) {
       return {
@@ -19,13 +19,13 @@ describe('sorting mixin', () => {
     }
 
     it('should not sort by a function groupBy, as it has no property path behind it', () => {
-      const ctx = createContext({ groupBy: (row: any) => row.name });
+      const ctx = createContext({ groupBy: (row: { name: string }) => row.name });
 
       expect(sortFields.call(ctx)).toStrictEqual(['nameSort', 'id']);
     });
 
     it('should sort by groupSort first when groupBy is a function', () => {
-      const ctx = createContext({ groupBy: (row: any) => row.name, groupSort: 'metadata.state.name' });
+      const ctx = createContext({ groupBy: (row: { name: string }) => row.name, groupSort: 'metadata.state.name' });
 
       expect(sortFields.call(ctx)).toStrictEqual(['metadata.state.name', 'nameSort', 'id']);
     });
@@ -50,7 +50,7 @@ describe('sorting mixin', () => {
 
     it('should combine the group, the sorted column and the mandatory sort, without duplicates', () => {
       const ctx = createContext({
-        groupBy:       (row: any) => row.name,
+        groupBy:       (row: { name: string }) => row.name,
         groupSort:     'metadata.state.name',
         sortBy:        'Name',
         headers:       [{ name: 'Name', sort: ['metadata.name', 'nameSort'] }],

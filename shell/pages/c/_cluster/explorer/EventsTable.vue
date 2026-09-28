@@ -98,7 +98,6 @@ export default {
   },
 
   computed: {
-    /** Whether the table below has a toolbar of its own, which decides where the link goes */
     improvedTables() {
       return isImprovedTablesEnabled(this.$store);
     },
@@ -147,10 +146,7 @@ export default {
 
 <template>
   <div>
-    <!-- Where the link goes depends on whether the table has a toolbar of its own. With the
-         improved tables feature on it sits above, the way the Certificates tab puts its own -
-         the table's header row belongs to the toolbar and there is no room beside it. With the
-         feature off the table has its ordinary header row, so the link goes back into it. -->
+    <!-- Above the table when it has a toolbar, in its header row when it doesn't -->
     <div
       v-if="!!schema && improvedTables"
       class="events-table-link-row"
@@ -191,8 +187,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-// The same shape the Certificates tab gives its own link - pushed to the right, clear of the
-// table below it
 .events-table-link-row {
   display: flex;
   align-items: center;

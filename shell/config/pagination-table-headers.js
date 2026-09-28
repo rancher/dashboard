@@ -125,9 +125,6 @@ export const STEVE_MGMT_CLUSTER_KUBE_VERSION = {
   search: 'status.info.kubernetesVersion',
 };
 
-// The capacity columns are drawn by formatters, but the numbers behind them are real response
-// fields - `status.allocatable.cpuRaw` and friends - and the api sorts and filters on them. They
-// keep the sort and search their base headers declare; anything else makes the column headers lie.
 export const STEVE_MGMT_CLUSTER_CPU = { ...MGMT_CLUSTER_CPU };
 
 export const STEVE_MGMT_CLUSTER_MEMORY = { ...MGMT_CLUSTER_MEMORY };

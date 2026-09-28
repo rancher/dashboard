@@ -6,34 +6,18 @@ import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import type { GetterSource } from '@shell/utils/table-views/feature';
 
 /**
- * Columns a resource type HAS without every list of it showing them.
- *
- * A page's headers say what it shows by default. That is not the same as what the type offers:
- * the Autoscaler column belongs to a cluster wherever it is listed, but only Cluster Management
- * puts it on screen, so nowhere else could even add it. Registering it here lets the column
- * menu offer it everywhere while leaving each page's default columns exactly as they were.
- *
- * `enabled` is what keeps this from being a plain list: a column can be conditional - the
- * autoscaler one is behind a feature flag - and the condition has to travel with it rather than
- * being reapplied by every page that offers the column.
+ * Columns a type offers that not every list of it shows, eg the autoscaler column, so the column
+ * menu can add them anywhere
  */
 interface OptionalHeader {
-  /** The column as an unpaginated list wants it */
   header: HeaderOptions;
-  /** The same column for a server side paginated list, when it differs */
   paginationHeader?: PaginationHeaderOptions;
-  /** Whether this column is available at all right now */
   enabled?: (store: GetterSource) => boolean;
-  /**
-   * Name of the column this one goes in front of, so it lands where the list that shows it by
-   * default puts it rather than on the end. Ignored when that column is not there.
-   */
+  /** The column this one goes in front of, when it is there */
   before?: string;
 }
 
 const OPTIONAL_HEADERS: Record<string, OptionalHeader[]> = {
-  // Listed in the order the home page shows them, so a list adding them all ends up with the
-  // same column order it has there
   [MANAGEMENT.CLUSTER]: [
     {
       header: MGMT_CLUSTER_CPU, paginationHeader: STEVE_MGMT_CLUSTER_CPU, before: 'summary'
@@ -48,19 +32,11 @@ const OPTIONAL_HEADERS: Record<string, OptionalHeader[]> = {
       header:           AUTOSCALER_ENABLED,
       paginationHeader: STEVE_AUTOSCALER_ENABLED,
       enabled:          (store) => isAutoscalerFeatureFlagEnabled(store),
-      // Where Cluster Management puts it: straight after the version, in front of the machine
-      // summary. Landing on the end instead read as an afterthought rather than a cluster column.
       before:           'summary',
     },
   ],
 };
 
-/**
- * The columns this type offers beyond whatever the page itself shows.
- *
- * `insertBefore` rides along on the header rather than being returned beside it, because the
- * caller merges these into its own list and that is where the column has to say where it goes.
- */
 export function optionalHeadersFor(
   type: string,
   store: GetterSource,

@@ -43,7 +43,7 @@ describe('richTranslation', () => {
       getters: {
         'i18n/t': () => (key: string, _args: unknown, language?: string) => {
           // `language || selected`, exactly as localeToUse does it
-          const locale: any = language || 'zh-hans';
+          const locale = language || 'zh-hans';
 
           return translations[locale]?.[key] ?? translations['en-us'][key];
         }

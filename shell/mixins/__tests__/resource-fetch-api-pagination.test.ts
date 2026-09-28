@@ -48,7 +48,12 @@ describe('parseStateFilter', () => {
 });
 
 describe('paginationScope', () => {
-  const scopeOf = (ctx: any = {}) => (paginationMixin as any).computed.paginationScope.call({
+  interface ScopeRequest {
+    sort: { field: string }[];
+    filters: object[];
+  }
+
+  const scopeOf = (ctx: Record<string, unknown> = {}) => paginationMixin.computed.paginationScope.call({
     requestFilters: { filters: [], projectsOrNamespaces: [] },
     apiFilter:      undefined,
     ...ctx,
@@ -64,8 +69,8 @@ describe('paginationScope', () => {
 
   it('should not trip a page filter that reads a field the scope does not set', () => {
     // The project secrets list rewrites a sort field, so it reads `sort` on whatever it is given
-    const apiFilter = jest.fn((pagination: any) => {
-      pagination.sort.find((s: any) => s.field === 'metadata.name');
+    const apiFilter = jest.fn((pagination: ScopeRequest) => {
+      pagination.sort.find((s) => s.field === 'metadata.name');
 
       return pagination;
     });
@@ -76,7 +81,7 @@ describe('paginationScope', () => {
 
   it('should keep a page filter away from the request it is scoping', () => {
     const filters = [{ fields: [{ field: 'metadata.name' }] }];
-    const apiFilter = (pagination: any) => {
+    const apiFilter = (pagination: ScopeRequest) => {
       pagination.filters.push({ fields: [{ field: 'metadata.namespace' }] });
 
       return pagination;

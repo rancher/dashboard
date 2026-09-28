@@ -7,15 +7,7 @@ const DEFAULT_TIMEOUT = 5000;
 
 const MAX_GROWLS = 5;
 
-/**
- * Something the growl offers to do, shown as a button beside its message.
- *
- * `run` is a function, so a growl carrying one is not serialisable - which is fine, because the
- * stack only ever lives in memory. The notification centre is the other half of this pair and is
- * persisted, which is why {@link forNotification} takes the action back off again before a growl
- * is copied into it: a callback cannot be written down, and an offer to undo would be meaningless
- * by the time it was read back.
- */
+/** Something the growl offers to do. Not kept in the notification centre: see forNotification */
 export interface GrowlAction {
   label: string;
   run: () => void;
@@ -48,7 +40,7 @@ export interface Growl {
   /**
    * - **{@link GrowlAction}**
    *
-   * One thing the growl offers to do - undoing what it is reporting, most usefully.
+   * One thing the growl offers to do, eg undo
    */
   action?: GrowlAction;
 }
@@ -63,10 +55,7 @@ export interface GrowlState {
 
 type GrowlContext = ActionContext<GrowlState, any>;
 
-/**
- * The part of a growl that can be kept: everything but the action, whose `run` is a live callback
- * and so cannot survive being encrypted into local storage.
- */
+/** Everything but the action, whose callback can't be stored */
 function forNotification(data: GrowlData): Omit<GrowlData, 'action'> {
   const { action, ...rest } = data;
 

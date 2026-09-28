@@ -4,13 +4,14 @@ import { mapPref, AFTER_LOGIN_ROUTE, HIDE_HOME_PAGE_CARDS } from '@shell/store/p
 import BannerGraphic from '@shell/components/BannerGraphic.vue';
 import IndentedPanel from '@shell/components/IndentedPanel.vue';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
+import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks.vue';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo.vue';
 import ClusterRowPin from '@shell/components/ClusterRowPin.vue';
 import DynamicContentBanner from '@shell/components/DynamicContent/DynamicContentBanner.vue';
 import DynamicContentPanel from '@shell/components/DynamicContent/DynamicContentPanel.vue';
 import { mapGetters, mapState } from 'vuex';
-import { MANAGEMENT, CAPI, COUNT } from '@shell/config/types';
+import { MANAGEMENT, CAPI, COUNT, SAVED_COUNTS } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import {
   AGE, CLUSTER_BADGE, MGMT_CLUSTER_CPU, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_MEMORY, MGMT_CLUSTER_PODS, MGMT_CLUSTER_PROVIDER, STATE
@@ -18,6 +19,8 @@ import {
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { parseSi, createMemoryValues } from '@shell/utils/units';
 import { markSeenReleaseNotes } from '@shell/utils/version';
+import { isImprovedTablesEnabled } from '@shell/utils/table-views/feature';
+import type { ButtonVariant } from '@components/RcButton/types';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
@@ -46,6 +49,7 @@ export default defineComponent({
     BannerGraphic,
     IndentedPanel,
     PaginatedResourceTable,
+    BadgeState,
     CommunityLinks,
     SingleClusterInfo,
     TabTitle,
@@ -218,6 +222,36 @@ export default defineComponent({
       return this.tooManyClusters && !this.altClusterListDisabled;
     },
 
+    improvedTables() {
+      return isImprovedTablesEnabled(this.$store);
+    },
+
+    clusterCountDisplay() {
+      // If we have the cluster count from the store, use that instead
+      const savedCount = this.$store.getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);
+
+      return typeof savedCount !== 'undefined' ? savedCount : this.clusterCount;
+    },
+
+    clusterActions() {
+      const create = {
+        key: 'create', to: this.createLocation, testid: 'cluster-create-button', label: this.t('generic.create'), shown: this.canCreateCluster
+      };
+      const importExisting = {
+        key: 'import', to: this.importLocation, testid: 'cluster-create-import-button', label: this.t('cluster.importAction'), shown: this.canCreateCluster
+      };
+      const manage = {
+        key: 'manage', to: this.manageLocation, testid: 'cluster-management-manage-button', label: this.t('cluster.manageAction'), shown: !!this.provClusterSchema
+      };
+      const ordered = this.improvedTables ? [create, importExisting, manage] : [manage, importExisting, create];
+      const variants: Record<string, ButtonVariant> = this.improvedTables ? {
+        create: 'secondary', import: 'secondary', manage: 'primary'
+      } : {
+        manage: 'secondary', import: 'primary', create: 'primary'
+      };
+
+      return ordered.filter((action) => action.shown).map((action) => ({ ...action, variant: variants[action.key] }));
+    },
   },
 
   watch: {
@@ -257,20 +291,12 @@ export default defineComponent({
     fetchSecondaryResources(opts: PagTableFetchSecondaryResourcesOpts): PagTableFetchSecondaryResourcesReturns {
       const promises = ManagementClusterUtils.fetchSecondaryResources(opts, { $store: this.$store });
 
-      // What the Machines column draws its bar from. A cluster's machine states come from its
-      // machine deployments, and without them the column can only show a count - which is what
-      // it did here, because only Cluster Management was asking for them.
       this.fetchMachineStates();
 
       return Promise.all(promises);
     },
 
-    /**
-     * The machine deployments and node pools behind the Machines column's bar.
-     *
-     * Deliberately not awaited: the column falls back to a plain count until they land, so the
-     * clusters do not wait on them to be listed.
-     */
+    /** For the Machines column's bar. Not awaited: it shows a count until they land */
     fetchMachineStates() {
       if (this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT)) {
         this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
@@ -434,7 +460,7 @@ export default defineComponent({
 <template>
   <div
     v-if="managementReady"
-    class="home-page"
+    :class="['home-page', { 'improved-tables': improvedTables }]"
   >
     <TabTitle
       :show-child="false"
@@ -497,32 +523,16 @@ export default defineComponent({
                   v-if="canCreateCluster || !!provClusterSchema"
                   #header-middle
                 >
-                  <div class="table-heading cluster-actions">
+                  <div :class="['table-heading', { 'cluster-actions': improvedTables }]">
                     <rc-button
-                      v-if="canCreateCluster"
-                      variant="secondary"
-                      :to="createLocation"
-                      data-testid="cluster-create-button"
-                      :aria-label="t('generic.create')"
+                      v-for="action in clusterActions"
+                      :key="action.key"
+                      :variant="action.variant"
+                      :to="action.to"
+                      :data-testid="action.testid"
+                      :aria-label="action.label"
                     >
-                      {{ t('generic.create') }}
-                    </rc-button>
-                    <rc-button
-                      v-if="canCreateCluster"
-                      variant="secondary"
-                      :to="importLocation"
-                      data-testid="cluster-create-import-button"
-                      :aria-label="t('cluster.importAction')"
-                    >
-                      {{ t('cluster.importAction') }}
-                    </rc-button>
-                    <rc-button
-                      v-if="!!provClusterSchema"
-                      :to="manageLocation"
-                      data-testid="cluster-management-manage-button"
-                      :aria-label="t('cluster.manageAction')"
-                    >
-                      {{ t('cluster.manageAction') }}
+                      {{ action.label }}
                     </rc-button>
                   </div>
                 </template>
@@ -608,6 +618,11 @@ export default defineComponent({
                     <h1 class="mb-0">
                       {{ t('landing.clusters.title') }}
                     </h1>
+                    <BadgeState
+                      v-if="clusterCount && !tooManyClusters && !improvedTables"
+                      :label="clusterCountDisplay.toString()"
+                      color="bg-info ml-20 mr-20"
+                    />
                   </div>
                 </template>
                 <template
@@ -623,32 +638,16 @@ export default defineComponent({
                   v-if="canCreateCluster || !!provClusterSchema"
                   #header-middle
                 >
-                  <div class="table-heading cluster-actions">
+                  <div :class="['table-heading', { 'cluster-actions': improvedTables }]">
                     <rc-button
-                      v-if="canCreateCluster"
-                      variant="secondary"
-                      :to="createLocation"
-                      data-testid="cluster-create-button"
-                      :aria-label="t('generic.create')"
+                      v-for="action in clusterActions"
+                      :key="action.key"
+                      :variant="action.variant"
+                      :to="action.to"
+                      :data-testid="action.testid"
+                      :aria-label="action.label"
                     >
-                      {{ t('generic.create') }}
-                    </rc-button>
-                    <rc-button
-                      v-if="canCreateCluster"
-                      variant="secondary"
-                      :to="importLocation"
-                      data-testid="cluster-create-import-button"
-                      :aria-label="t('cluster.importAction')"
-                    >
-                      {{ t('cluster.importAction') }}
-                    </rc-button>
-                    <rc-button
-                      v-if="!!provClusterSchema"
-                      :to="manageLocation"
-                      data-testid="cluster-management-manage-button"
-                      :aria-label="t('cluster.manageAction')"
-                    >
-                      {{ t('cluster.manageAction') }}
+                      {{ action.label }}
                     </rc-button>
                   </div>
                 </template>
@@ -735,21 +734,21 @@ export default defineComponent({
   .table-heading {
     align-items: center;
     display: flex;
-    height: 32px;
+    height: 39px;
 
     & > a {
       margin-left: 10px;
     }
   }
 
-  // The cluster actions sit at the right hand end of the heading row, above the table's own edge
+  .improved-tables .table-heading {
+    height: 32px;
+  }
+
   .cluster-actions {
     justify-content: flex-end;
     gap: 16px;
 
-    // These buttons carry a `to`, so they are anchors and were picking up the 10px the heading
-    // gives the link that follows its title - 26px apart rather than the 16 the gap asks for.
-    // The gap is the only spacing between them.
     & > a {
       margin-left: 0;
     }
@@ -816,17 +815,16 @@ export default defineComponent({
 
 <style lang="scss">
 .home-page {
-  // The row the table's own controls stand in, no shorter than the 32 they are drawn at - the
-  // same as every other medium control in the product. It was a flat 39, measured for the search
-  // input this page used to carry, which left 7px hanging under the toolbar that replaced it.
-  //
-  // A floor rather than a height, because the row holds more than the controls: the filter box
-  // says underneath itself when a query cannot be read, and a fixed height gave that message
-  // nowhere to go - it hung over the table instead of moving it down.
+  // A floor, not a height: the filter's query message sits under it
+  &.improved-tables .search {
+    height: auto;
+    min-height: 32px;
+  }
+
   .search {
     align-items: center;
     display: flex;
-    min-height: 32px;
+    height: 39px;
 
     > INPUT {
       background-color: transparent;

@@ -7,6 +7,8 @@ import {
   summaryToValues,
   termsToServerFilters
 } from '@shell/utils/table-views';
+import type { TableViewField } from '@shell/types/table-views';
+import type { PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 const HEADERS = [
   {
@@ -277,12 +279,12 @@ describe('summaryToValues', () => {
     ['empty summary', { summary: [] }],
     ['nothing at all', undefined],
   ])('returns nothing for %s', (_name, input) => {
-    expect(summaryToValues(input as any)).toStrictEqual([]);
+    expect(summaryToValues(input)).toStrictEqual([]);
   });
 });
 
 describe('fx: termsToServerFilters', () => {
-  const FIELDS = [
+  const FIELDS: TableViewField[] = [
     {
       id: 'name', label: 'Name', isLabel: false, paginationHeader: { search: 'metadata.name' }
     },
@@ -295,15 +297,15 @@ describe('fx: termsToServerFilters', () => {
     {
       id: 'label:component', label: 'component', isLabel: true, labelKey: 'component'
     },
-  ] as any[];
+  ];
 
   const opts = { isAllowed: () => true };
-  const pathsOf = (filter: any) => filter.fields.map((f: any) => f.field);
+  const pathsOf = (filter: PaginationParamFilter) => filter.fields.map((f) => f.field);
 
   it('should search every ordinary column for a free text term', () => {
     const { filters, unsupported } = termsToServerFilters([{
       field: null, value: 'nginx', negated: false
-    }] as any, FIELDS, opts);
+    }], FIELDS, opts);
 
     expect(unsupported).toStrictEqual([]);
     expect(filters).toHaveLength(1);
@@ -315,15 +317,15 @@ describe('fx: termsToServerFilters', () => {
     // them together hangs it - see the comment in termsToServerFilters
     const { filters } = termsToServerFilters([{
       field: null, value: 'nginx', negated: false
-    }] as any, FIELDS, opts);
+    }], FIELDS, opts);
 
-    expect(pathsOf(filters[0]).some((p: string) => p.includes('labels'))).toBe(false);
+    expect(pathsOf(filters[0]).some((p) => p?.includes('labels'))).toBe(false);
   });
 
   it('should still search a label when the term names one', () => {
     const { filters, unsupported } = termsToServerFilters([{
       field: 'label:app', value: 'nginx', negated: false
-    }] as any, FIELDS, opts);
+    }], FIELDS, opts);
 
     expect(unsupported).toStrictEqual([]);
     expect(filters).toHaveLength(1);
@@ -333,7 +335,7 @@ describe('fx: termsToServerFilters', () => {
   it('should report a free text term as unsupported when no column can be searched', () => {
     const terms = [{
       field: null, value: 'nginx', negated: false
-    }] as any;
+    }];
     const { filters, unsupported } = termsToServerFilters(terms, [FIELDS[2]], opts);
 
     expect(filters).toStrictEqual([]);

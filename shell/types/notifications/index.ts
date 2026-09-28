@@ -123,16 +123,11 @@ export type EncryptedNotification = {
   data?: any;
 };
 
-/**
- * The fields of a notification that are held encrypted, rather than in the plaintext index.
- *
- * Typed against the shape above so the two cannot drift: add a field to `EncryptedNotification`
- * and forget it here and this no longer compiles. A change to any of these has to be written out
- * again - the index alone cannot bring the notification back as it now is.
- */
-export const ENCRYPTED_FIELDS: (keyof EncryptedNotification)[] = [
-  'title', 'message', 'level', 'primaryAction', 'secondaryAction', 'preference', 'handlerName', 'data'
-];
+const ENCRYPTED: Record<keyof EncryptedNotification, true> = {
+  title: true, message: true, level: true, primaryAction: true, secondaryAction: true, preference: true, handlerName: true, data: true
+};
+
+export const ENCRYPTED_FIELDS = Object.keys(ENCRYPTED) as (keyof EncryptedNotification)[];
 
 /**
  * Type for Notification that is sent

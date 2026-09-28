@@ -57,7 +57,6 @@ export default {
 
   mixins: [
     ResourceTableWatch,
-    // The table views toolbar: the view, its fields, its rows and columns, its counts, its export
     ResourceTableViews
   ],
 
@@ -136,12 +135,7 @@ export default {
       default: null
     },
 
-    /**
-     * Field to order groups by, defaults to `groupBy`.
-     *
-     * Declared here (rather than left to fall through in `$attrs`) so a caller supplied value
-     * doesn't clobber the path the table views toolbar works out - see `viewGroupSort`.
-     */
+    /** Declared so a caller's value doesn't override the toolbar's - see `viewGroupSort` */
     groupSort: {
       type:    String,
       default: null
@@ -240,20 +234,13 @@ export default {
       default: undefined,
     },
 
-    /**
-     * The pagination args the owning list is currently using, filters and all. Needed to export
-     * every matching row rather than just the page on screen.
-     */
+    /** The owning list's pagination args, to export every matching row rather than the page */
     externalPaginationArgs: {
       type:    Object,
       default: null
     },
 
-    /**
-     * What scopes the list no matter what the user has typed - the namespace/project selection
-     * and the page's own filters. Used to count and to suggest values against the whole of what
-     * this list can show, rather than against the query being typed.
-     */
+    /** The namespace/project selection and the page's own filters, without the query */
     externalPaginationScope: {
       type:    Object,
       default: null
@@ -558,8 +545,7 @@ export default {
     },
 
     computedGroupBy() {
-      // A group chosen in the table views toolbar wins - it can be any field, including a label,
-      // so the key is a function rather than a path
+      // A toolbar group can be any field, including a label, so the key is a function
       if (this.viewGroupField) {
         const field = this.viewGroupField;
         const empty = this.t('tableViews.group.empty');
@@ -831,8 +817,6 @@ export default {
       v-if="showGrouping || showTableViews"
       #header-right
     >
-      <!-- In table-views mode the filter + single "View" popup live in the core masthead's
-           search/right cell so they share the .fixed-header-actions grid row with .bulk. -->
       <TableViewControls
         v-if="showTableViews"
         :view="view"
@@ -879,13 +863,8 @@ export default {
       </div>
     </template>
 
-    <!-- Pass down templates provided by the caller.
-
-         Minus the ones this component fills in itself and renders the caller's inside, which is
-         `header-right`. Vue keeps the last template given for a slot name, so passing it straight
-         through here replaced the filter and the View button with the caller's own content - the
-         cluster dashboard's events table puts a link and a page-size menu there, and had no
-         filter at all as a result. -->
+    <!-- Pass down templates provided by the caller, except `header-right`, which this fills and
+         renders the caller's inside - Vue keeps the last template given for a slot name -->
     <template
       v-for="(_, slot) of passthroughSlots"
       :key="slot"

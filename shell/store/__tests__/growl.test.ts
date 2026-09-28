@@ -228,7 +228,7 @@ describe('growl store', () => {
 
         dispatch.mockResolvedValue('notif-undo');
 
-        await actions.success({ commit, dispatch } as any, {
+        await actions.success({ commit, dispatch } as unknown as Parameters<typeof actions.success>[0], {
           title: 'Done', message: 'ok', action
         });
 

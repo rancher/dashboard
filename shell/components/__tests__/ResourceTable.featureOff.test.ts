@@ -1,9 +1,10 @@
 import ResourceTableViews from '@shell/mixins/resource-table-views';
 import { IMPROVED_TABLES } from '@shell/store/features';
 import { TABLE_VIEWS } from '@shell/store/prefs';
+import type { TableViewField } from '@shell/types/table-views';
 
 // The table views half of ResourceTable is its own mixin, so that is where this lives
-const { data, computed, methods } = ResourceTableViews as any;
+const { data, computed, methods } = ResourceTableViews;
 
 const HEADERS = [
   {
@@ -14,7 +15,12 @@ const HEADERS = [
   },
 ];
 
-const row = (name: string, namespace: string) => ({ id: `${ namespace }/${ name }`, metadata: { name, namespace } });
+interface Row {
+  id: string;
+  metadata: { name: string, namespace: string };
+}
+
+const row = (name: string, namespace: string): Row => ({ id: `${ namespace }/${ name }`, metadata: { name, namespace } });
 const ROWS = [row('a', 'default'), row('b', 'kube'), row('c', 'kube')];
 
 const SAVED = {
@@ -37,7 +43,7 @@ const SAVED = {
  */
 function list(featureOn: boolean) {
   const dispatch = jest.fn();
-  const base: Record<string, any> = {
+  const base: Record<string, unknown> = {
     schema:                    { id: 'pod' },
     tableViews:                null,
     hasAdvancedFiltering:      false,
@@ -53,18 +59,16 @@ function list(featureOn: boolean) {
       },
     },
   };
-  const ctx: Record<string, any> = Object.assign(base, data.call(base));
+  const ctx: Record<string, unknown> = Object.assign(base, data.call(base));
 
-  Object.keys(computed).forEach((name) => {
-    const get = typeof computed[name] === 'function' ? computed[name] : computed[name].get;
-
+  Object.entries(computed).forEach(([name, get]) => {
     Object.defineProperty(ctx, name, { get: () => get.call(ctx), configurable: true });
   });
-  Object.keys(methods).forEach((name) => {
-    ctx[name] = methods[name].bind(ctx);
+  Object.entries(methods).forEach(([name, method]) => {
+    ctx[name] = method.bind(ctx);
   });
 
-  return { ctx, dispatch };
+  return { ctx: ctx as Record<string, unknown> & typeof methods, dispatch };
 }
 
 describe('ResourceTable', () => {
@@ -107,8 +111,8 @@ describe('ResourceTable', () => {
       const { ctx } = list(true);
 
       expect(ctx.showTableViews).toBe(true);
-      expect(ctx.viewRows.map((r: any) => r.metadata.name)).toStrictEqual(['b', 'c']);
-      expect(ctx.viewGroupField?.id).toBe('namespace');
+      expect((ctx.viewRows as Row[]).map((r) => r.metadata.name)).toStrictEqual(['b', 'c']);
+      expect((ctx.viewGroupField as TableViewField | null)?.id).toBe('namespace');
     });
   });
 });

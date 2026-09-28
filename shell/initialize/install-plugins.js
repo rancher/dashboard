@@ -43,9 +43,7 @@ export async function installPlugins(vueApp) {
   vueApp.use(
     ShortKey,
     {
-      // A contenteditable is somewhere the user types, so the shortcuts have to keep out of it the
-      // same way they do an <input> - otherwise a plain letter triggers whatever it is bound to
-      // (typing a query opened the namespace filter mid-word)
+      // A contenteditable takes typing like an input, so shortcuts must not fire in it
       prevent:          ['input', 'textarea', 'select', '[contenteditable="true"]', '[contenteditable="plaintext-only"]'],
       // A surface that owns the screen silences the app's shortcuts while it is up.
       preventContainer: [MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR]

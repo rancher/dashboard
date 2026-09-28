@@ -129,12 +129,7 @@ export default {
     }
   },
 
-  /**
-   * The tables under this page's tabs are this cluster's own events and certificates, not the
-   * event list - so they take the filter and the View menu and leave the saved view tabs. Said
-   * here because the route names the cluster rather than a resource in it, which is what a table
-   * would otherwise have to go on.
-   */
+  /** The tables here are this cluster's own, not the type's list, so no saved view tabs */
   provide() {
     return { showTableViewTabs: false };
   },

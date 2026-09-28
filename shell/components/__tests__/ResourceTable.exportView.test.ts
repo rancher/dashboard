@@ -2,7 +2,7 @@ import ResourceTableViews from '@shell/mixins/resource-table-views';
 import { fieldsFor } from '@shell/utils/table-views/fields';
 
 // The table views half of ResourceTable is its own mixin, so that is where these live
-const { methods } = ResourceTableViews as any;
+const { methods } = ResourceTableViews;
 
 const HEADERS = [
   {
@@ -13,14 +13,20 @@ const HEADERS = [
   },
 ];
 
-const row = (name: string, namespace: string) => ({
+interface Row {
+  nameSort: string;
+  id: string;
+  metadata: { name: string, namespace: string };
+}
+
+const row = (name: string, namespace: string): Row => ({
   nameSort: name, id: `${ namespace }/${ name }`, metadata: { name, namespace }
 });
 const ROWS = [row('c', 'kube'), row('a', 'default'), row('b', 'kube'), row('d', 'default')];
 
 /** A list that is not server side paginated, holding ROWS, with the methods under test on it */
 function list(overrides: Record<string, unknown> = {}) {
-  const ctx: Record<string, any> = {
+  const ctx: Record<string, unknown> = {
     _headers:             HEADERS,
     showTableViews:       false,
     serverSideTableViews: false,
@@ -31,14 +37,14 @@ function list(overrides: Record<string, unknown> = {}) {
     ...overrides,
   };
 
-  Object.keys(methods).forEach((name) => {
-    ctx[name] = methods[name].bind(ctx);
+  Object.entries(methods).forEach(([name, method]) => {
+    ctx[name] = method.bind(ctx);
   });
 
-  return ctx;
+  return ctx as Record<string, unknown> & typeof methods;
 }
 
-const names = (rows: any[]) => rows.map((r) => r.metadata.name);
+const names = (rows: Row[]) => rows.map((r) => r.metadata.name);
 
 describe('ResourceTable', () => {
   describe('exporting a view that is not on screen', () => {
@@ -69,7 +75,7 @@ describe('ResourceTable', () => {
     it('should gather the rows by the view\'s grouping before sorting within it', () => {
       const rows = list().orderRowsFor({ groupBy: 'namespace', sort: 'name' }, ROWS);
 
-      expect(rows.map((r: any) => `${ r.metadata.namespace }/${ r.metadata.name }`)).toStrictEqual(['default/a', 'default/d', 'kube/b', 'kube/c']);
+      expect(rows.map((r: Row) => `${ r.metadata.namespace }/${ r.metadata.name }`)).toStrictEqual(['default/a', 'default/d', 'kube/b', 'kube/c']);
     });
 
     it('should ask the api for its own filters, under the list\'s scope, on a paginated list', async() => {
@@ -100,9 +106,10 @@ describe('ResourceTable', () => {
         exportColumns: [{ label: 'on screen' }],
       });
       const onScreen = jest.fn();
+      const writeExport = jest.fn().mockResolvedValue('file.csv');
 
       ctx.allMatchingRows = onScreen;
-      ctx.writeExport = jest.fn().mockResolvedValue('file.csv');
+      ctx.writeExport = writeExport;
 
       await ctx.handleExport({
         format: 'csv', name: 'Other', view: { query: 'namespace:kube' }
@@ -110,7 +117,7 @@ describe('ResourceTable', () => {
 
       expect(onScreen).not.toHaveBeenCalled();
 
-      const [rows, format, , columns] = ctx.writeExport.mock.calls[0];
+      const [rows, format, , columns] = writeExport.mock.calls[0];
 
       expect(names(rows)).toStrictEqual(['b', 'c']);
       expect(format).toBe('csv');
@@ -124,13 +131,16 @@ describe('ResourceTable', () => {
         exportColumns: [{ label: 'on screen' }],
       });
 
-      ctx.allMatchingRows = jest.fn().mockResolvedValue(ROWS);
-      ctx.writeExport = jest.fn().mockResolvedValue('file.csv');
+      const allMatchingRows = jest.fn().mockResolvedValue(ROWS);
+      const writeExport = jest.fn().mockResolvedValue('file.csv');
+
+      ctx.allMatchingRows = allMatchingRows;
+      ctx.writeExport = writeExport;
 
       await ctx.handleExport({ format: 'csv', name: 'Shown' });
 
-      expect(ctx.allMatchingRows).toHaveBeenCalledWith(expect.any(Function), expect.any(Number));
-      expect(ctx.writeExport.mock.calls[0][3]).toStrictEqual([{ label: 'on screen' }]);
+      expect(allMatchingRows).toHaveBeenCalledWith(expect.any(Function), expect.any(Number));
+      expect(writeExport.mock.calls[0][3]).toStrictEqual([{ label: 'on screen' }]);
     });
   });
 });

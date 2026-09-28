@@ -135,8 +135,7 @@ export default {
           name="clusters"
         >
           <DrawerCard>
-            <!-- A drawer over the dashboard, showing one bundle's clusters. The filter and the
-                 View menu belong on any table; saved views of "all clusters" do not belong here. -->
+            <!-- One bundle's clusters, not the cluster list, so no saved view tabs -->
             <FleetClusters
               :table-view-tabs="false"
               :schema="clusterSchema"
@@ -155,9 +154,7 @@ export default {
           name="resources"
         >
           <DrawerCard>
-            <!-- These rows are statuses rather than a resource type, so there is no schema to
-                 turn the toolbar on by itself - it is asked for here. Tabs off for the same
-                 reason as the clusters beside them. -->
+            <!-- Statuses rather than a resource type, so the toolbar has to be asked for -->
             <FleetResources
               :table-views="true"
               :table-view-tabs="false"

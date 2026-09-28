@@ -72,8 +72,7 @@ export default {
     ButtonMultiAction,
     ActionMenu,
     TableSelectionActions,
-    // Only rendered with the table views feature off, where the bulk actions are buttons in the
-    // masthead rather than the "N selected" menu
+    // Only rendered with the table views feature off
     RcButton,
   },
 
@@ -131,8 +130,8 @@ export default {
     },
 
     groupBy: {
-      // Field to group rows by, row[groupBy] must be something that can be a map key.
-      // A function receiving the row can be given instead, for keys that aren't a simple path
+      // Field to group rows by, row[groupBy] must be something that can be a map key. Or a function
+      // of the row, for keys that aren't a simple path
       type:    [String, Function],
       default: null
     },
@@ -160,33 +159,15 @@ export default {
       default: true
     },
 
-    /**
-     * The view's server side filters, handed down by the table above.
-     *
-     * They ride on `pagination-changed` with the page and the sort rather than on a channel of
-     * their own: they are one more thing that means "this list is asking for something different
-     * now, go and fetch it", which is what that event already says.
-     */
+    /** The view's server side filters, sent with the page and sort on `pagination-changed` */
     viewFilters: {
       type:    Array,
       default: () => []
     },
 
     /**
-     * Lay the masthead out for the table views toolbar: the page's own title and buttons keep
-     * the top row, the view tabs take a second, and the filter shares a third with the selection
-     * actions.
-     *
-     * Left unset, the feature flag decides. A list page should get the layout without having to
-     * ask for it - otherwise every extension with a list page of its own has to know the prop
-     * exists to opt in, and the feature only ever reaches the tables we remembered to flip - but
-     * it has to go when the feature is turned off, and most of these tables are reached directly
-     * rather than through ResourceTable, so there is nothing else to carry the flag to them.
-     *
-     * The rows the layout adds collapse when nothing fills them, so a table with neither its own
-     * buttons nor saved view tabs still renders a single row masthead. Pass `false` for a table
-     * that must keep the original masthead whatever the flag says - the inline bulk action
-     * buttons rather than the "N selected" menu.
+     * Lay the masthead out for the table views toolbar. Unset, the feature flag decides; `false`
+     * keeps the original masthead
      */
     tableViewsLayout: {
       type:    Boolean,
@@ -506,14 +487,7 @@ export default {
   },
 
   watch: {
-    /**
-     * A different set of view filters is a different question to ask the api, so the list is told
-     * the same way a page or sort change tells it. Back to the first page with it: the row that
-     * was on page three of the old filter is not on page three of the new one.
-     *
-     * Compared by value - the array is rebuilt whenever the view is, and asking again for filters
-     * that have not actually changed is a wasted round trip.
-     */
+    /** Back to the first page: the old filter's page three is not the new one's */
     viewFilters(neu, old) {
       if (JSON.stringify(neu || []) === JSON.stringify(old || [])) {
         return;
@@ -707,35 +681,16 @@ export default {
       return !this.noResults && (this.rows || []).length === 0;
     },
 
-    /**
-     * Whether to lay the masthead out for table views.
-     *
-     * The prop when a caller states one, the feature flag otherwise - see the prop for why the
-     * flag has to reach here rather than only ResourceTable.
-     */
     useTableViewsLayout() {
       const stated = this.tableViewsLayout;
 
       return stated === null || stated === undefined ? isImprovedTablesEnabled(this.$store) : stated;
     },
 
-    /**
-     * Whether the top row of the table views header has anything to hold.
-     *
-     * That row is where a page puts its own table level actions, and plenty of lists have none.
-     * Empty, it still reserved its height and the gap beneath it, which read as a band of dead
-     * space between the page's heading and the view tabs.
-     */
     tableViewsTopRowEmpty() {
       return this.useTableViewsLayout && !this.$slots['header-left'] && !this.$slots['header-middle'];
     },
 
-    /**
-     * Whether the view tabs row has anything to hold.
-     *
-     * A table embedded in a detail page takes the filter and the selection actions without the
-     * saved view tabs, so the row they would have sat on has to go rather than hold its height.
-     */
     tableViewsTabsEmpty() {
       return this.useTableViewsLayout && !this.$slots['table-views'];
     },
@@ -1028,8 +983,6 @@ export default {
       return item ? this.t('sortableTable.genericRowCheckbox', { item }) : this.t('sortableTable.genericRowCheckboxNoItem');
     },
 
-    // Use to debug table columns using expensive value getters
-    // console.warn(`Performance: Table valueFor: ${ col.name } ${ col.value }`); // eslint-disable-line no-console
     valueFor(row, col, isLabel) {
       return columnValueFor(row, col, isLabel);
     },
@@ -1307,11 +1260,7 @@ export default {
         >
           <slot name="header-middle" />
         </div>
-        <!-- Table views puts its tabs on a row of their own between the page's own masthead and
-             the filter, so the slot is a grid item here rather than a block above the header.
-             It comes after the top row in source order as well as on screen: the grid decides
-             where these land, but the keyboard follows the document, and tabbing used to reach
-             the tabs before the buttons drawn above them. -->
+        <!-- After the top row in source order too, so tabbing reaches the page's buttons first -->
         <div
           v-if="useTableViewsLayout && !tableViewsTabsEmpty"
           class="table-views-row"
@@ -1340,8 +1289,6 @@ export default {
               <div class="bg" />
             </li>
           </ul>
-          <!-- Table views mode collapses every bulk action into one "N Selected" menu, which
-               shares the filter's row and is only there when there is a selection to act on -->
           <TableSelectionActions
             v-if="useTableViewsLayout && tableActions"
             :actions="availableActions"
@@ -2263,11 +2210,8 @@ export default {
     grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 350px);
   }
 
-  // The toolbar above this table opens menus over the rows, and a row can be left carrying a
-  // z-index of its own by something outside this component - the AI extension leaves one on every
-  // state chip the pointer has passed over - which would then paint over those menus. Giving the
-  // table a stacking context of its own keeps whatever the rows do contained to the rows, without
-  // moving anything up the shared scale.
+  // A stacking context, so a z-index a row picks up (eg the AI extension's chips) can't paint over
+  // the toolbar's menus
   .has-table-views .sortable-table {
     position: relative;
     z-index: 0;
@@ -2295,9 +2239,8 @@ export default {
       grid-template-columns: [bulk] auto [middle] minmax(min-content, auto) [search] minmax(min-content, auto);
     }
 
-    // Table views mode: three rows rather than one. The page's own masthead keeps the top row,
-    // the view tabs get the second, and the filter shares the third with the selection actions.
-    // Gated on the class — every other table keeps the default single row grid above untouched.
+    // Table views mode: the page's masthead, then the view tabs, then the filter and selection
+    // actions
     &.table-views-layout {
       grid-template-columns: [left] auto [middle] minmax(0, 1fr);
       grid-template-areas:
@@ -2305,14 +2248,10 @@ export default {
         "views  views"
         "filter filter";
       align-items: center;
-      // 16 from the page's own heading down to the tabs, 24 from the tabs to the filter, 24 from
-      // the filter to the table. One grid gap can't be two sizes, so it carries the 16 and the
-      // filter row makes up the rest.
+      // 16 down to the tabs; the filter row adds the extra 8 on each side of it
       row-gap: 16px;
       padding-bottom: 24px;
 
-      // Nothing to put on the top row, so it goes rather than sitting there holding its height
-      // and the gap under it open between the page's heading and the tabs
       &.no-top-row {
         grid-template-areas:
           "views  views"
@@ -2323,8 +2262,6 @@ export default {
         }
       }
 
-      // No saved view tabs - the filter and the selection actions on their own, under whatever
-      // the page put on the top row
       &.no-views-row {
         grid-template-areas:
           "bulk   middle"
@@ -2344,8 +2281,6 @@ export default {
         height: 32px;
       }
 
-      // Whatever the page puts here - its own action buttons - sits at the far right of the
-      // heading row, lined up with the table's right hand edge
       .middle {
         grid-area: middle;
         display: flex;
@@ -2355,18 +2290,12 @@ export default {
       }
       .table-views-row { grid-area: views; }
 
-      // Row three, the full width of the table: the selection actions (when there are any) and
-      // then the filter, which takes the rest
       .search {
         grid-area: filter;
         display: flex;
         align-items: flex-start;
         align-self: start;
-        // Pinned to the height of what it holds. Left to size itself the cell came out 7px
-        // taller than the filter inside it, and the row gap either side inherited the slack.
-        // A minimum rather than a fixed height, and held to the top of the cell: the filter can
-        // grow a line under it to say what is wrong with what was typed, and centring a taller
-        // row in a fixed cell took the filter itself up the page as the line appeared.
+        // A minimum, top aligned: the filter grows a line underneath for a query problem
         min-height: 32px;
         margin-top: 8px;
         justify-content: flex-start;
@@ -2376,8 +2305,7 @@ export default {
         margin-left: 0;
         text-align: left;
 
-        // `.row`'s clearfix pseudo elements become flex items here, and with a gap either side
-        // they push the filter 10px in from the table it sits above
+        // `.row`'s clearfix pseudo elements would be flex items, adding a gap before the filter
         &::before,
         &::after {
           display: none;

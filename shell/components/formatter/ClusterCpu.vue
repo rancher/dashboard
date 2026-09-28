@@ -14,7 +14,6 @@ const props = defineProps<{ row: ClusterRow }>();
 const store = useStore();
 const { t } = useI18n(store);
 
-// A provisioning cluster carries the numbers on its management cluster; a management one is it
 const cluster = computed(() => props.row?.mgmt || props.row);
 const cores = computed(() => parseSi(cluster.value?.status?.allocatable?.cpu));
 </script>

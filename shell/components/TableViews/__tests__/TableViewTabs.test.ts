@@ -4,16 +4,35 @@ import { createStore } from 'vuex';
 import TableViewTabs from '@shell/components/TableViews/TableViewTabs.vue';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { isViewDirty, selectedViewIdFor } from '@shell/utils/table-views/views';
+import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
 
-const EMPTY = {
+const EMPTY: TableViewState = {
   query: '', columns: null, labelColumns: [], groupBy: null
 };
 
-function makeView(id: string, name: string, overrides = {}) {
+function makeView(id: string, name: string, overrides: Partial<TableViewState> = {}): TableViewSaved {
   return {
     id, name, ...EMPTY, ...overrides
-  } as any;
+  };
 }
+
+interface ExportArgs {
+  format: string;
+  name: string;
+  view?: TableViewState;
+}
+
+/** The component's own state and handlers these tests reach into */
+interface TabsInternals {
+  selectedViewId: string | null;
+  drafts: Record<string, TableViewState>;
+  modal: { count: number | null } | null;
+  openExport(tab: { id: string, name: string, view: TableViewSaved }): void;
+  doExport(format: string): void;
+  deleteView(view: TableViewSaved): void;
+}
+
+const internals = (wrapper: { vm: unknown }) => wrapper.vm as TabsInternals;
 
 describe('TableViewTabs', () => {
   describe('selectedViewIdFor', () => {
@@ -89,11 +108,11 @@ describe('TableViewTabs', () => {
     }
 
     it('should select the view the list opened on, even when its config matches others', () => {
-      expect((createWrapper('bbb').vm as any).selectedViewId).toBe('bbb');
+      expect(internals(createWrapper('bbb')).selectedViewId).toBe('bbb');
     });
 
     it('should select the All tab when the list did not open on a saved view', () => {
-      expect((createWrapper().vm as any).selectedViewId).toBeNull();
+      expect(internals(createWrapper()).selectedViewId).toBeNull();
     });
   });
 
@@ -121,17 +140,17 @@ describe('TableViewTabs', () => {
       });
     }
 
-    const tabFor = (view: any) => ({
+    const tabFor = (view: TableViewSaved) => ({
       id: view.id, name: view.name, view
     });
 
     it('should export the tab on screen as it stands, with no view of its own', () => {
       const wrapper = createWrapper();
 
-      (wrapper.vm as any).openExport(tabFor(shown));
-      (wrapper.vm as any).doExport('csv');
+      internals(wrapper).openExport(tabFor(shown));
+      internals(wrapper).doExport('csv');
 
-      expect(wrapper.emitted('export')?.[0]?.[0]).toStrictEqual({
+      expect(wrapper.emitted<[ExportArgs]>('export')?.[0]?.[0]).toStrictEqual({
         format: 'csv', name: 'Shown', view: undefined
       });
     });
@@ -139,27 +158,27 @@ describe('TableViewTabs', () => {
     it('should export another tab with its own view and its own count, not the one on screen', () => {
       const wrapper = createWrapper();
 
-      (wrapper.vm as any).openExport(tabFor(other));
+      internals(wrapper).openExport(tabFor(other));
 
-      expect((wrapper.vm as any).modal.count).toBe(51);
+      expect(internals(wrapper).modal?.count).toBe(51);
 
-      (wrapper.vm as any).doExport('csv');
+      internals(wrapper).doExport('csv');
 
-      const args = wrapper.emitted('export')?.[0]?.[0] as any;
+      const args = wrapper.emitted<[ExportArgs]>('export')?.[0]?.[0];
 
-      expect(args.name).toBe('Other');
-      expect(args.view).toMatchObject({ query: 'name:foo', columns: ['name'] });
+      expect(args?.name).toBe('Other');
+      expect(args?.view).toMatchObject({ query: 'name:foo', columns: ['name'] });
     });
 
     it('should export another tab with the edits held for it, which is what its count counts', () => {
       const wrapper = createWrapper();
-      const vm = wrapper.vm as any;
+      const vm = internals(wrapper);
 
       vm.drafts = { bbb: { ...EMPTY, query: 'name:bar' } };
       vm.openExport(tabFor(other));
       vm.doExport('json');
 
-      expect((wrapper.emitted('export')?.[0]?.[0] as any).view.query).toBe('name:bar');
+      expect(wrapper.emitted<[ExportArgs]>('export')?.[0]?.[0]?.view?.query).toBe('name:bar');
     });
   });
 
@@ -181,8 +200,8 @@ describe('TableViewTabs', () => {
       const store = createStore({
         getters: { 'prefs/get': () => (key: string) => (key === TABLE_VIEWS ? stored : undefined) },
         actions: {
-          'prefs/set':     (_ctx: any, payload: any) => setPref(payload),
-          'growl/success': (_ctx: any, payload: any) => growl(payload),
+          'prefs/set':     (_ctx: unknown, payload: unknown) => setPref(payload),
+          'growl/success': (_ctx: unknown, payload: unknown) => growl(payload),
         },
       });
 
@@ -204,7 +223,7 @@ describe('TableViewTabs', () => {
     it('should drop the view from the saved list', () => {
       const { wrapper, setPref } = createWrapper();
 
-      (wrapper.vm as any).deleteView(second);
+      internals(wrapper).deleteView(second);
 
       expect(setPref).toHaveBeenCalledWith(expect.objectContaining({ key: TABLE_VIEWS }));
       expect(setPref.mock.calls[0][0].value.test.views).toStrictEqual([first]);
@@ -213,7 +232,7 @@ describe('TableViewTabs', () => {
     it('should say the view is gone and offer it back', () => {
       const { wrapper, growl } = createWrapper();
 
-      (wrapper.vm as any).deleteView(second);
+      internals(wrapper).deleteView(second);
 
       expect(growl).toHaveBeenCalledWith(expect.objectContaining({ action: expect.objectContaining({ run: expect.any(Function) }) }));
     });
@@ -222,7 +241,7 @@ describe('TableViewTabs', () => {
       const { wrapper } = createWrapper();
 
       // `name:foo` is what `second` holds, so it is the tab in front of the user
-      (wrapper.vm as any).deleteView(second);
+      internals(wrapper).deleteView(second);
 
       expect(wrapper.emitted('update:view')?.pop()?.[0]).toMatchObject({ query: '' });
     });
@@ -230,7 +249,7 @@ describe('TableViewTabs', () => {
     it('should leave the shown view alone when a different one is deleted', () => {
       const { wrapper } = createWrapper();
 
-      (wrapper.vm as any).deleteView(first);
+      internals(wrapper).deleteView(first);
 
       expect(wrapper.emitted('update:view')).toBeUndefined();
     });

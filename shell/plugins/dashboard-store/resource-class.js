@@ -1005,8 +1005,6 @@ export default class Resource {
       { divider: true },
       {
         action:     'download',
-        // The same action either way; the improved tables feature is what turns it from the yaml
-        // download it has always been into a choice of formats
         label:      this.t(this.improvedTables ? 'action.downloadExport' : 'action.download'),
         icon:       'icon icon-download',
         bulkable:   true,
@@ -1637,19 +1635,13 @@ export default class Resource {
     this.currentRouter().push(location);
   }
 
-  /** Whether the improved tables feature is on, which is what the export belongs to */
   get improvedTables() {
     return isImprovedTablesEnabled({ rootGetters: this.$rootGetters });
   }
 
   /**
-   * With the improved tables feature on the action reads "Export As..." and offers YAML alongside
-   * the other formats, so picking it asks which before doing anything - choosing YAML runs
-   * `downloadYaml` below, the same download this action has always done. With the feature off it
-   * is that download, directly, as it has always been.
-   *
-   * The action keeps its name either way: models up and down the product name `download` to hide
-   * or keep it.
+   * With improved tables on this asks for a format; YAML is the download it has always been. The
+   * action keeps its name either way, since models hide or keep it by name
    */
   download() {
     return this.improvedTables ? this.openExportModal([this]) : this.downloadYaml();
@@ -1660,7 +1652,7 @@ export default class Resource {
   }
 
   async openExportModal(items) {
-    // Pulled in on demand - the store layer has no business dragging a component into every bundle
+    // Imported on demand, to keep the component out of every bundle
     const { default: TableViewExportModal } = await import('@shell/components/TableViews/TableViewExportModal.vue');
 
     this.$ctx.commit('modal/openModal', {
@@ -1681,8 +1673,7 @@ export default class Resource {
 
   /**
    * @param items the resources to write into the zip
-   * @param onProgress called with (done, total) as each resource comes back, for a caller that is
-   *        showing how far along this is - it is a request per resource, so it can take a while
+   * @param onProgress called with (done, total), as it is one request per resource
    */
   async downloadYamlBulk(items, onProgress) {
     const files = {};
