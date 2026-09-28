@@ -17,6 +17,7 @@ export interface Props {
 <script setup lang="ts">
 const props = withDefaults(defineProps<Props>(), { fallbackFocus: 'body', showPopoverAriaLabel: 'Show more' });
 const card = ref<any>(null);
+const focusButton = ref<any>(null);
 const popoverContainer = ref(null);
 const showPopover = ref<boolean>(false);
 const focusOpen = ref<boolean>(false);
@@ -29,7 +30,8 @@ watch(
       const opts = {
         ...DEFAULT_FOCUS_TRAP_OPTS,
         fallbackFocus:  props.fallbackFocus,
-        setReturnFocus: () => '.focus-button'
+        // Return focus to the button of this popover, not the first popover button on the page
+        setReturnFocus: () => focusButton.value?.$el || '.focus-button'
       };
 
       useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => showPopover.value, '#popover-card', opts);
@@ -57,6 +59,7 @@ watch(
       >
         <slot name="default" />
         <RcButton
+          ref="focusButton"
           variant="ghost"
           class="focus-button"
           :aria-label="props.showPopoverAriaLabel"

@@ -9742,9 +9742,16 @@ component:
         namespace: Namespace
         project: Project
         type: Type
+        ready: Ready
+        restarts: Restarts
+        podIp: Pod IP
+        workload: Workload
+        node: Node
+        loadError: Unable to load the details of this resource
         ariaLabel:
           showDetails: Show Resource Information about { resource } named { name }
           actionMenu: Resource Actions - { resource }
+          loading: Loading resource information
   cron:
     expressionEditor:
       label:

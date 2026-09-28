@@ -156,7 +156,7 @@ describe('component: PopoverCard.vue', () => {
       const focusTrapOptions = mockFocusTrap.mock.calls[0][2];
 
       expect(focusTrapOptions.fallbackFocus).toBe('#my-fallback');
-      expect(focusTrapOptions.setReturnFocus()).toBe('.focus-button');
+      expect(focusTrapOptions.setReturnFocus()).toStrictEqual(button.element);
     });
   });
 
