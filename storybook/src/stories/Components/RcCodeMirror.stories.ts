@@ -187,11 +187,36 @@ export const CustomFolding: Story = {
     },
     template: `
       <div style="height: 400px;">
-        <RcCodeMirror v-bind="args" v-model="value" aria-label="Deployment" :extensions="extensions" @ready="onReady" />
+        <RcCodeMirror :key="args.foldOptions?.strategy" v-bind="args" v-model="value" aria-label="Deployment" :extensions="extensions" @ready="onReady" />
       </div>
     `,
   }),
   args: { foldOptions: { strategy: 'indent' } },
+};
+
+export const BracketFolding: Story = {
+  render: () => ({
+    components: { RcCodeMirror },
+    setup() {
+      const sample = '{\n  "name": "demo",\n  "closing": "}",\n  "items": [\n    1,\n    2\n  ]\n}';
+      const bracketValue = ref(sample);
+      const languageValue = ref(sample);
+
+      return { bracketValue, languageValue };
+    },
+    template: `
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+        <div>
+          <p>Bracket strategy</p>
+          <RcCodeMirror v-model="bracketValue" language="json" :fold-options="{ strategy: 'bracket' }" aria-label="JSON with bracket folding" style="height: 240px;" />
+        </div>
+        <div>
+          <p>Language strategy</p>
+          <RcCodeMirror v-model="languageValue" language="json" :fold-options="{ strategy: 'language' }" aria-label="JSON with language folding" style="height: 240px;" />
+        </div>
+      </div>
+    `,
+  }),
 };
 
 export const VModel: Story = {

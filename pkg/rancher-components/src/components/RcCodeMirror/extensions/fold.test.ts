@@ -4,6 +4,7 @@ import {
   codeFolding, foldable, foldedRanges, foldService, ensureSyntaxTree, syntaxTreeAvailable
 } from '@codemirror/language';
 import { yaml } from '@codemirror/lang-yaml';
+import { json } from '@codemirror/lang-json';
 import {
   indentFoldService,
   bracketFoldService,
@@ -28,6 +29,12 @@ function foldableAt(state: EditorState, lineNumber: number) {
   const line = state.doc.line(lineNumber);
 
   return foldable(state, line.from, line.to);
+}
+
+function bracketServiceAt(state: EditorState, lineNumber: number) {
+  const line = state.doc.line(lineNumber);
+
+  return state.facet(foldService)[0](state, line.from, line.to);
 }
 
 function createView(doc: string, extensions: Extension[]): EditorView {
@@ -101,6 +108,38 @@ describe('fold extensions', () => {
   });
 
   describe('bracketFoldService', () => {
+    const jsonWithQuotedBracket = [
+      '{',
+      '  "name": "demo",',
+      '  "closing": "}",',
+      '  "items": [',
+      '    1,',
+      '    2',
+      '  ]',
+      '}'
+    ].join('\n');
+
+    it.each([1, 4])('should match the JSON language fold on line %s when a string contains a bracket', (line) => {
+      const bracketState = createState(jsonWithQuotedBracket, [json(), bracketFoldService]);
+      const languageState = createState(jsonWithQuotedBracket, [json()]);
+
+      expect(bracketServiceAt(bracketState, line)).toStrictEqual(foldableAt(languageState, line));
+    });
+
+    it('should ignore the quoted brace when the JSON sample is parsed as YAML', () => {
+      const state = createState(jsonWithQuotedBracket, [yaml(), bracketFoldService]);
+
+      expect(bracketServiceAt(state, 1)).toStrictEqual({ from: 1, to: state.doc.line(8).from });
+    });
+
+    it('should skip brackets inside a string before the real opening bracket', () => {
+      const doc = '{\n  "quoted": "[", "items": [\n    1\n  ]\n}';
+      const state = createState(doc, [json(), bracketFoldService]);
+      const languageState = createState(doc, [json()]);
+
+      expect(bracketServiceAt(state, 2)).toStrictEqual(foldableAt(languageState, 2));
+    });
+
     it.each([
       ['{', '}'],
       ['[', ']'],
@@ -108,13 +147,13 @@ describe('fold extensions', () => {
     ])('should fold between %s and %s across lines', (open, close) => {
       const state = createState(`${ open }\n  1\n${ close }`, [bracketFoldService]);
 
-      expect(foldableAt(state, 1)).toStrictEqual({ from: 1, to: 5 });
+      expect(foldableAt(state, 1)).toStrictEqual({ from: 1, to: 6 });
     });
 
     it('should match nested brackets of the same type', () => {
       const state = createState('{\n  {\n  }\n}', [bracketFoldService]);
 
-      expect(foldableAt(state, 1)).toStrictEqual({ from: 1, to: 9 });
+      expect(foldableAt(state, 1)).toStrictEqual({ from: 1, to: 10 });
     });
 
     it('should recompute bracket pairs after the document changes', () => {
@@ -179,7 +218,7 @@ describe('fold extensions', () => {
   describe('buildFoldExtension', () => {
     it.each([
       ['indent', 'a:\n  b', { from: 2, to: 6 }],
-      ['bracket', '{\n}', { from: 1, to: 1 }],
+      ['bracket', '{\n}', { from: 1, to: 2 }],
     ] as const)('should register the %s fold service', (strategy, doc, expected) => {
       const state = createState(doc, [buildFoldExtension({ strategy })]);
 

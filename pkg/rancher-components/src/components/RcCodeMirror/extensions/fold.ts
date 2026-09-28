@@ -1,6 +1,6 @@
 import type { Extension, EditorState } from '@codemirror/state';
 import {
-  codeFolding, foldService, foldEffect, foldable, syntaxTree, ensureSyntaxTree
+  codeFolding, foldService, foldEffect, foldable, matchBrackets, syntaxTree, ensureSyntaxTree
 } from '@codemirror/language';
 import type { EditorView } from '@codemirror/view';
 
@@ -59,85 +59,24 @@ export const indentFoldService: Extension = foldService.of(
   }
 );
 
-/** Match positions are cached for each immutable editor state so gutter checks share one scan. */
-const bracketPairs = new WeakMap<EditorState, Map<number, number>>();
-
-function getBracketPairs(state: EditorState): Map<number, number> {
-  const cached = bracketPairs.get(state);
-
-  if (cached) {
-    return cached;
-  }
-
-  const pairs = new Map<number, number>();
-  const braces: number[] = [];
-  const brackets: number[] = [];
-  const parentheses: number[] = [];
-  const text = state.doc.toString();
-
-  for (let pos = 0; pos < text.length; pos++) {
-    switch (text[pos]) {
-    case '{':
-      braces.push(pos);
-      break;
-    case '}':
-      if (braces.length) {
-        pairs.set(braces.pop()!, pos);
-      }
-      break;
-    case '[':
-      brackets.push(pos);
-      break;
-    case ']':
-      if (brackets.length) {
-        pairs.set(brackets.pop()!, pos);
-      }
-      break;
-    case '(':
-      parentheses.push(pos);
-      break;
-    case ')':
-      if (parentheses.length) {
-        pairs.set(parentheses.pop()!, pos);
-      }
-      break;
-    }
-  }
-
-  bracketPairs.set(state, pairs);
-
-  return pairs;
-}
-
-/** Folds matching bracket pairs: {}, [], (). */
+/** Folds matching pairs: {}, [], (). Language syntax distinguishes strings and comments. */
 export const bracketFoldService: Extension = foldService.of(
   (state: EditorState, lineStart: number): { from: number; to: number } | null => {
     const line = state.doc.lineAt(lineStart);
-    const text = line.text;
-    let openPos = -1;
 
-    for (let i = 0; i < text.length; i++) {
-      const ch = text.charAt(i);
+    for (let i = 0; i < line.text.length; i++) {
+      if (!'{[('.includes(line.text[i])) {
+        continue;
+      }
 
-      if (ch === '{' || ch === '[' || ch === '(') {
-        openPos = line.from + i;
-        break;
+      const match = matchBrackets(state, line.from + i, 1);
+
+      if (match?.matched && match.end && state.doc.lineAt(match.end.from).number > line.number) {
+        return { from: match.start.to, to: match.end.from };
       }
     }
 
-    if (openPos === -1) {
-      return null;
-    }
-
-    const closePos = getBracketPairs(state).get(openPos);
-
-    if (closePos === undefined) {
-      return null;
-    }
-
-    const closeLine = state.doc.lineAt(closePos);
-
-    return closeLine.number > line.number ? { from: line.to, to: closeLine.from - 1 } : null;
+    return null;
   }
 );
 

@@ -70,9 +70,13 @@ The package also exports fold services for the `extensions` prop and imperative 
 - `foldByYamlPath(path)` and `foldYamlPath(view, path)` for a dot-notation YAML path such as `metadata.labels`
 - `commentFoldService` and `foldAllComments(view)` for nested comment blocks
 
-This story folds `spec` and `metadata.labels` on load.
+This story folds `spec` and `metadata.labels` on load. Changing its fold strategy in Controls remounts the editor so the new strategy takes effect.
 
 <Canvas of={RcCodeMirrorStories.CustomFolding} />
+
+The JSON example compares bracket folding with language folding. The string value `"}"` must not close the outer object.
+
+<Canvas of={RcCodeMirrorStories.BracketFolding} />
 
 ## Translations
 
