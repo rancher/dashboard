@@ -1,4 +1,4 @@
-import { mount, RouterLinkStub } from '@vue/test-utils';
+import { flushPromises, mount, RouterLinkStub } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import ResourcePopover from '@shell/components/Resource/Detail/ResourcePopover/index.vue';
 import PopoverCard from '@shell/components/PopoverCard.vue';
@@ -408,6 +408,183 @@ describe('component: ResourcePopover/index.vue', () => {
       await flush(wrapper);
 
       expect(mockClusterFind).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('resources the card needs besides the resource itself', () => {
+    // Like PopoverCard, the content of the card is only mounted while the card is open
+    const OpenablePopoverCardStub = {
+      PopoverCard: {
+        data:     () => ({ open: false }),
+        template: `
+              <div>
+                <slot />
+                <slot name="heading-action" :close="() => {}" />
+                <div v-if="open"><slot name="card-body" /></div>
+              </div>
+            `,
+      },
+    };
+
+    const openCard = async(wrapper: any) => {
+      wrapper.findComponent(PopoverCard).vm.open = true;
+      await flushPromises();
+    };
+
+    const closeCard = async(wrapper: any) => {
+      wrapper.findComponent(PopoverCard).vm.open = false;
+      await flushPromises();
+    };
+
+    const resourceWithGlanceResources = (fetchGlanceResources = jest.fn().mockResolvedValue(undefined)) => ({ ...mockResource, fetchGlanceResources });
+
+    it('should not fetch them when the resource loads, before the card opens', async() => {
+      const resource = resourceWithGlanceResources();
+
+      mockClusterFind.mockResolvedValue(resource);
+      createWrapper(undefined, undefined, OpenablePopoverCardStub);
+
+      await flushPromises();
+
+      expect(resource.fetchGlanceResources.mock.calls).toStrictEqual([]);
+    });
+
+    it('should fetch them each time the card opens, so they are current', async() => {
+      const resource = resourceWithGlanceResources();
+
+      mockClusterFind.mockResolvedValue(resource);
+      const wrapper = createWrapper(undefined, undefined, OpenablePopoverCardStub);
+
+      await flushPromises();
+      await openCard(wrapper);
+
+      expect(resource.fetchGlanceResources).toHaveBeenCalledWith();
+
+      await closeCard(wrapper);
+      await openCard(wrapper);
+
+      expect(resource.fetchGlanceResources).toHaveBeenCalledTimes(2);
+      expect(mockClusterFind).toHaveBeenCalledTimes(1);
+    });
+
+    it('should show the card without waiting for them', async() => {
+      const resource = resourceWithGlanceResources(jest.fn(() => new Promise(() => { })));
+
+      mockClusterFind.mockResolvedValue(resource);
+      const wrapper = createWrapper(undefined, undefined, OpenablePopoverCardStub);
+
+      await flushPromises();
+      await openCard(wrapper);
+
+      expect(wrapper.find('[data-testid="resource-popover-loading"]').exists()).toBe(false);
+      expect(wrapper.findComponent({ name: 'ResourcePopoverCard' }).props('resource')).toStrictEqual(resource);
+    });
+
+    it('should show the card when they can not be fetched', async() => {
+      const resource = resourceWithGlanceResources(jest.fn().mockRejectedValue(new Error('forbidden')));
+
+      mockClusterFind.mockResolvedValue(resource);
+      const wrapper = createWrapper(undefined, undefined, OpenablePopoverCardStub);
+
+      await flushPromises();
+      await openCard(wrapper);
+
+      expect(resource.fetchGlanceResources).toHaveBeenCalledWith();
+      expect(wrapper.find('[data-testid="resource-popover-error"]').exists()).toBe(false);
+      expect(wrapper.findComponent({ name: 'ResourcePopoverCard' }).props('resource')).toStrictEqual(resource);
+    });
+
+    it('should show the card of a resource that does not need them', async() => {
+      mockClusterFind.mockResolvedValue(mockResource);
+      const wrapper = createWrapper(undefined, undefined, OpenablePopoverCardStub);
+
+      await flushPromises();
+      await openCard(wrapper);
+
+      expect(wrapper.findComponent({ name: 'ResourcePopoverCard' }).props('resource')).toStrictEqual(mockResource);
+    });
+
+    it('should fetch them once the resource has loaded when the card opened first', async() => {
+      const resource = resourceWithGlanceResources();
+      let resolveFind: (value: any) => void = () => { };
+
+      mockClusterFind.mockImplementation(() => new Promise((resolve) => {
+        resolveFind = resolve;
+      }));
+      const wrapper = createWrapper(undefined, undefined, OpenablePopoverCardStub);
+
+      await openCard(wrapper);
+      resolveFind(resource);
+      await flushPromises();
+
+      expect(resource.fetchGlanceResources).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not fetch them when the card closed before the resource loaded', async() => {
+      const resource = resourceWithGlanceResources();
+      let resolveFind: (value: any) => void = () => { };
+
+      mockClusterFind.mockImplementation(() => new Promise((resolve) => {
+        resolveFind = resolve;
+      }));
+      const wrapper = createWrapper(undefined, undefined, OpenablePopoverCardStub);
+
+      await openCard(wrapper);
+      await closeCard(wrapper);
+      resolveFind(resource);
+      await flushPromises();
+
+      expect(resource.fetchGlanceResources.mock.calls).toStrictEqual([]);
+    });
+
+    it('should fetch them once when a lazy resource is first hovered', async() => {
+      const resource = resourceWithGlanceResources();
+
+      mockClusterFind.mockResolvedValue(resource);
+      const wrapper = createWrapper({ lazy: true }, undefined, OpenablePopoverCardStub);
+
+      await wrapper.findComponent(PopoverCard).trigger('mouseenter');
+      await openCard(wrapper);
+
+      expect(resource.fetchGlanceResources).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not fetch them when a lazy resource is focused but its card is not opened', async() => {
+      const resource = resourceWithGlanceResources();
+
+      mockClusterFind.mockResolvedValue(resource);
+      const wrapper = createWrapper({ lazy: true }, undefined, OpenablePopoverCardStub);
+
+      await wrapper.findComponent(PopoverCard).trigger('focusin');
+      await flushPromises();
+
+      expect(mockClusterFind).toHaveBeenCalledWith(expect.any(Object), { type: 'pod', id: 'test-ns/test-pod' });
+      expect(resource.fetchGlanceResources.mock.calls).toStrictEqual([]);
+    });
+
+    it('should not fetch them when the resource can not be loaded', async() => {
+      mockClusterFind.mockRejectedValue(new Error('Not found'));
+      const wrapper = createWrapper({ lazy: true }, undefined, OpenablePopoverCardStub);
+
+      await wrapper.findComponent(PopoverCard).trigger('mouseenter');
+      await openCard(wrapper);
+
+      expect(wrapper.find('[data-testid="resource-popover-error"]').exists()).toBe(true);
+    });
+  });
+
+  describe('wrapName', () => {
+    it.each([
+      [undefined, false],
+      [false, false],
+      [true, true],
+    ])('should wrap a long name when wrapName is %p: %p', async(wrapName, expected) => {
+      mockClusterFind.mockResolvedValue(mockResource);
+      const wrapper = createWrapper({ wrapName }, undefined, PopoverCardStub);
+
+      await flushPromises();
+
+      expect(wrapper.findComponent(PopoverCard).classes('wrap-name')).toBe(expected);
     });
   });
 });

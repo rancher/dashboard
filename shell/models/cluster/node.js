@@ -7,6 +7,10 @@ import { parseSi } from '@shell/utils/units';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { LOCAL } from '@shell/config/query-params';
+import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
+
+// Prefix of the saved count of running pods on a node, see `glancePodConsumedUsage`
+const RUNNING_PODS_COUNT = 'nodeRunningPods';
 
 export default class ClusterNode extends SteveModel {
   get _availableActions() {
@@ -438,6 +442,131 @@ export default class ClusterNode extends SteveModel {
     return details;
   }
 
+  get glance() {
+    const glance = [...this._glance];
+
+    // Nodes aren't namespaced
+    const namespaceIndex = glance.findIndex((item) => item.name === 'namespace');
+
+    if (namespaceIndex > -1) {
+      glance.splice(namespaceIndex, 1);
+    }
+
+    const rows = [
+      ipGlanceRow('externalIp', this.t('component.resource.detail.glance.externalIp'), this.externalIp),
+      ipGlanceRow('internalIp', this.t('component.resource.detail.glance.internalIp'), this.internalIp),
+      {
+        name:    'version',
+        label:   this.t('component.resource.detail.glance.version'),
+        content: this.version || '—'
+      },
+      {
+        name:    'os',
+        label:   this.t('component.resource.detail.glance.os'),
+        content: this.status?.nodeInfo?.osImage || '—'
+      },
+    ];
+
+    const ageIndex = glance.findIndex((item) => item.name === 'age');
+
+    glance.splice(ageIndex > -1 ? ageIndex : glance.length, 0, ...rows);
+
+    return glance;
+  }
+
+  /**
+   * CPU, memory and pods usage, shown below the rows of the node's popover card. Usage without a percentage is shown as unavailable
+   */
+  get glanceUsage() {
+    return [
+      {
+        name:       'cpu',
+        label:      this.t('component.resource.detail.glance.cpu'),
+        percentage: listPercentage(this.cpuUsagePercentage)
+      },
+      {
+        name:       'memory',
+        label:      this.t('component.resource.detail.glance.memory'),
+        percentage: listPercentage(this.ramUsagePercentage)
+      },
+      {
+        name:       'pods',
+        label:      this.t('component.resource.detail.glance.pods'),
+        percentage: listPercentage(this.glancePodConsumedUsage)
+      },
+    ];
+  }
+
+  /**
+   * The same as podConsumedUsage, which the Nodes list shows. With server-side pagination only a page of pods is in the store,
+   * so the running pods on the node are counted by the API instead, see `fetchGlanceResources`
+   */
+  get glancePodConsumedUsage() {
+    if (!this.$rootGetters['cluster/paginationEnabled'](POD)) {
+      return this.podConsumedUsage;
+    }
+
+    const running = this.$rootGetters['cluster/getSavedCount'](this.runningPodsCountName);
+
+    return running === undefined ? undefined : ((running / this.podCapacity) * 100).toString();
+  }
+
+  /**
+   * Saved counts are kept when the user changes cluster, so the name includes the cluster
+   */
+  get runningPodsCountName() {
+    return `${ RUNNING_PODS_COUNT }/${ this.$rootGetters['clusterId'] }/${ this.id }`;
+  }
+
+  /**
+   * Fetch what the node's popover card shows besides the node: its metrics, for CPU and memory usage, and its running pods
+   */
+  async fetchGlanceResources() {
+    const promises = [];
+
+    if (this.$rootGetters['cluster/schemaFor'](METRIC.NODE)) {
+      // Metrics can't be watched, the card fetches them each time it opens
+      promises.push(this.$dispatch('cluster/find', {
+        type: METRIC.NODE,
+        id:   this.id,
+        opt:  { force: true, watch: false }
+      }, { root: true }));
+    }
+
+    if (this.$rootGetters['cluster/schemaFor'](POD)) {
+      promises.push(this.fetchRunningPods());
+    }
+
+    await Promise.all(promises);
+  }
+
+  /**
+   * Make sure the running pods on the node can be counted, the same way the Nodes list does
+   */
+  async fetchRunningPods() {
+    if (!this.$rootGetters['cluster/paginationEnabled'](POD)) {
+      // Like the Nodes list, which needs every pod. In the Pods list they're already loaded
+      return this.$dispatch('cluster/findAll', { type: POD }, { root: true });
+    }
+
+    // Only the count is needed. It isn't stored as a page of pods, which would replace e.g. the page shown by the Pods list
+    return this.$dispatch('cluster/findPage', {
+      type: POD,
+      opt:  {
+        transient:   true,
+        saveCountAs: this.runningPodsCountName,
+        pagination:  new PaginationArgs({
+          page:     1,
+          pageSize: 1,
+          filters:  [
+            PaginationParamFilter.createSingleField({ field: 'spec.nodeName', value: this.id }),
+            PaginationParamFilter.createSingleField({ field: 'metadata.state.name', value: 'running' }),
+          ]
+        })
+      }
+    }, { root: true });
+  }
+
   get pods() {
     // This fetches all pods that are in the store, rather than all pods in the cluster
     const allPods = this.$rootGetters['cluster/all'](POD);
@@ -486,6 +615,27 @@ export default class ClusterNode extends SteveModel {
   get displayTaintsAndLabels() {
     return !!this.spec.taints?.length || !!this.customLabelCount;
   }
+}
+
+/**
+ * A glance row for an IP address that can be copied, or a dash when the node doesn't have one
+ */
+function ipGlanceRow(name, label, ip) {
+  return {
+    name,
+    label,
+    formatter: ip ? 'CopyToClipboard' : undefined,
+    content:   ip || '—'
+  };
+}
+
+/**
+ * Parse a usage percentage the Nodes list shows. Like the list, 0 is shown as unavailable, e.g. there are no metrics for the node
+ */
+function listPercentage(value) {
+  const percentage = Number.parseFloat(value);
+
+  return Number.isFinite(percentage) && percentage > 0 ? percentage : undefined;
 }
 
 function calculatePercentage(allocatable, capacity) {

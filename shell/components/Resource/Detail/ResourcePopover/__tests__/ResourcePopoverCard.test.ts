@@ -5,6 +5,7 @@ import { compileStyle, parse } from '@vue/compiler-sfc';
 import { mount, VueWrapper } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import ResourcePopoverCard from '@shell/components/Resource/Detail/ResourcePopover/ResourcePopoverCard.vue';
+import PercentageBar from '@shell/components/PercentageBar.vue';
 
 describe('component: ResourcePopoverCard.vue', () => {
   let wrapper: VueWrapper<any>;
@@ -107,6 +108,93 @@ describe('component: ResourcePopoverCard.vue', () => {
     const secondValue = wrapper.findAll('.value')[1];
 
     expect(secondValue.find('#first-glance-item').exists()).toBe(false);
+  });
+
+  describe('usage', () => {
+    const withUsage = (glanceUsage: any) => createWrapper({ ...mockResource, glanceUsage });
+
+    const usageItem = (w: VueWrapper<any>, name: string) => w.find(`[data-testid="resource-popover-usage-${ name }"]`);
+
+    it.each([
+      ['has no usage', undefined],
+      ['has an empty usage list', []],
+    ])('should not render the usage when the resource %s', (_, glanceUsage) => {
+      const w = withUsage(glanceUsage);
+
+      expect(w.find('[data-testid="resource-popover-usage"]').exists()).toBe(false);
+      w.unmount();
+    });
+
+    it('should render an item with a label for each usage, in order', () => {
+      const w = withUsage([
+        {
+          name: 'cpu', label: 'CPU', percentage: 10
+        },
+        {
+          name: 'memory', label: 'Memory', percentage: 20
+        },
+        {
+          name: 'pods', label: 'Pods', percentage: 30
+        },
+      ]);
+
+      expect(w.findAll('.usage-item').map((item) => item.find('.text-deemphasized').text())).toStrictEqual(['CPU', 'Memory', 'Pods']);
+      w.unmount();
+    });
+
+    it.each([
+      [42.4, '42%', 42.4],
+      [0, '0%', 0],
+      [0.5, '0.5%', 0.5],
+      [5.25, '5.3%', 5.25],
+      [100, '100%', 100],
+      [150, '150%', 100],
+      [-5, '-5%', 0],
+    ])('should show a usage of %p as %p with a bar at %p', (percentage, text, bar) => {
+      const w = withUsage([{
+        name: 'cpu', label: 'CPU', percentage
+      }]);
+      const item = usageItem(w, 'cpu');
+
+      expect(item.find('.usage-value').text()).toStrictEqual(text);
+      expect(item.findComponent(PercentageBar).props('modelValue')).toStrictEqual(bar);
+      w.unmount();
+    });
+
+    it.each([
+      ['missing', undefined],
+      ['not a number', NaN],
+      ['infinite', Infinity],
+      ['a string', '42'],
+      ['null', null],
+    ])('should show n/a with an empty bar when the usage is %s', (_, percentage) => {
+      const w = withUsage([{
+        name: 'cpu', label: 'CPU', percentage
+      }]);
+      const item = usageItem(w, 'cpu');
+
+      expect(item.find('.usage-value').text()).toStrictEqual('generic.na');
+      expect(item.findComponent(PercentageBar).props('modelValue')).toStrictEqual(0);
+      w.unmount();
+    });
+
+    it('should hide the bar from assistive technology, as the percentage is shown as text', () => {
+      const w = withUsage([{
+        name: 'cpu', label: 'CPU', percentage: 10
+      }]);
+
+      expect(usageItem(w, 'cpu').findComponent(PercentageBar).attributes('aria-hidden')).toStrictEqual('true');
+      w.unmount();
+    });
+
+    it('should still render the glance rows when there is usage', () => {
+      const w = withUsage([{
+        name: 'cpu', label: 'CPU', percentage: 10
+      }]);
+
+      expect(w.findAll('.row')).toHaveLength(mockResource.glance.length);
+      w.unmount();
+    });
   });
 });
 
