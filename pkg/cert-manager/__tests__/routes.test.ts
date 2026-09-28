@@ -48,6 +48,7 @@ async function extensionRoutes(): Promise<RouteRecordRaw[]> {
     addProduct:                 jest.fn(),
     addRoute:                   jest.fn((route: RouteRecordRaw) => routes.push(route)),
     enableServerSidePagination: jest.fn(),
+    _setStartRouteWithProduct:  jest.fn(),
     DSL:                        jest.fn().mockReturnValue({}),
     register:                   jest.fn(),
     metadata:                   {},

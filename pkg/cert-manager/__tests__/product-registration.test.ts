@@ -43,6 +43,7 @@ async function applyExtension() {
     addProduct:                 jest.fn(),
     addRoute:                   jest.fn(),
     enableServerSidePagination: jest.fn(),
+    _setStartRouteWithProduct:  jest.fn(),
     DSL:                        jest.fn().mockReturnValue(dsl),
     register:                   jest.fn(),
     metadata:                   {},
