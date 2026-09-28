@@ -3,6 +3,7 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import { qase } from '@/cypress/support/qase';
 
 // const localWorkspace = 'fleet-local';
 const defaultWorkspace = 'fleet-default';
@@ -23,7 +24,7 @@ describe('Bundle Namespace Mappings', { testIsolation: 'off', tags: ['@fleet', '
       });
     });
 
-    it('can create a bundle namespace mapping', () => {
+    qase(8567, it('can create a bundle namespace mapping', () => {
       const fleetBundleNsMappingCreateEditPage = new FleetBundleNsMappingCreateEditPo();
 
       cy.intercept('POST', '/v1/fleet.cattle.io.bundlenamespacemappings').as('createMapping');
@@ -59,7 +60,7 @@ describe('Bundle Namespace Mappings', { testIsolation: 'off', tags: ['@fleet', '
       });
       fleetBundleNsMappingsListPage.waitForPage();
       fleetBundleNsMappingsListPage.list().rowWithName(customMappingName).checkVisible();
-    });
+    }));
 
     // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/13990
     // it.skip('can Edit Config', () => {
@@ -95,7 +96,7 @@ describe('Bundle Namespace Mappings', { testIsolation: 'off', tags: ['@fleet', '
     //   fleetBundleNsMappingsListPage.waitForPage();
     // });
 
-    it('can clone a bundle namespace mapping', () => {
+    qase(8569, it('can clone a bundle namespace mapping', () => {
       const fleetBundleNsMappingCreateEditPage = new FleetBundleNsMappingCreateEditPo(defaultWorkspace, customMappingName);
 
       cy.intercept('POST', '/v1/fleet.cattle.io.bundlenamespacemappings').as('cloneMapping');
@@ -127,9 +128,9 @@ describe('Bundle Namespace Mappings', { testIsolation: 'off', tags: ['@fleet', '
       });
       fleetBundleNsMappingsListPage.waitForPage();
       fleetBundleNsMappingsListPage.list().rowWithName(`${ customMappingName }-clone`).checkVisible();
-    });
+    }));
 
-    it('can Download YAML', () => {
+    qase(8570, it('can Download YAML', () => {
       cy.deleteDownloadsFolder();
 
       fleetBundleNsMappingsListPage.goTo();
@@ -146,9 +147,9 @@ describe('Bundle Namespace Mappings', { testIsolation: 'off', tags: ['@fleet', '
         expect(obj.kind).to.equal('BundleNamespaceMapping');
         expect(obj.metadata['name']).to.equal(customMappingName);
       });
-    });
+    }));
 
-    it('can delete a bundle namespace mapping', () => {
+    qase(8571, it('can delete a bundle namespace mapping', () => {
       fleetBundleNsMappingsListPage.goTo();
       fleetBundleNsMappingsListPage.waitForPage();
       fleetBundleNsMappingsListPage.list().actionMenu(`${ customMappingName }-clone`).getMenuItem('Delete')
@@ -169,7 +170,7 @@ describe('Bundle Namespace Mappings', { testIsolation: 'off', tags: ['@fleet', '
             .rowNames('.col-link-detail')
             .should('not.contain', `${ customMappingName }-clone`);
         });
-    });
+    }));
 
     after('clean up', () => {
       if (removeMappings) {
