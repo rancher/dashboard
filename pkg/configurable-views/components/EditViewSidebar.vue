@@ -1,136 +1,123 @@
-<script>
+<script setup lang="ts">
+import { computed, ref } from 'vue';
 import CatalogTile from './CatalogTile.vue';
-import { BUILDING_BLOCKS, READY_MADE, searchCatalog, blockName } from '../templating/widget-catalog';
 import {
-  NODE_WIDGET, WIDTH_PRESETS, HEIGHT_PRESETS, SPACING_PRESETS, COLUMN_SPANS,
+  BUILDING_BLOCKS, READY_MADE, searchCatalog, blockName, type CatalogEntry
+} from '../templating/widget-catalog';
+import {
+  WIDTH_PRESETS, HEIGHT_PRESETS, SPACING_PRESETS, COLUMN_SPANS,
   DEFAULT_GAP, DEFAULT_PAGE_PADDING, widthPresetOf, heightPresetOf, spacingPresetOf
 } from '../templating/view-model';
+import type { Panel, Sides, WidgetNode } from '../templating/types';
 
-// The "Edit view" drawer. Three tabs, and the split between them is the point:
+// The "Edit panel" drawer. Three tabs, and the split between them is the point:
 //
 //   ADD     what goes on the grid — building blocks (a shape, you say what it shows) and
 //           ready-made widgets (the same shapes with their data already chosen).
 //   LAYOUT  how the SELECTED widget sits — width, height, spacing, and exact pixels under Advanced.
-//   VIEW    what is true of the WHOLE view — its name, its gap, whether it is your default.
+//   PANEL   what is true of the WHOLE panel — its name, its gap, whether it is your default.
 //
 // Everything is emitted; the drawer holds only its own tab, search box and Advanced toggle.
-export default {
-  name:       'EditViewSidebar',
-  components: { CatalogTile },
 
-  props: {
-    // The view being edited (a panel).
-    view: {
-      type:    Object,
-      default: null,
-    },
-    // The node the Layout tab acts on (null when nothing is selected).
-    selected: {
-      type:    Object,
-      default: null,
-    },
-    isDefault: {
-      type:    Boolean,
-      default: false,
-    },
-    // A view that has never been saved shows its starting points instead of jumping straight to
-    // the catalog — the first decision is what it should be ABOUT.
-    isNew: {
-      type:    Boolean,
-      default: false,
-    },
-    startedFrom: {
-      type:    String,
-      default: '',
-    },
-    startingPoints: {
-      type:    Array,
-      default: () => [],
-    },
-    // Rancher's own Home, kept as a view. There is no grid behind it, so there is nothing to add
-    // to it and nothing to lay out.
-    isStock: {
-      type:    Boolean,
-      default: false,
-    },
-  },
+/** A panel a new one can start as a copy of. */
+export interface StartingPoint {
+  id: string;
+  label: string;
+}
 
-  emits: [
-    'close', 'add', 'drag-start', 'drag-end', 'set-width', 'set-height', 'set-spacing',
-    'set-box', 'set-col-span', 'set-gap', 'set-name', 'set-default', 'publish', 'delete',
-    'start-from', 'advanced', 'set-page-padding'
-  ],
-
-  data() {
-    return {
-      tab:          'add',
-      search:       '',
-      advancedOpen: false,
-      widths:       WIDTH_PRESETS,
-      heights:      HEIGHT_PRESETS,
-      spacings:     SPACING_PRESETS,
-      columnSpans:  COLUMN_SPANS,
-      sides:        ['top', 'right', 'bottom', 'left'],
-    };
-  },
-
-  computed: {
-    blocks() {
-      return searchCatalog(BUILDING_BLOCKS, this.search);
-    },
-
-    readyMade() {
-      return searchCatalog(READY_MADE, this.search);
-    },
-
-    gap() {
-      return this.view?.gap ?? DEFAULT_GAP;
-    },
-
-    pagePadding() {
-      return this.view?.pad ?? DEFAULT_PAGE_PADDING;
-    },
-
-    // "Selected: Clusters (Table)" — the widget's own title, then which building block it is.
-    selectedLabel() {
-      if (!this.selected) {
-        return '';
-      }
-      if (this.selected.type !== NODE_WIDGET) {
-        return `${ this.selected.template } (Template)`;
-      }
-
-      const widget = this.selected.widget;
-
-      return `${ widget.title || blockName(widget.kind) } (${ blockName(widget.kind) })`;
-    },
-
-    widthPreset() {
-      return this.selected ? widthPresetOf(this.selected.colSpan) : null;
-    },
-
-    heightPreset() {
-      return this.selected ? heightPresetOf(this.selected.height, this.gap) : null;
-    },
-
-    spacingPreset() {
-      return this.selected ? spacingPresetOf(this.selected.padding) : null;
-    },
-  },
-
-  methods: {
-    // The canvas draws the margin/padding bands while this is open, so the numbers being typed
-    // have something to point at.
-    toggleAdvanced() {
-      this.advancedOpen = !this.advancedOpen;
-      this.$emit('advanced', this.advancedOpen);
-    },
-
-    sideLabel(side) {
-      return side.charAt(0).toUpperCase() + side.slice(1);
-    },
-  },
+type SidebarEmits = {
+  close: [];
+  add: [entry: CatalogEntry];
+  'drag-start': [entry: CatalogEntry, event: DragEvent];
+  'drag-end': [];
+  'set-width': [span: number];
+  'set-height': [preset: string];
+  'set-spacing': [preset: string];
+  'set-box': [box: 'margin' | 'padding', side: keyof Sides, value: string];
+  'set-col-span': [span: number];
+  'set-gap': [value: string];
+  'set-page-padding': [value: string];
+  'set-name': [name: string];
+  'set-default': [];
+  publish: [];
+  delete: [];
+  /** '' starts from nothing. */
+  'start-from': [panelId: string];
+  advanced: [open: boolean];
 };
+
+const props = withDefaults(defineProps<{
+  /** The panel being edited. */
+  view?: Panel | null;
+  /** The widget the Layout tab acts on (null when nothing is selected). */
+  selected?: WidgetNode | null;
+  isDefault?: boolean;
+  /**
+   * A panel that has never been saved shows its starting points instead of jumping straight to the
+   * catalog — the first decision is what it should be ABOUT.
+   */
+  isNew?: boolean;
+  startedFrom?: string;
+  startingPoints?: StartingPoint[];
+  /**
+   * Rancher's own Home, kept as a panel. There is no grid behind it, so there is nothing to add to it
+   * and nothing to lay out.
+   */
+  isStock?: boolean;
+}>(), {
+  view:           null,
+  selected:       null,
+  isDefault:      false,
+  isNew:          false,
+  startedFrom:    '',
+  startingPoints: () => [],
+  isStock:        false,
+});
+
+const emit = defineEmits<SidebarEmits>();
+
+const tab = ref('add');
+const search = ref('');
+const advancedOpen = ref(false);
+
+const widths = WIDTH_PRESETS;
+const heights = HEIGHT_PRESETS;
+const spacings = SPACING_PRESETS;
+const columnSpans = COLUMN_SPANS;
+const sides: (keyof Sides)[] = ['top', 'right', 'bottom', 'left'];
+
+const blocks = computed(() => searchCatalog(BUILDING_BLOCKS, search.value));
+const readyMade = computed(() => searchCatalog(READY_MADE, search.value));
+
+const gap = computed(() => (props.view && 'gap' in props.view ? props.view.gap : DEFAULT_GAP));
+const pagePadding = computed(() => (props.view && 'pad' in props.view ? props.view.pad : DEFAULT_PAGE_PADDING));
+
+// "Selected: Clusters (Table)" — the widget's own title, then which building block it is.
+const selectedLabel = computed(() => {
+  const widget = props.selected?.widget;
+
+  return widget ? `${ widget.title || blockName(widget.kind) } (${ blockName(widget.kind) })` : '';
+});
+
+const widthPreset = computed(() => (props.selected ? widthPresetOf(props.selected.colSpan) : null));
+const heightPreset = computed(() => (props.selected ? heightPresetOf(props.selected.height, gap.value) : null));
+const spacingPreset = computed(() => (props.selected ? spacingPresetOf(props.selected.padding) : null));
+
+// The canvas draws the margin/padding bands while this is open, so the numbers being typed have
+// something to point at.
+function toggleAdvanced(): void {
+  advancedOpen.value = !advancedOpen.value;
+  emit('advanced', advancedOpen.value);
+}
+
+function sideLabel(side: string): string {
+  return side.charAt(0).toUpperCase() + side.slice(1);
+}
+
+/** What an input or select holds, from its event. */
+function valueOf(ev: Event): string {
+  return (ev.target as HTMLInputElement).value;
+}
 </script>
 
 <template>
@@ -370,7 +357,7 @@ export default {
                     class="evs__field evs__field--num"
                     type="number"
                     :value="selected.margin[side]"
-                    @change="$emit('set-box', 'margin', side, $event.target.value)"
+                    @change="$emit('set-box', 'margin', side, valueOf($event))"
                   >
                   <span>{{ sideLabel(side) }}</span>
                 </label>
@@ -390,7 +377,7 @@ export default {
                     class="evs__field evs__field--num"
                     type="number"
                     :value="selected.padding[side]"
-                    @change="$emit('set-box', 'padding', side, $event.target.value)"
+                    @change="$emit('set-box', 'padding', side, valueOf($event))"
                   >
                   <span>{{ sideLabel(side) }}</span>
                 </label>
@@ -430,7 +417,7 @@ export default {
           class="evs__field"
           :value="view ? view.name : ''"
           aria-label="Panel name"
-          @input="$emit('set-name', $event.target.value)"
+          @input="$emit('set-name', valueOf($event))"
         >
 
         <h4
@@ -450,7 +437,7 @@ export default {
             max="64"
             :value="gap"
             aria-label="Grid gap in pixels"
-            @change="$emit('set-gap', $event.target.value)"
+            @change="$emit('set-gap', valueOf($event))"
           >
           <span class="evs__hint">pixels between widgets</span>
         </div>
@@ -472,7 +459,7 @@ export default {
             max="96"
             :value="pagePadding"
             aria-label="Page padding in pixels"
-            @change="$emit('set-page-padding', $event.target.value)"
+            @change="$emit('set-page-padding', valueOf($event))"
           >
           <span class="evs__hint">pixels around the whole grid</span>
         </div>
