@@ -9,7 +9,8 @@
 import { NAME, STATE } from '@shell/config/table-headers';
 import { get } from '@shell/utils/object';
 import { valueFor } from '@shell/utils/table-columns';
-import type { TableViewValueSuggestion, TableViewField } from '@shell/types/table-views';
+import type { PaginationHeaderOptions } from '@shell/core/types';
+import type { TableViewColumn, TableViewField, TableViewRow, TableViewValueSuggestion } from '@shell/types/table-views';
 
 export const LABEL_FIELD_PREFIX = 'label:';
 
@@ -66,7 +67,7 @@ const SCAN_LIMIT = 1000;
 /**
  * Read a value off a resource without throwing on odd paths (label keys contain dots)
  */
-function safeGet(row: any, path: string): any {
+function safeGet(row: TableViewRow, path: string): unknown {
   if (!row || !path) {
     return undefined;
   }
@@ -89,7 +90,7 @@ function safeGet(row: any, path: string): any {
  * Only the first entry of a `sort` list: the rest are tie breakers (commonly `metadata.name`)
  * and would give the column a nonsense value.
  */
-function fallbackPath(header: any): string | null {
+function fallbackPath(header: TableViewColumn): string | null {
   if (typeof header.sort === 'string') {
     return header.sort.split(':')[0];
   }
@@ -116,7 +117,7 @@ function fallbackPath(header: any): string | null {
  * anything still has to be groupable and filterable, so its sort or search path is tried, and
  * then any `getValue` it carries. Empty is the honest answer when none of that names a value.
  */
-export function fieldValue(row: any, field: TableViewField): any {
+export function fieldValue(row: TableViewRow, field: TableViewField): unknown {
   if (!row || !field) {
     return '';
   }
@@ -170,7 +171,7 @@ export function fieldValue(row: any, field: TableViewField): any {
  * the pagination API could never match, so anything offered as a value - and the values we count
  * - comes from the filterable path whenever the field has one.
  */
-export function rawFieldValue(row: any, field: TableViewField): any {
+export function rawFieldValue(row: TableViewRow, field: TableViewField): unknown {
   if (!row || !field || field.isLabel) {
     return fieldValue(row, field);
   }
@@ -193,7 +194,7 @@ export function rawFieldValue(row: any, field: TableViewField): any {
 /**
  * Flatten a field value down to something we can compare/display
  */
-export function stringifyValue(value: any): string {
+export function stringifyValue(value: unknown): string {
   if (value === undefined || value === null) {
     return '';
   }
@@ -204,8 +205,10 @@ export function stringifyValue(value: any): string {
 
   if (typeof value === 'object') {
     // Some columns hand back render objects, eg `{ label, color }`
-    if (typeof value.label === 'string') {
-      return value.label;
+    const { label } = value as { label?: unknown };
+
+    if (typeof label === 'string') {
+      return label;
     }
 
     return '';
@@ -217,7 +220,7 @@ export function stringifyValue(value: any): string {
 /**
  * Turn a header name into something usable as a query token
  */
-export function headerFieldId(header: any): string {
+export function headerFieldId(header: TableViewColumn): string {
   const name = header.name || header.label || '';
 
   return `${ name }`.replace(/\s+/g, '-').toLowerCase();
@@ -226,7 +229,7 @@ export function headerFieldId(header: any): string {
 /**
  * True for the structural columns that aren't worth filtering or exporting
  */
-export function isIgnoredColumn(header: any): boolean {
+export function isIgnoredColumn(header: TableViewColumn): boolean {
   return IGNORED_COLUMNS.includes(headerFieldId(header));
 }
 
@@ -241,17 +244,17 @@ export function isIgnoredColumn(header: any): boolean {
  * carries both the definition it is drawn from and the one it is filtered by.
  */
 export function fieldsFor(
-  headers: any[],
-  rows: any[],
+  headers: TableViewColumn[],
+  rows: TableViewRow[],
   t?: (key: string) => string,
-  paginationHeaders?: any[] | null
+  paginationHeaders?: PaginationHeaderOptions[] | null
 ): TableViewField[] {
   const out: TableViewField[] = [];
   const seen: Record<string, boolean> = {};
 
   // The same columns as the pagination api defines them, by field id. A paginated list is the
   // only one that can filter server side, and these are the only definitions that say how
-  const byId: Record<string, any> = {};
+  const byId: Record<string, PaginationHeaderOptions> = {};
 
   (paginationHeaders || []).forEach((header) => {
     const id = headerFieldId(header);
@@ -358,13 +361,18 @@ export function serverPathFor(field: TableViewField): string | string[] | null {
   return null;
 }
 
+/** What the api answers a `summary=<field>&summaryonly` request with: how many rows hold each value */
+interface SummaryResponse {
+  summary?: { counts?: Record<string, { total?: number }> }[];
+}
+
 /**
  * Turn a steve `summary=<field>&summaryonly` response into value suggestions.
  *
  * The summary counts every row the type has, not just the page in front of us, so the values it
  * gives back are the real set in use. Most used first, so the suggestions are worth reading.
  */
-export function summaryToValues(response: any, max = 50): TableViewValueSuggestion[] {
+export function summaryToValues(response: SummaryResponse | null | undefined, max = 50): TableViewValueSuggestion[] {
   const counts = response?.summary?.[0]?.counts || {};
 
   return Object.keys(counts)
@@ -374,7 +382,7 @@ export function summaryToValues(response: any, max = 50): TableViewValueSuggesti
     .slice(0, max);
 }
 
-export function valuesInUse(rows: any[], field: TableViewField, max = 25): TableViewValueSuggestion[] {
+export function valuesInUse(rows: TableViewRow[], field: TableViewField, max = 25): TableViewValueSuggestion[] {
   const counts: Record<string, number> = {};
 
   (rows || []).slice(0, SCAN_LIMIT).forEach((row) => {

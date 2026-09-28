@@ -22,7 +22,7 @@ import { LABEL_FIELD_PREFIX, valuesInUse } from '@shell/utils/table-views/fields
 import {
   CONNECTIVES, NEGATORS, highlightQuery, isNegator, quoteIfNeeded, replaceToken, scanQuery, tokenAt
 } from '@shell/utils/table-views/query';
-import type { TableViewField } from '@shell/types/table-views';
+import type { TableViewField, TableViewRow } from '@shell/types/table-views';
 
 /** How close to the window's edge the list may come when the caret it follows is near one */
 const MENU_VIEWPORT_MARGIN = 20;
@@ -77,7 +77,7 @@ const props = withDefaults(defineProps<{
    */
   fieldValues?: Record<string, { value: string, count: number }[]>,
   /** The rows to read the "values in use" from */
-  rows?: any[],
+  rows?: TableViewRow[],
 }>(), {
   value:        '',
   fields:       () => [],
@@ -145,7 +145,7 @@ const menuId = computed(() => `table-view-query-menu-${ instanceId }`);
 
 const optionId = (index: number) => `${ menuId.value }-option-${ index }`;
 
-const terms = computed(() => scanQuery(props.value || '', props.fields).filter((token: any) => token.kind === 'term'));
+const terms = computed(() => scanQuery(props.value || '', props.fields).filter((token) => token.kind === 'term'));
 
 /**
  * The values each field in the query actually has, lowercased, so a term can be checked against
@@ -157,7 +157,7 @@ const terms = computed(() => scanQuery(props.value || '', props.fields).filter((
 const knownValues = computed(() => {
   const out: Record<string, Set<string>> = {};
 
-  terms.value.forEach((term: any) => {
+  terms.value.forEach((term) => {
     const field = term.field;
 
     if (!field || out[field.id]) {
@@ -168,7 +168,7 @@ const knownValues = computed(() => {
     // The api's list covers every row; the page scan is the fallback while it loads
     const available = fetched?.length ? fetched : valuesInUse(props.rows, field);
 
-    out[field.id] = new Set(available.map((entry: any) => entry.value.toLowerCase()));
+    out[field.id] = new Set(available.map((entry) => entry.value.toLowerCase()));
   });
 
   return out;
@@ -191,10 +191,10 @@ const isKnownValue = (fieldId: string, value: unknown): boolean => {
 const segments = computed(() => highlightQuery(props.value || '', props.fields, (fieldId: string, value: unknown) => isKnownValue(fieldId, value)));
 
 /** Every field the query names, so their values can be fetched and their terms checked */
-const queryFieldIds = computed(() => Array.from(new Set(terms.value.map((term: any) => term.field?.id).filter((id: string) => !!id))));
+const queryFieldIds = computed(() => Array.from(new Set(terms.value.map((term) => term.field?.id).filter((id): id is string => !!id))));
 
 /** Changes exactly when the drawn tokens would differ */
-const segmentsKey = computed(() => segments.value.map((segment: any) => `${ segment.kind }:${ segment.text }`).join(KEY_SEP));
+const segmentsKey = computed(() => segments.value.map((segment) => `${ segment.kind }:${ segment.text }`).join(KEY_SEP));
 
 const activeToken = computed(() => tokenAt(props.value || '', caret.value, props.fields));
 
@@ -202,7 +202,7 @@ const activeToken = computed(() => tokenAt(props.value || '', caret.value, props
  * The term the caret is in, broken into the field (if it resolves) and the value typed so far
  */
 const parsedToken = computed(() => {
-  const token: any = activeToken.value;
+  const token = activeToken.value;
 
   if (!token) {
     return {
@@ -224,10 +224,10 @@ const parsedToken = computed(() => {
  * The one the caret is inside does not count - that is the word being typed.
  */
 const precedingToken = computed(() => {
-  const active: any = activeToken.value;
+  const active = activeToken.value;
 
   const before = scanQuery(props.value || '', props.fields)
-    .filter((token: any) => token.end <= caret.value && (!active || token.start !== active.start));
+    .filter((token) => token.end <= caret.value && (!active || token.start !== active.start));
 
   return before[before.length - 1] || null;
 });
@@ -248,7 +248,7 @@ const connectiveSuggestions = computed<Suggestion[]>(() => {
     return [];
   }
 
-  const previous: any = precedingToken.value;
+  const previous = precedingToken.value;
   let allowed;
 
   if (!previous) {
@@ -302,8 +302,8 @@ const suggestions = computed<Suggestion[]>(() => {
     const available = fetched?.length ? fetched : valuesInUse(props.rows, field);
 
     return available
-      .filter((entry: any) => entry.value.toLowerCase().includes(needle))
-      .map((entry: any) => ({
+      .filter((entry) => entry.value.toLowerCase().includes(needle))
+      .map((entry) => ({
         key:    `${ field.id }:${ entry.value }`,
         label:  entry.value,
         detail: t('tableViews.query.inUse', { count: entry.count }),
@@ -491,7 +491,7 @@ const syncDom = () => {
     el.removeChild(el.firstChild);
   }
 
-  segments.value.forEach((segment: any) => {
+  segments.value.forEach((segment) => {
     const span = document.createElement('span');
 
     span.className = `segment-${ segment.kind }`;
@@ -636,7 +636,7 @@ const onCompositionEnd = () => {
  * spliced in over the selection
  */
 const onPaste = (event: ClipboardEvent) => {
-  const text = (event.clipboardData || (window as any).clipboardData)?.getData('text') || '';
+  const text = event.clipboardData?.getData('text') || '';
   const flat = text.replace(/\s+/g, ' ').trim();
   const el = input.value;
 
@@ -758,7 +758,7 @@ const pick = (suggestion?: Suggestion) => {
     return;
   }
 
-  const token: any = activeToken.value;
+  const token = activeToken.value;
   const value = props.value || '';
   const next = replaceToken(value, token, suggestion.insert, caret.value);
 

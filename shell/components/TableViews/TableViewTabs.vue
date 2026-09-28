@@ -12,6 +12,7 @@
 import {
   computed, nextTick, onBeforeUnmount, onMounted, ref, watch
 } from 'vue';
+import type { ComponentPublicInstance } from 'vue';
 import { useStore } from 'vuex';
 
 import AppModal from '@shell/components/AppModal.vue';
@@ -121,7 +122,7 @@ const tabWraps = new Map<string, HTMLElement>();
 
 const tabButtons = new Map<string, HTMLElement>();
 
-const tabCarets = new Map<string, any>();
+const tabCarets = new Map<string, Element | ComponentPublicInstance>();
 
 const renameInputs = new Map<string, HTMLInputElement>();
 
@@ -170,7 +171,7 @@ const openTabMenuId = ref<string | null>(null);
 /** The tab to draw attention to once the strip has finished running back to it */
 const flashTabId = ref<string | null>(null);
 
-let flashTimer: any = null;
+let flashTimer: ReturnType<typeof setTimeout> | undefined;
 
 let flashFrame = 0;
 
@@ -330,19 +331,19 @@ const isTabDirty = (tab: Tab) => {
  * The tabs and the controls under them share one table masthead, so that is what is compared. A
  * second table on the page has its own, and keeps its own shortcuts.
  */
-const ownsTarget = (target: any) => {
+const ownsTarget = (target: EventTarget | null) => {
   // The component has a modal beside its tabs, so its root is a fragment whose first node may
   // not be an element at all - hence a ref of its own rather than the root node
   const el = root.value;
 
-  if (!el?.closest || !target?.closest) {
+  if (!el?.closest || !(target instanceof Element)) {
     return false;
   }
 
   // The toolbar and the table under it together: they are one list as far as the user is
   // concerned, and a shortcut pressed while reading the rows belongs to the list being read.
   // The masthead is the fallback for a table that is not in table views layout.
-  const listOf = (node: HTMLElement) => node.closest('.has-table-views') || node.closest('.fixed-header-actions');
+  const listOf = (node: Element) => node.closest('.has-table-views') || node.closest('.fixed-header-actions');
   const mine = listOf(el);
 
   return !!mine && listOf(target) === mine;
@@ -360,7 +361,7 @@ const tabButton = (tab: Tab) => tabButtons.get(tabKey(tab));
 const tabCaret = (tab: Tab) => {
   const cmp = tabCarets.get(tabKey(tab));
 
-  return cmp?.$el || cmp;
+  return cmp instanceof Element ? cmp : cmp?.$el;
 };
 
 /**
@@ -660,7 +661,7 @@ const nextNewViewName = () => unusedViewName(t('tableViews.tab.newViewName'), 1)
 /**
  * Copy a saved view, so a variation can be built without losing the original
  */
-const duplicateView = (saved: any) => {
+const duplicateView = (saved: Omit<TableViewSaved, 'id'>) => {
   const name = unusedViewName(`${ saved.name } ${ t('tableViews.tab.copySuffix') }`, 2);
   const copy = {
     ...saved, id: randomStr(8), name
