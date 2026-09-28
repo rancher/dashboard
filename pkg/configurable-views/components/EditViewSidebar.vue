@@ -8,18 +8,18 @@ import {
   WIDTH_PRESETS, HEIGHT_PRESETS, SPACING_PRESETS, COLUMN_SPANS,
   DEFAULT_GAP, DEFAULT_PAGE_PADDING, widthPresetOf, heightPresetOf, spacingPresetOf
 } from '../templating/view-model';
-import type { Panel, Sides, WidgetNode } from '../templating/types';
+import type { View, Sides, WidgetNode } from '../templating/types';
 
-// The "Edit panel" drawer. Three tabs, and the split between them is the point:
+// The "Edit view" drawer. Three tabs, and the split between them is the point:
 //
 //   ADD     what goes on the grid — building blocks (a shape, you say what it shows) and
 //           ready-made widgets (the same shapes with their data already chosen).
 //   LAYOUT  how the SELECTED widget sits — width, height, spacing, and exact pixels under Advanced.
-//   PANEL   what is true of the WHOLE panel — its name, its gap, whether it is your default.
+//   VIEW   what is true of the WHOLE view — its name, its gap, whether it is your default.
 //
 // Everything is emitted; the drawer holds only its own tab, search box and Advanced toggle.
 
-/** A panel a new one can start as a copy of. */
+/** A view a new one can start as a copy of. */
 export interface StartingPoint {
   id: string;
   label: string;
@@ -42,25 +42,25 @@ type SidebarEmits = {
   publish: [];
   delete: [];
   /** '' starts from nothing. */
-  'start-from': [panelId: string];
+  'start-from': [viewId: string];
   advanced: [open: boolean];
 };
 
 const props = withDefaults(defineProps<{
-  /** The panel being edited. */
-  view?: Panel | null;
+  /** The view being edited. */
+  view?: View | null;
   /** The widget the Layout tab acts on (null when nothing is selected). */
   selected?: WidgetNode | null;
   isDefault?: boolean;
   /**
-   * A panel that has never been saved shows its starting points instead of jumping straight to the
+   * A view that has never been saved shows its starting points instead of jumping straight to the
    * catalog — the first decision is what it should be ABOUT.
    */
   isNew?: boolean;
   startedFrom?: string;
   startingPoints?: StartingPoint[];
   /**
-   * Rancher's own Home, kept as a panel. There is no grid behind it, so there is nothing to add to it
+   * The page's own stock content, kept as a view. There is no grid behind it, so there is nothing to add to it
    * and nothing to lay out.
    */
   isStock?: boolean;
@@ -124,7 +124,7 @@ function valueOf(ev: Event): string {
   <aside class="evs">
     <header class="evs__head">
       <h3 class="evs__title">
-        Edit panel<template v-if="view">
+        Edit view<template v-if="view">
           &nbsp;-&nbsp; {{ view.name }}
         </template>
       </h3>
@@ -140,7 +140,7 @@ function valueOf(ev: Event): string {
 
     <nav class="evs__tabs">
       <button
-        v-for="t in [{ id: 'add', label: 'Add' }, { id: 'layout', label: 'Layout' }, { id: 'view', label: 'Panel' }]"
+        v-for="t in [{ id: 'add', label: 'Add' }, { id: 'layout', label: 'Layout' }, { id: 'view', label: 'View' }]"
         :key="t.id"
         class="evs__tab"
         :class="{ 'evs__tab--active': tab === t.id }"
@@ -154,14 +154,14 @@ function valueOf(ev: Event): string {
       class="evs__body"
       :class="{ 'evs__body--layout': tab === 'layout' }"
     >
-      <!-- A stock view is Rancher's own Home with no grid behind it: nothing to add, nothing to
-         lay out. Its View tab still works — it can be named, defaulted and deleted like any other. -->
+      <!-- A stock view is Rancher's own page with no grid behind it: nothing to add, nothing to
+         lay out. Its tab still works — it can be made the default like any other. -->
       <p
         v-if="isStock && tab !== 'view'"
         class="evs__hint"
       >
-        This panel is Rancher's own Home. It has no grid, so there is nothing to add to it or lay
-        out. Rename it in the header, or make a new panel to build one of your own.
+        This view is Rancher's own page. It has no grid, so there is nothing to add to it or lay
+        out — make a new view to build one of your own.
       </p>
 
       <!-- ---- ADD ---- -->
@@ -173,10 +173,10 @@ function valueOf(ev: Event): string {
         >
           <h4 class="evs__new-title">
             <template v-if="startedFrom">
-              New panel, started from {{ startedFrom }}
+              New view, started from {{ startedFrom }}
             </template>
             <template v-else>
-              New panel
+              New view
             </template>
           </h4>
           <p class="evs__hint">
@@ -199,7 +199,7 @@ function valueOf(ev: Event): string {
             </button>
           </div>
           <p class="evs__hint">
-            Nothing is saved until you press Save. Cancel throws the new panel away.
+            Nothing is saved until you press Save. Cancel throws the new view away.
           </p>
         </section>
 
@@ -272,7 +272,7 @@ function valueOf(ev: Event): string {
         </p>
         <p class="evs__hint">
           Click a widget on the grid to lay it out. Width, height and spacing are per widget; the
-          grid gap is the same for the whole panel.
+          grid gap is the same for the whole view.
         </p>
 
         <template v-if="selected">
@@ -407,7 +407,7 @@ function valueOf(ev: Event): string {
       <!-- ---- VIEW ---- -->
       <template v-else>
         <p class="evs__hint">
-          These apply to the whole panel — every widget on it.
+          These apply to the whole view — every widget on it.
         </p>
 
         <h4 class="evs__group">
@@ -416,7 +416,7 @@ function valueOf(ev: Event): string {
         <input
           class="evs__field"
           :value="view ? view.name : ''"
-          aria-label="Panel name"
+          aria-label="View name"
           @input="$emit('set-name', valueOf($event))"
         >
 
@@ -465,14 +465,14 @@ function valueOf(ev: Event): string {
         </div>
 
         <h4 class="evs__group">
-          This panel
+          This view
         </h4>
         <button
           class="btn btn-sm role-secondary evs__wide"
           :disabled="isDefault"
           @click="$emit('set-default')"
         >
-          {{ isDefault ? 'This is my default panel' : 'Set as my default' }}
+          {{ isDefault ? 'This is my default view' : 'Set as my default' }}
         </button>
         <button
           class="btn btn-sm role-secondary evs__wide"
@@ -484,7 +484,7 @@ function valueOf(ev: Event): string {
           class="btn btn-sm role-link evs__wide evs__danger"
           @click="$emit('delete')"
         >
-          Delete panel
+          Delete view
         </button>
       </template>
     </div>

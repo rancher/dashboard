@@ -57,7 +57,7 @@ const store = useStore();
 const { cluster } = useWidgetCluster(() => props.widget);
 
 // A Kubernetes type lives once PER CLUSTER, so it is read from a named cluster rather than from the
-// global API. That is a different fetch, a different table, and a question the settings panel has to
+// global API. That is a different fetch, a different table, and a question the settings have to
 // have asked.
 const downstream = computed(() => isDownstream(props.widget.resource));
 

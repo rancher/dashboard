@@ -1,15 +1,16 @@
-// The VIEW model — the structure behind the configurable Home.
+// The model behind the configurable pages.
 //
 // Vocabulary (used consistently in the code, the UI and the stored ConfigMap):
 //
-//   VIEW     a page. Holds one or more PANELS.
-//   PANEL    one named view, and one tab in the bar. A LAYOUT panel is a flat list of WIDGETS; a
-//            STOCK panel has no list at all and renders Rancher's own Home, so a view can mix the
-//            real Home in as a tab beside configured ones.
-//   WIDGET   one building block on the grid — a table, a cluster's capacity, a row of links — sized
-//            by a COLUMN SPAN (1…12) and configured through its own settings panel.
+//   PAGE     the Home, or a cluster's dashboard. Holds one or more VIEWS; with more than one, they
+//            are tabs in the bar at the top.
+//   VIEW     one named arrangement of the page. A LAYOUT view is a flat list of WIDGETS; a STOCK
+//            view has no list at all and renders the page Rancher already had, so Rancher's own
+//            page is always one of the tabs.
+//   WIDGET   one building block on a view's grid — a table, a cluster's capacity, a row of links —
+//            sized by a COLUMN SPAN (1…12) and configured through its own settings.
 //
-// There are NO rows. A panel's widgets are one flat, ordered list, and they WRAP: a widget starts a
+// There are NO rows. A view's widgets are one flat, ordered list, and they WRAP: a widget starts a
 // new line when there is no room left on the current one, exactly as a paragraph wraps words. Rows
 // used to be explicit nodes you could select and pad; they are gone, because a row was structure
 // pretending to be a thing you configure. Spacing now lives in the two places that own it — per
@@ -19,14 +20,14 @@
 // what it gets: a view round-trips through a ConfigMap anyone with access can edit by hand.
 
 import {
-  NODE_WIDGET, type LayoutPanel, type Panel, type Sides, type StockPanel, type View, type WidgetKind,
+  NODE_WIDGET, type LayoutView, type View, type Sides, type StockView, type ViewSet, type WidgetKind,
   type WidgetNode, type WidgetSpec
 } from './types';
 
 export { NODE_WIDGET };
 
-/** What a stock panel says it is. See isStockPanel. */
-const PANEL_STOCK = 'stock';
+/** What a stock view says it is. See isStockView. */
+const STOCK_KIND = 'stock';
 
 /** Widgets are laid out on this many columns. */
 export const GRID_COLUMNS = 12;
@@ -323,7 +324,7 @@ export function newWidgetNode(widget: unknown, opts: WidgetBoxOptions = {}): Wid
  * Coerce one stored entry into a widget, or null when it is not one.
  *
  * A stored TEMPLATE node — the older kind, pointing at a template ConfigMap — returns null and is
- * dropped: templates are gone, and a panel is widgets only.
+ * dropped: templates are gone, and a view is widgets only.
  */
 function normalizeNode(node: unknown): WidgetNode | null {
   if (!isObject(node)) {
@@ -334,7 +335,7 @@ function normalizeNode(node: unknown): WidgetNode | null {
 }
 
 /**
- * Flatten anything a panel might hold into one ordered list of widgets.
+ * Flatten anything a view might hold into one ordered list of widgets.
  *
  * Stored views used to be a TREE of organizers (rows, nestable) with widgets at the leaves. Rows are
  * gone, so a stored tree is read by walking it in order and keeping the leaves: the widgets come out
@@ -369,20 +370,20 @@ function flattenWidgets(value: unknown): WidgetNode[] {
   return out;
 }
 
-// ---- panels & views -----------------------------------------------------------------------------
+// ---- views & views -----------------------------------------------------------------------------
 
-/** What a new panel can start with. */
-export interface PanelOptions {
+/** What a new view can start with. */
+export interface ViewOptions {
   id?: string;
   gap?: unknown;
   pad?: unknown;
   widgets?: WidgetNode[];
 }
 
-/** A new PANEL — one named VIEW in the tab strip. */
-export function newPanel(name?: string, opts: PanelOptions = {}): LayoutPanel {
+/** A new VIEW — one named VIEW in the tab strip. */
+export function newLayoutView(name?: string, opts: ViewOptions = {}): LayoutView {
   return {
-    id:      opts.id || newId('panel'),
+    id:      opts.id || newId('view'),
     name:    name || 'Untitled view',
     gap:     num(opts.gap, DEFAULT_GAP),
     pad:     num(opts.pad, DEFAULT_PAGE_PADDING),
@@ -391,80 +392,81 @@ export function newPanel(name?: string, opts: PanelOptions = {}): LayoutPanel {
 }
 
 /**
- * The id of the built-in STOCK panel: Rancher's own page, offered as a tab on every configurable
- * page whether or not a stock panel was ever saved (see builtInStockPanel).
+ * The id of the built-in STOCK view: Rancher's own page, offered as a tab on every configurable
+ * page whether or not a stock view was ever saved (see builtInStockView).
  */
 export const BUILT_IN_STOCK_ID = 'built-in-stock';
 
 /**
- * Rancher's own page as a panel, when nothing stored is one. Not saved anywhere - it is always there,
- * so it cannot be deleted, published or renamed, and a page with no stored panels at all still shows
+ * Rancher's own page as a view, when nothing stored is one. Not saved anywhere - it is always there,
+ * so it cannot be deleted, published or renamed, and a page with no stored views at all still shows
  * the page Rancher already had, as a tab.
  */
-export function builtInStockPanel(name: string): StockPanel {
+export function builtInStockView(name: string): StockView {
   return {
-    id: BUILT_IN_STOCK_ID, name, kind: PANEL_STOCK
+    id: BUILT_IN_STOCK_ID, name, kind: STOCK_KIND
   };
 }
 
-/** True when a panel renders the stock Rancher home rather than a grid of widgets. */
-export function isStockPanel(panel: unknown): panel is StockPanel {
-  return isObject(panel) && panel.kind === PANEL_STOCK;
+/** True when a view renders the stock Rancher home rather than a grid of widgets. */
+export function isStockView(view: unknown): view is StockView {
+  return isObject(view) && view.kind === STOCK_KIND;
 }
 
-function normalizePanel(panel: Loose): Panel {
-  // A stock panel carries no widgets — there is nothing to lay out.
-  const out: Panel = isStockPanel(panel) ? {
-    id: str(panel.id) || newId('panel'), name: str(panel.name) || 'Home', kind: PANEL_STOCK
+function normalizeView(view: Loose): View {
+  // A stock view carries no widgets — there is nothing to lay out.
+  const out: View = isStockView(view) ? {
+    id: str(view.id) || newId('view'), name: str(view.name) || 'Home', kind: STOCK_KIND
   } : {
-    id:      str(panel.id) || newId('panel'),
-    name:    str(panel.name) || 'Untitled view',
-    gap:     num(panel.gap, DEFAULT_GAP),
-    pad:     num(panel.pad, DEFAULT_PAGE_PADDING),
+    id:      str(view.id) || newId('view'),
+    name:    str(view.name) || 'Untitled view',
+    gap:     num(view.gap, DEFAULT_GAP),
+    pad:     num(view.pad, DEFAULT_PAGE_PADDING),
     // `widgets` is the shape now; `organizer` is the tree this replaced.
-    widgets: flattenWidgets(panel.widgets ?? panel.organizer),
+    widgets: flattenWidgets(view.widgets ?? view.organizer),
   };
 
   // Published organization templates are marked so the UI can show (and protect) them.
-  if (panel.org) {
+  if (view.org) {
     out.org = true;
   }
 
   // Which published view this one was forked from. It MUST survive a round trip through storage,
   // or the fork and its source both show up in the bar as two views with the same name.
-  if (panel.from) {
-    out.from = str(panel.from);
+  if (view.from) {
+    out.from = str(view.from);
   }
 
   return out;
 }
 
-/** A VIEW with nothing saved in it. The page still shows its stock tab (see builtInStockPanel). */
-function emptyView(): View {
-  return { panels: [] };
+/** A VIEW with nothing saved in it. The page still shows its stock tab (see builtInStockView). */
+function emptyViewSet(): ViewSet {
+  return { views: [] };
 }
 
 /**
- * Coerce ANY stored value into a valid VIEW:
- *   - the current shape          { panels: [ { widgets } ] }
- *   - the organizer-tree shape   { panels: [ { organizer } ] }
+ * Coerce ANY stored value into a valid VIEW SET:
+ *   - the current shape          { views: [ { widgets } ] }
+ *   - the same, as first named   { panels: [ { widgets } ], defaultPanelId }
+ *   - the organizer-tree shape   { views: [ { organizer } ] }
  *   - the legacy dashboard shape { tabs:   [ { name } ] }
  *   - the legacy single name     "home"
  *
  * The two legacy shapes pointed at template ConfigMaps, which are gone; their tabs survive, empty.
  *
- * An empty list stays empty. It used to be replaced by a new panel named "Home" - the old way of
- * making sure a page had a tab - which invented a panel with a fresh id on every read, and named it
+ * An empty list stays empty. It used to be replaced by a new view named "Home" - the old way of
+ * making sure a page had a tab - which invented a view with a fresh id on every read, and named it
  * "Home" on pages that are not the Home. Every page now has its stock tab instead, stored or not.
  */
-export function migrateToView(value: unknown): View {
-  const finish = (panels: Panel[], source: Loose | null): View => {
-    const out: View = { panels };
-    const defaultId = str(source?.defaultPanelId);
+export function migrateViewSet(value: unknown): ViewSet {
+  const finish = (views: View[], source: Loose | null): ViewSet => {
+    const out: ViewSet = { views };
+    const defaultId = str(source?.defaultViewId);
 
     // Which view opens first. Dropped when it names a view that no longer exists.
-    if (defaultId && out.panels.some((p) => p.id === defaultId)) {
-      out.defaultPanelId = defaultId;
+    if (defaultId && out.views.some((p) => p.id === defaultId)) {
+      out.defaultViewId = defaultId;
     }
 
     if (source?.disabled) {
@@ -474,14 +476,18 @@ export function migrateToView(value: unknown): View {
     return out;
   };
 
-  // Current shape (and the organizer-tree shape, which normalizePanel flattens).
-  if (isObject(value) && Array.isArray(value.panels)) {
-    return finish(value.panels.filter(isObject).map(normalizePanel), value);
+  // Current shape - and the shape before views were called that, when the same list was stored as
+  // `panels` with a `defaultPanelId`. Both keys are read, so nothing saved under the old names is
+  // lost; the next save writes the new ones.
+  const stored = isObject(value) ? (Array.isArray(value.views) ? value.views : value.panels) : undefined;
+
+  if (isObject(value) && Array.isArray(stored)) {
+    return finish(stored.filter(isObject).map(normalizeView), { ...value, defaultViewId: value.defaultViewId ?? value.defaultPanelId });
   }
 
   // Legacy: tabs[] of template grids. The grids named templates; only the tabs are left.
   if (isObject(value) && Array.isArray(value.tabs)) {
-    return finish(value.tabs.filter(isObject).map((t) => newPanel(str(t.name), { id: str(t.id) || undefined })), value);
+    return finish(value.tabs.filter(isObject).map((t) => newLayoutView(str(t.name), { id: str(t.id) || undefined })), value);
   }
 
   // Legacy: a single applied template name. The template is gone, so there is nothing to show.
@@ -489,7 +495,7 @@ export function migrateToView(value: unknown): View {
     return finish([], null);
   }
 
-  return emptyView();
+  return emptyViewSet();
 }
 
 // ---- list operations (used by the editor; all return NEW lists) ----------------------------------

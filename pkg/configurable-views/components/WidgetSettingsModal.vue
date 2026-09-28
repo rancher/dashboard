@@ -12,7 +12,7 @@ import {
 import type { SettingsAnchor } from '../composables/viewEditor';
 import type { WidgetLink, WidgetSpec } from '../templating/types';
 
-// "What this widget shows" — the panel behind a widget's ⚙.
+// "What this widget shows" — the settings behind a widget's ⚙.
 //
 // IN PLACE, deliberately: it opens beside the widget it belongs to, over a page that stays lit,
 // because the thing you are describing is right there and you want to keep seeing it. A centred
@@ -25,7 +25,7 @@ import type { WidgetLink, WidgetSpec } from '../templating/types';
 // Block names that are plural, where "what this <name> shows" does not read.
 const PLURAL_NAMES = ['links'];
 
-const PANEL_WIDTH = 400;
+const DIALOG_WIDTH = 400;
 const MARGIN = 12;
 
 /** One tickable column: an id, how it is labelled, and whether it can be sorted by. */
@@ -37,7 +37,7 @@ interface ColumnOption {
 
 const props = withDefaults(defineProps<{
   widget: WidgetSpec;
-  /** Where on screen the widget sits, so the panel can open next to it. */
+  /** Where on screen the widget sits, so the settings can open next to it. */
   anchor?: SettingsAnchor | null;
 }>(), { anchor: null });
 
@@ -53,15 +53,15 @@ const store = useStore();
 
 const root = ref<HTMLElement | null>(null);
 const dialog = ref<HTMLElement | null>(null);
-// Measured after mount: the panel can only be placed well if we know how tall it really is.
-const panelHeight = ref(0);
+// Measured after mount: the dialog can only be placed well if we know how tall it really is.
+const dialogHeight = ref(0);
 const draft = reactive<WidgetSpec>(JSON.parse(JSON.stringify(props.widget)));
 
 /**
  * Sit against the widget's left edge, and ALWAYS fully on screen.
  *
  * The anchor is where the widget is, and for a widget near the bottom of a long page that is a point
- * with no room under it. So the panel is placed against the anchor and then pushed back up by
+ * with no room under it. So the dialog is placed against the anchor and then pushed back up by
  * however much of it would fall off the bottom — clamped last against the view bar, which holds
  * Cancel and Save and has to stay reachable while this is open.
  */
@@ -69,7 +69,7 @@ const position = computed<CSSProperties>(() => {
   const a = props.anchor;
   const bar = document.querySelector('.vbar');
   const floor = bar ? Math.round(bar.getBoundingClientRect().bottom) + 8 : MARGIN;
-  const ceiling = Math.max(floor, window.innerHeight - (panelHeight.value || 420) - MARGIN);
+  const ceiling = Math.max(floor, window.innerHeight - (dialogHeight.value || 420) - MARGIN);
 
   if (!a) {
     return {
@@ -78,7 +78,7 @@ const position = computed<CSSProperties>(() => {
   }
 
   return {
-    left: `${ Math.max(MARGIN, Math.min(a.left, window.innerWidth - PANEL_WIDTH - MARGIN)) }px`,
+    left: `${ Math.max(MARGIN, Math.min(a.left, window.innerWidth - DIALOG_WIDTH - MARGIN)) }px`,
     top:  `${ Math.max(floor, Math.min(a.top, ceiling)) }px`,
   };
 });
@@ -116,7 +116,7 @@ const needsClusters = computed(() => (readsData.value && isDownstream(draft.reso
 const clusters = computed(() => clusterOptions(store.getters));
 
 /**
- * The columns on offer belong to the RESOURCE, not to this panel: a User has a username and a last
+ * The columns on offer belong to the RESOURCE, not to these settings: a User has a username and a last
  * login, a Cluster has a provider and a Kubernetes version. So the ticks are rebuilt from whatever
  * type the picker is currently pointing at, and only a type Rancher describes nothing about falls
  * back to the generic field list.
@@ -185,7 +185,7 @@ function toggleColumn(id: string): void {
 }
 
 // A widget that has never been configured has no `columns`, and the table reads that as "show
-// everything". Materialise it here so the ticks match what is actually drawn — otherwise the panel
+// everything". Materialise it here so the ticks match what is actually drawn — otherwise the settings
 // opens with nothing ticked beside a table showing every column, and ticking one box would read as
 // "add a column" while actually dropping the other eight.
 if (hasColumns.value && !draft.columns?.length) {
@@ -233,7 +233,7 @@ function onKey(ev: KeyboardEvent): void {
 
 // Place it knowing its real height (see `position`), and keep it on screen if the window moves.
 function measure(): void {
-  panelHeight.value = dialog.value?.getBoundingClientRect().height || 0;
+  dialogHeight.value = dialog.value?.getBoundingClientRect().height || 0;
 }
 
 // With no scrim there is nothing to click "through" to, so a click anywhere outside closes it.
@@ -323,7 +323,7 @@ onBeforeUnmount(() => {
               type="radio"
               value="view"
             >
-            Same as the panel (all clusters I can see)
+            Same as the view (all clusters I can see)
           </label>
           <label class="wsm__radio">
             <input
@@ -482,7 +482,7 @@ onBeforeUnmount(() => {
             class="btn btn-sm role-secondary"
             @click="$emit('remove')"
           >
-            Remove from panel
+            Remove from view
           </button>
           <button
             class="btn btn-sm role-primary"

@@ -3,7 +3,7 @@
 //
 //   templating-home    one key per PAGE, each holding every saved view of that page:
 //                        data.home              the Home
-//                        data.clusterDashboard  the cluster dashboard - one set of panels for every
+//                        data.clusterDashboard  the cluster dashboard - one set of views for every
 //                                               cluster, whose widgets follow the cluster they are on
 //                      each shaped { global: <View>, users: { <uid>: <View> } }
 //   templating-config  data.enabled — the kill switch; 'false' turns the feature off, everywhere
@@ -13,8 +13,8 @@
 // view in a Setting, which is an open question on the pull request.
 
 import type { Store } from 'vuex';
-import { migrateToView } from './view-model';
-import type { View } from './types';
+import { migrateViewSet } from './view-model';
+import type { ViewSet } from './types';
 
 type Getters = Store<unknown>['getters'];
 
@@ -48,8 +48,8 @@ interface ConfigMapModel {
   save(): Promise<unknown>;
 }
 
-/** What `templating-home` holds, parsed. Views stay `unknown` until migrateToView has checked them. */
-export interface HomeConfig {
+/** What one page's key of `templating-home` holds, parsed. Views stay `unknown` until migrateViewSet has checked them. */
+export interface PageConfig {
   global?: unknown;
   users?: Record<string, unknown>;
 }
@@ -57,18 +57,18 @@ export interface HomeConfig {
 /** The saved views as one user sees them. */
 export interface ViewScopes {
   /** The organization's view, as stored (disabled or not) - what an editor edits. */
-  global: View | null;
+  global: ViewSet | null;
   /** This user's own view, as stored. */
-  user: View | null;
+  user: ViewSet | null;
   /** What actually renders: the user's if enabled, else the organization's if enabled, else none. */
-  resolved: View | null;
+  resolved: ViewSet | null;
   hasGlobal: boolean;
   hasUser: boolean;
 }
 
 // ---- reading ----------------------------------------------------------------------------------------
 
-function parse(json: string | undefined): HomeConfig {
+function parse(json: string | undefined): PageConfig {
   if (!json) {
     return {};
   }
@@ -107,7 +107,7 @@ export async function fetchTemplatingConfigMaps(store: Store<unknown>): Promise<
   }).catch(() => undefined);
 }
 
-function pageConfig(getters: Getters, page: PageKey): HomeConfig {
+function pageConfig(getters: Getters, page: PageKey): PageConfig {
   const stored = cmNamed(getters, HOME_CONFIG_NAME)?.data?.[page];
 
   if (stored !== undefined) {
@@ -119,22 +119,22 @@ function pageConfig(getters: Getters, page: PageKey): HomeConfig {
 }
 
 /** A page's raw stored config ({ global, users }) - for the Home Layouts YAML editor. */
-export function getHomeConfig(getters: Getters, page: PageKey = 'home'): HomeConfig {
+export function getPageConfig(getters: Getters, page: PageKey = 'home'): PageConfig {
   return pageConfig(getters, page);
 }
 
 /**
  * The saved views split by scope, and the one THIS user sees: their own overrides the
  * organization's, and a disabled view is skipped so the scope beneath it shows. Old stored shapes
- * are migrated on read (see migrateToView).
+ * are migrated on read (see migrateViewSet).
  */
 export function appliedViewScopes(getters: Getters, userId?: string | null, page: PageKey = 'home'): ViewScopes {
   const home = pageConfig(getters, page);
   const rawGlobal = home.global || null;
   const rawUser = (userId && home.users?.[userId]) || null;
 
-  const global = rawGlobal ? migrateToView(rawGlobal) : null;
-  const user = rawUser ? migrateToView(rawUser) : null;
+  const global = rawGlobal ? migrateViewSet(rawGlobal) : null;
+  const user = rawUser ? migrateViewSet(rawUser) : null;
   const userApplied = user && !user.disabled ? user : null;
   const globalApplied = global && !global.disabled ? global : null;
 
@@ -184,7 +184,7 @@ export async function toggleTemplating(store: Store<unknown>, enabled?: boolean)
  * own key, and the other pages' keys are written back as they were; nothing here touches the kill
  * switch, which is a different ConfigMap.
  */
-async function persistPage(store: Store<unknown>, page: PageKey, config: HomeConfig): Promise<void> {
+async function persistPage(store: Store<unknown>, page: PageKey, config: PageConfig): Promise<void> {
   const existing = cmNamed(store.getters, HOME_CONFIG_NAME);
 
   if (existing && existing.metadata.labels?.[LABEL_TYPE] === TYPE_CONFIG) {
@@ -204,12 +204,12 @@ async function persistPage(store: Store<unknown>, page: PageKey, config: HomeCon
 }
 
 /** Write a page's raw stored config - from the Home Layouts YAML editor. */
-export async function saveHomeConfig(store: Store<unknown>, config: HomeConfig | null, page: PageKey = 'home'): Promise<void> {
+export async function savePageConfig(store: Store<unknown>, config: PageConfig | null, page: PageKey = 'home'): Promise<void> {
   await persistPage(store, page, config || {});
 }
 
 /** Save one scope's view of a page. `null` clears that scope. */
-export async function saveView(store: Store<unknown>, scope: 'global' | 'user', view: View | null, userId?: string | null, page: PageKey = 'home'): Promise<void> {
+export async function saveView(store: Store<unknown>, scope: 'global' | 'user', view: ViewSet | null, userId?: string | null, page: PageKey = 'home'): Promise<void> {
   const home = pageConfig(store.getters, page);
 
   if (scope === 'user') {

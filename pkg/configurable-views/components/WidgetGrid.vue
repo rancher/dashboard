@@ -320,7 +320,7 @@ onBeforeUnmount(() => {
     z-index:       2;
   }
 
-  // The tinted, dashed panel at the end of the grid.
+  // The tinted, dashed box at the end of the grid.
   &__end {
     align-items:     center;
     background:      var(--accent-btn);

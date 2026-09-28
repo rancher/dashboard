@@ -35,7 +35,7 @@ export function init($extension: IPlugin, store: Store<unknown>): void {
     route:      { name: ROUTE_SETTINGS, params: { cluster: BLANK_CLUSTER } },
   } as ConfigureVirtualTypeOptions);
 
-  // Home Layouts — the assembled Home VIEWS (panels + the widgets on them).
+  // Home Layouts — the assembled Home VIEWS (views + the widgets on them).
   virtualType({
     labelKey:   'configurableViews.layouts.label',
     name:       'configurable-views-layouts',
