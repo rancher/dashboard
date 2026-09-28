@@ -230,6 +230,16 @@ const download = async() => {
   h4 {
     margin: 0 0 16px 0;
     font-size: 18px;
+    font-weight: 600;
+  }
+
+  // The emphasis in both sentences is markup the translation carries, so `:deep` is the only
+  // way to reach it - and it is the product's weight for emphasis, not the browser's 700.
+  .export-intro,
+  .export-choose {
+    :deep(b) {
+      font-weight: 600;
+    }
   }
 
   .export-intro {

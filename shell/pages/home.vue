@@ -745,7 +745,14 @@ export default defineComponent({
   // The cluster actions sit at the right hand end of the heading row, above the table's own edge
   .cluster-actions {
     justify-content: flex-end;
-    gap: 10px;
+    gap: 16px;
+
+    // These buttons carry a `to`, so they are anchors and were picking up the 10px the heading
+    // gives the link that follows its title - 26px apart rather than the 16 the gap asks for.
+    // The gap is the only spacing between them.
+    & > a {
+      margin-left: 0;
+    }
   }
   .panel:not(:first-child) {
     margin-top: 20px;
