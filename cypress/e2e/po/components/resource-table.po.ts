@@ -1,4 +1,4 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 
 export default class ResourceTablePo extends ComponentPo {
@@ -20,8 +20,8 @@ export default class ResourceTablePo extends ComponentPo {
    * @param index
    * @returns
    */
-  resourceTableDetails(name: string, index: number) {
-    return this.sortableTable().rowWithName(name)
+  resourceTableDetails(name: string, index: number, options?: GetOptions) {
+    return this.sortableTable().rowWithName(name, options)
       .column(index);
   }
 
