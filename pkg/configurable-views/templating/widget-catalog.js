@@ -184,6 +184,26 @@ export const SUGGESTED_RESOURCES = [
 ];
 
 /**
+ * The name this extension's tables page under.
+ *
+ * Server-side pagination is enabled per resource per CONTEXT, so a context is what keeps this
+ * feature's paging to this feature. Registered in index.ts; passed by the table widget.
+ */
+export const PAGINATION_CONTEXT = 'configurable-views';
+
+/**
+ * The global types whose tables should page.
+ *
+ * Only the ones this extension suggests, and only the global ones - a downstream type is read
+ * through a cluster's own API, which this widget pages itself. Being a list rather than "everything
+ * this extension shows" is the point: each entry is a type we have looked at and a table we have
+ * seen page correctly, not a promise made on behalf of types nobody has tried.
+ */
+export const PAGINATED_RESOURCES = SUGGESTED_RESOURCES
+  .filter((r) => !r.downstream)
+  .map((r) => ({ resource: r.value, context: [PAGINATION_CONTEXT] }));
+
+/**
  * Does this type have to be read from a named cluster?
  *
  * Only the suggestions say so — a type typed in by hand is assumed to be global, because that is

@@ -10,6 +10,7 @@
 
 import { get } from '@shell/utils/object';
 import { parseSi, formatSi, createMemoryFormat } from '@shell/utils/units';
+import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 /**
  * The fields a widget can filter, sort, group and tabulate on. `value` reads one off a row; `label`
@@ -442,6 +443,58 @@ export function steveSortField(getters, resource, column) {
   return known ? field : null;
 }
 
+/**
+ * The field Steve FILTERS each of our field names on, where it can filter it at all.
+ *
+ * Short on purpose. Everything here is stored on the object, so the API can compare it. The rest of
+ * FIELDS - provider, version, cpu, memory, pods - is computed by Rancher's model from several
+ * places at once, so no field path exists to ask the API about, and no amount of mapping invents
+ * one.
+ */
+const STEVE_FILTER = {
+  name:      'metadata.name',
+  namespace: 'metadata.namespace',
+  state:     'metadata.state.name',
+  created:   'metadata.creationTimestamp',
+};
+
+/** The operators Steve understands. A comparison is arithmetic, and Steve does not do arithmetic. */
+const STEVE_OPS = ['=', '!=', 'contains'];
+
+/**
+ * A widget's filter expression as filters the API can apply, or null if it cannot apply it.
+ *
+ * ALL of it, or none of it. A filter half-pushed is the worst of the three outcomes: the API
+ * returns a page narrowed by one clause, the other clause is applied to that page, and rows that
+ * match sit on page two forever without appearing anywhere. So an expression with a single clause
+ * the API cannot answer is refused here, and the caller keeps the whole-collection path it already
+ * has - slower, and correct.
+ *
+ * Returns [] for no filter at all, which is not the same as null: nothing to push, still pushable.
+ */
+export function steveFilters(expression) {
+  const clauses = parseFilter(expression);
+  const out = [];
+
+  for (const clause of clauses) {
+    const field = STEVE_FILTER[clause.field];
+
+    if (!field || !STEVE_OPS.includes(clause.op)) {
+      return null;
+    }
+
+    out.push(PaginationParamFilter.createSingleField({
+      field,
+      value:  clause.value,
+      // `contains` is a partial match, which is what `exact: false` means to Steve.
+      exact:  clause.op !== 'contains',
+      equals: clause.op !== '!=',
+    }));
+  }
+
+  return out;
+}
+
 /** Every cluster the user can see, as picker options, by the name a person would recognise. */
 export function clusterOptions(getters) {
   const clusters = getters['management/all']?.('management.cattle.io.cluster') || [];
@@ -459,13 +512,16 @@ export function clusterOptions(getters) {
  * names a single cluster and gets real pagination — the backend is asked for that page and returns
  * it with the total count.
  *
- * The exception is a FILTER. It is applied here, not by the API, so filtering one page of ten would
- * search ten rows and call the rest absent. A filtered widget therefore asks for up to `cap` rows
- * and filters and pages what came back; `truncated` says when the cluster had more, because a total
- * that quietly stops being a total is worse than a visible limit.
+ * A filter the API can apply goes into the request as `filters` (see steveFilters), and the page
+ * that comes back is already narrowed - still one request per page.
+ *
+ * A filter it CANNOT apply is the exception. That one is applied here, so filtering one page of ten
+ * would search ten rows and call the rest absent. Such a widget passes `filtered`, asks for up to
+ * `cap` rows, and filters and pages what came back; `truncated` says when the cluster had more,
+ * because a total that quietly stops being a total is worse than a visible limit.
  */
 export async function fetchClusterPage(store, {
-  resource, cluster, page = 1, pageSize = 10, sortBy, sortDir, filtered = false, cap = 500
+  resource, cluster, page = 1, pageSize = 10, sortBy, sortDir, filters = [], filtered = false, cap = 500
 }) {
   if (!resource || !cluster) {
     return {
@@ -484,7 +540,7 @@ export async function fetchClusterPage(store, {
       pagination: filtered ? {
         page: 1, pageSize: cap, sort
       } : {
-        page, pageSize, sort
+        page, pageSize, sort, filters
       },
     },
   });

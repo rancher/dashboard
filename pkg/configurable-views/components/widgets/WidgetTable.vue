@@ -5,9 +5,9 @@ import { STATE, NAME, NAMESPACE, AGE } from '@shell/config/table-headers';
 import WidgetCard from './WidgetCard.vue';
 import {
   applyFilter, applySort, fieldValue, fieldLabel, storeForType, typeColumns, withoutDetailLink,
-  fetchClusterPage
+  fetchClusterPage, steveFilters, steveSortField
 } from '../../templating/widget-data';
-import { isDownstream } from '../../templating/widget-catalog';
+import { isDownstream, PAGINATION_CONTEXT } from '../../templating/widget-catalog';
 
 // TABLE — "Rows of a resource with the columns you pick".
 //
@@ -16,13 +16,15 @@ import { isDownstream } from '../../templating/widget-catalog';
 // SERVER-SIDE pagination where the backend supports it, and the plumbing that goes with them. So
 // this widget does not fetch at all; it says what to show and hands the rest over.
 //
-// That is why the widget's own Where/Filter/Sort arrive as `localFilter`: the table owns the rows,
-// and a filter is something applied to them on the way past, not a reason to fetch them ourselves.
+// The widget's Filter goes INTO the request where the API can apply it (see apiFilters): then the
+// backend narrows and pages, and the table only ever holds one page. Where it cannot - a
+// comparison, a computed field, the "only these clusters" scope - the widget withdraws its paging
+// context and the table falls back to the whole collection, filtered here through `localFilter`.
+// Never half of each: see steveFilters for why.
 //
-// It is KEYED on the resource. The table fetches for the schema it was built with and does not
-// re-fetch when that prop changes, so pointing a widget at a different type left the old type's
-// rows on screen until a reload. Keying it makes a new resource a new table. The sort is in the key
-// for the same reason: a column's default sort is read once, when the table is built.
+// It is KEYED on what it asks for (see tableKey). The table fetches for the schema it was built
+// with and does not re-fetch when that prop changes, so pointing a widget at a different type left
+// the old type's rows on screen until a reload. Keying it makes a new question a new table.
 //
 // Columns come from the RESOURCE first: Rancher defines real headers per type, so a User gets a
 // username and a last login while a Cluster gets a provider and a Kubernetes version, each with its
@@ -81,17 +83,94 @@ export default {
       return this.widget.cluster || '';
     },
 
-    // A filter is applied here rather than by the API, so it changes HOW the rows are fetched.
+    // True when the widget's filter has to be applied HERE, because the API cannot apply it - which
+    // changes how the rows are fetched: all of them, not a page.
     filtered() {
-      return !!this.widget.filter || (this.widget.where === 'custom' && !!this.widget.targets?.length);
+      return this.apiFilters === null;
     },
 
     /**
      * Everything the request depends on, except which page. When this changes the widget is asking
      * a different question, so the answer starts again at page one.
+     *
+     * The filter text is in here, not just whether there is one: two filters the API applies are
+     * two different requests.
      */
     queryKey() {
-      return JSON.stringify([this.widget.resource, this.cluster, this.widget.sortBy, this.widget.sortDir, this.filtered]);
+      return JSON.stringify([
+        this.widget.resource, this.cluster, this.widget.sortBy, this.widget.sortDir, this.widget.filter || '', this.scoped ? this.widget.targets : []
+      ]);
+    },
+
+    /**
+     * The widget's filter as something the API can apply, or null when it cannot apply it.
+     *
+     * This one value decides how the widget works. Non-null and the request is narrowed and paged
+     * by the backend; null and we are back to holding the whole collection and filtering it here.
+     */
+    apiFilters() {
+      // "Only these clusters or namespaces" is matched against several fields at once (see
+      // inTargets), which the API has no single field for - so it is applied to the rows, and a
+      // widget that uses it is not paged.
+      if (this.scoped) {
+        return null;
+      }
+
+      return steveFilters(this.widget.filter);
+    },
+
+    scoped() {
+      return this.widget.where === 'custom' && !!this.widget.targets?.length;
+    },
+
+    /**
+     * What turns SERVER-SIDE pagination on - and it is a context, not a flag.
+     *
+     * The store enables paging per resource per context, and index.ts registers this extension's
+     * own. So paging is on for these widgets and for nothing else: no list page elsewhere in
+     * Rancher changes behaviour because a Home has a table on it.
+     *
+     * Null withdraws the context, and with it server-side paging, which is exactly what a filter
+     * the API cannot apply needs - the table then fetches the collection and `localFilter` runs.
+     * Both halves have to move together: `localFilter` is ignored while paging is on, and
+     * `apiFilter` is ignored while it is off.
+     */
+    paginationContext() {
+      return this.apiFilters ? PAGINATION_CONTEXT : null;
+    },
+
+    /**
+     * The same columns, told what the API calls them.
+     *
+     * A client-side header sorts on a name only this extension understands (`nameSort`). Sent to
+     * Steve that is a column it has never heard of, and the whole request comes back 422 - so a
+     * column whose sort cannot be translated is marked unsortable rather than left to break.
+     */
+    paginationHeaders() {
+      return this.headers.map((header) => {
+        const field = steveSortField(this.$store.getters, this.widget.resource, header.name);
+
+        return field ? {
+          ...header, sort: [field], search: field
+        } : {
+          ...header, sort: false, search: false
+        };
+      });
+    },
+
+    /**
+     * What rebuilds the global table.
+     *
+     * The table asks the API once, when it is built, and after that only when its OWN paging or
+     * sorting changes - it has no idea the widget's settings exist. So everything the request is
+     * made of goes in here, and changing any of it builds a new table that asks again: the type,
+     * the sort (read once, as the column's default), and the filter, which is now part of the
+     * request rather than something applied to rows afterwards.
+     */
+    tableKey() {
+      return JSON.stringify([
+        this.widget.resource, this.widget.sortBy, this.widget.sortDir, this.widget.filter || '', this.scoped ? this.widget.targets : [], this.paginationContext
+      ]);
     },
 
     inStore() {
@@ -153,7 +232,9 @@ export default {
      * asked for.
      */
     visibleRows() {
-      return this.filterRows(this.rows);
+      // Rows the API filtered are not filtered again: its partial match and ours are not the same
+      // function, and the second pass would quietly drop rows the first one returned.
+      return this.filtered ? this.filterRows(this.rows) : this.rows;
     },
 
     // External pagination means "the rows you were handed ARE the page" — the table shows them all
@@ -223,6 +304,7 @@ export default {
           pageSize,
           sortBy:   this.widget.sortBy,
           sortDir:  this.widget.sortDir,
+          filters:  this.apiFilters || [],
           filtered: this.filtered,
         });
 
@@ -238,6 +320,23 @@ export default {
       } finally {
         this.loadingPage = false;
       }
+    },
+
+    /**
+     * Add the widget's own filter to the request the table is about to make.
+     *
+     * MUTATES, and deliberately: the caller assigns this function's return value somewhere it never
+     * reads (`opt.paginating`), so every other apiFilter in the codebase changes the object in
+     * place. Returning a new one here would be silently dropped.
+     */
+    applyApiFilter(pagination) {
+      if (!this.apiFilters?.length) {
+        return pagination;
+      }
+
+      pagination.filters = [...(pagination.filters || []), ...this.apiFilters];
+
+      return pagination;
     },
 
     headerFor(id) {
@@ -264,7 +363,7 @@ export default {
 
     // Applied to whichever rows the table has, however it got them.
     filterRows(rows) {
-      const scoped = this.widget.where === 'custom' && this.widget.targets?.length ? (rows || []).filter((row) => this.inTargets(row)) : rows;
+      const scoped = this.scoped ? (rows || []).filter((row) => this.inTargets(row)) : rows;
       const filtered = applyFilter(scoped, this.widget.filter);
 
       return this.sortsItself ? filtered : applySort(filtered, this.widget.sortBy, this.widget.sortDir);
@@ -321,12 +420,14 @@ export default {
   >
     <PaginatedResourceTable
       v-if="schema"
-      :key="`${ widget.resource }|${ widget.sortBy }|${ widget.sortDir }`"
+      :key="tableKey"
       :schema="schema"
       :headers="headers"
-      :pagination-headers="headers"
+      :pagination-headers="paginationHeaders"
+      :context="paginationContext"
       :override-in-store="inStore"
       :local-filter="filterRows"
+      :api-filter="applyApiFilter"
       :table-actions="false"
       :row-actions="false"
       :namespaced="false"
