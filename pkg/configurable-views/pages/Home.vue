@@ -28,8 +28,11 @@ import {
 //
 // Edits are a DRAFT: nothing is written until Save.
 export default {
-  name:       'AiTemplatingHome',
-  components: {
+  name:         'ConfigurableViewsHome',
+  // Two roots in stock mode (the bar and the page), so the router-view's attrs - `class="outlet"` -
+  // are placed by hand: on the stock page itself, or on the configurable surface. See showsStockPage.
+  inheritAttrs: false,
+  components:   {
     StockHome, WidgetGrid, HomeViewBar, EditViewSidebar, WidgetSettingsModal
   },
 
@@ -180,6 +183,55 @@ export default {
 
     hasContent() {
       return this.activeIsStock || this.widgets.length > 0;
+    },
+
+    /**
+     * True when what is on screen is Rancher's own Home - and then it is rendered AS Rancher's Home.
+     *
+     * Not wrapped. The stock page is the router's outlet: it takes `class="outlet"` and sits
+     * straight in <main>, with nothing around it. Rendered inside this component's layout it was
+     * none of that - four wrappers deep, with the panel's spacing applied to it, 20px in, 20px down
+     * and 40px narrower than the real thing. So in this state the component renders the bar and
+     * then the stock page with our attrs on it, which makes its root the outlet exactly as stock.
+     * The bar is the only addition.
+     *
+     * Covers every way of arriving at the stock page: the stock panel chosen, the feature switched
+     * off, no panel applied, or an empty one. Editing is the exception - that is our own page, the
+     * stock one shown inside it only so there is something to look at beside the drawer.
+     */
+    showsStockPage() {
+      return this.loaded && !this.editing && (this.activeIsStock || !(this.templatingEnabled && this.activeView && this.hasContent));
+    },
+
+    // The bar renders in both layouts, so what it is given is written once.
+    barProps() {
+      return {
+        views:       this.views,
+        activeId:    this.activePanelId,
+        editing:     this.editing,
+        isNew:       this.isNewView,
+        defaultId:   this.defaultViewId,
+        dirty:       this.dirty,
+        saving:      this.saving,
+        startedFrom: this.startedFrom,
+      };
+    },
+
+    barListeners() {
+      return {
+        select:         this.selectPanel,
+        edit:           this.enterEdit,
+        cancel:         this.cancelEdit,
+        save:           () => this.save(),
+        'save-as-new':  this.saveAsNewView,
+        rename:         this.renameView,
+        'rename-start': this.startRename,
+        'new-view':     this.newView,
+        duplicate:      this.duplicateView,
+        'set-default':  this.setDefaultView,
+        publish:        this.publishView,
+        delete:         this.deleteView,
+      };
     },
 
     // True when the draft differs from the last saved state.
@@ -895,33 +947,35 @@ export default {
 </script>
 
 <template>
+  <!-- Rancher's own Home, as Rancher renders it: the bar, then the real page with nothing around
+     it. See showsStockPage. -->
+  <template v-if="showsStockPage">
+    <HomeViewBar
+      v-if="templatingEnabled"
+      ref="bar"
+      v-bind="barProps"
+      v-on="barListeners"
+    />
+    <p
+      v-if="error"
+      class="ai-home__error"
+    >
+      {{ error }}
+    </p>
+    <StockHome v-bind="$attrs" />
+  </template>
+
   <div
+    v-else
+    v-bind="$attrs"
     class="ai-home"
     :class="{ 'ai-home--editing': editing }"
   >
     <HomeViewBar
       v-if="loaded && templatingEnabled"
       ref="bar"
-      :views="views"
-      :active-id="activePanelId"
-      :editing="editing"
-      :is-new="isNewView"
-      :default-id="defaultViewId"
-      :dirty="dirty"
-      :saving="saving"
-      :started-from="startedFrom"
-      @select="selectPanel"
-      @edit="enterEdit"
-      @cancel="cancelEdit"
-      @save="save()"
-      @save-as-new="saveAsNewView"
-      @rename="renameView"
-      @rename-start="startRename"
-      @new-view="newView"
-      @duplicate="duplicateView"
-      @set-default="setDefaultView"
-      @publish="publishView"
-      @delete="deleteView"
+      v-bind="barProps"
+      v-on="barListeners"
     />
 
     <p
@@ -935,14 +989,14 @@ export default {
        control lives in the drawer beside it. -->
     <div class="ai-home__layout">
       <div class="ai-home__main">
-        <!-- The active VIEW (or the edit surface). Gate on templatingEnabled so the kill switch
-         swaps to stock Rancher live. StockHome shows when nothing is applied. -->
+        <!-- A panel of widgets, or the edit surface. Outside editing, the stock page never reaches
+         this branch - it renders as itself, above. -->
         <div
           v-if="loaded && templatingEnabled && activeView && (editing || hasContent)"
           class="ai-home__surface"
           :style="surfaceStyle"
         >
-          <!-- A STOCK view is Rancher's own Home, kept as a tab — nothing to edit. -->
+          <!-- Editing a STOCK panel: there is nothing to edit, but the drawer is open beside it. -->
           <StockHome v-if="activeIsStock" />
           <WidgetGrid
             v-else
@@ -998,6 +1052,22 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+// The stock page's padding, as the home layout sets it.
+//
+// A global `.outlet` rule pads every page 24px, and the home layout takes that back with a SCOPED
+// rule of its own - `main .outlet { padding: 0 }` in templates/home.vue. A scoped rule reaches a
+// child page only when that page is the router-view's single root, which is what gives it the
+// layout's scope attribute. In stock mode this component renders two roots, the bar and the page,
+// so the page never gets that attribute and the layout's rule stops applying: 24px of padding the
+// real Home does not have.
+//
+// It does carry THIS component's scope attribute - it is a child root in our template - so the
+// layout's one declaration is restated here, for exactly the element it was written for. The
+// configurable surface is single-rooted and already gets the layout's own rule.
+.outlet {
+  padding: 0;
+}
+
 .ai-home {
   &--editing {
     min-height: calc(100vh - var(--header-height, 54px));
