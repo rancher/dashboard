@@ -26,7 +26,11 @@ export const CONNECTIVES = ['and', 'or'];
 /** Spelled out negation, the word form of the `-` and `!` prefixes */
 export const NEGATORS = ['not'];
 
-function isConnective(text: string): boolean {
+/**
+ * Is this `and` or `or`? Those join two things. `not` does not, which is why it is allowed to lead -
+ * so it is left out here, although a `not` is a token of the connective kind like the other two.
+ */
+function isJoiner(text: string): boolean {
   return !!text && CONNECTIVES.includes(text.toLowerCase());
 }
 
@@ -141,7 +145,7 @@ export function scanQuery(query: string, fields: TableViewField[]): TableViewQue
     const chunk = raw[i];
     let text = chunk.text;
 
-    if (isConnective(text)) {
+    if (isJoiner(text)) {
       out.push({
         ...chunk, kind: 'connective', negate: '', negated: false, field: null, fieldText: '', value: text, valueStart: chunk.start
       });
@@ -273,9 +277,6 @@ export function parseQuery(query: string, fields: TableViewField[]): TableViewTe
       negated: token.negated,
     }));
 }
-
-/** `and` and `or` join two things. `not` does not, which is why it is allowed to lead. */
-const isJoiner = isConnective;
 
 /** Does this run of text open a quote it never closes? Both marks, as the tokenizer reads both. */
 function hasUnbalancedQuote(text: string): boolean {
