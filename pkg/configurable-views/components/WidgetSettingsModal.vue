@@ -1,4 +1,5 @@
 <script>
+import { MANAGEMENT } from '@shell/config/types';
 import { TABLE_COLUMNS, FIELDS, typeColumns, clusterOptions } from '../templating/widget-data';
 import {
   SUGGESTED_RESOURCES, blockName, isDownstream, WIDGET_TABLE, WIDGET_LINKS,
@@ -230,6 +231,26 @@ export default {
   },
 
   watch: {
+    /**
+     * Load the clusters the picker offers, the moment it is shown.
+     *
+     * The picker reads them from the store, and nothing on the Home is obliged to have put them
+     * there - the cluster list pages now, so it holds one page of them at most, and a Home without
+     * one holds none. It worked before only because the old cluster widget fetched every cluster
+     * as a side effect, which is exactly what that widget no longer does.
+     *
+     * Fetched here, not on every Home load: a picker of clusters needs all of them, but only while
+     * somebody is choosing one.
+     */
+    needsClusters: {
+      immediate: true,
+      handler(needed) {
+        if (needed) {
+          this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }).catch(() => {});
+        }
+      },
+    },
+
     /**
      * Changing the type changes what a column even means — `user-id` is not a column a Cluster has —
      * so the old ticks cannot carry over. Everything the new type has is ticked: you drop what you
