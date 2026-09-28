@@ -4,6 +4,7 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import ResourceGraphGroups from '@shell/components/ResourceYaml/ResourceGraphGroups.vue';
 import { RcCounterBadge } from '@components/Pill';
+import { RcButton } from '@components/RcButton';
 import { ResourceGraphGroup, ResourceGraphNode, ResourceGraphTreeNode } from '@shell/components/ResourceYaml/types';
 
 const props = withDefaults(defineProps<{
@@ -140,14 +141,13 @@ const groups = computed<ResourceGraphGroup[]>(() => groupsBelow(undefined));
       v-if="props.canCreate"
       class="resource-graph-footer"
     >
-      <button
-        type="button"
-        class="btn role-secondary"
+      <RcButton
+        variant="secondary"
         data-testid="resource-graph-create"
         @click="emit('create')"
       >
         {{ i18n.t('resourceYaml.resourceGraph.create') }}
-      </button>
+      </RcButton>
     </div>
   </nav>
 </template>
@@ -182,5 +182,7 @@ const groups = computed<ResourceGraphGroup[]>(() => groupsBelow(undefined));
   flex-shrink: 0;
   padding: 12px 14px;
   border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
 }
 </style>

@@ -8,7 +8,9 @@ import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
 import { clone, get, set } from '@shell/utils/object';
-import { isElementalMachinePool, machinePoolStoreFor, saveMachineConfigYaml, saveMachinePool } from '@shell/utils/machine-pools';
+import {
+  hasUnsavedMachinePool, isElementalMachinePool, machinePoolStoreFor, saveMachineConfigYaml, saveMachinePool
+} from '@shell/utils/machine-pools';
 import { compare } from '@shell/utils/version';
 import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -519,10 +521,10 @@ export default class ProvCluster extends SteveModel {
     return found.map((resource) => ({
       resource,
       groupKey: 'resourceYaml.resourceGraph.groups.machinePools',
-      banner:   ({ relatedResources }) => {
-        const poolCount = relatedResources.filter((r) => r.groupKey === 'resourceYaml.resourceGraph.groups.machinePools').length;
-
-        return poolCount === 1 ? { color: 'info', labelKey: 'resourceYaml.resourceGraph.banners.singleNodePool' } : null;
+      banner:   (ctx) => {
+        if (hasUnsavedMachinePool(ctx)) {
+          return { color: 'error', labelKey: 'resourceYaml.resourceGraph.banners.unsavedNodePool' };
+        }
       },
       save,
     }));

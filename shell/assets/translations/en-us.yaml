@@ -6457,11 +6457,12 @@ resourceYaml:
     groups:
       machinePools: "Node Pools · Machine Templates"
     banners:
-      singleNodePool: This cluster has only one node pool.
+      unsavedNodePool: A reference to the new machine template has been added to the provisioning cluster yaml. Save the cluster to apply changes.
   createRelatedResource:
     type: Resource Type
-    source: Clone From
-    blank: None
+    source: Resource to Copy
+    copyExisting: Copy Existing
+    empty: Empty Document
   buttons:
     continue: Continue Editing
     edit: Edit YAML

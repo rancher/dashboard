@@ -264,3 +264,35 @@ export async function saveMachineConfigYaml(ctx: EditableRelatedResourceContext,
 
   return entry.config;
 }
+
+/**
+ * The cluster YAML in the editor has a pool referencing the machine config of `ctx`, which the
+ * saved cluster does not have
+ *
+ * True after `saveMachineConfigYaml` gives a new machine config a new pool, until the cluster is saved
+ *
+ * @param ctx The context of the machine config's editable related resource
+ */
+export function hasUnsavedMachinePool(ctx: EditableRelatedResourceContext): boolean {
+  const {
+    resource, primaryResource, editorState, primaryNodeId, initialYaml
+  } = ctx;
+  const name = resource?.metadata?.name;
+
+  if (!name) {
+    return false;
+  }
+
+  const references = (cluster: any) => (cluster?.spec?.rkeConfig?.machinePools || []).some((p: any) => p.machineConfigRef?.name === name);
+
+  if (references(primaryResource)) {
+    return false;
+  }
+
+  try {
+    return references(jsyaml.load(editorState.yaml[primaryNodeId] ?? initialYaml[primaryNodeId]));
+  } catch {
+    // the cluster yaml in the editor can be invalid while it is edited
+    return false;
+  }
+}

@@ -251,6 +251,7 @@ const openCreateDrawer = () => {
     componentProps: {
       types:               creatableTypes.value,
       namespace:           props.value?.metadata?.namespace,
+      initialSourceId:     editorState.selected !== primaryId.value ? editorState.selected : undefined,
       onClose:             () => store.commit('slideInPanel/close'),
       width:               'wide',
       height:              'full',

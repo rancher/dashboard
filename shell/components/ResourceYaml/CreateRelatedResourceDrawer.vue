@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, useId } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { Banner } from '@components/Banner';
 import { RcButton } from '@components/RcButton';
 import Drawer from '@shell/components/Drawer/Chrome.vue';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import ButtonGroup from '@shell/components/ButtonGroup.vue';
+import Select from '@shell/components/form/Select.vue';
 import Loading from '@shell/components/Loading.vue';
 import YamlEditor from '@shell/components/YamlEditor.vue';
 import { RelatedResourceType } from '@shell/components/ResourceYaml/types';
@@ -19,6 +20,9 @@ const props = defineProps<{
 
   /** Set on the new resource when its type is namespaced */
   namespace?: string,
+
+  /** The `nodeId` of a related resource to copy from initially, selecting its type */
+  initialSourceId?: string | null,
 }>();
 
 const emit = defineEmits<{ close: [] }>();
@@ -28,20 +32,35 @@ const i18n = useI18n(store);
 
 const title = computed(() => i18n.t('resourceYaml.resourceGraph.create'));
 
-// the source option for a blank resource, which no `nodeId` matches
+const typeLabelId = useId();
+const sourceLabelId = useId();
+
+// the source id while no resource to copy is picked, which no `nodeId` matches
 const BLANK = '';
+
+type Mode = 'copy' | 'empty';
 
 const typeOptions = computed(() => props.types.map(({ key, label }) => ({ value: key, label })));
 
 const selectedKey = ref<string>();
+const mode = ref<Mode>('empty');
 const sourceId = ref(BLANK);
 
 const selectedType = computed(() => props.types.find((t) => t.key === selectedKey.value));
 
-const sourceOptions = computed(() => [
-  { value: BLANK, label: i18n.t('resourceYaml.createRelatedResource.blank') },
-  ...(selectedType.value?.sources || []).map(({ id, label }) => ({ value: id, label })),
+const modeOptions = computed(() => [
+  {
+    value:    'copy',
+    label:    i18n.t('resourceYaml.createRelatedResource.copyExisting'),
+    disabled: !selectedType.value?.sources.length,
+  },
+  { value: 'empty', label: i18n.t('resourceYaml.createRelatedResource.empty') },
 ]);
+
+const sourceOptions = computed(() => (selectedType.value?.sources || []).map(({ id, label }) => ({ value: id, label })));
+
+// copying shows no editor until a resource to copy is picked
+const showEditor = computed(() => !!selectedType.value && (mode.value === 'empty' || sourceId.value !== BLANK));
 
 const yaml = ref('');
 const loading = ref(false);
@@ -78,7 +97,7 @@ const load = async() => {
   error.value = '';
   saveError.value = '';
 
-  if (!type) {
+  if (!type || (mode.value === 'copy' && !source)) {
     return;
   }
 
@@ -103,6 +122,17 @@ const load = async() => {
 
 const selectType = (key: string) => {
   selectedKey.value = key;
+  mode.value = selectedType.value?.sources.length ? 'copy' : 'empty';
+  sourceId.value = BLANK;
+  load();
+};
+
+const selectMode = (value: Mode) => {
+  if (value === mode.value) {
+    return;
+  }
+
+  mode.value = value;
   sourceId.value = BLANK;
   load();
 };
@@ -111,6 +141,15 @@ const selectSource = (id: string) => {
   sourceId.value = id;
   load();
 };
+
+// a source of a type that cannot be created is not offered, so it selects nothing
+const initialType = props.initialSourceId ? props.types.find((t) => t.sources.some((s) => s.id === props.initialSourceId)) : undefined;
+
+if (initialType && props.initialSourceId) {
+  selectedKey.value = initialType.key;
+  mode.value = 'copy';
+  selectSource(props.initialSourceId);
+}
 
 const canSave = computed(() => !!selectedType.value && !!yaml.value && !loading.value && !saving.value);
 
@@ -145,25 +184,46 @@ const save = async() => {
     </template>
     <template #body>
       <div class="create-related-resource">
-        <div class="create-related-resource-selects">
-          <LabeledSelect
+        <div class="create-related-resource-field create-related-resource-field--half">
+          <span
+            :id="typeLabelId"
+            class="create-related-resource-label"
+          >{{ i18n.t('resourceYaml.createRelatedResource.type') }}</span>
+          <Select
             :value="selectedKey"
             :options="typeOptions"
             :append-to-body="false"
-            :label="i18n.t('resourceYaml.createRelatedResource.type')"
+            :aria-labelledby="typeLabelId"
             data-testid="create-related-resource-type"
             @update:value="selectType"
           />
-          <LabeledSelect
-            v-if="selectedType"
-            :value="sourceId"
-            :options="sourceOptions"
-            :append-to-body="false"
-            :label="i18n.t('resourceYaml.createRelatedResource.source')"
-            data-testid="create-related-resource-source"
-            @update:value="selectSource"
-          />
         </div>
+        <template v-if="selectedType">
+          <ButtonGroup
+            :value="mode"
+            :options="modeOptions"
+            size="small"
+            data-testid="create-related-resource-mode"
+            @update:value="selectMode"
+          />
+          <div
+            v-if="mode === 'copy'"
+            class="create-related-resource-field create-related-resource-field--half"
+          >
+            <span
+              :id="sourceLabelId"
+              class="create-related-resource-label"
+            >{{ i18n.t('resourceYaml.createRelatedResource.source') }}</span>
+            <Select
+              :value="sourceId"
+              :options="sourceOptions"
+              :append-to-body="false"
+              :aria-labelledby="sourceLabelId"
+              data-testid="create-related-resource-source"
+              @update:value="selectSource"
+            />
+          </div>
+        </template>
         <Banner
           v-if="error"
           color="error"
@@ -175,7 +235,7 @@ const save = async() => {
         >
           <Loading mode="relative" />
         </div>
-        <template v-else-if="selectedType">
+        <template v-else-if="showEditor">
           <Banner
             v-if="saveError"
             color="error"
@@ -211,13 +271,18 @@ const save = async() => {
   gap: 16px;
 }
 
-.create-related-resource-selects {
+.create-related-resource-field {
   display: flex;
-  gap: 16px;
+  flex-direction: column;
+  gap: 4px;
 
-  & > * {
-    flex: 1 1 0;
+  &--half {
+    width: 50%;
   }
+}
+
+.create-related-resource-label {
+  color: var(--input-label);
 }
 
 .create-related-resource-loading {
