@@ -49,6 +49,9 @@ export const WIDGET_EVENTS: WidgetKind = 'clusterEvents';
 export const WIDGET_CERTIFICATES: WidgetKind = 'clusterCertificates';
 export const WIDGET_COMPONENT_STATUS: WidgetKind = 'clusterComponentStatus';
 export const WIDGET_TABS: WidgetKind = 'tabs';
+export const WIDGET_ALERTS: WidgetKind = 'clusterAlerts';
+export const WIDGET_METRICS: WidgetKind = 'clusterMetrics';
+export const WIDGET_EXTENSION_CARDS: WidgetKind = 'clusterExtensionCards';
 
 /**
  * The kinds that are ABOUT one cluster - the pieces of a cluster's dashboard.
@@ -57,7 +60,8 @@ export const WIDGET_TABS: WidgetKind = 'tabs';
  * settings ask for a cluster for these and for nothing else of theirs.
  */
 const CLUSTER_WIDGETS: WidgetKind[] = [
-  WIDGET_CLUSTER_HEADER, WIDGET_RESOURCE_CARDS, WIDGET_CAPACITY, WIDGET_COMPONENT_STATUS, WIDGET_OVERVIEW, WIDGET_EVENTS, WIDGET_CERTIFICATES
+  WIDGET_CLUSTER_HEADER, WIDGET_RESOURCE_CARDS, WIDGET_CAPACITY, WIDGET_COMPONENT_STATUS, WIDGET_OVERVIEW, WIDGET_EVENTS,
+  WIDGET_CERTIFICATES, WIDGET_ALERTS, WIDGET_METRICS, WIDGET_EXTENSION_CARDS
 ];
 
 export function isClusterWidget(kind: string): boolean {
@@ -194,6 +198,52 @@ export const READY_MADE: CatalogEntry[] = [
     icon: 'table',
     span: 12,
     spec: { kind: WIDGET_CERTIFICATES, title: '' },
+  },
+  {
+    id:   'cluster-alerts',
+    name: 'Alerts',
+    desc: "A cluster's firing alerts, from its monitoring",
+    icon: 'table',
+    span: 12,
+    spec: { kind: WIDGET_ALERTS, title: '' },
+  },
+  {
+    id:   'cluster-metrics',
+    name: 'Cluster metrics',
+    desc: "A cluster's Grafana dashboard, from its monitoring",
+    icon: 'banner',
+    span: 12,
+    spec: {
+      kind: WIDGET_METRICS, title: '', metrics: 'cluster'
+    },
+  },
+  {
+    id:   'k8s-metrics',
+    name: 'Kubernetes component metrics',
+    desc: "A cluster's API server, controller manager and scheduler in Grafana",
+    icon: 'banner',
+    span: 12,
+    spec: {
+      kind: WIDGET_METRICS, title: '', metrics: 'k8s'
+    },
+  },
+  {
+    id:   'etcd-metrics',
+    name: 'etcd metrics',
+    desc: "A cluster's etcd in Grafana, with its leader and proposals",
+    icon: 'banner',
+    span: 12,
+    spec: {
+      kind: WIDGET_METRICS, title: '', metrics: 'etcd'
+    },
+  },
+  {
+    id:   'extension-cards',
+    name: 'Extension cards',
+    desc: 'The cards extensions add to the cluster dashboard',
+    icon: 'links',
+    span: 12,
+    spec: { kind: WIDGET_EXTENSION_CARDS, title: '' },
   },
   {
     id:   'welcome-banner',

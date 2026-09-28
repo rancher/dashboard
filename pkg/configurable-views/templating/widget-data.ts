@@ -19,7 +19,7 @@ import { NODE_ROLES } from '@shell/config/labels-annotations';
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { colorToCountName } from '@shell/components/ResourceSummary';
 import { RESOURCES as DASHBOARD_RESOURCES } from '@shell/pages/c/_cluster/explorer/index.vue';
-import type { ResourceRow, SortDir } from './types';
+import type { MetricsDashboard, ResourceRow, SortDir } from './types';
 
 type Getters = Store<unknown>['getters'];
 
@@ -855,6 +855,71 @@ export function fetchStateSummaries(store: Store<unknown>, cluster: string, type
       };
     }
   }));
+}
+
+// ---- monitoring: alerts and Grafana, for a named cluster ------------------------------------------
+
+const MONITORING_NS = 'cattle-monitoring-system';
+const GRAFANA = `/api/v1/namespaces/${ MONITORING_NS }/services/http:rancher-monitoring-grafana:80/proxy`;
+
+/**
+ * The cluster dashboard's Grafana dashboards, as its own page embeds them: a detail and a summary
+ * for each, and the height it gives them. The page keeps these as private constants.
+ */
+export const METRICS_DASHBOARDS: Record<MetricsDashboard, { labelKey: string; detailUrl: string; summaryUrl: string; graphHeight: string }> = {
+  cluster: {
+    labelKey:    'clusterIndexPage.sections.clusterMetrics.label',
+    detailUrl:   `${ GRAFANA }/d/rancher-cluster-nodes-1/rancher-cluster-nodes?orgId=1`,
+    summaryUrl:  `${ GRAFANA }/d/rancher-cluster-1/rancher-cluster?orgId=1`,
+    graphHeight: '875px',
+  },
+  k8s: {
+    labelKey:    'clusterIndexPage.sections.k8sMetrics.label',
+    detailUrl:   `${ GRAFANA }/d/rancher-k8s-components-nodes-1/rancher-kubernetes-components-nodes?orgId=1`,
+    summaryUrl:  `${ GRAFANA }/d/rancher-k8s-components-1/rancher-kubernetes-components?orgId=1`,
+    graphHeight: '600px',
+  },
+  etcd: {
+    labelKey:    'clusterIndexPage.sections.etcdMetrics.label',
+    detailUrl:   `${ GRAFANA }/d/rancher-etcd-nodes-1/rancher-etcd-nodes?orgId=1`,
+    summaryUrl:  `${ GRAFANA }/d/rancher-etcd-1/rancher-etcd?orgId=1`,
+    graphHeight: '600px',
+  },
+};
+
+/** Whether a cluster has Rancher's monitoring, and which version - the version decides the Grafana URL's prefix. */
+export async function fetchMonitoring(store: Store<unknown>, cluster: string): Promise<{ installed: boolean; version: string }> {
+  for (const name of ['rancher-monitoring-dashboards', 'rancher-monitoring']) {
+    try {
+      const app = await store.dispatch('management/request', { url: clusterUrl(cluster, `catalog.cattle.io.apps/${ MONITORING_NS }/${ name }`), redirectUnauthorized: false });
+
+      if (app?.metadata?.name) {
+        return { installed: true, version: app.spec?.chart?.metadata?.version || '' };
+      }
+    } catch (e) {}
+  }
+
+  return { installed: false, version: '' };
+}
+
+/** One alert as Alertmanager reports it - the fields the dashboard's alert table reads. */
+export interface Alert {
+  fingerprint?: string;
+  labels?: { alertname?: string; severity?: string };
+  annotations?: Record<string, string>;
+}
+
+/** A cluster's firing alerts, from its Alertmanager (v2, else v1), through Rancher's proxy to that cluster. */
+export async function fetchAlerts(store: Store<unknown>, cluster: string): Promise<Alert[]> {
+  const base = `/k8s/clusters/${ encodeURIComponent(cluster) }/api/v1/namespaces/${ MONITORING_NS }/services/http:rancher-monitoring-alertmanager:9093/proxy/api`;
+
+  try {
+    return await store.dispatch('management/request', { url: `${ base }/v2/alerts`, redirectUnauthorized: false }) || [];
+  } catch (e) {
+    const res = await store.dispatch('management/request', { url: `${ base }/v1/alerts`, redirectUnauthorized: false });
+
+    return res?.data || [];
+  }
 }
 
 /**

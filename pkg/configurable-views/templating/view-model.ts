@@ -21,13 +21,17 @@
 
 import {
   NODE_WIDGET, type LayoutView, type View, type Sides, type StockView, type ViewSet, type WidgetKind,
-  type WidgetNode, type WidgetPlace, type WidgetSpec, type WidgetTab
+  type WidgetNode, type WidgetPlace, type WidgetSpec, type WidgetTab, type MetricsDashboard
 } from './types';
 
 export { NODE_WIDGET };
 
 /** The widget that holds other widgets, in tabs. */
 const TABS_KIND = 'tabs';
+
+/** The widget that shows one of the cluster dashboard's Grafana dashboards, and which ones it can. */
+const METRICS_KIND = 'clusterMetrics';
+const METRICS_DASHBOARDS = ['cluster', 'k8s', 'etcd'];
 
 /** What a stock view says it is. See isStockView. */
 const STOCK_KIND = 'stock';
@@ -241,7 +245,8 @@ export function spacingPresetOf(padding: unknown): string | null {
  *
  *   kind        which building block: table | links | banner | clusterTable | overview |
  *               clusterHeader | resourceCards | clusterCapacity | clusterEvents |
- *               clusterCertificates | clusterComponentStatus | tabs
+ *               clusterCertificates | clusterComponentStatus | clusterAlerts | clusterMetrics |
+ *               clusterExtensionCards | tabs
  *   title       heading shown on the widget
  *   resource    the Rancher/Kubernetes type it reads (any kind Rancher knows, including CRDs)
  *   where       'view'   — the same clusters the view covers
@@ -253,6 +258,7 @@ export function spacingPresetOf(padding: unknown): string | null {
  *   limit       how many rows a table shows per page
  *   source      'home' — Rancher's own links | 'custom' — the `links` below (links widget)
  *   links       [{ label, url }] (links widget)
+ *   metrics     'cluster' | 'k8s' | 'etcd' (metrics widget)
  *   tabs        [{ id, name, widgets }] (tabs widget) - each tab's widgets are normalized like a view's
  */
 export function normalizeWidget(widget: unknown): WidgetSpec {
@@ -285,6 +291,9 @@ export function normalizeWidget(widget: unknown): WidgetSpec {
   }
   if (w.image) {
     out.image = str(w.image);
+  }
+  if (out.kind === METRICS_KIND) {
+    out.metrics = (METRICS_DASHBOARDS.includes(str(w.metrics)) ? str(w.metrics) : 'cluster') as MetricsDashboard;
   }
   if (out.kind === TABS_KIND) {
     out.tabs = normalizeTabs(w.tabs);
