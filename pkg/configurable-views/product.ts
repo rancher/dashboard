@@ -1,12 +1,12 @@
 import type { Store } from 'vuex';
 import { ConfigureVirtualTypeOptions, IPlugin } from '@shell/core/types';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
-import { PRODUCT_NAME, ROUTE_SETTINGS, ROUTE_LAYOUTS } from './templating/template-engine';
+import { PRODUCT_NAME, ROUTE_SETTINGS, ROUTE_VIEWS } from './templating/template-engine';
 
 // The "Configurable Views" product — a TOP-LEVEL global product (like Continuous Delivery / Cluster
-// Management): inStore 'management', no cluster switcher. It is focused solely on the configurable
-// Home: Settings (the kill switch) and Home Layouts (the assembled views). Everything is stored as
-// labeled ConfigMaps (not a CRD).
+// Management): inStore 'management', no cluster switcher. Two entries: Settings (the kill switch)
+// and Configurable Views (every page's saved views). Everything is stored as labeled ConfigMaps
+// (not a CRD).
 export function init($extension: IPlugin, store: Store<unknown>): void {
   const { product, virtualType, basicType } = $extension.DSL(store, PRODUCT_NAME);
 
@@ -35,15 +35,15 @@ export function init($extension: IPlugin, store: Store<unknown>): void {
     route:      { name: ROUTE_SETTINGS, params: { cluster: BLANK_CLUSTER } },
   } as ConfigureVirtualTypeOptions);
 
-  // Home Layouts — the assembled Home VIEWS (views + the widgets on them).
+  // Configurable Views — each page's saved VIEWS, and the widgets on them.
   virtualType({
-    labelKey:   'configurableViews.layouts.label',
-    name:       'configurable-views-layouts',
+    labelKey:   'configurableViews.views.label',
+    name:       'configurable-views-views',
     namespaced: false,
     weight:     106,
     exact:      true,
-    route:      { name: ROUTE_LAYOUTS, params: { cluster: BLANK_CLUSTER } },
+    route:      { name: ROUTE_VIEWS, params: { cluster: BLANK_CLUSTER } },
   } as ConfigureVirtualTypeOptions);
 
-  basicType(['configurable-views-layouts', 'configurable-views-settings']);
+  basicType(['configurable-views-views', 'configurable-views-settings']);
 }

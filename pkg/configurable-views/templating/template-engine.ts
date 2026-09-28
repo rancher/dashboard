@@ -39,7 +39,7 @@ export type PageKey = 'home' | 'clusterDashboard';
 // This package's product and route names, kept here so product.ts and routing/index.ts agree.
 export const PRODUCT_NAME = 'configurable-views';
 export const ROUTE_SETTINGS = 'configurable-views-settings';
-export const ROUTE_LAYOUTS = 'configurable-views-layouts';
+export const ROUTE_VIEWS = 'configurable-views-views';
 
 /** A ConfigMap as the management store hands it back: its fields, and `save`. */
 interface ConfigMapModel {
@@ -118,7 +118,7 @@ function pageConfig(getters: Getters, page: PageKey): PageConfig {
   return page === 'home' ? parse(cmNamed(getters, CONFIG_NAME)?.data?.home) : {};
 }
 
-/** A page's raw stored config ({ global, users }) - for the Home Layouts YAML editor. */
+/** A page's raw stored config ({ global, users }) - for the Configurable Views page's YAML editor. */
 export function getPageConfig(getters: Getters, page: PageKey = 'home'): PageConfig {
   return pageConfig(getters, page);
 }
@@ -203,7 +203,7 @@ async function persistPage(store: Store<unknown>, page: PageKey, config: PageCon
   }
 }
 
-/** Write a page's raw stored config - from the Home Layouts YAML editor. */
+/** Write a page's raw stored config - from the Configurable Views page's YAML editor. */
 export async function savePageConfig(store: Store<unknown>, config: PageConfig | null, page: PageKey = 'home'): Promise<void> {
   await persistPage(store, page, config || {});
 }
