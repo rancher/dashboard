@@ -40,12 +40,13 @@ permissions:
 safe-outputs:
   create-issue:
     title-prefix: "[dead-code] "
-    labels: [bot/dead-code-detector, bot/skip-grooming]
+    labels: [bot/dead-code-detector, bot/skip-grooming, kind/tech-debt]
     max: 3
   create-pull-request:
     draft: true
     title-prefix: "[dead-code] "
-    labels: [bot/dead-code-detector, "QA/None"]
+    # No QA label: the reviewer decides whether the change needs QA.
+    labels: [bot/dead-code-detector]
     # Mirrors the create-issue budget above. "The pull request budget" in the
     # shared reporting protocol is this number; keep the two in step.
     max: 3
