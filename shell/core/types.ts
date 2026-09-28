@@ -162,6 +162,34 @@ export type EditableRelatedResourceContext = {
 
   /** The reactive state of the editor */
   editorState: EditableRelatedResourcesEditorState,
+
+  /**
+   * The `nodeId` of the entry of `resource`, its key in `editorState.yaml`
+   *
+   * A resource that replaced another on save keeps the `nodeId` of the one it replaced, so this is
+   * not always the key of `resource`. A new resource has no entry, so this is an id no entry has,
+   * with the new resource's YAML in `initialYaml`
+   */
+  nodeId: string,
+
+  /**
+   * `resource` does not exist yet
+   *
+   * It was created in the editor as another resource of the same type as the entry, and is saved by
+   * that entry's save hooks and `save`
+   */
+  isNew?: boolean,
+
+  /** The `nodeId` of `primaryResource`, its key in `editorState.yaml` */
+  primaryNodeId: string,
+
+  /**
+   * The YAML of each resource as loaded, keyed by `nodeId`
+   *
+   * `editorState.yaml` has no entry for a resource that was never shown in the editor, so this is
+   * its YAML in that case
+   */
+  initialYaml: { [nodeId: string]: string },
 };
 
 /**
@@ -192,9 +220,23 @@ export type EditableRelatedResourceSaveHook = (ctx: EditableRelatedResourceConte
  * It is given the same context as a `EditableRelatedResourceCompute` function, where `resource` is
  * the related resource to save. The save hooks still run either side of it
  *
+ * Resolves to the saved resource. When that is a different resource than `resource`, for example a
+ * replacement for an immutable resource, the editor shows it in place of `resource` from then on
+ *
  * Throwing (or rejecting) aborts the save and surfaces the error to the user
  */
 export type EditableRelatedResourceSave = (ctx: EditableRelatedResourceContext) => any | Promise<any>;
+
+/**
+ * Produces the YAML of a new resource copied from one editable related resource
+ *
+ * It is given the same context as a `EditableRelatedResourceCompute` function, where `resource` is
+ * the related resource being copied
+ *
+ * Resolves to the YAML the new resource starts from. Throwing (or rejecting) shows the error in
+ * place of the YAML
+ */
+export type EditableRelatedResourceClone = (ctx: EditableRelatedResourceContext) => string | Promise<string>;
 
 /**
  * A banner to show for an editable related resource, for example to explain why it is shown
@@ -247,11 +289,25 @@ export type EditableRelatedResource = {
    * When this is defined it is called instead of the resource model's own `save`, for example
    * where the resource has to be saved via the primary resource or another API. The save hooks run
    * either side of it as usual
+   *
+   * A new resource of the same type created in the editor is saved by this too, with `ctx.isNew` set.
+   * The editor then shows the new resource with a copy of this entry, so this saves it from then on.
+   * State kept for a resource between saves must be looked up from `ctx.resource`, not held per entry
    */
   save?: EditableRelatedResourceSave,
 
   /** Run after `resource` has been saved, for example to update references to it */
   afterSaveHook?: EditableRelatedResourceSaveHook,
+
+  /**
+   * Produces the YAML of a new resource copied from `resource`
+   *
+   * When this is defined it is called instead of the default, which copies the saved resource and
+   * removes what a new resource must not have, such as its name and status, the same way as cloning
+   * a resource from its detail page. For example where the copy must also change a reference, or
+   * start from the unsaved YAML in `editorState.yaml`
+   */
+  clone?: EditableRelatedResourceClone,
 
   /**
    * A banner to show above this resource in the editor, or a falsy value to show none

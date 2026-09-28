@@ -177,4 +177,10 @@ const groups = computed<ResourceGraphGroup[]>(() => groupsBelow(undefined));
   min-height: 0;
   overflow: auto;
 }
+
+.resource-graph-footer {
+  flex-shrink: 0;
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+}
 </style>

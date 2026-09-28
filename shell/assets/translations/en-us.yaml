@@ -6449,6 +6449,7 @@ resourceTabs:
 resourceYaml:
   errors:
     namespaceRequired: This resource is namespaced, so a namespace must be provided.
+    machinePoolNotFound: 'No node pool in the cluster uses the machine config "{name}".'
   resourceGraph:
     title: Resource graph
     modified: Unsaved changes
@@ -6457,6 +6458,10 @@ resourceYaml:
       machinePools: "Node Pools · Machine Templates"
     banners:
       singleNodePool: This cluster has only one node pool.
+  createRelatedResource:
+    type: Resource Type
+    source: Clone From
+    blank: None
   buttons:
     continue: Continue Editing
     edit: Edit YAML

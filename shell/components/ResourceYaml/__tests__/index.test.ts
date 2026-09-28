@@ -3,6 +3,7 @@ import ResourceYaml from '@shell/components/ResourceYaml/index.vue';
 import { _VIEW } from '@shell/config/query-params';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { EditableRelatedResource } from '@shell/core/types';
+import { keyForResource } from '@shell/utils/resource-key';
 
 jest.mock('@shell/core/plugin-helpers', () => ({ getApplicableExtensionEnhancements: jest.fn(() => []) }));
 
@@ -11,14 +12,14 @@ const mockedEnhancements = getApplicableExtensionEnhancements as jest.Mock;
 /**
  * The entry as it appears once flattened at the top of the tree, gathered for the primary resource
  *
- * `nodeId` defaults to the resource's id, pass it for a resource that has none
+ * `nodeId` defaults to the resource's key, pass it for a resource that has no id
  */
-const atTop = (entry: any, nodeId: string = entry.resource?.id) => ({
+const atTop = (entry: any, nodeId: string = keyForResource(entry.resource)) => ({
   ...entry, depth: 1, nodeId
 });
 
 /** The entry as it appears once flattened below the entry with `parentId` */
-const below = (entry: any, parentId: string, depth: number, nodeId: string = entry.resource?.id) => ({
+const below = (entry: any, parentId: string, depth: number, nodeId: string = keyForResource(entry.resource)) => ({
   ...entry, depth, parentId, nodeId
 });
 
@@ -185,7 +186,7 @@ describe('component: ResourceYaml', () => {
 
         await wrapper.vm.loadEditableRelatedResources();
 
-        expect(wrapper.vm.editableRelatedResources).toStrictEqual([atTop(child), below(grandchild, 'ns/child', 2)]);
+        expect(wrapper.vm.editableRelatedResources).toStrictEqual([atTop(child), below(grandchild, 'service:ns/child', 2)]);
       });
 
       it('should not add the same resource (by id) more than once', async() => {
@@ -213,7 +214,7 @@ describe('component: ResourceYaml', () => {
         await wrapper.vm.loadEditableRelatedResources();
 
         // `shared` is reached from both children, and is kept under the first one to reach it
-        expect(wrapper.vm.editableRelatedResources).toStrictEqual([atTop(childA), atTop(childB), below(shared, 'ns/a', 2)]);
+        expect(wrapper.vm.editableRelatedResources).toStrictEqual([atTop(childA), atTop(childB), below(shared, 'pod:ns/a', 2)]);
       });
 
       it('should not loop on a circular reference', async() => {
@@ -287,10 +288,18 @@ describe('component: ResourceYaml', () => {
 
         await wrapper.vm.loadEditableRelatedResources();
 
-        expect(wrapper.vm.editableRelatedResources.map(({ resource, depth, parentId }: any) => ({ id: resource.id, depth, parentId }))).toStrictEqual([
-          { id: 'ns/child', depth: 1, parentId: undefined },
-          { id: 'ns/gc', depth: 2, parentId: 'ns/child' },
-          { id: 'ns/ggc', depth: 3, parentId: 'ns/gc' },
+        expect(wrapper.vm.editableRelatedResources.map(({ resource, depth, parentId }: any) => ({
+          id: resource.id, depth, parentId
+        }))).toStrictEqual([
+          {
+            id: 'ns/child', depth: 1, parentId: undefined
+          },
+          {
+            id: 'ns/gc', depth: 2, parentId: 'service:ns/child'
+          },
+          {
+            id: 'ns/ggc', depth: 3, parentId: 'secret:ns/gc'
+          },
         ]);
       });
 

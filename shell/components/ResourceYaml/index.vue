@@ -267,7 +267,7 @@ export default {
      */
     isEditableRelatedResource(entry) {
       const valid = !!entry?.resource &&
-        ['beforeSaveHook', 'afterSaveHook', 'save', 'banner'].every((fn) => !entry[fn] || typeof entry[fn] === 'function');
+        ['beforeSaveHook', 'afterSaveHook', 'save', 'clone', 'banner'].every((fn) => !entry[fn] || typeof entry[fn] === 'function');
 
       if (!valid) {
         console.warn('Ignoring invalid editable related resource', entry); // eslint-disable-line no-console
@@ -285,6 +285,7 @@ export default {
     v-else-if="needsMultiEdit"
     :value="value"
     :related-resources="editableRelatedResources"
+    @error="$emit('error', $event)"
   />
   <SingleResourceYaml
     v-else

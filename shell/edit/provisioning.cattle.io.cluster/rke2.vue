@@ -7,9 +7,8 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import { useKubernetesVersions, getDefaultVersion } from '@shell/composables/useKubernetesVersions';
 import { usePodSecurityAdmissionTemplates } from '@shell/composables/usePodSecurityAdmissionTemplates';
-import { normalizeName } from '@shell/utils/kube';
 import AccountAccess from '@shell/components/google/AccountAccess.vue';
-import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
+import { GOOGLE, saveMachinePool } from '@shell/utils/machine-pools';
 
 import {
   CAPI,
@@ -70,7 +69,6 @@ import {
 } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 import { mapGetters } from 'vuex';
 
-const GOOGLE = 'google';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 const NETBIOS_TRUNCATION_LENGTH = 15;
 
@@ -1359,35 +1357,6 @@ export default {
       }
     },
 
-    async syncMachineConfigWithLatest(machinePool) {
-      if (machinePool?.config?.id) {
-        // Use management/request instead of management/find to avoid overwriting the current machine pool in the store
-        const _latestConfig = await this.$store.dispatch('management/request', { url: `/v1/${ machinePool.config.type }s/${ machinePool.config.id }` });
-        const latestConfig = await this.$store.dispatch('management/create', _latestConfig);
-
-        const _initialMachinePoolValue = this.initialMachinePoolsValues[machinePool?.config?.id] || {};
-        const initialMachinePoolValue = await this.$store.dispatch('management/create', _initialMachinePoolValue);
-
-        // if there's the initial machine pool config, we are in a good position to apply the handleConflict function
-        // to deal with out-of-sync data between machinePools configs. This also mutates the data inside machinePool.config through object reference
-        const conflict = await handleConflict(
-          initialMachinePoolValue,
-          machinePool.config,
-          latestConfig,
-          {
-            dispatch: this.$store.dispatch,
-            getters:  this.$store.getters
-          },
-          'management'
-        );
-
-        // if there's conflicts, throw Error stops save process and surfaces error to user
-        if (conflict) {
-          throw Error(conflict);
-        }
-      }
-    },
-
     async saveMachinePools(hookContext) {
       if (hookContext === CONTEXT_HOOK_EDIT_YAML) {
         await new Promise((resolve, reject) => {
@@ -1427,52 +1396,18 @@ export default {
           continue;
         }
 
-        await this.syncMachineConfigWithLatest(entry);
+        const isNew = entry.create;
 
-        // Capitals and such aren't allowed;
-        entry.pool.name = normalizeName(entry.pool.name) || 'pool';
-        const prefix = `${ this.value.metadata.name }-${ entry.pool.name }`;
+        await saveMachinePool(entry, {
+          store:              this.$store,
+          clusterName:        this.value.metadata.name,
+          initialConfig:      this.initialMachinePoolsValues[entry.config?.id],
+          provider:           this.provider,
+          isElementalCluster: this.isElementalCluster,
+        });
 
-        const prefixFormatted = prefix.substr(0, 50).toLowerCase();
-
-        // For Google, we need to set internal and external firewall prefixes if enabled,
-        // but it is better to track it here since cluster and pool names are guaranteed to be set by now.
-        if (this.provider === GOOGLE) {
-          if (!!entry.config.setInternalFirewallRulePrefix) {
-            entry.config.internalFirewallRulePrefix = `${ this.value.metadata.name }`;
-          } else if (!!entry.config.internalFirewallRulePrefix) {
-            delete entry.config.internalFirewallRulePrefix;
-          }
-          if (!!entry.config.setExternalFirewallRulePrefix) {
-            entry.config.externalFirewallRulePrefix = prefix;
-          } else if (!!entry.config.externalFirewallRulePrefix) {
-            delete entry.config.externalFirewallRulePrefix;
-          }
-          // These have to be removed regardless of their value because they are not part of the object we are sending
-          delete entry.config.setInternalFirewallRulePrefix;
-          delete entry.config.setExternalFirewallRulePrefix;
-        }
-
-        if (entry.create) {
-          if (!entry.config.metadata?.name) {
-            entry.config.metadata.generateName = `nc-${ prefixFormatted }-`;
-          }
-
-          const neu = await entry.config.save();
-
-          entry.config = neu;
-          entry.pool.machineConfigRef.name = neu.metadata.name;
-          entry.create = false;
-          entry.update = true;
-
-          this.initialMachinePoolsValues[entry.config.id] = clone(neu);
-        } else if (entry.update) {
-          entry.config = await entry.config.save();
-        }
-
-        // Ensure Elemental clusters have a hostname prefix
-        if (this.isElementalCluster && !entry.pool.hostnamePrefix) {
-          entry.pool.hostnamePrefix = `${ prefixFormatted }-`;
+        if (isNew) {
+          this.initialMachinePoolsValues[entry.config.id] = clone(entry.config);
         }
 
         finalPools.push(entry.pool);

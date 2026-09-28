@@ -30,7 +30,7 @@ describe('component: ResourceGraph', () => {
   it('should show a node per resource', () => {
     const wrapper = mountComponent();
 
-    expect(wrapper.findAll('.resource-graph__node').map((n) => n.text())).toStrictEqual([
+    expect(wrapper.findAll('.resource-graph-node').map((n) => n.text())).toStrictEqual([
       'my-capi-cluster', 'VSphereCluster', 'ctrl', 'workers', 'cc-x7k2p'
     ]);
   });
@@ -44,24 +44,24 @@ describe('component: ResourceGraph', () => {
   it('should group the nodes in the order they are given, ungrouped nodes first', () => {
     const wrapper = mountComponent();
 
-    expect(wrapper.findAll('.resource-graph__group-label').map((l) => l.text())).toStrictEqual([
+    expect(wrapper.findAll('.resource-graph-group-label').map((l) => l.text())).toStrictEqual([
       'Infrastructure', 'Node Pools', 'Referenced'
     ]);
-    expect(wrapper.findAll('.resource-graph__group')[1].findAll('.resource-graph__node').map((n) => n.text())).toStrictEqual(['VSphereCluster']);
-    expect(wrapper.findAll('.resource-graph__group')[2].findAll('.resource-graph__node').map((n) => n.text())).toStrictEqual(['ctrl', 'workers']);
+    expect(wrapper.findAll('.resource-graph-group')[1].findAll('.resource-graph-node').map((n) => n.text())).toStrictEqual(['VSphereCluster']);
+    expect(wrapper.findAll('.resource-graph-group')[2].findAll('.resource-graph-node').map((n) => n.text())).toStrictEqual(['ctrl', 'workers']);
   });
 
   it('should show no heading for the ungrouped nodes', () => {
     const wrapper = mountComponent();
-    const first = wrapper.findAll('.resource-graph__group')[0];
+    const first = wrapper.findAll('.resource-graph-group')[0];
 
-    expect(first.find('.resource-graph__group-label').exists()).toBe(false);
-    expect(first.findAll('.resource-graph__node').map((n) => n.text())).toStrictEqual(['my-capi-cluster']);
+    expect(first.find('.resource-graph-group-label').exists()).toBe(false);
+    expect(first.findAll('.resource-graph-node').map((n) => n.text())).toStrictEqual(['my-capi-cluster']);
   });
 
   it('should mark the selected node', () => {
     const wrapper = mountComponent({ selected: 'ns/workers' });
-    const selected = wrapper.findAll('.resource-graph__node--selected');
+    const selected = wrapper.findAll('.resource-graph-node--selected');
 
     expect(selected).toHaveLength(1);
     expect(selected[0].text()).toBe('workers');
@@ -71,13 +71,13 @@ describe('component: ResourceGraph', () => {
   it('should mark no node as selected when nothing is selected', () => {
     const wrapper = mountComponent();
 
-    expect(wrapper.find('.resource-graph__node--selected').exists()).toBe(false);
+    expect(wrapper.find('.resource-graph-node--selected').exists()).toBe(false);
   });
 
   it('should mark a read only node', () => {
     const wrapper = mountComponent();
 
-    expect(wrapper.findAll('.resource-graph__node--read-only').map((n) => n.text())).toStrictEqual(['cc-x7k2p']);
+    expect(wrapper.findAll('.resource-graph-node--read-only').map((n) => n.text())).toStrictEqual(['cc-x7k2p']);
   });
 
   it('should show an indicator only for a modified node', () => {
@@ -113,6 +113,6 @@ describe('component: ResourceGraph', () => {
     const wrapper = mountComponent({ nodes: [] });
 
     expect(wrapper.find('[data-testid="resource-graph-count"]').text()).toBe('0');
-    expect(wrapper.findAll('.resource-graph__node')).toHaveLength(0);
+    expect(wrapper.findAll('.resource-graph-node')).toHaveLength(0);
   });
 });

@@ -1,3 +1,5 @@
+import { EditableResource } from '@shell/core/types';
+
 /**
  * One resource in the `ResourceGraph` of the multi-resource YAML editor
  */
@@ -50,4 +52,38 @@ export interface ResourceGraphGroup {
   label: string;
 
   nodes: ResourceGraphTreeNode[];
+}
+
+/**
+ * A type of the related resources shown in the multi-resource YAML editor
+ */
+export interface RelatedResourceType {
+  /** The store name and the type, as two stores can have a type of the same name, for example `secret` */
+  key: string;
+
+  type: string;
+
+  label: string;
+
+  /** A resource of this type, whose store holds the type's schema */
+  resource: EditableResource;
+
+  /** The related resources of this type, which a new resource can be copied from */
+  sources: RelatedResourceCloneSource[];
+
+  /** Saves a new resource of this type from its YAML, with the save hooks and `save` of the first related resource of this type */
+  save: (yaml: string) => Promise<EditableResource>;
+}
+
+/**
+ * A related resource that a new resource can be copied from
+ */
+export interface RelatedResourceCloneSource {
+  /** The `nodeId` of the related resource */
+  id: string;
+
+  label: string;
+
+  /** Resolves to the YAML of a new resource copied from this one */
+  cloneYaml: () => Promise<string>;
 }

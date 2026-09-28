@@ -7,7 +7,8 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
-import { get, set } from '@shell/utils/object';
+import { clone, get, set } from '@shell/utils/object';
+import { isElementalMachinePool, machinePoolStoreFor, saveMachineConfigYaml, saveMachinePool } from '@shell/utils/machine-pools';
 import { compare } from '@shell/utils/version';
 import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -470,6 +471,9 @@ export default class ProvCluster extends SteveModel {
    *
    * For an RKE2/K3s cluster these are the machine configs referenced by each of the machine pools
    *
+   * Saving a machine config runs the same steps as the cluster form, and writes any change to its
+   * machine pool into the cluster's YAML in the editor, to be saved with the cluster
+   *
    * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
    */
   async fetchOwnEditableRelatedResources() {
@@ -491,17 +495,37 @@ export default class ProvCluster extends SteveModel {
       return null;
     })));
 
-    return configs
-      .filter((config) => !!config)
-      .map((resource) => ({
-        resource,
-        groupKey: 'resourceYaml.resourceGraph.groups.machinePools',
-        banner:   ({ relatedResources }) => {
-          const poolCount = relatedResources.filter((r) => r.groupKey === 'resourceYaml.resourceGraph.groups.machinePools').length;
+    const store = machinePoolStoreFor(this);
+    const found = configs.filter((config) => !!config);
 
-          return poolCount === 1 ? { color: 'info', labelKey: 'resourceYaml.resourceGraph.banners.singleNodePool' } : null;
-        },
+    // base of the merge with the latest version from the server on save, keyed by machine config id
+    // one `save` serves every entry, including those for machine configs created in the editor
+    const initialConfigs = new Map(found.map((config) => [config.id, clone(config)]));
+
+    const save = async(ctx) => {
+      const saved = await saveMachineConfigYaml(ctx, store, (entry, clusterName) => saveMachinePool(entry, {
+        store,
+        clusterName,
+        initialConfig:      initialConfigs.get(ctx.resource.id),
+        isElementalCluster: isElementalMachinePool(entry.pool),
       }));
+
+      // the save updates the store's copy, which is not always the machine config returned
+      initialConfigs.set(saved.id, clone(store.getters['management/byId'](saved.type, saved.id) || saved));
+
+      return saved;
+    };
+
+    return found.map((resource) => ({
+      resource,
+      groupKey: 'resourceYaml.resourceGraph.groups.machinePools',
+      banner:   ({ relatedResources }) => {
+        const poolCount = relatedResources.filter((r) => r.groupKey === 'resourceYaml.resourceGraph.groups.machinePools').length;
+
+        return poolCount === 1 ? { color: 'info', labelKey: 'resourceYaml.resourceGraph.banners.singleNodePool' } : null;
+      },
+      save,
+    }));
   }
 
   set defaultHostnameLengthLimit(value) {
