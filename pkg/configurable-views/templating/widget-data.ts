@@ -625,7 +625,6 @@ function clusterUrl(cluster: string, path: string): string {
   return `/k8s/clusters/${ encodeURIComponent(cluster) }/v1/${ path }`;
 }
 
-/** Every type's count in one cluster, as Steve summarises them - `{ <type>: { summary } }`. */
 /** A cluster's counts: `{ <type>: { summary: { count, states } } }`, as Steve returns them. */
 export type ClusterCounts = Record<string, { summary?: { count?: number; states?: Record<string, number> } }>;
 
@@ -825,6 +824,37 @@ export async function fetchClusterRows<T = ResourceRow>(store: Store<unknown>, {
   const count = res?.pagination?.result?.count ?? res?.data?.length ?? 0;
 
   return { rows: res?.data || [], truncated: count > cap };
+}
+
+/** One type's state summary in one cluster: counts per state, and per namespace within each. */
+export interface StateSummary {
+  type: string;
+  summary: { property: string; counts: Record<string, { total: number; namespace: Record<string, number> }> }[] | null;
+  error: string | null;
+}
+
+/**
+ * How many of each type a cluster has, per state and per namespace - the numbers behind the
+ * Workloads overview, asked of the cluster named rather than the one that is open.
+ *
+ * The same request the overview makes (`summary=metadata.state.name&summaryonly&summarynamespaced`),
+ * one per type. A type this user cannot list, or that the cluster does not serve, comes back as an
+ * error for that type alone, which the overview leaves out exactly as it leaves out its own.
+ */
+export function fetchStateSummaries(store: Store<unknown>, cluster: string, types: string[]): Promise<StateSummary[]> {
+  return Promise.all(types.map(async(type): Promise<StateSummary> => {
+    try {
+      const res = await store.dispatch('management/request', { url: `${ clusterUrl(cluster, type) }?summary=metadata.state.name&summaryonly&summarynamespaced` });
+
+      return {
+        type, summary: Array.isArray(res?.summary) ? res.summary : [], error: null
+      };
+    } catch (e) {
+      return {
+        type, summary: null, error: (e as Error)?.message || `Could not read ${ type }.`
+      };
+    }
+  }));
 }
 
 /**

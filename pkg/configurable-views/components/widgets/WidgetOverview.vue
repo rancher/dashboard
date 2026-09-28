@@ -2,33 +2,29 @@
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import Loading from '@shell/components/Loading';
-import { useWorkloadDashboard } from '@shell/pages/c/_cluster/explorer/workload-dashboard/composable';
 import ByStateSection from '@shell/pages/c/_cluster/explorer/workload-dashboard/ByStateSection.vue';
 import ByTypeSection from '@shell/pages/c/_cluster/explorer/workload-dashboard/ByTypeSection.vue';
 import ByNamespaceSection from '@shell/pages/c/_cluster/explorer/workload-dashboard/ByNamespaceSection.vue';
+import { useWidgetCluster, NO_CLUSTER } from '../../composables/useWidgetCluster';
+import { useClusterOverview } from '../../composables/useClusterOverview';
+import type { WidgetSpec } from '../../templating/types';
 
-// OVERVIEW — the Workloads overview, generalized to any set of resource types.
+// OVERVIEW — a cluster's workloads by state, by type and by namespace: the Workloads overview's cards.
 //
-// It reuses the EXACT composable and the By State / By Type / By Namespace sections that power
-// /explorer/workload-dashboard; only the type list is swapped for the widget's own. So an overview
-// on the Home is the same overview people already know, not a reimplementation of it.
-// redirectOnInvalid:false keeps it isolated from the Workloads dashboard's "bad data -> redirect to
-// deployments" behaviour, which would be hostile on a Home.
-//
-// Widget spec:
-//   { kind: 'overview', title: 'Workloads', resources: ['pod', 'apps.deployment', 'batch.job'] }
-interface OverviewWidget {
-  title?: string;
-  resources?: (string | { resource: string })[];
-}
+// The cards are the overview's own sections (explorer/workload-dashboard), drawn as they are. What
+// feeds them is read from the cluster this widget names - or the page's, when it names none - rather
+// than from the open cluster the overview's own composable is tied to (see useClusterOverview). So
+// the same widget shows each cluster on its own dashboard, and any one cluster on the Home.
 
-defineProps<{ widget: OverviewWidget }>();
+const props = defineProps<{ widget: WidgetSpec }>();
 
 const store = useStore();
 const { t } = useI18n(store);
+const { cluster } = useWidgetCluster(() => props.widget);
 
 const {
   loading,
+  error,
   hasWorkloads,
   byStateLayout,
   byTypeCards,
@@ -36,10 +32,7 @@ const {
   resourceRoute,
   navigateToNamespace,
   filterByNamespace,
-// Takes no arguments: it reports the cluster's own workload types. `widget.resources` has never
-// reached it — the two arguments this used to pass were silently dropped, which only compiled
-// because the extension build turns the type checker off.
-} = useWorkloadDashboard();
+} = useClusterOverview(cluster);
 </script>
 
 <template>
@@ -51,16 +44,30 @@ const {
       {{ widget.title }}
     </h3>
 
+    <p
+      v-if="!cluster"
+      class="text-muted m-0"
+    >
+      {{ NO_CLUSTER }}
+    </p>
+
     <Loading
-      v-if="loading"
+      v-else-if="loading"
       mode="relative"
     />
+
+    <p
+      v-else-if="error"
+      class="text-error m-0"
+    >
+      {{ error }}
+    </p>
 
     <div
       v-else-if="!hasWorkloads"
       class="text-muted"
     >
-      No resources found for this overview.
+      {{ t('workloadDashboard.empty.title') }}
     </div>
 
     <div
