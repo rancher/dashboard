@@ -97,6 +97,72 @@ describe('TableViewTabs', () => {
     });
   });
 
+  describe('exporting a tab from its own menu', () => {
+    const shown = makeView('aaa', 'Shown', { query: 'state:Running' });
+    const other = makeView('bbb', 'Other', { query: 'name:foo', columns: ['name'] });
+
+    function createWrapper() {
+      const stored = { test: { views: [shown, other], defaultViewId: null } };
+      const store = createStore({
+        getters: { 'prefs/get': () => (key: string) => (key === TABLE_VIEWS ? stored : undefined) },
+        actions: { 'prefs/set': jest.fn() },
+      });
+
+      return mount(TableViewTabs, {
+        props: {
+          view:          { ...EMPTY, query: 'state:Running' },
+          resourceType:  'test',
+          initialViewId: 'aaa',
+          matchCount:    7,
+          viewCounts:    { 'state:Running': 7, 'name:foo': 51 },
+        },
+        global:  { plugins: [store] },
+        shallow: true,
+      });
+    }
+
+    const tabFor = (view: any) => ({
+      id: view.id, name: view.name, view
+    });
+
+    it('should export the tab on screen as it stands, with no view of its own', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).openExport(tabFor(shown));
+      (wrapper.vm as any).doExport('csv');
+
+      expect(wrapper.emitted('export')?.[0]?.[0]).toStrictEqual({
+        format: 'csv', name: 'Shown', view: undefined
+      });
+    });
+
+    it('should export another tab with its own view and its own count, not the one on screen', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).openExport(tabFor(other));
+
+      expect((wrapper.vm as any).modal.count).toBe(51);
+
+      (wrapper.vm as any).doExport('csv');
+
+      const args = wrapper.emitted('export')?.[0]?.[0] as any;
+
+      expect(args.name).toBe('Other');
+      expect(args.view).toMatchObject({ query: 'name:foo', columns: ['name'] });
+    });
+
+    it('should export another tab with the edits held for it, which is what its count counts', () => {
+      const wrapper = createWrapper();
+      const vm = wrapper.vm as any;
+
+      vm.drafts = { bbb: { ...EMPTY, query: 'name:bar' } };
+      vm.openExport(tabFor(other));
+      vm.doExport('json');
+
+      expect((wrapper.emitted('export')?.[0]?.[0] as any).view.query).toBe('name:bar');
+    });
+  });
+
   describe('deleting a view', () => {
     const first = makeView('aaa', 'Need attention', { query: 'state:Running' });
     const second = makeView('bbb', 'test', { query: 'name:foo' });
@@ -108,12 +174,16 @@ describe('TableViewTabs', () => {
 
     function createWrapper() {
       const setPref = jest.fn();
+      const growl = jest.fn();
       // Nothing here shares a config, so nothing else can match once a view is gone
       const stored = { test: { views: [first, second], defaultViewId: null } };
 
       const store = createStore({
         getters: { 'prefs/get': () => (key: string) => (key === TABLE_VIEWS ? stored : undefined) },
-        actions: { 'prefs/set': (_ctx: any, payload: any) => setPref(payload) },
+        actions: {
+          'prefs/set':     (_ctx: any, payload: any) => setPref(payload),
+          'growl/success': (_ctx: any, payload: any) => growl(payload),
+        },
       });
 
       const wrapper = mount(TableViewTabs, {
@@ -126,7 +196,9 @@ describe('TableViewTabs', () => {
         shallow: true,
       });
 
-      return { wrapper, setPref };
+      return {
+        wrapper, setPref, growl
+      };
     }
 
     it('should drop the view from the saved list', () => {
@@ -136,6 +208,14 @@ describe('TableViewTabs', () => {
 
       expect(setPref).toHaveBeenCalledWith(expect.objectContaining({ key: TABLE_VIEWS }));
       expect(setPref.mock.calls[0][0].value.test.views).toStrictEqual([first]);
+    });
+
+    it('should say the view is gone and offer it back', () => {
+      const { wrapper, growl } = createWrapper();
+
+      (wrapper.vm as any).deleteView(second);
+
+      expect(growl).toHaveBeenCalledWith(expect.objectContaining({ action: expect.objectContaining({ run: expect.any(Function) }) }));
     });
 
     it('should go back to the All tab when the view being shown is deleted', () => {

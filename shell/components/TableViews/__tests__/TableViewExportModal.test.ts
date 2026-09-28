@@ -31,6 +31,11 @@ describe('TableViewExportModal', () => {
     expect(introFor(props)).toContain(`${ key }-`);
   });
 
+  it('should say nothing about how many when the count is not known', () => {
+    // A view the api could not count is exported all the same, but a number would be a guess
+    expect(introFor({ count: null })).toContain('tableViews.export.introUncounted-');
+  });
+
   it('should not warn about the wait at exactly a page of rows', () => {
     // The warning is for the second round trip, and a thousand is still the first
     expect(introFor({ count: 1000 })).toContain('tableViews.export.intro-');
