@@ -1,10 +1,8 @@
 product:
   configurable-views: Configurable Views
 
-aiTemplating:
+configurableViews:
   settings:
     label: Settings
-  templates:
-    label: Home Templates
   layouts:
     label: Home Layouts
