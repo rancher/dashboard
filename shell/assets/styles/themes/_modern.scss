@@ -22,7 +22,7 @@ $darker    : #6C6C76;
 $dark      : #B6B6C2;
 
 //light border and buttons
-$medium    : #DCDEE7;
+$medium    : $grey-20;
 
 //light form control boundaries (inputs, dropdowns, checkboxes)
 $form-control-border : #84849A;
@@ -556,9 +556,9 @@ BODY, .theme-light {
   --popover-border             : var(--border);
   --popover-text               : var(--body-text);
   --popover-border-radius      : var(--border-radius);
-  --tooltip-bg                 : #{$medium};
+  --tooltip-bg                 : #{$grey-60};
   --tooltip-border             : var(--tag-primary);
-  --tooltip-text               : var(--tag-primary);
+  --tooltip-text               : var(--body-bg);
   --tooltip-bg-warning         : #{rgba($warning, 0.8)};
   --tooltip-text-warning       : var(--body-text);
 
@@ -772,7 +772,7 @@ BODY, .theme-dark {
   $dark: #27292e;
 
   //dark borders and button
-  $medium: #4a4b52;
+  $medium: $grey-60;
 
   // dark disabled,
   $light: #6c6c76;
@@ -972,9 +972,9 @@ BODY, .theme-dark {
   --popover-border             : var(--border);
   --popover-text               : var(--body-text);
 
-  --tooltip-bg                 : #{$medium};
+  --tooltip-bg                 : #{$grey-20};
   --tooltip-border             : var(--tag-primary);
-  --tooltip-text               : var(--body-text);
+  --tooltip-text               : var(--body-bg);
   --tooltip-text-warning       : var(--body-text);
 
 
