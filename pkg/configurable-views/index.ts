@@ -1,3 +1,5 @@
+import type { Router } from 'vue-router';
+import type { Store } from 'vuex';
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 import HomeLayout from '@shell/components/templates/home.vue';
@@ -5,6 +7,17 @@ import { fetchTemplatingConfigMaps, toggleTemplating } from './templating/templa
 import routing from './routing/index';
 import { PAGINATED_RESOURCES } from './templating/widget-catalog';
 import Home from './pages/Home.vue';
+
+/**
+ * What the shell leaves on `window` that this file uses: the running app, for its router and store
+ * (plugin init runs before either is handed to an extension), and the shortcut's own once-only flag.
+ */
+interface ShellWindow extends Window {
+  $globalApp?: { $router?: Router; $store?: Store<unknown> };
+  __configurableViewsShortcut?: boolean;
+}
+
+const shellWindow = window as ShellWindow;
 
 // Take over the Home page under the REAL home layout.
 //
@@ -14,8 +27,7 @@ import Home from './pages/Home.vue';
 // can't target it via the extension API. Instead we add the route directly on the live router,
 // nesting our Home under an imported copy of the home layout (templates/home.vue).
 function installHomeRoute(): boolean {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const router = (window as any).$globalApp?.$router;
+  const router = shellWindow.$globalApp?.$router;
 
   if (!router) {
     return false;
@@ -43,7 +55,7 @@ function installHomeRoute(): boolean {
 
   // This runs at plugin-init, AFTER the initial route has resolved — so a hard load of /home
   // still shows the stock home. If we're currently on /home, force a re-resolve so ours renders.
-  const cur = router.currentRoute?.value;
+  const cur = router.currentRoute.value;
 
   if (cur && cur.path === '/home') {
     router.replace({ path: '/home', force: true }).catch(() => {});
@@ -52,31 +64,28 @@ function installHomeRoute(): boolean {
   return true;
 }
 
-// Global shortcut: Cmd/Ctrl + Shift + . toggles the templating kill switch. Extensions can't add a
-// global mounted component, but plugin init runs in the browser, so a raw document keydown listener
-// works. Matched on event.code === 'Period' (layout-independent). Registered once.
+// Global shortcut: Cmd/Ctrl + Shift + . toggles the kill switch. Extensions can't add a global
+// mounted component, but plugin init runs in the browser, so a raw document keydown listener works.
+// Matched on event.code === 'Period' (layout-independent). Registered once.
 function installShortcut(): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if ((window as any).__aiTemplatingShortcut) {
+  if (shellWindow.__configurableViewsShortcut) {
     return;
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (window as any).__aiTemplatingShortcut = true;
+  shellWindow.__configurableViewsShortcut = true;
 
   window.addEventListener('keydown', (e) => {
     if (!((e.metaKey || e.ctrlKey) && e.shiftKey && e.code === 'Period')) {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const store = (window as any).$globalApp?.$store;
+    const store = shellWindow.$globalApp?.$store;
 
     if (store) {
       e.preventDefault();
       toggleTemplating(store).then((now) => {
         store.dispatch('growl/success', {
-          title:   'AI templating',
-          message: now ? 'Templating enabled.' : 'Templating disabled — showing stock Rancher.',
+          title:   'Configurable Views',
+          message: now ? 'The configurable Home is on.' : 'The configurable Home is off — showing the stock Home.',
         }, { root: true });
       }).catch(() => {});
     }
