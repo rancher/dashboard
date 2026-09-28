@@ -4,6 +4,7 @@ import WidgetGrid from '../components/WidgetGrid.vue';
 import HomeViewBar from '../components/HomeViewBar.vue';
 import EditViewSidebar from '../components/EditViewSidebar.vue';
 import WidgetSettingsModal from '../components/WidgetSettingsModal.vue';
+import { VIEW_EDITOR } from '../composables/viewEditor';
 import { isTemplatingEnabled, appliedViewScopes, saveView, fetchTemplatingConfigMaps } from '../templating/template-engine';
 import {
   DEFAULT_GAP, DEFAULT_PAGE_PADDING, newId, newPanel, newWidgetNode, isStockPanel, findWidget,
@@ -40,7 +41,7 @@ export default {
   // Arrows keep `this` bound to this component.
   provide() {
     return {
-      viewEditor: {
+      [VIEW_EDITOR]: {
         select:    (id) => this.selectNode(id),
         move:      (id, delta) => this.moveWidget(id, delta),
         remove:    (id) => this.removeNode(id),

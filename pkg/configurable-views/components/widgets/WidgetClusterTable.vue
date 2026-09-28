@@ -1,4 +1,7 @@
-<script>
+<script setup lang="ts">
+import { computed, onBeforeUnmount } from 'vue';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { RcButton } from '@components/RcButton';
 import { STATE, MGMT_CLUSTER_PROVIDER, MGMT_CLUSTER_KUBE_VERSION } from '@shell/config/table-headers';
@@ -9,6 +12,10 @@ import { MODE, _IMPORT } from '@shell/config/query-params';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { parseSi, formatSi, createMemoryFormat } from '@shell/utils/units';
 import ManagementClusterUtils from '@shell/list/utils/management.cattle.io.cluster.utils';
+import type MgmtCluster from '@shell/models/management.cattle.io.cluster';
+import type { PaginationArgs } from '@shell/types/store/pagination.types';
+import type { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts } from '@shell/types/components/paginatedResourceTable';
+import type { WidgetSpec } from '../../templating/types';
 
 // HOME CLUSTER TABLE — the stock Home's cluster section, exactly.
 //
@@ -21,9 +28,8 @@ import ManagementClusterUtils from '@shell/list/utils/management.cattle.io.clust
 // to the Home, and reproducing them through the generic Table's column pickers would be a worse
 // copy of something we can simply use.
 //
-// It PAGES. It used to `findAll` both cluster types, which is two requests for every cluster in the
-// installation to draw ten rows. It now takes the stock Home's paginated path instead, and the
-// pieces it needs for that are the shell's own, not copies:
+// It PAGES, through the stock Home's own paginated path, built from the shell's pieces rather than
+// copies of them:
 //
 //   schema                  MANAGEMENT.CLUSTER, not the provisioning type. The paginated backend
 //                           answers for mgmt clusters, and the rows carry what these columns read.
@@ -38,172 +44,117 @@ import ManagementClusterUtils from '@shell/list/utils/management.cattle.io.clust
 //                           otherwise search ten rows and call the rest absent.
 //   *SecondaryResources     CPU, memory and pods are not on the cluster row; they are fetched for
 //                           the page that is actually on screen, and forgotten on the way out.
-//
-// Widget spec: { kind: 'clusterTable', title?: 'Clusters' }
-export default {
-  name:       'WidgetClusterTable',
-  components: { PaginatedResourceTable, RcButton },
 
-  props: {
-    widget: {
-      type:    Object,
-      default: () => ({}),
-    },
-  },
+// The management cluster fields this table reads.
+interface MgmtClusterRow {
+  status?: { allocatable?: { cpu?: string; memory?: string } };
+}
 
-  data() {
-    return {
-      // The context the pagination settings are keyed on. Sharing the stock Home's is deliberate:
-      // it is the same list of the same type on the same page, so it should page by the same rules.
-      paginationContext: 'home',
-      provClusterSchema: this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
-      mgmtClusterSchema: this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER),
-    };
-  },
+const props = defineProps<{ widget: WidgetSpec }>();
 
-  computed: {
-    title() {
-      return this.widget.title || this.t('landing.clusters.title');
-    },
+const store = useStore();
+const { t } = useI18n(store);
 
-    // Same create/manage/import targets as the stock Home header buttons.
-    manageLocation() {
-      return {
-        name:   'c-cluster-product-resource',
-        params: {
-          product: MANAGER, cluster: BLANK_CLUSTER, resource: CAPI.RANCHER_CLUSTER
-        },
-      };
-    },
+// The context the pagination settings are keyed on. Sharing the stock Home's is deliberate: it is the
+// same list of the same type on the same page, so it should page by the same rules.
+const paginationContext = 'home';
+const provClusterSchema = store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+const mgmtClusterSchema = store.getters['management/schemaFor'](MANAGEMENT.CLUSTER);
 
-    createLocation() {
-      return {
-        name:   'c-cluster-product-resource-create',
-        params: {
-          product: MANAGER, cluster: BLANK_CLUSTER, resource: CAPI.RANCHER_CLUSTER
-        },
-      };
-    },
+const title = computed(() => props.widget.title || t('landing.clusters.title'));
 
-    importLocation() {
-      return { ...this.createLocation, query: { [MODE]: _IMPORT } };
-    },
-
-    canCreateCluster() {
-      return !!this.provClusterSchema?.collectionMethods?.find((x) => x.toLowerCase() === 'post');
-    },
-
-    // What the table draws when it is paging CLIENT-side — the fallback the shell keeps for a
-    // backend that cannot page this type.
-    headers() {
-      return [
-        STATE,
-        {
-          name: 'name', labelKey: 'tableHeaders.name', value: 'nameDisplay', sort: ['nameSort'], canBeVariable: true
-        },
-        {
-          ...MGMT_CLUSTER_PROVIDER, labelKey: 'landing.clusters.provider', subLabel: this.t('landing.clusters.distro')
-        },
-        {
-          ...MGMT_CLUSTER_KUBE_VERSION, labelKey: 'landing.clusters.kubernetesVersion', subLabel: this.t('landing.clusters.architecture')
-        },
-        this.cpuHeader,
-        this.memoryHeader,
-        this.podsHeader,
-      ];
-    },
-
-    // The same columns for the SERVER-side path. They differ in one thing that matters: what they
-    // sort and search on is a field the API knows, so it can do both.
-    paginationHeaders() {
-      return [
-        STEVE_MGMT_STATE_COL,
-        {
-          ...STEVE_NAME_COL, canBeVariable: true, value: 'spec.displayName', sort: ['spec.displayName'], search: 'spec.displayName'
-        },
-        {
-          ...STEVE_MGMT_CLUSTER_PROVIDER, labelKey: 'landing.clusters.provider', subLabel: this.t('landing.clusters.distro')
-        },
-        {
-          ...STEVE_MGMT_CLUSTER_KUBE_VERSION, labelKey: 'landing.clusters.kubernetesVersion', subLabel: this.t('landing.clusters.architecture')
-        },
-        this.cpuHeader,
-        this.memoryHeader,
-        this.podsHeader,
-      ];
-    },
-
-    cpuHeader() {
-      return {
-        label: this.t('tableHeaders.cpu'), value: '', name: 'cpu', sort: ['status.allocatable.cpuRaw'], search: ['status.allocatable.cpuRaw']
-      };
-    },
-
-    memoryHeader() {
-      return {
-        label: this.t('tableHeaders.memory'), value: '', name: 'memory', sort: ['status.allocatable.memoryRaw'], search: ['status.allocatable.memoryRaw']
-      };
-    },
-
-    podsHeader() {
-      return {
-        label:        this.t('tableHeaders.pods'),
-        name:         'pods',
-        value:        '',
-        sort:         ['status.allocatable.pods', 'status.requested.pods'],
-        search:       ['status.allocatable.pods', 'status.requested.pods'],
-        // Pods come with the page's secondary resources, so the column waits rather than showing a
-        // dash it would have to take back.
-        formatter:    'PodsUsage',
-        delayLoading: true,
-      };
-    },
-  },
-
-  // The secondary resources are fetched per page and cached against this context. A widget that
-  // goes away without saying so leaves them behind for a page that no longer exists.
-  beforeUnmount() {
-    ManagementClusterUtils.forgetSecondaryResources({ context: this.paginationContext }, { $store: this.$store });
-  },
-
-  methods: {
-    t(key, args) {
-      return this.$store.getters['i18n/t'](key, args);
-    },
-
-    filterRowsLocal(rows) {
-      return ManagementClusterUtils.filterRowsLocal(rows, { $store: this.$store });
-    },
-
-    filterRowsApi(pagination) {
-      return ManagementClusterUtils.filterRowsApi(pagination, { $store: this.$store });
-    },
-
-    fetchSecondaryResources(opts) {
-      return Promise.all(ManagementClusterUtils.fetchSecondaryResources(opts, { $store: this.$store }));
-    },
-
-    async fetchPageSecondaryResources({
-      canPaginate, force, page, pagResult
-    }) {
-      const promises = await ManagementClusterUtils.fetchPageSecondaryResources({
-        canPaginate, force, page, pagResult
-      }, { $store: this.$store });
-
-      await Promise.all(promises);
-    },
-
-    cpuAllocatable(cluster) {
-      return parseSi(cluster?.status?.allocatable?.cpu);
-    },
-
-    memoryAllocatable(cluster) {
-      const parsed = (parseSi(cluster?.status?.allocatable?.memory) || 0).toString();
-
-      return formatSi(parsed, createMemoryFormat(parsed));
-    },
+// Same create/manage/import targets as the stock Home header buttons.
+const manageLocation = {
+  name:   'c-cluster-product-resource',
+  params: {
+    product: MANAGER, cluster: BLANK_CLUSTER, resource: CAPI.RANCHER_CLUSTER
   },
 };
+const createLocation = {
+  name:   'c-cluster-product-resource-create',
+  params: {
+    product: MANAGER, cluster: BLANK_CLUSTER, resource: CAPI.RANCHER_CLUSTER
+  },
+};
+const importLocation = { ...createLocation, query: { [MODE]: _IMPORT } };
+
+const canCreateCluster = !!provClusterSchema?.collectionMethods?.find((x: string) => x.toLowerCase() === 'post');
+
+const cpuHeader = {
+  label: t('tableHeaders.cpu'), value: '', name: 'cpu', sort: ['status.allocatable.cpuRaw'], search: ['status.allocatable.cpuRaw']
+};
+const memoryHeader = {
+  label: t('tableHeaders.memory'), value: '', name: 'memory', sort: ['status.allocatable.memoryRaw'], search: ['status.allocatable.memoryRaw']
+};
+const podsHeader = {
+  label:        t('tableHeaders.pods'),
+  name:         'pods',
+  value:        '',
+  sort:         ['status.allocatable.pods', 'status.requested.pods'],
+  search:       ['status.allocatable.pods', 'status.requested.pods'],
+  // Pods come with the page's secondary resources, so the column waits rather than showing a dash it
+  // would have to take back.
+  formatter:    'PodsUsage',
+  delayLoading: true,
+};
+
+// What the table draws when it is paging CLIENT-side — the fallback the shell keeps for a backend
+// that cannot page this type.
+const headers = [
+  STATE,
+  {
+    name: 'name', labelKey: 'tableHeaders.name', value: 'nameDisplay', sort: ['nameSort'], canBeVariable: true
+  },
+  {
+    ...MGMT_CLUSTER_PROVIDER, labelKey: 'landing.clusters.provider', subLabel: t('landing.clusters.distro')
+  },
+  {
+    ...MGMT_CLUSTER_KUBE_VERSION, labelKey: 'landing.clusters.kubernetesVersion', subLabel: t('landing.clusters.architecture')
+  },
+  cpuHeader,
+  memoryHeader,
+  podsHeader,
+];
+
+// The same columns for the SERVER-side path. They differ in one thing that matters: what they sort
+// and search on is a field the API knows, so it can do both.
+const paginationHeaders = [
+  STEVE_MGMT_STATE_COL,
+  {
+    ...STEVE_NAME_COL, canBeVariable: true, value: 'spec.displayName', sort: ['spec.displayName'], search: 'spec.displayName'
+  },
+  {
+    ...STEVE_MGMT_CLUSTER_PROVIDER, labelKey: 'landing.clusters.provider', subLabel: t('landing.clusters.distro')
+  },
+  {
+    ...STEVE_MGMT_CLUSTER_KUBE_VERSION, labelKey: 'landing.clusters.kubernetesVersion', subLabel: t('landing.clusters.architecture')
+  },
+  cpuHeader,
+  memoryHeader,
+  podsHeader,
+];
+
+const filterRowsLocal = (rows: MgmtCluster[]) => ManagementClusterUtils.filterRowsLocal(rows, { $store: store });
+const filterRowsApi = (pagination: PaginationArgs) => ManagementClusterUtils.filterRowsApi(pagination, { $store: store });
+const fetchSecondaryResources = (opts: PagTableFetchSecondaryResourcesOpts) => Promise.all(ManagementClusterUtils.fetchSecondaryResources(opts, { $store: store }));
+
+async function fetchPageSecondaryResources(opts: PagTableFetchPageSecondaryResourcesOpts): Promise<void> {
+  await Promise.all(await ManagementClusterUtils.fetchPageSecondaryResources(opts, { $store: store }));
+}
+
+function cpuAllocatable(cluster: MgmtClusterRow): number {
+  return parseSi(cluster?.status?.allocatable?.cpu || '');
+}
+
+function memoryAllocatable(cluster: MgmtClusterRow): string {
+  const parsed = (parseSi(cluster?.status?.allocatable?.memory || '') || 0).toString();
+
+  return formatSi(parsed, createMemoryFormat(parsed));
+}
+
+// The secondary resources are fetched per page and cached against this context. A widget that goes
+// away without saying so leaves them behind for a page that no longer exists.
+onBeforeUnmount(() => ManagementClusterUtils.forgetSecondaryResources({ context: paginationContext }, { $store: store }));
 </script>
 
 <template>
