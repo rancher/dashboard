@@ -1,5 +1,6 @@
 import { computed, toValue, type MaybeRefOrGetter } from 'vue';
 import { useRoute, type RouteLocationNormalizedLoaded } from 'vue-router';
+import { useStore } from 'vuex';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
 /**
@@ -30,6 +31,23 @@ export function useWidgetCluster(widget: MaybeRefOrGetter<{ cluster?: string }>)
   const cluster = computed(() => toValue(widget)?.cluster || pageCluster.value);
 
   return { cluster, pageCluster };
+}
+
+/**
+ * Whether `cluster` is the one Rancher has OPEN - loaded into the `cluster` store, which is the only
+ * cluster the dashboard's own components can read.
+ *
+ * When it is, a widget can render that component as it is, and look and behave exactly like the
+ * dashboard; when it is not, the widget has to read the cluster itself.
+ */
+export function useOpenCluster(cluster: MaybeRefOrGetter<string>) {
+  const store = useStore();
+
+  return computed(() => {
+    const id = toValue(cluster);
+
+    return !!id && !!store.getters['clusterReady'] && store.getters['clusterId'] === id;
+  });
 }
 
 /** What a cluster widget says when it has no cluster to show - which only happens off a cluster page. */
