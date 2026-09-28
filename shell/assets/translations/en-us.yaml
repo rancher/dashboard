@@ -7275,11 +7275,8 @@ tableViews:
     rename: Rename View
     duplicate: Duplicate View
     copySuffix: (copy)
-    renameSave: Rename
-    saveChanges: Save Changes
     delete: Delete View
     setDefault: Set as Default View
-    isDefault: Default View
     newViewName: Untitled
     deleted: View Deleted
     deletedMessage: The "{name}" view has been successfully deleted.
@@ -7319,16 +7316,11 @@ tableViews:
       other {<b>{fields}</b> cannot be filtered on this list, so those parts of the query were ignored.}
       }
   columns:
-    label: Columns
-    tableColumns: Table columns
-    labelColumns: Show label as column
     selectAll: Select All Columns
     reset: Reset to Default
     locked: This column cannot be hidden
     reorder: Drag to reorder
   group:
-    label: 'Group: {field}'
-    byLabel: Group By
     none: None
     empty: (none)
   export:

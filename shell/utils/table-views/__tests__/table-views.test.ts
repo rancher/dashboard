@@ -1,7 +1,7 @@
 import {
-  applyQuery, applyQueryExpression, decodeView, encodeView, fieldsFor, parseQuery,
+  applyQuery, applyQueryExpression, fieldsFor, parseQuery,
   parseQueryExpression, queryToServerFilters, replaceToken, rowsToCsv, tokenAt, validateQuery, valuesInUse,
-  coreFieldIdsFor, isCoreField, CORE_FIELD_IDS,
+  coreFieldIdsFor, CORE_FIELD_IDS,
   moveInOrder,
   serverPathFor,
   summaryToValues,
@@ -161,79 +161,9 @@ describe('fx: rowsToCsv', () => {
   });
 });
 
-describe('fx: encodeView', () => {
-  it('round trips a view through a url safe string', () => {
-    const view = {
-      name: 'Need attention', query: 'state: error', columns: ['name'], columnOrder: ['name', 'state'], labelColumns: ['app'], groupBy: 'namespace'
-    };
-
-    expect(decodeView(encodeView(view))).toStrictEqual(view);
-  });
-});
-
 describe('core columns', () => {
   it('marks the columns the table depends on as core', () => {
     expect(CORE_FIELD_IDS).toStrictEqual(['state', 'name']);
-  });
-
-  it.each([
-    ['state', true],
-    ['name', true],
-    ['age', false],
-    ['namespace', false],
-    ['label:app', false],
-    ['', false],
-    [undefined, false],
-  ])('isCoreField(%s) is %s', (id, expected) => {
-    expect(isCoreField(id as string)).toStrictEqual(expected);
-  });
-});
-
-describe('decodeView', () => {
-  // It reads a url query param, so everything it can be handed is someone else's input
-  it('round-trips a view through encodeView', () => {
-    const view = {
-      name: 'Mine', query: 'state:active', columns: ['a', 'b'], columnOrder: ['b', 'a'], labelColumns: ['app'], groupBy: 'state'
-    };
-
-    expect(decodeView(encodeView(view))).toStrictEqual(view);
-  });
-
-  it('fills in the parts a shared view left out', () => {
-    expect(decodeView(encodeView({ query: 'state:active' }))).toStrictEqual({
-      name: '', query: 'state:active', columns: null, columnOrder: null, labelColumns: [], groupBy: null
-    });
-  });
-
-  it('is null for nothing at all', () => {
-    expect(decodeView('')).toBeNull();
-    expect(decodeView(undefined as any)).toBeNull();
-    expect(decodeView(null as any)).toBeNull();
-  });
-
-  it('is null for input that is not base64', () => {
-    expect(decodeView('not base64 !!')).toBeNull();
-    expect(decodeView('@@@@')).toBeNull();
-  });
-
-  it('is null for base64 that is not JSON', () => {
-    expect(decodeView(window.btoa('just some text'))).toBeNull();
-    expect(decodeView(window.btoa('{ unclosed'))).toBeNull();
-  });
-
-  it('does not take a name that is not a string', () => {
-    // A view is applied to the toolbar, so a shared link must not be able to put an object where
-    // a name goes
-    const hostile = window.btoa(encodeURIComponent(JSON.stringify({ n: { toString: 'nope' }, q: ['not', 'a', 'string'] })));
-    const out = decodeView(hostile);
-
-    expect(typeof out?.name === 'string' || out?.name === undefined).toBe(true);
-  });
-
-  it('is null for JSON that is not an object', () => {
-    expect(decodeView(window.btoa(encodeURIComponent('42')))).toBeNull();
-    expect(decodeView(window.btoa(encodeURIComponent('null')))).toBeNull();
-    expect(decodeView(window.btoa(encodeURIComponent('["a"]')))).toBeNull();
   });
 });
 

@@ -12,7 +12,6 @@ import {
 import { applyQueryExpression } from '@shell/utils/table-views/filter-rows';
 import { parseQuery, parseQueryExpression } from '@shell/utils/table-views/query';
 import { queryToServerFilters } from '@shell/utils/table-views/server-filters';
-import { decodeView } from '@shell/utils/table-views/views';
 import { SEARCH_DEBOUNCE } from '@shell/config/search';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
@@ -88,16 +87,22 @@ export default {
   },
 
   data() {
-    // A shared view can arrive in the url, eg ?view=<encoded>. Failing that the user may have
-    // marked one of their saved views as the one this list opens on.
+    // The user may have marked one of their saved views as the one this list opens on
     /** @type {{ views: import('@shell/types/table-views').TableViewSaved[], defaultViewId: string|null }} */
     const saved = this.$store.getters['prefs/get'](TABLE_VIEWS)?.[this.schema?.id];
-    /** @type {import('@shell/types/table-views').TableViewSaved|null} */
-    const shared = decodeView(this.$route?.query?.view) ||
-      (saved?.views || []).find((view) => view.id === saved?.defaultViewId) ||
-      null;
+    /** @type {import('@shell/types/table-views').TableViewSaved|undefined} */
+    const defaultView = (saved?.views || []).find((view) => view.id === saved?.defaultViewId);
 
     return {
+      /**
+       * The saved view this list opened on, when the user has a default.
+       *
+       * The tabs can't work that out from the config alone: an empty default holds exactly what
+       * the All tab holds, and two views can hold the same config, so matching lit up All or the
+       * first lookalike instead.
+       */
+      openedViewId: defaultView?.id,
+
       /** fieldId -> values in use, fetched from the api by fetchFieldValues */
       fieldValues: {},
 
@@ -109,13 +114,13 @@ export default {
 
       /** The view the table is showing, of type @TableViewState */
       view: {
-        query:          shared?.query || '',
-        columns:        shared?.columns || null,
-        columnOrder:    shared?.columnOrder || null,
-        labelColumns:   shared?.labelColumns || [],
-        groupBy:        shared?.groupBy || null,
-        sort:           shared?.sort || null,
-        sortDescending: shared?.sortDescending || false,
+        query:          defaultView?.query || '',
+        columns:        defaultView?.columns || null,
+        columnOrder:    defaultView?.columnOrder || null,
+        labelColumns:   defaultView?.labelColumns || [],
+        groupBy:        defaultView?.groupBy || null,
+        sort:           defaultView?.sort || null,
+        sortDescending: defaultView?.sortDescending || false,
       },
 
       /** The sort the table falls back to, learned from it the first time it reports one */
@@ -135,7 +140,7 @@ export default {
        * Picking a saved view is a single act with nothing following it, so that flushes instead
        * of waiting - see the watcher.
        */
-      settledQuery: shared?.query || '',
+      settledQuery: defaultView?.query || '',
 
       debouncedSettleQuery: debounce(function(query) {
         this.settledQuery = query;
@@ -252,9 +257,9 @@ export default {
     /**
      * Hold what is typed back from the table for a moment - see `settledQuery`.
      *
-     * Only what was typed. A query arriving whole - a saved view applied, a shared one from the
-     * url - is a single act with nothing following it, and waiting on it would leave the tab
-     * underlined before its rows had been asked for. Typing only ever adds to or takes from the
+     * Only what was typed. A query arriving whole - a saved view applied - is a single act with
+     * nothing following it, and waiting on it would leave the tab underlined before its rows had
+     * been asked for. Typing only ever adds to or takes from the
      * end, so one query being the start of the other is what tells the two apart.
      */
     'view.query'(neu, old) {
@@ -602,19 +607,6 @@ export default {
 
 
     /**
-     * Everything about the applied view except what is being typed into it. A tab being picked
-     * changes this; typing in the filter does not.
-     */
-    viewShapeKey() {
-      const {
-        columns, columnOrder, labelColumns, groupBy
-      } = this.view;
-
-      return JSON.stringify([columns, columnOrder, labelColumns, groupBy]);
-    },
-
-
-    /**
      * Whether the request behind the current rows is the one this view asked for: every filter it
      * wanted is being applied, and none of the ones it replaced still are.
      */
@@ -814,8 +806,8 @@ export default {
 
       if (this.view.columns) {
         // Chosen from everything the type has rather than only what this page shows, so a column
-        // the page left out can be added. Core columns are always kept, even if a saved or
-        // shared view omits them.
+        // the page left out can be added. Core columns are always kept, even if a saved view
+        // omits them.
         out = this.availableHeaders.filter((header) => isIgnoredColumn(header) || this.coreColumnIds.includes(headerFieldId(header)) || !this.viewFields.find((f) => !f.isLabel && f.id === headerFieldId(header)) || this.view.columns.includes(headerFieldId(header)));
       }
 

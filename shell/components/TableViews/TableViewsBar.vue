@@ -154,6 +154,11 @@ const props = withDefaults(defineProps<{
    * shared TABLE_VIEWS preference.
    */
   part?: string,
+  /**
+   * The saved view the list opened on, when it opened on the user's default. It is the tab to
+   * light up first - the config the list opened with can't say, see the mixin's openedViewId.
+   */
+  initialViewId?: string,
 }>(), {
   coreColumns:       () => [],
   defaultColumns:    () => [],
@@ -221,9 +226,10 @@ const queryFocused = ref(false);
  *
  * Three states: `undefined` if nothing has been picked here yet, `null` for the default
  * tab, or the id of a saved view. The default tab has to be distinguishable from "nothing
- * picked", or a saved view holding the same config as it is matched instead.
+ * picked", or a saved view holding the same config as it is matched instead. A list that opens
+ * on the user's default view starts with that view picked, for the same reason.
  */
-const pickedViewId = ref<string | null | undefined>(undefined);
+const pickedViewId = ref<string | null | undefined>(props.initialViewId);
 /**
  * Unsaved edits, per tab, for as long as the page is open. Leaving a tab with changes on it
  * holds on to them so coming back finds them where they were, and the tab keeps its mark
