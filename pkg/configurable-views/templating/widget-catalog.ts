@@ -21,8 +21,9 @@ export type CatalogIcon = 'table' | 'links' | 'banner' | 'tabs';
 /** One tile in the editor's Add tab. */
 export interface CatalogEntry {
   id: string;
-  name: string;
-  desc: string;
+  /** Translation keys for the tile's name and one-line description. */
+  labelKey: string;
+  descKey: string;
   icon: CatalogIcon;
   /** The column width it lands on the grid with. */
   span: number;
@@ -77,32 +78,32 @@ const CLUSTER = CAPI.RANCHER_CLUSTER;
  */
 export const BUILDING_BLOCKS: CatalogEntry[] = [
   {
-    id:   WIDGET_TABLE,
-    name: 'Table',
-    desc: 'Rows of a resource with the columns you pick',
-    icon: 'table',
-    span: 8,
-    spec: {
+    id:       WIDGET_TABLE,
+    labelKey: 'configurableViews.catalog.table.name',
+    descKey:  'configurableViews.catalog.table.desc',
+    icon:     'table',
+    span:     8,
+    spec:     {
       // No columns: a fresh Table shows everything its resource has (see WidgetTable).
       kind: WIDGET_TABLE, title: 'Table', resource: CLUSTER, sortBy: 'name'
     },
   },
   {
-    id:   WIDGET_LINKS,
-    name: 'Links',
-    desc: 'Your own list of links',
-    icon: 'links',
-    span: 4,
-    spec: { kind: WIDGET_LINKS, source: 'custom' },
+    id:       WIDGET_LINKS,
+    labelKey: 'configurableViews.catalog.links.name',
+    descKey:  'configurableViews.catalog.links.desc',
+    icon:     'links',
+    span:     4,
+    spec:     { kind: WIDGET_LINKS, source: 'custom' },
   },
   {
-    id:   WIDGET_TABS,
-    name: 'Tabs',
-    desc: 'Tabs, each holding widgets of its own',
-    icon: 'tabs',
-    span: 12,
+    id:       WIDGET_TABS,
+    labelKey: 'configurableViews.catalog.tabs.name',
+    descKey:  'configurableViews.catalog.tabs.desc',
+    icon:     'tabs',
+    span:     12,
     // Ids are left empty so every drop makes its own (see normalizeTabs).
-    spec: {
+    spec:     {
       kind:  WIDGET_TABS,
       title: '',
       tabs:  [{
@@ -120,22 +121,22 @@ export const BUILDING_BLOCKS: CatalogEntry[] = [
  */
 export const READY_MADE: CatalogEntry[] = [
   {
-    id:   'home-cluster-table',
-    name: 'Home cluster table',
-    desc: "The Home's own cluster table, exactly as it is",
-    icon: 'table',
-    span: 12,
+    id:       'home-cluster-table',
+    labelKey: 'configurableViews.catalog.homeClusterTable.name',
+    descKey:  'configurableViews.catalog.homeClusterTable.desc',
+    icon:     'table',
+    span:     12,
     // Not the Table block pointed at clusters — the real cluster section from the stock Home, with
     // its own columns, sorting and buttons. Nothing to set up.
-    spec: { kind: WIDGET_CLUSTER_TABLE, title: '' },
+    spec:     { kind: WIDGET_CLUSTER_TABLE, title: '' },
   },
   {
-    id:   'cluster-list',
-    name: 'Cluster list',
-    desc: 'Table of Cluster',
-    icon: 'table',
-    span: 8,
-    spec: {
+    id:       'cluster-list',
+    labelKey: 'configurableViews.catalog.clusterList.name',
+    descKey:  'configurableViews.catalog.clusterList.desc',
+    icon:     'table',
+    span:     8,
+    spec:     {
       kind:     WIDGET_TABLE,
       title:    'Clusters',
       resource: CLUSTER,
@@ -144,141 +145,147 @@ export const READY_MADE: CatalogEntry[] = [
     },
   },
   {
-    id:   'cluster-header',
-    name: 'Cluster header',
-    desc: 'Name, state, provider and version of a cluster',
-    icon: 'banner',
-    span: 12,
-    spec: { kind: WIDGET_CLUSTER_HEADER, title: '' },
+    id:       'cluster-header',
+    labelKey: 'configurableViews.catalog.clusterHeader.name',
+    descKey:  'configurableViews.catalog.clusterHeader.desc',
+    icon:     'banner',
+    span:     12,
+    spec:     { kind: WIDGET_CLUSTER_HEADER, title: '' },
   },
   {
-    id:   'resource-cards',
-    name: 'Resource cards',
-    desc: "A cluster's total resources, nodes and deployments",
-    icon: 'table',
-    span: 12,
-    spec: { kind: WIDGET_RESOURCE_CARDS, title: '' },
+    id:       'resource-cards',
+    labelKey: 'configurableViews.catalog.resourceCards.name',
+    descKey:  'configurableViews.catalog.resourceCards.desc',
+    icon:     'table',
+    span:     12,
+    spec:     { kind: WIDGET_RESOURCE_CARDS, title: '' },
   },
   {
-    id:   'cluster-capacity',
-    name: 'Capacity',
-    desc: "A cluster's pods, CPU and memory, reserved against what it has",
-    icon: 'table',
-    span: 12,
-    spec: { kind: WIDGET_CAPACITY, title: '' },
+    id:       'cluster-capacity',
+    labelKey: 'configurableViews.catalog.capacity.name',
+    descKey:  'configurableViews.catalog.capacity.desc',
+    icon:     'table',
+    span:     12,
+    spec:     { kind: WIDGET_CAPACITY, title: '' },
   },
   {
-    id:   'cluster-component-status',
-    name: 'Component status',
-    desc: "A cluster's etcd, scheduler, controller manager and Rancher and Fleet agents",
-    icon: 'links',
-    span: 12,
-    spec: { kind: WIDGET_COMPONENT_STATUS, title: '' },
+    id:       'cluster-component-status',
+    labelKey: 'configurableViews.catalog.componentStatus.name',
+    descKey:  'configurableViews.catalog.componentStatus.desc',
+    icon:     'links',
+    span:     12,
+    spec:     { kind: WIDGET_COMPONENT_STATUS, title: '' },
   },
   {
-    id:   'workload-overview',
-    name: 'Workload overview',
-    desc: "A cluster's workloads by state, by type and by namespace",
-    icon: 'table',
-    span: 12,
-    spec: { kind: WIDGET_OVERVIEW, title: '' },
+    id:       'workload-overview',
+    labelKey: 'configurableViews.catalog.workloadOverview.name',
+    descKey:  'configurableViews.catalog.workloadOverview.desc',
+    icon:     'table',
+    span:     12,
+    spec:     { kind: WIDGET_OVERVIEW, title: '' },
   },
   {
-    id:   'cluster-events',
-    name: 'Events',
-    desc: "A cluster's events, newest first",
-    icon: 'table',
-    span: 12,
-    spec: { kind: WIDGET_EVENTS, title: '' },
+    id:       'cluster-events',
+    labelKey: 'configurableViews.catalog.events.name',
+    descKey:  'configurableViews.catalog.events.desc',
+    icon:     'table',
+    span:     12,
+    spec:     { kind: WIDGET_EVENTS, title: '' },
   },
   {
-    id:   'cluster-certificates',
-    name: 'Certificates',
-    desc: "A cluster's TLS certificates, soonest to expire first",
-    icon: 'table',
-    span: 12,
-    spec: { kind: WIDGET_CERTIFICATES, title: '' },
+    id:       'cluster-certificates',
+    labelKey: 'configurableViews.catalog.certificates.name',
+    descKey:  'configurableViews.catalog.certificates.desc',
+    icon:     'table',
+    span:     12,
+    spec:     { kind: WIDGET_CERTIFICATES, title: '' },
   },
   {
-    id:   'cluster-alerts',
-    name: 'Alerts',
-    desc: "A cluster's firing alerts, from its monitoring",
-    icon: 'table',
-    span: 12,
-    spec: { kind: WIDGET_ALERTS, title: '' },
+    id:       'cluster-alerts',
+    labelKey: 'configurableViews.catalog.alerts.name',
+    descKey:  'configurableViews.catalog.alerts.desc',
+    icon:     'table',
+    span:     12,
+    spec:     { kind: WIDGET_ALERTS, title: '' },
   },
   {
-    id:   'cluster-metrics',
-    name: 'Cluster metrics',
-    desc: "A cluster's Grafana dashboard, from its monitoring",
-    icon: 'banner',
-    span: 12,
-    spec: {
+    id:       'cluster-metrics',
+    labelKey: 'configurableViews.catalog.clusterMetrics.name',
+    descKey:  'configurableViews.catalog.clusterMetrics.desc',
+    icon:     'banner',
+    span:     12,
+    spec:     {
       kind: WIDGET_METRICS, title: '', metrics: 'cluster'
     },
   },
   {
-    id:   'k8s-metrics',
-    name: 'Kubernetes component metrics',
-    desc: "A cluster's API server, controller manager and scheduler in Grafana",
-    icon: 'banner',
-    span: 12,
-    spec: {
+    id:       'k8s-metrics',
+    labelKey: 'configurableViews.catalog.k8sMetrics.name',
+    descKey:  'configurableViews.catalog.k8sMetrics.desc',
+    icon:     'banner',
+    span:     12,
+    spec:     {
       kind: WIDGET_METRICS, title: '', metrics: 'k8s'
     },
   },
   {
-    id:   'etcd-metrics',
-    name: 'etcd metrics',
-    desc: "A cluster's etcd in Grafana, with its leader and proposals",
-    icon: 'banner',
-    span: 12,
-    spec: {
+    id:       'etcd-metrics',
+    labelKey: 'configurableViews.catalog.etcdMetrics.name',
+    descKey:  'configurableViews.catalog.etcdMetrics.desc',
+    icon:     'banner',
+    span:     12,
+    spec:     {
       kind: WIDGET_METRICS, title: '', metrics: 'etcd'
     },
   },
   {
-    id:   'extension-cards',
-    name: 'Extension cards',
-    desc: 'The cards extensions add to the cluster dashboard',
-    icon: 'links',
-    span: 12,
-    spec: { kind: WIDGET_EXTENSION_CARDS, title: '' },
+    id:       'extension-cards',
+    labelKey: 'configurableViews.catalog.extensionCards.name',
+    descKey:  'configurableViews.catalog.extensionCards.desc',
+    icon:     'links',
+    span:     12,
+    spec:     { kind: WIDGET_EXTENSION_CARDS, title: '' },
   },
   {
-    id:   'welcome-banner',
-    name: 'Welcome banner',
-    desc: 'The Rancher banner across the top',
-    icon: 'banner',
-    span: 12,
-    spec: { kind: WIDGET_BANNER, title: '' },
+    id:       'welcome-banner',
+    labelKey: 'configurableViews.catalog.welcomeBanner.name',
+    descKey:  'configurableViews.catalog.welcomeBanner.desc',
+    icon:     'banner',
+    span:     12,
+    spec:     { kind: WIDGET_BANNER, title: '' },
   },
   {
-    id:   'community-links',
-    name: 'Community links',
-    desc: "Rancher's own Docs / Forums / Slack list",
-    icon: 'links',
-    span: 4,
-    spec: { kind: WIDGET_LINKS, source: 'home' },
+    id:       'community-links',
+    labelKey: 'configurableViews.catalog.communityLinks.name',
+    descKey:  'configurableViews.catalog.communityLinks.desc',
+    icon:     'links',
+    span:     4,
+    spec:     { kind: WIDGET_LINKS, source: 'home' },
   },
 ];
 
-/** The building block a widget kind came from — for the "Selected: Clusters (Table)" label. */
-export function blockName(kind: string): string {
-  return BUILDING_BLOCKS.find((b) => b.id === kind)?.name ||
-    READY_MADE.find((r) => r.spec.kind === kind)?.name ||
-    kind;
+/**
+ * The translation key for the building block a widget kind came from - for the "Selected: Clusters
+ * (Table)" label. '' for a kind the catalog does not have, which the caller shows as the kind itself.
+ */
+export function blockLabelKey(kind: string): string {
+  return BUILDING_BLOCKS.find((b) => b.id === kind)?.labelKey ||
+    READY_MADE.find((r) => r.spec.kind === kind)?.labelKey ||
+    '';
 }
 
-/** Case-insensitive search over a catalog list (name + description), as the Add tab's box does. */
-export function searchCatalog(list: CatalogEntry[], query: string): CatalogEntry[] {
+/**
+ * Case-insensitive search over a catalog list, as the Add tab's box does. `textOf` gives an entry's
+ * searchable text - its name and description as the person reading them sees them, translated.
+ */
+export function searchCatalog(list: CatalogEntry[], query: string, textOf: (entry: CatalogEntry) => string): CatalogEntry[] {
   const needle = `${ query || '' }`.trim().toLowerCase();
 
   if (!needle) {
     return list;
   }
 
-  return list.filter((entry) => `${ entry.name } ${ entry.desc }`.toLowerCase().includes(needle));
+  return list.filter((entry) => textOf(entry).toLowerCase().includes(needle));
 }
 
 /**

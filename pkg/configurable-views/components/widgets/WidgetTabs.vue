@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import { computed, onBeforeUnmount, ref } from 'vue';
 import WidgetGrid from '../WidgetGrid.vue';
 import { DEFAULT_GAP } from '../../templating/view-model';
@@ -27,6 +29,8 @@ const props = withDefaults(defineProps<{
   gap?: number;
 }>(), { nodeId: '', gap: DEFAULT_GAP });
 
+const store = useStore();
+const { t } = useI18n(store);
 const viewEditor = useViewEditor();
 
 const tabs = computed<WidgetTab[]>(() => props.widget.tabs || []);
@@ -91,7 +95,7 @@ onBeforeUnmount(cancelHover);
     <ul
       class="wtabs__list"
       role="tablist"
-      :aria-label="widget.title || 'Tabs'"
+      :aria-label="widget.title || t('configurableViews.widget.tabs.label')"
     >
       <li
         v-for="tab in tabs"
@@ -120,7 +124,7 @@ onBeforeUnmount(cancelHover);
           <span
             v-if="viewEditor.editing"
             class="wtabs__count"
-            :title="`${ tab.widgets.length } widget${ tab.widgets.length === 1 ? '' : 's' } in this tab`"
+            :title="t('configurableViews.widget.tabs.count', { count: tab.widgets.length })"
           >{{ tab.widgets.length }}</span>
         </a>
       </li>
@@ -144,7 +148,7 @@ onBeforeUnmount(cancelHover);
         v-if="!viewEditor.editing && !active.widgets.length"
         class="wtabs__empty"
       >
-        Nothing in this tab yet.
+        {{ t('configurableViews.widget.tabs.empty') }}
       </p>
     </div>
   </div>

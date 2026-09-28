@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import type { RouteLocationRaw } from 'vue-router';
 import jsyaml from 'js-yaml';
 import Tabbed from '@shell/components/Tabbed/index.vue';
@@ -11,7 +12,7 @@ import {
   appliedViewScopes, fetchTemplatingConfigMaps, getPageConfig, savePageConfig, type PageConfig, type PageKey
 } from '../templating/template-engine';
 import { cssSize, isStockView, normalizeSides } from '../templating/view-model';
-import { blockName } from '../templating/widget-catalog';
+import { blockLabelKey } from '../templating/widget-catalog';
 import type { View, ViewSet, WidgetNode } from '../templating/types';
 
 // CONFIGURABLE VIEWS — what is saved for every configurable page: the Home and the Cluster Dashboard,
@@ -21,6 +22,7 @@ import type { View, ViewSet, WidgetNode } from '../templating/types';
 
 interface PageEntry {
   key: PageKey;
+  /** The page's name, translated. */
   label: string;
   /** Where the page is, to go and edit it there; null when there is nowhere to go yet. */
   to: RouteLocationRaw | null;
@@ -33,6 +35,7 @@ interface Section {
 }
 
 const store = useStore();
+const { t } = useI18n(store);
 
 const userId = ref<string | null>(null);
 const loaded = ref(false);
@@ -63,11 +66,11 @@ const openCluster = computed<string>(() => {
 
 const pages = computed<PageEntry[]>(() => [
   {
-    key: 'home', label: 'Home', to: { name: 'home' }
+    key: 'home', label: t('nav.home'), to: { name: 'home' }
   },
   {
     key:   'clusterDashboard',
-    label: 'Cluster Dashboard',
+    label: t('clusterIndexPage.header'),
     to:    openCluster.value ? { name: 'c-cluster-explorer', params: { cluster: openCluster.value } } : null,
   },
 ]);
@@ -88,12 +91,12 @@ function sectionsFor(page: PageKey): Section[] {
 
   if (scopes.global?.views.length) {
     out.push({
-      key: 'global', label: 'Organization (everyone)', set: scopes.global
+      key: 'global', label: t('configurableViews.savedViews.organization'), set: scopes.global
     });
   }
   if (scopes.user?.views.length) {
     out.push({
-      key: 'user', label: 'Yours', set: scopes.user
+      key: 'user', label: t('configurableViews.savedViews.yours'), set: scopes.user
     });
   }
 
@@ -101,6 +104,13 @@ function sectionsFor(page: PageKey): Section[] {
 }
 
 const isStock = (view: View) => isStockView(view);
+
+// What the catalog calls a building block, or its kind when the catalog has no such block.
+function blockTitle(kind: string): string {
+  const key = blockLabelKey(kind);
+
+  return key ? t(key) : kind;
+}
 
 // A view's widgets, in the order they sit on the grid - and after a Tabs widget, what is in each of
 // its tabs, labelled with the tab.
@@ -116,7 +126,7 @@ function rowsFor(view: View) {
     return {
       id:      w.id,
       within,
-      label:   w.widget.title || blockName(w.widget.kind),
+      label:   w.widget.title || blockTitle(w.widget.kind),
       kind:    w.widget.kind,
       // Columns of twelve, and the height when it is not left to the content.
       size:    `${ w.colSpan }/12${ w.height && w.height !== 'auto' ? ` × ${ cssSize(w.height) }` : '' }`,
@@ -127,7 +137,7 @@ function rowsFor(view: View) {
 
   return view.widgets.flatMap((w) => [
     row(w),
-    ...(w.widget.tabs || []).flatMap((tab) => tab.widgets.map((inner) => row(inner, `${ w.widget.title || 'Tabs' } › ${ tab.name }`))),
+    ...(w.widget.tabs || []).flatMap((tab) => tab.widgets.map((inner) => row(inner, `${ w.widget.title || blockTitle(w.widget.kind) } › ${ tab.name }`))),
   ]);
 }
 
@@ -158,7 +168,7 @@ async function saveYaml(): Promise<void> {
 
     parsed = loadedYaml && typeof loadedYaml === 'object' ? loadedYaml as PageConfig : {};
   } catch (e) {
-    yamlError.value = (e as Error)?.message || 'Invalid YAML';
+    yamlError.value = (e as Error)?.message || t('configurableViews.savedViews.invalidYaml');
 
     return;
   }
@@ -169,7 +179,7 @@ async function saveYaml(): Promise<void> {
   try {
     await savePageConfig(store, parsed, page);
     await fetchTemplatingConfigMaps(store);
-    yamlStatus.value = 'Saved.';
+    yamlStatus.value = t('configurableViews.savedViews.saved');
     yamlPage.value = null;
   } catch (e) {
     yamlError.value = (e as Error)?.message || String(e);
@@ -182,13 +192,12 @@ async function saveYaml(): Promise<void> {
 <template>
   <div class="saved-views">
     <h1 class="mb-10">
-      Configurable Views
+      {{ t('configurableViews.savedViews.title') }}
     </h1>
-    <p class="text-muted mb-20">
-      Each configurable page has one or more <b>views</b> — the tabs in its bar — and each view has
-      its <b>widgets</b>. Here is everything saved for each page, in the <code>templating-home</code>
-      config. Edit views on the page itself, or by hand with <b>Edit YAML</b>.
-    </p>
+    <p
+      v-clean-html="t('configurableViews.savedViews.intro', {}, true)"
+      class="text-muted mb-20"
+    />
 
     <Tabbed>
       <Tab
@@ -203,12 +212,12 @@ async function saveYaml(): Promise<void> {
             v-if="page.to"
             :to="page.to"
           >
-            Open the {{ page.label }}
+            {{ t('configurableViews.savedViews.open', { page: page.label }) }}
           </router-link>
           <span
             v-else
             class="text-muted"
-          >Open any cluster to edit its dashboard's views.</span>
+          >{{ t('configurableViews.savedViews.openCluster') }}</span>
           <span class="saved-views__gap" />
           <span
             v-if="yamlStatus"
@@ -219,7 +228,7 @@ async function saveYaml(): Promise<void> {
             class="btn btn-sm role-secondary"
             @click="openYaml(page.key)"
           >
-            <i class="icon icon-file" /> Edit YAML
+            <i class="icon icon-file" /> {{ t('configurableViews.savedViews.editYaml') }}
           </button>
         </div>
 
@@ -229,7 +238,7 @@ async function saveYaml(): Promise<void> {
           class="saved-views__yaml"
         >
           <div class="saved-views__yaml-bar">
-            <span class="text-muted">Editing <code>templating-home</code> · <code>data.{{ page.key }}</code> (YAML)</span>
+            <span class="text-muted">{{ t('configurableViews.savedViews.editing') }} <code>templating-home</code> · <code>data.{{ page.key }}</code> (YAML)</span>
             <span
               v-if="yamlError"
               class="text-error"
@@ -238,14 +247,14 @@ async function saveYaml(): Promise<void> {
               class="btn btn-sm role-secondary"
               @click="cancelYaml"
             >
-              Cancel
+              {{ t('generic.cancel') }}
             </button>
             <button
               class="btn btn-sm role-primary"
               :disabled="savingYaml"
               @click="saveYaml"
             >
-              {{ savingYaml ? 'Saving…' : 'Save' }}
+              {{ savingYaml ? t('configurableViews.bar.saving') : t('configurableViews.bar.save') }}
             </button>
           </div>
           <textarea
@@ -257,11 +266,9 @@ async function saveYaml(): Promise<void> {
 
         <p
           v-if="loaded && !sectionsFor(page.key).length && yamlPage !== page.key"
+          v-clean-html="t('configurableViews.savedViews.none', { page: page.label }, true)"
           class="text-muted"
-        >
-          No views are saved for the {{ page.label }} yet — it shows Rancher's own page. Open it and
-          choose <b>Edit</b> to build one.
-        </p>
+        />
 
         <div
           v-for="sec in sectionsFor(page.key)"
@@ -270,7 +277,7 @@ async function saveYaml(): Promise<void> {
         >
           <h3 class="saved-views__scope-title">
             {{ sec.label }}
-            <span class="text-muted">— {{ sec.set.views.length }} view{{ sec.set.views.length === 1 ? '' : 's' }}</span>
+            <span class="text-muted">— {{ t('configurableViews.savedViews.count', { count: sec.set.views.length }) }}</span>
           </h3>
 
           <div class="saved-views__tabs">
@@ -285,11 +292,11 @@ async function saveYaml(): Promise<void> {
                   <span
                     v-if="sec.set.defaultViewId === view.id"
                     class="saved-views__kind"
-                  >default</span>
+                  >{{ t('configurableViews.savedViews.default') }}</span>
                   <span
                     v-if="isStock(view)"
                     class="text-muted"
-                  >stock</span>
+                  >{{ t('configurableViews.savedViews.stock') }}</span>
                 </span>
               </div>
 
@@ -298,14 +305,14 @@ async function saveYaml(): Promise<void> {
                 v-if="isStock(view)"
                 class="text-muted saved-views__empty"
               >
-                Rancher's own {{ page.label }}, shown as a tab. Nothing to configure.
+                {{ t('configurableViews.savedViews.stockHint', { page: page.label }) }}
               </div>
 
               <div
                 v-else-if="!rowsFor(view).length"
                 class="text-muted saved-views__empty"
               >
-                No widgets yet.
+                {{ t('configurableViews.savedViews.noWidgets') }}
               </div>
 
               <div
@@ -315,10 +322,10 @@ async function saveYaml(): Promise<void> {
                 <table class="saved-views__views">
                   <thead>
                     <tr>
-                      <th>Widget</th>
-                      <th>Kind</th>
-                      <th>Width</th>
-                      <th>Padding</th>
+                      <th>{{ t('configurableViews.savedViews.columns.widget') }}</th>
+                      <th>{{ t('configurableViews.savedViews.columns.kind') }}</th>
+                      <th>{{ t('configurableViews.savedViews.columns.width') }}</th>
+                      <th>{{ t('configurableViews.savedViews.columns.padding') }}</th>
                     </tr>
                   </thead>
                   <tbody>

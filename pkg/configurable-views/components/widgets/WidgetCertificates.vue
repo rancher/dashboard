@@ -87,7 +87,7 @@ watch([cluster, isOpen], async([id, open]) => {
     certs.value = res.rows;
     truncated.value = res.truncated;
   } catch (e) {
-    error.value = `Could not read the certificates of cluster “${ id }”.`;
+    error.value = t('configurableViews.errors.certificates', { cluster: id });
   } finally {
     loading.value = false;
   }
@@ -174,7 +174,7 @@ function linkFor(row: Cert): RouteLocationRaw[] {
       class="wstock__msg"
       :class="{ 'wstock__msg--error': !!cluster }"
     >
-      {{ cluster ? error : NO_CLUSTER }}
+      {{ cluster ? error : t(NO_CLUSTER) }}
     </p>
 
     <template v-else>
@@ -234,8 +234,7 @@ function linkFor(row: Cert): RouteLocationRaw[] {
           v-if="truncated"
           class="wstock__note"
         >
-          This cluster has more certificates than are read at once, so the list is ordered over the
-          first of them.
+          {{ t('configurableViews.widget.certsTruncated') }}
         </p>
       </template>
     </template>

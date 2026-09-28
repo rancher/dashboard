@@ -134,7 +134,7 @@ function linkFor(row: { involvedObject?: Record<string, string> }): RouteLocatio
       class="wstock__msg"
       :class="{ 'wstock__msg--error': !!cluster }"
     >
-      {{ cluster ? error : NO_CLUSTER }}
+      {{ cluster ? error : t(NO_CLUSTER) }}
     </p>
 
     <ResourceTable

@@ -54,9 +54,9 @@ const ROW_HEIGHT = 156;
 /** A stored size: a number of px, or any CSS length ('auto', '240px', '30%'). */
 export type Size = number | string;
 
-export interface WidthPreset { id: string; label: string; span: number }
-export interface HeightPreset { id: string; label: string; rows: number }
-export interface SpacingPreset { id: string; label: string; padding: number }
+export interface WidthPreset { id: string; labelKey: string; span: number }
+export interface HeightPreset { id: string; labelKey: string; rows: number }
+export interface SpacingPreset { id: string; labelKey: string; padding: number }
 
 /**
  * WIDTH is chosen from four presets rather than 12 free columns — the four that read well on a
@@ -64,16 +64,16 @@ export interface SpacingPreset { id: string; label: string; padding: number }
  */
 export const WIDTH_PRESETS: WidthPreset[] = [
   {
-    id: 'third', label: '1/3', span: 4
+    id: 'third', labelKey: 'configurableViews.presets.width.third', span: 4
   },
   {
-    id: 'half', label: '1/2', span: 6
+    id: 'half', labelKey: 'configurableViews.presets.width.half', span: 6
   },
   {
-    id: 'twoThirds', label: '2/3', span: 8
+    id: 'twoThirds', labelKey: 'configurableViews.presets.width.twoThirds', span: 8
   },
   {
-    id: 'full', label: 'Full', span: GRID_COLUMNS
+    id: 'full', labelKey: 'configurableViews.presets.width.full', span: GRID_COLUMNS
   },
 ];
 
@@ -83,13 +83,13 @@ export const COLUMN_SPANS = [4, 6, 8, 12];
 /** HEIGHT presets: fit the content, or a fixed number of grid rows. */
 export const HEIGHT_PRESETS: HeightPreset[] = [
   {
-    id: 'fit', label: 'Fit content', rows: 0
+    id: 'fit', labelKey: 'configurableViews.presets.height.fit', rows: 0
   },
   {
-    id: 'rows2', label: '2 rows', rows: 2
+    id: 'rows2', labelKey: 'configurableViews.presets.height.rows2', rows: 2
   },
   {
-    id: 'rows3', label: '3 rows', rows: 3
+    id: 'rows3', labelKey: 'configurableViews.presets.height.rows3', rows: 3
   },
 ];
 
@@ -103,13 +103,13 @@ export const HEIGHT_PRESETS: HeightPreset[] = [
  */
 export const SPACING_PRESETS: SpacingPreset[] = [
   {
-    id: 'compact', label: 'Compact', padding: 0
+    id: 'compact', labelKey: 'configurableViews.presets.spacing.compact', padding: 0
   },
   {
-    id: 'default', label: 'Default', padding: 16
+    id: 'default', labelKey: 'configurableViews.presets.spacing.default', padding: 16
   },
   {
-    id: 'spacious', label: 'Spacious', padding: 24
+    id: 'spacious', labelKey: 'configurableViews.presets.spacing.spacious', padding: 24
   },
 ];
 

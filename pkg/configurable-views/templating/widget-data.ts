@@ -26,7 +26,8 @@ type Getters = Store<unknown>['getters'];
 /** A field a widget can show, sort or filter on: how a person names it, and how to read it off a row. */
 export interface Field {
   id: string;
-  label: string;
+  /** Translation key for what a person calls it. */
+  labelKey: string;
   value: (row: ResourceRow) => unknown;
 }
 
@@ -58,47 +59,47 @@ export interface SteveSort {
 }
 
 /**
- * The fields a widget can filter, sort, group and tabulate on. `value` reads one off a row; `label`
+ * The fields a widget can filter, sort, group and tabulate on. `value` reads one off a row; `labelKey`
  * is what the settings dialog and the table header call it.
  *
  * Order matters — it is the order the Columns checkboxes appear in.
  */
 export const FIELDS: Field[] = [
   {
-    id: 'state', label: 'State', value: (row) => row.stateDisplay || row.state || ''
+    id: 'state', labelKey: 'configurableViews.fields.state', value: (row) => row.stateDisplay || row.state || ''
   },
   {
-    id: 'name', label: 'Name', value: (row) => row.nameDisplay || get(row, 'metadata.name') || row.name || ''
+    id: 'name', labelKey: 'configurableViews.fields.name', value: (row) => row.nameDisplay || get(row, 'metadata.name') || row.name || ''
   },
   {
-    id: 'provider', label: 'Provider', value: (row) => providerOf(row)
+    id: 'provider', labelKey: 'configurableViews.fields.provider', value: (row) => providerOf(row)
   },
   {
-    id: 'version', label: 'K8s version', value: (row) => versionOf(row)
+    id: 'version', labelKey: 'configurableViews.fields.version', value: (row) => versionOf(row)
   },
   {
-    id: 'nodes', label: 'Nodes', value: (row) => nodeCountOf(row)
+    id: 'nodes', labelKey: 'configurableViews.fields.nodes', value: (row) => nodeCountOf(row)
   },
   {
-    id: 'cpu', label: 'CPU', value: (row) => cpuOf(row)
+    id: 'cpu', labelKey: 'configurableViews.fields.cpu', value: (row) => cpuOf(row)
   },
   {
-    id: 'memory', label: 'Memory', value: (row) => memoryOf(row)
+    id: 'memory', labelKey: 'configurableViews.fields.memory', value: (row) => memoryOf(row)
   },
   {
-    id: 'pods', label: 'Pods', value: (row) => podsOf(row)
+    id: 'pods', labelKey: 'configurableViews.fields.pods', value: (row) => podsOf(row)
   },
   {
-    id: 'created', label: 'Created', value: (row) => get(row, 'metadata.creationTimestamp') || ''
+    id: 'created', labelKey: 'configurableViews.fields.created', value: (row) => get(row, 'metadata.creationTimestamp') || ''
   },
   {
-    id: 'namespace', label: 'Namespace', value: (row) => get(row, 'metadata.namespace') || ''
+    id: 'namespace', labelKey: 'configurableViews.fields.namespace', value: (row) => get(row, 'metadata.namespace') || ''
   },
   {
-    id: 'type', label: 'Type', value: (row) => typeOf(row)
+    id: 'type', labelKey: 'configurableViews.fields.type', value: (row) => typeOf(row)
   },
   {
-    id: 'message', label: 'Message', value: (row) => row.message || get(row, 'status.message') || ''
+    id: 'message', labelKey: 'configurableViews.fields.message', value: (row) => row.message || get(row, 'status.message') || ''
   },
 ];
 
@@ -108,10 +109,11 @@ const FIELD_BY_ID = FIELDS.reduce<Record<string, Field>>((acc, f) => {
   return acc;
 }, {});
 
-/** A field's human label ('K8s version'), falling back to the raw path for a CRD field. */
-export function fieldLabel(id: string): string {
-  return FIELD_BY_ID[id]?.label || id;
+/** The translation key for a field's label; '' for a raw path (a CRD's own field), which is shown as written. */
+export function fieldLabelKey(id: string): string {
+  return FIELD_BY_ID[id]?.labelKey || '';
 }
+
 
 // ---- per-resource readers ----------------------------------------------------------------------
 // Rancher spreads the same idea over several shapes (a provisioning cluster, a management cluster,

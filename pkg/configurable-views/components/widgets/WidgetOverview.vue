@@ -48,7 +48,7 @@ const {
       v-if="!cluster"
       class="text-muted m-0"
     >
-      {{ NO_CLUSTER }}
+      {{ t(NO_CLUSTER) }}
     </p>
 
     <Loading

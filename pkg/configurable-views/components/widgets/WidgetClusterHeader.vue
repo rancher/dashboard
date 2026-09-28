@@ -61,7 +61,7 @@ watch(cluster, async(id) => {
       fetchClusterCounts(store, id).catch(() => ({})),
     ]);
   } catch (e) {
-    error.value = `Could not read the cluster “${ id }”.`;
+    error.value = t('configurableViews.errors.cluster', { cluster: id });
   }
 }, { immediate: true });
 </script>
@@ -70,7 +70,7 @@ watch(cluster, async(id) => {
   <WidgetCard
     v-if="!cluster || error"
     :title="widget.title"
-    :error="error || NO_CLUSTER"
+    :error="error || t(NO_CLUSTER)"
   />
   <section
     v-else-if="mgmt"

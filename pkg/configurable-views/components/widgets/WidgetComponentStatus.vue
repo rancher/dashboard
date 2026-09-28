@@ -71,7 +71,7 @@ watch(cluster, async(id) => {
       components.value = found;
     }
   } catch (e) {
-    error.value = `Could not read the component status of cluster “${ id }”.`;
+    error.value = t('configurableViews.errors.componentStatus', { cluster: id });
   }
 }, { immediate: true });
 
@@ -90,7 +90,7 @@ function open(s: ServiceStatus): void {
   <WidgetCard
     v-if="!cluster || error"
     :title="widget.title"
-    :error="error || NO_CLUSTER"
+    :error="error || t(NO_CLUSTER)"
   />
   <div
     v-else

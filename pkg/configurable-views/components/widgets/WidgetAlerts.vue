@@ -57,7 +57,7 @@ async function loadAlerts(id: string): Promise<void> {
     alerts.value = await fetchAlerts(store, id);
     error.value = '';
   } catch (e) {
-    error.value = `Could not read the alerts of cluster “${ id }”.`;
+    error.value = t('configurableViews.errors.alerts', { cluster: id });
   }
 }
 
@@ -96,13 +96,13 @@ onBeforeUnmount(stop);
       v-if="!cluster"
       class="wstock__msg"
     >
-      {{ NO_CLUSTER }}
+      {{ t(NO_CLUSTER) }}
     </p>
     <p
       v-else-if="monitoring === false"
       class="wstock__msg"
     >
-      {{ t('clusterIndexPage.sections.alerts.label') }} come from Rancher's monitoring, which this cluster does not have.
+      {{ t('configurableViews.widget.noMonitoring', { what: t('clusterIndexPage.sections.alerts.label') }) }}
     </p>
     <p
       v-else-if="error"

@@ -221,10 +221,10 @@ export function useClusterOverview(cluster: MaybeRefOrGetter<string>) {
 
       await resolveStateColors(results);
       summaries.value = results;
-      error.value = results.every((r) => r.error) ? `Could not read the workloads of cluster “${ id }”.` : '';
+      error.value = results.every((r) => r.error) ? t('configurableViews.errors.workloads', { cluster: id }) : '';
     } catch (e) {
       if (mine === asked) {
-        error.value = (e as Error)?.message || `Could not read the workloads of cluster “${ id }”.`;
+        error.value = (e as Error)?.message || t('configurableViews.errors.workloads', { cluster: id });
       }
     }
   }

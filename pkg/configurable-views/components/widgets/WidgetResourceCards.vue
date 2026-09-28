@@ -39,7 +39,7 @@ watch(cluster, async(id) => {
   try {
     counts.value = await fetchClusterCounts(store, id);
   } catch (e) {
-    error.value = `Could not read the counts of cluster “${ id }”.`;
+    error.value = t('configurableViews.errors.counts', { cluster: id });
   }
 }, { immediate: true });
 
@@ -77,7 +77,7 @@ const cards = computed(() => {
   <WidgetCard
     v-if="!cluster || error"
     :title="widget.title"
-    :error="error || NO_CLUSTER"
+    :error="error || t(NO_CLUSTER)"
   />
   <div
     v-else

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import CatalogTile from './CatalogTile.vue';
 import {
-  BUILDING_BLOCKS, READY_MADE, searchCatalog, blockName, type CatalogEntry
+  BUILDING_BLOCKS, READY_MADE, searchCatalog, blockLabelKey, type CatalogEntry
 } from '../templating/widget-catalog';
 import {
   WIDTH_PRESETS, HEIGHT_PRESETS, SPACING_PRESETS, COLUMN_SPANS,
@@ -76,6 +78,15 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<SidebarEmits>();
 
+const store = useStore();
+const { t } = useI18n(store);
+
+const TABS = [
+  { id: 'add', labelKey: 'configurableViews.sidebar.tabs.add' },
+  { id: 'layout', labelKey: 'configurableViews.sidebar.tabs.layout' },
+  { id: 'view', labelKey: 'configurableViews.sidebar.tabs.view' },
+];
+
 const tab = ref('add');
 const search = ref('');
 const advancedOpen = ref(false);
@@ -86,8 +97,10 @@ const spacings = SPACING_PRESETS;
 const columnSpans = COLUMN_SPANS;
 const sides: (keyof Sides)[] = ['top', 'right', 'bottom', 'left'];
 
-const blocks = computed(() => searchCatalog(BUILDING_BLOCKS, search.value));
-const readyMade = computed(() => searchCatalog(READY_MADE, search.value));
+// Searched as it reads: the translated name and description.
+const tileText = (entry: CatalogEntry) => `${ t(entry.labelKey) } ${ t(entry.descKey) }`;
+const blocks = computed(() => searchCatalog(BUILDING_BLOCKS, search.value, tileText));
+const readyMade = computed(() => searchCatalog(READY_MADE, search.value, tileText));
 
 const gap = computed(() => (props.view && 'gap' in props.view ? props.view.gap : DEFAULT_GAP));
 const pagePadding = computed(() => (props.view && 'pad' in props.view ? props.view.pad : DEFAULT_PAGE_PADDING));
@@ -96,7 +109,14 @@ const pagePadding = computed(() => (props.view && 'pad' in props.view ? props.vi
 const selectedLabel = computed(() => {
   const widget = props.selected?.widget;
 
-  return widget ? `${ widget.title || blockName(widget.kind) } (${ blockName(widget.kind) })` : '';
+  if (!widget) {
+    return '';
+  }
+
+  const key = blockLabelKey(widget.kind);
+  const block = key ? t(key) : widget.kind;
+
+  return t('configurableViews.sidebar.selected', { title: widget.title || block, block });
 });
 
 const widthPreset = computed(() => (props.selected ? widthPresetOf(props.selected.colSpan) : null));
@@ -110,8 +130,8 @@ function toggleAdvanced(): void {
   emit('advanced', advancedOpen.value);
 }
 
-function sideLabel(side: string): string {
-  return side.charAt(0).toUpperCase() + side.slice(1);
+function sideLabel(side: keyof Sides): string {
+  return t(`configurableViews.sidebar.sides.${ side }`);
 }
 
 /** What an input or select holds, from its event. */
@@ -124,14 +144,14 @@ function valueOf(ev: Event): string {
   <aside class="evs">
     <header class="evs__head">
       <h3 class="evs__title">
-        Edit view<template v-if="view">
+        {{ t('configurableViews.sidebar.title') }}<template v-if="view">
           &nbsp;-&nbsp; {{ view.name }}
         </template>
       </h3>
       <button
         class="evs__close"
-        title="Close"
-        aria-label="Close the editor"
+        :title="t('generic.close')"
+        :aria-label="t('configurableViews.sidebar.closeEditor')"
         @click="$emit('close')"
       >
         <i class="icon icon-close" />
@@ -140,13 +160,13 @@ function valueOf(ev: Event): string {
 
     <nav class="evs__tabs">
       <button
-        v-for="t in [{ id: 'add', label: 'Add' }, { id: 'layout', label: 'Layout' }, { id: 'view', label: 'View' }]"
-        :key="t.id"
+        v-for="item in TABS"
+        :key="item.id"
         class="evs__tab"
-        :class="{ 'evs__tab--active': tab === t.id }"
-        @click="tab = t.id"
+        :class="{ 'evs__tab--active': tab === item.id }"
+        @click="tab = item.id"
       >
-        {{ t.label }}
+        {{ t(item.labelKey) }}
       </button>
     </nav>
 
@@ -160,8 +180,7 @@ function valueOf(ev: Event): string {
         v-if="isStock && tab !== 'view'"
         class="evs__hint"
       >
-        This view is Rancher's own page. It has no grid, so there is nothing to add to it or lay
-        out — make a new view to build one of your own.
+        {{ t('configurableViews.sidebar.stockHint') }}
       </p>
 
       <!-- ---- ADD ---- -->
@@ -172,22 +191,17 @@ function valueOf(ev: Event): string {
           class="evs__new"
         >
           <h4 class="evs__new-title">
-            <template v-if="startedFrom">
-              New view, started from {{ startedFrom }}
-            </template>
-            <template v-else>
-              New view
-            </template>
+            {{ startedFrom ? t('configurableViews.sidebar.newViewFrom', { source: startedFrom }) : t('configurableViews.sidebar.newView') }}
           </h4>
           <p class="evs__hint">
-            Name it in the header. Drag widgets in, or change the starting point:
+            {{ t('configurableViews.sidebar.newHint') }}
           </p>
           <div class="evs__chips">
             <button
               class="evs__chip"
               @click="$emit('start-from', '')"
             >
-              Start empty instead
+              {{ t('configurableViews.sidebar.startEmpty') }}
             </button>
             <button
               v-for="point in startingPoints"
@@ -199,27 +213,26 @@ function valueOf(ev: Event): string {
             </button>
           </div>
           <p class="evs__hint">
-            Nothing is saved until you press Save. Cancel throws the new view away.
+            {{ t('configurableViews.sidebar.newFootnote') }}
           </p>
         </section>
 
         <input
           v-model="search"
           class="evs__field"
-          placeholder="Search components"
-          aria-label="Search components"
+          :placeholder="t('configurableViews.sidebar.search')"
+          :aria-label="t('configurableViews.sidebar.search')"
         >
 
         <p class="evs__hint">
-          Drag onto the grid. Building blocks ask what to show once placed; ready-made widgets come
-          with their data set.
+          {{ t('configurableViews.sidebar.dragHint') }}
         </p>
 
         <h4 class="evs__group">
-          Building blocks
+          {{ t('configurableViews.sidebar.blocks') }}
         </h4>
         <p class="evs__hint">
-          Any resource, including your own CRDs.
+          {{ t('configurableViews.sidebar.blocksHint') }}
         </p>
         <div class="evs__tiles">
           <CatalogTile
@@ -234,15 +247,15 @@ function valueOf(ev: Event): string {
             v-if="!blocks.length"
             class="evs__hint"
           >
-            No building block matches “{{ search }}”.
+            {{ t('configurableViews.sidebar.noBlocks', { query: search }) }}
           </p>
         </div>
 
         <h4 class="evs__group">
-          Ready-made
+          {{ t('configurableViews.sidebar.readyMade') }}
         </h4>
         <p class="evs__hint">
-          Building blocks with their data already set. Save your own from any widget.
+          {{ t('configurableViews.sidebar.readyMadeHint') }}
         </p>
         <div class="evs__tiles">
           <CatalogTile
@@ -257,7 +270,7 @@ function valueOf(ev: Event): string {
             v-if="!readyMade.length"
             class="evs__hint"
           >
-            No ready-made widget matches “{{ search }}”.
+            {{ t('configurableViews.sidebar.noReadyMade', { query: search }) }}
           </p>
         </div>
       </template>
@@ -268,17 +281,16 @@ function valueOf(ev: Event): string {
           v-if="selected"
           class="evs__selected"
         >
-          Selected: {{ selectedLabel }}
+          {{ selectedLabel }}
         </p>
         <p class="evs__hint">
-          Click a widget on the grid to lay it out. Width, height and spacing are per widget; the
-          grid gap is the same for the whole view.
+          {{ t('configurableViews.sidebar.layoutHint') }}
         </p>
 
         <template v-if="selected">
           <div class="evs__control">
             <h4 class="evs__label">
-              Width
+              {{ t('configurableViews.sidebar.width') }}
             </h4>
             <div class="evs__seg">
               <button
@@ -288,14 +300,14 @@ function valueOf(ev: Event): string {
                 :class="{ 'evs__pill--on': widthPreset === w.id }"
                 @click="$emit('set-width', w.span)"
               >
-                {{ w.label }}
+                {{ t(w.labelKey) }}
               </button>
             </div>
           </div>
 
           <div class="evs__control">
             <h4 class="evs__label">
-              Height
+              {{ t('configurableViews.sidebar.height') }}
             </h4>
             <div class="evs__seg">
               <button
@@ -305,14 +317,14 @@ function valueOf(ev: Event): string {
                 :class="{ 'evs__pill--on': heightPreset === h.id }"
                 @click="$emit('set-height', h.id)"
               >
-                {{ h.label }}
+                {{ t(h.labelKey) }}
               </button>
             </div>
           </div>
 
           <div class="evs__control">
             <h4 class="evs__label">
-              Spacing
+              {{ t('configurableViews.sidebar.spacing') }}
             </h4>
             <div class="evs__seg">
               <button
@@ -322,7 +334,7 @@ function valueOf(ev: Event): string {
                 :class="{ 'evs__pill--on': spacingPreset === s.id }"
                 @click="$emit('set-spacing', s.id)"
               >
-                {{ s.label }}
+                {{ t(s.labelKey) }}
               </button>
             </div>
           </div>
@@ -336,17 +348,17 @@ function valueOf(ev: Event): string {
               class="icon"
               :class="advancedOpen ? 'icon-chevron-down' : 'icon-chevron-right'"
             />
-            Advanced
+            {{ t('configurableViews.sidebar.advanced') }}
           </button>
 
           <template v-if="advancedOpen">
             <p class="evs__hint">
-              Exact values in pixels. Overrides the Spacing preset for this component only.
+              {{ t('configurableViews.sidebar.advancedHint') }}
             </p>
 
             <div class="evs__control">
               <h4 class="evs__label evs__label--margin">
-                Margin
+                {{ t('configurableViews.sidebar.margin') }}
               </h4>
               <div class="evs__sides">
                 <label
@@ -366,7 +378,7 @@ function valueOf(ev: Event): string {
 
             <div class="evs__control">
               <h4 class="evs__label evs__label--padding">
-                Padding
+                {{ t('configurableViews.sidebar.padding') }}
               </h4>
               <div class="evs__sides">
                 <label
@@ -386,7 +398,7 @@ function valueOf(ev: Event): string {
 
             <div class="evs__control">
               <h4 class="evs__label">
-                Column span
+                {{ t('configurableViews.sidebar.columnSpan') }}
               </h4>
               <div class="evs__seg">
                 <button
@@ -407,16 +419,16 @@ function valueOf(ev: Event): string {
       <!-- ---- VIEW ---- -->
       <template v-else>
         <p class="evs__hint">
-          These apply to the whole view — every widget on it.
+          {{ t('configurableViews.sidebar.viewHint') }}
         </p>
 
         <h4 class="evs__group">
-          Name
+          {{ t('configurableViews.sidebar.name') }}
         </h4>
         <input
           class="evs__field"
           :value="view ? view.name : ''"
-          aria-label="View name"
+          :aria-label="t('configurableViews.bar.viewName')"
           @input="$emit('set-name', valueOf($event))"
         >
 
@@ -424,7 +436,7 @@ function valueOf(ev: Event): string {
           v-if="!isStock"
           class="evs__group"
         >
-          Grid gap
+          {{ t('configurableViews.sidebar.gap') }}
         </h4>
         <div
           v-if="!isStock"
@@ -436,17 +448,17 @@ function valueOf(ev: Event): string {
             min="0"
             max="64"
             :value="gap"
-            aria-label="Grid gap in pixels"
+            :aria-label="t('configurableViews.sidebar.gapLabel')"
             @change="$emit('set-gap', valueOf($event))"
           >
-          <span class="evs__hint">pixels between widgets</span>
+          <span class="evs__hint">{{ t('configurableViews.sidebar.gapHint') }}</span>
         </div>
 
         <h4
           v-if="!isStock"
           class="evs__group"
         >
-          Page padding
+          {{ t('configurableViews.sidebar.pagePadding') }}
         </h4>
         <div
           v-if="!isStock"
@@ -458,33 +470,33 @@ function valueOf(ev: Event): string {
             min="0"
             max="96"
             :value="pagePadding"
-            aria-label="Page padding in pixels"
+            :aria-label="t('configurableViews.sidebar.pagePaddingLabel')"
             @change="$emit('set-page-padding', valueOf($event))"
           >
-          <span class="evs__hint">pixels around the whole grid</span>
+          <span class="evs__hint">{{ t('configurableViews.sidebar.pagePaddingHint') }}</span>
         </div>
 
         <h4 class="evs__group">
-          This view
+          {{ t('configurableViews.sidebar.thisView') }}
         </h4>
         <button
           class="btn btn-sm role-secondary evs__wide"
           :disabled="isDefault"
           @click="$emit('set-default')"
         >
-          {{ isDefault ? 'This is my default view' : 'Set as my default' }}
+          {{ isDefault ? t('configurableViews.sidebar.isDefault') : t('configurableViews.sidebar.setDefault') }}
         </button>
         <button
           class="btn btn-sm role-secondary evs__wide"
           @click="$emit('publish')"
         >
-          Publish as organization template
+          {{ t('configurableViews.sidebar.publish') }}
         </button>
         <button
           class="btn btn-sm role-link evs__wide evs__danger"
           @click="$emit('delete')"
         >
-          Delete view
+          {{ t('configurableViews.sidebar.delete') }}
         </button>
       </template>
     </div>
