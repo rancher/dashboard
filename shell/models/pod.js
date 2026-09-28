@@ -7,6 +7,7 @@ import { deleteProperty } from '@shell/utils/object';
 import { POD_RESTARTS_REG_EX } from '@shell/types/resources/pod';
 import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 import { POD_SHELL } from '@shell/store/features';
+import { defineAsyncComponent, markRaw } from 'vue';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -17,6 +18,9 @@ export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.REPLICA_SET]:            6,
   [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 7,
 };
+
+// Defined once so the component identity is stable; creating it in `details` remounts the popover, and closes its card, on every pod update
+const WorkloadResourcePopover = markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue')));
 
 export default class Pod extends WorkloadService {
   _os = undefined;
@@ -240,6 +244,8 @@ export default class Pod extends WorkloadService {
     ];
 
     if ( this.workloadRef ) {
+      const isReplicaSet = this.workloadRef.type === WORKLOAD_TYPES.REPLICA_SET && !!this.$getters['schemaFor'](WORKLOAD_TYPES.REPLICA_SET);
+
       out.push({
         label:         this.workloadTypeLabel,
         formatter:     'LinkName',
@@ -248,7 +254,28 @@ export default class Pod extends WorkloadService {
           type:      this.workloadRef.type,
           namespace: this.workloadRef.namespace
         },
-        content: this.workloadRef.name
+        content:       this.workloadRef.name,
+        // The masthead shows a card with the key facts of a ReplicaSet. Other owners keep the plain link
+        valueOverride: isReplicaSet ? {
+          component: WorkloadResourcePopover,
+          props:     {
+            type:           this.workloadRef.type,
+            id:             this.workloadRef.id,
+            name:           this.workloadRef.name,
+            // Like the design, only the namespace row of the masthead has a state dot
+            showStatus:     false,
+            detailLocation: {
+              name:   'c-cluster-product-resource-namespace-id',
+              params: {
+                product:   this.$rootGetters['productId'],
+                cluster:   this.$rootGetters['clusterId'],
+                resource:  this.workloadRef.type,
+                namespace: this.workloadRef.namespace,
+                id:        this.workloadRef.name,
+              }
+            }
+          }
+        } : undefined
       });
     }
 
