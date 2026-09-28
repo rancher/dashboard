@@ -3,6 +3,7 @@ import { IPlugin } from '@shell/core/types';
 import HomeLayout from '@shell/components/templates/home.vue';
 import { fetchTemplatingConfigMaps, toggleTemplating } from './templating/template-engine';
 import routing from './routing/index';
+import { PAGINATED_RESOURCES } from './templating/widget-catalog';
 import Home from './pages/Home.vue';
 
 // Take over the Home page under the REAL home layout.
@@ -82,6 +83,16 @@ export default function(plugin: IPlugin): void {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   plugin.addNavHooks({ onEnter: (store: any) => fetchTemplatingConfigMaps(store) });
+
+  // Let this extension's tables be paged by the BACKEND rather than fetched whole.
+  //
+  // Every entry names our own context, so this turns paging on for our widgets and for nothing
+  // else. The same types are listed elsewhere with other contexts - the cluster list in the side
+  // bar, on the Home, in Cluster Management - and those are untouched by this.
+  //
+  // Optional-chained because the API arrived in 2.12: on an older Rancher the call is skipped and
+  // the tables simply fetch as they did before.
+  plugin.enableServerSidePagination?.({ management: { resources: { enableSome: { enabled: PAGINATED_RESOURCES, generic: false } } } });
 
   // Retry until the live router exists (plugin init can run before $globalApp is set).
   const tryInstall = () => {
