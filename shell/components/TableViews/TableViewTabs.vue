@@ -183,8 +183,6 @@ const tabs = computed<Tab[]>(() => {
 /** The tab the list opens on can't be dragged out of the front, nor anything dropped before it */
 const LOCKED_TAB_COUNT = 1;
 
-const editingView = computed(() => savedViews.value.find((v) => v.id === pickedViewId.value) || null);
-
 const selectedViewId = computed(() => selectedViewIdFor(savedViews.value, props.view, pickedViewId.value));
 
 /** The one tab Tab can land on (roving tabindex); the first if the current view isn't among them */
@@ -197,15 +195,6 @@ const focusableTabId = computed(() => {
 
 const isDirty = computed(() => isViewDirty(savedViews.value, props.view, pickedViewId.value));
 
-const viewToSave = computed(() => ({
-  query:          props.view.query || '',
-  columns:        props.view.columns || null,
-  columnOrder:    props.view.columnOrder || null,
-  labelColumns:   props.view.labelColumns || [],
-  groupBy:        props.view.groupBy || null,
-  sort:           props.view.sort || null,
-  sortDescending: !!props.view.sortDescending,
-}));
 
 const draftKey = (id: string | null | undefined) => id || '__default';
 
@@ -412,6 +401,17 @@ const rememberDraft = (id: string | null | undefined) => {
   forgetDraft(id);
 };
 
+/** The state a saved view applies, or the table's own tab's - always the table as it comes - for none */
+const viewStateOf = (saved?: Partial<TableViewState> | null): TableViewState => ({
+  query:          saved?.query || '',
+  columns:        saved?.columns || null,
+  columnOrder:    saved?.columnOrder || null,
+  labelColumns:   saved?.labelColumns || [],
+  groupBy:        saved?.groupBy || null,
+  sort:           saved?.sort || null,
+  sortDescending: saved?.sortDescending || false,
+});
+
 /**
  * @param saved the view to show, or null for the table's own tab
  * @param useDraft bring back unsaved edits left on the tab; off when putting it back as saved
@@ -443,20 +443,41 @@ const applyView = (saved: TableViewSaved | null, useDraft = true) => {
     return;
   }
 
-  emit('update:view', {
-    query:          saved?.query || '',
-    columns:        saved?.columns || null,
-    columnOrder:    saved?.columnOrder || null,
-    labelColumns:   saved?.labelColumns || [],
-    groupBy:        saved?.groupBy || null,
-    sort:           saved?.sort || null,
-    sortDescending: saved?.sortDescending || false,
-  });
+  emit('update:view', viewStateOf(saved));
 };
 
-const discardChanges = () => {
-  forgetDraft(selectedViewId.value);
-  applyView(editingView.value, false);
+/** The tab in front of the user */
+const selectedTab = () => (tabs.value || []).find((tab) => tab.id === selectedViewId.value);
+
+/** A tab's state as it stands: what is on screen for the tab in front, its held edits for the rest */
+const tabState = (tab: Tab): TableViewState => {
+  if (tab.id === selectedViewId.value) {
+    return { ...props.view };
+  }
+
+  return drafts.value[draftKey(tab.id)] || viewStateOf(tab.view);
+};
+
+/** Put a tab in front as it was left, without keeping anything for the one it replaces */
+const showTab = (tab?: Tab) => {
+  const id = tab?.id || null;
+  const draft = drafts.value[draftKey(id)];
+
+  pickedViewId.value = id;
+  emit('update:view', draft ? { ...draft } : viewStateOf(tab?.view));
+};
+
+// The menu's actions are for the tab it was opened on, which need not be the one in front
+const discardChanges = (tab = selectedTab()) => {
+  if (!tab) {
+    return;
+  }
+
+  forgetDraft(tab.id);
+
+  if (tab.id === selectedViewId.value) {
+    applyView(tab.view || null, false);
+  }
 };
 
 /**
@@ -521,39 +542,41 @@ const duplicateView = (saved: Omit<TableViewSaved, 'id'>) => {
   nextTick(() => openRename(copy));
 };
 
-const updateView = (saved: TableViewSaved) => persist(savedViews.value.map((v) => (v.id === saved.id ? { ...v, ...viewToSave.value } : v)));
-
 /**
  * Saves the tab with its unsaved changes as a new view, landing like a copy: in front, its name
- * open for typing
+ * open for typing. The tab they were copied from keeps them
  */
-const openSaveAsNew = () => {
-  if (!isDirty.value && pickedViewId.value === undefined) {
+const openSaveAsNew = (tab = selectedTab()) => {
+  if (!tab || (!isTabDirty(tab) && pickedViewId.value === undefined)) {
     return;
   }
 
-  duplicateView({ ...viewToSave.value, name: editingView.value?.name || t('tableViews.tabs.all') });
+  duplicateView({ ...viewStateOf(tabState(tab)), name: tab.name });
 };
 
-const saveChanges = () => {
-  if (editingView.value) {
-    updateView(editingView.value);
-  } else if (isDirty.value) {
-    openSaveAsNew();
+const saveChanges = (tab = selectedTab()) => {
+  if (!tab || !isTabDirty(tab)) {
+    return;
   }
+
+  // The table's own tab can't be saved over
+  if (!tab.view) {
+    openSaveAsNew(tab);
+
+    return;
+  }
+
+  const state = viewStateOf(tabState(tab));
+
+  persist(savedViews.value.map((v) => (v.id === tab.view?.id ? { ...v, ...state } : v)));
+  forgetDraft(tab.id);
 };
 
 /** Saved straight away with the table's defaults, and renamed once it is worth naming */
 const addView = () => {
-  const view = {
-    id:           randomStr(8),
-    name:         nextNewViewName(),
-    query:        '',
-    columns:      null,
-    columnOrder:  null,
-    labelColumns: [],
-    groupBy:      null,
-  } as unknown as TableViewSaved;
+  const view: TableViewSaved = {
+    ...viewStateOf(), id: randomStr(8), name: nextNewViewName()
+  };
 
   persist(savedViews.value.concat([view]));
   applyView(view);
@@ -685,15 +708,7 @@ const openExport = (tab: Tab) => {
     kind:  'export',
     name:  tab.name,
     count: typeof count === 'number' ? count : null,
-    view:  draft ? { ...draft } : {
-      query:          saved?.query || '',
-      columns:        saved?.columns || null,
-      columnOrder:    saved?.columnOrder || null,
-      labelColumns:   saved?.labelColumns || [],
-      groupBy:        saved?.groupBy || null,
-      sort:           saved?.sort || null,
-      sortDescending: saved?.sortDescending || false,
-    },
+    view:  draft ? { ...draft } : viewStateOf(saved),
   };
 };
 
@@ -703,14 +718,7 @@ const closeModal = () => {
 
 /** The table's own tab included: copying it is how to start a view from the table as it comes */
 const duplicateTab = (tab: Tab) => {
-  duplicateView(tab.view || {
-    name:         t('tableViews.tabs.all'),
-    query:        '',
-    columns:      null,
-    columnOrder:  null,
-    labelColumns: [],
-    groupBy:      null,
-  });
+  duplicateView(tab.view || { ...viewStateOf(), name: t('tableViews.tabs.all') });
 };
 
 const duplicateCurrent = () => {
@@ -755,19 +763,21 @@ const deleteView = (saved?: TableViewSaved) => {
   const wasDefault = defaultViewId.value === saved.id;
   const at = savedViews.value.findIndex((v) => v.id === saved.id);
   const draft = drafts.value[draftKey(saved.id)];
-  // Taken before the view goes: the tab in front of the gap
+  // Taken before the view goes: the tab to its left, or to its right when it was the first
   const list = tabs.value || [];
-  const before = list[Math.max(list.findIndex((tab) => tab.id === saved.id) - 1, 0)];
+  const index = list.findIndex((tab) => tab.id === saved.id);
+  const neighbour = list[index > 0 ? index - 1 : index + 1];
 
-  persist(savedViews.value.filter((v) => v.id !== saved.id));
+  // Its edits go with it, so nothing of it is left on screen for the tab taking its place
   forgetDraft(saved.id);
+  persist(savedViews.value.filter((v) => v.id !== saved.id));
 
   if (wasSelected) {
-    applyView(null);
+    showTab(neighbour);
   }
 
-  if (before) {
-    focusTab(before.id);
+  if (neighbour) {
+    focusTab(neighbour.id);
   }
 
   // The undo only lives on the growl: the notification centre stores a copy, and a callback can't
@@ -948,7 +958,7 @@ onBeforeUnmount(() => {
                     <rc-dropdown-item
                       v-if="!tab.isDefaultTab"
                       data-testid="table-views-save-changes"
-                      @click="saveChanges()"
+                      @click="saveChanges(tab)"
                     >
                       <template #before>
                         <i class="icon icon-download" />
@@ -960,7 +970,7 @@ onBeforeUnmount(() => {
                     </rc-dropdown-item>
                     <rc-dropdown-item
                       data-testid="table-views-save-as-new"
-                      @click="openSaveAsNew()"
+                      @click="openSaveAsNew(tab)"
                     >
                       <template #before>
                         <i class="menu-gutter" />
@@ -972,7 +982,7 @@ onBeforeUnmount(() => {
                     </rc-dropdown-item>
                     <rc-dropdown-item
                       data-testid="table-views-discard"
-                      @click="discardChanges()"
+                      @click="discardChanges(tab)"
                     >
                       <template #before>
                         <i class="menu-gutter" />

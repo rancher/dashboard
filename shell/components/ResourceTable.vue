@@ -49,7 +49,7 @@ export default {
 
   name: 'ResourceTable',
 
-  emits: ['clickedActionButton'],
+  emits: ['clickedActionButton', 'group-change'],
 
   components: {
     ButtonGroup, SortableTable, TableViewControls, TableViewTabs, ToggleSwitch
@@ -283,6 +283,14 @@ export default {
       },
       immediate: true
     },
+
+    // For a page that draws itself differently while grouped, eg projects and namespaces
+    group: {
+      handler(neu) {
+        this.$emit('group-change', neu);
+      },
+      immediate: true
+    },
   },
 
   computed: {
@@ -313,7 +321,8 @@ export default {
     },
 
     showNamespaceColumn() {
-      const groupNamespaces = this.group === 'namespace';
+      // With the toolbar, grouping never takes a column away: the View menu decides the columns
+      const groupNamespaces = this.group === 'namespace' && !this.showTableViews;
       const out = !this.showGrouping || !groupNamespaces;
 
       return out;
@@ -443,7 +452,7 @@ export default {
         hideColumn = componentCustom?.hideColumn;
       }
 
-      if (hideColumn) {
+      if (hideColumn && !this.showTableViews) {
         const idx = headers.findIndex((header) => header.name === hideColumn);
 
         if ( idx >= 0 ) {
@@ -512,6 +521,11 @@ export default {
     // and it feels like a good UX to be able to keep the namespace/flat grouping across tables
     group: {
       get() {
+        // The toolbar says how the table is grouped, and a column grouping is none of these
+        if (this.showTableViews) {
+          return this.viewTableGrouping?.value || 'none';
+        }
+
         // Check group is valid
         const exists = this._groupOptions.find((g) => g.value === this._group);
 
@@ -582,6 +596,14 @@ export default {
       }
 
       return null;
+    },
+
+    /**
+     * The groupings this list brings beyond grouping by a column, offered in the toolbar's Group By.
+     * A plain namespace option is left out: the namespace column already groups the same way
+     */
+    tableGroupings() {
+      return this._groupOptions.filter((option) => option.value !== 'none' && (option.field || this.groupBy || option.value !== 'namespace'));
     },
 
     _groupOptions() {

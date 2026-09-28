@@ -30,10 +30,14 @@ const EXPORT_PAGE_SIZE = 1000;
 
 const VIEW_SWITCH_TIMEOUT = 8000;
 
+/** Marks a view's grouping as one of the table's own rather than a column */
+export const TABLE_GROUPING_PREFIX = 'group:';
+
 /**
  * The table views half of ResourceTable. Needs from its host: `schema`, `rows`, `headers`,
  * `namespaced`, `inStore`, `externalPaginationEnabled`, `externalPaginationResult`,
- * `externalPaginationArgs`, `externalPaginationScope`, `hasAdvancedFiltering` and `groupBy`
+ * `externalPaginationArgs`, `externalPaginationScope`, `hasAdvancedFiltering`, `groupBy` and
+ * `tableGroupings`
  */
 export default {
   /** Supplied by pages that put tables under tabs of their own. The `tableViewTabs` prop still wins */
@@ -367,27 +371,48 @@ export default {
     passthroughSlots() {
       const { 'header-right': headerRight, ...rest } = this.$slots;
 
+      // A page's own group heading is drawn for its own grouping, not for a column's
+      if (this.viewGroupField) {
+        delete rest['group-by'];
+      }
+
       return (this.showGrouping || this.showTableViews) ? rest : this.$slots;
     },
 
 
-    /** The columns the table can sort by, so the group menu and the sortable headers always agree */
+    /**
+     * The table's own groupings, then the columns the table can sort by - so the group menu and the
+     * sortable headers always agree. A column one of those groupings already covers is left out
+     */
     viewGroupFields() {
-      return this.viewFields.filter((field) => {
+      const own = this.tableGroupings.map((option) => ({
+        id:      `${ TABLE_GROUPING_PREFIX }${ option.value }`,
+        label:   this.tableGroupingLabel(option),
+        isLabel: false,
+      }));
+      const covered = this.tableGroupings.flatMap((option) => [option.hideColumn, option.field]).filter(Boolean);
+
+      return own.concat(this.viewFields.filter((field) => {
         if (field.isLabel) {
           return true;
         }
 
         const { header } = field;
 
-        if (!header?.sort) {
+        if (!header?.sort || covered.includes(header.name) || covered.includes(header.value)) {
           return false;
         }
 
         return typeof header.value === 'function' || !!header.value ||
           typeof header.sort === 'string' || (Array.isArray(header.sort) && typeof header.sort[0] === 'string');
-      });
+      }));
     },
+
+    /** The table's own grouping the view has picked, if it picked one */
+    viewTableGrouping() {
+      return this.tableGroupings.find((option) => `${ TABLE_GROUPING_PREFIX }${ option.value }` === this.view.groupBy) || null;
+    },
+
 
 
     /** Server side, only the fields the api indexes, so nothing is suggested that would then be ignored */
@@ -602,6 +627,17 @@ export default {
   },
 
   methods: {
+    /** A short name for one of the table's own groupings: its `labelKey`, else the one matching its tooltip */
+    tableGroupingLabel(option) {
+      const short = option.labelKey || option.tooltipKey?.replace(/^resourceTable\.groupBy\./, 'tableViews.group.by.');
+
+      if (short && this.$store.getters['i18n/exists'](short)) {
+        return this.t(short);
+      }
+
+      return option.tooltipKey ? this.t(option.tooltipKey) : (option.tooltip || option.value);
+    },
+
     /** A method as well as a computed, so a tab exported from its own menu gets its own headers */
     headersForView(view) {
       const headers = this._headers;
