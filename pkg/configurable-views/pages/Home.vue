@@ -288,10 +288,18 @@ export default {
       this.selectedNodeId = null;
     },
 
-    cancelEdit() {
-      if (this.dirty && !window.confirm('Discard the changes to this panel?')) {
-        return;
+    async cancelEdit() {
+      if (this.dirty) {
+        const ok = await this.confirmModal({
+          title: 'Discard changes?',
+          body:  'The changes to this panel have not been saved. Leaving the editor discards them.',
+        });
+
+        if (!ok) {
+          return;
+        }
       }
+
       this.leaveEdit();
     },
 
@@ -510,7 +518,17 @@ export default {
     async publishView() {
       const source = this.editing ? this.workingPanel() : this.activeView;
 
-      if (!source || !window.confirm(`Publish “${ source.name }” as an organization template? Everyone will see it in their Home.`)) {
+      if (!source) {
+        return;
+      }
+
+      const ok = await this.confirmModal({
+        title:     'Publish to the organization?',
+        body:      `“${ source.name }” becomes an organization template: everyone sees it on their Home, and can fork their own copy of it.`,
+        applyMode: 'apply',
+      });
+
+      if (!ok) {
         return;
       }
 
@@ -572,6 +590,42 @@ export default {
       }
     },
 
+    // Ask, in a real modal. GenericPrompt is the shell's own confirm dialog, so these read like
+    // the rest of Rancher instead of like the browser, and they can carry a destructive style.
+    //
+    // It reports a decision through `confirm`, but a modal closed another way (Esc) never calls it,
+    // and an unresolved promise would silently drop the action. The store subscription is that
+    // backstop: the modal closing with no decision resolves false.
+    confirmModal({
+      title, body, applyMode = 'continue', actionColor = 'role-primary'
+    }) {
+      return new Promise((resolve) => {
+        let settled = false;
+        let stop = () => {};
+
+        const done = (ok) => {
+          if (!settled) {
+            settled = true;
+            stop();
+            resolve(!!ok);
+          }
+        };
+
+        stop = this.$store.subscribe((m) => {
+          if (m.type === 'action-menu/togglePromptModal' && !m.payload) {
+            done(false);
+          }
+        });
+
+        this.$store.dispatch('management/promptModal', {
+          component:      'GenericPrompt',
+          componentProps: {
+            title, body, applyMode, actionColor, confirm: done
+          },
+        });
+      });
+    },
+
     async deleteView() {
       const active = this.activeView;
 
@@ -583,9 +637,17 @@ export default {
       // delete is ALLOWED is not decided here: publishing writes the same ConfigMap with no check
       // of its own, so a check here would only be a suggestion. The write goes to the API and its
       // RBAC answers — a user who may not remove it gets that back as the error below.
-      const ask = active.org ? `Unpublish “${ active.name }”? It is published for the organization, so this removes it for everyone.` : `Delete the view “${ active.name }”?`;
+      const ask = active.org ? {
+        title:     'Unpublish this panel?',
+        body:      `“${ active.name }” is published for the organization, so this removes it for everyone. Personal copies of it are kept.`,
+        applyMode: 'remove',
+      } : {
+        title:     'Delete this panel?',
+        body:      `“${ active.name }” is removed from your Home.`,
+        applyMode: 'delete',
+      };
 
-      if (!window.confirm(ask)) {
+      if (!await this.confirmModal({ ...ask, actionColor: 'bg-error role-primary' })) {
         return;
       }
 
