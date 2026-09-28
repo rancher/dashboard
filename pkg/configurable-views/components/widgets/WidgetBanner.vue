@@ -1,43 +1,23 @@
-<script>
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 import BannerGraphic from '@shell/components/BannerGraphic.vue';
 import { getVendor } from '@shell/config/private-label';
+import type { WidgetSpec } from '../../templating/types';
 
-// Welcome banner widget (JSON template building block). By DEFAULT it renders the exact stock
-// BannerGraphic (brand image + title). Provide `image` to use your own background image, and
-// `subtitle` for a second line.
-//
-// Widget spec:
-//   { type: 'banner', title: 'Welcome to Rancher' }                         // stock brand banner
-//   { type: 'banner', titleKey: 'landing.welcomeToRancher' }                 // title via i18n key
-//   { type: 'banner', title: 'My Home', subtitle: '…', image: 'https://…' }  // custom image banner
-export default {
-  name:       'WidgetBanner',
-  components: { BannerGraphic },
+// BANNER — by default, exactly the stock Home's banner (BannerGraphic: the brand picture and the
+// welcome line). Give it an `image` for your own background, and a `subtitle` for a second line.
 
-  props: {
-    widget: {
-      type:    Object,
-      default: () => ({}),
-    },
-  },
+const props = defineProps<{ widget: WidgetSpec }>();
 
-  computed: {
-    bgStyle() {
-      return this.widget.image ? { backgroundImage: `url('${ this.widget.image }')` } : {};
-    },
+const store = useStore();
 
-    // With no title of its own the banner falls back to Rancher's own welcome line — the same
-    // string the stock Home shows, vendor and all — so dropping a banner on the grid gives you the
-    // real thing rather than an untitled picture.
-    title() {
-      if (this.widget.title) {
-        return this.widget.title;
-      }
+const bgStyle = computed(() => (props.widget.image ? { backgroundImage: `url('${ props.widget.image }')` } : {}));
 
-      return this.widget.titleKey ? null : this.$store.getters['i18n/t']('landing.welcomeToRancher', { vendor: getVendor() });
-    },
-  },
-};
+// With no title of its own the banner falls back to Rancher's own welcome line — the same string
+// the stock Home shows, vendor and all — so dropping a banner on the grid gives you the real thing
+// rather than an untitled picture.
+const title = computed(() => props.widget.title || store.getters['i18n/t']('landing.welcomeToRancher', { vendor: getVendor() }));
 </script>
 
 <template>
@@ -48,7 +28,7 @@ export default {
   >
     <div class="wb__text">
       <h1 class="wb__title">
-        {{ title || 'Welcome' }}
+        {{ title }}
       </h1>
       <p
         v-if="widget.subtitle"
@@ -61,7 +41,6 @@ export default {
   <BannerGraphic
     v-else
     :title="title"
-    :title-key="widget.titleKey || null"
   />
 </template>
 

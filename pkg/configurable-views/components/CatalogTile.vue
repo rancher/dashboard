@@ -1,21 +1,15 @@
-<script>
+<script setup lang="ts">
+import type { CatalogEntry } from '../templating/widget-catalog';
+
 // One row of the Add tab's catalog: a drag handle, a small picture of what the component looks
 // like, its name and one line saying what it is for.
 //
-// The picture is drawn inline rather than loaded as an asset — eight tiny SVGs weigh nothing, ship
-// with the extension, and follow the theme's colours, which an image could not.
-export default {
-  name: 'CatalogTile',
+// The picture is drawn inline rather than loaded as an asset — the tiny SVGs weigh nothing, ship
+// with the package, and follow the theme's colours, which an image could not.
 
-  props: {
-    entry: {
-      type:     Object,
-      required: true,
-    },
-  },
+defineProps<{ entry: CatalogEntry }>();
 
-  emits: ['dragstart', 'dragend', 'add'],
-};
+defineEmits<{ dragstart: [entry: CatalogEntry, event: DragEvent]; dragend: []; add: [entry: CatalogEntry] }>();
 </script>
 
 <template>
@@ -53,152 +47,6 @@ export default {
             width="56"
             height="4"
             rx="1"
-          />
-        </template>
-
-        <template v-else-if="entry.icon === 'counters'">
-          <rect
-            v-for="x in [0, 20, 40]"
-            :key="x"
-            class="ctile__strong"
-            :x="x"
-            y="8"
-            width="16"
-            height="16"
-            rx="2"
-          />
-          <rect
-            v-for="x in [0, 20, 40]"
-            :key="`l${ x }`"
-            class="ctile__soft"
-            :x="x"
-            y="28"
-            width="16"
-            height="4"
-            rx="1"
-          />
-        </template>
-
-        <template v-else-if="entry.icon === 'status'">
-          <rect
-            class="ctile__ok"
-            x="0"
-            y="8"
-            width="34"
-            height="6"
-            rx="1"
-          />
-          <rect
-            class="ctile__warn"
-            x="0"
-            y="17"
-            width="22"
-            height="6"
-            rx="1"
-          />
-          <rect
-            class="ctile__bad"
-            x="0"
-            y="26"
-            width="12"
-            height="6"
-            rx="1"
-          />
-        </template>
-
-        <template v-else-if="entry.icon === 'list'">
-          <template
-            v-for="y in [8, 17, 26]"
-            :key="y"
-          >
-            <circle
-              class="ctile__strong"
-              cx="3"
-              :cy="y + 3"
-              r="3"
-            />
-            <rect
-              class="ctile__soft"
-              x="10"
-              :y="y + 1"
-              width="46"
-              height="4"
-              rx="1"
-            />
-          </template>
-        </template>
-
-        <template v-else-if="entry.icon === 'bars'">
-          <rect
-            class="ctile__strong"
-            x="0"
-            y="8"
-            width="50"
-            height="6"
-            rx="1"
-          />
-          <rect
-            class="ctile__strong"
-            x="0"
-            y="17"
-            width="32"
-            height="6"
-            rx="1"
-          />
-          <rect
-            class="ctile__strong"
-            x="0"
-            y="26"
-            width="18"
-            height="6"
-            rx="1"
-          />
-        </template>
-
-        <template v-else-if="entry.icon === 'timeseries'">
-          <rect
-            v-for="(h, i) in [10, 18, 8, 24, 14, 28]"
-            :key="i"
-            class="ctile__strong"
-            :x="i * 10"
-            :y="34 - h"
-            width="7"
-            :height="h"
-            rx="1"
-          />
-        </template>
-
-        <template v-else-if="entry.icon === 'text'">
-          <rect
-            class="ctile__strong"
-            x="0"
-            y="6"
-            width="30"
-            height="5"
-            rx="1"
-          />
-          <rect
-            v-for="y in [15, 22, 29]"
-            :key="y"
-            class="ctile__soft"
-            x="0"
-            :y="y"
-            :width="y === 29 ? 38 : 56"
-            height="4"
-            rx="1"
-          />
-        </template>
-
-        <template v-else-if="entry.icon === 'nav'">
-          <rect
-            v-for="y in [4, 15, 26]"
-            :key="y"
-            class="ctile__strong"
-            x="0"
-            :y="y"
-            width="56"
-            height="10"
-            rx="2"
           />
         </template>
 
