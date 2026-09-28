@@ -54,6 +54,22 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     });
   });
 
+  /**
+   * Verify a created repo references its auth secret and that the secret has the expected type and data
+   */
+  const verifyRepoAuthSecret = (repo: any, type: string, expectedData: Record<string, string>) => {
+    const { name, namespace } = repo?.spec?.clientSecret || {};
+
+    expect(name, 'repo clientSecret name').to.be.a('string').and.not.be.empty;
+
+    return cy.getRancherResource('v1', 'secrets', `${ namespace }/${ name }`).then((resp) => {
+      expect(resp.body._type).to.eq(type);
+      Object.entries(expectedData).forEach(([key, value]) => {
+        expect(atob(resp.body.data[key]).trim(), `secret data ${ key }`).to.eq(value.trim());
+      });
+    });
+  };
+
   beforeEach(() => {
     cy.createE2EResourceName('repo').as('repoName');
     cy.createE2EResourceName('repo-oci').as('ociRepoName');
@@ -213,12 +229,19 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
     repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL)
+      .then(({ response }) => {
+        expect(response?.statusCode).to.eq(201);
+
+        // The dummy credentials are rejected by GitHub, so the repo never downloads and never
+        // settles as Active - assert what the UI owns instead: the repo references a new
+        // basic-auth secret holding the entered credentials.
+        return verifyRepoAuthSecret(response?.body, 'kubernetes.io/basic-auth', { username: 'test', password: 'test' });
+      });
     repositoriesPage.waitForPage();
 
     // check list details
     repositoriesPage.list().details(`${ this.repoName }basic`, 2).should('be.visible');
-    repositoriesPage.list().details(`${ this.repoName }basic`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can create a repository with SSH key', function() {
@@ -236,18 +259,19 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
     repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createSSHAuth(sshPrivateKey, 'publicKey');
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL).its('response.statusCode').should('eq', 201);
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL)
+      .then(({ response }) => {
+        expect(response?.statusCode).to.eq(201);
+
+        // An SSH key can't authenticate against the https repo URL (the backend reports
+        // "invalid auth method"), so the repo never downloads and never becomes Active - assert
+        // what the UI owns instead: the repo references a new ssh-auth secret holding the key.
+        return verifyRepoAuthSecret(response?.body, 'kubernetes.io/ssh-auth', { 'ssh-privatekey': sshPrivateKey, 'ssh-publickey': 'publicKey' });
+      });
     repositoriesPage.waitForPage();
 
     // check list details
     repositoriesPage.list().details(`${ this.repoName }ssh`, 2).should('be.visible');
-    // The rancher/charts clone is large and slow in CI (~30s for the plain repo, and slower
-    // here with several repos downloading), so the default 10s Active check is too short. Wait
-    // for the download to finish at the API level, then for the row to render, before asserting
-    // Active with the long timeout - the same pattern the plain create test uses.
-    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', `${ this.repoName }ssh`, 40);
-    repositoriesPage.list().details(`${ this.repoName }ssh`, 2).should('be.visible');
-    repositoriesPage.list().details(`${ this.repoName }ssh`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can delete repositories via bulk actions', function() {
