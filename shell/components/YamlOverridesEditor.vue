@@ -471,10 +471,23 @@ onBeforeUnmount(() => {
         background-color: var(--info-banner-bg);
       }
 
-      // Every line here is an override, so the whole editor gets the tint of the
-      // changed lines in the chart defaults pane. The tint is see-through, so the
-      // gutter lets the editor's tint show instead of painting it a second time.
       &--overrides {
+        // The overrides editor takes the height of its document instead, up to the
+        // room under the header, and then scrolls. So the body keeps the document
+        // out of the size of the pane.
+        .values-pane__body {
+          contain: size;
+        }
+
+        .values-pane__editor {
+          flex: 0 1 auto;
+          contain: none;
+          min-height: 0;
+        }
+
+        // Every line here is an override, so the whole editor gets the tint of the
+        // changed lines in the chart defaults pane. The tint is see-through, so the
+        // gutter lets the editor's tint show instead of painting it a second time.
         :deep(.codemirror-container .rc-code-mirror) {
           --rc-cm-bg: var(--info-banner-bg);
         }
