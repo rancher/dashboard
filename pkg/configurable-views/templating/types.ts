@@ -20,7 +20,8 @@ export type WidgetKind =
   | 'clusterCapacity'
   | 'clusterEvents'
   | 'clusterCertificates'
-  | 'clusterComponentStatus';
+  | 'clusterComponentStatus'
+  | 'tabs';
 
 export type SortDir = 'asc' | 'desc';
 
@@ -59,6 +60,27 @@ export interface WidgetSpec {
   links: WidgetLink[];
   subtitle?: string;
   image?: string;
+  /** A Tabs widget's tabs, each with widgets of its own. */
+  tabs?: WidgetTab[];
+}
+
+/**
+ * One tab of a Tabs widget: a name, and a list of widgets that wraps exactly as a view's does.
+ *
+ * A tab holds any widget but another Tabs widget - one level of tabs inside a view's tabs is as deep
+ * as a page should go.
+ */
+export interface WidgetTab {
+  id: string;
+  name: string;
+  widgets: WidgetNode[];
+}
+
+/** Where a list of widgets lives when it is not the view's own: one tab of a Tabs widget on it. */
+export interface WidgetPlace {
+  /** The Tabs widget. */
+  parentId: string;
+  tabId: string;
 }
 
 /** Sides of a box, in px or any CSS length. */

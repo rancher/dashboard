@@ -50,6 +50,27 @@ defineEmits<{ dragstart: [entry: CatalogEntry, event: DragEvent]; dragend: []; a
           />
         </template>
 
+        <template v-else-if="entry.icon === 'tabs'">
+          <rect
+            v-for="x in [0, 16]"
+            :key="x"
+            :class="x ? 'ctile__soft' : 'ctile__strong'"
+            :x="x"
+            y="6"
+            width="14"
+            height="5"
+            rx="1"
+          />
+          <rect
+            class="ctile__soft"
+            x="0"
+            y="14"
+            width="56"
+            height="20"
+            rx="2"
+          />
+        </template>
+
         <template v-else-if="entry.icon === 'banner'">
           <rect
             class="ctile__strong"

@@ -3,9 +3,9 @@ import {
   computed, onBeforeUnmount, onMounted, ref, type CSSProperties
 } from 'vue';
 import WidgetNode from './WidgetNode.vue';
-import { GRID_COLUMNS, DEFAULT_GAP } from '../templating/view-model';
-import { useViewEditor } from '../composables/viewEditor';
-import type { WidgetNode as WidgetNodeSpec } from '../templating/types';
+import { GRID_COLUMNS, DEFAULT_GAP, canPlace } from '../templating/view-model';
+import { useViewEditor, placeKey } from '../composables/viewEditor';
+import type { WidgetNode as WidgetNodeSpec, WidgetPlace } from '../templating/types';
 
 // The grid: a view's widgets, in order, wrapping onto lines.
 //
@@ -13,6 +13,10 @@ import type { WidgetNode as WidgetNodeSpec } from '../templating/types';
 // wraps when there is no room left, which is what makes rows an emergent property of the widths
 // rather than objects anyone has to manage. There is exactly one drop target — the list — and a
 // drop resolves to an INDEX in it.
+//
+// A Tabs widget draws one of these per tab, with the tab as its `place`. A drag over the inner grid
+// is the inner grid's, and goes no further; one it will not take (a Tabs widget, which a tab cannot
+// hold) is left to bubble to the grid around it.
 
 // While a drag is in flight the browser does not scroll the page for you, so a drop target below
 // the fold is simply unreachable — you cannot scroll with the pointer held down. These drive an
@@ -26,11 +30,14 @@ const props = withDefaults(defineProps<{
   editing?: boolean;
   selectedId?: string | null;
   gap?: number;
+  /** The tab this grid is, inside a Tabs widget; null for the view's own grid. */
+  place?: WidgetPlace | null;
 }>(), {
   widgets:    () => [],
   editing:    false,
   selectedId: '',
   gap:        DEFAULT_GAP,
+  place:      null,
 });
 
 const viewEditor = useViewEditor();
@@ -45,6 +52,15 @@ const columns = GRID_COLUMNS;
 // Something is on its way onto the grid: a widget already on it being moved, or a catalog entry
 // being dragged in from the drawer. Both light up the drop targets.
 const dragActive = computed(() => props.editing && !!(viewEditor.ui.dragId || viewEditor.ui.dragEntry));
+
+// Whether what is being dragged may land here at all.
+const accepts = computed(() => dragActive.value && canPlace(viewEditor.ui.dragKind, props.place));
+
+const key = computed(() => placeKey(props.place));
+
+// The insertion marker belongs to the one grid the pointer is over — never to a grid it has left for
+// a tab inside it, or for the grid around it.
+const markerAt = computed(() => (accepts.value && viewEditor.ui.dropPlace === key.value ? dropIndex.value : -1));
 
 const style = computed<CSSProperties>(() => ({
   alignContent: 'flex-start',
@@ -61,12 +77,22 @@ const guideStyle = computed<CSSProperties>(() => ({
   gridTemplateColumns: `repeat(${ GRID_COLUMNS }, minmax(0, 1fr))`,
 }));
 
-// Column guides are only meaningful while you are placing or sizing something.
-const showGuides = computed(() => props.editing && (dragActive.value || !!props.selectedId));
+// Column guides are only meaningful while you are placing or sizing something - and only on the grid
+// that something is on: a tab's twelfths are not the view's.
+const showGuides = computed(() => props.editing && (
+  (accepts.value && viewEditor.ui.dropPlace === key.value) ||
+  (!!props.selectedId && props.widgets.some((w) => w.id === props.selectedId))
+));
 
 // What the end-of-grid drop target invites you to do. While something is being dragged it names it
 // ("Drop here to add a Table") so the target is unmistakable.
-const dropHint = computed(() => (viewEditor.ui.dragLabel ? `Drop here to add a ${ viewEditor.ui.dragLabel }` : 'Drop a component here'));
+const dropHint = computed(() => {
+  if (viewEditor.ui.dragLabel) {
+    return `Drop here to add a ${ viewEditor.ui.dragLabel }`;
+  }
+
+  return props.place ? 'Drop a component into this tab' : 'Drop a component here';
+});
 
 /**
  * Where a drop would land: compare the pointer with each widget's box. Widgets wrap, so a widget
@@ -163,10 +189,12 @@ function autoScroll(y: number): void {
 // ---- drag & drop ----
 
 function onDragOver(ev: DragEvent): void {
-  if (!dragActive.value) {
+  if (!accepts.value) {
     return;
   }
   ev.preventDefault();
+  ev.stopPropagation();
+  viewEditor.ui.dropPlace = key.value;
   if (ev.dataTransfer) {
     ev.dataTransfer.dropEffect = viewEditor.ui.dragEntry ? 'copy' : 'move';
   }
@@ -184,27 +212,38 @@ function onDragLeave(ev: DragEvent): void {
 }
 
 function onDrop(ev: DragEvent): void {
-  if (!props.editing) {
+  if (!accepts.value) {
     return;
   }
   ev.preventDefault();
+  ev.stopPropagation();
 
-  const index = dropIndex.value >= 0 ? dropIndex.value : computeDropIndex(ev);
+  const index = markerAt.value >= 0 ? markerAt.value : computeDropIndex(ev);
 
   dropIndex.value = -1;
   stopScrolling();
-  viewEditor.dropAt(index);
+  viewEditor.dropAt(index, props.place);
+}
+
+function onEndOver(ev: DragEvent): void {
+  if (!accepts.value) {
+    return;
+  }
+  ev.preventDefault();
+  ev.stopPropagation();
+  viewEditor.ui.dropPlace = key.value;
+  dropIndex.value = -1;
 }
 
 function onDropAtEnd(ev: DragEvent): void {
-  if (!props.editing) {
+  if (!accepts.value) {
     return;
   }
   ev.preventDefault();
   ev.stopPropagation();
   dropIndex.value = -1;
   stopScrolling();
-  viewEditor.dropAt(props.widgets.length);
+  viewEditor.dropAt(props.widgets.length, props.place);
 }
 
 // A drag that ends anywhere — including outside the grid, or cancelled with Escape — must stop the
@@ -238,7 +277,7 @@ onBeforeUnmount(() => {
       <div
         v-if="showGuides"
         class="wgrid__guides"
-        :class="{ 'wgrid__guides--active': dragActive }"
+        :class="{ 'wgrid__guides--active': accepts }"
         :style="guideStyle"
         aria-hidden="true"
       >
@@ -253,7 +292,7 @@ onBeforeUnmount(() => {
         :key="widget.id"
       >
         <div
-          v-if="dropIndex === i"
+          v-if="markerAt === i"
           class="wgrid__drop"
         />
         <WidgetNode
@@ -264,7 +303,7 @@ onBeforeUnmount(() => {
         />
       </template>
       <div
-        v-if="dropIndex >= widgets.length"
+        v-if="markerAt >= widgets.length"
         class="wgrid__drop"
       />
     </div>
@@ -274,9 +313,9 @@ onBeforeUnmount(() => {
     <div
       v-if="editing"
       class="wgrid__end"
-      :class="{ 'wgrid__end--active': dragActive }"
+      :class="{ 'wgrid__end--active': accepts, 'wgrid__end--nested': !!place }"
       :style="{ marginTop: `${ gap }px` }"
-      @dragover.prevent
+      @dragover="onEndOver"
       @drop="onDropAtEnd"
     >
       {{ dropHint }}
@@ -333,6 +372,10 @@ onBeforeUnmount(() => {
     justify-content: center;
     min-height:      78px;
     text-align:      center;
+
+    &--nested {
+      min-height: 56px;
+    }
   }
 }
 </style>

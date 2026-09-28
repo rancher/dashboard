@@ -5,9 +5,10 @@ import {
 import { useStore } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
 import { FIELDS, typeColumns, clusterOptions } from '../templating/widget-data';
+import { newId } from '../templating/view-model';
 import {
   SUGGESTED_RESOURCES, blockName, isDownstream, isClusterWidget, WIDGET_TABLE, WIDGET_LINKS,
-  WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW, type SuggestedResource
+  WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW, WIDGET_TABS, type SuggestedResource
 } from '../templating/widget-catalog';
 import type { SettingsAnchor } from '../composables/viewEditor';
 import type { WidgetLink, WidgetSpec } from '../templating/types';
@@ -20,10 +21,10 @@ import type { WidgetLink, WidgetSpec } from '../templating/types';
 //
 // It edits a COPY and only hands it back on Done, so Cancel really does leave the widget alone. The
 // fields shown depend on the building block: a table needs a resource, columns and a sort; a links
-// box needs links; a cluster widget needs only its cluster.
+// box needs links; a cluster widget needs only its cluster; a Tabs widget needs its tabs.
 
 // Block names that are plural, where "what this <name> shows" does not read.
-const PLURAL_NAMES = ['links'];
+const PLURAL_NAMES = ['links', 'tabs'];
 
 const DIALOG_WIDTH = 400;
 const MARGIN = 12;
@@ -94,7 +95,7 @@ const heading = computed(() => {
 });
 
 // Which sections apply to this building block.
-const readsData = computed(() => ![WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW].includes(draft.kind) && !isClusterWidget(draft.kind));
+const readsData = computed(() => ![WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW, WIDGET_TABS].includes(draft.kind) && !isClusterWidget(draft.kind));
 
 // The Home cluster table is the stock Home's own table — its columns, sorting and actions are fixed
 // there, so there is nothing here to change but the heading.
@@ -164,6 +165,41 @@ const linksText = computed({
     }).filter((l): l is WidgetLink => !!l && !!l.label && !!l.url);
   },
 });
+
+// ---- a Tabs widget's tabs ----
+// Only the tabs themselves are edited here - their names and order. What is IN a tab is edited on
+// the view, where it is drawn.
+
+function addTab(): void {
+  const tabs = draft.tabs || [];
+
+  draft.tabs = [...tabs, {
+    id: newId('tab'), name: `Tab ${ tabs.length + 1 }`, widgets: []
+  }];
+}
+
+function moveTab(index: number, delta: number): void {
+  const tabs = [...(draft.tabs || [])];
+  const to = index + delta;
+
+  if (to < 0 || to >= tabs.length) {
+    return;
+  }
+
+  const [moved] = tabs.splice(index, 1);
+
+  tabs.splice(to, 0, moved);
+  draft.tabs = tabs;
+}
+
+// A tab goes with what is in it; the button says so before it is pressed, and Cancel still undoes it.
+function removeTab(index: number): void {
+  draft.tabs = (draft.tabs || []).filter((_, i) => i !== index);
+}
+
+function removeTabLabel(count: number): string {
+  return count ? `Remove this tab and the ${ count } widget${ count === 1 ? '' : 's' } in it` : 'Remove this tab';
+}
 
 function hasColumn(id: string): boolean {
   return (draft.columns || []).includes(id);
@@ -476,6 +512,59 @@ onBeforeUnmount(() => {
           >
         </template>
 
+        <template v-if="draft.kind === 'tabs'">
+          <label class="wsm__label">Tabs</label>
+          <div
+            v-for="(tab, i) in draft.tabs"
+            :key="tab.id"
+            class="wsm__tabrow"
+          >
+            <input
+              v-model="tab.name"
+              class="wsm__field"
+              :aria-label="`Name of tab ${ i + 1 }`"
+            >
+            <button
+              class="wsm__icon"
+              title="Move left"
+              aria-label="Move left"
+              :disabled="i === 0"
+              @click="moveTab(i, -1)"
+            >
+              <i class="icon icon-chevron-left" />
+            </button>
+            <button
+              class="wsm__icon"
+              title="Move right"
+              aria-label="Move right"
+              :disabled="i === (draft.tabs || []).length - 1"
+              @click="moveTab(i, 1)"
+            >
+              <i class="icon icon-chevron-right" />
+            </button>
+            <button
+              class="wsm__icon wsm__icon--danger"
+              :title="removeTabLabel(tab.widgets.length)"
+              :aria-label="removeTabLabel(tab.widgets.length)"
+              :disabled="(draft.tabs || []).length < 2"
+              @click="removeTab(i)"
+            >
+              <i class="icon icon-close" />
+            </button>
+          </div>
+          <button
+            class="btn btn-sm role-tertiary wsm__add-tab"
+            @click="addTab"
+          >
+            <i class="icon icon-plus" />
+            Add tab
+          </button>
+          <p class="wsm__hint">
+            Put widgets in a tab on the view itself: drag them into it while editing. Removing a tab
+            removes what is in it.
+          </p>
+        </template>
+
 
         <footer class="wsm__foot">
           <button
@@ -644,6 +733,50 @@ onBeforeUnmount(() => {
     display:               grid;
     gap:                   8px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  // One row per tab: its name, then move left / right and remove.
+  &__tabrow {
+    align-items: center;
+    display:     flex;
+    gap:         4px;
+
+    .wsm__field {
+      flex: 1 1 auto;
+    }
+  }
+
+  &__icon {
+    align-items:     center;
+    background:      transparent;
+    border:          none;
+    color:           var(--body-text);
+    cursor:          pointer;
+    display:         flex;
+    font-size:       16px;
+    height:          24px;
+    justify-content: center;
+    min-height:      0;
+    padding:         0;
+    width:           24px;
+
+    &:hover:not(:disabled) {
+      color: var(--link);
+    }
+
+    &--danger:hover:not(:disabled) {
+      color: var(--error);
+    }
+
+    &:disabled {
+      cursor:  default;
+      opacity: 0.35;
+    }
+  }
+
+  &__add-tab {
+    align-self: flex-start;
+    gap:        6px;
   }
 
   &__foot {

@@ -16,7 +16,7 @@ import {
 import type { WidgetKind, WidgetSpec } from './types';
 
 /** The little preview drawn on a catalog tile (see CatalogTile.vue). */
-export type CatalogIcon = 'table' | 'links' | 'banner';
+export type CatalogIcon = 'table' | 'links' | 'banner' | 'tabs';
 
 /** One tile in the editor's Add tab. */
 export interface CatalogEntry {
@@ -48,6 +48,7 @@ export const WIDGET_CAPACITY: WidgetKind = 'clusterCapacity';
 export const WIDGET_EVENTS: WidgetKind = 'clusterEvents';
 export const WIDGET_CERTIFICATES: WidgetKind = 'clusterCertificates';
 export const WIDGET_COMPONENT_STATUS: WidgetKind = 'clusterComponentStatus';
+export const WIDGET_TABS: WidgetKind = 'tabs';
 
 /**
  * The kinds that are ABOUT one cluster - the pieces of a cluster's dashboard.
@@ -87,6 +88,23 @@ export const BUILDING_BLOCKS: CatalogEntry[] = [
     icon: 'links',
     span: 4,
     spec: { kind: WIDGET_LINKS, source: 'custom' },
+  },
+  {
+    id:   WIDGET_TABS,
+    name: 'Tabs',
+    desc: 'Tabs, each holding widgets of its own',
+    icon: 'tabs',
+    span: 12,
+    // Ids are left empty so every drop makes its own (see normalizeTabs).
+    spec: {
+      kind:  WIDGET_TABS,
+      title: '',
+      tabs:  [{
+        id: '', name: 'Tab 1', widgets: []
+      }, {
+        id: '', name: 'Tab 2', widgets: []
+      }],
+    },
   },
 ];
 

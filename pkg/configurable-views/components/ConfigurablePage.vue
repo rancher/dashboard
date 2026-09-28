@@ -20,7 +20,7 @@ import {
 } from '../templating/view-model';
 import type { CatalogEntry } from '../templating/widget-catalog';
 import type {
-  LayoutView, View, Sides, ViewSet, WidgetNode, WidgetSpec
+  LayoutView, View, Sides, ViewSet, WidgetNode, WidgetPlace, WidgetSpec
 } from '../templating/types';
 
 // A configurable PAGE: the Home, or a cluster's dashboard. It holds that page's views, and one of
@@ -98,7 +98,7 @@ const bar = ref<InstanceType<typeof ViewBar> | null>(null);
 // Shared, reactive editor UI state: what is being dragged — a widget already on the grid, or a
 // catalog entry on its way in.
 const ui = reactive<ViewEditorUi>({
-  dragId: null, dragEntry: null, dragLabel: '', showBoxModel: false
+  dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', showBoxModel: false
 });
 
 // ---- what is stored, and what is shown --------------------------------------------------------------
@@ -703,20 +703,22 @@ function selectNode(id: string | null): void {
   selectedNodeId.value = id;
 }
 
-function addFromCatalog(entry: CatalogEntry | null, index?: number): void {
+function addFromCatalog(entry: CatalogEntry | null, index?: number, place: WidgetPlace | null = null): void {
   if (!entry) {
     return;
   }
 
   const node = newWidgetNode(entry.spec, { colSpan: entry.span });
 
-  mutate((list) => insertWidget(list, node, index));
+  mutate((list) => insertWidget(list, node, index, place));
   selectedNodeId.value = node.id;
 }
 
 function onCatalogDragStart(entry: CatalogEntry, ev: DragEvent): void {
   ui.dragEntry = entry;
   ui.dragLabel = entry.name;
+  ui.dragKind = entry.spec.kind;
+  ui.dropPlace = '';
 
   if (ev?.dataTransfer) {
     ev.dataTransfer.effectAllowed = 'copy';
@@ -727,19 +729,23 @@ function onCatalogDragStart(entry: CatalogEntry, ev: DragEvent): void {
 function onCatalogDragEnd(): void {
   ui.dragEntry = null;
   ui.dragLabel = '';
+  ui.dragKind = '';
 }
 
-// A drop on the grid: a catalog entry becomes a new widget there, a widget already on it moves there.
-function dropAt(index: number): void {
+// A drop on a grid - the view's, or a tab's (`place`): a catalog entry becomes a new widget there, a
+// widget already on the view moves there.
+function dropAt(index: number, place: WidgetPlace | null = null): void {
   const entry = ui.dragEntry;
   const id = ui.dragId;
 
   ui.dragId = null;
   ui.dragEntry = null;
   ui.dragLabel = '';
+  ui.dragKind = '';
+  ui.dropPlace = '';
 
   if (entry) {
-    addFromCatalog(entry, index);
+    addFromCatalog(entry, index, place);
 
     return;
   }
@@ -748,7 +754,7 @@ function dropAt(index: number): void {
     return;
   }
 
-  mutate((list) => moveWidgetTo(list, id, index));
+  mutate((list) => moveWidgetTo(list, id, index, place));
   selectedNodeId.value = id;
 }
 
@@ -842,6 +848,12 @@ function removeConfigured(): void {
 
 // What the grid and its widgets can ask of this page, so neither has to re-emit up a chain.
 provide(VIEW_EDITOR, {
+  get editing() {
+    return editing.value;
+  },
+  get selectedId() {
+    return selectedNodeId.value;
+  },
   select:    selectNode,
   move:      (id, delta) => mutate((list) => moveWidget(list, id, delta)),
   remove:    removeNode,
@@ -851,9 +863,12 @@ provide(VIEW_EDITOR, {
   },
   beginDrag: (id) => {
     ui.dragId = id;
+    ui.dragKind = findWidget(widgets.value, id)?.widget.kind || '';
+    ui.dropPlace = '';
   },
   endDrag: () => {
     ui.dragId = null;
+    ui.dragKind = '';
   },
   dropAt,
   setColSpan,

@@ -21,10 +21,13 @@
 
 import {
   NODE_WIDGET, type LayoutView, type View, type Sides, type StockView, type ViewSet, type WidgetKind,
-  type WidgetNode, type WidgetSpec
+  type WidgetNode, type WidgetPlace, type WidgetSpec, type WidgetTab
 } from './types';
 
 export { NODE_WIDGET };
+
+/** The widget that holds other widgets, in tabs. */
+const TABS_KIND = 'tabs';
 
 /** What a stock view says it is. See isStockView. */
 const STOCK_KIND = 'stock';
@@ -238,7 +241,7 @@ export function spacingPresetOf(padding: unknown): string | null {
  *
  *   kind        which building block: table | links | banner | clusterTable | overview |
  *               clusterHeader | resourceCards | clusterCapacity | clusterEvents |
- *               clusterCertificates | clusterComponentStatus
+ *               clusterCertificates | clusterComponentStatus | tabs
  *   title       heading shown on the widget
  *   resource    the Rancher/Kubernetes type it reads (any kind Rancher knows, including CRDs)
  *   where       'view'   — the same clusters the view covers
@@ -250,6 +253,7 @@ export function spacingPresetOf(padding: unknown): string | null {
  *   limit       how many rows a table shows per page
  *   source      'home' — Rancher's own links | 'custom' — the `links` below (links widget)
  *   links       [{ label, url }] (links widget)
+ *   tabs        [{ id, name, widgets }] (tabs widget) - each tab's widgets are normalized like a view's
  */
 export function normalizeWidget(widget: unknown): WidgetSpec {
   const w = isObject(widget) ? widget : {};
@@ -282,8 +286,25 @@ export function normalizeWidget(widget: unknown): WidgetSpec {
   if (w.image) {
     out.image = str(w.image);
   }
+  if (out.kind === TABS_KIND) {
+    out.tabs = normalizeTabs(w.tabs);
+  }
 
   return out;
+}
+
+/** A Tabs widget's tabs. It always has at least one: a Tabs widget with none would have nowhere to drop into. */
+function normalizeTabs(tabs: unknown): WidgetTab[] {
+  const out = arr(tabs).filter(isObject).map((t, i) => ({
+    // A tab's id only has to be unique within its widget; one made up here is kept from the next save on.
+    id:      str(t.id) || newId('tab'),
+    name:    str(t.name) || `Tab ${ i + 1 }`,
+    widgets: arr(t.widgets).map(normalizeNode).filter((n): n is WidgetNode => !!n),
+  }));
+
+  return out.length ? out : [{
+    id: newId('tab'), name: 'Tab 1', widgets: []
+  }];
 }
 
 /** Where a new widget goes and how big it is. Every field is optional. */
@@ -499,72 +520,164 @@ export function migrateViewSet(value: unknown): ViewSet {
 }
 
 // ---- list operations (used by the editor; all return NEW lists) ----------------------------------
+//
+// A view's widgets are a list, and a Tabs widget on it holds one more list per tab. Every operation
+// below addresses a widget by its id wherever it is, so the editor never has to know which list a
+// widget sits in - only a DROP says where something goes, as a WidgetPlace (null: the view's own list).
 
-/** Find a widget by id. */
-export function findWidget(widgets: WidgetNode[] | null | undefined, id: string | null): WidgetNode | null {
-  return (widgets || []).find((w) => w.id === id) || null;
+/** Apply `fn` to every list in the tree: the view's own, then each tab's of every Tabs widget in it. */
+function eachList(widgets: WidgetNode[], fn: (list: WidgetNode[]) => WidgetNode[]): WidgetNode[] {
+  return fn(widgets || []).map((w) => (w.widget.tabs ? {
+    ...w,
+    widget: { ...w.widget, tabs: w.widget.tabs.map((t) => ({ ...t, widgets: eachList(t.widgets, fn) })) },
+  } : w));
 }
 
-/** Insert a widget at `index` (appends when the index is omitted or past the end). */
-export function insertWidget(widgets: WidgetNode[], widget: WidgetNode, index?: number): WidgetNode[] {
-  const list = [...(widgets || [])];
-  const at = typeof index === 'number' ? Math.max(0, Math.min(list.length, index)) : list.length;
-
-  list.splice(at, 0, widget);
-
-  return list;
-}
-
-/** Remove a widget by id. */
-export function removeWidget(widgets: WidgetNode[], id: string): WidgetNode[] {
-  return (widgets || []).filter((w) => w.id !== id);
-}
-
-/** Move a widget one place earlier (-1) or later (+1) in the list. */
-export function moveWidget(widgets: WidgetNode[], id: string, delta: number): WidgetNode[] {
-  const list = [...(widgets || [])];
-  const from = list.findIndex((w) => w.id === id);
-  const to = from + delta;
-
-  if (from < 0 || to < 0 || to >= list.length) {
-    return list;
+/** Apply `fn` to the one list at `place`. */
+function atPlace(widgets: WidgetNode[], place: WidgetPlace | null, fn: (list: WidgetNode[]) => WidgetNode[]): WidgetNode[] {
+  if (!place) {
+    return fn(widgets || []);
   }
 
-  const [moved] = list.splice(from, 1);
+  return updateWidget(widgets, place.parentId, (w) => ({
+    ...w,
+    widget: { ...w.widget, tabs: (w.widget.tabs || []).map((t) => (t.id === place.tabId ? { ...t, widgets: fn(t.widgets) } : t)) },
+  }));
+}
 
-  list.splice(to, 0, moved);
+/** Find a widget by id, in the view or in any tab. */
+export function findWidget(widgets: WidgetNode[] | null | undefined, id: string | null): WidgetNode | null {
+  for (const w of widgets || []) {
+    if (w.id === id) {
+      return w;
+    }
+    for (const tab of w.widget.tabs || []) {
+      const found = findWidget(tab.widgets, id);
 
-  return list;
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  return null;
+}
+
+/** Which list a widget is in: null for the view's own, its tab for one inside a Tabs widget, undefined when it is nowhere. */
+export function placeOf(widgets: WidgetNode[] | null | undefined, id: string): WidgetPlace | null | undefined {
+  for (const w of widgets || []) {
+    if (w.id === id) {
+      return null;
+    }
+    for (const tab of w.widget.tabs || []) {
+      const found = placeOf(tab.widgets, id);
+
+      if (found === null) {
+        return { parentId: w.id, tabId: tab.id };
+      }
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+/** Whether a widget of `kind` may go at `place`. Anything may go on the view; a tab takes anything but more tabs. */
+export function canPlace(kind: string, place: WidgetPlace | null): boolean {
+  return !place || kind !== TABS_KIND;
+}
+
+/** Whether `place` names a tab that is really there - a drop into one that is not would lose the widget. */
+function placeExists(widgets: WidgetNode[], place: WidgetPlace | null): boolean {
+  return !place || !!findWidget(widgets, place.parentId)?.widget.tabs?.some((t) => t.id === place.tabId);
+}
+
+function samePlace(a: WidgetPlace | null, b: WidgetPlace | null): boolean {
+  return a === b || (!!a && !!b && a.parentId === b.parentId && a.tabId === b.tabId);
+}
+
+function insertAt(list: WidgetNode[], widget: WidgetNode, index?: number): WidgetNode[] {
+  const out = [...list];
+  const at = typeof index === 'number' ? Math.max(0, Math.min(out.length, index)) : out.length;
+
+  out.splice(at, 0, widget);
+
+  return out;
+}
+
+/** Insert a widget at `index` of the list at `place` (appends when the index is omitted or past the end). */
+export function insertWidget(widgets: WidgetNode[], widget: WidgetNode, index?: number, place: WidgetPlace | null = null): WidgetNode[] {
+  if (!canPlace(widget.widget.kind, place) || !placeExists(widgets, place)) {
+    return [...(widgets || [])];
+  }
+
+  return atPlace(widgets, place, (list) => insertAt(list, widget, index));
+}
+
+/** Remove a widget by id, wherever it is. */
+export function removeWidget(widgets: WidgetNode[], id: string): WidgetNode[] {
+  return eachList(widgets, (list) => list.filter((w) => w.id !== id));
+}
+
+/** Move a widget one place earlier (-1) or later (+1) in its own list. */
+export function moveWidget(widgets: WidgetNode[], id: string, delta: number): WidgetNode[] {
+  return eachList(widgets, (list) => {
+    const out = [...list];
+    const from = out.findIndex((w) => w.id === id);
+    const to = from + delta;
+
+    if (from < 0 || to < 0 || to >= out.length) {
+      return out;
+    }
+
+    const [moved] = out.splice(from, 1);
+
+    out.splice(to, 0, moved);
+
+    return out;
+  });
 }
 
 /**
- * DRAG & DROP: move an existing widget to `index`. The index is corrected for the gap the widget
- * leaves behind, so dropping "just after myself" is a no-op rather than an off-by-one.
+ * DRAG & DROP: move an existing widget to `index` of the list at `place` - its own list, or another
+ * one (into a tab, out of one, from one tab to the next). Within its own list the index is corrected
+ * for the gap the widget leaves behind, so dropping "just after myself" is a no-op rather than an
+ * off-by-one.
  */
-export function moveWidgetTo(widgets: WidgetNode[], id: string, index?: number): WidgetNode[] {
-  const list = [...(widgets || [])];
-  const from = list.findIndex((w) => w.id === id);
+export function moveWidgetTo(widgets: WidgetNode[], id: string, index?: number, place: WidgetPlace | null = null): WidgetNode[] {
+  const node = findWidget(widgets, id);
+  const from = placeOf(widgets, id);
 
-  if (from < 0) {
-    return list;
+  if (!node || from === undefined || !canPlace(node.widget.kind, place) || !placeExists(widgets, place)) {
+    return [...(widgets || [])];
   }
 
-  let at = typeof index === 'number' ? index : list.length;
-
-  if (from < at) {
-    at -= 1;
+  if (!samePlace(from, place)) {
+    return insertWidget(removeWidget(widgets, id), node, index, place);
   }
 
-  const [moved] = list.splice(from, 1);
+  return atPlace(widgets, place, (list) => {
+    const out = [...list];
+    const at0 = out.findIndex((w) => w.id === id);
+    let at = typeof index === 'number' ? index : out.length;
 
-  list.splice(Math.max(0, Math.min(list.length, at)), 0, moved);
+    if (at0 < at) {
+      at -= 1;
+    }
 
-  return list;
+    const [moved] = out.splice(at0, 1);
+
+    out.splice(Math.max(0, Math.min(out.length, at)), 0, moved);
+
+    return out;
+  });
 }
 
-/** Replace one widget (by id) with the result of `fn(widget)`. */
+/** Replace one widget (by id, wherever it is) with the result of `fn(widget)`. */
 export function updateWidget(widgets: WidgetNode[], id: string, fn: (w: WidgetNode) => WidgetNode): WidgetNode[] {
-  return (widgets || []).map((w) => (w.id === id ? fn(w) : w));
+  return eachList(widgets, (list) => list.map((w) => (w.id === id ? fn(w) : w)));
 }
 
 /** Set a widget's column span (1..12). */
