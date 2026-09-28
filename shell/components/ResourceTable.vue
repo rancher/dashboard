@@ -14,7 +14,8 @@ import { fieldValue, stringifyValue } from '@shell/utils/table-views/fields';
 import ResourceTableViews from '@shell/mixins/resource-table-views';
 import ResourceTableWatch from '@shell/mixins/resource-table-watch';
 import paginationUtils from '@shell/utils/pagination-utils';
-import TableViewsBar from '@shell/components/TableViews/TableViewsBar';
+import TableViewControls from '@shell/components/TableViews/TableViewControls.vue';
+import TableViewTabs from '@shell/components/TableViews/TableViewTabs.vue';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -51,7 +52,7 @@ export default {
   emits: ['clickedActionButton'],
 
   components: {
-    ButtonGroup, SortableTable, TableViewsBar, ToggleSwitch
+    ButtonGroup, SortableTable, TableViewControls, TableViewTabs, ToggleSwitch
   },
 
   mixins: [
@@ -801,24 +802,13 @@ export default {
       v-if="showTableViewTabs"
       #table-views
     >
-      <TableViewsBar
-        part="tabs"
-        :initial-view-id="openedViewId"
+      <TableViewTabs
         :view="view"
-        :fields="viewFields"
-        :group-fields="viewGroupFields"
-        :filter-fields="viewFilterFields"
-        :field-values="fieldValues"
-        :rows="filteredRows"
-        :match-count="viewMatchCount"
         :view-counts="tabCounts"
-        :resource-label="resourceLabel"
+        :match-count="viewMatchCount"
         :resource-type="schema ? schema.id : ''"
-        :unsupported-fields="unsupportedViewFields"
-        :default-columns="defaultColumnIds"
-        :core-columns="coreColumnIds"
+        :initial-view-id="openedViewId"
         @update:view="view = $event"
-        @request-values="fetchFieldValues"
         @tab-queries="tabQueries = $event"
         @export="handleExport"
       />
@@ -843,25 +833,19 @@ export default {
     >
       <!-- In table-views mode the filter + single "View" popup live in the core masthead's
            search/right cell so they share the .fixed-header-actions grid row with .bulk. -->
-      <TableViewsBar
+      <TableViewControls
         v-if="showTableViews"
-        part="controls"
         :view="view"
         :fields="viewFields"
         :group-fields="viewGroupFields"
         :filter-fields="viewFilterFields"
         :field-values="fieldValues"
         :rows="filteredRows"
-        :match-count="viewMatchCount"
-        :view-counts="tabCounts"
-        :resource-label="resourceLabel"
-        :resource-type="schema ? schema.id : ''"
         :unsupported-fields="unsupportedViewFields"
         :default-columns="defaultColumnIds"
         :core-columns="coreColumnIds"
         @update:view="view = $event"
         @request-values="fetchFieldValues"
-        @export="handleExport"
       />
       <slot
         name="header-right"
