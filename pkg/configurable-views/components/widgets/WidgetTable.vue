@@ -380,14 +380,14 @@ export default {
 </script>
 
 <template>
-  <!-- A type read from a named cluster: we fetch the page ourselves, because the cluster is not
-     something PaginatedResourceTable can be told about. -->
   <WidgetCard
     v-if="downstream"
     :title="widget.title"
     :loading="loadingPage && !rows.length"
     :error="downstreamMessage"
   >
+    <!-- A type read from a named cluster: we fetch the page ourselves, because the cluster is not
+       something PaginatedResourceTable can be told about. -->
     <ResourceTable
       :schema="schema"
       :rows="visibleRows"
