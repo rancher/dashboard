@@ -21,12 +21,23 @@ function installHomeRoute(): boolean {
     return false;
   }
 
-  // Adding a route named 'home' removes the existing one, so ours (under the home layout) wins.
+  // COPY the stock route, swapping only the page. Read before adding: adding a route named 'home'
+  // removes the existing one.
+  //
+  // The meta is the part that matters. The stock layout route carries `requiresAuthentication`,
+  // and four navigation guards key off it - authentication, first login, the cluster/package
+  // guard (which runs an extension's onLeave when you leave its pages) and runtime extension
+  // routes. A route that only described the stock one left it out, so none of them ran on the
+  // way to this Home. Copying the record means whatever the stock route carries, now or later,
+  // this one carries too.
+  const [layout, page] = router.resolve({ name: 'home' }).matched;
+
   router.addRoute({
-    path:      '/',
+    path:      layout?.path || '/',
     component: HomeLayout,
+    meta:      { ...layout?.meta },
     children:  [{
-      path: '/home', name: 'home', component: Home
+      path: page?.path || '/home', name: 'home', component: Home, meta: { ...page?.meta }
     }],
   });
 
