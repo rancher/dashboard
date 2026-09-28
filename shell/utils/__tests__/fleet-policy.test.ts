@@ -6,9 +6,11 @@ describe('fx: getFleetPolicyDefaults', () => {
     metadata: { name, namespace }, gitRepo, helmOp
   });
 
-  const storeWith = (policies: any[], schema: boolean = true) => ({
-    getters:  { 'management/schemaFor': (type: string) => (schema && type === FLEET.POLICY ? {} : undefined) },
-    dispatch: jest.fn().mockResolvedValue(policies),
+  const restriction = (name: string, defaultClientSecretName: string, namespace = 'fleet-default') => ({ metadata: { name, namespace }, defaultClientSecretName });
+
+  const storeWith = (policies: any[], schema: boolean = true, restrictions: any[] = []) => ({
+    getters:  { 'management/schemaFor': (type: string) => (schema ? {} : undefined) },
+    dispatch: jest.fn().mockImplementation((_action, { type }) => Promise.resolve(type === FLEET.POLICY ? policies : restrictions)),
   } as any);
 
   it('should take the defaults from the policies in the workspace', async() => {
@@ -52,6 +54,34 @@ describe('fx: getFleetPolicyDefaults', () => {
 
     await expect(getFleetPolicyDefaults(store, 'fleet-default')).resolves.toStrictEqual({
       clientSecretName: '',
+      helmSecretName:   '',
+    });
+  });
+
+  // Fleet merges the deprecated restriction first, and its own default outranks the policies'
+  it('should prefer the default a GitRepoRestriction names over the policies', async() => {
+    const store = storeWith(
+      [policy('tenant-1', { defaultClientSecretName: 'from-policy' }, { defaultHelmSecretName: 'helm-credentials' })],
+      true,
+      [restriction('legacy', 'from-restriction')],
+    );
+
+    await expect(getFleetPolicyDefaults(store, 'fleet-default')).resolves.toStrictEqual({
+      clientSecretName: 'from-restriction',
+      // a HelmOp has no restriction to answer to
+      helmSecretName:   'helm-credentials',
+    });
+  });
+
+  it('should ignore a restriction belonging to another workspace', async() => {
+    const store = storeWith(
+      [policy('tenant-1', { defaultClientSecretName: 'from-policy' })],
+      true,
+      [restriction('legacy', 'from-restriction', 'fleet-local')],
+    );
+
+    await expect(getFleetPolicyDefaults(store, 'fleet-default')).resolves.toStrictEqual({
+      clientSecretName: 'from-policy',
       helmSecretName:   '',
     });
   });
