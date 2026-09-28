@@ -41,7 +41,6 @@ export default {
 </script>
 
 <template>
-  <!-- Custom-image banner when `image` is set… -->
   <div
     v-if="widget.image"
     class="wb"
@@ -59,8 +58,6 @@ export default {
       </p>
     </div>
   </div>
-
-  <!-- …otherwise the exact stock Home banner. -->
   <BannerGraphic
     v-else
     :title="title"
