@@ -7,6 +7,7 @@
  */
 
 import { get } from '@shell/utils/object';
+import type { TableViewColumn, TableViewRow } from '@shell/types/table-views';
 
 interface ValueForOptions {
   /**
@@ -23,14 +24,16 @@ interface ValueForOptions {
  * `isLabel` is for the label columns a table view adds, which are read off the row's metadata
  * rather than by a path.
  */
-export function valueFor(row: any, col: any, isLabel?: boolean, { warn = true }: ValueForOptions = {}): any {
+export function valueFor(row: TableViewRow, col: TableViewColumn, isLabel?: boolean, { warn = true }: ValueForOptions = {}): unknown {
   if (typeof col?.value === 'function') {
     return col.value(row);
   }
 
   if (isLabel) {
-    if (row?.metadata?.labels && row.metadata.labels[col.label]) {
-      return row.metadata.labels[col.label];
+    const labels = row?.metadata?.labels;
+
+    if (col.label && labels?.[col.label]) {
+      return labels[col.label];
     }
 
     return '';

@@ -23,6 +23,7 @@ import { downloadFile } from '@shell/utils/download';
 import { escapeHtml } from '@shell/utils/string';
 import { exportColumnsFor, rowsToCsv, rowsToJson } from '@shell/utils/table-views/export';
 import { useI18n } from '@shell/composables/useI18n';
+import type { TableViewRow } from '@shell/types/table-views';
 
 /** The formats a selection or a view can be written out as */
 const FORMATS = ['yaml', 'json', 'csv'] as const;
@@ -36,6 +37,15 @@ const FORMATS = ['yaml', 'json', 'csv'] as const;
 const SLOW_EXPORT_ROWS = 1000;
 
 type Format = typeof FORMATS[number];
+
+/** A resource handed to the modal: a row its table would show, and a model that can write itself out */
+interface ExportResource extends TableViewRow {
+  type: string;
+  schema?: object;
+  $ctx?: { getters?: { paginationEnabled?: (args: { id: string }) => boolean } };
+  downloadYaml(): Promise<unknown>;
+  downloadYamlBulk(items: ExportResource[]): Promise<unknown>;
+}
 
 const props = withDefaults(defineProps<{
   /**
@@ -54,7 +64,7 @@ const props = withDefaults(defineProps<{
    * The resources to export. Handed over by the modal manager when a resource action opened
    * this; empty when the table is driving, because then the table has them.
    */
-  resources?: any[],
+  resources?: ExportResource[],
 }>(), {
   count:       0,
   viewName:    '',

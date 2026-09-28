@@ -3,6 +3,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import { AUTOSCALER_ENABLED, MGMT_CLUSTER_CPU, MGMT_CLUSTER_MEMORY, MGMT_CLUSTER_PODS } from '@shell/config/table-headers';
 import { STEVE_AUTOSCALER_ENABLED, STEVE_MGMT_CLUSTER_CPU, STEVE_MGMT_CLUSTER_MEMORY, STEVE_MGMT_CLUSTER_PODS } from '@shell/config/pagination-table-headers';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
+import type { GetterSource } from '@shell/utils/table-views/feature';
 
 /**
  * Columns a resource type HAS without every list of it showing them.
@@ -22,7 +23,7 @@ interface OptionalHeader {
   /** The same column for a server side paginated list, when it differs */
   paginationHeader?: PaginationHeaderOptions;
   /** Whether this column is available at all right now */
-  enabled?: (store: any) => boolean;
+  enabled?: (store: GetterSource) => boolean;
   /**
    * Name of the column this one goes in front of, so it lands where the list that shows it by
    * default puts it rather than on the end. Ignored when that column is not there.
@@ -46,7 +47,7 @@ const OPTIONAL_HEADERS: Record<string, OptionalHeader[]> = {
     {
       header:           AUTOSCALER_ENABLED,
       paginationHeader: STEVE_AUTOSCALER_ENABLED,
-      enabled:          (store: any) => isAutoscalerFeatureFlagEnabled(store),
+      enabled:          (store) => isAutoscalerFeatureFlagEnabled(store),
       // Where Cluster Management puts it: straight after the version, in front of the machine
       // summary. Landing on the end instead read as an afterthought rather than a cluster column.
       before:           'summary',
@@ -62,7 +63,7 @@ const OPTIONAL_HEADERS: Record<string, OptionalHeader[]> = {
  */
 export function optionalHeadersFor(
   type: string,
-  store: any,
+  store: GetterSource,
   pagination = false
 ): (HeaderOptions & { insertBefore?: string })[] {
   const entries = OPTIONAL_HEADERS[type];

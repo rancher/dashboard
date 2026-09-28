@@ -5,7 +5,30 @@
  * described here, so a caller can name a shape without pulling the engine in with it.
  */
 
+import type { HeaderOptions, PaginationHeaderOptions } from '@shell/core/types';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
+
+/**
+ * One of a table's rows.
+ *
+ * A table lists any kind of resource, so the only part of a row known here is the labels a view
+ * reads directly. Everything else is reached through a column's path.
+ */
+export interface TableViewRow {
+  metadata?: {
+    labels?: Record<string, string>;
+    [key: string]: unknown;
+  };
+}
+
+/**
+ * A column as a table's headers define it: the shape extensions give a column, plus the one thing
+ * the built-in headers do that it does not - a `value` that works the value out rather than naming
+ * a path to it.
+ */
+export interface TableViewColumn extends Omit<HeaderOptions, 'value'> {
+  value?: string | ((row: TableViewRow) => unknown);
+}
 
 /**
  * A thing the user can filter on, group by, or show as a column
@@ -19,7 +42,7 @@ export interface TableViewField {
   /** For label fields, the raw label key (may contain dots and slashes) */
   labelKey?: string;
   /** The table header this field came from, if any */
-  header?: any;
+  header?: TableViewColumn;
   /**
    * The same column as a server side paginated list defines it, when the list is paginated.
    *
@@ -28,7 +51,7 @@ export interface TableViewField {
    * has never heard of. Absent when the list is not paginated, which is also the answer to
    * whether the field can be filtered server side at all.
    */
-  paginationHeader?: any;
+  paginationHeader?: PaginationHeaderOptions;
 }
 
 export interface TableViewTerm {

@@ -15,7 +15,7 @@ import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInpu
 import { useDragReorder } from '@shell/composables/useDragReorder';
 import { useI18n } from '@shell/composables/useI18n';
 import { validateQuery } from '@shell/utils/table-views/query';
-import type { TableViewField, TableViewState } from '@shell/types/table-views';
+import type { TableViewField, TableViewQueryProblem, TableViewRow, TableViewState } from '@shell/types/table-views';
 import { RcDropdown, RcDropdownItem, RcDropdownSeparator, RcDropdownTrigger } from '@components/RcDropdown';
 
 /** Clears the handle's tooltip of the row's hover highlight rather than sitting over the handle */
@@ -76,7 +76,7 @@ const props = withDefaults(defineProps<{
    */
   fieldValues?: Record<string, { value: string, count: number }[]>,
   /** All rows, before the view query is applied. Used for value autocomplete */
-  rows?: any[],
+  rows?: TableViewRow[],
 }>(), {
   coreColumns:       () => [],
   defaultColumns:    () => [],
@@ -139,7 +139,7 @@ const subMenuHovered = ref(false);
  */
 const columnSlots = ref<{ top: number, bottom: number }[] | null>(null);
 
-let subMenuTimer: any = null;
+let subMenuTimer: ReturnType<typeof setTimeout> | undefined;
 
 /**
  * What is wrong with the query, once the user has stopped writing it.
@@ -156,7 +156,7 @@ const unsupportedNotice = computed(() => t('tableViews.query.unsupported', {
   fields: props.unsupportedFields.join(', '),
 }, true));
 
-const problemNotice = (problem: any) => t(`tableViews.query.problem.${ problem.kind }`, { text: problem.text, label: problem.label || '' }, true);
+const problemNotice = (problem: TableViewQueryProblem) => t(`tableViews.query.problem.${ problem.kind }`, { text: problem.text, label: problem.label || '' }, true);
 
 /**
  * Everything the box has to say about what is in it, for the status icon at its right.
@@ -166,7 +166,7 @@ const problemNotice = (problem: any) => t(`tableViews.query.problem.${ problem.k
  */
 const queryStatusMessage = computed(() => {
   if (shownProblems.value.length) {
-    return shownProblems.value.map((problem: any) => problemNotice(problem)).join('<br>');
+    return shownProblems.value.map((problem) => problemNotice(problem)).join('<br>');
   }
 
   return props.unsupportedFields.length ? unsupportedNotice.value : '';

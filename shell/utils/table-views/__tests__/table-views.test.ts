@@ -41,7 +41,12 @@ const PAGINATION_HEADERS = [
   { name: 'spacer', label: ' ' },
 ];
 
-const ROWS = [
+interface Row {
+  stateDisplay: string;
+  metadata: { name: string, namespace: string, labels: Record<string, string> };
+}
+
+const ROWS: Row[] = [
   {
     stateDisplay: 'Running',
     metadata:     {

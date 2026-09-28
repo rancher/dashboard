@@ -8,11 +8,17 @@
 
 import { IMPROVED_TABLES } from '@shell/store/features';
 
+/** Anything that can answer a getter: a store, or a store action's context */
+export interface GetterSource {
+  getters?: Record<string, unknown>;
+  rootGetters?: Record<string, unknown>;
+}
+
 /**
  * `store` is either a store or an action context, so this is callable from a component, a model
  * (`$rootGetters`) and a store action alike.
  */
-export function isImprovedTablesEnabled(store: any): boolean {
+export function isImprovedTablesEnabled(store?: GetterSource | null): boolean {
   const get = (store?.rootGetters || store?.getters)?.['features/get'];
 
   // There is not always a features store to ask: a resource built with a partial context has no

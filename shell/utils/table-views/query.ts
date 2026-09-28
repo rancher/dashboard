@@ -456,6 +456,8 @@ export function replaceToken(query: string, token: TableViewQueryToken | null, r
  * Without `fields` this falls back to raw chunks, which is enough for callers that only need to
  * know where a word starts and ends.
  */
+export function tokenAt(query: string, caret: number, fields: TableViewField[]): TableViewQueryTerm | null;
+export function tokenAt(query: string, caret: number): TableViewQueryToken | null;
 export function tokenAt(query: string, caret: number, fields?: TableViewField[]): TableViewQueryToken | null {
   const tokens = fields ? scanQuery(query, fields).filter((token) => token.kind === 'term') : tokenize(query);
 
