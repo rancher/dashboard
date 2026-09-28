@@ -27,9 +27,13 @@ interface TabsInternals {
   selectedViewId: string | null;
   drafts: Record<string, TableViewState>;
   modal: { count: number | null } | null;
+  isDirty: boolean;
   openExport(tab: { id: string, name: string, view: TableViewSaved }): void;
   doExport(format: string): void;
   deleteView(view: TableViewSaved): void;
+  discardChanges(tab: { id: string | null, name: string, view?: TableViewSaved }): void;
+  saveChanges(tab: { id: string | null, name: string, view?: TableViewSaved }): void;
+  openSaveAsNew(tab: { id: string | null, name: string, view?: TableViewSaved }): void;
 }
 
 const internals = (wrapper: { vm: unknown }) => wrapper.vm as TabsInternals;
@@ -182,7 +186,7 @@ describe('TableViewTabs', () => {
     });
   });
 
-  describe('deleting a view', () => {
+  describe('a tab\'s own menu', () => {
     const first = makeView('aaa', 'Need attention', { query: 'state:Running' });
     const second = makeView('bbb', 'test', { query: 'name:foo' });
 
@@ -191,67 +195,162 @@ describe('TableViewTabs', () => {
       Element.prototype.scrollIntoView = jest.fn();
     });
 
-    function createWrapper() {
-      const setPref = jest.fn();
+    /** A strip whose saved views change as they are written, the way the preference does */
+    function createWrapper({
+      views = [first, second], defaultViewId = null as string | null, view = { ...EMPTY }, initialViewId = undefined as string | undefined
+    } = {}) {
       const growl = jest.fn();
-      // Nothing here shares a config, so nothing else can match once a view is gone
-      const stored = { test: { views: [first, second], defaultViewId: null } };
-
       const store = createStore({
-        getters: { 'prefs/get': () => (key: string) => (key === TABLE_VIEWS ? stored : undefined) },
-        actions: {
-          'prefs/set':     (_ctx: unknown, payload: unknown) => setPref(payload),
+        state:     { stored: { test: { views, defaultViewId } } as Record<string, unknown> },
+        getters:   { 'prefs/get': (state) => (key: string) => (key === TABLE_VIEWS ? state.stored : undefined) },
+        mutations: { write: (state, value) => (state.stored = value) },
+        actions:   {
+          'prefs/set':     ({ commit }, { value }) => commit('write', value),
           'growl/success': (_ctx: unknown, payload: unknown) => growl(payload),
         },
       });
-
       const wrapper = mount(TableViewTabs, {
         props: {
-          view:         { ...EMPTY, query: 'name:foo' },
-          resourceType: 'test',
+          view, resourceType: 'test', initialViewId
         },
-        // The bar is full of dropdowns and modals; only its own logic is under test here
         global:  { plugins: [store] },
         shallow: true,
       });
 
+      const stored = () => (store.state.stored as { test: { views: TableViewSaved[] } }).test.views;
+      const shown = () => wrapper.emitted<[TableViewState]>('update:view')?.pop()?.[0];
+
       return {
-        wrapper, setPref, growl
+        wrapper, vm: internals(wrapper), stored, shown, growl
       };
     }
 
-    it('should drop the view from the saved list', () => {
-      const { wrapper, setPref } = createWrapper();
-
-      internals(wrapper).deleteView(second);
-
-      expect(setPref).toHaveBeenCalledWith(expect.objectContaining({ key: TABLE_VIEWS }));
-      expect(setPref.mock.calls[0][0].value.test.views).toStrictEqual([first]);
+    const tabFor = (view: TableViewSaved) => ({
+      id: view.id, name: view.name, view
     });
 
-    it('should say the view is gone and offer it back', () => {
-      const { wrapper, growl } = createWrapper();
+    describe('on a tab that is not the one in front', () => {
+      // `aaa` is in front with changes of its own, and `bbb` was left with others
+      const setup = () => {
+        const out = createWrapper({ view: { ...EMPTY, query: 'state:Running name:x' }, initialViewId: 'aaa' });
 
-      internals(wrapper).deleteView(second);
+        out.vm.drafts = { bbb: { ...EMPTY, query: 'name:bar' } };
 
-      expect(growl).toHaveBeenCalledWith(expect.objectContaining({ action: expect.objectContaining({ run: expect.any(Function) }) }));
+        return out;
+      };
+
+      it('should discard that tab\'s changes and leave the one in front alone', () => {
+        const { vm, wrapper } = setup();
+
+        vm.discardChanges(tabFor(second));
+
+        expect(vm.drafts).toStrictEqual({});
+        expect(vm.isDirty).toBe(true);
+        expect(wrapper.emitted('update:view')).toBeUndefined();
+      });
+
+      it('should save that tab\'s changes over it, not the ones in front', () => {
+        const { vm, stored } = setup();
+
+        vm.saveChanges(tabFor(second));
+
+        expect(stored().map((v) => `${ v.id }=${ v.query }`)).toStrictEqual(['aaa=state:Running', 'bbb=name:bar']);
+        expect(vm.drafts).toStrictEqual({});
+        expect(vm.isDirty).toBe(true);
+      });
+
+      it('should save that tab\'s changes as a new view, and leave them on that tab too', () => {
+        const { vm, stored } = setup();
+
+        vm.openSaveAsNew(tabFor(second));
+
+        const added = stored()[2];
+
+        expect(added.query).toBe('name:bar');
+        expect(added.name).toContain('test');
+        expect(vm.drafts.bbb?.query).toBe('name:bar');
+        // The tab that was in front keeps its own changes for when it is gone back to
+        expect(vm.drafts.aaa?.query).toBe('state:Running name:x');
+      });
     });
 
-    it('should go back to the All tab when the view being shown is deleted', () => {
-      const { wrapper } = createWrapper();
+    it('should leave the changes on the tab in front when it is saved as a new view', () => {
+      const { vm, stored } = createWrapper({ view: { ...EMPTY, query: 'state:Running name:x' }, initialViewId: 'aaa' });
 
-      // `name:foo` is what `second` holds, so it is the tab in front of the user
-      internals(wrapper).deleteView(second);
+      vm.openSaveAsNew(tabFor(first));
 
-      expect(wrapper.emitted('update:view')?.pop()?.[0]).toMatchObject({ query: '' });
+      expect(stored()[2].query).toBe('state:Running name:x');
+      expect(stored()[0].query).toBe('state:Running');
+      expect(vm.drafts.aaa?.query).toBe('state:Running name:x');
     });
 
-    it('should leave the shown view alone when a different one is deleted', () => {
-      const { wrapper } = createWrapper();
+    describe('deleting a view', () => {
+      it('should drop the view from the saved list and offer it back', () => {
+        const { vm, stored, growl } = createWrapper();
 
-      internals(wrapper).deleteView(first);
+        vm.deleteView(second);
 
-      expect(wrapper.emitted('update:view')).toBeUndefined();
+        expect(stored()).toStrictEqual([first]);
+        expect(growl).toHaveBeenCalledWith(expect.objectContaining({ action: expect.objectContaining({ run: expect.any(Function) }) }));
+      });
+
+      it('should go to the tab on its left when the one in front is deleted', () => {
+        const { vm, shown } = createWrapper({ view: { ...EMPTY, query: 'name:foo' }, initialViewId: 'bbb' });
+
+        vm.deleteView(second);
+
+        expect(shown()).toMatchObject({ query: 'state:Running' });
+        expect(vm.selectedViewId).toBe('aaa');
+      });
+
+      it('should leave none of the deleted tab\'s changes on the tab that takes its place', async() => {
+        const { vm, shown, wrapper } = createWrapper({ view: { ...EMPTY, query: 'name:foo name:zzz' }, initialViewId: 'bbb' });
+
+        vm.deleteView(second);
+        // As the owning table does
+        await wrapper.setProps({ view: shown() });
+
+        expect(wrapper.props('view').query).toBe('state:Running');
+        expect(vm.isDirty).toBe(false);
+      });
+
+      it('should bring back the changes held for the tab it goes to', () => {
+        const { vm, shown } = createWrapper({ view: { ...EMPTY, query: 'name:foo' }, initialViewId: 'bbb' });
+
+        vm.drafts = { aaa: { ...EMPTY, query: 'state:Running name:held' } };
+        vm.deleteView(second);
+
+        expect(shown()?.query).toBe('state:Running name:held');
+      });
+
+      it('should go to the table\'s own tab when that is on its left', () => {
+        const { vm, shown } = createWrapper({ view: { ...EMPTY, query: 'state:Running name:zzz' }, initialViewId: 'aaa' });
+
+        vm.deleteView(first);
+
+        expect(shown()).toMatchObject({ query: '', groupBy: null });
+        expect(vm.selectedViewId).toBeNull();
+      });
+
+      it('should go to the tab on its right when it leads the strip', () => {
+        // The default view leads, so `bbb` is first and the table's own tab follows it
+        const { vm, shown } = createWrapper({
+          defaultViewId: 'bbb', view: { ...EMPTY, query: 'name:foo' }, initialViewId: 'bbb'
+        });
+
+        vm.deleteView(second);
+
+        expect(shown()).toMatchObject({ query: '' });
+        expect(vm.selectedViewId).toBeNull();
+      });
+
+      it('should leave the tab in front alone when a different one is deleted', () => {
+        const { vm, wrapper } = createWrapper({ view: { ...EMPTY, query: 'name:foo' }, initialViewId: 'bbb' });
+
+        vm.deleteView(first);
+
+        expect(wrapper.emitted('update:view')).toBeUndefined();
+      });
     });
   });
 });

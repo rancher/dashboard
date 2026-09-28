@@ -7323,6 +7323,17 @@ tableViews:
   group:
     none: None
     empty: (none)
+    # A list's own groupings, as the Group By menu names them
+    by:
+      namespace: Namespace
+      project: Project
+      node: Node
+      role: Role
+      cluster: Cluster
+      device: Device
+      pool: Pool
+      workspace: Workspace
+      type: Type
   export:
     label: Export All View Contents
     title: Export All View Contents

@@ -17,6 +17,7 @@ import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import DOMPurify from 'dompurify';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import { isImprovedTablesEnabled } from '@shell/utils/table-views/feature';
 import perfSettingsUtils from '@shell/utils/perf-setting.utils';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
@@ -80,6 +81,16 @@ export default {
       projects:                     [],
       projectSchema:                null,
       extensionType:                ExtensionPoint.PANEL,
+      // The grouping the table reports, once it has
+      tableGroup:                   null,
+      groupOptions:                 [
+        {
+          tooltipKey: 'resourceTable.groupBy.none', icon: 'icon-list-flat', value: 'none'
+        },
+        {
+          tooltipKey: 'resourceTable.groupBy.project', icon: 'icon-folder', value: 'namespace', field: 'groupById', hideColumn: 'project'
+        },
+      ],
       extensionLocation:            PanelLocation.RESOURCE_LIST,
       MANAGEMENT,
       VIRTUAL_TYPES,
@@ -126,7 +137,8 @@ export default {
     headers() {
       let headers;
 
-      if (this.groupPreference === 'none') {
+      // The toolbar's columns are the View menu's to decide, grouped or not
+      if (this.groupMode === 'none' || isImprovedTablesEnabled(this.$store)) {
         headers = [STATE, NAME, DESCRIPTION];
 
         const projectHeader = {
@@ -202,6 +214,14 @@ export default {
       return this.createProjectLocationOverride || this.defaultCreateProjectLocation;
     },
     groupPreference: mapPref(GROUP_RESOURCES),
+    // With the toolbar the table decides, starting from none; without it, the old buttons' preference
+    groupMode() {
+      if (isImprovedTablesEnabled(this.$store)) {
+        return this.tableGroup || 'none';
+      }
+
+      return this.groupPreference;
+    },
     activeNamespaceFilters() {
       return this.$store.getters['activeNamespaceFilters'];
     },
@@ -249,7 +269,7 @@ export default {
       });
     },
     filteredRows() {
-      return this.groupPreference === 'none' ? this.rows : this.rowsWithFakeNamespaces;
+      return this.groupMode === 'none' ? this.rows : this.rowsWithFakeNamespaces;
     },
     rows() {
       let isDev;
@@ -297,10 +317,10 @@ export default {
       return this.$store.getters['i18n/t']('resourceTable.groupLabel.notInAProject');
     },
     showCreateNsButton() {
-      return this.groupPreference !== 'namespace' && this.isNamespaceCreatable;
+      return this.groupMode !== 'namespace' && this.isNamespaceCreatable;
     },
     projectGroupBy() {
-      return this.groupPreference === 'none' ? null : 'groupById';
+      return this.groupMode === 'none' ? null : 'groupById';
     }
   },
   methods: {
@@ -471,11 +491,13 @@ export default {
       :headers="headers"
       :rows="filteredRows"
       :group-by="projectGroupBy"
+      :group-options="groupOptions"
       :groupable="true"
       :sort-generation-fn="sortGenerationFn"
       :loading="loading"
       group-tooltip="resourceTable.groupBy.project"
       key-field="_key"
+      @group-change="tableGroup = $event"
     >
       <template #group-by="group">
         <div
