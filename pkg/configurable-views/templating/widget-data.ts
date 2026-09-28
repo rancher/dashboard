@@ -307,7 +307,7 @@ const OPERATORS = ['>=', '<=', '!=', '==', '=', '>', '<'];
  * must match:
  *
  *   state != Active, env=prod          → [{ field: 'state', op: '!=', value: 'Active' }, …]
- *   prod                               → [{ field: '', op: 'contains', value: 'prod' }]
+ *   prod                               → [{ field: 'name', op: 'contains', value: 'prod' }]
  *
  * A bare word with no operator matches the row's name.
  */
