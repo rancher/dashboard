@@ -14,6 +14,7 @@ export default [
     ignores: [
       '**/node_modules/',
       '**/dist/',
+      'vendor/codemirror-emacs/',
       'src/shim-tsx.d.ts',
       'src/shim-vue.d.ts',
     ],

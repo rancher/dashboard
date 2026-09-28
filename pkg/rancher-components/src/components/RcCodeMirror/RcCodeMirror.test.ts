@@ -624,6 +624,108 @@ describe('component: RcCodeMirror', () => {
     });
   });
 
+  describe('emacs key bindings', () => {
+    function pressKey(view: EditorView, key: string, code: string, ctrlKey = true): KeyboardEvent {
+      const event = new KeyboardEvent('keydown', {
+        key,
+        code,
+        ctrlKey,
+        bubbles:    true,
+        cancelable: true
+      });
+
+      view.contentDOM.dispatchEvent(event);
+
+      return event;
+    }
+
+    it('should move to the start of the line with Ctrl-A', () => {
+      mountEditor({ keymap: 'emacs', modelValue: 'first\nsecond' });
+      const view = getView(wrapper);
+
+      view.dispatch({ selection: { anchor: 9 } });
+      pressKey(view, 'a', 'KeyA');
+
+      expect(view.state.selection.main.head).toStrictEqual(6);
+    });
+
+    it.each([
+      ['/', 'Slash'],
+      ['z', 'KeyZ']
+    ])('should undo with Ctrl-%s as in CodeMirror 5', (key, code) => {
+      mountEditor({ keymap: 'emacs', modelValue: 'old' });
+      const view = getView(wrapper);
+
+      view.dispatch({ changes: { from: 3, insert: '!' } });
+      pressKey(view, key, code);
+
+      expect(view.state.doc.toString()).toStrictEqual('old');
+    });
+
+    it('should open search with Ctrl-S', () => {
+      mountEditor({ keymap: 'emacs', modelValue: 'search me' });
+      const view = getView(wrapper);
+
+      pressKey(view, 's', 'KeyS');
+
+      expect(wrapper.find('.cm-search').exists()).toBe(true);
+    });
+
+    it('should kill and yank text with Ctrl-K and Ctrl-Y', () => {
+      mountEditor({ keymap: 'emacs', modelValue: 'first second' });
+      const view = getView(wrapper);
+
+      view.dispatch({ selection: { anchor: 6 } });
+      pressKey(view, 'k', 'KeyK');
+      expect(view.state.doc.toString()).toStrictEqual('first ');
+
+      pressKey(view, 'y', 'KeyY');
+      expect(view.state.doc.toString()).toStrictEqual('first second');
+    });
+
+    it('should select the document with Ctrl-X H', () => {
+      mountEditor({ keymap: 'emacs', modelValue: 'first\nsecond' });
+      const view = getView(wrapper);
+
+      pressKey(view, 'x', 'KeyX');
+      pressKey(view, 'h', 'KeyH', false);
+
+      expect(view.state.selection.main).toMatchObject({ from: 0, to: view.state.doc.length });
+    });
+
+    it('should handle Ctrl-N when the browser delivers it to the editor', () => {
+      mountEditor({ keymap: 'emacs', modelValue: 'first\nsecond' });
+      const view = getView(wrapper);
+
+      view.dispatch({ selection: { anchor: 2 } });
+      const rect = {
+        left: 0, right: 8, top: 0, bottom: 16, width: 8, height: 16
+      } as DOMRect;
+      const getClientRects = Range.prototype.getClientRects;
+
+      Range.prototype.getClientRects = () => [rect] as unknown as DOMRectList;
+      let event: KeyboardEvent;
+
+      try {
+        event = pressKey(view, 'n', 'KeyN');
+      } finally {
+        Range.prototype.getClientRects = getClientRects;
+      }
+
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('should restore the default keymap after switching from emacs', async() => {
+      mountEditor({ keymap: 'emacs', modelValue: 'first\nsecond' });
+      const view = getView(wrapper);
+
+      await wrapper.setProps({ keymap: 'default' });
+      pressKey(view, 'a', 'KeyA');
+
+      expect(view.state.selection.main).toMatchObject({ from: 0, to: view.state.doc.length });
+    });
+  });
+
   describe('unmounting', () => {
     it('should destroy the EditorView', () => {
       mountEditor();
