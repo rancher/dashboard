@@ -565,13 +565,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     state.invalid.push(field);
   }
 
-  /**
-   * Is the given field one the pagination (vai cache) API can filter/sort by?
-   *
-   * A field is valid when it's in the hardcoded {@link StevePaginationUtils.VALID_FIELDS}
-   * list (global or type specific) or is one of the schema's attribute columns. A missing
-   * field is treated as valid (nothing to reject).
-   */
+  /** Can the pagination api filter or sort by this field? A missing field is not invalid */
   isValidPaginationField(schema?: Schema, field?: string): boolean {
     if (!field) {
       return true; // no field, so not invalid

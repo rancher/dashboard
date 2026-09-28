@@ -4,10 +4,11 @@ import { createStore } from 'vuex';
 
 import { useSavedTableViews } from '@shell/composables/useSavedTableViews';
 import { TABLE_VIEWS } from '@shell/store/prefs';
+import type { TableViewSaved } from '@shell/types/table-views';
 
-const view = (id: string, name = id) => ({
+const view = (id: string, name = id): TableViewSaved => ({
   id, name, query: '', columns: null, labelColumns: [], groupBy: null
-}) as any;
+});
 
 function setup(stored: Record<string, unknown>, type = 'pod') {
   const setPref = jest.fn();
@@ -79,7 +80,7 @@ describe('useSavedTableViews', () => {
     saved.persist([view('a'), view('b')]);
 
     expect(written().node).toBe(node);
-    expect(written().pod.views.map((v: any) => v.id)).toStrictEqual(['a', 'b']);
+    expect(written().pod.views.map((v: TableViewSaved) => v.id)).toStrictEqual(['a', 'b']);
   });
 
   it('should keep the default when the views are written', () => {

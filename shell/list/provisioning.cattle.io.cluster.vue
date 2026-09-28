@@ -322,11 +322,7 @@ export default {
         :namespaced="true"
 
         :data-testid="'cluster-list'"
-      >
-        <!-- The machine summary and the explore button are drawn by the columns themselves now
-             (ClusterMachineSummary / ClusterExplore). Holding them here made them work on this
-             page and nowhere else, which is why neither appeared when the home page offered them. -->
-      </PaginatedResourceTable>
+      />
     </template>
   </div>
 </template>

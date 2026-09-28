@@ -1,33 +1,15 @@
-// What both halves of the table views toolbar draw alike - the tabs above and the controls
-// below. Imported into each one's scoped style, so every rule here is scoped to whichever
-// component is drawing it; nothing in this file is global.
+// Shared by the tabs and the controls, imported into each one's scoped style
 
-// Lifting and settling, and the shuffle of whatever is going past - the same curves and timings
-// the pinned shelf in the side nav uses, so a drag feels the same wherever it is done. At the top
-// of the sheet because both the column rows and the view tabs are dragged, and a variable declared
-// inside one selector's block cannot be seen from another's.
+// The same curves the side nav's pinned shelf uses
 $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
 $drag-drop-curve: cubic-bezier(0.2, 1, 0.1, 1);
 
-// How close to an edge of that region a menu may come. The same number the script holds as
-// MENU_GUTTER, which is what stops a menu being slid into the masthead - the two have to agree,
-// or a menu is capped at one height and positioned as if it were another.
+// Must match MENU_GUTTER in the script
 $menu-gutter: 16px;
 
-// What the popper adds around a menu panel - its own padding and border, less the panel's
-// negative margin. Measured off a running build rather than added up from the parts: the padding
-// is the product's own popper styling, not these components', and the two margins do not simply
-// add.
-//
-// It is the popper that gets positioned, so this is what has to come off the cap. Too small a
-// number and the popper ends up taller than the room it is being slid into, so it stops short of
-// the gutter instead of reaching it - the menu ends further under the masthead than it should,
-// with rows behind a scrollbar and the space above it going unused.
+// The popper's padding and border around a menu panel, measured from a running build
 $menu-popper-chrome: 16px;
 
-// An icon beside a label is drawn smaller than the square it occupies, so the labels sit in the
-// same place whichever icon they are next to. The glyph is centred in that square both ways
-// rather than left to the line box, whose metrics are the icon font's own.
 @mixin toolbar-icon($box, $glyph) {
   display: inline-flex;
   align-items: center;
@@ -39,27 +21,9 @@ $menu-popper-chrome: 16px;
   line-height: 1;
 }
 
-// How narrow the toolbar is allowed to get.
-//
-// Two things want room, and the wider of them wins. The row itself needs the filter box at its
-// own minimum (240), the gap (16) and the View button (80) - 336, without which the box carried
-// on shrinking until it ran underneath the button. And the View menu needs to be able to open:
-// it hangs off the button's right edge, 300 wide, with its sub menus opening another 240 to the
-// left of it, and it does not flip to the other side when it runs out of room - it just goes
-// under the nav, which is where the Group By list went on a narrow window.
-//
-// So the floor is that pair - 540, plus the 1px the menu sits inside the button's right edge,
-// rounded up to the 8 the rest of the spacing works on. The table beside it already scrolls
-// sideways, so there is somewhere for this to go.
-//
-// Written out rather than measured because the two rows of the toolbar are separate rows of the
-// masthead grid, and a grid row cannot take its width from a sibling. The row that holds the box
-// carries `min-content` as well, so a language with a longer word than "View" still gets a row
-// wide enough - it just grows past this.
+// The filter's minimum plus the View button, or the View menu and its sub menu, whichever is wider
 $toolbar-min-width: 544px;
 
-// Both halves are grid items in the table masthead, so they own neither the gap between them nor
-// a margin
 .table-views {
   display: flex;
   flex-direction: column;
@@ -68,62 +32,38 @@ $toolbar-min-width: 544px;
   width: 100%;
 }
 
-// Content of an RcDropdown menu. RcDropdown owns the popper, this is the list inside it.
 .menu-panel {
   display: flex;
   flex-direction: column;
   min-width: 240px;
 
-  // As tall as the region the menu is allowed to stand in: the window less the masthead above and
-  // the shell drawer below - the same three rows the app's own grid is built from - less the
-  // gutter at each end and the popper this panel is wrapped in.
-  //
-  // Written out rather than left as `100%`: a percentage resolves against the popper's own box,
-  // and the popper's height comes from this panel - so the cap was derived from the thing it was
-  // capping and settled a few pixels short, which made a list scroll while it still had room.
+  // The room below the masthead, written out: a percentage would resolve against the popper this
+  // sizes
   max-height: calc(
     100vh - var(--header-height) - var(--wm-height, 0px) - #{$menu-gutter * 2} - #{$menu-popper-chrome}
   );
-  // Only ever downwards. Naming one axis leaves the other computing to `auto`, and a panel whose
-  // width lands on a fraction is enough to raise a scrollbar along the bottom with nothing to
-  // scroll to.
+  // Naming one axis sets the other to `auto`, which shows a scrollbar for a fractional width
   overflow-x: hidden;
   overflow-y: auto;
   text-align: left;
-  // The popper's own padding is the spacing. This used to cancel it with a negative margin and
-  // supply its own, which made the panel render taller than the box the popper had measured - so
-  // a panel pinned to the bottom of the screen bled its last 20px straight off it.
-  //
-  // The 3 up and down is the one exception: the panel scrolls, and a scroll box clips what a row
-  // draws outside itself, which is where a focus ring goes - the top row's came out with its top
-  // stroke shaved off. The margin gives the 3 straight back, so the rows stay exactly where the
-  // popper's padding put them.
+  // Room for the top and bottom rows' focus rings, which the scroll box would clip
   margin: -3px 0;
   padding: 3px 0;
 
-  // Nothing here restyles a menu row. Their height, padding, spacing and hover all come from
-  // RcDropdownItem, so these menus are the same as the row action menu and each other - only the
-  // width below is ours, so the labels have room beside the values they sit against.
-
-  // A row with no icon still holds the space one would take, so every label in a menu starts in
-  // the same place. Not called anything with `icon-` in it: the icon font claims
-  // `[class*=" icon-"]` with an !important and would set the whole row in it.
+  // Not named `icon-*`: the icon font claims `[class*=" icon-"]` with !important
   .menu-gutter {
     display: inline-block;
     flex: none;
     width: 14px;
   }
 
-  // A focus ring is drawn on the row's own box, so anything painted after it covers its edge -
-  // the tint the row below takes under the cursor, most visibly. The focused row rises over them.
+  // Above the neighbouring rows' hover tint, which would cover the ring's edge
   [dropdown-menu-item]:focus-visible {
     position: relative;
     z-index: 1;
   }
 
-  // What is currently in force, marked the way the selected tab is. `--active` rather than
-  // `--info`: an alert severity does not follow the brand, so it stayed Rancher blue on a Prime
-  // install where everything around it had gone green - and it has no dark theme value of its own.
+  // `--active` follows the brand in both themes; `--info` doesn't
   [dropdown-menu-item].selected {
     color: var(--active, var(--primary));
   }

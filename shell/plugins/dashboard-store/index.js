@@ -25,8 +25,7 @@ export const coreStoreState = (namespace, baseUrl, isClusterStore) => ({
   },
   types:              {},
   savedCounts:        {}, // Saved counts for resource types (from paginated API called where marked)
-  // The most recent page request per type and requester - see markPageRequest in ./actions.js.
-  // Here rather than at module scope so it goes when the store does, on log out.
+  // See markPageRequest in ./actions.js; kept in state so it is cleared on log out
   latestPageRequests: {},
   // Annotated so `typegen.sh` can emit a declaration for this module; without it
   // declaration emit fails on the private `RawSymbol` type behind `markRaw`.

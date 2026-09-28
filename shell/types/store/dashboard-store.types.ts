@@ -139,8 +139,7 @@ export interface ActionFindPageArgs extends ActionCoreFindOptions {
 
   /**
    * @internal
-   * Who is asking. Page requests supersede earlier ones for the same type, and this keeps that to
-   * the list that made them - two lists of the same type on one page do not discard each other's.
+   * Who is asking, so a list's page requests only supersede its own
    */
   requesterId?: string,
 

@@ -9,7 +9,7 @@ interface ClusterRow {
 
 const props = defineProps<{ row: ClusterRow }>();
 
-// No machine states means no bar to draw, so a list that hasn't fetched them still shows a count
+// Machine states are fetched separately, so a list without them shows a count
 const hasParts = computed(() => !!props.row?.stateParts?.length);
 const nodeCount = computed(() => props.row?.statusInfo?.nodeCount || 0);
 </script>

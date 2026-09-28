@@ -207,7 +207,7 @@ export default {
 
         const that = this;
 
-        // This list's own id, so its page requests only ever supersede its own
+        // So this list's page requests only supersede its own
         opt.requesterId = `list-${ this.$?.uid }`;
 
         return this.$store.dispatch(`${ currStore }/findPage`, {

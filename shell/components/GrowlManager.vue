@@ -29,7 +29,6 @@ export default {
       this.$store.dispatch('growl/remove', growl.id);
     },
 
-    // Doing the thing the growl offered, which always means the growl has served its purpose
     runAction(growl) {
       growl.action?.run?.();
       this.close(growl);
@@ -156,9 +155,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  // The one thing a growl offers to do. Drawn as a link rather than a button so it does not
-  // compete with the message it belongs to - the growl is telling you something, and this is the
-  // way back from it.
   .growl-action {
     margin-top: 8px;
     padding: 0;

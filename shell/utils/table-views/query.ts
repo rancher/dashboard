@@ -1,11 +1,3 @@
-/**
- * Table Views - reading the filter query.
- *
- * The query is one line of `field:value` terms, free text and the words that join them. Here it
- * is taken apart: into tokens, into the terms a table can apply, into the coloured runs the box
- * draws, and into the complaints worth making about it. Pure, so the box and the tests see the
- * same answers.
- */
 
 import { LABEL_FIELD_PREFIX, findField } from '@shell/utils/table-views/fields';
 import type {
@@ -13,23 +5,14 @@ import type {
 } from '@shell/types/table-views';
 
 /**
- * The words that spell out how two terms combine.
- *
- * Accepted so that a query reads the way someone would write it - `state:active or state:error`
- * parses the same as `state:active state:error`. They carry no meaning of their own: what a
- * query does is decided by its fields (same field OR'd, different fields AND'd, see
- * {@link applyQuery}), and parsing skips the words, so a hand typed `and` between two terms of
- * the same field does not narrow it. Nothing writes them for the user.
+ * Accepted so a query reads naturally, but skipped when parsing: how terms combine is decided by
+ * their fields
  */
 export const CONNECTIVES = ['and', 'or'];
 
-/** Spelled out negation, the word form of the `-` and `!` prefixes */
 export const NEGATORS = ['not'];
 
-/**
- * Is this `and` or `or`? Those join two things. `not` does not, which is why it is allowed to lead -
- * so it is left out here, although a `not` is a token of the connective kind like the other two.
- */
+/** `and` or `or`. `not` is a connective token too, but joins nothing, so it may lead */
 function isJoiner(text: string): boolean {
   return !!text && CONNECTIVES.includes(text.toLowerCase());
 }
@@ -42,10 +25,7 @@ function isOr(text: string): boolean {
   return !!text && text.toLowerCase() === 'or';
 }
 
-/**
- * Split a query into tokens, keeping quoted values (`app:"my app"`) together and
- * recording where each token sits so the autocomplete can replace the one being typed.
- */
+/** Split a query into tokens, keeping quoted values together and recording where each sits */
 export function tokenize(query: string): TableViewQueryToken[] {
   const out: TableViewQueryToken[] = [];
   const str = query || '';
@@ -101,12 +81,7 @@ export function quoteIfNeeded(value: string): string {
   return /[\s:]/.test(value) ? `"${ value }"` : value;
 }
 
-/**
- * Resolve the field named at the start of `text`, if any.
- *
- * A label field's own id contains a colon (`label:app`), so where an ordinary field ends at the
- * first colon a label one ends at the last.
- */
+/** A label field's id contains a colon (`label:app`), so it ends at the last colon rather than the first */
 function fieldAt(text: string, fields: TableViewField[]): TableViewField | null {
   const idx = text.indexOf(':');
 
@@ -128,17 +103,12 @@ function fieldAt(text: string, fields: TableViewField[]): TableViewField | null 
 }
 
 /**
- * Read a query as a list of terms and connectives, resolved against this table's fields.
- *
- * A term is a single run of non-space characters, `state:active`. What separates the field from
- * its value on screen is the badge drawn around the value, not a character in the query - so a
- * space always ends the term, and `state: active` is the field with nothing in it followed by
- * the free text `active`.
+ * A query as terms and connectives. A space always ends a term, so `state: active` is an empty
+ * field then free text
  */
 export function scanQuery(query: string, fields: TableViewField[]): TableViewQueryTerm[] {
   const raw = tokenize(query || '');
   const out: TableViewQueryTerm[] = [];
-  // Set by a `not` standing on its own, and spent on the term that follows it
   let pendingNot = false;
 
   for (let i = 0; i < raw.length; i++) {
@@ -200,13 +170,8 @@ export function scanQuery(query: string, fields: TableViewField[]): TableViewQue
 }
 
 /**
- * Break a query into coloured segments for the input to draw.
- *
- * The segments put back together are the query, character for character, whitespace included.
- *
- * `isKnownValue` decides whether a term's value is one the field actually has, which is what
- * separates a `value` segment from a `value-unknown` one. Left out, every value is taken at face
- * value - callers that have no way to check are no worse off than before.
+ * A query as coloured segments that join back into it exactly. Without `isKnownValue` every value
+ * counts as known
  */
 export function highlightQuery(
   query: string,
@@ -241,11 +206,9 @@ export function highlightQuery(
       return;
     }
 
-    // `-state:` — the negation reads as part of the field
     out.push({ text: str.substring(token.start, token.start + token.negate.length + token.fieldText.length + 1), kind: 'field' });
     at = token.start + token.negate.length + token.fieldText.length + 1;
 
-    // whatever sits between the colon and the value, normally a single space
     plain(token.valueStart);
 
     if (token.end > at) {
@@ -262,14 +225,11 @@ export function highlightQuery(
 }
 
 /**
- * Parse `state:error -namespace:kube-system nginx` into terms.
- *
- * `field:value` only becomes a field term when the field actually exists on this table,
- * otherwise it stays free text (so searching for an image tag still works).
+ * Parse a query into terms. `field:value` is only a field term when the field exists, so
+ * `nginx:1.21` stays free text
  */
 export function parseQuery(query: string, fields: TableViewField[]): TableViewTerm[] {
   return scanQuery(query, fields)
-    // The connectives are there to be read; the fields are what decide how terms combine
     .filter((token) => token.kind === 'term' && !!token.value)
     .map((token) => ({
       field:   token.field ? token.field.id : null,
@@ -278,7 +238,6 @@ export function parseQuery(query: string, fields: TableViewField[]): TableViewTe
     }));
 }
 
-/** Does this run of text open a quote it never closes? Both marks, as the tokenizer reads both. */
 function hasUnbalancedQuote(text: string): boolean {
   let quote: string | null = null;
 
@@ -296,15 +255,8 @@ function hasUnbalancedQuote(text: string): boolean {
 }
 
 /**
- * What is wrong with a query, if anything.
- *
- * Only things that are wrong however the query is read. A value nothing currently matches is not
- * one of them - terms match on containing the text, so half a value is a perfectly good term, and
- * "no rows" already says what there is to say. Nor is an unknown word before a colon: `nginx:1.21`
- * and a mistyped field are the same thing to a parser, and one of them is a reasonable search.
- *
- * Nothing here stops a query running. The table filters by as much of it as it can and this says
- * what it could not use.
+ * What is wrong with a query however it is read. Unknown values and fields are not problems: both
+ * can be reasonable searches
  */
 export function validateQuery(query: string, fields: TableViewField[]): TableViewQueryProblem[] {
   const tokens = scanQuery(query || '', fields);
@@ -323,7 +275,6 @@ export function validateQuery(query: string, fields: TableViewField[]): TableVie
   const hasTerms = tokens.some((token) => token.kind === 'term' && !!token.value);
   const firstConnective = tokens.find((token) => token.kind === 'connective');
 
-  // Operators and nothing to apply them to. Said once - every other rule would fire here too.
   if (!hasTerms && firstConnective) {
     add('noTerms', firstConnective);
 
@@ -340,7 +291,6 @@ export function validateQuery(query: string, fields: TableViewField[]): TableVie
         add('trailingOperator', token);
       }
 
-      // `and not` and `or not` read fine; it is a joining word after an operator that does not
       if (isJoiner(token.text) && tokens[i - 1]?.kind === 'connective') {
         add('consecutiveOperators', token);
       }
@@ -366,13 +316,7 @@ export function validateQuery(query: string, fields: TableViewField[]): TableVie
   return problems;
 }
 
-/**
- * Read a query as what it actually asks for: clauses joined by `or`, each a set of groups
- * joined by `and`.
- *
- * A query with no joining words in it comes back as a single group, which is what every query
- * was treated as before - so nothing already saved changes meaning.
- */
+/** A query as clauses joined by `or`, each a set of groups joined by `and` */
 export function parseQueryExpression(query: string, fields: TableViewField[]): TableViewQuery {
   const clauses: TableViewClause[] = [];
   let groups: TableViewGroup[] = [];
@@ -396,8 +340,7 @@ export function parseQueryExpression(query: string, fields: TableViewField[]): T
 
   scanQuery(query || '', fields).forEach((token) => {
     if (token.kind === 'connective') {
-      // `not` belongs to the term after it, which scanQuery has already marked - it joins
-      // nothing, so it never divides one group from the next
+      // `not` belongs to the next term, which scanQuery has already marked
       if (isNegator(token.text)) {
         return;
       }
@@ -411,7 +354,6 @@ export function parseQueryExpression(query: string, fields: TableViewField[]): T
       return;
     }
 
-    // A term still being typed has nothing to match on yet
     if (!token.value) {
       return;
     }
@@ -428,16 +370,12 @@ export function parseQueryExpression(query: string, fields: TableViewField[]): T
   return { clauses };
 }
 
-/**
- * Replace the token the caret is sitting in with `replacement`
- */
 export function replaceToken(query: string, token: TableViewQueryToken | null, replacement: string, caret?: number): string {
   if (token) {
     return `${ query.substring(0, token.start) }${ replacement }${ query.substring(token.end) }`;
   }
 
-  // Nothing under the caret means it is sitting in the space between two terms, and what is
-  // picked belongs there - not at the end of a query the user may be standing in the middle of.
+  // With nothing under the caret, insert at the caret rather than at the end
   if (typeof caret === 'number') {
     const at = Math.max(0, Math.min(caret, query.length));
     const before = query.substring(0, at);
@@ -451,12 +389,7 @@ export function replaceToken(query: string, token: TableViewQueryToken | null, r
   return `${ prefix }${ replacement }`;
 }
 
-/**
- * The term the caret is sitting in, so the autocomplete can replace the whole of it.
- *
- * Without `fields` this falls back to raw chunks, which is enough for callers that only need to
- * know where a word starts and ends.
- */
+/** The term the caret is in. Without `fields`, raw chunks */
 export function tokenAt(query: string, caret: number, fields: TableViewField[]): TableViewQueryTerm | null;
 export function tokenAt(query: string, caret: number): TableViewQueryToken | null;
 export function tokenAt(query: string, caret: number, fields?: TableViewField[]): TableViewQueryToken | null {

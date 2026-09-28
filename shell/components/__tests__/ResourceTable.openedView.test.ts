@@ -2,7 +2,7 @@ import ResourceTableViews from '@shell/mixins/resource-table-views';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 
 // The table views half of ResourceTable is its own mixin, so that is where this lives
-const { data } = ResourceTableViews as any;
+const { data } = ResourceTableViews;
 
 describe('ResourceTable', () => {
   describe('openedViewId', () => {

@@ -136,12 +136,6 @@ export default {
       return false;
     },
 
-    /**
-     * Apply the table views toolbar filters (server-side). Resets to page 1 so a stricter
-     * filter doesn't strand the user on a now out-of-range page.
-     *
-     * @param {PaginationParamFilter[]} filters
-     */
     calcCanPaginate() {
       if (!this.resource) {
         return false;
@@ -204,22 +198,13 @@ export default {
     },
 
     /**
-     * What scopes this list regardless of anything the user has typed: the namespace / project
-     * selection and any filters the page itself applies.
+     * The list's scope without the query. Not `pagination` minus the view's filters: that is
+     * debounced, so it lags the query being typed
      *
-     * Kept apart from {@link pagination} because the table views toolbar needs a scope that holds
-     * still while a query is being typed. Subtracting the view's filters back out of `pagination`
-     * looked equivalent but isn't - the request is debounced, so between keystrokes `pagination`
-     * carries the *previous* query's filters and the scope appeared to change on every character.
-     *
-     * @returns {{filters: PaginationParamFilter[], projectsOrNamespaces: any[]}}
+     * @returns {{page: number, sort: object[], filters: PaginationParamFilter[], projectsOrNamespaces: string[]}}
      */
     paginationScope() {
-      // A copy, because `apiFilter` appends to the array it is handed.
-      //
-      // Shaped like a whole request rather than just the two fields the scope is about: the
-      // `apiFilter` this is handed to is a page's own, written against a real one, and a filter
-      // that rewrites a sort field should find an empty list rather than trip over a missing one.
+      // A copy, because `apiFilter` appends to it; shaped like a full request for the same reason
       const scope = {
         page:                 1,
         sort:                 [],
@@ -227,8 +212,7 @@ export default {
         projectsOrNamespaces: this.requestFilters.projectsOrNamespaces,
       };
 
-      // The page's own api filter is part of the scope too - on the cluster list it is what keeps
-      // harvester clusters out. Leaving it off counted rows the list would never show.
+      // Eg the cluster list's, which keeps harvester clusters out
       return this.apiFilter ? this.apiFilter(scope) : scope;
     },
 

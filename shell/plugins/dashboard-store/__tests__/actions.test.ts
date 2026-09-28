@@ -265,9 +265,19 @@ describe('dashboard-store: actions', () => {
 });
 
 describe('dashboard-store: findPage', () => {
-  const setupPageContext = (respond: (opt: any) => Promise<any>) => {
+  interface PageOpt {
+    pagination: { filters: string[] };
+  }
+
+  interface PageResponse {
+    data: string[];
+    count: number;
+    revision: string;
+  }
+
+  const setupPageContext = (respond: (opt: PageOpt) => Promise<PageResponse>) => {
     const commit = jest.fn();
-    const dispatch = jest.fn((action: string, payload: any) => {
+    const dispatch = jest.fn((action: string, payload: { opt: PageOpt }) => {
       if (action === 'request') {
         return respond(payload.opt);
       }
@@ -292,7 +302,7 @@ describe('dashboard-store: findPage', () => {
   const loadPageCalls = (commit: jest.Mock) => commit.mock.calls.filter((c) => c[0] === 'loadPage');
 
   it('does not let a superseded response overwrite a newer one', async() => {
-    const ctx: any = setupPageContext((opt) => {
+    const ctx = setupPageContext((opt) => {
       // the first (unfiltered) request is slow, the second (filtered) one returns straight away
       const slow = !opt.pagination.filters.length;
 
@@ -322,7 +332,7 @@ describe('dashboard-store: findPage', () => {
   });
 
   it('still commits when a request is the newest one', async() => {
-    const ctx: any = setupPageContext(() => Promise.resolve({
+    const ctx = setupPageContext(() => Promise.resolve({
       data: ['only'], count: 1, revision: '1'
     }));
 

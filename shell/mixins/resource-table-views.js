@@ -19,70 +19,34 @@ import { DEFAULT_MANDATORY_SORT } from '@shell/components/SortableTable/sorting'
 import { sortBy } from '@shell/utils/sort';
 import { uniq } from '@shell/utils/array';
 
-/**
- * Most rows an "all matching" export will fetch.
- *
- * A filter can match an entire cluster's worth of resources. A list that is not paginated already
- * fetches every one of them, so the ceiling here is about what the browser will hold and write,
- * not about sparing the api.
- */
+/** Most rows an "all matching" export will fetch - a limit on what the browser holds, not on the api */
 const EXPORT_ROW_LIMIT = 50000;
 
-/**
- * The same, for YAML.
- *
- * YAML is the resources themselves, which is a request each rather than a page of a thousand - so
- * the wait grows with the rows in a way the other formats' does not, and there is no way to call
- * one off once it has started.
- */
+/** Lower for YAML, which is a request per resource and can't be called off once started */
 const EXPORT_ROW_LIMIT_YAML = 10000;
 
-/**
- * How many rows an "all matching" export asks for at a time.
- *
- * The rows could be fetched in one request, but then there would be nothing to report while it
- * ran - and this is the part of an export that keeps the user waiting.
- */
+/** Fetched a page at a time so there is progress to report */
 const EXPORT_PAGE_SIZE = 1000;
 
-/** How long the table will wait for a view's rows before showing what it has anyway */
 const VIEW_SWITCH_TIMEOUT = 8000;
 
 /**
- * Everything a resource table needs to carry the table views toolbar: the view the user is
- * looking at, the fields the toolbar offers, the rows and columns the view leaves, the counts on
- * its tabs, and the export it can start.
- *
- * Kept apart from the table itself because it is one concern with a seam of its own - the table
- * hands it `rows`, `headers` and its schema, and takes back what to show. A table that wants
- * none of it passes `:table-views="false"` and none of this does anything.
- *
- * It expects the component it is mixed into to supply, as props or data: `schema`, `rows`,
- * `headers`, `namespaced`, `inStore`, `externalPaginationEnabled`, `externalPaginationResult`,
- * `externalPaginationArgs`, `externalPaginationScope`, `hasAdvancedFiltering` and `groupBy` -
- * which is what @shell/components/ResourceTable has.
+ * The table views half of ResourceTable. Needs from its host: `schema`, `rows`, `headers`,
+ * `namespaced`, `inStore`, `externalPaginationEnabled`, `externalPaginationResult`,
+ * `externalPaginationArgs`, `externalPaginationScope`, `hasAdvancedFiltering` and `groupBy`
  */
 export default {
-  /**
-   * The default for the saved view tabs, supplied by a page that puts tables under tabs of its own
-   * - ResourceTabs, and the cluster dashboard, which builds its tabs from Tabbed directly. The
-   * `tableViewTabs` prop still wins over it. See showTableViewTabs.
-   */
+  /** Supplied by pages that put tables under tabs of their own. The `tableViewTabs` prop still wins */
   inject: { providedShowTableViewTabs: { from: 'showTableViewTabs', default: null } },
 
   props: {
-    /**
-     * Force the saved view tabs on or off. Null works it out - see showTableViewTabs
-     */
+    /** Force the saved view tabs on or off. Null works it out - see showTableViewTabs */
     tableViewTabs: {
       type:    Boolean,
       default: null
     },
 
-    /**
-     * Show the table views toolbar (query, columns, group by, export, saved views).
-     * Null means "decide automatically" - on for any table showing a known resource type
-     */
+    /** Show the table views toolbar. Null means on for any table showing a known resource type */
     tableViews: {
       type:    Boolean,
       default: null,
@@ -90,7 +54,6 @@ export default {
   },
 
   data() {
-    // The user may have marked one of their saved views as the one this list opens on
     /** @type {{ views: import('@shell/types/table-views').TableViewSaved[], defaultViewId: string|null }} */
     const saved = this.$store.getters['prefs/get'](TABLE_VIEWS)?.[this.schema?.id];
     /** @type {import('@shell/types/table-views').TableViewSaved|undefined} */
@@ -98,24 +61,18 @@ export default {
 
     return {
       /**
-       * The saved view this list opened on, when the user has a default.
-       *
-       * The tabs can't work that out from the config alone: an empty default holds exactly what
-       * the All tab holds, and two views can hold the same config, so matching lit up All or the
-       * first lookalike instead.
+       * Needed because an empty default holds what the All tab holds, and two views can hold the
+       * same config
        */
       openedViewId: defaultView?.id,
 
-      /** fieldId -> values in use, fetched from the api by fetchFieldValues */
       fieldValues: {},
 
-      /** query -> how many rows it matches, or null when the api wouldn't say. Shown on the tabs */
+      /** query -> rows matched, or null when the api wouldn't say */
       viewCounts: {},
 
-      /** True while a round of counts is out, so triggers don't stack up on top of each other */
       countingInFlight: false,
 
-      /** The view the table is showing, of type @TableViewState */
       view: {
         query:          defaultView?.query || '',
         columns:        defaultView?.columns || null,
@@ -126,22 +83,16 @@ export default {
         sortDescending: defaultView?.sortDescending || false,
       },
 
-      /** The sort the table falls back to, learned from it the first time it reports one */
+      /** Learned from the table's first sort report */
       defaultSort: null,
 
-      /** What each tab is filtering by, the edits held for tabs not in front of the user included */
+      /** What each tab is filtering by, including unsaved edits on tabs not in front */
       tabQueries: [],
 
       /**
-       * The query the table acts on, which trails the one being typed.
-       *
-       * Everything downstream of this is expensive - the rows re-filtered and re-drawn, a request
-       * to the api, a count fetched for every tab - and doing all of it per keystroke turned
-       * typing into a series of jolts. The box itself is not held back: what you type appears at
-       * once, and so do its suggestions. This is only how long the table waits before answering.
-       *
-       * Picking a saved view is a single act with nothing following it, so that flushes instead
-       * of waiting - see the watcher.
+       * The query the table acts on, which trails the one being typed: filtering, fetching and
+       * counting are too expensive per keystroke. A saved view applied is flushed at once - see the
+       * watcher
        */
       settledQuery: defaultView?.query || '',
 
@@ -149,29 +100,19 @@ export default {
         this.settledQuery = query;
       }, SEARCH_DEBOUNCE),
 
-      /** The filters handed down to the table, worked out from the settled query */
       appliedViewFilters: [],
 
-      // Serialized form of the last emitted filters, to skip redundant emits. Starts as
-      // the empty state so an initial empty query doesn't fire (matches the fallback path)
+      // Starts empty so an initial empty query doesn't emit
       lastViewFiltersKey: '[]',
-      // Counting every saved view costs one (tiny) request each, so it waits for the list to
-      // settle rather than running on each row that arrives,
 
       /**
-       * True from the moment a view's filters change until its rows have come back. The view's
-       * columns and grouping apply the instant it is picked, but its rows are a request away, so
-       * without this the table spends that time showing one view's data under another's columns.
-       *
-       * It also turns alt loading off while it lasts. Alt loading leaves the rows up while it
-       * waits, which is right for refreshing the same list and wrong here - the rows still up
-       * are the ones being navigated away from.
+       * From a view's filters changing until its rows arrive, so one view's rows never show under
+       * another's columns. Also turns alt loading off, which would leave the old view's rows up
        */
       viewSwitching: false,
 
       viewSwitchTimer: null,
 
-      /** The view filters the table is waiting to see applied, and the ones it is waiting to lose */
       pendingViewFilters: [],
 
       supersededViewFilters: [],
@@ -195,47 +136,32 @@ export default {
   },
 
   watch: {
-    /**
-     * Suggested values are cached per field, so they have to be dropped when the list's scope
-     * changes - switching the namespace filter otherwise kept offering values from the namespaces
-     * the user has just navigated away from
-     */
+    /** Cached suggestions belong to the old scope */
     summaryBaseUrl(neu, old) {
       if (neu === old) {
         return;
       }
 
-      // Re-fetch rather than just drop them. Clearing alone left the input quietly falling back
-      // to scanning the page, which offers the value a column *shows* ("Active") in place of the
-      // one a query has to use ("active")
+      // Re-fetched rather than dropped, or the input falls back to display values ("Active" rather
+      // than "active")
       const known = Object.keys(this.fieldValues);
 
       this.fieldValues = {};
       known.forEach((fieldId) => this.fetchFieldValues(fieldId));
     },
 
-    /**
-     * A new tab, or a new query in the box, needs a count of its own. Debounced, so typing a
-     * query asks once it is finished rather than once per keystroke.
-     */
     viewCountsKey() {
       this.debouncedFetchViewCounts();
     },
 
     /**
-     * The same query counts differently in another namespace, so every count is taken again -
-     * the only time they are. Deliberately not tied to the rows: a count that moved with the
-     * table would blink to zero every time the list went to fetch a page.
+     * The only time every count is retaken. Not tied to the rows, which would blink counts to zero
+     * on every fetch
      */
     viewCountsScope() {
       this.debouncedRefreshViewCounts();
     },
 
-    /**
-     * When the server-side view filters change, tell the owning list to re-fetch. Compare
-     * by serialized value so we don't emit on unrelated re-renders. Only fires while
-     * server-side table views are active - the client-side fallback never emits.
-     */
     'serverViewFilters.filters'(neu) {
       if (!this.serverSideTableViews) {
         return;
@@ -252,18 +178,12 @@ export default {
       this.pendingViewFilters = filters;
       this.lastViewFiltersKey = key;
       this.beginViewSwitch();
-      // No wait of its own: these are worked out from `settledQuery`, so by the time they change
-      // the typing they came from has already stopped.
       this.appliedViewFilters = filters.length ? filters : [];
     },
 
     /**
-     * Hold what is typed back from the table for a moment - see `settledQuery`.
-     *
-     * Only what was typed. A query arriving whole - a saved view applied - is a single act with
-     * nothing following it, and waiting on it would leave the tab underlined before its rows had
-     * been asked for. Typing only ever adds to or takes from the
-     * end, so one query being the start of the other is what tells the two apart.
+     * Only typing waits. A query arriving whole (a saved view) doesn't, and typing only changes the
+     * end, so one query starting with the other tells the two apart
      */
     'view.query'(neu, old) {
       const query = neu || '';
@@ -277,21 +197,13 @@ export default {
       }
     },
 
-    /**
-     * Changing the grouping re-sorts the whole set at the api, so the table waits for those rows
-     * rather than regrouping the ones it already has and then being corrected a moment later.
-     * Picking a grouping showed two arrangements in a row, neither of them asked for.
-     *
-     * Ended by the same watcher that ends a filter switch - the filters have not moved, so the
-     * next response to land is the one this asked for.
-     */
+    /** Wait for the api's regrouped rows rather than regrouping the ones in hand and being corrected after */
     viewGroupSort(neu, old) {
       if (this.serverSideTableViews && neu !== old) {
         this.beginViewSwitch();
       }
     },
 
-    /** A view naming a sort, or losing the column it named, puts the table on the right one */
     'view.sort'() {
       this.$nextTick(() => this.applyViewSort());
     },
@@ -300,21 +212,14 @@ export default {
       this.$nextTick(() => this.applyViewSort());
     },
 
-    /**
-     * The columns on show decide whether the view's sort is still reachable - hide the column it
-     * names and the table goes back to sorting the way it does by default.
-     */
+    /** Hiding the column a view sorts by returns the table to its default sort */
     viewHeaders() {
       this.$nextTick(() => this.applyViewSort());
     },
 
     /**
-     * A response has landed. It only ends the wait if it is the one this view asked for - a
-     * request already in flight answers first, and letting that through put the rows of the view
-     * being left under the columns of the one arrived at, which is the whole thing being avoided.
-     *
-     * This rather than `rows`: that prop's array is filled in place, so its identity never turns
-     * over and a watcher on it never fires.
+     * Only the response this view asked for ends the wait; one already in flight answers first.
+     * Watched rather than `rows`, which is filled in place and never changes identity
      */
     externalPaginationResult() {
       if (this.viewFiltersApplied) {
@@ -325,11 +230,8 @@ export default {
 
   computed: {
     /**
-     * Whether to show the table views toolbar above this table.
-     *
-     * The feature flag is asked first and answers for everyone: a page that turns the toolbar on
-     * for itself is saying this table suits it, not overruling an administrator who has turned
-     * the feature off.
+     * The flag is asked first: a page turning the toolbar on can't overrule an administrator
+     * turning it off
      */
     showTableViews() {
       if (!isImprovedTablesEnabled(this.$store)) {
@@ -345,15 +247,8 @@ export default {
 
 
     /**
-     * Whether the saved view tabs belong above this table.
-     *
-     * The filter, the View menu and the selection actions suit any table. Saved views do not:
-     * they are keyed by resource type and kept per user, and a table embedded in something
-     * else's detail page is one resource's pods rather than the pod list - there is nothing for
-     * a view of "all pods" to mean there, and saving one would put it on the real list.
-     *
-     * What tells them apart is the route: a detail page names the one resource it is showing,
-     * and a list page names the type it lists. Neither needs every call site to say so.
+     * Saved views are per type, so they don't belong above a table that lists one resource's things
+     * (eg a deployment's pods). A detail route names a resource; a list route doesn't
      */
     showTableViewTabs() {
       if (this.tableViewTabs !== null) {
@@ -364,34 +259,20 @@ export default {
         return false;
       }
 
-      // A page that puts tables under tabs of its own supplies the default. The route cannot
-      // always be asked: the cluster dashboard is routed by the cluster rather than by a resource
-      // in it, so the tables under its Events and Certificates tabs looked like list pages.
+      // The cluster dashboard is routed by cluster, so its tables would look like list pages
       if (this.providedShowTableViewTabs !== null) {
         return this.providedShowTableViewTabs;
       }
 
-      // A route naming one resource is a detail page, and every table on it is a sub list of
-      // that resource - one deployment's pods, its own events - rather than the type's own list.
-      //
-      // Only the id is looked at. Comparing the route's type against the table's looked more
-      // precise and is wrong: the cluster list is routed as `provisioning.cattle.io.cluster`
-      // while its table carries the management type, and it lost its tabs.
+      // Only the id: the cluster list is routed by the provisioning type while its table has the
+      // management one
       return !this.$route?.params?.id;
     },
 
 
     /**
-     * Every column this resource type has, not only the ones this page chose to show.
-     *
-     * A page that passes its own `headers` is saying what to show by default, not what exists:
-     * the home page and Cluster Management are both lists of the same type, and between them
-     * they name eleven columns while each shows seven or eight. Offering only the page's own set
-     * meant CPU and Memory could not be added to one, nor Age and Summary to the other.
-     *
-     * The page's headers keep their order and their place; anything the type knows about that
-     * they leave out is added after the last data column, where a new column reads as an addition
-     * rather than something that moved.
+     * Every column the type has, not just the page's. The page's headers keep their order; the
+     * type's others are added after the last data column
      */
     availableHeaders() {
       const own = this._headers || [];
@@ -406,8 +287,6 @@ export default {
         known[headerFieldId(header)] = true;
       });
 
-      // What the type registers as its default, for a page that showed its own set instead,
-      // plus the columns the type has that no page shows by default
       const fromType = this.headers ? this.$store.getters['type-map/headersFor'](this.schema, this.externalPaginationEnabled) : [];
       const extra = fromType
         .concat(optionalHeadersFor(this.schema.id, this.$store, this.externalPaginationEnabled))
@@ -418,7 +297,6 @@ export default {
             return false;
           }
 
-          // Guards against the same column arriving from both sources
           known[id] = true;
 
           return true;
@@ -428,7 +306,6 @@ export default {
         return own;
       }
 
-      // After the last column that holds data, so `actions` and friends stay at the end
       let at = own.length;
 
       for (let i = own.length - 1; i >= 0; i--) {
@@ -440,8 +317,6 @@ export default {
 
       const out = own.slice(0, at).concat(extra.filter((header) => !header.insertBefore), own.slice(at));
 
-      // A column that named where it belongs goes there, so it sits where the list that shows it
-      // by default puts it rather than on the end
       extra.filter((header) => header.insertBefore).forEach((header) => {
         const index = out.findIndex((existing) => existing.name === header.insertBefore);
 
@@ -452,16 +327,11 @@ export default {
     },
 
 
-    /**
-     * The columns this page shows when a view has said nothing about columns - which is what the
-     * menu ticks by default, now that it offers more than the page does
-     */
     defaultColumnIds() {
       return (this._headers || []).filter((header) => !isIgnoredColumn(header)).map((header) => headerFieldId(header));
     },
 
 
-    /** The column the table sorts by unless told otherwise, as the headers declare it */
     defaultSortColumnId() {
       const header = (this._headers || []).find((h) => h.defaultSort);
 
@@ -469,20 +339,14 @@ export default {
     },
 
 
-    /** The columns this table will not let go of - see coreFieldIdsFor */
     coreColumnIds() {
       return coreFieldIdsFor(this.defaultColumnIds, this.defaultSortColumnId);
     },
 
 
     /**
-     * The columns of this type as the pagination api defines them, or null when the list is not
-     * paginated.
-     *
-     * The page's own headers say how a column is drawn, which is not how it is searched: the
-     * unpaginated definitions carry `stateDisplay` and `nameDisplay`, paths the api has never
-     * heard of. These are what a field is filtered by - see `serverPathFor` - and their absence
-     * is what says a list cannot be filtered server side at all.
+     * The columns as the pagination api defines them, or null when the list isn't paginated - see
+     * serverPathFor
      */
     paginationHeaders() {
       if (!this.externalPaginationEnabled || !this.schema) {
@@ -494,20 +358,12 @@ export default {
     },
 
 
-    /**
-     * Everything the user can filter on, group by, or add as a column, of type @TableViewField
-     */
     viewFields() {
       return fieldsFor(this.availableHeaders, this.filteredRows, (key) => this.t(key), this.paginationHeaders);
     },
 
 
-    /**
-     * The caller's templates that go straight to SortableTable.
-     *
-     * `header-right` is left out: this component renders its own into that slot and puts the
-     * caller's inside it, and a duplicate here would win and drop the toolbar.
-     */
+    /** `header-right` is left out: this renders its own there, and a duplicate would win */
     passthroughSlots() {
       const { 'header-right': headerRight, ...rest } = this.$slots;
 
@@ -515,24 +371,9 @@ export default {
     },
 
 
-    /**
-     * Fields offered in the group by menu: the columns the table lets you sort by.
-     *
-     * Grouping is a sort, so the two should name the same columns - and `header.sort` is the very
-     * thing the table header reads to decide whether to draw a sort control, so the menu and the
-     * headers cannot drift apart. It used to ask the pagination api instead, which was stricter
-     * than the headers in one direction and looser in another: the cluster list would let you
-     * sort by Provider and Machines while refusing to group by either.
-     *
-     * Minus the columns with nothing to gather rows under - one that declares no sort has no value
-     * the rows can be ordered or gathered by either.
-     *
-     * A column drawn entirely by a formatter still counts. It carries `value: ''`, but the path it
-     * sorts by is a real field on the row, and that is what its rows are gathered under.
-     */
+    /** The columns the table can sort by, so the group menu and the sortable headers always agree */
     viewGroupFields() {
       return this.viewFields.filter((field) => {
-        // A label is read straight off the row, so there is always a value behind it
         if (field.isLabel) {
           return true;
         }
@@ -549,26 +390,10 @@ export default {
     },
 
 
-    /**
-     * Fields offered as filter suggestions.
-     *
-     * Server side the api only filters on the fields it indexes, and a term naming one of the
-     * rest is dropped rather than applied. Offering those would be suggesting a term the toolbar
-     * then has to report it ignored, so they are left out of the menu - a query that names one
-     * by hand is still read, and still answered for.
-     */
+    /** Server side, only the fields the api indexes, so nothing is suggested that would then be ignored */
     viewFilterFields() {
-      // Labels are left out, and not because they cannot be filtered on - they can. The api
-      // indexes every `metadata.labels[key]` path, so a label typed by hand filters exactly and
-      // its values are counted across the whole set.
-      //
-      // What cannot be done is list them. There is no call that returns which label keys exist -
-      // `summary=metadata.labels` is refused, and the schema only describes the table's columns -
-      // so the only way to name them is to scan the rows in hand. That makes the list whatever
-      // the rows currently loaded happen to carry: empty while a fetch is in flight, shorter the
-      // moment a query narrows the rows, and never the whole truth on a list of more than one
-      // page. A menu that empties itself as you type towards the thing you wanted is worse than
-      // no menu, so labels are left to be typed.
+      // Labels are filterable, but the rows in hand are the only way to list their keys, and that
+      // list empties as you type. So they are typed rather than offered
       const suggestable = this.viewFields.filter((field) => !field.isLabel);
 
       if (!this.serverSideTableViews) {
@@ -584,35 +409,23 @@ export default {
     },
 
 
-    /** The query as a flat list of terms, of type @TableViewTerm */
     viewTerms() {
       return parseQuery(this.settledQuery, this.viewFields);
     },
 
 
-    /**
-     * The query as it is actually asked - `or` between clauses, `and` between groups. What
-     * filters, both here and at the api.
-     */
+    /** The query as clauses and groups - what filters, here and at the api */
     viewQuery() {
       return parseQueryExpression(this.settledQuery, this.viewFields);
     },
 
 
-    /**
-     * Should the toolbar filter run server-side (through the pagination `filter=` params)
-     * rather than client-side? Only when the table is externally paginated and we know the
-     * resource type (so we can validate fields against its schema)
-     */
     serverSideTableViews() {
       return this.showTableViews && this.externalPaginationEnabled && !!this.schema;
     },
 
 
-    /**
-     * Whether the request behind the current rows is the one this view asked for: every filter it
-     * wanted is being applied, and none of the ones it replaced still are.
-     */
+    /** Is every filter this view wants applied, and none it replaced? */
     viewFiltersApplied() {
       const applied = (this.externalPaginationArgs?.filters || []).map((filter) => JSON.stringify(filter));
       const wanted = (this.pendingViewFilters || []).map((filter) => JSON.stringify(filter));
@@ -623,10 +436,6 @@ export default {
     },
 
 
-    /**
-     * The view's query converted into steve/vai server filters (plus the terms that have
-     * no server-side path). Empty when not running server-side
-     */
     serverViewFilters() {
       if (!this.serverSideTableViews) {
         return { filters: [], unsupported: [] };
@@ -636,13 +445,7 @@ export default {
     },
 
 
-    /**
-     * The fields named in the query that this list cannot be filtered by, as the user would
-     * recognise them.
-     *
-     * These terms are dropped rather than applied, so without saying so the table answers a
-     * query it did not run. Only server side: client side filtering can answer anything.
-     */
+    /** Names of the query's fields this list can't filter by, which are dropped rather than applied */
     unsupportedViewFields() {
       const seen = {};
 
@@ -658,33 +461,13 @@ export default {
       return Object.keys(seen);
     },
 
-    /**
-     * Base url for a value summary request.
-     *
-     * Suggestions should offer what this list can actually show, so the summary is scoped the
-     * same way the list is - the project / namespace filter above all, which otherwise offered
-     * values from namespaces the user isn't looking at.
-     *
-     * Two things are left off. Paging and sort, because a summary counts the whole matching set
-     * rather than a page of it. And the view's own query filters, because suggestions for a field
-     * shouldn't be narrowed by the term being edited - a field is usually picked to change the
-     * term already there.
-     */
-
-    /**
-     * The filters that scope the list itself - the namespace/project filter and anything the
-     * page added - with the view's own query filters taken back out.
-     *
-     * Compared by value: the filter objects handed to the list are rebuilt on every render, so
-     * the ones we sent are never the same objects coming back.
-     */
+    /** The list's own filters without the view's. Compared by value: they are rebuilt every render */
     listScopeFilters() {
       if (this.externalPaginationScope) {
         return this.externalPaginationScope.filters || [];
       }
 
-      // No explicit scope (an older caller), so work it out by taking the view's own filters back
-      // out of what the list is asking for
+      // No explicit scope, from an older caller
       const args = this.externalPaginationArgs;
 
       if (!args?.filters?.length) {
@@ -697,7 +480,6 @@ export default {
     },
 
 
-    /** The namespaces/projects the list is scoped to, from whichever source we have */
     listScopeNamespaces() {
       return this.externalPaginationScope?.projectsOrNamespaces || this.externalPaginationArgs?.projectsOrNamespaces || [];
     },
@@ -711,9 +493,7 @@ export default {
         return urlFor(this.schema.id);
       }
 
-      // Deliberately no page of its own. `summaryonly` returns no rows but still aggregates over
-      // the page window, so asking for a small one counts a handful of rows and offers the user
-      // a fraction of the values that are really in use.
+      // No page: `summaryonly` still aggregates over the page window
       return urlFor(this.schema.id, null, {
         pagination: {
           filters:              this.listScopeFilters,
@@ -723,12 +503,6 @@ export default {
     },
 
 
-    /**
-     * Rows left once the view's query has been applied.
-     *
-     * Server-side: the rows are already filtered by the API, so pass them through. Client
-     * side: apply the query in the browser.
-     */
     viewRows() {
       if (this.serverSideTableViews) {
         return this.filteredRows;
@@ -742,10 +516,7 @@ export default {
     },
 
 
-    /**
-     * The number shown in the match-count pill. Server-side this is the server's total
-     * count (across all pages), client-side it's the number of filtered rows
-     */
+    /** The server's total across pages, or the filtered rows client side */
     viewMatchCount() {
       if (this.serverSideTableViews) {
         return this.externalPaginationResult?.count ?? this.filteredRows.length;
@@ -765,72 +536,48 @@ export default {
 
 
     /**
-     * The field path behind the view's group by.
-     *
-     * `computedGroupBy` is a function so it can render label values, and a function cannot
-     * contribute to the sort - which is why grouping only rearranged the rows already on the
-     * page. Handing the path over as `groupSort` puts it back into the sort, so the server
-     * returns rows grouped across every page.
+     * The path behind the view's grouping. `computedGroupBy` is a function, which can't join the
+     * sort, so this puts the grouping into the server's sort
      */
     viewGroupSort() {
       return (this.viewGroupField && this.groupSortFor(this.viewGroupField)) || this.groupSort;
     },
 
 
-    /** The headers to show for the view in front of the user - see headersForView */
     viewHeaders() {
       return this.headersForView(this.view);
     },
 
 
-    /**
-     * The saved views for this type, so the tabs can be counted without the toolbar telling us
-     * about them
-     */
     savedViews() {
       const stored = this.$store.getters['prefs/get'](TABLE_VIEWS)?.[this.schema?.id];
 
-      // Older preferences held the array directly, before a default view had to live beside it
+      // The first shape views were kept in
       return Array.isArray(stored) ? stored : stored?.views || [];
     },
 
-    /**
-     * Every distinct query a tab needs counted: the default tab's (nothing), each saved view's,
-     * and whatever the user currently has in the box.
-     *
-     * Queries rather than views, because that is all a count depends on - two views filtering the
-     * same way share one count and one request.
-     */
+    /** Queries rather than views: two views filtering alike share one count */
     countableQueries() {
       const out = ['']
         .concat(this.savedViews.map((view) => view.query || ''))
         .concat([this.view.query || ''])
-        // A tab left with unsaved edits still shows a count, so what it is showing has to be
-        // counted too - its saved query is not what it is filtering by any more
+        // A tab with unsaved edits is filtering by them, not its saved query
         .concat(this.tabQueries);
 
       return Array.from(new Set(out));
     },
 
 
-    /** Changes exactly when the set of counts we'd have to fetch changes */
     viewCountsKey() {
       return JSON.stringify(this.countableQueries);
     },
 
 
-    /**
-     * The scope the counts were taken in. When this changes they are all worth taking again -
-     * the same query counts differently in another namespace.
-     */
     viewCountsScope() {
       return JSON.stringify(this.listScopeFilters) + JSON.stringify(this.listScopeNamespaces);
     },
 
 
-    /**
-     * Counts for the tabs, worked out here when the filtering is happening in the browser
-     */
     localViewCounts() {
       const out = {};
 
@@ -844,26 +591,18 @@ export default {
     },
 
 
-    /** What the toolbar shows on each tab */
     tabCounts() {
       return this.serverSideTableViews ? this.viewCounts : this.localViewCounts;
     },
 
 
-    /**
-     * Columns to write out when exporting
-     */
     exportColumns() {
       return exportColumnsFor(this.viewHeaders, (key) => this.t(key));
     },
   },
 
   methods: {
-    /**
-     * The headers a view shows: the table's own, after the view has hidden columns and added label
-     * columns. A method rather than only a computed, so a view that is not the one on screen - a
-     * tab being exported from its own menu - can be drawn up the same way.
-     */
+    /** A method as well as a computed, so a tab exported from its own menu gets its own headers */
     headersForView(view) {
       const headers = this._headers;
 
@@ -874,15 +613,13 @@ export default {
       let out = headers;
 
       if (view.columns) {
-        // Chosen from everything the type has rather than only what this page shows, so a column
-        // the page left out can be added. Core columns are always kept, even if a saved view
-        // omits them.
+        // From everything the type has, so the page's left out columns can be added. Core columns
+        // always stay
         out = this.availableHeaders.filter((header) => isIgnoredColumn(header) || this.coreColumnIds.includes(headerFieldId(header)) || !this.viewFields.find((f) => !f.isLabel && f.id === headerFieldId(header)) || view.columns.includes(headerFieldId(header)));
       }
 
       if (view.columnOrder?.length) {
-        // Only the data columns are reordered; `check`, `actions` and the rest are structural
-        // and stay where the table put them
+        // Only data columns move; `check`, `actions` and the rest stay put
         const order = view.columnOrder;
         const movable = out.filter((header) => !isIgnoredColumn(header) && order.includes(headerFieldId(header)));
         const sorted = movable.slice().sort((a, b) => order.indexOf(headerFieldId(a)) - order.indexOf(headerFieldId(b)));
@@ -894,7 +631,6 @@ export default {
       if (view.labelColumns?.length) {
         out = out.slice();
 
-        // Put label columns after age, or at the end if there's no age column
         const ageIndex = out.findIndex((header) => header.name === AGE.name);
         const at = ageIndex >= 0 ? ageIndex : out.length;
 
@@ -914,11 +650,8 @@ export default {
 
 
     /**
-     * The field path a grouping by `field` sorts on, or null when it has none.
-     *
-     * The column's own sort path first, which is the one the table uses when its header is
-     * clicked - so grouping orders the rows exactly as sorting by that column would. `sort` is
-     * often a list whose later entries are only tie breakers, and can carry a `:desc` suffix.
+     * The column's own sort path, so grouping orders rows as sorting by it would. Later `sort`
+     * entries are tie breakers, and may carry `:desc`
      */
     groupSortFor(field) {
       const sort = field?.header?.sort;
@@ -928,21 +661,14 @@ export default {
         return first.split(':')[0];
       }
 
-      // Labels have no header of their own, and neither does a column that says nothing about
-      // how it sorts
+      // Labels have no header, and some columns say nothing about sorting
       const path = field ? serverPathFor(field) : null;
 
       return typeof path === 'string' ? path : null;
     },
 
 
-    /**
-     * Fetch the values in use for a field, so the query input can suggest real values rather
-     * than only those on the page in front of us.
-     *
-     * Steve can summarise a column for us, which counts every row of the type without returning
-     * any, so this stays cheap on a big cluster.
-     */
+    /** Values in use for a field, from a steve summary: it counts every row without returning any */
     async fetchFieldValues(fieldId) {
       if (!this.serverSideTableViews || this.fieldValues[fieldId] !== undefined) {
         return;
@@ -952,14 +678,12 @@ export default {
       const path = field ? serverPathFor(field) : null;
 
       if (typeof path !== 'string' || !stevePaginationUtils.isValidPaginationField(this.schema, path)) {
-        // Nothing to ask the api for - claim the slot anyway so the input stops asking on every
-        // row that arrives, and falls back to the values on the page
+        // Claimed anyway, so the input stops asking and falls back to the page
         this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
 
         return;
       }
 
-      // Claim the slot up front so a second keystroke doesn't ask for the same field again
       this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
 
       try {
@@ -968,31 +692,24 @@ export default {
 
         this.fieldValues = { ...this.fieldValues, [fieldId]: summaryToValues(res) };
       } catch (e) {
-        // Not fatal - the input falls back to the values on the current page
         this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
       }
     },
 
 
     /**
-     * Count the rows each saved view matches, so its tab can say so.
-     *
-     * One request per view, asking for a single row and reading the total off the response -
-     * the rows themselves are never wanted here. Views whose query the pagination API can't
-     * express are left without a count rather than shown a wrong one.
+     * Count each saved view's rows for its tab. Views the api can't express get no count rather
+     * than a wrong one
      */
     async fetchViewCounts(refresh = false) {
       if (!this.serverSideTableViews) {
         return;
       }
 
-      // Only what we don't already know. A count already taken stays on its tab until a fresh one
-      // replaces it, so nothing ever blinks back to zero while the list is busy
+      // A count stays until a fresh one replaces it, so none blink to zero
       const wanted = this.countableQueries.filter((query) => refresh || this.viewCounts[query] === undefined);
 
-      // One round at a time. Without this a second trigger arriving mid-flight asks for the same
-      // counts again, and the requests already out are left to be superseded - which is what a
-      // list of cancelled requests in the network panel looks like.
+      // One round at a time, or mid-flight triggers ask again and supersede their own requests
       if (!wanted.length || this.countingInFlight) {
         return;
       }
@@ -1013,8 +730,6 @@ export default {
         const { filters, unsupported } = queryToServerFilters(parsed, this.viewFields, { isAllowed: (p) => stevePaginationUtils.isValidPaginationField(this.schema, p) });
 
         if (unsupported.length) {
-          // Nothing the api can be asked, so the tab shows its name alone. Recorded rather than
-          // left unset, which would have every later trigger try it again
           this.viewCounts = { ...this.viewCounts, [query]: null };
 
           return;
@@ -1029,26 +744,18 @@ export default {
             this.viewCounts = { ...this.viewCounts, [query]: count };
           }
         } catch (e) {
-          // Remember that this one was asked for and couldn't be answered. Leaving it unset meant
-          // every later trigger tried it again, so a type whose count the api won't serve turned
-          // into a stream of failing requests rather than one. The tab just shows its name, and
-          // the next scope change is free to try again.
+          // Recorded as unanswerable, or every later trigger retries it
           this.viewCounts = { ...this.viewCounts, [query]: null };
         }
       }));
     },
 
 
-    /**
-     * A url that returns the total for `filters` and none of the rows behind it
-     */
     countUrl(filters) {
       const urlFor = this.$store.getters[`${ this.inStore }/urlFor`];
 
       return urlFor(this.schema.id, null, {
         pagination: {
-          // The list's own scope (the namespace/project filter) still applies - a view counts
-          // what it would show, not what exists elsewhere
           filters:              (this.listScopeFilters || []).concat(filters),
           projectsOrNamespaces: this.listScopeNamespaces,
           page:                 1,
@@ -1058,13 +765,7 @@ export default {
     },
 
 
-    /**
-     * Keep the view in step with the column the table is sorted by.
-     *
-     * The table reports its sort on mount too, and that first report is its own default - held on
-     * to so a sort matching it is stored as "no sort of its own" rather than marking every list
-     * changed the moment it loads.
-     */
+    /** The table's first report is its own default, kept so matching it is stored as no sort */
     recordSort(sorting) {
       if (!this.showTableViews || !sorting?.sortBy) {
         return;
@@ -1072,19 +773,14 @@ export default {
 
       const { sortBy, descending } = sorting;
 
-      // A view asking to be sorted by a column it does not show keeps asking. The table falls back
-      // to its own sort, but that fallback is the view's own doing, not an edit to it - recording
-      // it would leave such a view reading as changed the moment it was opened, forever.
+      // A view sorting by a hidden column keeps asking; the fallback is not an edit
       const wanted = this.view.sort;
 
       if (wanted && !this.viewHeaders.some((header) => header.name === wanted)) {
         return;
       }
 
-      // The view asked to be sorted this way and the table has obliged. That the sort happens to
-      // be the one the table would have chosen anyway does not make it an edit - recording it as
-      // "no sort" leaves the view no longer matching what was saved, so it opens on the default
-      // tab wearing its columns and a changed mark.
+      // The table obliged; recording it as "no sort" would mark the view changed
       if (wanted === sortBy && !!this.view.sortDescending === !!descending) {
         return;
       }
@@ -1092,10 +788,7 @@ export default {
       if (!this.defaultSort) {
         this.defaultSort = { sortBy, descending: !!descending };
 
-        // The table's first report is the sort it arrived with, which it made before being told
-        // what the view wants. Recording it over a view that asked for something else throws the
-        // view's own sort away before it has been applied - and the view then no longer matches
-        // what was saved, so it opens on the default tab wearing its columns and a changed mark.
+        // The first report predates the view's sort being applied
         if (wanted && wanted !== sortBy) {
           return;
         }
@@ -1114,10 +807,6 @@ export default {
     },
 
 
-    /**
-     * Put the table on the sort its view asks for. A view that names no sort, or names a column
-     * that is no longer shown, goes back to the table's own.
-     */
     applyViewSort() {
       const table = this.$refs.table;
 
@@ -1139,37 +828,31 @@ export default {
 
 
     /**
-     * Every row the current filter matches, not just the page on screen - see fetchEveryPage.
-     * Without a paginated list to ask, the rows on the page are all there are.
+     * Every row the current filter matches, not just the page on screen
      *
      * @param onProgress called with (done, total) after each page arrives
-     * @param limit most rows to fetch - see the two export ceilings
+     * @param limit most rows to fetch
      */
     async allMatchingRows(onProgress, limit = EXPORT_ROW_LIMIT) {
       if (!this.externalPaginationEnabled || !this.externalPaginationArgs || !this.schema) {
         return this.viewRows;
       }
 
-      // Whatever arrived before a failure is still worth writing out. Only an export that got
-      // nowhere falls back to what is on screen.
+      // Whatever arrived before a failure is still written; only an export that got nowhere falls
+      // back
       return this.fetchEveryPage(this.externalPaginationArgs, onProgress, limit, () => this.viewRows);
     },
 
 
     /**
-     * Every row a request matches, a page at a time.
-     *
-     * Re-runs the list's request with `transient`, which fetches without writing to the store,
-     * so the table the user is looking at is left alone. It is fetched a page at a time rather
-     * than in one go so there is something to report against, and every page after the first is
-     * pinned to the revision the first came back at, so a list that changes underneath can not
-     * drop or repeat a row between two pages.
+     * Every row a request matches, a page at a time. `transient`, so the store and the table are
+     * left alone, and pinned to the first page's revision so no row is dropped or repeated between
+     * pages
      *
      * @param pagination what to ask for; the page and its size are filled in here
      * @param onProgress called with (done, total) after each page arrives
      * @param limit most rows to fetch
-     * @param fallback what to answer with if the very first page fails. Without one the failure
-     *        is thrown, for a caller with nothing better to offer than saying so.
+     * @param fallback answered if the first page fails; without one the failure is thrown
      */
     async fetchEveryPage(pagination, onProgress, limit, fallback) {
       const rows = [];
@@ -1203,7 +886,7 @@ export default {
 
           onProgress?.(Math.min(rows.length, total), total);
 
-          // A page that came back short or empty is the end of the list, whatever the count said
+          // A short page is the end, whatever the count said
           if (data.length < EXPORT_PAGE_SIZE || rows.length >= total) {
             break;
           }
@@ -1222,21 +905,13 @@ export default {
     },
 
 
-    /**
-     * Every row a view that is not on screen matches, in the order that view would show them.
-     *
-     * The export of a tab picked from its own menu. Its rows are worked out the way the list
-     * would work them out on opening it: its query applied to the rows on the page, or on a
-     * paginated list, asked of the api under the list's own scope - the same request its count
-     * on the tab came from. Nothing on screen is disturbed.
-     */
+    /** The rows a tab not on screen matches, worked out as opening it would, in its order */
     async rowsForView(view, onProgress, limit) {
       const parsed = parseQueryExpression(view.query || '', this.viewFields);
       let rows;
 
       if (this.serverSideTableViews) {
-        // A term the api cannot answer is left out, as it is when the list shows that view -
-        // the tab says so under its box when it is opened
+        // Terms the api can't answer are left out, as they are when the tab is open
         const { filters } = queryToServerFilters(parsed, this.viewFields, { isAllowed: (p) => stevePaginationUtils.isValidPaginationField(this.schema, p) });
 
         rows = await this.fetchEveryPage({
@@ -1253,10 +928,8 @@ export default {
 
 
     /**
-     * Rows in the order `view` would show them, by the table's own sort: its grouping first, then
-     * the column it sorts by - or the table's default if that column is not among its own - and
-     * then the tie breakers every table falls back on. The same fields and the same comparison
-     * the table uses, so an exported tab reads the way the tab does.
+     * In the order the table would show `view`: its grouping, its sort column (or the table's
+     * default), then the tie breakers
      */
     orderRowsFor(view, rows) {
       const headers = this.headersForView(view);
@@ -1272,11 +945,9 @@ export default {
     },
 
 
-    /** Keep the table loading until the rows of the view being switched to arrive */
     beginViewSwitch() {
       this.viewSwitching = true;
       clearTimeout(this.viewSwitchTimer);
-      // A request that never lands must not leave the table waiting on it for good
       this.viewSwitchTimer = setTimeout(() => {
         this.viewSwitching = false;
       }, VIEW_SWITCH_TIMEOUT);
@@ -1294,17 +965,11 @@ export default {
 
 
     /**
-     * Export the view, every row it matches rather than the page on screen - the view is what the
-     * user picked, the page is just where they happen to be in it.
+     * Export every row the view matches, tracked as a task in the notification centre. The store is
+     * dispatched to directly: the shell api can't turn a task into a success
      *
-     * That can be a lot of rows and a lot of waiting, so the export is watched in the notification
-     * centre instead of holding anything up: a task with a progress bar while it runs, and that
-     * same entry turned into a success once the file lands. The store is dispatched to directly
-     * rather than going through the shell notification api, which can move a task's progress along
-     * but can not turn it into anything else.
-     *
-     * `view` is there when a tab other than the one on screen is being exported, and is that tab's
-     * view; without it the export is of what the user is looking at.
+     * @param {{ format: string, name: string, view?: Partial<import('@shell/types/table-views').TableViewState> }} args
+     *   `view` is a tab other than the one on screen
      */
     async handleExport({ format, name, view }) {
       const viewName = name || this.t('tableViews.tabs.all');
@@ -1315,8 +980,7 @@ export default {
         progress: 0,
       });
 
-      // Fetching the rows is the whole of a CSV or JSON export. A YAML one has only started: that
-      // asks the api for each resource in turn, which is the greater part of the wait.
+      // How much of the progress bar fetching takes; YAML still has a request per resource to come
       const fetchShare = format === 'yaml' ? 20 : 90;
       const report = (done, total, from, to) => {
         this.$store.dispatch('notifications/update', { id, progress: Math.round(from + (((to - from) * done) / (total || 1))) });
@@ -1325,12 +989,9 @@ export default {
       try {
         const limit = format === 'yaml' ? EXPORT_ROW_LIMIT_YAML : EXPORT_ROW_LIMIT;
         const onFetch = (done, total) => report(done, total, 0, fetchShare);
-        // A tab exported from its own menu while another is on screen comes with its view: its
-        // rows and its columns, not the ones in front of the user
         const rows = view ? await this.rowsForView(view, onFetch, limit) : await this.allMatchingRows(onFetch, limit);
 
         if (!rows.length || !format) {
-          // Nothing was written, so there is nothing to tell the user about afterwards either
           return this.$store.dispatch('notifications/remove', id);
         }
 
@@ -1358,11 +1019,8 @@ export default {
 
 
     /**
-     * Turn the rows into a file and hand it to the browser, answering what it was called.
-     *
-     * Asking for YAML is asking for the resources themselves, which is what the Download YAML
-     * action already gives - the manifests as the cluster holds them, not the table's columns
-     * written out in YAML. So it is that action rather than a second thing wearing its name.
+     * Write the rows to a file and download it. YAML is the resources themselves, via the Download
+     * YAML action
      */
     async writeExport(rows, format, onProgress, columns = this.exportColumns) {
       if (format === 'yaml' && typeof rows[0]?.downloadYaml === 'function') {

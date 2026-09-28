@@ -26,7 +26,6 @@ import { useDropdownContext } from '@components/RcDropdown/useDropdownContext';
 
 import type { Placement } from 'floating-vue';
 
-/** Hands the popper the element to position against */
 type ReferenceNode = () => Element | undefined | null;
 
 const props = withDefaults(
@@ -37,59 +36,28 @@ const props = withDefaults(
     distance?: number;
     // eslint-disable-next-line vue/require-default-prop
     skidding?: number;
-    /**
-     * Positions the menu against this element instead of the trigger, for a trigger that is only
-     * part of what the menu belongs to - an icon at the end of a tab, say.
-     */
+    /** Positions the menu against this element instead of the trigger */
     // eslint-disable-next-line vue/require-default-prop
     referenceNode?: ReferenceNode;
-    /**
-     * Off keeps the menu where its placement puts it rather than sliding it back into view. For a
-     * sub menu that has to stay lined up with the row that opened it, being in line matters more
-     * than the tail of a long list being on screen - the menu scrolls for that.
-     */
-    /**
-     * Opens and closes the menu from outside, completing the `update:open` this already emits.
-     * A row of one menu that opens another is a menu item, and an item has no way to open
-     * anything itself - this is what lets it, without a trigger of its own.
-     */
+    /** Off keeps a sub menu in line with the row that opened it rather than sliding it into view */
+    /** Opens and closes the menu from outside, for a menu opened by an item rather than a trigger */
     open?: boolean;
     shift?: boolean;
-    /**
-     * Off holds the menu to its placement rather than turning it over when it runs out of room.
-     * Flipping re-anchors a sub menu by its other end, which takes it out of line with the row
-     * that opened it.
-     */
+    /** Off keeps a sub menu in line with its row rather than flipping it to the other side */
     flip?: boolean;
     placement?: Placement;
-    /**
-     * What the menu has to stay inside, instead of the window.
-     *
-     * A menu opened low on the page is slid back up to stay on screen, and "on screen" is not
-     * always the right edge to stop at - a page with a fixed masthead has the menu run underneath
-     * it. Naming the element the menu belongs in gives `shift` the right box to work against.
-     */
+    /** What the menu has to stay inside, instead of the window - eg below a fixed masthead */
     // eslint-disable-next-line vue/require-default-prop
     boundary?: Element;
-    /** How close to an edge of that boundary the menu may come */
     // eslint-disable-next-line vue/require-default-prop
     overflowPadding?: number;
-    /**
-     * A class put on the popper itself, which is otherwise out of reach - it is mounted outside
-     * the component, so a scoped rule cannot name it.
-     */
+    /** A class for the popper, which is mounted outside the component where scoped styles can't reach */
     // eslint-disable-next-line vue/require-default-prop
     popperClass?: string;
-    /**
-     * Leave the menu's scrolling and its spacing to what is inside it. For content that scrolls
-     * itself and carries its own padding - a scroll box inside this one's padding would stop
-     * short of it, and this one scrolling as well turns the content's overhang into a scrollbar.
-     */
+    /** Leaves scrolling and padding to the menu's content, for content that scrolls itself */
     flush?: boolean;
   }>(),
-  // `shift` carries floating-vue's own default: a boolean prop left alone would come through as
-  // false and stop every menu in the product being nudged back into view. `open` false is the
-  // state every menu starts in, so a caller that never passes it is left to open itself.
+  // `shift` keeps floating-vue's default: an omitted boolean prop would arrive as false
   {
     placement: 'bottom-end', shift: true, flip: true, open: false
   }
@@ -121,13 +89,7 @@ const dropdownTarget = ref<HTMLElement | null>(null);
 
 useClickOutside(dropdownTarget, () => showMenu(false));
 
-/**
- * Whether this menu is the one a key press belongs to.
- *
- * A menu opened from a row of this one is mounted inside this one, so its key presses bubble up
- * to these handlers as well as its own. Only the innermost menu holding the event answers it,
- * or the arrows walk the rows of every menu the pointer happens to be inside at once.
- */
+/** A nested menu's key presses bubble up here too; only the innermost menu answers them */
 const ownsEvent = (e: Event) => {
   const target = e.target as HTMLElement | null;
 
@@ -162,10 +124,7 @@ const onEscape = (e: KeyboardEvent) => {
 };
 
 const applyShow = () => {
-  // `setDropdownDimensions` measures against the window and keeps a fixed 32 off each edge. A
-  // menu given a `boundary` has already said what it must stay inside and how far off its edges
-  // to stop, and the popper has been positioned to match - so the blunt measure would only fight
-  // it, pinning a height that leaves the menu short of the room it was placed in.
+  // A menu with a `boundary` is already sized to it, and this fixed measure would shrink it
   if (!props.boundary) {
     setDropdownDimensions(dropdownTarget.value);
   }

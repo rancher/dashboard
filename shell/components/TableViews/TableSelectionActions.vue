@@ -1,11 +1,5 @@
 <script setup lang="ts">
-/**
- * The bulk actions for the rows a table has selected, as one "N Selected" menu.
- *
- * Replaces the row of individual action buttons while the table views toolbar is in use: the
- * toolbar's own row is where the filter lives, so the actions collapse into a single button that
- * is only there when there is a selection to act on.
- */
+/** The bulk actions for the selected rows, as one "N Selected" menu */
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 
@@ -15,9 +9,8 @@ import { useI18n } from '@shell/composables/useI18n';
 import type { TableViewAction } from '@shell/types/table-views';
 
 const props = withDefaults(defineProps<{
-  /** The table's availableActions */
   actions?: TableViewAction[],
-  /** How many rows are selected. None means no menu at all */
+  /** None means no menu at all */
   count?: number,
   actionTooltip?: string | Record<string, unknown> | null,
   testid?: string,
@@ -36,10 +29,6 @@ const emit = defineEmits<{
 
 const { t } = useI18n(useStore());
 
-/**
- * Removing rows is the one action that can't be undone, so it sits on its own below a separator
- * rather than in amongst the rest
- */
 const deleteAction = computed<TableViewAction | null>(() => props.actions.find((act) => act.action === 'promptRemove') ||
   props.actions.find((act) => (!!act.icon && `${ act.icon }`.includes('icon-trash')) || /delete|remove/i.test(act.action || '')) ||
   null);
@@ -82,8 +71,6 @@ const apply = (act: TableViewAction, event: MouseEvent) => emit('click', act, nu
         @mouseleave="emit('mouseleave', null)"
       >
         <template #before>
-          <!-- An action's icon is a font class or an svg the extension supplied. This is the one
-               component that draws either, which is how the row action menu draws them too. -->
           <IconOrSvg
             v-if="act.icon || act.svg"
             :icon="act.icon"

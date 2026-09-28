@@ -1,9 +1,10 @@
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import ResourceTableViews from '@shell/mixins/resource-table-views';
+import type { TableViewField } from '@shell/types/table-views';
 
 // The table views half of ResourceTable is its own mixin, so that is where these live
-const { viewGroupSort } = (ResourceTableViews as any).computed;
-const { groupSortFor } = (ResourceTableViews as any).methods;
+const { viewGroupSort } = ResourceTableViews.computed;
+const { groupSortFor } = ResourceTableViews.methods;
 
 describe('ResourceTable', () => {
   describe('groupSort prop', () => {
@@ -11,13 +12,13 @@ describe('ResourceTable', () => {
       // PaginatedResourceTable passes `:group-sort`. Without this declaration it lands in `$attrs`,
       // and the `v-bind="$attrs"` on SortableTable clobbers the path `viewGroupSort` works out -
       // which left server side grouping unsorted on every paginated list (nodes, for example).
-      expect((ResourceTable as any).props.groupSort).toBeDefined();
+      expect(ResourceTable.props?.groupSort).toBeDefined();
     });
   });
 
   describe('viewGroupSort', () => {
     function createContext({
-      viewGroupField = null as any,
+      viewGroupField = null as Partial<TableViewField> | null,
       groupSort = null as string | null,
     } = {}) {
       return {

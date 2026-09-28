@@ -1,16 +1,7 @@
 <script setup lang="ts">
 /**
- * Asks what to write the chosen resources out as.
- *
- * Opened two ways, and it has to serve both:
- *
- *  - from the toolbar, for everything a view matches. The table owns those rows and knows which
- *    columns are on show, so it is handed the format and does the writing.
- *  - from a resource's own actions, for whatever is selected. Nothing else there knows what was
- *    picked, so the resources come in as a prop and the export is done here.
- *
- * YAML means the same thing whichever way it was opened: the resources as the cluster holds them,
- * which is what the action formerly called Download YAML has always given.
+ * Asks what to export as. From the toolbar the table does the writing; from a resource action the
+ * resources come in as a prop and are written here
  */
 import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
@@ -25,20 +16,13 @@ import { exportColumnsFor, rowsToCsv, rowsToJson } from '@shell/utils/table-view
 import { useI18n } from '@shell/composables/useI18n';
 import type { TableViewRow } from '@shell/types/table-views';
 
-/** The formats a selection or a view can be written out as */
 const FORMATS = ['yaml', 'json', 'csv'] as const;
 
-/**
- * Above how many rows the modal says the export might take a while.
- *
- * A thousand is what an "all matching" export fetches at a time, so past it there is more than
- * one round trip to wait for and the warning is worth the line it takes.
- */
+/** An "all matching" export fetches this many at a time, so past it there is more than one request */
 const SLOW_EXPORT_ROWS = 1000;
 
 type Format = typeof FORMATS[number];
 
-/** A resource handed to the modal: a row its table would show, and a model that can write itself out */
 interface ExportResource extends TableViewRow {
   type: string;
   schema?: object;
@@ -48,22 +32,11 @@ interface ExportResource extends TableViewRow {
 }
 
 const props = withDefaults(defineProps<{
-  /**
-   * How many rows are being exported, or null when that is not known - a view whose query the
-   * api could not count is exported all the same, but there is no true number to show for it
-   */
+  /** null when the api couldn't count the view's query */
   count?: number | null,
-  /** The view being exported, for the sentence naming it */
   viewName?: string,
-  /**
-   * Whether this was opened for a selection rather than for a whole view, which is the only
-   * thing that changes what the modal says
-   */
   isSelection?: boolean,
-  /**
-   * The resources to export. Handed over by the modal manager when a resource action opened
-   * this; empty when the table is driving, because then the table has them.
-   */
+  /** From a resource action; empty when the table is driving */
   resources?: ExportResource[],
 }>(), {
   count:       0,
@@ -80,25 +53,12 @@ const emit = defineEmits<{
 const store = useStore();
 const { t } = useI18n(store);
 
-/**
- * Whichever format the way in was already for.
- *
- * Export As... is the action that used to be Download YAML, reached from a row or from a
- * selection of them, and what is wanted there is the resources as the cluster holds them.
- * Exporting a whole view is the other way round: that is the table as it is being read, so it
- * comes out as a spreadsheet.
- */
+/** A resource action wants the resources as held (YAML); a view is exported as a spreadsheet */
 const format = ref<Format>(props.isSelection ? 'yaml' : 'csv');
 
 const formatOptions = computed(() => FORMATS.map((f) => ({ value: f, label: t(`tableViews.export.format.${ f }`) })));
 
-/**
- * The columns to write for a selection: the ones this resource's table shows.
- *
- * Taken from the type rather than from the table on screen - the action is dispatched by the
- * resource and never learns which table it was picked in. A view that has hidden or added
- * columns is therefore not reflected here, only the type's own set.
- */
+/** The type's own columns: a resource action never learns which table it was picked in */
 const selectionColumns = computed(() => {
   const first = props.resources[0];
   const schema = first?.schema;
@@ -107,9 +67,7 @@ const selectionColumns = computed(() => {
     return [];
   }
 
-  // Server side pagination gives a type its own set of columns, and the table on screen is
-  // showing whichever set applies - asking for the other one puts a column in the file that is
-  // not in the table, or leaves one out
+  // Paginated lists have their own column set, so ask for the one the table is showing
   const paginated = !!first.$ctx?.getters?.paginationEnabled?.({ id: first.type });
   const headers = store.getters['type-map/headersFor'](schema, paginated);
 
@@ -118,7 +76,6 @@ const selectionColumns = computed(() => {
 
 const title = computed(() => (props.isSelection ? t('tableViews.export.selectionTitle') : t('tableViews.export.title')));
 
-/** Which sentence the modal opens with, and what goes into it */
 const intro = computed(() => {
   const slow = (props.count ?? 0) > SLOW_EXPORT_ROWS;
 
@@ -126,8 +83,7 @@ const intro = computed(() => {
     return { k: slow ? 'tableViews.export.selectionIntroSlow' : 'tableViews.export.selectionIntro', args: { count: props.count } };
   }
 
-  // The sentence carries markup and is read for its tags, but the name is a name the user typed,
-  // not markup - a view called `<b>live</b>` should read as its own name
+  // The name is text the user typed, not markup
   const name = escapeHtml(props.viewName);
 
   if (props.count === null) {
@@ -137,13 +93,6 @@ const intro = computed(() => {
   return { k: slow ? 'tableViews.export.introSlow' : 'tableViews.export.intro', args: { count: props.count, name } };
 });
 
-/**
- * The export for resources that arrived without a table behind them.
- *
- * YAML is the resources themselves. The other two are the columns the resource's own table shows,
- * written by the same code the toolbar's export uses - a selection exported from an action and a
- * view exported from the toolbar should not disagree about what a row is.
- */
 const exportResources = async() => {
   const items = props.resources;
   const first = items[0];
@@ -178,11 +127,7 @@ const download = async() => {
     class="export-modal"
     data-testid="table-views-export-modal"
   >
-    <!-- What the modal says, and what it offers to do about it: the two blocks the layout's gap
-         sits between. The spacing within each is its own. -->
     <div class="export-content">
-      <!-- The size is the look, not an outline level: a dialog's title has no honest place in
-           the page's heading structure, and `RcHeading` is the product's way of saying so. -->
       <RcHeading
         :size="3"
         class="export-title"
@@ -191,8 +136,6 @@ const download = async() => {
         {{ title }}
       </RcHeading>
 
-      <!-- The emphasis in each sentence is the translation's, but drawn here, as elements of this
-           component - so it is this component that styles it. -->
       <RichTranslation
         :k="intro.k"
         :args="intro.args"
@@ -225,9 +168,6 @@ const download = async() => {
     </div>
 
     <div class="export-actions">
-      <!-- Large, which is the size a modal's own actions are drawn at across the product - the
-           plain `.btn` these were before is that size, and RcButton's default is a step under
-           it. -->
       <RcButton
         variant="link"
         size="large"
@@ -236,9 +176,6 @@ const download = async() => {
       >
         {{ t('generic.cancel') }}
       </RcButton>
-      <!-- `left-icon` rather than an `<i>` of its own: the button places and sizes the mark
-           against its own label, which is what keeps every button in the product carrying one
-           the same way. -->
       <RcButton
         variant="primary"
         size="large"
@@ -257,26 +194,21 @@ const download = async() => {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  // Between the content and the actions, which are this column's only two children
   gap: 40px;
   padding: 24px;
-  // The band the design gives the modal. The width itself is set on the modal around this.
   min-width: 540px;
   max-width: 860px;
 
-  // Both run the width of the modal, so the actions can sit against its right hand edge
   .export-content,
   .export-actions {
     align-self: stretch;
   }
 
-  // Size 3 is already the 18px the design asks for; the weight is the only thing to say here
   .export-title {
     margin: 0 0 16px 0;
     font-weight: 600;
   }
 
-  // The product's weight for emphasis, not the browser's 700
   .export-intro b,
   .export-choose b {
     font-weight: 600;
@@ -291,8 +223,6 @@ const download = async() => {
     margin-bottom: 16px;
   }
 
-  // Spacing between the options is RadioGroup's own - `row` already lays them out. What follows
-  // the options is the column's gap.
   .export-formats {
     margin-bottom: 0;
   }

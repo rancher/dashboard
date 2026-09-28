@@ -9,7 +9,6 @@ interface ClusterRow {
 
 const props = defineProps<{ row: ClusterRow }>();
 
-// A provisioning cluster carries the numbers on its management cluster; a management one is it
 const cluster = computed(() => props.row?.mgmt || props.row);
 
 const allocatable = computed(() => {
@@ -18,7 +17,7 @@ const allocatable = computed(() => {
   return formatSi(parsed, createMemoryFormat(parsed));
 });
 
-// "0 GiB" and friends mean nothing was reported rather than a cluster with no memory
+// "0 GiB" means nothing was reported
 const hasMemory = computed(() => !!allocatable.value && !allocatable.value.match(/^0 [a-zA-Z]/));
 </script>
 

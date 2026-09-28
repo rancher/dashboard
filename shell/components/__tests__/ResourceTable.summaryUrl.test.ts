@@ -1,7 +1,13 @@
 import ResourceTableViews from '@shell/mixins/resource-table-views';
 
 // The table views half of ResourceTable is its own mixin, so that is where these live
-const { summaryBaseUrl, listScopeFilters, listScopeNamespaces } = (ResourceTableViews as any).computed;
+const { summaryBaseUrl, listScopeFilters, listScopeNamespaces } = ResourceTableViews.computed;
+
+interface UrlForCall {
+  type: string;
+  id: string | null;
+  opt?: { pagination: { page?: number, sort?: unknown, filters: unknown[], projectsOrNamespaces: string[] } };
+}
 
 describe('ResourceTable', () => {
   describe('summaryBaseUrl', () => {
@@ -9,12 +15,12 @@ describe('ResourceTable', () => {
     const viewFilter = { param: 'filter', fields: [{ field: 'metadata.name', value: 'nginx' }] };
 
     function createContext({
-      args = undefined as any,
-      viewFilters = [] as any[],
+      args = undefined as Record<string, unknown> | undefined,
+      viewFilters = [] as object[],
     } = {}) {
-      const calls: any[] = [];
+      const calls: UrlForCall[] = [];
 
-      const ctx: any = {
+      const ctx = {
         calls,
         inStore:                'cluster',
         schema:                 { id: 'pod' },
@@ -22,7 +28,7 @@ describe('ResourceTable', () => {
         serverViewFilters:      { filters: viewFilters, unsupported: [] },
         $store:                 {
           getters: {
-            'cluster/urlFor': (type: string, id: any, opt: any) => {
+            'cluster/urlFor': (type: string, id: string | null, opt?: UrlForCall['opt']) => {
               calls.push({
                 type, id, opt
               });
@@ -52,7 +58,7 @@ describe('ResourceTable', () => {
 
       summaryBaseUrl.call(ctx);
 
-      expect(ctx.calls[0].opt.pagination.projectsOrNamespaces).toStrictEqual(['p-abc']);
+      expect(ctx.calls[0].opt?.pagination.projectsOrNamespaces).toStrictEqual(['p-abc']);
     });
 
     it('should keep the filters the list applies on the user\'s behalf', () => {
@@ -60,7 +66,7 @@ describe('ResourceTable', () => {
 
       summaryBaseUrl.call(ctx);
 
-      expect(ctx.calls[0].opt.pagination.filters).toStrictEqual([nsFilter]);
+      expect(ctx.calls[0].opt?.pagination.filters).toStrictEqual([nsFilter]);
     });
 
     it('should drop the view\'s own query filters, so a field is not narrowed by its own term', () => {
@@ -68,7 +74,7 @@ describe('ResourceTable', () => {
 
       summaryBaseUrl.call(ctx);
 
-      expect(ctx.calls[0].opt.pagination.filters).toStrictEqual([nsFilter]);
+      expect(ctx.calls[0].opt?.pagination.filters).toStrictEqual([nsFilter]);
     });
 
     it('should not ask for a page or a sort, as a summary counts the whole matching set', () => {
@@ -80,8 +86,8 @@ describe('ResourceTable', () => {
 
       summaryBaseUrl.call(ctx);
 
-      expect(ctx.calls[0].opt.pagination.page).toBeUndefined();
-      expect(ctx.calls[0].opt.pagination.sort).toBeUndefined();
+      expect(ctx.calls[0].opt?.pagination.page).toBeUndefined();
+      expect(ctx.calls[0].opt?.pagination.sort).toBeUndefined();
     });
   });
 });

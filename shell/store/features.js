@@ -47,9 +47,7 @@ export const CLUSTER_SHELL = create('cluster-shell', true);
 export const NODE_SHELL = create('node-shell', true);
 export const POD_SHELL = create('pod-shell', true);
 export const HIDE_LOCAL_AUTH_PROVIDER = create('hide-local-auth-provider', false);
-// The table views toolbar - saved views, the filter query, the column and group menus, and the
-// export that comes with them. Not registered by the server yet, so the default below is what
-// decides it until it is; once the flag exists the server's value takes over on its own.
+// Not registered by the server yet, so this default decides until it is
 export const IMPROVED_TABLES = create('ui-improved-tables', true);
 
 // Not currently used.. no point defining ones we don't use

@@ -317,10 +317,7 @@ export const actions = {
   },
 
   async update({ commit, getters }: any, notification: Partial<Notification>) {
-    // Progress lives in the index, so a task ticking along needs nothing else written. Anything
-    // else that changes - a task that finishes turning into a success - is in the encrypted entry,
-    // which is only written when a notification is added. Write it again, or a reload would show
-    // the notification as it first arrived rather than as it ended up.
+    // Only progress lives in the index; anything else has to rewrite the encrypted entry
     if (notification.id && ENCRYPTED_FIELDS.some((field) => field in notification)) {
       const existing = getters.item(notification.id);
 

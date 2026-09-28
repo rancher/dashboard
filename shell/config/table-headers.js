@@ -1213,8 +1213,6 @@ export const PROJECT = {
   labelKey: 'tableHeaders.project',
 };
 
-// The capacity columns the home page shows. Here rather than inline on that page so any list of
-// clusters can offer them - they are the same numbers wherever a cluster is listed.
 export const MGMT_CLUSTER_CPU = {
   name:      'cpu',
   labelKey:  'tableHeaders.cpu',

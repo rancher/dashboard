@@ -1,10 +1,3 @@
-/**
- * Table Views - turning a query into pagination filters.
- *
- * The server-side half of filtering. A term becomes a `PaginationParamFilter` the steve API can
- * apply; a term it cannot apply is reported back rather than dropped, so the toolbar can say the
- * query did not entirely run.
- */
 
 import {
   PaginationParamFilter,
@@ -14,22 +7,14 @@ import {
 import { findField, serverPathFor } from '@shell/utils/table-views/fields';
 import type { TableViewServerFilterResult, TableViewField, TableViewQuery, TableViewTerm } from '@shell/types/table-views';
 
-/** Values with these chars break the `filter=field IN (a,b)` serializer (verbatim insert) */
+/** `filter=field IN (a,b)` inserts values verbatim, so these characters break it */
 function breaksInSerializer(value: string): boolean {
   return /[,()"]/.test(value);
 }
 
 /**
- * Convert parsed view terms into steve/vai `filter=` params.
- *
- * - A field with a single value becomes a partial CONTAINS (`~`) match
- * - The same field with multiple values becomes an `IN (...)` match
- * - Different fields are AND'd (each wrapped in its own PaginationParamFilter)
- * - Free text tokens CONTAINS-match across every server-searchable column (OR within a
- *   token, AND across tokens)
- *
- * Terms whose field has no server-side path (or fails `opts.isAllowed`) are routed to
- * `unsupported` and are NOT applied - they are dropped server-side for v1.
+ * Terms as steve `filter=` params: one value is a CONTAINS match, several on one field an IN.
+ * Different fields are AND'd. Terms with no server path are returned as `unsupported`, not applied
  */
 export function termsToServerFilters(
   terms: TableViewTerm[],
@@ -45,7 +30,6 @@ export function termsToServerFilters(
 
   const isAllowed = opts && typeof opts.isAllowed === 'function' ? opts.isAllowed : () => false;
 
-  // Resolve a field id to the set of allowed server paths (or null if none are allowed)
   const allowedPathsFor = (fieldId: string): string[] | null => {
     const field = findField(fields, fieldId);
 
@@ -64,13 +48,7 @@ export function termsToServerFilters(
     return paths.length ? paths : null;
   };
 
-  // Every server-searchable path, for free-text tokens to OR across.
-  //
-  // Label columns are deliberately left out. Each `metadata.labels[key]` term costs the
-  // pagination API a join, and OR'ing a handful of them together is enough to hang it - a pod
-  // list carrying 14 label columns never answered at all, while the same query across the
-  // ordinary columns came back in under a second. Labels stay searchable by naming one,
-  // `label:app:nginx`, which is a single join.
+  // Label columns are left out: each costs the api a join, and OR'ing several hangs it
   const freeTextPaths: string[] = [];
   const seenPath: Record<string, boolean> = {};
 
@@ -93,7 +71,6 @@ export function termsToServerFilters(
     });
   });
 
-  // Group by field id + negation (like applyQuery, but positive/negative kept per field)
   const groups: Record<string, TableViewTerm[]> = {};
   const order: string[] = [];
   const freeText: TableViewTerm[] = [];
@@ -134,9 +111,7 @@ export function termsToServerFilters(
 
       if (values.length > 1) {
         if (values.some(breaksInSerializer)) {
-          // IN serializer inserts values verbatim, so fall back to CONTAINS
           if (negated) {
-            // NOT: row must satisfy all of them -> AND (one param each)
             values.forEach((value) => {
               filters.push(new PaginationParamFilter({
                 fields: [new PaginationFilterField({
@@ -145,7 +120,6 @@ export function termsToServerFilters(
               }));
             });
           } else {
-            // OR within one param
             filters.push(new PaginationParamFilter({
               fields: values.map((value) => new PaginationFilterField({
                 field: path, value, equality: PaginationFilterEquality.CONTAINS
@@ -167,7 +141,6 @@ export function termsToServerFilters(
         }));
       }
     } else if (negated) {
-      // Multiple columns, negated: row must not match in ANY column -> AND (one param each)
       values.forEach((value) => {
         paths.forEach((path) => {
           filters.push(new PaginationParamFilter({
@@ -178,7 +151,6 @@ export function termsToServerFilters(
         });
       });
     } else {
-      // Multiple columns, positive: OR every (value x column) within one param
       const oredFields: PaginationFilterField[] = [];
 
       values.forEach((value) => {
@@ -193,7 +165,6 @@ export function termsToServerFilters(
     }
   });
 
-  // Free text: one param per token, CONTAINS across every searchable column (OR)
   freeText.forEach((term) => {
     if (!freeTextPaths.length) {
       unsupported.push(term);
@@ -201,9 +172,6 @@ export function termsToServerFilters(
       return;
     }
 
-    // Negated free text means the word appears in no column at all. `not (a or b)` is
-    // `(not a) and (not b)`, and separate params are AND'd - so it is one NOT_CONTAINS per
-    // column rather than something the api can't express.
     if (term.negated) {
       freeTextPaths.forEach((path) => {
         filters.push(new PaginationParamFilter({
@@ -226,31 +194,17 @@ export function termsToServerFilters(
   return { filters, unsupported };
 }
 
-/**
- * How many filter params an `or` is allowed to expand into.
- *
- * The api AND's separate params and OR's the fields inside one, so an `or` between two sides
- * that each carry several conditions has to be turned inside out - and that multiplies. A query
- * elaborate enough to go past this is reported rather than sent as something enormous.
- */
+/** How many params an `or` may expand into before the query is reported instead of sent */
 const MAX_OR_FILTERS = 16;
 
-/** Every term in a query, whichever clause or group it sits in */
 function allTerms(query: TableViewQuery): TableViewTerm[] {
   return (query?.clauses || []).reduce((acc: TableViewTerm[], clause) => acc.concat(...clause.groups), []);
 }
 
 /**
- * Convert a whole query into steve/vai `filter=` params.
- *
- * The api gives us exactly one shape: separate params are AND'd, and the fields within a param
- * are OR'd. `and` is therefore free - it is just more params - while `or` has to be turned
- * inside out, `(a and b) or c` becoming `(a or c) and (b or c)`.
- *
- * Where that cannot be done - a side of an `or` that the api cannot constrain at all, or an
- * expansion too large to be worth sending - nothing is filtered and every term is reported as
- * unsupported, so the toolbar says the query did not run rather than the table narrowing by
- * half of it.
+ * A whole query as `filter=` params. Params are AND'd and the fields within one OR'd, so `or` is
+ * expanded: `(a and b) or c` is `(a or c) and (b or c)`. When that can't be done nothing is
+ * filtered and every term is reported, rather than narrowing by half the query
  */
 export function queryToServerFilters(
   query: TableViewQuery,
@@ -264,7 +218,6 @@ export function queryToServerFilters(
   }
 
   const unsupported: TableViewTerm[] = [];
-  // `and` between groups is just another param, so a clause is the concatenation of its groups
   const perClause = clauses.map((clause) => {
     const filters: PaginationParamFilter[] = [];
 
@@ -282,8 +235,7 @@ export function queryToServerFilters(
     return { filters: perClause[0], unsupported };
   }
 
-  // A side of an `or` that constrains nothing leaves the whole query constraining nothing -
-  // narrowing by the other side alone would hide the rows this one was asking for
+  // Narrowing by the other side alone would hide rows this side asked for
   if (perClause.some((filters) => !filters.length)) {
     return { filters: [], unsupported: allTerms(query) };
   }
@@ -292,7 +244,6 @@ export function queryToServerFilters(
     return { filters: [], unsupported: allTerms(query) };
   }
 
-  // One param for each way of taking one param from every clause, holding all their fields OR'd
   let combinations: PaginationFilterField[][] = [[]];
 
   perClause.forEach((filters) => {

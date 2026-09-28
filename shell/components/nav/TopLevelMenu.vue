@@ -28,9 +28,6 @@ const DRAG_THRESHOLD = 4;
 const DRAG_SCROLL_EDGE = 32;
 const DRAG_SCROLL_MAX = 14;
 const PINNED_TOOLTIP_DISTANCE = 44;
-// Every search that fires re-measures the flyout, so the panel resizes under the cursor. At 200ms that
-// landed inside an ordinary typing rhythm and the height moved on almost every character; this sits past
-// it, so the list settles when you pause rather than while you are still typing.
 
 export default {
   components: {
