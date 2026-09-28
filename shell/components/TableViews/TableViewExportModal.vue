@@ -17,6 +17,7 @@ import { useStore } from 'vuex';
 
 import { RadioGroup } from '@components/Form/Radio';
 import { RcButton } from '@components/RcButton';
+import { RcHeading } from '@components/RcHeading';
 import { downloadFile } from '@shell/utils/download';
 import { escapeHtml } from '@shell/utils/string';
 import { exportColumnsFor, rowsToCsv, rowsToJson } from '@shell/utils/table-views/export';
@@ -159,7 +160,15 @@ const download = async() => {
     <!-- What the modal says, and what it offers to do about it: the two blocks the layout's gap
          sits between. The spacing within each is its own. -->
     <div class="export-content">
-      <h4>{{ title }}</h4>
+      <!-- The size is the look, not an outline level: a dialog's title has no honest place in
+           the page's heading structure, and `RcHeading` is the product's way of saying so. -->
+      <RcHeading
+        :size="3"
+        class="export-title"
+        data-modal-title
+      >
+        {{ title }}
+      </RcHeading>
 
       <p
         v-clean-html="intro"
@@ -227,9 +236,9 @@ const download = async() => {
     align-self: stretch;
   }
 
-  h4 {
+  // Size 3 is already the 18px the design asks for; the weight is the only thing to say here
+  .export-title {
     margin: 0 0 16px 0;
-    font-size: 18px;
     font-weight: 600;
   }
 
