@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 
-import TableViewsBar from '@shell/components/TableViews/TableViewsBar.vue';
+import TableViewTabs from '@shell/components/TableViews/TableViewTabs.vue';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { isViewDirty, selectedViewIdFor } from '@shell/utils/table-views/views';
 
@@ -15,7 +15,7 @@ function makeView(id: string, name: string, overrides = {}) {
   } as any;
 }
 
-describe('TableViewsBar', () => {
+describe('TableViewTabs', () => {
   describe('selectedViewIdFor', () => {
     // Two saved views can hold the same config - a duplicate, or one saved on top of another -
     // and a saved view can hold the same config as the All tab
@@ -79,9 +79,9 @@ describe('TableViewsBar', () => {
         actions: { 'prefs/set': jest.fn() },
       });
 
-      return mount(TableViewsBar, {
+      return mount(TableViewTabs, {
         props: {
-          view: { ...EMPTY }, resourceType: 'test', part: 'tabs', initialViewId
+          view: { ...EMPTY }, resourceType: 'test', initialViewId
         },
         global:  { plugins: [store] },
         shallow: true,
@@ -116,7 +116,7 @@ describe('TableViewsBar', () => {
         actions: { 'prefs/set': (_ctx: any, payload: any) => setPref(payload) },
       });
 
-      const wrapper = mount(TableViewsBar, {
+      const wrapper = mount(TableViewTabs, {
         props: {
           view:         { ...EMPTY, query: 'name:foo' },
           resourceType: 'test',

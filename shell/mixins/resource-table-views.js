@@ -895,18 +895,6 @@ export default {
 
 
     /**
-     * Plural display name of what the table holds, for the export modal's sentence
-     */
-    resourceLabel() {
-      if (!this.schema?.id) {
-        return '';
-      }
-
-      return this.$store.getters['type-map/labelFor'](this.schema, 99).toLowerCase();
-    },
-
-
-    /**
      * Counts for the tabs, worked out here when the filtering is happening in the browser
      */
     localViewCounts() {

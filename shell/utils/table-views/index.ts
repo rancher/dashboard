@@ -1,6 +1,6 @@
 /**
  * Table Views - the query/column/group/export engine behind the toolbar shown above resource
- * tables (see @shell/components/TableViews/TableViewsBar).
+ * tables (see @shell/components/TableViews/TableViewTabs and TableViewControls).
  *
  * A "view" is a saved combination of a filter query, the visible columns and a group by field.
  * Everything here is pure so it can be unit tested and reused by the toolbar and the export menu.
