@@ -1,10 +1,9 @@
 <script>
 import { TABLE_COLUMNS, FIELDS, typeColumns, clusterOptions } from '../templating/widget-data';
 import {
-  SUGGESTED_RESOURCES, blockName, isDownstream, WIDGET_TABLE, WIDGET_LIST, WIDGET_TEXT, WIDGET_LINKS,
-  WIDGET_TIME_SERIES, WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW, WIDGET_NAV
+  SUGGESTED_RESOURCES, blockName, isDownstream, WIDGET_TABLE, WIDGET_LINKS,
+  WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW
 } from '../templating/widget-catalog';
-import { NAV_DESTINATIONS } from './widgets/WidgetNav.vue';
 
 // "What this widget shows" — the panel behind a widget's ⚙.
 //
@@ -41,11 +40,10 @@ export default {
   data() {
     return {
       // Measured after mount: the panel can only be placed well if we know how tall it really is.
-      panelHeight:  0,
-      draft:        JSON.parse(JSON.stringify(this.widget)),
-      resources:    SUGGESTED_RESOURCES,
-      destinations: NAV_DESTINATIONS,
-      fields:       FIELDS,
+      panelHeight: 0,
+      draft:       JSON.parse(JSON.stringify(this.widget)),
+      resources:   SUGGESTED_RESOURCES,
+      fields:      FIELDS,
     };
   },
 
@@ -88,10 +86,7 @@ export default {
 
     // Which sections apply to this building block.
     readsData() {
-      return ![
-        WIDGET_TEXT, WIDGET_LINKS, WIDGET_TIME_SERIES, WIDGET_BANNER,
-        WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW, WIDGET_NAV
-      ].includes(this.draft.kind);
+      return ![WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW].includes(this.draft.kind);
     },
 
     // The Home cluster table is the stock Home's own table — its columns, sorting and actions are
@@ -148,15 +143,7 @@ export default {
     },
 
     hasSort() {
-      return [WIDGET_TABLE, WIDGET_LIST].includes(this.draft.kind);
-    },
-
-    hasGroupBy() {
-      return ['counters', 'statusSummary', 'barChart'].includes(this.draft.kind);
-    },
-
-    hasLimit() {
-      return this.draft.kind === WIDGET_LIST;
+      return this.draft.kind === WIDGET_TABLE;
     },
 
     // The suggested list, plus whatever this widget already points at (which may be a CRD that is
@@ -175,11 +162,6 @@ export default {
       set(value) {
         this.draft.resources = `${ value }`.split('\n').map((r) => r.trim()).filter(Boolean);
       },
-    },
-
-    // Which destinations a navigation widget offers.
-    navSelection() {
-      return (this.draft.links || []).map((l) => l.url);
     },
 
     targetsText: {
@@ -286,20 +268,6 @@ export default {
       return (this.draft.columns || []).includes(id);
     },
 
-    // Navigation buttons reuse the links field: a named destination goes in `url`, and its label
-    // comes from the destination itself.
-    toggleDestination(id) {
-      const links = [...(this.draft.links || [])];
-      const at = links.findIndex((l) => l.url === id);
-
-      if (at >= 0) {
-        links.splice(at, 1);
-      } else {
-        links.push({ url: id, label: '' });
-      }
-
-      this.draft.links = links;
-    },
   },
 };
 </script>
@@ -439,22 +407,6 @@ export default {
           </p>
         </template>
 
-        <template v-if="hasGroupBy">
-          <label class="wsm__label">Group by</label>
-          <select
-            v-model="draft.groupBy"
-            class="wsm__field"
-          >
-            <option
-              v-for="field in fields"
-              :key="field.id"
-              :value="field.id"
-            >
-              {{ field.label }}
-            </option>
-          </select>
-        </template>
-
         <template v-if="hasSort">
           <label class="wsm__label">Sort by</label>
           <div class="wsm__pair">
@@ -487,19 +439,6 @@ export default {
           </div>
         </template>
 
-        <template v-if="hasLimit">
-          <label class="wsm__label">Show at most</label>
-          <input
-            v-model.number="draft.limit"
-            class="wsm__field"
-            type="number"
-            min="0"
-          >
-          <p class="wsm__hint">
-            0 shows every row that matches.
-          </p>
-        </template>
-
         <template v-if="draft.kind === 'text'">
           <label class="wsm__label">Text</label>
           <textarea
@@ -509,26 +448,6 @@ export default {
           />
           <p class="wsm__hint">
             Markdown — headings, **bold**, lists and links all work.
-          </p>
-        </template>
-
-        <template v-if="draft.kind === 'nav'">
-          <label class="wsm__label">Destinations</label>
-          <div class="wsm__columns wsm__columns--wide">
-            <label
-              v-for="dest in destinations"
-              :key="dest.value"
-            >
-              <input
-                type="checkbox"
-                :checked="navSelection.includes(dest.value)"
-                @change="toggleDestination(dest.value)"
-              >
-              {{ dest.label }}
-            </label>
-          </div>
-          <p class="wsm__hint">
-            Each one resolves to the real page, so these keep working when Rancher moves things.
           </p>
         </template>
 

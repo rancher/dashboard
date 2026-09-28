@@ -1,8 +1,7 @@
 <script>
-import TemplatePanel from './TemplatePanel.vue';
 import WidgetHost from './widgets/WidgetHost.vue';
 import {
-  NODE_WIDGET, GRID_COLUMNS, DEFAULT_GAP, cssSize, cssSides, normalizeSides, clampSpan
+  GRID_COLUMNS, DEFAULT_GAP, cssSize, cssSides, normalizeSides, clampSpan
 } from '../templating/view-model';
 
 // ONE widget on the grid.
@@ -18,19 +17,18 @@ import {
 // editor or steal its clicks.
 export default {
   name:       'WidgetNode',
-  components: { TemplatePanel, WidgetHost },
+  components: { WidgetHost },
 
   inject: {
     viewEditor: {
       default: () => ({
-        select:       () => {},
-        remove:       () => {},
-        configure:    () => {},
-        editTemplate: () => {},
-        beginDrag:    () => {},
-        endDrag:      () => {},
-        setColSpan:   () => {},
-        ui:           { dragId: null, showBoxModel: false },
+        select:     () => {},
+        remove:     () => {},
+        configure:  () => {},
+        beginDrag:  () => {},
+        endDrag:    () => {},
+        setColSpan: () => {},
+        ui:         { dragId: null, showBoxModel: false },
       }),
     },
   },
@@ -68,9 +66,7 @@ export default {
   },
 
   computed: {
-    isWidget() {
-      return this.node.type === NODE_WIDGET;
-    },
+
 
     beingDragged() {
       return this.viewEditor.ui?.dragId === this.node.id;
@@ -254,12 +250,6 @@ export default {
     // Hand the settings panel this widget's position so it opens beside it rather than in the
     // middle of the screen — the whole point of settings "in place".
     openSettings() {
-      if (!this.isWidget) {
-        this.viewEditor.editTemplate(this.node.template);
-
-        return;
-      }
-
       const r = this.$el?.getBoundingClientRect?.();
 
       this.viewEditor.configure(this.node.id, r ? { left: Math.round(r.left), top: Math.round(r.top) } : null);
@@ -371,7 +361,7 @@ export default {
       <span class="wnode__bar-gap" />
       <button
         class="wnode__btn"
-        :title="isWidget ? 'What this widget shows' : `Edit this template's content`"
+        title="What this widget shows"
         @click.stop="openSettings"
       >
         <i class="icon icon-gear" />
@@ -386,14 +376,7 @@ export default {
     </div>
 
     <div class="wnode__content">
-      <WidgetHost
-        v-if="isWidget"
-        :widget="node.widget"
-      />
-      <TemplatePanel
-        v-else
-        :name="node.template"
-      />
+      <WidgetHost :widget="node.widget" />
     </div>
 
     <!-- Makes the live widget inert while editing, so a drag starts on the tile, not inside it. -->

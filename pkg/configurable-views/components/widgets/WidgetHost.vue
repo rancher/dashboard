@@ -1,68 +1,27 @@
-<script>
+<script setup lang="ts">
+import { computed, type Component } from 'vue';
 import {
-  WIDGET_TABLE, WIDGET_COUNTERS, WIDGET_STATUS_SUMMARY, WIDGET_LIST, WIDGET_BAR_CHART,
-  WIDGET_TIME_SERIES, WIDGET_TEXT, WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW, WIDGET_NAV
+  WIDGET_TABLE, WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW
 } from '../../templating/widget-catalog';
 import WidgetTable from './WidgetTable.vue';
-import WidgetCounters from './WidgetCounters.vue';
-import WidgetStatusSummary from './WidgetStatusSummary.vue';
-import WidgetList from './WidgetList.vue';
-import WidgetBarChart from './WidgetBarChart.vue';
-import WidgetTimeSeries from './WidgetTimeSeries.vue';
-import WidgetText from './WidgetText.vue';
 import WidgetLinks from './WidgetLinks.vue';
 import WidgetBanner from './WidgetBanner.vue';
 import WidgetClusterTable from './WidgetClusterTable.vue';
 import WidgetOverview from './WidgetOverview.vue';
-import WidgetNav from './WidgetNav.vue';
+import type { WidgetSpec } from '../../templating/types';
 
-// Renders ONE widget spec as whichever building block it names. The only place that maps a `kind`
-// onto a component, so adding a building block means adding it to the catalog and to this map.
-const RENDERERS = {
-  [WIDGET_TABLE]:          'WidgetTable',
-  [WIDGET_COUNTERS]:       'WidgetCounters',
-  [WIDGET_STATUS_SUMMARY]: 'WidgetStatusSummary',
-  [WIDGET_LIST]:           'WidgetList',
-  [WIDGET_BAR_CHART]:      'WidgetBarChart',
-  [WIDGET_TIME_SERIES]:    'WidgetTimeSeries',
-  [WIDGET_TEXT]:           'WidgetText',
-  [WIDGET_LINKS]:          'WidgetLinks',
-  [WIDGET_BANNER]:         'WidgetBanner',
-  [WIDGET_CLUSTER_TABLE]:  'WidgetClusterTable',
-  [WIDGET_OVERVIEW]:       'WidgetOverview',
-  [WIDGET_NAV]:            'WidgetNav',
+/** The only place a `kind` maps onto a component: a new building block is added here and to the catalog. */
+const RENDERERS: Record<string, Component> = {
+  [WIDGET_TABLE]:         WidgetTable,
+  [WIDGET_LINKS]:         WidgetLinks,
+  [WIDGET_BANNER]:        WidgetBanner,
+  [WIDGET_CLUSTER_TABLE]: WidgetClusterTable,
+  [WIDGET_OVERVIEW]:      WidgetOverview,
 };
 
-export default {
-  name:       'WidgetHost',
-  components: {
-    WidgetTable,
-    WidgetCounters,
-    WidgetStatusSummary,
-    WidgetList,
-    WidgetBarChart,
-    WidgetTimeSeries,
-    WidgetText,
-    WidgetLinks,
-    WidgetBanner,
-    WidgetClusterTable,
-    WidgetOverview,
-    WidgetNav
-  },
+const props = defineProps<{ widget: WidgetSpec }>();
 
-  props: {
-    widget: {
-      type:     Object,
-      required: true,
-    },
-  },
-
-  computed: {
-    renderer() {
-      return RENDERERS[this.widget.kind] || null;
-    },
-  },
-};
+const renderer = computed<Component | null>(() => RENDERERS[props.widget.kind] || null);
 </script>
 
 <template>

@@ -20,7 +20,6 @@
 
 /** Node types allowed in a panel's widget list. */
 export const NODE_WIDGET = 'widget';
-export const NODE_TEMPLATE = 'template';
 
 /**
  * A PANEL is either a layout (a list of widgets) or the STOCK Rancher home rendered as-is. A stock
@@ -299,49 +298,18 @@ export function newWidgetNode(widget, opts = {}) {
   };
 }
 
-/** A TEMPLATE widget — the older kind, rendering one stored template ConfigMap. */
-export function newTemplateNode(template, opts = {}) {
-  return {
-    id:       opts.id || uid('tpl'),
-    type:     NODE_TEMPLATE,
-    template: template || '',
-    ...widgetBox(opts, DEFAULT_COL_SPAN),
-  };
-}
-
-/** Coerce one stored entry into a widget, or null when it is neither kind. */
+/**
+ * Coerce one stored entry into a widget, or null when it is not one.
+ *
+ * A stored TEMPLATE node — the older kind, pointing at a template ConfigMap — returns null and is
+ * dropped: templates are gone, and a panel is widgets only.
+ */
 function normalizeNode(node) {
   if (!node || typeof node !== 'object') {
     return null;
   }
 
-  if (node.type === NODE_WIDGET || (!node.type && node.widget)) {
-    return newWidgetNode(node.widget, node);
-  }
-
-  if (node.type === NODE_TEMPLATE || (!node.type && node.template)) {
-    if (!node.template) {
-      return null;
-    }
-
-    // A previous format sized widgets with a CSS width ('66%'); convert it to a column span.
-    return newTemplateNode(node.template, { ...node, colSpan: node.colSpan ?? spanFromWidth(node.width) });
-  }
-
-  return null;
-}
-
-/** Convert an old percentage/fraction width into a 1..12 column span. */
-function spanFromWidth(width) {
-  if (typeof width === 'string' && width.trim().endsWith('%')) {
-    const pct = parseFloat(width);
-
-    if (!Number.isNaN(pct) && pct > 0) {
-      return clampSpan((pct / 100) * GRID_COLUMNS);
-    }
-  }
-
-  return GRID_COLUMNS;
+  return node.type === NODE_WIDGET || (!node.type && node.widget) ? newWidgetNode(node.widget, node) : null;
 }
 
 /**
@@ -452,7 +420,8 @@ function gridToWidgets(gridPanels) {
       padding:  p.pad,
     }))
     .sort((a, b) => a.y - b.y || a.x - b.x)
-    .map((item) => newTemplateNode(item.template, { colSpan: item.w, padding: item.padding }));
+    .map(() => null)
+    .filter(Boolean);
 }
 
 /**
@@ -494,7 +463,7 @@ export function migrateToView(value) {
 
   // Legacy: a single applied template name.
   if (typeof value === 'string' && value) {
-    return finish([newPanel('Home', { widgets: [newTemplateNode(value, { colSpan: GRID_COLUMNS })] })], null);
+    return finish([newPanel('Home')], null);
   }
 
   return emptyView();
@@ -579,7 +548,3 @@ export function setColSpan(widgets, id, span) {
   return updateWidget(widgets, id, (w) => ({ ...w, colSpan: clampSpan(span) }));
 }
 
-/** Every template ConfigMap name referenced by a panel's widgets. */
-export function templatesInView(widgets) {
-  return (widgets || []).filter((w) => w.type === NODE_TEMPLATE).map((w) => w.template);
-}

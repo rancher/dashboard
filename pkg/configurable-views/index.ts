@@ -2,7 +2,6 @@ import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 import HomeLayout from '@shell/components/templates/home.vue';
 import { fetchTemplatingConfigMaps, toggleTemplating } from './templating/template-engine';
-import { ensureInstalled } from './install/ensure';
 import routing from './routing/index';
 import Home from './pages/Home.vue';
 
@@ -93,24 +92,6 @@ export default function(plugin: IPlugin): void {
 
   tryInstall();
 
-  // Auto-install the extension's cluster dependencies (AIAgentConfig agents + a default Home
-  // template + config) once the management store is ready. Idempotent + admin-gated (see
-  // ensureInstalled). Then eagerly fetch the templating ConfigMaps so a hard load of /home has the
-  // applied-Home config ready to render.
-  const tryEnsure = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const app = (window as any).$globalApp;
-
-    if (app?.$store?.state?.managementReady) {
-      Promise.resolve(ensureInstalled(app.$store))
-        .catch(() => {})
-        .finally(() => fetchTemplatingConfigMaps(app.$store));
-    } else {
-      setTimeout(tryEnsure, 500);
-    }
-  };
-
-  tryEnsure();
 
   installShortcut();
 }
