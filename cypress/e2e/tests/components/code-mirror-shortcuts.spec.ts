@@ -32,11 +32,13 @@ describe('CodeMirror editor shortcuts', { tags: ['@components', '@adminUser', '@
     cy.setUserPreference({ keymap: 'emacs' }, true);
 
     yamlEditorPage.goTo();
-    yamlEditorPage.waitForPage('as=yaml');
+    yamlEditorPage.waitForPage();
     editor().checkVisible();
   });
 
+  // Test isolation clears the session between tests, so log in again before resetting the preference
   after(() => {
+    cy.login();
     cy.setUserPreference({ keymap: 'sublime' });
   });
 
