@@ -3,7 +3,7 @@ import { computed, type Component } from 'vue';
 import {
   WIDGET_TABLE, WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW,
   WIDGET_CLUSTER_HEADER, WIDGET_RESOURCE_CARDS, WIDGET_CAPACITY, WIDGET_EVENTS, WIDGET_CERTIFICATES,
-  WIDGET_COMPONENT_STATUS
+  WIDGET_COMPONENT_STATUS, WIDGET_TABS
 } from '../../templating/widget-catalog';
 import WidgetTable from './WidgetTable.vue';
 import WidgetLinks from './WidgetLinks.vue';
@@ -16,6 +16,7 @@ import WidgetCapacity from './WidgetCapacity.vue';
 import WidgetEvents from './WidgetEvents.vue';
 import WidgetCertificates from './WidgetCertificates.vue';
 import WidgetComponentStatus from './WidgetComponentStatus.vue';
+import WidgetTabs from './WidgetTabs.vue';
 import type { WidgetSpec } from '../../templating/types';
 
 /** The only place a `kind` maps onto a component: a new building block is added here and to the catalog. */
@@ -31,11 +32,22 @@ const RENDERERS: Record<string, Component> = {
   [WIDGET_EVENTS]:           WidgetEvents,
   [WIDGET_CERTIFICATES]:     WidgetCertificates,
   [WIDGET_COMPONENT_STATUS]: WidgetComponentStatus,
+  [WIDGET_TABS]:             WidgetTabs,
 };
 
-const props = defineProps<{ widget: WidgetSpec }>();
+const props = withDefaults(defineProps<{
+  widget: WidgetSpec;
+  /** The widget's id on the grid - which a Tabs widget needs to say where a drop into it goes. */
+  nodeId?: string;
+  gap?: number;
+}>(), { nodeId: '', gap: undefined });
 
 const renderer = computed<Component | null>(() => RENDERERS[props.widget.kind] || null);
+
+// Every block is handed its spec; the one that holds widgets also needs its own id and the view's gap.
+const rendererProps = computed(() => (props.widget.kind === WIDGET_TABS ? {
+  widget: props.widget, nodeId: props.nodeId, gap: props.gap
+} : { widget: props.widget }));
 </script>
 
 <template>
@@ -43,7 +55,7 @@ const renderer = computed<Component | null>(() => RENDERERS[props.widget.kind] |
     :is="renderer"
     v-if="renderer"
     :key="widget.kind"
-    :widget="widget"
+    v-bind="rendererProps"
     class="whost"
   />
   <div

@@ -6,7 +6,7 @@ import {
   appliedViewScopes, fetchTemplatingConfigMaps, getPageConfig, savePageConfig, type PageConfig
 } from '../templating/template-engine';
 import { cssSize, isStockView } from '../templating/view-model';
-import type { View, ViewSet } from '../templating/types';
+import type { View, ViewSet, WidgetNode } from '../templating/types';
 
 // Lists the saved views — their VIEWS (which render as tabs) and the WIDGETS on each. Editing
 // happens on the Home page; this page is for seeing what is stored, and for editing it as YAML.
@@ -53,19 +53,25 @@ const sections = computed(() => {
 
 const isStock = (view: View) => isStockView(view);
 
-// A view's widgets, in the order they sit on the grid.
+// A view's widgets, in the order they sit on the grid - and after a Tabs widget, what is in each of
+// its tabs, labelled with the tab.
 function rowsFor(view: View) {
   if (isStockView(view)) {
     return [];
   }
 
-  return view.widgets.map((w) => ({
+  const row = (w: WidgetNode, within = '') => ({
     id:      w.id,
-    label:   w.widget.title || w.widget.kind || 'Widget',
+    label:   `${ within }${ w.widget.title || w.widget.kind || 'Widget' }`,
     kind:    w.widget.kind,
     size:    `col-span-${ w.colSpan }`,
     padding: [w.padding.top, w.padding.right, w.padding.bottom, w.padding.left].map(cssSize).join(' / '),
-  }));
+  });
+
+  return view.widgets.flatMap((w) => [
+    row(w),
+    ...(w.widget.tabs || []).flatMap((tab) => tab.widgets.map((inner) => row(inner, `${ w.widget.title || 'Tabs' } › ${ tab.name } › `))),
+  ]);
 }
 
 // ---- manual YAML editing of the whole stored config (templating-home data.home) ----

@@ -49,6 +49,10 @@ const usedMargin = ref<Measured | null>(null);
 const usedCardPadding = ref<Measured | null>(null);
 
 const beingDragged = computed(() => viewEditor.ui.dragId === props.node.id);
+
+// A widget that holds widgets (Tabs) stays live while editing: its tabs switch, and what is in them
+// is edited in place like anything else on the grid.
+const holdsWidgets = computed(() => !!props.node.widget.tabs);
 const span = computed(() => clampSpan(props.node.colSpan));
 const margin = computed(() => normalizeSides(props.node.margin));
 
@@ -185,8 +189,11 @@ onBeforeUnmount(() => {
   ro = null;
 });
 
-function onSelect(): void {
+// A widget inside a Tabs widget is inside that widget's tile too, so the click is kept from reaching
+// the outer one - it would select the Tabs widget right after this one.
+function onSelect(ev: MouseEvent): void {
   if (props.editing) {
+    ev.stopPropagation();
     viewEditor.select(props.node.id);
   }
 }
@@ -321,12 +328,16 @@ function startResize(ev: PointerEvent): void {
     </div>
 
     <div class="wnode__content">
-      <WidgetHost :widget="node.widget" />
+      <WidgetHost
+        :widget="node.widget"
+        :node-id="node.id"
+        :gap="gap"
+      />
     </div>
 
     <!-- Makes the live widget inert while editing, so a drag starts on the tile, not inside it. -->
     <div
-      v-if="editing"
+      v-if="editing && !holdsWidgets"
       class="wnode__shield"
     />
     <div
