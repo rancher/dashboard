@@ -5,7 +5,7 @@ import {
 } from 'vue';
 import { useStore } from 'vuex';
 import WidgetGrid from './WidgetGrid.vue';
-import HomeViewBar from './HomeViewBar.vue';
+import ViewBar from './ViewBar.vue';
 import EditViewSidebar from './EditViewSidebar.vue';
 import WidgetSettingsModal from './WidgetSettingsModal.vue';
 import { VIEW_EDITOR, type SettingsAnchor, type ViewEditorUi } from '../composables/viewEditor';
@@ -14,44 +14,44 @@ import {
   isTemplatingEnabled, appliedViewScopes, saveView, fetchTemplatingConfigMaps, type PageKey
 } from '../templating/template-engine';
 import {
-  DEFAULT_GAP, DEFAULT_PAGE_PADDING, newId, newPanel, newWidgetNode, isStockPanel, findWidget, builtInStockPanel,
+  DEFAULT_GAP, DEFAULT_PAGE_PADDING, newId, newLayoutView, newWidgetNode, isStockView, findWidget, builtInStockView,
   insertWidget, removeWidget, moveWidget, moveWidgetTo, updateWidget,
   setColSpan as setSpan, heightForPreset, SPACING_PRESETS
 } from '../templating/view-model';
 import type { CatalogEntry } from '../templating/widget-catalog';
 import type {
-  LayoutPanel, Panel, Sides, View, WidgetNode, WidgetSpec
+  LayoutView, View, Sides, ViewSet, WidgetNode, WidgetSpec
 } from '../templating/types';
 
-// A configurable PAGE: the Home, or a cluster's dashboard. It holds that page's panels, and one of
+// A configurable PAGE: the Home, or a cluster's dashboard. It holds that page's views, and one of
 // them is the page Rancher already had, rendered as itself.
 //
-//   PANEL      one named dashboard — "Cluster overview", "Upgrade week". Panels are the tabs in the
+//   VIEW      one named dashboard — "Cluster overview", "Upgrade week". Views are the tabs in the
 //              bar at the top, and each is edited, renamed, duplicated and deleted on its own.
-//   WIDGET     one building block on a panel's grid (a table, a cluster's capacity, a links box),
+//   WIDGET     one building block on a view's grid (a table, a cluster's capacity, a links box),
 //              sized in twelfths and configured in place through its ⚙.
 //
-// A panel is a FLAT, ordered list of widgets that wrap onto lines — there are no rows to manage.
+// A view is a FLAT, ordered list of widgets that wrap onto lines — there are no rows to manage.
 //
-// WHERE PANELS LIVE. Your panels are saved to YOUR account; the ones an admin publishes live in the
+// WHERE VIEWS LIVE. Your views are saved to YOUR account; the ones an admin publishes live in the
 // organization's scope and appear in the same bar. Editing one of those does not change what
-// everyone else sees — it forks the panel into your account first, which is what lets the editing
+// everyone else sees — it forks the view into your account first, which is what lets the editing
 // bar promise "Changes are saved to your account only" without an asterisk. Publishing is the
 // separate, deliberate step in the ⋮ menu.
 //
 // Edits are a DRAFT: nothing is written until Save.
 
 defineOptions({
-  name:         'ConfigurableViewsPanelHost',
+  name:         'ConfigurableViewsPage',
   // Two roots in stock mode (the bar and the page), so the router-view's attrs - `class="outlet"` -
   // are placed by hand: on the stock page itself, or on the configurable surface. See showsStockPage.
   inheritAttrs: false,
 });
 
 const props = defineProps<{
-  /** Which page this is - where its panels are stored. */
+  /** Which page this is - where its views are stored. */
   page: PageKey;
-  /** Rancher's own page, kept as a panel and rendered as itself. */
+  /** Rancher's own page, kept as a view and rendered as itself. */
   stock: Component;
   /** What the bar calls the page. */
   title: string;
@@ -61,8 +61,8 @@ const props = defineProps<{
    * page there keeps its padding.
    */
   layout: 'home' | 'default';
-  /** The name a first panel gets when you start editing with none. */
-  firstPanelName: string;
+  /** The name a first view gets when you start editing with none. */
+  firstViewName: string;
 }>();
 
 const store = useStore();
@@ -75,25 +75,25 @@ const clone = <T, >(value: T): T => JSON.parse(JSON.stringify(value));
 const userId = ref<string | null>(null);
 const loaded = ref(false);
 const editing = ref(false);
-/** The draft: a working copy of YOUR panels while editing. */
-const working = ref<View | null>(null);
+/** The draft: a working copy of YOUR views while editing. */
+const working = ref<ViewSet | null>(null);
 /** JSON of the last SAVED state, for the dirty check. */
 const savedBaseline = ref<string | null>(null);
-const activePanelId = ref<string | null>(null);
-// True once the active panel is a DELIBERATE choice (you clicked it, or an action moved you to it)
+const activeViewId = ref<string | null>(null);
+// True once the active view is a DELIBERATE choice (you clicked it, or an action moved you to it)
 // rather than the fallback taken while the config was still loading.
 const pinnedView = ref(false);
 const selectedNodeId = ref<string | null>(null);
-/** The panel being created, while it has never been saved. */
-const newPanelId = ref<string | null>(null);
-/** What a new panel was started from, for the bar's "From …". */
+/** The view being created, while it has never been saved. */
+const newViewId = ref<string | null>(null);
+/** What a new view was started from, for the bar's "From …". */
 const startedFrom = ref('');
 /** The widget whose settings are open, and where it is on screen so they open beside it. */
 const settingsNodeId = ref<string | null>(null);
 const settingsAnchor = ref<SettingsAnchor | null>(null);
 const saving = ref(false);
 const error = ref('');
-const bar = ref<InstanceType<typeof HomeViewBar> | null>(null);
+const bar = ref<InstanceType<typeof ViewBar> | null>(null);
 
 // Shared, reactive editor UI state: what is being dragged — a widget already on the grid, or a
 // catalog entry on its way in.
@@ -107,20 +107,20 @@ const templatingEnabled = computed(() => isTemplatingEnabled(store.getters));
 
 const scopes = computed(() => appliedViewScopes(store.getters, userId.value, props.page));
 
-// Your saved panels (what the editor writes), and the ones an admin published for the organization.
-const myViews = computed(() => scopes.value.user?.panels || []);
-const orgViews = computed(() => scopes.value.global?.panels || []);
+// Your saved views (what the editor writes), and the ones an admin published for the organization.
+const myViews = computed(() => scopes.value.user?.views || []);
+const orgViews = computed(() => scopes.value.global?.views || []);
 
-// What a brand-new panel is seeded from: the organization template. A stock panel is skipped — it
+// What a brand-new view is seeded from: the organization template. A stock view is skipped — it
 // has no grid, so starting from it would give you nothing to edit.
-const orgTemplate = computed(() => orgViews.value.find((p): p is LayoutPanel => !isStockPanel(p)) || null);
+const orgTemplate = computed(() => orgViews.value.find((p): p is LayoutView => !isStockView(p)) || null);
 
-// Every panel in the bar: the organization's, then your own.
+// Every view in the bar: the organization's, then your own.
 //
-// A panel you have forked takes its source's PLACE rather than being appended — the bar has to stay
+// A view you have forked takes its source's PLACE rather than being appended — the bar has to stay
 // still. Editing "Cluster overview" must not make it jump to the end of the strip.
-const views = computed<Panel[]>(() => {
-  const mine = editing.value ? (working.value?.panels || []) : myViews.value;
+const views = computed<View[]>(() => {
+  const mine = editing.value ? (working.value?.views || []) : myViews.value;
   const forks = new Map(mine.filter((p) => p.from).map((p) => [p.from, p]));
   const orgIds = new Set(orgViews.value.map((p) => p.id));
 
@@ -129,39 +129,39 @@ const views = computed<Panel[]>(() => {
   const all = [...published, ...own];
 
   // Rancher's own page is always one of the tabs - first, when nothing stored already is it.
-  return all.some(isStockPanel) ? all : [builtInStockPanel(props.title), ...all];
+  return all.some(isStockView) ? all : [builtInStockView(props.title), ...all];
 });
 
-const activeView = computed(() => views.value.find((p) => p.id === activePanelId.value) || views.value[0] || null);
+const activeView = computed(() => views.value.find((p) => p.id === activeViewId.value) || views.value[0] || null);
 
-const defaultViewId = computed(() => scopes.value.user?.defaultPanelId || '');
+const defaultViewId = computed(() => scopes.value.user?.defaultViewId || '');
 
-const isNewView = computed(() => !!newPanelId.value && newPanelId.value === activePanelId.value);
+const isNewView = computed(() => !!newViewId.value && newViewId.value === activeViewId.value);
 
-// A STOCK panel renders Rancher's own Home and has no layout to edit.
-const activeIsStock = computed(() => isStockPanel(activeView.value));
+// A STOCK view renders the page's stock component and has no layout to edit.
+const activeIsStock = computed(() => isStockView(activeView.value));
 
-// The active panel's widgets, in order. A flat list — they wrap onto lines by themselves.
-const widgets = computed(() => (activeView.value && !isStockPanel(activeView.value) ? activeView.value.widgets : []));
+// The active view's widgets, in order. A flat list — they wrap onto lines by themselves.
+const widgets = computed(() => (activeView.value && !isStockView(activeView.value) ? activeView.value.widgets : []));
 
-const gap = computed(() => (activeView.value && !isStockPanel(activeView.value) ? activeView.value.gap : DEFAULT_GAP));
+const gap = computed(() => (activeView.value && !isStockView(activeView.value) ? activeView.value.gap : DEFAULT_GAP));
 
-// The space between the grid and the edges of the page — a panel-level setting like the gap.
-const surfaceStyle = computed<CSSProperties>(() => ({ padding: `${ activeView.value && !isStockPanel(activeView.value) ? activeView.value.pad : DEFAULT_PAGE_PADDING }px` }));
+// The space between the grid and the edges of the page — a view-level setting like the gap.
+const surfaceStyle = computed<CSSProperties>(() => ({ padding: `${ activeView.value && !isStockView(activeView.value) ? activeView.value.pad : DEFAULT_PAGE_PADDING }px` }));
 
 const hasContent = computed(() => activeIsStock.value || widgets.value.length > 0);
 
 /**
- * True when what is on screen is Rancher's own Home - and then it is rendered AS Rancher's Home.
+ * True when what is on screen is the stock page - and then it is rendered exactly as Rancher renders it.
  *
  * Not wrapped. The stock page is the router's outlet: it takes `class="outlet"` and sits straight in
  * <main>, with nothing around it. Rendered inside this component's layout it was none of that - four
- * wrappers deep, with the panel's spacing applied to it, 20px in, 20px down and 40px narrower than
+ * wrappers deep, with the view's spacing applied to it, 20px in, 20px down and 40px narrower than
  * the real thing. So in this state the component renders the bar and then the stock page with our
  * attrs on it, which makes its root the outlet exactly as stock. The bar is the only addition.
  *
- * Covers every way of arriving at the stock page: the stock panel chosen, the feature switched off,
- * no panel applied, or an empty one. Editing is the exception - that is our own page, the stock one
+ * Covers every way of arriving at the stock page: the stock view chosen, the feature switched off,
+ * no view applied, or an empty one. Editing is the exception - that is our own page, the stock one
  * shown inside it only so there is something to look at beside the drawer.
  */
 const showsStockPage = computed(() => loaded.value && !editing.value && (activeIsStock.value || !(templatingEnabled.value && activeView.value && hasContent.value)));
@@ -173,52 +173,52 @@ const dirty = computed(() => editing.value && savedBaseline.value !== null && JS
 const selectedNode = computed(() => findWidget(widgets.value, selectedNodeId.value));
 const settingsNode = computed(() => findWidget(widgets.value, settingsNodeId.value));
 
-// The starting points a brand-new panel offers: empty, or a copy of any panel you already have.
+// The starting points a brand-new view offers: empty, or a copy of any view you already have.
 const startingPoints = computed(() => views.value
-  .filter((p) => p.id !== newPanelId.value && !isStockPanel(p))
+  .filter((p) => p.id !== newViewId.value && !isStockView(p))
   .map((p) => ({ id: p.id, label: `Copy ${ p.name }` })));
 
-// ---- which panel is open ------------------------------------------------------------------------------
+// ---- which view is open ------------------------------------------------------------------------------
 
 /**
- * Open on your default panel, or the first one there is.
+ * Open on your default view, or the first one there is.
  *
- * The config arrives in pieces — the organization's panels resolve before your own — so the first
- * pass can only fall back to the first panel there is. That fallback is NOT a choice, and this runs
- * again when the rest lands: your default still wins. A panel you actually picked (`pinnedView`) is
+ * The config arrives in pieces — the organization's views resolve before your own — so the first
+ * pass can only fall back to the first view there is. That fallback is NOT a choice, and this runs
+ * again when the rest lands: your default still wins. A view you actually picked (`pinnedView`) is
  * never moved underneath you.
  */
-function syncActivePanel(): void {
-  if (pinnedView.value && views.value.find((p) => p.id === activePanelId.value)) {
+function syncActiveView(): void {
+  if (pinnedView.value && views.value.find((p) => p.id === activeViewId.value)) {
     return;
   }
 
   const preferred = views.value.find((p) => p.id === defaultViewId.value);
 
   if (preferred) {
-    activePanelId.value = preferred.id;
+    activeViewId.value = preferred.id;
     selectedNodeId.value = null;
 
     return;
   }
 
-  if (!views.value.find((p) => p.id === activePanelId.value)) {
-    activePanelId.value = views.value[0]?.id || null;
+  if (!views.value.find((p) => p.id === activeViewId.value)) {
+    activeViewId.value = views.value[0]?.id || null;
     selectedNodeId.value = null;
   }
 }
 
-// Move to a panel on purpose — and remember that it was on purpose.
+// Move to a view on purpose — and remember that it was on purpose.
 function setActiveView(id: string | null): void {
-  activePanelId.value = id;
+  activeViewId.value = id;
   pinnedView.value = true;
   selectedNodeId.value = null;
 }
 
-// If what is stored changes underneath us (or on first load), keep a valid active panel.
+// If what is stored changes underneath us (or on first load), keep a valid active view.
 watch(scopes, () => {
   if (!editing.value) {
-    syncActivePanel();
+    syncActiveView();
   }
 });
 
@@ -239,7 +239,7 @@ async function load(): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
 
-  syncActivePanel();
+  syncActiveView();
   loaded.value = true;
 }
 
@@ -247,44 +247,44 @@ load();
 
 // ---- the draft ---------------------------------------------------------------------------------------
 
-/** The panel being edited, as it is in the draft. */
-function workingPanel(): Panel | null {
-  return working.value?.panels.find((p) => p.id === activePanelId.value) || null;
+/** The view being edited, as it is in the draft. */
+function workingView(): View | null {
+  return working.value?.views.find((p) => p.id === activeViewId.value) || null;
 }
 
-/** The same, when it is a panel with a grid - which is the only kind with widgets to change. */
-function workingLayout(): LayoutPanel | null {
-  const panel = workingPanel();
+/** The same, when it is a view with a grid - which is the only kind with widgets to change. */
+function workingLayout(): LayoutView | null {
+  const view = workingView();
 
-  return panel && !isStockPanel(panel) ? panel : null;
+  return view && !isStockView(view) ? view : null;
 }
 
-// The draft is always YOUR panels. Editing a published panel forks it into your account first, so an
+// The draft is always YOUR views. Editing a published view forks it into your account first, so an
 // edit can never change what the organization sees by accident.
 //
-// With nothing of yours to edit - no panels on this page, and the one showing is Rancher's own or
-// the organization's - a first panel is started for you. Not when a new panel is about to be made
-// anyway: that is the panel you are starting, and seeding one as well left an empty extra behind.
+// With nothing of yours to edit - no views on this page, and the one showing is Rancher's own or
+// the organization's - a first view is started for you. Not when a new view is about to be made
+// anyway: that is the view you are starting, and seeding one as well left an empty extra behind.
 function enterEdit({ seedFirst = true } = {}): void {
   error.value = '';
 
-  const draft: View = scopes.value.user ? clone(scopes.value.user) : { panels: [] };
+  const draft: ViewSet = scopes.value.user ? clone(scopes.value.user) : { views: [] };
   const active = activeView.value;
 
   working.value = draft;
 
   if (active?.org) {
-    const fork: Panel = {
-      ...clone(active), id: newId('panel'), from: active.id
+    const fork: View = {
+      ...clone(active), id: newId('view'), from: active.id
     };
 
     delete fork.org;
-    draft.panels.push(fork);
+    draft.views.push(fork);
     setActiveView(fork.id);
-  } else if (seedFirst && !draft.panels.length) {
-    const first = newPanel(props.firstPanelName);
+  } else if (seedFirst && !draft.views.length) {
+    const first = newLayoutView(props.firstViewName);
 
-    draft.panels.push(first);
+    draft.views.push(first);
     setActiveView(first.id);
   }
 
@@ -297,18 +297,18 @@ async function leaveEdit(): Promise<void> {
   editing.value = false;
   working.value = null;
   savedBaseline.value = null;
-  newPanelId.value = null;
+  newViewId.value = null;
   startedFrom.value = '';
   selectedNodeId.value = null;
   settingsNodeId.value = null;
   await fetchTemplatingConfigMaps(store);
-  syncActivePanel();
+  syncActiveView();
 }
 
 async function cancelEdit(): Promise<void> {
   if (dirty.value && !await confirm({
     title: 'Discard changes?',
-    body:  'The changes to this panel have not been saved. Leaving the editor discards them.',
+    body:  'The changes to this view have not been saved. Leaving the editor discards them.',
   })) {
     return;
   }
@@ -317,13 +317,13 @@ async function cancelEdit(): Promise<void> {
 }
 
 /**
- * A fork that still matches the published panel it came from is not a decision you made — it is just
+ * A fork that still matches the published view it came from is not a decision you made — it is just
  * where the editor had to put the draft. Saving it would leave a duplicate in the bar forever, so
  * those are dropped on the way out.
  */
-function pruneUntouchedForks(draft: View): void {
-  const strip = (panel: Panel) => {
-    const copy: Partial<Panel> = { ...panel };
+function pruneUntouchedForks(draft: ViewSet): void {
+  const strip = (view: View) => {
+    const copy: Partial<View> = { ...view };
 
     delete copy.id;
     delete copy.from;
@@ -334,23 +334,23 @@ function pruneUntouchedForks(draft: View): void {
   const sources = new Map(orgViews.value.map((p) => [p.id, strip(p)]));
   const dropped = new Set<string>();
 
-  draft.panels = draft.panels.filter((panel) => {
-    const untouched = !!panel.from && sources.get(panel.from) === strip(panel);
+  draft.views = draft.views.filter((view) => {
+    const untouched = !!view.from && sources.get(view.from) === strip(view);
 
     if (untouched) {
-      dropped.add(panel.id);
+      dropped.add(view.id);
     }
 
     return !untouched;
   });
 
-  // Looking at one that just went? Fall back to the published panel it mirrored.
-  if (activePanelId.value && dropped.has(activePanelId.value)) {
-    activePanelId.value = null;
+  // Looking at one that just went? Fall back to the published view it mirrored.
+  if (activeViewId.value && dropped.has(activeViewId.value)) {
+    activeViewId.value = null;
     pinnedView.value = false;
   }
-  if (draft.defaultPanelId && dropped.has(draft.defaultPanelId)) {
-    delete draft.defaultPanelId;
+  if (draft.defaultViewId && dropped.has(draft.defaultViewId)) {
+    delete draft.defaultViewId;
   }
 }
 
@@ -369,7 +369,7 @@ async function save({ keepEditing = false } = {}): Promise<void> {
     pruneUntouchedForks(draft);
     await saveView(store, 'user', draft, userId.value, props.page);
     savedBaseline.value = JSON.stringify(draft);
-    newPanelId.value = null;
+    newViewId.value = null;
     startedFrom.value = '';
     await fetchTemplatingConfigMaps(store);
 
@@ -383,47 +383,47 @@ async function save({ keepEditing = false } = {}): Promise<void> {
   }
 }
 
-// Keep the panel you started from as it was, and save your changes as a panel of their own.
+// Keep the view you started from as it was, and save your changes as a view of their own.
 async function saveAsNewView(): Promise<void> {
   const draft = working.value;
-  const panel = workingPanel();
+  const view = workingView();
 
-  if (!draft || !panel || savedBaseline.value === null) {
+  if (!draft || !view || savedBaseline.value === null) {
     return;
   }
 
-  const copy: Panel = {
-    ...clone(panel), id: newId('panel'), name: `${ panel.name } copy`
+  const copy: View = {
+    ...clone(view), id: newId('view'), name: `${ view.name } copy`
   };
 
   delete copy.from;
 
   // The original goes back to how it was saved; the copy carries the edits.
-  const original = (JSON.parse(savedBaseline.value) as View).panels.find((p) => p.id === panel.id);
+  const original = (JSON.parse(savedBaseline.value) as ViewSet).views.find((p) => p.id === view.id);
 
   if (original) {
-    Object.assign(panel, clone(original));
+    Object.assign(view, clone(original));
   } else {
-    draft.panels = draft.panels.filter((p) => p.id !== panel.id);
+    draft.views = draft.views.filter((p) => p.id !== view.id);
   }
 
-  draft.panels.push(copy);
+  draft.views.push(copy);
   setActiveView(copy.id);
 
   await save();
 }
 
-// ---- panel (tab) actions -----------------------------------------------------------------------------
+// ---- view (tab) actions -----------------------------------------------------------------------------
 
 function renameView(name: string): void {
-  const panel = workingPanel();
+  const view = workingView();
 
-  if (panel) {
-    panel.name = name;
+  if (view) {
+    view.name = name;
   }
 }
 
-// "Rename" from the ⋮ menu: there is one place a panel is named — the bar — so this opens the editor
+// "Rename" from the ⋮ menu: there is one place a view is named — the bar — so this opens the editor
 // and hands the name to the bar to select, rather than inventing a second naming dialog.
 function startRename(): void {
   if (!editing.value) {
@@ -432,7 +432,7 @@ function startRename(): void {
   nextTick(() => bar.value?.selectName());
 }
 
-// A new panel starts from the organization template when there is one — the design's "From the
+// A new view starts from the organization template when there is one — the design's "From the
 // organization template. Not saved yet."
 function newView(): void {
   if (!editing.value) {
@@ -446,47 +446,47 @@ function newView(): void {
   }
 
   const template = orgTemplate.value;
-  const panel: LayoutPanel = template ? {
-    ...clone(template), id: newId('panel'), name: 'Untitled panel'
-  } : newPanel('Untitled panel');
+  const view: LayoutView = template ? {
+    ...clone(template), id: newId('view'), name: 'Untitled view'
+  } : newLayoutView('Untitled view');
 
-  delete panel.org;
-  delete panel.from;
+  delete view.org;
+  delete view.from;
 
-  draft.panels.push(panel);
-  setActiveView(panel.id);
-  newPanelId.value = panel.id;
+  draft.views.push(view);
+  setActiveView(view.id);
+  newViewId.value = view.id;
   startedFrom.value = template ? 'the organization template' : '';
 }
 
-// The starting-point chips on a brand-new panel: swap what it was seeded with.
+// The starting-point chips on a brand-new view: swap what it was seeded with.
 function startFrom(sourceId: string): void {
-  const panel = workingLayout();
+  const view = workingLayout();
 
-  if (!panel) {
+  if (!view) {
     return;
   }
 
   const source = sourceId ? views.value.find((p) => p.id === sourceId) : null;
-  const layout = source && !isStockPanel(source) ? source : null;
+  const layout = source && !isStockView(source) ? source : null;
 
-  panel.widgets = layout ? clone(layout.widgets) : [];
-  panel.gap = layout?.gap ?? DEFAULT_GAP;
+  view.widgets = layout ? clone(layout.widgets) : [];
+  view.gap = layout?.gap ?? DEFAULT_GAP;
   startedFrom.value = source ? source.name : '';
   selectedNodeId.value = null;
 }
 
 // Write a whole user-scope draft straight through (the view-mode actions, which have no draft).
-async function persist(draft: View, activeId: string | null): Promise<void> {
+async function persist(draft: ViewSet, activeId: string | null): Promise<void> {
   saving.value = true;
   error.value = '';
 
   try {
     await saveView(store, 'user', draft, userId.value, props.page);
     await fetchTemplatingConfigMaps(store);
-    activePanelId.value = activeId;
+    activeViewId.value = activeId;
     pinnedView.value = !!activeId;
-    syncActivePanel();
+    syncActiveView();
   } catch (e) {
     error.value = (e as Error)?.message || String(e);
   } finally {
@@ -501,19 +501,19 @@ async function duplicateView(): Promise<void> {
     return;
   }
 
-  const draft: View = scopes.value.user ? clone(scopes.value.user) : { panels: [] };
-  const copy: Panel = {
-    ...clone(source), id: newId('panel'), name: `${ source.name } copy`
+  const draft: ViewSet = scopes.value.user ? clone(scopes.value.user) : { views: [] };
+  const copy: View = {
+    ...clone(source), id: newId('view'), name: `${ source.name } copy`
   };
 
   delete copy.org;
   delete copy.from;
-  draft.panels.push(copy);
+  draft.views.push(copy);
 
   await persist(draft, copy.id);
 }
 
-// Your default is the panel the Home opens on. Setting it on a published panel forks that panel into
+// Your default is the view the Home opens on. Setting it on a published view forks that view into
 // your account first, for the same reason editing does.
 async function setDefaultView(): Promise<void> {
   const active = activeView.value;
@@ -522,46 +522,46 @@ async function setDefaultView(): Promise<void> {
     return;
   }
 
-  const draft: View = scopes.value.user ? clone(scopes.value.user) : { panels: [] };
+  const draft: ViewSet = scopes.value.user ? clone(scopes.value.user) : { views: [] };
   let id = active.id;
 
   if (active.org) {
-    const fork: Panel = {
-      ...clone(active), id: newId('panel'), from: active.id
+    const fork: View = {
+      ...clone(active), id: newId('view'), from: active.id
     };
 
     delete fork.org;
-    draft.panels.push(fork);
+    draft.views.push(fork);
     id = fork.id;
   }
 
-  draft.defaultPanelId = id;
+  draft.defaultViewId = id;
   await persist(draft, id);
 }
 
 /**
- * After publishing, YOUR copy becomes a fork of the panel you just published.
+ * After publishing, YOUR copy becomes a fork of the view you just published.
  *
- * Without this the bar would show the same panel twice — once as yours, once as the organization's —
- * which is not two panels, it is one panel and its shadow.
+ * Without this the bar would show the same view twice — once as yours, once as the organization's —
+ * which is not two views, it is one view and its shadow.
  */
-async function linkToPublished(source: Panel, publishedId: string): Promise<void> {
+async function linkToPublished(source: View, publishedId: string): Promise<void> {
   if (source.org || source.from === publishedId) {
     return;
   }
 
   if (editing.value) {
-    const panel = workingPanel();
+    const view = workingView();
 
-    if (panel) {
-      panel.from = publishedId;
+    if (view) {
+      view.from = publishedId;
     }
 
     return;
   }
 
   const draft = scopes.value.user ? clone(scopes.value.user) : null;
-  const mine = draft?.panels.find((p) => p.id === source.id);
+  const mine = draft?.views.find((p) => p.id === source.id);
 
   if (draft && mine) {
     mine.from = publishedId;
@@ -569,10 +569,10 @@ async function linkToPublished(source: Panel, publishedId: string): Promise<void
   }
 }
 
-// Publish the panel to everyone. It joins the organization's scope, which is the only thing on this
+// Publish the view to everyone. It joins the organization's scope, which is the only thing on this
 // page that is not personal — so it asks first.
 async function publishView(): Promise<void> {
-  const source = editing.value ? workingPanel() : activeView.value;
+  const source = editing.value ? workingView() : activeView.value;
 
   if (!source || !await confirm({
     title:     'Publish to the organization?',
@@ -582,18 +582,18 @@ async function publishView(): Promise<void> {
     return;
   }
 
-  const org: View = scopes.value.global ? clone(scopes.value.global) : { panels: [] };
-  const published: Panel = { ...clone(source), id: source.from || source.id };
+  const org: ViewSet = scopes.value.global ? clone(scopes.value.global) : { views: [] };
+  const published: View = { ...clone(source), id: source.from || source.id };
 
   delete published.org;
   delete published.from;
 
-  const at = org.panels.findIndex((p) => p.id === published.id || p.name === published.name);
+  const at = org.views.findIndex((p) => p.id === published.id || p.name === published.name);
 
   if (at >= 0) {
-    org.panels.splice(at, 1, published);
+    org.views.splice(at, 1, published);
   } else {
-    org.panels.push(published);
+    org.views.push(published);
   }
 
   saving.value = true;
@@ -610,21 +610,21 @@ async function publishView(): Promise<void> {
   }
 }
 
-// Take a panel back out of the organization scope. Any personal fork of it stays, and simply stops
-// being a fork: its `from` now points at nothing, which reads as a plain personal panel.
-async function unpublishView(active: Panel): Promise<void> {
+// Take a view back out of the organization scope. Any personal fork of it stays, and simply stops
+// being a fork: its `from` now points at nothing, which reads as a plain personal view.
+async function unpublishView(active: View): Promise<void> {
   saving.value = true;
   error.value = '';
 
   try {
-    const org: View = scopes.value.global ? clone(scopes.value.global) : { panels: [] };
+    const org: ViewSet = scopes.value.global ? clone(scopes.value.global) : { views: [] };
 
-    org.panels = org.panels.filter((p) => p.id !== active.id);
-    await saveView(store, 'global', org.panels.length ? org : null, userId.value, props.page);
+    org.views = org.views.filter((p) => p.id !== active.id);
+    await saveView(store, 'global', org.views.length ? org : null, userId.value, props.page);
     await fetchTemplatingConfigMaps(store);
-    activePanelId.value = null;
+    activeViewId.value = null;
     pinnedView.value = false;
-    syncActivePanel();
+    syncActiveView();
   } catch (e) {
     error.value = (e as Error)?.message || String(e);
   } finally {
@@ -639,16 +639,16 @@ async function deleteView(): Promise<void> {
     return;
   }
 
-  // A published panel is shared, so it asks for more than a personal one does. Whether the delete is
+  // A published view is shared, so it asks for more than a personal one does. Whether the delete is
   // ALLOWED is not decided here: publishing writes the same ConfigMap with no check of its own, so a
   // check here would only be a suggestion. The write goes to the API and its RBAC answers — a user
   // who may not remove it gets that back as the error below.
   const ask = active.org ? {
-    title:     'Unpublish this panel?',
+    title:     'Unpublish this view?',
     body:      `“${ active.name }” is published for the organization, so this removes it for everyone. Personal copies of it are kept.`,
     applyMode: 'remove',
   } : {
-    title:     'Delete this panel?',
+    title:     'Delete this view?',
     body:      `“${ active.name }” is removed from your ${ props.title }.`,
     applyMode: 'delete',
   };
@@ -664,29 +664,29 @@ async function deleteView(): Promise<void> {
   }
 
   if (editing.value && working.value) {
-    working.value.panels = working.value.panels.filter((p) => p.id !== active.id);
-    activePanelId.value = null;
+    working.value.views = working.value.views.filter((p) => p.id !== active.id);
+    activeViewId.value = null;
     pinnedView.value = false;
     await save();
 
     return;
   }
 
-  const draft: View = scopes.value.user ? clone(scopes.value.user) : { panels: [] };
+  const draft: ViewSet = scopes.value.user ? clone(scopes.value.user) : { views: [] };
 
-  draft.panels = draft.panels.filter((p) => p.id !== active.id);
+  draft.views = draft.views.filter((p) => p.id !== active.id);
   await persist(draft, null);
 }
 
 // ---- grid mutations (draft only) ----------------------------------------------------------------------
 
-// Every change to the grid goes through here: it replaces the active panel's widget list with a new
+// Every change to the grid goes through here: it replaces the active view's widget list with a new
 // one, so a mutation is always a pure list operation over a draft.
 function mutate(fn: (widgets: WidgetNode[]) => WidgetNode[]): void {
-  const panel = workingLayout();
+  const view = workingLayout();
 
-  if (panel) {
-    panel.widgets = fn(panel.widgets);
+  if (view) {
+    view.widgets = fn(view.widgets);
   }
 }
 
@@ -787,18 +787,18 @@ function setNodeBox(box: 'margin' | 'padding', side: keyof Sides, value: string)
 }
 
 function setGap(value: string): void {
-  const panel = workingLayout();
+  const view = workingLayout();
 
-  if (panel) {
-    panel.gap = Math.max(0, Math.min(64, Math.round(Number(value) || 0)));
+  if (view) {
+    view.gap = Math.max(0, Math.min(64, Math.round(Number(value) || 0)));
   }
 }
 
 function setPagePadding(value: string): void {
-  const panel = workingLayout();
+  const view = workingLayout();
 
-  if (panel) {
-    panel.pad = Math.max(0, Math.min(96, Math.round(Number(value) || 0)));
+  if (view) {
+    view.pad = Math.max(0, Math.min(96, Math.round(Number(value) || 0)));
   }
 }
 
@@ -863,7 +863,7 @@ provide(VIEW_EDITOR, {
 // The bar renders in both layouts, so what it is given is written once.
 const barProps = computed(() => ({
   views:       views.value,
-  activeId:    activePanelId.value,
+  activeId:    activeViewId.value,
   editing:     editing.value,
   isNew:       isNewView.value,
   defaultId:   defaultViewId.value,
@@ -889,10 +889,10 @@ const barListeners = {
 </script>
 
 <template>
-  <!-- Rancher's own Home, as Rancher renders it: the bar, then the real page with nothing around
+  <!-- The stock page, as Rancher renders it: the bar, then the real page with nothing around
      it. See showsStockPage. -->
   <template v-if="showsStockPage">
-    <HomeViewBar
+    <ViewBar
       v-if="templatingEnabled"
       ref="bar"
       :title="title"
@@ -908,17 +908,17 @@ const barListeners = {
     <component
       :is="stock"
       v-bind="$attrs"
-      :class="{ 'panel-host__unpadded': layout === 'home' }"
+      :class="{ 'view-host__unpadded': layout === 'home' }"
     />
   </template>
 
   <div
     v-else
     v-bind="$attrs"
-    class="ai-home panel-host__unpadded"
+    class="ai-home view-host__unpadded"
     :class="{ 'ai-home--editing': editing }"
   >
-    <HomeViewBar
+    <ViewBar
       v-if="loaded && templatingEnabled"
       ref="bar"
       :title="title"
@@ -937,14 +937,14 @@ const barListeners = {
        control lives in the drawer beside it. -->
     <div class="ai-home__layout">
       <div class="ai-home__main">
-        <!-- A panel of widgets, or the edit surface. Outside editing, the stock page never reaches
+        <!-- A view of widgets, or the edit surface. Outside editing, the stock page never reaches
          this branch - it renders as itself, above. -->
         <div
           v-if="loaded && templatingEnabled && activeView && (editing || hasContent)"
           class="ai-home__surface"
           :style="surfaceStyle"
         >
-          <!-- Editing a STOCK panel: there is nothing to edit, but the drawer is open beside it. -->
+          <!-- Editing a STOCK view: there is nothing to edit, but the drawer is open beside it. -->
           <component
             :is="stock"
             v-if="activeIsStock"
@@ -968,7 +968,7 @@ const barListeners = {
         v-if="editing"
         :view="activeView"
         :selected="selectedNode"
-        :is-default="activePanelId === defaultViewId"
+        :is-default="activeViewId === defaultViewId"
         :is-stock="activeIsStock"
         :is-new="isNewView"
         :started-from="startedFrom"
@@ -1020,8 +1020,8 @@ const barListeners = {
 //                          own 24px on a cluster's dashboard.
 //   the configurable page  never padded. The bar spans the page the same way on every tab, so it
 //                          does not move when you switch from the stock tab to one of yours; the
-//                          grid is inset by the panel's own spacing setting (see surfaceStyle).
-.panel-host__unpadded {
+//                          grid is inset by the view's own spacing setting (see surfaceStyle).
+.view-host__unpadded {
   padding: 0;
 }
 

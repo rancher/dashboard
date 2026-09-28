@@ -53,7 +53,7 @@ const span = computed(() => clampSpan(props.node.colSpan));
 const margin = computed(() => normalizeSides(props.node.margin));
 
 // The margin/padding bands answer "where do these pixels go?", which is only a question while you
-// are typing pixels — so they are drawn only when the Layout tab's Advanced panel is open.
+// are typing pixels — so they are drawn only when the Layout tab's Advanced section is open.
 const showBoxModel = computed(() => props.selected && viewEditor.ui.showBoxModel);
 
 const style = computed<CSSProperties>(() => {
@@ -191,7 +191,7 @@ function onSelect(): void {
   }
 }
 
-// Hand the settings panel this widget's position so it opens beside it rather than in the middle of
+// Hand the settings this widget's position so they open beside it rather than in the middle of
 // the screen — the whole point of settings "in place".
 function openSettings(): void {
   const r = root.value?.getBoundingClientRect();
@@ -313,7 +313,7 @@ function startResize(ev: PointerEvent): void {
       </button>
       <button
         class="wnode__btn wnode__btn--danger"
-        title="Remove from panel"
+        title="Remove from view"
         @click.stop="viewEditor.remove(node.id)"
       >
         <i class="icon icon-close" />

@@ -3,12 +3,12 @@ import { computed, onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
 import jsyaml from 'js-yaml';
 import {
-  appliedViewScopes, fetchTemplatingConfigMaps, getHomeConfig, saveHomeConfig, type HomeConfig
+  appliedViewScopes, fetchTemplatingConfigMaps, getPageConfig, savePageConfig, type PageConfig
 } from '../templating/template-engine';
-import { cssSize, isStockPanel } from '../templating/view-model';
-import type { Panel, View } from '../templating/types';
+import { cssSize, isStockView } from '../templating/view-model';
+import type { View, ViewSet } from '../templating/types';
 
-// Lists the saved views — their PANELS (which render as tabs) and the WIDGETS on each. Editing
+// Lists the saved views — their VIEWS (which render as tabs) and the WIDGETS on each. Editing
 // happens on the Home page; this page is for seeing what is stored, and for editing it as YAML.
 
 const store = useStore();
@@ -33,33 +33,33 @@ onMounted(async() => {
 
 const scopes = computed(() => appliedViewScopes(store.getters, userId.value));
 
-// The scopes that actually have a view applied, each with its panels.
+// The scopes that actually have a view applied, each with its views.
 const sections = computed(() => {
-  const out: { key: string; label: string; view: View }[] = [];
+  const out: { key: string; label: string; set: ViewSet }[] = [];
 
   if (scopes.value.global) {
     out.push({
-      key: 'global', label: 'Global (everyone)', view: scopes.value.global
+      key: 'global', label: 'Global (everyone)', set: scopes.value.global
     });
   }
   if (scopes.value.user) {
     out.push({
-      key: 'user', label: 'Your Home', view: scopes.value.user
+      key: 'user', label: 'Your Home', set: scopes.value.user
     });
   }
 
   return out;
 });
 
-const isStock = (panel: Panel) => isStockPanel(panel);
+const isStock = (view: View) => isStockView(view);
 
-// A panel's widgets, in the order they sit on the grid.
-function rowsFor(panel: Panel) {
-  if (isStockPanel(panel)) {
+// A view's widgets, in the order they sit on the grid.
+function rowsFor(view: View) {
+  if (isStockView(view)) {
     return [];
   }
 
-  return panel.widgets.map((w) => ({
+  return view.widgets.map((w) => ({
     id:      w.id,
     label:   w.widget.title || w.widget.kind || 'Widget',
     kind:    w.widget.kind,
@@ -73,7 +73,7 @@ function rowsFor(panel: Panel) {
 function openYaml(): void {
   yamlError.value = '';
   yamlStatus.value = '';
-  yamlDraft.value = jsyaml.dump(getHomeConfig(store.getters) || {});
+  yamlDraft.value = jsyaml.dump(getPageConfig(store.getters) || {});
   yamlEditing.value = true;
 }
 
@@ -83,12 +83,12 @@ function cancelYaml(): void {
 }
 
 async function saveYaml(): Promise<void> {
-  let parsed: HomeConfig;
+  let parsed: PageConfig;
 
   try {
     const loadedYaml = jsyaml.load(yamlDraft.value);
 
-    parsed = loadedYaml && typeof loadedYaml === 'object' ? loadedYaml as HomeConfig : {};
+    parsed = loadedYaml && typeof loadedYaml === 'object' ? loadedYaml as PageConfig : {};
   } catch (e) {
     yamlError.value = (e as Error)?.message || 'Invalid YAML';
 
@@ -99,7 +99,7 @@ async function saveYaml(): Promise<void> {
   yamlError.value = '';
 
   try {
-    await saveHomeConfig(store, parsed);
+    await savePageConfig(store, parsed);
     await fetchTemplatingConfigMaps(store);
     yamlStatus.value = 'Saved.';
     yamlEditing.value = false;
@@ -117,8 +117,8 @@ async function saveYaml(): Promise<void> {
       Home Layouts
     </h1>
     <p class="text-muted mb-20">
-      The assembled Home <b>views</b> — each <b>panel</b> (panels render as tabs) and the
-      <b>widgets</b> on it. They live in the <code>templating-home</code> config. Edit them on the
+      Every saved <b>view</b> of the Home — the tabs in its bar — and the
+      <b>widgets</b> on each. They live in the <code>templating-home</code> config. Edit them on the
       <router-link :to="homeRoute">
         Home
       </router-link> page, or by hand with <b>Edit YAML</b>.
@@ -186,26 +186,26 @@ async function saveYaml(): Promise<void> {
     >
       <h3 class="home-layouts__scope-title">
         {{ sec.label }}
-        <span class="text-muted">— {{ sec.view.panels.length }} panel(s)</span>
+        <span class="text-muted">— {{ sec.set.views.length }} view(s)</span>
       </h3>
 
       <div class="home-layouts__tabs">
         <div
-          v-for="panel in sec.view.panels"
-          :key="panel.id"
+          v-for="view in sec.set.views"
+          :key="view.id"
           class="home-layouts__tab"
         >
           <div class="home-layouts__tab-head">
-            <span class="home-layouts__tab-name">{{ panel.name }}</span>
+            <span class="home-layouts__tab-name">{{ view.name }}</span>
             <span
-              v-if="isStock(panel)"
+              v-if="isStock(view)"
               class="text-muted"
             >stock</span>
           </div>
 
-          <!-- A stock panel renders Rancher's own Home; it has no layout to list. -->
+          <!-- A stock view renders Rancher's own Home; it has no layout to list. -->
           <div
-            v-if="isStock(panel)"
+            v-if="isStock(view)"
             class="text-muted home-layouts__empty"
           >
             Rancher's own Home, shown as a tab. Nothing to configure.
@@ -213,7 +213,7 @@ async function saveYaml(): Promise<void> {
 
           <table
             v-else
-            class="home-layouts__panels"
+            class="home-layouts__views"
           >
             <thead>
               <tr>
@@ -225,7 +225,7 @@ async function saveYaml(): Promise<void> {
             </thead>
             <tbody>
               <tr
-                v-for="row in rowsFor(panel)"
+                v-for="row in rowsFor(view)"
                 :key="row.id"
               >
                 <td>
@@ -336,7 +336,7 @@ async function saveYaml(): Promise<void> {
     font-weight: 600;
   }
 
-  &__panels {
+  &__views {
     width:           100%;
     border-collapse: collapse;
 

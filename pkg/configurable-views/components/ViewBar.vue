@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { BUILT_IN_STOCK_ID } from '../templating/view-model';
-import type { Panel } from '../templating/types';
+import type { View } from '../templating/types';
 
-// The bar under the app header — a configurable page's own navigation, and the only place a panel
+// The bar under the app header — a configurable page's own navigation, and the only place a view
 // is switched, renamed, created or published.
 //
 // It has two faces:
@@ -34,7 +34,7 @@ type BarEmits = {
 const props = withDefaults(defineProps<{
   /** The page's name, at the start of the bar: "Home", "Cluster Dashboard". */
   title?: string;
-  views?: Panel[];
+  views?: View[];
   activeId?: string | null;
   editing?: boolean;
   /** A brand-new view that has never been saved — Figma's "New view" state. */
@@ -61,7 +61,7 @@ const emit = defineEmits<BarEmits>();
 
 const menuOpen = ref(false);
 const menuWrap = ref<HTMLElement | null>(null);
-// The editable name - inside the tab loop, so a list; at most one is rendered, the active panel's.
+// The editable name - inside the tab loop, so a list; at most one is rendered, the active view's.
 const nameInput = ref<HTMLInputElement[]>([]);
 
 const activeView = computed(() => props.views.find((v) => v.id === props.activeId) || null);
@@ -78,7 +78,7 @@ const editingHint = computed(() => {
 
 const isDefault = computed(() => !!props.activeId && props.activeId === props.defaultId);
 
-// A published panel is everyone's: the menu offers taking it back out rather than publishing it
+// A published view is everyone's: the menu offers taking it back out rather than publishing it
 // again, and the wording says "unpublish" so nobody reads it as deleting their own copy.
 const isPublished = computed(() => !!activeView.value?.org);
 
@@ -139,7 +139,7 @@ function onName(ev: Event): void {
 }
 
 /**
- * Select the panel's name, ready to be typed over. The ⋮ menu's Rename opens the editor and calls
+ * Select the view's name, ready to be typed over. The ⋮ menu's Rename opens the editor and calls
  * this: the name is edited in one place, here in the bar, rather than in a second naming dialog.
  */
 function selectName(): void {
@@ -174,7 +174,7 @@ defineExpose({ selectName });
           ref="nameInput"
           class="vbar__name"
           :value="view.name"
-          aria-label="Panel name"
+          aria-label="View name"
           @input="onName"
         >
         <button
@@ -191,7 +191,7 @@ defineExpose({ selectName });
 
     <template v-if="editing">
       <i class="icon icon-edit vbar__pencil" />
-      <span class="vbar__mode">{{ isNew ? 'New panel' : 'Editing' }}</span>
+      <span class="vbar__mode">{{ isNew ? 'New view' : 'Editing' }}</span>
       <span class="vbar__hint">{{ editingHint }}</span>
 
       <button
@@ -206,7 +206,7 @@ defineExpose({ selectName });
         :disabled="saving"
         @click="$emit('save-as-new')"
       >
-        Save as new panel
+        Save as new view
       </button>
       <button
         class="btn role-primary vbar__btn"
@@ -220,8 +220,8 @@ defineExpose({ selectName });
     <template v-else>
       <button
         class="vbar__icon-btn"
-        title="Edit this panel"
-        aria-label="Edit this panel"
+        title="Edit this view"
+        aria-label="Edit this view"
         @click="$emit('edit')"
       >
         <i class="icon icon-edit" />
@@ -235,7 +235,7 @@ defineExpose({ selectName });
           class="vbar__icon-btn"
           :class="{ 'vbar__icon-btn--on': menuOpen }"
           title="More"
-          aria-label="More panel actions"
+          aria-label="More view actions"
           :aria-expanded="menuOpen ? 'true' : 'false'"
           @click="toggleMenu"
         >
@@ -248,12 +248,12 @@ defineExpose({ selectName });
         >
           <li>
             <button @click="closeMenu(); $emit('new-view')">
-              New panel
+              New view
             </button>
           </li>
           <li>
             <button @click="closeMenu(); $emit('duplicate')">
-              Duplicate this panel
+              Duplicate this view
             </button>
           </li>
           <li v-if="!isBuiltIn">
@@ -286,7 +286,7 @@ defineExpose({ selectName });
               :disabled="views.length < 2"
               @click="closeMenu(); $emit('delete')"
             >
-              {{ isPublished ? 'Unpublish panel' : 'Delete panel' }}
+              {{ isPublished ? 'Unpublish view' : 'Delete view' }}
             </button>
           </li>
         </ul>

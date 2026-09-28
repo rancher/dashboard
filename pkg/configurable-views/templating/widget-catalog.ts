@@ -217,7 +217,7 @@ export function searchCatalog(list: CatalogEntry[], query: string): CatalogEntry
  *   DOWNSTREAM  /k8s/clusters/<id>/v1, a separate Steve API per cluster. Every Kubernetes type
  *               lives here, once per cluster, so a widget showing one has to say WHICH cluster.
  *
- * `downstream: true` is what makes the settings panel ask for clusters. Without it a Pod widget
+ * `downstream: true` is what makes the settings ask for a cluster. Without it a Pod widget
  * would silently show the local cluster's pods and call them "Pods", which is the sort of quiet
  * wrong answer a dashboard should never give.
  */

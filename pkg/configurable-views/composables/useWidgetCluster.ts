@@ -19,7 +19,7 @@ export function pageClusterOf(route?: Pick<RouteLocationNormalizedLoaded, 'param
  *
  * A widget that names a cluster shows that cluster wherever it is placed. One that names none FOLLOWS
  * THE PAGE - on a cluster's dashboard it shows that cluster, with nothing to set up, and the same
- * saved panel shows each cluster on its own dashboard. On the Home there is no page cluster, so such
+ * saved view shows each cluster on its own dashboard. On the Home there is no page cluster, so such
  * a widget asks for one instead of guessing.
  *
  * `cluster` is '' in exactly that last case, and every cluster widget treats '' as "ask".

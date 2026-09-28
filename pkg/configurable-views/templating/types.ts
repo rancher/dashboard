@@ -1,8 +1,11 @@
 import type { RancherKubeMetadata } from '@shell/types/rancher/steve.api';
 
 /**
- * The shapes behind the configurable Home. These are the STORED contract — a view round-trips
- * through a ConfigMap, so changing a field name here changes what already-saved Homes mean.
+ * The shapes behind the configurable pages. These are the STORED contract — a view set round-trips
+ * through a ConfigMap, so changing a field name here changes what already-saved pages mean; when one
+ * does change, the old name keeps being read (see migrateViewSet).
+ *
+ *   PAGE (the Home, a cluster's dashboard) → VIEWS (tabs, when there is more than one) → WIDGETS
  */
 
 /** Which building block a widget is. */
@@ -83,30 +86,29 @@ export interface WidgetNode extends NodeBox {
   widget: WidgetSpec;
 }
 
-export type PanelNode = WidgetNode;
-
 /**
- * One named view, and one tab in the bar.
+ * A VIEW: one named arrangement of a page's widgets, and a tab in the bar when the page has more
+ * than one.
  *
  * `widgets` is one flat ordered list that WRAPS — a widget starts a new line when there is no room
  * left, the way a paragraph wraps words. There are no rows.
  */
-export interface LayoutPanel {
+export interface LayoutView {
   id: string;
   name: string;
   /** px between widgets. */
   gap: number;
   /** px around the whole grid. */
   pad: number;
-  widgets: PanelNode[];
-  /** This panel IS the published organization template. */
+  widgets: WidgetNode[];
+  /** This view IS the published organization template. */
   org?: boolean;
-  /** The published panel this one was forked from. */
+  /** The published view this one was forked from. */
   from?: string;
 }
 
-/** Rancher's own Home, kept as a tab. It has no grid, so there is nothing to lay out. */
-export interface StockPanel {
+/** Rancher's own page - the Home, a cluster's dashboard - kept as a view. No grid, nothing to lay out. */
+export interface StockView {
   id: string;
   name: string;
   kind: 'stock';
@@ -114,12 +116,12 @@ export interface StockPanel {
   from?: string;
 }
 
-export type Panel = LayoutPanel | StockPanel;
+export type View = LayoutView | StockView;
 
-/** The whole saved document: the panels a person can switch between, and which opens by default. */
-export interface View {
-  panels: Panel[];
-  defaultPanelId?: string;
+/** What one scope - the organization, or one person - has saved for a page: its views, and which opens first. */
+export interface ViewSet {
+  views: View[];
+  defaultViewId?: string;
   /** The scope is switched off: it renders nothing, and the scope beneath it shows instead. */
   disabled?: boolean;
 }

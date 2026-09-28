@@ -2,7 +2,7 @@ import { inject, type InjectionKey } from 'vue';
 import type { CatalogEntry } from '../templating/widget-catalog';
 
 /**
- * What the grid and every widget on it share while a panel is being edited. One reactive object,
+ * What the grid and every widget on it share while a view is being edited. One reactive object,
  * owned by the Home, so a drag started on one widget lights up the drop targets everywhere else.
  */
 export interface ViewEditorUi {
