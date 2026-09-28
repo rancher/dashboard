@@ -78,6 +78,12 @@ export default {
     isDefault() {
       return !!this.activeId && this.activeId === this.defaultId;
     },
+
+    // A published panel is everyone's: the menu offers taking it back out rather than publishing it
+    // again, and the wording says "unpublish" so nobody reads it as deleting their own copy.
+    isPublished() {
+      return !!this.activeView?.org;
+    },
   },
 
   /**
@@ -265,18 +271,21 @@ export default {
             </button>
           </li>
           <li class="vbar__menu-sep" />
-          <li>
+          <li v-if="!isPublished">
             <button @click="run('publish')">
               Publish as organization template
             </button>
           </li>
-          <li class="vbar__menu-sep" />
+          <li
+            v-if="!isPublished"
+            class="vbar__menu-sep"
+          />
           <li>
             <button
               :disabled="views.length < 2"
               @click="run('delete')"
             >
-              Delete panel
+              {{ isPublished ? 'Unpublish panel' : 'Delete panel' }}
             </button>
           </li>
         </ul>

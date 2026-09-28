@@ -575,13 +575,22 @@ export default {
     async deleteView() {
       const active = this.activeView;
 
-      if (!active || !window.confirm(`Delete the view “${ active.name }”?`)) {
+      if (!active) {
         return;
       }
 
-      // A published view is not yours to delete — hiding it means keeping an empty fork of it.
+      // A published panel is shared, so it asks for more than a personal one does. Whether the
+      // delete is ALLOWED is not decided here: publishing writes the same ConfigMap with no check
+      // of its own, so a check here would only be a suggestion. The write goes to the API and its
+      // RBAC answers — a user who may not remove it gets that back as the error below.
+      const ask = active.org ? `Unpublish “${ active.name }”? It is published for the organization, so this removes it for everyone.` : `Delete the view “${ active.name }”?`;
+
+      if (!window.confirm(ask)) {
+        return;
+      }
+
       if (active.org) {
-        this.error = 'That view is published for the organization. An administrator has to remove it.';
+        await this.unpublishView(active);
 
         return;
       }
@@ -599,6 +608,28 @@ export default {
 
       draft.panels = draft.panels.filter((p) => p.id !== active.id);
       await this.persist(draft, null);
+    },
+
+    // Take a panel back out of the organization scope. Any personal fork of it stays, and simply
+    // stops being a fork: its `from` now points at nothing, which reads as a plain personal panel.
+    async unpublishView(active) {
+      this.saving = true;
+      this.error = '';
+
+      try {
+        const org = this.clone(this.scopes.global) || { panels: [] };
+
+        org.panels = (org.panels || []).filter((p) => p.id !== active.id);
+        await saveView(this.$store, 'global', org.panels.length ? org : null, this.userId);
+        await fetchTemplatingConfigMaps(this.$store).catch(() => {});
+        this.activePanelId = null;
+        this.pinnedView = false;
+        this.syncActivePanel();
+      } catch (e) {
+        this.error = e?.message || String(e);
+      } finally {
+        this.saving = false;
+      }
     },
 
     // Write a whole user-scope draft straight through (the view-mode actions, which have no draft).
