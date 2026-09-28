@@ -16,6 +16,7 @@ import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 
 import { RadioGroup } from '@components/Form/Radio';
+import RichTranslation from '@shell/components/RichTranslation.vue';
 import { RcButton } from '@components/RcButton';
 import { RcHeading } from '@components/RcHeading';
 import { downloadFile } from '@shell/utils/download';
@@ -107,22 +108,23 @@ const selectionColumns = computed(() => {
 
 const title = computed(() => (props.isSelection ? t('tableViews.export.selectionTitle') : t('tableViews.export.title')));
 
+/** Which sentence the modal opens with, and what goes into it */
 const intro = computed(() => {
   const slow = (props.count ?? 0) > SLOW_EXPORT_ROWS;
 
   if (props.isSelection) {
-    return t(slow ? 'tableViews.export.selectionIntroSlow' : 'tableViews.export.selectionIntro', { count: props.count }, true);
+    return { k: slow ? 'tableViews.export.selectionIntroSlow' : 'tableViews.export.selectionIntro', args: { count: props.count } };
   }
 
-  // The sentence around it is markup, so it is rendered as html - but the name is a name the user
-  // typed, not markup, and a view called `<b>live</b>` should read as its own name
+  // The sentence carries markup and is read for its tags, but the name is a name the user typed,
+  // not markup - a view called `<b>live</b>` should read as its own name
   const name = escapeHtml(props.viewName);
 
   if (props.count === null) {
-    return t('tableViews.export.introUncounted', { name }, true);
+    return { k: 'tableViews.export.introUncounted', args: { name } };
   }
 
-  return t(slow ? 'tableViews.export.introSlow' : 'tableViews.export.intro', { count: props.count, name }, true);
+  return { k: slow ? 'tableViews.export.introSlow' : 'tableViews.export.intro', args: { count: props.count, name } };
 });
 
 /**
@@ -179,14 +181,27 @@ const download = async() => {
         {{ title }}
       </RcHeading>
 
-      <p
-        v-clean-html="intro"
+      <!-- The emphasis in each sentence is the translation's, but drawn here, as elements of this
+           component - so it is this component that styles it. -->
+      <RichTranslation
+        :k="intro.k"
+        :args="intro.args"
+        tag="p"
         class="export-intro"
-      />
-      <p
-        v-clean-html="t('tableViews.export.choose', {}, true)"
+      >
+        <template #b="{ content }">
+          <b v-clean-html="content" />
+        </template>
+      </RichTranslation>
+      <RichTranslation
+        k="tableViews.export.choose"
+        tag="p"
         class="export-choose"
-      />
+      >
+        <template #b="{ content }">
+          <b v-clean-html="content" />
+        </template>
+      </RichTranslation>
 
       <RadioGroup
         v-model:value="format"
@@ -251,13 +266,10 @@ const download = async() => {
     font-weight: 600;
   }
 
-  // The emphasis in both sentences is markup the translation carries, so `:deep` is the only
-  // way to reach it - and it is the product's weight for emphasis, not the browser's 700.
-  .export-intro,
-  .export-choose {
-    :deep(b) {
-      font-weight: 600;
-    }
+  // The product's weight for emphasis, not the browser's 700
+  .export-intro b,
+  .export-choose b {
+    font-weight: 600;
   }
 
   .export-intro {
