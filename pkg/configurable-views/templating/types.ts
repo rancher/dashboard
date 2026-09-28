@@ -21,12 +21,18 @@ export type WidgetKind =
   | 'clusterEvents'
   | 'clusterCertificates'
   | 'clusterComponentStatus'
+  | 'clusterAlerts'
+  | 'clusterMetrics'
+  | 'clusterExtensionCards'
   | 'tabs';
 
 export type SortDir = 'asc' | 'desc';
 
 /** 'view' covers every cluster the view can see; 'custom' only those named in `targets`. */
 export type WidgetScope = 'view' | 'custom';
+
+/** Which of the cluster dashboard's Grafana dashboards a metrics widget shows. */
+export type MetricsDashboard = 'cluster' | 'k8s' | 'etcd';
 
 /** A links widget shows either Rancher's own links ('home') or the ones in `links` ('custom'). */
 export type LinkSource = 'home' | 'custom';
@@ -60,6 +66,8 @@ export interface WidgetSpec {
   links: WidgetLink[];
   subtitle?: string;
   image?: string;
+  /** A metrics widget's dashboard. */
+  metrics?: MetricsDashboard;
   /** A Tabs widget's tabs, each with widgets of its own. */
   tabs?: WidgetTab[];
 }

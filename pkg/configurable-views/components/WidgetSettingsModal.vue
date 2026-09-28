@@ -3,8 +3,9 @@ import {
   computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch, type CSSProperties
 } from 'vue';
 import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import { MANAGEMENT } from '@shell/config/types';
-import { FIELDS, typeColumns, clusterOptions } from '../templating/widget-data';
+import { FIELDS, typeColumns, clusterOptions, METRICS_DASHBOARDS } from '../templating/widget-data';
 import { newId } from '../templating/view-model';
 import {
   SUGGESTED_RESOURCES, blockName, isDownstream, isClusterWidget, WIDGET_TABLE, WIDGET_LINKS,
@@ -51,6 +52,7 @@ type SettingsEmits = {
 const emit = defineEmits<SettingsEmits>();
 
 const store = useStore();
+const { t } = useI18n(store);
 
 const root = ref<HTMLElement | null>(null);
 const dialog = ref<HTMLElement | null>(null);
@@ -510,6 +512,26 @@ onBeforeUnmount(() => {
             class="wsm__field"
             placeholder="Leave empty for the Rancher banner"
           >
+        </template>
+
+        <template v-if="draft.kind === 'clusterMetrics'">
+          <label class="wsm__label">Dashboard</label>
+          <select
+            v-model="draft.metrics"
+            class="wsm__field"
+          >
+            <option
+              v-for="(board, id) in METRICS_DASHBOARDS"
+              :key="id"
+              :value="id"
+            >
+              {{ t(board.labelKey) }}
+            </option>
+          </select>
+          <p class="wsm__hint">
+            One of the Grafana dashboards the cluster dashboard shows when the cluster has Rancher's
+            monitoring.
+          </p>
         </template>
 
         <template v-if="draft.kind === 'tabs'">
