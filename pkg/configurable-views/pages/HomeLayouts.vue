@@ -1,10 +1,7 @@
 <script>
 import jsyaml from 'js-yaml';
-import {
-  appliedViewScopes, fetchTemplatingConfigMaps, getHomeConfig, saveHomeConfig, ROUTE_SETTINGS
-} from '../templating/template-engine';
+import { appliedViewScopes, fetchTemplatingConfigMaps, getHomeConfig, saveHomeConfig } from '../templating/template-engine';
 import { isStockPanel } from '../templating/view-model';
-import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
 // Lists the saved views — their PANELS (which render as tabs) and the WIDGETS on each. Editing
 // happens on the Home page; this page is for seeing what is stored, and for editing it as YAML.
@@ -56,10 +53,6 @@ export default {
 
     homeRoute() {
       return { name: 'home' };
-    },
-
-    settingsRoute() {
-      return { name: ROUTE_SETTINGS, params: { cluster: BLANK_CLUSTER } };
     },
   },
 
@@ -128,11 +121,7 @@ export default {
     </h1>
     <p class="text-muted mb-20">
       The assembled Home <b>views</b> — each <b>panel</b> (panels render as tabs) and the
-      <b>widgets</b> on it. Views aren't templates (they live in the
-      <code>templating-home</code> config), so they don't show on the
-      <router-link :to="settingsRoute">
-        Home Templates
-      </router-link> page. Edit them on the
+      <b>widgets</b> on it. They live in the <code>templating-home</code> config. Edit them on the
       <router-link :to="homeRoute">
         Home
       </router-link> page, or by hand with <b>Edit YAML</b>.

@@ -2,11 +2,11 @@
 import { Checkbox } from '@components/Form/Checkbox';
 import { isTemplatingEnabled, toggleTemplating, fetchTemplatingConfigMaps } from '../templating/template-engine';
 
-// AI Templating settings — the global kill switch for the custom Home. Always reachable (even when
-// off) so the feature can be turned back on. Home templates are stored as labeled ConfigMaps and
+// Configurable Views settings — the global kill switch for the custom Home. Always reachable (even
+// when off) so the feature can be turned back on. Views are stored as labeled ConfigMaps and
 // authored in the Home editor.
 export default {
-  name:       'AiTemplatingSettings',
+  name:       'ConfigurableViewsSettings',
   components: { Checkbox },
 
   async created() {
@@ -53,11 +53,11 @@ export default {
 <template>
   <div class="configurable-views-settings">
     <h1 class="mb-10">
-      AI Templating
+      Configurable Views
     </h1>
     <p class="text-muted mb-20">
-      The configurable Home and its templates are stored as labeled <code>ConfigMap</code>s and
-      authored in the <b>Home</b> editor (with the AI assistant).
+      The configurable Home is stored as labeled <code>ConfigMap</code>s and authored in the
+      <b>Home</b> editor.
     </p>
 
     <div
