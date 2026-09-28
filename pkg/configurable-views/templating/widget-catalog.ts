@@ -47,6 +47,7 @@ export const WIDGET_RESOURCE_CARDS: WidgetKind = 'resourceCards';
 export const WIDGET_CAPACITY: WidgetKind = 'clusterCapacity';
 export const WIDGET_EVENTS: WidgetKind = 'clusterEvents';
 export const WIDGET_CERTIFICATES: WidgetKind = 'clusterCertificates';
+export const WIDGET_COMPONENT_STATUS: WidgetKind = 'clusterComponentStatus';
 
 /**
  * The kinds that are ABOUT one cluster - the pieces of a cluster's dashboard.
@@ -54,7 +55,7 @@ export const WIDGET_CERTIFICATES: WidgetKind = 'clusterCertificates';
  * Each shows the cluster it names, or the page's when it names none (see useWidgetCluster), so the
  * settings ask for a cluster for these and for nothing else of theirs.
  */
-const CLUSTER_WIDGETS: WidgetKind[] = [WIDGET_CLUSTER_HEADER, WIDGET_RESOURCE_CARDS, WIDGET_CAPACITY, WIDGET_EVENTS, WIDGET_CERTIFICATES];
+const CLUSTER_WIDGETS: WidgetKind[] = [WIDGET_CLUSTER_HEADER, WIDGET_RESOURCE_CARDS, WIDGET_CAPACITY, WIDGET_COMPONENT_STATUS, WIDGET_EVENTS, WIDGET_CERTIFICATES];
 
 export function isClusterWidget(kind: string): boolean {
   return (CLUSTER_WIDGETS as string[]).includes(kind);
@@ -141,6 +142,14 @@ export const READY_MADE: CatalogEntry[] = [
     icon: 'table',
     span: 12,
     spec: { kind: WIDGET_CAPACITY, title: '' },
+  },
+  {
+    id:   'cluster-component-status',
+    name: 'Component status',
+    desc: "A cluster's etcd, scheduler, controller manager and Rancher and Fleet agents",
+    icon: 'links',
+    span: 12,
+    spec: { kind: WIDGET_COMPONENT_STATUS, title: '' },
   },
   {
     id:   'cluster-events',

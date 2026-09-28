@@ -237,7 +237,7 @@ export function spacingPresetOf(padding: unknown): string | null {
  *
  *   kind        which building block: table | links | banner | clusterTable | overview |
  *               clusterHeader | resourceCards | clusterCapacity | clusterEvents |
- *               clusterCertificates
+ *               clusterCertificates | clusterComponentStatus
  *   title       heading shown on the widget
  *   resource    the Rancher/Kubernetes type it reads (any kind Rancher knows, including CRDs)
  *   where       'view'   — the same clusters the view covers

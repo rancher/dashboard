@@ -16,7 +16,8 @@ export type WidgetKind =
   | 'resourceCards'
   | 'clusterCapacity'
   | 'clusterEvents'
-  | 'clusterCertificates';
+  | 'clusterCertificates'
+  | 'clusterComponentStatus';
 
 export type SortDir = 'asc' | 'desc';
 
