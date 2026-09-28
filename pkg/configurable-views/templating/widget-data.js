@@ -526,7 +526,7 @@ export function clusterOptions(getters) {
  * because a total that quietly stops being a total is worse than a visible limit.
  */
 export async function fetchClusterPage(store, {
-  resource, cluster, page = 1, pageSize = 10, sortBy, sortDir, filters = [], filtered = false, cap = 500
+  resource, cluster, page = 1, pageSize = 10, sortBy = '', sortDir = 'asc', sort: fixedSort, filters, filtered = false, cap = 500
 }) {
   if (!resource || !cluster) {
     return {
@@ -534,8 +534,10 @@ export async function fetchClusterPage(store, {
     };
   }
 
-  const field = steveSortField(store.getters, resource, sortBy);
-  const sort = field ? [{ field, asc: sortDir !== 'desc' }] : [];
+  // A widget with a fixed order (newest events first) passes it as Steve fields; otherwise the
+  // chosen column is translated, and one Steve cannot sort by means "ask unsorted".
+  const field = fixedSort ? null : steveSortField(store.getters, resource, sortBy);
+  const sort = fixedSort || (field ? [{ field, asc: sortDir !== 'desc' }] : []);
   const res = await store.dispatch('management/findPage', {
     type: resource,
     opt:  {
@@ -545,7 +547,7 @@ export async function fetchClusterPage(store, {
       pagination: filtered ? {
         page: 1, pageSize: cap, sort
       } : {
-        page, pageSize, sort, filters
+        page, pageSize, sort, filters: filters || []
       },
     },
   });
@@ -733,5 +735,58 @@ export async function fetchClusterCapacity(store, cluster) {
 
   return {
     hasStats, pods, cores, memory, cpuUsed, ramUsed
+  };
+}
+
+/**
+ * EVERY row of a type in one cluster, narrowed by `filters`, up to `cap`.
+ *
+ * For a list whose order the API cannot produce - certificates, sorted by when they expire, which is
+ * read out of the certificate itself - the only honest way to sort is to hold them all. The
+ * dashboard's own Certificates list does exactly this, and says why. `truncated` says when the cap
+ * cut the list short, so the sort is never quietly over a sample.
+ */
+export async function fetchClusterRows(store, {
+  resource, cluster, filters, cap = 500
+}) {
+  const res = await store.dispatch('management/findPage', {
+    type: resource,
+    opt:  {
+      url:        clusterUrl(cluster, resource),
+      transient:  true,
+      watch:      false,
+      pagination: {
+        page: 1, pageSize: cap, sort: [], filters: filters || []
+      },
+    },
+  });
+  const count = res?.pagination?.result?.count ?? res?.data?.length ?? 0;
+
+  return { rows: res?.data || [], truncated: count > cap };
+}
+
+/**
+ * Where a Kubernetes object lives in the UI, in the cluster a widget names.
+ *
+ * The shell's own link formatters route into `clusterId` - the cluster that is OPEN - which on the
+ * Home is none and on another cluster's dashboard is the wrong one. This builds the same route
+ * against the widget's cluster instead. `kind` + `apiVersion` become the type id the way the
+ * shell's InvolvedObjectLink derives it.
+ */
+export function objectRoute(cluster, {
+  kind, apiVersion, name, namespace
+} = {}) {
+  if (!cluster || !kind || !name) {
+    return null;
+  }
+
+  const parts = typeof apiVersion === 'string' ? apiVersion.split('/') : [];
+  const resource = parts.length > 1 ? `${ parts[0] }.${ kind.toLowerCase() }` : kind.toLowerCase();
+
+  return {
+    name:   `c-cluster-product-resource${ namespace ? '-namespace' : '' }-id`,
+    params: {
+      cluster, product: 'explorer', resource, id: name, ...(namespace ? { namespace } : {})
+    },
   };
 }

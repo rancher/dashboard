@@ -217,7 +217,8 @@ export function spacingPresetOf(padding) {
  * optional; a widget with only a `kind` renders its own sensible default.
  *
  *   kind        which building block: table | links | banner | clusterTable | overview |
- *               clusterHeader | resourceCards | clusterCapacity
+ *               clusterHeader | resourceCards | clusterCapacity | clusterEvents |
+ *               clusterCertificates
  *   title       heading shown on the widget
  *   resource    the Rancher/Kubernetes type it reads (any kind Rancher knows, including CRDs)
  *   where       'view'   — the same clusters the view covers

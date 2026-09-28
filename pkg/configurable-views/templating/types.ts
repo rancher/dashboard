@@ -14,7 +14,9 @@ export type WidgetKind =
   | 'overview'
   | 'clusterHeader'
   | 'resourceCards'
-  | 'clusterCapacity';
+  | 'clusterCapacity'
+  | 'clusterEvents'
+  | 'clusterCertificates';
 
 export type SortDir = 'asc' | 'desc';
 
