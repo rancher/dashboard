@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import { Checkbox } from '@components/Form/Checkbox';
 import { isTemplatingEnabled, toggleTemplating, fetchTemplatingConfigMaps } from '../templating/template-engine';
 
-// Configurable Views settings — the global kill switch for the custom Home. Always reachable (even
-// when off) so the feature can be turned back on.
+// Configurable Views settings — the global kill switch for the configurable pages. Always reachable
+// (even when off) so the feature can be turned back on.
 
 const store = useStore();
+const { t } = useI18n(store);
 
 const toggling = ref(false);
 
@@ -25,12 +27,12 @@ async function onToggle(value: boolean): Promise<void> {
     const now = await toggleTemplating(store, value);
 
     store.dispatch('growl/success', {
-      title:   'Configurable Views',
-      message: now ? 'The configurable Home is on.' : 'The configurable Home is off — showing the stock Home.',
+      title:   t('configurableViews.toggle.title'),
+      message: now ? t('configurableViews.toggle.turnedOn') : t('configurableViews.toggle.turnedOff'),
     }, { root: true });
   } catch (e) {
     store.dispatch('growl/error', {
-      title:   'Could not change the setting',
+      title:   t('configurableViews.toggle.failed'),
       message: (e as Error)?.message || String(e),
     }, { root: true });
   } finally {
@@ -42,11 +44,10 @@ async function onToggle(value: boolean): Promise<void> {
 <template>
   <div class="configurable-views-settings">
     <h1 class="mb-10">
-      Configurable Views
+      {{ t('configurableViews.toggle.title') }}
     </h1>
     <p class="text-muted mb-20">
-      The configurable Home is stored as labeled <code>ConfigMap</code>s and authored in the
-      <b>Home</b> editor.
+      {{ t('configurableViews.settings.intro') }}
     </p>
 
     <div
@@ -56,12 +57,11 @@ async function onToggle(value: boolean): Promise<void> {
       <Checkbox
         :value="enabled"
         :disabled="toggling"
-        label="Configurable Home enabled"
+        :label="t('configurableViews.settings.enabled')"
         @update:value="onToggle"
       />
       <p class="text-muted mt-5 mb-0">
-        When off, Rancher ignores every Home template and behaves like stock Rancher. This page stays
-        available so you can turn it back on.
+        {{ t('configurableViews.settings.enabledHint') }}
       </p>
     </div>
   </div>

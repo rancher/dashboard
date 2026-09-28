@@ -3,6 +3,7 @@ import {
   computed, getCurrentInstance, watch, type Component, type ComponentOptionsMixin, type CSSProperties
 } from 'vue';
 import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import { useRouter } from 'vue-router';
 import SimpleBox from '@shell/components/SimpleBox.vue';
 import { MANAGEMENT } from '@shell/config/types';
@@ -28,6 +29,7 @@ interface ExtensionCard {
 const props = defineProps<{ widget: WidgetSpec }>();
 
 const store = useStore();
+const { t } = useI18n(store);
 const router = useRouter();
 // The extension manager answers for a component - it reads `$extension` and `t` off it.
 const self = getCurrentInstance()?.proxy as unknown as ComponentOptionsMixin | undefined;
@@ -66,13 +68,13 @@ watch(cluster, (id) => {
       v-if="!cluster"
       class="wstock__msg"
     >
-      {{ NO_CLUSTER }}
+      {{ t(NO_CLUSTER) }}
     </p>
     <p
       v-else-if="!cards.length"
       class="wstock__msg"
     >
-      No extension adds a card to this cluster's dashboard.
+      {{ t('configurableViews.widget.noExtensionCards') }}
     </p>
 
     <div

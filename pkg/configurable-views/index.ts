@@ -37,9 +37,11 @@ function installShortcut(): void {
     if (store) {
       e.preventDefault();
       toggleTemplating(store).then((now) => {
+        const t = store.getters['i18n/t'];
+
         store.dispatch('growl/success', {
-          title:   'Configurable Views',
-          message: now ? 'The configurable Home is on.' : 'The configurable Home is off — showing the stock Home.',
+          title:   t('configurableViews.toggle.title'),
+          message: now ? t('configurableViews.toggle.turnedOn') : t('configurableViews.toggle.turnedOff'),
         }, { root: true });
       }).catch(() => {});
     }

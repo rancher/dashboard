@@ -8,7 +8,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import { FIELDS, typeColumns, clusterOptions, METRICS_DASHBOARDS } from '../templating/widget-data';
 import { newId } from '../templating/view-model';
 import {
-  SUGGESTED_RESOURCES, blockName, isDownstream, isClusterWidget, WIDGET_TABLE, WIDGET_LINKS,
+  SUGGESTED_RESOURCES, blockLabelKey, isDownstream, isClusterWidget, WIDGET_TABLE, WIDGET_LINKS,
   WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW, WIDGET_TABS, type SuggestedResource
 } from '../templating/widget-catalog';
 import type { SettingsAnchor } from '../composables/viewEditor';
@@ -24,8 +24,8 @@ import type { WidgetLink, WidgetSpec } from '../templating/types';
 // fields shown depend on the building block: a table needs a resource, columns and a sort; a links
 // box needs links; a cluster widget needs only its cluster; a Tabs widget needs its tabs.
 
-// Block names that are plural, where "what this <name> shows" does not read.
-const PLURAL_NAMES = ['links', 'tabs'];
+// Building blocks with plural names, where "what this <name> shows" does not read.
+const PLURAL_KINDS = [WIDGET_LINKS, WIDGET_TABS];
 
 const DIALOG_WIDTH = 400;
 const MARGIN = 12;
@@ -90,10 +90,10 @@ const position = computed<CSSProperties>(() => {
 // plural block name ("Links") does not fit that sentence, so it falls back to the generic noun
 // rather than reading "what this links shows".
 const heading = computed(() => {
-  const name = blockName(draft.kind);
-  const what = PLURAL_NAMES.includes(name.toLowerCase()) ? 'widget' : name.toLowerCase();
+  const key = blockLabelKey(draft.kind);
+  const name = key ? t(key) : draft.kind;
 
-  return `${ draft.title || name }: what this ${ what } shows`;
+  return PLURAL_KINDS.includes(draft.kind) ? t('configurableViews.widgetSettings.headingPlural', { title: draft.title || name }) : t('configurableViews.widgetSettings.heading', { title: draft.title || name, what: name.toLowerCase() });
 });
 
 // Which sections apply to this building block.
@@ -128,7 +128,7 @@ const columns = computed<ColumnOption[]>(() => {
   const own = typeColumns(store.getters, draft.resource);
 
   return own.length ? own : FIELDS.map((f) => ({
-    id: f.id, label: f.label, sortable: true
+    id: f.id, label: t(f.labelKey), sortable: true
   }));
 });
 
@@ -137,7 +137,7 @@ const sortFields = computed<ColumnOption[]>(() => {
   const sortable = columns.value.filter((c) => c.sortable);
 
   return sortable.length ? sortable : FIELDS.map((f) => ({
-    id: f.id, label: f.label, sortable: true
+    id: f.id, label: t(f.labelKey), sortable: true
   }));
 });
 
@@ -176,7 +176,7 @@ function addTab(): void {
   const tabs = draft.tabs || [];
 
   draft.tabs = [...tabs, {
-    id: newId('tab'), name: `Tab ${ tabs.length + 1 }`, widgets: []
+    id: newId('tab'), name: t('configurableViews.widgetSettings.newTab', { index: tabs.length + 1 }), widgets: []
   }];
 }
 
@@ -200,7 +200,7 @@ function removeTab(index: number): void {
 }
 
 function removeTabLabel(count: number): string {
-  return count ? `Remove this tab and the ${ count } widget${ count === 1 ? '' : 's' } in it` : 'Remove this tab';
+  return count ? t('configurableViews.widgetSettings.removeTabWith', { count }) : t('configurableViews.widgetSettings.removeTab');
 }
 
 function hasColumn(id: string): boolean {
@@ -302,7 +302,7 @@ onBeforeUnmount(() => {
     class="wsm"
     :style="position"
     role="dialog"
-    aria-label="Widget settings"
+    :aria-label="t('configurableViews.widgetSettings.label')"
   >
     <div
       ref="dialog"
@@ -315,8 +315,8 @@ onBeforeUnmount(() => {
         </h3>
         <button
           class="wsm__close"
-          title="Close"
-          aria-label="Close"
+          :title="t('generic.close')"
+          :aria-label="t('generic.close')"
           @click="$emit('cancel')"
         >
           <i class="icon icon-close" />
@@ -324,7 +324,7 @@ onBeforeUnmount(() => {
       </header>
 
       <div class="wsm__body">
-        <label class="wsm__label">Title</label>
+        <label class="wsm__label">{{ t('configurableViews.widgetSettings.title') }}</label>
         <input
           v-model="draft.title"
           class="wsm__field"
@@ -333,11 +333,11 @@ onBeforeUnmount(() => {
           v-if="titleOnly"
           class="wsm__hint"
         >
-          This is the Home's own cluster table — its columns, sorting and buttons come with it.
+          {{ t('configurableViews.widgetSettings.clusterTableHint') }}
         </p>
 
         <template v-if="readsData">
-          <label class="wsm__label">Resource</label>
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.resource') }}</label>
           <select
             v-model="draft.resource"
             class="wsm__field"
@@ -351,17 +351,17 @@ onBeforeUnmount(() => {
             </option>
           </select>
           <p class="wsm__hint">
-            Any kind Rancher knows, including your own CRDs.
+            {{ t('configurableViews.widgetSettings.resourceHint') }}
           </p>
 
-          <label class="wsm__label">Where</label>
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.where') }}</label>
           <label class="wsm__radio">
             <input
               v-model="draft.where"
               type="radio"
               value="view"
             >
-            Same as the view (all clusters I can see)
+            {{ t('configurableViews.widgetSettings.whereView') }}
           </label>
           <label class="wsm__radio">
             <input
@@ -369,7 +369,7 @@ onBeforeUnmount(() => {
               type="radio"
               value="custom"
             >
-            Only these clusters or namespaces
+            {{ t('configurableViews.widgetSettings.whereCustom') }}
           </label>
           <input
             v-if="draft.where === 'custom'"
@@ -378,25 +378,25 @@ onBeforeUnmount(() => {
             placeholder="prod-eu-1, prod-us-2"
           >
 
-          <label class="wsm__label">Filter</label>
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.filter') }}</label>
           <input
             v-model="draft.filter"
             class="wsm__field"
             placeholder="state != Active"
           >
           <p class="wsm__hint">
-            Labels or fields, such as env=prod or state != Active.
+            {{ t('configurableViews.widgetSettings.filterHint') }}
           </p>
         </template>
 
         <template v-if="needsClusters">
-          <label class="wsm__label">Cluster</label>
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.cluster') }}</label>
           <select
             v-model="draft.cluster"
             class="wsm__field"
           >
             <option value="">
-              This page's cluster
+              {{ t('configurableViews.widgetSettings.pageCluster') }}
             </option>
             <option
               v-for="cluster in clusters"
@@ -407,13 +407,12 @@ onBeforeUnmount(() => {
             </option>
           </select>
           <p class="wsm__hint">
-            One cluster per widget. "This page's cluster" shows whichever cluster's dashboard it is
-            placed on — the Home has none, so pick one here.
+            {{ t('configurableViews.widgetSettings.clusterHint') }}
           </p>
         </template>
 
         <template v-if="hasColumns">
-          <label class="wsm__label">Columns</label>
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.columns') }}</label>
           <div class="wsm__columns">
             <label
               v-for="column in columns"
@@ -428,19 +427,19 @@ onBeforeUnmount(() => {
             </label>
           </div>
           <p class="wsm__hint">
-            Columns appear in this order. Untick one to drop it from the table.
+            {{ t('configurableViews.widgetSettings.columnsHint') }}
           </p>
         </template>
 
         <template v-if="hasSort">
-          <label class="wsm__label">Sort by</label>
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.sortBy') }}</label>
           <div class="wsm__pair">
             <select
               v-model="draft.sortBy"
               class="wsm__field"
             >
               <option value="">
-                Nothing
+                {{ t('configurableViews.widgetSettings.sortNothing') }}
               </option>
               <option
                 v-for="field in sortFields"
@@ -455,24 +454,24 @@ onBeforeUnmount(() => {
               class="wsm__field"
             >
               <option value="asc">
-                Ascending
+                {{ t('configurableViews.widgetSettings.ascending') }}
               </option>
               <option value="desc">
-                Descending
+                {{ t('configurableViews.widgetSettings.descending') }}
               </option>
             </select>
           </div>
         </template>
 
         <template v-if="draft.kind === 'links'">
-          <label class="wsm__label">Show</label>
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.show') }}</label>
           <label class="wsm__radio">
             <input
               v-model="draft.source"
               type="radio"
               value="home"
             >
-            Rancher's own links, as the Home shows them
+            {{ t('configurableViews.widgetSettings.linksHome') }}
           </label>
           <label class="wsm__radio">
             <input
@@ -480,14 +479,14 @@ onBeforeUnmount(() => {
               type="radio"
               value="custom"
             >
-            My own list
+            {{ t('configurableViews.widgetSettings.linksCustom') }}
           </label>
           <p class="wsm__hint">
-            Rancher's list follows the ui-custom-links setting, so it stays in step with the Home.
+            {{ t('configurableViews.widgetSettings.linksHomeHint') }}
           </p>
 
           <template v-if="draft.source === 'custom'">
-            <label class="wsm__label">Links</label>
+            <label class="wsm__label">{{ t('configurableViews.widgetSettings.links') }}</label>
             <textarea
               v-model="linksText"
               class="wsm__field wsm__field--area"
@@ -495,27 +494,27 @@ onBeforeUnmount(() => {
               placeholder="Runbook https://wiki.example.com/runbook"
             />
             <p class="wsm__hint">
-              One per line: the label, then the URL.
+              {{ t('configurableViews.widgetSettings.linksHint') }}
             </p>
           </template>
         </template>
 
         <template v-if="draft.kind === 'banner'">
-          <label class="wsm__label">Subtitle</label>
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.subtitle') }}</label>
           <input
             v-model="draft.subtitle"
             class="wsm__field"
           >
-          <label class="wsm__label">Background image</label>
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.image') }}</label>
           <input
             v-model="draft.image"
             class="wsm__field"
-            placeholder="Leave empty for the Rancher banner"
+            :placeholder="t('configurableViews.widgetSettings.imagePlaceholder')"
           >
         </template>
 
         <template v-if="draft.kind === 'clusterMetrics'">
-          <label class="wsm__label">Dashboard</label>
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.dashboard') }}</label>
           <select
             v-model="draft.metrics"
             class="wsm__field"
@@ -529,13 +528,12 @@ onBeforeUnmount(() => {
             </option>
           </select>
           <p class="wsm__hint">
-            One of the Grafana dashboards the cluster dashboard shows when the cluster has Rancher's
-            monitoring.
+            {{ t('configurableViews.widgetSettings.dashboardHint') }}
           </p>
         </template>
 
         <template v-if="draft.kind === 'tabs'">
-          <label class="wsm__label">Tabs</label>
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.tabs') }}</label>
           <div
             v-for="(tab, i) in draft.tabs"
             :key="tab.id"
@@ -544,12 +542,12 @@ onBeforeUnmount(() => {
             <input
               v-model="tab.name"
               class="wsm__field"
-              :aria-label="`Name of tab ${ i + 1 }`"
+              :aria-label="t('configurableViews.widgetSettings.tabName', { index: i + 1 })"
             >
             <button
               class="wsm__icon"
-              title="Move left"
-              aria-label="Move left"
+              :title="t('configurableViews.widgetSettings.moveLeft')"
+              :aria-label="t('configurableViews.widgetSettings.moveLeft')"
               :disabled="i === 0"
               @click="moveTab(i, -1)"
             >
@@ -557,8 +555,8 @@ onBeforeUnmount(() => {
             </button>
             <button
               class="wsm__icon"
-              title="Move right"
-              aria-label="Move right"
+              :title="t('configurableViews.widgetSettings.moveRight')"
+              :aria-label="t('configurableViews.widgetSettings.moveRight')"
               :disabled="i === (draft.tabs || []).length - 1"
               @click="moveTab(i, 1)"
             >
@@ -579,11 +577,10 @@ onBeforeUnmount(() => {
             @click="addTab"
           >
             <i class="icon icon-plus" />
-            Add tab
+            {{ t('configurableViews.widgetSettings.addTab') }}
           </button>
           <p class="wsm__hint">
-            Put widgets in a tab on the view itself: drag them into it while editing. Removing a tab
-            removes what is in it.
+            {{ t('configurableViews.widgetSettings.tabsHint') }}
           </p>
         </template>
 
@@ -593,13 +590,13 @@ onBeforeUnmount(() => {
             class="btn btn-sm role-secondary"
             @click="$emit('remove')"
           >
-            Remove from view
+            {{ t('configurableViews.widgetSettings.remove') }}
           </button>
           <button
             class="btn btn-sm role-primary"
             @click="$emit('done', draft)"
           >
-            Done
+            {{ t('generic.done') }}
           </button>
         </footer>
       </div>

@@ -4,6 +4,8 @@ import {
 } from 'vue';
 import WidgetNode from './WidgetNode.vue';
 import { GRID_COLUMNS, DEFAULT_GAP, canPlace } from '../templating/view-model';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import { useViewEditor, placeKey } from '../composables/viewEditor';
 import type { WidgetNode as WidgetNodeSpec, WidgetPlace } from '../templating/types';
 
@@ -41,6 +43,8 @@ const props = withDefaults(defineProps<{
 });
 
 const viewEditor = useViewEditor();
+const store = useStore();
+const { t } = useI18n(store);
 
 const root = ref<HTMLElement | null>(null);
 const body = ref<HTMLElement | null>(null);
@@ -88,10 +92,10 @@ const showGuides = computed(() => props.editing && (
 // ("Drop here to add a Table") so the target is unmistakable.
 const dropHint = computed(() => {
   if (viewEditor.ui.dragLabel) {
-    return `Drop here to add a ${ viewEditor.ui.dragLabel }`;
+    return t('configurableViews.grid.dropToAdd', { name: viewEditor.ui.dragLabel });
   }
 
-  return props.place ? 'Drop a component into this tab' : 'Drop a component here';
+  return props.place ? t('configurableViews.grid.dropInTab') : t('configurableViews.grid.dropHere');
 });
 
 /**

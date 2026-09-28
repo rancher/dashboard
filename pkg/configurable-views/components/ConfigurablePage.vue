@@ -4,6 +4,7 @@ import {
   , Component
 } from 'vue';
 import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import WidgetGrid from './WidgetGrid.vue';
 import ViewBar from './ViewBar.vue';
 import EditViewSidebar from './EditViewSidebar.vue';
@@ -66,6 +67,7 @@ const props = defineProps<{
 }>();
 
 const store = useStore();
+const { t } = useI18n(store);
 const confirm = useConfirm();
 
 const clone = <T, >(value: T): T => JSON.parse(JSON.stringify(value));
@@ -176,7 +178,7 @@ const settingsNode = computed(() => findWidget(widgets.value, settingsNodeId.val
 // The starting points a brand-new view offers: empty, or a copy of any view you already have.
 const startingPoints = computed(() => views.value
   .filter((p) => p.id !== newViewId.value && !isStockView(p))
-  .map((p) => ({ id: p.id, label: `Copy ${ p.name }` })));
+  .map((p) => ({ id: p.id, label: t('configurableViews.page.copyOf', { name: p.name }) })));
 
 // ---- which view is open ------------------------------------------------------------------------------
 
@@ -307,8 +309,8 @@ async function leaveEdit(): Promise<void> {
 
 async function cancelEdit(): Promise<void> {
   if (dirty.value && !await confirm({
-    title: 'Discard changes?',
-    body:  'The changes to this view have not been saved. Leaving the editor discards them.',
+    title: t('configurableViews.page.discard.title'),
+    body:  t('configurableViews.page.discard.body'),
   })) {
     return;
   }
@@ -447,8 +449,8 @@ function newView(): void {
 
   const template = orgTemplate.value;
   const view: LayoutView = template ? {
-    ...clone(template), id: newId('view'), name: 'Untitled view'
-  } : newLayoutView('Untitled view');
+    ...clone(template), id: newId('view'), name: t('configurableViews.page.untitled')
+  } : newLayoutView(t('configurableViews.page.untitled'));
 
   delete view.org;
   delete view.from;
@@ -456,7 +458,7 @@ function newView(): void {
   draft.views.push(view);
   setActiveView(view.id);
   newViewId.value = view.id;
-  startedFrom.value = template ? 'the organization template' : '';
+  startedFrom.value = template ? t('configurableViews.page.orgTemplate') : '';
 }
 
 // The starting-point chips on a brand-new view: swap what it was seeded with.
@@ -575,8 +577,8 @@ async function publishView(): Promise<void> {
   const source = editing.value ? workingView() : activeView.value;
 
   if (!source || !await confirm({
-    title:     'Publish to the organization?',
-    body:      `“${ source.name }” becomes an organization template: everyone sees it on their ${ props.title }, and can fork their own copy of it.`,
+    title:     t('configurableViews.page.publish.title'),
+    body:      t('configurableViews.page.publish.body', { name: source.name, page: props.title }),
     applyMode: 'apply',
   })) {
     return;
@@ -644,12 +646,12 @@ async function deleteView(): Promise<void> {
   // check here would only be a suggestion. The write goes to the API and its RBAC answers — a user
   // who may not remove it gets that back as the error below.
   const ask = active.org ? {
-    title:     'Unpublish this view?',
-    body:      `“${ active.name }” is published for the organization, so this removes it for everyone. Personal copies of it are kept.`,
+    title:     t('configurableViews.page.unpublish.title'),
+    body:      t('configurableViews.page.unpublish.body', { name: active.name }),
     applyMode: 'remove',
   } : {
-    title:     'Delete this view?',
-    body:      `“${ active.name }” is removed from your ${ props.title }.`,
+    title:     t('configurableViews.page.delete.title'),
+    body:      t('configurableViews.page.delete.body', { name: active.name, page: props.title }),
     applyMode: 'delete',
   };
 
@@ -708,7 +710,12 @@ function addFromCatalog(entry: CatalogEntry | null, index?: number, place: Widge
     return;
   }
 
-  const node = newWidgetNode(entry.spec, { colSpan: entry.span });
+  // A Tabs widget's first tabs are named in the reader's language - the names are then the view's own.
+  const spec = entry.spec.tabs ? {
+    ...entry.spec,
+    tabs: entry.spec.tabs.map((tab, i) => ({ ...tab, name: t('configurableViews.widgetSettings.newTab', { index: i + 1 }) })),
+  } : entry.spec;
+  const node = newWidgetNode(spec, { colSpan: entry.span });
 
   mutate((list) => insertWidget(list, node, index, place));
   selectedNodeId.value = node.id;
@@ -716,7 +723,7 @@ function addFromCatalog(entry: CatalogEntry | null, index?: number, place: Widge
 
 function onCatalogDragStart(entry: CatalogEntry, ev: DragEvent): void {
   ui.dragEntry = entry;
-  ui.dragLabel = entry.name;
+  ui.dragLabel = t(entry.labelKey);
   ui.dragKind = entry.spec.kind;
   ui.dropPlace = '';
 

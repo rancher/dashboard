@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import { computed, type Component } from 'vue';
 import {
   WIDGET_TABLE, WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW,
@@ -48,6 +50,8 @@ const props = withDefaults(defineProps<{
   gap?: number;
 }>(), { nodeId: '', gap: undefined });
 
+const store = useStore();
+const { t } = useI18n(store);
 const renderer = computed<Component | null>(() => RENDERERS[props.widget.kind] || null);
 
 // Every block is handed its spec; the one that holds widgets also needs its own id and the view's gap.
@@ -68,7 +72,7 @@ const rendererProps = computed(() => (props.widget.kind === WIDGET_TABS ? {
     v-else
     class="whost whost--unknown"
   >
-    There is no "{{ widget.kind }}" building block.
+    {{ t('configurableViews.widget.unknown', { kind: widget.kind }) }}
   </div>
 </template>
 

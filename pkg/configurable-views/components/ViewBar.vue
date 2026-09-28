@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import { BUILT_IN_STOCK_ID } from '../templating/view-model';
 import type { View } from '../templating/types';
 
@@ -59,6 +61,9 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<BarEmits>();
 
+const store = useStore();
+const { t } = useI18n(store);
+
 const menuOpen = ref(false);
 const menuWrap = ref<HTMLElement | null>(null);
 // The editable name - inside the tab loop, so a list; at most one is rendered, the active view's.
@@ -70,10 +75,10 @@ const activeView = computed(() => props.views.find((v) => v.id === props.activeI
 // which case saving it changes what everyone sees, and the bar must say so.
 const editingHint = computed(() => {
   if (props.isNew) {
-    return props.startedFrom ? `From ${ props.startedFrom }. Not saved yet.` : 'Not saved yet.';
+    return props.startedFrom ? t('configurableViews.bar.notSavedFrom', { source: props.startedFrom }) : t('configurableViews.bar.notSaved');
   }
 
-  return activeView.value?.org ? 'Changes are published to everyone.' : 'Changes are saved to your account only.';
+  return activeView.value?.org ? t('configurableViews.bar.publishedHint') : t('configurableViews.bar.personalHint');
 });
 
 const isDefault = computed(() => !!props.activeId && props.activeId === props.defaultId);
@@ -174,7 +179,7 @@ defineExpose({ selectName });
           ref="nameInput"
           class="vbar__name"
           :value="view.name"
-          aria-label="View name"
+          :aria-label="t('configurableViews.bar.viewName')"
           @input="onName"
         >
         <button
@@ -191,14 +196,14 @@ defineExpose({ selectName });
 
     <template v-if="editing">
       <i class="icon icon-edit vbar__pencil" />
-      <span class="vbar__mode">{{ isNew ? 'New view' : 'Editing' }}</span>
+      <span class="vbar__mode">{{ isNew ? t('configurableViews.bar.newView') : t('configurableViews.bar.editing') }}</span>
       <span class="vbar__hint">{{ editingHint }}</span>
 
       <button
         class="btn role-secondary vbar__btn"
         @click="$emit('cancel')"
       >
-        Cancel
+        {{ t('generic.cancel') }}
       </button>
       <button
         v-if="!isNew"
@@ -206,22 +211,22 @@ defineExpose({ selectName });
         :disabled="saving"
         @click="$emit('save-as-new')"
       >
-        Save as new view
+        {{ t('configurableViews.bar.saveAsNew') }}
       </button>
       <button
         class="btn role-primary vbar__btn"
         :disabled="saving || (!dirty && !isNew)"
         @click="$emit('save')"
       >
-        {{ saving ? 'Saving…' : 'Save' }}
+        {{ saving ? t('configurableViews.bar.saving') : t('configurableViews.bar.save') }}
       </button>
     </template>
 
     <template v-else>
       <button
         class="vbar__icon-btn"
-        title="Edit this view"
-        aria-label="Edit this view"
+        :title="t('configurableViews.bar.edit')"
+        :aria-label="t('configurableViews.bar.edit')"
         @click="$emit('edit')"
       >
         <i class="icon icon-edit" />
@@ -234,8 +239,8 @@ defineExpose({ selectName });
         <button
           class="vbar__icon-btn"
           :class="{ 'vbar__icon-btn--on': menuOpen }"
-          title="More"
-          aria-label="More view actions"
+          :title="t('configurableViews.bar.more')"
+          :aria-label="t('configurableViews.bar.moreActions')"
           :aria-expanded="menuOpen ? 'true' : 'false'"
           @click="toggleMenu"
         >
@@ -248,17 +253,17 @@ defineExpose({ selectName });
         >
           <li>
             <button @click="closeMenu(); $emit('new-view')">
-              New view
+              {{ t('configurableViews.bar.newView') }}
             </button>
           </li>
           <li>
             <button @click="closeMenu(); $emit('duplicate')">
-              Duplicate this view
+              {{ t('configurableViews.bar.duplicate') }}
             </button>
           </li>
           <li v-if="!isBuiltIn">
             <button @click="closeMenu(); $emit('rename-start')">
-              Rename
+              {{ t('configurableViews.bar.rename') }}
             </button>
           </li>
           <li>
@@ -266,14 +271,14 @@ defineExpose({ selectName });
               :disabled="isDefault"
               @click="closeMenu(); $emit('set-default')"
             >
-              {{ isDefault ? 'This is my default' : 'Set as my default' }}
+              {{ isDefault ? t('configurableViews.bar.isDefault') : t('configurableViews.bar.setDefault') }}
             </button>
           </li>
           <template v-if="!isBuiltIn">
             <li class="vbar__menu-sep" />
             <li v-if="!isPublished">
               <button @click="closeMenu(); $emit('publish')">
-                Publish as organization template
+                {{ t('configurableViews.bar.publish') }}
               </button>
             </li>
             <li
@@ -286,7 +291,7 @@ defineExpose({ selectName });
               :disabled="views.length < 2"
               @click="closeMenu(); $emit('delete')"
             >
-              {{ isPublished ? 'Unpublish view' : 'Delete view' }}
+              {{ isPublished ? t('configurableViews.bar.unpublish') : t('configurableViews.bar.delete') }}
             </button>
           </li>
         </ul>

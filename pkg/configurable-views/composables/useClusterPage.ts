@@ -1,5 +1,6 @@
 import { ref, watch, type Ref } from 'vue';
 import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import { fetchClusterPage, type SteveSort } from '../templating/widget-data';
 import type { PaginationParamFilter } from '@shell/types/store/pagination.types';
 import type { ResourceRow, SortDir } from '../templating/types';
@@ -33,6 +34,7 @@ export interface ClusterPageQuery {
  */
 export function useClusterPage(query: () => ClusterPageQuery) {
   const store = useStore();
+  const { t } = useI18n(store);
   const rows: Ref<ResourceRow[]> = ref([]);
   const count = ref(0);
   const loading = ref(false);
@@ -88,7 +90,7 @@ export function useClusterPage(query: () => ClusterPageQuery) {
       rows.value = [];
       count.value = 0;
       lastKey = '';
-      error.value = (e as Error)?.message || `Could not read ${ q.resource } from cluster “${ q.cluster }”.`;
+      error.value = (e as Error)?.message || t('configurableViews.errors.resource', { resource: q.resource, cluster: q.cluster });
     } finally {
       loading.value = false;
     }

@@ -3,6 +3,8 @@
 // widget's own content below - so a Table reads as the same kind of thing as the widgets around it.
 // The cluster widgets draw the dashboard's own boxes instead, and use this one only to say what they
 // are missing.
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 
 withDefaults(defineProps<{
   title?: string;
@@ -19,8 +21,11 @@ withDefaults(defineProps<{
   loading:   false,
   error:     '',
   empty:     false,
-  emptyText: 'Nothing to show.',
+  emptyText: '',
 });
+
+const store = useStore();
+const { t } = useI18n(store);
 </script>
 
 <template>
@@ -47,15 +52,14 @@ withDefaults(defineProps<{
       </p>
       <p
         v-else-if="loading"
+        v-clean-html="t('generic.loading', {}, true)"
         class="wcard__msg"
-      >
-        Loading…
-      </p>
+      />
       <p
         v-else-if="empty"
         class="wcard__msg"
       >
-        {{ emptyText }}
+        {{ emptyText || t('configurableViews.widget.nothingToShow') }}
       </p>
       <slot v-else />
     </div>

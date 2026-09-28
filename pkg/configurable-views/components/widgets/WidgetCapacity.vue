@@ -48,7 +48,7 @@ watch(cluster, async(id) => {
       ...c, cores: cores(c.cores) as Gauge, cpuUsed: cores(c.cpuUsed)
     };
   } catch (e) {
-    error.value = `Could not read the capacity of cluster “${ id }”.`;
+    error.value = t('configurableViews.errors.capacity', { cluster: id });
   }
 }, { immediate: true });
 </script>
@@ -57,7 +57,7 @@ watch(cluster, async(id) => {
   <WidgetCard
     v-if="!cluster || error"
     :title="widget.title"
-    :error="error || NO_CLUSTER"
+    :error="error || t(NO_CLUSTER)"
   />
   <div v-else-if="capacity?.hasStats">
     <h3>{{ widget.title || t('clusterIndexPage.sections.capacity.label') }}</h3>

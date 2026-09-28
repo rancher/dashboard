@@ -2,6 +2,8 @@
 import {
   computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type CSSProperties
 } from 'vue';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import WidgetHost from './widgets/WidgetHost.vue';
 import {
   GRID_COLUMNS, DEFAULT_GAP, cssSize, cssSides, normalizeSides, clampSpan
@@ -37,6 +39,8 @@ const props = withDefaults(defineProps<{
 });
 
 const viewEditor = useViewEditor();
+const store = useStore();
+const { t } = useI18n(store);
 
 const root = ref<HTMLElement | null>(null);
 const resizing = ref(false);
@@ -309,18 +313,18 @@ function startResize(ev: PointerEvent): void {
       class="wnode__bar"
     >
       <i class="wnode__grip icon icon-menu" />
-      <span class="wnode__label">Drag to move</span>
+      <span class="wnode__label">{{ t('configurableViews.widget.dragToMove') }}</span>
       <span class="wnode__bar-gap" />
       <button
         class="wnode__btn"
-        title="What this widget shows"
+        :title="t('configurableViews.widget.settings')"
         @click.stop="openSettings"
       >
         <i class="icon icon-gear" />
       </button>
       <button
         class="wnode__btn wnode__btn--danger"
-        title="Remove from view"
+        :title="t('configurableViews.widget.remove')"
         @click.stop="viewEditor.remove(node.id)"
       >
         <i class="icon icon-close" />
@@ -344,7 +348,7 @@ function startResize(ev: PointerEvent): void {
       v-if="editing"
       class="wnode__resize"
       :class="{ 'wnode__resize--active': resizing }"
-      title="Drag to resize by columns"
+      :title="t('configurableViews.widget.resize')"
       @pointerdown="startResize"
     />
     <div

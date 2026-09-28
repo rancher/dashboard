@@ -101,13 +101,13 @@ watch([cluster, isOpen, isEtcd], async([id, open, wantsEtcd]) => {
       v-if="!cluster"
       class="wstock__msg"
     >
-      {{ NO_CLUSTER }}
+      {{ t(NO_CLUSTER) }}
     </p>
     <p
       v-else-if="monitoring && !monitoring.installed"
       class="wstock__msg"
     >
-      {{ t(board.labelKey) }} come from Rancher's monitoring, which this cluster does not have.
+      {{ t('configurableViews.widget.noMonitoring', { what: t(board.labelKey) }) }}
     </p>
 
     <template v-else-if="monitoring">

@@ -50,5 +50,5 @@ export function useOpenCluster(cluster: MaybeRefOrGetter<string>) {
   });
 }
 
-/** What a cluster widget says when it has no cluster to show - which only happens off a cluster page. */
-export const NO_CLUSTER = 'Choose a cluster in this widget’s settings — it follows the page’s cluster, and this page has none.';
+/** What a cluster widget says when it has no cluster to show - which only happens off a cluster page. A translation key. */
+export const NO_CLUSTER = 'configurableViews.widget.noCluster';

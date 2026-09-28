@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import { STATE, NAME, NAMESPACE, AGE } from '@shell/config/table-headers';
 import type { PaginationArgs } from '@shell/types/store/pagination.types';
 import WidgetCard from './WidgetCard.vue';
 import {
-  applyFilter, applySort, fieldValue, fieldLabel, storeForType, typeColumns, withoutDetailLink,
+  applyFilter, applySort, fieldValue, fieldLabelKey, storeForType, typeColumns, withoutDetailLink,
   steveFilters, steveSortField, type Header
 } from '../../templating/widget-data';
 import { isDownstream, PAGINATION_CONTEXT } from '../../templating/widget-catalog';
@@ -54,6 +55,7 @@ const GENERIC_HEADERS: Record<string, Header> = {
 const props = defineProps<{ widget: WidgetSpec }>();
 
 const store = useStore();
+const { t } = useI18n(store);
 const { cluster } = useWidgetCluster(() => props.widget);
 
 // A Kubernetes type lives once PER CLUSTER, so it is read from a named cluster rather than from the
@@ -122,7 +124,7 @@ function headerFor(id: string): Header {
   // A field of our own: readable, but not sortable - no `sort` is what tells the table so.
   return GENERIC_HEADERS[id] || {
     name:   id,
-    label:  fieldLabel(id),
+    label:  fieldLabelKey(id) ? t(fieldLabelKey(id)) : id,
     value:  (row: ResourceRow) => cell(row, id),
     search: false,
   };
@@ -228,7 +230,7 @@ const visibleRows = computed(() => (filtered.value ? filterRows(rows.value) : ro
 // there the table must do its own paging, or it draws all of them under a footer claiming 11-20.
 const externalResult = computed(() => ({ count: pageCount.value }));
 
-const downstreamMessage = computed(() => (cluster.value ? pageError.value : NO_CLUSTER));
+const downstreamMessage = computed(() => (cluster.value ? pageError.value : t(NO_CLUSTER)));
 
 /**
  * Add the widget's own filter to the request the table is about to make.
@@ -275,15 +277,14 @@ function applyApiFilter(pagination: PaginationArgs): PaginationArgs {
       v-if="truncated"
       class="wtable__note"
     >
-      This cluster has more rows than a filtered widget reads at once, so the filter was applied to
-      the first of them. Narrow the filter, or drop it to page through all of them.
+      {{ t('configurableViews.widget.tableTruncated') }}
     </p>
   </WidgetCard>
 
   <WidgetCard
     v-else
     :title="widget.title"
-    :error="schema ? '' : `Rancher has no &quot;${ widget.resource }&quot; here — the type may not be installed, or you may not have permission to see it.`"
+    :error="schema ? '' : t('configurableViews.widget.noType', { type: widget.resource })"
   >
     <PaginatedResourceTable
       v-if="schema"
