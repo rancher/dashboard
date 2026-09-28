@@ -23,7 +23,6 @@ export const TYPE_HOME = 'home-template';
 export const TYPE_CONFIG = 'config';
 
 // ConfigMap data keys.
-export const SFC_KEY = 'view.vue'; // the Vue SFC (what the AI edits)
 
 // The kill-switch ConfigMap (data.enabled only).
 export const CONFIG_NAME = 'templating-config';
@@ -37,7 +36,6 @@ export const HOME_CONFIG_ID = `${ TEMPLATE_NAMESPACE }/${ HOME_CONFIG_NAME }`;
 // This extension's product + route names (kept here so product.ts and routing/index.ts agree).
 export const PRODUCT_NAME = 'configurable-views';
 export const ROUTE_SETTINGS = 'configurable-views-settings';
-export const ROUTE_TEMPLATES = 'configurable-views-templates';
 export const ROUTE_LAYOUTS = 'configurable-views-layouts';
 
 // ---- ConfigMap helpers ----
@@ -61,16 +59,11 @@ function templatingCMs(getters) {
   return (getters['management/all']?.(CONFIGMAP) || []).filter((cm) => labelOf(cm, LABEL_MARKER) === 'true');
 }
 
-function cmsOfType(getters, type) {
-  return templatingCMs(getters).filter((cm) => labelOf(cm, LABEL_TYPE) === type);
-}
-
 function cmById(getters, name) {
   return getters['management/byId']?.(CONFIGMAP, `${ TEMPLATE_NAMESPACE }/${ name }`) ||
     templatingCMs(getters).find((cm) => cm.metadata?.name === name);
 }
 
-const homeLabels = { [LABEL_MARKER]: 'true', [LABEL_TYPE]: TYPE_HOME };
 const configLabels = { [LABEL_MARKER]: 'true', [LABEL_TYPE]: TYPE_CONFIG };
 
 // ---- GLOBAL KILL SWITCH (config ConfigMap) ----
@@ -129,76 +122,6 @@ export async function saveHomeConfig(store, home) {
   await persistHome(store, home || {});
 }
 
-/** All saved Home templates (normalized) for the editor's picker. */
-export function savedHomeTemplates(getters) {
-  return cmsOfType(getters, TYPE_HOME).map((cm) => ({
-    metadata: cm.metadata,
-    spec:     { displayName: cm.data?.displayName || cm.metadata?.name, source: cm.data?.[SFC_KEY] || cm.data?.source || '' },
-  }));
-}
-
-/**
- * Resolve a template (by ConfigMap name) to what a TEMPLATE node needs to render it:
- *   - kind 'code' → a Vue SFC compiled in the browser (`source`)
- *   - kind 'json' → declarative `widgets` ({ type, ...config })
- */
-export function templateByName(getters, name) {
-  const cm = cmById(getters, name);
-
-  if (!cm) {
-    return {
-      kind: 'missing', source: '', widgets: []
-    };
-  }
-
-  const d = cm.data || {};
-  const kind = d.kind || 'code';
-
-  if (kind === 'code') {
-    return {
-      kind: 'code', source: d[SFC_KEY] || d.source || '', widgets: []
-    };
-  }
-
-  const tpl = safeParse(d.template, null);
-
-  return {
-    kind: 'json', source: '', widgets: tpl?.pages?.[0]?.widgets || tpl?.widgets || []
-  };
-}
-
-/** Persist a JSON (widget) home template: data.kind='template', data.template={pages:[{widgets}]}. */
-export async function saveTemplateJson(store, { name, widgets, displayName }) {
-  const existing = cmById(store.getters, name);
-  const tpl = {
-    pages: [{
-      id: name, name: displayName || name, widgets: widgets || []
-    }]
-  };
-  const data = {
-    kind: 'template', template: JSON.stringify(tpl), displayName: displayName || name
-  };
-
-  if (existing && labelOf(existing, LABEL_TYPE) === TYPE_HOME) {
-    existing.data = { ...(existing.data || {}), ...data };
-    await existing.save();
-
-    return existing;
-  }
-
-  const cm = await store.dispatch('management/create', {
-    type:     CONFIGMAP,
-    metadata: {
-      name, namespace: TEMPLATE_NAMESPACE, labels: homeLabels
-    },
-    data,
-  });
-
-  await cm.save();
-
-  return cm;
-}
-
 /**
  * Applied Home VIEWS split by scope + the one THIS user actually sees (user overrides global).
  * `global`/`user` are null when that scope has nothing applied; `resolved` is the migrated view
@@ -237,31 +160,6 @@ export async function fetchTemplatingConfigMaps(store) {
   const url = `/v1/configmaps?labelSelector=${ encodeURIComponent(`${ LABEL_MARKER }=true`) }`;
 
   return store.dispatch('management/findAll', { type: CONFIGMAP, opt: { url, force: true } }).catch(() => []);
-}
-
-/** Create-or-update a CODE Home template ConfigMap (the SFC the editor and the AI agent write). */
-export async function saveHomeTemplate(store, { name, source, displayName }) {
-  const existing = cmById(store.getters, name);
-  const data = { [SFC_KEY]: source || '', displayName: displayName || name };
-
-  if (existing && labelOf(existing, LABEL_TYPE) === TYPE_HOME) {
-    existing.data = { ...(existing.data || {}), ...data };
-    await existing.save();
-
-    return existing;
-  }
-
-  const cm = await store.dispatch('management/create', {
-    type:     CONFIGMAP,
-    metadata: {
-      name, namespace: TEMPLATE_NAMESPACE, labels: homeLabels
-    },
-    data,
-  });
-
-  await cm.save();
-
-  return cm;
 }
 
 /**

@@ -72,7 +72,6 @@ export interface Sides {
 }
 
 export const NODE_WIDGET = 'widget';
-export const NODE_TEMPLATE = 'template';
 
 interface NodeBox {
   id: string;
@@ -89,13 +88,7 @@ export interface WidgetNode extends NodeBox {
   widget: WidgetSpec;
 }
 
-/** A leaf rendering one stored template ConfigMap. */
-export interface TemplateNode extends NodeBox {
-  type: typeof NODE_TEMPLATE;
-  template: string;
-}
-
-export type PanelNode = WidgetNode | TemplateNode;
+export type PanelNode = WidgetNode;
 
 /**
  * One named view, and one tab in the bar.
@@ -152,13 +145,3 @@ export interface ResourceRow {
   [key: string]: unknown;
 }
 
-/** A widget inside a stored JSON template — a looser, older shape than WidgetSpec. */
-export interface TemplateWidget {
-  type: string;
-  [key: string]: unknown;
-}
-
-export interface ResolvedTemplate {
-  kind: 'json' | 'code' | 'missing';
-  widgets: TemplateWidget[];
-}

@@ -1,7 +1,6 @@
 <script>
 import StockHome from '@shell/pages/home.vue';
 import WidgetGrid from '../components/WidgetGrid.vue';
-import HomeTemplateEditor from '../components/HomeTemplateEditor.vue';
 import HomeViewBar from '../components/HomeViewBar.vue';
 import EditViewSidebar from '../components/EditViewSidebar.vue';
 import WidgetSettingsModal from '../components/WidgetSettingsModal.vue';
@@ -31,7 +30,7 @@ import {
 export default {
   name:       'AiTemplatingHome',
   components: {
-    StockHome, WidgetGrid, HomeTemplateEditor, HomeViewBar, EditViewSidebar, WidgetSettingsModal
+    StockHome, WidgetGrid, HomeViewBar, EditViewSidebar, WidgetSettingsModal
   },
 
   // Action callbacks for the grid and its widgets, so neither has to re-emit up a chain.
@@ -46,8 +45,7 @@ export default {
           this.settingsAnchor = anchor || null;
           this.settingsNodeId = id;
         },
-        editTemplate: (name) => this.openTemplateEditor(name),
-        beginDrag:    (id) => {
+        beginDrag: (id) => {
           this.ui.dragId = id;
         },
         endDrag: () => {
@@ -63,29 +61,26 @@ export default {
 
   data() {
     return {
-      userId:                 null,
-      loaded:                 false,
-      editing:                false,
-      working:                null, // working copy of YOUR views while editing (a DRAFT)
-      snapshot:               null, // JSON of the draft when editing began (for Cancel)
-      savedBaseline:          null, // JSON of the last SAVED state (for the dirty check)
-      activePanelId:          null,
+      userId:         null,
+      loaded:         false,
+      editing:        false,
+      working:        null, // working copy of YOUR views while editing (a DRAFT)
+      snapshot:       null, // JSON of the draft when editing began (for Cancel)
+      savedBaseline:  null, // JSON of the last SAVED state (for the dirty check)
+      activePanelId:  null,
       // True once the active view is a DELIBERATE choice (you clicked it, or an action moved you to
       // it) rather than the fallback taken while the config was still loading.
-      pinnedView:             false,
-      selectedNodeId:         null,
-      newPanelId:             null, // the view being created, while it has never been saved
-      startedFrom:            '', // what a new view was started from, for the bar's "From …"
-      settingsNodeId:         null, // widget whose settings panel is open
-      settingsAnchor:         null, // where that widget is on screen, so the panel opens beside it
-      editingTemplate:        null, // stored template whose CONTENT is open in the split editor
-      editingTemplateNewKind: null,
-      editingTemplateNewName: '',
-      saving:                 false,
-      error:                  '',
+      pinnedView:     false,
+      selectedNodeId: null,
+      newPanelId:     null, // the view being created, while it has never been saved
+      startedFrom:    '', // what a new view was started from, for the bar's "From …"
+      settingsNodeId: null, // widget whose settings panel is open
+      settingsAnchor: null, // where that widget is on screen, so the panel opens beside it
+      saving:         false,
+      error:          '',
       // Shared, reactive editor UI state: what is being dragged — a widget already on the grid, or
       // a catalog entry on its way in.
-      ui:                     {
+      ui:             {
         dragId: null, dragEntry: null, dragLabel: '', showBoxModel: false
       },
     };
@@ -801,20 +796,7 @@ export default {
       }
     },
 
-    // ---- stored-template content editor --------------------------------------------------------
 
-    openTemplateEditor(name) {
-      this.editingTemplateNewKind = null;
-      this.editingTemplateNewName = '';
-      this.editingTemplate = name;
-    },
-
-    async closeTemplateEditor() {
-      this.editingTemplate = null;
-      this.editingTemplateNewKind = null;
-      this.editingTemplateNewName = '';
-      await fetchTemplatingConfigMaps(this.$store).catch(() => {});
-    },
   },
 };
 </script>
@@ -822,104 +804,93 @@ export default {
 <template>
   <div
     class="ai-home"
-    :class="{ 'ai-home--editing': editing || editingTemplate }"
+    :class="{ 'ai-home--editing': editing }"
   >
-    <!-- A stored template's ⚙ opens the single-template content editor (source + AI chat + preview). -->
-    <HomeTemplateEditor
-      v-if="editingTemplate"
-      :name="editingTemplate"
-      :new-kind="editingTemplateNewKind"
-      :new-display-name="editingTemplateNewName"
-      @close="closeTemplateEditor"
+    <HomeViewBar
+      v-if="loaded && templatingEnabled"
+      ref="bar"
+      :views="views"
+      :active-id="activePanelId"
+      :editing="editing"
+      :is-new="isNewView"
+      :default-id="defaultViewId"
+      :dirty="dirty"
+      :saving="saving"
+      :started-from="startedFrom"
+      @select="selectPanel"
+      @edit="enterEdit"
+      @cancel="cancelEdit"
+      @save="save()"
+      @save-as-new="saveAsNewView"
+      @rename="renameView"
+      @rename-start="startRename"
+      @new-view="newView"
+      @duplicate="duplicateView"
+      @set-default="setDefaultView"
+      @publish="publishView"
+      @delete="deleteView"
     />
+
+    <p
+      v-if="error"
+      class="ai-home__error"
+    >
+      {{ error }}
+    </p>
 
     <!-- While editing the page splits: the view keeps the full width it will really have, and every
        control lives in the drawer beside it. -->
-    <template v-else>
-      <HomeViewBar
-        v-if="loaded && templatingEnabled"
-        ref="bar"
-        :views="views"
-        :active-id="activePanelId"
-        :editing="editing"
+    <div class="ai-home__layout">
+      <div class="ai-home__main">
+        <!-- The active VIEW (or the edit surface). Gate on templatingEnabled so the kill switch
+         swaps to stock Rancher live. StockHome shows when nothing is applied. -->
+        <div
+          v-if="loaded && templatingEnabled && activeView && (editing || hasContent)"
+          class="ai-home__surface"
+          :style="surfaceStyle"
+        >
+          <!-- A STOCK view is Rancher's own Home, kept as a tab — nothing to edit. -->
+          <StockHome v-if="activeIsStock" />
+          <WidgetGrid
+            v-else
+            :key="activePanelId"
+            :widgets="widgets"
+            :editing="editing"
+            :selected-id="selectedNodeId"
+            :gap="gap"
+          />
+        </div>
+        <StockHome v-else-if="loaded" />
+      </div>
+
+      <EditViewSidebar
+        v-if="editing"
+        :view="activeView"
+        :selected="selectedNode"
+        :is-default="activePanelId === defaultViewId"
+        :is-stock="activeIsStock"
         :is-new="isNewView"
-        :default-id="defaultViewId"
-        :dirty="dirty"
-        :saving="saving"
         :started-from="startedFrom"
-        @select="selectPanel"
-        @edit="enterEdit"
-        @cancel="cancelEdit"
-        @save="save()"
-        @save-as-new="saveAsNewView"
-        @rename="renameView"
-        @rename-start="startRename"
-        @new-view="newView"
-        @duplicate="duplicateView"
+        :starting-points="startingPoints"
+        @close="cancelEdit"
+        @add="addFromCatalog"
+        @drag-start="onCatalogDragStart"
+        @drag-end="onCatalogDragEnd"
+        @start-from="startFrom"
+        @set-width="setSelectedWidth"
+        @set-height="setSelectedHeight"
+        @set-spacing="setSelectedSpacing"
+        @set-box="setNodeBox"
+        @set-col-span="setSelectedWidth"
+        @advanced="ui.showBoxModel = $event"
+        @set-gap="setGap"
+        @set-page-padding="setPagePadding"
+        @set-name="renameView"
         @set-default="setDefaultView"
         @publish="publishView"
         @delete="deleteView"
       />
-
-      <p
-        v-if="error"
-        class="ai-home__error"
-      >
-        {{ error }}
-      </p>
-
-      <div class="ai-home__layout">
-        <div class="ai-home__main">
-          <!-- The active VIEW (or the edit surface). Gate on templatingEnabled so the kill switch
-           swaps to stock Rancher live. StockHome shows when nothing is applied. -->
-          <div
-            v-if="loaded && templatingEnabled && activeView && (editing || hasContent)"
-            class="ai-home__surface"
-            :style="surfaceStyle"
-          >
-            <!-- A STOCK view is Rancher's own Home, kept as a tab — nothing to edit. -->
-            <StockHome v-if="activeIsStock" />
-            <WidgetGrid
-              v-else
-              :key="activePanelId"
-              :widgets="widgets"
-              :editing="editing"
-              :selected-id="selectedNodeId"
-              :gap="gap"
-            />
-          </div>
-          <StockHome v-else-if="loaded" />
-        </div>
-
-        <EditViewSidebar
-          v-if="editing"
-          :view="activeView"
-          :selected="selectedNode"
-          :is-default="activePanelId === defaultViewId"
-          :is-stock="activeIsStock"
-          :is-new="isNewView"
-          :started-from="startedFrom"
-          :starting-points="startingPoints"
-          @close="cancelEdit"
-          @add="addFromCatalog"
-          @drag-start="onCatalogDragStart"
-          @drag-end="onCatalogDragEnd"
-          @start-from="startFrom"
-          @set-width="setSelectedWidth"
-          @set-height="setSelectedHeight"
-          @set-spacing="setSelectedSpacing"
-          @set-box="setNodeBox"
-          @set-col-span="setSelectedWidth"
-          @advanced="ui.showBoxModel = $event"
-          @set-gap="setGap"
-          @set-page-padding="setPagePadding"
-          @set-name="renameView"
-          @set-default="setDefaultView"
-          @publish="publishView"
-          @delete="deleteView"
-        />
-      </div>
-    </template>
+    </div>
 
     <WidgetSettingsModal
       v-if="settingsNode && settingsNode.type === 'widget'"

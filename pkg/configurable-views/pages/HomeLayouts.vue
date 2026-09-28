@@ -1,16 +1,13 @@
 <script>
 import jsyaml from 'js-yaml';
 import {
-  appliedViewScopes, savedHomeTemplates, templateByName, fetchTemplatingConfigMaps,
-  getHomeConfig, saveHomeConfig, ROUTE_SETTINGS
+  appliedViewScopes, fetchTemplatingConfigMaps, getHomeConfig, saveHomeConfig, ROUTE_SETTINGS
 } from '../templating/template-engine';
-import { NODE_TEMPLATE, isStockPanel } from '../templating/view-model';
+import { isStockPanel } from '../templating/view-model';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
-// Lists the assembled Home VIEWS — their PANELS (which render as tabs) and, per panel, the tree of
-// WIDGETS inside it. Views are NOT templates (they live in the templating-home
-// ConfigMap), so they don't appear on the Home Templates page; this is their management view.
-// Editing happens on the Home page, or manually via Edit YAML below.
+// Lists the saved views — their PANELS (which render as tabs) and the WIDGETS on each. Editing
+// happens on the Home page; this page is for seeing what is stored, and for editing it as YAML.
 export default {
   name: 'HomeLayouts',
 
@@ -67,36 +64,19 @@ export default {
   },
 
   methods: {
-    displayName(name) {
-      const t = savedHomeTemplates(this.$store.getters).find((c) => c.metadata?.name === name);
-
-      return t?.spec?.displayName || name;
-    },
-
-    kindOf(name) {
-      const k = templateByName(this.$store.getters, name).kind;
-
-      return k === 'json' ? 'JSON' : (k === 'code' ? 'Code' : 'missing');
-    },
-
     isStock(panel) {
       return isStockPanel(panel);
     },
 
     // A panel's widgets, in the order they sit on the grid.
     rowsFor(panel) {
-      return (panel?.widgets || []).map((w) => {
-        const isTemplate = w.type === NODE_TEMPLATE;
-
-        return {
-          id:      w.id,
-          isTemplate,
-          label:   isTemplate ? this.displayName(w.template) : (w.widget?.title || w.widget?.kind || 'Widget'),
-          kind:    isTemplate ? this.kindOf(w.template) : w.widget?.kind,
-          size:    `col-span-${ w.colSpan }`,
-          padding: [w.padding?.top, w.padding?.right, w.padding?.bottom, w.padding?.left].join(' / '),
-        };
-      });
+      return (panel?.widgets || []).map((w) => ({
+        id:      w.id,
+        label:   w.widget?.title || w.widget?.kind || 'Widget',
+        kind:    w.widget?.kind,
+        size:    `col-span-${ w.colSpan }`,
+        padding: [w.padding?.top, w.padding?.right, w.padding?.bottom, w.padding?.left].join(' / '),
+      }));
     },
 
     // ---- manual YAML editing of the whole applied-Home config (templating-home data.home) ----
@@ -264,15 +244,14 @@ export default {
               >
                 <td>
                   <span>
-                    <span class="home-layouts__node-icon">{{ row.isTemplate ? '▤' : '▣' }}</span>
+                    <span class="home-layouts__node-icon">▣</span>
                     {{ row.label }}
                   </span>
                 </td>
                 <td>
                   <span
-                    v-if="row.isTemplate"
+                    v-if="row.kind"
                     class="home-layouts__kind"
-                    :class="`home-layouts__kind--${ row.kind.toLowerCase() }`"
                   >{{ row.kind }}</span>
                 </td>
                 <td class="text-muted">

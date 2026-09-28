@@ -1,6 +1,6 @@
 import { ConfigureVirtualTypeOptions, IPlugin } from '@shell/core/types';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
-import { PRODUCT_NAME, ROUTE_SETTINGS, ROUTE_TEMPLATES, ROUTE_LAYOUTS } from './templating/template-engine';
+import { PRODUCT_NAME, ROUTE_SETTINGS, ROUTE_LAYOUTS } from './templating/template-engine';
 
 // `exact` is honoured at runtime — nav/Group.vue binds it to the router-link and type-map clones the
 // whole options object through — but it is missing from ConfigureVirtualTypeOptions, so each
@@ -35,15 +35,6 @@ export function init($extension: IPlugin, store: any): void {
     route:      { name: ROUTE_SETTINGS, params: { cluster: BLANK_CLUSTER } },
   } as ConfigureVirtualTypeOptions);
 
-  // Home Templates — the panel building blocks (home-template ConfigMaps).
-  virtualType({
-    labelKey:   'aiTemplating.templates.label',
-    name:       'configurable-views-templates',
-    namespaced: false,
-    weight:     105,
-    exact:      true,
-    route:      { name: ROUTE_TEMPLATES, params: { cluster: BLANK_CLUSTER } },
-  } as ConfigureVirtualTypeOptions);
 
   // Home Layouts — the assembled Home VIEWS (panels + the widgets on them).
   virtualType({
@@ -55,5 +46,5 @@ export function init($extension: IPlugin, store: any): void {
     route:      { name: ROUTE_LAYOUTS, params: { cluster: BLANK_CLUSTER } },
   } as ConfigureVirtualTypeOptions);
 
-  basicType(['configurable-views-layouts', 'configurable-views-templates', 'configurable-views-settings']);
+  basicType(['configurable-views-layouts', 'configurable-views-settings']);
 }
