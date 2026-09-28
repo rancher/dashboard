@@ -1,6 +1,7 @@
 import { FleetClusterGroupsCreateEditPo, FleetClusterGroupsListPagePo, FleetClusterGroupDetailsPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.clustergroup.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import { qase } from '@/cypress/support/qase';
 
 describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetClusterGroupsListPage = new FleetClusterGroupsListPagePo();
@@ -18,7 +19,7 @@ describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'
     });
   });
 
-  it('can create cluster group', () => {
+  qase(6615, it('can create cluster group', () => {
     const fleetCreateEditClusterGroupPage = new FleetClusterGroupsCreateEditPo();
 
     FleetClusterGroupsListPagePo.goTo('_');
@@ -41,9 +42,9 @@ describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'
 
     fleetClusterGroupsListPage.waitForPage();
     fleetClusterGroupsListPage.resourceTableDetails(clusterGroupName, 1).should('be.visible');
-  });
+  }));
 
-  it('can edit a cluster group', () => {
+  qase(6616, it('can edit a cluster group', () => {
     const fleetCreateEditClusterGroupPage = new FleetClusterGroupsCreateEditPo(localWorkspace, clusterGroupName);
 
     FleetClusterGroupsListPagePo.goTo('_');
@@ -64,9 +65,9 @@ describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'
         expect(response?.body.metadata.annotations).to.have.property('field.cattle.io/description', `${ clusterGroupName }-fleet-desc`);
       });
     fleetClusterGroupsListPage.waitForPage();
-  });
+  }));
 
-  it('can clone a cluster group', () => {
+  qase(6617, it('can clone a cluster group', () => {
     const fleetCreateEditClusterGroupPage = new FleetClusterGroupsCreateEditPo(localWorkspace, clusterGroupName);
 
     FleetClusterGroupsListPagePo.goTo('_');
@@ -94,9 +95,9 @@ describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'
       });
     fleetClusterGroupsListPage.waitForPage();
     fleetClusterGroupsListPage.resourceTableDetails(`clone-${ clusterGroupName }`, 1).should('be.visible');
-  });
+  }));
 
-  it('can delete cluster group', () => {
+  qase(6618, it('can delete cluster group', () => {
     FleetClusterGroupsListPagePo.goTo('_');
     fleetClusterGroupsListPage.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
@@ -118,10 +119,10 @@ describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'
           .rowNames('.col-link-detail')
           .should('not.contain', `clone-${ clusterGroupName }`);
       });
-  });
+  }));
 
   // testing https://github.com/rancher/dashboard/issues/11687
-  it('can open "Edit as YAML"', () => {
+  qase(6619, it('can open "Edit as YAML"', () => {
     const fleetCreateEditClusterGroupPage = new FleetClusterGroupsCreateEditPo();
 
     FleetClusterGroupsListPagePo.goTo('_');
@@ -132,9 +133,9 @@ describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'
     fleetCreateEditClusterGroupPage.resourceDetail().resourceYaml()
       .codeMirror()
       .checkExists();
-  });
+  }));
 
-  it('check table headers are available in list and details view', { tags: ['@adminUser'] }, () => {
+  qase(6620, it('check table headers are available in list and details view', { tags: ['@adminUser'] }, () => {
     const groupName = 'default';
 
     FleetClusterGroupsListPagePo.goTo('_');
@@ -168,7 +169,7 @@ describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'
       .each((el, i) => {
         expect(el.text().trim()).to.eq(expectedHeadersDetailsView[i]);
       });
-  });
+  }));
 
   after(() => {
     if (removeClusterGroups) {
