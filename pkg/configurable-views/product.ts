@@ -1,3 +1,4 @@
+import type { Store } from 'vuex';
 import { ConfigureVirtualTypeOptions, IPlugin } from '@shell/core/types';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { PRODUCT_NAME, ROUTE_SETTINGS, ROUTE_LAYOUTS } from './templating/template-engine';
@@ -6,8 +7,7 @@ import { PRODUCT_NAME, ROUTE_SETTINGS, ROUTE_LAYOUTS } from './templating/templa
 // Management): inStore 'management', no cluster switcher. It is focused solely on the configurable
 // Home: Settings (the kill switch) and Home Layouts (the assembled views). Everything is stored as
 // labeled ConfigMaps (not a CRD).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function init($extension: IPlugin, store: any): void {
+export function init($extension: IPlugin, store: Store<unknown>): void {
   const { product, virtualType, basicType } = $extension.DSL(store, PRODUCT_NAME);
 
   product({
