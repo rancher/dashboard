@@ -1,10 +1,16 @@
-<script>
+<script setup lang="ts">
+import {
+  computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch, type CSSProperties
+} from 'vue';
+import { useStore } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
-import { TABLE_COLUMNS, FIELDS, typeColumns, clusterOptions } from '../templating/widget-data';
+import { FIELDS, typeColumns, clusterOptions } from '../templating/widget-data';
 import {
   SUGGESTED_RESOURCES, blockName, isDownstream, isClusterWidget, WIDGET_TABLE, WIDGET_LINKS,
-  WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW
+  WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW, type SuggestedResource
 } from '../templating/widget-catalog';
+import type { SettingsAnchor } from '../composables/viewEditor';
+import type { WidgetLink, WidgetSpec } from '../templating/types';
 
 // "What this widget shows" — the panel behind a widget's ⚙.
 //
@@ -13,278 +19,248 @@ import {
 // modal over a dimmed page would hide exactly what you are configuring.
 //
 // It edits a COPY and only hands it back on Done, so Cancel really does leave the widget alone. The
-// fields shown depend on the building block: a table needs columns and a sort, a text note needs a
-// body, a links list needs links — asking a Text widget which columns to show would be nonsense.
-// Block names that are plural or mass nouns, where "what this <name> shows" does not read.
-const PLURAL_NAMES = ['links', 'counters'];
+// fields shown depend on the building block: a table needs a resource, columns and a sort; a links
+// box needs links; a cluster widget needs only its cluster.
+
+// Block names that are plural, where "what this <name> shows" does not read.
+const PLURAL_NAMES = ['links'];
 
 const PANEL_WIDTH = 400;
 const MARGIN = 12;
 
-export default {
-  name: 'WidgetSettingsModal',
+/** One tickable column: an id, how it is labelled, and whether it can be sorted by. */
+interface ColumnOption {
+  id: string;
+  label: string;
+  sortable: boolean;
+}
 
-  props: {
-    widget: {
-      type:     Object,
-      required: true,
-    },
-    // Where on screen the widget sits, so the panel can open next to it.
-    anchor: {
-      type:    Object,
-      default: null,
-    },
-  },
+const props = withDefaults(defineProps<{
+  widget: WidgetSpec;
+  /** Where on screen the widget sits, so the panel can open next to it. */
+  anchor?: SettingsAnchor | null;
+}>(), { anchor: null });
 
-  emits: ['done', 'cancel', 'remove'],
-
-  data() {
-    return {
-      // Measured after mount: the panel can only be placed well if we know how tall it really is.
-      panelHeight: 0,
-      draft:       JSON.parse(JSON.stringify(this.widget)),
-      resources:   SUGGESTED_RESOURCES,
-      fields:      FIELDS,
-    };
-  },
-
-  computed: {
-    /**
-     * Sit against the widget's left edge, and ALWAYS fully on screen.
-     *
-     * The anchor is where the widget is, and for a widget near the bottom of a long page that is a
-     * point with no room under it. So the panel is placed against the anchor and then pushed back
-     * up by however much of it would fall off the bottom — clamped last against the view bar, which
-     * holds Cancel and Save and has to stay reachable while this is open.
-     */
-    position() {
-      const a = this.anchor;
-      const bar = document.querySelector('.vbar');
-      const floor = bar ? Math.round(bar.getBoundingClientRect().bottom) + 8 : MARGIN;
-      const ceiling = Math.max(floor, window.innerHeight - (this.panelHeight || 420) - MARGIN);
-
-      if (!a) {
-        return {
-          left: '50%', top: `${ floor }px`, transform: 'translateX(-50%)'
-        };
-      }
-
-      return {
-        left: `${ Math.max(MARGIN, Math.min(a.left, window.innerWidth - PANEL_WIDTH - MARGIN)) }px`,
-        top:  `${ Math.max(floor, Math.min(a.top, ceiling)) }px`,
-      };
-    },
-
-    // "Clusters: what this table shows" — the widget's own title, then what kind of thing it is.
-    // A few block names are plural ("Links", "Counters") and do not fit that sentence, so those
-    // fall back to the generic noun rather than reading "what this links shows".
-    heading() {
-      const name = blockName(this.draft.kind);
-      const what = PLURAL_NAMES.includes(name.toLowerCase()) ? 'widget' : name.toLowerCase();
-
-      return `${ this.draft.title || name }: what this ${ what } shows`;
-    },
-
-    // Which sections apply to this building block.
-    readsData() {
-      return ![WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW].includes(this.draft.kind) && !isClusterWidget(this.draft.kind);
-    },
-
-    // The Home cluster table is the stock Home's own table — its columns, sorting and actions are
-    // fixed there, so there is nothing here to change but the heading.
-    titleOnly() {
-      return this.draft.kind === WIDGET_CLUSTER_TABLE;
-    },
-
-    hasColumns() {
-      return this.draft.kind === WIDGET_TABLE;
-    },
-
-    /**
-     * A Kubernetes type exists once per CLUSTER, so one has to be named before there is anything to
-     * show. Asking only for downstream types keeps the question off the widgets that do not have it
-     * — a Cluster or a User is global, there is nothing to pick.
-     *
-     * ONE cluster, not several: each is a separate API with its own paging, so a widget spanning
-     * two of them could not be paged at all. One cluster is what makes the table a real table.
-     */
-    needsClusters() {
-      return (this.readsData && isDownstream(this.draft.resource)) || isClusterWidget(this.draft.kind);
-    },
-
-    clusters() {
-      return clusterOptions(this.$store.getters);
-    },
-
-    /**
-     * The columns on offer belong to the RESOURCE, not to this panel: a User has a username and a
-     * last login, a Cluster has a provider and a Kubernetes version. So the ticks are rebuilt from
-     * whatever type the picker is currently pointing at, and only a type Rancher describes nothing
-     * about falls back to the generic field list.
-     */
-    columns() {
-      const own = typeColumns(this.$store.getters, this.draft.resource);
-
-      return own.length ? own : TABLE_COLUMNS.map((c) => ({ ...c, sortable: true }));
-    },
-
-    /**
-     * And so do the fields you can sort from. A table sorts through the column itself, so it can
-     * only offer the ones the type says are sortable; a list sorts through this extension's own
-     * field readers, which is the generic list.
-     */
-    sortFields() {
-      if (this.draft.kind !== WIDGET_TABLE) {
-        return FIELDS;
-      }
-
-      const sortable = this.columns.filter((c) => c.sortable);
-
-      return sortable.length ? sortable : FIELDS;
-    },
-
-    hasSort() {
-      return this.draft.kind === WIDGET_TABLE;
-    },
-
-    // The suggested list, plus whatever this widget already points at (which may be a CRD that is
-    // not on the list) so the picker never silently drops it.
-    resourceOptions() {
-      const known = this.resources.some((r) => r.value === this.draft.resource);
-
-      return known || !this.draft.resource ? this.resources : [{ value: this.draft.resource, label: this.draft.resource }, ...this.resources];
-    },
-
-    targetsText: {
-      get() {
-        return (this.draft.targets || []).join(', ');
-      },
-      set(value) {
-        this.draft.targets = `${ value }`.split(',').map((t) => t.trim()).filter(Boolean);
-      },
-    },
-
-    linksText: {
-      get() {
-        return (this.draft.links || []).map((l) => `${ l.label } ${ l.url }`).join('\n');
-      },
-      set(value) {
-        this.draft.links = `${ value }`.split('\n').map((line) => {
-          const at = line.trim().lastIndexOf(' ');
-
-          return at < 0 ? null : { label: line.trim().slice(0, at).trim(), url: line.trim().slice(at + 1).trim() };
-        }).filter((l) => l && l.label && l.url);
-      },
-    },
-  },
-
-  created() {
-    // A widget that has never been configured has no `columns`, and the table reads that as "show
-    // everything". Materialise it here so the ticks match what is actually drawn — otherwise the
-    // panel opens with nothing ticked beside a table showing every column, and ticking one box
-    // would read as "add a column" while actually dropping the other eight.
-    if (this.hasColumns && !this.draft.columns?.length) {
-      this.draft.columns = this.columns.map((c) => c.id);
-    }
-  },
-
-  mounted() {
-    // Escape closes it, like every other dialog in the product.
-    this.onKey = (ev) => {
-      if (ev.key === 'Escape') {
-        this.$emit('cancel');
-      }
-    };
-    window.addEventListener('keydown', this.onKey);
-
-    // Place it knowing its real height (see `position`), and keep it on screen if the window moves.
-    this.measure = () => {
-      this.panelHeight = this.$refs.dialog?.getBoundingClientRect().height || 0;
-    };
-    this.$nextTick(this.measure);
-    window.addEventListener('resize', this.measure);
-
-    // With no scrim there is nothing to click "through" to, so a click anywhere outside closes it.
-    // Deferred past this tick so the very click that opened it does not immediately close it.
-    this.onOutside = (ev) => {
-      if (!this.$el?.contains(ev.target)) {
-        this.$emit('cancel');
-      }
-    };
-    setTimeout(() => document.addEventListener('mousedown', this.onOutside), 0);
-  },
-
-  beforeUnmount() {
-    window.removeEventListener('keydown', this.onKey);
-    window.removeEventListener('resize', this.measure);
-    document.removeEventListener('mousedown', this.onOutside);
-  },
-
-  watch: {
-    /**
-     * Load the clusters the picker offers, the moment it is shown.
-     *
-     * The picker reads them from the store, and nothing on the Home is obliged to have put them
-     * there - the cluster list pages now, so it holds one page of them at most, and a Home without
-     * one holds none. It worked before only because the old cluster widget fetched every cluster
-     * as a side effect, which is exactly what that widget no longer does.
-     *
-     * Fetched here, not on every Home load: a picker of clusters needs all of them, but only while
-     * somebody is choosing one.
-     */
-    needsClusters: {
-      immediate: true,
-      handler(needed) {
-        if (needed) {
-          this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }).catch(() => {});
-        }
-      },
-    },
-
-    /**
-     * Changing the type changes what a column even means — `user-id` is not a column a Cluster has —
-     * so the old ticks cannot carry over. Everything the new type has is ticked: you drop what you
-     * do not want, rather than hunt for what you do. A sort that no longer applies is cleared.
-     */
-    'draft.resource'(neu, old) {
-      if (neu === old) {
-        return;
-      }
-
-      this.draft.columns = this.columns.map((c) => c.id);
-
-      if (this.draft.sortBy && !this.sortFields.some((f) => f.id === this.draft.sortBy)) {
-        this.draft.sortBy = '';
-      }
-    },
-  },
-
-  methods: {
-    toggleColumn(id) {
-      const columns = [...(this.draft.columns || [])];
-      const at = columns.indexOf(id);
-
-      if (at >= 0) {
-        columns.splice(at, 1);
-      } else {
-        // Keep the canonical field order so the table reads the same however they were ticked.
-        columns.push(id);
-        columns.sort((a, b) => this.columns.findIndex((c) => c.id === a) - this.columns.findIndex((c) => c.id === b));
-      }
-
-      this.draft.columns = columns;
-    },
-
-    hasColumn(id) {
-      return (this.draft.columns || []).includes(id);
-    },
-
-  },
+type SettingsEmits = {
+  done: [widget: WidgetSpec];
+  cancel: [];
+  remove: [];
 };
+
+const emit = defineEmits<SettingsEmits>();
+
+const store = useStore();
+
+const root = ref<HTMLElement | null>(null);
+const dialog = ref<HTMLElement | null>(null);
+// Measured after mount: the panel can only be placed well if we know how tall it really is.
+const panelHeight = ref(0);
+const draft = reactive<WidgetSpec>(JSON.parse(JSON.stringify(props.widget)));
+
+/**
+ * Sit against the widget's left edge, and ALWAYS fully on screen.
+ *
+ * The anchor is where the widget is, and for a widget near the bottom of a long page that is a point
+ * with no room under it. So the panel is placed against the anchor and then pushed back up by
+ * however much of it would fall off the bottom — clamped last against the view bar, which holds
+ * Cancel and Save and has to stay reachable while this is open.
+ */
+const position = computed<CSSProperties>(() => {
+  const a = props.anchor;
+  const bar = document.querySelector('.vbar');
+  const floor = bar ? Math.round(bar.getBoundingClientRect().bottom) + 8 : MARGIN;
+  const ceiling = Math.max(floor, window.innerHeight - (panelHeight.value || 420) - MARGIN);
+
+  if (!a) {
+    return {
+      left: '50%', top: `${ floor }px`, transform: 'translateX(-50%)'
+    };
+  }
+
+  return {
+    left: `${ Math.max(MARGIN, Math.min(a.left, window.innerWidth - PANEL_WIDTH - MARGIN)) }px`,
+    top:  `${ Math.max(floor, Math.min(a.top, ceiling)) }px`,
+  };
+});
+
+// "Clusters: what this table shows" — the widget's own title, then what kind of thing it is. A
+// plural block name ("Links") does not fit that sentence, so it falls back to the generic noun
+// rather than reading "what this links shows".
+const heading = computed(() => {
+  const name = blockName(draft.kind);
+  const what = PLURAL_NAMES.includes(name.toLowerCase()) ? 'widget' : name.toLowerCase();
+
+  return `${ draft.title || name }: what this ${ what } shows`;
+});
+
+// Which sections apply to this building block.
+const readsData = computed(() => ![WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW].includes(draft.kind) && !isClusterWidget(draft.kind));
+
+// The Home cluster table is the stock Home's own table — its columns, sorting and actions are fixed
+// there, so there is nothing here to change but the heading.
+const titleOnly = computed(() => draft.kind === WIDGET_CLUSTER_TABLE);
+
+const hasColumns = computed(() => draft.kind === WIDGET_TABLE);
+const hasSort = computed(() => draft.kind === WIDGET_TABLE);
+
+/**
+ * A Kubernetes type exists once per CLUSTER, and a cluster widget is about one, so either has a
+ * cluster to name. Asking only then keeps the question off the widgets that do not have it — a
+ * Cluster or a User is global, there is nothing to pick.
+ *
+ * ONE cluster, not several: each is a separate API with its own paging, so a widget spanning two of
+ * them could not be paged at all. One cluster is what makes a table a real table.
+ */
+const needsClusters = computed(() => (readsData.value && isDownstream(draft.resource)) || isClusterWidget(draft.kind));
+
+const clusters = computed(() => clusterOptions(store.getters));
+
+/**
+ * The columns on offer belong to the RESOURCE, not to this panel: a User has a username and a last
+ * login, a Cluster has a provider and a Kubernetes version. So the ticks are rebuilt from whatever
+ * type the picker is currently pointing at, and only a type Rancher describes nothing about falls
+ * back to the generic field list.
+ */
+const columns = computed<ColumnOption[]>(() => {
+  const own = typeColumns(store.getters, draft.resource);
+
+  return own.length ? own : FIELDS.map((f) => ({
+    id: f.id, label: f.label, sortable: true
+  }));
+});
+
+// A table sorts through the column itself, so it can only offer the ones the type says are sortable.
+const sortFields = computed<ColumnOption[]>(() => {
+  const sortable = columns.value.filter((c) => c.sortable);
+
+  return sortable.length ? sortable : FIELDS.map((f) => ({
+    id: f.id, label: f.label, sortable: true
+  }));
+});
+
+// The suggested list, plus whatever this widget already points at (which may be a CRD that is not on
+// the list) so the picker never silently drops it.
+const resourceOptions = computed<SuggestedResource[]>(() => {
+  const known = SUGGESTED_RESOURCES.some((r) => r.value === draft.resource);
+
+  return known || !draft.resource ? SUGGESTED_RESOURCES : [{ value: draft.resource, label: draft.resource }, ...SUGGESTED_RESOURCES];
+});
+
+const targetsText = computed({
+  get: () => (draft.targets || []).join(', '),
+  set: (value: string) => {
+    draft.targets = `${ value }`.split(',').map((t) => t.trim()).filter(Boolean);
+  },
+});
+
+// One link per line, "Label https://url" - the URL is whatever follows the last space.
+const linksText = computed({
+  get: () => (draft.links || []).map((l) => `${ l.label } ${ l.url }`).join('\n'),
+  set: (value: string) => {
+    draft.links = `${ value }`.split('\n').map((line): WidgetLink | null => {
+      const at = line.trim().lastIndexOf(' ');
+
+      return at < 0 ? null : { label: line.trim().slice(0, at).trim(), url: line.trim().slice(at + 1).trim() };
+    }).filter((l): l is WidgetLink => !!l && !!l.label && !!l.url);
+  },
+});
+
+function hasColumn(id: string): boolean {
+  return (draft.columns || []).includes(id);
+}
+
+function toggleColumn(id: string): void {
+  const next = [...(draft.columns || [])];
+  const at = next.indexOf(id);
+
+  if (at >= 0) {
+    next.splice(at, 1);
+  } else {
+    // Keep the canonical field order so the table reads the same however they were ticked.
+    next.push(id);
+    next.sort((a, b) => columns.value.findIndex((c) => c.id === a) - columns.value.findIndex((c) => c.id === b));
+  }
+
+  draft.columns = next;
+}
+
+// A widget that has never been configured has no `columns`, and the table reads that as "show
+// everything". Materialise it here so the ticks match what is actually drawn — otherwise the panel
+// opens with nothing ticked beside a table showing every column, and ticking one box would read as
+// "add a column" while actually dropping the other eight.
+if (hasColumns.value && !draft.columns?.length) {
+  draft.columns = columns.value.map((c) => c.id);
+}
+
+/**
+ * Load the clusters the picker offers, the moment it is shown.
+ *
+ * The picker reads them from the store, and nothing on the Home is obliged to have put them there -
+ * the cluster list pages, so it holds one page of them at most, and a Home without one holds none.
+ *
+ * Fetched here, not on every Home load: a picker of clusters needs all of them, but only while
+ * somebody is choosing one.
+ */
+watch(needsClusters, (needed) => {
+  if (needed) {
+    store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }).catch(() => undefined);
+  }
+}, { immediate: true });
+
+/**
+ * Changing the type changes what a column even means — `user-id` is not a column a Cluster has — so
+ * the old ticks cannot carry over. Everything the new type has is ticked: you drop what you do not
+ * want, rather than hunt for what you do. A sort that no longer applies is cleared.
+ */
+watch(() => draft.resource, (neu, old) => {
+  if (neu === old) {
+    return;
+  }
+
+  draft.columns = columns.value.map((c) => c.id);
+
+  if (draft.sortBy && !sortFields.value.some((f) => f.id === draft.sortBy)) {
+    draft.sortBy = '';
+  }
+});
+
+// Escape closes it, like every other dialog in the product.
+function onKey(ev: KeyboardEvent): void {
+  if (ev.key === 'Escape') {
+    emit('cancel');
+  }
+}
+
+// Place it knowing its real height (see `position`), and keep it on screen if the window moves.
+function measure(): void {
+  panelHeight.value = dialog.value?.getBoundingClientRect().height || 0;
+}
+
+// With no scrim there is nothing to click "through" to, so a click anywhere outside closes it.
+function onOutside(ev: MouseEvent): void {
+  if (!root.value?.contains(ev.target as Node | null)) {
+    emit('cancel');
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKey);
+  nextTick(measure);
+  window.addEventListener('resize', measure);
+  // Deferred past this tick so the very click that opened it does not immediately close it.
+  setTimeout(() => document.addEventListener('mousedown', onOutside), 0);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKey);
+  window.removeEventListener('resize', measure);
+  document.removeEventListener('mousedown', onOutside);
+});
 </script>
 
 <template>
   <div
+    ref="root"
     class="wsm"
     :style="position"
     role="dialog"

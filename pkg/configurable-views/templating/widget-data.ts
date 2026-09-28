@@ -108,9 +108,6 @@ const FIELD_BY_ID = FIELDS.reduce<Record<string, Field>>((acc, f) => {
   return acc;
 }, {});
 
-/** The columns a table offers — every field that makes sense in a column, in FIELDS order. */
-export const TABLE_COLUMNS = FIELDS;
-
 /** A field's human label ('K8s version'), falling back to the raw path for a CRD field. */
 export function fieldLabel(id: string): string {
   return FIELD_BY_ID[id]?.label || id;
