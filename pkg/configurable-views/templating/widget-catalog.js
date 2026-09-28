@@ -23,6 +23,8 @@ export const WIDGET_OVERVIEW = 'overview';
 export const WIDGET_CLUSTER_HEADER = 'clusterHeader';
 export const WIDGET_RESOURCE_CARDS = 'resourceCards';
 export const WIDGET_CAPACITY = 'clusterCapacity';
+export const WIDGET_EVENTS = 'clusterEvents';
+export const WIDGET_CERTIFICATES = 'clusterCertificates';
 
 /**
  * The kinds that are ABOUT one cluster - the pieces of a cluster's dashboard.
@@ -30,7 +32,7 @@ export const WIDGET_CAPACITY = 'clusterCapacity';
  * Each shows the cluster it names, or the page's when it names none (see useWidgetCluster), so the
  * settings ask for a cluster for these and for nothing else of theirs.
  */
-export const CLUSTER_WIDGETS = [WIDGET_CLUSTER_HEADER, WIDGET_RESOURCE_CARDS, WIDGET_CAPACITY];
+export const CLUSTER_WIDGETS = [WIDGET_CLUSTER_HEADER, WIDGET_RESOURCE_CARDS, WIDGET_CAPACITY, WIDGET_EVENTS, WIDGET_CERTIFICATES];
 
 export function isClusterWidget(kind) {
   return CLUSTER_WIDGETS.includes(kind);
@@ -117,6 +119,22 @@ export const READY_MADE = [
     icon: 'table',
     span: 12,
     spec: { kind: WIDGET_CAPACITY, title: '' },
+  },
+  {
+    id:   'cluster-events',
+    name: 'Events',
+    desc: "A cluster's events, newest first",
+    icon: 'table',
+    span: 12,
+    spec: { kind: WIDGET_EVENTS, title: '' },
+  },
+  {
+    id:   'cluster-certificates',
+    name: 'Certificates',
+    desc: "A cluster's TLS certificates, soonest to expire first",
+    icon: 'table',
+    span: 12,
+    spec: { kind: WIDGET_CERTIFICATES, title: '' },
   },
   {
     id:   'welcome-banner',
