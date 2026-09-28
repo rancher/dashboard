@@ -21,6 +21,42 @@ const mockI18nStore = createStore({
 });
 
 describe('richTranslation', () => {
+  it('fills the translation\'s placeholders from args', () => {
+    const store = createStore({ getters: { 'i18n/t': () => (key: string, args: Record<string, unknown> = {}) => `Export <b>${ args.count }</b> from ${ args.name }` } });
+    const wrapper = mount(RichTranslation, {
+      props:  { k: 'any', args: { count: 3, name: 'Mine' } },
+      global: { plugins: [store] },
+    });
+
+    expect(wrapper.text()).toBe('Export 3 from Mine');
+    expect(wrapper.html()).toContain('<b>3</b>');
+  });
+
+  it('translates in the language the user has chosen, not the default', () => {
+    // As the real getter does: a language named in the third argument wins, and anything that
+    // is not a language there - the `true` this used to pass - falls back to the default
+    const translations: Record<string, Record<string, string>> = {
+      'en-us':   { greeting: 'Hello' },
+      'zh-hans': { greeting: '你好' },
+    };
+    const store = createStore({
+      getters: {
+        'i18n/t': () => (key: string, _args: unknown, language?: string) => {
+          // `language || selected`, exactly as localeToUse does it
+          const locale: any = language || 'zh-hans';
+
+          return translations[locale]?.[key] ?? translations['en-us'][key];
+        }
+      }
+    });
+    const wrapper = mount(RichTranslation, {
+      props:  { k: 'greeting' },
+      global: { plugins: [store] },
+    });
+
+    expect(wrapper.text()).toBe('你好');
+  });
+
   it('renders a simple translation correctly', () => {
     const wrapper = mount(RichTranslation, {
       props:  { k: 'test.simple' },
