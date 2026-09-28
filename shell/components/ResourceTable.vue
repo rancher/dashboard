@@ -10,7 +10,7 @@ import { findBy } from '@shell/utils/array';
 import { ExtensionPoint, TableColumnLocation, TableLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
-import { fieldValue, stringifyValue } from '@shell/utils/table-views/fields';
+import { dateText, fieldValue, stringifyValue } from '@shell/utils/table-views/fields';
 import ResourceTableViews from '@shell/mixins/resource-table-views';
 import ResourceTableWatch from '@shell/mixins/resource-table-watch';
 import paginationUtils from '@shell/utils/pagination-utils';
@@ -564,6 +564,14 @@ export default {
         const field = this.viewGroupField;
         const empty = this.t('tableViews.group.empty');
 
+        if (field.byMonth) {
+          return (row) => {
+            const date = dateText(fieldValue(row, field));
+
+            return /^\d{4}-\d{2}/.test(date) ? date.slice(0, 7) : empty;
+          };
+        }
+
         return (row) => stringifyValue(fieldValue(row, field)) || empty;
       }
 
@@ -845,6 +853,7 @@ export default {
         :fields="viewFields"
         :group-fields="viewGroupFields"
         :filter-fields="viewFilterFields"
+        :date-fields="viewDateFieldIds"
         :field-values="fieldValues"
         :rows="filteredRows"
         :unsupported-fields="unsupportedViewFields"

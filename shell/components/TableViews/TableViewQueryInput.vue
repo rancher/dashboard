@@ -11,7 +11,7 @@ import { useStore } from 'vuex';
 
 import RcSeparator from '@components/RcSeparator/RcSeparator.vue';
 import { useI18n } from '@shell/composables/useI18n';
-import { LABEL_FIELD_PREFIX, valuesInUse } from '@shell/utils/table-views/fields';
+import { LABEL_FIELD_PREFIX, dateBuckets, valuesInUse } from '@shell/utils/table-views/fields';
 import {
   CONNECTIVES, NEGATORS, highlightQuery, isNegator, quoteIfNeeded, replaceToken, scanQuery, tokenAt
 } from '@shell/utils/table-views/query';
@@ -51,12 +51,15 @@ const props = withDefaults(defineProps<{
   /** fieldId -> values in use from the api; the rows on the page are the fallback */
   fieldValues?: Record<string, { value: string, count: number }[]>,
   rows?: TableViewRow[],
+  /** Ids of the fields that hold dates, whose values are offered as years and months */
+  dateFields?: string[],
 }>(), {
   value:        '',
   fields:       () => [],
   filterFields: null,
   fieldValues:  () => ({}),
   rows:         () => [],
+  dateFields:   () => [],
 });
 
 const emit = defineEmits<{
@@ -64,6 +67,17 @@ const emit = defineEmits<{
   'request-values': [fieldId: string],
   'update:focused': [focused: boolean],
 }>();
+
+/** A field's values as the box offers them: the api's where it has them, else the page's; dates by month */
+const valuesFor = (field: TableViewField) => {
+  const fetched = props.fieldValues[field.id];
+
+  if (props.dateFields.includes(field.id)) {
+    return dateBuckets(fetched?.length ? fetched : valuesInUse(props.rows, field, Infinity));
+  }
+
+  return fetched?.length ? fetched : valuesInUse(props.rows, field);
+};
 
 const { t } = useI18n(useStore());
 
@@ -110,10 +124,7 @@ const knownValues = computed(() => {
       return;
     }
 
-    const fetched = props.fieldValues[field.id];
-    const available = fetched?.length ? fetched : valuesInUse(props.rows, field);
-
-    out[field.id] = new Set(available.map((entry) => entry.value.toLowerCase()));
+    out[field.id] = new Set(valuesFor(field).map((entry) => entry.value.toLowerCase()));
   });
 
   return out;
@@ -208,10 +219,7 @@ const suggestions = computed<Suggestion[]>(() => {
       return [];
     }
 
-    const fetched = props.fieldValues[field.id];
-    const available = fetched?.length ? fetched : valuesInUse(props.rows, field);
-
-    return available
+    return valuesFor(field)
       .filter((entry) => entry.value.toLowerCase().includes(needle))
       .map((entry) => ({
         key:    `${ field.id }:${ entry.value }`,

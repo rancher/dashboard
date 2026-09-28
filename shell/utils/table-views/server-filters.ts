@@ -7,28 +7,17 @@ import {
 import { findField, serverPathFor } from '@shell/utils/table-views/fields';
 import type { TableViewServerFilterResult, TableViewField, TableViewQuery, TableViewTerm } from '@shell/types/table-views';
 
-/** `filter=field IN (a,b)` inserts values verbatim, so these characters break it */
-function breaksInSerializer(value: string): boolean {
-  return /[,()"]/.test(value);
-}
-
 /**
- * Terms as steve `filter=` params: one value is a CONTAINS match, several on one field an IN.
+ * Terms as steve `filter=` params: each value a CONTAINS match, several on one field OR'd.
  * Different fields are AND'd. Terms with no server path are returned as `unsupported`, not applied
  */
-export function termsToServerFilters(
-  terms: TableViewTerm[],
-  fields: TableViewField[],
-  opts: { isAllowed: (path: string) => boolean }
-): TableViewServerFilterResult {
+export function termsToServerFilters(terms: TableViewTerm[], fields: TableViewField[]): TableViewServerFilterResult {
   const filters: PaginationParamFilter[] = [];
   const unsupported: TableViewTerm[] = [];
 
   if (!terms || !terms.length) {
     return { filters, unsupported };
   }
-
-  const isAllowed = opts && typeof opts.isAllowed === 'function' ? opts.isAllowed : () => false;
 
   const allowedPathsFor = (fieldId: string): string[] | null => {
     const field = findField(fields, fieldId);
@@ -43,17 +32,18 @@ export function termsToServerFilters(
       return null;
     }
 
-    const paths = (Array.isArray(raw) ? raw : [raw]).filter((p) => typeof p === 'string' && isAllowed(p));
+    const paths = (Array.isArray(raw) ? raw : [raw]).filter((p) => typeof p === 'string');
 
     return paths.length ? paths : null;
   };
 
-  // Label columns are left out: each costs the api a join, and OR'ing several hangs it
+  // Label columns are left out: each costs the api a join, and OR'ing several hangs it. So are the
+  // columns that say they aren't searched
   const freeTextPaths: string[] = [];
   const seenPath: Record<string, boolean> = {};
 
   fields.forEach((field) => {
-    if (field.isLabel) {
+    if (field.isLabel || field.paginationHeader?.search === false) {
       return;
     }
 
@@ -64,7 +54,7 @@ export function termsToServerFilters(
     }
 
     (Array.isArray(raw) ? raw : [raw]).forEach((p) => {
-      if (typeof p === 'string' && isAllowed(p) && !seenPath[p]) {
+      if (typeof p === 'string' && !seenPath[p]) {
         seenPath[p] = true;
         freeTextPaths.push(p);
       }
@@ -106,41 +96,8 @@ export function termsToServerFilters(
 
     const values = group.map((t) => t.value);
 
-    if (paths.length === 1) {
-      const path = paths[0];
-
-      if (values.length > 1) {
-        if (values.some(breaksInSerializer)) {
-          if (negated) {
-            values.forEach((value) => {
-              filters.push(new PaginationParamFilter({
-                fields: [new PaginationFilterField({
-                  field: path, value, equality: PaginationFilterEquality.NOT_CONTAINS
-                })]
-              }));
-            });
-          } else {
-            filters.push(new PaginationParamFilter({
-              fields: values.map((value) => new PaginationFilterField({
-                field: path, value, equality: PaginationFilterEquality.CONTAINS
-              }))
-            }));
-          }
-        } else {
-          filters.push(new PaginationParamFilter({
-            fields: [new PaginationFilterField({
-              field: path, value: values.join(','), equality: negated ? PaginationFilterEquality.NOT_IN : PaginationFilterEquality.IN
-            })]
-          }));
-        }
-      } else {
-        filters.push(new PaginationParamFilter({
-          fields: [new PaginationFilterField({
-            field: path, value: values[0], equality: negated ? PaginationFilterEquality.NOT_CONTAINS : PaginationFilterEquality.CONTAINS
-          })]
-        }));
-      }
-    } else if (negated) {
+    // One value or several, a field term is a contains match, so `a b` on one field means `a or b`
+    if (negated) {
       values.forEach((value) => {
         paths.forEach((path) => {
           filters.push(new PaginationParamFilter({
@@ -206,11 +163,7 @@ function allTerms(query: TableViewQuery): TableViewTerm[] {
  * expanded: `(a and b) or c` is `(a or c) and (b or c)`. When that can't be done nothing is
  * filtered and every term is reported, rather than narrowing by half the query
  */
-export function queryToServerFilters(
-  query: TableViewQuery,
-  fields: TableViewField[],
-  opts: { isAllowed: (path: string) => boolean }
-): TableViewServerFilterResult {
+export function queryToServerFilters(query: TableViewQuery, fields: TableViewField[]): TableViewServerFilterResult {
   const clauses = query?.clauses || [];
 
   if (!clauses.length) {
@@ -222,7 +175,7 @@ export function queryToServerFilters(
     const filters: PaginationParamFilter[] = [];
 
     clause.groups.forEach((group) => {
-      const result = termsToServerFilters(group, fields, opts);
+      const result = termsToServerFilters(group, fields);
 
       filters.push(...result.filters);
       unsupported.push(...result.unsupported);

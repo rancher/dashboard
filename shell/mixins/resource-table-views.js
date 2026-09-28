@@ -7,14 +7,13 @@ import { NotificationLevel } from '@shell/types/notifications';
 import { downloadFile } from '@shell/utils/download';
 import { exportColumnsFor, rowsToCsv, rowsToJson, rowsToYaml } from '@shell/utils/table-views/export';
 import {
-  LABEL_FIELD_PREFIX, coreFieldIdsFor, fieldsFor, findField, headerFieldId, isIgnoredColumn, serverPathFor, summaryToValues
+  LABEL_FIELD_PREFIX, coreFieldIdsFor, fieldsFor, findField, headerFieldId, holdsDates, isIgnoredColumn, serverPathFor, summaryToValues
 } from '@shell/utils/table-views/fields';
 import { applyQueryExpression } from '@shell/utils/table-views/filter-rows';
 import { parseQuery, parseQueryExpression } from '@shell/utils/table-views/query';
 import { queryToServerFilters } from '@shell/utils/table-views/server-filters';
 import { SEARCH_DEBOUNCE } from '@shell/config/search';
 import { TABLE_VIEWS } from '@shell/store/prefs';
-import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { DEFAULT_MANDATORY_SORT } from '@shell/components/SortableTable/sorting';
 import { sortBy } from '@shell/utils/sort';
 import { uniq } from '@shell/utils/array';
@@ -32,6 +31,9 @@ const VIEW_SWITCH_TIMEOUT = 8000;
 
 /** Marks a view's grouping as one of the table's own rather than a column */
 export const TABLE_GROUPING_PREFIX = 'group:';
+
+/** Marks a view's grouping as a date column's, by month */
+export const MONTH_GROUPING_PREFIX = 'month:';
 
 /**
  * The table views half of ResourceTable. Needs from its host: `schema`, `rows`, `headers`,
@@ -392,20 +394,34 @@ export default {
       }));
       const covered = this.tableGroupings.flatMap((option) => [option.hideColumn, option.field]).filter(Boolean);
 
-      return own.concat(this.viewFields.filter((field) => {
+      const sortable = new Set(this.viewSortableFields.filter((field) => field.isLabel || !(covered.includes(field.header?.name) || covered.includes(field.header?.value))));
+      // A date gathers nothing - nearly every row has its own - so it is grouped by month, in its place
+      const dates = new Set(this.viewDateFields);
+
+      return own.concat(this.viewFields
+        .filter((field) => sortable.has(field) || dates.has(field))
+        .map((field) => (dates.has(field) ? this.monthGrouping(field) : field)));
+    },
+
+    /**
+     * The columns the table can sort by, labels included, less the dates. On a server side list, only
+     * those the api can be asked about: grouping by anything else could only regroup the page in hand
+     */
+    viewSortableFields() {
+      return this.viewFields.filter((field) => {
         if (field.isLabel) {
           return true;
         }
 
         const { header } = field;
 
-        if (!header?.sort || covered.includes(header.name) || covered.includes(header.value)) {
+        if (!header?.sort || field.isDate || (this.serverSideTableViews && !serverPathFor(field))) {
           return false;
         }
 
         return typeof header.value === 'function' || !!header.value ||
           typeof header.sort === 'string' || (Array.isArray(header.sort) && typeof header.sort[0] === 'string');
-      }));
+      });
     },
 
     /** The table's own grouping the view has picked, if it picked one */
@@ -415,22 +431,38 @@ export default {
 
 
 
-    /** Server side, only the fields the api indexes, so nothing is suggested that would then be ignored */
+    /**
+     * The columns the table sorts by - the same set Group By offers, so the two never disagree - and
+     * the dates, offered by year and month. Labels can be filtered, but only the rows in hand could
+     * list their keys, and that list empties as you type, so they are typed
+     */
     viewFilterFields() {
-      // Labels are filterable, but the rows in hand are the only way to list their keys, and that
-      // list empties as you type. So they are typed rather than offered
-      const suggestable = this.viewFields.filter((field) => !field.isLabel);
+      const offered = [...this.viewSortableFields, ...this.viewDateFields];
 
-      if (!this.serverSideTableViews) {
-        return suggestable;
-      }
+      return this.viewFields.filter((field) => !field.isLabel && offered.includes(field));
+    },
 
-      return suggestable.filter((field) => {
-        const raw = serverPathFor(field);
-        const paths = Array.isArray(raw) ? raw : [raw];
+    /** The date columns, which the query offers by year and month and Group By leaves out */
+    viewDateFields() {
+      return this.viewFields.filter((field) => {
+        // Only a column with dates to offer: some hold text such as "23m", some nothing yet
+        if (!field.isDate || !field.header?.sort || !holdsDates(this.filteredRows, field)) {
+          return false;
+        }
 
-        return paths.some((path) => typeof path === 'string' && stevePaginationUtils.isValidPaginationField(this.schema, path));
+        if (!this.serverSideTableViews) {
+          return true;
+        }
+
+        // A printed column the api holds only as relative text ("23m"), which no date can match
+        const path = serverPathFor(field);
+
+        return typeof path === 'string' && !path.startsWith('metadata.fields.');
       });
+    },
+
+    viewDateFieldIds() {
+      return this.viewDateFields.map((field) => field.id);
     },
 
 
@@ -466,7 +498,7 @@ export default {
         return { filters: [], unsupported: [] };
       }
 
-      return queryToServerFilters(this.viewQuery, this.viewFields, { isAllowed: (p) => stevePaginationUtils.isValidPaginationField(this.schema, p) });
+      return queryToServerFilters(this.viewQuery, this.viewFields);
     },
 
 
@@ -510,7 +542,13 @@ export default {
     },
 
 
+    /** Only a server side filtered list asks the api for values; the rest read them off their rows */
     summaryBaseUrl() {
+      // Some lists show a type their store has no schema for, and asking it for a url throws
+      if (!this.serverSideTableViews) {
+        return null;
+      }
+
       const urlFor = this.$store.getters[`${ this.inStore }/urlFor`];
       const args = this.externalPaginationArgs;
 
@@ -556,7 +594,7 @@ export default {
         return null;
       }
 
-      return findField(this.viewFields, this.view.groupBy) || null;
+      return this.groupFieldFor(this.view.groupBy);
     },
 
 
@@ -627,6 +665,24 @@ export default {
   },
 
   methods: {
+    /** The field a view's grouping names - a column, or a date column taken by month - or null */
+    groupFieldFor(id) {
+      if (id?.startsWith(MONTH_GROUPING_PREFIX)) {
+        const date = findField(this.viewDateFields, id.slice(MONTH_GROUPING_PREFIX.length));
+
+        return date ? this.monthGrouping(date) : null;
+      }
+
+      return findField(this.viewFields, id) || null;
+    },
+
+    /** A date column as the Group By entry that gathers its rows by month, under the column's own name */
+    monthGrouping(field) {
+      return {
+        ...field, id: `${ MONTH_GROUPING_PREFIX }${ field.id }`, byMonth: true
+      };
+    },
+
     /** A short name for one of the table's own groupings: its `labelKey`, else the one matching its tooltip */
     tableGroupingLabel(option) {
       const short = option.labelKey || option.tooltipKey?.replace(/^resourceTable\.groupBy\./, 'tableViews.group.by.');
@@ -711,9 +767,11 @@ export default {
       }
 
       const field = findField(this.viewFields, fieldId);
-      const path = field ? serverPathFor(field) : null;
+      const raw = field ? serverPathFor(field) : null;
+      // A column searched on several paths is summarised on its own
+      const path = Array.isArray(raw) ? raw[0] : raw;
 
-      if (typeof path !== 'string' || !stevePaginationUtils.isValidPaginationField(this.schema, path)) {
+      if (typeof path !== 'string') {
         // Claimed anyway, so the input stops asking and falls back to the page
         this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
 
@@ -725,8 +783,10 @@ export default {
       try {
         const url = `${ this.summaryBaseUrl }&summary=${ encodeURIComponent(path) }&summaryonly`;
         const res = await this.$store.dispatch(`${ this.inStore }/request`, { opt: { url } });
+        // Every timestamp, to count each month in full
+        const max = this.viewDateFieldIds.includes(fieldId) ? Infinity : undefined;
 
-        this.fieldValues = { ...this.fieldValues, [fieldId]: summaryToValues(res) };
+        this.fieldValues = { ...this.fieldValues, [fieldId]: summaryToValues(res, max) };
       } catch (e) {
         this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
       }
@@ -763,7 +823,7 @@ export default {
     async requestViewCounts(wanted) {
       await Promise.all(wanted.map(async(query) => {
         const parsed = parseQueryExpression(query, this.viewFields);
-        const { filters, unsupported } = queryToServerFilters(parsed, this.viewFields, { isAllowed: (p) => stevePaginationUtils.isValidPaginationField(this.schema, p) });
+        const { filters, unsupported } = queryToServerFilters(parsed, this.viewFields);
 
         if (unsupported.length) {
           this.viewCounts = { ...this.viewCounts, [query]: null };
@@ -824,8 +884,11 @@ export default {
       if (!this.defaultSort) {
         this.defaultSort = { sortBy, descending: !!descending };
 
-        // The first report predates the view's sort being applied
-        if (wanted && wanted !== sortBy) {
+        // The first report is the table's own sort, made before the view's was applied - even when it
+        // is the same column the other way round. Apply the view's now that the default is known
+        if (wanted) {
+          this.$nextTick(() => this.applyViewSort());
+
           return;
         }
       }
@@ -948,7 +1011,7 @@ export default {
 
       if (this.serverSideTableViews) {
         // Terms the api can't answer are left out, as they are when the tab is open
-        const { filters } = queryToServerFilters(parsed, this.viewFields, { isAllowed: (p) => stevePaginationUtils.isValidPaginationField(this.schema, p) });
+        const { filters } = queryToServerFilters(parsed, this.viewFields);
 
         rows = await this.fetchEveryPage({
           filters:              (this.listScopeFilters || []).concat(filters),
@@ -974,7 +1037,7 @@ export default {
       const descending = own ? !!view.sortDescending : !!this.defaultSort?.descending;
       const column = sortName ? headers.find((header) => header?.name?.toLowerCase() === sortName.toLowerCase()) : null;
       const fromColumn = typeof column?.sort === 'string' || Array.isArray(column?.sort) ? [].concat(column.sort) : [];
-      const group = view.groupBy ? this.groupSortFor(findField(this.viewFields, view.groupBy)) : null;
+      const group = view.groupBy ? this.groupSortFor(this.groupFieldFor(view.groupBy)) : null;
       const fields = uniq([].concat(group || [], fromColumn).concat(this._mandatorySort || DEFAULT_MANDATORY_SORT));
 
       return sortBy(rows, fields, descending);

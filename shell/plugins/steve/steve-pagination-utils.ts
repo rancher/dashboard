@@ -558,19 +558,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
     state.checked.push(field);
 
-    if (this.isValidPaginationField(schema, field)) {
-      return;
-    }
-
-    state.invalid.push(field);
-  }
-
-  /** Can the pagination api filter or sort by this field? A missing field is not invalid */
-  isValidPaginationField(schema?: Schema, field?: string): boolean {
-    if (!field) {
-      return true; // no field, so not invalid
-    }
-
     // First check in our hardcoded list of supported filters
     if (
       !!schema &&
@@ -587,7 +574,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
         }
       }))
     ) {
-      return true;
+      return;
     }
 
     // Then check in schema (the api automatically supports these)
@@ -595,10 +582,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       // This isn't the most performant, but the string is tiny
       (at) => at.field.replace('$.', '').replace('[', '.').replace(']', '') === field
     )) {
-      return true;
+      return;
     }
 
-    return false;
+    state.invalid.push(field);
   }
 
   /**

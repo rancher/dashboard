@@ -22,6 +22,7 @@ describe('ResourceTable', () => {
 
       const ctx = {
         calls,
+        serverSideTableViews:   true,
         inStore:                'cluster',
         schema:                 { id: 'pod' },
         externalPaginationArgs: args,
@@ -45,6 +46,13 @@ describe('ResourceTable', () => {
 
       return ctx;
     }
+
+    it('should ask for nothing on a list that is not filtered server side', () => {
+      const ctx = { ...createContext(), serverSideTableViews: false };
+
+      expect(summaryBaseUrl.call(ctx)).toBeNull();
+      expect(ctx.calls).toStrictEqual([]);
+    });
 
     it('should ask for a plain url when the list has no pagination args', () => {
       const ctx = createContext();

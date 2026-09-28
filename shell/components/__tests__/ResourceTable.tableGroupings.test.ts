@@ -1,6 +1,6 @@
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import ExplorerProjectsNamespaces from '@shell/components/ExplorerProjectsNamespaces.vue';
-import ResourceTableViews, { TABLE_GROUPING_PREFIX } from '@shell/mixins/resource-table-views';
+import ResourceTableViews, { MONTH_GROUPING_PREFIX, TABLE_GROUPING_PREFIX } from '@shell/mixins/resource-table-views';
 import { IMPROVED_TABLES } from '@shell/store/features';
 import { GROUP_RESOURCES } from '@shell/store/prefs';
 import type { TableViewField } from '@shell/types/table-views';
@@ -96,9 +96,12 @@ describe('ResourceTable', () => {
 
   describe('the Group By menu', () => {
     it('should list the table\'s own groupings first, under their short names', () => {
+      const viewFields = [column('name')];
       const fields = computed.viewGroupFields.call({
         ...i18n,
-        viewFields:         [column('name')],
+        viewFields,
+        viewSortableFields: viewFields,
+        viewDateFields:     [],
         tableGroupings:     [NODE],
         tableGroupingLabel: methods.tableGroupingLabel,
       }) as TableViewField[];
@@ -107,14 +110,90 @@ describe('ResourceTable', () => {
     });
 
     it('should drop a column one of those groupings already covers, by name or by path', () => {
+      const viewFields = [column('project', 'project.nameDisplay'), column('node', 'spec.nodeName'), column('name')];
       const fields = computed.viewGroupFields.call({
         ...i18n,
-        viewFields:         [column('project', 'project.nameDisplay'), column('node', 'spec.nodeName'), column('name')],
+        viewFields,
+        viewSortableFields: viewFields,
+        viewDateFields:     [],
         tableGroupings:     [PROJECT, NODE],
         tableGroupingLabel: methods.tableGroupingLabel,
       }) as TableViewField[];
 
       expect(fields.map((field) => field.id)).toStrictEqual([`${ TABLE_GROUPING_PREFIX }namespace`, `${ TABLE_GROUPING_PREFIX }role`, 'name']);
+    });
+
+    it('should suggest the columns it can sort by, even one a grouping of its own covers in Group By', () => {
+      const label = { ...column('label:app'), isLabel: true };
+      const data = { ...column('data'), header: { name: 'data', value: 'data' } };
+      const viewFields = [column('name'), column('node', 'spec.nodeName'), data, label];
+      const viewSortableFields = computed.viewSortableFields.call({ viewFields, serverSideTableViews: false }) as TableViewField[];
+      const suggested = computed.viewFilterFields.call({
+        viewFields, viewSortableFields, viewDateFields: []
+      }) as TableViewField[];
+
+      expect(viewSortableFields.map((field) => field.id)).toStrictEqual(['name', 'node', 'label:app']);
+      expect(suggested.map((field) => field.id)).toStrictEqual(['name', 'node']);
+    });
+
+    it('should suggest the dates it leaves out of Group By, in the order the table has them', () => {
+      const age = { ...column('age', 'metadata.creationTimestamp'), isDate: true };
+      const viewFields = [column('name'), age];
+      const ctx = {
+        viewFields, serverSideTableViews: false, filteredRows: [{ metadata: { creationTimestamp: '2026-09-28T19:02:29Z' } }]
+      };
+      const viewSortableFields = computed.viewSortableFields.call(ctx) as TableViewField[];
+      const viewDateFields = computed.viewDateFields.call(ctx) as TableViewField[];
+      const suggested = computed.viewFilterFields.call({
+        viewFields, viewSortableFields, viewDateFields
+      }) as TableViewField[];
+
+      expect(viewSortableFields.map((field) => field.id)).toStrictEqual(['name']);
+      expect(suggested.map((field) => field.id)).toStrictEqual(['name', 'age']);
+    });
+
+    it('should offer a date as a date on a server side list only where the api holds it as one', () => {
+      const date = (name: string, path: string) => ({
+        ...column(name), isDate: true, paginationHeader: { name, sort: path }
+      });
+      const viewFields = [date('age', 'metadata.creationTimestamp'), date('lastseen', 'metadata.fields.0:desc')];
+      // Both hold dates on the page, so only where the api holds them decides
+      const filteredRows = [{ age: '2026-09-28T19:02:29Z', lastseen: '2026-09-28T19:02:29Z' }];
+      const dates = computed.viewDateFields.call({
+        viewFields, serverSideTableViews: true, filteredRows
+      }) as TableViewField[];
+
+      // The printed column is relative text, "23m", which no date can match
+      expect(dates.map((field) => field.id)).toStrictEqual(['age']);
+    });
+
+    it('should not offer a date column with no dates in it - text such as "23m", or nothing scheduled yet', () => {
+      const lastSeen = { ...column('lastseen', 'lastSeen'), isDate: true };
+      const disableAfter = { ...column('user-disabled-in', 'disabledIn'), isDate: true };
+      const filteredRows = [{ lastSeen: '23m', disabledIn: 0 }, { lastSeen: '2h', disabledIn: 0 }];
+      const dates = computed.viewDateFields.call({
+        viewFields: [lastSeen, disableAfter], serverSideTableViews: false, filteredRows
+      }) as TableViewField[];
+
+      expect(dates).toStrictEqual([]);
+    });
+
+    it('should offer only the columns the api can be asked about on a server side list', () => {
+      const cpu = { ...column('cpu', 'status.allocatable.cpuRaw'), paginationHeader: { name: 'cpu', sort: ['status.allocatable.cpuRaw'] } };
+      const age = {
+        ...column('age'),
+        isDate:           true,
+        paginationHeader: {
+          name: 'age', sort: 'metadata.creationTimestamp', search: false
+        }
+      };
+      const sortable = computed.viewSortableFields.call({ viewFields: [cpu, age, column('name')], serverSideTableViews: true }) as TableViewField[];
+      const suggested = computed.viewFilterFields.call({
+        viewFields: [cpu, age, column('name')], viewSortableFields: sortable, viewDateFields: []
+      }) as TableViewField[];
+
+      expect(sortable.map((field) => field.id)).toStrictEqual(['cpu']);
+      expect(suggested.map((field) => field.id)).toStrictEqual(['cpu']);
     });
 
     it.each([
@@ -222,5 +301,53 @@ describe('ExplorerProjectsNamespaces', () => {
     expect(groupMode.call({
       $store: store(false), tableGroup: 'none', groupPreference: 'role'
     })).toBe('role');
+  });
+});
+
+describe('grouping a date by month', () => {
+  const age: TableViewField = {
+    id:      'age',
+    label:   'Age',
+    isLabel: false,
+    isDate:  true,
+    header:  {
+      name: 'age', value: 'metadata.creationTimestamp', sort: 'metadata.creationTimestamp:desc'
+    }
+  };
+  const name = column('name');
+  const ctx = {
+    viewFields:     [name, age],
+    viewDateFields: [age],
+    monthGrouping:  methods.monthGrouping,
+  };
+
+  it('should offer a date column in Group By, grouped by month, under its own name in its own place', () => {
+    const fields = computed.viewGroupFields.call({
+      ...ctx, tableGroupings: [], viewSortableFields: [name], tableGroupingLabel: methods.tableGroupingLabel
+    }) as TableViewField[];
+
+    expect(fields.map((field) => `${ field.id }=${ field.label }`)).toStrictEqual(['name=name', `${ MONTH_GROUPING_PREFIX }age=Age`]);
+  });
+
+  it('should find the month grouping a view names, and nothing for a date the list has no dates in', () => {
+    const found = methods.groupFieldFor.call(ctx, `${ MONTH_GROUPING_PREFIX }age`);
+
+    expect(found).toMatchObject({ byMonth: true, header: age.header });
+    expect(methods.groupFieldFor.call({ ...ctx, viewDateFields: [] }, `${ MONTH_GROUPING_PREFIX }age`)).toBeNull();
+    expect(methods.groupFieldFor.call(ctx, 'name')).toBe(name);
+  });
+
+  it('should keep a month\'s rows together by sorting on the date itself', () => {
+    const found = methods.groupFieldFor.call(ctx, `${ MONTH_GROUPING_PREFIX }age`) as TableViewField;
+
+    expect(methods.groupSortFor.call(ctx, found)).toBe('metadata.creationTimestamp');
+  });
+
+  it('should gather rows under the month they fall in, and the undated under "none"', () => {
+    const { computedGroupBy } = ResourceTable.computed as unknown as Record<string, (this: object) => (row: object) => string>;
+    const key = computedGroupBy.call({ viewGroupField: methods.groupFieldFor.call(ctx, `${ MONTH_GROUPING_PREFIX }age`), t: (k: string) => (k === 'tableViews.group.empty' ? '(none)' : k) });
+
+    expect(key({ metadata: { creationTimestamp: '2026-09-28T19:02:29Z' } })).toBe('2026-09');
+    expect(key({ metadata: {} })).toBe('(none)');
   });
 });
