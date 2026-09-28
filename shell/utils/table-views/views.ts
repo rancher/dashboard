@@ -6,30 +6,56 @@
  * light up, and how one travels in a url.
  */
 
-import type { SavedView, ViewState } from '@shell/types/table-views';
+import isEqual from 'lodash/isEqual';
+
+import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
+
+/**
+ * What a view holds, and what each of those means when it holds nothing.
+ *
+ * Every key of {@link TableViewState} has to appear: the type makes that a compile error rather than
+ * a silent omission, and an omission here would mean a view that has been changed still reading
+ * as saved. The empties are what make the comparison lenient - a saved view holds
+ * `columns: null` where a view being edited holds `undefined`, and an untouched `labelColumns`
+ * is `[]` in one and missing in the other. Same view, written down by two pieces of code.
+ */
+const EMPTY_VIEW: Required<TableViewState> = {
+  query:          '',
+  groupBy:        null,
+  sort:           null,
+  sortDescending: false,
+  columns:        null,
+  columnOrder:    null,
+  labelColumns:   [],
+};
+
+/** A view reduced to what it means, so two of them can be compared as values */
+function comparable(view: Partial<TableViewState>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+
+  (Object.keys(EMPTY_VIEW) as (keyof TableViewState)[]).forEach((key) => {
+    out[key] = view[key] ?? EMPTY_VIEW[key];
+  });
+
+  return out;
+}
 
 /**
  * Do these two hold the same view? By what they hold rather than by who they are, so a saved
  * view can be recognised in whatever is currently applied.
  */
-export function isSameViewConfig(a: Partial<ViewState>, b: Partial<ViewState>): boolean {
-  return (a.query || '') === (b.query || '') &&
-    (a.groupBy || null) === (b.groupBy || null) &&
-    (a.sort || null) === (b.sort || null) &&
-    !!a.sortDescending === !!b.sortDescending &&
-    JSON.stringify(a.columns || null) === JSON.stringify(b.columns || null) &&
-    JSON.stringify(a.columnOrder || null) === JSON.stringify(b.columnOrder || null) &&
-    JSON.stringify(a.labelColumns || []) === JSON.stringify(b.labelColumns || []);
+export function isSameViewConfig(a: Partial<TableViewState>, b: Partial<TableViewState>): boolean {
+  return isEqual(comparable(a), comparable(b));
 }
 
 /** Has anything at all been asked of the table, or is this the list as it comes? */
-export function isViewModified(view: Partial<ViewState>): boolean {
+export function isViewModified(view: Partial<TableViewState>): boolean {
   return !!view.query || !!view.groupBy || !!view.columns || !!view.labelColumns?.length ||
     !!view.columnOrder || !!view.sort;
 }
 
 /** Which saved view (if any) the state in front of the user matches */
-export function matchingViewId(savedViews: SavedView[], view: Partial<ViewState>): string | null {
+export function matchingViewId(savedViews: TableViewSaved[], view: Partial<TableViewState>): string | null {
   return savedViews.find((saved) => isSameViewConfig(saved, view))?.id || null;
 }
 
@@ -44,7 +70,7 @@ export function matchingViewId(savedViews: SavedView[], view: Partial<ViewState>
  * nothing happened. Fall back to the config when nothing has been picked, so a view arriving in
  * the URL still shows as selected.
  */
-export function selectedViewIdFor(savedViews: SavedView[], view: Partial<ViewState>, pickedViewId?: string | null): string | null {
+export function selectedViewIdFor(savedViews: TableViewSaved[], view: Partial<TableViewState>, pickedViewId?: string | null): string | null {
   if (pickedViewId !== undefined) {
     if (pickedViewId === null) {
       return null;
@@ -57,7 +83,7 @@ export function selectedViewIdFor(savedViews: SavedView[], view: Partial<ViewSta
 }
 
 /** Unsaved changes: either edits on top of a saved view, or an unsaved view of one's own */
-export function isViewDirty(savedViews: SavedView[], view: Partial<ViewState>, pickedViewId?: string | null): boolean {
+export function isViewDirty(savedViews: TableViewSaved[], view: Partial<TableViewState>, pickedViewId?: string | null): boolean {
   const editing = pickedViewId ? savedViews.find((v) => v.id === pickedViewId) : null;
 
   if (editing) {
@@ -92,7 +118,7 @@ export function moveInOrder<T>(order: T[], from: number, to: number): T[] {
 /**
  * Encode a view so it can be dropped in a url and shared with someone else
  */
-export function encodeView(view: Partial<SavedView>): string {
+export function encodeView(view: Partial<TableViewSaved>): string {
   const payload = JSON.stringify({
     n: view.name || '',
     q: view.query || '',
@@ -109,7 +135,7 @@ export function encodeView(view: Partial<SavedView>): string {
   }
 }
 
-export function decodeView(encoded: string): Partial<SavedView> | null {
+export function decodeView(encoded: string): Partial<TableViewSaved> | null {
   if (!encoded) {
     return null;
   }

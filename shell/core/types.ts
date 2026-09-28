@@ -235,7 +235,7 @@ export interface HeaderOptions {
 
   /**
    * A string which represents the path to access the value from the row object which we'll use to search i.e. `row.meta.value`.
-   * It can be false to disable searching on this field
+   * A column can name more than one path, as `sort` can. It can be false to disable searching on this field
    */
   search?: string | boolean | string[];
 

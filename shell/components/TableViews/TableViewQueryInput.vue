@@ -22,7 +22,7 @@ import { LABEL_FIELD_PREFIX, valuesInUse } from '@shell/utils/table-views/fields
 import {
   CONNECTIVES, NEGATORS, highlightQuery, isNegator, quoteIfNeeded, replaceToken, scanQuery, tokenAt
 } from '@shell/utils/table-views/query';
-import type { ViewField } from '@shell/types/table-views';
+import type { TableViewField } from '@shell/types/table-views';
 
 /** How close to the window's edge the list may come when the caret it follows is near one */
 const MENU_VIEWPORT_MARGIN = 20;
@@ -51,7 +51,7 @@ interface Suggestion {
   detail?: string;
   insert: string;
   connective?: boolean;
-  field?: ViewField;
+  field?: TableViewField;
   value?: string;
 }
 
@@ -62,7 +62,7 @@ const props = withDefaults(defineProps<{
    * this list cannot actually filter by: the toolbar says so afterwards, and it can only do that
    * if the term was recognised as naming a field in the first place.
    */
-  fields?: ViewField[],
+  fields?: TableViewField[],
   /**
    * The subset worth offering, when it is narrower than `fields`.
    *
@@ -70,7 +70,7 @@ const props = withDefaults(defineProps<{
    * Suggesting one of those would be handing someone a term the list then has to report it
    * ignored. Defaults to `fields`.
    */
-  filterFields?: ViewField[] | null,
+  filterFields?: TableViewField[] | null,
   /**
    * fieldId -> values in use, fetched from the api by the owning table. When a field has no entry
    * here yet we fall back to the values on the current page.
@@ -283,7 +283,7 @@ const connectiveSuggestions = computed<Suggestion[]>(() => {
 const showClear = computed(() => !!props.value);
 
 /** The fields offered by name, which can be narrower than the ones a query may mention */
-const suggestableFields = computed<ViewField[]>(() => props.filterFields || props.fields);
+const suggestableFields = computed<TableViewField[]>(() => props.filterFields || props.fields);
 
 const suggestions = computed<Suggestion[]>(() => {
   const { negate, field, typed } = parsedToken.value;

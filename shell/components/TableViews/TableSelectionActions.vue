@@ -12,11 +12,11 @@ import { useStore } from 'vuex';
 import { RcDropdown, RcDropdownItem, RcDropdownTrigger, RcDropdownSeparator } from '@components/RcDropdown';
 import IconOrSvg from '@shell/components/IconOrSvg';
 import { useI18n } from '@shell/composables/useI18n';
-import type { TableAction } from '@shell/types/table-views';
+import type { TableViewAction } from '@shell/types/table-views';
 
 const props = withDefaults(defineProps<{
   /** The table's availableActions */
-  actions?: TableAction[],
+  actions?: TableViewAction[],
   /** How many rows are selected. None means no menu at all */
   count?: number,
   actionTooltip?: string | Record<string, unknown> | null,
@@ -29,8 +29,8 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
-  click: [act: TableAction, row: null, event: MouseEvent],
-  mouseover: [act: TableAction],
+  click: [act: TableViewAction, row: null, event: MouseEvent],
+  mouseover: [act: TableViewAction],
   mouseleave: [act: null],
 }>();
 
@@ -40,17 +40,17 @@ const { t } = useI18n(useStore());
  * Removing rows is the one action that can't be undone, so it sits on its own below a separator
  * rather than in amongst the rest
  */
-const deleteAction = computed<TableAction | null>(() => props.actions.find((act) => act.action === 'promptRemove') ||
+const deleteAction = computed<TableViewAction | null>(() => props.actions.find((act) => act.action === 'promptRemove') ||
   props.actions.find((act) => (!!act.icon && `${ act.icon }`.includes('icon-trash')) || /delete|remove/i.test(act.action || '')) ||
   null);
 
-const menuActions = computed<TableAction[]>(() => {
+const menuActions = computed<TableViewAction[]>(() => {
   const del = deleteAction.value;
 
   return props.actions.filter((act) => !del || act.action !== del.action);
 });
 
-const apply = (act: TableAction, event: MouseEvent) => emit('click', act, null, event);
+const apply = (act: TableViewAction, event: MouseEvent) => emit('click', act, null, event);
 </script>
 
 <template>

@@ -5,6 +5,7 @@ import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst, randomStr } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
+import { valueFor as columnValueFor } from '@shell/utils/table-columns';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
@@ -1006,36 +1007,10 @@ export default {
       return item ? this.t('sortableTable.genericRowCheckbox', { item }) : this.t('sortableTable.genericRowCheckboxNoItem');
     },
 
+    // Use to debug table columns using expensive value getters
+    // console.warn(`Performance: Table valueFor: ${ col.name } ${ col.value }`); // eslint-disable-line no-console
     valueFor(row, col, isLabel) {
-      if (typeof col.value === 'function') {
-        return col.value(row);
-      }
-
-      if (isLabel) {
-        if (row.metadata?.labels && row.metadata?.labels[col.label]) {
-          return row.metadata?.labels[col.label];
-        }
-
-        return '';
-      }
-
-      // Use to debug table columns using expensive value getters
-      // console.warn(`Performance: Table valueFor: ${ col.name } ${ col.value }`); // eslint-disable-line no-console
-
-      const expr = col.value || col.name;
-
-      if (!expr) {
-        console.error('No path has been defined for this column, unable to get value of cell', col); // eslint-disable-line no-console
-
-        return '';
-      }
-      const out = get(row, expr);
-
-      if ( out === null || out === undefined ) {
-        return '';
-      }
-
-      return out;
+      return columnValueFor(row, col, isLabel);
     },
 
     isExpanded(row) {

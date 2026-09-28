@@ -1,3 +1,4 @@
+import type { HeaderOptions, PaginationHeaderOptions } from '@shell/core/types';
 import { MANAGEMENT } from '@shell/config/types';
 import { AUTOSCALER_ENABLED, MGMT_CLUSTER_CPU, MGMT_CLUSTER_MEMORY, MGMT_CLUSTER_PODS } from '@shell/config/table-headers';
 import { STEVE_AUTOSCALER_ENABLED, STEVE_MGMT_CLUSTER_CPU, STEVE_MGMT_CLUSTER_MEMORY, STEVE_MGMT_CLUSTER_PODS } from '@shell/config/pagination-table-headers';
@@ -17,9 +18,9 @@ import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
  */
 interface OptionalHeader {
   /** The column as an unpaginated list wants it */
-  header: any;
+  header: HeaderOptions;
   /** The same column for a server side paginated list, when it differs */
-  paginationHeader?: any;
+  paginationHeader?: PaginationHeaderOptions;
   /** Whether this column is available at all right now */
   enabled?: (store: any) => boolean;
   /**
@@ -54,9 +55,16 @@ const OPTIONAL_HEADERS: Record<string, OptionalHeader[]> = {
 };
 
 /**
- * The columns this type offers beyond whatever the page itself shows
+ * The columns this type offers beyond whatever the page itself shows.
+ *
+ * `insertBefore` rides along on the header rather than being returned beside it, because the
+ * caller merges these into its own list and that is where the column has to say where it goes.
  */
-export function optionalHeadersFor(type: string, store: any, pagination = false): any[] {
+export function optionalHeadersFor(
+  type: string,
+  store: any,
+  pagination = false
+): (HeaderOptions & { insertBefore?: string })[] {
   const entries = OPTIONAL_HEADERS[type];
 
   if (!entries?.length) {

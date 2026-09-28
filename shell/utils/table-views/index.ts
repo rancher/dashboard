@@ -16,3 +16,4 @@ export * from '@shell/utils/table-views/filter-rows';
 export * from '@shell/utils/table-views/server-filters';
 export * from '@shell/utils/table-views/export';
 export * from '@shell/utils/table-views/views';
+export * from '@shell/utils/table-views/optional-headers';
