@@ -1,6 +1,18 @@
-<script>
+<script setup lang="ts">
+import {
+  computed, onBeforeUnmount, onMounted, ref, type CSSProperties
+} from 'vue';
 import WidgetNode from './WidgetNode.vue';
 import { GRID_COLUMNS, DEFAULT_GAP } from '../templating/view-model';
+import { useViewEditor } from '../composables/viewEditor';
+import type { WidgetNode as WidgetNodeSpec } from '../templating/types';
+
+// The grid: a view's widgets, in order, wrapping onto lines.
+//
+// It is ONE flex container, not a tree. A widget takes its span's share of a 12-column line and
+// wraps when there is no room left, which is what makes rows an emergent property of the widths
+// rather than objects anyone has to manage. There is exactly one drop target — the list — and a
+// drop resolves to an INDEX in it.
 
 // While a drag is in flight the browser does not scroll the page for you, so a drop target below
 // the fold is simply unreachable — you cannot scroll with the pointer held down. These drive an
@@ -9,270 +21,209 @@ import { GRID_COLUMNS, DEFAULT_GAP } from '../templating/view-model';
 const EDGE = 90;
 const MAX_SPEED = 22;
 
-// The grid: a view's widgets, in order, wrapping onto lines.
-//
-// It is ONE flex container, not a tree. A widget takes its span's share of a 12-column line and
-// wraps when there is no room left, which is what makes rows an emergent property of the widths
-// rather than objects anyone has to manage. There is exactly one drop target — the list — and a
-// drop resolves to an INDEX in it.
-export default {
-  name:       'WidgetGrid',
-  components: { WidgetNode },
+const props = withDefaults(defineProps<{
+  widgets?: WidgetNodeSpec[];
+  editing?: boolean;
+  selectedId?: string | null;
+  gap?: number;
+}>(), {
+  widgets:    () => [],
+  editing:    false,
+  selectedId: '',
+  gap:        DEFAULT_GAP,
+});
 
-  inject: {
-    viewEditor: {
-      default: () => ({
-        dropAt: () => {},
-        ui:     {
-          dragId: null, dragEntry: null, dragLabel: ''
-        },
-      }),
-    },
-  },
+const viewEditor = useViewEditor();
 
-  props: {
-    widgets: {
-      type:    Array,
-      default: () => [],
-    },
-    editing: {
-      type:    Boolean,
-      default: false,
-    },
-    selectedId: {
-      type:    String,
-      default: '',
-    },
-    gap: {
-      type:    Number,
-      default: DEFAULT_GAP,
-    },
-  },
+const root = ref<HTMLElement | null>(null);
+const body = ref<HTMLElement | null>(null);
+const dropIndex = ref(-1);
+let scrollTimer: ReturnType<typeof setInterval> | null = null;
 
-  data() {
-    return { dropIndex: -1, scrollTimer: null };
-  },
+const columns = GRID_COLUMNS;
 
-  computed: {
-    columns() {
-      return GRID_COLUMNS;
-    },
+// Something is on its way onto the grid: a widget already on it being moved, or a catalog entry
+// being dragged in from the drawer. Both light up the drop targets.
+const dragActive = computed(() => props.editing && !!(viewEditor.ui.dragId || viewEditor.ui.dragEntry));
 
-    // Something is on its way onto the grid: a widget already on it being moved, or a catalog entry
-    // being dragged in from the drawer. Both light up the drop targets.
-    dragActive() {
-      const ui = this.viewEditor.ui;
+const style = computed<CSSProperties>(() => ({
+  alignContent: 'flex-start',
+  alignItems:   'flex-start',
+  display:      'flex',
+  flexWrap:     'wrap',
+  gap:          `${ props.gap }px`,
+}));
 
-      return this.editing && !!(ui?.dragId || ui?.dragEntry);
-    },
+// The guide overlay is its own 12-track grid, so the lines always mark exact twelfths.
+const guideStyle = computed<CSSProperties>(() => ({
+  display:             'grid',
+  gap:                 `${ props.gap }px`,
+  gridTemplateColumns: `repeat(${ GRID_COLUMNS }, minmax(0, 1fr))`,
+}));
 
-    style() {
-      return {
-        alignContent: 'flex-start',
-        alignItems:   'flex-start',
-        display:      'flex',
-        flexWrap:     'wrap',
-        gap:          `${ this.gap }px`,
-      };
-    },
+// Column guides are only meaningful while you are placing or sizing something.
+const showGuides = computed(() => props.editing && (dragActive.value || !!props.selectedId));
 
-    // The guide overlay is its own 12-track grid, so the lines always mark exact twelfths.
-    guideStyle() {
-      return {
-        display:             'grid',
-        gap:                 `${ this.gap }px`,
-        gridTemplateColumns: `repeat(${ GRID_COLUMNS }, minmax(0, 1fr))`,
-      };
-    },
+// What the end-of-grid drop target invites you to do. While something is being dragged it names it
+// ("Drop here to add a Table") so the target is unmistakable.
+const dropHint = computed(() => (viewEditor.ui.dragLabel ? `Drop here to add a ${ viewEditor.ui.dragLabel }` : 'Drop a component here'));
 
-    // Column guides are only meaningful while you are placing or sizing something.
-    showGuides() {
-      return this.editing && (this.dragActive || !!this.selectedId);
-    },
+/**
+ * Where a drop would land: compare the pointer with each widget's box. Widgets wrap, so a widget
+ * counts as "before the pointer" when it is on an earlier line, or on the same line and left of the
+ * pointer — reading order, exactly as the list is ordered.
+ */
+function computeDropIndex(ev: DragEvent): number {
+  const tiles = Array.from(body.value?.children || []).filter((el): el is HTMLElement => !!(el as HTMLElement).dataset?.nodeId);
 
-    // What the end-of-grid drop target invites you to do. While something is being dragged it names
-    // it ("Drop here to add a Table") so the target is unmistakable.
-    dropHint() {
-      const label = this.viewEditor.ui?.dragLabel;
+  for (let i = 0; i < tiles.length; i++) {
+    const r = tiles[i].getBoundingClientRect();
 
-      return label ? `Drop here to add a ${ label }` : 'Drop a component here';
-    },
-  },
+    if (ev.clientY < r.top) {
+      return i;
+    }
+    if (ev.clientY <= r.bottom && ev.clientX < r.left + (r.width / 2)) {
+      return i;
+    }
+  }
 
-  mounted() {
-    // A drag that ends anywhere — including outside the grid, or cancelled with Escape — must stop
-    // the page scrolling. dragend fires on the source, so listen for it globally.
-    this.onAnyDragEnd = () => this.stopScrolling();
-    document.addEventListener('dragend', this.onAnyDragEnd);
-    document.addEventListener('drop', this.onAnyDragEnd);
-  },
+  return tiles.length;
+}
 
-  beforeUnmount() {
-    this.stopScrolling();
-    document.removeEventListener('dragend', this.onAnyDragEnd);
-    document.removeEventListener('drop', this.onAnyDragEnd);
-  },
+// ---- edge scrolling while dragging ----
 
-  methods: {
-    /**
-     * Where a drop would land: compare the pointer with each widget's box. Widgets wrap, so a
-     * widget counts as "before the pointer" when it is on an earlier line, or on the same line and
-     * left of the pointer — reading order, exactly as the list is ordered.
-     */
-    computeDropIndex(ev) {
-      const zone = this.$refs.body;
+// The scroller the page actually uses — Rancher scrolls a main element, not the window. Found once.
+let scrollEl: HTMLElement | null | undefined;
 
-      if (!zone) {
-        return 0;
-      }
+function scroller(): HTMLElement | null {
+  if (scrollEl !== undefined) {
+    return scrollEl;
+  }
 
-      const tiles = Array.from(zone.children).filter((el) => el.dataset && el.dataset.nodeId);
+  let el = root.value?.parentElement || null;
 
-      for (let i = 0; i < tiles.length; i++) {
-        const r = tiles[i].getBoundingClientRect();
+  while (el && el !== document.body) {
+    if (/(auto|scroll)/.test(getComputedStyle(el).overflowY) && el.scrollHeight > el.clientHeight) {
+      scrollEl = el;
 
-        if (ev.clientY < r.top) {
-          return i;
-        }
-        if (ev.clientY <= r.bottom && ev.clientX < r.left + (r.width / 2)) {
-          return i;
-        }
-      }
+      return el;
+    }
+    el = el.parentElement;
+  }
 
-      return tiles.length;
-    },
+  scrollEl = null;
 
-    // ---- edge scrolling while dragging ----
+  return null;
+}
 
-    /** The scroller the page actually uses — Rancher scrolls a main element, not the window. */
-    scroller() {
-      if (this.scrollEl !== undefined) {
-        return this.scrollEl;
-      }
+// How fast to scroll for a pointer at `y`: 0 outside the edge zones, ramping to MAX_SPEED at the
+// very edge, negative for up.
+function edgeSpeed(y: number): number {
+  const el = scroller();
+  const top = el ? el.getBoundingClientRect().top : 0;
+  const bottom = el ? el.getBoundingClientRect().bottom : window.innerHeight;
 
-      let el = this.$el?.parentElement;
+  if (y < top + EDGE) {
+    return -Math.ceil(((top + EDGE - y) / EDGE) * MAX_SPEED);
+  }
+  if (y > bottom - EDGE) {
+    return Math.ceil(((y - (bottom - EDGE)) / EDGE) * MAX_SPEED);
+  }
 
-      while (el && el !== document.body) {
-        const style = getComputedStyle(el);
+  return 0;
+}
 
-        if (/(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight) {
-          this.scrollEl = el;
+function stopScrolling(): void {
+  if (scrollTimer) {
+    clearInterval(scrollTimer);
+    scrollTimer = null;
+  }
+}
 
-          return el;
-        }
-        el = el.parentElement;
-      }
+function autoScroll(y: number): void {
+  const speed = edgeSpeed(y);
 
-      this.scrollEl = null;
+  stopScrolling();
 
-      return null;
-    },
+  if (!speed) {
+    return;
+  }
 
-    // How fast to scroll for a pointer at `y`: 0 outside the edge zones, ramping to MAX_SPEED at
-    // the very edge, negative for up.
-    edgeSpeed(y) {
-      const top = this.scrollTop();
-      const bottom = this.scrollBottom();
+  const el = scroller();
 
-      if (y < top + EDGE) {
-        return -Math.ceil(((top + EDGE - y) / EDGE) * MAX_SPEED);
-      }
-      if (y > bottom - EDGE) {
-        return Math.ceil(((y - (bottom - EDGE)) / EDGE) * MAX_SPEED);
-      }
+  scrollTimer = setInterval(() => {
+    if (el) {
+      el.scrollTop += speed;
+    } else {
+      window.scrollBy(0, speed);
+    }
+  }, 16);
+}
 
-      return 0;
-    },
+// ---- drag & drop ----
 
-    scrollTop() {
-      const el = this.scroller();
+function onDragOver(ev: DragEvent): void {
+  if (!dragActive.value) {
+    return;
+  }
+  ev.preventDefault();
+  if (ev.dataTransfer) {
+    ev.dataTransfer.dropEffect = viewEditor.ui.dragEntry ? 'copy' : 'move';
+  }
+  dropIndex.value = computeDropIndex(ev);
+  autoScroll(ev.clientY);
+}
 
-      return el ? el.getBoundingClientRect().top : 0;
-    },
+function onDragLeave(ev: DragEvent): void {
+  // Ignore bubbling leaves from children still inside the grid.
+  if (root.value?.contains(ev.relatedTarget as Node | null)) {
+    return;
+  }
+  dropIndex.value = -1;
+  stopScrolling();
+}
 
-    scrollBottom() {
-      const el = this.scroller();
+function onDrop(ev: DragEvent): void {
+  if (!props.editing) {
+    return;
+  }
+  ev.preventDefault();
 
-      return el ? el.getBoundingClientRect().bottom : window.innerHeight;
-    },
+  const index = dropIndex.value >= 0 ? dropIndex.value : computeDropIndex(ev);
 
-    autoScroll(y) {
-      const speed = this.edgeSpeed(y);
+  dropIndex.value = -1;
+  stopScrolling();
+  viewEditor.dropAt(index);
+}
 
-      this.stopScrolling();
+function onDropAtEnd(ev: DragEvent): void {
+  if (!props.editing) {
+    return;
+  }
+  ev.preventDefault();
+  ev.stopPropagation();
+  dropIndex.value = -1;
+  stopScrolling();
+  viewEditor.dropAt(props.widgets.length);
+}
 
-      if (!speed) {
-        return;
-      }
+// A drag that ends anywhere — including outside the grid, or cancelled with Escape — must stop the
+// page scrolling. dragend fires on the source, so it is listened for globally.
+onMounted(() => {
+  document.addEventListener('dragend', stopScrolling);
+  document.addEventListener('drop', stopScrolling);
+});
 
-      const el = this.scroller();
-
-      this.scrollTimer = setInterval(() => {
-        if (el) {
-          el.scrollTop += speed;
-        } else {
-          window.scrollBy(0, speed);
-        }
-      }, 16);
-    },
-
-    stopScrolling() {
-      if (this.scrollTimer) {
-        clearInterval(this.scrollTimer);
-        this.scrollTimer = null;
-      }
-    },
-
-    // ---- drag & drop ----
-
-    onDragOver(ev) {
-      if (!this.dragActive) {
-        return;
-      }
-      ev.preventDefault();
-      ev.dataTransfer.dropEffect = this.viewEditor.ui?.dragEntry ? 'copy' : 'move';
-      this.dropIndex = this.computeDropIndex(ev);
-      this.autoScroll(ev.clientY);
-    },
-
-    onDragLeave(ev) {
-      // Ignore bubbling leaves from children still inside the grid.
-      if (this.$el.contains(ev.relatedTarget)) {
-        return;
-      }
-      this.dropIndex = -1;
-      this.stopScrolling();
-    },
-
-    onDrop(ev) {
-      if (!this.editing) {
-        return;
-      }
-      ev.preventDefault();
-
-      const index = this.dropIndex >= 0 ? this.dropIndex : this.computeDropIndex(ev);
-
-      this.dropIndex = -1;
-      this.stopScrolling();
-      this.viewEditor.dropAt(index);
-    },
-
-    onDropAtEnd(ev) {
-      if (!this.editing) {
-        return;
-      }
-      ev.preventDefault();
-      ev.stopPropagation();
-      this.dropIndex = -1;
-      this.stopScrolling();
-      this.viewEditor.dropAt(this.widgets.length);
-    },
-  },
-};
+onBeforeUnmount(() => {
+  stopScrolling();
+  document.removeEventListener('dragend', stopScrolling);
+  document.removeEventListener('drop', stopScrolling);
+});
 </script>
 
 <template>
   <div
+    ref="root"
     class="wgrid"
     :class="{ 'wgrid--editing': editing }"
     @dragover="onDragOver"
