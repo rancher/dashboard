@@ -1,7 +1,8 @@
 <script>
-// The box every widget sits in: a bordered card with a title, an optional count beside it, and the
-// widget's own content below. One component so a Table, a Bar chart and a Text note all read as the
-// same kind of thing on the grid.
+// The box a widget sits in: a bordered card with a title, an optional count beside it, and the
+// widget's own content below - so a Table reads as the same kind of thing as the widgets around it.
+// The cluster widgets draw the dashboard's own boxes instead, and use this one only to say what they
+// are missing.
 export default {
   name: 'WidgetCard',
 

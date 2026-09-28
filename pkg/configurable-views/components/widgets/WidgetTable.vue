@@ -8,6 +8,7 @@ import {
   fetchClusterPage, steveFilters, steveSortField
 } from '../../templating/widget-data';
 import { isDownstream, PAGINATION_CONTEXT } from '../../templating/widget-catalog';
+import { pageClusterOf, NO_CLUSTER } from '../../composables/useWidgetCluster';
 
 // TABLE — "Rows of a resource with the columns you pick".
 //
@@ -79,8 +80,9 @@ export default {
       return isDownstream(this.widget.resource);
     },
 
+    // Its own cluster, else the page's (see useWidgetCluster).
     cluster() {
-      return this.widget.cluster || '';
+      return this.widget.cluster || pageClusterOf(this.$route);
     },
 
     // True when the widget's filter has to be applied HERE, because the API cannot apply it - which
@@ -247,7 +249,7 @@ export default {
 
     downstreamMessage() {
       if (!this.cluster) {
-        return 'Choose a cluster in this widget\u2019s settings — a Kubernetes type lives once per cluster.';
+        return NO_CLUSTER;
       }
 
       return this.pageError;

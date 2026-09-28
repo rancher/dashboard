@@ -20,6 +20,21 @@ export const WIDGET_LINKS = 'links';
 export const WIDGET_BANNER = 'banner';
 export const WIDGET_CLUSTER_TABLE = 'clusterTable';
 export const WIDGET_OVERVIEW = 'overview';
+export const WIDGET_CLUSTER_HEADER = 'clusterHeader';
+export const WIDGET_RESOURCE_CARDS = 'resourceCards';
+export const WIDGET_CAPACITY = 'clusterCapacity';
+
+/**
+ * The kinds that are ABOUT one cluster - the pieces of a cluster's dashboard.
+ *
+ * Each shows the cluster it names, or the page's when it names none (see useWidgetCluster), so the
+ * settings ask for a cluster for these and for nothing else of theirs.
+ */
+export const CLUSTER_WIDGETS = [WIDGET_CLUSTER_HEADER, WIDGET_RESOURCE_CARDS, WIDGET_CAPACITY];
+
+export function isClusterWidget(kind) {
+  return CLUSTER_WIDGETS.includes(kind);
+}
 
 /** The resource a fresh building block starts on — the one every Rancher install has. */
 const CLUSTER = CAPI.RANCHER_CLUSTER;
@@ -78,6 +93,30 @@ export const READY_MADE = [
       columns:  ['state', 'name', 'provider', 'version', 'nodes', 'cpu'],
       sortBy:   'name',
     },
+  },
+  {
+    id:   'cluster-header',
+    name: 'Cluster header',
+    desc: 'Name, state, provider and version of a cluster',
+    icon: 'banner',
+    span: 12,
+    spec: { kind: WIDGET_CLUSTER_HEADER, title: '' },
+  },
+  {
+    id:   'resource-cards',
+    name: 'Resource cards',
+    desc: "A cluster's total resources, nodes and deployments",
+    icon: 'table',
+    span: 12,
+    spec: { kind: WIDGET_RESOURCE_CARDS, title: '' },
+  },
+  {
+    id:   'cluster-capacity',
+    name: 'Capacity',
+    desc: "A cluster's pods, CPU and memory, reserved against what it has",
+    icon: 'table',
+    span: 12,
+    spec: { kind: WIDGET_CAPACITY, title: '' },
   },
   {
     id:   'welcome-banner',
@@ -144,7 +183,9 @@ export const SUGGESTED_RESOURCES = [
   { value: MANAGEMENT.NODE, label: 'Node (management.cattle.io)' },
   { value: MANAGEMENT.PROJECT, label: 'Project (management.cattle.io)' },
   { value: MANAGEMENT.USER, label: 'User (management.cattle.io)' },
-  { value: EVENT, label: 'Event (v1)' },
+  {
+    value: EVENT, label: 'Event (v1)', downstream: true
+  },
   { value: FLEET.GIT_REPO, label: 'GitRepo (fleet.cattle.io)' },
   { value: FLEET.BUNDLE, label: 'Bundle (fleet.cattle.io)' },
 
