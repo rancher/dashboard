@@ -8,17 +8,13 @@ import type { RancherKubeMetadata } from '@shell/types/rancher/steve.api';
 /** Which building block a widget is. */
 export type WidgetKind =
   | 'table'
-  | 'counters'
-  | 'statusSummary'
-  | 'list'
-  | 'barChart'
-  | 'timeSeries'
-  | 'text'
   | 'links'
   | 'banner'
   | 'clusterTable'
   | 'overview'
-  | 'nav';
+  | 'clusterHeader'
+  | 'resourceCards'
+  | 'clusterCapacity';
 
 export type SortDir = 'asc' | 'desc';
 
@@ -42,23 +38,19 @@ export interface WidgetSpec {
   where: WidgetScope;
   source: LinkSource;
   targets: string[];
-  /** A Kubernetes type exists once per cluster, so a downstream type names exactly one. */
+  /**
+   * The cluster it shows, for a Kubernetes type or a cluster widget. '' follows the page: a cluster's
+   * dashboard supplies its own, and the Home, which has none, asks. See useWidgetCluster.
+   */
   cluster: string;
   /** A labels-or-fields expression: `env=prod`, `state != Active`. */
   filter: string;
   columns: string[];
   sortBy: string;
   sortDir: SortDir;
-  groupBy: string;
   /** How many rows a list shows; 0 means no limit. */
   limit: number;
-  /** Markdown, for a text widget. */
-  body: string;
   links: WidgetLink[];
-  /** Grafana panel URL, for a time series widget. */
-  url: string;
-  /** An overview summarises several types at once. */
-  resources: string[];
   subtitle?: string;
   image?: string;
 }

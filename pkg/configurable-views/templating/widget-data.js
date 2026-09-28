@@ -9,8 +9,13 @@
 // Pure functions — no Vue. `rows` are Steve/Norman resource instances.
 
 import { get } from '@shell/utils/object';
-import { parseSi, formatSi, createMemoryFormat } from '@shell/utils/units';
+import { parseSi, formatSi, createMemoryFormat, createMemoryValues } from '@shell/utils/units';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { MANAGEMENT, METRIC, NODE } from '@shell/config/types';
+import { NODE_ROLES } from '@shell/config/labels-annotations';
+import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
+import { colorToCountName } from '@shell/components/ResourceSummary';
+import { RESOURCES as DASHBOARD_RESOURCES } from '@shell/pages/c/_cluster/explorer/index.vue';
 
 /**
  * The fields a widget can filter, sort, group and tabulate on. `value` reads one off a row; `label`
@@ -552,5 +557,181 @@ export async function fetchClusterPage(store, {
     count:       filtered ? (res?.data?.length ?? 0) : count,
     truncated:   filtered && count > cap,
     serverPaged: !filtered,
+  };
+}
+
+// ---- ONE CLUSTER, READ DIRECTLY -------------------------------------------------------------------
+//
+// The cluster dashboard's own components read the `cluster` store, and that store holds ONE cluster:
+// whichever the user last opened. A widget naming another cluster cannot use them - they would show
+// the wrong cluster, or none - and loading its cluster into the store would switch the whole app's
+// current cluster under the user. So a cluster widget reads its cluster itself, from that cluster's
+// own API or from the management cluster, and hands the result to the stock component that draws it.
+// Nothing is loaded, and two widgets can show two clusters side by side.
+
+/** The management cluster behind a cluster id: name, state, provider, version, capacity. */
+export function fetchManagementCluster(store, cluster) {
+  return store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: cluster });
+}
+
+// A header and a row of cards for the same cluster both want its counts, at the same moment. One
+// request answers both: an answer is kept for a few seconds, and a request still in flight is
+// shared rather than repeated. Short on purpose - this is de-duplication, not a cache to go stale.
+const SHARED_MS = 5000;
+const shared = new Map();
+
+function once(key, load) {
+  const hit = shared.get(key);
+
+  if (hit && Date.now() - hit.at < SHARED_MS) {
+    return hit.promise;
+  }
+
+  const promise = load().catch((e) => {
+    shared.delete(key);
+    throw e;
+  });
+
+  shared.set(key, { at: Date.now(), promise });
+
+  return promise;
+}
+
+function clusterUrl(cluster, path) {
+  return `/k8s/clusters/${ encodeURIComponent(cluster) }/v1/${ path }`;
+}
+
+/** Every type's count in one cluster, as Steve summarises them - `{ <type>: { summary } }`. */
+export function fetchClusterCounts(store, cluster) {
+  return once(`counts|${ cluster }`, async() => {
+    const res = await store.dispatch('management/request', { url: clusterUrl(cluster, 'counts') });
+
+    return res?.data?.[0]?.counts || {};
+  });
+}
+
+/**
+ * One type's counts, split the way the dashboard's resource cards split them.
+ *
+ * The same arithmetic as ResourceSummary's `resourceCounts`, over counts we fetched rather than the
+ * `cluster` store's - which only ever holds the current cluster's. Built from the two helpers it is
+ * built from, so a state means the same colour here as there.
+ */
+export function summarizeCounts(counts, resource) {
+  const summary = counts?.[resource]?.summary || {};
+  const out = {
+    total: summary.count || 0, useful: summary.count || 0, warningCount: 0, errorCount: 0
+  };
+
+  Object.entries(summary.states || {}).forEach(([state, count]) => {
+    out.useful -= count;
+    out[colorToCountName(colorForState(state))] += count;
+  });
+
+  return out;
+}
+
+/**
+ * The dashboard's "Total Resources" card, for any cluster.
+ *
+ * Summed over the same set the dashboard sums: its fixed RESOURCES list, plus whichever counted
+ * types `type-map/isIgnored` picks out - asked exactly as the page asks it, so the total is the
+ * page's total. The page then keeps only types the loaded cluster has a schema for; a cluster that
+ * is not loaded has no schemas here, and its counts are already limited to what the user can list.
+ */
+export function totalCounts(getters, counts) {
+  const present = Object.keys(counts || {});
+  const picked = present.filter((id) => getters['type-map/isIgnored']({ id }));
+  const types = [...new Set([...picked, ...DASHBOARD_RESOURCES])].filter((id) => present.includes(id));
+
+  return types.reduce((acc, id) => {
+    const one = summarizeCounts(counts, id);
+
+    Object.keys(acc).forEach((k) => {
+      acc[k] += one[k];
+    });
+
+    return acc;
+  }, {
+    total: 0, useful: 0, warningCount: 0, errorCount: 0
+  });
+}
+
+/**
+ * A cluster's capacity, worked out as its dashboard works it out.
+ *
+ * The dashboard sums its SCHEDULABLE WORKER nodes - allocatable against what their pods request,
+ * each node's own `pod-requests` annotation - and falls back to the cluster's `status` totals only
+ * when it has none. "Used" is live usage from the metrics API over those same nodes, less what each
+ * node keeps back for the system (capacity minus allocatable).
+ *
+ * Read from raw JSON, not node models: the Node model decides "worker" by looking up its management
+ * node against the cluster that is OPEN, which is not this one. So that lookup is done here, against
+ * this cluster's own management nodes, with the model's label fallback.
+ *
+ * Returns { pods, cores, memory, cpuUsed, ramUsed }; the last two are null without metrics.
+ */
+export async function fetchClusterCapacity(store, cluster) {
+  const req = (url) => store.dispatch('management/request', { url });
+  const [mgmtCluster, nodesRes, mgmtNodesRes, metricsRes] = await Promise.all([
+    fetchManagementCluster(store, cluster),
+    req(clusterUrl(cluster, `${ NODE }?pagesize=100000`)),
+    req(`/v1/${ MANAGEMENT.NODE }/${ encodeURIComponent(cluster) }?pagesize=100000`).catch(() => null),
+    // No metrics server, no live usage - which the dashboard also simply leaves out.
+    req(clusterUrl(cluster, `${ METRIC.NODE }?pagesize=100000`)).catch(() => null),
+  ]);
+
+  const nodes = nodesRes?.data || [];
+  const workerByName = Object.fromEntries((mgmtNodesRes?.data || []).map((m) => [m.status?.nodeName, !!m.spec?.worker]));
+  const isWorker = (n) => (n.metadata?.name in workerByName ? workerByName[n.metadata.name] : `${ n.metadata?.labels?.[NODE_ROLES.WORKER] }` === 'true');
+  const schedulable = nodes.filter((n) => !n.spec?.unschedulable);
+  const workers = schedulable.filter(isWorker);
+
+  const requests = (n) => JSON.parse(n.metadata?.annotations?.['management.cattle.io/pod-requests'] || '{}');
+  const agg = workers.reduce((a, n) => {
+    const alloc = n.status?.allocatable || {};
+    const cap = n.status?.capacity || {};
+    const asked = requests(n);
+
+    a.cpuAllocatable += parseSi(alloc.cpu || '0');
+    a.ramAllocatable += parseSi(alloc.memory || '0');
+    a.cpuReserved += parseSi(asked.cpu || '0');
+    a.ramReserved += parseSi(asked.memory || '0');
+    a.podReserved += parseSi(asked.pods || '0');
+    a.podCapacity += parseSi(cap.pods || '0');
+    a.systemReservedCpu += Math.max(parseSi(cap.cpu || '0') - parseSi(alloc.cpu || '0'), 0);
+    a.systemReservedRam += Math.max(parseSi(cap.memory || '0') - parseSi(alloc.memory || '0'), 0);
+
+    return a;
+  }, {
+    cpuAllocatable: 0, ramAllocatable: 0, cpuReserved: 0, ramReserved: 0, podReserved: 0, podCapacity: 0, systemReservedCpu: 0, systemReservedRam: 0
+  });
+
+  const status = mgmtCluster?.status || {};
+  const byNodes = workers.length > 0;
+
+  const pods = byNodes ? { total: agg.podCapacity, useful: agg.podReserved } : { total: parseSi(status.allocatable?.pods || '0'), useful: parseSi(status.requested?.pods || '0') };
+  const cores = byNodes ? { total: agg.cpuAllocatable, useful: agg.cpuReserved } : { total: parseSi(status.allocatable?.cpu), useful: parseSi(status.requested?.cpu) };
+  const memory = byNodes ? createMemoryValues(agg.ramAllocatable, agg.ramReserved) : createMemoryValues(status.allocatable?.memory, status.requested?.memory);
+
+  // Usage only over the nodes counted above - the workers, or every schedulable node without them.
+  const counted = new Set((byNodes ? workers : schedulable).map((n) => n.metadata?.name));
+  const metrics = (metricsRes?.data || []).filter((m) => counted.has(m.metadata?.name));
+  let cpuUsed = null;
+  let ramUsed = null;
+
+  if (metrics.length) {
+    const cpu = metrics.reduce((t, m) => t + parseSi(m.usage?.cpu || '0'), 0);
+    const ram = metrics.reduce((t, m) => t + parseSi(m.usage?.memory || '0'), 0);
+
+    cpuUsed = { total: byNodes ? agg.cpuAllocatable : parseSi(status.allocatable?.cpu), useful: cpu - agg.systemReservedCpu };
+    ramUsed = createMemoryValues(byNodes ? agg.ramAllocatable : status.allocatable?.memory, ram - agg.systemReservedRam);
+  }
+
+  // The dashboard hides the section for a cluster reporting nothing to allocate.
+  const hasStats = byNodes || (status.allocatable?.cpu !== undefined && status.allocatable?.cpu !== '0' && status.requested?.cpu !== '0');
+
+  return {
+    hasStats, pods, cores, memory, cpuUsed, ramUsed
   };
 }

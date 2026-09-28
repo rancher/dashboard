@@ -2,7 +2,7 @@
 import { MANAGEMENT } from '@shell/config/types';
 import { TABLE_COLUMNS, FIELDS, typeColumns, clusterOptions } from '../templating/widget-data';
 import {
-  SUGGESTED_RESOURCES, blockName, isDownstream, WIDGET_TABLE, WIDGET_LINKS,
+  SUGGESTED_RESOURCES, blockName, isDownstream, isClusterWidget, WIDGET_TABLE, WIDGET_LINKS,
   WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW
 } from '../templating/widget-catalog';
 
@@ -87,7 +87,7 @@ export default {
 
     // Which sections apply to this building block.
     readsData() {
-      return ![WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW].includes(this.draft.kind);
+      return ![WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW].includes(this.draft.kind) && !isClusterWidget(this.draft.kind);
     },
 
     // The Home cluster table is the stock Home's own table — its columns, sorting and actions are
@@ -109,7 +109,7 @@ export default {
      * two of them could not be paged at all. One cluster is what makes the table a real table.
      */
     needsClusters() {
-      return this.readsData && isDownstream(this.draft.resource);
+      return (this.readsData && isDownstream(this.draft.resource)) || isClusterWidget(this.draft.kind);
     },
 
     clusters() {
@@ -153,16 +153,6 @@ export default {
       const known = this.resources.some((r) => r.value === this.draft.resource);
 
       return known || !this.draft.resource ? this.resources : [{ value: this.draft.resource, label: this.draft.resource }, ...this.resources];
-    },
-
-    // An overview summarises several types at once, edited as one type per line.
-    resourcesText: {
-      get() {
-        return (this.draft.resources || []).join('\n');
-      },
-      set(value) {
-        this.draft.resources = `${ value }`.split('\n').map((r) => r.trim()).filter(Boolean);
-      },
     },
 
     targetsText: {
@@ -392,7 +382,7 @@ export default {
             class="wsm__field"
           >
             <option value="">
-              Choose a cluster…
+              This page's cluster
             </option>
             <option
               v-for="cluster in clusters"
@@ -403,8 +393,8 @@ export default {
             </option>
           </select>
           <p class="wsm__hint">
-            This type lives once per cluster, so a widget shows one of them. Each cluster is its own
-            API — rows from several could not be paged as one list.
+            One cluster per widget. "This page's cluster" shows whichever cluster's dashboard it is
+            placed on — the Home has none, so pick one here.
           </p>
         </template>
 
@@ -460,32 +450,6 @@ export default {
           </div>
         </template>
 
-        <template v-if="draft.kind === 'text'">
-          <label class="wsm__label">Text</label>
-          <textarea
-            v-model="draft.body"
-            class="wsm__field wsm__field--area"
-            rows="6"
-          />
-          <p class="wsm__hint">
-            Markdown — headings, **bold**, lists and links all work.
-          </p>
-        </template>
-
-        <template v-if="draft.kind === 'overview'">
-          <label class="wsm__label">Resources</label>
-          <textarea
-            v-model="resourcesText"
-            class="wsm__field wsm__field--area"
-            rows="5"
-            placeholder="pod"
-          />
-          <p class="wsm__hint">
-            One type per line — pod, apps.deployment, batch.job. They are summarised together by
-            state, by type and by namespace.
-          </p>
-        </template>
-
         <template v-if="draft.kind === 'links'">
           <label class="wsm__label">Show</label>
           <label class="wsm__radio">
@@ -520,18 +484,6 @@ export default {
               One per line: the label, then the URL.
             </p>
           </template>
-        </template>
-
-        <template v-if="draft.kind === 'timeSeries'">
-          <label class="wsm__label">Grafana panel URL</label>
-          <input
-            v-model="draft.url"
-            class="wsm__field"
-            placeholder="https://grafana.example.com/d-solo/abc/dashboard?panelId=2"
-          >
-          <p class="wsm__hint">
-            Take it from Grafana's Share → Embed on the panel you want.
-          </p>
         </template>
 
         <template v-if="draft.kind === 'banner'">
