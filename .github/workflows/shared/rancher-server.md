@@ -7,7 +7,7 @@
 # Provides the setup `steps:` and the Playwright CLI. The importing workflow
 # supplies its own `on:`, `permissions:`, `timeout-minutes:` and safe outputs.
 # Budget several minutes of the importing workflow's timeout for these steps: a
-# dependency install plus a Rancher cold start is routinely eight to ten minutes.
+# dependency install plus a k3s and Rancher cold start is routinely ten minutes or more.
 tools:
   # CLI mode, not the deprecated MCP mode: it is the only one that can record
   # video (`video-start`/`video-stop`), and it reaches a dev server on localhost
@@ -30,31 +30,30 @@ steps:
       node-version-file: '.nvmrc'
   - name: Install dependencies
     run: yarn install --frozen-lockfile --ignore-engines
-  # Started directly rather than through `yarn e2e:docker`: this needs a server to
-  # point a browser at, not a test harness, a built UI mounted into the container
-  # or the feature flags a test run needs.
+  # Same provisioning as the e2e suite (k3s + Helm), so CI has one way to stand
+  # up Rancher. OVERRIDE_UIS=false keeps Rancher's bundled UI: the agent runs
+  # its own `yarn dev` against this backend. GITHUB_BASE_REF pins the branch
+  # metadata to master, so a manual run from a fork branch still resolves an image.
   - name: Run Rancher
+    run: GITHUB_BASE_REF=master OVERRIDE_UIS=false ./scripts/e2e-k3s-start.sh
+  # The script publishes Rancher through the k3s ingress on 443, matched by
+  # hostname. The agent's sandbox reaches the runner by gateway IP instead, so
+  # forward the Rancher service onto a plain port. The loop restarts the forward
+  # if it drops; the runner reaps it at the end of the job.
+  - name: Publish Rancher on port 9443
     run: |
-      # 80/443 and 8080 are taken on the runner, so Rancher is published on 9080/9443.
-      # CATTLE_SERVER_URL uses the default bridge gateway rather than
-      # host.docker.internal, which does not resolve on Docker Engine for Linux.
-      docker run -d --restart=unless-stopped --privileged --name rancher \
-        -p 9080:80 -p 9443:443 \
-        -e CATTLE_UI_OFFLINE_PREFERRED=true \
-        -e CATTLE_BOOTSTRAP_PASSWORD=password \
-        -e CATTLE_PASSWORD_MIN_LENGTH=3 \
-        -e CATTLE_SERVER_URL="https://172.17.0.1:9443" \
-        rancher/rancher:head
+      nohup bash -c 'while true; do kubectl -n cattle-system port-forward --address 0.0.0.0 svc/rancher 9443:443; sleep 1; done' \
+        > /tmp/rancher-port-forward.log 2>&1 &
 
-      echo "Waiting for Rancher to answer on https://127.0.0.1:9443/ ..."
-      for i in $(seq 1 60); do
+      for i in $(seq 1 30); do
         STATUS=$(curl --silent --head -k https://127.0.0.1:9443/dashboard/ | awk '/^HTTP/{print $2}')
-        echo "Status: ${STATUS:-none} (try ${i}/60)"
+        echo "Status: ${STATUS:-none} (try ${i}/30)"
         [ "$STATUS" = "200" ] && break
-        sleep 5
+        sleep 2
       done
       if [ "$STATUS" != "200" ]; then
-        echo "Rancher did not become available in five minutes"
+        echo "Rancher did not answer on port 9443"
+        cat /tmp/rancher-port-forward.log
         exit 1
       fi
   - name: Bootstrap Rancher (first-login setup)
@@ -96,7 +95,7 @@ steps:
 
 The setup steps have already prepared the following. They cost several minutes each. Never restart or duplicate them.
 
-- **A Rancher backend** in a container, on the runner's port 9443. Credentials `admin` / `password`. Already bootstrapped — server URL set, EULA accepted, first-login cleared — so the dashboard is usable straight away
+- **A Rancher backend** on k3s, forwarded to the runner's port 9443. Credentials `admin` / `password`. Already bootstrapped — server URL set, EULA accepted, first-login cleared — so the dashboard is usable straight away
 - **Node, with `yarn install` already run.** `yarn lint` and `yarn test:ci` can be invoked directly
 - **The Playwright CLI**, invoked as `playwright-cli` from bash
 
