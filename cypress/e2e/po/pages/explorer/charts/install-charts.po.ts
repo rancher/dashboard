@@ -41,7 +41,12 @@ export class InstallChartPage extends PagePo {
   }
 
   installChart() {
-    const btn = new AsyncButtonPo('[data-testid="action-button-async-button"]');
+    // Scope to the wizard footer controls: the bare `action-button-async-button`
+    // testid is the AsyncButton component's default componentTestid, and can
+    // match more than one element on the page (e.g. other AsyncButtons that
+    // don't override componentTestid), which makes cy.click() fail with
+    // "subject contained 2 elements".
+    const btn = new AsyncButtonPo('.controls-steps [data-testid="action-button-async-button"]');
 
     btn.click(true);
 
