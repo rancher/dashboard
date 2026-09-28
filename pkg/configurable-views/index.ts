@@ -91,7 +91,5 @@ export default function(plugin: IPlugin): void {
   };
 
   tryInstall();
-
-
   installShortcut();
 }
