@@ -360,7 +360,9 @@ export class Plugin implements IPlugin {
   }
 
   setHomePage(component: any) {
-    this.addRoute({
+    // The Home page lives under the home layout. Without a parent the route would be put under the
+    // 'default' layout, which renders nothing without a cluster - and the Home has none.
+    this.addRoute('home-layout', {
       name: 'home',
       path: '/home',
       component

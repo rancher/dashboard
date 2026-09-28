@@ -53,6 +53,8 @@ export default [
   {
     path:      '/',
     component: () => interopDefault(import('@shell/components/templates/home.vue')),
+    // Named so the Home page can be replaced as its child - see setHomePage in shell/core/plugin.ts
+    name:      'home-layout',
     meta:      { requiresAuthentication: true },
     children:  [
       {
