@@ -8,7 +8,7 @@ import {
 } from '@codemirror/commands';
 import { foldKeymap } from '@codemirror/language';
 import { searchKeymap } from '@codemirror/search';
-import { emacs } from '../../../../vendor/codemirror-emacs';
+import { emacs } from '../vendor/codemirror-emacs';
 import { vim } from '@replit/codemirror-vim';
 import type { RcCodeMirrorKeymap } from '../types';
 
