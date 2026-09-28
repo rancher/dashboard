@@ -1,117 +1,114 @@
-<script>
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue';
+import { useStore } from 'vuex';
 import jsyaml from 'js-yaml';
-import { appliedViewScopes, fetchTemplatingConfigMaps, getHomeConfig, saveHomeConfig } from '../templating/template-engine';
-import { isStockPanel } from '../templating/view-model';
+import {
+  appliedViewScopes, fetchTemplatingConfigMaps, getHomeConfig, saveHomeConfig, type HomeConfig
+} from '../templating/template-engine';
+import { cssSize, isStockPanel } from '../templating/view-model';
+import type { Panel, View } from '../templating/types';
 
 // Lists the saved views — their PANELS (which render as tabs) and the WIDGETS on each. Editing
 // happens on the Home page; this page is for seeing what is stored, and for editing it as YAML.
-export default {
-  name: 'HomeLayouts',
 
-  data() {
-    return {
-      userId:      null,
-      loaded:      false,
-      yamlEditing: false,
-      yamlDraft:   '',
-      yamlError:   '',
-      savingYaml:  false,
-      yamlStatus:  '',
-    };
-  },
+const store = useStore();
 
-  async created() {
-    await fetchTemplatingConfigMaps(this.$store).catch(() => {});
-    const user = await this.$store.dispatch('auth/getUser').catch(() => null);
+const userId = ref<string | null>(null);
+const loaded = ref(false);
+const yamlEditing = ref(false);
+const yamlDraft = ref('');
+const yamlError = ref('');
+const savingYaml = ref(false);
+const yamlStatus = ref('');
 
-    this.userId = user?.id || this.$store.getters['auth/user']?.id || null;
-    this.loaded = true;
-  },
+const homeRoute = { name: 'home' };
 
-  computed: {
-    scopes() {
-      return appliedViewScopes(this.$store.getters, this.userId);
-    },
+onMounted(async() => {
+  await fetchTemplatingConfigMaps(store);
+  const user = await store.dispatch('auth/getUser').catch(() => null);
 
-    // The scopes that actually have a view applied, each with its panels.
-    sections() {
-      const out = [];
+  userId.value = user?.id || store.getters['auth/user']?.id || null;
+  loaded.value = true;
+});
 
-      if (this.scopes.global) {
-        out.push({
-          key: 'global', label: 'Global (everyone)', view: this.scopes.global
-        });
-      }
-      if (this.scopes.user) {
-        out.push({
-          key: 'user', label: 'Your Home', view: this.scopes.user
-        });
-      }
+const scopes = computed(() => appliedViewScopes(store.getters, userId.value));
 
-      return out;
-    },
+// The scopes that actually have a view applied, each with its panels.
+const sections = computed(() => {
+  const out: { key: string; label: string; view: View }[] = [];
 
-    homeRoute() {
-      return { name: 'home' };
-    },
-  },
+  if (scopes.value.global) {
+    out.push({
+      key: 'global', label: 'Global (everyone)', view: scopes.value.global
+    });
+  }
+  if (scopes.value.user) {
+    out.push({
+      key: 'user', label: 'Your Home', view: scopes.value.user
+    });
+  }
 
-  methods: {
-    isStock(panel) {
-      return isStockPanel(panel);
-    },
+  return out;
+});
 
-    // A panel's widgets, in the order they sit on the grid.
-    rowsFor(panel) {
-      return (panel?.widgets || []).map((w) => ({
-        id:      w.id,
-        label:   w.widget?.title || w.widget?.kind || 'Widget',
-        kind:    w.widget?.kind,
-        size:    `col-span-${ w.colSpan }`,
-        padding: [w.padding?.top, w.padding?.right, w.padding?.bottom, w.padding?.left].join(' / '),
-      }));
-    },
+const isStock = (panel: Panel) => isStockPanel(panel);
 
-    // ---- manual YAML editing of the whole applied-Home config (templating-home data.home) ----
-    openYaml() {
-      this.yamlError = '';
-      this.yamlStatus = '';
-      this.yamlDraft = jsyaml.dump(getHomeConfig(this.$store.getters) || {});
-      this.yamlEditing = true;
-    },
+// A panel's widgets, in the order they sit on the grid.
+function rowsFor(panel: Panel) {
+  if (isStockPanel(panel)) {
+    return [];
+  }
 
-    cancelYaml() {
-      this.yamlEditing = false;
-      this.yamlError = '';
-    },
+  return panel.widgets.map((w) => ({
+    id:      w.id,
+    label:   w.widget.title || w.widget.kind || 'Widget',
+    kind:    w.widget.kind,
+    size:    `col-span-${ w.colSpan }`,
+    padding: [w.padding.top, w.padding.right, w.padding.bottom, w.padding.left].map(cssSize).join(' / '),
+  }));
+}
 
-    async saveYaml() {
-      let parsed;
+// ---- manual YAML editing of the whole stored config (templating-home data.home) ----
 
-      try {
-        parsed = jsyaml.load(this.yamlDraft) || {};
-      } catch (e) {
-        this.yamlError = e?.message || 'Invalid YAML';
+function openYaml(): void {
+  yamlError.value = '';
+  yamlStatus.value = '';
+  yamlDraft.value = jsyaml.dump(getHomeConfig(store.getters) || {});
+  yamlEditing.value = true;
+}
 
-        return;
-      }
+function cancelYaml(): void {
+  yamlEditing.value = false;
+  yamlError.value = '';
+}
 
-      this.savingYaml = true;
-      this.yamlError = '';
+async function saveYaml(): Promise<void> {
+  let parsed: HomeConfig;
 
-      try {
-        await saveHomeConfig(this.$store, parsed);
-        await fetchTemplatingConfigMaps(this.$store).catch(() => {});
-        this.yamlStatus = 'Saved.';
-        this.yamlEditing = false;
-      } catch (e) {
-        this.yamlError = e?.message || String(e);
-      } finally {
-        this.savingYaml = false;
-      }
-    },
-  },
-};
+  try {
+    const loadedYaml = jsyaml.load(yamlDraft.value);
+
+    parsed = loadedYaml && typeof loadedYaml === 'object' ? loadedYaml as HomeConfig : {};
+  } catch (e) {
+    yamlError.value = (e as Error)?.message || 'Invalid YAML';
+
+    return;
+  }
+
+  savingYaml.value = true;
+  yamlError.value = '';
+
+  try {
+    await saveHomeConfig(store, parsed);
+    await fetchTemplatingConfigMaps(store);
+    yamlStatus.value = 'Saved.';
+    yamlEditing.value = false;
+  } catch (e) {
+    yamlError.value = (e as Error)?.message || String(e);
+  } finally {
+    savingYaml.value = false;
+  }
+}
 </script>
 
 <template>

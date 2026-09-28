@@ -1,4 +1,7 @@
-<script>
+<script setup lang="ts">
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import type { Panel } from '../templating/types';
+
 // The bar under the app header — the Home's own navigation, and the only place a view is switched,
 // renamed, created or published.
 //
@@ -10,145 +13,120 @@
 //              view / Save. The bar tints blue so it is obvious the page is in a different mode.
 //
 // It owns no state beyond the open menu: everything else is emitted to the Home page.
-export default {
-  name: 'HomeViewBar',
 
-  props: {
-    views: {
-      type:    Array,
-      default: () => [],
-    },
-    activeId: {
-      type:    String,
-      default: '',
-    },
-    editing: {
-      type:    Boolean,
-      default: false,
-    },
-    // A brand-new view that has never been saved — Figma's "New view" state.
-    isNew: {
-      type:    Boolean,
-      default: false,
-    },
-    // The view this user opens the Home on.
-    defaultId: {
-      type:    String,
-      default: '',
-    },
-    dirty: {
-      type:    Boolean,
-      default: false,
-    },
-    saving: {
-      type:    Boolean,
-      default: false,
-    },
-    // Where a new view was started from, shown beside "New view".
-    startedFrom: {
-      type:    String,
-      default: '',
-    },
-  },
-
-  emits: [
-    'select', 'edit', 'cancel', 'save', 'save-as-new', 'rename', 'rename-start',
-    'new-view', 'duplicate', 'set-default', 'publish', 'delete'
-  ],
-
-  data() {
-    return { menuOpen: false };
-  },
-
-  computed: {
-    activeView() {
-      return this.views.find((v) => v.id === this.activeId) || null;
-    },
-
-    // "Changes are saved to your account only." — unless this view IS the organization template, in
-    // which case saving it changes what everyone sees, and the bar must say so.
-    editingHint() {
-      if (this.isNew) {
-        return this.startedFrom ? `From ${ this.startedFrom }. Not saved yet.` : 'Not saved yet.';
-      }
-
-      return this.activeView?.org ? 'Changes are published to everyone.' : 'Changes are saved to your account only.';
-    },
-
-    isDefault() {
-      return !!this.activeId && this.activeId === this.defaultId;
-    },
-
-    // A published panel is everyone's: the menu offers taking it back out rather than publishing it
-    // again, and the wording says "unpublish" so nobody reads it as deleting their own copy.
-    isPublished() {
-      return !!this.activeView?.org;
-    },
-  },
-
-  /**
-   * A menu closes on a CLICK outside it, or on Escape — not on the pointer leaving.
-   *
-   * Closing on mouseleave is how a hover menu behaves, and this is not one: you open it by clicking,
-   * so it has to stay open until you decide otherwise. Sliding the pointer a few pixels wide of it
-   * on the way to "Delete view" should not take the menu away from under you.
-   *
-   * The listeners exist only while the menu is open, so a closed bar costs nothing.
-   */
-  watch: {
-    menuOpen(open) {
-      if (open) {
-        // Next tick: the click that OPENED the menu is still travelling, and would close it again.
-        setTimeout(() => {
-          document.addEventListener('mousedown', this.onOutside);
-          window.addEventListener('keydown', this.onKey);
-        }, 0);
-      } else {
-        this.stopWatchingForClose();
-      }
-    },
-  },
-
-  beforeUnmount() {
-    this.stopWatchingForClose();
-  },
-
-  methods: {
-    toggleMenu() {
-      this.menuOpen = !this.menuOpen;
-    },
-
-    closeMenu() {
-      this.menuOpen = false;
-    },
-
-    onOutside(ev) {
-      if (!this.$refs.menuWrap?.contains(ev.target)) {
-        this.closeMenu();
-      }
-    },
-
-    onKey(ev) {
-      if (ev.key === 'Escape') {
-        this.closeMenu();
-      }
-    },
-
-    stopWatchingForClose() {
-      document.removeEventListener('mousedown', this.onOutside);
-      window.removeEventListener('keydown', this.onKey);
-    },
-
-    run(event) {
-      this.closeMenu();
-      this.$emit(event);
-    },
-
-    onName(ev) {
-      this.$emit('rename', ev.target.value);
-    },
-  },
+/** Everything the bar asks of the Home. Most asks carry nothing; switching and renaming say what to. */
+type BarEmits = {
+  select: [id: string];
+  rename: [name: string];
+  edit: [];
+  cancel: [];
+  save: [];
+  'save-as-new': [];
+  'rename-start': [];
+  'new-view': [];
+  duplicate: [];
+  'set-default': [];
+  publish: [];
+  delete: [];
 };
+
+const props = withDefaults(defineProps<{
+  views?: Panel[];
+  activeId?: string | null;
+  editing?: boolean;
+  /** A brand-new view that has never been saved — Figma's "New view" state. */
+  isNew?: boolean;
+  /** The view this user opens the Home on. */
+  defaultId?: string | null;
+  dirty?: boolean;
+  saving?: boolean;
+  /** Where a new view was started from, shown beside "New view". */
+  startedFrom?: string;
+}>(), {
+  views:       () => [],
+  activeId:    '',
+  editing:     false,
+  isNew:       false,
+  defaultId:   '',
+  dirty:       false,
+  saving:      false,
+  startedFrom: '',
+});
+
+const emit = defineEmits<BarEmits>();
+
+const menuOpen = ref(false);
+const menuWrap = ref<HTMLElement | null>(null);
+
+const activeView = computed(() => props.views.find((v) => v.id === props.activeId) || null);
+
+// "Changes are saved to your account only." — unless this view IS the organization template, in
+// which case saving it changes what everyone sees, and the bar must say so.
+const editingHint = computed(() => {
+  if (props.isNew) {
+    return props.startedFrom ? `From ${ props.startedFrom }. Not saved yet.` : 'Not saved yet.';
+  }
+
+  return activeView.value?.org ? 'Changes are published to everyone.' : 'Changes are saved to your account only.';
+});
+
+const isDefault = computed(() => !!props.activeId && props.activeId === props.defaultId);
+
+// A published panel is everyone's: the menu offers taking it back out rather than publishing it
+// again, and the wording says "unpublish" so nobody reads it as deleting their own copy.
+const isPublished = computed(() => !!activeView.value?.org);
+
+function closeMenu(): void {
+  menuOpen.value = false;
+}
+
+function toggleMenu(): void {
+  menuOpen.value = !menuOpen.value;
+}
+
+function onOutside(ev: MouseEvent): void {
+  if (!menuWrap.value?.contains(ev.target as Node | null)) {
+    closeMenu();
+  }
+}
+
+function onKey(ev: KeyboardEvent): void {
+  if (ev.key === 'Escape') {
+    closeMenu();
+  }
+}
+
+function stopWatchingForClose(): void {
+  document.removeEventListener('mousedown', onOutside);
+  window.removeEventListener('keydown', onKey);
+}
+
+/**
+ * A menu closes on a CLICK outside it, or on Escape — not on the pointer leaving.
+ *
+ * Closing on mouseleave is how a hover menu behaves, and this is not one: you open it by clicking,
+ * so it has to stay open until you decide otherwise. Sliding the pointer a few pixels wide of it on
+ * the way to "Delete view" should not take the menu away from under you.
+ *
+ * The listeners exist only while the menu is open, so a closed bar costs nothing.
+ */
+watch(menuOpen, (open) => {
+  if (open) {
+    // Next tick: the click that OPENED the menu is still travelling, and would close it again.
+    setTimeout(() => {
+      document.addEventListener('mousedown', onOutside);
+      window.addEventListener('keydown', onKey);
+    }, 0);
+  } else {
+    stopWatchingForClose();
+  }
+});
+
+onBeforeUnmount(stopWatchingForClose);
+
+function onName(ev: Event): void {
+  emit('rename', (ev.target as HTMLInputElement).value);
+}
 </script>
 
 <template>
@@ -248,31 +226,31 @@ export default {
           class="vbar__menu"
         >
           <li>
-            <button @click="run('new-view')">
+            <button @click="closeMenu(); $emit('new-view')">
               New panel
             </button>
           </li>
           <li>
-            <button @click="run('duplicate')">
+            <button @click="closeMenu(); $emit('duplicate')">
               Duplicate this panel
             </button>
           </li>
           <li>
-            <button @click="run('rename-start')">
+            <button @click="closeMenu(); $emit('rename-start')">
               Rename
             </button>
           </li>
           <li>
             <button
               :disabled="isDefault"
-              @click="run('set-default')"
+              @click="closeMenu(); $emit('set-default')"
             >
               {{ isDefault ? 'This is my default' : 'Set as my default' }}
             </button>
           </li>
           <li class="vbar__menu-sep" />
           <li v-if="!isPublished">
-            <button @click="run('publish')">
+            <button @click="closeMenu(); $emit('publish')">
               Publish as organization template
             </button>
           </li>
@@ -283,7 +261,7 @@ export default {
           <li>
             <button
               :disabled="views.length < 2"
-              @click="run('delete')"
+              @click="closeMenu(); $emit('delete')"
             >
               {{ isPublished ? 'Unpublish panel' : 'Delete panel' }}
             </button>
