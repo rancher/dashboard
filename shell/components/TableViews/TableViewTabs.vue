@@ -1157,6 +1157,7 @@ onBeforeUnmount(() => {
                  positioned against the tab: flush with the start of the name and 9 below the line the
                  tab draws under itself. -->
             <rc-dropdown
+              flush
               :open="openTabMenuId === (tab.id || 'all')"
               :placement="'bottom-start'"
               :distance="9"

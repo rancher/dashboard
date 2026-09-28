@@ -11,6 +11,14 @@ const vDropdownMock = defineComponent({
 });
 
 describe('component: RcDropdown.vue', () => {
+  it('should keep its own padding and scrolling unless told to leave them to its content', () => {
+    const plain = mount(RcDropdown, { global: { components: { 'v-dropdown': vDropdownMock } } });
+    const flush = mount(RcDropdown, { props: { flush: true }, global: { components: { 'v-dropdown': vDropdownMock } } });
+
+    expect(plain.find('[dropdown-menu-collection]').classes()).not.toContain('flush');
+    expect(flush.find('[dropdown-menu-collection]').classes()).toContain('flush');
+  });
+
   it('should not change the height if the dropdown fits within the screen', async() => {
     Object.defineProperty(window, 'innerHeight', { value: 800 });
 

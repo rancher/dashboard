@@ -553,6 +553,7 @@ onBeforeUnmount(() => {
            scrolls to it. The sub menus open sideways, so sliding moves them up and down instead,
            which is what they want; see below. -->
       <rc-dropdown
+        flush
         :placement="'bottom-end'"
         :shift="false"
       >
@@ -620,6 +621,7 @@ onBeforeUnmount(() => {
                  neither shown - which is the blink. With one popper the lists simply change place
                  in it, and there is no moment when nothing is there. -->
             <rc-dropdown
+              flush
               :open="subMenu !== null"
               :placement="'left-start'"
               :distance="-1"
@@ -855,7 +857,7 @@ onBeforeUnmount(() => {
   // pointer is inside a sub menu it is over none of the rows here, so the row that opened it
   // would go dark and the menu would stop saying which of them you are in. It keeps the same
   // highlight hovering gives, so the hand back is invisible.
-  :deep([dropdown-menu-item].owns-sub-menu) {
+  [dropdown-menu-item].owns-sub-menu {
     background-color: var(--dropdown-hover-bg);
   }
 

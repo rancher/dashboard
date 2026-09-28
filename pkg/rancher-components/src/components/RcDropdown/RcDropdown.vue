@@ -80,6 +80,12 @@ const props = withDefaults(
      */
     // eslint-disable-next-line vue/require-default-prop
     popperClass?: string;
+    /**
+     * Leave the menu's scrolling and its spacing to what is inside it. For content that scrolls
+     * itself and carries its own padding - a scroll box inside this one's padding would stop
+     * short of it, and this one scrolling as well turns the content's overhang into a scrollbar.
+     */
+    flush?: boolean;
   }>(),
   // `shift` carries floating-vue's own default: a boolean prop left alone would come through as
   // false and stop every menu in the product being nudged back into view. `open` false is the
@@ -196,6 +202,7 @@ const applyShow = () => {
       <div
         ref="dropdownTarget"
         class="dropdownTarget"
+        :class="{ flush }"
         tabindex="-1"
         role="menu"
         aria-orientation="vertical"
@@ -248,6 +255,11 @@ const applyShow = () => {
 
     &:focus-visible, &:focus {
       outline: none;
+    }
+
+    &.flush {
+      overflow: visible;
+      padding: 0;
     }
   }
 </style>
