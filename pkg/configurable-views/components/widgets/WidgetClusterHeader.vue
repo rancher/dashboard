@@ -57,7 +57,7 @@ watch(cluster, async(id) => {
 
   try {
     [mgmt.value, counts.value] = await Promise.all([
-      fetchManagementCluster(store, id),
+      fetchManagementCluster<MgmtCluster>(store, id),
       fetchClusterCounts(store, id).catch(() => ({})),
     ]);
   } catch (e) {

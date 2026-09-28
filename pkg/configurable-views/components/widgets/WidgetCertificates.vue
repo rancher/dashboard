@@ -65,11 +65,11 @@ watch(cluster, async(id) => {
   loading.value = true;
 
   try {
-    const res = await fetchClusterRows(store, {
+    const res = await fetchClusterRows<Cert>(store, {
       resource: SECRET, cluster: id, filters: TLS
     });
 
-    certs.value = res.rows as Cert[];
+    certs.value = res.rows;
     truncated.value = res.truncated;
   } catch (e) {
     error.value = `Could not read the certificates of cluster “${ id }”.`;

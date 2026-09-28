@@ -8,6 +8,9 @@
 //
 // Pure functions — no Vue. `rows` are Steve/Norman resource instances.
 
+import type { Store } from 'vuex';
+import type { RouteLocationRaw } from 'vue-router';
+import type { TableColumn } from '@shell/types/store/type-map';
 import { get } from '@shell/utils/object';
 import { parseSi, formatSi, createMemoryFormat, createMemoryValues } from '@shell/utils/units';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
@@ -16,6 +19,43 @@ import { NODE_ROLES } from '@shell/config/labels-annotations';
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { colorToCountName } from '@shell/components/ResourceSummary';
 import { RESOURCES as DASHBOARD_RESOURCES } from '@shell/pages/c/_cluster/explorer/index.vue';
+import type { ResourceRow, SortDir } from './types';
+
+type Getters = Store<unknown>['getters'];
+
+/** A field a widget can show, sort or filter on: how a person names it, and how to read it off a row. */
+export interface Field {
+  id: string;
+  label: string;
+  value: (row: ResourceRow) => unknown;
+}
+
+/** One clause of a filter expression: `state != Active` is { field: 'state', op: '!=', value: 'Active' }. */
+export interface FilterClause {
+  field: string;
+  op: string;
+  value: string;
+}
+
+/**
+ * A table header as the shell writes them. The shell's own TableColumn type leaves out `labelKey`,
+ * which nearly every header in the shell sets - so it is added here rather than cast away.
+ */
+export type Header = TableColumn & { labelKey?: string };
+
+/** A column a type declares for itself, as the settings offer it. `header` is Rancher's own definition. */
+export interface TypeColumn {
+  id: string;
+  label: string;
+  sortable: boolean;
+  header: Header;
+}
+
+/** One way a Steve list can be sorted. */
+export interface SteveSort {
+  field: string;
+  asc: boolean;
+}
 
 /**
  * The fields a widget can filter, sort, group and tabulate on. `value` reads one off a row; `label`
@@ -23,7 +63,7 @@ import { RESOURCES as DASHBOARD_RESOURCES } from '@shell/pages/c/_cluster/explor
  *
  * Order matters — it is the order the Columns checkboxes appear in.
  */
-export const FIELDS = [
+export const FIELDS: Field[] = [
   {
     id: 'state', label: 'State', value: (row) => row.stateDisplay || row.state || ''
   },
@@ -62,7 +102,7 @@ export const FIELDS = [
   },
 ];
 
-const FIELD_BY_ID = FIELDS.reduce((acc, f) => {
+const FIELD_BY_ID = FIELDS.reduce<Record<string, Field>>((acc, f) => {
   acc[f.id] = f;
 
   return acc;
@@ -72,7 +112,7 @@ const FIELD_BY_ID = FIELDS.reduce((acc, f) => {
 export const TABLE_COLUMNS = FIELDS;
 
 /** A field's human label ('K8s version'), falling back to the raw path for a CRD field. */
-export function fieldLabel(id) {
+export function fieldLabel(id: string): string {
   return FIELD_BY_ID[id]?.label || id;
 }
 
@@ -82,11 +122,11 @@ export function fieldLabel(id) {
 
 // How Rancher writes the distros in its own tables. Anything else (an imported or local cluster)
 // has no distro to name, so only the provider is shown.
-const DISTROS = {
+const DISTROS: Record<string, string> = {
   rke2: 'RKE2', k3s: 'K3s', rke: 'RKE', k3s1: 'K3s'
 };
 
-function providerOf(row) {
+function providerOf(row: ResourceRow): string {
   const provider = row.machineProviderDisplay || row.machineProvider || row.provider ||
     get(row, 'status.provider') || get(row, 'mgmt.status.provider') || '';
   const distro = DISTROS[`${ row.provisioner || row.kubernetesDistro || '' }`.toLowerCase()] || '';
@@ -98,7 +138,7 @@ function providerOf(row) {
   return provider || distro || '';
 }
 
-function versionOf(row) {
+function versionOf(row: ResourceRow): string {
   return row.kubernetesVersion ||
     get(row, 'spec.kubernetesVersion') ||
     get(row, 'status.version.gitVersion') ||
@@ -107,13 +147,13 @@ function versionOf(row) {
     '';
 }
 
-function nodeCountOf(row) {
+function nodeCountOf(row: ResourceRow): number | '' {
   const nodes = Number(get(row, 'status.nodeCount') ?? get(row, 'mgmt.status.nodeCount'));
 
   return Number.isFinite(nodes) && nodes > 0 ? nodes : '';
 }
 
-function cpuOf(row) {
+function cpuOf(row: ResourceRow): string {
   const cpu = get(row, 'status.allocatable.cpu') ?? get(row, 'mgmt.status.allocatable.cpu');
 
   if (cpu === undefined || cpu === null) {
@@ -126,7 +166,7 @@ function cpuOf(row) {
   return Number.isFinite(cores) && cores > 0 ? `${ cores } cores` : '';
 }
 
-function memoryOf(row) {
+function memoryOf(row: ResourceRow): string {
   const memory = get(row, 'status.allocatable.memory') ?? get(row, 'mgmt.status.allocatable.memory');
 
   if (memory === undefined || memory === null) {
@@ -147,13 +187,13 @@ function memoryOf(row) {
 // An Event's `type` is its severity (Normal / Warning); on most other resources `type` is the Steve
 // type id ("provisioning.cattle.io.cluster"), which is the same for every row and so says nothing.
 // Only the former is worth showing.
-function typeOf(row) {
+function typeOf(row: ResourceRow): string {
   const type = `${ row.type || '' }`;
 
   return type.includes('.') ? '' : type;
 }
 
-function podsOf(row) {
+function podsOf(row: ResourceRow): string {
   const pods = Number(get(row, 'status.allocatable.pods') ?? get(row, 'mgmt.status.allocatable.pods'));
 
   return Number.isFinite(pods) && pods > 0 ? `${ pods }` : '';
@@ -172,7 +212,7 @@ function podsOf(row) {
  * The Home reads the local cluster through MANAGEMENT (Steve /v1), so prefer whichever store
  * actually has a schema for the type, management first.
  */
-export function storeForType(getters, type) {
+export function storeForType(getters: Getters, type: string): string {
   if (!type) {
     return 'management';
   }
@@ -195,7 +235,7 @@ export function storeForType(getters, type) {
  * Returns `{ id, label, sortable, header }` per column, where `header` is Rancher's real header
  * definition — pass it to a table verbatim and the column gets its proper formatter and value.
  */
-export function typeColumns(getters, resource) {
+export function typeColumns(getters: Getters, resource: string): TypeColumn[] {
   if (!resource) {
     return [];
   }
@@ -208,7 +248,7 @@ export function typeColumns(getters, resource) {
 
   const headers = getters['type-map/headersFor']?.(schema) || [];
 
-  return headers.map((header) => ({
+  return headers.map((header: Header) => ({
     id:       header.name,
     label:    header.labelKey ? getters['i18n/t'](header.labelKey) : (header.label || header.name),
     sortable: !!header.sort,
@@ -216,7 +256,7 @@ export function typeColumns(getters, resource) {
   // A type can declare an ACTION column: Rancher's cluster list ends with `explorer`, a 65px column
   // labelled ' ' that exists only so a row can slot its Explore button into it. There is nothing to
   // show and nothing to name, so it is not a column anyone can pick — a blank label is the tell.
-  })).filter((column) => column.label.trim());
+  })).filter((column: TypeColumn) => column.label.trim());
 }
 
 /**
@@ -225,7 +265,7 @@ export function typeColumns(getters, resource) {
  * That link needs a cluster context the Home does not have, and without one it renders an empty
  * cell — the stock Home's own cluster table drops the same formatter for the same reason.
  */
-export function withoutDetailLink(header) {
+export function withoutDetailLink(header: Header): Header {
   if (header?.formatter !== 'LinkDetail') {
     return header;
   }
@@ -242,7 +282,7 @@ export function withoutDetailLink(header) {
  * path, so `spec.nodeName` or a CRD's own field works with no extra plumbing. A leading `label:`
  * (or `labels.`) reads a Kubernetes label instead.
  */
-export function fieldValue(row, field) {
+export function fieldValue(row: ResourceRow | null | undefined, field: string): unknown {
   if (!row || !field) {
     return '';
   }
@@ -274,7 +314,7 @@ const OPERATORS = ['>=', '<=', '!=', '==', '=', '>', '<'];
  *
  * A bare word with no operator matches the row's name.
  */
-export function parseFilter(expression) {
+export function parseFilter(expression: string | null | undefined): FilterClause[] {
   return `${ expression || '' }`
     .split(',')
     .map((part) => part.trim())
@@ -298,7 +338,7 @@ export function parseFilter(expression) {
     });
 }
 
-function clauseMatches(row, clause) {
+function clauseMatches(row: ResourceRow, clause: FilterClause): boolean {
   const actual = fieldValue(row, clause.field);
   const a = `${ actual }`.trim().toLowerCase();
   const b = `${ clause.value }`.trim().toLowerCase();
@@ -312,7 +352,7 @@ function clauseMatches(row, clause) {
   case '<':
   case '>=':
   case '<=': {
-    const left = parseFloat(actual);
+    const left = parseFloat(`${ actual }`);
     const right = parseFloat(clause.value);
 
     if (Number.isNaN(left) || Number.isNaN(right)) {
@@ -327,7 +367,7 @@ function clauseMatches(row, clause) {
 }
 
 /** Keep the rows matching EVERY clause of a filter expression (no filter keeps everything). */
-export function applyFilter(rows, expression) {
+export function applyFilter<T extends ResourceRow>(rows: T[], expression: string | null | undefined): T[] {
   const clauses = parseFilter(expression);
 
   if (!clauses.length) {
@@ -340,7 +380,7 @@ export function applyFilter(rows, expression) {
 // ---- sorting & grouping -------------------------------------------------------------------------
 
 /** Sort rows by a field. Numbers compare as numbers, everything else as lower-cased text. */
-export function applySort(rows, field, dir = 'asc') {
+export function applySort<T extends ResourceRow>(rows: T[], field: string, dir: SortDir = 'asc'): T[] {
   if (!field) {
     return rows;
   }
@@ -350,8 +390,8 @@ export function applySort(rows, field, dir = 'asc') {
   return [...(rows || [])].sort((a, b) => {
     const left = fieldValue(a, field);
     const right = fieldValue(b, field);
-    const ln = parseFloat(left);
-    const rn = parseFloat(right);
+    const ln = parseFloat(`${ left }`);
+    const rn = parseFloat(`${ right }`);
 
     if (!Number.isNaN(ln) && !Number.isNaN(rn) && `${ ln }` === `${ left }`.trim() && `${ rn }` === `${ right }`.trim()) {
       return (ln - rn) * sign;
@@ -359,44 +399,6 @@ export function applySort(rows, field, dir = 'asc') {
 
     return `${ left }`.toLowerCase().localeCompare(`${ right }`.toLowerCase()) * sign;
   });
-}
-
-/**
- * Count rows per distinct value of a field, biggest group first — what the counters, the status
- * summary and the bar chart all draw. Empty values are grouped under "Unknown".
- */
-export function groupRows(rows, field) {
-  const counts = new Map();
-
-  (rows || []).forEach((row) => {
-    const key = `${ fieldValue(row, field) }`.trim() || 'Unknown';
-
-    counts.set(key, (counts.get(key) || 0) + 1);
-  });
-
-  return [...counts.entries()]
-    .map(([label, count]) => ({ label, count }))
-    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
-}
-
-/**
- * The colour a state reads as, reusing Rancher's own state colours so a widget agrees with the rest
- * of the product. Falls back to the neutral "info" colour for anything unrecognized.
- */
-export function stateColor(label) {
-  const key = `${ label }`.toLowerCase();
-
-  if (['active', 'running', 'healthy', 'ready', 'bound', 'completed', 'succeeded', 'attached'].includes(key)) {
-    return 'success';
-  }
-  if (['error', 'failed', 'critical', 'unavailable', 'expired', 'notready', 'not ready', 'detached'].includes(key)) {
-    return 'error';
-  }
-  if (['warning', 'degraded', 'updating', 'upgrading', 'pending', 'provisioning', 'waiting', 'unknown'].includes(key)) {
-    return 'warning';
-  }
-
-  return 'info';
 }
 
 // ---- downstream clusters -------------------------------------------------------------------------
@@ -410,7 +412,7 @@ export function stateColor(label) {
 // sorts on `nameSort`, a computed property that exists only in the dashboard; ask the API for it and
 // it answers 422 "column is invalid" and the whole page fails. These are the few that have a real
 // field behind them.
-const STEVE_SORT = {
+const STEVE_SORT: Record<string, string> = {
   nameSort:          'metadata.name',
   namespace:         'metadata.namespace',
   stateSort:         'metadata.state.name',
@@ -426,13 +428,13 @@ const STEVE_SORT_ALWAYS = ['metadata.name', 'metadata.namespace', 'id', 'metadat
  * Returning null is the point: a sort the API rejects fails the REQUEST, so an untranslatable
  * column has to mean "ask unsorted" rather than "ask and break".
  */
-export function steveSortField(getters, resource, column) {
+export function steveSortField(getters: Getters, resource: string, column: string): string | null {
   if (!column) {
     return null;
   }
 
   const schema = getters[`${ storeForType(getters, resource) }/schemaFor`]?.(resource);
-  const header = (getters['type-map/headersFor']?.(schema) || []).find((h) => h.name === column);
+  const header = (getters['type-map/headersFor']?.(schema) || []).find((h: Header) => h.name === column) as Header | undefined;
   const raw = Array.isArray(header?.sort) ? header.sort[0] : (header?.sort || column);
   const field = STEVE_SORT[`${ raw }`.split(':')[0]] || `${ raw }`.split(':')[0];
 
@@ -442,7 +444,7 @@ export function steveSortField(getters, resource, column) {
 
   // The schema lists the columns the API indexes, as JSONPath — `$.spec.nodeName` is `spec.nodeName`.
   const known = (schema?.attributes?.columns || []).some(
-    (c) => `${ c.field }`.replace('$.', '').replace('[', '.').replace(']', '') === field
+    (c: { field?: string }) => `${ c.field }`.replace('$.', '').replace('[', '.').replace(']', '') === field
   );
 
   return known ? field : null;
@@ -456,7 +458,7 @@ export function steveSortField(getters, resource, column) {
  * places at once, so no field path exists to ask the API about, and no amount of mapping invents
  * one.
  */
-const STEVE_FILTER = {
+const STEVE_FILTER: Record<string, string> = {
   name:      'metadata.name',
   namespace: 'metadata.namespace',
   state:     'metadata.state.name',
@@ -477,9 +479,9 @@ const STEVE_OPS = ['=', '!=', 'contains'];
  *
  * Returns [] for no filter at all, which is not the same as null: nothing to push, still pushable.
  */
-export function steveFilters(expression) {
+export function steveFilters(expression: string | null | undefined): PaginationParamFilter[] | null {
   const clauses = parseFilter(expression);
-  const out = [];
+  const out: PaginationParamFilter[] = [];
 
   for (const clause of clauses) {
     const field = STEVE_FILTER[clause.field];
@@ -501,8 +503,8 @@ export function steveFilters(expression) {
 }
 
 /** Every cluster the user can see, as picker options, by the name a person would recognise. */
-export function clusterOptions(getters) {
-  const clusters = getters['management/all']?.('management.cattle.io.cluster') || [];
+export function clusterOptions(getters: Getters): { id: string; label: string }[] {
+  const clusters: { id: string; nameDisplay?: string; spec?: { displayName?: string } }[] = getters['management/all']?.(MANAGEMENT.CLUSTER) || [];
 
   return clusters
     .map((c) => ({ id: c.id, label: c.nameDisplay || c.spec?.displayName || c.id }))
@@ -525,9 +527,32 @@ export function clusterOptions(getters) {
  * `cap` rows, and filters and pages what came back; `truncated` says when the cluster had more,
  * because a total that quietly stops being a total is worse than a visible limit.
  */
-export async function fetchClusterPage(store, {
+export interface ClusterPageArgs {
+  resource: string;
+  cluster: string;
+  page?: number;
+  pageSize?: number;
+  /** The column picked in the widget's settings; translated to a Steve field if it can be. */
+  sortBy?: string;
+  sortDir?: SortDir;
+  /** A fixed order, as Steve fields - wins over `sortBy`. */
+  sort?: SteveSort[];
+  filters?: PaginationParamFilter[];
+  /** The widget filters locally, so read up to `cap` rows instead of a page. */
+  filtered?: boolean;
+  cap?: number;
+}
+
+export interface ClusterPage {
+  rows: ResourceRow[];
+  count: number;
+  truncated: boolean;
+  serverPaged: boolean;
+}
+
+export async function fetchClusterPage(store: Store<unknown>, {
   resource, cluster, page = 1, pageSize = 10, sortBy = '', sortDir = 'asc', sort: fixedSort, filters, filtered = false, cap = 500
-}) {
+}: ClusterPageArgs): Promise<ClusterPage> {
   if (!resource || !cluster) {
     return {
       rows: [], count: 0, truncated: false, serverPaged: false
@@ -537,7 +562,7 @@ export async function fetchClusterPage(store, {
   // A widget with a fixed order (newest events first) passes it as Steve fields; otherwise the
   // chosen column is translated, and one Steve cannot sort by means "ask unsorted".
   const field = fixedSort ? null : steveSortField(store.getters, resource, sortBy);
-  const sort = fixedSort || (field ? [{ field, asc: sortDir !== 'desc' }] : []);
+  const sort: SteveSort[] = fixedSort || (field ? [{ field, asc: sortDir !== 'desc' }] : []);
   const res = await store.dispatch('management/findPage', {
     type: resource,
     opt:  {
@@ -572,7 +597,7 @@ export async function fetchClusterPage(store, {
 // Nothing is loaded, and two widgets can show two clusters side by side.
 
 /** The management cluster behind a cluster id: name, state, provider, version, capacity. */
-export function fetchManagementCluster(store, cluster) {
+export function fetchManagementCluster<T = ResourceRow>(store: Store<unknown>, cluster: string): Promise<T> {
   return store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: cluster });
 }
 
@@ -580,13 +605,13 @@ export function fetchManagementCluster(store, cluster) {
 // request answers both: an answer is kept for a few seconds, and a request still in flight is
 // shared rather than repeated. Short on purpose - this is de-duplication, not a cache to go stale.
 const SHARED_MS = 5000;
-const shared = new Map();
+const shared = new Map<string, { at: number; promise: Promise<unknown> }>();
 
-function once(key, load) {
+function once<T>(key: string, load: () => Promise<T>): Promise<T> {
   const hit = shared.get(key);
 
   if (hit && Date.now() - hit.at < SHARED_MS) {
-    return hit.promise;
+    return hit.promise as Promise<T>;
   }
 
   const promise = load().catch((e) => {
@@ -599,12 +624,15 @@ function once(key, load) {
   return promise;
 }
 
-function clusterUrl(cluster, path) {
+function clusterUrl(cluster: string, path: string): string {
   return `/k8s/clusters/${ encodeURIComponent(cluster) }/v1/${ path }`;
 }
 
 /** Every type's count in one cluster, as Steve summarises them - `{ <type>: { summary } }`. */
-export function fetchClusterCounts(store, cluster) {
+/** A cluster's counts: `{ <type>: { summary: { count, states } } }`, as Steve returns them. */
+export type ClusterCounts = Record<string, { summary?: { count?: number; states?: Record<string, number> } }>;
+
+export function fetchClusterCounts(store: Store<unknown>, cluster: string): Promise<ClusterCounts> {
   return once(`counts|${ cluster }`, async() => {
     const res = await store.dispatch('management/request', { url: clusterUrl(cluster, 'counts') });
 
@@ -619,15 +647,23 @@ export function fetchClusterCounts(store, cluster) {
  * `cluster` store's - which only ever holds the current cluster's. Built from the two helpers it is
  * built from, so a state means the same colour here as there.
  */
-export function summarizeCounts(counts, resource) {
+/** One ResourceSummary card's numbers. */
+export interface CountSummary {
+  total: number;
+  useful: number;
+  warningCount: number;
+  errorCount: number;
+}
+
+export function summarizeCounts(counts: ClusterCounts | null | undefined, resource: string): CountSummary {
   const summary = counts?.[resource]?.summary || {};
-  const out = {
+  const out: CountSummary = {
     total: summary.count || 0, useful: summary.count || 0, warningCount: 0, errorCount: 0
   };
 
   Object.entries(summary.states || {}).forEach(([state, count]) => {
     out.useful -= count;
-    out[colorToCountName(colorForState(state))] += count;
+    out[colorToCountName(colorForState(state)) as keyof CountSummary] += count;
   });
 
   return out;
@@ -641,15 +677,15 @@ export function summarizeCounts(counts, resource) {
  * page's total. The page then keeps only types the loaded cluster has a schema for; a cluster that
  * is not loaded has no schemas here, and its counts are already limited to what the user can list.
  */
-export function totalCounts(getters, counts) {
+export function totalCounts(getters: Getters, counts: ClusterCounts): CountSummary {
   const present = Object.keys(counts || {});
   const picked = present.filter((id) => getters['type-map/isIgnored']({ id }));
   const types = [...new Set([...picked, ...DASHBOARD_RESOURCES])].filter((id) => present.includes(id));
 
-  return types.reduce((acc, id) => {
+  return types.reduce<CountSummary>((acc, id) => {
     const one = summarizeCounts(counts, id);
 
-    Object.keys(acc).forEach((k) => {
+    (Object.keys(acc) as (keyof CountSummary)[]).forEach((k) => {
       acc[k] += one[k];
     });
 
@@ -673,8 +709,33 @@ export function totalCounts(getters, counts) {
  *
  * Returns { pods, cores, memory, cpuUsed, ramUsed }; the last two are null without metrics.
  */
-export async function fetchClusterCapacity(store, cluster) {
-  const req = (url) => store.dispatch('management/request', { url });
+/** One HardwareResourceGauge's numbers. */
+export interface Gauge {
+  total: number;
+  useful: number;
+  units?: string;
+}
+
+export interface ClusterCapacity {
+  /** False when the cluster reports nothing to allocate - the dashboard hides the section then. */
+  hasStats: boolean;
+  pods: Gauge;
+  cores: Gauge;
+  memory: Gauge;
+  /** Live usage; null without a metrics server. */
+  cpuUsed: Gauge | null;
+  ramUsed: Gauge | null;
+}
+
+/** A node, as much of it as the capacity arithmetic reads. */
+interface RawNode {
+  metadata?: { name?: string; labels?: Record<string, string>; annotations?: Record<string, string> };
+  spec?: { unschedulable?: boolean };
+  status?: { allocatable?: Record<string, string>; capacity?: Record<string, string> };
+}
+
+export async function fetchClusterCapacity(store: Store<unknown>, cluster: string): Promise<ClusterCapacity> {
+  const req = (url: string) => store.dispatch('management/request', { url });
   const [mgmtCluster, nodesRes, mgmtNodesRes, metricsRes] = await Promise.all([
     fetchManagementCluster(store, cluster),
     req(clusterUrl(cluster, `${ NODE }?pagesize=100000`)),
@@ -683,13 +744,17 @@ export async function fetchClusterCapacity(store, cluster) {
     req(clusterUrl(cluster, `${ METRIC.NODE }?pagesize=100000`)).catch(() => null),
   ]);
 
-  const nodes = nodesRes?.data || [];
-  const workerByName = Object.fromEntries((mgmtNodesRes?.data || []).map((m) => [m.status?.nodeName, !!m.spec?.worker]));
-  const isWorker = (n) => (n.metadata?.name in workerByName ? workerByName[n.metadata.name] : `${ n.metadata?.labels?.[NODE_ROLES.WORKER] }` === 'true');
+  const nodes: RawNode[] = nodesRes?.data || [];
+  const workerByName: Record<string, boolean> = Object.fromEntries((mgmtNodesRes?.data || []).map((m: { status?: { nodeName?: string }; spec?: { worker?: boolean } }) => [m.status?.nodeName, !!m.spec?.worker]));
+  const isWorker = (n: RawNode): boolean => {
+    const name = n.metadata?.name || '';
+
+    return name in workerByName ? workerByName[name] : `${ n.metadata?.labels?.[NODE_ROLES.WORKER] }` === 'true';
+  };
   const schedulable = nodes.filter((n) => !n.spec?.unschedulable);
   const workers = schedulable.filter(isWorker);
 
-  const requests = (n) => JSON.parse(n.metadata?.annotations?.['management.cattle.io/pod-requests'] || '{}');
+  const requests = (n: RawNode): Record<string, string> => JSON.parse(n.metadata?.annotations?.['management.cattle.io/pod-requests'] || '{}');
   const agg = workers.reduce((a, n) => {
     const alloc = n.status?.allocatable || {};
     const cap = n.status?.capacity || {};
@@ -709,7 +774,7 @@ export async function fetchClusterCapacity(store, cluster) {
     cpuAllocatable: 0, ramAllocatable: 0, cpuReserved: 0, ramReserved: 0, podReserved: 0, podCapacity: 0, systemReservedCpu: 0, systemReservedRam: 0
   });
 
-  const status = mgmtCluster?.status || {};
+  const status = (mgmtCluster?.status || {}) as { allocatable?: Record<string, string>; requested?: Record<string, string> };
   const byNodes = workers.length > 0;
 
   const pods = byNodes ? { total: agg.podCapacity, useful: agg.podReserved } : { total: parseSi(status.allocatable?.pods || '0'), useful: parseSi(status.requested?.pods || '0') };
@@ -718,9 +783,9 @@ export async function fetchClusterCapacity(store, cluster) {
 
   // Usage only over the nodes counted above - the workers, or every schedulable node without them.
   const counted = new Set((byNodes ? workers : schedulable).map((n) => n.metadata?.name));
-  const metrics = (metricsRes?.data || []).filter((m) => counted.has(m.metadata?.name));
-  let cpuUsed = null;
-  let ramUsed = null;
+  const metrics: { metadata?: { name?: string }; usage?: Record<string, string> }[] = (metricsRes?.data || []).filter((m: { metadata?: { name?: string } }) => counted.has(m.metadata?.name));
+  let cpuUsed: Gauge | null = null;
+  let ramUsed: Gauge | null = null;
 
   if (metrics.length) {
     const cpu = metrics.reduce((t, m) => t + parseSi(m.usage?.cpu || '0'), 0);
@@ -746,9 +811,9 @@ export async function fetchClusterCapacity(store, cluster) {
  * dashboard's own Certificates list does exactly this, and says why. `truncated` says when the cap
  * cut the list short, so the sort is never quietly over a sample.
  */
-export async function fetchClusterRows(store, {
+export async function fetchClusterRows<T = ResourceRow>(store: Store<unknown>, {
   resource, cluster, filters, cap = 500
-}) {
+}: { resource: string; cluster: string; filters?: PaginationParamFilter[]; cap?: number }): Promise<{ rows: T[]; truncated: boolean }> {
   const res = await store.dispatch('management/findPage', {
     type: resource,
     opt:  {
@@ -773,9 +838,9 @@ export async function fetchClusterRows(store, {
  * against the widget's cluster instead. `kind` + `apiVersion` become the type id the way the
  * shell's InvolvedObjectLink derives it.
  */
-export function objectRoute(cluster, {
+export function objectRoute(cluster: string, {
   kind, apiVersion, name, namespace
-} = {}) {
+}: { kind?: string; apiVersion?: string; name?: string; namespace?: string } = {}): RouteLocationRaw | null {
   if (!cluster || !kind || !name) {
     return null;
   }
