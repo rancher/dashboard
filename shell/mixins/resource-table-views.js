@@ -1,6 +1,6 @@
 import debounce from 'lodash/debounce';
 
-import { optionalHeadersFor } from '@shell/config/optional-table-headers';
+import { optionalHeadersFor } from '@shell/utils/table-views/optional-headers';
 import { AGE } from '@shell/config/table-headers';
 import { NotificationLevel } from '@shell/types/notifications';
 import { downloadFile } from '@shell/utils/download';
@@ -89,7 +89,9 @@ export default {
   data() {
     // A shared view can arrive in the url, eg ?view=<encoded>. Failing that the user may have
     // marked one of their saved views as the one this list opens on.
+    /** @type {{ views: import('@shell/types/table-views').TableViewSaved[], defaultViewId: string|null }} */
     const saved = this.$store.getters['prefs/get'](TABLE_VIEWS)?.[this.schema?.id];
+    /** @type {import('@shell/types/table-views').TableViewSaved|null} */
     const shared = decodeView(this.$route?.query?.view) ||
       (saved?.views || []).find((view) => view.id === saved?.defaultViewId) ||
       null;
@@ -104,6 +106,7 @@ export default {
       /** True while a round of counts is out, so triggers don't stack up on top of each other */
       countingInFlight: false,
 
+      /** The view the table is showing, of type @TableViewState */
       view: {
         query:          shared?.query || '',
         columns:        shared?.columns || null,
@@ -456,10 +459,29 @@ export default {
 
 
     /**
-     * Everything the user can filter on, group by, or add as a column
+     * The columns of this type as the pagination api defines them, or null when the list is not
+     * paginated.
+     *
+     * The page's own headers say how a column is drawn, which is not how it is searched: the
+     * unpaginated definitions carry `stateDisplay` and `nameDisplay`, paths the api has never
+     * heard of. These are what a field is filtered by - see `serverPathFor` - and their absence
+     * is what says a list cannot be filtered server side at all.
+     */
+    paginationHeaders() {
+      if (!this.externalPaginationEnabled || !this.schema) {
+        return null;
+      }
+
+      return this.$store.getters['type-map/headersFor'](this.schema, true)
+        .concat(optionalHeadersFor(this.schema.id, this.$store, true));
+    },
+
+
+    /**
+     * Everything the user can filter on, group by, or add as a column, of type @TableViewField
      */
     viewFields() {
-      return fieldsFor(this.availableHeaders, this.filteredRows, (key) => this.t(key));
+      return fieldsFor(this.availableHeaders, this.filteredRows, (key) => this.t(key), this.paginationHeaders);
     },
 
 
@@ -545,6 +567,7 @@ export default {
     },
 
 
+    /** The query as a flat list of terms, of type @TableViewTerm */
     viewTerms() {
       return parseQuery(this.settledQuery, this.viewFields);
     },

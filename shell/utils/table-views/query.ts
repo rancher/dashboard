@@ -9,7 +9,7 @@
 
 import { LABEL_FIELD_PREFIX, findField } from '@shell/utils/table-views/fields';
 import type {
-  QueryProblem, QueryProblemKind, QuerySegment, QueryTerm, QueryToken, ViewClause, ViewField, ViewGroup, ViewQuery, ViewTerm
+  TableViewQueryProblem, TableViewQueryProblemKind, TableViewQuerySegment, TableViewQueryTerm, TableViewQueryToken, TableViewClause, TableViewField, TableViewGroup, TableViewQuery, TableViewTerm
 } from '@shell/types/table-views';
 
 /**
@@ -27,23 +27,23 @@ export const CONNECTIVES = ['and', 'or'];
 export const NEGATORS = ['not'];
 
 function isConnective(text: string): boolean {
-  return CONNECTIVES.includes((text || '').toLowerCase());
+  return !!text && CONNECTIVES.includes(text.toLowerCase());
 }
 
 export function isNegator(text: string): boolean {
-  return NEGATORS.includes((text || '').toLowerCase());
+  return !!text && NEGATORS.includes(text.toLowerCase());
 }
 
 function isOr(text: string): boolean {
-  return (text || '').toLowerCase() === 'or';
+  return !!text && text.toLowerCase() === 'or';
 }
 
 /**
  * Split a query into tokens, keeping quoted values (`app:"my app"`) together and
  * recording where each token sits so the autocomplete can replace the one being typed.
  */
-export function tokenize(query: string): QueryToken[] {
-  const out: QueryToken[] = [];
+export function tokenize(query: string): TableViewQueryToken[] {
+  const out: TableViewQueryToken[] = [];
   const str = query || '';
   let i = 0;
 
@@ -103,7 +103,7 @@ export function quoteIfNeeded(value: string): string {
  * A label field's own id contains a colon (`label:app`), so where an ordinary field ends at the
  * first colon a label one ends at the last.
  */
-function fieldAt(text: string, fields: ViewField[]): ViewField | null {
+function fieldAt(text: string, fields: TableViewField[]): TableViewField | null {
   const idx = text.indexOf(':');
 
   if (idx <= 0) {
@@ -131,9 +131,9 @@ function fieldAt(text: string, fields: ViewField[]): ViewField | null {
  * space always ends the term, and `state: active` is the field with nothing in it followed by
  * the free text `active`.
  */
-export function scanQuery(query: string, fields: ViewField[]): QueryTerm[] {
+export function scanQuery(query: string, fields: TableViewField[]): TableViewQueryTerm[] {
   const raw = tokenize(query || '');
-  const out: QueryTerm[] = [];
+  const out: TableViewQueryTerm[] = [];
   // Set by a `not` standing on its own, and spent on the term that follows it
   let pendingNot = false;
 
@@ -206,11 +206,11 @@ export function scanQuery(query: string, fields: ViewField[]): QueryTerm[] {
  */
 export function highlightQuery(
   query: string,
-  fields: ViewField[],
+  fields: TableViewField[],
   isKnownValue?: (fieldId: string, value: string) => boolean
-): QuerySegment[] {
+): TableViewQuerySegment[] {
   const str = query || '';
-  const out: QuerySegment[] = [];
+  const out: TableViewQuerySegment[] = [];
   let at = 0;
 
   const plain = (end: number) => {
@@ -263,7 +263,7 @@ export function highlightQuery(
  * `field:value` only becomes a field term when the field actually exists on this table,
  * otherwise it stays free text (so searching for an image tag still works).
  */
-export function parseQuery(query: string, fields: ViewField[]): ViewTerm[] {
+export function parseQuery(query: string, fields: TableViewField[]): TableViewTerm[] {
   return scanQuery(query, fields)
     // The connectives are there to be read; the fields are what decide how terms combine
     .filter((token) => token.kind === 'term' && !!token.value)
@@ -275,9 +275,7 @@ export function parseQuery(query: string, fields: ViewField[]): ViewTerm[] {
 }
 
 /** `and` and `or` join two things. `not` does not, which is why it is allowed to lead. */
-function isJoiner(text: string): boolean {
-  return CONNECTIVES.includes((text || '').toLowerCase());
-}
+const isJoiner = isConnective;
 
 /** Does this run of text open a quote it never closes? Both marks, as the tokenizer reads both. */
 function hasUnbalancedQuote(text: string): boolean {
@@ -307,15 +305,15 @@ function hasUnbalancedQuote(text: string): boolean {
  * Nothing here stops a query running. The table filters by as much of it as it can and this says
  * what it could not use.
  */
-export function validateQuery(query: string, fields: ViewField[]): QueryProblem[] {
+export function validateQuery(query: string, fields: TableViewField[]): TableViewQueryProblem[] {
   const tokens = scanQuery(query || '', fields);
-  const problems: QueryProblem[] = [];
+  const problems: TableViewQueryProblem[] = [];
 
   if (!tokens.length) {
     return problems;
   }
 
-  const add = (kind: QueryProblemKind, token: QueryToken, label?: string) => {
+  const add = (kind: TableViewQueryProblemKind, token: TableViewQueryToken, label?: string) => {
     problems.push({
       kind, start: token.start, end: token.end, text: token.text, label
     });
@@ -374,10 +372,10 @@ export function validateQuery(query: string, fields: ViewField[]): QueryProblem[
  * A query with no joining words in it comes back as a single group, which is what every query
  * was treated as before - so nothing already saved changes meaning.
  */
-export function parseQueryExpression(query: string, fields: ViewField[]): ViewQuery {
-  const clauses: ViewClause[] = [];
-  let groups: ViewGroup[] = [];
-  let group: ViewGroup = [];
+export function parseQueryExpression(query: string, fields: TableViewField[]): TableViewQuery {
+  const clauses: TableViewClause[] = [];
+  let groups: TableViewGroup[] = [];
+  let group: TableViewGroup = [];
 
   const endGroup = () => {
     if (group.length) {
@@ -432,7 +430,7 @@ export function parseQueryExpression(query: string, fields: ViewField[]): ViewQu
 /**
  * Replace the token the caret is sitting in with `replacement`
  */
-export function replaceToken(query: string, token: QueryToken | null, replacement: string, caret?: number): string {
+export function replaceToken(query: string, token: TableViewQueryToken | null, replacement: string, caret?: number): string {
   if (token) {
     return `${ query.substring(0, token.start) }${ replacement }${ query.substring(token.end) }`;
   }
@@ -458,7 +456,7 @@ export function replaceToken(query: string, token: QueryToken | null, replacemen
  * Without `fields` this falls back to raw chunks, which is enough for callers that only need to
  * know where a word starts and ends.
  */
-export function tokenAt(query: string, caret: number, fields?: ViewField[]): QueryToken | null {
+export function tokenAt(query: string, caret: number, fields?: TableViewField[]): TableViewQueryToken | null {
   const tokens = fields ? scanQuery(query, fields).filter((token) => token.kind === 'term') : tokenize(query);
 
   return tokens.find((token) => caret >= token.start && caret <= token.end) || null;

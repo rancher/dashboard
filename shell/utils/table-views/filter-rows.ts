@@ -6,7 +6,7 @@
  */
 
 import { fieldValue, findField, rawFieldValue, stringifyValue } from '@shell/utils/table-views/fields';
-import type { ViewField, ViewGroup, ViewQuery, ViewTerm } from '@shell/types/table-views';
+import type { TableViewField, TableViewGroup, TableViewQuery, TableViewTerm } from '@shell/types/table-views';
 
 /**
  * Does this field on this row contain `needle`?
@@ -15,7 +15,7 @@ import type { ViewField, ViewGroup, ViewQuery, ViewTerm } from '@shell/types/tab
  * client-side and server-side: `state:active` has to match the row whose column reads "Active",
  * and someone typing what they can see, `state:Act`, has to match it too.
  */
-function fieldContains(row: any, field: ViewField, needle: string): boolean {
+function fieldContains(row: any, field: TableViewField, needle: string): boolean {
   if (stringifyValue(fieldValue(row, field)).toLowerCase().includes(needle)) {
     return true;
   }
@@ -23,7 +23,7 @@ function fieldContains(row: any, field: ViewField, needle: string): boolean {
   return stringifyValue(rawFieldValue(row, field)).toLowerCase().includes(needle);
 }
 
-function matchesTerm(row: any, term: ViewTerm, fields: ViewField[]): boolean {
+function matchesTerm(row: any, term: TableViewTerm, fields: TableViewField[]): boolean {
   const needle = term.value.toLowerCase();
 
   if (term.field) {
@@ -45,9 +45,9 @@ function matchesTerm(row: any, term: ViewTerm, fields: ViewField[]): boolean {
  * Terms for different fields are ANDed, repeated terms for the same field are ORed
  * (`state:error state:crash` = either).
  */
-function matchesGroup(row: any, terms: ViewGroup, fields: ViewField[]): boolean {
-  const positive: Record<string, ViewTerm[]> = {};
-  const negative: ViewTerm[] = [];
+function matchesGroup(row: any, terms: TableViewGroup, fields: TableViewField[]): boolean {
+  const positive: Record<string, TableViewTerm[]> = {};
+  const negative: TableViewTerm[] = [];
 
   terms.forEach((term) => {
     if (term.negated) {
@@ -79,7 +79,7 @@ function matchesGroup(row: any, terms: ViewGroup, fields: ViewField[]): boolean 
  * Apply a whole query: any clause matching keeps the row, and a clause matches when every one
  * of its groups does.
  */
-export function applyQueryExpression(rows: any[], query: ViewQuery, fields: ViewField[]): any[] {
+export function applyQueryExpression(rows: any[], query: TableViewQuery, fields: TableViewField[]): any[] {
   const clauses = query?.clauses || [];
 
   if (!clauses.length) {
@@ -92,7 +92,7 @@ export function applyQueryExpression(rows: any[], query: ViewQuery, fields: View
 /**
  * Apply a flat list of terms - a query with no joining words in it, which is one group.
  */
-export function applyQuery(rows: any[], terms: ViewTerm[], fields: ViewField[]): any[] {
+export function applyQuery(rows: any[], terms: TableViewTerm[], fields: TableViewField[]): any[] {
   if (!terms.length) {
     return rows;
   }

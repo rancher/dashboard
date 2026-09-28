@@ -7,7 +7,7 @@
 
 import jsyaml from 'js-yaml';
 import { fieldValue, headerFieldId, isIgnoredColumn, stringifyValue } from '@shell/utils/table-views/fields';
-import type { ExportColumn } from '@shell/types/table-views';
+import type { TableViewExportColumn } from '@shell/types/table-views';
 
 function csvCell(value: string): string {
   if (/["\n,]/.test(value)) {
@@ -24,7 +24,7 @@ function csvCell(value: string): string {
  * selection exported from a resource's own actions writes that resource's columns. Both come
  * through here, so neither can quietly grow a column set of its own.
  */
-export function exportColumnsFor(headers: any[], t: (key: string) => string): ExportColumn[] {
+export function exportColumnsFor(headers: any[], t: (key: string) => string): TableViewExportColumn[] {
   return (headers || [])
     .filter((header) => !isIgnoredColumn(header) && (header.label || header.labelKey))
     .map((header) => {
@@ -39,7 +39,7 @@ export function exportColumnsFor(headers: any[], t: (key: string) => string): Ex
     });
 }
 
-export function rowsToCsv(rows: any[], columns: ExportColumn[]): string {
+export function rowsToCsv(rows: any[], columns: TableViewExportColumn[]): string {
   const lines = [columns.map((c) => csvCell(c.label)).join(',')];
 
   rows.forEach((row) => {
@@ -53,7 +53,7 @@ export function rowsToCsv(rows: any[], columns: ExportColumn[]): string {
  * The rows as plain records, one per row, keyed by the column headings on screen. What every
  * export format is built from.
  */
-function rowsToRecords(rows: any[], columns: ExportColumn[]): Record<string, string>[] {
+function rowsToRecords(rows: any[], columns: TableViewExportColumn[]): Record<string, string>[] {
   return rows.map((row) => columns.reduce((acc: Record<string, string>, c) => {
     acc[c.label] = stringifyValue(fieldValue(row, c.field));
 
@@ -61,10 +61,10 @@ function rowsToRecords(rows: any[], columns: ExportColumn[]): Record<string, str
   }, {}));
 }
 
-export function rowsToYaml(rows: any[], columns: ExportColumn[]): string {
+export function rowsToYaml(rows: any[], columns: TableViewExportColumn[]): string {
   return jsyaml.dump(rowsToRecords(rows, columns));
 }
 
-export function rowsToJson(rows: any[], columns: ExportColumn[]): string {
+export function rowsToJson(rows: any[], columns: TableViewExportColumn[]): string {
   return JSON.stringify(rowsToRecords(rows, columns), null, 2);
 }

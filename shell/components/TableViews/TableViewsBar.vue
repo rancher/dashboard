@@ -20,7 +20,7 @@ import { isMac, shortcutLabel } from '@shell/utils/platform';
 import { randomStr } from '@shell/utils/string';
 import { validateQuery } from '@shell/utils/table-views/query';
 import { isViewDirty, moveInOrder, selectedViewIdFor } from '@shell/utils/table-views/views';
-import type { SavedView, ViewField, ViewState } from '@shell/types/table-views';
+import type { TableViewSaved, TableViewField, TableViewState } from '@shell/types/table-views';
 import { RcDropdown, RcDropdownItem, RcDropdownSeparator, RcDropdownTrigger } from '@components/RcDropdown';
 
 /** How far the pointer travels with a row held before it counts as a drag rather than a click */
@@ -85,7 +85,7 @@ const MENU_GUTTER = 16;
 interface Tab {
   id: string | null;
   name: string;
-  view?: SavedView;
+  view?: TableViewSaved;
   isDefaultTab?: boolean;
 }
 
@@ -98,7 +98,7 @@ const props = withDefaults(defineProps<{
   /**
    * { query, columns, labelColumns, groupBy }
    */
-  view: ViewState,
+  view: TableViewState,
   /** Field ids this table will not let go of, so the menu can show them locked */
   coreColumns?: string[],
   /**
@@ -114,18 +114,18 @@ const props = withDefaults(defineProps<{
    */
   unsupportedFields?: string[],
   /** Everything filterable/groupable on this table */
-  fields?: ViewField[],
+  fields?: TableViewField[],
   /**
    * Fields offered in the group by menu. Grouping is a sort, so this can be narrower than
    * `fields` - server side only indexed fields can be grouped on. Defaults to all fields.
    */
-  groupFields?: ViewField[] | null,
+  groupFields?: TableViewField[] | null,
   /**
    * Fields offered as filter suggestions. Narrower than `fields` for the same reason
    * `groupFields` is - server side only indexed fields can be filtered on. Defaults to all
    * fields.
    */
-  filterFields?: ViewField[] | null,
+  filterFields?: TableViewField[] | null,
   /**
    * fieldId -> values in use, fetched from the api. Falls back to scanning `rows` when a field
    * has nothing here yet.
@@ -171,7 +171,7 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
-  'update:view': [view: ViewState],
+  'update:view': [view: TableViewState],
   export: [args: { format: string, name: string }],
   'request-values': [fieldId: string],
   'tab-queries': [queries: string[]],
@@ -229,9 +229,9 @@ const pickedViewId = ref<string | null | undefined>(undefined);
  * holds on to them so coming back finds them where they were, and the tab keeps its mark
  * while you are elsewhere. A reload is where they end - nothing here is written down.
  */
-const drafts = ref<Record<string, ViewState>>({});
+const drafts = ref<Record<string, TableViewState>>({});
 /** Which modal is open, if any: { kind: 'export', view } */
-const modal = ref<{ kind: string, view: SavedView | null } | null>(null);
+const modal = ref<{ kind: string, view: TableViewSaved | null } | null>(null);
 /**
  * Which sub menu of the View menu is open - 'group', 'columns', or null. A menu item has
  * no trigger of its own, so the row that opens one says so here and the menu takes its
@@ -340,7 +340,7 @@ const queryStatusMessage = computed(() => {
  */
 const queryStatus = computed(() => (shownProblems.value.length ? 'error' : 'info'));
 
-const savedViews = computed<SavedView[]>(() => allSavedViews.value?.[props.resourceType]?.views || allSavedViews.value?.[props.resourceType] || []);
+const savedViews = computed<TableViewSaved[]>(() => allSavedViews.value?.[props.resourceType]?.views || allSavedViews.value?.[props.resourceType] || []);
 
 /**
  * The view applied when the list is first opened, if the user has set one
@@ -441,7 +441,7 @@ const orderedColumnFields = computed(() => {
     return columnFields.value;
   }
 
-  const byId: Record<string, ViewField> = {};
+  const byId: Record<string, TableViewField> = {};
 
   columnFields.value.forEach((f) => {
     byId[f.id] = f;
@@ -452,7 +452,7 @@ const orderedColumnFields = computed(() => {
   return out.concat(columnFields.value.filter((f) => !order.includes(f.id)));
 });
 
-const isColumnVisible = (field: ViewField) => {
+const isColumnVisible = (field: TableViewField) => {
   if (props.view.columns) {
     return props.view.columns.includes(field.id);
   }
@@ -566,11 +566,11 @@ const isTabDirty = (tab: Tab) => {
   return !!drafts.value[draftKey(tab.id)];
 };
 
-const update = (changes: Partial<ViewState>) => emit('update:view', { ...props.view, ...changes });
+const update = (changes: Partial<TableViewState>) => emit('update:view', { ...props.view, ...changes });
 
-const isCoreColumn = (field: ViewField) => !!field?.id && props.coreColumns.includes(field.id);
+const isCoreColumn = (field: TableViewField) => !!field?.id && props.coreColumns.includes(field.id);
 
-const toggleColumn = (field: ViewField) => {
+const toggleColumn = (field: TableViewField) => {
   // Core columns (name, age) can't be hidden - the table depends on them
   if (isCoreColumn(field)) {
     return;
@@ -952,7 +952,7 @@ const onTabDragMove = (event: MouseEvent) => {
   placeDraggedTab();
 };
 
-const persistAll = (views: SavedView[], viewId: string | null, allIndex: number = allTabIndex.value) => {
+const persistAll = (views: TableViewSaved[], viewId: string | null, allIndex: number = allTabIndex.value) => {
   // A view that no longer exists can't be the default one
   const validDefault = views.find((v) => v.id === viewId) ? viewId : null;
 
@@ -966,7 +966,7 @@ const persistAll = (views: SavedView[], viewId: string | null, allIndex: number 
   };
 };
 
-const persist = (views: SavedView[]) => persistAll(views, defaultViewId.value);
+const persist = (views: TableViewSaved[]) => persistAll(views, defaultViewId.value);
 
 const endTabDrag = (commit: boolean) => {
   window.removeEventListener('mousemove', onTabDragMove, true);
@@ -993,7 +993,7 @@ const endTabDrag = (commit: boolean) => {
   tabDragStartOrder.value = null;
 
   if (commit && moved && order) {
-    const byId: Record<string, SavedView> = {};
+    const byId: Record<string, TableViewSaved> = {};
 
     savedViews.value.forEach((view) => {
       byId[view.id] = view;
@@ -1096,7 +1096,7 @@ const rememberDraft = (id: string | null | undefined) => {
  * @param useDraft whether unsaved edits left on that tab should come back with it. Off for
  *        the paths whose whole purpose is to put a tab back the way it was saved.
  */
-const applyView = (saved: SavedView | null, useDraft = true) => {
+const applyView = (saved: TableViewSaved | null, useDraft = true) => {
   const from = selectedViewId.value;
   const to = saved?.id || null;
   const moving = from !== to;
@@ -1239,7 +1239,7 @@ const duplicateView = (saved: any) => {
   nextTick(() => openRename(copy));
 };
 
-const updateView = (saved: SavedView) => persist(savedViews.value.map((v) => (v.id === saved.id ? { ...v, ...viewToSave.value } : v)));
+const updateView = (saved: TableViewSaved) => persist(savedViews.value.map((v) => (v.id === saved.id ? { ...v, ...viewToSave.value } : v)));
 
 /**
  * Keep the changes on the tab as a view of their own.
@@ -1283,7 +1283,7 @@ const addView = () => {
     columnOrder:  null,
     labelColumns: [],
     groupBy:      null,
-  } as unknown as SavedView;
+  } as unknown as TableViewSaved;
 
   persist(savedViews.value.concat([view]));
   applyView(view);
@@ -1480,7 +1480,7 @@ const cancelRename = () => {
  * Export needs a format, which is more than belongs in a menu - ask in a modal.
  * `view` is only used to label it, the rows exported are whatever the view matches.
  */
-const openExport = (saved?: SavedView | null) => {
+const openExport = (saved?: TableViewSaved | null) => {
   modal.value = { kind: 'export', view: saved || null };
 };
 
@@ -1554,7 +1554,7 @@ const isDefaultTab = (tab: Tab) => (tab.isDefaultTab ? !defaultViewId.value : de
  * the one the list opens on, and any unsaved edits being held for it. Undo that put the view
  * back on the end, unmarked, with its edits dropped would be a different view wearing its name.
  */
-const deleteView = (saved?: SavedView) => {
+const deleteView = (saved?: TableViewSaved) => {
   if (!saved) {
     return;
   }

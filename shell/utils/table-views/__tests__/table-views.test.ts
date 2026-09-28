@@ -21,6 +21,26 @@ const HEADERS = [
   { name: 'spacer', label: ' ' },
 ];
 
+/**
+ * The same columns as a server side paginated list defines them.
+ *
+ * Note `state`: the list above draws it from `stateDisplay` ("Running"), while the api filters
+ * `metadata.state.name` ("running"). Only these definitions can be asked of the api, which is
+ * why a field carries both and `serverPathFor` reads this one.
+ */
+const PAGINATION_HEADERS = [
+  {
+    name: 'name', label: 'Name', value: 'metadata.name', search: 'metadata.name'
+  },
+  {
+    name: 'namespace', label: 'Namespace', value: 'metadata.namespace', search: 'metadata.namespace'
+  },
+  {
+    name: 'state', label: 'State', value: 'stateDisplay', search: 'metadata.state.name'
+  },
+  { name: 'spacer', label: ' ' },
+];
+
 const ROWS = [
   {
     stateDisplay: 'Running',
@@ -245,44 +265,53 @@ describe('serverPathFor', () => {
     })).toStrictEqual('metadata.labels[app]');
   });
 
-  it('prefers the header search path', () => {
+  it('uses the search path the pagination api definition names', () => {
     expect(serverPathFor({
-      id: 'name', label: 'Name', isLabel: false, header: { search: 'metadata.name', sort: 'nameSort' }
+      id:               'name',
+      label:            'Name',
+      isLabel:          false,
+      header:           { value: 'nameDisplay', sort: 'nameSort' },
+      paginationHeader: { search: 'metadata.name', sort: 'metadata.name' },
     })).toStrictEqual('metadata.name');
   });
 
-  it('drops a direction suffix when falling back to sort', () => {
+  it('has no path when the list is not paginated', () => {
+    // No pagination definition is the list saying it cannot be filtered server side at all
     expect(serverPathFor({
-      id: 'age', label: 'Age', isLabel: false, header: { sort: 'metadata.creationTimestamp:desc' }
-    })).toStrictEqual('metadata.creationTimestamp');
-  });
-
-  it('has no path for a field whose header offers none', () => {
-    expect(serverPathFor({
-      id: 'restarts', label: 'Restarts', isLabel: false, header: { name: 'restarts' }
+      id: 'name', label: 'Name', isLabel: false, header: { search: 'metadata.name' }
     })).toBeNull();
   });
 
-  it('has no path for a column drawn entirely by a formatter', () => {
-    // The cluster list's CPU column is written this way - nothing to read, the formatter works
-    // it out from the row - and an empty string is not a path the api can be asked about
+  it('ignores the display definition even when it names a search', () => {
+    // The two can disagree, and only the pagination one is what the api answers to
     expect(serverPathFor({
-      id:      'cpu',
-      label:   'CPU',
-      isLabel: false,
-      header:  {
-        name: 'cpu', value: '', sort: false
-      }
+      id:               'state',
+      label:            'State',
+      isLabel:          false,
+      header:           { search: 'stateDisplay' },
+      paginationHeader: { value: 'stateDisplay' },
+    })).toBeNull();
+  });
+
+  it('has no path for a column the pagination api does not say how to search', () => {
+    // `value` and `sort` are for drawing and ordering; neither is a filterable path
+    expect(serverPathFor({
+      id:               'age',
+      label:            'Age',
+      isLabel:          false,
+      paginationHeader: {
+        value: 'metadata.creationTimestamp', sort: 'metadata.creationTimestamp:desc', search: false
+      },
     })).toBeNull();
   });
 
   it('keeps only the paths a search list actually names', () => {
     expect(serverPathFor({
-      id: 'name', label: 'Name', isLabel: false, header: { search: ['', 'spec.displayName'] }
+      id: 'name', label: 'Name', isLabel: false, paginationHeader: { search: ['', 'spec.displayName'] }
     })).toStrictEqual(['spec.displayName']);
 
     expect(serverPathFor({
-      id: 'cpu', label: 'CPU', isLabel: false, header: { search: [''] }
+      id: 'cpu', label: 'CPU', isLabel: false, paginationHeader: { search: [''] }
     })).toBeNull();
   });
 });
@@ -320,10 +349,10 @@ describe('summaryToValues', () => {
 describe('fx: termsToServerFilters', () => {
   const FIELDS = [
     {
-      id: 'name', label: 'Name', isLabel: false, header: { search: 'metadata.name' }
+      id: 'name', label: 'Name', isLabel: false, paginationHeader: { search: 'metadata.name' }
     },
     {
-      id: 'namespace', label: 'Namespace', isLabel: false, header: { search: 'metadata.namespace' }
+      id: 'namespace', label: 'Namespace', isLabel: false, paginationHeader: { search: 'metadata.namespace' }
     },
     {
       id: 'label:app', label: 'app', isLabel: true, labelKey: 'app'
@@ -444,7 +473,8 @@ describe('fx: applyQueryExpression', () => {
 });
 
 describe('fx: queryToServerFilters', () => {
-  const fields = fieldsFor(HEADERS, ROWS);
+  // Server filters only exist for a paginated list, so the fields carry the pagination headers
+  const fields = fieldsFor(HEADERS, ROWS, undefined, PAGINATION_HEADERS);
   const isAllowed = () => true;
   const build = (query: string) => queryToServerFilters(parseQueryExpression(query, fields), fields, { isAllowed });
 

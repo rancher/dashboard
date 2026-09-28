@@ -12,7 +12,7 @@ import {
   PaginationFilterEquality,
 } from '@shell/types/store/pagination.types';
 import { findField, serverPathFor } from '@shell/utils/table-views/fields';
-import type { ServerFilterResult, ViewField, ViewQuery, ViewTerm } from '@shell/types/table-views';
+import type { TableViewServerFilterResult, TableViewField, TableViewQuery, TableViewTerm } from '@shell/types/table-views';
 
 /** Values with these chars break the `filter=field IN (a,b)` serializer (verbatim insert) */
 function breaksInSerializer(value: string): boolean {
@@ -32,12 +32,12 @@ function breaksInSerializer(value: string): boolean {
  * `unsupported` and are NOT applied - they are dropped server-side for v1.
  */
 export function termsToServerFilters(
-  terms: ViewTerm[],
-  fields: ViewField[],
+  terms: TableViewTerm[],
+  fields: TableViewField[],
   opts: { isAllowed: (path: string) => boolean }
-): ServerFilterResult {
+): TableViewServerFilterResult {
   const filters: PaginationParamFilter[] = [];
-  const unsupported: ViewTerm[] = [];
+  const unsupported: TableViewTerm[] = [];
 
   if (!terms || !terms.length) {
     return { filters, unsupported };
@@ -94,9 +94,9 @@ export function termsToServerFilters(
   });
 
   // Group by field id + negation (like applyQuery, but positive/negative kept per field)
-  const groups: Record<string, ViewTerm[]> = {};
+  const groups: Record<string, TableViewTerm[]> = {};
   const order: string[] = [];
-  const freeText: ViewTerm[] = [];
+  const freeText: TableViewTerm[] = [];
 
   terms.forEach((term) => {
     if (term.field === null || term.field === undefined) {
@@ -236,8 +236,8 @@ export function termsToServerFilters(
 const MAX_OR_FILTERS = 16;
 
 /** Every term in a query, whichever clause or group it sits in */
-function allTerms(query: ViewQuery): ViewTerm[] {
-  return (query?.clauses || []).reduce((acc: ViewTerm[], clause) => acc.concat(...clause.groups), []);
+function allTerms(query: TableViewQuery): TableViewTerm[] {
+  return (query?.clauses || []).reduce((acc: TableViewTerm[], clause) => acc.concat(...clause.groups), []);
 }
 
 /**
@@ -253,17 +253,17 @@ function allTerms(query: ViewQuery): ViewTerm[] {
  * half of it.
  */
 export function queryToServerFilters(
-  query: ViewQuery,
-  fields: ViewField[],
+  query: TableViewQuery,
+  fields: TableViewField[],
   opts: { isAllowed: (path: string) => boolean }
-): ServerFilterResult {
+): TableViewServerFilterResult {
   const clauses = query?.clauses || [];
 
   if (!clauses.length) {
     return { filters: [], unsupported: [] };
   }
 
-  const unsupported: ViewTerm[] = [];
+  const unsupported: TableViewTerm[] = [];
   // `and` between groups is just another param, so a clause is the concatenation of its groups
   const perClause = clauses.map((clause) => {
     const filters: PaginationParamFilter[] = [];

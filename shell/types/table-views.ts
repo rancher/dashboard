@@ -10,7 +10,7 @@ import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 /**
  * A thing the user can filter on, group by, or show as a column
  */
-export interface ViewField {
+export interface TableViewField {
   /** Token used in the query string, eg `namespace` or `label:app` */
   id: string;
   /** Human readable name shown in the autocomplete/menus */
@@ -20,9 +20,18 @@ export interface ViewField {
   labelKey?: string;
   /** The table header this field came from, if any */
   header?: any;
+  /**
+   * The same column as a server side paginated list defines it, when the list is paginated.
+   *
+   * It is the only header that can be trusted to say how the api searches a column: the
+   * unpaginated definitions carry display values (`stateDisplay`, `nameDisplay`) that the api
+   * has never heard of. Absent when the list is not paginated, which is also the answer to
+   * whether the field can be filtered server side at all.
+   */
+  paginationHeader?: any;
 }
 
-export interface ViewTerm {
+export interface TableViewTerm {
   /** Field id, or null for free text that searches every field */
   field: string | null;
   value: string;
@@ -36,11 +45,11 @@ export interface ViewTerm {
  * for different fields mean both - so a view saved before `and` and `or` meant anything still
  * filters exactly as it did.
  */
-export type ViewGroup = ViewTerm[];
+export type TableViewGroup = TableViewTerm[];
 
 /** Groups joined by `and`: every one of them has to match */
-export interface ViewClause {
-  groups: ViewGroup[];
+export interface TableViewClause {
+  groups: TableViewGroup[];
 }
 
 /**
@@ -49,11 +58,11 @@ export interface ViewClause {
  * `and` binds tighter than `or`, the way it does everywhere else, so `a or b and c` reads as
  * `a or (b and c)`.
  */
-export interface ViewQuery {
-  clauses: ViewClause[];
+export interface TableViewQuery {
+  clauses: TableViewClause[];
 }
 
-export interface SavedView {
+export interface TableViewSaved {
   id: string;
   name: string;
   query: string;
@@ -72,7 +81,7 @@ export interface SavedView {
 }
 
 /** The state a table's toolbar edits and the table applies - a saved view without its identity */
-export type ViewState = Omit<SavedView, 'id' | 'name'>;
+export type TableViewState = Omit<TableViewSaved, 'id' | 'name'>;
 
 /**
  * One of a table's bulk actions, as the table hands them out.
@@ -80,7 +89,7 @@ export type ViewState = Omit<SavedView, 'id' | 'name'>;
  * `icon` is a font class and `svg` a file an extension supplied; a given action has one or the
  * other. `enabled` is false when the action exists but cannot be run on what is selected.
  */
-export interface TableAction {
+export interface TableViewAction {
   action: string;
   label?: string;
   icon?: string;
@@ -88,7 +97,7 @@ export interface TableAction {
   enabled?: boolean;
 }
 
-export interface QueryToken {
+export interface TableViewQueryToken {
   start: number;
   end: number;
   text: string;
@@ -101,7 +110,7 @@ export interface QueryToken {
  * this exists rather than the raw {@link tokenize} output - the autocomplete has to replace the
  * whole of it, and the highlighter has to colour each part of it.
  */
-export interface QueryTerm extends QueryToken {
+export interface TableViewQueryTerm extends TableViewQueryToken {
   kind: 'term' | 'connective';
   /** The `-` or `!` written at the front of this token, if any. Empty for a spelled out `not`,
    * which is a token of its own - so this stays the count of characters to skip, and `negated`
@@ -110,7 +119,7 @@ export interface QueryTerm extends QueryToken {
   /** Is this term negated, by either form? */
   negated: boolean;
   /** The field the term resolved to, or null for free text */
-  field: ViewField | null;
+  field: TableViewField | null;
   /** The field as typed, without the colon */
   fieldText: string;
   /** The value as typed, unquoted */
@@ -123,20 +132,20 @@ export interface QueryTerm extends QueryToken {
  * `value` is a value the field actually has; `value-unknown` is one it does not - typed by hand,
  * or half typed. Only the first is worth dressing up as a badge.
  */
-export type QuerySegmentKind = 'field' | 'value' | 'value-unknown' | 'connective' | 'text' | 'plain';
+export type TableViewQuerySegmentKind = 'field' | 'value' | 'value-unknown' | 'connective' | 'text' | 'plain';
 
-export interface QuerySegment {
+export interface TableViewQuerySegment {
   text: string;
-  kind: QuerySegmentKind;
+  kind: TableViewQuerySegmentKind;
 }
 
 /** Something in the query that stops it meaning what it says */
-export type QueryProblemKind =
+export type TableViewQueryProblemKind =
   'emptyValue' | 'trailingOperator' | 'leadingJoiner' | 'consecutiveOperators' |
   'danglingNegation' | 'unbalancedQuote' | 'noTerms';
 
-export interface QueryProblem {
-  kind: QueryProblemKind;
+export interface TableViewQueryProblem {
+  kind: TableViewQueryProblemKind;
   /** Where the offending text sits, so the box can mark it as well as describe it */
   start: number;
   end: number;
@@ -145,12 +154,12 @@ export interface QueryProblem {
   label?: string;
 }
 
-export interface ServerFilterResult {
+export interface TableViewServerFilterResult {
   filters: PaginationParamFilter[];
-  unsupported: ViewTerm[];
+  unsupported: TableViewTerm[];
 }
 
-export interface ValueSuggestion {
+export interface TableViewValueSuggestion {
   value: string;
   count: number;
 }
@@ -162,7 +171,7 @@ export interface ValueSuggestion {
  * exist in the data" autocomplete.
  */
 
-export interface ExportColumn {
+export interface TableViewExportColumn {
   label: string;
-  field: ViewField;
+  field: TableViewField;
 }

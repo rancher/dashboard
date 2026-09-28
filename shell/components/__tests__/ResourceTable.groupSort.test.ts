@@ -33,7 +33,15 @@ describe('ResourceTable', () => {
     });
 
     it('should return the server path of the field the toolbar groups by', () => {
-      const ctx = createContext({ viewGroupField: { id: 'state', header: { name: 'state' } } });
+      // The path comes from the column as the pagination api defines it. The display definition
+      // beside it says `stateDisplay`, which is the whole reason the other one is consulted
+      const ctx = createContext({
+        viewGroupField: {
+          id:               'state',
+          header:           { name: 'state', value: 'stateDisplay' },
+          paginationHeader: { name: 'state', search: 'metadata.state.name' },
+        }
+      });
 
       expect(viewGroupSort.call(ctx)).toBe('metadata.state.name');
     });
@@ -50,7 +58,21 @@ describe('ResourceTable', () => {
 
     it('should fall back to the groupSort prop when the grouped field has no single server path', () => {
       const ctx = createContext({
-        viewGroupField: { id: 'restarts', header: { name: 'restarts', search: ['a', 'b'] } },
+        viewGroupField: {
+          id:               'restarts',
+          header:           { name: 'restarts' },
+          paginationHeader: { name: 'restarts', search: ['a', 'b'] },
+        },
+        groupSort: 'metadata.namespace',
+      });
+
+      expect(viewGroupSort.call(ctx)).toBe('metadata.namespace');
+    });
+
+    it('should fall back to the groupSort prop when the list is not paginated', () => {
+      // No pagination definition, so nothing can be asked of the api for this column
+      const ctx = createContext({
+        viewGroupField: { id: 'state', header: { name: 'state', value: 'stateDisplay' } },
         groupSort:      'metadata.namespace',
       });
 

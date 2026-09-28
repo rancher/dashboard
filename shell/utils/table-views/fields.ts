@@ -6,8 +6,10 @@
  * including the value the server would filter on, which is not always the one the column shows.
  */
 
+import { NAME, STATE } from '@shell/config/table-headers';
 import { get } from '@shell/utils/object';
-import type { ValueSuggestion, ViewField } from '@shell/types/table-views';
+import { valueFor } from '@shell/utils/table-columns';
+import type { TableViewValueSuggestion, TableViewField } from '@shell/types/table-views';
 
 export const LABEL_FIELD_PREFIX = 'label:';
 
@@ -18,7 +20,7 @@ export const LABEL_FIELD_PREFIX = 'label:';
  * or sort it by, and without the state there is no way to see that anything is wrong. Everything
  * else, age included, is the user's to turn off.
  */
-export const CORE_FIELD_IDS = ['state', 'name'];
+export const CORE_FIELD_IDS = [STATE.name, NAME.name];
 
 /**
  * Is this a column the user must not be able to remove?
@@ -84,9 +86,44 @@ function safeGet(row: any, path: string): any {
 }
 
 /**
- * The value of a field for a given row, as shown in the table
+ * The paths a column can be read by, after the one the table itself uses.
+ *
+ * A column that draws itself entirely with a formatter carries `value: ''` - the cluster list's
+ * CPU, Memory and Pods all do - so the table has nothing to read and shows the formatter's work
+ * instead. Grouping and filtering still need a value, and the column's own sort or search path
+ * is a real field on the row.
+ *
+ * Only the first entry of a `sort` list: the rest are tie breakers (commonly `metadata.name`)
+ * and would give the column a nonsense value.
  */
-export function fieldValue(row: any, field: ViewField): any {
+function fallbackPath(header: any): string | null {
+  if (typeof header.sort === 'string') {
+    return header.sort.split(':')[0];
+  }
+
+  if (Array.isArray(header.sort) && typeof header.sort[0] === 'string') {
+    return header.sort[0].split(':')[0];
+  }
+
+  if (typeof header.search === 'string' && header.search) {
+    return header.search;
+  }
+
+  return null;
+}
+
+/**
+ * The value of a field for a given row.
+ *
+ * Whatever the table would show in that cell comes first, read by the very function the table
+ * reads its cells with - so a group heading, a filter and the cell above them cannot disagree
+ * about what a row holds.
+ *
+ * What follows is the part a table never needs: a column the table draws without reading
+ * anything still has to be groupable and filterable, so its sort or search path is tried, and
+ * then any `getValue` it carries. Empty is the honest answer when none of that names a value.
+ */
+export function fieldValue(row: any, field: TableViewField): any {
   if (!row || !field) {
     return '';
   }
@@ -101,33 +138,19 @@ export function fieldValue(row: any, field: ViewField): any {
     return safeGet(row, field.id) ?? '';
   }
 
-  if (typeof header.value === 'function') {
-    try {
-      return header.value(row) ?? '';
-    } catch (e) {
-      return '';
+  // `warn: false` - the table complains about a column with no path because that is a broken
+  // column; here every column of the type is asked about and some genuinely have nothing
+  try {
+    const shown = valueFor(row, header, false, { warn: false });
+
+    if (shown !== undefined && shown !== null && shown !== '') {
+      return shown;
     }
+  } catch (e) {
+    return '';
   }
 
-  // Only the first path is used. `sort` is often an array whose later entries are tie
-  // breakers (commonly metadata.name), which would give the column a nonsense value
-  let path = null;
-
-  // A non-empty one. A column drawn entirely by a formatter carries `value: ''` - the cluster
-  // list's CPU, Memory and Pods do - and taking that as the path stopped the fall through to the
-  // sort path below, which is a real field the row does have.
-  if (typeof header.value === 'string' && header.value) {
-    path = header.value;
-  } else if (typeof header.sort === 'string') {
-    path = header.sort.split(':')[0];
-  } else if (Array.isArray(header.sort) && typeof header.sort[0] === 'string') {
-    path = header.sort[0].split(':')[0];
-  } else if (typeof header.search === 'string') {
-    path = header.search;
-  } else if (header.name) {
-    path = header.name;
-  }
-
+  const path = fallbackPath(header);
   const out = path ? safeGet(row, path) : undefined;
 
   if (out !== undefined && out !== null && out !== '') {
@@ -154,7 +177,7 @@ export function fieldValue(row: any, field: ViewField): any {
  * the pagination API could never match, so anything offered as a value - and the values we count
  * - comes from the filterable path whenever the field has one.
  */
-export function rawFieldValue(row: any, field: ViewField): any {
+export function rawFieldValue(row: any, field: TableViewField): any {
   if (!row || !field || field.isLabel) {
     return fieldValue(row, field);
   }
@@ -219,10 +242,31 @@ export function isIgnoredColumn(header: any): boolean {
  *
  * Columns come from the table headers, plus one synthetic field per label key found on
  * the rows - which is what lets someone add a column for their own custom label.
+ *
+ * `paginationHeaders` is the same set of columns as the pagination api defines them, passed only
+ * when the list is server side paginated. It is what {@link serverPathFor} reads, so a column
+ * carries both the definition it is drawn from and the one it is filtered by.
  */
-export function fieldsFor(headers: any[], rows: any[], t?: (key: string) => string): ViewField[] {
-  const out: ViewField[] = [];
+export function fieldsFor(
+  headers: any[],
+  rows: any[],
+  t?: (key: string) => string,
+  paginationHeaders?: any[] | null
+): TableViewField[] {
+  const out: TableViewField[] = [];
   const seen: Record<string, boolean> = {};
+
+  // The same columns as the pagination api defines them, by field id. A paginated list is the
+  // only one that can filter server side, and these are the only definitions that say how
+  const byId: Record<string, any> = {};
+
+  (paginationHeaders || []).forEach((header) => {
+    const id = headerFieldId(header);
+
+    if (id) {
+      byId[id] = header;
+    }
+  });
 
   (headers || []).forEach((header) => {
     const id = headerFieldId(header);
@@ -243,7 +287,7 @@ export function fieldsFor(headers: any[], rows: any[], t?: (key: string) => stri
 
     seen[id] = true;
     out.push({
-      id, label, isLabel: false, header
+      id, label, isLabel: false, header, paginationHeader: byId[id]
     });
   });
 
@@ -272,7 +316,7 @@ export function fieldsFor(headers: any[], rows: any[], t?: (key: string) => stri
   return out;
 }
 
-export function findField(fields: ViewField[], id: string): ViewField | undefined {
+export function findField(fields: TableViewField[], id: string): TableViewField | undefined {
   if (!id) {
     return undefined;
   }
@@ -283,27 +327,19 @@ export function findField(fields: ViewField[], id: string): ViewField | undefine
 }
 
 /**
- * Well known field ids whose server-side path we know for certain, for columns that don't say
- * how they are searched. A column that declares its own `search` is taken at its word - see
- * serverPathFor - and this is what the rest fall back to rather than a `value` the api cannot
- * filter on (`stateDisplay` and friends).
- */
-const SERVER_PATH_SAFETY_NET: Record<string, string> = {
-  state:     'metadata.state.name',
-  name:      'metadata.name',
-  namespace: 'metadata.namespace',
-  image:     'spec.containers.image',
-  node:      'spec.nodeName',
-};
-
-/**
- * The steve/vai server-side path(s) to filter a field on, or null when the field has no
- * server-side representation.
+ * The steve/vai server-side path(s) to filter a field on, or null when the field has none.
  *
- * Mirrors the server-searchable rule used when building headers in ResourceTable (a column
- * is server searchable when it has a string/array `search`, or a string `value`/`sort`).
+ * Two things have to be true for a column to be filtered by the api: the list is server side
+ * paginated, and the column as that api defines it says what it is searched on. Both live in
+ * `paginationHeader` - it is only attached to a paginated list's fields, and only the pagination
+ * definitions carry `search`. Anything else has no server side representation and is filtered on
+ * the rows instead.
+ *
+ * Nothing is inferred from `value` or `sort`. Those are display and ordering paths: a column's
+ * `value` is as likely to be `stateDisplay` as `metadata.state.name`, and asking the api to
+ * filter on the first returns nothing at all.
  */
-export function serverPathFor(field: ViewField): string | string[] | null {
+export function serverPathFor(field: TableViewField): string | string[] | null {
   if (!field) {
     return null;
   }
@@ -312,44 +348,18 @@ export function serverPathFor(field: ViewField): string | string[] | null {
     return field.labelKey ? `metadata.labels[${ field.labelKey }]` : null;
   }
 
-  const header = field.header;
+  const search = field.paginationHeader?.search;
 
-  // An explicit `search` is the column saying what it is searched on, so it wins. The cluster
-  // list is the one that matters: its name column searches `spec.displayName`, because a
-  // management cluster's `metadata.name` is an id (`c-m-zv88n64p`) and never what is on screen.
-  if (typeof header?.search === 'string' && header.search) {
-    return header.search;
+  if (typeof search === 'string' && search) {
+    return search;
   }
 
-  if (Array.isArray(header?.search)) {
-    const paths = header.search.filter((path: unknown) => typeof path === 'string' && path);
+  if (Array.isArray(search)) {
+    // A column can name several paths - the cluster list's name is searched on `spec.displayName`
+    // as well - and the empty entries among them are not paths
+    const paths = search.filter((path: unknown) => typeof path === 'string' && path);
 
-    if (paths.length) {
-      return paths;
-    }
-  }
-
-  // Then the handful of ids we know the canonical path for, which covers the columns that say
-  // nothing about how to search them
-  if (SERVER_PATH_SAFETY_NET[field.id]) {
-    return SERVER_PATH_SAFETY_NET[field.id];
-  }
-
-  if (!header) {
-    return null;
-  }
-
-  // Only a path that actually names something. A column drawn entirely by a formatter carries
-  // `value: ''` - the cluster list's CPU, Memory and Pods all do - and handing that back as a
-  // path had them offered as things the list could be filtered by, on a filter naming no field
-  // at all.
-  if (typeof header.value === 'string' && header.value) {
-    return header.value;
-  }
-
-  if (typeof header.sort === 'string') {
-    // `sort` can carry a `:desc` style suffix, only the path is useful for filtering
-    return header.sort.split(':')[0];
+    return paths.length ? paths : null;
   }
 
   return null;
@@ -361,7 +371,7 @@ export function serverPathFor(field: ViewField): string | string[] | null {
  * The summary counts every row the type has, not just the page in front of us, so the values it
  * gives back are the real set in use. Most used first, so the suggestions are worth reading.
  */
-export function summaryToValues(response: any, max = 50): ValueSuggestion[] {
+export function summaryToValues(response: any, max = 50): TableViewValueSuggestion[] {
   const counts = response?.summary?.[0]?.counts || {};
 
   return Object.keys(counts)
@@ -371,7 +381,7 @@ export function summaryToValues(response: any, max = 50): ValueSuggestion[] {
     .slice(0, max);
 }
 
-export function valuesInUse(rows: any[], field: ViewField, max = 25): ValueSuggestion[] {
+export function valuesInUse(rows: any[], field: TableViewField, max = 25): TableViewValueSuggestion[] {
   const counts: Record<string, number> = {};
 
   (rows || []).slice(0, SCAN_LIMIT).forEach((row) => {
