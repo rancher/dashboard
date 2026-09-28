@@ -940,6 +940,7 @@ EmacsHandler.addCommands({
             var text = handler.getCopyText();
             killRing.add(text);
             handler.clearSelection();
+            handler.setEmacsMark(null);
             navigator.clipboard.writeText(text);
         },
         readOnly: true
