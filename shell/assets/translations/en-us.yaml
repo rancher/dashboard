@@ -8109,6 +8109,7 @@ workload:
     containerImage: Container {name} - "Container Image" is required.
     containerName: Container - "Container Name" is required.
     localhostProfile: Container {name} - "Container Localhost Profile" is required when SeccompProfile Type is Localhost.
+    volumeMountPath: Container {name} - "Mount Point" is required.
   replicas: Replicas
   showTabs: 'Show Advanced Options'
   scheduling:
