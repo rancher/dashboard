@@ -139,9 +139,23 @@ export const bracketFoldService: Extension = foldService.of(
   }
 );
 
+function foldMarkerDOM(open: boolean): HTMLElement {
+  const span = document.createElement('span');
+
+  span.textContent = open ? '⌄' : '›';
+  span.title = open ? 'Fold line' : 'Unfold line';
+  if (open) {
+    // The down glyph sits below the text center in the editor font.
+    span.style.display = 'inline-block';
+    span.style.transform = 'translateY(-0.25em)';
+  }
+
+  return span;
+}
+
 export function buildFoldExtension(opts?: FoldOptions): Extension {
   // The gutter enables folding; this configuration replaces its default ellipsis.
-  const extensions: Extension[] = [cmFoldGutter(), codeFolding({ placeholderText: '↔️' })];
+  const extensions: Extension[] = [cmFoldGutter({ markerDOM: foldMarkerDOM }), codeFolding({ placeholderText: '↔️' })];
   const strategy = opts?.strategy ?? 'language';
 
   if (strategy === 'indent') {

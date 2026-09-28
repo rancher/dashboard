@@ -408,7 +408,6 @@ export default defineComponent({
       .rc-code-mirror--editor .cm-editor {
         .cm-scroller {
           font-family: $mono-font;
-          line-height: inherit;
         }
       }
     }
