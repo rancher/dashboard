@@ -1,4 +1,5 @@
 import {
+  AdvancedProductConfigOptions,
   ProductMetadata,
   ProductChildResourcePage,
   ProductChildCustomPage,
@@ -198,6 +199,13 @@ export type ProductMetadataInternal = ProductMetadata & {
    */
   removable?: boolean;
 
+  /**
+   * @internal
+   * Whether the route should start with the product name or not (e.g. "my-product/c/:cluster/:resource" vs "c/:cluster/my-product/:resource")
+   * only to be used in very special usecases (internal use only - check FLEET product config for an example)
+   */
+  startRouteWithProduct?: boolean;
+
     /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
@@ -205,3 +213,29 @@ export type ProductMetadataInternal = ProductMetadata & {
   // supportRoute: string;
   // typeStoreMap: string;
 };
+
+/**
+ * @internal
+ * Advanced configuration options for product registration
+ *
+ * Rancher Dashboard internal use only. Note the public `AdvancedProductConfigOptions` is empty,
+ * so TypeScript performs no excess property checking on an inline object literal passed to
+ * `addProduct`/`extendProduct` — a typo would silently no-op. Declare the config against this
+ * type instead, so typos and wrong value types are caught:
+ *
+ * ```ts
+ * import { AdvancedProductConfigOptionsInternal } from '@shell/core/plugin-products-internal';
+ *
+ * const advancedProdConfig: AdvancedProductConfigOptionsInternal = { debuggerEnabled: true };
+ *
+ * plugin.addProduct('fleet', advancedProdConfig);
+ * ```
+ */
+export type AdvancedProductConfigOptionsInternal = AdvancedProductConfigOptions & {
+  /**
+   * @internal
+   * If console debugging is enabled. Logs the product's type-map registrations and its
+   * generated routes to the console.
+   */
+  debuggerEnabled?: boolean;
+}
