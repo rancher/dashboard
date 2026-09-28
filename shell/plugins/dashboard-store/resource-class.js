@@ -42,6 +42,7 @@ import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
 import { useResourceCardRow, useResourceCardRowFromRelationships } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { isImprovedTablesEnabled } from '@shell/utils/table-views/feature';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -1004,7 +1005,9 @@ export default class Resource {
       { divider: true },
       {
         action:     'download',
-        label:      this.t('action.download'),
+        // The same action either way; the improved tables feature is what turns it from the yaml
+        // download it has always been into a choice of formats
+        label:      this.t(this.improvedTables ? 'action.downloadExport' : 'action.download'),
         icon:       'icon icon-download',
         bulkable:   true,
         bulkAction: 'downloadBulk',
@@ -1634,19 +1637,26 @@ export default class Resource {
     this.currentRouter().push(location);
   }
 
+  /** Whether the improved tables feature is on, which is what the export belongs to */
+  get improvedTables() {
+    return isImprovedTablesEnabled({ rootGetters: this.$rootGetters });
+  }
+
   /**
-   * The action reads "Export As..." now and offers YAML alongside the other formats, so picking it
-   * asks which before doing anything. Choosing YAML runs `downloadYaml` below - the same download
-   * this action has always done.
+   * With the improved tables feature on the action reads "Export As..." and offers YAML alongside
+   * the other formats, so picking it asks which before doing anything - choosing YAML runs
+   * `downloadYaml` below, the same download this action has always done. With the feature off it
+   * is that download, directly, as it has always been.
    *
-   * The action keeps its name: models up and down the product name `download` to hide or keep it.
+   * The action keeps its name either way: models up and down the product name `download` to hide
+   * or keep it.
    */
   download() {
-    return this.openExportModal([this]);
+    return this.improvedTables ? this.openExportModal([this]) : this.downloadYaml();
   }
 
   downloadBulk(items) {
-    return this.openExportModal(items);
+    return this.improvedTables ? this.openExportModal(items) : this.downloadYamlBulk(items);
   }
 
   async openExportModal(items) {

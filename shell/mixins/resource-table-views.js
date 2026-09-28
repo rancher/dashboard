@@ -1,6 +1,7 @@
 import debounce from 'lodash/debounce';
 
 import { optionalHeadersFor } from '@shell/utils/table-views/optional-headers';
+import { isImprovedTablesEnabled } from '@shell/utils/table-views/feature';
 import { AGE } from '@shell/config/table-headers';
 import { NotificationLevel } from '@shell/types/notifications';
 import { downloadFile } from '@shell/utils/download';
@@ -316,9 +317,17 @@ export default {
 
   computed: {
     /**
-     * Whether to show the table views toolbar above this table
+     * Whether to show the table views toolbar above this table.
+     *
+     * The feature flag is asked first and answers for everyone: a page that turns the toolbar on
+     * for itself is saying this table suits it, not overruling an administrator who has turned
+     * the feature off.
      */
     showTableViews() {
+      if (!isImprovedTablesEnabled(this.$store)) {
+        return false;
+      }
+
       if (this.tableViews !== null) {
         return this.tableViews;
       }
