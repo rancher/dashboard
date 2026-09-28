@@ -1,12 +1,18 @@
 import { findBy, insertAt } from '@shell/utils/array';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
-import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
-import { get, set } from '@shell/utils/object';
+import {
+  WORKLOAD_TYPES, SERVICE, INGRESS, POD, GATEWAY_API
+} from '@shell/config/types';
+import { set } from '@shell/utils/object';
 import day from 'dayjs';
-import { convertSelectorObj, parse } from '@shell/utils/selector';
+import { convertSelectorObj, parse, matches, convert } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
 import { matching } from '@shell/utils/selector-typed';
+import { defineAsyncComponent, markRaw } from 'vue';
+import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
+import { POD_SHELL } from '@shell/store/features';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -25,6 +31,7 @@ export default class Workload extends WorkloadService {
   get _availableActions() {
     let out = super._availableActions;
     const type = this._type ? this._type : this.type;
+    const podShellFeatureEnabled = !!this.$rootGetters['features/get'](POD_SHELL);
 
     const editYaml = findBy(out, 'action', 'goToEditYaml');
     const index = editYaml ? out.indexOf(editYaml) : 0;
@@ -43,7 +50,7 @@ export default class Workload extends WorkloadService {
       insertAt(out, 0, {
         action:  'toggleRollbackModal',
         label:   this.t('action.rollback'),
-        icon:    'icon icon-history',
+        icon:    'icon icon-downgrade-alt',
         enabled: !!this.links.update,
       });
 
@@ -73,13 +80,16 @@ export default class Workload extends WorkloadService {
 
     insertAt(out, 0, { divider: true }) ;
 
-    insertAt(out, 0, {
-      action:  'openShell',
-      enabled: !!this.links.view,
-      icon:    'icon icon-fw icon-chevron-right',
-      label:   this.t('action.openShell'),
-      total:   1,
-    });
+    // Only add the menu item for the pod shell if the feature flag is enabled
+    if (podShellFeatureEnabled) {
+      insertAt(out, 0, {
+        action:  'openShell',
+        enabled: !!this.links.view,
+        icon:    'icon icon-chevron-right',
+        label:   this.t('action.openShell'),
+        total:   1,
+      });
+    }
 
     const toFilter = ['cloneYaml'];
 
@@ -177,6 +187,22 @@ export default class Workload extends WorkloadService {
   async scaleUp() {
     set(this.spec, 'replicas', this.spec.replicas + 1);
     await this.save();
+  }
+
+  async scale(isUp) {
+    try {
+      if (isUp) {
+        await this.scaleUp();
+      } else {
+        await this.scaleDown();
+      }
+    } catch (err) {
+      this.$store.dispatch('growl/fromError', {
+        title: this.t('workload.list.errorCannotScale', { direction: isUp ? 'up' : 'down', workloadName: this.name }),
+        err
+      },
+      { root: true });
+    }
   }
 
   get state() {
@@ -281,7 +307,7 @@ export default class Workload extends WorkloadService {
       out.push({
         nullable:       false,
         path:           'spec.serviceName',
-        required:       true,
+        required:       false,
         type:           'string',
         translationKey: 'workload.serviceName'
       });
@@ -302,6 +328,32 @@ export default class Workload extends WorkloadService {
 
   get endpoint() {
     return this?.metadata?.annotations?.[CATTLE_PUBLIC_ENDPOINTS];
+  }
+
+  get publicEndpoints() {
+    const annotation = this.endpoint;
+
+    if (!annotation) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(annotation);
+
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      console.warn(`publicEndpoints: failed to parse the ${ CATTLE_PUBLIC_ENDPOINTS } annotation on "${ this.id }"`, err); // eslint-disable-line no-console
+
+      return [];
+    }
+  }
+
+  // Undefined rather than an empty array when there is nothing to show: the masthead filters on
+  // the value, and an empty array is truthy and would leave a labelled row with no value.
+  get detailEndpoints() {
+    const endpoints = [...this.publicEndpoints, ...this.gatewayEndpoints];
+
+    return endpoints.length ? endpoints : undefined;
   }
 
   get desired() {
@@ -341,7 +393,7 @@ export default class Workload extends WorkloadService {
       },
       endpoint: {
         label:     'Endpoints',
-        content:   this.endpoint,
+        content:   this.detailEndpoints,
         formatter: 'WorkloadDetailEndpoints'
       },
       ready: {
@@ -567,6 +619,29 @@ export default class Workload extends WorkloadService {
     return undefined;
   }
 
+  async fetchSummaries() {
+    const summaries = { pods: null };
+
+    try {
+      if (this.podMatchExpression) {
+        summaries.pods = await this.$dispatch('fetchResourceSummary', {
+          type: POD,
+          opt:  {
+            summaryField:  'metadata.state.name',
+            namespace:     this.metadata.namespace,
+            labelSelector: { matchExpressions: this.podMatchExpression },
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('fetchSummaries: failed to fetch pod summary', e); // eslint-disable-line no-console
+    }
+
+    set(this, '_summaries', summaries);
+
+    return summaries;
+  }
+
   async unWatchPods() {
     return await this.$dispatch('unwatch', { type: POD, all: true });
   }
@@ -595,18 +670,38 @@ export default class Workload extends WorkloadService {
     return selector;
   }
 
+  /**
+   * Match Expression version of the podSelector
+   */
   get podMatchExpression() {
     return this.podSelector ? parse(this.podSelector) : null;
   }
 
   calcPodGauges(pods) {
     const out = { };
+    let refPods = pods;
 
-    if (!pods) {
+    if (this.metadata.associatedData) {
+      refPods = [];
+      this.metadata.associatedData.forEach((w) => {
+        if (w.gvk.kind.toLowerCase() !== POD) {
+          return;
+        }
+
+        return w.data.forEach((p) => {
+          refPods.push({
+            stateColor:   colorForStateFn(p.state.name, p.state.error === 'true', p.state.transitioning === 'true'),
+            stateDisplay: stateDisplayFn(p.state.name),
+          });
+        });
+      });
+    }
+
+    if (!refPods) {
       return out;
     }
 
-    pods.map((pod) => {
+    refPods.map((pod) => {
       const { stateColor, stateDisplay } = pod;
 
       if (out[stateDisplay]) {
@@ -632,7 +727,7 @@ export default class Workload extends WorkloadService {
       return undefined;
     }
 
-    return (get(this, 'metadata.relationships') || []).filter((relationship) => relationship.toType === WORKLOAD_TYPES.JOB);
+    return this.metadata?.relationships?.filter((relationship) => relationship.toType === WORKLOAD_TYPES.JOB) || [];
   }
 
   /**
@@ -660,32 +755,6 @@ export default class Workload extends WorkloadService {
     return this.jobRelationships.map((obj) => {
       return this.$getters['byId'](WORKLOAD_TYPES.JOB, obj.toId );
     }).filter((x) => !!x);
-  }
-
-  get jobGauges() {
-    const out = {
-      succeeded: { color: 'success', count: 0 }, running: { color: 'info', count: 0 }, failed: { color: 'error', count: 0 }
-    };
-
-    if (this.type === WORKLOAD_TYPES.CRON_JOB) {
-      this.jobs.forEach((job) => {
-        const { status = {} } = job;
-
-        out.running.count += status.active || 0;
-        out.succeeded.count += status.succeeded || 0;
-        out.failed.count += status.failed || 0;
-      });
-    } else if (this.type === WORKLOAD_TYPES.JOB) {
-      const { status = {} } = this;
-
-      out.running.count = status.active || 0;
-      out.succeeded.count = status.succeeded || 0;
-      out.failed.count = status.failed || 0;
-    } else {
-      return null;
-    }
-
-    return out;
   }
 
   get currentRevisionNumber() {
@@ -727,5 +796,193 @@ export default class Workload extends WorkloadService {
     });
 
     return val;
+  }
+
+  get servicesInNamespace() {
+    return this.$rootGetters['cluster/all'](SERVICE).filter((s) => s.metadata.namespace === this.metadata.namespace);
+  }
+
+  get relatedServices() {
+    if (this.type === WORKLOAD_TYPES.JOB || this.type === WORKLOAD_TYPES.CRON_JOB) {
+      return [];
+    }
+
+    const podTemplateLabels = this.spec?.template?.metadata?.labels;
+
+    if (!podTemplateLabels || Object.keys(podTemplateLabels).length === 0) {
+      return [];
+    }
+
+    const templateAsObj = { metadata: { labels: podTemplateLabels } };
+
+    return this.servicesInNamespace.filter((service) => {
+      const selector = service.spec.selector;
+
+      if (!selector || typeof selector !== 'object') {
+        return false;
+      }
+
+      return matches(templateAsObj, convert(selector));
+    });
+  }
+
+  get matchingIngresses() {
+    const allIngresses = this.$rootGetters['cluster/all'](INGRESS);
+    const services = this.relatedServices;
+
+    if (!services.length) {
+      return [];
+    }
+
+    return allIngresses.filter((ingress) => {
+      try {
+        const rules = ingress.spec?.rules;
+
+        if (!rules || !Array.isArray(rules)) {
+          return false;
+        }
+
+        for (const rule of rules) {
+          const paths = rule?.http?.paths;
+
+          if (!paths || !Array.isArray(paths)) {
+            continue;
+          }
+
+          for (const pathData of paths) {
+            const targetServiceName = pathData?.backend?.service?.name;
+
+            if (!targetServiceName) {
+              continue;
+            }
+
+            for (const service of services) {
+              if (ingress.metadata?.namespace === this.metadata?.namespace && service?.metadata?.name === targetServiceName) {
+                return true;
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn(`matchingIngresses: failed to match ingress "${ ingress.id }"`, err); // eslint-disable-line no-console
+
+        return false;
+      }
+
+      return false;
+    });
+  }
+
+  get matchingHttpRoutes() {
+    if (!this.$rootGetters['cluster/schemaFor'](GATEWAY_API.HTTP_ROUTE)) {
+      return [];
+    }
+
+    const services = this.relatedServices;
+
+    if (!services.length) {
+      return [];
+    }
+
+    const allHttpRoutes = this.$rootGetters['cluster/all'](GATEWAY_API.HTTP_ROUTE) || [];
+
+    return allHttpRoutes.filter((httpRoute) => httpRoute.targetsAnyService(services));
+  }
+
+  // The `field.cattle.io/publicEndpoints` annotation is written by a Rancher controller that only
+  // knows Ingresses and LoadBalancer Services, so gateway endpoints are resolved here instead.
+  get gatewayEndpoints() {
+    const httpRoutes = this.matchingHttpRoutes;
+
+    if (!httpRoutes.length) {
+      return [];
+    }
+
+    const services = this.relatedServices;
+
+    return httpRoutes.flatMap((httpRoute) => httpRoute.endpointsForServices(services));
+  }
+
+  get resourcesCardRows() {
+    const rows = [...this._resourcesCardRows];
+    const showsIngressesAndServices = this.type !== WORKLOAD_TYPES.JOB && this.type !== WORKLOAD_TYPES.CRON_JOB;
+
+    if (showsIngressesAndServices) {
+      const services = this.relatedServices || [];
+      const ingresses = this.matchingIngresses || [];
+      const httpRoutes = this.matchingHttpRoutes || [];
+
+      if (httpRoutes.length) {
+        rows.unshift(useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.httpRoutes'), httpRoutes, undefined, undefined, '#httproutes'));
+      }
+
+      if (ingresses.length) {
+        rows.unshift(useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.ingresses'), ingresses, undefined, undefined, '#ingresses'));
+      }
+
+      if (services.length) {
+        rows.unshift(useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.services'), services, undefined, undefined, '#services'));
+      }
+    }
+
+    return rows;
+  }
+
+  get podsCard() {
+    const supportedTypes = [WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.STATEFUL_SET];
+
+    if (!supportedTypes.includes(this.type)) {
+      return null;
+    }
+
+    const scalingTypes = [WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET];
+    const canScale = this.canUpdate && scalingTypes.includes(this.type);
+    const summaryData = this._summaries?.pods || null;
+    const hasPods = this.pods?.length > 0;
+    const hasSummary = summaryData?.count > 0;
+
+    if (!hasPods && !hasSummary && !canScale) {
+      return null;
+    }
+
+    return {
+      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue'))),
+      props:     {
+        title:              this.t('component.resource.detail.card.podsCard.title'),
+        resources:          this.pods,
+        summaryData,
+        showScaling:        canScale,
+        onIncrease:         () => this.scale(true),
+        onDecrease:         () => this.scale(false),
+        noResourcesMessage: this.t('component.resource.detail.card.podsCard.noPods')
+      }
+    };
+  }
+
+  get jobsCard() {
+    const supportedTypes = [WORKLOAD_TYPES.CRON_JOB];
+
+    if (!supportedTypes.includes(this.type) || (this.jobs?.length || 0) <= 0) {
+      return null;
+    }
+
+    return {
+      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue'))),
+      props:     {
+        title:       this.t('component.resource.detail.card.jobsCard.title'),
+        resources:   this.jobs,
+        showScaling: false,
+      }
+    };
+  }
+
+  get cards() {
+    return [
+      this.podsCard,
+      this.jobsCard,
+      this.resourcesCard,
+      this.insightCard,
+      ...this._cards
+    ].filter((c) => c);
   }
 }

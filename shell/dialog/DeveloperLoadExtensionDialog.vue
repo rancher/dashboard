@@ -4,6 +4,8 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { UI_PLUGIN } from '@shell/config/types';
 import { UI_PLUGIN_CHART_ANNOTATIONS, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
+import { DEVELOPER_LOAD_NAME_SUFFIX } from '@shell/core/extension-manager-impl';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
@@ -11,8 +13,10 @@ export default {
   components: {
     AsyncButton,
     Checkbox,
-    LabeledInput
+    LabeledInput,
+    RcHeading,
   },
+
   props: {
     /**
      * Callback when modal is closed
@@ -101,8 +105,16 @@ export default {
       const parts = name.split('-');
 
       if (parts.length >= 2) {
-        version = parts.pop();
-        crdName = parts.join('-');
+        // fixing the name-version separation, especially in RC versions
+        // like: elemental-3.0.1-rc.1
+        // on capturing version it must be "digit + dot + digit" + rest of string
+        const regex = /^(?<name>.+?)-(?<version>\d+\.\d+.*)$/;
+        const match = name.match(regex);
+
+        if (match && match.groups) {
+          version = match.groups.version;
+          crdName = match.groups.name;
+        }
       }
 
       if (this.persist) {
@@ -114,7 +126,7 @@ export default {
           },
           spec: {
             plugin: {
-              name:     crdName,
+              name:     `${ crdName }${ DEVELOPER_LOAD_NAME_SUFFIX }`,
               version,
               endpoint: url,
               noCache:  true,
@@ -136,7 +148,7 @@ export default {
         }
       }
 
-      this.$plugin.loadAsync(name, url).then(() => {
+      this.$extension.loadAsync(name, url).then(() => {
         this.closeDialog(true);
 
         this.$store.dispatch('growl/success', {
@@ -164,9 +176,12 @@ export default {
 
 <template>
   <div class="plugin-install-dialog">
-    <h4>
+    <RcHeading
+      :size="4"
+      data-modal-title
+    >
       {{ t('plugins.developer.title') }}
-    </h4>
+    </RcHeading>
     <p>
       {{ t('plugins.developer.prompt') }}
     </p>
@@ -216,7 +231,7 @@ export default {
   .plugin-install-dialog {
     padding: 10px;
 
-    h4 {
+    [data-modal-title] {
       font-weight: bold;
     }
 

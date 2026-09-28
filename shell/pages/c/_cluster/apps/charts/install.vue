@@ -3,7 +3,6 @@ import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
 import isEqual from 'lodash/isEqual';
 import { mapPref, DIFF } from '@shell/store/prefs';
-import { mapFeature, MULTI_CLUSTER, LEGACY } from '@shell/store/features';
 import { mapGetters } from 'vuex';
 import { markRaw } from 'vue';
 import { Banner } from '@components/Banner';
@@ -22,12 +21,14 @@ import Tabbed from '@shell/components/Tabbed';
 import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import Wizard from '@shell/components/Wizard';
-import TypeDescription from '@shell/components/TypeDescription';
 import ChartMixin from '@shell/mixins/chart';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
-import { CATALOG, MANAGEMENT, DEFAULT_WORKSPACE, CAPI } from '@shell/config/types';
 import {
-  CHART, FROM_CLUSTER, FROM_TOOLS, HIDE_SIDE_NAV, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
+  CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME, CATALOG, MANAGEMENT, DEFAULT_WORKSPACE, CAPI, SECRET,
+  AUTH_TYPE, NAMESPACE as NAMESPACE_TYPE
+} from '@shell/config/types';
+import {
+  CHART, FROM_CLUSTER, FROM_TOOLS, HIDE_SIDE_NAV, NEW_APP_INSTANCE, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
 } from '@shell/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@shell/config/labels-annotations';
 
@@ -38,8 +39,14 @@ import {
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
-import { LINUX, WINDOWS } from '@shell/store/catalog';
+import { addParam } from '@shell/utils/url';
+import { WINDOWS } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
+import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
+import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
+import { generateRandomAlphaString } from '@shell/utils/string';
+import { RcSeparator } from '@components/RcSeparator';
 
 const VALUES_STATE = {
   FORM: 'FORM',
@@ -51,7 +58,7 @@ const VALUES_STATE = {
  * Helm CLI options that are not persisted on the back end,
  * but are used for the final install/upgrade operation.
  */
-const defaultCmdOpts = {
+export const defaultCmdOpts = {
   cleanupOnFail: false,
   crds:          true,
   hooks:         true,
@@ -91,7 +98,9 @@ export default {
     UnitInput,
     YamlEditor,
     Wizard,
-    TypeDescription
+    SelectOrCreateAuthSecret,
+    PrivateRegistry,
+    RcSeparator,
   },
 
   mixins: [
@@ -166,34 +175,16 @@ export default {
     } else if (this.$route.query[FROM_CLUSTER] === _FLAGGED) {
       /* For Fleet, use the fleet-default namespace. */
       this.forceNamespace = DEFAULT_WORKSPACE;
-    } else if ( this.chart?.targetNamespace ) {
+    } else if ( this.version?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE] ) {
       /* If a target namespace is defined in the chart,
       set the target namespace as default. */
-      this.forceNamespace = this.chart.targetNamespace;
+      this.forceNamespace = this.version.annotations[CATALOG_ANNOTATIONS.NAMESPACE];
     } else if ( this.query.appNamespace ) {
       /* If a namespace is defined in the URL query,
        use that namespace as default. */
       this.forceNamespace = this.query.appNamespace;
     } else {
       this.forceNamespace = null;
-    }
-
-    /* Check if the app is deprecated. */
-    try {
-      this.legacyApp = this.existing ? await this.existing.deployedAsLegacy() : false;
-    } catch (e) {
-      this.legacyApp = false;
-      console.warn('Unable to determine if existing install is a legacy app: ', e); // eslint-disable-line no-console
-    }
-
-    /* Check if the app is a multicluster deprecated app.
-    (Multicluster apps were replaced by Fleet.) */
-
-    try {
-      this.mcapp = this.existing ? await this.existing.deployedAsMultiCluster() : false;
-    } catch (e) {
-      this.mcapp = false;
-      console.warn('Unable to determine if existing install is a mc app: ', e); // eslint-disable-line no-console
     }
 
     /* The form state is intialized as a chartInstallAction resource. */
@@ -219,13 +210,13 @@ export default {
         The target name indicates the name of the cluster
         group that the chart is meant to be installed in.
       */
-      if ( this.chart?.targetName ) {
+      if ( this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME] ) {
         /*
           Set the name of the chartInstallAction
           to the name of the cluster group
           where the chart should be installed.
         */
-        this.value.metadata.name = this.chart.targetName;
+        this.value.metadata.name = this.version.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME];
         this.nameDisabled = true;
       } else if ( this.query.appName ) {
         this.value.metadata.name = this.query.appName;
@@ -310,6 +301,7 @@ export default {
           two different Helm chart versions is a "user value," or
           a user-selected customization.
         */
+        this.preserveCustomRegistryValue();
         userValues = diff(this.loadedVersionValues, this.chartValues);
       } else if ( this.existing ) {
         await this.existing.fetchValues(); // In theory this has already been called, but do again to be safe
@@ -319,6 +311,8 @@ export default {
         /* For an new app, start empty. */
         userValues = {};
       }
+
+      this.userValues = userValues;
 
       /*
         Remove global values if they are identical to
@@ -350,6 +344,15 @@ export default {
         this.showCustomRegistryInput = !!this.customRegistrySetting;
       }
 
+      // On upgrade, pre-select a single existing image pull secret in the dropdown
+      if (this.existing && this.showRegistryPullSecrets) {
+        const existingPullSecrets = this.chartValues?.global?.imagePullSecrets;
+
+        if (Array.isArray(existingPullSecrets) && existingPullSecrets.length === 1) {
+          this.registryPullSecret = existingPullSecrets[0];
+        }
+      }
+
       /* Serializes an object as a YAML document */
       this.valuesYaml = saferDump(this.chartValues);
 
@@ -369,49 +372,85 @@ export default {
 
     /* Look for annotation to say this app is a legacy migrated app (we look in either place for now) */
     this.migratedApp = (this.existing?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true');
+
+    if (this.repo?.isSuseAppCollection) {
+      let defaultSelectedSecret = await this.$store.getters['cluster/byId'](SECRET, `cattle-system/${ this.repo.spec.clientSecret.name }`);
+
+      if (!defaultSelectedSecret) {
+        try {
+          defaultSelectedSecret = (await this.$store.dispatch('cluster/find', { type: SECRET, id: `cattle-system/${ this.repo.spec.clientSecret.name }` }));
+        } catch (e) {
+          // If cannot get the secret for any reason, permission or doesn't exist
+          // We can fallback to use the name only and with that name move forward.
+          // On only other required data is the DecodedData but not having it will only trigger a different flow.
+          defaultSelectedSecret = { name: this.repo.spec.clientSecret.name };
+        }
+      }
+
+      this.selectedSecret = defaultSelectedSecret;
+      this.defaultGeneratedNameForImagePullSecret = `${ this.selectedSecret.name }-image-pull-secret`;
+      this.generatedNameForImagePullSecret = `${ this.selectedSecret.name }-image-pull-secret-${ generateRandomAlphaString(5) }`;
+      this.appCoDataFetched = true;
+      await this.initializeDataForNamespaceChanges();
+      await this.setImagePullSecretData();
+    }
   },
 
   data() {
     return {
-      defaultRegistrySetting: '',
-      customRegistrySetting:  '',
-      serverUrlSetting:       null,
-      chartValues:            null,
-      clusterRegistry:        '',
-      originalYamlValues:     null,
-      previousYamlValues:     null,
-      errors:                 null,
-      existing:               null,
-      globalRegistry:         '',
-      forceNamespace:         null,
-      loadedVersion:          null,
-      loadedVersionValues:    null,
-      legacyApp:              null,
-      mcapp:                  null,
-      mode:                   null,
-      value:                  null,
-      valuesComponent:        null,
-      valuesYaml:             '',
-      project:                null,
-      migratedApp:            false,
+      defaultRegistrySetting:                 '',
+      customRegistrySetting:                  '',
+      serverUrlSetting:                       null,
+      chartValues:                            null,
+      clusterRegistry:                        '',
+      originalYamlValues:                     null,
+      previousYamlValues:                     null,
+      errors:                                 null,
+      existing:                               null,
+      globalRegistry:                         '',
+      forceNamespace:                         null,
+      loadedVersion:                          null,
+      loadedVersionValues:                    null,
+      mode:                                   null,
+      value:                                  null,
+      valuesComponent:                        null,
+      valuesYaml:                             '',
+      project:                                null,
+      migratedApp:                            false,
       defaultCmdOpts,
-      customCmdOpts:          { ...defaultCmdOpts },
-      autoInstallInfo:        [],
-
-      nameDisabled: false,
-
-      preFormYamlOption:       VALUES_STATE.YAML,
-      formYamlOption:          VALUES_STATE.YAML,
-      showDiff:                false,
-      showValuesComponent:     true,
-      showQuestions:           true,
-      showSlideIn:             false,
-      shownReadmeWindows:      [],
-      showCommandStep:         false,
-      showCustomRegistryInput: false,
-      isNamespaceNew:          false,
-
-      stepBasic: {
+      customCmdOpts:                          { ...defaultCmdOpts },
+      autoInstallInfo:                        [],
+      nameDisabled:                           false,
+      preFormYamlOption:                      VALUES_STATE.YAML,
+      formYamlOption:                         VALUES_STATE.YAML,
+      showDiff:                               false,
+      showValuesComponent:                    true,
+      showQuestions:                          true,
+      showSlideIn:                            false,
+      shownReadmeWindows:                     [],
+      showCommandStep:                        false,
+      showCustomRegistryInput:                false,
+      isNamespaceNew:                         false,
+      selectedSecret:                         null,
+      secrets:                                [],
+      secretsView:                            [],
+      appCoSecretsView:                       [],
+      selectedImagePullSecret:                null,
+      appCoImagePullSecretView:               [],
+      generatedNameForImagePullSecret:        null,
+      defaultGeneratedNameForImagePullSecret: null,
+      defaultImagePullSecret:                 null,
+      clientSecret:                           null,
+      showCreateAuthSecret:                   false,
+      dontUseDefaultOption:                   null,
+      disabledCheckbox:                       false,
+      appCoDataFetched:                       false,
+      AUTH_TYPE,
+      CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME,
+      PRIVATE_REGISTRY_CONTEXT,
+      skipPullSecrets:                        false,
+      registryPullSecret:                     null,
+      stepBasic:                              {
         name:           'basics',
         label:          this.t('catalog.install.steps.basics.label'),
         subtext:        this.t('catalog.install.steps.basics.subtext'),
@@ -445,23 +484,45 @@ export default {
       },
 
       isPlainLayout: isPlainLayout(this.$route.query),
-
-      legacyDefs: {
-        legacy: this.t('catalog.install.error.legacy.category.legacy'),
-        mcm:    this.t('catalog.install.error.legacy.category.mcm')
-      }
     };
   },
 
   computed: {
-    ...mapGetters({ inStore: 'catalog/inStore', features: 'features/get' }),
-    mcm: mapFeature(MULTI_CLUSTER),
+    ...mapGetters({ inStore: 'catalog/inStore' }),
+
+    monitoringChartWarning() {
+      const annotations = this.version?.annotations || {};
+      const releaseName = annotations[CATALOG_ANNOTATIONS.RELEASE_NAME];
+      const certified = annotations[CATALOG_ANNOTATIONS.CERTIFIED];
+
+      // Only show monitoring banners for the Rancher-certified charts —
+      // a third-party chart that happens to reuse the release name should not
+      // trigger our migration prompts.
+      if (certified !== 'rancher') {
+        return null;
+      }
+
+      if (releaseName === 'rancher-monitoring') {
+        return this.t('catalog.install.steps.basics.oldMonitoringChartWarning', {}, true);
+      }
+
+      if (!this.existing && releaseName === 'rancher-monitoring-dashboards') {
+        return this.t('catalog.install.steps.basics.newMonitoringChartWarning', {}, true);
+      }
+
+      return null;
+    },
 
     /**
      * Return list of variables to filter chart questions
      */
     ignoreVariables() {
       return ignoreVariables(this.versionInfo);
+    },
+
+    hasDecodedDataAvailable() {
+      // Will return false if doesn't have access to neither the decodedData or the selectedSecret, or if the decodedData is empty
+      return this.selectedSecret?.decodedData;
     },
 
     namespaceIsNew() {
@@ -477,6 +538,22 @@ export default {
 
     showProject() {
       return this.isRancher && !this.existing && this.forceNamespace;
+    },
+
+    selectedRepoAuthBanner() {
+      if (!this.selectedSecret) {
+        return '';
+      }
+
+      if (!this.dontUseDefaultOption && !this.selectedImagePullSecret) {
+        return `${ this.t('catalog.install.steps.basics.generatedImagePullSecretBannerFromPreviousAuth', { imagePullSecretName: this.defaultGeneratedNameForImagePullSecret, repoAuthenticationName: this.selectedSecret.name }, {}, true) }`;
+      } else if (!this.selectedImagePullSecret) {
+        return `${ this.t('catalog.install.steps.basics.generatedNewImagePullSecret', { imagePullSecretName: this.generatedNameForImagePullSecret }, {}, true) }`;
+      } else if (this.selectedImagePullSecret === this.defaultImagePullSecret?.name) {
+        return `${ this.t('catalog.install.steps.basics.usePreviouslyGeneratedImagePullSecretBanner', { imagePullSecretName: this.selectedImagePullSecret, repoAuthenticationName: this.selectedSecret.name }, {}, true) }`;
+      }
+
+      return '';
     },
 
     projectOpts() {
@@ -536,9 +613,16 @@ export default {
       return out;
     },
 
+    selectedVersionOption() {
+      return this.filteredVersions?.find((v) => v.id === this.query.versionName) || this.query.versionName;
+    },
+
     showSelectVersionOrChart() {
-      // Allow the user to choose a version if the app exists OR they've come from tools
-      return this.existing || (FROM_TOOLS in this.$route.query);
+      // Allow the user to choose a version if:
+      // - the app exists (editing/upgrading)
+      // - OR they've come from tools
+      // - OR they're installing a new instance of an already-installed chart
+      return this.existing || (FROM_TOOLS in this.$route.query) || (NEW_APP_INSTANCE in this.$route.query);
     },
 
     showNameEditor() {
@@ -612,7 +696,7 @@ export default {
     },
 
     stepperSubtext() {
-      return this.existing && this.currentVersion !== this.targetVersion ? `${ this.currentVersion } > ${ this.targetVersion }` : this.targetVersion;
+      return this.mappedVersions?.find((v) => v.id === this.targetVersion)?.label || this.targetVersion;
     },
 
     readmeWindowName() {
@@ -629,19 +713,19 @@ export default {
     step1Description() {
       const descriptionKey = this.steps.find((s) => s.name === 'basics').descriptionKey;
 
-      return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action, existing: !!this.existing }, '');
+      return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action.name, existing: !!this.existing }, '');
     },
 
     step2Description() {
       const descriptionKey = this.steps.find((s) => s.name === 'helmValues').descriptionKey;
 
-      return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action, existing: !!this.existing }, '');
+      return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action.name, existing: !!this.existing }, '');
     },
 
     step3Description() {
       const descriptionKey = this.steps.find((s) => s.name === 'helmCli').descriptionKey;
 
-      return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action, existing: !!this.existing }, '');
+      return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action.name, existing: !!this.existing }, '');
     },
 
     steps() {
@@ -681,37 +765,6 @@ export default {
       return !this.existing && !this.forceNamespace;
     },
 
-    legacyEnabled() {
-      // Check for the legacy feature flag in the settings
-      return this.features(LEGACY);
-    },
-
-    legacyFeatureRoute() {
-      return {
-        name:   'c-cluster-product-resource',
-        params: { product: 'settings', resource: 'management.cattle.io.feature' }
-      };
-    },
-
-    legacyAppRoute() {
-      return { name: 'c-cluster-legacy-project' };
-    },
-
-    windowsIncompatible() {
-      if (this.chart?.windowsIncompatible) {
-        return this.t('catalog.charts.windowsIncompatible');
-      }
-      if (this.versionInfo) {
-        const incompatibleVersion = !(this.versionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).includes('windows');
-
-        if (incompatibleVersion && !this.chart.windowsIncompatible) {
-          return this.t('catalog.charts.versionWindowsIncompatible');
-        }
-      }
-
-      return null;
-    },
-
     /**
      * Check if the chart contains `systemDefaultRegistry` properties.
      * If not we shouldn't apply the setting, because if the option
@@ -728,6 +781,36 @@ export default {
       return global.systemDefaultRegistry !== undefined || global.cattle?.systemDefaultRegistry !== undefined;
     },
 
+    showRegistryPullSecrets() {
+      return !!this.repo?.spec?.defaultImagePullSecrets?.length;
+    },
+
+    existingValuesPullSecrets() {
+      if (!this.existing) {
+        return [];
+      }
+
+      const pullSecrets = this.chartValues?.global?.imagePullSecrets;
+
+      return Array.isArray(pullSecrets) ? pullSecrets.filter(Boolean) : [];
+    },
+
+    /**
+     * if the system-default-pull-image-secrets global setting is set OR the current cluster has system default registry pull secrets configured
+     * the Rancher cluster repo will automatically be populated with
+     * copies of the secrets referenced in the global setting
+     */
+    repoDefaultPullSecretNames() {
+      return (this.repo?.spec?.defaultImagePullSecrets || []).map((s) => s.name).filter(Boolean);
+    },
+
+    setImagePullSecretDataTrigger() {
+      return `
+        ${ this.defaultImagePullSecret?.name }
+        ${ this.dontUseDefaultOption }
+         ${ this.selectedImagePullSecret }`;
+    }
+
   },
 
   watch: {
@@ -740,7 +823,7 @@ export default {
       }
     },
 
-    'value.metadata.namespace'(neu, old) {
+    async 'value.metadata.namespace'(neu, old) {
       if (neu) {
         const ns = this.$store.getters['cluster/byId'](NAMESPACE, this.value.metadata.namespace);
 
@@ -750,6 +833,14 @@ export default {
           this.project = project.replace(':', '/');
         }
       }
+
+      if (this.repo?.isSuseAppCollection) {
+        await this.initializeDataForNamespaceChanges();
+      }
+    },
+
+    async setImagePullSecretDataTrigger() {
+      await this.setImagePullSecretData();
     },
 
     preFormYamlOption(neu, old) {
@@ -817,6 +908,9 @@ export default {
     window.scrollTop = 0;
 
     this.preFormYamlOption = this.valuesComponent || this.hasQuestions ? VALUES_STATE.FORM : VALUES_STATE.YAML;
+
+    // Register the image pull secret creation hook with lower priority (runs after SelectOrCreateAuthSecret at 99)
+    this.registerBeforeHook(this.createImagePullSecret, 'createImagePullSecret', 150);
   },
 
   beforeUnmount() {
@@ -824,11 +918,107 @@ export default {
   },
 
   methods: {
+    /**
+     * The custom registry UI fields (checkbox and input) are not directly bound to chartValues.
+     * Before calculating the diff to carry over user customizations, we must
+     * first synchronize the state of these UI fields with chartValues. This
+     * ensures any user changes to the custom registry settings are
+     * included in the diff and preserved when changing versions.
+     */
+    preserveCustomRegistryValue() {
+      if (!this.showCustomRegistry) {
+        return;
+      }
+
+      if (this.showCustomRegistryInput) {
+        set(this.chartValues, 'global.systemDefaultRegistry', this.customRegistrySetting);
+        set(this.chartValues, 'global.cattle.systemDefaultRegistry', this.customRegistrySetting);
+      } else {
+        // Note: Using `delete` here is safe because this is not a reactive property update
+        // that the UI needs to track. This is a one-time mutation before a diff.
+        if (get(this.chartValues, 'global.systemDefaultRegistry')) {
+          delete this.chartValues.global.systemDefaultRegistry;
+        }
+        if (get(this.chartValues, 'global.cattle.systemDefaultRegistry')) {
+          // It's possible `this.chartValues.global.cattle` doesn't exist,
+          // but `get` ensures we only proceed if the full path exists.
+          delete this.chartValues.global.cattle.systemDefaultRegistry;
+        }
+      }
+    },
+
+    async initializeDataForNamespaceChanges() {
+      // Skip the flow if the data still not fetched, it will trigger after fetching manually
+      if (this.appCoDataFetched) {
+        try {
+          this.defaultImagePullSecret = await this.$store.dispatch('cluster/find', { type: SECRET, id: `${ this.targetNamespace }/${ this.repo.spec.clientSecret.name }-image-pull-secret` });
+        } catch (e) {
+        // If the secret doesn't exist, that's fine, we'll just create a new one later
+          this.defaultImagePullSecret = null;
+        }
+
+        // Reset if doesnt have the defaultImagePullSecret and doesn't have decoded data
+        // Disable the checkbox
+        const previousDontUseDefaultOption = this.dontUseDefaultOption;
+        let dontUseDefaultOption = false;
+
+        if (!this.hasDecodedDataAvailable && !this.defaultImagePullSecret) {
+          dontUseDefaultOption = true;
+          this.disabledCheckbox = true;
+        } else {
+          dontUseDefaultOption = false;
+          this.disabledCheckbox = false;
+        }
+
+        // On upgrade mode you cannot change namespace so this works as a full setup
+        if (!!this.existing) {
+          if (this.userValues?.global?.imagePullSecrets?.[0]) {
+            this.selectedImagePullSecret = this.userValues?.global?.imagePullSecrets[0];
+          }
+          this.dontUseDefaultOption = true;
+
+          return;
+        }
+
+        this.dontUseDefaultOption = dontUseDefaultOption;
+        // Setting default values if changing to avoid duplicated trigger
+        if (this.dontUseDefaultOption !== previousDontUseDefaultOption) {
+          if (this.defaultImagePullSecret) {
+          // If the default option is used and the default secret already exists, use it
+            this.selectedImagePullSecret = this.defaultImagePullSecret.name;
+            this.chartValues.global.imagePullSecrets = [this.selectedImagePullSecret];
+          } else if (!this.defaultImagePullSecret) {
+          // Create new option with default generated name if the default option is selected
+            this.selectedImagePullSecret = null;
+            this.chartValues.global.imagePullSecrets = [this.defaultGeneratedNameForImagePullSecret];
+          }
+        }
+      }
+    },
+
     async getClusterRegistry() {
+      const mgmCluster = this.$store.getters['currentCluster'];
+
+      // For local, imported, and hosted (AKS, EKS, GKE, ALI) clusters,
+      // the cluster-scoped private registry is on the norman cluster's importedConfig.
+      if (mgmCluster?.isLocal || mgmCluster?.isImported || mgmCluster?.isHostedKubernetesProvider) {
+        try {
+          const normanCluster = await mgmCluster.findNormanCluster();
+          const importedRegistryURL = normanCluster?.importedConfig?.privateRegistryURL;
+
+          if (importedRegistryURL) {
+            return importedRegistryURL;
+          }
+        } catch (e) {
+          console.warn('Unable to fetch norman cluster for registry lookup: ', e); // eslint-disable-line no-console
+        }
+
+        return;
+      }
+
       const hasPermissionToSeeProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
       if (hasPermissionToSeeProvCluster) {
-        const mgmCluster = this.$store.getters['currentCluster'];
         const provClusterId = mgmCluster?.provClusterId;
         let provCluster;
 
@@ -864,6 +1054,30 @@ export default {
             return defaultRegistry.url;
           }
         }
+      }
+    },
+
+    async setImagePullSecretData() {
+      if (this.selectedSecret && this.repo?.isSuseAppCollection && this.dontUseDefaultOption !== null) {
+        if (!this.dontUseDefaultOption && this.defaultImagePullSecret) {
+          // If the default option is used and the default secret already exists, use it
+          this.selectedImagePullSecret = this.defaultImagePullSecret.name;
+          this.chartValues.global.imagePullSecrets = [this.selectedImagePullSecret];
+        } else if (!this.dontUseDefaultOption && !this.defaultImagePullSecret) {
+          // Create new option with default generated name if the default option is selected
+          this.selectedImagePullSecret = null;
+          this.chartValues.global.imagePullSecrets = [this.defaultGeneratedNameForImagePullSecret];
+        } else if (this.dontUseDefaultOption) {
+          // If doesn't have the dontUseDefaultOption selected, it will respect the SELECT
+          // New one with new username and password
+          if (!this.selectedImagePullSecret) {
+            this.chartValues.global.imagePullSecrets = [this.generatedNameForImagePullSecret];
+          } else {
+            this.chartValues.global.imagePullSecrets = [this.selectedImagePullSecret];
+          }
+        }
+
+        this.valuesYaml = saferDump(this.chartValues);
       }
     },
 
@@ -926,6 +1140,8 @@ export default {
         this.$router.replace(this.clusterToolsLocation());
       } else if (this.$route.query[FROM_CLUSTER] === _FLAGGED) {
         this.$router.replace(this.clustersLocation());
+      } else if (!this.chart) {
+        this.$router.replace(this.appLocation());
       } else {
         this.$router.replace(this.chartLocation(false));
       }
@@ -943,13 +1159,51 @@ export default {
       }
     },
 
+    async createNamespaceIfNeeded() {
+      const namespace = this.targetNamespace;
+
+      // Check if namespace already exists
+      try {
+        await this.$store.dispatch('cluster/find', {
+          type: NAMESPACE_TYPE,
+          id:   namespace
+        });
+
+        // Namespace exists, no need to create it
+        return;
+      } catch (e) {
+        // Namespace doesn't exist, create it
+      }
+
+      // Create the namespace
+      const nsResource = await this.$store.dispatch('cluster/createNamespace', { name: namespace });
+
+      // Apply any defaults and save
+      nsResource.applyDefaults();
+      await nsResource.save();
+    },
+
     async finish(btnCb) {
       try {
         const isUpgrade = !!this.existing;
 
         this.errors = [];
+        // Create namespace if it doesn't exist
+        // this is done before save hooks so that image pull secrets can be created in the target namespace
+        await this.createNamespaceIfNeeded();
 
-        await this.applyHooks(BEFORE_SAVE_HOOKS);
+        const hookResults = await this.applyHooks(BEFORE_SAVE_HOOKS);
+
+        // When a new pull secret is created by SelectOrCreateAuthSecret inside
+        // PrivateRegistry, the emit chain does not propagate the secret name
+        // back to registryPullSecret in time.  Read it from the hook result.
+        if (this.showRegistryPullSecrets && !this.skipPullSecrets && !this.registryPullSecret) {
+          const createdSecret = hookResults?.registerAuthSecret;
+
+          if (createdSecret?.metadata?.name) {
+            this.registryPullSecret = createdSecret.metadata.name;
+          }
+        }
 
         const { errors, input } = this.actionInput(isUpgrade);
 
@@ -960,7 +1214,16 @@ export default {
           return;
         }
 
-        const res = await this.repo.doAction((isUpgrade ? 'upgrade' : 'install'), input);
+        const actionName = isUpgrade ? 'upgrade' : 'install';
+        const actionOpt = {};
+
+        if (this.skipPullSecrets) {
+          const baseUrl = this.repo.actionLinkFor(actionName);
+
+          actionOpt.url = addParam(baseUrl, 'skipPullSecrets', 'true');
+        }
+
+        const res = await this.repo.doAction(actionName, input, actionOpt);
         const operationId = `${ res.operationNamespace }/${ res.operationName }`;
 
         // Non-admins without a cluster won't be able to fetch operations immediately
@@ -1019,6 +1282,15 @@ export default {
       if (this.showCustomRegistry) {
         set(cattle, 'systemDefaultRegistry', this.customRegistrySetting);
         set(global, 'systemDefaultRegistry', this.customRegistrySetting);
+      }
+
+      if (this.showRegistryPullSecrets && this.registryPullSecret) {
+        // User explicitly selected or created a pull secret
+        set(global, 'imagePullSecrets', [this.registryPullSecret]);
+      } else if (this.showRegistryPullSecrets) {
+        // User chose "skip" or "use default" — remove explicit imagePullSecrets
+        // so the backend falls back to the repo/global defaults
+        delete global.imagePullSecrets;
       }
 
       setIfNotSet(global, 'cattle.systemProjectId', systemProjectId);
@@ -1123,7 +1395,6 @@ export default {
       */
 
       this.addGlobalValuesTo(values);
-
       const form = JSON.parse(JSON.stringify(this.value));
 
       /*
@@ -1140,7 +1411,8 @@ export default {
         annotations: {
           ...migratedAnnotations,
           [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: this.chart.repoType,
-          [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: this.chart.repoName
+          [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: this.chart.repoName,
+          ...(this.repo?.isSuseAppCollection ? { [CATALOG_ANNOTATIONS.SUSE_APP_COLLECTION]: 'true' } : {}),
         },
         values,
       };
@@ -1203,7 +1475,7 @@ export default {
         const { allValues, values: crdValues } = versionInfo;
 
         // only save crd values that differ from the defaults defined in chart values.yaml
-        const customizedCrdValues = diff(crdValues, allValues);
+        const customizedCrdValues = diff(crdValues, allValues, true);
 
         // CRD globals should be overwritten by main chart globals
         // we want to avoid including globals present on crd values and not main chart values
@@ -1279,6 +1551,51 @@ export default {
           step[prop] = update[prop];
         }
       }
+    },
+
+    // not the same as PrivateRegistry pull secrets which are created based off the global/cluster system default registry hostname value not the repo url directly
+    // those secrets will be created in a beforeSaveHook managed by SelectOrCreateAuthSecret
+    async createImagePullSecret() {
+      if (!this.repo?.isSuseAppCollection) {
+        return;
+      }
+
+      let imagePullSecretName = '';
+
+      // If wants to use the default one, it will create the Image Pull Secret
+      if (!this.dontUseDefaultOption && !this.selectedImagePullSecret && this.hasDecodedDataAvailable) {
+        // Create the secret for app collections
+        const secret = await this.$store.dispatch('cluster/create', {
+          type:     SECRET,
+          _type:    'kubernetes.io/dockerconfigjson',
+          metadata: {
+            name:      this.defaultGeneratedNameForImagePullSecret,
+            namespace: this.targetNamespace,
+          },
+          data: {}
+        });
+
+        const registryHost = this.repo?.spec?.url ? new URL(this.repo.spec.url).host : '';
+        const config = { auths: { [registryHost]: this.selectedSecret?.decodedData } };
+        const json = JSON.stringify(config);
+
+        secret.setData('.dockerconfigjson', json);
+
+        const result = await secret.save();
+
+        // Now use the secret to add to the input
+        imagePullSecretName = result.id.split('/')[1];
+
+        // Now if it is not default, and there is a selectedImagePullSecret, ideally we should use it
+      } else if (this.dontUseDefaultOption && !this.selectedImagePullSecret) {
+        imagePullSecretName = this.selectedImagePullSecret;
+      }
+      // If the dontUseDefaultOption is false, than there is no need to change the data
+
+      // Finally add the imagePullSecrets to the input, if it is already a DOCKER_JSON, it can use what has been setup on the page
+      if (imagePullSecretName) {
+        this.chartValues.global.imagePullSecrets = [imagePullSecretName];
+      }
     }
   },
 };
@@ -1287,11 +1604,10 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div
-    v-else-if="!legacyApp && !mcapp"
-    class="install-steps pt-20"
+    v-else
+    class="install-steps"
     :class="{ 'isPlainLayout': isPlainLayout}"
   >
-    <TypeDescription resource="chart" />
     <Wizard
       v-if="value"
       :steps="steps"
@@ -1299,30 +1615,57 @@ export default {
       :edit-first-step="true"
       :banner-title="stepperName"
       :banner-title-subtext="stepperSubtext"
-      :finish-mode="action"
+      :finish-mode="action.name"
+      :header-mode="action.tKey"
+      :show-step-header="false"
       class="wizard"
-      :class="{'windowsIncompatible': windowsIncompatible}"
       @cancel="cancel"
       @finish="finish"
     >
-      <template #bannerTitleImage>
-        <div>
-          <div class="logo-bg">
-            <LazyImage
-              :src="chart ? chart.icon : ''"
-              class="logo"
-            />
+      <template #bannerTitle>
+        <div class="chart-title-container">
+          <div class="logo-container">
+            <div class="logo-box">
+              <LazyImage
+                :src="chart ? chart.icon : ''"
+                class="logo"
+              />
+            </div>
           </div>
-          <label
-            v-if="windowsIncompatible"
-            class="os-label"
-          >
-            {{ windowsIncompatible }}
-          </label>
+          <div class="chart-title">
+            <h1>
+              <router-link
+                v-if="chart"
+                :to="chartLocation()"
+                data-testid="chart-install-name-link"
+              >
+                {{ stepperName }}
+              </router-link>
+              <span v-else>
+                {{ stepperName }}
+              </span>: {{ t(`wizard.${action.tKey}`) }}
+            </h1>
+            <span
+              v-if="stepperSubtext"
+              class="subtext"
+            >
+              <i
+                v-clean-tooltip="t('tableHeaders.version')"
+                class="icon icon-version-alt"
+              />
+              {{ stepperSubtext }}
+            </span>
+          </div>
         </div>
       </template>
       <template #basics>
         <div class="step__basic">
+          <Banner
+            v-if="monitoringChartWarning"
+            color="warning"
+          >
+            <span v-clean-html="monitoringChartWarning" />
+          </Banner>
           <Banner
             v-if="step1Description"
             color="info"
@@ -1362,19 +1705,26 @@ export default {
             v-if="showSelectVersionOrChart"
             class="row mb-20"
           >
-            <div class="col span-4">
-              <!-- We have a chart for the app, let the user select a new version -->
+            <!-- We have a chart for the app, let the user select a new version -->
+            <div
+              v-if="chart"
+              class="col span-4"
+            >
               <LabeledSelect
-                v-if="chart"
+                data-testid="chart-version-selector"
                 :label="t('catalog.install.version')"
-                :value="query.versionName"
+                :value="selectedVersionOption"
                 :options="filteredVersions"
                 :selectable="version => !version.disabled"
                 @update:value="selectVersion"
               />
-              <!-- Can't find the chart for the app, let the user try to select one -->
+            </div>
+            <!-- Can't find the chart for the app, let the user try to select one -->
+            <div
+              v-else
+              class="col span-4"
+            >
               <LabeledSelect
-                v-else
                 :label="t('catalog.install.chart')"
                 :value="chart"
                 :options="charts"
@@ -1385,7 +1735,7 @@ export default {
               >
                 <template v-slot:option="opt">
                   <template v-if="opt.kind === 'divider'">
-                    <hr role="none">
+                    <RcSeparator />
                   </template>
                   <template v-else-if="opt.kind === 'label'">
                     <b style="position: relative; left: -2.5px;">{{ opt.label }}</b>
@@ -1424,30 +1774,79 @@ export default {
               />
             </template>
           </NameNsDescription>
+          <div
+            v-if="repo?.isSuseAppCollection"
+            class="mb-20"
+          >
+            <Banner
+              color="info"
+              class="mt-10"
+              label-key="catalog.install.steps.basics.requiresImagePullSecret"
+            />
+            <Checkbox
+              v-model:value="dontUseDefaultOption"
+              label-key="catalog.install.steps.basics.dontUseDefaultImagePullSecret"
+              :disabled="disabledCheckbox"
+            />
+
+            <div v-if="dontUseDefaultOption">
+              <SelectOrCreateAuthSecret
+                v-model:value="selectedImagePullSecret"
+                :mode="mode"
+                data-testid="clusterrepo-auth-secret"
+                :register-before-hook="registerBeforeHook"
+                :namespace="value.namespace"
+                :pre-select="{ selected: AUTH_TYPE._IMAGE_PULL_SECRET }"
+                :limit-to-namespace="true"
+                :in-store="inStore"
+                :allow-ssh="false"
+                :allow-none="false"
+                :allow-basic="false"
+                :generate-name="`${CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME}image-pull-secret-`"
+                :cache-secrets="true"
+                :fixed-image-pull-secret="true"
+                :client-generated-name="generatedNameForImagePullSecret"
+                :image-pull-secret-docker-json-url-config="repo?.spec?.url"
+              />
+            </div>
+            <Banner
+              v-if="selectedRepoAuthBanner"
+              color="info"
+              class="mt-10"
+            >
+              <span
+                v-clean-html="selectedRepoAuthBanner"
+              />
+            </Banner>
+          </div>
+
           <Checkbox
             v-model:value="showCommandStep"
             class="mb-20"
-            :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })"
+            :label="t('catalog.install.steps.helmCli.checkbox', { action: action.name, existing: !!existing })"
           />
 
-          <Checkbox
+          <PrivateRegistry
             v-if="showCustomRegistry"
-            v-model:value="showCustomRegistryInput"
-            class="mb-20"
-            :label="t('catalog.chart.registry.custom.checkBoxLabel')"
-            :tooltip="t('catalog.chart.registry.tooltip')"
+            :context="PRIVATE_REGISTRY_CONTEXT.CHARTS"
+            :value="customRegistrySetting"
+            :enabled="showCustomRegistryInput"
+            :default-registry="defaultRegistrySetting"
+            :namespace="targetNamespace"
+            in-store="cluster"
+            :register-before-hook="registerBeforeHook"
+            :show-pull-secrets="showRegistryPullSecrets"
+            :repo-default-pull-secrets="repoDefaultPullSecretNames"
+            :existing-values-pull-secrets="existingValuesPullSecrets"
+            :pull-secret="registryPullSecret"
+            :skip-pull-secrets="skipPullSecrets"
+            checkbox-test-id="custom-registry-checkbox"
+            input-test-id="custom-registry-input"
+            @update:value="(val) => customRegistrySetting = val"
+            @update:enabled="(val) => showCustomRegistryInput = val"
+            @update:pull-secret="(val) => registryPullSecret = val"
+            @update:skip-pull-secrets="(val) => skipPullSecrets = val"
           />
-          <div class="row">
-            <div class="col span-6">
-              <LabeledInput
-                v-if="showCustomRegistryInput"
-                v-model:value="customRegistrySetting"
-                label-key="catalog.chart.registry.custom.inputLabel"
-                placeholder-key="catalog.chart.registry.custom.placeholder"
-                :min-height="30"
-              />
-            </div>
-          </div>
           <div
             class="step__values__controls--spacer"
             style="flex:1"
@@ -1475,7 +1874,7 @@ export default {
             <LabeledSelect
               v-if="chart"
               :label="t('catalog.install.version')"
-              :value="query.versionName"
+              :value="selectedVersionOption"
               :options="filteredVersions"
               :selectable="version => !version.disabled"
               @update:value="selectVersion"
@@ -1722,74 +2121,19 @@ export default {
       />
     </div>
   </div>
-
-  <!-- App is deployed as a Legacy or MultiCluster app, don't let user update from here -->
-  <div
-    v-else
-    class="install-steps"
-    :class="{ 'isPlainLayout': isPlainLayout}"
-  >
-    <div class="outer-container">
-      <div class="header mb-20">
-        <div class="title">
-          <div class="top choice-banner">
-            <div class="title">
-              <!-- Logo -->
-              <slot name="bannerTitleImage">
-                <div class="round-image">
-                  <LazyImage
-                    :src="chart ? chart.icon : ''"
-                    class="logo"
-                  />
-                </div>
-              </slot>
-              <!-- Title with subtext -->
-              <div class="subtitle">
-                <h2 v-if="stepperName">
-                  {{ stepperName }}
-                </h2>
-                <span
-                  v-if="stepperSubtext"
-                  class="subtext"
-                >{{ stepperSubtext }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <Banner
-        color="warning"
-        class="description"
-      >
-        <span v-if="!mcapp">
-          {{ t('catalog.install.error.legacy.label', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true) }}
-        </span>
-        <template v-if="!legacyEnabled">
-          <span v-clean-html="t('catalog.install.error.legacy.enableLegacy.prompt', true)" />
-          <router-link :to="legacyFeatureRoute">
-            {{ t('catalog.install.error.legacy.enableLegacy.goto') }}
-          </router-link>
-        </template>
-        <template v-else-if="mcapp">
-          <span v-clean-html="t('catalog.install.error.legacy.mcmNotSupported')" />
-        </template>
-        <template v-else>
-          <router-link :to="legacyAppRoute">
-            <span v-clean-html="t('catalog.install.error.legacy.navigate')" />
-          </router-link>
-        </template>
-      </Banner>
-    </div>
-  </div>
 </template>
 
 <style lang="scss" scoped>
+  .chart-version-footnote {
+    margin-top: 8px;
+    color: var(--input-label);
+  }
+
   $title-height: 50px;
   $padding: 5px;
   $slideout-width: 35%;
 
   .install-steps {
-    padding-top: 0;
     height: 0;
     position: relative;
     overflow: hidden;
@@ -1805,37 +2149,29 @@ export default {
     }
   }
 
-  .wizard {
-    .logo-bg {
-      margin-right: 10px;
-      height: $title-height;
-      width: $title-height;
-      background-color: white;
-      border: $padding solid white;
-      border-radius: calc( 3 * var(--border-radius));
-      position: relative;
-    }
+  .logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 
-    .logo {
-      max-height: $title-height - 2 * $padding;
-      max-width: $title-height - 2 * $padding;
-      position: absolute;
-      width: auto;
-      height: auto;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      margin: auto;
-    }
+    .logo-box {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      border-radius: var(--border-radius);
 
-    // Hack - We're adding an absolute tag under the logo that we want to consume space without breaking vertical alignment of row.
-    // W  ith the slots available this isn't possible without adding tag specific styles to the root wizard classes
-    &.windowsIncompatible {
-      :deep() .header {
-        padding-bottom: 15px;
+      .logo {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
       }
     }
+  }
+
+  .wizard {
 
     .os-label {
       position: absolute;
@@ -1902,7 +2238,17 @@ export default {
 
     padding: 10px;
 
-    transition: right .5s ease;
+    // The panel is always rendered and parked off screen, so its contents stay in the DOM while
+    // it's closed. Skipping them keeps them out of the browser's find-in-page results (and out of
+    // the accessibility tree) until the panel is actually shown.
+    // `allow-discrete` delays the switch back to hidden until the slide out has finished, so the
+    // contents don't blank out mid transition. Without it the contents simply hide immediately.
+    content-visibility: hidden;
+
+    transition-property: right, content-visibility;
+    transition-duration: .5s;
+    transition-timing-function: ease;
+    transition-behavior: allow-discrete;
 
     &__header {
       display: flex;
@@ -1946,6 +2292,7 @@ export default {
 
     &__show {
       right: 0;
+      content-visibility: visible;
     }
 
   }
@@ -1984,38 +2331,43 @@ export default {
 
   border-bottom: var(--header-border-size) solid var(--header-border);
 
-  & > .title {
+  & > .chart-title-container {
     flex: 1;
     min-height: 75px;
   }
 
   .choice-banner {
 
-    flex-basis: 40%;
+    flex-basis: 100%;
     display: flex;
     align-items: center;
 
     &.top {
 
-      H2 {
+      H1, H2 {
         margin: 0px;
       }
 
-      .title{
+      .chart-title-container {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-evenly;
-
-        & > .subtitle {
-          margin: 0 20px;
-        }
+        gap: 24px;
       }
 
-      .subtitle{
+      .chart-title {
         display: flex;
         flex-direction: column;
         & .subtext {
+          display: flex;
+          align-items: center;
+          gap: 8px;
           color: var(--input-label);
+          margin-top: 8px;
+
+          .icon-version-alt {
+            font-size: 19px;
+          }
         }
       }
 
@@ -2032,17 +2384,6 @@ export default {
       }
     }
 
-    & .round-image {
-      min-width: 50px;
-      height: 50px;
-      margin: 10px 10px 10px 0;
-      border-radius: 50%;
-      overflow: hidden;
-      .logo {
-        min-width: 50px;
-        height: 50px;
-      }
-    }
   }
 }
 

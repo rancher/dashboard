@@ -1,9 +1,15 @@
-
 <script>
 import { Banner } from '@components/Banner';
+import { HIDE_LOCAL_AUTH_PROVIDER } from '@shell/store/features';
+import { RcButton } from '@components/RcButton';
+import { promptDisableAuthProvider } from '@shell/utils/auth';
 
 export default {
-  components: { Banner },
+  components: { Banner, RcButton },
+
+  data() {
+    return { disableLocalAuth: this.$store.getters['features/get'](HIDE_LOCAL_AUTH_PROVIDER) };
+  },
 
   props: {
     tArgs: {
@@ -20,6 +26,10 @@ export default {
       type:     Function,
       required: true,
       default:  () => { },
+    },
+    providerId: {
+      type:    String,
+      default: '',
     }
   },
 
@@ -31,16 +41,13 @@ export default {
 
   methods: {
     showDisableModal() {
-      this.$store.dispatch('management/promptModal', {
-        component:      'DisableAuthProviderDialog',
-        customClass:    'remove-modal',
-        modalWidth:     '400',
-        height:         'auto',
-        styles:         'max-height: 100vh;',
-        componentProps: {
-          disableCb: () => {
-            this.disable();
-          }
+      return promptDisableAuthProvider({
+        dispatch:  (action, payload) => this.$store.dispatch(action, payload),
+        getters:   this.$store.getters,
+        id:        this.providerId,
+        name:      this.tArgs?.provider,
+        disableCb: () => {
+          this.disable();
         }
       });
     }
@@ -53,25 +60,34 @@ export default {
     <Banner
       color="success clearfix"
       class="banner"
+      role="status"
     >
       <div class="text">
         {{ t('authConfig.stateBanner.enabled', tArgs) }}
+        <br><br>
+        <span
+          v-if="disableLocalAuth"
+          v-clean-html="t('authConfig.bannerEnabledAuthProvider', {}, true)"
+        />
       </div>
+
       <slot name="actions" />
-      <button
-        type="button"
-        class="btn-sm role-primary"
+
+      <rc-button
+        size="medium"
+        class="banner-action"
         @click="edit"
       >
         {{ t('action.edit') }}
-      </button>
-      <button
-        type="button"
-        class="ml-10 btn-sm role-primary bg-error"
+      </rc-button>
+
+      <rc-button
+        size="medium"
+        class="banner-action"
         @click="showDisableModal"
       >
         {{ t('generic.disable') }}
-      </button>
+      </rc-button>
     </Banner>
 
     <table
@@ -91,9 +107,17 @@ export default {
 <style lang="scss" scoped>
 .banner {
   display: flex;
-    align-items: center;
+  align-items: center;
+
   .text {
     flex: 1;
+  }
+
+  // The Banner's content is a flex row that defaults to align-items: stretch, so
+  // the buttons stretch to match the tall text block. Keep them at their natural
+  // height instead.
+  .banner-action {
+    align-self: center;
   }
 }
 

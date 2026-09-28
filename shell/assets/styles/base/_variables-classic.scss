@@ -1,0 +1,47 @@
+.classic {
+  --primary                    : #{$primary};
+  --primary-text               : #{contrast-color($primary)};
+  --primary-hover-bg           : #{darken($primary, 10%)};
+  --primary-hover-text         : #{saturate($lightest, 20%)};
+  --primary-active-bg          : #{darken($primary, 25%)};
+  --primary-active-text        : #{contrast-color(darken($primary, 25%))};
+  --primary-border             : #{$primary};
+  --primary-banner-bg          : #{rgba($primary, 0.15)};
+  --primary-light-bg           : #{rgba($primary, 0.05)};
+  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
+
+  --link                    : #{$link};
+  --link-text               : #{contrast-color($link)};
+  --link-text-secondary     : #{$darker};
+  --link-hover-bg           : #{darken($link, 10%)};
+  --link-hover-text         : #{saturate($lightest, 20%)};
+  --link-active-bg          : #{darken($link, 25%)};
+  --link-active-text        : #{contrast-color(darken($link, 25%))};
+  --link-border             : #{$link};
+  --link-banner-bg          : #{rgba($link, 0.15)};
+  --link-light-bg           : #{rgba($link, 0.05)};
+
+  --on-secondary: var(--primary);
+  --secondary-border: var(--primary);
+
+  --tertiary                  : var(--accent-btn);
+  --tertiary-header           : var(--header-btn-bg);
+  --tertiary-border           : var(--primary);
+  --tertiary-header-hover     : var(--primary);
+  --on-tertiary               : var(--primary);
+  --on-tertiary-header        : var(--header-btn-text);
+  --on-tertiary-header-hover  : #fff;
+  --on-tertiary-hover         : var(--lightest);
+  --tertiary-hover            : var(--accent-btn);
+  --tertiary-hover-app-bar    : var(--primary-hover-text);
+
+  --active        : var(--primary);
+  --active-nav    : var(--primary-hover-bg);
+  --on-active     : #{$grey-0};
+  --active-hover  : var(--primary-hover-bg);
+
+  --category-active       : var(--nav-active);
+  --category-active-hover : var(--nav-hover);
+
+  --body-text-hover: var(--darker-text);
+}

@@ -88,57 +88,76 @@ export default {
       });
     },
 
-    details() {
-      if (!this.parsedReport) {
-        return [];
-      }
+    profileName() {
+      return this.value.status?.lastRunScanProfileName || this.value.spec?.scanProfileName;
+    },
 
-      const out = [
-        {
+    statusMessage() {
+      const conditions = this.value.status?.conditions || [];
+      const transitioning = conditions.find((c) => c.transitioning && c.message);
+
+      return transitioning?.message || this.value.status?.display?.message || '';
+    },
+
+    details() {
+      const out = [];
+
+      if (this.profileName) {
+        out.push({
           label: this.t('compliance.profile'),
-          value: this.value.status.lastRunScanProfileName,
+          value: this.profileName,
           to:    {
             name:   'c-cluster-product-resource-id',
             params: {
               ...this.$route.params,
               resource: COMPLIANCE.CLUSTER_SCAN_PROFILE,
-              id:       this.value.status.lastRunScanProfileName
+              id:       this.profileName
             }
           }
-        },
-        {
-          label: this.t('compliance.scan.total'),
-          value: this.parsedReport.total
-        },
-        {
-          label: this.t('compliance.scan.pass'),
-          value: this.parsedReport.pass
-        },
-        {
-          label: this.t('compliance.scan.warn'),
-          value: this.parsedReport.warn
-        },
-        {
-          label: this.t('compliance.scan.skip'),
-          value: this.parsedReport.skip
-        },
-        {
-          label: this.t('compliance.scan.fail'),
-          value: this.parsedReport.fail
-        },
-        {
-          label: this.t('compliance.scan.notApplicable'),
-          value: this.parsedReport.notApplicable
-        },
-        {
+        });
+      }
+
+      if (this.parsedReport) {
+        out.push(
+          {
+            label: this.t('compliance.scan.total'),
+            value: this.parsedReport.total
+          },
+          {
+            label: this.t('compliance.scan.pass'),
+            value: this.parsedReport.pass
+          }
+        );
+
+        if (this.canBeScheduled) {
+          out.push({
+            label: this.t('compliance.scan.warn'),
+            value: this.parsedReport.warn
+          });
+        }
+
+        out.push(
+          {
+            label: this.t('compliance.scan.skip'),
+            value: this.parsedReport.skip
+          },
+          {
+            label: this.t('compliance.scan.fail'),
+            value: this.parsedReport.fail
+          },
+          {
+            label: this.t('compliance.scan.notApplicable'),
+            value: this.parsedReport.notApplicable
+          }
+        );
+      }
+
+      if (this.value.status?.lastRunTimestamp) {
+        out.push({
           label:     this.canBeScheduled ? this.t('compliance.scan.lastScanTime') : this.t('compliance.scan.scanDate'),
           value:     this.value.status.lastRunTimestamp,
           component: 'Date'
-        },
-      ];
-
-      if (!this.canBeScheduled) {
-        return out.filter((each) => each.label !== this.t('compliance.scan.warn'));
+        });
       }
 
       return out;
@@ -261,7 +280,17 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <div class="detail mb-20">
+    <Banner
+      v-if="!parsedReport"
+      color="info"
+      :label="statusMessage
+        ? t('compliance.detail.noReportWithMessage', { state: value.stateDisplay, message: statusMessage })
+        : t('compliance.detail.noReport', { state: value.stateDisplay })"
+    />
+    <div
+      v-if="details.length"
+      class="detail mb-20"
+    >
       <div
         v-for="(item, i) in details"
         :key="i"

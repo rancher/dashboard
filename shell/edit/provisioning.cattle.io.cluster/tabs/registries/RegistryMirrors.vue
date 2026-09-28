@@ -22,23 +22,22 @@ export default {
   },
 
   data() {
-    const mirrorMap = this.value.spec.rkeConfig?.registries?.mirrors || {};
-    const entries = [];
-
-    for ( const hostname in mirrorMap ) {
-      entries.push({
-        hostname,
-        endpoints: (mirrorMap[hostname].endpoint || []).join(', '),
-        rewrite:   mirrorMap[hostname].rewrite || {},
-      });
-    }
-
-    return { entries };
+    return { entries: [] };
   },
 
   created() {
     if (!this.value.spec.rkeConfig?.registries?.mirrors) {
       set(this.value, 'spec.rkeConfig.registries.mirrors', {});
+    }
+
+    const mirrorMap = this.value.spec.rkeConfig?.registries?.mirrors || {};
+
+    for ( const hostname in mirrorMap ) {
+      this.entries.push({
+        hostname,
+        endpoints: (mirrorMap[hostname].endpoint || []).join(', '),
+        rewrite:   mirrorMap[hostname].rewrite || {},
+      });
     }
   },
 

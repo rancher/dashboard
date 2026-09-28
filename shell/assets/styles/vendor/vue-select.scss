@@ -39,7 +39,7 @@
   max-height: 350px;
   min-width: 160px;
   overflow-y: auto;
-  border: 1px solid var(--outline);
+  border: 1px solid var(--primary-border);
   border-radius: var(--border-radius);
   border-top-left-radius: 0;
   border-top-right-radius: 0;
@@ -157,7 +157,6 @@
     font-family: 'icons';
     height: 32px;
     padding-top: 8px;
-    color: var(--secondary);
     margin-right: 8px;
   }
 }
@@ -300,7 +299,7 @@ $transition-duration: 150ms;
   &.vs--single {
     min-height: 29px;
     &.vs--open {
-      .vs__selected {
+      &:not(.vs--unsearchable) .vs__selected {
         position: absolute;
         opacity: 0.4;
       }
@@ -320,7 +319,6 @@ $transition-duration: 150ms;
   .vs__dropdown-toggle {
     background-color: var(--input-bg);
     border: none;
-    padding: none;
     border-radius: var(--border-radius);
     border: 1px solid var(--dropdown-border);
   }

@@ -14,6 +14,6 @@ export default class ResourceListMastheadPo extends ComponentPo {
   }
 
   create() {
-    return this.self().find('[data-testid="masthead-create"]').click();
+    return cy.get('[data-testid="masthead-create"]').click();
   }
 }

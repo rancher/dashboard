@@ -10,3 +10,6 @@ export const REGISTRATION_NAMESPACE = `cattle-scc-system`;
 export const REGISTRATION_SECRET = `scc-registration`;
 export const REGISTRATION_RESOURCE_NAME = 'scc.cattle.io.registration';
 export const REGISTRATION_LABEL = `scc.cattle.io/scc-hash`;
+export const REGISTRATION_REQUEST_PREFIX = `offline-request-`;
+export const REGISTRATION_REQUEST_FILENAME = 'rancher-offline-registration-request.json';
+export const REGISTRATION_NOTIFICATION_ID = 'rancher-prime-registration';

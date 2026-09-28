@@ -63,12 +63,6 @@ const CLUSTER_TYPES = [
   },
   {
     group:      'rke',
-    id:         'rke',
-    label:      'cluster.provider.rke',
-    configKeys: ['rkeControllerManager', 'rkeScheduler', 'rkeProxy', 'rkeEtcd'],
-  },
-  {
-    group:      'rke',
     id:         'rke2', // rke federal
     label:      'cluster.provider.rke2',
     configKeys: [
@@ -77,12 +71,6 @@ const CLUSTER_TYPES = [
       'rke2Proxy',
       'rke2Etcd',
     ],
-  },
-  {
-    group:      'rke',
-    id:         'rke.windows',
-    label:      'cluster.provider.rkeWindows',
-    configKeys: ['rkeControllerManager', 'rkeScheduler', 'rkeProxy', 'rkeEtcd'],
   },
 ];
 
@@ -165,15 +153,6 @@ export default {
         this.value.prometheus.prometheusSpec.resources.requests['memory'] = '1750Mi';
       }
 
-      if (clusterType.id === 'rke.windows') {
-        if (!this.value.global.cattle.windows) {
-          this.value.global.cattle['windows'] = { enabled: true };
-        } else {
-          this.value.global.cattle.windows.enabled = true;
-        }
-      } else if (oldClusterType && oldClusterType.id === 'rke.windows') {
-        delete this.value.global.cattle.windows;
-      }
       this.$emit('onClusterTypeChanged', clusterType);
     },
   },

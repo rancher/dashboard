@@ -2,8 +2,9 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import AmazonCognitoPo from '@/cypress/e2e/po/edit/auth/cognito.po';
 import { AuthProvider, AuthProviderPo } from '@/cypress/e2e/po/pages/users-and-auth/authProvider.po';
 
-const authProviderPo = new AuthProviderPo('local');
-const cognitoPo = new AmazonCognitoPo('local');
+const authClusterId = '_';
+const authProviderPo = new AuthProviderPo(authClusterId);
+const cognitoPo = new AmazonCognitoPo(authClusterId);
 
 const clientId = 'test-client-id';
 const clientSecret = 'test-client-secret';
@@ -18,9 +19,9 @@ describe('Amazon Cognito', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
     cy.login();
     HomePagePo.goToAndWaitForGet();
     AuthProviderPo.navTo();
-    authProviderPo.waitForPage();
+    authProviderPo.waitForUrlPathWithoutContext();
     authProviderPo.selectProvider(AuthProvider.AMAZON_COGNITO);
-    cognitoPo.waitForPage();
+    cognitoPo.waitForUrlPathWithoutContext();
   });
 
   it('can navigate Auth Provider and select Amazon Cognito', () => {

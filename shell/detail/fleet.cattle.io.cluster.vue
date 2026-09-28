@@ -6,7 +6,7 @@ import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Tab from '@shell/components/Tabbed/Tab';
 import { MANAGEMENT, FLEET, SCHEMA } from '@shell/config/types';
 import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
-import { allHash } from 'utils/promise';
+import { allHash } from '@shell/utils/promise';
 
 export default {
   name: 'FleetDetailCluster',
@@ -38,6 +38,7 @@ export default {
       gitRepos:          this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO }),
       helmOps:           this.$store.dispatch('management/findAll', { type: FLEET.HELM_OP }),
       workspaces:        this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE }),
+      clusterGroups:     this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP }), // Needed for calculating targetClusters
       bundleDeployments: this.$store.dispatch('management/findAll', { type: FLEET.BUNDLE_DEPLOYMENT })
     });
 
@@ -58,6 +59,12 @@ export default {
     };
   },
 
+  created() {
+    if (this.workspace !== this.value.namespace) {
+      this.$store.commit('updateWorkspace', { value: this.value.namespace, getters: this.$store.getters });
+    }
+  },
+
   computed: {
     clusterId() {
       return this.value.id;
@@ -67,8 +74,8 @@ export default {
       return [
         ...this.gitRepos,
         ...this.helmOps
-      ].filter((x) => {
-        return x.targetClusters.includes(this.value);
+      ].filter((resource) => {
+        return !!resource.targetClusters.find((c) => c.id === this.clusterId);
       });
     },
 

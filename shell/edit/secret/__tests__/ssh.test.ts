@@ -1,18 +1,17 @@
 import { mount } from '@vue/test-utils';
+import { createStore } from 'vuex';
 import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import Ssh from '@shell/edit/secret/ssh.vue';
-
-const mockedStore = () => {
-  return { getters: { 'i18n/t': jest.fn() } };
-};
 
 const mockedRoute = { query: {} };
 
 const requiredSetup = () => {
+  const store = createStore({ getters: { 'i18n/t': () => jest.fn() } });
+
   return {
     global: {
-      mocks: {
-        $store:      mockedStore(),
+      plugins: [store],
+      mocks:   {
         $route:      mockedRoute,
         $fetchState: {},
       }

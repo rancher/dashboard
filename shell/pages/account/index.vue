@@ -1,6 +1,6 @@
 <script>
 import BackLink from '@shell/components/BackLink';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT, NORMAN, EXT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import Loading from '@shell/components/Loading';
 import Principal from '@shell/components/auth/Principal';
@@ -11,12 +11,14 @@ import { Banner } from '@components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 import TabTitle from '@shell/components/TabTitle';
+import { RcSeparator } from '@components/RcSeparator';
+import { RcHeading } from '@components/RcHeading';
 
 const API_ENDPOINT = '/v3';
 
 export default {
   components: {
-    CopyToClipboardText, BackLink, Banner, Loading, ResourceTable, Principal, TabTitle
+    CopyToClipboardText, BackLink, Banner, Loading, ResourceTable, Principal, TabTitle, RcSeparator, RcHeading
   },
   mixins: [BackRoute],
   async fetch() {
@@ -33,13 +35,26 @@ export default {
 
     this.apiHostSetting = apiHostSetting?.value;
     this.serverUrlSetting = serverUrlSetting?.value;
+
+    const selfUser = await this.$store.dispatch('auth/getSelfUser');
+
+    if (selfUser?.canGetUser && selfUser.status?.userID) {
+      // Fetch the user info for ChangePassword (ChangePasswordDialog needs the user info for the user whose password is being changed)
+      this.user = await this.$store.dispatch('management/find', {
+        type: MANAGEMENT.USER,
+        id:   selfUser.status?.userID
+      });
+    } else {
+      throw new Error(this.t('changePassword.errors.cannotFetchSelf'));
+    }
   },
   data() {
     return {
       apiHostSetting:    null,
       serverUrlSetting:  null,
       rows:              null,
-      canChangePassword: false
+      canChangePassword: false,
+      user:              null
     };
   },
   computed: {
@@ -124,24 +139,18 @@ export default {
         return !!this.principal.loginName;
       }
 
-      const users = await this.$store.dispatch('rancher/findAll', {
-        type: NORMAN.USER,
-        opt:  { url: '/v3/users', filter: { me: true } }
-      });
+      const passwordChangeRequest = await this.$store.dispatch('management/create', { type: EXT.PASSWORD_CHANGE_REQUESTS });
 
-      if (users && users.length === 1) {
-        return !!users[0].username;
-      }
-
-      return false;
+      return !!passwordChangeRequest?.canChangePassword;
     },
     showChangePasswordDialog() {
       this.$store.dispatch('management/promptModal', {
-        component:   'ChangePasswordDialog',
-        testId:      'change-password__modal',
-        customClass: 'change-password-modal',
-        modalWidth:  '500',
-        height:      '465'
+        component:      'ChangePasswordDialog',
+        componentProps: { user: this.user },
+        testId:         'change-password__modal',
+        customClass:    'change-password-modal',
+        modalWidth:     '500',
+        height:         '465'
       });
     }
   }
@@ -158,7 +167,10 @@ export default {
       </TabTitle>
     </h1>
 
-    <h2 v-t="'accountAndKeys.account.title'" />
+    <RcHeading
+      v-t="'accountAndKeys.account.title'"
+      :size="2"
+    />
     <div class="account">
       <Principal
         :value="principal.id"
@@ -180,10 +192,13 @@ export default {
       </div>
     </div>
 
-    <hr role="none">
+    <RcSeparator />
     <div class="keys-header">
       <div>
-        <h2 v-t="'accountAndKeys.apiKeys.title'" />
+        <RcHeading
+          v-t="'accountAndKeys.apiKeys.title'"
+          :size="2"
+        />
         <div class="api-url">
           <span>{{ t("accountAndKeys.apiKeys.apiEndpoint") }}</span>
           <CopyToClipboardText

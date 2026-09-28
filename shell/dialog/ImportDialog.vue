@@ -28,12 +28,19 @@ export default {
   props: {
     defaultNamespace: {
       type:    String,
-      default: 'default'
+      default: undefined
     },
   },
 
   async fetch() {
-    this.allNamespaces = await this.$store.dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } });
+    this.allNamespaces = (await this.$store.dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } })) || [];
+
+    if (this.selectedNamespace === undefined) {
+      const defaultNamespace = 'default';
+      const hasAccessToDefaultNamespace = this.allNamespaces.some((ns) => ns.name === defaultNamespace);
+
+      this.selectedNamespace = hasAccessToDefaultNamespace ? defaultNamespace : this.allNamespaces[0]?.name;
+    }
   },
 
   data() {
@@ -135,9 +142,9 @@ export default {
           <div class="row">
             <div class="col span-6">
               <FileSelector
-                role="button"
                 :aria-label="t('generic.readFromFileArea', { area: t('import.title') })"
-                class="btn role-secondary pull-left"
+                variant="secondary"
+                class="pull-left"
                 :label="t('generic.readFromFile')"
                 @selected="onFileSelected"
               />
@@ -182,6 +189,7 @@ export default {
         v-for="(err, i) in errors"
         :key="i"
         color="error"
+        role="alert"
         :label="err"
       />
     </template>

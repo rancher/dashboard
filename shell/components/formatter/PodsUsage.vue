@@ -9,8 +9,8 @@ export default {
   },
   computed: {
     podsUsage() {
-      const usedPods = this.row?.mgmt?.status?.requested?.pods;
-      const totalPods = this.row?.mgmt?.status?.allocatable?.pods;
+      const usedPods = this.row?.status?.requested?.pods;
+      const totalPods = this.row?.status?.allocatable?.pods;
 
       if (!this.row?.isReady || !totalPods) {
         return '—';

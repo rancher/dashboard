@@ -8,6 +8,8 @@ export interface SlideInPanelState {
   componentProps: Record<string, any>;
 }
 
+let closeTimer: ReturnType<typeof setTimeout> | null = null;
+
 const state = (): SlideInPanelState => ({
   isOpen:         false,
   isClosing:      false,
@@ -24,20 +26,30 @@ const getters: GetterTree<SlideInPanelState, any> = {
 
 const mutations: MutationTree<SlideInPanelState> = {
   open(state, payload: { component: Component; componentProps?: Record<string, any> }) {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+
+    state.isClosing = false;
     state.isOpen = true;
     state.component = markRaw(payload.component);
     state.componentProps = payload.componentProps || {};
   },
   close(state) {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+
     state.isClosing = true;
     state.isOpen = false;
 
-    // Delay clearing component/props for 500ms (same as transition duration)
-    setTimeout(() => {
+    closeTimer = setTimeout(() => {
       state.component = null;
       state.componentProps = {};
-
       state.isClosing = false;
+      closeTimer = null;
     }, 500);
   }
 };

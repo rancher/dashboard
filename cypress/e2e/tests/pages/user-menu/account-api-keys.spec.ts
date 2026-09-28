@@ -11,12 +11,12 @@
 // const apiKeysList = accountPage.list();
 // const tokenIdsList = [];
 
-describe('Account and API Keys', { tags: ['@userMenu', '@adminUser', '@standardUser'], testIsolation: 'off' }, () => {
+describe('Account and API Keys', { tags: ['@userMenu', '@adminUser', '@standardUser'], testIsolation: false }, () => {
   it('every file must have a test...', () => {});
 });
 
 // TODO: undo skipping when this issue is resolved: https://github.com/rancher/dashboard/issues/12325
-// describe.skip('Account and API Keys', { testIsolation: 'off' }, () => {
+// describe.skip('Account and API Keys', { testIsolation: false }, () => {
 //   before(() => {
 //     cy.login();
 //   });
@@ -42,16 +42,16 @@ describe('Account and API Keys', { tags: ['@userMenu', '@adminUser', '@standardU
 //       accountPage.currentPassword().set(Cypress.env('password'));
 //       accountPage.newPassword().set('NewPassword11!!');
 //       accountPage.confirmPassword().set('NewPassword11!!');
-//       cy.intercept('POST', '/v3/users?action=changepassword').as('changePw');
+//       cy.intercept('POST', '/v1/ext.cattle.io.passwordchangerequests').as('changePw');
 //       accountPage.apply();
-//       cy.wait('@changePw').its('response.statusCode').should('eq', 200);
+//       cy.wait('@changePw').its('response.statusCode').should('eq', 201);
 
 //       accountPage.changePassword();
 //       accountPage.currentPassword().set('NewPassword11!!');
 //       accountPage.newPassword().set(Cypress.env('password'));
 //       accountPage.confirmPassword().set(Cypress.env('password'));
 //       accountPage.apply();
-//       cy.wait('@changePw').its('response.statusCode').should('eq', 200);
+//       cy.wait('@changePw').its('response.statusCode').should('eq', 201);
 //     });
 
 //     it('Can create and delete API keys', () => {
@@ -107,7 +107,7 @@ describe('Account and API Keys', { tags: ['@userMenu', '@adminUser', '@standardU
 //     });
 //   });
 
-//   describe('List', { tags: ['@noVai', '@userMenu', '@adminUser'] }, () => {
+//   describe('List', { tags: ['@userMenu', '@adminUser'] }, () => {
 //     const tokenDesc = 'e2e-test-description';
 //     const uniqueTokenDesc = 'aaa-e2e-test-description';
 //     let initialCount: number;

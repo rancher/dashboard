@@ -7,7 +7,8 @@ export default {
   emits: ['update:value', 'error'],
 
   components: { FileSelector, LazyImage },
-  props:      {
+
+  props: {
     value: {
       type:    String,
       default: null,
@@ -36,12 +37,21 @@ export default {
     accept: {
       type:    String,
       default: 'image/*'
-    }
+    },
+
+    /**
+     * The RcButton variant used for the upload button.
+     * @values primary, secondary, tertiary, link, ghost
+     */
+    variant: {
+      type:    String,
+      default: 'primary',
+    },
   },
   computed: {
     isView() {
       return this.mode === _VIEW;
-    }
+    },
   },
   methods: {
     /**
@@ -62,7 +72,7 @@ export default {
   <FileSelector
     v-if="!value && !isView"
     :value="value"
-    class="btn role-primary"
+    :variant="variant"
     :mode="mode"
     :read-as-data-url="true"
     :byte-limit="byteLimit"
@@ -132,7 +142,7 @@ $logo: 60px;
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: var(--overlay-bg);
+      background-color: var(--subtle-overlay-bg);
     }
 
   }

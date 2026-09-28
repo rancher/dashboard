@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "paths": {
+      // we need to explicitly tell docusaurus where to look for vue types...
+      "vue": [
+        "node_modules/vue"
+      ],
+      "vue-router": [
+        "node_modules/vue-router"
+      ],
+      "~/*": [
+        "../*"
+      ],
+      "@/*": [
+        "../*"
+      ],
+      "@shell/*": [
+        "../shell/*"
+      ],
+      "@pkg/*": [
+        "../shell/pkg/*"
+      ],
+      "@components/*": [
+        "../pkg/rancher-components/src/components/*"
+      ]
+    }
+  }
+}

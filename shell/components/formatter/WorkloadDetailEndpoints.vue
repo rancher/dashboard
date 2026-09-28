@@ -8,6 +8,19 @@ export default {
       type:    [Array, String],
       default: null,
     },
+    // Unused, but SortableTable passes them and undeclared props fall through onto the root element.
+    row: {
+      type:    Object,
+      default: null,
+    },
+    col: {
+      type:    Object,
+      default: null,
+    },
+    rowKey: {
+      type:    String,
+      default: null,
+    },
   },
 
   components: { Tag },
@@ -16,47 +29,57 @@ export default {
     nodes() {
       return this.$store.getters['cluster/all'](NODE);
     },
-    // value may be JSON from "field.cattle.io/publicEndpoints" label
+    // value is either an array of endpoints or JSON from the "field.cattle.io/publicEndpoints"
+    // annotation, which holds the same array
     parsed() {
       const nodes = this.nodes;
       const nodeWithExternal = nodes.find((node) => !!node.externalIp) || {};
       const externalIp = nodeWithExternal.externalIp;
 
       if ( this.value && this.value.length ) {
-        let out ;
+        let endpoints;
 
         try {
-          out = JSON.parse(this.value);
-
-          out.forEach((endpoint) => {
-            let protocol = 'http';
-
-            if (endpoint.port === 443) {
-              protocol = 'https';
-            }
-
-            const linkDefaultDisplay = endpoint.port ? `${ endpoint.port }/${ endpoint.protocol }` : endpoint.protocol;
-
-            // If there's an ingress and it has a hostname, we use the hostname address instead
-            // https://github.com/rancher/dashboard/issues/8087
-            if (endpoint.ingressName && endpoint.hostname) {
-              endpoint.link = `${ protocol }://${ endpoint.hostname }${ endpoint.path }`;
-              endpoint.linkDisplay = endpoint.link;
-            } else if (endpoint.addresses && endpoint.addresses.length) {
-              endpoint.link = `${ protocol }://${ endpoint.addresses[0] }:${ endpoint.port }`;
-              endpoint.linkDisplay = linkDefaultDisplay;
-            } else if (externalIp) {
-              endpoint.link = `${ protocol }://${ externalIp }:${ endpoint.port }`;
-              endpoint.linkDisplay = linkDefaultDisplay;
-            } else {
-              endpoint.display = `[${ this.t('servicesPage.anyNode') }]:${ endpoint.port }`;
-            }
-          });
-
-          return out;
+          endpoints = Array.isArray(this.value) ? this.value : JSON.parse(this.value);
         } catch (err) {
-          return this.value[0];
+          return null;
         }
+
+        return endpoints.map((endpoint) => {
+          // Already resolved by the caller, for example a Gateway API endpoint, where none of the
+          // rules below apply.
+          if (endpoint.link) {
+            return endpoint;
+          }
+
+          let protocol = 'http';
+
+          if (endpoint.port === 443) {
+            protocol = 'https';
+          }
+
+          const linkDefaultDisplay = endpoint.port ? `${ endpoint.port }/${ endpoint.protocol }` : endpoint.protocol;
+
+          // If there's an ingress and it has a hostname, we use the hostname address instead
+          // https://github.com/rancher/dashboard/issues/8087
+          if (endpoint.ingressName && endpoint.hostname) {
+            const link = `${ protocol }://${ endpoint.hostname }${ endpoint.path }`;
+
+            return {
+              ...endpoint, link, linkDisplay: link
+            };
+          } else if (endpoint.addresses && endpoint.addresses.length) {
+            return {
+              ...endpoint, link: `${ protocol }://${ endpoint.addresses[0] }:${ endpoint.port }`, linkDisplay: linkDefaultDisplay
+            };
+          } else if (externalIp) {
+            return {
+              ...endpoint, link: `${ protocol }://${ externalIp }:${ endpoint.port }`, linkDisplay: linkDefaultDisplay
+            };
+          }
+
+          return { ...endpoint, display: `[${ this.t('servicesPage.anyNode') }]:${ endpoint.port }` };
+        });
       }
 
       return null;

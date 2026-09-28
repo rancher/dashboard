@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
-import PersistentVolume from '@shell/edit/persistentvolume/index';
-import { ExtendedVue, Vue } from 'vue/types/vue';
+import PersistentVolume from '@shell/edit/persistentvolume/index.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 
 describe('view: PersistentVolume', () => {
   it('should list enabled PV storage option if supported', () => {
@@ -8,7 +8,7 @@ describe('view: PersistentVolume', () => {
       labelKey: 'persistentVolume.csi.label', supported: true, value: 'csi'
     };
     const resource = 'PersistentVolume';
-    const wrapper = mount(PersistentVolume as ExtendedVue<Vue, {}, {}, {}, PersistentVolume>, {
+    const wrapper = mount(PersistentVolume, {
       props: {
         value: {
           setAnnotation: jest.fn(),
@@ -51,15 +51,15 @@ describe('view: PersistentVolume', () => {
       },
     });
 
-    const select = wrapper.findComponent('[data-testid="persistent-volume-plugin-select"]');
+    const select = wrapper.findComponent<typeof LabeledSelect>('[data-testid="persistent-volume-plugin-select"]');
 
-    expect((select.vm as unknown as any).options).toStrictEqual(expect.arrayContaining([plugin]));
+    expect(select.props('options')).toStrictEqual(expect.arrayContaining([plugin]));
   });
 
   it('should select current plugin', () => {
     const plugin = 'csi';
     const resource = 'PersistentVolume';
-    const wrapper = mount(PersistentVolume as ExtendedVue<Vue, {}, {}, {}, PersistentVolume>, {
+    const wrapper = mount(PersistentVolume, {
       props: {
         value: {
           setAnnotation: jest.fn(),

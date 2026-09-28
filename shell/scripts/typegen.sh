@@ -22,13 +22,18 @@ ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/table-headers.js --declara
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/types.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/labels-annotations.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/version.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/product/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config/product > /dev/null
 
 # # store
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/features.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
-${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/prefs.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/plugins.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/prefs.ts --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/store-types.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/type-map.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
 
 # # plugins
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/i18n.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/ > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/index.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/normalize.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/resource-class.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/classify.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
@@ -39,6 +44,8 @@ ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/steve/hybrid-class.js --d
 # # mixins
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/mixins/create-edit-view/index.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/mixins/create-edit-view > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/mixins/resource-fetch.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/mixins > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/mixins/resource-fetch-namespaced.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/mixins > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/mixins/resource-fetch-api-pagination.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/mixins > /dev/null
 
 # # models
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/models/namespace.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/models/ > /dev/null
@@ -46,6 +53,11 @@ ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/models/networking.k8s.io.ingress.
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/models/catalog.cattle.io.clusterrepo.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/models/ > /dev/null
 
 #./node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store
+
+# Drop transitively-emitted declarations we do not want to publish
+rm -f ${SHELL_DIR}/tmp/plugins/dashboard-store/getters.d.ts
+rm -f ${SHELL_DIR}/tmp/plugins/dashboard-store/model-loader.d.ts
+rm -f ${SHELL_DIR}/tmp/plugins/dashboard-store/model-loader-require.d.ts
 
 # Go through all of the folders and combine by wrapping with 'declare module'
 
@@ -65,6 +77,15 @@ echo "// Do not modify this file as changes will get overwritten" >> ${INDEX}
 
 echo "/// <reference types=\"@rancher/shell/types/vue-shim\" />" >> ${INDEX}
 echo "/// <reference types=\"@rancher/shell/types/global-vue\" />" >> ${INDEX}
+
+# Append a declaration body, rewriting inline relative type imports to the
+# published module name
+function appendBody() {
+  local entry=$1
+  local basePkg=$2
+
+  sed 's#import("\./#import("'"${basePkg}"'/#g' $entry >> ${INDEX}
+}
 
 function processDir() {
   local dir=$1
@@ -88,8 +109,18 @@ function processDir() {
 
         echo -e "\n// ${module}\n" >> ${INDEX}
         echo "declare module '${module}' {" >> ${INDEX}
-        cat $entry >> ${INDEX}
+        appendBody $entry $basePkg
         echo -e "}" >> ${INDEX}
+
+        # Also generate a module declaration with .js extension for JS source files
+        # TypeScript imports use .js extensions for JS files
+        if [ "${name}" != "index" ]; then
+          local moduleWithJs=${basePkg}/${name}.js
+          echo -e "\n// ${moduleWithJs}\n" >> ${INDEX}
+          echo "declare module '${moduleWithJs}' {" >> ${INDEX}
+          appendBody $entry $basePkg
+          echo -e "}" >> ${INDEX}
+        fi
       fi
     fi
   done

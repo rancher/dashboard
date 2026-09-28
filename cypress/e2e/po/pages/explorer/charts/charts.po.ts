@@ -3,6 +3,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import RcItemCardPo from '@/cypress/e2e/po/components/rc-item-card.po';
 import FilterPanelPo from '@/cypress/e2e/po/components/filter-panel.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class ChartsPage extends PagePo {
   private static createPath(clusterId: string) {
@@ -53,13 +54,28 @@ export class ChartsPage extends PagePo {
   }
 
   checkChartGenericIcon(name: string, isGeneric = true) {
+    this.chartsSearchFilterInput().type(name);
+    cy.location().should((loc) => {
+      const params = new URLSearchParams(loc.search);
+
+      expect(params.get('q')).to.eq(name);
+    });
+    this.chartCards().should('have.length.at.least', 1);
+
     const src = RcItemCardPo.getCardByTitle(name).getImage().invoke('attr', 'src');
 
     if (isGeneric) {
-      return src.should('contain', 'generic-catalog');
+      src.should('contain', 'generic-catalog');
+    } else {
+      src.should('not.contain', 'generic-catalog');
     }
 
-    return src.should('not.contain', 'generic-catalog');
+    this.chartsSearchFilterInput().clear();
+    cy.location().should((loc) => {
+      const params = new URLSearchParams(loc.search);
+
+      expect(params.get('q')).to.equal(null);
+    });
   }
 
   emptyState() {
@@ -72,5 +88,21 @@ export class ChartsPage extends PagePo {
 
   emptyStateResetFilters() {
     return this.self().find('[data-testid="charts-empty-state-reset-filters"]');
+  }
+
+  totalChartsCount() {
+    return this.self().find('[data-testid="charts-total-message"]').invoke('text').then((text) => parseInt(text.match(/\d+/)[0], 10));
+  }
+
+  chartCards() {
+    return this.self().find('[data-testid="app-chart-cards-container"] > [data-testid*="item-card-"]', MEDIUM_TIMEOUT_OPT);
+  }
+
+  scrollContainer() {
+    return cy.get('.main-layout');
+  }
+
+  sentinel() {
+    return this.self().find('[data-testid="charts-lazy-load-sentinel"]');
   }
 }

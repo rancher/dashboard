@@ -9,7 +9,6 @@ import ActionMenu from '@shell/components/ActionMenu';
 import GrowlManager from '@shell/components/GrowlManager';
 import ModalManager from '@shell/components/ModalManager';
 import SlideInPanelManager from '@shell/components/SlideInPanelManager';
-import WindowManager from '@shell/components/nav/WindowManager';
 import PromptRemove from '@shell/components/PromptRemove';
 import PromptRestore from '@shell/components/PromptRestore';
 import PromptModal from '@shell/components/PromptModal';
@@ -17,16 +16,15 @@ import Header from '@shell/components/nav/Header';
 import Inactivity from '@shell/components/Inactivity';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
-import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
-import AzureWarning from '@shell/components/auth/AzureWarning';
-import DraggableZone from '@shell/components/DraggableZone';
 import { MANAGEMENT } from '@shell/config/types';
 import { markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getClusterFromRoute, getProductFromRoute } from '@shell/utils/router';
-import { BOTTOM } from '@shell/utils/position';
 import SideNav from '@shell/components/SideNav';
+import { Layout } from '@shell/types/window-manager';
+import { RcButton } from '@components/RcButton';
+import { CLUSTER_SHELL } from '@shell/store/features';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -41,25 +39,21 @@ export default {
     GrowlManager,
     ModalManager,
     SlideInPanelManager,
-    WindowManager,
     FixedBanner,
-    AwsComplianceBanner,
-    AzureWarning,
-    DraggableZone,
     Inactivity,
     SideNav,
+    RcButton,
   },
 
   mixins: [PageHeaderActions, Brand, BrowserTabVisibility],
+
+  inject: ['notifyWmContainerReady'],
 
   // Note - This will not run on route change
   data() {
     return {
       noLocaleShortcut: process.env.dev || false,
       wantNavSync:      false,
-      unwatchPin:       undefined,
-      wmPin:            null,
-      draggable:        false,
     };
   },
 
@@ -108,25 +102,10 @@ export default {
       return this.clusterReady &&
         this.clusterId === getClusterFromRoute(this.$route) && routeReady;
     },
-
-    pinClass() {
-      return `pin-${ this.wmPin }`;
-    },
-
   },
 
   mounted() {
-    this.wmPin = window.localStorage.getItem('wm-pin') || BOTTOM;
-
-    // two-way binding this.wmPin <-> draggableZone.pin
-    this.$refs.draggableZone.pin = this.wmPin;
-    this.unwatchPin = this.$watch('$refs.draggableZone.pin', (pin) => {
-      this.wmPin = pin;
-    });
-  },
-
-  unmounted() {
-    this.unwatchPin();
+    this.notifyWmContainerReady(Layout.default);
   },
 
   methods: {
@@ -160,10 +139,16 @@ export default {
       debugger;
     },
 
+    // Open the shell for the current cluster if the user has permissions and the feature is enabled (invoked via keyboard shortcut)
     async toggleShell() {
       const clusterId = this.$route.params.cluster;
 
       if ( !clusterId ) {
+        return;
+      }
+
+      // Cluster shell is disabled via feature flag
+      if (!this.$store.getters['features/get'](CLUSTER_SHELL)) {
         return;
       }
 
@@ -184,13 +169,18 @@ export default {
 
 <template>
   <div class="dashboard-root">
+    <rc-button
+      size="large"
+      class="skip-to-content"
+      :to="{ hash: '#main-content' }"
+    >
+      {{ t('nav.skipToContent') }}
+    </rc-button>
     <FixedBanner :header="true" />
-    <AwsComplianceBanner v-if="managementReady" />
-    <AzureWarning v-if="managementReady" />
     <div
       v-if="managementReady"
       class="dashboard-content"
-      :class="{[pinClass]: true, 'dashboard-padding-left': showTopLevelMenu}"
+      :class="{'dashboard-padding-left': showTopLevelMenu}"
     >
       <Header />
       <SideNav
@@ -199,8 +189,10 @@ export default {
       />
       <main
         v-if="clusterAndRouteReady"
+        id="main-content"
         class="main-layout"
         :aria-label="t('layouts.default')"
+        tabindex="-1"
       >
         <router-view
           :key="$route.path"
@@ -237,32 +229,40 @@ export default {
       <!-- Ensure there's an outlet to show the error (404) page -->
       <main
         v-else-if="unmatchedRoute"
+        id="main-content"
         class="main-layout"
         :aria-label="t('layouts.default')"
+        tabindex="-1"
       >
         <router-view
           :key="$route.path"
           class="outlet"
         />
       </main>
+      <!-- Teleport target for WindowManager (unique per layout) -->
+      <!-- display: contents makes child panels become grid items of the parent grid -->
       <div
-        v-if="$refs.draggableZone"
-        class="wm"
-        :class="{
-          'drag-end': !$refs.draggableZone.drag.active,
-          'drag-start': $refs.draggableZone.drag.active,
-        }"
-        :draggable="draggable"
-        @dragstart="$refs.draggableZone.onDragStart($event)"
-        @dragend="$refs.draggableZone.onDragEnd($event)"
-      >
-        <WindowManager @draggable="draggable=$event" />
-      </div>
+        id="wm-container-default"
+        style="display: contents;"
+      />
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
     <SlideInPanelManager />
     <Inactivity />
-    <DraggableZone ref="draggableZone" />
   </div>
 </template>
+
+<style lang="scss" scoped>
+.skip-to-content {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  transform: translateY(-100%);
+
+  &:focus {
+    transform: translate(1rem, 1rem);
+  }
+}
+</style>

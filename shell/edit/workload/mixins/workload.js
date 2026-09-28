@@ -5,7 +5,6 @@ import {
   CONFIG_MAP,
   SECRET,
   WORKLOAD_TYPES,
-  NODE,
   SERVICE,
   PVC,
   SERVICE_ACCOUNT,
@@ -152,7 +151,8 @@ export default {
     const fetches = {};
 
     if (this.$store.getters[`management/canList`](CAPI.RANCHER_CLUSTER)) {
-      fetches.rancherClusters = this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+      // I could only find one place where a prov cluster might be used by this and parent components - shell/components/form/WorkloadPorts.vue provisioningCluster
+      fetches.rancherCluster = this.$store.dispatch('management/find', { type: CAPI.RANCHER_CLUSTER, id: this.currentCluster.provClusterId });
     }
 
     if (this.$store.getters[`management/canList`](HCI.HARVESTER_CONFIG)) {
@@ -184,32 +184,35 @@ export default {
           name:            `container-0`,
         }];
 
-        const metadata = { ...this.value.metadata };
-
-        const podSpec = { template: { spec: { containers: podContainers, initContainers: [] }, metadata } };
-
-        this.value['spec'] = podSpec;
+        // A standalone Pod keeps its spec in the native Pod shape (spec.*),
+        // NOT wrapped in a Workload's spec.template.spec. The shared form works
+        // on this shape via the podTemplateSpec/podLabels/podAnnotations
+        // computeds. See https://github.com/rancher/dashboard/issues/10171
+        this.value['spec'] = { containers: podContainers, initContainers: [] };
       }
     }
 
-    // EDIT view for POD
-    // Transform it from POD world to workload
-    if ((this.mode === _EDIT || this.mode === _VIEW || this.realMode === _CLONE ) && this.value.type === 'pod') {
-      const podSpec = { ...this.value.spec };
-      const metadata = { ...this.value.metadata };
+    // Pods are read/edited/cloned in their native shape - no POD->workload
+    // wrapping needed. (Workloads legitimately nest under spec.template.spec.)
+    const spec = this.value.spec;
+    let podTemplateSpec;
 
-      this.value.spec['template'] = { spec: podSpec, metadata };
+    if (type === WORKLOAD_TYPES.CRON_JOB) {
+      podTemplateSpec = spec.jobTemplate.spec.template.spec;
+    } else if (this.value.type === POD) {
+      podTemplateSpec = spec;
+    } else {
+      podTemplateSpec = spec?.template?.spec;
     }
 
-    const spec = this.value.spec;
-    let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
+    // Area to add default value to securityContext on POD CREATE
+    // Check if the securityContext has been setup, for None should be {} when cloning, for new should be empty.
+    if (this.mode === _CREATE && !podTemplateSpec.securityContext) {
+      podTemplateSpec.securityContext = { seccompProfile: { type: 'RuntimeDefault' } };
+    }
 
     let containers = podTemplateSpec.containers || [];
     let container;
-
-    if (this.mode === _VIEW && this.value.type === 'pod' ) {
-      podTemplateSpec = spec;
-    }
 
     if (
       this.mode === _CREATE ||
@@ -257,8 +260,6 @@ export default {
     return {
       secondaryResourceData:      this.secondaryResourceDataConfig(),
       namespacedConfigMaps:       [],
-      allNodes:                   null,
-      allNodeObjects:             [],
       namespacedSecrets:          [],
       imagePullNamespacedSecrets: [],
       allServices:                [],
@@ -276,23 +277,61 @@ export default {
       container,
       containerChange:            0,
       tabChange:                  0,
-      podFsGroup:                 podTemplateSpec.securityContext?.fsGroup,
       savePvcHookName:            'savePvcHook',
       tabWeightMap:               TAB_WEIGHT_MAP,
-      fvFormRuleSets:             [],
-      fvReportedValidationPaths:  ['spec'],
-      isNamespaceNew:             false,
-      idKey:                      ID_KEY
+      // [fvFormRulesets][localhostProfile] added as default not required, needs to be on the INDEX 0
+      fvFormRuleSets:             [{
+        path:           'podTemplateSpec.securityContext.seccompProfile.localhostProfile',
+        rules:          [''],
+        rootObject:     this,
+        translationKey: 'workload.container.security.localhostProfile.label'
+      }],
+      fvReportedValidationPaths: ['spec'],
+      isNamespaceNew:            false,
+      idKey:                     ID_KEY
     };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
-    tabErrors() {
-      return { general: this.fvGetPathErrors(['image'])?.length > 0 };
+    seccompProfileTypes() {
+      return [
+        {
+          value: 'None',
+          label: this.t('workload.container.security.seccompProfile.types.none.label')
+        },
+        {
+          value: 'RuntimeDefault',
+          label: this.t('workload.container.security.seccompProfile.types.runtimeDefault.label')
+        },
+        {
+          value: 'Localhost',
+          label: this.t('workload.container.security.seccompProfile.types.localhost.label')
+        }, {
+          value: 'Unconfined',
+          label: this.t('workload.container.security.seccompProfile.types.unconfined.label')
+        }];
     },
 
-    defaultTab() {
+    containerNameRules() {
+      const { required } = formRulesGenerator(this.$store.getters['i18n/t'], { key: this.t('workload.container.containerName') });
+
+      return [required];
+    },
+
+    containerImageRules() {
+      const { required } = formRulesGenerator(this.$store.getters['i18n/t'], { key: this.t('workload.container.image') });
+
+      return [required];
+    },
+
+    tabErrors() {
+      const tabErrors = { podSecurityContext: this.fvGetPathErrors(['podTemplateSpec.securityContext.seccompProfile.localhostProfile'])?.length > 0 };
+
+      return tabErrors;
+    },
+
+    defaultWorkloadTab() {
       if (!!this.$route.query.sidecar || this.$route.query.init || this.mode === _CREATE) {
         const container = this.allContainers.find((c) => c.__active);
 
@@ -335,14 +374,25 @@ export default {
       return this.type === WORKLOAD_TYPES.STATEFUL_SET;
     },
 
-    // if this is a cronjob, grab pod spec from within job template spec
+    // For a Pod the pod spec IS spec; a cronjob nests it within the job template
+    // spec; other workloads nest it under spec.template.spec.
     podTemplateSpec: {
       get() {
-        return this.isCronJob ? this.spec.jobTemplate.spec.template.spec : this.spec?.template?.spec;
+        if (this.isCronJob) {
+          return this.spec.jobTemplate.spec.template.spec;
+        }
+        if (this.isPod) {
+          return this.spec;
+        }
+
+        return this.spec?.template?.spec;
       },
       set(neu) {
         if (this.isCronJob) {
           this.spec.jobTemplate.spec.template['spec'] = neu;
+        } else if (this.isPod) {
+          this.spec = neu;
+          this.value['spec'] = neu;
         } else {
           this.spec.template['spec'] = neu;
         }
@@ -359,6 +409,17 @@ export default {
           return this.spec.jobTemplate.metadata.labels;
         }
 
+        if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
+          if (!this.value.metadata.labels) {
+            this.value.metadata['labels'] = {};
+          }
+
+          return this.value.metadata.labels;
+        }
+
         if (!this.spec.template.metadata) {
           this.spec.template['metadata'] = { labels: {} };
         }
@@ -368,6 +429,11 @@ export default {
       set(neu) {
         if (this.isCronJob) {
           this.spec.jobTemplate.metadata['labels'] = neu;
+        } else if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
+          this.value.metadata['labels'] = neu;
         } else {
           this.spec.template.metadata['labels'] = neu;
         }
@@ -383,6 +449,18 @@ export default {
 
           return this.spec.jobTemplate.metadata.annotations;
         }
+
+        if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
+          if (!this.value.metadata.annotations) {
+            this.value.metadata['annotations'] = {};
+          }
+
+          return this.value.metadata.annotations;
+        }
+
         if (!this.spec.template.metadata) {
           this.spec.template['metadata'] = { annotations: {} };
         }
@@ -392,6 +470,11 @@ export default {
       set(neu) {
         if (this.isCronJob) {
           this.spec.jobTemplate.metadata['annotations'] = neu;
+        } else if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
+          this.value.metadata['annotations'] = neu;
         } else {
           this.spec.template.metadata['annotations'] = neu;
         }
@@ -421,9 +504,15 @@ export default {
           return each;
         }),
       ].map((container) => {
-        const containerImageRule = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name }).containerImage;
+        const rules = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name });
+        const imageError = rules.containerImage(container);
+        const nameError = rules.containerName(container);
+        const localhostProfileError = rules.localhostProfile(container);
 
-        container.error = containerImageRule(container);
+        container.error = {
+          general:          nameError || imageError,
+          localhostProfile: localhostProfileError
+        };
 
         return container;
       });
@@ -560,6 +649,26 @@ export default {
       this.servicesOwned = await this.value.getServicesOwned();
     },
 
+    'podTemplateSpec.securityContext.seccompProfile.type'(neu) {
+      if (neu === 'Localhost') {
+        // [fvFormRulesets][localhostProfile] added here, should be required if Localhost selected
+        this.fvFormRuleSets[0] = {
+          path:           'podTemplateSpec.securityContext.seccompProfile.localhostProfile',
+          rules:          ['required'],
+          rootObject:     this,
+          translationKey: 'workload.container.security.localhostProfile.label'
+        };
+      } else {
+        // [fvFormRulesets][localhostProfile] added here, should not be required if Localhost selected
+        this.fvFormRuleSets[0] = {
+          path:           'podTemplateSpec.securityContext.seccompProfile.localhostProfile',
+          rules:          [''],
+          rootObject:     this,
+          translationKey: 'workload.container.security.localhostProfile.label'
+        };
+      }
+    },
+
     isNamespaceNew(neu, old) {
       if (!old && neu) {
         // As the namespace is new any resource that's been fetched with a namespace is now invalid
@@ -602,15 +711,6 @@ export default {
       this.value['type'] = neu;
       delete this.value.apiVersion;
     },
-
-    container: {
-      handler(c) {
-        this.fvFormRuleSets = [{
-          path: 'image', rootObject: c, rules: ['required'], translationKey: 'workload.container.image'
-        }];
-      },
-      immediate: true
-    }
   },
 
   created() {
@@ -635,17 +735,6 @@ export default {
                 var:         'imagePullNamespacedSecrets',
                 parsingFunc: (data) => {
                   return data.filter((secret) => (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
-                }
-              }
-            ]
-          },
-          [NODE]: {
-            applyTo: [
-              { var: 'allNodeObjects' },
-              {
-                var:         'allNodes',
-                parsingFunc: (data) => {
-                  return data.map((node) => node.id);
                 }
               }
             ]
@@ -726,7 +815,9 @@ export default {
     },
 
     saveWorkload() {
+      // A Pod has no selector/template - it is saved in its native shape.
       if (
+        !this.isPod &&
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
         (this.mode === _CREATE || this.realMode === _CLONE)
@@ -739,12 +830,18 @@ export default {
 
       if (this.type === WORKLOAD_TYPES.CRON_JOB) {
         template = this.spec.jobTemplate;
+      } else if (this.isPod) {
+        // For a Pod, `spec` is the pod spec and `value.metadata` is the pod
+        // metadata - present them the same way the workload template is shaped
+        // so the shared logic below can operate on them uniformly.
+        template = { spec: this.spec, metadata: this.value.metadata };
       } else {
         template = this.spec.template;
       }
 
       // WORKLOADS
       if (
+        !this.isPod &&
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
         (this.mode === _CREATE || this.realMode === _CLONE)
@@ -806,7 +903,6 @@ export default {
       }
 
       this.fixPodAffinity(podAntiAffinity);
-      this.fixPodSecurityContext(this.podTemplateSpec);
 
       template.metadata.namespace = this.value.metadata.namespace;
 
@@ -901,20 +997,6 @@ export default {
       });
 
       return podAffinity;
-    },
-
-    fixPodSecurityContext(podTempSpec) {
-      if (this.podFsGroup) {
-        podTempSpec.securityContext = podTempSpec.securityContext || {};
-        podTempSpec.securityContext.fsGroup = this.podFsGroup;
-      } else {
-        if (podTempSpec.securityContext?.fsGroup) {
-          delete podTempSpec.securityContext.fsGroup;
-        }
-        if (Object.keys(podTempSpec.securityContext || {}).length === 0) {
-          delete podTempSpec.securityContext;
-        }
-      }
     },
 
     selectType(type) {

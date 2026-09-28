@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import Upgrading from '@shell/edit/workload/Upgrading.vue';
+import { WORKLOAD_TYPES } from '@shell/config/types';
 
 describe('component: Upgrading', () => {
   it('should display all the inputs', () => {
@@ -25,20 +26,31 @@ describe('component: Upgrading', () => {
     expect(wrapper.props('value')?.[key]).toBe(newValue);
   });
 
-  // TODO: #6179: Integrate test with component fix, as the scope is not to check the value of the input
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip.each([
-    ['surge', 'maxSurge', '%'],
-    ['unavailable', 'maxUnavailable', '%'],
-  ])('should set typed value in %p into %p and unit', (field, key, unit) => {
+  it.each([
+    WORKLOAD_TYPES.REPLICA_SET,
+    WORKLOAD_TYPES.REPLICATION_CONTROLLER,
+  ])('should persist minReadySeconds into value for %p', async(type) => {
+    const wrapper = mount(Upgrading, { props: { type } });
+    const input = wrapper.find('[data-testid="input-policy-min"]').find('input');
+    const newValue = 123;
+
+    await input.setValue(newValue);
+    await input.trigger('blur');
+
+    expect(wrapper.props('value')?.minReadySeconds).toBe(newValue);
+  });
+
+  it.each([
+    ['maxSurge', '%'],
+    ['maxUnavailable', '%'],
+  ] as const)('should set typed value in %p with %p unit', (key, unit) => {
     const wrapper = mount(Upgrading);
-    const input = wrapper.find(`[data-testid="input-policy-${ field }"]`).find('input');
     const newValue = 123;
     const expectation = `${ newValue }${ unit }`;
 
-    input.setValue(newValue);
-    input.trigger('blur');
+    wrapper.vm.updateWithUnits({ selected: unit, text: newValue }, key);
 
+    expect(wrapper.vm[key]).toBe(newValue);
     expect(wrapper.props('value')?.strategy.rollingUpdate[key]).toBe(expectation);
   });
 

@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import Settings from '@shell/edit/management.cattle.io.setting.vue';
+import Settings from '@shell/edit/management.cattle.io.setting/index.vue';
 import { SETTING } from '@shell/config/settings';
 
 const requiredSetup = () => ({
@@ -18,6 +18,7 @@ const requiredSetup = () => ({
       },
       $route:  { query: { AS: '' } },
       $router: { applyQuery: jest.fn() },
+      t:       (key: string) => key,
     }
   }
 });

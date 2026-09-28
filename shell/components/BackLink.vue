@@ -34,8 +34,16 @@ export default {
     display: flex;
     font-size: 16px;
     margin: 10px 0 20px 0;
+    padding: 0 4px 2px 0;
     outline: 0;
     width: fit-content;
+    border-bottom: 2px solid transparent;
+
+    &:hover {
+      text-decoration: none;
+      border-bottom: 2px solid;
+      border-bottom-color: inherit;
+    }
 
     &:focus-visible {
       @include focus-outline;

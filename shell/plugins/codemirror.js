@@ -27,6 +27,8 @@ import 'codemirror/addon/hint/show-hint.css';
 import 'codemirror/addon/hint/show-hint.js';
 import 'codemirror/addon/hint/anyword-hint.js';
 
+import 'codemirror/addon/comment/comment.js';
+
 import { strPad } from '@shell/utils/string';
 
 function isLineComment(cm, lineNo) {

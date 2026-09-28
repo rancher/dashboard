@@ -42,6 +42,11 @@ export default {
     project: {
       type:    Boolean,
       default: false
+    },
+
+    appendToBody: {
+      type:    Boolean,
+      default: true
     }
   },
 
@@ -56,11 +61,13 @@ export default {
 
   data() {
     return {
-      principals:     null,
-      searchStr:      '',
-      options:        [],
-      newValue:       '',
-      tooltipContent: null,
+      principals:        null,
+      searchStr:         '',
+      options:           [],
+      newValue:          '',
+      tooltipContent:    null,
+      hasSearchTooShort: false,
+      minSearchLength:   2,
     };
   },
 
@@ -133,9 +140,20 @@ export default {
       this.searchStr = str;
 
       if ( str ) {
+        // Backend requires minimum 2 characters for search
+        if (str.length < this.minSearchLength) {
+          this.hasSearchTooShort = true;
+          this.options = [];
+          loading(false);
+
+          return;
+        }
+
+        this.hasSearchTooShort = false;
         loading(true);
         this.debouncedSearch(str, loading);
       } else {
+        this.hasSearchTooShort = false;
         this.search(null, loading);
       }
     },
@@ -162,6 +180,10 @@ export default {
         if ( this.searchStr === str ) {
           // If not, they've already typed something else
           this.options = res.map((x) => x.id);
+          // display the search results if the dropdown has been closed
+          if (this.options.length) {
+            this.$refs['labeled-select'].isOpen = true;
+          }
         }
       } catch (e) {
         this.options = [];
@@ -186,17 +208,23 @@ export default {
     :label="label"
     :placeholder="placeholder"
     :options="options"
+    :append-to-body="appendToBody"
     :searchable="true"
     :filterable="false"
     class="select-principal"
-    :class="{'retain-selection': retainSelection}"
+    :class="{'retain-selection': retainSelection, 'results-in-place': !appendToBody}"
     @update:value="add"
     @search="onSearch"
     @on-open="resetTooltipContent()"
     @on-close="setTooltipContent()"
   >
     <template v-slot:no-options="{ searching }">
-      <template v-if="searching">
+      <template v-if="hasSearchTooShort">
+        <span class="search-slot">
+          {{ t('cluster.memberRoles.addClusterMember.minCharacters', { count: minSearchLength }) }}
+        </span>
+      </template>
+      <template v-else-if="searching">
         <span class="search-slot">
           {{ t('cluster.memberRoles.addClusterMember.noResults') }}
         </span>
@@ -234,6 +262,17 @@ export default {
   }
 
   .select-principal {
+    &.results-in-place {
+      :deep(.v-select) {
+        display: block !important;
+      }
+
+      :deep(.vs__dropdown-menu) {
+        left: calc(-1 * var(--border-width));
+        width: calc(100% + 2 * var(--border-width));
+      }
+    }
+
     &.retain-selection {
       min-height: 91px;
       &.focused {
@@ -245,8 +284,14 @@ export default {
   }
 </style>
 <style lang="scss">
-  .vs__dropdown-menu {
+  // Results put on the body have nothing to take their width from, so they are
+  // left to the positioner that places them. Results left in place keep the
+  // width vue-select gives them, which is the width of the search.
+  body > .vs__dropdown-menu {
     width: 0%;
+  }
+
+  .vs__dropdown-menu {
     * {
       overflow-x: hidden;
       text-overflow: ellipsis;

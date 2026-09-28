@@ -3,26 +3,47 @@ import { PropType } from 'vue';
 import { isEmpty } from 'lodash';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import { isHarvesterCluster } from '@shell/utils/cluster';
+import { HARVESTER_CONTAINER } from '@shell/store/features';
 import { FLEET } from '@shell/config/types';
 import FleetUtils from '@shell/utils/fleet';
 import { Expression, Selector, Target, TargetMode } from '@shell/types/fleet';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import MatchExpressions from '@shell/components/form/MatchExpressions.vue';
 import { Banner } from '@components/Banner';
-import { RcButton } from '@components/RcButton';
+import { RcContentGroup } from '@components/Layout';
+import { RcSection } from '@components/RcSection';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import TargetsList from '@shell/components/fleet/FleetClusterTargets/TargetsList.vue';
+import ClusterSelectionFields from '@shell/components/fleet/FleetClusterTargets/ClusterSelectionFields.vue';
+
+export interface Cluster {
+  name: string,
+  nameDisplay: string,
+  detailLocation: object,
+}
+
+interface FleetResource {
+  name: string,
+  nameDisplay: string,
+  metadata: {
+    name: string,
+    namespace: string,
+  },
+}
 
 interface DataType {
   targetMode: TargetMode,
-  allClusters: any[],
+  allClusters: FleetResource[],
+  allClusterGroups: FleetResource[],
   selectedClusters: string[],
+  selectedClusterGroups: string[],
   clusterSelectors: Selector[],
   key: number,
+  clustersExpanded: boolean,
+  areHarvesterHostsVisible: boolean,
 }
 
 const excludeHarvesterRule = FleetUtils.Application.excludeHarvesterRule;
+const includeAllWorkgroupRule = FleetUtils.Application.includeAllWorkgroupRule;
 
 export default {
 
@@ -32,10 +53,10 @@ export default {
 
   components: {
     Banner,
-    LabeledSelect,
-    MatchExpressions,
+    ClusterSelectionFields,
     RadioGroup,
-    RcButton,
+    RcContentGroup,
+    RcSection,
     TargetsList,
   },
 
@@ -46,7 +67,7 @@ export default {
     },
 
     matching: {
-      type:    Array as PropType<{ name: string }[]>,
+      type:    Array as PropType<Cluster[]>,
       default: () => [],
     },
 
@@ -64,6 +85,12 @@ export default {
       type:    String as PropType<TargetMode>,
       default: '',
     },
+
+    compact: {
+      type:    Boolean,
+      default: false,
+    },
+
   },
 
   async fetch() {
@@ -71,32 +98,49 @@ export default {
       allClusters: {
         inStoreType: 'management',
         type:        FLEET.CLUSTER
-      }
-    }, this.$store) as { allClusters: any[] };
+      },
+      allClusterGroups: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER_GROUP
+      },
+    }, this.$store) as { allClusters: FleetResource[], allClusterGroups: FleetResource[] };
 
     this.allClusters = hash.allClusters || [];
+    this.allClusterGroups = hash.allClusterGroups || [];
   },
 
   data(): DataType {
     return {
-      targetMode:       'all',
-      allClusters:      [],
-      selectedClusters: [],
-      clusterSelectors: [],
-      key:              0 // Generates a unique key to handle Targets
+      targetMode:               'all',
+      allClusters:              [],
+      allClusterGroups:         [],
+      selectedClusters:         [],
+      selectedClusterGroups:    [],
+      clusterSelectors:         [],
+      key:                      0, // Generates a unique key to handle Targets
+      clustersExpanded:         true,
+      /**
+       * Are host harvesters treated as normal clusters... or are they hidden
+       */
+      areHarvesterHostsVisible: false,
     };
   },
 
   mounted() {
+    this.areHarvesterHostsVisible = this.$store.getters['features/get'](HARVESTER_CONTAINER);
+
     this.fromTargets();
 
     if (this.mode === _CREATE) {
-      this.update();
-
       // Restore the targetMode from parent component; this is the case of edit targets in CREATE mode, go to YAML editor and come back to the form
       this.targetMode = this.created || 'all';
+      this.update();
     } else {
-      this.targetMode = FleetUtils.Application.getTargetMode(this.targets || [], this.namespace);
+      this.targetMode = FleetUtils.Application.getTargetMode(this.targets || [], this.namespace, this.areHarvesterHostsVisible);
+      // We only want to update the information from the new target mode if it is EDIT, if CREATE, if VIEW we want to keep as it is
+      if (this.mode === _EDIT) {
+        this.update();
+      }
     }
   },
 
@@ -110,31 +154,42 @@ export default {
         this.update();
       }
     },
+
+    allClusters(clusters: FleetResource[]) {
+      if (clusters.length) {
+        // Resolve metadata.name values to nameDisplay for UI display
+        this.selectedClusters = this.selectedClusters.map(
+          (name) => this.resolveClusterDisplayName(name)
+        );
+      }
+    },
   },
 
   computed: {
     targetModeOptions(): { label: string, value: TargetMode }[] {
       if (this.namespace === 'fleet-local') {
         return [{
-          label: 'local cluster',
+          label: this.t('fleet.clusterTargets.targetMode.local'),
           value: 'local'
         }];
       }
 
+      const allLabel = this.compact ? this.t('fleet.clusterTargets.targetMode.allCompact', { namespace: this.namespace, count: this.clustersOptions.length }, { raw: true }) : this.t('fleet.clusterTargets.targetMode.all');
+
       const out: { label: string, value: TargetMode }[] = [
         {
-          label: 'All Clusters in the workspace',
+          label: allLabel,
           value: 'all',
         },
         {
-          label: 'No clusters',
+          label: this.t('fleet.clusterTargets.targetMode.none'),
           value: 'none'
         },
       ];
 
       if (this.clustersOptions.length) {
         out.push({
-          label: 'Manually selected clusters',
+          label: this.t('fleet.clusterTargets.targetMode.clusters'),
           value: 'clusters'
         });
       }
@@ -144,8 +199,20 @@ export default {
 
     clustersOptions() {
       return this.allClusters
-        .filter((x) => x.metadata.namespace === this.namespace && !isHarvesterCluster(x))
-        .map((x) => ({ label: x.nameDisplay, value: x.metadata.name }));
+        .filter((x) => x.metadata.namespace === this.namespace && (this.areHarvesterHostsVisible || !isHarvesterCluster(x) || this.selectedClusters.includes(x.name)))
+        .map((x) => ({
+          label:    x.nameDisplay,
+          value:    x.nameDisplay,
+          disabled: !this.areHarvesterHostsVisible && isHarvesterCluster(x)
+        }));
+    },
+
+    clusterGroupsOptions() {
+      return this.allClusterGroups
+        .filter((x) => x.metadata.namespace === this.namespace)
+        .map((x) => {
+          return { label: x.nameDisplay, value: x.metadata.name };
+        });
     },
 
     isLocal() {
@@ -173,17 +240,18 @@ export default {
       this.update();
     },
 
+    selectClusterGroups(list: string[]) {
+      this.selectedClusterGroups = list;
+
+      this.update();
+    },
+
     addMatchExpressions() {
       const neu = { key: this.key++ };
 
       this.clusterSelectors.push(neu);
 
-      // Focus first element in MatchExpression
-      this.$nextTick(() => {
-        const matchExpression = (this.$refs[`match-expression-${ neu.key }`] as HTMLElement[])?.[0];
-
-        matchExpression?.focus();
-      });
+      (this.$refs.selectionFields as any)?.focusMatchExpression(neu.key);
 
       this.update();
     },
@@ -219,9 +287,13 @@ export default {
           clusterGroupSelector,
         } = target;
 
-        // If clusterGroup or clusterGroupSelector are defined, targets are marked as complex and won't handle by the UI
-        if (clusterGroup || clusterGroupSelector) {
+        // If clusterGroupSelector are defined, targets are marked as complex and won't handle by the UI
+        if (clusterGroupSelector) {
           return;
+        }
+
+        if (clusterGroup) {
+          this.selectedClusterGroups.push(clusterGroup);
         }
 
         if (clusterName) {
@@ -244,25 +316,32 @@ export default {
 
     toTargets(): Target[] | undefined {
       switch (this.targetMode) {
-      case 'none':
+      case 'none': // No clusters
         return undefined;
-      case 'all':
+      case 'all': // All clusters in workspace
+        if (this.areHarvesterHostsVisible) {
+          // set it to empty to clear any previous and hidden harvester omission
+          return [includeAllWorkgroupRule];
+        }
+
         return [excludeHarvesterRule];
-      case 'clusters':
-        return this.normalizeTargets(this.selectedClusters, this.clusterSelectors);
-      case 'advanced':
-      case 'local':
+      case 'clusters': // 'Manually selected clusters'
+        return this.normalizeTargets(this.selectedClusters, this.clusterSelectors, this.selectedClusterGroups);
+      case 'advanced': // no longer in use?
+      case 'local': // only option for fleet-local workspace
         return this.targets;
       }
     },
 
-    normalizeTargets(selected: string[], clusterMatchExpressions: Selector[]) {
+    normalizeTargets(selected: string[], clusterMatchExpressions: Selector[], selectedClusterGroups: string[]): Target[] | undefined {
       const targets: Target[] = [];
 
+      // Select by name
       selected.forEach((clusterName) => {
         targets.push({ clusterName });
       });
 
+      // Select by labels
       clusterMatchExpressions.forEach((elem) => {
         const { matchLabels: labels, matchExpressions: expressions } = elem || {};
 
@@ -306,6 +385,11 @@ export default {
         }
       });
 
+      // Select by cluster group
+      selectedClusterGroups.forEach((clusterGroup) => {
+        targets.push({ clusterGroup });
+      });
+
       if (targets.length) {
         return targets;
       }
@@ -313,9 +397,18 @@ export default {
       return undefined;
     },
 
+    resolveClusterDisplayName(name: string): string {
+      const cluster = this.allClusters.find(
+        (c: FleetResource) => c.metadata.namespace === this.namespace && c.metadata.name === name
+      );
+
+      return cluster ? cluster.nameDisplay : name;
+    },
+
     reset() {
       this.targetMode = 'all';
       this.selectedClusters = [];
+      this.selectedClusterGroups = [];
       this.clusterSelectors = [];
     }
   },
@@ -323,128 +416,176 @@ export default {
 </script>
 
 <template>
-  <div
-    v-if="targetMode !== 'advanced'"
-    class="row"
-  >
-    <RadioGroup
-      name="targetMode"
-      data-testid="fleet-target-cluster-radio-button"
-      :value="isLocal ? 'local' : targetMode"
-      :mode="mode"
-      :options="targetModeOptions"
-      :disabled="isView"
-      @update:value="selectTargetMode"
-    />
-  </div>
-
-  <Banner
-    v-if="targetMode === 'advanced'"
-    class="row"
-    color="warning"
-    :label="t('fleet.clusterTargets.advancedConfigs')"
-  />
-
-  <div
-    v-if="targetMode === 'clusters'"
-    class="row mt-20"
-  >
-    <div class="col span-9">
-      <h3 class="m-0">
-        {{ t('fleet.clusterTargets.title') }}
-      </h3>
-      <LabeledSelect
-        data-testid="fleet-target-cluster-name-selector"
-        class="mmt-4"
-        :value="selectedClusters"
-        :label="t('fleet.clusterTargets.label')"
-        :options="clustersOptions"
-        :taggable="true"
-        :close-on-select="false"
+  <div :class="compact ? 'gap-md' : 'gap-20'">
+    <div
+      v-if="targetMode !== 'advanced'"
+      class="row"
+    >
+      <RadioGroup
+        name="targetMode"
+        data-testid="fleet-target-cluster-radio-button"
+        :value="isLocal ? 'local' : targetMode"
         :mode="mode"
-        :multiple="true"
-        :placeholder="t('fleet.clusterTargets.placeholders.selectMultiple')"
-        @update:value="selectClusters"
+        :options="targetModeOptions"
+        :disabled="isView"
+        :use-body-text-color="compact"
+        @update:value="selectTargetMode"
       />
-      <div class="mmt-8">
-        <h3 class="m-0">
-          {{ t('fleet.clusterTargets.rules.title') }}
-        </h3>
-        <div
-          v-for="(selector, i) in clusterSelectors"
-          :key="selector.key"
-          class="match-expressions-container mmt-4"
+    </div>
+
+    <Banner
+      v-if="targetMode === 'advanced'"
+      class="row"
+      color="warning"
+      :label="t('fleet.clusterTargets.advancedConfigs')"
+    />
+
+    <!-- AppCo: RcSection layout -->
+    <div
+      v-if="targetMode === 'clusters' && compact && !isView"
+      class="row"
+    >
+      <RcContentGroup class="col span-12">
+        <RcSection
+          v-model:expanded="clustersExpanded"
+          :title="t('fleet.clusterTargets.clusters.title')"
+          mode="with-header"
+          type="secondary"
+          expandable
+          data-testid="fleet-target-clusters-section"
         >
-          <MatchExpressions
-            :ref="`match-expression-${ selector.key }`"
-            class="body"
-            :value="selector"
-            :mode="mode"
-            :initial-empty-row="true"
-            :label-key="t('fleet.clusterTargets.rules.labelKey')"
-            :add-icon="'icon-plus'"
-            :add-class="'btn-sm'"
-            @update:value="updateMatchExpressions(i, $event, selector.key)"
-          />
-          <RcButton
-            small
-            link
-            @click="removeMatchExpressions(selector.key)"
+          <template
+            v-if="!clustersExpanded"
+            #badges
           >
-            <i class="icon icon-x" />
-          </RcButton>
-        </div>
-        <RcButton
-          small
-          secondary
-          class="mmt-6"
-          @click="addMatchExpressions"
+            <span
+              class="cluster-count-badge"
+              :aria-label="t('fleet.clusterTargets.rules.matching.title', { n: matching.length })"
+            >
+              {{ t('fleet.clusterTargets.rules.matching.title', { n: matching.length }) }}
+            </span>
+          </template>
+          <div class="row">
+            <div class="col span-8">
+              <ClusterSelectionFields
+                ref="selectionFields"
+                variant="appco"
+                :selected-clusters="selectedClusters"
+                :selected-cluster-groups="selectedClusterGroups"
+                :cluster-selectors="clusterSelectors"
+                :clusters-options="clustersOptions"
+                :cluster-groups-options="clusterGroupsOptions"
+                :mode="mode"
+                :is-view="isView"
+                :compact="compact"
+                @select-clusters="selectClusters"
+                @select-cluster-groups="selectClusterGroups"
+                @add-match-expressions="addMatchExpressions"
+                @update-match-expressions="updateMatchExpressions"
+                @remove-match-expressions="removeMatchExpressions"
+              />
+            </div>
+            <div class="col span-4 targets-col">
+              <TargetsList
+                class="target-list"
+                :clusters="matching"
+                :compact="compact"
+                :empty-label="t('fleet.clusterTargets.rules.matching.placeholder')"
+              />
+            </div>
+          </div>
+        </RcSection>
+      </RcContentGroup>
+    </div>
+
+    <!-- Default: original layout -->
+    <div
+      v-if="targetMode === 'clusters' && (!compact || isView)"
+      class="row"
+    >
+      <div class="col span-8">
+        <h3
+          v-if="!compact"
+          class="m-0"
         >
-          <i class="icon icon-plus" />
-          <span>{{ t('fleet.clusterTargets.rules.addSelector') }}</span>
-        </RcButton>
+          {{ t('fleet.clusterTargets.clusters.title') }}
+        </h3>
+        <ClusterSelectionFields
+          ref="selectionFields"
+          variant="default"
+          :selected-clusters="selectedClusters"
+          :selected-cluster-groups="selectedClusterGroups"
+          :cluster-selectors="clusterSelectors"
+          :clusters-options="clustersOptions"
+          :cluster-groups-options="clusterGroupsOptions"
+          :mode="mode"
+          :is-view="isView"
+          :compact="compact"
+          @select-clusters="selectClusters"
+          @select-cluster-groups="selectClusterGroups"
+          @add-match-expressions="addMatchExpressions"
+          @update-match-expressions="updateMatchExpressions"
+          @remove-match-expressions="removeMatchExpressions"
+        />
+      </div>
+      <div class="col span-4">
+        <TargetsList
+          class="target-list"
+          :clusters="matching"
+          :empty-label="t('fleet.clusterTargets.rules.matching.placeholder')"
+        />
       </div>
     </div>
-    <div class="col span-3">
-      <TargetsList
-        class="target-list"
-        :clusters="matching"
-        :empty-label="t('fleet.clusterTargets.rules.matching.placeholder')"
-      />
-    </div>
-  </div>
 
-  <div
-    v-if="targetMode === 'all' && !isLocal"
-    class="row"
-  >
-    <div class="col span-6">
-      <TargetsList
-        class="target-list mt-20"
-        :clusters="matching"
-      />
+    <!-- All mode: compact intentionally omits the target list since the parent handles cluster visibility -->
+    <div
+      v-if="targetMode === 'all' && !isLocal && !compact"
+      class="row"
+    >
+      <div class="col span-6">
+        <TargetsList
+          class="target-list"
+          :clusters="matching"
+          :compact="compact"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-  .match-expressions-container {
+  .gap-md {
     display: flex;
-    align-items: start;
-    border: 1px solid var(--border);
-    border-radius: 5px;
-
-    .body {
-      padding: 15px;
-      width: 100%;
-    }
-
-    .btn {
-      margin: 5px;
-    }
+    flex-direction: column;
+    gap: var(--gap-md);
+  }
+  .gap-20 {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
   }
 
-  .target-list {
-    max-height: 250px;
+  .targets-col {
+    position: relative;
+  }
+
+  .targets-col .target-list {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
+
+  .cluster-count-badge {
+    display: inline-flex;
+    padding: 2px 8px;
+    align-items: center;
+    border-radius: 30px;
+    border: 1px solid var(--rc-inactive-border);
+    background: var(--body-bg);
+    font-size: 12px;
+    line-height: 17px;
+    color: var(--body-text);
   }
 </style>

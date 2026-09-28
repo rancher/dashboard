@@ -7,6 +7,6 @@ export class IstioTab extends MonitoringTab {
   }
 
   enableIngressGatewayCheckbox(): CheckboxInputPo {
-    return new CheckboxInputPo(cy.get('[aria-label="Enable Ingress Gateway"]').parent().parent());
+    return CheckboxInputPo.byLabel(this.self(), 'Enable Ingress Gateway');
   }
 }

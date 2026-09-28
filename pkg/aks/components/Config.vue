@@ -17,7 +17,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import FileSelector from '@shell/components/form/FileSelector.vue';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
@@ -61,7 +61,7 @@ export default defineComponent({
     AksNodePool,
     LabeledInput,
     Checkbox,
-    FileSelector,
+    FileSelectorTextArea,
     KeyValue,
     ArrayList,
     Tabbed,
@@ -117,7 +117,6 @@ export default defineComponent({
     const store = this.$store as Store<any>;
     // This setting is used by RKE1 AKS GKE and EKS - rke2/k3s have a different mechanism for fetching supported versions
     const supportedVersionRange = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
-    const t = store.getters['i18n/t'];
 
     return {
 
@@ -134,16 +133,22 @@ export default defineComponent({
       touchedVmSize:         false,
       touchedVirtualNetwork: false,
 
-      networkPluginOptions: [
-        { value: 'kubenet', label: t('aks.networkPlugin.options.kubenet') }, { value: 'azure', label: t('aks.networkPlugin.options.azure') }
-      ],
+      // false until the first successful versions fetch completes - used to tell an initial load (where an
+      // already-set but not-yet-valid version, eg on edit, should be left alone) apart from a later refetch
+      // (triggered by a credential or region change) where a now-invalid version should be reconciled
+      hasFetchedVersionsBefore: false,
 
       loadingVersions:        false,
       loadingVmSizes:         false,
       loadingVirtualNetworks: false,
-      setAuthorizedIPRanges:  false,
-      networkingAuthMode:     NETWORKING_AUTH_MODES.SERVICE_PRINCIPAL,
-      fvFormRuleSets:         [
+
+      // guard against out-of-order responses when a credential or region change triggers overlapping requests
+      versionsRequestId:        0,
+      vmSizesRequestId:         0,
+      virtualNetworksRequestId: 0,
+      setAuthorizedIPRanges:    false,
+      networkingAuthMode:       NETWORKING_AUTH_MODES.SERVICE_PRINCIPAL,
+      fvFormRuleSets:           [
 
         {
           path:  'resourceGroup',
@@ -255,13 +260,14 @@ export default defineComponent({
         locationRequired:        requiredInCluster(this, 'aks.location.label', 'config.location'),
         resourceGroupRequired:   requiredInCluster(this, 'aks.clusterResourceGroup.label', 'config.resourceGroup'),
         dnsPrefixRequired:       requiredInCluster(this, 'aks.dnsPrefix.label', 'config.dnsPrefix'),
+        virtualNetworkRequired:  requiredInCluster(this, 'aks.virtualNetwork.label', 'config.virtualNetwork'),
         resourceGroupChars:      resourceGroupChars(this, 'aks.clusterResourceGroup.label', 'config.resourceGroup'),
         nodeResourceGroupChars:  resourceGroupChars(this, 'aks.nodeResourceGroup.label', 'config.nodeResourceGroup'),
         resourceGroupLength:     resourceGroupLength(this, 'aks.clusterResourceGroup.label', 'config.resourceGroup'),
         nodeResourceGroupLength: resourceGroupLength(this, 'aks.nodeResourceGroup.label', 'config.nodeResourceGroup'),
         resourceGroupEnd:        resourceGroupEnd(this, 'aks.clusterResourceGroup.label', 'config.resourceGroup'),
         nodeResourceGroupEnd:    resourceGroupEnd(this, 'aks.nodeResourceGroup.label', 'config.nodeResourceGroup'),
-        ipv4WithOrWithoutCidr:   ipv4WithOrWithoutCidr(this, 'aks.authorizedIpRanges.label', 'config.authorizedIpRanges'),
+        ipv4WithOrWithoutCidr:   ipv4WithOrWithoutCidr(this),
         serviceCidr:             ipv4WithCidr(this, 'aks.serviceCidr.label', 'config.serviceCidr'),
         podCidr:                 ipv4WithCidr(this, 'aks.podCidr.label', 'config.podCidr'),
         dockerBridgeCidr:        ipv4WithCidr(this, 'aks.dockerBridgeCidr.label', 'config.dockerBridgeCidr'),
@@ -403,7 +409,8 @@ export default defineComponent({
           }
         },
 
-        poolTaints: (taint: string) => {
+        // If no taint is provided, taints on all pools will be validated
+        poolTaints: (taint?: string) => {
           if (taint && taint !== '') {
             const { key, value } = parseTaint(taint);
 
@@ -521,6 +528,20 @@ export default defineComponent({
       ];
     },
 
+    networkPluginOptions(): Array<any> {
+      return [
+        {
+          value:    'kubenet',
+          label:    this.t('aks.networkPlugin.options.kubenet'),
+          disabled: this.isUserDefinedRouting
+        },
+        {
+          value: 'azure',
+          label: this.t('aks.networkPlugin.options.azure')
+        }
+      ];
+    },
+
     // in the labeledselect, networks will be shown as 'groups' with their subnets as selectable options
     // it is possible for a virtual network to have no subnets defined - they will be excluded from this list
     virtualNetworkOptions() {
@@ -592,16 +613,22 @@ export default defineComponent({
       return this.isNewOrUnprovisioned && !this.setAuthorizedIPRanges;
     },
 
-    clusterId(): String | null {
+    clusterId(): string | null {
       return this.value?.id || null;
     },
 
-    canUseAvailabilityZones(): Boolean {
-      return regionsWithAvailabilityZones[this.config.resourceLocation] || !this.config.resourceLocation;
+    canUseAvailabilityZones(): boolean {
+      const resourceLocation = this.config.resourceLocation;
+
+      return !resourceLocation || !!regionsWithAvailabilityZones[resourceLocation];
     },
 
     canEnableNetworkPolicy(): Boolean {
       return this.networkPolicy !== 'none';
+    },
+
+    isUserDefinedRouting(): boolean {
+      return this.config?.outboundType === 'UserDefinedRouting';
     },
 
     CREATE(): string {
@@ -632,7 +659,6 @@ export default defineComponent({
     },
     config: {
       handler: debounce(function(neu) {
-        // console.log('*** updating config');
         this.$emit('update:config', neu);
       }, 200),
       deep: true
@@ -670,7 +696,12 @@ export default defineComponent({
     'config.azureCredentialSecret'(neu) {
       if (neu) {
         this.resetCredentialDependentProperties();
-        // this.getLocations();
+
+        if (this.config.resourceLocation) {
+          this.getAksVersions();
+          this.getVmSizes();
+          this.getVirtualNetworks();
+        }
       }
     },
 
@@ -715,13 +746,28 @@ export default defineComponent({
         this.config['logAnalyticsWorkspaceGroup'] = null;
         this.config['logAnalyticsWorkspaceName'] = null;
       }
+    },
+
+    isUserDefinedRouting(neu: boolean) {
+      if (neu) {
+        this.config.networkPlugin = 'azure';
+        // add a required fv rule to the existing virtual network validators
+
+        const rule = this.fvFormRuleSets.find((r: {path: string, rules: string[]}) => r.path === 'networkPolicy') || { rules: [] as string[] };
+
+        rule.rules.push('virtualNetworkRequired');
+      } else {
+        // remove required fv rule
+        const rule = this.fvFormRuleSets.find((r:{path: string, rules: string[]}) => r.path === 'networkPolicy') || { rules: [] as string[] };
+
+        rule.rules.splice(rule.rules.indexOf('virtualNetworkRequired'), 1);
+      }
     }
   },
 
   methods: {
-    // reset properties dependent on AKS queries so if they're lodaded with a valid credential then an invalid credential is selected, they're cleared
+    // reset properties dependent on AKS queries so if they're loaded with a valid credential then an invalid credential is selected, they're cleared
     resetCredentialDependentProperties(): void {
-    //   this.locationOptions = [];
       this.allAksVersions = [];
       this.vmSizeOptions = [];
       this.allVirtualNetworks = [];
@@ -732,6 +778,8 @@ export default defineComponent({
     },
 
     async getAksVersions(): Promise<void> {
+      const requestId = ++this.versionsRequestId;
+
       this.loadingVersions = true;
       this.allAksVersions = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
@@ -739,10 +787,26 @@ export default defineComponent({
       try {
         const res = await getAKSKubernetesVersions(this.$store, azureCredentialSecret, resourceLocation, this.clusterId);
 
+        if (requestId !== this.versionsRequestId) {
+          return;
+        }
+
+        const isRefetch = this.hasFetchedVersionsBefore;
+
         // the default version is set once these are filtered and sorted in computed prop
         this.allAksVersions = res;
         this.loadingVersions = false;
+        this.hasFetchedVersionsBefore = true;
+
+        if (isRefetch && !this.touchedVersion && !this.aksVersionOptions.find((v) => v.value === this.config.kubernetesVersion)) {
+          const firstValid = this.aksVersionOptions.find((v) => !v.disabled);
+
+          this.config.kubernetesVersion = firstValid?.value;
+        }
       } catch (err:any) {
+        if (requestId !== this.versionsRequestId) {
+          return;
+        }
         this.loadingVersions = false;
 
         const parsedError = parseAzureError(err.error || '');
@@ -753,12 +817,18 @@ export default defineComponent({
     },
 
     async getVmSizes(): Promise<void> {
+      const requestId = ++this.vmSizesRequestId;
+
       this.loadingVmSizes = true;
       this.vmSizeOptions = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
 
       try {
         const res = await getAKSVMSizes(this.$store, azureCredentialSecret, resourceLocation, this.clusterId);
+
+        if (requestId !== this.vmSizesRequestId) {
+          return;
+        }
 
         if (isArray(res)) {
           this.vmSizeOptions = res.sort();
@@ -770,6 +840,9 @@ export default defineComponent({
 
         this.loadingVmSizes = false;
       } catch (err: any) {
+        if (requestId !== this.vmSizesRequestId) {
+          return;
+        }
         this.loadingVmSizes = false;
 
         const parsedError = parseAzureError(err.error || '');
@@ -780,6 +853,8 @@ export default defineComponent({
     },
 
     async getVirtualNetworks(): Promise<void> {
+      const requestId = ++this.virtualNetworksRequestId;
+
       this.loadingVirtualNetworks = true;
       this.allVirtualNetworks = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
@@ -787,12 +862,17 @@ export default defineComponent({
       try {
         const res = await getAKSVirtualNetworks(this.$store, azureCredentialSecret, resourceLocation, this.clusterId);
 
-        if (res && isArray(res)) {
-          this.allVirtualNetworks.push(...res);
+        if (requestId !== this.virtualNetworksRequestId) {
+          return;
         }
+
+        this.allVirtualNetworks = (res && isArray(res)) ? res : [];
 
         this.loadingVirtualNetworks = false;
       } catch (err:any) {
+        if (requestId !== this.virtualNetworksRequestId) {
+          return;
+        }
         const parsedError = parseAzureError(err.error || '');
         const errors = this.errors as Array<string>;
 
@@ -817,8 +897,10 @@ export default defineComponent({
       });
 
       this.$nextTick(() => {
-        if ( this.$refs.pools?.select ) {
-          this.$refs.pools.select(poolName);
+        const pools = this.$refs.pools as { select?: (name: string) => void } | undefined;
+
+        if ( pools?.select ) {
+          pools.select(poolName);
         }
       });
     },
@@ -869,7 +951,8 @@ export default defineComponent({
         <Tab
           v-for="(pool, i) in nodePools"
           :key="i"
-          :name="pool._id || pool.name"
+          :weight="-1 * i"
+          :name="pool._id || pool.name || ''"
           :label="pool.name || t('aks.nodePools.notNamed')"
           :error="!poolIsValid(pool)"
         >
@@ -891,7 +974,7 @@ export default defineComponent({
             }"
             :original-cluster-version="originalVersion"
             :cluster-version="config.kubernetesVersion"
-            @remove="removePool(pool)"
+            @remove="removePool(i)"
             @vmSizeSet="touchedVmSize = true"
           />
         </Tab>
@@ -988,22 +1071,15 @@ export default defineComponent({
         </div>
         <div class="row mb-10">
           <div class="col span-6">
-            <div class="ssh-key">
-              <LabeledInput
-                v-model:value="config.sshPublicKey"
-                :mode="mode"
-                label-key="aks.sshPublicKey.label"
-                type="multiline"
-                placeholder-key="aks.sshPublicKey.placeholder"
-              />
-              <FileSelector
-                :mode="mode"
-                :label="t('aks.sshPublicKey.readFromFile')"
-                class="role-tertiary mt-10"
-                @selected="e => config.sshPublicKey = e"
-              />
-            </div>
+            <FileSelectorTextArea
+              v-model:value="config.sshPublicKey"
+              :mode="mode"
+              label-key="aks.sshPublicKey.label"
+              placeholder-key="aks.sshPublicKey.placeholder"
+            />
           </div>
+        </div>
+        <div class="row mb-10">
           <div class="col span-6">
             <KeyValue
               v-model:value="config.tags"
@@ -1051,11 +1127,12 @@ export default defineComponent({
             <LabeledSelect
               v-model:value="config.outboundType"
               :mode="mode"
-              label-key="aks.dns.label"
+              label-key="aks.outboundType.label"
               :disabled="!isNewOrUnprovisioned"
               :rules="fvGetAndReportPathRules('outboundType')"
               :options="outboundTypeOptions"
               :tooltip="t('aks.outboundType.tooltip')"
+              data-testid="aks-outbound-type-select"
             />
           </div>
         </div>
@@ -1067,6 +1144,7 @@ export default defineComponent({
               :options="networkPluginOptions"
               label-key="aks.networkPlugin.label"
               :disabled="!isNewOrUnprovisioned"
+              data-testid="aks-network-plugin-select"
             />
           </div>
           <div class="col span-3">
@@ -1094,6 +1172,8 @@ export default defineComponent({
               option-key="key"
               :disabled="!isNewOrUnprovisioned"
               :rules="fvGetAndReportPathRules('networkPolicy')"
+              :required="isUserDefinedRouting"
+              :require-dirty="false"
               data-testid="aks-virtual-network-select"
               @selecting="(e)=>virtualNetwork = e"
             />

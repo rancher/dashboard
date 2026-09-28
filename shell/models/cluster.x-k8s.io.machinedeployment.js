@@ -1,33 +1,15 @@
 import { CAPI } from '@shell/config/types';
 import { escapeHtml } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
-import SteveModel from '@shell/plugins/steve/steve-class';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
-import { MACHINE_ROLES } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_ANNOTATIONS, MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 import { KIND } from '../config/elemental-types';
 import { KIND as HARVESTER_KIND } from '../config/harvester-manager-types';
+import CapiMachineRoot from '@shell/models/base-cluster.x-k8s.io';
 
-export default class CapiMachineDeployment extends SteveModel {
-  get cluster() {
-    if ( !this.spec.clusterName ) {
-      return null;
-    }
-
-    const clusterId = `${ this.metadata.namespace }/${ this.spec.clusterName }`;
-
-    const cluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, clusterId);
-
-    return cluster;
-  }
-
-  get groupByLabel() {
-    const name = this.cluster?.nameDisplay || this.spec.clusterName;
-
-    return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
-  }
-
+export default class CapiMachineDeployment extends CapiMachineRoot {
   get groupByPoolLabel() {
     return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.machinePool', { name: escapeHtml(this.nameDisplay) }) }`;
   }
@@ -41,12 +23,12 @@ export default class CapiMachineDeployment extends SteveModel {
   }
 
   get templateType() {
-    return this.spec.template.spec.infrastructureRef.kind ? `rke-machine.cattle.io.${ this.spec.template.spec.infrastructureRef.kind.toLowerCase() }` : null;
+    return this.infrastructureRefKind ? `rke-machine.cattle.io.${ this.infrastructureRefKind.toLowerCase() }` : null;
   }
 
   get template() {
     const ref = this.spec.template.spec.infrastructureRef;
-    const id = `${ ref.namespace }/${ ref.name }`;
+    const id = `${ this.metadata.namespace }/${ ref.name }`;
     const template = this.$rootGetters['management/byId'](this.templateType, id);
 
     return template;
@@ -92,15 +74,15 @@ export default class CapiMachineDeployment extends SteveModel {
   }
 
   get outdated() {
-    return Math.max(0, (this.status?.replicas || 0) - (this.status?.updatedReplicas || 0));
+    return Math.max(0, (this.status?.replicas || 0) - (this.status?.upToDateReplicas || 0));
   }
 
   get ready() {
-    return Math.max(0, (this.status?.replicas || 0) - (this.status?.unavailableReplicas || 0));
+    return this.status?.availableReplicas || 0;
   }
 
   get unavailable() {
-    return this.status?.unavailableReplicas || 0;
+    return Math.max(0, (this.status?.replicas || 0) - (this.status?.availableReplicas || 0));
   }
 
   get isControlPlane() {
@@ -111,12 +93,17 @@ export default class CapiMachineDeployment extends SteveModel {
     return `${ this.spec?.template?.metadata?.labels?.[MACHINE_ROLES.ETCD] }` === 'true';
   }
 
-  // use this pool's definition in the cluster's rkeConfig to scale, not this.spec.replicas
+  // use this pool's definition in the provisioning cluster spec to scale, not this.spec.replicas
   get inClusterSpec() {
-    const machineConfigName = this.template?.metadata?.annotations['rke.cattle.io/cloned-from-name'];
+    // infra from Rancher node driver: provisioning cluster has reference to Rancher-generated crd <provider name>Config from the rke-machine-config.cattle.io api group
+    const rkeMachineConfigName = this.template?.metadata?.annotations['rke.cattle.io/cloned-from-name'];
+    // infra from upstream CAPI provider: provisioning cluster has reference to an upstream provider-specific machine template crd in the infrastructure.cluster.x-k8s.io api group
+    const infrastructureRefName = this.spec?.template?.spec?.infrastructureRef?.name;
+    const machineTemplateName = rkeMachineConfigName || infrastructureRefName;
+
     const machinePools = this.cluster.spec.rkeConfig.machinePools;
 
-    return machinePools.find((pool) => pool.machineConfigRef.name === machineConfigName);
+    return machinePools.find((pool) => pool.machineConfigRef.name === machineTemplateName);
   }
 
   scalePool(delta, save = true, depth = 0) {
@@ -125,7 +112,7 @@ export default class CapiMachineDeployment extends SteveModel {
       return;
     }
 
-    const initialValue = this.cluster.toJSON();
+    const initialValue = this.cluster;
 
     this.inClusterSpec.quantity += delta;
 
@@ -145,7 +132,16 @@ export default class CapiMachineDeployment extends SteveModel {
         let errors = exceptionToErrorsArray(err);
 
         if ( err.status === 409 && depth < 2 ) {
-          const conflicts = await handleConflict(initialValue, value, liveModel, this.$rootGetters, { dispatch: this.$dispatch }, 'management');
+          const conflicts = await handleConflict(
+            initialValue,
+            value,
+            liveModel,
+            {
+              dispatch: this.$dispatch,
+              getters:  this.$rootGetters
+            },
+            'management'
+          );
 
           if ( conflicts === false ) {
             // It was automatically figured out, save again
@@ -162,6 +158,10 @@ export default class CapiMachineDeployment extends SteveModel {
         }, { root: true });
       });
     }, 1000);
+  }
+
+  get isAutoscalerEnabled() {
+    return this.annotations?.[CAPI_ANNOTATIONS.AUTOSCALER_MACHINE_POOL_MIN_SIZE] || this.annotations?.[CAPI_ANNOTATIONS.AUTOSCALER_MACHINE_POOL_MAX_SIZE];
   }
 
   // prevent scaling pool to 0 if it would scale down the only etcd or control plane node

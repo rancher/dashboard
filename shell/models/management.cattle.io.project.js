@@ -3,6 +3,7 @@ import { MANAGEMENT, NAMESPACE, NORMAN } from '@shell/config/types';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import isEmpty from 'lodash/isEmpty';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
 
 function clearUnusedResourceQuotas(spec, types) {
   types.forEach((type) => {
@@ -85,6 +86,9 @@ export default class Project extends HybridModel {
 
     if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
       _detailLocation.name = `${ HARVESTER }-${ _detailLocation.name }`.replace('-product', '');
+    } else {
+      _detailLocation.params.cluster = this.spec.clusterName;
+      _detailLocation.params.product = EXPLORER;
     }
 
     return _detailLocation;
@@ -178,5 +182,17 @@ export default class Project extends HybridModel {
 
   get confirmRemove() {
     return true;
+  }
+
+  get glance() {
+    const glance = [...this._glance];
+
+    const namespaceIndex = glance.findIndex((item) => item.name === 'namespace');
+
+    if (namespaceIndex > -1) {
+      glance.splice(namespaceIndex, 1);
+    }
+
+    return glance;
   }
 }

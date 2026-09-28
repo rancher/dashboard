@@ -1,15 +1,15 @@
 /* eslint-disable jest/no-hooks */
-import { mount, Wrapper } from '@vue/test-utils';
+import { mount, VueWrapper } from '@vue/test-utils';
 import Advanced from '@shell/edit/provisioning.cattle.io.cluster/tabs/Advanced.vue';
 import { _EDIT, _YAML, _VIEW } from '@shell/config/query-params';
 import { clone } from '@shell/utils/object';
 import { PROV_CLUSTER, VERSION_CLUSTER } from '@shell/edit/provisioning.cattle.io.cluster/__tests__/utils/cluster';
 
 describe('component: Advanced', () => {
-  let wrapper: Wrapper<InstanceType<typeof Advanced>>;
+  let wrapper: VueWrapper<InstanceType<typeof Advanced>>;
 
   const mountOptions = {
-    propsData: {
+    props: {
       value:           {},
       mode:            _VIEW,
       haveArgInfo:     true,
@@ -38,7 +38,7 @@ describe('component: Advanced', () => {
 
       value.spec.rkeConfig.machineSelectorConfig = [];
 
-      mountOptions.propsData.value = value;
+      mountOptions.props.value = value;
 
       wrapper = mount(
         Advanced,
@@ -55,7 +55,7 @@ describe('component: Advanced', () => {
 
       value.spec.rkeConfig.machineSelectorConfig[0].config = undefined;
 
-      mountOptions.propsData.value = value;
+      mountOptions.props.value = value;
 
       wrapper = mount(
         Advanced,
@@ -84,8 +84,8 @@ describe('component: Advanced', () => {
           }
         }];
 
-        mountOptions.propsData.mode = _VIEW;
-        mountOptions.propsData.value = value;
+        mountOptions.props.mode = _VIEW;
+        mountOptions.props.value = value;
 
         wrapper = mount(
           Advanced,
@@ -114,8 +114,8 @@ describe('component: Advanced', () => {
           }
         }];
 
-        mountOptions.propsData.mode = _VIEW;
-        mountOptions.propsData.value = value;
+        mountOptions.props.mode = _VIEW;
+        mountOptions.props.value = value;
 
         wrapper = mount(
           Advanced,
@@ -137,8 +137,8 @@ describe('component: Advanced', () => {
         }];
         value.agentConfig = value.spec.rkeConfig.machineSelectorConfig[0].config;
 
-        mountOptions.propsData.mode = _EDIT; // Use edit mode to allow interactions
-        mountOptions.propsData.value = value;
+        mountOptions.props.mode = _EDIT; // Use edit mode to allow interactions
+        mountOptions.props.value = value;
 
         wrapper = mount(Advanced, mountOptions);
 
@@ -164,8 +164,8 @@ describe('component: Advanced', () => {
 
           value.spec.rkeConfig.machineSelectorConfig[0].config['kubelet-arg'] = ['config-from-machineSelectorConfig'];
 
-          mountOptions.propsData.mode = mode;
-          mountOptions.propsData.value = value;
+          mountOptions.props.mode = mode;
+          mountOptions.props.value = value;
 
           wrapper = mount(
             Advanced,
@@ -187,8 +187,8 @@ describe('component: Advanced', () => {
 
           value.spec.rkeConfig.machineGlobalConfig['kubelet-arg'] = ['config-from-machineGlobalConfig'];
 
-          mountOptions.propsData.mode = mode;
-          mountOptions.propsData.value = value;
+          mountOptions.props.mode = mode;
+          mountOptions.props.value = value;
 
           wrapper = mount(
             Advanced,
@@ -211,8 +211,8 @@ describe('component: Advanced', () => {
           value.spec.rkeConfig.machineSelectorConfig[0].config['kubelet-arg'] = ['config-from-machineSelectorConfig'];
           value.spec.rkeConfig.machineGlobalConfig['kubelet-arg'] = ['config-from-machineGlobalConfig'];
 
-          mountOptions.propsData.mode = mode;
-          mountOptions.propsData.value = value;
+          mountOptions.props.mode = mode;
+          mountOptions.props.value = value;
 
           wrapper = mount(
             Advanced,
@@ -236,8 +236,8 @@ describe('component: Advanced', () => {
         value.spec.rkeConfig.machineSelectorConfig[0].config['kubelet-arg'] = [];
         value.spec.rkeConfig.machineGlobalConfig['kubelet-arg'] = [];
 
-        mountOptions.propsData.mode = 'view';
-        mountOptions.propsData.value = value;
+        mountOptions.props.mode = 'view';
+        mountOptions.props.value = value;
 
         wrapper = mount(
           Advanced,
@@ -271,8 +271,8 @@ describe('component: Advanced', () => {
         value.spec.rkeConfig.machineSelectorConfig[0].config['kubelet-arg'] = [];
         value.spec.rkeConfig.machineGlobalConfig['kubelet-arg'] = [];
 
-        mountOptions.propsData.mode = 'edit';
-        mountOptions.propsData.value = value;
+        mountOptions.props.mode = 'edit';
+        mountOptions.props.value = value;
 
         wrapper = mount(
           Advanced,

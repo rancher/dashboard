@@ -5,6 +5,7 @@ import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 export class HarvesterClusterPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -19,8 +20,8 @@ export class HarvesterClusterPagePo extends PagePo {
     super(HarvesterClusterPagePo.createPath(clusterId));
   }
 
-  static navTo() {
-    BurgerMenuPo.burgerMenuNavToMenubyLabel('Virtualization Management');
+  static navTo(productLabel = 'Virtualization Management') {
+    BurgerMenuPo.burgerMenuNavToMenubyLabel(productLabel);
   }
 
   masthead() {
@@ -39,8 +40,8 @@ export class HarvesterClusterPagePo extends PagePo {
     return new BaseResourceList('[data-testid="sortable-table-list-container"]');
   }
 
-  extensionWarning() {
-    return this.self().get('.extension-warning');
+  extensionWarning(options?: GetOptions) {
+    return this.self().get('.extension-warning', options);
   }
 
   harvesterLogo() {

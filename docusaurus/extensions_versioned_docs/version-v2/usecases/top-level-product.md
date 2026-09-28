@@ -35,7 +35,7 @@ import { IPlugin } from '@shell/core/types';
 const BLANK_CLUSTER = '_';
 
 
-export function init($plugin: IPlugin, store: any) {
+export function init($extension: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';
   const CUSTOM_PAGE_NAME = 'page1';
@@ -45,7 +45,7 @@ export function init($plugin: IPlugin, store: any) {
     configureType,
     virtualType,
     basicType
-  } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
+  } = $extension.DSL(store, YOUR_PRODUCT_NAME);
 
   // registering a top-level product
   product({

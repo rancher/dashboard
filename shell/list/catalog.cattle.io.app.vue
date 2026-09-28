@@ -40,14 +40,15 @@ export default {
     data-testid="installed-app-catalog-list"
   >
     <template #cell:upgrade="{row}">
-      <span
+      <div
         v-if="row.upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE"
-        class="badge-state bg-warning hand"
+        v-clean-tooltip="row.upgradeAvailableVersion"
+        class="badge-state bg-warning hand app-upgrade-badge"
         @click="row.goToUpgrade(row.upgradeAvailableVersion)"
       >
-        {{ row.upgradeAvailableVersion }}
+        <div>{{ row.upgradeAvailableVersion }}</div>
         <i class="icon icon-upload" />
-      </span>
+      </div>
       <span
         v-else-if="row.upgradeAvailable === APP_UPGRADE_STATUS.NOT_APPLICABLE"
         v-t="'catalog.app.managed'"
@@ -69,8 +70,27 @@ export default {
   </PaginatedResourceTable>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .apps :deep() .state-description{
   color: var(--error)
 }
+
+.badge-state.app-upgrade-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--border-radius);
+  padding: 2px 4px;
+
+  > div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  > .icon {
+    flex-shrink: 0;
+  }
+}
+
 </style>

@@ -1,7 +1,7 @@
-import { _EDIT } from '@shell/config/query-params';
+import { _EDIT, EDIT_CONFIG } from '@shell/config/query-params';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
-import { BASE_SCOPES } from '@shell/store/auth';
+import { BASE_SCOPES, SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 import { addObject, findBy } from '@shell/utils/array';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import difference from 'lodash/difference';
@@ -27,6 +27,14 @@ export default {
 
     if (query.mode !== _EDIT) {
       this.$router.applyQuery({ mode: _EDIT });
+    }
+  },
+
+  created() {
+    this.registerAfterHook(this.updateAuthProviders, 'force-update-auth-providers');
+
+    if (this.openedOnConfig) {
+      this.editConfig = true;
     }
   },
 
@@ -84,10 +92,31 @@ export default {
 
     showCancel() {
       return this.editConfig || !this.model.enabled;
+    },
+
+    openedOnConfig() {
+      return this.$route.query?.[EDIT_CONFIG] === 'true';
     }
   },
 
   methods: {
+    updateAuthProviders() {
+      // we need to forcefully re-fetch the authProviders list so that we can update the logout method
+      // this is to satisfy the SLO usecase where after setting an auth provider the logout method
+      // wasn't being updated because the resource is not watchable
+      this.$store.dispatch('auth/getAuthProviders', { force: true });
+    },
+
+    setSloType(selectedModel) {
+      if (!selectedModel.logoutAllEnabled && !selectedModel.logoutAllForced) {
+        this.sloType = SLO_OPTION_VALUES.rancher;
+      } else if (selectedModel.logoutAllEnabled && selectedModel.logoutAllForced) {
+        this.sloType = SLO_OPTION_VALUES.all;
+      } else if (selectedModel.logoutAllEnabled && !selectedModel.logoutAllForced) {
+        this.sloType = SLO_OPTION_VALUES.both;
+      }
+    },
+
     async mixinFetch() {
       this.authConfigName = this.$route.params.id;
 
@@ -115,20 +144,16 @@ export default {
       if (this.model.openLdapConfig) {
         this.showLdap = true;
       }
-      if (this.value.configType === 'saml') {
+
+      // Logic for Single Logout/SLO for auth providers
+      if (this.value?.configType && SLO_AUTH_PROVIDERS.includes(this.value?.configType)) {
         if (!this.model.rancherApiHost || !this.model.rancherApiHost.length) {
           this.model['rancherApiHost'] = this.serverUrl;
         }
 
         // setting data for SLO
         if (this.model && Object.keys(this.model).includes('logoutAllSupported')) {
-          if (!this.model.logoutAllEnabled && !this.model.logoutAllForced) {
-            this.sloType = SLO_OPTION_VALUES.rancher;
-          } else if (this.model.logoutAllEnabled && this.model.logoutAllForced) {
-            this.sloType = SLO_OPTION_VALUES.all;
-          } else if (this.model.logoutAllEnabled && !this.model.logoutAllForced) {
-            this.sloType = SLO_OPTION_VALUES.both;
-          }
+          this.setSloType(this.model);
         }
       }
 
@@ -184,6 +209,9 @@ export default {
             if (!this.model.accessMode) {
               this.model.accessMode = 'unrestricted';
             }
+            if (this.model.id === 'github' || this.model.id === 'githubapp') {
+              this.model.accessMode = 'restricted';
+            }
             await this.model.doAction('testAndApply', obj, { redirectUnauthorized: false });
           }
 
@@ -220,9 +248,13 @@ export default {
               addObject(this.model.allowedPrincipalIds, this.principal.id);
             }
             // Session has switched to new 'me', ensure we react
-            this.$store.commit('auth/loggedInAs', this.principal.id);
+            this.$store.dispatch('auth/loggedInAs', this.principal.id);
           } else {
             console.warn(`Unable to find principal marked as 'me'`); // eslint-disable-line no-console
+          }
+
+          if (!wasEnabled) {
+            this.model.accessMode = 'required';
           }
         }
         if (wasEnabled && configType === 'oauth') {
@@ -288,10 +320,21 @@ export default {
       // go back to provider selection screen
       if (!this.model.enabled) {
         this.$router.go(-1);
+      } else if (this.openedOnConfig) {
+        this.$router.push({
+          name:   'c-cluster-auth-config',
+          params: { cluster: this.$route.params.cluster },
+        });
       } else {
         // must be cancelling edit of an enabled config; reset any changes and return to add users/groups view for that config
         this.$store.dispatch(`rancher/clone`, { resource: this.originalModel }).then((cloned) => {
           this.model = cloned;
+
+          // reset SLO type (radio option)
+          if (cloned && Object.keys(cloned).includes('logoutAllSupported')) {
+            this.setSloType(cloned);
+          }
+
           this.editConfig = false;
         });
       }
@@ -320,6 +363,10 @@ export default {
 
       case 'saml':
         this.model.accessMode = 'unrestricted';
+        if (this.model.id === 'genericsaml') {
+          this.model.nameIDFormat = this.model.nameIDFormat || 'unspecified';
+          this.model.signatureMethod = this.model.signatureMethod || 'RSA-SHA256';
+        }
         break;
       case 'ldap':
         this.model.servers = [];

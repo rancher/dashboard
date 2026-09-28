@@ -1,3 +1,5 @@
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+
 // Custom violation callback function that prints a list of violations
 // Used when logging to the Cypress log
 const severityIndicators = {
@@ -10,6 +12,40 @@ const severityIndicators = {
 // Used to track where multiple checks are done in a test to ensure we save
 // the screenshots for them to unique filenames
 const screenshotIndexes: {[key: string]: number} = {};
+
+const MARKER_DIV_ID = 'a11y_violation_marker_cypress';
+
+type AxeResults = {
+  violations: any[];
+  incomplete: any[];
+  passes: any[];
+  inapplicable: any[];
+  // Every rule axe knows about, whether or not it produced a result. Lets us tell "the rule ran and
+  // found nothing" apart from "the rule never ran".
+  availableRules: string[];
+};
+
+/**
+ * Run axe directly instead of going through `cy.checkA11y`.
+ *
+ * `cy.checkA11y` only ever hands its callback `results.violations` (see `violationCallback` in
+ * cypress-axe's `dist/index.js`). That means axe's `incomplete` results were being discarded
+ * before they reached the report - and `incomplete` is exactly where `color-contrast` lands
+ * whenever axe can't resolve the background colour with certainty (background images, gradients,
+ * overlapping elements, alpha transparency, elements outside the viewport - 15 documented reasons
+ * in axe-core's `lib/checks/color/color-contrast.json`). Calling `axe.run` ourselves gives us the
+ * full results object.
+ *
+ * As before, nothing here fails the test - we only record.
+ */
+function runAxe(context?: any): Cypress.Chainable<AxeResults> {
+  return cy.window({ log: false }).then(LONG_TIMEOUT_OPT, (win: any) => {
+    return (win.axe.run(context || win.document, {}) as Promise<AxeResults>).then((results) => ({
+      ...results,
+      availableRules: win.axe.getRules().map((rule: any) => rule.ruleId),
+    }));
+  });
+}
 
 // Log violations to the terminal
 function terminalLog(violations) {
@@ -47,16 +83,11 @@ function getAccessibilityViolationsCallback(description?: string) {
     terminalLog(violations); // Log to the console
 
     const title = Cypress.currentTest.titlePath.join(', ');
-    const index = screenshotIndexes[title] || 1;
+    let index = screenshotIndexes[title] || 1;
     const testPath = Cypress.currentTest.titlePath;
     const lastName = Cypress.currentTest.titlePath[Cypress.currentTest.titlePath.length - 1];
 
     testPath.push(description || `${ lastName } (#${ index })`);
-
-    cy.task('a11y', {
-      violations,
-      titlePath: testPath,
-    });
 
     // Log in Cypress
     violations.forEach((violation) => {
@@ -69,7 +100,9 @@ function getAccessibilityViolationsCallback(description?: string) {
         message:      `[${ violation.help }][${ violation.helpUrl }]`
       });
 
-      violation.nodes.forEach(({ target }) => {
+      violation.nodes.forEach((node) => {
+        const { target } = node;
+
         Cypress.log({
           name:         `🔨`,
           consoleProps: () => violation,
@@ -77,39 +110,57 @@ function getAccessibilityViolationsCallback(description?: string) {
           message:      target
         });
 
-        // Store the existing border and change it to clearly show the elements with violations
-        cy.get(target.join(', ')).invoke('css', 'border').then((border) => {
+        // Scroll the element with the violation into view - ensure there's some content above
+        cy.get(target.join(', ')).scrollIntoView({ offset: { top: -200, left: 0 } });
+
+        // Add a border - for most cases we can just add a border
+        // For v-select elements, we need to use a child element with a border
+        cy.document().then((doc) => {
           cy.get(target.join(', ')).then(($el) => {
-            const existingBorder = $el.data('border');
+            cy.get(target.join(', ')).invoke('attr', 'class').then((classes) => {
+              cy.get(target.join(', ')).invoke('css', 'border').then((border) => {
+                const useElement = (classes || '').includes('v-select');
+                const divDisplay = useElement ? 'flex' : 'none';
+                const borderWidth = useElement ? 0 : 2;
+                const elem = doc.createElement('div');
 
-            // If we have the original border, don't store again = covers a case an element has multiple violations
-            // and we would lose the original border
-            if (!existingBorder) {
-              $el.data('border', border);
-            }
+                elem.style.border = '2px solid red';
+                elem.style.width = '100%';
+                elem.style.height = '100%';
+                elem.style.position = 'absolute';
+                elem.style.display = divDisplay;
 
-            $el.css('border', '2px solid red');
+                elem.id = MARKER_DIV_ID;
+                $el[0].insertBefore(elem, $el[0].firstChild);
+
+                // Store the existing border and change it to clearly show the elements with violations
+                const existingBorder = $el.data('border');
+
+                // If we have the original border, don't store again = covers a case an element has multiple violations
+                // and we would lose the original border
+                if (!existingBorder) {
+                  $el.data('border', border);
+                }
+
+                $el.css('border', `${ borderWidth }px solid red`);
+              });
+            });
           });
         });
-      });
-    });
 
-    cy.screenshot(`a11y_${ Cypress.currentTest.title }_${ index }`);
+        node.screenshot = `screenshots/a11y_${ Cypress.currentTest.title }_${ index }.png`;
 
-    // Record the screenshot against the test and move it into the a11y folder
-    cy.task('a11yScreenshot', {
-      titlePath: testPath,
-      test:      Cypress.currentTest,
-      name:      `a11y_${ Cypress.currentTest.title }_${ index }`
-    });
+        cy.screenshot(`a11y_${ Cypress.currentTest.title }_${ index }`, { capture: 'viewport' });
+        index++;
 
-    screenshotIndexes[title] = index + 1;
+        // Remove the marker element
+        cy.get(`#${ MARKER_DIV_ID }`).then(($el) => {
+          $el[0].remove();
+        });
 
-    // Reset the borders that were added to mark the elements with violations
-    violations.forEach((violation) => {
-      violation.nodes.forEach(({ target }) => {
+        // Remove the border
         cy.get(target.join(', ')).then(($el) => {
-          const border = $el.data('border');
+          const border = $el.data('border') || '';
 
           if (!border.startsWith('0px none')) {
             $el.css('border', $el.data('border'));
@@ -123,25 +174,100 @@ function getAccessibilityViolationsCallback(description?: string) {
         });
       });
     });
+
+    // Register violations after we've got the bounding boxes
+    cy.task('a11y', {
+      violations,
+      titlePath: testPath,
+    });
+
+    screenshotIndexes[title] = index + 1;
   };
+}
+
+/**
+ * Log the 'needs review' (incomplete) results.
+ *
+ * Deliberately lighter than the violation path - no screenshots and no DOM marking. Incomplete
+ * results are high volume by nature (axe files everything it can't be certain about here) and they
+ * are a triage queue rather than failures, so screenshotting every node would balloon both the run
+ * time and the artifact size for little benefit.
+ */
+function reportIncomplete(incomplete: any[], description?: string) {
+  const suiteTitle = Cypress.currentTest.titlePath.slice(0, -1).join(' > ');
+  const testTitle = Cypress.currentTest.titlePath.slice(-1)[0];
+
+  cy.task('log', `\n📝 Test Suite: ${ suiteTitle }`);
+  cy.task('log', `📌 Test Case: ${ testTitle }`);
+  cy.task('log', `🔍 ${ incomplete.length } accessibility check(s) need manual review\n`);
+
+  cy.task('table', incomplete.map(({
+    id, impact, description: ruleDescription, nodes
+  }) => ({
+    id,
+    impact,
+    description: ruleDescription,
+    nodes:       nodes.length
+  })));
+
+  incomplete.forEach((item) => {
+    Cypress.log({
+      name:         '🔍 A11y review',
+      consoleProps: () => item,
+      $el:          Cypress.$(item.nodes.map((node: any) => node.target).join(',')),
+      message:      `[${ item.help }][${ item.helpUrl }]`
+    });
+  });
+
+  // The violation path appends `<test name> (#n)` because that segment is keyed to the screenshot
+  // index. We take no screenshots, so incomplete results group under the plain test name.
+  const testPath = [...Cypress.currentTest.titlePath];
+
+  testPath.push(description || testPath[testPath.length - 1]);
+
+  cy.task('a11yIncomplete', { incomplete, titlePath: testPath });
+}
+
+function reportResults(results: AxeResults, description?: string) {
+  const violations = Array.isArray(results?.violations) ? results.violations : [];
+  const incomplete = Array.isArray(results?.incomplete) ? results.incomplete : [];
+
+  if (violations.length) {
+    getAccessibilityViolationsCallback(description)(violations);
+  }
+
+  if (incomplete.length) {
+    reportIncomplete(incomplete, description);
+  }
+
+  // Hand every bucket to the plugin. The two paths above own their own reporting (screenshots, DOM
+  // marking, the per-test tree); this is what feeds the run-level rule summary and the `passes` and
+  // `inapplicable` reports. The plugin does the summarising so all four buckets are treated the same
+  // way in one place.
+  cy.task('a11yResults', {
+    titlePath:      [...Cypress.currentTest.titlePath],
+    availableRules: results?.availableRules,
+    violations,
+    incomplete,
+    passes:         results?.passes,
+    inapplicable:   results?.inapplicable,
+  });
 }
 
 /**
  * Checks accessibility of the entire page
  */
-// skipFailures = true will not fail the test when there are accessibility failures
 Cypress.Commands.add('checkPageAccessibility', (description?: string) => {
-  cy.checkA11y(undefined, {}, getAccessibilityViolationsCallback(description), true);
+  runAxe().then((results) => reportResults(results, description));
 });
 
 /**
  * Checks accessibility of a specific element
  */
-// skipFailures = true will not fail the test when there are accessibility failures
 Cypress.Commands.add('checkElementAccessibility', (subject: any, description?: string) => {
   cy.get(subject).then(($el) => {
     cy.log(`✅ Found ${ $el.length } elements matching`);
   });
 
-  cy.checkA11y(subject, {}, getAccessibilityViolationsCallback(description), true);
+  runAxe(subject).then((results) => reportResults(results, description));
 });

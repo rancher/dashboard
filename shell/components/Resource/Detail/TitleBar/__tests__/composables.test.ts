@@ -1,34 +1,33 @@
 import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
+import type { RouteLocationNamedRaw } from 'vue-router';
 
 const mockStore = {
   getters: {
     'type-map/labelFor': jest.fn(),
-    'type-map/hasGraph': jest.fn(),
     currentStore:        jest.fn(),
     'cluster/schemaFor': jest.fn()
   }
 };
 const mockRoute = { params: { cluster: 'CLUSTER' } };
-const mockDrawer = { openResourceDetailDrawer: jest.fn() };
 
 jest.mock('vuex', () => ({ useStore: () => mockStore }));
 jest.mock('vue-router', () => ({ useRoute: () => mockRoute }));
-jest.mock('@shell/components/Drawer/ResourceDetailDrawer/composables', () => ({ useResourceDetailDrawer: () => mockDrawer }));
 
 describe('composables: TitleBar', () => {
   const resource = {
-    nameDisplay:     'RESOURCE_NAME',
-    namespace:       'RESOURCE_NAMESPACE',
-    type:            'RESOURCE_TYPE',
-    stateBackground: 'RESOURCE_STATE_BACKGROUND',
-    stateDisplay:    'RESOURCE_STATE_DISPLAY',
-    description:     'RESOURCE_DESCRIPTION',
+    nameDisplay:                 'RESOURCE_NAME',
+    namespace:                   'RESOURCE_NAMESPACE',
+    type:                        'RESOURCE_TYPE',
+    stateBackground:             'RESOURCE_STATE_BACKGROUND',
+    stateDisplay:                'RESOURCE_STATE_DISPLAY',
+    description:                 'RESOURCE_DESCRIPTION',
+    showConfiguration:           jest.fn(),
+    detailPageAdditionalActions: undefined as any,
   };
   const labelFor = 'LABEL_FOR';
   const schema = { type: 'SCHEMA' };
-  const hasGraph = true;
 
   it('should return the appropriate values based on input', async() => {
     const route = useRoute();
@@ -36,28 +35,56 @@ describe('composables: TitleBar', () => {
     mockStore.getters['currentStore'].mockImplementation(() => 'cluster');
     mockStore.getters['cluster/schemaFor'].mockImplementation(() => schema);
     mockStore.getters['type-map/labelFor'].mockImplementation(() => labelFor);
-    mockStore.getters['type-map/hasGraph'].mockImplementation(() => hasGraph);
 
     const props = useDefaultTitleBarProps(resource, ref(undefined));
+    const resourceTo = props.value.resourceTo as RouteLocationNamedRaw;
 
     expect(props.value.resourceTypeLabel).toStrictEqual(labelFor);
     expect(mockStore.getters['type-map/labelFor']).toHaveBeenLastCalledWith(schema);
-    expect(mockStore.getters['type-map/hasGraph']).toHaveBeenLastCalledWith(resource.type);
     expect(mockStore.getters['currentStore']).toHaveBeenLastCalledWith(resource.type);
     expect(mockStore.getters['cluster/schemaFor']).toHaveBeenLastCalledWith(resource.type);
-    expect(props.value.resourceTo?.params.product).toStrictEqual('explorer');
-    expect(props.value.resourceTo?.params.cluster).toStrictEqual(route.params.cluster);
-    expect(props.value.resourceTo?.params.namespace).toStrictEqual(resource.namespace);
-    expect(props.value.resourceTo?.params.resource).toStrictEqual(resource.type);
+    expect(resourceTo?.params?.product).toStrictEqual('explorer');
+    expect(resourceTo?.params?.cluster).toStrictEqual(route.params.cluster);
+    expect(resourceTo?.params?.namespace).toStrictEqual(resource.namespace);
+    expect(resourceTo?.params?.resource).toStrictEqual(resource.type);
     expect(props.value.resourceName).toStrictEqual(resource.nameDisplay);
 
     expect(props.value.actionMenuResource).toStrictEqual(resource);
     expect(props.value.badge?.color).toStrictEqual(resource.stateBackground);
     expect(props.value.badge?.label).toStrictEqual(resource.stateDisplay);
     expect(props.value.description).toStrictEqual(resource.description);
-    expect(props.value.showViewOptions).toStrictEqual(hasGraph);
 
     props.value.onShowConfiguration?.('callback');
-    expect(mockDrawer.openResourceDetailDrawer).toHaveBeenCalledTimes(1);
+    expect(resource.showConfiguration).toHaveBeenCalledTimes(1);
+  });
+
+  it('should include additionalActions from resource.detailPageAdditionalActions', async() => {
+    const additionalActions = [
+      {
+        label: 'Action 1', variant: 'secondary', onClick: jest.fn()
+      }
+    ];
+
+    resource.detailPageAdditionalActions = additionalActions;
+
+    mockStore.getters['currentStore'].mockImplementation(() => 'cluster');
+    mockStore.getters['cluster/schemaFor'].mockImplementation(() => schema);
+    mockStore.getters['type-map/labelFor'].mockImplementation(() => labelFor);
+
+    const props = useDefaultTitleBarProps(resource, ref(undefined));
+
+    expect(props.value.additionalActions).toStrictEqual(additionalActions);
+  });
+
+  it('should have undefined additionalActions when resource does not define detailPageAdditionalActions', async() => {
+    resource.detailPageAdditionalActions = undefined;
+
+    mockStore.getters['currentStore'].mockImplementation(() => 'cluster');
+    mockStore.getters['cluster/schemaFor'].mockImplementation(() => schema);
+    mockStore.getters['type-map/labelFor'].mockImplementation(() => labelFor);
+
+    const props = useDefaultTitleBarProps(resource, ref(undefined));
+
+    expect(props.value.additionalActions).toBeUndefined();
   });
 });

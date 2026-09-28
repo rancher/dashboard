@@ -4,14 +4,21 @@ import CardPo from '@/cypress/e2e/po/components/card.po';
 import { CypressChainable } from '@/cypress/e2e/po/po.types';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import { RESTART_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { MEDIUM_TIMEOUT_OPT, RESTART_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class FeatureFlagsPagePo extends RootClusterPage {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/settings/management.cattle.io.feature`;
   }
 
-  static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+  static goToAndWait(timeout = MEDIUM_TIMEOUT_OPT.timeout) {
+    return super.goToAndWaitForGet(FeatureFlagsPagePo.goTo, [
+      'v1/management.cattle.io.features?exclude=metadata.managedFields'
+    ],
+    timeout);
+  }
+
+  static goTo(clusterId = '_'): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(FeatureFlagsPagePo.createPath(clusterId));
   }
 

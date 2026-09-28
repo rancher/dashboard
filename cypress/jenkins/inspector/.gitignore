@@ -1,0 +1,2 @@
+# Re-allow package-lock.json (overrides root .gitignore which blocks it globally)
+!package-lock.json

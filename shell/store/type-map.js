@@ -20,7 +20,7 @@
 // importList(type)                 Returns a promise that resolves to the list component for type
 // importDetail(type[,subType])     Returns a promise that resolves to the detail component for type
 // importEdit(type[,subType])       Returns a promise that resolves to the edit component for type
-// optionsFor(schemaOrType)         Return the configured options for a type (from configureType)
+// optionsFor(schemaOrType, pagination(bool), product(string)) Return the configured options for a type (from configureType) - additional product param can be passed if "optionsFor" needed isn't the current product
 //
 // 3) Changing specialization info about a type
 // For all:
@@ -35,6 +35,7 @@
 //   ifHave,                  -- Show this product only if the given capability is available
 //   ifHaveGroup,             -- Show this product only if the given group exists in the store [inStore]
 //   ifHaveType,              -- Show this product only if the given type exists in the store [inStore], This can also be specified as an object { type: TYPE, store: 'management' } if the type isn't in the current [inStore]
+//   ifNotHaveType,           -- Hide this product if the given type exists in the store [inStore] (opposite of ifHaveType)
 //   ifHaveVerb,              -- In combination with ifHaveTYpe, show it only if the type also has this collectionMethod
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
 //   rootProduct,             -- Optional root (parent) product - if set, used to optimize navigation when product changes stays within root product
@@ -52,6 +53,9 @@
 //                            --  obj can contain anything in the objects getTree returns.
 //                            --  obj must have a `name` that is unique among all virtual types.
 //                            -- `cluster` is automatically added to route.params if it exists.
+//                            -- `navResources` is an optional array of resource types. The nav item stays
+//                               highlighted while on a route for one of those resources. For example, some
+//                               create/edit pages of a type have no nav entry of their own.
 //
 // spoofedType(obj)           Create a fake type that can be treated like a normal type
 //
@@ -103,11 +107,10 @@
 //                               depaginate: undefined -- Use this to depaginate requests for this type
 //                               resourceEditMasthead: true   -- Show the Masthead in the edit resource component
 //                               customRoute: undefined,
-//                               hasGraph: undefined   -- If true, render ForceDirectedTreeChart graph (ATTENTION: option graphConfig is needed also!!!)
-//                               graphConfig: undefined   -- Use this to pass along the graph configuration
 //                               notFilterNamespace:  undefined -- Define namespaces that do not need to be filtered
 //                               localOnly: False -- Hide this type from the nav/search bar on downstream clusters
 //                               custom: any - Custom options for a given type
+//                               product: string - If set, this type's options will only apply when that product is active
 //                           }
 // )
 // ignoreGroup(group):        Never show group or any types in it
@@ -154,10 +157,7 @@ import { haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 import { createHeaders, rowValueGetter } from '@shell/store/type-map.utils';
 import { defineAsyncComponent } from 'vue';
-
-export const NAMESPACED = 'namespaced';
-export const CLUSTER_LEVEL = 'cluster';
-export const BOTH = 'both';
+import { filterLocationValidParams } from '@shell/utils/router';
 
 export const TYPE_MODES = {
   /**
@@ -189,7 +189,7 @@ export const TYPE_MODES = {
    */
   FAVORITE: 'favorite',
   /**
-   * Represents no virtual or spoofed types that have a count.
+   * Represents types that have a count and are not virtual or spoofed.
    *
    * For example the `More Resource` in the cluster explorer
    *
@@ -208,18 +208,20 @@ export const SPOOFED_PREFIX = '__[[spoofed]]__';
 export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 
 const instanceMethods = {};
-const graphConfigMap = {};
 
 export const IF_HAVE = {
-  V2_MONITORING:            'v2-monitoring',
-  PROJECT:                  'project',
-  NO_PROJECT:               'no-project',
-  NOT_V1_ISTIO:             'not-v1-istio',
-  MULTI_CLUSTER:            'multi-cluster',
-  NEUVECTOR_NAMESPACE:      'neuvector-namespace',
-  ADMIN:                    'admin-user',
-  MCM_DISABLED:             'mcm-disabled',
-  NOT_STANDALONE_HARVESTER: 'not-standalone-harvester',
+  V2_MONITORING:              'v2-monitoring',
+  PROJECT:                    'project',
+  NO_PROJECT:                 'no-project',
+  NOT_V1_ISTIO:               'not-v1-istio',
+  MULTI_CLUSTER:              'multi-cluster',
+  NEUVECTOR_NAMESPACE:        'neuvector-namespace',
+  ADMIN:                      'admin-user',
+  MCM_DISABLED:               'mcm-disabled',
+  NOT_STANDALONE_HARVESTER:   'not-standalone-harvester',
+  // Show if the user can access cluster OR project role template bindings, so a project-only
+  // member can reach the "Cluster and Project Members" nav, not just cluster-level ones.
+  CLUSTER_OR_PROJECT_MEMBERS: 'cluster-or-project-members',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -235,13 +237,14 @@ export function DSL(store, product, module = 'type-map') {
         removable:           true,
         showClusterSwitcher: true,
         showNamespaceFilter: false,
+        navSearch:           false,
         public:              true,
         filterMode:          'namespaces',
         ...inOpt
       };
 
       // Convert strings to regex's - we do this once here for efficiency
-      for ( const k of ['ifHaveGroup', 'ifHaveType'] ) {
+      for ( const k of ['ifHaveGroup', 'ifHaveType', 'ifNotHaveType'] ) {
         if ( opt[k] ) {
           if (Array.isArray(opt[k])) {
             opt[k] = opt[k].map((r) => regexToString(ensureRegex(r)));
@@ -270,20 +273,25 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/groupBy`, { type, field });
     },
 
-    headers(type, headers, paginationHeaders = []) {
-      headers.forEach((header) => {
+    headers(type, headers = [], paginationHeaders = []) {
+      if (headers.length) {
+        headers.forEach((header) => {
         // If on the client, then use the value getter if there is one
-        if (header.getValue) {
+          if (header.getValue) {
           // we need to store the .value prop for the advanced filtering
-          header.valueProp = header.value;
-          header.value = header.getValue;
-        }
+            header.valueProp = header.value;
+            header.value = header.getValue;
+          }
 
-        delete header.getValue;
-      });
+          delete header.getValue;
+        });
 
-      store.commit(`${ module }/headers`, { type, headers });
-      store.commit(`${ module }/paginationHeaders`, { type, paginationHeaders });
+        store.commit(`${ module }/headers`, { type, headers });
+      }
+
+      if (paginationHeaders.length) {
+        store.commit(`${ module }/paginationHeaders`, { type, paginationHeaders });
+      }
     },
 
     hideBulkActions(type, field) {
@@ -291,11 +299,9 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     configureType(match, options) {
-      if (options.graphConfig) {
-        graphConfigMap[match] = options.graphConfig;
-        delete options.graphConfig;
-      }
-      store.commit(`${ module }/configureType`, { ...options, match });
+      store.commit(`${ module }/configureType`, {
+        ...options, match, product
+      });
     },
 
     componentForType(match, replace) {
@@ -320,6 +326,12 @@ export function DSL(store, product, module = 'type-map') {
           group: input, weight, forBasic
         });
       }
+    },
+
+    labelGroup(group, label, labelKey) {
+      store.commit(`${ module }/labelGroup`, {
+        group, label, labelKey
+      });
     },
 
     setGroupDefaultType(input, defaultType) {
@@ -370,27 +382,62 @@ export function DSL(store, product, module = 'type-map') {
   };
 }
 
-let called = false;
+const LEGACY_COMPATIBILITY_BUCKET = 'legacyCompatibilityProdRegistration';
 
-export async function applyProducts(store, $plugin) {
-  if (called) {
-    return;
+function validateProductName(product) {
+  if (!product || typeof product !== 'string' || product.trim() === '') {
+    throw new Error(`Product name must be a non-empty string, got: ${ JSON.stringify(product) }`);
   }
 
-  called = true;
-  for ( const product of listProducts() ) {
-    const impl = await loadProduct(product);
+  if (product === LEGACY_COMPATIBILITY_BUCKET) {
+    throw new Error(`Product name cannot be "${ LEGACY_COMPATIBILITY_BUCKET }" as it is reserved for backward compatibility`);
+  }
+}
 
-    if ( impl?.init ) {
-      impl.init(store);
+let loading = null;
+
+/**
+ * Registers the built-in products, once per session.
+ *
+ * Callers get the same promise, so a navigation that arrives while the products
+ * are still loading waits for them like the first one did. It used to raise a
+ * flag before the loads finished and return immediately to anyone who came in
+ * behind, which let a route render against a half-registered product list -
+ * and `currentProduct` answers for a product that has not registered yet by
+ * falling back to an unrelated one.
+ *
+ * Only the built-in ones: `loadProducts` returns nothing to await, inits each
+ * plugin's products in an un-awaited `forEach`, and in any case only reaches
+ * plugins already loaded - external ones arrive later through
+ * `loadPluginAsync`. So an extension product can still register after a route
+ * has rendered, exactly as it could before. Awaiting extension products is a
+ * change to the extension API, not to this function.
+ *
+ * A failed load clears the promise so the next navigation can try again, rather
+ * than leaving every later caller inheriting the failure.
+ */
+export async function applyProducts(store, $extension) {
+  loading = loading || (async() => {
+    for ( const product of listProducts() ) {
+      const impl = await loadProduct(product);
+
+      if ( impl?.init ) {
+        impl.init(store);
+      }
     }
-  }
-  // Load the products from all plugins
-  $plugin.loadProducts();
+    // Load the products from all plugins
+    $extension?.loadProducts();
+  })().catch((e) => {
+    loading = null;
+
+    throw e;
+  });
+
+  return loading;
 }
 
 export function productsLoaded() {
-  return called;
+  return !!loading;
 }
 
 export const state = function() {
@@ -402,6 +449,7 @@ export const state = function() {
     groupIgnore:             [],
     groupWeights:            {},
     groupDefaultTypes:       {},
+    groupLabels:             {},
     basicGroupWeights:       { [ROOT]: 1000 },
     groupMappings:           [],
     typeIgnore:              [],
@@ -410,7 +458,7 @@ export const state = function() {
     typeMappings:            [],
     typeMoveMappings:        [],
     typeToComponentMappings: [],
-    typeOptions:             [],
+    typeOptions:             {},
     groupBy:                 {},
     headers:                 {},
     paginationHeaders:       {},
@@ -504,6 +552,23 @@ export const getters = {
     };
   },
 
+  groupLabel(state) {
+    return (group) => {
+      // Handle null/undefined
+      if (!group) {
+        return;
+      }
+
+      // commit is done with lowercase group names, so lowercase here to match
+      const groupName = group.toLowerCase();
+
+      // If this has been explicitly set, use that
+      if (groupName) {
+        return state.groupLabels[groupName];
+      }
+    };
+  },
+
   groupForBasicType(state) {
     return (product, schemaId) => {
       return state.basicTypes?.[product]?.[schemaId];
@@ -530,15 +595,37 @@ export const getters = {
       subTypes:                 [],
     };
 
-    return (schemaOrType, pagination) => {
+    return (schemaOrType, pagination, product) => {
       // Note - This can run a LOT so needs to be performant
 
       if (!schemaOrType) {
         return {};
       }
 
+      if (product) {
+        validateProductName(product);
+      }
+
       const type = (typeof schemaOrType === 'object' ? schemaOrType.id : schemaOrType);
-      const found = state.typeOptions.find((entry) => {
+      const productToUse = product || rootGetters['productId'];
+
+      // Handle both array (pre-2.15) and object (2.15+) state.typeOptions formats for backwards compatibility
+      let productTypeOptions = [];
+
+      if (Array.isArray(state.typeOptions)) {
+        // Legacy format: filter the flat array for entries matching the product or entries without a product field
+        productTypeOptions = state.typeOptions.filter((entry) => entry.product === productToUse || !entry.product
+        );
+      } else {
+        // New format: direct object lookup by product, with fallback to legacy compatibility bucket for unscoped entries
+        // (e.g., extensions compiled with pre-2.15 shell that don't send product parameter)
+        productTypeOptions = [
+          ...(state.typeOptions[productToUse] || []),
+          ...(state.typeOptions[LEGACY_COMPATIBILITY_BUCKET] || [])
+        ];
+      }
+
+      const found = productTypeOptions.find((entry) => {
         const re = stringToRegex(entry.match);
 
         return re.test(type);
@@ -603,14 +690,12 @@ export const getters = {
 
   getTree(state, getters, rootState, rootGetters) {
     // Name the function so it's easily identifiable when performance tracing
-    return function getTree(productId, mode, allTypes, clusterId, namespaceMode, currentType, search) {
+    return function getTree(productId, mode, allTypes, clusterId, currentType, search) {
       // getTree has four modes:
       // - `basic` matches data types that should always be shown (even if there are 0 of them).
-      // - `used` matches the data types where there are more than 0 of them in the current set of namespaces.
+      // - `used` matches the data types that have been used, shown regardless of their current count.
       // - `all` matches all types.
       // - `favorite` matches starred types.
-      // namespaceMode: 'namespaced', 'cluster', or 'both'
-      // namespaces: null means all, otherwise it will be an array of specific namespaces to include
       const isBasic = mode === TYPE_MODES.BASIC;
 
       let searchRegex;
@@ -638,12 +723,6 @@ export const getters = {
         }
 
         const namespaced = typeObj.namespaced;
-
-        if ( (namespaceMode === NAMESPACED && !namespaced ) || (namespaceMode === CLUSTER_LEVEL && namespaced) ) {
-          // Skip types that are not the right namespace mode
-          continue;
-        }
-
         const inStore = rootGetters.currentStore(typeObj.name);
         const count = rootGetters[`${ inStore }/count`](typeObj);
         const groupForBasicType = getters.groupForBasicType(productId, typeObj.name);
@@ -652,10 +731,6 @@ export const getters = {
           // If this is the type currently being shown, always show it
         } else if ( isBasic && !groupForBasicType ) {
           // If we want the basic tree only return basic types;
-          continue;
-        } else if ( mode === TYPE_MODES.USED && count <= 0 ) {
-          // If there's none of this type, ignore this entry when viewing only in-use types
-          // Note: count is sometimes null, in js `null <= 0` is `true`.
           continue;
         }
 
@@ -701,7 +776,7 @@ export const getters = {
             }
           };
 
-          typeObj.route = route;
+          typeObj.route = filterLocationValidParams(rootState.$router, route);
         }
 
         // Cluster ID and Product should always be set
@@ -718,10 +793,11 @@ export const getters = {
           exact:        typeObj.exact || false,
           'exact-path': typeObj['exact-path'] || false,
           namespaced,
-          route,
+          route:        filterLocationValidParams(rootState.$router, route),
           name:         typeObj.name,
           weight:       typeObj.weight || getters.typeWeightFor(typeObj.schema?.id || label, isBasic),
           overview:     !!typeObj.overview,
+          navResources: typeObj.navResources,
         });
       }
 
@@ -745,10 +821,21 @@ export const getters = {
 
         // Translate if an entry exists
         let label = name;
-        // i18n-uses nav.group.*
-        const key = `nav.group."${ name }"`;
+        let key;
 
-        if ( rootGetters['i18n/exists'](key) ) {
+        // See if we have a configured label for this group
+        const groupLabel = getters['groupLabel'](name);
+
+        if (groupLabel?.label) {
+          label = groupLabel.label;
+        } else if (groupLabel?.labelKey) {
+          key = groupLabel.labelKey;
+        } else {
+          // i18n-uses nav.group.*
+          key = `nav.group."${ name }"`;
+        }
+
+        if (key && rootGetters['i18n/exists'](key) ) {
           label = rootGetters['i18n/t'](key);
         }
 
@@ -914,7 +1001,7 @@ export const getters = {
         });
 
         const attrs = schema.attributes || {};
-        const typeOptions = getters['optionsFor'](schema);
+        const typeOptions = getters['optionsFor'](schema, undefined, product);
 
         schemaModes[TYPE_MODES.BASIC] = schemaModes[TYPE_MODES.BASIC] && getters.groupForBasicType(product, schema.id);
 
@@ -1178,14 +1265,9 @@ export const getters = {
     };
   },
 
-  hasGraph(state, getters) {
-    return (resource) => {
-      const typeOptions = getters['optionsFor'](resource);
-
-      if (typeOptions && typeOptions.hasGraph) {
-        return graphConfigMap[resource];
-      }
-
+  // This has to be left in to support extensions which use shell version 3.0.5-rc.8 or earlier, this extensions have a version of ResourceDetail/index.vue which still invokes this method.
+  hasGraph() {
+    return () => {
       return null;
     };
   },
@@ -1431,6 +1513,14 @@ export const getters = {
         }
       }
 
+      if ( p.ifNotHaveType ) {
+        const haveIds = knownTypes[module].filter((t) => t.match(stringToRegex(p.ifNotHaveType)) );
+
+        if ( haveIds.length ) {
+          return false;
+        }
+      }
+
       if ( p.ifHaveGroup && !knownGroups[module].find((t) => t.match(stringToRegex(p.ifHaveGroup)) ) ) {
         return false;
       }
@@ -1487,6 +1577,10 @@ export const mutations = {
     // Go through the basic types and remove the headers
     if (state.virtualTypes[product]) {
       delete state.virtualTypes[product];
+    }
+
+    if (state.typeOptions[product]) {
+      delete state.typeOptions[product];
     }
 
     if (state.basicTypes[product]) {
@@ -1588,6 +1682,17 @@ export const mutations = {
         collection: `/${ SPOOFED_PREFIX }/${ schema.id }`,
         ...(schema.links || {})
       };
+
+      const verbs = schema.attributes?.verbs || [];
+
+      if ( !verbs.includes('list') ) {
+        verbs.push('list');
+      }
+
+      schema.attributes = {
+        ...schema?.attributes,
+        verbs
+      };
     });
 
     const existing = findBy(state.spoofedTypes[product], 'type', copy.type);
@@ -1671,6 +1776,10 @@ export const mutations = {
     }
   },
 
+  labelGroup(state, { group, label, labelKey }) {
+    state.groupLabels[group.toLowerCase()] = { label, labelKey };
+  },
+
   // setGroupDefaultType({group: 'core', defaultType: 'name'});
   // By default when a group is clicked, the first item is selected - this allows
   // this behaviour to be changed and a named child type can be chosen
@@ -1736,20 +1845,54 @@ export const mutations = {
   },
 
   configureType(state, options) {
-    const match = regexToString(ensureRegex(options.match));
+    const { product, ...typeOptions } = options;
+    const match = regexToString(ensureRegex(typeOptions.match));
 
-    const idx = state.typeOptions.findIndex((obj) => obj.match === match);
-    let obj = { ...options, match };
+    // Handle both old (array) and new (object) state.typeOptions formats for backwards compatibility
+    // Old format (pre-2.15): state.typeOptions = []
+    // New format (2.15+): state.typeOptions = { productName: [...] }
+    if (Array.isArray(state.typeOptions)) {
+      // Legacy path: old format for extensions compiled with pre-2.15 shell
+      // In 2.14, product parameter is not validated/enforced
+      const idx = state.typeOptions.findIndex((obj) => obj.match === match);
+      let obj = { ...options, match };
 
-    if ( idx >= 0 ) {
-      // Merge the custom data object - multiple configures will update existing rather than overwrite
-      obj.custom = Object.assign(state.typeOptions[idx].custom || {}, obj.custom || {});
-      obj = Object.assign(state.typeOptions[idx], obj);
-      state.typeOptions.splice(idx, 1, obj);
+      if ( idx >= 0 ) {
+        // Merge the custom data object - multiple configures will update existing rather than overwrite
+        obj.custom = Object.assign(state.typeOptions[idx].custom || {}, obj.custom || {});
+        obj = Object.assign(state.typeOptions[idx], obj);
+        state.typeOptions.splice(idx, 1, obj);
+      } else {
+        state.typeOptions.push(obj);
+      }
     } else {
-      const obj = Object.assign({}, options, { match });
+      // New path: object format with product scoping (2.15+)
+      // Product is required in new format
+      if (!product) {
+        throw new Error(`configureType: product parameter is required in Rancher 2.15+, not provided for type "${ match }"`);
+      }
 
-      state.typeOptions.push(obj);
+      validateProductName(product);
+
+      // Initialize product's typeOptions array if needed
+      if (!state.typeOptions[product]) {
+        state.typeOptions[product] = [];
+      }
+
+      const productTypeOptions = state.typeOptions[product];
+      const idx = productTypeOptions.findIndex((obj) => obj.match === match);
+      let obj = { ...typeOptions, match };
+
+      if ( idx >= 0 ) {
+        // Merge the custom data object - multiple configures will update existing rather than overwrite
+        obj.custom = Object.assign(productTypeOptions[idx].custom || {}, obj.custom || {});
+        obj = Object.assign(productTypeOptions[idx], obj);
+        productTypeOptions.splice(idx, 1, obj);
+      } else {
+        const obj = Object.assign({}, typeOptions, { match });
+
+        productTypeOptions.push(obj);
+      }
     }
   },
 
@@ -1788,8 +1931,10 @@ export const actions = {
     dispatch('prefs/set', { key: EXPANDED_GROUPS, value: groups }, { root: true });
   },
 
-  configureType({ commit }, options) {
-    commit('configureType', options);
+  configureType({ commit, rootGetters }, options) {
+    const product = options.product || rootGetters['productId'];
+
+    commit('configureType', { ...options, product });
   }
 };
 
@@ -1907,7 +2052,7 @@ function ifHave(getters, option) {
   case IF_HAVE.NOT_V1_ISTIO: {
     return !isV1Istio(getters);
   }
-  case IF_HAVE.MULTI_CLUSTER: {
+  case IF_HAVE.MULTI_CLUSTER: { // Used by harvester extension
     return getters.isMultiCluster;
   }
   case IF_HAVE.NEUVECTOR_NAMESPACE: {
@@ -1916,11 +2061,16 @@ function ifHave(getters, option) {
   case IF_HAVE.ADMIN: {
     return isAdminUser(getters);
   }
-  case IF_HAVE.MCM_DISABLED: {
+  case IF_HAVE.MCM_DISABLED: { // There's a general MCM ff, this is conflating it with a harvester concept
     return !getters['isRancherInHarvester'];
   }
-  case IF_HAVE.NOT_STANDALONE_HARVESTER: {
+  case IF_HAVE.NOT_STANDALONE_HARVESTER: { // Not used by harvester extension...
     return !getters['isStandaloneHarvester'];
+  }
+  case IF_HAVE.CLUSTER_OR_PROJECT_MEMBERS: {
+    // Reachable if the user can access EITHER cluster OR project role template bindings.
+    return !!getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING) ||
+           !!getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING);
   }
   default:
     return false;
@@ -2038,7 +2188,7 @@ function hasCustom(state, rootState, kind, key, fallback) {
   }
 
   // Check to see if the custom kind is provided by a plugin (ignore booleans)
-  const pluginComponent = rootState.$plugin.getDynamic(kind, key);
+  const pluginComponent = rootState.$extension.getDynamic(kind, key);
 
   if (typeof pluginComponent !== 'boolean' && !!pluginComponent) {
     cache[key] = true;
@@ -2058,7 +2208,7 @@ function hasCustom(state, rootState, kind, key, fallback) {
 }
 
 function loadExtension(rootState, kind, key, fallback) {
-  const ext = rootState.$plugin.getDynamic(kind, key);
+  const ext = rootState.$extension.getDynamic(kind, key);
 
   if (ext) {
     if (typeof ext === 'function') {

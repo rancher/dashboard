@@ -7,26 +7,36 @@ import KeyValue from '@shell/components/Resource/Detail/Metadata/KeyValue.vue';
 import { computed } from 'vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
+import { ExtensionPoint, PanelLocation } from '@shell/core/types';
+import ExtensionPanel from '@shell/components/ExtensionPanel.vue';
 
 export interface MetadataProps {
+  resource: any;
   identifyingInformation: IdentifyingInformationRow[],
   labels: Label[],
   annotations: Annotation[],
   onShowConfiguration?: (returnFocusSelector: string) => void;
 }
 
-const { identifyingInformation, labels, annotations } = defineProps<MetadataProps>();
+const {
+  resource, identifyingInformation, labels, annotations
+} = defineProps<MetadataProps>();
 const emit = defineEmits(['show-configuration']);
 
 const store = useStore();
 const i18n = useI18n(store);
 
 const showBothEmpty = computed(() => labels.length === 0 && annotations.length === 0);
+const hasIdentifyingInformation = computed(() => identifyingInformation.length > 0);
 </script>
 
 <template>
-  <SpacedRow class="metadata ppb-3">
+  <SpacedRow
+    class="metadata"
+    v-bind="$attrs"
+  >
     <div
+      v-if="hasIdentifyingInformation"
       class="identifying-info"
     >
       <IdentifyingInformation :rows="identifyingInformation" />
@@ -37,9 +47,10 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
       class="labels-and-annotations-empty"
     >
       <KeyValue
+        type="active"
         :rows="[]"
         :propertyName="i18n.t('component.resource.detail.metadata.labelsAndAnnotations')"
-        @show-configuration="(returnFocusSelector: string) => emit('show-configuration', returnFocusSelector)"
+        @show-configuration="(returnFocusSelector: string, defaultTab: string) => emit('show-configuration', returnFocusSelector, defaultTab)"
       />
     </div>
     <!-- I'm not using v-else here so I can maintain the spacing correctly with the other columns in other rows. -->
@@ -49,23 +60,37 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
     >
       <Labels
         :labels="labels"
-        @show-configuration="(returnFocusSelector: string) => emit('show-configuration', returnFocusSelector)"
+        @show-configuration="(returnFocusSelector: string, defaultTab: string) => emit('show-configuration', returnFocusSelector, defaultTab)"
       />
     </div>
     <div
       v-if="!showBothEmpty"
       class="annotations"
+      data-testid="resource-detail-annotations"
     >
       <Annotations
         :annotations="annotations"
-        @show-configuration="(returnFocusSelector: string) => emit('show-configuration', returnFocusSelector)"
+        @show-configuration="(returnFocusSelector: string, defaultTab: string) => emit('show-configuration', returnFocusSelector, defaultTab)"
       />
     </div>
   </SpacedRow>
+  <!-- Extensions area -->
+  <ExtensionPanel
+    class="ppb-3"
+    :resource="resource"
+    :type="ExtensionPoint.PANEL"
+    :location="PanelLocation.DETAIL_TOP"
+  />
 </template>
 
 <style lang="scss" scoped>
 .metadata {
+    .identifying-info {
+      // Allow the grid cell to shrink below its content size without
+      // using overflow:hidden, which would clip the namespace popover
+      min-width: 0;
+    }
+
     .labels-and-annotations-empty {
       grid-column: span 2;
     }

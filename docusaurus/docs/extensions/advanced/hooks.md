@@ -46,3 +46,41 @@ export default function(plugin: IPlugin) {
   plugin.addNavHooks(onEnter, onLeave);
 }
 ```
+
+## Login and Logout hooks
+Extensions can define `onLogIn` and `onLogOut` hooks in their index `addNavHooks` extension method , which will run when the user logs in or logs out of Rancher. This is particularly useful if from the extension initialisation file `index.ts` you'll need to perform store-based actions (Vuex) from this context.
+
+An example of the usage `onLogIn` and `onLogOut` using the `addNavHooks` extension method would be:
+
+```ts
+import { importTypes } from '@rancher/auto-import';
+import { IPlugin } from '@shell/core/types';
+
+// Init the extension
+export default function(plugin: IPlugin) {
+  // Auto-import model, detail, edit from the folders
+  importTypes(plugin);
+
+  // Provide extension metadata from package.json
+  // it will grab information such as `name` and `description`
+  plugin.metadata = require('./package.json');
+
+  // Load a product
+  plugin.addProduct(require('./product'));
+
+  // => => => Add hooks to Vue navigation world
+  // on login
+  plugin.addNavHooks({
+    onLogIn: async(store: any) => {
+      ....
+    }
+  });
+
+  // on logout
+  plugin.addNavHooks({
+    onLogOut: async(store: any) => {
+      ....
+    }
+  });
+}
+```

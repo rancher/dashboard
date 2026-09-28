@@ -2,7 +2,6 @@
 import YamlEditor from '@shell/components/YamlEditor';
 import Loading from '@shell/components/Loading';
 import Markdown from '@shell/components/Markdown';
-import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import { Banner } from '@components/Banner';
 import RelatedResources from '@shell/components/RelatedResources';
@@ -12,12 +11,13 @@ import { CATALOG } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
 import { mergeWithReplace } from '@shell/utils/object';
+import ResourceTabs from '@shell/components/form/ResourceTabs/index.vue';
 
 export default {
   name: 'DetailRelease',
 
   components: {
-    Markdown, Tabbed, Tab, Loading, YamlEditor, Banner, RelatedResources
+    Markdown, ResourceTabs, Tab, Loading, YamlEditor, Banner, RelatedResources
   },
 
   props: {
@@ -53,6 +53,11 @@ export default {
     },
 
     valuesYaml() {
+      // Prevent crash if data hasn't been fetched yet (e.g. secret during upgrade)
+      if (!this.value?.valuesLoaded) {
+        return '';
+      }
+
       const combined = mergeWithReplace(
         merge({}, this.value?.chartValues || {}),
         this.value?.values || {},
@@ -125,9 +130,12 @@ export default {
       {{ t('catalog.app.section.lastOperation') }}: ( {{ latestOperation.status.action }} ) - <a @click="latestOperation.openLogs()">  {{ t('catalog.app.section.openLogs') }}</a>
     </span>
 
-    <Tabbed
+    <ResourceTabs
       class="mt-20"
       default-tab="resources"
+      :needConditions="false"
+      :needEvents="false"
+      :needRelated="false"
       @changed="tabChanged($event)"
     >
       <Tab
@@ -156,6 +164,7 @@ export default {
           :scrolling="false"
           :value="valuesYaml"
           editor-mode="VIEW_CODE"
+          mode="view"
         />
       </Tab>
       <Tab
@@ -174,7 +183,7 @@ export default {
       >
         <Markdown v-model:value="value.spec.info.notes" />
       </Tab>
-    </Tabbed>
+    </ResourceTabs>
   </div>
 </template>
 

@@ -283,7 +283,7 @@ export default {
         :disabled="isDisabled"
         :original-style="true"
         @ready="onReady"
-        @input="onInput"
+        @update:value="onInput"
         @changes="onChanges"
         @focus="onFocus"
         @blur="onBlur"
@@ -327,12 +327,9 @@ export default {
 
       &:focus, &.focus {
         outline: none;
-        border-color: var(--outline);
+        border-color: var(--primary-border);
       }
 
-      .CodeMirror-wrap pre {
-        word-break: break-word;
-      }
       .CodeMirror-code {
         .CodeMirror-line {
           &:not(:last-child)>span:after,
@@ -426,6 +423,10 @@ export default {
       .CodeMirror-gutters {
         background: inherit;
       }
+
+      .CodeMirror-wrap pre {
+        word-break: break-word;
+      }
     }
 
     .keymap.overlay {
@@ -444,7 +445,7 @@ export default {
         justify-content: center;
         border: 1px solid transparent;
         color: var(--darker);
-        background-color: var(--overlay-bg);
+        background-color: var(--subtle-overlay-bg);
         font-size: 12px;
 
         .close-indicator {

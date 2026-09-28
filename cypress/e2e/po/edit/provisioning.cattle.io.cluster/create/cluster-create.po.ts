@@ -1,5 +1,6 @@
 import ClusterManagerCreateImportPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/cluster-create-import.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
+import { MEDIUM_TIMEOUT_OPT, LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 /**
  * Covers core functionality that's common to the dashboard's create cluster pages
@@ -50,11 +51,13 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
   }
 
   activateInsecureRegistrationCommandFromUI() {
-    return this.self().get('.checkbox-label').contains('Insecure:');
+    return this.self().get('.checkbox-label', MEDIUM_TIMEOUT_OPT).contains('Insecure:', LONG_TIMEOUT_OPT);
   }
 
   customClusterRegistrationCmd(cmd: string) {
-    return `ssh -i custom_node.key -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" root@${ Cypress.env('customNodeIp') } \"nohup ${ cmd }\"`;
+    const sshUser = Cypress.env('customNodeUser');
+
+    return `ssh -i custom_node.key -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" ${ sshUser }@${ Cypress.env('customNodeIp') } \"nohup ${ cmd }\"`;
   }
 
   credentialsBanner() {

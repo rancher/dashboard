@@ -23,7 +23,7 @@ describe('Cluster List', { tags: ['@manager', '@adminUser'] }, () => {
     });
   });
 
-  it('can group clusters by namespace', () => {
+  it('can group clusters by workspace', () => {
     cy.intercept('POST', '/v1/provisioning.cattle.io.clusters').as('createCluster');
 
     // create ns
@@ -69,14 +69,19 @@ describe('Cluster List', { tags: ['@manager', '@adminUser'] }, () => {
     clusterList.waitForPage();
 
     clusterList.goTo();
-    clusterList.list().state(customClusterName).should('contain.text', 'Updating');
+    // The freshly-created cluster may still be provisioning ('Updating') or, if it came up
+    // quickly, already 'Active' - both are valid right after create, so accept either rather
+    // than racing the transient 'Updating' state.
+    clusterList.list().state(customClusterName).should(($el) => {
+      expect($el.text().trim()).to.match(/Updating|Active/);
+    });
 
     // testing https://github.com/rancher/dashboard/issues/13341
     // group by namespace feature should be visible - group by namespace
     clusterList.list().resourceTable().sortableTable().groupByButtons(1)
       .should('be.visible')
       .click();
-    clusterList.list().resourceTable().sortableTable().groupElementWithName(`Namespace: ${ nsName }`)
+    clusterList.list().resourceTable().sortableTable().groupElementWithName(`Workspace: ${ nsName }`)
       .scrollIntoView()
       .should('be.visible');
   });

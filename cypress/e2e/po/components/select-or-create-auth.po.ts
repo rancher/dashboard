@@ -24,6 +24,16 @@ export default class SelectOrCreateAuthPo extends ComponentPo {
     passwordInput.set(password);
   }
 
+  setGitHubAppSecret(appId: string, installationId: string, privateKey: string) {
+    const appIdInput = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-github-app-id"]`, this.self());
+    const installationIdInput = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-github-app-installation-id"]`, this.self());
+    const privateKeyInput = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-github-app-private-key"]`, this.self());
+
+    appIdInput.set(appId);
+    installationIdInput.set(installationId);
+    privateKeyInput.set(privateKey);
+  }
+
   setSSHSecret(privateKey: string, publicKey: string, knownHosts?: string) {
     const privateKeyInput = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-ssh-private-key"]`, this.self());
     const publicKeyInput = new LabeledInputPo(`${ this.selector } [data-testid="auth-secret-ssh-public-key"]`, this.self());
@@ -58,5 +68,11 @@ export default class SelectOrCreateAuthPo extends ComponentPo {
     this.authSelect().clickOptionWithLabel('Create an RKE Auth Config Secret');
     this.authSelect().self().scrollIntoView();
     this.setBasicAuthSecret(username, password);
+  }
+
+  createGitHubAppAuth(appId = 'auth-test-app-id', installationId = 'auth-test-installation-id', privateKey = 'auth-test-private-key') {
+    this.authSelect().toggle();
+    this.authSelect().clickOptionWithLabel('Create a GitHub App Auth Secret');
+    this.setGitHubAppSecret(appId, installationId, privateKey);
   }
 }

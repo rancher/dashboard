@@ -4,14 +4,6 @@ import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
  * List component for catalog.cattle.io.clusterrepo resources
  */
 export default class ChartRepositoriesListPo extends BaseResourceList {
-  actionMenu(repoName: string) {
-    return this.resourceTable().sortableTable().rowActionMenuOpen(repoName);
-  }
-
-  closeActionMenu() {
-    cy.get('body').type('{esc}');
-  }
-
   openBulkActionDropdown() {
     return this.resourceTable().sortableTable().bulkActionDropDownOpen();
   }

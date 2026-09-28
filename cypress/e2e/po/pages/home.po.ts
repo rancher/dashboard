@@ -6,11 +6,13 @@ import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 import HomeClusterListPo from '@/cypress/e2e/po/lists/home-cluster-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import NotificationsCenterPo from '@/cypress/e2e/po/components/notification-center.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { PAGINATION_UTILS } from '@/cypress/support/utils/shell';
 
 const burgerMenu = new BurgerMenuPo();
 
 export default class HomePagePo extends PagePo {
-  static url = '/home'
+  static url = '/home';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(HomePagePo.url);
   }
@@ -21,8 +23,8 @@ export default class HomePagePo extends PagePo {
     // To help with this be super sure the page is ready
 
     PagePo.goToAndWaitForGet(HomePagePo.goTo, [
-      'v1/counts?exclude=metadata.managedFields',
-      'v1/namespaces?exclude=metadata.managedFields',
+      `v1/counts?pagesize=${ PAGINATION_UTILS.defaultPageSize }&exclude=metadata.managedFields`,
+      `v1/namespaces?pagesize=${ PAGINATION_UTILS.defaultPageSize }&exclude=metadata.managedFields`,
     ]);
 
     const homePage = new HomePagePo();
@@ -31,6 +33,12 @@ export default class HomePagePo extends PagePo {
     homePage.bannerGraphic().checkVisible();
 
     return homePage;
+  }
+
+  waitForPage(params?: string | undefined, fragment?: string | undefined, options: any = MEDIUM_TIMEOUT_OPT) {
+    this.readyForLoggedInPage();
+
+    return super.waitForPage(params, fragment, options);
   }
 
   constructor() {
@@ -54,7 +62,7 @@ export default class HomePagePo extends PagePo {
     const pageActionsPo = new PageActions();
 
     cy.intercept('PUT', 'v1/userpreferences/*').as('toggleBanner');
-    pageActionsPo.toggleBanner().click();
+    pageActionsPo.bannerLink().click();
     cy.wait('@toggleBanner');
   }
 

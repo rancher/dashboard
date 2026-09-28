@@ -37,10 +37,6 @@ $icon-inverse:          #fff !default;
 }
 
 // Sizes
-.icon-fw {
-  width: math.div(18em, 14);
-  text-align: center;
-}
 
 .icon-sm {
   font-size: (1em*0.8);
@@ -65,37 +61,10 @@ $icon-inverse:          #fff !default;
   line-height: 1em;
   vertical-align: middle;
 }
-.icon-stack-1x, .icon-stack-2x {
+.icon-stack-1x {
   position: absolute;
   left: 0;
   width: 100%;
   text-align: center;
 }
 .icon-stack-1x { line-height: inherit; }
-.icon-stack-2x { font-size: 2em; }
-.icon-inverse { color: $icon-inverse; }
-
-// List
-.icon-ul {
-  padding-left: 0;
-  margin-left: $icon-li-width;
-  list-style-type: none;
-  > li { position: relative; }
-}
-
-.icon-li {
-  position: absolute;
-  left: -$icon-li-width;
-  width: $icon-li-width;
-  top: math.div(2em, 14);
-  text-align: center;
-  &.icon-lg {
-    left: -$icon-li-width + math.div(4em, 14);
-  }
-}
-
-.icon-rotate-90  { @include icon-rotate(90deg, 1);  }
-.icon-rotate-180 { @include icon-rotate(180deg, 2); }
-.icon-rotate-270 { @include icon-rotate(270deg, 3); }
-.icon-flip-horizontal { @include icon-flip(-1, 1, 0); }
-.icon-flip-vertical   { @include icon-flip(1, -1, 2); }

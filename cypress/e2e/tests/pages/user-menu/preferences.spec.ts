@@ -7,9 +7,11 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import ResourceYamlEditorPagePo from '@/cypress/e2e/po/pages/explorer/yaml-editor.po';
+import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
-
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
+// import TooltipPo from '@/cypress/e2e/po/components/tooltip.po'; // Used in the below commented test
 
 const userMenu = new UserMenuPo();
 const prefPage = new PreferencesPagePo();
@@ -21,10 +23,24 @@ const repoList = repoListPage.list();
 // const NORMAL_HUMAN = 'Normal human';
 
 const RESOURCE_FOR_CREATE_YAML = 'resourcequota';
+const LANGUAGE_TEST = 'Can select a language';
 
 describe('User can update their preferences', () => {
   beforeEach(() => {
+    // Unrelated to preferences: logging out resets the store while the Prime registration extension
+    // is still resolving, and its rejection is unhandled. Remove once rancher/dashboard#19172 is fixed.
+    cy.on('uncaught:exception', (err) => (err.message.includes(`Schemas aren't loaded yet`) ? false : undefined));
+
     cy.login();
+  });
+
+  // The language test deliberately leaves the UI in Chinese and nothing resets it. Restore English so
+  // a failure there doesn't cascade into the label based assertions of the tests that follow, and so
+  // a Cypress retry starts from the same locale as the first attempt.
+  afterEach(() => {
+    if (Cypress.currentTest?.title === LANGUAGE_TEST) {
+      cy.setUserPreference({ locale: 'en-us' });
+    }
   });
 
   it('Can navigate to Preferences Page', { tags: ['@userMenu', '@adminUser', '@standardUser', '@flaky'] }, () => {
@@ -41,7 +57,7 @@ describe('User can update their preferences', () => {
     prefPage.title();
   });
 
-  it('Can select a language', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  it(LANGUAGE_TEST, { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select language
     */
@@ -52,6 +68,24 @@ describe('User can update their preferences', () => {
 
     prefPage.goTo();
     prefPage.languageDropdownMenu().checkVisible();
+
+    // The locale is applied to the dom before its preference is saved, and the saved value is what the
+    // app re-reads on every route change and reload. Only the zh-hans selection is an actual change
+    // (the loop selects the current locale first), so alias just that PUT and wait for it below.
+    cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
+      let body = req.body;
+
+      if (typeof body === 'string') {
+        try {
+          body = JSON.parse(body);
+        } catch (e) { }
+      }
+
+      if (body?.data?.locale === 'zh-hans') {
+        req.alias = 'localeUpdate';
+      }
+    });
+
     for (const [key, value] of Object.entries(languages)) {
       prefPage.languageDropdownMenu().toggle();
       prefPage.languageDropdownMenu().isOpened();
@@ -61,8 +95,17 @@ describe('User can update their preferences', () => {
       prefPage.checkLangDomElement(key);
     }
 
+    cy.wait('@localeUpdate').its('response.statusCode').should('eq', 200);
+
     // testing https://github.com/rancher/dashboard/issues/10153
+    const clusterDashboard = new ClusterDashboardPagePo('local');
+
+    // The product side nav is only populated once the cluster loads, so entering it before the
+    // downstream proxy serves leaves the nav empty and the label lookup below times out
+    clusterDashboard.readyForClusterPage();
     ClusterDashboardPagePo.navTo();
+    clusterDashboard.waitForPage();
+
     const nav = new ProductNavPo();
 
     nav.navToSideMenuEntryByLabel('事件'); // events list
@@ -241,7 +284,14 @@ describe('User can update their preferences', () => {
 
     repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
 
-    repoList.actionMenu('Partners').getMenuItem('View in API').should('exist');
+    // Wait for repository list to load completely
+    repoList.checkVisible();
+    repoList.resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+    // Open action menu and wait for it to be populated
+    repoList.actionMenu('Partners');
+    repoList.resourceTable().sortableTable().rowActionMenu().getMenuItem('View in API')
+      .should('exist');
 
     prefPage.goTo();
     prefPage.viewInApiCheckbox().checkVisible();
@@ -256,7 +306,14 @@ describe('User can update their preferences', () => {
 
     repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
 
-    repoList.actionMenu('Partners').getMenuItem('View in API').should('not.exist');
+    // Wait for repository list to load completely
+    repoList.checkVisible();
+    repoList.resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+    // Open action menu and wait for it to be populated
+    repoList.actionMenu('Partners');
+    repoList.resourceTable().sortableTable().rowActionMenu().getMenuItem('View in API')
+      .should('not.exist');
   });
 
   it('Can select Show system Namespaces managed by Rancher (not intended for editing or deletion)', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
@@ -315,6 +372,7 @@ describe('User can update their preferences', () => {
     Deselect the checkbox and verify description banner displays
     */
     const banners = new BannersPo('header > .banner');
+    const featureFlagsPage = new FeatureFlagsPagePo('_');
 
     prefPage.goTo();
     prefPage.hideDescriptionsCheckbox().checkVisible();
@@ -324,7 +382,8 @@ describe('User can update their preferences', () => {
     cy.wait('@prefUpdate').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isChecked();
 
-    repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
+    featureFlagsPage.goTo();
+    featureFlagsPage.waitForPage();
     banners.self().should('not.exist');
 
     prefPage.goTo();
@@ -334,7 +393,8 @@ describe('User can update their preferences', () => {
     cy.wait('@prefUpdate2').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isUnchecked();
 
-    repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
+    featureFlagsPage.goTo();
+    featureFlagsPage.waitForPage();
     banners.self().should('exist');
   });
 
@@ -390,9 +450,8 @@ describe('User can update their preferences', () => {
   //   yamlEditor.keyboardMappingIndicator().checkExists();
   //   yamlEditor.keyboardMappingIndicator().checkVisible();
 
-  //   yamlEditor.keyboardMappingIndicator().showTooltip();
-  //   yamlEditor.keyboardMappingIndicator().getTooltipContent().should('be.visible');
-  //   yamlEditor.keyboardMappingIndicator().getTooltipContent().contains('Key mapping: Vim');
+  //   const tooltipPo = new TooltipPo(yamlEditor.keyboardMappingIndicator());
+  //   tooltipPo.waitForTooltipWithText('Key mapping: Vim');
 
   //   // Reset keyboard mapping
   //   prefPage.goTo();
@@ -427,6 +486,26 @@ describe('User can update their preferences', () => {
 
   // You want this to be last, there's some issues with logging in and logging out without sessions
 
+  /**
+   * The landing page preference is only honoured once the release notes for the running version
+   * have been seen. Clear that record and let the app re-make it from the home page, so these tests
+   * start from a known state, and wait for it to be saved before the logout below.
+   */
+  function seeReleaseNotes() {
+    cy.setUserPreference({ 'seen-whatsnew': '' }, true);
+
+    HomePagePo.goToAndWaitForGet();
+
+    cy.getRancherResource('v1', 'userpreferences').then((prefs: Cypress.Response<any>) => {
+      cy.waitForRancherResource(
+        'v1',
+        'userpreferences',
+        prefs.body.data[0].id,
+        (resp: any) => !!resp?.body?.data?.['seen-whatsnew']
+      ).should('eq', true);
+    });
+  }
+
   function testLandingPageOption(key: { index: string, value: string, page: string}) {
     /*
     Select each radio button and verify its highlighted
@@ -435,9 +514,24 @@ describe('User can update their preferences', () => {
     Verify selection is preserved after logout/login
     */
 
+    seeReleaseNotes();
+
     prefPage.goTo();
     prefPage.landingPageRadioBtn().checkVisible();
-    cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key.value }`);
+
+    cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
+      let body = req.body;
+
+      if (typeof body === 'string') {
+        try {
+          body = JSON.parse(body);
+        } catch (e) { }
+      }
+
+      if (body?.data?.['after-login-route'] === key.value) {
+        req.alias = `prefUpdate${ key.value }`;
+      }
+    });
     prefPage.landingPageRadioBtn().set(parseInt(key.index));
     cy.wait(`@prefUpdate${ key.value }`).then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -448,15 +542,30 @@ describe('User can update their preferences', () => {
 
     // Verify that an auth redirect works (a user visits a page while not authorized and will be redirect to that page after loggin in, only active when "Take me to the area I last visited" is selected)
     if (key.index === '1') {
-      userMenu.clickMenuItem('Log Out');
-      cy.url().should('contain', 'auth/login?logged-out');
-
       const redirectUrl = '/c/local/explorer/node';
 
-      cy.visit(redirectUrl);
-      cy.url().should('contain', 'auth/login?timed-out');
+      const attemptAuthRedirect = () => {
+        userMenu.clickMenuItem('Log Out');
+        cy.url().should('contain', 'auth/login?logged-out');
 
-      cy.login(undefined, undefined, false, true);
+        cy.visit(redirectUrl);
+        cy.url().should('contain', 'auth/login?timed-out');
+
+        cy.login(undefined, undefined, false, true);
+        cy.url().should('not.contain', 'auth/login');
+      };
+
+      attemptAuthRedirect();
+      // Wait for the redirect chain to settle on either the expected page or the home page.
+      // A transient failure fetching preferences after login lands the user on the home page
+      // instead - retry the flow once to recover (authRedirect only lives in the store, so
+      // the whole timed-out flow needs to run again)
+      cy.location('pathname', MEDIUM_TIMEOUT_OPT).should('match', new RegExp(`(/home|${ redirectUrl })`));
+      cy.location('pathname').then((pathname) => {
+        if (pathname.endsWith('/home')) {
+          attemptAuthRedirect();
+        }
+      });
       cy.url().should('contain', redirectUrl);
       prefPage.goTo();
       prefPage.landingPageRadioBtn().checkVisible();
@@ -466,6 +575,16 @@ describe('User can update their preferences', () => {
     userMenu.clickMenuItem('Log Out');
     cy.url().should('contain', 'auth/login?logged-out');
     cy.login(undefined, undefined, false);
+    // Wait for the redirect chain to settle on either the expected landing page or the home
+    // page. A transient failure fetching preferences after login lands the user on the home
+    // page instead - re-navigating to the root re-runs a full app bootstrap which fetches the
+    // preferences again and re-runs the landing page redirect.
+    cy.location('pathname', MEDIUM_TIMEOUT_OPT).should('match', new RegExp(`(/home|${ key.page })`));
+    cy.location('pathname').then((pathname) => {
+      if (key.page !== '/home' && pathname.endsWith('/home')) {
+        cy.visit('/');
+      }
+    });
     cy.url().should('contain', key.page);
   }
 

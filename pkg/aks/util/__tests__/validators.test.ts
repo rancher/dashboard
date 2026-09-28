@@ -1,9 +1,13 @@
 import * as validators from '@pkg/aks/util/validators';
-import { AKSNodePool } from 'types';
+import { AKSNodePool } from '@pkg/aks/types';
 
-validators.requiredTranslation = (ctx, label) => `${ label } is required.`;
+// TypeScript treats an `import * as` namespace as read-only, but ts-jest compiles this module
+// to CJS where the exports object really is writable - which is how these two helpers are stubbed.
+const stubbedValidators = validators as { -readonly [K in keyof typeof validators]: typeof validators[K] };
 
-validators.needsValidation = () => true;
+stubbedValidators.requiredTranslation = (ctx: any, label = 'Value') => `${ label } is required.`;
+
+stubbedValidators.needsValidation = () => true;
 
 const MOCK_TRANSLATION = 'abc';
 
@@ -135,6 +139,41 @@ describe('fx: nodePoolNames', () => {
     const validator = validators.nodePoolNames(mockCtx);
 
     expect(validator(name)).toStrictEqual(expected);
+  });
+});
+
+describe('fx: nodePoolNamesUnique', () => {
+  it('returns an error and flags only the pools sharing a name', () => {
+    const ctx = {
+      ...mockCtx,
+      nodePools: [{ name: 'abc', _validation: {} }, { name: 'abc', _validation: {} }, { name: 'def', _validation: {} }] as unknown as AKSNodePool[]
+    };
+
+    expect(validators.nodePoolNamesUnique(ctx)()).toStrictEqual(MOCK_TRANSLATION);
+    expect(ctx.nodePools.map((pool) => pool?._validation?._validUnique)).toStrictEqual([false, false, true]);
+  });
+
+  it('does not treat pools that have no name as duplicates of each other', () => {
+    const ctx = {
+      ...mockCtx,
+      nodePools: [{ name: '', _validation: {} }, { name: '', _validation: {} }, { name: 'abc', _validation: {} }] as unknown as AKSNodePool[]
+    };
+
+    expect(validators.nodePoolNamesUnique(ctx)()).toBeUndefined();
+    expect(ctx.nodePools.map((pool) => pool?._validation?._validUnique)).toStrictEqual([true, true, true]);
+  });
+
+  it('clears the flag once a duplicate name is corrected', () => {
+    const ctx = {
+      ...mockCtx,
+      nodePools: [{ name: 'abc', _validation: {} }, { name: 'abc', _validation: {} }] as unknown as AKSNodePool[]
+    };
+
+    validators.nodePoolNamesUnique(ctx)();
+    ctx.nodePools[1].name = 'def';
+
+    expect(validators.nodePoolNamesUnique(ctx)()).toBeUndefined();
+    expect(ctx.nodePools.map((pool) => pool?._validation?._validUnique)).toStrictEqual([true, true]);
   });
 });
 

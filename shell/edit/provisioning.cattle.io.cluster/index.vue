@@ -4,22 +4,23 @@ import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import CruResource from '@shell/components/CruResource';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
-import EmberPage from '@shell/components/EmberPage';
 import {
-  CHART, FROM_CLUSTER, SUB_TYPE, RKE_TYPE, _EDIT, _IMPORT, _CONFIG, _VIEW
+  CHART, FROM_CLUSTER, SUB_TYPE, RKE_TYPE, _EDIT, _IMPORT, _CREATE
 } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
 import { PROVISIONER, _RKE2 } from '@shell/store/prefs';
 import { filterAndArrangeCharts } from '@shell/store/catalog';
-import { CATALOG, CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { CATALOG } from '@shell/config/labels-annotations';
 import { CAPI, MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { mapFeature, RKE2 as RKE2_FEATURE } from '@shell/store/features';
 import { allHash } from '@shell/utils/promise';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
+import { KONTAINER_TO_DRIVER } from '@shell/models/management.cattle.io.kontainerdriver';
 import Rke2Config from './rke2';
-import { DRIVER_TO_IMPORT } from '@shell/models/management.cattle.io.kontainerdriver';
+import { requireAsset } from '@shell/utils/require-asset';
+import { resolveSubType } from './subtype-detection';
 
 const SORT_GROUPS = {
   template:  1,
@@ -33,8 +34,6 @@ const SORT_GROUPS = {
 
 // uSed to proxy stylesheets for custom drivers that provide custom UI (RKE1)
 const PROXY_ENDPOINT = '/meta/proxy';
-const IMPORTED = 'imported';
-const LOCAL = 'local';
 
 export default {
   name: 'CruCluster',
@@ -43,7 +42,6 @@ export default {
 
   components: {
     CruResource,
-    EmberPage,
     Loading,
     Rke2Config,
     SelectIconGrid,
@@ -81,16 +79,20 @@ export default {
   },
 
   async fetch() {
-    const hash = {
-      // These aren't explicitly used, but need to be listening for change events
-      mgmtClusters: this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-      provClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-    };
+    const hash = {};
+
+    if (this.mode === _CREATE) {
+      // After we create we wait for these to exist, so start watching
+      await this.$store.dispatch('management/watch', { type: MANAGEMENT.CLUSTER, registerType: true });
+      await this.$store.dispatch('management/watch', { type: CAPI.RANCHER_CLUSTER, registerType: true });
+    } else {
+      hash.mgmtCluster = this.value.waitForMgmt();
+    }
 
     // No need to fetch charts when editing an RKE1 cluster
     // The computed property `isRke1` in this file is based on the RKE1/RKE2 toggle, which is not applicable in this case
     // Instead, we should rely on the value from the model: `this.value.isRke1`
-    if (!this.value.isRke1 || (this.value.isRke1 && this.mode !== 'edit')) {
+    if (!this.value.isRke1 || (this.value.isRke1 && this.mode !== _EDIT)) {
       hash['catalog'] = this.$store.dispatch('catalog/load');
     }
 
@@ -100,19 +102,6 @@ export default {
 
     if (this.$store.getters[`management/canList`](MANAGEMENT.KONTAINER_DRIVER)) {
       hash.kontainerDrivers = this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTAINER_DRIVER });
-    }
-
-    // Not sure if needed for legacy hosted cluster?
-    if ( this.value.id && !this.value.isRke2 ) {
-      // These are needed to resolve references in the mgmt cluster -> node pool -> node template to figure out what provider the cluster is using
-      // so that the edit iframe for ember pages can go to the right place.
-      if (this.$store.getters[`management/canList`](MANAGEMENT.NODE_POOL)) {
-        hash.rke1NodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-      }
-
-      if (this.$store.getters[`management/canList`](MANAGEMENT.NODE_TEMPLATE)) {
-        hash.rke1NodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
-      }
     }
 
     const res = await allHash(hash);
@@ -149,38 +138,31 @@ export default {
     });
 
     // Custom Providers from extensions - initialize each with the store and the i18n service
-    // Wrap in try ... catch, to prevent errors in an extension breaking the page
-    try {
-      const extensionClasses = this.$plugin.listDynamic('provisioner').map((name) => this.$plugin.getDynamic('provisioner', name));
+    // We can't pass in this.$store as this leads to a circular-reference that causes Vue to freeze,
+    // so pass in specific services that the provisioner extension may need
+    const context = {
+      dispatch:   this.$store.dispatch,
+      getters:    this.$store.getters,
+      axios:      this.$store.$axios,
+      $extension: this.$store.app.$extension,
+      t:          (...args) => this.t.apply(this, args),
+      isCreate:   this.isCreate,
+      isEdit:     this.isEdit,
+      isView:     this.isView,
+    };
 
-      // We can't pass in this.$store as this leads to a circular-reference that causes Vue to freeze,
-      // so pass in specific services that the provisioner extension may need
-      this.extensions = extensionClasses.map((c) => new c({
-        dispatch: this.$store.dispatch,
-        getters:  this.$store.getters,
-        axios:    this.$store.$axios,
-        $plugin:  this.$store.app.$plugin,
-        t:        (...args) => this.t.apply(this, args),
-        isCreate: this.isCreate,
-        isEdit:   this.isEdit,
-        isView:   this.isView,
-      }));
-    } catch (e) {
-      console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
-    }
+    this.extensions = this.$extension.getProviders(context);
+
+    this.subType = resolveSubType({
+      query:      this.$route.query,
+      value:      this.value,
+      extensions: this.extensions,
+      realMode:   this.realMode,
+      as:         this.as,
+    });
   },
 
   data() {
-    let subType = null;
-
-    subType = this.$route.query[SUB_TYPE] || null;
-    if ( this.$route.query[SUB_TYPE]) {
-      subType = this.$route.query[SUB_TYPE];
-    } else if (this.value.isImported) {
-      subType = IMPORTED;
-    } else if (this.value.isLocal) {
-      subType = LOCAL;
-    }
     const rkeType = this.$route.query[RKE_TYPE] || null;
     const chart = this.$route.query[CHART] || null;
     const isImport = this.realMode === _IMPORT;
@@ -189,7 +171,7 @@ export default {
       nodeDrivers:      [],
       kontainerDrivers: [],
       extensions:       [],
-      subType,
+      subType:          null,
       rkeType,
       chart,
       isImport,
@@ -217,68 +199,6 @@ export default {
     },
     _RKE2: () => _RKE2,
 
-    emberLink() {
-      if (this.value) {
-        // set subtype if editing EKS/GKE/AKS cluster -- this ensures that the component provided by extension is loaded instead of iframing old ember ui
-        if (this.value.provisioner) {
-          const matchingSubtype = this.subTypes.find((st) => DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase());
-
-          if (matchingSubtype) {
-            this.selectType(matchingSubtype.id, false);
-          }
-        }
-
-        // subType set by the ui during cluster creation
-        // this is likely from a ui extension trying to load custom ui to edit the cluster
-        const fromAnnotation = this.value.annotations?.[CAPI_ANNOTATIONS.UI_CUSTOM_PROVIDER];
-
-        if (fromAnnotation) {
-          this.selectType(fromAnnotation, false);
-
-          return '';
-        }
-
-        // For custom RKE2 clusters, don't load an Ember page.
-        // It should be the dashboard.
-        if ( this.value.isRke2 && ((this.value.isCustom && this.mode === _EDIT) || (this.value.isCustom && this.as === _CONFIG && this.mode === _VIEW) || (this.subType || '').toLowerCase() === 'custom')) {
-          // For admins, this.value.isCustom is used to check if it is a custom cluster.
-          // For cluster owners, this.subtype is used.
-          this.selectType('custom', false);
-
-          return '';
-        }
-        // For existing RKE2/K3s clusters provisioned in Rancher,
-        // set the subtype using the machine pool provisioner
-        // do not use an iFramed Ember page.
-        if ( this.value.isRke2 && this.value.machineProvider ) {
-          this.selectType(this.value.machineProvider, false);
-
-          return '';
-        }
-
-        if ( this.subType ) {
-          // if driver type has a custom form component, don't load an ember page
-          if (this.selectedSubType?.component) {
-            return '';
-          }
-          // For RKE1 and hosted Kubernetes Clusters, set the ember link
-          // so that we load the page rather than using RKE2 create
-          if (this.selectedSubType?.emberLink) {
-            return this.selectedSubType.emberLink;
-          }
-
-          return '';
-        }
-
-        if ( this.value.mgmt?.emberEditPath ) {
-          // Iframe an old page
-          return this.value.mgmt.emberEditPath;
-        }
-      }
-
-      return '';
-    },
-
     rke2Enabled: mapFeature(RKE2_FEATURE),
 
     // todo nb is this info stored anywhere else..?
@@ -304,6 +224,24 @@ export default {
       return this.value.isRke2;
     },
 
+    isEmberKontainerDriver() {
+      // RKE2/K3s clusters are never legacy Ember kontainer drivers
+      if (!this.value?.id || !this.value?.provisioner || this.value.isRke2) {
+        return false;
+      }
+
+      const provisioner = this.value.provisioner.toLowerCase();
+      // Resolve the provisioner to a driver name using the KONTAINER_TO_DRIVER map
+      const resolvedName = KONTAINER_TO_DRIVER[provisioner] || provisioner;
+
+      const driver = this.kontainerDrivers.find((d) => {
+        return d.driverName === resolvedName || d.driverName === provisioner || d.id === provisioner;
+      });
+
+      // If the driver exists and is not built-in, it's a legacy ember driver
+      return !!driver && !driver.spec?.builtIn;
+    },
+
     templateOptions() {
       if ( !this.rke2Enabled ) {
         return [];
@@ -321,15 +259,14 @@ export default {
       let out = [];
 
       const templates = this.templateOptions;
-      const vueKontainerTypes = getters['plugins/clusterDrivers'];
       const machineTypes = this.nodeDrivers.filter((x) => x.spec.active && x.state === 'active');
 
+      // Kontainer drivers that don't have an extension-provided component are legacy Ember-based
+      // and no longer functional. Show them as disabled with an informational tooltip.
+      const emberRemovalTooltip = getters['i18n/t']('drivers.kontainer.emberRemovalTooltip');
+
       this.kontainerDrivers.filter((x) => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
-        if ( vueKontainerTypes.includes(obj.driverName) ) {
-          addType(this.$plugin, obj.driverName, 'kontainer', false);
-        } else {
-          addType(this.$plugin, obj.driverName, 'kontainer', false, (isImport ? obj.emberImportPath : obj.emberCreatePath));
-        }
+        addType(this.$extension, obj.driverName, 'hosted', true, undefined, undefined, emberRemovalTooltip);
       });
       if (!isImport) {
         templates.forEach((chart) => {
@@ -337,7 +274,7 @@ export default {
             id:          `chart:${ chart.id }`,
             label:       chart.chartNameDisplay,
             description: chart.chartDescription,
-            icon:        chart.icon || require('~shell/assets/images/generic-catalog.svg'),
+            icon:        chart.icon || requireAsset('~shell/assets/images/generic-catalog.svg'),
             group:       'template',
             tag:         getters['i18n/t']('generic.techPreview')
           });
@@ -345,7 +282,7 @@ export default {
 
         // If Elemental is installed, then add the elemental cluster provider
         if (isElementalActive) {
-          addType(this.$plugin, ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
+          addType(this.$extension, ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
         }
 
         // Only add the RKE2 options if RKE2 is enabled
@@ -353,10 +290,10 @@ export default {
           machineTypes.forEach((type) => {
             const id = type.spec.displayName || type.id;
 
-            addType(this.$plugin, id, _RKE2, false, null, undefined, type);
+            addType(this.$extension, id, _RKE2, false, undefined, type);
           });
 
-          addType(this.$plugin, 'custom', 'custom2', false);
+          addType(this.$extension, 'custom', 'custom2', false);
         }
       }
       // Add from extensions
@@ -383,27 +320,26 @@ export default {
         if (icon) {
           iconClass = undefined;
         } else if (!iconClass) {
-          icon = require('~shell/assets/images/generic-driver.svg');
+          icon = requireAsset('~shell/assets/images/generic-driver.svg');
         }
 
         const subtype = {
-          id:          ext.id,
-          label:       ext.label || getters['i18n/t'](`cluster.provider.${ ext.id }`),
-          description: ext.description,
+          id:        ext.id,
+          label:     ext.label || getters['i18n/t'](`cluster.provider.${ ext.id }`),
           icon,
           iconClass,
-          group:       ext.group || _RKE2,
-          disabled:    ext.disabled || false,
-          link:        ext.link,
-          tag:         ext.tag,
-          component:   ext.component,
-          hidden:      ext.hidden,
+          group:     ext.group || _RKE2,
+          disabled:  ext.disabled || false,
+          link:      ext.link,
+          tag:       ext.tag,
+          component: ext.component,
+          hidden:    ext.hidden,
         };
 
         out.push(subtype);
       }
 
-      function addType(plugin, id, group, disabled = false, emberLink = null, iconClass = undefined, providerConfig = undefined) {
+      function addType(plugin, id, group, disabled = false, iconClass = undefined, providerConfig = undefined, tooltip = undefined) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         const tag = '';
@@ -415,14 +351,14 @@ export default {
 
         if (!icon) {
           try {
-            icon = require(`~shell/assets/images/providers/${ id }.svg`);
+            icon = requireAsset(`~shell/assets/images/providers/${ id }.svg`);
           } catch (e) {}
         }
 
         if (icon) {
           iconClass = undefined;
         } else if (!iconClass) {
-          icon = require('~shell/assets/images/generic-driver.svg');
+          icon = requireAsset('~shell/assets/images/generic-driver.svg');
         }
 
         const subtype = {
@@ -433,8 +369,8 @@ export default {
           iconClass,
           group,
           disabled,
-          emberLink,
           tag,
+          tooltip,
           providerConfig
         };
 
@@ -538,13 +474,9 @@ export default {
 
       if ( parts[0] === 'chart' ) {
         const chart = this.$store.getters['catalog/chart']({ key: parts[1] });
-        let localCluster;
+        const installClusterId = this.$store.getters['localCluster']?.id || BLANK_CLUSTER;
 
-        if (this.$store.getters[`management/canList`](MANAGEMENT.CLUSTER)) {
-          localCluster = this.$store.getters['management/all'](MANAGEMENT.CLUSTER).find((x) => x.isLocal);
-        }
-
-        chart.goToInstall(FROM_CLUSTER, localCluster?.id || BLANK_CLUSTER, true);
+        chart.goToInstall(FROM_CLUSTER, installClusterId, true);
 
         return;
       }
@@ -588,12 +520,11 @@ export default {
     />
   </div>
   <div
-    v-else-if="emberLink"
-    class="embed"
+    v-else-if="isEmberKontainerDriver"
   >
-    <EmberPage
-      :force-new="true"
-      :src="emberLink"
+    <Banner
+      color="warning"
+      label-key="drivers.kontainer.emberRemovalMessage"
     />
   </div>
   <CruResource
@@ -624,6 +555,7 @@ export default {
         </h4>
         <SelectIconGrid
           :rows="obj.types"
+          :aria-label="obj.label"
           key-field="id"
           name-field="label"
           side-label-field="tag"

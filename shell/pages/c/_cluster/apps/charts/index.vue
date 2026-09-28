@@ -1,28 +1,33 @@
 <script>
 import { markRaw } from 'vue';
 import AsyncButton from '@shell/components/AsyncButton';
-import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, SORT_BY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
 } from '@shell/config/query-params';
-import { APP_STATUS, compatibleVersionsFor, filterAndArrangeCharts, normalizeFilterQuery } from '@shell/store/catalog';
+import { DOCS_BASE } from '@shell/config/private-label';
+import { APP_STATUS, filterAndArrangeCharts, normalizeFilterQuery } from '@shell/store/catalog';
 import { lcFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import debounce from 'lodash/debounce';
 import { mapGetters } from 'vuex';
-import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
+import { SHOW_PRE_RELEASE, HIDE_SUSE_APP_COLLECTION_REPO_BANNER } from '@shell/store/prefs';
 import { CATALOG } from '@shell/config/labels-annotations';
+import { CATALOG as CATALOG_TYPES, CATALOG_SORT_OPTIONS, CLUSTER_REPO_TYPES } from '@shell/config/types';
+
 import { isUIPlugin } from '@shell/config/uiplugins';
 import { RcItemCard } from '@components/RcItemCard';
 import { get } from '@shell/utils/object';
-import { CATALOG as CATALOG_TYPES, CATALOG_SORT_OPTIONS } from '@shell/config/types';
 import FilterPanel from '@shell/components/FilterPanel';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import AddRepoLink from '@shell/pages/c/_cluster/apps/charts/AddRepoLink';
 import StatusLabel from '@shell/pages/c/_cluster/apps/charts/StatusLabel';
+import RichTranslation from '@shell/components/RichTranslation.vue';
+import SubtleLink from '@shell/components/SubtleLink.vue';
+import { getLatestCompatibleVersion } from '@shell/utils/chart';
 import Select from '@shell/components/form/Select';
+import { getVersionData } from '@shell/config/version';
 
 const createInitialFilters = () => ({
   repos:      [],
@@ -31,17 +36,20 @@ const createInitialFilters = () => ({
   tags:       []
 });
 
+const LOAD_MORE_DELAY_MS = 500;
+
 export default {
   name:       'Charts',
   components: {
     AsyncButton,
     Banner,
-    Loading,
     RcItemCard,
     FilterPanel,
     AppChartCardSubHeader,
     AppChartCardFooter,
-    Select
+    Select,
+    RichTranslation,
+    SubtleLink,
   },
 
   async fetch() {
@@ -59,10 +67,34 @@ export default {
     this.filters.tags = normalizeFilterQuery(query[TAG]) || [];
 
     this.installedApps = await this.$store.dispatch('cluster/findAll', { type: CATALOG_TYPES.APP });
+
+    // Check if user has permission to create repositories
+    // This is used to show the banner to create repo if you don't have SUSE App Collection
+    const clusterCreateClusterRepo = await this.$store.dispatch('cluster/create', { type: CATALOG_TYPES.CLUSTER_REPO });
+
+    this.canCreateRepos = clusterCreateClusterRepo.canCreate;
+  },
+
+  updated() {
+    if (!this.observerInitialized && this.filteredCharts.length > 0) {
+      this.initIntersectionObserver();
+    }
+    this.ensureOverflow();
+  },
+
+  beforeUnmount() {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+    if (this._loadMoreTimer) {
+      clearTimeout(this._loadMoreTimer);
+      this._loadMoreTimer = null;
+    }
   },
 
   data() {
     return {
+      DOCS_BASE,
       searchQuery:          null,
       debouncedSearchQuery: null,
       showDeprecated:       null,
@@ -78,10 +110,10 @@ export default {
           label: {
             component:      markRaw(StatusLabel),
             componentProps: {
-              label:     this.t('generic.installed'),
-              icon:      'icon-warning',
-              iconColor: 'warning',
-              tooltip:   this.t('catalog.charts.statusFilterCautions.installation')
+              label:       this.t('generic.installed'),
+              icon:        'icon-warning',
+              iconColor:   'warning',
+              iconTooltip: this.t('catalog.charts.statusFilterCautions.installation')
             }
           }
         },
@@ -94,15 +126,14 @@ export default {
           label: {
             component:      markRaw(StatusLabel),
             componentProps: {
-              label:     this.t('generic.upgradeable'),
-              icon:      'icon-warning',
-              iconColor: 'warning',
-              tooltip:   this.t('catalog.charts.statusFilterCautions.upgradeable')
+              label:       this.t('generic.upgradeable'),
+              icon:        'icon-warning',
+              iconColor:   'warning',
+              iconTooltip: this.t('catalog.charts.statusFilterCautions.upgradeable')
             }
           }
         }
       ],
-      appCardsCache:      {},
       selectedSortOption: CATALOG_SORT_OPTIONS.RECOMMENDED,
       sortOptions:        [
         { kind: 'group', label: this.t('catalog.charts.sort.prefix') },
@@ -110,7 +141,17 @@ export default {
         { value: CATALOG_SORT_OPTIONS.LAST_UPDATED_DESC, label: this.t('catalog.charts.sort.lastUpdatedDesc') },
         { value: CATALOG_SORT_OPTIONS.ALPHABETICAL_ASC, label: this.t('catalog.charts.sort.alphaAscending') },
         { value: CATALOG_SORT_OPTIONS.ALPHABETICAL_DESC, label: this.t('catalog.charts.sort.alphaDescending') },
-      ]
+      ],
+      initialVisibleChartsCount: 30,
+      visibleChartsCount:        20,
+      hasOverflow:               false,
+      getVersionData,
+      CLUSTER_REPO_TYPES,
+      CATALOG_TYPES,
+      canCreateRepos:            false,
+      showAppCollectionBanner:   true,
+      isPrime:                   getVersionData().RancherPrime === 'true',
+      isLoadingMore:             false,
     };
   },
 
@@ -118,12 +159,29 @@ export default {
     ...mapGetters(['currentCluster']),
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
 
+    hideBannerPref() {
+      return this.$store.getters['prefs/get'](HIDE_SUSE_APP_COLLECTION_REPO_BANNER);
+    },
+
+    showAppCollectionBannerLogic() {
+      return !this.hasSuseAppCollectionRepo && this.canCreateRepos && this.showAppCollectionBanner && !this.hideBannerPref & this.isPrime;
+    },
+
+    hasSuseAppCollectionRepo() {
+      return this.suseAppCollectionRepo.length > 0;
+    },
+
+    showErrorBanner() {
+      return this.loadingErrors && this.loadingErrors.length > 0;
+    },
+
     repoOptions() {
       let out = this.$store.getters['catalog/repos'].map((r) => {
         return {
-          value:  r._key,
-          label:  r.nameDisplay,
-          weight: ( r.isRancher ? 1 : ( r.isPartner ? 2 : 3 ) ),
+          value:        r._key,
+          label:        r.nameDisplay,
+          labelTooltip: r.nameDisplay,
+          weight:       ( r.isRancher ? 1 : ( r.isPartner ? 2 : 3 ) ),
         };
       });
 
@@ -139,10 +197,17 @@ export default {
       return out;
     },
 
+    suseAppCollectionRepo() {
+      const suseRepos = this.$store.getters['catalog/repos'].filter((r) => r.isSuseAppCollection);
+      const out = suseRepos.map((r) => r.metadata.name);
+
+      return out;
+    },
+
     tagOptions() {
       const outSet = new Set();
 
-      this.allCharts.forEach((chart) => {
+      this.enabledCharts.forEach((chart) => {
         if (Array.isArray(chart.tags)) {
           chart.tags.forEach((tag) => outSet.add(tag));
         }
@@ -185,6 +250,13 @@ export default {
         sort:        this.selectedSortOption
       });
 
+      const OSs = this.currentCluster.workerOSs;
+      const showPrerelease = this.$store.getters['prefs/get'](SHOW_PRE_RELEASE);
+
+      res.forEach((chart) => {
+        chart._latestCompatibleVersion = getLatestCompatibleVersion(chart, OSs, showPrerelease);
+      });
+
       // status filtering is separated from other filters because "isInstalled" and "upgradeable" statuses are already calculated in models/chart.js
       // by doing this we won't need to re-calculate it in filterAndArrangeCharts
       if (!statuses.length) {
@@ -205,7 +277,7 @@ export default {
     categoryOptions() {
       const map = {};
 
-      for ( const chart of this.allCharts ) {
+      for ( const chart of this.enabledCharts ) {
         for ( const c of chart.categories ) {
           if ( !map[c] ) {
             const labelKey = `catalog.charts.categories.${ lcFirst(c) }`;
@@ -249,26 +321,21 @@ export default {
     },
 
     appChartCards() {
-      return this.filteredCharts.map((chart) => {
-        if (!this.appCardsCache[chart.id]) {
-          // Cache the converted value. We're caching chart.cardContent anyway, so no need to worry about showing updates to state
-          this.appCardsCache[chart.id] = {
-            id:     chart.id,
-            pill:   chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' } } : undefined,
-            header: {
-              title:    { text: chart.chartNameDisplay },
-              statuses: chart.cardContent.statuses
-            },
-            subHeaderItems: chart.cardContent.subHeaderItems,
-            image:          { src: chart.versions[0].icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
-            content:        { text: chart.chartDescription },
-            footerItems:    chart.cardContent.footerItems,
-            rawChart:       chart
-          };
-        }
+      const charts = this.filteredCharts.slice(0, this.visibleChartsCount);
 
-        return this.appCardsCache[chart.id];
-      });
+      return charts.map((chart) => ({
+        id:     chart.id,
+        pill:   chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' } } : undefined,
+        header: {
+          title:    { text: chart.chartNameDisplay },
+          statuses: chart.cardContent.statuses
+        },
+        subHeaderItems: chart.cardContent.subHeaderItems,
+        image:          { src: chart.latestCompatibleVersion.icon, alt: { text: '' } },
+        content:        { text: chart.chartDescription },
+        footerItems:    chart.cardContent.footerItems,
+        rawChart:       chart
+      }));
     },
 
     clusterId() {
@@ -280,7 +347,7 @@ export default {
     },
 
     totalMessage() {
-      const count = !this.isFilterUpdating ? this.appChartCards.length : '. . .';
+      const count = !this.isFilterUpdating ? this.filteredCharts.length : '. . .';
 
       if (this.noFiltersApplied) {
         return this.t('catalog.charts.totalChartsMessage', { count });
@@ -291,6 +358,10 @@ export default {
   },
 
   watch: {
+    debouncedSearchQuery() {
+      this.resetLazyLoadState();
+    },
+
     searchQuery: {
       handler: debounce(function(q) {
         this.debouncedSearchQuery = q;
@@ -302,6 +373,8 @@ export default {
     filters: {
       deep: true,
       handler(newFilters) {
+        this.resetLazyLoadState();
+
         const query = {
           [REPO]:     normalizeFilterQuery(newFilters.repos),
           [CATEGORY]: normalizeFilterQuery(newFilters.categories),
@@ -338,17 +411,7 @@ export default {
     }, 100),
 
     selectChart(chart) {
-      let version;
-      const OSs = this.currentCluster.workerOSs;
-      const showPrerelease = this.$store.getters['prefs/get'](SHOW_PRE_RELEASE);
-      const compatibleVersions = compatibleVersionsFor(chart, OSs, showPrerelease);
-      const versions = chart.versions;
-
-      if (compatibleVersions.length > 0) {
-        version = compatibleVersions[0].version;
-      } else {
-        version = versions[0].version;
-      }
+      const version = chart.latestCompatibleVersion.version;
 
       const query = {
         [REPO_TYPE]: chart.repoType,
@@ -422,18 +485,103 @@ export default {
       });
     },
 
+    resetLazyLoadState() {
+      this.visibleChartsCount = this.initialVisibleChartsCount;
+      this.observerInitialized = false;
+      this.hasOverflow = false;
+      this.isLoadingMore = false;
+      if (this._loadMoreTimer) {
+        clearTimeout(this._loadMoreTimer);
+        this._loadMoreTimer = null;
+      }
+    },
+
+    // The lazy loading implementation has two parts
+    // 1. Initial Load (ensureOverflow): Having a simple calculation of how many items to load
+    //    can fail in edge cases like browser zoom, where element sizing and viewport
+    //    height can lead to miscalculations. If not enough content is loaded, the page
+    //    won't be scrollable, breaking the IntersectionObserver. This method, called
+    //    iteratively by the `updated` lifecycle hook, adds batches of charts and
+    //    re-measures until the content height factually overflows the container,
+    //    guaranteeing a scrollbar. It then sets `hasOverflow = true` to stop itself.
+    // 2. Scroll-based Load (IntersectionObserver): Once the page is scrollable, a standard
+    //    IntersectionObserver (`initIntersectionObserver` and `loadMore`) takes care of
+    //    loading new batches of charts as the user scrolls to the bottom.
+    ensureOverflow() {
+      this.$nextTick(() => {
+        if (this.hasOverflow || !this.$refs.chartsContainer) {
+          return;
+        }
+
+        const mainLayout = document.querySelector('.main-layout');
+
+        if (!mainLayout) {
+          return;
+        }
+
+        const contentHeight = this.$refs.chartsContainer.offsetHeight;
+        const containerHeight = mainLayout.offsetHeight;
+
+        if (contentHeight > containerHeight) {
+          this.hasOverflow = true;
+        } else if (this.visibleChartsCount < this.filteredCharts.length) {
+          // Load another batch
+          this.visibleChartsCount += this.initialVisibleChartsCount;
+        } else {
+          // All charts are visible
+          this.hasOverflow = true;
+        }
+      });
+    },
+
     resetAllFilters() {
       this.internalFilters = createInitialFilters();
       this.filters = createInitialFilters();
       this.searchQuery = '';
     },
+
+    loadMore() {
+      if (this.isLoadingMore || this.visibleChartsCount >= this.filteredCharts.length) {
+        return;
+      }
+      this.isLoadingMore = true;
+      this._loadMoreTimer = setTimeout(() => {
+        this._loadMoreTimer = null;
+        this.visibleChartsCount += this.initialVisibleChartsCount;
+        this.$nextTick(() => {
+          this.isLoadingMore = false;
+        });
+      }, LOAD_MORE_DELAY_MS);
+    },
+
+    initIntersectionObserver() {
+      if (this.observer) {
+        this.observer.disconnect();
+      }
+      const mainLayout = document.querySelector('.main-layout');
+      const sentinel = this.$refs.sentinel;
+
+      if (sentinel && mainLayout) {
+        this.observer = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            this.loadMore();
+          }
+        }, { mainLayout });
+        this.observer.observe(sentinel);
+        this.observerInitialized = true;
+      }
+    },
+
+    async closeSuseAppCollectionBanner() {
+      this.showAppCollectionBanner = false;
+      await this.$store.dispatch('prefs/set', { key: HIDE_SUSE_APP_COLLECTION_REPO_BANNER, value: true });
+    }
   },
 };
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div>
     <div class="header">
       <h1
         data-testid="charts-header-title"
@@ -451,6 +599,7 @@ export default {
         :aria-label="t('catalog.charts.refresh')"
         actionColor="role-secondary"
         successColor="bg-success"
+        :disabled="$fetchState.pending"
         @click="refresh"
       />
     </div>
@@ -463,7 +612,7 @@ export default {
         :placeholder="t('catalog.charts.search')"
         data-testid="charts-filter-input"
         :aria-label="t('catalog.charts.search')"
-        role="textbox"
+        :disabled="$fetchState.pending"
       >
       <i
         v-if="!searchQuery"
@@ -476,136 +625,214 @@ export default {
       @shortkey="focusSearch()"
     />
 
-    <Banner
-      v-for="(err, i) in loadingErrors"
-      :key="i"
-      color="error"
-      :label="err"
-    />
-
-    <div class="wrapper">
-      <FilterPanel
-        :modelValue="internalFilters"
-        :filters="filterPanelFilters"
-        @update:modelValue="onFilterChange"
+    <div
+      v-if="$fetchState.pending"
+      class="charts-loading"
+      role="status"
+      aria-live="polite"
+      data-testid="charts-loading"
+    >
+      <i class="icon icon-spinner icon-spin" />
+      <t
+        k="generic.loading"
+        :raw="true"
+      />
+    </div>
+    <template v-else>
+      <Banner
+        v-for="(err, i) in loadingErrors"
+        :key="i"
+        color="error"
+        :label="err"
+        class="chart-banner"
+      />
+      <Banner
+        v-if="showAppCollectionBannerLogic"
+        :key="i"
+        color="info"
+        closable
+        class="chart-banner"
+        @close="closeSuseAppCollectionBanner"
+      >
+        <RichTranslation
+          k="catalog.charts.appCollectionRepoMissing"
+          tag="div"
+        >
+          <template #repoCreate="{ content }">
+            <router-link
+              :to="{ name: 'c-cluster-product-resource-create', params: { resource: CATALOG_TYPES.CLUSTER_REPO, cluster: $route.params.cluster, product: $store.getters['productId'] }, query: { target: CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION } }"
+              class="secondary-text-link"
+              tabindex="0"
+            >
+              {{ content }}
+            </router-link>
+          </template>
+        </RichTranslation>
+      </Banner>
+      <div
+        v-if="showAppCollectionBannerLogic || showErrorBanner"
+        class="banner-spacer"
       />
 
-      <div
-        v-if="filteredCharts.length === 0"
-        class="charts-empty-state"
-        data-testid="charts-empty-state"
-      >
-        <h1
-          class="empty-state-title"
-          data-testid="charts-empty-state-title"
-        >
-          {{ t('catalog.charts.noCharts.title') }}
-        </h1>
-        <div class="empty-state-tips">
-          <h4
-            v-clean-html="t('catalog.charts.noCharts.messagePart1', {}, true)"
-          />
-          <a
-            tabindex="0"
-            role="button"
-            class="empty-state-reset-filters link"
-            data-testid="charts-empty-state-reset-filters"
-            @click="resetAllFilters"
-          >
-            {{ t('catalog.charts.noCharts.messagePart2') }}
-          </a>
-          <h4
-            v-clean-html="t('catalog.charts.noCharts.messagePart3', { repositoriesUrl: `/c/${clusterId}/apps/catalog.cattle.io.clusterrepo`}, true)"
-          />
-        </div>
-        <h4
-          v-clean-html="t('catalog.charts.noCharts.messagePart4', {}, true)"
+      <div class="wrapper">
+        <FilterPanel
+          :modelValue="internalFilters"
+          :filters="filterPanelFilters"
+          @update:modelValue="onFilterChange"
         />
-      </div>
-      <div
-        v-else
-        class="right-section"
-      >
-        <div class="total-and-sort">
-          <div class="total">
-            <p class="total-message">
-              {{ totalMessage }}
-            </p>
-            <a
-              v-if="!noFiltersApplied"
-              class="reset-filters"
-              role="button"
-              :aria-label="t('catalog.charts.resetFilters.title')"
-              @click="resetAllFilters"
-            >
-              {{ t('catalog.charts.resetFilters.title') }}
-            </a>
-          </div>
-          <Select
-            v-model:value="selectedSortOption"
-            :clearable="false"
-            :searchable="false"
-            :options="sortOptions"
-            placement="bottom"
-            class="charts-sort-select"
-          >
-            <template #selected-option="{ label }">
-              <span class="mmr-1">{{ t('catalog.charts.sort.prefix') }}:</span>{{ label }}
-            </template>
 
-            <template #option="{ label, kind }">
-              <span
-                v-if="kind === 'group'"
-                class="mml-2 mmr-2"
-              >
-                {{ label }}:
-              </span>
-              <span
-                v-else
-                class="mml-6"
-              >
-                {{ label }}
-              </span>
-            </template>
-          </Select>
+        <div
+          v-if="filteredCharts.length === 0"
+          class="charts-empty-state"
+          data-testid="charts-empty-state"
+        >
+          <h1
+            class="empty-state-title"
+            data-testid="charts-empty-state-title"
+          >
+            {{ t('catalog.charts.noCharts.title') }}
+          </h1>
+          <div class="empty-state-tips">
+            <RichTranslation k="catalog.charts.noCharts.message">
+              <template #resetAllFilters="{ content }">
+                <a
+                  tabindex="0"
+                  role="button"
+                  class="link"
+                  data-testid="charts-empty-state-reset-filters"
+                  @click="resetAllFilters"
+                  @keyup.enter="resetAllFilters"
+                  @keyup.space="resetAllFilters"
+                >{{ content }}</a>
+              </template>
+              <template #repositoriesUrl="{ content }">
+                <router-link :to="{ name: 'c-cluster-apps-catalog-repo'}">
+                  {{ content }}
+                </router-link>
+              </template>
+            </RichTranslation>
+            <RichTranslation
+              k="catalog.charts.noCharts.docsMessage"
+              tag="span"
+            >
+              <template #docsUrl="{ content }">
+                <SubtleLink
+                  :href="`${DOCS_BASE}/how-to-guides/new-user-guides/helm-charts-in-rancher`"
+                  target="_blank"
+                  :open-in-new-tab-label="t('generic.opensInNewTab')"
+                >
+                  {{ content }}
+                </SubtleLink>
+              </template>
+            </RichTranslation>
+          </div>
         </div>
         <div
-          class="app-chart-cards"
-          data-testid="app-chart-cards-container"
+          v-else
+          class="right-section"
         >
-          <rc-item-card
-            v-for="card in appChartCards"
-            :id="card.id"
-            :key="card.id"
-            :pill="card.pill"
-            :header="card.header"
-            :image="card.image"
-            :content="card.content"
-            :value="card.rawChart"
-            variant="medium"
-            :class="{ 'single-card': appChartCards.length === 1 }"
-            :clickable="true"
-            @card-click="selectChart"
+          <div class="total-and-sort">
+            <div class="total">
+              <p
+                class="total-message"
+                data-testid="charts-total-message"
+              >
+                {{ totalMessage }}
+              </p>
+              <a
+                v-if="!noFiltersApplied"
+                class="reset-filters"
+                role="button"
+                :aria-label="t('catalog.charts.resetFilters.title')"
+                @click="resetAllFilters"
+              >
+                {{ t('catalog.charts.resetFilters.title') }}
+              </a>
+            </div>
+            <Select
+              v-model:value="selectedSortOption"
+              :clearable="false"
+              :searchable="false"
+              :options="sortOptions"
+              placement="bottom"
+              class="charts-sort-select"
+            >
+              <template #selected-option="{ label }">
+                <span class="mmr-1">{{ t('catalog.charts.sort.prefix') }}:</span>{{ label }}
+              </template>
+
+              <template #option="{ label, kind }">
+                <span
+                  v-if="kind === 'group'"
+                  class="mml-2 mmr-2"
+                >
+                  {{ label }}:
+                </span>
+                <span
+                  v-else
+                  class="mml-6"
+                >
+                  {{ label }}
+                </span>
+              </template>
+            </Select>
+          </div>
+          <div
+            ref="chartsContainer"
+            class="app-chart-cards"
+            data-testid="app-chart-cards-container"
           >
-            <template
-              v-once
-              #item-card-sub-header
+            <rc-item-card
+              v-for="card in appChartCards"
+              :id="card.id"
+              :key="card.id"
+              :pill="card.pill"
+              :header="card.header"
+              :image="card.image"
+              :content="card.content"
+              :value="card.rawChart"
+              variant="medium"
+              role="link"
+              :class="{ 'single-card': appChartCards.length === 1 }"
+              :clickable="true"
+              @card-click="selectChart"
             >
-              <AppChartCardSubHeader :items="card.subHeaderItems" />
-            </template>
-            <template
-              v-once
-              #item-card-footer
-            >
-              <AppChartCardFooter
-                :items="card.footerItems"
-                @click:item="handleFooterItemClick"
-              />
-            </template>
-          </rc-item-card>
+              <template
+                v-once
+                #item-card-sub-header
+              >
+                <AppChartCardSubHeader :items="card.subHeaderItems" />
+              </template>
+              <template
+                v-once
+                #item-card-footer
+              >
+                <AppChartCardFooter
+                  :items="card.footerItems"
+                  :clickable="true"
+                  @click:item="handleFooterItemClick"
+                />
+              </template>
+            </rc-item-card>
+          </div>
+          <div
+            v-if="isLoadingMore"
+            class="loading-more"
+            role="status"
+            aria-live="polite"
+            data-testid="charts-loading-more"
+          >
+            <i class="icon icon-spinner icon-spin" />
+            {{ t('catalog.charts.loadingMore') }}
+          </div>
+          <div
+            ref="sentinel"
+            class="sentinel-charts"
+            data-testid="charts-lazy-load-sentinel"
+          />
         </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
@@ -648,6 +875,20 @@ export default {
   flex-direction: column;
   gap: var(--gap-md);
   flex: 1;
+
+  .sentinel-charts {
+    height: 1px;
+  }
+
+  .loading-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gap);
+    padding: 16px;
+    font-size: 14px;
+    color: var(--muted);
+  }
 }
 
 .total-and-sort {
@@ -696,7 +937,7 @@ export default {
 
 .charts-empty-state {
   width: 100%;
-  padding: 72px 0;
+  padding: 72px 72px;
   text-align: center;
 
   .empty-state-title {
@@ -705,22 +946,8 @@ export default {
 
   .empty-state-tips {
     margin-bottom: 12px;
-
-    .empty-state-reset-filters {
-      font-size: 16px;
-    }
-
-    h4 {
-      display: inline;
-    }
-  }
-
-  :deep(h4 .icon-external-link) {
-    text-decoration: underline;
-  }
-
-  :deep(h4:hover .icon-external-link) {
-    text-decoration: none;
+    font-size: 16px;
+    line-height: 32px;
   }
 }
 
@@ -735,6 +962,32 @@ export default {
   .single-card {
     max-width: 500px;
   }
+}
+
+.charts-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap);
+  padding: 48px 16px;
+  font-size: 14px;
+  color: var(--muted);
+
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.chart-banner {
+  margin: 0 0 16px 0;
+}
+
+.banner-spacer {
+  height: 9px;
 }
 
 </style>

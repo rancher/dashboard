@@ -1,4 +1,5 @@
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../../blueprint.utils';
+import { reply } from '../workload-reply';
 
 const jobsGetResponseSmallSet = {
   type:         'collection',
@@ -56,15 +57,6 @@ const jobsGetResponseSmallSet = {
     }
   }]
 };
-
-function reply(statusCode: number, body: any) {
-  return (req) => {
-    req.reply({
-      statusCode,
-      body
-    });
-  };
-}
 
 export function generateJobsDataSmall(): Cypress.Chainable<Response> {
   return cy.intercept('GET', '/v1/batch.jobs?*', reply(200, jobsGetResponseSmallSet)).as('jobsDataSmall');

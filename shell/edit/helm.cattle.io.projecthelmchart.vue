@@ -143,12 +143,14 @@ export default {
           ref="tabs"
           :side-tabs="true"
           :use-hash="useTabbedHash"
+          :default-tab="defaultTab"
         >
           <Questions
             v-model:value="value.spec.values"
             tabbed="multiple"
             :target-namespace="value.metadata.namespace"
             :source="selectedNamespaceQuestions"
+            :mode="mode"
           />
         </Tabbed>
       </div>

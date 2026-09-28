@@ -1,5 +1,6 @@
 import { SETTING } from './settings';
 import { CURRENT_RANCHER_VERSION } from './version';
+import { requireAsset } from '@shell/utils/require-asset';
 
 export const ANY = 0;
 export const STANDARD = 1;
@@ -8,10 +9,7 @@ export const DOCS_BASE = `https://ranchermanager.docs.rancher.com/v${ CURRENT_RA
 
 const STANDARD_VENDOR = 'Rancher';
 const STANDARD_PRODUCT = 'Explorer';
-const CUSTOM_VENDOR = {
-  suse: 'Rancher Prime',
-  csp:  'SUSE Rancher'
-};
+const CUSTOM_VENDOR = { suse: 'Rancher Prime' };
 
 let mode = STANDARD;
 let vendor = STANDARD_VENDOR;
@@ -78,7 +76,7 @@ export function setTitle() {
   const v = getVendor();
 
   if (v === 'Harvester') {
-    const ico = require(`~shell/assets/images/pl/harvester.png`);
+    const ico = requireAsset(`~shell/assets/images/pl/harvester.png`);
 
     document.title = 'Harvester';
     const link = document.createElement('link');

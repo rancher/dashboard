@@ -8,6 +8,14 @@ export default {
       type:     Object,
       required: true
     },
+    showAppReadme: {
+      type:    Boolean,
+      default: true
+    },
+    hideReadmeFirstTitle: {
+      type:    Boolean,
+      default: true
+    }
   },
   data() {
     return {
@@ -30,13 +38,13 @@ export default {
   <div class="wrapper">
     <div class="chart-readmes">
       <Markdown
-        v-if="appReadme"
+        v-if="showAppReadme && appReadme"
         v-model:value="appReadme"
-        class="md md-desc mb-20"
+        :class="[hideReadmeFirstTitle ? 'hidden-first-title' : '', 'md', 'md-desc', 'mb-20']"
         @loaded="appReadmeLoaded = true"
       />
       <h1
-        v-if="appReadme && readme && appReadmeLoaded && readmeLoaded"
+        v-if="showAppReadme && appReadme && readme && appReadmeLoaded && readmeLoaded"
         class="pt-10"
       >
         {{ t('catalog.install.appReadmeTitle') }}
@@ -45,6 +53,7 @@ export default {
         v-if="readme"
         v-model:value="readme"
         class="md md-desc"
+        :class="[hideReadmeFirstTitle ? 'hidden-first-title' : '', 'md', 'md-desc']"
         @loaded="readmeLoaded = true"
       />
     </div>
@@ -88,12 +97,13 @@ export default {
       word-break: break-word;
     }
 
-    :deep()  > h1:first-of-type {
-      display: none;
-    }
-
     :deep() p {
       margin-bottom: 0.5em;
+    }
+  }
+  .hidden-first-title {
+    :deep() > h1:first-of-type {
+      display: none;
     }
   }
 

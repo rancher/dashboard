@@ -2,7 +2,7 @@ import { BACK_TO } from '@shell/config/local-storage';
 import { setBrand, setVendor } from '@shell/config/private-label';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import {
-  LOGGED_OUT, IS_SSO, IS_SLO, TIMED_OUT, UPGRADED, _FLAGGED
+  LOGGED_OUT, IS_SSO, IS_SLO, TIMED_OUT, UPGRADED, _FLAGGED, IS_SESSION_IDLE
 } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import {
@@ -17,7 +17,7 @@ import { BY_TYPE } from '@shell/plugins/dashboard-store/classify';
 import Steve from '@shell/plugins/steve';
 import { STEVE_MODEL_TYPES } from '@shell/plugins/steve/getters';
 import { CLUSTER as CLUSTER_PREF, LAST_NAMESPACE, NAMESPACE_FILTERS, WORKSPACE } from '@shell/store/prefs';
-import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@shell/store/type-map';
+import { recordClusterNavigation } from '@shell/utils/cluster-pref-writer';
 import { filterBy, findBy } from '@shell/utils/array';
 import { ApiError, ClusterNotFoundError } from '@shell/utils/error';
 import { gcActions, gcGetters } from '@shell/utils/gc/gc-root-store';
@@ -25,9 +25,6 @@ import {
   NAMESPACE_FILTER_ALL_ORPHANS as ALL_ORPHANS,
   NAMESPACE_FILTER_ALL_SYSTEM as ALL_SYSTEM,
   NAMESPACE_FILTER_ALL_USER as ALL_USER,
-  NAMESPACE_FILTER_NAMESPACED_NO as NAMESPACED_NO,
-  NAMESPACE_FILTER_NAMESPACED_PREFIX as NAMESPACED_PREFIX,
-  NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
   splitNamespaceFilterKey,
   NAMESPACE_FILTER_NS_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
@@ -36,14 +33,19 @@ import { sortBy } from '@shell/utils/sort';
 import { addParam } from '@shell/utils/url';
 import semver from 'semver';
 import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
-import { isDevBuild } from '@shell/utils/version';
+import { getReleaseNotesURL } from '@shell/utils/version';
+import { getVersionData } from '@shell/config/version';
 import { markRaw } from 'vue';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { addReleaseNotesNotification } from '@shell/utils/release-notes';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
+import { fetchAndProcessDynamicContent } from '@shell/utils/dynamic-content';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
 export const strict = false;
+
+const LEGACY_NAMESPACED_FILTER_PREFIX = 'namespaced://';
 
 export const plugins = [
   Steve({
@@ -187,9 +189,7 @@ const getActiveNamespaces = (state, getters, readonly = false) => {
     .filter((ns) => product.hideSystemResources ? !ns.isSystem : true); // Filter out Fleet system namespaces
 
   // Retrieve all the filters selected by the user
-  const filters = state.namespaceFilters.filter(
-    (filters) => !!filters && !`${ filters }`.startsWith(NAMESPACED_PREFIX)
-  );
+  const filters = state.namespaceFilters.filter((filter) => !!filter);
 
   const activeNamespaces = {
     ...getActiveNamespacesCategories(getters, allowedNamespaces, filters),
@@ -230,8 +230,8 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
 /**
  * Are we in the vai enabled world where mgmt clusters are paginated?
  */
-const paginateClusters = (rootGetters) => {
-  return paginationUtils.isEnabled({ rootGetters }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
+const paginateClusters = ({ rootGetters, state }) => {
+  return paginationUtils.isEnabled({ rootGetters, $extension: state.$extension }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
 };
 
 export const state = () => {
@@ -260,11 +260,9 @@ export const state = () => {
     $router:                 markRaw({}),
     $route:                  markRaw({}),
     $plugin:                 markRaw({}),
-    /**
-     * Cache state of side nav clusters. This avoids flickering when the user changes pages and the side nav component re-renders
-     */
-    sideNavCache:            undefined,
+    $extension:              markRaw({}),
     showWorkspaceSwitcher:   true,
+    localCluster:            null,
   };
 };
 
@@ -273,10 +271,20 @@ export const getters = {
     return state.clusterReady === true;
   },
 
-  isMultiCluster(state, getters) {
-    const clusters = getters['management/all'](MANAGEMENT.CLUSTER);
+  /**
+   * Cache of the mgmt cluster fetched at start up
+   *
+   * We cannot rely on the store to cache this as the store may contain a page without the local cluster
+   */
+  localCluster(state) {
+    return state.localCluster;
+  },
 
-    if (clusters.length === 1 && clusters[0].metadata?.name === 'local') {
+  isMultiCluster(state, getters) {
+    const clusterCount = getters['management/all'](COUNT)?.[0]?.counts?.[MANAGEMENT.CLUSTER]?.summary?.count || 0;
+    const localCluster = getters['localCluster'];
+
+    if (clusterCount === 1 && !!localCluster) {
       return false;
     } else {
       return true;
@@ -392,7 +400,7 @@ export const getters = {
       return true;
     }
 
-    return state.namespaceFilters.filter((x) => !`${ x }`.startsWith(NAMESPACED_PREFIX)).length === 0;
+    return state.namespaceFilters.length === 0;
   },
 
   isMultipleNamespaces(state, getters) {
@@ -423,39 +431,7 @@ export const getters = {
    * Namespace/Project filter for the current cluster
    */
   namespaceFilters(state) {
-    const filters = state.namespaceFilters.filter((x) => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
-
-    return filters;
-  },
-
-  namespaceMode(state, getters) {
-    const filters = state.namespaceFilters;
-    const product = getters['currentProduct'];
-
-    if ( !product?.showNamespaceFilter ) {
-      return BOTH;
-    }
-
-    // Explicitly asking
-    if ( filters.includes(NAMESPACED_YES) ) {
-      return NAMESPACED;
-    } else if ( filters.includes(NAMESPACED_NO) ) {
-      return CLUSTER_LEVEL;
-    }
-
-    const byKind = {};
-
-    for ( const filter of filters ) {
-      const type = filter.split('://', 2)[0];
-
-      byKind[type] = (byKind[type] || 0) + 1;
-    }
-
-    if ( byKind['project'] > 0 || byKind['ns'] > 0 ) {
-      return NAMESPACED;
-    }
-
-    return BOTH;
+    return state.namespaceFilters.filter((x) => !!x);
   },
 
   activeNamespaceCache(state) {
@@ -593,10 +569,9 @@ export const getters = {
   },
 
   isStandaloneHarvester(state, getters) {
-    const clusters = getters['management/all'](MANAGEMENT.CLUSTER);
-    const cluster = clusters.find((c) => c.id === 'local') || {};
+    const localCluster = getters['localCluster'];
 
-    return getters['isSingleProduct'] && cluster.isHarvester && !getters['isRancherInHarvester'];
+    return getters['isSingleProduct'] && localCluster?.isHarvester && !getters['isRancherInHarvester'];
   },
 
   showTopLevelMenu(getters) {
@@ -619,18 +594,9 @@ export const getters = {
 
   releaseNotesUrl(state, getters) {
     const version = getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER)?.value;
+    const isPrime = getVersionData().RancherPrime === 'true';
 
-    const base = 'https://github.com/rancher/rancher/releases';
-
-    if (version && !isDevBuild(version)) {
-      return `${ base }/tag/${ version }`;
-    }
-
-    return `${ base }/latest`;
-  },
-
-  sideNavCache(state) {
-    return state.sideNavCache;
+    return getReleaseNotesURL(isPrime, version);
   },
 
   ...gcGetters
@@ -645,9 +611,10 @@ export const mutations = {
   clearPageActionHandler(state) {
     state.pageActionHandler = null;
   },
-  managementChanged(state, { ready, isRancher }) {
+  managementChanged(state, { ready, isRancher, localCluster }) {
     state.managementReady = ready;
     state.isRancher = isRancher;
+    state.localCluster = localCluster;
   },
   clusterReady(state, ready) {
     state.clusterReady = ready;
@@ -661,7 +628,7 @@ export const mutations = {
    * Updates cluster specific ns settings, including the selected ns cache `activeNamespaceCache`
    */
   updateNamespaces(state, { filters, all, getters: optGetters }) {
-    state.namespaceFilters = filters.filter((x) => !!x);
+    state.namespaceFilters = filters.filter((x) => !!x && !`${ x }`.startsWith(LEGACY_NAMESPACED_FILTER_PREFIX));
 
     if ( all ) {
       state.allNamespaces = all;
@@ -770,11 +737,8 @@ export const mutations = {
   },
 
   setPlugin(state, pluginDefinition) {
+    state.$extension = markRaw(pluginDefinition || {});
     state.$plugin = markRaw(pluginDefinition || {});
-  },
-
-  setSideNavCache(state, sideNavCache) {
-    state.sideNavCache = sideNavCache;
   },
 
   showWorkspaceSwitcher(state, value) {
@@ -827,7 +791,7 @@ export const actions = {
     const isRancher = res.rancherSchemas.status === 'fulfilled' && !!getters['management/schemaFor'](MANAGEMENT.PROJECT);
 
     if ( isRancher ) {
-      promises['prefs'] = dispatch('prefs/loadServer');
+      promises['prefs'] = dispatch('prefs/loadServerQueued');
       promises['rancherSubscribe'] = dispatch('rancher/subscribe');
     }
 
@@ -855,11 +819,21 @@ export const actions = {
 
     res = await allHash(promises);
 
-    if (!res[MANAGEMENT.SETTING] || !paginateClusters(rootGetters)) {
+    let localCluster = null;
+
+    if (!res[MANAGEMENT.SETTING] || !paginateClusters({ rootGetters, state })) {
       // This introduces a synchronous request, however we need settings to determine if SSP is enabled
-      // Eventually it will be removed when SSP is always on
-      res[MANAGEMENT.CLUSTER] = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { watch: false } });
+      await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { watch: false } });
       toWatch.push(MANAGEMENT.CLUSTER);
+
+      localCluster = getters['management/byId'](MANAGEMENT.CLUSTER, 'local');
+    } else {
+      try {
+        localCluster = await dispatch('management/find', {
+          type: MANAGEMENT.CLUSTER, id: 'local', opt: { watch: false }
+        });
+      } catch (e) { // we don't care about errors, specifically 404s
+      }
     }
 
     // See comment above. Now that we have feature flags we can watch resources
@@ -867,11 +841,7 @@ export const actions = {
       dispatch('management/watch', { type });
     });
 
-    const isMultiCluster = getters['isMultiCluster'];
-
     // If the local cluster is a Harvester cluster and 'rancher-manager-support' is true, it means that the embedded Rancher is being used.
-    const localCluster = res[MANAGEMENT.CLUSTER]?.find((c) => c.id === 'local');
-
     if (localCluster?.isHarvester) {
       const harvesterSetting = await dispatch('cluster/findAll', { type: HCI.SETTING, opt: { url: `/v1/harvester/${ HCI.SETTING }s` } });
       const rancherManagerSupport = harvesterSetting.find((setting) => setting.id === 'rancher-manager-support');
@@ -900,6 +870,8 @@ export const actions = {
     // Add the notification for the release notes
     if (isRancher) {
       await addReleaseNotesNotification(dispatch, getters);
+
+      fetchAndProcessDynamicContent(dispatch, getters, this.$axios);
     }
 
     if (systemNamespaces) {
@@ -911,6 +883,7 @@ export const actions = {
     commit('managementChanged', {
       ready: true,
       isRancher,
+      localCluster
     });
 
     if ( res[FLEET.WORKSPACE] ) {
@@ -920,6 +893,8 @@ export const actions = {
         getters
       });
     }
+
+    const isMultiCluster = getters['isMultiCluster'];
 
     console.log(`Done loading management; isRancher=${ isRancher }; isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
   },
@@ -990,8 +965,19 @@ export const actions = {
     }
 
     if ( id ) {
-      // Remember the current cluster
-      dispatch('prefs/set', { key: CLUSTER_PREF, value: id });
+      // Remember the current cluster AND record the visit in the app-bar RECENT shelf in ONE merge write:
+      // writing CLUSTER separately raced the recent write on the shared Preference and clobbered the shelf.
+      // Fire-and-forget: loading the cluster must not wait on (or fail with) the preference write.
+      recordClusterNavigation(dispatch, id)
+        // The write REPORTS failure by resolving with `{ type, status }`, so the resolved value needs
+        // checking too — a `.catch` alone would let a failed persist pass as a success.
+        .then((result) => {
+          if (result?.status) {
+            console.warn('Unable to record cluster navigation', result); // eslint-disable-line no-console
+          }
+        })
+        .catch((e) => console.warn('Unable to record cluster navigation', e)); // eslint-disable-line no-console
+
       commit('clusterId', id);
 
       // Use a pseudo cluster ID to pretend we have a cluster... to ensure some screens that don't care about a cluster but 'require' one to show
@@ -1031,9 +1017,11 @@ export const actions = {
     // This is a workaround for a timing issue where the mgmt cluster schema may not be available
     // Try and wait until the schema exists before proceeding
     await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
+    // Similarly to above, we somehow get here without everything in management land being ready. FF needed to determine pagination state
+    await dispatch('management/waitForHaveAll', { type: MANAGEMENT.FEATURE });
 
     // If SSP is on we won't have requested all clusters
-    if (!paginateClusters(rootGetters)) {
+    if (!paginateClusters({ rootGetters, state })) {
       await dispatch('management/waitForHaveAll', { type: MANAGEMENT.CLUSTER });
     }
 
@@ -1051,7 +1039,8 @@ export const actions = {
         console.warn('Cluster is not ready, cannot load it:', cluster.nameDisplay); // eslint-disable-line no-console
         throw new Error('Unready cluster');
       }
-    } catch {
+    } catch (e) {
+      console.warn('Failed to find cluster, or cluster is not ready. Cluster:', id, '.Error: ', e); // eslint-disable-line no-console
       commit('clusterId', null);
       commit('cluster/applyConfig', { baseUrl: null });
       throw new ClusterNotFoundError(id);
@@ -1132,8 +1121,10 @@ export const actions = {
     commit('updateNamespaces', { filters: ids, getters });
   },
 
-  async cleanNamespaces({ getters, dispatch, rootGetters }) {
-    if (paginateClusters(rootGetters)) {
+  async cleanNamespaces({
+    getters, dispatch, rootGetters, state
+  }) {
+    if (paginateClusters({ rootGetters, state })) {
       // See https://github.com/rancher/dashboard/issues/12864
       // old world...
       // - loadManagement makes a request to fetch all mgmt clusters
@@ -1176,16 +1167,18 @@ export const actions = {
     }
   },
 
-  async onLogout(store) {
+  async onLogout(store, options = {}) {
     const { dispatch, commit, state } = store;
 
     store.dispatch('gcStopIntervals');
 
-    Object.values(this.$plugin.getPlugins()).forEach((p) => {
+    Object.values(this.$extension.getPlugins()).forEach((p) => {
       if (p.onLogOut) {
         p.onLogOut(store);
       }
     });
+
+    sideNavService.reset();
 
     await dispatch('management/unsubscribe');
     commit('managementChanged', { ready: false });
@@ -1216,7 +1209,10 @@ export const actions = {
         window.localStorage.setItem(BACK_TO, window.location.href);
       }
 
-      let QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;
+      let QUERY = (LOGGED_OUT in route.query) || options.sessionIdle ? LOGGED_OUT : TIMED_OUT;
+
+      // adds IS_SESSION_IDLE query param to login route if logout came from a session idle (check auth/logout action)
+      QUERY += options.sessionIdle ? `&${ IS_SESSION_IDLE }` : '';
 
       // adds IS_SSO query param to login route if logout came with an auth provider enabled
       QUERY += (IS_SSO in route.query) ? `&${ IS_SSO }` : '';
@@ -1232,10 +1228,10 @@ export const actions = {
     }
   },
 
-  nuxtClientInit({ dispatch, commit, rootState }, nuxt) {
-    commit('setRouter', nuxt.app.router);
-    commit('setRoute', nuxt.route);
-    commit('setPlugin', nuxt.app.$plugin);
+  dashboardClientInit({ dispatch, commit, rootState }, context) {
+    commit('setRouter', context.app.router);
+    commit('setRoute', context.route);
+    commit('setPlugin', context.app.$extension);
 
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');
@@ -1306,10 +1302,6 @@ export const actions = {
         dispatch(`${ storeName }/unsubscribe`);
       }
     });
-  },
-
-  setSideNavCache({ commit }, sideNavCache) {
-    commit('setSideNavCache', sideNavCache);
   },
 
   showWorkspaceSwitcher({ commit }, value) {

@@ -17,6 +17,7 @@ import Tabbed from '@shell/components/Tabbed';
 import { allHash } from '@shell/utils/promise';
 import { STORAGE_CLASS, PVC, SECRET, WORKLOAD_TYPES } from '@shell/config/types';
 import { CATTLE_MONITORING_NAMESPACE } from '@shell/utils/monitoring';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 export default {
   emits: ['register-before-hook', 'input'],
@@ -49,6 +50,12 @@ export default {
       default: () => {
         return {};
       },
+    },
+
+    // The selected chart version object, passed from install.vue
+    version: {
+      type:    Object,
+      default: null,
     },
   },
 
@@ -92,7 +99,9 @@ export default {
 
     const hash = await allHash(hashPromises);
 
-    this.targetNamespace = hash.namespaces[this.chart.targetNamespace] || false;
+    const ns = this.version?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE] || this.chart.targetNamespace;
+
+    this.targetNamespace = hash.namespaces[ns] || false;
 
     if (!isEmpty(hash.storageClasses)) {
       this.storageClasses = hash.storageClasses;

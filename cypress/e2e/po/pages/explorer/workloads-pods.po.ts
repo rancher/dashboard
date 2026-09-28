@@ -1,8 +1,9 @@
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import { navToWorkloadTypeViaSideMenu } from '@/cypress/e2e/po/side-bars/workload-side-nav';
 import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
-import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { WorkloadsCreatePageBasePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads.po';
+
+type WorkloadType = 'workload' | 'pods' | 'apps.deployments' | 'replicasets' | 'daemonsets' | 'statefulsets' | 'jobs' | 'cronjobs';
 
 export class WorkloadsPodsListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
@@ -18,12 +19,7 @@ export class WorkloadsPodsListPagePo extends BaseListPagePo {
   }
 
   static navTo(clusterId = 'local') {
-    const burgerMenu = new BurgerMenuPo();
-    const sideNav = new ProductNavPo();
-
-    burgerMenu.goToCluster(clusterId);
-    sideNav.navToSideMenuGroupByLabel('Workloads');
-    sideNav.navToSideMenuEntryByLabel('Pods');
+    navToWorkloadTypeViaSideMenu(clusterId, 'Pods');
   }
 
   createPod() {
@@ -58,7 +54,7 @@ export class WorkLoadsPodDetailsPagePo extends BaseDetailPagePo {
   }
 }
 export class WorkloadsPodsCreatePagePo extends WorkloadsCreatePageBasePo {
-  constructor(protected clusterId: string = 'local', workloadType = 'pod', queryParams?: Record<string, string>) {
+  constructor(protected clusterId: string = 'local', workloadType = 'pod' as WorkloadType, queryParams?: Record<string, string>) {
     super(clusterId, workloadType, queryParams);
   }
 }
@@ -71,7 +67,7 @@ export class WorkLoadsPodEditPagePo extends BaseDetailPagePo {
     return WorkLoadsPodEditPagePo.createPath(podId, clusterId, namespaceId);
   }
 
-  static goTo(podId: string, clusterId: string, namespaceId: string): Cypress.Chainable<Cypress.AUTWindow> {
+  goToPodEditPage(podId: string, clusterId: string, namespaceId: string): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(WorkLoadsPodEditPagePo.createPath(podId, clusterId, namespaceId));
   }
 

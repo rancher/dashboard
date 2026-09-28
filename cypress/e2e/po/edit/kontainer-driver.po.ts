@@ -20,10 +20,6 @@ export default class KontainerDriverCreateEditPo extends PagePo {
     return new LabeledInputPo('[data-testid="driver-create-url-field"]');
   }
 
-  customUiUrl() {
-    return new LabeledInputPo('[data-testid="driver-create-uiurl-field"]');
-  }
-
   checksum() {
     return new LabeledInputPo('[data-testid="driver-create-checksum-field"]');
   }
@@ -33,7 +29,7 @@ export default class KontainerDriverCreateEditPo extends PagePo {
   }
 
   addWhitelistDomain(domain: string, idx: number) {
-    return new ArrayListPo('[data-testid="driver-create-whitelist-list"]').setValueAtIndex(domain, idx);
+    return new ArrayListPo('[data-testid="driver-create-whitelist-list"]').setValueAtIndex(domain, idx, '');
   }
 
   saveCreateForm(): ResourceDetailPo {

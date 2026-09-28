@@ -2,6 +2,11 @@
 import { GC_DEFAULTS, GC_PREFERENCES } from '@shell/utils/gc/gc-types';
 import { PaginationSettings } from '@shell/types/resources/settings';
 
+export const AGENT_CONFIGURATION_TYPES = {
+  CLUSTER: 'cluster',
+  FLEET:   'fleet'
+} as const;
+
 interface GlobalSettingRuleset {
   name: string,
   key?: string | number,
@@ -17,6 +22,7 @@ interface GlobalSetting {
     kind?: string,
     options?: string[]
     readOnly?: boolean,
+    agent?: typeof AGENT_CONFIGURATION_TYPES.CLUSTER | typeof AGENT_CONFIGURATION_TYPES.FLEET,
     /**
      * Function used from the form validation
      */
@@ -52,15 +58,16 @@ export const SETTING = {
   RKE_METADATA_CONFIG:                           'rke-metadata-config',
   EULA_AGREED:                                   'eula-agreed',
   AUTH_USER_INFO_MAX_AGE_SECONDS:                'auth-user-info-max-age-seconds',
+  AUTH_USER_SESSION_IDLE_TTL_MINUTES:            'auth-user-session-idle-ttl-minutes',
   AUTH_USER_SESSION_TTL_MINUTES:                 'auth-user-session-ttl-minutes',
   AUTH_USER_INFO_RESYNC_CRON:                    'auth-user-info-resync-cron',
   AUTH_LOCAL_VALIDATE_DESC:                      'auth-password-requirements-description',
   PASSWORD_MIN_LENGTH:                           'password-min-length', // CATTLE_PASSWORD_MIN_LENGTH
-  UI_INDEX:                                      'ui-index',
   UI_DASHBOARD_INDEX:                            'ui-dashboard-index',
   UI_DASHBOARD_HARVESTER_LEGACY_PLUGIN:          'ui-dashboard-harvester-legacy-plugin',
   UI_OFFLINE_PREFERRED:                          'ui-offline-preferred',
   SYSTEM_DEFAULT_REGISTRY:                       'system-default-registry',
+  SYSTEM_DEFAULT_REGISTRY_PULL_SECRETS:          'system-default-registry-pull-secrets',
   UI_ISSUES:                                     'ui-issues',
   PL:                                            'ui-pl',
   PL_RANCHER_VALUE:                              'rancher',
@@ -109,7 +116,17 @@ export const SETTING = {
   SYSTEM_AGENT_UPGRADER_INSTALL_CONCURRENCY:     'system-agent-upgrader-install-concurrency',
   IMPORTED_CLUSTER_VERSION_MANAGEMENT:           'imported-cluster-version-management',
   CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS:          'cluster-agent-default-priority-class',
-  CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET: 'cluster-agent-default-pod-disruption-budget'
+  CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET: 'cluster-agent-default-pod-disruption-budget',
+  FLEET_AGENT_DEFAULT_PRIORITY_CLASS:            'fleet-agent-default-priority-class',
+  FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET:   'fleet-agent-default-pod-disruption-budget',
+  KEV2_OPERATORS:                                'kev2-operators',
+  /**
+   * Dynamic Content settings
+   */
+  DYNAMIC_CONTENT_ENABLED:                       'ui-content-enabled',
+  DYNAMIC_CONTENT_ENDPOINT:                      'ui-content-endpoint',
+  IMPORTED_CLUSTER_DAY2_OPS_DEFAULT:             'imported-cluster-day2-ops-enabled',
+  DELETE_MACHINE_ON_FAILURE_AFTER:               'delete-machine-on-failure-after',
 } as const;
 
 // These are the settings that are allowed to be edited via the UI
@@ -140,6 +157,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   },
   [SETTING.INGRESS_IP_DOMAIN]:                    {},
   [SETTING.AUTH_USER_INFO_MAX_AGE_SECONDS]:       {},
+  [SETTING.AUTH_USER_SESSION_IDLE_TTL_MINUTES]:   {},
   [SETTING.AUTH_USER_SESSION_TTL_MINUTES]:        {},
   [SETTING.AUTH_TOKEN_MAX_TTL_MINUTES]:           {},
   [SETTING.KUBECONFIG_GENERATE_TOKEN]:            { kind: 'boolean' },
@@ -148,7 +166,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.SERVER_URL]:                           { kind: 'url', canReset: true },
   [SETTING.RKE_METADATA_CONFIG]:                  { kind: 'json' },
   [SETTING.SYSTEM_DEFAULT_REGISTRY]:              {},
-  [SETTING.UI_INDEX]:                             {},
+  [SETTING.SYSTEM_DEFAULT_REGISTRY_PULL_SECRETS]: {},
   [SETTING.UI_DASHBOARD_INDEX]:                   {},
   [SETTING.UI_OFFLINE_PREFERRED]:                 {
     kind:    'enum',
@@ -170,9 +188,13 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     ruleSet: [{ name: 'minValue', factoryArg: 1 }]
   },
   [SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT]:           { kind: 'boolean' },
-  [SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS]:          { kind: 'json' },
-  [SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]: { kind: 'json' }
-
+  [SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT]:             { kind: 'boolean' },
+  // Configuration setup for agent configuration. Setting this up will activate the specific banner configuration.
+  [SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS]:          { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.CLUSTER },
+  [SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]: { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.CLUSTER },
+  [SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS]:            { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET },
+  [SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]:   { kind: 'json', agent: AGENT_CONFIGURATION_TYPES.FLEET },
+  [SETTING.DELETE_MACHINE_ON_FAILURE_AFTER]:               { kind: 'string' },
 };
 
 /**
@@ -186,7 +208,11 @@ export const PROVISIONING_SETTINGS = [
   SETTING.K3S_UPGRADER_UNINSTALL_CONCURRENCY,
   SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT,
   SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
-  SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET
+  SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET,
+  SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS,
+  SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET,
+  SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT,
+  SETTING.DELETE_MACHINE_ON_FAILURE_AFTER,
 ];
 
 /**

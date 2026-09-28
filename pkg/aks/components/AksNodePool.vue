@@ -77,7 +77,7 @@ export default defineComponent({
 
   data() {
     return {
-      taints: (this.pool.nodeTaints || []).map((taint: String) => {
+      taints: (this.pool.nodeTaints || []).map((taint: string) => {
         return { taint, _id: randomStr() };
       }),
       osDiskTypeOptions:       ['Managed', 'Ephemeral'] as AKSDiskType[],
@@ -106,7 +106,9 @@ export default defineComponent({
     },
 
     validAZ(neu) {
-      this.pool['_validAZ'] = neu;
+      // Written to the pool root rather than to `pool._validation`, where every other validity flag
+      // lives. Moving it would change which pools the parent form reports as invalid, so leave it.
+      (this.pool as AKSNodePool & { _validAZ?: boolean })._validAZ = neu;
       this.$emit('update:value');
     }
   },

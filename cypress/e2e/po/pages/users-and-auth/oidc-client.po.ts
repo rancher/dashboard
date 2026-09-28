@@ -22,7 +22,7 @@ export default class OidcClientsPagePo extends PagePo {
     const sideNav = new ProductNavPo();
 
     BurgerMenuPo.burgerMenuNavToMenubyLabel('Users & Authentication');
-    sideNav.navToSideMenuGroupByLabel('Client Application');
+    sideNav.navToSideMenuEntryByLabel('OIDC Apps');
   }
 
   createOidcClient() {

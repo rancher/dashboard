@@ -25,10 +25,22 @@ export default class K8sEvent extends SteveModel {
     return this._type;
   }
 
+  get firstSeen() {
+    const schema = this.$getters['schemaFor'](this.type);
+    const rowValueGetter = this.$rootGetters['type-map/rowValueGetter'];
+
+    return schema && rowValueGetter ? rowValueGetter(schema, 'First Seen')(this) : null;
+  }
+
   get lastSeen() {
     const schema = this.$getters['schemaFor'](this.type);
     const rowValueGetter = this.$rootGetters['type-map/rowValueGetter'];
 
     return schema && rowValueGetter ? rowValueGetter(schema, 'Last Seen')(this) : null;
+  }
+
+  // Because we're using eventType which is a non-standard state we don't have a reliable way to provide a state color anymore and have therefore disabled the color.
+  get insightsColor() {
+    return 'disabled';
   }
 }

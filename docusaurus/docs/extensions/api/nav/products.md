@@ -33,7 +33,7 @@ You can register more than one product in an extension.
 
 The module registered via `addProduct` must export an `init` method. This is invoked with two parameters;
 
-- The `$plugin` API
+- The `$extension` API
 - The VueX store
 
 ### Creating a product
@@ -43,10 +43,10 @@ An example `init` function for creating a new product is shown below:
 ```ts
 import { IPlugin } from '@shell/core/types';
 
-export function init($plugin: IPlugin, store: any) {
+export function init($extension: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   
-  const { product } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
+  const { product } = $extension.DSL(store, YOUR_PRODUCT_NAME);
 
   product({
     icon: 'gear',
@@ -56,7 +56,7 @@ export function init($plugin: IPlugin, store: any) {
   });
 }
 ```
-The function `product` comes from `$plugin.DSL` will add your extension to the top-level slide-in menu.
+The function `product` comes from `$extension.DSL` will add your extension to the top-level slide-in menu.
 
 > Note: `plugin.DSL` is called with the store and your product name and returns a number of functions to add and configure products and navigation. The example above shows the use of the `product` function
 
@@ -69,4 +69,4 @@ The allowed parameters for the `product` function are:
 | `svg` | Module | SVG icon (alernative to above). Typically use the `require` method with a path of an SVG file|
 | `inStore` | String |  Which store should the product be registered on. Use `management` for a top-level product and `cluster` for a cluster-level product |
 | `weight` | Int |  Side menu ordering (bigger number on top) |
-| `to` | [Vue Router route config](https://v3.router.vuejs.org/api/#routes) |  Route to where the click on the product top-level menu should lead to |
+| `to` | [Vue Router route config](https://router.vuejs.org/api/) |  Route to where the click on the product top-level menu should lead to |

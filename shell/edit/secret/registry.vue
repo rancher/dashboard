@@ -1,6 +1,10 @@
 <script>
+import { useStore } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
+import { useFormRules } from '@shell/composables/useFormValidation';
+import { useI18n } from '@shell/composables/useI18n';
+import { decodeDockerAuthEntry } from '@shell/components/Resource/Detail/ResourceTabs/SecretDataTab/auth-types';
 
 export default {
   components: { LabeledInput, RadioGroup },
@@ -15,6 +19,33 @@ export default {
       type:     String,
       required: true,
     }
+  },
+
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+    const { getRules } = useFormRules(
+      t,
+      [
+        {
+          path:           'registryUrl',
+          rules:          ['required'],
+          translationKey: 'secret.registry.domainName',
+        },
+        {
+          path:           'username',
+          rules:          ['required'],
+          translationKey: 'secret.registry.username',
+        },
+        {
+          path:           'password',
+          rules:          ['required'],
+          translationKey: 'secret.registry.password',
+        },
+      ]
+    );
+
+    return { getRules };
   },
 
   data() {
@@ -40,8 +71,8 @@ export default {
       registryProvider = 'Artifactory';
     }
 
-    const username = auths[registryUrl]?.username || '';
-    const password = auths[registryUrl]?.password || '';
+    // Supports both Rancher's username/password fields and the base64 `auth` field written by `docker login`.
+    const { username, password } = decodeDockerAuthEntry(auths[registryUrl]);
 
     return {
       registryProvider,
@@ -118,26 +149,34 @@ export default {
     >
       <LabeledInput
         v-model:value="registryUrl"
+        name="registryUrl"
         required
         :label="t('secret.registry.domainName')"
         placeholder="e.g. index.docker.io"
         :mode="mode"
+        :rules="getRules('registryUrl')"
       />
     </div>
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
           v-model:value="username"
+          name="username"
+          required
           :label="t('secret.registry.username')"
           :mode="mode"
+          :rules="getRules('username')"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
           v-model:value="password"
+          name="password"
+          required
           :label="t('secret.registry.password')"
           :mode="mode"
           type="password"
+          :rules="getRules('password')"
         />
       </div>
     </div>

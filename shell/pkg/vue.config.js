@@ -72,11 +72,28 @@ module.exports = function(dir) {
         resource.request = fs.existsSync(pkgModelLoaderRequire) ? pkgModelLoaderRequire : path.join(__dirname, fileName);
       });
 
+      // Prevent require.context('@shell/assets') from bundling all shell images into extensions.
+      // The stub delegates to the host dashboard's asset resolver at runtime via window.__shell_requireAsset.
+      const requireAssetOverride = new webpack.NormalModuleReplacementPlugin(/require-asset$/, (resource) => {
+        resource.request = path.join(__dirname, 'require-asset.lib.js');
+      });
+
+      // vue-router can't simply be externalised: the UMD wrapper binds externals at load time,
+      // so on hosts that don't define window.__vueRouter (Rancher <= 2.14) it resolves to
+      // undefined and every useRoute()/useRouter() call throws in setup(). The stub forwards to
+      // the host global when it exists and falls back to $route/$router when it doesn't, so a
+      // single extension build works on Rancher 2.11 through 2.15 and later.
+      const vueRouterOverride = new webpack.NormalModuleReplacementPlugin(/^vue-router$/, (resource) => {
+        resource.request = path.join(__dirname, 'vue-router.lib.js');
+      });
+
       // Auto-generate module to import the types (model, detail, edit etc)
       const autoImportPlugin = new VirtualModulesPlugin({ 'node_modules/@rancher/auto-import': generateTypeImport('@pkg', dir) });
 
       config.plugins.unshift(dynamicImporterOverride);
       config.plugins.unshift(modelLoaderImporterOverride);
+      config.plugins.unshift(requireAssetOverride);
+      config.plugins.unshift(vueRouterOverride);
       config.plugins.unshift(autoImportPlugin);
       config.plugins.unshift(new NodePolyfillPlugin()); // required from Webpack 5 to polyfill node modules
       // config.plugins.unshift(debug);

@@ -165,12 +165,9 @@ export default {
       return option.label;
     },
     sizeDialog() {
-      const dialogs = document.getElementsByClassName('modal-container');
-      const width = this.showDiff ? '85%' : '600px';
+      const modalWidth = this.showDiff ? '85%' : '600px';
 
-      if (dialogs.length === 1) {
-        dialogs[0].style.setProperty('width', width);
-      }
+      this.$store.commit('action-menu/updateModalData', [{ key: 'modalWidth', value: modalWidth }]);
     },
     sanitizeYaml(obj, path = '') {
       const res = {};

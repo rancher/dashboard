@@ -14,6 +14,9 @@ import FileSelector from '@shell/components/form/FileSelector';
 import { usePrimeRegistration } from './registration.composable';
 import Loading from '@shell/components/Loading.vue';
 
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import { REGISTRATION_RESOURCE_NAME } from '../config/constants';
+
 const store = useStore();
 const { t } = useI18n(store);
 const {
@@ -44,9 +47,17 @@ const isRegistering = computed(() => registrationStatus.value === 'registering-o
  */
 const isRegisteringOffline = computed(() => registrationStatus.value === 'registering-offline');
 
-const visitScc = () => {
-  window.open('https://scc.suse.com/register-offline/rancher', '_blank');
-};
+/**
+ * Map link to router configuration
+ */
+const registrationLink = computed(() => ({
+  name:   'c-cluster-product-resource-id',
+  params: {
+    cluster: 'local', product: EXPLORER, resource: REGISTRATION_RESOURCE_NAME, id: registration.value.id
+  }
+}));
+
+const visitScc = () => window.open('https://scc.suse.com/register-offline/rancher', '_blank');
 
 onMounted(async() => {
   initRegistration();
@@ -148,7 +159,7 @@ onMounted(async() => {
           class="mt-20"
         />
         <RcButton
-          secondary
+          variant="secondary"
           class="mt-20"
           data-testid="registration-offline-visit-scc"
           :disabled="isRegistered || isRegistering"
@@ -170,16 +181,18 @@ onMounted(async() => {
             :action-label="t('registration.offline.button.register.label')"
             data-testid="registration-offline-cta"
             :disabled="isRegistered || isRegistering"
-            :currentPhase="'waiting'"
+            :currentPhase="isRegisteringOffline ? 'waiting' : 'success'"
           />
         </div>
 
         <!-- Show file selector for offline registration -->
         <div v-else>
           <FileSelector
-            class="role-primary mt-20"
+            variant="primary"
+            class="mt-20"
             :label="t('registration.offline.button.register.label')"
             :disabled="isRegistered || isRegistering"
+            accept=".cert"
             data-testid="registration-offline-cta"
             @selected="registerOffline"
           />
@@ -212,11 +225,13 @@ onMounted(async() => {
           />
         </div>
         <div>
-          <a
-            v-if="registration.resourceLink"
-            :href="registration.resourceLink"
-            target="_blank"
-          >{{ registration.product }}</a>
+          <router-link
+            v-if="registrationLink"
+            data-testid="registration-link"
+            :to="registrationLink"
+          >
+            {{ registration.product }}
+          </router-link>
           <span v-else>{{ registration.product }}</span>
         </div>
         <div>

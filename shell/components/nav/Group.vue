@@ -1,9 +1,12 @@
 <script>
 import Type from '@shell/components/nav/Type';
+import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router';
+import { RcSeparator } from '@components/RcSeparator';
+
 export default {
   name: 'Group',
 
-  components: { Type },
+  components: { Type, RcSeparator },
 
   emits: ['expand', 'close'],
 
@@ -37,17 +40,12 @@ export default {
       type:    Boolean,
       default: true,
     },
-
-    fixedOpen: {
-      type:    Boolean,
-      default: false,
-    }
   },
 
   data() {
     const id = (this.idPrefix || '') + this.group.name;
 
-    return { id, expanded: false };
+    return { id };
   },
 
   computed: {
@@ -73,22 +71,32 @@ export default {
         const overviewRoute = grp?.route;
 
         if (overviewRoute && grp.overview) {
-          const route = this.$router.resolve(overviewRoute || {});
+          const validRoute = filterLocationValidParams(this.$router, overviewRoute || {});
+          const route = this.$router.resolve(validRoute);
 
-          return this.$route.fullPath.split('#')[0] === route?.fullPath;
+          // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
+          return this.$route.path === route?.path;
         }
       }
 
       return false;
     },
 
+    // The expand/collapse state lives on the group itself rather than in this
+    // component, so it survives the group being unmounted (a nested group only
+    // exists while its parent is expanded) and SideNav can read and write the
+    // state of the whole tree, including groups that aren't currently rendered.
     isExpanded: {
       get() {
-        return this.fixedOpen || this.group.isRoot || !!this.expanded;
+        return this.group.isRoot || !!this.group.expanded;
       },
       set(v) {
-        this.expanded = v;
+        this.group.expanded = v;
       }
+    },
+
+    headerRoute() {
+      return filterLocationValidParams(this.$router, this.group.children[0].route);
     }
   },
 
@@ -98,23 +106,13 @@ export default {
       this.$emit('expand', this.group);
     },
 
+    // The group header was clicked, so open the group and navigate into it
     groupSelected() {
-      // Can not click on groups that are fixed open
-      if (this.fixedOpen) {
-        return;
-      }
-
       // Don't auto-select first group entry if we're already expanded and contain the currently-selected nav item
       if (this.hasActiveRoute() && this.isExpanded) {
         return;
-      } else {
-        // Remove all active class if click on group header and not active route
-        const headerEl = document.querySelectorAll('.header');
-
-        headerEl.forEach((el) => {
-          el.classList.remove('active');
-        });
       }
+
       this.expandGroup();
 
       const items = this.group[this.childrenKey];
@@ -130,16 +128,30 @@ export default {
           index = (found === -1) ? 0 : found;
         }
 
-        const route = items[index].route;
+        const item = items[index];
+        const route = item.route;
 
         if (route) {
-          this.$router.replace(route);
+          const validRoute = filterLocationValidParams(this.$router, route);
+
+          this.$router.replace(validRoute);
+        } else if (item) {
+          this.routeToFirstChild(item);
         }
       }
     },
 
+    routeToFirstChild(item) {
+      if (item.children.length && item.children[0].route) {
+        const validRoute = filterLocationValidParams(this.$router, item.children[0].route);
+
+        this.$router.replace(validRoute);
+      }
+    },
+
+    // A nav item within the group was clicked. The item routes itself, so there's
+    // nothing to navigate here
     selectType() {
-      this.groupSelected();
       this.close();
     },
 
@@ -149,12 +161,8 @@ export default {
 
     // User clicked on the expander icon, so toggle the expansion so the user can see inside the group
     peek($event) {
-      // Add active class to the current header if click on chevron icon
-      $event.target.parentElement.classList.remove('active');
-      if (this.hasActiveRoute() && this.isExpanded) {
-        $event.target.parentElement.classList.add('active');
-      }
       this.isExpanded = !this.isExpanded;
+      this.$emit(this.isExpanded ? 'expand' : 'close', this.group);
       $event.stopPropagation();
     },
 
@@ -180,13 +188,23 @@ export default {
         } else if (item.route) {
           const navLevels = ['cluster', 'product', 'resource'];
           const matchesNavLevel = navLevels.filter((param) => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
-          const withoutHash = this.$route.hash ? this.$route.fullPath.slice(0, this.$route.fullPath.indexOf(this.$route.hash)) : this.$route.fullPath;
-          const withoutQuery = withoutHash.split('?')[0];
-          const itemFullPath = this.$router.resolve(item.route).fullPath;
 
-          if (matchesNavLevel || itemFullPath === withoutQuery) {
+          // Keep the group open wherever the child itself is highlighted, otherwise pages nested under a
+          // child's route (its create/detail pages) would collapse the group out from under it
+          if (matchesNavLevel || isNavItemActive(this.$router, this.$route, item)) {
             return true;
-          } else if (parentPath && itemFullPath === parentPath) {
+          }
+
+          if (!parentPath) {
+            continue;
+          }
+
+          const validItemRoute = filterLocationValidParams(this.$router, item.route);
+
+          // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
+          const itemPath = this.$router.resolve(validItemRoute).path;
+
+          if (itemPath === parentPath) {
             return true;
           }
         }
@@ -227,40 +245,65 @@ export default {
     :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive }"
   >
     <div
-      v-if="showHeader"
-      class="header"
-      :class="{'active': isOverview, 'noHover': !canCollapse || fixedOpen}"
-      role="button"
-      :tabindex="fixedOpen ? -1 : 0"
-      :aria-label="group.labelDisplay || group.label || ''"
-      @click="groupSelected()"
-      @keyup.enter="groupSelected()"
-      @keyup.space="groupSelected()"
+      v-if="showHeader || (!onlyHasOverview && canCollapse)"
+      class="accordion-item"
     >
-      <slot name="header">
-        <router-link
-          v-if="hasOverview"
-          :to="group.children[0].route"
-          :exact="group.children[0].exact"
-          :tabindex="-1"
-        >
-          <h6>
+      <div
+        v-if="showHeader"
+        class="header"
+        :class="{'active': isOverview, 'noHover': !canCollapse}"
+        :role="hasChildren && !hasOverview ? 'button' : undefined"
+        :tabindex="hasChildren && !hasOverview ? 0 : undefined"
+        :aria-label="hasChildren && !hasOverview ? (group.labelDisplay || group.label || '') : undefined"
+        :aria-expanded="hasChildren && !hasOverview ? (!canCollapse || isExpanded) : undefined"
+        :aria-controls="hasChildren && !hasOverview ? (!canCollapse ? null : `group-${id}`) : undefined"
+        @click="groupSelected()"
+        @keyup.enter="groupSelected()"
+        @keyup.space="groupSelected()"
+      >
+        <slot name="header">
+          <!-- Group overview with link -->
+          <router-link
+            v-if="hasOverview && hasChildren"
+            :to="headerRoute"
+            :exact="group.children[0].exact"
+          >
+            <h6>
+              <span v-clean-html="group.labelDisplay || group.label" />
+            </h6>
+          </router-link>
+          <!-- Non-linked group header -->
+          <h6
+            v-else-if="hasChildren"
+          >
             <span v-clean-html="group.labelDisplay || group.label" />
           </h6>
-        </router-link>
-        <h6
-          v-else
-        >
-          <span v-clean-html="group.labelDisplay || group.label" />
-        </h6>
-      </slot>
+          <!-- Simple child (nav item) -->
+          <ul
+            v-else
+            class="list-unstyled body root-depth"
+            v-bind="$attrs"
+          >
+            <Type
+
+              :key="id+'_' + group.name + '_type'"
+              :is-root="depth == 0 && !showHeader"
+              :type="group"
+              :depth="depth"
+              @selected="selectType($event)"
+            />
+          </ul>
+        </slot>
+      </div>
       <i
-        v-if="!onlyHasOverview && canCollapse"
+        v-if="!onlyHasOverview && canCollapse && hasChildren"
         class="icon toggle toggle-accordion"
         :class="{'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}"
         role="button"
         tabindex="0"
-        :aria-label="t('nav.ariaLabel.collapseExpand')"
+        :aria-label="isExpanded ? t('nav.ariaLabel.collapse', { group: group.labelDisplay || group.label }) : t('nav.ariaLabel.expand', { group: group.labelDisplay || group.label })"
+        :aria-expanded="isExpanded"
+        :aria-controls="`group-${id}`"
         @click="peek($event, true)"
         @keyup.enter="peek($event, true)"
         @keyup.space="peek($event, true)"
@@ -268,6 +311,7 @@ export default {
     </div>
     <ul
       v-if="isExpanded"
+      :id="`group-${id}`"
       class="list-unstyled body"
       v-bind="$attrs"
     >
@@ -279,7 +323,7 @@ export default {
           v-if="child.divider"
           :key="idx"
         >
-          <hr role="none">
+          <RcSeparator />
         </li>
         <!-- <div v-else-if="child[childrenKey] && hideGroup(child[childrenKey])" :key="child.name">
           HIDDEN
@@ -296,8 +340,6 @@ export default {
             :children-key="childrenKey"
             :can-collapse="canCollapse"
             :group="child"
-            :fixed-open="fixedOpen"
-            @selected="groupSelected($event)"
             @expand="expandGroup($event)"
             @close="close($event)"
           />
@@ -328,26 +370,45 @@ export default {
       user-select: none;
       text-transform: none;
       font-size: 14px;
+      height: 100%;
+      padding: 8px 0 8px 16px;
+      display: inline-flex;
+      align-items: center;
     }
 
     > A {
       display: block;
       box-sizing:border-box;
       height: 100%;
+
       &:hover{
         text-decoration: none;
       }
       &:focus{
         outline:none;
       }
-      > H6 {
-        text-transform: none;
-        padding: 8px 0 8px 16px;
+      &:focus-visible{
+        h6 span {
+          @include focus-outline;
+        }
       }
     }
   }
 
   .accordion {
+    .accordion-item {
+      position: relative;
+      cursor: pointer;
+      color: var(--body-text);
+      height: 33px;
+      outline: none;
+
+      .toggle-accordion:focus-visible {
+        @include focus-outline;
+        outline-offset: -6px;
+      }
+    }
+
     .header {
       &:focus-visible {
         h6 span {
@@ -355,23 +416,23 @@ export default {
           outline-offset: 2px;
         }
       }
-      .toggle-accordion:focus-visible {
-        @include focus-outline;
-        outline-offset: -6px;
-      }
 
       &.active {
-        color: var(--primary-hover-text);
-        background-color: var(--primary-hover-bg);
+        color: var(--on-active-nav, var(--primary-hover-text));
+        background-color: var(--active-nav, var(--primary-hover-bg));
 
         h6 {
           padding: 8px 0 8px 16px;
           font-weight: bold;
-          color: var(--primary-hover-text);
+          color: var(--on-active-nav, var(--primary-hover-text));
         }
 
         &:hover {
-          background-color: var(--primary-hover-bg);
+          background-color: var(--nav-active-hover, var(--primary-hover-bg));
+        }
+
+        ~ I {
+          color: var(--on-active-nav, var(--primary-hover-text));
         }
       }
       &:hover:not(.active) {
@@ -395,35 +456,57 @@ export default {
           text-transform: none;
           padding: 8px 0 8px 16px;
         }
+      }
 
-        > I {
-          position: absolute;
-          right: 0;
-          top: 0;
-          padding: 10px 10px 9px 7px;
-          user-select: none;
-        }
+      .accordion-item > I {
+        position: absolute;
+        right: 0;
+        top: 0;
+        padding: 10px 10px 9px 7px;
+        user-select: none;
       }
 
       > .body {
         margin-left: 0;
       }
 
+      .child:hover {
+        background: var(--nav-hover, var(--nav-active));
+      }
+
       &.group-highlight {
-        background: var(--nav-active);
+        background: var(--category-active, var(--nav-active));
+
+        .active.header {
+          &:hover {
+            background-color: var(--nav-active-hover)
+          }
+        }
+
+        .child, .header {
+          &:hover {
+            background: var(--category-active-hover, var(--primary));
+          }
+        }
+      }
+
+      .root-depth :deep() > .child.nav-type a {
+        padding-left: 14px;
       }
     }
 
     &.depth-1 {
-      > .header {
+      > .accordion-item > .header {
         padding-left: 20px;
         > H6 {
           line-height: 18px;
           padding: 8px 0 7px 5px !important;
         }
-        > I {
-          padding: 10px 7px 9px 7px !important;
-        }
+
+      }
+
+      .accordion-item > I {
+        padding: 10px 7px 9px 7px !important;
       }
 
       &:deep() .type-link > .label {
@@ -432,35 +515,39 @@ export default {
     }
 
     &:not(.depth-0) {
-      > .header {
+      > .accordion-item > .header {
         > H6 {
           // Child groups that aren't linked themselves
           display: inline-block;
           padding: 5px 0 5px 5px;
         }
+      }
 
-        > I {
-          position: absolute;
-          right: 0;
-          top: 0;
-          padding: 6px 8px 6px 8px;
-        }
+      .accordion-item > I {
+        position: absolute;
+        right: 0;
+        top: 0;
+        padding: 6px 8px 6px 8px;
       }
     }
   }
 
   .body :deep() > .child.router-link-active,
-  .header :deep() > .child.router-link-exact-active {
+  .accordion-item :deep() > .child.router-link-exact-active {
     padding: 0;
 
     A, A I {
-      color: var(--primary-hover-text);
+      color: var(--on-active-nav, var(--primary-hover-text));
     }
 
     A {
-      color: var(--primary-hover-text);
-      background-color: var(--primary-hover-bg);
+      color: var(--on-active-nav, var(--primary-hover-text));
+      background-color: var(--active-nav, var(--primary-hover-bg));
       font-weight: bold;
+
+      &:hover {
+        background: var(--nav-active-hover);
+      }
     }
   }
 
@@ -472,6 +559,7 @@ export default {
       padding-left: 24px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
 
     A:focus {

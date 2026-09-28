@@ -4,13 +4,15 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import UnitInput from '@shell/components/form/UnitInput';
 import { Banner } from '@components/Banner';
-import FileSelector from '@shell/components/form/FileSelector';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 
 const DEFAULT_NON_TLS_PORT = 389;
 const DEFAULT_TLS_PORT = 636;
 
 export const SHIBBOLETH = 'shibboleth';
 export const OKTA = 'okta';
+export const OPEN_LDAP = 'openldap';
+export const FREE_IPA = 'freeipa';
 
 export default {
   emits: ['update:value'],
@@ -21,7 +23,7 @@ export default {
     Banner,
     Checkbox,
     UnitInput,
-    FileSelector
+    FileSelectorTextArea
   },
 
   props: {
@@ -64,6 +66,11 @@ export default {
     // Does the auth provider support LDAP for search in addition to SAML?
     isSamlProvider() {
       return this.type === SHIBBOLETH || this.type === OKTA;
+    },
+
+    // Allow to enable user search just for these providers
+    isSearchAllowed() {
+      return this.type === OPEN_LDAP || this.type === FREE_IPA;
     }
   },
 
@@ -103,6 +110,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="hostname"
+          name="hostname"
           required
           :mode="mode"
           :hoover-tooltip="true"
@@ -114,6 +122,7 @@ export default {
       <div class="col span-4">
         <LabeledInput
           :value="model.port"
+          name="port"
           type="number"
           required
           :min="0"
@@ -147,18 +156,12 @@ export default {
       class="row mb-20"
     >
       <div class="col span-12">
-        <LabeledInput
+        <FileSelectorTextArea
           v-model:value="model.certificate"
+          name="certificate"
           required
-          type="multiline"
           :mode="mode"
           :label="t('authConfig.ldap.cert')"
-        />
-        <FileSelector
-          class="role-tertiary add mt-5"
-          :label="t('generic.readFromFile')"
-          :mode="mode"
-          @selected="model.certificate = $event"
         />
       </div>
     </div>
@@ -166,6 +169,7 @@ export default {
       <div class="col span-6">
         <UnitInput
           v-model:value="model.connectionTimeout"
+          name="connectionTimeout"
           required
           :mode="mode"
           :label="t('authConfig.ldap.serverConnectionTimeout')"
@@ -184,6 +188,7 @@ export default {
       >
         <LabeledInput
           v-model:value="model.serviceAccountUsername"
+          name="serviceAccountUsername"
           required
           :mode="mode"
           :label="t('authConfig.ldap.serviceAccountDN')"
@@ -196,6 +201,7 @@ export default {
       >
         <LabeledInput
           v-model:value="model.serviceAccountDistinguishedName"
+          name="serviceAccountDistinguishedName"
           required
           :mode="mode"
           :label="t('authConfig.ldap.serviceAccountDN')"
@@ -204,6 +210,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="model.serviceAccountPassword"
+          name="serviceAccountPassword"
           required
           type="password"
           :mode="mode"
@@ -226,10 +233,28 @@ export default {
         />
       </div>
     </div>
+
+    <div
+      v-if="isSearchAllowed"
+      class="row mb-20"
+    >
+      <div class="col">
+        <Checkbox
+          v-model:value="model.searchUsingServiceAccount"
+          :mode="mode"
+          data-testid="searchUsingServiceAccount"
+          class="full-height"
+          :label="t('authConfig.ldap.searchUsingServiceAccount.label')"
+          :tooltip="t('authConfig.ldap.searchUsingServiceAccount.tip')"
+        />
+      </div>
+    </div>
+
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
           v-model:value="model.userSearchBase"
+          name="userSearchBase"
           required
           :mode="mode"
           :label="t('authConfig.ldap.userSearchBase.label')"

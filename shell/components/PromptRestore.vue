@@ -7,16 +7,15 @@ import Date from '@shell/components/formatter/Date.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { CAPI, NORMAN, SNAPSHOT } from '@shell/config/types';
+import { CAPI, SNAPSHOT, OPERATION, MANAGEMENT } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import ChildHook, { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import day from 'dayjs';
 import { sortBy } from '@shell/utils/sort';
-import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import AppModal from '@shell/components/AppModal.vue';
-
+import { createOperationCR } from '@shell/utils/operation-cr';
 export default {
   components: {
     Card,
@@ -47,14 +46,13 @@ export default {
   },
 
   computed: {
-    // toRestore can be a provisioning.cattle.io.cluster or a rke.cattle.io.etcdsnapshot or an etcdBackup resource
+    // toRestore can be a provisioning.cattle.io.cluster or a rke.cattle.io.etcdsnapshot resource
     ...mapState('action-menu', ['showPromptRestore', 'toRestore']),
     ...mapGetters({ t: 'i18n/t' }),
 
     // Was the dialog opened to restore a specific snapshot, or opened on a cluster to choose
     isCluster() {
-      const isSnapshot = this.toRestore[0]?.type.toLowerCase() === NORMAN.ETCD_BACKUP ||
-      this.toRestore[0]?.type.toLowerCase() === SNAPSHOT;
+      const isSnapshot = this.toRestore[0]?.type.toLowerCase() === SNAPSHOT;
 
       return !isSnapshot;
     },
@@ -67,8 +65,41 @@ export default {
       return !!this.snapshot;
     },
 
-    isRke2() {
-      return !!this.snapshot?.rke2;
+    targetCluster() {
+      if (this.isCluster) {
+        return this.toRestore?.[0] || null;
+      }
+
+      if (this.snapshot?.cluster) {
+        return this.snapshot.cluster;
+      }
+
+      const snapshotClusterName = this.snapshot?.spec?.clusterName || this.snapshot?.clusterName;
+      const snapshotClusterId = this.snapshot?.clusterId || (snapshotClusterName ? `${ this.snapshot?.metadata?.namespace }/${ snapshotClusterName }` : null);
+
+      if (!snapshotClusterId) {
+        return null;
+      }
+
+      return this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, snapshotClusterId);
+    },
+
+    targetMgmtCluster() {
+      if (this.targetCluster?.mgmt) {
+        return this.targetCluster.mgmt;
+      }
+
+      const mgmtClusterId = this.snapshot?.spec?.clusterName;
+
+      if (!mgmtClusterId) {
+        return null;
+      }
+
+      return this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, mgmtClusterId);
+    },
+
+    isImported() {
+      return !!(this.targetCluster?.isImported || this.targetMgmtCluster?.isImported);
     },
 
     clusterSnapshots() {
@@ -78,10 +109,15 @@ export default {
         return [];
       }
     },
+    restoreModeLabels() {
+      return [
+        this.t('promptRestore.restoreMode.onlyEtcd'),
+        this.t('promptRestore.restoreMode.kubernetesVersionAndEtcd'),
+        this.t('promptRestore.restoreMode.clusterConfigKubernetesVersionAndEtcd')
+      ];
+    },
     restoreModeOptions() {
-      const etcdOption = this.isRke2 ? 'none' : 'etcd';
-
-      return [etcdOption, 'kubernetesVersion', 'all'];
+      return ['none', 'kubernetesVersion', 'all'];
     }
   },
 
@@ -112,20 +148,12 @@ export default {
       }
 
       const cluster = this.toRestore?.[0];
-      let promise;
+      const promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
+        const toRestoreClusterName = cluster?.clusterName || cluster?.metadata?.name;
 
-      if (!cluster?.isRke2) {
-        promise = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP }).then((snapshots) => {
-          return snapshots.filter((s) => s.state === STATES_ENUM.ACTIVE && s.clusterId === cluster.metadata.name);
-        });
-      } else {
-        promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
-          const toRestoreClusterName = cluster?.clusterName || cluster?.metadata?.name;
-
-          return snapshots.filter((s) => s?.snapshotFile?.status === STATES_ENUM.SUCCESSFUL && s.clusterName === toRestoreClusterName
-          );
-        });
-      }
+        return snapshots.filter((s) => s?.restoreEnabled && s.clusterName === toRestoreClusterName
+        );
+      });
 
       // Map of snapshots by name
       const allSnapshots = await promise.then((snapshots) => {
@@ -154,11 +182,31 @@ export default {
 
     async apply(buttonDone) {
       try {
-        if ( this.isRke2 ) {
-          const cluster = this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, this.snapshot.clusterId);
+        const cluster = this.targetCluster;
+        const mgmtCluster = cluster?.mgmt || this.targetMgmtCluster;
 
-          await this.applyHooks(BEFORE_SAVE_HOOKS);
+        const isImportedWithDayTwoOps = cluster?.isImportedWithDayTwoOps || mgmtCluster?.isDayTwoOpsEnabled;
 
+        await this.applyHooks(BEFORE_SAVE_HOOKS);
+
+        // For imported clusters with day 2 ops enabled, create an operation CR
+        if (isImportedWithDayTwoOps) {
+          if (!mgmtCluster) {
+            throw new Error(this.t('promptRestore.error.unableToResolveTargetCluster'));
+          }
+          const namespace = mgmtCluster?.id;
+          const safePrefix = mgmtCluster?.id;
+          const spec = {
+            clusterRef: {
+              apiVersion: 'management.cattle.io/v3',
+              kind:       'Cluster',
+              name:       mgmtCluster?.id,
+            },
+            args: { name: this.snapshot?.metadata?.name },
+          };
+
+          createOperationCR(this.$store.dispatch, OPERATION.ETCD_SNAPSHOT_RESTORE, spec, namespace, safePrefix);
+        } else {
           const now = cluster.spec?.rkeConfig?.etcdSnapshotRestore?.generation || 0;
 
           set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', {
@@ -168,15 +216,6 @@ export default {
           });
 
           await cluster.save();
-        } else {
-          await this.$store.dispatch('rancher/request', {
-            url:    `/v3/clusters/${ escape(this.snapshot.clusterId) }?action=restoreFromEtcdBackup`,
-            method: 'post',
-            data:   {
-              etcdBackupId:     this.snapshot.id,
-              restoreRkeConfig: this.restoreMode,
-            },
-          });
         }
 
         this.$store.dispatch('growl/success', {
@@ -255,18 +294,25 @@ export default {
                 />
               </p>
             </div>
-            <div class="spacer" />
-            <RadioGroup
-              v-model:value="restoreMode"
-              name="restoreMode"
-              label="Restore Type"
-              :labels="['Only etcd', 'Kubernetes version and etcd', 'Cluster config, Kubernetes version and etcd']"
-              :options="restoreModeOptions"
-            />
+            <div v-if="!isImported">
+              <div class="spacer" />
+              <RadioGroup
+                v-model:value="restoreMode"
+                name="restoreMode"
+                :label="t('promptRestore.restoreMode.label')"
+                :labels="restoreModeLabels"
+                :options="restoreModeOptions"
+              />
+            </div>
           </form>
         </div>
       </template>
-
+      <Banner
+        v-for="(err, i) in errors"
+        :key="i"
+        color="error"
+        :label="err"
+      />
       <template #actions>
         <div class="dialog-actions">
           <button
@@ -280,13 +326,6 @@ export default {
             mode="restore"
             :disabled="!hasSnapshot"
             @click="apply"
-          />
-
-          <Banner
-            v-for="(err, i) in errors"
-            :key="i"
-            color="error"
-            :label="err"
           />
         </div>
       </template>

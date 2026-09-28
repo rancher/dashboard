@@ -20,20 +20,21 @@ on:
       build-release-shell-creators-status: 
         value: ${{ jobs.build.outputs.build-status }}
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     if: github.repository == 'rancher/dashboard' && (github.event_name == 'workflow_call' || (github.event_name == 'push' && github.event.ref == 'refs/tags/${{ github.ref_name }}'))
     outputs:
       build-status: ${{ job.status }}
     steps:
       - if: inputs.is_test == 'true' && inputs.test_branch != ''
         name: Checkout (test flow)
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           persist-credentials: false
           ref: ${{ inputs.test_branch }}
@@ -41,7 +42,7 @@ jobs:
       
       - if: inputs.is_test != 'true'
         name: Checkout (normal flow)
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -50,7 +51,7 @@ jobs:
         run: corepack enable
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -74,19 +75,23 @@ jobs:
           git reset --hard HEAD
           echo $NPM_REGISTRY
           cat ./shell/package.json
+          cat ./creators/extension/package.json
 
-      - uses: actions/setup-node@v4
+      - name: Install packages
+        run: yarn install --frozen-lockfile
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version-file: '.nvmrc'
           registry-url: 'https://registry.npmjs.org'
           scope: '@rancher'
 
-      - name: Install packages
-        run: yarn install --frozen-lockfile
+      # Ensure npm 11.5.1 or later is installed
+      - name: Update npm
+        run: npm install -g npm@latest
 
       - name: Publish Shell Package to npm
         run: ./shell/scripts/publish-shell.sh --npm
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
           DRY_RUN: ${{ inputs.is_test }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

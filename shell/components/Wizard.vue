@@ -2,6 +2,7 @@
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
+import { RcButton } from '@components/RcButton';
 import Loading from '@shell/components/Loading';
 import { stringify } from '@shell/utils/error';
 import LazyImage from '@shell/components/LazyImage';
@@ -28,6 +29,7 @@ export default {
   components: {
     AsyncButton,
     Banner,
+    RcButton,
     Loading,
     LazyImage,
   },
@@ -44,7 +46,6 @@ export default {
     loading: Wizard will block until all steps are not loading
     nextButton?: {
       labelKey?: default to `wizard.next`
-      style?:  defaults to `btn role-primary`
     },
     previousButton: {
       disable: defaults to false
@@ -108,6 +109,11 @@ export default {
       default: null
     },
 
+    showStepHeader: {
+      type:    Boolean,
+      default: true
+    },
+
     // The set of labels to display for the finish AsyncButton
     finishMode: {
       type:    String,
@@ -118,6 +124,11 @@ export default {
     errors: {
       type:    Array,
       default: null,
+    },
+
+    beforeGoToStep: {
+      type:    Function,
+      default: null
     }
   },
 
@@ -185,9 +196,6 @@ export default {
       return this.steps.filter((step) => !step.hidden);
     },
 
-    nextButtonStyle() {
-      return this.activeStep.nextButton?.style || `btn role-primary`;
-    },
     nextButtonLabel() {
       return this.activeStep.nextButton?.labelKey || `wizard.next`;
     }
@@ -214,7 +222,7 @@ export default {
   },
 
   methods: {
-    goToStep(number, fromNav) {
+    async goToStep(number, fromNav) {
       if (number < 1) {
         return;
       }
@@ -228,6 +236,14 @@ export default {
 
       if ( !selected || (!this.isAvailable(selected) && number !== 1)) {
         return;
+      }
+
+      if (this.beforeGoToStep && fromNav) {
+        try {
+          await this.beforeGoToStep(this.activeStep, selected);
+        } catch {
+          return;
+        }
       }
 
       this.activeStep = selected;
@@ -291,7 +307,7 @@ export default {
     >
       <div>
         <div class="header">
-          <div class="title">
+          <div :class="['title', !showStepHeader ? 'mmb-4' : '']">
             <div
               v-if="showBanner"
               class="top choice-banner"
@@ -330,7 +346,7 @@ export default {
               </slot>
               <!-- Step number with subtext -->
               <div
-                v-if="activeStep && showSteps"
+                v-if="activeStep && showSteps && showStepHeader"
                 class="subtitle"
               >
                 <h2>{{ !!headerMode ? t(`wizard.${headerMode}`) : t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
@@ -342,13 +358,13 @@ export default {
                 </slot>
               </div>
             </div>
-            <div class="step-sequence">
-              <ul
+            <nav
+              class="step-sequence"
+              :aria-label="t('wizard.stepList')"
+            >
+              <ol
                 v-if="showSteps"
                 class="steps"
-                tabindex="0"
-                @keyup.right.stop="selectNext(1)"
-                @keyup.left.stop="selectNext(-1)"
               >
                 <template
                   v-for="(step, idx ) in visibleSteps"
@@ -358,14 +374,13 @@ export default {
 
                     :id="step.name"
                     :class="{step: true, active: step.name === activeStep.name, disabled: !isAvailable(step)}"
-                    role="presentation"
                   >
-                    <span
-                      :aria-controls="'step' + idx+1"
-                      :aria-selected="step.name === activeStep.name"
-                      role="tab"
+                    <RcButton
+                      variant="ghost"
                       class="controls"
-                      @click.prevent="goToStep(idx+1, true)"
+                      :aria-current="step.name === activeStep.name ? 'step' : null"
+                      :disabled="!isAvailable(step)"
+                      @click="goToStep(idx+1, true)"
                     >
                       <span
                         class="icon icon-lg"
@@ -374,16 +389,17 @@ export default {
                       <span>
                         {{ step.label }}
                       </span>
-                    </span>
+                    </RcButton>
                   </li>
-                  <div
+                  <li
                     v-if="idx!==visibleSteps.length-1"
                     :key="step.name"
                     class="divider"
+                    aria-hidden="true"
                   />
                 </template>
-              </ul>
-            </div>
+              </ol>
+            </nav>
           </div>
         </div>
         <slot
@@ -397,6 +413,7 @@ export default {
           >
             <div
               v-if="step.name === activeStep.name || step.hidden"
+              :id="'step-container-' + step.name"
               :key="step.name"
               class="step-container__step"
               :class="{'hide': step.name !== activeStep.name && step.hidden}"
@@ -428,6 +445,7 @@ export default {
         >
           <Banner
             color="error"
+            role="alert"
             :label="err"
             :closable="true"
             class="footer-error"
@@ -442,13 +460,14 @@ export default {
             name="cancel"
             :cancel="cancel"
           >
-            <button
+            <RcButton
               type="button"
-              class="btn role-secondary"
+              variant="secondary"
+              size="large"
               @click="cancel"
             >
               <t k="generic.cancel" />
-            </button>
+            </RcButton>
           </slot>
           <div class="controls-steps">
             <slot
@@ -456,14 +475,15 @@ export default {
               name="back"
               :back="back"
             >
-              <button
+              <RcButton
                 :disabled="!canPrevious || (!editFirstStep && activeStepIndex===1)"
                 type="button"
-                class="btn role-secondary"
+                variant="secondary"
+                size="large"
                 @click="back()"
               >
                 <t k="wizard.previous" />
-              </button>
+              </RcButton>
             </slot>
             <slot
               v-if="activeStepIndex === visibleSteps.length-1"
@@ -482,14 +502,15 @@ export default {
               name="next"
               :next="next"
             >
-              <button
+              <RcButton
                 :disabled="!canNext"
                 type="button"
-                :class="nextButtonStyle"
+                variant="primary"
+                size="large"
                 @click="next()"
               >
                 <t :k="nextButtonLabel" />
-              </button>
+              </RcButton>
             </slot>
           </div>
         </div>
@@ -536,18 +557,16 @@ $spacer: 10px;
       list-style-type:none;
       padding: 0;
 
-      &:focus{
-          outline:none;
-          box-shadow: none;
-      }
-
       & li.step{
         display: flex;
         flex-direction: row;
         flex-grow: 1;
         align-items: center;
 
-        & > span > span:last-of-type {
+        // Matches the step's control whatever element it is. This was
+        // `> span > span` when the control was a span; as a button it stopped
+        // matching and the label kept a 3px padding it never used to have.
+        & > .controls > span:last-of-type {
           padding-bottom: 0;
         }
 
@@ -556,12 +575,24 @@ $spacer: 10px;
         }
 
         & .controls {
+          // RcButton's ghost variant already drops the background and padding.
+          // A step marker stacks its dot over its label and keeps the
+          // surrounding type, so undo the button's row layout and sizing.
           display: flex;
           flex-direction: column;
           align-items: center;
+          font: inherit;
+          min-height: 0;
+          gap: 0;
           width: 40px;
           overflow: visible;
           padding-top: 7px;
+
+          // The ghost variant defines no disabled state, so an out of reach
+          // step would otherwise pick up the global button's grey chip.
+          &:disabled {
+            background: transparent;
+          }
 
           & > span {
             padding-bottom: 3px;
@@ -593,10 +624,10 @@ $spacer: 10px;
         flex-basis: 100%;
         border-top: 1px solid var(--border);
         position: relative;
-        top: 17px;
+        top: 23px;
 
         .cru__content & {
-          top: 13px;
+          top: 17px;
         }
       }
     }

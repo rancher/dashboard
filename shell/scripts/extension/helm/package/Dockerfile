@@ -1,4 +1,4 @@
-FROM registry.suse.com/bci/bci-base:15.5
+FROM registry.suse.com/bci/bci-base:15.7
 
 RUN zypper -n install nginx jq
 

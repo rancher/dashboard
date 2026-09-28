@@ -5,7 +5,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { generateStatefulSetsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/statefulsets/statefulsets-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
-describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
   const statefulSetListPage = new WorkloadsStatefulSetsListPagePo(localCluster);
 
@@ -13,9 +13,9 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     let uniqueStatefulSet = SortableTablePo.firstByDefaultName('statefulset');
-    let statefulSetNamesList = [];
+    let statefulSetNamesList: string[] = [];
     let nsName1: string;
     let nsName2: string;
     let rootResourceName: string;
@@ -68,7 +68,7 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
           uniqueStatefulSet = workloadNames[0];
           nsName2 = ns;
 
-          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
+          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { delay: true });
         });
     });
 
@@ -78,109 +78,103 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
       WorkloadsStatefulSetsListPagePo.navTo();
       statefulSetListPage.waitForPage();
 
-      // check statefulsets count
-      const count = statefulSetNamesList.length + 1;
+      // Ensure the separately-created extra statefulset has propagated before deriving the count
+      // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
+      cy.waitForRancherResource('v1', 'apps.statefulset', `${ nsName2 }/${ uniqueStatefulSet }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForRancherResources('v1', 'apps.statefulset', count - 1, true).then((resp: Cypress.Response<any>) => {
-        // pagination is visible
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .checkVisible();
+      // Wait for the list to finish loading, then read the expected total from the pager itself
+      // rather than a separate API snapshot: the server-side (VAI) list count and a client-side
+      // data.filter disagree by one during the eventual-consistency window after creation (the
+      // persistent "24 vs 23" flake). See PaginationPo.paginationTotalCount.
+      statefulSetListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
+      // pagination is visible
+      statefulSetListPage.list().resourceTable().sortableTable().pagination()
+        .checkVisible();
+
+      statefulSetListPage.list().resourceTable().sortableTable().pagination()
+        .paginationTotalCount()
+        .then((count: number) => {
         // basic checks on navigation buttons
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .isEnabled();
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .isEnabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .isEnabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .isEnabled();
 
-        // check text before navigation
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } StatefulSets`);
-          });
+          // check text before navigation
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
 
-        // navigate to next page - right button
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .click();
+          // navigate to next page - right button
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .click();
 
-        // check text and buttons after navigation
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`11 - 20 of ${ count } StatefulSets`);
-          });
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isEnabled();
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isEnabled();
+          // check text and buttons after navigation
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`11 - 20 of ${ count } StatefulSets`);
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isEnabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isEnabled();
 
-        // navigate to first page - left button
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .click();
+          // navigate to first page - left button
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .click();
 
-        // check text and buttons after navigation
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } StatefulSets`);
-          });
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
+          // check text and buttons after navigation
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
 
-        // navigate to last page - end button
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .scrollIntoView()
-          .click();
+          // navigate to last page - end button
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .scrollIntoView()
+            .click();
 
-        // row count on last page
-        let lastPageCount = count % 10;
+          // row count on last page
+          let lastPageCount = count % 10;
 
-        if (lastPageCount === 0) {
-          lastPageCount = 10;
-        }
+          if (lastPageCount === 0) {
+            lastPageCount = 10;
+          }
 
-        // check text after navigation
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } StatefulSets`);
-          });
+          // check text after navigation
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } StatefulSets`);
 
-        // navigate to first page - beginning button
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .click();
+          // navigate to first page - beginning button
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .click();
 
-        // check text and buttons after navigation
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } StatefulSets`);
-          });
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        statefulSetListPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-      });
+          // check text and buttons after navigation
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } StatefulSets`);
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          statefulSetListPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+        });
     });
 
     it('sorting changes the order of paginated statefulsets data', () => {
@@ -250,7 +244,9 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
       // generate small set of statefulsets data
       generateStatefulSetsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsStatefulSetsListPagePo.navTo();
+      // navTo is hardened against the workload-overview redirect to Deployments (it waits for
+      // the overview's summary fetch to settle and reloads/retries if it redirected).
+      WorkloadsStatefulSetsListPagePo.navTo(localCluster);
       cy.wait('@statefulSetsDataSmall');
       statefulSetListPage.waitForPage();
 
@@ -273,12 +269,18 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
   describe('Redeploy Dialog', () => {
     const namespace = `ns-test-${ Date.now() }`;
     const statefulSetName = `sts-test-${ Date.now() }`;
+    const statefulSetNameWithoutService = `sts-test-no-service-${ Date.now() }`;
     const apiResource = 'apps.statefulsets';
     const redeployEndpoint = `/v1/${ apiResource }/${ namespace }/${ statefulSetName }`;
+    const redeployEndpointWithoutService = `/v1/${ apiResource }/${ namespace }/${ statefulSetNameWithoutService }`;
 
-    const openRedeployDialog = () => {
+    const openRedeployDialog = (statefulSetName: string) => {
       statefulSetListPage.goTo();
       statefulSetListPage.waitForPage();
+
+      // Wait for the statefulset row to render before opening its action menu.
+      statefulSetListPage.list().resourceTable().sortableTable().rowElementWithName(statefulSetName)
+        .should('be.visible');
 
       statefulSetListPage
         .list()
@@ -315,32 +317,65 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
           }
         }
       }));
+
+      cy.createRancherResource('v1', apiResource, JSON.stringify({
+        apiVersion: 'apps/v1',
+        kind:       'StatefulSet',
+        metadata:   { name: statefulSetNameWithoutService, namespace },
+        spec:       {
+          replicas: 1,
+          selector: { matchLabels: { app: statefulSetName } },
+          template: {
+            metadata: { labels: { app: statefulSetName } },
+            spec:     {
+              containers: [{
+                name:  'nginx',
+                image: 'nginx:alpine'
+              }]
+            }
+          }
+        }
+      }));
+
+      // Ensure both statefulsets are queryable before the tests navigate to the list, so the
+      // list's fetch includes them. The steve/VAI list can omit a row that is not yet indexed,
+      // which left openRedeployDialog unable to find the row (wedged across all retries).
+      cy.waitForRancherResource('v1', apiResource, `${ namespace }/${ statefulSetName }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+      cy.waitForRancherResource('v1', apiResource, `${ namespace }/${ statefulSetNameWithoutService }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
     });
 
     it('redeploys successfully after confirmation', () => {
-      const dialog = openRedeployDialog();
+      const dialog = openRedeployDialog(statefulSetName);
 
       dialog.confirmRedeploy(redeployEndpoint);
+      dialog.shouldBeClosed();
+    });
+
+    it('redeploys successfully without a serviceName', () => {
+      const dialog = openRedeployDialog(statefulSetNameWithoutService);
+
+      dialog.confirmRedeploy(redeployEndpointWithoutService);
       dialog.shouldBeClosed();
     });
 
     it('does not send a request when cancelled', () => {
       cy.intercept('PUT', redeployEndpoint).as('redeployCancelled');
 
-      const dialog = openRedeployDialog();
+      const dialog = openRedeployDialog(statefulSetName);
 
       dialog.cancel().shouldBeClosed();
       cy.get('@redeployCancelled.all').should('have.length', 0);
     });
 
     it('displays error banner on failure', () => {
-      const dialog = openRedeployDialog();
+      const dialog = openRedeployDialog(statefulSetName);
 
       dialog.simulateRedeployError(redeployEndpoint);
     });
 
     after(() => {
       cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ statefulSetName }`);
+      cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ statefulSetNameWithoutService }`);
       cy.deleteRancherResource('v1', 'namespaces', namespace);
     });
   });

@@ -22,6 +22,8 @@ import InfoBox from '@shell/components/InfoBox';
 import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@shell/store/features';
 import ResourceManager from '@shell/mixins/resource-manager';
 
+const DEFAULT_ACCESS_MODES = ['ReadWriteOnce'];
+
 export default {
   name:         'PersistentVolume',
   inheritAttrs: false,
@@ -64,35 +66,41 @@ export default {
   },
 
   data() {
-    const NONE_OPTION = {
-      label: this.t('generic.none'),
-      value: ''
-    };
-    const defaultAccessModes = ['ReadWriteOnce'];
-
-    this.value['spec'] = this.value.spec || {};
-    this.value.spec['accessModes'] = this.value.spec.accessModes || defaultAccessModes;
-    this.value.spec['capacity'] = this.value.spec.capacity || {};
-    this.value.spec.capacity['storage'] = this.value.spec.capacity.storage || '10Gi';
-    this.value.spec['storageClassName'] = this.value.spec.storageClassName || NONE_OPTION.value;
-
-    const foundPlugin = this.value.isLonghorn ? LONGHORN_PLUGIN : VOLUME_PLUGINS.find((plugin) => this.value.spec[plugin.value]);
-    const plugin = (foundPlugin || VOLUME_PLUGINS[0]).value;
-
     return {
       secondaryResourceData: this.secondaryResourceDataConfig(),
       storageClassOptions:   [],
       currentClaim:          null,
-      plugin,
-      NONE_OPTION,
+      plugin:                '',
+      initialNodeAffinity:   null,
       NODE,
-      initialNodeAffinity:   clone(this.value.spec.nodeAffinity),
     };
+  },
+
+  created() {
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['accessModes'] = this.value.spec.accessModes || DEFAULT_ACCESS_MODES;
+    this.value.spec['capacity'] = this.value.spec.capacity || {};
+    this.value.spec.capacity['storage'] = this.value.spec.capacity.storage || '10Gi';
+    this.value.spec['storageClassName'] = this.value.spec.storageClassName || this.noneOption.value;
+
+    const foundPlugin = this.value.isLonghorn ? LONGHORN_PLUGIN : VOLUME_PLUGINS.find((plugin) => this.value.spec[plugin.value]);
+
+    this.plugin = (foundPlugin || VOLUME_PLUGINS[0]).value;
+    this.initialNodeAffinity = clone(this.value.spec.nodeAffinity);
+
+    this.registerBeforeHook(this.willSave, 'willSave');
   },
 
   computed: {
     showUnsupportedStorage: mapFeature(UNSUPPORTED_STORAGE_DRIVERS),
     ...mapGetters(['currentProduct', 'currentCluster']),
+
+    noneOption() {
+      return {
+        label: this.t('generic.none'),
+        value: ''
+      };
+    },
 
     readWriteOnce: {
       get() {
@@ -149,10 +157,6 @@ export default {
     }
   },
 
-  created() {
-    this.registerBeforeHook(this.willSave, 'willSave');
-  },
-
   methods: {
     secondaryResourceDataConfig() {
       return {
@@ -168,7 +172,7 @@ export default {
                     value: s.metadata.name
                   }));
 
-                  storageClassOptions.unshift(this.NONE_OPTION);
+                  storageClassOptions.unshift(this.noneOption);
 
                   return storageClassOptions;
                 }
@@ -194,7 +198,7 @@ export default {
       return require(`./plugins/${ name }`).default;
     },
     willSave() {
-      if (this.value.spec.storageClassName === this.NONE_OPTION.value) {
+      if (this.value.spec.storageClassName === this.noneOption.value) {
         this.value.spec['storageClassName'] = null;
       }
 
@@ -280,6 +284,7 @@ export default {
     <Tabbed
       :side-tabs="true"
       :use-hash="useTabbedHash"
+      :default-tab="defaultTab"
     >
       <Tab
         name="plugin-configuration"

@@ -1,11 +1,13 @@
 import { NAME as APPS } from '@shell/config/product/apps';
-import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as MANAGER } from '@shell/config/product/manager';
-import { CAPI, MANAGEMENT, BACKUP_RESTORE, COMPLIANCE } from '@shell/config/types';
+import {
+  CAPI, MANAGEMENT, BACKUP_RESTORE, COMPLIANCE, VIRTUAL_TYPES
+} from '@shell/config/types';
 import { NAME as AUTH } from '@shell/config/product/auth';
 
 // All these imports are related to the install-redirect.js navigation guard.
 import { installRedirectRouteMeta } from '@shell/config/router/navigation-guards/install-redirect';
+import { INVALID_RESOURCE_IN_CONTEXT } from '@shell/utils/resource';
 import { NAME as BACKUP_NAME, CHART_NAME as BACKUP_CHART_NAME } from '@shell/config/product/backup';
 import { NAME as COMPLIANCE_NAME, CHART_NAME as COMPLIANCE_CHART_NAME } from '@shell/config/product/compliance';
 import { NAME as GATEKEEPER_NAME, CHART_NAME as GATEKEEPER_CHART_NAME } from '@shell/config/product/gatekeeper';
@@ -57,12 +59,7 @@ export default [
         path:      '/home',
         component: () => interopDefault(import('@shell/pages/home.vue')),
         name:      'home'
-      },
-      {
-        path:      '/support',
-        component: () => interopDefault(import('@shell/pages/support/index.vue')),
-        name:      'support'
-      },
+      }
     ]
   },
   {
@@ -79,9 +76,13 @@ export default [
       {
         path:      '/c/:cluster/uiplugins',
         name:      'c-cluster-uiplugins',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/uiplugins/index.vue')),
+        component: () => interopDefault(import('@shell/pages/c/_cluster/uiplugins/index.vue'))
       },
-
+      {
+        path:      '/c/:cluster/uiplugins/catalogs',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/uiplugins/catalogs.vue')),
+        name:      'c-cluster-uiplugins-catalogs'
+      },
       {
         path:      '/diagnostic',
         component: () => interopDefault(import('@shell/pages/diagnostic.vue')),
@@ -133,6 +134,12 @@ export default [
     component: () => interopDefault(import('@shell/components/templates/standalone.vue')),
     name:      'standalone',
     children:  [
+      {
+        path:      '/c/:cluster/readme',
+        component: () => interopDefault(import('@shell/pages/readme.vue')),
+        name:      'readme',
+        meta:      { requiresAuthentication: true, standalone: true }
+      },
     ]
   },
   {
@@ -178,10 +185,7 @@ export default [
         redirect(to) {
           return {
             name:   'c-cluster-explorer',
-            params: {
-              ...(to?.params || {}),
-              product: EXPLORER,
-            }
+            params: { ...(to?.params || {}) }
           };
         }
       },
@@ -230,6 +234,21 @@ export default [
         path:      '/c/:cluster/fleet/application/create',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/create.vue')),
         name:      'c-cluster-fleet-application-create',
+      }, {
+        path:      '/c/:cluster/fleet/application/suse-app-collection/credentials',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/suse-app-collection/credentials.vue')),
+        name:      'c-cluster-fleet-application-appco-credentials',
+        meta:      { disableWorkspaceSwitcher: true },
+      }, {
+        path:      '/c/:cluster/fleet/application/suse-app-collection/charts',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/suse-app-collection/charts.vue')),
+        name:      'c-cluster-fleet-application-appco-charts',
+        meta:      { disableWorkspaceSwitcher: true },
+      }, {
+        path:      '/c/:cluster/fleet/application/suse-app-collection/chart',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/suse-app-collection/chart.vue')),
+        name:      'c-cluster-fleet-application-appco-chart',
+        meta:      { disableWorkspaceSwitcher: true },
       }, {
         path:      '/c/:cluster/fleet/application/:resource/create',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/_resource/create.vue')),
@@ -313,6 +332,20 @@ export default [
             component: () => interopDefault(import('@shell/pages/c/_cluster/apps/charts/install.vue')),
             name:      'c-cluster-apps-charts-install',
           },
+          {
+            path: '/c/:cluster/apps/catalog.cattle.io.clusterrepo',
+            name: 'c-cluster-apps-catalog-repo',
+            redirect(to) {
+              return {
+                name:   'c-cluster-product-resource',
+                params: {
+                  ...to.params,
+                  product:  APPS,
+                  resource: 'catalog.cattle.io.clusterrepo',
+                }
+              };
+            },
+          },
         ]
       },
       {
@@ -327,6 +360,10 @@ export default [
         path:      '/c/:cluster/explorer/explorer-utils',
         component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/explorer-utils.js')),
         name:      'c-cluster-explorer-explorer-utils'
+      }, {
+        path:      '/c/:cluster/explorer/workload-dashboard',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/workload-dashboard/index.vue')),
+        name:      'c-cluster-explorer-workload-dashboard'
       }, {
         path:      '/c/:cluster/explorer/tools',
         component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/tools/index.vue')),
@@ -347,6 +384,10 @@ export default [
         path:      '/c/:cluster/manager/nodeDriver',
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/drivers/nodeDriver/index.vue')),
         name:      'c-cluster-manager-driver-nodedriver'
+      }, {
+        path:      '/c/:cluster/manager/hostedprovider',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/manager/hostedprovider/index.vue')),
+        name:      'c-cluster-manager-hostedprovider'
       }, {
         path:      '/c/:cluster/monitoring/alertmanagerconfig',
         component: () => interopDefault(import('@shell/pages/c/_cluster/monitoring/alertmanagerconfig/index.vue')),
@@ -413,10 +454,6 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/monitoring/route-receiver/create.vue')),
         name:      'c-cluster-monitoring-route-receiver-create'
       }, {
-        path:      '/c/:cluster/explorer/tools/pages/:page?',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/explorer/tools/pages/_page.vue')),
-        name:      'c-cluster-explorer-tools-pages-page'
-      }, {
         path:      '/c/:cluster/auth/config/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/auth/config/_id.vue')),
         name:      'c-cluster-auth-config-id'
@@ -432,10 +469,6 @@ export default [
         path:      '/c/:cluster/manager/nodeDriver/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/drivers/nodeDriver/_id.vue')),
         name:      'c-cluster-manager-driver-nodedriver-id'
-      }, {
-        path:      '/c/:cluster/manager/pages/:page?',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/manager/pages/_page.vue')),
-        name:      'c-cluster-manager-pages-page'
       }, {
         path:      '/c/:cluster/monitoring/alertmanagerconfig/:alertmanagerconfigid',
         component: () => interopDefault(import('@shell/pages/c/_cluster/monitoring/alertmanagerconfig/_alertmanagerconfigid/index.vue')),
@@ -483,7 +516,10 @@ export default [
       }, {
         path:      '/c/:cluster/:product/:resource',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/index.vue')),
-        name:      'c-cluster-product-resource'
+        name:      'c-cluster-product-resource',
+        // Show an unknown resource error in-context (in place of the list), retaining the cluster
+        // context, rather than redirecting to the global fail whale page. See `validateResource`.
+        meta:      { [INVALID_RESOURCE_IN_CONTEXT]: true }
       }, {
         path:      '/c/:cluster/:product/:resource/create',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/create.vue')),
@@ -493,6 +529,13 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_id.vue')),
         name:      'c-cluster-product-resource-id',
         meta:      { asyncSetup: true }
+      }, {
+        // Used this regex syntax in order to strict match the 'projectsecret' path segment
+        // while simultaneously capturing it as the 'resource' parameter.
+        // This is required because the Side Navigation relies on route.params.resource to determine which menu item to highlight.
+        path:      `/c/:cluster/:product/:resource(${ VIRTUAL_TYPES.PROJECT_SECRETS })/:namespace/:id`,
+        component: () => interopDefault(import(`@shell/pages/c/_cluster/explorer/${ VIRTUAL_TYPES.PROJECT_SECRETS }.vue`)),
+        name:      `c-cluster-product-${ VIRTUAL_TYPES.PROJECT_SECRETS }-namespace-id`,
       }, {
         path:      '/c/:cluster/:product/:resource/:namespace/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_namespace/_id.vue')),

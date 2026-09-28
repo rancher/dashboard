@@ -2,6 +2,39 @@ import { mount, shallowMount } from '@vue/test-utils';
 import vmwarevsphere from '@shell/machine-config/vmwarevsphere.vue';
 import { DEFAULT_VALUES, SENTINEL } from '@shell/machine-config/vmwarevsphere-config';
 
+type LabelValue = { label: string, value: string };
+
+/** vSphere returns option lists as paths, some of which come back empty or absent. */
+type PathOption = string | null | undefined;
+
+type CustomAttribute = { name: string, key: string | number };
+
+type Tag = { id: string, name: string, category: string };
+
+/**
+ * `vmwarevsphere.vue` is a plain-JS SFC built on the untyped `create-edit-view`
+ * mixin, so `vue-tsc` cannot infer its `methods` block and every member of
+ * `wrapper.vm` resolves to `never` (which then reports as "not callable").
+ *
+ * Describe just the surface these tests drive so the calls below are checked
+ * against a real signature. Remove this once the component is converted to
+ * `<script lang="ts"> defineComponent`.
+ */
+interface VSphereInstance {
+  value: Record<string, unknown>;
+  storageType: string;
+  validationErrors: Record<string, string[] | undefined>;
+  mapPathOptionsToContent(pathOptions: PathOption[]): LabelValue[];
+  mapHostOptionsToContent(hostOptions: PathOption[]): LabelValue[];
+  mapFolderOptionsToContent(folderOptions: PathOption[]): LabelValue[];
+  mapCustomAttributesToContent(customAttributes: CustomAttribute[]): LabelValue[];
+  mapTagsToContent(tags: Tag[]): (Tag & LabelValue)[];
+  resetValueIfNecessary(key: string, content: LabelValue[], options: PathOption[], isArray?: boolean): void;
+  loadNetworks(): Promise<void>;
+}
+
+const asVSphere = (wrapper: { vm: unknown }): VSphereInstance => wrapper.vm as VSphereInstance;
+
 describe('component: vmwarevsphere', () => {
   const defaultGetters = { 'i18n/t': jest.fn().mockImplementation((key: string) => key) };
   const poolId = 'poolId';
@@ -57,6 +90,7 @@ describe('component: vmwarevsphere', () => {
 
       const dataCenterElement = wrapper.find(`[data-testid="datacenter"]`).element;
       const resourcePoolElement = wrapper.find(`[data-testid="resourcePool"]`).element;
+      const storageTypeElement = wrapper.find(`[data-testid="storageType"]`).element;
       const dataStoreElement = wrapper.find(`[data-testid="dataStore"]`).element;
       const folderElement = wrapper.find(`[data-testid="folder"]`).element;
       const hostElement = wrapper.find(`[data-testid="host"]`).element;
@@ -64,6 +98,7 @@ describe('component: vmwarevsphere', () => {
 
       expect(dataCenterElement).toBeDefined();
       expect(resourcePoolElement).toBeDefined();
+      expect(storageTypeElement).toBeDefined();
       expect(dataStoreElement).toBeDefined();
       expect(folderElement).toBeDefined();
       expect(hostElement).toBeDefined();
@@ -103,7 +138,7 @@ describe('component: vmwarevsphere', () => {
   });
 
   describe('mapPathOptionsToContent', () => {
-    const testCases = [
+    const testCases: [PathOption[], LabelValue[]][] = [
       [['/Datacenter'], [{ label: '/Datacenter', value: '/Datacenter' }]],
       [['Datacenter'], [{ label: 'Datacenter', value: 'Datacenter' }]],
       [['/Datacenter/vm/datastore'], [{ label: '/Datacenter/vm/datastore', value: '/Datacenter/vm/datastore' }]],
@@ -112,7 +147,7 @@ describe('component: vmwarevsphere', () => {
     it.each(testCases)('should generate label/value object without manipultion', (rawData, expected) => {
       const wrapper = mount(vmwarevsphere, defaultCreateSetup);
 
-      expect(wrapper.vm.mapPathOptionsToContent(rawData)).toStrictEqual(expected);
+      expect(asVSphere(wrapper).mapPathOptionsToContent(rawData)).toStrictEqual(expected);
     });
   });
 
@@ -121,7 +156,7 @@ describe('component: vmwarevsphere', () => {
       label: '%cluster.machineConfig.vsphere.hostOptions.any%',
       value: SENTINEL
     };
-    const testCases = [
+    const testCases: [PathOption[], LabelValue[]][] = [
       [[''], [hostPlaceholder]],
       [['host'], [{ label: 'host', value: 'host' }]],
     ];
@@ -129,7 +164,7 @@ describe('component: vmwarevsphere', () => {
     it.each(testCases)('should generate label/value object for host options properly', (rawData, expected) => {
       const wrapper = mount(vmwarevsphere, defaultCreateSetup);
 
-      expect(wrapper.vm.mapHostOptionsToContent(rawData)).toStrictEqual(expected);
+      expect(asVSphere(wrapper).mapHostOptionsToContent(rawData)).toStrictEqual(expected);
     });
   });
 
@@ -138,7 +173,7 @@ describe('component: vmwarevsphere', () => {
       label: '\u00A0',
       value: ''
     };
-    const testCases = [
+    const testCases: [PathOption[], LabelValue[]][] = [
       [[undefined], [folderPlaceholder]],
       [[null], [folderPlaceholder]],
       [[''], [folderPlaceholder]],
@@ -148,12 +183,12 @@ describe('component: vmwarevsphere', () => {
     it.each(testCases)('should generate label/value object for folder options properly', (rawData, expected) => {
       const wrapper = mount(vmwarevsphere, defaultCreateSetup);
 
-      expect(wrapper.vm.mapFolderOptionsToContent(rawData)).toStrictEqual(expected);
+      expect(asVSphere(wrapper).mapFolderOptionsToContent(rawData)).toStrictEqual(expected);
     });
   });
 
   describe('mapCustomAttributesToContent', () => {
-    const testCases = [
+    const testCases: [CustomAttribute[], LabelValue[]][] = [
       [[{ name: 'name', key: 'key' }], [{ label: 'name', value: 'key' }]],
       [[{ name: 'name', key: 111 }], [{ label: 'name', value: '111' }]],
     ];
@@ -161,7 +196,7 @@ describe('component: vmwarevsphere', () => {
     it.each(testCases)('should generate label/value object for custom attributes options properly', (rawData, expected) => {
       const wrapper = mount(vmwarevsphere, defaultCreateSetup);
 
-      expect(wrapper.vm.mapCustomAttributesToContent(rawData)).toStrictEqual(expected);
+      expect(asVSphere(wrapper).mapCustomAttributesToContent(rawData)).toStrictEqual(expected);
     });
   });
 
@@ -177,7 +212,7 @@ describe('component: vmwarevsphere', () => {
       }];
       const wrapper = mount(vmwarevsphere, defaultCreateSetup);
 
-      expect(wrapper.vm.mapTagsToContent([tag])).toStrictEqual(expectedResult);
+      expect(asVSphere(wrapper).mapTagsToContent([tag])).toStrictEqual(expectedResult);
     });
   });
 
@@ -203,18 +238,19 @@ describe('component: vmwarevsphere', () => {
       };
 
       const wrapper = mount(vmwarevsphere, setup);
+      const vm = asVSphere(wrapper);
 
-      const hostsystemContent = wrapper.vm.mapHostOptionsToContent(hostsystemOptions);
-      const folderContent = wrapper.vm.mapHostOptionsToContent(folderOptions);
-      const contentLibraryContent = wrapper.vm.mapPathOptionsToContent(contentLibraryOptions);
+      const hostsystemContent = vm.mapHostOptionsToContent(hostsystemOptions);
+      const folderContent = vm.mapHostOptionsToContent(folderOptions);
+      const contentLibraryContent = vm.mapPathOptionsToContent(contentLibraryOptions);
 
-      wrapper.vm.resetValueIfNecessary('hostsystem', hostsystemContent, hostsystemOptions);
-      wrapper.vm.resetValueIfNecessary('folder', folderContent, folderOptions);
-      wrapper.vm.resetValueIfNecessary('contentLibrary', contentLibraryContent, contentLibraryOptions);
+      vm.resetValueIfNecessary('hostsystem', hostsystemContent, hostsystemOptions);
+      vm.resetValueIfNecessary('folder', folderContent, folderOptions);
+      vm.resetValueIfNecessary('contentLibrary', contentLibraryContent, contentLibraryOptions);
 
-      expect(wrapper.vm.$data.validationErrors[poolId]).toContain('hostsystem');
-      expect(wrapper.vm.$data.validationErrors[poolId]).toContain('folder');
-      expect(wrapper.vm.$data.validationErrors[poolId]).toContain('contentLibrary');
+      expect(vm.validationErrors[poolId]).toContain('hostsystem');
+      expect(vm.validationErrors[poolId]).toContain('folder');
+      expect(vm.validationErrors[poolId]).toContain('contentLibrary');
     });
 
     describe('hostsystem, folder, contentLibrary, network and tag', () => {
@@ -237,26 +273,27 @@ describe('component: vmwarevsphere', () => {
         };
 
         const wrapper = mount(vmwarevsphere, setup);
+        const vm = asVSphere(wrapper);
 
-        const hostsystemContent = wrapper.vm.mapHostOptionsToContent(hostsystemOptions);
-        const folderContent = wrapper.vm.mapHostOptionsToContent(folderOptions);
-        const contentLibraryContent = wrapper.vm.mapPathOptionsToContent(contentLibraryOptions);
-        const networkContent = wrapper.vm.mapPathOptionsToContent(networkOptions);
-        const tagContent = wrapper.vm.mapPathOptionsToContent(tagOptions);
+        const hostsystemContent = vm.mapHostOptionsToContent(hostsystemOptions);
+        const folderContent = vm.mapHostOptionsToContent(folderOptions);
+        const contentLibraryContent = vm.mapPathOptionsToContent(contentLibraryOptions);
+        const networkContent = vm.mapPathOptionsToContent(networkOptions);
+        const tagContent = vm.mapPathOptionsToContent(tagOptions);
 
-        wrapper.vm.resetValueIfNecessary('hostsystem', hostsystemContent, hostsystemOptions);
-        wrapper.vm.resetValueIfNecessary('folder', folderContent, folderOptions);
-        wrapper.vm.resetValueIfNecessary('contentLibrary', contentLibraryContent, contentLibraryOptions);
-        wrapper.vm.resetValueIfNecessary('network', networkContent, networkOptions, true);
-        wrapper.vm.resetValueIfNecessary('tag', tagContent, tagOptions, true);
+        vm.resetValueIfNecessary('hostsystem', hostsystemContent, hostsystemOptions);
+        vm.resetValueIfNecessary('folder', folderContent, folderOptions);
+        vm.resetValueIfNecessary('contentLibrary', contentLibraryContent, contentLibraryOptions);
+        vm.resetValueIfNecessary('network', networkContent, networkOptions, true);
+        vm.resetValueIfNecessary('tag', tagContent, tagOptions, true);
 
-        expect(wrapper.vm.$data.validationErrors[poolId]).toBeUndefined();
+        expect(vm.validationErrors[poolId]).toBeUndefined();
       });
     });
   });
 
-  describe('syncNetworkValueForLegacyLabels', () => {
-    it('should update the current network value properly', () => {
+  describe('network name backwards compatibility', () => {
+    it('should NOT update the current network value to use MOID instead of name', async() => {
       const legacyName = 'legacy_name';
       const legacyValue = 'legacy_value';
       const networkLabel = 'network_label';
@@ -291,12 +328,72 @@ describe('component: vmwarevsphere', () => {
         }
       });
 
-      // check the current network before updating
-      expect(wrapper.vm.value.network).toStrictEqual([legacyName]);
+      await asVSphere(wrapper).loadNetworks();
+      await wrapper.vm.$nextTick();
 
-      wrapper.vm.syncNetworkValueForLegacyLabels();
+      expect(asVSphere(wrapper).value.network).toStrictEqual([legacyName]);
+    });
+  });
 
-      expect(wrapper.vm.value.network).toStrictEqual([legacyValue]);
+  describe('storage type toggling', () => {
+    it('should toggle storage type to datastore-cluster and clear datastore value', async() => {
+      const wrapper = mount(vmwarevsphere, defaultCreateSetup);
+
+      wrapper.vm.value.datastore = 'some-datastore';
+      await wrapper.setData({ storageType: 'datastore-cluster' });
+
+      expect(wrapper.vm.storageType).toBe('datastore-cluster');
+      expect(wrapper.vm.value.datastore).toBe('');
+    });
+
+    it('should toggle storage type to datastore and clear datastoreCluster value', async() => {
+      const wrapper = mount(vmwarevsphere, defaultCreateSetup);
+
+      // Initialize with datastore-cluster selected
+      await wrapper.setData({ storageType: 'datastore-cluster' });
+      wrapper.vm.value.datastoreCluster = 'some-cluster';
+
+      // Switch back to datastore
+      await wrapper.setData({ storageType: 'datastore' });
+
+      expect(wrapper.vm.storageType).toBe('datastore');
+      expect(wrapper.vm.value.datastoreCluster).toBe('');
+    });
+
+    it('should initialize storage type to datastore-cluster if value has datastoreCluster set', () => {
+      const setup = {
+        ...defaultEditSetup,
+        propsData: {
+          ...defaultEditSetup.propsData,
+          value: {
+            ...defaultEditSetup.propsData.value,
+            datastoreCluster: 'existing-cluster',
+            datastore:        ''
+          }
+        }
+      };
+      const wrapper = mount(vmwarevsphere, setup);
+
+      expect(wrapper.vm.storageType).toBe('datastore-cluster');
+    });
+
+    it('should correctly toggle the visibility of datastore and datastore cluster selects', async() => {
+      const wrapper = mount(vmwarevsphere, defaultCreateSetup);
+      const dataStoreContainer = wrapper.find('[data-testid="dataStore"]');
+
+      // Default state: datastore
+      let select = dataStoreContainer.findComponent({ name: 'LabeledSelect' });
+
+      expect(select.exists()).toBe(true);
+      expect(select.props('label')).toBe('%cluster.machineConfig.vsphere.scheduling.dataStore%');
+
+      // Toggle to datastore-cluster
+      await wrapper.setData({ storageType: 'datastore-cluster' });
+
+      select = dataStoreContainer.findComponent({ name: 'LabeledSelect' });
+
+      expect(select.exists()).toBe(true);
+      expect(select.props('label')).toBe('%cluster.machineConfig.vsphere.scheduling.dataStoreCluster%');
     });
   });
 });

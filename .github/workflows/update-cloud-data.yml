@@ -7,6 +7,7 @@ on:
   workflow_dispatch:
 jobs:
   update-cloud-data:
+    if: github.repository_owner == 'rancher'
     runs-on: ubuntu-latest
     #permissions: write-all
     permissions:
@@ -15,13 +16,13 @@ jobs:
       pull-requests: write
       id-token: write    
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
     - name: Use Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
       with:
         node-version-file: '.nvmrc'
     - name: Install Node Module
-      run: yarn install
+      run: yarn install --frozen-lockfile
     - name: Update Cloud Data
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

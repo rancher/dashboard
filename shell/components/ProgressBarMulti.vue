@@ -122,6 +122,7 @@ function toPercent(value, min, max) {
     v-trim-whitespace
     :class="{progress: true, multi: pieces.length > 1}"
     :aria-label="ariaLabelText"
+    role="progressbar"
   >
     <div
       v-for="(piece, idx) of pieces"

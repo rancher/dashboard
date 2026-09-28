@@ -7,6 +7,7 @@ import Loading from '@shell/components/Loading';
 import { SUBTYPE_MAPPING, CREATE_VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import { NAME } from '@shell/config/product/auth';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { RcButton } from '@components/RcButton';
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;
@@ -31,7 +32,7 @@ export default {
   name: 'Roles',
 
   components: {
-    Tab, Tabbed, ResourceTable, Loading
+    Tab, Tabbed, ResourceTable, Loading, RcButton
   },
 
   async fetch() {
@@ -162,13 +163,13 @@ export default {
       </div>
       <div class="actions-container">
         <div class="actions">
-          <router-link
+          <rc-button
             v-if="canCreate"
+            size="large"
             :to="createLocation"
-            class="btn role-primary"
           >
             {{ createLabel }}
-          </router-link>
+          </rc-button>
         </div>
       </div>
     </header>

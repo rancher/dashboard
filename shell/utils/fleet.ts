@@ -33,6 +33,13 @@ function conditionIsTrue(conditions: Condition[] | undefined, type: string): boo
 }
 
 class Application {
+  /**
+   * gitrepos/helmops are already restricted to clusters in their own namespace
+   *
+   * this empty selector means all applicable clusters will be selected
+   */
+  includeAllWorkgroupRule = { clusterSelector: { matchExpressions: [] } };
+
   excludeHarvesterRule = {
     clusterSelector: {
       matchExpressions: [{
@@ -45,7 +52,7 @@ class Application {
     },
   };
 
-  getTargetMode(targets: Target[], namespace: string): TargetMode {
+  getTargetMode(targets: Target[], namespace: string, areHarvesterHostsVisible: boolean): TargetMode {
     if (namespace === 'fleet-local') {
       return 'local';
     }
@@ -64,11 +71,11 @@ class Application {
         clusterGroupSelector,
       } = target;
 
-      if (clusterGroup || clusterGroupSelector) {
+      if (clusterGroupSelector) {
         return 'advanced';
       }
 
-      if (clusterName) {
+      if (clusterName || clusterGroup) {
         mode = 'clusters';
       }
 
@@ -83,8 +90,11 @@ class Application {
       return target;
     });
 
-    // Check if targets contains only harvester rule after name normalizing
-    if (isEqual(normalized, [this.excludeHarvesterRule])) {
+    // Check if targets contains only harvester rule or no rule at all after name normalizing
+    // That means the ALL option has been selected previously
+    // one case for feature harvester-baremetal-container-workload ON
+    // and another for feature harvester-baremetal-container-workload OFF
+    if (isEqual(normalized, [this.includeAllWorkgroupRule]) || isEqual(normalized, [this.excludeHarvesterRule])) {
       mode = 'all';
     }
 
@@ -184,7 +194,7 @@ class Fleet {
   }
 
   detailLocation(r: Resource, mgmtClusterName: string): any {
-    return mapStateToEnum(r.state) === STATES_ENUM.MISSING ? undefined : {
+    const location = mapStateToEnum(r.state) === STATES_ENUM.MISSING ? undefined : {
       name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
       params: {
         product:   EXPLORER_NAME,
@@ -194,6 +204,13 @@ class Fleet {
         id:        r.name,
       },
     };
+
+    // Having an undefined param can yield a console warning like [Vue Router warn]: Discarded invalid param(s) "namespace" when navigating
+    if (location && !location.params.namespace) {
+      delete location.params.namespace;
+    }
+
+    return location;
   }
 
   /**
@@ -289,9 +306,13 @@ class Fleet {
       STATES_ENUM.INFO,
       STATES_ENUM.WARNING,
       STATES_ENUM.NOT_READY,
+      STATES_ENUM.MODIFIED,
+      STATES_ENUM.OUT_OF_SYNC,
+      STATES_ENUM.PENDING,
       STATES_ENUM.ERROR,
       STATES_ENUM.ERR_APPLIED,
       STATES_ENUM.WAIT_APPLIED,
+      STATES_ENUM.WAITING_FOR_DEPENDENCY,
       STATES_ENUM.UNKNOWN,
     ].reduce((acc: Record<string, any>, state) => {
       acc[state] = {
@@ -303,6 +324,25 @@ class Fleet {
 
       return acc;
     }, {});
+  }
+
+  /**
+   * The backend raises `error` on the state of anything that is not Ready, and does so unevenly - two
+   * bundles in the same state can disagree on it. `colorForState` reads that flag before it reads the
+   * state, so it decides the colour, and the same state ends up rendered red on one row and not on the
+   * next.
+   *
+   * Where the state is one the UI knows, and is classified as something other than an error, that
+   * classification is the more accurate of the two, so the flag is dropped.
+   */
+  resourceStateObj<T extends { name?: string, error?: boolean }>(state?: T): T | undefined {
+    const known = state?.name ? STATES[state.name.toLowerCase()] : undefined;
+
+    if (state?.error && known && known.color !== STATES[STATES_ENUM.ERROR].color) {
+      return { ...state, error: false };
+    }
+
+    return state;
   }
 
   getDashboardStateId(resource: { stateColor: string }): string {

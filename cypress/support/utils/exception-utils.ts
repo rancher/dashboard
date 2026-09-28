@@ -1,16 +1,22 @@
 
 export const RANCHER_PAGE_EXCEPTIONS = [
   'TenantFeatures',
-  'DomainData'
+  'DomainData',
+  'ResizeObserver loop',
+  'cross origin page',
+  // Third-party telemetry pixel (cdn.vector.co) loaded by the Rancher Prime / SUSE
+  // pages intermittently throws this; it is not a dashboard error.
+  'No visitor ID available'
 ];
 
 /**
  * Target page throws an error. Catch and ignore so test's generic afterAll doesn't fail
  */
 export const catchTargetPageException = (
-  partialExceptionMessage: string | string[],
+  exceptionMessage?: string | string[],
   originUrl?: string
 ): void => {
+  const partialExceptionMessage = exceptionMessage || RANCHER_PAGE_EXCEPTIONS;
   const catchExceptions: string[] = typeof partialExceptionMessage === 'string' ? [partialExceptionMessage] : partialExceptionMessage;
 
   if (originUrl) {

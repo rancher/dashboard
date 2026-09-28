@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { createPayloadData, updatePayloadData } from '@/cypress/e2e/blueprints/cluster_management/pod-security-admissions-payload';
 
-describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo();
   const resourceDetails = new ResourceDetailPo('.main-layout');
   const downloadsFolder = Cypress.config('downloadsFolder');
@@ -164,5 +164,33 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
         podSecurityAdmissionsPage.waitForPage();
         cy.contains(this.podSecurityAdmissionsName).should('not.exist');
       });
+  });
+});
+
+describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+    cy.applyDefaultTestTheme();
+  });
+
+  it('should display Pod Security Admissions list page', () => {
+    const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo();
+
+    PodSecurityAdmissionsPagePo.goTo('_');
+    podSecurityAdmissionsPage.checkIsCurrentPage();
+
+    podSecurityAdmissionsPage.list().resourceTable().sortableTable().checkVisible();
+    podSecurityAdmissionsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    podSecurityAdmissionsPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
+
+    // hide elements before taking percy snapshot
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]', 'td.col-live-date span.live-date');
+
+    // takes percy snapshot.
+    cy.percySnapshot('Pod Security Admissions list page');
+  });
+
+  after(() => {
+    cy.restoreProductDefaultTestTheme();
   });
 });

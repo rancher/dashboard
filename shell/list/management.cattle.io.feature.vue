@@ -4,6 +4,11 @@ import ResourceTable from '@shell/components/ResourceTable';
 import { MANAGEMENT } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 
+const hideFeatureFlags = [
+  'fleet', // Note - this is the id of the ff we want, not sure what FLEET in store/features is
+  'ui-sql-cache', // This can be removed once https://github.com/rancher/rancher/issues/53996 merges
+];
+
 export default {
   components: { ResourceTable },
   mixins:     [ResourceFetch],
@@ -32,7 +37,7 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
 
     filteredRows() {
-      return this.rows.filter((x) => x.name !== 'fleet');
+      return this.rows.filter((x) => hideFeatureFlags.indexOf(x.metadata.name) === -1);
     },
 
     enableRowActions() {
@@ -63,7 +68,7 @@ export default {
         <div class="feature-name">
           <div>{{ scope.row.nameDisplay }}</div>
           <i
-            v-if="scope.row.status.lockedValue !== null"
+            v-if="scope.row.status && scope.row.status.lockedValue !== null"
             class="icon icon-lock"
           />
         </div>

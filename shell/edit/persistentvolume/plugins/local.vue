@@ -13,10 +13,8 @@ export default {
       required: true,
     },
   },
-  data() {
+  created() {
     this.value.spec['local'] = this.value.spec.local || {};
-
-    return { };
   },
 };
 </script>

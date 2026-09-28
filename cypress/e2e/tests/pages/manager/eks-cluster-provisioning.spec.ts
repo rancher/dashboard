@@ -2,6 +2,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import ClusterManagerCreateEKSPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-eks.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import * as eksDefaultSettings from '@/cypress/e2e/blueprints/cluster_management/eks-default-settings';
 import RadioGroupInputPo from '~/cypress/e2e/po/components/radio-group-input.po';
 
@@ -9,7 +10,7 @@ import RadioGroupInputPo from '~/cypress/e2e/po/components/radio-group-input.po'
  *  Running this test will delete all Amazon cloud credentials from the target cluster
  ******/
 
-describe('Create EKS cluster', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
+describe('Create EKS cluster', { testIsolation: false, tags: ['@manager', '@adminUser', '@jenkins', '@provisioning', '@eks'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const loadingPo = new LoadingPo('.loading-indicator');
 
@@ -59,8 +60,8 @@ describe('Create EKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     clusterList.createCluster();
     createEKSClusterPage.selectKubeProvider(0);
     loadingPo.checkNotExists();
-    createEKSClusterPage.rke2PageTitle().should('include', 'Create Amazon EKS');
-    createEKSClusterPage.waitForPage('type=amazoneks&rkeType=rke2');
+    createEKSClusterPage.rke2PageTitle().should('include', 'Create EKS');
+    createEKSClusterPage.waitForPage('type=eks&rkeType=rke2');
 
     // create amazon cloud credential
     cloudCredForm.saveButton().expectToBeDisabled();
@@ -79,7 +80,7 @@ describe('Create EKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
 
     cy.wait('@pageLoad').its('response.statusCode').should('eq', 200);
     loadingPo.checkNotExists();
-    createEKSClusterPage.waitForPage('type=amazoneks&rkeType=rke2#group1%200');
+    createEKSClusterPage.waitForPage('type=eks&rkeType=rke2');
   });
 
   beforeEach( () => {
@@ -114,8 +115,8 @@ describe('Create EKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     clusterList.createCluster();
     createEKSClusterPage.selectKubeProvider(0);
     loadingPo.checkNotExists();
-    createEKSClusterPage.rke2PageTitle().should('include', 'Create Amazon EKS');
-    createEKSClusterPage.waitForPage('type=amazoneks&rkeType=rke2#group1%200');
+    createEKSClusterPage.rke2PageTitle().should('include', 'Create EKS');
+    createEKSClusterPage.waitForPage('type=eks&rkeType=rke2');
 
     // Verify that eks-zone-select dropdown is set to the default zone
     createEKSClusterPage.getRegion().checkOptionSelected(eksSettings.eksRegion);
@@ -186,6 +187,35 @@ describe('Create EKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
 
     clusterList.waitForPage();
     clusterList.list().state(this.eksClusterName).should('contain.text', 'Provisioning');
+  });
+
+  it('can re-name node pools without changing the order in which they are displayed in the UI', () => {
+    const tabbedPo = new TabbedPo('[data-testid="tabbed"]');
+
+    tabbedPo.tabNames().then((initialTabNames) => {
+      const normalizedInitialTabNames = initialTabNames.map((name) => name.trim());
+
+      tabbedPo.self().find('[data-testid="tab-list-add"]').click();
+
+      tabbedPo.tabNames().then((tabNamesAfterAdd) => {
+        const normalizedTabNamesAfterAdd = tabNamesAfterAdd.map((name) => name.trim());
+        const lastTabAfterAdd = normalizedTabNamesAfterAdd[normalizedTabNamesAfterAdd.length - 1];
+
+        expect(normalizedTabNamesAfterAdd.length).to.eq(normalizedInitialTabNames.length + 1);
+        expect(lastTabAfterAdd).to.not.eq('');
+
+        tabbedPo.clickNthTab(2);
+        createEKSClusterPage.getNodeGroup().set('aaa');
+
+        tabbedPo.tabNames().then((tabNamesAfterRename) => {
+          const normalizedTabNamesAfterRename = tabNamesAfterRename.map((name) => name.trim());
+          const lastTabAfterRename = normalizedTabNamesAfterRename[normalizedTabNamesAfterRename.length - 1];
+
+          expect(normalizedTabNamesAfterRename.length).to.eq(normalizedTabNamesAfterAdd.length);
+          expect(lastTabAfterRename).to.eq('aaa');
+        });
+      });
+    });
   });
 
   after('clean up', () => {

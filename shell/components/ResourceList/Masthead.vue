@@ -2,8 +2,10 @@
 import { mapGetters } from 'vuex';
 import Favorite from '@shell/components/nav/Favorite';
 import TypeDescription from '@shell/components/TypeDescription';
+import { RcButton } from '@components/RcButton';
 import { get } from '@shell/utils/object';
 import { AS, _YAML } from '@shell/config/query-params';
+import { isProductPrefixedTopLevel } from '@shell/utils/extension-product-routing';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 import TabTitle from '@shell/components/TabTitle';
 
@@ -16,6 +18,7 @@ export default {
 
   components: {
     Favorite,
+    RcButton,
     TypeDescription,
     ResourceLoadingIndicator,
     TabTitle
@@ -72,6 +75,11 @@ export default {
       default: false
     },
 
+    showFavorite: {
+      type:    Boolean,
+      default: true
+    },
+
     /**
      * Inherited global identifier prefix for tests
      * Define a term based on the parent component to avoid conflicts on multiple components
@@ -85,7 +93,35 @@ export default {
   data() {
     const params = { ...this.$route.params };
 
-    const formRoute = { name: `${ this.$route.name }-create`, params };
+    // Determine if the current product has a topLevelProduct defined, and if so,
+    // use that for the formRoute instead of the current route's product.
+    // This allows resources from extensions (new product registration) to use the correct route for creation,
+    // which may be different from the route of the resource list.
+    let currPluginName = '';
+    let formRoute;
+    let overrideCreateLocationByExtension = false;
+    // `data()` runs during the very first render, which is before Vue assigns `__vue_app__`,
+    // so the `$extension`/`$plugin` compat shim in `@shell/pkg/auto-import` cannot have run
+    // yet when this component is bundled into an extension loaded on an older Rancher.
+    // Fall through to `{}` there: with no plugins to inspect the non-override branch below
+    // is correct, which is what Rancher without V2 product registration needs anyway.
+    const plugins = this.$extension?.getPlugins?.() || {};
+    const currentProductId = this.$store.getters['productId'];
+
+    Object.keys(plugins).forEach((key) => {
+      if (plugins[key].productNames.includes(currentProductId)) {
+        currPluginName = key;
+      }
+    });
+
+    if (isProductPrefixedTopLevel(plugins[currPluginName], currentProductId)) {
+      // override create route for extension resource lists
+      formRoute = { name: `${ this.$route.name }-create`, params: { ...params, product: currentProductId } };
+      overrideCreateLocationByExtension = true;
+    } else {
+      // this was the original logic before the topLevelProduct override was added
+      formRoute = { name: `${ this.$route.name }-create`, params };
+    }
 
     const hasEditComponent = this.$store.getters['type-map/hasCustomEdit'](this.resource);
 
@@ -96,6 +132,7 @@ export default {
     };
 
     return {
+      overrideCreateLocationByExtension,
       formRoute,
       yamlRoute,
       hasEditComponent,
@@ -141,7 +178,7 @@ export default {
       }
 
       // blocked-post means you can post through norman, but not through steve.
-      if ( this.schema && !this.schema?.collectionMethods.find((x) => ['blocked-post', 'post'].includes(x.toLowerCase())) ) {
+      if ( this.schema && this.schema?.collectionMethods && !this.schema?.collectionMethods.find((x) => ['blocked-post', 'post'].includes(x.toLowerCase())) ) {
         return false;
       }
 
@@ -149,7 +186,7 @@ export default {
     },
 
     _createLocation() {
-      return this.createLocation || this.formRoute;
+      return this.overrideCreateLocationByExtension ? this.formRoute : this.createLocation || this.formRoute;
     },
 
     _yamlCreateLocation() {
@@ -177,7 +214,7 @@ export default {
     <div class="title">
       <h1 class="m-0">
         <TabTitle>{{ _typeDisplay }}</TabTitle> <Favorite
-          v-if="isExplorer"
+          v-if="isExplorer && showFavorite"
           :resource="favoriteResource || resource"
         />
       </h1>
@@ -198,22 +235,24 @@ export default {
           <slot name="extraActions" />
 
           <slot name="createButton">
-            <router-link
+            <RcButton
               v-if="hasEditComponent && _isCreatable"
-              :to="_createLocation"
-              class="btn role-primary"
+              variant="primary"
+              size="large"
               :data-testid="componentTestid+'-create'"
+              :to="_createLocation"
             >
               {{ _createButtonlabel }}
-            </router-link>
-            <router-link
+            </RcButton>
+            <RcButton
               v-else-if="_isYamlCreatable"
-              :to="_yamlCreateLocation"
-              class="btn role-primary"
+              variant="primary"
+              size="large"
               :data-testid="componentTestid+'-create-yaml'"
+              :to="_yamlCreateLocation"
             >
               {{ t("resourceList.head.createFromYaml") }}
-            </router-link>
+            </RcButton>
           </slot>
         </div>
       </slot>
@@ -240,6 +279,7 @@ export default {
       'title actions'
       'sub-header sub-header'
       'state-banner state-banner';
+    margin-bottom: 24px;
   }
 
   .sub-header {

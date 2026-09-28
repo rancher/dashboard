@@ -3,14 +3,14 @@ import { generatePersistentVolumesDataSmall, persistentVolumesNoData } from '@/c
 
 const persistentVolumesPagePo = new PersistentVolumesPagePo();
 
-describe('PersistentVolumes', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('PersistentVolumes', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
+      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { delay: true });
     });
 
     it('validate persistent volumes table in empty state', () => {

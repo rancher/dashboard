@@ -47,6 +47,23 @@ export default {
   },
 
   data() {
+    return {
+      POD,
+      matchingPods: {
+        matched: 0,
+        matches: [],
+        none:    true,
+        sample:  null,
+        total:   0,
+      },
+      podTableHeaders: this.$store.getters['type-map/headersFor'](
+        this.$store.getters['cluster/schemaFor'](POD)
+      ),
+      inStore: this.$store.getters['currentProduct'].inStore,
+    };
+  },
+
+  created() {
     if ( !this.value.spec ) {
       this.value['spec'] = {
         policyTypes: [],
@@ -56,23 +73,6 @@ export default {
         }
       };
     }
-
-    const matchingPods = {
-      matched: 0,
-      matches: [],
-      none:    true,
-      sample:  null,
-      total:   0,
-    };
-
-    return {
-      POD,
-      matchingPods,
-      podTableHeaders: this.$store.getters['type-map/headersFor'](
-        this.$store.getters['cluster/schemaFor'](POD)
-      ),
-      inStore: this.$store.getters['currentProduct'].inStore,
-    };
   },
 
   computed: {
@@ -178,6 +178,7 @@ export default {
         <Tabbed
           :side-tabs="true"
           :use-hash="useTabbedHash"
+          :default-tab="defaultTab"
         >
           <Tab
             name="ingress"

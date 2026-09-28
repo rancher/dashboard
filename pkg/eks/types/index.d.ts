@@ -1,6 +1,6 @@
 import NormanModel from '@shell/plugins/steve/norman-class';
 
-export * as AWS from './aws-sdk';
+export * as AWS from '@shell/types/aws-sdk';
 
 export interface EKSLaunchTemplate {
   id?: string,
@@ -34,7 +34,9 @@ export interface EKSNodeGroup {
   },
   userData?: string,
   version?: string
+  arm?: boolean
   __nameUnique?: boolean
+  __nameRequired?: boolean
   _isNew?: boolean,
   _isUpgrading?: boolean
 }
@@ -43,7 +45,7 @@ export interface EKSConfig {
   amazonCredentialSecret: string,
   displayName?: string,
   ebsCSIDriver?: boolean,
-  imported: boolean,
+  imported?: boolean,
   kmsKey?: string,
   kubernetesVersion?: string,
   loggingTypes?: string[],
@@ -56,8 +58,11 @@ export interface EKSConfig {
   securityGroups?: string[],
   serviceRole?: string,
   subnets?: string[],
-  tags?: string[]
+  tags?: {
+    [key: string]: string
+  },
   enableNetworkPolicy?: boolean
+  ipFamily?: string
 }
 
 export interface NormanCluster extends NormanModel {
@@ -68,6 +73,11 @@ export interface NormanCluster extends NormanModel {
   clusterAgentDeploymentCustomization?: any,
   id?: string,
   enableNetworkPolicy?: boolean,
+  importedConfig: {
+    privateRegistryURL?: string | null,
+    privateRegistryPullSecrets?: string[],
+    [key: string]: any,
+  },
   status? : {[key:string]: any},
   eksStatus?: {[key:string]:any},
   waitForCondition(name: any, withStatus?: string | undefined, timeoutMs?: number | undefined, intervalMs?: number | undefined): Promise<void>

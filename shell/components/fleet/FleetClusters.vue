@@ -25,6 +25,14 @@ export default {
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
+    },
+    removeSubRows: {
+      type:    Boolean,
+      default: false,
+    },
+    ignoreFilter: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -38,16 +46,23 @@ export default {
         STATE,
         NAME,
         {
-          name:     'bundlesReady',
-          labelKey: 'tableHeaders.bundlesReady',
-          value:    'status.display.readyBundles',
+          name:     'reposReady',
+          labelKey: 'tableHeaders.reposReady',
+          value:    'status.readyGitRepos',
           sort:     'status.summary.ready',
           search:   false,
         },
         {
-          name:     'reposReady',
-          labelKey: 'tableHeaders.reposReady',
-          value:    'status.readyGitRepos',
+          name:     'helmOpsReady',
+          labelKey: 'tableHeaders.helmOpsReady',
+          value:    'status.readyHelmOps',
+          sort:     'status.summary.ready',
+          search:   false,
+        },
+        {
+          name:     'bundlesReady',
+          labelKey: 'tableHeaders.bundlesReady',
+          value:    'status.display.readyBundles',
           sort:     'status.summary.ready',
           search:   false,
         },
@@ -95,6 +110,7 @@ export default {
     :sub-rows="true"
     :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    :ignore-filter="ignoreFilter"
     key-field="_key"
   >
     <template #cell:workspace="{row}">
@@ -117,6 +133,18 @@ export default {
       <span v-else>{{ row.repoInfo.total }}</span>
     </template>
 
+    <template #cell:helmOpsReady="{row}">
+      <span
+        v-if="!row.helmOpsInfo"
+        class="text-muted"
+      >&mdash;</span>
+      <span
+        v-else-if="row.helmOpsInfo.unready"
+        class="text-warning"
+      >{{ row.helmOpsInfo.ready }}/{{ row.helmOpsInfo.total }}</span>
+      <span v-else>{{ row.helmOpsInfo.total }}</span>
+    </template>
+
     <template #cell:bundlesReady="{row}">
       <span
         v-if="row.bundleInfo.noValidData"
@@ -132,18 +160,22 @@ export default {
       >{{ row.bundleInfo.total }}</span>
     </template>
 
-    <template #sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave}">
+    <template
+      v-if="!removeSubRows"
+      #additional-sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave, showSubRow}"
+    >
       <tr
-        class="labels-row sub-row"
+        class="labels-row additional-sub-row"
+        :class="{ 'has-sub-row': showSubRow}"
         @mouseenter="onRowMouseEnter"
         @mouseleave="onRowMouseLeave"
       >
-        <template v-if="row.customLabels.length">
+        <template v-if="row.customLabels && row.customLabels.length">
           <td>&nbsp;</td>
           <td>&nbsp;</td>
           <td :colspan="fullColspan-2">
             <span
-              v-if="row.customLabels.length"
+              v-if="row.customLabels && row.customLabels.length"
               class="mt-5"
             > {{ t('fleet.cluster.labels') }}:
               <span
@@ -165,7 +197,7 @@ export default {
                 </Tag>
               </span>
               <a
-                v-if="row.customLabels.length > 7"
+                v-if="row.customLabels && row.customLabels.length > 7"
                 href="#"
                 @click.prevent="toggleCustomLabels(row)"
               >
@@ -174,13 +206,15 @@ export default {
             </span>
           </td>
         </template>
-        <td
-          v-else
-          :colspan="fullColspan"
-        >
-&nbsp;
-        </td>
       </tr>
+    </template>
+    <template
+      v-else
+      #sub-row
+    >
+      <tr
+        class="sub-row"
+      />
     </template>
   </ResourceTable>
 </template>

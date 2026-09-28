@@ -1,7 +1,9 @@
 import { isArray } from '@shell/utils/array';
+const AWS_SDK_UNHANDLED_ERROR = 'Deserialization error:';
+const DO_NOT_LOG_ERROR = '__doNotLogError';
 
 export class ClusterNotFoundError extends Error {
-  static NAME = 'ClusterNotFoundError'
+  static NAME = 'ClusterNotFoundError';
 
   constructor(message) {
     super(message);
@@ -13,7 +15,7 @@ export class ClusterNotFoundError extends Error {
  * An error occurred and the user should be redirected to a certain location (where this is handled)
  */
 export class RedirectToError extends Error {
-  static NAME = 'RedirectToError'
+  static NAME = 'RedirectToError';
 
   constructor(message, url) {
     super(message);
@@ -105,6 +107,18 @@ export function exceptionToErrorsArray(err) {
   }
 }
 
+export function createDoNotLogError(message) {
+  const err = new Error(message);
+
+  err[DO_NOT_LOG_ERROR] = true;
+
+  return err;
+}
+
+export function isDoNotLogError(err) {
+  return !!(err?.[DO_NOT_LOG_ERROR] || err?.doNotLog);
+}
+
 /**
  * Imported from path-to-regexp
  * @param {*} err
@@ -128,4 +142,12 @@ export const normalizeError = (err) => {
     message,
     statusCode: (err.statusCode || err.status || (err.response && err.response.status) || 500)
   };
+};
+
+export const formatAWSError = (err) => {
+  if (err instanceof TypeError && err.message.includes(AWS_SDK_UNHANDLED_ERROR)) {
+    return err.$response.reason;
+  }
+
+  return err;
 };

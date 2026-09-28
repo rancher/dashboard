@@ -1,7 +1,9 @@
 import { mount, RouterLinkStub } from '@vue/test-utils';
 import IdentifyingInformation from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/index.vue';
-import Rectangle from '@shell/components/Resource/Detail/Metadata/Rectangle.vue';
+import KeyValueRow from '@shell/components/Resource/Detail/Metadata/KeyValueRow.vue';
 import { markRaw } from 'vue';
+jest.mock('@shell/utils/clipboard', () => ({ copyTextToClipboard: jest.fn() }));
+jest.mock('vuex', () => ({ useStore: () => { } }));
 
 describe('component: Metadata/IdentifyingInformation', () => {
   const label = 'LABEL';
@@ -76,10 +78,35 @@ describe('component: Metadata/IdentifyingInformation', () => {
     expect(wrapper.find(`.value .status.${ status }`).exists()).toBeTruthy();
   });
 
-  it('should render a valueOverride', async() => {
+  it('should render a .full-custom-value valueOverride', async() => {
     const valueOverride = {
-      component: markRaw(Rectangle),
-      props:     { outline: false }
+      component: markRaw(KeyValueRow),
+      props:     { type: 'interactive' }
+    };
+    const wrapper = mount(IdentifyingInformation, {
+      props: {
+        rows: [
+          {
+            label,
+            value,
+            valueOverride
+          }
+        ]
+      },
+      global: { stubs: { 'router-link': RouterLinkStub, KeyValueRow: true } }
+    });
+
+    expect(wrapper.find('.label').element.innerHTML.trim()).toStrictEqual(label);
+
+    const testComponent = wrapper.find('.full-custom-value').getComponent(KeyValueRow);
+
+    expect(testComponent.props('type')).toStrictEqual(valueOverride.props.type);
+  });
+
+  it('should render a formatter valueOverride', async() => {
+    const valueOverride = {
+      component: 'router-link',
+      props:     { to: '#' }
     };
     const wrapper = mount(IdentifyingInformation, {
       props: {
@@ -96,8 +123,8 @@ describe('component: Metadata/IdentifyingInformation', () => {
 
     expect(wrapper.find('.label').element.innerHTML.trim()).toStrictEqual(label);
 
-    const testComponent = wrapper.find('.value').getComponent(Rectangle);
+    const testComponent: any = wrapper.find('.value').getComponent('a');
 
-    expect(testComponent.props('outline')).toStrictEqual(valueOverride.props.outline);
+    expect(testComponent.props('to')).toStrictEqual('#');
   });
 });

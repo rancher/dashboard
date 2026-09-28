@@ -1,3 +1,10 @@
+export interface SelectOption {
+  label: string;
+  value?: string;
+  kind?: string;
+  disabled?: boolean;
+}
+
 export const LABEL_SELECT_KINDS = {
   GROUP:   'group',
   DIVIDER: 'divider',

@@ -10,9 +10,10 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions } from '@shell/utils/cluster';
 import { mapGetters } from 'vuex';
 import VersionManagement from '@pkg/imported/components/VersionManagement.vue';
+import DayTwoOps from '@pkg/imported/components/DayTwoOps.vue';
 import Banner from '@components/Banner/Banner.vue';
 import { compare } from '@shell/utils/version';
-import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
+import { VERSION_MANAGEMENT_DEFAULT, DAY_2_OPS_DEFAULT as DEFAULT } from '@pkg/imported/util/shared.ts';
 
 export default defineComponent({
   name:       'Basics',
@@ -21,7 +22,8 @@ export default defineComponent({
     Checkbox,
     LabeledInput,
     VersionManagement,
-    Banner
+    Banner,
+    DayTwoOps
   },
   props: {
     mode: {
@@ -66,6 +68,14 @@ export default defineComponent({
       type:    Boolean,
       default: true
     },
+    dayTwoOpsGlobalSetting: {
+      type:     Boolean,
+      required: true,
+    },
+    dayTwoOpsFlag: {
+      type:     Boolean,
+      required: true,
+    },
     versionManagementGlobalSetting: {
       type:     Boolean,
       required: true,
@@ -78,9 +88,17 @@ export default defineComponent({
       type:     String,
       required: true
     },
+    dayTwoOpsOld: {
+      type:    String,
+      default: DEFAULT
+    },
     isLocal: {
       type:    Boolean,
       default: false
+    },
+    dayTwoOps: {
+      type:    String,
+      default: DEFAULT
     },
     rules: {
       default: () => ({
@@ -92,15 +110,21 @@ export default defineComponent({
 
   },
   emits: ['kubernetes-version-changed', 'drain-server-nodes-changed', 'server-concurrency-changed',
-    'drain-worker-nodes-changed', 'worker-concurrency-changed', 'enable-authorized-endpoint', 'version-management-changed', 'input'],
+    'drain-worker-nodes-changed', 'worker-concurrency-changed', 'enable-day-two-ops-changed', 'version-management-changed', 'input'],
   data() {
     const store = this.$store;
     const supportedVersionRange = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
-    const originalVersion = this.config?.kubernetesVersion || '';
+    const originalVersion = this.value?.version?.gitVersion || this.config?.kubernetesVersion || '';
+    const versionMismatch = false;
 
     return {
-      supportedVersionRange, originalVersion, showDeprecatedPatchVersions: false
+      supportedVersionRange, originalVersion, showDeprecatedPatchVersions: false, kubernetesVersion: originalVersion, versionMismatch
     };
+  },
+  created() {
+    if ( !!this.config?.kubernetesVersion && !!this.value?.version?.gitVersion) {
+      this.versionMismatch = compare(this.config.kubernetesVersion, this.value.version.gitVersion) < 0;
+    }
   },
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
@@ -109,7 +133,7 @@ export default defineComponent({
     },
     versionOptions() {
       const cur = this.originalVersion;
-      let out = getAllOptionsAfterCurrentVersion(this.$store, this.versions, cur, this.defaultVersion);
+      let out = getAllOptionsAfterCurrentVersion(this.$store, this.versions, cur, this.defaultVersion, this.versionMismatch);
 
       if (!this.showDeprecatedPatchVersions) {
         // Normally, we only want to show the most recent patch version
@@ -127,9 +151,6 @@ export default defineComponent({
     },
     versionInformationDisabled() {
       return this.versionManagement === VERSION_MANAGEMENT_DEFAULT && !this.versionManagementGlobalSetting;
-    },
-    versionMismatch() {
-      return compare(this.config.kubernetesVersion, this.value.version.gitVersion) < 0;
     }
   },
 });
@@ -147,7 +168,7 @@ export default defineComponent({
     <div class="row row-basics mb-20">
       <div class="col-basics mr-10 span-6">
         <LabeledSelect
-          v-model:value="config.kubernetesVersion"
+          v-model:value="kubernetesVersion"
           data-testid="cruimported-kubernetesversion"
           :mode="mode"
           :options="versionOptions"
@@ -162,6 +183,7 @@ export default defineComponent({
       <div class="col-basics span-6 mt-15">
         <Checkbox
           v-model:value="showDeprecatedPatchVersions"
+          :mode="mode"
           :label="t('cluster.kubernetesVersion.deprecatedPatches')"
           :tooltip="t('cluster.kubernetesVersion.deprecatedPatchWarning')"
           :disabled="versionInformationDisabled"
@@ -181,7 +203,7 @@ export default defineComponent({
   />
   <div
     v-if="showVersionInformation"
-    class="mt-10"
+    class="mt-10 mb-10"
   >
     <h3 v-t="'imported.upgradeStrategy.header'" />
     <div class="col mt-10 mb-10">
@@ -231,6 +253,14 @@ export default defineComponent({
       </div>
     </div>
   </div>
+  <DayTwoOps
+    v-if="!isLocal && dayTwoOpsFlag"
+    :value="dayTwoOps"
+    :global-setting="dayTwoOpsGlobalSetting"
+    :mode="mode"
+    :old-value="dayTwoOpsOld"
+    @update:value="$emit('enable-day-two-ops-changed', $event)"
+  />
 </template>
 <style>
 @media screen and (max-width: 996px) {

@@ -4,10 +4,11 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Checkbox } from '@components/Form/Checkbox';
 import SimpleSecretSelector from '@shell/components/form/SimpleSecretSelector';
 import { _VIEW } from '@shell/config/query-params';
+import Banner from '@components/Banner/Banner.vue';
 
 export default {
   components: {
-    Checkbox, LabeledInput, LabeledSelect, SimpleSecretSelector
+    Banner, Checkbox, LabeledInput, LabeledSelect, SimpleSecretSelector
   },
   props: {
     mode: {

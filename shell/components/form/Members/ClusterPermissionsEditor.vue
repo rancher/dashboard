@@ -169,7 +169,7 @@ export default {
       ];
     },
     principal() {
-      const principalId = this.principalId.replace(/\//g, '%2F');
+      const principalId = encodeURIComponent(this.principalId);
 
       return this.$store.dispatch('rancher/find', {
         type: NORMAN.PRINCIPAL,
@@ -282,7 +282,7 @@ export default {
             <i
               v-if="permission.locked"
               v-clean-tooltip="permission.tooltip"
-              class="icon icon-lock icon-fw"
+              class="icon icon-lock"
             />
           </div>
         </div>

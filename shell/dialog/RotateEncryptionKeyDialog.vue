@@ -1,5 +1,5 @@
 <script>
-import { SNAPSHOT, NORMAN } from '@shell/config/types';
+import { SNAPSHOT, OPERATION } from '@shell/config/types';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
@@ -10,7 +10,7 @@ import day from 'dayjs';
 import { escapeHtml } from '@shell/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { set } from '@shell/utils/object';
-
+import { createOperationCR } from '@shell/utils/operation-cr';
 export default {
   emits: ['close'],
 
@@ -64,23 +64,15 @@ export default {
     },
 
     async getEtcdBackups() {
-      if ( this.cluster.isRke1) {
-        let etcdBackups = await this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
+      let etcdBackups = await this.$store.dispatch('management/findAll', { type: SNAPSHOT });
 
-        etcdBackups = etcdBackups.filter((backup) => backup.clusterId === this.cluster.metadata.name);
-
-        return etcdBackups;
+      if (this.cluster.isImportedWithDayTwoOps) {
+        return etcdBackups
+          .filter((backup) => backup.metadata.namespace === this.cluster.mgmt?.id && backup.spec?.clusterName === this.cluster.mgmt?.metadata?.name );
       }
+      etcdBackups = etcdBackups.filter((backup) => backup.clusterId === this.cluster.id);
 
-      if (this.cluster.isRke2) {
-        let etcdBackups = await this.$store.dispatch('management/findAll', { type: SNAPSHOT });
-
-        etcdBackups = etcdBackups.filter((backup) => backup.clusterId === this.cluster.id);
-
-        return etcdBackups;
-      }
-
-      return [];
+      return etcdBackups;
     },
 
     getFormattedCreatedDate(createdDate) {
@@ -93,23 +85,35 @@ export default {
     },
 
     async apply(buttonDone) {
-      const isRke2 = this.cluster.isRke2;
-
       try {
-        if (isRke2) {
+        const isImportedWithDayTwoOps = this.cluster?.isImportedWithDayTwoOps || this.cluster?.mgmt?.isDayTwoOpsEnabled;
+
+        if (isImportedWithDayTwoOps) {
+          if (!isImportedWithDayTwoOps) {
+            throw new Error(this.t('promptRotateEncryptionKey.error.unableToResolveTargetCluster'));
+          }
+          // For imported clusters with day 2 ops, create an encryption key rotation operation CR
+          const namespace = this.cluster.mgmt?.id;
+          const safePrefix = this.cluster.mgmt?.id;
+          const spec = {
+            clusterRef: {
+              apiVersion: 'management.cattle.io/v3',
+              kind:       'Cluster',
+              name:       this.cluster.mgmt?.id,
+            }
+          };
+
+          createOperationCR(this.$store.dispatch, OPERATION.ENCRYPTION_KEY_ROTATE, spec, namespace, safePrefix);
+        } else {
           const currentGeneration = this.cluster.spec?.rkeConfig?.rotateEncryptionKeys?.generation || 0;
 
           // To rotate the encryption keys, increment
           // rkeConfig.rotateEncyrptionKeys.generation in the YAML.
           set(this.cluster, 'spec.rkeConfig.rotateEncryptionKeys.generation', currentGeneration + 1);
           await this.cluster.save();
-
-          this.close(buttonDone);
-        } else {
-          await this.cluster.mgmt.doAction('rotateEncryptionKey');
-
-          this.close(buttonDone);
         }
+
+        this.close(buttonDone);
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
         buttonDone(false);
@@ -148,7 +152,7 @@ export default {
           <Banner
             v-else
             color="error"
-            label-key="promptRotateEncryptionKey.error"
+            label-key="promptRotateEncryptionKey.error.noBackup"
           />
         </div>
       </div>

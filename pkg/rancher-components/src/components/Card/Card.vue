@@ -1,11 +1,12 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { useBasicSetupFocusTrap } from '@shell/composables/focusTrap';
+import RcSeparator from '@components/RcSeparator/RcSeparator.vue';
 
 export default defineComponent({
 
-  name:  'Card',
-  props: {
+  name:       'Card',
+  components: { RcSeparator },
+  props:      {
     /**
      * The card's title.
      */
@@ -51,25 +52,8 @@ export default defineComponent({
     sticky: {
       type:    Boolean,
       default: false,
-    },
-    triggerFocusTrap: {
-      type:    Boolean,
-      default: false,
-    },
-  },
-  setup(props) {
-    if (props.triggerFocusTrap) {
-      useBasicSetupFocusTrap('#focus-trap-card-container-element', {
-        // needs to be false because of import YAML modal from header
-        // where the YAML editor itself is a focus trap
-        // and we can't have it superseed the "escape key" to blur that UI element
-        // In this case the focus trap moves the focus out of the modal
-        // correctly once it closes because of the "onBeforeUnmount" trigger
-        escapeDeactivates: false,
-        allowOutsideClick: true,
-      });
     }
-  }
+  },
 });
 </script>
 
@@ -83,13 +67,14 @@ export default defineComponent({
     <div class="card-wrap">
       <div
         class="card-title"
+        data-modal-title
         data-testid="card-title-slot"
       >
         <slot name="title">
           {{ title }}
         </slot>
       </div>
-      <hr role="none">
+      <RcSeparator />
       <div
         class="card-body"
         data-testid="card-body-slot"
@@ -116,7 +101,7 @@ export default defineComponent({
   </div>
 </template>
 
-<style lang='scss'>
+<style lang='scss' scoped>
  .card-container {
   &.highlight-border {
     border-left: 5px solid var(--primary);
@@ -129,7 +114,6 @@ export default defineComponent({
   padding: 10px;
   box-shadow: 0 0 20px var(--shadow);
   &:not(.top) {
-    align-items: top;
     flex-direction: row;
     justify-content: start;
   }

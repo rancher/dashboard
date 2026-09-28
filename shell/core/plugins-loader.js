@@ -1,4 +1,5 @@
 import * as vue3 from 'vue';
+import * as vueRouter from 'vue-router';
 import $ from 'jquery';
 import JSZip from 'jszip';
 import jsyaml from 'js-yaml';
@@ -13,10 +14,10 @@ export default function({
   store,
   $axios,
   redirect,
-  $plugin,
+  $extension,
 }, inject) {
   if (dynamicLoader) {
-    dynamicLoader.default($plugin);
+    dynamicLoader.default($extension);
   }
 
   // The libraries we build have Vue externalised, so we need to expose Vue as a global for
@@ -25,6 +26,7 @@ export default function({
 
   // Global libraries - allows us to externalise these to reduce package bundle size
   window.Vue = vue3;
+  window.__vueRouter = vueRouter;
   window.$ = $;
   window.__jszip = JSZip;
   window.__jsyaml = jsyaml;

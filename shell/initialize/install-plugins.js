@@ -1,7 +1,7 @@
 import PortalVue from 'portal-vue';
+import { MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR } from '@shell/utils/dom';
 import Vue3Resize from 'vue3-resize';
 import FloatingVue from 'floating-vue';
-import vSelect from 'vue-select';
 import 'vue3-resize/dist/vue3-resize.css';
 
 // import '@shell/plugins/extend-router';
@@ -12,26 +12,30 @@ import i18n from '@shell/plugins/i18n';
 import globalFormatters from '@shell/plugins/global-formatters';
 
 import axios from '@shell/utils/axios';
-import cookieUniversal from '@shell/utils/cookie-universal';
 import config from '@shell/utils/config';
 import axiosShell from '@shell/plugins/axios';
 import codeMirror from '@shell/plugins/codemirror-loader';
 import { InstallCodeMirror } from 'codemirror-editor-vue3';
 import * as intNumber from '@shell/directives/int-number';
-import nuxtClientInit from '@shell/plugins/nuxt-client-init';
+import dashboardClientInit from '@shell/plugins/dashboard-client-init';
 import plugin from '@shell/plugins/plugin';
-import plugins from '@shell/core/plugins.js';
 import pluginsLoader from '@shell/core/plugins-loader.js';
 import replaceAll from '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
-import emberCookie from '@shell/plugins/ember-cookie';
 import ShortKey from '@shell/plugins/shortkey';
-import internalApiPlugin from '@shell/plugins/internal-api';
+import { initUiApis } from '@shell/apis/impl/apis';
 
 import 'floating-vue/dist/style.css';
 import { floatingVueOptions } from '@shell/plugins/floating-vue';
 
+import dynamicContent from '@shell/plugins/dynamic-content';
+import { initAriaAnnouncer } from '@shell/utils/aria-announce';
+
 export async function installPlugins(vueApp) {
+  // The screen reader live regions have to be in the accessibility tree before the first
+  // status change, so they go in ahead of the mount. See @shell/utils/aria-announce.
+  initAriaAnnouncer();
+
   vueApp.use(globalFormatters);
   vueApp.use(PortalVue);
   vueApp.use(Vue3Resize);
@@ -40,20 +44,34 @@ export async function installPlugins(vueApp) {
     ShortKey,
     {
       prevent:          ['input', 'textarea', 'select'],
-      preventContainer: ['#modal-container-element']
+      // A surface that owns the screen silences the app's shortcuts while it is up.
+      preventContainer: [MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR]
     });
   vueApp.use(InstallCodeMirror);
-  vueApp.component('v-select', vSelect);
 }
 
 export async function installInjectedPlugins(app, vueApp) {
-  const pluginDefinitions = [config, cookieUniversal, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, plugin, steveCreateWorker, emberCookie, internalApiPlugin];
+  const pluginDefinitions = [
+    config,
+    axios,
+    initUiApis,
+    pluginsLoader,
+    axiosShell,
+    intNumber,
+    codeMirror,
+    dashboardClientInit,
+    replaceAll,
+    plugin,
+    steveCreateWorker,
+    dynamicContent,
+  ];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {
       await pluginDefinition(
         app.context,
-        (key, value) => inject(key, value, app.context, vueApp)
+        (key, value) => inject(key, value, app.context, vueApp),
+        vueApp
       );
     }
   });
@@ -64,7 +82,6 @@ export async function installInjectedPlugins(app, vueApp) {
   // If there's any performance reasons this can be done concurrently with all of the installation promises above but I felt it was organizationally better to keep both i18n items together.
   await app.store.dispatch('i18n/init');
 
-  // Order matters here. This is coming after the other plugins specifically so $cookies can be installed. i18n/init relies on prefs/get which relies on $cookies.
   vueApp.use(i18n, { store: app.store });
 }
 

@@ -12,7 +12,8 @@ export function init(store) {
   product({
     ifHaveGroup: 'neuvector.com',
     ifHave:      IF_HAVE.NEUVECTOR_NAMESPACE,
-    icon:        'neuvector'
+    icon:        'neuvector',
+    extendable:  true,
   });
 
   virtualType({

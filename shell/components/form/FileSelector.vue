@@ -1,6 +1,7 @@
 <script>
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { set } from '@shell/utils/object';
+import { RcButton } from '@components/RcButton';
 
 export function createOnSelected(field) {
   return function(contents) {
@@ -8,8 +9,31 @@ export function createOnSelected(field) {
   };
 }
 
+/**
+ * Reads a file the user selected or dropped, either as plain text or as a data URL.
+ */
+export function readFileContents(file, asDataUrl = false) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (ev) => resolve(ev.target.result);
+    // `onerror` is handed a ProgressEvent, not the failure. The DOMException that says what went wrong
+    // — NotFoundError for a dropped folder, NotReadableError for a file pulled out from under us — is on
+    // the reader. Rejecting with the event instead left every caller with nothing to report.
+    reader.onerror = () => reject(reader.error || new Error(`Could not read ${ file.name }`));
+
+    if (asDataUrl) {
+      reader.readAsDataURL(file);
+    } else {
+      reader.readAsText(file);
+    }
+  });
+}
+
 export default {
   emits: ['error', 'selected'],
+
+  components: { RcButton },
 
   props: {
     label: {
@@ -67,12 +91,29 @@ export default {
       default: '*'
     },
 
+    /**
+     * The RcButton variant used for the trigger button.
+     * @values primary, secondary, tertiary, link, ghost
+     */
+    variant: {
+      type:    String,
+      default: 'secondary'
+    },
+
+    /**
+     * The RcButton size used for the trigger button.
+     * @values small, medium, large
+     */
+    size: {
+      type:    String,
+      default: 'medium'
+    }
   },
 
   computed: {
     isView() {
       return this.mode === _VIEW;
-    }
+    },
   },
 
   methods: {
@@ -89,7 +130,7 @@ export default {
       if (this.byteLimit) {
         for (const file of files) {
           if (file.size > this.byteLimit) {
-            this.$emit('error', `${ file.name } exceeds the file size limit of ${ this.byteLimit } bytes`);
+            this.$emit('error', this.t('generic.byteLimitExceeded', { name: file.name, byteLimit: this.byteLimit }));
 
             return;
           }
@@ -113,45 +154,30 @@ export default {
       } catch (error) {
         this.$emit('error', error);
         if (this.showGrowlError) {
-          this.$store.dispatch('growl/fromError', { title: 'Error reading file', error }, { root: true });
+          // `err`, not `error`: growl/fromError reads `err`, so the other spelling threw the detail away
+          // and left the growl with a title and no body.
+          this.$store.dispatch('growl/fromError', { title: this.t('generic.errorReadingFile'), err: error }, { root: true });
         }
       }
     },
 
-    getFileContents(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
+    async getFileContents(file) {
+      const value = await readFileContents(file, this.readAsDataUrl);
 
-        reader.onload = (ev) => {
-          const value = ev.target.result;
-          const name = file.name;
-          const fileContents = this.includeFileName ? { value, name } : value;
-
-          resolve(fileContents);
-        };
-
-        reader.onerror = (err) => {
-          reject(err);
-        };
-        if (this.readAsDataUrl) {
-          reader.readAsDataURL(file);
-        } else {
-          reader.readAsText(file);
-        }
-      });
+      return this.includeFileName ? { value, name: file.name } : value;
     }
   }
 };
 </script>
 
 <template>
-  <button
+  <RcButton
     v-if="!isView"
+    :variant="variant"
+    :size="size"
     :disabled="disabled"
     :aria-label="label"
-    type="button"
-    role="button"
-    class="file-selector btn"
+    class="file-selector"
     data-testid="file-selector__uploader-button"
     @click="selectFile"
   >
@@ -165,5 +191,5 @@ export default {
       :accept="accept"
       @change="fileChange"
     >
-  </button>
+  </RcButton>
 </template>

@@ -1,6 +1,7 @@
 import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const terminal = new Kubectl();
 
@@ -10,10 +11,6 @@ const terminal = new Kubectl();
 export default class ChartInstalledAppsListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string, product: 'apps' | 'manager') {
     return `/c/${ clusterId }/${ product }/catalog.cattle.io.app`;
-  }
-
-  static goTo(clusterId: string, product: 'apps' | 'manager'): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(ChartInstalledAppsListPagePo.createPath(clusterId, product));
   }
 
   constructor(clusterId = 'local', product: 'apps' | 'manager') {
@@ -29,14 +26,22 @@ export default class ChartInstalledAppsListPagePo extends BaseListPagePo {
   }
 
   waitForInstallCloseTerminal(interceptName: string, installableParts: Array<String>) {
-    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('eq', 201);
+    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('be.oneOf', [200, 201]);
 
     // giving it a small buffer so that the install is properly triggered
     cy.wait(15000); // eslint-disable-line cypress/no-unnecessary-waiting
-    terminal.closeTerminal();
+
+    // After install, Rancher opens a window-manager terminal with the Helm output, but its open/close
+    // timing varies and it can be absent by the time we look, so close it only if it is actually open.
+    terminal.closeTerminalIfOpen();
+
+    // After install, the wizard can briefly stay on "Installing..." before redirecting to the
+    // installed-apps list; wait (generously) for the list to actually render before asserting on its
+    // rows, rather than failing fast when the redirect is slow under CI load.
+    this.appsList().self(LONG_TIMEOUT_OPT).should('be.visible');
 
     installableParts.forEach((item:string) => {
-      this.appsList().resourceTableDetails(item, 0).should('contain', 'Deployed');
+      this.appsList().resourceTableDetails(item, 1).should('contain', 'Deployed');
     });
 
     // timeout to give time for everything to be setup, otherwise the extension

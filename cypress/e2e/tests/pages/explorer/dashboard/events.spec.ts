@@ -13,29 +13,23 @@ const pageSize = 10;
 const podCount = 15;
 
 const countHelper = {
-  setupCount: (vaiCacheEnabled: boolean, initialCount: number) => {
-    if (vaiCacheEnabled) {
-      cy.intercept('GET', '/v1/events?*').as('getCount');
-    } else {
-      cy.wrap(initialCount).as('count');
-    }
+  setupCount: () => {
+    cy.intercept('GET', '/v1/events?*').as('getCount');
   },
-  handleCount: (vaiCacheEnabled) => {
-    if (vaiCacheEnabled) {
-      cy.wait('@getCount').then((interception) => {
-        cy.wrap(interception.response.body.count).as('count');
-      });
-    }
+  handleCount: () => {
+    cy.wait('@getCount').then((interception) => {
+      cy.wrap(interception.response.body.count).as('count');
+    });
   },
   getCount: () => cy.get('@count').then((count) => count as any as number),
 };
 
-describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Events', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     let uniquePod = SortableTablePo.firstByDefaultName('pod');
     let nsName1: string;
     let nsName2: string;
@@ -46,7 +40,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
         groupBy:         'none',
         namespaceFilter: '{\"local\":[]}',
         allNamespaces:   'true',
-      });
+      }, { delay: true });
 
       const createPod = (podName?: string) => {
         return ({ ns, i }: {ns: string, i: number}) => {
@@ -54,6 +48,40 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
 
           return cy.createPod(ns, name, SMALL_CONTAINER.image, false, { createNameOptions: { prefixContext: true } });
         };
+      };
+
+      // k8s events are emitted (scheduler/kubelet/event-recorder) and indexed into /v1/events
+      // asynchronously, so the tests can query before the unique pod's event has propagated - the
+      // event then "does not exist" for the whole spec (wedged across all retries).
+      // Poll with the same `filter=<field>=<value>` the list's search box issues for that field, so
+      // setup only completes once the exact queries the tests run return the event.
+      const waitForUniquePodEvent = (filter: string, retries = 60): void => {
+        cy.request({
+          method:           'GET',
+          url:              `${ Cypress.env('api') }/v1/events?filter=${ filter }`,
+          failOnStatusCode: false,
+        }).then((resp) => {
+          const hasEvent = resp.status === 200 && (resp.body?.data || []).some(
+            (e: any) => `${ e.id || '' }|${ e.metadata?.name || '' }`.includes(uniquePod)
+          );
+
+          if (hasEvent) {
+            return;
+          }
+
+          // Give up quietly rather than asserting: this runs in a `before` hook and Cypress does not
+          // retry hook failures, so failing here would take down every test in the describe. The tests
+          // themselves are retryable and a late event still recovers there.
+          if (retries === 0) {
+            cy.log(`waitForUniquePodEvent: gave up waiting for '${ uniquePod }' via filter '${ filter }'`);
+
+            return;
+          }
+
+          cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+
+          waitForUniquePodEvent(filter, retries - 1);
+        });
       };
 
       cy.createManyNamespacedResources({
@@ -72,34 +100,31 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
         .then(({ ns, workloadNames }) => {
           uniquePod = workloadNames[0];
           nsName2 = ns;
-        });
+        })
+        .then(() => {
+          // The pod has to exist before the events it generates can
+          cy.waitForRancherResource('v1', 'pods', `${ nsName2 }/${ uniquePod }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      // I'm loathed to do this, but the events created from the pods need to settle before we start
-      cy.wait(20000); // eslint-disable-line cypress/no-unnecessary-waiting
+          // Both searches the tests run ('filter events' filters by namespace, then by name) must return it
+          waitForUniquePodEvent(`metadata.namespace=${ nsName2 }`);
+          waitForUniquePodEvent(`metadata.name=${ uniquePod }`);
+        });
     });
 
     it('pagination is visible and user is able to navigate through events data', () => {
       ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { all: { is: true } });
 
       clusterDashboard.waitForPage(undefined, 'cluster-events');
+      // Capture the count from the list's OWN request. Events churn constantly (they GC/expire),
+      // so a separately-read API count can already disagree with what the list rendered.
+      countHelper.setupCount();
       EventsPageListPo.navTo();
       events.waitForPage();
+      countHelper.handleCount();
 
-      let vaiCacheEnabled = false;
-
-      cy.isVaiCacheEnabled()
-        .then((isVaiCacheEnabled) => {
-          vaiCacheEnabled = isVaiCacheEnabled;
-
-          return cy.getRancherResource('v1', 'events');
-        })
+      cy.getRancherResource('v1', 'events')
         .then((resp: Cypress.Response<any>) => {
-          let initialCount = resp.body.count;
-
-          if (!vaiCacheEnabled && resp.body.count > 500) {
-            // Why 500? there's a hardcoded figure to stops ui from storing more than 500 events ...
-            initialCount = 500;
-          }
+          const initialCount = resp.body.count;
 
           // Test break down if less than 3 pages...
           expect(initialCount).to.be.greaterThan(3 * pageSize);
@@ -126,22 +151,25 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
             .endButton()
             .isEnabled();
 
-          // check text before navigation
+          // check text before navigation - assert against the count the list actually rendered
+          // (initialCount from the separate API read above can already be stale for volatile events).
           events.list().resourceTable().sortableTable().pagination()
             .self()
             .scrollIntoView();
-          events.list().resourceTable().sortableTable().pagination()
-            .paginationText()
-            .then((el) => {
-              expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ initialCount } Events`);
-            });
+          countHelper.getCount().then((count) => {
+            return events.list().resourceTable().sortableTable().pagination()
+              .paginationText()
+              .then((el) => {
+                expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ count } Events`);
+              });
+          });
 
           // navigate to next page - right button
-          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          countHelper.setupCount();
           events.list().resourceTable().sortableTable().pagination()
             .rightButton()
             .click();
-          countHelper.handleCount(vaiCacheEnabled);
+          countHelper.handleCount();
 
           // check text and buttons after navigation
           events.list().resourceTable().sortableTable().pagination()
@@ -162,11 +190,11 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
             .isEnabled();
 
           // navigate to first page - left button
-          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          countHelper.setupCount();
           events.list().resourceTable().sortableTable().pagination()
             .leftButton()
             .click();
-          countHelper.handleCount(vaiCacheEnabled);
+          countHelper.handleCount();
 
           // check text and buttons after navigation
           events.list().resourceTable().sortableTable().pagination()
@@ -188,12 +216,12 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
             .isDisabled();
 
           // navigate to last page - end button
-          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          countHelper.setupCount();
           events.list().resourceTable().sortableTable().pagination()
             .endButton()
             .scrollIntoView()
             .click();
-          countHelper.handleCount(vaiCacheEnabled);
+          countHelper.handleCount();
 
           // check text after navigation
           events.list().resourceTable().sortableTable().pagination()
@@ -216,11 +244,11 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
           });
 
           // navigate to first page - beginning button
-          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          countHelper.setupCount();
           events.list().resourceTable().sortableTable().pagination()
             .beginningButton()
             .click();
-          countHelper.handleCount(vaiCacheEnabled);
+          countHelper.handleCount();
 
           // check text and buttons after navigation
           events.list().resourceTable().sortableTable().pagination()

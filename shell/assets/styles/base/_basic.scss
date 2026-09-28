@@ -81,7 +81,7 @@ INPUT,
 .labeled-select,
 .unlabeled-select {
   &.focused {
-    border-color: var(--outline);
+    border-color: var(--primary-border);
   }
 }
 

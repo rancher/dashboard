@@ -1,7 +1,10 @@
 import { mount } from '@vue/test-utils';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+import { AUTH_TYPE } from '@shell/config/types';
+import { base64Encode } from '@shell/utils/crypto';
 import GitRepo from '@shell/models/fleet.cattle.io.gitrepo';
 import GitRepoComponent from '@shell/edit/fleet.cattle.io.gitrepo.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 const mockStore = {
   dispatch: jest.fn(),
@@ -69,12 +72,14 @@ const initGitRepo = (props: any, value?: any) => {
   }, {
     getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
     dispatch:    jest.fn(),
+    rootState:   { $extension: { getPlugins: () => ({}) } },
     rootGetters: { 'i18n/t': jest.fn() },
   });
 
   return {
     props: {
-      value: initValue,
+      value:     initValue,
+      liveValue: initValue,
       ...props
     },
     computed: mockComputed,
@@ -108,7 +113,7 @@ describe.each([
     const correctDriftCheckbox = wrapper.find('[data-testid="gitRepo-correctDrift-checkbox"]');
     const tooltip = wrapper.find('[data-testid="gitRepo-correctDrift-checkbox"]');
 
-    expect(tooltip.element.classList).toContain('v-popper--has-tooltip');
+    expect(tooltip.element.classList).toContain('has-clean-tooltip');
     expect(correctDriftCheckbox.exists()).toBeTruthy();
     expect(correctDriftCheckbox.attributes().value).toBeFalsy();
   });
@@ -117,21 +122,23 @@ describe.each([
     const correctDriftCheckbox = wrapper.find('[data-testid="gitRepo-keepResources-checkbox"]');
     const tooltip = wrapper.find('[data-testid="gitRepo-keepResources-checkbox"]');
 
-    expect(tooltip.element.classList).toContain('v-popper--has-tooltip');
+    expect(tooltip.element.classList).toContain('has-clean-tooltip');
     expect(correctDriftCheckbox.exists()).toBeTruthy();
     expect(correctDriftCheckbox.attributes().value).toBeFalsy();
   });
 
   it('enable drift if self-healing is checked', async() => {
-    const correctDriftCheckbox = wrapper.findComponent('[data-testid="gitRepo-correctDrift-checkbox"]') as any;
+    const correctDriftCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="gitRepo-correctDrift-checkbox"]');
     const correctDriftContainer = wrapper.find('[data-testid="gitRepo-correctDrift-checkbox"] .checkbox-container');
 
     expect(correctDriftContainer.exists()).toBeTruthy();
 
     await correctDriftContainer.trigger('click');
 
-    expect(correctDriftCheckbox.emitted('update:value')).toHaveLength(1);
-    expect(correctDriftCheckbox.emitted('update:value')![0][0]).toBe(true);
+    const correctDriftEmits = correctDriftCheckbox.emitted('update:value') as [boolean][];
+
+    expect(correctDriftEmits).toHaveLength(1);
+    expect(correctDriftEmits[0][0]).toBe(true);
     expect(correctDriftCheckbox.props().value).toBeTruthy();
   });
 
@@ -153,7 +160,7 @@ describe.each([
       status: { webhookCommit: 'sha' },
     }));
 
-    const pollingCheckbox = wrapper.findComponent('[data-testid="gitRepo-enablePolling-checkbox"]') as any;
+    const pollingCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="gitRepo-enablePolling-checkbox"]');
     const pollingIntervalInput = wrapper.find('[data-testid="gitRepo-pollingInterval-input"]');
     const pollingIntervalMinimumValueWarning = wrapper.find('[data-testid="gitRepo-pollingInterval-minimumValueWarning"]');
     const pollingIntervalWebhookWarning = wrapper.find('[data-testid="gitRepo-pollingInterval-webhookWarning"]');
@@ -235,4 +242,183 @@ describe.each([
   });
 
   it.todo('test paths and subpaths');
+});
+
+describe('view: fleet.cattle.io.gitrepo, GitHub password banner - should', () => {
+  it('show GitHub password banner when GitHub.com repository and basic auth is selected', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }, { spec: { repo: 'https://github.com/rancher/fleet-examples' } }));
+
+    // Check computed properties
+    expect(wrapper.vm.isGithubDotComRepository).toBeTruthy();
+
+    // Set basic auth selection in tempCachedValues
+    await wrapper.setData({ tempCachedValues: { clientSecretName: { selected: AUTH_TYPE._BASIC } } });
+
+    // Check computed property after setting data
+    expect(wrapper.vm.isBasicAuthSelected).toBeTruthy();
+
+    await wrapper.vm.$nextTick();
+
+    const githubBanner = wrapper.find('[data-testid="gitrepo-githubdotcom-password-warning"]');
+
+    expect(githubBanner.exists()).toBeTruthy();
+
+    // Check the banner element
+    const bannerElement = wrapper.find('.banner.warning');
+
+    expect(bannerElement.exists()).toBeTruthy();
+  });
+
+  it('show GitHub password banner in edit mode when conditions are met', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _EDIT }, { spec: { repo: 'https://github.com/rancher/fleet-examples' } }));
+
+    await wrapper.setData({ tempCachedValues: { clientSecretName: { selected: AUTH_TYPE._BASIC } } });
+
+    const githubBanner = wrapper.find('[data-testid="gitrepo-githubdotcom-password-warning"]');
+
+    expect(githubBanner.exists()).toBeTruthy();
+  });
+
+  it('hide GitHub password banner when not using GitHub.com repository', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }, { spec: { repo: 'https://gitlab.com/user/repo' } }));
+
+    await wrapper.setData({ tempCachedValues: { clientSecretName: { selected: AUTH_TYPE._SSH } } });
+
+    const githubBanner = wrapper.find('[data-testid="gitrepo-githubdotcom-password-warning"]');
+
+    expect(githubBanner.exists()).toBeFalsy();
+  });
+
+  it('hide GitHub password banner when not using basic auth', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }, { spec: { repo: 'https://github.com/rancher/fleet-examples' } }));
+
+    await wrapper.setData({ tempCachedValues: { clientSecretName: { selected: AUTH_TYPE._SSH } } });
+
+    const githubBanner = wrapper.find('[data-testid="gitrepo-githubdotcom-password-warning"]');
+
+    expect(githubBanner.exists()).toBeFalsy();
+  });
+
+  it('hide GitHub password banner when no auth is selected', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }, { spec: { repo: 'https://github.com/rancher/fleet-examples' } }));
+
+    await wrapper.setData({ tempCachedValues: { clientSecretName: { selected: AUTH_TYPE._NONE } } });
+
+    const githubBanner = wrapper.find('[data-testid="gitrepo-githubdotcom-password-warning"]');
+
+    expect(githubBanner.exists()).toBeFalsy();
+  });
+
+  it.each([
+    ['https://github.com/user/repo', true],
+    ['https://GitHub.com/user/repo', true],
+    ['HTTPS://GITHUB.COM/user/repo', true],
+    ['https://api.github.com/user/repo', false], // subdomain doesn't match
+    ['https://raw.github.com/user/repo', false], // subdomain doesn't match
+    ['https://company-github.com/user/repo', false], // doesn't contain exact 'https://github.com'
+    ['https://github.company.com/user/repo', true], // contains exact 'https://github.com' at start
+    ['https://gitlab.com/user/repo', false],
+    ['https://bitbucket.org/user/repo', false],
+    ['http://github.com/user/repo', false], // not https
+    ['git@github.com:user/repo.git', false], // not https
+  ])('correctly detect GitHub.com repository for URL: %s (expected: %s)', async(repoUrl, shouldShowBanner) => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }, { spec: { repo: repoUrl } }));
+
+    await wrapper.setData({ tempCachedValues: { clientSecretName: { selected: AUTH_TYPE._BASIC } } });
+
+    const githubBanner = wrapper.find('[data-testid="gitrepo-githubdotcom-password-warning"]');
+
+    expect(githubBanner.exists()).toBe(shouldShowBanner);
+  });
+});
+
+describe('view: fleet.cattle.io.gitrepo, GitHub App auth - should', () => {
+  const originalDispatch = mockStore.dispatch;
+
+  afterEach(() => {
+    mockStore.dispatch = originalDispatch;
+  });
+
+  it('create an Opaque secret with the GitHub App data keys on doCreate', async() => {
+    const fakeSecret: any = {
+      metadata: { name: 'gitrepo-auth-abc' },
+      save:     jest.fn().mockResolvedValue(undefined),
+    };
+
+    mockStore.dispatch = jest.fn().mockResolvedValue(fakeSecret);
+
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }));
+
+    await (wrapper.vm as any).doCreate('clientSecretName', {
+      selected:                AUTH_TYPE._GITHUB_APP,
+      githubAppId:             'app-id',
+      githubAppInstallationId: 'install-id',
+      githubAppPrivateKey:     'private-key',
+    });
+
+    expect(fakeSecret._type).toBe('Opaque');
+    expect(fakeSecret.data).toStrictEqual({
+      github_app_id:              base64Encode('app-id'),
+      github_app_installation_id: base64Encode('install-id'),
+      github_app_private_key:     base64Encode('private-key'),
+    });
+    expect(fakeSecret.save).toHaveBeenCalledWith();
+  });
+});
+
+describe('view: fleet.cattle.io.gitrepo, beforeNext dryRun validation', () => {
+  it('should call dryRunCreate when leaving stepMetadata in create mode', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn().mockResolvedValue({});
+
+    await vm.beforeNext({ name: 'stepMetadata' });
+
+    expect(vm.value.dryRunCreate).toHaveBeenCalledWith(expect.objectContaining({
+      type:     'fleet.cattle.io.gitrepo',
+      metadata: expect.objectContaining({
+        name:      'test',
+        namespace: 'test',
+      }),
+      spec: expect.objectContaining({ repo: 'https://example.com/placeholder' }),
+    }));
+  });
+
+  it('should not call dryRunCreate for non-metadata steps', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn();
+
+    await vm.beforeNext({ name: 'stepRepo' });
+
+    expect(vm.value.dryRunCreate).not.toHaveBeenCalled();
+  });
+
+  it('should not call dryRunCreate in edit mode', async() => {
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _EDIT }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn();
+
+    await vm.beforeNext({ name: 'stepMetadata' });
+
+    expect(vm.value.dryRunCreate).not.toHaveBeenCalled();
+  });
+
+  it('should reject with API errors when dryRunCreate fails', async() => {
+    const apiError = {
+      _status:    409,
+      message:    'gitrepos.fleet.cattle.io "test" already exists',
+      statusText: 'Conflict',
+    };
+
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn().mockRejectedValue(apiError);
+
+    await expect(vm.beforeNext({ name: 'stepMetadata' })).rejects.toStrictEqual(apiError);
+  });
 });

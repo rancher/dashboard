@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import CruResource from '@shell/components/CruResource.vue';
-import { _EDIT, _YAML } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW, _YAML } from '@shell/config/query-params';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 
 describe('component: CruResource', () => {
@@ -66,6 +66,70 @@ describe('component: CruResource', () => {
     expect(node.element.childElementCount).toBe(errors.length);
     expect(node.text()).toContain(errors[0]);
     expect(node.text()).toContain(errors[1]);
+  });
+
+  it('should announce the errors container as an assertive live region', () => {
+    const wrapper = mount(CruResource, {
+      props: {
+        canYaml:  false,
+        mode:     _EDIT,
+        resource: {},
+        errors:   ['mistake!']
+      },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  jest.fn(),
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          $route:  { query: { AS: _YAML } },
+          $router: { applyQuery: jest.fn() },
+        },
+      }
+    });
+
+    const node = wrapper.find('#cru-errors');
+
+    expect(node.attributes('role')).toStrictEqual('alert');
+    expect(node.attributes('aria-live')).toStrictEqual('assertive');
+  });
+
+  it.each([
+    ['no errors prop', undefined],
+    ['an empty errors array', []],
+  ])('should not render the errors container given %s', (_label, errors) => {
+    const wrapper = mount(CruResource, {
+      props: {
+        canYaml:  false,
+        mode:     _EDIT,
+        resource: {},
+        errors
+      },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  jest.fn(),
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          $route:  { query: { AS: _YAML } },
+          $router: { applyQuery: jest.fn() },
+        },
+      }
+    });
+
+    expect(wrapper.find('#cru-errors').exists()).toStrictEqual(false);
   });
 
   it.each([
@@ -171,6 +235,76 @@ describe('component: CruResource', () => {
     expect(event.preventDefault).toHaveBeenCalledWith();
   });
 
+  it.each([
+    [_EDIT, true],
+    [_CREATE, true],
+    [_VIEW, false],
+  ])('should render CruResourceFooter when mode is %s: %s', (mode: string, shouldRender: boolean) => {
+    const wrapper = mount(CruResource, {
+      props: {
+        canYaml:  false,
+        mode,
+        resource: {}
+      },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  jest.fn(),
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          $route:  { query: { AS: _YAML } },
+          $router: { applyQuery: jest.fn() },
+        },
+      }
+    });
+
+    const footer = wrapper.find('.cru-resource-footer');
+
+    expect(footer.exists()).toBe(shouldRender);
+  });
+
+  it.each([
+    ['disable', false, true],
+    ['enable', true, false],
+  ])('should %s the save button when validationPassed is %s', (_label, validationPassed, expected) => {
+    const wrapper = mount(CruResource, {
+      props: {
+        canYaml:  false,
+        mode:     _CREATE,
+        resource: {},
+        validationPassed
+      },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  jest.fn(),
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          // No `as` param, so the form is shown rather than the yaml editor
+          $route:  { query: {} },
+          $router: { applyQuery: jest.fn() },
+        },
+      }
+    });
+
+    const saveButton = wrapper.find('.cru-resource-footer [data-testid="form-save"]');
+
+    expect(saveButton.attributes('disabled') !== undefined).toBe(expected);
+    expect(saveButton.attributes('aria-disabled')).toStrictEqual(`${ expected }`);
+  });
+
   it('should not prevent default events on keypress Enter', async() => {
     const event = { preventDefault: jest.fn() };
     const wrapper = mount(CruResource, {
@@ -214,5 +348,37 @@ describe('component: CruResource', () => {
     await textAreaField.trigger('keydown.enter', event);
 
     expect(event.preventDefault).not.toHaveBeenCalled();
+  });
+
+  it('should title each subtype without adding to the page heading outline', () => {
+    const wrapper = mount(CruResource, {
+      props: {
+        canYaml:  false,
+        mode:     _CREATE,
+        resource: {},
+        subtypes: [{
+          id: 'opaque', label: 'Opaque', bannerAbbrv: 'O'
+        }]
+      },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  jest.fn(),
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          $route:  { query: {} },
+          $router: { applyQuery: jest.fn() },
+        },
+      }
+    });
+
+    expect(wrapper.find('.subtype-body .title .subtype-name').text()).toContain('Opaque');
+    expect(wrapper.find('h1, h2, h3, h4, h5, h6').exists()).toBe(false);
   });
 });

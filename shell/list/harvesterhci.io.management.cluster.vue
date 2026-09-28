@@ -8,6 +8,8 @@ import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 import { CAPI, HCI, MANAGEMENT } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { allHash } from '@shell/utils/promise';
+import { RcButton } from '@components/RcButton';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
   components: {
@@ -15,7 +17,9 @@ export default {
     ResourceTable,
     Masthead,
     TypeDescription,
-    Loading
+    Loading,
+    RcButton,
+    RcSeparator,
   },
 
   props: {
@@ -128,12 +132,12 @@ export default {
         v-if="canCreateCluster"
         slot="extraActions"
       >
-        <n-link
+        <rc-button
           :to="importLocation"
-          class="btn role-primary"
+          size="large"
         >
           {{ t('cluster.importAction') }}
-        </n-link>
+        </rc-button>
       </template>
     </Masthead>
 
@@ -166,22 +170,16 @@ export default {
       </template>
 
       <template #cell:harvester="{row}">
-        <n-link
-          class="btn btn-sm role-primary"
-          :to="row.detailLocation"
-        >
+        <rc-button :to="row.detailLocation">
           {{ t('harvesterManager.manage') }}
-        </n-link>
+        </rc-button>
       </template>
     </ResourceTable>
     <div v-else>
       <div class="no-clusters">
         {{ t('harvesterManager.cluster.none') }}
       </div>
-      <hr
-        class="info-section"
-        role="none"
-      >
+      <RcSeparator class="info-section" />
       <div class="logo">
         <BrandImage
           file-name="harvester.png"

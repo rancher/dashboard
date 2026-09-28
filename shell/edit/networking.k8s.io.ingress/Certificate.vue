@@ -25,21 +25,27 @@ export default {
     }
   },
   data() {
-    const defaultCert = {
-      label: this.t('ingress.certificates.defaultCertLabel'),
-      value: DEFAULT_CERT_VALUE,
-    };
-    const { hosts = [''], secretName = defaultCert.value } = this.value;
-
     return {
-      defaultCert,
-      hosts,
-      secretName,
+      hosts:      this.value?.hosts ?? [''],
+      secretName: this.value?.secretName === undefined ? DEFAULT_CERT_VALUE : this.value?.secretName,
+      secretVal:  this.value?.secretName ?? DEFAULT_CERT_VALUE,
     };
+  },
+  watch: {
+    value(newVal) {
+      this.hosts = newVal.hosts;
+      this.secretName = newVal.secretName;
+      this.secretVal = this.secretName === null ? DEFAULT_CERT_VALUE : this.secretName;
+    },
   },
   computed: {
     certsWithDefault() {
-      return [this.defaultCert, ...this.certs.map((c) => ({ label: c, value: c }))];
+      const defaultCert = {
+        label: this.t('ingress.certificates.defaultCertLabel'),
+        value: DEFAULT_CERT_VALUE,
+      };
+
+      return [defaultCert, ...this.certs.map((c) => ({ label: c, value: c }))];
     },
     certificateStatus() {
       const isValueAnOption = !this.secretName || this.certsWithDefault.find((cert) => this.secretName === cert.value);
@@ -51,15 +57,10 @@ export default {
     },
   },
   methods: {
-    addHost(ev) {
-      ev.preventDefault();
-      this.hosts.push('');
-      this.update();
-    },
     update() {
       const out = { hosts: this.hosts };
 
-      out.secretName = this.secretName;
+      out.secretName = this.secretVal;
 
       if (out.secretName === DEFAULT_CERT_VALUE) {
         out.secretName = null;
@@ -68,7 +69,7 @@ export default {
       this.$emit('update:value', out);
     },
     onSecretInput(e) {
-      this.secretName = e && typeof e === 'object' ? e.label : e;
+      this.secretVal = e && typeof e === 'object' ? e.label : e;
       this.update();
     },
     onHostsInput(e) {
@@ -80,13 +81,10 @@ export default {
 </script>
 
 <template>
-  <div
-    class="cert row"
-    @update:value="update"
-  >
+  <div class="cert row">
     <div class="col span-6">
       <LabeledSelect
-        v-model:value="secretName"
+        v-model:value="secretVal"
         class="secret-name"
         :options="certsWithDefault"
         :label="t('ingress.certificates.certificate.label')"

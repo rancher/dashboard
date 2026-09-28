@@ -22,7 +22,8 @@ export default class KontainerDriversPagePo extends PagePo {
     const sideNav = new ProductNavPo();
 
     BurgerMenuPo.burgerMenuNavToMenubyLabel('Cluster Management');
-    sideNav.navToSideMenuGroupByLabel('Drivers');
+    sideNav.navToSideMenuGroupByLabel('Providers');
+    sideNav.navToSideMenuEntryByLabel('Cluster Drivers');
   }
 
   goToDriverListAndGetDriverDetails(driverName: string): Cypress.Chainable<{ id: string }> {

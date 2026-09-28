@@ -185,6 +185,16 @@ export function resourceNames(names, plusMore, t, endString) {
   }, '');
 }
 
+/**
+ * Indents every line of the given input.
+ *
+ * @param {string | string[] | null | undefined} lines - The line, or lines, to indent.
+ * @param {number} [count] - How many copies of `token` to indent by.
+ * @param {string} [token] - The string one level of indent is made of.
+ * @param {RegExp | null} [afterRegex] - When given, the indent goes after whatever each line matches
+ * instead of at the start of the line.
+ * @returns {string} The indented lines, joined by newlines.
+ */
 export function indent(lines, count = 2, token = ' ', afterRegex = null) {
   if (typeof lines === 'string') {
     lines = lines.split(/\n/);
@@ -349,10 +359,33 @@ export function xOfy(x, y) {
   return `${ typeof x === 'number' ? x : '?' }/${ typeof y === 'number' ? y : '?' }`;
 }
 
-export function isBase64(value) {
-  const base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+const BASE64_REGEX = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
-  return base64regex.test(value);
+export function isBase64(value) {
+  return BASE64_REGEX.test(value);
+}
+
+/**
+ * Checks if a value is a valid base64-encoded CA bundle.
+ * Unlike isBase64, this handles multiline base64 (e.g. openssl wraps at 76 chars)
+ * and rejects short strings that could be false positives.
+ * @param {string} value
+ * @returns {boolean}
+ */
+export function isBase64EncodedCert(value) {
+  if (!value || typeof value !== 'string') {
+    return false;
+  }
+
+  // Strip whitespace to handle line-wrapped base64 output
+  const stripped = value.replace(/\s/g, '');
+
+  // CA certs are long enough that legitimate base64 will always exceed this
+  if (stripped.length < 16) {
+    return false;
+  }
+
+  return BASE64_REGEX.test(stripped);
 }
 
 export function generateRandomAlphaString(length) {

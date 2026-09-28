@@ -3,6 +3,7 @@ import Favorite from '@shell/components/nav/Favorite';
 import { TYPE_MODES } from '@shell/store/type-map';
 
 import TabTitle from '@shell/components/TabTitle';
+import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router';
 
 const showFavoritesFor = [TYPE_MODES.FAVORITE, TYPE_MODES.USED];
 
@@ -52,42 +53,21 @@ export default {
       }
 
       const inStore = this.$store.getters['currentStore'](this.type.name);
+      const typeOptions = this.$store.getters[`type-map/optionsFor`](this.type.name);
+
+      if (typeOptions?.custom?.countGetter && typeof typeOptions.custom?.countGetter === 'function') {
+        return typeOptions.custom.countGetter(this.$store.getters);
+      }
 
       return this.$store.getters[`${ inStore }/count`]({ name: this.type.name });
     },
 
     isActive() {
-      const typeFullPath = this.$router.resolve(this.type.route)?.fullPath.toLowerCase();
-      const pageFullPath = this.$route.fullPath?.toLowerCase().split('#')[0]; // Ignore the shebang when comparing routes
-      const routeMetaNav = this.$route.meta?.nav;
+      return isNavItemActive(this.$router, this.$route, this.type);
+    },
 
-      // If the route explicitly declares the nav path that should be highlighted, then use that
-      if (routeMetaNav) {
-        const cluster = this.$route.params?.cluster;
-        const product = this.$route.params?.product;
-        const navPath = routeMetaNav
-          .replace(':cluster', cluster)
-          .replace(':product', product);
-
-        if (navPath === typeFullPath) {
-          return true;
-        }
-      }
-
-      if ( !this.type.exact) {
-        const typeSplit = typeFullPath.split('/');
-        const pageSplit = pageFullPath.split('/');
-
-        for (let index = 0; index < typeSplit.length; ++index) {
-          if ( index >= pageSplit.length || typeSplit[index] !== pageSplit[index] ) {
-            return false;
-          }
-        }
-
-        return true;
-      }
-
-      return typeFullPath === pageFullPath;
+    typeRoute() {
+      return filterLocationValidParams(this.$router, this.type.route);
     }
 
   },
@@ -100,7 +80,8 @@ export default {
     selectType() {
       // Prevent issues if custom NavLink is used #5047
       if (this.type?.route) {
-        const typePath = this.$router.resolve(this.type.route)?.fullPath;
+        const validRoute = filterLocationValidParams(this.$router, this.type.route);
+        const typePath = this.$router.resolve(validRoute)?.fullPath;
 
         if (typePath !== this.$route.fullPath) {
           this.$emit('selected');
@@ -115,9 +96,9 @@ export default {
   <router-link
     v-if="type.route"
     :key="type.name"
-    v-slot="{ href, navigate,isExactActive }"
+    v-slot="{ href, navigate, isExactActive }"
     custom
-    :to="type.route"
+    :to="typeRoute"
   >
     <li
       class="child nav-type"
@@ -249,12 +230,7 @@ export default {
       height: 33px;
 
       &:hover {
-        background: var(--nav-hover);
         text-decoration: none;
-
-        :deep() .icon {
-          color: var(--body-text);
-        }
       }
     }
 

@@ -1,4 +1,5 @@
 <script>
+import jsyaml from 'js-yaml';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -66,7 +67,9 @@ export default {
       const yaml = await this.$refs.cru.createResourceYaml(this.yamlModifiers);
 
       try {
-        await this.value.saveYaml(yaml);
+        const initialYaml = jsyaml.dump(this.initialValue);
+
+        await this.value.saveYaml(yaml, initialYaml);
         this.done();
       } catch (err) {
         this.errors.push(err);
@@ -108,6 +111,7 @@ export default {
     <Tabbed
       :side-tabs="true"
       :use-hash="useTabbedHash"
+      :default-tab="defaultTab"
     >
       <Tab
         name="data"

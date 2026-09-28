@@ -1,0 +1,197 @@
+name: Auto-Retry Failed Run
+
+# Trigger under the same conditions as Tests workflow
+on:
+  workflow_run:
+    workflows: ["Tests"]
+    types:
+      - completed
+  workflow_dispatch: # Added to test and debug if required
+    inputs:
+      workflow_run_id:
+        description: 'Workflow run ID to retry'
+        required: true
+        type: string
+
+permissions:
+  actions: write # Required to modify/rerun workflows
+  contents: read
+  pull-requests: write # Required to comment on the associated PR
+
+# Retries are PR-scoped: only runs with an associated open PR are retried
+# (push/scheduled runs are ignored). A `bot/auto-retry/<N>` label on the PR keeps
+# retrying up to <N> times (hard capped at RETRY_CAP). Without the label, the
+# default applies: a single retry on the first failure, recorded as a new row in a
+# single, reused Auto-Retry comment on the PR.
+env:
+  RETRY_LABEL_PREFIX: bot/auto-retry
+  RETRY_CAP: 20
+
+jobs:
+  rerun-on-failure:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Decide whether to retry
+        id: decide
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id || github.event.inputs.workflow_run_id }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          HEAD_OWNER: ${{ github.event.workflow_run.head_repository.owner.login }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          # The original run is attempt 1; each retry increments run_attempt.
+          ATTEMPT="${RUN_ATTEMPT:-1}"
+          RETRIES_DONE=$((ATTEMPT - 1))
+
+          # Resolve the associated OPEN PR from the run's head repository and
+          # branch (`head=<owner>:<branch>`). This is the reliable identifier for
+          # BOTH same-repo and fork PRs, and it is naturally empty for push and
+          # scheduled runs (their branch has no open PR). We deliberately avoid
+          # the run's "pull_requests" field, which for push/schedule runs is a
+          # bogus constant (the repo's oldest PR), and the head-commit lookup,
+          # which misses fork PRs (the commit lives in the fork, not the base).
+          if [ -z "$HEAD_BRANCH" ]; then
+            # Manual workflow_dispatch: read head info from the target run.
+            HEAD_BRANCH=$(gh api "/repos/$REPO/actions/runs/$RUN_ID" \
+              --jq '.head_branch // empty' 2>/dev/null || true)
+          fi
+          if [ -z "$HEAD_OWNER" ]; then
+            HEAD_OWNER=$(gh api "/repos/$REPO/actions/runs/$RUN_ID" \
+              --jq '.head_repository.owner.login // empty' 2>/dev/null || true)
+          fi
+          # Commit the failed run was triggered for, reported in the PR comment.
+          if [ -z "$HEAD_SHA" ]; then
+            HEAD_SHA=$(gh api "/repos/$REPO/actions/runs/$RUN_ID" \
+              --jq '.head_sha // empty' 2>/dev/null || true)
+          fi
+          PR_NUMBER=""
+          if [ -n "$HEAD_BRANCH" ] && [ -n "$HEAD_OWNER" ]; then
+            PR_NUMBER=$(gh api "/repos/$REPO/pulls?head=$HEAD_OWNER:$HEAD_BRANCH&state=open" \
+              --jq '.[0].number // empty' 2>/dev/null || true)
+          fi
+
+          # Look for a `bot/auto-retry/<N>` label and read the requested count.
+          HAS_LABEL=false
+          MAX_RETRIES=0
+          if [ -n "$PR_NUMBER" ]; then
+            LABEL_MATCH=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json labels \
+              --jq '.labels[].name' 2>/dev/null \
+              | grep -E "^${RETRY_LABEL_PREFIX}/[0-9]+$" | head -n1 || true)
+            if [ -n "$LABEL_MATCH" ]; then
+              HAS_LABEL=true
+              REQUESTED=${LABEL_MATCH##*/}          # number after the last slash
+              MAX_RETRIES=$REQUESTED
+              if [ "$MAX_RETRIES" -gt "$RETRY_CAP" ]; then
+                MAX_RETRIES=$RETRY_CAP               # anything above the cap runs at the cap
+              fi
+            fi
+          fi
+
+          SHOULD_RETRY=false
+          if [ -z "$PR_NUMBER" ]; then
+            # No associated open PR (e.g. push to master, scheduled run): the
+            # retry feature is PR-scoped, so do nothing.
+            echo "No open PR associated with this run; skipping retry."
+          elif [ "$HAS_LABEL" = "true" ]; then
+            # Label present: keep retrying until we reach the requested count.
+            if [ "$RETRIES_DONE" -lt "$MAX_RETRIES" ]; then
+              SHOULD_RETRY=true
+            else
+              echo "Reached the requested maximum of $MAX_RETRIES retries; not retrying again."
+            fi
+          else
+            # Default behaviour: retry only once, on the first failure.
+            if [ "$RETRIES_DONE" -lt 1 ]; then
+              SHOULD_RETRY=true
+            fi
+          fi
+
+          echo "attempt=$ATTEMPT" >> "$GITHUB_OUTPUT"
+          echo "retries_done=$RETRIES_DONE" >> "$GITHUB_OUTPUT"
+          echo "has_label=$HAS_LABEL" >> "$GITHUB_OUTPUT"
+          echo "max_retries=$MAX_RETRIES" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "should_retry=$SHOULD_RETRY" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Retry failed workflow
+        if: ${{ steps.decide.outputs.should_retry == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id || github.event.inputs.workflow_run_id }}
+          HEAD_SHA: ${{ steps.decide.outputs.head_sha }}
+        run: |
+          RUN_URL="${{ github.server_url }}/$REPO/actions/runs/$RUN_ID"
+          echo "Retrying workflow run: $RUN_ID"
+          echo "Run URL: $RUN_URL"
+          {
+            echo "### Auto-Retry Failed Run :arrows_counterclockwise:"
+            echo ""
+            echo "Retrying workflow run [\`$RUN_ID\`]($RUN_URL) for commit \`$HEAD_SHA\`."
+            echo ""
+            echo "Follow up on the run here: $RUN_URL"
+          } >> "$GITHUB_STEP_SUMMARY"
+          sleep 30
+          gh run rerun $RUN_ID --failed --repo $REPO
+
+      # A PR gets a single Auto-Retry comment: the first retry creates it and every
+      # later retry appends a row (commit + run) to that same comment, so the PR
+      # conversation is not bumped once per retry. Only the default single retry
+      # comments; when the `bot/auto-retry/<N>` label drives the retry we stay silent.
+      - name: Comment on the associated PR
+        if: ${{ steps.decide.outputs.should_retry == 'true' && steps.decide.outputs.has_label == 'false' && steps.decide.outputs.pr_number != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id || github.event.inputs.workflow_run_id }}
+          PR_NUMBER: ${{ steps.decide.outputs.pr_number }}
+          HEAD_SHA: ${{ steps.decide.outputs.head_sha }}
+          SERVER_URL: ${{ github.server_url }}
+        run: |
+          set -euo pipefail
+
+          # Hidden marker used to find the comment again on the next retry.
+          MARKER="<!-- auto-retry-comment -->"
+          RUN_URL="$SERVER_URL/$REPO/actions/runs/$RUN_ID"
+
+          if [ -n "$HEAD_SHA" ]; then
+            COMMIT_CELL="[\`${HEAD_SHA:0:7}\`]($SERVER_URL/$REPO/commit/$HEAD_SHA)"
+          else
+            COMMIT_CELL="_unknown_"
+          fi
+          ROW="| $COMMIT_CELL | [\`$RUN_ID\`]($RUN_URL) | $(date -u '+%Y-%m-%d %H:%M UTC') |"
+
+          COMMENT_ID=$(gh api "/repos/$REPO/issues/$PR_NUMBER/comments" --paginate \
+            --jq "[.[] | select((.body // \"\") | contains(\"$MARKER\"))] | last | .id // empty" \
+            2>/dev/null || true)
+
+          BODY_FILE="$RUNNER_TEMP/auto-retry-comment.md"
+
+          if [ -n "$COMMENT_ID" ]; then
+            echo "Appending to the existing Auto-Retry comment $COMMENT_ID on PR #$PR_NUMBER"
+            # Command substitution strips the trailing newlines the API and `jq`
+            # each add, which would otherwise break the table with a blank line.
+            EXISTING=$(gh api "/repos/$REPO/issues/comments/$COMMENT_ID" --jq '.body')
+            printf '%s\n%s\n' "$EXISTING" "$ROW" > "$BODY_FILE"
+            gh api --method PATCH "/repos/$REPO/issues/comments/$COMMENT_ID" \
+              -F body=@"$BODY_FILE" --silent
+          else
+            echo "Creating the Auto-Retry comment on PR #$PR_NUMBER"
+            {
+              echo "$MARKER"
+              echo "🔄 **Auto-Retry Failed Run**"
+              echo ""
+              echo "The Tests workflow failed for the commits below and has been automatically retried."
+              echo "Follow up on a retried run through its link if needed."
+              echo ""
+              echo "| Commit | Workflow run | Retried at |"
+              echo "| --- | --- | --- |"
+              printf '%s\n' "$ROW"
+            } > "$BODY_FILE"
+            gh pr comment "$PR_NUMBER" --repo "$REPO" --body-file "$BODY_FILE"
+          fi

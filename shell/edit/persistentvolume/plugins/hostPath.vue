@@ -14,47 +14,48 @@ export default {
       required: true,
     },
   },
-  data() {
-    const mustBeOptions = [
-      {
-        label: this.t('persistentVolume.hostPath.mustBe.anything'),
-        value: ''
-      },
-      {
-        label: this.t('persistentVolume.hostPath.mustBe.directory'),
-        value: 'DirectoryOrCreate'
-      },
-      {
-        label: this.t('persistentVolume.hostPath.mustBe.file'),
-        value: 'FileOrCreate'
-      },
-      {
-        label: this.t('persistentVolume.hostPath.mustBe.existingDirectory'),
-        value: 'Directory'
-      },
-      {
-        label: this.t('persistentVolume.hostPath.mustBe.existingFile'),
-        value: 'File'
-      },
-      {
-        label: this.t('persistentVolume.hostPath.mustBe.existingSocket'),
-        value: 'Socket'
-      },
-      {
-        label: this.t('persistentVolume.hostPath.mustBe.existingCharacter'),
-        value: 'CharDevice'
-      },
-      {
-        label: this.t('persistentVolume.hostPath.mustBe.existingBlock'),
-        value: 'BlockDevice'
-      },
-    ];
-
+  created() {
     this.value.spec['hostPath'] = this.value.spec.hostPath || {};
-    this.value.spec.hostPath['type'] = this.value.spec.hostPath.type || mustBeOptions[0].value;
-
-    return { mustBeOptions };
+    this.value.spec.hostPath['type'] = this.value.spec.hostPath.type || this.mustBeOptions[0].value;
   },
+  computed: {
+    mustBeOptions() {
+      return [
+        {
+          label: this.t('persistentVolume.hostPath.mustBe.anything'),
+          value: ''
+        },
+        {
+          label: this.t('persistentVolume.hostPath.mustBe.directory'),
+          value: 'DirectoryOrCreate'
+        },
+        {
+          label: this.t('persistentVolume.hostPath.mustBe.file'),
+          value: 'FileOrCreate'
+        },
+        {
+          label: this.t('persistentVolume.hostPath.mustBe.existingDirectory'),
+          value: 'Directory'
+        },
+        {
+          label: this.t('persistentVolume.hostPath.mustBe.existingFile'),
+          value: 'File'
+        },
+        {
+          label: this.t('persistentVolume.hostPath.mustBe.existingSocket'),
+          value: 'Socket'
+        },
+        {
+          label: this.t('persistentVolume.hostPath.mustBe.existingCharacter'),
+          value: 'CharDevice'
+        },
+        {
+          label: this.t('persistentVolume.hostPath.mustBe.existingBlock'),
+          value: 'BlockDevice'
+        },
+      ];
+    }
+  }
 };
 </script>
 

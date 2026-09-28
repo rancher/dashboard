@@ -1,0 +1,51 @@
+  // Local variables for reused colors
+  //light main text
+  $darkest   : #141419;
+
+  //light secondary
+  $darker    : #6C6C76;
+
+  //light disabled
+  $dark      : #B6B6C2;
+
+  //light border and buttons
+  $medium    : #DCDEE7;
+
+  //light inputs
+  $light     : #EEEFF4;
+
+  //light sidebar and box
+  $lighter   : #F4F5FA;
+
+  //light body bg
+  $lightest  : #FFFFFF;
+
+  //color for items that are not enabled
+  $disabled  : $medium;
+
+  $primary         : #3D98D3;
+  $secondary       : $darker;
+  $link            : #3D98D3;
+
+  // Status colors
+  $success         : #5D995D;
+  $warning         : #DAC342;
+  $error           : #F64747;
+  $info            : #3D98D3;
+
+  $contrasted-dark: $darkest !default;
+  $contrasted-light: $lightest !default;
+
+  // Text selection color for terminal window (we don't want this to change with the primary color)
+  // The terminal alway uses a light background, so okay to use a fixed color
+  $selected: rgba(#3D98D3, .5);
+
+  $drag-over: #DCDEE7;
+
+  $green-140    : #025937;
+  $green-120    : #008657;
+  $green-jungle : #30BA78;
+  $green-80     : #42D29F;
+  $green-60     : #83E1BE;
+  $green-40     : #C0EFDE;
+  $green-20     : #EAFAF4;

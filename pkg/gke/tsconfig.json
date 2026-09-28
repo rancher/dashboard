@@ -16,7 +16,7 @@
     "typeRoots": [
       "../../node_modules",
       "../../shell/types",
-      "./types"
+      "../../shell/components/google/types"
     ],
     "types": [
       "node",
@@ -39,6 +39,9 @@
       ],
       "@components/*": [
         "../../pkg/rancher-components/src/components/*"
+      ],
+      "@pkg/*": [
+        "../../pkg/*"
       ]
     }
   },

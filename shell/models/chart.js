@@ -1,8 +1,11 @@
-import { compatibleVersionsFor, APP_UPGRADE_STATUS } from '@shell/store/catalog';
+import { APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, _FLAGGED, HIDE_SIDE_NAV, CATEGORY, TAG
+  REPO_TYPE, REPO, CHART, VERSION, _FLAGGED, HIDE_SIDE_NAV, CATEGORY, TAG, DEPRECATED as DEPRECATED_QUERY
 } from '@shell/config/query-params';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
+import { getLatestCompatibleVersion } from '@shell/utils/chart';
+import { isMissingDate } from '@shell/utils/time';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { CATALOG } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -10,17 +13,7 @@ import day from 'dayjs';
 
 export default class Chart extends SteveModel {
   queryParams(from, hideSideNav) {
-    let version;
-    const chartVersions = this.versions;
-    const currentCluster = this.$rootGetters['currentCluster'];
-    const workerOSs = currentCluster?.workerOSs;
-    const compatibleVersions = compatibleVersionsFor(this, workerOSs);
-
-    if (compatibleVersions.length) {
-      version = compatibleVersions[0].version;
-    } else {
-      version = chartVersions[0].version;
-    }
+    const version = this.latestCompatibleVersion.version;
 
     const out = {
       [REPO_TYPE]: this.repoType,
@@ -28,6 +21,10 @@ export default class Chart extends SteveModel {
       [CHART]:     this.chartName,
       [VERSION]:   version,
     };
+
+    if (this.deprecated) {
+      out[DEPRECATED_QUERY] = true;
+    }
 
     if ( from ) {
       out[from] = _FLAGGED;
@@ -93,22 +90,53 @@ export default class Chart extends SteveModel {
   }
 
   /**
-   * Determines if the chart is installed by checking if exactly one matching installed app is found.
+   * Determines if the chart is installed by checking if at least one matching installed app is found.
    *
    * @returns {boolean} `true` if the chart is currently installed.
    */
   get isInstalled() {
-    return this.matchingInstalledApps.length === 1;
+    return this.matchingInstalledApps.length >= 1;
   }
 
   /**
-   * Determines if the installed app has a single available upgrade.
+   * Determines if at least one installed instance has an available upgrade.
    * Requires the chart to be installed.
    *
-   * @returns {boolean} `true` if the app is installed and has a single upgrade available.
+   * @returns {boolean} `true` if the app is installed and at least one instance has an upgrade available.
    */
   get upgradeable() {
-    return this.isInstalled && this.matchingInstalledApps[0].upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE;
+    return this.isInstalled && this.matchingInstalledApps.some(
+      (app) => app.upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE
+    );
+  }
+
+  /**
+   * Returns the number of installed instances of this chart.
+   *
+   * @returns {number} The count of installed instances.
+   */
+  get installedCount() {
+    return this.matchingInstalledApps.length;
+  }
+
+  /**
+   * Retrieves the latest chart version that is compatible with the current cluster's OS and user's pre-release preference.
+   * It caches the result for efficiency.
+   *
+   * @returns {Object} The latest compatible chart version object.
+   */
+  get latestCompatibleVersion() {
+    if (this._latestCompatibleVersion) {
+      return this._latestCompatibleVersion;
+    }
+
+    const currentCluster = this.$rootGetters['currentCluster'];
+    const workerOSs = currentCluster?.workerOSs;
+    const showPrerelease = this.$rootGetters['prefs/get'](SHOW_PRE_RELEASE);
+
+    this._latestCompatibleVersion = getLatestCompatibleVersion(this, workerOSs, showPrerelease);
+
+    return this._latestCompatibleVersion;
   }
 
   /**
@@ -120,73 +148,89 @@ export default class Chart extends SteveModel {
    * @returns {Object} Card content object with `subHeaderItems`, `footerItems`, and `statuses` arrays.
    */
   get cardContent() {
-    if (!this._cardContent) {
-      const subHeaderItems = [
-        {
-          icon:        'icon-version-alt',
-          iconTooltip: { key: 'tableHeaders.version' },
-          label:       this.versions[0].version
-        },
-        {
+    const latestVersion = this.latestCompatibleVersion;
+    const subHeaderItems = [];
+
+    if (latestVersion) {
+      subHeaderItems.push({
+        icon:        'icon-version-alt',
+        iconTooltip: { key: 'tableHeaders.version' },
+        label:       latestVersion.version
+      });
+
+      if (!isMissingDate(latestVersion.created)) {
+        subHeaderItems.push({
           icon:        'icon-refresh-alt',
           iconTooltip: { key: 'tableHeaders.lastUpdated' },
-          label:       day(this.versions[0].created).format('MMM D, YYYY')
-        }
-      ];
-      const footerItems = [
-        {
-          type:        REPO,
-          icon:        'icon-repository-alt',
-          iconTooltip: { key: 'tableHeaders.repoName' },
-          labels:      [this.repoNameDisplay]
-        }
-      ];
-
-      if (this.categories.length) {
-        footerItems.push( {
-          type:        CATEGORY,
-          icon:        'icon-category-alt',
-          iconTooltip: { key: 'generic.category' },
-          labels:      this.categories
+          label:       day(latestVersion.created).format('MMM D, YYYY')
         });
       }
-
-      if (this.tags.length) {
-        footerItems.push({
-          type:        TAG,
-          icon:        'icon-tag-alt',
-          iconTooltip: { key: 'generic.tags' },
-          labels:      this.tags
-        });
-      }
-
-      const statuses = [];
-
-      if (this.deprecated) {
-        statuses.push({
-          icon: 'icon-alert-alt', color: 'error', tooltip: { key: 'generic.deprecated' }
-        });
-      }
-
-      if (this.upgradeable) {
-        statuses.push({
-          icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
-        });
-      }
-
-      if (this.isInstalled) {
-        statuses.push({
-          icon: 'icon-confirmation-alt', color: 'success', tooltip: { key: 'generic.installed' }
-        });
-      }
-
-      this._cardContent = {
-        subHeaderItems,
-        footerItems,
-        statuses
-      };
     }
 
-    return this._cardContent;
+    const footerItems = [
+      {
+        type:         REPO,
+        icon:         'repository-alt',
+        iconTooltip:  { key: 'tableHeaders.repoName' },
+        labels:       [this.repoNameDisplay],
+        labelTooltip: this.t('catalog.charts.findSimilar.message', { type: this.t('catalog.charts.findSimilar.types.repo') }, true)
+      }
+    ];
+
+    if (this.categories.length) {
+      footerItems.push( {
+        type:         CATEGORY,
+        icon:         'category-alt',
+        iconTooltip:  { key: 'generic.category' },
+        labels:       this.categories,
+        labelTooltip: this.t('catalog.charts.findSimilar.message', { type: this.t('catalog.charts.findSimilar.types.category') }, true)
+      });
+    }
+
+    if (this.tags.length) {
+      footerItems.push({
+        type:         TAG,
+        icon:         'tag-alt',
+        iconTooltip:  { key: 'generic.tags' },
+        labels:       this.tags,
+        labelTooltip: this.t('catalog.charts.findSimilar.message', { type: this.t('catalog.charts.findSimilar.types.tag') }, true)
+      });
+    }
+
+    const statuses = [];
+
+    if (this.deprecated) {
+      statuses.push({
+        icon: 'icon-alert-alt', color: 'error', tooltip: { key: 'generic.deprecated' }
+      });
+    }
+
+    if (this.upgradeable) {
+      statuses.push({
+        icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
+      });
+    }
+
+    if (this.isInstalled) {
+      const hasMultipleInstances = this.installedCount > 1;
+      const installedVersion = this.matchingInstalledApps[0]?.spec?.chart?.metadata?.version;
+
+      // When multiple instances, don't show version in tooltip since each may have different versions
+      let tooltipText = hasMultipleInstances ? this.t('generic.installedMultiple') : this.t('generic.installed');
+
+      if (!hasMultipleInstances) {
+        tooltipText = `${ tooltipText } (${ installedVersion })`;
+      }
+
+      statuses.push({
+        icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: tooltipText }
+      });
+    }
+
+    return {
+      subHeaderItems,
+      footerItems,
+      statuses
+    };
   }
 }

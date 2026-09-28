@@ -38,6 +38,10 @@ export default {
       type:    String,
       default: 'disabled',
     },
+    tooltipField: {
+      type:    String,
+      default: 'tooltip',
+    },
 
     asLink: {
       type:    Boolean,
@@ -73,7 +77,12 @@ export default {
     componentTestid: {
       type:    String,
       default: 'select-icon-grid'
-    }
+    },
+
+    ariaLabel: {
+      type:    String,
+      default: null,
+    },
   },
 
   methods: {
@@ -98,14 +107,17 @@ export default {
 <template>
   <div
     v-if="rows.length"
+    role="group"
     class="grid"
+    :aria-label="ariaLabel || null"
   >
     <component
       :is="asLink ? 'a' : 'div'"
       v-for="(r, idx) in rows"
       :key="get(r, keyField)"
-      :role="asLink ? 'link' : null"
-      :aria-disabled="asLink && get(r, disabledField) === true ? true : null"
+      v-clean-tooltip="get(r, tooltipField) || null"
+      :role="asLink ? null : 'link'"
+      :aria-disabled="get(r, disabledField) === true ? true : null"
       :aria-label="get(r, nameField)"
       :tabindex="get(r, disabledField) === true ? -1 : 0"
       :href="asLink ? get(r, linkField) : null"
@@ -126,16 +138,6 @@ export default {
         class="side-label"
         :class="{'indicator': true }"
       />
-      <div v-if="r.deploysOnWindows">
-        <label class="deploys-os-label">
-          {{ t('catalog.charts.deploysOnWindows') }}
-        </label>
-      </div>
-      <div v-if="r.windowsIncompatible">
-        <label class="os-incompatible-label">
-          {{ t('catalog.charts.windowsIncompatible') }}
-        </label>
-      </div>
       <div
         v-if="get(r, sideLabelField)"
         class="side-label"
@@ -148,12 +150,12 @@ export default {
         <i
           v-if="r.iconClass"
           :class="r.iconClass"
-          :alt="t('catalog.charts.iconAlt', { app: get(r, nameField) })"
+          aria-hidden="true"
         />
         <LazyImage
           v-else
           :src="get(r, iconField)"
-          :alt="t('catalog.charts.iconAlt', { app: get(r, nameField) })"
+          alt=""
         />
       </div>
       <h4 class="name">
@@ -251,7 +253,6 @@ export default {
           line-height: 12px;
           text-align: center;
           display: block;
-          white-space: no-wrap;
           text-overflow: ellipsis;
           // Override default form label properties
           color: var(--card-badge-text);

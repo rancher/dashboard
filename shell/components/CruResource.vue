@@ -1,5 +1,6 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
+import throttle from 'lodash/throttle';
 import { createYamlWithOptions } from '@shell/utils/create-yaml';
 import { clone, get } from '@shell/utils/object';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
@@ -9,13 +10,20 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { mapGetters, mapState, mapActions } from 'vuex';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import CruResourceFooter from '@shell/components/CruResourceFooter';
+import { useResourceCreatePageProvider, useResourceEditPageProvider } from '@shell/composables/cruResource';
+
+import { useFormSummary } from '@shell/components/TableOfContents/composables';
+import { useTemplateRef } from 'vue';
+import TableOfContents from '@shell/components/TableOfContents/TableOfContents.vue';
 
 import {
-  _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE
+  _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE, _CREATE
 } from '@shell/config/query-params';
 
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import Wizard from '@shell/components/Wizard';
+import { RcSeparator } from '@components/RcSeparator';
+import { RcHeading } from '@components/RcHeading';
 
 export const CONTEXT_HOOK_EDIT_YAML = 'show-preview-yaml';
 
@@ -30,7 +38,10 @@ export default {
     Banner,
     CruResourceFooter,
     ResourceYaml,
-    Wizard
+    Wizard,
+    TableOfContents,
+    RcSeparator,
+    RcHeading,
   },
 
   props: {
@@ -120,6 +131,12 @@ export default {
       default: () => []
     },
 
+    // Used to be called before going to the next step in the wizard.
+    beforeNext: {
+      type:    Function,
+      default: null
+    },
+
     stepsOptions: {
       type:    Object,
       default: () => ({ editFirstStep: true })
@@ -161,35 +178,58 @@ export default {
     yamlModifiers: {
       type:    Object,
       default: undefined
+    },
+
+    showToc: {
+      type:    Boolean,
+      default: false
     }
+  },
+
+  setup() {
+    const cruFormRef = useTemplateRef('cru-form');
+    const { locatedComponents } = useFormSummary(cruFormRef);
+    const accordions = locatedComponents;
+
+    return { accordions };
   },
 
   data(props) {
     const inStore = this.$store.getters['currentStore'](this.resource);
     const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
 
+    if (this.mode === _CREATE) {
+      useResourceCreatePageProvider();
+    } else if (this.mode === _EDIT) {
+      useResourceEditPageProvider();
+    }
+
     return {
-      isCancelModal:   false,
-      showAsForm:      this.$route.query[AS] !== _YAML,
+      isCancelModal:                      false,
+      showAsForm:                         this.$route.query[AS] !== _YAML,
+      tocContainerHeight:                 0,
+      mainLayoutEl:                       null,
+      throttledComputeTocContainerHeight: null,
+      nextValidating:                     false,
       /**
        * Initialised on demand (given that it needs to make a request to fetch schema definition)
        */
-      resourceYaml:    null,
+      resourceYaml:                       null,
       /**
        * Initialised on demand (given that it needs to make a request to fetch schema definition)
        */
-      initialYaml:     null,
+      initialYaml:                        null,
       /**
        * Save a copy of the initial resource. This is used to calc the initial yaml later on
        */
-      initialResource: clone(this.resource),
-      abbrSizes:       {
+      initialResource:                    clone(this.resource),
+      abbrSizes:                          {
         3: '24px',
         4: '18px',
         5: '16px',
         6: '14px'
       },
-      schema
+      schema,
     };
   },
 
@@ -269,10 +309,11 @@ export default {
           icon:    null
         }
       }), {});
-    },
+    }
   },
 
   created() {
+    this.throttledComputeTocContainerHeight = throttle(this.computeTocContainerHeight, 20);
     if ( this._selectedSubtype ) {
       this.$emit('select-type', this._selectedSubtype);
     }
@@ -283,11 +324,41 @@ export default {
   },
 
   beforeUnmount() {
+    this.mainLayoutEl?.removeEventListener('scroll', this.throttledComputeTocContainerHeight);
+    window.removeEventListener('resize', this.throttledComputeTocContainerHeight);
+    this.throttledComputeTocContainerHeight?.cancel?.();
     this.$store.dispatch('cru-resource/setCreateNamespace', false);
   },
 
   methods: {
     stringify,
+
+    // as the user scrolls past the CruResource Masthead, the amount of vertical space available to the table of contents changes
+    computeTocContainerHeight() {
+      const root = this.$el;
+
+      if (!root) {
+        this.tocContainerHeight = 0;
+
+        return 0;
+      }
+
+      const tocEl = root.querySelector('.cru__toc');
+      const footerEl = root.querySelector('.cru__footer');
+
+      if (!tocEl || !footerEl) {
+        this.tocContainerHeight = 0;
+
+        return 0;
+      }
+
+      const tocTop = tocEl.getBoundingClientRect().top;
+      const footerTop = footerEl.getBoundingClientRect().top;
+      const gapLgValue = getComputedStyle(root).getPropertyValue('--gap-lg').trim();
+      const gapLg = Number.parseFloat(gapLgValue) || 0;
+
+      this.tocContainerHeight = Math.max(0, Math.round((footerTop - tocTop) - gapLg));
+    },
 
     confirmCancel(isCancelNotBack = true) {
       if (isCancelNotBack) {
@@ -428,6 +499,47 @@ export default {
       return slot !== 'default' && typeof this.$slots[slot] === 'function';
     },
 
+    async wizardBeforeGoToStep(fromStep, toStep) {
+      if (!this.beforeNext) {
+        return;
+      }
+
+      const fromIdx = this.steps.findIndex((s) => s.name === fromStep.name);
+      const toIdx = this.steps.findIndex((s) => s.name === toStep.name);
+
+      if (toIdx <= fromIdx) {
+        return;
+      }
+
+      try {
+        await this.beforeNext(fromStep);
+        this.$emit('error', []);
+      } catch (err) {
+        this.$emit('error', exceptionToErrorsArray(err));
+        throw err;
+      }
+    },
+
+    async handleNext(nextFn, activeStep) {
+      if (!this.beforeNext) {
+        nextFn();
+
+        return;
+      }
+
+      this.nextValidating = true;
+
+      try {
+        await this.beforeNext(activeStep);
+        this.$emit('error', []);
+        nextFn();
+      } catch (err) {
+        this.$emit('error', exceptionToErrorsArray(err));
+      } finally {
+        this.nextValidating = false;
+      }
+    },
+
     formatError(err) {
       if ( typeof err === 'string') {
         return err;
@@ -525,13 +637,38 @@ export default {
           this.initialYaml = await this.createResourceYaml(undefined, this.initialResource);
         }
       }
+    },
+
+    showToc: {
+      handler(neu, old) {
+        if (neu) {
+          // Compute height on first render
+          this.$nextTick(() => {
+            this.throttledComputeTocContainerHeight?.();
+          });
+          // Add event listeners for computeTocContainerHeight on scroll
+          this.mainLayoutEl = document.querySelector('.main-layout');
+          this.mainLayoutEl?.addEventListener('scroll', this.throttledComputeTocContainerHeight, { passive: true });
+          // Add event listener for computeTocContainerHeight on window resize
+          window.addEventListener('resize', this.throttledComputeTocContainerHeight, { passive: true });
+        } else if (old) {
+          // Remove event listeners for computeTocContainerHeight when TOC is hidden
+          this.mainLayoutEl?.removeEventListener('scroll', this.throttledComputeTocContainerHeight);
+          window.removeEventListener('resize', this.throttledComputeTocContainerHeight);
+        }
+      },
+      immediate: true
     }
   }
 };
 </script>
 
 <template>
-  <section class="cru">
+  <section
+    ref="cru-form"
+    :class="{'show-toc':showToc}"
+    class="cru"
+  >
     <slot name="noticeBanner" />
     <p
       v-if="description"
@@ -541,6 +678,7 @@ export default {
     </p>
     <component
       :is="(isView? 'div' : 'form')"
+
       :value="resource"
       data-testid="cru-form"
       class="create-resource-container cru__form"
@@ -551,6 +689,8 @@ export default {
         v-if="hasErrors"
         id="cru-errors"
         class="cru__errors"
+        role="alert"
+        aria-live="assertive"
       >
         <Banner
           v-for="(err, i) in errors"
@@ -616,13 +756,16 @@ export default {
                     class="title"
                     :class="{'with-description': !!subtype.description}"
                   >
-                    <h5>
+                    <RcHeading
+                      :size="5"
+                      class="subtype-name"
+                    >
                       <span
                         v-if="$store.getters['i18n/exists'](subtype.label)"
                         v-clean-html="t(subtype.label)"
                       />
                       <span v-else>{{ subtype.label }}</span>
-                    </h5>
+                    </RcHeading>
                     <a
                       v-if="subtype.docLink"
                       :href="subtype.docLink"
@@ -631,10 +774,7 @@ export default {
                       class="flex-right"
                     >{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
                   </div>
-                  <hr
-                    v-if="subtype.description"
-                    role="none"
-                  >
+                  <RcSeparator v-if="subtype.description" />
                   <div
                     v-if="subtype.description"
                     class="description"
@@ -665,6 +805,7 @@ export default {
             :edit-first-step="stepsOptions.editFirstStep"
             :errors="errors"
             :finish-mode="finishMode"
+            :before-go-to-step="wizardBeforeGoToStep"
             class="wizard"
             @error="e=>errors = e"
           >
@@ -748,10 +889,10 @@ export default {
                     name="next"
                   >
                     <button
-                      :disabled="!canNext"
+                      :disabled="!canNext || nextValidating"
                       type="button"
                       class="btn role-primary"
-                      @click="next()"
+                      @click="handleNext(next, activeStep)"
                     >
                       <t k="wizard.next" />
                     </button>
@@ -764,15 +905,26 @@ export default {
       </template>
       <!------ SINGLE PROCESS ------>
       <template v-else-if="showAsForm">
+        <TableOfContents
+          v-if="showToc"
+          class="cru__toc"
+          :style="tocContainerHeight ? { '--toc-container-height': `${tocContainerHeight}px` } : {}"
+          :accordions="accordions"
+        />
         <div
           v-if="_selectedSubtype || !subtypes.length"
-          class="resource-container cru__content"
+          class="cru__content resource-container"
+
           :style="[minHeight ? { 'min-height': minHeight } : {}]"
         >
-          <slot />
+          <slot name="single">
+            <slot />
+          </slot>
         </div>
+
         <slot name="form-footer">
           <CruResourceFooter
+            v-if="!isView"
             class="cru__footer"
             :mode="mode"
             :is-form="showAsForm"
@@ -835,7 +987,7 @@ export default {
           :offer-preview="isEdit"
           :done-route="doneRoute"
           :done-override="resource.doneOverride"
-          :errors="errors"
+          :show-errors="false"
           :apply-hooks="applyHooks"
           class="resource-container cru__content"
           @error="e=>$emit('error', e)"
@@ -902,6 +1054,15 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+  .subtype-body .title .subtype-name {
+    margin: 0;
+  }
+
+$logo: 60px;
+$logo-space: 100px;
+
+$table-contents-width: 250px;
+
 .cru-resource-yaml-container {
   .resource-yaml {
     .yaml-editor {
@@ -926,9 +1087,6 @@ export default {
     }
   }
 }
-
-$logo: 60px;
-$logo-space: 100px;
 
 .title {
   margin-top: 20px;
@@ -982,10 +1140,26 @@ form.create-resource-container .cru {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+
+  }
+
+  &__toc {
+    width: $table-contents-width;
+    margin: 20px var(--gap-lg) 20px var(--gap-lg);
+    min-width: $table-contents-width;
+    max-width: $table-contents-width;
+    position: sticky;
+    top: 24px;
+    align-self: flex-start;
+    max-height: var(--toc-container-height, calc(100vh - 24px - $footer-height - calc( 2 * var(--gap-lg)) - 125px));
+    transition: max-height 50ms ease-in-out;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   &__content {
     flex-grow: 1;
+
     &-wizard {
       display: flex;
     }
@@ -1012,6 +1186,48 @@ form.create-resource-container .cru {
     z-index: 1;
     background-color: var(--header-bg);
     margin: 10px 0;
+  }
+}
+
+.show-toc.cru{
+   &>.cru__form{
+        display: grid;
+        grid-template-columns: [content] 1fr [toc] calc(#{$table-contents-width} + var(--gap-lg));
+        grid-template-rows: [errors] auto [content] 1fr [footer] min-content;
+
+      &>.cru__errors {
+        grid-column: content;
+        grid-row: errors;
+      }
+
+      &>.cru__toc {
+        grid-column: toc;
+        grid-row: errors / footer;
+      }
+
+      &>.cru__content {
+          grid-column: content;
+          grid-row: content;
+      }
+
+      &>.cru__footer {
+        grid-column: content / 3;
+        grid-row: footer;
+      }
+    }
+}
+
+@media (max-width: map-get($breakpoints, '--viewport-9')) {
+  .show-toc.cru {
+    & > .cru__form {
+      display: flex;
+      grid-template-columns: none;
+      grid-template-rows: none;
+
+      & > .cru__toc {
+        display: none;
+      }
+    }
   }
 }
 

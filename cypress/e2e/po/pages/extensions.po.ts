@@ -1,5 +1,4 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
 import NameNsDescriptionPo from '@/cypress/e2e/po/components/name-ns-description.po';
@@ -7,12 +6,16 @@ import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import ChartRepositoriesCreateEditPo from '@/cypress/e2e/po/edit/chart-repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
-import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
+import { GetOptions } from '@/cypress/e2e/po/components/component.po';
+import RcItemCardPo from '@/cypress/e2e/po/components/rc-item-card.po';
+import TooltipPo from '@/cypress/e2e/po/components/tooltip.po';
+import InstallExtensionDialog from '@/cypress/e2e/po/prompts/installExtensionDialog.po';
 
 export default class ExtensionsPagePo extends PagePo {
-  static url = '/c/local/uiplugins'
+  static url = '/c/local/uiplugins';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(ExtensionsPagePo.url);
   }
@@ -49,6 +52,50 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   /**
+   * Returns whether the given extension tab is present.
+   */
+  checkForExtensionTab(tab: 'available' | 'installed' | 'builtin'): Cypress.Chainable<boolean> {
+    this.waitForTabs();
+
+    return this.self().then((el) => {
+      return el.find(`[data-testid="btn-${ tab }"]`).length > 0;
+    });
+  }
+
+  /**
+   * Returns whether any card under the page root has a title containing `extensionName`
+   * Resolves to false when none match; does not assert failure.
+   */
+  checkForExtensionCardWithName(extensionName: string): Cypress.Chainable<boolean> {
+    this.waitForTabs();
+
+    return this.self(MEDIUM_TIMEOUT_OPT).then((el) => {
+      const header = el.find('[data-testid="item-card-header-title"]').filter((_, titleEl) => {
+        return Cypress.$(titleEl).text().includes(extensionName);
+      });
+
+      return header.length > 0;
+    });
+  }
+
+  /**
+   * Intercepts the cluster-repo install POST, installs `extensionName` from the Available tab through
+   * the modal, asserts a 2xx response, then completes the reload banner flow.
+   */
+  installExtensionFromCatalog(extensionName: string, clusterRepoName: string, interceptAlias: string): void {
+    cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ clusterRepoName }?action=install`).as(interceptAlias);
+
+    this.extensionTabAvailableClick();
+    this.waitForPage(null, 'available');
+    this.extensionCardInstallClick(extensionName);
+    this.installModal().checkVisible();
+    this.installModal().installButton().click();
+    cy.wait(`@${ interceptAlias }`, MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('be.oneOf', [200, 201]);
+    this.extensionReloadBanner().should('be.visible');
+    this.extensionReloadClick();
+  }
+
+  /**
    * Adds a cluster repo for extensions
    * @param repo - The repository url (e.g. https://github.com/rancher/ui-plugin-examples)
    * @param branch - The git branch to target
@@ -80,7 +127,7 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoCreate.waitForPage();
 
     // fill the form
-    appRepoCreate.repoRadioBtn().set(1);
+    appRepoCreate.selectGitRepoCard();
     appRepoCreate.nameNsDescription().name().self().scrollIntoView()
       .should('be.visible');
     appRepoCreate.nameNsDescription().name().set(name);
@@ -91,6 +138,17 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoCreate.saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
 
     appRepoList.waitForPage();
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', name);
+    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', name);
+    // Known issue rancher/dashboard#17554: a clusterrepo can report Active before its Download has
+    // actually completed, and the repo list's state badge then lags the (already-Active) API state
+    // under CI load, only rendering 'Active' after a delayed re-fetch. kubewarden calls this from a
+    // before-all hook, which Cypress does NOT retry, so a badge that outruns the default window fails
+    // the whole suite. Reload once to force a fresh list render off the now-Active API state before
+    // asserting the badge.
+    cy.reload();
+    appRepoList.waitForPage();
+    appRepoList.list().checkVisible();
     appRepoList.list().state(name).should('contain', 'Active');
 
     return cy.wrap(appRepoList.list());
@@ -101,9 +159,8 @@ export default class ExtensionsPagePo extends PagePo {
    * @param repo - The repository url (e.g. https://github.com/rancher/ui-plugin-examples)
    * @param branch - The git branch to target
    * @param name - A name for the repository
-   * @returns {Cypress.Chainable}
    */
-  addExtensionsRepositoryDirectLink(repo: string, branch: string, name: string, waitForActiveState = true): Cypress.Chainable {
+  addExtensionsRepositoryDirectLink(repo: string, branch: string, name: string, waitForActiveState = true) {
     const appRepoList = new RepositoriesPagePo('local', 'apps');
     const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
 
@@ -113,7 +170,7 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoCreate.nameNsDescription().name().self().scrollIntoView()
       .should('be.visible');
     appRepoCreate.nameNsDescription().name().set(name);
-    appRepoCreate.selectRadioOptionGitRepo(1);
+    appRepoCreate.selectRcItemCard('git-repo');
     // fill the git repo form
     appRepoCreate.enterGitRepoName(repo);
     appRepoCreate.enterGitBranchName(branch);
@@ -126,61 +183,91 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   // ------------------ extension card ------------------
-  extensionCard(extensionName: string) {
-    return this.self().getId(`extension-card-${ extensionName }`).scrollIntoView();
+  extensionCard(extensionTitle: string, options?: Partial<Cypress.Timeoutable>): RcItemCardPo {
+    return RcItemCardPo.getCardByTitle(extensionTitle, options);
   }
 
-  extensionCardVersion(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).find('.plugin-version > span').invoke('text');
+  private clickAction(extensionTitle: string, actionLabel: string) {
+    // The card list renders asynchronously (chart-repo fetch then render), so wait
+    // for loading to finish and the target card to be visible before opening its
+    // action menu. Otherwise the lookup outruns the default retry window under CI
+    // load, which is the main source of flakiness on these tests.
+    this.loading().should('not.exist');
+    const card = this.extensionCard(extensionTitle, LONG_TIMEOUT_OPT);
+
+    card.self().should('be.visible');
+
+    // The Upgrade/Downgrade items appear only once the extension's available versions have loaded
+    // from the (sometimes slow) chart repo. The menu re-renders reactively when they arrive, so give
+    // the item lookup a long window instead of the default - otherwise it outruns a slow repo fetch
+    // and the action is reported missing even though it shows up moments later.
+    return card.openActionMenu().getMenuItem(actionLabel, LONG_TIMEOUT_OPT).click();
   }
 
-  extensionCardClick(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).click();
+  /**
+   * Open the card action menu and click `actionLabel` only if it is offered; resolves to whether it
+   * was clicked. Used to keep the upgrade/downgrade tests idempotent across retries: a prior attempt
+   * may already have moved the extension to the target version (e.g. upgraded to latest), which
+   * removes that action - so a plain retry, which re-runs the whole test, would otherwise hard-fail on
+   * the now-missing menu item. Waits for the version-dependent actions to load first (Upgrade and/or
+   * Downgrade appear only once the chart repo versions are fetched) so a slow menu is not misread as
+   * "action absent".
+   */
+  clickActionIfPresent(extensionTitle: string, actionLabel: string): Cypress.Chainable<boolean> {
+    this.loading().should('not.exist');
+    const card = this.extensionCard(extensionTitle, LONG_TIMEOUT_OPT);
+
+    card.self().should('be.visible');
+    const menu = card.openActionMenu();
+
+    // Wait for the version-dependent actions to load before deciding: Upgrade and/or Downgrade appear
+    // only once the chart repo versions are fetched, so their absence earlier is a slow menu, not a
+    // genuinely missing action.
+    menu.menuItems(LONG_TIMEOUT_OPT).should(($items) => {
+      const text = $items.toArray().map((el) => el.textContent || '').join('|');
+
+      expect(text).to.match(/Upgrade|Downgrade/);
+    });
+
+    return menu.clickMenuItemIfPresent(actionLabel);
   }
 
-  extensionCardInstallClick(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).getId(`extension-card-install-btn-${ extensionName }`).click();
+  extensionCardVersion(extensionTitle: string): Cypress.Chainable<string> {
+    return this.extensionCard(extensionTitle).self().find('[data-testid="app-chart-card-sub-header-item"]').first()
+      .invoke('text');
   }
 
-  extensionCardUpdateClick(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).getId(`extension-card-update-btn-${ extensionName }`).click();
+  extensionCardClick(extensionTitle: string, options?: Partial<Cypress.Timeoutable>): void {
+    this.extensionCard(extensionTitle, options).click();
   }
 
-  extensionCardRollbackClick(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).getId(`extension-card-rollback-btn-${ extensionName }`).click();
+  extensionCardInstallClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Install');
   }
 
-  extensionCardUninstallClick(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).getId(`extension-card-uninstall-btn-${ extensionName }`).click();
+  extensionCardUpgradeClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Upgrade');
+  }
+
+  extensionCardDowngradeClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Downgrade');
+  }
+
+  extensionCardUninstallClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Uninstall');
+  }
+
+  extensionCardHeaderStatusIcons(extensionTitle: string, index: number): Cypress.Chainable {
+    return this.extensionCard(extensionTitle).self().find(`[data-testid="item-card-header-status-${ index }"]`);
+  }
+
+  extensionCardHeaderStatusTooltip(extensionTitle: string, index: number): TooltipPo {
+    return new TooltipPo(this.extensionCardHeaderStatusIcons(extensionTitle, index));
   }
 
   // ------------------ extension install modal ------------------
-  extensionInstallModal() {
-    return this.self().get('[data-testid="install-extension-modal"]');
-  }
-
-  installModalSelectVersionLabel(label: string): Cypress.Chainable {
-    const selectVersion = new LabeledSelectPo(this.extensionInstallModal().getId('install-ext-modal-select-version'));
-
-    selectVersion.toggle();
-
-    return selectVersion.setOptionAndClick(label);
-  }
-
-  installModalSelectVersionClick(optionIndex: number): Cypress.Chainable {
-    const selectVersion = new LabeledSelectPo(this.extensionInstallModal().getId('install-ext-modal-select-version'));
-
-    selectVersion.toggle();
-
-    return selectVersion.clickOption(optionIndex);
-  }
-
-  installModalCancelClick(): Cypress.Chainable {
-    return this.extensionInstallModal().getId('install-ext-modal-cancel-btn').click();
-  }
-
-  installModalInstallClick(): Cypress.Chainable {
-    return this.extensionInstallModal().getId('install-ext-modal-install-btn').click();
+  installModal() {
+    return new InstallExtensionDialog();
   }
 
   // ------------------ extension uninstall modal ------------------
@@ -192,7 +279,7 @@ export default class ExtensionsPagePo extends PagePo {
     return this.extensionUninstallModal().getId('uninstall-ext-modal-cancel-btn').click();
   }
 
-  uninstallModaluninstallClick(): Cypress.Chainable {
+  uninstallModalUninstallClick(): Cypress.Chainable {
     return this.extensionUninstallModal().getId('uninstall-ext-modal-uninstall-btn').click();
   }
 
@@ -219,19 +306,18 @@ export default class ExtensionsPagePo extends PagePo {
 
   // ------------------ extension tabs ------------------
   extensionTabInstalledClick(): Cypress.Chainable {
-    return this.extensionTabs.clickNthTab(1);
+    // Wait for the tab to render before clicking it. The tabs load asynchronously,
+    // and unlike the 'Available' tab this one had no guard, so it would flake when
+    // the tab button hadn't rendered within the default retry window.
+    this.extensionTabs.allTabs().contains('Installed', MEDIUM_TIMEOUT_OPT).should('be.visible');
+
+    return this.extensionTabs.clickTabWithName('installed');
   }
 
   extensionTabAvailableClick(): Cypress.Chainable {
-    return this.extensionTabs.clickNthTab(2);
-  }
+    this.extensionTabs.allTabs().contains('Available', MEDIUM_TIMEOUT_OPT).should('be.visible');
 
-  extensionTabUpdatesClick(): Cypress.Chainable {
-    return this.extensionTabs.clickNthTab(3);
-  }
-
-  extensionTabAllClick(): Cypress.Chainable {
-    return this.extensionTabs.clickTabWithName('all');
+    return this.extensionTabs.clickTabWithName('available');
   }
 
   extensionTabBuiltinClick(): Cypress.Chainable {
@@ -243,12 +329,15 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   // ------------------ extension reload banner ------------------
-  extensionReloadBanner() {
-    return this.self().getId('extension-reload-banner');
+  extensionReloadBanner(options: GetOptions = LONG_TIMEOUT_OPT) {
+    return this.self().get(`[data-testid="extension-reload-banner"]`, options);
   }
 
   extensionReloadClick(): Cypress.Chainable {
-    return this.extensionReloadBanner().getId('extension-reload-banner-reload-btn').click();
+    // Force the click: a transient growl toast can overlay the reload button, which makes Cypress
+    // error with "being covered by another element". The button itself is interactable - the growl
+    // is an incidental, self-dismissing overlay - so the covered-element check is a false negative.
+    return this.extensionReloadBanner().getId('extension-reload-banner-reload-btn').click({ force: true });
   }
 
   // ------------------ new repos banner ------------------
@@ -283,7 +372,7 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   addReposModalAddClick(): Cypress.Chainable {
-    return this.addReposModal().get('.dialog-buttons button:last-child').click();
+    return this.addReposModal().get('.dialog-buttons button:last-child').should('be.visible').click();
   }
 
   // ------------------ Import Extension Catalog modal ------------------

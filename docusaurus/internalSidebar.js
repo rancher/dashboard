@@ -43,6 +43,7 @@ const sidebars = {
         'code-base-works/machine-drivers',
         'code-base-works/performance',
         'code-base-works/sortable-table',
+        'code-base-works/localization',
         'code-base-works/on-screen-text-and-translations',
         'code-base-works/style',
       ],

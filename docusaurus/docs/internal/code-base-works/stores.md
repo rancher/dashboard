@@ -13,6 +13,6 @@ Define the store in a file that resides within `shell/store`. Then add the store
 shell/nuxt/store.js
 ```js
 ...
-resolveStoreModules(require('../store/i18n.js'), 'i18n.js')
+resolveStoreModules(require('../store/i18n.ts'), 'i18n.ts')
 ...
 ```

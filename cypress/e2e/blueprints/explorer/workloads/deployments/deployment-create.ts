@@ -7,7 +7,7 @@ export const createDeploymentBlueprint = {
   metadata:   {
     name:      'test-deployment-kubectl',
     namespace: 'default',
-    labels:    { 'e2e-test': 'true' },
+    labels:    { 'workload.user.cattle.io/workloadselector': 'apps.deployment-default-test-deployment' },
   },
   spec: {
     replicas: 1,
@@ -61,11 +61,11 @@ export const createDeploymentBlueprint = {
         ]
       },
       metadata: {
-        labels:    { 'e2e-test': 'true' },
+        labels:    { 'workload.user.cattle.io/workloadselector': 'apps.deployment-default-test-deployment' },
         namespace: 'default'
       }
     },
-    selector: { matchLabels: { 'e2e-test': 'true' } }
+    selector: { matchLabels: { 'workload.user.cattle.io/workloadselector': 'apps.deployment-default-test-deployment' } }
   }
 };
 
@@ -97,7 +97,8 @@ export const deploymentCreateRequest = {
         initContainers:   [],
         imagePullSecrets: [],
         volumes:          [],
-        affinity:         {}
+        affinity:         {},
+        securityContext:  { seccompProfile: { type: 'RuntimeDefault' } }
       },
       metadata: {
         labels:    { 'workload.user.cattle.io/workloadselector': 'apps.deployment-default-test-deployment' },

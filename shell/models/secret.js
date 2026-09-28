@@ -1,8 +1,12 @@
 import r from 'jsrsasign';
-import { CERTMANAGER, KUBERNETES } from '@shell/config/labels-annotations';
+import {
+  CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET, UI_PROJECT_SECRET_CLUSTER, UI_PROJECT_SECRET_COPY
+} from '@shell/config/labels-annotations';
+import { GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { removeObjects } from '@shell/utils/array';
-import { SERVICE_ACCOUNT } from '@shell/config/types';
+import { MANAGEMENT, SERVICE_ACCOUNT, VIRTUAL_TYPES } from '@shell/config/types';
+import { SECRET_SCOPE, SECRET_QUERY_PARAMS } from '@shell/config/query-params';
 import { set } from '@shell/utils/object';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -10,6 +14,8 @@ import { colorForState, stateDisplay, STATES_ENUM } from '@shell/plugins/dashboa
 import { diffFrom } from '@shell/utils/time';
 import day from 'dayjs';
 import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
+import { STORE } from '@shell/store/store-types';
+import { escapeHtml } from '@shell/utils/string';
 
 export const TYPES = {
   OPAQUE:           'Opaque',
@@ -29,6 +35,29 @@ export const TYPES = {
 
 /** Class a cert as expiring if in eight days */
 const certExpiringPeriod = 1000 * 60 * 60 * 24 * 8;
+
+/**
+ * Project Scoped Secret Information
+ *
+ * There's lots of different weirdnesses with these.
+ *
+ * A project scoped secret is a secret in the upstream cluster with special annotations/labels
+ * A project scoped secret creates secrets in all namespaces in the associated project. These have special annotations/labels
+ *
+ * - Secret (PSS)
+ *   - Labels
+ *       - "management.cattle.io/project-scoped-secret": "<project metadata name>”,
+ *       - "management.cattle.io/project-scoped-secret-cluster": <cluster id>"
+ * - Secret (created by PSS)
+ *    - Labels
+ *       - "management.cattle.io/project-scoped-secret": "<project metadata name>”,
+ *       - "management.cattle.io/project-scoped-secret-cluster": <cluster id>"
+ *    - Annotations
+ *        - "management.cattle.io/project-scoped-secret-copy": "true",
+ *
+ * VAI connects a secret (created by PSS) to it's project and allows sort/filter on it's projects spec.clusterName (cluster's id) and spec.displayName (projects human name)
+ * This allows us to show a cluster's Project Scoped Secrets (filter on spec.clusterName) and Secret (created by PSS) project information easily
+ */
 
 export default class Secret extends SteveModel {
   _cachedCertInfo;
@@ -52,6 +81,14 @@ export default class Secret extends SteveModel {
   // For Fleet SSH secrets - does the secret have the 'known_hosts' data key?
   get supportsSshKnownHosts() {
     return this._type === TYPES.SSH && !!this.data && 'known_hosts' in this.data;
+  }
+
+  // A GitHub App auth secret is an Opaque secret holding the GitHub App data keys
+  get isGithubApp() {
+    return this._type === TYPES.OPAQUE && !!this.data &&
+      GITHUB_APP_SECRET_KEYS.APP_ID in this.data &&
+      GITHUB_APP_SECRET_KEYS.INSTALLATION_ID in this.data &&
+      GITHUB_APP_SECRET_KEYS.PRIVATE_KEY in this.data;
   }
 
   get issuer() {
@@ -111,7 +148,7 @@ export default class Secret extends SteveModel {
     const out = [
       {
         label:   this.t('secret.type'),
-        content: this.typeDisplay
+        content: this._type
       }
     ];
 
@@ -159,6 +196,10 @@ export default class Secret extends SteveModel {
   }
 
   get canUpdate() {
+    if (this.isProjectSecretCopy) {
+      return false;
+    }
+
     if ( !this.hasLink('update') ) {
       return false;
     }
@@ -168,6 +209,20 @@ export default class Secret extends SteveModel {
     }
 
     return this.$rootGetters['type-map/optionsFor'](this.type).isEditable;
+  }
+
+  get canDelete() {
+    // Deleting a copy / synced secret that was created in a namespace in a project that has a project scoped secret
+    // will only be temporary (the parent project scoped secret will recreate it)
+    return this.isProjectSecretCopy ? false : super.canDelete;
+  }
+
+  get canCreate() {
+    return this.isProjectSecretCopy ? false : super.canCreate;
+  }
+
+  get canEditYaml() {
+    return this.isProjectSecretCopy ? false : super.canEditYaml;
   }
 
   get keysDisplay() {
@@ -216,6 +271,11 @@ export default class Secret extends SteveModel {
       return this.sshUser;
     } else if ( this._type === TYPES.SERVICE_ACCT ) {
       return this.metadata?.annotations?.['kubernetes.io/service-account.name'];
+    } else if ( this.isGithubApp ) {
+      const appId = base64Decode(this.data[GITHUB_APP_SECRET_KEYS.APP_ID]);
+      const installationId = base64Decode(this.data[GITHUB_APP_SECRET_KEYS.INSTALLATION_ID]);
+
+      return `${ appId } / ${ installationId }`;
     }
 
     return this.keysDisplay;
@@ -253,6 +313,11 @@ export default class Secret extends SteveModel {
 
   get subTypeDisplay() {
     const type = this._type || '';
+
+    if ( this.isGithubApp ) {
+      return this.$rootGetters['i18n/withFallback'](`secret.githubApp.label`, null, 'GitHub App');
+    }
+
     const fallback = type.replace(/^kubernetes.io\//, '');
 
     return this.$rootGetters['i18n/withFallback'](`secret.types."${ type }"`, null, fallback);
@@ -463,11 +528,169 @@ export default class Secret extends SteveModel {
     return val;
   }
 
-  async cleanForDownload(yaml) {
+  async cleanForDownload(yaml, opt = {}) {
     // secret resource contains the type attribute
     // ref: https://kubernetes.io/docs/reference/kubernetes-api/config-and-storage-resources/secret-v1/
     // ref: https://kubernetes.io/docs/concepts/configuration/secret/#secret-types
 
-    return steveCleanForDownload(yaml, { rootKeys: ['id', 'links', 'actions'] });
+    return steveCleanForDownload(yaml, { rootKeys: ['id', 'links', 'actions'], ...opt });
+  }
+
+  /**
+   * is this a project scoped secret
+   */
+  get isProjectScoped() {
+    return !!this.projectScopedProjectName && !this.isProjectSecretCopy && this.$rootGetters['isRancher'];
+  }
+
+  /**
+   * If this is a project scoped secret, return the Project's metadata.name
+   *
+   * It's metadata.name as that's what the backend supplies. If can be anything the user wants if the project was created outside the UI
+   */
+  get projectScopedProjectName() {
+    return this.metadata.labels?.[UI_PROJECT_SECRET];
+  }
+
+  /**
+   * If this is a project scoped secret, return the cluster id the project is in
+   */
+  get projectScopedClusterId() {
+    return this.metadata?.labels?.[UI_PROJECT_SECRET_CLUSTER];
+  }
+
+  /**
+   * If this is a project scoped secret, return the cluster the project is in
+   */
+  get projectCluster() {
+    if (!this.isProjectScoped) {
+      return undefined;
+    }
+
+    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.CLUSTER, this.projectScopedClusterId);
+  }
+
+  /**
+   * Is this a secret created by a project scoped secret?
+   */
+  get isProjectSecretCopy() {
+    return this.metadata?.annotations?.[UI_PROJECT_SECRET_COPY] === 'true';
+  }
+
+  /**
+   * If this is a secret created by a project scoped secret, return the Project's metadata.name
+   *
+   * It's metadata.name as that's what the backend supplies. If can be anything the user wants if the project was created outside the UI
+   */
+  get projectSecretCopyProjectName() {
+    return this.metadata.labels?.[UI_PROJECT_SECRET];
+  }
+
+  /**
+   * If this is a secret created by a project scoped secret, return the cluster id the project is in
+   */
+  get projectSecretCopyClusterId() {
+    return this.metadata?.labels?.[UI_PROJECT_SECRET_CLUSTER];
+  }
+
+  /**
+   * If this is a project scoped secret, or a project scoped secrets's cloned secret, return it's project
+   *
+   */
+  get project() {
+    let clusterId;
+    let projectName;
+
+    if (this.isProjectSecretCopy) {
+      clusterId = this.projectSecretCopyClusterId;
+      projectName = this.projectSecretCopyProjectName;
+    }
+
+    if (this.isProjectScoped ) {
+      clusterId = this.projectScopedClusterId;
+      projectName = this.projectScopedProjectName;
+    }
+
+    if (projectName) {
+      const projectIdWithCluster = `${ clusterId }/${ projectName }`;
+      const projectId = projectName;
+
+      // Try to fetch the project.
+      // Note: The management store might not have the project loaded if we haven't visited the cluster list or project list.
+      // However, if we are in the dashboard, we usually have projects loaded.
+      const project = this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, projectIdWithCluster) ||
+        this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, projectId);
+
+      return project;
+    }
+
+    return undefined;
+  }
+
+
+  get detailLocation() {
+    if (this.isProjectScoped) {
+      const id = this.id?.replace(/.*\//, '');
+
+      return {
+        name:   `c-cluster-product-${ VIRTUAL_TYPES.PROJECT_SECRETS }-namespace-id`,
+        params: {
+          product:   this.$rootGetters['productId'],
+          cluster:   this.$rootGetters['clusterId'],
+          namespace: this.metadata?.namespace,
+          resource:  VIRTUAL_TYPES.PROJECT_SECRETS,
+          id,
+        }
+      };
+    }
+
+    return this._detailLocation;
+  }
+
+  get listLocation() {
+    if (this.hasProjectScopedUrlQueryParam || this.isProjectScoped) {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  this.$rootGetters['productId'],
+          cluster:  this.$rootGetters['clusterId'],
+          resource: VIRTUAL_TYPES.PROJECT_SECRETS,
+        }
+      };
+    }
+
+    return super.listLocation;
+  }
+
+  get hasProjectScopedUrlQueryParam() {
+    return this.currentRoute()?.query?.[SECRET_SCOPE] === SECRET_QUERY_PARAMS.PROJECT_SCOPED;
+  }
+
+  get parentNameOverride() {
+    if (this.hasProjectScopedUrlQueryParam || this.isProjectScoped) {
+      return this.$rootGetters['i18n/t'](`typeLabel."${ VIRTUAL_TYPES.PROJECT_SECRETS }"`, { count: 1 })?.trim();
+    }
+
+    return super.parentNameOverride;
+  }
+
+  get parentLocationOverride() {
+    if (this.hasProjectScopedUrlQueryParam || this.isProjectScoped) {
+      return this.listLocation;
+    }
+
+    return super.parentLocationOverride;
+  }
+
+  get groupByProject() {
+    if (!this.isProjectScoped) {
+      return undefined;
+    }
+
+    return this.t('resourceTable.groupLabel.project', { name: escapeHtml(this?.project?.nameDisplay || '') }, true);
+  }
+
+  get fullDetailPageOverride() {
+    return true;
   }
 }

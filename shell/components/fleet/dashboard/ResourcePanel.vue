@@ -307,8 +307,6 @@ export default {
     }
 
     .details {
-      padding: 5px;
-
       .description {
         .count {
           font-size: 25px;
@@ -339,7 +337,8 @@ export default {
           }
 
           &.bg-error {
-            background: var(--click-badge-error-bg);
+            // background: var(--click-badge-error-bg); TODO revert after dashboard theme colors refactoring
+            background: var(--error);
             color: var(--click-badge-error);
           }
 

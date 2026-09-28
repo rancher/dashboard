@@ -55,7 +55,7 @@ class GarbageCollect {
     [store: string]: {
       [type: string]: number;
     }
-  } = {}
+  } = {};
 
   /**
    * Track when a logged in route changes.

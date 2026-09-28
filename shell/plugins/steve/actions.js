@@ -10,6 +10,7 @@ import { NAMESPACE } from '@shell/config/types';
 import { handleKubeApiHeaderWarnings } from '@shell/plugins/steve/header-warnings';
 import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
 import paginationUtils from '@shell/utils/pagination-utils';
+import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 
 export default {
 
@@ -88,7 +89,7 @@ export default {
     }
 
     let paginatedResult;
-    const isSteveCacheUrl = getters.isSteveCacheUrl(opt.url);
+    const isSteveUrl = getters.isSteveUrl(opt.url);
 
     while (true) {
       try {
@@ -99,7 +100,7 @@ export default {
         }
 
         if (!paginatedResult) {
-          const pageByNumber = isSteveCacheUrl && opt.url.includes(`pagesize=${ paginationUtils.defaultPageSize }`) ? {
+          const pageByNumber = isSteveUrl && opt.url.includes(`pagesize=${ paginationUtils.defaultPageSize }`) ? {
             total: out.count,
             page:  1,
             url:   opt.url,
@@ -218,6 +219,99 @@ export default {
       finishDeferred(key, 'reject', out);
 
       return Promise.reject(out);
+    }
+  },
+
+  /**
+   * Fetch aggregated state counts for a resource type via the Steve summary API.
+   *
+   * Uses `summaryonly` by default so no resource data is returned.
+   *
+   * @param {object} ctx - Vuex action context
+   *   @param {object} ctx.getters
+   *   @param {Function} ctx.dispatch
+   * @param {object} payload
+   *   @param {string} payload.type - Resource type (e.g. 'pod', 'service')
+   *   @param {object} [payload.opt={}] - Options object
+   *     @param {string} [payload.opt.summaryField] - Field to aggregate counts by. Omitting it makes the action
+   *       warn and return `undefined`. Must be a field indexed by the VAI cache
+   *       (see StevePaginationUtils.VALID_FIELDS in steve-pagination-utils.ts)
+   *     @param {string} [payload.opt.namespace] - Namespace to scope the request to (only applies to namespaced resource types)
+   *     @param {boolean} [payload.opt.summaryOnly=true] - Omit resource data from the response (set to false to include data)
+   *     @param {boolean} [payload.opt.namespaceCounts] - Include per-namespace breakdowns in counts
+   *     @param {PaginationParamFilter[]} [payload.opt.filters] - Pre-built filters from PaginationParamFilter.createSingleField()
+   *     @param {KubeLabelSelector} [payload.opt.labelSelector] - Kube label selector to filter by (converted via convertLabelSelectorPaginationParams)
+   * @returns {Promise<{ count: number, summary: { property: string, counts: Record<string, { total: number, namespace?: Record<string, number> }> }[] | null } | undefined>}
+   *
+   * @example
+   * const result = await dispatch('fetchResourceSummary', {
+   *   type: 'pod',
+   *   opt:  { summaryField: 'metadata.state.name', labelSelector: { matchExpressions: podMatchExpression } }
+   * });
+   * // result.summary[0].counts => { running: { total: 3 }, error: { total: 1 } }
+   *
+   * // With namespace breakdowns:
+   * const result = await dispatch('fetchResourceSummary', {
+   *   type: 'pod',
+   *   opt:  { summaryField: 'metadata.state.name', namespaceCounts: true }
+   * });
+   * // result.summary[0].counts => { running: { total: 3, namespace: { default: 2, 'kube-system': 1 } } }
+   */
+  async fetchResourceSummary({ getters, dispatch }, { type, opt = {} }) {
+    type = getters.normalizeType(type);
+    const schema = getters.schemaFor(type);
+
+    if (!schema) {
+      console.warn(`fetchResourceSummary: no schema found for type "${ type }"`); // eslint-disable-line no-console
+
+      return undefined;
+    }
+
+    if (!opt.summaryField) {
+      console.warn(`fetchResourceSummary: summaryField is required and must be a string for type "${ type }"`); // eslint-disable-line no-console
+
+      return undefined;
+    }
+
+    try {
+      const url = new URL(schema.links.collection, window.location.origin);
+
+      if (schema.attributes?.namespaced && opt.namespace) {
+        url.pathname += `/${ opt.namespace }`;
+      }
+
+      url.searchParams.set('summary', opt.summaryField);
+
+      if (opt.summaryOnly !== false) {
+        url.searchParams.set('summaryonly', '');
+      }
+
+      if (opt.namespaceCounts) {
+        url.searchParams.set('summarynamespaced', '');
+      }
+
+      if (opt.filters?.length) {
+        const filterParams = new URLSearchParams(stevePaginationUtils.convertPaginationParams({ schema, filters: opt.filters }));
+
+        filterParams.forEach((v, k) => url.searchParams.append(k, v));
+      }
+
+      if (opt.labelSelector) {
+        const labelParams = new URLSearchParams(stevePaginationUtils.convertLabelSelectorPaginationParams({ labelSelector: opt.labelSelector }));
+
+        labelParams.forEach((v, k) => url.searchParams.append(k, v));
+      }
+
+      const res = await dispatch('request', { opt: { url: url.pathname + url.search } });
+
+      return {
+        count:   res.count ?? 0,
+        summary: res.summary || null
+      };
+    } catch (e) {
+      console.warn(`fetchResourceSummary: summary API request failed for type "${ type }"`, e); // eslint-disable-line no-console
+
+      return undefined;
     }
   },
 
@@ -340,9 +434,15 @@ export default {
     return resource;
   },
 
-  // remove fields added by steve before showing/downloading yamls
-  cleanForDownload(ctx, yaml) {
-    return steveCleanForDownload(yaml);
+  // remove fields added by steve before showing/downloading yamls.
+  // When editing, also hide server-managed metadata fields not suitable for editing.
+  cleanForDownload(ctx, payload) {
+    // Backwards compatibility: older callers (e.g. extensions built against a
+    // previous shell) dispatch the yaml string directly rather than a
+    // { yaml, opt } payload. Accept either shape.
+    const { yaml, opt } = typeof payload === 'string' ? { yaml: payload } : (payload || {});
+
+    return steveCleanForDownload(yaml, opt);
   }
 };
 

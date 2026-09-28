@@ -54,6 +54,11 @@ export default {
       default: ''
     },
 
+    compact: {
+      type:    Boolean,
+      default: false
+    },
+
     mode: {
       type:    String,
       default: _EDIT
@@ -251,7 +256,8 @@ export default {
     class="values-from-container"
     data-testid="fleet-values-from-list"
   >
-    <h2
+    <component
+      :is="!compact ? 'h2' : 'h4'"
       v-t="'fleet.helmOp.values.valuesFrom.selectLabel'"
       class="m-0"
     />
@@ -276,13 +282,13 @@ export default {
     <RcButton
       v-if="!isView"
       ref="add-button"
-      small
-      secondary
+      size="small"
+      variant="secondary"
       class="mmt-6"
       data-testid="fleet-values-from-add"
       @click="addValueFrom"
     >
-      <i class="icon icon-add" />
+      <i class="icon icon-plus" />
       {{ t('workload.container.command.addEnvVar') }}
     </RcButton>
   </div>

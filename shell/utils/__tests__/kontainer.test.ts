@@ -18,6 +18,25 @@ describe('fx: diffUpstreamSpec', () => {
   });
 
   it.each([
+    [{
+      a: { one: 'a' },
+      b: ['1', 'b'],
+      c: 'c'
+    }, {
+      a: {},
+      b: [],
+      c: ''
+    }, {
+      a: {},
+      b: [],
+      c: ''
+    }],
+    [{ a: 'a' }, { b: null }, { }],
+  ])('should include fields that are empty objects, arrays or strings on the local object regardless of upstream definition', (upstream, local, diff) => {
+    expect(diffUpstreamSpec(upstream, local)).toStrictEqual(diff);
+  });
+
+  it.each([
     [{ a: null }, { a: {} }, {}],
     [{ a: null }, { a: [] }, {}],
     [{ a: null }, { a: '' }, {}],

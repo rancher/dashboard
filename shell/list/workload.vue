@@ -1,8 +1,6 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import {
-  WORKLOAD_TYPES, SCHEMA, NODE, POD, LIST_WORKLOAD_TYPES
-} from '@shell/config/types';
+import { WORKLOAD_TYPES, SCHEMA, NODE, POD } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 
@@ -16,21 +14,10 @@ const workloadSchema = {
   metadata: { name: 'workload' },
 };
 
-const $loadingResources = ($route, $store) => {
-  const allowedResources = [];
-
-  Object.values(LIST_WORKLOAD_TYPES).forEach((type) => {
-    // You may not have RBAC to see some of the types
-    if ($store.getters['cluster/schemaFor'](type) ) {
-      allowedResources.push(type);
-    }
-  });
-
-  const allTypes = $route.params.resource === workloadSchema.id;
-
+const $loadingResources = ($route) => {
   return {
-    loadResources:     allTypes ? allowedResources : [$route.params.resource],
-    loadIndeterminate: allTypes,
+    loadResources:     [$route.params.resource],
+    loadIndeterminate: false,
   };
 };
 
@@ -51,11 +38,7 @@ export default {
       return;
     }
 
-    if (this.allTypes && this.loadResources.length) {
-      this.$initializeFetchData(this.loadResources[0], this.loadResources);
-    } else {
-      this.$initializeFetchData(this.$route.params.resource);
-    }
+    this.$initializeFetchData(this.$route.params.resource);
 
     try {
       const schema = this.$store.getters[`cluster/schemaFor`](NODE);
@@ -68,18 +51,12 @@ export default {
 
     this.loadHeathResources();
 
-    if ( this.allTypes ) {
-      this.resources = await Promise.all(this.loadResources.map((allowed) => {
-        return this.$fetchType(allowed, this.loadResources);
-      }));
-    } else {
-      const type = this.$route.params.resource;
+    const type = this.$route.params.resource;
 
-      if ( this.$store.getters['cluster/schemaFor'](type) ) {
-        const resource = await this.$fetchType(type);
+    if ( this.$store.getters['cluster/schemaFor'](type) ) {
+      const resource = await this.$fetchType(type);
 
-        this.resources = [resource];
-      }
+      this.resources = [resource];
     }
   },
 
@@ -88,17 +65,24 @@ export default {
     const { loadResources, loadIndeterminate } = $loadingResources(this.$route, this.$store);
 
     const { params:{ resource: type } } = this.$route;
-    const allTypes = this.$route.params.resource === workloadSchema.id;
     const schema = type !== workloadSchema.id ? this.$store.getters['cluster/schemaFor'](type) : workloadSchema;
-    const paginationEnabled = !allTypes && this.$store.getters[`cluster/paginationEnabled`]?.({ id: type });
+    const paginationEnabled = this.$store.getters[`cluster/paginationEnabled`]?.({ id: type });
+
+    const workloadIncludeAssociatedData = paginationEnabled && [
+      WORKLOAD_TYPES.DEPLOYMENT,
+      WORKLOAD_TYPES.REPLICA_SET,
+      WORKLOAD_TYPES.DAEMON_SET,
+      WORKLOAD_TYPES.STATEFUL_SET,
+      WORKLOAD_TYPES.JOB,
+    ].includes(type);
 
     return {
-      allTypes,
       schema,
       paginationEnabled,
       resources: [],
       loadResources,
-      loadIndeterminate
+      loadIndeterminate,
+      workloadIncludeAssociatedData
     };
   },
 
@@ -112,7 +96,7 @@ export default {
         }
 
         for ( const row of typeRows ) {
-          if (!this.allTypes || !row.ownedByWorkload) {
+          if (!row.ownedByWorkload) {
             out.push(row);
           }
         }
@@ -136,30 +120,23 @@ export default {
      * Fetch resources required to populate POD_RESTARTS and WORKLOAD_HEALTH_SCALE columns
      */
     loadHeathResources() {
-      // See https://github.com/rancher/dashboard/issues/10417, health comes from selectors applied locally to all pods (bad)
       if (this.paginationEnabled) {
-        // Unfortunately with SSP enabled we cannot fetch all pods to then let each row find applicable pods by locally applied selectors (bad for scaling)
-        // See https://github.com/rancher/dashboard/issues/14211
+        // When SSP is enabled we efficiently fetch stats for health column imbedded in the original resource type by supplying `includeAssociatedData` param
         return;
       }
 
       // Fetch these in the background
-      if ( this.allTypes ) {
-        this.$fetchType(POD);
+      const type = this.$route.params.resource;
+
+      if (type === WORKLOAD_TYPES.JOB || type === POD) {
+        // Ignore job and pods (we're fetching this anyway, plus they contain their own state)
+        return;
+      }
+
+      if (type === WORKLOAD_TYPES.CRON_JOB) {
         this.$fetchType(WORKLOAD_TYPES.JOB);
       } else {
-        const type = this.$route.params.resource;
-
-        if (type === WORKLOAD_TYPES.JOB || type === POD) {
-          // Ignore job and pods (we're fetching this anyway, plus they contain their own state)
-          return;
-        }
-
-        if (type === WORKLOAD_TYPES.CRON_JOB) {
-          this.$fetchType(WORKLOAD_TYPES.JOB);
-        } else {
-          this.$fetchType(POD);
-        }
+        this.$fetchType(POD);
       }
     }
   },
@@ -177,6 +154,7 @@ export default {
       v-if="paginationEnabled"
       :schema="schema"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :includeAssociatedData="workloadIncludeAssociatedData"
     />
     <ResourceTable
       v-else

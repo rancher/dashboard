@@ -64,6 +64,6 @@ export class FleetClusterGroupDetailsPo extends BaseDetailPagePo {
   }
 
   clusterList() {
-    return new ResourceTablePo('#clusters [data-testid="sortable-table-list-container"]');
+    return new ResourceTablePo('[data-testid="tab-panel-clusters"] [data-testid="sortable-table-list-container"]');
   }
 }

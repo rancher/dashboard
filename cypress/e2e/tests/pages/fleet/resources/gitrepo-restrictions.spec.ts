@@ -11,9 +11,36 @@ let removeRestriction = false;
 const restrictionNameList = [];
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('GitRepo Restrictions', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetRestrictionsListPage = new FleetGitRepoRestrictionListPagePo();
   const headerPo = new HeaderPo();
+
+  describe('Deprecation', () => {
+    before(() => {
+      cy.login();
+    });
+
+    it('shows a deprecation banner pointing to Policies', () => {
+      fleetRestrictionsListPage.goTo();
+      fleetRestrictionsListPage.waitForPage();
+
+      const banner = fleetRestrictionsListPage.deprecationBanner();
+
+      banner.banner().should('be.visible');
+
+      // The "Policies" link is an in-app route to the Fleet Policies list (no target).
+      banner.bannerElement('a[href*="fleet.cattle.io.policy"]')
+        .should('contain.text', 'Policies');
+
+      // Accept either docs site and channel: getGitRepoRestrictionMigrationDocsUrl picks community vs
+      // Prime from the edition and root vs `/next/` from the running Rancher version, so pinning one
+      // would tie the test to the backend's build.
+      banner.bannerElement('[data-testid="fleet-migration-guide-link"]')
+        .should('have.attr', 'target', '_blank')
+        .invoke('attr', 'href')
+        .should('match', /^https:\/\/(fleet\.rancher\.io\/(next\/)?how-tos-for-operators\/tenant-setup|documentation\.suse\.com\/cloudnative\/continuous-delivery\/(latest|next)\/en\/how-tos-for-operators\/tenant-setup\.html)#_migration_from_gitreporestriction$/);
+    });
+  });
 
   describe('CRUD', { tags: ['@fleet', '@adminUser'] }, () => {
     before(() => {
@@ -102,6 +129,10 @@ describe('GitRepo Restrictions', { testIsolation: 'off', tags: ['@fleet', '@admi
 
       fleetRestrictionsListPage.goTo();
       fleetRestrictionsListPage.waitForPage();
+      // A fresh goTo does not reliably preserve the fleet-default workspace filter, and a restriction
+      // is only listed in its own workspace - so select it explicitly (as the create test does) before
+      // acting on the row. In another workspace the row is simply absent and no retry can find it.
+      headerPo.selectWorkspace(defaultWorkspace);
       fleetRestrictionsListPage.list().actionMenu(customRestrictionName).getMenuItem('Clone')
         .click();
       fleetRestrictionCreateEditPage.waitForPage('mode=clone&as=yaml');
@@ -134,6 +165,8 @@ describe('GitRepo Restrictions', { testIsolation: 'off', tags: ['@fleet', '@admi
 
       fleetRestrictionsListPage.goTo();
       fleetRestrictionsListPage.waitForPage();
+      // Re-select the workspace so the restriction is listed (see the Clone test above).
+      headerPo.selectWorkspace(defaultWorkspace);
       fleetRestrictionsListPage.list().actionMenu(customRestrictionName).getMenuItem('Download YAML')
         .click();
 
@@ -151,6 +184,8 @@ describe('GitRepo Restrictions', { testIsolation: 'off', tags: ['@fleet', '@admi
     it('can delete a gitrepo restriction', () => {
       fleetRestrictionsListPage.goTo();
       fleetRestrictionsListPage.waitForPage();
+      // Re-select the workspace so the restriction is listed (see the Clone test above).
+      headerPo.selectWorkspace(defaultWorkspace);
       fleetRestrictionsListPage.list().actionMenu(`${ customRestrictionName }-clone`).getMenuItem('Delete')
         .click();
       fleetRestrictionsListPage.list().resourceTable().sortableTable()

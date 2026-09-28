@@ -5,16 +5,14 @@ export const waitFor = (testFn: Function, msg = '', timeoutMs = 3000000, interva
     if (testFn()) {
       gatedLog('Wait for', msg || 'unknown', 'done immediately');
       resolve(this);
+
+      return;
     }
     const timeout = setTimeout(() => {
       gatedLog('Wait for', msg, 'timed out');
       clearInterval(interval);
       clearTimeout(timeout);
-      if (msg) {
-        reject(new Error(`Failed waiting for: ${ msg }`));
-      } else {
-        throw new Error(`waitFor timed out after ${ timeoutMs / 1000 } seconds`);
-      }
+      reject(new Error(msg ? `Failed waiting for: ${ msg }` : `waitFor timed out after ${ timeoutMs / 1000 } seconds`));
     }, timeoutMs);
     const interval = setInterval(() => {
       if ( testFn() ) {

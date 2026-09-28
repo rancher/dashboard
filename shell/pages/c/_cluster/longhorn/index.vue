@@ -3,11 +3,13 @@ import { mapGetters } from 'vuex';
 import { SERVICE } from '@shell/config/types';
 import IconMessage from '@shell/components/IconMessage';
 import LazyImage from '@shell/components/LazyImage';
+import longhornSvg from '~shell/assets/images/vendor/longhorn.svg';
 import Loading from '@shell/components/Loading';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
   components: {
-    IconMessage, LazyImage, Loading
+    IconMessage, LazyImage, Loading, RcSeparator
   },
 
   async fetch() {
@@ -24,7 +26,7 @@ export default {
 
   data() {
     return {
-      longhornImgSrc: require('~shell/assets/images/vendor/longhorn.svg'),
+      longhornImgSrc: longhornSvg,
       uiServices:     null
     };
   },
@@ -87,7 +89,7 @@ export default {
           <div class="link-content">
             <t :k="fel.label" />
             <i class="icon icon-external-link pull-right" />
-            <hr role="none">
+            <RcSeparator />
             <div class="description"><t :k="fel.description" /></div>
           </div>
         </a>

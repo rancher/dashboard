@@ -13,7 +13,7 @@ function find(cache, type, rootState) {
   }
 
   try {
-    const pluginModel = rootState.$plugin.getDynamic('models', type);
+    const pluginModel = rootState.$extension.getDynamic('models', type);
     let base;
 
     if (!pluginModel) {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Bubble from '@shell/components/Resource/Detail/Card/PodsCard/Bubble.vue';
+import { RcCounterBadge } from '@components/Pill';
 import { StateColor, stateColorCssVar } from '@shell/utils/style';
 
 export interface Props {
@@ -24,7 +24,10 @@ const {
       {{ label }}
     </div>
     <div class="count">
-      <Bubble>{{ count }}</Bubble>
+      <RcCounterBadge
+        :count="count"
+        type="inactive"
+      />
     </div>
     <div class="percent text-muted">
       {{ percent.toFixed(1) }}%

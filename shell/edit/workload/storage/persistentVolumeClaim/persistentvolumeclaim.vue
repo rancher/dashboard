@@ -49,7 +49,13 @@ export default {
 
     this.storageClasses = hash.storageClasses;
     this.persistentVolumes = hash.persistentVolumes;
-    this.spec['storageClassName'] = (this.spec.storageClassName || this.defaultStorageClassName);
+
+    // Only default the storage class for a new PVC, which `applyDefaults` sets
+    // to an empty string. An existing StatefulSet volumeClaimTemplate without a
+    // storage class has no such key, and adding one is a forbidden mutation.
+    if (typeof this.spec.storageClassName === 'string') {
+      this.spec['storageClassName'] = (this.spec.storageClassName || this.defaultStorageClassName);
+    }
   },
 
   data() {

@@ -82,6 +82,12 @@
     }
   }
 
+  // Auto-grow TEXTAREA change to margin to prevent the label from overlapping the text when the textarea grows
+  TEXTAREA.auto-grow-labeled {
+    padding: 0;
+    margin: $input-padding-lg 0 0 0;
+  }
+
   &.view>DIV:not(.addon, .sub-label) {
     font-size: 14px;
     padding: $input-padding-lg 0 0 0;

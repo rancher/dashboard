@@ -4,10 +4,12 @@ import ResourceTable from '@shell/components/ResourceTable';
 import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
 import Masthead from '@shell/components/ResourceList/Masthead';
+import Banner from '@components/Banner/Banner.vue';
+
 export default {
   name:       'KontainerDrivers',
   components: {
-    ResourceTable, Loading, Masthead, AsyncButton
+    ResourceTable, Loading, Masthead, AsyncButton, Banner
   },
 
   async fetch() {
@@ -17,30 +19,33 @@ export default {
   data() {
     return {
       allDrivers:                       null,
-      canRefreshK8sMetadata:            true,
       resource:                         NORMAN.KONTAINER_DRIVER,
       schema:                           this.$store.getters['rancher/schemaFor'](NORMAN.KONTAINER_DRIVER),
       useQueryParamsForSimpleFiltering: false,
-      forceUpdateLiveAndDelayed:        10
+      forceUpdateLiveAndDelayed:        10,
     };
   },
   computed: {
     rows() {
       return this.allDrivers || [];
     },
+    hasEmberUiDrivers() {
+      return this.rows.some((driver) => driver.active && driver.isEmber);
+    },
   },
   methods: {
     async refreshK8sMetadata(buttonDone) {
       try {
         await this.$store.dispatch('rancher/request', {
-          url:    '/v3/kontainerdrivers?action=refresh',
-          method: 'post',
-          data:   { },
+          url:     '/v3/kontainerdrivers?action=refresh',
+          method:  'post',
+          data:    { },
+          timeout: 15000,
         });
 
         buttonDone(true);
       } catch (err) {
-        this.$store.dispatch('growl/fromError', { title: 'Error refreshing kontainer drivers', err }, { root: true });
+        this.$store.dispatch('growl/fromError', { title: this.t('drivers.kontainer.refreshError', { error: err }) }, { root: true });
         buttonDone(false);
       }
     }
@@ -58,7 +63,6 @@ export default {
     >
       <template #extraActions>
         <AsyncButton
-          v-if="canRefreshK8sMetadata"
           mode="refresh"
           :action-label="t('drivers.actions.refresh')"
           :waiting-label="t('drivers.actions.refresh')"
@@ -69,6 +73,11 @@ export default {
         />
       </template>
     </Masthead>
+    <Banner
+      v-if="hasEmberUiDrivers"
+      color="warning"
+      label-key="drivers.kontainer.emberRemovalMessage"
+    />
     <ResourceTable
       :schema="schema"
       :rows="rows"

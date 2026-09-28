@@ -1,8 +1,10 @@
 <script>
+import { RcButton } from '@components/RcButton';
 import Login from '@shell/mixins/login';
 
 export default {
-  mixins: [Login],
+  components: { RcButton },
+  mixins:     [Login],
 
   methods: {
     login() {
@@ -14,13 +16,14 @@ export default {
 
 <template>
   <div class="text-center">
-    <button
+    <RcButton
       ref="btn"
-      class="btn bg-primary"
-      style="font-size: 18px;"
+      variant="primary"
+      size="large"
+      data-testid="login-provider-submit"
       @click="login"
     >
       {{ t('login.loginWithProvider', {provider: displayName}) }}
-    </button>
+    </RcButton>
   </div>
 </template>

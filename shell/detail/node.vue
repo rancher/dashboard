@@ -13,7 +13,7 @@ import {
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import { METRIC, POD } from '@shell/config/types';
 import createEditView from '@shell/mixins/create-edit-view';
-import { formatSi, exponentNeeded, UNITS } from '@shell/utils/units';
+import { formatSi } from '@shell/utils/units';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
@@ -53,7 +53,7 @@ export default {
       this.filterByApi = this.$store.getters[`cluster/paginationEnabled`](POD);
 
       if (this.filterByApi) {
-      // Only get pods associated with this node. The actual values used are from a get all in node model `pods` getter (this works as it just gets all...)
+        // Only get pods associated with this node. The actual values used are from a get all in node model `pods` getter (this works as it just gets all...)
         const opt = { // Of type ActionFindPageArgs
           pagination: new FilterArgs({
             sort:    [{ field: 'metadata.name', asc: true }],
@@ -110,12 +110,6 @@ export default {
 
   computed: {
     ...mapGetters(['currentCluster']),
-    memoryUnits() {
-      const exponent = exponentNeeded(this.value.ramReserved, 1024);
-
-      return `${ UNITS[exponent] }iB`;
-    },
-
     pidPressureStatus() {
       return this.mapToStatus(this.value.isPidPressureOk);
     },
@@ -161,9 +155,12 @@ export default {
 
   methods: {
     memoryFormatter(value) {
+      // Each value is scaled independently, so it has to carry its own unit -
+      // a node using 900MiB of 62GiB must not read "900 GiB of 62 GiB".
       const formatOptions = {
-        addSuffix: false,
-        increment: 1024,
+        increment:   1024,
+        suffix:      'iB',
+        firstSuffix: 'B',
       };
 
       return formatSi(value, formatOptions);
@@ -196,7 +193,6 @@ export default {
     v-else
     class="node"
   >
-    <div class="spacer" />
     <div class="alerts">
       <Alert
         class="mr-10"
@@ -221,20 +217,20 @@ export default {
     <div class="mt-20 resources">
       <ConsumptionGauge
         :resource-name="t('node.detail.glance.consumptionGauge.cpu')"
-        :capacity="value.cpuCapacity"
+        :capacity="value.cpuAllocatable"
         :used="value.cpuUsage"
       />
       <ConsumptionGauge
         :resource-name="t('node.detail.glance.consumptionGauge.memory')"
-        :capacity="value.ramReserved"
+        :capacity="value.ramAllocatable"
         :used="value.ramUsage"
-        :units="memoryUnits"
         :number-formatter="memoryFormatter"
       />
       <ConsumptionGauge
         :resource-name="t('node.detail.glance.consumptionGauge.pods')"
         :capacity="value.podCapacity"
         :used="value.podConsumed"
+        :used-label="t('node.detail.glance.consumptionGauge.running')"
       />
     </div>
     <div class="spacer" />
@@ -270,7 +266,7 @@ export default {
             :detail-url="NODE_METRICS_DETAIL_URL"
             :summary-url="NODE_METRICS_SUMMARY_URL"
             :vars="graphVars"
-            graph-height="825px"
+            graph-height="875px"
           />
         </template>
       </Tab>

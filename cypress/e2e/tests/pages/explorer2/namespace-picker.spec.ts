@@ -5,7 +5,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const namespacePicker = new NamespaceFilterPo();
 
-describe('Namespace picker', { testIsolation: 'off' }, () => {
+describe('Namespace picker', { testIsolation: false }, () => {
   let removeProjectAndNs = false;
   let projectId: string;
   const projName = `project${ +new Date() }`;
@@ -20,9 +20,9 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     HomePagePo.goTo();
     ClusterDashboardPagePo.navTo();
 
-    // reset namespace picker to default state
+    // reset namespace picker to default state with proper wait
     namespacePicker.toggle();
-    namespacePicker.clickOptionByLabel('Only User Namespaces');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Only User Namespaces');
     namespacePicker.isChecked('Only User Namespaces');
     namespacePicker.closeDropdown();
   });
@@ -31,7 +31,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     // Verify 'Namespace: cattle-fleet-system' appears once when filtering by Namespace
     // Verify multiple namespaces within Project: System display when filtering by Project
 
-    // group workloads by namespace
+    // group workloads by namespace - updateNamespaceFilter handles its own waiting internally
     cy.updateNamespaceFilter('local', 'metadata.namespace', '{"local":["all://user"]}');
 
     const workloadsPodPage = new WorkloadsPodsListPagePo('local');
@@ -46,12 +46,26 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     workloadsPodPage.list().resourceTable().sortableTable().groupByButtons(1)
       .click();
 
+    // Wait for the namespace picker to be ready before interacting with it
+    namespacePicker.namespaceDropdown().should('be.visible');
+
     // Filter by Namespace: Select 'cattle-fleet-system'
     namespacePicker.toggle();
+    // Wait for dropdown to open and options to be populated
+    namespacePicker.getOptions().should('be.visible');
     namespacePicker.getOptions().find('#ns_cattle-fleet-system').should('exist');
-    namespacePicker.clickOptionByLabel('cattle-fleet-system');
-    namespacePicker.isChecked('cattle-fleet-system');
+    // Wait for the selection's userpreferences PUT to complete rather than asserting the
+    // in-place checkmark, which is not reactive (it only refreshes on a fresh dropdown render
+    // and races the async settle). The reactive filtered-table check below is the real proof.
+    namespacePicker.clickOptionByLabelAndWaitForRequest('cattle-fleet-system');
     namespacePicker.closeDropdown();
+    // Wait for dropdown to close completely before proceeding
+    namespacePicker.self().should('be.visible');
+    namespacePicker.getOptions().should('not.exist');
+
+    // Wait for API call to complete and table to update after namespace filter change
+    cy.wait('@getPods');
+    workloadsPodPage.list().resourceTable().sortableTable().checkVisible();
     workloadsPodPage.list().resourceTable().sortableTable()
       .groupElementWithName('cattle-fleet-system')
       .scrollIntoView()
@@ -60,14 +74,28 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
 
     // clear selection: from dropdown controller
     namespacePicker.toggle();
-    namespacePicker.selectedValues().find('i').trigger('click');
-    // 'Only User Namespaces' option should be selected after clearing
-    namespacePicker.isChecked('Only User Namespaces');
+    // Wait for dropdown options to be available before interacting
+    namespacePicker.getOptions().should('be.visible');
+    // Use the clear-all control rather than the selected chip's close icon: on a page
+    // that forces namespace filtering, the per-chip close icon is intentionally not
+    // rendered while only one namespace is selected ("block removing the last
+    // selection"), so `selectedValues().find('i')` finds nothing and flakes.
+    // clearSelectionButtonAndWaitForRequest already waits for the clear's userpreferences PUT,
+    // which re-applies the forced 'Only User Namespaces' default. Don't assert the non-reactive
+    // checkmark here; the subsequent project selection + reactive table check below is the proof.
+    namespacePicker.clearSelectionButtonAndWaitForRequest();
 
-    // Filter by Project: Select 'Project: System'
-    namespacePicker.clickOptionByLabel('Project: System');
-    namespacePicker.isChecked('Project: System');
+    // Filter by Project: Select 'Project: System'. Wait for its userpreferences PUT rather than
+    // the non-reactive checkmark; the filtered-table assertion below verifies the selection took.
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Project: System');
     namespacePicker.closeDropdown();
+    // Wait for dropdown to close completely
+    namespacePicker.self().should('be.visible');
+    namespacePicker.getOptions().should('not.exist');
+
+    // Wait for API call to complete and table to update after project filter change
+    cy.wait('@getPods');
+    workloadsPodPage.list().resourceTable().sortableTable().checkVisible();
     workloadsPodPage.list().resourceTable().sortableTable().groupElementWithName('kube-system')
       .scrollIntoView()
       .should('be.visible');
@@ -76,44 +104,30 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
       .should('be.visible');
   });
 
-  it('can select only one of the top 5 resource filters at a time', { tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
-    // Verify that user can only select one of the first 5 options
-
+  it('can select only one of the top 3 namespace filters at a time', { tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
     namespacePicker.toggle();
 
     // Select 'All Namespaces'
-    namespacePicker.clickOptionByLabel('All Namespaces');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('All Namespaces');
     namespacePicker.isChecked('All Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'Only User Namespaces'
-    namespacePicker.clickOptionByLabel('Only User Namespaces');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Only User Namespaces');
     namespacePicker.isChecked('Only User Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'Only System Namespaces'
-    namespacePicker.clickOptionByLabel('Only System Namespaces');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Only System Namespaces');
     namespacePicker.isChecked('Only System Namespaces');
-    namespacePicker.checkIcon().should('have.length', 1);
-
-    // Select 'Only Namespaced Resources'
-    namespacePicker.clickOptionByLabel('Only Namespaced Resources');
-    namespacePicker.isChecked('Only Namespaced Resources');
-    namespacePicker.checkIcon().should('have.length', 1);
-
-    // Select 'Only Cluster Resources'
-    namespacePicker.clickOptionByLabel('Only Cluster Resources');
-    namespacePicker.isChecked('Only Cluster Resources');
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
   it('can select multiple projects/namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
-    // Verify that user can select multiple options (other than the first 5 options)
-
     namespacePicker.toggle();
 
     // Select 'Project: Default'
-    namespacePicker.clickOptionByLabel('Project: Default');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Project: Default');
     namespacePicker.isChecked('Project: Default');
     namespacePicker.checkIcon().should('have.length', 1);
 
@@ -123,7 +137,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 2);
 
     // Select 'Project: System'
-    namespacePicker.clickOptionByLabel('Project: System');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Project: System');
     namespacePicker.isChecked('Project: System');
     namespacePicker.checkIcon().should('have.length', 3);
 
@@ -137,8 +151,10 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.selectedValues().find('.ns-value').contains('Project: Default').should('be.visible');
     namespacePicker.namespaceDropdown().find('.ns-more').should('contains.text', '+3');
     namespacePicker.closeDropdown();
-    namespacePicker.selectedValues().should('have.class', 'v-popper--has-tooltip');
-    namespacePicker.moreOptionsSelected().should('have.class', 'v-popper--has-tooltip');
+    namespacePicker.selectedValues().realHover();
+    namespacePicker.selectedValues().should('have.class', 'has-clean-tooltip');
+    namespacePicker.moreOptionsSelected().realHover();
+    namespacePicker.moreOptionsSelected().should('have.class', 'has-clean-tooltip');
   });
 
   it('can deselect options', { tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
@@ -162,9 +178,10 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
 
     // clear selection from dropdown menu
-    namespacePicker.clearSelectionButton();
-    // 'Only User Namespaces' option should be selected after clearing
-    namespacePicker.isChecked('Only User Namespaces');
+    namespacePicker.clearSelectionButtonAndWaitForRequest();
+    // 'Only User Namespaces' option should be selected after clearing (checkmark is not reactive and
+    // the forced default is re-applied asynchronously, so reopen-and-recheck until it appears).
+    namespacePicker.ensureOptionChecked('Only User Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
@@ -196,15 +213,15 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Reset: clear selection from dropdown menu
-    namespacePicker.clearSelectionButton();
-    namespacePicker.isChecked('Only User Namespaces');
+    namespacePicker.clearSelectionButtonAndWaitForRequest();
+    namespacePicker.ensureOptionChecked('Only User Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
   it('newly created project/namespace appears in namespace picker', { tags: ['@explorer2', '@adminUser'] }, () => {
     // get user id
-    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-      const userId = resp.body.data[0].id.trim();
+    cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.status.userID;
 
       // create project
       cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {
@@ -227,8 +244,8 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     const nsNameToDelete = `namespace-to-delete${ +new Date() }`;
 
     // get user id
-    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-      const userId = resp.body.data[0].id.trim();
+    cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.status.userID;
 
       // create project
       cy.createProject(projNameToDelete, 'local', userId).then((resp: Cypress.Response<any>) => {
@@ -255,7 +272,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   after('clean up', () => {
-    cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+    cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}', { delay: true });
 
     if (removeProjectAndNs) {
       // delete project and ns

@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import RcItemCard from './RcItemCard.vue';
 import RcItemCardAction from './RcItemCardAction.vue';
+import { DropdownOption } from '@components/RcDropdown/types';
 
 class ResizeObserverMock {
   observe = jest.fn();
@@ -11,6 +12,12 @@ class ResizeObserverMock {
 global.ResizeObserver = ResizeObserverMock;
 
 const id = 'test';
+
+// RcDropdown's DropdownOption, which RcItemCard forwards to ActionMenu, carries
+// bulk-action bookkeeping that RcItemCard never reads.
+const actionDefaults: DropdownOption = {
+  enabled: true, total: 1, allEnabled: true, anyEnabled: true, available: 1
+};
 
 const baseProps = {
   id,
@@ -34,6 +41,24 @@ describe('rcItemCard', () => {
     expect(wrapper.get('[data-testid="item-card-content"]').text()).toContain('Card description here');
     expect(wrapper.get('[data-testid="item-card-image"]')).toBeTruthy();
     expect(wrapper.findAll(`[data-testid="item-card-header-statuses-status"]`)).toHaveLength(2);
+  });
+
+  // Regression: when image.src is falsy, LazyImage must still render so its own
+  // empty-src fallback (generic catalog icon) is shown. Previously the template
+  // was gated by `v-else-if="image.src"` and showed an empty box for missing icons.
+  it.each(['medium', 'small'] as const)('renders LazyImage with an empty src when image.src is falsy (%s variant)', (variant) => {
+    const wrapper = mount(RcItemCard, {
+      props: {
+        ...baseProps,
+        variant,
+        image: { src: '', alt: { text: 'Logo' } },
+      }
+    });
+
+    const lazy = wrapper.findComponent({ name: 'LazyImage' });
+
+    expect(lazy.exists()).toBe(true);
+    expect(lazy.props('src')).toBe('');
   });
 
   it('renders pill only in medium variant', () => {
@@ -72,7 +97,9 @@ describe('rcItemCard', () => {
     const wrapper = mount(RcItemCard, {
       props: {
         ...baseProps,
-        actions: [{ action: 'test', label: 'test' }]
+        actions: [{
+          ...actionDefaults, action: 'test', label: 'test'
+        }]
       }
     });
 
@@ -95,10 +122,10 @@ describe('rcItemCard', () => {
 
     await wrapper.trigger('click');
 
-    const emitted = wrapper.emitted('card-click');
+    const emitted = wrapper.emitted('card-click') as [Record<string, unknown>][];
 
     expect(emitted).toBeTruthy();
-    expect(emitted?.[0]).toStrictEqual([{ someProperty: 'some-value' }]);
+    expect(emitted[0]).toStrictEqual([{ someProperty: 'some-value' }]);
   });
 
   it('does not emit card-click when clicking on rc-item-card-action content', async() => {
@@ -124,7 +151,7 @@ describe('rcItemCard', () => {
       }
     });
 
-    const root = wrapper.get(`[data-testid="item-card-${ id }"]`);
+    const root = wrapper.get(`[data-testid="card-header-left"]`);
 
     expect(root.attributes('role')).toBe('button');
     expect(root.attributes('tabindex')).toBe('0');
@@ -152,7 +179,9 @@ describe('rcItemCard', () => {
       }
     });
 
-    await wrapper.trigger('keydown.enter');
+    const clickTarget = wrapper.find('.item-card-header-left');
+
+    await clickTarget.trigger('keydown.enter');
     expect(wrapper.emitted('card-click')).toBeTruthy();
   });
 
@@ -185,5 +214,46 @@ describe('rcItemCard', () => {
     const icon = wrapper.get('[data-testid="item-card-header-status-0"]');
 
     expect(icon.attributes('style')).toContain('color: red');
+  });
+
+  it('emits action-invoked event when action is triggered', async() => {
+    const wrapper = mount(RcItemCard, {
+      props: {
+        ...baseProps,
+        actions: [
+          {
+            ...actionDefaults, action: 'myActionA', label: 'Edit'
+          },
+          {
+            ...actionDefaults, action: 'myActionB', label: 'Delete'
+          }
+        ]
+      }
+    });
+
+    // Simulate the action-invoked event being emitted from ActionMenu
+    const actionMenu = wrapper.findComponent({ name: 'ActionMenuShell' });
+
+    expect(actionMenu.exists()).toBe(true);
+
+    // Emit action-invoked event with payload
+    const payload = {
+      action: 'myActionA', actionData: { action: 'myActionA', label: 'Edit' }, event: new MouseEvent('click')
+    };
+
+    actionMenu.vm.$emit('action-invoked', payload);
+    await wrapper.vm.$nextTick();
+
+    const emitted = wrapper.emitted('action-invoked') as [typeof payload][];
+
+    expect(emitted).toBeTruthy();
+    expect(emitted[0]).toStrictEqual([payload]);
+  });
+
+  it('titles the card without adding it to the page heading outline', () => {
+    const wrapper = mount(RcItemCard, { props: baseProps });
+
+    expect(wrapper.get('[data-testid="item-card-header-title"]').element.tagName).toBe('DIV');
+    expect(wrapper.find('h1, h2, h3, h4, h5, h6').exists()).toBe(false);
   });
 });

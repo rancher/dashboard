@@ -13,8 +13,12 @@ export default class RegistriesTabPo extends ComponentPo {
     return new CheckboxInputPo('[data-testid="registries-enable-checkbox"]');
   }
 
+  showAdvanced() {
+    return this.self().find('[data-testid="registries-advanced-section"] a');
+  }
+
   clickShowAdvanced(): void {
-    this.self().find('[data-testid="registries-advanced-section"]').click();
+    this.showAdvanced().click();
   }
 
   advancedToggle() {

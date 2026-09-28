@@ -1,6 +1,15 @@
 import Namespace from '@shell/models/namespace';
-import { SYSTEM_NAMESPACE } from '@shell/config/labels-annotations';
+import { RESOURCE_QUOTA, SYSTEM_NAMESPACE } from '@shell/config/labels-annotations';
 import SYSTEM_NAMESPACES from '@shell/config/system-namespaces';
+import { LOCAL_CLUSTER } from '@shell/config/types';
+import { NAME as MANAGER } from '@shell/config/product/manager';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
+
+jest.mock('@shell/components/nav/TopLevelMenu.helper', () => ({
+  __esModule: true,
+  default:    { helper: { clustersLocal: [] } },
+}));
 
 describe('class Namespace', () => {
   describe('checking if isSystem', () => {
@@ -11,11 +20,13 @@ describe('class Namespace', () => {
     ])('should return true if it has the correct annotation', (name, annotation, expectation) => {
       const namespace = new Namespace({});
 
-      namespace.metadata = { ...namespace.metadata, name };
+      const metadata: { name: string, annotations?: Record<string, string> } = { ...namespace.metadata, name };
 
       if (annotation) {
-        namespace.metadata.annotations = { [annotation]: 'true' };
+        metadata.annotations = { [annotation]: 'true' };
       }
+
+      namespace.metadata = metadata;
 
       expect(namespace.isSystem).toBe(expectation);
     });
@@ -28,6 +39,7 @@ describe('class Namespace', () => {
 
     assertionsArr.push(['c-whatever-system', false]);
     assertionsArr.push(['cattle-whatever', false]);
+    assertionsArr.push(['k3k-system', true]);
     assertionsArr.push(['', false]);
 
     it.each(assertionsArr)('should return true if it belongs to the curated list of namespaces', (name, expectation) => {
@@ -62,11 +74,13 @@ describe('class Namespace', () => {
     ])('should return a value if is system AND has the correct prefix', (name, annotation, expectation) => {
       const namespace = new Namespace({});
 
-      namespace.metadata = { ...namespace.metadata, name };
+      const metadata: { name: string, annotations?: Record<string, string> } = { ...namespace.metadata, name };
 
       if (annotation) {
-        namespace.metadata.annotations = { [annotation]: 'true' };
+        metadata.annotations = { [annotation]: 'true' };
       }
+
+      namespace.metadata = metadata;
 
       expect(namespace.isObscure).toBe(expectation);
     });
@@ -150,6 +164,42 @@ describe('class Namespace', () => {
   it.todo('should disableAutoInjection');
   it.todo('should check if confirmRemove');
 
+  describe('move action availability', () => {
+    const SteveModelProto = Object.getPrototypeOf(Namespace.prototype);
+
+    const makeNamespace = ({ canUpdate }: { canUpdate: boolean }) => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({
+        isRancher:       true,
+        isSingleProduct: false,
+        'i18n/t':        (key: string) => key,
+      });
+      Object.defineProperty(namespace, 'istioInstalled', { get: () => false, configurable: true });
+      Object.defineProperty(namespace, 'canUpdate', { get: () => canUpdate, configurable: true });
+      jest.spyOn(SteveModelProto, '_availableActions', 'get').mockReturnValue([]);
+
+      return namespace;
+    };
+
+    it('should include the move action when user can update the namespace', () => {
+      const namespace = makeNamespace({ canUpdate: true });
+
+      const moveAction = namespace.availableActions.find((a: any) => a.action === 'move');
+
+      expect(moveAction).toBeDefined();
+      expect(moveAction?.enabled).toBe(true);
+    });
+
+    it('should exclude the move action when user cannot update the namespace', () => {
+      const namespace = makeNamespace({ canUpdate: false });
+
+      const moveAction = namespace.availableActions.find((a: any) => a.action === 'move');
+
+      expect(moveAction).toBeUndefined();
+    });
+  });
+
   describe('handling listLocation', () => {
     it.each([
       ['c-cluster-product-projectsnamespaces', true],
@@ -165,25 +215,251 @@ describe('class Namespace', () => {
       expect(namespace.listLocation.name).toBe(name);
     });
 
-    it('should return the name and resource if Harvester', () => {
+    it('should route to local cluster explorer when in manager product', () => {
       const namespace = new Namespace({});
 
       jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({
         isRancher:      true,
-        currentProduct: { inStore: 'harvester' }
+        productId:      MANAGER,
+        clusterId:      '_',
+        currentProduct: { inStore: '' },
       });
 
-      const value = {
-        name:   'harvester-c-cluster-projectsnamespaces',
-        params: { resource: 'namespace' }
-      };
+      expect(namespace.listLocation.params.cluster).toBe(LOCAL_CLUSTER);
+      expect(namespace.listLocation.params.product).toBe(EXPLORER);
+    });
 
-      expect(namespace.listLocation).toStrictEqual(value);
+    it('should use current cluster and always use explorer product when not in manager', () => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({
+        isRancher:      true,
+        productId:      EXPLORER,
+        clusterId:      'c-abc',
+        currentProduct: { inStore: '' },
+      });
+
+      expect(namespace.listLocation.params.cluster).toBe('c-abc');
+      expect(namespace.listLocation.params.product).toBe(EXPLORER);
     });
   });
 
-  it.todo('should return _detailLocation with a name');
-  it.todo('should return the resourceQuota');
+  describe('handling _detailLocation', () => {
+    const mockDetailLocation = (namespace: any, overrides: Record<string, any>) => {
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue(overrides);
+      jest.spyOn(namespace, '$getters', 'get').mockReturnValue({ schemaFor: () => ({ attributes: { namespaced: false } }) });
+      Object.defineProperty(namespace, 'isProdRegistrationV2TopLevelProductResoure', { get: () => false });
+    };
+
+    it('should route to local cluster explorer when in manager product', () => {
+      const namespace = new Namespace({});
+
+      mockDetailLocation(namespace, { productId: MANAGER, clusterId: '_' });
+
+      const loc = namespace._detailLocation;
+
+      expect(loc.params.cluster).toBe(LOCAL_CLUSTER);
+      expect(loc.params.product).toBe(EXPLORER);
+    });
+
+    it('should use current cluster and product when not in manager product', () => {
+      const namespace = new Namespace({});
+
+      mockDetailLocation(namespace, { productId: EXPLORER, clusterId: 'c-abc' });
+
+      const loc = namespace._detailLocation;
+
+      expect(loc.params.cluster).toBe('c-abc');
+      expect(loc.params.product).toBe(EXPLORER);
+    });
+  });
+  describe('resourceQuota', () => {
+    it('should return the parsed resourceQuota annotation', () => {
+      const namespace = new Namespace({ metadata: { annotations: { [RESOURCE_QUOTA]: '{"limit":{"limitsCpu":"500m"}}' } } });
+
+      expect(namespace.resourceQuota).toStrictEqual({ limit: { limitsCpu: '500m' } });
+    });
+
+    it.each([
+      ['there are no annotations', undefined],
+      ['the annotation is missing', {}],
+      ['the annotation is malformed JSON', { [RESOURCE_QUOTA]: '{"limit":{"limitsCpu":"500m"\'' }],
+      ['the annotation is JSON null', { [RESOURCE_QUOTA]: 'null' }],
+      ['the annotation is a JSON array', { [RESOURCE_QUOTA]: '[]' }],
+    ])('should return an empty limit when %s', (_, annotations) => {
+      const namespace = new Namespace({ metadata: { annotations } });
+
+      expect(namespace.resourceQuota).toStrictEqual({ limit: {} });
+    });
+  });
+
+  describe('hasInvalidResourceQuota', () => {
+    it.each([
+      [false, 'there are no annotations', undefined],
+      [false, 'the annotation is missing', {}],
+      [false, 'the annotation is valid', { [RESOURCE_QUOTA]: '{"limit":{"limitsCpu":"500m"}}' }],
+      [true, 'the annotation is malformed JSON', { [RESOURCE_QUOTA]: '{"limit":{"limitsCpu":"500m"\'' }],
+      [true, 'the annotation is JSON null', { [RESOURCE_QUOTA]: 'null' }],
+      [true, 'the annotation is a JSON array', { [RESOURCE_QUOTA]: '[]' }],
+    ])('should return %p when %s', (expected, _, annotations) => {
+      const namespace = new Namespace({ metadata: { annotations } });
+
+      expect(namespace.hasInvalidResourceQuota).toBe(expected);
+    });
+  });
+
   it.todo('should set the resourceQuota as reactive Vue property');
   it.todo('should reset project with cleanForNew');
+
+  describe('hideDetailLocation', () => {
+    it('should not throw when currentProduct is undefined', () => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({ currentProduct: undefined });
+
+      expect(() => namespace.hideDetailLocation).not.toThrow();
+      expect(namespace.hideDetailLocation).toBe(true);
+    });
+  });
+
+  describe('glance', () => {
+    it('should return projectGlance instead of namespace when namespace is in a project', () => {
+      const t = jest.fn((key) => key);
+      const ctx = { rootGetters: { 'i18n/t': t } };
+      const namespace = new Namespace({}, ctx);
+
+      const project = {
+        detailLocation: 'project-detail',
+        nameDisplay:    'My Project',
+      };
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue(project);
+      Object.defineProperty(namespace, '_glance', { get: jest.fn(() => [{ name: 'namespace' }, { name: 'other' }]) });
+
+      const result = namespace.glance;
+
+      expect(result).toHaveLength(2);
+      expect(result[0].name).toBe('project');
+      expect(result[0].label).toBe('component.resource.detail.glance.project');
+      expect(result[0].formatter).toBe('Link');
+      expect(result[0].formatterOpts?.to).toBe('project-detail');
+      expect(result[0].content).toBe('My Project');
+      expect(result[1].name).toBe('other');
+    });
+
+    it('should remove namespace from glance when namespace is not in a project', () => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({ productId: EXPLORER });
+      Object.defineProperty(namespace, '_glance', { get: jest.fn(() => [{ name: 'namespace' }, { name: 'other' }]) });
+
+      const result = namespace.glance;
+
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('other');
+    });
+
+    it('should remove type Link formatter when in manager product without local cluster access', () => {
+      const namespace = new Namespace({});
+
+      sideNavService.helper.clustersLocal.length = 0;
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({ productId: MANAGER });
+      Object.defineProperty(namespace, '_glance', {
+        get: jest.fn(() => [
+          {
+            name: 'type', formatter: 'Link', formatterOpts: { to: {}, row: {} }
+          },
+          { name: 'other' },
+        ])
+      });
+
+      const result = namespace.glance;
+      const typeItem = result.find((item: any) => item.name === 'type');
+
+      expect(typeItem).toBeDefined();
+      expect(typeItem?.formatter).toBeUndefined();
+      expect(typeItem?.formatterOpts).toBeUndefined();
+    });
+
+    it('should keep type Link formatter when in manager product with local cluster access', () => {
+      const namespace = new Namespace({});
+
+      sideNavService.helper.clustersLocal.length = 0;
+      sideNavService.helper.clustersLocal.push({ id: LOCAL_CLUSTER } as any);
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({ productId: MANAGER });
+      Object.defineProperty(namespace, '_glance', {
+        get: jest.fn(() => [
+          {
+            name: 'type', formatter: 'Link', formatterOpts: { to: {}, row: {} }
+          },
+          { name: 'other' },
+        ])
+      });
+
+      const result = namespace.glance;
+      const typeItem = result.find((item: any) => item.name === 'type');
+
+      expect(typeItem).toBeDefined();
+      expect(typeItem?.formatter).toBe('Link');
+      expect(typeItem?.formatterOpts).toBeDefined();
+    });
+
+    it('should keep type Link formatter when not in manager product', () => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
+      jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({ productId: EXPLORER });
+      Object.defineProperty(namespace, '_glance', {
+        get: jest.fn(() => [
+          {
+            name: 'type', formatter: 'Link', formatterOpts: { to: {}, row: {} }
+          },
+          { name: 'other' },
+        ])
+      });
+
+      const result = namespace.glance;
+      const typeItem = result.find((item: any) => item.name === 'type');
+
+      expect(typeItem).toBeDefined();
+      expect(typeItem?.formatter).toBe('Link');
+      expect(typeItem?.formatterOpts).toBeDefined();
+    });
+  });
+
+  describe('projectGlance', () => {
+    it('should return undefined if namespace is not in a project', () => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
+
+      expect(namespace.projectGlance).toBeUndefined();
+    });
+
+    it('should return project glance information if namespace is in a project', () => {
+      const t = jest.fn((key) => key);
+      const ctx = { rootGetters: { 'i18n/t': t } };
+      const namespace = new Namespace({}, ctx);
+
+      const project = {
+        detailLocation: 'project-detail',
+        nameDisplay:    'My Project',
+      };
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue(project);
+
+      const result = namespace.projectGlance;
+
+      expect(result?.name).toBe('project');
+      expect(result?.label).toBe('component.resource.detail.glance.project');
+      expect(result?.formatter).toBe('Link');
+      expect(result?.formatterOpts.to).toBe('project-detail');
+      expect(result?.content).toBe('My Project');
+    });
+  });
 });

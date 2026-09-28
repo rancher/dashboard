@@ -1,9 +1,10 @@
 import { escapeHtml, ucFirst } from '@shell/utils/string';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { addObject, addObjects, findBy } from '@shell/utils/array';
-import { FLEET, MANAGEMENT } from '@shell/config/types';
+import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { convertSelectorObj, matching } from '@shell/utils/selector';
+import { convertSelectorObj, matches, matching } from '@shell/utils/selector';
+import FleetUtils from '@shell/utils/fleet';
 
 export default class FleetBundle extends SteveModel {
   get lastUpdateTime() {
@@ -31,8 +32,8 @@ export default class FleetBundle extends SteveModel {
       FLEET.WORKSPACE,
       this.metadata.namespace
     );
-    const clusters = workspace?.clusters || [];
-    const groups = workspace?.clusterGroups || [];
+    const clusters = [...(workspace?.clusters || [])];
+    const groups = [...(workspace?.clusterGroups || [])];
     const out = [];
 
     if (workspace.id === 'fleet-local') {
@@ -45,9 +46,47 @@ export default class FleetBundle extends SteveModel {
       return [];
     }
 
+    const allMappings = this.$getters['all'](FLEET.BUNDLE_NAMESPACE_MAPPING) || [];
+    const bundleNs = this.metadata.namespace;
+
+    for (const mapping of allMappings) {
+      if (mapping.metadata?.namespace !== bundleNs) {
+        continue;
+      }
+
+      if (mapping.bundleSelector) {
+        const bundleExpressions = convertSelectorObj(mapping.bundleSelector);
+
+        if (!matches(this, bundleExpressions)) {
+          continue;
+        }
+      }
+
+      if (mapping.namespaceSelector) {
+        const allWorkspaces = this.$getters['all'](FLEET.WORKSPACE) || [];
+        const nsExpressions = convertSelectorObj(mapping.namespaceSelector);
+
+        for (const ws of allWorkspaces) {
+          if (ws.metadata?.name === bundleNs) {
+            continue;
+          }
+
+          const nsLabels = {
+            ...(ws.metadata?.labels || {}),
+            'kubernetes.io/metadata.name': ws.metadata?.name,
+          };
+
+          if (matches({ metadata: { labels: nsLabels } }, nsExpressions)) {
+            addObjects(clusters, ws.clusters || []);
+            addObjects(groups, ws.clusterGroups || []);
+          }
+        }
+      }
+    }
+
     for (const tgt of this.spec.targets) {
       if (tgt.clusterName) {
-        const cluster = findBy(clusters, 'metadata.name', tgt.clusterName);
+        const cluster = findBy(clusters, 'metadata.name', tgt.clusterName) || findBy(clusters, 'nameDisplay', tgt.clusterName);
 
         if (cluster) {
           addObject(out, cluster);
@@ -79,43 +118,24 @@ export default class FleetBundle extends SteveModel {
     return out;
   }
 
-  get stateDescription() {
-    const error = this.stateObj?.error || false;
-    const message = this.stateObj?.message;
-
-    return error ? ucFirst(message) : '';
+  get readyCondition() {
+    return this.status?.conditions?.find((c) => c.type === 'Ready');
   }
 
   get stateObj() {
-    const errorState = this.status?.conditions?.find((item) => {
-      const { error, message } = item;
-      const errState = !!error;
+    return FleetUtils.resourceStateObj(this.metadata?.state) || {};
+  }
 
-      /**
-       * error.trainsitioning = true when error applied. So checking non existance of tranistioning is not enough.
-       * {
-       *  "error": true,
-       *    "lastUpdateTime": "2022-03-03T08:28:15Z",
-       *    "message": "ErrApplied(1) [Cluster test-do/c-b5rsv: rendered manifests contain a resource that already exists. Unable to continue with install: Service \"frontend\" in namespace \"fleet-mc-helm-kustomize-example\" exists and cannot be imported into the current release: invalid ownership metadata; annotation validation error: key \"meta.helm.sh/release-name\" must equal \"sf-mchk-multi-cluster-helm-kustomize\": current value is \"test-bug-multi-cluster-helm-kustomize\"]; NotReady(1) [Cluster test-do/c-5fhtx]; deployment.apps fleet-mc-helm-kustomize-example/redis-master [progressing] Deployment does not have minimum availability., Available: 0/1; deployment.apps shavin/frontend extra; deployment.apps shavin/redis-master extra; deployment.apps shavin/redis-slave extra; service.v1 shavin/frontend extra",
-       *    "status": "False",
-       *    "transitioning": true,
-       *    "type": "Ready"
-       *    },
-       */
-      const hasErrorMessage =
-        message?.toLowerCase().includes('errapplied') ||
-        message?.toLowerCase().includes('error');
+  /**
+   * The Ready condition carries the only human readable account of why a bundle is not ready, so it is
+   * used for the description. Its `error` and `transitioning` flags are not used: the backend raises both
+   * for every state that is not Ready, which would present states such as WaitingForDependency - a bundle
+   * held back by a dependency, not a failure - as an error.
+   */
+  get stateDescription() {
+    const { status, message } = this.readyCondition || {};
 
-      return errState && hasErrorMessage;
-    });
-
-    if (errorState) {
-      errorState.name = errorState.message?.toLowerCase().includes('errapplied') ? 'errapplied' : 'error';
-
-      return errorState;
-    }
-
-    return { ...this.metadata.state };
+    return status !== 'True' && message ? ucFirst(message) : '';
   }
 
   get groupByLabel() {
@@ -128,42 +148,5 @@ export default class FleetBundle extends SteveModel {
         'resourceTable.groupLabel.notInAWorkspace'
       );
     }
-  }
-
-  get authorId() {
-    return this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
-  }
-
-  get author() {
-    if (this.authorId) {
-      return this.$rootGetters['management/byId'](MANAGEMENT.USER, this.authorId);
-    }
-
-    return null;
-  }
-
-  get createdBy() {
-    const displayName = this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
-
-    if (!displayName) {
-      return null;
-    }
-
-    return {
-      displayName,
-      location: !this.author ? null : {
-        name:   'c-cluster-product-resource-id',
-        params: {
-          cluster:  '_',
-          product:  'auth',
-          resource: MANAGEMENT.USER,
-          id:       this.author.id,
-        }
-      }
-    };
-  }
-
-  get showCreatedBy() {
-    return !!this.createdBy;
   }
 }

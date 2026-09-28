@@ -1,5 +1,5 @@
 import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
-import { NODE as NODE_TYPE } from '@shell/config/types';
+import { NODE as NODE_TYPE, NAMESPACE as NAMESPACE_TYPE } from '@shell/config/types';
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
 // Note: 'id' is always the last sort, so you don't have to specify it here.
@@ -53,6 +53,11 @@ export const NAME = {
   sort:          ['nameSort'],
   formatter:     'LinkDetail',
   canBeVariable: true,
+};
+
+export const PROJECT_NAMESPACES_NAME = {
+  ...NAME,
+  search: ['nameDisplay', 'projectNameDisplay'],
 };
 
 export const LOGGING_OUTPUT_PROVIDERS = {
@@ -158,12 +163,14 @@ export const NAME_UNLINKED = {
 };
 
 export const NAMESPACE = {
-  name:        'namespace',
-  labelKey:    'tableHeaders.namespace',
-  value:       'namespace',
-  getValue:    (row) => row.namespace,
-  sort:        'namespace',
-  dashIfEmpty: true,
+  name:          'namespace',
+  labelKey:      'tableHeaders.namespace',
+  value:         'namespace',
+  getValue:      (row) => row.namespace,
+  sort:          'namespace',
+  dashIfEmpty:   true,
+  formatter:     'LinkName',
+  formatterOpts: { type: NAMESPACE_TYPE },
 };
 
 export const NODE = {
@@ -383,6 +390,15 @@ export const SECRET_DATA = {
   formatter: 'SecretData'
 };
 
+export const SECRET_ORIGIN = {
+  name:      'secret-origin',
+  labelKey:  'tableHeaders.secret.origin',
+  tooltip:   'tableHeaders.secret.originTooltip',
+  formatter: 'SecretOrigin',
+  sort:      'project.spec.displayName',
+  search:    false,
+};
+
 export const TARGET_KIND = {
   name:     'target-kind',
   labelKey: 'tableHeaders.targetKind',
@@ -518,6 +534,15 @@ export const LAST_SEEN_TIME = {
   tooltip:  'tableHeaders.lastSeenTooltip'
 };
 
+export const EVENT_FIRST_SEEN_TIME = {
+  name:     'firstSeen',
+  labelKey: 'tableHeaders.firstSeen',
+  tooltip:  'tableHeaders.firstSeenTooltip',
+
+  value: 'firstSeen',
+  sort:  'firstSeen:desc',
+};
+
 export const EVENT_LAST_SEEN_TIME = {
   ...LAST_SEEN_TIME,
   defaultSort: true,
@@ -630,6 +655,29 @@ export const INGRESS_CLASS = {
   labelKey: 'tableHeaders.ingressClass',
   value:    `$['spec']['ingressClassName']`,
   sort:     `$['spec']['ingressClassName']`,
+};
+
+export const HTTP_ROUTE_HOSTNAMES = {
+  name:     'httpRouteHostnames',
+  labelKey: 'tableHeaders.httpRouteHostnames',
+  value:    'hostnamesDisplay',
+  sort:     'hostnamesDisplay',
+};
+
+// No `value`: the caller supplies one, to narrow the urls to the workload whose page it is on.
+export const HTTP_ROUTE_ENDPOINTS = {
+  name:      'httpRouteEndpoints',
+  labelKey:  'tableHeaders.endpoints',
+  formatter: 'WorkloadDetailEndpoints',
+  sort:      false,
+  search:    false,
+};
+
+export const HTTP_ROUTE_GATEWAYS = {
+  name:     'httpRouteGateways',
+  labelKey: 'tableHeaders.httpRouteGateways',
+  value:    'parentRefsDisplay',
+  sort:     'parentRefsDisplay',
 };
 
 export const INGRESS_DEFAULT_BACKEND = {
@@ -764,11 +812,10 @@ export const FLEET_SUMMARY = {
 export const FLEET_APPLICATION_TYPE = {
   name:     'applicationType',
   labelKey: 'fleet.tableHeaders.applicationType',
-  value:    'kind',
-  sort:     'kind',
+  value:    'applicationType',
+  sort:     'applicationType',
   search:   false,
-  align:    'center',
-  width:    100,
+  width:    200,
 };
 
 export const FLEET_APPLICATION_SOURCE = {
@@ -1044,11 +1091,14 @@ export const ROLE = {
 export const FEATURE_DESCRIPTION = {
   name:          'description',
   labelKey:      'tableHeaders.description',
-  value:         'status.description',
+  value:         'id',
   align:         'left',
   sort:          ['status.description'],
   formatter:     'Translate',
-  formatterOpts: { prefix: 'featureFlags.description' },
+  formatterOpts: {
+    prefix:       'featureFlags.description',
+    fallbackPath: 'status.description'
+  },
 };
 
 export const STATE_NORMAN = {
@@ -1145,3 +1195,36 @@ export const UI_PLUGIN_CATALOG = [
     value:    'repo.metadata.name'
   }
 ];
+
+// SECRETS
+export const PROJECT = {
+  name:     'project',
+  labelKey: 'tableHeaders.project',
+};
+
+export const AUTOSCALER_ENABLED = {
+  name:      'autoscaler',
+  labelKey:  'tableHeaders.autoscaler',
+  value:     'isAutoscalerEnabled',
+  sort:      ['isAutoscalerEnabled'],
+  formatter: 'Autoscaler',
+};
+
+export const MGMT_CLUSTER_PROVIDER = {
+  name:      'provider',
+  labelKey:  'tableHeaders.provider',
+  subLabel:  'Distro',
+  value:     'statusInfo.machineProvider',
+  sort:      ['status.info.machineProvider', 'status.provider', 'status.driver'],
+  search:    ['status.info.machineProvider', 'status.provider', 'status.driver'],
+  formatter: 'ClusterProvider',
+};
+
+export const MGMT_CLUSTER_KUBE_VERSION = {
+  name:      'kubernetesVersion',
+  labelKey:  'tableHeaders.version',
+  subLabel:  'Architecture',
+  sort:      'statusInfo.kubernetesVersion',
+  search:    'statusInfo.kubernetesVersion',
+  formatter: 'ClusterKubeVersion',
+};

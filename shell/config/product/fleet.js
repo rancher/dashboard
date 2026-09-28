@@ -2,7 +2,6 @@ import { DSL } from '@shell/store/type-map';
 import { FLEET } from '@shell/config/types';
 import { STATE, NAME as NAME_COL, AGE, FLEET_APPLICATION_TYPE } from '@shell/config/table-headers';
 import { FLEET as FLEET_FEATURE } from '@shell/store/features';
-import { graphConfig } from '@shell/pages/c/_cluster/fleet/graph/config';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
 export const SOURCE_TYPE = {
@@ -33,9 +32,11 @@ export function init(store) {
     removable:             false,
     showClusterSwitcher:   false,
     showWorkspaceSwitcher: true,
+    extendable:            true,
+    navSearch:             true,
     to:                    {
       name:   'c-cluster-fleet',
-      params: { resource: FLEET.DASHBOARD, cluster: BLANK_CLUSTER }
+      params: { cluster: BLANK_CLUSTER }
     },
   });
 
@@ -116,6 +117,13 @@ export function init(store) {
       formatter: 'Number',
     },
     {
+      name:      'helmOps',
+      labelKey:  'tableHeaders.helmOps',
+      value:     'counts.helmOps',
+      sort:      'counts.helmOps',
+      formatter: 'Number',
+    },
+    {
       name:      'clusters',
       labelKey:  'tableHeaders.clusters',
       value:     'counts.clusters',
@@ -138,15 +146,12 @@ export function init(store) {
     FLEET.BUNDLE,
     FLEET.TOKEN,
     FLEET.BUNDLE_NAMESPACE_MAPPING,
-    FLEET.GIT_REPO_RESTRICTION
+    FLEET.GIT_REPO_RESTRICTION,
+    FLEET.POLICY
   ], 'resources');
 
-  configureType(FLEET.GIT_REPO, {
-    showListMasthead: false, hasGraph: true, graphConfig
-  });
-  configureType(FLEET.HELM_OP, {
-    showListMasthead: false, hasGraph: true, graphConfig
-  });
+  configureType(FLEET.GIT_REPO, { showListMasthead: false });
+  configureType(FLEET.HELM_OP, { showListMasthead: false });
 
   weightType(FLEET.GIT_REPO, 110, true);
   weightType(FLEET.HELM_OP, 109, true);

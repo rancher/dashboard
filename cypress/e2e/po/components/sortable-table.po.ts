@@ -20,8 +20,8 @@ export default class SortableTablePo extends ComponentPo {
   /**
    * Returns the link for resource details for a table row with a given name
    */
-  detailsPageLinkWithName(name: string) {
-    return this.rowElementWithName(name).find('td.col-link-detail a');
+  detailsPageLinkWithName(name: string, selector = 'td.col-link-detail a') {
+    return this.rowElementWithName(name).find(selector);
   }
 
   /**
@@ -95,11 +95,11 @@ export default class SortableTablePo extends ComponentPo {
    * @param searchText
    * @returns
    */
-  filter(searchText: string) {
+  filter(searchText: string, delay?: number) {
     return this.filterComponent()
       .focus()
       .clear()
-      .type(searchText);
+      .type(searchText, { delay });
   }
 
   resetFilter() {
@@ -116,16 +116,33 @@ export default class SortableTablePo extends ComponentPo {
     return this.self().contains('tr.group-row', name);
   }
 
+  /**
+   * Get all group row elements that contain the given name
+   * Unlike groupElementWithName which only returns the first match,
+   * this returns all matching group rows
+   * @param name - The text to search for in group rows
+   * @returns Cypress chainable with all matching group row elements
+   */
+  groupElementsWithName(name: string) {
+    return this.self().find('tr.group-row').filter((index, el) => {
+      return Cypress.$(el).text().includes(name);
+    });
+  }
+
   rowElements(options?: any) {
-    return this.self().find('tbody tr:not(.sub-row):not(.group-row)', options);
+    return this.self().find('tbody tr:not(.sub-row):not(.group-row):not(.additional-sub-row)', options);
   }
 
   rowElementWithName(name: string, options?: GetOptions) {
-    return this.self().contains('tbody tr', new RegExp(`${ name }`), options);
+    // Assert the container exists before .contains() runs. Under Cypress 12's
+    // grouped-query retries, a transiently empty container (e.g. during SPA
+    // navigation) would otherwise flow an empty jQuery{0} subject into
+    // .contains(), which rejects it ("requires a DOM element").
+    return this.self().should('exist').contains('tbody tr', new RegExp(`${ name }`), options);
   }
 
-  rowElementWithPartialName(name: string) {
-    return this.self().contains('tbody tr', name);
+  rowElementWithPartialName(name: string, options?: GetOptions) {
+    return this.self().contains('tbody tr', name, options);
   }
 
   tableHeaderRowElementWithPartialName(name: string) {
@@ -157,8 +174,8 @@ export default class SortableTablePo extends ComponentPo {
     return new ListRowPo(this.rowElements().eq(index));
   }
 
-  rowWithPartialName(name: string) {
-    return new ListRowPo(this.rowElementWithPartialName(name));
+  rowWithPartialName(name: string, options?: GetOptions) {
+    return new ListRowPo(this.rowElementWithPartialName(name, options));
   }
 
   rowWithName(name: string) {
@@ -177,7 +194,8 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   rowActionMenu() {
-    return new ActionMenuPo();
+    // Get the visible dropdown menu - this ensures we only interact with a menu that's actually open
+    return new ActionMenuPo('[dropdown-menu-collection]:visible');
   }
 
   noRowsShouldNotExist() {
@@ -196,12 +214,19 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   /**
+   * get the count of rows in a group
+   */
+  groupRowCount(groupName: string) {
+    return this.groupElementWithName(groupName).nextUntil('tr.group-row').then((el) => el.length);
+  }
+
+  /**
    * Check row element count on sortable table
    * @param isEmpty true if empty state expected (empty state message should display on row 1)
-   * @param expected number of rows shown
+   * @param expected number of rows shown (empty state still provides 1 row)
    * @returns
    */
-  checkRowCount(isEmpty: boolean, expected: number, options?, hasFilter = false) {
+  checkRowCount(isEmpty: boolean, expected: number, options?: any, hasFilter = false) {
     return this.rowElements(options).should((el) => {
       if (isEmpty) {
         expect(el).to.have.length(expected);
@@ -217,9 +242,29 @@ export default class SortableTablePo extends ComponentPo {
   /**
    * For a row with the given name open it's action menu and return the drop down
    */
-  rowActionMenuOpen(name: string) {
+  rowActionMenuOpen(name: string, skipNoActionAvailableCheck?: boolean) {
     this.rowWithName(name).actionBtn()
-      .click();
+      .click().then((el) => {
+        expect(el).to.have.attr('aria-expanded', 'true');
+      });
+
+    const actionMenu = this.rowActionMenu();
+
+    // Wait for the dropdown menu to appear and be populated with actual content
+    actionMenu.self().should('exist');
+
+    // Wait for the dropdown to finish loading (not show "No actions available")
+    if (!skipNoActionAvailableCheck) {
+      actionMenu.checkNoActionsAvailable(false);
+      // Ensure at least one non-disabled menu item is present
+      actionMenu.atLeastOneActiveMenuItem();
+    }
+
+    return actionMenu;
+  }
+
+  rowActionMenuClose(name: string) {
+    this.rowWithName(name).actionBtn().click();
 
     return this.rowActionMenu();
   }

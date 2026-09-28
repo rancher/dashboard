@@ -52,9 +52,11 @@ export default class RolesPo extends ClusterPage {
 
   listCreate(label: string) {
     const baseResourceList = new BaseResourceList(this.self());
+    const button = baseResourceList.masthead().actions().contains(label);
 
-    return baseResourceList.masthead().actions().contains(label)
-      .click();
+    button.should('be.visible');
+
+    return button.click();
   }
 
   /**
@@ -63,11 +65,11 @@ export default class RolesPo extends ClusterPage {
    * @returns
    */
   list(tabIdSelector: 'GLOBAL' | 'CLUSTER' | 'NAMESPACE') {
-    return new RoleListPo(`#${ tabIdSelector } [data-testid="sortable-table-list-container"]`);
+    return new RoleListPo(`[data-testid="tab-panel-${ tabIdSelector }"] [data-testid="sortable-table-list-container"]`);
   }
 
   paginatedTab(tabIdSelector: 'GLOBAL' | 'CLUSTER' | 'NAMESPACE') {
-    return new PaginationPo(`#${ tabIdSelector } div.paging`);
+    return new PaginationPo(`[data-testid="tab-panel-${ tabIdSelector }"] div.paging`);
   }
 
   tabs() {

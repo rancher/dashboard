@@ -6,6 +6,7 @@ import CertificatesPo from '@/cypress/e2e/po/components/certificates.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import ResourceTablePo from '~/cypress/e2e/po/components/resource-table.po';
+import ActionMenuPo from '@/cypress/e2e/po/components/action-menu-shell.po';
 
 export default class ClusterDashboardPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -48,6 +49,14 @@ export default class ClusterDashboardPagePo extends PagePo {
     return this.tabs().clickNthTab(2);
   }
 
+  eventsRowCountMenuToggle() {
+    return cy.get('[data-testid="events-list-row-count-menu-toggle"]').click();
+  }
+
+  eventsRowCountMenu() {
+    return new ActionMenuPo();
+  }
+
   tabs() {
     return new TabbedPo('[data-testid="tabbed"]');
   }
@@ -61,11 +70,11 @@ export default class ClusterDashboardPagePo extends PagePo {
   }
 
   eventsList() {
-    return new ResourceTablePo('#cluster-events [data-testid="sortable-table-list-container"]');
+    return new ResourceTablePo('[data-testid="tab-panel-cluster-events"] [data-testid="sortable-table-list-container"]');
   }
 
   certificatesList() {
-    return new ResourceTablePo('#cluster-certs [data-testid="sortable-table-list-container"]');
+    return new ResourceTablePo('[data-testid="tab-panel-cluster-certs"] [data-testid="sortable-table-list-container"]');
   }
 
   clusterActionsHeader() {
@@ -115,17 +124,10 @@ export default class ClusterDashboardPagePo extends PagePo {
       for (let i = 0; i < nsProject.values.length; i++) {
         nsfilter.selectedValues().contains(nsProject.values[i]);
       }
-    } else if (all) {
+    } else if (all?.is) {
       nsfilter.allSelected();
     } else {
       throw new Error('Bad Config');
     }
-  }
-
-  static goToAndWait(cluster: string) {
-    const instance = new ClusterDashboardPagePo(cluster);
-
-    instance.goTo();
-    instance.clusterActionsHeader().checkVisible();
   }
 }

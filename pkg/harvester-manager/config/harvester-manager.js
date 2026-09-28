@@ -79,14 +79,14 @@ const harvesterClustersLocation = {
   }
 };
 
-export function init($plugin, store) {
+export function init($extension, store) {
   const {
     product,
     basicType,
     headers,
     spoofedType,
     configureType
-  } = $plugin.DSL(store, NAME);
+  } = $extension.DSL(store, NAME);
 
   product({
     ifHaveType:          CAPI.RANCHER_CLUSTER,
@@ -98,6 +98,7 @@ export function init($plugin, store) {
     weight:              100,
     to:                  harvesterClustersLocation,
     category:            'hci',
+    extendable:          true,
   });
 
   configureType(HCI.CLUSTER, { showListMasthead: false });
@@ -120,10 +121,11 @@ export function init($plugin, store) {
     MACHINE_POOLS,
     AGE,
     {
-      name:  'harvester',
-      label: ' ',
-      align: 'right',
-      width: 65,
+      name:                'harvester',
+      labelKey:            'harvesterManager.manage',
+      labelVisuallyHidden: true,
+      align:               'right',
+      width:               65,
     },
   ]);
   basicType([HCI.CLUSTER]);

@@ -10,7 +10,7 @@ interface ParsedUri extends UriFields {
   query: QueryParams;
 }
 
-export function addParam(url: string, key: string, val: string | string[]): string {
+export function addParam(url: string, key: string, val: string | number | null | (string | number | null)[]): string {
   let out = url + (url.includes('?') ? '&' : '?');
 
   // val can be a string or an array of strings
@@ -28,7 +28,7 @@ export function addParam(url: string, key: string, val: string | string[]): stri
   return out;
 }
 
-export function addParams(url: string, params: QueryParams): string {
+export function addParams(url: string, params: QueryParams | null | undefined): string {
   if ( params && typeof params === 'object' ) {
     Object.keys(params).forEach((key) => {
       url = addParam(url, key, params[key]);

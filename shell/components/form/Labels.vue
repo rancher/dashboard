@@ -9,10 +9,23 @@ import { _VIEW } from '@shell/config/query-params';
 export class Factory {
   private protectedKeys: string[] = [];
   private protectedRegexes: RegExp[] = [];
+  private exceptedKeys: string[] = [];
+  private readOnlyKeys: string[] = [];
   private protectedWarning = '';
+  private readOnlyWarning = '';
 
   private isProtected(key: string) {
+    // exceptions to ANNOTATIONS_TO_IGNORE_REGEX, as defined in resource models' allowedSystemAnnotationKeys
+    if (this.exceptedKeys.includes(key)) {
+      return false;
+    }
+
     return this.protectedKeys.includes(key) || matchesSomeRegex(key, this.protectedRegexes);
+  }
+
+  // keys in this list are visible in forms but changes will not be persisted (a warning is shown communicating this)
+  private isReadOnly(key: string) {
+    return this.readOnlyKeys.includes(key);
   }
 
   private omitProtected(obj: object) {
@@ -24,17 +37,28 @@ export class Factory {
   }
 
   private keyErrorMap(elems: object) {
-    return mapValues(this.pickProtected(elems), () => this.protectedWarning);
+    return {
+      ...mapValues(this.pickProtected(elems), () => this.protectedWarning),
+      ...mapValues(pickBy(elems, (_, key) => this.isReadOnly(key)), () => this.readOnlyWarning),
+    };
   }
 
-  constructor(protectedKeys: string[], protectedRegexes: RegExp[], msg: string, initValue: object) {
+  constructor(protectedKeys: string[], protectedRegexes: RegExp[], msg: string, initValue: object, exceptedKeys: string[] = [], readOnlyKeys: string[] = [], readOnlyMsg = '') {
     // Init privates
     this.protectedKeys = protectedKeys || [];
     this.protectedRegexes = protectedRegexes || [];
+    this.exceptedKeys = exceptedKeys || [];
+    this.readOnlyKeys = readOnlyKeys || [];
     this.protectedWarning = msg || '';
+    this.readOnlyWarning = readOnlyMsg || msg || '';
 
     this.initValue = initValue || {};
     this.value = this.omitProtected(this.initValue);
+
+    // Read-only keys are visible in the value but shown with a warning and preserved on save
+    const readOnlyFromInit = pickBy(this.initValue, (_, key) => this.isReadOnly(key));
+
+    this.value = { ...this.value, ...readOnlyFromInit };
     this.keyErrors = this.keyErrorMap(this.value);
     this.hasProtectedKeys = Object.keys(this.pickProtected(this.initValue)).length > 0;
   }
@@ -55,8 +79,9 @@ export class Factory {
     const neu = value || {};
 
     callbackFn({
-      ...this.omitProtected(neu),
+      ...omitBy(this.omitProtected(neu), (_, key) => this.isReadOnly(key)), // remove new labels/annotations that are readOnly
       ...this.pickProtected(this.initValue),
+      ...pickBy(this.initValue, (_, key) => this.isReadOnly(key)), // add in initial labels/annotations that are readOnly
     });
 
     this.value = neu;
@@ -122,19 +147,43 @@ export default {
       default: true,
     },
 
+    showLabelDescription: {
+      type:    Boolean,
+      default: true,
+    },
+
     addIcon: {
       type:    String,
       default: '',
     },
+
+    compact: {
+      type:    Boolean,
+      default: false
+    },
+
+    useRcButton: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data(): DataType {
     const protectedWarning = this.t('labels.protectedWarning');
+    const readOnlyWarning = this.t('labels.readOnlyWarning');
 
     return {
       labels:      new Factory(this.value.systemLabels, LABELS_TO_IGNORE_REGEX, protectedWarning, this.value.labels),
-      annotations: new Factory(this.value.systemAnnotations, ANNOTATIONS_TO_IGNORE_REGEX, protectedWarning, this.value.annotations),
-      toggler:     false
+      annotations: new Factory(
+        this.value.systemAnnotations,
+        ANNOTATIONS_TO_IGNORE_REGEX,
+        protectedWarning,
+        this.value.annotations,
+        this.value.allowedSystemAnnotationKeys,
+        this.value.readOnlyAnnotationKeys,
+        readOnlyWarning
+      ),
+      toggler: false
     };
   },
 
@@ -162,9 +211,12 @@ export default {
     <div :class="defaultSectionClass">
       <div class="labels">
         <div class="labels__header">
-          <h3 v-if="showLabelTitle">
+          <component
+            :is="!compact ? 'h3' : 'h4'"
+            v-if="showLabelTitle"
+          >
             <t k="labels.labels.title" />
-          </h3>
+          </component>
           <ToggleSwitch
             v-if="showToggler"
             v-model:value="toggler"
@@ -172,13 +224,17 @@ export default {
             :on-label="t('labels.labels.show')"
           />
         </div>
-        <p class="mt-10 mb-10">
+        <p
+          v-if="showLabelDescription"
+          class="mt-10 mb-10"
+        >
           <t k="labels.labels.description" />
         </p>
         <div :class="columnsClass">
           <slot name="labels">
             <KeyValue
               key="labels"
+              data-testid="labels-keyvalue"
               :value="toggler ? labels.initValue : labels.value"
               :add-label="t('labels.addLabel')"
               :add-icon="addIcon"
@@ -186,19 +242,21 @@ export default {
               :read-allowed="false"
               :value-can-be-empty="true"
               :key-errors="labels.keyErrors"
+              :use-rc-button="useRcButton"
               @update:value="labels.update($event, (x) => value.setLabels(x))"
             />
           </slot>
         </div>
       </div>
     </div>
-    <div class="spacer" />
+    <div :class="compact ? 'compact-spacer' : 'spacer'" />
     <div
       v-if="showAnnotations"
       :class="sectionClass"
     >
       <KeyValue
         key="annotations"
+        data-testid="annotations-keyvalue"
         :value="toggler ? annotations.initValue : annotations.value"
         :add-label="t('labels.addAnnotation')"
         :add-icon="addIcon"
@@ -208,6 +266,8 @@ export default {
         :read-allowed="false"
         :value-can-be-empty="true"
         :key-errors="annotations.keyErrors"
+        :disabled-keys="value.readOnlyAnnotationKeys || []"
+        :use-rc-button="useRcButton"
         @update:value="annotations.update($event, (x) => value.setAnnotations(x))"
       />
     </div>
@@ -220,5 +280,9 @@ export default {
     display: flex;
     justify-content: space-between;
   }
+}
+
+.compact-spacer {
+  height: 24px;
 }
 </style>

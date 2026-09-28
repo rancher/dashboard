@@ -1,14 +1,21 @@
-export const regionsWithAvailabilityZones = {
+// Indexed by region name, which callers only have as a plain string, so the keys are not narrowed
+export const regionsWithAvailabilityZones: Record<string, boolean> = {
   australiaeast:      true,
+  austriaeast:        true,
+  belgiumcentral:     true,
   brazilsouth:        true,
   canadacentral:      true,
   centralindia:       true,
   centralus:          true,
+  chilecentral:       true,
+  chinanorth3:        true,
+  denmarkeast:        true,
   eastasia:           true,
   eastus:             true,
   eastus2:            true,
   francecentral:      true,
   germanywestcentral: true,
+  indiasouthcentral:  true,
   indonesiacentral:   true,
   israelcentral:      true,
   italynorth:         true,

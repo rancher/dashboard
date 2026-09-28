@@ -4,8 +4,9 @@ import { Banner } from '@components/Banner';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import SSHKnownHosts from '@shell/components/form/SSHKnownHosts';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import { AUTH_TYPE, NORMAN, SECRET } from '@shell/config/types';
-import { SECRET_TYPES } from '@shell/config/secret';
+import { SECRET_TYPES, GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import { base64Encode } from '@shell/utils/crypto';
 import { addObjects, insertAt } from '@shell/utils/array';
 import { sortBy } from '@shell/utils/sort';
@@ -14,6 +15,16 @@ import {
   PaginationFilterField,
   PaginationParamFilter,
 } from '@shell/types/store/pagination.types';
+
+// Auth types for which this component renders inline fields and can create a secret/credential
+const CREATABLE_AUTH_TYPES = [
+  AUTH_TYPE._SSH,
+  AUTH_TYPE._BASIC,
+  AUTH_TYPE._S3,
+  AUTH_TYPE._RKE,
+  AUTH_TYPE._IMAGE_PULL_SECRET,
+  AUTH_TYPE._GITHUB_APP,
+];
 
 export default {
   name: 'SelectOrCreateAuthSecret',
@@ -25,6 +36,7 @@ export default {
     LabeledInput,
     LabeledSelect,
     SSHKnownHosts,
+    FileSelectorTextArea,
   },
 
   props: {
@@ -71,6 +83,11 @@ export default {
       default: 'auth-',
     },
 
+    clientGeneratedName: {
+      type:    String,
+      default: null,
+    },
+
     allowNone: {
       type:    Boolean,
       default: true,
@@ -92,6 +109,11 @@ export default {
     },
 
     allowRke: {
+      type:    Boolean,
+      default: false,
+    },
+
+    allowGithubApp: {
       type:    Boolean,
       default: false,
     },
@@ -149,10 +171,57 @@ export default {
       type:    Boolean,
       default: false,
     },
+
+    /**
+     * Used specifically to fix the HTTP BASIC auth to generate specific authentication
+     * This is used to clear up the SELECT to make sure it only has HTTP BASIC with some special conditions
+     */
+    fixedHttpBasicAuth: {
+      type:    Boolean,
+      default: false,
+    },
+
+    /** Used together with fixedHttpBasicAuth
+     * It will filter all the cases to use this specific label at the start.
+     */
+    filterBasicAuth: {
+      type:    String,
+      default: '',
+    },
+
+    /**
+     * This works similar to other allow* but this makes specific to create as ImagePullSecret since it is specific for one page that only uses it
+     * To avoid using it in other places.
+     */
+    fixedImagePullSecret: {
+      type:    Boolean,
+      default: false,
+    },
+    /**
+     * Whenever the fixedImagePullSecret is setup the dockerJsonUrlConfig needs to be passed that will be used to create the DockerJsonConfig file
+     */
+    imagePullSecretDockerJsonUrlConfig: {
+      type:    String,
+      default: '',
+    },
+
+    /**
+     * Specific property to change labels if it is Github.com repository
+     */
+    isGithubDotComRepository: {
+      type:    Boolean,
+      default: false,
+    },
+
+    // Overwrite the default label for "None" option ('generic.none')
+    noneLabel: {
+      type:    [String, null],
+      default: null
+    }
   },
 
   async fetch() {
-    if ( (this.allowSsh || this.allowBasic || this.allowRke) && this.$store.getters[`${ this.inStore }/schemaFor`](SECRET) ) {
+    if ( (this.allowSsh || this.allowBasic || this.allowRke || this.allowGithubApp || this.fixedImagePullSecret) && this.$store.getters[`${ this.inStore }/schemaFor`](SECRET) ) {
       if (this.$store.getters[`${ this.inStore }/paginationEnabled`](SECRET)) {
         // Filter results via api (because we shouldn't be fetching them all...)
         this.filteredSecrets = await this.filterSecretsByApi();
@@ -195,23 +264,38 @@ export default {
 
       selected: null,
 
+      previousValue: null,
+
       filterByNamespace: this.namespace && this.limitToNamespace,
 
       publicKey:     '',
       privateKey:    '',
       sshKnownHosts: '',
-      uniqueId:      new Date().getTime(), // Allows form state to be individually tracked if the form is in a list
 
-      SSH:   AUTH_TYPE._SSH,
-      BASIC: AUTH_TYPE._BASIC,
-      S3:    AUTH_TYPE._S3,
-      RKE:   AUTH_TYPE._RKE,
+      githubAppId:             '',
+      githubAppInstallationId: '',
+      githubAppPrivateKey:     '',
+
+      uniqueId: new Date().getTime(), // Allows form state to be individually tracked if the form is in a list
+
+      SSH:               AUTH_TYPE._SSH,
+      BASIC:             AUTH_TYPE._BASIC,
+      IMAGE_PULL_SECRET: AUTH_TYPE._IMAGE_PULL_SECRET,
+      S3:                AUTH_TYPE._S3,
+      RKE:               AUTH_TYPE._RKE,
+      GITHUB_APP:        AUTH_TYPE._GITHUB_APP,
     };
   },
 
   computed: {
     secretTypes() {
       const types = [];
+
+      if ( this.fixedImagePullSecret ) {
+        types.push(SECRET_TYPES.DOCKER_JSON);
+
+        return types;
+      }
 
       if ( this.allowSsh ) {
         types.push(SECRET_TYPES.SSH);
@@ -223,6 +307,12 @@ export default {
 
       if ( this.allowRke ) {
         types.push(SECRET_TYPES.RKE_AUTH_CONFIG);
+      }
+
+      // GitHub App secrets are stored as Opaque; they're narrowed down to actual
+      // GitHub App secrets via the data keys in `options`.
+      if ( this.allowGithubApp ) {
+        types.push(SECRET_TYPES.OPAQUE);
       }
 
       return types;
@@ -237,7 +327,7 @@ export default {
       let filteredSecrets = [];
 
       if (this.allSecrets) {
-        // Fitler secrets given their namespace and required secret type
+        // Filter secrets given their namespace and required secret type
         filteredSecrets = this.allSecrets
           .filter((x) => this.filterByNamespace ? x.metadata.namespace === this.namespace : true
           )
@@ -254,6 +344,12 @@ export default {
           });
       } else if (this.filteredSecrets) {
         filteredSecrets = this.filteredSecrets;
+      }
+
+      // GitHub App secrets are fetched as Opaque (broad). Keep only the Opaque
+      // secrets that actually hold the GitHub App data keys.
+      if (this.allowGithubApp) {
+        filteredSecrets = filteredSecrets.filter((x) => x._type !== SECRET_TYPES.OPAQUE || x.isGithubApp);
       }
 
       let out = filteredSecrets.map((x) => {
@@ -315,16 +411,24 @@ export default {
       }
       if ( this.allowNone ) {
         out.unshift({
-          label: this.t('generic.none'),
+          label: this.noneLabel || this.t('generic.none'),
           value: AUTH_TYPE._NONE,
         });
       }
 
-      if (this.allowSsh || this.allowS3 || this.allowBasic || this.allowRke) {
+      if (this.allowSsh || this.allowS3 || this.allowBasic || this.allowRke || this.allowGithubApp || this.fixedImagePullSecret) {
         out.unshift({
           label:    'divider',
           disabled: true,
           kind:     'divider'
+        });
+      }
+
+      if ( this.allowGithubApp ) {
+        out.unshift({
+          label: this.t('selectOrCreateAuthSecret.createGithubApp'),
+          value: AUTH_TYPE._GITHUB_APP,
+          kind:  'highlighted'
         });
       }
 
@@ -361,6 +465,18 @@ export default {
         });
       }
 
+      if ( this.fixedImagePullSecret ) {
+        out.unshift({
+          label: this.t('selectOrCreateAuthSecret.createImagePullSecret'),
+          value: AUTH_TYPE._IMAGE_PULL_SECRET,
+          kind:  'highlighted'
+        });
+      }
+
+      if (this.fixedHttpBasicAuth) {
+        out = out.filter((o) => o.label.search(this.filterBasicAuth) === 0 || ['title', 'divider'].includes(o.kind) || o.value === AUTH_TYPE._BASIC);
+      }
+
       return out;
     },
 
@@ -369,7 +485,7 @@ export default {
         return '';
       }
 
-      if ( this.selected === AUTH_TYPE._SSH || this.selected === AUTH_TYPE._BASIC || this.selected === AUTH_TYPE._RKE || this.selected === AUTH_TYPE._S3 ) {
+      if ( this.selected === AUTH_TYPE._SSH || this.selected === AUTH_TYPE._BASIC || this.selected === AUTH_TYPE._RKE || this.selected === AUTH_TYPE._S3 || this.selected === AUTH_TYPE._IMAGE_PULL_SECRET ) {
         return 'col span-4';
       }
 
@@ -386,11 +502,15 @@ export default {
   },
 
   watch: {
-    selected:      'update',
-    publicKey:     'updateKeyVal',
-    privateKey:    'updateKeyVal',
-    sshKnownHosts: 'updateKeyVal',
-    value:         'updateSelectedFromValue',
+    selected:                'update',
+    publicKey:               'updateKeyVal',
+    privateKey:              'updateKeyVal',
+    sshKnownHosts:           'updateKeyVal',
+    githubAppId:             'updateKeyVal',
+    githubAppInstallationId: 'updateKeyVal',
+    githubAppPrivateKey:     'updateKeyVal',
+    preSelect:               'updateSelectedFromValue',
+    value:                   'updateSelectedFromValue',
 
     async namespace(ns) {
       if (ns && !this.selected.startsWith(`${ ns }/`)) {
@@ -450,6 +570,7 @@ export default {
             ),
           ],
         }),
+        watch: this.cacheSecrets,
       };
 
       if (this.cacheSecrets) {
@@ -464,16 +585,21 @@ export default {
         null,
         findPageArgs
       );
-      const res = await this.$store.dispatch(`cluster/request`, { url });
+      // Strictly speaking this could be any store (request action should be agnostic)
+      const res = await this.$store.dispatch(`${ this.inStore }/request`, { url });
 
-      return res?.data || [];
+      // Classify
+      return await this.$store.dispatch(`${ this.inStore }/createMany`, res?.data || []);
     },
 
     updateKeyVal() {
-      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE].includes(this.selected) ) {
+      if ( !CREATABLE_AUTH_TYPES.includes(this.selected) ) {
         this.privateKey = '';
         this.publicKey = '';
         this.sshKnownHosts = '';
+        this.githubAppId = '';
+        this.githubAppInstallationId = '';
+        this.githubAppPrivateKey = '';
       }
 
       const value = {
@@ -486,13 +612,19 @@ export default {
         value.sshKnownHosts = this.sshKnownHosts;
       }
 
+      if (this.selected === AUTH_TYPE._GITHUB_APP) {
+        value.githubAppId = this.githubAppId;
+        value.githubAppInstallationId = this.githubAppInstallationId;
+        value.githubAppPrivateKey = this.githubAppPrivateKey;
+      }
+
       this.$emit('inputauthval', value);
     },
 
     update() {
-      if ( (!this.selected || [AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._NONE].includes(this.selected))) {
+      if ( (!this.selected || this.selected === AUTH_TYPE._NONE || CREATABLE_AUTH_TYPES.includes(this.selected))) {
         this.$emit('update:value', null);
-      } else if ( this.selected.includes(':') ) {
+      } else if ( this.selected.includes(':')) {
         // Cloud creds
         this.$emit('update:value', this.selected);
       } else {
@@ -514,7 +646,7 @@ export default {
     },
 
     async doCreate() {
-      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE].includes(this.selected) || this.delegateCreateToParent ) {
+      if ( !CREATABLE_AUTH_TYPES.includes(this.selected) || this.delegateCreateToParent ) {
         return;
       }
 
@@ -529,12 +661,17 @@ export default {
           },
         });
       } else {
+        const metadata = { namespace: this.namespace };
+
+        if (this.clientGeneratedName) {
+          metadata.name = this.clientGeneratedName;
+        } else {
+          metadata.generateName = this.generateName;
+        }
+
         secret = await this.$store.dispatch(`${ this.inStore }/create`, {
-          type:     SECRET,
-          metadata: {
-            namespace:    this.namespace,
-            generateName: this.generateName
-          },
+          type: SECRET,
+          metadata,
         });
 
         let type, publicField, privateField;
@@ -550,10 +687,23 @@ export default {
           publicField = 'username';
           privateField = 'password';
           break;
+        case AUTH_TYPE._IMAGE_PULL_SECRET:
+          type = SECRET_TYPES.DOCKER_JSON;
+          publicField = 'username';
+          privateField = 'password';
+          break;
         case AUTH_TYPE._RKE:
           type = SECRET_TYPES.RKE_AUTH_CONFIG;
           // Set the 'auth' key to be the base64 of the username and password concatenated with a ':' character
           secret.data = { auth: base64Encode(`${ this.publicKey }:${ this.privateKey }`) };
+          break;
+        case AUTH_TYPE._GITHUB_APP:
+          type = SECRET_TYPES.OPAQUE;
+          secret.data = {
+            [GITHUB_APP_SECRET_KEYS.APP_ID]:          base64Encode(this.githubAppId),
+            [GITHUB_APP_SECRET_KEYS.INSTALLATION_ID]: base64Encode(this.githubAppInstallationId),
+            [GITHUB_APP_SECRET_KEYS.PRIVATE_KEY]:     base64Encode(this.githubAppPrivateKey),
+          };
           break;
         default:
           throw new Error('Unknown type');
@@ -573,14 +723,38 @@ export default {
           if ((this.selected === AUTH_TYPE._SSH) && this.showSshKnownHosts) {
             secret.data.known_hosts = base64Encode(this.sshKnownHosts || '');
           }
+
+          // Components passing imagePullSecretDockerJsonUrlConfig are responsible for validating that a valid hostname or URL is provided
+          if (this.selected === AUTH_TYPE._IMAGE_PULL_SECRET && this.imagePullSecretDockerJsonUrlConfig) {
+            let registryHost;
+
+            try {
+              registryHost = new URL(this.imagePullSecretDockerJsonUrlConfig).host;
+            } catch {
+              registryHost = this.imagePullSecretDockerJsonUrlConfig;
+            }
+
+            const config = {
+              auths: {
+                [registryHost]: {
+                  [publicField]:  this.publicKey,
+                  [privateField]: this.privateKey,
+                }
+              }
+            };
+            const json = JSON.stringify(config);
+
+            secret.setData('.dockerconfigjson', json);
+          }
         }
       }
-
       await secret.save();
 
       await this.$nextTick(() => {
         this.selected = secret.id;
       });
+
+      this.update();
 
       return secret;
     },
@@ -601,7 +775,7 @@ export default {
           v-model:value="selected"
           data-testid="auth-secret-select"
           :mode="mode"
-          :label-key="labelKey"
+          :label-key="fixedImagePullSecret ? 'selectOrCreateAuthSecret.imagePullSecret' : labelKey"
           :loading="$fetchState.pending"
           :options="options"
           :selectable="option => !option.disabled"
@@ -637,7 +811,7 @@ export default {
           />
         </div>
       </template>
-      <template v-else-if="selected === BASIC || selected === RKE">
+      <template v-else-if="selected === BASIC || selected === RKE || selected === IMAGE_PULL_SECRET">
         <Banner
           v-if="selected === RKE"
           color="info"
@@ -659,7 +833,7 @@ export default {
             data-testid="auth-secret-basic-password"
             :mode="mode"
             type="password"
-            label-key="selectOrCreateAuthSecret.basic.password"
+            :label-key="isGithubDotComRepository ? 'selectOrCreateAuthSecret.basic.passwordPersonalAccessToken' : 'selectOrCreateAuthSecret.basic.password'"
           />
         </div>
       </template>
@@ -683,10 +857,47 @@ export default {
         </div>
       </template>
     </div>
+    <div
+      v-if="selected === GITHUB_APP"
+      class="mt-20"
+      :class="{'row': !vertical}"
+    >
+      <div :class="vertical ? 'mt-20' : 'col span-3'">
+        <LabeledInput
+          v-model:value="githubAppId"
+          data-testid="auth-secret-github-app-id"
+          :mode="mode"
+          label-key="selectOrCreateAuthSecret.githubApp.appId"
+        />
+      </div>
+      <div :class="vertical ? 'mt-20' : 'col span-3'">
+        <LabeledInput
+          v-model:value="githubAppInstallationId"
+          data-testid="auth-secret-github-app-installation-id"
+          :mode="mode"
+          label-key="selectOrCreateAuthSecret.githubApp.installationId"
+        />
+      </div>
+    </div>
+    <div
+      v-if="selected === GITHUB_APP"
+      class="mt-20"
+      :class="{'row': !vertical}"
+    >
+      <div :class="vertical ? '' : 'col span-6'">
+        <FileSelectorTextArea
+          v-model:value="githubAppPrivateKey"
+          data-testid="auth-secret-github-app-private-key"
+          file-selector-testid="auth-secret-github-app-private-key-file"
+          :mode="mode"
+          label-key="selectOrCreateAuthSecret.githubApp.privateKey"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 .select-or-create-auth-secret div.labeled-select {
   min-height: $input-height;
 }

@@ -1,5 +1,8 @@
 /* eslint-disable */
-import type ShellApi from '@shell/plugins/internal-api/shell/shell.api';
+import { VuexStore } from '@shell/types/store/vuex';
+
+// Include the types for the APIs
+/// <reference path="../apis/vue-shim.d.ts" />
 
 export {};
 
@@ -13,11 +16,17 @@ declare module 'vue' {
       (key: string, args?: Record<string, any>, raw?: boolean): string;
       (options: { k: string; raw?: boolean; tag?: string | Record<string, any>; escapehtml?: boolean }): string;
     },
-    $store: {
-      getters: Record<string, any>,
-      dispatch: (action: string, payload?: any) => Promise<any>,
-      commit: (mutation: string, payload?: any) => void,
-    },
-    $shell: ShellApi,
+    $store: VuexStore,
+    /**
+     * Provided by the `fetch.client` mixin, which `shell/initialize/entry.js`
+     * registers globally, so every component has it. Keep in sync with what
+     * that mixin writes to its own `state`.
+     */
+    $fetchState: {
+      pending: boolean;
+      /** `normalizeError()` output, not an `Error` instance. */
+      error: { message: string; statusCode: number } | null;
+      timestamp: number;
+    }
   }
 }

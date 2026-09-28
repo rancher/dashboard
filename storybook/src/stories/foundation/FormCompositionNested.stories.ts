@@ -107,9 +107,9 @@ const Template: Story = {
       </Tab>
 
       <template #tab-row-extras>
-        <li class="tablist-controls">
+        <div class="tablist-controls">
           <button @click="addContainer({ name: '', image: '' })">Add container</button>
-        </li>
+        </div>
       </template>
     </Tabbed>
     ${ displayValidation() }

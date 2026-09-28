@@ -1,4 +1,9 @@
 # Extension as a top-level product
+
+## What is a top-level product
+If you're not familiar with a top-level product is, check it's definition [here](../api/concepts.md#what-is-a-top-level-product).
+
+## Top-level product full code example
 As a full example of an Extension as top-level product, let's start with the definition of `product.ts` config:
 
 ```ts
@@ -35,7 +40,7 @@ import { IPlugin } from '@shell/core/types';
 const BLANK_CLUSTER = '_';
 
 
-export function init($plugin: IPlugin, store: any) {
+export function init($extension: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';
   const CUSTOM_PAGE_NAME = 'page1';
@@ -45,7 +50,7 @@ export function init($plugin: IPlugin, store: any) {
     configureType,
     virtualType,
     basicType
-  } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
+  } = $extension.DSL(store, YOUR_PRODUCT_NAME);
 
   // registering a top-level product
   product({
@@ -178,4 +183,4 @@ const routes = [
 export default routes;
 ```
 
-A full working example of this code, which can be deployed as an Extension on you Rancher Dashboard, can be found on the [Rancher examples repo](https://github.com/rancher/ui-plugin-examples). Just follow the instructions described on the [README](https://github.com/rancher/ui-plugin-examples#readme) on how to add the repo to Rancher Dasboard.
+A full working example of this code, which can be deployed as an Extension on your Rancher Dashboard, can be found on the [Rancher examples repo](https://github.com/rancher/ui-plugin-examples). Just follow the instructions described on the [README](https://github.com/rancher/ui-plugin-examples#readme) on how to add the repo to Rancher Dashboard.

@@ -13,7 +13,8 @@ import {
 } from '@components/RcDropdown';
 
 const store = useStore();
-const allNotifications = computed(() => store.getters['notifications/all']);
+// We don't want any hidden notifications showing in the notification center (these are shown elsewhere, e.g. home page dynamic content announcements)
+const allNotifications = computed(() => store.getters['notifications/visible']);
 const unreadLevelClass = computed(() => {
   return store.getters['notifications/unreadCount'] === 0 ? '' : 'unread';
 });
@@ -35,7 +36,7 @@ const open = (opened: boolean) => {
     @update:open="open"
   >
     <rc-dropdown-trigger
-      tertiary
+      variant="tertiary"
       data-testid="notifications-center"
       :aria-label="t('nav.notifications.button.label')"
     >

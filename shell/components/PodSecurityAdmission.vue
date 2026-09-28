@@ -10,6 +10,7 @@ import {
   PSADefaultVersion, PSADimensions, PSALevels, PSAModes
 } from '@shell/config/pod-security-admission';
 import { pickBy, toDictionary } from '@shell/utils/object';
+import { RcHeading } from '@components/RcHeading';
 
 interface PSAControl { active: boolean, level: string, version: string }
 const getPsaControl = (): PSAControl => ({
@@ -29,7 +30,7 @@ export default defineComponent({
   emits: ['updateLabels', 'updateExemptions'],
 
   components: {
-    Checkbox, LabeledSelect, LabeledInput
+    Checkbox, LabeledSelect, LabeledInput, RcHeading
   },
   props: {
     /**
@@ -222,6 +223,7 @@ export default defineComponent({
         <Checkbox
           v-if="!labelsAlwaysActive"
           v-model:value="psaControl.active"
+          :mode="mode"
           :data-testid="componentTestid + '--psaControl-' + i + '-active'"
           :label="level"
           :label-key="`podSecurityAdmission.labels.${ level }`"
@@ -265,9 +267,9 @@ export default defineComponent({
     <!-- Exemptions -->
     <template v-if="hasExemptions">
       <slot name="title">
-        <h3>
+        <RcHeading :size="3">
           <t k="podSecurityAdmission.exemptions.title" />
-        </h3>
+        </RcHeading>
       </slot>
       <p class="mb-30">
         <t k="podSecurityAdmission.exemptions.description" />
@@ -281,6 +283,7 @@ export default defineComponent({
         <span class="col span-2">
           <Checkbox
             v-model:value="psaExemptionsControl.active"
+            :mode="mode"
             :data-testid="componentTestid + '--psaExemptionsControl-' + i + '-active'"
             :label="dimension"
             :label-key="`podSecurityAdmission.labels.${ dimension }`"

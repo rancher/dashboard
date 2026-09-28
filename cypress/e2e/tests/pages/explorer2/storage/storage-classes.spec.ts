@@ -3,14 +3,14 @@ import { StorageClassesPagePo } from '@/cypress/e2e/po/pages/explorer/storage-cl
 
 const storageClassesPagePo = new StorageClassesPagePo();
 
-describe('StorageClasses', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('StorageClasses', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
+      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { delay: true });
     });
 
     it('validate storage classes table in empty state', () => {

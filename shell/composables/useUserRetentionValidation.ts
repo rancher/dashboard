@@ -1,4 +1,4 @@
-import { Ref, ComputedRef, ref, computed } from 'vue';
+import { Ref } from 'vue';
 import { useStore } from 'vuex';
 
 import { SETTING } from '@shell/config/settings';
@@ -10,24 +10,12 @@ import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 dayjs.extend(duration);
 
-type SettingValidation = 'user-retention-cron' | 'disable-inactive-user-after' | 'delete-inactive-user-after';
-
-type Validation = {
-  [SETTING.DISABLE_INACTIVE_USER_AFTER]?: boolean;
-  [SETTING.DELETE_INACTIVE_USER_AFTER]?: boolean;
-  [SETTING.USER_RETENTION_CRON]?: boolean;
-}
-
 interface UseUserRetentionValidation {
   validateUserRetentionCron: (cronSetting: string | null) => string | undefined;
   validateDisableInactiveUserAfterDuration: (duration: string) => string | undefined;
   validateDeleteInactiveUserAfterDuration: (duration: string) => string | undefined;
   validateDeleteInactiveUserAfter: (duration: string) => string | undefined;
   validateDurationAgainstAuthUserSession: (duration: string) => string | undefined;
-  setValidation: (formField: SettingValidation, isValid: boolean) => void;
-  removeValidation : (setting: SettingValidation) => void;
-  addValidation: (setting: SettingValidation) => void;
-  isFormValid: ComputedRef<boolean>;
 }
 
 class ExpectedValidationError extends Error {
@@ -41,38 +29,6 @@ class ExpectedValidationError extends Error {
 export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, deleteAfterPeriod: Ref<boolean>, authUserSessionTtlMinutes: Ref<Setting | null>): UseUserRetentionValidation => {
   const store = useStore();
   const { t } = useI18n(store);
-
-  /**
-   * Tracks the validation state for user retention fields
-   */
-  const validation = ref<Validation>({
-    [SETTING.DISABLE_INACTIVE_USER_AFTER]: true,
-    [SETTING.DELETE_INACTIVE_USER_AFTER]:  true,
-    [SETTING.USER_RETENTION_CRON]:         true,
-  });
-
-  const isFormValid = computed(() => {
-    const validations = validation.value;
-
-    return !Object.values(validations).includes(false);
-  });
-
-  const setValidation = (formField: SettingValidation, isValid: boolean) => {
-    validation.value[formField] = isValid;
-  };
-
-  const removeValidation = (setting: SettingValidation) => {
-    const { [setting]: _, ...rest } = validation.value;
-
-    validation.value = rest;
-  };
-
-  const addValidation = (setting: SettingValidation) => {
-    validation.value = {
-      ...validation.value,
-      [setting]: true,
-    };
-  };
 
   /**
    * Takes a duration string and produces a dayjs duration object.
@@ -193,9 +149,5 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     validateDeleteInactiveUserAfterDuration,
     validateDeleteInactiveUserAfter,
     validateDurationAgainstAuthUserSession,
-    setValidation,
-    removeValidation,
-    addValidation,
-    isFormValid,
   };
 };

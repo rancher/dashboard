@@ -9,18 +9,24 @@ const crdsPage = new CustomResourceDefinitionsPagePo(cluster);
 const crdName = `e2etests.${ +new Date() }.example.com`;
 const crdGroup = `${ +new Date() }.example.com`;
 
-describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('CustomResourceDefinitions', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@explorer', '@adminUser'] }, () => {
     before(() => {
-      ClusterDashboardPagePo.goToAndWait(cluster); // Ensure we're at a solid state before messing with preferences (given login/load might change them)
-      cy.tableRowsPerPageAndNamespaceFilter(10, cluster, 'none', '{\"local\":[]}');
+      cy.tableRowsPerPageAndNamespaceFilter(10, cluster, 'none', '{\"local\":[]}', { delay: true });
     });
 
     it('can create a crd and see it in list view', () => {
+      // Idempotent across retries (testIsolation is off): attempt 1 can create the CRD (201) and then
+      // still fail on the list assertion below (list lag). On the retry the create then returns 409
+      // because the CRD already exists, so a plain retry can never pass. Delete any leftover first and
+      // wait for it to clear, so every attempt starts clean and the create returns 201.
+      cy.deleteRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions', crdName, false);
+      cy.waitForRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions', crdName, (resp: any) => resp?.status === 404, 20, { failOnStatusCode: false });
+
       ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { all: { is: true } } );
 
       CustomResourceDefinitionsPagePo.navTo();
@@ -49,7 +55,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
         .should('be.visible');
 
       // check table headers
-      const expectedHeaders = ['State', 'Name', 'Created At'];
+      const expectedHeaders = ['State', 'Name', 'Resource', 'Age'];
 
       crdsPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')
@@ -162,25 +168,33 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
     });
 
     it('sorting changes the order of paginated CRDs data', () => {
+      const filter = 'catalog.cattle.io';
+      const app = 'apps.catalog.cattle.io';
+
       CustomResourceDefinitionsPagePo.navTo();
       crdsPage.waitForPage();
       crdsPage.sortableTable().checkVisible();
       crdsPage.sortableTable().checkNoRowsNotVisible();
-      crdsPage.sortableTable().filter('apps');
+      crdsPage.sortableTable().filter(filter);
+      crdsPage.waitForPage(`q=${ filter }`);
+
+      // Wait for the filter to apply (vai on -- http request -- populate results)
+      // This is brittle, we should wait for the response for the page to be received
+      crdsPage.sortableTable().checkRowCount(false, 4);
 
       let indexBeforeSort: number;
 
       crdsPage.sortableTable().rowNames().then((rows) => {
         const sortedRows = rows.sort();
 
-        indexBeforeSort = sortedRows.indexOf('apps.catalog.cattle.io');
+        indexBeforeSort = sortedRows.indexOf(app);
       });
 
       // check table is sorted by `name` in ASC order by default
       crdsPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
 
       // crd name should be visible on first page (sorted in ASC order)
-      crdsPage.sortableTable().rowElementWithPartialName('apps.catalog.cattle.io').scrollIntoView().should('be.visible');
+      crdsPage.sortableTable().rowElementWithPartialName(app).scrollIntoView().should('be.visible');
 
       // sort by name in DESC order
       crdsPage.sortableTable().sort(2).click();

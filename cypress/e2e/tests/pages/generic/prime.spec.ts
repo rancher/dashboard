@@ -16,9 +16,9 @@ function interceptVersionAndSetToPrime() {
   });
 }
 
-describe('Prime Extension', { testIsolation: 'off', tags: ['@generic', '@adminUser'] }, () => {
-  const authProviderPo = new AuthProviderPo('local');
-  const azureadPo = new AzureadPo('local');
+describe('Prime Extension', { testIsolation: false, tags: ['@prime', '@generic', '@adminUser'] }, () => {
+  const authProviderPo = new AuthProviderPo('_');
+  const azureadPo = new AzureadPo('_');
 
   before(() => {
     interceptVersionAndSetToPrime().as('rancherVersion');

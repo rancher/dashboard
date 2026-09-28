@@ -1,13 +1,13 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
-import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import UnitInputPo from '@/cypress/e2e/po/components/unit-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import SelectOrCreateAuthPo from '@/cypress/e2e/po/components/select-or-create-auth.po';
 import FooterPo from '@/cypress/e2e/po/components/footer.po';
+import RcItemCardPo from '@/cypress/e2e/po/components/rc-item-card.po';
 
 /**
  * Covers core functionality that's common to the dashboard's import or create cluster pages
@@ -34,10 +34,12 @@ export default class AppClusterRepoEditPo extends PagePo {
     return new NameNsDescription(this.self());
   }
 
-  selectRadioOptionGitRepo(index: number): Cypress.Chainable {
-    const radioButton = new RadioGroupInputPo('[data-testid="clusterrepo-radio-input"]');
+  selectRcItemCard(type: string) {
+    const rcItemCard = RcItemCardPo.getCardById(type);
 
-    return radioButton.set(index);
+    rcItemCard.click();
+
+    return rcItemCard;
   }
 
   authSelectOrCreate(): SelectOrCreateAuthPo {

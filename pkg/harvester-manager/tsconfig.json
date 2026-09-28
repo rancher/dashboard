@@ -29,6 +29,9 @@
       "scripthost"
     ],
     "paths": {
+      "@components/*": [
+        "../../pkg/rancher-components/src/components/*"
+      ],
       "@shell/core/*": [
         "../../shell/core/*"
       ],

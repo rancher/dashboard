@@ -4,13 +4,18 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
-describe('Nodes list', { tags: ['@explorer2', '@adminUser'], testIsolation: 'off' }, () => {
+describe('Nodes list', { tags: ['@explorer2', '@adminUser'], testIsolation: false }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
 
-    // Add dummy node that used to cause a problem
+    // Add dummy node that used to cause a problem. Delete any leftover first and wait
+    // for the created node to be retrievable, otherwise a transient create or a
+    // leftover from a prior run can leave the node count/list without it and the test
+    // fails asserting the list contains it.
+    cy.deleteRancherResource('v1', 'nodes', dummyNode.metadata.name, false);
     cy.createRancherResource('v1', 'nodes', JSON.stringify(dummyNode));
+    cy.waitForRancherResource('v1', 'nodes', dummyNode.metadata.name, (resp: any) => resp.status === 200, 20, { failOnStatusCode: false });
   });
 
   after(() => {

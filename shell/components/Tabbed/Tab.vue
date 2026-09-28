@@ -1,6 +1,14 @@
 <script>
+import { useTabCountWatcher } from '@shell/components/form/ResourceTabs/composable';
+import { useInSummary } from '@shell/components/TableOfContents/composables';
+import { computed, inject, useTemplateRef } from 'vue';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
+
 export default {
-  inject: ['addTab', 'removeTab', 'sideTabs'],
+  name: 'Tab',
+
+  inject: ['addTab', 'removeTab', 'sideTabs', 'select', 'instanceUid'],
 
   emits: ['active'],
 
@@ -12,6 +20,10 @@ export default {
     labelKey: {
       default: null,
       type:    String
+    },
+    labelIcon: {
+      type:    String,
+      default: null
     },
     name: {
       required: true,
@@ -38,11 +50,48 @@ export default {
       type:    Boolean,
       default: false
     },
+    errorIconTooltip: {
+      type:    String,
+      default: ''
+    },
     badge: {
       default:  0,
       required: false,
       type:     Number
     },
+    /**
+     * False to hide the count from being displayed in a tab.
+     * Number override/display the number as the count on the tab.
+     */
+    count: {
+      default: undefined,
+      type:    [Number, Boolean]
+    }
+  },
+
+  setup(props) {
+    const select = inject('select');
+    const store = useStore();
+    const { t } = useI18n(store);
+    const label = computed(() => {
+      if (props.labelKey && typeof t === 'function') {
+        return t(props.labelKey);
+      }
+
+      return props.label ?? props.name;
+    });
+    const { count, isCountVisible } = useTabCountWatcher();
+    const summarizedContainerRef = useTemplateRef('tab-summarized-container');
+    // when a Tab is scrolled to, call its Tabbed's 'select' method to ensure the Tab is active
+    const { summary } = useInSummary({
+      scrollTo:   () => select(props.name),
+      label,
+      elementRef: summarizedContainerRef,
+    });
+
+    return {
+      inferredCount: count, isInferredCountVisible: isCountVisible, summary
+    };
   },
 
   data() {
@@ -50,7 +99,7 @@ export default {
   },
 
   computed: {
-    labelDisplay() {
+    baseLabelDisplay() {
       if ( this.labelKey ) {
         return this.$store.getters['i18n/t'](this.labelKey);
       }
@@ -62,12 +111,38 @@ export default {
       return this.name;
     },
 
+    labelDisplay() {
+      const baseLabel = this.baseLabelDisplay;
+
+      if ( this.displayCount === false ) {
+        return baseLabel;
+      }
+
+      return `${ baseLabel } (${ this.displayCount })`;
+    },
+
     shouldShowHeader() {
       if ( this.showHeader !== null ) {
         return this.showHeader;
       }
 
       return this.sideTabs || false;
+    },
+
+    displayCount() {
+      if (this.count === false) {
+        return false;
+      }
+
+      if (typeof this.count === 'number') {
+        return this.count;
+      }
+
+      if (this.isInferredCountVisible) {
+        return this.inferredCount;
+      }
+
+      return false;
     }
   },
 
@@ -89,12 +164,25 @@ export default {
 };
 </script>
 
+<!--
+  Two things worth knowing about the panel below:
+
+  - it has no aria-hidden. v-show already keeps the inactive panels out of the accessibility tree,
+    and aria-hidden on a focusable (tabindex="0") element is a violation in its own right.
+  - this note sits outside the <template> on purpose. A comment at the template root turns the
+    component into a fragment, which silently breaks attribute fallthrough for the consumers that
+    pass a class straight to <Tab> (ConfigTab, YamlTab).
+-->
 <template>
   <section
     v-show="active"
-    :id="name"
-    :aria-hidden="!active"
+    :id="`${instanceUid}-${name}`"
+    ref="tab-summarized-container"
+    class="tab-panel"
     role="tabpanel"
+    :aria-labelledby="`tab-${instanceUid}-${name}`"
+    :data-testid="`tab-panel-${name}`"
+    tabindex="0"
   >
     <div
       v-if="shouldShowHeader"
@@ -115,6 +203,11 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.tab-panel:focus-visible {
+  @include focus-outline;
+  outline-offset: -2px;
+}
+
 .tab-header {
   display: flex;
   justify-content: space-between;

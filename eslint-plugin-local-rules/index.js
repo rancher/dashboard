@@ -10,8 +10,19 @@
  */
 
 const vCleanTooltip = require('./v-clean-tooltip');
+const noHrElement = require('./no-hr-element');
 
 module.exports = {
-  configs: { all: { rules: { 'local-rules/v-clean-tooltip': 'error' } } },
-  rules:   { 'v-clean-tooltip': vCleanTooltip }
+  configs: {
+    all: {
+      rules: {
+        'local-rules/v-clean-tooltip': 'error',
+        'local-rules/no-hr-element':   'error',
+      }
+    }
+  },
+  rules: {
+    'v-clean-tooltip': vCleanTooltip,
+    'no-hr-element':   noHrElement,
+  }
 };

@@ -169,6 +169,11 @@ export function compare(a, b) {
   return 0;
 }
 
+/**
+ * Should the logic of this sort field be flipped?
+ *
+ * For instance show descending but sort by ascending
+ */
 export function parseField(str) {
   const parts = str.split(/:/);
 
@@ -179,7 +184,7 @@ export function parseField(str) {
   }
 }
 
-export function sortBy(ary, keys, desc) {
+export function sortBy(ary, keys, desc = false) {
   if ( !Array.isArray(keys) ) {
     keys = [keys];
   }

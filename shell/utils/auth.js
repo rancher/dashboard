@@ -1,14 +1,13 @@
 import { Popup, popupWindowOptions } from '@shell/utils/window';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
 import {
-  BACK_TO, SPA, _EDIT, _FLAGGED, TIMED_OUT, IS_SLO, LOGGED_OUT
+  BACK_TO, SPA, _FLAGGED, TIMED_OUT, IS_SLO, LOGGED_OUT
 } from '@shell/config/query-params';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
-import { getProductFromRoute, getResourceFromRoute } from '@shell/utils/router';
-import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { findBy } from '@shell/utils/array';
 import { onExtensionsReady } from '@shell/utils/uiplugins';
+import { HIDE_LOCAL_AUTH_PROVIDER } from '@shell/store/features';
 
 export const AUTH_BROADCAST_CHANNEL_NAME = 'rancher-auth-test-callback';
 
@@ -99,38 +98,126 @@ export function returnTo(opt, vm) {
 }
 
 /**
- * Determines common auth provider info as those that are available (non-local) and the location of the enabled provider
+ * The local authconfig, which is always present and is managed separately from the
+ * external providers.
  */
-export const authProvidersInfo = async(store) => {
-  try {
-    const rows = await store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG });
-
-    return parseAuthProvidersInfo(rows);
-  } catch (error) {
-    return {};
-  }
-};
+export const LOCAL_AUTH_ID = 'local';
 
 /**
- * Parses auth provider's info to return if there's an auth provider enabled
+ * Keep Authconfigs that Rancher pre-creates and are not configurable out of the
+ * provider catalogue
  */
-export function parseAuthProvidersInfo(rows) {
-  const nonLocal = rows.filter((x) => x.name !== 'local');
-  const enabled = nonLocal.filter((x) => x.enabled === true );
+export const UNSUPPORTED_AUTH_IDS = ['oidc'];
 
-  const supportedNonLocal = nonLocal.filter((x) => x.id !== 'oidc');
+/**
+ * Determine if disabling a provider would leave nobody with a way to sign in
+ *
+ * @param {Array} configs every authconfig, enabled or not
+ * @param {String} id the provider about to be disabled
+ * @param {Boolean} localLoginDisabled the value of the hide-local-auth feature flag
+ */
+export function isLastWayIn(configs = [], id, localLoginDisabled) {
+  if (!localLoginDisabled) {
+    return false;
+  }
 
-  const enabledLocation = enabled.length === 1 ? {
-    name:   'c-cluster-auth-config-id',
-    params: { id: enabled[0].id },
-    query:  { mode: _EDIT }
-  } : null;
+  return !configs.some((c) => c.enabled && c.id !== LOCAL_AUTH_ID && c.id !== id);
+}
 
-  return {
-    nonLocal: supportedNonLocal,
-    enabledLocation,
-    enabled
-  };
+/**
+ * The feature resource behind the hide-local-auth flag. The `features/get` getter
+ * reads the value, but turning it back off means writing to the resource itself.
+ */
+export function localAuthFeature(getters) {
+  return getters['management/byId'](MANAGEMENT.FEATURE, HIDE_LOCAL_AUTH_PROVIDER);
+}
+
+/**
+ * Whether local login can be switched back on from the UI. A locked value is set
+ * on the Rancher install and cannot be overridden through the API.
+ */
+export function canWriteLocalAuthFeature(getters) {
+  const schema = getters['management/schemaFor'](MANAGEMENT.FEATURE);
+  const canUpdate = (schema?.resourceMethods || []).includes('PUT');
+  const feature = localAuthFeature(getters);
+
+  return canUpdate && !!feature && feature.status?.lockedValue === null;
+}
+
+/**
+ * Switch local login back on, rolling the resource back and rethrowing so the
+ * caller can show the failure rather than leaving the toggle looking saved.
+ */
+export async function restoreLocalLogin(getters) {
+  const feature = localAuthFeature(getters);
+
+  if (!feature) {
+    return;
+  }
+
+  feature.spec.value = false;
+
+  try {
+    await feature.save();
+  } catch (e) {
+    feature.spec.value = true;
+    throw e;
+  }
+}
+
+/**
+ * Confirm disabling an auth provider
+ *
+ * Disabling the last external provider while local login is off locks
+ * everyone out with only CLI recovery, so that case gets a dialog that offers
+ * the way out instead of one that asks the user to accept the consequences.
+ *
+ * @param {Object} opt
+ * @param {Function} opt.dispatch a root-level dispatch taking namespaced action names
+ * @param {Object} opt.getters the root store getters
+ * @param {String} opt.id the provider about to be disabled
+ * @param {String} opt.name the provider's display name
+ * @param {Function} opt.disableCb runs the disable once the dialog is happy
+ */
+export async function promptDisableAuthProvider({
+  dispatch, getters, id, name, disableCb
+}) {
+  let configs = [];
+  let readFailed = false;
+
+  try {
+    configs = await dispatch('management/findAll', { type: MANAGEMENT.AUTH_CONFIG }) || [];
+  } catch (e) {
+    // Without the list there is no way to tell whether this is the last provider,
+    // so assume it is. Wrongly blocking costs a step; wrongly allowing locks
+    // everyone out with only command-line recovery.
+    readFailed = true;
+  }
+
+  const localLoginDisabled = getters['features/get'](HIDE_LOCAL_AUTH_PROVIDER);
+
+  if (localLoginDisabled && (readFailed || isLastWayIn(configs, id, localLoginDisabled))) {
+    return dispatch('management/promptModal', {
+      component:      'DisableLastAuthProviderDialog',
+      modalWidth:     '640px',
+      height:         'auto',
+      styles:         'max-height: 100vh;',
+      componentProps: {
+        name,
+        canRestore: canWriteLocalAuthFeature(getters),
+        restoreCb:  () => restoreLocalLogin(getters),
+      },
+    });
+  }
+
+  return dispatch('management/promptModal', {
+    component:      'DisableAuthProviderDialog',
+    customClass:    'remove-modal',
+    modalWidth:     '640px', // AppModal ignores a width with no unit and falls back to 600px
+    height:         'auto',
+    styles:         'max-height: 100vh;',
+    componentProps: { name, disableCb },
+  });
 }
 
 export const checkSchemasForFindAllHash = (types, store) => {
@@ -201,6 +288,9 @@ export const checkPermissions = (types, getters) => {
   return allHash(hash);
 };
 
+/**
+ * Checks if the current user has access to the specified resource type
+ */
 export const canViewResource = (store, resource) => {
   // Note - don't use the current products store... because products can override stores for resources with `typeStoreMap`
   const inStore = store.getters['currentStore'](resource);
@@ -217,80 +307,6 @@ export const canViewResource = (store, resource) => {
 
   return !!validResource;
 };
-
-// ************************************************************
-//
-// BELOW ARE METHODS THAT ARE A PART OF THE AUTHENTICATED MIDDLEWARE REMOVAL. THIS IS A TEMPORARY HOME FOR THESE UTILS AND SHOULD BE REWRITTEN, MOVED OR DELETED.
-//
-// TODO: Remove and refactor everything below for more clarity and better organization. https://github.com/rancher/dashboard/issues/11111
-//
-// ************************************************************
-
-/**
- * Attempt to set the product in our datastore if the route matches a known product. Otherwise show an error page instead.
- */
-export function setProduct(store, to) {
-  let product = getProductFromRoute(to);
-
-  // since all products are hardcoded as routes (ex: c-local-explorer), if we match the wildcard route it means that the product does not exist
-  if ((product && (!to.matched.length || (to.matched.length && to.matched[0].path === '/c/:cluster/:product'))) ||
-  // if the product grabbed from the route is not registered, then we don't have it!
-  (product && !store.getters['type-map/isProductRegistered'](product))) {
-    const error = new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound: product }, true));
-
-    return store.dispatch('loadingError', error);
-  }
-
-  if ( !product ) {
-    product = EXPLORER;
-  }
-
-  const oldProduct = store.getters['productId'];
-  const oldStore = store.getters['currentProduct']?.inStore;
-
-  if ( product !== oldProduct ) {
-    store.commit('setProduct', product);
-  }
-
-  const neuStore = store.getters['currentProduct']?.inStore;
-
-  if ( neuStore !== oldStore ) {
-    // If the product store changes, clear the catalog.
-    // There might be management catalog items in it vs cluster.
-    store.commit('catalog/reset');
-  }
-}
-
-/**
- * Check that the resource is valid, if not redirect to fail whale
- *
- * This requires that
- * - product is set
- * - product's store is set and setup (so we can check schema's within it)
- * - product's store has the schemaFor getter (extension stores might not have it)
- * - there's a resource associated with route (meta or param)
- */
-export function validateResource(store, to) {
-  const product = store.getters['currentProduct'];
-  const resource = getResourceFromRoute(to);
-
-  // In order to check a resource is valid we need these
-  if (!product || !resource) {
-    return false;
-  }
-
-  if (canViewResource(store, resource)) {
-    return false;
-  }
-
-  // Unknown resource, redirect to fail whale
-
-  const error = new Error(store.getters['i18n/t']('nav.failWhale.resourceNotFound', { resource }, true));
-
-  store.dispatch('loadingError', error);
-
-  throw error;
-}
 
 /**
  * Attempt to load the current user's principal
@@ -336,7 +352,7 @@ export async function tryInitialSetup(store, password = 'admin') {
  */
 export async function isLoggedIn(store, userData) {
   store.commit('auth/hasAuth', true);
-  store.commit('auth/loggedInAs', userData.id);
+  store.dispatch('auth/loggedInAs', userData.id);
 
   // Init the notification center now that we know who the user is
   await store.dispatch('notifications/init', userData);

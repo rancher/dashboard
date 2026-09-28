@@ -19,22 +19,30 @@ const i18n = useI18n(store);
 </script>
 
 <template>
-  <div class="scaler">
+  <div
+    class="scaler"
+    data-testid="scaler"
+  >
     <button
       class="decrease"
       :aria-label="i18n.t('component.resource.detail.card.scaler.ariaLabel.decrease', {resourceName: props.ariaResourceName})"
       :disabled="!!props.min && (props.value <= props.min)"
+      data-testid="scaler-decrease"
       @click="() => emit('decrease', props.value - 1)"
     >
       <i class="icon icon-sm icon-minus" />
     </button>
-    <div class="value">
+    <div
+      class="value"
+      data-testid="scaler-value"
+    >
       {{ props.value }}
     </div>
     <button
       class="increase"
       :aria-label="i18n.t('component.resource.detail.card.scaler.ariaLabel.increase', {resourceName: props.ariaResourceName})"
       :disabled="!!props.max && (props.value >= props.max)"
+      data-testid="scaler-increase"
       @click="() => emit('increase', props.value + 1)"
     >
       <i class="icon icon-sm icon-plus" />
@@ -46,9 +54,9 @@ const i18n = useI18n(store);
 .scaler {
   display: inline-flex;
   align-items: center;
-  background-color: hsl(from var(--primary) h s calc(l + 30));
+  background-color: var(--accent-btn);
   border-radius: var(--border-radius-md);
-  border: 1px solid var(--primary);
+  border: solid thin var(--primary);
   overflow: hidden;
 
   button {
@@ -69,7 +77,7 @@ const i18n = useI18n(store);
     }
 
     &:hover {
-      background-color: hsl(from var(--primary) h s calc(l + 20));
+      background-color: var(--accent-btn);
     }
 
     &[disabled] {
@@ -80,7 +88,7 @@ const i18n = useI18n(store);
   }
 
   .value {
-    color: initial;
+    color: var(--body-text);
     cursor: default;
     padding: 4px;
     padding-top: 5px;

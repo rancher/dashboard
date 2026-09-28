@@ -2,12 +2,15 @@ import SYSTEM_NAMESPACES from '@shell/config/system-namespaces';
 import {
   PROJECT, SYSTEM_NAMESPACE, ISTIO as ISTIO_LABELS, FLEET, RESOURCE_QUOTA
 } from '@shell/config/labels-annotations';
-import { ISTIO, MANAGEMENT } from '@shell/config/types';
+import { ISTIO, MANAGEMENT, LOCAL_CLUSTER } from '@shell/config/types';
 
 import { get, set } from '@shell/utils/object';
 import { insertAt, isArray } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import { NAME as MANAGER } from '@shell/config/product/manager';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { hasPSALabels, getPSATooltipsDescription, getPSALabels } from '@shell/utils/pod-security-admission';
 import { PSAIconsDisplay, PSALabelsNamespaceVersion } from '@shell/config/pod-security-admission';
 
@@ -30,6 +33,16 @@ const OBSCURE_NAMESPACE_PREFIX = [
   'user-', // user namespace
   'local', // local namespace
 ];
+
+function parseResourceQuota(annotation) {
+  try {
+    const parsed = JSON.parse(annotation);
+
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export default class Namespace extends SteveModel {
   applyDefaults() {
@@ -68,7 +81,7 @@ export default class Namespace extends SteveModel {
         label:      this.t('namespace.move'),
         bulkable:   true,
         bulkAction: 'move',
-        enabled:    true,
+        enabled:    this.canUpdate,
         icon:       'icon icon-fork',
         weight:     3,
       });
@@ -134,6 +147,10 @@ export default class Namespace extends SteveModel {
     return project;
   }
 
+  get projectNameDisplay() {
+    return this.project?.nameDisplay || '';
+  }
+
   get groupById() {
     const projectId = this.project?.id;
 
@@ -184,7 +201,14 @@ export default class Namespace extends SteveModel {
   }
 
   get listLocation() {
-    const listLocation = { name: this.$rootGetters['isRancher'] ? 'c-cluster-product-projectsnamespaces' : 'c-cluster-product-resource' };
+    const productId = this.$rootGetters['productId'];
+    const isManagerProduct = productId === MANAGER;
+    const cluster = isManagerProduct ? LOCAL_CLUSTER : this.$rootGetters['clusterId'];
+
+    const listLocation = {
+      name:   this.$rootGetters['isRancher'] ? 'c-cluster-product-projectsnamespaces' : 'c-cluster-product-resource',
+      params: { cluster, product: EXPLORER },
+    };
 
     // Harvester uses these resource directly... but has different routes. listLocation covers routes leading back to route
     if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
@@ -198,6 +222,12 @@ export default class Namespace extends SteveModel {
   get _detailLocation() {
     const _detailLocation = super._detailLocation;
 
+    // Namespace detail pages belong to the local cluster's explorer, not Cluster Management
+    if (this.$rootGetters['productId'] === MANAGER) {
+      _detailLocation.params.cluster = LOCAL_CLUSTER;
+      _detailLocation.params.product = EXPLORER;
+    }
+
     return _detailLocation;
   }
 
@@ -210,7 +240,16 @@ export default class Namespace extends SteveModel {
   }
 
   get resourceQuota() {
-    return JSON.parse(this.metadata.annotations[RESOURCE_QUOTA] || `{"limit":{}}`);
+    return parseResourceQuota(this.metadata.annotations?.[RESOURCE_QUOTA]) || { limit: {} };
+  }
+
+  /**
+   * True when the resource quota annotation is present but is not a JSON object, so `resourceQuota` falls back to an empty limit
+   */
+  get hasInvalidResourceQuota() {
+    const annotation = this.metadata.annotations?.[RESOURCE_QUOTA];
+
+    return !!annotation && !parseResourceQuota(annotation);
   }
 
   set resourceQuota(value) {
@@ -267,6 +306,55 @@ export default class Namespace extends SteveModel {
   }
 
   get hideDetailLocation() {
-    return !!this.$rootGetters['currentProduct'].hideNamespaceLocation;
+    const currentProduct = this.$rootGetters['currentProduct'];
+
+    return currentProduct ? !!currentProduct.hideNamespaceLocation : true;
+  }
+
+  get glance() {
+    const glance = [...this._glance];
+
+    const namespaceIndex = glance.findIndex((item) => item.name === 'namespace');
+
+    if (namespaceIndex > -1) {
+      glance.splice(namespaceIndex, 1, this.projectGlance);
+    }
+
+    // In Cluster Management, the type link points to the local cluster's explorer.
+    // If the user cannot access the local cluster, show type as plain text.
+    const productId = this.$rootGetters['productId'];
+
+    if (productId === MANAGER) {
+      // `local` lives in its own fixed `clustersLocal` slice — excluded from the pinned/recent/others
+      // groups — so that slice is the single source of truth for local access.
+      const hasLocalCluster = sideNavService.helper.clustersLocal.some((c) => c.id === LOCAL_CLUSTER);
+      const typeIndex = glance.findIndex((item) => item.name === 'type');
+
+      if (!hasLocalCluster && typeIndex > -1) {
+        glance[typeIndex] = {
+          ...glance[typeIndex], formatter: undefined, formatterOpts: undefined
+        };
+      }
+    }
+
+    // projectGlance could be undefined
+    return glance.filter(Boolean);
+  }
+
+  get projectGlance() {
+    // Not all namespaces are in a project
+    if (!this.project) {
+      return undefined;
+    }
+
+    return {
+      name:          'project',
+      label:         this.t('component.resource.detail.glance.project'),
+      formatter:     'Link',
+      formatterOpts: {
+        to: this.project.detailLocation, row: {}, options: { internal: true }
+      },
+      content: this.project.nameDisplay
+    };
   }
 }

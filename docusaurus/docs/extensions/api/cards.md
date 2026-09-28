@@ -24,9 +24,9 @@ _Arguments_
 
 `where` string parameter admissable values for this method:
 
-| Key | Type | Description |
-|---|---|---|
-|`CardLocation.CLUSTER_DASHBOARD_CARD`| String | Location for a card on the Cluster Dashboard page |
+| Key | Type | Rancher Version | Description |
+|---|---|---|---|
+|`CardLocation.CLUSTER_DASHBOARD_CARD`| String | v2.7.2 | Location for a card on the Cluster Dashboard page |
 
 <br/>
 
@@ -38,6 +38,8 @@ _Arguments_
 <br/>
 
 ## CardLocation.CLUSTER_DASHBOARD_CARD options
+
+*(From Rancher version v2.7.2)*
 
 ![Cluster Dashboard Card](../screenshots/cluster-cards.png)
 

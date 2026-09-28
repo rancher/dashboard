@@ -6,10 +6,11 @@ import Loading from '@shell/components/Loading';
 import { VIEW_IN_API } from '@shell/store/prefs';
 import Setting from '@shell/components/Setting';
 import { mapGetters } from 'vuex';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   components: {
-    Banner, Loading, Setting
+    Banner, Loading, Setting, RcHeading
   },
 
   async fetch() {
@@ -66,6 +67,17 @@ export default {
 
     this.settings = settings;
     this.provisioningSettings = provisioningSettings;
+
+    this.$nextTick(() => {
+      // Handle scrolling to hash anchor after data is loaded
+      if (this.$route.hash) {
+        const element = document.querySelector(this.$route.hash);
+
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
   },
 
   data() {
@@ -89,6 +101,7 @@ export default {
     </Banner>
     <div
       v-for="(setting) in settings"
+      :id="setting.id"
       :key="setting.id"
     >
       <Setting
@@ -96,11 +109,12 @@ export default {
       />
     </div>
 
-    <h2>
+    <RcHeading :size="2">
       {{ t('advancedSettings.provisioning.header') }}
-    </h2>
+    </RcHeading>
     <div
       v-for="(setting) in provisioningSettings"
+      :id="setting.id"
       :key="setting.id"
     >
       <Setting

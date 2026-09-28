@@ -2,11 +2,14 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import { StringList } from './index';
 
+// StringList declares its error map inline, so derive the `errors` payload from the component.
+type Errors = InstanceType<typeof StringList>['errors'];
+
 describe('stringList.vue', () => {
   let wrapper: VueWrapper<InstanceType<typeof StringList>>;
 
   beforeEach(() => {
-    wrapper = mount(StringList, { propsData: { items: [] } });
+    wrapper = mount(StringList, { props: { items: [] } });
   });
 
   describe('list box', () => {
@@ -125,9 +128,9 @@ describe('stringList.vue', () => {
       await inputField.setValue('F');
       await wrapper.vm.$nextTick();
 
-      const emitted = (wrapper.emitted('type:item') || [])[0][0][0];
+      const [[typed]] = wrapper.emitted('type:item') as [string][];
 
-      expect(emitted).toBe('F');
+      expect(typed).toBe('F');
     });
   });
 
@@ -241,9 +244,9 @@ describe('stringList.vue', () => {
 
         await wrapper.vm.$nextTick();
 
-        const itemsCount = (wrapper.emitted('change') || [])[0][0].length;
+        const [[itemsResult]] = wrapper.emitted('change') as [string[]][];
 
-        expect(itemsCount).toBe(0);
+        expect(itemsResult).toHaveLength(0);
       });
 
       it('deactivates create mode', async() => {
@@ -297,9 +300,9 @@ describe('stringList.vue', () => {
       await inputField.trigger('keydown.enter');
       await wrapper.vm.$nextTick();
 
-      const emitted = (wrapper.emitted('change') || [])[0][0][0];
+      const [[itemsResult]] = wrapper.emitted('change') as [string[]][];
 
-      expect(emitted).toBe(validItem.trim());
+      expect(itemsResult[0]).toBe(validItem.trim());
     });
 
     it('save item in edit mode by pressing Enter key', async() => {
@@ -318,9 +321,9 @@ describe('stringList.vue', () => {
       await inputField.trigger('keydown.enter');
       await wrapper.vm.$nextTick();
 
-      const emitted = (wrapper.emitted('change') || [])[0][0][0];
+      const [[itemsResult]] = wrapper.emitted('change') as [string[]][];
 
-      expect(emitted).toBe(validItem.trim());
+      expect(itemsResult[0]).toBe(validItem.trim());
     });
 
     it('reject a new item in create mode when item name is empty', async() => {
@@ -406,7 +409,7 @@ describe('stringList.vue', () => {
 
       beforeEach(() => {
         wrapper = mount(StringList, {
-          propsData: {
+          props: {
             items,
             bulkAdditionDelimiter: delimiter,
             errorMessages:         { duplicate: 'error, item is duplicate.' },
@@ -428,7 +431,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+        const [[itemsResult]] = wrapper.emitted('change') as [string[]][];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -448,9 +451,9 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const isDuplicate = (wrapper.emitted('errors') || [])[0][0].duplicate;
+        const [[errors]] = wrapper.emitted('errors') as [Errors][];
 
-        expect(isDuplicate).toBe(true);
+        expect(errors.duplicate).toBe(true);
       });
 
       it('should show a warning if the new values are all duplicates', async() => {
@@ -466,9 +469,9 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const isDuplicate = (wrapper.emitted('errors') || [])[0][0].duplicate;
+        const [[errors]] = wrapper.emitted('errors') as [Errors][];
 
-        expect(isDuplicate).toBe(true);
+        expect(errors.duplicate).toBe(true);
       });
 
       it('should not consider empty strings at the beginning', async() => {
@@ -485,7 +488,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+        const [[itemsResult]] = wrapper.emitted('change') as [string[]][];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -504,7 +507,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+        const [[itemsResult]] = wrapper.emitted('change') as [string[]][];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -523,7 +526,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+        const [[itemsResult]] = wrapper.emitted('change') as [string[]][];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -534,7 +537,7 @@ describe('stringList.vue', () => {
 
       beforeEach(() => {
         wrapper = mount(StringList, {
-          propsData: {
+          props: {
             items,
             bulkAdditionDelimiter: delimiter,
             errorMessages:         { duplicate: 'error, item is duplicate.' },
@@ -555,7 +558,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+        const [[itemsResult]] = wrapper.emitted('change') as [string[]][];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -572,9 +575,9 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const isDuplicate = (wrapper.emitted('errors') || [])[0][0].duplicate;
+        const [[errors]] = wrapper.emitted('errors') as [Errors][];
 
-        expect(isDuplicate).toBe(true);
+        expect(errors.duplicate).toBe(true);
       });
 
       it('should show a warning if the new values are all duplicates', async() => {
@@ -589,9 +592,9 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const isDuplicate = (wrapper.emitted('errors') || [])[0][0].duplicate;
+        const [[errors]] = wrapper.emitted('errors') as [Errors][];
 
-        expect(isDuplicate).toBe(true);
+        expect(errors.duplicate).toBe(true);
       });
 
       it('should not consider empty strings at the beginning', async() => {
@@ -607,7 +610,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+        const [[itemsResult]] = wrapper.emitted('change') as [string[]][];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -625,7 +628,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+        const [[itemsResult]] = wrapper.emitted('change') as [string[]][];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -643,7 +646,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+        const [[itemsResult]] = wrapper.emitted('change') as [string[]][];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -661,7 +664,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+        const [[itemsResult]] = wrapper.emitted('change') as [string[]][];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -724,9 +727,9 @@ describe('stringList.vue', () => {
 
       await inputField.setValue('test');
 
-      const isDuplicate = (wrapper.emitted('errors') || [])[0][0].duplicate;
+      const [[errors]] = wrapper.emitted('errors') as [Errors][];
 
-      expect(isDuplicate).toBe(true);
+      expect(errors.duplicate).toBe(true);
     });
 
     it('emit duplicate errors, reset error', async() => {
@@ -746,9 +749,12 @@ describe('stringList.vue', () => {
       // it is not duplicate, reset duplicate error -> emit false
       await inputField.setValue('test-1');
 
-      const isDuplicate = (wrapper.emitted('errors') || [])[0][0].duplicate;
+      const emitted = wrapper.emitted('errors') as [Errors][];
 
-      expect(isDuplicate).toBe(false);
+      // This asserts the state after the reset, so read the last emission. The deep
+      // watcher emits the component's own errors object, so every entry is the same
+      // reference and index 0 would not describe the first emission anyway.
+      expect(emitted[emitted.length - 1][0].duplicate).toBe(false);
     });
   });
 });

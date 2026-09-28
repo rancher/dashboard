@@ -13,7 +13,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { MANAGEMENT } from '@shell/config/types';
 import { NAME } from '@shell/config/product/explorer';
 import { PROJECT_ID, _VIEW, _CREATE, _EDIT } from '@shell/config/query-params';
-import ProjectMembershipEditor, { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor';
+import ProjectMembershipEditor, { canViewProjectMembershipList } from '@shell/components/form/Members/ProjectMembershipEditor';
 import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { Banner } from '@components/Banner';
@@ -49,13 +49,16 @@ export default {
       HARVESTER_TYPES,
       RANCHER_TYPES,
       fvFormRuleSets:     [{ path: 'spec.displayName', rules: ['required'] }],
+      isQuotasValid:      true,
     };
   },
   computed: {
     ...mapGetters(['currentCluster', 'isStandaloneHarvester']),
 
+    // Show the Members tab to anyone who can view the list; add/remove are separately gated on
+    // full manage rights, so a view-only user gets a read-only members view instead of no tab.
     canViewMembers() {
-      return canViewProjectMembershipEditor(this.$store);
+      return canViewProjectMembershipList(this.$store);
     },
 
     canEditProject() {
@@ -109,6 +112,9 @@ export default {
     }
   },
   methods: {
+    validateQuotas(isValid) {
+      this.isQuotasValid = isValid;
+    },
     async save(saveCb) {
       try {
         this.errors = [];
@@ -156,15 +162,9 @@ export default {
       this['membershipUpdate'] = update;
     },
 
-    removeQuota(key) {
-      ['resourceQuota', 'namespaceDefaultResourceQuota'].forEach((specProp) => {
-        if (this.value?.spec[specProp]?.limit && this.value?.spec[specProp]?.limit[key]) {
-          delete this.value?.spec[specProp]?.limit[key];
-        }
-        if (this.value?.spec[specProp]?.usedLimit && this.value?.spec[specProp]?.usedLimit[key]) {
-          delete this.value?.spec[specProp]?.usedLimit[key];
-        }
-      });
+    onQuotasInput({ projectLimit, nsLimit }) {
+      this.value.spec.resourceQuota = { ...this.value.spec.resourceQuota, limit: projectLimit };
+      this.value.spec.namespaceDefaultResourceQuota = { ...this.value.spec.namespaceDefaultResourceQuota, limit: nsLimit };
     }
   },
 };
@@ -178,7 +178,7 @@ export default {
     :resource="value"
     :subtypes="[]"
     :can-yaml="false"
-    :validation-passed="fvFormIsValid"
+    :validation-passed="fvFormIsValid && isQuotasValid"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"
@@ -198,6 +198,7 @@ export default {
     <Tabbed
       :side-tabs="true"
       :use-hash="useTabbedHash"
+      :default-tab="defaultTab"
     >
       <Tab
         v-if="canViewMembers"
@@ -226,7 +227,8 @@ export default {
           :value="value"
           :mode="canEditTabElements"
           :types="isStandaloneHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
-          @remove="removeQuota"
+          @input="onQuotasInput"
+          @validationChanged="validateQuotas"
         />
       </Tab>
       <Tab

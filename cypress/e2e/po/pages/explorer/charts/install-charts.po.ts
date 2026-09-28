@@ -1,6 +1,10 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
+import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
+import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
+import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class InstallChartPage extends PagePo {
   private static createPath(clusterId: string) {
@@ -20,7 +24,7 @@ export class InstallChartPage extends PagePo {
   }
 
   nextPage() {
-    const btn = new AsyncButtonPo('.controls-steps .btn.role-primary');
+    const btn = new AsyncButtonPo('.controls-steps .btn.variant-primary');
 
     btn.click(true);
 
@@ -38,9 +42,12 @@ export class InstallChartPage extends PagePo {
   }
 
   installChart() {
-    const btn = new AsyncButtonPo('[data-testid="action-button-async-button"]');
+    // The install button is in the controls-steps area and is the async button for the final step.
+    // It is `:disabled="!activeStep.ready"`, so it stays disabled until the step's schema/validation
+    // has loaded; clickWhenEnabled waits that out (generous window for CI) before clicking.
+    const btn = new AsyncButtonPo('.controls-steps [data-testid="action-button-async-button"]');
 
-    btn.click(true);
+    btn.clickWhenEnabled(MEDIUM_TIMEOUT_OPT, true);
 
     return this;
   }
@@ -51,11 +58,27 @@ export class InstallChartPage extends PagePo {
     return this;
   }
 
+  footerControls() {
+    return cy.get('#wizard-footer-controls');
+  }
+
   chartName() {
     return this.self().get('[data-testid="NameNsDescriptionNameInput"]');
   }
 
-  tabsCountOnInstallQuestions() {
-    return new TabbedPo().allTabs();
+  chartNameLink() {
+    return this.self().get('[data-testid="chart-install-name-link"]');
+  }
+
+  chartVersionSelector(): LabeledSelectPo {
+    return new LabeledSelectPo('[data-testid="chart-version-selector"]');
+  }
+
+  customRegistryCheckbox(): CheckboxInputPo {
+    return new CheckboxInputPo('[data-testid="custom-registry-checkbox"]');
+  }
+
+  customRegistryInput(): LabeledInputPo {
+    return new LabeledInputPo('[data-testid="custom-registry-input"]');
   }
 }

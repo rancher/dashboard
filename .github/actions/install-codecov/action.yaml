@@ -1,0 +1,15 @@
+name: 'Install CodeCov'
+description: 'Installs a specific version of Code Cov'
+inputs:
+  codecov-version:
+    description: 'The version of codecov to target'
+    required: true
+  codecov-version-checksum:
+    description: 'The checksum for the target codecov version DEB file.'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Install CodeCov
+      shell: bash
+      run: .github/workflows/scripts/install-codecov.sh "${{ inputs.codecov-version }}" "${{ inputs.codecov-version-checksum }}"

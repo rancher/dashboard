@@ -22,29 +22,33 @@ import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types
 import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@shell/store/features';
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import { addObject } from '@shell/utils/array';
+import { initSchedulingCustomization } from '@shell/utils/cluster';
+import { AGENT_CONFIGURATION_TYPES, SETTING } from '@shell/config/settings';
+
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import genericImportedClusterValidators from '../util/validators';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import { SETTING } from '@shell/config/settings';
-import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annotations';
+import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
+import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
+import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import cloneDeep from 'lodash/cloneDeep';
-import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
+import { VERSION_MANAGEMENT_DEFAULT, DAY_2_OPS_DEFAULT } from '@pkg/imported/util/shared.ts';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
-import { initSchedulingCustomization } from '@shell/utils/cluster';
+import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
   agentEnvVars:   [],
   labels:         {},
   annotations:    {},
-  importedConfig: { privateRegistryURL: null }
+  importedConfig: {}
 };
 
 export default defineComponent({
   name: 'CruImported',
 
   components: {
-    Basics, ACE, LabeledInput, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox, SchedulingCustomization
+    Basics, ACE, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox, SchedulingCustomization, PrivateRegistry
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -83,11 +87,11 @@ export default defineComponent({
         this.normanCluster.importedConfig = {};
       }
 
-      this.showPrivateRegistryInput = !!this.normanCluster?.importedConfig?.privateRegistryURL;
       this.getVersions();
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...cloneDeep(defaultCluster) }, { root: true });
     }
+    this.privateRegistryEnabled = !!this.normanCluster?.importedConfig?.privateRegistryURL;
     if (!this.isRKE1) {
       await this.initVersionManagement();
     }
@@ -97,16 +101,19 @@ export default defineComponent({
 
       this.clusterAgentDefaultPC = sc.clusterAgentDefaultPC;
       this.clusterAgentDefaultPDB = sc.clusterAgentDefaultPDB;
+      this.fleetAgentDefaultPC = sc.fleetAgentDefaultPC;
+      this.fleetAgentDefaultPDB = sc.fleetAgentDefaultPDB;
       this.schedulingCustomizationFeatureEnabled = sc.schedulingCustomizationFeatureEnabled;
       this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
       this.errors = this.errors.concat(sc.errors);
+      await this.initDayTwoOps();
     }
   },
 
   data() {
     return {
-      showPrivateRegistryInput:                 false,
       normanCluster:                            { name: '', importedConfig: { privateRegistryURL: null } },
+      PRIVATE_REGISTRY_CONTEXT,
       loadingVersions:                          false,
       membershipUpdate:                         {},
       config:                                   null,
@@ -114,12 +121,20 @@ export default defineComponent({
       defaultVersion:                           '',
       versionManagementGlobalSetting:           false,
       versionManagementOld:                     VERSION_MANAGEMENT_DEFAULT,
+      dayTwoOpsOld:                             DAY_2_OPS_DEFAULT,
       schedulingCustomizationFeatureEnabled:    false,
       schedulingCustomizationOriginallyEnabled: false,
       clusterAgentDefaultPC:                    null,
       clusterAgentDefaultPDB:                   null,
+      fleetAgentDefaultPC:                      null,
+      fleetAgentDefaultPDB:                     null,
       // When disabling clusterAgentDeploymentCustomization, we need to replace the whole object
       needsReplace:                             false,
+      clusterAgentDefaultPriorityClassHash:     SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
+      privateRegistryEnabled:                   false,
+      s3Backup:                                 false,
+      dayTwoOpsGlobalSetting:                   false,
+      dayTwoOpsFlagEnabled:                     false,
       fvFormRuleSets:                           [{
         path:  'name',
         rules: ['clusterNameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
@@ -130,10 +145,11 @@ export default defineComponent({
         path:  'controlPlaneConcurrency',
         rules: ['controlPlaneConcurrencyRule']
       }, {
-        path:  'normanCluster.importedConfig.privateRegistryURL',
-        rules: ['registryUrl']
+        path:  'privateRegistry',
+        rules: ['privateRegistryRequired']
       }
       ],
+      AGENT_CONFIGURATION_TYPES,
     };
   },
 
@@ -143,6 +159,20 @@ export default defineComponent({
 
   computed: {
     ...mapGetters({ t: 'i18n/t', features: 'features/get' }),
+    pullSecrets: {
+      get() {
+        const secrets = this.normanCluster?.importedConfig?.privateRegistryPullSecrets;
+
+        return secrets?.[0] ?? undefined;
+      },
+      set(val) {
+        if (val) {
+          this.normanCluster.importedConfig.privateRegistryPullSecrets = [val];
+        } else if (this.normanCluster.importedConfig.privateRegistryPullSecrets) {
+          delete this.normanCluster.importedConfig.privateRegistryPullSecrets;
+        }
+      }
+    },
     fvExtraRules() {
       return {
         clusterNameRequired:         genericImportedClusterValidators.clusterNameRequired(this),
@@ -151,7 +181,20 @@ export default defineComponent({
         clusterNameLength:           genericImportedClusterValidators.clusterNameLength(this),
         workerConcurrencyRule:       genericImportedClusterValidators.workerConcurrency(this),
         controlPlaneConcurrencyRule: genericImportedClusterValidators.controlPlaneConcurrency(this),
+        privateRegistryRequired:     privateRegistryRequired(this),
       };
+    },
+    dayTwoOps: {
+      get() {
+        if (typeof this.normanCluster?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] !== 'undefined') {
+          return this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] ;
+        }
+
+        return DAY_2_OPS_DEFAULT;
+      },
+      set(newValue) {
+        this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] = newValue;
+      }
     },
 
     upgradeStrategy: {
@@ -194,7 +237,11 @@ export default defineComponent({
       return !!this.value.isRke1;
     },
     isRke2() {
-      return !!this.value.isRke2;
+      // Also check mgmt status provider for local clusters where spec.rkeConfig may not be set
+      // (local RKE2 clusters have no spec.rkeConfig so isRke2 is false, but status.provider is 'rke2')
+      const mgmtProvider = this.value.mgmt?.status?.provider;
+
+      return !!(this.value.isRke2 || mgmtProvider?.startsWith('rke2'));
     },
     enableNetworkPolicySupported() {
       // https://github.com/rancher/rancher/pull/33070/files
@@ -246,13 +293,15 @@ export default defineComponent({
     clusterAgentDeploymentCustomization() {
       return this.normanCluster.clusterAgentDeploymentCustomization || {};
     },
+    fleetAgentDeploymentCustomization() {
+      return this.normanCluster.fleetAgentDeploymentCustomization || {};
+    },
     schedulingCustomizationVisible() {
       return !this.isLocal && (this.schedulingCustomizationFeatureEnabled || this.schedulingCustomizationOriginallyEnabled);
     },
   },
 
   methods: {
-
     onMembershipUpdate(update) {
       this.membershipUpdate = update;
     },
@@ -372,44 +421,63 @@ export default defineComponent({
       }
       this.versionManagementOld = this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
     },
-    setSchedulingCustomization(val) {
-      if (val) {
-        this.needsReplace = false;
-        set(this.normanCluster, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+    async initDayTwoOps() {
+      try {
+        this.dayTwoOpsFlagEnabled = (await this.$store.dispatch('management/find', {
+          type: MANAGEMENT.FEATURE,
+          id:   IMPORTED_DAY_2_OPS
+        }))?.enabled || false;
+      } catch {
+        this.dayTwoOpsFlagEnabled = false;
+      }
+
+      this.dayTwoOpsGlobalSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
+      this.dayTwoOpsOld = !this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] ? DAY_2_OPS_DEFAULT : this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED];
+    },
+    setSchedulingCustomization({ event, agentType }) {
+      if (event) {
+        switch (agentType) {
+        case AGENT_CONFIGURATION_TYPES.CLUSTER:
+          this.needsReplace = false;
+          set(this.normanCluster, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+          break;
+        case AGENT_CONFIGURATION_TYPES.FLEET:
+          this.needsReplace = false;
+          set(this.normanCluster, 'fleetAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.fleetAgentDefaultPC, podDisruptionBudget: this.fleetAgentDefaultPDB });
+          break;
+        default:
+        }
       } else {
-        this.needsReplace = true;
-        delete this.normanCluster.clusterAgentDeploymentCustomization.schedulingCustomization;
+        switch (agentType) {
+        case AGENT_CONFIGURATION_TYPES.CLUSTER:
+          this.needsReplace = true;
+          delete this.normanCluster.clusterAgentDeploymentCustomization.schedulingCustomization; break;
+        case AGENT_CONFIGURATION_TYPES.FLEET:
+          this.needsReplace = true;
+          delete this.normanCluster.fleetAgentDeploymentCustomization.schedulingCustomization; break;
+        default:
+        }
       }
     },
-  },
-
-  watch: {
-    showPrivateRegistryInput(value) {
-      if (!value) {
-        this.normanCluster.importedConfig.privateRegistryURL = null;
-      }
-    }
   }
-
 });
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
   <CruResource
+    v-else
     :resource="value"
     :mode="mode"
     :can-yaml="false"
     :done-route="doneRoute"
-    :errors="errors"
+    :errors="fvUnreportedValidationErrors"
     :validation-passed="fvFormIsValid"
+    :show-toc="true"
     @error="e=>errors=e"
     @finish="save"
   >
-    <Loading
-      v-if="$fetchState.pending"
-      mode="relative"
-    />
-    <div v-else>
+    <div>
       <div>
         <Banner
           v-if="harvesterLocation"
@@ -429,7 +497,6 @@ export default defineComponent({
           :mode="mode"
           :namespaced="false"
           :nameEditable="!isEdit"
-          :descriptionDisabled="!enableInstanceDescription"
           nameKey="name"
           descriptionKey="description"
           name-label="cluster.name.label"
@@ -456,8 +523,12 @@ export default defineComponent({
           :show-version-management="!isRKE1"
           :is-local="isLocal"
           :version-management-global-setting="versionManagementGlobalSetting"
+          :day-two-ops-global-setting="dayTwoOpsGlobalSetting"
+          :day-two-ops-flag="dayTwoOpsFlagEnabled"
           :version-management="versionManagement"
           :version-management-old="versionManagementOld"
+          :day-two-ops="dayTwoOps"
+          :day-two-ops-old="dayTwoOpsOld"
           :rules="{workerConcurrency: fvGetAndReportPathRules('workerConcurrency'), controlPlaneConcurrency: fvGetAndReportPathRules('controlPlaneConcurrency') }"
           @kubernetes-version-changed="kubernetesVersionChanged"
           @drain-server-nodes-changed="(val)=>upgradeStrategy.drainServerNodes = val"
@@ -465,6 +536,7 @@ export default defineComponent({
           @server-concurrency-changed="(val)=>upgradeStrategy.serverConcurrency = val"
           @worker-concurrency-changed="(val)=>upgradeStrategy.workerConcurrency = val"
           @version-management-changed="(val)=>versionManagement=val"
+          @enable-day-two-ops-changed="(val)=>dayTwoOps=val"
         />
       </Accordion>
       <Accordion
@@ -493,18 +565,44 @@ export default defineComponent({
       <Accordion
         v-if="schedulingCustomizationVisible"
         class="mb-20 accordion"
-        title-key="cluster.agentConfig.tabs.cluster"
+        title-key="cluster.agentConfig.tabs.agentsScheduling"
         :open-initially="false"
       >
-        <h3>
-          {{ t('cluster.agentConfig.groups.schedulingCustomization') }}
-        </h3>
+        {{ t('cluster.agentConfig.groups.agentsScheduling.text') }}
+
+        <!-- Hardcoding the HASH because it is the first of the parameters inline -->
+        <router-link
+          :to="{ name: 'c-cluster-settings', hash: `#${clusterAgentDefaultPriorityClassHash}` }"
+          target="_blank"
+          rel="noopener"
+        >
+          {{ t('cluster.agentConfig.groups.agentsScheduling.textLink') }}
+          <i
+            class="icon icon-external-link"
+            :alt="t('kubectl-explain.externalLink')"
+          />
+        </router-link>
+        .
+        <div class="spacer-small" />
+        <h3>{{ t('cluster.agentConfig.groups.agentsScheduling.label') }}</h3>
         <SchedulingCustomization
           :value="clusterAgentDeploymentCustomization.schedulingCustomization"
           :mode="mode"
+          :type="AGENT_CONFIGURATION_TYPES.CLUSTER"
           :feature="schedulingCustomizationFeatureEnabled"
           :default-p-c="clusterAgentDefaultPC"
           :default-p-d-b="clusterAgentDefaultPDB"
+          :checkbox-with-only-agent-name="true"
+          @scheduling-customization-changed="setSchedulingCustomization"
+        />
+        <SchedulingCustomization
+          :value="fleetAgentDeploymentCustomization.schedulingCustomization"
+          :mode="mode"
+          :type="AGENT_CONFIGURATION_TYPES.FLEET"
+          :feature="schedulingCustomizationFeatureEnabled"
+          :default-p-c="fleetAgentDefaultPC"
+          :default-p-d-b="fleetAgentDefaultPDB"
+          :checkbox-with-only-agent-name="true"
           @scheduling-customization-changed="setSchedulingCustomization"
         />
       </Accordion>
@@ -519,7 +617,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="!isCreate & !isRKE1"
+        v-if="!isCreate && !isRKE1 && (!isLocal || enableNetworkPolicySupported)"
         class="mb-20 accordion"
         title-key="imported.accordions.networking"
         data-testid="network-accordion"
@@ -540,14 +638,16 @@ export default defineComponent({
             :label="t('cluster.rke2.enableNetworkPolicy.label')"
           />
         </div>
-        <h3 v-t="'cluster.tabs.ace'" />
-        <ACE
-          v-model:value="normanCluster.localClusterAuthEndpoint"
-          :mode="mode"
-          @local-cluster-auth-endpoint-changed="enableLocalClusterAuthEndpoint"
-          @ca-certs-changed="(val)=>normanCluster.localClusterAuthEndpoint.caCerts = val"
-          @fqdn-changed="(val)=>normanCluster.localClusterAuthEndpoint.fqdn = val"
-        />
+        <div v-if="!isLocal">
+          <h3>{{ t('cluster.tabs.ace') }}</h3>
+          <ACE
+            v-model:value="normanCluster.localClusterAuthEndpoint"
+            :mode="mode"
+            @local-cluster-auth-endpoint-changed="enableLocalClusterAuthEndpoint"
+            @ca-certs-changed="(val)=>normanCluster.localClusterAuthEndpoint.caCerts = val"
+            @fqdn-changed="(val)=>normanCluster.localClusterAuthEndpoint.fqdn = val"
+          />
+        </div>
       </Accordion>
       <Accordion
         v-if="!isRKE1"
@@ -556,27 +656,16 @@ export default defineComponent({
         data-testid="registries-accordion"
         :open-initially="false"
       >
-        <Banner
-          color="info"
-          class="mt-0"
-        >
-          {{ t('cluster.privateRegistry.importedDescription') }}
-        </Banner>
-        <Checkbox
-          v-model:value="showPrivateRegistryInput"
-          class="mb-20"
-          :mode="mode"
-          :label="t('cluster.privateRegistry.label')"
-          data-testid="private-registry-enable-checkbox"
-        />
-        <LabeledInput
-          v-if="showPrivateRegistryInput"
+        <PrivateRegistry
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          v-model:pull-secret="pullSecrets"
+          v-model:enabled="privateRegistryEnabled"
+          :context="PRIVATE_REGISTRY_CONTEXT.IMPORTING"
           :mode="mode"
-          :rules="fvGetAndReportPathRules('normanCluster.importedConfig.privateRegistryURL')"
-          label-key="catalog.chart.registry.custom.inputLabel"
-          data-testid="private-registry-url"
-          :placeholder="t('catalog.chart.registry.custom.placeholder')"
+          :rules="fvGetAndReportPathRules('privateRegistry')"
+          :register-before-hook="registerBeforeHook"
+          checkbox-test-id="private-registry-enable-checkbox"
+          input-test-id="private-registry-url"
         />
       </Accordion>
       <Accordion
@@ -604,9 +693,3 @@ export default defineComponent({
     </div>
   </CruResource>
 </template>
-
-<style lang="scss" scoped>
-    .accordion {
-        border-radius: 16px;
-    }
-</style>

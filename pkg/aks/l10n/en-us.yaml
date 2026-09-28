@@ -1,5 +1,6 @@
 aks:
   label: Azure AKS
+  description: Provision new Azure AKS (Azure Kubernetes Service) clusters or register existing ones.
   location:
     label: Region
     withAZ: Regions with Availability Zones

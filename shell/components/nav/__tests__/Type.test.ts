@@ -21,16 +21,17 @@ describe('component: Type', () => {
     const defaultCount = 1;
     const storeMock = {
       getters: {
-        currentStore:    () => 'cluster',
-        'cluster/count': () => defaultCount,
+        currentStore:          () => 'cluster',
+        'cluster/count':       () => defaultCount,
+        'type-map/optionsFor': () => {},
       }
     };
     const routerMock = {
       resolve: jest.fn((route) => {
-        return { fullPath: route };
+        return { fullPath: route, path: route };
       })
     };
-    const routeMock = { fullPath: 'route' };
+    const routeMock = { fullPath: 'route', path: 'route' };
 
     describe('should pass props correctly', () => {
       it('should forward Type props to router-link', () => {
@@ -103,7 +104,7 @@ describe('component: Type', () => {
             directives: { cleanHtml: (identity) => identity },
 
             mocks: {
-              $store: storeMock, $router: routerMock, $route: { fullPath: 'bad' }
+              $store: storeMock, $router: routerMock, $route: { fullPath: 'bad', path: 'bad' }
             },
             stubs: { routerLink: createChildRenderingRouterLinkStub() },
           },
@@ -150,6 +151,114 @@ describe('component: Type', () => {
         const elementWithSelector = wrapper.find(`.${ rootClass }`);
 
         expect(elementWithSelector.exists()).toBe(false);
+      });
+      it('should use active and exact active classes when route matches but includes query and hash', () => {
+        const wrapper = shallowMount(Type as any, {
+          props: { type: defaultRouteTypeProp },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: { fullPath: 'route?repo=test#myhash', path: 'route' }
+            },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: true }) },
+          },
+        });
+
+        expect(wrapper.find(`.${ activeClass }`).exists()).toBe(true);
+        expect(wrapper.find(`.${ exactActiveClass }`).exists()).toBe(true);
+      });
+    });
+
+    describe('nested routes', () => {
+      const mountOnPath = (type: any, path: string) => shallowMount(Type as any, {
+        props: { type },
+
+        global: {
+          directives: { cleanHtml: (identity) => identity },
+
+          mocks: {
+            $store:  storeMock,
+            $router: routerMock,
+            $route:  {
+              params: { cluster: '_' }, path, fullPath: path
+            }
+          },
+          stubs: { routerLink: createChildRenderingRouterLinkStub() },
+        },
+      });
+
+      // Pages such as /c/_/manager/kontainerDriver/create are nested under the nav item's own route,
+      // so a non-exact item has to stay highlighted on them
+      const kontainerDrivers = {
+        name:  'rke-kontainer-providers',
+        route: '/c/_/manager/kontainerDriver',
+        exact: false
+      };
+
+      it('should use active class on a route nested under a non-exact type', () => {
+        const wrapper = mountOnPath(kontainerDrivers, '/c/_/manager/kontainerDriver/create');
+
+        expect(wrapper.find(`.${ activeClass }`).exists()).toBe(true);
+      });
+
+      it('should not use active class on a sibling route of a non-exact type', () => {
+        const wrapper = mountOnPath(kontainerDrivers, '/c/_/manager/nodeDriver/create');
+
+        expect(wrapper.find(`.${ activeClass }`).exists()).toBe(false);
+      });
+
+      it('should not use active class on a nested route when the type is exact', () => {
+        const wrapper = mountOnPath({ ...kontainerDrivers, exact: true }, '/c/_/manager/kontainerDriver/create');
+
+        expect(wrapper.find(`.${ activeClass }`).exists()).toBe(false);
+      });
+    });
+
+    describe('navResources', () => {
+      const projectsNamespaces = {
+        name:         'projects-namespaces',
+        route:        'projectsnamespaces',
+        navResources: ['management.cattle.io.project', 'namespace']
+      };
+
+      const mountOnResource = (type: any, resource: string) => shallowMount(Type as any, {
+        props: { type },
+
+        global: {
+          directives: { cleanHtml: (identity) => identity },
+
+          mocks: {
+            $store:  storeMock,
+            $router: routerMock,
+            // Creating a project uses the generic resource create route, which no nav item links to
+            $route:  {
+              params:   { resource },
+              path:     `${ resource }/create`,
+              fullPath: `${ resource }/create`
+            }
+          },
+          stubs: { routerLink: createChildRenderingRouterLinkStub() },
+        },
+      });
+
+      it('should use active class on a route for a claimed resource', () => {
+        const wrapper = mountOnResource(projectsNamespaces, 'management.cattle.io.project');
+
+        expect(wrapper.find(`.${ activeClass }`).exists()).toBe(true);
+      });
+
+      it('should not use active class on a route for an unclaimed resource', () => {
+        const wrapper = mountOnResource(projectsNamespaces, 'apps.deployment');
+
+        expect(wrapper.find(`.${ activeClass }`).exists()).toBe(false);
+      });
+
+      it('should not use active class when the type claims no resources', () => {
+        const wrapper = mountOnResource({ name: 'namespaces', route: 'namespaces' }, 'namespace');
+
+        expect(wrapper.find(`.${ activeClass }`).exists()).toBe(false);
       });
     });
 
@@ -390,8 +499,9 @@ describe('component: Type', () => {
 
               $store: {
                 getters: {
-                  currentStore:    () => 'cluster',
-                  'cluster/count': () => null,
+                  currentStore:          () => 'cluster',
+                  'cluster/count':       () => null,
+                  'type-map/optionsFor': () => {},
                 }
               },
               $router: routerMock,

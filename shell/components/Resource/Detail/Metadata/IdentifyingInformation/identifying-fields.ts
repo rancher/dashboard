@@ -1,39 +1,56 @@
 import { useI18n } from '@shell/composables/useI18n';
-import { computed, ComputedRef, markRaw, toValue } from 'vue';
+import {
+  computed, ComputedRef, defineAsyncComponent, markRaw, toValue
+} from 'vue';
 import Additional from '@shell/components/Resource/Detail/Additional.vue';
 import { useStore } from 'vuex';
-import { NAMESPACE, FLEET, SERVICE_ACCOUNT } from '@shell/config/types';
+import {
+  NAMESPACE, FLEET, SERVICE_ACCOUNT, SECRET, CAPI,
+  MANAGEMENT
+} from '@shell/config/types';
 import { Row } from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/index.vue';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 import { useRoute } from 'vue-router';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import { KUBERNETES } from '@shell/config/labels-annotations';
 
+// Defined once so the component identity is stable; creating it inside a computed remounts the popover on every resource update
+const ResourcePopover = markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue')));
+
 export const useNamespace = (resource: any): ComputedRef<Row> | undefined => {
   const store = useStore();
   const i18n = useI18n(store);
   const resourceValue = toValue(resource);
 
-  if (!resourceValue.namespace || resourceValue.namespaces) {
+  if (!resourceValue.namespace || resourceValue.namespaces || resourceValue.isProjectScoped) {
     return;
   }
 
   return computed(() => {
-    const to = resourceValue.namespaceLocation || {
-      name:   `c-cluster-product-resource-id`,
-      params: {
-        product:  store.getters['productId'],
-        cluster:  store.getters['clusterId'],
-        resource: NAMESPACE,
-        id:       resourceValue.namespace
+    const currentStore = store.getters['currentStore'](NAMESPACE);
+    const canList = store.getters[`${ currentStore }/canList`](NAMESPACE);
+
+    // A resource that explicitly returns null from namespaceLocation is signaling that
+    // the namespace lives in a cluster the user can't reach (mirrors legacy.vue's hideNamespaceLocation)
+    const hasReachableLocation = resourceValue.namespaceLocation !== null;
+
+    const label = i18n.t('component.resource.detail.metadata.identifyingInformation.namespace');
+    const value = resourceValue.namespace;
+    const valueDataTestid = 'masthead-subheader-namespace';
+    const valueOverride = canList && hasReachableLocation ? {
+      component: ResourcePopover,
+      props:     {
+        type:           NAMESPACE,
+        id:             resourceValue.namespace,
+        detailLocation: resourceValue.namespaceLocation
       }
-    };
+    } : undefined;
 
     return {
-      label:           i18n.t('component.resource.detail.metadata.identifyingInformation.namespace'),
-      value:           resourceValue.namespace,
-      valueDataTestid: 'masthead-subheader-namespace',
-      to
+      label,
+      value,
+      valueDataTestid,
+      valueOverride,
     };
   });
 };
@@ -86,54 +103,61 @@ export const useLiveDate = (resource: any): ComputedRef<Row> | undefined => {
   }));
 };
 
-export const useCreatedBy = (resource: any): ComputedRef<Row> | undefined => {
-  const store = useStore();
-  const i18n = useI18n(store);
-  const resourceValue = toValue(resource);
-
-  if (!resourceValue.showCreatedBy) {
-    return;
-  }
-
-  return computed(() => {
-    const to = resourceValue.createdBy.location || undefined;
-
-    return {
-      label:           i18n.t('component.resource.detail.metadata.identifyingInformation.createdBy'),
-      value:           resourceValue.createdBy.displayName,
-      to,
-      dataTestid:      'masthead-subheader-createdBy',
-      valueDataTestid: to ? 'masthead-subheader-createdBy-link' : 'masthead-subheader-createdBy_plain-text'
-    };
-  });
-};
-
 export const useProject = (resource: any): ComputedRef<Row> | undefined => {
   const store = useStore();
   const i18n = useI18n(store);
   const resourceValue = toValue(resource);
 
-  if (resource.type !== NAMESPACE || !resourceValue.project) {
+  // Only show project if one of these types
+  if (resource.type !== NAMESPACE && resource.type !== SECRET) {
+    return;
+  }
+
+  if (!resourceValue.project) {
     return;
   }
 
   return computed(() => {
     return {
-      label: i18n.t('component.resource.detail.metadata.identifyingInformation.project'),
-      value: resourceValue.project?.nameDisplay,
-      to:    resourceValue.project?.detailLocation
+      label:           i18n.t('component.resource.detail.metadata.identifyingInformation.project'),
+      value:           resourceValue.project?.nameDisplay,
+      valueDataTestid: 'masthead-subheader-project',
+      valueOverride:   {
+        component: ResourcePopover,
+        props:     {
+          type:         MANAGEMENT.PROJECT,
+          id:           resourceValue.project?.id,
+          currentStore: 'management'
+        }
+      }
+    };
+  });
+};
+
+export const useSecretCluster = (resource: any): ComputedRef<Row> | undefined => {
+  const store = useStore();
+  const resourceValue = toValue(resource);
+
+  return computed(() => {
+    return {
+      label: store.getters['type-map/labelFor']({ id: CAPI.RANCHER_CLUSTER }),
+      value: resourceValue.projectCluster?.nameDisplay,
     };
   });
 };
 
 export const useResourceDetails = (resource: any): undefined | ComputedRef<Row[]> => {
-  const details = resource.details;
+  const details = computed(() => resource.details);
 
-  if (!details) {
+  if (!details.value) {
     return;
   }
 
   const extractValueOverride = (detail: any) => {
+    if (detail.valueOverride) {
+      return detail.valueOverride;
+    }
+
     if (!detail.formatter) {
       return;
     }
@@ -148,8 +172,8 @@ export const useResourceDetails = (resource: any): undefined | ComputedRef<Row[]
   };
 
   return computed(() => {
-    return details
-      .filter((detail: any) => !detail.separator)
+    return details.value
+      .filter((detail: any) => !detail.separator && detail.content !== undefined && detail.content !== null)
       .map((detail: any) => {
         return {
           label:         detail.label,

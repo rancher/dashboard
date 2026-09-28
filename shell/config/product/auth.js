@@ -6,6 +6,7 @@ import {
   RBAC_BUILTIN, RBAC_DEFAULT, STATE, NAME as HEADER_NAME, AGE, SIMPLE_NAME
 } from '@shell/config/table-headers';
 import { MULTI_CLUSTER } from '@shell/store/features';
+import { BLANK_CLUSTER } from '@shell/store/store-types';
 
 export const NAME = 'auth';
 
@@ -34,6 +35,15 @@ export function init(store) {
     removable:           false,
     showClusterSwitcher: false,
     category:            'configuration',
+    extendable:          true,
+    to:                  {
+      name:   'c-cluster-product-resource',
+      params: {
+        cluster:  BLANK_CLUSTER,
+        product:  NAME,
+        resource: MANAGEMENT.USER,
+      }
+    },
   });
 
   virtualType({
@@ -56,7 +66,7 @@ export function init(store) {
     route:      {
       name:   'c-cluster-product-resource',
       params: {
-        cluster:  'local',
+        cluster:  BLANK_CLUSTER,
         product:  NAME,
         resource: MANAGEMENT.USER,
       }
@@ -177,6 +187,7 @@ export function init(store) {
   });
 
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/github`, 'auth/github');
+  componentForType(`${ MANAGEMENT.AUTH_CONFIG }/githubapp`, 'auth/github');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/openldap`, 'auth/ldap/index');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/freeipa`, 'auth/ldap/index');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/activedirectory`, 'auth/ldap/index');
@@ -185,6 +196,7 @@ export function init(store) {
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/okta`, 'auth/saml');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/keycloak`, 'auth/saml');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/adfs`, 'auth/saml');
+  componentForType(`${ MANAGEMENT.AUTH_CONFIG }/genericsaml`, 'auth/saml');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/googleoauth`, 'auth/googleoauth');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/azuread`, 'auth/azuread');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/keycloakoidc`, 'auth/oidc');

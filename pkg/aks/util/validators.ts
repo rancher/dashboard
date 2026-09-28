@@ -118,7 +118,7 @@ export const ipv4WithCidr = (ctx: any, labelKey: string, clusterPath: string) =>
 export const outboundTypeUserDefined = (ctx: any, labelKey: string, clusterPath: string) => {
   return () :string | undefined => {
     const outboundType = get(ctx, clusterPath) as OutboundType;
-    const loadBalancerSku = get(ctx, 'aksConfig.loadBalancerSku') as LoadBalancerSku;
+    const loadBalancerSku = get(ctx, 'config.loadBalancerSku') as LoadBalancerSku;
 
     if (loadBalancerSku !== 'Standard' && outboundType === 'UserDefinedRouting') {
       return ctx.t('aks.errors.outboundType');
@@ -140,7 +140,8 @@ export const privateDnsZone = (ctx: any, labelKey: string, clusterPath: string) 
 };
 
 export const nodePoolNames = (ctx: any) => {
-  return (poolName:string) :string | undefined => {
+  // Called with no `poolName` to validate every pool in the context, mirroring `nodePoolCount`.
+  return (poolName?:string) :string | undefined => {
     let allAvailable = true;
 
     const isValid = (name:string) => name.match(/^[a-z]+[a-z0-9]*$/) && name.length <= 12;
@@ -168,9 +169,16 @@ export const nodePoolNames = (ctx: any) => {
 
 export const nodePoolNamesUnique = (ctx: any) => {
   return () :string | undefined => {
-    const poolNames = (ctx.nodePools || []).map((pool: AKSNodePool) => pool.name);
+    const pools = ctx.nodePools || [];
+    const poolNames = pools.map((pool: AKSNodePool) => pool.name);
+    let hasDuplicates = false;
 
-    const hasDuplicates = poolNames.some((name: string, idx: number) => poolNames.indexOf(name) !== idx);
+    pools.forEach((pool: AKSNodePool) => {
+      const isUnique = !pool.name || poolNames.filter((name: string) => name === pool.name).length === 1;
+
+      set(pool._validation, '_validUnique', isUnique);
+      hasDuplicates = hasDuplicates || !isUnique;
+    });
 
     if (hasDuplicates) {
       return ctx.t('aks.errors.poolNamesUnique');

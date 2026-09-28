@@ -93,7 +93,7 @@ export default {
       color: rgb(101, 109, 118);
       border-left: 0.25em solid rgb(208, 215, 222);
       padding: 0 1em;
-      margin-bottom: 16px;
+      margin: 10px 8px 8px 8px;
     }
 
     table {
@@ -132,6 +132,10 @@ export default {
 
     table tr th :last-child, table tr td :last-child {
       margin-bottom: 0;
+    }
+
+    img {
+      max-width: 100%;
     }
 }
 

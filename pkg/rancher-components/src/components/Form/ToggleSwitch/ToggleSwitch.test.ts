@@ -13,7 +13,7 @@ describe('toggleSwitch.vue', () => {
   it('renders a true value', () => {
     const wrapper = shallowMount(
       ToggleSwitch,
-      { propsData: { value: true } });
+      { props: { value: true } });
 
     const toggleInput = wrapper.find('input[type="checkbox"]').element as HTMLInputElement;
 
@@ -39,22 +39,26 @@ describe('toggleSwitch.vue', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted('update:value')).toHaveLength(1);
-    expect(wrapper.emitted('update:value')[0][0]).toBe(true);
+    const emitted = wrapper.emitted('update:value') as [boolean][];
+
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0][0]).toBe(true);
   });
 
   it('emits an input event with a false value', async() => {
     const wrapper: VueWrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(
       ToggleSwitch,
-      { propsData: { value: true } }
+      { props: { value: true } }
     );
 
     wrapper.vm.toggle(false);
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted('update:value')).toHaveLength(1);
-    expect(wrapper.emitted('update:value')[0][0]).toBe(false);
+    const emitted = wrapper.emitted('update:value') as [boolean][];
+
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0][0]).toBe(false);
   });
 
   it('emits an input event with a custom onValue', async() => {
@@ -62,14 +66,16 @@ describe('toggleSwitch.vue', () => {
 
     const wrapper: VueWrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(
       ToggleSwitch,
-      { propsData: { onValue } });
+      { props: { onValue } });
 
     wrapper.vm.toggle(true);
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted('update:value')).toHaveLength(1);
-    expect(wrapper.emitted('update:value')[0][0]).toBe(onValue);
+    const emitted = wrapper.emitted('update:value') as [string][];
+
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0][0]).toBe(onValue);
   });
 
   it('emits an input event with a custom offValue', async() => {
@@ -78,7 +84,7 @@ describe('toggleSwitch.vue', () => {
     const wrapper: VueWrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(
       ToggleSwitch,
       {
-        propsData: {
+        props: {
           value: true,
           offValue,
         }
@@ -88,8 +94,10 @@ describe('toggleSwitch.vue', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted('update:value')).toHaveLength(1);
-    expect(wrapper.emitted('update:value')[0][0]).toBe(offValue);
+    const emitted = wrapper.emitted('update:value') as [string][];
+
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0][0]).toBe(offValue);
   });
 
   it('adds focus class when input is focused', async() => {
@@ -107,5 +115,56 @@ describe('toggleSwitch.vue', () => {
     await wrapper.find('input').trigger('blur');
 
     expect(wrapper.find('.slider').classes()).not.toContain('focus');
+  });
+
+  // The container only stops the mouse, so without this the input stays in the
+  // tab order and a keyboard user can work a switch a mouse user cannot.
+  describe('when disabled', () => {
+    it('disables the underlying checkbox', () => {
+      const wrapper = shallowMount(ToggleSwitch, { props: { disabled: true } });
+
+      const toggleInput = wrapper.find('input[type="checkbox"]').element as HTMLInputElement;
+
+      expect(toggleInput.disabled).toBe(true);
+    });
+
+    it('leaves the checkbox enabled by default', () => {
+      const wrapper = shallowMount(ToggleSwitch);
+
+      const toggleInput = wrapper.find('input[type="checkbox"]').element as HTMLInputElement;
+
+      expect(toggleInput.disabled).toBe(false);
+    });
+
+    it('does not emit when the input is driven anyway', async() => {
+      const wrapper = shallowMount(ToggleSwitch, { props: { disabled: true } });
+
+      await wrapper.find('input').trigger('input');
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
+    });
+
+    it.each([
+      ['on', true],
+      ['off', false],
+    ])('does not emit when the %s label is clicked', async(_label, value) => {
+      const wrapper: VueWrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(ToggleSwitch, { props: { disabled: true } });
+
+      wrapper.vm.toggle(value);
+
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
+    });
+
+    it('keeps showing the value it was given', async() => {
+      const wrapper: VueWrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(ToggleSwitch, { props: { disabled: true, value: true } });
+
+      wrapper.vm.toggle(false);
+
+      await wrapper.vm.$nextTick();
+
+      expect((wrapper.find('input[type="checkbox"]').element as HTMLInputElement).checked).toBe(true);
+    });
   });
 });

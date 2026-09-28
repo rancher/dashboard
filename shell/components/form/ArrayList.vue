@@ -1,20 +1,22 @@
 <script>
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, toRef } from 'vue';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { removeAt } from '@shell/utils/array';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import { clone } from '@shell/utils/object';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { randomStr } from '@shell/utils/string';
-
+import Banner from '@components/Banner/Banner.vue';
+import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
 const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';
 
 export default {
   emits: ['add', 'remove', 'update:value'],
 
-  components: { TextAreaAutoGrow, LabeledInput },
-  props:      {
+  components: {
+    TextAreaAutoGrow, LabeledInput, Banner
+  },
+  props: {
     value: {
       type:    Array,
       default: null,
@@ -63,6 +65,10 @@ export default {
       type:    String,
       default: '',
     },
+    addBtnAriaLabel: {
+      type:    String,
+      default: '',
+    },
     addAllowed: {
       type:    Boolean,
       default: true,
@@ -91,6 +97,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    disabledList: {
+      type:    Array,
+      default: null
+    },
     required: {
       type:    Boolean,
       default: false
@@ -108,7 +118,17 @@ export default {
     componentTestid: {
       type:    String,
       default: 'array-list',
-    }
+    },
+
+    /**
+     * Field name for vee-validate integration. When provided, the component
+     * registers with a parent form context for schema-level validation.
+     */
+    name: {
+      type:    String,
+      default: null,
+    },
+
   },
 
   setup(props, { emit }) {
@@ -116,17 +136,37 @@ export default {
     const rows = ref([]);
 
     for ( const value of input ) {
-      rows.value.push({ value, id: randomStr() });
+      rows.value.push({ value });
     }
     if ( !rows.value.length && props.initialEmptyRow ) {
       const value = props.defaultAddValue ? clone(props.defaultAddValue) : '';
 
-      rows.value.push({ value, id: randomStr() });
+      rows.value.push({ value });
     }
 
     const isView = computed(() => {
       return props.mode === _VIEW;
     });
+
+    // vee-validate integration: array-level validation via a parent form schema.
+    // Per-item validation continues to use the existing `rules` prop on
+    // LabeledInput.
+    const arrayValue = computed(() => props.value || []);
+    const { effectiveValidationMessage, veeHandleBlur, veeValidate } = useVeeValidateField({
+      name:              toRef(props, 'name'),
+      rules:             ref([]),
+      value:             arrayValue,
+      validationMessage: ref(null),
+    });
+
+    // Only structural changes (add, delete, paste) mark trigger validation
+    // when invoking update()
+    const isStructuralChange = ref(false);
+
+    const validate = () => {
+      veeHandleBlur(undefined, false);
+      veeValidate();
+    };
 
     /**
      * Cleanup rows and emit input
@@ -146,6 +186,10 @@ export default {
         }
       }
       emit('update:value', out);
+      if (isStructuralChange.value) {
+        validate();
+        isStructuralChange.value = false;
+      }
     };
 
     const lastUpdateWasFromValue = ref(false);
@@ -166,19 +210,9 @@ export default {
 
     watch(
       () => props.value,
-      (newVal) => {
+      () => {
         lastUpdateWasFromValue.value = true;
-        const newRows = (newVal || []).map((value) => {
-          const existingRow = rows.value.find((row) => row.value === value);
-
-          if (existingRow) {
-            return { value, id: existingRow.id };
-          } else {
-            return { value, id: randomStr() };
-          }
-        });
-
-        rows.value = newRows;
+        rows.value = (props.value || []).map((v) => ({ value: v }));
       },
       { deep: true }
     );
@@ -189,6 +223,9 @@ export default {
       queueUpdate,
       isView,
       update,
+      effectiveValidationMessage,
+      isStructuralChange,
+      validate,
     };
   },
 
@@ -217,16 +254,20 @@ export default {
       }
 
       return !this.valueMultiline && this.protip;
+    },
+    // Return the index of the disabled rows based on the disabledList prop
+    // The value is not used directly because only the first instance of a value is disabled
+    // Usually they are at the top of the list and that is how this has been designed
+    disabledIndexList() {
+      return this.disabledList?.map((value) => this.rows.findIndex((row) => row.value === value));
     }
   },
   created() {
   },
   methods: {
     add() {
-      this.rows.push({
-        value: clone(this.defaultAddValue),
-        id:    randomStr(),
-      });
+      this.isStructuralChange = true;
+      this.rows.push({ value: clone(this.defaultAddValue) });
       if (this.defaultAddValue) {
         this.queueUpdate();
       }
@@ -244,6 +285,7 @@ export default {
      */
     remove(row, index) {
       this.$emit('remove', { row, index });
+      this.isStructuralChange = true;
       removeAt(this.rows, index);
       this.queueUpdate();
     },
@@ -255,6 +297,7 @@ export default {
       event.preventDefault();
       const text = event.clipboardData.getData('text/plain');
 
+      this.isStructuralChange = true;
       if (this.valueMultiline) {
         // Allow to paste multiple lines
         this.rows[index].value = text;
@@ -300,6 +343,12 @@ export default {
         </h3>
       </slot>
     </div>
+    <Banner
+      v-if="effectiveValidationMessage"
+      class="validation-banner"
+      color="error"
+      :label="effectiveValidationMessage"
+    />
 
     <div>
       <template v-if="rows.length">
@@ -316,7 +365,7 @@ export default {
         </div>
         <div
           v-for="(row, idx) in rows"
-          :key="row.id"
+          :key="idx"
           :data-testid="`${componentTestid}-box${ idx }`"
           class="box"
           :class="{'hide-remove-is-view': isView}"
@@ -346,10 +395,11 @@ export default {
                   :data-testid="`${componentTestid}-textarea-${idx}`"
                   :placeholder="valuePlaceholder"
                   :mode="mode"
-                  :disabled="disabled"
+                  :disabled="disabled || disabledIndexList?.includes(idx)"
                   :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
                   @paste="onPaste(idx, $event)"
                   @update:value="queueUpdate"
+                  @blur="validate"
                 />
                 <LabeledInput
                   v-else-if="rules.length > 0"
@@ -357,12 +407,13 @@ export default {
                   v-model:value="row.value"
                   :data-testid="`${componentTestid}-labeled-input-${idx}`"
                   :placeholder="valuePlaceholder"
-                  :disabled="isView || disabled"
+                  :disabled="isView || disabled || disabledIndexList?.includes(idx)"
                   :rules="rules"
                   :compact="false"
                   :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
                   @paste="onPaste(idx, $event)"
                   @update:value="queueUpdate"
+                  @blur="validate"
                 />
                 <input
                   v-else
@@ -370,15 +421,16 @@ export default {
                   v-model="row.value"
                   :data-testid="`${componentTestid}-input-${idx}`"
                   :placeholder="valuePlaceholder"
-                  :disabled="isView || disabled"
+                  :disabled="isView || disabled || disabledIndexList?.includes(idx)"
                   :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
                   @paste="onPaste(idx, $event)"
+                  @blur="validate"
                 >
               </slot>
             </div>
           </slot>
           <div
-            v-if="showRemove && !isView"
+            v-if="showRemove && !isView && !disabledIndexList?.includes(idx)"
             class="remove"
           >
             <slot
@@ -433,7 +485,7 @@ export default {
             :class="[addClass]"
             :disabled="loading || disableAdd"
             :data-testid="`${componentTestid}-button`"
-            :aria-label="_addLabel"
+            :aria-label="addBtnAriaLabel || _addLabel"
             role="button"
             @click="add()"
           >
@@ -456,6 +508,10 @@ export default {
 
   .required {
     color: var(--error);
+  }
+
+  .validation-banner {
+    margin-top: 0;
   }
 
   .box {

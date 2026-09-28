@@ -1,6 +1,6 @@
 import { Ref, ref } from 'vue';
 import type { RcButtonType } from '@components/RcButton';
-import { ButtonRoleProps, ButtonSizeProps } from '@components/RcButton/types';
+import { ButtonVariant, ButtonSize } from '@components/RcButton/types';
 
 export type DropdownContext = {
   handleKeydown: () => void;
@@ -41,8 +41,8 @@ export type DropdownOption = {
 
 export type RcDropdownMenuComponentProps = {
   options: DropdownOption[];
-  buttonRole?: keyof ButtonRoleProps;
-  buttonSize?: keyof ButtonSizeProps;
+  buttonVariant?: ButtonVariant;
+  buttonSize?: ButtonSize;
   buttonAriaLabel?: string;
   dropdownAriaLabel?: string;
   dataTestid?: string;

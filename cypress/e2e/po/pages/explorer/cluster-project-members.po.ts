@@ -20,7 +20,7 @@ export default class ClusterProjectMembersPo extends PagePo {
   }
 
   triggerAddClusterOrProjectMemberAction() {
-    return cy.get('.btn.role-primary.pull-right').click();
+    return cy.get(`[data-testid="button-cluster-member-add"]`).click();
   }
 
   triggerAddProjectMemberAction(projectLabel: string) {
@@ -50,7 +50,11 @@ export default class ClusterProjectMembersPo extends PagePo {
       const checkbox = new CheckboxInputPo(`[data-testid="custom-permission-${ permissionIndex }"]`);
 
       checkbox.checkExists();
-      checkbox.set();
+      // Use check() (clicks only if not already checked) and then assert it actually registered:
+      // a bare set() click can silently fail to toggle a still-rendering checkbox, which then saves
+      // the membership with fewer permissions than selected.
+      checkbox.check();
+      checkbox.isChecked();
     });
   }
 
@@ -79,6 +83,6 @@ export default class ClusterProjectMembersPo extends PagePo {
   }
 
   projectTable() {
-    return new SortableTablePo('#project-membership [data-testid="sortable-table-list-container"]');
+    return new SortableTablePo('[data-testid="tab-panel-project-membership"] [data-testid="sortable-table-list-container"]');
   }
 }

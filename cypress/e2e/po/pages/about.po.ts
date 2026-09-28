@@ -7,7 +7,7 @@ const burgerMenu = new BurgerMenuPo();
  * About page
  */
 export default class AboutPagePo extends PagePo {
-  static url = '/about'
+  static url = '/about';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(AboutPagePo.url);
   }

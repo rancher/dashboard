@@ -1,4 +1,5 @@
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../../blueprint.utils';
+import { reply } from '../workload-reply';
 
 const statefulSetsGetResponseSmallSet = {
   type:         'collection',
@@ -57,15 +58,6 @@ const statefulSetsGetResponseSmallSet = {
     }
   }]
 };
-
-function reply(statusCode: number, body: any) {
-  return (req) => {
-    req.reply({
-      statusCode,
-      body
-    });
-  };
-}
 
 export function generateStatefulSetsDataSmall(): Cypress.Chainable<Response> {
   return cy.intercept('GET', '/v1/apps.statefulsets?*', reply(200, statefulSetsGetResponseSmallSet)).as('statefulSetsDataSmall');

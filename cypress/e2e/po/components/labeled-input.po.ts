@@ -1,13 +1,14 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 import { CypressChainable } from '@/cypress/e2e/po/po.types';
 
 export default class LabeledInputPo extends ComponentPo {
-  static byLabel(self: CypressChainable, label: string): LabeledInputPo {
+  // `options` is forwarded to the `.contains` lookup, so callers can e.g. pass a longer timeout when a
+  // field renders slowly (a page object built from a chainable can't apply a timeout later via self()).
+  static byLabel(self: CypressChainable, label: string, options?: GetOptions): LabeledInputPo {
     return new LabeledInputPo(
       self
-        .find('.labeled-input', { includeShadowDom: true })
-        .contains(label)
-        .next()
+        .contains('.labeled-input', label, { includeShadowDom: true, ...options })
+        .find('[id^="input-"], input')
     );
   }
 
@@ -22,18 +23,26 @@ export default class LabeledInputPo extends ComponentPo {
    * Type value in the input
    * @param value Value to be typed
    * @param secret Pass in true to hide sensitive data from logs
+   * @param parseSpecialCharSequences Pass in false to disable special character parsing (useful for JSON)
    * @returns
    */
-  set(value: any, secret?: boolean): Cypress.Chainable {
+  set(value: any, secret?: boolean, parseSpecialCharSequences?: boolean): Cypress.Chainable {
+    this.input().scrollIntoView();
     this.input().should('be.visible');
     this.input().focus();
     this.input().clear();
 
+    const typeOptions: any = {};
+
     if (secret) {
-      return this.input().type(value, { log: false });
-    } else {
-      return this.input().type(value);
+      typeOptions.log = false;
     }
+
+    if (parseSpecialCharSequences === false) {
+      typeOptions.parseSpecialCharSequences = false;
+    }
+
+    return this.input().type(value, typeOptions);
   }
 
   getAttributeValue(attr: string): Cypress.Chainable {
@@ -56,6 +65,16 @@ export default class LabeledInputPo extends ComponentPo {
 
   expectToBeEnabled(): Cypress.Chainable {
     return this.self().should('not.have.attr', 'disabled');
+  }
+
+  /**
+   * Return the validation tooltip message displayed on the input
+   * @returns Cypress chainable for the tooltip message
+   */
+  validationMessage(): Cypress.Chainable {
+    return this.self().closest('.labeled-input').find('[data-testid="labeledTooltip-info-icon"]')
+      .invoke('attr', 'aria-describedby')
+      .then((id) => cy.get(`#${ id }`).invoke('text'));
   }
 
   /**

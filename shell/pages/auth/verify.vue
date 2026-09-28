@@ -8,9 +8,9 @@ import loadPlugins from '@shell/plugins/plugin';
 import { LOGIN_ERRORS } from '@shell/store/auth';
 import { AUTH_BROADCAST_CHANNEL_NAME } from '@shell/utils/auth';
 
-const samlProviders = ['ping', 'adfs', 'keycloak', 'okta', 'shibboleth'];
+const samlProviders = ['ping', 'adfs', 'keycloak', 'okta', 'shibboleth', 'genericsaml'];
 
-const oauthProviders = ['github', 'googleoauth', 'azuread'];
+const oauthProviders = ['github', 'githubapp', 'googleoauth', 'azuread'];
 
 function reply(err, code) {
   try {
@@ -119,9 +119,9 @@ export default {
 
         // Load plugins
         await loadPlugins({
-          app:     this.$store.app,
-          store:   this.$store,
-          $plugin: this.$store.$plugin
+          app:        this.$store.app,
+          store:      this.$store,
+          $extension: this.$store.$extension,
         });
 
         this.$router.replace(backTo);

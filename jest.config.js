@@ -1,13 +1,17 @@
 process.env.TZ = 'UTC';
 
 module.exports = {
-  preset:             'ts-jest',
-  testEnvironment:    'jsdom',
-  setupFilesAfterEnv: ['./jest.setup.js'],
-  watchman:           false,
+  preset:                 'ts-jest',
+  testEnvironment:        'jsdom',
+  // Jest 28+ (jest-environment-jsdom) defaults package resolution to the "browser" export
+  // condition, which makes packages like @vue/test-utils resolve their browser (global-Vue)
+  // build and throw "Vue is not defined". Pin to node conditions to restore Jest 27 behaviour.
+  testEnvironmentOptions: { customExportConditions: ['node', 'node-addons'] },
+  setupFilesAfterEnv:     ['./jest.setup.js'],
+  watchman:               false,
 
   // tell Jest to handle `*.vue` files
-  moduleFileExtensions: ['js', 'json', 'vue', 'ts'],
+  moduleFileExtensions: ['js', 'mjs', 'json', 'vue', 'ts'],
 
   // Paths
   // NOTE: Docs configuration does not work for our environment
@@ -20,6 +24,10 @@ module.exports = {
     '@shell/(.*)':                                                                   '<rootDir>/shell/$1',
     '@pkg/(.*)':                                                                     '<rootDir>/pkg/$1',
     '@components/(.*)':                                                              '<rootDir>/pkg/rancher-components/src/components/$1',
+    // clipboard-polyfill's package `exports` only declares an `import` (ESM) condition, so Jest
+    // 28+'s exports-aware resolver can't resolve it for a CJS require. Map it to its concrete ESM
+    // build (transformed via transformIgnorePatterns below) to restore the Jest 27 `main` behaviour.
+    '^clipboard-polyfill$':                                                          '<rootDir>/node_modules/clipboard-polyfill/dist/es6/clipboard-polyfill.es6.js',
     '\\.(jpe?g|png|gif|webp|svg|mp4|webm|ogg|mp3|wav|flac|aac|woff2?|eot|ttf|otf)$': '<rootDir>/svgTransform.js',
   },
   modulePathIgnorePatterns: [
@@ -34,10 +42,16 @@ module.exports = {
     '<rootDir>/node_modules/',
     '<rootDir>(/.*)*/__tests__/utils/',
   ],
+  transformIgnorePatterns: [
+    // intl-messageformat (and its @formatjs/* deps) are ESM-only as of v11 ("type":"module"),
+    // so Jest must transpile them instead of ignoring them like the rest of node_modules.
+    '/node_modules/(?!(color|color-string|color-convert|color-name|vee-validate|@vee-validate|clipboard-polyfill|intl-messageformat|@formatjs)/)',
+  ],
 
   // Babel
   transform: {
     '^.+\\.js$':   '<rootDir>/node_modules/babel-jest', // process js with `babel-jest`
+    '^.+\\.mjs$':  '<rootDir>/node_modules/babel-jest', // process mjs (e.g. vee-validate ESM) with `babel-jest`
     '.*\\.(vue)$': '<rootDir>/node_modules/@vue/vue3-jest', // process `*.vue` files with `vue-jest`
     '^.+\\.vue$':  './vue3JestRegisterTs.js', // point to a  different transformer than vue-jest and call registerTs before exporting vue-jest
     '^.+\\.tsx?$': 'ts-jest', // process `*.ts` files with `ts-jest`
@@ -48,12 +62,24 @@ module.exports = {
   // Coverage
   coverageProvider:    'v8',
   coverageDirectory:   '<rootDir>/coverage/unit',
-  coverageReporters:   ['json', 'text-summary'],
+  coverageReporters:   ['json', 'text-summary', 'html'],
   collectCoverage:     false,
   collectCoverageFrom: [
     '<rootDir>/shell/**/*.{vue,ts,js}',
     '<rootDir>/pkg/rancher-components/src/components/**/*.{vue,ts,js}',
     '!<rootDir>/shell/scripts/',
+  ],
+  coveragePathIgnorePatterns: [
+    '\\.d\\.ts'
+  ],
+
+  reporters: [
+    'default',
+    ['jest-junit', {
+      outputDirectory: 'unit-test-reports',
+      outputName:      'unit-tests.xml'
+    }
+    ]
   ],
 
   // Globals

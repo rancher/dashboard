@@ -1,17 +1,25 @@
 import { matchesSomeRegex } from '@shell/utils/string';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
-import { UI_PLUGIN_BASE_URL, isSupportedChartVersion } from '@shell/config/uiplugins';
+import { UI_PLUGIN_BASE_URL, isSupportedChartVersion, UI_PLUGIN_LABELS } from '@shell/config/uiplugins';
+import { Plugin, Version } from '@shell/types/uiplugins';
 
 const MAX_RETRIES = 10;
-const RETRY_WAIT = 2500;
+const RETRY_WAIT = 2500; // 2.5 seconds
+const ACTIVE_STATUS_TIMEOUT = 200000; // 20 seconds
+
+// Backoff schedule (ms) for retrying a chart install/upgrade action that failed because a
+// follower Rancher replica's in-memory catalog index cache hadn't caught up yet (see #17543)
+const ACTION_RETRY_DELAYS = [1000, 2000, 4000, 8000];
+
+export const INSTALL_ACTION_MAX_RETRIES = ACTION_RETRY_DELAYS.length;
 
 type Action = 'install' | 'upgrade';
 export type HelmRepository = any;
 export type HelmChart = any;
 
 /**
- *
+ * Get the latest compatible version of a Helm Chart extension
  * @param store Vue store
  * @param chartName The chartName
  * @param rancherVersion Rancher version
@@ -67,8 +75,8 @@ export async function waitForUIExtension(store: any, name: string, maxRetries = 
         return extension;
       }
     } catch (e) {
+      console.error('waiting for UI extension to be available: error =', e); // eslint-disable-line no-console
     }
-
     tries++;
 
     if (tries > maxRetries) {
@@ -105,7 +113,6 @@ export async function waitForUIPackage(store: any, extension: any, maxRetries = 
       return true;
     } catch (error) {
     }
-
     tries++;
 
     if (tries > maxRetries) {
@@ -163,6 +170,60 @@ export async function installHelmChart(repo: any, chart: any, values: any = {}, 
 }
 
 /**
+ * Whether a chart install/upgrade action error is a transient failure caused by a Rancher
+ * replica whose in-memory catalog index cache hasn't caught up with a just-created/updated
+ * repo yet, and is therefore safe to retry (as opposed to e.g. a validation or permission error).
+ */
+export function isTransientChartActionError(error: any): boolean {
+  const status = error?._status ?? error?.status;
+
+  if (status !== 500) {
+    return false;
+  }
+
+  const message = error?.message || error?.data?.message || '';
+
+  // Matches the Rancher catalog controller's own wording, e.g. "failed to find chartName
+  // harvester version v1.8.1 Not found 404", to avoid retrying (and masking) other 500s
+  return /failed to find chart.*version.*not\s*found/i.test(message);
+}
+
+/**
+ * Install/upgrade a Helm Chart, retrying with exponential backoff when the failure looks like a
+ * transient catalog index cache miss (see isTransientChartActionError). Other errors are thrown
+ * immediately without retrying.
+ *
+ * @param onRetry Called before each retry with the attempt number and the max number of retries
+ */
+export async function installHelmChartWithRetry(
+  repo: any,
+  chart: any,
+  values: any = {},
+  namespace = 'default',
+  action: Action = 'install',
+  onRetry?: (attempt: number, maxAttempts: number) => void,
+) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await installHelmChart(repo, chart, values, namespace, action);
+    } catch (error) {
+      if (attempt >= ACTION_RETRY_DELAYS.length || !isTransientChartActionError(error)) {
+        throw error;
+      }
+
+      const delay = ACTION_RETRY_DELAYS[attempt];
+      const nextAttempt = attempt + 1;
+
+      console.log(`Installing harvester helm chart failed, attempt ${ nextAttempt }, wait ${ delay / 1000 } second(s) and retry... `); // eslint-disable-line no-console
+
+      onRetry?.(nextAttempt, ACTION_RETRY_DELAYS.length);
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
+/**
  *
  * @param store Vue store
  * @param url Repository Url
@@ -179,11 +240,19 @@ export async function getHelmRepositoryExact(store: any, url: string): Promise<H
 /**
  *
  * @param store Vue store
- * @param urlRegexes Regex to match a community repository
+ * @param urlRegexes Regex to match against the repository's urls
+ * @param catalogImages Catalog images to match against the repository's labels
  * @returns HelmRepository
  */
-export async function getHelmRepositoryMatch(store: any, urlRegexes: string[]): Promise<HelmRepository> {
+export async function getHelmRepositoryMatch(store: any, urlRegexes: string[], catalogImages: string[]): Promise<HelmRepository> {
   return await getHelmRepository(store, (repository: any) => {
+    const catalog = repository?.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE] || '';
+
+    // if installed from rancher/ui-plugin-catalog or rancher/ui-extension-harvester-ui-extension
+    if (catalog && catalogImages.includes(catalog)) {
+      return true;
+    }
+
     const target = repository.spec?.gitBranch ? repository.spec?.gitRepo : repository.spec?.url;
 
     return matchesSomeRegex(target, urlRegexes);
@@ -191,7 +260,7 @@ export async function getHelmRepositoryMatch(store: any, urlRegexes: string[]): 
 }
 
 /**
- *
+ * Get a Helm Repository matching the given criteria.
  * @param store Vue store
  * @param matchFn Match function for repository's urls
  * @returns HelmRepository
@@ -217,15 +286,15 @@ export async function refreshHelmRepository(store: any, url: string): Promise<vo
   const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
 
   repository.spec.forceUpdate = now;
-
   await repository.save();
 
-  await repository.waitForState('active', 10000, 1000);
+  await repository.waitForState('active', ACTIVE_STATUS_TIMEOUT, RETRY_WAIT);
 
   await new Promise((resolve) => setTimeout(resolve, 2000));
 }
 
 /**
+ * Create a Helm Repository and wait for it to be downloaded
  *
  * @param store Vue store
  * @param name Repository name
@@ -252,7 +321,7 @@ export async function createHelmRepository(store: any, name: string, url: string
 
   const helmRepo = await repo.save();
 
-  // Poll the repository until it says it has been downloaded
+  // Poll the repository status MAX_RETRIES times until it has been downloaded
   let fetched = false;
   let tries = 0;
 
@@ -264,26 +333,21 @@ export async function createHelmRepository(store: any, name: string, url: string
     });
 
     tries++;
+    const downloaded = repo.status?.conditions.find((s: any) => s.type === 'Downloaded');
 
-    const downloaded = repo.status.conditions.find((s: any) => s.type === 'Downloaded');
+    console.log(`Waiting for helm repository to be downloaded... try ${ tries } time(s).`); // eslint-disable-line no-console
 
-    if (downloaded) {
-      if (downloaded.status === 'True') {
-        fetched = true;
-      }
+    if (downloaded && downloaded.status === 'True') {
+      fetched = true;
     }
 
     if (!fetched) {
-      tries++;
-
       if (tries > MAX_RETRIES) {
         throw new Error('Failed to add Helm Chart Repository');
       }
 
       await new Promise((resolve) => setTimeout(resolve, RETRY_WAIT));
     }
-
-    fetched = true;
   }
 
   // Return the Helm Repository
@@ -342,4 +406,23 @@ export async function onExtensionsReady(store: any) {
   }
 
   await store.dispatch('uiplugins/setReady', true);
+}
+
+/**
+ * Finds a Helm Chart version which matches plugin displayVersion. First it checks against Chart.appVersion and
+ * falls back to Chart.version if appVersion is not present.
+ *
+ * @param plugin A data object constructed from UIPlugin and Helm Chart versions
+ * @returns string Helm Chart version
+ */
+export function getPluginChartVersion(plugin?: Plugin) {
+  const pluginVersion = plugin?.displayVersion;
+
+  return plugin?.versions?.find((v) => pluginVersion === (v.appVersion ?? v.version))?.version ?? pluginVersion;
+}
+
+export function getPluginChartVersionLabel(version: Version) {
+  if (version.appVersion === version.version) return `${ version.version }`;
+
+  return `${ version.appVersion } (${ version.version })`;
 }

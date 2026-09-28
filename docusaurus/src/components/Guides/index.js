@@ -5,11 +5,6 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 
 const GuidesList = [
   {
-    title:  'Building an Image for Container Registries',
-    link:   'guide/build-for-container-registry',
-    target: '',
-  },
-  {
     title:  'Package Management',
     link:   'guide/package-management',
     target: '',

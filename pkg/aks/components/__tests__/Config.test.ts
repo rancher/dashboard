@@ -1,15 +1,27 @@
 import semver from 'semver';
 import flushPromises from 'flush-promises';
-import { shallowMount, Wrapper } from '@vue/test-utils';
-import Config from '@pkg/aks/components/Config.vue';
+import { shallowMount, VueWrapper } from '@vue/test-utils';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import * as aksUtil from '@pkg/aks/util/aks';
 // eslint-disable-next-line jest/no-mocks-import
-import { mockVersionsSorted } from '../../util/__mocks__/aks';
-import { AKSConfig, AKSNodePool } from 'types';
+import { mockVersionsSorted } from '@pkg/aks/util/__mocks__/aks';
+import { AKSConfig, AKSNodePool } from '@pkg/aks/types';
 import { _EDIT, _CREATE } from '@shell/config/query-params';
-import { nodePoolNames } from '../../util/validators';
-import { defaultAksConfig, NETWORKING_AUTH_MODES } from '../CruAks.vue';
+import { nodePoolNames } from '@pkg/aks/util/validators';
+import Config from '@pkg/aks/components/Config.vue';
+import { defaultAksConfig, NETWORKING_AUTH_MODES } from '@pkg/aks/components/CruAks.vue';
 
 const DEFAULT_CLUSTER_CONFIG = defaultAksConfig;
+
+// LabeledSelect declares `options` as a bare `Array`, so reads come back as `unknown[]`.
+// These tests only ever inspect the standard option fields.
+type SelectOption = {
+  label?: string;
+  value?: string;
+  disabled?: boolean;
+};
 
 const mockedStore = (versionSetting: any) => {
   return {
@@ -43,7 +55,7 @@ const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
 
 jest.mock('@pkg/aks/util/aks');
 
-const setCredential = async(wrapper :Wrapper<any>, config = {} as any) => {
+const setCredential = async(wrapper: VueWrapper<any>, config = {} as any) => {
   config.azureCredentialSecret = 'foo';
   config.resourceLocation = 'eastus';
 
@@ -59,7 +71,7 @@ describe('aks provisioning form', () => {
   ])('should list only versions satisfying the ui-default-version-range setting', async(versionRange: string, expectedVersions: string[]) => {
     const mockVersionRangeSetting = { value: versionRange };
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         config: DEFAULT_CLUSTER_CONFIG, value: {}, mode: _CREATE
       },
       ...requiredSetup(mockVersionRangeSetting)
@@ -72,14 +84,14 @@ describe('aks provisioning form', () => {
 
   it('should sort versions from latest to oldest', async() => {
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         config: DEFAULT_CLUSTER_CONFIG, value: {}, mode: _CREATE
       },
       ...requiredSetup()
     });
 
     await setCredential(wrapper);
-    const versionDropdown = wrapper.findComponent('[data-testid="cruaks-kubernetesversion"]');
+    const versionDropdown = wrapper.findComponent<typeof LabeledSelect>('[data-testid="cruaks-kubernetesversion"]');
 
     expect(versionDropdown.exists()).toBe(true);
     expect(versionDropdown.props().value).toBe('1.27.0');
@@ -87,7 +99,7 @@ describe('aks provisioning form', () => {
 
   it('should auto-select the latest kubernetes version when a region is selected during create', async() => {
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         config: DEFAULT_CLUSTER_CONFIG, value: {}, mode: _CREATE
       },
       ...requiredSetup()
@@ -95,24 +107,24 @@ describe('aks provisioning form', () => {
 
     await setCredential(wrapper);
 
-    const versionDropdown = wrapper.findComponent('[data-testid="cruaks-kubernetesversion"]');
+    const versionDropdown = wrapper.findComponent<typeof LabeledSelect>('[data-testid="cruaks-kubernetesversion"]');
 
     expect(versionDropdown.exists()).toBe(true);
     // version dropdown options are validated in another test so here we can assume they're properly sorted and filtered such that the first one is the default value
-    expect(versionDropdown.props().value).toBe(versionDropdown.props().options[0].value);
+    expect(versionDropdown.props().value).toBe((versionDropdown.props().options as SelectOption[])[0].value);
   });
 
   it('should not auto-select the latest kubernetes version on edit', async() => {
     const config = { ...DEFAULT_CLUSTER_CONFIG, kubernetesVersion: '0.00.0' };
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         config, value: {}, mode: _EDIT
       },
       ...requiredSetup()
     });
 
     await setCredential(wrapper, config);
-    const versionDropdown = wrapper.findComponent('[data-testid="cruaks-kubernetesversion"]');
+    const versionDropdown = wrapper.findComponent<typeof LabeledSelect>('[data-testid="cruaks-kubernetesversion"]');
 
     expect(versionDropdown.exists()).toBe(true);
     expect(versionDropdown.props().value).toBe('0.00.0');
@@ -127,7 +139,7 @@ describe('aks provisioning form', () => {
   ],
   ])('should only allow upgrading one minor version at a time', async(originalVersion, validVersions) => {
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         config: DEFAULT_CLUSTER_CONFIG, value: {}, mode: _EDIT
       },
       ...requiredSetup({ value: '>=1.23.x' })
@@ -136,8 +148,8 @@ describe('aks provisioning form', () => {
     wrapper.setData({ originalVersion });
 
     await setCredential(wrapper);
-    const versionDropdown = wrapper.getComponent('[data-testid="cruaks-kubernetesversion"]');
-    const enabledOptions = versionDropdown.props().options.reduce((enabledOpts, opt) => {
+    const versionDropdown = wrapper.getComponent<typeof LabeledSelect>('[data-testid="cruaks-kubernetesversion"]');
+    const enabledOptions = (versionDropdown.props().options as SelectOption[]).reduce((enabledOpts: (string | undefined)[], opt) => {
       if (!opt.disabled) {
         enabledOpts.push(opt.value);
       }
@@ -151,7 +163,7 @@ describe('aks provisioning form', () => {
   it.each([['1.26.0', mockVersionsSorted.filter((v: string) => semver.gte(v, '1.26.0'))], ['1.24.0', mockVersionsSorted.filter((v: string) => semver.gte(v, '1.24.0'))],
   ])('should not allow a k8s version downgrade on edit', async(originalVersion, validVersions) => {
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         config: DEFAULT_CLUSTER_CONFIG, value: {}, mode: _EDIT
       },
       ...requiredSetup()
@@ -160,15 +172,15 @@ describe('aks provisioning form', () => {
     wrapper.setData({ originalVersion });
 
     await setCredential(wrapper);
-    const versionDropdown = wrapper.getComponent('[data-testid="cruaks-kubernetesversion"]');
+    const versionDropdown = wrapper.getComponent<typeof LabeledSelect>('[data-testid="cruaks-kubernetesversion"]');
 
-    expect(versionDropdown.props().options.map((opt: any) => opt.value)).toStrictEqual(validVersions);
+    expect((versionDropdown.props().options as SelectOption[]).map((opt) => opt.value)).toStrictEqual(validVersions);
   });
 
   it('should select the correct networking auth mode option', async() => {
     const config = { managedIdentity: false } as any as AKSConfig;
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         value: {}, mode: 'edit', config
       },
       ...requiredSetup()
@@ -192,7 +204,7 @@ describe('aks provisioning form', () => {
       dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', nodePools
     };
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         value: {}, mode: 'edit', config
       },
       ...requiredSetup()
@@ -221,15 +233,15 @@ describe('aks provisioning form', () => {
       dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
     };
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         value: {}, mode: 'edit', config
       },
       ...requiredSetup()
     });
 
     await setCredential(wrapper, config);
-    const virtualNetworkSelect = wrapper.getComponent('[data-testid="aks-virtual-network-select"]');
-    const networkOpts = virtualNetworkSelect.props().options;
+    const virtualNetworkSelect = wrapper.getComponent<typeof LabeledSelect>('[data-testid="aks-virtual-network-select"]');
+    const networkOpts = virtualNetworkSelect.props().options as SelectOption[];
 
     expect(virtualNetworkSelect.props().value).toStrictEqual(noneOption);
 
@@ -281,7 +293,7 @@ describe('aks provisioning form', () => {
       dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', nodePools
     };
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         value: {}, mode: 'edit', config
       },
       ...requiredSetup()
@@ -325,15 +337,15 @@ describe('aks provisioning form', () => {
       dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
     };
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         value: {}, mode: 'edit', config
       },
       ...requiredSetup()
     });
 
     await setCredential(wrapper, config);
-    const virtualNetworkSelect = wrapper.getComponent('[data-testid="aks-virtual-network-select"]');
-    const networkOpts = virtualNetworkSelect.props().options;
+    const virtualNetworkSelect = wrapper.getComponent<typeof LabeledSelect>('[data-testid="aks-virtual-network-select"]');
+    const networkOpts = virtualNetworkSelect.props().options as SelectOption[];
 
     virtualNetworkSelect.vm.$emit('selecting', networkOpts[optionIndex]);
     await wrapper.vm.$nextTick();
@@ -348,16 +360,16 @@ describe('aks provisioning form', () => {
       dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
     };
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         value: {}, mode: 'edit', config
       },
       ...requiredSetup()
     });
 
     await setCredential(wrapper, config);
-    let logAnalyticsWorkspaceNameInput = wrapper.findComponent('[data-testid="aks-log-analytics-workspace-name-input"]');
-    let logAnalyticsWorkspaceGroupInput = wrapper.findComponent('[data-testid="aks-log-analytics-workspace-group-input"]');
-    const monitoringCheckbox = wrapper.findComponent('[data-testid="aks-monitoring-checkbox"]');
+    let logAnalyticsWorkspaceNameInput = wrapper.findComponent<typeof LabeledInput>('[data-testid="aks-log-analytics-workspace-name-input"]');
+    let logAnalyticsWorkspaceGroupInput = wrapper.findComponent<typeof LabeledInput>('[data-testid="aks-log-analytics-workspace-group-input"]');
+    const monitoringCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="aks-monitoring-checkbox"]');
 
     expect(monitoringCheckbox.props().value).toBe(false);
     expect(logAnalyticsWorkspaceNameInput.props().disabled).toBe(true);
@@ -367,8 +379,8 @@ describe('aks provisioning form', () => {
     monitoringCheckbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.config.monitoring).toBe(true);
-    logAnalyticsWorkspaceNameInput = wrapper.findComponent('[data-testid="aks-log-analytics-workspace-name-input"]');
-    logAnalyticsWorkspaceGroupInput = wrapper.findComponent('[data-testid="aks-log-analytics-workspace-group-input"]');
+    logAnalyticsWorkspaceNameInput = wrapper.findComponent<typeof LabeledInput>('[data-testid="aks-log-analytics-workspace-name-input"]');
+    logAnalyticsWorkspaceGroupInput = wrapper.findComponent<typeof LabeledInput>('[data-testid="aks-log-analytics-workspace-group-input"]');
     expect(monitoringCheckbox.props().value).toBe(true);
     expect(logAnalyticsWorkspaceNameInput.isVisible()).toBe(true);
     expect(logAnalyticsWorkspaceGroupInput.isVisible()).toBe(true);
@@ -379,15 +391,15 @@ describe('aks provisioning form', () => {
       dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
     };
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         value: {}, mode: 'edit', config
       },
       ...requiredSetup()
     });
 
     await setCredential(wrapper, config);
-    const virtualNetworkSelect = wrapper.findComponent('[data-testid="aks-virtual-network-select"]');
-    const networkOpts = virtualNetworkSelect.props().options;
+    const virtualNetworkSelect = wrapper.findComponent<typeof LabeledSelect>('[data-testid="aks-virtual-network-select"]');
+    const networkOpts = virtualNetworkSelect.props().options as SelectOption[];
 
     virtualNetworkSelect.vm.$emit('selecting', networkOpts[2]);
     await wrapper.vm.$nextTick();
@@ -412,7 +424,7 @@ describe('aks provisioning form', () => {
       dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', kubernetesVersion: originalVersion, nodePools
     };
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         value: {}, mode: 'edit', config
       },
       ...requiredSetup()
@@ -421,7 +433,9 @@ describe('aks provisioning form', () => {
     await setCredential(wrapper, config);
     wrapper.setProps({ config: { ...config, kubernetesVersion: newVersion } });
     await wrapper.vm.$nextTick();
-    const pools = wrapper.vm.config.nodePools;
+    const pools = wrapper.vm.config.nodePools || [];
+
+    expect(pools).toHaveLength(nodePools.length);
 
     pools.forEach((pool: AKSNodePool) => {
       expect(pool.orchestratorVersion).toBe(pool._isNewOrUnprovisioned ? newVersion : originalVersion);
@@ -433,7 +447,7 @@ describe('aks provisioning form', () => {
       dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', monitoring: true, logAnalyticsWorkspaceGroup: 'abc', logAnalyticsWorkspaceName: 'def'
     };
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         value: {}, mode: 'edit', config
       },
       ...requiredSetup()
@@ -441,7 +455,7 @@ describe('aks provisioning form', () => {
 
     await setCredential(wrapper, config);
 
-    const monitoringCheckbox = wrapper.getComponent('[data-testid="aks-monitoring-checkbox"]');
+    const monitoringCheckbox = wrapper.getComponent<typeof Checkbox>('[data-testid="aks-monitoring-checkbox"]');
 
     expect(monitoringCheckbox.props().value).toBe(true);
 
@@ -454,7 +468,7 @@ describe('aks provisioning form', () => {
 
   it('should use a valid value for the default pool name', async() => {
     const wrapper = shallowMount(Config, {
-      propsData: {
+      props: {
         config: DEFAULT_CLUSTER_CONFIG, value: {}, mode: _CREATE
       },
       ...requiredSetup()
@@ -469,5 +483,141 @@ describe('aks provisioning form', () => {
     const nodeName = wrapper.vm.nodePools[0].name;
 
     expect(nodePoolNames({ t: (str:string) => str })(nodeName)).toBeUndefined();
+  });
+
+  it('should set the network plugin to azure when user defined routing is selected', async() => {
+    const config = {
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
+    };
+    const wrapper = shallowMount(Config, {
+      props: {
+        value: {}, mode: 'edit', config
+      },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, config);
+    const outboundTypeSelect = wrapper.findComponent<typeof LabeledSelect>('[data-testid="aks-outbound-type-select"]');
+    const outboundTypeOpts = outboundTypeSelect.props().options as SelectOption[];
+
+    outboundTypeSelect.vm.$emit('update:value', outboundTypeOpts[1].value);
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.config.networkPlugin).toBe('azure');
+    const networkPluginSelect = wrapper.findComponent<typeof LabeledSelect>('[data-testid="aks-network-plugin-select"]');
+
+    const kubeOption = (networkPluginSelect.props().options as SelectOption[]).find((opt) => opt.value === 'kubenet');
+
+    expect(kubeOption?.disabled).toBeTruthy();
+  });
+
+  it('should make virtual network required when user defined routing is selected', async() => {
+    const config = {
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
+    };
+    const wrapper = shallowMount(Config, {
+      props: {
+        value: {}, mode: 'edit', config
+      },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, config);
+    const outboundTypeSelect = wrapper.findComponent<typeof LabeledSelect>('[data-testid="aks-outbound-type-select"]');
+    const outboundTypeOpts = outboundTypeSelect.props().options as SelectOption[];
+
+    outboundTypeSelect.vm.$emit('update:value', outboundTypeOpts[1].value);
+    await wrapper.vm.$nextTick();
+
+    const virtualNetworkSelect = wrapper.findComponent<typeof LabeledSelect>('[data-testid="aks-virtual-network-select"]');
+
+    expect(virtualNetworkSelect.props().required).toBe(true);
+  });
+
+  describe('kubernetes version and region changes', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('should update the selected kubernetes version to a new default when the region changes and the previous selection is no longer available and the user has not touched it', async() => {
+      const wrapper = shallowMount(Config, {
+        props: {
+          config: DEFAULT_CLUSTER_CONFIG, value: {}, mode: _CREATE
+        },
+        ...requiredSetup()
+      });
+
+      await setCredential(wrapper);
+      expect(wrapper.vm.config.kubernetesVersion).toBe('1.27.0');
+
+      jest.spyOn(aksUtil, 'getAKSKubernetesVersions').mockResolvedValueOnce(['1.20.0']);
+
+      wrapper.setProps({ config: { ...wrapper.vm.config, resourceLocation: 'westus' } });
+      await flushPromises();
+
+      expect(wrapper.vm.config.kubernetesVersion).toBe('1.20.0');
+    });
+
+    it('should leave the selected kubernetes version untouched and show a validation error when the region changes and the user-selected version is no longer available', async() => {
+      const wrapper = shallowMount(Config, {
+        props: {
+          config: DEFAULT_CLUSTER_CONFIG, value: {}, mode: _CREATE
+        },
+        ...requiredSetup()
+      });
+
+      await setCredential(wrapper);
+
+      // simulate the user manually selecting a version, which marks the field as touched
+      wrapper.setProps({ config: { ...wrapper.vm.config, kubernetesVersion: '1.26.5' } });
+      await flushPromises();
+      expect(wrapper.vm.touchedVersion).toBe(true);
+
+      jest.spyOn(aksUtil, 'getAKSKubernetesVersions').mockResolvedValueOnce(['1.20.0']);
+
+      wrapper.setProps({ config: { ...wrapper.vm.config, resourceLocation: 'westus' } });
+      await flushPromises();
+
+      expect(wrapper.vm.config.kubernetesVersion).toBe('1.26.5');
+      expect(wrapper.vm.fvExtraRules.k8sVersionAvailable()).toBe('aks.kubernetesVersion.notAvailableInRegion');
+    });
+
+    it('should refetch AKS versions when the credential changes even if the region stays the same', async() => {
+      const getVersionsSpy = jest.spyOn(aksUtil, 'getAKSKubernetesVersions');
+      const wrapper = shallowMount(Config, {
+        props: {
+          config: DEFAULT_CLUSTER_CONFIG, value: {}, mode: _CREATE
+        },
+        ...requiredSetup()
+      });
+
+      await setCredential(wrapper);
+      const callsAfterInitialLoad = getVersionsSpy.mock.calls.length;
+
+      wrapper.setProps({ config: { ...wrapper.vm.config, azureCredentialSecret: 'a-different-credential' } });
+      await flushPromises();
+
+      expect(getVersionsSpy.mock.calls.length).toBeGreaterThan(callsAfterInitialLoad);
+    });
+
+    it('should update the selected kubernetes version to a new default when the credential changes (region unchanged) and the previous selection is no longer available and the user has not touched it', async() => {
+      const config = { ...DEFAULT_CLUSTER_CONFIG };
+      const wrapper = shallowMount(Config, {
+        props: {
+          config, value: {}, mode: _EDIT
+        },
+        ...requiredSetup()
+      });
+
+      await setCredential(wrapper, config);
+      expect(wrapper.vm.config.kubernetesVersion).toBe('1.27.0');
+
+      jest.spyOn(aksUtil, 'getAKSKubernetesVersions').mockResolvedValueOnce(['1.20.0']);
+
+      wrapper.setProps({ config: { ...wrapper.vm.config, azureCredentialSecret: 'a-different-credential' } });
+      await flushPromises();
+
+      expect(wrapper.vm.config.kubernetesVersion).toBe('1.20.0');
+    });
   });
 });

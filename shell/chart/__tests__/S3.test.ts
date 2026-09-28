@@ -3,7 +3,7 @@ import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 
 import S3 from '@shell/chart/rancher-backup/S3';
-import Vuex from 'vuex';
+import { createStore } from 'vuex';
 
 describe('rancher-backup: S3', () => {
   const mockStore = {
@@ -11,12 +11,20 @@ describe('rancher-backup: S3', () => {
       'i18n/t':                    (text: string) => text,
       t:                           (text: string) => text,
       'cluster/all':               () => [],
-      'cluster/paginationEnabled': () => false
+      'cluster/paginationEnabled': () => false,
+      currentStore:                () => 'cluster'
     }
   };
   const wrapper = mount(S3, {
-    plugins: [Vuex],
-    global:  { mocks: { $store: mockStore, $fetchState: { pending: false } } }
+    global:  { mocks: { $store: mockStore, $fetchState: { pending: false } } },
+    provide: {
+      store: createStore({
+        getters: {
+          'cluster/paginationEnabled': () => () => false,
+          currentStore:                () => 'cluster'
+        }
+      })
+    },
   });
 
   it('should emit invalid when form is not filled', () => {

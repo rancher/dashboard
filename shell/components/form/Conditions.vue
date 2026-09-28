@@ -52,21 +52,7 @@ export default {
     },
 
     rows() {
-      return (this.value.status?.conditions || []).map((cond) => {
-        let message = cond.message || '';
-
-        if ( cond.reason ) {
-          message = `[${ cond.reason }] ${ message }`.trim();
-        }
-
-        return {
-          condition: cond.type || 'Unknown',
-          status:    cond.status || 'Unknown',
-          error:     cond.error,
-          time:      cond.lastProbeTime || cond.lastUpdateTime || cond.lastTransitionTime,
-          message,
-        };
-      });
+      return this.value.resourceConditions;
     },
   }
 };

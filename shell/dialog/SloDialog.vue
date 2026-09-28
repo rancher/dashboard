@@ -17,7 +17,7 @@ export default {
 
   computed: {
     name() {
-      return this.authProvider?.nameDisplay;
+      return this.t(`model.authConfig.provider."${ this.authProvider?.id }"`);
     }
   },
 

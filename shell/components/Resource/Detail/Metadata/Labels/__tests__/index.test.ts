@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import Labels from '@shell/components/Resource/Detail/Metadata/Labels/index.vue';
 import { createStore } from 'vuex';
+jest.mock('@shell/utils/clipboard', () => ({ copyTextToClipboard: jest.fn() }));
 
 describe('component: Metadata/Labels', () => {
   it('should render KeyValue with the appropriate props', async() => {

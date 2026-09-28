@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 25.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   version="1.1"
+   x="0px"
+   y="0px"
+   viewBox="0 0 360 360"
+   style="enable-background:new 0 0 360 360;"
+   xml:space="preserve"
+   id="svg3"
+   sodipodi:docname="cloud-native.svg"
+   inkscape:version="1.4.2 (ebf0e940, 2025-05-08)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+   id="defs3">
+	
+	
+</defs><sodipodi:namedview
+   id="namedview3"
+   pagecolor="#ffffff"
+   bordercolor="#000000"
+   borderopacity="0.25"
+   inkscape:showpageshadow="2"
+   inkscape:pageopacity="0.0"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#d1d1d1"
+   inkscape:zoom="2.1666667"
+   inkscape:cx="179.76923"
+   inkscape:cy="179.76923"
+   inkscape:window-width="2288"
+   inkscape:window-height="1302"
+   inkscape:window-x="757"
+   inkscape:window-y="36"
+   inkscape:window-maximized="0"
+   inkscape:current-layer="svg3" />
+<style
+   type="text/css"
+   id="style1">
+	.st0{display:none;}
+	.st1{display:inline;fill:#0C322C;}
+	.st2{fill:none;stroke:#EFEFEF;stroke-width:17;stroke-miterlimit:10;}
+	.st3{fill:none;stroke:#30BA77;stroke-width:17;stroke-miterlimit:10;}
+</style>
+<g
+   id="Background"
+   class="st0">
+	<rect
+   x="-207"
+   y="-1080"
+   class="st1"
+   width="2862"
+   height="2070"
+   id="rect1" />
+</g>
+<path
+   class="st2"
+   d="M 72,216 H 36 v -54 c 0,-24.85 20.15,-45 45,-45 h 9 V 90 c 0,-24.85 20.15,-45 45,-45 h 99 c 24.85,0 45,20.15 45,45 v 45 0 c 24.85,0 45,20.15 45,45 v 36 h -36"
+   id="path1"
+   style="stroke:#e05f00;stroke-opacity:1" /><g
+   id="g3">
+		<polyline
+   class="st3"
+   points="194.46,168.24 239.99,159.99 231.74,114.46   "
+   id="polyline1" />
+		<path
+   class="st3"
+   d="m 106.61,245.4 c -13.06,-28.81 -7.75,-63.92 15.94,-87.61 30.54,-30.54 80.06,-30.54 110.6,0"
+   id="path2" />
+		<polyline
+   class="st3"
+   points="167.26,262.25 121.73,270.5 129.98,316.03   "
+   id="polyline2" />
+		<path
+   class="st3"
+   d="m 256.76,189.04 c 10.89,28.02 5.02,61.05 -17.6,83.67 -30.54,30.54 -80.06,30.54 -110.6,0"
+   id="path3" />
+	</g>
+<g
+   id="Outlines">
+</g>
+</svg>

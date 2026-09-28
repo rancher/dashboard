@@ -5,7 +5,9 @@ import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import RolesPo from '@/cypress/e2e/po/pages/users-and-auth/roles.po';
 import ClusterProjectMembersPo from '@/cypress/e2e/po/pages/explorer/cluster-project-members.po';
-import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { BLANK_CLUSTER } from '@/cypress/support/utils/shell';
+import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 Cypress.config();
 describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser'] }, () => {
@@ -19,6 +21,7 @@ describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser']
 
   beforeEach(() => {
     cy.login();
+    cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page
     HomePagePo.goTo();
   });
 
@@ -36,25 +39,46 @@ describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser']
     productNavPo.activeNavItem().should('equal', 'Cluster and Project Members');
   });
 
-  it('Chart and sub-pages are highlighted correctly', () => {
-    HomePagePo.goTo();
-    chartsPage.goTo();
+  it('Chart and sub-pages are highlighted correctly', function() {
+    runTestWhenChartAvailable(CHART.repo, CHART.id, this, () => {
+      HomePagePo.goTo();
+      chartsPage.goTo();
+      chartsPage.waitForPage();
 
-    const productNavPo = new ProductNavPo();
+      const productNavPo = new ProductNavPo();
 
-    productNavPo.visibleNavTypes().eq(0).should('be.visible').click()
-      .then((link) => {
-        cy.url().should('equal', link.prop('href'));
+      productNavPo.visibleNavTypes().eq(0).should('be.visible').click()
+        .then((link) => {
+          cy.url().should('equal', link.prop('href'));
+        });
+      productNavPo.activeNavItem().should('equal', 'Charts');
+
+      // Wait for charts page to load - check for chart container to appear
+      chartsPage.chartCards().should('be.visible');
+
+      // Search for the chart to ensure it's available
+      chartsPage.chartsSearchFilterInput().type(CHART.name);
+      // Wait for search results to filter
+      chartsPage.chartsSearchFilterInput().should('have.value', CHART.name);
+      // Wait for the URL to update and then assert the 'q' parameter's value.
+      cy.location().should((loc) => {
+        const params = new URLSearchParams(loc.search);
+
+        expect(params.get('q')).to.eq(CHART.name);
       });
-    productNavPo.activeNavItem().should('equal', 'Charts');
+      // Ensure the specific chart exists before trying to click it
+      chartsPage.getChartByName(CHART.name).self().should('be.visible');
 
-    // Go to install page
-    chartsPage.clickChart(CHART.name);
-    chartPage.waitForChartPage(CHART.repo, CHART.id);
-    productNavPo.activeNavItem().should('equal', 'Charts');
+      // Go to install page
+      chartsPage.clickChart(CHART.name);
 
-    chartPage.goToInstall();
-    productNavPo.activeNavItem().should('equal', 'Charts');
+      // Wait for navigation to the chart page to complete
+      chartPage.waitForPageWithSpecificUrl(undefined, `repo-type=cluster&repo=${ CHART.repo }&chart=${ CHART.id }`);
+      productNavPo.activeNavItem().should('equal', 'Charts');
+
+      chartPage.goToInstall();
+      productNavPo.activeNavItem().should('equal', 'Charts');
+    });
   });
 
   it('User Retention highlighting', () => {
@@ -77,11 +101,20 @@ describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser']
 
     roles.goTo(undefined, GLOBAL);
     roles.waitForPage(undefined, GLOBAL);
+    // Wait for the tab's list container to actually render before looking for a row: the tab content
+    // (scoped to #GLOBAL/#CLUSTER) can lag behind waitForPage, and rowWithName then times out because
+    // the sortable-table-list-container is not there yet.
+    roles.list(GLOBAL).checkVisible(LONG_TIMEOUT_OPT);
     roles.list(GLOBAL).rowWithName('Administrator').checkExists();
     productNavPo.activeNavItem().should('equal', 'Role Templates');
 
     roles.tabs().clickTabWithName(CLUSTER);
+    roles.list(CLUSTER).checkVisible(LONG_TIMEOUT_OPT);
     roles.list(CLUSTER).rowWithName('Cluster Owner').checkExists();
     productNavPo.activeNavItem().should('equal', 'Role Templates');
+  });
+
+  after(() => {
+    cy.setUserPreference({ 'show-pre-release': false });
   });
 });

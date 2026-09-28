@@ -4,9 +4,12 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { addObject, removeObject } from '@shell/utils/array';
 import cloneDeep from 'lodash/cloneDeep';
 import { generateRandomAlphaString } from '@shell/utils/string';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 
 export default defineComponent({
   name: 'Checkbox',
+
+  components: { RcIconTooltip },
 
   props: {
     /**
@@ -123,6 +126,14 @@ export default defineComponent({
     alternateLabel: {
       type:    String,
       default: undefined
+    },
+
+    /**
+     * Use body text color for the label instead of the default input-label color.
+     */
+    useBodyTextColor: {
+      type:    Boolean,
+      default: false
     },
 
     /**
@@ -259,6 +270,12 @@ export default defineComponent({
      */
     findTrueValues(value: boolean[]): boolean {
       return value.find((v) => v === this.valueWhenTrue) || false;
+    },
+
+    focus() {
+      if (!this.isDisabled) {
+        (this.$refs.checkbox as HTMLElement)?.focus();
+      }
     }
   }
 });
@@ -269,7 +286,7 @@ export default defineComponent({
     class="checkbox-outer-container"
     data-checkbox-ctrl
     :class="{
-      'v-popper--has-tooltip': hasTooltip,
+      'has-clean-tooltip': hasTooltip,
     }"
   >
     <label
@@ -285,10 +302,12 @@ export default defineComponent({
         :value="valueWhenTrue"
         type="checkbox"
         tabindex="-1"
+        aria-hidden="true"
         @click.stop.prevent
         @keyup.enter.stop.prevent
       >
       <span
+        ref="checkbox"
         class="checkbox-custom"
         :class="{indeterminate: indeterminate}"
         :tabindex="isDisabled ? -1 : 0"
@@ -305,31 +324,30 @@ export default defineComponent({
         :class="{ 'checkbox-primary': primary }"
       >
         <slot name="label">
-          <t
+          <span
             v-if="labelKey"
             :id="idForLabel"
-            :k="labelKey"
-            :raw="true"
-          />
+            :class="{ 'body-text-color': useBodyTextColor }"
+          >
+            <t
+              :k="labelKey"
+              :raw="true"
+            />
+          </span>
           <span
             v-else-if="label"
             :id="idForLabel"
+            :class="{ 'body-text-color': useBodyTextColor }"
           >{{ label }}</span>
-          <i
-            v-if="tooltipKey"
-            v-clean-tooltip="{content: t(tooltipKey), triggers: ['hover', 'touch', 'focus']}"
-            v-stripped-aria-label="t(tooltipKey)"
-            class="checkbox-info icon icon-info icon-lg"
+          <rc-icon-tooltip
+            v-if="hasTooltip"
+            :content="tooltipKey ? t(tooltipKey) : tooltip"
+            class="checkbox-info"
             :data-testid="componentTestid + '-info-icon'"
             :tabindex="isDisabled ? -1 : 0"
-          />
-          <i
-            v-else-if="tooltip"
-            v-clean-tooltip="{content: tooltip, triggers: ['hover', 'touch', 'focus']}"
-            v-stripped-aria-label="tooltip"
-            class="checkbox-info icon icon-info icon-lg"
-            :data-testid="componentTestid + '-info-icon'"
-            :tabindex="isDisabled ? -1 : 0"
+            @click.stop.prevent
+            @keydown.enter.stop
+            @keydown.space.stop
           />
         </slot>
       </span>
@@ -355,7 +373,7 @@ export default defineComponent({
   </div>
 </template>
 
-<style lang='scss'>
+<style lang='scss' scoped>
 $fontColor: var(--input-label);
 
 .checkbox-outer-container {
@@ -390,6 +408,10 @@ $fontColor: var(--input-label);
     display: inline-flex;
     margin: 0px 10px 0px 5px;
 
+    .body-text-color {
+      color: var(--body-text);
+    }
+
     &.checkbox-primary {
       color: inherit;
       font-weight: 600;
@@ -400,9 +422,8 @@ $fontColor: var(--input-label);
     line-height: normal;
     margin-left: 4px;
 
-    &:focus-visible {
-      @include focus-outline;
-      outline-offset: 2px;
+    :deep(.rc-icon) {
+      line-height: normal;
     }
   }
 
@@ -411,10 +432,15 @@ $fontColor: var(--input-label);
     width: 14px;
     background-color: var(--body-bg);
     border-radius: var(--border-radius);
-    border: 1px solid var(--border);
+    border: 1px solid var(--input-border);
     flex-shrink: 0;
 
     &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
+      border-radius: 0;
+    }
+    &:focus {
       @include focus-outline;
       outline-offset: 2px;
       border-radius: 0;
@@ -435,12 +461,12 @@ $fontColor: var(--input-label);
   }
 
   input:checked ~ .checkbox-custom {
-    background-color:var(--primary);
+    background-color: var(--active, var(--primary));
     -webkit-transform: rotate(0deg) scale(1);
     -ms-transform: rotate(0deg) scale(1);
     transform: rotate(0deg) scale(1);
     opacity:1;
-    border: 1px solid var(--primary);
+    border: 1px solid var(--checkbox-border, var(--primary));
   }
 
   // Custom Checkbox tick

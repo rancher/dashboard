@@ -7,14 +7,14 @@ describe('dashboard-store: getters', () => {
     // we're not testing function output based off of state or getter inputs here since they are dependencies
     const state = { config: { baseUrl: 'protocol' } };
     const getters = {
-      normalizeType: (type) => type,
-      schemaFor:     (type) => {
+      normalizeType: (type: string) => type,
+      schemaFor:     (type: string) => {
         if (type === 'typeFoo') {
           return { links: { collection: 'urlFoo' } };
         }
       },
-      // this has its own tests so it just returns the input string
-      urlOptions: (string) => string
+      // this has its own tests so it just returns the input url
+      urlOptions: (url: string) => url
     };
 
     const urlForGetter = urlFor(state, getters);
@@ -47,24 +47,12 @@ describe('dashboard-store: getters', () => {
       expect(urlForGetter('typeFoo', 'idBar')).toBe('protocol/urlFoo/idBar');
     });
   });
-  describe('dashboard-store > getters > urlOptions', () => {
-    // we're not testing function output based off of state or getter inputs here since they are dependencies
-    const state = { config: { baseUrl: 'protocol' } };
-    const getters = {
-      normalizeType: (type) => type,
-      schemaFor:     (type) => {
-        if (type === 'typeFoo') {
-          return { links: { collection: 'urlFoo' } };
-        }
-      },
-      // this has its own tests so it just returns the input string
-      urlOptions: (string) => string
-    };
 
+  describe('dashboard-store > getters > urlOptions', () => {
     const urlOptionsGetter = urlOptions();
 
     it('expects urlOptions to return a function', () => {
-      expect(typeof urlOptions(state, getters)).toBe('function');
+      expect(typeof urlOptions()).toBe('function');
     });
     it('returns undefined when called without params', () => {
       expect(urlOptionsGetter()).toBeUndefined();
@@ -95,6 +83,113 @@ describe('dashboard-store: getters', () => {
     });
     it('returns an unmodified string if the sort option is provided and an order if sortOrder is provided', () => {
       expect(urlOptionsGetter('foo', { sortBy: 'bar', sortOrder: 'baz' })).toBe('foo');
+    });
+  });
+
+  describe('dashboard-store > getters > matchingLabelSelector', () => {
+    const { matchingLabelSelector } = getters;
+    const labelSelector = { matchLabels: { foo: 'bar' } };
+    const selectorString = 'foo=bar';
+    const type = 'pod';
+    const namespace = 'default';
+    const allResources = [{ id: '1' }];
+    const matchingResources = [{ id: '1' }];
+
+    it('returns all resources if store has a VAI page matching the selector', () => {
+      const state = {};
+      const rootState = {};
+      const gettersMock = {
+        normalizeType: jest.fn((t) => t),
+        havePage:      jest.fn().mockReturnValue({
+          request: {
+            namespace,
+            pagination: {
+              filters: [],
+              labelSelector
+            }
+          }
+        }),
+        all:          jest.fn().mockReturnValue(allResources),
+        haveSelector: jest.fn(),
+        haveAll:      jest.fn(),
+        matching:     jest.fn(),
+      };
+
+      const result = matchingLabelSelector(state, gettersMock, rootState)(type, labelSelector, namespace);
+
+      expect(result).toStrictEqual(allResources);
+      expect(gettersMock.all).toHaveBeenCalledWith(type);
+    });
+
+    it('returns all resources if store has the specific selector cached', () => {
+      const state = {};
+      const rootState = {};
+      const gettersMock = {
+        normalizeType: jest.fn((t) => t),
+        havePage:      jest.fn().mockReturnValue(null),
+        all:           jest.fn().mockReturnValue(allResources),
+        haveSelector:  jest.fn().mockReturnValue(true),
+        haveAll:       jest.fn(),
+        matching:      jest.fn(),
+      };
+
+      const result = matchingLabelSelector(state, gettersMock, rootState)(type, labelSelector, namespace);
+
+      expect(result).toStrictEqual(allResources);
+      expect(gettersMock.haveSelector).toHaveBeenCalledWith(type, selectorString);
+    });
+
+    it('returns matching resources if store has a page (subset)', () => {
+      const state = {};
+      const rootState = {};
+      const gettersMock = {
+        normalizeType: jest.fn((t) => t),
+        havePage:      jest.fn().mockReturnValue({ request: {} }), // Truthy, but doesn't match first if
+        all:           jest.fn(),
+        haveSelector:  jest.fn().mockReturnValue(false),
+        haveAll:       jest.fn(),
+        matching:      jest.fn().mockReturnValue(matchingResources),
+      };
+
+      const result = matchingLabelSelector(state, gettersMock, rootState)(type, labelSelector, namespace);
+
+      expect(result).toStrictEqual(matchingResources);
+      expect(gettersMock.matching).toHaveBeenCalledWith(type, selectorString, namespace);
+    });
+
+    it('returns matching resources if store has all resources', () => {
+      const state = {};
+      const rootState = {};
+      const gettersMock = {
+        normalizeType: jest.fn((t) => t),
+        havePage:      jest.fn().mockReturnValue(null),
+        all:           jest.fn(),
+        haveSelector:  jest.fn().mockReturnValue(false),
+        haveAll:       jest.fn().mockReturnValue(true),
+        matching:      jest.fn().mockReturnValue(matchingResources),
+      };
+
+      const result = matchingLabelSelector(state, gettersMock, rootState)(type, labelSelector, namespace);
+
+      expect(result).toStrictEqual(matchingResources);
+      expect(gettersMock.matching).toHaveBeenCalledWith(type, selectorString, namespace);
+    });
+
+    it('returns empty array if no conditions met', () => {
+      const state = {};
+      const rootState = {};
+      const gettersMock = {
+        normalizeType: jest.fn((t) => t),
+        havePage:      jest.fn().mockReturnValue(null),
+        all:           jest.fn(),
+        haveSelector:  jest.fn().mockReturnValue(false),
+        haveAll:       jest.fn().mockReturnValue(false),
+        matching:      jest.fn(),
+      };
+
+      const result = matchingLabelSelector(state, gettersMock, rootState)(type, labelSelector, namespace);
+
+      expect(result).toStrictEqual([]);
     });
   });
 });

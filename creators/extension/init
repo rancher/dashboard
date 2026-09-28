@@ -15,7 +15,9 @@ let skeletonOnly = false;
 let ignoreShellDepCheck = false; // Ignore the check for @rancher/shell dependency (Only used for testing)
 let tagUsed = ''; // To store the inferred tag
 
-args.forEach((arg, index) => {
+for (let index = 0; index < args.length; index++) {
+  const arg = args[index];
+
   switch (arg) {
   case '--help':
   case '-h':
@@ -26,6 +28,8 @@ args.forEach((arg, index) => {
     console.log('  --update, -u        Update applications');
     console.log('  --app-name, -a      Specify the name of the application');
     console.log('  --skeleton-only, -s Create only the skeleton application');
+    console.log('\nNote: When using "npm init", pass "--" before options:');
+    console.log('  npm init @rancher/extension@latest my-ext -- --app-name my-app');
     process.exit(0);
   case '--migrate':
     migrate = true;
@@ -38,6 +42,7 @@ args.forEach((arg, index) => {
   case '-a':
     if (args[index + 1] && !args[index + 1].startsWith('-')) {
       appName = args[index + 1];
+      index++;
     } else {
       console.error('Error: Missing value for --app-name or -a option.');
       process.exit(1);
@@ -56,7 +61,7 @@ args.forEach((arg, index) => {
       appName = appName || extensionName;
     }
   }
-});
+}
 
 if (!extensionName && !updateOnly && !skeletonOnly && !migrate) {
   console.error('Please provide an extension name.');

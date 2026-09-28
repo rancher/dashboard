@@ -1,5 +1,5 @@
 <script>
-import { NORMAN } from '@shell/config/types';
+import { MANAGEMENT, NORMAN } from '@shell/config/types';
 
 export default {
   props: {
@@ -44,7 +44,12 @@ export default {
         return;
       }
 
-      const principalId = escape(this.value).replace(/\//g, '%2F');
+      // Use encodeURIComponent (not the deprecated escape()) so non-ASCII characters
+      // in the DN (e.g. Chinese) are emitted as valid UTF-8 percent-encoding rather
+      // than non-standard %uXXXX sequences that ingress controllers reject with a 400.
+      // encodeURIComponent encodes the whole principal id as a single path segment,
+      // including forward slashes (-> %2F), so they aren't treated as path separators.
+      const principalId = encodeURIComponent(this.value);
 
       try {
         this.principal = await this.$store.dispatch('rancher/find', {
@@ -53,8 +58,65 @@ export default {
           opt:  { url: `/v3/principals/${ principalId }` }
         });
       } catch (e) {
+        // Fetching a principal directly requires permissions that a standard
+        // (non-admin) user may not have, so the request above can fail. This is
+        // expected for non-admins - log it (rather than swallowing it silently)
+        // and fall through to the user-based fallback below to resolve the
+        // display info.
+        console.debug('Direct principal fetch failed, falling back to the user list', this.value, e); // eslint-disable-line no-console
+      }
+
+      // Fall back to the management user list, which a user with permission to
+      // view users can still read even when they can't read principals.
+      if ( !this.principal ) {
+        this.principal = await this.loadPrincipalFromUser();
+      }
+
+      if ( !this.principal ) {
         console.error('Failed to fetch principal', this.value, principalId); // eslint-disable-line no-console
       }
+    },
+
+    /**
+     * Fallback used when a principal can't be resolved directly (e.g. the
+     * current user lacks permission to read principals). Resolves the matching
+     * `management.cattle.io.user` - which the page is expected to have already
+     * loaded (e.g. ExplorerMembers loads the users its members reference) - and
+     * builds a principal from it so the member can still be displayed.
+     */
+    async loadPrincipalFromUser() {
+      // Only look at users the store has actually loaded. Without this guard the
+      // `all` getter would warn (and register the type) on every page that shows
+      // a principal but never loads users.
+      if ( !this.$store.getters['management/typeRegistered']?.(MANAGEMENT.USER) ) {
+        return null;
+      }
+
+      const users = this.$store.getters['management/all']?.(MANAGEMENT.USER) || [];
+      const user = users.find((u) => (u.principalIds || []).includes(this.value));
+
+      if ( !user ) {
+        return null;
+      }
+
+      // Build a norman principal from the user so the model getters (avatar,
+      // displayType, ...) work exactly as they would for a fetched principal.
+      //
+      // Derive the provider from the id being rendered (this.value) rather than
+      // user.provider: user.provider is aggregated across all of the user's
+      // principalIds, so for a user with more than one it resolves to 'multiple'
+      // (or the wrong driver) and mislabels the principal we're actually showing.
+      const provider = this.value.split(':')[0].split('_')[0].toLowerCase();
+
+      return this.$store.dispatch('rancher/create', {
+        type:          NORMAN.PRINCIPAL,
+        id:            this.value,
+        principalType: 'user',
+        provider,
+        name:          user.displayName || user.nameDisplay,
+        loginName:     user.username,
+        me:            user.isCurrentUser,
+      });
     }
   },
 
@@ -90,7 +152,7 @@ export default {
         <img
           :src="principal.avatarSrc"
           :class="{'round': principal.roundAvatar}"
-          :alt="t('principal.alt.avatar')"
+          alt=""
         >
       </div>
       <div

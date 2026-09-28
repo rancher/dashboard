@@ -12,7 +12,7 @@ describe('lDAP config', () => {
         }
       });
 
-    const userLoginFilter = wrapper.find('[data-testid="user-login-filter"]');
+    const userLoginFilter = wrapper.find<HTMLInputElement>('[data-testid="user-login-filter"]');
 
     await userLoginFilter.setValue('Test Filter');
 
@@ -33,12 +33,26 @@ describe('lDAP config', () => {
         }
       });
 
-    const userLoginFilter = wrapper.find('[data-testid="user-login-filter"]');
+    const userLoginFilter = wrapper.find<HTMLInputElement>('[data-testid="user-login-filter"]');
 
     const expectedValue = '';
 
     expect(userLoginFilter.exists()).toBe(true);
     expect(userLoginFilter.element.value).toBe(expectedValue);
     expect(wrapper.vm.model.userLoginFilter).toBeUndefined();
+  });
+
+  it.each([
+    'openldap', 'freeipa'
+  ])('should display searchUsingServiceAccount checkbox if type %p', (type) => {
+    const wrapper = mount(LDAPConfig, {
+      props: {
+        value: {},
+        type,
+      }
+    });
+    const checkbox = wrapper.find('[data-testid="searchUsingServiceAccount"]');
+
+    expect(checkbox).toBeDefined();
   });
 });

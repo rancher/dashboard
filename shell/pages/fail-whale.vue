@@ -1,18 +1,19 @@
 <script>
-import BrandImage from '@shell/components/BrandImage';
+import FailWhale from '@shell/components/FailWhale';
 import { mapGetters, mapState } from 'vuex';
-import { stringify } from '@shell/utils/error';
 import Header from '@shell/components/nav/Header';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import PromptModal from '@shell/components/PromptModal';
+import { RcButton } from '@components/RcButton';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
 
   components: {
-    BrandImage, FixedBanner, GrowlManager, Header, PromptModal
+    FailWhale, FixedBanner, GrowlManager, Header, PromptModal, RcButton, RcSeparator
   },
   mixins: [Brand, BrowserTabVisibility],
 
@@ -45,10 +46,6 @@ export default {
 
       return this.$router.resolve({ name: 'home' }).href;
     },
-
-    displayError() {
-      return this.error?.data ? this.error.data : stringify(this.error);
-    },
   },
 
   beforeRouteEnter(to, from, next) {
@@ -61,6 +58,13 @@ export default {
 
 <template>
   <div class="dashboard-root">
+    <rc-button
+      size="large"
+      class="skip-to-content"
+      :to="{ hash: '#main-content' }"
+    >
+      {{ t('nav.skipToContent') }}
+    </rc-button>
     <FixedBanner :header="true" />
     <PromptModal />
     <div
@@ -73,55 +77,40 @@ export default {
       />
 
       <main
+        id="main-content"
         class="main-layout"
         aria-label="Fail whale layout"
+        tabindex="-1"
       >
         <div
           v-if="error"
           class="outlet"
         >
-          <div class="main-layout error">
-            <div class="text-center">
-              <BrandImage
-                file-name="error-desert-landscape.svg"
-                width="900"
-                height="300"
-              />
-              <h1 v-if="error.status">
-                HTTP Error {{ error.status }}: {{ error.statusText }}
-              </h1>
-              <h1 v-else>
-                Error
-              </h1>
-              <h2
-                v-if="error"
-                class="text-secondary mt-20"
-              >
-                {{ displayError }}
-              </h2>
+          <FailWhale :error="error">
+            <template #actions>
               <p class="mt-20">
-                <a
+                <rc-button
+                  size="large"
                   :href="home"
-                  class="btn role-primary"
                 >
                   {{ t('nav.home') }}
-                </a>
+                </rc-button>
               </p>
-              <hr
+              <RcSeparator
                 class="custom-content"
                 :style="styles"
-                role="none"
-              >
+              />
               <p class="mt-20">
-                <a
-                  class="btn role-secondary"
+                <rc-button
+                  size="large"
+                  variant="secondary"
                   @click="$router.push(previousRoute.fullPath)"
                 >
                   {{ t('nav.failWhale.reload') }}
-                </a>
+                </rc-button>
               </p>
-            </div>
-          </div>
+            </template>
+          </FailWhale>
         </div>
       </main>
     </div>
@@ -131,28 +120,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .error {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    justify-content: center;
-    overflow: hidden;
-
-    .row {
-      align-items: center;
-    }
-
-    h1 {
-      font-size: 5rem;
-    }
-
-    .desert-landscape {
-      img {
-        max-width: 100%;
-      }
-    }
-  }
-
   .custom-content {
     text-align: center;
     margin-top: 18px;
@@ -198,6 +165,18 @@ export default {
     .outlet {
       min-height: 100%;
       padding: 0;
+    }
+  }
+
+  .skip-to-content {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    transform: translateY(-100%);
+
+    &:focus {
+      transform: translate(1rem, 1rem);
     }
   }
 </style>

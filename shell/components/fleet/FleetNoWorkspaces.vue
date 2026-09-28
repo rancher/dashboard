@@ -2,8 +2,11 @@
 <script>
 import { FLEET } from '@shell/config/types';
 import { NAME } from '@shell/config/product/fleet';
+import { RcButton } from '@components/RcButton';
 export default {
   name: 'NoWorkspaces',
+
+  components: { RcButton },
 
   props: {
     canView: {
@@ -34,12 +37,13 @@ export default {
       v-if="canView"
       class="actions"
     >
-      <router-link
+      <rc-button
+        size="large"
+        variant="secondary"
         :to="formRoute"
-        class="btn role-secondary"
       >
         {{ t('fleet.gitRepo.workspace.addWorkspace') }}
-      </router-link>
+      </rc-button>
     </div>
   </div>
 </template>

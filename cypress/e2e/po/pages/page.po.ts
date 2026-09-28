@@ -2,6 +2,7 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import { HELM_STARTUP_DELAY_OPT } from '~/cypress/support/utils/timeouts';
 
 export default class PagePo extends ComponentPo {
   constructor(protected path: string, selector = '.dashboard-root') {
@@ -31,6 +32,7 @@ export default class PagePo extends ComponentPo {
       // If an intercept for the url already exists... use the same wait (it'll fire on that one)
       const existingIndexOrCurrent = getUrls.indexOf(getUrls[i]);
 
+      cy.log('Waiting for: ', getUrls[i]);
       cy.wait([`@getUrl${ existingIndexOrCurrent }`], { timeout });
     }
   }
@@ -40,29 +42,56 @@ export default class PagePo extends ComponentPo {
   }
 
   waitForPage(params?: string, fragment?: string, options?: any) {
-    return cy.url().should('include', `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`, options);
+    // Timeout options must go on cy.url(); .should() does not accept an
+    // options argument (it would be consumed as the assertion message).
+    return cy.url(options).should('include', `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
   }
 
   waitForPageWithExactUrl(params?: string, fragment?: string) {
     return cy.url().should('equal', `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
   }
 
+  // This method provides partial URL matching when cluster context differences cause test failures.
+  // For more flexible testing, use waitForUrlPathWithoutContext() which strips cluster context.
+  // Workaround for issue: https://github.com/rancher/dashboard/issues/12077
+  waitForUrlPathWithoutContext(params?: string, fragment?: string) {
+    // Remove cluster context (/c/[cluster-id]/) from the path for comparison
+    const pathWithoutContext = this.path.replace(/\/c\/[^\/]+\//, '/');
+
+    expect(pathWithoutContext).to.not.contain('/c/');
+
+    return cy.url().should('include', `${ pathWithoutContext }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
+  }
+
   waitForPageWithSpecificUrl(path?: string, params?: string, fragment?: string) {
     return cy.url().should('include', `${ Cypress.config().baseUrl + (!!path ? path : this.path) }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
   }
 
-  isCurrentPage(isExact = true): Cypress.Chainable<boolean> {
-    return cy.url().then((url) => {
-      if (isExact) {
-        return url === Cypress.config().baseUrl + this.path;
-      } else {
-        return url.indexOf(Cypress.config().baseUrl + this.path) === 0;
-      }
-    });
+  /**
+   * The URL this page is expected to be on.
+   */
+  expectedUrl(): string {
+    return `${ Cypress.config().baseUrl }${ this.path }`;
   }
 
+  isCurrentPage(isExact = true): Cypress.Chainable<boolean> {
+    return cy.url().then((url) => (isExact ? url === this.expectedUrl() : url.startsWith(this.expectedUrl())));
+  }
+
+  /**
+   * Assert that we've landed on this page.
+   *
+   * Waits for the URL to match, so a page still mid-navigation gets a chance to settle. On failure
+   * the message shows the URL we got and the one we wanted.
+   */
   checkIsCurrentPage(exact = true) {
-    return this.isCurrentPage(exact).should('eq', true);
+    const expected = this.expectedUrl();
+
+    return cy.url().should((url) => {
+      const matches = exact ? url === expected : url.startsWith(expected);
+
+      expect(matches, `expected URL "${ url }" to ${ exact ? 'equal' : 'start with' } "${ expected }"`).to.eq(true);
+    });
   }
 
   mastheadTitle() {
@@ -105,5 +134,56 @@ export default class PagePo extends ComponentPo {
 
   extensionScriptImport(name: string) {
     return this.self().get(`[data-purpose="extension"]`).get(`[id*="${ name }"]`);
+  }
+
+  /**
+   * Sometimes, when running in helm, Rancher will hang for a loooong time on the request we make to fetch the signed in mgmt user.
+   *
+   * This causes anything cypress side to basically always time out (page / component waits)
+   *
+   * Here we're checking if the resource is ready to fetch by trying to fetch all mgmt users. This may take 4 minutes... but should eventually succeed.
+   * Once done we know we can fetch later ok
+   */
+  readyForLoggedInPage() {
+    return cy.waitForRancherResources('v1', 'management.cattle.io.users', 1, true, { requestTimeout: HELM_STARTUP_DELAY_OPT.timeout });
+  }
+
+  // Wait until entering a cluster is safe: mgmt cluster Connected/Ready and the downstream proxy
+  // (schemas/counts/namespaces) serving across two rounds, so loadCluster doesn't hit a "Network Error".
+  readyForClusterPage(clusterId = 'local') {
+    cy.waitForRancherResource(
+      'v1',
+      'management.cattle.io.clusters',
+      clusterId,
+      (resp: Cypress.Response<any>) => (resp?.body?.status?.conditions || []).some(
+        (c: any) => (c.type === 'Connected' || c.type === 'Ready') && c.status === 'True'
+      ),
+    );
+
+    const base = `${ Cypress.env('api') }/k8s/clusters/${ clusterId }/v1`;
+    const roundServing = (): Cypress.Chainable<boolean> => cy.request({
+      url: `${ base }/schemas`, failOnStatusCode: false, retryOnNetworkFailure: true
+    })
+      .then((a) => cy.request({
+        url: `${ base }/counts`, failOnStatusCode: false, retryOnNetworkFailure: true
+      })
+        .then((b) => cy.request({
+          url: `${ base }/namespaces`, failOnStatusCode: false, retryOnNetworkFailure: true
+        })
+          .then((c) => a.status === 200 && b.status === 200 && c.status === 200)));
+
+    const pollUntilStable = (good = 0, attempts = 0): void => {
+      roundServing().then((ok) => {
+        const next = ok ? good + 1 : 0;
+
+        if (next >= 2 || attempts >= 30) {
+          return;
+        }
+        cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+        pollUntilStable(next, attempts + 1);
+      });
+    };
+
+    pollUntilStable();
   }
 }

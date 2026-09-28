@@ -6,7 +6,7 @@ import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 
 export default class PreferencesPagePo extends PagePo {
-  static url = '/prefs'
+  static url = '/prefs';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(PreferencesPagePo.url);
   }
@@ -83,6 +83,18 @@ export default class PreferencesPagePo extends PagePo {
 
   landingPageRadioBtn(): RadioGroupInputPo {
     return new RadioGroupInputPo('[data-testid="prefs__landingPagePreference"]');
+  }
+
+  customPageOptionsDropdown(): LabeledSelectPo {
+    return new LabeledSelectPo('.custom-page-options');
+  }
+
+  expectThemeOptionSelected(theme = 'auto') {
+    this.themeButtons().isSelected(theme);
+  }
+
+  expectClusterOptionExists(clusterName = 'local') {
+    this.customPageOptionsDropdown().self().should('contain', clusterName);
   }
 
   checkLangDomElement(label: string) {

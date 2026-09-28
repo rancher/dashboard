@@ -17,7 +17,6 @@ import {
   CATALOG,
   SECRET
 } from '@shell/config/types';
-import { NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import { setPromiseResult } from '@shell/utils/promise';
 import AlertTable from '@shell/components/AlertTable';
 import { Banner } from '@components/Banner';
@@ -194,6 +193,18 @@ export default {
       return this.$store.getters['cluster/all'](NODE);
     },
 
+    schedulableWorkerNodes() {
+      return this.nodes?.filter((node) => {
+        return node.isSchedulable && node.isWorker;
+      });
+    },
+
+    schedulableNodes() {
+      return this.nodes?.filter((node) => {
+        return node.isSchedulable;
+      });
+    },
+
     mgmtNodes() {
       return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
     },
@@ -220,51 +231,11 @@ export default {
     },
 
     displayProvider() {
-      const other = 'other';
-
-      let provider = this.currentCluster?.status?.provider || other;
-
-      if (provider === 'rke.windows') {
-        provider = 'rkeWindows';
-      }
-
-      if (!this.$store.getters['i18n/exists'](`cluster.provider.${ provider }`)) {
-        provider = 'other';
-      }
-
-      return this.t(`cluster.provider.${ provider }`);
-    },
-
-    nodesArchitecture() {
-      const obj = {};
-
-      this.nodes?.forEach((node) => {
-        if (!node.metadata?.state?.transitioning) {
-          const architecture = node.labels?.[NODE_ARCHITECTURE];
-
-          const key = architecture || this.t('cluster.architecture.label.unknown');
-
-          obj[key] = (obj[key] || 0) + 1;
-        }
-      });
-
-      return obj;
+      return this.currentCluster?.provisionerDisplay;
     },
 
     architecture() {
-      const keys = Object.keys(this.nodesArchitecture);
-
-      switch (keys.length) {
-      case 0:
-        return { label: this.t('generic.provisioning') };
-      case 1:
-        return { label: keys[0] };
-      default:
-        return {
-          label:   this.t('cluster.architecture.label.mixed'),
-          tooltip: keys.reduce((acc, k) => `${ acc }${ k }: ${ this.nodesArchitecture[k] }<br>`, '')
-        };
-      }
+      return this.currentCluster?.architecture;
     },
 
     isHarvesterCluster() {
@@ -368,55 +339,86 @@ export default {
       return totalInput;
     },
 
+    hasSchedulableWorkerNodes() {
+      return this.schedulableWorkerNodes?.length > 0;
+    },
+
     hasStats() {
-      return this.currentCluster?.status?.allocatable && this.currentCluster?.status?.requested;
+      return this.hasSchedulableWorkerNodes || (this.currentCluster?.status?.allocatable?.cpu !== '0' && this.currentCluster?.status?.requested?.cpu !== '0');
+    },
+
+    workerStatsAggregation() {
+      const initialAggregation = {
+        ramAllocatable:    0,
+        cpuAllocatable:    0,
+        ramReserved:       0,
+        cpuReserved:       0,
+        podReserved:       0,
+        podCapacity:       0,
+        systemReservedRam: 0,
+        systemReservedCpu: 0
+      };
+
+      return this.schedulableWorkerNodes?.reduce((agg, node) => {
+        agg.ramAllocatable += node.ramAllocatable;
+        agg.cpuAllocatable += node.cpuAllocatable;
+        agg.ramReserved += node.ramReserved;
+        agg.cpuReserved += node.cpuReserved;
+        agg.podReserved += node.podReserved;
+        agg.podCapacity += node.podCapacity;
+        agg.systemReservedCpu += node.systemReservedCpu;
+        agg.systemReservedRam += node.systemReservedRam;
+
+        return agg;
+      }, initialAggregation);
     },
 
     cpuReserved() {
-      const total = parseSi(this.currentCluster?.status?.allocatable?.cpu);
+      const result = !this.hasSchedulableWorkerNodes ? {
+        total:  parseSi(this.currentCluster?.status?.allocatable?.cpu),
+        useful: parseSi(this.currentCluster?.status?.requested?.cpu),
+      } : {
+        total:  this.workerStatsAggregation?.cpuAllocatable,
+        useful: this.workerStatsAggregation?.cpuReserved,
+      };
 
       return {
-        total,
-        useful: parseSi(this.currentCluster?.status?.requested?.cpu),
-        units:  this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: total })
+        ...result,
+        units: this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: result.total })
       };
     },
 
     podsUsed() {
+      if (!this.hasSchedulableWorkerNodes) {
+        return {
+          total:  parseSi(this.currentCluster?.status?.allocatable?.pods || '0'),
+          useful: parseSi(this.currentCluster?.status?.requested?.pods || '0'),
+        };
+      }
+
       return {
-        total:  parseSi(this.currentCluster?.status?.allocatable?.pods || '0'),
-        useful: parseSi(this.currentCluster?.status?.requested?.pods || '0'),
+        total:  this.workerStatsAggregation?.podCapacity || parseSi('0'),
+        useful: this.workerStatsAggregation?.podReserved || parseSi('0'),
       };
     },
 
     ramReserved() {
-      return createMemoryValues(this.currentCluster?.status?.allocatable?.memory, this.currentCluster?.status?.requested?.memory);
+      if (!this.hasSchedulableWorkerNodes) {
+        return createMemoryValues(this.currentCluster?.status?.allocatable?.memory, this.currentCluster?.status?.requested?.memory);
+      }
+
+      return createMemoryValues(this.workerStatsAggregation?.ramAllocatable, this.workerStatsAggregation?.ramReserved);
     },
 
     metricAggregations() {
-      let checkNodes = this.nodes;
-
-      // Special case local cluster
-      if (this.currentCluster.isLocal) {
-        const nodeNames = this.nodes.reduce((acc, n) => {
-          acc[n.id] = n;
-
-          return acc;
-        }, {});
-
-        checkNodes = this.mgmtNodes.filter((n) => {
-          const nodeName = n.metadata?.labels?.['management.cattle.io/nodename'] || n.id;
-
-          return !!nodeNames[nodeName];
-        });
-      }
-
-      const someNonWorkerRoles = checkNodes.some((node) => node.hasARole && !node.isWorker);
       const metrics = this.nodeMetrics.filter((nodeMetrics) => {
-        const node = this.nodes.find((nd) => nd.id === nodeMetrics.id);
+        if (this.hasSchedulableWorkerNodes) {
+          return !!this.schedulableWorkerNodes?.find((nd) => nd.id === nodeMetrics.id);
+        }
 
-        return node && (!someNonWorkerRoles || node.isWorker);
+        return !!this.schedulableNodes?.find((nd) => nd.id === nodeMetrics.id);
       });
+
       const initialAggregation = {
         cpu:    0,
         memory: 0
@@ -435,17 +437,27 @@ export default {
     },
 
     cpuUsed() {
-      const total = parseSi(this.currentCluster?.status?.capacity?.cpu);
+      if (!this.metricAggregations) {
+        return null;
+      }
+
+      const total = !this.hasSchedulableWorkerNodes ? parseSi(this.currentCluster?.status?.allocatable?.cpu) : this.workerStatsAggregation?.cpuAllocatable;
 
       return {
         total,
-        useful: this.metricAggregations?.cpu,
+        useful: this.metricAggregations?.cpu - this.workerStatsAggregation?.systemReservedCpu,
         units:  this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: total })
       };
     },
 
     ramUsed() {
-      return createMemoryValues(this.currentCluster?.status?.capacity?.memory, this.metricAggregations?.memory);
+      if (!this.metricAggregations) {
+        return null;
+      }
+
+      const total = !this.hasSchedulableWorkerNodes ? this.currentCluster?.status?.allocatable?.memory : this.workerStatsAggregation?.ramAllocatable;
+
+      return createMemoryValues(total, this.metricAggregations?.memory - this.workerStatsAggregation?.systemReservedRam);
     },
 
     hasMonitoring() {
@@ -481,9 +493,12 @@ export default {
         }
       };
     },
-    hasNodes() {
-      return this.nodes?.length > 0;
-    },
+    kubernetesVersion() {
+      const base = this.currentCluster?.kubernetesVersionBase || '';
+      const extension = this.currentCluster?.kubernetesVersionExtension || '';
+
+      return `${ base }${ extension }`;
+    }
   },
 
   methods: {
@@ -595,8 +610,7 @@ export default {
 
     async goToHarvesterCluster() {
       try {
-        const provClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
-        const provCluster = provClusters.find((p) => p.mgmt.id === this.currentCluster.id);
+        const provCluster = await this.$store.dispatch('management/find', { type: CAPI.RANCHER_CLUSTER, id: this.currentCluster.provClusterId });
 
         await provCluster.goToHarvesterCluster();
       } catch {
@@ -661,14 +675,10 @@ export default {
       </div>
       <div data-testid="kubernetesVersion__label">
         <label>{{ t('glance.version') }}: </label>
-        <span>{{ currentCluster.kubernetesVersionBase }}</span>
-        <span
-          v-if="currentCluster.kubernetesVersionExtension"
-          style="font-size: 0.75em"
-        >{{ currentCluster.kubernetesVersionExtension }}</span>
+        <span>{{ kubernetesVersion }}</span>
       </div>
       <div
-        v-if="hasNodes"
+        v-if="architecture"
         data-testid="architecture__label"
       >
         <label>{{ t('glance.architecture') }}: </label>
@@ -833,7 +843,7 @@ export default {
             v-if="props.active"
             :detail-url="CLUSTER_METRICS_DETAIL_URL"
             :summary-url="CLUSTER_METRICS_SUMMARY_URL"
-            graph-height="825px"
+            graph-height="875px"
           />
         </template>
       </Tab>
@@ -848,7 +858,7 @@ export default {
             v-if="props.active"
             :detail-url="K8S_METRICS_DETAIL_URL"
             :summary-url="K8S_METRICS_SUMMARY_URL"
-            graph-height="550px"
+            graph-height="600px"
           />
         </template>
       </Tab>
@@ -864,7 +874,7 @@ export default {
             class="etcd-metrics"
             :detail-url="ETCD_METRICS_DETAIL_URL"
             :summary-url="ETCD_METRICS_SUMMARY_URL"
-            graph-height="550px"
+            graph-height="600px"
           >
             <EtcdInfoBanner />
           </DashboardMetrics>

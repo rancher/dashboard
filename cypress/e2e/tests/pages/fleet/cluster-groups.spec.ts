@@ -2,7 +2,7 @@ import { FleetClusterGroupsCreateEditPo, FleetClusterGroupsListPagePo, FleetClus
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
-describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetClusterGroupsListPage = new FleetClusterGroupsListPagePo();
 
   const headerPo = new HeaderPo();
@@ -21,7 +21,7 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
   it('can create cluster group', () => {
     const fleetCreateEditClusterGroupPage = new FleetClusterGroupsCreateEditPo();
 
-    FleetClusterGroupsListPagePo.navTo();
+    FleetClusterGroupsListPagePo.goTo('_');
     fleetClusterGroupsListPage.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
     fleetClusterGroupsListPage.baseResourceList().masthead().create();
@@ -46,7 +46,7 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
   it('can edit a cluster group', () => {
     const fleetCreateEditClusterGroupPage = new FleetClusterGroupsCreateEditPo(localWorkspace, clusterGroupName);
 
-    FleetClusterGroupsListPagePo.navTo();
+    FleetClusterGroupsListPagePo.goTo('_');
     fleetClusterGroupsListPage.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
     fleetClusterGroupsListPage.list().actionMenu(clusterGroupName).getMenuItem('Edit Config')
@@ -69,7 +69,7 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
   it('can clone a cluster group', () => {
     const fleetCreateEditClusterGroupPage = new FleetClusterGroupsCreateEditPo(localWorkspace, clusterGroupName);
 
-    FleetClusterGroupsListPagePo.navTo();
+    FleetClusterGroupsListPagePo.goTo('_');
     fleetClusterGroupsListPage.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
     fleetClusterGroupsListPage.list().actionMenu(clusterGroupName).getMenuItem('Clone')
@@ -97,7 +97,7 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
   });
 
   it('can delete cluster group', () => {
-    FleetClusterGroupsListPagePo.navTo();
+    FleetClusterGroupsListPagePo.goTo('_');
     fleetClusterGroupsListPage.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
     fleetClusterGroupsListPage.list().actionMenu(clusterGroupName).getMenuItem('Delete')
@@ -124,7 +124,7 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
   it('can open "Edit as YAML"', () => {
     const fleetCreateEditClusterGroupPage = new FleetClusterGroupsCreateEditPo();
 
-    FleetClusterGroupsListPagePo.navTo();
+    FleetClusterGroupsListPagePo.goTo('_');
     fleetClusterGroupsListPage.waitForPage();
     fleetClusterGroupsListPage.baseResourceList().masthead().create();
     fleetCreateEditClusterGroupPage.resourceDetail().createEditView()
@@ -134,10 +134,10 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
       .checkExists();
   });
 
-  it('check table headers are available in list and details view', { tags: ['@noVai', '@adminUser'] }, () => {
+  it('check table headers are available in list and details view', { tags: ['@adminUser'] }, () => {
     const groupName = 'default';
 
-    FleetClusterGroupsListPagePo.navTo();
+    FleetClusterGroupsListPagePo.goTo('_');
     fleetClusterGroupsListPage.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
     fleetClusterGroupsListPage.list().rowWithName(groupName).checkVisible();
@@ -160,7 +160,7 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
     fleetClusterGroupDetailsPage.waitForPage(null, 'clusters');
 
     // check table headers
-    const expectedHeadersDetailsView = ['State', 'Name', 'Bundles Ready', 'Repos Ready', 'Resources', 'Last Seen', 'Age'];
+    const expectedHeadersDetailsView = ['State', 'Name', 'Git Repos Ready', 'Helm Ops Ready', 'Bundles Ready', 'Resources', 'Last Seen', 'Age'];
 
     fleetClusterGroupDetailsPage.clusterList().sortableTable()
       .tableHeaderRow()

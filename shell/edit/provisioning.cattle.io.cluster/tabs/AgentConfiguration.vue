@@ -41,7 +41,7 @@ export default {
     },
 
     type: {
-      type:     String,
+      type:     String, // AGENT_CONFIGURATION_TYPES
       required: true,
     },
     schedulingCustomizationFeatureEnabled: {
@@ -81,6 +81,14 @@ export default {
   },
 
   data() {
+    return {
+      defaultAffinity: {},
+      affinitySetting: DEFAULT,
+      nodeAffinity:    {}
+    };
+  },
+
+  created() {
     const nodeAffinity = this.value?.overrideAffinity?.nodeAffinity;
     const podAffinity = this.value?.overrideAffinity?.podAffinity;
     const podAntiAffinity = this.value?.overrideAffinity?.podAntiAffinity;
@@ -93,14 +101,8 @@ export default {
       hasAffinityPopulated = true;
     }
 
-    return {
-      defaultAffinity: {},
-      affinitySetting: hasAffinityPopulated ? CUSTOM : DEFAULT,
-      nodeAffinity:    {}
-    };
-  },
+    this.affinitySetting = hasAffinityPopulated ? CUSTOM : DEFAULT;
 
-  created() {
     this.ensureValue();
   },
 
@@ -323,6 +325,7 @@ export default {
       <SchedulingCustomization
         :value="value.schedulingCustomization"
         :mode="mode"
+        :type="type"
         :feature="schedulingCustomizationFeatureEnabled"
         :default-p-c="defaultPC"
         :default-p-d-b="defaultPDB"

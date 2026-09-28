@@ -1,13 +1,15 @@
 <script lang="ts">
-import { defineComponent, inject } from 'vue';
+import { defineComponent, inject, computed, toRef } from 'vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
+import RcButton from '@components/RcButton/RcButton.vue';
 import { escapeHtml, generateRandomAlphaString } from '@shell/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
 import { debounce } from 'lodash';
 import { useLabeledFormElement, labeledFormElementProps } from '@shell/composables/useLabeledFormElement';
 import { useCompactInput } from '@shell/composables/useCompactInput';
+import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
 
 interface NonReactiveProps {
   onInput: (event: Event) => void | ((event: Event) => void);
@@ -20,7 +22,9 @@ const provideProps: NonReactiveProps = {
 };
 
 export default defineComponent({
-  components: { LabeledTooltip, TextAreaAutoGrow },
+  components: {
+    LabeledTooltip, RcButton, TextAreaAutoGrow
+  },
 
   inheritAttrs: false,
 
@@ -28,7 +32,11 @@ export default defineComponent({
     ...labeledFormElementProps,
     /**
      * The type of the Labeled Input.
-     * @values text, cron, multiline, multiline-password
+     *
+     * Any native HTML input type is passed through to the underlying input
+     * (e.g. text, password, number, email). A few custom values change the
+     * rendering or behaviour:
+     * @values cron (renders as text), multiline, multiline-password, integer (renders as text with inputmode="numeric", blocks non-integer input)
      */
     type: {
       type:    String,
@@ -108,12 +116,50 @@ export default defineComponent({
     },
 
     /**
+     * Optionally use force usage of custom aria-label instead of the label for accessibility
+     */
+    overrideAriaLabel: {
+      type:    Boolean,
+      default: false
+    },
+
+    /**
      * Optionally use this to comply with a11y IF there's no label
      * associated with the input
      */
     ariaLabel: {
       type:    String,
       default: ''
+    },
+
+    /**
+     * The field name used for vee-validate integration. When provided, the
+     * component registers with a parent vee-validate form context
+     */
+    name: {
+      type:    String,
+      default: null
+    },
+
+    /**
+     * Show a clear button when the input has a value.
+     * When true, displays a keyboard-accessible clear button.
+     * When false, never shows a clear button.
+     * When undefined (default), shows the clear button only for type="search".
+     */
+    showClearButton: {
+      type:    Boolean,
+      default: undefined
+    },
+
+    /**
+     * Accessible label for the clear button. Pass an already translated string
+     * to describe what is being cleared in this specific context.
+     * Falls back to the generic "Clear" translation.
+     */
+    clearButtonLabel: {
+      type:    String,
+      default: undefined
     }
   },
 
@@ -132,15 +178,59 @@ export default defineComponent({
 
     const onInput = inject('onInput', provideProps.onInput);
 
+    const { effectiveValidationMessage, veeHandleBlur, veeValidate } = useVeeValidateField({
+      name:  toRef(props, 'name'),
+      rules: toRef(props, 'rules'),
+      value: toRef(props, 'value'),
+      validationMessage,
+    });
+
+    const effectiveStatus = computed(() => props.status);
+    const isInteger = computed(() => props.type === 'integer');
+    const nativeType = computed(() => {
+      if (props.type === 'cron') {
+        return 'text';
+      }
+
+      if (props.type === 'integer') {
+        return 'text';
+      }
+
+      return props.type;
+    });
+
+    // Hints the mobile keyboard to show a numeric layout, since the
+    // integer type renders as type="text" to avoid browser number
+    // formatting quirks (e.g. scientific notation for large values).
+    const inputMode = computed(() => (isInteger.value ? 'numeric' : undefined));
+
+    // Determine if clear button should be shown
+    const shouldShowClearButton = computed(() => {
+      // Explicit prop takes precedence
+      if (props.showClearButton !== undefined) {
+        return props.showClearButton && !!props.value;
+      }
+
+      // Default: show for search type when there's a value
+      return props.type === 'search' && !!props.value;
+    });
+
     return {
       focused,
       onFocusLabeled,
       onBlurLabeled,
       onInput,
       isDisabled,
-      validationMessage,
+      validationMessage: effectiveValidationMessage,
       requiredField,
       isCompact,
+      veeHandleBlur,
+      veeValidate,
+      effectiveStatus,
+      isInteger,
+      nativeType,
+      inputMode,
+      shouldShowClearButton,
     };
   },
 
@@ -154,6 +244,13 @@ export default defineComponent({
   },
 
   computed: {
+    strippedAriaLabel(): string | undefined {
+      if (this.overrideAriaLabel) {
+        return this.ariaLabel || undefined;
+      }
+
+      return !this.hasLabel && this.ariaLabel ? this.ariaLabel : undefined;
+    },
     /**
      * Determines if the Labeled Input should display a label.
      */
@@ -194,6 +291,14 @@ export default defineComponent({
      */
     hasSuffix(): boolean {
       return !!this.$slots.suffix;
+    },
+
+    /**
+     * Accessible label for the clear button, falling back to the generic
+     * "Clear" translation when the consumer hasn't supplied a specific one.
+     */
+    clearButtonAriaLabel(): string {
+      return this.clearButtonLabel || this.t('generic.clear');
     },
 
     /**
@@ -303,6 +408,59 @@ export default defineComponent({
       }
     },
 
+    isValidIntegerInput(inputValue: string): boolean {
+      const integer = /^-?[0-9]*$/;
+      const nonNegativeInteger = /^[0-9]*$/;
+      const pattern = Number(this.$attrs.min) >= 0 ? nonNegativeInteger : integer;
+
+      if (!pattern.test(inputValue)) {
+        return false;
+      }
+
+      const numeric = Number(inputValue);
+
+      // Safe integer is primarily here to validate that the number fits in the datatype
+      // used for numbers in the browser, if we exceed this safe number the browser automatically converts the number to scientific notation.
+      if (inputValue !== '' && inputValue !== '-' && !Number.isSafeInteger(numeric)) {
+        return false;
+      }
+
+      return true;
+    },
+
+    prospectiveValue(input: HTMLInputElement, inserted: string): string {
+      const start = input.selectionStart ?? 0;
+      const end = input.selectionEnd ?? 0;
+
+      return input.value.slice(0, start) + inserted + input.value.slice(end);
+    },
+
+    onKeydown(event: KeyboardEvent): void {
+      // Skip named keys (Backspace, Arrow, etc.) and modifier shortcuts (Ctrl+A, Cmd+C).
+      if (!this.isInteger || event.key.length !== 1 || event.ctrlKey || event.metaKey) {
+        return;
+      }
+
+      const next = this.prospectiveValue(event.target as HTMLInputElement, event.key);
+
+      if (!this.isValidIntegerInput(next)) {
+        event.preventDefault();
+      }
+    },
+
+    onPaste(event: ClipboardEvent): void {
+      if (!this.isInteger) {
+        return;
+      }
+
+      const paste = event.clipboardData?.getData('text/plain') ?? '';
+      const next = this.prospectiveValue(event.target as HTMLInputElement, paste);
+
+      if (!this.isValidIntegerInput(next)) {
+        event.preventDefault();
+      }
+    },
+
     /**
      * Emit on input change
      */
@@ -339,6 +497,21 @@ export default defineComponent({
     onBlur(event: string | FocusEvent): void {
       this.$emit('blur', event);
       this.onBlurLabeled();
+      // Mark the field as touched in vee-validate without relying on its
+      // 'validated-only' guard, then run validation unconditionally so
+      // errors surface on the first blur (matching useLabeledFormElement behavior).
+      this.veeHandleBlur(event instanceof FocusEvent ? event : undefined, false);
+      this.veeValidate();
+    },
+
+    /**
+     * Clears the input value and refocuses the input field.
+     */
+    clearInput(): void {
+      this.$emit('update:value', '');
+      this.$nextTick(() => {
+        this.focus();
+      });
     },
 
     escapeHtml
@@ -353,9 +526,9 @@ export default defineComponent({
       focused,
       [mode]: true,
       disabled: isDisabled,
-      [status]: status,
+      [effectiveStatus]: effectiveStatus,
       suffix: hasSuffix,
-      'v-popper--has-tooltip': hasTooltip,
+      'has-clean-tooltip': hasTooltip,
       'compact-input': isCompact,
       hideArrows,
       [className]: true
@@ -388,14 +561,15 @@ export default defineComponent({
         :id="inputId"
         ref="value"
         v-bind="$attrs"
-        v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
+        v-stripped-aria-label="strippedAriaLabel"
+        :name="name || undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
         :aria-disabled="isDisabled"
         :value="value || ''"
         :placeholder="_placeholder"
         autocapitalize="off"
-        :class="{ conceal: type === 'multiline-password' }"
+        :class="{ 'multiline-password': type === 'multiline-password', 'auto-grow-labeled': hasLabel }"
         :aria-describedby="ariaDescribedBy"
         :aria-required="requiredField"
         @update:value="onInput"
@@ -406,14 +580,15 @@ export default defineComponent({
         v-else
         :id="inputId"
         ref="value"
-        v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
-        role="textbox"
+        v-stripped-aria-label="strippedAriaLabel"
         :class="{ 'no-label': !hasLabel }"
         v-bind="$attrs"
+        :name="name || undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
         :aria-disabled="isDisabled"
-        :type="type === 'cron' ? 'text' : type"
+        :type="nativeType"
+        :inputmode="inputMode"
         :value="value"
         :placeholder="_placeholder"
         autocomplete="off"
@@ -422,6 +597,8 @@ export default defineComponent({
         :aria-describedby="ariaDescribedBy"
         :aria-required="requiredField"
         @input="onInput"
+        @keydown="onKeydown"
+        @paste="onPaste"
         @focus="onFocus"
         @blur="onBlur"
         @change="onChange"
@@ -429,6 +606,20 @@ export default defineComponent({
     </slot>
 
     <slot name="suffix" />
+    <!-- Clear button for search inputs -->
+    <RcButton
+      v-if="shouldShowClearButton"
+      type="button"
+      size="small"
+      variant="ghost"
+      left-icon="close"
+      class="labeled-input-clear-button"
+      :aria-label="clearButtonAriaLabel"
+      :disabled="isDisabled"
+      @click="clearInput"
+      @keydown.enter.prevent="clearInput"
+      @keydown.space.prevent="clearInput"
+    />
     <!-- informational tooltip about field -->
     <LabeledTooltip
       v-if="hasTooltip"
@@ -464,6 +655,14 @@ export default defineComponent({
   </div>
 </template>
 <style scoped lang="scss">
+.labeled-input {
+  position: relative;
+}
+
+.multiline-password:not(:focus) {
+  -webkit-text-security: disc;
+}
+
 .labeled-input.view {
   input {
     text-overflow: ellipsis;
@@ -483,6 +682,45 @@ export default defineComponent({
   input[type=number] {
     -moz-appearance: textfield;
   }
+}
+
+/* Hide the native, mouse-only search cancel button in Chrome/Safari */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+// RcButton (ghost) supplies the transparent background, flex centring and focus
+// outline. All that's left here is placing it in the field and sizing the target.
+.labeled-input-clear-button {
+  // Square 24px target (WCAG 2.5.8) - `btn-small` already gives us the height
+  --rc-button-padding: 0;
+
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  color: var(--input-text);
+
+  &:hover:not(:disabled) {
+    color: var(--primary);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  // RcButton renders its leftIcon with size="inherit", so pin the glyph here to
+  // keep the 14px it had before, independent of the button's font-size.
+  :deep(.rc-icon) {
+    font-size: 14px;
+  }
+}
+
+.labeled-input.suffix .labeled-input-clear-button {
+  right: 40px;
 }
 </style>
 <style>

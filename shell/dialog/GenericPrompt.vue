@@ -38,26 +38,42 @@ export default {
       type:    Function,
       default: () => { }
     },
+    actionColor: {
+      type:    String,
+      default: 'role-primary',
+    },
+    errors: {
+      type:    Array,
+      default: () => []
+    }
   },
+
   data() {
-    return { errors: [] };
+    return { applyErrors: [] };
+  },
+
+  computed: {
+    allErrors() {
+      return [...this.errors, ...this.applyErrors];
+    }
   },
 
   methods: {
     decodeHtml,
     close() {
       this.confirm(false);
-      this.$emit('close', false);
+      this.$emit('close');
     },
 
     async apply(buttonDone) {
+      this.applyErrors = [];
       try {
         await this.applyAction(buttonDone);
         this.confirm(true);
-        this.$emit('close', true);
+        this.$emit('close');
       } catch (err) {
         console.error(err); // eslint-disable-line
-        this.errors = exceptionToErrorsArray(err);
+        this.applyErrors = exceptionToErrorsArray(err);
         buttonDone(false);
       }
     }
@@ -92,9 +108,10 @@ export default {
     <template #actions>
       <div class="bottom">
         <Banner
-          v-for="(err, i) in errors"
+          v-for="(err, i) in allErrors"
           :key="i"
           color="error"
+          role="alert"
           :label="err"
         />
         <div class="buttons">
@@ -107,6 +124,7 @@ export default {
 
           <AsyncButton
             :mode="applyMode"
+            :action-color="actionColor"
             @click="apply"
           />
         </div>

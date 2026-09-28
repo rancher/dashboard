@@ -1,5 +1,5 @@
 import Workload from './workload';
-import { WORKLOAD_TYPES, POD, WORKLOAD_TYPE_TO_KIND_MAPPING } from '@shell/config/types';
+import { WORKLOAD_TYPES, WORKLOAD_TYPE_TO_KIND_MAPPING } from '@shell/config/types';
 
 export default class StatefulSet extends Workload {
   async rollBack(cluster, statefulSet, revision) {
@@ -21,16 +21,14 @@ export default class StatefulSet extends Workload {
     await this.rollBackWorkload(cluster, statefulSet, 'statefulsets', body);
   }
 
-  // we need to provide a new pods getter for statefulsets because the relationship
-  // done on the parent model "workload" is not correct
+  /**
+   * See fetchPods description for more info
+   */
   get pods() {
-    const relationships = this.metadata?.relationships || [];
-    const podRelationship = relationships.filter((relationship) => relationship.toType === POD)[0];
-
-    if (podRelationship) {
-      const pods = this.$getters['podsByNamespace'](this.metadata.namespace);
-
-      return pods.filter((pod) => {
+    if (this.podMatchExpression) {
+      // Given https://github.com/rancher/dashboard/issues/7555 we want to avoid scenarios where we show pods that have an applicable label but aren't applicable (?!)
+      // super.pods is the pods that match the statefulsets podSelector, so start from that and then filter further by pod's owner
+      return super.pods.filter((pod) => {
         // a bit of a duplication of podRelationship, but always safe to check...
         if (pod.metadata?.ownerReferences?.length) {
           const ownerReferencesStatefulSet = pod.metadata?.ownerReferences?.find((own) => own.kind === WORKLOAD_TYPE_TO_KIND_MAPPING[WORKLOAD_TYPES.STATEFUL_SET]);

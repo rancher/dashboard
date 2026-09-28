@@ -1,0 +1,6 @@
+name: Epinio
+author: Krumware
+authorUrl: https://www.krum.io
+description: A Rancher Extension of The Application Development Engine for Kubernetes
+icon: https://raw.githubusercontent.com/epinio/ui/7e810f1c25cf44fa5a262329bb45274c2aebc0eb/dashboard/pkg/epinio/assets/logo-epinio.svg
+url: https://github.com/epinio/ui/

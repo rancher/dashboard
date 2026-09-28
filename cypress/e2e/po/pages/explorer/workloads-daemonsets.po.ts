@@ -1,10 +1,10 @@
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
+import { navToWorkloadTypeViaSideMenu } from '@/cypress/e2e/po/side-bars/workload-side-nav';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import { GetOptions } from '@/cypress/e2e/po/components/component.po';
 import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
-import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import RedeployDialogPo from '@/cypress/e2e/po/components/workloads/redeploy-dialog.po';
 
 export class WorkloadsDaemonsetsListPagePo extends BaseListPagePo {
@@ -21,12 +21,7 @@ export class WorkloadsDaemonsetsListPagePo extends BaseListPagePo {
   }
 
   static navTo(clusterId = 'local') {
-    const burgerMenu = new BurgerMenuPo();
-    const sideNav = new ProductNavPo();
-
-    burgerMenu.goToCluster(clusterId);
-    sideNav.navToSideMenuGroupByLabel('Workloads');
-    sideNav.navToSideMenuEntryByLabel('DaemonSets');
+    navToWorkloadTypeViaSideMenu(clusterId, 'DaemonSets');
   }
 
   redeployDialog(): RedeployDialogPo {
@@ -91,6 +86,10 @@ export class WorkLoadsDaemonsetsEditPagePo extends BaseDetailPagePo {
 
   clickTab(selector: string) {
     return new TabbedPo().clickTabWithSelector(selector);
+  }
+
+  waitForTab(selector: string, options?: GetOptions) {
+    return new TabbedPo().checkTabVisible(selector, options);
   }
 
   ScalingUpgradePolicyRadioBtn(): RadioGroupInputPo {

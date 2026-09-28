@@ -1,12 +1,15 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import { NORMAN } from '@shell/config/types';
+import { EXT } from '@shell/config/types';
 import { NAME } from '@shell/config/product/auth';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { isAdminUser } from '@shell/store/type-map';
 import TableDataUserIcon from '@shell/components/TableDataUserIcon';
+import { RcButton } from '@components/RcButton';
+import { allHash } from '@shell/utils/promise';
+import Loading from '@shell/components/Loading.vue';
 
 export default {
   components: {
@@ -14,6 +17,8 @@ export default {
     ResourceTable,
     Masthead,
     TableDataUserIcon,
+    RcButton,
+    Loading
   },
   mixins: [ResourceFetch],
   props:  {
@@ -38,14 +43,17 @@ export default {
     }
   },
   async fetch() {
-    const store = this.$store;
+    const promises = {
+      resources:                 this.$fetchType(this.resource),
+      localProviderEnabled:      this.$store.dispatch('auth/getLocalProviderEnabled'),
+      membershipRefreshRequests: this.$store.dispatch('management/create', { type: EXT.GROUP_MEMBERSHIP_REFRESH_REQUESTS }),
+    };
 
-    await store.dispatch(`rancher/findAll`, { type: NORMAN.USER });
+    const res = await allHash(promises);
 
-    await this.$fetchType(this.resource);
-
-    this.canRefreshAccess = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
-      .then((res) => !!res?.actions?.refreshauthprovideraccess);
+    this.localProviderEnabled = res.localProviderEnabled;
+    this.membershipRefreshRequests = res.membershipRefreshRequests;
+    this.canRefreshMemberships = !!this.membershipRefreshRequests?.canRefreshMemberships;
   },
 
   data() {
@@ -55,7 +63,8 @@ export default {
 
     return {
       schema,
-      canRefreshAccess: false,
+      membershipRefreshRequests: undefined,
+      canRefreshMemberships:     false
     };
   },
 
@@ -82,28 +91,28 @@ export default {
       // 1) Only show system users in explorer/users and not in auth/users
       // 2) Supplement user with info to enable/disable the refresh group membership action (this is not persisted on save)
       const params = { ...this.$route.params };
-      const requiredUsers = params.product === NAME ? this.rows.filter((a) => !a.isSystem) : this.rows;
 
-      requiredUsers.forEach((r) => {
-        r.canRefreshAccess = this.canRefreshAccess;
-      });
-
-      return requiredUsers;
+      return params.product === NAME ? this.rows.filter((a) => !a.isSystem) : this.rows;
     },
 
     isAdmin() {
       return isAdminUser(this.$store.getters);
+    },
+
+    canCreateUsers() {
+      const userCan = !!this.schema?.collectionMethods?.find((x) => x.toLowerCase() === 'post');
+      const systemCan = this.localProviderEnabled;
+
+      return userCan && systemCan;
     },
   },
 
   methods: {
     async refreshGroupMemberships(buttonDone) {
       try {
-        await this.$store.dispatch('rancher/collectionAction', {
-          type:       NORMAN.USER,
-          actionName: 'refreshauthprovideraccess',
-        });
-
+        // userId specifies the user ID. Use '*' for all users. Check the schemaDefinition for more details.
+        this.membershipRefreshRequests.spec = { userId: '*' };
+        await this.membershipRefreshRequests.save();
         buttonDone(true);
       } catch (err) {
         this.$store.dispatch('growl/fromError', { title: this.t('user.list.errorRefreshingGroupMemberships'), err }, { root: true });
@@ -115,17 +124,19 @@ export default {
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <Masthead
       :schema="schema"
       :resource="resource"
       :show-incremental-loading-indicator="incrementalLoadingIndicator"
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
+      :is-creatable="canCreateUsers"
     >
       <template #extraActions>
         <AsyncButton
-          v-if="canRefreshAccess"
+          v-if="canRefreshMemberships"
           mode="refresh"
           :action-label="t('authGroups.actions.refresh')"
           :waiting-label="t('authGroups.actions.refresh')"
@@ -138,14 +149,17 @@ export default {
         v-if="isAdmin"
         #subHeader
       >
-        <router-link
+        <rc-button
+          variant="link"
+          class="btn-user-retention"
           :to="{ name: 'c-cluster-auth-user.retention'}"
-          class="btn role-link btn-sm btn-user-retention"
           data-testid="router-link-user-retention"
         >
-          <i class="icon icon-gear" />
+          <template #before>
+            <i class="icon icon-gear" />
+          </template>
           {{ t('user.retention.button.label') }}
-        </router-link>
+        </rc-button>
       </template>
     </Masthead>
 
@@ -169,10 +183,8 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
-  .btn-user-retention {
-    display: flex;
-    gap: 0.25rem;
-    padding: 0;
+<style lang="scss" scoped>
+  a.rc-button.variant-link.btn-user-retention {
+    padding: 0; //retain the padding override for left-alignment with the header
   }
 </style>

@@ -12,7 +12,7 @@ let removeToken = false;
 const tokenNameList = [];
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Cluster Registration Tokens', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetTokensListPage = new FleetClusterRegistrationTokenListPagePo();
 
   const headerPo = new HeaderPo();
@@ -104,6 +104,10 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
 
       fleetTokensListPage.goTo();
       fleetTokensListPage.waitForPage();
+      // A fresh goTo does not reliably preserve the fleet-default workspace filter, and a token is
+      // only listed in its own workspace - so select it explicitly (as the create test does) before
+      // acting on the row. In another workspace the row is simply absent and no retry can find it.
+      headerPo.selectWorkspace(defaultWorkspace);
       fleetTokensListPage.list().actionMenu(customTokenName).getMenuItem('Clone')
         .click();
       fleetTokenCreateEditPage.waitForPage('mode=clone&as=yaml');
@@ -136,6 +140,8 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
 
       fleetTokensListPage.goTo();
       fleetTokensListPage.waitForPage();
+      // Re-select the workspace so the token is listed (see the Clone test above).
+      headerPo.selectWorkspace(defaultWorkspace);
       fleetTokensListPage.list().actionMenu(customTokenName).getMenuItem('Download YAML')
         .click();
 
@@ -153,6 +159,8 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
     it('can delete a cluster registration token', () => {
       fleetTokensListPage.goTo();
       fleetTokensListPage.waitForPage();
+      // Re-select the workspace so the token is listed (see the Clone test above).
+      headerPo.selectWorkspace(defaultWorkspace);
       fleetTokensListPage.list().actionMenu(`${ customTokenName }-clone`).getMenuItem('Delete')
         .click();
       fleetTokensListPage.list().resourceTable().sortableTable()
@@ -180,7 +188,7 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before(() => {
       cy.login();
     });

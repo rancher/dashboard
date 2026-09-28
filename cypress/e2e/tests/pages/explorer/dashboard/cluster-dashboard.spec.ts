@@ -8,8 +8,10 @@ import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/
 import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
 import { EventsPageListPo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import * as path from 'path';
+import * as jsyaml from 'js-yaml';
 import { eventsNoDataset } from '@/cypress/e2e/blueprints/explorer/cluster/events';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { qase } from '@/cypress/support/qase';
 
 const configMapYaml = `apiVersion: v1
 kind: ConfigMap
@@ -31,12 +33,32 @@ const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
-describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+const CLUSTER_BADGE_ANNOTATIONS = ['ui.rancher/badge-text', 'ui.rancher/badge-color', 'ui.rancher/badge-icon-text'];
+
+/**
+ * Strip any custom badge from the `local` cluster via the API.
+ *
+ * The badge test runs with `testIsolation: false` and mutates the cluster, so a failure part way through
+ * leaves the badge applied and the next retry starts from the wrong state (checkboxes already ticked,
+ * inputs disabled). Clearing the annotations up front makes every attempt start from a clean cluster.
+ */
+const resetClusterBadge = () => {
+  cy.getRancherResource('v3', 'clusters', 'local').then((resp: Cypress.Response<any>) => {
+    const cluster = resp.body;
+    const annotations = { ...cluster.annotations };
+
+    CLUSTER_BADGE_ANNOTATIONS.forEach((annotation) => delete annotations[annotation]);
+
+    cy.setRancherResource('v3', 'clusters', 'local', { ...cluster, annotations });
+  });
+};
+
+describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  it('can navigate to cluster dashboard', () => {
+  qase(2039, it('can navigate to cluster dashboard', () => {
     const clusterList = new ClusterManagerListPagePo('local');
 
     clusterList.goTo();
@@ -51,21 +73,25 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     // check if burger menu nav is highlighted correctly for local cluster
     BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local');
-  });
+  }));
 
-  it('has the correct title', () => {
+  qase(2361, it('has the correct title', () => {
     ClusterDashboardPagePo.navTo();
 
-    cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
-  });
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Cluster Dashboard' : 'Rancher - local - Cluster Dashboard';
 
-  it('shows fleet controller status', () => {
+      cy.title().should('eq', expectedTitle);
+    });
+  }));
+
+  qase(5703, it('shows fleet controller status', () => {
     ClusterDashboardPagePo.navTo();
     clusterDashboard.waitForPage();
     clusterDashboard.fleetStatus().should('exist');
-  });
+  }));
 
-  it('can import a YAML successfully, using the header action "Import YAML"', () => {
+  qase(3046, it('can import a YAML successfully, using the header action "Import YAML"', () => {
     ClusterDashboardPagePo.navTo();
 
     header.importYamlHeaderAction().click();
@@ -80,34 +106,49 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     header.importYaml().importYamlSortableTable().subRows().should('not.exist');
 
     header.importYaml().importYamlCloseClick();
-  });
+  }));
 
-  it('can open the kubectl shell from header', () => {
+  qase(3537, it('can open the kubectl shell from header', () => {
     ClusterDashboardPagePo.navTo();
 
     header.kubectlShell().openAndExecuteCommand('get no');
     header.kubectlShell().closeTerminal();
-  });
+  }));
 
-  it('can download kubeconfig from header', () => {
+  qase(3539, it('can download kubeconfig from header', () => {
     const downloadsFolder = Cypress.config('downloadsFolder');
     const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
 
     ClusterDashboardPagePo.navTo();
 
+    cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
     header.downloadKubeconfig().click();
-    cy.readFile(downloadedFilename).should('contain', 'kind: Config');
-  });
+    cy.wait('@generateKubeConfig');
 
-  it('can copy the kubeconfig to clipboard', () => {
+    // A single click must only ever generate one kubeconfig, as each request mints at least one token.
+    // See https://github.com/rancher/rancher/issues/55672
+    cy.get('@generateKubeConfig.all').should('have.length', 1);
+
+    cy.readFile(downloadedFilename).then((buffer) => {
+      const obj: any = jsyaml.load(buffer);
+
+      expect(obj.kind).to.equal('Config');
+
+      // The legacy `rancher` entry pointing at the Rancher server root is excluded
+      expect(obj.clusters.map((cluster: { name: string }) => cluster.name)).to.not.include('rancher');
+      expect(obj.contexts.map((context: { name: string }) => context.name)).to.not.include('rancher');
+    });
+  }));
+
+  qase(3538, it('can copy the kubeconfig to clipboard', () => {
     ClusterDashboardPagePo.navTo();
-    cy.intercept('POST', '*action=generateKubeconfig').as('copyKubeConfig');
+    cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('copyKubeConfig');
     header.copyKubeconfig().click();
     header.copyKubeConfigCheckmark().should('be.visible');
     cy.wait('@copyKubeConfig');
-  });
+  }));
 
-  it('can add cluster badge', () => {
+  qase(2038, it('can add cluster badge', () => {
     const settings = {
       description: {
         original: '',
@@ -121,7 +162,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       }
     };
 
-    ClusterDashboardPagePo.navTo();
+    // A failed attempt leaves the badge applied and the Cluster Appearance modal open, whose
+    // `.modal-overlay` blocks every click behind it. Reset the cluster and load the page fresh.
+    resetClusterBadge();
+
+    clusterDashboard.goTo();
+    clusterDashboard.waitForPage();
 
     // Add Badge
     clusterDashboard.customizeAppearanceButton().click();
@@ -152,9 +198,14 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     header.clusterIcon().children().should('have.class', 'cluster-badge-logo');
     header.clusterName().should('contain', 'local');
     header.customBadge().should('contain', settings.description.new);
+
     const burgerMenu = new BurgerMenuPo();
 
-    burgerMenu.clusterNotPinnedList().first().find('span').should('contain', settings.iconText);
+    BurgerMenuPo.toggle();
+    BurgerMenuPo.checkOpen();
+    burgerMenu.firstClusterIcon().find('span').should('contain', settings.iconText);
+    BurgerMenuPo.toggle();
+    BurgerMenuPo.checkClosed();
 
     // Reset
     clusterDashboard.customizeAppearanceButton().click();
@@ -169,10 +220,15 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     header.clusterIcon().children().should('have.class', 'cluster-local-logo');
     header.clusterName().should('contain', 'local');
     header.customBadge().should('not.exist');
-    burgerMenu.clusterNotPinnedList().first().find('svg').should('have.class', 'cluster-local-logo');
-  });
 
-  it('can view deployments', () => {
+    BurgerMenuPo.toggle();
+    BurgerMenuPo.checkOpen();
+    burgerMenu.firstClusterIcon().find('svg').should('have.class', 'cluster-local-logo');
+    BurgerMenuPo.toggle();
+    BurgerMenuPo.checkClosed();
+  }));
+
+  qase(2040, it('can view deployments', () => {
     clusterDashboard.goTo();
     clusterDashboard.waitForPage();
     cy.getRancherResource('v1', 'apps.deployments', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
@@ -182,13 +238,13 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     }).then((el: any) => {
       el.click();
 
-      const workloadDeployments = new WorkloadsDeploymentsListPagePo('local', 'apps.deployment');
+      const workloadDeployments = new WorkloadsDeploymentsListPagePo('local', 'apps.deployment' as any);
 
       workloadDeployments.waitForPage();
     });
-  });
+  }));
 
-  it('can view nodes', () => {
+  qase(2037, it('can view nodes', () => {
     clusterDashboard.goTo();
     clusterDashboard.waitForPage();
 
@@ -209,44 +265,64 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
       nodesPage.waitForPage();
     });
-  });
+  }));
 
-  let removePod = false;
-  let podName = `e2e-test`;
-  const projName = `project${ +new Date() }`;
-  const nsName = `namespace${ +new Date() }`;
+  const projIds: string[] = [];
+  const nsIds: string[] = [];
 
-  it('can view events', () => {
+  qase(15329, it('can view events and change events list count in cluster dashboard', () => {
+    // Tolerate the transient cold-load "Network Error" this churn-heavy test can trigger on entry.
+    cy.on('uncaught:exception', (err) => (/Network Error/i.test(err?.message || '') ? false : undefined));
+
+    const podNames = ['e2e-test1', 'e2e-test2', 'e2e-test3', 'e2e-test4', 'e2e-test5', 'e2e-test6'];
+
+    // Create unique for this run values (helps with retries)
+    cy.createE2EResourceName(`cd-proj-${ new Date().getTime() }`).as('projName');
+    cy.createE2EResourceName(`cd-ns-${ new Date().getTime() }`).as('nsName');
+
     // Create a pod to trigger events
 
     // get user id
-    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-      const userId = resp.body.data[0].id.trim();
+    cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.status.userID;
 
-      // create project
-      cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {
-        cy.wrap(resp.body.id.trim()).as('projId');
+      cy.get<string>('@projName').then((projName) => {
+        cy.get<string>('@nsName').then((nsName) => {
+          // create project
+          cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {
+            const projId = resp.body.id;
 
-        // create ns
-        cy.get<string>('@projId').then((projId) => {
-          cy.createNamespaceInProject(nsName, projId);
-        });
+            projIds.push(projId);
 
-        // create pod
-        // eslint-disable-next-line no-return-assign
-        cy.createPod(nsName, podName, 'nginx:latest').then((resp) => {
-          podName = resp.body.metadata.name;
-          removePod = true;
+            // create ns
+            cy.createNamespaceInProject(nsName, projId).then((resp: Cypress.Response<any>) => {
+              const nsId = resp.body.id;
+
+              nsIds.push(nsId);
+
+              // create various pods to generate 12 events in total
+              podNames.forEach((podName) => cy.createPod(nsName, podName, 'nginx:latest')); // eslint-disable-current-line no-return-assign
+            });
+          });
         });
       });
     });
 
+    // Churn above leaves the downstream proxy likely mid-reconnect; wait for it to serve before entry.
+    clusterDashboard.readyForClusterPage();
     clusterDashboard.goTo();
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // Check events
+    clusterDashboard.eventsList().sortableTable().self().scrollIntoView();
     clusterDashboard.eventsList().sortableTable().rowElements()
-      .should('have.length.gte', 2);
+      .should('have.length.gte', 10); // default is now 10 events. user can configure in gear icon
+
+    // change events list row count
+    clusterDashboard.eventsRowCountMenuToggle();
+    clusterDashboard.eventsRowCountMenu().getMenuItem('Show 25 events').click();
+    clusterDashboard.eventsList().sortableTable().rowElements()
+      .should('have.length.gte', 12); // minimum is 12, as per the pods generated above
 
     clusterDashboard.fullEventsLink().click();
 
@@ -254,10 +330,10 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     events.waitForPage();
     events.list().resourceTable().sortableTable().rowElements()
-      .should('have.length.gte', 2);
-  });
+      .should('have.length.gte', 12);
+  }));
 
-  it('can view events table empty if no events', { tags: ['@noVai', '@adminUser'] }, () => {
+  qase(3857, it('can view events table empty if no events', { tags: ['@adminUser'] }, () => {
     eventsNoDataset();
     clusterDashboard.goTo();
 
@@ -266,42 +342,36 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     clusterDashboard.eventsList().sortableTable().checkRowCount(true, 1);
 
-    let expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'Date'];
+    const expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'First Seen', 'Last Seen', 'Count'];
 
-    cy.isVaiCacheEnabled().then((isVaiCacheEnabled) => {
-      if (isVaiCacheEnabled) {
-        expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'First Seen', 'Last Seen', 'Count'];
-      }
+    clusterDashboard.eventsList().sortableTable().tableHeaderRow()
+      .self()
+      .scrollIntoView();
+    clusterDashboard.eventsList().sortableTable().tableHeaderRow()
+      .within('.table-header-container .content')
+      .each((el, i) => {
+        expect(el.text().trim()).to.eq(expectedHeaders[i]);
+      });
 
-      clusterDashboard.eventsList().sortableTable().tableHeaderRow()
-        .self()
-        .scrollIntoView();
-      clusterDashboard.eventsList().sortableTable().tableHeaderRow()
-        .within('.table-header-container .content')
-        .each((el, i) => {
-          expect(el.text().trim()).to.eq(expectedHeaders[i]);
-        });
+    clusterDashboard.fullEventsLink().click();
+    cy.wait('@eventsNoData');
+    const events = new EventsPageListPo('local');
 
-      clusterDashboard.fullEventsLink().click();
-      cy.wait('@eventsNoData');
-      const events = new EventsPageListPo('local');
+    events.waitForPage();
 
-      events.waitForPage();
+    events.list().resourceTable().sortableTable().checkRowCount(true, 1);
 
-      events.list().resourceTable().sortableTable().checkRowCount(true, 1);
+    const expectedFullHeaders = ['State', 'Last Seen', 'Type', 'Reason', 'Object',
+      'Subobject', 'Source', 'Message', 'First Seen', 'Count', 'Name', 'Namespace'];
 
-      const expectedFullHeaders = ['State', 'Last Seen', 'Type', 'Reason', 'Object',
-        'Subobject', 'Source', 'Message', 'First Seen', 'Count', 'Name', 'Namespace'];
+    events.list().resourceTable().sortableTable().tableHeaderRow()
+      .within('.table-header-container .content')
+      .each((el, i) => {
+        expect(el.text().trim()).to.eq(expectedFullHeaders[i]);
+      });
+  }));
 
-      events.list().resourceTable().sortableTable().tableHeaderRow()
-        .within('.table-header-container .content')
-        .each((el, i) => {
-          expect(el.text().trim()).to.eq(expectedFullHeaders[i]);
-        });
-    });
-  });
-
-  describe('Cluster dashboard with limited permissions', () => {
+  describe('Cluster dashboard with limited permissions', { testIsolation: true }, () => {
     let stdProjectName;
     let stdNsName;
     let stdUsername;
@@ -314,8 +384,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
       // log in as admin
       cy.login();
-      cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-        const adminUserId = resp.body.data[0].id.trim();
+      cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+        const adminUserId = resp.body.status.userID;
 
         // create project
         return cy.createProject(stdProjectName, 'local', adminUserId).then((resp: Cypress.Response<any>) => {
@@ -352,27 +422,27 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     });
 
     // note - this would be 'fleet agent' on downstream clusters
-    it('does not show fleet controller status if the user does not have permission to view the fleet controller deployment', () => {
+    qase(5704, it('does not show fleet controller status if the user does not have permission to view the fleet controller deployment', () => {
       clusterDashboard.fleetStatus().should('not.exist');
 
       clusterDashboard.etcdStatus().should('exist');
       clusterDashboard.schedulerStatus().should('exist');
       clusterDashboard.controllerManagerStatus().should('exist');
-    });
+    }));
 
     // log back in as admin and delete the project, ns, and user from previous test
     afterEach(() => {
-      cy.login();
+      cy.login(); // bypass cy.session
       cy.deleteRancherResource('v1', 'namespaces', stdNsName);
 
       cy.get<string>('@standardUserProject').then((projectId) => {
         cy.deleteRancherResource('v3', 'projects', projectId);
       });
 
-      cy.get('@createUserRequest').then((req) => {
+      cy.get('@createUserRequest').then((req: any) => {
         const userId = req.body.id;
 
-        cy.deleteRancherResource('v3', 'users', userId);
+        cy.deleteRancherResource('v1', 'management.cattle.io.users', userId);
       });
     });
   });
@@ -391,8 +461,14 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     status:  403,
   };
 
-  describe('Cluster dashboard - Fleet agent', () => {
-    it('does not show fleet controller status if a 403 is returned by the API', () => {
+  describe('Cluster dashboard - Fleet agent', { testIsolation: true }, () => {
+    // Re-login as admin to ensure auth is restored after the 'limited permissions' tests
+    // which log in as a standard user and may leave session cookies in an inconsistent state
+    beforeEach(() => {
+      cy.login();
+    });
+
+    qase(8677, it('does not show fleet controller status if a 403 is returned by the API', () => {
       cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-system/fleet-controller?*', reply(403, forbiddenResponse));
       cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-local-system/fleet-agent?*', reply(403, forbiddenResponse));
 
@@ -405,9 +481,9 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       clusterDashboard.etcdStatus().should('exist');
       clusterDashboard.schedulerStatus().should('exist');
       clusterDashboard.controllerManagerStatus().should('exist');
-    });
+    }));
 
-    it('does not show fleet controller status if a 404 is returned by the API', () => {
+    qase(8678, it('does not show fleet controller status if a 404 is returned by the API', () => {
       cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-system/fleet-controller?*', reply(404, {}));
       cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-local-system/fleet-agent?*', reply(404, {}));
 
@@ -420,15 +496,25 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       clusterDashboard.etcdStatus().should('exist');
       clusterDashboard.schedulerStatus().should('exist');
       clusterDashboard.controllerManagerStatus().should('exist');
-    });
+    }));
   });
 
-  after(function() {
-    if (removePod) {
-      cy.deleteRancherResource('v1', `pods/${ nsName }`, `${ podName }`);
-      cy.deleteRancherResource('v1', 'namespaces', `${ nsName }`);
-      cy.deleteRancherResource('v3', 'projects', this.projId);
-    }
+  after(() => {
+    // Ensure admin auth is restored before cleanup, as previous tests may have
+    // logged in as a different user or left the session in an inconsistent state
+    cy.login();
+
+    // The badge test mutates the `local` cluster - make sure nothing is left behind for other specs
+    resetClusterBadge();
+
+    nsIds.forEach((nsId) => {
+      cy.deleteRancherResource('v1', 'namespaces', nsId);
+    });
+
+    projIds.forEach((projId) => {
+      cy.deleteRancherResource('v3', 'projects', projId);
+    });
+
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
   });
 });

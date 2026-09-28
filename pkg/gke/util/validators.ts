@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { get } from '@shell/utils/object';
-import { GKENodePool } from '../types';
+import { GKENodePool } from '@shell/components/google/types';
 import ipaddr from 'ipaddr.js';
 
 // no need to try to validate any fields if the user is still selecting a credential and the rest of the form isn't visible

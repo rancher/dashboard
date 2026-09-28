@@ -1,5 +1,4 @@
 {
-  "extends": "../tsconfig.paths.json",
   "target": "ES2018",
   "module": "ES2020",
   "moduleResolution": "Node",
@@ -15,12 +14,28 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "baseUrl": "..",
-    "noEmit": true,
+    // NOTE: "@cypress/grep" is deliberately not listed here. v6 is exports-only (no
+    // top-level "types"/"main" field), so a `types` entry fails to resolve (TS2688).
+    // Its global `tags` augmentation is picked up from the `@cypress/grep` import in
+    // cypress/support/e2e.ts instead.
     "types": [
       "cypress",
-      "@cypress/grep",
       "cypress-axe"
-    ]
+    ],
+    "paths": {
+      "~/*": [
+        "*"
+      ],
+      "@/*": [
+        "*"
+      ],
+      "@pkg/*": [
+        "shell/pkg/*"
+      ],
+      "@components/*": [
+        "pkg/rancher-components/src/components/*"
+      ]
+    },
   },
   "include": [
     "./**/*.ts",

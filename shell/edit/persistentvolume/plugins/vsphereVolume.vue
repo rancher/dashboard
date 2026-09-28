@@ -13,10 +13,8 @@ export default {
       required: true,
     },
   },
-  data() {
+  created() {
     this.value.spec['vsphereVolume'] = this.value.spec.vsphereVolume || {};
-
-    return { };
   },
 };
 </script>

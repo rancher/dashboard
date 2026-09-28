@@ -103,48 +103,46 @@ export default {
 </script>
 
 <template>
-  <div>
-    <CruResource
-      :validation-passed="!!name && !!value.spec.benchmarkVersion"
-      :done-route="doneRoute"
-      :resource="value"
-      :mode="mode"
-      :errors="errors"
-      @finish="save"
-      @error="e=>errors = e"
-    >
-      <div class="spacer" />
-      <div class="row">
-        <div class="col span-12">
-          <NameNsDescription
-            :mode="mode"
-            :value="value"
-            :namespaced="false"
-            @change="name=value.metadata.name"
-          />
-        </div>
+  <CruResource
+    :validation-passed="!!name && !!value.spec.benchmarkVersion"
+    :done-route="doneRoute"
+    :resource="value"
+    :mode="mode"
+    :errors="errors"
+    @finish="save"
+    @error="e=>errors = e"
+  >
+    <div class="spacer" />
+    <div class="row">
+      <div class="col span-12">
+        <NameNsDescription
+          :mode="mode"
+          :value="value"
+          :namespaced="false"
+          @change="name=value.metadata.name"
+        />
       </div>
-      <div class="row">
-        <div class="col span-6">
-          <LabeledSelect
-            v-model:value="value.spec.benchmarkVersion"
-            :mode="mode"
-            :label="t('compliance.benchmarkVersion')"
-            :options="compatibleBenchmarkNames"
-          />
-        </div>
+    </div>
+    <div class="row">
+      <div class="col span-6">
+        <LabeledSelect
+          v-model:value="value.spec.benchmarkVersion"
+          :mode="mode"
+          :label="t('compliance.benchmarkVersion')"
+          :options="compatibleBenchmarkNames"
+        />
       </div>
-      <div class="spacer" />
-      <div class="row">
-        <div class="col span-6">
-          <ArrayList
-            v-model:value="value.spec.skipTests"
-            :title="t('compliance.testsToSkip')"
-            :value-placeholder="t('compliance.testID')"
-            :mode="mode"
-          />
-        </div>
+    </div>
+    <div class="spacer" />
+    <div class="row">
+      <div class="col span-6">
+        <ArrayList
+          v-model:value="value.spec.skipTests"
+          :title="t('compliance.testsToSkip')"
+          :value-placeholder="t('compliance.testID')"
+          :mode="mode"
+        />
       </div>
-    </CruResource>
-  </div>
+    </div>
+  </CruResource>
 </template>

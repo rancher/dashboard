@@ -526,25 +526,6 @@ export default {
               :value="value.creationTimestamp"
             />
           </span>
-          <span
-            v-if="value.showCreatedBy"
-            data-testid="masthead-subheader-createdBy"
-          >
-            {{ t("resourceDetail.masthead.createdBy") }}:
-            <router-link
-              v-if="value.createdBy.location"
-              :to="value.createdBy.location"
-              data-testid="masthead-subheader-createdBy-link"
-            >
-              {{ value.createdBy.displayName }}
-            </router-link>
-            <span
-              v-else
-              data-testid="masthead-subheader-createdBy_plain-text"
-            >
-              {{ value.createdBy.displayName }}
-            </span>
-          </span>
         </div>
       </div>
       <slot name="right">
@@ -578,7 +559,7 @@ export default {
             <template v-if="featureDropdownMenu">
               <ActionMenu
                 v-if="isView"
-                button-role="multiAction"
+                button-variant="multiAction"
                 button-size="compact"
                 :resource="value"
                 data-testid="masthead-action-menu"
@@ -645,10 +626,10 @@ export default {
 
     h1 {
       margin: 0 0 0 -5px;
-      overflow-x: hidden;
       display: flex;
       flex-direction: row;
       align-items: center;
+      overflow: hidden;
 
       .masthead-resource-title {
         text-overflow: ellipsis;

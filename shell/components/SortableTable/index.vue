@@ -3,7 +3,7 @@ import { mapGetters, useStore } from 'vuex';
 import { defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
-import { dasherize, ucFirst } from '@shell/utils/string';
+import { dasherize, ucFirst, randomStr } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -20,12 +20,15 @@ import grouping from './grouping';
 import actions from './actions';
 import AdvancedFiltering from './advanced-filtering';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
+import { RcButton } from '@components/RcButton';
+import { useTabCountUpdater } from '@shell/components/form/ResourceTabs/composable';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
@@ -52,6 +55,7 @@ export default {
     'selection',
     'rowClick',
     'enter',
+    'sortable-table-interaction',
   ],
 
   components: {
@@ -60,9 +64,11 @@ export default {
     AsyncButton,
     ActionDropdown,
     LabeledSelect,
+    LabeledInput,
     ButtonMultiAction,
     ActionMenu,
     ActionDropdownShell,
+    RcButton,
   },
 
   mixins: [
@@ -130,7 +136,7 @@ export default {
     },
     groupSort: {
       // Field to order groups by, defaults to groupBy
-      type:    Array,
+      type:    String,
       default: null
     },
 
@@ -255,6 +261,16 @@ export default {
      */
     pagingParams: {
       type:    Object,
+      default: null,
+    },
+
+    /**
+     * Readable, plural name of the resource being listed, used for the select
+     * all checkbox label. Defaults to the name derived from the schema (via
+     * pagingParams) and falls back to a generic label when neither is known.
+     */
+    selectAllLabel: {
+      type:    String,
       default: null,
     },
 
@@ -432,6 +448,7 @@ export default {
     $main?.addEventListener('scroll', this._onScroll);
 
     this.debouncedPaginationChanged();
+    this.updateTabCount(this.totalRows);
   },
 
   beforeUnmount() {
@@ -445,6 +462,7 @@ export default {
     const $main = document.querySelector('main');
 
     $main?.removeEventListener('scroll', this._onScroll);
+    this.clearTabCount();
   },
 
   watch: {
@@ -559,10 +577,13 @@ export default {
 
     const store = useStore();
     const { featureDropdownMenu } = useRuntimeFlag(store);
+    const { updateTabCount, clearTabCount } = useTabCountUpdater();
 
     return {
       table,
       featureDropdownMenu,
+      updateTabCount,
+      clearTabCount
     };
   },
 
@@ -580,6 +601,15 @@ export default {
 
     initalLoad() {
       return !!(!this.isLoading && !this._didinit && this.rows?.length);
+    },
+
+    /**
+     * Accessible label for the select all checkbox in the table header
+     */
+    selectAllCheckboxLabel() {
+      const resource = this.selectAllLabel || this.pagingParams?.pluralLabel;
+
+      return resource ? this.t('sortableTable.selectAllResources', { resource }) : this.t('sortableTable.genericGroupCheckbox');
     },
 
     manualRefreshLoadingFinished() {
@@ -735,7 +765,7 @@ export default {
         grp.rows.forEach((row) => {
           const rowData = {
             row,
-            key:                        this.get(row, this.keyField),
+            key:                        this.get(row, this.keyField) ?? randomStr(),
             showSubRow:                 this.showSubRow(row, this.keyField),
             canRunBulkActionOfInterest: this.canRunBulkActionOfInterest(row),
             columns:                    []
@@ -759,7 +789,7 @@ export default {
                 needRef = true;
               } else {
                 // Check if we have a formatter from a plugin
-                const pluginFormatter = this.$plugin?.getDynamic('formatters', c.formatter);
+                const pluginFormatter = this.$extension?.getDynamic('formatters', c.formatter);
 
                 if (pluginFormatter) {
                   component = defineAsyncComponent(pluginFormatter);
@@ -897,6 +927,15 @@ export default {
       }
 
       return ucFirst(col.name);
+    },
+
+    /**
+     * Accessible label for a row's selection checkbox
+     */
+    rowCheckboxLabel(row) {
+      const item = row?.row?.id;
+
+      return item ? this.t('sortableTable.genericRowCheckbox', { item }) : this.t('sortableTable.genericRowCheckboxNoItem');
     },
 
     valueFor(row, col, isLabel) {
@@ -1038,7 +1077,7 @@ export default {
     handleActionButtonClick(i, event) {
       // Each row in the table gets its own ref with
       // a number based on its index. If you are using
-      // an ActionMenu that doen't have a dependency on Vuex,
+      // an ActionMenu that doesn't have a dependency on Vuex,
       // these refs are useful because you can reuse the
       // same ActionMenu component on a page with many different
       // target elements in a list,
@@ -1052,6 +1091,23 @@ export default {
     },
 
     paginationChanged() {
+      // event used for extensions TABLE hooks
+      this.$emit('sortable-table-interaction', {
+        pagination: {
+          page:    this.page,
+          perPage: this.perPage,
+        },
+        filtering: {
+          searchFields: this.searchFields,
+          searchQuery:  this.searchQuery
+        },
+        sorting: {
+          sort:       this.sortFields,
+          sortBy:     this.sortBy,
+          descending: this.descending
+        }
+      });
+
       if (!this.externalPaginationEnabled) {
         return;
       }
@@ -1084,7 +1140,7 @@ export default {
       <div
         v-if="showHeaderRow"
         class="fixed-header-actions"
-        :class="{button: !!$slots['header-button'], 'advanced-filtering': hasAdvancedFiltering}"
+        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering}"
       >
         <div
           :class="bulkActionsClass"
@@ -1092,17 +1148,16 @@ export default {
         >
           <slot name="header-left">
             <template v-if="tableActions">
-              <button
+              <RcButton
                 v-for="(act) in availableActions"
                 :id="act.action"
                 :key="act.action"
                 v-clean-tooltip="actionTooltip"
                 type="button"
-                class="btn role-primary"
+                variant="primary"
                 :class="{[bulkActionClass]:true}"
                 :disabled="!act.enabled"
                 :data-testid="componentTestid + '-' + act.action"
-                role="button"
                 :aria-label="act.label"
                 @click="applyTableAction(act, null, $event)"
                 @keydown.enter.stop
@@ -1114,12 +1169,13 @@ export default {
                   :class="act.icon"
                 />
                 <span v-clean-html="act.label" />
-              </button>
+              </RcButton>
               <template v-if="featureDropdownMenu">
                 <ActionDropdownShell
                   :disabled="!selectedRows.length"
                   :hidden-actions="hiddenActions"
                   :action-tooltip="actionTooltip"
+                  size="medium"
                   @click="applyTableAction"
                   @mouseover="setBulkActionOfInterest"
                   @mouseleave="setBulkActionOfInterest"
@@ -1132,10 +1188,11 @@ export default {
                   :disable-button="!selectedRows.length"
                   size="sm"
                 >
-                  <template #button-content>
+                  <template #button-content="{ buttonSize }">
                     <button
                       ref="actionDropDown"
                       class="btn bg-primary mr-0"
+                      :class="buttonSize"
                       :disabled="!selectedRows.length"
                     >
                       <i class="icon icon-gear" />
@@ -1230,13 +1287,14 @@ export default {
               v-show="advancedFilteringVisibility"
               class="advanced-filter-container"
             >
-              <input
+              <LabeledInput
                 ref="advancedSearchQuery"
-                v-model="advFilterSearchTerm"
+                v-model:value="advFilterSearchTerm"
                 type="search"
                 class="advanced-search-box"
+                :clear-button-label="t('sortableTable.clearFilter')"
                 :placeholder="t('sortableTable.filterFor')"
-              >
+              />
               <div class="middle-block">
                 <span>{{ t('sortableTable.in') }}</span>
                 <LabeledSelect
@@ -1277,18 +1335,25 @@ export default {
           >
             {{ t('sortableTable.filteringDescription') }}
           </p>
-          <input
+          <LabeledInput
             v-if="search"
             ref="searchQuery"
-            v-model="eventualSearchQuery"
+            v-model:value="eventualSearchQuery"
             type="search"
-            class="input-sm search-box"
+            class="search-box"
             :aria-label="t('sortableTable.searchLabel')"
             aria-describedby="describe-filter-sortable-table"
+            :clear-button-label="t('sortableTable.clearFilter')"
             :placeholder="t('sortableTable.search')"
-          >
+          />
           <slot name="header-button" />
         </div>
+      </div>
+      <div
+        v-if="!!$slots['sub-header-row']"
+        class="sub-header-row"
+      >
+        <slot name="sub-header-row" />
       </div>
     </div>
     <table
@@ -1301,6 +1366,7 @@ export default {
       <THead
         v-if="showHeaders"
         :label-for="labelFor"
+        :select-all-label="selectAllCheckboxLabel"
         :columns="columns"
         :group="group"
         :group-options="advGroupOptions"
@@ -1398,7 +1464,7 @@ export default {
         </slot>
         <template
           v-for="(row, i) in groupedRows.rows"
-          :key="i"
+          :key="row.key"
         >
           <slot
             name="main-row"
@@ -1429,7 +1495,7 @@ export default {
                     :data-node-id="row.key"
                     :data-testid="componentTestid + '-' + i + '-checkbox'"
                     :value="selectedRows.includes(row.row)"
-                    :alternate-label="t('sortableTable.genericRowCheckbox', { item: row && row.row ? row.row.id : '' })"
+                    :alternate-label="rowCheckboxLabel(row)"
                   />
                 </td>
                 <td
@@ -1462,6 +1528,7 @@ export default {
                     <td
                       v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.col.isColVisible)"
                       :key="col.col.name"
+                      v-ui-context="col.col.name === 'state' ? { icon: 'icon-folder', hookable: true, value: row.row, tag: '__sortable-table-row', description: 'Row' } : undefined"
                       :data-title="col.col.label"
                       :data-testid="`sortable-cell-${ i }-${ j }`"
                       :align="col.col.align || 'left'"
@@ -1559,6 +1626,18 @@ export default {
             :onRowMouseEnter="onRowMouseEnter"
             :onRowMouseLeave="onRowMouseLeave"
           >
+            <slot
+              :full-colspan="fullColspan"
+              :row="row.row"
+              :show-sub-row="row.row.stateDescription"
+              :sub-matches="subMatches"
+              :keyField="keyField"
+              :componentTestid="componentTestid"
+              :i="i"
+              :onRowMouseEnter="onRowMouseEnter"
+              :onRowMouseLeave="onRowMouseLeave"
+              name="additional-sub-row"
+            />
             <tr
               v-if="row.row.stateDescription"
               :key="row.row[keyField] + '-description'"
@@ -1828,10 +1907,51 @@ export default {
     }
   }
 
+  // `.search-box` IS the `.labeled-input` root element - LabeledInput puts the `class`
+  // prop on its own root, it does not wrap it. The global `INPUT[type='search']` rules in
+  // _form.scss out-specify `.labeled-input INPUT`, so the inner input keeps its own border
+  // and padding on top of the wrapper's, giving a double border and the wrong height.
+  // Strip the inner input back and let the wrapper draw the single border.
+  .search-box,
+  .advanced-search-box {
+    &.labeled-input {
+      display: flex;
+      align-items: center;
+      min-height: 32px;
+      height: 32px;
+      padding: 0 8px;
+    }
+
+    // The inner input no longer draws its own focus border, so surface it on the wrapper
+    &.labeled-input:focus-within {
+      border-color: var(--primary-border);
+    }
+
+    :deep(input[type='search']) {
+      flex: 1;
+      height: 100%;
+      min-height: 0;
+      padding: 0 32px 0 0; // room for the 24px clear button + its 8px offset
+      border: none;
+      background-color: transparent;
+      border-radius: 0;
+      box-shadow: none;
+      outline: none;
+      line-height: normal;
+    }
+
+    :deep(.labeled-input-clear-button) {
+      right: 8px;
+    }
+  }
+
   .search-box {
-    height: 40px;
     margin-left: 10px;
     min-width: 180px;
+  }
+
+  .advanced-search-box {
+    width: 100%;
   }
 </style>
 
@@ -1893,9 +2013,22 @@ export default {
         &.main-row.has-sub-row {
           border-bottom: 0;
         }
+        &.additional-sub-row.has-sub-row {
+          border-bottom: 0;
+        }
 
         // if a main-row is hovered also hover it's sibling sub row. note - the reverse is handled in selection.js
         &.main-row:not(.row-selected):hover + .sub-row {
+          background-color: var(--sortable-table-hover-bg);
+        }
+
+        // Case with only additional-sub-row
+        &.main-row:not(.row-selected):hover + .additional-sub-row {
+          background-color: var(--sortable-table-hover-bg);
+        }
+
+        // Case with both additional-sub-row and sub-row
+        &.main-row:not(.row-selected):hover + .additional-sub-row + .sub-row{
           background-color: var(--sortable-table-hover-bg);
         }
 
@@ -2041,8 +2174,17 @@ export default {
     grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 350px);
   }
 
+  $header-padding: 20px;
+  .sub-header-row {
+    padding: 0 0 calc($header-padding / 2) 0;
+  }
+
   .fixed-header-actions {
-    padding: 0 0 20px 0;
+    padding: 0 0 $header-padding 0;
+    &.with-sub-header {
+      padding: 0 0 calc($header-padding / 4) 0;
+    }
+
     width: 100%;
     z-index: z-index('fixedTableHeader');
     background: transparent;
@@ -2089,11 +2231,6 @@ export default {
         }
       }
 
-      .bulk-action  {
-        .icon {
-          vertical-align: -10%;
-        }
-      }
     }
 
     .middle {

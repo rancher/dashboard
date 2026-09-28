@@ -1,17 +1,20 @@
 import { IngressListPagePo, IngressCreateEditPo } from '@/cypress/e2e/po/pages/explorer/ingress.po';
 import { generateIngressesDataSmall, ingressesNoData } from '@/cypress/e2e/blueprints/explorer/workloads/service-discovery/ingresses-get';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const cluster = 'local';
 const ingressListPagePo = new IngressListPagePo();
 let ingressName = '';
-let secretsNamesList = [];
-let servicesNamesList = [];
+let secretsNamesList: string[] = [];
+let servicesNamesList: string[] = [];
 const secretsCount = 4;
 const servicesCount = 4;
-let namespace;
+let namespace: string;
+// Matches the debounce RulePath.vue wraps its rule updates in, plus a small margin
+const RULE_UPDATE_DEBOUNCE = 750;
 
-describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -29,7 +32,12 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     // testing https://github.com/rancher/dashboard/issues/11086
     cy.get('@consoleWarn').should('not.be.calledWith', warnMsg);
 
-    cy.title().should('eq', 'Rancher - local - Ingresses');
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Ingresses' : 'Rancher - local - Ingresses';
+
+      cy.log(`Expected title is: ${ expectedTitle }`);
+      cy.title().should('eq', expectedTitle);
+    });
   });
 
   it('can open "Edit as YAML"', () => {
@@ -42,7 +50,7 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     ingressCreatePagePo.resourceDetail().resourceYaml().codeMirror().checkExists();
   });
 
-  describe('Create/Edit', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('Create/Edit', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
       cy.createE2EResourceName('ingress').then((name) => {
         ingressName = name;
@@ -75,8 +83,6 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     it('can select rules and certificates in Create mode', () => {
       cy.viewport(1440, 900);
 
-      cy.log('!!!!!!!!!!!!!!!!!!', namespace);
-
       ingressListPagePo.goTo();
       ingressListPagePo.waitForPage();
       ingressListPagePo.list().resourceTable().sortableTable().checkVisible();
@@ -93,8 +99,10 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
         .set(ingressName);
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
         .toggle();
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
         .clickOptionWithLabel(namespace);
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().description()
         .set(`${ ingressName } description`);
@@ -150,8 +158,19 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
 
       ingressListPagePo.goTo();
       ingressListPagePo.waitForPage();
+      // Wait for the ingress created by the previous test to render in the list before acting on it.
       ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
         .checkVisible();
+      // Confirm the list has finished loading before opening the row action menu: the row can
+      // render before its action button, so a still-loading list makes actionMenu miss it
+      // ([data-testid*="action-button"] never found).
+      ingressListPagePo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      // The row's per-resource action button hydrates after its cells (available actions load
+      // separately), so the table load-gate above is not always enough - wait for the button
+      // itself, with a longer timeout, before opening the menu.
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
+        .actionBtn(LONG_TIMEOUT_OPT)
+        .should('be.visible');
       ingressListPagePo.list().actionMenu(ingressName).getMenuItem('Edit Config').click();
 
       const ingressEditPage = new IngressCreateEditPo('local', namespace, ingressName);
@@ -213,9 +232,115 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
       ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
         .checkVisible();
     });
+
+    it('can create an Ingress targeting a headless service and wait for Active state', () => {
+      const headlessServiceName = Cypress._.uniqueId(`headless-svc-${ Date.now().toString() }`);
+      const ingressHeadlessName = Cypress._.uniqueId(`ingress-headless-${ Date.now().toString() }`);
+
+      cy.createService(namespace, headlessServiceName, {
+        spec: {
+          clusterIP: 'None',
+          ports:     [{
+            name:       'myport',
+            port:       8080,
+            protocol:   'TCP',
+            targetPort: 80
+          }],
+          type: 'ClusterIP'
+        }
+      });
+      // Ensure the service is queryable before the ingress form loads, so its target-service
+      // dropdown lists it. Otherwise the selection silently no-ops and the submitted rule comes
+      // back with no http backend/paths (spec.rules[0].http missing).
+      cy.waitForRancherResource('v1', 'services', `${ namespace }/${ headlessServiceName }`, (resp: any) => resp?.status === 200, 20, { failOnStatusCode: false });
+
+      ingressListPagePo.goTo();
+      ingressListPagePo.waitForPage();
+      ingressListPagePo.list().resourceTable().sortableTable().checkVisible();
+
+      ingressListPagePo.baseResourceList().masthead().create();
+
+      const ingressCreatePagePo = new IngressCreateEditPo();
+
+      ingressCreatePagePo.waitForPage(null, 'rules');
+      // Known issue rancher/dashboard#18845: the ingress create form's target-service dropdown is
+      // populated from the persisted services store rather than a fresh fetch on open, so a service
+      // created after the store was last populated is missing from the options - and selecting a
+      // missing option silently no-ops, producing a saved rule with no http backend. This e2e test
+      // depends on that fix; the reload below is the workaround until it lands.
+      //
+      // With testIsolation off, the target-service dropdown is populated from the persisted services
+      // store, which earlier Create/Edit tests filled before this test created its headless service.
+      // The list-page full visit + waitForRancherResource guard are NOT sufficient: the create form is
+      // reached by an in-app navigation (masthead().create()) that reuses the already-populated store,
+      // so the new headless service can be absent from the options and the selection silently no-ops -
+      // the submitted rule then comes back with no http backend ("{ host } to have property http").
+      // Reload the freshly-opened form (nothing entered yet) to force a fresh services fetch that
+      // includes the new service. (A prior commit removed this reload assuming goTo alone sufficed;
+      // that regressed this test, so it is restored.)
+      cy.reload();
+      ingressCreatePagePo.waitForPage(null, 'rules');
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
+        .set(ingressHeadlessName);
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
+        .toggle();
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
+        .clickOptionWithLabel(namespace);
+
+      ingressCreatePagePo.setRuleRequestHostValue(0, 'example-headless.com');
+      ingressCreatePagePo.setPathTypeByLabel(0, 'ImplementationSpecific');
+      ingressCreatePagePo.setTargetServiceValueByLabel(0, headlessServiceName);
+      ingressCreatePagePo.setPortValueByLabel(0, '8080');
+
+      // RulePath.vue emits its rule updates behind a 500ms debounce (`debounce(this.update, 500)`), so
+      // saving straight after the last rule input races it and posts a rule whose path object is still
+      // untouched. Nothing in the dom marks the flush - the inputs render their own local state, so the
+      // page looks identical before and after, and further interaction only restarts the (trailing)
+      // debounce - so wait it out before saving.
+      cy.wait(RULE_UPDATE_DEBOUNCE); // eslint-disable-line cypress/no-unnecessary-waiting
+
+      ingressCreatePagePo.resourceDetail().createEditView().saveAndWaitForRequests('POST', '/v1/networking.k8s.io.ingresses')
+        .then(({ request, response }) => {
+          // Assert the payload too: if the debounce is ever raced again, this fails at the save with a
+          // rule that has no backend, instead of further down on the fetched object.
+          expect(request?.body?.spec?.rules?.[0], 'saved rule').to.have.property('http');
+
+          expect(response?.statusCode).to.eq(201);
+          expect(response?.body.metadata).to.have.property('name', ingressHeadlessName);
+
+          const rule = response?.body?.spec?.rules?.[0];
+
+          expect(rule).to.have.property('host', 'example-headless.com');
+          expect(rule).to.have.property('http');
+          expect(rule.http.paths).to.be.an('array').with.length.greaterThan(0);
+
+          const path = rule.http.paths[0];
+
+          expect(path).to.have.property('pathType', 'ImplementationSpecific');
+          expect(path.backend.service).to.deep.include({
+            name: headlessServiceName,
+            port: { number: 8080 }
+          });
+        });
+
+      ingressListPagePo.waitForPage();
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressHeadlessName)
+        .checkVisible();
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressHeadlessName)
+        .column(1)
+        .should('contain.text', 'Active');
+    });
+
+    after('clean up namespaced resources', () => {
+      if (namespace) {
+        cy.deleteNamespace([namespace]);
+      }
+    });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}');
     });
@@ -290,7 +415,5 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
 
   after('clean up', () => {
     cy.updateNamespaceFilter(cluster, 'none', '{"local":["all://user"]}');
-
-    cy.deleteNamespace([namespace]);
   });
 });

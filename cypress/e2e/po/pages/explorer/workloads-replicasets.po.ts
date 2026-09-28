@@ -14,6 +14,11 @@ export class WorkloadsReplicasetsListPagePo extends BaseListPagePo {
   constructor(clusterId = 'local') {
     super(WorkloadsReplicasetsListPagePo.createPath(clusterId));
   }
+
+  waitForListReady(): void {
+    this.list().resourceTable().sortableTable().checkVisible();
+    this.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+  }
 }
 
 export class WorkloadsReplicasetsEditPagePo extends BaseDetailPagePo {

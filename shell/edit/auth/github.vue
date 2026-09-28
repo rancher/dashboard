@@ -1,19 +1,26 @@
 <script>
+import { ref, computed, provide } from 'vue';
+import { useStore } from 'vuex';
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+import * as z from 'zod';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import CopyToClipboard from '@shell/components/CopyToClipboard';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import { MANAGEMENT } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
 import AuthConfig from '@shell/mixins/auth-config';
 import AuthBanner from '@shell/components/auth/AuthBanner';
-import InfoBox from '@shell/components/InfoBox';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
-
-const NAME = 'github';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
+import GithubSteps from '@shell/edit/auth/github-steps.vue';
+import GithubAppSteps from '@shell/edit/auth/github-app-steps.vue';
+import { useI18n } from '@shell/composables/useI18n';
+import { RcSeparator } from '@components/RcSeparator';
+import { zodValidators } from '@shell/utils/validators/zod-helpers';
 
 export default {
   components: {
@@ -21,14 +28,56 @@ export default {
     CruResource,
     RadioGroup,
     LabeledInput,
-    CopyToClipboard,
     AllowedPrincipals,
     AuthBanner,
-    InfoBox,
-    AuthProviderWarningBanners
+    AuthProviderWarningBanners,
+    FileSelectorTextArea,
+    GithubSteps,
+    GithubAppSteps,
+    RcSeparator,
   },
 
   mixins: [CreateEditView, AuthConfig],
+
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+
+    // These refs sync Options API state into the Composition API for the reactive schema.
+    const isGithubAppRef = ref(false);
+    const isPublicRef = ref(true);
+
+    const { field } = zodValidators(t);
+
+    const validationSchema = computed(() => toTypedSchema(
+      z.object({
+        clientId:     field('authConfig.github.clientId.label').required(),
+        clientSecret: field('authConfig.github.clientSecret.label').required(),
+        appId:        isGithubAppRef.value ? field('authConfig.githubapp.githubAppId.label').required() : field(),
+        privateKey:   isGithubAppRef.value ? field('authConfig.githubapp.privateKey.label').required() : field(),
+        targetUrl:    !isPublicRef.value ? field('authConfig.github.host.label').required().url() : field(),
+      })
+    ));
+
+    const showAllErrors = ref(false);
+
+    provide('vee-show-all-errors', showAllErrors);
+
+    const { errors, validate } = useForm({ validationSchema });
+    const isFormValid = computed(() => Object.keys(errors.value).length === 0);
+
+    const validateAllFields = async() => {
+      await validate();
+      showAllErrors.value = true;
+    };
+
+    return {
+      isGithubAppRef,
+      isPublicRef,
+      isFormValid,
+      validateAllFields,
+    };
+  },
 
   async fetch() {
     await this.mixinFetch();
@@ -60,7 +109,7 @@ export default {
     },
 
     displayName() {
-      return this.t(`model.authConfig.provider.${ NAME }`);
+      return this.t(`model.authConfig.provider.${ this.NAME }`);
     },
 
     tArgs() {
@@ -73,7 +122,7 @@ export default {
     },
 
     NAME() {
-      return NAME;
+      return this.isGithubApp ? 'githubapp' : 'github';
     },
 
     AUTH_CONFIG() {
@@ -86,18 +135,48 @@ export default {
         githubConfig: this.model,
         description:  'Enable GitHub',
       };
-    }
+    },
+
+    isGithubApp() {
+      return this.model?.id === 'githubapp';
+    },
+
+    steps() {
+      return this.isGithubApp ? GithubAppSteps : GithubSteps;
+    },
+
+    validationPassed() {
+      if ( this.model.enabled && !this.editConfig ) {
+        return true;
+      }
+
+      return this.isFormValid;
+    },
 
   },
 
   watch: {
-    targetType: 'updateHost',
-    targetUrl:  'updateHost',
+    'model.id': {
+      handler(newVal) {
+        this.isGithubAppRef = newVal === 'githubapp';
+      },
+      immediate: true,
+    },
+
+    targetType: {
+      handler(newVal) {
+        this.isPublicRef = newVal === 'public';
+        this.updateHost();
+      },
+      immediate: true,
+    },
+
+    targetUrl: 'updateHost',
   },
 
   methods: {
     updateHost() {
-      const match = this.targetUrl.match(/^(((https?):)?\/\/)?([^/]+)(\/.*)?$/);
+      const match = this.targetUrl?.match(/^(((https?):)?\/\/)?([^/]+)(\/.*)?$/);
 
       if ( match ) {
         if ( match[3] === 'http') {
@@ -122,7 +201,7 @@ export default {
       :mode="mode"
       :resource="model"
       :subtypes="[]"
-      :validation-passed="true"
+      :validation-passed="validationPassed"
       :finish-button-mode="model.enabled ? 'edit' : 'enable'"
       :can-yaml="false"
       :errors="errors"
@@ -136,14 +215,15 @@ export default {
           :t-args="tArgs"
           :disable="disable"
           :edit="goToEdit"
+          :provider-id="model.id"
         >
           <template #rows>
             <tr><td>{{ t(`authConfig.${ NAME }.table.server`) }}: </td><td>{{ baseUrl }}</td></tr>
-            <tr><td>{{ t(`authConfig.${ NAME }.table.clientId`) }}: </td><td>{{ value.clientId }}</td></tr>
+            <tr><td>{{ t(`authConfig.${ NAME }.table.clientId`) }}: </td><td>{{ model.clientId }}</td></tr>
           </template>
         </AuthBanner>
 
-        <hr role="none">
+        <RcSeparator />
 
         <AllowedPrincipals
           provider="github"
@@ -156,7 +236,17 @@ export default {
         <AuthProviderWarningBanners
           v-if="!model.enabled"
           :t-args="tArgs"
-        />
+        >
+          <template
+            v-if="isGithubApp"
+            #additional-warning
+          >
+            <span
+              v-clean-html="t(`authConfig.${NAME}.warning`, {}, true)"
+              data-testid="github-app-banner"
+            />
+          </template>
+        </AuthProviderWarningBanners>
 
         <h3 v-t="`authConfig.${NAME}.target.label`" />
         <RadioGroup
@@ -173,6 +263,7 @@ export default {
             <LabeledInput
               v-if="!isPublic"
               v-model:value="targetUrl"
+              name="targetUrl"
               :label-key="`authConfig.${NAME}.host.label`"
               :placeholder="t(`authConfig.${NAME}.host.placeholder`)"
               :required="true"
@@ -182,60 +273,19 @@ export default {
           </div>
         </div>
 
-        <InfoBox
-          :step="1"
-          class="step-box"
-        >
-          <ul class="step-list">
-            <li v-clean-html="t(`authConfig.${NAME}.form.prefix.1`, tArgs, true)" />
-            <li v-clean-html="t(`authConfig.${NAME}.form.prefix.2`, tArgs, true)" />
-            <li v-clean-html="t(`authConfig.${NAME}.form.prefix.3`, tArgs, true)" />
-          </ul>
-        </InfoBox>
-        <InfoBox
-          :step="2"
-          class="step-box"
-        >
-          <ul class="step-list">
-            <li>
-              {{ t(`authConfig.${NAME}.form.instruction`, tArgs, true) }}
-              <ul class="mt-10">
-                <li><b>{{ t(`authConfig.${NAME}.form.app.label`) }}</b>: <span v-clean-html="t(`authConfig.${NAME}.form.app.value`, tArgs, true)" /></li>
-                <li>
-                  <b>{{ t(`authConfig.${NAME}.form.homepage.label`) }}</b>: {{ serverUrl }} <CopyToClipboard
-                    label-as="tooltip"
-                    :text="serverUrl"
-                    class="icon-btn"
-                    action-color="bg-transparent"
-                  />
-                </li>
-                <li><b>{{ t(`authConfig.${NAME}.form.description.label`) }}</b>: <span v-clean-html="t(`authConfig.${NAME}.form.description.value`, tArgs, true)" /></li>
-                <li>
-                  <b>{{ t(`authConfig.${NAME}.form.callback.label`) }}</b>: {{ serverUrl }} <CopyToClipboard
-                    :text="serverUrl"
-                    label-as="tooltip"
-                    class="icon-btn"
-                    action-color="bg-transparent"
-                  />
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </InfoBox>
-        <InfoBox
-          :step="3"
-          class="mb-20"
-        >
-          <ul class="step-list">
-            <li v-clean-html="t(`authConfig.${NAME}.form.suffix.1`, tArgs, true)" />
-            <li v-clean-html="t(`authConfig.${NAME}.form.suffix.2`, tArgs, true)" />
-          </ul>
-        </InfoBox>
+        <component
+          :is="steps"
+          :t-args="tArgs"
+          :name="NAME"
+        />
 
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
               v-model:value="model.clientId"
+              name="clientId"
+              required
+              data-testid="client-id"
               :label="t(`authConfig.${NAME}.clientId.label`)"
               :mode="mode"
             />
@@ -243,21 +293,55 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="model.clientSecret"
+              name="clientSecret"
+              required
+              data-testid="client-secret"
               type="password"
               :label="t(`authConfig.${NAME}.clientSecret.label`)"
               :mode="mode"
             />
           </div>
         </div>
+        <template v-if="isGithubApp">
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.appId"
+                name="appId"
+                required
+                data-testid="app-id"
+                :label="t(`authConfig.${NAME}.githubAppId.label`)"
+                :mode="mode"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.installationId"
+                data-testid="installation-id"
+                :label="t(`authConfig.${NAME}.installationId.label`)"
+                :mode="mode"
+              />
+            </div>
+          </div>
+          <div class="row mb-20">
+            <div class="col span-12">
+              <FileSelectorTextArea
+                v-model:value="model.privateKey"
+                name="privateKey"
+                required
+                data-testid="private-key"
+                :label="t(`authConfig.${NAME}.privateKey.label`)"
+                :mode="mode"
+              />
+            </div>
+          </div>
+        </template>
       </template>
     </CruResource>
   </div>
 </template>
 
 <style lang="scss" scoped>
-  .step-list li:not(:last-child) {
-    margin-bottom: 8px;
-  }
   .banner {
     display: block;
 

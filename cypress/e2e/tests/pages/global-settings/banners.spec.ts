@@ -42,11 +42,17 @@ const settings = {
 };
 
 const bannerHtml = `<div style="display: flex; align-items: center; padding: 0 10px"><img onload="alert('hello');" src="https://www.rancher.com/assets/img/logos/rancher-logo-horiz-color.svg" height="24" style="margin-right: 10px; padding: 4px 0"/><p>Use of this system implies acceptance of <a target="_blank" href="https://www.suse.com">SUSE's Terms and Conditions</a></p></div>`;
-const bannerHtmlSanitized = `<div style="display: flex; align-items: center; padding: 0 10px"><img style="margin-right: 10px; padding: 4px 0" height="24" src="https://www.rancher.com/assets/img/logos/rancher-logo-horiz-color.svg"><p>Use of this system implies acceptance of <a target="_blank" href="https://www.suse.com" rel="noopener noreferrer nofollow">SUSE's Terms and Conditions</a></p></div>`;
+const bannerHtmlSanitized = `<div style="display: flex; align-items: center; padding: 0 10px"><img src="https://www.rancher.com/assets/img/logos/rancher-logo-horiz-color.svg" height="24" style="margin-right: 10px; padding: 4px 0"><p>Use of this system implies acceptance of <a target="_blank" href="https://www.suse.com" rel="noopener noreferrer nofollow">SUSE\'s Terms and Conditions</a></p></div>`;
 
 const acceptButtonText = 'Got it!';
 
-describe('Banners', { testIsolation: 'off' }, () => {
+/**
+ * Per-banner settings, which take precedence over `ui-banners` and disable the matching fields on the
+ * Banners page while set. Cleared before and after the suite so a dead run can't break the next one.
+ */
+const INDIVIDUAL_BANNER_SETTINGS = ['ui-banner-header', 'ui-banner-footer', 'ui-banner-login-consent'];
+
+describe('Banners', { testIsolation: false }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
@@ -56,22 +62,24 @@ describe('Banners', { testIsolation: 'off' }, () => {
 
       bannersSettingsOriginal.push(body);
     });
+
+    // Don't assume a clean server; a dead run leaves settings behind.
+    resetBannerSettings();
+  });
+
+  after('restore banner settings', () => {
+    // Tests can finish on the login screen, so sign back in to reach the API.
+    cy.login();
+
+    resetBannerSettings(bannersSettingsOriginal[0]?.value ?? '');
   });
 
   describe('Standard Banner Configuration', () => {
     after('set default banners settings', () => {
       if (restoreSettings) {
-        cy.login(undefined, undefined, true);
+        cy.login();
 
-        // get most updated version of banners info
-        cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-banners', null).then((resp: Cypress.Response<any>) => {
-          const response = resp.body.metadata;
-
-          // update original data before sending request
-          bannersSettingsOriginal[0].metadata.resourceVersion = response.resourceVersion;
-
-          cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-banners', bannersSettingsOriginal[0]);
-        });
+        resetBannerSettings(bannersSettingsOriginal[0]?.value ?? '');
       }
     });
 
@@ -380,7 +388,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
         BannersPagePo.navTo();
 
         // Show Banner
-        bannersPage.headerBannerCheckbox().set();
+        bannersPage.headerBannerCheckbox().check();
         // to check custom box element width and height in order to prevent regression
         // https://github.com/rancher/dashboard/issues/10000
         bannersPage.headerBannerCheckbox().hasAppropriateWidth();
@@ -433,7 +441,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
 
         // Show Banner
         bannersPage.loginScreenBannerCheckbox().checkVisible();
-        bannersPage.loginScreenBannerCheckbox().set();
+        bannersPage.loginScreenBannerCheckbox().check();
         bannersPage.consentBannerShowAsDialogCheckbox().set();
         bannersPage.contentTypeToggle('bannerConsent').set('HTML'); // Set content type as HTML
         bannersPage.htmlTextArea('bannerConsent').set(bannerHtml);
@@ -488,7 +496,8 @@ describe('Banners', { testIsolation: 'off' }, () => {
   function updateBannersSetting(fn) {
     cy.getRancherResource('v1', 'management.cattle.io.settings').then((data: any) => {
       const banners = data.body.data.find((setting) => setting.id === 'ui-banners');
-      const value = JSON.parse(banners.value);
+      // An unset setting holds an empty string, which `JSON.parse` won't take.
+      const value = JSON.parse(banners.value || '{}');
 
       fn(value);
 
@@ -506,6 +515,41 @@ describe('Banners', { testIsolation: 'off' }, () => {
       banner.value = value === null ? '' : JSON.stringify(value);
 
       cy.setRancherResource('v1', 'management.cattle.io.settings', id, banner);
+    });
+  }
+
+  /**
+   * Clear every individual banner setting, and restore `ui-banners` when given a value.
+   *
+   * Safe to call at any point: settings are re-read first, and anything already correct or missing
+   * is left alone. Does nothing for a user who can't update settings, since this suite also runs as
+   * a standard user, who has read only access to the Banners page and changes nothing.
+   */
+  function resetBannerSettings(bannersValue?: string) {
+    cy.getRancherResource('v1', 'schemas', 'management.cattle.io.setting').then((schema: any) => {
+      if (!(schema.body?.resourceMethods || []).includes('PUT')) {
+        return;
+      }
+
+      cy.getRancherResource('v1', 'management.cattle.io.settings').then((data: any) => {
+        const targets = INDIVIDUAL_BANNER_SETTINGS.map((id) => ({ id, value: '' }));
+
+        if (bannersValue !== undefined) {
+          targets.push({ id: 'ui-banners', value: bannersValue });
+        }
+
+        targets.forEach(({ id, value }) => {
+          const setting = data.body.data.find((s: any) => s.id === id);
+
+          if (!setting || (setting.value || '') === value) {
+            return;
+          }
+
+          setting.value = value;
+
+          cy.setRancherResource('v1', 'management.cattle.io.settings', id, setting);
+        });
+      });
     });
   }
 

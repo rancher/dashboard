@@ -1,12 +1,8 @@
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 
 export default class MachineSetsListPo extends BaseResourceList {
-  openBulkActionDropdown() {
-    return this.resourceTable().sortableTable().bulkActionDropDownOpen();
-  }
-
   bulkActionButton(name: string) {
-    return this.resourceTable().sortableTable().bulkActionDropDownButton(name);
+    return this.resourceTable().sortableTable().bulkActionButton(name);
   }
 
   details(name: string, index: number) {

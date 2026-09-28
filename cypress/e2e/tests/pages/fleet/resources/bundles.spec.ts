@@ -3,7 +3,7 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-// import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const bundle = 'fleet-agent-local';
 const localWorkspace = 'fleet-local';
@@ -13,11 +13,11 @@ let removeBundle = false;
 const bundlesNameList = [];
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Bundles', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetBundlesListPage = new FleetBundlesListPagePo();
   const headerPo = new HeaderPo();
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before(() => {
       cy.login();
     });
@@ -59,6 +59,9 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       const fleetBundlesDetailsPage = new FleetBundleDetailsPo(localWorkspace, bundle);
 
       fleetBundlesDetailsPage.waitForPage();
+
+      // click on the Resources tab
+      fleetBundlesDetailsPage.tabs().clickTabWithName('resources');
 
       // check table headers
       const expectedHeadersDetailsViewEvents = ['State', 'Name', 'Kind', 'Cluster', 'Namespace', 'API Version'];
@@ -133,8 +136,8 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       });
       fleetBundlesListPage.waitForPage();
       fleetBundlesListPage.list().rowWithName(customBundleName).checkVisible();
-      // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/14146
-      // fleetBundlesListPage.resourceTableDetails(customBundleName, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
+      // Does the bundle deployment have `1` Deployment
+      fleetBundlesListPage.resourceTableDetails(customBundleName, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
     });
 
     // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/13990
@@ -205,8 +208,14 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       });
       fleetBundlesListPage.waitForPage();
       fleetBundlesListPage.list().rowWithName(`${ customBundleName }-clone`).checkVisible();
-      // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/14146
-      // fleetBundlesListPage.resourceTableDetails(`${ customBundleName }-clone`, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
+
+      // Workaround - there may be a timing issue where the cloned Bundle's Deployments count does not update and needs refresh
+      fleetBundlesListPage.goTo();
+      fleetBundlesListPage.waitForPage();
+      fleetBundlesListPage.list().rowWithName(`${ customBundleName }-clone`).checkVisible();
+
+      // Does the bundle deployment have `1` Deployment
+      fleetBundlesListPage.resourceTableDetails(`${ customBundleName }-clone`, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
     });
 
     it('can Download YAML', () => {

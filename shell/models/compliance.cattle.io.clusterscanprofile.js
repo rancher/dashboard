@@ -11,7 +11,7 @@ export default class ComplianceProfile extends SteveModel {
   get numberTestsSkipped() {
     const { skipTests = [] } = this.spec;
 
-    return skipTests.length;
+    return skipTests?.length || 0;
   }
 
   get benchmarkVersionLink() {

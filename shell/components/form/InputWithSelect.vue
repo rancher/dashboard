@@ -1,18 +1,22 @@
 <script>
-import labeledFormElement from '@shell/mixins/labeled-form-element';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Select from '@shell/components/form/Select';
+import { computed } from 'vue';
+import { _VIEW, _EDIT } from '@shell/config/query-params';
+
 export default {
-  name:       'InputWithSelect',
+  name: 'InputWithSelect',
+
+  inheritAttrs: false,
+
   emits:      ['update:value'],
   components: {
     LabeledInput,
     LabeledSelect,
     Select,
   },
-  mixins: [labeledFormElement],
-  props:  {
+  props: {
     disabled: {
       type:    Boolean,
       default: false,
@@ -84,8 +88,18 @@ export default {
     selectRules: {
       default: () => [],
       type:    Array,
+    },
+    mode: {
+      type:    String,
+      default: _EDIT,
     }
 
+  },
+
+  setup(props) {
+    const isView = computed(() => props.mode === _VIEW);
+
+    return { isView };
   },
 
   data() {
@@ -93,12 +107,6 @@ export default {
       selected: this.selectValue || this.options[0].value,
       string:   this.textValue,
     };
-  },
-
-  computed: {
-    canPaginate() {
-      return false;
-    }
   },
 
   methods: {

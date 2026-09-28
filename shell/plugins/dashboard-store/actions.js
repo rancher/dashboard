@@ -79,6 +79,29 @@ const findAllGetter = (getters, type, opt) => {
   return opt.namespaced ? getters.matching(type, null, opt.namespaced, { skipSelector: true }) : getters.all(type);
 };
 
+const createFindWatchArg = ({
+  type, id, opt, res
+}) => {
+  const revision = typeof opt.revision !== 'undefined' ? opt.revision : res?.metadata?.resourceVersion;
+  const watchMsg = {
+    type,
+    id,
+    // Although not used by sockets, we need this for when resyncWatch calls find... which needs namespace to construct the url
+    namespace: opt.namespaced,
+    revision:  revision || '',
+    force:     opt.forceWatch === true,
+  };
+
+  const idx = id.indexOf('/');
+
+  if ( idx > 0 ) {
+    watchMsg.namespace = id.substr(0, idx);
+    watchMsg.id = id.substr(idx + 1);
+  }
+
+  return watchMsg;
+};
+
 export default {
   request() {
     throw new Error('Not Implemented');
@@ -197,6 +220,9 @@ export default {
       )
     ) {
       if (opt.watch !== false ) {
+        // Note - Empty revision here seems broken
+        // - list page (watch all) --> detail page (stop watch all, watch one) --> list page (watch all - no revision)
+        // - the missing revision means watch start from now... instead of the point the clusters were last monitored (cache contains stale data)
         const args = {
           type,
           revision:  '',
@@ -241,7 +267,7 @@ export default {
         dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
       }
 
-      if (opt.incremental.pageByNumber && getters.isSteveCacheUrl(parse(opt.url).path)) {
+      if (opt.incremental.pageByNumber && getters.isSteveUrl(parse(opt.url).path)) {
         // Set the configuration for the rest of the incremental requests
         pageByNumber = {
           url:      opt.url,
@@ -445,7 +471,7 @@ export default {
       return findAllGetter(getters, type, opt);
     }
 
-    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Size: ${ opt.pagination.pageSize }. Sort: ${ opt.pagination.sort.map((s) => s.field).join(', ') }`); // eslint-disable-line no-console
+    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Revision: ${ opt.revision || 'none' }. Size: ${ opt.pagination.pageSize }. Sort: ${ opt.pagination.sort?.map((s) => s.field).join(', ') }`); // eslint-disable-line no-console
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
 
@@ -465,16 +491,18 @@ export default {
       return Promise.reject(e);
     }
 
-    // Of type @StorePagination
+    // Of type @StorePaginationResult
     const pagination = opt.pagination ? {
       request: {
-        namespace:  opt.namespaced,
-        pagination: opt.pagination
+        namespace:             opt.namespaced,
+        pagination:            opt.pagination,
+        includeAssociatedData: opt.includeAssociatedData,
       },
       result: {
         count:     out.count,
         pages:     out.pages || Math.ceil(out.count / (opt.pagination.pageSize || Number.MAX_SAFE_INTEGER)),
-        timestamp: new Date().getTime()
+        timestamp: new Date().getTime(),
+        revision:  out.revision
       }
     } : undefined;
 
@@ -485,6 +513,13 @@ export default {
         data:     out.data,
         pagination,
         revision: out.revision,
+      });
+    }
+
+    if (opt.saveCountAs) {
+      commit('setSavedCount', {
+        name:  opt.saveCountAs,
+        count: out.count,
       });
     }
 
@@ -520,7 +555,6 @@ export default {
    */
   async findLabelSelector(ctx, {
     type,
-    context,
     matching: {
       namespace,
       labelSelector
@@ -528,14 +562,10 @@ export default {
     opt
   }) {
     const { getters, dispatch } = ctx;
-    const args = {
-      id: type,
-      context,
-    };
 
     opt = opt || {};
 
-    if (getters[`paginationEnabled`]?.(args)) {
+    if (getters[`paginationEnabled`]?.()) {
       if (isLabelSelectorEmpty(labelSelector)) {
         throw new Error(`labelSelector must not be empty when using findLabelSelector (avoid fetching all resources)`);
       }
@@ -547,7 +577,7 @@ export default {
           ...opt,
           namespaced: namespace,
           pagination: new FilterArgs({ labelSelector }),
-          transient:  opt?.transient !== undefined ? opt.transient : false // Call this out explicitly here, as by default findX methods ar eusually be cached AND watched
+          transient:  opt?.transient !== undefined ? opt.transient : false // Call this out explicitly here, as by default findX methods are usually cached AND watched
         }
       });
     }
@@ -630,12 +660,8 @@ export default {
     return getters.all(type);
   },
 
-  // opt:
-  //  filter: Filter by fields, e.g. {field: value, anotherField: anotherValue} (default: none)
-  //  limit: Number of records to return per page (default: 1000)
-  //  sortBy: Sort by field
-  //  sortOrder: asc or desc
-  //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstrapping schemas on startup.
+  // opt: @ActionFindArgs
+  // @returns @ActionFindResponse
   //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async find(ctx, { type, id, opt }) {
     if (!id) {
@@ -657,45 +683,46 @@ export default {
       out = getters.byId(type, id);
 
       if ( out ) {
+        if ( opt.watch !== false ) {
+          dispatch('watch', createFindWatchArg({
+            type, id, opt, res: undefined
+          }));
+        }
+
         return out;
       }
     }
+
+    const havePage = getters.havePage(type);
 
     opt = opt || {};
     opt.url = getters.urlFor(type, id, opt);
 
     const res = await dispatch('request', { opt, type });
 
-    await dispatch('load', { data: res });
+    if (!havePage && getters.havePage(type)) {
+      // There may be a super edge case where list --> detail (whilst loading) --> list navigation causes the list's rows to disappear
+      // Somehow the `findPage` from the list page returns before the `find`. The `find` then clears the page state in the cache.
+      // If this has happened silently return (we don't care about result)
+      // https://github.com/rancher/dashboard/issues/17524
+      console.warn(`Prevented \`find\` action from polluting cache for type "${ type }" (currently represents a page).`); // eslint-disable-line no-console
 
-    if ( opt.watch !== false ) {
-      const watchMsg = {
-        type,
-        id,
-        // Although not used by sockets, we need this for when resyncWatch calls find... which needs namespace to construct the url
-        namespace: opt.namespaced,
-        // Override the revision. Used in cases where we need to avoid using the resource's own revision which would be `too old`.
-        // For the above case opt.revision will be `null`. If left as `undefined` the subscribe mechanism will try to determine a revision
-        // from resources in store (which would be this one, with the too old revision)
-        revision:  typeof opt.revision !== 'undefined' ? opt.revision : res?.metadata?.resourceVersion,
-        force:     opt.forceWatch === true,
-      };
-
-      const idx = id.indexOf('/');
-
-      if ( idx > 0 ) {
-        watchMsg.namespace = id.substr(0, idx);
-        watchMsg.id = id.substr(idx + 1);
-      }
-
-      dispatch('watch', watchMsg);
+      return;
     }
 
-    out = getters.byId(type, id);
+    if (!opt.transient) {
+      await dispatch('load', { data: res, invalidatePageCache: opt.invalidatePageCache });
+    }
+
+    if (!opt.transient && opt.watch !== false ) {
+      dispatch('watch', createFindWatchArg({
+        type, id, opt, res
+      }));
+    }
 
     garbageCollect.gcUpdateLastAccessed(ctx, type);
 
-    return out;
+    return opt.transient ? await dispatch('create', res) : getters.byId(type, id);
   },
 
   /**
@@ -808,14 +835,36 @@ export default {
     return classify(ctx, resource.toJSON(), true);
   },
 
-  // Forget a type in the store
-  // Remove all entries for that type and stop watching it
-  forgetType({ commit, dispatch, state }, type, compareWatches) {
-    state.started
-      .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type)
-      .forEach((entry) => dispatch('unwatch', entry));
+  /**
+   * Remove all cached entries for a resource and stop watches
+   */
+  forgetType({ commit, dispatch, state }, payload) {
+    let type = payload;
+    let config = {};
 
-    commit('forgetType', type);
+    if ( typeof payload === 'object' && payload !== null && payload.type ) {
+      type = payload.type;
+      config = payload;
+    }
+
+    const { compareWatches, unwatch = true, forget = true } = config;
+
+    if (unwatch) {
+      // Stop all known watches
+      state.started
+        .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type)
+        .forEach((entry) => dispatch('unwatch', entry));
+
+      // Stop all known back-off watch processes for this type
+      dispatch('resetWatchBackOff', {
+        type, compareWatches, resetStarted: false
+      });
+    }
+
+    if (forget) {
+      // Remove entries from store
+      commit('forgetType', type);
+    }
   },
 
   promptRemove({ commit, state }, resources ) {
@@ -856,8 +905,13 @@ export default {
     return resource;
   },
 
-  cleanForDownload(ctx, resource) {
-    return resource;
+  cleanForDownload(ctx, payload) {
+    // Backwards compatibility: older callers (e.g. extensions built against a
+    // previous shell) dispatch the yaml string directly rather than a
+    // { yaml, opt } payload. Accept either shape.
+    const { yaml } = typeof payload === 'string' ? { yaml: payload } : (payload || {});
+
+    return yaml;
   },
 
   // Wait for a schema that is expected to exist that may not have been loaded yet (for instance when loadCluster is still running).

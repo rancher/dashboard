@@ -1,4 +1,5 @@
 import { FleetWorkspaceListPagePo, FleetWorkspaceCreateEditPo, FleetWorkspaceDetailsPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.fleetworkspace.po';
+import { FleetApplicationListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 import { generateFleetWorkspacesDataSmall } from '@/cypress/e2e/blueprints/fleet/workspaces-get';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
@@ -9,11 +10,11 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { ociSecretCreateRequest } from '@/cypress/e2e/blueprints/explorer/storage/secret';
 
 const defaultWorkspace = 'fleet-default';
-const workspaceNameList = [];
+const workspaceNameList: string[] = [];
 let customWorkspace = '';
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Workspaces', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetWorkspacesListPage = new FleetWorkspaceListPagePo();
 
   const headerPo = new HeaderPo();
@@ -25,7 +26,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     let initialCount: number;
 
     it('check table headers are available in list and details view', () => {
@@ -39,7 +40,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
         .checkRowCount(false, 1);
 
       // check table headers
-      const expectedHeaders = ['State', 'Name', 'Git Repos', 'Clusters', 'Cluster Groups', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Git Repos', 'Helm Ops', 'Clusters', 'Cluster Groups', 'Age'];
 
       fleetWorkspacesListPage.list().resourceTable().sortableTable()
         .tableHeaderRow()
@@ -53,7 +54,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
       const fleetWorkspaceDetailsPage = new FleetWorkspaceDetailsPo(defaultWorkspace);
 
-      fleetWorkspaceDetailsPage.waitForPage(null, 'events');
+      fleetWorkspaceDetailsPage.waitForPage(undefined, 'events');
 
       // check table headers
       const expectedHeadersDetailsViewEvents = ['Type', 'Reason', 'Updated', 'Message'];
@@ -66,7 +67,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
         });
 
       fleetWorkspaceDetailsPage.workspaceTabs().clickTabWithSelector('[data-testid="related"]');
-      fleetWorkspaceDetailsPage.waitForPage(null, 'related');
+      fleetWorkspaceDetailsPage.waitForPage(undefined, 'related');
 
       // check table headers
       const expectedHeadersDetailsViewResources = ['State', 'Type', 'Name', 'Namespace'];
@@ -368,7 +369,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
       fleetWorkspacesListPage.list().resourceTable().sortableTable()
         .noRowsShouldNotExist();
       fleetWorkspacesListPage.baseResourceList().masthead().create();
-      fleetWorkspaceCreateEditPage.waitForPage(null, 'allowedtargetnamespaces');
+      fleetWorkspaceCreateEditPage.waitForPage(undefined, 'allowedtargetnamespaces');
       fleetWorkspaceCreateEditPage.mastheadTitle().then((title) => {
         expect(title.replace(/\s+/g, ' ')).to.contain('Workspace: Create');
       });
@@ -397,7 +398,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
       fleetWorkspaceCreateEditPage.allowTargetNsTabList().setValueAtIndex('test', 0, 'Add');
       fleetWorkspaceCreateEditPage.resourceDetail().tabs()
         .clickTabWithSelector('[data-testid="btn-labels"]');
-      fleetWorkspaceCreateEditPage.waitForPage(null, 'labels');
+      fleetWorkspaceCreateEditPage.waitForPage(undefined, 'labels');
       fleetWorkspaceCreateEditPage.lablesAnnotationsKeyValue().setKeyValueAtIndex('Add Label', 'label-key1', 'label-value1', 0, 'div.row:nth-of-type(2)');
 
       // Adding Annotations doesn't work via test automation
@@ -415,11 +416,13 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
     });
 
     it('user sees custom workspace as an option in workspace selector', () => {
-      fleetWorkspacesListPage.goTo();
-      fleetWorkspacesListPage.waitForPage();
-      fleetWorkspacesListPage.list().resourceTable().sortableTable()
-        .noRowsShouldNotExist();
-      headerPo.checkCurrentWorkspace(customWorkspace);
+      const appBundleListPage = new FleetApplicationListPagePo();
+
+      appBundleListPage.goTo();
+      appBundleListPage.waitForPage();
+
+      headerPo.workspaceSwitcher().toggle();
+      headerPo.workspaceSwitcher().getOptions().should('contain', customWorkspace);
     });
 
     it('can Edit Config', () => {

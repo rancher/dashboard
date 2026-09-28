@@ -47,16 +47,66 @@ describe('composables: SecretDataTab/auth-types', () => {
     });
   });
 
+  describe('decodeDockerAuthEntry', () => {
+    it('should return the username and password when they are set explicitly', () => {
+      const entry = { username: 'USERNAME', password: 'PASSWORD' };
+
+      expect(authTypes.decodeDockerAuthEntry(entry)).toStrictEqual({ username: 'USERNAME', password: 'PASSWORD' });
+      expect(base64DecodeSpy).not.toHaveBeenCalled();
+    });
+
+    it('should decode the base64 `auth` field (username:password) when username/password are not set', () => {
+      base64DecodeSpy.mockReturnValue('USERNAME:PASSWORD');
+
+      expect(authTypes.decodeDockerAuthEntry({ auth: 'base64Auth' })).toStrictEqual({ username: 'USERNAME', password: 'PASSWORD' });
+      expect(base64DecodeSpy).toHaveBeenCalledWith('base64Auth');
+    });
+
+    it('should only split on the first colon so passwords may contain colons', () => {
+      base64DecodeSpy.mockReturnValue('USERNAME:PASS:WORD');
+
+      expect(authTypes.decodeDockerAuthEntry({ auth: 'base64Auth' })).toStrictEqual({ username: 'USERNAME', password: 'PASS:WORD' });
+    });
+
+    it.each([
+      ['undefined entry', undefined],
+      ['empty entry', {}],
+      ['auth without a colon', { auth: 'base64Auth' }],
+    ])('should return empty strings for %s', (_label, entry) => {
+      base64DecodeSpy.mockReturnValue('nocolon');
+
+      expect(authTypes.decodeDockerAuthEntry(entry as any)).toStrictEqual({ username: '', password: '' });
+    });
+  });
+
   describe('useDockerAuths', () => {
     it('should return the auths field from a base64decoded json object in the `.dockerconfigjson` data field', () => {
       const data = { '.dockerconfigjson': 'base64Json' };
-      const json = { auths: 'AUTHS' };
+      const json = { auths: { 'registry-url.com': { username: 'u' } } };
 
       base64DecodeSpy.mockReturnValue(JSON.stringify(json));
       const dockerAuths = authTypes.useDockerAuths({ data });
 
       expect(dockerAuths.value).toStrictEqual(json.auths);
       expect(base64DecodeSpy).toHaveBeenCalledWith(data['.dockerconfigjson']);
+    });
+
+    it('should return an empty object when the json is invalid', () => {
+      const data = { '.dockerconfigjson': 'base64Json' };
+
+      base64DecodeSpy.mockReturnValue('not-valid-json');
+      const dockerAuths = authTypes.useDockerAuths({ data });
+
+      expect(dockerAuths.value).toStrictEqual({});
+    });
+
+    it('should return an empty object when there is no auths key', () => {
+      const data = { '.dockerconfigjson': 'base64Json' };
+
+      base64DecodeSpy.mockReturnValue(JSON.stringify({ someOtherKey: true }));
+      const dockerAuths = authTypes.useDockerAuths({ data });
+
+      expect(dockerAuths.value).toStrictEqual({});
     });
   });
 
@@ -71,6 +121,15 @@ describe('composables: SecretDataTab/auth-types', () => {
 
       expect(registry.value.registryUrl).toStrictEqual(registryUrl);
       expect(base64DecodeSpy).toHaveBeenCalledWith(data['.dockerconfigjson']);
+    });
+
+    it('should return an undefined registryUrl without throwing when there are no auths', () => {
+      const data = { '.dockerconfigjson': 'base64Json' };
+
+      base64DecodeSpy.mockReturnValue('not-valid-json');
+      const registry = authTypes.useDockerRegistry({ data });
+
+      expect(registry.value.registryUrl).toBeUndefined();
     });
   });
 
@@ -88,6 +147,31 @@ describe('composables: SecretDataTab/auth-types', () => {
       expect(dockerBasic.value.username).toStrictEqual(username);
       expect(dockerBasic.value.password).toStrictEqual(password);
       expect(base64DecodeSpy).toHaveBeenCalledWith(data['.dockerconfigjson']);
+    });
+
+    it('should decode the base64 `auth` field when username/password are not present', () => {
+      const data = { '.dockerconfigjson': 'base64Json' };
+      const registryUrl = 'registry-url.com';
+      const json = { auths: { [registryUrl]: { auth: 'base64Auth' } } };
+
+      base64DecodeSpy
+        .mockReturnValueOnce(JSON.stringify(json)) // dockerAuths.value
+        .mockReturnValueOnce(JSON.stringify(json)) // dockerRegistry -> dockerAuths.value
+        .mockReturnValueOnce('USERNAME:PASSWORD'); // decodeDockerAuthEntry(auth)
+
+      const dockerBasic = authTypes.useDockerBasic({ data });
+
+      expect(dockerBasic.value.username).toStrictEqual('USERNAME');
+      expect(dockerBasic.value.password).toStrictEqual('PASSWORD');
+    });
+
+    it('should return empty strings without throwing when there are no auths', () => {
+      const data = { '.dockerconfigjson': 'base64Json' };
+
+      base64DecodeSpy.mockReturnValue('not-valid-json');
+      const dockerBasic = authTypes.useDockerBasic({ data });
+
+      expect(dockerBasic.value).toStrictEqual({ username: '', password: '' });
     });
   });
 

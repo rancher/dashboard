@@ -34,13 +34,27 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
       :data-testid="row.dataTestid"
     >
       <label
-        class="label text-muted"
+        class="label text-deemphasized"
         :for="getRowValueId(row)"
       >
         {{ row.label }}
       </label>
+      <!-- A custom component specified as an object, responsible for it's own styling -->
       <div
-        v-if="row.valueOverride?.component && row.value"
+        v-if="typeof row.valueOverride?.component !== 'string' && row.valueOverride?.component && row.value"
+        :id="getRowValueId(row)"
+        class="full-custom-value"
+      >
+        <component
+          :is="row.valueOverride?.component"
+          v-if="row.valueOverride?.component"
+          v-bind="row.valueOverride?.props"
+          :data-testid="row.valueDataTestid"
+        />
+      </div>
+      <!-- A formatter with a component specified as a string -->
+      <div
+        v-else-if="row.valueOverride?.component && row.value"
         :id="getRowValueId(row)"
         class="value"
       >
@@ -89,17 +103,48 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
     flex-direction: column;
 
     .row {
-      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      // Hide clearfix pseudo-elements inherited from the global .row class
+      &::before, &::after {
+        display: none;
+      }
+
+      &:not(:last-of-type) {
+        margin-bottom: 8px;
+      }
+
+      .full-custom-value {
+        flex: 1;
+        min-width: 0;
+
+        // Override inline-block on .popover-card-target so it respects the
+        // parent's width constraint instead of sizing to its content
+        :deep(.popover-card-target) {
+          width: 100%;
+        }
+      }
 
       .value {
         display: flex;
         flex-direction: row;
         align-items: center;
+        flex: 1;
+
+        & > div, & > span {
+          max-width: 100%;
+        }
+
+        &, & > div, & > span {
+          @include clip;
+        }
       }
 
       .label {
         width: 30%;
-        min-width: 120px;
+        min-width: min-content;
       }
 
       .status {

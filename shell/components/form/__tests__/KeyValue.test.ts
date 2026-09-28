@@ -1,6 +1,12 @@
 import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
+import { createStore } from 'vuex';
 import KeyValue from '@shell/components/form/KeyValue.vue';
+import { getters, state, mutations, I18nState } from '@shell/store/i18n';
+
+// The i18n store imports the en-us yaml, which jest can't parse. The tests below load the small
+// subset of translations they need explicitly, via `loadTranslations`.
+jest.mock('@shell/assets/translations/en-us.yaml', () => ({}));
 
 describe('component: KeyValue', () => {
   it.skip('(Vue3 Skip) should display a not encoded value', () => {
@@ -14,7 +20,7 @@ describe('component: KeyValue', () => {
       },
     });
 
-    const inputValue = wrapper.find('textarea').element as HTMLInputElement;
+    const inputValue = wrapper.find('textarea').element as HTMLTextAreaElement;
 
     expect(inputValue.value).toBe(value);
   });
@@ -82,8 +88,8 @@ describe('component: KeyValue', () => {
 
     const firstValueInput = wrapper.find('[data-testid="input-kv-item-value-0"]');
 
-    expect(firstKeyInput.element.value).toBe('testkey');
-    expect(firstValueInput.element.value).toBe('testvalue');
+    expect((firstKeyInput.element as HTMLInputElement).value).toBe('testkey');
+    expect((firstValueInput.element as HTMLInputElement).value).toBe('testvalue');
 
     let secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
 
@@ -102,8 +108,8 @@ describe('component: KeyValue', () => {
 
     expect(secondKeyInput.exists()).toBe(true);
 
-    expect(secondKeyInput.element.value).toBe('testkey1');
-    expect(secondValueInput.element.value).toBe('testvalue1');
+    expect((secondKeyInput.element as HTMLInputElement).value).toBe('testkey1');
+    expect((secondValueInput.element as HTMLInputElement).value).toBe('testvalue1');
   });
 
   it.each([
@@ -173,8 +179,74 @@ describe('component: KeyValue', () => {
 
     const firstValueInput = wrapper.find('[data-testid="input-kv-item-value-0"]');
 
-    expect(firstKeyInput.element.value).toBe('testkey1');
-    expect(firstValueInput.element.value).toBe('testvalue1');
+    expect((firstKeyInput.element as HTMLInputElement).value).toBe('testkey1');
+    expect((firstValueInput.element as HTMLInputElement).value).toBe('testvalue1');
+  });
+
+  describe('valueConcealed', () => {
+    it('should not render actual secret values in the DOM when valueConcealed is true', () => {
+      const secretValue = 'super-secret-api-key-12345';
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { mySecret: secretValue },
+          mode:           'view',
+          valueConcealed: true,
+        },
+
+        global: {
+          mocks: { $store: { getters: { 'i18n/t': jest.fn() } } },
+          stubs: { CodeMirror: true },
+        },
+      });
+
+      const concealedEl = wrapper.find('[data-testid="concealed-value"]');
+
+      expect(concealedEl.exists()).toBe(true);
+      expect(wrapper.html()).not.toContain(secretValue);
+    });
+
+    it('should render a TextAreaAutoGrow with the real value when valueConcealed is false', () => {
+      const secretValue = 'visible-value';
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { myKey: secretValue },
+          mode:           'view',
+          valueConcealed: false,
+        },
+
+        global: {
+          mocks: { $store: { getters: { 'i18n/t': jest.fn() } } },
+          stubs: { CodeMirror: true },
+        },
+      });
+
+      const concealedEl = wrapper.find('[data-testid="concealed-value"]');
+
+      expect(concealedEl.exists()).toBe(false);
+
+      const multilineEl = wrapper.find('[data-testid="value-multiline"]');
+
+      expect(multilineEl.exists()).toBe(true);
+    });
+
+    it('should have user-select none on the concealed placeholder to prevent text selection', () => {
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { mySecret: 'secret' },
+          mode:           'view',
+          valueConcealed: true,
+        },
+
+        global: {
+          mocks: { $store: { getters: { 'i18n/t': jest.fn() } } },
+          stubs: { CodeMirror: true },
+        },
+      });
+
+      const concealedEl = wrapper.find('[data-testid="concealed-value"]');
+
+      expect(concealedEl.classes()).toContain('concealed-value');
+    });
   });
 
   it('a11y: adding ARIA props should correctly fill out the appropriate fields on the component', async() => {
@@ -208,8 +280,407 @@ describe('component: KeyValue', () => {
     expect(valueGroup.attributes('role')).toBe('gridcell');
     expect(firstKeyInput.attributes('aria-label')).toBe('%generic.ariaLabel.key%');
     expect(firstValueInput.attributes('aria-label')).toBe('%generic.ariaLabel.value%');
-    expect(rowRemove.attributes('aria-label')).toBe('%generic.ariaLabel.remove%');
+    expect(rowRemove.attributes('aria-label')).toBe('%generic.ariaLabel.keyValueRemove%');
     expect(rowAdd.attributes('aria-label')).toBe('%generic.ariaLabel.addKeyValue%');
     expect(readKeyValueFromFile.attributes('aria-label')).toBe('%generic.ariaLabel.readKeyValue%');
+  });
+
+  describe('disabledKeys', () => {
+    it('should disable key and value inputs for rows with keys in disabledKeys', () => {
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { protectedKey: 'protectedValue', normalKey: 'normalValue' },
+          mode:           'edit',
+          asMap:          true,
+          valueMultiline: false,
+          disabledKeys:   ['protectedKey'],
+        },
+
+        global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
+      });
+
+      const protectedKeyInput = wrapper.find('[data-testid="input-kv-item-key-0"]').element as HTMLInputElement;
+      const protectedValueInput = wrapper.find('[data-testid="input-kv-item-value-0"]').element as HTMLInputElement;
+      const normalKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]').element as HTMLInputElement;
+      const normalValueInput = wrapper.find('[data-testid="input-kv-item-value-1"]').element as HTMLInputElement;
+
+      expect(protectedKeyInput.disabled).toBe(true);
+      expect(protectedValueInput.disabled).toBe(true);
+      expect(normalKeyInput.disabled).toBe(false);
+      expect(normalValueInput.disabled).toBe(false);
+    });
+
+    it('should hide the remove button for rows with keys in disabledKeys', () => {
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { protectedKey: 'protectedValue', normalKey: 'normalValue' },
+          mode:           'edit',
+          asMap:          true,
+          valueMultiline: false,
+          disabledKeys:   ['protectedKey'],
+        },
+
+        global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
+      });
+
+      const protectedRemove = wrapper.find('[data-testid="remove-column-0"]');
+      const normalRemove = wrapper.find('[data-testid="remove-column-1"]');
+
+      expect(protectedRemove.exists()).toBe(false);
+      expect(normalRemove.exists()).toBe(true);
+    });
+
+    it('should disable value textarea when valueMultiline is true and key is in disabledKeys', () => {
+      const wrapper = mount(KeyValue, {
+        props: {
+          value:          { protectedKey: 'protectedValue' },
+          mode:           'edit',
+          asMap:          true,
+          valueMultiline: true,
+          disabledKeys:   ['protectedKey'],
+        },
+
+        global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
+      });
+
+      const textarea = wrapper.find('[data-testid="value-multiline"]');
+
+      expect(textarea.exists()).toBe(true);
+      expect(textarea.attributes('disabled')).toBeDefined();
+    });
+  });
+
+  describe('a11y: unique add/remove button labels', () => {
+    // Mirrors the `generic.ariaLabel` block of shell/assets/translations/en-us.yaml, so the
+    // assertions below check the strings a screen reader would actually announce.
+    const TRANSLATIONS = {
+      generic: {
+        add:       'Add',
+        remove:    'Remove',
+        ariaLabel: {
+          keyValue:        'Key-Value input',
+          key:             'Key for row {index}',
+          value:           'Value for row {index}',
+          remove:          'remove row {index}',
+          keyValueRemove:  'Remove Key-Value pair in row {index}',
+          addKeyValue:     'Add a new Key-Value row',
+          addBtnAriaLabel: '{label} in a Key-Value input',
+        }
+      }
+    };
+
+    const store = createStore({
+      state,
+      getters: { 'i18n/t': (s: I18nState) => getters.t(s) },
+      mutations,
+    });
+
+    store.commit('loadTranslations', { locale: 'en-us', translations: TRANSLATIONS });
+
+    /**
+     * Resolves against the real i18n store getter (so `{index}`/`{label}` are interpolated),
+     * falling back to the `%key%` form used by the global test mock for untranslated keys.
+     */
+    const t = jest.fn((key: string, args?: Record<string, unknown>) => {
+      return store.getters['i18n/t'](key, args) ?? `%${ key }%`;
+    });
+
+    const mountKV = (props: Record<string, unknown> = {}) => mount(KeyValue, {
+      props: {
+        mode:           'edit',
+        valueMultiline: false,
+        ...props,
+      } as any,
+      global: {
+        mocks: { t },
+        stubs: { CodeMirror: true },
+      },
+    });
+
+    beforeEach(() => t.mockClear());
+
+    describe('remove buttons', () => {
+      it('should give each row remove button a label naming the Key-Value pair and its row', () => {
+        const wrapper = mountKV({
+          value: {
+            k1: 'v1', k2: 'v2', k3: 'v3'
+          },
+          asMap: true
+        });
+
+        const labels = wrapper
+          .findAll('[data-testid^="remove-column-"] button')
+          .map((btn) => btn.attributes('aria-label'));
+
+        expect(labels).toStrictEqual([
+          'Remove Key-Value pair in row 1',
+          'Remove Key-Value pair in row 2',
+          'Remove Key-Value pair in row 3',
+        ]);
+      });
+
+      it('should keep the remove button labels unique within the component', () => {
+        const wrapper = mountKV({ value: { k1: 'v1', k2: 'v2' }, asMap: true });
+
+        const labels = wrapper
+          .findAll('[data-testid^="remove-column-"] button')
+          .map((btn) => btn.attributes('aria-label'));
+
+        expect(new Set(labels).size).toStrictEqual(labels.length);
+      });
+
+      it('should request the key-value specific remove translation, not the generic one', () => {
+        mountKV({ value: { k1: 'v1' }, asMap: true });
+
+        expect(t).toHaveBeenCalledWith('generic.ariaLabel.keyValueRemove', { index: 1 });
+        expect(t).not.toHaveBeenCalledWith('generic.ariaLabel.remove', { index: 1 });
+      });
+
+      it('should re-index the remove button labels after a row is removed', async() => {
+        const wrapper = mountKV({
+          value: {
+            k1: 'v1', k2: 'v2', k3: 'v3'
+          },
+          asMap: true
+        });
+
+        await wrapper.find('[data-testid="remove-column-0"] button').trigger('click');
+        await nextTick();
+
+        const labels = wrapper
+          .findAll('[data-testid^="remove-column-"] button')
+          .map((btn) => btn.attributes('aria-label'));
+
+        expect(labels).toStrictEqual([
+          'Remove Key-Value pair in row 1',
+          'Remove Key-Value pair in row 2',
+        ]);
+      });
+    });
+
+    describe('add button', () => {
+      it.each([
+        ['plain button', false],
+        ['RcButton', true],
+      ])('should fall back to the generic key-value label when no addLabel is given (%s)', (_: string, useRcButton: boolean) => {
+        const wrapper = mountKV({
+          value: { k: 'v' }, asMap: true, useRcButton
+        });
+
+        const addButton = wrapper.find('[data-testid="add_row_item_button"]');
+
+        expect(addButton.attributes('aria-label')).toStrictEqual('Add a new Key-Value row');
+      });
+
+      it.each([
+        ['plain button', false],
+        ['RcButton', true],
+      ])('should build the label from addLabel so it describes what is being added (%s)', (_: string, useRcButton: boolean) => {
+        const wrapper = mountKV({
+          value: { k: 'v' }, asMap: true, addLabel: 'Add Label', useRcButton
+        });
+
+        const addButton = wrapper.find('[data-testid="add_row_item_button"]');
+
+        expect(addButton.attributes('aria-label')).toStrictEqual('Add Label in a Key-Value input');
+        expect(t).toHaveBeenCalledWith('generic.ariaLabel.addBtnAriaLabel', { label: 'Add Label' });
+      });
+
+      it('should give two Key-Value inputs on the same page distinct add button labels', () => {
+        // Reproduces the reported issue: Labels and Annotations on the same form
+        const labels = mountKV({
+          value: { k: 'v' }, asMap: true, addLabel: 'Add Label'
+        });
+        const annotations = mountKV({
+          value: { k: 'v' }, asMap: true, addLabel: 'Add Annotation'
+        });
+
+        const labelsAdd = labels.find('[data-testid="add_row_item_button"]').attributes('aria-label');
+        const annotationsAdd = annotations.find('[data-testid="add_row_item_button"]').attributes('aria-label');
+
+        expect(labelsAdd).toStrictEqual('Add Label in a Key-Value input');
+        expect(annotationsAdd).toStrictEqual('Add Annotation in a Key-Value input');
+        expect(labelsAdd).not.toStrictEqual(annotationsAdd);
+      });
+
+      it.each([
+        ['undefined addLabel', undefined, 'Add a new Key-Value row'],
+        ['empty addLabel', '', 'Add a new Key-Value row'],
+        ['addLabel with no visible text change', 'Add', 'Add in a Key-Value input'],
+        ['addLabel with special characters', 'Add "Path"', 'Add "Path" in a Key-Value input'],
+      ])('_addBtnAriaLabel: %s', (_: string, addLabel: string | undefined, expected: string) => {
+        const wrapper = mountKV({
+          value: { k: 'v' }, asMap: true, addLabel
+        });
+
+        expect((wrapper.vm as any)._addBtnAriaLabel).toStrictEqual(expected);
+      });
+
+      it('should keep the visible add button text independent of the aria-label', () => {
+        const wrapper = mountKV({
+          value: { k: 'v' }, asMap: true, addLabel: 'Add Label'
+        });
+
+        const addButton = wrapper.find('[data-testid="add_row_item_button"]');
+
+        expect(addButton.text()).toStrictEqual('Add Label');
+        expect(addButton.attributes('aria-label')).toStrictEqual('Add Label in a Key-Value input');
+      });
+    });
+  });
+
+  describe('a11y: grid ARIA structure', () => {
+    const mountKV = (props: Record<string, unknown> = {}) => mount(KeyValue, {
+      props: {
+        valueMultiline: false,
+        ...props,
+      } as any,
+      global: {
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } },
+        stubs: { CodeMirror: true },
+      },
+    });
+
+    describe('aria-colcount', () => {
+      it.each([
+        ['no extraColumns, remove not allowed', { value: { k: 'v' }, removeAllowed: false }, 2],
+        ['no extraColumns, remove allowed', { value: { k: 'v' }, removeAllowed: true }, 3],
+        [
+          '1 extraColumn, remove allowed',
+          {
+            value: { k: 'v' }, removeAllowed: true, extraColumns: ['x']
+          },
+          4
+        ],
+        [
+          '2 extraColumns, remove not allowed',
+          {
+            value: { k: 'v' }, removeAllowed: false, extraColumns: ['a', 'b']
+          },
+          4
+        ],
+      ])('%s', (_: string, props: Record<string, unknown>, expected: number) => {
+        const wrapper = mountKV(props);
+
+        expect(wrapper.find('.kv-container').attributes('aria-colcount')).toStrictEqual(String(expected));
+      });
+    });
+
+    describe('aria-rowcount', () => {
+      it.each([
+        ['1 data row in edit mode', { value: { k: 'v' }, mode: 'edit' }, 1],
+        ['2 data rows in edit mode', { value: { k: 'v', k2: 'v2' }, mode: 'edit' }, 2],
+        ['no rows in view mode', { value: {}, mode: 'view' }, 1],
+        ['no rows in edit mode', { value: {}, mode: 'edit' }, 0],
+      ])('%s', (_: string, props: Record<string, unknown>, expected: number) => {
+        const wrapper = mountKV(props);
+
+        expect(wrapper.find('.kv-container').attributes('aria-rowcount')).toStrictEqual(String(expected));
+      });
+    });
+
+    describe('rowgroup and row roles', () => {
+      it('header section should wrap its row with role="rowgroup" > role="row"', () => {
+        const wrapper = mountKV({ value: { k: 'v' } });
+        const firstRowgroup = wrapper.find('[role="rowgroup"]');
+
+        expect(firstRowgroup.exists()).toBe(true);
+        expect(firstRowgroup.find('[role="row"]').exists()).toBe(true);
+      });
+
+      it('each data row should be wrapped in role="rowgroup" > role="row"', () => {
+        const wrapper = mountKV({ value: { k1: 'v1', k2: 'v2' } });
+        const rowgroups = wrapper.findAll('[role="rowgroup"]');
+
+        // 1 header rowgroup + 2 data rowgroups
+        expect(rowgroups).toHaveLength(3);
+        rowgroups.forEach((rg) => {
+          expect(rg.find('[role="row"]').exists()).toBe(true);
+        });
+      });
+    });
+
+    describe('header columnheader cells', () => {
+      it('key and value headers have role="columnheader" with sequential aria-colindex and no aria-rowindex', () => {
+        const wrapper = mountKV({ value: { k: 'v' }, removeAllowed: false });
+        const headers = wrapper.findAll('[role="columnheader"]');
+
+        expect(headers[0].attributes('aria-rowindex')).toBeUndefined();
+        expect(headers[0].attributes('aria-colindex')).toStrictEqual('1');
+        expect(headers[1].attributes('aria-rowindex')).toBeUndefined();
+        expect(headers[1].attributes('aria-colindex')).toStrictEqual('2');
+      });
+
+      it('remove column header has aria-colindex equal to extraColumns.length + 3 and no aria-rowindex', () => {
+        const wrapper = mountKV({ value: { k: 'v' }, removeAllowed: true });
+        const headers = wrapper.findAll('[role="columnheader"]');
+
+        expect(headers[2].attributes('aria-rowindex')).toBeUndefined();
+        expect(headers[2].attributes('aria-colindex')).toStrictEqual('3');
+      });
+    });
+
+    describe('data gridcell aria-rowindex and aria-colindex', () => {
+      it('first data row cells have aria-rowindex="1" (header is not counted as a row)', () => {
+        const wrapper = mountKV({ value: { k: 'v' }, removeAllowed: false });
+        const cells = wrapper.findAll('[role="gridcell"]');
+
+        expect(cells[0].attributes('aria-rowindex')).toStrictEqual('1');
+        expect(cells[0].attributes('aria-colindex')).toStrictEqual('1');
+        expect(cells[1].attributes('aria-rowindex')).toStrictEqual('1');
+        expect(cells[1].attributes('aria-colindex')).toStrictEqual('2');
+      });
+
+      it('second data row cells have aria-rowindex="2"', () => {
+        const wrapper = mountKV({ value: { k1: 'v1', k2: 'v2' }, removeAllowed: false });
+        const cells = wrapper.findAll('[role="gridcell"]');
+
+        // 2 rows × 2 cells (no remove), second row starts at cells[2]
+        expect(cells[2].attributes('aria-rowindex')).toStrictEqual('2');
+        expect(cells[2].attributes('aria-colindex')).toStrictEqual('1');
+        expect(cells[3].attributes('aria-rowindex')).toStrictEqual('2');
+        expect(cells[3].attributes('aria-colindex')).toStrictEqual('2');
+      });
+    });
+
+    describe('remove column header', () => {
+      it('names the remove column for assistive technology', () => {
+        const wrapper = mountKV({ value: { k1: 'v1' }, asMap: true });
+        const header = wrapper.find('[role="columnheader"][aria-colindex="3"]');
+
+        expect(header.find('.sr-only').text()).toStrictEqual('%generic.remove%');
+      });
+
+      it('keeps the remove column named when removeLabel is blank for an icon-only button', () => {
+        const wrapper = mountKV({
+          value: { k1: 'v1' }, asMap: true, removeLabel: ' '
+        });
+        const header = wrapper.find('[role="columnheader"][aria-colindex="3"]');
+
+        expect(header.find('.sr-only').text()).toStrictEqual('%generic.remove%');
+      });
+    });
+
+    describe('no-data placeholder in view mode', () => {
+      it('placeholder cells have aria-rowindex="1" and sequential aria-colindex', () => {
+        const wrapper = mountKV({ value: {}, mode: 'view' });
+        const cells = wrapper.findAll('[role="gridcell"]');
+
+        expect(cells[0].attributes('aria-rowindex')).toStrictEqual('1');
+        expect(cells[0].attributes('aria-colindex')).toStrictEqual('1');
+        expect(cells[1].attributes('aria-rowindex')).toStrictEqual('1');
+        expect(cells[1].attributes('aria-colindex')).toStrictEqual('2');
+      });
+    });
+  });
+
+  it('titles the editor without adding to the page heading outline', () => {
+    const wrapper = mount(KeyValue, {
+      props:  { mode: 'edit', title: 'Custom Links' } as any,
+      global: { mocks: { t: (key: string) => key }, stubs: { CodeMirror: true } },
+    });
+
+    expect(wrapper.find('.size-3').text()).toContain('Custom Links');
+    expect(wrapper.find('h1, h2, h3, h4, h5, h6').exists()).toBe(false);
   });
 });

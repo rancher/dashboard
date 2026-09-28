@@ -10,7 +10,11 @@ import { createStore } from 'vuex';
 describe('action: redirectTo', () => {
   it('should include query parameters from redirect', async() => {
     jest.spyOn(window, 'window', 'get');
-    const store = { dispatch: jest.fn() };
+    const store = {
+      dispatch: jest.fn((x) => {
+        if (x === 'getAuthProvider') return { scopes: '' };
+      })
+    };
     const clientId = '123';
     const uri = 'anyURI';
     const scope = 'anything';
@@ -27,10 +31,14 @@ describe('action: redirectTo', () => {
   });
 
   it.each([
-    ['genericoidc', '://myhost/?redirect_uri=anyURI&scope=openid%20profile%20email&state=undefined'],
+    ['genericoidc', '://myhost/?redirect_uri=anyURI&scope=openid%20profile%20email%20groups&state=undefined'],
   ])('given provider %p should return URL %p', async(provider, expectation) => {
     jest.spyOn(window, 'window', 'get');
-    const store = { dispatch: jest.fn() };
+    const store = {
+      dispatch: jest.fn((x) => {
+        if (x === 'getAuthProvider') return { scopes: 'groups' };
+      })
+    };
     const uri = 'anyURI'; // This field is added anyway, so we set a random value
     const options = {
       provider,
@@ -61,7 +69,11 @@ describe('action: redirectTo', () => {
         test:        true,
         redirect:    false
       };
-      const store = { dispatch: jest.fn() };
+      const store = {
+        dispatch: jest.fn((x) => {
+          if (x === 'getAuthProvider') return { scopes: '' };
+        })
+      };
 
       jest.spyOn(window, 'window', 'get');
       const url = await actions.redirectTo(store as any, options);
@@ -79,7 +91,11 @@ describe('action: redirectTo', () => {
         test:        true,
         redirect:    false
       };
-      const store = { dispatch: jest.fn() };
+      const store = {
+        dispatch: jest.fn((x) => {
+          if (x === 'getAuthProvider') return { scopes: 'openid' };
+        })
+      };
 
       jest.spyOn(window, 'window', 'get');
       const url = await actions.redirectTo(store as any, options);
@@ -116,5 +132,23 @@ describe('action: test', () => {
 
       expect(dispatchSpy.mock.calls[0][1]).toStrictEqual(options);
     });
+  });
+});
+
+describe('action: getLocalProviderEnabled', () => {
+  it('should return true if local auth provider exists', async() => {
+    const dispatch = jest.fn().mockResolvedValue({ id: 'local' });
+    const result = await actions.getLocalProviderEnabled({ dispatch } as any);
+
+    expect(dispatch).toHaveBeenCalledWith('getAuthProvider', 'local');
+    expect(result).toBe(true);
+  });
+
+  it('should return false if local auth provider does not exist', async() => {
+    const dispatch = jest.fn().mockResolvedValue(undefined);
+    const result = await actions.getLocalProviderEnabled({ dispatch } as any);
+
+    expect(dispatch).toHaveBeenCalledWith('getAuthProvider', 'local');
+    expect(result).toBe(false);
   });
 });

@@ -1,135 +1,248 @@
-import { mount } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import ResourceDetail from '@shell/components/ResourceDetail/index.vue';
-import { _EDIT, _VIEW, LEGACY, MODE } from '@shell/config/query-params';
-import * as pageEnabled from '@shell/composables/useIsNewDetailPageEnabled';
-import flushPromises from 'flush-promises';
-import { computed } from 'vue';
+import {
+  _VIEW, _EDIT, _DETAIL, _CONFIG, _YAML
+} from '@shell/config/query-params';
 
-const mockQuery: any = {};
-const mockParams: any = {};
-
-jest.mock('@shell/components/ResourceDetail/legacy.vue', () => ({
-  template: '<div class="legacy">Legacy</div>',
-  name:     'Legacy',
-  props:    ['flexContent', 'componentTestId', 'storeOverride', 'resourceOverride', 'parentRouteOverride', 'errorsMap']
+jest.mock('@shell/mixins/create-edit-view/impl', () => ({
+  __esModule: true,
+  default:    {
+    computed: {
+      doneRoute() {
+        return null;
+      },
+      doneParams() {
+        return {};
+      },
+    },
+  },
 }));
 
-jest.mock('@shell/components/Loading.vue', () => ({
-  template: '<div class="loading">Loading</div>',
-  name:     'Loading'
-}));
+jest.mock('@shell/composables/resourceDetail', () => ({ useResourceDetailPageProvider: jest.fn() }));
 
-jest.mock('@shell/pages/explorer/resource/detail/configmap.vue', () => ({
-  template: '<div class="configmap">configmap</div>',
-  name:     'configmap',
-}));
+type StoreOpts = {
+  schema?: any;
+  findError?: any;
+  findResult?: any;
+  optionsFor?: any;
+};
 
-jest.mock('vue-router', () => ({
-  useRoute: () => ({
-    query:  mockQuery,
-    params: mockParams
-  })
-}));
-
-jest.mock('@shell/composables/useIsNewDetailPageEnabled');
-
-describe('component: ResourceDetail/index', () => {
-  const resourceName = 'configmap';
-  const useIsNewDetailPageEnabledSpy = jest.spyOn(pageEnabled, 'useIsNewDetailPageEnabled');
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should render legacy component with default props if useIsNewDetailPageEnabledSpy is false', async() => {
-    mockParams.resource = resourceName;
-    mockQuery[MODE] = _VIEW;
-
-    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => false));
-
-    const wrapper = mount(ResourceDetail, { });
-    const legacyComponent = wrapper.findComponent<any>({ name: 'Legacy' });
-
-    expect(legacyComponent.props('flexContent')).toStrictEqual(false);
-    expect(legacyComponent.props('componentTestId')).toStrictEqual('resource-details');
-    expect(legacyComponent.props('storeOverride')).toBeUndefined();
-    expect(legacyComponent.props('resourceOverride')).toBeUndefined();
-    expect(legacyComponent.props('parentRouteOverride')).toBeUndefined();
-    expect(legacyComponent.props('errorsMap')).toBeUndefined();
-    expect(useIsNewDetailPageEnabledSpy).toHaveBeenCalledTimes(1);
-  });
-
-  it('should render legacy component with default props if useIsNewDetailPageEnabledSpy is false but resourceName has not been added to our mapping', async() => {
-    mockParams.resource = 'notMapped';
-    mockQuery[MODE] = _VIEW;
-
-    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => false));
-
-    const wrapper = mount(ResourceDetail, {});
-    const legacyComponent = wrapper.findComponent<any>({ name: 'Legacy' });
-
-    expect(legacyComponent.exists()).toBeTruthy();
-    expect(useIsNewDetailPageEnabledSpy).toHaveBeenCalledTimes(1);
-  });
-
-  it('should render legacy component with default props if useIsNewDetailPageEnabledSpy is false but mode is not VIEW', async() => {
-    mockParams.resource = resourceName;
-    mockQuery[MODE] = _EDIT;
-
-    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => false));
-
-    const wrapper = mount(ResourceDetail, {});
-    const legacyComponent = wrapper.findComponent<any>({ name: 'Legacy' });
-
-    expect(legacyComponent.exists()).toBeTruthy();
-    expect(useIsNewDetailPageEnabledSpy).toHaveBeenCalledTimes(1);
-  });
-
-  it('should render legacy component while forwarding props', async() => {
-    mockParams.resource = resourceName;
-    mockQuery[MODE] = _VIEW;
-
-    const flexContent = true;
-    const componentTestId = 'componentTestId';
-    const storeOverride = 'storeOverride';
-    const resourceOverride = 'resourceOverride';
-    const parentRouteOverride = 'parentRouteOverride';
-    const errorsMap = { error: 'test' };
-
-    const wrapper = mount(ResourceDetail, {
-      props: {
-        flexContent,
-        componentTestId,
-        storeOverride,
-        resourceOverride,
-        parentRouteOverride,
-        errorsMap,
+const createStore = ({
+  schema, findError, findResult, optionsFor
+}: StoreOpts) => {
+  const dispatch = jest.fn((action: string) => {
+    if (action.endsWith('/find')) {
+      if (findError) {
+        return Promise.reject(findError);
       }
-    });
-    const legacyComponent = wrapper.findComponent<any>({ name: 'Legacy' });
 
-    expect(legacyComponent.props('flexContent')).toStrictEqual(flexContent);
-    expect(legacyComponent.props('componentTestId')).toStrictEqual(componentTestId);
-    expect(legacyComponent.props('storeOverride')).toStrictEqual(storeOverride);
-    expect(legacyComponent.props('resourceOverride')).toStrictEqual(resourceOverride);
-    expect(legacyComponent.props('parentRouteOverride')).toStrictEqual(parentRouteOverride);
-    expect(legacyComponent.props('errorsMap')).toStrictEqual(errorsMap);
+      return Promise.resolve(findResult ?? {});
+    }
+    if (action.endsWith('/clone') || action.endsWith('/cleanForDetail')) {
+      return Promise.resolve({});
+    }
+
+    return Promise.resolve();
   });
 
-  it('should render new component if useIsNewDetailPageEnabledSpy is true', async() => {
-    mockParams.resource = resourceName;
-    mockParams.id = 'ID';
-    mockQuery[MODE] = _VIEW;
-    mockQuery[LEGACY] = 'false';
+  return {
+    getters: {
+      'i18n/t':                   (key: string, args: any) => `${ key }-${ JSON.stringify(args ?? {}) }`,
+      currentStore:               () => 'cluster',
+      'cluster/schemaFor':        () => schema,
+      'cluster/all':              () => [],
+      'type-map/hasCustomDetail': () => false,
+      'type-map/hasCustomEdit':   () => false,
+      'type-map/importDetail':    () => null,
+      'type-map/importEdit':      () => null,
+      'type-map/optionsFor':      () => (optionsFor ?? {}),
+    },
+    dispatch,
+  };
+};
 
-    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => true));
+const createWrapper = (store: any) => {
+  // Start with pending: true so the initial render is the Loading stub (the
+  // real component doesn't guard `value.name` because the Nuxt `fetch()`
+  // hook is what populates `value` — under the test harness we drive that
+  // by hand).
+  const fetchState = { pending: true };
 
-    const wrapper = mount(ResourceDetail);
+  const wrapper = shallowMount(ResourceDetail as any, {
+    global: {
+      mocks: {
+        $store:      store,
+        $route:      { params: { resource: 'bogus-resource-type', id: 'bogus-id' }, query: {} },
+        $fetchState: fetchState,
+        t:           (key: string, args: any) => `${ key }-${ JSON.stringify(args ?? {}) }`,
+      },
+      stubs: {
+        FailWhale:    true,
+        Masthead:     true,
+        Loading:      true,
+        ResourceYaml: true,
+        Banner:       true,
+        IconMessage:  true,
+        DetailTop:    true,
+      },
+      directives: {
+        'ui-context': () => {},
+        shortkey:     () => {},
+        'clean-html': () => {},
+      },
+    },
+  });
 
-    await flushPromises();
-    const configmapComponent = wrapper.findComponent<any>({ name: 'configmap' });
+  return { wrapper, fetchState };
+};
 
-    expect(configmapComponent.exists()).toBeTruthy();
-    expect(useIsNewDetailPageEnabledSpy).toHaveBeenCalledTimes(1);
+const runFetch = async(wrapper: any, fetchState: any) => {
+  await (wrapper.vm.$options as any).fetch.call(wrapper.vm);
+  fetchState.pending = false;
+  wrapper.vm.$forceUpdate();
+  await wrapper.vm.$nextTick();
+};
+
+describe('component: ResourceDetail', () => {
+  it('renders the in-context FailWhale (not the details) when the resource type has no schema', async() => {
+    const store = createStore({ schema: undefined });
+    const { wrapper, fetchState } = createWrapper(store);
+
+    await runFetch(wrapper, fetchState);
+
+    expect((wrapper.vm as any).resourceNotFoundError).toBeInstanceOf(Error);
+    expect(wrapper.findComponent({ name: 'FailWhale' }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'Masthead' }).exists()).toBe(false);
+    // Must NOT redirect to the global fail-whale page
+    expect(store.dispatch).not.toHaveBeenCalledWith('loadingError', expect.anything());
+  });
+
+  it('renders the in-context FailWhale when the resource is not found (404)', async() => {
+    const store = createStore({ schema: { id: 'bogus-resource-type' }, findError: { status: 404 } });
+    const { wrapper, fetchState } = createWrapper(store);
+
+    await runFetch(wrapper, fetchState);
+
+    expect((wrapper.vm as any).resourceNotFoundError).toBeInstanceOf(Error);
+    expect(wrapper.findComponent({ name: 'FailWhale' }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'Masthead' }).exists()).toBe(false);
+    expect(store.dispatch).not.toHaveBeenCalledWith('loadingError', expect.anything());
+  });
+
+  it('renders the in-context FailWhale when the resource is forbidden (403)', async() => {
+    const store = createStore({ schema: { id: 'bogus-resource-type' }, findError: { status: 403 } });
+    const { wrapper, fetchState } = createWrapper(store);
+
+    await runFetch(wrapper, fetchState);
+
+    expect((wrapper.vm as any).resourceNotFoundError).toBeInstanceOf(Error);
+    expect(wrapper.findComponent({ name: 'FailWhale' }).exists()).toBe(true);
+    expect(store.dispatch).not.toHaveBeenCalledWith('loadingError', expect.anything());
+  });
+
+  it('does not set resourceNotFoundError when the resource is found', async() => {
+    const store = createStore({ schema: { id: 'bogus-resource-type' } });
+    const { wrapper, fetchState } = createWrapper(store);
+
+    await runFetch(wrapper, fetchState);
+
+    expect((wrapper.vm as any).resourceNotFoundError).toBeNull();
+    expect(store.dispatch).not.toHaveBeenCalledWith('loadingError', expect.anything());
+  });
+
+  describe('canViewYaml', () => {
+    it('is false when the live resource has no view link, even though the type-map default allows yaml', async() => {
+      const store = createStore({
+        schema:     { id: 'bogus-resource-type' },
+        optionsFor: { canYaml: true },
+        findResult: { canYaml: false },
+      });
+      const { wrapper, fetchState } = createWrapper(store);
+
+      await runFetch(wrapper, fetchState);
+
+      expect((wrapper.vm as any).canViewYaml).toBe(false);
+    });
+
+    it('stays true when the live resource does have a view link and the type-map default allows yaml', async() => {
+      const store = createStore({
+        schema:     { id: 'bogus-resource-type' },
+        optionsFor: { canYaml: true },
+        findResult: { canYaml: true },
+      });
+      const { wrapper, fetchState } = createWrapper(store);
+
+      await runFetch(wrapper, fetchState);
+
+      expect((wrapper.vm as any).canViewYaml).toBe(true);
+    });
+
+    it('stays false when the type-map default already disallows yaml, regardless of the live resource', async() => {
+      const store = createStore({
+        schema:     { id: 'bogus-resource-type' },
+        optionsFor: { canYaml: false },
+        findResult: { canYaml: true },
+      });
+      const { wrapper, fetchState } = createWrapper(store);
+
+      await runFetch(wrapper, fetchState);
+
+      expect((wrapper.vm as any).canViewYaml).toBe(false);
+    });
+
+    it('defaults to hiding the yaml toggle, without failing the page load, when the resource canYaml getter throws', async() => {
+      const throwingCanYaml = {};
+
+      Object.defineProperty(throwingCanYaml, 'canYaml', {
+        get() {
+          throw new Error('boom, badly-behaved plugin model class');
+        }
+      });
+
+      const store = createStore({
+        schema:     { id: 'bogus-resource-type' },
+        optionsFor: { canYaml: true },
+        findResult: throwingCanYaml,
+      });
+      const { wrapper, fetchState } = createWrapper(store);
+
+      await runFetch(wrapper, fetchState);
+
+      expect((wrapper.vm as any).resourceNotFoundError).toBeNull();
+      expect((wrapper.vm as any).canViewYaml).toBe(false);
+    });
+  });
+
+  // fullDetailPageOverride should only apply to the detail view, so the config/YAML
+  // views keep the padded ".outlet" wrapper.
+  describe.each([
+    {
+      desc: 'detail view of a full-page override resource', mode: _VIEW, as: _DETAIL, fullDetailPageOverride: true, expected: true
+    },
+    {
+      desc: 'config view of a full-page override resource', mode: _VIEW, as: _CONFIG, fullDetailPageOverride: true, expected: false
+    },
+    {
+      desc: 'yaml view of a full-page override resource', mode: _VIEW, as: _YAML, fullDetailPageOverride: true, expected: false
+    },
+    {
+      desc: 'detail view of a non-override resource', mode: _VIEW, as: _DETAIL, fullDetailPageOverride: false, expected: false
+    },
+    {
+      desc: 'edit mode of a full-page override resource', mode: _EDIT, as: _CONFIG, fullDetailPageOverride: true, expected: false
+    },
+  ])('isFullPageOverride: $desc', ({
+    mode, as, fullDetailPageOverride, expected
+  }) => {
+    it(`is ${ expected }`, async() => {
+      const store = createStore({ schema: { id: 'bogus-resource-type' } });
+      const { wrapper } = createWrapper(store);
+
+      await wrapper.setData({
+        mode, as, value: { fullDetailPageOverride }
+      });
+
+      expect((wrapper.vm as any).isFullPageOverride).toBe(expected);
+    });
   });
 });

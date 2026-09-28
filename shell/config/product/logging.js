@@ -21,6 +21,7 @@ export function init(store) {
     icon:                'logging',
     showNamespaceFilter: true,
     weight:              89,
+    extendable:          true,
   });
 
   basicType([

@@ -1,9 +1,12 @@
 <script>
+import { useStore } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import FileSelector, { createOnSelected } from '@shell/components/form/FileSelector';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
+import { useFormRules } from '@shell/composables/useFormValidation';
+import { useI18n } from '@shell/composables/useI18n';
 
 export default {
-  components: { LabeledInput, FileSelector },
+  components: { LabeledInput, FileSelectorTextArea },
 
   props: {
     value: {
@@ -15,6 +18,28 @@ export default {
       type:     String,
       required: true,
     }
+  },
+
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+    const { getRules } = useFormRules(
+      t,
+      [
+        {
+          path:           'ssh-publickey',
+          rules:          ['required'],
+          translationKey: 'secret.ssh.public',
+        },
+        {
+          path:           'ssh-privatekey',
+          rules:          ['required'],
+          translationKey: 'secret.ssh.private',
+        },
+      ]
+    );
+
+    return { getRules };
   },
 
   data() {
@@ -38,9 +63,6 @@ export default {
   },
 
   methods: {
-    onUsernameSelected: createOnSelected('username'),
-    onPasswordSelected: createOnSelected('password'),
-
     update() {
       this.value.setData('ssh-publickey', this.username);
       this.value.setData('ssh-privatekey', this.password);
@@ -55,40 +77,27 @@ export default {
 
 <template>
   <div>
-    <div class="row mb-20">
-      <div class="col span-6">
-        <LabeledInput
-          v-model:value="username"
-          type="multiline"
-          data-testid="ssh-public-key"
-          :label="t('secret.ssh.public')"
-          :mode="mode"
-          required
-          :placeholder="t('secret.ssh.publicPlaceholder')"
-        />
-        <FileSelector
-          class="btn btn-sm bg-primary mt-10"
-          :label="t('generic.readFromFile')"
-          @selected="onUsernameSelected"
-        />
-      </div>
-      <div class="col span-6">
-        <LabeledInput
-          v-model:value="password"
-          type="multiline"
-          data-testid="ssh-private-key"
-          :label="t('secret.ssh.private')"
-          :mode="mode"
-          required
-          :placeholder="t('secret.ssh.privatePlaceholder')"
-        />
-        <FileSelector
-          class="btn btn-sm bg-primary mt-10"
-          :label="t('generic.readFromFile')"
-          @selected="onPasswordSelected"
-        />
-      </div>
-    </div>
+    <FileSelectorTextArea
+      v-model:value="username"
+      class="mb-20"
+      name="ssh-publickey"
+      data-testid="ssh-public-key"
+      :label="t('secret.ssh.public')"
+      :mode="mode"
+      required
+      :rules="getRules('ssh-publickey')"
+      :placeholder="t('secret.ssh.publicPlaceholder')"
+    />
+    <FileSelectorTextArea
+      v-model:value="password"
+      name="ssh-privatekey"
+      data-testid="ssh-private-key"
+      :label="t('secret.ssh.private')"
+      :mode="mode"
+      required
+      :rules="getRules('ssh-privatekey')"
+      :placeholder="t('secret.ssh.privatePlaceholder')"
+    />
     <div class="row mt-40">
       <div class="col span-12">
         <LabeledInput

@@ -122,7 +122,7 @@ locale:
   none: (None)
 
 nav:
-  harvesterDashboard: Harvester 仪表板
+  harvesterDashboard: '[[Harvester]] 仪表板'
   backToRancher: Cluster Manager
   clusterTools: 集群工具
   kubeconfig:
@@ -171,9 +171,7 @@ nav:
     Storage: 存储
   ns:
     all: 所有命名空间
-    clusterLevel: 集群资源
     namespace: "{name}"
-    namespaced: 命名空间资源
     orphan: 不在项目内
     project: "项目名称: {name}"
     system: 系统命名空间
@@ -188,13 +186,8 @@ nav:
   search:
     placeholder: 输入关键词，搜索集群
     noResults: 没有匹配的集群
-  resourceSearch:
-    label: 资源搜索
-    toolTip: 资源搜索 {key}
-    placeholder: 输入关键词，搜索资源
   header:
     setLoginPage: 设置为登录页面
-    restoreCards: 恢复隐藏的卡片
   userMenu:
     preferences: 偏好设置
     accountAndKeys: 账号 & API 密钥
@@ -532,16 +525,16 @@ authConfig:
     tokenEndpoint: Token 端点
     authEndpoint: Auth 端点
     reply:
-      info: '在开始设置之前，Azure AD 需要 Rancher Server 的白名单 URL。请确保在 Azure 门户的回复 URL 中设置了以下 URL。请注意，白名单 URL 可能需要 5 分钟才能生效。'
+      info: '在开始设置之前，Microsoft Entra ID 需要 Rancher Server 的白名单 URL。请确保在 Microsoft Entra 管理中心的回复 URL 中设置了以下 URL。请注意，白名单 URL 可能需要 5 分钟才能生效。'
       label: 回复 URL
     updateEndpoint:
       button: 更新端点
       banner:
-        message: '必须更新 Azure AD 身份认证：它使用了 Azure Graph API，该 API 将于 2022 年底弃用。'
+        message: '必须更新 Microsoft Entra ID 身份认证：它使用了 Azure AD Graph API，该 API 已于 2022 年底弃用。'
         linkText: '在此处进行更新。'
       modal:
         title: 是否确认？此更新是不可逆的。
-        body: '<p><b>你可能需要进行额外的更改</b>。请确保 Azure AD 应用已将 Directory.Read.All <b>Application</b> 权限添加到 Microsoft Graph。<br> 如果在 Rancher 中配置 Azure AD 身份认证时自定义了端点，这些端点将不会自动更新。</p>'
+        body: '<p><b>你可能需要进行额外的更改</b>。请确保 Microsoft Entra ID 应用已将 Directory.Read.All <b>Application</b> 权限添加到 Microsoft Graph。<br> 如果在 Rancher 中配置 Microsoft Entra ID 身份认证时自定义了端点，这些端点将不会自动更新。</p>'
   oidc:
     oidc: 配置 OIDC 账号
     keycloakoidc: 配置 Keycloak OIDC 账号
@@ -652,6 +645,10 @@ asyncButton:
     action: 保存
     success: 已保存
     waiting: 正在保存&hellip;
+  editVersion:
+    action: 保存更改
+    success: 已保存
+    waiting: 正在保存更改&hellip;
   enable:
     action: 启用
     success: 启用
@@ -875,8 +872,13 @@ catalog:
       windows: Windows
     search: 筛选
   install:
-    action:
-      goToUpgrade: 编辑/升级
+    warning:
+      managed: |-
+        警告，{manager} 管理 {name} 应用的部署和升级。不支持升级此应用。<br>
+        {version, select,
+          null { }
+          other { 在大多数情况下，无需用户干预即可确保 {version} 版本与你正在运行的 Rancher 版本兼容。}
+        }
     appReadmeMissing: 此 Chart 没有其他 Chart 信息。
     appReadmeTitle: Chart 信息（Helm 自述）
     chart: Chart
@@ -885,16 +887,6 @@ catalog:
       requiresMissing: '这个 Chart 另一个提供 {name} 的 Chart，但我们找不到这个Chart。'
       insufficientCpu: '这个 Chart 需要 {need, number} 个 CPU 核，但集群只有 {have, number} 个可用。'
       insufficientMemory: '这个 Chart 需要 {need} 内存，但集群只有 {have} 可用。'
-      legacy:
-        label: 这是个 {legacyType} 应用，无法在这里修改。
-        enableLegacy:
-          prompt: 想编辑这个应用，你需要添加旧版功能。
-          goto: 前往功能开关设置
-        navigate: 导航到旧版应用程序
-        mcmNotSupported: 无法通过此 UI 管理旧版多集群应用程序
-        category:
-          legacy: 旧版
-          mcm: 多集群
     header:
       install: '安装 {name}'
       installGeneric: 安装 Chart
@@ -942,9 +934,13 @@ catalog:
             install { 创建 }
             upgrade { 升级 }
             update { 更新 }
+            editVersion { 更新 }
+            downgrade { 降级 }
+            other { 更新 }
           } 这个 {existing, select,
             true { 应用 }
             false { Chart}
+            other { Chart}
           }。首先设置 {vendor} 用来管理应用的基本信息。
         nsCreationDescription: "如果你要把应用安装到新的命名空间，在命名空间字段中输入其名称，并选择它。"
         createNamespace: "将创建命名空间 <code>{namespace}</code>。"
@@ -1132,7 +1128,7 @@ cluster:
       label: vSphere
       note: '<b>重要</b>：在附加配置标签中配置 vSphere 云提供商和存储提供商选项。'
     harvester:
-      label: Harvester
+      label: '[[Harvester]]'
   copyConfig: 将 KubeConfig 复制到剪切板
   copiedConfig: 已将 KubeConfig 复制到剪切板
   custom:
@@ -1291,26 +1287,26 @@ cluster:
       kubeconfigContent:
         label: KubeconfigContent
       placeholder: '命名空间/名称'
-      cluster: 导入的 Harvester 集群
+      cluster: 导入的 [[Harvester]] 集群
       installGuestAgent: 安装访客代理
   description:
     label: 集群描述
     placeholder: 输入可以描述该集群的文本
   harvester:
-    importNotice: 导入 Harvester 集群的方式：
+    importNotice: 导入 [[Harvester]] 集群的方式：
     warning:
-      label: 这是一个 Harvester 集群 - 请启用 Harvester 功能开关以对其进行管理。
+      label: 这是一个 [[Harvester]] 集群 - 请启用 [[Harvester]] 功能开关以对其进行管理。
       state: 警告
       cloudProvider:
         incompatible:
-          由于当前的 Harvester 版本与所选的 RKE2 Kubernetes 版本不兼容，因此你无法选择 Harvester cloud provider。请单击 <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.suse.com/suse-harvester/support-matrix/all-supported-versions">此处</a>查看支持的 Kubernetes 版本。
+          由于当前的 [[Harvester]] 版本与所选的 RKE2 Kubernetes 版本不兼容，因此你无法选择 [[Harvester]] cloud provider。请单击 <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.suse.com/suse-harvester/support-matrix/all-supported-versions">此处</a>查看支持的 Kubernetes 版本。
     clusterWarning: |-
       还有 {count, plural,
-      =1 {1 个 Harvester 集群未显示}
-      other { # 个 Harvester 集群未显示}
+      =1 {1 个 [[Harvester]] 集群未显示}
+      other { # 个 [[Harvester]] 集群未显示}
       }
     registration:
-      step1: "1. 前往目标 Harvester UI 的<code>高级设置</code>页面。"
+      step1: "1. 前往目标 [[Harvester]] UI 的<code>高级设置</code>页面。"
       step2: '2. 找到<code>cluster-registration-url</code>设置项，并点击<code><i class="icon icon-actions" ></i></code> -> <code>编辑设置</code>按钮。'
       step3: "3. 输入以下注册 URL，并点击<code>保存</code>。"
       step4: "注册 URL"
@@ -1347,7 +1343,6 @@ cluster:
     deprecated: （已弃用）
     deprecatedPatches: 显示已弃用的 Kubernetes 补丁版本
     deprecatedPatchWarning: 建议为每个 Kubernetes 次要版本使用最新的补丁版本，已弃用的补丁版本可能对迁移有用。
-  legacyWarning: 旧版功能开关已开启，但是不是所有旧版功能都在 Kubernetes 1.21+ 中支持。
   log:
     connecting: 正在连接
     noData: 没有预设的日志项目
@@ -1779,7 +1774,7 @@ cluster:
     google: Google GCE
     googlegke: Google GKE
     gke: Google GKE
-    harvester: Harvester
+    harvester: '[[Harvester]]'
     huaweicce: 华为 CCE
     import: 通用
     imported: 已导入
@@ -2106,21 +2101,21 @@ fleet:
   clusters:
     harvester: |-
       还有 {count, plural,
-      =1 {1个 Harvester 集群未显示，因为它不能与持续交付一起使用。}
-      other { #个 Harvester 集群未显示，因为它们不能与持续交付一起使用。}
+      =1 {1个 [[Harvester]] 集群未显示，因为它不能与持续交付一起使用。}
+      other { #个 [[Harvester]] 集群未显示，因为它们不能与持续交付一起使用。}
       }
   tokens:
     harvester: |-
       {count, plural,
-      =1 {1个 Token 未显示，因为它属于不能与持续交付一起使用的 Harvester 集群。}
-      other {#个 Token 未显示，因为它属于不能与持续交付一起使用的 Harvester 集群。}
+      =1 {1个 Token 未显示，因为它属于不能与持续交付一起使用的 [[Harvester]] 集群。}
+      other {#个 Token 未显示，因为它属于不能与持续交付一起使用的 [[Harvester]] 集群。}
       }
   bundles:
     resources: 资源
     harvester: |-
       {count, plural,
-      =1 {1 个 Bundle 未显示，因为它属于不能与持续交付一起使用的 Harvester 集群。}
-      other {# 个 Bundle 未显示，因为它属于不能与持续交付一起使用的 Harvester 集群。}
+      =1 {1 个 Bundle 未显示，因为它属于不能与持续交付一起使用的 [[Harvester]] 集群。}
+      other {# 个 Bundle 未显示，因为它属于不能与持续交付一起使用的 [[Harvester]] 集群。}
       }
   fleetSummary:
     noClusters:
@@ -3034,15 +3029,12 @@ login:
   error: 登录时发生错误，请重试。
   clientError: 无效的用户名或密码，请重试。
   specificError: '登录时发生错误：{msg}'
-  useLocal: 使用本地账号登录
   loginWithProvider: 使用 {provider} 登录
   username: 用户名
   password: 密码
   loggingIn: 登录中...
   loggedIn: 已登录
   loginWithLocal: 使用本地用户登录
-  useProvider: 使用 {provider} 用户
-  useNonLocal: 使用非本地用户
   remember:
     label: 记住用户名
 
@@ -3728,7 +3720,7 @@ persistentVolume:
       disk-csi-azure-com: Azure 磁盘 (CSI)
       file-csi-azure-com: Azure 文件 (CSI)
       driver-longhorn-io: Longhorn (CSI)
-      driver-harvesterhci-io: Harvester (CSI)
+      driver-harvesterhci-io: '[[Harvester]] (CSI)'
       nfs-csi-k8s-io: NFS (CSI)
       ebs-csi-aws-com: AWS Elastic Block Store (CSI)
       rbd-csi-ceph-com: Ceph RBD (CSI)
@@ -4001,13 +3993,9 @@ podDisruptionBudget:
 
 inactivity:
   title: 会话即将过期
-  titleExpired: 会话已过期
   banner: 由于不活动，你的会话即将过期。任何未保存的更改都将丢失。
-  bannerExpired: 由于不活动，此选项卡中的会话已过期。
   content: 单击“恢复会话”来让选项卡中的会话保持活动状态，或在会话过期后刷新浏览器。
-  contentExpired: 要返回此页面，请单击下面的“刷新”或刷新浏览器。
   cta: 恢复会话
-  ctaExpired: 刷新
 
 # Rancher Extensions
 plugins:
@@ -4532,7 +4520,8 @@ rbac:
         description: |-
           控制 {isUser, select,
           true {用户}
-          false {组}} 管理整个 {appName} 安装的权限。
+          false {组}
+          other {组}} 管理整个 {appName} 安装的权限。
       custom:
         label: 自定义
         description: '不是 {vendor} 创建的角色。'
@@ -4655,7 +4644,8 @@ resourceDetail:
     managedWarning: |-
       此 {type} 由 {hasName, select,
         no { {managedBy} 应用}
-        yes { {managedBy} 应用 {appName}}} 管理。在此处所做的更改可能会在下次 {managedBy} 运行时被覆盖。
+        yes { {managedBy} 应用 {appName}}
+        other { {managedBy} 应用}} 管理。在此处所做的更改可能会在下次 {managedBy} 运行时被覆盖。
 resourceList:
   head:
     create: 创建
@@ -4941,10 +4931,6 @@ setup:
   confirmPassword: 确认新密码
   defaultPassword:
     intro: 这是你第一次访问 {vendor}。如果你预先设置了 Bootstrap 密码，请在此处输入。否则我们会为你生成一个随机密码。找到它：<br/><br/>
-    dockerPrefix: '"docker run" 安装：'
-    dockerPs: '运行<code>docker ps</code>找到你的容器 ID，然后运行：'
-    dockerSuffix: ""
-    helmPrefix: 'Helm 安装，运行：'
     helmSuffix: ""
   eula: 选中此框，即表示你接受<a href="https://www.suse.com/licensing/eula/download/suse_end_user_license_agreement_june_2024.pdf" target="_blank" rel="noopener noreferrer nofollow">最终用户许可协议及条款和条件</a>
   newPassword: 新密码
@@ -5281,13 +5267,13 @@ storageClass:
     title: （已弃用）
     warning: '{provisioner} 树内插件已弃用。你可以在<a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">这里</a>查找 CSI 驱动。'
   harvesterhci:
-    title: Harvester (CSI)
+    title: '[[Harvester]] (CSI)'
     warning:
-      unSatisfiesVersion: 请升级 Harvester CSI 驱动版本来使用此功能(csi-driver >= v0.1.15)
+      unSatisfiesVersion: 请升级 [[Harvester]] CSI 驱动版本来使用此功能(csi-driver >= v0.1.15)
     hostStorageClass:
       label: 主机存储类
-      placeholder: 主机 Harvester 集群上的存储类名称
-      tooltip: 默认使用主机 Harvester 集群上的默认存储类。
+      placeholder: 主机 [[Harvester]] 集群上的存储类名称
+      tooltip: 默认使用主机 [[Harvester]] 集群上的默认存储类。
 
 tableHeaders:
   assuredConcurrencyShares: 确保并发份额
@@ -5923,6 +5909,7 @@ workload:
       status: 状态
       volumeClaimTemplates: 卷声明模板
       upgrading: 扩缩容和升级策略
+      availability: Availability
   cronSchedule: 调度
   detail:
     services: 服务
@@ -5972,7 +5959,7 @@ workload:
       tip: 保留成功完成 Job 的数量
     suspend: 暂停
   list:
-    errorCannotScale: 无法对 {workloadName} {direction, select, up { 扩容 } down { 缩容 } }
+    errorCannotScale: 无法对 {workloadName} {direction, select, up { 扩容 } down { 缩容 } other { } }
   metrics:
     pod: Pod 指标
     metricsView: 指标视图
@@ -6263,7 +6250,7 @@ model:
       local: 本地
       multiple: Multiple
       activedirectory: Active Directory
-      azuread: AzureAD
+      azuread: Microsoft Entra ID
       github: GitHub
       keycloak: Keycloak
       ldap: LDAP
@@ -6315,7 +6302,6 @@ typeDescription:
   #       If you link to anything external, it MUST have
   #       target="_blank" rel="noopener noreferrer nofollow"
   branding: "管理员可以修改 Rancher 产品名称、Logo 和配色方案来全局自定义 UI 界面。"
-  chart: "除非另有说明，否则所有 Chart 都至少有一个可以安装在具有 Linux 和 Windows 节点的集群上的版本。"
   cis.cattle.io.clusterscanbenchmark: Benchmark 版本是指使用 kube-bench 运行的 Benchmark 名称，以及该 Benchmark 的有效配置参数。
   cis.cattle.io.clusterscanprofile: 配置文件指定 CIS 扫描的配置，也就是要使用的 Benchmark 版本和该 Benchmark 中要跳过的特定测试。
   cis.cattle.io.clusterscan: 扫描是用来根据定义的配置文件，在集群上触发 CIS 扫描的。扫描完成后会创建一份报告。
@@ -6333,10 +6319,7 @@ typeDescription:
   monitoring.coreos.com.prometheus: Prometheus server 是一个 Prometheus deployment，其抓取的配置和规则由选定的 ServiceMonitor、PodMonitor 和 PrometheusRule 决定。它将其告警信息发送给所有选择的具有定制资源配置的 AlertManager。
   monitoring.coreos.com.alertmanager: Alertmanager 是一个 deployment。其配置由同一命名空间中的密文指定，该密文决定了告警的接收器。
   node: Kubernetes 节点资源展示了承载 Deployment 的虚拟机或物理机。请进入"集群管理"页面管理可用节点的生命周期。
-  catalog.cattle.io.clusterrepo: 'Chart 仓库是一个 Helm 仓库或 {vendor} 基于 Git 的应用商店。此处列出了集群中可用的 Chart。'
-  catalog.cattle.io.clusterrepo.local: ' Chart 仓库是一个 Helm 仓库或 {vendor} 基于 Git 的应用商店。此处列出了集群中可用的 Chart。集群模板是通过 Helm Chart 部署的。'
   catalog.cattle.io.operation: 最近的操作指的是最近应用于集群的一系列 Helm 操作。
-  catalog.cattle.io.app: 已安装的应用指的是通过我们的 Chart 或 Helm CLI 安装的 Helm 3 Chart。
   logging.banzaicloud.io.clusterflow: 集群日志将被收集并投递到选定的 ClusterOutput 中。
   logging.banzaicloud.io.clusteroutput: ClusterOutput 定义了日志可以发送到哪些日志提供程序。只有部署在 Logging operator 所在的命名空间中时，ClusterOutput 才生效。
   logging.banzaicloud.io.flow: Flow 定义了要收集和过滤的日志，以及日志的输出目标。Flow 是一个命名空间资源。换言之，只有部署了该 Flow 的命名空间日志才能被该 Flow 收集。
@@ -6697,8 +6680,8 @@ typeLabel:
     }
   harvesterhci.io.management.cluster: |-
     {count, plural,
-      one { Harvester 集群 }
-      other { Harvester 集群 }
+      one { [[Harvester]] 集群 }
+      other { [[Harvester]] 集群 }
     }
   harvesterhci.io.cloudtemplate: |-
     {count, plural,
@@ -6995,9 +6978,8 @@ advancedSettings:
     'ingress-ip-domain': '用于自动生成 Ingress 主机名的通配符 DNS 域。<ingress-name>.<namespace-name>.<ip address of ingress controller> 会被添加到该域。'
     'server-url': '默认 {appName} 安装地址。必须使用 HTTPS。你集群中的所有节点都必须能够访问此地址。'
     'system-default-registry': '用于所有 Rancher System 容器镜像的私有镜像仓库。如果未指定任何值，则使用容器运行时的默认镜像仓库。对于 Docker 和 containerd，默认为 `docker.io`。'
-    'ui-index': 'Cluster Manager UI 的 HTML 索引位置。'
     'ui-dashboard-index': '{appName} UI 的 HTML 索引位置。'
-    'ui-offline-preferred': '控制 UI 资产是由服务器容器在本地提供，还是从 ui-index 和 ui-dashboard-index 设置中定义的远程 URL 提供。`动态` 选项将在 {appName} 的生产版本中使用本地资产。'
+    'ui-offline-preferred': '控制 UI 资产是由服务器容器在本地提供，还是从 ui-dashboard-index 设置中定义的远程 URL 提供。`动态` 选项将在 {appName} 的生产版本中使用本地资产。'
     'ui-pl': '自有品牌公司名称。'
     'auth-user-info-max-age-seconds': '在同步验证提供程序组成员之前，用户验证 Token 的最长存活时间。'
     'auth-user-info-resync-cron': '重新同步验证提供程序组成员的默认 cron 调度。'
@@ -7046,7 +7028,7 @@ featureFlags:
     title: 等待重启
     wait: 重启需要数分钟。
   description:
-    harvester: 接入 Harvester，以导入和管理 Harvester 集群
+    harvester: 接入 [[Harvester]]，以导入和管理 [[Harvester]] 集群
     unsupported-storage-drivers: 允许使用非默认启用的存储提供商和卷插件
     legacy: 启用旧版功能
     istio-virtual-service-ui: 暴露了一个用户界面，使用户能够创建、读取、更新和删除虚拟服务和目标规则，这是 Istio 的流量管理功能。
@@ -7060,65 +7042,11 @@ performance:
   label: UI 性能设置
   settingName: 性能
   experimental: 此设置是实验性的，可能会在后续版本中删除或更新。
-  incrementalLoad:
-    label: 增量加载
-    setting: 你可以配置一个阈值，高于该阈值时则使用增量加载。
-    description: |-
-      启用后，资源会更快出现，但可能需要更长的时间来加载整个资源集。此设置仅适用于来自 Kubernetes API 的资源
-    checkboxLabel: 启用增量加载
-    inputLabel: 资源阈值
-    incompatibleDescription: "增量加载与命名空间/项目过滤不兼容，无法同时启用。"
-  manualRefresh:
-    label: 手动刷新
-    setting: 你可以配置一个阈值，高于该阈值时则启用手动刷新。
-    buttonTooltip: 刷新列表
-    description: |-
-      启用后，列表数据不会自动更新，用户必须手动刷新列表视图。此设置仅适用于来自 Kubernetes API 的资源
-    checkboxLabel: 启用列表数据的手动刷新
-    inputLabel: 资源阈值
-    incompatibleDescription: "手动刷新与命名空间/项目过滤不兼容，无法同时启用。"
   websocketNotification:
     label: WebSocket 通知
     description: |-
       启用后，UI 检测到断开连接时不会出现 WebSocket 通知。
     checkboxLabel: 禁用 WebSocket 通知
-  gc:
-    label: 资源垃圾回收
-    description: UI 将在本地缓存 Kubernetes 资源，避免这些资源被重新抓取。在某些情况下，这可能会导致浏览器中存储了大量数据。你可以启用此设置进行定期删除。
-    checkboxLabel: 启用垃圾回收
-    whenRun:
-      description: 垃圾回收运行的时候更新
-      intervalCheckBox:
-        label: 定期运行垃圾回收
-      interval:
-        inputLabel: 运行间隔
-      route:
-        description: 在换页时运行垃圾回收
-        inputLabel: 换页
-    howRun:
-      description: 更新垃圾回收的运行方式
-      age:
-        description: "必须在此期间内未访问过资源，才能考虑进行垃圾回收。"
-        inputLabel: 资源存活时间
-      count:
-        description: 资源必须超过此数量才能考虑进行垃圾回收。
-        inputLabel: 资源数量
-  nsFiltering:
-    label: 要求命名空间/项目过滤
-    description: 用户需要选择命名空间和/或项目。这将限制查看列表时获取的资源数量，有助于在具有大量资源的系统中提高 UI 的响应速度。
-    checkboxLabel: 启用要求命名空间/项目过滤
-    incompatibleDescription: "\"要求命名空间/项目过滤\"与手动刷新和增量加载不兼容，无法同时启用。"
-  advancedWorker:
-    label: Websocket Web Worker
-    description: 推送到 UI 的资源更新来自 WebSocket，并在 UI 线程中处理。启用此选项可在单独的线程中处理 Web Worker 中的集群 WebSocket 更新。这有助于提高 UI 在资源经常变化的系统中的响应能力。
-    checkboxLabel: 启用高级 Websocket Web Worker
-  inactivity:
-    title: 闲置状态
-    checkboxLabel: 启用闲置会话过期
-    inputLabel: 闲置超时时间（分钟）
-    information: 要更改自动注销行为，请在"设置"页面编辑授权和/或会话 Token 超时值（<code>auth-user-session-ttl-minutes</code> 和 <code>auth-token-max-ttl-minutes</code>)。
-    description: 启用后，如果用户在指定的超时时间内未有活动，UI 将不再刷新页面内容，用户必须重新加载页面才能继续。
-    authUserTTL: 该超时时间不能超过用户会话超时时间 auth-user-session-ttl-minutes（当前为 {current} 分钟）。
 
 
 banner:
@@ -7303,10 +7231,6 @@ support:
     four:
       title: 自由创新
       text: 基于我们与众多 Kubernetes 供应商、操作系统和开源软件认证的兼容性，实现自主创新。
-
-embedding:
-  retry: 重试
-  unavailable: Cluster Manager UI 不可用
 
 legacy:
   alerts: 告警

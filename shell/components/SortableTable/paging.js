@@ -99,6 +99,9 @@ export default {
       this.debouncedPaginationChanged();
     },
 
+    totalRows() {
+      this.updateTabCount(this.totalRows);
+    }
   },
 
   methods: {

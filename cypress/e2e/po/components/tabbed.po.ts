@@ -1,7 +1,7 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 export default class TabbedPo extends ComponentPo {
-  constructor(selector = '.dashboard-root') {
+  constructor(selector = '.dashboard-root', private componentId = 'tabbed') {
     super(selector);
   }
 
@@ -13,12 +13,22 @@ export default class TabbedPo extends ComponentPo {
     return this.self().find(`${ selector }`).click();
   }
 
+  // Wait for a tab (by selector) to render and be visible - e.g. before clicking it, to avoid racing
+  // the tab bar mounting after a SPA navigation.
+  checkTabVisible(selector: string, options?: GetOptions) {
+    return this.self().find(selector, options).should('be.visible');
+  }
+
   clickTabWithName(name: string) {
     return this.self().get(`[data-testid="btn-${ name }"]`).click();
   }
 
-  allTabs() {
-    return this.self().get('[data-testid="tabbed-block"] > li');
+  /**
+   * The tablist `<ul>` only holds `<li role="presentation">` tab wrappers; controls and extras
+   * are rendered as siblings outside the `<ul>`, so `> li.tab` safely scopes to actual tabs.
+   */
+  allTabs(componentTestId = this.componentId) {
+    return this.self().get(`[data-testid="${ componentTestId }-block"] > li.tab`);
   }
 
   assertTabIsActive(selector: string) {

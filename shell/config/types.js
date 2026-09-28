@@ -14,7 +14,6 @@ export const STEVE = {
 export const NORMAN = {
   APP:                           'app',
   AUTH_CONFIG:                   'authconfig',
-  ETCD_BACKUP:                   'etcdbackup',
   CLUSTER:                       'cluster',
   CLUSTER_TOKEN:                 'clusterregistrationtoken',
   CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterroletemplatebinding',
@@ -48,6 +47,7 @@ export const API_GROUP = 'apiGroups';
 export const API_SERVICE = 'apiregistration.k8s.io.apiservice';
 export const CONFIG_MAP = 'configmap';
 export const COUNT = 'count';
+export const CRD = 'apiextensions.k8s.io.customresourcedefinition';
 export const EVENT = 'event';
 export const ENDPOINTS = 'endpoints';
 export const HPA = 'autoscaling.horizontalpodautoscaler';
@@ -62,6 +62,7 @@ export const POD_DISRUPTION_BUDGET = 'policy.poddisruptionbudget';
 export const PV = 'persistentvolume';
 export const PVC = 'persistentvolumeclaim';
 export const RESOURCE_QUOTA = 'resourcequota';
+export const AUDIT_POLICY = 'auditlog.cattle.io.auditpolicy';
 export const SCHEMA = 'schema';
 export const SERVICE = 'service';
 export const SECRET = 'secret';
@@ -81,8 +82,13 @@ export const RBAC = {
 };
 
 export const WORKLOAD = 'workload';
+export const WORKLOAD_DASHBOARD = 'workload-dashboard';
 
-// The types that are aggregated into a "workload"
+/**
+ * Rancher Workload types
+ *
+ * The types that are aggregated into a "workload"
+ */
 export const WORKLOAD_TYPES = {
   DEPLOYMENT:             'apps.deployment',
   CRON_JOB:               'batch.cronjob',
@@ -93,15 +99,44 @@ export const WORKLOAD_TYPES = {
   REPLICATION_CONTROLLER: 'replicationcontroller',
 };
 
+/**
+ * Kube Workload Kinds
+ */
+export const WORKLOAD_KINDS = {
+  DEPLOYMENT:             'Deployment',
+  CRON_JOB:               'CronJob',
+  DAEMON_SET:             'DaemonSet',
+  JOB:                    'Job',
+  STATEFUL_SET:           'StatefulSet',
+  REPLICA_SET:            'ReplicaSet',
+  REPLICATION_CONTROLLER: 'ReplicationController',
+};
+
+/**
+ * Map Rancher Workload types to Kube Workload Kinds
+ */
 export const WORKLOAD_TYPE_TO_KIND_MAPPING = {
   // Each deployment creates a replicaset and the metrics are published for a replicaset.
-  [WORKLOAD_TYPES.DEPLOYMENT]:             'ReplicaSet',
-  [WORKLOAD_TYPES.CRON_JOB]:               'CronJob',
-  [WORKLOAD_TYPES.DAEMON_SET]:             'DaemonSet',
-  [WORKLOAD_TYPES.JOB]:                    'Job',
-  [WORKLOAD_TYPES.STATEFUL_SET]:           'StatefulSet',
-  [WORKLOAD_TYPES.REPLICA_SET]:            'ReplicaSet',
-  [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 'ReplicationController',
+  [WORKLOAD_TYPES.DEPLOYMENT]:             WORKLOAD_KINDS.DEPLOYMENT,
+  [WORKLOAD_TYPES.CRON_JOB]:               WORKLOAD_KINDS.CRON_JOB,
+  [WORKLOAD_TYPES.DAEMON_SET]:             WORKLOAD_KINDS.DAEMON_SET,
+  [WORKLOAD_TYPES.JOB]:                    WORKLOAD_KINDS.JOB,
+  [WORKLOAD_TYPES.STATEFUL_SET]:           WORKLOAD_KINDS.STATEFUL_SET,
+  [WORKLOAD_TYPES.REPLICA_SET]:            WORKLOAD_KINDS.REPLICA_SET,
+  [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: WORKLOAD_KINDS.REPLICATION_CONTROLLER,
+};
+
+/**
+ * Map Kube Workload Kinds types to Rancher Workload
+ */
+export const WORKLOAD_KIND_TO_TYPE_MAPPING = {
+  [WORKLOAD_KINDS.DEPLOYMENT]:             WORKLOAD_TYPES.DEPLOYMENT,
+  [WORKLOAD_KINDS.CRON_JOB]:               WORKLOAD_TYPES.CRON_JOB,
+  [WORKLOAD_KINDS.DAEMON_SET]:             WORKLOAD_TYPES.DAEMON_SET,
+  [WORKLOAD_KINDS.JOB]:                    WORKLOAD_TYPES.JOB,
+  [WORKLOAD_KINDS.STATEFUL_SET]:           WORKLOAD_TYPES.STATEFUL_SET,
+  [WORKLOAD_KINDS.REPLICA_SET]:            WORKLOAD_TYPES.REPLICA_SET,
+  [WORKLOAD_KINDS.REPLICATION_CONTROLLER]: WORKLOAD_TYPES.REPLICATION_CONTROLLER,
 };
 
 export const METRICS_SUPPORTED_KINDS = [
@@ -185,6 +220,12 @@ export const LONGHORN_VERSION_V2 = 'LonghornV2';
 
 export const SNAPSHOT = 'rke.cattle.io.etcdsnapshot';
 
+export const OPERATION = {
+  ETCD_SNAPSHOT:         'operation.cattle.io.etcdsnapshotsave',
+  ETCD_SNAPSHOT_RESTORE: 'operation.cattle.io.etcdsnapshotrestore',
+  ENCRYPTION_KEY_ROTATE: 'operation.cattle.io.encryptionkeyrotation',
+};
+
 // --------------------------------------
 // 2. Only if Rancher is installed
 // --------------------------------------
@@ -220,7 +261,22 @@ export const MANAGEMENT = {
   RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
   RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
   CLUSTER_PROXY_CONFIG:          'management.cattle.io.clusterproxyconfig',
-  OIDC_CLIENT:                   'management.cattle.io.oidcclient'
+  OIDC_CLIENT:                   'management.cattle.io.oidcclient',
+  PROXY_ENDPOINT:                'management.cattle.io.proxyEndpoint',
+};
+
+export const BRAND = {
+  SUSE:    'suse',
+  FEDERAL: 'federal',
+  RGS:     'rgs',
+};
+
+export const EXT = {
+  USER_ACTIVITY:                     'ext.cattle.io.useractivity',
+  SELFUSER:                          'ext.cattle.io.selfuser',
+  GROUP_MEMBERSHIP_REFRESH_REQUESTS: 'ext.cattle.io.groupmembershiprefreshrequest',
+  PASSWORD_CHANGE_REQUESTS:          'ext.cattle.io.passwordchangerequest',
+  KUBECONFIG:                        'ext.cattle.io.kubeconfig',
 };
 
 export const CAPI = {
@@ -230,6 +286,7 @@ export const CAPI = {
   MACHINE:              'cluster.x-k8s.io.machine',
   RANCHER_CLUSTER:      'provisioning.cattle.io.cluster',
   MACHINE_CONFIG_GROUP: 'rke-machine-config.cattle.io',
+  CAPI_PROVIDER:        'turtles-capi.cattle.io.capiprovider'
 };
 
 // --------------------------------------
@@ -246,10 +303,12 @@ export const FLEET = {
   DASHBOARD:                'fleet.cattle.io.dashboard',
   GIT_REPO:                 'fleet.cattle.io.gitrepo',
   HELM_OP:                  'fleet.cattle.io.helmop',
+  SUSE_APP_COLLECTION:      'suse-application-collection',
   WORKSPACE:                'management.cattle.io.fleetworkspace',
   TOKEN:                    'fleet.cattle.io.clusterregistrationtoken',
   BUNDLE_NAMESPACE_MAPPING: 'fleet.cattle.io.bundlenamespacemapping',
-  GIT_REPO_RESTRICTION:     'fleet.cattle.io.gitreporestriction'
+  GIT_REPO_RESTRICTION:     'fleet.cattle.io.gitreporestriction',
+  POLICY:                   'fleet.cattle.io.policy'
 };
 
 export const GATEKEEPER = {
@@ -261,6 +320,11 @@ export const ISTIO = {
   VIRTUAL_SERVICE:  'networking.istio.io.virtualservice',
   DESTINATION_RULE: 'networking.istio.io.destinationrule',
   GATEWAY:          'networking.istio.io.gateway'
+};
+
+export const GATEWAY_API = {
+  GATEWAY:    'gateway.networking.k8s.io.gateway',
+  HTTP_ROUTE: 'gateway.networking.k8s.io.httproute'
 };
 
 export const LOGGING = {
@@ -316,6 +380,7 @@ export const VIRTUAL_TYPES = {
   CLUSTER_MEMBERS:    'cluster-members',
   PROJECT_NAMESPACES: 'projects-namespaces',
   NAMESPACES:         'namespaces',
+  PROJECT_SECRETS:    'projectsecret',
   JWT_AUTHENTICATION: 'jwt.authentication'
 };
 
@@ -341,20 +406,41 @@ export const ADDRESSES = {
 export const DEFAULT_WORKSPACE = 'fleet-default';
 
 export const AUTH_TYPE = {
-  _NONE:  '_none',
-  _BASIC: '_basic',
-  _SSH:   '_ssh',
-  _S3:    '_S3',
-  _RKE:   '_RKE',
+  _NONE:              '_none',
+  _BASIC:             '_basic',
+  _SSH:               '_ssh',
+  _S3:                '_S3',
+  _RKE:               '_RKE',
+  _IMAGE_PULL_SECRET: '_IPS',
+  _GITHUB_APP:        '_GITHUB_APP',
 };
 
 export const LOCAL_CLUSTER = 'local';
 
 export const CLUSTER_REPO_TYPES = {
-  HELM_URL: 'helm-url',
-  GIT_REPO: 'git-repo',
-  OCI_URL:  'oci-url'
+  HELM_URL:            'helm-url',
+  GIT_REPO:            'git-repo',
+  OCI_URL:             'oci-url',
+  SUSE_APP_COLLECTION: 'suse-application-collection'
 };
+
+/**
+ * The `generateName` prefix used when creating authentication secrets
+ * for SUSE App Collection repositories.
+ */
+export const CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME = 'clusterrepo-appco-auth-';
+
+/**
+ * The `generateName` prefix used when creating authentication secrets
+ * for standard repositories.
+ */
+export const CLUSTER_REPO_AUTH_GENERATE_NAME = 'clusterrepo-auth-';
+
+/**
+ * The `generateName` prefix used when creating Helm Op authentication secrets
+ * for standard Helm sources.
+ */
+export const AUTH_GENERATE_NAME = 'auth-';
 
 export const ZERO_TIME = '0001-01-01T00:00:00Z';
 
@@ -362,3 +448,9 @@ export const DEFAULT_GRAFANA_STORAGE_SIZE = '10Gi';
 
 export const DEPRECATED = 'Deprecated';
 export const EXPERIMENTAL = 'Experimental';
+export const AUTOSCALER_CONFIG_MAP_ID = 'kube-system/cluster-autoscaler-status';
+export const HOSTED_PROVIDER = 'hostedprovider';
+
+// Named saved counts
+
+export const SAVED_COUNTS = { K8S_CLUSTERS: 'k8sClusters' };

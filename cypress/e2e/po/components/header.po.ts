@@ -3,6 +3,7 @@ import { WorkspaceSwitcherPo } from '@/cypress/e2e/po/components/workspace-switc
 import { ImportYamlPo } from '@/cypress/e2e/po/components/import-yaml.po';
 import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class HeaderPo extends ComponentPo {
   constructor() {
@@ -20,16 +21,24 @@ export class HeaderPo extends ComponentPo {
     this.projectNamespaceFilter().toggle();
   }
 
-  selectWorkspace(name: string) {
-    const wsFilter = new WorkspaceSwitcherPo();
+  workspaceSwitcher() {
+    return new WorkspaceSwitcherPo();
+  }
 
-    wsFilter.toggle();
+  selectWorkspace(name: string) {
+    const wsFilter = this.workspaceSwitcher();
+
+    // The workspace switcher can detach and re-render while a page is still settling (notably the
+    // Fleet application list, whose header re-renders as data loads), so the default-timeout toggle
+    // click intermittently fails to find it even right after a visibility check. Click with a long
+    // timeout so the query retries through the re-render before selecting.
+    wsFilter.self(LONG_TIMEOUT_OPT).click();
 
     return wsFilter.clickOptionWithLabel(name);
   }
 
   checkCurrentWorkspace(name: string) {
-    const wsFilter = new WorkspaceSwitcherPo();
+    const wsFilter = this.workspaceSwitcher();
 
     return wsFilter.checkOptionSelected(name);
   }
@@ -78,11 +87,13 @@ export class HeaderPo extends ComponentPo {
     return this.kubectlExplain().trigger('mouseenter');
   }
 
-  getKubectlExplainTooltipContent(): Cypress.Chainable {
-    return cy.get('.v-popper--theme-tooltip .v-popper__inner');
+  hideKubectlExplainTooltip(): Cypress.Chainable {
+    this.kubectlExplain().trigger('mouseleave', { force: true });
+
+    return cy.get('.v-popper--theme-tooltip.v-popper__popper--shown').should('not.exist');
   }
 
-  resourceSearchButton(): Cypress.Chainable {
-    return cy.get('[data-testid="header-resource-search"]');
+  getKubectlExplainTooltipContent(): Cypress.Chainable {
+    return cy.get('.v-popper--theme-tooltip .v-popper__inner');
   }
 }

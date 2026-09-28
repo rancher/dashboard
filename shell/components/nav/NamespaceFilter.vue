@@ -9,8 +9,6 @@ import {
   NAMESPACE_FILTER_ALL as ALL,
   NAMESPACE_FILTER_ALL_SYSTEM as ALL_SYSTEM,
   NAMESPACE_FILTER_ALL_ORPHANS as ALL_ORPHANS,
-  NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
-  NAMESPACE_FILTER_NAMESPACED_NO as NAMESPACED_NO,
   createNamespaceFilterKey,
   NAMESPACE_FILTER_KINDS,
   NAMESPACE_FILTER_NS_FULL_PREFIX,
@@ -22,12 +20,13 @@ import { SETTING } from '@shell/config/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { randomStr } from '@shell/utils/string';
 import { RcButton } from '@components/RcButton';
+import { RcDropdownSeparator } from '@components/RcDropdown';
 
 const forcedNamespaceValidTypes = [NAMESPACE_FILTER_KINDS.DIVIDER, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACE_FILTER_KINDS.NAMESPACE];
 
 export default {
 
-  components: { RcButton },
+  components: { RcButton, RcDropdownSeparator },
 
   data() {
     return {
@@ -196,16 +195,6 @@ export default {
             kind:  NAMESPACE_FILTER_KINDS.SPECIAL,
             label: t('nav.ns.system'),
           },
-          {
-            id:    NAMESPACED_YES,
-            kind:  NAMESPACE_FILTER_KINDS.SPECIAL,
-            label: t('nav.ns.namespaced'),
-          },
-          {
-            id:    NAMESPACED_NO,
-            kind:  NAMESPACE_FILTER_KINDS.SPECIAL,
-            label: t('nav.ns.clusterLevel'),
-          },
         ];
 
         divider(out);
@@ -339,17 +328,14 @@ export default {
         const prefs = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
         const values = prefs && prefs[this.key] ? prefs[this.key] : this.defaultOption();
         const options = this.options;
+        const toOptions = (ids) => ids.map((id) => findBy(options, 'id', id)).filter((x) => !!x);
 
         // Remove values that are not valid options
-        const filters = values
-          .map((value) => {
-            return findBy(options, 'id', value);
-          })
-          .filter((x) => !!x);
+        const filters = toOptions(values);
 
         if (filters.length !== values.length) {
           // filter has changed, ensure we persist these to store
-          this.value = filters;
+          this.value = filters.length ? filters : toOptions(this.defaultOption());
         }
 
         return filters;
@@ -673,9 +659,16 @@ export default {
     },
 
     removeOption(ns, event) {
-      this.selectOption(ns);
       event.preventDefault();
       event.stopPropagation();
+
+      this.selectOption(ns);
+
+      if (event.type !== 'keydown' || this.value.length !== 0) {
+        return;
+      }
+
+      this.$refs.namespaceFilterInput.focus();
     },
 
     defaultOption() {
@@ -711,6 +704,7 @@ export default {
     :aria-activedescendant="containerId"
     class="ns-filter"
     data-testid="namespaces-filter"
+    :aria-label="t('generic.namespaceFilter')"
     tabindex="0"
     @mousedown.prevent
     @keydown.self.down.enter.space.prevent="open"
@@ -777,10 +771,11 @@ export default {
           <!-- block user from removing the last selection if ns forced filtering is on -->
           <RcButton
             v-if="!namespaceFilterMode || value.length > 1"
-            small
-            ghost
+            size="small"
+            variant="ghost"
             class="ns-chip-button"
             :data-testid="`namespaces-values-close-${j}`"
+            :aria-label="t('namespaceFilter.removeNamespace', { name: ns.label })"
             @click="removeOption(ns, $event)"
             @keydown.enter.space.stop="removeOption(ns, $event)"
             @mousedown="handleValueMouseDown(ns, $event)"
@@ -832,13 +827,14 @@ export default {
             tabindex="0"
             class="ns-filter-input"
             :aria-label="t('namespaceFilter.input')"
+            @mousedown.stop
             @click="focusFilter"
             @keydown="inputKeyHandler($event)"
           >
           <RcButton
             v-if="hasFilter"
-            small
-            ghost
+            size="small"
+            variant="ghost"
             class="ns-filter-clear"
             :aria-label="t('namespaceFilter.button.clearFilter')"
             @click="clearFilter"
@@ -860,8 +856,8 @@ export default {
         </div>
         <RcButton
           v-else
-          small
-          ghost
+          size="small"
+          variant="ghost"
           class="ns-clear"
           :aria-label="t('namespaceFilter.button.clear')"
           @click="clear"
@@ -888,12 +884,10 @@ export default {
           v-for="(opt, i) in cachedFiltered"
           :key="opt.id"
         >
-          <hr
+          <RcDropdownSeparator
             v-if="opt.kind === NAMESPACE_FILTER_KINDS.DIVIDER"
-            role="separator"
-            aria-orientation="horizontal"
             class="ns-divider"
-          >
+          />
           <div
             v-else
             :id="opt.elementId"
@@ -950,6 +944,10 @@ export default {
     display: inline-block;
     border-radius: var(--border-radius);
 
+    &:focus, &.focused {
+      @include focus-outline;
+    }
+
     .ns-glass {
       top: 0;
       bottom: 0;
@@ -991,8 +989,8 @@ export default {
     .ns-filter-clear {
       cursor: pointer;
       position: absolute;
-      right: 10px;
-      top: 10px;
+      right: 12px;
+      top: 5px;
       line-height: 24px;
       text-align: center;
       width: 14px;
@@ -1068,7 +1066,7 @@ export default {
           &.ns-selected:not(:hover) {
             .ns-item {
               > * {
-                color: var(--primary);
+                color: var(--link);
               }
             }
 
