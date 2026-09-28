@@ -4,5 +4,5 @@ product:
 configurableViews:
   settings:
     label: Settings
-  layouts:
-    label: Home Layouts
+  views:
+    label: Configurable Views
