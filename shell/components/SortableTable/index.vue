@@ -6,6 +6,7 @@ import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst, randomStr } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { valueFor as columnValueFor } from '@shell/utils/table-columns';
+import { isImprovedTablesEnabled } from '@shell/utils/table-views/feature';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
@@ -172,16 +173,20 @@ export default {
      * the top row, the view tabs take a second, and the filter shares a third with the selection
      * actions.
      *
-     * On by default. A list page should get the toolbar without having to ask for it - otherwise
-     * every extension with a list page of its own has to know the prop exists to opt in, and the
-     * feature only ever reaches the tables we remembered to flip. The rows the layout adds
-     * collapse when nothing fills them, so a table with neither its own buttons nor saved view
-     * tabs still renders a single row masthead. Pass `false` for a table that must keep the
-     * original masthead - the inline bulk action buttons rather than the "N selected" menu.
+     * Left unset, the feature flag decides. A list page should get the layout without having to
+     * ask for it - otherwise every extension with a list page of its own has to know the prop
+     * exists to opt in, and the feature only ever reaches the tables we remembered to flip - but
+     * it has to go when the feature is turned off, and most of these tables are reached directly
+     * rather than through ResourceTable, so there is nothing else to carry the flag to them.
+     *
+     * The rows the layout adds collapse when nothing fills them, so a table with neither its own
+     * buttons nor saved view tabs still renders a single row masthead. Pass `false` for a table
+     * that must keep the original masthead whatever the flag says - the inline bulk action
+     * buttons rather than the "N selected" menu.
      */
     tableViewsLayout: {
       type:    Boolean,
-      default: true
+      default: null
     },
 
     rowActions: {
@@ -699,6 +704,18 @@ export default {
     },
 
     /**
+     * Whether to lay the masthead out for table views.
+     *
+     * The prop when a caller states one, the feature flag otherwise - see the prop for why the
+     * flag has to reach here rather than only ResourceTable.
+     */
+    useTableViewsLayout() {
+      const stated = this.tableViewsLayout;
+
+      return stated === null || stated === undefined ? isImprovedTablesEnabled(this.$store) : stated;
+    },
+
+    /**
      * Whether the top row of the table views header has anything to hold.
      *
      * That row is where a page puts its own table level actions, and plenty of lists have none.
@@ -706,7 +723,7 @@ export default {
      * space between the page's heading and the view tabs.
      */
     tableViewsTopRowEmpty() {
-      return this.tableViewsLayout && !this.$slots['header-left'] && !this.$slots['header-middle'];
+      return this.useTableViewsLayout && !this.$slots['header-left'] && !this.$slots['header-middle'];
     },
 
     /**
@@ -716,7 +733,7 @@ export default {
      * saved view tabs, so the row they would have sat on has to go rather than hold its height.
      */
     tableViewsTabsEmpty() {
-      return this.tableViewsLayout && !this.$slots['table-views'];
+      return this.useTableViewsLayout && !this.$slots['table-views'];
     },
 
     showHeaderRow() {
@@ -1174,7 +1191,7 @@ export default {
 <template>
   <div
     ref="container"
-    :class="{ 'has-table-views': tableViewsLayout }"
+    :class="{ 'has-table-views': useTableViewsLayout }"
     :data-testid="componentTestid + '-list-container'"
   >
     <div
@@ -1185,14 +1202,14 @@ export default {
       <div
         v-if="showHeaderRow"
         class="fixed-header-actions"
-        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering, 'table-views-layout': tableViewsLayout, 'no-top-row': tableViewsTopRowEmpty, 'no-views-row': tableViewsTabsEmpty}"
+        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering, 'table-views-layout': useTableViewsLayout, 'no-top-row': tableViewsTopRowEmpty, 'no-views-row': tableViewsTabsEmpty}"
       >
         <div
           :class="bulkActionsClass"
           class="bulk"
         >
           <slot name="header-left">
-            <template v-if="tableActions && !tableViewsLayout">
+            <template v-if="tableActions && !useTableViewsLayout">
               <RcButton
                 v-for="(act) in availableActions"
                 :id="act.action"
@@ -1292,7 +1309,7 @@ export default {
              where these land, but the keyboard follows the document, and tabbing used to reach
              the tabs before the buttons drawn above them. -->
         <div
-          v-if="tableViewsLayout && !tableViewsTabsEmpty"
+          v-if="useTableViewsLayout && !tableViewsTabsEmpty"
           class="table-views-row"
         >
           <slot name="table-views" />
@@ -1322,7 +1339,7 @@ export default {
           <!-- Table views mode collapses every bulk action into one "N Selected" menu, which
                shares the filter's row and is only there when there is a selection to act on -->
           <TableSelectionActions
-            v-if="tableViewsLayout && tableActions"
+            v-if="useTableViewsLayout && tableActions"
             :actions="availableActions"
             :count="selectedRows.length"
             :action-tooltip="actionTooltip"
