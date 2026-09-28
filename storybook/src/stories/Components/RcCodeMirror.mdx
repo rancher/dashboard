@@ -70,6 +70,21 @@ This story folds `spec` and `metadata.labels` on load.
 
 <Canvas of={RcCodeMirrorStories.CustomFolding} />
 
+## Translations
+
+Pass CodeMirror translations through the `extensions` prop. The host application can use its own i18n system to supply the translated strings:
+
+```ts
+import { EditorState } from '@codemirror/state';
+
+const extensions = [EditorState.phrases.of({
+  'Fold line': t('codeMirror.foldLine'),
+  'Unfold line': t('codeMirror.unfoldLine')
+})];
+```
+
+`<RcCodeMirror :extensions="extensions" />` uses these phrases for the fold controls and keeps the custom triangle markers. The `extensions` prop is read on mount, so remount the editor when changing its locale.
+
 ## v-model
 
 <Canvas of={RcCodeMirrorStories.VModel} />

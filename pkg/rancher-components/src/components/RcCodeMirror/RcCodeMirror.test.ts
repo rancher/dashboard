@@ -1,4 +1,5 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
+import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { foldable, foldedRanges, foldEffect } from '@codemirror/language';
 import { foldByLineMatch, foldMatchingLines } from './extensions/fold';
@@ -429,6 +430,33 @@ describe('component: RcCodeMirror', () => {
         .find((marker) => (marker.element.parentElement as HTMLElement).style.visibility !== 'hidden');
 
       expect(closed?.get('svg path').attributes('d')).toStrictEqual('M3 2.5 7.5 5 3 7.5z');
+    });
+
+    it('should use CodeMirror phrases for the fold marker titles', () => {
+      mountEditor({
+        language:   'yaml',
+        modelValue: 'metadata:\n  name: test\nkind: Pod',
+        extensions: [EditorState.phrases.of({
+          'Fold line':   'Zeile einklappen',
+          'Unfold line': 'Zeile ausklappen'
+        })]
+      });
+      const view = getView(wrapper);
+
+      const open = wrapper.findAll('.cm-foldGutter .rc-cm-fold-marker[title="Zeile einklappen"]')
+        .find((marker) => (marker.element.parentElement as HTMLElement).style.visibility !== 'hidden');
+
+      expect(open?.attributes('title')).toStrictEqual('Zeile einklappen');
+
+      const range = foldable(view.state, 0, view.state.doc.line(1).to);
+
+      expect(range).not.toBeNull();
+      view.dispatch({ effects: foldEffect.of(range!) });
+
+      const closed = wrapper.findAll('.cm-foldGutter .rc-cm-fold-marker[title="Zeile ausklappen"]')
+        .find((marker) => (marker.element.parentElement as HTMLElement).style.visibility !== 'hidden');
+
+      expect(closed?.attributes('title')).toStrictEqual('Zeile ausklappen');
     });
 
     it('should fold when the gutter cell around a marker is clicked', () => {

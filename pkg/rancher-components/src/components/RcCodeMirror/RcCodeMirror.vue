@@ -85,6 +85,7 @@ const emit = defineEmits<{
 const attrs = useAttrs();
 const container = ref<HTMLDivElement>();
 const view = shallowRef<EditorView>();
+let initialState: EditorState | undefined;
 
 function isEditorAttribute(name: string): boolean {
   return name.startsWith('aria-') || name.toLowerCase() === 'tabindex';
@@ -141,9 +142,10 @@ function foldMarkerDOM(open: boolean): HTMLElement {
   const span = document.createElement('span');
   const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   const triangle = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  const phrase = open ? 'Fold line' : 'Unfold line';
 
   span.className = 'rc-cm-fold-marker';
-  span.title = open ? 'Fold line' : 'Unfold line';
+  span.title = (view.value?.state ?? initialState)?.phrase(phrase) ?? phrase;
   icon.setAttribute('viewBox', '0 0 10 10');
   icon.setAttribute('aria-hidden', 'true');
   triangle.setAttribute('d', open ? 'M2.5 3 7.5 3 5 7.5z' : 'M3 2.5 7.5 5 3 7.5z');
@@ -234,6 +236,8 @@ onMounted(() => {
     ]
   });
 
+  // The fold gutter renders its initial markers before view.value is assigned.
+  initialState = state;
   const editorView = new EditorView({
     state,
     parent: container.value
