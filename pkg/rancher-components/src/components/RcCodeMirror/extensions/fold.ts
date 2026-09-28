@@ -1,6 +1,6 @@
 import type { Extension, EditorState } from '@codemirror/state';
 import {
-  codeFolding, foldService, foldEffect, foldable, matchBrackets, syntaxTree, ensureSyntaxTree
+  codeFolding, foldService, foldEffect, foldable, matchBrackets, syntaxTree, forceParsing, language
 } from '@codemirror/language';
 import type { EditorView } from '@codemirror/view';
 
@@ -326,17 +326,27 @@ export function foldAllComments(view: EditorView): void {
 }
 
 /**
- * The syntax tree is parsed lazily, so content beyond the viewport may not be
- * parsed when the editor is ready. Parse the whole document so language fold
- * ranges are available everywhere, then apply an empty transaction so the
- * state picks up the new tree.
+ * Language parsing may stop before the end of a long document. Continue in
+ * short tasks before looking for folds, so a parse timeout cannot silently
+ * discard a requested fold outside the viewport.
  */
-function parseDocument(view: EditorView): void {
-  const tree = ensureSyntaxTree(view.state, view.state.doc.length, 500);
+function parseDocument(view: EditorView, onParsed: () => void): void {
+  const doc = view.state.doc;
+  const wasConnected = view.dom.isConnected;
 
-  if (tree && tree !== syntaxTree(view.state)) {
-    view.dispatch({});
+  function continueParsing(): void {
+    if (view.state.doc !== doc || (wasConnected && !view.dom.isConnected)) {
+      return;
+    }
+
+    if (!view.state.facet(language) || forceParsing(view, doc.length, 100)) {
+      onParsed();
+    } else {
+      setTimeout(continueParsing, 16);
+    }
   }
+
+  continueParsing();
 }
 
 /**
@@ -346,26 +356,26 @@ function parseDocument(view: EditorView): void {
 export function foldMatchingLines(view: EditorView, pattern: RegExp): void {
   const matcher = statelessPattern(pattern);
 
-  parseDocument(view);
+  parseDocument(view, () => {
+    const { state } = view;
+    const ranges: { from: number; to: number }[] = [];
 
-  const { state } = view;
-  const ranges: { from: number; to: number }[] = [];
+    for (let i = 1; i <= state.doc.lines; i++) {
+      const line = state.doc.line(i);
 
-  for (let i = 1; i <= state.doc.lines; i++) {
-    const line = state.doc.line(i);
+      if (!matcher.test(line.text)) {
+        continue;
+      }
+      const range = foldable(state, line.from, line.to);
 
-    if (!matcher.test(line.text)) {
-      continue;
+      if (range) {
+        ranges.push(range);
+      }
     }
-    const range = foldable(state, line.from, line.to);
-
-    if (range) {
-      ranges.push(range);
+    if (ranges.length > 0) {
+      view.dispatch({ effects: ranges.map((r) => foldEffect.of(r)) });
     }
-  }
-  if (ranges.length > 0) {
-    view.dispatch({ effects: ranges.map((r) => foldEffect.of(r)) });
-  }
+  });
 }
 
 /**
@@ -373,41 +383,42 @@ export function foldMatchingLines(view: EditorView, pattern: RegExp): void {
  * Call in a `ready` handler.
  */
 export function foldYamlPath(view: EditorView, path: string): void {
-  parseDocument(view);
-
-  const { state } = view;
   const segments = path.split('.');
   const lastSegment = segments[segments.length - 1];
-  const tree = syntaxTree(state);
 
-  let targetFrom: number | null = null;
+  parseDocument(view, () => {
+    const { state } = view;
+    const tree = syntaxTree(state);
 
-  tree.iterate({
-    enter(node) {
-      if (targetFrom !== null) {
-        return false;
-      }
-      if (node.name !== 'Key') {
-        return;
-      }
-      if (state.doc.sliceString(node.from, node.to).trim() !== lastSegment) {
-        return;
-      }
-      if (getKeyPath(node.node, state) === path) {
-        targetFrom = state.doc.lineAt(node.from).from;
+    let targetFrom: number | null = null;
 
-        return false;
+    tree.iterate({
+      enter(node) {
+        if (targetFrom !== null) {
+          return false;
+        }
+        if (node.name !== 'Key') {
+          return;
+        }
+        if (state.doc.sliceString(node.from, node.to).trim() !== lastSegment) {
+          return;
+        }
+        if (getKeyPath(node.node, state) === path) {
+          targetFrom = state.doc.lineAt(node.from).from;
+
+          return false;
+        }
       }
+    });
+
+    if (targetFrom === null) {
+      return;
+    }
+    const line = state.doc.lineAt(targetFrom);
+    const range = foldable(state, line.from, line.to);
+
+    if (range) {
+      view.dispatch({ effects: foldEffect.of(range) });
     }
   });
-
-  if (targetFrom === null) {
-    return;
-  }
-  const line = state.doc.lineAt(targetFrom);
-  const range = foldable(state, line.from, line.to);
-
-  if (range) {
-    view.dispatch({ effects: foldEffect.of(range) });
-  }
 }

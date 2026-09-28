@@ -5,6 +5,7 @@ import {
 } from '@codemirror/language';
 import { yaml } from '@codemirror/lang-yaml';
 import { json } from '@codemirror/lang-json';
+import * as cmLanguage from '@codemirror/language';
 import {
   indentFoldService,
   bracketFoldService,
@@ -16,6 +17,14 @@ import {
   foldMatchingLines,
   foldYamlPath,
 } from './fold';
+
+jest.mock('@codemirror/language', () => {
+  const original = jest.requireActual<typeof import('@codemirror/language')>('@codemirror/language');
+
+  return { ...original, forceParsing: jest.fn(original.forceParsing) };
+});
+
+const actualForceParsing = jest.requireActual<typeof import('@codemirror/language')>('@codemirror/language').forceParsing;
 
 function createState(doc: string, extensions: Extension[]): EditorState {
   const state = EditorState.create({ doc, extensions });
@@ -375,6 +384,51 @@ describe('fold extensions', () => {
 
       expect(folded(view)).toStrictEqual([{ from: status.to, to: view.state.doc.line(502).to }]);
     });
+
+    it('should finish parsing a long document after the first parse times out', () => {
+      const filler = Array.from({ length: 500 }, (_, i) => `key${ i }: value`).join('\n');
+      const doc = `${ filler }\nstatus:\n  phase: Running\n`;
+      const view = new EditorView({ state: EditorState.create({ doc, extensions: [codeFolding(), yaml()] }) });
+      const status = view.state.doc.line(501);
+      const parse = jest.mocked(cmLanguage.forceParsing).mockImplementationOnce(() => false);
+
+      jest.useFakeTimers();
+      try {
+        foldMatchingLines(view, /^status:\s*$/);
+
+        expect(folded(view)).toStrictEqual([]);
+
+        jest.advanceTimersByTime(16);
+
+        expect(folded(view)).toStrictEqual([{ from: status.to, to: view.state.doc.line(502).to }]);
+      } finally {
+        jest.useRealTimers();
+        parse.mockReset().mockImplementation(actualForceParsing);
+        view.destroy();
+      }
+    });
+
+    it('should cancel a pending fold when the document changes', () => {
+      const view = new EditorView({ state: EditorState.create({ doc: yamlDoc, extensions: [codeFolding(), yaml()] }) });
+      const parse = jest.mocked(cmLanguage.forceParsing).mockImplementationOnce(() => false);
+
+      jest.useFakeTimers();
+      try {
+        foldMatchingLines(view, /^spec:/);
+        view.dispatch({
+          changes: {
+            from: 0, to: view.state.doc.length, insert: 'new: value'
+          }
+        });
+        jest.advanceTimersByTime(16);
+
+        expect(folded(view)).toStrictEqual([]);
+      } finally {
+        jest.useRealTimers();
+        parse.mockReset().mockImplementation(actualForceParsing);
+        view.destroy();
+      }
+    });
   });
 
   describe('foldYamlPath', () => {
@@ -410,6 +464,29 @@ describe('fold extensions', () => {
       foldYamlPath(view, 'spec.containers[1].resources');
 
       expect(folded(view)).toStrictEqual([{ from: view.state.doc.line(10).to, to: view.state.doc.line(12).to }]);
+    });
+
+    it('should find a YAML path after the first parse times out', () => {
+      const filler = Array.from({ length: 500 }, (_, i) => `key${ i }: value`).join('\n');
+      const doc = `${ filler }\nstatus:\n  phase: Running\n`;
+      const view = new EditorView({ state: EditorState.create({ doc, extensions: [codeFolding(), yaml()] }) });
+      const status = view.state.doc.line(501);
+      const parse = jest.mocked(cmLanguage.forceParsing).mockImplementationOnce(() => false);
+
+      jest.useFakeTimers();
+      try {
+        foldYamlPath(view, 'status');
+
+        expect(folded(view)).toStrictEqual([]);
+
+        jest.advanceTimersByTime(16);
+
+        expect(folded(view)).toStrictEqual([{ from: status.to, to: view.state.doc.line(502).to }]);
+      } finally {
+        jest.useRealTimers();
+        parse.mockReset().mockImplementation(actualForceParsing);
+        view.destroy();
+      }
     });
   });
 });
