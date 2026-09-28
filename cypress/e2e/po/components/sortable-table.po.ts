@@ -138,12 +138,11 @@ export default class SortableTablePo extends ComponentPo {
     // grouped-query retries, a transiently empty container (e.g. during SPA
     // navigation) would otherwise flow an empty jQuery{0} subject into
     // .contains(), which rejects it ("requires a DOM element").
-    // Group rows are excluded, otherwise a namespace group header whose name contains `name` would match first
-    return this.self().should('exist').contains('tbody tr:not(.group-row)', new RegExp(`${ name }`), options);
+    return this.self().should('exist').contains('tbody tr', new RegExp(`${ name }`), options);
   }
 
   rowElementWithPartialName(name: string, options?: GetOptions) {
-    return this.self().contains('tbody tr:not(.group-row)', name, options);
+    return this.self().contains('tbody tr', name, options);
   }
 
   tableHeaderRowElementWithPartialName(name: string) {
