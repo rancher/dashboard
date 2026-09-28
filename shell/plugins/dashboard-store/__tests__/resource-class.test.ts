@@ -579,80 +579,8 @@ describe('class: Resource', () => {
       const namespaceItem = glance.find((item: any) => item.name === 'namespace');
 
       expect(namespaceItem!.formatter).toBeUndefined();
-      expect(namespaceItem!.formatterOpts!.to!.params.cluster).toBeUndefined();
-      expect(namespaceItem!.formatterOpts!.to!.params.product).toBeUndefined();
-    });
-
-    const createGlanceResource = (metadata: any, currentProduct: any = { name: 'explorer' }) => new Resource({
-      type:     'pod',
-      metadata: { creationTimestamp: '2024-01-01T00:00:00Z', ...metadata }
-    }, {
-      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
-      dispatch:    jest.fn(),
-      rootState:   { $extension: { getPlugins: () => ({}) } },
-      rootGetters: {
-        'i18n/t':            (key: string) => key,
-        clusterId:           'local',
-        productId:           'explorer',
-        currentProduct,
-        'type-map/labelFor': () => 'Pod',
-      },
-    });
-
-    it('should show the namespace name and link to the namespace', () => {
-      const resource = createGlanceResource({ name: 'frontend-abcde', namespace: 'default' });
-
-      const namespaceItem = resource._glance.find((item: any) => item.name === 'namespace');
-
-      expect(namespaceItem!.content).toStrictEqual('default');
-      expect(namespaceItem!.formatter).toStrictEqual('Link');
-      expect(namespaceItem!.formatterOpts!.to).toStrictEqual({
-        name:   'c-cluster-product-resource-id',
-        params: {
-          product: 'explorer', cluster: 'local', resource: 'namespace', id: 'default'
-        }
-      });
-    });
-
-    it('should not link the namespace row of a resource that has no namespace', () => {
-      const resource = createGlanceResource({ name: 'ip-172-31-13-111' });
-
-      const namespaceItem = resource._glance.find((item: any) => item.name === 'namespace');
-
-      expect(namespaceItem!.content).toBeUndefined();
-      expect(namespaceItem!.formatter).toBeUndefined();
-    });
-
-    it('should link the namespace row to the namespaceLocation of the model', () => {
-      const resource = createGlanceResource({ name: 'frontend-abcde', namespace: 'default' });
-      const namespaceLocation = { name: 'custom-namespace-route', params: { id: 'default' } };
-
-      Object.defineProperty(resource, 'namespaceLocation', { get: () => namespaceLocation });
-
-      const namespaceItem = resource._glance.find((item: any) => item.name === 'namespace');
-
-      expect(namespaceItem!.formatter).toStrictEqual('Link');
-      expect(namespaceItem!.formatterOpts!.to).toStrictEqual(namespaceLocation);
-    });
-
-    it('should not link the namespace row when the model has no namespaceLocation', () => {
-      const resource = createGlanceResource({ name: 'frontend-abcde', namespace: 'default' });
-
-      Object.defineProperty(resource, 'namespaceLocation', { get: () => null });
-
-      const namespaceItem = resource._glance.find((item: any) => item.name === 'namespace');
-
-      expect(namespaceItem!.content).toStrictEqual('default');
-      expect(namespaceItem!.formatter).toBeUndefined();
-    });
-
-    it('should not link the namespace row when the product hides namespace links', () => {
-      const resource = createGlanceResource({ name: 'frontend-abcde', namespace: 'default' }, { name: 'explorer', hideNamespaceLocation: true });
-
-      const namespaceItem = resource._glance.find((item: any) => item.name === 'namespace');
-
-      expect(namespaceItem!.content).toStrictEqual('default');
-      expect(namespaceItem!.formatter).toBeUndefined();
+      expect(namespaceItem!.formatterOpts!.to!.cluster).toBeUndefined();
+      expect(namespaceItem!.formatterOpts!.to!.product).toBeUndefined();
     });
   });
 

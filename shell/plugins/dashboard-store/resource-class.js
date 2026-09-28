@@ -12,7 +12,7 @@ import {
   AS,
   MODE
 } from '@shell/config/query-params';
-import { EVENT, NAMESPACE } from '@shell/config/types';
+import { EVENT } from '@shell/config/types';
 import { VIEW_IN_API, DEV } from '@shell/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
 import CustomValidators from '@shell/utils/custom-validators';
@@ -2057,20 +2057,25 @@ export default class Resource {
 
   get _glance() {
     const type = this.parentNameOverride || this.$rootGetters['type-map/labelFor'](this.schema);
-    const productId = this.$rootGetters['productId'];
-    const clusterId = this.$rootGetters['clusterId'];
-    const namespace = this.metadata?.namespace;
-    // Link to the namespace like the masthead does. A model returns null from namespaceLocation when its namespace can't be reached
-    const namespaceLocation = this.namespaceLocation === undefined ? {
-      name:   'c-cluster-product-resource-id',
-      params: {
-        product:  productId,
-        cluster:  clusterId,
-        resource: NAMESPACE,
-        id:       namespace,
-      }
-    } : this.namespaceLocation;
-    const linkNamespace = !!namespace && !!namespaceLocation && !!productId && !!clusterId && !this.$rootGetters['currentProduct']?.hideNamespaceLocation;
+    let toRoute = null;
+
+    if (this.isProdRegistrationV2TopLevelProductResoure) {
+      toRoute = {
+        name:   `${ this.$rootGetters['productId'] }-c-cluster-resource-id`,
+        params: {
+          product:  this.$rootGetters['currentProduct']?.id,
+          cluster:  this.$rootGetters['currentCluster']?.id,
+          resource: this.type,
+        }
+      };
+    } else {
+      toRoute = {
+        name:     `c-cluster-product-resource-id`,
+        product:  this.$rootGetters['currentProduct']?.id,
+        cluster:  this.$rootGetters['currentCluster']?.id,
+        resource: this.type
+      };
+    }
 
     return [
       {
@@ -2092,13 +2097,13 @@ export default class Resource {
       {
         name:          'namespace',
         label:         this.t('component.resource.detail.glance.namespace'),
-        formatter:     linkNamespace ? 'Link' : undefined,
+        formatter:     this.$rootGetters['currentProduct']?.id && this.$rootGetters['currentCluster']?.id ? 'Link' : undefined,
         formatterOpts: {
-          to:      namespaceLocation,
+          to:      toRoute,
           row:     {},
           options: { internal: true }
         },
-        content: namespace
+        content: this.namespacedName
       },
       {
         name:      'age',
