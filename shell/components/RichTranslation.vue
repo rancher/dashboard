@@ -41,13 +41,25 @@ export default defineComponent({
       type:    String,
       default: 'span'
     },
+    /**
+     * Values for the translation's placeholders, eg `{ name }` for `{name}`.
+     *
+     * They are put into the string before its tags are read, so a value that could hold markup of
+     * its own - a name the user typed - has to be escaped first, or it would be read as a tag.
+     */
+    args: {
+      type:    Object,
+      default: () => ({})
+    },
   },
   setup(props, { slots }) {
     const store = useStore();
 
     return () => {
-    // Get the raw translation string, without any processing.
-      const rawStr = store.getters['i18n/t'](props.k, {}, true);
+      // The translation with its placeholders filled in, before anything is made of its tags. Not
+      // told a language: the getter takes its third argument as one, and naming `true` there put
+      // every rich translation in the default language whatever the user had chosen.
+      const rawStr = store.getters['i18n/t'](props.k, props.args);
 
       if (!rawStr || typeof rawStr !== 'string') {
         return h(props.tag, {}, [rawStr]);
