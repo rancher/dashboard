@@ -92,8 +92,7 @@ export default function(plugin: IPlugin): void {
   plugin.addProduct(require('./product'));
   plugin.addRoutes(routing);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  plugin.addNavHooks({ onEnter: (store: any) => fetchTemplatingConfigMaps(store) });
+  plugin.addNavHooks({ onEnter: (store) => fetchTemplatingConfigMaps(store) });
 
   // Let this extension's tables be paged by the BACKEND rather than fetched whole.
   //

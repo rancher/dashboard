@@ -7,24 +7,46 @@
 //   READY-MADE       the same building blocks with their data already set, so the common
 //                    dashboards are one drag away.
 //
-// Pure data — no Vue, no store. `spec` is a WIDGET spec (see normalizeWidget in view-model.js);
+// Pure data — no Vue, no store. `spec` is a WIDGET spec (see normalizeWidget in view-model.ts);
 // `span` is the column width the widget lands on the grid with.
 
 import {
   MANAGEMENT, CAPI, EVENT, FLEET, LONGHORN, POD, SERVICE, INGRESS, PVC, NODE, WORKLOAD_TYPES
 } from '@shell/config/types';
+import type { WidgetKind, WidgetSpec } from './types';
+
+/** The little preview drawn on a catalog tile (see CatalogTile.vue). */
+export type CatalogIcon = 'table' | 'links' | 'banner';
+
+/** One tile in the editor's Add tab. */
+export interface CatalogEntry {
+  id: string;
+  name: string;
+  desc: string;
+  icon: CatalogIcon;
+  /** The column width it lands on the grid with. */
+  span: number;
+  spec: Partial<WidgetSpec> & { kind: WidgetKind };
+}
+
+/** One entry in a widget's Resource picker, and where that type lives (see SUGGESTED_RESOURCES). */
+export interface SuggestedResource {
+  value: string;
+  label: string;
+  downstream?: boolean;
+}
 
 /** Every widget kind the renderer knows. */
-export const WIDGET_TABLE = 'table';
-export const WIDGET_LINKS = 'links';
-export const WIDGET_BANNER = 'banner';
-export const WIDGET_CLUSTER_TABLE = 'clusterTable';
-export const WIDGET_OVERVIEW = 'overview';
-export const WIDGET_CLUSTER_HEADER = 'clusterHeader';
-export const WIDGET_RESOURCE_CARDS = 'resourceCards';
-export const WIDGET_CAPACITY = 'clusterCapacity';
-export const WIDGET_EVENTS = 'clusterEvents';
-export const WIDGET_CERTIFICATES = 'clusterCertificates';
+export const WIDGET_TABLE: WidgetKind = 'table';
+export const WIDGET_LINKS: WidgetKind = 'links';
+export const WIDGET_BANNER: WidgetKind = 'banner';
+export const WIDGET_CLUSTER_TABLE: WidgetKind = 'clusterTable';
+export const WIDGET_OVERVIEW: WidgetKind = 'overview';
+export const WIDGET_CLUSTER_HEADER: WidgetKind = 'clusterHeader';
+export const WIDGET_RESOURCE_CARDS: WidgetKind = 'resourceCards';
+export const WIDGET_CAPACITY: WidgetKind = 'clusterCapacity';
+export const WIDGET_EVENTS: WidgetKind = 'clusterEvents';
+export const WIDGET_CERTIFICATES: WidgetKind = 'clusterCertificates';
 
 /**
  * The kinds that are ABOUT one cluster - the pieces of a cluster's dashboard.
@@ -32,10 +54,10 @@ export const WIDGET_CERTIFICATES = 'clusterCertificates';
  * Each shows the cluster it names, or the page's when it names none (see useWidgetCluster), so the
  * settings ask for a cluster for these and for nothing else of theirs.
  */
-export const CLUSTER_WIDGETS = [WIDGET_CLUSTER_HEADER, WIDGET_RESOURCE_CARDS, WIDGET_CAPACITY, WIDGET_EVENTS, WIDGET_CERTIFICATES];
+const CLUSTER_WIDGETS: WidgetKind[] = [WIDGET_CLUSTER_HEADER, WIDGET_RESOURCE_CARDS, WIDGET_CAPACITY, WIDGET_EVENTS, WIDGET_CERTIFICATES];
 
-export function isClusterWidget(kind) {
-  return CLUSTER_WIDGETS.includes(kind);
+export function isClusterWidget(kind: string): boolean {
+  return (CLUSTER_WIDGETS as string[]).includes(kind);
 }
 
 /** The resource a fresh building block starts on — the one every Rancher install has. */
@@ -45,7 +67,7 @@ const CLUSTER = CAPI.RANCHER_CLUSTER;
  * BUILDING BLOCKS — "Any resource, including your own CRDs."
  * `icon` is the little preview drawn on the tile (see CatalogTile.vue).
  */
-export const BUILDING_BLOCKS = [
+export const BUILDING_BLOCKS: CatalogEntry[] = [
   {
     id:   WIDGET_TABLE,
     name: 'Table',
@@ -71,7 +93,7 @@ export const BUILDING_BLOCKS = [
  * READY-MADE — "Building blocks with their data already set."
  * Each is one of the blocks above with a resource, columns and sort already chosen.
  */
-export const READY_MADE = [
+export const READY_MADE: CatalogEntry[] = [
   {
     id:   'home-cluster-table',
     name: 'Home cluster table',
@@ -154,20 +176,15 @@ export const READY_MADE = [
   },
 ];
 
-/** Look up a catalog entry (either list) by id. */
-export function catalogEntry(id) {
-  return BUILDING_BLOCKS.find((b) => b.id === id) || READY_MADE.find((r) => r.id === id) || null;
-}
-
 /** The building block a widget kind came from — for the "Selected: Clusters (Table)" label. */
-export function blockName(kind) {
+export function blockName(kind: string): string {
   return BUILDING_BLOCKS.find((b) => b.id === kind)?.name ||
     READY_MADE.find((r) => r.spec.kind === kind)?.name ||
     kind;
 }
 
 /** Case-insensitive search over a catalog list (name + description), as the Add tab's box does. */
-export function searchCatalog(list, query) {
+export function searchCatalog(list: CatalogEntry[], query: string): CatalogEntry[] {
   const needle = `${ query || '' }`.trim().toLowerCase();
 
   if (!needle) {
@@ -195,7 +212,7 @@ export function searchCatalog(list, query) {
  * would silently show the local cluster's pods and call them "Pods", which is the sort of quiet
  * wrong answer a dashboard should never give.
  */
-export const SUGGESTED_RESOURCES = [
+export const SUGGESTED_RESOURCES: SuggestedResource[] = [
   { value: CAPI.RANCHER_CLUSTER, label: 'Cluster (provisioning.cattle.io)' },
   { value: MANAGEMENT.CLUSTER, label: 'Cluster (management.cattle.io)' },
   { value: MANAGEMENT.NODE, label: 'Node (management.cattle.io)' },
@@ -258,7 +275,7 @@ export const PAGINATION_CONTEXT = 'configurable-views';
  * this extension shows" is the point: each entry is a type we have looked at and a table we have
  * seen page correctly, not a promise made on behalf of types nobody has tried.
  */
-export const PAGINATED_RESOURCES = SUGGESTED_RESOURCES
+export const PAGINATED_RESOURCES: { resource: string; context: string[] }[] = SUGGESTED_RESOURCES
   .filter((r) => !r.downstream)
   .map((r) => ({ resource: r.value, context: [PAGINATION_CONTEXT] }));
 
@@ -268,6 +285,6 @@ export const PAGINATED_RESOURCES = SUGGESTED_RESOURCES
  * Only the suggestions say so — a type typed in by hand is assumed to be global, because that is
  * the API this extension can always reach.
  */
-export function isDownstream(resource) {
+export function isDownstream(resource: string): boolean {
   return !!SUGGESTED_RESOURCES.find((r) => r.value === resource)?.downstream;
 }
