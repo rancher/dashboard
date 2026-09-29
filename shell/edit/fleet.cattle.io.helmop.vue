@@ -22,6 +22,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { mapPref, DIFF } from '@shell/store/prefs';
 import { SECRET_TYPES } from '@shell/config/secret';
 import { toSeconds } from '@shell/utils/duration';
+import { getFleetPolicyDefaults } from '@shell/utils/fleet-policy';
 import { EDITOR_MODES } from '@shell/components/YamlEditor';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
@@ -92,6 +93,7 @@ export default {
       }
     }, this.$store);
     this.currentUser = await this.value.getCurrentUser();
+    await this.applyPolicyDefaults();
   },
 
   data() {
@@ -390,6 +392,24 @@ export default {
   },
 
   methods: {
+    /**
+     * A Policy in the workspace can name the credential a HelmOp falls back to, which Fleet
+     * applies on save whether or not the form shows it. Filling it in leaves the user looking at
+     * what will be used, and free to pick something else. An App Collection bundle is left alone:
+     * its credential is one this form creates, and its field offers no other.
+     */
+    async applyPolicyDefaults() {
+      if (this.mode !== _CREATE || this.isSuseAppCollection || this.value.spec.helmSecretName) {
+        return;
+      }
+
+      const { helmSecretName } = await getFleetPolicyDefaults(this.$store, this.value.metadata?.namespace);
+
+      if (helmSecretName) {
+        set(this.value.spec, 'helmSecretName', helmSecretName);
+      }
+    },
+
     emitInput(e) {
       this.$emit('input', e);
     },
