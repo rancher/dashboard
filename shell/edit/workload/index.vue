@@ -273,6 +273,7 @@ export default {
                     <LabeledInput
                       v-model:value="allContainers[i].name"
                       :mode="mode"
+                      :disabled="isPod && !isCreate"
                       :label="t('workload.container.containerName')"
                       required
                       :rules="containerNameRules"

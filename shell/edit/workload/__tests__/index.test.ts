@@ -162,5 +162,74 @@ describe('component: Workload', () => {
 
       expect((wrapper.vm as any).upgradingTabLabel).toStrictEqual(expected);
     });
+
+    it.each([
+      ['a pod being edited', true, 'edit', 'true'],
+      ['a pod being created', true, 'create', 'false'],
+      ['a deployment being edited', false, 'edit', 'false'],
+    ])('should only disable the container name for %s', (_name, isPod, mode, expected) => {
+      const containerMixin = {
+        computed: {
+          isPod:            () => isPod,
+          isCreate:         () => mode === 'create',
+          headlessServices: () => [],
+          allContainers:    () => [{
+            name: 'container-0', image: 'nginx', error: {}
+          }]
+        },
+        methods: { nameDisplayFor: jest.fn() }
+      };
+      const MockedWorkload = {
+        ...Workload,
+        mixins: [baseMockedValidationMixin, baseMockedCREMixin, { ...baseMockedWorkloadMixin, computed: { ...baseMockedWorkloadMixin.computed, allNodeObjects: jest.fn() } }, containerMixin]
+      };
+      const wrapper = shallowMount(MockedWorkload, {
+        props: {
+          value:         { metadata: {}, spec: { template: {} } },
+          params:        {},
+          fvFormIsValid: {},
+          mode
+        },
+
+        global: {
+          renderStubDefaultSlot: true,
+          mocks:                 {
+            $route:      { params: {}, query: {} },
+            $router:     { applyQuery: jest.fn() },
+            $fetchState: { pending: false },
+            $store:      {
+              getters: {
+                'cluster/schemaFor': jest.fn(),
+                'cluster/canList':   jest.fn(),
+                currentStore:        () => 'cluster',
+                'type-map/labelFor': jest.fn(),
+                'i18n/t':            (text: string) => text,
+              },
+            },
+          },
+
+          stubs: {
+            Tab:                 true,
+            LabeledInput:        true,
+            VolumeClaimTemplate: true,
+            Networking:          true,
+            Job:                 true,
+            NodeScheduling:      true,
+            PodAffinity:         true,
+            Tolerations:         true,
+            Storage:             true,
+            Tabbed:              true,
+            LabeledSelect:       true,
+            NameNsDescription:   true,
+            CruResource:         true,
+            KeyValue:            true
+          },
+        },
+      });
+
+      const containerName = wrapper.findAllComponents({ name: 'LabeledInput' }).find((input) => input.attributes('label') === 'workload.container.containerName');
+
+      expect(containerName?.attributes('disabled')).toStrictEqual(expected);
+    });
   });
 });
