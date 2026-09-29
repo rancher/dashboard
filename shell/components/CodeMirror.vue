@@ -1,9 +1,8 @@
 <script lang="ts">
 import { defineComponent, markRaw, PropType, toRaw } from 'vue';
 import jsyaml from 'js-yaml';
-import type { Extension } from '@codemirror/state';
-import { EditorView, keymap } from '@codemirror/view';
-import { indentWithTab } from '@codemirror/commands';
+import { EditorState, type Extension } from '@codemirror/state';
+import type { EditorView } from '@codemirror/view';
 import { RcCodeMirror } from '@components/RcCodeMirror';
 import type { RcCodeMirrorKeymap, RcCodeMirrorLanguage, RcCodeMirrorVariant } from '@components/RcCodeMirror';
 import { KEYMAP } from '@shell/store/prefs';
@@ -93,12 +92,9 @@ export default defineComponent({
 
   data() {
     return {
-      view:                   null as EditorView | null,
-      removeKeyMapBox:        false,
-      hasLintErrors:          false,
-      currFocusedElem:        undefined as EventTarget | undefined | null,
-      isCodeMirrorFocused:    false,
-      codeMirrorContainerRef: undefined as HTMLElement | undefined
+      view:            null as EditorView | null,
+      removeKeyMapBox: false,
+      hasLintErrors:   false,
     };
   },
 
@@ -143,20 +139,18 @@ export default defineComponent({
       return KEYMAP_PREFS[this.keymapPref] || 'default';
     },
 
+    // Translates the text RcCodeMirror renders itself. Like the other extensions, only read on mount
+    phrases(): Extension {
+      return EditorState.phrases.of({
+        'Fold line':                                  this.t('codeMirror.foldLine'),
+        'Unfold line':                                this.t('codeMirror.unfoldLine'),
+        'Press Escape, then Tab to leave the editor': this.t('codeMirror.escapeText'),
+      });
+    },
+
     combinedExtensions(): Extension[] {
       // Extensions must not be reactive proxies, CodeMirror compares them by identity
-      const out: Extension[] = this.extensions.map((e) => toRaw(e));
-
-      // Tab indents, as with a regular code editor. Text areas leave tab to move focus
-      if (!this.asTextArea) {
-        out.push(keymap.of([indentWithTab]));
-      }
-
-      if (this.options?.screenReaderLabel) {
-        out.push(EditorView.contentAttributes.of({ 'aria-label': this.options.screenReaderLabel }));
-      }
-
-      return out;
+      return [this.phrases, ...this.extensions.map((e) => toRaw(e))];
     },
 
     keyMapTooltip(): string | null {
@@ -172,27 +166,6 @@ export default defineComponent({
     isNonDefaultKeyMap(): boolean {
       return !!this.keymapPref && this.keymapPref !== 'sublime';
     },
-
-    isCodeMirrorContainerFocused(): boolean {
-      return this.currFocusedElem === this.codeMirrorContainerRef;
-    },
-
-    codeMirrorContainerTabIndex(): number {
-      return this.isCodeMirrorFocused ? 0 : -1;
-    }
-  },
-
-  mounted() {
-    const el = this.$refs.codeMirrorContainer as HTMLElement;
-
-    el.addEventListener('keydown', this.handleKeyPress);
-    this.codeMirrorContainerRef = el;
-  },
-
-  beforeUnmount() {
-    const el = this.$refs.codeMirrorContainer as HTMLElement;
-
-    el.removeEventListener('keydown', this.handleKeyPress);
   },
 
   watch: {
@@ -203,49 +176,9 @@ export default defineComponent({
     value(neu) {
       this.lint(neu);
     },
-
-    isCodeMirrorContainerFocused: {
-      handler(neu) {
-        const codeMirrorEl = this.view?.contentDOM;
-
-        if (codeMirrorEl) {
-          codeMirrorEl.tabIndex = neu ? -1 : 0;
-        }
-      },
-      immediate: true
-    }
   },
 
   methods: {
-    focusChanged(ev: FocusEvent, isBlurred = false) {
-      if (isBlurred) {
-        this.currFocusedElem = undefined;
-      } else {
-        this.currFocusedElem = ev.target;
-      }
-    },
-
-    handleKeyPress(ev: KeyboardEvent) {
-      // allows pressing escape in the editor, useful for modal editing with vim
-      if (this.isCodeMirrorFocused && ev.code === 'Escape') {
-        ev.preventDefault();
-        ev.stopPropagation();
-      }
-
-      // make focus leave the editor for it's parent container so that we can tab
-      const didPressEscapeSequence = ev.shiftKey && ev.code === 'Escape';
-
-      if (this.isCodeMirrorFocused && didPressEscapeSequence) {
-        (this.$refs.codeMirrorContainer as HTMLElement | undefined)?.focus();
-      }
-
-      // if parent container is focused and we press a trigger, focus goes to the editor inside
-      if (this.isCodeMirrorContainerFocused && (ev.code === 'Enter' || ev.code === 'Space')) {
-        ev.preventDefault();
-        this.view?.focus();
-      }
-    },
-
     /**
      * Validates yaml content with js-yaml, treating every parse failure as an error
      */
@@ -287,12 +220,10 @@ export default defineComponent({
     },
 
     onFocus() {
-      this.isCodeMirrorFocused = true;
       this.$emit('onFocus', true);
     },
 
     onBlur() {
-      this.isCodeMirrorFocused = false;
       this.$emit('onFocus', false);
     },
 
@@ -319,12 +250,8 @@ export default defineComponent({
 
 <template>
   <div
-    ref="codeMirrorContainer"
-    :tabindex="codeMirrorContainerTabIndex"
     class="code-mirror code-mirror-container"
     :class="{['read-only']: isReadOnly}"
-    @focusin="focusChanged"
-    @blur="focusChanged($event, true)"
   >
     <div
       v-if="showKeyMapBox && !removeKeyMapBox && keyMapTooltip && isNonDefaultKeyMap"
@@ -354,18 +281,13 @@ export default defineComponent({
         :fold-gutter="foldGutter"
         :line-wrapping="lineWrapping"
         :extensions="combinedExtensions"
+        :aria-label="options.screenReaderLabel"
         @ready="onReady"
         @update:model-value="onInput"
         @focus="onFocus"
         @blur="onBlur"
       />
     </div>
-    <span
-      v-show="isCodeMirrorFocused"
-      class="escape-text"
-      role="alert"
-      :aria-describedby="t('wm.containerShell.escapeText')"
-    >{{ t('codeMirror.escapeText') }}</span>
   </div>
 </template>
 
@@ -375,17 +297,6 @@ export default defineComponent({
   .code-mirror {
     position: relative;
     margin-bottom: 20px;
-
-    &.code-mirror-container:focus-visible {
-      @include focus-outline;
-    }
-
-    .escape-text {
-      font-size: 12px;
-      position: absolute;
-      bottom: -20px;
-      left: 0;
-    }
 
     .codemirror-container {
       z-index: 0;
