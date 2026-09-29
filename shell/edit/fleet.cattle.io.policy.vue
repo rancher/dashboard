@@ -100,6 +100,14 @@ export default {
       return this.credentialOptions(HELM_CREDENTIAL_SECRET_TYPES, false);
     },
 
+    gitRepoDefaultServiceAccountAllowed() {
+      return this.defaultAllowed(this.restrictServiceAccounts, this.value.gitRepo?.defaultServiceAccount, this.value.allowedServiceAccounts);
+    },
+
+    helmOpDefaultServiceAccountAllowed() {
+      return this.defaultAllowed(this.restrictServiceAccounts, this.value.helmOp?.defaultServiceAccount, this.value.allowedServiceAccounts);
+    },
+
     gitRepoDefaultSecretAllowed() {
       return this.defaultAllowed(this.restrictGitRepoSecrets, this.value.gitRepo?.defaultClientSecretName, this.value.gitRepo?.allowedClientSecretNames);
     },
@@ -118,6 +126,8 @@ export default {
       ];
 
       return !!this.value.name &&
+        this.gitRepoDefaultServiceAccountAllowed &&
+        this.helmOpDefaultServiceAccountAllowed &&
         this.gitRepoDefaultSecretAllowed &&
         this.helmOpDefaultSecretAllowed &&
         restrictions.every(([restricted, allowed]) => !restricted || !!allowed?.length);
@@ -208,6 +218,9 @@ export default {
         variant="gitRepo"
         :mode="mode"
         :service-account-options="serviceAccountOptions"
+        :service-accounts-restricted="restrictServiceAccounts"
+        :allowed-service-accounts="value.allowedServiceAccounts"
+        :default-service-account-allowed="gitRepoDefaultServiceAccountAllowed"
         :secret-options="gitRepoSecretOptions"
         :default-secret-allowed="gitRepoDefaultSecretAllowed"
       />
@@ -217,6 +230,9 @@ export default {
         variant="helmOp"
         :mode="mode"
         :service-account-options="serviceAccountOptions"
+        :service-accounts-restricted="restrictServiceAccounts"
+        :allowed-service-accounts="value.allowedServiceAccounts"
+        :default-service-account-allowed="helmOpDefaultServiceAccountAllowed"
         :secret-options="helmOpSecretOptions"
         :default-secret-allowed="helmOpDefaultSecretAllowed"
       />

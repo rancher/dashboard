@@ -174,6 +174,55 @@ describe('edit: fleet.cattle.io.policy', () => {
   });
 
   describe('validation', () => {
+    it('should fail while a default service account is not one of the allowed service accounts', async() => {
+      const value = policy({
+        name:                   'tenant-1-policy',
+        allowedServiceAccounts: ['tenant-1-deployer'],
+        gitRepo:                { defaultServiceAccount: 'build-bot' },
+      });
+      const wrapper = mountPolicy(value);
+
+      await wrapper.setData({ restrictServiceAccounts: true });
+
+      expect(wrapper.vm.gitRepoDefaultServiceAccountAllowed).toBe(false);
+      expect(wrapper.vm.validationPassed).toBe(false);
+    });
+
+    it('should fail while a HelmOps default service account is not one of the allowed service accounts', async() => {
+      const value = policy({
+        name:                   'tenant-1-policy',
+        allowedServiceAccounts: ['tenant-1-deployer'],
+        helmOp:                 { defaultServiceAccount: 'build-bot' },
+      });
+      const wrapper = mountPolicy(value);
+
+      await wrapper.setData({ restrictServiceAccounts: true });
+
+      expect(wrapper.vm.helmOpDefaultServiceAccountAllowed).toBe(false);
+      expect(wrapper.vm.validationPassed).toBe(false);
+    });
+
+    it('should pass once the default service account is one of the allowed service accounts', async() => {
+      const value = policy({
+        name:                   'tenant-1-policy',
+        allowedServiceAccounts: ['tenant-1-deployer'],
+        gitRepo:                { defaultServiceAccount: 'tenant-1-deployer' },
+      });
+      const wrapper = mountPolicy(value);
+
+      await wrapper.setData({ restrictServiceAccounts: true });
+
+      expect(wrapper.vm.gitRepoDefaultServiceAccountAllowed).toBe(true);
+      expect(wrapper.vm.validationPassed).toBe(true);
+    });
+
+    it('should ignore a default service account while the service accounts are not restricted', () => {
+      const value = policy({ name: 'tenant-1-policy', gitRepo: { defaultServiceAccount: 'build-bot' } });
+      const wrapper = mountPolicy(value);
+
+      expect(wrapper.vm.gitRepoDefaultServiceAccountAllowed).toBe(true);
+    });
+
     it('should fail while a default secret is not one of the allowed secrets', async() => {
       const value = policy({
         name:    'tenant-1-policy',

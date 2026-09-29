@@ -27,11 +27,17 @@ const props = withDefaults(defineProps<{
   mode: string;
   serviceAccountOptions?: string[];
   secretOptions?: FleetPolicyNameOption[];
+  serviceAccountsRestricted?: boolean;
+  allowedServiceAccounts?: string[];
+  defaultServiceAccountAllowed?: boolean;
   defaultSecretAllowed?: boolean;
 }>(), {
-  serviceAccountOptions: () => [],
-  secretOptions:         () => [],
-  defaultSecretAllowed:  true,
+  serviceAccountOptions:        () => [],
+  secretOptions:                () => [],
+  serviceAccountsRestricted:    false,
+  allowedServiceAccounts:       () => [],
+  defaultServiceAccountAllowed: true,
+  defaultSecretAllowed:         true,
 });
 
 const { t } = useI18n(useStore());
@@ -56,13 +62,30 @@ const optionName = (option: FleetPolicyNameOption) => (typeof option === 'string
  */
 const withNone = (options: FleetPolicyNameOption[]) => [{ label: t('generic.none'), value: null }, ...options];
 
-const defaultServiceAccountOptions = computed(() => withNone(props.serviceAccountOptions));
-
 const defaultServiceAccount = computed({
   get: () => props.value.defaultServiceAccount || '',
   set: (val: string) => {
     props.value.defaultServiceAccount = val || '';
   }
+});
+
+// A name the policy would reject is not worth offering, so once the service accounts are
+// restricted the default is chosen from the allowed ones. The service accounts are allowed by the
+// policy as a whole, while each source holds its own default.
+const defaultServiceAccountOptions = computed(() => {
+  if (!props.serviceAccountsRestricted) {
+    return withNone(props.serviceAccountOptions);
+  }
+
+  const options = [...props.allowedServiceAccounts];
+  const current = defaultServiceAccount.value;
+
+  // A default that is no longer allowed stays on the list, so the user can see what has to change
+  if (current && !options.includes(current)) {
+    options.push(current);
+  }
+
+  return withNone(options);
 });
 
 const defaultSecret = computed({
@@ -136,6 +159,7 @@ const createOption = (name: string) => ({ label: name, value: name });
             :searchable="true"
             :clearable="true"
             :create-option="createOption"
+            :muted-value="!props.defaultServiceAccountAllowed"
             :data-testid="`${ testid }-default-service-account`"
           />
           <p class="sub-description">
@@ -143,6 +167,12 @@ const createOption = (name: string) => ({ label: name, value: name });
           </p>
         </div>
       </div>
+      <Banner
+        v-if="!props.defaultServiceAccountAllowed"
+        color="warning"
+        :label="t('fleet.policy.defaultServiceAccountNotAllowed')"
+        :data-testid="`${ testid }-default-service-account-not-allowed`"
+      />
     </RcContentGroup>
     <RcContentGroup>
       <RadioGroup

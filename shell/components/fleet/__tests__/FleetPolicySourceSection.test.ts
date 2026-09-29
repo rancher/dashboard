@@ -101,6 +101,51 @@ describe('component: FleetPolicySourceSection', () => {
     expect(value.defaultServiceAccount).toBe('');
   });
 
+  const serviceAccountOptions = ['tenant-1-deployer', 'tenant-2-deployer'];
+
+  it('should offer every service account as the default while they are all allowed', () => {
+    const wrapper = mountSection({ serviceAccountOptions });
+
+    expect(selectWithTestid(wrapper, 'fleet-policy-git-repo-default-service-account').props('options'))
+      .toStrictEqual([none, ...serviceAccountOptions]);
+  });
+
+  it('should offer only the allowed service accounts as the default once they are restricted', () => {
+    const wrapper = mountSection({
+      serviceAccountOptions, serviceAccountsRestricted: true, allowedServiceAccounts: ['tenant-2-deployer']
+    });
+
+    expect(selectWithTestid(wrapper, 'fleet-policy-git-repo-default-service-account').props('options'))
+      .toStrictEqual([none, 'tenant-2-deployer']);
+  });
+
+  it('should keep a default service account that is no longer allowed on the list', () => {
+    const wrapper = mountSection({
+      value:                     { defaultServiceAccount: 'tenant-1-deployer' },
+      serviceAccountOptions,
+      serviceAccountsRestricted: true,
+      allowedServiceAccounts:    ['tenant-2-deployer'],
+    });
+
+    expect(selectWithTestid(wrapper, 'fleet-policy-git-repo-default-service-account').props('options'))
+      .toStrictEqual([none, 'tenant-2-deployer', 'tenant-1-deployer']);
+  });
+
+  it('should mute the default service account while it is not one of the allowed service accounts', () => {
+    const allowed = mountSection({ serviceAccountsRestricted: true });
+    const notAllowed = mountSection({ serviceAccountsRestricted: true, defaultServiceAccountAllowed: false });
+
+    expect(selectWithTestid(allowed, 'fleet-policy-git-repo-default-service-account').props('mutedValue')).toBe(false);
+    expect(selectWithTestid(notAllowed, 'fleet-policy-git-repo-default-service-account').props('mutedValue')).toBe(true);
+  });
+
+  it('should warn when the default service account is not one of the allowed service accounts', () => {
+    const notAllowed = '[data-testid="fleet-policy-git-repo-default-service-account-not-allowed"]';
+
+    expect(mountSection({ serviceAccountsRestricted: true }).find(notAllowed).exists()).toBe(false);
+    expect(mountSection({ serviceAccountsRestricted: true, defaultServiceAccountAllowed: false }).find(notAllowed).exists()).toBe(true);
+  });
+
   it('should offer only the allowed secrets as the default once they are restricted', () => {
     const value = { allowedClientSecretNames: ['tenant-2-git-credentials'] };
     const wrapper = mountSection({

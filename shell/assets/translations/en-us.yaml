@@ -3841,6 +3841,7 @@ fleet:
       allowed:
         title: Select allowed Helm secrets
         label: Allowed Helm secrets
+    defaultServiceAccountNotAllowed: The selected default service account must be allowed in the policy.
     defaultSecretNotAllowed: The selected default secret must be allowed in the policy.
     placeholder:
       serviceAccount: Select or enter a service account name
