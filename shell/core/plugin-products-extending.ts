@@ -3,6 +3,7 @@ import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import { BasePluginProduct } from '@shell/core/plugin-products-base';
 import { ProductChild, StandardProductName } from '@shell/core/plugin-products-external';
 import { AdvancedProductConfigOptionsInternal } from '@shell/core/plugin-products-internal';
+import { getExtensionProductRouting } from '@shell/core/plugin-products-route-registry';
 
 /**
  * Represents extending an existing standard product
@@ -16,10 +17,36 @@ export class ExtendingPluginProduct extends BasePluginProduct {
   constructor(plugin: IExtension, productName: StandardProductName | string, config: ProductChild[], advancedProdConfig?: AdvancedProductConfigOptionsInternal) {
     super(config, advancedProdConfig);
 
-    // existing standard product - no need to add routes
     this.name = productName;
-    this.startRouteWithProduct = false;
-    plugin._setStartRouteWithProduct(this.name, false);
+
+    // How does the product being extended route? Anything an extension registered as a top level
+    // product is in the registry; anything else is a core product.
+    const parent = getExtensionProductRouting(productName);
+
+    if (parent) {
+      // Top level extension products live at `<product>/c/:cluster/...`, which nothing in the core
+      // router matches, so match the parent rather than assuming the core routes cover it. They
+      // only own the generic `:resource` routes if the product itself registered a resource page,
+      // so extending one with its first resource page still has to add them.
+      this.startRouteWithProduct = parent.startRouteWithProduct;
+      this.extendParentRoutes = false;
+      this.registerResourceRoutes = !parent.hasResourceRoutes;
+
+      if (parent.startRouteWithProduct) {
+        // `Masthead.vue` and `resource-class.js` resolve the product-prefixed route shape from the
+        // last plugin whose `productNames` includes the product - which is this one once it
+        // extends. Without this they would fall back to the non-prefixed shape.
+        plugin._registerTopLevelProduct(this.name);
+      }
+    } else {
+      // Core product - the core c/:cluster/:product/... routes already cover it, including the
+      // generic `:resource` ones, so this registration must not add any of its own.
+      this.startRouteWithProduct = false;
+      this.extendParentRoutes = true;
+      this.registerResourceRoutes = false;
+    }
+
+    plugin._setStartRouteWithProduct(this.name, this.startRouteWithProduct);
 
     if (this.config?.length > 0) {
       this.processConfigChildren();

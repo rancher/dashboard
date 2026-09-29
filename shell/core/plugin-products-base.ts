@@ -19,6 +19,7 @@ import { AdvancedProductConfigOptionsInternal, ProductChildCustomPageInternal, P
 import { RouteRecordRaw } from 'vue-router';
 import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
 import { DSLRegistrationsPerProduct, registeredRoutes } from '@shell/core/productDebugger';
+import { markExtensionProductResourceRoutes } from '@shell/core/plugin-products-route-registry';
 
 /**
  * What's the point of this?
@@ -71,6 +72,23 @@ export abstract class BasePluginProduct {
   protected product?: ProductMetadata | ProductMetadataSinglePage;
 
   protected addedResourceRoutes = false;
+
+  /**
+   * Generate routes that reuse the routes the product being extended already has
+   * (`c/:cluster/:product/...`) instead of minting this registration's own.
+   *
+   * Only true when extending a product that the core router already covers. A new product, or one
+   * an extension registered as top level, needs its own routes - see
+   * `@shell/core/plugin-products-route-registry`.
+   */
+  protected extendParentRoutes = false;
+
+  /**
+   * Is this registration responsible for the product's generic `:resource` routes? False when the
+   * product being extended already owns them, in which case adding them again would shadow that
+   * product's own specific routes.
+   */
+  protected registerResourceRoutes = true;
 
   protected advIsDebuggerEnabled?: boolean = false;
 
@@ -303,26 +321,26 @@ export abstract class BasePluginProduct {
               const entry = entryChild as ProductChildResourcePage;
 
               defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, entry, {
-                omitPath: true, extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct
+                omitPath: true, extendProduct: this.extendParentRoutes, startRouteWithProduct: this.startRouteWithProduct
               });
             } else if (isProductChildWithComponent(entryChild)) {
               const entry = entryChild as ProductChildCustomPage;
 
               defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, entry.name, {
-                omitPath: true, extendProduct: !this.isNewProduct, component: entry.component, startRouteWithProduct: this.startRouteWithProduct
+                omitPath: true, extendProduct: this.extendParentRoutes, component: entry.component, startRouteWithProduct: this.startRouteWithProduct
               });
             }
           } else {
             // generateMetadataForGroupOverviewPageRouting
             // Group with component - route to the group overview page (which will render the group's component and side-menu)
             defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, firstConfig.name, {
-              omitPath: true, extendProduct: !this.isNewProduct, component: firstConfig.component, startRouteWithProduct: this.startRouteWithProduct
+              omitPath: true, extendProduct: this.extendParentRoutes, component: firstConfig.component, startRouteWithProduct: this.startRouteWithProduct
             });
           }
         } else if (firstConfig.component) {
           // Group with component but no children - route to the group page itself
           defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, firstConfig.name, {
-            omitPath: true, extendProduct: !this.isNewProduct, component: firstConfig.component, startRouteWithProduct: this.startRouteWithProduct
+            omitPath: true, extendProduct: this.extendParentRoutes, component: firstConfig.component, startRouteWithProduct: this.startRouteWithProduct
           });
         }
       } else if (isProductChildWithType(firstConfig)) {
@@ -330,14 +348,14 @@ export abstract class BasePluginProduct {
         const config = firstConfig as ProductChildResourcePage;
 
         defaultRoute = pluginProductsHelpers.generateConfigureTypeRoute(this.name, config, {
-          omitPath: true, extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct
+          omitPath: true, extendProduct: this.extendParentRoutes, startRouteWithProduct: this.startRouteWithProduct
         });
       } else if (isProductChildWithComponent(firstConfig)) {
         // Simple virtual type page (custom page)
         const config = firstConfig as ProductChildCustomPage;
 
         defaultRoute = pluginProductsHelpers.generateVirtualTypeRoute(this.name, config.name, {
-          omitPath: true, extendProduct: !this.isNewProduct, component: config.component, startRouteWithProduct: this.startRouteWithProduct
+          omitPath: true, extendProduct: this.extendParentRoutes, component: config.component, startRouteWithProduct: this.startRouteWithProduct
         });
       }
     } else if (this.isNewProduct) {
@@ -480,7 +498,7 @@ export abstract class BasePluginProduct {
 
       // The route gets a unique path segment from the item's name (e.g. /product/c/:cluster/groupName)
       const route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, {
-        extendProduct: !this.isNewProduct, component, startRouteWithProduct: this.startRouteWithProduct
+        extendProduct: this.extendParentRoutes, component, startRouteWithProduct: this.startRouteWithProduct
       });
 
       // Check for duplicate page names within the same product.
@@ -553,7 +571,7 @@ export abstract class BasePluginProduct {
       this.registeredPageNames.add(typeValue);
       this.pageIdMap.set(typeValue, typeValue);
 
-      const route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, item, { extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct });
+      const route = pluginProductsHelpers.generateConfigureTypeRoute(parentName, item, { extendProduct: this.extendParentRoutes, startRouteWithProduct: this.startRouteWithProduct });
 
       const configureTypeConfig: TypeMapConfigureType = {
         isCreatable: itemRP.can?.create ?? true,
@@ -677,10 +695,10 @@ export abstract class BasePluginProduct {
             component: EmptyProductPage
           };
 
-          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, pageForRoute.name, { extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct });
+          route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, pageForRoute.name, { extendProduct: this.extendParentRoutes, startRouteWithProduct: this.startRouteWithProduct });
         } else {
           route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, child.name, {
-            component: child.component, extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct
+            component: child.component, extendProduct: this.extendParentRoutes, startRouteWithProduct: this.startRouteWithProduct
           });
         }
 
@@ -696,7 +714,7 @@ export abstract class BasePluginProduct {
         }
 
         const route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, child.name, {
-          component: child.component, extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct
+          component: child.component, extendProduct: this.extendParentRoutes, startRouteWithProduct: this.startRouteWithProduct
         });
 
         plugin.addRoute(route);
@@ -706,20 +724,23 @@ export abstract class BasePluginProduct {
         // Since ProductChildPage with type has component?: never, this is a runtime validation
 
         // configureType page (resource)
-        // Only a brand new product needs generic resource routes. When extending an existing
-        // product the parent already registers them (c/:cluster/<product>/:resource and friends),
-        // and re-adding them here shadows the parent's own specific routes (e.g. projectsnamespaces):
-        // the extension's static product segment outranks the core's dynamic :product segment, so
+        // Add the generic resource routes only when the product does not already have them - see
+        // `@shell/core/plugin-products-route-registry`. Adding them for a product the core router
+        // already covers shadows that product's own specific routes: the static product segment
+        // in c/:cluster/<product>/:resource outranks the core's dynamic :product segment, so
         // /c/:cluster/explorer/projectsnamespaces would resolve to the generic :resource page and
         // fail with "Resource type projectsnamespaces not found".
-        if (this.isNewProduct && !this.addedResourceRoutes) {
+        if (this.registerResourceRoutes && !this.addedResourceRoutes) {
           this.addedResourceRoutes = true;
 
-          const resourceRoutes = pluginProductsHelpers.generateResourceRoutes(parentName, child, { extendProduct: !this.isNewProduct, startRouteWithProduct: this.startRouteWithProduct });
+          const resourceRoutes = pluginProductsHelpers.generateResourceRoutes(parentName, child, { extendProduct: this.extendParentRoutes, startRouteWithProduct: this.startRouteWithProduct });
 
           resourceRoutes.forEach((resRoute) => {
             plugin.addRoute(resRoute);
           });
+
+          // So a later registration extending this product does not add them a second time
+          markExtensionProductResourceRoutes(parentName);
         }
       }
     });
