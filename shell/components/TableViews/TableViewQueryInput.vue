@@ -98,6 +98,8 @@ const menuPos = ref({
 });
 /** What the menu has to outrank, read as it opens: a slide-in panel sits above the product's z-index scale */
 const menuZ = ref(0);
+/** The box is scrolled out from under the list, which would otherwise float over the header or nav */
+const menuOutOfView = ref(false);
 /**
  * The box is ahead of the query between a keystroke and the re-render; redrawing then drops what
  * was typed
@@ -293,6 +295,7 @@ const menuStyle = computed(() => ({
   top:                  `${ menuPos.value.top }px`,
   left:                 `${ menuPos.value.left }px`,
   '--query-menu-stack': menuZ.value,
+  ...(menuOutOfView.value ? { visibility: 'hidden' as const } : {}),
 }));
 
 /** Counted across the token spans, so it is an offset into the query string */
@@ -358,6 +361,25 @@ const applyCaret = (offset: number) => {
   selection?.removeAllRanges();
   selection?.addRange(range);
   caret.value = Math.max(0, Math.min(offset, (el.textContent || '').length));
+  keepCaretInView(range);
+};
+
+/** A caret placed from code isn't scrolled to, as a typed one is */
+const keepCaretInView = (range: Range) => {
+  const el = input.value;
+  const at = range.getBoundingClientRect();
+
+  if (!el || !(at.left || at.top)) {
+    return;
+  }
+
+  const box = el.getBoundingClientRect();
+
+  if (at.left > box.right) {
+    el.scrollLeft += at.left - box.right + 1;
+  } else if (at.left < box.left) {
+    el.scrollLeft -= box.left - at.left;
+  }
 };
 
 /** Rebuild the box from the query, browser inserted nodes included */
@@ -441,22 +463,47 @@ const stackAbove = () => {
   return highest ? highest + 1 : 0;
 };
 
+/** Where the box can be seen: the viewport, less what its scrolling ancestors cut off */
+const visibleArea = () => {
+  const area = {
+    top: 0, left: 0, bottom: window.innerHeight, right: window.innerWidth
+  };
+
+  for (let el = root.value?.parentElement; el && el !== document.body; el = el.parentElement) {
+    const { overflowX, overflowY } = getComputedStyle(el);
+
+    if (overflowX !== 'visible' || overflowY !== 'visible') {
+      const clip = el.getBoundingClientRect();
+
+      area.top = Math.max(area.top, clip.top);
+      area.left = Math.max(area.left, clip.left);
+      area.bottom = Math.min(area.bottom, clip.bottom);
+      area.right = Math.min(area.right, clip.right);
+    }
+  }
+
+  return area;
+};
+
 const updateMenuPos = () => {
   const rect = root.value?.getBoundingClientRect?.();
 
   if (rect) {
     // The width is only known once rendered
     const width = menu.value?.getBoundingClientRect().width || MENU_MIN_WIDTH;
-    const rightmost = Math.max(MENU_VIEWPORT_MARGIN, window.innerWidth - width - MENU_VIEWPORT_MARGIN);
+    const area = visibleArea();
+    const leftmost = Math.max(MENU_VIEWPORT_MARGIN, area.left);
+    const rightmost = Math.max(leftmost, window.innerWidth - width - MENU_VIEWPORT_MARGIN);
 
     const at = (caretLeft() ?? rect.left) - MENU_TEXT_INSET;
 
     menuPos.value = {
       // Over the box's bottom border, so the two 1px edges meet as one line
       top:   rect.bottom - 1,
-      left:  Math.min(Math.max(at, MENU_VIEWPORT_MARGIN), rightmost),
+      left:  Math.min(Math.max(at, leftmost), rightmost),
       width: rect.width
     };
+    menuOutOfView.value = rect.bottom <= area.top || rect.bottom > area.bottom || rect.right <= area.left || rect.left >= area.right;
   }
 
   menuZ.value = stackAbove();
@@ -540,9 +587,11 @@ const onFocus = () => {
   emit('update:focused', true);
 };
 
+/** Placed afresh even when the caret lands where it was, which the caret watcher wouldn't see */
 const onClick = () => {
   dismissed.value = false;
   syncCaret();
+  repositionMenu();
 };
 
 /**
@@ -657,6 +706,11 @@ const onKeyDown = (event: KeyboardEvent) => {
       clear();
     }
 
+    return;
+  }
+
+  // A list that can't be seen can't be picked from
+  if (menuOutOfView.value) {
     return;
   }
 
@@ -861,6 +915,9 @@ $query-height: 32px;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
+    // A line that can't wrap would otherwise be the box's minimum width, widening the toolbar
+    // rather than scrolling
+    contain: inline-size;
 
     &::-webkit-scrollbar {
       display: none;
