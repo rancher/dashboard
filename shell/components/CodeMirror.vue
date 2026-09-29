@@ -235,10 +235,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div
-    class="code-mirror code-mirror-container"
-    :class="{['read-only']: isReadOnly}"
-  >
+  <div class="code-mirror code-mirror-container">
     <div class="codemirror-container">
       <RcCodeMirror
         :model-value="value"
@@ -270,10 +267,6 @@ export default defineComponent({
     .codemirror-container {
       z-index: 0;
       font-size: inherit !important;
-    }
-
-    &.read-only .cm-cursor {
-      display: none !important;
     }
   }
 </style>
