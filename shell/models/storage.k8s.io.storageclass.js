@@ -1,6 +1,7 @@
 import { STORAGE } from '@shell/config/labels-annotations';
-import { STORAGE_CLASS } from '@shell/config/types';
+import { CSI_DRIVER, PV, PVC, STORAGE_CLASS } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { findAllOf, findIfExists, relatedEntry } from '@shell/utils/editable-related-resources';
 
 // These are storage class drivers w/ custom components
 // all but longhorn are in-tree plugins
@@ -160,5 +161,39 @@ export default class extends SteveModel {
     this.$dispatch(`cleanForNew`, this);
 
     delete this?.metadata?.annotations?.[STORAGE.DEFAULT_STORAGE_CLASS];
+  }
+
+  /**
+   * The resources related to this StorageClass, to edit by YAML alongside it
+   *
+   * Dependencies: the CSIDriver object named by `provisioner`, where the driver has one
+   *
+   * Dependents: the PersistentVolumes and PersistentVolumeClaims of this class, from every namespace
+   *
+   * @param {import('@shell/core/types').EditableRelatedResourcesFetchOptions} [options]
+   * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
+   */
+  async fetchOwnEditableRelatedResources({ dependencies = true, dependents = true } = {}) {
+    if (!this.metadata?.uid) {
+      return [];
+    }
+
+    const name = this.metadata.name;
+
+    // an object name can not contain `/`, so a provisioner such as `kubernetes.io/aws-ebs` has no CSIDriver
+    const driverName = this.provisioner?.includes('/') ? undefined : this.provisioner;
+
+    const [driver, volumes, claims] = await Promise.all([
+      dependencies ? findIfExists(this, CSI_DRIVER, driverName) : null,
+      dependents ? findAllOf(this, PV) : [],
+      dependents ? findAllOf(this, PVC) : [],
+    ]);
+
+    const ofClass = (resource) => resource.spec?.storageClassName === name;
+
+    return [
+      ...(driver ? [relatedEntry(driver)] : []),
+      ...[...claims.filter(ofClass), ...volumes.filter(ofClass)].map((resource) => relatedEntry(resource, { dependent: true })),
+    ];
   }
 }

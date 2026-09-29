@@ -1,4 +1,6 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { GATEWAY_API, SECRET } from '@shell/config/types';
+import { findAllOf, findIfExists, relatedEntry } from '@shell/utils/editable-related-resources';
 
 export const GATEWAY_GROUP = 'gateway.networking.k8s.io';
 
@@ -62,5 +64,47 @@ export default class Gateway extends SteveModel {
 
       return this.allowsRoute(listener, routeNamespace, kind);
     });
+  }
+
+  /**
+   * The ids of the Secrets the listeners name in `tls.certificateRefs`
+   *
+   * `group`, `kind` and `namespace` default to the core group, `Secret`, and the gateway's own
+   * namespace
+   */
+  get certificateSecretIds() {
+    const refs = this.listeners.flatMap((listener) => listener?.tls?.certificateRefs || []);
+
+    return [...new Set(refs
+      .filter((ref) => ref?.name && (ref.group ?? '') === '' && (ref.kind ?? 'Secret') === 'Secret')
+      .map((ref) => `${ ref.namespace ?? this.metadata?.namespace }/${ ref.name }`)
+    )];
+  }
+
+  /**
+   * The resources related to this Gateway, to edit by YAML alongside it
+   *
+   * Dependencies: the Secrets its listeners use as certificates
+   *
+   * Dependents: the HTTPRoutes naming it in `parentRefs`, from every namespace, as a listener can
+   * accept routes from other namespaces
+   *
+   * @param {import('@shell/core/types').EditableRelatedResourcesFetchOptions} [options]
+   * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
+   */
+  async fetchOwnEditableRelatedResources({ dependencies = true, dependents = true } = {}) {
+    if (!this.metadata?.uid) {
+      return [];
+    }
+
+    const [secrets, routes] = await Promise.all([
+      dependencies ? Promise.all(this.certificateSecretIds.map((id) => findIfExists(this, SECRET, id))) : [],
+      dependents ? findAllOf(this, GATEWAY_API.HTTP_ROUTE) : [],
+    ]);
+
+    return [
+      ...secrets.filter(Boolean).map((secret) => relatedEntry(secret)),
+      ...routes.filter((route) => route.gatewayIds?.includes(this.id)).map((route) => relatedEntry(route, { dependent: true })),
+    ];
   }
 }

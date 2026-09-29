@@ -71,8 +71,8 @@ export default class SteveModel extends HybridModel {
    * drops the owned resources.
    *
    * ```
-   * async fetchOwnEditableRelatedResources() {
-   *   const others = await this.$dispatch('findAll', { type: SOME_TYPE });
+   * async fetchOwnEditableRelatedResources({ dependencies, dependents }) {
+   *   const others = dependencies ? await this.$dispatch('findAll', { type: SOME_TYPE }) : [];
    *
    *   return others.map((resource) => ({
    *     resource,
@@ -83,15 +83,22 @@ export default class SteveModel extends HybridModel {
    * }
    * ```
    *
+   * A model defines only the resources directly related to its own, and marks those that use it as
+   * `dependent`. Dependencies further away are found as the tree is expanded, from the models of
+   * the resources in between, so every type in the tree gets the same related resources on its own
+   * page. Dependents are gathered only for the primary resource. `options` says which of the two
+   * kinds are wanted, see `EditableRelatedResourcesFetchOptions`
+   *
    * An entry from `fetchOwnEditableRelatedResources` wins over an owned entry for the same
    * resource, since it carries the model's own groupKey, hooks and banner.
    *
+   * @param {import('@shell/core/types').EditableRelatedResourcesFetchOptions} [options]
    * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
    */
-  async fetchEditableRelatedResources() {
+  async fetchEditableRelatedResources(options = { dependencies: true, dependents: true }) {
     const [own, owned] = await Promise.all([
-      this.fetchOwnEditableRelatedResources(),
-      this.includeOwnedEditableRelatedResources ? this.fetchOwnedEditableRelatedResources() : [],
+      this.fetchOwnEditableRelatedResources(options),
+      options.dependents && this.includeOwnedEditableRelatedResources ? this.fetchOwnedEditableRelatedResources() : [],
     ]);
 
     const ownKeys = new Set((own || []).map((entry) => keyForResource(entry?.resource)).filter(Boolean));
@@ -108,6 +115,7 @@ export default class SteveModel extends HybridModel {
    * This is the method for a model or an extension to override. See
    * `fetchEditableRelatedResources` for the shape of an entry.
    *
+   * @param {import('@shell/core/types').EditableRelatedResourcesFetchOptions} [options]
    * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
    */
   async fetchOwnEditableRelatedResources() {
@@ -136,6 +144,8 @@ export default class SteveModel extends HybridModel {
    * Only resources in the core kubernetes api group are gathered. Anything in a named group is
    * dropped on its type, before fetching, so it costs no requests.
    *
+   * An owned resource names this one in its `ownerReferences`, so it is a `dependent`
+   *
    * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
    */
   async fetchOwnedEditableRelatedResources() {
@@ -161,7 +171,8 @@ export default class SteveModel extends HybridModel {
       .map((resource) => ({
         resource,
         // grouped by type, so owned resources of the same type share a heading
-        group: resource.typeDisplay,
+        group:     resource.typeDisplay,
+        dependent: true,
       }));
   }
 

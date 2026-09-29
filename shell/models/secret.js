@@ -5,7 +5,10 @@ import {
 import { GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { removeObjects } from '@shell/utils/array';
-import { MANAGEMENT, SERVICE_ACCOUNT, VIRTUAL_TYPES } from '@shell/config/types';
+import {
+  GATEWAY_API, INGRESS, MANAGEMENT, SECRET, SERVICE_ACCOUNT, VIRTUAL_TYPES
+} from '@shell/config/types';
+import { findAllOf, relatedEntry, workloadsInNamespace } from '@shell/utils/editable-related-resources';
 import { SECRET_SCOPE, SECRET_QUERY_PARAMS } from '@shell/config/query-params';
 import { set } from '@shell/utils/object';
 import { NAME as MANAGER } from '@shell/config/product/manager';
@@ -692,5 +695,42 @@ export default class Secret extends SteveModel {
 
   get fullDetailPageOverride() {
     return true;
+  }
+
+  /**
+   * The resources related to this Secret, to edit by YAML alongside it
+   *
+   * Dependents, all in its namespace:
+   * - workloads whose pods use it, see the workload model's `usesResource`
+   * - ServiceAccounts listing it in `secrets` or `imagePullSecrets`
+   * - Ingresses naming it in `spec.tls`
+   * - Gateways naming it as a listener certificate
+   *
+   * @param {import('@shell/core/types').EditableRelatedResourcesFetchOptions} [options]
+   * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
+   */
+  async fetchOwnEditableRelatedResources({ dependents = true } = {}) {
+    if (!this.metadata?.uid || !dependents) {
+      return [];
+    }
+
+    const namespace = this.metadata.namespace;
+    const name = this.metadata.name;
+
+    const [workloads, serviceAccounts, ingresses, gateways] = await Promise.all([
+      workloadsInNamespace(this, namespace),
+      findAllOf(this, SERVICE_ACCOUNT, namespace),
+      findAllOf(this, INGRESS, namespace),
+      findAllOf(this, GATEWAY_API.GATEWAY, namespace),
+    ]);
+
+    const byName = (refs) => (refs || []).some((ref) => ref?.name === name);
+
+    return [
+      ...workloads.filter((workload) => workload.usesResource(SECRET, name)),
+      ...serviceAccounts.filter((account) => byName(account.secrets) || byName(account.imagePullSecrets)),
+      ...ingresses.filter((ingress) => (ingress.spec?.tls || []).some((tls) => tls?.secretName === name)),
+      ...gateways.filter((gateway) => gateway.certificateSecretIds?.includes(this.id)),
+    ].map((resource) => relatedEntry(resource, { dependent: true }));
   }
 }

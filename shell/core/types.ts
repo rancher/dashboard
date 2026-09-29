@@ -280,6 +280,15 @@ export type EditableRelatedResource = {
    */
   group?: string,
 
+  /**
+   * `resource` uses the resource it was gathered for, rather than being used by it
+   *
+   * For example an Ingress gathered for the Service it routes to, a workload gathered for a
+   * PersistentVolumeClaim it mounts, or a resource gathered for its owner. See
+   * `EditableRelatedResourcesFetchOptions` for how this shapes the tree
+   */
+  dependent?: boolean,
+
   /** Run before `resource` is saved, for example to apply changes made to the primary resource */
   beforeSaveHook?: EditableRelatedResourceSaveHook,
 
@@ -350,11 +359,35 @@ export type EditableRelatedResource = {
 };
 
 /**
+ * Which related resources to gather for one resource in the tree
+ *
+ * The primary resource is asked for both. A dependency is asked only for its own dependencies, so
+ * the tree follows chains of dependencies down from the primary resource. A dependent is not asked
+ * for anything, so only the primary resource's own dependents are shown, one level up
+ *
+ * Without this the tree would also take in the other dependents of every dependency, for example
+ * each workload using the same ConfigMap, then everything those use, until it held most of the
+ * namespace. Entries of the kind not asked for are dropped, so gathering them only costs requests
+ */
+export type EditableRelatedResourcesFetchOptions = {
+  /** Gather the resources this one uses, for example the ConfigMaps a workload mounts */
+  dependencies: boolean,
+
+  /**
+   * Gather the resources that use this one, entries with `dependent` set, for example the Ingresses
+   * routing to a Service. Only the primary resource is asked for these
+   */
+  dependents: boolean,
+};
+
+/**
  * Definition of an editable related resources extension
  *
  * `fetchExtensionEditableRelatedResources` is given the resource being shown and the list of related resources
  * gathered so far (from the resource's `fetchEditableRelatedResources` and any previously applied
  * extensions). It should return the new list, so entries can be added, removed or re-ordered.
+ *
+ * It is also given which related resources are wanted, see `EditableRelatedResourcesFetchOptions`
  *
  * It is resolved when the consuming component initialises (and not in a computed property), so it
  * may be async, for example to fetch the related resources it wants to add.
@@ -362,7 +395,8 @@ export type EditableRelatedResource = {
 export type EditableRelatedResources = {
   fetchExtensionEditableRelatedResources: (
     resource: EditableResource,
-    relatedResources: EditableRelatedResource[]
+    relatedResources: EditableRelatedResource[],
+    options?: EditableRelatedResourcesFetchOptions
   ) => EditableRelatedResource[] | Promise<EditableRelatedResource[]>
 };
 

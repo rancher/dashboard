@@ -1,7 +1,8 @@
 import find from 'lodash/find';
-import { NODE, POD } from '@shell/config/types';
+import { NODE, POD, INGRESS, GATEWAY_API } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { parse } from '@shell/utils/selector';
+import { findAllOf, ingressServiceNames, relatedEntry, workloadsInNamespace } from '@shell/utils/editable-related-resources';
 import { PaginationFilterEquality, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 // i18n-uses servicesPage.serviceTypes.clusterIp.*, servicesPage.serviceTypes.externalName.*, servicesPage.serviceTypes.headless.*
@@ -234,6 +235,36 @@ export default class Service extends SteveModel {
     const idx = view.lastIndexOf(`/`);
 
     return proxyUrlFromBase(view.slice(0, idx), scheme, this.metadata.name, port);
+  }
+
+  /**
+   * The resources related to this Service, to edit by YAML alongside it
+   *
+   * Dependencies: the workloads it sends traffic to, see the workload model's `isSelectedByService`
+   *
+   * Dependents: the Ingresses and HTTPRoutes in its namespace routing to it
+   *
+   * @param {import('@shell/core/types').EditableRelatedResourcesFetchOptions} [options]
+   * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
+   */
+  async fetchOwnEditableRelatedResources({ dependencies = true, dependents = true } = {}) {
+    if (!this.metadata?.uid) {
+      return [];
+    }
+
+    const namespace = this.metadata.namespace;
+
+    const [workloads, ingresses, httpRoutes] = await Promise.all([
+      dependencies ? workloadsInNamespace(this, namespace) : [],
+      dependents ? findAllOf(this, INGRESS, namespace) : [],
+      dependents ? findAllOf(this, GATEWAY_API.HTTP_ROUTE, namespace) : [],
+    ]);
+
+    return [
+      ...workloads.filter((workload) => workload.isSelectedByService(this)).map((workload) => relatedEntry(workload)),
+      ...ingresses.filter((ingress) => ingressServiceNames(ingress).includes(this.metadata.name)).map((ingress) => relatedEntry(ingress, { dependent: true })),
+      ...httpRoutes.filter((route) => route.targetsAnyService([this])).map((route) => relatedEntry(route, { dependent: true })),
+    ];
   }
 }
 

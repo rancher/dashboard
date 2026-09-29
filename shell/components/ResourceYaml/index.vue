@@ -24,6 +24,9 @@ import Loading from '@shell/components/Loading.vue';
 import SingleResourceYaml from './SingleResourceYaml.vue';
 import MultiResourceYaml from './MultiResourceYaml.vue';
 import { keyForResource } from '@shell/utils/resource-key';
+import { ALL_RELATED_RESOURCES } from '@shell/utils/editable-related-resources';
+
+const DEPENDENCIES_ONLY = { dependencies: true, dependents: false };
 
 export default {
   emits: ['error'],
@@ -132,7 +135,7 @@ export default {
       // Ensure a slow load for a previous resource doesn't overwrite the result for the current one
       const forResource = this.value;
 
-      let resources = await this.fetchRelatedResourcesFor(this.value, this.$route);
+      let resources = await this.fetchRelatedResourcesFor(this.value, this.$route, ALL_RELATED_RESOURCES);
 
       resources = await this.expandRelatedResourceTree(resources);
 
@@ -145,16 +148,21 @@ export default {
      * The related resources for one resource: the list from its model, then the extensions whose
      * location matches `route`, each seeing the previous result
      *
+     * Entries of a kind `options` does not ask for are dropped, for models and extensions that
+     * return them anyway
+     *
      * @param {Object} resource
      * @param {Object} route The route the extension location configs are matched against
+     * @param {import('@shell/core/types').EditableRelatedResourcesFetchOptions} options
      * @returns {Promise<Array>} `EditableRelatedResource` entries, not yet validated
      */
-    async fetchRelatedResourcesFor(resource, route) {
+    async fetchRelatedResourcesFor(resource, route, options) {
+      const wanted = (entries) => entries.filter((entry) => (entry?.dependent ? options.dependents : options.dependencies));
       let resources = [];
 
       if (typeof resource?.fetchEditableRelatedResources === 'function') {
         try {
-          resources = await resource.fetchEditableRelatedResources() || [];
+          resources = await resource.fetchEditableRelatedResources(options) || [];
         } catch (e) {
           console.warn('Failed to fetch related resources for', resource?.id, e); // eslint-disable-line no-console
         }
@@ -162,7 +170,7 @@ export default {
 
       // gate it so that we prevent errors on older versions of dashboard
       if (!this.$store.$extension?.getUIConfig) {
-        return resources;
+        return wanted(resources);
       }
 
       const extensions = getApplicableExtensionEnhancements(
@@ -179,7 +187,7 @@ export default {
         }
 
         try {
-          const neu = await fetchExtensionEditableRelatedResources(resource, resources);
+          const neu = await fetchExtensionEditableRelatedResources(resource, resources, options);
 
           if (Array.isArray(neu)) {
             resources = neu;
@@ -189,7 +197,7 @@ export default {
         }
       }
 
-      return resources;
+      return wanted(resources);
     },
 
     /**
@@ -219,7 +227,11 @@ export default {
 
     /**
      * Walk each entry's resource and collect their related resources, breadth-first, stopping
-     * before adding a resource that is already present in the tree
+     * before adding a resource that is already present in the tree, the primary resource included
+     *
+     * A resource found as a dependency is asked only for its own dependencies. A `dependent` is not
+     * expanded, so only the primary resource's own dependents are shown, see
+     * `EditableRelatedResourcesFetchOptions`
      *
      * Deduplication uses the resource's type and `id` together where available, falling back to
      * object identity so that resources fetched more than once are not added twice. The type is
@@ -240,8 +252,8 @@ export default {
      * @returns {Promise<Array>} The expanded list, original entries first
      */
     async expandRelatedResourceTree(entries) {
-      const idsSeen = new Set(entries.map((e) => keyForResource(e.resource)).filter(Boolean));
-      const refsSeen = new WeakSet(entries.map((e) => e.resource).filter(Boolean));
+      const idsSeen = new Set([this.value, ...entries.map((e) => e.resource)].map(keyForResource).filter(Boolean));
+      const refsSeen = new WeakSet([this.value, ...entries.map((e) => e.resource)].filter(Boolean));
 
       // Every entry needs an identity of its own, so that a child can still point at its parent
       // when that parent's resource has no id
@@ -262,7 +274,12 @@ export default {
 
       while (queue.length) {
         const entry = queue.shift();
-        const children = await this.fetchRelatedResourcesFor(entry.resource, this.routeForRelatedResource(entry.resource));
+
+        if (entry.dependent) {
+          continue;
+        }
+
+        const children = await this.fetchRelatedResourcesFor(entry.resource, this.routeForRelatedResource(entry.resource), DEPENDENCIES_ONLY);
 
         for (const child of children) {
           if (!child?.resource) {

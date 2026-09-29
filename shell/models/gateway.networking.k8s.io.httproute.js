@@ -1,7 +1,8 @@
-import { GATEWAY_API } from '@shell/config/types';
+import { GATEWAY_API, SERVICE } from '@shell/config/types';
 import { uniq } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { schemeForListener, GATEWAY_GROUP } from '@shell/models/gateway.networking.k8s.io.gateway';
+import { findIfExists, relatedEntry } from '@shell/utils/editable-related-resources';
 
 // Implied by the scheme, so omitted from the url.
 const DEFAULT_PORTS = {
@@ -186,5 +187,46 @@ export default class HttpRoute extends SteveModel {
     });
 
     return uniq(links).map((link) => ({ link, linkDisplay: link }));
+  }
+
+  /**
+   * The ids of the Gateways named in `parentRefs`
+   */
+  get gatewayIds() {
+    return uniq((this.spec?.parentRefs || [])
+      .filter((parentRef) => isGatewayRef(parentRef) && parentRef.name)
+      .map((parentRef) => `${ parentRef.namespace ?? this.metadata?.namespace }/${ parentRef.name }`));
+  }
+
+  /**
+   * The ids of the Services named in the `backendRefs` of the rules
+   */
+  get backendServiceIds() {
+    const backendRefs = this.rules.flatMap((rule) => rule?.backendRefs || []);
+
+    return uniq(backendRefs
+      .filter((backendRef) => backendRef?.name && (backendRef.group ?? '') === '' && (backendRef.kind ?? 'Service') === 'Service')
+      .map((backendRef) => `${ backendRef.namespace ?? this.metadata?.namespace }/${ backendRef.name }`));
+  }
+
+  /**
+   * The resources related to this HTTPRoute, to edit by YAML alongside it
+   *
+   * Dependencies: the Services it routes to and the Gateways it attaches to
+   *
+   * @param {import('@shell/core/types').EditableRelatedResourcesFetchOptions} [options]
+   * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
+   */
+  async fetchOwnEditableRelatedResources({ dependencies = true } = {}) {
+    if (!this.metadata?.uid || !dependencies) {
+      return [];
+    }
+
+    const [services, gateways] = await Promise.all([
+      Promise.all(this.backendServiceIds.map((id) => findIfExists(this, SERVICE, id))),
+      Promise.all(this.gatewayIds.map((id) => findIfExists(this, GATEWAY_API.GATEWAY, id))),
+    ]);
+
+    return [...services, ...gateways].filter(Boolean).map((resource) => relatedEntry(resource));
   }
 }

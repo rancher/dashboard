@@ -444,7 +444,7 @@ defineExpose({ editorState });
         name="yaml-fade"
         mode="out-in"
       >
-        <!-- YamlEditor reads `value` into the diff only in data(), so it must remount when the mode changes -->
+        <!-- YamlEditor remounts when mode changes-->
         <div
           v-if="editorState.selected"
           :key="`${editorState.selected}-${showDiff}-${editorRevision}`"

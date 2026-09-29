@@ -1,8 +1,11 @@
-import { SECRET, SERVICE } from '@shell/config/types';
+import { INGRESS_CLASS, SECRET, SERVICE } from '@shell/config/types';
 import { isValidUrl } from '@shell/utils/validators/setting';
 import { get } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import {
+  findIfExists, ingressBackends, ingressServiceNames, relatedEntry, typeForKind
+} from '@shell/utils/editable-related-resources';
 
 function tlsHosts(spec) {
   const tls = spec.tls || [];
@@ -213,5 +216,46 @@ export default class Ingress extends SteveModel {
     }
 
     return out;
+  }
+
+  /**
+   * The resources related to this Ingress, to edit by YAML alongside it
+   *
+   * Dependencies:
+   * - the Services and resource backends it routes to, which are in its own namespace
+   * - the Secrets named by `spec.tls`
+   * - its IngressClass
+   *
+   * See https://kubernetes.io/docs/concepts/services-networking/ingress/
+   *
+   * @param {import('@shell/core/types').EditableRelatedResourcesFetchOptions} [options]
+   * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
+   */
+  async fetchOwnEditableRelatedResources({ dependencies = true } = {}) {
+    if (!this.metadata?.uid || !dependencies) {
+      return [];
+    }
+
+    const namespace = this.metadata.namespace;
+    const inNamespace = (name) => `${ namespace }/${ name }`;
+    const serviceNames = [...new Set(ingressServiceNames(this))];
+    const secretNames = [...new Set((this.spec?.tls || []).map((tls) => tls?.secretName).filter(Boolean))];
+    const resourceBackends = ingressBackends(this).map((backend) => backend?.resource).filter((resource) => resource?.kind && resource?.name);
+
+    const [services, secrets, backends, ingressClass] = await Promise.all([
+      Promise.all(serviceNames.map((name) => findIfExists(this, SERVICE, inNamespace(name)))),
+      Promise.all(secretNames.map((name) => findIfExists(this, SECRET, inNamespace(name)))),
+      Promise.all(resourceBackends.map(({ apiGroup, kind, name }) => findIfExists(this, typeForKind(apiGroup, kind), inNamespace(name)))),
+      findIfExists(this, INGRESS_CLASS, this.spec?.ingressClassName),
+    ]);
+
+    const classBanner = () => ({ color: 'warning', label: this.t('resourceYaml.resourceGraph.banners.sharedByIngresses') });
+
+    return [
+      ...services.filter(Boolean).map((resource) => relatedEntry(resource)),
+      ...backends.filter(Boolean).map((resource) => relatedEntry(resource)),
+      ...secrets.filter(Boolean).map((resource) => relatedEntry(resource)),
+      ...(ingressClass ? [relatedEntry(ingressClass, { banner: classBanner })] : []),
+    ];
   }
 }
