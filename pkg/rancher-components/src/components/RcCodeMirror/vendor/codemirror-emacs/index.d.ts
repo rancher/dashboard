@@ -1,7 +1,7 @@
 import { Extension, ChangeDesc } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 
-declare function emacs(options?: {}): Extension;
+declare function emacs(options?: { tabIndent?: boolean }): Extension;
 declare type EmacsMark = number[] | null | undefined;
 declare class EmacsHandler {
     readonly view: EditorView;

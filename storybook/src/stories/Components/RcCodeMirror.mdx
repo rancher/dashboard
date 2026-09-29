@@ -15,7 +15,9 @@ The default `rancher` theme uses the Rancher light or dark palette from the surr
 
 ## Keymaps
 
-Set `keymap="emacs"` for Emacs movement, search, undo, kill/yank, and multi-key commands. Browser shortcuts still take priority when the browser reserves them; for example, Chrome intercepts Ctrl-N and Ctrl-W before the editor receives those keys.
+Set `keymap="emacs"` for Emacs movement, undo, kill/yank, and multi-key commands. Browser shortcuts still take priority when the browser reserves them; for example, Chrome intercepts Ctrl-N and Ctrl-W before the editor receives those keys.
+
+The CodeMirror search panel is currently disabled. Search shortcuts such as Ctrl-F or Cmd-F do not open a panel inside this editor.
 
 ## Layout styles
 
@@ -26,6 +28,8 @@ Styles and classes passed to `RcCodeMirror` apply to its outer box. Set a height
 ## Accessibility
 
 CodeMirror renders its own textbox, so ARIA attributes such as `aria-label`, `aria-labelledby` and `aria-describedby` are forwarded to it rather than the component's root element. Every instance needs an accessible name from one of them. A `<label for>` does not work, because the textbox is not a form control; give the label an `id` and reference it with `aria-labelledby`, as the input example below does.
+
+In the editor variant, Tab indents and Shift-Tab unindents with the default and Emacs keymaps. With Vim, Tab moves forward in the jump list in Normal mode and inserts a tab at the cursor in Insert mode; Shift-Tab moves focus out. A hint appears while the editor is focused: press Escape then Tab (or Escape then Shift-Tab) to leave, as described in [CodeMirror's Tab guidance](https://codemirror.net/examples/tab/). This works with every keymap. In the input variant, Tab and Shift-Tab move focus normally.
 
 Folds can be toggled from the keyboard with every keymap:
 
@@ -87,11 +91,12 @@ import { EditorState } from '@codemirror/state';
 
 const extensions = [EditorState.phrases.of({
   'Fold line': t('codeMirror.foldLine'),
-  'Unfold line': t('codeMirror.unfoldLine')
+  'Unfold line': t('codeMirror.unfoldLine'),
+  'Press Escape, then Tab to leave the editor': t('codeMirror.escapeTabText')
 })];
 ```
 
-`<RcCodeMirror :extensions="extensions" />` uses these phrases for the fold controls and keeps the custom triangle markers. The `extensions` prop is read on mount, so remount the editor when changing its locale.
+`<RcCodeMirror :extensions="extensions" />` uses these phrases for the fold controls and the escape hint. The `extensions` prop is read on mount, so remount the editor when changing its locale.
 
 ## v-model
 

@@ -28,6 +28,8 @@ const EMACS_BINDINGS: [string, string, string, string][] = [
   ['moves to the end of the document', 'M-S-.', 'to|p:\n  child', 'top:\n  child|'],
   ['repeats a command four times after C-u', 'C-u C-f', '|abcdef', 'abcd|ef'],
   ['repeats a command a given count after C-u', 'C-u 2 C-f', '|abcdef', 'ab|cdef'],
+  ['moves to the next paragraph', 'C-Down', 'first| line\nnext line\n\nlast', 'first line\nnext line\n|\nlast'],
+  ['moves to the previous paragraph', 'C-Up', 'first\n\nnext| line', 'first\n|\nnext line'],
 
   // Deletion, killing and yanking
   ['deletes the next character', 'C-d', 'a|bc', 'a|c'],
@@ -51,8 +53,14 @@ const EMACS_BINDINGS: [string, string, string, string][] = [
   ['transposes characters', 'C-t', 'ab|c', 'acb|'],
   ['upcases a word', 'M-u', 'foo |bar baz', 'foo BAR| baz'],
   ['downcases a word', 'M-l', 'foo |BAR baz', 'foo bar| baz'],
+  ['capitalizes a word', 'M-c', 'foo |bAR baz', 'foo Bar| baz'],
+  ['collapses whitespace to one space', 'M-Space', 'foo  |  bar', 'foo |bar'],
   ['toggles a line comment', 'M-;', 'foo: |bar', '# foo: |bar'],
   ['keeps the indentation of a new line', 'Return', 'top:\n  child: value|', 'top:\n  child: value\n  |'],
+  ['reindents text after the cursor when inserting a new line', 'Return', '  delta:| value', '  delta:\n  |value'],
+  ['inserts a line break without indentation', 'C-j', '  delta:| value', '  delta:\n| value'],
+  ['indents a line with Tab', 'Tab', 'foo:| bar', '  foo:| bar'],
+  ['unindents a line with Shift-Tab', 'S-Tab', '  foo:| bar', 'foo:| bar'],
 
   // Undo and redo
   ['undoes with C-/', 'C-d C-/', 'a|bc', 'a|bc'],
@@ -65,6 +73,9 @@ const NAMED_KEYS: Record<string, [string, string]> = {
   Space:     [' ', 'Space'],
   Return:    ['Enter', 'Enter'],
   Backspace: ['Backspace', 'Backspace'],
+  Tab:       ['Tab', 'Tab'],
+  Down:      ['ArrowDown', 'ArrowDown'],
+  Up:        ['ArrowUp', 'ArrowUp'],
   ',':       [',', 'Comma'],
   '.':       ['.', 'Period'],
   ';':       [';', 'Semicolon'],
@@ -150,19 +161,113 @@ describe('component: RcCodeMirror emacs keymap', () => {
     }).toStrictEqual(expected);
   });
 
+  it.each(['C-s', 'C-r'])('does not open a search panel with %s', (keys) => {
+    wrapper = shallowMount(RcCodeMirror, {
+      props:    { keymap: 'emacs', modelValue: 'find me' },
+      attachTo: document.body
+    }) as Wrapper;
+    const view = (wrapper.vm as unknown as { view: EditorView }).view;
+
+    view.focus();
+    view.contentDOM.dispatchEvent(keyEvent(keys));
+
+    expect(wrapper.find('.cm-search').exists()).toBe(false);
+  });
+
+  it.each(['Return', 'C-j', 'Tab', 'S-Tab', 'M-c', 'M-Space'])(
+    'does not edit a read only document with %s', (keys) => {
+      wrapper = shallowMount(RcCodeMirror, {
+        props: {
+          keymap: 'emacs', language: 'yaml', modelValue: '  foo:   bAR', readOnly: true
+        },
+        attachTo: document.body
+      }) as Wrapper;
+      const view = (wrapper.vm as unknown as { view: EditorView }).view;
+
+      view.focus();
+      view.dispatch({ selection: { anchor: 9 } });
+      view.contentDOM.dispatchEvent(keyEvent(keys));
+
+      expect(view.state.doc.toString()).toStrictEqual('  foo:   bAR');
+    }
+  );
+
+  it('allows Tab to move focus after Escape', () => {
+    wrapper = shallowMount(RcCodeMirror, {
+      props:    { keymap: 'emacs', modelValue: 'foo' },
+      attachTo: document.body
+    }) as Wrapper;
+    const view = (wrapper.vm as unknown as { view: EditorView }).view;
+
+    view.focus();
+    view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true, cancelable: true
+    }));
+    const tab = new KeyboardEvent('keydown', {
+      key: 'Tab', code: 'Tab', keyCode: 9, bubbles: true, cancelable: true
+    });
+
+    view.contentDOM.dispatchEvent(tab);
+
+    expect(tab.defaultPrevented).toBe(false);
+    expect(view.state.doc.toString()).toStrictEqual('foo');
+  });
+
+  it.each(['Tab', 'S-Tab'])('lets %s leave the input variant', (keys) => {
+    wrapper = shallowMount(RcCodeMirror, {
+      props: {
+        keymap: 'emacs', variant: 'input', modelValue: 'foo'
+      },
+      attachTo: document.body
+    }) as Wrapper;
+    const view = (wrapper.vm as unknown as { view: EditorView }).view;
+
+    view.focus();
+    const event = keyEvent(keys);
+
+    view.contentDOM.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(view.state.doc.toString()).toStrictEqual('foo');
+  });
+
+  it.each([
+    ['Cmd-F', {
+      key: 'f', code: 'KeyF', metaKey: true
+    }],
+    ['Cmd-/', {
+      key: '/', code: 'Slash', metaKey: true
+    }],
+    ['Alt-Up', {
+      key: 'ArrowUp', code: 'ArrowUp', altKey: true
+    }]
+  ])('does not run the default %s shortcut', (_description, key) => {
+    wrapper = shallowMount(RcCodeMirror, {
+      props: {
+        keymap: 'emacs', language: 'yaml', modelValue: 'foo: bar\nnext: value'
+      },
+      attachTo: document.body
+    }) as Wrapper;
+    const view = (wrapper.vm as unknown as { view: EditorView }).view;
+
+    view.focus();
+    view.dispatch({ selection: { anchor: 5 } });
+    view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+      ...key, bubbles: true, cancelable: true
+    }));
+
+    expect({ doc: view.state.doc.toString(), search: wrapper.find('.cm-search').exists() }).toStrictEqual({ doc: 'foo: bar\nnext: value', search: false });
+  });
+
   // CodeMirror 5 Emacs bindings RcCodeMirror does not have yet. Moving one into EMACS_BINDINGS once it works
   // keeps it from regressing.
   describe('bindings missing since CodeMirror 5', () => {
     it.todo('M-a and M-e move by sentence');
     it.todo('M-k kills a sentence and C-x Delete kills back to its start');
-    it.todo('M-{ and M-} move by paragraph (C-Up and C-Down page instead)');
+    it.todo('M-{ and M-} move by paragraph');
     it.todo('C-M-f, C-M-b, C-M-k, C-M-Backspace, C-M-t, C-M-u and C-M-S-2 act on balanced expressions');
     it.todo('M-Left and M-Right move by word (they move by syntax node instead)');
-    it.todo('M-Space leaves just one space');
-    it.todo('M-c capitalizes a word');
     it.todo('C-S-2 sets the mark');
-    it.todo('C-j inserts a line break');
-    it.todo('Tab indents the line (it moves focus out of the editor instead)');
     it.todo('C-x Tab indents rigidly and C-q Tab inserts a tab');
     it.todo('M-/ completes words from the document');
   });

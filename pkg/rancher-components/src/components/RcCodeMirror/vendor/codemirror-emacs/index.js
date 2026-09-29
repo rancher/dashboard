@@ -1,9 +1,9 @@
-import { Prec, StateEffect, StateField, MapMode, EditorSelection } from '@codemirror/state';
+import { Prec, StateEffect, StateField, MapMode, EditorSelection, Facet } from '@codemirror/state';
 import * as View from '@codemirror/view';
 import { EditorView, Direction, ViewPlugin, showPanel } from '@codemirror/view';
 import * as commands from '@codemirror/commands';
 import { completionStatus, startCompletion } from '@codemirror/autocomplete';
-import { openSearchPanel } from '@codemirror/search';
+import { yamlLanguage } from '@codemirror/lang-yaml';
 
 // backwards compatibility for old versions not supporting getDrawSelectionConfig
 let getDrawSelectionConfig = View.getDrawSelectionConfig || /*@__PURE__*/function () {
@@ -252,6 +252,7 @@ const emacsPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
         }
     },
 });
+const emacsTabIndent = /*@__PURE__*/Facet.define({ combine: inputs => inputs[0] ?? true });
 const showVimPanel = /*@__PURE__*/StateEffect.define();
 const vimPanelState = /*@__PURE__*/StateField.define({
     create: () => false,
@@ -272,6 +273,7 @@ function createVimPanel(view) {
 }
 function emacs(options = {}) {
     return [
+        emacsTabIndent.of(options.tabIndent !== false),
         emacsStyle,
         emacsPlugin,
         hideNativeSelection,
@@ -401,6 +403,8 @@ class EmacsHandler {
         // if keyCode == -1 a non-printable key was pressed, such as just
         // control. Handling those is currently not supported in this handler
         if (!key)
+            return undefined;
+        if (key == "Tab" && (modifier == "" || modifier == "S-") && !this.view.state.facet(emacsTabIndent))
             return undefined;
         var editor = this;
         var data = this.$data;
@@ -575,6 +579,28 @@ function pushUnique(array, item) {
         return;
     array.push(item);
 }
+function insertEmacsNewline(view) {
+    var state = view.state;
+    if (state.readOnly)
+        return false;
+    if (!yamlLanguage.isActiveAt(state, state.selection.main.head))
+        return commands.insertNewlineAndIndent(view);
+    var changes = state.changeByRange((range) => {
+        var line = state.doc.lineAt(range.from);
+        var prefix = line.text.slice(0, range.from - line.from);
+        var indent = /^\s*/.exec(prefix)[0];
+        var to = range.to;
+        var endLine = state.doc.lineAt(to);
+        while (to < endLine.to && /\s/.test(state.doc.sliceString(to, to + 1)))
+            to++;
+        return {
+            changes: { from: range.from, to, insert: state.lineBreak + indent },
+            range: EditorSelection.cursor(range.from + state.lineBreak.length + indent.length)
+        };
+    });
+    view.dispatch(state.update(changes, { scrollIntoView: true, userEvent: "input" }));
+    return true;
+}
 const emacsKeys = {
     // movement
     "Up|C-p": { command: "goOrSelect", args: [commands.cursorLineUp, commands.selectLineUp] },
@@ -602,20 +628,23 @@ const emacsKeys = {
     "M-s": "centerSelection",
     "M-g": "gotoline",
     "C-x C-p|C-x h": commands.selectAll,
-    "PageDown|C-v|C-Down": { command: "goOrSelect", args: [commands.cursorPageDown, commands.selectPageDown] },
-    "PageUp|M-v|C-Up": { command: "goOrSelect", args: [commands.cursorPageUp, commands.selectPageDown] },
+    "PageDown|C-v": { command: "goOrSelect", args: [commands.cursorPageDown, commands.selectPageDown] },
+    "PageUp|M-v": { command: "goOrSelect", args: [commands.cursorPageUp, commands.selectPageDown] },
+    "C-Down": { command: "moveParagraph", args: 1 },
+    "C-Up": { command: "moveParagraph", args: -1 },
     "S-C-Down": commands.selectPageDown,
     "S-C-Up": commands.selectPageUp,
-    // TODO use iSearch
-    "C-s": openSearchPanel,
-    "C-r": openSearchPanel,
+    // The CodeMirror 5 dashboard editor does not load its search addon.
     "M-C-s": "findnext",
     "M-C-r": "findprevious",
     "S-M-5": "replace",
     // basic editing
     "Backspace": commands.deleteCharBackward,
     "Delete|C-d": commands.deleteCharForward,
-    "Return|C-m": { command: "insertstring", args: "\n" },
+    "Return|C-m": insertEmacsNewline,
+    "C-j": view => !view.state.readOnly && commands.insertNewline(view),
+    "Tab": commands.indentMore,
+    "S-Tab": commands.indentLess,
     "C-o": commands.splitLine,
     "M-d|C-Delete": { command: "killWord", args: "right" },
     "C-Backspace|M-Backspace|M-Delete": { command: "killWord", args: "left" },
@@ -632,6 +661,8 @@ const emacsKeys = {
     "C-t": commands.transposeChars,
     "M-u": { command: "changeCase", args: { dir: 1 } },
     "M-l": { command: "changeCase", args: { dir: -1 } },
+    "M-c": "capitalizeWord",
+    "M-Space": "justOneSpace",
     "C-x C-u": { command: "changeCase", args: { dir: 1, region: true } },
     "C-x C-l": { command: "changeCase", args: { dir: 1, region: true } },
     "M-/": startCompletion,
@@ -694,6 +725,59 @@ EmacsHandler.addCommands({
             var command = handler.emacsMark() ? args[1] : args[0];
             command(handler.view);
         }
+    },
+    moveParagraph: function (handler, dir) {
+        var view = handler.view;
+        var doc = view.state.doc;
+        var head = view.state.selection.main.head;
+        var line = doc.lineAt(head);
+        var sawText = /\S/.test(dir < 0 ? line.text.slice(0, head - line.from) : line.text.slice(head - line.from));
+        for (;;) {
+            var next = line.number + dir;
+            if (next < 1 || next > doc.lines) {
+                var end = dir < 0 ? line.from : line.to;
+                view.dispatch({ selection: { anchor: handler.emacsMark() ? view.state.selection.main.anchor : end, head: end }, scrollIntoView: true });
+                return;
+            }
+            line = doc.line(next);
+            if (/\S/.test(line.text))
+                sawText = true;
+            else if (sawText) {
+                view.dispatch({ selection: { anchor: handler.emacsMark() ? view.state.selection.main.anchor : line.from, head: line.from }, scrollIntoView: true });
+                return;
+            }
+        }
+    },
+    capitalizeWord: function (handler) {
+        var view = handler.view;
+        if (view.state.readOnly)
+            return;
+        handler.clearSelection();
+        commands.selectGroupForward(view);
+        var specs = view.state.changeByRange((range) => {
+            var word = view.state.sliceDoc(range.from, range.to);
+            var letter = word.search(/\w/);
+            var capitalized = letter < 0 ? word : word.slice(0, letter) + word.charAt(letter).toUpperCase() + word.slice(letter + 1).toLowerCase();
+            return {
+                changes: { from: range.from, to: range.to, insert: capitalized },
+                range: EditorSelection.cursor(range.from + capitalized.length)
+            };
+        });
+        view.dispatch(specs);
+    },
+    justOneSpace: function (handler) {
+        var view = handler.view;
+        if (view.state.readOnly)
+            return;
+        var head = view.state.selection.main.head;
+        var line = view.state.doc.lineAt(head);
+        var from = head;
+        var to = head;
+        while (from > line.from && /\s/.test(view.state.doc.sliceString(from - 1, from)))
+            from--;
+        while (to < line.to && /\s/.test(view.state.doc.sliceString(to, to + 1)))
+            to++;
+        view.dispatch({ changes: { from, to, insert: " " }, selection: { anchor: from + 1 } });
     },
     changeCase: function (handler, args) {
         var view = handler.view;

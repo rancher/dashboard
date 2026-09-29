@@ -26,6 +26,9 @@
  *
  * ARIA attributes (e.g. `aria-label`, `aria-labelledby`) and `tabindex` are
  * forwarded to the editor's textbox. Give every instance an accessible name.
+ * In the editor variant, Tab and Shift-Tab change indentation with the default
+ * and Emacs keymaps. Vim uses Tab for its jump list in Normal mode and inserts
+ * a tab at the cursor in Insert mode. Press Escape then Tab to move focus out.
  */
 import {
   ref, shallowRef, computed, onMounted, onBeforeUnmount, watch, useAttrs
@@ -51,7 +54,6 @@ import {
   foldGutter as cmFoldGutter
 } from '@codemirror/language';
 import { closeBrackets, autocompletion } from '@codemirror/autocomplete';
-import { search } from '@codemirror/search';
 import { getLanguageExtension } from './extensions/syntax';
 import { getKeymapExtension } from './extensions/keymaps';
 import { buildFoldExtension } from './extensions/fold';
@@ -85,7 +87,10 @@ const emit = defineEmits<{
 const attrs = useAttrs();
 const container = ref<HTMLDivElement>();
 const view = shallowRef<EditorView>();
+const isEditorFocused = ref(false);
+const ESCAPE_HINT = 'Press Escape, then Tab to leave the editor';
 let initialState: EditorState | undefined;
+const escapeHint = computed(() => view.value?.state.phrase(ESCAPE_HINT) ?? ESCAPE_HINT);
 
 function isEditorAttribute(name: string): boolean {
   return name.startsWith('aria-') || name.toLowerCase() === 'tabindex';
@@ -184,6 +189,26 @@ function getContentAttributesExtension(attributes: Record<string, string>): Exte
   return EditorView.contentAttributes.of(attributes);
 }
 
+function handleFocusIn(event: FocusEvent): void {
+  if (event.target === view.value?.contentDOM) {
+    isEditorFocused.value = true;
+  }
+}
+
+function handleFocusOut(event: FocusEvent): void {
+  if (event.target === view.value?.contentDOM) {
+    isEditorFocused.value = false;
+  }
+}
+
+function handleEditorKeydown(event: KeyboardEvent): void {
+  const editor = view.value;
+
+  if (editor && event.code === 'Escape' && !event.shiftKey && event.target === editor.contentDOM) {
+    editor.setTabFocusMode(2000);
+  }
+}
+
 onMounted(() => {
   if (!container.value) {
     return;
@@ -221,10 +246,9 @@ onMounted(() => {
       highlightActiveLineGutter(),
       highlightSpecialChars(),
       autocompletion(),
-      search(),
       buildFoldExtension(props.foldOptions),
       languageCompartment.of(getLanguageExtension(props.language)),
-      keymapCompartment.of(getKeymapExtension(props.keymap)),
+      keymapCompartment.of(getKeymapExtension(props.keymap, props.variant)),
       themeCompartment.of(getThemeExtension(props.theme, props.variant)),
       lineNumbersCompartment.of(getLineNumbersExtension(showLineNumbers())),
       foldGutterCompartment.of(getFoldGutterExtension(showFoldGutter())),
@@ -284,11 +308,11 @@ watch(
   }
 );
 
-// Hot-swap keymap
+// Hot-swap keymap and Tab behavior when switching between editor and input variants
 watch(
-  () => props.keymap,
-  (km) => {
-    view.value?.dispatch({ effects: keymapCompartment.reconfigure(getKeymapExtension(km)) });
+  () => [props.keymap, props.variant] as const,
+  ([km, variant]) => {
+    view.value?.dispatch({ effects: keymapCompartment.reconfigure(getKeymapExtension(km, variant)) });
   }
 );
 
@@ -349,7 +373,16 @@ defineExpose({ view });
     ref="container"
     class="rc-code-mirror"
     :class="`rc-code-mirror--${ variant }`"
-  />
+    @keydown.capture="handleEditorKeydown"
+    @focusin="handleFocusIn"
+    @focusout="handleFocusOut"
+  >
+    <span
+      v-show="isEditorFocused && variant !== 'input'"
+      class="rc-cm-escape-hint"
+      role="alert"
+    >{{ escapeHint }}</span>
+  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -367,6 +400,19 @@ defineExpose({ view });
   display: block;
   height: 100%;
   box-sizing: border-box;
+  position: relative;
+
+  .rc-cm-escape-hint {
+    position: absolute;
+    right: 8px;
+    bottom: 4px;
+    z-index: 2;
+    padding: 2px 4px;
+    color: var(--rc-cm-text);
+    background-color: var(--rc-cm-bg);
+    font-size: 12px;
+    pointer-events: none;
+  }
 
   :deep(.cm-editor) {
     height: 100%;
