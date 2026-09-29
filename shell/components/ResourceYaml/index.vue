@@ -116,10 +116,11 @@ export default {
     /**
      * Resolve the related resources that can be edited by YAML alongside this one
      *
-     * This starts with the list from the resource's model and then applies the extensions, each
-     * seeing the previous result. The whole list is then transitively expanded: every related
-     * resource's own `fetchEditableRelatedResources` is called and any results not already in the
-     * tree are appended, so resources added by an extension are expanded too.
+     * The primary resource's list is resolved against the current route. The whole list is then
+     * transitively expanded: each related resource's list is resolved as though that resource were
+     * the one in the route, and any results not already in the tree are appended. So an extension
+     * registered for a type contributes wherever a resource of that type appears in the tree, with
+     * no model needed for it.
      *
      * Entries are `EditableRelatedResource` objects (a `resource` plus configuration for it, such
      * as save hooks, banner and groupKey). Anything that isn't of that shape is dropped, so a
@@ -131,43 +132,89 @@ export default {
       // Ensure a slow load for a previous resource doesn't overwrite the result for the current one
       const forResource = this.value;
 
-      let resources = [];
+      let resources = await this.fetchRelatedResourcesFor(this.value, this.$route);
 
-      if (typeof this.value?.fetchEditableRelatedResources === 'function') {
-        resources = await this.value.fetchEditableRelatedResources() || [];
-      }
-
-      // gate it so that we prevent errors on older versions of dashboard
-      if (this.$store.$extension?.getUIConfig) {
-        const extensions = getApplicableExtensionEnhancements(
-          this,
-          ExtensionPoint.EDITABLE_RELATED_RESOURCES,
-          EditableRelatedResourcesLocation.RESOURCE_YAML,
-          this.$route
-        );
-
-        // TODO nb track when multiple extensions are in play
-        for (const { fetchExtensionEditableRelatedResources } of extensions) {
-          if (typeof fetchExtensionEditableRelatedResources !== 'function') {
-            continue;
-          }
-
-          const neu = await fetchExtensionEditableRelatedResources(this.value, resources);
-
-          if (Array.isArray(neu)) {
-            resources = neu;
-          }
-        }
-      }
-
-      // Transitively expand: walk each related resource's own related resources and add any that
-      // aren't already in the tree. This runs after the extensions so that resources they add are
-      // expanded too
       resources = await this.expandRelatedResourceTree(resources);
 
       if (this.value === forResource) {
         this.editableRelatedResources = resources.filter((entry) => this.isEditableRelatedResource(entry));
       }
+    },
+
+    /**
+     * The related resources for one resource: the list from its model, then the extensions whose
+     * location matches `route`, each seeing the previous result
+     *
+     * @param {Object} resource
+     * @param {Object} route The route the extension location configs are matched against
+     * @returns {Promise<Array>} `EditableRelatedResource` entries, not yet validated
+     */
+    async fetchRelatedResourcesFor(resource, route) {
+      let resources = [];
+
+      if (typeof resource?.fetchEditableRelatedResources === 'function') {
+        try {
+          resources = await resource.fetchEditableRelatedResources() || [];
+        } catch (e) {
+          console.warn('Failed to fetch related resources for', resource?.id, e); // eslint-disable-line no-console
+        }
+      }
+
+      // gate it so that we prevent errors on older versions of dashboard
+      if (!this.$store.$extension?.getUIConfig) {
+        return resources;
+      }
+
+      const extensions = getApplicableExtensionEnhancements(
+        this,
+        ExtensionPoint.EDITABLE_RELATED_RESOURCES,
+        EditableRelatedResourcesLocation.RESOURCE_YAML,
+        route
+      );
+
+      // TODO nb track when multiple extensions are in play
+      for (const { fetchExtensionEditableRelatedResources } of extensions) {
+        if (typeof fetchExtensionEditableRelatedResources !== 'function') {
+          continue;
+        }
+
+        try {
+          const neu = await fetchExtensionEditableRelatedResources(resource, resources);
+
+          if (Array.isArray(neu)) {
+            resources = neu;
+          }
+        } catch (e) {
+          console.warn('Extension failed to fetch related resources for', resource?.id, e); // eslint-disable-line no-console
+        }
+      }
+
+      return resources;
+    },
+
+    /**
+     * The current route with the resource params pointing at `resource`
+     *
+     * Everything else (product, cluster, mode, query, hash) is kept, so an extension location
+     * config matches a related resource as it would match that resource shown on this page
+     *
+     * @param {Object} resource
+     * @returns {Object}
+     */
+    routeForRelatedResource(resource) {
+      const params = {
+        ...this.$route.params,
+        resource: resource?.type,
+        id:       resource?.metadata?.name,
+      };
+
+      if (resource?.metadata?.namespace) {
+        params.namespace = resource.metadata.namespace;
+      } else {
+        delete params.namespace;
+      }
+
+      return { ...this.$route, params };
     },
 
     /**
@@ -215,18 +262,7 @@ export default {
 
       while (queue.length) {
         const entry = queue.shift();
-
-        if (typeof entry?.resource?.fetchEditableRelatedResources !== 'function') {
-          continue;
-        }
-
-        let children = [];
-
-        try {
-          children = await entry.resource.fetchEditableRelatedResources() || [];
-        } catch (e) {
-          console.warn('Failed to fetch related resources for', entry.resource?.id, e); // eslint-disable-line no-console
-        }
+        const children = await this.fetchRelatedResourcesFor(entry.resource, this.routeForRelatedResource(entry.resource));
 
         for (const child of children) {
           if (!child?.resource) {

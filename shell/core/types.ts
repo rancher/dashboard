@@ -889,6 +889,11 @@ export interface IExtension extends IExtensionProducts {
    * Adds to the list of related resources that can be edited alongside a resource (for example in
    * the multi-resource YAML editor)
    *
+   * `when` is matched against the current route for the primary resource. For each related
+   * resource it is matched against the current route with `resource`, `namespace` and `id` set to
+   * that resource, so an extension registered for a type contributes wherever a resource of that
+   * type appears in the tree
+   *
    * @param where
    * @param when
    * @param action
