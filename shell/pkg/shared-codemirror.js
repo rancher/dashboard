@@ -13,6 +13,7 @@ const CODEMIRROR_PACKAGES = [
   '@codemirror/lang-json',
   '@codemirror/lang-yaml',
   '@codemirror/language',
+  '@codemirror/lint',
   '@codemirror/search',
   '@codemirror/state',
   '@codemirror/view',

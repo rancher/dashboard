@@ -64,7 +64,7 @@ describe('shared-codemirror', () => {
 
     it.each([
       '@codemirror/view/dist/index.js',
-      '@codemirror/lint',
+      '@codemirror/merge',
       'vue',
     ])('should not replace %p', (request) => {
       expect(replacementFor(request)).toBeUndefined();

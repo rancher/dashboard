@@ -8,6 +8,7 @@ import * as cmCommands from '@codemirror/commands';
 import * as cmLangJson from '@codemirror/lang-json';
 import * as cmLangYaml from '@codemirror/lang-yaml';
 import * as cmLanguage from '@codemirror/language';
+import * as cmLint from '@codemirror/lint';
 import * as cmSearch from '@codemirror/search';
 import * as cmState from '@codemirror/state';
 import * as cmView from '@codemirror/view';
@@ -50,6 +51,7 @@ export default function({
     '@codemirror/lang-json':    cmLangJson,
     '@codemirror/lang-yaml':    cmLangYaml,
     '@codemirror/language':     cmLanguage,
+    '@codemirror/lint':         cmLint,
     '@codemirror/search':       cmSearch,
     '@codemirror/state':        cmState,
     '@codemirror/view':         cmView,
