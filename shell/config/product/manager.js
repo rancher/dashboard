@@ -1,5 +1,5 @@
 import {
-  AGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_PROVIDER, NAME as NAME_COL, STATE
+  AGE, CLUSTER_BADGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_PROVIDER, NAME as NAME_COL, STATE
 } from '@shell/config/table-headers';
 import {
   CAPI,
@@ -195,6 +195,7 @@ export function init(store) {
       formatter:     'ClusterLink',
       canBeVariable: true,
     },
+    CLUSTER_BADGE,
     MGMT_CLUSTER_PROVIDER,
     MGMT_CLUSTER_KUBE_VERSION,
     {
@@ -214,6 +215,7 @@ export function init(store) {
       formatter:     'ClusterLink',
       canBeVariable: true,
     },
+    CLUSTER_BADGE,
     STEVE_MGMT_CLUSTER_PROVIDER,
     STEVE_MGMT_CLUSTER_KUBE_VERSION,
     {
