@@ -6,7 +6,7 @@ import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst, randomStr } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { valueFor as columnValueFor } from '@shell/utils/table-columns';
-import { isImprovedTablesEnabled } from '@shell/utils/table-views/feature';
+import { isExtensionTable, isImprovedTablesEnabled, TABLE_VIEWS_SHELL_KEY } from '@shell/utils/table-views/feature';
 import { RcButton } from '@components/RcButton';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -75,6 +75,8 @@ export default {
     // Only rendered with the table views feature off
     RcButton,
   },
+
+  inject: { providedTableViewsShell: { from: TABLE_VIEWS_SHELL_KEY, default: null } },
 
   mixins: [
     filtering,
@@ -690,7 +692,14 @@ export default {
     useTableViewsLayout() {
       const stated = this.tableViewsLayout;
 
-      return stated === null || stated === undefined ? isImprovedTablesEnabled(this.$store) : stated;
+      if (stated !== null && stated !== undefined) {
+        return stated;
+      }
+
+      // An extension's table keeps the masthead it was written for unless it asks for this one
+      return isImprovedTablesEnabled(this.$store) && !isExtensionTable({
+        providedShell: this.providedTableViewsShell, route: this.$route, extensions: this.$store?.state?.$extension
+      });
     },
 
     tableViewsTopRowEmpty() {
