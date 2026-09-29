@@ -456,11 +456,15 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
         cy.wait('@getUsers');
 
         // check sections are displayed or not, and in the right order
-        const importSections = ['Basics', 'Member Roles', 'Labels & Annotations', 'Registries', 'Advanced'];
+        const importSections = ['Basics', 'Member Roles', 'Labels & Annotations', 'Advanced'];
 
         importClusterPage.sectionTitles().should('deep.equal', importSections);
         importSections.forEach((title) => importClusterPage.section(title).self().scrollIntoView().should('be.visible'));
         importClusterPage.section('Networking').self().should('not.exist');
+
+        // Issue #17682: Registries and the Cluster/Fleet Agent configuration live in the Advanced section
+        importClusterPage.section('Advanced').expand();
+        ['Registries', 'Agent Environment Variables', 'Cluster Agent', 'Fleet Agent'].forEach((title) => importClusterPage.section(title).self().should('exist'));
 
         importClusterPage.nameNsDescription().name().checkVisible();
         importClusterPage.nameNsDescription().name().set(importGenericName);
@@ -532,12 +536,12 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
         });
 
         // verify that clicking a section title in the table of contents scrolls the page to the associated section and opens it
-        cy.contains('[data-testid^="toc-list-item-"] button', 'Registries').click();
+        cy.contains('[data-testid^="toc-list-item-"] button', 'Advanced').click();
 
         cy.window().its('scrollY').should('be.greaterThan', 0);
 
-        importClusterPage.section('Registries').checkExpanded();
-        importClusterPage.section('Registries').content().should('be.visible');
+        importClusterPage.section('Advanced').checkExpanded();
+        importClusterPage.section('Advanced').content().should('be.visible');
       });
 
       qase(6978, it('can edit imported cluster and see changes afterwards', () => {
@@ -554,7 +558,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
           cy.wait('@pageLoad');
 
           // check sections are properly displayed, and in the right order
-          const editSections = ['K3S Options', 'Member Roles', 'Labels & Annotations', 'Networking', 'Registries', 'Advanced'];
+          const editSections = ['K3S Options', 'Member Roles', 'Labels & Annotations', 'Networking', 'Advanced'];
 
           editImportedClusterPage.sectionTitles().should('deep.equal', editSections);
           editSections.forEach((title) => editImportedClusterPage.section(title).self().scrollIntoView().should('be.visible'));
@@ -574,6 +578,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
           editImportedClusterPage.ace().enterFdqn(fqdn);
           editImportedClusterPage.ace().enterCaCerts(cacert);
 
+          editImportedClusterPage.section('Advanced').expand();
           editImportedClusterPage.section('Registries').expand();
           editImportedClusterPage.enablePrivateRegistryCheckbox();
           editImportedClusterPage.privateRegistry().set(privateRegistry);
@@ -590,6 +595,8 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
           editImportedClusterPage.ace().caCerts().value().should('eq', cacert );
 
           // Verify the private registry values
+          editImportedClusterPage.section('Advanced').expand();
+          editImportedClusterPage.section('Registries').expand();
           editImportedClusterPage.privateRegistryCheckbox().isChecked();
           editImportedClusterPage.privateRegistry().value().should('eq', privateRegistry);
         });
@@ -706,11 +713,17 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
 
       // check sections are properly displayed, and in the right order
       // for K3S local cluster its K3S Options
-      const localSections = ['K3S Options', 'Member Roles', 'Labels & Annotations', 'Registries', 'Advanced'];
+      const localSections = ['K3S Options', 'Member Roles', 'Labels & Annotations', 'Advanced'];
 
       editLocalClusterPage.sectionTitles().should('deep.equal', localSections);
       localSections.forEach((title) => editLocalClusterPage.section(title).self().scrollIntoView().should('be.visible'));
       editLocalClusterPage.section('Networking').self().should('not.exist');
+
+      // Issue #17682: the local cluster's agent is embedded in the Rancher pods, so it has no agent configuration
+      editLocalClusterPage.section('Advanced').expand();
+      editLocalClusterPage.section('Registries').self().should('exist');
+      editLocalClusterPage.section('Cluster Agent').self().should('not.exist');
+      editLocalClusterPage.section('Fleet Agent').self().should('not.exist');
 
       // Issue #13614: Imported Cluster Version Mgmt: Conditionally show warning message
       editLocalClusterPage.versionManagementBanner().should('not.exist');
