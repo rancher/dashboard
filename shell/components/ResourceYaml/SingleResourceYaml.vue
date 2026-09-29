@@ -1,10 +1,8 @@
 <script>
-import jsyaml from 'js-yaml';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import FileSelector from '@shell/components/form/FileSelector';
 import Footer from '@shell/components/form/Footer';
-import { ANNOTATIONS_TO_FOLD } from '@shell/config/labels-annotations';
-import { ensureRegex } from '@shell/utils/string';
+import { useResourceYamlFolding } from '@shell/composables/useResourceYamlFolding';
 import { typeOf } from '@shell/utils/sort';
 
 import {
@@ -84,6 +82,12 @@ export default {
     }
   },
 
+  setup(props) {
+    const { foldYaml } = useResourceYamlFolding(() => props.value, () => props.mode === _EDIT);
+
+    return { foldYaml };
+  },
+
   data() {
     // Initial load with a preview showing no diff isn't very useful
     this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
@@ -158,56 +162,15 @@ export default {
       this.onReady(this.cm);
     },
 
-    onReady(cm) {
+    onReady(view) {
       if (!this.initialReady) {
         return;
       }
       this.initialReady = false;
 
-      this.cm = cm;
+      this.cm = view;
 
-      if ( this.isEdit ) {
-        cm.foldLinesMatching(/^status:\s*$/);
-      }
-
-      try {
-        const parsed = jsyaml.load(this.currentYaml);
-        const annotations = Object.keys(parsed?.metadata?.annotations || {});
-        const regexes = ANNOTATIONS_TO_FOLD.map((x) => ensureRegex(x));
-
-        let foldAnnotations = false;
-
-        for ( const k of annotations ) {
-          if ( foldAnnotations ) {
-            break;
-          }
-
-          for ( const regex of regexes ) {
-            if ( k.match(regex) ) {
-              foldAnnotations = true;
-              break;
-            }
-          }
-        }
-
-        if ( foldAnnotations ) {
-          cm.foldLinesMatching(/^\s+annotations:\s*$/);
-        }
-      } catch (e) {}
-
-      cm.foldLinesMatching(/managedFields/);
-
-      // Allow the model to supply an array of json paths to fold other sections in the YAML for the given resource type
-      if (this.value?.yamlFolding) {
-        this.value.yamlFolding.forEach((path) => cm.foldYaml(path));
-      }
-
-      // regardless of edit or create we should probably fold all the comments so they dont get out of hand.
-      const saved = cm.getMode().fold;
-
-      cm.getMode().fold = 'yamlcomments';
-      cm.execCommand('foldAll');
-      cm.getMode().fold = saved;
+      this.foldYaml(view);
     },
 
     updateValue(value) {

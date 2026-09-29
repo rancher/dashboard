@@ -10,6 +10,7 @@ import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor.vue';
 import ResourceGraph from '@shell/components/ResourceYaml/ResourceGraph.vue';
 import CreateRelatedResourceDrawer from '@shell/components/ResourceYaml/CreateRelatedResourceDrawer.vue';
 import { RelatedResourceType, ResourceGraphNode } from '@shell/components/ResourceYaml/types';
+import { useResourceYamlFolding } from '@shell/composables/useResourceYamlFolding';
 import { keyForResource } from '@shell/utils/resource-key';
 import jsyaml from 'js-yaml';
 import { saferDump } from '@shell/utils/create-yaml';
@@ -307,6 +308,10 @@ const currentYaml = computed({
   },
 });
 
+// runs on every mount of the editor: selecting a resource, leaving diff view and saving each remount it
+// the editor is always editable, so `status` is folded as in SingleResourceYaml's edit mode
+const { foldYaml } = useResourceYamlFolding(selectedResource, true);
+
 const selectedModified = computed(() => !!editorState.selected && modifiedIds.value.has(editorState.selected));
 
 const showDiff = ref(false);
@@ -463,6 +468,7 @@ defineExpose({ editorState });
             :initial-yaml-values="baselineYamlById[editorState.selected] ?? initialYamlFor(selectedResource)"
             :editor-mode="showDiff ? EDITOR_MODES.DIFF_CODE : EDITOR_MODES.EDIT_CODE"
             :diff-context="Number.MAX_SAFE_INTEGER"
+            @onReady="foldYaml"
           />
         </div>
       </Transition>
