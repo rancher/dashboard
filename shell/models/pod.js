@@ -1,3 +1,4 @@
+import { defineAsyncComponent, markRaw } from 'vue';
 import { insertAt } from '@shell/utils/array';
 import { colorForState, simpleColorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
@@ -7,7 +8,9 @@ import { deleteProperty } from '@shell/utils/object';
 import { POD_RESTARTS_REG_EX } from '@shell/types/resources/pod';
 import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 import { POD_SHELL } from '@shell/store/features';
-import { defineAsyncComponent, markRaw } from 'vue';
+
+// Defined once so the component identity is stable; creating it in `details` remounts the popover, and closes its card, on every pod update
+const WorkloadResourcePopover = markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue')));
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -18,9 +21,6 @@ export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.REPLICA_SET]:            6,
   [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 7,
 };
-
-// Defined once so the component identity is stable; creating it in `details` remounts the popover, and closes its card, on every pod update
-const WorkloadResourcePopover = markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue')));
 
 export default class Pod extends WorkloadService {
   _os = undefined;
