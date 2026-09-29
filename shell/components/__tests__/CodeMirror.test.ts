@@ -1,6 +1,6 @@
 import { nextTick } from 'vue';
 import { shallowMount, VueWrapper } from '@vue/test-utils';
-import type { Extension } from '@codemirror/state';
+import { EditorState, type Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { RcCodeMirror } from '@components/RcCodeMirror';
 import CodeMirror from '@shell/components/CodeMirror.vue';
@@ -161,11 +161,27 @@ describe('component: CodeMirror.vue', () => {
       expect(rc.props('variant')).toStrictEqual(variant);
     });
 
-    it('should not bind Tab to indent when displayed as a text area', () => {
-      const extensions = createWrapper({ asTextArea: true }).findComponent(RcCodeMirror).props('extensions') as Extension[];
-      const editor = createWrapper({ asTextArea: false }).findComponent(RcCodeMirror).props('extensions') as Extension[];
+    it.each([
+      ['Fold line', '%codeMirror.foldLine%'],
+      ['Unfold line', '%codeMirror.unfoldLine%'],
+      ['Press Escape, then Tab to leave the editor', '%codeMirror.escapeText%'],
+    ])('should translate the RcCodeMirror phrase %p', (phrase, translation) => {
+      const extensions = createWrapper().findComponent(RcCodeMirror).props('extensions') as Extension[];
+      const state = EditorState.create({ extensions });
 
-      expect(extensions).toHaveLength(editor.length - 1);
+      expect(state.phrase(phrase)).toStrictEqual(translation);
+    });
+
+    it('should pass the screen reader label to the editor as its aria-label', () => {
+      const rc = createWrapper({ options: { screenReaderLabel: 'Values' } }).findComponent(RcCodeMirror);
+
+      expect(rc.attributes('aria-label')).toStrictEqual('Values');
+    });
+
+    it('should not render an escape hint of its own', () => {
+      const wrapper = createWrapper();
+
+      expect(wrapper.find('.escape-text').exists()).toStrictEqual(false);
     });
 
     it('should show line numbers and fold gutter by default', () => {
