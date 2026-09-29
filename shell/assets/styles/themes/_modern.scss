@@ -469,6 +469,8 @@ BODY, .theme-light {
   --disabled-bg                : #{$disabled};
   --disabled-text              : #{$secondary};
   --box-bg                     : #{$lighter};
+  --box-bg--inverted           : #{$grey-90};
+  --box-color--inverted        : var(--body-bg);
   --subtle-border              : #{$medium};
   --border                     : #{$medium};
   --border-width               : 1px;
@@ -893,6 +895,8 @@ BODY, .theme-dark {
   --disabled-bg                : #{darken($disabled, 10%)};
   --disabled-text              : #{$secondary};
   --box-bg                     : #{$darkest};
+  --box-bg--inverted           : #{$grey-5};
+  --box-color--inverted        : var(--body-bg);
   --subtle-border              : #{$darkest};
   --border                     : #{$medium};
 
