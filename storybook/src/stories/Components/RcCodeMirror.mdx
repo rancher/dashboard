@@ -19,6 +19,10 @@ Set `keymap="emacs"` for Emacs movement, undo, kill/yank, and multi-key commands
 
 The CodeMirror search panel is currently disabled. Search shortcuts such as Ctrl-F or Cmd-F do not open a panel inside this editor.
 
+Set `keymap-indicator` to show a button in the top-right corner while the Vim or Emacs keymap is active, so users know why keys behave differently. Selecting it hides it until the editor is remounted and moves focus into the editor. It is never shown for the default keymap or the input variant.
+
+<Canvas of={RcCodeMirrorStories.KeymapIndicator} />
+
 ## Layout styles
 
 Styles and classes passed to `RcCodeMirror` apply to its outer box. Set a height on the component to size the editor, or let it fill a parent with a defined height.
@@ -94,11 +98,16 @@ import { EditorState } from '@codemirror/state';
 const extensions = [EditorState.phrases.of({
   'Fold line': t('codeMirror.foldLine'),
   'Unfold line': t('codeMirror.unfoldLine'),
-  'Press Escape, then Tab to leave the editor': t('codeMirror.escapeTabText')
+  'Press Escape, then Tab to leave the editor': t('codeMirror.escapeText'),
+  // `$` is replaced with the translated keymap name
+  'Key mapping: $': t('codeMirror.keymap.indicatorToolip', { name: '$' }),
+  'Hide key mapping: $': t('codeMirror.keymap.hideIndicator', { name: '$' }),
+  'Vim': t('prefs.keymap.vim'),
+  'Emacs': t('prefs.keymap.emacs')
 })];
 ```
 
-`<RcCodeMirror :extensions="extensions" />` uses these phrases for the fold controls and the escape hint. The `extensions` prop is read on mount, so remount the editor when changing its locale.
+`<RcCodeMirror :extensions="extensions" />` uses these phrases for the fold controls, the escape hint and the keymap indicator's tooltip and label. The `extensions` prop is read on mount, so remount the editor when changing its locale.
 
 ## v-model
 

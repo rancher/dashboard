@@ -26,4 +26,9 @@ export interface RcCodeMirrorProps {
   lineWrapping?: boolean;
   extensions?: Extension[];
   foldOptions?: FoldOptions;
+  /**
+   * Show an indicator in the top-right corner when the Vim or Emacs keymap is active. Selecting it
+   * hides it until the editor is remounted.
+   */
+  keymapIndicator?: boolean;
 }

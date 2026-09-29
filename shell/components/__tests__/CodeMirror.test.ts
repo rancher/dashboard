@@ -53,40 +53,26 @@ describe('component: CodeMirror.vue', () => {
 
   };
 
-  // eslint-disable-next-line jest/no-disabled-tests
-  describe('keyMap info', () => {
-    wrapper = shallowMount(
-      CodeMirror,
-      mountOptions,
-    );
+  describe('keymap indicator', () => {
+    it.each([
+      [true, true],
+      [false, false],
+    ])('should pass showKeyMapBox %p to RcCodeMirror keymapIndicator', (showKeyMapBox, keymapIndicator) => {
+      wrapper = shallowMount(CodeMirror, { ...mountOptions, props: { ...mountOptions.props, showKeyMapBox } });
 
-    it(`should show keyMap preference`, async() => {
-      await nextTick();
-
-      const keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"] .keymap-indicator');
-
-      const closeIcon = wrapper.find('[data-testid="code-mirror-keymap"] .icon-close');
-
-      expect(keyMapBox).toBeDefined();
-      expect(closeIcon).toBeDefined();
+      expect(wrapper.findComponent(RcCodeMirror).props('keymapIndicator')).toStrictEqual(keymapIndicator);
     });
 
-    it(`should remove keyMap box`, async() => {
-      await nextTick();
+    it.each([
+      ['Key mapping: $', '%codeMirror.keymap.indicatorToolip%'],
+      ['Hide key mapping: $', '%codeMirror.keymap.hideIndicator%'],
+      ['Vim', '%prefs.keymap.vim%'],
+      ['Emacs', '%prefs.keymap.emacs%'],
+    ])('should translate the RcCodeMirror phrase %p', (phrase, translation) => {
+      wrapper = shallowMount(CodeMirror, mountOptions);
+      const extensions = wrapper.findComponent(RcCodeMirror).props('extensions') as Extension[];
 
-      let keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
-
-      keyMapBox.trigger('mouseenter');
-      await nextTick();
-
-      const closeIcon = keyMapBox.find('.icon-close');
-
-      (closeIcon.element as HTMLElement).click();
-      await nextTick();
-
-      keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
-
-      expect(keyMapBox.exists()).toBe(false);
+      expect(EditorState.create({ extensions }).phrase(phrase)).toStrictEqual(translation);
     });
   });
 
