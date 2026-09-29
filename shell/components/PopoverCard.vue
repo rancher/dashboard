@@ -30,8 +30,10 @@ watch(
       const opts = {
         ...DEFAULT_FOCUS_TRAP_OPTS,
         fallbackFocus:  props.fallbackFocus,
-        // Return focus to the button of this popover, not the first popover button on the page
-        setReturnFocus: () => focusButton.value?.$el || '.focus-button'
+        // Return focus to the button of this popover, not the first popover button on the page. focus-trap returns focus
+        // after a delay, and an action like Edit YAML has navigated away by then. With the button gone there's nothing to
+        // return to, and a selector matching no element makes focus-trap throw
+        setReturnFocus: () => focusButton.value?.$el || false
       };
 
       useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => showPopover.value, '#popover-card', opts);

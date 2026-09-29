@@ -7,8 +7,9 @@ import { useFetch } from '@shell/components/Resource/Detail/FetchLoader/composab
 /**
  * Shows how many times the pods of a workload have restarted, adding up the RESTARTS column of `kubectl get pods`.
  *
- * The pods are fetched when this is shown, because they often aren't in the store, e.g. when a popover shows a ReplicaSet
- * on the page of its Deployment. Avoid it in lists, where every row would fetch its pods
+ * Pods the store already has, e.g. when a popover shows a ReplicaSet on the page of its Deployment, are used as they
+ * are and kept up to date over the websocket. Otherwise they're fetched when this is shown, e.g. on the page of a pod,
+ * which only has that pod. Avoid it in lists, where every row could fetch its pods
  */
 export interface Props {
   /**
@@ -20,14 +21,25 @@ export interface Props {
 const props = defineProps<Props>();
 const store = useStore();
 const i18n = useI18n(store);
-const fetch = useFetch(async() => (await props.row.matchingPods()) || []);
 
-const restarts = computed(() => fetch.value.data?.reduce((total: number, pod: any) => total + (pod.totalRestartCount || 0), 0));
+const storePods = computed(() => props.row.podsInStore);
+
+const fetch = useFetch(async() => {
+  if (storePods.value) {
+    return undefined;
+  }
+
+  return (await (props.row.fetchGlancePods ? props.row.fetchGlancePods() : props.row.matchingPods())) || [];
+});
+
+const pods = computed(() => storePods.value || fetch.value.data);
+
+const restarts = computed(() => pods.value?.reduce((total: number, pod: any) => total + (pod.totalRestartCount || 0), 0));
 </script>
 
 <template>
   <i
-    v-if="fetch.loading"
+    v-if="!pods && fetch.loading"
     class="icon icon-spinner icon-spin"
     role="status"
     :aria-label="i18n.t('component.resource.detail.glance.ariaLabel.loading')"

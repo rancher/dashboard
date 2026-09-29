@@ -1,8 +1,12 @@
 import Workload from './workload';
-import { GATEWAY_API, SERVICE } from '@shell/config/types';
+import { GATEWAY_API, POD, SERVICE } from '@shell/config/types';
+import { convertSelectorObj } from '@shell/utils/selector';
 
 // What the Gateway API endpoints of a ReplicaSet are worked out from
 const GATEWAY_ENDPOINT_TYPES = [SERVICE, GATEWAY_API.HTTP_ROUTE, GATEWAY_API.GATEWAY];
+
+// The pods last fetched for each ReplicaSet, see `fetchGlancePods`
+const fetchedPods = new WeakMap();
 
 export default class ReplicaSet extends Workload {
   get revisionNumber() {
@@ -21,6 +25,42 @@ export default class ReplicaSet extends Workload {
   // Workload counts from, so every replica it created would show as ready
   get ready() {
     return `${ this.readyReplicas }/${ this.desired }`;
+  }
+
+  /**
+   * The pods of the ReplicaSet when the store already has all of them, e.g. on the page of its Deployment, which keeps
+   * them up to date over the websocket. Undefined when some of them aren't in the store
+   */
+  get podsInStore() {
+    if (!this.spec?.selector || !this.$getters['typeRegistered'](POD)) {
+      return undefined;
+    }
+
+    const pods = this.$getters['matching'](POD, convertSelectorObj(this.spec.selector), this.metadata.namespace);
+
+    // status.replicas is how many pods the ReplicaSet has, so fewer in the store means some haven't been loaded
+    return pods.length >= (this.status?.replicas || 0) ? pods : undefined;
+  }
+
+  /**
+   * Fetch the pods of the ReplicaSet for its card, when they aren't in the store. Opening the card again reuses them
+   * until the ReplicaSet changes, rather than asking the API every time
+   */
+  fetchGlancePods() {
+    const resourceVersion = this.metadata?.resourceVersion;
+    const cached = fetchedPods.get(this);
+
+    if (cached && cached.resourceVersion === resourceVersion) {
+      return cached.pods;
+    }
+
+    const pods = this.matchingPods();
+
+    fetchedPods.set(this, { resourceVersion, pods });
+    // Ask again next time rather than keep the failure
+    pods.catch(() => fetchedPods.delete(this));
+
+    return pods;
   }
 
   /**

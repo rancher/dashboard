@@ -1,5 +1,6 @@
 import { flushPromises, shallowMount } from '@vue/test-utils';
 import { createStore } from 'vuex';
+import { nextTick, reactive } from 'vue';
 import WorkloadPodRestarts from '@shell/components/formatter/WorkloadPodRestarts.vue';
 
 const createWrapper = (row: any) => shallowMount(WorkloadPodRestarts, {
@@ -61,5 +62,54 @@ describe('component: WorkloadPodRestarts', () => {
     expect(error).toHaveBeenCalledWith('Error fetching data', expect.any(Error));
 
     error.mockRestore();
+  });
+
+  describe('pods in the store', () => {
+    it('should add up the restarts of the pods in the store without fetching them', async() => {
+      const row = { ...workloadWithPods([]), podsInStore: [{ totalRestartCount: 4 }, { totalRestartCount: 3 }] };
+
+      const wrapper = createWrapper(row);
+
+      await flushPromises();
+
+      expect(row.matchingPods).toHaveBeenCalledTimes(0);
+      expect(wrapper.find('.icon-spinner').exists()).toBe(false);
+      expect(wrapper.text()).toStrictEqual('7');
+    });
+
+    it('should follow the pods in the store as they change', async() => {
+      const row = reactive({ ...workloadWithPods([]), podsInStore: [{ totalRestartCount: 4 }] });
+
+      const wrapper = createWrapper(row);
+
+      await flushPromises();
+      row.podsInStore = [{ totalRestartCount: 5 }, { totalRestartCount: 1 }];
+      await nextTick();
+
+      expect(wrapper.text()).toStrictEqual('6');
+    });
+
+    it('should show no restarts when the store has all the pods and there are none', async() => {
+      const row = { ...workloadWithPods([{ totalRestartCount: 9 }]), podsInStore: [] };
+
+      const wrapper = createWrapper(row);
+
+      await flushPromises();
+
+      expect(row.matchingPods).toHaveBeenCalledTimes(0);
+      expect(wrapper.text()).toStrictEqual('0');
+    });
+
+    it('should let a workload that can reuse fetched pods fetch them, e.g. a ReplicaSet', async() => {
+      const row = { ...workloadWithPods([]), fetchGlancePods: jest.fn(() => Promise.resolve([{ totalRestartCount: 2 }])) };
+
+      const wrapper = createWrapper(row);
+
+      await flushPromises();
+
+      expect(row.fetchGlancePods).toHaveBeenCalledWith();
+      expect(row.matchingPods).toHaveBeenCalledTimes(0);
+      expect(wrapper.text()).toStrictEqual('2');
+    });
   });
 });

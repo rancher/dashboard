@@ -1,5 +1,6 @@
 import ReplicaSet from '@shell/models/apps.replicaset';
-import { GATEWAY_API, SERVICE, WORKLOAD_TYPES } from '@shell/config/types';
+import { GATEWAY_API, POD, SERVICE, WORKLOAD_TYPES } from '@shell/config/types';
+import { convertSelectorObj } from '@shell/utils/selector';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 
 const publicEndpointsAnnotation = JSON.stringify([
@@ -18,7 +19,9 @@ const baseGlance = [
   { name: 'age' },
 ];
 
-const createReplicaSet = (data: any = {}, { endpoints = undefined as string | undefined, glance = baseGlance, rootGetters = {} as any } = {}): any => {
+const createReplicaSet = (data: any = {}, {
+  endpoints = undefined as string | undefined, glance = baseGlance, rootGetters = {} as any, getters = {} as any
+} = {}): any => {
   const replicaSet = new ReplicaSet({
     type:     WORKLOAD_TYPES.REPLICA_SET,
     metadata: {
@@ -26,7 +29,7 @@ const createReplicaSet = (data: any = {}, { endpoints = undefined as string | un
     },
     ...data,
   }, {
-    getters:     { schemaFor: jest.fn(() => ({ id: WORKLOAD_TYPES.REPLICA_SET })) },
+    getters:     { schemaFor: jest.fn(() => ({ id: WORKLOAD_TYPES.REPLICA_SET })), ...getters },
     dispatch:    jest.fn(),
     rootGetters: {
       'i18n/t':                 (key: string) => key,
@@ -263,6 +266,118 @@ describe('class ReplicaSet', () => {
       replicaSet.$dispatch.mockRejectedValue(new Error('forbidden'));
 
       await expect(replicaSet.fetchGatewayEndpointResources()).rejects.toThrow('forbidden');
+    });
+  });
+
+  describe('podsInStore', () => {
+    const selector = { matchLabels: { app: 'frontend', 'pod-template-hash': '567d5b464c' } };
+    const pod = (name: string) => ({ metadata: { name, namespace: 'default' } });
+
+    const createWithStore = (pods: any[], { status = { replicas: 3 } as any, registered = true, spec = { selector } as any } = {}) => createReplicaSet({ spec, status }, {
+      getters: {
+        typeRegistered: jest.fn((type: string) => registered && type === POD),
+        matching:       jest.fn(() => pods),
+      }
+    });
+
+    it('should look up the pods matching the selector in the namespace of the ReplicaSet', () => {
+      const replicaSet = createWithStore([]);
+
+      replicaSet.podsInStore; // eslint-disable-line no-unused-expressions
+
+      expect(replicaSet.$getters.matching).toHaveBeenCalledWith(POD, convertSelectorObj(selector), 'default');
+    });
+
+    it('should return the pods when the store has all of them, e.g. on the page of the Deployment', () => {
+      const pods = [pod('a'), pod('b'), pod('c')];
+
+      expect(createWithStore(pods).podsInStore).toStrictEqual(pods);
+    });
+
+    it('should return the pods when the store has more than the ReplicaSet counts, e.g. one still terminating', () => {
+      const pods = [pod('a'), pod('b'), pod('c'), pod('d')];
+
+      expect(createWithStore(pods).podsInStore).toStrictEqual(pods);
+    });
+
+    it('should return nothing when the store only has some of them, e.g. on the page of one of its pods', () => {
+      expect(createWithStore([pod('a')]).podsInStore).toBeUndefined();
+    });
+
+    it.each([
+      ['no replicas', { replicas: 0 }],
+      ['no replica count', {}],
+    ])('should return no pods for a ReplicaSet with %s', (_, status) => {
+      expect(createWithStore([], { status }).podsInStore).toStrictEqual([]);
+    });
+
+    it('should return nothing without asking the store when it has never loaded pods', () => {
+      const replicaSet = createWithStore([pod('a'), pod('b'), pod('c')], { registered: false });
+
+      expect(replicaSet.podsInStore).toBeUndefined();
+      expect(replicaSet.$getters.matching).toHaveBeenCalledTimes(0);
+    });
+
+    it('should return nothing when the ReplicaSet has no selector, rather than match every pod', () => {
+      const replicaSet = createWithStore([pod('a'), pod('b'), pod('c')], { spec: {} });
+
+      expect(replicaSet.podsInStore).toBeUndefined();
+      expect(replicaSet.$getters.matching).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('fetchGlancePods', () => {
+    const createWithPods = (fetched: () => Promise<any>) => {
+      const replicaSet = createReplicaSet({ spec: { replicas: 3 } });
+
+      replicaSet.metadata.resourceVersion = '100';
+      replicaSet.matchingPods = jest.fn(fetched);
+
+      return replicaSet;
+    };
+
+    it('should fetch the pods of the ReplicaSet', async() => {
+      const pods = [{ id: 'default/a' }];
+      const replicaSet = createWithPods(() => Promise.resolve(pods));
+
+      await expect(replicaSet.fetchGlancePods()).resolves.toStrictEqual(pods);
+      expect(replicaSet.matchingPods).toHaveBeenCalledWith();
+    });
+
+    it('should not fetch them again when the card opens again and the ReplicaSet has not changed', async() => {
+      const pods = [{ id: 'default/a' }];
+      const replicaSet = createWithPods(() => Promise.resolve(pods));
+
+      await replicaSet.fetchGlancePods();
+      await expect(replicaSet.fetchGlancePods()).resolves.toStrictEqual(pods);
+      expect(replicaSet.matchingPods).toHaveBeenCalledTimes(1);
+    });
+
+    it('should fetch them again once the ReplicaSet has changed', async() => {
+      const replicaSet = createWithPods(() => Promise.resolve([]));
+
+      await replicaSet.fetchGlancePods();
+      replicaSet.metadata.resourceVersion = '101';
+      await replicaSet.fetchGlancePods();
+
+      expect(replicaSet.matchingPods).toHaveBeenCalledTimes(2);
+    });
+
+    it('should keep the pods of each ReplicaSet apart', async() => {
+      const first = createWithPods(() => Promise.resolve([{ id: 'default/a' }]));
+      const second = createWithPods(() => Promise.resolve([{ id: 'default/b' }]));
+
+      await first.fetchGlancePods();
+
+      await expect(second.fetchGlancePods()).resolves.toStrictEqual([{ id: 'default/b' }]);
+    });
+
+    it('should fetch them again after a failure', async() => {
+      const replicaSet = createWithPods(() => Promise.reject(new Error('forbidden')));
+
+      await expect(replicaSet.fetchGlancePods()).rejects.toThrow('forbidden');
+      await expect(replicaSet.fetchGlancePods()).rejects.toThrow('forbidden');
+      expect(replicaSet.matchingPods).toHaveBeenCalledTimes(2);
     });
   });
 });
