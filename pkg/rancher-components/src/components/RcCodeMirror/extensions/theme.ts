@@ -58,6 +58,12 @@ const rancherSharedTheme = EditorView.theme({
   '.cm-rancher-comment': {
     color:     'var(--rc-cm-comment)',
     fontStyle: 'italic'
+  },
+  '.cm-tooltip': {
+    color:           'var(--rc-cm-text)',
+    backgroundColor: 'var(--rc-cm-bg)',
+    border:          '1px solid var(--rc-cm-gutter)',
+    borderRadius:    '4px'
   }
 });
 
