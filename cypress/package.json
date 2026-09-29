@@ -28,6 +28,7 @@
     "cypress": "15.19.0"
   },
   "dependencies": {
+    "@codemirror/view": "6.43.13",
     "@cypress/code-coverage": "4.0.3",
     "@cypress/grep": "6.0.2",
     "@cypress/vue": "5.0.5",
