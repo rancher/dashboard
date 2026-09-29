@@ -35,6 +35,30 @@ Cypress.on('uncaught:exception', (err, runnable) => {
   }
 });
 
+/**
+ * Admins are asked once whether to share usage data, in a dialog that covers the page under test.
+ * Report it as already answered, unless a spec opts in with `Cypress.env('showShareUsageData', true)`.
+ * Intercepts are cleared before every test, so register it for specs that log in within `before` too
+ */
+const answerShareUsageData = () => {
+  cy.intercept('GET', '/v1/userpreferences*', (req) => {
+    if (Cypress.env('showShareUsageData')) {
+      return;
+    }
+
+    req.continue((res) => {
+      const prefs = res.body?.data?.[0]?.data;
+
+      if (prefs && !prefs['share-usage-data']) {
+        prefs['share-usage-data'] = '"dont-share"';
+      }
+    });
+  });
+};
+
+before(answerShareUsageData);
+beforeEach(answerShareUsageData);
+
 require('cypress-terminal-report/src/installLogsCollector')({
   collectTypes:            ['cons:log', 'cons:info', 'cons:warn', 'cons:error', 'cy:log', 'cy:request', 'cy:xhr'],
   // Enable logging of before and after all
