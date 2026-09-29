@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import {
-  computed, getCurrentInstance, watch, type Component, type ComponentOptionsMixin, type CSSProperties
-} from 'vue';
+import { computed, getCurrentInstance, watch, type ComponentOptionsMixin } from 'vue';
 import { useStore } from 'vuex';
-import { useI18n } from '@shell/composables/useI18n';
 import { useRouter } from 'vue-router';
+import { useI18n } from '@shell/composables/useI18n';
 import SimpleBox from '@shell/components/SimpleBox.vue';
 import { MANAGEMENT } from '@shell/config/types';
-import { ExtensionPoint, CardLocation } from '@shell/core/types';
-import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { useWidgetCluster, NO_CLUSTER } from '../../composables/useWidgetCluster';
+import { extensionCardsFor, type ExtensionCard } from '../../composables/useWidgetPresence';
 import type { WidgetSpec } from '../../templating/types';
 
 // EXTENSION CARDS — the cards extensions add to a cluster's dashboard, as the dashboard draws them.
@@ -18,13 +15,7 @@ import type { WidgetSpec } from '../../templating/types';
 // only for some clusters. The dashboard asks which apply to its own route and hands each card the
 // cluster it is about; this asks the same question for the route of THIS widget's cluster's
 // dashboard, hands the cards that cluster, and lays them out in the dashboard's own grid of boxes.
-
-/** A card as the extension manager hands it back, with the label already translated. */
-interface ExtensionCard {
-  label?: string;
-  component: Component;
-  style?: CSSProperties;
-}
+// With no cards the dashboard shows nothing, and outside the editor so does this.
 
 const props = defineProps<{ widget: WidgetSpec }>();
 
@@ -35,15 +26,7 @@ const router = useRouter();
 const self = getCurrentInstance()?.proxy as unknown as ComponentOptionsMixin | undefined;
 const { cluster } = useWidgetCluster(() => props.widget);
 
-const cards = computed<ExtensionCard[]>(() => {
-  if (!cluster.value || !self) {
-    return [];
-  }
-
-  const route = router.resolve({ name: 'c-cluster-explorer', params: { cluster: cluster.value } });
-
-  return getApplicableExtensionEnhancements<ExtensionCard>(self, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, route);
-});
+const cards = computed<ExtensionCard[]>(() => extensionCardsFor(self, router, cluster.value));
 
 // What each card is given: the management cluster, as the dashboard gives it `currentCluster`.
 const resource = computed(() => store.getters['management/byId'](MANAGEMENT.CLUSTER, cluster.value));

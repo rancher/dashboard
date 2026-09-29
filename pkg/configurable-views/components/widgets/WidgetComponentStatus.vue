@@ -117,13 +117,14 @@ function open(s: ServiceStatus): void {
 
 <style lang="scss" scoped>
 // The dashboard's own chip styles (shell/pages/c/_cluster/explorer/index.vue), which are scoped to
-// that page and so do not reach a widget. The first row's top margin is left to the grid's gap.
+// that page and so do not reach a widget - copied as they are, the 20px ABOVE each chip included, so
+// the chips sit where the dashboard puts them: clear of the capacity cards, close to the tabs.
 .k8s-service-status {
   align-items: center;
   border: 1px solid;
   border-color: var(--border);
   display: inline-flex;
-  margin-bottom: 20px;
+  margin-top: 20px;
 
   .label {
     border-left: 1px solid var(--border);

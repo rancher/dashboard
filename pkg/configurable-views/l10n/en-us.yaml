@@ -67,6 +67,7 @@ configurableViews:
     newViewFrom: "New view, started from {source}"
     newHint: "Name it in the header. Drag widgets in, or change the starting point:"
     startEmpty: Start empty instead
+    startStock: Rancher’s {page}
     newFootnote: Nothing is saved until you press Save. Cancel throws the new view away.
     search: Search components
     dragHint: Drag onto the grid. Building blocks ask what to show once placed; ready-made widgets come with their data set.
@@ -130,6 +131,7 @@ configurableViews:
     dragTile: "Drag {name} onto the grid, or click to add it"
     unknown: "There is no “{kind}” building block."
     nothingToShow: Nothing to show.
+    noCapacity: This cluster reports no capacity yet.
     noCluster: Choose a cluster in this widget’s settings — it follows the page’s cluster, and this page has none.
     noMonitoring: "{what} come from Rancher’s monitoring, which this cluster does not have."
     noExtensionCards: No extension adds a card to this cluster’s dashboard.
