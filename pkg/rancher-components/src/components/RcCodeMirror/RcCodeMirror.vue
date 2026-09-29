@@ -58,22 +58,23 @@ import { getLanguageExtension } from './extensions/syntax';
 import { getKeymapExtension } from './extensions/keymaps';
 import { buildFoldExtension } from './extensions/fold';
 import { rancherInputTheme, rancherTheme } from './extensions/theme';
-import type { RcCodeMirrorProps, RcCodeMirrorTheme, RcCodeMirrorVariant } from './types';
+import type { RcCodeMirrorKeymap, RcCodeMirrorProps, RcCodeMirrorTheme, RcCodeMirrorVariant } from './types';
 
 defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<RcCodeMirrorProps>(), {
-  modelValue:   '',
-  language:     undefined,
-  keymap:       undefined,
-  theme:        'rancher',
-  variant:      'editor',
-  readOnly:     false,
-  lineNumbers:  true,
-  foldGutter:   true,
-  lineWrapping: false,
-  extensions:   undefined,
-  foldOptions:  undefined
+  modelValue:      '',
+  language:        undefined,
+  keymap:          undefined,
+  theme:           'rancher',
+  variant:         'editor',
+  readOnly:        false,
+  lineNumbers:     true,
+  foldGutter:      true,
+  lineWrapping:    false,
+  extensions:      undefined,
+  foldOptions:     undefined,
+  keymapIndicator: false
 });
 
 const emit = defineEmits<{
@@ -91,6 +92,28 @@ const isEditorFocused = ref(false);
 const ESCAPE_HINT = 'Press Escape, then Tab to leave the editor';
 let initialState: EditorState | undefined;
 const escapeHint = computed(() => view.value?.state.phrase(ESCAPE_HINT) ?? ESCAPE_HINT);
+
+const KEYMAP_NAMES: Partial<Record<RcCodeMirrorKeymap, string>> = { vim: 'Vim', emacs: 'Emacs' };
+const isKeymapIndicatorDismissed = ref(false);
+const keymapName = computed(() => (props.keymap ? KEYMAP_NAMES[props.keymap] : undefined));
+// Waits for the view, whose phrases translate the indicator's text
+const showKeymapIndicator = computed(() => !!view.value && props.keymapIndicator && props.variant !== 'input' && !!keymapName.value && !isKeymapIndicatorDismissed.value);
+
+// `$` is replaced with the keymap name, so translations can place it anywhere
+function keymapPhrase(phrase: string): string {
+  const state = view.value?.state;
+
+  return state && keymapName.value ? state.phrase(phrase, state.phrase(keymapName.value)) : '';
+}
+
+const keymapIndicatorTooltip = computed(() => keymapPhrase('Key mapping: $'));
+const keymapIndicatorLabel = computed(() => keymapPhrase('Hide key mapping: $'));
+
+// The indicator is removed as it is selected, so give focus to the editor rather than losing it
+function dismissKeymapIndicator(): void {
+  isKeymapIndicatorDismissed.value = true;
+  view.value?.focus();
+}
 
 function isEditorAttribute(name: string): boolean {
   return name.startsWith('aria-') || name.toLowerCase() === 'tabindex';
@@ -391,6 +414,24 @@ defineExpose({ view });
       class="rc-cm-escape-hint"
       role="alert"
     >{{ escapeHint }}</span>
+    <button
+      v-if="showKeymapIndicator"
+      v-clean-tooltip="keymapIndicatorTooltip"
+      type="button"
+      class="rc-cm-keymap-indicator"
+      data-testid="code-mirror-keymap"
+      :aria-label="keymapIndicatorLabel"
+      @click="dismissKeymapIndicator"
+    >
+      <i
+        class="icon icon-keyboard rc-cm-keymap-icon"
+        aria-hidden="true"
+      />
+      <i
+        class="icon icon-close icon-sm rc-cm-keymap-close"
+        aria-hidden="true"
+      />
+    </button>
   </div>
 </template>
 
@@ -421,6 +462,59 @@ defineExpose({ view });
     background-color: var(--rc-cm-bg);
     font-size: 12px;
     pointer-events: none;
+  }
+
+  .rc-cm-keymap-indicator {
+    $animation-time: 0.1s;
+
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    z-index: 2;
+    width: 48px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius);
+    color: var(--darker);
+    background-color: var(--subtle-overlay-bg);
+    cursor: pointer;
+
+    .rc-cm-keymap-icon {
+      font-size: 24px;
+      opacity: 0.8;
+      transition: margin-right $animation-time ease-in-out;
+    }
+
+    .rc-cm-keymap-close {
+      width: 0;
+      overflow: hidden;
+      color: var(--primary);
+      opacity: 0;
+    }
+
+    &:hover, &:focus-visible {
+      border-color: var(--primary);
+
+      .rc-cm-keymap-icon {
+        opacity: 0.6;
+        margin-right: 4px;
+      }
+
+      .rc-cm-keymap-close {
+        width: auto;
+        opacity: 1;
+        transition: opacity $animation-time ease-in-out $animation-time; // Only animate when being shown
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--primary-keyboard-focus);
+      outline-offset: 1px;
+    }
   }
 
   :deep(.cm-editor) {

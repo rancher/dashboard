@@ -422,6 +422,100 @@ describe('component: RcCodeMirror', () => {
     }).toStrictEqual({ ...original, defaultPrevented: true });
   });
 
+  describe('keymapIndicator prop', () => {
+    const INDICATOR = '[data-testid="code-mirror-keymap"]';
+
+    // The indicator renders once the view, which translates its text, exists
+    async function mountRendered(props: Record<string, unknown>): Promise<Wrapper> {
+      mountEditor(props);
+      await wrapper.vm.$nextTick();
+
+      return wrapper;
+    }
+
+    it('should not show the indicator by default', async() => {
+      await mountRendered({ keymap: 'vim' });
+
+      expect(wrapper.find(INDICATOR).exists()).toStrictEqual(false);
+    });
+
+    it.each([
+      ['vim', 'Hide key mapping: Vim'],
+      ['emacs', 'Hide key mapping: Emacs'],
+    ])('should show a button naming the %s keymap', async(keymap, label) => {
+      await mountRendered({ keymap, keymapIndicator: true });
+      const indicator = wrapper.find(INDICATOR);
+
+      expect(indicator.element.tagName).toStrictEqual('BUTTON');
+      expect(indicator.attributes('aria-label')).toStrictEqual(label);
+    });
+
+    it.each([undefined, 'default'])('should not show the indicator for the %p keymap', async(keymap) => {
+      await mountRendered({ keymap, keymapIndicator: true });
+
+      expect(wrapper.find(INDICATOR).exists()).toStrictEqual(false);
+    });
+
+    it('should not show the indicator in the input variant', async() => {
+      await mountRendered({
+        keymap: 'vim', keymapIndicator: true, variant: 'input'
+      });
+
+      expect(wrapper.find(INDICATOR).exists()).toStrictEqual(false);
+    });
+
+    it('should show the indicator when the keymap changes to Vim', async() => {
+      await mountRendered({ keymapIndicator: true });
+
+      await wrapper.setProps({ keymap: 'vim' });
+
+      expect(wrapper.find(INDICATOR).exists()).toStrictEqual(true);
+    });
+
+    it('should translate the label and keymap name through CodeMirror phrases', async() => {
+      await mountRendered({
+        keymap:          'vim',
+        keymapIndicator: true,
+        extensions:      [EditorState.phrases.of({ 'Hide key mapping: $': 'Masquer le clavier $', Vim: 'VIM' })]
+      });
+
+      expect(wrapper.find(INDICATOR).attributes('aria-label')).toStrictEqual('Masquer le clavier VIM');
+    });
+
+    it('should hide the indicator when it is selected', async() => {
+      await mountRendered({ keymap: 'vim', keymapIndicator: true });
+
+      await wrapper.find(INDICATOR).trigger('click');
+
+      expect(wrapper.find(INDICATOR).exists()).toStrictEqual(false);
+    });
+
+    it('should move focus to the editor when the indicator is selected', async() => {
+      await mountRendered({ keymap: 'vim', keymapIndicator: true });
+      const indicator = wrapper.find(INDICATOR);
+
+      (indicator.element as HTMLButtonElement).focus();
+      await indicator.trigger('click');
+
+      expect(document.activeElement).toStrictEqual(getView(wrapper).contentDOM);
+    });
+
+    it('should let Escape on the indicator reach the page', async() => {
+      const listener = jest.fn();
+
+      await mountRendered({ keymap: 'vim', keymapIndicator: true });
+      document.addEventListener('keydown', listener);
+      const escape = new KeyboardEvent('keydown', {
+        key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true, cancelable: true
+      });
+
+      wrapper.find(INDICATOR).element.dispatchEvent(escape);
+      document.removeEventListener('keydown', listener);
+
+      expect(listener).toHaveBeenCalledWith(escape);
+    });
+  });
+
   describe('v-model', () => {
     it('should emit update:modelValue when the document changes', () => {
       mountEditor({ modelValue: 'a' });

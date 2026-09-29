@@ -74,11 +74,12 @@ const meta: Meta<typeof RcCodeMirror> = {
       control:     { type: 'select' },
       description: '`editor` is a code editor with gutters. `input` is a multi-line form input that preserves whitespace, without gutters, always wrapping and with line breaks marked.'
     },
-    readOnly:     { control: 'boolean', description: 'Prevents the document from being edited.' },
-    lineNumbers:  { control: 'boolean', description: 'Shows the line number gutter.' },
-    foldGutter:   { control: 'boolean', description: 'Shows the fold gutter. Folding still works from the keyboard and the fold helpers when it is hidden.' },
-    lineWrapping: { control: 'boolean', description: 'Wraps long lines instead of scrolling horizontally.' },
-    foldOptions:  {
+    readOnly:        { control: 'boolean', description: 'Prevents the document from being edited.' },
+    lineNumbers:     { control: 'boolean', description: 'Shows the line number gutter.' },
+    foldGutter:      { control: 'boolean', description: 'Shows the fold gutter. Folding still works from the keyboard and the fold helpers when it is hidden.' },
+    lineWrapping:    { control: 'boolean', description: 'Wraps long lines instead of scrolling horizontally.' },
+    keymapIndicator: { control: 'boolean', description: 'Shows an indicator when the Vim or Emacs keymap is active. Selecting it hides it until the editor is remounted.' },
+    foldOptions:     {
       control:     'object',
       description: 'Fold strategy (`language`, `indent` or `bracket`) plus an optional custom fold extension. Only read on mount.'
     },
@@ -145,6 +146,11 @@ export const Json: Story = {
 export const ReadOnly: Story = {
   ...Default,
   args: { readOnly: true },
+};
+
+export const KeymapIndicator: Story = {
+  ...Default,
+  args: { keymap: 'vim', keymapIndicator: true },
 };
 
 export const ReadOnlyKeyboard: Story = {
