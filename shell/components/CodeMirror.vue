@@ -270,12 +270,6 @@ export default defineComponent({
     .codemirror-container {
       z-index: 0;
       font-size: inherit !important;
-
-      .rc-code-mirror--editor .cm-editor {
-        .cm-scroller {
-          font-family: $mono-font;
-        }
-      }
     }
 
     &.read-only .cm-cursor {
