@@ -824,6 +824,7 @@ export default {
     :external-pagination-result="externalPaginationResult"
     :view-filters="appliedViewFilters"
     :queried="showTableViews && viewTerms.length > 0"
+    :aria-busy="viewBusy ? 'true' : undefined"
     :mandatory-sort="_mandatorySort"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"

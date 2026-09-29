@@ -480,6 +480,12 @@ export default {
     },
 
 
+    /** The rows on screen are not yet the query's: it is still settling, or its rows are on the way */
+    viewBusy() {
+      return this.showTableViews && ((this.view.query || '') !== (this.settledQuery || '') || this.viewSwitching);
+    },
+
+
     serverSideTableViews() {
       return this.showTableViews && this.externalPaginationEnabled && !!this.schema;
     },
