@@ -12,6 +12,7 @@ import {
 import { applyQueryExpression } from '@shell/utils/table-views/filter-rows';
 import { parseQuery, parseQueryExpression } from '@shell/utils/table-views/query';
 import { queryToServerFilters } from '@shell/utils/table-views/server-filters';
+import { expandQuery } from '@shell/utils/table-views/query-fields';
 import { SEARCH_DEBOUNCE } from '@shell/config/search';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { DEFAULT_MANDATORY_SORT } from '@shell/components/SortableTable/sorting';
@@ -60,6 +61,12 @@ export default {
     tableViews: {
       type:    Boolean,
       default: null,
+    },
+
+    /** Fields the query knows that aren't columns, eg `pinned` on a list of clusters */
+    queryFields: {
+      type:    Array,
+      default: () => [],
     },
   },
 
@@ -162,6 +169,27 @@ export default {
 
     viewCountsKey() {
       this.debouncedFetchViewCounts();
+    },
+
+    queryFieldsKey(neu, old) {
+      if (neu === old) {
+        return;
+      }
+
+      // A tab counting `pinned:true` counts other clusters now
+      this.fetchViewCounts(true);
+
+      const known = (this.queryFields || []).filter((field) => this.fieldValues[field.id] !== undefined);
+
+      if (!known.length) {
+        return;
+      }
+
+      const fieldValues = { ...this.fieldValues };
+
+      known.forEach((field) => delete fieldValues[field.id]);
+      this.fieldValues = fieldValues;
+      known.forEach((field) => this.fetchFieldValues(field.id));
     },
 
     /**
@@ -384,6 +412,37 @@ export default {
     },
 
 
+    /** The columns and the fields that exist only for the query: what a query is read and applied with */
+    viewQueryFields() {
+      return this.queryFields?.length ? this.viewFields.concat(this.queryFields) : this.viewFields;
+    },
+
+
+    /**
+     * The values the query suggests: the api's, plus those the query only fields bring. A server
+     * side list counts those too - its page is no guide - so they wait for the api's count
+     */
+    viewFieldValues() {
+      const fixed = this.serverSideTableViews ? [] : (this.queryFields || []).filter((field) => field.values);
+
+      if (!fixed.length) {
+        return this.fieldValues;
+      }
+
+      return fixed.reduce((out, field) => ({ ...out, [field.id]: field.values }), { ...this.fieldValues });
+    },
+
+
+    /** What the query only fields' values stand for, eg the pinned ids: counts go stale when it changes */
+    queryFieldsKey() {
+      return JSON.stringify((this.queryFields || [])
+        .filter((field) => field.values && field.expand)
+        .map((field) => field.values.map(({ value }) => field.expand([{
+          field: field.id, value, negated: false
+        }]))));
+    },
+
+
     /** `header-right` is left out: this renders its own there, and a duplicate would win */
     passthroughSlots() {
       const { 'header-right': headerRight, ...rest } = this.$slots;
@@ -455,8 +514,12 @@ export default {
      */
     viewFilterFields() {
       const offered = [...this.viewSortableFields, ...this.viewDateFields];
+      const fields = this.viewFields.filter((field) => !field.isLabel && offered.includes(field));
+      const queryFields = (this.queryFields || []).filter((field) => field.values);
+      // Query only fields, eg Pinned, follow the name
+      const at = fields.findIndex((field) => field.id === 'name') + 1 || fields.length;
 
-      return this.viewFields.filter((field) => !field.isLabel && offered.includes(field));
+      return [...fields.slice(0, at), ...queryFields, ...fields.slice(at)];
     },
 
     /** The date columns, which the query offers by year and month and Group By leaves out */
@@ -484,13 +547,13 @@ export default {
 
 
     viewTerms() {
-      return parseQuery(this.settledQuery, this.viewFields);
+      return parseQuery(this.settledQuery, this.viewQueryFields);
     },
 
 
     /** The query as clauses and groups - what filters, here and at the api */
     viewQuery() {
-      return parseQueryExpression(this.settledQuery, this.viewFields);
+      return this.parseViewQuery(this.settledQuery);
     },
 
 
@@ -521,7 +584,7 @@ export default {
         return { filters: [], unsupported: [] };
       }
 
-      return queryToServerFilters(this.viewQuery, this.viewFields);
+      return queryToServerFilters(this.viewQuery, this.viewQueryFields);
     },
 
 
@@ -530,7 +593,7 @@ export default {
       const seen = {};
 
       (this.serverViewFilters.unsupported || []).forEach((term) => {
-        const field = term.field ? findField(this.viewFields, term.field) : null;
+        const field = term.field ? findField(this.viewQueryFields, term.field) : null;
         const label = field ? (field.label || field.id) : term.value;
 
         if (label) {
@@ -598,7 +661,7 @@ export default {
         return this.filteredRows;
       }
 
-      return applyQueryExpression(this.filteredRows, this.viewQuery, this.viewFields);
+      return applyQueryExpression(this.filteredRows, this.viewQuery, this.viewQueryFields);
     },
 
 
@@ -670,9 +733,9 @@ export default {
       const out = {};
 
       this.countableQueries.forEach((query) => {
-        const parsed = parseQueryExpression(query, this.viewFields);
+        const parsed = this.parseViewQuery(query);
 
-        out[query] = parsed.clauses.length ? applyQueryExpression(this.filteredRows, parsed, this.viewFields).length : this.filteredRows.length;
+        out[query] = parsed.clauses.length ? applyQueryExpression(this.filteredRows, parsed, this.viewQueryFields).length : this.filteredRows.length;
       });
 
       return out;
@@ -691,6 +754,11 @@ export default {
 
   methods: {
     /** The field a view's grouping names - a column, or a date column taken by month - or null */
+    /** A query as the list applies it: fields that stand for others swapped for those */
+    parseViewQuery(query) {
+      return expandQuery(parseQueryExpression(query, this.viewQueryFields), this.viewQueryFields);
+    },
+
     /** The grouping `view` is shown with: its own, else the one the table groups by by default */
     groupByOf(view) {
       if (view.groupBy === NO_GROUPING) {
@@ -800,7 +868,13 @@ export default {
         return;
       }
 
-      const field = findField(this.viewFields, fieldId);
+      const field = findField(this.viewQueryFields, fieldId);
+
+      // The api holds nothing to summarise, so each value is counted as a query on it
+      if (field?.queryOnly) {
+        return field.values ? this.fetchQueryFieldCounts(field) : undefined;
+      }
+
       const raw = field ? serverPathFor(field) : null;
       // A column searched on several paths is summarised on its own
       const path = Array.isArray(raw) ? raw[0] : raw;
@@ -823,6 +897,25 @@ export default {
         this.fieldValues = { ...this.fieldValues, [fieldId]: summaryToValues(res, max) };
       } catch (e) {
         this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
+      }
+    },
+
+
+    async fetchQueryFieldCounts(field) {
+      this.fieldValues = { ...this.fieldValues, [field.id]: [] };
+
+      try {
+        const values = await Promise.all(field.values.map(async({ value }) => {
+          const { filters } = queryToServerFilters(this.parseViewQuery(`${ field.id }:${ value }`), this.viewQueryFields);
+          const res = await this.$store.dispatch(`${ this.inStore }/request`, { opt: { url: this.countUrl(filters) } });
+
+          return { value, count: res?.count ?? res?.data?.length ?? 0 };
+        }));
+
+        this.fieldValues = { ...this.fieldValues, [field.id]: values };
+      } catch (e) {
+        // Still offered, counted as best the page can
+        this.fieldValues = { ...this.fieldValues, [field.id]: field.values };
       }
     },
 
@@ -856,8 +949,8 @@ export default {
 
     async requestViewCounts(wanted) {
       await Promise.all(wanted.map(async(query) => {
-        const parsed = parseQueryExpression(query, this.viewFields);
-        const { filters, unsupported } = queryToServerFilters(parsed, this.viewFields);
+        const parsed = this.parseViewQuery(query);
+        const { filters, unsupported } = queryToServerFilters(parsed, this.viewQueryFields);
 
         if (unsupported.length) {
           this.viewCounts = { ...this.viewCounts, [query]: null };
@@ -1040,12 +1133,12 @@ export default {
 
     /** The rows a tab not on screen matches, worked out as opening it would, in its order */
     async rowsForView(view, onProgress, limit) {
-      const parsed = parseQueryExpression(view.query || '', this.viewFields);
+      const parsed = this.parseViewQuery(view.query || '');
       let rows;
 
       if (this.serverSideTableViews) {
         // Terms the api can't answer are left out, as they are when the tab is open
-        const { filters } = queryToServerFilters(parsed, this.viewFields);
+        const { filters } = queryToServerFilters(parsed, this.viewQueryFields);
 
         rows = await this.fetchEveryPage({
           filters:              (this.listScopeFilters || []).concat(filters),
@@ -1053,7 +1146,7 @@ export default {
           sort:                 [],
         }, onProgress, limit);
       } else {
-        rows = parsed.clauses.length ? applyQueryExpression(this.filteredRows, parsed, this.viewFields) : this.filteredRows;
+        rows = parsed.clauses.length ? applyQueryExpression(this.filteredRows, parsed, this.viewQueryFields) : this.filteredRows;
       }
 
       return this.orderRowsFor(view, rows);

@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { mapPref, AFTER_LOGIN_ROUTE, HIDE_HOME_PAGE_CARDS } from '@shell/store/prefs';
+import { clusterPinnedQueryFields } from '@shell/utils/table-views/query-fields';
 import BannerGraphic from '@shell/components/BannerGraphic.vue';
 import IndentedPanel from '@shell/components/IndentedPanel.vue';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
@@ -226,6 +227,16 @@ export default defineComponent({
       return isImprovedTablesEnabled(this.$store);
     },
 
+    /** `pinned:true` / `pinned:false`: the rows are management clusters, as the pins are */
+    pinnedQueryFields() {
+      return this.pinnedFieldsFor('id', 'metadata.name');
+    },
+
+    /** The provisioning clusters of the list shown when there are too many to page */
+    altPinnedQueryFields() {
+      return this.pinnedFieldsFor('mgmt.id');
+    },
+
     clusterCountDisplay() {
       // If we have the cluster count from the store, use that instead
       const savedCount = this.$store.getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);
@@ -285,6 +296,12 @@ export default defineComponent({
   },
 
   methods: {
+    pinnedFieldsFor(idPath: string, serverPath?: string) {
+      return clusterPinnedQueryFields(this.$store, (key: string) => this.t(key), {
+        idPath, serverPath, total: this.clusterCountDisplay
+      });
+    },
+
     /**
      * Of type #PagTableFetchSecondaryResources
      */
@@ -488,6 +505,7 @@ export default defineComponent({
             >
               <ResourceTable
                 :schema="provClusterSchema"
+                :query-fields="altPinnedQueryFields"
                 :table-actions="false"
                 :row-actions="false"
                 key-field="id"
@@ -595,6 +613,7 @@ export default defineComponent({
               <PaginatedResourceTable
                 v-if="mgmtClusterSchema"
                 :schema="mgmtClusterSchema"
+                :query-fields="pinnedQueryFields"
                 overrideInStore="management"
                 :table-actions="false"
                 :row-actions="false"

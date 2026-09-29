@@ -14,6 +14,10 @@ function fieldContains(row: TableViewRow, field: TableViewField, needle: string)
   // A date matches as a date, however the row happens to hold it
   const text = field.isDate ? dateText : stringifyValue;
 
+  if (field.exact) {
+    return [fieldValue(row, field), rawFieldValue(row, field)].some((value) => text(value).toLowerCase() === needle);
+  }
+
   if (text(fieldValue(row, field)).toLowerCase().includes(needle)) {
     return true;
   }
@@ -34,7 +38,7 @@ function matchesTerm(row: TableViewRow, term: TableViewTerm, fields: TableViewFi
     return fieldContains(row, field, needle);
   }
 
-  return fields.some((field) => fieldContains(row, field, needle));
+  return fields.some((field) => !field.queryOnly && fieldContains(row, field, needle));
 }
 
 /** Different fields AND'd, repeated terms for one field OR'd */

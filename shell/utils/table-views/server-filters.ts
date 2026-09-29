@@ -43,7 +43,7 @@ export function termsToServerFilters(terms: TableViewTerm[], fields: TableViewFi
   const seenPath: Record<string, boolean> = {};
 
   fields.forEach((field) => {
-    if (field.isLabel || field.paginationHeader?.search === false) {
+    if (field.isLabel || field.queryOnly || field.paginationHeader?.search === false) {
       return;
     }
 
@@ -95,6 +95,27 @@ export function termsToServerFilters(terms: TableViewTerm[], fields: TableViewFi
     }
 
     const values = group.map((t) => t.value);
+
+    // Matched whole, eg an id: the values as one list the field is in, or not in
+    if (findField(fields, fieldId)?.exact) {
+      const listed = values.join(',');
+
+      if (negated) {
+        paths.forEach((path) => filters.push(new PaginationParamFilter({
+          fields: [new PaginationFilterField({
+            field: path, value: listed, equality: PaginationFilterEquality.NOT_IN
+          })]
+        })));
+      } else {
+        filters.push(new PaginationParamFilter({
+          fields: paths.map((path) => new PaginationFilterField({
+            field: path, value: listed, equality: PaginationFilterEquality.IN
+          }))
+        }));
+      }
+
+      return;
+    }
 
     // One value or several, a field term is a contains match, so `a b` on one field means `a or b`
     if (negated) {

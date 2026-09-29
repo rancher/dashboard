@@ -37,6 +37,9 @@ function list(overrides: Record<string, unknown> = {}) {
     ...overrides,
   };
 
+  // No fields of the list's own for the query here, so it reads the columns alone
+  ctx.viewQueryFields = ctx.viewFields;
+
   Object.entries(methods).forEach(([name, method]) => {
     ctx[name] = method.bind(ctx);
   });
