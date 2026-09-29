@@ -6,6 +6,7 @@ import * as jsyaml from 'js-yaml';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { qase } from '@/cypress/support/qase';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 const chartBranch = `release-${ CURRENT_RANCHER_VERSION }`;
 const gitRepoUrl = 'https://github.com/rancher/charts';
@@ -144,7 +145,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     repositoriesPage.waitForPage();
     // Wait for the repo created above to render in the list before opening its action menu.
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Download YAML').click({ force: true });
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Export As...').click({ force: true });
+    new ExportModalPo().download();
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.repoName }.yaml`);
 

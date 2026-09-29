@@ -16,6 +16,12 @@ import HeaderRowPo from '@/cypress/e2e/po/components/header-row.po';
  */
 export const RESOURCE_ROW_SELECTOR = 'tbody tr:not(.sub-row):not(.group-row):not(.additional-sub-row)';
 
+/**
+ * Is the table laid out for table views: a query box instead of the search box, and the bulk actions
+ * in one menu for the selection. Tables without a schema keep the old layout even with the feature on
+ */
+const hasTableViews = ($el: Cypress.JQueryWithSelector) => $el.is('.has-table-views') || !!$el.find('.has-table-views').length;
+
 export default class SortableTablePo extends ComponentPo {
   /**
    * Create a name that should, when sorted by name, by default appear first
@@ -35,26 +41,49 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   /**
-   * Get the bulk action button
-   * @param label
-   * @returns
+   * Get the bulk action button. With table views the bulk actions are in the selection's menu, which
+   * this opens
    */
   bulkActionButton(label: string) {
-    return this.self().find(`.fixed-header-actions .bulk button`).contains(label);
+    return this.self().then(($el) => {
+      if (!hasTableViews($el)) {
+        return this.self().find(`.fixed-header-actions .bulk button`).contains(label);
+      }
+
+      this.openSelectionActions();
+
+      return this.bulkActionDropDownPopOver().contains('[dropdown-menu-item]', label);
+    });
   }
 
   /**
-   * Get the bulk action dropdown button (this is where collapsed bulk actions go when screen width is too small)
+   * A bulk action by its action name (eg `activate`). With table views, opens the selection's menu
+   */
+  bulkAction(action: string) {
+    return this.self().then(($el) => {
+      if (!hasTableViews($el)) {
+        return cy.getId(`sortable-table-${ action }`);
+      }
+
+      this.openSelectionActions();
+
+      return cy.get(`[data-testid$="-selection-action-${ action === 'promptRemove' ? 'delete' : action }"]`);
+    });
+  }
+
+  /**
+   * Get the bulk action dropdown button (this is where collapsed bulk actions go when screen width is
+   * too small). With table views, the selection's menu
    */
   bulkActionDropDown() {
-    return this.self().find(`.fixed-header-actions .bulk .bulk-actions-dropdown`);
+    return this.self().then(($el) => (hasTableViews($el) ? this.selectionActionsButton() : this.self().find(`.fixed-header-actions .bulk .bulk-actions-dropdown`)));
   }
 
   /**
    * Open the bulk action drop down
    */
   bulkActionDropDownOpen() {
-    return this.bulkActionDropDown().click();
+    return this.self().then(($el) => (hasTableViews($el) ? this.openSelectionActions() : this.bulkActionDropDown().click()));
   }
 
   /**
@@ -77,7 +106,24 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   /**
-   * Get group by buttons (flat list, group by namespace, or group by node)
+   * The "N Selected" menu that holds the bulk actions with table views. Only there while rows are
+   * selected
+   */
+  selectionActionsButton() {
+    return this.self().find('[data-testid$="-selection-actions"]');
+  }
+
+  openSelectionActions() {
+    return this.selectionActionsButton().then(($button) => {
+      if ($button.attr('aria-expanded') !== 'true') {
+        cy.wrap($button).click();
+      }
+    });
+  }
+
+  /**
+   * Get group by buttons (flat list, group by namespace, or group by node). Tables with table views
+   * group from their View menu instead, see `groupBy`
    * @param index
    * @returns
    */
@@ -85,19 +131,67 @@ export default class SortableTablePo extends ComponentPo {
     return this.self().find(`[data-testid="button-group-child-${ index }"]`);
   }
 
+  viewMenuButton() {
+    return this.self().find('[data-testid="table-views-view-menu"]');
+  }
+
+  /**
+   * Open the View menu's Group By list
+   */
+  openGroupBy() {
+    this.viewMenuButton().click();
+
+    return cy.getId('table-views-view-group').click();
+  }
+
+  /**
+   * An entry of the open Group By list, by its label
+   */
+  groupByOption(label: string) {
+    return cy.contains('[data-testid^="table-views-group-"]', new RegExp(`^\\s*${ label }\\s*$`));
+  }
+
+  /**
+   * Close the View menu, and the list it opened
+   */
+  closeViewMenu() {
+    return this.viewMenuButton().click();
+  }
+
+  /**
+   * Group the table by one of its View menu's Group By entries, by label (`None` for a flat list)
+   */
+  groupBy(label: string) {
+    this.openGroupBy();
+    this.groupByOption(label).then(($option) => {
+      // A click on the current grouping would turn it off
+      if (!$option.hasClass('selected')) {
+        cy.wrap($option).click();
+      }
+    });
+
+    return this.closeViewMenu();
+  }
+
   /**
    * Delete button (displays on page after row element selected)
    */
   deleteButton() {
-    return cy.getId('sortable-table-promptRemove');
+    return this.bulkAction('promptRemove');
   }
 
+  /**
+   * How many rows are selected, eg "2 selected" (reads "2 Selected" with table views)
+   */
   selectedCountText() {
-    return cy.get('.action-availability');
+    return this.self().then(($el) => (hasTableViews($el) ? this.selectionActionsButton() : cy.get('.action-availability')));
   }
 
+  /**
+   * The search box, or with table views the query box
+   */
   filterComponent() {
-    return this.self().find('[data-testid="search-box-filter-row"] input');
+    return this.self().find('[data-testid="table-views-query"], [data-testid="search-box-filter-row"] input').first();
   }
 
   /**
@@ -106,10 +200,14 @@ export default class SortableTablePo extends ComponentPo {
    * @returns
    */
   filter(searchText: string, delay?: number) {
-    return this.filterComponent()
-      .focus()
-      .clear()
-      .type(searchText, { delay });
+    return this.resetFilter()
+      .type(searchText, { delay })
+      .then(($el) => {
+        // The query box's suggestions would cover the rows
+        if ($el.is('[contenteditable]')) {
+          cy.wrap($el).blur();
+        }
+      });
   }
 
   resetFilter() {

@@ -6,6 +6,7 @@ import * as jsyaml from 'js-yaml';
 import { createPayloadData, updatePayloadData } from '@/cypress/e2e/blueprints/cluster_management/pod-security-admissions-payload';
 import { qase } from '@/cypress/support/qase';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo();
@@ -104,7 +105,8 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
   qase(2196, it('can download YAML for a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
-    podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Download YAML').click({ force: true });
+    podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Export As...').click({ force: true });
+    new ExportModalPo().download();
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.podSecurityAdmissionsName }.yaml`);
 
