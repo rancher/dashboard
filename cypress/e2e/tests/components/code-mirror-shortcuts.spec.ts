@@ -51,6 +51,49 @@ describe('CodeMirror editor shortcuts', { tags: ['@components', '@adminUser', '@
     navActionBar.jumpToInput().should('not.be.focused');
   });
 
+  it('restores killed text with Ctrl-Y', () => {
+    focusDocStart('alpha beta gamma');
+
+    cy.realPress(['Control', 'k']);
+    editor().value().should('eq', '');
+    cy.realPress(['Control', 'y']);
+
+    editor().value().should('eq', 'alpha beta gamma');
+    navActionBar.jumpToInput().should('not.be.focused');
+  });
+
+  it('undoes typed text with Ctrl-/ and redoes it with Ctrl-Shift-Z', () => {
+    focusDocStart('alpha');
+    cy.realPress(['Control', 'End']);
+    cy.realType('x');
+    editor().value().should('eq', 'alphax');
+
+    cy.realPress(['Control', '/']);
+    editor().value().should('eq', 'alpha');
+
+    cy.realPress(['Control', 'Shift', 'z']);
+    editor().value().should('eq', 'alphax');
+  });
+
+  it('moves one character with Ctrl-F before killing the rest of the line', () => {
+    focusDocStart('alpha');
+
+    cy.realPress(['Control', 'f']);
+    cy.realPress(['Control', 'k']);
+
+    editor().value().should('eq', 'a');
+    navActionBar.jumpToInput().should('not.be.focused');
+  });
+
+  it('deletes the previous character with Ctrl-H', () => {
+    focusDocStart('alpha');
+    cy.realPress(['Control', 'e']);
+
+    cy.realPress(['Control', 'h']);
+
+    editor().value().should('eq', 'alph');
+  });
+
   // Ctrl-N (next line) has no equivalent test: Chrome and Firefox open a new window before the page sees it
   it('moves to the previous line with Ctrl-P', () => {
     focusDocStart('first: line\nsecond: line\nthird: line');
