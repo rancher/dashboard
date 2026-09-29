@@ -17,6 +17,7 @@ import { TABLE_VIEWS } from '@shell/store/prefs';
 import { DEFAULT_MANDATORY_SORT } from '@shell/components/SortableTable/sorting';
 import { sortBy } from '@shell/utils/sort';
 import { uniq } from '@shell/utils/array';
+import { NO_GROUPING } from '@shell/utils/table-views/views';
 
 /** Most rows an "all matching" export will fetch - a limit on what the browser holds, not on the api */
 const EXPORT_ROW_LIMIT = 50000;
@@ -38,8 +39,8 @@ export const MONTH_GROUPING_PREFIX = 'month:';
 /**
  * The table views half of ResourceTable. Needs from its host: `schema`, `rows`, `headers`,
  * `namespaced`, `inStore`, `externalPaginationEnabled`, `externalPaginationResult`,
- * `externalPaginationArgs`, `externalPaginationScope`, `hasAdvancedFiltering`, `groupBy` and
- * `tableGroupings`
+ * `externalPaginationArgs`, `externalPaginationScope`, `hasAdvancedFiltering`, `groupBy`,
+ * `tableGroupings` and `defaultGroupBy`
  */
 export default {
   /** Supplied by pages that put tables under tabs of their own. The `tableViewTabs` prop still wins */
@@ -426,7 +427,9 @@ export default {
 
     /** The table's own grouping the view has picked, if it picked one */
     viewTableGrouping() {
-      return this.tableGroupings.find((option) => `${ TABLE_GROUPING_PREFIX }${ option.value }` === this.view.groupBy) || null;
+      const groupBy = this.groupByOf(this.view);
+
+      return this.tableGroupings.find((option) => `${ TABLE_GROUPING_PREFIX }${ option.value }` === groupBy) || null;
     },
 
 
@@ -590,11 +593,13 @@ export default {
 
 
     viewGroupField() {
-      if (!this.showTableViews || !this.view.groupBy) {
+      const groupBy = this.groupByOf(this.view);
+
+      if (!this.showTableViews || !groupBy) {
         return null;
       }
 
-      return this.groupFieldFor(this.view.groupBy);
+      return this.groupFieldFor(groupBy);
     },
 
 
@@ -666,6 +671,15 @@ export default {
 
   methods: {
     /** The field a view's grouping names - a column, or a date column taken by month - or null */
+    /** The grouping `view` is shown with: its own, else the one the table groups by by default */
+    groupByOf(view) {
+      if (view.groupBy === NO_GROUPING) {
+        return null;
+      }
+
+      return view.groupBy || this.defaultGroupBy || null;
+    },
+
     groupFieldFor(id) {
       if (id?.startsWith(MONTH_GROUPING_PREFIX)) {
         const date = findField(this.viewDateFields, id.slice(MONTH_GROUPING_PREFIX.length));
@@ -1037,7 +1051,8 @@ export default {
       const descending = own ? !!view.sortDescending : !!this.defaultSort?.descending;
       const column = sortName ? headers.find((header) => header?.name?.toLowerCase() === sortName.toLowerCase()) : null;
       const fromColumn = typeof column?.sort === 'string' || Array.isArray(column?.sort) ? [].concat(column.sort) : [];
-      const group = view.groupBy ? this.groupSortFor(this.groupFieldFor(view.groupBy)) : null;
+      const groupBy = this.groupByOf(view);
+      const group = groupBy ? this.groupSortFor(this.groupFieldFor(groupBy)) : null;
       const fields = uniq([].concat(group || [], fromColumn).concat(this._mandatorySort || DEFAULT_MANDATORY_SORT));
 
       return sortBy(rows, fields, descending);

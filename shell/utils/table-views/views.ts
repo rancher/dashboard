@@ -3,6 +3,9 @@ import isEqual from 'lodash/isEqual';
 
 import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
 
+/** What a view stores to turn off the grouping its table groups by by default */
+export const NO_GROUPING = 'none';
+
 /** Each key's empty value, so `null`, `undefined` and `[]` compare as the same */
 const EMPTY_VIEW: Required<TableViewState> = {
   query:          '',

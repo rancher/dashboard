@@ -12,6 +12,7 @@ import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInpu
 import { useDragReorder } from '@shell/composables/useDragReorder';
 import { useI18n } from '@shell/composables/useI18n';
 import { validateQuery } from '@shell/utils/table-views/query';
+import { NO_GROUPING } from '@shell/utils/table-views/views';
 import type { TableViewField, TableViewQueryProblem, TableViewRow, TableViewState } from '@shell/types/table-views';
 import { RcDropdown, RcDropdownItem, RcDropdownSeparator, RcDropdownTrigger } from '@components/RcDropdown';
 
@@ -33,6 +34,8 @@ const props = withDefaults(defineProps<{
   fields?: TableViewField[],
   /** Defaults to `fields` */
   groupFields?: TableViewField[] | null,
+  /** The grouping the table has when the view names none */
+  defaultGroupBy?: string | null,
   /** Defaults to `fields` */
   filterFields?: TableViewField[] | null,
   /** Ids of the fields that hold dates */
@@ -46,6 +49,7 @@ const props = withDefaults(defineProps<{
   unsupportedFields: () => [],
   fields:            () => [],
   groupFields:       null,
+  defaultGroupBy:    null,
   filterFields:      null,
   dateFields:        () => [],
   fieldValues:       () => ({}),
@@ -165,7 +169,10 @@ const groupOptions = computed(() => {
     .map((f) => ({ id: f.id as string | null, label: f.label })));
 });
 
-const groupLabel = computed(() => groupOptions.value.find((o) => o.id === props.view.groupBy)?.label || t('tableViews.group.none'));
+/** The grouping in force: the view's, else the table's default */
+const appliedGroupBy = computed(() => (props.view.groupBy === NO_GROUPING ? null : props.view.groupBy || props.defaultGroupBy || null));
+
+const groupLabel = computed(() => groupOptions.value.find((o) => o.id === appliedGroupBy.value)?.label || t('tableViews.group.none'));
 
 const update = (changes: Partial<TableViewState>) => emit('update:view', { ...props.view, ...changes });
 
@@ -256,10 +263,11 @@ const startColumnDrag = (id: string, event: MouseEvent) => {
   armColumnDrag(id, event);
 };
 
-const setGroupBy = (id: string | null) => update({ groupBy: id });
+/** The table's default is stored as nothing, so it isn't a change; none over a default is stored as such */
+const pickGroupBy = (id: string | null) => update({ groupBy: id === props.defaultGroupBy ? null : id || NO_GROUPING });
 
 /** Picking the applied grouping again removes it */
-const toggleGroupBy = (id: string | null) => setGroupBy(id === props.view.groupBy ? null : id);
+const toggleGroupBy = (id: string | null) => pickGroupBy(id === appliedGroupBy.value ? null : id);
 
 const resetColumns = () => update({
   columns: null, labelColumns: [], columnOrder: null
@@ -334,7 +342,7 @@ watch(groupPanel, (panel) => {
   }
 
   requestAnimationFrame(() => {
-    panel.querySelector(`[data-testid="table-views-group-${ props.view.groupBy || 'none' }"]`)?.scrollIntoView({ block: 'nearest' });
+    panel.querySelector(`[data-testid="table-views-group-${ appliedGroupBy.value || 'none' }"]`)?.scrollIntoView({ block: 'nearest' });
   });
 });
 
@@ -459,14 +467,14 @@ onBeforeUnmount(() => {
                   <rc-dropdown-item
                     v-for="option in groupOptions"
                     :key="option.id || 'none'"
-                    :class="{ selected: option.id === view.groupBy }"
+                    :class="{ selected: option.id === appliedGroupBy }"
                     :close-on-click="false"
                     :data-testid="`table-views-group-${ option.id || 'none' }`"
                     @click="toggleGroupBy(option.id)"
                   >
                     {{ option.label }}
                     <template
-                      v-if="option.id === view.groupBy"
+                      v-if="option.id === appliedGroupBy"
                       #after
                     >
                       <i class="icon icon-checkmark" />
@@ -477,7 +485,7 @@ onBeforeUnmount(() => {
                     class="menu-reset"
                     :close-on-click="false"
                     data-testid="table-views-group-reset"
-                    @click="setGroupBy(null)"
+                    @click="update({ groupBy: null })"
                   >
                     {{ t('tableViews.view.reset') }}
                   </rc-dropdown-item>
