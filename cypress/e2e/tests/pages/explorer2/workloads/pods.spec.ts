@@ -79,6 +79,36 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodPage.list().resourceTable().sortableTable().pagination()
         .checkVisible();
 
+      // PROBE (do not merge): pagination.po.ts carries an unverified claim that the pager total can
+      // report one more than the resources that really exist, and hold that wrong total for the full
+      // retry window. Compare the pager against the real pod count in the two filtered namespaces
+      // and fail only if they disagree for ~30s - a transient mismatch is not the claim.
+      const probePagerTotal = (attempt = 0): void => {
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .paginationTotalCount()
+          .then((pager: number) => {
+            cy.request(`${ Cypress.env('api') }/v1/pods/${ nsName1 }`).then((r1) => {
+              cy.request(`${ Cypress.env('api') }/v1/pods/${ nsName2 }`).then((r2) => {
+                const real = (r1.body.data || []).length + (r2.body.data || []).length;
+
+                if (pager === real) {
+                  cy.log(`PROBE pager matches the API: ${ pager }`);
+
+                  return;
+                }
+                cy.log(`PROBE mismatch attempt ${ attempt }: pager=${ pager } api=${ real }`);
+                if (attempt >= 15) {
+                  expect(pager, `PROBE pager total stayed off the real pod count for ~30s (api=${ real })`).to.eq(real);
+                }
+                cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+                probePagerTotal(attempt + 1);
+              });
+            });
+          });
+      };
+
+      probePagerTotal();
+
       workloadsPodPage.list().resourceTable().sortableTable().pagination()
         .paginationTotalCount()
         .then((count: number) => {
