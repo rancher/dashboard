@@ -36,6 +36,16 @@ describe('Settings Configuration', () => {
     });
   });
 
+  describe('UI_APPCO_ENABLED', () => {
+    it('should be defined in SETTING constants', () => {
+      expect(SETTING.UI_APPCO_ENABLED).toBe('ui-appco-enabled');
+    });
+
+    it('should not be included in PROVISIONING_SETTINGS', () => {
+      expect(PROVISIONING_SETTINGS).not.toContain(SETTING.UI_APPCO_ENABLED);
+    });
+  });
+
   describe('PROVISIONING_SETTINGS array', () => {
     it('should contain all expected provisioning-related settings', () => {
       const expectedSettings = [

@@ -383,23 +383,37 @@ describe('setSetting', () => {
 });
 
 describe('isSuseAppCollectionEnabled', () => {
-  const storeWithSystemCatalog = (value?: string) => ({
+  const createStore = (settings: Record<string, string> = {}) => ({
     getters: {
       'management/byId': (type: string, id: string) => {
-        return type === MANAGEMENT.SETTING && id === SETTING.SYSTEM_CATALOG && value !== undefined ? { value } : undefined;
+        return type === MANAGEMENT.SETTING && settings[id] !== undefined ? { value: settings[id] } : undefined;
       },
     },
   });
 
-  it('is enabled when the system-catalog setting is absent', () => {
-    expect(isSuseAppCollectionEnabled(storeWithSystemCatalog() as any)).toBe(true);
-  });
+  it.each([
+    [undefined, undefined, true],
+    [undefined, 'external', true],
+    [undefined, 'bundled', false],
+    ['', undefined, true],
+    ['', 'external', true],
+    ['', 'bundled', false],
+    ['true', undefined, true],
+    ['true', 'external', true],
+    ['true', 'bundled', true],
+    ['false', undefined, false],
+    ['false', 'external', false],
+    ['false', 'bundled', false],
+  ])('returns the expected value (ui-appco-enabled: %p, system-catalog: %p)', (appCoEnabled, systemCatalog, expected) => {
+    const settings: Record<string, string> = {};
 
-  it('is enabled when system-catalog is not bundle', () => {
-    expect(isSuseAppCollectionEnabled(storeWithSystemCatalog('external') as any)).toBe(true);
-  });
+    if (appCoEnabled !== undefined) {
+      settings[SETTING.UI_APPCO_ENABLED] = appCoEnabled;
+    }
+    if (systemCatalog !== undefined) {
+      settings[SETTING.SYSTEM_CATALOG] = systemCatalog;
+    }
 
-  it('is disabled when system-catalog is bundle (airgap / bundled charts only)', () => {
-    expect(isSuseAppCollectionEnabled(storeWithSystemCatalog('bundle') as any)).toBe(false);
+    expect(isSuseAppCollectionEnabled(createStore(settings) as any)).toBe(expected);
   });
 });

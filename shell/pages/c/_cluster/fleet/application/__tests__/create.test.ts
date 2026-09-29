@@ -1,6 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import FleetApplicationCreate from '@shell/pages/c/_cluster/fleet/application/create.vue';
 import { FLEET } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 
 jest.mock('@shell/config/version', () => ({ isRancherPrime: jest.fn(() => true) }));
 
@@ -28,13 +29,12 @@ jest.mock('vuex', () => ({ useStore: () => mockStore }));
 
 const SUSE_APP_CO_TESTID = `[data-testid="subtype-banner-item-${ FLEET.SUSE_APP_COLLECTION }"]`;
 
-// `systemCatalogValue` is the value of the `system-catalog` setting: `bundle` = airgap / bundled charts
-// only, which hides the SUSE Application Collection integration.
-const createStore = (systemCatalogValue?: string) => ({
+// `settings` maps setting ids (`ui-appco-enabled`, `system-catalog`) to their values; absent ids resolve to undefined.
+const createStore = (settings: Record<string, string> = {}) => ({
   getters: {
     'management/schemaFor': () => ({ resourceMethods: ['PUT'] }),
     'type-map/labelFor':    () => 'Helm Op',
-    'management/byId':      (_type: string, _id: string) => (systemCatalogValue !== undefined ? { value: systemCatalogValue } : undefined),
+    'management/byId':      (_type: string, id: string) => (settings[id] !== undefined ? { value: settings[id] } : undefined),
     'prefs/theme':          'light',
     'i18n/t':               (key: string) => key,
     'i18n/exists':          () => false,
@@ -49,7 +49,7 @@ describe('page: fleet/application/create', () => {
     isRancherPrime.mockReturnValue(true);
   });
 
-  it('should show the SUSE Application Collection subtype when the system-catalog setting is absent', () => {
+  it('should show the SUSE Application Collection subtype when no setting is present', () => {
     mockStore = createStore();
 
     const wrapper = createWrapper();
@@ -57,24 +57,21 @@ describe('page: fleet/application/create', () => {
     expect(wrapper.find(SUSE_APP_CO_TESTID).exists()).toBe(true);
   });
 
-  it('should show the SUSE Application Collection subtype when system-catalog is not bundle', () => {
-    mockStore = createStore('external');
+  it.each([
+    ['', 'external', true],
+    ['', 'bundled', false],
+    ['true', 'bundled', true],
+    ['false', 'external', false],
+  ])('should reflect the settings (ui-appco-enabled: %p, system-catalog: %p)', (appCoEnabled, systemCatalog, expected) => {
+    mockStore = createStore({ [SETTING.UI_APPCO_ENABLED]: appCoEnabled, [SETTING.SYSTEM_CATALOG]: systemCatalog });
 
     const wrapper = createWrapper();
 
-    expect(wrapper.find(SUSE_APP_CO_TESTID).exists()).toBe(true);
+    expect(wrapper.find(SUSE_APP_CO_TESTID).exists()).toBe(expected);
   });
 
-  it('should hide the SUSE Application Collection subtype when system-catalog is bundle', () => {
-    mockStore = createStore('bundle');
-
-    const wrapper = createWrapper();
-
-    expect(wrapper.find(SUSE_APP_CO_TESTID).exists()).toBe(false);
-  });
-
-  it('should still show the other subtypes when system-catalog is bundle', () => {
-    mockStore = createStore('bundle');
+  it('should still show the other subtypes when the SUSE Application Collection is disabled', () => {
+    mockStore = createStore({ [SETTING.UI_APPCO_ENABLED]: 'false' });
 
     const wrapper = createWrapper();
 
@@ -82,9 +79,9 @@ describe('page: fleet/application/create', () => {
     expect(wrapper.find(`[data-testid="subtype-banner-item-${ FLEET.HELM_OP }"]`).exists()).toBe(true);
   });
 
-  it('should hide the SUSE Application Collection subtype when not running Rancher Prime, even if system-catalog is not bundle', () => {
+  it('should hide the SUSE Application Collection subtype when not running Rancher Prime, even if ui-appco-enabled is true', () => {
     isRancherPrime.mockReturnValue(false);
-    mockStore = createStore('external');
+    mockStore = createStore({ [SETTING.UI_APPCO_ENABLED]: 'true' });
 
     const wrapper = createWrapper();
 

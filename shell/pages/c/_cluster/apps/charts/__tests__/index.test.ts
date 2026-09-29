@@ -2,6 +2,7 @@ import { shallowMount } from '@vue/test-utils';
 import Charts from '@shell/pages/c/_cluster/apps/charts/index.vue';
 import AsyncButton from '@shell/components/AsyncButton';
 import { UI_PLUGIN_ANNOTATION } from '@shell/config/uiplugins';
+import { SETTING } from '@shell/config/settings';
 
 describe('page: Charts Index', () => {
   describe('computed: tagOptions', () => {
@@ -233,15 +234,17 @@ describe('page: Charts Index', () => {
   });
 
   describe('computed: suseAppCollectionEnabled', () => {
-    const createContext = (value?: string) => ({ $store: { getters: { 'management/byId': (_type: string, _id: string) => (value !== undefined ? { value } : undefined) } } });
+    const createContext = (settings: Record<string, string>) => ({ $store: { getters: { 'management/byId': (_type: string, id: string) => (settings[id] !== undefined ? { value: settings[id] } : undefined) } } });
 
-    // Gated on the `system-catalog` setting: `bundle` (airgap / bundled charts only) disables it.
+    // `ui-appco-enabled` wins when set, otherwise `system-catalog` of `bundled` (airgap / bundled charts only) disables it.
     it.each([
-      [undefined, true],
-      ['external', true],
-      ['bundle', false],
-    ])('reflects the system-catalog setting (value: %s)', (value, expected) => {
-      const ctx = createContext(value);
+      [{}, true],
+      [{ [SETTING.SYSTEM_CATALOG]: 'external' }, true],
+      [{ [SETTING.SYSTEM_CATALOG]: 'bundled' }, false],
+      [{ [SETTING.UI_APPCO_ENABLED]: 'true', [SETTING.SYSTEM_CATALOG]: 'bundled' }, true],
+      [{ [SETTING.UI_APPCO_ENABLED]: 'false', [SETTING.SYSTEM_CATALOG]: 'external' }, false],
+    ])('reflects the settings (%p)', (settings, expected) => {
+      const ctx = createContext(settings);
 
       expect((Charts.computed!.suseAppCollectionEnabled as () => boolean).call(ctx)).toBe(expected);
     });
@@ -263,7 +266,7 @@ describe('page: Charts Index', () => {
       expect(!!result).toBe(true);
     });
 
-    it('is falsy when the SUSE Application Collection integration is disabled (system-catalog is bundle)', () => {
+    it('is falsy when the SUSE Application Collection integration is disabled', () => {
       const ctx = { ...baseContext, suseAppCollectionEnabled: false };
       const result = (Charts.computed!.showAppCollectionBannerLogic as () => unknown).call(ctx);
 

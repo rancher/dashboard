@@ -129,12 +129,22 @@ export const isProviderEnabled = (context: ClusterProvisionerContext, provider: 
  * Whether the SUSE Application Collection integration (App Bundle install wizard entry points in
  * Continuous Delivery and Charts) is enabled.
  *
- * Gated on Rancher's catalog mode: when `system-catalog` is `bundle` (airgap / bundled charts only,
- * `CATTLE_SYSTEM_CATALOG=bundle`) there's no external catalog access, so the integration is hidden.
- * Any other value (or an absent setting) leaves it enabled.
+ * `ui-appco-enabled` decides when it is `true` or `false`. When it is empty or absent this falls back to
+ * Rancher's catalog mode: `system-catalog` of `bundled` (airgap / bundled charts only) has no external catalog
+ * access, so the integration is hidden, any other value leaves it enabled.
  */
 export const isSuseAppCollectionEnabled = (store: Store<any>): boolean => {
-  const setting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SYSTEM_CATALOG);
+  const appCoEnabled = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_APPCO_ENABLED)?.value;
 
-  return setting?.value !== 'bundle';
+  if (appCoEnabled === 'true') {
+    return true;
+  }
+
+  if (appCoEnabled === 'false') {
+    return false;
+  }
+
+  const systemCatalog = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SYSTEM_CATALOG)?.value;
+
+  return systemCatalog !== 'bundled';
 };
