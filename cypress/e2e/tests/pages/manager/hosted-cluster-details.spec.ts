@@ -203,11 +203,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@mgmtNodesGet');
     aksDetailsPage.nodePoolTable().sortableTable().rowCount().should('eq', 2);
 
-    // node pool table should offer grouping by pool, not by namespace
-    aksDetailsPage.nodePoolTable().sortableTable().openGroupBy();
-    aksDetailsPage.nodePoolTable().sortableTable().groupByOption('Namespace')
-      .should('not.exist');
-    aksDetailsPage.nodePoolTable().sortableTable().closeViewMenu();
+    // node pool table should offer grouping by pool
     aksDetailsPage.nodePoolTable().sortableTable().groupBy('Pool');
 
     aksDetailsPage.nodePoolTable().sortableTable().groupRowCount('agentpool').should('eq', 1);
@@ -243,11 +239,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@mgmtNodesGet');
     eksDetailsPage.nodePoolTable().sortableTable().rowCount().should('eq', 3);
 
-    // node pool table should offer grouping by pool, not by namespace
-    eksDetailsPage.nodePoolTable().sortableTable().openGroupBy();
-    eksDetailsPage.nodePoolTable().sortableTable().groupByOption('Namespace')
-      .should('not.exist');
-    eksDetailsPage.nodePoolTable().sortableTable().closeViewMenu();
+    // node pool table should offer grouping by pool
     eksDetailsPage.nodePoolTable().sortableTable().groupBy('Pool');
 
     eksDetailsPage.nodePoolTable().sortableTable().groupRowCount('group1').should('eq', 2);
@@ -281,11 +273,7 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@mgmtNodesGet');
     gkeDetailsPage.nodePoolTable().sortableTable().rowCount().should('eq', 2);
 
-    // node pool table should offer grouping by pool, not by namespace
-    gkeDetailsPage.nodePoolTable().sortableTable().openGroupBy();
-    gkeDetailsPage.nodePoolTable().sortableTable().groupByOption('Namespace')
-      .should('not.exist');
-    gkeDetailsPage.nodePoolTable().sortableTable().closeViewMenu();
+    // node pool table should offer grouping by pool
     gkeDetailsPage.nodePoolTable().sortableTable().groupBy('Pool');
 
     gkeDetailsPage.nodePoolTable().sortableTable().groupRowCount('group-1').should('eq', 1);

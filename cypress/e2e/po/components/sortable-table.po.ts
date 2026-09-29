@@ -17,10 +17,14 @@ import HeaderRowPo from '@/cypress/e2e/po/components/header-row.po';
 export const RESOURCE_ROW_SELECTOR = 'tbody tr:not(.sub-row):not(.group-row):not(.additional-sub-row)';
 
 /**
- * Is the table laid out for table views: a query box instead of the search box, and the bulk actions
- * in one menu for the selection. Tables without a schema keep the old layout even with the feature on
+ * Is the table on screen laid out for table views: a query box instead of the search box, and the
+ * bulk actions in one menu for the selection. Tables without a schema keep the old layout even with
+ * the feature on.
+ *
+ * Read from the page rather than `self()`: a table built from a chainable shares it, and each `find`
+ * moves its subject, so after one lookup `self()` is no longer the table
  */
-const hasTableViews = ($el: Cypress.JQueryWithSelector) => $el.is('.has-table-views') || !!$el.find('.has-table-views').length;
+const withTableViews = <S>(tableViews: () => Cypress.Chainable<S>, old: () => Cypress.Chainable<S>): Cypress.Chainable<S> => cy.get('body').then(($body) => ($body.find('.has-table-views:visible').length ? tableViews() : old()));
 
 export default class SortableTablePo extends ComponentPo {
   /**
@@ -45,30 +49,22 @@ export default class SortableTablePo extends ComponentPo {
    * this opens
    */
   bulkActionButton(label: string) {
-    return this.self().then(($el) => {
-      if (!hasTableViews($el)) {
-        return this.self().find(`.fixed-header-actions .bulk button`).contains(label);
-      }
-
+    return withTableViews(() => {
       this.openSelectionActions();
 
       return this.bulkActionDropDownPopOver().contains('[dropdown-menu-item]', label);
-    });
+    }, () => this.self().find(`.fixed-header-actions .bulk button`).contains(label));
   }
 
   /**
    * A bulk action by its action name (eg `activate`). With table views, opens the selection's menu
    */
   bulkAction(action: string) {
-    return this.self().then(($el) => {
-      if (!hasTableViews($el)) {
-        return cy.getId(`sortable-table-${ action }`);
-      }
-
+    return withTableViews(() => {
       this.openSelectionActions();
 
       return cy.get(`[data-testid$="-selection-action-${ action === 'promptRemove' ? 'delete' : action }"]`);
-    });
+    }, () => cy.get(`[data-testid="sortable-table-${ action }"]`));
   }
 
   /**
@@ -76,14 +72,14 @@ export default class SortableTablePo extends ComponentPo {
    * too small). With table views, the selection's menu
    */
   bulkActionDropDown() {
-    return this.self().then(($el) => (hasTableViews($el) ? this.selectionActionsButton() : this.self().find(`.fixed-header-actions .bulk .bulk-actions-dropdown`)));
+    return withTableViews(() => this.selectionActionsButton(), () => this.self().find(`.fixed-header-actions .bulk .bulk-actions-dropdown`));
   }
 
   /**
    * Open the bulk action drop down
    */
   bulkActionDropDownOpen() {
-    return this.self().then(($el) => (hasTableViews($el) ? this.openSelectionActions() : this.bulkActionDropDown().click()));
+    return withTableViews(() => this.openSelectionActions(), () => this.bulkActionDropDown().click());
   }
 
   /**
@@ -110,14 +106,19 @@ export default class SortableTablePo extends ComponentPo {
    * selected
    */
   selectionActionsButton() {
-    return this.self().find('[data-testid$="-selection-actions"]');
+    return cy.get('[data-testid$="-selection-actions"]:visible');
   }
 
   openSelectionActions() {
     return this.selectionActionsButton().then(($button) => {
-      if ($button.attr('aria-expanded') !== 'true') {
-        cy.wrap($button).click();
+      if ($button.attr('aria-expanded') === 'true') {
+        return;
       }
+
+      // A menu closing from the last pick stays on the page while it fades, and takes a click on its
+      // button as one outside it, closing the menu that click opens
+      cy.get('[data-testid*="-selection-action-"]').should('not.exist');
+      cy.wrap($button).click();
     });
   }
 
@@ -132,13 +133,15 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   viewMenuButton() {
-    return this.self().find('[data-testid="table-views-view-menu"]');
+    return cy.get('[data-testid="table-views-view-menu"]:visible');
   }
 
   /**
    * Open the View menu's Group By list
    */
   openGroupBy() {
+    // As with the selection's menu: one still fading would close the menu this click opens
+    cy.getId('table-views-view-group').should('not.exist');
     this.viewMenuButton().click();
 
     return cy.getId('table-views-view-group').click();
@@ -164,9 +167,10 @@ export default class SortableTablePo extends ComponentPo {
   groupBy(label: string) {
     this.openGroupBy();
     this.groupByOption(label).then(($option) => {
-      // A click on the current grouping would turn it off
+      // A click on the current grouping would turn it off. Forced: the list is drawn beside the View
+      // menu but sits inside it on the page, so Cypress thinks the menu's overflow hides it
       if (!$option.hasClass('selected')) {
-        cy.wrap($option).click();
+        cy.wrap($option).click({ force: true });
       }
     });
 
@@ -184,7 +188,7 @@ export default class SortableTablePo extends ComponentPo {
    * How many rows are selected, eg "2 selected" (reads "2 Selected" with table views)
    */
   selectedCountText() {
-    return this.self().then(($el) => (hasTableViews($el) ? this.selectionActionsButton() : cy.get('.action-availability')));
+    return withTableViews(() => this.selectionActionsButton(), () => cy.get('.action-availability'));
   }
 
   /**
@@ -203,10 +207,14 @@ export default class SortableTablePo extends ComponentPo {
     return this.resetFilter()
       .type(searchText, { delay })
       .then(($el) => {
-        // The query box's suggestions would cover the rows
-        if ($el.is('[contenteditable]')) {
-          cy.wrap($el).blur();
+        if (!$el.is('[contenteditable]')) {
+          return;
         }
+
+        // The query box's suggestions would cover the rows
+        cy.wrap($el).blur();
+        // Until the query settles and its rows arrive, the rows on screen are the old query's
+        cy.get('.has-table-views[aria-busy="true"]').should('not.exist');
       });
   }
 

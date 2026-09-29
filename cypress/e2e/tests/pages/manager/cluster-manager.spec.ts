@@ -644,7 +644,6 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
 
       clusterList.waitForPage();
       clusterList.list().resourceTable().sortableTable().filter('local', 100);
-      clusterList.waitForPage('q=local');
       clusterList.goToDetailsPage('local', '.cluster-link a');
       clusterDetail.waitForPage();
     });
