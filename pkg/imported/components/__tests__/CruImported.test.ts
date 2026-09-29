@@ -34,7 +34,8 @@ describe('cruImported component', () => {
         Basics:                  true,
         RcACE:                   true,
         Checkbox:                true,
-        SchedulingCustomization: true,
+        RcAgentConfiguration:    true,
+        RcPrivateRegistry:       true,
         RcKeyValue:              true,
         NameNsDescription:       true,
         Loading:                 true,
@@ -348,6 +349,205 @@ describe('cruImported component', () => {
       expect(wrapper.vm.dayTwoOpsFlagEnabled).toBe(false);
       expect(wrapper.vm.dayTwoOpsGlobalSetting).toBe(false);
       expect(wrapper.vm.dayTwoOpsOld).toBe(DAY_2_OPS_DEFAULT);
+    });
+  });
+
+  describe('advanced section', () => {
+    const mountWith = (value: object, mode = _EDIT) => shallowMount(CruImported, {
+      props: {
+        mode,
+        value: {
+          id:                'cluster-id',
+          isRke1:            false,
+          isLocal:           false,
+          findNormanCluster: jest.fn().mockResolvedValue({}),
+          ...value
+        }
+      },
+      ...defaultSetup,
+      data: () => ({
+        normanCluster: {
+          name:                                '',
+          annotations:                         { [IMPORTED_CLUSTER_VERSION_MANAGEMENT]: 'system-default' },
+          importedConfig:                      { privateRegistryURL: null },
+          localClusterAuthEndpoint:            {},
+          clusterAgentDeploymentCustomization: {},
+          fleetAgentDeploymentCustomization:   {},
+        }
+      })
+    });
+
+    it('should render the registries section inside the advanced section', () => {
+      const wrapper = mountWith({});
+
+      const advanced = wrapper.find('[data-testid="advanced-accordion"]');
+
+      expect(advanced.exists()).toBe(true);
+      expect(advanced.find('[data-testid="registries-accordion"]').exists()).toBe(true);
+      expect(advanced.findComponent({ name: 'RcPrivateRegistry' }).exists()).toBe(true);
+    });
+
+    it.each([
+      ['cluster-agent-config-accordion', 'cluster'],
+      ['fleet-agent-config-accordion', 'fleet'],
+    ])('should render the %p section with an RcAgentConfiguration of type %p inside the advanced section', (testId, type) => {
+      const wrapper = mountWith({});
+
+      const section = wrapper.find('[data-testid="advanced-accordion"]').find(`[data-testid="${ testId }"]`);
+
+      expect(section.exists()).toBe(true);
+      expect(section.findComponent({ name: 'RcAgentConfiguration' }).props('type')).toBe(type);
+    });
+
+    it.each([
+      ['cluster-agent-config-accordion'],
+      ['fleet-agent-config-accordion'],
+    ])('should not render the %p section for the local cluster', (testId) => {
+      const wrapper = mountWith({ isLocal: true });
+
+      expect(wrapper.find(`[data-testid="${ testId }"]`).exists()).toBe(false);
+      expect(wrapper.find('[data-testid="registries-accordion"]').exists()).toBe(true);
+    });
+
+    it('should not render the advanced section for RKE1 clusters', () => {
+      const wrapper = mountWith({ isRke1: true });
+
+      expect(wrapper.find('[data-testid="advanced-accordion"]').exists()).toBe(false);
+      expect(wrapper.findComponent({ name: 'RcAgentConfiguration' }).exists()).toBe(false);
+    });
+  });
+
+  describe('agent configuration', () => {
+    const mountWithCluster = (normanCluster: object, mode = _EDIT) => {
+      const wrapper = shallowMount(CruImported, {
+        props: {
+          mode,
+          value: {
+            id: 'cluster-id', isRke1: false, isLocal: false, findNormanCluster: jest.fn().mockResolvedValue({})
+          }
+        },
+        ...defaultSetup,
+      });
+
+      // Set after mount, so the values the test sets aren't replaced by fetch
+      (wrapper.vm as any).normanCluster = {
+        name:                     'test',
+        annotations:              { [IMPORTED_CLUSTER_VERSION_MANAGEMENT]: 'system-default' },
+        importedConfig:           {},
+        localClusterAuthEndpoint: {},
+        save:                     jest.fn().mockResolvedValue({}),
+        ...normanCluster,
+      };
+
+      return wrapper;
+    };
+
+    it('should create empty agent configuration models when they are missing', () => {
+      const wrapper = mountWithCluster({});
+      const vm = wrapper.vm as any;
+
+      vm.ensureAgentConfiguration();
+
+      expect(vm.normanCluster.clusterAgentDeploymentCustomization).toStrictEqual({});
+      expect(vm.normanCluster.fleetAgentDeploymentCustomization).toStrictEqual({});
+    });
+
+    it('should keep existing agent configuration models', () => {
+      const existing = { overrideResourceRequirements: { limits: { cpu: '1' } } };
+      const wrapper = mountWithCluster({ clusterAgentDeploymentCustomization: existing });
+      const vm = wrapper.vm as any;
+
+      vm.ensureAgentConfiguration();
+
+      expect(vm.normanCluster.clusterAgentDeploymentCustomization).toStrictEqual(existing);
+    });
+
+    it('should remove empty values and auxiliary affinity props from the agent configurations before save', () => {
+      const wrapper = mountWithCluster({
+        clusterAgentDeploymentCustomization: {
+          appendTolerations:            [],
+          overrideAffinity:             {},
+          overrideResourceRequirements: { requests: { cpu: '100m', memory: '128Mi' }, limits: {} },
+        },
+        fleetAgentDeploymentCustomization: {
+          appendTolerations: [],
+          overrideAffinity:  {
+            podAffinity: {
+              requiredDuringSchedulingIgnoredDuringExecution: [{
+                _id: 'abc', topologyKey: 'zone', namespaceSelector: {}
+              }]
+            }
+          },
+          overrideResourceRequirements: {},
+        },
+      });
+      const vm = wrapper.vm as any;
+
+      vm.agentConfigurationCleanup();
+
+      expect(vm.normanCluster.clusterAgentDeploymentCustomization).toStrictEqual({ overrideResourceRequirements: { requests: { cpu: '100m', memory: '128Mi' } } });
+      expect(vm.normanCluster.fleetAgentDeploymentCustomization).toStrictEqual({ overrideAffinity: { podAffinity: { requiredDuringSchedulingIgnoredDuringExecution: [{ topologyKey: 'zone', namespaceSelector: {} }] } } });
+    });
+
+    it('should drop the agent configurations entirely when nothing was configured', () => {
+      const wrapper = mountWithCluster({
+        clusterAgentDeploymentCustomization: {
+          appendTolerations: [], overrideAffinity: {}, overrideResourceRequirements: {}
+        },
+        fleetAgentDeploymentCustomization: {},
+      });
+      const vm = wrapper.vm as any;
+
+      vm.agentConfigurationCleanup();
+
+      expect(vm.normanCluster.clusterAgentDeploymentCustomization).toBeUndefined();
+      expect(vm.normanCluster.fleetAgentDeploymentCustomization).toBeUndefined();
+    });
+
+    it('should save an edit without replacing when nothing was removed from the agent configurations', async() => {
+      const wrapper = mountWithCluster({
+        clusterAgentDeploymentCustomization: { overrideResourceRequirements: { limits: { cpu: '1', memory: '1Gi' } } },
+        fleetAgentDeploymentCustomization:   {},
+      });
+      const vm = wrapper.vm as any;
+
+      vm.agentConfigurationOriginal = { clusterAgentDeploymentCustomization: { overrideResourceRequirements: { limits: { cpu: '1' } } } };
+
+      await vm.actuallySave();
+
+      expect(vm.normanCluster.save).toHaveBeenCalledWith({ replace: false });
+    });
+
+    it('should save an edit with replace when a value was removed from an agent configuration', async() => {
+      const wrapper = mountWithCluster({
+        clusterAgentDeploymentCustomization: { overrideResourceRequirements: { limits: {} } },
+        fleetAgentDeploymentCustomization:   {},
+      });
+      const vm = wrapper.vm as any;
+
+      vm.agentConfigurationOriginal = { clusterAgentDeploymentCustomization: { overrideResourceRequirements: { limits: { cpu: '1' } } } };
+
+      await vm.actuallySave();
+
+      expect(vm.normanCluster.clusterAgentDeploymentCustomization).toBeUndefined();
+      expect(vm.normanCluster.save).toHaveBeenCalledWith({ replace: true });
+    });
+
+    it('should clean the agent configurations before saving a new cluster', async() => {
+      const waitForProvisioning = jest.fn().mockResolvedValue({});
+      const wrapper = mountWithCluster({
+        clusterAgentDeploymentCustomization: { appendTolerations: [], overrideResourceRequirements: { limits: { memory: '256Mi' } } },
+        fleetAgentDeploymentCustomization:   { appendTolerations: [] },
+        waitForProvisioning,
+      }, _CREATE);
+      const vm = wrapper.vm as any;
+
+      await vm.actuallySave();
+
+      expect(vm.normanCluster.clusterAgentDeploymentCustomization).toStrictEqual({ overrideResourceRequirements: { limits: { memory: '256Mi' } } });
+      expect(vm.normanCluster.fleetAgentDeploymentCustomization).toBeUndefined();
+      expect(vm.normanCluster.save).toHaveBeenCalledWith();
+      expect(waitForProvisioning).toHaveBeenCalledWith();
     });
   });
 });
