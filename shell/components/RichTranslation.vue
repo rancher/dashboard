@@ -51,7 +51,7 @@ export default defineComponent({
     const store = useStore();
 
     return () => {
-      const rawStr = store.getters['i18n/t'](props.k, props.args);
+      const rawStr = store.getters['i18n/t'](props.k, props.args, true);
 
       if (!rawStr || typeof rawStr !== 'string') {
         return h(props.tag, {}, [rawStr]);
