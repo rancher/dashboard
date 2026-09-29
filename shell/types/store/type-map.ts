@@ -282,6 +282,24 @@ export interface TypeMapVirtualType {
 }
 
 /**
+ * A conditional `ignoreGroup` rule, as stored in type-map's `groupIgnore` state
+ *
+ * `type` is a regex source (RegExp objects don't serialize into state) and `cb` decides, at
+ * runtime, whether the group is actually ignored for the current context
+ */
+export interface TypeMapConditionalIgnoreRule {
+  type: string,
+  cb: (getters: any) => boolean,
+}
+
+/**
+ * An entry of type-map's `typeIgnore` / `groupIgnore` state
+ *
+ * A plain string is an unconditional rule, an object is a conditional one
+ */
+export type TypeMapIgnoreRule = string | TypeMapConditionalIgnoreRule;
+
+/**
  * interface for type-map's' definition for table headers/columns
  */
 export interface TableColumn {

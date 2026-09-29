@@ -12,7 +12,9 @@ import {
 import {
   ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage, ProductMetadata, ProductMetadataSinglePage
 } from '@shell/core/plugin-products-external';
-import { TypeMapConfigureType, TypeMapProduct, TypeMapVirtualType } from '@shell/types/store/type-map';
+import {
+  TypeMapConditionalIgnoreRule, TypeMapConfigureType, TypeMapIgnoreRule, TypeMapProduct, TypeMapVirtualType
+} from '@shell/types/store/type-map';
 import { AdvancedProductConfigOptionsInternal, ProductChildCustomPageInternal, ProductChildResourcePageInternal, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
 import { RouteRecordRaw } from 'vue-router';
 import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
@@ -38,6 +40,16 @@ const applyIfDefined = function(value: any, apply: () => void) {
     apply();
   }
 };
+
+/**
+ * type-map ignore rule that always applies, stored as a plain regex source
+ */
+const isUnconditionalIgnoreRule = (rule: TypeMapIgnoreRule): rule is string => typeof rule === 'string';
+
+/**
+ * type-map ignore rule that only applies when its callback says so at runtime
+ */
+const isConditionalIgnoreRule = (rule: TypeMapIgnoreRule): rule is TypeMapConditionalIgnoreRule => typeof rule === 'object' && rule !== null && !!rule.type;
 
 /**
  * Base class for product registration in extensions
@@ -68,6 +80,8 @@ export abstract class BasePluginProduct {
 
   protected DSLMethods: any;
 
+  // Kept alongside DSLMethods so registration-time checks (which run deep in the config
+  // traversal) can read store state without threading it through every method signature
   protected store: any;
 
   protected config: ProductChild[];
@@ -568,8 +582,11 @@ export abstract class BasePluginProduct {
   }
 
   /**
-   * Emits a console.warn if a resource page type is globally ignored by type-map rules,
-   * surfacing a silent misconfiguration that would cause the nav entry to never appear.
+   * Emits a console.warn if a resource page type is ignored by type-map rules, surfacing a
+   * silent misconfiguration that would cause the nav entry to never appear.
+   *
+   * Ignore rules are stored as regex sources, so they're matched here the same way
+   * `isIgnored` in `type-map.js` matches them.
    */
   private warnIfIgnoredType(type: string): void {
     const typeMapState = this.store?.state?.['type-map'];
@@ -578,36 +595,40 @@ export abstract class BasePluginProduct {
       return;
     }
 
-    const typeIgnoreRules: string[] = typeMapState.typeIgnore ?? [];
-    const groupIgnoreRules: (string | { type: string; cb: Function })[] = typeMapState.groupIgnore ?? [];
+    const typeIgnore: TypeMapIgnoreRule[] = typeMapState.typeIgnore ?? [];
+    const groupIgnore: TypeMapIgnoreRule[] = typeMapState.groupIgnore ?? [];
+    // `allowThrow: false` matters - products register before the management schemas have
+    // loaded, and the default schemaFor throws in that window, which would take down
+    // registration for the whole product. Without a schema we just skip the group checks
+    const group: string | undefined = this.store?.getters?.['management/schemaFor']?.(type, false, false)?.attributes?.group;
+    const useCustomPage = 'Use a ProductChildCustomPage with a custom component instead.';
 
-    for (const rule of typeIgnoreRules) {
-      if (new RegExp(rule).test(type)) {
-        console.warn(`[Extensions] Product "${ this.name }": resource page type "${ type }" is globally ignored via ignoreType() and will not appear in the navigation. Use a ProductChildCustomPage with a custom component instead.`); // eslint-disable-line no-console
+    // Checked in order, first match wins. Each entry pairs the value the rules apply to with
+    // the rules themselves (as regex sources) and the reason shown to the developer
+    const checks: { value?: string, rules: string[], reason: string }[] = [
+      {
+        value:  type,
+        rules:  typeIgnore.filter(isUnconditionalIgnoreRule),
+        reason: `is globally ignored via ignoreType() and will not appear in the navigation. ${ useCustomPage }`,
+      },
+      {
+        value:  group,
+        rules:  groupIgnore.filter(isUnconditionalIgnoreRule),
+        reason: `belongs to API group "${ group }" which is globally ignored via ignoreGroup() and will not appear in the navigation. ${ useCustomPage }`,
+      },
+      {
+        value:  group,
+        rules:  groupIgnore.filter(isConditionalIgnoreRule).map((rule) => rule.type),
+        reason: `belongs to API group "${ group }" which is conditionally ignored at runtime. The nav entry may not appear depending on the current cluster context.`,
+      },
+    ];
 
-        return;
-      }
-    }
+    const match = checks.find(({ value, rules }) => !!value && rules.some((rule) => new RegExp(rule).test(value)));
 
-    const schema = this.store?.getters?.['management/schemaFor']?.(type);
-    const group = schema?.attributes?.group;
-
-    if (!group) {
-      return;
-    }
-
-    for (const rule of groupIgnoreRules) {
-      if (typeof rule === 'string' && new RegExp(rule).test(group)) {
-        console.warn(`[Extensions] Product "${ this.name }": resource page type "${ type }" belongs to API group "${ group }" which is globally ignored and will not appear in the navigation. Use a ProductChildCustomPage with a custom component instead.`); // eslint-disable-line no-console
-
-        return;
-      }
-
-      if (typeof rule === 'object' && rule !== null && rule.type && new RegExp(rule.type).test(group)) {
-        console.warn(`[Extensions] Product "${ this.name }": resource page type "${ type }" belongs to API group "${ group }" which is conditionally ignored at runtime. The nav entry may not appear depending on the current cluster context.`); // eslint-disable-line no-console
-
-        return;
-      }
+    if (match) {
+      // Aimed at extension developers looking at the browser console, so deliberately not
+      // translated - same as the registration errors surfaced by `surfaceError`
+      console.warn(`[Extensions] Product "${ this.name }": resource page type "${ type }" ${ match.reason }`); // eslint-disable-line no-console
     }
   }
 

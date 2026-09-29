@@ -1154,6 +1154,126 @@ describe('pluginProduct', () => {
 
       expect(console.warn).not.toHaveBeenCalled();
     });
+
+    it('should name ignoreGroup() and suggest a custom page in the group warning', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const mockStore = createStoreWithTypeMapState(
+        [],
+        ['^harvesterhci\\.io$'],
+        { 'harvesterhci.io.host': { attributes: { group: 'harvesterhci.io' } } }
+      );
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type: 'harvesterhci.io.host', label: 'Hosts' },
+      ]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(console.warn).toHaveBeenCalledWith(
+        // the product name is reported as registered internally - dashes are stripped by the base class
+        '[Extensions] Product "myproduct": resource page type "harvesterhci.io.host" belongs to API group "harvesterhci.io" which is globally ignored via ignoreGroup() and will not appear in the navigation. Use a ProductChildCustomPage with a custom component instead.'
+      );
+    });
+
+    it('should emit a single warning for the first matching rule when a type matches both a typeIgnore and a groupIgnore rule', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const mockStore = createStoreWithTypeMapState(
+        ['^harvesterhci\\.io\\.host$'],
+        ['^harvesterhci\\.io$'],
+        { 'harvesterhci.io.host': { attributes: { group: 'harvesterhci.io' } } }
+      );
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type: 'harvesterhci.io.host', label: 'Hosts' },
+      ]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      // typeIgnore is checked before groupIgnore, so the developer gets the most specific reason only once
+      expect(console.warn).toHaveBeenCalledTimes(1);
+      expect(console.warn).toHaveBeenCalledWith(
+        // the product name is reported as registered internally - dashes are stripped by the base class
+        '[Extensions] Product "myproduct": resource page type "harvesterhci.io.host" is globally ignored via ignoreType() and will not appear in the navigation. Use a ProductChildCustomPage with a custom component instead.'
+      );
+    });
+
+    it.each([
+      [
+        'the store has no type-map state',
+        (): any => ({
+          state:   {},
+          getters: {
+            'type-map/productByName': () => undefined,
+            'management/schemaFor':   () => undefined,
+          },
+        }),
+        'apps.deployment',
+      ],
+      [
+        'the type-map state holds no ignore lists',
+        (): any => ({
+          state:   { 'type-map': {} },
+          getters: {
+            'type-map/productByName': () => undefined,
+            'management/schemaFor':   () => undefined,
+          },
+        }),
+        'apps.deployment',
+      ],
+      [
+        'the type has no schema, so no API group can be resolved',
+        (): any => createStoreWithTypeMapState([], ['^harvesterhci\\.io$'], {}),
+        'harvesterhci.io.host',
+      ],
+      [
+        'the management schemas have not loaded yet',
+        (): any => ({
+          state:   { 'type-map': { typeIgnore: [], groupIgnore: ['^harvesterhci\\.io$'] } },
+          getters: {
+            'type-map/productByName': () => undefined,
+            // mirrors the real getter, which throws unless allowThrow is explicitly false
+            'management/schemaFor':   (_type: string, _fuzzy = false, allowThrow = true) => {
+              if (allowThrow) {
+                throw new Error("Schemas aren't loaded yet");
+              }
+
+              return null;
+            },
+          },
+        }),
+        'harvesterhci.io.host',
+      ],
+      [
+        'a conditional groupIgnore rule is missing its type property',
+        (): any => createStoreWithTypeMapState(
+          [],
+          [{ cb: jest.fn() } as any],
+          { 'harvesterhci.io.host': { attributes: { group: 'harvesterhci.io' } } }
+        ),
+        'harvesterhci.io.host',
+      ],
+    ])('should not warn when %s', (_scenario, createStore, type) => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type, label: 'A page' },
+      ]);
+
+      pluginProduct.apply(mockPlugin, createStore());
+
+      expect(console.warn).not.toHaveBeenCalled();
+    });
   });
   /* eslint-enable no-console */
 
