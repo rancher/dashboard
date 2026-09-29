@@ -525,7 +525,7 @@ defineExpose({ editorState });
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background-color: var(--yaml-editor-bg);
+  // background-color: var(--yaml-editor-bg);
 }
 
 .multi-yaml-editor {
