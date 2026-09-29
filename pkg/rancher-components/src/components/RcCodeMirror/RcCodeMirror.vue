@@ -54,6 +54,7 @@ import {
   foldGutter as cmFoldGutter
 } from '@codemirror/language';
 import { closeBrackets, autocompletion } from '@codemirror/autocomplete';
+import { linter as cmLinter, lintGutter, type LintSource } from '@codemirror/lint';
 import { getLanguageExtension } from './extensions/syntax';
 import { getKeymapExtension } from './extensions/keymaps';
 import { buildFoldExtension } from './extensions/fold';
@@ -74,6 +75,7 @@ const props = withDefaults(defineProps<RcCodeMirrorProps>(), {
   lineWrapping:    false,
   extensions:      undefined,
   foldOptions:     undefined,
+  linter:          undefined,
   keymapIndicator: false
 });
 
@@ -147,6 +149,7 @@ const readOnlyCompartment = new Compartment();
 const lineNumbersCompartment = new Compartment();
 const lineWrappingCompartment = new Compartment();
 const foldGutterCompartment = new Compartment();
+const lintCompartment = new Compartment();
 const contentAttributesCompartment = new Compartment();
 
 function getThemeExtension(theme?: RcCodeMirrorTheme, variant?: RcCodeMirrorVariant): Extension {
@@ -191,6 +194,15 @@ function getFoldGutterExtension(show: boolean): Extension {
 // can still be made programmatically (e.g. foldYamlPath) and from the keyboard
 function showFoldGutter(): boolean {
   return props.variant !== 'input' && (props.foldGutter ?? true);
+}
+
+// The input variant has no gutters, so its problems are only underlined
+function getLintExtension(source: LintSource | undefined, variant: RcCodeMirrorVariant): Extension {
+  if (!source) {
+    return [];
+  }
+
+  return variant === 'input' ? cmLinter(source) : [cmLinter(source), lintGutter()];
 }
 
 // The input variant always wraps, like a textarea
@@ -281,7 +293,9 @@ onMounted(() => {
       languageCompartment.of(getLanguageExtension(props.language)),
       keymapCompartment.of(getKeymapExtension(props.keymap, props.variant)),
       themeCompartment.of(getThemeExtension(props.theme, props.variant)),
+      // Gutters are shown in this order
       lineNumbersCompartment.of(getLineNumbersExtension(showLineNumbers())),
+      lintCompartment.of(getLintExtension(props.linter, props.variant)),
       foldGutterCompartment.of(getFoldGutterExtension(showFoldGutter())),
       lineWrappingCompartment.of(getLineWrappingExtension(wrapLines())),
       readOnlyCompartment.of(getReadOnlyExtension(props.readOnly ?? false)),
@@ -368,6 +382,14 @@ watch(
   () => showLineNumbers(),
   (show) => {
     view.value?.dispatch({ effects: lineNumbersCompartment.reconfigure(getLineNumbersExtension(show)) });
+  }
+);
+
+// Hot-swap linter
+watch(
+  () => [props.linter, props.variant] as const,
+  ([source, variant]) => {
+    view.value?.dispatch({ effects: lintCompartment.reconfigure(getLintExtension(source, variant)) });
   }
 );
 
