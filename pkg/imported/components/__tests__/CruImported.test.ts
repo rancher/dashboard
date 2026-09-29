@@ -462,23 +462,12 @@ describe('cruImported component', () => {
       expect(vm.normanCluster.clusterAgentDeploymentCustomization).toStrictEqual(existing);
     });
 
-    it('should remove empty values and auxiliary affinity props from the agent configurations before save', () => {
+    it('should remove empty values from the agent configurations before save', () => {
       const wrapper = mountWithCluster({
-        clusterAgentDeploymentCustomization: {
-          appendTolerations:            [],
-          overrideAffinity:             {},
-          overrideResourceRequirements: { requests: { cpu: '100m', memory: '128Mi' }, limits: {} },
-        },
-        fleetAgentDeploymentCustomization: {
-          appendTolerations: [],
-          overrideAffinity:  {
-            podAffinity: {
-              requiredDuringSchedulingIgnoredDuringExecution: [{
-                _id: 'abc', topologyKey: 'zone', namespaceSelector: {}
-              }]
-            }
-          },
+        clusterAgentDeploymentCustomization: { overrideResourceRequirements: { requests: { cpu: '100m', memory: '128Mi' }, limits: {} } },
+        fleetAgentDeploymentCustomization:   {
           overrideResourceRequirements: {},
+          schedulingCustomization:      { priorityClass: { value: 1000 }, podDisruptionBudget: {} },
         },
       });
       const vm = wrapper.vm as any;
@@ -486,15 +475,39 @@ describe('cruImported component', () => {
       vm.agentConfigurationCleanup();
 
       expect(vm.normanCluster.clusterAgentDeploymentCustomization).toStrictEqual({ overrideResourceRequirements: { requests: { cpu: '100m', memory: '128Mi' } } });
-      expect(vm.normanCluster.fleetAgentDeploymentCustomization).toStrictEqual({ overrideAffinity: { podAffinity: { requiredDuringSchedulingIgnoredDuringExecution: [{ topologyKey: 'zone', namespaceSelector: {} }] } } });
+      expect(vm.normanCluster.fleetAgentDeploymentCustomization).toStrictEqual({ schedulingCustomization: { priorityClass: { value: 1000 } } });
+    });
+
+    it('should keep tolerations and affinity that were configured outside the form', () => {
+      const appendTolerations = [{ key: 'dedicated', operator: 'Exists' }];
+      const overrideAffinity = {
+        nodeAffinity: {
+          requiredDuringSchedulingIgnoredDuringExecution: {
+            nodeSelectorTerms: [{
+              matchExpressions: [{
+                key: 'zone', operator: 'In', values: ['a']
+              }]
+            }]
+          }
+        }
+      };
+      const wrapper = mountWithCluster({
+        clusterAgentDeploymentCustomization: {
+          appendTolerations, overrideAffinity, overrideResourceRequirements: {}
+        },
+        fleetAgentDeploymentCustomization: {},
+      });
+      const vm = wrapper.vm as any;
+
+      vm.agentConfigurationCleanup();
+
+      expect(vm.normanCluster.clusterAgentDeploymentCustomization).toStrictEqual({ appendTolerations, overrideAffinity });
     });
 
     it('should drop the agent configurations entirely when nothing was configured', () => {
       const wrapper = mountWithCluster({
-        clusterAgentDeploymentCustomization: {
-          appendTolerations: [], overrideAffinity: {}, overrideResourceRequirements: {}
-        },
-        fleetAgentDeploymentCustomization: {},
+        clusterAgentDeploymentCustomization: { overrideResourceRequirements: {} },
+        fleetAgentDeploymentCustomization:   {},
       });
       const vm = wrapper.vm as any;
 
@@ -536,8 +549,8 @@ describe('cruImported component', () => {
     it('should clean the agent configurations before saving a new cluster', async() => {
       const waitForProvisioning = jest.fn().mockResolvedValue({});
       const wrapper = mountWithCluster({
-        clusterAgentDeploymentCustomization: { appendTolerations: [], overrideResourceRequirements: { limits: { memory: '256Mi' } } },
-        fleetAgentDeploymentCustomization:   { appendTolerations: [] },
+        clusterAgentDeploymentCustomization: { overrideResourceRequirements: { limits: { memory: '256Mi' }, requests: {} } },
+        fleetAgentDeploymentCustomization:   { overrideResourceRequirements: {} },
         waitForProvisioning,
       }, _CREATE);
       const vm = wrapper.vm as any;

@@ -12,7 +12,7 @@ const RcContentGroupStub = {
 };
 const RcSectionStub = {
   name:     'RcSection',
-  props:    ['title', 'type', 'mode', 'expandable'],
+  props:    ['title', 'type', 'mode', 'expandable', 'expanded'],
   template: '<div class="rc-section-stub"><slot /></div>',
 };
 
@@ -46,18 +46,38 @@ describe('component: RcAgentConfiguration', () => {
     expect(wrapper.findComponent(RcContentGroupStub).exists()).toBe(true);
   });
 
-  it('should render the requests and limits, tolerations and affinity groups as secondary RcSections', () => {
-    const wrapper = mountComponent();
+  it('should render the requests and limits and scheduling customization groups as secondary RcSections', () => {
+    const wrapper = mountComponent({ schedulingCustomizationFeatureEnabled: true });
 
     expect(sectionTitles(wrapper)).toStrictEqual([
       '%cluster.agentConfig.groups.podRequestsAndLimits%',
-      '%cluster.agentConfig.groups.podTolerations%',
-      '%cluster.agentConfig.groups.podAffinity%',
+      '%cluster.agentConfig.groups.schedulingCustomization%',
     ]);
     wrapper.findAllComponents(RcSectionStub).forEach((section) => {
       expect(section.props('type')).toBe(SECTION_TYPE.SECONDARY);
       expect(section.props('mode')).toBe('with-header');
     });
+  });
+
+  it('should render the sections collapsed by default', () => {
+    const wrapper = mountComponent({ schedulingCustomizationFeatureEnabled: true });
+    const sections = wrapper.findAllComponents(RcSectionStub);
+
+    expect(sections).toHaveLength(2);
+    sections.forEach((section) => {
+      expect(section.props('expandable')).toBe('');
+      expect(section.props('expanded')).toBe(false);
+    });
+  });
+
+  it.each([
+    'Tolerations',
+    'PodAffinity',
+    'NodeAffinity',
+  ])('should not render %p', (name) => {
+    const wrapper = mountComponent({ value: { appendTolerations: [{ key: 'a' }], overrideAffinity: { nodeAffinity: { requiredDuringSchedulingIgnoredDuringExecution: { nodeSelectorTerms: [] } } } } });
+
+    expect(wrapper.findComponent({ name }).exists()).toBe(false);
   });
 
   it('should not render a GroupPanel', () => {
@@ -102,9 +122,7 @@ describe('component: RcAgentConfiguration', () => {
 
     mountComponent({ value });
 
-    expect(value).toStrictEqual({
-      overrideAffinity: {}, appendTolerations: [], overrideResourceRequirements: {}
-    });
+    expect(value).toStrictEqual({ overrideResourceRequirements: {} });
   });
 
   it('should write the requests and limits into overrideResourceRequirements', () => {
@@ -127,21 +145,5 @@ describe('component: RcAgentConfiguration', () => {
     expect(wrapper.findComponent({ name: 'RcContainerResourceLimit' }).props('value')).toStrictEqual({
       requestsCpu: '100m', requestsMemory: undefined, limitsCpu: undefined, limitsMemory: '1Gi'
     });
-  });
-
-  it('should only render the pod and node affinity sections when custom affinity is used', () => {
-    const wrapper = mountComponent();
-
-    expect(wrapper.findComponent({ name: 'PodAffinity' }).exists()).toBe(false);
-    expect(wrapper.findComponent({ name: 'NodeAffinity' }).exists()).toBe(false);
-
-    const custom = mountComponent({ value: { overrideAffinity: { nodeAffinity: { requiredDuringSchedulingIgnoredDuringExecution: { nodeSelectorTerms: [] } } } } });
-
-    expect(custom.findComponent({ name: 'PodAffinity' }).exists()).toBe(true);
-    expect(custom.findComponent({ name: 'NodeAffinity' }).exists()).toBe(true);
-    expect(sectionTitles(custom)).toStrictEqual(expect.arrayContaining([
-      '%cluster.agentConfig.subGroups.podAffinityAnti%',
-      '%cluster.agentConfig.subGroups.nodeAffinity%',
-    ]));
   });
 });
