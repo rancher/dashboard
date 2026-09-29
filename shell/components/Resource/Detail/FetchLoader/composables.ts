@@ -36,6 +36,8 @@ export const useFetch = <T>(fetch: () => Promise<T>, { immediate = true }: UseFe
     refreshing.value = false;
   };
 
+  // Existing callers fetch as soon as they're set up. Popovers in list rows pass immediate: false and call load on first
+  // hover or focus, so a page of rows doesn't send one request per row before anyone looks at a card
   if (immediate) {
     load();
   }
