@@ -209,6 +209,14 @@ function handleEditorKeydown(event: KeyboardEvent): void {
   }
 }
 
+// Escape belongs to the editor (Vim uses it to leave Insert mode), so it must not also reach page
+// handlers such as a modal closing on Escape. This runs after CodeMirror has handled the key.
+function stopEditorEscape(event: KeyboardEvent): void {
+  if (event.code === 'Escape' && event.target instanceof Node && view.value?.dom.contains(event.target)) {
+    event.stopPropagation();
+  }
+}
+
 onMounted(() => {
   if (!container.value) {
     return;
@@ -374,6 +382,7 @@ defineExpose({ view });
     class="rc-code-mirror"
     :class="`rc-code-mirror--${ variant }`"
     @keydown.capture="handleEditorKeydown"
+    @keydown="stopEditorEscape"
     @focusin="handleFocusIn"
     @focusout="handleFocusOut"
   >
