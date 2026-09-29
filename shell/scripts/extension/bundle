@@ -77,7 +77,7 @@ package() {
   fi
   echo -e "Container build: ${RUNTIME}"
 
-  REGISTRY=${REGISTRY} ORG=${REGISTRY_ORG} REPO=${IMAGE_PREFIX}${PKG} TAG=${PKG_VERSION} RUNTIME=${RUNTIME} ./scripts/package
+  REGISTRY=${REGISTRY} ORG=${REGISTRY_ORG} REPO=${IMAGE_PREFIX}${PKG} TAG=${PKG_VERSION} RUNTIME=${RUNTIME} ./scripts/package || exit 1
 
   if [ "${PUSH}" == "--push" ]; then
     echo -e "${CYAN}Pushing container image ...${RESET}"
@@ -92,7 +92,7 @@ package() {
       fi
     fi
 
-    ${RUNTIME} push ${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${PKG}:${PKG_VERSION}
+    ${RUNTIME} push ${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${PKG}:${PKG_VERSION} || exit 1
   fi
 }
 
