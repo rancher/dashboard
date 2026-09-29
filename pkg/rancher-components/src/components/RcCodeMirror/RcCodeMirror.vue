@@ -55,6 +55,7 @@ import {
 } from '@codemirror/language';
 import { closeBrackets, autocompletion } from '@codemirror/autocomplete';
 import { linter as cmLinter, lintGutter, type LintSource } from '@codemirror/lint';
+import RcButton from '@components/RcButton/RcButton.vue';
 import { getLanguageExtension } from './extensions/syntax';
 import { getKeymapExtension } from './extensions/keymaps';
 import { buildFoldExtension } from './extensions/fold';
@@ -436,10 +437,11 @@ defineExpose({ view });
       class="rc-cm-escape-hint"
       role="alert"
     >{{ escapeHint }}</span>
-    <button
+    <RcButton
       v-if="showKeymapIndicator"
       v-clean-tooltip="keymapIndicatorTooltip"
       type="button"
+      variant="ghost"
       class="rc-cm-keymap-indicator"
       data-testid="code-mirror-keymap"
       :aria-label="keymapIndicatorLabel"
@@ -453,7 +455,7 @@ defineExpose({ view });
         class="icon icon-close icon-sm rc-cm-keymap-close"
         aria-hidden="true"
       />
-    </button>
+    </RcButton>
   </div>
 </template>
 
@@ -489,6 +491,8 @@ defineExpose({ view });
   .rc-cm-keymap-indicator {
     $animation-time: 0.1s;
 
+    --rc-button-padding: 0;
+
     position: absolute;
     top: 7px;
     right: 7px;
@@ -498,7 +502,7 @@ defineExpose({ view });
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
+    gap: 0;
     border: 1px solid transparent;
     border-radius: var(--border-radius);
     color: var(--darker);

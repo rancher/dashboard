@@ -25,7 +25,10 @@ describe('component: RcCodeMirror', () => {
 
   function mountEditor(props: Record<string, unknown> = {}, attrs: Record<string, unknown> = {}): Wrapper {
     wrapper = shallowMount(RcCodeMirror, {
-      props, attrs, attachTo: document.body
+      props,
+      attrs,
+      attachTo: document.body,
+      global:   { stubs: { RcButton: false } }
     }) as Wrapper;
 
     return wrapper;
@@ -530,6 +533,8 @@ describe('component: RcCodeMirror', () => {
       const indicator = wrapper.find(INDICATOR);
 
       expect(indicator.element.tagName).toStrictEqual('BUTTON');
+      expect(indicator.classes()).toContain('variant-ghost');
+      expect(indicator.attributes('type')).toStrictEqual('button');
       expect(indicator.attributes('aria-label')).toStrictEqual(label);
     });
 
