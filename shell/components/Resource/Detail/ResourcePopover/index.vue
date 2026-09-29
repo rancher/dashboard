@@ -42,13 +42,29 @@ const props = withDefaults(defineProps<Props>(), {
 const card = ref<any>(null);
 const showPopover = ref<boolean>(false);
 
+const glanceResourcesLoading = ref<boolean>(false);
+let glanceResourcesRequest = 0;
+
 // Some cards show more than the resource itself, e.g. a node's CPU and memory usage comes from its metrics. It's fetched each
-// time the card opens so it's current, and the card doesn't wait for it
+// time the card opens so it's current, and the card shows it as loading meanwhile
 const fetchGlanceResources = async(resource: any) => {
+  if (!resource?.fetchGlanceResources) {
+    return;
+  }
+
+  // Only the latest fetch ends the loading, e.g. when the card is closed and opened again before the first one finishes
+  const request = ++glanceResourcesRequest;
+
+  glanceResourcesLoading.value = true;
+
   try {
-    await resource?.fetchGlanceResources?.();
+    await resource.fetchGlanceResources();
   } catch (e) {
     // The card can still show the resource without them
+  } finally {
+    if (request === glanceResourcesRequest) {
+      glanceResourcesLoading.value = false;
+    }
   }
 };
 
@@ -150,6 +166,7 @@ const actionInvoked = () => {
         id="resource-popover-card"
         ref="card"
         :resource="fetch.data"
+        :usage-loading="glanceResourcesLoading"
         @action-invoked="actionInvoked"
       />
       <!-- Focusable so a card opened with the keyboard has somewhere to put focus -->

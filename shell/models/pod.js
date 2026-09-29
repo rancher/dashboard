@@ -8,7 +8,6 @@ import { deleteProperty } from '@shell/utils/object';
 import { POD_RESTARTS_REG_EX } from '@shell/types/resources/pod';
 import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 import { POD_SHELL } from '@shell/store/features';
-import { defineAsyncComponent, markRaw } from 'vue';
 
 // Defined once so the component identity is stable; creating it in `details` remounts the popover, and closes its card, on every pod update
 const WorkloadResourcePopover = markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue')));

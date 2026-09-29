@@ -571,6 +571,96 @@ describe('component: ResourcePopover/index.vue', () => {
 
       expect(wrapper.find('[data-testid="resource-popover-error"]').exists()).toBe(true);
     });
+
+    describe('loading', () => {
+      const deferred = () => {
+        let resolvePromise: (value?: any) => void = () => { };
+        let rejectPromise: (reason?: any) => void = () => { };
+        const promise = new Promise((resolve, reject) => {
+          resolvePromise = resolve;
+          rejectPromise = reject;
+        });
+
+        return {
+          promise, resolve: resolvePromise, reject: rejectPromise
+        };
+      };
+
+      const usageLoading = (wrapper: any) => wrapper.findComponent({ name: 'ResourcePopoverCard' }).props('usageLoading');
+
+      const openWithPendingFetch = async() => {
+        const pending = deferred();
+        const resource = resourceWithGlanceResources(jest.fn(() => pending.promise));
+
+        mockClusterFind.mockResolvedValue(resource);
+        const wrapper = createWrapper(undefined, undefined, OpenablePopoverCardStub);
+
+        await flushPromises();
+        await openCard(wrapper);
+
+        return { wrapper, pending };
+      };
+
+      it('should tell the card the usage is loading while they are fetched', async() => {
+        const { wrapper } = await openWithPendingFetch();
+
+        expect(usageLoading(wrapper)).toBe(true);
+      });
+
+      it('should tell the card the usage has loaded once they are fetched', async() => {
+        const { wrapper, pending } = await openWithPendingFetch();
+
+        pending.resolve();
+        await flushPromises();
+
+        expect(usageLoading(wrapper)).toBe(false);
+      });
+
+      it('should tell the card the usage has loaded when they can not be fetched, so it shows n/a rather than loading forever', async() => {
+        const { wrapper, pending } = await openWithPendingFetch();
+
+        pending.reject(new Error('forbidden'));
+        await flushPromises();
+
+        expect(usageLoading(wrapper)).toBe(false);
+      });
+
+      it('should keep loading until the latest fetch finishes when the card is opened again before the first one finishes', async() => {
+        const first = deferred();
+        const second = deferred();
+        const resource = resourceWithGlanceResources(jest.fn()
+          .mockImplementationOnce(() => first.promise)
+          .mockImplementationOnce(() => second.promise));
+
+        mockClusterFind.mockResolvedValue(resource);
+        const wrapper = createWrapper(undefined, undefined, OpenablePopoverCardStub);
+
+        await flushPromises();
+        await openCard(wrapper);
+        await closeCard(wrapper);
+        await openCard(wrapper);
+
+        first.resolve();
+        await flushPromises();
+
+        expect(usageLoading(wrapper)).toBe(true);
+
+        second.resolve();
+        await flushPromises();
+
+        expect(usageLoading(wrapper)).toBe(false);
+      });
+
+      it('should not tell the card anything is loading for a resource that does not need them', async() => {
+        mockClusterFind.mockResolvedValue(mockResource);
+        const wrapper = createWrapper(undefined, undefined, OpenablePopoverCardStub);
+
+        await flushPromises();
+        await openCard(wrapper);
+
+        expect(usageLoading(wrapper)).toBe(false);
+      });
+    });
   });
 
   describe('wrapName', () => {

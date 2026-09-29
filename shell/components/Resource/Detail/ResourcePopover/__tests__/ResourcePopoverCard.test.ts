@@ -195,6 +195,86 @@ describe('component: ResourcePopoverCard.vue', () => {
       expect(w.findAll('.row')).toHaveLength(mockResource.glance.length);
       w.unmount();
     });
+
+    describe('while the usage is loading', () => {
+      const USAGE = [
+        {
+          name: 'cpu', label: 'CPU', percentage: undefined
+        },
+        {
+          name: 'memory', label: 'Memory', percentage: 20
+        },
+      ];
+
+      const withLoadingUsage = (usageLoading: boolean | undefined, glanceUsage: any = USAGE) => mount(ResourcePopoverCard, {
+        props:  { resource: { ...mockResource, glanceUsage }, usageLoading },
+        global: { plugins: [store] },
+      });
+
+      const loadingOf = (w: VueWrapper<any>, name: string) => w.find(`[data-testid="resource-popover-usage-${ name }-loading"]`);
+
+      it('should show a spinner with loading text for screen readers, rather than n/a, for a usage that is not known yet', () => {
+        const w = withLoadingUsage(true);
+        const loading = loadingOf(w, 'cpu');
+
+        expect(loading.find('.icon-spinner').attributes('aria-hidden')).toStrictEqual('true');
+        expect(loading.find('.sr-only').text()).toStrictEqual('component.resource.detail.glance.ariaLabel.loadingUsage');
+        expect(usageItem(w, 'cpu').text()).not.toContain('generic.na');
+        w.unmount();
+      });
+
+      it('should mark only a usage that is not known yet as busy', () => {
+        const w = withLoadingUsage(true);
+
+        expect([usageItem(w, 'cpu').attributes('aria-busy'), usageItem(w, 'memory').attributes('aria-busy')]).toStrictEqual(['true', 'false']);
+        w.unmount();
+      });
+
+      it('should keep an empty bar in place of a usage that is not known yet, so the card does not move when it loads', () => {
+        const w = withLoadingUsage(true);
+
+        expect(usageItem(w, 'cpu').findComponent(PercentageBar).props('modelValue')).toStrictEqual(0);
+        w.unmount();
+      });
+
+      it('should keep showing a usage that is already known', () => {
+        const w = withLoadingUsage(true);
+
+        expect(loadingOf(w, 'memory').exists()).toBe(false);
+        expect(usageItem(w, 'memory').find('.usage-value').text()).toStrictEqual('20%');
+        w.unmount();
+      });
+
+      it.each([
+        ['has finished', false],
+        ['is not given', undefined],
+      ])('should show n/a for a usage that is not known when loading %s', (_, usageLoading) => {
+        const w = withLoadingUsage(usageLoading);
+
+        expect(loadingOf(w, 'cpu').exists()).toBe(false);
+        expect(usageItem(w, 'cpu').find('.usage-value').text()).toStrictEqual('generic.na');
+        expect(usageItem(w, 'cpu').attributes('aria-busy')).toStrictEqual('false');
+        w.unmount();
+      });
+
+      it('should replace the spinner with the usage when loading finishes with a value', async() => {
+        const w = withLoadingUsage(true, [{ name: 'cpu', label: 'CPU' }]);
+
+        await w.setProps({
+          resource: {
+            ...mockResource,
+            glanceUsage: [{
+              name: 'cpu', label: 'CPU', percentage: 42
+            }]
+          },
+          usageLoading: false
+        });
+
+        expect(loadingOf(w, 'cpu').exists()).toBe(false);
+        expect(usageItem(w, 'cpu').find('.usage-value').text()).toStrictEqual('42%');
+        w.unmount();
+      });
+    });
   });
 });
 

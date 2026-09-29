@@ -9762,6 +9762,7 @@ component:
           showDetails: Show Resource Information about { resource } named { name }
           actionMenu: Resource Actions - { resource }
           loading: Loading resource information
+          loadingUsage: Loading usage
   cron:
     expressionEditor:
       label:

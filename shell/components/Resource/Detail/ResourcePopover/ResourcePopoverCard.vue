@@ -7,6 +7,10 @@ import { formatPercent } from '@shell/utils/string';
 
 export interface Props {
   resource: any;
+  /**
+   * What the usage is worked out from is still being fetched, so usage that isn't known yet is shown as loading rather than n/a
+   */
+  usageLoading?: boolean;
 }
 
 /**
@@ -23,7 +27,7 @@ export interface GlanceUsageItem {
 </script>
 
 <script setup lang="ts">
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), { usageLoading: false });
 const store = useStore();
 const i18n = useI18n(store);
 
@@ -35,6 +39,9 @@ const hasPercentage = (item: GlanceUsageItem): boolean => typeof item.percentage
 const barPercentage = (item: GlanceUsageItem): number => (hasPercentage(item) ? Math.min(Math.max(item.percentage as number, 0), 100) : 0);
 
 const usageDisplay = (item: GlanceUsageItem): string => (hasPercentage(item) ? formatPercent(item.percentage) : i18n.t('generic.na'));
+
+// A known usage is shown while it's refreshed
+const isUsageLoading = (item: GlanceUsageItem): boolean => props.usageLoading && !hasPercentage(item);
 
 const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.label }:${ glanceItem.content }`.toLowerCase().replaceAll(' ', '');
 </script>
@@ -86,13 +93,28 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
         :key="item.name"
         class="usage-item"
         :data-testid="`resource-popover-usage-${ item.name }`"
+        :aria-busy="isUsageLoading(item)"
       >
         <span class="text-deemphasized">{{ item.label }}</span>
         <PercentageBar
           :model-value="barPercentage(item)"
           aria-hidden="true"
         />
-        <span class="usage-value">{{ usageDisplay(item) }}</span>
+        <span
+          v-if="isUsageLoading(item)"
+          class="usage-value"
+          :data-testid="`resource-popover-usage-${ item.name }-loading`"
+        >
+          <i
+            class="icon icon-spinner icon-spin"
+            aria-hidden="true"
+          />
+          <span class="sr-only">{{ i18n.t('component.resource.detail.glance.ariaLabel.loadingUsage') }}</span>
+        </span>
+        <span
+          v-else
+          class="usage-value"
+        >{{ usageDisplay(item) }}</span>
       </div>
     </div>
   </div>
