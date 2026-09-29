@@ -525,6 +525,10 @@ defineExpose({ view });
     outline: none;
   }
 
+  &.rc-code-mirror--editor :deep(.cm-scroller) {
+    font-family: $mono-font;
+  }
+
   &.rc-code-mirror--editor :deep(.cm-foldGutter) {
     width: 22px;
 
