@@ -8,6 +8,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 const downloadsFolder = Cypress.config('downloadsFolder');
 
 const fakeProvClusterId = 'some-fake-cluster-id';
@@ -412,8 +413,9 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
       listPage.waitForPage();
       headerPo.selectWorkspace(workspace);
 
-      listPage.list().actionMenu(editRepoName).getMenuItem('Download YAML')
+      listPage.list().actionMenu(editRepoName).getMenuItem('Export As...')
         .click();
+      new ExportModalPo().download();
 
       const downloadedFilename = path.join(downloadsFolder, `${ editRepoName }.yaml`);
 

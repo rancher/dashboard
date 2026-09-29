@@ -31,6 +31,7 @@ import {
 } from '@/cypress/support/utils/timeouts';
 import HostedProvidersPagePo from '@/cypress/e2e/po/pages/cluster-manager/hosted-providers.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const createClusterTestName = (suffix: string) => `e2e-test-${ +new Date() }-create-${ suffix }`;
@@ -340,7 +341,8 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
         cy.deleteDownloadsFolder();
 
         ClusterManagerListPagePo.navTo();
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download YAML').click();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Export As...').click();
+        new ExportModalPo().download();
 
         const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
 
@@ -666,7 +668,9 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
 
       clusterDetail.waitForPage(undefined, 'node-pools');
       clusterDetail.poolsList('node').details('machine-', 2).should('be.visible');
-      clusterDetail.poolsList('node').downloadYamlButton().should('be.disabled');
+      // Nothing is selected, so there are no bulk actions to take
+      clusterDetail.poolsList('node').resourceTable().sortableTable().selectionActionsButton()
+        .should('not.exist');
     }));
 
     qase(12219, it(`Show Configuration allows to edit config and view yaml for local cluster`, () => {
@@ -748,7 +752,8 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
     clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
       .click();
     clusterList.list().openBulkActionDropdown();
-    clusterList.list().bulkActionButton('Download YAML').click({ force: true });
+    clusterList.list().bulkActionButton('Export As...').click({ force: true });
+    new ExportModalPo().download();
     const downloadedFilename = path.join(downloadsFolder, `local.yaml`);
 
     cy.readFile(downloadedFilename).then((buffer) => {
@@ -783,7 +788,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
     // The bulk action bar only lays its buttons out once the selection has registered
     clusterList.list().resourceTable().sortableTable().selectedCountText()
       .should('be.visible')
-      .and('contain', '1 selected');
+      .and(($el) => expect($el.text().toLowerCase()).to.contain('1 selected'));
     cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
     clusterList.list().downloadKubeConfig().should('be.visible')
       .and('not.be.disabled')
