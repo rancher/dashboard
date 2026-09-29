@@ -94,4 +94,26 @@ describe('component: FleetPolicyServiceAccountsSection', () => {
 
     expect(value.allowedServiceAccounts).toStrictEqual([]);
   });
+
+  it('should bring the allowed service accounts back when the user restricts them again', async() => {
+    const value = { allowedServiceAccounts: ['tenant-1-deployer'] };
+    const wrapper = mountSection({ value, restricted: true });
+
+    await wrapper.setProps({ restricted: false });
+
+    expect(value.allowedServiceAccounts).toStrictEqual([]);
+
+    await wrapper.setProps({ restricted: true });
+
+    expect(value.allowedServiceAccounts).toStrictEqual(['tenant-1-deployer']);
+  });
+
+  it('should leave the allowed service accounts alone when they are restricted with names already on them', async() => {
+    const value = { allowedServiceAccounts: ['tenant-1-deployer'] };
+    const wrapper = mountSection({ value });
+
+    await wrapper.setProps({ restricted: true });
+
+    expect(value.allowedServiceAccounts).toStrictEqual(['tenant-1-deployer']);
+  });
 });

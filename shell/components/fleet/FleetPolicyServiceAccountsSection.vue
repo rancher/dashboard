@@ -48,9 +48,17 @@ const restrictOptions = computed(() => [
   },
 ]);
 
+// Fleet reads a list left behind as a restriction, so going back to allowing all has to clear it.
+// The names are kept for the rest of the session instead of being thrown away, so changing the
+// choice back restores them.
+let clearedServiceAccounts: string[] = [];
+
 watch(restricted, (val) => {
   if (!val) {
+    clearedServiceAccounts = [...allowedServiceAccounts.value];
     props.value.allowedServiceAccounts = [];
+  } else if (!allowedServiceAccounts.value.length) {
+    props.value.allowedServiceAccounts = [...clearedServiceAccounts];
   }
 });
 

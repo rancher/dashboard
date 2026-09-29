@@ -125,9 +125,17 @@ const restrictOptions = computed(() => [
   },
 ]);
 
+// Fleet reads a list left behind as a restriction, so going back to allowing all has to clear it.
+// The names are kept for the rest of the session instead of being thrown away, so changing the
+// choice back restores them.
+let clearedSecrets: string[] = [];
+
 watch(restricted, (val) => {
   if (!val) {
+    clearedSecrets = [...allowedSecrets.value];
     setField(secretFields.value.allowed, []);
+  } else if (!allowedSecrets.value.length) {
+    setField(secretFields.value.allowed, [...clearedSecrets]);
   }
 });
 

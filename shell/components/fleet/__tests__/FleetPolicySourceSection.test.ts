@@ -64,6 +64,28 @@ describe('component: FleetPolicySourceSection', () => {
     expect(value.allowedClientSecretNames).toStrictEqual([]);
   });
 
+  it('should bring the allow-list back when the user restricts the secrets again', async() => {
+    const value = { allowedClientSecretNames: ['tenant-1-git-credentials'] };
+    const wrapper = mountSection({ value, restricted: true });
+
+    await wrapper.setProps({ restricted: false });
+
+    expect(value.allowedClientSecretNames).toStrictEqual([]);
+
+    await wrapper.setProps({ restricted: true });
+
+    expect(value.allowedClientSecretNames).toStrictEqual(['tenant-1-git-credentials']);
+  });
+
+  it('should leave the allow-list alone when it is restricted with names already on it', async() => {
+    const value = { allowedClientSecretNames: ['tenant-1-git-credentials'] };
+    const wrapper = mountSection({ value });
+
+    await wrapper.setProps({ restricted: true });
+
+    expect(value.allowedClientSecretNames).toStrictEqual(['tenant-1-git-credentials']);
+  });
+
   const secretOptions = [
     { label: 'tenant-1-git-credentials (HTTP Basic Auth: tenant-1)', value: 'tenant-1-git-credentials' },
     { label: 'tenant-2-git-credentials (SSH)', value: 'tenant-2-git-credentials' },
