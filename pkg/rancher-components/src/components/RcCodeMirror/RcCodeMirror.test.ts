@@ -2,6 +2,7 @@ import { shallowMount, VueWrapper } from '@vue/test-utils';
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { foldable, foldedRanges, foldEffect } from '@codemirror/language';
+import { diagnosticCount, forceLinting, type LintSource } from '@codemirror/lint';
 import { foldByLineMatch, foldMatchingLines } from './extensions/fold';
 import RcCodeMirror from './RcCodeMirror.vue';
 
@@ -420,6 +421,88 @@ describe('component: RcCodeMirror', () => {
       selection:        view.state.selection.main.toJSON(),
       defaultPrevented: event.defaultPrevented
     }).toStrictEqual({ ...original, defaultPrevented: true });
+  });
+
+  describe('linter prop', () => {
+    const problem: LintSource = (view) => [{
+      from: 0, to: Math.min(3, view.state.doc.length), severity: 'error', message: 'Broken'
+    }];
+
+    function gutterClasses(): string[] {
+      return wrapper.findAll('.cm-gutter').map((gutter) => gutter.classes().find((name) => name !== 'cm-gutter') as string);
+    }
+
+    async function lint(): Promise<void> {
+      forceLinting(getView(wrapper));
+      await new Promise((resolve) => setTimeout(resolve));
+    }
+
+    it('should not show a lint gutter without a linter', () => {
+      mountEditor({ modelValue: 'foo' });
+
+      expect(gutterClasses()).toStrictEqual(['cm-lineNumbers', 'cm-foldGutter']);
+    });
+
+    it('should show the lint gutter between the line numbers and the fold gutter', () => {
+      mountEditor({ modelValue: 'foo', linter: problem });
+
+      expect(gutterClasses()).toStrictEqual(['cm-lineNumbers', 'cm-gutter-lint', 'cm-foldGutter']);
+    });
+
+    it('should mark the lines with problems in the gutter', async() => {
+      mountEditor({ modelValue: 'foo', linter: problem });
+
+      await lint();
+
+      expect(wrapper.find('.cm-gutter-lint .cm-lint-marker-error').exists()).toStrictEqual(true);
+    });
+
+    it('should underline problems in the text', async() => {
+      mountEditor({ modelValue: 'foo', linter: problem });
+
+      await lint();
+
+      expect(wrapper.find('.cm-lintRange-error').text()).toStrictEqual('foo');
+    });
+
+    it('should report the linter problems', async() => {
+      mountEditor({ modelValue: 'foo', linter: problem });
+
+      await lint();
+
+      expect(diagnosticCount(getView(wrapper).state)).toStrictEqual(1);
+    });
+
+    it('should underline problems without a gutter in the input variant', async() => {
+      mountEditor({
+        modelValue: 'foo', linter: problem, variant: 'input'
+      });
+
+      await lint();
+
+      expect(gutterClasses()).toStrictEqual([]);
+      expect(wrapper.find('.cm-lintRange-error').exists()).toStrictEqual(true);
+    });
+
+    it('should add the linter after mount', async() => {
+      mountEditor({ modelValue: 'foo' });
+
+      await wrapper.setProps({ linter: problem });
+      await lint();
+
+      expect(gutterClasses()).toStrictEqual(['cm-lineNumbers', 'cm-gutter-lint', 'cm-foldGutter']);
+      expect(diagnosticCount(getView(wrapper).state)).toStrictEqual(1);
+    });
+
+    it('should remove the gutter and problems when the linter is removed', async() => {
+      mountEditor({ modelValue: 'foo', linter: problem });
+      await lint();
+
+      await wrapper.setProps({ linter: undefined });
+
+      expect(gutterClasses()).toStrictEqual(['cm-lineNumbers', 'cm-foldGutter']);
+      expect(wrapper.find('.cm-lintRange-error').exists()).toStrictEqual(false);
+    });
   });
 
   describe('keymapIndicator prop', () => {
