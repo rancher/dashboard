@@ -17,6 +17,14 @@ describe('isImprovedTablesEnabled', () => {
     expect(isImprovedTablesEnabled({ getters: { 'features/get': flag(on) } })).toBe(on);
   });
 
+  it('should be off in a Rancher that doesn\'t know the flag, whose store throws for it', () => {
+    const unknown = jest.fn((name: string) => {
+      throw new Error(`Unknown feature: ${ name }`);
+    });
+
+    expect(isImprovedTablesEnabled({ getters: { 'features/get': unknown } })).toBe(false);
+  });
+
   it('should ask the root getters of a store action\'s context', () => {
     const root = flag(false);
     const local = flag(true);

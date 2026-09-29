@@ -16,25 +16,31 @@ import HeaderRowPo from '@/cypress/e2e/po/components/header-row.po';
  */
 export const RESOURCE_ROW_SELECTOR = 'tbody tr:not(.sub-row):not(.group-row):not(.additional-sub-row)';
 
-/**
- * Is the table on screen laid out for table views: a query box instead of the search box, and the
- * bulk actions in one menu for the selection. Tables without a schema keep the old layout even with
- * the feature on.
- *
- * Read from the page rather than `self()`: a table built from a chainable shares it, and each `find`
- * moves its subject, so after one lookup `self()` is no longer the table
- */
-const withTableViews = <S>(tableViews: () => Cypress.Chainable<S>, old: () => Cypress.Chainable<S>): Cypress.Chainable<S> => cy.get('body').then(($body) => ($body.find('.has-table-views').filter((_, el) => isRendered(el)).length ? tableViews() : old()));
-
-/**
- * Laid out, which leaves out a table in a tab not shown. Not `:visible`: Cypress reads that as on
- * screen, so it misses a control scrolled out of a narrow toolbar, which a click would scroll to
- */
-const isRendered = (el: HTMLElement) => el.getClientRects().length > 0;
-
-const rendered = (selector: string) => cy.get(selector).filter((_, el) => isRendered(el));
-
 export default class SortableTablePo extends ComponentPo {
+  /**
+   * Is the table on screen laid out for table views: a query box instead of the search box, and the
+   * bulk actions in one menu for the selection. Tables without a schema keep the old layout even
+   * with the feature on.
+   *
+   * Read from the page rather than `self()`: a table built from a chainable shares it, and each
+   * `find` moves its subject, so after one lookup `self()` is no longer the table
+   */
+  private withTableViews<S>(tableViews: () => Cypress.Chainable<S>, old: () => Cypress.Chainable<S>): Cypress.Chainable<S> {
+    return cy.get('body').then(($body) => ($body.find('.has-table-views').filter((_, el) => this.isRendered(el)).length ? tableViews() : old()));
+  }
+
+  /**
+   * Laid out, which leaves out a table in a tab not shown. Not `:visible`: Cypress reads that as on
+   * screen, so it misses a control scrolled out of a narrow toolbar, which a click would scroll to
+   */
+  private isRendered(el: HTMLElement) {
+    return el.getClientRects().length > 0;
+  }
+
+  private rendered(selector: string) {
+    return cy.get(selector).filter((_, el) => this.isRendered(el));
+  }
+
   /**
    * Create a name that should, when sorted by name, by default appear first
    */
@@ -57,7 +63,7 @@ export default class SortableTablePo extends ComponentPo {
    * this opens
    */
   bulkActionButton(label: string) {
-    return withTableViews(() => {
+    return this.withTableViews(() => {
       this.openSelectionActions();
 
       return this.bulkActionDropDownPopOver().contains('[dropdown-menu-item]', label);
@@ -68,7 +74,7 @@ export default class SortableTablePo extends ComponentPo {
    * A bulk action by its action name (eg `activate`). With table views, opens the selection's menu
    */
   bulkAction(action: string) {
-    return withTableViews(() => {
+    return this.withTableViews(() => {
       this.openSelectionActions();
 
       return cy.get(`[data-testid$="-selection-action-${ action === 'promptRemove' ? 'delete' : action }"]`);
@@ -80,14 +86,14 @@ export default class SortableTablePo extends ComponentPo {
    * too small). With table views, the selection's menu
    */
   bulkActionDropDown() {
-    return withTableViews(() => this.selectionActionsButton(), () => this.self().find(`.fixed-header-actions .bulk .bulk-actions-dropdown`));
+    return this.withTableViews(() => this.selectionActionsButton(), () => this.self().find(`.fixed-header-actions .bulk .bulk-actions-dropdown`));
   }
 
   /**
    * Open the bulk action drop down
    */
   bulkActionDropDownOpen() {
-    return withTableViews(() => this.openSelectionActions(), () => this.bulkActionDropDown().click());
+    return this.withTableViews(() => this.openSelectionActions(), () => this.bulkActionDropDown().click());
   }
 
   /**
@@ -114,7 +120,7 @@ export default class SortableTablePo extends ComponentPo {
    * selected
    */
   selectionActionsButton() {
-    return rendered('[data-testid$="-selection-actions"]');
+    return this.rendered('[data-testid$="-selection-actions"]');
   }
 
   /**
@@ -149,7 +155,7 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   viewMenuButton() {
-    return rendered('[data-testid="table-views-view-menu"]');
+    return this.rendered('[data-testid="table-views-view-menu"]');
   }
 
   /**
@@ -210,7 +216,7 @@ export default class SortableTablePo extends ComponentPo {
    * How many rows are selected, eg "2 selected" (reads "2 Selected" with table views)
    */
   selectedCountText() {
-    return withTableViews(() => this.selectionActionsButton(), () => cy.get('.action-availability'));
+    return this.withTableViews(() => this.selectionActionsButton(), () => cy.get('.action-availability'));
   }
 
   /**

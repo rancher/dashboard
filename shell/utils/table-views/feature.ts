@@ -14,7 +14,13 @@ export function isImprovedTablesEnabled(store?: GetterSource | null): boolean {
     return true;
   }
 
-  return !!get(IMPROVED_TABLES);
+  // An older Rancher running an extension built with this shell has no such flag, and its store throws
+  // for a flag it doesn't know: no table views there
+  try {
+    return !!get(IMPROVED_TABLES);
+  } catch {
+    return false;
+  }
 }
 
 /**
