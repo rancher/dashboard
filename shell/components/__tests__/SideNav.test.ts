@@ -63,6 +63,13 @@ const navTree = (): any[] => [
   },
 ];
 
+// The group `type-map/getTree` builds for starred types
+const starredGroup = (): any => ({
+  name:     'starred',
+  weight:   1000,
+  children: [{ name: 'configmap', route: { name: 'configmap' } }],
+});
+
 // Stands in for Group, with the pieces SideNav's route sync calls into.
 const GroupStub = {
   name:     'Group',
@@ -272,6 +279,50 @@ describe('component: SideNav', () => {
       expect(navStateStorage.save).toHaveBeenCalledWith(expect.objectContaining({ more_gone: true, more: false }));
     });
 
+    it.each([
+      ['nothing is saved', null],
+      ['the saved state has no entry for it', { workloads: true }],
+    ])('expands the starred group when %s', (_, saved) => {
+      navStateStorage.load.mockReturnValue(saved);
+
+      const groups = [starredGroup(), ...navTree()];
+
+      (mountNav().vm as any).stampNavState(groups);
+
+      expect(groups[0].expanded).toBe(true);
+    });
+
+    it('keeps the starred group collapsed once the user has collapsed it', () => {
+      navStateStorage.load.mockReturnValue({ starred: false });
+
+      const groups = [starredGroup(), ...navTree()];
+
+      (mountNav().vm as any).stampNavState(groups);
+
+      expect(groups[0].expanded).toBe(false);
+    });
+
+    it('leaves the other groups collapsed when nothing is saved', () => {
+      const groups = [starredGroup(), ...navTree()];
+
+      (mountNav().vm as any).stampNavState(groups);
+
+      expect(groups[1].expanded).toBeUndefined();
+      expect(groups[2].expanded).toBeUndefined();
+      expect(groups[2].children[0].expanded).toBeUndefined();
+      expect(groups[4].children[0].expanded).toBeUndefined();
+    });
+
+    it('only defaults the top-level starred group, not a nested group of the same name', () => {
+      const groups = navTree();
+
+      groups[2].children.push({ name: 'starred', children: [{ name: 'foo', route: { name: 'foo' } }] });
+
+      (mountNav().vm as any).stampNavState(groups);
+
+      expect(groups[2].children[2].expanded).toBeUndefined();
+    });
+
     it('saves when a group is expanded or collapsed', async() => {
       const wrapper = mountNav();
 
@@ -310,6 +361,40 @@ describe('component: SideNav', () => {
       expect(groups[2].expanded).toBe(false);
       expect(groups[2].children[0].expanded).toBe(false);
       expect(navStateStorage.save).toHaveBeenCalledWith({});
+    });
+
+    it('stores starred as collapsed, so it does not reopen on the next build', () => {
+      const wrapper = mountNav();
+      const groups = [starredGroup(), ...navTree()];
+
+      groups[0].expanded = true;
+      navGroups(wrapper, groups);
+
+      (wrapper.vm as any).collapseAll();
+
+      const saved = navStateStorage.save.mock.calls[0][0];
+      const rebuilt = [starredGroup()];
+
+      navStateStorage.load.mockReturnValue(saved);
+      (wrapper.vm as any).stampNavState(rebuilt);
+
+      expect(rebuilt[0].expanded).toBe(false);
+    });
+
+    it('still expands a starred group created after collapsing everything', () => {
+      const wrapper = mountNav();
+
+      navGroups(wrapper, navTree());
+
+      (wrapper.vm as any).collapseAll();
+
+      const saved = navStateStorage.save.mock.calls[0][0];
+      const rebuilt = [starredGroup(), ...navTree()];
+
+      navStateStorage.load.mockReturnValue(saved);
+      (wrapper.vm as any).stampNavState(rebuilt);
+
+      expect(rebuilt[0].expanded).toBe(true);
     });
 
     it('offers the control while only a group nested inside a collapsed parent is expanded', () => {

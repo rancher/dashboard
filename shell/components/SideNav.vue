@@ -23,6 +23,9 @@ import Group from '@shell/components/nav/Group';
 import LocaleSelector from '@shell/components/LocaleSelector';
 import NavActionBar from '@shell/components/nav/NavActionBar';
 
+// Name `type-map/getTree` gives the group of starred (favorite) types
+const STARRED_GROUP = 'starred';
+
 export default {
   name:       'SideNav',
   components: {
@@ -320,16 +323,17 @@ export default {
     // render in their persisted state (the tree is the source of truth, see
     // Group's `isExpanded`). The whole tree is marked up front, so nested groups
     // restore in the same render pass as their parents.
+    //
+    // Starred holds the types the user picked, so it starts expanded until the
+    // user collapses it.
     stampNavState(nodes) {
-      const savedState = this.navStateStorage.load();
-
-      if (!savedState) {
-        return;
-      }
+      const savedState = this.navStateStorage.load() || {};
 
       this.eachCollapsibleGroup(nodes, (node, path) => {
         if (savedState[path] !== undefined) {
           node.expanded = savedState[path];
+        } else if (path === STARRED_GROUP) {
+          node.expanded = true;
         }
       });
     },
@@ -446,14 +450,19 @@ export default {
     },
 
     collapseAll() {
-      this.eachCollapsibleGroup(this.groups, (node) => {
+      let hasStarred = false;
+
+      this.eachCollapsibleGroup(this.groups, (node, path) => {
         node.expanded = false;
+        hasStarred = hasStarred || path === STARRED_GROUP;
       });
 
       // Drop the persisted state rather than merging into it, so groups that
       // aren't in the tree right now are collapsed too (nothing stored for a
-      // group means collapsed).
-      this.navStateStorage.save({});
+      // group means collapsed). Starred is the exception, since it starts
+      // expanded, so store it as collapsed. Only when it's shown though, so a
+      // Starred group created later still starts expanded.
+      this.navStateStorage.save(hasStarred ? { [STARRED_GROUP]: false } : {});
 
       // The collapse-all control hides once nothing is expanded, so move focus to
       // the first group header instead of dropping it to <body>. Only headers of
