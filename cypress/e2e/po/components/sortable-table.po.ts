@@ -117,6 +117,14 @@ export default class SortableTablePo extends ComponentPo {
     return rendered('[data-testid$="-selection-actions"]');
   }
 
+  /**
+   * Nothing is selected, so there is no menu of bulk actions. Not through `selectionActionsButton`,
+   * whose `get` would fail before `not.exist` could pass
+   */
+  checkNoSelectionActions() {
+    return cy.get('[data-testid$="-selection-actions"]').should('not.exist');
+  }
+
   openSelectionActions() {
     return this.selectionActionsButton().then(($button) => {
       if ($button.attr('aria-expanded') === 'true') {
