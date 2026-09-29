@@ -3,6 +3,7 @@ import { defineComponent, markRaw, PropType, toRaw } from 'vue';
 import jsyaml from 'js-yaml';
 import { EditorState, type Extension } from '@codemirror/state';
 import type { EditorView } from '@codemirror/view';
+import type { Diagnostic, LintSource } from '@codemirror/lint';
 import { RcCodeMirror } from '@components/RcCodeMirror';
 import type { RcCodeMirrorKeymap, RcCodeMirrorLanguage, RcCodeMirrorVariant } from '@components/RcCodeMirror';
 import { KEYMAP } from '@shell/store/prefs';
@@ -18,7 +19,7 @@ export interface CodeMirrorOptions {
   mode?: CodeMirrorMode;
   readOnly?: boolean;
   /**
-   * Validate the content as yaml and emit `validationChanged`
+   * Validate the content as yaml and emit `validationChanged`. Editable editors also mark the problem
    */
   lint?: boolean;
   lineNumbers?: boolean;
@@ -44,6 +45,22 @@ function toLanguage(mode: CodeMirrorMode): RcCodeMirrorLanguage | undefined {
   }
 
   return undefined;
+}
+
+/**
+ * Marks where js-yaml stopped parsing. Like the CodeMirror 5 yaml lint addon, only the first line of
+ * the message is kept, the rest is a snippet of the document
+ */
+function yamlDiagnostic(error: unknown, docLength: number): Diagnostic {
+  const { mark, message } = error as { mark?: { position?: number }, message?: string };
+  const from = Math.min(Math.max(mark?.position ?? 0, 0), docLength);
+
+  return {
+    from,
+    to:       from,
+    severity: 'error',
+    message:  (message || String(error)).split('\n')[0],
+  };
 }
 
 export default defineComponent({
@@ -94,6 +111,9 @@ export default defineComponent({
     return {
       view:          null as EditorView | null,
       hasLintErrors: false,
+      // The last value linted and the error it had, so the markers reuse the validation's parse
+      lintedValue:   null as string | null,
+      lintError:     null as unknown,
     };
   },
 
@@ -112,6 +132,23 @@ export default defineComponent({
 
     lintEnabled(): boolean {
       return !!this.options?.lint && this.language === 'yaml';
+    },
+
+    // As in CodeMirror 5, only editable editors mark problems. Read-only content is still validated
+    linter(): LintSource | undefined {
+      if (!this.lintEnabled || this.isReadOnly) {
+        return undefined;
+      }
+
+      return (view: EditorView) => {
+        const value = view.state.doc.toString();
+
+        if (value !== this.lintedValue) {
+          this.lint(value);
+        }
+
+        return this.lintError ? [yamlDiagnostic(this.lintError, value.length)] : [];
+      };
     },
 
     variant(): RcCodeMirrorVariant {
@@ -173,16 +210,18 @@ export default defineComponent({
      * Validates yaml content with js-yaml, treating every parse failure as an error
      */
     lint(value: string) {
-      if (!this.lintEnabled) {
+      if (!this.lintEnabled || value === this.lintedValue) {
         return;
       }
 
       try {
         jsyaml.loadAll(value || '', () => {});
-        this.hasLintErrors = false;
+        this.lintError = null;
       } catch (e) {
-        this.hasLintErrors = true;
+        this.lintError = e;
       }
+      this.lintedValue = value;
+      this.hasLintErrors = !!this.lintError;
     },
 
     focus() {
@@ -248,6 +287,7 @@ export default defineComponent({
         :fold-gutter="foldGutter"
         :line-wrapping="lineWrapping"
         :keymap-indicator="showKeyMapBox"
+        :linter="linter"
         :extensions="combinedExtensions"
         :aria-label="options.screenReaderLabel"
         @ready="onReady"

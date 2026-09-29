@@ -2,6 +2,8 @@ import { nextTick } from 'vue';
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import { EditorState, type Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
+import type { LintSource } from '@codemirror/lint';
+import jsyaml from 'js-yaml';
 import { RcCodeMirror } from '@components/RcCodeMirror';
 import CodeMirror from '@shell/components/CodeMirror.vue';
 import { _EDIT, _VIEW, _YAML } from '@shell/config/query-params';
@@ -270,6 +272,66 @@ describe('component: CodeMirror.vue', () => {
       await nextTick();
 
       expect(wrapper.emitted('validationChanged')).toBeUndefined();
+    });
+  });
+
+  describe('yaml lint markers', () => {
+    const createWrapper = (props = {}) => shallowMount(CodeMirror, {
+      ...mountOptions,
+      props: { ...mountOptions.props, ...props },
+    });
+
+    function lintSource(wrapper: ReturnType<typeof createWrapper>): LintSource {
+      return wrapper.findComponent(RcCodeMirror).props('linter') as LintSource;
+    }
+
+    function lintDoc(doc: string, props = {}) {
+      return lintSource(createWrapper(props))(new EditorView({ doc }));
+    }
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it.each([
+      ['lint is disabled', { options: { ...options, lint: false } }],
+      ['the editor is in view mode', { mode: _VIEW }],
+      ['the editor is read only', { options: { ...options, readOnly: true } }],
+      ['the content is json', { options: { ...options, mode: 'json' } }],
+    ])('should not pass RcCodeMirror a linter when %s', (_case, props) => {
+      expect(lintSource(createWrapper(props))).toBeUndefined();
+    });
+
+    it('should report no problems for valid yaml', () => {
+      expect(lintDoc('foo: bar\n---\nbaz: qux')).toStrictEqual([]);
+    });
+
+    it.each([
+      ['a: 1\nb:\n  - x\n c: 2', 15, 'bad indentation of a mapping entry (4:2)'],
+      // js-yaml reports the end of the stream one past the end of the document
+      ['foo: [', 6, 'unexpected end of the stream within a flow collection (2:1)'],
+    ])('should mark where parsing %p failed', (doc, position, message) => {
+      expect(lintDoc(doc)).toStrictEqual([{
+        from: position, to: position, severity: 'error', message
+      }]);
+    });
+
+    it('should reuse the parse from validating the same content', () => {
+      const wrapper = createWrapper();
+      const loadAll = jest.spyOn(jsyaml, 'loadAll');
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('update:modelValue', 'foo: [');
+      lintSource(wrapper)(new EditorView({ doc: 'foo: [' }));
+
+      expect(loadAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('should validate content the markers see first', () => {
+      const wrapper = createWrapper();
+
+      lintSource(wrapper)(new EditorView({ doc: 'foo: [' }));
+
+      expect(wrapper.vm.hasLintErrors).toStrictEqual(true);
     });
   });
 
