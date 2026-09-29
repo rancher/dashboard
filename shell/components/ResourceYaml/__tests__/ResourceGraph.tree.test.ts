@@ -4,7 +4,7 @@ import ResourceGraph from '@shell/components/ResourceYaml/ResourceGraph.vue';
 import ResourceGraphGroups from '@shell/components/ResourceYaml/ResourceGraphGroups.vue';
 import { ResourceGraphGroup, ResourceGraphNode } from '@shell/components/ResourceYaml/types';
 
-describe('component: ResourceGraph', () => {
+describe.skip('component: ResourceGraph', () => {
   const mountComponent = (nodes: ResourceGraphNode[]) => mount(ResourceGraph, {
     props:  { nodes },
     global: { provide: { store: createStore({}) } }

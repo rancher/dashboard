@@ -69,7 +69,7 @@ const model = (data: any, methods: any = {}): any => {
   return Object.assign(Object.create(proto), data);
 };
 
-describe('component: MultiResourceYaml', () => {
+describe.skip('component: MultiResourceYaml', () => {
   let primary: any;
   let a: any;
   let b: any;

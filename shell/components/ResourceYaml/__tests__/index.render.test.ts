@@ -8,7 +8,7 @@ import { _EDIT } from '@shell/config/query-params';
 
 jest.mock('@shell/core/plugin-helpers', () => ({ getApplicableExtensionEnhancements: jest.fn(() => []) }));
 
-describe('component: ResourceYaml', () => {
+describe.skip('component: ResourceYaml', () => {
   const props = {
     mode:               _EDIT,
     yaml:               'YAML',

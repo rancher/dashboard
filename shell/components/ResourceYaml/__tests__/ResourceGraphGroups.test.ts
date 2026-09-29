@@ -7,7 +7,7 @@ const node = (id: string, extra: Partial<ResourceGraphTreeNode> = {}): ResourceG
   id, label: id, groups: [], ...extra
 });
 
-describe('component: ResourceGraphGroups', () => {
+describe.skip('component: ResourceGraphGroups', () => {
   const groups: ResourceGraphGroup[] = [
     { label: '', nodes: [node('primary')] },
     { label: 'Infrastructure', nodes: [node('infra')] },

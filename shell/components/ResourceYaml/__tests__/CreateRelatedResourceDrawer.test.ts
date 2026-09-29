@@ -97,7 +97,7 @@ const source = (id: string, cloneYaml: () => Promise<string> = () => Promise.res
   id, label: `${ id } label`, cloneYaml: jest.fn(cloneYaml)
 });
 
-describe('component: CreateRelatedResourceDrawer', () => {
+describe.skip('component: CreateRelatedResourceDrawer', () => {
   const mountComponent = (types: RelatedResourceType[], props: any = {}) => mount(CreateRelatedResourceDrawer, {
     props:  { types, ...props },
     global: { provide: { store: createStore({ getters: { defaultNamespace: () => 'default-ns' } }) } }

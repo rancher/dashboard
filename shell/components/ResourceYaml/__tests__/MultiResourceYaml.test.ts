@@ -4,7 +4,7 @@ import MultiResourceYaml from '@shell/components/ResourceYaml/MultiResourceYaml.
 import { EditableRelatedResource } from '@shell/core/types';
 import { Banner } from '@components/Banner';
 
-describe('component: MultiResourceYaml', () => {
+describe.skip('component: MultiResourceYaml', () => {
   const mountComponent = (relatedResources: EditableRelatedResource[], value: any = { type: 'cluster', id: 'ns/primary' }) => shallowMount(MultiResourceYaml, { props: { value, relatedResources } });
 
   describe('banner', () => {

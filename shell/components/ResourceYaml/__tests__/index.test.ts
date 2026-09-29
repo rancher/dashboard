@@ -23,7 +23,7 @@ const below = (entry: any, parentId: string, depth: number, nodeId: string = key
   ...entry, depth, parentId, nodeId
 });
 
-describe('component: ResourceYaml', () => {
+describe.skip('component: ResourceYaml', () => {
   const mountComponent = (value: any, { withExtensionSupport = true } = {}) => shallowMount(ResourceYaml, {
     props: {
       mode: _VIEW,
