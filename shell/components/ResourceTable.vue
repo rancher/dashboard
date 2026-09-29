@@ -11,7 +11,7 @@ import { ExtensionPoint, TableColumnLocation, TableLocation } from '@shell/core/
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import { dateText, fieldValue, stringifyValue } from '@shell/utils/table-views/fields';
-import ResourceTableViews from '@shell/mixins/resource-table-views';
+import ResourceTableViews, { TABLE_GROUPING_PREFIX } from '@shell/mixins/resource-table-views';
 import ResourceTableWatch from '@shell/mixins/resource-table-watch';
 import paginationUtils from '@shell/utils/pagination-utils';
 import TableViewControls from '@shell/components/TableViews/TableViewControls.vue';
@@ -608,10 +608,25 @@ export default {
 
     /**
      * The groupings this list brings beyond grouping by a column, offered in the toolbar's Group By.
-     * A plain namespace option is left out: the namespace column already groups the same way
+     * None while the list says it can't be grouped, as the old buttons were hidden then. A plain
+     * namespace option is left out: the namespace column already groups the same way
      */
     tableGroupings() {
+      if (!this.showGrouping) {
+        return [];
+      }
+
       return this._groupOptions.filter((option) => option.value !== 'none' && (option.field || this.groupBy || option.value !== 'namespace'));
+    },
+
+    /**
+     * The grouping a view starts with: one of the table's own groupings the list names as its
+     * default, eg machines by pool. Not the namespace every list falls back to, so most start flat
+     */
+    defaultGroupBy() {
+      const grouping = this.groupDefault !== DEFAULT_GROUP && this.tableGroupings.find((option) => option.value === this.groupDefault);
+
+      return grouping ? `${ TABLE_GROUPING_PREFIX }${ grouping.value }` : null;
     },
 
     _groupOptions() {
@@ -808,6 +823,7 @@ export default {
     :external-pagination-enabled="externalPaginationEnabled"
     :external-pagination-result="externalPaginationResult"
     :view-filters="appliedViewFilters"
+    :queried="showTableViews && viewTerms.length > 0"
     :mandatory-sort="_mandatorySort"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
@@ -852,6 +868,7 @@ export default {
         :view="view"
         :fields="viewFields"
         :group-fields="viewGroupFields"
+        :default-group-by="defaultGroupBy"
         :filter-fields="viewFilterFields"
         :date-fields="viewDateFieldIds"
         :field-values="fieldValues"

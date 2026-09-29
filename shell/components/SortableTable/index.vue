@@ -165,6 +165,12 @@ export default {
       default: () => []
     },
 
+    /** The rows were already narrowed by a query from outside the table, so none left means no matches */
+    queried: {
+      type:    Boolean,
+      default: false
+    },
+
     /**
      * Lay the masthead out for the table views toolbar. Unset, the feature flag decides; `false`
      * keeps the original masthead
@@ -674,7 +680,7 @@ export default {
     },
 
     noResults() {
-      return !!this.searchQuery && this.pagedRows.length === 0;
+      return (!!this.searchQuery || this.queried) && this.pagedRows.length === 0;
     },
 
     noRows() {
@@ -2210,11 +2216,11 @@ export default {
     grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 350px);
   }
 
-  // A stacking context, so a z-index a row picks up (eg the AI extension's chips) can't paint over
-  // the toolbar's menus
-  .has-table-views .sortable-table {
-    position: relative;
-    z-index: 0;
+  // Keeps a z-index a state chip picks up (eg from the AI extension) inside its cell, so it can't
+  // paint over the toolbar's menus. Not the whole table: that would trap the row menus under the
+  // toolbar
+  .has-table-views .sortable-table td.col-badge-state-formatter {
+    isolation: isolate;
   }
 
   $header-padding: 20px;

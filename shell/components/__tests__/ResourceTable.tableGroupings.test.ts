@@ -51,20 +51,34 @@ describe('ResourceTable', () => {
     const { tableGroupings } = ResourceTable.computed as unknown as Record<string, (this: object) => GroupOption[]>;
 
     it('should offer a list\'s own groupings, never the flat list', () => {
-      const out = tableGroupings.call({ _groupOptions: [NONE, NODE], groupBy: null });
+      const out = tableGroupings.call({
+        showGrouping: true, _groupOptions: [NONE, NODE], groupBy: null
+      });
 
       expect(out.map((option) => option.value)).toStrictEqual(['role']);
     });
 
+    it('should offer none while the list says it can\'t be grouped', () => {
+      expect(tableGroupings.call({
+        showGrouping: false, _groupOptions: [NONE, NODE], groupBy: null
+      })).toStrictEqual([]);
+    });
+
     it('should leave out the plain namespace option, which the namespace column already covers', () => {
-      const out = tableGroupings.call({ _groupOptions: [NONE, { value: 'namespace' }], groupBy: null });
+      const out = tableGroupings.call({
+        showGrouping: true, _groupOptions: [NONE, { value: 'namespace' }], groupBy: null
+      });
 
       expect(out).toStrictEqual([]);
     });
 
     it('should keep a namespace option that groups by something of its own', () => {
-      expect(tableGroupings.call({ _groupOptions: [NONE, PROJECT], groupBy: null })).toStrictEqual([PROJECT]);
-      expect(tableGroupings.call({ _groupOptions: [NONE, { value: 'namespace' }], groupBy: 'groupById' })).toHaveLength(1);
+      expect(tableGroupings.call({
+        showGrouping: true, _groupOptions: [NONE, PROJECT], groupBy: null
+      })).toStrictEqual([PROJECT]);
+      expect(tableGroupings.call({
+        showGrouping: true, _groupOptions: [NONE, { value: 'namespace' }], groupBy: 'groupById'
+      })).toHaveLength(1);
     });
   });
 
@@ -208,10 +222,42 @@ describe('ResourceTable', () => {
     });
 
     it('should know which of the table\'s groupings the view has picked', () => {
-      const ctx = { tableGroupings: [PROJECT, NODE], view: { groupBy: `${ TABLE_GROUPING_PREFIX }role` } };
+      const ctx = {
+        tableGroupings: [PROJECT, NODE], view: { groupBy: `${ TABLE_GROUPING_PREFIX }role` }, defaultGroupBy: null, groupByOf: methods.groupByOf
+      };
 
       expect(computed.viewTableGrouping.call(ctx)).toBe(NODE);
       expect(computed.viewTableGrouping.call({ ...ctx, view: { groupBy: 'namespace' } })).toBeNull();
+    });
+  });
+
+  describe('a table that groups by default', () => {
+    const { defaultGroupBy } = ResourceTable.computed as unknown as Record<string, (this: object) => string | null>;
+    const POOL: GroupOption = {
+      value: 'poolId', tooltipKey: 'resourceTable.groupBy.pool', field: 'poolId', hideColumn: 'pool'
+    };
+
+    it('should start grouped by the grouping the list names as its default', () => {
+      expect(defaultGroupBy.call({ groupDefault: 'poolId', tableGroupings: [POOL] })).toBe(`${ TABLE_GROUPING_PREFIX }poolId`);
+    });
+
+    it.each([
+      ['every list\'s fallback to namespace', 'namespace', [PROJECT]],
+      ['a default the table doesn\'t offer', 'poolId', [NODE]],
+    ])('should start flat on %s', (_, groupDefault, tableGroupings) => {
+      expect(defaultGroupBy.call({ groupDefault, tableGroupings })).toBeNull();
+    });
+
+    it.each([
+      ['nothing, as the table\'s default', null, `${ TABLE_GROUPING_PREFIX }poolId`],
+      ['another grouping', 'state', 'state'],
+      ['none, turning the default off', 'none', null],
+    ])('should show a view that picked %s', (_, groupBy, expected) => {
+      expect(methods.groupByOf.call({ defaultGroupBy: `${ TABLE_GROUPING_PREFIX }poolId` }, { groupBy })).toBe(expected);
+    });
+
+    it('should show a view with no grouping flat on a table with no default', () => {
+      expect(methods.groupByOf.call({ defaultGroupBy: null }, { groupBy: null })).toBeNull();
     });
   });
 
