@@ -83,22 +83,40 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       // report one more than the resources that really exist, and hold that wrong total for the full
       // retry window. Compare the pager against the real pod count in the two filtered namespaces
       // and fail only if they disagree for ~30s - a transient mismatch is not the claim.
+      // A read only counts if it really is a Steve collection: a redirect, an HTML page or a non-2xx
+      // must never be read as "zero pods" (that defect made an earlier run of this probe compare the
+      // pager against 0). Bad reads are retried, not counted as a mismatch.
+      const readPods = (ns: string) => cy.request({ url: `${ Cypress.env('api') }/v1/pods/${ ns }`, failOnStatusCode: false })
+        .then((r) => {
+          const data = r.body && Array.isArray(r.body.data) ? r.body.data : null;
+
+          return {
+            ns, status: r.status, n: data ? data.length : null, ctype: String(r.headers['content-type'] || '')
+          };
+        });
+
       const probePagerTotal = (attempt = 0): void => {
+        expect(nsName1, 'PROBE namespace 1 must be set').to.be.a('string').and.not.be.empty;
+        expect(nsName2, 'PROBE namespace 2 must be set').to.be.a('string').and.not.be.empty;
+
         workloadsPodPage.list().resourceTable().sortableTable().pagination()
           .paginationTotalCount()
           .then((pager: number) => {
-            cy.request(`${ Cypress.env('api') }/v1/pods/${ nsName1 }`).then((r1) => {
-              cy.request(`${ Cypress.env('api') }/v1/pods/${ nsName2 }`).then((r2) => {
-                const real = (r1.body.data || []).length + (r2.body.data || []).length;
+            readPods(nsName1).then((a) => {
+              readPods(nsName2).then((b) => {
+                const detail = `pager=${ pager } | ${ a.ns }: HTTP ${ a.status } ${ a.ctype } n=${ a.n } | ${ b.ns }: HTTP ${ b.status } ${ b.ctype } n=${ b.n }`;
+                const valid = a.n !== null && b.n !== null;
+                const real = valid ? (a.n as number) + (b.n as number) : null;
 
-                if (pager === real) {
-                  cy.log(`PROBE pager matches the API: ${ pager }`);
+                if (valid && pager === real) {
+                  cy.log(`PROBE match: ${ detail }`);
 
                   return;
                 }
-                cy.log(`PROBE mismatch attempt ${ attempt }: pager=${ pager } api=${ real }`);
+                cy.log(`PROBE attempt ${ attempt } ${ valid ? 'MISMATCH' : 'BAD READ' }: ${ detail }`);
                 if (attempt >= 15) {
-                  expect(pager, `PROBE pager total stayed off the real pod count for ~30s (api=${ real })`).to.eq(real);
+                  expect(valid, `PROBE could not read the real pod count for ~30s: ${ detail }`).to.eq(true);
+                  expect(pager, `PROBE pager stayed off the real pod count for ~30s: ${ detail }`).to.eq(real);
                 }
                 cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
                 probePagerTotal(attempt + 1);
