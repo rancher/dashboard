@@ -86,7 +86,9 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       // A read only counts if it really is a Steve collection: a redirect, an HTML page or a non-2xx
       // must never be read as "zero pods" (that defect made an earlier run of this probe compare the
       // pager against 0). Bad reads are retried, not counted as a mismatch.
-      const readPods = (ns: string) => cy.request({ url: `${ Cypress.env('api') }/v1/pods/${ ns }`, failOnStatusCode: false })
+      const readPods = (ns: string) => cy.request({
+        url: `${ Cypress.env('api') }/v1/pods/${ ns }`, headers: { Accept: 'application/json' }, failOnStatusCode: false
+      })
         .then((r) => {
           const data = r.body && Array.isArray(r.body.data) ? r.body.data : null;
 
