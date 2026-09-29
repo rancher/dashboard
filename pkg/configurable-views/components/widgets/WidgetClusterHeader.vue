@@ -24,6 +24,10 @@ const store = useStore();
 const { t } = useI18n(store);
 const { cluster } = useWidgetCluster(() => props.widget);
 
+// On a cluster's own dashboard the heading is the dashboard's, as the stock page has it; a header
+// that names its cluster - on the Home, or pointed at another - is headed by that cluster's name.
+const followsPage = computed(() => !props.widget.cluster);
+
 // The management cluster model (shell/models/management.cattle.io.cluster), whose getters the
 // dashboard's own header reads.
 interface MgmtCluster {
@@ -77,7 +81,7 @@ watch(cluster, async(id) => {
     class="wch"
   >
     <div class="wch__title">
-      <h1>{{ widget.title || mgmt.nameDisplay }}</h1>
+      <h1>{{ widget.title || (followsPage ? t('clusterIndexPage.header') : mgmt.nameDisplay) }}</h1>
       <div
         v-if="mgmt.spec?.description"
         class="wch__description"

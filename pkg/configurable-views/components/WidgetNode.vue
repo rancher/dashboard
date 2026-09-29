@@ -9,6 +9,7 @@ import {
   GRID_COLUMNS, DEFAULT_GAP, cssSize, cssSides, normalizeSides, clampSpan
 } from '../templating/view-model';
 import { useViewEditor } from '../composables/viewEditor';
+import { useWidgetPresence } from '../composables/useWidgetPresence';
 import type { WidgetNode } from '../templating/types';
 
 // ONE widget on the grid.
@@ -53,6 +54,11 @@ const usedMargin = ref<Measured | null>(null);
 const usedCardPadding = ref<Measured | null>(null);
 
 const beingDragged = computed(() => viewEditor.ui.dragId === props.node.id);
+
+// Outside the editor, a widget with nothing to show on its cluster is not drawn at all - as the
+// dashboard leaves out what a cluster does not have (see useWidgetPresence).
+const { present } = useWidgetPresence();
+const absent = computed(() => !props.editing && !present(props.node.widget));
 
 // A widget that holds widgets (Tabs) stays live while editing: its tabs switch, and what is in them
 // is edited in place like anything else on the grid.
@@ -271,6 +277,7 @@ function startResize(ev: PointerEvent): void {
 
 <template>
   <div
+    v-show="!absent"
     ref="root"
     class="wnode"
     :class="{

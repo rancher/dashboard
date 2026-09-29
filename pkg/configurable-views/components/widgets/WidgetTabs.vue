@@ -5,6 +5,7 @@ import { computed, onBeforeUnmount, ref } from 'vue';
 import WidgetGrid from '../WidgetGrid.vue';
 import { DEFAULT_GAP } from '../../templating/view-model';
 import { useViewEditor } from '../../composables/viewEditor';
+import { useWidgetPresence } from '../../composables/useWidgetPresence';
 import type { WidgetSpec, WidgetTab } from '../../templating/types';
 
 // TABS — a widget that holds widgets.
@@ -33,7 +34,11 @@ const store = useStore();
 const { t } = useI18n(store);
 const viewEditor = useViewEditor();
 
-const tabs = computed<WidgetTab[]>(() => props.widget.tabs || []);
+const { tabPresent } = useWidgetPresence();
+
+// Outside the editor a tab with nothing to show here is left out, as the dashboard leaves out its
+// Alerts tab on a cluster without monitoring. While editing, every tab is there to be filled.
+const tabs = computed<WidgetTab[]>(() => (props.widget.tabs || []).filter((tab) => viewEditor.editing || tabPresent(tab.widgets.map((w) => w.widget))));
 const chosenId = ref('');
 // The chosen tab, or the first when it has been removed (or none has been chosen yet).
 const active = computed<WidgetTab | null>(() => tabs.value.find((t) => t.id === chosenId.value) || tabs.value[0] || null);

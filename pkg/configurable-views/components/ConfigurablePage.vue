@@ -20,6 +20,7 @@ import {
   setColSpan as setSpan, heightForPreset, SPACING_PRESETS
 } from '../templating/view-model';
 import type { CatalogEntry } from '../templating/widget-catalog';
+import { stockWidgets, stockView } from '../templating/stock-layouts';
 import type {
   LayoutView, View, Sides, ViewSet, WidgetNode, WidgetPlace, WidgetSpec
 } from '../templating/types';
@@ -175,10 +176,18 @@ const dirty = computed(() => editing.value && savedBaseline.value !== null && JS
 const selectedNode = computed(() => findWidget(widgets.value, selectedNodeId.value));
 const settingsNode = computed(() => findWidget(widgets.value, settingsNodeId.value));
 
-// The starting points a brand-new view offers: empty, or a copy of any view you already have.
-const startingPoints = computed(() => views.value
-  .filter((p) => p.id !== newViewId.value && !isStockView(p))
-  .map((p) => ({ id: p.id, label: t('configurableViews.page.copyOf', { name: p.name }) })));
+// A starting point that is no saved view: Rancher's own page, rebuilt from widgets.
+const STOCK_START = 'stock-page';
+const stockStartLabel = computed(() => t('configurableViews.sidebar.startStock', { page: props.title }));
+
+// The starting points a brand-new view offers: empty, Rancher's own page as widgets, or a copy of
+// any view you already have.
+const startingPoints = computed(() => [
+  { id: STOCK_START, label: stockStartLabel.value },
+  ...views.value
+    .filter((p) => p.id !== newViewId.value && !isStockView(p))
+    .map((p) => ({ id: p.id, label: t('configurableViews.page.copyOf', { name: p.name }) })),
+]);
 
 // ---- which view is open ------------------------------------------------------------------------------
 
@@ -466,6 +475,14 @@ function startFrom(sourceId: string): void {
   const view = workingLayout();
 
   if (!view) {
+    return;
+  }
+
+  if (sourceId === STOCK_START) {
+    view.widgets = stockWidgets(props.page, t);
+    Object.assign(view, stockView(props.page));
+    startedFrom.value = stockStartLabel.value;
+
     return;
   }
 

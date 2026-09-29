@@ -61,7 +61,7 @@ watch(cluster, async(id) => {
   />
   <div v-else-if="capacity?.hasStats">
     <h3>{{ widget.title || t('clusterIndexPage.sections.capacity.label') }}</h3>
-    <div class="hardware-resource-gauges">
+    <div class="hardware-resource-gauges wcap__gauges">
       <HardwareResourceGauge
         :name="t('clusterIndexPage.hardwareResourceGauge.pods')"
         :used="capacity.pods"
@@ -84,6 +84,14 @@ watch(cluster, async(id) => {
     v-else-if="capacity"
     :title="widget.title || t('clusterIndexPage.sections.capacity.label')"
     empty
-    empty-text="This cluster reports no capacity yet."
+    :empty-text="t('configurableViews.widget.noCapacity')"
   />
 </template>
+
+<style lang="scss" scoped>
+// The dashboard's heading-then-gauges spacing. The shell gives the FIRST gauges row on a page 35px
+// on top; on the dashboard this row is not the first of its kind, here it is, so that rule is undone.
+.wcap__gauges {
+  margin-top: 0;
+}
+</style>
