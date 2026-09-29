@@ -19,11 +19,16 @@ describe('CodeMirror editor shortcuts', { tags: ['@components', '@adminUser', '@
 
   const editor = () => CodeMirrorPo.first();
 
+  // Emacs M-< and M->. Ctrl-Home and Ctrl-End do nothing on a Mac, and these also cover the Alt (Meta) path,
+  // where an unhandled Option key on a Mac types a character.
+  const goDocStart = () => cy.realPress(['Alt', 'Shift', '<']);
+  const goDocEnd = () => cy.realPress(['Alt', 'Shift', '>']);
+
   // Put the cursor at the start of the document with the editor focused
   const focusDocStart = (value: string) => {
     editor().set(value);
     editor().self().realClick();
-    cy.realPress(['Control', 'Home']);
+    goDocStart();
   };
 
   beforeEach(() => {
@@ -64,7 +69,7 @@ describe('CodeMirror editor shortcuts', { tags: ['@components', '@adminUser', '@
 
   it('undoes typed text with Ctrl-/ and redoes it with Ctrl-Shift-Z', () => {
     focusDocStart('alpha');
-    cy.realPress(['Control', 'End']);
+    goDocEnd();
     cy.realType('x');
     editor().value().should('eq', 'alphax');
 
@@ -73,6 +78,70 @@ describe('CodeMirror editor shortcuts', { tags: ['@components', '@adminUser', '@
 
     cy.realPress(['Control', 'Shift', 'z']);
     editor().value().should('eq', 'alphax');
+  });
+
+  it('moves to the start of the document with M-<', () => {
+    focusDocStart('first: line\nsecond: line');
+    goDocEnd();
+
+    goDocStart();
+    cy.realPress(['Control', 'k']);
+
+    editor().value().should('eq', '\nsecond: line');
+  });
+
+  it('kills the next word with M-d', () => {
+    focusDocStart('alpha beta gamma');
+
+    cy.realPress(['Alt', 'd']);
+
+    editor().value().should('eq', ' beta gamma');
+  });
+
+  it('copies the region with M-w and yanks it with Ctrl-Y', () => {
+    focusDocStart('alpha beta gamma');
+
+    cy.realPress(['Control', 'Space']);
+    for (let i = 0; i < 5; i++) {
+      cy.realPress(['Control', 'f']);
+    }
+    cy.realPress(['Alt', 'w']);
+    cy.realPress(['Control', 'e']);
+    cy.realPress(['Control', 'y']);
+
+    editor().value().should('eq', 'alpha beta gammaalpha');
+  });
+
+  // A two key chord: the second key must not be typed into the text or taken by the app
+  it('selects the whole document with Ctrl-X H', () => {
+    focusDocStart('first: line\nsecond: line');
+
+    cy.realPress(['Control', 'x']);
+    cy.realPress('h');
+    editor().value().should('eq', 'first: line\nsecond: line');
+
+    // Killing the region shows what was selected
+    cy.realPress(['Control', 'w']);
+    editor().value().should('eq', '');
+  });
+
+  // Page down depends on the real layout, so only check that the cursor moved more than one line
+  it('moves down a page with Ctrl-V without pasting', () => {
+    const lines = Array.from({ length: 200 }, (_, i) => `line${ i }: value`);
+
+    focusDocStart(lines.join('\n'));
+
+    cy.realPress(['Control', 'v']);
+    cy.realPress(['Control', 'k']);
+
+    editor().value().then((value: string) => {
+      const after = value.split('\n');
+      const killed = after.indexOf('');
+
+      expect(after).to.have.length(lines.length);
+      expect(killed).to.be.greaterThan(1);
+      expect(after.filter((line, i) => line !== lines[i])).to.deep.equal(['']);
+    });
   });
 
   it('moves one character with Ctrl-F before killing the rest of the line', () => {
@@ -98,7 +167,7 @@ describe('CodeMirror editor shortcuts', { tags: ['@components', '@adminUser', '@
   it('moves to the previous line with Ctrl-P', () => {
     focusDocStart('first: line\nsecond: line\nthird: line');
 
-    cy.realPress(['Control', 'End']);
+    goDocEnd();
     cy.realPress(['Control', 'a']);
     cy.realPress(['Control', 'p']);
     cy.realPress(['Control', 'k']);
