@@ -1,7 +1,7 @@
 import debounce from 'lodash/debounce';
 
 import { optionalHeadersFor } from '@shell/utils/table-views/optional-headers';
-import { isImprovedTablesEnabled } from '@shell/utils/table-views/feature';
+import { isExtensionTable, isImprovedTablesEnabled, TABLE_VIEWS_SHELL_KEY } from '@shell/utils/table-views/feature';
 import { AGE } from '@shell/config/table-headers';
 import { NotificationLevel } from '@shell/types/notifications';
 import { downloadFile } from '@shell/utils/download';
@@ -44,7 +44,10 @@ export const MONTH_GROUPING_PREFIX = 'month:';
  */
 export default {
   /** Supplied by pages that put tables under tabs of their own. The `tableViewTabs` prop still wins */
-  inject: { providedShowTableViewTabs: { from: 'showTableViewTabs', default: null } },
+  inject: {
+    providedShowTableViewTabs: { from: 'showTableViewTabs', default: null },
+    providedTableViewsShell:   { from: TABLE_VIEWS_SHELL_KEY, default: null },
+  },
 
   props: {
     /** Force the saved view tabs on or off. Null works it out - see showTableViewTabs */
@@ -249,7 +252,18 @@ export default {
         return this.tableViews;
       }
 
+      // An extension's table stays as it was written unless the extension asks for table views
+      if (this.inExtension) {
+        return false;
+      }
+
       return !!this.schema?.id && !this.hasAdvancedFiltering;
+    },
+
+    inExtension() {
+      return isExtensionTable({
+        providedShell: this.providedTableViewsShell, route: this.$route, extensions: this.$store?.state?.$extension
+      });
     },
 
 
