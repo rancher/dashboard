@@ -817,4 +817,19 @@ describe('class ProvCluster', () => {
       expect(mockCopyKubeConfigBulk).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('rotateEncryptionKey', () => {
+    it('should prompt RotateEncryptionKeyDialog for this cluster with a wide enough modal for a full-length snapshot id', () => {
+      const ctx = { dispatch: jest.fn() };
+      const cluster = new ProvCluster({}, ctx);
+
+      cluster.rotateEncryptionKey();
+
+      expect(ctx.dispatch).toHaveBeenCalledWith('promptModal', {
+        componentProps: { cluster },
+        component:      'RotateEncryptionKeyDialog',
+        modalWidth:     '800px'
+      });
+    });
+  });
 });
