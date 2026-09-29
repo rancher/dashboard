@@ -3013,6 +3013,7 @@ codeMirror:
   keymap:
     tooltip: Key mapping preference.
     indicatorToolip: "Key mapping: {name}"
+    hideIndicator: "Hide key mapping: {name}"
 
 cruResource:
   backToForm: Back to Form

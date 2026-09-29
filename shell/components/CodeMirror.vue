@@ -92,9 +92,8 @@ export default defineComponent({
 
   data() {
     return {
-      view:            null as EditorView | null,
-      removeKeyMapBox: false,
-      hasLintErrors:   false,
+      view:          null as EditorView | null,
+      hasLintErrors: false,
     };
   },
 
@@ -145,26 +144,17 @@ export default defineComponent({
         'Fold line':                                  this.t('codeMirror.foldLine'),
         'Unfold line':                                this.t('codeMirror.unfoldLine'),
         'Press Escape, then Tab to leave the editor': this.t('codeMirror.escapeText'),
+        // RcCodeMirror replaces `$` with the keymap name
+        'Key mapping: $':                             this.t('codeMirror.keymap.indicatorToolip', { name: '$' }),
+        'Hide key mapping: $':                        this.t('codeMirror.keymap.hideIndicator', { name: '$' }),
+        Vim:                                          this.t('prefs.keymap.vim'),
+        Emacs:                                        this.t('prefs.keymap.emacs'),
       });
     },
 
     combinedExtensions(): Extension[] {
       // Extensions must not be reactive proxies, CodeMirror compares them by identity
       return [this.phrases, ...this.extensions.map((e) => toRaw(e))];
-    },
-
-    keyMapTooltip(): string | null {
-      if (this.keymapPref) {
-        const name = this.t(`prefs.keymap.${ this.keymapPref }`);
-
-        return this.t('codeMirror.keymap.indicatorToolip', { name });
-      }
-
-      return null;
-    },
-
-    isNonDefaultKeyMap(): boolean {
-      return !!this.keymapPref && this.keymapPref !== 'sublime';
     },
   },
 
@@ -240,10 +230,6 @@ export default defineComponent({
         }
       });
     },
-
-    closeKeyMapInfo() {
-      this.removeKeyMapBox = true;
-    },
   }
 });
 </script>
@@ -253,22 +239,6 @@ export default defineComponent({
     class="code-mirror code-mirror-container"
     :class="{['read-only']: isReadOnly}"
   >
-    <div
-      v-if="showKeyMapBox && !removeKeyMapBox && keyMapTooltip && isNonDefaultKeyMap"
-      class="keymap overlay"
-    >
-      <div
-        v-clean-tooltip="keyMapTooltip"
-        class="keymap-indicator"
-        data-testid="code-mirror-keymap"
-        @click="closeKeyMapInfo"
-      >
-        <i class="icon icon-keyboard keymap-icon" />
-        <div class="close-indicator">
-          <i class="icon icon-close icon-sm" />
-        </div>
-      </div>
-    </div>
     <div class="codemirror-container">
       <RcCodeMirror
         :model-value="value"
@@ -280,6 +250,7 @@ export default defineComponent({
         :line-numbers="lineNumbers"
         :fold-gutter="foldGutter"
         :line-wrapping="lineWrapping"
+        :keymap-indicator="showKeyMapBox"
         :extensions="combinedExtensions"
         :aria-label="options.screenReaderLabel"
         @ready="onReady"
@@ -292,8 +263,6 @@ export default defineComponent({
 </template>
 
 <style lang="scss">
-  $code-mirror-animation-time: 0.1s;
-
   .code-mirror {
     position: relative;
     margin-bottom: 20px;
@@ -311,62 +280,6 @@ export default defineComponent({
 
     &.read-only .cm-cursor {
       display: none !important;
-    }
-
-    .keymap.overlay {
-      position: absolute;
-      display: flex;
-      top: 7px;
-      right: 7px;
-      z-index: 1;
-      cursor: pointer;
-
-      .keymap-indicator {
-        width: 48px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid transparent;
-        color: var(--darker);
-        background-color: var(--subtle-overlay-bg);
-        font-size: 12px;
-
-        .close-indicator {
-          width: 0;
-
-          .icon-close {
-            color: var(--primary);
-            opacity: 0;
-          }
-        }
-
-        .keymap-icon {
-          font-size: 24px;
-          opacity: 0.8;
-          transition: margin-right $code-mirror-animation-time ease-in-out;
-        }
-
-        &:hover {
-          border: 1px solid var(--primary);
-          border-radius: var(--border-radius);;
-
-          .close-indicator {
-            margin-left: -6px;
-            width: auto;
-
-            .icon-close {
-              opacity: 1;
-              transition: opacity $code-mirror-animation-time ease-in-out $code-mirror-animation-time; // Only animate when being shown
-            }
-          }
-
-          .keymap-icon {
-            opacity: 0.6;
-            margin-right: 10px;
-          }
-        }
-      }
     }
   }
 </style>
