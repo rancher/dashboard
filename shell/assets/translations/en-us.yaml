@@ -3007,7 +3007,9 @@ copyToClipboard:
   error: Error Copying
 
 codeMirror:
-  escapeText: Press Shift+Escape to blur from editor
+  escapeText: Press Escape, then Tab to leave the editor
+  foldLine: Fold line
+  unfoldLine: Unfold line
   keymap:
     tooltip: Key mapping preference.
     indicatorToolip: "Key mapping: {name}"
