@@ -10,6 +10,39 @@ const extensionName = 'SUSE Security Admission Controller';
 const gitRepoName = 'rancher-extensions';
 let removeExtensions = false;
 
+/**
+ * Make sure the Available tab is actually showing the kubewarden card before trying to install it.
+ *
+ * The catalog index can already serve the chart (the before hook waits for that) while this page
+ * still renders a catalog without it, and the page does not re-fetch on its own - the install then
+ * fails on a card lookup that never resolves. Reload to re-read the catalog, bounded so a genuinely
+ * absent extension still fails on the install's own assertion rather than looping.
+ */
+function ensureKubewardenCardListed(extensionsPo: ExtensionsPagePo, attempts = 15): void {
+  extensionsPo.extensionTabAvailableClick();
+  extensionsPo.waitForPage(null, 'available');
+  extensionsPo.loading().should('not.exist');
+  extensionsPo.checkForExtensionCardWithName(extensionName).then((cardListed) => {
+    if (cardListed || attempts === 0) {
+      return;
+    }
+    // checkForExtensionCardWithName reads the DOM once, so this has to do the waiting itself:
+    // give the catalog time to render, and every third attempt reload to force a re-fetch for
+    // the case where the page cached a catalog from before the chart was published.
+    //
+    // Known issue rancher/dashboard#19319: the reload is a bypass for product behaviour - once the
+    // Extensions page has rendered a catalog it never re-reads it, so a chart that becomes
+    // available afterwards stays invisible until the user reloads by hand. Waiting cannot fix
+    // that, because the API is already serving the chart.
+    cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+    if (attempts % 3 === 0) {
+      cy.reload();
+      extensionsPo.waitForPage();
+    }
+    ensureKubewardenCardListed(extensionsPo, attempts - 1);
+  });
+}
+
 function verifyKubewardenInstalledDetails(extensionsPo: ExtensionsPagePo) {
   extensionsPo.waitForTabs();
   extensionsPo.extensionTabInstalledClick();
@@ -33,6 +66,40 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-charts', 'main', gitRepoName).then(() => {
       removeExtensions = true;
     });
+
+    // The repo reports Downloaded and Active before its chart index necessarily serves the
+    // extension, and the Available tab then renders no cards at all - every attempt in the run
+    // re-visits the same empty catalog and fails the card lookup identically. Poll the filtered
+    // index (the one the UI reads) until kubewarden is offered.
+    //
+    // Only log on exhaustion: Cypress does not retry a failing before hook, so asserting here
+    // would take down the whole describe instead of letting the tests retry.
+    const waitForKubewardenInCatalog = (retries = 30): void => {
+      // Read the index directly with failOnStatusCode off: while the repo is still being indexed
+      // this endpoint answers 500, and a throwing request here would fail the before hook, which
+      // Cypress does not retry - taking down the whole describe instead of one test.
+      //
+      // Known issue rancher/dashboard#19318: a repo whose index is still being built answers 500
+      // rather than an empty index or a 404, so callers cannot tell "not ready yet" from a real
+      // server error without ignoring status codes entirely.
+      cy.request({
+        url:              `${ Cypress.env('api') }/v1/catalog.cattle.io.clusterrepos/${ gitRepoName }?link=index`,
+        failOnStatusCode: false,
+      }).then((resp) => {
+        if (resp.status === 200 && resp.body?.entries?.kubewarden) {
+          return;
+        }
+        if (retries === 0) {
+          cy.log(`kubewarden is still not in the catalog index (last status ${ resp.status })`);
+
+          return;
+        }
+        cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+        waitForKubewardenInCatalog(retries - 1);
+      });
+    };
+
+    waitForKubewardenInCatalog();
   });
 
   beforeEach(() => {
@@ -49,6 +116,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     // Installed tab → open it: Kubewarden card present → only assert details; absent → install
     extensionsPo.checkForExtensionTab('installed').then((installedTabRendered) => {
       if (!installedTabRendered) {
+        ensureKubewardenCardListed(extensionsPo);
         extensionsPo.installExtensionFromCatalog(extensionName, gitRepoName, 'kwInstall');
         verifyKubewardenInstalledDetails(extensionsPo);
 
@@ -62,6 +130,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
           extensionsPo.extensionDetailsTitle().should('contain', extensionName);
           extensionsPo.extensionDetailsCloseClick();
         } else {
+          ensureKubewardenCardListed(extensionsPo);
           extensionsPo.installExtensionFromCatalog(extensionName, gitRepoName, 'kwInstall');
           verifyKubewardenInstalledDetails(extensionsPo);
         }
