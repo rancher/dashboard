@@ -9,5 +9,6 @@ export interface UserPreferences {
   provisioner: string,
   'read-whatsnew': string,
   'seen-whatsnew': string,
+  'share-usage-data': string,
   theme: string,
 }
