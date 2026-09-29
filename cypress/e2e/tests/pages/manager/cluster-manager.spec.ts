@@ -668,8 +668,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
       clusterDetail.waitForPage(undefined, 'node-pools');
       clusterDetail.poolsList('node').details('machine-', 2).should('be.visible');
       // Nothing is selected, so there are no bulk actions to take
-      clusterDetail.poolsList('node').resourceTable().sortableTable().selectionActionsButton()
-        .should('not.exist');
+      clusterDetail.poolsList('node').resourceTable().sortableTable().checkNoSelectionActions();
     }));
 
     qase(12219, it(`Show Configuration allows to edit config and view yaml for local cluster`, () => {
