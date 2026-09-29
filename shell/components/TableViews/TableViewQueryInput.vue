@@ -28,6 +28,9 @@ const MENU_MIN_WIDTH = 260;
  */
 const MENU_TEXT_INSET = 13;
 
+/** Beyond the list's edges, for its shadow, on a side that isn't cut */
+const MENU_SHADOW_ROOM = 30;
+
 const KEY_SEP = '\u0000';
 
 let uid = 0;
@@ -94,12 +97,18 @@ const pendingCaret = ref<number | null>(null);
 const composing = ref(false);
 /** Viewport coordinates: the menu hangs off <body> */
 const menuPos = ref({
-  top: 0, left: 0, width: 0
+  top: 0, left: 0, width: 0, clip: 'none'
 });
 /** What the menu has to outrank, read as it opens: a slide-in panel sits above the product's z-index scale */
 const menuZ = ref(0);
-/** The box is scrolled out from under the list, which would otherwise float over the header or nav */
+/** The box is scrolled out of sight, and with it the list */
 const menuOutOfView = ref(false);
+/**
+ * Hidden until placed: a press that opens the list sets the caret after the box takes focus, so the
+ * first placement would be at the old caret, then jump
+ */
+const menuPlaced = ref(false);
+let placeFrame = 0;
 /**
  * The box is ahead of the query between a keystroke and the re-render; redrawing then drops what
  * was typed
@@ -294,8 +303,9 @@ const menuStyle = computed(() => ({
   // Width is the stylesheet's: as wide as the entries need
   top:                  `${ menuPos.value.top }px`,
   left:                 `${ menuPos.value.left }px`,
+  clipPath:             menuPos.value.clip,
   '--query-menu-stack': menuZ.value,
-  ...(menuOutOfView.value ? { visibility: 'hidden' as const } : {}),
+  ...(menuPlaced.value ? {} : { visibility: 'hidden' as const }),
 }));
 
 /** Counted across the token spans, so it is an offset into the query string */
@@ -489,19 +499,23 @@ const updateMenuPos = () => {
   const rect = root.value?.getBoundingClientRect?.();
 
   if (rect) {
-    // The width is only known once rendered
-    const width = menu.value?.getBoundingClientRect().width || MENU_MIN_WIDTH;
+    // The size is only known once rendered
+    const width = menu.value?.offsetWidth || MENU_MIN_WIDTH;
+    const height = menu.value?.offsetHeight || 0;
+    const rightmost = Math.max(MENU_VIEWPORT_MARGIN, window.innerWidth - width - MENU_VIEWPORT_MARGIN);
+    // Over the box's bottom border, so the two 1px edges meet as one line
+    const top = rect.bottom - 1;
+    const left = Math.min((caretLeft() ?? rect.left) - MENU_TEXT_INSET, rightmost);
     const area = visibleArea();
-    const leftmost = Math.max(MENU_VIEWPORT_MARGIN, area.left);
-    const rightmost = Math.max(leftmost, window.innerWidth - width - MENU_VIEWPORT_MARGIN);
-
-    const at = (caretLeft() ?? rect.left) - MENU_TEXT_INSET;
+    // The list hangs off <body>, so it can't pass under the header and nav as the box does; it is
+    // cut where they start instead. A side with nothing to cut leaves room for the shadow
+    const cut = [area.top - top, left + width - area.right, top + height - area.bottom, area.left - left];
 
     menuPos.value = {
-      // Over the box's bottom border, so the two 1px edges meet as one line
-      top:   rect.bottom - 1,
-      left:  Math.min(Math.max(at, leftmost), rightmost),
-      width: rect.width
+      top,
+      left,
+      width: rect.width,
+      clip:  cut.some((px) => px > 0) ? `inset(${ cut.map((px) => (px > 0 ? `${ Math.ceil(px) }px` : `-${ MENU_SHADOW_ROOM }px`)).join(' ') })` : 'none',
     };
     menuOutOfView.value = rect.bottom <= area.top || rect.bottom > area.bottom || rect.right <= area.left || rect.left >= area.right;
   }
@@ -746,8 +760,18 @@ watch(suggestionsKey, () => {
 watch(caret, () => repositionMenu());
 
 watch(showSuggestions, (open) => {
+  cancelAnimationFrame(placeFrame);
+
   if (open) {
-    nextTick(() => updateMenuPos());
+    menuPlaced.value = false;
+    // A frame on, the press has put the caret down; the list is then built for it and placed
+    placeFrame = requestAnimationFrame(() => {
+      syncCaret();
+      nextTick(() => {
+        updateMenuPos();
+        menuPlaced.value = true;
+      });
+    });
     window.addEventListener('scroll', updateMenuPos, true);
     window.addEventListener('resize', updateMenuPos);
   } else {
@@ -766,6 +790,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  cancelAnimationFrame(placeFrame);
   document.removeEventListener('mousedown', onOutsideMouseDown, true);
   window.removeEventListener('scroll', updateMenuPos, true);
   window.removeEventListener('resize', updateMenuPos);
