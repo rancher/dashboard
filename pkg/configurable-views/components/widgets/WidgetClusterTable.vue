@@ -3,9 +3,10 @@ import { computed, onBeforeUnmount, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
+import ClusterRowPin from '@shell/components/ClusterRowPin.vue';
 import { RcButton } from '@components/RcButton';
 import { BadgeState } from '@components/BadgeState';
-import { STATE, MGMT_CLUSTER_PROVIDER, MGMT_CLUSTER_KUBE_VERSION } from '@shell/config/table-headers';
+import { STATE, CLUSTER_BADGE, MGMT_CLUSTER_PROVIDER, MGMT_CLUSTER_KUBE_VERSION } from '@shell/config/table-headers';
 import { STEVE_MGMT_STATE_COL, STEVE_NAME_COL, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_MGMT_CLUSTER_KUBE_VERSION } from '@shell/config/pagination-table-headers';
 import { CAPI, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
@@ -22,7 +23,7 @@ import type { WidgetSpec } from '../../templating/types';
 //
 // This is NOT the configurable Table building block pointed at clusters. It is the real thing from
 // shell/pages/home.vue: the "Clusters" heading, the Manage / Import Existing / Create buttons, and
-// the same table — headers State / Name / Provider·Distro / Version·Architecture / CPU / Memory /
+// the same table — headers State / Name / Badge / Provider·Distro / Version·Architecture / CPU / Memory /
 // Pods, the name linking into the cluster.
 //
 // Nothing about it is configurable but the heading. Its columns, its sorting and its buttons belong
@@ -115,6 +116,7 @@ const headers = [
   {
     name: 'name', labelKey: 'tableHeaders.name', value: 'nameDisplay', sort: ['nameSort'], canBeVariable: true
   },
+  CLUSTER_BADGE,
   {
     ...MGMT_CLUSTER_PROVIDER, labelKey: 'landing.clusters.provider', subLabel: t('landing.clusters.distro')
   },
@@ -133,6 +135,7 @@ const paginationHeaders = [
   {
     ...STEVE_NAME_COL, canBeVariable: true, value: 'spec.displayName', sort: ['spec.displayName'], search: 'spec.displayName'
   },
+  CLUSTER_BADGE,
   {
     ...STEVE_MGMT_CLUSTER_PROVIDER, labelKey: 'landing.clusters.provider', subLabel: t('landing.clusters.distro')
   },
@@ -249,6 +252,7 @@ onBeforeUnmount(() => ManagementClusterUtils.forgetSecondaryResources({ context:
               v-clean-tooltip="row.unavailableMachines"
               class="conditions-alert-icon icon-alert icon"
             />
+            <ClusterRowPin :cluster="row" />
           </p>
           <p
             v-if="row.description"
@@ -281,6 +285,36 @@ onBeforeUnmount(() => ManagementClusterUtils.forgetSecondaryResources({ context:
 </template>
 
 <style lang="scss" scoped>
+// The Home's name cell (scoped to shell/pages/home.vue, so copied): the name truncates, the
+// description is muted, and the status icon and the pin keep 8px from the name.
+.col-name {
+  max-width: 280px;
+}
+
+.list-cluster-name {
+  .cluster-name {
+    align-items: center;
+    display:     flex;
+
+    > a, > span {
+      overflow:      hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .cluster-description {
+    color:         var(--muted);
+    overflow:      hidden;
+    text-overflow: ellipsis;
+    white-space:   nowrap;
+  }
+
+  .conditions-alert-icon {
+    color:       var(--error);
+    margin-left: 8px;
+  }
+}
+
 .table-heading {
   align-items: center;
   display:     flex;
