@@ -8,6 +8,7 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import { AUTOSCALER_ENABLED } from '@shell/config/table-headers';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
+import { clusterPinnedQueryFields } from '@shell/utils/table-views/query-fields';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
 import { FilterArgs, PaginationArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
@@ -183,6 +184,20 @@ export default {
   },
 
   computed: {
+    /** `pinned:true` / `pinned:false`: the rows are management clusters, as the pins are */
+    pinnedQueryFields() {
+      return clusterPinnedQueryFields(this.$store, (key: string) => this.t(key), {
+        idPath: 'id', serverPath: 'metadata.name', total: this.clusterCount
+      });
+    },
+
+    /** The explorer's list is of provisioning clusters, which hold their management cluster's id */
+    provPinnedQueryFields() {
+      return clusterPinnedQueryFields(this.$store, (key: string) => this.t(key), {
+        idPath: 'status.clusterName', serverPath: 'status.clusterName', rows: this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER)
+      });
+    },
+
     isExplorer() {
       const product = this.$store.getters['currentProduct'];
 
@@ -276,6 +291,7 @@ export default {
     <template v-if="isExplorer">
       <PaginatedResourceTable
         :schema="provClusterSchema"
+        :query-fields="provPinnedQueryFields"
 
         :local-filter="filterProvRowsLocal"
         :api-filter="filterProvRowsApi"
@@ -305,6 +321,7 @@ export default {
 
       <PaginatedResourceTable
         :schema="mgmtClusterSchema"
+        :query-fields="pinnedQueryFields"
 
         :headers="headers"
         :pagination-headers="paginationHeaders"

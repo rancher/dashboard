@@ -7285,6 +7285,9 @@ tableViews:
     selected: "{count} Selected"
     deleteSelected: Delete Selected
   query:
+    fields:
+      pinned: Pinned
+      clusterId: Cluster ID
     placeholder: 'Filter across all columns or only specific ones (e.g. state:error)'
     clear: Clear filter
     inUse: "{count} in use"

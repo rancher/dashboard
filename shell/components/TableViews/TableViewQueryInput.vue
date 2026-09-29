@@ -742,13 +742,15 @@ const onKeyDown = (event: KeyboardEvent) => {
   }
 };
 
-/** Every field the query names, since a view applied from a tab arrives with nothing typed */
-watch(queryFieldIds, (ids) => {
-  ids.forEach((id: string) => {
-    if (!props.fieldValues[id]) {
-      emit('request-values', id);
-    }
-  });
+/**
+ * Every field the query names, since a view applied from a tab arrives with nothing typed, and the
+ * one being typed, whose values are about to be offered. Asked each time: the owner knows which it
+ * has fetched, and the values it passes may be ones it only knows up front
+ */
+const wantedFieldIds = computed(() => Array.from(new Set([...queryFieldIds.value, parsedToken.value.field?.id].filter((id): id is string => !!id))).join(KEY_SEP));
+
+watch(wantedFieldIds, (ids) => {
+  ids.split(KEY_SEP).filter(Boolean).forEach((id: string) => emit('request-values', id));
 }, { immediate: true });
 
 /** Keyed on the contents: the computed array is new whenever the caret moves */

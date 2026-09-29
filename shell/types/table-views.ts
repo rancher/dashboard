@@ -32,6 +32,14 @@ export interface TableViewField {
    * is absent when the list can't be filtered server side
    */
   paginationHeader?: PaginationHeaderOptions;
+  /** Only for the query: not a column, not grouped by, not searched by free text */
+  queryOnly?: boolean;
+  /** Matched whole rather than as a part, eg an id */
+  exact?: boolean;
+  /** The values it takes, suggested as they are rather than read from the rows */
+  values?: TableViewValueSuggestion[];
+  /** Rewrites a group's terms on it into terms on other fields, eg `pinned:true` into the pinned clusters' ids */
+  expand?: (terms: TableViewTerm[]) => TableViewTerm[];
 }
 
 export interface TableViewTerm {

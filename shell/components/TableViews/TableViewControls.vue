@@ -109,7 +109,7 @@ const queryStatusMessage = computed(() => {
 
 const queryStatus = computed(() => (shownProblems.value.length ? 'error' : 'info'));
 
-const columnFields = computed(() => props.fields.filter((f) => !f.isLabel));
+const columnFields = computed(() => props.fields.filter((f) => !f.isLabel && !f.queryOnly));
 
 /** Empty content hides the tooltip once a row is picked up */
 const reorderTip = computed(() => ({
