@@ -31,6 +31,8 @@ CodeMirror renders its own textbox, so ARIA attributes such as `aria-label`, `ar
 
 In the editor variant, Tab indents and Shift-Tab unindents with the default and Emacs keymaps. With Vim, Tab moves forward in the jump list in Normal mode and inserts a tab at the cursor in Insert mode; Shift-Tab moves focus out. A hint appears while the editor is focused: press Escape then Tab (or Escape then Shift-Tab) to leave, as described in [CodeMirror's Tab guidance](https://codemirror.net/examples/tab/). This works with every keymap. In the input variant, Tab and Shift-Tab move focus normally.
 
+Escape pressed in the editor stays in the editor: it does not propagate to the page, so it will not close a surrounding modal while leaving Vim's Insert mode, for example.
+
 Folds can be toggled from the keyboard with every keymap:
 
 | Action | Windows / Linux | macOS |

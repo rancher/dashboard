@@ -105,6 +105,90 @@ describe('component: RcCodeMirror', () => {
       expect(wrapper.find('.rc-cm-escape-hint').text()).toStrictEqual('Use Escape, then Tab');
     });
 
+    describe('escape key', () => {
+      function listenOnDocument(): jest.Mock {
+        const listener = jest.fn();
+
+        document.addEventListener('keydown', listener);
+
+        return listener;
+      }
+
+      function pressEscape(target: EventTarget, shiftKey = false): KeyboardEvent {
+        const event = new KeyboardEvent('keydown', {
+          key: 'Escape', code: 'Escape', keyCode: 27, shiftKey, bubbles: true, cancelable: true
+        });
+
+        target.dispatchEvent(event);
+
+        return event;
+      }
+
+      let listener: jest.Mock;
+
+      beforeEach(() => {
+        listener = listenOnDocument();
+      });
+
+      afterEach(() => {
+        document.removeEventListener('keydown', listener);
+      });
+
+      it.each([
+        ['default', false],
+        ['emacs', false],
+        ['vim', false],
+        ['default', true],
+      ])('should keep Escape from reaching the page in %s mode (shift: %p)', (keymap, shiftKey) => {
+        mountEditor({ keymap });
+        const view = getView(wrapper);
+
+        view.focus();
+        pressEscape(view.contentDOM, shiftKey);
+
+        expect(listener).toHaveBeenCalledTimes(0);
+      });
+
+      it('should still let Vim leave Insert mode on Escape', () => {
+        mountEditor({ keymap: 'vim', modelValue: 'foo' });
+        const view = getView(wrapper);
+
+        view.focus();
+        view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'i', code: 'KeyI', keyCode: 73, bubbles: true, cancelable: true
+        }));
+        pressEscape(view.contentDOM);
+        view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'x', code: 'KeyX', keyCode: 88, bubbles: true, cancelable: true
+        }));
+
+        // In Normal mode x deletes the character under the cursor rather than typing an x
+        expect(view.state.doc.toString()).toStrictEqual('oo');
+      });
+
+      it('should let Escape reach the page when pressed outside the editor', () => {
+        mountEditor();
+
+        const event = pressEscape(wrapper.element);
+
+        expect(listener).toHaveBeenCalledWith(event);
+      });
+
+      it('should let other keys reach the page', () => {
+        mountEditor();
+        const view = getView(wrapper);
+
+        view.focus();
+        const enter = new KeyboardEvent('keydown', {
+          key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true, cancelable: true
+        });
+
+        view.contentDOM.dispatchEvent(enter);
+
+        expect(listener).toHaveBeenCalledWith(enter);
+      });
+    });
+
     it.each(['default', 'emacs', 'vim'])('should let Tab leave after Escape in %s mode', (keymap) => {
       mountEditor({ keymap, modelValue: 'foo' });
       const view = getView(wrapper);
