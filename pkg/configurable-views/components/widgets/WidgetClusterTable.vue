@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { RcButton } from '@components/RcButton';
+import { BadgeState } from '@components/BadgeState';
 import { STATE, MGMT_CLUSTER_PROVIDER, MGMT_CLUSTER_KUBE_VERSION } from '@shell/config/table-headers';
 import { STEVE_MGMT_STATE_COL, STEVE_NAME_COL, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_MGMT_CLUSTER_KUBE_VERSION } from '@shell/config/pagination-table-headers';
-import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { CAPI, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
@@ -62,6 +63,15 @@ const provClusterSchema = store.getters['management/schemaFor'](CAPI.RANCHER_CLU
 const mgmtClusterSchema = store.getters['management/schemaFor'](MANAGEMENT.CLUSTER);
 
 const title = computed(() => props.widget.title || t('landing.clusters.title'));
+
+// The count beside the heading, as the Home shows it: the count the store has kept, else the total
+// of the page the table last asked for.
+const clusterCount = ref(0);
+const clusterCountDisplay = computed<number>(() => {
+  const saved = store.getters['management/getSavedCount'](SAVED_COUNTS.K8S_CLUSTERS);
+
+  return typeof saved !== 'undefined' ? saved : clusterCount.value;
+});
 
 // Same create/manage/import targets as the stock Home header buttons.
 const manageLocation = {
@@ -139,6 +149,8 @@ const filterRowsApi = (pagination: PaginationArgs) => ManagementClusterUtils.fil
 const fetchSecondaryResources = (opts: PagTableFetchSecondaryResourcesOpts) => Promise.all(ManagementClusterUtils.fetchSecondaryResources(opts, { $store: store }));
 
 async function fetchPageSecondaryResources(opts: PagTableFetchPageSecondaryResourcesOpts): Promise<void> {
+  clusterCount.value = !opts.canPaginate || !opts.page?.length ? 0 : opts.pagResult.count;
+
   await Promise.all(await ManagementClusterUtils.fetchPageSecondaryResources(opts, { $store: store }));
 }
 
@@ -174,12 +186,18 @@ onBeforeUnmount(() => ManagementClusterUtils.forgetSecondaryResources({ context:
     :namespaced="false"
     :groupable="false"
     key-field="id"
+    manual-refresh-button-size="sm"
   >
     <template #header-left>
       <div class="row table-heading">
         <h1 class="mb-0">
           {{ title }}
         </h1>
+        <BadgeState
+          v-if="clusterCountDisplay"
+          :label="clusterCountDisplay.toString()"
+          color="bg-info ml-20 mr-20"
+        />
       </div>
     </template>
 
@@ -267,5 +285,11 @@ onBeforeUnmount(() => ManagementClusterUtils.forgetSecondaryResources({ context:
   align-items: center;
   display:     flex;
   gap:         10px;
+}
+
+// The Home's heading row: 39px tall, the count sitting beside the title.
+.row.table-heading {
+  gap:    0;
+  height: 39px;
 }
 </style>

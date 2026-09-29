@@ -230,6 +230,32 @@ const visibleRows = computed(() => (filtered.value ? filterRows(rows.value) : ro
 // there the table must do its own paging, or it draws all of them under a footer claiming 11-20.
 const externalResult = computed(() => ({ count: pageCount.value }));
 
+/**
+ * The count beside the title, as a list's heading shows it: how many rows the widget shows, across
+ * every page.
+ *
+ * From a named cluster, the server's total for the filter - or, when the widget filters the rows
+ * itself, how many passed. For a global type, the total the store kept with the page it last asked
+ * for (the filter already applied by the API), or, when it holds every row, how many pass the filter.
+ */
+const count = computed<number | null>(() => {
+  if (downstream.value) {
+    return filtered.value ? visibleRows.value.length : pageCount.value;
+  }
+
+  if (!schema.value) {
+    return null;
+  }
+
+  const page = store.getters[`${ inStore.value }/havePage`]?.(props.widget.resource);
+
+  if (typeof page?.result?.count === 'number') {
+    return page.result.count;
+  }
+
+  return filterRows(store.getters[`${ inStore.value }/all`]?.(props.widget.resource) || []).length;
+});
+
 const downstreamMessage = computed(() => (cluster.value ? pageError.value : t(NO_CLUSTER)));
 
 /**
@@ -252,6 +278,7 @@ function applyApiFilter(pagination: PaginationArgs): PaginationArgs {
   <WidgetCard
     v-if="downstream"
     :title="widget.title"
+    :count="widget.title ? count : null"
     :loading="loadingPage && !rows.length"
     :error="downstreamMessage"
   >
@@ -284,6 +311,7 @@ function applyApiFilter(pagination: PaginationArgs): PaginationArgs {
   <WidgetCard
     v-else
     :title="widget.title"
+    :count="widget.title && schema ? count : null"
     :error="schema ? '' : t('configurableViews.widget.noType', { type: widget.resource })"
   >
     <PaginatedResourceTable
