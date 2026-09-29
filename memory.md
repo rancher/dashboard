@@ -62,6 +62,13 @@
 - encryption.ts: polyfill `globalThis.crypto` from `import { webcrypto } from 'crypto'` in `beforeAll` — jsdom has no Web Crypto API; Node 24 does
 - encryption.ts: use real crypto (not mocked); tamper tests verify AES-GCM authentication tag rejection
 
+## Testing Notes (axios)
+
+- axios.js: no HTTP mocking library in this repo (no nock/axios-mock-adapter) — test the Nuxt plugin's default export by calling it with a fake `ctx = { $config }` and inspecting the real `Axios.create()` instance it returns; interceptors can be exercised directly via `axios.interceptors.request.handlers[i].fulfilled/rejected` (each handler is `{fulfilled, rejected, synchronous, runWhen}`) without making real network calls
+- axios.js: `process.browser` and `window.$globalApp` (used by `$loading`) are both ambient globals set by Nuxt at runtime — must set/delete them manually around each test (`delete (process as any).browser`, `delete (window as any).$globalApp` in `afterEach`)
+- axios.js: the `$loading` progress tracker uses a `currentRequests` counter closed over in `setupProgress`; must call the *request* interceptor before the *response*/*error* interceptor in a test to increment the counter before it's decremented, or `finish()` is never reached (counter goes negative and clamps to 0 without calling `$loading()`)
+- axios.js: `Axios.isCancel` requires an actual `axios.Cancel` instance (`new (require('axios').Cancel)('msg')`) — a plain `{ __CANCEL__: true }` object won't satisfy `isCancel` in this axios version (1.18.0)
+
 ## Testing Notes (socket)
 
 - socket.js: jsdom does NOT provide a controllable `WebSocket` (it exists as a stub type but can't be driven deterministically) — install a minimal `MockWebSocket` class as `global.WebSocket` in `beforeEach`, capturing instances in a static array so tests can trigger `onopen`/`onmessage`/`onclose` manually
@@ -83,13 +90,14 @@
 6. `shell/utils/custom-validators.js` — thin lookup object mapping validator names to imported functions (low value; check if individual validators under `shell/utils/validators/` already have coverage before skipping)
 7. `shell/utils/v-sphere.ts` — DONE 2026-09-24 (see Completed Work)
 8. `shell/utils/socket.js` — DONE 2026-09-25 (see Completed Work)
-9. `shell/utils/axios.js` (168 lines) — untested; candidate for next run
-10. `shell/utils/stream.js` (49 lines) — untested; candidate for next run
+9. `shell/utils/axios.js` — DONE 2026-09-29 (see Completed Work)
+10. `shell/utils/stream.js` (49 lines) — untested; candidate for next run (fetch/TextDecoder streaming logic, real logic worth testing)
 11. Remaining untested `shell/utils` files are trivial (`clipboard.js` 9 lines, `config.js` 4 lines, `scroll.js` 7 lines, `type-helpers.ts` 9 lines, `object.d.ts` 0 lines) — low value, skip
 12. All `shell/composables/*.ts` now have tests except `drawer.ts` (item 4 above, low value thin wrapper) — composables directory is essentially fully covered structurally; next composable work should focus on deepening existing test branch coverage rather than new files
 
 ## Completed Work (Summary — recent only)
 
+- 2026-09-29: PR (test-assist/axios-utils-tests): 34 new tests for `shell/utils/axios.js` Nuxt axios plugin — default `$axios` instance creation/injection, baseURL derivation (browser/SSR, browserBaseURL fallback), header/token scope helpers (setHeader/setToken/setBaseURL), interceptor registration (onRequest/onResponse/onRequestError/onResponseError/onError), `$get`/`$post`/etc. convenience wrappers, and `$loading` progress-tracking interceptors (including cancelled-request and `progress:false` skip paths); 0%→95.23% stmts, 0%→98.24% branches, 0%→80% fns. Tested by inspecting real `axios.interceptors.{request,response}.handlers[i].fulfilled/rejected` directly (no HTTP mocking library available in repo — no nock/axios-mock-adapter) rather than making real network calls.
 - 2026-09-25: PR (test-assist/socket-utils-tests): 26 new tests for `shell/utils/socket.js` `Socket` class (websocket reconnect/backoff/watchdog); 0%→91.44% stmts, 0%→84.14% branches, 0%→88.88% fns. Used a minimal `MockWebSocket` on `global.WebSocket` (jsdom doesn't provide a controllable one) + Jest fake timers for watchdog/backoff. Verified PR #19245 and #19213's CI failures (a11y-test/e2e flakiness, milestone-config check) are unrelated to the test-only changes — no action needed there.
 - 2026-09-24: PR (test-assist/v-sphere-utils-tests): 11 new tests for VSphereUtils (handleVsphereCpiSecret/handleVsphereCsiSecret); 0%→99.3% stmts, 0%→67.7% branches, 0%→100% fns. Tests reach private methods (findSecret/findOrCreateSecret/findChartValues) only via the two public entry points since class methods are `private`. Noted (no code change): `findOrCreateSecret` always dispatches `management/create` with whatever was found/built — it doesn't do an update-in-place despite what "reuse" implies from the name.
 - 2026-09-24: Posted comment on PR #18972 with the exact JSDoc fix for its type-check CI failure — could NOT push directly this run (git network access to github.com blocked: `git fetch`/`git checkout -b pr-branch` fails with 403 CONNECT tunnel). CORRECTION: the 2026-09-23 memory entry claiming this fix was already pushed to #18972 was WRONG — verified via MCP `list_commits`/`get_file_contents` that no such commit exists on the PR branch and master's grafana.js still lacks the JSDoc annotation. Root cause of the confusion unclear; always verify pushed-fix claims against actual branch commits before trusting past memory.
@@ -115,6 +123,7 @@
 
 ## Task Round-Robin History (recent)
 
+- 2026-09-29: Task 3 (new PR: axios.js) + Task 4 (verified #19277/#19213 CI failures unrelated to test PRs, no action needed) + Task 7
 - 2026-09-25: Task 3 (new PR: socket.js) + Task 4 (verified #19245/#19213 CI failures unrelated to test PRs, no action needed) + Task 7
 - 2026-09-24: Task 3 (new PR: v-sphere.ts) + Task 4 (commented fix on #18972, verified #19213 CI green) + Task 7
 - 2026-09-23: Task 3 (new PR + PR fix/maintenance) + Task 7
