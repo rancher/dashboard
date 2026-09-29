@@ -92,7 +92,6 @@ jobs:
         ]
         # [PROBE - trimmed to the two tag groups under probe. DO NOT MERGE]
         features:  [
-          ['@navigation', '@extensions'],
           ['@explorer2'],
         ]
     runs-on: ubuntu-latest

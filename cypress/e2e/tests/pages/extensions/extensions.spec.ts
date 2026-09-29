@@ -440,9 +440,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
       // The extension reload re-initialises the whole app and occasionally lands on a page where the
       // tabs container never mounts (seen as "extension-tabs not found"). A fresh navigation to the
       // extensions page recovers deterministically off a clean load before we wait for the tabs.
-      // PROBE (do not merge): the fresh re-navigation that worked around this is removed, so if the
-      // reload really leaves the tabs container unmounted, waitForTabs fails here with
-      // "extension-tabs not found" - the exact symptom the marker above claims.
+      extensionsPo.goTo();
+      extensionsPo.waitForPage();
       extensionsPo.waitForTabs();
     });
 
