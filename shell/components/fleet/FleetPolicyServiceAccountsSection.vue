@@ -39,14 +39,14 @@ const namespaceCreationDocsUrl = getPolicyNamespaceCreationDocsUrl();
 
 const allowedServiceAccounts = computed(() => props.value.allowedServiceAccounts || []);
 
-const restrictOptions = computed(() => [
+const restrictOptions = [
   { value: false, label: t('fleet.policy.serviceAccounts.restrict.all') },
   {
     value:       true,
     label:       t('fleet.policy.serviceAccounts.restrict.selected'),
     description: t('fleet.policy.serviceAccounts.restrict.description'),
   },
-]);
+];
 
 // Fleet reads a list left behind as a restriction, so going back to allowing all has to clear it.
 // The names are kept for the rest of the session instead of being thrown away, so changing the
