@@ -24,7 +24,15 @@ export const RESOURCE_ROW_SELECTOR = 'tbody tr:not(.sub-row):not(.group-row):not
  * Read from the page rather than `self()`: a table built from a chainable shares it, and each `find`
  * moves its subject, so after one lookup `self()` is no longer the table
  */
-const withTableViews = <S>(tableViews: () => Cypress.Chainable<S>, old: () => Cypress.Chainable<S>): Cypress.Chainable<S> => cy.get('body').then(($body) => ($body.find('.has-table-views:visible').length ? tableViews() : old()));
+const withTableViews = <S>(tableViews: () => Cypress.Chainable<S>, old: () => Cypress.Chainable<S>): Cypress.Chainable<S> => cy.get('body').then(($body) => ($body.find('.has-table-views').filter((_, el) => isRendered(el)).length ? tableViews() : old()));
+
+/**
+ * Laid out, which leaves out a table in a tab not shown. Not `:visible`: Cypress reads that as on
+ * screen, so it misses a control scrolled out of a narrow toolbar, which a click would scroll to
+ */
+const isRendered = (el: HTMLElement) => el.getClientRects().length > 0;
+
+const rendered = (selector: string) => cy.get(selector).filter((_, el) => isRendered(el));
 
 export default class SortableTablePo extends ComponentPo {
   /**
@@ -106,7 +114,7 @@ export default class SortableTablePo extends ComponentPo {
    * selected
    */
   selectionActionsButton() {
-    return cy.get('[data-testid$="-selection-actions"]:visible');
+    return rendered('[data-testid$="-selection-actions"]');
   }
 
   openSelectionActions() {
@@ -133,16 +141,22 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   viewMenuButton() {
-    return cy.get('[data-testid="table-views-view-menu"]:visible');
+    return rendered('[data-testid="table-views-view-menu"]');
   }
 
   /**
    * Open the View menu's Group By list
    */
   openGroupBy() {
-    // As with the selection's menu: one still fading would close the menu this click opens
-    cy.getId('table-views-view-group').should('not.exist');
-    this.viewMenuButton().click();
+    this.viewMenuButton().then(($button) => {
+      if ($button.attr('aria-expanded') === 'true') {
+        return;
+      }
+
+      // As with the selection's menu: one still fading would close the menu this click opens
+      cy.getId('table-views-view-group').should('not.exist');
+      cy.wrap($button).click();
+    });
 
     return cy.getId('table-views-view-group').click();
   }
