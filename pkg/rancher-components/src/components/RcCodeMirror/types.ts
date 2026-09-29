@@ -1,4 +1,5 @@
 import type { Extension } from '@codemirror/state';
+import type { LintSource } from '@codemirror/lint';
 import type { FoldOptions } from './extensions/fold';
 
 export type RcCodeMirrorLanguage = 'yaml' | 'json';
@@ -26,6 +27,11 @@ export interface RcCodeMirrorProps {
   lineWrapping?: boolean;
   extensions?: Extension[];
   foldOptions?: FoldOptions;
+  /**
+   * Checks the document and returns its problems, which are underlined in the text. In the editor
+   * variant a gutter between the line numbers and the fold gutter also marks the lines with problems.
+   */
+  linter?: LintSource;
   /**
    * Show an indicator in the top-right corner when the Vim or Emacs keymap is active. Selecting it
    * hides it until the editor is remounted.

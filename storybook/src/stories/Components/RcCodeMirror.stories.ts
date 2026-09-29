@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { ref } from 'vue';
 import type { EditorView } from '@codemirror/view';
+import type { Diagnostic, LintSource } from '@codemirror/lint';
 import {
   RcCodeMirror, foldByLineMatch, foldByYamlPath, foldMatchingLines, foldYamlPath
 } from '@components/RcCodeMirror';
@@ -74,10 +75,14 @@ const meta: Meta<typeof RcCodeMirror> = {
       control:     { type: 'select' },
       description: '`editor` is a code editor with gutters. `input` is a multi-line form input that preserves whitespace, without gutters, always wrapping and with line breaks marked.'
     },
-    readOnly:        { control: 'boolean', description: 'Prevents the document from being edited.' },
-    lineNumbers:     { control: 'boolean', description: 'Shows the line number gutter.' },
-    foldGutter:      { control: 'boolean', description: 'Shows the fold gutter. Folding still works from the keyboard and the fold helpers when it is hidden.' },
-    lineWrapping:    { control: 'boolean', description: 'Wraps long lines instead of scrolling horizontally.' },
+    readOnly:     { control: 'boolean', description: 'Prevents the document from being edited.' },
+    lineNumbers:  { control: 'boolean', description: 'Shows the line number gutter.' },
+    foldGutter:   { control: 'boolean', description: 'Shows the fold gutter. Folding still works from the keyboard and the fold helpers when it is hidden.' },
+    lineWrapping: { control: 'boolean', description: 'Wraps long lines instead of scrolling horizontally.' },
+    linter:       {
+      control:     false,
+      description: 'Returns the document\'s problems, which are underlined. The editor variant also marks their lines in a gutter.'
+    },
     keymapIndicator: { control: 'boolean', description: 'Shows an indicator when the Vim or Emacs keymap is active. Selecting it hides it until the editor is remounted.' },
     foldOptions:     {
       control:     'object',
@@ -151,6 +156,43 @@ export const ReadOnly: Story = {
 export const KeymapIndicator: Story = {
   ...Default,
   args: { keymap: 'vim', keymapIndicator: true },
+};
+
+// YAML does not allow tabs for indentation
+const tabIndentLinter: LintSource = (view) => {
+  const diagnostics: Diagnostic[] = [];
+
+  for (let number = 1; number <= view.state.doc.lines; number++) {
+    const line = view.state.doc.line(number);
+    const indent = /^[ \t]*/.exec(line.text)?.[0] ?? '';
+    const tab = indent.indexOf('\t');
+
+    if (tab >= 0) {
+      diagnostics.push({
+        from: line.from + tab, to: line.from + tab + 1, severity: 'error', message: 'Tabs are not allowed for indentation'
+      });
+    }
+  }
+
+  return diagnostics;
+};
+
+export const Linter: Story = {
+  render: (args: any) => ({
+    components: { RcCodeMirror },
+    setup() {
+      const value = ref('metadata:\n  name: nginx\n\tnamespace: default\nspec:\n  replicas: 3\n');
+
+      return {
+        args, value, linter: tabIndentLinter
+      };
+    },
+    template: `
+      <div style="height: 200px;">
+        <RcCodeMirror v-bind="args" v-model="value" :linter="linter" aria-label="Deployment" />
+      </div>
+    `,
+  }),
 };
 
 export const ReadOnlyKeyboard: Story = {
