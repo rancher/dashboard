@@ -120,9 +120,9 @@ describe('CodeMirror editor shortcuts', { tags: ['@components', '@adminUser', '@
     cy.realPress('h');
     editor().value().should('eq', 'first: line\nsecond: line');
 
-    // Killing the region shows what was selected
-    cy.realPress(['Control', 'w']);
-    editor().value().should('eq', '');
+    // Replacing the region shows that the whole document was selected
+    cy.realType('x');
+    editor().value().should('eq', 'x');
   });
 
   // Page down depends on the real layout, so only check that the cursor moved more than one line
