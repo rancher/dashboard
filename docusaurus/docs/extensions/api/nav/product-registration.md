@@ -75,7 +75,7 @@ Add pages to an existing Rancher Dashboard product.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `product` | `StandardProductName` | One of: `'explorer'`, `'manager'`, `'settings'`, `'auth'` |
+| `product` | `StandardProductName \| string` | One of: `'explorer'`, `'manager'`, `'settings'`, `'auth'`, or the name of a product another extension registered with `extendable: true` |
 | `config` | `ProductChild[]` | Array of pages or groups to add to the product |
 
 ## Usage
@@ -291,6 +291,10 @@ The products available for extension are:
 | `'manager'` | Cluster Management |
 | `'settings'` | Global Settings |
 | `'auth'` | Authentication & API Keys |
+
+You can also extend a product that another extension registered, as long as that extension set [`extendable: true`](#productmetadata) on it. Pass the product's name as the first argument. The extension that owns the product has to be loaded before the one extending it, otherwise the call fails with `Product "<name>" is not extendable`.
+
+Pages you add this way inherit the routing of the product you are extending, so they behave exactly like the product's own pages — including top level products, whose pages live at `<product>/c/:cluster/...` rather than `c/:cluster/<product>/...`.
 
 ## Type Reference
 
