@@ -161,6 +161,49 @@ describe('component: Group', () => {
     expect((wrapper.vm as any).isOverview).toBe(true);
   });
 
+  describe('when the overview shares a route name with a sibling', () => {
+    // A legacy DSL product can point several nav items at one named route and tell them apart
+    // through their params (e.g. every page on `c-cluster-<product>-page` with its own `params.page`).
+    // Matching on the route name alone would highlight the group header on all of them.
+    const group = {
+      name:     'test',
+      children: [
+        { route: { name: 'c-cluster-myprod-page', params: { page: 'overview' } }, overview: true },
+        { route: { name: 'c-cluster-myprod-page', params: { page: 'other' } } },
+      ],
+    };
+
+    const mountOnPage = (page: string) => shallowMount(Group as any, {
+      props: {
+        group, canCollapse: true, idPrefix: ''
+      },
+      global: {
+        mocks: {
+          $route: {
+            name:     'c-cluster-myprod-page',
+            path:     `/c/local/myprod/${ page }`,
+            fullPath: `/c/local/myprod/${ page }`,
+            params:   { cluster: 'local', page },
+            matched:  [],
+          },
+          $router: {
+            resolve:   jest.fn((location: any) => ({ path: `/c/local/myprod/${ location?.params?.page }` })),
+            getRoutes: jest.fn().mockReturnValue([{ name: 'c-cluster-myprod-page', path: '/c/:cluster/myprod/:page' }]),
+          },
+          t: (key: string) => key,
+        }
+      }
+    });
+
+    it('isOverview is true on the overview page', () => {
+      expect((mountOnPage('overview').vm as any).isOverview).toBe(true);
+    });
+
+    it('isOverview is false on the sibling page', () => {
+      expect((mountOnPage('other').vm as any).isOverview).toBe(false);
+    });
+  });
+
   it('hasActiveRoute ignores query parameters when checking item paths', () => {
     const group = {
       name:     'test',

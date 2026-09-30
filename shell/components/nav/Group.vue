@@ -73,13 +73,19 @@ export default {
     },
 
     isOverview() {
-      const overview = this.overviewChild;
+      const overviewRoute = this.overviewChild?.route;
 
-      if (overview?.route?.name) {
-        return this.$route.name === overview.route.name;
+      if (!overviewRoute?.name || this.$route.name !== overviewRoute.name) {
+        return false;
       }
 
-      return false;
+      // A route name can be shared by several nav items that are told apart only by their params
+      // (a legacy product whose pages all use `c-cluster-<product>-page`, for example), so the name
+      // on its own isn't enough. `cluster` is the exception: the stored route always carries the
+      // BLANK_CLUSTER placeholder rather than the cluster we're actually on (issue #19169).
+      const { params = {} } = filterLocationValidParams(this.$router, overviewRoute) || {};
+
+      return Object.entries(params).every(([key, value]) => key === 'cluster' || this.$route.params?.[key] === value);
     },
 
     // The expand/collapse state lives on the group itself rather than in this
