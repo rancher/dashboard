@@ -242,6 +242,44 @@ describe('component: CodeMirror.vue', () => {
       expect(emitted.getValue()).toStrictEqual('foo: bar');
     });
   });
+
+  describe('host shortcuts', () => {
+    const createWrapper = (shortkey: object) => shallowMount(CodeMirror, {
+      ...mountOptions,
+      global: { ...mountOptions.global, directives: { shortkey } }
+    });
+
+    afterEach(() => {
+      delete (window as any).__codemirror;
+    });
+
+    it('should exclude the editor from the shortcuts of a Rancher version without CodeMirror 6', () => {
+      const shortkey = { beforeMount: jest.fn() };
+      const view = new EditorView({ doc: '' });
+
+      createWrapper(shortkey).findComponent(RcCodeMirror).vm.$emit('ready', view);
+
+      expect(shortkey.beforeMount).toHaveBeenCalledWith(view.contentDOM, { modifiers: { avoid: true } }, null);
+    });
+
+    it('should leave the shortcuts of a Rancher version with CodeMirror 6 alone', () => {
+      const shortkey = { beforeMount: jest.fn() };
+
+      (window as any).__codemirror = {};
+      createWrapper(shortkey).findComponent(RcCodeMirror).vm.$emit('ready', new EditorView({ doc: '' }));
+
+      expect(shortkey.beforeMount).not.toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.anything());
+    });
+
+    it('should not fail without a shortcut directive', () => {
+      const wrapper = shallowMount(CodeMirror, mountOptions);
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('ready', new EditorView({ doc: '' }));
+
+      expect(wrapper.emitted('onReady')).toHaveLength(1);
+    });
+  });
+
   describe('yaml lint', () => {
     const createWrapper = (props = {}) => shallowMount(CodeMirror, {
       ...mountOptions,

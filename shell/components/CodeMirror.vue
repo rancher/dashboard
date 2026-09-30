@@ -249,8 +249,26 @@ export default defineComponent({
       this.view?.requestMeasure();
     },
 
+    /**
+     * Rancher versions from before CodeMirror 6 only stand their keyboard shortcuts down in inputs,
+     * textareas and selects, where CodeMirror 5 kept focus, so their single-key shortcuts (e.g. `n` for
+     * the namespace filter) take keys typed in this editor when an extension shows it there. Their
+     * shortcut directive can exclude the editor like one of those.
+     */
+    avoidHostShortcuts(view: EditorView) {
+      // Versions that share CodeMirror 6 with extensions already exclude editors
+      if ((window as any).__codemirror) {
+        return;
+      }
+
+      const shortkey = this.$.appContext.directives?.shortkey as { beforeMount?: (el: Element, binding: unknown, vnode: unknown) => void } | undefined;
+
+      shortkey?.beforeMount?.(view.contentDOM, { modifiers: { avoid: true } }, null);
+    },
+
     onReady(view: EditorView) {
       this.view = markRaw(view);
+      this.avoidHostShortcuts(view);
 
       this.$emit('validationChanged', true);
       this.lint(this.value);
