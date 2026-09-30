@@ -115,7 +115,7 @@ export const WORKLOAD_KINDS = {
  */
 export const WORKLOAD_TYPE_TO_KIND_MAPPING = {
   // Each deployment creates a replicaset and the metrics are published for a replicaset.
-  [WORKLOAD_TYPES.DEPLOYMENT]:             WORKLOAD_KINDS.DEPLOYMENT,
+  [WORKLOAD_TYPES.DEPLOYMENT]:             WORKLOAD_KINDS.REPLICA_SET,
   [WORKLOAD_TYPES.CRON_JOB]:               WORKLOAD_KINDS.CRON_JOB,
   [WORKLOAD_TYPES.DAEMON_SET]:             WORKLOAD_KINDS.DAEMON_SET,
   [WORKLOAD_TYPES.JOB]:                    WORKLOAD_KINDS.JOB,
