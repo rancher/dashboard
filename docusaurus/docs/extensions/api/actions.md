@@ -53,7 +53,9 @@ _Arguments_
 |`shortcut`| String | Shortcut key bindings. Passed as a string (ex: m), for which the default will be `Ctrl+m` for Linux/Windows and `Meta+m` for Mac OS. Check examples below |
 |`icon`| String | icon name (based on [rancher icons](https://rancher.github.io/icons/)) |
 |`svg`| Function | icon based on a SVG file which can be included using `@require` |
-|`enabled`| Function | Whether the action/button is enabled or not |
+|`enabled`| Function | Whether the action/button is enabled or not. A function returning a boolean is checked again whenever the reactive state it reads changes; one returning a promise is checked on navigation |
+|`disabledTooltip`| String | Text for the tooltip while the button is disabled, saying why |
+|`disabledTooltipKey`| String | Same as "disabledTooltip" but allows for translation. Will superseed "disabledTooltip" |
 |`invoke`| Function | function executed when action/button is clicked |
 
 Usage example for `'ActionLocation.HEADER'`:
