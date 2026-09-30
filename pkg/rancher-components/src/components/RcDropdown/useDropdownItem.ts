@@ -9,6 +9,11 @@ export const useDropdownItem = () => {
    * @param {KeyboardEvent} e - The keydown event.
    */
   const handleKeydown = (e: KeyboardEvent) => {
+    // Alt, Ctrl and Cmd are the consumer's, eg to move an item; Shift moves as a plain arrow does
+    if (e.altKey || e.ctrlKey || e.metaKey) {
+      return;
+    }
+
     const activeItem = document.activeElement;
 
     const activeIndex = dropdownItems.value.indexOf(activeItem || new HTMLElement());

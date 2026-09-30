@@ -55,7 +55,7 @@ const focusMenuItem = () => {
     :aria-disabled="disabled || false"
     @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
-    @keydown.up.down.exact.prevent.stop="handleKeydown"
+    @keydown.up.down.prevent.stop="handleKeydown"
     @focusin="scrollIntoView"
     @mouseenter="handleMouseenter"
   >

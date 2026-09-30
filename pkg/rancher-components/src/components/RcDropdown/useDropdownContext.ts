@@ -4,30 +4,20 @@ import { useDropdownSubmenus } from './useDropdownSubmenus';
 import { RcButtonType } from '@components/RcButton';
 import { DropdownContext } from './types';
 
-let lastInputWasKey = false;
-
-let trackingInput = false;
-
-/** Listened for once, for every menu */
-const trackInput = () => {
-  if (trackingInput || typeof window === 'undefined') {
-    return;
-  }
-
-  trackingInput = true;
-  window.addEventListener('keydown', () => {
-    lastInputWasKey = true;
-  }, true);
-  window.addEventListener('pointerdown', () => {
-    lastInputWasKey = false;
-  }, true);
-};
-
 /**
- * Whether the last input was a key press rather than the pointer. A menu opened through `open` has
- * no trigger of its own to tell it
+ * Whether the focus got where it is from the keyboard rather than the pointer, as the browser judges
+ * it for focus rings. A menu opened through `open` has no trigger of its own to tell it
  */
-export const lastInputWasKeyPress = () => lastInputWasKey;
+export const focusedFromKeyboard = (): boolean => {
+  const focused = document.activeElement;
+
+  try {
+    return !!focused && focused !== document.body && focused.matches(':focus-visible');
+  } catch {
+    // A browser without `:focus-visible` falls back to the pointer's behaviour: the menu takes the focus
+    return false;
+  }
+};
 
 /**
  * Composable that provides the context for a dropdown menu. Includes methods
@@ -46,8 +36,6 @@ export const useDropdownContext = (emit: EmitFn<['update:open']>) => {
     dropdownContainer,
     registerDropdownCollection,
   } = useDropdownCollection();
-
-  trackInput();
 
   const isMenuOpen = ref(false);
 
