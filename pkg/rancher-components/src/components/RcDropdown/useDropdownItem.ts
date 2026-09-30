@@ -2,7 +2,7 @@ import { inject } from 'vue';
 import { DropdownContext, defaultContext } from './types';
 
 export const useDropdownItem = () => {
-  const { dropdownItems, close } = inject<DropdownContext>('dropdownContext') || defaultContext;
+  const { dropdownItems, close, hoverSubmenu } = inject<DropdownContext>('dropdownContext') || defaultContext;
 
   /**
    * Handles keydown events to navigate between dropdown items.
@@ -52,6 +52,11 @@ export const useDropdownItem = () => {
    * @param e - The keydown event.
    */
   const handleActivate = (e: KeyboardEvent) => {
+    // Space would scroll the menu as well. Not for a field inside the item, which needs its keys
+    if (e?.target === e?.currentTarget) {
+      e.preventDefault();
+    }
+
     if (e?.target instanceof HTMLElement) {
       e?.target?.click();
     }
@@ -84,10 +89,14 @@ export const useDropdownItem = () => {
     });
   };
 
+  /** The pointer on an item of the menu moves it away from an open submenu */
+  const handleMouseenter = () => hoverSubmenu(null);
+
   return {
     handleKeydown,
     close,
     handleActivate,
     scrollIntoView,
+    handleMouseenter,
   };
 };

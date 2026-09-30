@@ -3,9 +3,7 @@
  * The row under the view tabs: the filter query and the View menu (grouping and columns). It edits
  * the `view` prop and hands it back; the tabs above see the change through the table
  */
-import {
-  computed, nextTick, onBeforeUnmount, onMounted, ref, watch
-} from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useStore } from 'vuex';
 
 import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInput.vue';
@@ -14,16 +12,18 @@ import { useI18n } from '@shell/composables/useI18n';
 import { validateQuery } from '@shell/utils/table-views/query';
 import { NO_GROUPING } from '@shell/utils/table-views/views';
 import type { TableViewField, TableViewQueryProblem, TableViewRow, TableViewState } from '@shell/types/table-views';
-import { RcDropdown, RcDropdownItem, RcDropdownSeparator, RcDropdownTrigger } from '@components/RcDropdown';
+import {
+  RcDropdown,
+  RcDropdownItem,
+  RcDropdownItemCheckbox,
+  RcDropdownItemRadio,
+  RcDropdownSeparator,
+  RcDropdownSubmenu,
+  RcDropdownTrigger
+} from '@components/RcDropdown';
 
 /** Clears the row's hover highlight rather than sitting over the handle */
 const TOOLTIP_DISTANCE = 12;
-
-/** Time to cross the rows between a row and the sub menu it opened, before another row takes over */
-const SUB_MENU_GRACE_MS = 300;
-
-/** Must match $menu-gutter in the stylesheet */
-const MENU_GUTTER = 16;
 
 const props = withDefaults(defineProps<{
   view: TableViewState,
@@ -68,28 +68,13 @@ const store = useStore();
 
 const { t } = useI18n(store);
 
-const root = ref<HTMLElement | null>(null);
-
-const viewMenu = ref<HTMLElement | null>(null);
-
 const columnsPanel = ref<HTMLElement | null>(null);
 
 const groupPanel = ref<HTMLElement | null>(null);
 
-/** The content region under the fixed masthead, so a sub menu slid into view doesn't go under it */
-const menuBoundary = ref<Element | undefined>(undefined);
-
 const queryFocused = ref(false);
 
-/** 'group', 'columns', or null. Menu items have no trigger, so the row that opens one says so here */
-const subMenu = ref<string | null>(null);
-
-/** The opening row keeps its highlight while the pointer is in the sub menu */
-const subMenuHovered = ref(false);
-
 const columnSlots = ref<{ top: number, bottom: number }[] | null>(null);
-
-let subMenuTimer: ReturnType<typeof setTimeout> | undefined;
 
 /** Held back while the box has the caret, so `state:` isn't reported halfway through `state:active` */
 const shownProblems = computed(() => (queryFocused.value ? [] : validateQuery(props.view.query, props.fields)));
@@ -280,65 +265,7 @@ const resetView = () => update({
   query: '', columns: null, labelColumns: [], columnOrder: null, groupBy: null, sort: null, sortDescending: false
 });
 
-/** Opening is immediate; switching away from an open one waits - see SUB_MENU_GRACE_MS */
-const hoverSubMenu = (key: string | null) => {
-  clearTimeout(subMenuTimer);
-
-  if (subMenu.value === key) {
-    return;
-  }
-
-  if (!subMenu.value) {
-    subMenu.value = key;
-
-    return;
-  }
-
-  subMenuTimer = setTimeout(() => {
-    subMenu.value = key;
-  }, SUB_MENU_GRACE_MS);
-};
-
-const openSubMenu = (key: string | null) => {
-  clearTimeout(subMenuTimer);
-  subMenu.value = key;
-};
-
-const cancelSubMenuSwitch = () => clearTimeout(subMenuTimer);
-
-const enterSubMenu = () => {
-  clearTimeout(subMenuTimer);
-  subMenuHovered.value = true;
-};
-
-/** The menu has no button to return focus to, so the row that opened it takes it */
-const closeSubMenu = (key: string | null, open: boolean) => {
-  if (!open && key && subMenu.value === key) {
-    subMenu.value = null;
-    nextTick(() => (viewMenu.value?.querySelector(`[data-testid="table-views-view-${ key }"]`) as HTMLElement)?.focus());
-  }
-};
-
-watch(subMenu, () => {
-  subMenuHovered.value = false;
-});
-
-/**
- * Follows `subMenu` in but not out, so a closing list keeps its contents instead of collapsing for
- * a frame
- */
-const shownSubMenu = ref<string | null>(null);
-
-watch(subMenu, (key) => {
-  if (key) {
-    shownSubMenu.value = key;
-  }
-});
-
-/**
- * Scroll the grouped field into view when the list opens. Keyed on the panel mounting, as reopening
- * the same sub menu doesn't change `subMenu`, and a frame later so the popper has its height
- */
+/** Scroll the grouped field into view when the list opens, a frame later so the popper has its height */
 watch(groupPanel, (panel) => {
   if (!panel) {
     return;
@@ -348,19 +275,10 @@ watch(groupPanel, (panel) => {
     panel.querySelector(`[data-testid="table-views-group-${ appliedGroupBy.value || 'none' }"]`)?.scrollIntoView({ block: 'nearest' });
   });
 });
-
-onMounted(() => {
-  menuBoundary.value = root.value?.closest('#main-content') || undefined;
-});
-
-onBeforeUnmount(() => {
-  clearTimeout(subMenuTimer);
-});
 </script>
 
 <template>
   <div
-    ref="root"
     class="table-views"
     data-testid="table-views-controls"
   >
@@ -393,12 +311,7 @@ onBeforeUnmount(() => {
         </p>
       </div>
 
-      <!-- `shift` off: it would slide the menu sideways away from its button as the window narrows -->
-      <rc-dropdown
-        flush
-        :placement="'bottom-end'"
-        :shift="false"
-      >
+      <rc-dropdown :placement="'bottom-end'">
         <rc-dropdown-trigger
           variant="tertiary"
           class="view-control-btn"
@@ -410,108 +323,67 @@ onBeforeUnmount(() => {
           {{ t('tableViews.view.label') }}
         </rc-dropdown-trigger>
         <template #dropdownCollection>
-          <div
-            ref="viewMenu"
-            class="menu-panel view-menu"
-          >
-            <!-- Sub menus open to the left, against this menu rather than the row. `shift` stays on
-                 so a long list rides up within `menuBoundary` rather than scrolling -->
-            <rc-dropdown-item
-              :close-on-click="false"
-              :class="{ 'owns-sub-menu': subMenu === 'group' && subMenuHovered }"
+          <!-- The lists open to the left: the button sits at the page's right edge -->
+          <div class="view-menu">
+            <rc-dropdown-submenu
+              side="left"
               data-testid="table-views-view-group"
-              @mouseenter="hoverSubMenu('group')"
-              @mouseleave="cancelSubMenuSwitch()"
-              @click="openSubMenu('group')"
             >
               {{ t('tableViews.view.groupBy') }}
               <template #after>
                 <span class="menu-nav-value">{{ groupLabel }}</span>
-                <i class="icon icon-chevron-right" />
               </template>
-            </rc-dropdown-item>
-
-            <rc-dropdown-item
-              :close-on-click="false"
-              :class="{ 'owns-sub-menu': subMenu === 'columns' && subMenuHovered }"
-              data-testid="table-views-view-columns"
-              @mouseenter="hoverSubMenu('columns')"
-              @mouseleave="cancelSubMenuSwitch()"
-              @click="openSubMenu('columns')"
-            >
-              {{ t('tableViews.view.columnsConfiguration') }}
-              <template #after>
-                <span class="menu-nav-value">{{ columnsSummary }}</span>
-                <i class="icon icon-chevron-right" />
-              </template>
-            </rc-dropdown-item>
-            <!-- One popper for both lists: two blinked, closing one and placing the other not being
-                 simultaneous -->
-            <rc-dropdown
-              flush
-              :open="subMenu !== null"
-              :placement="'left-start'"
-              :distance="-1"
-              :skidding="-8"
-              :flip="false"
-              :boundary="menuBoundary"
-              :overflow-padding="MENU_GUTTER"
-              popper-class="popper-no-fade"
-              :reference-node="() => viewMenu"
-              @update:open="(open) => closeSubMenu(subMenu, open)"
-            >
-              <template #dropdownCollection>
+              <template #submenu>
                 <div
-                  v-if="shownSubMenu === 'group'"
                   ref="groupPanel"
                   class="menu-panel"
-                  @mouseenter="enterSubMenu()"
-                  @mouseleave="subMenuHovered = false"
                 >
-                  <rc-dropdown-item
+                  <rc-dropdown-item-radio
                     v-for="option in groupOptions"
                     :key="option.id || 'none'"
-                    :class="{ selected: option.id === appliedGroupBy }"
-                    :close-on-click="false"
+                    :checked="option.id === appliedGroupBy"
                     :data-testid="`table-views-group-${ option.id || 'none' }`"
                     @click="toggleGroupBy(option.id)"
                   >
                     {{ option.label }}
-                    <template
-                      v-if="option.id === appliedGroupBy"
-                      #after
-                    >
-                      <i class="icon icon-checkmark" />
-                    </template>
-                  </rc-dropdown-item>
+                  </rc-dropdown-item-radio>
                   <rc-dropdown-separator />
                   <rc-dropdown-item
                     class="menu-reset"
-                    :close-on-click="false"
                     data-testid="table-views-group-reset"
                     @click="update({ groupBy: null })"
                   >
                     {{ t('tableViews.view.reset') }}
                   </rc-dropdown-item>
                 </div>
+              </template>
+            </rc-dropdown-submenu>
+
+            <rc-dropdown-submenu
+              side="left"
+              data-testid="table-views-view-columns"
+            >
+              {{ t('tableViews.view.columnsConfiguration') }}
+              <template #after>
+                <span class="menu-nav-value">{{ columnsSummary }}</span>
+              </template>
+              <template #submenu>
                 <div
-                  v-else
                   ref="columnsPanel"
                   class="menu-panel columns-panel"
-                  @mouseenter="enterSubMenu()"
-                  @mouseleave="subMenuHovered = false"
                 >
                   <TransitionGroup
                     name="column-row"
                     tag="div"
                     :class="{ 'is-reordering': heldColumnId !== null }"
                   >
-                    <rc-dropdown-item
+                    <rc-dropdown-item-checkbox
                       v-for="field in orderedColumnFields"
                       :key="field.id"
+                      indicator="checkmark"
+                      :model-value="isColumnVisible(field)"
                       :class="{ 'column-row': true, locked: isCoreColumn(field), shown: isColumnVisible(field), held: heldColumnId === field.id }"
                       :disabled="isCoreColumn(field)"
-                      :close-on-click="false"
                       :data-col-id="field.id"
                       :data-testid="`table-views-col-${ field.id }`"
                       @click="toggleColumn(field)"
@@ -531,18 +403,11 @@ onBeforeUnmount(() => {
                         />
                       </template>
                       {{ field.label }}
-                      <template
-                        v-if="isColumnVisible(field)"
-                        #after
-                      >
-                        <i class="icon icon-checkmark" />
-                      </template>
-                    </rc-dropdown-item>
+                    </rc-dropdown-item-checkbox>
                   </TransitionGroup>
 
                   <rc-dropdown-separator />
                   <rc-dropdown-item
-                    :close-on-click="false"
                     data-testid="table-views-columns-select-all"
                     @click="selectAllColumns"
                   >
@@ -553,7 +418,6 @@ onBeforeUnmount(() => {
                   </rc-dropdown-item>
                   <rc-dropdown-item
                     class="menu-reset"
-                    :close-on-click="false"
                     data-testid="table-views-columns-reset"
                     @click="resetColumns"
                   >
@@ -564,15 +428,12 @@ onBeforeUnmount(() => {
                   </rc-dropdown-item>
                 </div>
               </template>
-            </rc-dropdown>
+            </rc-dropdown-submenu>
 
             <rc-dropdown-separator />
             <rc-dropdown-item
               class="menu-reset"
-              :close-on-click="false"
               data-testid="table-views-reset"
-              @mouseenter="hoverSubMenu(null)"
-              @mouseleave="cancelSubMenuSwitch()"
               @click="resetView"
             >
               {{ t('tableViews.view.reset') }}
@@ -641,26 +502,20 @@ onBeforeUnmount(() => {
   }
 }
 
-.menu-panel {
-  // Room for the value beside each row
-  &.view-menu {
-    min-width: 300px;
-  }
-
-  // Keeps the opening row highlighted while the pointer is in its sub menu
-  [dropdown-menu-item].owns-sub-menu {
-    background-color: var(--dropdown-hover-bg);
-  }
+// Room for the value beside each row
+.view-menu {
+  min-width: 300px;
 
   .menu-nav-value {
     color: var(--muted);
     max-width: 150px;
-    margin-right: 8px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+}
 
+.menu-panel {
   // Only while a row is carried: the popper is positioned after mounting, which FLIP would animate
   // as every row sliding in
   .is-reordering .column-row-move {

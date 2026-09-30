@@ -196,8 +196,8 @@ export default class SortableTablePo extends ComponentPo {
     this.openGroupBy();
     this.groupByOption(label).then(($option) => {
       // A click on the current grouping would turn it off. Forced: the list is drawn beside the View
-      // menu but sits inside it on the page, so Cypress thinks the menu's overflow hides it
-      if (!$option.hasClass('selected')) {
+      // menu but sits inside its popper on the page, so Cypress can think the popper covers it
+      if ($option.attr('aria-checked') !== 'true') {
         cy.wrap($option).click({ force: true });
       }
     });

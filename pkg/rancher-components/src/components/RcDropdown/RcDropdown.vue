@@ -22,11 +22,14 @@
  */
 import { ref, watch } from 'vue';
 import { useClickOutside } from '@shell/composables/useClickOutside';
-import { useDropdownContext } from '@components/RcDropdown/useDropdownContext';
+import { lastInputWasKeyPress, useDropdownContext } from '@components/RcDropdown/useDropdownContext';
 
 import type { Placement } from 'floating-vue';
 
 type ReferenceNode = () => Element | undefined | null;
+
+/** How far a submenu's popper keeps from the edges of the page */
+const SUBMENU_EDGE_GAP = 16;
 
 const props = withDefaults(
   defineProps<{
@@ -34,33 +37,17 @@ const props = withDefaults(
     ariaLabel?: string;
     // eslint-disable-next-line vue/require-default-prop
     distance?: number;
-    // eslint-disable-next-line vue/require-default-prop
-    skidding?: number;
     /** Positions the menu against this element instead of the trigger */
     // eslint-disable-next-line vue/require-default-prop
     referenceNode?: ReferenceNode;
-    /** Off keeps a sub menu in line with the row that opened it rather than sliding it into view */
-    /** Opens and closes the menu from outside, for a menu opened by an item rather than a trigger */
+    /**
+     * Opens and closes the menu from outside (`v-model:open`), eg for a menu without a trigger. From
+     * the keyboard the first item takes the focus, and on closing it goes back to whatever had it
+     */
     open?: boolean;
-    shift?: boolean;
-    /** Off keeps a sub menu in line with its row rather than flipping it to the other side */
-    flip?: boolean;
     placement?: Placement;
-    /** What the menu has to stay inside, instead of the window - eg below a fixed masthead */
-    // eslint-disable-next-line vue/require-default-prop
-    boundary?: Element;
-    // eslint-disable-next-line vue/require-default-prop
-    overflowPadding?: number;
-    /** A class for the popper, which is mounted outside the component where scoped styles can't reach */
-    // eslint-disable-next-line vue/require-default-prop
-    popperClass?: string;
-    /** Leaves scrolling and padding to the menu's content, for content that scrolls itself */
-    flush?: boolean;
   }>(),
-  // `shift` keeps floating-vue's default: an omitted boolean prop would arrive as false
-  {
-    placement: 'bottom-end', shift: true, flip: true, open: false
-  }
+  { placement: 'bottom-end', open: false }
 );
 
 const emit = defineEmits(['update:open']);
@@ -73,23 +60,56 @@ const {
   provideDropdownContext,
   registerDropdownCollection,
   handleKeydown,
-  setDropdownDimensions
+  setDropdownDimensions,
+  submenus,
+  SubmenuContent,
 } = useDropdownContext(emit);
+
+const {
+  submenuId,
+  submenus: registeredSubmenus,
+  activeSubmenu,
+  shownSubmenu,
+  submenuTarget,
+  cancelSubmenuSwitch,
+  refreshSubmenuItems,
+  onSubmenuShown,
+  onSubmenuKeydown,
+} = submenus;
 
 provideDropdownContext();
 
-watch(() => props.open, (open) => {
-  if (open !== isMenuOpen.value) {
-    showMenu(open);
-  }
-});
-
 const popperContainer = ref<HTMLElement | null>(null);
 const dropdownTarget = ref<HTMLElement | null>(null);
+const submenuContainer = ref<HTMLElement | null>(null);
 
-useClickOutside(dropdownTarget, () => showMenu(false));
+watch(() => props.open, (open) => {
+  if (open === isMenuOpen.value) {
+    return;
+  }
 
-/** A nested menu's key presses bubble up here too; only the innermost menu answers them */
+  if (!open) {
+    // The focus would otherwise stay in the hidden popper
+    if (popperContainer.value?.contains(document.activeElement)) {
+      returnFocus();
+    } else {
+      showMenu(false);
+    }
+
+    return;
+  }
+
+  if (lastInputWasKeyPress()) {
+    handleKeydown();
+  }
+
+  showMenu(true);
+}, { immediate: true });
+
+// A submenu is drawn beside the menu, but a click in it is still inside
+useClickOutside(dropdownTarget, () => showMenu(false), { ignore: ['.rc-dropdown-submenu'] });
+
+/** A submenu's key presses bubble up here too; only the menu they're in answers them */
 const ownsEvent = (e: Event) => {
   const target = e.target as HTMLElement | null;
 
@@ -124,14 +144,13 @@ const onEscape = (e: KeyboardEvent) => {
 };
 
 const applyShow = () => {
-  // A menu with a `boundary` is already sized to it, and this fixed measure would shrink it
-  if (!props.boundary) {
-    setDropdownDimensions(dropdownTarget.value);
-  }
-
+  setDropdownDimensions(dropdownTarget.value);
   registerDropdownCollection(dropdownTarget.value);
   setFocus('down');
 };
+
+/** The menu's box, so a submenu lines up with its top and meets its edge */
+const menuBox = () => dropdownTarget.value?.closest('.v-popper__wrapper') || dropdownTarget.value;
 
 </script>
 
@@ -144,13 +163,7 @@ const applyShow = () => {
     :container="popperContainer"
     :placement="placement"
     :distance="distance"
-    :skidding="skidding"
     :reference-node="referenceNode"
-    :shift="shift"
-    :flip="flip"
-    :boundary="boundary"
-    :overflow-padding="overflowPadding"
-    :popper-class="popperClass"
     @apply-show="applyShow"
   >
     <slot name="default">
@@ -161,7 +174,6 @@ const applyShow = () => {
       <div
         ref="dropdownTarget"
         class="dropdownTarget"
-        :class="{ flush }"
         tabindex="-1"
         role="menu"
         aria-orientation="vertical"
@@ -174,6 +186,52 @@ const applyShow = () => {
         <slot name="dropdownCollection">
           <!--Empty slot content-->
         </slot>
+      </div>
+
+      <!-- Beside the menu, never over it: flipping would cover the items the pointer came from -->
+      <v-dropdown
+        v-if="registeredSubmenus.length"
+        no-auto-focus
+        auto-boundary-max-size
+        :triggers="[]"
+        :shown="!!activeSubmenu"
+        :auto-hide="false"
+        :container="submenuContainer"
+        :placement="shownSubmenu?.side === 'left' ? 'left-start' : 'right-start'"
+        :distance="0"
+        :flip="false"
+        :overflow-padding="SUBMENU_EDGE_GAP"
+        popper-class="rc-dropdown-submenu"
+        :reference-node="menuBox"
+        @apply-show="onSubmenuShown"
+      >
+        <template #popper>
+          <div
+            :id="submenuId"
+            ref="submenuTarget"
+            class="dropdownTarget"
+            tabindex="-1"
+            role="menu"
+            aria-orientation="vertical"
+            dropdown-menu-collection
+            :aria-labelledby="shownSubmenu?.row()?.id"
+            @keydown.capture="refreshSubmenuItems"
+            @keydown="onSubmenuKeydown"
+            @mouseenter="cancelSubmenuSwitch"
+          >
+            <SubmenuContent
+              v-if="shownSubmenu"
+              :key="shownSubmenu.row()?.id"
+              :submenu="shownSubmenu"
+            />
+          </div>
+        </template>
+      </v-dropdown>
+      <div
+        ref="submenuContainer"
+        class="submenuContainer"
+      >
+        <!--Empty container for mounting the submenu-->
       </div>
     </template>
   </v-dropdown>
@@ -206,19 +264,39 @@ const applyShow = () => {
         }
       }
     }
+
+    // Opened by hovering an item, where a fade reads as lag
+    &:deep(.rc-dropdown-submenu), &:deep(.rc-dropdown-submenu > .v-popper__wrapper) {
+      transition: none !important;
+    }
+
+    // Sized to the page, and each box down to the items gives way to that, so they scroll (or
+    // content that scrolls itself does) rather than the page
+    &:deep(.rc-dropdown-submenu .v-popper__inner) {
+      display: flex;
+      flex-direction: column;
+
+      > div, .dropdownTarget {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .dropdownTarget {
+        overflow-y: auto;
+      }
+    }
+  }
+
+  .submenuContainer {
+    display: contents;
   }
 
   .dropdownTarget {
-    overflow: auto;
     padding: 3px 0; // Need padding at top and bottom in order to show the focus border for the notification
 
     &:focus-visible, &:focus {
       outline: none;
-    }
-
-    &.flush {
-      overflow: visible;
-      padding: 0;
     }
   }
 </style>

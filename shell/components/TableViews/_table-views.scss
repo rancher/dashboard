@@ -4,12 +4,6 @@
 $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
 $drag-drop-curve: cubic-bezier(0.2, 1, 0.1, 1);
 
-// Must match MENU_GUTTER in the script
-$menu-gutter: 16px;
-
-// The popper's padding and border around a menu panel, measured from a running build
-$menu-popper-chrome: 16px;
-
 @mixin toolbar-icon($box, $glyph) {
   display: inline-flex;
   align-items: center;
@@ -36,12 +30,8 @@ $toolbar-min-width: 544px;
   display: flex;
   flex-direction: column;
   min-width: 240px;
-
-  // The room below the masthead, written out: a percentage would resolve against the popper this
-  // sizes
-  max-height: calc(
-    100vh - var(--header-height) - var(--wm-height, 0px) - #{$menu-gutter * 2} - #{$menu-popper-chrome}
-  );
+  // In a submenu, which is sized to the page, the panel gives way and scrolls itself
+  min-height: 0;
   // Naming one axis sets the other to `auto`, which shows a scrollbar for a fractional width
   overflow-x: hidden;
   overflow-y: auto;
@@ -64,7 +54,8 @@ $toolbar-min-width: 544px;
   }
 
   // `--active` follows the brand in both themes; `--info` doesn't
-  [dropdown-menu-item].selected {
+  [dropdown-menu-item].selected,
+  [role="menuitemradio"][aria-checked="true"] {
     color: var(--active, var(--primary));
   }
 }
