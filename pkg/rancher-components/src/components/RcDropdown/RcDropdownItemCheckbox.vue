@@ -7,6 +7,7 @@
  * list of things shown and hidden; `#before` then holds anything leading the label.
  */
 import { Checkbox as RcCheckbox } from '@components/Form/Checkbox';
+import { RcIcon } from '@components/RcIcon';
 import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
 
 const props = withDefaults(defineProps<{
@@ -43,7 +44,7 @@ const handleClick = () => {
     :aria-disabled="disabled || false"
     @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
-    @keydown.up.down.exact.prevent.stop="handleKeydown"
+    @keydown.up.down.prevent.stop="handleKeydown"
     @mousedown.prevent="() => {/* As RcDropdownItem: a click doesn't take the focus */}"
     @focusin="scrollIntoView"
     @mouseenter="handleMouseenter"
@@ -56,9 +57,10 @@ const handleClick = () => {
         <!--Empty slot content-->
       </slot>
       <span class="dropdown-item-after">
-        <i
+        <RcIcon
           v-if="modelValue"
-          class="icon icon-checkmark"
+          type="checkmark"
+          size="inherit"
         />
       </span>
     </template>

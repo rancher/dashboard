@@ -159,6 +159,38 @@ describe('component: RcDropdownSubmenu.vue', () => {
     expect(byId('group').getAttribute('aria-expanded')).toBe('true');
   });
 
+  it('should move one item with Shift and an arrow, as with the arrow alone', async() => {
+    await openMenu();
+    // The menu learns its items once shown
+    poppers(wrapper)[0].vm.$emit('apply-show');
+    await nextTick();
+
+    byId('command').focus();
+    byId('command').dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'ArrowDown', shiftKey: true, bubbles: true
+    }));
+
+    expect(document.activeElement).toBe(byId('group'));
+  });
+
+  it.each(['ctrlKey', 'altKey', 'metaKey'])('should not move the focus for an arrow with %s, nor jump to an end', async(modifier) => {
+    await openMenu();
+    poppers(wrapper)[0].vm.$emit('apply-show');
+    await nextTick();
+
+    byId('group').focus();
+    byId('group').dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'ArrowDown', [modifier]: true, bubbles: true
+    }));
+    await nextTick();
+    byId('group').dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'ArrowUp', [modifier]: true, bubbles: true
+    }));
+    await nextTick();
+
+    expect(document.activeElement).toBe(byId('group'));
+  });
+
   it('should close with the arrow back toward its menu', async() => {
     await openMenu();
 

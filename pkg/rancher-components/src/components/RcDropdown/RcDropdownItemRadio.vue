@@ -4,6 +4,7 @@
  * chosen one. It stays open, so the menu shows the choice made. Used in conjunction with RcDropdown.
  */
 import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
+import { RcIcon } from '@components/RcIcon';
 
 const props = defineProps({ checked: Boolean, disabled: Boolean });
 const emits = defineEmits(['click']);
@@ -29,7 +30,7 @@ const handleClick = (e: MouseEvent) => {
     :aria-disabled="disabled || false"
     @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
-    @keydown.up.down.exact.prevent.stop="handleKeydown"
+    @keydown.up.down.prevent.stop="handleKeydown"
     @mousedown.prevent="() => {/* As RcDropdownItem: a click doesn't take the focus */}"
     @focusin="scrollIntoView"
     @mouseenter="handleMouseenter"
@@ -41,9 +42,10 @@ const handleClick = (e: MouseEvent) => {
       <!--Empty slot content-->
     </slot>
     <span class="dropdown-item-after">
-      <i
+      <RcIcon
         v-if="checked"
-        class="icon icon-checkmark"
+        type="checkmark"
+        size="inherit"
       />
     </span>
   </div>

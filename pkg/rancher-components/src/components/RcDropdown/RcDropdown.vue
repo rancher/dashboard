@@ -22,7 +22,7 @@
  */
 import { ref, watch } from 'vue';
 import { useClickOutside } from '@shell/composables/useClickOutside';
-import { lastInputWasKeyPress, useDropdownContext } from '@components/RcDropdown/useDropdownContext';
+import { focusedFromKeyboard, useDropdownContext } from '@components/RcDropdown/useDropdownContext';
 
 import type { Placement } from 'floating-vue';
 
@@ -99,7 +99,7 @@ watch(() => props.open, (open) => {
     return;
   }
 
-  if (lastInputWasKeyPress()) {
+  if (focusedFromKeyboard()) {
     handleKeydown();
   }
 
@@ -143,14 +143,20 @@ const onEscape = (e: KeyboardEvent) => {
   }
 };
 
+/** The width of the menu's border, which a submenu overlaps so the two share one edge */
+const menuBorder = ref(0);
+
+/** The menu's popper, border included, so a submenu lines up with its top */
+const menuBox = () => dropdownTarget.value?.closest('.v-popper__popper') || dropdownTarget.value;
+
 const applyShow = () => {
+  const box = menuBox();
+
+  menuBorder.value = box ? parseFloat(getComputedStyle(box).borderTopWidth) || 0 : 0;
   setDropdownDimensions(dropdownTarget.value);
   registerDropdownCollection(dropdownTarget.value);
   setFocus('down');
 };
-
-/** The menu's box, so a submenu lines up with its top and meets its edge */
-const menuBox = () => dropdownTarget.value?.closest('.v-popper__wrapper') || dropdownTarget.value;
 
 </script>
 
@@ -198,7 +204,7 @@ const menuBox = () => dropdownTarget.value?.closest('.v-popper__wrapper') || dro
         :auto-hide="false"
         :container="submenuContainer"
         :placement="shownSubmenu?.side === 'left' ? 'left-start' : 'right-start'"
-        :distance="0"
+        :distance="-menuBorder"
         :flip="false"
         :overflow-padding="SUBMENU_EDGE_GAP"
         popper-class="rc-dropdown-submenu"
@@ -265,9 +271,9 @@ const menuBox = () => dropdownTarget.value?.closest('.v-popper__wrapper') || dro
       }
     }
 
-    // Opened by hovering an item, where a fade reads as lag
-    &:deep(.rc-dropdown-submenu), &:deep(.rc-dropdown-submenu > .v-popper__wrapper) {
-      transition: none !important;
+    // Opened by hovering an item, where a fade reads as lag. More specific than floating-vue's fade
+    &:deep(.rc-dropdown-submenu) {
+      transition: none;
     }
 
     // Sized to the page, and each box down to the items gives way to that, so they scroll (or

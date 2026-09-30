@@ -28,6 +28,7 @@ import {
   computed, inject, onBeforeUnmount, ref, useId, useSlots
 } from 'vue';
 import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
+import { RcIcon } from '@components/RcIcon';
 import { DropdownContext, DropdownSubmenu, defaultContext } from './types';
 
 const props = withDefaults(defineProps<{
@@ -99,7 +100,7 @@ const onKeydown = (e: KeyboardEvent) => {
     :aria-disabled="disabled || false"
     @click.stop="open(false)"
     @keydown="onKeydown"
-    @keydown.up.down.exact.prevent.stop="handleKeydown"
+    @keydown.up.down.prevent.stop="handleKeydown"
     @mousedown.prevent="() => {/* As RcDropdownItem: a click doesn't take the focus */}"
     @mouseenter="!disabled && hoverSubmenu(submenu)"
     @mouseleave="cancelSubmenuSwitch()"
@@ -116,7 +117,10 @@ const onKeydown = (e: KeyboardEvent) => {
     </span>
     <span class="dropdown-item-after">
       <slot name="after" />
-      <i class="icon icon-chevron-right" />
+      <RcIcon
+        type="chevron-right"
+        size="inherit"
+      />
     </span>
   </div>
 </template>
