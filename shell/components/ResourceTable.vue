@@ -953,12 +953,15 @@ export default {
           @shortkey="tableViewShortcut('duplicateCurrent')"
         />
       </template>
+      <!-- These act on the selection, so they need the table's actions -->
       <button
+        v-if="_showBulkActions"
         v-shortkey.once="['e']"
         class="hide"
         @shortkey="keyAction('edit')"
       />
       <button
+        v-if="_showBulkActions"
         v-shortkey.once="['y']"
         class="hide"
         @shortkey="keyAction('yaml')"

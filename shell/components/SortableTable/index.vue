@@ -1804,8 +1804,9 @@ export default {
         class="hide"
         @shortkey="focusPrevious($event, true)"
       />
-      <slot name="shortkeys" />
     </template>
+    <!-- Outside the actions: a list without any, such as Home's, still has shortcuts of its own -->
+    <slot name="shortkeys" />
   </div>
 </template>
 
