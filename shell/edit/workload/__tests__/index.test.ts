@@ -164,18 +164,23 @@ describe('component: Workload', () => {
     });
 
     it.each([
-      ['a pod being edited', true, 'edit', 'true'],
-      ['a pod being created', true, 'create', 'false'],
-      ['a deployment being edited', false, 'edit', 'false'],
-    ])('should only disable the container name for %s', (_name, isPod, mode, expected) => {
+      ['a pod being edited', true, 'edit', true],
+      ['a pod being created', true, 'create', false],
+      ['a deployment being edited', false, 'edit', false],
+    ])('should only lock the containers for %s', (_name, isPod, mode, locked) => {
       const containerMixin = {
         computed: {
           isPod:            () => isPod,
           isCreate:         () => mode === 'create',
           headlessServices: () => [],
-          allContainers:    () => [{
-            name: 'container-0', image: 'nginx', error: {}
-          }]
+          allContainers:    () => [
+            {
+              name: 'container-0', image: 'nginx', error: {}
+            },
+            {
+              name: 'container-1', image: 'redis', error: {}
+            }
+          ]
         },
         methods: { nameDisplayFor: jest.fn() }
       };
@@ -209,7 +214,7 @@ describe('component: Workload', () => {
           },
 
           stubs: {
-            Tab:                 true,
+            Tab:                 { template: '<div><slot name="tab-header-right" /><slot /></div>' },
             LabeledInput:        true,
             VolumeClaimTemplate: true,
             Networking:          true,
@@ -218,7 +223,7 @@ describe('component: Workload', () => {
             PodAffinity:         true,
             Tolerations:         true,
             Storage:             true,
-            Tabbed:              true,
+            Tabbed:              { template: '<div><slot /><slot name="tab-row-extras" /></div>' },
             LabeledSelect:       true,
             NameNsDescription:   true,
             CruResource:         true,
@@ -227,9 +232,13 @@ describe('component: Workload', () => {
         },
       });
 
-      const containerName = wrapper.findAllComponents({ name: 'LabeledInput' }).find((input) => input.attributes('label') === 'workload.container.containerName');
+      const containerNames = wrapper.findAllComponents({ name: 'LabeledInput' }).filter((input) => input.attributes('label') === 'workload.container.containerName');
+      const removeButtons = wrapper.findAll('button').filter((button) => button.text() === 'workload.container.removeContainer');
 
-      expect(containerName?.attributes('disabled')).toStrictEqual(expected);
+      expect(containerNames.map((input) => input.attributes('disabled'))).toStrictEqual([`${ locked }`, `${ locked }`]);
+      expect(wrapper.findAll('radiogroup').map((radio) => radio.attributes('disabled'))).toStrictEqual([`${ locked }`, `${ locked }`]);
+      expect(wrapper.find('[data-testid="workload-button-add-container"]').exists()).toStrictEqual(!locked);
+      expect(removeButtons).toHaveLength(locked ? 0 : 2);
     });
   });
 });

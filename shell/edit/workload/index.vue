@@ -37,6 +37,10 @@ export default {
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
+    containersImmutable() {
+      return this.isPod && !this.isCreate;
+    },
+
     isFormValid() {
       const hasContainerErrors = this.allContainers.some(this.hasContainerError);
 
@@ -256,7 +260,7 @@ export default {
                 #tab-header-right
               >
                 <button
-                  v-if="allContainers.length > 1 && !isView"
+                  v-if="allContainers.length > 1 && !isView && !containersImmutable"
                   type="button"
                   class="btn-sm role-link"
                   @click="removeContainer(tab)"
@@ -273,7 +277,7 @@ export default {
                     <LabeledInput
                       v-model:value="allContainers[i].name"
                       :mode="mode"
-                      :disabled="isPod && !isCreate"
+                      :disabled="containersImmutable"
                       :label="t('workload.container.containerName')"
                       required
                       :rules="containerNameRules"
@@ -282,6 +286,7 @@ export default {
                   <div class="col span-6">
                     <RadioGroup
                       :mode="mode"
+                      :disabled="containersImmutable"
                       :value="allContainers[i]._init"
                       name="initContainer"
                       :options="[true, false]"
@@ -671,7 +676,7 @@ export default {
         <template #tab-row-extras>
           <div class="tablist-controls">
             <button
-              v-if="!isView"
+              v-if="!isView && !containersImmutable"
               type="button"
               class="btn-sm role-link"
               data-testid="workload-button-add-container"
