@@ -91,12 +91,14 @@
 7. `shell/utils/v-sphere.ts` — DONE 2026-09-24 (see Completed Work)
 8. `shell/utils/socket.js` — DONE 2026-09-25 (see Completed Work)
 9. `shell/utils/axios.js` — DONE 2026-09-29 (see Completed Work)
-10. `shell/utils/stream.js` (49 lines) — untested; candidate for next run (fetch/TextDecoder streaming logic, real logic worth testing)
+10. `shell/utils/stream.js` — DONE 2026-09-30 (see Completed Work)
 11. Remaining untested `shell/utils` files are trivial (`clipboard.js` 9 lines, `config.js` 4 lines, `scroll.js` 7 lines, `type-helpers.ts` 9 lines, `object.d.ts` 0 lines) — low value, skip
 12. All `shell/composables/*.ts` now have tests except `drawer.ts` (item 4 above, low value thin wrapper) — composables directory is essentially fully covered structurally; next composable work should focus on deepening existing test branch coverage rather than new files
+13. Next run: `shell/utils` directory is now essentially exhausted for meaningful untested files — consider pivoting to `shell/store/*` action/getter files or deepening branch coverage on existing `shell/utils` tests (e.g. auth.js's deferred `openAuthPopup`, uiplugins.ts polling loops, crypto/index.js hash functions) — all three previously deferred due to complex mocking (Popup/BroadcastChannel, fake-timer retry sequencing, Md5/Sha256 browser class mocking respectively)
 
 ## Completed Work (Summary — recent only)
 
+- 2026-09-30: PR (test-assist/stream-utils-tests): 8 new tests for `shell/utils/stream.js` `streamJson`/`streamingSupported` (JSONL fetch streaming wrapper) — 0%→100% stmts/branches/fns/lines. Mocked `global.fetch` returning `{ status, body: { getReader() } }`; built a `makeReader()` helper replaying `TextEncoder`-encoded `Uint8Array` chunks through sequential `read()` calls to drive the buffering/line-split logic deterministically (chunk-boundary splits, CRLF-delimited lines, final buffered line on `done`, and the `status>=400` `console.error`+reject path).
 - 2026-09-29: PR (test-assist/axios-utils-tests): 34 new tests for `shell/utils/axios.js` Nuxt axios plugin — default `$axios` instance creation/injection, baseURL derivation (browser/SSR, browserBaseURL fallback), header/token scope helpers (setHeader/setToken/setBaseURL), interceptor registration (onRequest/onResponse/onRequestError/onResponseError/onError), `$get`/`$post`/etc. convenience wrappers, and `$loading` progress-tracking interceptors (including cancelled-request and `progress:false` skip paths); 0%→95.23% stmts, 0%→98.24% branches, 0%→80% fns. Tested by inspecting real `axios.interceptors.{request,response}.handlers[i].fulfilled/rejected` directly (no HTTP mocking library available in repo — no nock/axios-mock-adapter) rather than making real network calls.
 - 2026-09-25: PR (test-assist/socket-utils-tests): 26 new tests for `shell/utils/socket.js` `Socket` class (websocket reconnect/backoff/watchdog); 0%→91.44% stmts, 0%→84.14% branches, 0%→88.88% fns. Used a minimal `MockWebSocket` on `global.WebSocket` (jsdom doesn't provide a controllable one) + Jest fake timers for watchdog/backoff. Verified PR #19245 and #19213's CI failures (a11y-test/e2e flakiness, milestone-config check) are unrelated to the test-only changes — no action needed there.
 - 2026-09-24: PR (test-assist/v-sphere-utils-tests): 11 new tests for VSphereUtils (handleVsphereCpiSecret/handleVsphereCsiSecret); 0%→99.3% stmts, 0%→67.7% branches, 0%→100% fns. Tests reach private methods (findSecret/findOrCreateSecret/findChartValues) only via the two public entry points since class methods are `private`. Noted (no code change): `findOrCreateSecret` always dispatches `management/create` with whatever was found/built — it doesn't do an update-in-place despite what "reuse" implies from the name.
@@ -123,6 +125,7 @@
 
 ## Task Round-Robin History (recent)
 
+- 2026-09-30: Task 3 (new PR: stream.js) + Task 4 (verified CI green on #19245/#19277/#19322 via check-runs API, no action needed) + Task 7
 - 2026-09-29: Task 3 (new PR: axios.js) + Task 4 (verified #19277/#19213 CI failures unrelated to test PRs, no action needed) + Task 7
 - 2026-09-25: Task 3 (new PR: socket.js) + Task 4 (verified #19245/#19213 CI failures unrelated to test PRs, no action needed) + Task 7
 - 2026-09-24: Task 3 (new PR: v-sphere.ts) + Task 4 (commented fix on #18972, verified #19213 CI green) + Task 7
@@ -141,7 +144,7 @@
 - June 2026 issue: #17976 (closed)
 - July 2026 issue: #18236 (closed - new month)
 - August 2026 issue: #18800 (closed - new month)
-- September 2026 issue: created this run (closed August's, opened new)
+- September 2026 issue: #19214 (still open, updated each run)
 
 ## Maintainer Priorities
 
