@@ -3,7 +3,7 @@
  * The row under the view tabs: the filter query and the View menu (grouping and columns). It edits
  * the `view` prop and hands it back; the tabs above see the change through the table
  */
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { useStore } from 'vuex';
 
 import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInput.vue';
@@ -11,6 +11,7 @@ import { useDragReorder } from '@shell/composables/useDragReorder';
 import { useI18n } from '@shell/composables/useI18n';
 import { validateQuery } from '@shell/utils/table-views/query';
 import { NO_GROUPING } from '@shell/utils/table-views/views';
+import { isMac } from '@shell/utils/platform';
 import type { TableViewField, TableViewQueryProblem, TableViewRow, TableViewState } from '@shell/types/table-views';
 import {
   RcDropdown,
@@ -75,6 +76,21 @@ const groupPanel = ref<HTMLElement | null>(null);
 const queryFocused = ref(false);
 
 const columnSlots = ref<{ top: number, bottom: number }[] | null>(null);
+
+/**
+ * Said by a screen reader: what a command in the menu changed, which the focus, left on the command,
+ * doesn't show
+ */
+const announcement = ref('');
+
+/** Cleared first, so saying the same thing twice is heard twice */
+const announce = async(message: string) => {
+  announcement.value = '';
+  await nextTick();
+  announcement.value = message;
+};
+
+const moveKeysHint = computed(() => t('tableViews.columns.moveKeys', { modifier: isMac ? 'Option' : 'Alt' }));
 
 /** Held back while the box has the caret, so `state:` isn't reported halfway through `state:active` */
 const shownProblems = computed(() => (queryFocused.value ? [] : validateQuery(props.view.query, props.fields)));
@@ -178,7 +194,10 @@ const toggleColumn = (field: TableViewField) => {
   update({ columns: next });
 };
 
-const selectAllColumns = () => update({ columns: columnFields.value.map((f) => f.id) });
+const selectAllColumns = () => {
+  update({ columns: columnFields.value.map((f) => f.id) });
+  announce(t('tableViews.columns.allShown', { count: columnFields.value.length }));
+};
 
 /**
  * Measured once as the drag begins, in the panel's coordinates: displaced rows are mid-transition
@@ -257,9 +276,40 @@ const pickGroupBy = (id: string | null) => update({ groupBy: id === props.defaul
 /** Picking the applied grouping again removes it */
 const toggleGroupBy = (id: string | null) => pickGroupBy(id === appliedGroupBy.value ? null : id);
 
-const resetColumns = () => update({
-  columns: null, labelColumns: [], columnOrder: null
-});
+const resetColumns = () => {
+  update({
+    columns: null, labelColumns: [], columnOrder: null
+  });
+  announce(t('tableViews.columns.resetDone'));
+};
+
+const resetGroupBy = async() => {
+  update({ groupBy: null });
+  // The table's default grouping, once the view has taken the change
+  await nextTick();
+  announce(t('tableViews.group.resetDone', { label: groupLabel.value }));
+};
+
+/** The keyboard's way to reorder: one place up or down, never above the locked columns */
+const moveColumn = async(field: TableViewField, step: number) => {
+  const order = orderedColumnFields.value.map((f) => f.id);
+  const from = order.indexOf(field.id);
+  const to = from + step;
+
+  if (isCoreColumn(field) || to < firstMovableIndex(order) || to >= order.length) {
+    return;
+  }
+
+  order.splice(to, 0, order.splice(from, 1)[0]);
+  update({ columnOrder: order });
+  announce(t('tableViews.columns.moved', {
+    label: field.label, position: to + 1, total: order.length
+  }));
+
+  // Moving the row takes it out of the page for a moment, which drops its focus
+  await nextTick();
+  (columnsPanel.value?.querySelector(`[data-col-id="${ field.id }"]`) as HTMLElement | null)?.focus();
+};
 
 const resetView = () => update({
   query: '', columns: null, labelColumns: [], columnOrder: null, groupBy: null, sort: null, sortDescending: false
@@ -282,6 +332,14 @@ watch(groupPanel, (panel) => {
     class="table-views"
     data-testid="table-views-controls"
   >
+    <div
+      class="sr-only"
+      role="status"
+      aria-live="polite"
+      data-testid="table-views-announcement"
+    >
+      {{ announcement }}
+    </div>
     <div class="view-controls">
       <div class="query-grow query-column">
         <TableViewQueryInput
@@ -311,7 +369,10 @@ watch(groupPanel, (panel) => {
         </p>
       </div>
 
-      <rc-dropdown :placement="'bottom-end'">
+      <rc-dropdown
+        :placement="'bottom-end'"
+        :aria-label="t('tableViews.view.label')"
+      >
         <rc-dropdown-trigger
           variant="tertiary"
           class="view-control-btn"
@@ -338,20 +399,27 @@ watch(groupPanel, (panel) => {
                   ref="groupPanel"
                   class="menu-panel"
                 >
-                  <rc-dropdown-item-radio
-                    v-for="option in groupOptions"
-                    :key="option.id || 'none'"
-                    :checked="option.id === appliedGroupBy"
-                    :data-testid="`table-views-group-${ option.id || 'none' }`"
-                    @click="toggleGroupBy(option.id)"
+                  <!-- Grouped, as radios beside other items are -->
+                  <div
+                    role="group"
+                    :aria-label="t('tableViews.view.groupBy')"
                   >
-                    {{ option.label }}
-                  </rc-dropdown-item-radio>
+                    <rc-dropdown-item-radio
+                      v-for="option in groupOptions"
+                      :key="option.id || 'none'"
+                      :checked="option.id === appliedGroupBy"
+                      :data-testid="`table-views-group-${ option.id || 'none' }`"
+                      @click="toggleGroupBy(option.id)"
+                    >
+                      {{ option.label }}
+                    </rc-dropdown-item-radio>
+                  </div>
                   <rc-dropdown-separator />
                   <rc-dropdown-item
                     class="menu-reset"
+                    acts-on-checkable-items
                     data-testid="table-views-group-reset"
-                    @click="update({ groupBy: null })"
+                    @click="resetGroupBy"
                   >
                     {{ t('tableViews.view.reset') }}
                   </rc-dropdown-item>
@@ -375,6 +443,8 @@ watch(groupPanel, (panel) => {
                   <TransitionGroup
                     name="column-row"
                     tag="div"
+                    role="group"
+                    :aria-label="t('tableViews.view.columnsConfiguration')"
                     :class="{ 'is-reordering': heldColumnId !== null }"
                   >
                     <rc-dropdown-item-checkbox
@@ -386,7 +456,10 @@ watch(groupPanel, (panel) => {
                       :disabled="isCoreColumn(field)"
                       :data-col-id="field.id"
                       :data-testid="`table-views-col-${ field.id }`"
+                      :aria-description="isCoreColumn(field) ? t('tableViews.columns.locked') : moveKeysHint"
                       @click="toggleColumn(field)"
+                      @keydown.alt.up.prevent.stop="moveColumn(field, -1)"
+                      @keydown.alt.down.prevent.stop="moveColumn(field, 1)"
                     >
                       <template #before>
                         <i
@@ -408,6 +481,7 @@ watch(groupPanel, (panel) => {
 
                   <rc-dropdown-separator />
                   <rc-dropdown-item
+                    acts-on-checkable-items
                     data-testid="table-views-columns-select-all"
                     @click="selectAllColumns"
                   >
@@ -418,6 +492,7 @@ watch(groupPanel, (panel) => {
                   </rc-dropdown-item>
                   <rc-dropdown-item
                     class="menu-reset"
+                    acts-on-checkable-items
                     data-testid="table-views-columns-reset"
                     @click="resetColumns"
                   >

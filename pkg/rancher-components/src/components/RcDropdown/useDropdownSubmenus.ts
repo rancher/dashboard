@@ -132,7 +132,8 @@ export const useDropdownSubmenus = (isMenuOpen: Ref<boolean>, closeMenu: () => v
   const onSubmenuKeydown = (e: KeyboardEvent) => {
     const submenu = activeSubmenu.value;
 
-    if (!submenu) {
+    // An arrow with a modifier is the consumer's, eg to move an item
+    if (!submenu || e.altKey || e.ctrlKey || e.metaKey) {
       return;
     }
 

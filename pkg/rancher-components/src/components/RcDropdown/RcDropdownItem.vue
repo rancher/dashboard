@@ -4,7 +4,15 @@
  */
 import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
 
-const props = defineProps({ disabled: Boolean });
+const props = defineProps({
+  disabled:             Boolean,
+  /**
+   * For a command that changes the checkbox or radio items beside it, eg Select All or Reset: the
+   * menu stays open, as it does for those items, so their new state shows. The focus stays on the
+   * command, so a screen reader hears nothing of that: say what changed in a live region
+   */
+  actsOnCheckableItems: Boolean,
+});
 const emits = defineEmits(['click']);
 
 const {
@@ -21,7 +29,10 @@ const handleClick = (e: MouseEvent) => {
   }
 
   emits('click', e);
-  close();
+
+  if (!props.actsOnCheckableItems) {
+    close();
+  }
 };
 
 </script>
@@ -36,7 +47,7 @@ const handleClick = (e: MouseEvent) => {
     :aria-disabled="disabled || false"
     @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
-    @keydown.up.down.prevent.stop="handleKeydown"
+    @keydown.up.down.exact.prevent.stop="handleKeydown"
     @mousedown.prevent="() => {/*We use this to prevent clicks from triggering the @focusin below. When we scroll on a click it prevents the action from occurring on the first click.*/}"
     @focusin="scrollIntoView"
     @mouseenter="handleMouseenter"

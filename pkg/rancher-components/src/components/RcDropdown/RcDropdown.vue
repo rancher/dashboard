@@ -214,14 +214,14 @@ const menuBox = () => dropdownTarget.value?.closest('.v-popper__wrapper') || dro
             role="menu"
             aria-orientation="vertical"
             dropdown-menu-collection
-            :aria-labelledby="shownSubmenu?.row()?.id"
+            :aria-labelledby="shownSubmenu?.labelId"
             @keydown.capture="refreshSubmenuItems"
             @keydown="onSubmenuKeydown"
             @mouseenter="cancelSubmenuSwitch"
           >
             <SubmenuContent
               v-if="shownSubmenu"
-              :key="shownSubmenu.row()?.id"
+              :key="shownSubmenu.labelId"
               :submenu="shownSubmenu"
             />
           </div>

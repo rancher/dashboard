@@ -7323,8 +7323,13 @@ tableViews:
     reset: Reset to Default
     locked: This column cannot be hidden
     reorder: Drag to reorder
+    moveKeys: '{modifier}+Up Arrow or {modifier}+Down Arrow moves it'
+    moved: '{label} moved to position {position} of {total}'
+    allShown: 'All {count} columns shown'
+    resetDone: Columns reset to the default
   group:
     none: None
+    resetDone: 'Grouping reset to {label}'
     empty: (none)
     # A list's own groupings, as the Group By menu names them
     by:

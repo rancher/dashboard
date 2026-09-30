@@ -32,10 +32,18 @@ const Menu = defineComponent({
         <rc-dropdown-item id="command" @click="$emit('pick', 'command')">Command</rc-dropdown-item>
         <rc-dropdown-submenu id="group" side="left">
           Group By
+          <template #after>None</template>
           <template #submenu>
             <rc-dropdown-item-radio id="radio-a" checked @click="$emit('pick', 'a')">A</rc-dropdown-item-radio>
             <rc-dropdown-item-radio id="radio-b" @click="$emit('pick', 'b')">B</rc-dropdown-item-radio>
             <rc-dropdown-item-checkbox id="check" indicator="checkmark" :model-value="true">Shown</rc-dropdown-item-checkbox>
+            <rc-dropdown-item id="reset" acts-on-checkable-items @click="$emit('pick', 'reset')">Reset</rc-dropdown-item>
+          </template>
+        </rc-dropdown-submenu>
+        <rc-dropdown-submenu id="other">
+          Other
+          <template #submenu>
+            <rc-dropdown-item id="other-item">Other item</rc-dropdown-item>
           </template>
         </rc-dropdown-submenu>
       </template>
@@ -91,7 +99,8 @@ describe('component: RcDropdownSubmenu.vue', () => {
     const submenu = byId(row.getAttribute('aria-controls') as string);
 
     expect(submenu.getAttribute('role')).toBe('menu');
-    expect(submenu.getAttribute('aria-labelledby')).toBe('group');
+    // Named by the item's label, without its value
+    expect(byId(submenu.getAttribute('aria-labelledby') as string).textContent?.trim()).toBe('Group By');
     expect(submenu.contains(byId('radio-a'))).toBe(true);
     expect(byId('command').closest('[dropdown-menu-collection]')).not.toBe(submenu);
   });
@@ -118,6 +127,36 @@ describe('component: RcDropdownSubmenu.vue', () => {
     expect(row.getAttribute('aria-expanded')).toBe('false');
     expect(document.activeElement).toBe(row);
     expect(poppers(wrapper)[0].props('shown')).toBe(true);
+  });
+
+  it('should name each submenu after its own item', async() => {
+    await openMenu();
+
+    byId('other').click();
+    await nextTick();
+
+    const submenu = byId(byId('other').getAttribute('aria-controls') as string);
+
+    expect(byId(submenu.getAttribute('aria-labelledby') as string).textContent?.trim()).toBe('Other');
+    expect(submenu.contains(byId('other-item'))).toBe(true);
+  });
+
+  it('should leave an arrow pressed with a modifier to the consumer', async() => {
+    await openMenu();
+
+    byId('group').click();
+    await nextTick();
+    byId('radio-a').focus();
+    byId('radio-a').dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'ArrowDown', altKey: true, bubbles: true
+    }));
+    byId('radio-a').dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'ArrowLeft', altKey: true, bubbles: true
+    }));
+    await nextTick();
+
+    expect(document.activeElement).toBe(byId('radio-a'));
+    expect(byId('group').getAttribute('aria-expanded')).toBe('true');
   });
 
   it('should close with the arrow back toward its menu', async() => {
@@ -155,6 +194,19 @@ describe('component: RcDropdownSubmenu.vue', () => {
 
     expect(wrapper.emitted('pick')).toStrictEqual([['b']]);
     expect(wrapper.emitted('update:open')?.flat()).not.toContain(false);
+  });
+
+  it('should keep the menu open for a command that changes its checkable items', async() => {
+    await openMenu();
+
+    byId('group').click();
+    await nextTick();
+    byId('reset').click();
+    await nextTick();
+
+    expect(wrapper.emitted('pick')).toStrictEqual([['reset']]);
+    expect(wrapper.emitted('update:open')?.flat()).not.toContain(false);
+    expect(byId('group').getAttribute('aria-expanded')).toBe('true');
   });
 
   it('should close the menu for a command, returning the focus to what had it when opened', async() => {
