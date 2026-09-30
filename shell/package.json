@@ -69,6 +69,8 @@
     "cache-loader": "4.1.0",
     "chart.js": "4.5.1",
     "clipboard-polyfill": "4.0.1",
+    "codemirror": ">=5.64.0 <6",
+    "codemirror-editor-vue3": "2.8.0",
     "color": "5.0.3",
     "cookie-universal": "2.2.2",
     "core-js": "3.50.0",
