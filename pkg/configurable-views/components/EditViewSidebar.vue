@@ -47,7 +47,6 @@ type SidebarEmits = {
   delete: [];
   /** '' starts from nothing. */
   'start-from': [viewId: string];
-  advanced: [open: boolean];
 };
 
 const props = withDefaults(defineProps<{
@@ -78,7 +77,7 @@ const props = withDefaults(defineProps<{
   isStock:        false,
 });
 
-const emit = defineEmits<SidebarEmits>();
+defineEmits<SidebarEmits>();
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -201,11 +200,8 @@ const widthPreset = computed(() => (props.selected ? widthPresetOf(props.selecte
 const heightPreset = computed(() => (props.selected ? heightPresetOf(props.selected.height, gap.value) : null));
 const spacingPreset = computed(() => (props.selected ? spacingPresetOf(props.selected.padding) : null));
 
-// The canvas draws the margin/padding bands while this is open, so the numbers being typed have
-// something to point at.
 function toggleAdvanced(): void {
   advancedOpen.value = !advancedOpen.value;
-  emit('advanced', advancedOpen.value);
 }
 
 function sideLabel(side: keyof Sides): string {

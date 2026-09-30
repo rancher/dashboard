@@ -17,8 +17,8 @@ export interface ViewEditorUi {
   dragKind: string;
   /** Which grid the pointer is over (see placeKey), so only that one draws its insertion marker. */
   dropPlace: string;
-  /** The Layout tab's Advanced section is open, so the selected widget shows its margin and padding. */
-  showBoxModel: boolean;
+  /** The selected widget's margin or padding just changed: that band is lit for a moment. */
+  flashBox: 'margin' | 'padding' | null;
 }
 
 /** Where a widget's settings open: beside the widget, at its top-left corner. */
@@ -70,7 +70,7 @@ export function useViewEditor(): ViewEditor {
     dropAt:     () => undefined,
     setColSpan: () => undefined,
     ui:         {
-      dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', showBoxModel: false
+      dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', flashBox: null
     },
   }), true);
 }
