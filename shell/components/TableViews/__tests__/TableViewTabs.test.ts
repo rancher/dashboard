@@ -290,7 +290,10 @@ describe('TableViewTabs', () => {
 
         vm.deleteView(second);
 
-        expect(stored()).toStrictEqual([first]);
+        // Written without its null properties
+        expect(stored()).toStrictEqual([{
+          id: first.id, name: first.name, query: first.query, labelColumns: first.labelColumns
+        }]);
         expect(growl).toHaveBeenCalledWith(expect.objectContaining({ action: expect.objectContaining({ run: expect.any(Function) }) }));
       });
 

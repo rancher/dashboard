@@ -61,9 +61,8 @@ export interface TableViewQuery {
   clauses: TableViewClause[];
 }
 
-export interface TableViewSaved {
-  id: string;
-  name: string;
+/** What a table shows: a view's query, columns, grouping and sort */
+export interface TableViewState {
   query: string;
   /** null means the table's default columns */
   columns: string[] | null;
@@ -76,7 +75,14 @@ export interface TableViewSaved {
   sortDescending?: boolean;
 }
 
-export type TableViewState = Omit<TableViewSaved, 'id' | 'name'>;
+/**
+ * A view as stored. It is saved without its null and empty string properties, so a missing one means
+ * the same as those
+ */
+export interface TableViewSaved extends Partial<TableViewState> {
+  id: string;
+  name: string;
+}
 
 export interface TableViewAction {
   action: string;
