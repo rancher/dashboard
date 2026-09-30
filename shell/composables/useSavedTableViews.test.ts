@@ -187,4 +187,40 @@ describe('useSavedTableViews', () => {
       expect(written().pod.pages.home.views.map((v: TableViewSaved) => v.id)).toStrictEqual(['own']);
     });
   });
+
+  describe('an entry left with nothing in it', () => {
+    it('should drop the type\'s entry when its last view goes', () => {
+      const { saved, written } = setup({ pod: { views: [view('a')], defaultViewId: 'a' }, node: { views: [view('z')] } });
+
+      saved.persistAll([], null);
+
+      expect(written()).toStrictEqual({ node: { views: [view('z')] } });
+    });
+
+    it('should drop a page\'s entry when its last view goes, keeping the type\'s', () => {
+      const { saved, written } = setup({ pod: { views: [view('a')], pages: { home: { views: [view('own')] } } } }, 'pod', 'home');
+
+      saved.persistAll([], null);
+
+      expect(written().pod.views).toStrictEqual([view('a')]);
+      expect(written().pod.pages).toBeUndefined();
+    });
+
+    it('should drop the type altogether when neither it nor its pages keep a view', () => {
+      const { saved, written } = setup({ pod: { views: [], pages: { home: { views: [view('own')] } } } }, 'pod', 'home');
+
+      saved.persistAll([], null);
+
+      expect(written()).toStrictEqual({});
+    });
+
+    it('should keep a type with no views of its own while a page has some', () => {
+      const { saved, written } = setup({ pod: { views: [view('a')], pages: { home: { views: [view('own')] } } } });
+
+      saved.persistAll([], null);
+
+      expect(written().pod.pages.home.views).toStrictEqual([view('own')]);
+    });
+  });
 });
+

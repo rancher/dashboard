@@ -1211,24 +1211,28 @@ export default {
         // Terms the api can't answer are left out, as they are when the tab is open
         const { filters } = queryToServerFilters(parsed, this.viewQueryFields);
 
+        // Asked in the view's order, as the table asks for its page
+        const { fields, descending } = this.sortFor(view);
+
         rows = await this.fetchEveryPage({
           filters:              (this.listScopeFilters || []).concat(filters),
           projectsOrNamespaces: this.listScopeNamespaces,
-          sort:                 [],
+          sort:                 fields.map((field) => ({ field, asc: !descending })),
         }, onProgress, limit);
       } else {
         rows = parsed.clauses.length ? applyQueryExpression(this.filteredRows, parsed, this.viewQueryFields) : this.filteredRows;
       }
 
-      return this.orderRowsFor(view, rows);
+      // The api has ordered a server side list's already
+      return this.serverSideTableViews ? rows : this.orderRowsFor(view, rows);
     },
 
 
     /**
-     * In the order the table would show `view`: its grouping, its sort column (or the table's
-     * default), then the tie breakers
+     * How the table would order `view`: its grouping, its sort column (or the table's default), then
+     * the tie breakers
      */
-    orderRowsFor(view, rows) {
+    sortFor(view) {
       const headers = this.headersForView(view);
       const own = !!view.sort && headers.some((header) => header?.name === view.sort);
       const sortName = own ? view.sort : this.defaultSort?.sortBy;
@@ -1238,6 +1242,14 @@ export default {
       const groupBy = this.groupByOf(view);
       const group = groupBy ? this.groupSortFor(this.groupFieldFor(groupBy)) : null;
       const fields = uniq([].concat(group || [], fromColumn).concat(this._mandatorySort || DEFAULT_MANDATORY_SORT));
+
+      return { fields, descending };
+    },
+
+
+    /** In the order the table would show `view` - see sortFor */
+    orderRowsFor(view, rows) {
+      const { fields, descending } = this.sortFor(view);
 
       return sortBy(rows, fields, descending);
     },

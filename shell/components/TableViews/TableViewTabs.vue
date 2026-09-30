@@ -15,22 +15,13 @@ import { useDragReorder } from '@shell/composables/useDragReorder';
 import { useI18n } from '@shell/composables/useI18n';
 import { useSavedTableViews } from '@shell/composables/useSavedTableViews';
 import { isMac, shortcutLabel } from '@shell/utils/platform';
+import { registerTableViewShortcuts } from '@shell/utils/table-views/shortcuts';
+import type { TableViewShortcutAction } from '@shell/utils/table-views/shortcuts';
 import { randomStr } from '@shell/utils/string';
 import { isViewDirty, selectedViewIdFor } from '@shell/utils/table-views/views';
 import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
 import { RcDropdown, RcDropdownItem, RcDropdownSeparator, RcDropdownTrigger } from '@components/RcDropdown';
 
-const SHORTCUTS = [
-  {
-    key: 's', shift: false, action: 'saveChanges'
-  },
-  {
-    key: 's', shift: true, action: 'openSaveAsNew'
-  },
-  {
-    key: 'd', shift: false, action: 'duplicateCurrent'
-  },
-] as const;
 
 /** How close to an end of the strip a held tab has to be before the strip scrolls that way */
 const TAB_SCROLL_EDGE = 56;
@@ -63,14 +54,14 @@ const props = withDefaults(defineProps<{
   matchCount?: number,
   resourceType?: string,
   /** A page keeping views of its own for the type - see useSavedTableViews */
-  page?: string | null,
+  tableViewsPage?: string | null,
   /** The saved view the list opened on - see the mixin's openedViewId */
   initialViewId?: string,
 }>(), {
-  viewCounts:   () => ({}),
-  matchCount:   0,
-  resourceType: '',
-  page:         null,
+  viewCounts:     () => ({}),
+  matchCount:     0,
+  resourceType:   '',
+  tableViewsPage: null,
 });
 
 const emit = defineEmits<{
@@ -85,7 +76,7 @@ const { t } = useI18n(store);
 
 const {
   savedViews, defaultViewId, allTabIndex, persistAll, persist, unusedViewName
-} = useSavedTableViews(() => props.resourceType, () => props.page);
+} = useSavedTableViews(() => props.resourceType, () => props.tableViewsPage);
 
 const root = ref<HTMLElement | null>(null);
 
@@ -820,38 +811,24 @@ const doExport = (format: string) => {
   closeModal();
 };
 
-const SHORTCUT_ACTIONS: Record<string, () => void> = {
+const SHORTCUT_ACTIONS: Record<TableViewShortcutAction, () => void> = {
   saveChanges, openSaveAsNew, duplicateCurrent
-};
-
-const onShortcut = (event: KeyboardEvent) => {
-  if (!(event.metaKey || event.ctrlKey) || event.altKey) {
-    return;
-  }
-
-  // Only for the list the focus is in, since a page can hold two
-  if (!ownsTarget(event.target)) {
-    return;
-  }
-
-  const match = SHORTCUTS.find((s) => s.key === event.key.toLowerCase() && s.shift === event.shiftKey);
-
-  if (!match) {
-    return;
-  }
-
-  event.preventDefault();
-  SHORTCUT_ACTIONS[match.action]();
 };
 
 watch(tabQueries, (queries) => emit('tab-queries', queries), { immediate: true });
 
+/** The keys are bound in ResourceTable's shortkeys template; the list the focus is in answers them */
+let unregisterShortcuts: (() => void) | null = null;
+
 onMounted(() => {
-  window.addEventListener('keydown', onShortcut);
+  unregisterShortcuts = registerTableViewShortcuts({
+    owns: ownsTarget,
+    run:  (action) => SHORTCUT_ACTIONS[action](),
+  });
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onShortcut);
+  unregisterShortcuts?.();
   clearTimeout(flashTimer);
   cancelAnimationFrame(flashFrame);
 });

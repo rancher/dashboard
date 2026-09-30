@@ -16,6 +16,7 @@ import ResourceTableWatch from '@shell/mixins/resource-table-watch';
 import paginationUtils from '@shell/utils/pagination-utils';
 import TableViewControls from '@shell/components/TableViews/TableViewControls.vue';
 import TableViewTabs from '@shell/components/TableViews/TableViewTabs.vue';
+import { runTableViewShortcut } from '@shell/utils/table-views/shortcuts';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -712,6 +713,11 @@ export default {
   },
 
   methods: {
+    /** For whichever list holds the focus, which needn't be this one - see runTableViewShortcut */
+    tableViewShortcut(action) {
+      runTableViewShortcut(action);
+    },
+
     keyAction(action) {
       const table = this.$refs.table;
 
@@ -840,7 +846,7 @@ export default {
         :view-counts="tabCounts"
         :match-count="viewMatchCount"
         :resource-type="schema ? schema.id : ''"
-        :page="tableViewsPage"
+        :table-views-page="tableViewsPage"
         :initial-view-id="openedViewId"
         @update:view="openTabView"
         @tab-queries="tabQueries = $event"
@@ -928,6 +934,25 @@ export default {
     </template>
 
     <template #shortkeys>
+      <!-- The saved view shortcuts. Not `once`: macOS sends no keyup for a key pressed with Cmd held.
+           `anywhere`, as the query box has the focus while a view is being edited -->
+      <template v-if="showTableViewTabs">
+        <button
+          v-shortkey.anywhere="{windows: ['ctrl', 's'], mac: ['meta', 's']}"
+          class="hide"
+          @shortkey="tableViewShortcut('saveChanges')"
+        />
+        <button
+          v-shortkey.anywhere="{windows: ['ctrl', 'shift', 's'], mac: ['meta', 'shift', 's']}"
+          class="hide"
+          @shortkey="tableViewShortcut('openSaveAsNew')"
+        />
+        <button
+          v-shortkey.anywhere="{windows: ['ctrl', 'd'], mac: ['meta', 'd']}"
+          class="hide"
+          @shortkey="tableViewShortcut('duplicateCurrent')"
+        />
+      </template>
       <button
         v-shortkey.once="['e']"
         class="hide"

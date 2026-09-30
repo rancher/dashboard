@@ -313,8 +313,12 @@ export default defineComponent({
       return Promise.all(promises);
     },
 
-    /** For the Machines column's bar. Not awaited: it shows a count until they land */
+    /** For the Machines column's bar, which only table views has. Not awaited: it shows a count until they land */
     fetchMachineStates() {
+      if (!this.improvedTables) {
+        return;
+      }
+
       if (this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT)) {
         this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
       }

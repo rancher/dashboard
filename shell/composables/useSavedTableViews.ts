@@ -57,12 +57,36 @@ export function useSavedTableViews(resourceType: () => string, page: () => strin
     };
     const current = typeEntry.value || { views: [] };
     // A page's views go beside the type's own, and saving either keeps the other
-    const next: TypeEntry = page() ? { ...current, pages: { ...(current.pages || {}), [page() as string]: saved } } : { ...saved, ...(current.pages ? { pages: current.pages } : {}) };
+    const pages = { ...(current.pages || {}) };
 
-    allSavedViews.value = {
-      ...(allSavedViews.value || {}),
-      [resourceType()]: next
-    };
+    if (page()) {
+      pages[page() as string] = saved;
+    }
+
+    const next: TypeEntry = { ...(page() ? current : saved) };
+
+    // Nothing is kept for a type or a page left with no views: no default or tab place without them
+    Object.keys(pages).forEach((key) => {
+      if (!pages[key].views.length) {
+        delete pages[key];
+      }
+    });
+
+    if (Object.keys(pages).length) {
+      next.pages = pages;
+    } else {
+      delete next.pages;
+    }
+
+    const all = { ...(allSavedViews.value || {}) };
+
+    if (next.views.length || next.pages) {
+      all[resourceType()] = next;
+    } else {
+      delete all[resourceType()];
+    }
+
+    allSavedViews.value = all;
   };
 
   const persist = (views: TableViewSaved[]) => persistAll(views, defaultViewId.value);

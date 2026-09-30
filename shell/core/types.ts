@@ -212,6 +212,12 @@ export interface HeaderOptions {
   name?: string;
 
   /**
+   * `false` for a column that isn't data, eg a button: table views leaves it out of Columns, Group
+   * By, the query and exports
+   */
+  tableViews?: boolean;
+
+  /**
    * A string that will show in the table column as a header
    */
   label?: string;
