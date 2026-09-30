@@ -43,6 +43,7 @@ function list({ counts = {} as Record<string, number>, fail = false } = {}) {
     inStore:              'management',
     schema:               { id: 'management.cattle.io.cluster' },
     fieldValues:          {},
+    fieldValuesLoading:   [],
     viewFields:           [NAME, PROVIDER],
     viewQueryFields:      [NAME, PROVIDER, ...queryFields],
     listScopeFilters:     [],
