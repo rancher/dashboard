@@ -703,15 +703,17 @@ function fitHeight(): void {
       }
     }
 
+    // Straddles the bottom edge - 12px in, 12px out into the gap - so it is caught without aiming
+    // for a hairline. The bar you see stays on the widget.
     &--bottom {
-      bottom: 0;
+      bottom: -12px;
       cursor: row-resize;
-      height: 8px;
+      height: 24px;
       left:   8px;
       right:  8px;
 
       &::after {
-        bottom: 2px;
+        bottom: 14px;
         height: 3px;
         left:   calc(50% - 20px);
         width:  40px;
