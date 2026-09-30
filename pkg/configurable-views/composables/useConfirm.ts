@@ -1,51 +1,36 @@
-import { useStore } from 'vuex';
+import { ref } from 'vue';
 
 export interface ConfirmOptions {
   title: string;
   body: string;
-  /** Which of the shell's button labels to use: 'continue', 'apply', 'delete', 'remove', … */
-  applyMode?: string;
-  /** 'bg-error role-primary' marks a destructive action. */
-  actionColor?: string;
+  /** The action button's label, named for what it does: "Publish", "Discard". */
+  action: string;
+  /** Marks an action that takes something away. */
+  danger?: boolean;
+}
+
+interface PendingConfirm extends ConfirmOptions {
+  resolve: (ok: boolean) => void;
+}
+
+/** The question on screen, if any. One at a time: a second one answers the first with no. */
+export const pendingConfirm = ref<PendingConfirm | null>(null);
+
+/** Answer the question on screen. Closing the modal any other way (Esc, the backdrop) is a no. */
+export function settleConfirm(ok: boolean): void {
+  const pending = pendingConfirm.value;
+
+  pendingConfirm.value = null;
+  pending?.resolve(ok);
 }
 
 /**
- * Ask, in a real modal - the shell's own GenericPrompt, the confirm dialog every other part of
- * Rancher uses, so these read like the rest of the product instead of like the browser.
- *
- * Resolves true on the action, false on anything else. GenericPrompt reports a decision through its
- * `confirm` callback, but a modal closed another way (Esc) never calls it, and an unresolved promise
- * would silently drop the action; the store subscription is that backstop - the modal closing with
- * no decision resolves false.
+ * Ask, in the product's own modal - the one ConfirmModal renders, laid out like the other AppModal
+ * dialogs - rather than the browser's. Resolves true on the action, false on anything else.
  */
 export function useConfirm(): (options: ConfirmOptions) => Promise<boolean> {
-  const store = useStore();
-
-  return ({
-    title, body, applyMode = 'continue', actionColor = 'role-primary'
-  }) => new Promise((resolve) => {
-    let settled = false;
-    let stop: () => void = () => {};
-
-    const done = (ok: boolean) => {
-      if (!settled) {
-        settled = true;
-        stop();
-        resolve(!!ok);
-      }
-    };
-
-    stop = store.subscribe((m) => {
-      if (m.type === 'action-menu/togglePromptModal' && !m.payload) {
-        done(false);
-      }
-    });
-
-    store.dispatch('management/promptModal', {
-      component:      'GenericPrompt',
-      componentProps: {
-        title, body, applyMode, actionColor, confirm: done
-      },
-    });
+  return (options) => new Promise((resolve) => {
+    settleConfirm(false);
+    pendingConfirm.value = { ...options, resolve };
   });
 }

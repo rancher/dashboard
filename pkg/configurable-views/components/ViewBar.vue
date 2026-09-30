@@ -1,62 +1,87 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import {
+  computed, nextTick, onBeforeUnmount, onMounted, ref, watch
+} from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
+import { isMac, shortcutLabel } from '@shell/utils/platform';
+import { RcDropdown, RcDropdownItem, RcDropdownSeparator, RcDropdownTrigger } from '@components/RcDropdown';
+import { useDragReorder } from '../composables/useDragReorder';
 import { BUILT_IN_STOCK_ID } from '../templating/view-model';
 import type { View } from '../templating/types';
 
 // The bar under the app header — a configurable page's own navigation, and the only place a view
-// is switched, renamed, created or published.
+// is switched, renamed, created or published. Its tabs behave like a table's saved view tabs: the
+// view the page opens on leads, the rest can be dragged into any order, and the menu is the same.
 //
 // It has two faces:
 //
-//   VIEW MODE  "Home", the views as tabs, then edit (✎) and the overflow menu (⋮).
+//   VIEW MODE  "Home", the views as tabs, then edit (✎) and the view menu (⋮).
 //   EDIT MODE  the active view's name becomes editable in place, the other tabs go quiet because
 //              you are editing THIS one, and the right-hand side turns into Cancel / Save as new
 //              view / Save. The bar tints blue so it is obvious the page is in a different mode.
 //
-// It owns no state beyond the open menu: everything else is emitted to the Home page.
+// It owns no views: every change is emitted to the page, which stores it.
 
-/** Everything the bar asks of the Home. Most asks carry nothing; switching and renaming say what to. */
+/** How close to an end of the strip a held tab has to be before the strip scrolls that way */
+const TAB_SCROLL_EDGE = 56;
+
+const TAB_SCROLL_STEP = 12;
+
+const TAB_SCROLL_SETTLE_MAX_MS = 1200;
+
+const TAB_FLASH_MS = 600;
+
+/** The tab the page opens on can't be dragged out of the front, nor anything dropped before it */
+const LOCKED_TAB_COUNT = 1;
+
+/** Everything the bar asks of the page. The per-tab actions say which view they are for. */
 type BarEmits = {
   select: [id: string];
+  /** The name typed while editing the active view. */
   rename: [name: string];
+  'rename-view': [id: string, name: string];
   edit: [];
   cancel: [];
   save: [];
   'save-as-new': [];
-  'rename-start': [];
   'new-view': [];
-  duplicate: [];
-  'set-default': [];
-  publish: [];
-  delete: [];
+  duplicate: [id: string];
+  'set-default': [id: string];
+  publish: [id: string];
+  unpublish: [id: string];
+  delete: [id: string];
+  reorder: [ids: string[]];
 };
 
 const props = withDefaults(defineProps<{
   /** The page's name, at the start of the bar: "Home", "Cluster Dashboard". */
   title?: string;
+  /** In the bar's order - see orderViews. */
   views?: View[];
   activeId?: string | null;
   editing?: boolean;
   /** A brand-new view that has never been saved — Figma's "New view" state. */
   isNew?: boolean;
-  /** The view this user opens the Home on. */
+  /** The view this user opens the page on. None means Rancher's own page. */
   defaultId?: string | null;
+  /** The views that are published, or are this user's copy of a published view. */
+  publishedIds?: string[];
   dirty?: boolean;
   saving?: boolean;
   /** Where a new view was started from, shown beside "New view". */
   startedFrom?: string;
 }>(), {
-  title:       'Home',
-  views:       () => [],
-  activeId:    '',
-  editing:     false,
-  isNew:       false,
-  defaultId:   '',
-  dirty:       false,
-  saving:      false,
-  startedFrom: '',
+  title:        'Home',
+  views:        () => [],
+  activeId:     '',
+  editing:      false,
+  isNew:        false,
+  defaultId:    '',
+  publishedIds: () => [],
+  dirty:        false,
+  saving:       false,
+  startedFrom:  '',
 });
 
 const emit = defineEmits<BarEmits>();
@@ -64,10 +89,46 @@ const emit = defineEmits<BarEmits>();
 const store = useStore();
 const { t } = useI18n(store);
 
-const menuOpen = ref(false);
-const menuWrap = ref<HTMLElement | null>(null);
-// The editable name - inside the tab loop, so a list; at most one is rendered, the active view's.
+const root = ref<HTMLElement | null>(null);
+
+const tabStrip = ref<HTMLElement | null>(null);
+
+// The editable name while editing - inside the tab loop, so a list; at most one is rendered.
 const nameInput = ref<HTMLInputElement[]>([]);
+
+/** Function refs, as there is a set per tab */
+const tabWraps = new Map<string, HTMLElement>();
+
+const tabButtons = new Map<string, HTMLElement>();
+
+const renameInputs = new Map<string, HTMLInputElement>();
+
+const keepRef = <T, >(map: Map<string, T>, key: string, el: T | null) => {
+  if (el) {
+    map.set(key, el);
+  } else {
+    map.delete(key);
+  }
+};
+
+const renamingId = ref<string | null>(null);
+
+const renameDraft = ref('');
+
+const tabBounds = ref<number[] | null>(null);
+
+const flashTabId = ref<string | null>(null);
+
+/** Set by the menu, so the tab is flashed once the page has moved it to the front */
+const flashOnDefault = ref(false);
+
+let flashTimer: ReturnType<typeof setTimeout> | undefined;
+
+let flashFrame = 0;
+
+let tabScrollFrame = 0;
+
+const shortcuts = computed(() => ({ duplicate: shortcutLabel([isMac ? '⌘' : 'Ctrl', 'D']) }));
 
 const activeView = computed(() => props.views.find((v) => v.id === props.activeId) || null);
 
@@ -81,81 +142,333 @@ const editingHint = computed(() => {
   return activeView.value?.org ? t('configurableViews.bar.publishedHint') : t('configurableViews.bar.personalHint');
 });
 
-const isDefault = computed(() => !!props.activeId && props.activeId === props.defaultId);
-
-// A published view is everyone's: the menu offers taking it back out rather than publishing it
-// again, and the wording says "unpublish" so nobody reads it as deleting their own copy.
-const isPublished = computed(() => !!activeView.value?.org);
-
 // Rancher's own page, offered as a tab without ever being saved: there is nothing stored to rename,
-// publish or delete, so the menu does not offer to.
-const isBuiltIn = computed(() => activeView.value?.id === BUILT_IN_STOCK_ID);
+// publish or delete, so its menu does not offer to.
+const isBuiltIn = (view: View) => view.id === BUILT_IN_STOCK_ID;
 
-function closeMenu(): void {
-  menuOpen.value = false;
-}
+/** No default set means Rancher's own page is the one the page opens on */
+const isDefaultTab = (view: View) => (props.defaultId ? props.defaultId === view.id : isBuiltIn(view));
 
-function toggleMenu(): void {
-  menuOpen.value = !menuOpen.value;
-}
+const isPublished = (view: View) => props.publishedIds.includes(view.id);
 
-function onOutside(ev: MouseEvent): void {
-  if (!menuWrap.value?.contains(ev.target as Node | null)) {
-    closeMenu();
+const publishedTooltip = (view: View) => (view.org ? t('configurableViews.bar.shared') : t('configurableViews.bar.sharedCopy'));
+
+const tabs = computed<View[]>(() => {
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  if (!tabDragOrder.value) {
+    return props.views;
   }
-}
 
-function onKey(ev: KeyboardEvent): void {
-  if (ev.key === 'Escape') {
-    closeMenu();
-  }
-}
+  const byId = new Map(props.views.map((view) => [view.id, view]));
 
-function stopWatchingForClose(): void {
-  document.removeEventListener('mousedown', onOutside);
-  window.removeEventListener('keydown', onKey);
-}
-
-/**
- * A menu closes on a CLICK outside it, or on Escape — not on the pointer leaving.
- *
- * Closing on mouseleave is how a hover menu behaves, and this is not one: you open it by clicking,
- * so it has to stay open until you decide otherwise. Sliding the pointer a few pixels wide of it on
- * the way to "Delete view" should not take the menu away from under you.
- *
- * The listeners exist only while the menu is open, so a closed bar costs nothing.
- */
-watch(menuOpen, (open) => {
-  if (open) {
-    // Next tick: the click that OPENED the menu is still travelling, and would close it again.
-    setTimeout(() => {
-      document.addEventListener('mousedown', onOutside);
-      window.addEventListener('keydown', onKey);
-    }, 0);
-  } else {
-    stopWatchingForClose();
-  }
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  return tabDragOrder.value.map((id) => byId.get(id)).filter((view): view is View => !!view);
 });
 
-onBeforeUnmount(stopWatchingForClose);
+/** The one tab Tab can land on (roving tabindex); the first if the current view isn't among them */
+const focusableTabId = computed(() => (tabs.value.find((view) => view.id === props.activeId) || tabs.value[0])?.id);
+
+/** Compared by bar, so the shortcut belongs to the bar the focus is in */
+const ownsTarget = (target: EventTarget | null) => !!root.value && target instanceof Node && root.value.contains(target);
+
+const tabWrap = (view: View) => tabWraps.get(view.id);
+
+const tabButton = (view: View) => tabButtons.get(view.id);
+
+/**
+ * Measured once as the drag begins, relative to the list: measuring the live order swaps tabs back
+ * and forth
+ */
+const captureTabSlots = () => {
+  const list = tabStrip.value?.querySelector('.vbar__list');
+
+  if (!list) {
+    return;
+  }
+
+  const base = list.getBoundingClientRect().left;
+  const boxes = props.views.map((view) => {
+    const rect = tabWrap(view)?.getBoundingClientRect();
+
+    return rect ? { left: rect.left - base, right: rect.right - base } : null;
+  }).filter(Boolean) as { left: number, right: number }[];
+
+  // The middle of the gap between two tabs
+  tabBounds.value = boxes.slice(0, -1).map((box, i) => (box.right + boxes[i + 1].left) / 2);
+};
+
+const tabIndexAt = (clientX: number) => {
+  const list = tabStrip.value?.querySelector('.vbar__list');
+
+  if (!list) {
+    return 0;
+  }
+
+  const x = clientX - list.getBoundingClientRect().left;
+  const bounds = tabBounds.value || [];
+  let i = 0;
+
+  while (i < bounds.length && x >= bounds[i]) {
+    i++;
+  }
+
+  return i;
+};
+
+/** A frame loop, so holding still at the edge keeps it scrolling */
+const runTabScroll = () => {
+  const step = () => {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    if (!tabDragMoved.value) {
+      return;
+    }
+
+    const strip = tabStrip.value;
+
+    if (strip) {
+      const rect = strip.getBoundingClientRect();
+
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      if (tabDragPointer.value < rect.left + TAB_SCROLL_EDGE) {
+        strip.scrollLeft -= TAB_SCROLL_STEP;
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        placeDraggedTab();
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      } else if (tabDragPointer.value > rect.right - TAB_SCROLL_EDGE) {
+        strip.scrollLeft += TAB_SCROLL_STEP;
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        placeDraggedTab();
+      }
+    }
+
+    tabScrollFrame = requestAnimationFrame(step);
+  };
+
+  cancelAnimationFrame(tabScrollFrame);
+  tabScrollFrame = requestAnimationFrame(step);
+};
+
+const {
+  heldId: heldTabKey, order: tabDragOrder, moved: tabDragMoved, pointer: tabDragPointer, start: armTabDrag, place: placeDraggedTab
+} = useDragReorder({
+  axis:         'x',
+  initialOrder: () => props.views.map((view) => view.id),
+  measure:      captureTabSlots,
+  indexAt:      tabIndexAt,
+  firstMovable: () => LOCKED_TAB_COUNT,
+  onBegin:      () => {
+    // Otherwise the pointer selects the tab names it crosses
+    window.getSelection()?.removeAllRanges();
+    runTabScroll();
+  },
+  onEnd: () => {
+    cancelAnimationFrame(tabScrollFrame);
+    tabBounds.value = null;
+  },
+  onCommit: (order) => emit('reorder', order),
+});
+
+const startTabDrag = (view: View, event: MouseEvent) => {
+  if (event.button !== 0 || props.editing || renamingId.value || props.views.findIndex((v) => v.id === view.id) < LOCKED_TAB_COUNT) {
+    return;
+  }
+
+  armTabDrag(view.id, event);
+};
+
+/**
+ * Focus a view's tab and bring it into sight. `toEnd` runs the strip to its end, where a new tab is
+ * before the strip has laid it out
+ */
+const focusTab = (id: string, toEnd = false) => {
+  nextTick(() => {
+    const view = tabs.value.find((candidate) => candidate.id === id);
+    const btn = view && tabButton(view);
+
+    if (!btn) {
+      return;
+    }
+
+    // Focus would scroll the strip itself, fighting the run to the end
+    btn.focus({ preventScroll: !!toEnd });
+
+    if (!toEnd) {
+      btn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      const strip = tabStrip.value;
+
+      if (strip) {
+        strip.scrollLeft = strip.scrollWidth;
+      }
+    });
+  });
+};
+
+/** Renamed in place on its tab, as a table's saved view is */
+const openRename = (id: string) => {
+  const view = props.views.find((candidate) => candidate.id === id);
+
+  if (!view || isBuiltIn(view)) {
+    return;
+  }
+
+  renamingId.value = view.id;
+  renameDraft.value = view.name;
+
+  nextTick(() => {
+    const input = renameInputs.get(view.id);
+
+    input?.focus();
+    input?.select();
+  });
+};
+
+const commitRename = () => {
+  const id = renamingId.value;
+  const name = (renameDraft.value || '').trim();
+  const view = props.views.find((v) => v.id === id);
+
+  renamingId.value = null;
+  renameDraft.value = '';
+
+  if (!name || !view || name === view.name) {
+    return;
+  }
+
+  emit('rename-view', view.id, name);
+};
+
+const cancelRename = () => {
+  renamingId.value = null;
+  renameDraft.value = '';
+};
+
+/** Focus follows: with a roving tabindex, the tab left behind is no longer reachable */
+const goToTab = (view: View) => {
+  emit('select', view.id);
+  focusTab(view.id);
+};
+
+/** Moving focus picks the view too, as the product's other tabs do */
+const stepTab = (delta: number) => {
+  const list = tabs.value;
+
+  if (list.length < 2) {
+    return;
+  }
+
+  const focused = list.findIndex((view) => tabButton(view) === document.activeElement);
+  const at = focused >= 0 ? focused : list.findIndex((view) => view.id === focusableTabId.value);
+  const next = list[((at < 0 ? 0 : at) + delta + list.length) % list.length];
+
+  goToTab(next);
+};
+
+const edgeTab = (which: string) => {
+  const list = tabs.value;
+  const next = which === 'first' ? list[0] : list[list.length - 1];
+
+  if (next) {
+    goToTab(next);
+  }
+};
+
+/** Waits for the scroll to finish rather than a fixed delay; the cap covers one that never does */
+const flashTabWhenScrolled = (strip: HTMLElement, id: string) => {
+  clearTimeout(flashTimer);
+  cancelAnimationFrame(flashFrame);
+
+  const deadline = Date.now() + TAB_SCROLL_SETTLE_MAX_MS;
+
+  const settle = () => {
+    if (strip.scrollLeft > 1 && Date.now() < deadline) {
+      flashFrame = requestAnimationFrame(settle);
+
+      return;
+    }
+
+    flashTabId.value = id;
+    flashTimer = setTimeout(() => {
+      flashTabId.value = null;
+    }, TAB_FLASH_MS);
+  };
+
+  settle();
+};
+
+/** Picking Rancher's own page is how to go back to no default */
+const setDefaultView = (view: View) => {
+  flashOnDefault.value = true;
+  emit('set-default', view.id);
+};
+
+// The tab just moved to the front, so scroll there and flash it to say why the strip moved. Once the
+// page has stored it, not on the click: until then the tab is still where it was
+watch(() => props.views[0]?.id, (id) => {
+  if (!flashOnDefault.value || !id) {
+    return;
+  }
+
+  flashOnDefault.value = false;
+
+  nextTick(() => {
+    const strip = tabStrip.value;
+
+    if (!strip) {
+      return;
+    }
+
+    strip.scrollTo({ left: 0, behavior: 'smooth' });
+    flashTabWhenScrolled(strip, id);
+  });
+});
+
+const duplicateCurrent = () => {
+  if (props.activeId) {
+    emit('duplicate', props.activeId);
+  }
+};
+
+const onShortcut = (event: KeyboardEvent) => {
+  if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || props.editing) {
+    return;
+  }
+
+  // Only for the bar the focus is in
+  if (!ownsTarget(event.target) || event.key.toLowerCase() !== 'd') {
+    return;
+  }
+
+  event.preventDefault();
+  duplicateCurrent();
+};
 
 function onName(ev: Event): void {
   emit('rename', (ev.target as HTMLInputElement).value);
 }
 
-/**
- * Select the view's name, ready to be typed over. The ⋮ menu's Rename opens the editor and calls
- * this: the name is edited in one place, here in the bar, rather than in a second naming dialog.
- */
-function selectName(): void {
-  nameInput.value[0]?.select();
-}
+onMounted(() => {
+  window.addEventListener('keydown', onShortcut);
+});
 
-defineExpose({ selectName });
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onShortcut);
+  clearTimeout(flashTimer);
+  cancelAnimationFrame(flashFrame);
+  cancelAnimationFrame(tabScrollFrame);
+});
+
+defineExpose({ openRename, focusTab });
 </script>
+
 
 <template>
   <div
+    ref="root"
     class="vbar"
     :class="{ 'vbar--editing': editing }"
   >
@@ -165,33 +478,84 @@ defineExpose({ selectName });
 
     <!-- The views. While editing, the one being edited is renamed in place and the rest go quiet:
        you cannot switch away mid-edit without deciding what to do with your changes. -->
-    <div class="vbar__views">
-      <!-- One keyed slot per view, with the tab and the name box as branches INSIDE it. Keeping
-         the key on a stable wrapper is what stops Vue reusing a <button> as the <input> (or the
-         other way round) when the active view changes. -->
-      <div
-        v-for="view in views"
-        :key="view.id"
-        class="vbar__slot"
+    <div
+      ref="tabStrip"
+      class="vbar__views"
+    >
+      <TransitionGroup
+        tag="div"
+        name="vbar-slot"
+        class="vbar__list"
+        :class="{ 'is-reordering': heldTabKey !== null }"
+        role="tablist"
+        :aria-label="t('configurableViews.bar.tabsLabel')"
       >
-        <input
-          v-if="editing && view.id === activeId"
-          ref="nameInput"
-          class="vbar__name"
-          :value="view.name"
-          :aria-label="t('configurableViews.bar.viewName')"
-          @input="onName"
+        <!-- One keyed slot per view, with the tab and the name boxes as branches INSIDE it. Keeping
+           the key on a stable wrapper is what stops Vue reusing a <button> as the <input> (or the
+           other way round) when the active view changes. -->
+        <div
+          v-for="view in tabs"
+          :key="view.id"
+          :ref="(el) => keepRef(tabWraps, view.id, el as HTMLElement | null)"
+          class="vbar__slot"
+          :class="{
+            held: heldTabKey === view.id,
+            flash: flashTabId === view.id,
+          }"
+          :data-testid="`configurable-views-tab-${ view.id }`"
+          @mousedown="startTabDrag(view, $event)"
         >
-        <button
-          v-else
-          class="vbar__view"
-          :class="{ 'vbar__view--active': !editing && view.id === activeId }"
-          :disabled="editing"
-          @click="$emit('select', view.id)"
-        >
-          {{ view.name }}
-        </button>
-      </div>
+          <input
+            v-if="editing && view.id === activeId"
+            ref="nameInput"
+            class="vbar__name"
+            :value="view.name"
+            :aria-label="t('configurableViews.bar.viewName')"
+            @input="onName"
+          >
+          <input
+            v-else-if="renamingId === view.id"
+            :ref="(el) => keepRef(renameInputs, view.id, el as HTMLInputElement | null)"
+            v-model="renameDraft"
+            type="text"
+            class="vbar__name"
+            :aria-label="t('configurableViews.bar.viewName')"
+            data-testid="configurable-views-rename-input"
+            @keydown.enter.prevent="commitRename"
+            @keydown.esc.prevent="cancelRename"
+            @blur="commitRename"
+            @click.stop
+          >
+          <button
+            v-else
+            :ref="(el) => keepRef(tabButtons, view.id, el as HTMLElement | null)"
+            type="button"
+            role="tab"
+            class="vbar__view"
+            :class="{
+              'vbar__view--active': !editing && view.id === activeId,
+              'vbar__view--default': !editing && isDefaultTab(view),
+            }"
+            :aria-selected="view.id === activeId"
+            :tabindex="view.id === focusableTabId ? 0 : -1"
+            :disabled="editing"
+            @click="$emit('select', view.id)"
+            @keydown.left.prevent="stepTab(-1)"
+            @keydown.right.prevent="stepTab(1)"
+            @keydown.home.prevent="edgeTab('first')"
+            @keydown.end.prevent="edgeTab('last')"
+          >
+            {{ view.name }}
+            <i
+              v-if="isPublished(view)"
+              v-clean-tooltip="publishedTooltip(view)"
+              class="icon icon-groups vbar__shared"
+              :aria-label="publishedTooltip(view)"
+              data-testid="configurable-views-tab-shared"
+            />
+          </button>
+        </div>
+      </TransitionGroup>
     </div>
 
     <template v-if="editing">
@@ -232,75 +596,127 @@ defineExpose({ selectName });
         <i class="icon icon-edit" />
       </button>
 
-      <div
-        ref="menuWrap"
-        class="vbar__menu-wrap"
+      <!-- The view menu, for the view on screen. Kept inside the window by the dropdown itself -->
+      <rc-dropdown
+        v-if="activeView"
+        placement="bottom-start"
+        :distance="4"
+        :aria-label="t('configurableViews.bar.moreActions')"
       >
-        <button
-          class="vbar__icon-btn"
-          :class="{ 'vbar__icon-btn--on': menuOpen }"
-          :title="t('configurableViews.bar.more')"
+        <rc-dropdown-trigger
+          class="vbar__icon-btn vbar__menu-btn"
           :aria-label="t('configurableViews.bar.moreActions')"
-          :aria-expanded="menuOpen ? 'true' : 'false'"
-          @click="toggleMenu"
+          data-testid="configurable-views-menu"
         >
           <i class="icon icon-actions" />
-        </button>
+        </rc-dropdown-trigger>
 
-        <ul
-          v-if="menuOpen"
-          class="vbar__menu"
-        >
-          <li>
-            <button @click="closeMenu(); $emit('new-view')">
-              {{ t('configurableViews.bar.newView') }}
-            </button>
-          </li>
-          <li>
-            <button @click="closeMenu(); $emit('duplicate')">
-              {{ t('configurableViews.bar.duplicate') }}
-            </button>
-          </li>
-          <li v-if="!isBuiltIn">
-            <button @click="closeMenu(); $emit('rename-start')">
+        <template #dropdownCollection>
+          <div class="menu-panel">
+            <rc-dropdown-item
+              data-testid="configurable-views-new"
+              @click="$emit('new-view')"
+            >
+              <template #before>
+                <i class="icon icon-plus" />
+              </template>
+              {{ t('configurableViews.bar.addView') }}
+            </rc-dropdown-item>
+            <rc-dropdown-separator />
+            <rc-dropdown-item
+              v-if="!isBuiltIn(activeView)"
+              data-testid="configurable-views-rename"
+              @click="openRename(activeView.id)"
+            >
+              <template #before>
+                <i class="icon icon-edit" />
+              </template>
               {{ t('configurableViews.bar.rename') }}
-            </button>
-          </li>
-          <li>
-            <button
-              :disabled="isDefault"
-              @click="closeMenu(); $emit('set-default')"
+            </rc-dropdown-item>
+            <rc-dropdown-item
+              data-testid="configurable-views-duplicate"
+              @click="$emit('duplicate', activeView.id)"
             >
-              {{ isDefault ? t('configurableViews.bar.isDefault') : t('configurableViews.bar.setDefault') }}
-            </button>
-          </li>
-          <template v-if="!isBuiltIn">
-            <li class="vbar__menu-sep" />
-            <li v-if="!isPublished">
-              <button @click="closeMenu(); $emit('publish')">
+              <template #before>
+                <i class="icon icon-copy" />
+              </template>
+              {{ t('configurableViews.bar.duplicate') }}
+              <span class="menu-shortcut">{{ shortcuts.duplicate }}</span>
+            </rc-dropdown-item>
+            <rc-dropdown-item
+              :class="{ selected: isDefaultTab(activeView) }"
+              data-testid="configurable-views-set-default"
+              @click="setDefaultView(activeView)"
+            >
+              <template #before>
+                <i class="menu-gutter" />
+              </template>
+              {{ t('configurableViews.bar.setDefault') }}
+              <i
+                v-if="isDefaultTab(activeView)"
+                class="icon icon-checkmark menu-check"
+              />
+            </rc-dropdown-item>
+
+            <template v-if="!isBuiltIn(activeView)">
+              <rc-dropdown-separator />
+              <rc-dropdown-item
+                v-if="!activeView.org"
+                data-testid="configurable-views-publish"
+                @click="$emit('publish', activeView.id)"
+              >
+                <template #before>
+                  <i class="icon icon-groups" />
+                </template>
                 {{ t('configurableViews.bar.publish') }}
-              </button>
-            </li>
-            <li
-              v-if="!isPublished"
-              class="vbar__menu-sep"
-            />
-          </template>
-          <li v-if="!isBuiltIn">
-            <button
-              :disabled="views.length < 2"
-              @click="closeMenu(); $emit('delete')"
-            >
-              {{ isPublished ? t('configurableViews.bar.unpublish') : t('configurableViews.bar.delete') }}
-            </button>
-          </li>
-        </ul>
-      </div>
+              </rc-dropdown-item>
+              <rc-dropdown-item
+                v-if="isPublished(activeView)"
+                data-testid="configurable-views-unpublish"
+                @click="$emit('unpublish', activeView.id)"
+              >
+                <template #before>
+                  <i class="menu-gutter" />
+                </template>
+                {{ t('configurableViews.bar.unpublish') }}
+              </rc-dropdown-item>
+            </template>
+
+            <!-- A published view is everyone's: it is unpublished, not deleted -->
+            <template v-if="!isBuiltIn(activeView) && !activeView.org">
+              <rc-dropdown-separator />
+              <rc-dropdown-item
+                data-testid="configurable-views-delete"
+                @click="$emit('delete', activeView.id)"
+              >
+                <template #before>
+                  <i class="icon icon-trash" />
+                </template>
+                {{ t('configurableViews.bar.delete') }}
+              </rc-dropdown-item>
+            </template>
+          </div>
+        </template>
+      </rc-dropdown>
     </template>
   </div>
 </template>
 
 <style lang="scss" scoped>
+// The same curves the side nav's pinned shelf uses
+$drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
+
+// Drawn the way the app bar marks a cluster arriving on the pinned shelf
+@keyframes vbar-slot-arrive {
+  0%   { opacity: 0; transform: translateX(-6px) scale(0.985); }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes vbar-slot-wash {
+  0%   { box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent); }
+  100% { box-shadow: 0 0 0 3px transparent; }
+}
+
 // 57px tall, 20px side padding, a hairline under it — and a blue wash while editing.
 .vbar {
   align-items:   center;
@@ -343,7 +759,6 @@ defineExpose({ selectName });
     border-radius:   4px;
     display:         flex;
     flex:            0 1 auto;
-    gap:             1px;
     min-width:       0;
     overflow-x:      auto;
     scrollbar-width: none;
@@ -353,15 +768,24 @@ defineExpose({ selectName });
     }
   }
 
+  &__list {
+    align-items: center;
+    display:     flex;
+    gap:         1px;
+  }
+
   // A view tab: 30px tall, 12px of side padding, and the active one filled in the primary colour.
   &__view {
+    align-items:   center;
     background:    transparent;
     border:        none;
     border-radius: 4px;
     color:         var(--body-text);
     cursor:        pointer;
+    display:       flex;
     flex:          0 0 auto;
     font-size:     14px;
+    gap:           6px;
     // The shell's global button rule sets a 40px min-height and line-height; a segmented control
     // is 30px, so both have to be said explicitly.
     height:        30px;
@@ -379,21 +803,29 @@ defineExpose({ selectName });
       color:      var(--primary-text);
     }
 
+    // The view the page opens on, boxed. Drawn inside, so the box doesn't change the tab's size
+    &--default {
+      box-shadow: inset 0 0 0 1px var(--primary);
+    }
+
+    &--active#{&}--default {
+      box-shadow: inset 0 0 0 1px var(--primary), inset 0 0 0 2px var(--primary-text);
+    }
+
     &:disabled {
       color:  var(--muted);
       cursor: default;
     }
   }
 
+  &__shared {
+    font-size: 14px;
+  }
+
   // The active view's name, edited where the tab was.
   &__slot {
     display: flex;
     flex:    0 0 auto;
-  }
-
-  // The name box replaces a tab inside the track, so it keeps the track's height and sits flush.
-  &--editing &__views {
-    padding: 0;
   }
 
   &__name {
@@ -444,7 +876,7 @@ defineExpose({ selectName });
     white-space: nowrap;
   }
 
-  // ---- icon buttons + overflow menu ----
+  // ---- icon buttons ----
   // 38x32, and always in the accent style the design draws them in — they are the two ways into
   // editing, not incidental icons that only light up when you find them.
   &__icon-btn {
@@ -464,7 +896,7 @@ defineExpose({ selectName });
     width:           38px;
 
     &:hover,
-    &--on {
+    &[aria-expanded="true"] {
       background: var(--primary);
       color:      var(--primary-text);
     }
@@ -474,51 +906,93 @@ defineExpose({ selectName });
     }
   }
 
-  &__menu-wrap {
-    position: relative;
-  }
+  // The menu's trigger is an RcButton: two classes deep to beat its own variant and size, so it
+  // matches the edit button beside it
+  &__icon-btn#{&}__menu-btn {
+    background: var(--accent-btn);
+    border:     1px solid var(--primary);
+    color:      var(--primary);
+    padding:    0;
 
-  &__menu {
-    background:    var(--body-bg);
-    border:        1px solid var(--border);
-    border-radius: var(--border-radius);
-    box-shadow:    0 2px 10px rgba(0, 0, 0, 0.15);
-    left:          0;
-    list-style:    none;
-    margin:        4px 0 0;
-    min-width:     260px;
-    padding:       8px 0;
-    position:      absolute;
-    top:           100%;
-    z-index:       30;
-
-    button {
-      background:  transparent;
-      border:      none;
-      color:       var(--body-text);
-      cursor:      pointer;
-      display:     block;
-      font-size:   14px;
-      line-height: 20px;
-      padding:     6px 16px;
-      text-align:  left;
-      width:       100%;
-
-      &:hover:not(:disabled) {
-        background: var(--accent-btn);
-      }
-
-      &:disabled {
-        color:  var(--muted);
-        cursor: default;
-      }
+    &:hover,
+    &[aria-expanded="true"] {
+      background: var(--primary);
+      color:      var(--primary-text);
     }
   }
+}
 
-  &__menu-sep {
-    background: var(--border);
-    height:     1px;
-    margin:     8px 0;
+// ---- reordering, as a table's saved view tabs are reordered ----
+
+// Only while carrying: FLIP also fires on renames
+.vbar__list.is-reordering {
+  cursor: grabbing;
+
+  .vbar-slot-move {
+    transition: transform 0.2s $drag-displace-curve;
+  }
+
+  .vbar__view,
+  .vbar__slot {
+    cursor: grabbing;
+  }
+
+  // Lifted like the app bar's pinned shelf rows, with the same shadow
+  .vbar__slot.held {
+    position: relative;
+    z-index: 1;
+    transform: scale(1.02);
+    transition: transform 0.2s $drag-displace-curve;
+    border-radius: var(--border-radius);
+    background: color-mix(in srgb, var(--primary) 14%, var(--body-bg));
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+  }
+}
+
+// The tab that just became the default, arriving at the front
+.vbar__slot.flash {
+  border-radius: var(--border-radius);
+  animation: vbar-slot-arrive 0.16s ease-out, vbar-slot-wash 0.6s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vbar__slot.flash {
+    animation: none;
+  }
+}
+
+.vbar__slot {
+  user-select: none;
+}
+
+.menu-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  text-align: left;
+
+  // Not named `icon-*`: the icon font claims `[class*=" icon-"]` with !important
+  .menu-gutter {
+    display: inline-block;
+    flex: none;
+    width: 14px;
+  }
+
+  .menu-shortcut,
+  .menu-check {
+    margin-left: auto;
+    padding-left: 24px;
+  }
+
+  .menu-shortcut {
+    color: var(--dropdown-secondary-text);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  // `--active` follows the brand in both themes; `--info` doesn't
+  [dropdown-menu-item].selected {
+    color: var(--active, var(--primary));
   }
 }
 

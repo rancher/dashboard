@@ -443,6 +443,58 @@ export function isStockView(view: unknown): view is StockView {
   return isObject(view) && view.kind === STOCK_KIND;
 }
 
+/** Move one entry of a list to another index, leaving the list given untouched. */
+export function moveInOrder<T>(order: T[], from: number, to: number): T[] {
+  const next = [...order];
+
+  if (from < 0 || to < 0 || from >= next.length || from === to) {
+    return next;
+  }
+
+  next.splice(to, 0, ...next.splice(from, 1));
+
+  return next;
+}
+
+/**
+ * The key a view keeps its place in the bar by. A fork of a published view keeps its source's, so
+ * editing a published view never moves its tab.
+ */
+export function orderKeyOf(view: View, publishedIds: Set<string>): string {
+  return view.from && publishedIds.has(view.from) ? view.from : view.id;
+}
+
+/**
+ * The bar's tabs in order: the view the page opens on leads - Rancher's own page when no default is
+ * set - then the rest as they were dragged. Views never placed keep their natural order after them.
+ */
+export function orderViews<T extends View>(views: T[], order: string[] | undefined, keyOf: (view: T) => string, leadId?: string | null): T[] {
+  const rank = new Map((order || []).map((key, i) => [key, i]));
+  const placed = views
+    .map((view, i) => ({
+      view, i, at: rank.get(keyOf(view))
+    }))
+    .sort((a, b) => {
+      if (a.at !== undefined && b.at !== undefined) {
+        return a.at - b.at;
+      }
+      if (a.at !== undefined || b.at !== undefined) {
+        return a.at !== undefined ? -1 : 1;
+      }
+
+      return a.i - b.i;
+    })
+    .map(({ view }) => view);
+
+  const lead = placed.findIndex((view) => (leadId ? view.id === leadId : isStockView(view)));
+
+  if (lead <= 0) {
+    return placed;
+  }
+
+  return [placed[lead], ...placed.filter((_, i) => i !== lead)];
+}
+
 function normalizeView(view: Loose): View {
   // A stock view carries no widgets — there is nothing to lay out.
   const out: View = isStockView(view) ? {
@@ -497,6 +549,12 @@ export function migrateViewSet(value: unknown): ViewSet {
     // Which view opens first. Dropped when it names a view that no longer exists.
     if (defaultId && out.views.some((p) => p.id === defaultId)) {
       out.defaultViewId = defaultId;
+    }
+
+    const order = strings(source?.order);
+
+    if (order.length) {
+      out.order = order;
     }
 
     if (source?.disabled) {

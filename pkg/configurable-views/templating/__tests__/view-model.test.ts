@@ -1,7 +1,7 @@
 import {
   BUILT_IN_STOCK_ID, DEFAULT_GAP, builtInStockView, canPlace, clampSpan, cssSides, findWidget, heightForPreset, heightPresetOf,
-  insertWidget, isStockView, migrateViewSet, moveWidget, moveWidgetTo, newLayoutView, newWidgetNode, normalizeWidget, placeOf,
-  removeWidget, setColSpan, spacingPresetOf, updateWidget, widthPresetOf
+  insertWidget, isStockView, migrateViewSet, moveInOrder, moveWidget, moveWidgetTo, newLayoutView, newWidgetNode, normalizeWidget,
+  orderKeyOf, orderViews, placeOf, removeWidget, setColSpan, spacingPresetOf, updateWidget, widthPresetOf
 } from '@pkg/configurable-views/templating/view-model';
 import type { LayoutView, WidgetNode } from '@pkg/configurable-views/templating/types';
 
@@ -314,5 +314,49 @@ describe('list operations', () => {
     expect(ids(insertWidget(tree(), extra, 0))).toStrictEqual(['new', 'a', 'tabs']);
     expect(ids(insertWidget(tree(), extra))).toStrictEqual(['a', 'tabs', 'new']);
     expect(tabIds(insertWidget(tree(), extra, 99, { parentId: 'tabs', tabId: 'two' }), 'two')).toStrictEqual(['c', 'new']);
+  });
+});
+
+describe('the bar order', () => {
+  const stock = builtInStockView('Home');
+  const one = newLayoutView('One', { id: 'one' });
+  const two = newLayoutView('Two', { id: 'two' });
+  const three = newLayoutView('Three', { id: 'three' });
+  const names = (list: { name: string }[]) => list.map((v) => v.name);
+  const byId = (v: { id: string }) => v.id;
+
+  it('moves one entry and leaves the list given untouched', () => {
+    const order = ['a', 'b', 'c', 'd'];
+
+    expect(moveInOrder(order, 3, 1)).toStrictEqual(['a', 'd', 'b', 'c']);
+    expect(moveInOrder(order, 0, 9)).toStrictEqual(['b', 'c', 'd', 'a']);
+    expect(moveInOrder(order, -1, 1)).toStrictEqual(order);
+    expect(order).toStrictEqual(['a', 'b', 'c', 'd']);
+  });
+
+  it('keeps the natural order, led by Rancher’s own page, with nothing dragged or set', () => {
+    expect(names(orderViews([one, stock, two], undefined, byId))).toStrictEqual(['Home', 'One', 'Two']);
+  });
+
+  it('follows the dragged order, with views never placed after the rest', () => {
+    expect(names(orderViews([stock, one, two, three], ['built-in-stock', 'two', 'one'], byId))).toStrictEqual(['Home', 'Two', 'One', 'Three']);
+  });
+
+  it('puts the default view in front, wherever it was dragged', () => {
+    expect(names(orderViews([stock, one, two], ['built-in-stock', 'one', 'two'], byId, 'two'))).toStrictEqual(['Two', 'Home', 'One']);
+  });
+
+  it('places a fork of a published view by its source', () => {
+    const fork = { ...newLayoutView('Mine', { id: 'fork' }), from: 'one' };
+    const published = new Set(['one']);
+
+    expect(orderKeyOf(fork, published)).toBe('one');
+    expect(orderKeyOf(fork, new Set())).toBe('fork');
+    expect(names(orderViews([stock, fork, two], ['two', 'one', 'built-in-stock'], (v) => orderKeyOf(v, published)))).toStrictEqual(['Home', 'Two', 'Mine']);
+  });
+
+  it('reads a stored order, and drops one that is not a list of names', () => {
+    expect(migrateViewSet({ views: [], order: ['a', 3, 'b'] }).order).toStrictEqual(['a', 'b']);
+    expect(migrateViewSet({ views: [], order: 'a' }).order).toBeUndefined();
   });
 });
