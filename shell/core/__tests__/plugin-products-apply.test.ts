@@ -1299,4 +1299,50 @@ describe('pluginProduct', () => {
       expect(pluginProduct.newProduct).toBe(false);
     });
   });
+
+  describe('vuex state serialisation', () => {
+    it('should not leave a store reference on the product, keeping root state serialisable', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = {
+        product:             jest.fn(),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+        mapType:             jest.fn(),
+        ignoreType:          jest.fn(),
+        hideBulkActions:     jest.fn(),
+        headers:             jest.fn(),
+      };
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type: 'apps.deployment', label: 'Deployments' },
+      ]);
+
+      // Mirror how the app wires this up: product instances are reachable from vuex state via
+      // `uiplugins.plugins[].productConfigs[]`, and the store's `state` is the root state itself
+      const rootState: any = {
+        'type-map': { typeIgnore: [], groupIgnore: [] },
+        uiplugins:  { plugins: [{ name: 'my-extension', productConfigs: [pluginProduct] }] },
+      };
+      const mockStore: any = {
+        state:   rootState,
+        getters: {
+          'type-map/productByName': () => undefined,
+          'management/schemaFor':   () => undefined,
+        },
+      };
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      // The Diagnostics page serialises the whole root state, so a store reference held on the
+      // product would close a cycle here and break the diagnostics package download
+      expect(() => JSON.stringify(rootState)).not.toThrow();
+    });
+  });
 });

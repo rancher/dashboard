@@ -52,6 +52,16 @@ const isUnconditionalIgnoreRule = (rule: TypeMapIgnoreRule): rule is string => t
 const isConditionalIgnoreRule = (rule: TypeMapIgnoreRule): rule is TypeMapConditionalIgnoreRule => typeof rule === 'object' && rule !== null && !!rule.type;
 
 /**
+ * The store each product was applied with, deliberately kept outside of the product instance.
+ *
+ * Product instances are reachable from vuex state (`uiplugins.plugins[].productConfigs[]`) and
+ * a store references the root state, so holding one as a field makes the state a cyclic object
+ * graph. That breaks anything walking it - most visibly the Diagnostics page, which serialises
+ * the whole root state with `JSON.stringify`.
+ */
+const productStores = new WeakMap<BasePluginProduct, any>();
+
+/**
  * Base class for product registration in extensions
  * @internal
  */
@@ -79,10 +89,6 @@ export abstract class BasePluginProduct {
   protected pageIdMap: Map<string, string> = new Map();
 
   protected DSLMethods: any;
-
-  // Kept alongside DSLMethods so registration-time checks (which run deep in the config
-  // traversal) can read store state without threading it through every method signature
-  protected store: any;
 
   protected config: ProductChild[];
 
@@ -138,7 +144,12 @@ export abstract class BasePluginProduct {
    * This is where we register the product and its children via the DSL
    */
   apply(plugin: IExtension, store: any): void {
-    this.store = store;
+    // Tracked off-instance so registration-time checks (which run deep in the config traversal)
+    // can read store state without threading it through every method signature, and without
+    // putting a store reference on an object that lives in vuex state - see `productStores`
+    // prevents circular references that would break JSON serialization of the root state
+    productStores.set(this, store);
+
     // store the DSL methods for easier access
     this.DSLMethods = plugin.DSL(store, this.name);
 
@@ -589,7 +600,8 @@ export abstract class BasePluginProduct {
    * `isIgnored` in `type-map.js` matches them.
    */
   private warnIfIgnoredType(type: string): void {
-    const typeMapState = this.store?.state?.['type-map'];
+    const store = productStores.get(this);
+    const typeMapState = store?.state?.['type-map'];
 
     if (!typeMapState) {
       return;
@@ -600,7 +612,7 @@ export abstract class BasePluginProduct {
     // `allowThrow: false` matters - products register before the management schemas have
     // loaded, and the default schemaFor throws in that window, which would take down
     // registration for the whole product. Without a schema we just skip the group checks
-    const group: string | undefined = this.store?.getters?.['management/schemaFor']?.(type, false, false)?.attributes?.group;
+    const group: string | undefined = store?.getters?.['management/schemaFor']?.(type, false, false)?.attributes?.group;
     const useCustomPage = 'Use a ProductChildCustomPage with a custom component instead.';
 
     // Checked in order, first match wins. Each entry pairs the value the rules apply to with
