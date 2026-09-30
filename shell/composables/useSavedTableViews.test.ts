@@ -10,7 +10,7 @@ const view = (id: string, name = id): TableViewSaved => ({
   id, name, query: '', columns: null, labelColumns: [], groupBy: null
 });
 
-function setup(stored: Record<string, unknown>, type = 'pod') {
+function setup(stored: Record<string, unknown>, type = 'pod', page: string | null = null) {
   const setPref = jest.fn();
   const store = createStore({
     getters: { 'prefs/get': () => (key: string) => (key === TABLE_VIEWS ? stored : undefined) },
@@ -20,7 +20,7 @@ function setup(stored: Record<string, unknown>, type = 'pod') {
 
   mount(defineComponent({
     setup() {
-      saved = useSavedTableViews(() => type);
+      saved = useSavedTableViews(() => type, () => page);
 
       return () => h('div');
     }
@@ -113,5 +113,78 @@ describe('useSavedTableViews', () => {
     expect(saved.unusedViewName('Fresh', 1)).toBe('Fresh');
     expect(saved.unusedViewName('Untitled', 1)).toBe('Untitled 2');
     expect(saved.unusedViewName('X (copy)', 2)).toBe('X (copy) 2');
+  });
+
+  describe('a page keeping views of its own', () => {
+    it('should read the page\'s views, not the type\'s', () => {
+      const { saved } = setup({
+        pod: {
+          views:         [view('shared')],
+          defaultViewId: 'shared',
+          pages:         {
+            home: {
+              views: [view('own')], defaultViewId: 'own', allIndex: 1
+            }
+          }
+        }
+      }, 'pod', 'home');
+
+      expect(saved.savedViews.value.map((v) => v.id)).toStrictEqual(['own']);
+      expect(saved.defaultViewId.value).toBe('own');
+      expect(saved.allTabIndex.value).toBe(1);
+    });
+
+    it('should read nothing for a page with no views yet', () => {
+      const { saved } = setup({ pod: { views: [view('shared')], defaultViewId: 'shared' } }, 'pod', 'home');
+
+      expect(saved.savedViews.value).toStrictEqual([]);
+      expect(saved.defaultViewId.value).toBeNull();
+    });
+
+    it('should save under the type, keeping the type\'s own views', () => {
+      const { saved, written } = setup({
+        pod: {
+          views: [view('shared')], defaultViewId: 'shared', allIndex: 0
+        }
+      }, 'pod', 'home');
+
+      saved.persistAll([view('own')], 'own');
+
+      expect(written()).toStrictEqual({
+        pod: {
+          views:         [view('shared')],
+          defaultViewId: 'shared',
+          allIndex:      0,
+          pages:         {
+            home: {
+              views: [view('own')], defaultViewId: 'own', allIndex: 0
+            }
+          }
+        }
+      });
+    });
+
+    it('should keep the pages\' views when the type\'s own are saved', () => {
+      const pages = {
+        home: {
+          views: [view('own')], defaultViewId: null, allIndex: 0
+        }
+      };
+      const { saved, written } = setup({ pod: { views: [view('shared')], pages } });
+
+      saved.persistAll([view('shared'), view('more')], null);
+
+      expect(written().pod.pages).toStrictEqual(pages);
+      expect(written().pod.views.map((v: TableViewSaved) => v.id)).toStrictEqual(['shared', 'more']);
+    });
+
+    it('should turn the bare list the type\'s views were first kept in into its entry', () => {
+      const { saved, written } = setup({ pod: [view('shared')] }, 'pod', 'home');
+
+      saved.persistAll([view('own')], null);
+
+      expect(written().pod.views.map((v: TableViewSaved) => v.id)).toStrictEqual(['shared']);
+      expect(written().pod.pages.home.views.map((v: TableViewSaved) => v.id)).toStrictEqual(['own']);
+    });
   });
 });

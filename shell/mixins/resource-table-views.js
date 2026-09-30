@@ -37,6 +37,18 @@ export const TABLE_GROUPING_PREFIX = 'group:';
 /** Marks a view's grouping as a date column's, by month */
 export const MONTH_GROUPING_PREFIX = 'month:';
 
+/**
+ * The table's saved views, default and tab place: its page's, under the type, when it has one, else
+ * the type's own. The first shape views were kept in was the bare list. Outside the component so
+ * `data` can ask
+ */
+function savedViewsEntry(vm) {
+  const stored = vm.$store.getters['prefs/get'](TABLE_VIEWS)?.[vm.schema?.id];
+  const typeEntry = Array.isArray(stored) ? { views: stored } : stored;
+
+  return vm.tableViewsPage ? typeEntry?.pages?.[vm.tableViewsPage] : typeEntry;
+}
+
 /** Whether a table would show the saved view tabs, table views allowing. Outside the component so `data` can ask */
 function wantsTableViewTabs(vm) {
   if (vm.tableViewTabs !== null && vm.tableViewTabs !== undefined) {
@@ -79,6 +91,15 @@ export default {
       default: null,
     },
 
+    /**
+     * A page keeping saved views of its own, eg `home`. They live under the resource type's entry,
+     * beside the type's own views, which every other list of it shares
+     */
+    tableViewsPage: {
+      type:    String,
+      default: null,
+    },
+
     /** Fields the query knows that aren't columns, eg `pinned` on a list of clusters */
     queryFields: {
       type:    Array,
@@ -88,7 +109,7 @@ export default {
 
   data() {
     /** @type {{ views: import('@shell/types/table-views').TableViewSaved[], defaultViewId: string|null }} */
-    const saved = this.$store.getters['prefs/get'](TABLE_VIEWS)?.[this.schema?.id];
+    const saved = savedViewsEntry(this);
     /**
      * Only a table showing the saved view tabs opens on the default one. Another, eg a detail page's
      * Pods tab, would be filtered by a view it has no tab to show or leave
@@ -748,10 +769,7 @@ export default {
 
 
     savedViews() {
-      const stored = this.$store.getters['prefs/get'](TABLE_VIEWS)?.[this.schema?.id];
-
-      // The first shape views were kept in
-      return Array.isArray(stored) ? stored : stored?.views || [];
+      return savedViewsEntry(this)?.views || [];
     },
 
     /** Queries rather than views: two views filtering alike share one count */

@@ -505,6 +505,7 @@ export default defineComponent({
             >
               <ResourceTable
                 :schema="provClusterSchema"
+                table-views-page="home"
                 :query-fields="altPinnedQueryFields"
                 :table-actions="false"
                 :row-actions="false"
@@ -613,6 +614,7 @@ export default defineComponent({
               <PaginatedResourceTable
                 v-if="mgmtClusterSchema"
                 :schema="mgmtClusterSchema"
+                table-views-page="home"
                 :query-fields="pinnedQueryFields"
                 overrideInStore="management"
                 :table-actions="false"
