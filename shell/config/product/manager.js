@@ -185,6 +185,8 @@ export function init(store) {
     sort:                false,
     search:              false,
     formatter:           'ClusterExplore',
+    // A button, not data
+    tableViews:          false,
   };
 
   headers(MANAGEMENT.CLUSTER, [

@@ -102,6 +102,26 @@ describe('ResourceTable', () => {
       expect(JSON.stringify(pagination.filters.slice(1))).toContain('metadata.namespace');
     });
 
+    it('should ask the api for the rows in the view\'s order, and keep it', async() => {
+      // Answered in an order no local sort would give, to show the api's is kept
+      const dispatch = jest.fn().mockResolvedValue({ data: [row('c', 'kube'), row('a', 'default')], pagination: { result: { count: 2 } } });
+      const ctx = list({
+        serverSideTableViews: true,
+        schema:               { id: 'pod' },
+        inStore:              'cluster',
+        listScopeFilters:     [],
+        listScopeNamespaces:  [],
+        $store:               { dispatch },
+      });
+
+      const rows = await ctx.rowsForView({
+        query: '', sort: 'name', sortDescending: true
+      }, undefined, 100);
+
+      expect(dispatch.mock.calls[0][1].opt.pagination.sort).toStrictEqual([{ field: 'nameSort', asc: false }, { field: 'id', asc: false }]);
+      expect(names(rows)).toStrictEqual(['c', 'a']);
+    });
+
     it('should export another tab with its own rows and its own columns', async() => {
       const ctx = list({
         $store:        { dispatch: jest.fn().mockResolvedValue('notification') },

@@ -35,6 +35,7 @@ export function coreFieldIdsFor(defaultColumnIds?: string[], sortedById?: string
   return out;
 }
 
+/** Names that meant "not data" before headers could say so with `tableViews: false`; kept for extensions' headers */
 const IGNORED_COLUMNS = ['check', 'actions', 'spacer'];
 
 const SCAN_LIMIT = 1000;
@@ -177,8 +178,9 @@ export function headerFieldId(header: TableViewColumn): string {
   return `${ name }`.replace(/\s+/g, '-').toLowerCase();
 }
 
+/** A column that isn't data - see HeaderOptions.tableViews */
 export function isIgnoredColumn(header: TableViewColumn): boolean {
-  return IGNORED_COLUMNS.includes(headerFieldId(header));
+  return header?.tableViews === false || IGNORED_COLUMNS.includes(headerFieldId(header));
 }
 
 /**
@@ -209,7 +211,7 @@ export function fieldsFor(
   (headers || []).forEach((header) => {
     const id = headerFieldId(header);
 
-    if (!id || IGNORED_COLUMNS.includes(id) || seen[id]) {
+    if (!id || isIgnoredColumn(header) || seen[id]) {
       return;
     }
 
