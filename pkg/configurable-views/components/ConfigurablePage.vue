@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  computed, nextTick, provide, reactive, ref, watch, type CSSProperties
+  computed, onBeforeUnmount, provide, reactive, ref, watch, type CSSProperties
   , Component
 } from 'vue';
 import { useStore } from 'vuex';
@@ -9,15 +9,18 @@ import WidgetGrid from './WidgetGrid.vue';
 import ViewBar from './ViewBar.vue';
 import EditViewSidebar from './EditViewSidebar.vue';
 import WidgetSettingsModal from './WidgetSettingsModal.vue';
+import ConfirmModal from './ConfirmModal.vue';
+import UndoGrowl from './UndoGrowl.vue';
 import { VIEW_EDITOR, type SettingsAnchor, type ViewEditorUi } from '../composables/viewEditor';
 import { useConfirm } from '../composables/useConfirm';
+import { viewBarVisible } from '../composables/useViewBarVisibility';
 import {
   isTemplatingEnabled, appliedViewScopes, saveView, fetchTemplatingConfigMaps, type PageKey
 } from '../templating/template-engine';
 import {
   DEFAULT_GAP, DEFAULT_PAGE_PADDING, newId, newLayoutView, newWidgetNode, isStockView, findWidget, builtInStockView,
   insertWidget, removeWidget, moveWidget, moveWidgetTo, updateWidget,
-  setColSpan as setSpan, heightForPreset, SPACING_PRESETS
+  setColSpan as setSpan, heightForPreset, SPACING_PRESETS, BUILT_IN_STOCK_ID, orderKeyOf, orderViews
 } from '../templating/view-model';
 import type { CatalogEntry } from '../templating/widget-catalog';
 import { stockWidgets, stockView } from '../templating/stock-layouts';
@@ -39,7 +42,7 @@ import type {
 // organization's scope and appear in the same bar. Editing one of those does not change what
 // everyone else sees — it forks the view into your account first, which is what lets the editing
 // bar promise "Changes are saved to your account only" without an asterisk. Publishing is the
-// separate, deliberate step in the ⋮ menu.
+// separate, deliberate step in a tab's menu.
 //
 // Edits are a DRAFT: nothing is written until Save.
 
@@ -97,6 +100,18 @@ const settingsAnchor = ref<SettingsAnchor | null>(null);
 const saving = ref(false);
 const error = ref('');
 const bar = ref<InstanceType<typeof ViewBar> | null>(null);
+/**
+ * What a view-mode action just wrote, shown until the stored copy catches up - so a dragged tab, a
+ * rename or a delete lands at once rather than after the round trip.
+ */
+const optimistic = ref<ViewSet | null>(null);
+
+/** A deleted view, offered back for a while. See deleteView. */
+const undo = ref<{ title: string, message: string, run:() => Promise<void> } | null>(null);
+let undoTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** Longer than a growl's usual 5s: it is the only way back */
+const UNDO_TIMEOUT = 10000;
 
 // Shared, reactive editor UI state: what is being dragged — a widget already on the grid, or a
 // catalog entry on its way in.
@@ -111,33 +126,43 @@ const templatingEnabled = computed(() => isTemplatingEnabled(store.getters));
 const scopes = computed(() => appliedViewScopes(store.getters, userId.value, props.page));
 
 // Your saved views (what the editor writes), and the ones an admin published for the organization.
-const myViews = computed(() => scopes.value.user?.views || []);
+const userSet = computed<ViewSet | null>(() => optimistic.value || scopes.value.user);
 const orgViews = computed(() => scopes.value.global?.views || []);
+const orgIds = computed(() => new Set(orgViews.value.map((p) => p.id)));
+
+/** A working copy of your stored views, for an action to change and write back. */
+const userDraft = (): ViewSet => (userSet.value ? clone(userSet.value) : { views: [] });
 
 // What a brand-new view is seeded from: the organization template. A stock view is skipped — it
 // has no grid, so starting from it would give you nothing to edit.
 const orgTemplate = computed(() => orgViews.value.find((p): p is LayoutView => !isStockView(p)) || null);
 
-// Every view in the bar: the organization's, then your own.
+const defaultViewId = computed(() => userSet.value?.defaultViewId || '');
+
+// Every view in the bar, in the order you dragged them into: the organization's, then your own,
+// until you do. The view the page opens on leads.
 //
 // A view you have forked takes its source's PLACE rather than being appended — the bar has to stay
 // still. Editing "Cluster overview" must not make it jump to the end of the strip.
 const views = computed<View[]>(() => {
-  const mine = editing.value ? (working.value?.views || []) : myViews.value;
+  const set = editing.value ? working.value : userSet.value;
+  const mine = set?.views || [];
   const forks = new Map(mine.filter((p) => p.from).map((p) => [p.from, p]));
-  const orgIds = new Set(orgViews.value.map((p) => p.id));
 
   const published = orgViews.value.map((p) => forks.get(p.id) || { ...p, org: true });
-  const own = mine.filter((p) => !p.from || !orgIds.has(p.from));
+  const own = mine.filter((p) => !p.from || !orgIds.value.has(p.from));
   const all = [...published, ...own];
 
-  // Rancher's own page is always one of the tabs - first, when nothing stored already is it.
-  return all.some(isStockView) ? all : [builtInStockView(props.title), ...all];
+  // Rancher's own page is always one of the tabs.
+  const list = all.some(isStockView) ? all : [builtInStockView(props.title), ...all];
+
+  return orderViews(list, set?.order, (view) => orderKeyOf(view, orgIds.value), defaultViewId.value);
 });
 
-const activeView = computed(() => views.value.find((p) => p.id === activeViewId.value) || views.value[0] || null);
+/** The tabs showing a published view, or your copy of one. */
+const publishedIds = computed(() => views.value.filter((p) => p.org || (p.from && orgIds.value.has(p.from))).map((p) => p.id));
 
-const defaultViewId = computed(() => scopes.value.user?.defaultViewId || '');
+const activeView = computed(() => views.value.find((p) => p.id === activeViewId.value) || views.value[0] || null);
 
 const isNewView = computed(() => !!newViewId.value && newViewId.value === activeViewId.value);
 
@@ -279,7 +304,7 @@ function workingLayout(): LayoutView | null {
 function enterEdit({ seedFirst = true } = {}): void {
   error.value = '';
 
-  const draft: ViewSet = scopes.value.user ? clone(scopes.value.user) : { views: [] };
+  const draft = userDraft();
   const active = activeView.value;
 
   working.value = draft;
@@ -318,8 +343,10 @@ async function leaveEdit(): Promise<void> {
 
 async function cancelEdit(): Promise<void> {
   if (dirty.value && !await confirm({
-    title: t('configurableViews.page.discard.title'),
-    body:  t('configurableViews.page.discard.body'),
+    title:  t('configurableViews.page.discard.title'),
+    body:   t('configurableViews.page.discard.body'),
+    action: t('configurableViews.page.discard.action'),
+    danger: true,
   })) {
     return;
   }
@@ -404,7 +431,7 @@ async function saveAsNewView(): Promise<void> {
   }
 
   const copy: View = {
-    ...clone(view), id: newId('view'), name: `${ view.name } copy`
+    ...clone(view), id: newId('view'), name: t('configurableViews.page.copyName', { name: view.name }, true)
   };
 
   delete copy.from;
@@ -426,21 +453,13 @@ async function saveAsNewView(): Promise<void> {
 
 // ---- view (tab) actions -----------------------------------------------------------------------------
 
+// The name typed into the bar while editing.
 function renameView(name: string): void {
   const view = workingView();
 
   if (view) {
     view.name = name;
   }
-}
-
-// "Rename" from the ⋮ menu: there is one place a view is named — the bar — so this opens the editor
-// and hands the name to the bar to select, rather than inventing a second naming dialog.
-function startRename(): void {
-  if (!editing.value) {
-    enterEdit();
-  }
-  nextTick(() => bar.value?.selectName());
 }
 
 // A new view starts from the organization template when there is one — the design's "From the
@@ -495,34 +514,78 @@ function startFrom(sourceId: string): void {
   selectedNodeId.value = null;
 }
 
-// Write a whole user-scope draft straight through (the view-mode actions, which have no draft).
+// Write a whole user-scope draft straight through (the view-mode actions, which have no draft). It
+// shows at once, and the stored copy takes over when it lands.
 async function persist(draft: ViewSet, activeId: string | null): Promise<void> {
   saving.value = true;
   error.value = '';
+  optimistic.value = draft;
+  activeViewId.value = activeId;
+  pinnedView.value = !!activeId;
 
   try {
     await saveView(store, 'user', draft, userId.value, props.page);
     await fetchTemplatingConfigMaps(store);
-    activeViewId.value = activeId;
-    pinnedView.value = !!activeId;
-    syncActiveView();
   } catch (e) {
     error.value = (e as Error)?.message || String(e);
   } finally {
+    optimistic.value = null;
     saving.value = false;
+    syncActiveView();
   }
 }
 
-async function duplicateView(): Promise<void> {
-  const source = activeView.value;
+const viewById = (id: string): View | null => views.value.find((p) => p.id === id) || null;
+
+/**
+ * A published view is everyone's, so changing it for yourself - renaming it, making it your default -
+ * forks it into your account first, as editing does. Returns the id to change.
+ */
+function ownCopy(draft: ViewSet, view: View): string {
+  if (!view.org) {
+    return view.id;
+  }
+
+  const fork: View = {
+    ...clone(view), id: newId('view'), from: view.id
+  };
+
+  delete fork.org;
+  draft.views.push(fork);
+
+  return fork.id;
+}
+
+// Renamed in place on its tab.
+async function renameStoredView(id: string, name: string): Promise<void> {
+  const view = viewById(id);
+
+  if (!view || view.id === BUILT_IN_STOCK_ID) {
+    return;
+  }
+
+  const draft = userDraft();
+  const ownId = ownCopy(draft, view);
+  const mine = draft.views.find((p) => p.id === ownId);
+
+  if (mine) {
+    mine.name = name;
+  }
+
+  await persist(draft, activeViewId.value === id ? ownId : activeViewId.value);
+}
+
+// The copy lands in front of you with its name open for typing, as a copied table view does.
+async function duplicateView(id: string): Promise<void> {
+  const source = viewById(id);
 
   if (!source) {
     return;
   }
 
-  const draft: ViewSet = scopes.value.user ? clone(scopes.value.user) : { views: [] };
+  const draft = userDraft();
   const copy: View = {
-    ...clone(source), id: newId('view'), name: `${ source.name } copy`
+    ...clone(source), id: newId('view'), name: t('configurableViews.page.copyName', { name: source.name }, true)
   };
 
   delete copy.org;
@@ -530,32 +593,39 @@ async function duplicateView(): Promise<void> {
   draft.views.push(copy);
 
   await persist(draft, copy.id);
+  bar.value?.focusTab(copy.id, true);
+  bar.value?.openRename(copy.id);
 }
 
-// Your default is the view the Home opens on. Setting it on a published view forks that view into
-// your account first, for the same reason editing does.
-async function setDefaultView(): Promise<void> {
-  const active = activeView.value;
+// Your default is the view the page opens on. Picking Rancher's own page is how to go back to none.
+async function setDefaultView(id: string): Promise<void> {
+  const view = viewById(id);
 
-  if (!active) {
+  if (!view) {
     return;
   }
 
-  const draft: ViewSet = scopes.value.user ? clone(scopes.value.user) : { views: [] };
-  let id = active.id;
+  const draft = userDraft();
 
-  if (active.org) {
-    const fork: View = {
-      ...clone(active), id: newId('view'), from: active.id
-    };
+  if (view.id === BUILT_IN_STOCK_ID) {
+    delete draft.defaultViewId;
+    await persist(draft, activeViewId.value);
 
-    delete fork.org;
-    draft.views.push(fork);
-    id = fork.id;
+    return;
   }
 
-  draft.defaultViewId = id;
-  await persist(draft, id);
+  const ownId = ownCopy(draft, view);
+
+  draft.defaultViewId = ownId;
+  await persist(draft, activeViewId.value === id ? ownId : activeViewId.value);
+}
+
+// The order the tabs were dragged into, by the key each view keeps its place by.
+async function reorderViews(ids: string[]): Promise<void> {
+  const draft = userDraft();
+
+  draft.order = ids.map(viewById).filter((view): view is View => !!view).map((view) => orderKeyOf(view, orgIds.value));
+  await persist(draft, activeViewId.value);
 }
 
 /**
@@ -590,13 +660,13 @@ async function linkToPublished(source: View, publishedId: string): Promise<void>
 
 // Publish the view to everyone. It joins the organization's scope, which is the only thing on this
 // page that is not personal — so it asks first.
-async function publishView(): Promise<void> {
-  const source = editing.value ? workingView() : activeView.value;
+async function publishView(id: string): Promise<void> {
+  const source = editing.value && id === activeViewId.value ? workingView() : viewById(id);
 
   if (!source || !await confirm({
-    title:     t('configurableViews.page.publish.title'),
-    body:      t('configurableViews.page.publish.body', { name: source.name, page: props.title }),
-    applyMode: 'apply',
+    title:  t('configurableViews.page.publish.title'),
+    body:   t('configurableViews.page.publish.body', { name: source.name, page: props.title }, true),
+    action: t('configurableViews.page.publish.action'),
   })) {
     return;
   }
@@ -629,20 +699,40 @@ async function publishView(): Promise<void> {
   }
 }
 
-// Take a view back out of the organization scope. Any personal fork of it stays, and simply stops
-// being a fork: its `from` now points at nothing, which reads as a plain personal view.
-async function unpublishView(active: View): Promise<void> {
+// Take a view back out of the organization scope. It is everyone's, so it asks first. Any personal
+// fork of it stays, and simply stops being a fork: its `from` now points at nothing, which reads as
+// a plain personal view.
+//
+// Whether this is ALLOWED is not decided here: publishing writes the same ConfigMap with no check of
+// its own, so a check here would only be a suggestion. The write goes to the API and its RBAC
+// answers — a user who may not remove it gets that back as the error below.
+async function unpublishView(id: string): Promise<void> {
+  const view = viewById(id);
+  const orgId = view?.org ? view.id : view?.from;
+
+  if (!view || !orgId || !orgIds.value.has(orgId) || !await confirm({
+    title:  t('configurableViews.page.unpublish.title'),
+    body:   t('configurableViews.page.unpublish.body', { name: view.name }, true),
+    action: t('configurableViews.page.unpublish.action'),
+    danger: true,
+  })) {
+    return;
+  }
+
   saving.value = true;
   error.value = '';
 
   try {
     const org: ViewSet = scopes.value.global ? clone(scopes.value.global) : { views: [] };
 
-    org.views = org.views.filter((p) => p.id !== active.id);
+    org.views = org.views.filter((p) => p.id !== orgId);
     await saveView(store, 'global', org.views.length ? org : null, userId.value, props.page);
     await fetchTemplatingConfigMaps(store);
-    activeViewId.value = null;
-    pinnedView.value = false;
+
+    if (view.org) {
+      activeViewId.value = null;
+      pinnedView.value = false;
+    }
     syncActiveView();
   } catch (e) {
     error.value = (e as Error)?.message || String(e);
@@ -651,50 +741,88 @@ async function unpublishView(active: View): Promise<void> {
   }
 }
 
-async function deleteView(): Promise<void> {
-  const active = activeView.value;
+function closeUndo(): void {
+  clearTimeout(undoTimer);
+  undo.value = null;
+}
 
-  if (!active) {
-    return;
-  }
-
-  // A published view is shared, so it asks for more than a personal one does. Whether the delete is
-  // ALLOWED is not decided here: publishing writes the same ConfigMap with no check of its own, so a
-  // check here would only be a suggestion. The write goes to the API and its RBAC answers — a user
-  // who may not remove it gets that back as the error below.
-  const ask = active.org ? {
-    title:     t('configurableViews.page.unpublish.title'),
-    body:      t('configurableViews.page.unpublish.body', { name: active.name }),
-    applyMode: 'remove',
-  } : {
-    title:     t('configurableViews.page.delete.title'),
-    body:      t('configurableViews.page.delete.body', { name: active.name, page: props.title }),
-    applyMode: 'delete',
+function offerUndo(title: string, message: string, run: () => Promise<void>): void {
+  closeUndo();
+  undo.value = {
+    title, message, run
   };
+  undoTimer = setTimeout(closeUndo, UNDO_TIMEOUT);
+}
 
-  if (!await confirm({ ...ask, actionColor: 'bg-error role-primary' })) {
+onBeforeUnmount(() => clearTimeout(undoTimer));
+
+async function runUndo(): Promise<void> {
+  const pending = undo.value;
+
+  closeUndo();
+  await pending?.run();
+}
+
+/**
+ * Deleted at once and offered back, rather than confirmed first. Undo restores its place and whether
+ * it was your default. A published view is not deleted but unpublished (see unpublishView).
+ */
+async function deleteView(id: string): Promise<void> {
+  const target = viewById(id);
+
+  if (!target || target.id === BUILT_IN_STOCK_ID) {
     return;
   }
 
-  if (active.org) {
-    await unpublishView(active);
+  if (target.org) {
+    await unpublishView(id);
 
     return;
   }
 
-  if (editing.value && working.value) {
-    working.value.views = working.value.views.filter((p) => p.id !== active.id);
-    activeViewId.value = null;
-    pinnedView.value = false;
-    await save();
+  // Deleting the view being edited: its edits go with it, and one never saved is simply dropped
+  if (editing.value) {
+    await leaveEdit();
+  }
 
+  const before = userDraft();
+  const at = before.views.findIndex((p) => p.id === id);
+
+  if (at < 0) {
     return;
   }
 
-  const draft: ViewSet = scopes.value.user ? clone(scopes.value.user) : { views: [] };
+  const removed = before.views[at];
+  const wasDefault = before.defaultViewId === id;
+  const wasActive = activeViewId.value === id;
+  // Taken before the view goes: the tab to its left, or to its right when it was the first
+  const list = views.value;
+  const index = list.findIndex((p) => p.id === id);
+  const neighbour = list[index > 0 ? index - 1 : index + 1];
+  const draft = clone(before);
 
-  draft.views = draft.views.filter((p) => p.id !== active.id);
-  await persist(draft, null);
+  draft.views.splice(at, 1);
+  if (wasDefault) {
+    delete draft.defaultViewId;
+  }
+
+  await persist(draft, wasActive ? neighbour?.id || null : activeViewId.value);
+
+  if (neighbour) {
+    bar.value?.focusTab(neighbour.id);
+  }
+
+  offerUndo(t('configurableViews.bar.deleted'), t('configurableViews.bar.deletedMessage', { name: removed.name }, true), async() => {
+    const now = userDraft();
+
+    now.views.splice(Math.min(at, now.views.length), 0, removed);
+
+    if (wasDefault) {
+      now.defaultViewId = removed.id;
+    }
+
+    await persist(now, wasActive ? removed.id : activeViewId.value);
+  });
 }
 
 // ---- grid mutations (draft only) ----------------------------------------------------------------------
@@ -901,29 +1029,35 @@ provide(VIEW_EDITOR, {
 
 // The bar renders in both layouts, so what it is given is written once.
 const barProps = computed(() => ({
-  views:       views.value,
-  activeId:    activeViewId.value,
-  editing:     editing.value,
-  isNew:       isNewView.value,
-  defaultId:   defaultViewId.value,
-  dirty:       dirty.value,
-  saving:      saving.value,
-  startedFrom: startedFrom.value,
+  views:        views.value,
+  activeId:     activeViewId.value,
+  editing:      editing.value,
+  isNew:        isNewView.value,
+  defaultId:    defaultViewId.value,
+  publishedIds: publishedIds.value,
+  dirty:        dirty.value,
+  saving:       saving.value,
+  startedFrom:  startedFrom.value,
 }));
 
+// Hidden until asked for from the header, but always there while editing: its buttons are the way out.
+const showBar = computed(() => templatingEnabled.value && (viewBarVisible.value || editing.value));
+
 const barListeners = {
-  select:         setActiveView,
-  edit:           () => enterEdit(),
-  cancel:         cancelEdit,
-  save:           () => save(),
-  'save-as-new':  saveAsNewView,
-  rename:         renameView,
-  'rename-start': startRename,
-  'new-view':     newView,
-  duplicate:      duplicateView,
-  'set-default':  setDefaultView,
-  publish:        publishView,
-  delete:         deleteView,
+  select:        setActiveView,
+  edit:          () => enterEdit(),
+  cancel:        cancelEdit,
+  save:          () => save(),
+  'save-as-new': saveAsNewView,
+  rename:        renameView,
+  'rename-view': renameStoredView,
+  'new-view':    newView,
+  duplicate:     duplicateView,
+  'set-default': setDefaultView,
+  publish:       publishView,
+  unpublish:     unpublishView,
+  delete:        deleteView,
+  reorder:       reorderViews,
 };
 </script>
 
@@ -932,7 +1066,7 @@ const barListeners = {
      it. See showsStockPage. -->
   <template v-if="showsStockPage">
     <ViewBar
-      v-if="templatingEnabled"
+      v-if="showBar"
       ref="bar"
       :title="title"
       v-bind="barProps"
@@ -949,6 +1083,14 @@ const barListeners = {
       v-bind="$attrs"
       :class="{ 'view-host__unpadded': layout === 'home' }"
     />
+    <ConfirmModal />
+    <UndoGrowl
+      v-if="undo"
+      :title="undo.title"
+      :message="undo.message"
+      @undo="runUndo"
+      @close="closeUndo"
+    />
   </template>
 
   <div
@@ -958,7 +1100,7 @@ const barListeners = {
     :class="{ 'ai-home--editing': editing }"
   >
     <ViewBar
-      v-if="loaded && templatingEnabled"
+      v-if="loaded && showBar"
       ref="bar"
       :title="title"
       v-bind="barProps"
@@ -1026,9 +1168,9 @@ const barListeners = {
         @set-gap="setGap"
         @set-page-padding="setPagePadding"
         @set-name="renameView"
-        @set-default="setDefaultView"
-        @publish="publishView"
-        @delete="deleteView"
+        @set-default="activeViewId && setDefaultView(activeViewId)"
+        @publish="activeViewId && publishView(activeViewId)"
+        @delete="activeViewId && deleteView(activeViewId)"
       />
     </div>
 
@@ -1040,6 +1182,14 @@ const barListeners = {
       @done="applySettings"
       @cancel="closeSettings"
       @remove="removeConfigured"
+    />
+    <ConfirmModal />
+    <UndoGrowl
+      v-if="undo"
+      :title="undo.title"
+      :message="undo.message"
+      @undo="runUndo"
+      @close="closeUndo"
     />
   </div>
 </template>

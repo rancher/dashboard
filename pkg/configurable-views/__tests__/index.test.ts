@@ -13,6 +13,7 @@ describe('extension: configurable-views', () => {
       addRoutes:                  jest.fn(),
       addRoute:                   jest.fn(),
       addNavHooks:                jest.fn(),
+      addAction:                  jest.fn(),
       setHomePage:                jest.fn(),
       enableServerSidePagination: jest.fn(),
       metadata:                   {},
@@ -46,5 +47,26 @@ describe('extension: configurable-views', () => {
     expect(plugin.addRoutes).toHaveBeenCalledWith(['product routes']);
     expect(plugin.addNavHooks).toHaveBeenCalledWith({ onEnter: expect.any(Function) });
     expect(plugin.enableServerSidePagination).toHaveBeenCalledWith({ management: { resources: { enableSome: { enabled: expect.any(Array), generic: false } } } });
+  });
+
+  it('offers a header button, with a shortcut, on each configurable page that shows and hides the view bar', async() => {
+    const plugin = await initialize();
+    const { viewBarVisible } = await import('@pkg/configurable-views/composables/useViewBarVisibility');
+
+    expect(plugin.addAction).toHaveBeenCalledTimes(2);
+    expect(plugin.addAction.mock.calls.map(([where, when]) => [where, when])).toStrictEqual([
+      ['header-action', { product: ['home'] }],
+      ['header-action', { product: ['explorer'], path: [{ urlPath: '/explorer', endsWith: true }] }],
+    ]);
+
+    const action = plugin.addAction.mock.calls[0][2];
+
+    expect(action.shortcut).toStrictEqual({ windows: ['ctrl', 'shift', 'v'], mac: ['meta', 'shift', 'v'] });
+
+    const before = viewBarVisible.value;
+
+    action.invoke();
+    expect(viewBarVisible.value).toBe(!before);
+    expect(action.ariaExpanded()).toBe(!before);
   });
 });

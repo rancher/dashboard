@@ -152,6 +152,11 @@ export type View = LayoutView | StockView;
 export interface ViewSet {
   views: View[];
   defaultViewId?: string;
+  /**
+   * The order this person dragged the bar's tabs into, as view keys (see orderKeyOf). Views not in
+   * it keep their place after the ones that are.
+   */
+  order?: string[];
   /** The scope is switched off: it renders nothing, and the scope beneath it shows instead. */
   disabled?: boolean;
 }

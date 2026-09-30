@@ -1,11 +1,12 @@
 import type { Store } from 'vuex';
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin } from '@shell/core/types';
+import { ActionLocation, IPlugin, type Action } from '@shell/core/types';
 import { fetchTemplatingConfigMaps, toggleTemplating } from './templating/template-engine';
 import routing from './routing/index';
 import { PAGINATED_RESOURCES } from './templating/widget-catalog';
 import Home from './pages/Home.vue';
 import ClusterDashboard from './pages/ClusterDashboard.vue';
+import { toggleViewBar, viewBarVisible } from './composables/useViewBarVisibility';
 
 /**
  * What the shell leaves on `window` that this file uses: the running app, for the store the
@@ -83,4 +84,20 @@ export default function(plugin: IPlugin): void {
   });
 
   installShortcut();
+
+  // The view bar is hidden until asked for: a header button on each configurable page shows and
+  // hides it, and Cmd/Ctrl + Shift + V does the same - V for views, beside the kill switch's
+  // Cmd/Ctrl + Shift + . The shell ignores the shortcut while the focus is in a text field, where it
+  // pastes without formatting.
+  const toggleBar: Action = {
+    labelKey:     'configurableViews.bar.toggle',
+    tooltipKey:   'configurableViews.bar.toggle',
+    icon:         'icon-list-flat',
+    shortcut:     { windows: ['ctrl', 'shift', 'v'], mac: ['meta', 'shift', 'v'] },
+    ariaExpanded: () => viewBarVisible.value,
+    invoke:       () => toggleViewBar(),
+  };
+
+  plugin.addAction(ActionLocation.HEADER, { product: ['home'] }, toggleBar);
+  plugin.addAction(ActionLocation.HEADER, { product: ['explorer'], path: [{ urlPath: '/explorer', endsWith: true }] }, toggleBar);
 }

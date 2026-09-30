@@ -30,31 +30,38 @@ configurableViews:
     save: Save
     saving: Saving…
     edit: Edit this view
-    more: More
-    moreActions: More view actions
-    duplicate: Duplicate this view
-    rename: Rename
-    isDefault: This is my default
-    setDefault: Set as my default
-    publish: Publish as organization template
-    unpublish: Unpublish view
-    delete: Delete view
+    tabsLabel: Views
+    moreActions: View actions
+    addView: New View
+    rename: Rename View
+    duplicate: Duplicate View
+    setDefault: Set as Default View
+    publish: Publish View
+    unpublish: Unpublish View
+    delete: Delete View
+    shared: Published to the organization
+    sharedCopy: Your copy of a view published to the organization
+    deleted: View deleted
+    deletedMessage: "“{name}” was deleted."
+    undo: Undo
+    toggle: Views bar
   page:
     untitled: Untitled view
     copyOf: "Copy {name}"
+    copyName: "{name} copy"
     orgTemplate: the organization template
     discard:
       title: Discard changes?
       body: The changes to this view have not been saved. Leaving the editor discards them.
+      action: Discard
     publish:
       title: Publish to the organization?
       body: "“{name}” becomes an organization template: everyone sees it on their {page}, and can fork their own copy of it."
+      action: Publish
     unpublish:
       title: Unpublish this view?
       body: "“{name}” is published for the organization, so this removes it for everyone. Personal copies of it are kept."
-    delete:
-      title: Delete this view?
-      body: "“{name}” is removed from your {page}."
+      action: Unpublish
   sidebar:
     title: Edit view
     closeEditor: Close the editor
