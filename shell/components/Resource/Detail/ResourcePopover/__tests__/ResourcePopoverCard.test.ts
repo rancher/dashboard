@@ -281,7 +281,7 @@ describe('component: ResourcePopoverCard.vue', () => {
 describe('component: ResourcePopoverCard.vue row layout', () => {
   // jsdom has no layout, so check the compiled CSS. Each row is a flex row: if the label can shrink, a long value such as
   // a namespace:name or a URL takes width from it and starts further left than the values of the other rows
-  const decls = (className: string) => {
+  const decls = (className: string, parent = '.row') => {
     const source = fs.readFileSync(path.resolve(__dirname, '../ResourcePopoverCard.vue'), 'utf8');
     const style = parse(source).descriptor.styles[0];
     const { code } = compileStyle({
@@ -294,7 +294,7 @@ describe('component: ResourcePopoverCard.vue row layout', () => {
     const out: Record<string, string> = {};
 
     postcss.parse(code).walkRules((rule) => {
-      if (rule.selectors.some((selector) => selector.includes(`.row ${ className }`))) {
+      if (rule.selectors.some((selector) => selector.includes(parent) && selector.includes(` ${ className }`))) {
         rule.walkDecls((decl) => {
           out[decl.prop] = decl.value;
         });
@@ -310,5 +310,10 @@ describe('component: ResourcePopoverCard.vue row layout', () => {
 
   it('should let the value wrap within the rest of the card rather than overflow it', () => {
     expect(decls('.value')).toStrictEqual({ 'min-width': '0', 'overflow-wrap': 'anywhere' });
+  });
+
+  // The card renders inside the table cell, where a global rule limits a state pill to 110px
+  it('should let the state pill use the whole value column', () => {
+    expect(decls('.badge-state', '.resource-popover-card')['max-width']).toStrictEqual('100%');
   });
 });

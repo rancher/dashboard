@@ -141,6 +141,8 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
       font-size: 12px;
       // Fits the text in the 20px pill. Inside a table cell the pill is clipped, so the row line-height would cut it off
       line-height: 14px;
+      // A table cell also limits the pill to 110px, which cuts off a long state such as CrashLoopBackOff
+      max-width: 100%;
     }
 
     .heading {
