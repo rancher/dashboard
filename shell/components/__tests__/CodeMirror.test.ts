@@ -102,6 +102,9 @@ describe('component: CodeMirror.vue', () => {
       ['yaml', 'yaml'],
       ['json', 'json'],
       [{ name: 'javascript', json: true }, 'json'],
+      ['javascript', 'javascript'],
+      ['text/javascript', 'javascript'],
+      [{ name: 'javascript' }, 'javascript'],
       [null, undefined],
       ['text/x-properties', undefined],
     ])('should map mode %p to language %p', (mode, language) => {
@@ -185,6 +188,14 @@ describe('component: CodeMirror.vue', () => {
 
       expect(rc.props('extensions')).toContain(extension);
     });
+
+    it('should translate deprecated CodeMirror 5 options to extensions', () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const extensions = createWrapper({ options: { tabSize: 8 } }).findComponent(RcCodeMirror).props('extensions') as Extension[];
+      const state = EditorState.create({ extensions });
+
+      expect(state.tabSize).toStrictEqual(8);
+    });
   });
 
   describe('events', () => {
@@ -219,8 +230,18 @@ describe('component: CodeMirror.vue', () => {
 
       expect(wrapper.emitted('onReady')).toStrictEqual([[view]]);
     });
-  });
 
+    it('should emit onReady with the deprecated CodeMirror 5 methods on the view', () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const wrapper = createWrapper();
+      const view = new EditorView({ doc: 'foo: bar' });
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('ready', view);
+      const [[emitted]] = wrapper.emitted('onReady') as [[any]];
+
+      expect(emitted.getValue()).toStrictEqual('foo: bar');
+    });
+  });
   describe('yaml lint', () => {
     const createWrapper = (props = {}) => shallowMount(CodeMirror, {
       ...mountOptions,

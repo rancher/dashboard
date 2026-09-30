@@ -803,6 +803,23 @@ describe('component: RcCodeMirror', () => {
       expect(wrapper.find(selector).text()).toStrictEqual(expected);
     });
 
+    it.each([
+      ['property names', '.cm-rancher-key', 'name'],
+      ['strings', '.cm-rancher-string', '"nginx"'],
+      ['booleans', '.cm-rancher-keyword', 'true'],
+      ['comments', '.cm-rancher-comment', '// a comment']
+    ])('should highlight JavaScript %s', (_token, selector, expected) => {
+      mountEditor({ language: 'javascript', modelValue: 'object.name == "nginx" && true // a comment' });
+
+      expect(wrapper.find(selector).text()).toStrictEqual(expected);
+    });
+
+    it('should not complete JavaScript while typing', () => {
+      mountEditor({ language: 'javascript', modelValue: '' });
+
+      expect(getView(wrapper).state.languageDataAt('autocomplete', 0)).toStrictEqual([]);
+    });
+
     it('should highlight YAML booleans when the language changes to YAML', async() => {
       mountEditor({ language: 'json', modelValue: 'enabled: true' });
 
