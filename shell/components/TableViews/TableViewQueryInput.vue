@@ -56,13 +56,16 @@ const props = withDefaults(defineProps<{
   rows?: TableViewRow[],
   /** Ids of the fields that hold dates, whose values are offered as years and months */
   dateFields?: string[],
+  /** Ids of the fields whose values are on their way, eg as the page opens */
+  pendingFields?: string[],
 }>(), {
-  value:        '',
-  fields:       () => [],
-  filterFields: null,
-  fieldValues:  () => ({}),
-  rows:         () => [],
-  dateFields:   () => [],
+  value:         '',
+  fields:        () => [],
+  filterFields:  null,
+  fieldValues:   () => ({}),
+  rows:          () => [],
+  dateFields:    () => [],
+  pendingFields: () => [],
 });
 
 const emit = defineEmits<{
@@ -148,6 +151,22 @@ const isKnownValue = (fieldId: string, value: unknown): boolean => {
 
   return !!knownValues.value[fieldId]?.has(`${ value }`.toLowerCase());
 };
+
+/** Set once the query has been shown: only the first showing waits */
+const released = ref(false);
+
+/**
+ * As the page opens the query is held back while the values of a field it names are on their way:
+ * shown then, its values would restyle as they land. Only a query the box was given; one being typed
+ * is never hidden
+ */
+const holding = computed(() => !released.value && !focused.value && terms.value.some((term) => term.field && props.pendingFields.includes(term.field.id)));
+
+watch(holding, (neu) => {
+  if (!neu) {
+    released.value = true;
+  }
+}, { immediate: true });
 
 const segments = computed(() => highlightQuery(props.value || '', props.fields, (fieldId: string, value: unknown) => isKnownValue(fieldId, value)));
 
@@ -810,7 +829,7 @@ onBeforeUnmount(() => {
     <div
       ref="input"
       class="query-input"
-      :class="{ 'is-empty': !value }"
+      :class="{ 'is-empty': !value, holding }"
       contenteditable="true"
       role="combobox"
       aria-multiline="false"
@@ -1084,6 +1103,10 @@ $query-height: 32px;
 
   .segment-value-unknown {
     color: var(--input-text);
+  }
+
+  .query-input.holding > span {
+    visibility: hidden;
   }
 
   .segment-connective {

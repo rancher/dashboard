@@ -85,6 +85,9 @@ export default {
 
       fieldValues: {},
 
+      /** Ids of the fields whose values are being asked for */
+      fieldValuesLoading: [],
+
       /** query -> rows matched, or null when the api wouldn't say */
       viewCounts: {},
 
@@ -129,6 +132,9 @@ export default {
       viewSwitching: false,
 
       viewSwitchTimer: null,
+
+      /** The request in hand when the switch began: its answer is the old view's, whatever it filters by */
+      viewSwitchFromArgs: null,
 
       pendingViewFilters: [],
 
@@ -226,6 +232,14 @@ export default {
     'view.query'(neu, old) {
       const query = neu || '';
       const previous = old || '';
+
+      // Settled already, eg by a tab
+      if (query === (this.settledQuery || '')) {
+        this.debouncedSettleQuery.cancel();
+
+        return;
+      }
+
       const typed = query.startsWith(previous) || previous.startsWith(query);
 
       this.debouncedSettleQuery(query);
@@ -260,7 +274,15 @@ export default {
      * Watched rather than `rows`, which is filled in place and never changes identity
      */
     externalPaginationResult() {
-      if (this.viewFiltersApplied) {
+      if (this.viewFiltersApplied && this.externalPaginationArgs !== this.viewSwitchFromArgs) {
+        this.endViewSwitch();
+      }
+    },
+
+    /** Asked again for the page in hand, eg by a view sorting as the last one did: nothing more is coming */
+    externalPaginationArgs(neu) {
+      if (this.viewSwitching && neu !== this.viewSwitchFromArgs && this.viewFiltersApplied &&
+        JSON.stringify(neu) === JSON.stringify(this.viewSwitchFromArgs)) {
         this.endViewSwitch();
       }
     },
@@ -430,6 +452,21 @@ export default {
       }
 
       return fixed.reduce((out, field) => ({ ...out, [field.id]: field.values }), { ...this.fieldValues });
+    },
+
+
+    /**
+     * The fields the query names whose values are on their way: every one while the rows load, then
+     * those still being asked for
+     */
+    viewPendingFields() {
+      const named = this.viewTerms.map((term) => term.field).filter(Boolean);
+
+      if (this.loading) {
+        return named;
+      }
+
+      return named.filter((id) => this.fieldValuesLoading.includes(id));
     },
 
 
@@ -887,6 +924,7 @@ export default {
       }
 
       this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
+      this.fieldValuesLoading = [...this.fieldValuesLoading, fieldId];
 
       try {
         const url = `${ this.summaryBaseUrl }&summary=${ encodeURIComponent(path) }&summaryonly`;
@@ -897,12 +935,15 @@ export default {
         this.fieldValues = { ...this.fieldValues, [fieldId]: summaryToValues(res, max) };
       } catch (e) {
         this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
+      } finally {
+        this.fieldValuesLoading = this.fieldValuesLoading.filter((id) => id !== fieldId);
       }
     },
 
 
     async fetchQueryFieldCounts(field) {
       this.fieldValues = { ...this.fieldValues, [field.id]: [] };
+      this.fieldValuesLoading = [...this.fieldValuesLoading, field.id];
 
       try {
         const values = await Promise.all(field.values.map(async({ value }) => {
@@ -916,6 +957,8 @@ export default {
       } catch (e) {
         // Still offered, counted as best the page can
         this.fieldValues = { ...this.fieldValues, [field.id]: field.values };
+      } finally {
+        this.fieldValuesLoading = this.fieldValuesLoading.filter((id) => id !== field.id);
       }
     },
 
@@ -1172,7 +1215,19 @@ export default {
     },
 
 
+    /** A tab's view arrives whole, so its query applies at once rather than waiting as typing does */
+    openTabView(view) {
+      this.debouncedSettleQuery.cancel();
+      this.settledQuery = view?.query || '';
+      this.view = view;
+    },
+
+
     beginViewSwitch() {
+      // Kept from the first change of a switch: a second one in the same switch starts no new wait
+      if (!this.viewSwitching) {
+        this.viewSwitchFromArgs = this.externalPaginationArgs;
+      }
       this.viewSwitching = true;
       clearTimeout(this.viewSwitchTimer);
       this.viewSwitchTimer = setTimeout(() => {

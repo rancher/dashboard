@@ -41,6 +41,8 @@ const props = withDefaults(defineProps<{
   /** Ids of the fields that hold dates */
   dateFields?: string[],
   fieldValues?: Record<string, { value: string, count: number }[]>,
+  /** Ids of the fields whose values are on their way */
+  pendingFields?: string[],
   /** All rows, before the view's query is applied */
   rows?: TableViewRow[],
 }>(), {
@@ -53,6 +55,7 @@ const props = withDefaults(defineProps<{
   filterFields:      null,
   dateFields:        () => [],
   fieldValues:       () => ({}),
+  pendingFields:     () => [],
   rows:              () => [],
 });
 
@@ -370,6 +373,7 @@ onBeforeUnmount(() => {
           :date-fields="dateFields"
           :rows="rows"
           :field-values="fieldValues"
+          :pending-fields="pendingFields"
           @update:value="update({ query: $event })"
           @update:focused="queryFocused = $event"
           @request-values="$emit('request-values', $event)"

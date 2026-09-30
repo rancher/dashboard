@@ -841,7 +841,7 @@ export default {
         :match-count="viewMatchCount"
         :resource-type="schema ? schema.id : ''"
         :initial-view-id="openedViewId"
-        @update:view="view = $event"
+        @update:view="openTabView"
         @tab-queries="tabQueries = $event"
         @export="handleExport"
       />
@@ -873,6 +873,7 @@ export default {
         :filter-fields="viewFilterFields"
         :date-fields="viewDateFieldIds"
         :field-values="viewFieldValues"
+        :pending-fields="viewPendingFields"
         :rows="filteredRows"
         :unsupported-fields="unsupportedViewFields"
         :default-columns="defaultColumnIds"
