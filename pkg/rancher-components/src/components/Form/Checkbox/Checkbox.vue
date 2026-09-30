@@ -367,7 +367,10 @@ export default defineComponent({
         </p>
       </template>
     </div>
-    <div class="checkbox-outer-container-extra">
+    <div
+      v-if="$slots.extra"
+      class="checkbox-outer-container-extra"
+    >
       <slot name="extra" />
     </div>
   </div>
@@ -380,16 +383,15 @@ $fontColor: var(--input-label);
   display: inline-flex;
   flex-direction: column;
   &-description {
-    color: $fontColor;
-    font-size: 14px;
+    color: var(--deemphasized);
+    font-size: 12px;
     margin-left: 19px;
-    margin-top: 5px;
-    opacity: 0.8;
+    margin-top: 4px;
   }
   &-extra {
     font-size: 14px;
     margin-left: 19px;
-    margin-top: 5px;
+    margin-top: 4px;
   }
 }
 

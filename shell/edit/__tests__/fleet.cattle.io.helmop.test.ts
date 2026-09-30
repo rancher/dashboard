@@ -6,6 +6,11 @@ import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue
 import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { createStore } from 'vuex';
+import { getFleetPolicyDefaults } from '@shell/utils/fleet-policy';
+import { CATALOG } from '@shell/config/labels-annotations';
+
+jest.mock('@shell/utils/fleet-policy', () => ({ getFleetPolicyDefaults: jest.fn() }));
+const mockPolicyDefaults = getFleetPolicyDefaults as jest.Mock;
 
 const mockStore = {
   dispatch: jest.fn(),
@@ -575,5 +580,49 @@ describe('view: fleet.cattle.io.helmop, beforeNext dryRun validation', () => {
     vm.value.dryRunCreate = jest.fn().mockRejectedValue(apiError);
 
     await expect(vm.beforeNext({ name: 'basics' })).rejects.toStrictEqual(apiError);
+  });
+});
+
+describe('view: fleet.cattle.io.helmop, the credential a policy defaults to - should', () => {
+  beforeEach(() => {
+    mockPolicyDefaults.mockReset();
+    mockPolicyDefaults.mockResolvedValue({ clientSecretName: '', helmSecretName: 'tenant-1-helm-credentials' });
+  });
+
+  const applyDefaults = async(mode: string, options = {}, appCollection = false) => {
+    const mountOptions: any = initHelmOp({ mode }, options);
+
+    if (appCollection) {
+      mountOptions.props.value.metadata = { namespace: 'fleet-default', annotations: { [CATALOG.SUSE_APP_COLLECTION]: 'true' } };
+    }
+
+    const wrapper = mount(HelmOpComponent, mountOptions);
+
+    await wrapper.vm.applyPolicyDefaults();
+  };
+
+  it('ask the workspace for one while creating', async() => {
+    await applyDefaults(_CREATE);
+
+    expect(mockPolicyDefaults).toHaveBeenCalledTimes(1);
+  });
+
+  it('leave a credential the user already named alone', async() => {
+    await applyDefaults(_CREATE, { spec: { helm: {}, helmSecretName: 'chosen-by-hand' } });
+
+    expect(mockPolicyDefaults).not.toHaveBeenCalled();
+  });
+
+  it('leave an existing bundle alone', async() => {
+    await applyDefaults(_EDIT);
+
+    expect(mockPolicyDefaults).not.toHaveBeenCalled();
+  });
+
+  // An App Collection bundle authenticates with a secret this form creates, and its field offers no other
+  it('leave an App Collection bundle alone', async() => {
+    await applyDefaults(_CREATE, {}, true);
+
+    expect(mockPolicyDefaults).not.toHaveBeenCalled();
   });
 });

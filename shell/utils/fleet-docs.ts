@@ -44,6 +44,11 @@ const FLEET_DOCS = {
   bundleDeploymentOptions: {
     path: 'reference/ref-crds', anchor: '_bundledeploymentoptions', minRancherMinor: 15, minRancherPatch: 0, usePrimeDoc: true
   },
+  // Policy namespace-creation docs. Community only: the section is missing from the Prime docs,
+  // and from the Policy reference page, so the multi-tenancy explanation is where it is covered.
+  policyNamespaceCreation: {
+    path: 'explanations/multi-tenancy', anchor: '_namespace_creation', minRancherMinor: 15, minRancherPatch: 0, usePrimeDoc: false
+  },
   // GitRepoRestriction migration docs — also published to the Rancher Prime docs.
   gitRepoRestrictionMigration: {
     path: 'how-tos-for-operators/tenant-setup', anchor: '_migration_from_gitreporestriction', minRancherMinor: 15, minRancherPatch: 0, usePrimeDoc: true
@@ -120,6 +125,11 @@ export function getDownstreamResourcesDocsUrl(): string {
 /** Fleet "BundleDeploymentOptions" (CRD reference) docs (AppCo; has a Rancher Prime counterpart). */
 export function getBundleDeploymentOptionsDocsUrl(): string {
   return fleetDocsUrl(FLEET_DOCS.bundleDeploymentOptions);
+}
+
+/** Fleet Policy namespace-creation docs (community only). */
+export function getPolicyNamespaceCreationDocsUrl(): string {
+  return fleetDocsUrl(FLEET_DOCS.policyNamespaceCreation);
 }
 
 /** Fleet GitRepoRestriction -> Policies migration docs (has a Rancher Prime counterpart). */

@@ -94,6 +94,14 @@ export default {
       default: null,
       type:    String
     },
+    /**
+     * Show the selected value in the muted colour, for a value the form keeps but does not treat
+     * as one the user can rely on.
+     */
+    mutedValue: {
+      default: false,
+      type:    Boolean
+    },
     tooltip: {
       default: null,
       type:    [String, Object]
@@ -501,6 +509,7 @@ export default {
         taggable: $attrs.taggable,
         taggable: $attrs.multiple,
         hoverable: hoverTooltip,
+        'muted-value': mutedValue,
         'compact-input': isCompact,
         'no-label': !hasLabel,
         [`ls-${size}`]: true
@@ -792,6 +801,10 @@ export default {
         padding: 0;
       }
     }
+  }
+
+  &.muted-value :deep(.vs__selected) {
+    color: var(--muted);
   }
 
   &.taggable.compact-input {
