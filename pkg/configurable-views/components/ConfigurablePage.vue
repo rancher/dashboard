@@ -598,7 +598,7 @@ function ownCopy(draft: ViewSet, view: View): string {
 async function renameStoredView(id: string, name: string): Promise<void> {
   const view = viewById(id);
 
-  if (!view || view.id === BUILT_IN_STOCK_ID) {
+  if (!view || isStockView(view)) {
     return;
   }
 
@@ -622,8 +622,12 @@ async function duplicateView(id: string): Promise<void> {
   }
 
   const draft = userDraft();
-  const copy: View = {
-    ...clone(source), id: newId('view'), name: t('configurableViews.page.copyName', { name: source.name }, true)
+  const name = t('configurableViews.page.copyName', { name: source.name }, true);
+  // A copy of Rancher's own page is the page rebuilt from widgets, so there is something to change
+  const copy: View = isStockView(source) ? {
+    ...newLayoutView(name), ...stockView(props.page), widgets: stockWidgets(props.page, t)
+  } : {
+    ...clone(source), id: newId('view'), name
   };
 
   delete copy.org;
@@ -701,7 +705,7 @@ async function linkToPublished(source: View, publishedId: string): Promise<void>
 async function publishView(id: string): Promise<void> {
   const source = editing.value && id === activeViewId.value ? workingView() : viewById(id);
 
-  if (!source || !await confirm({
+  if (!source || isStockView(source) || !await confirm({
     title:  t('configurableViews.page.publish.title'),
     body:   t('configurableViews.page.publish.body', { name: source.name, page: props.title }, true),
     action: t('configurableViews.page.publish.action'),
@@ -748,7 +752,7 @@ async function unpublishView(id: string): Promise<void> {
   const view = viewById(id);
   const orgId = view?.org ? view.id : view?.from;
 
-  if (!view || !orgId || !orgIds.value.has(orgId) || !await confirm({
+  if (!view || isStockView(view) || !orgId || !orgIds.value.has(orgId) || !await confirm({
     title:  t('configurableViews.page.unpublish.title'),
     body:   t('configurableViews.page.unpublish.body', { name: view.name }, true),
     action: t('configurableViews.page.unpublish.action'),
@@ -808,7 +812,7 @@ async function runUndo(): Promise<void> {
 async function deleteView(id: string): Promise<void> {
   const target = viewById(id);
 
-  if (!target || target.id === BUILT_IN_STOCK_ID) {
+  if (!target || isStockView(target)) {
     return;
   }
 
@@ -1146,7 +1150,8 @@ onBeforeUnmount(() => {
 
 const barListeners = {
   select:          setActiveView,
-  edit:            () => enterEdit(),
+  // Rancher's own page has nothing to edit: it is duplicated instead
+  edit:            () => !activeIsStock.value && enterEdit(),
   cancel:          cancelEdit,
   save:            () => save(),
   'save-as-new':   saveAsNewView,

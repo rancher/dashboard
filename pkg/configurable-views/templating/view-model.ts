@@ -473,7 +473,9 @@ export function orderKeyOf(view: View, publishedIds: Set<string>): string {
 
 /**
  * The bar's tabs in order: the view the page opens on leads - Rancher's own page when no default is
- * set - then the rest as they were dragged. Views never placed keep their natural order after them.
+ * set, or the default is gone - and Rancher's own page comes straight after it otherwise. Neither
+ * can be dragged; the rest follow as they were dragged, and views never placed keep their natural
+ * order after them.
  */
 export function orderViews<T extends View>(views: T[], order: string[] | undefined, keyOf: (view: T) => string, leadId?: string | null): T[] {
   const rank = new Map((order || []).map((key, i) => [key, i]));
@@ -493,13 +495,20 @@ export function orderViews<T extends View>(views: T[], order: string[] | undefin
     })
     .map(({ view }) => view);
 
-  const lead = placed.findIndex((view) => (leadId ? view.id === leadId : isStockView(view)));
+  const chosen = leadId ? placed.findIndex((view) => view.id === leadId) : -1;
+  const lead = chosen >= 0 ? chosen : placed.findIndex((view) => isStockView(view));
 
-  if (lead <= 0) {
-    return placed;
+  if (lead > 0) {
+    placed.unshift(...placed.splice(lead, 1));
   }
 
-  return [placed[lead], ...placed.filter((_, i) => i !== lead)];
+  const stock = placed.findIndex((view) => isStockView(view));
+
+  if (stock > 1) {
+    placed.splice(1, 0, ...placed.splice(stock, 1));
+  }
+
+  return placed;
 }
 
 function normalizeView(view: Loose): View {

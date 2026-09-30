@@ -30,6 +30,7 @@ configurableViews:
     save: Save
     saving: Saving…
     edit: Edit this view
+    editStock: Rancher’s own page can’t be edited. Duplicate it to get a view you can change.
     tabsLabel: Views
     moreActions: View actions
     addView: New View

@@ -7,7 +7,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { isMac, shortcutLabel } from '@shell/utils/platform';
 import { RcDropdown, RcDropdownItem, RcDropdownSeparator, RcDropdownTrigger } from '@components/RcDropdown';
 import { useDragReorder } from '../composables/useDragReorder';
-import { BUILT_IN_STOCK_ID } from '../templating/view-model';
+import { isStockView } from '../templating/view-model';
 import type { View } from '../templating/types';
 
 // The bar under the app header — a configurable page's own navigation, and the only place a view
@@ -32,8 +32,6 @@ const TAB_SCROLL_SETTLE_MAX_MS = 1200;
 
 const TAB_FLASH_MS = 600;
 
-/** The tab the page opens on can't be dragged out of the front, nor anything dropped before it */
-const LOCKED_TAB_COUNT = 1;
 
 /** Everything the bar asks of the page. The per-tab actions say which view they are for. */
 type BarEmits = {
@@ -146,12 +144,18 @@ const editingHint = computed(() => {
   return activeView.value?.org ? t('configurableViews.bar.publishedHint') : t('configurableViews.bar.personalHint');
 });
 
-// Rancher's own page, offered as a tab without ever being saved: there is nothing stored to rename,
-// publish or delete, so its menu does not offer to.
-const isBuiltIn = (view: View) => view.id === BUILT_IN_STOCK_ID;
+// Rancher's own page is not the user's to change: it cannot be edited, renamed, published,
+// unpublished or deleted - only copied, and made the page's default.
+const isStock = (view: View) => isStockView(view);
 
 /** No default set means Rancher's own page is the one the page opens on */
-const isDefaultTab = (view: View) => (props.defaultId ? props.defaultId === view.id : isBuiltIn(view));
+const isDefaultTab = (view: View) => (props.defaultId ? props.defaultId === view.id : isStock(view));
+
+/**
+ * The tabs that stay where they are: the one the page opens on, and Rancher's own page right after
+ * it. None can be dragged, nor anything dropped before them.
+ */
+const lockedTabCount = computed(() => Math.max(1, props.views.findIndex(isStock) + 1));
 
 const isPublished = (view: View) => props.publishedIds.includes(view.id);
 
@@ -259,7 +263,7 @@ const {
   initialOrder: () => props.views.map((view) => view.id),
   measure:      captureTabSlots,
   indexAt:      tabIndexAt,
-  firstMovable: () => LOCKED_TAB_COUNT,
+  firstMovable: () => lockedTabCount.value,
   onBegin:      () => {
     // Otherwise the pointer selects the tab names it crosses
     window.getSelection()?.removeAllRanges();
@@ -273,7 +277,7 @@ const {
 });
 
 const startTabDrag = (view: View, event: MouseEvent) => {
-  if (event.button !== 0 || props.editing || renamingId.value || props.views.findIndex((v) => v.id === view.id) < LOCKED_TAB_COUNT) {
+  if (event.button !== 0 || props.editing || renamingId.value || props.views.findIndex((v) => v.id === view.id) < lockedTabCount.value) {
     return;
   }
 
@@ -316,7 +320,7 @@ const focusTab = (id: string, toEnd = false) => {
 const openRename = (id: string) => {
   const view = props.views.find((candidate) => candidate.id === id);
 
-  if (!view || isBuiltIn(view)) {
+  if (!view || isStock(view)) {
     return;
   }
 
@@ -604,14 +608,21 @@ defineExpose({ openRename, focusTab });
     </template>
 
     <template v-else>
-      <button
-        class="vbar__icon-btn"
-        :title="t('configurableViews.bar.edit')"
-        :aria-label="t('configurableViews.bar.edit')"
-        @click="$emit('edit')"
+      <!-- The tooltip sits on a wrapper: a disabled button gets no hover to show it on -->
+      <span
+        v-clean-tooltip="activeView && isStock(activeView) ? t('configurableViews.bar.editStock') : t('configurableViews.bar.edit')"
+        class="vbar__edit"
       >
-        <i class="icon icon-edit" />
-      </button>
+        <button
+          class="vbar__icon-btn"
+          :aria-label="activeView && isStock(activeView) ? t('configurableViews.bar.editStock') : t('configurableViews.bar.edit')"
+          :disabled="!!activeView && isStock(activeView)"
+          data-testid="configurable-views-edit"
+          @click="$emit('edit')"
+        >
+          <i class="icon icon-edit" />
+        </button>
+      </span>
 
       <!-- The view menu, for the view on screen. Kept inside the window by the dropdown itself -->
       <rc-dropdown
@@ -641,7 +652,7 @@ defineExpose({ openRename, focusTab });
             </rc-dropdown-item>
             <rc-dropdown-separator />
             <rc-dropdown-item
-              v-if="!isBuiltIn(activeView)"
+              v-if="!isStock(activeView)"
               data-testid="configurable-views-rename"
               @click="openRename(activeView.id)"
             >
@@ -675,7 +686,7 @@ defineExpose({ openRename, focusTab });
               />
             </rc-dropdown-item>
 
-            <template v-if="!isBuiltIn(activeView)">
+            <template v-if="!isStock(activeView)">
               <rc-dropdown-separator />
               <rc-dropdown-item
                 v-if="!activeView.org"
@@ -700,7 +711,7 @@ defineExpose({ openRename, focusTab });
             </template>
 
             <!-- A published view is everyone's: it is unpublished, not deleted -->
-            <template v-if="!isBuiltIn(activeView) && !activeView.org">
+            <template v-if="!isStock(activeView) && !activeView.org">
               <rc-dropdown-separator />
               <rc-dropdown-item
                 data-testid="configurable-views-delete"
@@ -913,16 +924,27 @@ $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
     padding:         0;
     width:           38px;
 
-    &:hover,
+    &:hover:not(:disabled),
     &--on,
     &[aria-expanded="true"] {
       background: var(--primary);
       color:      var(--primary-text);
     }
 
+    // Rancher's own page: there is nothing to edit
+    &:disabled {
+      cursor:  not-allowed;
+      opacity: 0.4;
+    }
+
     i {
       font-size: 14px;
     }
+  }
+
+  &__edit {
+    display: flex;
+    flex:    0 0 auto;
   }
 
   // The menu's trigger is an RcButton: two classes deep to beat its own variant and size, so it
