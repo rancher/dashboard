@@ -754,9 +754,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
       it('Import Extension Catalog Modal', () => {
         extensionsPo.extensionMenuToggle();
         extensionsPo.manageExtensionCatalogsClick();
-        extensionsPo.catalogsList().sortableTable()
-          .bulkActionButton('Import Extension Catalog')
-          .click();
+        extensionsPo.importExtensionCatalogClick();
         dialogModal().checkVisible();
 
         cy.injectAxe();
