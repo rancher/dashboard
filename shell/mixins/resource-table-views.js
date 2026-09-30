@@ -37,6 +37,22 @@ export const TABLE_GROUPING_PREFIX = 'group:';
 /** Marks a view's grouping as a date column's, by month */
 export const MONTH_GROUPING_PREFIX = 'month:';
 
+/** Whether a table would show the saved view tabs, table views allowing. Outside the component so `data` can ask */
+function wantsTableViewTabs(vm) {
+  if (vm.tableViewTabs !== null && vm.tableViewTabs !== undefined) {
+    return vm.tableViewTabs;
+  }
+
+  // The cluster dashboard is routed by cluster, so its tables would look like list pages
+  if (vm.providedShowTableViewTabs !== null && vm.providedShowTableViewTabs !== undefined) {
+    return vm.providedShowTableViewTabs;
+  }
+
+  // Only the id: the cluster list is routed by the provisioning type while its table has the
+  // management one
+  return !vm.$route?.params?.id;
+}
+
 /**
  * The table views half of ResourceTable. Needs from its host: `schema`, `rows`, `headers`,
  * `namespaced`, `inStore`, `externalPaginationEnabled`, `externalPaginationResult`,
@@ -73,8 +89,13 @@ export default {
   data() {
     /** @type {{ views: import('@shell/types/table-views').TableViewSaved[], defaultViewId: string|null }} */
     const saved = this.$store.getters['prefs/get'](TABLE_VIEWS)?.[this.schema?.id];
-    /** @type {import('@shell/types/table-views').TableViewSaved|undefined} */
-    const defaultView = (saved?.views || []).find((view) => view.id === saved?.defaultViewId);
+    /**
+     * Only a table showing the saved view tabs opens on the default one. Another, eg a detail page's
+     * Pods tab, would be filtered by a view it has no tab to show or leave
+     *
+     * @type {import('@shell/types/table-views').TableViewSaved|undefined}
+     */
+    const defaultView = wantsTableViewTabs(this) ? (saved?.views || []).find((view) => view.id === saved?.defaultViewId) : undefined;
 
     return {
       /**
@@ -326,18 +347,7 @@ export default {
         return this.tableViewTabs;
       }
 
-      if (!this.showTableViews) {
-        return false;
-      }
-
-      // The cluster dashboard is routed by cluster, so its tables would look like list pages
-      if (this.providedShowTableViewTabs !== null) {
-        return this.providedShowTableViewTabs;
-      }
-
-      // Only the id: the cluster list is routed by the provisioning type while its table has the
-      // management one
-      return !this.$route?.params?.id;
+      return this.showTableViews && wantsTableViewTabs(this);
     },
 
 

@@ -18,10 +18,11 @@ describe('ResourceTable', () => {
       defaultViewId: 'bbb',
     };
 
-    function open(prefs: Record<string, unknown> = saved) {
+    function open(prefs: Record<string, unknown> = saved, table: Record<string, unknown> = {}) {
       return data.call({
         schema: { id: 'pod' },
         $store: { getters: { 'prefs/get': (key: string) => (key === TABLE_VIEWS ? { pod: prefs } : undefined) } },
+        ...table,
       });
     }
 
@@ -31,6 +32,37 @@ describe('ResourceTable', () => {
 
     it('should name no view when the user has no default', () => {
       expect(open({ ...saved, defaultViewId: null }).openedViewId).toBeUndefined();
+    });
+
+    describe('a table without the saved view tabs', () => {
+      const filtering = {
+        ...saved,
+        views: [{
+          id: 'ccc', name: 'Errors', query: 'state:error', columns: ['name'], labelColumns: ['app'], groupBy: 'namespace'
+        }],
+        defaultViewId: 'ccc',
+      };
+
+      it.each([
+        ['on a detail page\'s tab', { providedShowTableViewTabs: false }],
+        ['told to hide them', { tableViewTabs: false }],
+        ['on a page routed to one resource', { $route: { params: { id: 'rancher' } } }],
+      ])('should open on its own view, not the saved default, %s', (_, table) => {
+        const opened = open(filtering, table);
+
+        expect(opened.openedViewId).toBeUndefined();
+        expect(opened.view).toStrictEqual(expect.objectContaining({
+          query: '', columns: null, labelColumns: [], groupBy: null
+        }));
+        expect(opened.settledQuery).toBe('');
+      });
+
+      it('should open on the saved default when told to show the tabs', () => {
+        const opened = open(filtering, { tableViewTabs: true, $route: { params: { id: 'rancher' } } });
+
+        expect(opened.openedViewId).toBe('ccc');
+        expect(opened.view.query).toBe('state:error');
+      });
     });
   });
 });
