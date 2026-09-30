@@ -17,7 +17,14 @@ function read(): boolean {
  */
 export const viewBarVisible = ref(read());
 
+/** A view is being edited. The bar is the way out of the editor then, so it can't be hidden. */
+export const viewBarLocked = ref(false);
+
 export function toggleViewBar(): void {
+  if (viewBarLocked.value) {
+    return;
+  }
+
   viewBarVisible.value = !viewBarVisible.value;
 
   try {

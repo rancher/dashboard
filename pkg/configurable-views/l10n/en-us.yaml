@@ -33,6 +33,8 @@ configurableViews:
     tabsLabel: Views
     moreActions: View actions
     addView: New View
+    showEditor: Show the editor
+    hideEditor: Hide the editor
     rename: Rename View
     duplicate: Duplicate View
     setDefault: Set as Default View
@@ -45,6 +47,7 @@ configurableViews:
     deletedMessage: "“{name}” was deleted."
     undo: Undo
     toggle: Views bar
+    toggleLocked: The views bar stays open while you edit a view. Save or cancel to hide it.
   page:
     untitled: Untitled view
     copyOf: "Copy {name}"
@@ -64,6 +67,7 @@ configurableViews:
       action: Unpublish
   sidebar:
     title: Edit view
+    resize: Drawer width
     closeEditor: Close the editor
     tabs:
       add: Add

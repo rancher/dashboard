@@ -45,6 +45,7 @@ type BarEmits = {
   cancel: [];
   save: [];
   'save-as-new': [];
+  'toggle-drawer': [];
   'new-view': [];
   duplicate: [id: string];
   'set-default': [id: string];
@@ -71,6 +72,8 @@ const props = withDefaults(defineProps<{
   saving?: boolean;
   /** Where a new view was started from, shown beside "New view". */
   startedFrom?: string;
+  /** Whether the editor's drawer is open, while editing. */
+  drawerOpen?: boolean;
 }>(), {
   title:        'Home',
   views:        () => [],
@@ -82,6 +85,7 @@ const props = withDefaults(defineProps<{
   dirty:        false,
   saving:       false,
   startedFrom:  '',
+  drawerOpen:   true,
 });
 
 const emit = defineEmits<BarEmits>();
@@ -563,6 +567,19 @@ defineExpose({ openRename, focusTab });
       <span class="vbar__mode">{{ isNew ? t('configurableViews.bar.newView') : t('configurableViews.bar.editing') }}</span>
       <span class="vbar__hint">{{ editingHint }}</span>
 
+      <!-- Brings back the drawer its ✕ closed; closing it here too, for the whole width -->
+      <button
+        class="vbar__icon-btn"
+        :class="{ 'vbar__icon-btn--on': drawerOpen }"
+        :title="drawerOpen ? t('configurableViews.bar.hideEditor') : t('configurableViews.bar.showEditor')"
+        :aria-label="drawerOpen ? t('configurableViews.bar.hideEditor') : t('configurableViews.bar.showEditor')"
+        :aria-pressed="drawerOpen ? 'true' : 'false'"
+        data-testid="configurable-views-toggle-drawer"
+        @click="$emit('toggle-drawer')"
+      >
+        <i class="icon icon-dock" />
+      </button>
+
       <button
         class="btn role-secondary vbar__btn"
         @click="$emit('cancel')"
@@ -735,10 +752,11 @@ $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
   // A wash of the primary colour while editing — the same tint the drop zone and the selected
   // widget use, so the whole edit mode reads as one state.
   //
-  // --accent-btn is TRANSLUCENT, and this bar is sticky: laid on directly it let the page scroll
-  // through it. Layering the tint over an opaque base keeps the token and makes the bar solid.
+  // Mixed from --primary itself: --accent-btn is the stock blue in themes that recolour only
+  // --primary (SUSE's green), so it didn't follow the brand. Mixed into the page colour rather than
+  // transparent, as the bar is sticky and the page would scroll through it.
   &--editing {
-    background: linear-gradient(var(--accent-btn), var(--accent-btn)), var(--body-bg);
+    background: color-mix(in srgb, var(--primary) 12%, var(--body-bg));
   }
 
   &__home {
@@ -795,7 +813,7 @@ $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
     white-space:   nowrap;
 
     &:hover:not(:disabled):not(&--active) {
-      background: var(--accent-btn);
+      background: color-mix(in srgb, var(--primary) 12%, transparent);
     }
 
     &--active {
@@ -881,7 +899,7 @@ $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
   // editing, not incidental icons that only light up when you find them.
   &__icon-btn {
     align-items:     center;
-    background:      var(--accent-btn);
+    background:      color-mix(in srgb, var(--primary) 12%, transparent);
     border:          1px solid var(--primary);
     border-radius:   4px;
     color:           var(--primary);
@@ -896,6 +914,7 @@ $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
     width:           38px;
 
     &:hover,
+    &--on,
     &[aria-expanded="true"] {
       background: var(--primary);
       color:      var(--primary-text);
@@ -909,7 +928,7 @@ $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
   // The menu's trigger is an RcButton: two classes deep to beat its own variant and size, so it
   // matches the edit button beside it
   &__icon-btn#{&}__menu-btn {
-    background: var(--accent-btn);
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
     border:     1px solid var(--primary);
     color:      var(--primary);
     padding:    0;

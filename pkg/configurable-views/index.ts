@@ -6,7 +6,7 @@ import routing from './routing/index';
 import { PAGINATED_RESOURCES } from './templating/widget-catalog';
 import Home from './pages/Home.vue';
 import ClusterDashboard from './pages/ClusterDashboard.vue';
-import { toggleViewBar, viewBarVisible } from './composables/useViewBarVisibility';
+import { toggleViewBar, viewBarLocked, viewBarVisible } from './composables/useViewBarVisibility';
 
 /**
  * What the shell leaves on `window` that this file uses: the running app, for the store the
@@ -90,12 +90,16 @@ export default function(plugin: IPlugin): void {
   // Cmd/Ctrl + Shift + . The shell ignores the shortcut while the focus is in a text field, where it
   // pastes without formatting.
   const toggleBar: Action = {
-    labelKey:     'configurableViews.bar.toggle',
-    tooltipKey:   'configurableViews.bar.toggle',
-    icon:         'icon-list-flat',
-    shortcut:     { windows: ['ctrl', 'shift', 'v'], mac: ['meta', 'shift', 'v'] },
-    ariaExpanded: () => viewBarVisible.value,
-    invoke:       () => toggleViewBar(),
+    labelKey:           'configurableViews.bar.toggle',
+    tooltipKey:         'configurableViews.bar.toggle',
+    disabledTooltipKey: 'configurableViews.bar.toggleLocked',
+    icon:               'icon-list-flat',
+    shortcut:           { windows: ['ctrl', 'shift', 'v'], mac: ['meta', 'shift', 'v'] },
+    ariaExpanded:       () => viewBarVisible.value,
+    // While a view is being edited the bar holds the way out of the editor, so the button is
+    // disabled, and its tooltip says why. Read reactively by the header, and again at every click
+    enabled:            () => !viewBarLocked.value,
+    invoke:             () => toggleViewBar(),
   };
 
   plugin.addAction(ActionLocation.HEADER, { product: ['home'] }, toggleBar);

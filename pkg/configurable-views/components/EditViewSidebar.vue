@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
+import Tabbed from '@shell/components/Tabbed/index.vue';
+import Tab from '@shell/components/Tabbed/Tab.vue';
 import CatalogTile from './CatalogTile.vue';
 import {
   BUILDING_BLOCKS, READY_MADE, searchCatalog, blockLabelKey, type CatalogEntry
@@ -87,6 +89,82 @@ const TABS = [
   { id: 'view', labelKey: 'configurableViews.sidebar.tabs.view' },
 ];
 
+// ---- the drawer's width, dragged from its left edge ----
+
+const DRAWER_WIDTH_KEY = 'configurable-views-drawer-width';
+const DRAWER_MIN = 320;
+const DRAWER_DEFAULT = 380;
+const DRAWER_STEP = 20;
+
+/** Up to 60% of the window, so the grid beside it always keeps some room. */
+const drawerMax = () => Math.max(DRAWER_MIN, Math.round(window.innerWidth * 0.6));
+
+const clampWidth = (px: number) => Math.min(Math.max(Math.round(px), DRAWER_MIN), drawerMax());
+
+function readWidth(): number {
+  try {
+    const stored = Number(window.localStorage.getItem(DRAWER_WIDTH_KEY));
+
+    return stored ? clampWidth(stored) : DRAWER_DEFAULT;
+  } catch {
+    return DRAWER_DEFAULT;
+  }
+}
+
+/** Per browser, like the bar's own visibility. */
+const drawerWidth = ref(readWidth());
+
+function keepWidth(): void {
+  try {
+    window.localStorage.setItem(DRAWER_WIDTH_KEY, String(drawerWidth.value));
+  } catch {
+    // Kept for this page load only
+  }
+}
+
+let resizeFrom: { x: number, width: number } | null = null;
+
+function onResizeMove(ev: MouseEvent): void {
+  if (resizeFrom) {
+    // The drawer is on the right, so dragging left widens it
+    drawerWidth.value = clampWidth(resizeFrom.width + resizeFrom.x - ev.clientX);
+  }
+}
+
+function stopResize(): void {
+  resizeFrom = null;
+  document.body.style.cursor = '';
+  window.removeEventListener('mousemove', onResizeMove);
+  window.removeEventListener('mouseup', stopResize);
+  keepWidth();
+}
+
+function startResize(ev: MouseEvent): void {
+  if (ev.button !== 0) {
+    return;
+  }
+
+  ev.preventDefault();
+  resizeFrom = { x: ev.clientX, width: drawerWidth.value };
+  document.body.style.cursor = 'col-resize';
+  window.addEventListener('mousemove', onResizeMove);
+  window.addEventListener('mouseup', stopResize);
+}
+
+function stepWidth(delta: number): void {
+  drawerWidth.value = clampWidth(drawerWidth.value + delta);
+  keepWidth();
+}
+
+onBeforeUnmount(() => {
+  if (resizeFrom) {
+    stopResize();
+  }
+});
+
+/** The body the tabs switch, for their aria-controls. */
+const PANEL_ID = 'configurable-views-editor-panel';
+
 const tab = ref('add');
 const search = ref('');
 const advancedOpen = ref(false);
@@ -141,7 +219,25 @@ function valueOf(ev: Event): string {
 </script>
 
 <template>
-  <aside class="evs">
+  <aside
+    class="evs"
+    :style="{ width: `${ drawerWidth }px`, flexBasis: `${ drawerWidth }px` }"
+  >
+    <!-- Drag to widen or narrow the drawer; the arrow keys do the same once it has focus -->
+    <div
+      class="evs__resize"
+      role="separator"
+      aria-orientation="vertical"
+      tabindex="0"
+      :aria-label="t('configurableViews.sidebar.resize')"
+      :aria-valuenow="drawerWidth"
+      :aria-valuemin="DRAWER_MIN"
+      data-testid="configurable-views-drawer-resize"
+      @mousedown="startResize"
+      @dblclick="stepWidth(DRAWER_DEFAULT - drawerWidth)"
+      @keydown.left.prevent="stepWidth(DRAWER_STEP)"
+      @keydown.right.prevent="stepWidth(-DRAWER_STEP)"
+    />
     <header class="evs__head">
       <h3 class="evs__title">
         {{ t('configurableViews.sidebar.title') }}<template v-if="view">
@@ -158,19 +254,29 @@ function valueOf(ev: Event): string {
       </button>
     </header>
 
-    <nav class="evs__tabs">
-      <button
-        v-for="item in TABS"
+    <!-- The product's own tabs, as the Extensions page uses them: the row only, with the body below
+       as their panel so it scrolls under a row that stays put -->
+    <Tabbed
+      class="evs__tabs"
+      :tabs-only="true"
+      :use-hash="false"
+      default-tab="add"
+      :external-panel-id="PANEL_ID"
+      data-testid="configurable-views-editor-tabs"
+      @changed="tab = $event.selectedName"
+    >
+      <Tab
+        v-for="(item, i) in TABS"
         :key="item.id"
-        class="evs__tab"
-        :class="{ 'evs__tab--active': tab === item.id }"
-        @click="tab = item.id"
-      >
-        {{ t(item.labelKey) }}
-      </button>
-    </nav>
+        :name="item.id"
+        :label-key="item.labelKey"
+        :weight="TABS.length - i"
+      />
+    </Tabbed>
 
     <div
+      :id="PANEL_ID"
+      role="tabpanel"
       class="evs__body"
       :class="{ 'evs__body--layout': tab === 'layout' }"
     >
@@ -206,6 +312,7 @@ function valueOf(ev: Event): string {
             <button
               v-for="point in startingPoints"
               :key="point.id"
+              v-clean-tooltip="point.label"
               class="evs__chip"
               @click="$emit('start-from', point.id)"
             >
@@ -504,24 +611,40 @@ function valueOf(ev: Event): string {
 </template>
 
 <style lang="scss" scoped>
-// 380px wide, its own scroll — the grid beside it keeps the width it will really have. It starts
-// below the view bar, which spans the whole page above both of them.
+// 380px wide until dragged wider, its own scroll — the grid beside it keeps the width it will really
+// have. It starts below the view bar, which spans the whole page above both of them.
 .evs {
   background:     var(--body-bg);
   border-left:    1px solid var(--border);
   box-sizing:     border-box;
   display:        flex;
-  flex:           0 0 380px;
+  flex:           0 0 auto;
   flex-direction: column;
   // Below the view bar, which is sticky at 0 and spans the page above both of us. At top:0 this
   // rode up over the bar the moment the page scrolled.
   height:         calc(100vh - var(--header-height, 54px) - 57px);
   position:       sticky;
   top:            57px;
-  width:          380px;
   // Above the view bar, below the app header's stacking context (see the note at the foot of this
   // file) — the drawer is page chrome and must never cover the header's menus.
   z-index:        9;
+
+  // The drag handle along the left edge: a few pixels either side of the hairline, lit on hover
+  &__resize {
+    bottom:   0;
+    cursor:   col-resize;
+    left:     -4px;
+    position: absolute;
+    top:      0;
+    width:    8px;
+    z-index:  1;
+
+    &:hover,
+    &:focus-visible {
+      background: linear-gradient(90deg, transparent 3px, var(--primary) 3px, var(--primary) 5px, transparent 5px);
+      outline:    none;
+    }
+  }
 
   &__head {
     align-items:     center;
@@ -558,35 +681,11 @@ function valueOf(ev: Event): string {
   }
 
   // A 25px strip: 12px labels, 16px apart, the active one underlined ON the strip's own hairline.
+  // The shell's Tabbed, in its tabs-only form. Its bottom margin is for a page; here the body
+  // follows straight on.
   &__tabs {
-    border-bottom: 1px solid var(--border);
-    box-sizing:    border-box;
-    display:       flex;
     flex:          0 0 auto;
-    gap:           16px;
-    height:        25px;
-    padding:       0 16px;
-  }
-
-  // The active tab's underline sits ON the row's own hairline, not under it — otherwise the two
-  // draw as separate lines a few pixels apart. The active tab darkens rather than bolding: the
-  // underline already carries the state, and reflowing the label on every click does not.
-  &__tab {
-    background:    transparent;
-    border:        none;
-    border-bottom: 2px solid transparent;
-    color:         var(--link);
-    cursor:        pointer;
-    font-size:     12px;
-    line-height:   17px;
-    margin-bottom: -1px;
-    min-height:    0;
-    padding:       0 0 5px;
-
-    &--active {
-      border-bottom-color: var(--primary);
-      color:               var(--primary);
-    }
+    margin-bottom: 0;
   }
 
   &__body {
@@ -657,7 +756,7 @@ function valueOf(ev: Event): string {
   }
 
   &__selected {
-    background:    var(--accent-btn);
+    background:    color-mix(in srgb, var(--primary) 12%, transparent);
     border-radius: 4px;
     font-size:     14px;
     line-height:   18px;
@@ -723,7 +822,7 @@ function valueOf(ev: Event): string {
     white-space:   nowrap;
 
     &:hover:not(&--on) {
-      background: var(--accent-btn);
+      background: color-mix(in srgb, var(--primary) 12%, transparent);
     }
 
     &--on {
@@ -831,7 +930,12 @@ function valueOf(ev: Event): string {
     height:        24px;
     line-height:   14px;
     min-height:    24px;
+    // A long view name is cut short rather than running out of the drawer; the tooltip has it whole
+    max-width:     200px;
+    overflow:      hidden;
     padding:       4px 10px;
+    text-overflow: ellipsis;
+    white-space:   nowrap;
 
     &:hover {
       border-color: var(--primary);
