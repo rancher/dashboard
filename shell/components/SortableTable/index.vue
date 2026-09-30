@@ -2225,11 +2225,11 @@ export default {
     grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 350px);
   }
 
-  // Keeps a z-index a state chip picks up (eg from the AI extension) inside its cell, so it can't
-  // paint over the toolbar's menus. Not the whole table: that would trap the row menus under the
-  // toolbar
-  .has-table-views .sortable-table td.col-badge-state-formatter {
-    isolation: isolate;
+  // A hovered state chip can be left at z-index('loading'), eg by the AI extension, and the toolbar's
+  // menus open inside this header, so the header sits just above it. Ties with the window manager and
+  // the nav toolbar's menu go to them, as they come later in the page
+  .has-table-views .sortable-table-header {
+    z-index: calc(#{z-index('loading')} + 1);
   }
 
   $header-padding: 20px;
