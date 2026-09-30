@@ -13,6 +13,7 @@ import globalFormatters from '@shell/plugins/global-formatters';
 import axios from '@shell/utils/axios';
 import config from '@shell/utils/config';
 import axiosShell from '@shell/plugins/axios';
+import { CodeMirror5 } from '@shell/plugins/codemirror-loader';
 import * as intNumber from '@shell/directives/int-number';
 import dashboardClientInit from '@shell/plugins/dashboard-client-init';
 import plugin from '@shell/plugins/plugin';
@@ -44,6 +45,8 @@ export async function installPlugins(vueApp) {
       // A surface that owns the screen silences the app's shortcuts while it is up.
       preventContainer: [MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR]
     });
+  // Deprecated, for the editors of extensions built with a shell from before CodeMirror 6
+  vueApp.component('Codemirror', CodeMirror5);
 }
 
 export async function installInjectedPlugins(app, vueApp) {

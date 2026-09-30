@@ -323,5 +323,14 @@ export default defineComponent({
       z-index: 0;
       font-size: inherit !important;
     }
+
+    // Once an extension built with an older shell shows a CodeMirror 5 editor, codemirror-editor-vue3 adds a
+    // global .codemirror-container rule that shrinks this wrapper to its content, see plugins/codemirror-loader.js
+    > .codemirror-container {
+      display: block;
+      width: auto;
+      height: auto;
+      overflow: visible;
+    }
   }
 </style>
