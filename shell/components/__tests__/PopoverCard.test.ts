@@ -193,6 +193,20 @@ describe('component: PopoverCard.vue', () => {
       expect(focusTrapOptions.fallbackFocus).toBe('#my-fallback');
       expect(focusTrapOptions.setReturnFocus()).toStrictEqual(button.element);
     });
+
+    // e.g. Edit YAML in the card's action menu navigates away before focus-trap returns focus
+    it('should not return focus once the popover has been unmounted', async() => {
+      const wrapper = createWrapper();
+
+      await wrapper.find('button').trigger('click');
+      await wrapper.vm.$nextTick();
+
+      const focusTrapOptions = mockFocusTrap.mock.calls[0][2];
+
+      wrapper.unmount();
+
+      expect(focusTrapOptions.setReturnFocus()).toBe(false);
+    });
   });
 
   describe('slots', () => {

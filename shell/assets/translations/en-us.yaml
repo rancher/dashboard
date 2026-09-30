@@ -9745,6 +9745,8 @@ component:
         type: Type
         ready: Ready
         restarts: Restarts
+        podRestarts: Pod Restarts
+        endpoints: Endpoints
         podIp: Pod IP
         workload: Workload
         node: Node

@@ -118,8 +118,14 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
       margin-top: 4px;
     }
 
+    // Keep the values lined up when a long value, e.g. a node's OS, wraps
     .label {
       width: 50%;
+      flex-shrink: 0;
+    }
+
+    .value {
+      min-width: 0;
     }
   }
 }

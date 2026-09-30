@@ -4,7 +4,7 @@ import ResourceTable from '@shell/components/ResourceTable';
 import LinkDetail from '@shell/components/formatter/LinkDetail';
 import { STATES_ENUM, colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { NAME, NAMESPACE, STATE, TYPE } from '@shell/config/table-headers';
-import { POD } from '@shell/config/types';
+import { POD, WORKLOAD_TYPES } from '@shell/config/types';
 import { sortableNumericSuffix } from '@shell/utils/sort';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { BadgeState } from '@components/BadgeState';
@@ -12,7 +12,7 @@ import { BadgeState } from '@components/BadgeState';
 /**
  * Types whose names are shown with a popover summarising the resource
  */
-export const POPOVER_TYPES = [POD];
+export const POPOVER_TYPES = [POD, WORKLOAD_TYPES.REPLICA_SET];
 
 export default {
   components: {
