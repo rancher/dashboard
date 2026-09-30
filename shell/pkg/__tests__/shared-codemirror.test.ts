@@ -1,4 +1,8 @@
-import { CODEMIRROR_PACKAGES, stubSource, stubModules, replacementFor } from '@shell/pkg/shared-codemirror';
+import fs from 'fs';
+import path from 'path';
+import {
+  CODEMIRROR_PACKAGES, packageDir, stubSource, stubModules, replacementFor
+} from '@shell/pkg/shared-codemirror';
 
 /**
  * Evaluates a stub as webpack would, with `require` resolving the bundled copy
@@ -43,7 +47,7 @@ describe('shared-codemirror', () => {
       const { exports, require } = evaluateStub('@codemirror/view', bundled);
 
       expect(exports).toBe(bundled);
-      expect(require).toHaveBeenCalledWith('@codemirror/view');
+      expect(require).toHaveBeenCalledWith(packageDir('@codemirror/view'));
     });
 
     it('should export the bundled copy when the host does not share the package', () => {
@@ -54,6 +58,20 @@ describe('shared-codemirror', () => {
       const { exports } = evaluateStub('@replit/codemirror-vim', bundled);
 
       expect(exports).toBe(bundled);
+    });
+  });
+
+  describe('packageDir', () => {
+    it.each(CODEMIRROR_PACKAGES)('should find the installed directory of %p', (pkg) => {
+      const dir = packageDir(pkg);
+
+      expect(path.isAbsolute(dir)).toBe(true);
+      expect(dir.endsWith(path.join('node_modules', pkg))).toBe(true);
+      expect(fs.existsSync(path.join(dir, 'package.json'))).toBe(true);
+    });
+
+    it('should fall back to the package name when it is not installed', () => {
+      expect(packageDir('@codemirror/not-installed')).toBe('@codemirror/not-installed');
     });
   });
 
