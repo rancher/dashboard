@@ -351,6 +351,17 @@ export default defineComponent({
       font-size: inherit !important;
     }
 
+    // Like the CodeMirror 5 editor, show the hint to leave the editor in the margin below it, not over the code
+    .codemirror-container .rc-code-mirror .rc-cm-escape-hint {
+      top: auto;
+      right: auto;
+      bottom: -20px;
+      left: 0;
+      padding: 0;
+      color: inherit;
+      background-color: transparent;
+    }
+
     // Once an extension built with an older shell shows a CodeMirror 5 editor, codemirror-editor-vue3 adds a
     // global .codemirror-container rule that shrinks this wrapper to its content, see plugins/codemirror-loader.js
     > .codemirror-container {
