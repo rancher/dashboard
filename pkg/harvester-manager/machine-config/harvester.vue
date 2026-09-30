@@ -286,7 +286,7 @@ export default {
       this.networksHistoric = this.value.networkInfo;
 
       this.getAvailableVGpuDevices();
-      this.getAvailablePciDevices();
+      this.fetchHasHostDeviceInfo().then((supported) => supported && this.getAvailablePciDevices());
 
       this.update();
     } catch (e) {
@@ -391,6 +391,7 @@ export default {
       vGpus,
       pciDevices:         {},
       hostDevices,
+      hasHostDeviceInfo:  false,
       cpuModelConfigMap:  null,
     };
   },
@@ -955,6 +956,25 @@ export default {
       }
     },
 
+    /**
+     * 'hostDeviceInfo' only exists in the HarvesterConfig schema when Rancher ships a node driver
+     * that supports it. Without it the API server silently drops the field on save, so the PCI
+     * device picker is only shown when the schema has it.
+     */
+    async fetchHasHostDeviceInfo() {
+      try {
+        const schema = this.$store.getters['management/schemaFor'](HCI.HARVESTER_CONFIG);
+
+        await schema?.fetchResourceFields?.();
+
+        this.hasHostDeviceInfo = !!this.$store.getters['management/pathExistsInSchema'](HCI.HARVESTER_CONFIG, 'hostDeviceInfo');
+      } catch (e) {
+        this.hasHostDeviceInfo = false;
+      }
+
+      return this.hasHostDeviceInfo;
+    },
+
     async getAvailablePciDevices() {
       const clusterId = get(this.credential, 'decodedData.clusterId');
 
@@ -997,9 +1017,8 @@ export default {
             return {
               ...acc,
               [d.id]: {
-                id:          d.id,
-                enabled:     !!claimed[`${ d.status?.nodeName }/${ d.status?.address }`],
-                description: d.status?.description || '',
+                id:      d.id,
+                enabled: !!claimed[`${ d.status?.nodeName }/${ d.status?.address }`],
                 allocatable,
                 type,
               },
@@ -1161,14 +1180,14 @@ export default {
     },
 
     updateHostDevices() {
-      const hostDevices = this.hostDevices?.filter((f) => f).map((deviceName, index) => ({
+      const hostDevices = uniq(this.hostDevices?.filter((f) => f) || []).map((deviceName, index) => ({
         /**
          * 'name' only has to be unique within the VM's device list; the physical device to attach
          * is resolved by the scheduler from 'deviceName', which is the node resource name.
          */
         name: `hostdevice-${ index + 1 }`,
         deviceName,
-      })) || [];
+      }));
 
       this.value.hostDeviceInfo = hostDevices.length > 0 ? JSON.stringify({ hostDevices }) : '';
     },
@@ -1391,13 +1410,13 @@ export default {
     },
 
     pciDeviceOptionLabel(opt) {
-      /**
-       * Every device sharing a resource name is the same model, so the description of the first
-       * one found is representative of the whole group.
-       */
       const pciDevice = Object.values(this.pciDevices).filter((f) => f.type === opt)?.[0];
 
-      let label = pciDevice?.description ? `${ pciDevice.description } - ${ opt }` : opt;
+      /**
+       * Unlike vGPU types, PCI resource names come from many vendors, so there is no common prefix
+       * to strip; the full resource name is shown.
+       */
+      let label = opt;
 
       if (this.mode === _VIEW) {
         return label;
@@ -1726,32 +1745,34 @@ export default {
           />
         </div>
 
-        <h3 class="mt-20">
-          {{ t("harvesterManager.hostDevices.title") }}
-        </h3>
-        <div>
-          <Banner
-            v-if="showPciDeviceAllocationInfo"
-            color="warning"
-            :label="t('cluster.credential.harvester.hostDevices.warnings.minimumAllocatable')"
-          />
-          <ArrayListSelect
-            v-model:value="hostDevices"
-            class="mt-20"
-            :array-list-props="{
-              addAllowed: true,
-              mode,
-              disabled
-            }"
-            :select-props="{
-              mode,
-              disabled,
-            }"
-            :options="pciDeviceOptions"
-            label-key="harvesterManager.hostDevices.label"
-            @update:value="updateHostDevices"
-          />
-        </div>
+        <template v-if="hasHostDeviceInfo">
+          <h3 class="mt-20">
+            {{ t("harvesterManager.hostDevices.title") }}
+          </h3>
+          <div>
+            <Banner
+              v-if="showPciDeviceAllocationInfo"
+              color="warning"
+              :label="t('cluster.credential.harvester.hostDevices.warnings.minimumAllocatable')"
+            />
+            <ArrayListSelect
+              v-model:value="hostDevices"
+              class="mt-20"
+              :array-list-props="{
+                mode,
+                disabled
+              }"
+              :select-props="{
+                mode,
+                disabled,
+              }"
+              :options="pciDeviceOptions"
+              :enable-default-add-value="false"
+              label-key="harvesterManager.hostDevices.label"
+              @update:value="updateHostDevices"
+            />
+          </div>
+        </template>
 
         <h3 class="mt-20">
           {{ t("cluster.credential.harvester.userData.title") }}
