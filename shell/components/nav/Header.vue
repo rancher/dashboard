@@ -289,6 +289,27 @@ export default {
       return !this.$route.name.includes('c-cluster');
     },
 
+    /**
+     * Whether each extension action is enabled now. A synchronous `enabled` is asked again whenever
+     * what it reads changes, so a button can follow the page's state; an async one is settled on
+     * navigation, by updateExtensionActionsEnabled.
+     */
+    extensionHeaderActionsEnabled() {
+      return this.extensionHeaderActions.map((action, i) => {
+        if (typeof action.enabled === 'function') {
+          const now = action.enabled(this.ctx);
+
+          if (typeof now === 'boolean') {
+            return now;
+          }
+        } else if (typeof action.enabled === 'boolean') {
+          return action.enabled;
+        }
+
+        return !!this.extensionActionsEnabled[i];
+      });
+    },
+
     extensionHeaderActionsAriaExpanded() {
       return this.extensionHeaderActions.map((action) => {
         const expanded = typeof action.ariaExpanded === 'function' ? action.ariaExpanded() : action.ariaExpanded;
@@ -441,7 +462,12 @@ export default {
       }
     },
 
-    handleExtensionTooltip(action) {
+    handleExtensionTooltip(action, enabled = true) {
+      // A disabled button says why, when the action gives a reason
+      if (!enabled && (action.disabledTooltipKey || action.disabledTooltip)) {
+        return action.disabledTooltipKey ? this.t(action.disabledTooltipKey) : action.disabledTooltip;
+      }
+
       if (action.tooltipKey || action.tooltip) {
         const tooltip = action.tooltipKey ? this.t(action.tooltipKey) : action.tooltip;
         const shortcut = action.shortcutLabel ? action.shortcutLabel() : '';
@@ -709,9 +735,9 @@ export default {
         <button
           v-for="action, i in extensionHeaderActions"
           :key="`${action.label}${i}`"
-          v-clean-tooltip="handleExtensionTooltip(action)"
+          v-clean-tooltip="handleExtensionTooltip(action, extensionHeaderActionsEnabled[i])"
           v-shortkey="action.shortcutKey"
-          :disabled="!extensionActionsEnabled[i]"
+          :disabled="!extensionHeaderActionsEnabled[i]"
           type="button"
           class="btn header-btn role-tertiary"
           :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
