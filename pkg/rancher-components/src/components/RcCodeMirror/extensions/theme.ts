@@ -64,6 +64,10 @@ const rancherSharedTheme = EditorView.theme({
     backgroundColor: 'var(--rc-cm-bg)',
     border:          '1px solid var(--rc-cm-gutter)',
     borderRadius:    '4px'
+  },
+  '.cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected]': {
+    color:           'var(--primary-text, #FFFFFF)',
+    backgroundColor: 'var(--primary, #3D98D3)'
   }
 });
 
@@ -79,6 +83,8 @@ const rancherEditorTheme = EditorView.theme({
     borderRight:     'none'
   },
   '.cm-activeLineGutter': { backgroundColor: 'transparent' },
+  // Only shown with highlightActiveLine(). Translucent, so the selection stays visible beneath it
+  '.cm-activeLine':       { backgroundColor: 'var(--rc-cm-active-line)' },
   '.cm-foldPlaceholder':  {
     backgroundColor: 'transparent',
     border:          'none',

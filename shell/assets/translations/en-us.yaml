@@ -3007,7 +3007,9 @@ copyToClipboard:
   error: Error Copying
 
 codeMirror:
-  escapeText: Press Escape, then Tab to leave the editor
+  # Shown by CodeMirror 5 editors in extensions built with an older shell
+  escapeText: Press Shift+Escape to blur from editor
+  leaveEditor: Press Escape, then Tab to leave the editor
   foldLine: Fold line
   unfoldLine: Unfold line
   keymap:

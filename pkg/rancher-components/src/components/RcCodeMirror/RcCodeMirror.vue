@@ -470,6 +470,7 @@ defineExpose({ view });
   --rc-cm-text: #16181D;
   --rc-cm-gutter: #5B626C;
   --rc-cm-fold-hover: #E8ECF2;
+  --rc-cm-active-line: rgba(0, 0, 0, 0.04);
 
   display: block;
   height: 100%;
@@ -551,7 +552,8 @@ defineExpose({ view });
     outline: none;
   }
 
-  &.rc-code-mirror--editor :deep(.cm-scroller) {
+  &.rc-code-mirror--editor :deep(.cm-scroller),
+  &.rc-code-mirror--editor :deep(.cm-tooltip-autocomplete > ul) {
     font-family: $mono-font;
   }
 
@@ -654,5 +656,6 @@ defineExpose({ view });
   --rc-cm-text: #E6E9EF;
   --rc-cm-gutter: #9AA1AC;
   --rc-cm-fold-hover: #3C4655;
+  --rc-cm-active-line: rgba(255, 255, 255, 0.04);
 }
 </style>
