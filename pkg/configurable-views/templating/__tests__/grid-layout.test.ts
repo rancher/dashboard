@@ -87,6 +87,37 @@ describe('the grid layout', () => {
       expect(drawn(dropInto([w('a', 4), w('b', 4)], w('n', 4), { col: 0, join: 'a' }))).toStrictEqual(['n@0+4 a@4+4 b@8+4']);
     });
 
+    it('goes by the pointer, so a wide widget can be put past a narrow one', () => {
+      // A wide widget's middle can never pass a narrow one's: the pointer can
+      expect(drawn(dropInto([w('s', 4, { offset: 8 })], w('t', 8), {
+        col: 4, join: 's', at: 11
+      }))).toStrictEqual(['s@0+4 t@4+8']);
+      expect(drawn(dropInto([w('s', 4)], w('t', 8), {
+        col: 0, join: 's', at: 1
+      }))).toStrictEqual(['t@0+8 s@8+4']);
+    });
+
+    it('stays inside the empty room it is let go over, when it fits there', () => {
+      // Picked up so its left edge is over a, but let go over the room from 4
+      expect(drawn(dropInto([w('a', 4)], w('n', 4), {
+        col: 2, join: 'a', at: 6
+      }))).toStrictEqual(['a@0+4 n@4+4']);
+    });
+
+    it('narrows a NEW widget to the empty room it is let go in, and never one being moved', () => {
+      const line = () => [w('a', 4), w('b', 5, { offset: 3 })]; // room 4..6
+
+      expect(drawn(dropInto(line(), w('n', 6), {
+        col: 3, join: 'a', at: 5
+      }, { fit: true }))).toStrictEqual(['a@0+4 n@4+3 b@7+5']);
+      expect(drawn(dropInto(line(), w('n', 6), {
+        col: 3, join: 'a', at: 5
+      }))).toStrictEqual(['a@0+4 b@7+5', 'n@3+6']);
+      expect(drawn(moveWidgetToCell([...line(), w('n', 6)], 'n', {
+        col: 3, join: 'a', at: 5
+      }))).toStrictEqual(['a@0+4 b@7+5', 'n@3+6']);
+    });
+
     it('starts a new line below when its line has no room left', () => {
       expect(drawn(dropInto([w('a', 6), w('b', 6), w('c', 12)], w('n', 4), { col: 3, join: 'a' }))).toStrictEqual(['a@0+6 b@6+6', 'n@3+4', 'c@0+12']);
     });
