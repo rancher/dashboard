@@ -155,12 +155,32 @@ describe('component: CodeMirror.vue', () => {
     it.each([
       ['Fold line', '%codeMirror.foldLine%'],
       ['Unfold line', '%codeMirror.unfoldLine%'],
-      ['Press Escape, then Tab to leave the editor', '%codeMirror.escapeText%'],
+      ['Press Escape, then Tab to leave the editor', '%codeMirror.leaveEditor%'],
     ])('should translate the RcCodeMirror phrase %p', (phrase, translation) => {
       const extensions = createWrapper().findComponent(RcCodeMirror).props('extensions') as Extension[];
       const state = EditorState.create({ extensions });
 
       expect(state.phrase(phrase)).toStrictEqual(translation);
+    });
+
+    it.each([
+      'Fold line',
+      'Press Escape, then Tab to leave the editor',
+      'Hide key mapping: $',
+    ])('should keep the RcCodeMirror phrase %p on a Rancher version without its translation', (phrase) => {
+      const exists = (key: string) => key.startsWith('prefs.');
+      const extensions = createWrapper({}, { 'i18n/exists': exists }).findComponent(RcCodeMirror).props('extensions') as Extension[];
+      const state = EditorState.create({ extensions });
+
+      expect(state.phrase(phrase)).toStrictEqual(phrase);
+    });
+
+    it('should translate the phrases a Rancher version has', () => {
+      const exists = (key: string) => key.startsWith('prefs.');
+      const extensions = createWrapper({}, { 'i18n/exists': exists }).findComponent(RcCodeMirror).props('extensions') as Extension[];
+      const state = EditorState.create({ extensions });
+
+      expect(state.phrase('Vim')).toStrictEqual('%prefs.keymap.vim%');
     });
 
     it('should pass the screen reader label to the editor as its aria-label', () => {

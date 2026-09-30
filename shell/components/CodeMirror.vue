@@ -187,16 +187,25 @@ export default defineComponent({
 
     // Translates the text RcCodeMirror renders itself. Like the other extensions, only read on mount
     phrases(): Extension {
-      return EditorState.phrases.of({
-        'Fold line':                                  this.t('codeMirror.foldLine'),
-        'Unfold line':                                this.t('codeMirror.unfoldLine'),
-        'Press Escape, then Tab to leave the editor': this.t('codeMirror.escapeText'),
+      const translations: [string, string, Record<string, string>?][] = [
+        ['Fold line', 'codeMirror.foldLine'],
+        ['Unfold line', 'codeMirror.unfoldLine'],
+        ['Press Escape, then Tab to leave the editor', 'codeMirror.leaveEditor'],
         // RcCodeMirror replaces `$` with the keymap name
-        'Key mapping: $':                             this.t('codeMirror.keymap.indicatorToolip', { name: '$' }),
-        'Hide key mapping: $':                        this.t('codeMirror.keymap.hideIndicator', { name: '$' }),
-        Vim:                                          this.t('prefs.keymap.vim'),
-        Emacs:                                        this.t('prefs.keymap.emacs'),
-      });
+        ['Key mapping: $', 'codeMirror.keymap.indicatorToolip', { name: '$' }],
+        ['Hide key mapping: $', 'codeMirror.keymap.hideIndicator', { name: '$' }],
+        ['Vim', 'prefs.keymap.vim'],
+        ['Emacs', 'prefs.keymap.emacs'],
+      ];
+      // An extension showing this editor on an older version of Rancher only has that version's
+      // translations, so phrases it lacks keep RcCodeMirror's own text
+      const exists = this.$store.getters['i18n/exists'] || (() => true);
+
+      return EditorState.phrases.of(Object.fromEntries(
+        translations
+          .filter(([, key]) => exists(key))
+          .map(([phrase, key, args]) => [phrase, this.t(key, args)])
+      ));
     },
 
     combinedExtensions(): Extension[] {
