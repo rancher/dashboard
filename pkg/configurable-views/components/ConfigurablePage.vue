@@ -103,6 +103,21 @@ const saving = ref(false);
 const drawerOpen = ref(true);
 const error = ref('');
 const bar = ref<InstanceType<typeof ViewBar> | null>(null);
+const grid = ref<InstanceType<typeof WidgetGrid> | null>(null);
+
+// While editing, the whole column around the grid - its padding, the room below it - is somewhere
+// to drop: a drag over it is the grid's. The grid stops the ones over itself before they get here.
+function dragOverPage(ev: DragEvent): void {
+  if (editing.value) {
+    grid.value?.onDragOver(ev);
+  }
+}
+
+function dropOnPage(ev: DragEvent): void {
+  if (editing.value) {
+    grid.value?.onDrop(ev);
+  }
+}
 /**
  * What a view-mode action just wrote, shown until the stored copy catches up - so a dragged tab, a
  * rename or a delete lands at once rather than after the round trip.
@@ -1225,7 +1240,11 @@ const barListeners = {
     <!-- While editing the page splits: the view keeps the full width it will really have, and every
        control lives in the drawer beside it. -->
     <div class="ai-home__layout">
-      <div class="ai-home__main">
+      <div
+        class="ai-home__main"
+        @dragover="dragOverPage"
+        @drop="dropOnPage"
+      >
         <!-- A view of widgets, or the edit surface. Outside editing, the stock page never reaches
          this branch - it renders as itself, above. -->
         <div
@@ -1240,6 +1259,7 @@ const barListeners = {
           />
           <WidgetGrid
             v-else
+            ref="grid"
             :key="activeView.id"
             :widgets="widgets"
             :editing="editing"
@@ -1341,8 +1361,10 @@ const barListeners = {
     min-width: 0;
   }
 
+  // Down to the foot of the page, so the room below the grid takes a drop too
   &--editing &__main {
-    flex: 1 1 auto;
+    align-self: stretch;
+    flex:       1 1 auto;
   }
 
   // The space around the grid is a per-view setting (see `surfaceStyle`), applied in BOTH modes so

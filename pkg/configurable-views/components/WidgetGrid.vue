@@ -109,9 +109,9 @@ const dropHint = computed(() => {
 
 // ---- where a drop lands ----
 
-// Within this many px of a line's top or bottom edge, a drop opens a new line there rather than
-// joining the line.
-const NEW_LINE_ZONE = 14;
+// Within this many px of a line's top or bottom edge - at most a third of a short line - a drop
+// opens a new line there rather than joining the line. Generous, so it is found without aiming.
+const NEW_LINE_ZONE = 40;
 // The id the preview gives what is being dropped.
 const GHOST_ID = '\u0000ghost';
 
@@ -203,13 +203,17 @@ function targetAt(ev: DragEvent, f: Frame, lines: LineBox[]): DropTarget {
   const y = ev.clientY;
 
   for (let i = 0; i < lines.length; i++) {
-    if (y < lines[i].top + NEW_LINE_ZONE) {
+    const zone = Math.min(NEW_LINE_ZONE, (lines[i].bottom - lines[i].top) / 3);
+
+    if (y < lines[i].top + zone) {
       return { col, before: anchorFrom(lines, i) };
     }
-    if (y < lines[i].bottom - NEW_LINE_ZONE) {
+    if (y < lines[i].bottom - zone) {
       const mate = lines[i].ids.find((x) => x !== viewEditor.ui.dragId);
 
-      return mate ? { col, join: mate } : { col, before: anchorFrom(lines, i + 1) };
+      return mate ? {
+        col, join: mate, at: (ev.clientX - f.left) / f.pitch
+      } : { col, before: anchorFrom(lines, i + 1) };
     }
   }
 
@@ -223,7 +227,8 @@ function targetAt(ev: DragEvent, f: Frame, lines: LineBox[]): DropTarget {
 function preview(t: DropTarget, f: Frame, lines: LineBox[]): void {
   const span = clampSpan(viewEditor.ui.dragSpan);
   const base = viewEditor.ui.dragId ? liftFrom(shown.value, viewEditor.ui.dragId) : shown.value;
-  const result = dropInto(base, newWidgetNode('links', { id: GHOST_ID, colSpan: span }), t);
+  // A new widget narrows to fit the room it is let go in; one being moved keeps its width.
+  const result = dropInto(base, newWidgetNode('links', { id: GHOST_ID, colSpan: span }), t, { fit: !!viewEditor.ui.dragEntry });
   const was = gridCells(base);
   const now = gridCells(result);
   const moved = new Set<string>();
@@ -257,7 +262,7 @@ function preview(t: DropTarget, f: Frame, lines: LineBox[]): void {
   const resultLines = gridLines(result);
   const lineOf = (id: string | undefined) => (id ? lines.find((line) => line.ids.includes(id)) : undefined);
   const mate = lineOf(resultLines[me.line].find((id) => id !== GHOST_ID));
-  const box = { left: me.col * f.pitch, width: (span * f.pitch) - props.gap };
+  const box = { left: me.col * f.pitch, width: (me.span * f.pitch) - props.gap };
 
   if (mate) {
     ghost.value = {
@@ -529,6 +534,10 @@ onBeforeUnmount(() => {
   document.removeEventListener('dragend', onDragFinished);
   document.removeEventListener('drop', onDragFinished);
 });
+
+// The page around the grid hands its drags over (see ConfigurablePage), so a drop in the padding
+// above, below or beside the grid still lands on it.
+defineExpose({ onDragOver, onDrop });
 </script>
 
 <template>

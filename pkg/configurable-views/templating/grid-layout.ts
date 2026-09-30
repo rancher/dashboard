@@ -38,11 +38,12 @@ export interface GridCell {
 
 /**
  * Where a drop goes. `col` is the column its left edge lands on.
- *   - `join`: onto the line that holds this widget.
+ *   - `join`: onto the line that holds this widget. `at` is the column the pointer is over, which
+ *     decides which side of a widget it goes when there is no empty room for it.
  *   - `before`: onto a new line of its own, just above the line that holds this widget - or below
  *     the last line when null.
  */
-export type DropTarget = { col: number; join: string } | { col: number; before: string | null };
+export type DropTarget = { col: number; join: string; at?: number } | { col: number; before: string | null };
 
 function offsetOf(node: WidgetNode): number {
   const n = Math.round(Number(node.offset));
@@ -137,10 +138,12 @@ export function liftFrom(list: WidgetNode[], id: string): WidgetNode[] {
 
 /**
  * Fit `item` into `line` at its column, or null when the line has no room for it. Empty room is
- * taken as it is; otherwise the widgets whose middle is left of the item's middle stay before it,
- * the rest after, and they shift right - then back from the right edge - only as far as they must.
+ * taken as it is; otherwise the widgets whose middle is left of the pointer (`at`, else the item's
+ * own middle) stay before it, the rest after, and they shift right - then back from the right edge
+ * - only as far as they must. The pointer, not the item's middle: a wide widget's middle can never
+ * get past a narrow one's, so it could not be put on the far side of it.
  */
-function fitInto(line: Placed[], item: Placed): Placed[] | null {
+function fitInto(line: Placed[], item: Placed, at?: number): Placed[] | null {
   const free = line.every((p) => p.col + p.span <= item.col || p.col >= item.col + item.span);
 
   if (free) {
@@ -152,7 +155,7 @@ function fitInto(line: Placed[], item: Placed): Placed[] | null {
   }
 
   // Level middles: held against the right edge it goes last, anywhere else first.
-  const middle = item.col + (item.span / 2);
+  const middle = at ?? item.col + (item.span / 2);
   const atEdge = item.col + item.span === GRID_COLUMNS;
   const goesBefore = (p: Placed) => p.col + (p.span / 2) < middle || (atEdge && p.col + (p.span / 2) === middle);
   const seq = [
@@ -179,8 +182,38 @@ function fitInto(line: Placed[], item: Placed): Placed[] | null {
   return seq;
 }
 
-/** Put a widget - not already in the list - where `target` says, by the rules above. */
-export function dropInto(list: WidgetNode[], node: WidgetNode, target: DropTarget): WidgetNode[] {
+/** The empty column runs of a line, as [from, to). */
+function emptyRuns(line: Placed[]): [number, number][] {
+  const runs: [number, number][] = [];
+  let end = 0;
+
+  for (const p of line) {
+    if (p.col > end) {
+      runs.push([end, p.col]);
+    }
+    end = p.col + p.span;
+  }
+  if (end < GRID_COLUMNS) {
+    runs.push([end, GRID_COLUMNS]);
+  }
+
+  return runs;
+}
+
+/** How a drop is taken. */
+export interface DropOptions {
+  /**
+   * A NEW widget: dropped into empty room narrower than its width, it narrows to fill that room
+   * rather than pushing the widgets beside it along.
+   */
+  fit?: boolean;
+}
+
+/**
+ * Put a widget - not already in the list - where `target` says, by the rules above. Let go over
+ * empty room it has space in, it stays inside that room.
+ */
+export function dropInto(list: WidgetNode[], node: WidgetNode, target: DropTarget, { fit = false }: DropOptions = {}): WidgetNode[] {
   const span = clampSpan(node.colSpan);
   const item: Placed = {
     node, span, col: Math.max(0, Math.min(GRID_COLUMNS - span, Math.round(target.col) || 0))
@@ -191,7 +224,17 @@ export function dropInto(list: WidgetNode[], node: WidgetNode, target: DropTarge
     const at = lineOf(lines, target.join);
 
     if (at >= 0) {
-      const fitted = fitInto(lines[at], item);
+      const pointer = target.at ?? item.col + (item.span / 2);
+      const room = emptyRuns(lines[at]).find(([from, to]) => pointer >= from && pointer < to);
+
+      if (room && room[1] - room[0] >= item.span) {
+        item.col = Math.max(room[0], Math.min(room[1] - item.span, item.col));
+      } else if (room && fit) {
+        item.col = room[0];
+        item.span = room[1] - room[0];
+      }
+
+      const fitted = fitInto(lines[at], item, target.at);
 
       if (fitted) {
         lines[at] = fitted;
@@ -304,12 +347,12 @@ export function liftWidget(widgets: WidgetNode[], id: string): WidgetNode[] {
 }
 
 /** Drop a NEW widget at `target` on the list at `place`. */
-export function dropWidget(widgets: WidgetNode[], node: WidgetNode, target: DropTarget, place: WidgetPlace | null = null): WidgetNode[] {
+export function dropWidget(widgets: WidgetNode[], node: WidgetNode, target: DropTarget, place: WidgetPlace | null = null, options: DropOptions = { fit: true }): WidgetNode[] {
   if (!canPlace(node.widget.kind, place) || !placeExists(widgets, place)) {
     return [...(widgets || [])];
   }
 
-  return atPlace(widgets, place, (list) => dropInto(list, node, target));
+  return atPlace(widgets, place, (list) => dropInto(list, node, target, options));
 }
 
 /** Move a widget to `target` on the list at `place` - its own list, or another one. */
@@ -320,7 +363,7 @@ export function moveWidgetToCell(widgets: WidgetNode[], id: string, target: Drop
     return [...(widgets || [])];
   }
 
-  return dropWidget(liftWidget(widgets, id), node, target, place);
+  return dropWidget(liftWidget(widgets, id), node, target, place, { fit: false });
 }
 
 /** Resize a widget to `span` columns (see resizeIn). */
