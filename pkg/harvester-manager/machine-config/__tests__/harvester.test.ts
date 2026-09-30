@@ -59,6 +59,19 @@ describe('component: harvester machine config - PCI devices', () => {
       });
     });
 
+    it('should drop duplicate selections', () => {
+      const ctx = { hostDevices: [GPU_TYPE, GPU_TYPE, NIC_TYPE], value: {} as any };
+
+      harvester.methods.updateHostDevices.call(ctx);
+
+      expect(JSON.parse(ctx.value.hostDeviceInfo)).toStrictEqual({
+        hostDevices: [
+          { name: 'hostdevice-1', deviceName: GPU_TYPE },
+          { name: 'hostdevice-2', deviceName: NIC_TYPE },
+        ]
+      });
+    });
+
     it.each([
       [[]],
       [['']],
@@ -69,6 +82,49 @@ describe('component: harvester machine config - PCI devices', () => {
       harvester.methods.updateHostDevices.call(ctx);
 
       expect(ctx.value.hostDeviceInfo).toBe('');
+    });
+  });
+
+  describe('fetchHasHostDeviceInfo', () => {
+    const createCtx = ({ schema, pathExists }: { schema?: any, pathExists?: boolean }) => {
+      const pathExistsInSchema = jest.fn(() => pathExists);
+
+      return {
+        hasHostDeviceInfo: undefined as boolean | undefined,
+        pathExistsInSchema,
+        $store:            {
+          getters: {
+            'management/schemaFor':          jest.fn(() => schema),
+            'management/pathExistsInSchema': pathExistsInSchema,
+          }
+        },
+      };
+    };
+
+    it.each([true, false])('should reflect whether HarvesterConfig has hostDeviceInfo (%p)', async(pathExists) => {
+      const schema = { fetchResourceFields: jest.fn(() => Promise.resolve()) };
+      const ctx = createCtx({ schema, pathExists });
+
+      const supported = await harvester.methods.fetchHasHostDeviceInfo.call(ctx);
+
+      expect(schema.fetchResourceFields).toHaveBeenCalledTimes(1);
+      expect(ctx.pathExistsInSchema).toHaveBeenCalledWith(HCI.HARVESTER_CONFIG, 'hostDeviceInfo');
+      expect(supported).toBe(pathExists);
+      expect(ctx.hasHostDeviceInfo).toBe(pathExists);
+    });
+
+    it('should be unsupported when fetching the schema fields fails', async() => {
+      const schema = { fetchResourceFields: jest.fn(() => Promise.reject(new Error('boom'))) };
+      const ctx = createCtx({ schema, pathExists: true });
+
+      expect(await harvester.methods.fetchHasHostDeviceInfo.call(ctx)).toBe(false);
+      expect(ctx.hasHostDeviceInfo).toBe(false);
+    });
+
+    it('should be unsupported when there is no HarvesterConfig schema', async() => {
+      const ctx = createCtx({ schema: undefined, pathExists: false });
+
+      expect(await harvester.methods.fetchHasHostDeviceInfo.call(ctx)).toBe(false);
     });
   });
 
@@ -146,7 +202,6 @@ describe('component: harvester machine config - PCI devices', () => {
       expect(ctx.pciDevices['node1-000001000']).toStrictEqual({
         id:          'node1-000001000',
         enabled:     true,
-        description: 'NVIDIA A10',
         allocatable: 2,
         type:        GPU_TYPE,
       });
@@ -205,10 +260,10 @@ describe('component: harvester machine config - PCI devices', () => {
     it('should keep enabled devices with unknown or positive allocatable, deduped by type', () => {
       const ctx = createCtx({
         a: {
-          id: 'a', enabled: true, type: GPU_TYPE, allocatable: 2, description: 'NVIDIA A10'
+          id: 'a', enabled: true, type: GPU_TYPE, allocatable: 2
         },
         b: {
-          id: 'b', enabled: true, type: GPU_TYPE, allocatable: 2, description: 'NVIDIA A10'
+          id: 'b', enabled: true, type: GPU_TYPE, allocatable: 2
         },
         c: {
           id: 'c', enabled: true, type: NIC_TYPE, allocatable: null
@@ -216,7 +271,7 @@ describe('component: harvester machine config - PCI devices', () => {
       });
 
       expect(harvester.computed.pciDeviceOptions.call(ctx)).toStrictEqual([
-        { label: `NVIDIA A10 - ${ GPU_TYPE } (harvesterManager.hostDevices.allocatable: 2)`, value: GPU_TYPE },
+        { label: `${ GPU_TYPE } (harvesterManager.hostDevices.allocatable: 2)`, value: GPU_TYPE },
         { label: `${ NIC_TYPE } (harvesterManager.hostDevices.allocatableUnknown)`, value: NIC_TYPE },
       ]);
     });
@@ -240,39 +295,22 @@ describe('component: harvester machine config - PCI devices', () => {
       mode, t: mockT, pciDevices: { a: pciDevice }
     }, GPU_TYPE);
 
-    it('should prefix the description and suffix the allocatable count', () => {
-      expect(label({
-        type: GPU_TYPE, description: 'NVIDIA A10', allocatable: 3
-      }))
-        .toBe(`NVIDIA A10 - ${ GPU_TYPE } (harvesterManager.hostDevices.allocatable: 3)`);
-    });
-
-    it('should use the bare type when there is no description', () => {
-      expect(label({
-        type: GPU_TYPE, description: '', allocatable: 3
-      }))
+    it('should show the resource name with the allocatable count', () => {
+      expect(label({ type: GPU_TYPE, allocatable: 3 }))
         .toBe(`${ GPU_TYPE } (harvesterManager.hostDevices.allocatable: 3)`);
     });
 
     it('should suffix the unknown allocation message when allocatable is null', () => {
-      expect(label({
-        type: GPU_TYPE, description: 'NVIDIA A10', allocatable: null
-      }))
-        .toBe(`NVIDIA A10 - ${ GPU_TYPE } (harvesterManager.hostDevices.allocatableUnknown)`);
+      expect(label({ type: GPU_TYPE, allocatable: null }))
+        .toBe(`${ GPU_TYPE } (harvesterManager.hostDevices.allocatableUnknown)`);
     });
 
     it('should not add a suffix when allocatable is 0', () => {
-      expect(label({
-        type: GPU_TYPE, description: 'NVIDIA A10', allocatable: 0
-      }))
-        .toBe(`NVIDIA A10 - ${ GPU_TYPE }`);
+      expect(label({ type: GPU_TYPE, allocatable: 0 })).toBe(GPU_TYPE);
     });
 
     it.each([3, null])('should not add a suffix in view mode (allocatable %p)', (allocatable) => {
-      expect(label({
-        type: GPU_TYPE, description: 'NVIDIA A10', allocatable
-      }, _VIEW))
-        .toBe(`NVIDIA A10 - ${ GPU_TYPE }`);
+      expect(label({ type: GPU_TYPE, allocatable }, _VIEW)).toBe(GPU_TYPE);
     });
 
     it('should fall back to the type when the device is unknown', () => {
