@@ -1,5 +1,7 @@
 import { inject, type InjectionKey } from 'vue';
 import type { CatalogEntry } from '../templating/widget-catalog';
+import type { DropTarget } from '../templating/grid-layout';
+import type { Size } from '../templating/view-model';
 import type { Sides, WidgetPlace } from '../templating/types';
 
 /**
@@ -15,12 +17,23 @@ export interface ViewEditorUi {
   dragLabel: string;
   /** The kind of whatever is being dragged, so a tab can refuse a Tabs widget before it is dropped. */
   dragKind: string;
-  /** Which grid the pointer is over (see placeKey), so only that one draws its insertion marker. */
+  /** Which grid the pointer is over (see placeKey), so only that one draws where the drop lands. */
   dropPlace: string;
+  /** The columns what is being dragged spans, so a grid can show where it will land at its size. */
+  dragSpan: number;
+  /** How far right of its left edge the dragged widget was picked up, in px; null to centre it on the pointer. */
+  dragGrab: number | null;
   /** The selected widget's margin or padding just changed: that band is lit for a moment. */
   flashBox: 'margin' | 'padding' | null;
   /** Which side of that band changed; null when all four did (a spacing preset). */
   flashSide: keyof Sides | null;
+}
+
+/** One edge of a widget, moved: its right edge (span), its left edge (start column) or its bottom (height). */
+export interface WidgetResize {
+  span?: number;
+  start?: number;
+  height?: Size;
 }
 
 /** Where a widget's settings open: beside the widget, at its top-left corner. */
@@ -39,11 +52,18 @@ export interface ViewEditor {
   move(id: string, delta: number): void;
   remove(id: string): void;
   configure(id: string, anchor: SettingsAnchor | null): void;
-  beginDrag(id: string): void;
+  /** `grab`: how far right of the widget's left edge it was picked up, in px. */
+  beginDrag(id: string, grab?: number): void;
   endDrag(): void;
-  /** Drop what is being dragged at `index` of the list at `place` (null: the view's own). */
-  dropAt(index: number, place?: WidgetPlace | null): void;
-  setColSpan(id: string, span: number): void;
+  /** Drop what is being dragged at `target` on the list at `place` (null: the view's own). */
+  dropAt(target: DropTarget, place?: WidgetPlace | null): void;
+  /**
+   * Resize a widget by one of its edges. Every change is measured from where the widget and its
+   * neighbours were when the resize began, so dragging back puts them back.
+   */
+  beginResize(id: string): void;
+  resize(id: string, change: WidgetResize): void;
+  endResize(): void;
   ui: ViewEditorUi;
 }
 
@@ -61,18 +81,20 @@ export const VIEW_EDITOR: InjectionKey<ViewEditor> = Symbol('viewEditor');
  */
 export function useViewEditor(): ViewEditor {
   return inject(VIEW_EDITOR, () => ({
-    editing:    false,
-    selectedId: null,
-    select:     () => undefined,
-    move:       () => undefined,
-    remove:     () => undefined,
-    configure:  () => undefined,
-    beginDrag:  () => undefined,
-    endDrag:    () => undefined,
-    dropAt:     () => undefined,
-    setColSpan: () => undefined,
-    ui:         {
-      dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', flashBox: null, flashSide: null
+    editing:     false,
+    selectedId:  null,
+    select:      () => undefined,
+    move:        () => undefined,
+    remove:      () => undefined,
+    configure:   () => undefined,
+    beginDrag:   () => undefined,
+    endDrag:     () => undefined,
+    dropAt:      () => undefined,
+    beginResize: () => undefined,
+    resize:      () => undefined,
+    endResize:   () => undefined,
+    ui:          {
+      dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', dragSpan: 0, dragGrab: null, flashBox: null, flashSide: null
     },
   }), true);
 }

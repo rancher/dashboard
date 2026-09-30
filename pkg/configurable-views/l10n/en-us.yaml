@@ -139,6 +139,8 @@ configurableViews:
     settings: What this widget shows
     remove: Remove from view
     resize: Drag to resize by columns
+    resizeStart: Drag to move the left edge by columns
+    resizeHeight: Drag to set the height, double-click to fit the content
     dragTile: "Drag {name} onto the grid, or click to add it"
     unknown: "There is no “{kind}” building block."
     nothingToShow: Nothing to show.

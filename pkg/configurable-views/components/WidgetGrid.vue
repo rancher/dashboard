@@ -3,18 +3,25 @@ import {
   computed, onBeforeUnmount, onMounted, ref, type CSSProperties
 } from 'vue';
 import WidgetNode from './WidgetNode.vue';
-import { GRID_COLUMNS, DEFAULT_GAP, canPlace } from '../templating/view-model';
+import {
+  GRID_COLUMNS, DEFAULT_GAP, canPlace, clampSpan, newWidgetNode
+} from '../templating/view-model';
+import {
+  gridCells, gridLines, dropInto, liftFrom, type DropTarget
+} from '../templating/grid-layout';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { useViewEditor, placeKey } from '../composables/viewEditor';
+import { useWidgetPresence } from '../composables/useWidgetPresence';
 import type { WidgetNode as WidgetNodeSpec, WidgetPlace } from '../templating/types';
 
-// The grid: a view's widgets, in order, wrapping onto lines.
+// The grid: a view's widgets, in order, on the lines they wrap into.
 //
-// It is ONE flex container, not a tree. A widget takes its span's share of a 12-column line and
-// wraps when there is no room left, which is what makes rows an emergent property of the widths
-// rather than objects anyone has to manage. There is exactly one drop target — the list — and a
-// drop resolves to an INDEX in it.
+// It is ONE CSS grid of twelve columns, not a tree. Where each widget sits - its line, the column it
+// starts at, its span - is worked out by grid-layout from the list, and the widget is placed on
+// exactly those cells. A drop resolves to a column on a line (a DropTarget), so a widget lands where
+// it was let go; while it is over the grid, a ghost shows where that is, and the widgets it would
+// push aside are marked.
 //
 // A Tabs widget draws one of these per tab, with the tab as its `place`. A drag over the inner grid
 // is the inner grid's, and goes no further; one it will not take (a Tabs widget, which a tab cannot
@@ -51,10 +58,14 @@ const { t } = useI18n(store);
 
 const root = ref<HTMLElement | null>(null);
 const body = ref<HTMLElement | null>(null);
-const dropIndex = ref(-1);
 let scrollTimer: ReturnType<typeof setInterval> | null = null;
 
 const columns = GRID_COLUMNS;
+
+// Outside the editor a widget with nothing to show here is left out, and the ones after it close up.
+const { present } = useWidgetPresence();
+const shown = computed(() => (props.editing ? props.widgets : props.widgets.filter((w) => present(w.widget))));
+const cells = computed(() => gridCells(shown.value));
 
 // Something is on its way onto the grid: a widget already on it being moved, or a catalog entry
 // being dragged in from the drawer. Both light up the drop targets.
@@ -65,24 +76,19 @@ const accepts = computed(() => dragActive.value && canPlace(viewEditor.ui.dragKi
 
 const key = computed(() => placeKey(props.place));
 
-// The insertion marker belongs to the one grid the pointer is over — never to a grid it has left for
-// a tab inside it, or for the grid around it.
-const markerAt = computed(() => (accepts.value && viewEditor.ui.dropPlace === key.value ? dropIndex.value : -1));
+// The preview belongs to the one grid the pointer is over — never to a grid it has left for a tab
+// inside it, or for the grid around it.
+const over = computed(() => accepts.value && viewEditor.ui.dropPlace === key.value);
 
-const style = computed<CSSProperties>(() => ({
-  alignContent: 'flex-start',
-  alignItems:   'flex-start',
-  display:      'flex',
-  flexWrap:     'wrap',
-  gap:          `${ props.gap }px`,
-}));
-
-// The guide overlay is its own 12-track grid, so the lines always mark exact twelfths.
-const guideStyle = computed<CSSProperties>(() => ({
+// The widgets and the guide overlay share one template, so the guides mark exactly the columns a
+// widget can start and end on.
+const tracks = computed<CSSProperties>(() => ({
   display:             'grid',
   gap:                 `${ props.gap }px`,
   gridTemplateColumns: `repeat(${ GRID_COLUMNS }, minmax(0, 1fr))`,
 }));
+
+const style = computed<CSSProperties>(() => ({ ...tracks.value, alignItems: 'start' }));
 
 // Column guides are only meaningful while you are placing or sizing something - and only on the grid
 // that something is on: a tab's twelfths are not the view's.
@@ -101,26 +107,187 @@ const dropHint = computed(() => {
   return props.place ? t('configurableViews.grid.dropInTab') : t('configurableViews.grid.dropHere');
 });
 
-/**
- * Where a drop would land: compare the pointer with each widget's box. Widgets wrap, so a widget
- * counts as "before the pointer" when it is on an earlier line, or on the same line and left of the
- * pointer — reading order, exactly as the list is ordered.
- */
-function computeDropIndex(ev: DragEvent): number {
-  const tiles = Array.from(body.value?.children || []).filter((el): el is HTMLElement => !!(el as HTMLElement).dataset?.nodeId);
+// ---- where a drop lands ----
 
-  for (let i = 0; i < tiles.length; i++) {
-    const r = tiles[i].getBoundingClientRect();
+// Within this many px of a line's top or bottom edge, a drop opens a new line there rather than
+// joining the line.
+const NEW_LINE_ZONE = 14;
+// The id the preview gives what is being dropped.
+const GHOST_ID = '\u0000ghost';
 
-    if (ev.clientY < r.top) {
-      return i;
-    }
-    if (ev.clientY <= r.bottom && ev.clientX < r.left + (r.width / 2)) {
-      return i;
+/** One line as drawn: its widgets, and the band of the page it covers. */
+interface LineBox {
+  ids: string[];
+  top: number;
+  bottom: number;
+}
+
+/** The grid's left edge and the distance from one column's start to the next, in px. */
+interface Frame {
+  left: number;
+  top: number;
+  pitch: number;
+}
+
+/** The drop's landing place, in px from the grid's corner; `bar` for a new line between two. */
+interface Ghost {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  bar: boolean;
+}
+
+const target = ref<DropTarget | null>(null);
+const ghost = ref<Ghost | null>(null);
+const shifting = ref<Set<string>>(new Set());
+/** Where each widget the drop pushes aside ends up, outlined. */
+const shadows = ref<Ghost[]>([]);
+
+function frame(): Frame | null {
+  const r = body.value?.getBoundingClientRect();
+
+  return r ? {
+    left: r.left, top: r.top, pitch: (r.width + props.gap) / GRID_COLUMNS
+  } : null;
+}
+
+function measureLines(): LineBox[] {
+  const rects = new Map<string, DOMRect>();
+
+  for (const el of Array.from(body.value?.children || [])) {
+    const id = (el as HTMLElement).dataset?.nodeId;
+
+    if (id) {
+      rects.set(id, el.getBoundingClientRect());
     }
   }
 
-  return tiles.length;
+  return gridLines(shown.value).map((ids) => {
+    const boxes = ids.map((id) => rects.get(id)).filter((r): r is DOMRect => !!r);
+
+    return {
+      ids, top: Math.min(...boxes.map((r) => r.top)), bottom: Math.max(...boxes.map((r) => r.bottom))
+    };
+  }).filter((line) => Number.isFinite(line.top));
+}
+
+/** The column the dragged thing's left edge is over: where it was picked up is kept under the pointer. */
+function columnAt(x: number, f: Frame): number {
+  const span = clampSpan(viewEditor.ui.dragSpan);
+  const width = (span * f.pitch) - props.gap;
+  const grab = viewEditor.ui.dragGrab === null ? width / 2 : Math.min(viewEditor.ui.dragGrab, width);
+
+  return Math.max(0, Math.min(GRID_COLUMNS - span, Math.round((x - grab - f.left) / f.pitch)));
+}
+
+// The first widget from line `from` on that is not the one being moved - what a new line is opened above.
+function anchorFrom(lines: LineBox[], from: number): string | null {
+  for (let i = from; i < lines.length; i++) {
+    const id = lines[i].ids.find((x) => x !== viewEditor.ui.dragId);
+
+    if (id) {
+      return id;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Where a drop at the pointer lands: its column, and either a line to join or a new line - near a
+ * line's top or bottom edge, or on the line the moved widget has to itself.
+ */
+function targetAt(ev: DragEvent, f: Frame, lines: LineBox[]): DropTarget {
+  const col = columnAt(ev.clientX, f);
+  const y = ev.clientY;
+
+  for (let i = 0; i < lines.length; i++) {
+    if (y < lines[i].top + NEW_LINE_ZONE) {
+      return { col, before: anchorFrom(lines, i) };
+    }
+    if (y < lines[i].bottom - NEW_LINE_ZONE) {
+      const mate = lines[i].ids.find((x) => x !== viewEditor.ui.dragId);
+
+      return mate ? { col, join: mate } : { col, before: anchorFrom(lines, i + 1) };
+    }
+  }
+
+  return { col, before: null };
+}
+
+/**
+ * Work the drop out as it would be done, and draw it: the ghost where the dragged thing lands, and
+ * a mark on every widget that would move over to make room.
+ */
+function preview(t: DropTarget, f: Frame, lines: LineBox[]): void {
+  const span = clampSpan(viewEditor.ui.dragSpan);
+  const base = viewEditor.ui.dragId ? liftFrom(shown.value, viewEditor.ui.dragId) : shown.value;
+  const result = dropInto(base, newWidgetNode('links', { id: GHOST_ID, colSpan: span }), t);
+  const was = gridCells(base);
+  const now = gridCells(result);
+  const moved = new Set<string>();
+  const outlines: Ghost[] = [];
+
+  // Making room only ever moves a widget along its own line, so it is outlined on the line it is on.
+  now.forEach((cell, id) => {
+    const before = was.get(id);
+    const el = before && before.col !== cell.col ? tile(id) : null;
+
+    if (el) {
+      const r = el.getBoundingClientRect();
+
+      moved.add(id);
+      outlines.push({
+        left: cell.col * f.pitch, top: r.top - f.top, width: (cell.span * f.pitch) - props.gap, height: r.height, bar: false
+      });
+    }
+  });
+  shifting.value = moved;
+  shadows.value = outlines;
+
+  const me = now.get(GHOST_ID);
+
+  if (!me) {
+    ghost.value = null;
+
+    return;
+  }
+
+  const resultLines = gridLines(result);
+  const lineOf = (id: string | undefined) => (id ? lines.find((line) => line.ids.includes(id)) : undefined);
+  const mate = lineOf(resultLines[me.line].find((id) => id !== GHOST_ID));
+  const box = { left: me.col * f.pitch, width: (span * f.pitch) - props.gap };
+
+  if (mate) {
+    ghost.value = {
+      ...box, top: mate.top - f.top, height: mate.bottom - mate.top, bar: false
+    };
+
+    return;
+  }
+
+  // A line of its own: a bar in the gap it opens, above the line after it or below the last.
+  const next = lineOf(resultLines[me.line + 1]?.[0]);
+  const last = lines[lines.length - 1];
+  const edge = next ? next.top - (props.gap / 2) : (last ? last.bottom + (props.gap / 2) : f.top);
+
+  ghost.value = {
+    ...box, top: edge - f.top - 3, height: 6, bar: true
+  };
+}
+
+function tile(id: string): HTMLElement | null {
+  return Array.from(body.value?.children || []).find((el) => (el as HTMLElement).dataset?.nodeId === id) as HTMLElement || null;
+}
+
+function clearPreview(): void {
+  target.value = null;
+  ghost.value = null;
+  shadows.value = [];
+  if (shifting.value.size) {
+    shifting.value = new Set();
+  }
 }
 
 // ---- edge scrolling while dragging ----
@@ -205,7 +372,15 @@ function onDragOver(ev: DragEvent): void {
   if (ev.dataTransfer) {
     ev.dataTransfer.dropEffect = viewEditor.ui.dragEntry ? 'copy' : 'move';
   }
-  dropIndex.value = computeDropIndex(ev);
+
+  const f = frame();
+
+  if (f) {
+    const lines = measureLines();
+
+    target.value = targetAt(ev, f, lines);
+    preview(target.value, f, lines);
+  }
   autoScroll(ev.clientY);
 }
 
@@ -214,7 +389,7 @@ function onDragLeave(ev: DragEvent): void {
   if (root.value?.contains(ev.relatedTarget as Node | null)) {
     return;
   }
-  dropIndex.value = -1;
+  clearPreview();
   stopScrolling();
 }
 
@@ -225,11 +400,12 @@ function onDrop(ev: DragEvent): void {
   ev.preventDefault();
   ev.stopPropagation();
 
-  const index = markerAt.value >= 0 ? markerAt.value : computeDropIndex(ev);
+  const f = frame();
+  const t = target.value || (f ? targetAt(ev, f, measureLines()) : { col: 0, before: null });
 
-  dropIndex.value = -1;
+  clearPreview();
   stopScrolling();
-  viewEditor.dropAt(index, props.place);
+  viewEditor.dropAt(t, props.place);
 }
 
 function onEndOver(ev: DragEvent): void {
@@ -239,7 +415,12 @@ function onEndOver(ev: DragEvent): void {
   ev.preventDefault();
   ev.stopPropagation();
   viewEditor.ui.dropPlace = key.value;
-  dropIndex.value = -1;
+
+  // The box lights up for itself: a new line at the end, on the column the pointer is over.
+  const f = frame();
+
+  clearPreview();
+  target.value = { col: f ? columnAt(ev.clientX, f) : 0, before: null };
 }
 
 function onDropAtEnd(ev: DragEvent): void {
@@ -248,22 +429,30 @@ function onDropAtEnd(ev: DragEvent): void {
   }
   ev.preventDefault();
   ev.stopPropagation();
-  dropIndex.value = -1;
+
+  const t = target.value || { col: 0, before: null };
+
+  clearPreview();
   stopScrolling();
-  viewEditor.dropAt(props.widgets.length, props.place);
+  viewEditor.dropAt(t, props.place);
 }
 
 // A drag that ends anywhere — including outside the grid, or cancelled with Escape — must stop the
-// page scrolling. dragend fires on the source, so it is listened for globally.
+// page scrolling and put the preview away. dragend fires on the source, so it is listened for globally.
+function onDragFinished(): void {
+  stopScrolling();
+  clearPreview();
+}
+
 onMounted(() => {
-  document.addEventListener('dragend', stopScrolling);
-  document.addEventListener('drop', stopScrolling);
+  document.addEventListener('dragend', onDragFinished);
+  document.addEventListener('drop', onDragFinished);
 });
 
 onBeforeUnmount(() => {
   stopScrolling();
-  document.removeEventListener('dragend', stopScrolling);
-  document.removeEventListener('drop', stopScrolling);
+  document.removeEventListener('dragend', onDragFinished);
+  document.removeEventListener('drop', onDragFinished);
 });
 </script>
 
@@ -286,7 +475,7 @@ onBeforeUnmount(() => {
         v-if="showGuides"
         class="wgrid__guides"
         :class="{ 'wgrid__guides--active': accepts }"
-        :style="guideStyle"
+        :style="tracks"
         aria-hidden="true"
       >
         <span
@@ -295,24 +484,35 @@ onBeforeUnmount(() => {
         />
       </div>
 
-      <template
-        v-for="(widget, i) in widgets"
+      <WidgetNode
+        v-for="widget in shown"
         :key="widget.id"
-      >
+        :node="widget"
+        :cell="cells.get(widget.id)"
+        :editing="editing"
+        :selected="widget.id === selectedId"
+        :shifting="over && shifting.has(widget.id)"
+        :gap="gap"
+      />
+
+      <!-- Where the widgets it pushes aside end up -->
+      <template v-if="over">
         <div
-          v-if="markerAt === i"
-          class="wgrid__drop"
-        />
-        <WidgetNode
-          :node="widget"
-          :editing="editing"
-          :selected="widget.id === selectedId"
-          :gap="gap"
+          v-for="(shadow, i) in shadows"
+          :key="i"
+          class="wgrid__ghost wgrid__ghost--shifted"
+          data-testid="configurable-views-drop-shifted"
+          :style="{ left: `${ shadow.left }px`, top: `${ shadow.top }px`, width: `${ shadow.width }px`, height: `${ shadow.height }px` }"
         />
       </template>
+
+      <!-- Where the drop lands: the cells it takes, or a bar for the new line it opens -->
       <div
-        v-if="markerAt >= widgets.length"
-        class="wgrid__drop"
+        v-if="over && ghost"
+        class="wgrid__ghost"
+        :class="{ 'wgrid__ghost--bar': ghost.bar }"
+        data-testid="configurable-views-drop-ghost"
+        :style="{ left: `${ ghost.left }px`, top: `${ ghost.top }px`, width: `${ ghost.width }px`, height: `${ ghost.height }px` }"
       />
     </div>
 
@@ -367,14 +567,28 @@ onBeforeUnmount(() => {
     }
   }
 
-  // Insertion marker shown while dragging.
-  &__drop {
-    background:    var(--primary);
-    border-radius: 2px;
-    flex:          0 0 3px;
-    align-self:    stretch;
-    min-height:    40px;
-    z-index:       2;
+  // Where the drop lands: the cells it will take, over whatever is drawn there now.
+  &__ghost {
+    background:     color-mix(in srgb, var(--primary) 18%, transparent);
+    border:         2px dashed var(--primary);
+    border-radius:  4px;
+    box-sizing:     border-box;
+    pointer-events: none;
+    position:       absolute;
+    transition:     left 0.08s ease-out, top 0.08s ease-out, width 0.08s ease-out, height 0.08s ease-out;
+    z-index:        7;
+
+    // A new line between two: a solid bar in the gap it opens
+    &--bar {
+      background: var(--primary);
+      border:     0;
+    }
+
+    // Where a pushed widget goes: outlined only, so the drop's own ghost reads first
+    &--shifted {
+      background: transparent;
+      border:     2px dotted var(--primary);
+    }
   }
 
   // The tinted, dashed box at the end of the grid.

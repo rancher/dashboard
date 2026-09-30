@@ -8,16 +8,16 @@ import WidgetHost from './widgets/WidgetHost.vue';
 import {
   GRID_COLUMNS, DEFAULT_GAP, cssSize, cssSides, normalizeSides, clampSpan
 } from '../templating/view-model';
-import { useViewEditor } from '../composables/viewEditor';
+import type { GridCell } from '../templating/grid-layout';
+import { useViewEditor, type WidgetResize } from '../composables/viewEditor';
 import { useWidgetPresence } from '../composables/useWidgetPresence';
 import type { Sides, WidgetNode } from '../templating/types';
 
 // ONE widget on the grid.
 //
-// Its width is a COLUMN SPAN: the share of a 12-column line that has a GAP between every column, so
-// a span-s widget covers s columns plus the (s-1) gaps it swallows. Written out here rather than
-// handed to a CSS grid because the line is a flex line — which is what lets widgets wrap into rows
-// on their own, with no row objects to manage.
+// It is placed on the CELLS the grid works out for it (see grid-layout): its line, the column it
+// starts at and its COLUMN SPAN - s columns plus the (s-1) gaps it swallows. Its margin sits inside
+// those cells, so a margin never pushes a neighbour along.
 //
 // Outside edit mode this renders SEAMLESSLY — no chrome. In edit mode it wears its own header (that
 // header is how you drag it), and every piece of chrome is painted ABOVE the rendered widget, which
@@ -32,13 +32,19 @@ interface Band { side: keyof Sides; style: CSSProperties }
 
 const props = withDefaults(defineProps<{
   node: WidgetNode;
+  /** Where the grid puts it. */
+  cell?: GridCell | null;
   editing?: boolean;
   selected?: boolean;
+  /** A drop being dragged over the grid would move it over to make room. */
+  shifting?: boolean;
   /** The gap between widgets — one value for the whole VIEW. */
   gap?: number;
 }>(), {
+  cell:     null,
   editing:  false,
   selected: false,
+  shifting: false,
   gap:      DEFAULT_GAP,
 });
 
@@ -47,7 +53,8 @@ const store = useStore();
 const { t } = useI18n(store);
 
 const root = ref<HTMLElement | null>(null);
-const resizing = ref(false);
+/** The edge being dragged, if one is. */
+const resizing = ref<'' | 'start' | 'end' | 'bottom'>('');
 
 // Measured margin/padding in PX. The bands cannot reuse the authored values: a band is absolutely
 // positioned, so a percentage on it resolves against THIS tile, while the real margin resolves
@@ -68,7 +75,6 @@ const absent = computed(() => !props.editing && !present(props.node.widget));
 // is edited in place like anything else on the grid.
 const holdsWidgets = computed(() => !!props.node.widget.tabs);
 const span = computed(() => clampSpan(props.node.colSpan));
-const margin = computed(() => normalizeSides(props.node.margin));
 
 // The margin/padding bands answer "where do these pixels go?", so they are drawn for a moment
 // after the number changes, not all the time.
@@ -84,13 +90,7 @@ function lit(bands: Band[]): Band[] {
 }
 
 const style = computed<CSSProperties>(() => {
-  // The span's share of a 12-column line that has a GAP between every column.
-  const gaps = (GRID_COLUMNS - 1) * props.gap;
-  const own = (span.value - 1) * props.gap;
-  // Subtract this widget's own horizontal margins from the basis, so basis + margins is exactly the
-  // span's share of the line and a margin never pushes a neighbour onto the next one.
-  const subtract = [margin.value.left, margin.value.right].filter((v) => v && v !== 0).map(cssSize);
-  const basis = `calc((100% - ${ gaps }px) * ${ span.value } / ${ GRID_COLUMNS } + ${ own }px${ subtract.length ? ` - ${ subtract.join(' - ') }` : '' })`;
+  const cell = props.cell;
 
   // PADDING is the room the content has INSIDE the card, not a ring around the widget — so it is
   // handed to the card as custom properties rather than applied here. A widget is flush in its
@@ -103,16 +103,20 @@ const style = computed<CSSProperties>(() => {
 
   const s: CSSProperties & Record<string, string | number> = {
     boxSizing:          'border-box',
-    // min-width:0 is REQUIRED: a flex item defaults to min-width:auto and so refuses to shrink below
-    // its content's min-content width — a wide table would blow the line out past the page.
-    flex:               `0 0 ${ basis }`,
+    gridColumn:         cell ? `${ cell.col + 1 } / span ${ cell.span }` : `span ${ span.value }`,
     margin:             cssSides(props.node.margin),
+    // min-width:0 is REQUIRED: a grid item defaults to min-width:auto and so refuses to shrink below
+    // its content's min-content width — a wide table would blow the line out past the page.
     minWidth:           0,
     '--wcard-head-pad': `${ headV }px ${ cssSize(p.right) } ${ headVBottom }px ${ cssSize(p.left) }`,
     '--wcard-head-min': `${ 32 + headV + headVBottom }px`,
     '--wcard-body-pad': `0 ${ cssSize(p.right) } ${ cssSize(p.bottom) } ${ cssSize(p.left) }`,
     '--wcard-solo-pad': cssSides(props.node.padding),
   };
+
+  if (cell) {
+    s.gridRow = `${ cell.line + 1 }`;
+  }
 
   const height = props.node.height;
 
@@ -312,51 +316,97 @@ function onDragStart(ev: DragEvent): void {
     // Firefox needs data set for a drag to start at all.
     ev.dataTransfer.setData('text/plain', props.node.id);
   }
-  viewEditor.beginDrag(props.node.id);
+
+  // Where it was picked up stays under the pointer, so the drop lands where the widget is seen to be.
+  const r = root.value?.getBoundingClientRect();
+
+  viewEditor.beginDrag(props.node.id, r ? ev.clientX - r.left : undefined);
 }
 
 function onDragEnd(): void {
   viewEditor.endDrag();
 }
 
-// ---- col-span resize ----
-function startResize(ev: PointerEvent): void {
+// ---- resizing by an edge ----
+// The right edge sets the span, the left edge where it starts (its right edge staying put), the
+// bottom its height. Widths snap to the columns; heights to HEIGHT_STEP px.
+const HEIGHT_STEP = 10;
+const MIN_HEIGHT = 60;
+
+// The badge shown while resizing: columns for a width, px for a height.
+const resizeBadge = computed(() => {
+  if (resizing.value === 'bottom') {
+    return cssSize(props.node.height);
+  }
+
+  return `${ span.value } / ${ GRID_COLUMNS }`;
+});
+
+function startResize(ev: PointerEvent, edge: 'start' | 'end' | 'bottom'): void {
   if (!props.editing) {
     return;
   }
   ev.preventDefault();
   ev.stopPropagation();
-  // Selecting it makes the grid show its column guides while you drag the edge.
-  viewEditor.select(props.node.id);
 
-  const line = root.value?.parentElement;
-  const colWidth = line ? line.getBoundingClientRect().width / GRID_COLUMNS : 0;
+  const grid = root.value?.parentElement;
+  const box = root.value?.getBoundingClientRect();
 
-  if (!colWidth) {
+  if (!grid || !box) {
     return;
   }
 
+  // Column to column, gap included: twelve of these, less one gap, is the grid's width.
+  const pitch = (grid.getBoundingClientRect().width + props.gap) / GRID_COLUMNS;
   const startX = ev.clientX;
+  const startY = ev.clientY;
   const startSpan = span.value;
+  const startCol = props.cell?.col ?? 0;
+  let last = '';
 
-  resizing.value = true;
+  // Selecting it makes the grid show its column guides while you drag the edge.
+  viewEditor.beginResize(props.node.id);
+  resizing.value = edge;
 
   const onMove = (e: PointerEvent) => {
-    const next = clampSpan(startSpan + Math.round((e.clientX - startX) / colWidth));
+    const columns = Math.round((e.clientX - startX) / pitch);
+    let change: WidgetResize;
 
-    if (next !== span.value) {
-      viewEditor.setColSpan(props.node.id, next);
+    if (edge === 'end') {
+      change = { span: clampSpan(startSpan + columns) };
+    } else if (edge === 'start') {
+      change = { start: startCol + columns };
+    } else {
+      change = { height: Math.max(MIN_HEIGHT, Math.round((box.height + e.clientY - startY) / HEIGHT_STEP) * HEIGHT_STEP) };
+    }
+
+    // Only when it lands somewhere new: every change re-lays the whole list.
+    const key = JSON.stringify(change);
+
+    if (key !== last) {
+      last = key;
+      viewEditor.resize(props.node.id, change);
     }
   };
 
   const onUp = () => {
-    resizing.value = false;
+    resizing.value = '';
+    viewEditor.endResize();
     window.removeEventListener('pointermove', onMove);
     window.removeEventListener('pointerup', onUp);
   };
 
   window.addEventListener('pointermove', onMove);
   window.addEventListener('pointerup', onUp);
+}
+
+// Double-clicking the bottom edge lets the content decide the height again.
+function fitHeight(): void {
+  if (props.editing) {
+    viewEditor.beginResize(props.node.id);
+    viewEditor.resize(props.node.id, { height: 'auto' });
+    viewEditor.endResize();
+  }
 }
 </script>
 
@@ -369,6 +419,7 @@ function startResize(ev: PointerEvent): void {
       'wnode--editing': editing,
       'wnode--selected': selected,
       'wnode--dragging': beingDragged,
+      'wnode--shifting': shifting,
     }"
     :style="style"
     :draggable="editing"
@@ -436,18 +487,36 @@ function startResize(ev: PointerEvent): void {
       v-if="editing && !holdsWidgets"
       class="wnode__shield"
     />
-    <div
-      v-if="editing"
-      class="wnode__resize"
-      :class="{ 'wnode__resize--active': resizing }"
-      :title="t('configurableViews.widget.resize')"
-      @pointerdown="startResize"
-    />
+    <template v-if="editing">
+      <div
+        class="wnode__resize wnode__resize--start"
+        :class="{ 'wnode__resize--active': resizing === 'start' }"
+        :title="t('configurableViews.widget.resizeStart')"
+        data-testid="configurable-views-resize-start"
+        @pointerdown="startResize($event, 'start')"
+      />
+      <div
+        class="wnode__resize wnode__resize--end"
+        :class="{ 'wnode__resize--active': resizing === 'end' }"
+        :title="t('configurableViews.widget.resize')"
+        data-testid="configurable-views-resize-end"
+        @pointerdown="startResize($event, 'end')"
+      />
+      <div
+        class="wnode__resize wnode__resize--bottom"
+        :class="{ 'wnode__resize--active': resizing === 'bottom' }"
+        :title="t('configurableViews.widget.resizeHeight')"
+        data-testid="configurable-views-resize-bottom"
+        @pointerdown="startResize($event, 'bottom')"
+        @dblclick.stop="fitHeight"
+      />
+    </template>
     <div
       v-if="resizing"
       class="wnode__span"
+      :class="{ 'wnode__span--height': resizing === 'bottom' }"
     >
-      {{ span }} / 12
+      {{ resizeBadge }}
     </div>
   </div>
 </template>
@@ -466,6 +535,12 @@ function startResize(ev: PointerEvent): void {
 
   &--dragging {
     opacity: 0.4;
+  }
+
+  // A drop over the grid would move it over: say so before it happens.
+  &--shifting > .wnode__frame {
+    border:     2px dashed var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
   }
 
   // ---- frame ----
@@ -581,29 +656,66 @@ function startResize(ev: PointerEvent): void {
     z-index:  2;
   }
 
+  // The edges you drag to resize: left and right by columns, bottom by height.
   &__resize {
-    bottom:   0;
-    cursor:   col-resize;
     position: absolute;
-    right:    0;
-    top:      0;
-    width:    8px;
     z-index:  5;
 
     &::after {
       background:    var(--border);
       border-radius: 2px;
-      bottom:        6px;
       content:       '';
       position:      absolute;
-      right:         2px;
-      top:           6px;
-      width:         3px;
     }
 
     &:hover::after,
     &--active::after {
       background: var(--primary);
+    }
+
+    &--start,
+    &--end {
+      bottom: 0;
+      cursor: col-resize;
+      top:    0;
+      width:  8px;
+
+      &::after {
+        bottom: 6px;
+        top:    6px;
+        width:  3px;
+      }
+    }
+
+    &--start {
+      left: 0;
+
+      &::after {
+        left: 2px;
+      }
+    }
+
+    &--end {
+      right: 0;
+
+      &::after {
+        right: 2px;
+      }
+    }
+
+    &--bottom {
+      bottom: 0;
+      cursor: row-resize;
+      height: 8px;
+      left:   8px;
+      right:  8px;
+
+      &::after {
+        bottom: 2px;
+        height: 3px;
+        left:   calc(50% - 20px);
+        width:  40px;
+      }
     }
   }
 
@@ -619,6 +731,11 @@ function startResize(ev: PointerEvent): void {
     position:       absolute;
     right:          10px;
     z-index:        6;
+
+    &--height {
+      bottom: 12px;
+      right:  calc(50% - 24px);
+    }
   }
 }
 </style>

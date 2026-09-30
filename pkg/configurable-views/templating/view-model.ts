@@ -320,6 +320,8 @@ function normalizeTabs(tabs: unknown): WidgetTab[] {
 export interface WidgetBoxOptions {
   id?: string;
   colSpan?: unknown;
+  offset?: unknown;
+  newLine?: unknown;
   height?: unknown;
   margin?: unknown;
   padding?: unknown;
@@ -332,8 +334,13 @@ function widgetBox(opts: WidgetBoxOptions, defaultSpan: number) {
     top: 16, right: 16, bottom: 16, left: 16
   };
 
+  const offset = Math.round(Number(opts.offset));
+
   return {
     colSpan: clampSpan(opts.colSpan ?? defaultSpan),
+    // Only stored when they say something, so a widget that just follows the flow stays as it was
+    ...(offset > 0 ? { offset: Math.min(offset, GRID_COLUMNS - 1) } : {}),
+    ...(opts.newLine === true ? { newLine: true } : {}),
     height:  normalizeSize(opts.height, 'auto'),
     margin:  normalizeSides(opts.margin),
     padding: normalizeSides(padding),
@@ -593,7 +600,7 @@ export function migrateViewSet(value: unknown): ViewSet {
 // widget sits in - only a DROP says where something goes, as a WidgetPlace (null: the view's own list).
 
 /** Apply `fn` to every list in the tree: the view's own, then each tab's of every Tabs widget in it. */
-function eachList(widgets: WidgetNode[], fn: (list: WidgetNode[]) => WidgetNode[]): WidgetNode[] {
+export function eachList(widgets: WidgetNode[], fn: (list: WidgetNode[]) => WidgetNode[]): WidgetNode[] {
   return fn(widgets || []).map((w) => (w.widget.tabs ? {
     ...w,
     widget: { ...w.widget, tabs: w.widget.tabs.map((t) => ({ ...t, widgets: eachList(t.widgets, fn) })) },
@@ -601,7 +608,7 @@ function eachList(widgets: WidgetNode[], fn: (list: WidgetNode[]) => WidgetNode[
 }
 
 /** Apply `fn` to the one list at `place`. */
-function atPlace(widgets: WidgetNode[], place: WidgetPlace | null, fn: (list: WidgetNode[]) => WidgetNode[]): WidgetNode[] {
+export function atPlace(widgets: WidgetNode[], place: WidgetPlace | null, fn: (list: WidgetNode[]) => WidgetNode[]): WidgetNode[] {
   if (!place) {
     return fn(widgets || []);
   }
@@ -657,7 +664,7 @@ export function canPlace(kind: string, place: WidgetPlace | null): boolean {
 }
 
 /** Whether `place` names a tab that is really there - a drop into one that is not would lose the widget. */
-function placeExists(widgets: WidgetNode[], place: WidgetPlace | null): boolean {
+export function placeExists(widgets: WidgetNode[], place: WidgetPlace | null): boolean {
   return !place || !!findWidget(widgets, place.parentId)?.widget.tabs?.some((t) => t.id === place.tabId);
 }
 
