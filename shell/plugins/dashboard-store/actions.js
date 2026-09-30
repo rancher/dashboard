@@ -676,7 +676,7 @@ export default {
 
     type = normalizeType(type);
 
-    console.log(`Find: [${ ctx.state.config.namespace }] ${ type } ${ id }`); // eslint-disable-line no-console
+    console.log(`Find: [${ ctx.state.config.namespace }] ${ type } ${ id }. Revision: ${ opt.revision || 'none' }`); // eslint-disable-line no-console
     let out;
 
     if ( opt.force !== true ) {
