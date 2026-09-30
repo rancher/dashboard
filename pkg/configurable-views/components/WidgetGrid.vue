@@ -34,12 +34,15 @@ const props = withDefaults(defineProps<{
   gap?: number;
   /** The tab this grid is, inside a Tabs widget; null for the view's own grid. */
   place?: WidgetPlace | null;
+  /** Light the gaps between the widgets, as the gap setting changes. */
+  flashGap?: boolean;
 }>(), {
   widgets:    () => [],
   editing:    false,
   selectedId: '',
   gap:        DEFAULT_GAP,
   place:      null,
+  flashGap:   false,
 });
 
 const viewEditor = useViewEditor();
@@ -276,6 +279,7 @@ onBeforeUnmount(() => {
     <div
       ref="body"
       class="wgrid__body"
+      :class="{ 'wgrid__body--flash-gap': flashGap }"
       :style="style"
     >
       <div
@@ -330,8 +334,18 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .wgrid {
   &__body {
-    min-width: 0;
-    position:  relative; // anchors the column guides to the grid's content box
+    min-width:  0;
+    position:   relative; // anchors the column guides to the grid's content box
+    transition: background-color 0.2s ease-out;
+
+    // The gaps lit: the grid tinted behind, every widget on the page colour in front of it
+    &--flash-gap {
+      background-color: color-mix(in srgb, var(--primary) 25%, transparent);
+
+      > .wnode {
+        background-color: var(--body-bg);
+      }
+    }
   }
 
   &__guides {
@@ -366,7 +380,7 @@ onBeforeUnmount(() => {
   // The tinted, dashed box at the end of the grid.
   &__end {
     align-items:     center;
-    background:      var(--accent-btn);
+    background:      color-mix(in srgb, var(--primary) 12%, transparent);
     border:          2px dashed var(--primary);
     border-radius:   4px;
     box-sizing:      border-box;

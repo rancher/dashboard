@@ -9,11 +9,10 @@ import WidgetGrid from './WidgetGrid.vue';
 import ViewBar from './ViewBar.vue';
 import EditViewSidebar from './EditViewSidebar.vue';
 import WidgetSettingsModal from './WidgetSettingsModal.vue';
-import ConfirmModal from './ConfirmModal.vue';
 import UndoGrowl from './UndoGrowl.vue';
 import { VIEW_EDITOR, type SettingsAnchor, type ViewEditorUi } from '../composables/viewEditor';
 import { useConfirm } from '../composables/useConfirm';
-import { viewBarVisible } from '../composables/useViewBarVisibility';
+import { viewBarLocked, viewBarVisible } from '../composables/useViewBarVisibility';
 import {
   isTemplatingEnabled, appliedViewScopes, saveView, fetchTemplatingConfigMaps, type PageKey
 } from '../templating/template-engine';
@@ -98,6 +97,8 @@ const startedFrom = ref('');
 const settingsNodeId = ref<string | null>(null);
 const settingsAnchor = ref<SettingsAnchor | null>(null);
 const saving = ref(false);
+/** The editor's drawer. Closing it keeps you editing, with the whole width for the grid. */
+const drawerOpen = ref(true);
 const error = ref('');
 const bar = ref<InstanceType<typeof ViewBar> | null>(null);
 /**
@@ -175,7 +176,30 @@ const widgets = computed(() => (activeView.value && !isStockView(activeView.valu
 const gap = computed(() => (activeView.value && !isStockView(activeView.value) ? activeView.value.gap : DEFAULT_GAP));
 
 // The space between the grid and the edges of the page — a view-level setting like the gap.
-const surfaceStyle = computed<CSSProperties>(() => ({ padding: `${ activeView.value && !isStockView(activeView.value) ? activeView.value.pad : DEFAULT_PAGE_PADDING }px` }));
+/** The spacing just changed in the drawer, lit on the page for a moment so you see what it moves. */
+const flash = ref<'gap' | 'pad' | null>(null);
+let flashTimer: ReturnType<typeof setTimeout> | undefined;
+const FLASH_MS = 1000;
+
+function flashSpacing(which: 'gap' | 'pad'): void {
+  clearTimeout(flashTimer);
+  flash.value = which;
+  flashTimer = setTimeout(() => {
+    flash.value = null;
+  }, FLASH_MS);
+}
+
+onBeforeUnmount(() => clearTimeout(flashTimer));
+
+const surfaceStyle = computed<CSSProperties>(() => {
+  const pad = activeView.value && !isStockView(activeView.value) ? activeView.value.pad : DEFAULT_PAGE_PADDING;
+
+  return {
+    padding:   `${ pad }px`,
+    // The padding ring itself, painted as an inset shadow exactly as thick as the padding
+    boxShadow: flash.value === 'pad' ? `inset 0 0 0 ${ pad }px color-mix(in srgb, var(--primary) 25%, transparent)` : undefined,
+  };
+});
 
 const hasContent = computed(() => activeIsStock.value || widgets.value.length > 0);
 
@@ -326,6 +350,7 @@ function enterEdit({ seedFirst = true } = {}): void {
 
   savedBaseline.value = JSON.stringify(draft);
   editing.value = true;
+  drawerOpen.value = true;
   selectedNodeId.value = null;
 }
 
@@ -846,8 +871,13 @@ function updateSelected(fn: (w: WidgetNode) => WidgetNode): void {
   }
 }
 
+// Picking a widget brings the drawer back: its Layout tab is where a widget is set.
 function selectNode(id: string | null): void {
   selectedNodeId.value = id;
+
+  if (id) {
+    drawerOpen.value = true;
+  }
 }
 
 function addFromCatalog(entry: CatalogEntry | null, index?: number, place: WidgetPlace | null = null): void {
@@ -949,6 +979,7 @@ function setGap(value: string): void {
 
   if (view) {
     view.gap = Math.max(0, Math.min(64, Math.round(Number(value) || 0)));
+    flashSpacing('gap');
   }
 }
 
@@ -957,6 +988,7 @@ function setPagePadding(value: string): void {
 
   if (view) {
     view.pad = Math.max(0, Math.min(96, Math.round(Number(value) || 0)));
+    flashSpacing('pad');
   }
 }
 
@@ -1038,17 +1070,30 @@ const barProps = computed(() => ({
   dirty:        dirty.value,
   saving:       saving.value,
   startedFrom:  startedFrom.value,
+  drawerOpen:   drawerOpen.value,
 }));
 
-// Hidden until asked for from the header, but always there while editing: its buttons are the way out.
+// Hidden until asked for from the header, but always there while editing: its buttons are the way out,
+// so the header's toggle is locked until the editor closes.
 const showBar = computed(() => templatingEnabled.value && (viewBarVisible.value || editing.value));
 
+watch(editing, (on) => {
+  viewBarLocked.value = on;
+});
+
+onBeforeUnmount(() => {
+  viewBarLocked.value = false;
+});
+
 const barListeners = {
-  select:        setActiveView,
-  edit:          () => enterEdit(),
-  cancel:        cancelEdit,
-  save:          () => save(),
-  'save-as-new': saveAsNewView,
+  select:          setActiveView,
+  edit:            () => enterEdit(),
+  cancel:          cancelEdit,
+  save:            () => save(),
+  'save-as-new':   saveAsNewView,
+  'toggle-drawer': () => {
+    drawerOpen.value = !drawerOpen.value;
+  },
   rename:        renameView,
   'rename-view': renameStoredView,
   'new-view':    newView,
@@ -1083,7 +1128,6 @@ const barListeners = {
       v-bind="$attrs"
       :class="{ 'view-host__unpadded': layout === 'home' }"
     />
-    <ConfirmModal />
     <UndoGrowl
       v-if="undo"
       :title="undo.title"
@@ -1137,6 +1181,7 @@ const barListeners = {
             :editing="editing"
             :selected-id="selectedNodeId"
             :gap="gap"
+            :flash-gap="flash === 'gap'"
           />
         </div>
         <component
@@ -1146,7 +1191,7 @@ const barListeners = {
       </div>
 
       <EditViewSidebar
-        v-if="editing"
+        v-if="editing && drawerOpen"
         :view="activeView"
         :selected="selectedNode"
         :is-default="activeViewId === defaultViewId"
@@ -1154,7 +1199,7 @@ const barListeners = {
         :is-new="isNewView"
         :started-from="startedFrom"
         :starting-points="startingPoints"
-        @close="cancelEdit"
+        @close="drawerOpen = false"
         @add="addFromCatalog"
         @drag-start="onCatalogDragStart"
         @drag-end="onCatalogDragEnd"
@@ -1183,7 +1228,6 @@ const barListeners = {
       @cancel="closeSettings"
       @remove="removeConfigured"
     />
-    <ConfirmModal />
     <UndoGrowl
       v-if="undo"
       :title="undo.title"
@@ -1242,6 +1286,7 @@ const barListeners = {
   // a view looks the same whether or not you are editing it.
   &__surface {
     box-sizing: border-box;
+    transition: box-shadow 0.2s ease-out;
   }
 
   &__error {

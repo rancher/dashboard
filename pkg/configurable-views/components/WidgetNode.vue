@@ -397,7 +397,7 @@ function startResize(ev: PointerEvent): void {
   // weight, plus a soft ring, so nothing on the grid shifts by a pixel when you click it.
   &--selected > &__frame {
     border-style: solid;
-    box-shadow:   0 0 0 2px var(--accent-btn);
+    box-shadow:   0 0 0 2px color-mix(in srgb, var(--primary) 12%, transparent);
   }
 
   // ---- box-model bands ----
