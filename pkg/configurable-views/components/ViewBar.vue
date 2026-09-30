@@ -571,19 +571,6 @@ defineExpose({ openRename, focusTab });
       <span class="vbar__mode">{{ isNew ? t('configurableViews.bar.newView') : t('configurableViews.bar.editing') }}</span>
       <span class="vbar__hint">{{ editingHint }}</span>
 
-      <!-- Brings back the drawer its ✕ closed; closing it here too, for the whole width -->
-      <button
-        class="vbar__icon-btn"
-        :class="{ 'vbar__icon-btn--on': drawerOpen }"
-        :title="drawerOpen ? t('configurableViews.bar.hideEditor') : t('configurableViews.bar.showEditor')"
-        :aria-label="drawerOpen ? t('configurableViews.bar.hideEditor') : t('configurableViews.bar.showEditor')"
-        :aria-pressed="drawerOpen ? 'true' : 'false'"
-        data-testid="configurable-views-toggle-drawer"
-        @click="$emit('toggle-drawer')"
-      >
-        <i class="icon icon-dock" />
-      </button>
-
       <button
         class="btn role-secondary vbar__btn"
         @click="$emit('cancel')"
@@ -604,6 +591,20 @@ defineExpose({ openRename, focusTab });
         @click="$emit('save')"
       >
         {{ saving ? t('configurableViews.bar.saving') : t('configurableViews.bar.save') }}
+      </button>
+
+      <!-- Last, over the drawer it opens and closes: brings back the drawer its ✕ closed, or closes
+         it here too, for the whole width -->
+      <button
+        class="vbar__icon-btn"
+        :class="{ 'vbar__icon-btn--on': drawerOpen }"
+        :title="drawerOpen ? t('configurableViews.bar.hideEditor') : t('configurableViews.bar.showEditor')"
+        :aria-label="drawerOpen ? t('configurableViews.bar.hideEditor') : t('configurableViews.bar.showEditor')"
+        :aria-pressed="drawerOpen ? 'true' : 'false'"
+        data-testid="configurable-views-toggle-drawer"
+        @click="$emit('toggle-drawer')"
+      >
+        <i class="icon icon-dock" />
       </button>
     </template>
 
