@@ -10,6 +10,11 @@ const view = (id: string, name = id): TableViewSaved => ({
   id, name, query: '', columns: null, labelColumns: [], groupBy: null
 });
 
+/** `view` as it is written: without its null and empty string properties */
+const stored = (id: string, name = id) => ({
+  id, name, labelColumns: []
+});
+
 function setup(stored: Record<string, unknown>, type = 'pod', page: string | null = null) {
   const setPref = jest.fn();
   const store = createStore({
@@ -96,7 +101,7 @@ describe('useSavedTableViews', () => {
 
     saved.persistAll([view('a')], 'b');
 
-    expect(written().pod.defaultViewId).toBeNull();
+    expect(written().pod.defaultViewId).toBeUndefined();
   });
 
   it('should keep the table tab\'s place within the views written', () => {
@@ -157,7 +162,7 @@ describe('useSavedTableViews', () => {
           allIndex:      0,
           pages:         {
             home: {
-              views: [view('own')], defaultViewId: 'own', allIndex: 0
+              views: [stored('own')], defaultViewId: 'own', allIndex: 0
             }
           }
         }
@@ -222,5 +227,31 @@ describe('useSavedTableViews', () => {
       expect(written().pod.pages.home.views).toStrictEqual([view('own')]);
     });
   });
-});
 
+  describe('what is written', () => {
+    it('should leave out null and empty string properties, keeping 0, false and empty lists', () => {
+      const { saved, written } = setup({});
+
+      saved.persistAll([{
+        id: 'a', name: 'A', query: '', columns: null, columnOrder: null, labelColumns: [], groupBy: null, sort: null, sortDescending: false
+      }], null, 0);
+
+      expect(written()).toStrictEqual({
+        pod: {
+          views: [{
+            id: 'a', name: 'A', labelColumns: [], sortDescending: false
+          }],
+          allIndex: 0
+        }
+      });
+    });
+
+    it('should read a view written that way as the one it came from', () => {
+      const { saved } = setup({ pod: { views: [stored('a')] } });
+
+      expect(saved.savedViews.value).toStrictEqual([stored('a')]);
+      expect(saved.defaultViewId.value).toBeNull();
+      expect(saved.allTabIndex.value).toBe(0);
+    });
+  });
+});

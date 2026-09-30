@@ -16,6 +16,11 @@ interface TypeEntry extends SavedEntry {
   pages?: Record<string, SavedEntry>;
 }
 
+/** Without the properties that say nothing: null and empty strings. 0, false and lists stay */
+function compact<T extends object>(value: T): T {
+  return Object.fromEntries(Object.entries(value).filter(([, v]) => v !== null && v !== '')) as T;
+}
+
 /**
  * `page` is set for a page keeping views of its own, which live under the type's entry. Unset, the
  * views are the type's own, shared by every other list of it
@@ -50,11 +55,11 @@ export function useSavedTableViews(resourceType: () => string, page: () => strin
 
   const persistAll = (views: TableViewSaved[], viewId: string | null, allIndex: number = allTabIndex.value) => {
     const validDefault = views.find((v) => v.id === viewId) ? viewId : null;
-    const saved: SavedEntry = {
-      views,
+    const saved: SavedEntry = compact({
+      views:         views.map((view) => compact(view)),
       defaultViewId: validDefault,
       allIndex:      Math.min(Math.max(allIndex, 0), views.length)
-    };
+    });
     const current = typeEntry.value || { views: [] };
     // A page's views go beside the type's own, and saving either keeps the other
     const pages = { ...(current.pages || {}) };
