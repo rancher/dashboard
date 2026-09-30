@@ -34,6 +34,39 @@ describe('ResourceTable', () => {
       expect(open({ ...saved, defaultViewId: null }).openedViewId).toBeUndefined();
     });
 
+    describe('a page keeping saved views of its own', () => {
+      const views = (id: string, query: string) => ({
+        views: [{
+          id, name: id, query, columns: null, labelColumns: [], groupBy: null
+        }],
+        defaultViewId: id,
+      });
+      const both = { pod: { ...views('shared', 'state:error'), pages: { home: views('own', 'state:active') } } };
+
+      function openWith(table: Record<string, unknown> = {}) {
+        return data.call({
+          schema: { id: 'pod' },
+          $store: { getters: { 'prefs/get': (key: string) => (key === TABLE_VIEWS ? both : undefined) } },
+          ...table,
+        });
+      }
+
+      it('should open on its own default, kept under the type', () => {
+        const opened = openWith({ tableViewsPage: 'home' });
+
+        expect(opened.openedViewId).toBe('own');
+        expect(opened.view.query).toBe('state:active');
+      });
+
+      it('should leave the plain type\'s views to the other lists', () => {
+        expect(openWith().openedViewId).toBe('shared');
+      });
+
+      it('should start with none when the page has no views yet', () => {
+        expect(openWith({ tableViewsPage: 'other' }).openedViewId).toBeUndefined();
+      });
+    });
+
     describe('a table without the saved view tabs', () => {
       const filtering = {
         ...saved,

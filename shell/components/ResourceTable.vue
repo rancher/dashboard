@@ -840,6 +840,7 @@ export default {
         :view-counts="tabCounts"
         :match-count="viewMatchCount"
         :resource-type="schema ? schema.id : ''"
+        :page="tableViewsPage"
         :initial-view-id="openedViewId"
         @update:view="openTabView"
         @tab-queries="tabQueries = $event"

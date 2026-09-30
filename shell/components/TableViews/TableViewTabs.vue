@@ -62,12 +62,15 @@ const props = withDefaults(defineProps<{
   viewCounts?: Record<string, number | null>,
   matchCount?: number,
   resourceType?: string,
+  /** A page keeping views of its own for the type - see useSavedTableViews */
+  page?: string | null,
   /** The saved view the list opened on - see the mixin's openedViewId */
   initialViewId?: string,
 }>(), {
   viewCounts:   () => ({}),
   matchCount:   0,
   resourceType: '',
+  page:         null,
 });
 
 const emit = defineEmits<{
@@ -82,7 +85,7 @@ const { t } = useI18n(store);
 
 const {
   savedViews, defaultViewId, allTabIndex, persistAll, persist, unusedViewName
-} = useSavedTableViews(() => props.resourceType);
+} = useSavedTableViews(() => props.resourceType, () => props.page);
 
 const root = ref<HTMLElement | null>(null);
 

@@ -5,7 +5,22 @@ import { useStore } from 'vuex';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import type { TableViewSaved } from '@shell/types/table-views';
 
-export function useSavedTableViews(resourceType: () => string) {
+interface SavedEntry {
+  views: TableViewSaved[];
+  defaultViewId?: string | null;
+  allIndex?: number;
+}
+
+interface TypeEntry extends SavedEntry {
+  /** Pages keeping views of their own for the type, by page, eg `home` */
+  pages?: Record<string, SavedEntry>;
+}
+
+/**
+ * `page` is set for a page keeping views of its own, which live under the type's entry. Unset, the
+ * views are the type's own, shared by every other list of it
+ */
+export function useSavedTableViews(resourceType: () => string, page: () => string | null = () => null) {
   const store = useStore();
 
   const allSavedViews = computed({
@@ -13,10 +28,16 @@ export function useSavedTableViews(resourceType: () => string) {
     set: (value) => store.dispatch('prefs/set', { key: TABLE_VIEWS, value }),
   });
 
-  const entry = computed(() => allSavedViews.value?.[resourceType()]);
+  /** The first shape views were kept in, before a default was stored beside them, was the bare list */
+  const typeEntry = computed<TypeEntry | undefined>(() => {
+    const stored = allSavedViews.value?.[resourceType()];
 
-  // The first shape views were kept in, before a default was stored beside them
-  const savedViews = computed<TableViewSaved[]>(() => (Array.isArray(entry.value) ? entry.value : entry.value?.views || []));
+    return Array.isArray(stored) ? { views: stored } : stored;
+  });
+
+  const entry = computed<SavedEntry | undefined>(() => (page() ? typeEntry.value?.pages?.[page() as string] : typeEntry.value));
+
+  const savedViews = computed<TableViewSaved[]>(() => entry.value?.views || []);
 
   const defaultViewId = computed<string | null>(() => entry.value?.defaultViewId || null);
 
@@ -24,19 +45,23 @@ export function useSavedTableViews(resourceType: () => string) {
   const allTabIndex = computed(() => {
     const at = entry.value?.allIndex;
 
-    return Math.min(Math.max(Number.isInteger(at) ? at : 0, 0), savedViews.value.length);
+    return Math.min(Math.max(Number.isInteger(at) ? at as number : 0, 0), savedViews.value.length);
   });
 
   const persistAll = (views: TableViewSaved[], viewId: string | null, allIndex: number = allTabIndex.value) => {
     const validDefault = views.find((v) => v.id === viewId) ? viewId : null;
+    const saved: SavedEntry = {
+      views,
+      defaultViewId: validDefault,
+      allIndex:      Math.min(Math.max(allIndex, 0), views.length)
+    };
+    const current = typeEntry.value || { views: [] };
+    // A page's views go beside the type's own, and saving either keeps the other
+    const next: TypeEntry = page() ? { ...current, pages: { ...(current.pages || {}), [page() as string]: saved } } : { ...saved, ...(current.pages ? { pages: current.pages } : {}) };
 
     allSavedViews.value = {
       ...(allSavedViews.value || {}),
-      [resourceType()]: {
-        views,
-        defaultViewId: validDefault,
-        allIndex:      Math.min(Math.max(allIndex, 0), views.length)
-      }
+      [resourceType()]: next
     };
   };
 
