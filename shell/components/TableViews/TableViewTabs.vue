@@ -910,7 +910,6 @@ onBeforeUnmount(() => {
 
             <!-- Positioned against the whole tab, not the chevron -->
             <rc-dropdown
-              flush
               :open="openTabMenuId === (tab.id || 'all')"
               :placement="'bottom-start'"
               :distance="9"
@@ -1377,8 +1376,8 @@ onBeforeUnmount(() => {
 .menu-panel {
   // Pulled up over the popper's padding, so the banner meets the menu's rounded top
   &.has-notice {
-    // The popper's 10 plus the panel's 3
-    margin-top: -13px;
+    // The popper's 10, the menu's 3 and the panel's own 3
+    margin-top: -16px;
   }
 
   .menu-notice {

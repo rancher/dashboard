@@ -134,12 +134,6 @@
   }
 }
 
-// For menus opened by hovering a row, where a fade reads as lag
-.v-popper__popper.popper-no-fade,
-.v-popper__popper.popper-no-fade > .v-popper__wrapper {
-  transition: none !important;
-}
-
 .v-popper__popper.v-popper--theme-dropdown {
   z-index: z-index('tooltip');
 

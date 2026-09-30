@@ -3,6 +3,7 @@ import { defineComponent } from 'vue';
 import { RcDropdown } from '@components/RcDropdown';
 
 const vDropdownMock = defineComponent({
+  props:    { shown: Boolean },
   template: `
     <div class="popper">
       <slot name="popper" />
@@ -11,12 +12,11 @@ const vDropdownMock = defineComponent({
 });
 
 describe('component: RcDropdown.vue', () => {
-  it('should keep its own padding and scrolling unless told to leave them to its content', () => {
-    const plain = mount(RcDropdown, { global: { components: { 'v-dropdown': vDropdownMock } } });
-    const flush = mount(RcDropdown, { props: { flush: true }, global: { components: { 'v-dropdown': vDropdownMock } } });
+  it('should open when mounted open', () => {
+    const wrapper = mount(RcDropdown, { props: { open: true }, global: { components: { 'v-dropdown': vDropdownMock } } });
 
-    expect(plain.find('[dropdown-menu-collection]').classes()).not.toContain('flush');
-    expect(flush.find('[dropdown-menu-collection]').classes()).toContain('flush');
+    expect(wrapper.findComponent(vDropdownMock).props('shown')).toBe(true);
+    expect(wrapper.emitted('update:open')).toStrictEqual([[true]]);
   });
 
   it('should not change the height if the dropdown fits within the screen', async() => {

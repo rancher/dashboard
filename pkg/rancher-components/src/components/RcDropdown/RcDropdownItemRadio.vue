@@ -1,43 +1,36 @@
 <script setup lang="ts">
 /**
- * An item for a dropdown menu. Used in conjunction with RcDropdown.
+ * An item for a dropdown menu that is one choice of several, marked with a checkmark when it is the
+ * chosen one. It stays open, so the menu shows the choice made. Used in conjunction with RcDropdown.
  */
 import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
 
-const props = defineProps({ disabled: Boolean });
+const props = defineProps({ checked: Boolean, disabled: Boolean });
 const emits = defineEmits(['click']);
 
 const {
-  handleKeydown,
-  close,
-  handleActivate,
-  scrollIntoView,
-  handleMouseenter,
+  handleKeydown, handleActivate, scrollIntoView, handleMouseenter
 } = useDropdownItem();
 
 const handleClick = (e: MouseEvent) => {
-  if (props.disabled) {
-    return;
+  if (!props.disabled) {
+    emits('click', e);
   }
-
-  emits('click', e);
-  close();
 };
-
 </script>
 
 <template>
   <div
-    ref="dropdownMenuItem"
     dropdown-menu-item
     tabindex="-1"
-    role="menuitem"
+    role="menuitemradio"
+    :aria-checked="checked"
     :disabled="disabled || null"
     :aria-disabled="disabled || false"
     @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
     @keydown.up.down.prevent.stop="handleKeydown"
-    @mousedown.prevent="() => {/*We use this to prevent clicks from triggering the @focusin below. When we scroll on a click it prevents the action from occurring on the first click.*/}"
+    @mousedown.prevent="() => {/* As RcDropdownItem: a click doesn't take the focus */}"
     @focusin="scrollIntoView"
     @mouseenter="handleMouseenter"
   >
@@ -47,11 +40,11 @@ const handleClick = (e: MouseEvent) => {
     <slot name="default">
       <!--Empty slot content-->
     </slot>
-    <span
-      v-if="$slots.after"
-      class="dropdown-item-after"
-    >
-      <slot name="after" />
+    <span class="dropdown-item-after">
+      <i
+        v-if="checked"
+        class="icon icon-checkmark"
+      />
     </span>
   </div>
 </template>
