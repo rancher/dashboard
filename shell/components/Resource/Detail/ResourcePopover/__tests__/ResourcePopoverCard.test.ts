@@ -309,6 +309,6 @@ describe('component: ResourcePopoverCard.vue row layout', () => {
   });
 
   it('should let the value wrap within the rest of the card rather than overflow it', () => {
-    expect(decls('.value')).toStrictEqual({ 'min-width': '0' });
+    expect(decls('.value')).toStrictEqual({ 'min-width': '0', 'overflow-wrap': 'anywhere' });
   });
 });
