@@ -1,6 +1,6 @@
 import { inject, type InjectionKey } from 'vue';
 import type { CatalogEntry } from '../templating/widget-catalog';
-import type { WidgetPlace } from '../templating/types';
+import type { Sides, WidgetPlace } from '../templating/types';
 
 /**
  * What the grid and every widget on it share while a view is being edited. One reactive object,
@@ -19,6 +19,8 @@ export interface ViewEditorUi {
   dropPlace: string;
   /** The selected widget's margin or padding just changed: that band is lit for a moment. */
   flashBox: 'margin' | 'padding' | null;
+  /** Which side of that band changed; null when all four did (a spacing preset). */
+  flashSide: keyof Sides | null;
 }
 
 /** Where a widget's settings open: beside the widget, at its top-left corner. */
@@ -70,7 +72,7 @@ export function useViewEditor(): ViewEditor {
     dropAt:     () => undefined,
     setColSpan: () => undefined,
     ui:         {
-      dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', flashBox: null
+      dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', flashBox: null, flashSide: null
     },
   }), true);
 }

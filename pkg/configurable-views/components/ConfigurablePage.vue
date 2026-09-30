@@ -117,7 +117,7 @@ const UNDO_TIMEOUT = 10000;
 // Shared, reactive editor UI state: what is being dragged — a widget already on the grid, or a
 // catalog entry on its way in.
 const ui = reactive<ViewEditorUi>({
-  dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', flashBox: null
+  dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', flashBox: null, flashSide: null
 });
 
 // ---- what is stored, and what is shown --------------------------------------------------------------
@@ -186,13 +186,17 @@ const flash = ref<Spacing | null>(null);
 let flashTimer: ReturnType<typeof setTimeout> | undefined;
 const FLASH_MS = 1000;
 
-function flashSpacing(which: Spacing): void {
+// Only what is changing is lit: a new change puts out the last one, and one side of a margin or
+// padding lights that side alone.
+function flashSpacing(which: Spacing, side: keyof Sides | null = null): void {
   clearTimeout(flashTimer);
   flash.value = which;
   ui.flashBox = which === 'margin' || which === 'padding' ? which : null;
+  ui.flashSide = ui.flashBox ? side : null;
   flashTimer = setTimeout(() => {
     flash.value = null;
     ui.flashBox = null;
+    ui.flashSide = null;
   }, FLASH_MS);
 }
 
@@ -980,7 +984,7 @@ function setNodeBox(box: 'margin' | 'padding', side: keyof Sides, value: string)
   const px = Math.max(0, Math.round(Number(value) || 0));
 
   updateSelected((w) => ({ ...w, [box]: { ...w[box], [side]: px } }));
-  flashSpacing(box);
+  flashSpacing(box, side);
 }
 
 function setGap(value: string): void {

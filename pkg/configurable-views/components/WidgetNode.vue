@@ -10,7 +10,7 @@ import {
 } from '../templating/view-model';
 import { useViewEditor } from '../composables/viewEditor';
 import { useWidgetPresence } from '../composables/useWidgetPresence';
-import type { WidgetNode } from '../templating/types';
+import type { Sides, WidgetNode } from '../templating/types';
 
 // ONE widget on the grid.
 //
@@ -26,6 +26,9 @@ import type { WidgetNode } from '../templating/types';
 
 /** A box's four sides in px, as measured. */
 interface Measured { top: number; right: number; bottom: number; left: number }
+
+/** One strip of a box-model band, and the side it stands for. */
+interface Band { side: keyof Sides; style: CSSProperties }
 
 const props = withDefaults(defineProps<{
   node: WidgetNode;
@@ -52,7 +55,7 @@ const resizing = ref(false);
 // used value in px, which is exact for %, rem, anything.
 const usedMargin = ref<Measured | null>(null);
 /** The padding bands, placed over the card that carries the padding (see measurePadding). */
-const paddingBands = ref<CSSProperties[]>([]);
+const paddingBands = ref<Band[]>([]);
 
 const beingDragged = computed(() => viewEditor.ui.dragId === props.node.id);
 
@@ -72,6 +75,13 @@ const margin = computed(() => normalizeSides(props.node.margin));
 /** The band lit for a moment after the selected widget's margin or padding changes. */
 const flashBox = computed(() => (props.selected ? viewEditor.ui.flashBox : null));
 const showBoxModel = computed(() => !!flashBox.value);
+
+/** Only the strip that is changing; all four when every side changed at once. */
+function lit(bands: Band[]): Band[] {
+  const side = viewEditor.ui.flashSide;
+
+  return side ? bands.filter((b) => b.side === side) : bands;
+}
 
 const style = computed<CSSProperties>(() => {
   // The span's share of a 12-column line that has a GAP between every column.
@@ -119,32 +129,44 @@ const style = computed<CSSProperties>(() => {
 // offsets), the PADDING inside it. Filled, no numbers — amber for margin, green for padding.
 
 // `outside` puts the strips beyond the element's edges (margin) rather than inside (padding).
-function bandsFor(box: Measured | null, outside: boolean): CSSProperties[] {
+function bandsFor(box: Measured | null, outside: boolean): Band[] {
   if (!box) {
     return [];
   }
 
   const px = (v: number) => `${ outside ? -v : 0 }px`;
-  const out: CSSProperties[] = [];
+  const out: Band[] = [];
 
   if (box.top) {
     out.push({
-      top: px(box.top), left: px(box.left), right: px(box.right), height: `${ box.top }px`
+      side:  'top',
+      style: {
+        top: px(box.top), left: px(box.left), right: px(box.right), height: `${ box.top }px`
+      },
     });
   }
   if (box.bottom) {
     out.push({
-      bottom: px(box.bottom), left: px(box.left), right: px(box.right), height: `${ box.bottom }px`
+      side:  'bottom',
+      style: {
+        bottom: px(box.bottom), left: px(box.left), right: px(box.right), height: `${ box.bottom }px`
+      },
     });
   }
   if (box.left) {
     out.push({
-      top: 0, bottom: 0, left: px(box.left), width: `${ box.left }px`
+      side:  'left',
+      style: {
+        top: 0, bottom: 0, left: px(box.left), width: `${ box.left }px`
+      },
     });
   }
   if (box.right) {
     out.push({
-      top: 0, bottom: 0, right: px(box.right), width: `${ box.right }px`
+      side:  'right',
+      style: {
+        top: 0, bottom: 0, right: px(box.right), width: `${ box.right }px`
+      },
     });
   }
 
@@ -159,7 +181,7 @@ const marginBands = computed(() => bandsFor(usedMargin.value, true));
  * it is applied, and the bands are placed over the card as it sits in this widget, below the
  * editor's "Drag to move" strip.
  */
-function measurePadding(el: HTMLElement): CSSProperties[] {
+function measurePadding(el: HTMLElement): Band[] {
   const box = el.querySelector<HTMLElement>('.wcard, .wtabs__panel');
 
   if (!box) {
@@ -181,26 +203,38 @@ function measurePadding(el: HTMLElement): CSSProperties[] {
   const x = r.left - outer.left;
   const y = r.top - outer.top;
   const px = (v: number) => `${ v }px`;
-  const out: CSSProperties[] = [];
+  const out: Band[] = [];
 
   if (top) {
     out.push({
-      top: px(y), left: px(x), width: px(r.width), height: px(top)
+      side:  'top',
+      style: {
+        top: px(y), left: px(x), width: px(r.width), height: px(top)
+      },
     });
   }
   if (bottom) {
     out.push({
-      top: px(y + r.height - bottom), left: px(x), width: px(r.width), height: px(bottom)
+      side:  'bottom',
+      style: {
+        top: px(y + r.height - bottom), left: px(x), width: px(r.width), height: px(bottom)
+      },
     });
   }
   if (left) {
     out.push({
-      top: px(y), left: px(x), width: px(left), height: px(r.height)
+      side:  'left',
+      style: {
+        top: px(y), left: px(x), width: px(left), height: px(r.height)
+      },
     });
   }
   if (right) {
     out.push({
-      top: px(y), left: px(x + r.width - right), width: px(right), height: px(r.height)
+      side:  'right',
+      style: {
+        top: px(y), left: px(x + r.width - right), width: px(right), height: px(r.height)
+      },
     });
   }
 
@@ -346,16 +380,16 @@ function startResize(ev: PointerEvent): void {
     <!-- The selected widget's margin (amber, outside) or padding (green, inside), lit as it changes -->
     <template v-if="showBoxModel">
       <div
-        v-for="(band, i) in (flashBox === 'margin' ? marginBands : [])"
-        :key="`m${ i }`"
+        v-for="band in (flashBox === 'margin' ? lit(marginBands) : [])"
+        :key="`m-${ band.side }`"
         class="wnode__band wnode__band--margin"
-        :style="band"
+        :style="band.style"
       />
       <div
-        v-for="(band, i) in (flashBox === 'padding' ? paddingBands : [])"
-        :key="`p${ i }`"
+        v-for="band in (flashBox === 'padding' ? lit(paddingBands) : [])"
+        :key="`p-${ band.side }`"
         class="wnode__band wnode__band--padding"
-        :style="band"
+        :style="band.style"
       />
     </template>
 
