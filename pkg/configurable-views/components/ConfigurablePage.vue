@@ -10,7 +10,7 @@ import ViewBar from './ViewBar.vue';
 import EditViewSidebar from './EditViewSidebar.vue';
 import WidgetSettingsModal from './WidgetSettingsModal.vue';
 import UndoGrowl from './UndoGrowl.vue';
-import { VIEW_EDITOR, type SettingsAnchor, type ViewEditorUi } from '../composables/viewEditor';
+import { VIEW_EDITOR, type SettingsAnchor, type ViewEditorUi, type WidgetResize } from '../composables/viewEditor';
 import { useConfirm } from '../composables/useConfirm';
 import { viewBarLocked, viewBarVisible } from '../composables/useViewBarVisibility';
 import {
@@ -18,9 +18,11 @@ import {
 } from '../templating/template-engine';
 import {
   DEFAULT_GAP, DEFAULT_PAGE_PADDING, newId, newLayoutView, newWidgetNode, isStockView, findWidget, builtInStockView,
-  insertWidget, removeWidget, moveWidget, moveWidgetTo, updateWidget,
-  setColSpan as setSpan, heightForPreset, SPACING_PRESETS, BUILT_IN_STOCK_ID, orderKeyOf, orderViews
+  insertWidget, moveWidget, updateWidget, heightForPreset, SPACING_PRESETS, BUILT_IN_STOCK_ID, orderKeyOf, orderViews
 } from '../templating/view-model';
+import {
+  dropWidget, liftWidget, moveWidgetToCell, resizeWidget, resizeWidgetStart, type DropTarget
+} from '../templating/grid-layout';
 import type { CatalogEntry } from '../templating/widget-catalog';
 import { stockWidgets, stockView } from '../templating/stock-layouts';
 import type {
@@ -117,7 +119,7 @@ const UNDO_TIMEOUT = 10000;
 // Shared, reactive editor UI state: what is being dragged — a widget already on the grid, or a
 // catalog entry on its way in.
 const ui = reactive<ViewEditorUi>({
-  dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', flashBox: null, flashSide: null
+  dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', dragSpan: 0, dragGrab: null, flashBox: null, flashSide: null
 });
 
 // ---- what is stored, and what is shown --------------------------------------------------------------
@@ -891,7 +893,8 @@ function selectNode(id: string | null): void {
   }
 }
 
-function addFromCatalog(entry: CatalogEntry | null, index?: number, place: WidgetPlace | null = null): void {
+// A click adds to the end of the view; a drop puts it where it was let go.
+function addFromCatalog(entry: CatalogEntry | null, target?: DropTarget, place: WidgetPlace | null = null): void {
   if (!entry) {
     return;
   }
@@ -903,7 +906,7 @@ function addFromCatalog(entry: CatalogEntry | null, index?: number, place: Widge
   } : entry.spec;
   const node = newWidgetNode(spec, { colSpan: entry.span });
 
-  mutate((list) => insertWidget(list, node, index, place));
+  mutate((list) => (target ? dropWidget(list, node, target, place) : insertWidget(list, node)));
   selectedNodeId.value = node.id;
 }
 
@@ -911,6 +914,8 @@ function onCatalogDragStart(entry: CatalogEntry, ev: DragEvent): void {
   ui.dragEntry = entry;
   ui.dragLabel = t(entry.labelKey);
   ui.dragKind = entry.spec.kind;
+  ui.dragSpan = entry.span;
+  ui.dragGrab = null;
   ui.dropPlace = '';
 
   if (ev?.dataTransfer) {
@@ -926,8 +931,8 @@ function onCatalogDragEnd(): void {
 }
 
 // A drop on a grid - the view's, or a tab's (`place`): a catalog entry becomes a new widget there, a
-// widget already on the view moves there.
-function dropAt(index: number, place: WidgetPlace | null = null): void {
+// widget already on the view moves there. Either lands where it was let go (see grid-layout).
+function dropAt(target: DropTarget, place: WidgetPlace | null = null): void {
   const entry = ui.dragEntry;
   const id = ui.dragId;
 
@@ -938,7 +943,7 @@ function dropAt(index: number, place: WidgetPlace | null = null): void {
   ui.dropPlace = '';
 
   if (entry) {
-    addFromCatalog(entry, index, place);
+    addFromCatalog(entry, target, place);
 
     return;
   }
@@ -947,17 +952,51 @@ function dropAt(index: number, place: WidgetPlace | null = null): void {
     return;
   }
 
-  mutate((list) => moveWidgetTo(list, id, index, place));
+  mutate((list) => moveWidgetToCell(list, id, target, place));
   selectedNodeId.value = id;
 }
 
-function setColSpan(id: string, span: number): void {
-  mutate((list) => setSpan(list, id, span));
+// Resizing by an edge: the widgets as they were when it began, so each step is measured from there
+// and dragging back puts the neighbours it pushed back where they were.
+let resizeBase: WidgetNode[] | null = null;
+
+function beginResize(id: string): void {
+  resizeBase = workingLayout()?.widgets || null;
+  selectNode(id);
 }
 
+function resize(id: string, change: WidgetResize): void {
+  const base = resizeBase;
+
+  mutate((list) => {
+    let out = base || list;
+
+    if (change.span !== undefined) {
+      out = resizeWidget(out, id, change.span, 'stop');
+    }
+    if (change.start !== undefined) {
+      out = resizeWidgetStart(out, id, change.start);
+    }
+    if (change.height !== undefined) {
+      const height = change.height;
+
+      out = updateWidget(out, id, (w) => ({ ...w, height }));
+    }
+
+    return out;
+  });
+}
+
+function endResize(): void {
+  resizeBase = null;
+}
+
+// A width picked in the drawer is taken as given: what no longer fits beside it moves to a line below.
 function setSelectedWidth(span: number): void {
-  if (selectedNodeId.value) {
-    setColSpan(selectedNodeId.value, span);
+  const id = selectedNodeId.value;
+
+  if (id) {
+    mutate((list) => resizeWidget(list, id, span, 'wrap'));
   }
 }
 
@@ -1005,8 +1044,9 @@ function setPagePadding(value: string): void {
   }
 }
 
+// Its room is left empty: the widgets around it stay where they were put.
 function removeNode(id: string): void {
-  mutate((list) => removeWidget(list, id));
+  mutate((list) => liftWidget(list, id));
   if (selectedNodeId.value === id) {
     selectedNodeId.value = null;
   }
@@ -1058,9 +1098,13 @@ provide(VIEW_EDITOR, {
     settingsAnchor.value = anchor;
     settingsNodeId.value = id;
   },
-  beginDrag: (id) => {
+  beginDrag: (id, grab) => {
+    const node = findWidget(widgets.value, id);
+
     ui.dragId = id;
-    ui.dragKind = findWidget(widgets.value, id)?.widget.kind || '';
+    ui.dragKind = node?.widget.kind || '';
+    ui.dragSpan = node?.colSpan || 0;
+    ui.dragGrab = grab ?? null;
     ui.dropPlace = '';
   },
   endDrag: () => {
@@ -1068,7 +1112,9 @@ provide(VIEW_EDITOR, {
     ui.dragKind = '';
   },
   dropAt,
-  setColSpan,
+  beginResize,
+  resize,
+  endResize,
   ui,
 });
 

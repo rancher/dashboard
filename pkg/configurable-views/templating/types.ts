@@ -105,6 +105,10 @@ interface NodeBox {
   id: string;
   /** 1…12 columns of the grid. */
   colSpan: number;
+  /** Empty columns between this widget and the one before it on its line (or the line's start). */
+  offset?: number;
+  /** Starts a line of its own, even when it would fit at the end of the line before. */
+  newLine?: boolean;
   height: number | string;
   margin: Sides;
   padding: Sides;
@@ -121,7 +125,8 @@ export interface WidgetNode extends NodeBox {
  * than one.
  *
  * `widgets` is one flat ordered list that WRAPS — a widget starts a new line when there is no room
- * left, the way a paragraph wraps words. There are no rows.
+ * left, the way a paragraph wraps words, or when it says so (`newLine`). There are no row objects:
+ * a line is the widgets that share it, and a widget's `offset` is the room left empty before it.
  */
 export interface LayoutView {
   id: string;
