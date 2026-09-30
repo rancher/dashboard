@@ -17,14 +17,11 @@ import { ucFirst } from '@shell/utils/string';
 import { HCI, UI, SCHEMA } from '@shell/config/types';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import { TYPE_MODES } from '@shell/store/type-map';
+import { TYPE_MODES, FAVORITE_GROUP } from '@shell/store/type-map';
 import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
 import Group from '@shell/components/nav/Group';
 import LocaleSelector from '@shell/components/LocaleSelector';
 import NavActionBar from '@shell/components/nav/NavActionBar';
-
-// Name `type-map/getTree` gives the group of starred (favorite) types
-const STARRED_GROUP = 'starred';
 
 export default {
   name:       'SideNav',
@@ -332,7 +329,7 @@ export default {
       this.eachCollapsibleGroup(nodes, (node, path) => {
         if (savedState[path] !== undefined) {
           node.expanded = savedState[path];
-        } else if (path === STARRED_GROUP) {
+        } else if (path === FAVORITE_GROUP) {
           node.expanded = true;
         }
       });
@@ -454,7 +451,7 @@ export default {
 
       this.eachCollapsibleGroup(this.groups, (node, path) => {
         node.expanded = false;
-        hasStarred = hasStarred || path === STARRED_GROUP;
+        hasStarred = hasStarred || path === FAVORITE_GROUP;
       });
 
       // Drop the persisted state rather than merging into it, so groups that
@@ -462,7 +459,7 @@ export default {
       // group means collapsed). Starred is the exception, since it starts
       // expanded, so store it as collapsed. Only when it's shown though, so a
       // Starred group created later still starts expanded.
-      this.navStateStorage.save(hasStarred ? { [STARRED_GROUP]: false } : {});
+      this.navStateStorage.save(hasStarred ? { [FAVORITE_GROUP]: false } : {});
 
       // The collapse-all control hides once nothing is expanded, so move focus to
       // the first group header instead of dropping it to <body>. Only headers of

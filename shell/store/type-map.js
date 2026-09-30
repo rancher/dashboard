@@ -204,6 +204,9 @@ export const TYPE_MODES = {
 
 export const ROOT = 'root';
 
+// Name of the side nav group `getTree` puts starred (favorite) types in
+export const FAVORITE_GROUP = 'starred';
+
 export const SPOOFED_PREFIX = '__[[spoofed]]__';
 export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 
@@ -755,7 +758,7 @@ export const getters = {
         if ( isBasic ) {
           group = _ensureGroup(root, groupForBasicType, true);
         } else if ( mode === TYPE_MODES.FAVORITE ) {
-          group = _ensureGroup(root, 'starred');
+          group = _ensureGroup(root, FAVORITE_GROUP);
           group.weight = 1000;
         } else if ( mode === TYPE_MODES.USED ) {
           group = _ensureGroup(root, `inUse::${ getters.groupLabelFor(typeObj.schema) }`);

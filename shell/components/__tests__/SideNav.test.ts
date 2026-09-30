@@ -1,6 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import SideNav from '@shell/components/SideNav.vue';
+import { FAVORITE_GROUP } from '@shell/store/type-map';
 
 const navStateStorage = { load: jest.fn(), save: jest.fn() };
 
@@ -65,7 +66,7 @@ const navTree = (): any[] => [
 
 // The group `type-map/getTree` builds for starred types
 const starredGroup = (): any => ({
-  name:     'starred',
+  name:     FAVORITE_GROUP,
   weight:   1000,
   children: [{ name: 'configmap', route: { name: 'configmap' } }],
 });
@@ -293,7 +294,7 @@ describe('component: SideNav', () => {
     });
 
     it('keeps the starred group collapsed once the user has collapsed it', () => {
-      navStateStorage.load.mockReturnValue({ starred: false });
+      navStateStorage.load.mockReturnValue({ [FAVORITE_GROUP]: false });
 
       const groups = [starredGroup(), ...navTree()];
 
@@ -316,7 +317,7 @@ describe('component: SideNav', () => {
     it('only defaults the top-level starred group, not a nested group of the same name', () => {
       const groups = navTree();
 
-      groups[2].children.push({ name: 'starred', children: [{ name: 'foo', route: { name: 'foo' } }] });
+      groups[2].children.push({ name: FAVORITE_GROUP, children: [{ name: 'foo', route: { name: 'foo' } }] });
 
       (mountNav().vm as any).stampNavState(groups);
 
