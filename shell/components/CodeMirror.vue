@@ -8,13 +8,14 @@ import { RcCodeMirror } from '@components/RcCodeMirror';
 import type { RcCodeMirrorKeymap, RcCodeMirrorLanguage, RcCodeMirrorVariant } from '@components/RcCodeMirror';
 import { KEYMAP } from '@shell/store/prefs';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { codeMirror5OptionExtensions, withCodeMirror5Api } from '@shell/utils/codemirror-compat';
 
 type CodeMirrorMode = string | { name?: string, json?: boolean } | null;
 
 export interface CodeMirrorOptions {
   /**
    * Language of the editor content. Defaults to yaml, `null` disables syntax highlighting.
-   * Accepts `yaml`, `json` or `{ name: 'javascript', json: true }`.
+   * Accepts `yaml`, `json`, `javascript` or `{ name: 'javascript', json: true }`.
    */
   mode?: CodeMirrorMode;
   readOnly?: boolean;
@@ -26,6 +27,11 @@ export interface CodeMirrorOptions {
   foldGutter?: boolean;
   lineWrapping?: boolean;
   screenReaderLabel?: string;
+  /**
+   * Deprecated CodeMirror 5 options. Some, such as `extraKeys` and `tabSize`, are translated to
+   * CodeMirror 6 and the rest are ignored. Pass CodeMirror 6 extensions with `extensions` instead.
+   */
+  [option: string]: unknown;
 }
 
 // Maps the dashboard keymap preference to the keymaps supported by RcCodeMirror
@@ -42,6 +48,10 @@ function toLanguage(mode: CodeMirrorMode): RcCodeMirrorLanguage | undefined {
 
   if (mode === 'json' || mode === 'application/json' || (typeof mode === 'object' && mode?.json)) {
     return 'json';
+  }
+
+  if (mode === 'javascript' || mode === 'text/javascript' || (typeof mode === 'object' && mode?.name === 'javascript')) {
+    return 'javascript';
   }
 
   return undefined;
@@ -191,7 +201,11 @@ export default defineComponent({
 
     combinedExtensions(): Extension[] {
       // Extensions must not be reactive proxies, CodeMirror compares them by identity
-      return [this.phrases, ...this.extensions.map((e) => toRaw(e))];
+      return [
+        this.phrases,
+        ...codeMirror5OptionExtensions(toRaw(this.options)),
+        ...this.extensions.map((e) => toRaw(e))
+      ];
     },
   },
 
@@ -240,7 +254,8 @@ export default defineComponent({
 
       this.$emit('validationChanged', true);
       this.lint(this.value);
-      this.$emit('onReady', view);
+      // Handlers written for CodeMirror 5 still call its methods on the view
+      this.$emit('onReady', withCodeMirror5Api(view));
     },
 
     onInput(value: string) {

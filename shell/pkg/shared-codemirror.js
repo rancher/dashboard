@@ -13,6 +13,7 @@ const path = require('path');
 const CODEMIRROR_PACKAGES = [
   '@codemirror/autocomplete',
   '@codemirror/commands',
+  '@codemirror/lang-javascript',
   '@codemirror/lang-json',
   '@codemirror/lang-yaml',
   '@codemirror/language',

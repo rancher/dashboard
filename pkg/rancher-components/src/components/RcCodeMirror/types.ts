@@ -2,7 +2,7 @@ import type { Extension } from '@codemirror/state';
 import type { LintSource } from '@codemirror/lint';
 import type { FoldOptions } from './extensions/fold';
 
-export type RcCodeMirrorLanguage = 'yaml' | 'json';
+export type RcCodeMirrorLanguage = 'yaml' | 'json' | 'javascript';
 
 export type RcCodeMirrorKeymap = 'default' | 'vim' | 'emacs';
 
