@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  computed, onBeforeUnmount, onMounted, ref, type CSSProperties
+  computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type CSSProperties
 } from 'vue';
 import WidgetNode from './WidgetNode.vue';
 import {
@@ -281,6 +281,81 @@ function tile(id: string): HTMLElement | null {
   return Array.from(body.value?.children || []).find((el) => (el as HTMLElement).dataset?.nodeId === id) as HTMLElement || null;
 }
 
+// ---- the gap, lit as it changes ----
+// Only where it really separates two widgets: between neighbours that touch on a line, and between
+// lines where a widget sits over another. Empty columns, the end of a line and the room under a
+// short widget are not the gap, so they stay dark. Measured from the grid's own tracks, so a
+// widget's margin - which sits inside its cells - never moves a strip.
+
+const gapStrips = ref<CSSProperties[]>([]);
+
+/** Merge overlapping [from, to) column runs. */
+function mergeRuns(runs: [number, number][]): [number, number][] {
+  const out: [number, number][] = [];
+
+  for (const [from, to] of [...runs].sort((a, b) => a[0] - b[0])) {
+    const last = out[out.length - 1];
+
+    if (last && from <= last[1]) {
+      last[1] = Math.max(last[1], to);
+    } else {
+      out.push([from, to]);
+    }
+  }
+
+  return out;
+}
+
+function measureGaps(): void {
+  const el = body.value;
+
+  if (!el || !props.flashGap || !props.gap) {
+    gapStrips.value = [];
+
+    return;
+  }
+
+  const gap = props.gap;
+  const pitch = (el.clientWidth + gap) / GRID_COLUMNS;
+  // The used height of every row, implicit ones included
+  const rows = getComputedStyle(el).gridTemplateRows.split(' ').map((v) => parseFloat(v) || 0);
+  const tops = rows.reduce<number[]>((acc, h, i) => [...acc, i ? acc[i - 1] + rows[i - 1] + gap : 0], []);
+  const lines = gridLines(shown.value).map((ids) => ids.map((id) => cells.value.get(id)).filter((c): c is NonNullable<typeof c> => !!c));
+  const strips: CSSProperties[] = [];
+  const px = (v: number) => `${ v }px`;
+
+  lines.forEach((line, i) => {
+    // Across a line: between two widgets with no empty column between them
+    line.forEach((a, k) => {
+      const b = line[k + 1];
+
+      if (b && b.col === a.col + a.span && rows[i] !== undefined) {
+        strips.push({
+          left: px((b.col * pitch) - gap), top: px(tops[i]), width: px(gap), height: px(rows[i])
+        });
+      }
+    });
+
+    // Down to the next line: over the columns a widget above and a widget below share
+    const next = lines[i + 1];
+
+    if (next && rows[i] !== undefined) {
+      const shared = line.flatMap((a) => next
+        .map((c): [number, number] => [Math.max(a.col, c.col), Math.min(a.col + a.span, c.col + c.span)])
+        .filter(([from, to]) => to > from));
+
+      mergeRuns(shared).forEach(([from, to]) => strips.push({
+        left: px(from * pitch), top: px(tops[i] + rows[i]), width: px(((to - from) * pitch) - gap), height: px(gap)
+      }));
+    }
+  });
+
+  gapStrips.value = strips;
+}
+
+// Laid out first: the strips are read off the tracks the new gap gives.
+watch(() => [props.flashGap, props.gap], () => nextTick(measureGaps));
+
 function clearPreview(): void {
   target.value = null;
   ghost.value = null;
@@ -468,9 +543,17 @@ onBeforeUnmount(() => {
     <div
       ref="body"
       class="wgrid__body"
-      :class="{ 'wgrid__body--flash-gap': flashGap }"
       :style="style"
     >
+      <template v-if="flashGap">
+        <div
+          v-for="(strip, i) in gapStrips"
+          :key="`gap-${ i }`"
+          class="wgrid__gap"
+          data-testid="configurable-views-gap-strip"
+          :style="strip"
+        />
+      </template>
       <div
         v-if="showGuides"
         class="wgrid__guides"
@@ -534,18 +617,16 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .wgrid {
   &__body {
-    min-width:  0;
-    position:   relative; // anchors the column guides to the grid's content box
-    transition: background-color 0.2s ease-out;
+    min-width: 0;
+    position:  relative; // anchors the column guides and the gap strips to the grid's content box
+  }
 
-    // The gaps lit: the grid tinted behind, every widget on the page colour in front of it
-    &--flash-gap {
-      background-color: color-mix(in srgb, var(--primary) 25%, transparent);
-
-      > .wnode {
-        background-color: var(--body-bg);
-      }
-    }
+  // One stretch of the gap, lit as the gap changes
+  &__gap {
+    background:     color-mix(in srgb, var(--primary) 35%, transparent);
+    pointer-events: none;
+    position:       absolute;
+    z-index:        1;
   }
 
   &__guides {
