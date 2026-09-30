@@ -25,12 +25,10 @@
  *  </rc-dropdown-submenu>
  */
 import {
-  computed, inject, onBeforeUnmount, ref, useSlots
+  computed, inject, onBeforeUnmount, ref, useId, useSlots
 } from 'vue';
 import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
 import { DropdownContext, DropdownSubmenu, defaultContext } from './types';
-
-let submenuRows = 0;
 
 const props = withDefaults(defineProps<{
   /** Which side of the menu the submenu opens on */
@@ -46,7 +44,9 @@ const { handleKeydown, scrollIntoView } = useDropdownItem();
 
 const slots = useSlots();
 
-const rowId = `rc-dropdown-submenu-item-${ ++submenuRows }`;
+const rowId = `rc-dropdown-submenu-item-${ useId() }`;
+
+const labelId = `${ rowId }-label`;
 
 const row = ref<HTMLElement | null>(null);
 
@@ -55,6 +55,7 @@ const submenu: DropdownSubmenu = {
     return props.side;
   },
   row:    () => row.value,
+  labelId,
   render: () => slots.submenu?.(),
 };
 
@@ -69,6 +70,10 @@ const open = (focusFirst: boolean) => {
 };
 
 const onKeydown = (e: KeyboardEvent) => {
+  if (e.altKey || e.ctrlKey || e.metaKey) {
+    return;
+  }
+
   const opens = e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight' || (props.side === 'left' && e.key === 'ArrowLeft');
 
   if (opens) {
@@ -94,7 +99,7 @@ const onKeydown = (e: KeyboardEvent) => {
     :aria-disabled="disabled || false"
     @click.stop="open(false)"
     @keydown="onKeydown"
-    @keydown.up.down.prevent.stop="handleKeydown"
+    @keydown.up.down.exact.prevent.stop="handleKeydown"
     @mousedown.prevent="() => {/* As RcDropdownItem: a click doesn't take the focus */}"
     @mouseenter="!disabled && hoverSubmenu(submenu)"
     @mouseleave="cancelSubmenuSwitch()"
@@ -103,9 +108,12 @@ const onKeydown = (e: KeyboardEvent) => {
     <slot name="before">
       <!--Empty slot content-->
     </slot>
-    <slot name="default">
-      <!--Empty slot content-->
-    </slot>
+    <!-- Names the submenu; the value in `after` only describes this item -->
+    <span :id="labelId">
+      <slot name="default">
+        <!--Empty slot content-->
+      </slot>
+    </span>
     <span class="dropdown-item-after">
       <slot name="after" />
       <i class="icon icon-chevron-right" />

@@ -29,7 +29,7 @@ const handleClick = (e: MouseEvent) => {
     :aria-disabled="disabled || false"
     @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
-    @keydown.up.down.prevent.stop="handleKeydown"
+    @keydown.up.down.exact.prevent.stop="handleKeydown"
     @mousedown.prevent="() => {/* As RcDropdownItem: a click doesn't take the focus */}"
     @focusin="scrollIntoView"
     @mouseenter="handleMouseenter"

@@ -6,8 +6,10 @@ import { ButtonVariant, ButtonSize } from '@components/RcButton/types';
 export type DropdownSubmenu = {
   /** Which side of the menu it opens on */
   side: 'left' | 'right';
-  /** The item that opens it, which names it and takes the focus back when it closes */
+  /** The item that opens it, which takes the focus back when it closes */
   row: () => HTMLElement | null;
+  /** The id of the item's label, which names the submenu */
+  labelId: string;
   render: () => VNode[] | undefined;
 };
 
