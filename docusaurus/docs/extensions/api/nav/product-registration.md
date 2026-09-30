@@ -331,7 +331,7 @@ The metadata that defines a product — its identity, icon, and product-level se
 | Property | Type | Description |
 | --- | --- | --- |
 | `ifFeature` | `string \| RegExp` | Only show the product if a feature flag is present |
-| `ifHave` | `string` | Only show if the specified resource type exists |
+| `ifHave` | `string` | Only show if a condition is met — an `IF_HAVE` value from `@shell/store/type-map`, e.g. `IF_HAVE.ADMIN` |
 | `ifHaveGroup` | `string \| RegExp` | Only show if the specified API group is present |
 | `ifHaveType` | `string \| RegExp` | Only show if the specified resource type is present |
 | `ifNotHaveType` | `string \| RegExp` | Hide if the specified resource type is present (opposite of `ifHaveType`) |
@@ -400,7 +400,7 @@ A page inside a product that renders a Vue component you provide. Equivalent to 
 
 | Property | Type | Description |
 | --- | --- | --- |
-| `ifHave` | `boolean` | Display only if a condition is met (relates to `IF_HAVE` in the store) |
+| `ifHave` | `string` | Display only if a condition is met — an `IF_HAVE` value from `@shell/store/type-map`, e.g. `IF_HAVE.ADMIN` |
 | `ifFeature` | `string` | Display only if the specified feature flag is present |
 | `ifHaveType` | `string` | Display only if the specified resource type exists |
 | `ifHaveVerb` | `string` | Used with `ifHaveType` — display only if the resource type allows this verb (`GET`, `POST`, `PUT`, `DELETE`) |
@@ -508,7 +508,7 @@ A collapsible folder/group in the product's side-menu that contains pages or oth
 
 | Property | Type | Description |
 | --- | --- | --- |
-| `ifHave` | `boolean` | Display only if a condition is met (relates to `IF_HAVE` in the store) |
+| `ifHave` | `string` | Display only if a condition is met — an `IF_HAVE` value from `@shell/store/type-map`, e.g. `IF_HAVE.ADMIN` |
 | `ifFeature` | `string` | Display only if the specified feature flag is present |
 | `ifHaveType` | `string` | Display only if the specified resource type exists |
 | `ifHaveVerb` | `string` | Used with `ifHaveType` — display only if the resource type allows this verb (`GET`, `POST`, `PUT`, `DELETE`) |

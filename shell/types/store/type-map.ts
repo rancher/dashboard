@@ -244,8 +244,8 @@ export interface TypeMapConfigureType {
  * Used by type-map virtualType
  */
 export interface TypeMapVirtualType {
-  /** Display only if condition is met (relates to IF_HAVE in shell/store/type-map) */
-  ifHave?: boolean;
+  /** Display only if condition is met. One of the `IF_HAVE` values in shell/store/type-map */
+  ifHave?: string;
   /** Display only if feature is present (relates to shell/store/features) */
   ifFeature?: string;
   /** Display only if resource type exists */

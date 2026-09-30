@@ -1,6 +1,7 @@
 import { PluginProduct } from '@shell/core/plugin-products';
 import { IExtension } from '@shell/core/types';
 import { ProductChildGroup, ProductChildPage, ProductMetadata, StandardProductNames } from '@shell/core/plugin-products-external';
+import { IF_HAVE } from '@shell/store/type-map';
 
 // Mock the helper functions
 jest.mock('@shell/core/plugin-products-helpers', () => ({
@@ -557,7 +558,7 @@ describe('pluginProduct', () => {
       (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
       const config = groupWithComponent({
-        ifHave:     true,
+        ifHave:     IF_HAVE.ADMIN,
         ifFeature:  'some-feature',
         ifHaveType: 'cert-manager.io.certificate',
         ifHaveVerb: 'GET',
@@ -574,7 +575,7 @@ describe('pluginProduct', () => {
         exact:      true,
         overview:   true,
         route:      expect.any(Object),
-        ifHave:     true,
+        ifHave:     IF_HAVE.ADMIN,
         ifFeature:  'some-feature',
         ifHaveType: 'cert-manager.io.certificate',
         ifHaveVerb: 'GET',

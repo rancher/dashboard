@@ -56,8 +56,8 @@ export type ProductChildCustomPage = LabelOrLabelKey & {
 
   /** Determine when this product is enabled and shown */
   enable?: {
-    /** Display only if condition is met (relates to IF_HAVE in shell/store/type-map) */
-    ifHave?: boolean;
+    /** Display only if condition is met. Pass an `IF_HAVE` value from shell/store/type-map, e.g. `IF_HAVE.ADMIN` */
+    ifHave?: string;
     /** Display only if feature is present (relates to shell/store/features) */
     ifFeature?: string;
     /** Display only if resource type exists */
@@ -193,8 +193,8 @@ export type ProductChild = ProductChildGroup | ProductChildPage; // eslint-disab
  * their type is absent).
  */
 type ProductChildGroupOverviewPageEnable = {
-  /** Display only if condition is met (relates to IF_HAVE in shell/store/type-map) */
-  ifHave?: boolean;
+  /** Display only if condition is met. Pass an `IF_HAVE` value from shell/store/type-map, e.g. `IF_HAVE.ADMIN` */
+  ifHave?: string;
   /** Display only if feature is present (relates to shell/store/features) */
   ifFeature?: string;
   /** Display only if resource type exists */
