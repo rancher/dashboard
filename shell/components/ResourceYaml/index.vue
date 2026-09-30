@@ -233,6 +233,10 @@ export default {
      * expanded, so only the primary resource's own dependents are shown, see
      * `EditableRelatedResourcesFetchOptions`
      *
+     * The resources found below a `readOnly` resource are read-only too. Read-only entries are
+     * expanded after the others at each depth, so a resource reachable from both at the same depth
+     * is added below the editable one and stays editable
+     *
      * Deduplication uses the resource's type and `id` together where available, falling back to
      * object identity so that resources fetched more than once are not added twice. The type is
      * part of the key because an `id` alone is only `namespace/name`, which two resources of
@@ -270,7 +274,8 @@ export default {
 
         return top;
       });
-      const queue = [...result];
+      // children join the queue in the order their parents are expanded, so this order holds at every depth
+      const queue = [...result.filter((entry) => !entry.readOnly), ...result.filter((entry) => entry.readOnly)];
 
       while (queue.length) {
         const entry = queue.shift();
@@ -301,7 +306,11 @@ export default {
 
           // Anything the model or extension set for the position of the entry is discarded
           const expanded = {
-            ...child, depth: entry.depth + 1, nodeId: nodeIdFor(child.resource), parentId: entry.nodeId
+            ...child,
+            depth:    entry.depth + 1,
+            nodeId:   nodeIdFor(child.resource),
+            parentId: entry.nodeId,
+            ...(entry.readOnly ? { readOnly: true } : {}),
           };
 
           result.push(expanded);

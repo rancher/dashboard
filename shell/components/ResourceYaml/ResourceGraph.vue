@@ -89,27 +89,44 @@ const nodesByParentId = computed(() => {
   return byParentId;
 });
 
+/** `nodes` with the read-only nodes moved after the others, each part keeping its order */
+const orderedSiblings = (nodes: ResourceGraphNode[]): ResourceGraphNode[] => [
+  ...nodes.filter((node) => !node.readOnly),
+  ...nodes.filter((node) => node.readOnly),
+];
+
 /**
  * The groups of nodes shown below the node with this id, or at the top level for `undefined`
  *
  * Nodes sharing a group are grouped together under a single heading, in the order they first
  * appear, and those without a group come first, under no heading, so that the primary resource can
- * be shown above the groups of resources that relate to it. Each node in turn carries the groups of
- * the nodes found below it, which the graph shows nested within its group
+ * be shown above the groups of resources that relate to it. Read-only nodes are ordered after the
+ * others, so their groups are shown last. The groups of read-only nodes whose parent is not
+ * read-only are marked `readOnly`, and are never shared with nodes that are not read-only. Each
+ * node in turn carries the groups of the nodes found below it, which the graph shows nested within
+ * its group
  */
-const groupsBelow = (parentId: string | undefined): ResourceGraphGroup[] => (nodesByParentId.value.get(parentId) || []).reduce((acc, node) => {
-  const label = node.group || '';
-  const group = acc.find((g) => g.label === label);
-  const treeNode: ResourceGraphTreeNode = { ...node, groups: groupsBelow(node.id) };
+const groupsBelow = (parentId: string | undefined): ResourceGraphGroup[] => {
+  // below a read-only node the groups are not marked, so the referenced heading is shown once per read-only branch
+  const belowReadOnly = !!(parentId && nodesById.value.get(parentId)?.readOnly);
 
-  if (group) {
-    group.nodes.push(treeNode);
-  } else {
-    acc.push({ label, nodes: [treeNode] });
-  }
+  return orderedSiblings(nodesByParentId.value.get(parentId) || []).reduce((acc, node) => {
+    const referenced = !!node.readOnly && !belowReadOnly;
+    const label = node.group || '';
+    const group = acc.find((g) => g.label === label && !!g.readOnly === referenced);
+    const treeNode: ResourceGraphTreeNode = { ...node, groups: groupsBelow(node.id) };
 
-  return acc;
-}, [] as ResourceGraphGroup[]);
+    if (group) {
+      group.nodes.push(treeNode);
+    } else {
+      acc.push({
+        label, nodes: [treeNode], ...(referenced ? { readOnly: true } : {})
+      });
+    }
+
+    return acc;
+  }, [] as ResourceGraphGroup[]);
+};
 
 /** The top level of the graph, each node carrying the groups of nodes found below it */
 const groups = computed<ResourceGraphGroup[]>(() => groupsBelow(undefined));

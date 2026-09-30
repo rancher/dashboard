@@ -217,7 +217,9 @@ export const EXT: {
 };
 export const CAPI: {
     CAPI_CLUSTER: string;
+    CLUSTER_CLASS: string;
     MACHINE_DEPLOYMENT: string;
+    MACHINE_POOL: string;
     MACHINE_SET: string;
     MACHINE: string;
     RANCHER_CLUSTER: string;

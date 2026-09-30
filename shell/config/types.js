@@ -282,7 +282,9 @@ export const EXT = {
 
 export const CAPI = {
   CAPI_CLUSTER:         'cluster.x-k8s.io.cluster',
+  CLUSTER_CLASS:        'cluster.x-k8s.io.clusterclass',
   MACHINE_DEPLOYMENT:   'cluster.x-k8s.io.machinedeployment',
+  MACHINE_POOL:         'cluster.x-k8s.io.machinepool',
   MACHINE_SET:          'cluster.x-k8s.io.machineset',
   MACHINE:              'cluster.x-k8s.io.machine',
   RANCHER_CLUSTER:      'provisioning.cattle.io.cluster',

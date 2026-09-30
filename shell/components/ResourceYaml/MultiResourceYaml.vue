@@ -184,6 +184,7 @@ const graphNodes = computed<ResourceGraphNode[]>(() => {
       label:    resourceLabel(resourceFor(entry, i)),
       group:    entry.group || (entry.groupKey ? i18n.t(entry.groupKey) : undefined),
       modified: modifiedIds.value.has(id),
+      ...(entry.readOnly ? { readOnly: true } : {}),
     };
   });
 
@@ -208,7 +209,7 @@ const cloneYamlFor = async(entry: EditableRelatedResource, i: number): Promise<s
 // two stores can have a type of the same name, for example `secret`
 const typeKeyFor = (resource: EditableResource): string => `${ resource?.$state?.config?.namespace }/${ resource?.type }`;
 
-// one entry per type of the related resources, excluding the primary resource's type
+// one entry per type of the related resources, excluding the primary resource's type and read-only resources
 const relatedTypes = computed<RelatedResourceType[]>(() => {
   const primaryTypeKey = typeKeyFor(props.value);
   const byKey = new Map<string, RelatedResourceType>();
@@ -217,7 +218,7 @@ const relatedTypes = computed<RelatedResourceType[]>(() => {
     const resource = resourceFor(entry, i);
     const key = typeKeyFor(resource);
 
-    if (!resource?.type || key === primaryTypeKey) {
+    if (!resource?.type || key === primaryTypeKey || entry.readOnly) {
       return;
     }
 
@@ -280,6 +281,8 @@ const selectedResource = computed<EditableResource>(() => {
   return idx >= 0 ? resourceFor(allRelatedResources.value[idx], idx) : primaryResource.value;
 });
 
+const selectedReadOnly = computed(() => !!allRelatedResources.value[selectedRelatedIndex.value]?.readOnly);
+
 // what is currently displayed in the yaml editor
 const currentYaml = computed({
   get(): string {
@@ -309,8 +312,8 @@ const currentYaml = computed({
 });
 
 // runs on every mount of the editor: selecting a resource, leaving diff view and saving each remount it
-// the editor is always editable, so `status` is folded as in SingleResourceYaml's edit mode
-const { foldYaml } = useResourceYamlFolding(selectedResource, true);
+// `status` is folded only while editable, as in SingleResourceYaml
+const { foldYaml } = useResourceYamlFolding(selectedResource, () => !selectedReadOnly.value);
 
 const selectedModified = computed(() => !!editorState.selected && modifiedIds.value.has(editorState.selected));
 
@@ -329,7 +332,7 @@ const saving = ref(false);
 // YamlEditor reads `value` only in data(), so a saved resource needs a remount to show its new yaml
 const editorRevision = ref(0);
 
-const canSaveSelected = computed(() => selectedModified.value && !saving.value);
+const canSaveSelected = computed(() => selectedModified.value && !saving.value && !selectedReadOnly.value);
 
 // the primary resource, and a related resource that defines no `save`, are saved by their own model's `save`
 // the edited yaml is classified in the resource's own store for that
@@ -466,7 +469,7 @@ defineExpose({ editorState });
           <YamlEditor
             v-model:value="currentYaml"
             :initial-yaml-values="baselineYamlById[editorState.selected] ?? initialYamlFor(selectedResource)"
-            :editor-mode="showDiff ? EDITOR_MODES.DIFF_CODE : EDITOR_MODES.EDIT_CODE"
+            :editor-mode="showDiff ? EDITOR_MODES.DIFF_CODE : (selectedReadOnly ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE)"
             :diff-context="Number.MAX_SAFE_INTEGER"
             @onReady="foldYaml"
           />

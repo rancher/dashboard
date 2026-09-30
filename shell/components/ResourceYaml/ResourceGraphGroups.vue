@@ -40,10 +40,20 @@ const i18n = useI18n(store);
     :style="{ '--depth': props.depth }"
   >
     <div
-      v-for="group in props.groups"
-      :key="group.label"
+      v-for="(group, i) in props.groups"
+      :key="`${ !!group.readOnly }/${ group.label }`"
       class="resource-graph-group"
     >
+      <!-- the read-only groups follow the others, so this is shown once, above all of them -->
+      <h6
+        v-if="group.readOnly && !props.groups[i - 1]?.readOnly"
+        class="resource-graph-group-label read-only"
+        data-testid="resource-graph-referenced-label"
+      >
+        {{ i18n.t('resourceYaml.resourceGraph.referenced') }}
+        -
+        {{ i18n.t('resourceYaml.resourceGraph.readOnly') }}
+      </h6>
       <h6
         v-if="group.label"
         class="resource-graph-group-label"
@@ -113,15 +123,33 @@ const i18n = useI18n(store);
 .resource-graph-groups {
   --indent: calc(20px + var(--depth) * 12px);
 
-  padding: 8px 0;
+  padding: 0px 0;
 
   &--nested {
     padding-bottom: 0;
+  }
+
+  // inherited by every nested level, for the referenced heading
+  // var() in a custom property resolves where it is declared, so this holds the indent of the top level
+  &:not(.resource-graph-groups--nested) {
+    --top-level-indent: var(--indent);
   }
 }
 
 .resource-graph-group-label {
   padding-left: var(--indent);
+
+  // shown at the level of the primary resource's heading, above the read-only groups nested below it
+  &.read-only{
+    margin-top: var(--gap-md);
+    padding-left: var(--top-level-indent);
+  }
+
+  // RcIcon has no size below 14px, so size="inherit" and set it here
+  .resource-graph-group-label-dot {
+    font-size: 6px;
+    vertical-align: middle;
+  }
 }
 
 .resource-graph-node {
@@ -165,5 +193,6 @@ const i18n = useI18n(store);
     opacity: 1;
   }
 }
+
 
 </style>

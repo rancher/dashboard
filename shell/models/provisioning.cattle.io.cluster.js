@@ -1,5 +1,5 @@
 import {
-  CAPI, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, LOCAL_CLUSTER,
+  CAPI, FLEET, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, LOCAL_CLUSTER,
   CONFIG_MAP, AUTOSCALER_CONFIG_MAP_ID,
   EVENT, OPERATION
 } from '@shell/config/types';
@@ -11,6 +11,7 @@ import { clone, get, set } from '@shell/utils/object';
 import {
   hasUnsavedMachinePool, isElementalMachinePool, machinePoolStoreFor, saveMachineConfigYaml, saveMachinePool
 } from '@shell/utils/machine-pools';
+import { findIfExists } from '@shell/utils/editable-related-resources';
 import { compare } from '@shell/utils/version';
 import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -471,14 +472,63 @@ export default class ProvCluster extends SteveModel {
   /**
    * Resources this cluster contributes, on top of the ones it owns
    *
-   * For an RKE2/K3s cluster these are the machine configs referenced by each of the machine pools
+   * The machine configs of an RKE2/K3s cluster, see `fetchMachineConfigRelatedResources`, then the
+   * clusters shown read-only, see `fetchReadOnlyRelatedResources`
+   *
+   * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
+   */
+  async fetchOwnEditableRelatedResources() {
+    const [machineConfigs, readOnly] = await Promise.all([
+      this.fetchMachineConfigRelatedResources(),
+      this.fetchReadOnlyRelatedResources(),
+    ]);
+
+    return [...machineConfigs, ...readOnly];
+  }
+
+  /**
+   * The clusters representing this one in other apis, shown read-only
+   *
+   * The cluster api Cluster has the same namespace and name as this cluster. The management and
+   * fleet clusters are found in `metadata.relationships`, in either direction: a management
+   * cluster can be the source of the relationship rather than its target
+   *
+   * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
+   */
+  async fetchReadOnlyRelatedResources() {
+    if (!this.metadata?.uid) {
+      return [];
+    }
+
+    const related = [...this._relationshipsFor('any', 'to').ids, ...this._relationshipsFor('any', 'from').ids];
+    const idOf = (type) => related.find((r) => r.type === type)?.id;
+
+    const [capiCluster, managementCluster, fleetCluster] = await Promise.all([
+      findIfExists(this, CAPI.CAPI_CLUSTER, `${ this.metadata.namespace }/${ this.metadata.name }`),
+      findIfExists(this, MANAGEMENT.CLUSTER, idOf(MANAGEMENT.CLUSTER)),
+      findIfExists(this, FLEET.CLUSTER, idOf(FLEET.CLUSTER)),
+    ]);
+
+    return [
+      [capiCluster, 'resourceYaml.resourceGraph.groups.capiCluster'],
+      [managementCluster, 'resourceYaml.resourceGraph.groups.managementCluster'],
+      [fleetCluster, 'resourceYaml.resourceGraph.groups.fleetCluster'],
+    ]
+      .filter(([resource]) => !!resource)
+      .map(([resource, groupKey]) => ({
+        resource, groupKey, readOnly: true
+      }));
+  }
+
+  /**
+   * For an RKE2/K3s cluster, the machine configs referenced by each of the machine pools
    *
    * Saving a machine config runs the same steps as the cluster form, and writes any change to its
    * machine pool into the cluster's YAML in the editor, to be saved with the cluster
    *
    * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
    */
-  async fetchOwnEditableRelatedResources() {
+  async fetchMachineConfigRelatedResources() {
     const refs = (this.spec?.rkeConfig?.machinePools || [])
       .map((pool) => pool.machineConfigRef)
       .filter((ref) => ref?.kind && ref?.name);

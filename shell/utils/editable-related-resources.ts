@@ -106,6 +106,41 @@ export function typeForKind(apiGroup: string | undefined, kind: string | undefin
   return apiGroup ? `${ apiGroup }.${ kind.toLowerCase() }` : kind.toLowerCase();
 }
 
+type CapiReference = { apiVersion?: string, apiGroup?: string, kind?: string, name?: string, namespace?: string };
+
+/**
+ * The resource a cluster api reference points at, or null where it does not exist
+ *
+ * A v1beta1 reference names the `apiVersion` of the resource, a v1beta2 reference its `apiGroup`.
+ * A v1beta2 reference has no `namespace`: the resource is in the namespace of the one referring to it
+ */
+export async function findCapiReference(model: EditableResource, ref: CapiReference | undefined, namespace: string): Promise<EditableResource | null> {
+  if (!ref?.kind || !ref?.name) {
+    return null;
+  }
+
+  return findIfExists(model, typeForKind(ref.apiGroup || apiGroupOf(ref.apiVersion), ref.kind), `${ ref.namespace || namespace }/${ ref.name }`);
+}
+
+/**
+ * The resources a cluster api machine spec refers to: its bootstrap config, or the Secret holding
+ * its bootstrap data where no config is named, and its infrastructure machine
+ *
+ * In the template of a MachineDeployment these are templates, for example a KubeadmConfigTemplate
+ * and an AWSMachineTemplate
+ */
+export async function capiMachineSpecResources(model: EditableResource, machineSpec: any, namespace: string): Promise<EditableResource[]> {
+  const bootstrap = machineSpec?.bootstrap;
+  const dataSecretId = bootstrap?.dataSecretName ? `${ namespace }/${ bootstrap.dataSecretName }` : '';
+
+  const found = await Promise.all([
+    bootstrap?.configRef ? findCapiReference(model, bootstrap.configRef, namespace) : findIfExists(model, SECRET, dataSecretId),
+    findCapiReference(model, machineSpec?.infrastructureRef, namespace),
+  ]);
+
+  return found.filter(Boolean);
+}
+
 /**
  * Does a kube label selector select a resource with `labels`?
  *

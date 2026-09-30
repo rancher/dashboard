@@ -21,7 +21,12 @@ export interface ResourceGraphNode {
   /** Shows an indicator that the resource has unsaved changes */
   modified?: boolean;
 
-  /** The resource can be shown but not edited */
+  /**
+   * The resource can be shown but not edited
+   *
+   * The groups of read-only nodes whose parent is not read-only are shown last, below the
+   * referenced heading
+   */
   readOnly?: boolean;
 
   /**
@@ -50,6 +55,13 @@ export interface ResourceGraphTreeNode extends ResourceGraphNode {
 export interface ResourceGraphGroup {
   /** The heading to show, or an empty string for the ungrouped nodes */
   label: string;
+
+  /**
+   * The group holds read-only nodes whose parent is not read-only
+   *
+   * These groups follow the others, and the referenced heading is shown above the first of them
+   */
+  readOnly?: boolean;
 
   nodes: ResourceGraphTreeNode[];
 }

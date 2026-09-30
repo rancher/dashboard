@@ -289,6 +289,15 @@ export type EditableRelatedResource = {
    */
   dependent?: boolean,
 
+  /**
+   * `resource` is shown for reference only, and can not be edited or saved in the editor
+   *
+   * A read-only resource is shown after the other resources in its part of the resource graph, and
+   * is not offered as a type or a source when creating a related resource. The resources found
+   * below it are read-only too
+   */
+  readOnly?: boolean,
+
   /** Run before `resource` is saved, for example to apply changes made to the primary resource */
   beforeSaveHook?: EditableRelatedResourceSaveHook,
 

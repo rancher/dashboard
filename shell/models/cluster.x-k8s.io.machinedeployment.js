@@ -8,8 +8,28 @@ import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 import { KIND } from '../config/elemental-types';
 import { KIND as HARVESTER_KIND } from '../config/harvester-manager-types';
 import CapiMachineRoot from '@shell/models/base-cluster.x-k8s.io';
+import { capiMachineSpecResources, relatedEntry } from '@shell/utils/editable-related-resources';
 
 export default class CapiMachineDeployment extends CapiMachineRoot {
+  /**
+   * The resources related to this machine deployment, to edit by YAML alongside it
+   *
+   * Dependencies: the bootstrap config template and infrastructure machine template named in
+   * `spec.template.spec`, see `capiMachineSpecResources`
+   *
+   * @param {import('@shell/core/types').EditableRelatedResourcesFetchOptions} [options]
+   * @returns {Promise<import('@shell/core/types').EditableRelatedResource[]>}
+   */
+  async fetchOwnEditableRelatedResources({ dependencies = true } = {}) {
+    if (!this.metadata?.uid || !dependencies) {
+      return [];
+    }
+
+    const resources = await capiMachineSpecResources(this, this.spec?.template?.spec, this.metadata.namespace);
+
+    return resources.map((resource) => relatedEntry(resource));
+  }
+
   get groupByPoolLabel() {
     return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.machinePool', { name: escapeHtml(this.nameDisplay) }) }`;
   }
