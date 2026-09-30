@@ -117,7 +117,7 @@ const UNDO_TIMEOUT = 10000;
 // Shared, reactive editor UI state: what is being dragged — a widget already on the grid, or a
 // catalog entry on its way in.
 const ui = reactive<ViewEditorUi>({
-  dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', showBoxModel: false
+  dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', flashBox: null
 });
 
 // ---- what is stored, and what is shown --------------------------------------------------------------
@@ -176,16 +176,23 @@ const widgets = computed(() => (activeView.value && !isStockView(activeView.valu
 const gap = computed(() => (activeView.value && !isStockView(activeView.value) ? activeView.value.gap : DEFAULT_GAP));
 
 // The space between the grid and the edges of the page — a view-level setting like the gap.
-/** The spacing just changed in the drawer, lit on the page for a moment so you see what it moves. */
-const flash = ref<'gap' | 'pad' | null>(null);
+/**
+ * The spacing just changed in the drawer, lit on the page for a moment so you see what it moves:
+ * the view's gap or padding, or the selected widget's margin or padding.
+ */
+type Spacing = 'gap' | 'pad' | 'margin' | 'padding';
+
+const flash = ref<Spacing | null>(null);
 let flashTimer: ReturnType<typeof setTimeout> | undefined;
 const FLASH_MS = 1000;
 
-function flashSpacing(which: 'gap' | 'pad'): void {
+function flashSpacing(which: Spacing): void {
   clearTimeout(flashTimer);
   flash.value = which;
+  ui.flashBox = which === 'margin' || which === 'padding' ? which : null;
   flashTimer = setTimeout(() => {
     flash.value = null;
+    ui.flashBox = null;
   }, FLASH_MS);
 }
 
@@ -964,6 +971,7 @@ function setSelectedSpacing(presetId: string): void {
         top: preset.padding, right: preset.padding, bottom: preset.padding, left: preset.padding
       },
     }));
+    flashSpacing('padding');
   }
 }
 
@@ -972,6 +980,7 @@ function setNodeBox(box: 'margin' | 'padding', side: keyof Sides, value: string)
   const px = Math.max(0, Math.round(Number(value) || 0));
 
   updateSelected((w) => ({ ...w, [box]: { ...w[box], [side]: px } }));
+  flashSpacing(box);
 }
 
 function setGap(value: string): void {
@@ -1209,7 +1218,6 @@ const barListeners = {
         @set-spacing="setSelectedSpacing"
         @set-box="setNodeBox"
         @set-col-span="setSelectedWidth"
-        @advanced="ui.showBoxModel = $event"
         @set-gap="setGap"
         @set-page-padding="setPagePadding"
         @set-name="renameView"

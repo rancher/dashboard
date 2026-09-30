@@ -51,7 +51,8 @@ const resizing = ref(false);
 // against the line — a col-span-3 tile would draw the band 4x too small. getComputedStyle gives the
 // used value in px, which is exact for %, rem, anything.
 const usedMargin = ref<Measured | null>(null);
-const usedCardPadding = ref<Measured | null>(null);
+/** The padding bands, placed over the card that carries the padding (see measurePadding). */
+const paddingBands = ref<CSSProperties[]>([]);
 
 const beingDragged = computed(() => viewEditor.ui.dragId === props.node.id);
 
@@ -66,9 +67,11 @@ const holdsWidgets = computed(() => !!props.node.widget.tabs);
 const span = computed(() => clampSpan(props.node.colSpan));
 const margin = computed(() => normalizeSides(props.node.margin));
 
-// The margin/padding bands answer "where do these pixels go?", which is only a question while you
-// are typing pixels — so they are drawn only when the Layout tab's Advanced section is open.
-const showBoxModel = computed(() => props.selected && viewEditor.ui.showBoxModel);
+// The margin/padding bands answer "where do these pixels go?", so they are drawn for a moment
+// after the number changes, not all the time.
+/** The band lit for a moment after the selected widget's margin or padding changes. */
+const flashBox = computed(() => (props.selected ? viewEditor.ui.flashBox : null));
+const showBoxModel = computed(() => !!flashBox.value);
 
 const style = computed<CSSProperties>(() => {
   // The span's share of a 12-column line that has a GAP between every column.
@@ -111,7 +114,7 @@ const style = computed<CSSProperties>(() => {
   return s;
 });
 
-// ---- box-model bands (selected widget, Advanced open) ----
+// ---- box-model bands (selected widget, just after its margin or padding changed) ----
 // Four strips per box, sized from the real values. The MARGIN sits outside the element (negative
 // offsets), the PADDING inside it. Filled, no numbers — amber for margin, green for padding.
 
@@ -149,8 +152,60 @@ function bandsFor(box: Measured | null, outside: boolean): CSSProperties[] {
 }
 
 const marginBands = computed(() => bandsFor(usedMargin.value, true));
-// Padding lives on the CARD, so it is measured there rather than on this wrapper.
-const paddingBands = computed(() => bandsFor(usedCardPadding.value, false));
+
+/**
+ * Padding lives on the CARD, split between its parts: the head carries the top and the sides, the
+ * body the bottom - or the body alone, or a Tabs widget's panel, all four. Each side is read where
+ * it is applied, and the bands are placed over the card as it sits in this widget, below the
+ * editor's "Drag to move" strip.
+ */
+function measurePadding(el: HTMLElement): CSSProperties[] {
+  const box = el.querySelector<HTMLElement>('.wcard, .wtabs__panel');
+
+  if (!box) {
+    return [];
+  }
+
+  const n = (v: string) => Math.round((parseFloat(v) || 0) * 10) / 10;
+  const head = box.querySelector<HTMLElement>(':scope > .wcard__head');
+  const body = box.querySelector<HTMLElement>(':scope > .wcard__body');
+  const sides = getComputedStyle(head || body || box);
+  const ends = getComputedStyle(body || box);
+  const top = n(sides.paddingTop);
+  const bottom = n(ends.paddingBottom);
+  const left = n(sides.paddingLeft);
+  const right = n(sides.paddingRight);
+
+  const outer = el.getBoundingClientRect();
+  const r = box.getBoundingClientRect();
+  const x = r.left - outer.left;
+  const y = r.top - outer.top;
+  const px = (v: number) => `${ v }px`;
+  const out: CSSProperties[] = [];
+
+  if (top) {
+    out.push({
+      top: px(y), left: px(x), width: px(r.width), height: px(top)
+    });
+  }
+  if (bottom) {
+    out.push({
+      top: px(y + r.height - bottom), left: px(x), width: px(r.width), height: px(bottom)
+    });
+  }
+  if (left) {
+    out.push({
+      top: px(y), left: px(x), width: px(left), height: px(r.height)
+    });
+  }
+  if (right) {
+    out.push({
+      top: px(y), left: px(x + r.width - right), width: px(right), height: px(r.height)
+    });
+  }
+
+  return out;
+}
 
 // Read the USED margin/padding (always px, whatever unit was authored) for the band overlays.
 function measure(): void {
@@ -158,22 +213,18 @@ function measure(): void {
 
   if (!showBoxModel.value || !el) {
     usedMargin.value = null;
-    usedCardPadding.value = null;
+    paddingBands.value = [];
 
     return;
   }
 
   const n = (v: string) => Math.round((parseFloat(v) || 0) * 10) / 10;
   const cs = getComputedStyle(el);
-  const card = el.querySelector('.wcard');
-  const cardCs = card ? getComputedStyle(card) : null;
 
   usedMargin.value = {
     top: n(cs.marginTop), right: n(cs.marginRight), bottom: n(cs.marginBottom), left: n(cs.marginLeft)
   };
-  usedCardPadding.value = cardCs ? {
-    top: n(cardCs.paddingTop), right: n(cardCs.paddingRight), bottom: n(cardCs.paddingBottom), left: n(cardCs.paddingLeft)
-  } : null;
+  paddingBands.value = measurePadding(el);
 }
 
 function scheduleMeasure(): void {
@@ -292,16 +343,16 @@ function startResize(ev: PointerEvent): void {
     @dragstart="onDragStart"
     @dragend="onDragEnd"
   >
-    <!-- Box model of the selected widget: amber margin outside, green padding inside. -->
+    <!-- The selected widget's margin (amber, outside) or padding (green, inside), lit as it changes -->
     <template v-if="showBoxModel">
       <div
-        v-for="(band, i) in marginBands"
+        v-for="(band, i) in (flashBox === 'margin' ? marginBands : [])"
         :key="`m${ i }`"
         class="wnode__band wnode__band--margin"
         :style="band"
       />
       <div
-        v-for="(band, i) in paddingBands"
+        v-for="(band, i) in (flashBox === 'padding' ? paddingBands : [])"
         :key="`p${ i }`"
         class="wnode__band wnode__band--padding"
         :style="band"
