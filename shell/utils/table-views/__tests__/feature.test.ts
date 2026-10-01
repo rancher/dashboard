@@ -1,20 +1,20 @@
-import { isExtensionTable, isImprovedTablesEnabled, TABLE_VIEWS_SHELL } from '@shell/utils/table-views/feature';
-import { IMPROVED_TABLES } from '@shell/store/features';
+import { isExtensionTable, isConfigurableTablesEnabled, TABLE_VIEWS_SHELL } from '@shell/utils/table-views/feature';
+import { CONFIGURABLE_TABLES } from '@shell/store/features';
 
-const flag = (on: boolean) => jest.fn((name: string) => (name === IMPROVED_TABLES ? on : undefined));
+const flag = (on: boolean) => jest.fn((name: string) => (name === CONFIGURABLE_TABLES ? on : undefined));
 
-describe('isImprovedTablesEnabled', () => {
+describe('isConfigurableTablesEnabled', () => {
   it.each([
     ['no store', undefined],
     ['a null store', null],
     ['a store with no getters', {}],
     ['a store with no features getter', { getters: {} }],
   ])('should be on when there is %s to ask', (_, store) => {
-    expect(isImprovedTablesEnabled(store)).toBe(true);
+    expect(isConfigurableTablesEnabled(store)).toBe(true);
   });
 
   it.each([true, false])('should be what the flag says (%s) when a store can answer', (on) => {
-    expect(isImprovedTablesEnabled({ getters: { 'features/get': flag(on) } })).toBe(on);
+    expect(isConfigurableTablesEnabled({ getters: { 'features/get': flag(on) } })).toBe(on);
   });
 
   it('should be off in a Rancher that doesn\'t know the flag, whose store throws for it', () => {
@@ -22,14 +22,14 @@ describe('isImprovedTablesEnabled', () => {
       throw new Error(`Unknown feature: ${ name }`);
     });
 
-    expect(isImprovedTablesEnabled({ getters: { 'features/get': unknown } })).toBe(false);
+    expect(isConfigurableTablesEnabled({ getters: { 'features/get': unknown } })).toBe(false);
   });
 
   it('should ask the root getters of a store action\'s context', () => {
     const root = flag(false);
     const local = flag(true);
 
-    expect(isImprovedTablesEnabled({ getters: { 'features/get': local }, rootGetters: { 'features/get': root } })).toBe(false);
+    expect(isConfigurableTablesEnabled({ getters: { 'features/get': local }, rootGetters: { 'features/get': root } })).toBe(false);
     expect(local).not.toHaveBeenCalled();
   });
 });

@@ -1,4 +1,4 @@
-import { IMPROVED_TABLES } from '@shell/store/features';
+import { CONFIGURABLE_TABLES } from '@shell/store/features';
 import { getPackageFromRoute } from '@shell/utils/router';
 
 export interface GetterSource {
@@ -6,7 +6,7 @@ export interface GetterSource {
   rootGetters?: Record<string, unknown>;
 }
 
-export function isImprovedTablesEnabled(store?: GetterSource | null): boolean {
+export function isConfigurableTablesEnabled(store?: GetterSource | null): boolean {
   const get = (store?.rootGetters || store?.getters)?.['features/get'];
 
   // No store to ask, eg a resource with a partial context: use the flag's default, on
@@ -17,7 +17,7 @@ export function isImprovedTablesEnabled(store?: GetterSource | null): boolean {
   // An older Rancher running an extension built with this shell has no such flag, and its store throws
   // for a flag it doesn't know: no table views there
   try {
-    return !!get(IMPROVED_TABLES);
+    return !!get(CONFIGURABLE_TABLES);
   } catch {
     return false;
   }

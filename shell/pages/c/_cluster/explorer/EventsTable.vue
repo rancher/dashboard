@@ -8,7 +8,7 @@ import { headerFromSchemaColString } from '@shell/store/type-map.utils';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { ROWS_PER_PAGE } from '@shell/store/prefs';
 import EventsTableLink from './EventsTableLink';
-import { isImprovedTablesEnabled } from '@shell/utils/table-views/feature';
+import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
 
 const reason = {
   ...REASON,
@@ -98,8 +98,8 @@ export default {
   },
 
   computed: {
-    improvedTables() {
-      return isImprovedTablesEnabled(this.$store);
+    configurableTables() {
+      return isConfigurableTablesEnabled(this.$store);
     },
 
     userPrefRowsPerPage() {
@@ -148,7 +148,7 @@ export default {
   <div>
     <!-- Above the table when it has a toolbar, in its header row when it doesn't -->
     <div
-      v-if="!!schema && improvedTables"
+      v-if="!!schema && configurableTables"
       class="events-table-link-row"
     >
       <EventsTableLink
@@ -172,7 +172,7 @@ export default {
       :rows-per-page="rowsPerPage"
     >
       <template
-        v-if="!improvedTables"
+        v-if="!configurableTables"
         #header-right
       >
         <EventsTableLink

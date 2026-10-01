@@ -20,7 +20,7 @@ import {
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { parseSi, createMemoryValues } from '@shell/utils/units';
 import { markSeenReleaseNotes } from '@shell/utils/version';
-import { isImprovedTablesEnabled } from '@shell/utils/table-views/feature';
+import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
 import type { ButtonVariant } from '@components/RcButton/types';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
@@ -223,8 +223,8 @@ export default defineComponent({
       return this.tooManyClusters && !this.altClusterListDisabled;
     },
 
-    improvedTables() {
-      return isImprovedTablesEnabled(this.$store);
+    configurableTables() {
+      return isConfigurableTablesEnabled(this.$store);
     },
 
     /** `pinned:true` / `pinned:false`: the rows are management clusters, as the pins are */
@@ -254,8 +254,8 @@ export default defineComponent({
       const manage = {
         key: 'manage', to: this.manageLocation, testid: 'cluster-management-manage-button', label: this.t('cluster.manageAction'), shown: !!this.provClusterSchema
       };
-      const ordered = this.improvedTables ? [create, importExisting, manage] : [manage, importExisting, create];
-      const variants: Record<string, ButtonVariant> = this.improvedTables ? {
+      const ordered = this.configurableTables ? [create, importExisting, manage] : [manage, importExisting, create];
+      const variants: Record<string, ButtonVariant> = this.configurableTables ? {
         create: 'secondary', import: 'secondary', manage: 'primary'
       } : {
         manage: 'secondary', import: 'primary', create: 'primary'
@@ -315,7 +315,7 @@ export default defineComponent({
 
     /** For the Machines column's bar, which only table views has. Not awaited: it shows a count until they land */
     fetchMachineStates() {
-      if (!this.improvedTables) {
+      if (!this.configurableTables) {
         return;
       }
 
@@ -481,7 +481,7 @@ export default defineComponent({
 <template>
   <div
     v-if="managementReady"
-    :class="['home-page', { 'improved-tables': improvedTables }]"
+    :class="['home-page', { 'configurable-tables': configurableTables }]"
   >
     <TabTitle
       :show-child="false"
@@ -546,7 +546,7 @@ export default defineComponent({
                   v-if="canCreateCluster || !!provClusterSchema"
                   #header-middle
                 >
-                  <div :class="['table-heading', { 'cluster-actions': improvedTables }]">
+                  <div :class="['table-heading', { 'cluster-actions': configurableTables }]">
                     <rc-button
                       v-for="action in clusterActions"
                       :key="action.key"
@@ -644,7 +644,7 @@ export default defineComponent({
                       {{ t('landing.clusters.title') }}
                     </h1>
                     <BadgeState
-                      v-if="clusterCount && !tooManyClusters && !improvedTables"
+                      v-if="clusterCount && !tooManyClusters && !configurableTables"
                       :label="clusterCountDisplay.toString()"
                       color="bg-info ml-20 mr-20"
                     />
@@ -663,7 +663,7 @@ export default defineComponent({
                   v-if="canCreateCluster || !!provClusterSchema"
                   #header-middle
                 >
-                  <div :class="['table-heading', { 'cluster-actions': improvedTables }]">
+                  <div :class="['table-heading', { 'cluster-actions': configurableTables }]">
                     <rc-button
                       v-for="action in clusterActions"
                       :key="action.key"
@@ -766,7 +766,7 @@ export default defineComponent({
     }
   }
 
-  .improved-tables .table-heading {
+  .configurable-tables .table-heading {
     height: 32px;
   }
 
@@ -841,7 +841,7 @@ export default defineComponent({
 <style lang="scss">
 .home-page {
   // A floor, not a height: the filter's query message sits under it
-  &.improved-tables .search {
+  &.configurable-tables .search {
     height: auto;
     min-height: 32px;
   }

@@ -1,7 +1,7 @@
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import ExplorerProjectsNamespaces from '@shell/components/ExplorerProjectsNamespaces.vue';
 import ResourceTableViews, { MONTH_GROUPING_PREFIX, TABLE_GROUPING_PREFIX } from '@shell/mixins/resource-table-views';
-import { IMPROVED_TABLES } from '@shell/store/features';
+import { CONFIGURABLE_TABLES } from '@shell/store/features';
 import { GROUP_RESOURCES } from '@shell/store/prefs';
 import type { TableViewField } from '@shell/types/table-views';
 
@@ -314,7 +314,7 @@ describe('ResourceTable columns while grouped', () => {
 
 describe('ExplorerProjectsNamespaces', () => {
   const { groupMode, headers } = ExplorerProjectsNamespaces.computed as unknown as Record<string, (this: object) => unknown>;
-  const store = (on: boolean) => ({ getters: { 'features/get': (name: string) => (name === IMPROVED_TABLES ? on : undefined) } });
+  const store = (on: boolean) => ({ getters: { 'features/get': (name: string) => (name === CONFIGURABLE_TABLES ? on : undefined) } });
   const headerNames = (on: boolean, mode: string) => (headers.call({
     $store: store(on), groupMode: mode, t: (key: string) => key, isHarvester: false
   }) as { name: string }[]).map((header) => header.name);
