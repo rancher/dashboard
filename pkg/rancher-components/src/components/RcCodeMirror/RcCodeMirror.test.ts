@@ -74,6 +74,16 @@ describe('component: RcCodeMirror', () => {
       expect(wrapper.find('.rc-cm-escape-hint').isVisible()).toBe(true);
     });
 
+    // Tab does not stay in a read-only editor, so there is nothing to escape
+    it.each(['default', 'emacs', 'vim'])('should hide the escape hint in a read-only editor in %s mode', async(keymap) => {
+      mountEditor({ keymap, readOnly: true });
+
+      getView(wrapper).focus();
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('.rc-cm-escape-hint').isVisible()).toBe(false);
+    });
+
     it('should announce the escape hint', () => {
       mountEditor();
 
@@ -229,6 +239,41 @@ describe('component: RcCodeMirror', () => {
       view.contentDOM.dispatchEvent(tab);
 
       expect(tab.defaultPrevented).toBe(false);
+    });
+
+    it.each([
+      ['default', 'Tab', false], ['default', 'Shift-Tab', true],
+      ['emacs', 'Tab', false], ['emacs', 'Shift-Tab', true],
+      ['vim', 'Tab', false], ['vim', 'Shift-Tab', true]
+    ])('should let %s mode use %s for focus navigation in a read-only editor', (keymap, _shortcut, shiftKey) => {
+      mountEditor({
+        keymap, readOnly: true, modelValue: '  foo: bar'
+      });
+      const view = getView(wrapper);
+      const tab = new KeyboardEvent('keydown', {
+        key: 'Tab', code: 'Tab', keyCode: 9, shiftKey, bubbles: true, cancelable: true
+      });
+
+      view.focus();
+      view.contentDOM.dispatchEvent(tab);
+
+      expect({ defaultPrevented: tab.defaultPrevented, doc: view.state.doc.toString() }).toStrictEqual({ defaultPrevented: false, doc: '  foo: bar' });
+    });
+
+    it.each(['default', 'emacs', 'vim'])('should keep Tab in the editor in %s mode once it is no longer read-only', async(keymap) => {
+      mountEditor({
+        keymap, readOnly: true, modelValue: 'foo: bar'
+      });
+      await wrapper.setProps({ readOnly: false });
+      const view = getView(wrapper);
+      const tab = new KeyboardEvent('keydown', {
+        key: 'Tab', code: 'Tab', keyCode: 9, bubbles: true, cancelable: true
+      });
+
+      view.focus();
+      view.contentDOM.dispatchEvent(tab);
+
+      expect(tab.defaultPrevented).toBe(true);
     });
 
     it('should indent with Tab and unindent with Shift-Tab in default mode', () => {

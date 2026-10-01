@@ -30,6 +30,7 @@
  * lines) and Shift-Tab unindents with the default keymap and in Vim Insert mode.
  * Emacs Tab reindents the line. In Vim Normal mode Tab moves through the jump
  * list and Shift-Tab does nothing. Press Escape then Tab to move focus out.
+ * In a read-only editor Tab and Shift-Tab move focus with every keymap.
  */
 import {
   ref, shallowRef, computed, onMounted, onBeforeUnmount, watch, useAttrs
@@ -437,7 +438,7 @@ defineExpose({ view });
     @focusout="handleFocusOut"
   >
     <span
-      v-show="isEditorFocused && variant !== 'input'"
+      v-show="isEditorFocused && variant !== 'input' && !readOnly"
       class="rc-cm-escape-hint"
       role="alert"
     >{{ escapeHint }}</span>
