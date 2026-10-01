@@ -37,7 +37,7 @@ describe('CruGKE', () => {
 
     await wrapper.vm.$options.fetch.call(wrapper.vm);
     await flushPromises();
-    wrapper.vm.isAuthenticated = true;
+    (wrapper.vm.$.proxy as any).isAuthenticated = true;
     await wrapper.vm.$nextTick();
 
     expect(wrapper.vm.normanCluster.importedConfig).toBeDefined();
@@ -61,7 +61,7 @@ describe('CruGKE', () => {
 
     await wrapper.vm.$options.fetch.call(wrapper.vm);
     await flushPromises();
-    wrapper.vm.isAuthenticated = true;
+    (wrapper.vm.$.proxy as any).isAuthenticated = true;
     await wrapper.vm.$nextTick();
 
     expect(wrapper.vm.normanCluster.importedConfig).toBeDefined();
