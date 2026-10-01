@@ -549,14 +549,8 @@ const openSaveAsNew = (tab = selectedTab()) => {
 };
 
 const saveChanges = (tab = selectedTab()) => {
-  if (!tab || !isTabDirty(tab)) {
-    return;
-  }
-
-  // The table's own tab can't be saved over
-  if (!tab.view) {
-    openSaveAsNew(tab);
-
+  // The table's own tab can't be saved over; keeping its changes is Save as New, not this
+  if (!tab?.view || !isTabDirty(tab)) {
     return;
   }
 

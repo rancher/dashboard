@@ -274,6 +274,15 @@ describe('TableViewTabs', () => {
       });
     });
 
+    it('should not save the table\'s own tab, nor save it as a new view', () => {
+      const { vm, stored } = createWrapper({ view: { ...EMPTY, query: 'state:Running name:x' } });
+      const before = stored();
+
+      vm.saveChanges({ id: null, name: 'Explorer' });
+
+      expect(stored()).toStrictEqual(before);
+    });
+
     it('should leave the changes on the tab in front when it is saved as a new view', () => {
       const { vm, stored } = createWrapper({ view: { ...EMPTY, query: 'state:Running name:x' }, initialViewId: 'aaa' });
 
