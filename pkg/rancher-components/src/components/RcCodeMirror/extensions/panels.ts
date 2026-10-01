@@ -43,7 +43,7 @@ export function coveredBottom(view: EditorView): number {
     return 0;
   }
 
-  for (let el = hit; el && !el.contains(view.dom); el = el.parentElement) {
+  for (let el: Element | null = hit; el && !el.contains(view.dom); el = el.parentElement) {
     const { position } = getComputedStyle(el);
 
     if (position === 'sticky' || position === 'fixed') {
