@@ -1,7 +1,7 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
-import { foldable, foldedRanges, foldEffect } from '@codemirror/language';
+import { foldable, foldedRanges, foldEffect, indentUnit } from '@codemirror/language';
 import { diagnosticCount, forceLinting, type LintSource } from '@codemirror/lint';
 import { foldByLineMatch, foldMatchingLines } from './extensions/fold';
 import RcCodeMirror from './RcCodeMirror.vue';
@@ -247,6 +247,36 @@ describe('component: RcCodeMirror', () => {
       expect(view.state.doc.toString()).toStrictEqual('foo: bar');
     });
 
+    it.each([
+      ['inserts spaces at the cursor in the middle of a line', 'parent:\n  key2: value2', 16, 'parent:\n  key2:   value2'],
+      ['fills to the next indent stop', 'parent:\n  key2: value2', 15, 'parent:\n  key2:  value2'],
+      ['indents an empty line', '', 0, '  '],
+    ])('should use Tab in default mode that %s', (_description, doc, cursor, expected) => {
+      mountEditor({ modelValue: doc });
+      const view = getView(wrapper);
+
+      view.focus();
+      view.dispatch({ selection: { anchor: cursor } });
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Tab', code: 'Tab', keyCode: 9, bubbles: true, cancelable: true
+      }));
+
+      expect(view.state.doc.toString()).toStrictEqual(expected);
+    });
+
+    it('should indent every selected line with Tab in default mode', () => {
+      mountEditor({ modelValue: 'a: 1\nb: 2' });
+      const view = getView(wrapper);
+
+      view.focus();
+      view.dispatch({ selection: { anchor: 1, head: 7 } });
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Tab', code: 'Tab', keyCode: 9, bubbles: true, cancelable: true
+      }));
+
+      expect(view.state.doc.toString()).toStrictEqual('  a: 1\n  b: 2');
+    });
+
     it('should not indent the line with Tab in Vim normal mode', () => {
       mountEditor({ keymap: 'vim', modelValue: 'foo: bar' });
       const view = getView(wrapper);
@@ -281,8 +311,8 @@ describe('component: RcCodeMirror', () => {
       expect(view.state.doc.lineAt(view.state.selection.main.head).text).toStrictEqual('third');
     });
 
-    it('should leave Shift-Tab available for focus navigation in Vim mode', () => {
-      mountEditor({ keymap: 'vim', modelValue: 'foo: bar' });
+    it('should keep Shift-Tab in the editor in Vim normal mode', () => {
+      mountEditor({ keymap: 'vim', modelValue: '  foo: bar' });
       const view = getView(wrapper);
       const tab = new KeyboardEvent('keydown', {
         key: 'Tab', code: 'Tab', keyCode: 9, shiftKey: true, bubbles: true, cancelable: true
@@ -291,8 +321,42 @@ describe('component: RcCodeMirror', () => {
       view.focus();
       view.contentDOM.dispatchEvent(tab);
 
-      expect(tab.defaultPrevented).toBe(false);
+      expect(tab.defaultPrevented).toBe(true);
+      expect(view.state.doc.toString()).toStrictEqual('  foo: bar');
+    });
+
+    it('should unindent with Shift-Tab in Vim insert mode', () => {
+      mountEditor({ keymap: 'vim', modelValue: '  foo: bar' });
+      const view = getView(wrapper);
+      const tab = new KeyboardEvent('keydown', {
+        key: 'Tab', code: 'Tab', keyCode: 9, shiftKey: true, bubbles: true, cancelable: true
+      });
+
+      view.focus();
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'i', code: 'KeyI', keyCode: 73, bubbles: true, cancelable: true
+      }));
+      view.contentDOM.dispatchEvent(tab);
+
+      expect(tab.defaultPrevented).toBe(true);
       expect(view.state.doc.toString()).toStrictEqual('foo: bar');
+    });
+
+    it('should let Shift-Tab leave after Escape in Vim normal mode', () => {
+      mountEditor({ keymap: 'vim', modelValue: 'foo' });
+      const view = getView(wrapper);
+
+      view.focus();
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true, cancelable: true
+      }));
+      const tab = new KeyboardEvent('keydown', {
+        key: 'Tab', code: 'Tab', keyCode: 9, shiftKey: true, bubbles: true, cancelable: true
+      });
+
+      view.contentDOM.dispatchEvent(tab);
+
+      expect(tab.defaultPrevented).toBe(false);
     });
 
     it.each([
@@ -333,12 +397,17 @@ describe('component: RcCodeMirror', () => {
       expect(view.state.doc.toString()).toStrictEqual('foo: bar');
     });
 
-    it('should insert Tab at the cursor in Vim insert mode', () => {
-      mountEditor({ keymap: 'vim', modelValue: 'foo: bar' });
+    it.each([
+      ['foo: bar', 4, 'foo:   bar'],
+      ['foo: bar', 3, 'foo : bar'],
+      ['', 0, '  '],
+      ['  ', 2, '    '],
+    ])('should fill %j at %i to the next indent stop with spaces on Tab in Vim insert mode', (doc, cursor, expected) => {
+      mountEditor({ keymap: 'vim', modelValue: doc });
       const view = getView(wrapper);
 
       view.focus();
-      view.dispatch({ selection: { anchor: 4 } });
+      view.dispatch({ selection: { anchor: cursor } });
       view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
         key: 'i', code: 'KeyI', keyCode: 73, bubbles: true, cancelable: true
       }));
@@ -346,7 +415,24 @@ describe('component: RcCodeMirror', () => {
         key: 'Tab', code: 'Tab', keyCode: 9, bubbles: true, cancelable: true
       }));
 
-      expect(view.state.doc.toString()).toStrictEqual('foo:\t bar');
+      expect(view.state.doc.toString()).toStrictEqual(expected);
+    });
+
+    it('should use a configured tab indent unit on Tab in Vim insert mode', () => {
+      mountEditor({
+        keymap: 'vim', modelValue: 'foo', extensions: [indentUnit.of('\t')]
+      });
+      const view = getView(wrapper);
+
+      view.focus();
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'i', code: 'KeyI', keyCode: 73, bubbles: true, cancelable: true
+      }));
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Tab', code: 'Tab', keyCode: 9, bubbles: true, cancelable: true
+      }));
+
+      expect(view.state.doc.toString()).toStrictEqual('\tfoo');
     });
 
     it('should update Tab behavior when the variant changes', async() => {
@@ -1223,13 +1309,13 @@ describe('component: RcCodeMirror', () => {
       expect(view.state.doc.toString()).toStrictEqual('old');
     });
 
-    it('should not open search with Ctrl-S when the Emacs keymap is active', () => {
+    it('should open search with Ctrl-S when the Emacs keymap is active', () => {
       mountEditor({ keymap: 'emacs', modelValue: 'search me' });
       const view = getView(wrapper);
 
       pressKey(view, 's', 'KeyS');
 
-      expect(wrapper.find('.cm-search').exists()).toBe(false);
+      expect(wrapper.find('.cm-search').exists()).toBe(true);
     });
 
     it('should kill and yank text with Ctrl-K and Ctrl-Y', () => {
@@ -1350,6 +1436,206 @@ describe('component: RcCodeMirror', () => {
 
       expect(view.state.doc.toString()).toStrictEqual('firs');
       expect(event.defaultPrevented).toBe(true);
+    });
+  });
+
+  describe('search panel', () => {
+    function openSearch(view: EditorView): KeyboardEvent {
+      const event = new KeyboardEvent('keydown', {
+        key: 'f', code: 'KeyF', keyCode: 70, ctrlKey: true, bubbles: true, cancelable: true
+      });
+
+      view.focus();
+      view.contentDOM.dispatchEvent(event);
+
+      return event;
+    }
+
+    function searchFor(text: string): HTMLInputElement {
+      const field = wrapper.find<HTMLInputElement>('.cm-search input[name=search]').element;
+
+      field.value = text;
+      field.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+
+      return field;
+    }
+
+    function pressInPanel(field: HTMLElement, key: string, keyCode: number): KeyboardEvent {
+      const event = new KeyboardEvent('keydown', {
+        key, code: key, keyCode, bubbles: true, cancelable: true
+      });
+
+      field.dispatchEvent(event);
+
+      return event;
+    }
+
+    it('should open with Ctrl-F and keep the browser from opening its own find', () => {
+      mountEditor({ modelValue: 'foo: bar' });
+      const event = openSearch(getView(wrapper));
+
+      expect({ open: wrapper.find('.cm-search').exists(), defaultPrevented: event.defaultPrevented }).toStrictEqual({ open: true, defaultPrevented: true });
+    });
+
+    // Pages such as Edit YAML stick a footer over the bottom of the editor
+    it('should open at the top of the editor', () => {
+      mountEditor({ modelValue: 'foo: bar' });
+      openSearch(getView(wrapper));
+
+      expect(wrapper.find('.cm-panels-top .cm-search').exists()).toBe(true);
+    });
+
+    it('should find text on a line far outside the rendered lines', () => {
+      const lines = Array.from({ length: 500 }, (_, i) => `key${ i }: value`);
+
+      mountEditor({ modelValue: [...lines, 'updatedReplicas: 1'].join('\n') });
+      const view = getView(wrapper);
+
+      openSearch(view);
+      pressInPanel(searchFor('updatedReplicas'), 'Enter', 13);
+
+      const { from, to } = view.state.selection.main;
+
+      expect(view.state.sliceDoc(from, to)).toStrictEqual('updatedReplicas');
+      expect(view.state.doc.lineAt(from).number).toStrictEqual(501);
+    });
+
+    it('should open in a read-only editor without the replace field', () => {
+      mountEditor({ modelValue: 'foo: bar', readOnly: true });
+      openSearch(getView(wrapper));
+
+      expect({
+        search:  wrapper.find('.cm-search input[name=search]').exists(),
+        replace: wrapper.find('.cm-search input[name=replace]').exists()
+      }).toStrictEqual({ search: true, replace: false });
+    });
+
+    it('should leave Ctrl-F to the browser in the input variant', () => {
+      mountEditor({ variant: 'input', modelValue: 'foo: bar' });
+      const event = openSearch(getView(wrapper));
+
+      expect({ open: wrapper.find('.cm-search').exists(), defaultPrevented: event.defaultPrevented }).toStrictEqual({ open: false, defaultPrevented: false });
+    });
+
+    it('should close on Escape without the key reaching the page', () => {
+      const listener = jest.fn();
+
+      mountEditor({ modelValue: 'foo: bar' });
+      openSearch(getView(wrapper));
+      const field = searchFor('foo');
+
+      document.addEventListener('keydown', listener);
+      pressInPanel(field, 'Escape', 27);
+      document.removeEventListener('keydown', listener);
+
+      expect({ open: wrapper.find('.cm-search').exists(), calls: listener.mock.calls.length }).toStrictEqual({ open: false, calls: 0 });
+    });
+
+    it('should hide the escape hint while the search field has focus', async() => {
+      mountEditor({ modelValue: 'foo: bar' });
+      openSearch(getView(wrapper));
+      wrapper.find<HTMLInputElement>('.cm-search input[name=search]').element.focus();
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('.rc-cm-escape-hint').isVisible()).toBe(false);
+    });
+
+    it('should translate the panel through CodeMirror phrases', () => {
+      mountEditor({
+        modelValue: 'foo: bar',
+        extensions: [EditorState.phrases.of({
+          Find: 'Rechercher', next: 'Suivant', close: 'Fermer la recherche'
+        })]
+      });
+      openSearch(getView(wrapper));
+
+      expect({
+        placeholder: wrapper.find('.cm-search input[name=search]').attributes('placeholder'),
+        next:        wrapper.find('.cm-search button[name=next]').text(),
+        // The close button's tooltip shows this label
+        close:       wrapper.find('.cm-search button[name=close]').attributes('aria-label')
+      }).toStrictEqual({
+        placeholder: 'Rechercher', next: 'Suivant', close: 'Fermer la recherche'
+      });
+    });
+  });
+
+  describe('vim enter', () => {
+    function pressKeys(view: EditorView, keys: Partial<KeyboardEventInit>[]): void {
+      keys.forEach((init) => view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        bubbles: true, cancelable: true, ...init
+      })));
+    }
+
+    const insert = {
+      key: 'i', code: 'KeyI', keyCode: 73
+    };
+    const enter = {
+      key: 'Enter', code: 'Enter', keyCode: 13
+    };
+
+    it.each([
+      ['keeps the indentation of the line', "metadata:\n  name: ''", 20, "metadata:\n  name: ''\n  "],
+      ['puts the cursor on an indented line between braces', 'metadata:\n  test: {}', 19, 'metadata:\n  test: {\n    \n  }'],
+      ['puts the cursor on an indented line between brackets', 'metadata:\n  test: []', 19, 'metadata:\n  test: [\n    \n  ]'],
+    ])('should indent the new line in Insert mode: %s', (_description, doc, cursor, expected) => {
+      mountEditor({
+        keymap: 'vim', language: 'yaml', modelValue: doc
+      });
+      const view = getView(wrapper);
+
+      view.focus();
+      view.dispatch({ selection: { anchor: cursor } });
+      pressKeys(view, [insert, enter]);
+
+      expect(view.state.doc.toString()).toStrictEqual(expected);
+    });
+
+    // Vim moves the cursor down on Normal mode Enter, which needs layout that jsdom does not have
+    it('should not insert a line in Normal mode', () => {
+      mountEditor({
+        keymap: 'vim', language: 'yaml', modelValue: 'first: 1\n  second: 2'
+      });
+      const view = getView(wrapper);
+
+      view.focus();
+      pressKeys(view, [enter]);
+
+      expect(view.state.doc.toString()).toStrictEqual('first: 1\n  second: 2');
+    });
+  });
+
+  describe('bracket pairs', () => {
+    function pressBackspace(keymap: string | undefined, doc: string, cursor: number): string {
+      mountEditor({ keymap, modelValue: doc });
+      const view = getView(wrapper);
+
+      view.focus();
+      view.dispatch({ selection: { anchor: cursor } });
+
+      if (keymap === 'vim') {
+        view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'i', code: 'KeyI', keyCode: 73, bubbles: true, cancelable: true
+        }));
+      }
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Backspace', code: 'Backspace', keyCode: 8, bubbles: true, cancelable: true
+      }));
+
+      return view.state.doc.toString();
+    }
+
+    it.each([
+      [undefined, '[]', 1, ''],
+      [undefined, '{}', 1, ''],
+      [undefined, 'a: ""', 4, 'a: '],
+      [undefined, '[a]', 2, '[]'],
+      [undefined, '[ ]', 2, '[]'],
+      ['vim', '[]', 1, ''],
+      ['emacs', '{}', 1, ''],
+      ['emacs', '[a]', 2, '[]'],
+    ])('should delete with Backspace in the %s keymap from %j at %i to %j', (keymap, doc, cursor, expected) => {
+      expect(pressBackspace(keymap, doc, cursor)).toStrictEqual(expected);
     });
   });
 
