@@ -82,6 +82,10 @@
 
 ## Testing Backlog (Prioritized)
 
+0. `shell/store/digitalocean.js` (180 lines, untested) — pure-logic cloud-credential store: `regionOptions`/`instanceOptions`/`imageOptions` filtering+sorting+mapping (regex slug parsing, plan categorization) plus `cachedCommand`/`request` dispatch wrappers; testable with mocked `dispatch`/`commit`/`rootGetters`, same pattern as existing `github.test.ts`/`action-menu.test.ts` — **next pick for Task 3**
+0b. `shell/store/pnap.js` (129 lines, untested) — similar cloud-credential store (`osChoices`, `allProducts`, `cachedCommand`); simpler than digitalocean.js, good follow-up
+0c. `shell/store/gitlab.js` (159 lines, untested) — same cloud-credential family, check after digitalocean/pnap
+0d. `shell/store/linode.js` (127 lines, untested) — same family
 1. `shell/utils/uiplugins.ts` — async polling loops (`waitForUIExtension`, `waitForUIPackage`, `createHelmRepository`, `getHelmChart`) — require fake timers + retry sequencing (deferred)
 2. `shell/utils/crypto/index.js` — `md5`, `sha256`, `hash` (require Md5/Sha256 browser class mocking; deferred)
 3. `shell/utils/auth.js` — `openAuthPopup` only (deferred; Popup + BroadcastChannel mocking)
@@ -125,6 +129,7 @@
 
 ## Task Round-Robin History (recent)
 
+- 2026-10-01: Task 3 SKIPPED (5 Test Improver PRs already open: #19338, #19322, #19277, #19245, #19213 — at hard cap). Task 4: verified CI green/unrelated-flaky on all 5 open Test Improver PRs via get_check_runs (unit-test passing on each; only e2e flakiness on #19245/#19213 runs unrelated to test-only diffs, consistent with prior verification) — no action needed. Task 2: surveyed `shell/store/*` for untested files (aws.js, digitalocean.js, gitlab.js, linode.js, pnap.js, github.js, uiplugins.ts, resource-fetch.js, customisation.js, cru-resource.ts all lack `__tests__` entries); identified digitalocean.js as best next Task 3 candidate (pure filter/sort/map logic, same mockable dispatch/commit/rootGetters pattern as existing github.test.ts). Checked for new testing-related open issues — found #19333 (flaky e2e tracking, already has assignee+linked PR #19278, no new action needed). Task 7 done.
 - 2026-09-30: Task 3 (new PR: stream.js) + Task 4 (verified CI green on #19245/#19277/#19322 via check-runs API, no action needed) + Task 7
 - 2026-09-29: Task 3 (new PR: axios.js) + Task 4 (verified #19277/#19213 CI failures unrelated to test PRs, no action needed) + Task 7
 - 2026-09-25: Task 3 (new PR: socket.js) + Task 4 (verified #19245/#19213 CI failures unrelated to test PRs, no action needed) + Task 7
@@ -144,7 +149,8 @@
 - June 2026 issue: #17976 (closed)
 - July 2026 issue: #18236 (closed - new month)
 - August 2026 issue: #18800 (closed - new month)
-- September 2026 issue: #19214 (still open, updated each run)
+- September 2026 issue: #19214 (closed - new month)
+- October 2026 issue: created 2026-10-01 (still open, updated each run)
 
 ## Maintainer Priorities
 
