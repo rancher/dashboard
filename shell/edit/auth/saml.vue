@@ -15,13 +15,15 @@ import { Banner } from '@components/Banner';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import AuthBanner from '@shell/components/auth/AuthBanner';
-import config, { OKTA, SHIBBOLETH } from '@shell/edit/auth/ldap/config';
+import config, { ADFS, OKTA, SHIBBOLETH } from '@shell/edit/auth/ldap/config';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { RcButton } from '@components/RcButton';
 import { useI18n } from '@shell/composables/useI18n';
 import { RcSeparator } from '@components/RcSeparator';
 import { zodValidators } from '@shell/utils/validators/zod-helpers';
+import { isRancherPrime } from '@shell/config/version';
+import { ADFS_LDAP_SEARCH } from '@shell/store/features';
 
 // Standard LDAP defaults
 const LDAP_DEFAULTS = {
@@ -185,6 +187,10 @@ export default {
 
     // Does the auth provider support LDAP for search in addition to SAML?
     supportsLDAPSearch() {
+      if (this.NAME === ADFS) {
+        return isRancherPrime() && this.$store.getters['features/get'](ADFS_LDAP_SEARCH);
+      }
+
       return this.NAME === SHIBBOLETH || this.NAME === OKTA;
     },
 

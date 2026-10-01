@@ -2,6 +2,7 @@ import { nextTick } from 'vue';
 import { mount, type VueWrapper, flushPromises } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 import Saml from '@shell/edit/auth/saml.vue';
+import * as VersionModule from '@shell/config/version';
 
 const REQUIRED_FIELDS = [
   'displayNameField',
@@ -379,6 +380,55 @@ describe('saml.vue', () => {
 
       expect(rows).toContainEqual(expect.stringContaining('%authConfig.saml.nameIDFormatOptions.emailAddress%'));
       expect(rows).toContainEqual(expect.stringContaining('RSA-SHA512'));
+    });
+  });
+
+  describe('supportsLDAPSearch computed', () => {
+    let wrapper: VueWrapper<any, any>;
+
+    const mountWithGates = (provider: string, { prime, featureEnabled }: { prime: boolean, featureEnabled: boolean }) => {
+      jest.spyOn(VersionModule, 'isRancherPrime').mockReturnValue(prime);
+
+      const options = mountOptionsForProvider(provider, { ...validModel, id: provider });
+
+      options.global.mocks.$store.getters['features/get'] = (name: string) => name === 'adfs-ldap-search' && featureEnabled;
+
+      return mount(Saml, options);
+    };
+
+    afterEach(() => {
+      wrapper?.unmount();
+    });
+
+    it.each([
+      ['shibboleth', false, false, true],
+      ['okta', false, false, true],
+      ['adfs', true, true, true],
+      ['adfs', false, true, false],
+      ['adfs', true, false, false],
+      ['adfs', false, false, false],
+      ['keycloak', true, true, false],
+      ['ping', true, true, false],
+      ['genericsaml', true, true, false],
+    ] as [string, boolean, boolean, boolean][])('for %s with prime=%s and adfs-ldap-search=%s is %s', async(provider, prime, featureEnabled, expected) => {
+      wrapper = mountWithGates(provider, { prime, featureEnabled });
+      await flushPromises();
+
+      expect(wrapper.vm.supportsLDAPSearch).toBe(expected);
+    });
+
+    it('renders the LDAP search option for adfs on a prime install with the feature enabled', async() => {
+      wrapper = mountWithGates('adfs', { prime: true, featureEnabled: true });
+      await flushPromises();
+
+      expect(wrapper.text()).toContain('authConfig.saml.showLdap');
+    });
+
+    it('does not render the LDAP search option for adfs on a community install', async() => {
+      wrapper = mountWithGates('adfs', { prime: false, featureEnabled: true });
+      await flushPromises();
+
+      expect(wrapper.text()).not.toContain('authConfig.saml.showLdap');
     });
   });
 });
