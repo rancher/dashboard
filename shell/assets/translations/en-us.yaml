@@ -1469,10 +1469,10 @@ catalog:
       diff: Compare Changes
       chartDefaults:
         label: Chart values
-        hint: Changes appear on the right. Deleting a key keeps its default, and setting it to null removes it.
+        hint: Edit the chart default values with overrides, if any, overlayed below, exactly how Helm will resolve it. Only your changes, shown to the right, are saved. To unset a property, explicitly set it to “null”.
       overrides:
         label: Your values
-        hint: Only these values override the chart defaults and are saved.
+        hint: These values will override the chart default values. Only these values will be saved.
     slideIn:
       dock: Dock to shell
     steps:
@@ -1512,7 +1512,6 @@ catalog:
         subtext: Change how the App works
         description: Configure Values used by Helm that help define the App.
         overridesDescription:
-          install: Only your values that differ from the chart defaults are saved. They persist on every upgrade.
           upgrade: Your values from {from} are applied on top of the {to} defaults, just like helm upgrade does.
         chartInfo:
           button: View Chart Info

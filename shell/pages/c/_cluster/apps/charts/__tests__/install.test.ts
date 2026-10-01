@@ -1198,10 +1198,10 @@ describe('page: Install', () => {
       return { description, t };
     };
 
-    it('explains that only the overrides are saved when installing', () => {
-      const { t } = step2Description({});
+    it('shows no banner when installing', () => {
+      const { description } = step2Description({});
 
-      expect(t).toHaveBeenCalledWith('catalog.install.steps.helmValues.overridesDescription.install', {}, true);
+      expect(description).toBe('');
     });
 
     // The banner shows it as text, so an escaped apostrophe would show as `&#39;`
@@ -1217,10 +1217,10 @@ describe('page: Install', () => {
       expect(description).toBe('catalog.install.steps.helmValues.overridesDescription.upgrade 109.0.0 110.0.0');
     });
 
-    it('explains that only the overrides are saved when an installed app keeps its version', () => {
+    it('shows no banner when an installed app keeps its version', () => {
       const { description } = step2Description({ currentVersion: '110.0.0' });
 
-      expect(description).toBe('catalog.install.steps.helmValues.overridesDescription.install');
+      expect(description).toBe('');
     });
 
     it('keeps the cluster template description', () => {

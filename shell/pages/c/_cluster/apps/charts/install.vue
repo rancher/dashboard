@@ -784,15 +784,12 @@ export default {
     step2Description() {
       const descriptionKey = this.steps.find((s) => s.name === 'helmValues').descriptionKey;
 
-      // A chart app explains how its values are saved. A cluster template keeps its own description.
       if (descriptionKey === this.stepValues.descriptionKey) {
-        // Editing an installed app without changing its version saves the same way as an install.
-        // Raw, as the banner shows it as text, which escapes it already.
         if (this.currentVersion && this.currentVersion !== this.targetVersion) {
           return this.t('catalog.install.steps.helmValues.overridesDescription.upgrade', { from: this.currentVersion, to: this.targetVersion }, true);
         }
 
-        return this.t('catalog.install.steps.helmValues.overridesDescription.install', {}, true);
+        return '';
       }
 
       return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action.name, existing: !!this.existing }, '');
