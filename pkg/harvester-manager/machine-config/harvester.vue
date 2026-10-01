@@ -981,20 +981,25 @@ export default {
       if (clusterId) {
         const url = `/k8s/clusters/${ clusterId }/v1`;
 
+        // These live on the Harvester cluster behind the cloud credential, not the cluster the store is loaded for,
+        // so they are raw requests like the rest of this form. Each may fail on its own without losing the others.
+        const res = await allHashSettled({
+          pciDevices:       this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.PCI_DEVICE }` }),
+          pciDeviceClaims:  this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.PCI_DEVICE_CLAIM }` }),
+          harvesterCluster: this.$store.dispatch('cluster/request', { url: `${ url }/harvester/cluster/local` }),
+        });
+
+        const pciDevices = res.pciDevices.value;
+        const pciDeviceClaims = res.pciDeviceClaims.value;
+        const deviceCapacityUrl = res.harvesterCluster.value?.links?.deviceCapacity;
+
         let deviceCapacity = null;
-        let pciDevices = null;
-        let pciDeviceClaims = null;
 
-        try {
-          pciDevices = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.PCI_DEVICE }` });
-          pciDeviceClaims = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.PCI_DEVICE_CLAIM }` });
-
-          const harvesterCluster = await this.$store.dispatch('cluster/request', { url: `${ url }/harvester/cluster/local` });
-
-          if (harvesterCluster?.links?.deviceCapacity) {
-            deviceCapacity = await this.$store.dispatch('cluster/request', { url: harvesterCluster?.links?.deviceCapacity });
+        if (deviceCapacityUrl) {
+          try {
+            deviceCapacity = await this.$store.dispatch('cluster/request', { url: deviceCapacityUrl });
+          } catch (e) {
           }
-        } catch (e) {
         }
 
         /**
