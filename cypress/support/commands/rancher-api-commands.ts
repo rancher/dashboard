@@ -585,37 +585,23 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
  * @param config.explicitFailOnStatusCodes Array of explicit status codes to assert against when failOnStatusCode is false
 */
 Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId, failOnStatusCode = true, { explicitFailOnStatusCodes } = { explicitFailOnStatusCodes: undefined }) => {
-  const deleteRequest = (failOnStatus: boolean) => cy.request({
+  return cy.request({
     method:  'DELETE',
     url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`,
     headers: {
       'x-api-csrf': token.value,
       Accept:       'application/json'
     },
-    failOnStatusCode: failOnStatus,
-  });
-
-  // Rancher head currently answers the first DELETE of a cloud credential with a 500 and leaves it in
-  // place; sending the DELETE a second time removes it. Retry once on that 500 only.
-  const isCloudCredential = resourceType === 'cloudcredentials';
-
-  const check = (resp: Cypress.Response<any>) => {
-    if (failOnStatusCode) {
-      expect(resp.status).to.be.oneOf([200, 204]);
-    }
-
-    if (explicitFailOnStatusCodes?.length) {
-      expect(resp.status).to.be.oneOf(explicitFailOnStatusCodes);
-    }
-  };
-
-  return deleteRequest(isCloudCredential ? false : failOnStatusCode)
+    failOnStatusCode,
+  })
     .then((resp) => {
-      if (isCloudCredential && resp.status === 500) {
-        return deleteRequest(failOnStatusCode).then(check);
+      if (failOnStatusCode) {
+        expect(resp.status).to.be.oneOf([200, 204]);
       }
 
-      check(resp);
+      if (explicitFailOnStatusCodes?.length) {
+        expect(resp.status).to.be.oneOf(explicitFailOnStatusCodes);
+      }
     });
 });
 
