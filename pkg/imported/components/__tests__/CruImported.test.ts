@@ -253,15 +253,28 @@ describe('cruImported component', () => {
     });
 
     it('should return annotation value when day two ops annotation is set', () => {
+      // The annotation is seeded via the `data` mount option (rather than mutated on `wrapper.vm`
+      // post-mount) because `CruImported` now has a `setup()` (for `useClusterMembership`), and
+      // `@vue/test-utils` routes `wrapper.vm.<dataProp>` reads/writes for setup()-bearing
+      // components through a non-reactive fallback (see `createVMProxy` in
+      // `@vue/test-utils/dist/vue-test-utils.cjs.js`), so a post-mount mutation via `wrapper.vm`
+      // would never trigger the `dayTwoOps` computed to recompute.
       const wrapper = shallowMount(CruImported, {
         props: {
           mode:  _EDIT,
           value: { isRke1: false, isLocal: false }
         },
-        ...defaultSetup
+        ...defaultSetup,
+        data: () => ({
+          normanCluster: {
+            ...defaultSetup.data().normanCluster,
+            annotations: {
+              ...defaultSetup.data().normanCluster.annotations,
+              [OPERATION_ANNOTATIONS.ENABLED]: 'true'
+            }
+          }
+        })
       });
-
-      normanAnnotations(wrapper)[OPERATION_ANNOTATIONS.ENABLED] = 'true';
 
       expect(wrapper.vm.dayTwoOps).toBe('true');
     });

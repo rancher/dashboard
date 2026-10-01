@@ -6,7 +6,8 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import { HCI, VIRTUAL_HARVESTER_PROVIDER, NORMAN } from '@shell/config/types';
-import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
+import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembershipEditor';
+import { useClusterMembership, saveRoleBindings } from '@shell/composables/useClusterMembership';
 import { Banner } from '@components/Banner';
 import Labels from '@shell/components/form/Labels.vue';
 import KeyValue from '@shell/components/form/KeyValue';
@@ -67,19 +68,15 @@ export default {
     }
   },
 
+  setup() {
+    return useClusterMembership();
+  },
+
   data() {
-    return {
-      membershipUpdate: {}, normanCluster: { name: '' }, VIEW: _VIEW
-    };
+    return { normanCluster: { name: '' }, VIEW: _VIEW };
   },
   created() {
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
-  },
-
-  computed: {
-    canManageMembers() {
-      return canViewClusterMembershipEditor(this.$store);
-    },
   },
 
   methods: {
@@ -106,14 +103,8 @@ export default {
       await this.save(...arguments);
     },
 
-    onMembershipUpdate(update) {
-      this.membershipUpdate = update;
-    },
-
     async saveRoleBindings() {
-      if (this.membershipUpdate.save) {
-        await this.membershipUpdate.save(this.normanCluster.id);
-      }
+      return saveRoleBindings(this.membershipUpdate, this.normanCluster.id);
     },
 
     async actuallySave() {

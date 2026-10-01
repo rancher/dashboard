@@ -22,7 +22,8 @@ import Loading from '@shell/components/Loading.vue';
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
 import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
-import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+import { useClusterMembership, saveRoleBindings } from '@shell/composables/useClusterMembership';
 import type { GKEConfig, GKENodePool } from '@shell/components/google/types';
 import AccountAccess from '@shell/components/google/AccountAccess.vue';
 import AdvancedOptions from './AdvancedOptions.vue';
@@ -249,6 +250,10 @@ export default defineComponent({
     this.config = this.normanCluster.gkeConfig;
   },
 
+  setup() {
+    return useClusterMembership();
+  },
+
   data() {
     const store = this.$store as Store<any>;
     const supportedVersionRange = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
@@ -260,7 +265,6 @@ export default defineComponent({
       PRIVATE_REGISTRY_CONTEXT,
       nodePools:              [] as GKENodePool[],
       config:                 { } as GKEConfig,
-      membershipUpdate:       {} as any,
       originalVersion:        '',
       defaultImageType:       GKEImageTypes[0],
       privateRegistryEnabled: false,
@@ -534,10 +538,6 @@ export default defineComponent({
       return this.value?.id || null;
     },
 
-    canManageMembers(): Boolean {
-      return canViewClusterMembershipEditor(this.$store);
-    },
-
     CREATE(): string {
       return _CREATE;
     },
@@ -693,14 +693,8 @@ export default defineComponent({
       this.config['decription'] = decription;
     },
 
-    onMembershipUpdate(update: any): void {
-      this['membershipUpdate'] = update;
-    },
-
     async saveRoleBindings(): Promise<void> {
-      if (this.membershipUpdate.save) {
-        await this.membershipUpdate.save(this.normanCluster.id);
-      }
+      return saveRoleBindings(this.membershipUpdate, this.normanCluster.id);
     },
 
     // these fields are used purely in UI, to track individual nodepool components
