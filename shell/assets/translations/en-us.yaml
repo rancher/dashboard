@@ -3012,6 +3012,18 @@ codeMirror:
   leaveEditor: Press Escape, then Tab to leave the editor
   foldLine: Fold line
   unfoldLine: Unfold line
+  search:
+    find: Find
+    next: Next
+    previous: Previous
+    all: Select all
+    matchCase: Match case
+    regexp: Regular expression
+    byWord: Whole word
+    replaceField: Replace
+    replace: Replace
+    replaceAll: Replace all
+    close: Close search
   keymap:
     tooltip: Key mapping preference.
     indicatorToolip: "Key mapping: {name}"

@@ -8,7 +8,7 @@ type Platform = 'macOS' | 'Linux' | 'Windows';
 type Only = 'macOS' | 'other';
 
 /**
- * Undo and redo shortcuts, plus regression checks that search shortcuts do not open an editor panel.
+ * Undo, redo and search panel shortcuts.
  * `Mod` is Cmd on macOS and Ctrl elsewhere, the same as in CodeMirror key bindings.
  */
 const HISTORY_SHORTCUTS: [RcCodeMirrorKeymap, string, 'undo' | 'redo', Only?][] = [
@@ -22,12 +22,17 @@ const HISTORY_SHORTCUTS: [RcCodeMirrorKeymap, string, 'undo' | 'redo', Only?][] 
   ['emacs', 'Mod-y', 'redo', 'macOS'],
 ];
 
-const NO_SEARCH_PANEL_SHORTCUTS: [RcCodeMirrorKeymap, string][] = [
+const SEARCH_PANEL_SHORTCUTS: [RcCodeMirrorKeymap, string, Only?][] = [
   ['default', 'Mod-f'],
+  // Elsewhere Ctrl-F is Emacs forward-char
+  ['emacs', 'Mod-f', 'macOS'],
+  ['emacs', 'Ctrl-s'],
+];
+
+const NO_SEARCH_PANEL_SHORTCUTS: [RcCodeMirrorKeymap, string, Only?][] = [
   ['default', 'Ctrl-s'],
   ['default', 'Ctrl-r'],
-  ['emacs', 'Mod-f'],
-  ['emacs', 'Ctrl-s'],
+  ['emacs', 'Mod-f', 'other'],
   ['emacs', 'Ctrl-r'],
   ['vim', 'Mod-f'],
 ];
@@ -117,7 +122,19 @@ describe.each(PLATFORMS)('component: RcCodeMirror shortcuts on %s', (platform, n
     expect(view.state.doc.toString()).toStrictEqual(action === 'undo' ? 'abc' : 'abc!');
   });
 
+  it.each(SEARCH_PANEL_SHORTCUTS
+    .filter(([, , only]) => runsHere(only))
+    .map(([keymap, keys]) => [keymap, label(keys), keys] as const)
+  )('%s keymap: opens the search panel with %s', (keymap, _label, keys) => {
+    const view = mountEditor(keymap);
+
+    view.contentDOM.dispatchEvent(keyEvent(keys, mac));
+
+    expect(wrapper.find('.cm-search').exists()).toBe(true);
+  });
+
   it.each(NO_SEARCH_PANEL_SHORTCUTS
+    .filter(([, , only]) => runsHere(only))
     .map(([keymap, keys]) => [keymap, label(keys), keys] as const)
   )('%s keymap: does not open search panel with %s', (keymap, _label, keys) => {
     const view = mountEditor(keymap);

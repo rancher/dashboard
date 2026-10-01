@@ -191,6 +191,18 @@ export default defineComponent({
         ['Fold line', 'codeMirror.foldLine'],
         ['Unfold line', 'codeMirror.unfoldLine'],
         ['Press Escape, then Tab to leave the editor', 'codeMirror.leaveEditor'],
+        // The search panel opened with Mod-F
+        ['Find', 'codeMirror.search.find'],
+        ['next', 'codeMirror.search.next'],
+        ['previous', 'codeMirror.search.previous'],
+        ['all', 'codeMirror.search.all'],
+        ['match case', 'codeMirror.search.matchCase'],
+        ['regexp', 'codeMirror.search.regexp'],
+        ['by word', 'codeMirror.search.byWord'],
+        ['Replace', 'codeMirror.search.replaceField'],
+        ['replace', 'codeMirror.search.replace'],
+        ['replace all', 'codeMirror.search.replaceAll'],
+        ['close', 'codeMirror.search.close'],
         // RcCodeMirror replaces `$` with the keymap name
         ['Key mapping: $', 'codeMirror.keymap.indicatorToolip', { name: '$' }],
         ['Hide key mapping: $', 'codeMirror.keymap.hideIndicator', { name: '$' }],
