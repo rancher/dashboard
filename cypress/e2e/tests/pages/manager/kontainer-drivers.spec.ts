@@ -1,5 +1,6 @@
 // import { isMatch } from 'lodash';
 import KontainerDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/kontainer-drivers.po';
+import { qase } from '@/cypress/support/qase';
 // import KontainerDriverEditPo from '@/cypress/e2e/po/edit/kontainer-driver.po';
 // import DeactivateDriverDialogPo from '@/cypress/e2e/po/prompts/deactivateDriverDialog.po';
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
@@ -29,13 +30,13 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     cy.login();
   });
 
-  it('should show the cluster drivers list page', () => {
+  qase(2997, it('should show the cluster drivers list page', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     driversPage.title().should('be.visible');
     driversPage.list().resourceTable().sortableTable().checkVisible();
     driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-  });
+  }));
 
   // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/15782
   // it('can refresh kubernetes metadata', () => {
@@ -159,7 +160,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   //   createCluster.gridElementExistanceByName('example', 'exist');
   // });
 
-  it('will show error if could not activate driver', () => {
+  qase(8550, it('will show error if could not activate driver', () => {
     cy.intercept('POST', '/v3/kontainerDrivers/linodekubernetesengine?action=activate', {
       statusCode: 500,
       body:       { message: `Could not activate driver` }
@@ -174,7 +175,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     cy.wait('@activationError').then(() => {
       cy.get('.growl-text').contains('Could not activate driver').should('be.visible');
     });
-  });
+  }));
 
   // Will fail given `can create new driver` is disabled
   // it('can edit a cluster driver', () => {
