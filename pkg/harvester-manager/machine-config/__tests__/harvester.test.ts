@@ -161,13 +161,15 @@ describe('component: harvester machine config - PCI devices', () => {
       ]
     };
 
-    const createCtx = ({ deviceCapacity, withCapacityLink = true }: { deviceCapacity?: any, withCapacityLink?: boolean }) => {
+    const createCtx = ({ deviceCapacity, withCapacityLink = true, failing = [] }: { deviceCapacity?: any, withCapacityLink?: boolean, failing?: string[] }) => {
       const responses: Record<string, any> = {
         [`${ BASE_URL }/${ HCI.PCI_DEVICE }`]:       pciDevices,
         [`${ BASE_URL }/${ HCI.PCI_DEVICE_CLAIM }`]: pciDeviceClaims,
         [`${ BASE_URL }/harvester/cluster/local`]:   { links: withCapacityLink ? { deviceCapacity: DEVICE_CAPACITY_URL } : {} },
         [DEVICE_CAPACITY_URL]:                       deviceCapacity,
       };
+
+      failing.forEach((url) => delete responses[url]);
 
       const dispatch = jest.fn((action: string, { url }: { url: string }) => {
         if (action !== 'cluster/request' || !(url in responses)) {
@@ -216,6 +218,29 @@ describe('component: harvester machine config - PCI devices', () => {
 
       expect(Object.values(ctx.pciDevices).map((d: any) => d.allocatable)).toStrictEqual([null, null, null]);
       expect(ctx.$store.dispatch).not.toHaveBeenCalledWith('cluster/request', { url: DEVICE_CAPACITY_URL });
+    });
+
+    it('should still list devices when the deviceCapacity request fails', async() => {
+      const ctx = createCtx({ failing: [DEVICE_CAPACITY_URL] });
+
+      await harvester.methods.getAvailablePciDevices.call(ctx);
+
+      expect(ctx.pciDevices['node1-000001000']).toStrictEqual({
+        id:          'node1-000001000',
+        enabled:     true,
+        allocatable: null,
+        type:        GPU_TYPE,
+      });
+    });
+
+    it('should list devices as unclaimed when the PCIDeviceClaim request fails', async() => {
+      const ctx = createCtx({ deviceCapacity: { [GPU_TYPE]: '2' }, failing: [`${ BASE_URL }/${ HCI.PCI_DEVICE_CLAIM }`] });
+
+      await harvester.methods.getAvailablePciDevices.call(ctx);
+
+      expect(Object.keys(ctx.pciDevices)).toHaveLength(3);
+      expect(Object.values(ctx.pciDevices).map((d: any) => d.enabled)).toStrictEqual([false, false, false]);
+      expect(ctx.pciDevices['node1-000001000'].allocatable).toBe(2);
     });
 
     it('should not request anything when the credential has no clusterId', async() => {
