@@ -1605,6 +1605,36 @@ describe('component: RcCodeMirror', () => {
     });
   });
 
+  describe('vim command line', () => {
+    function pressSlash(view: EditorView): void {
+      view.focus();
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: '/', code: 'Slash', keyCode: 191, bubbles: true, cancelable: true
+      }));
+    }
+
+    // Pages such as Edit YAML stick a footer over the bottom of the editor
+    it('should open the / prompt above the editor rather than in it', () => {
+      mountEditor({ keymap: 'vim', modelValue: 'foo: bar' });
+      pressSlash(getView(wrapper));
+
+      expect({
+        strip:  wrapper.find('.rc-cm-bottom-panels .cm-vim-panel input').exists(),
+        editor: wrapper.find('.cm-editor .cm-vim-panel').exists()
+      }).toStrictEqual({ strip: true, editor: false });
+    });
+
+    it('should empty the strip once the prompt closes', () => {
+      mountEditor({ keymap: 'vim', modelValue: 'foo: bar' });
+      pressSlash(getView(wrapper));
+      wrapper.find('.rc-cm-bottom-panels input').element.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true, cancelable: true
+      }));
+
+      expect(wrapper.find('.rc-cm-bottom-panels .cm-panels').exists()).toBe(false);
+    });
+  });
+
   describe('vim enter', () => {
     function pressKeys(view: EditorView, keys: Partial<KeyboardEventInit>[]): void {
       keys.forEach((init) => view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
