@@ -16,7 +16,8 @@ function replaceAll(str, find, replace) {
 // Vue globalProperties *and* on the Vuex root state, regardless of which one the host
 // injected. This makes all extensions compatible across Rancher versions without any
 // per-extension code changes.
-const COMPAT_SHIM = `  if (typeof document !== 'undefined') {
+const COMPAT_SHIM = `  console.error('[shell-debug] extension loaded:', typeof $extension !== 'undefined' && $extension.name); // eslint-disable-line no-console
+  if (typeof document !== 'undefined') {
     var patchGlobalProps = function() {
       var __el = document.getElementById('app');
       var __vueApp = __el && __el.__vue_app__;
