@@ -346,8 +346,8 @@ describe('the bar order', () => {
     expect(names(orderViews([stock, one, two], ['built-in-stock', 'one', 'two'], byId, 'two'))).toStrictEqual(['Two', 'Home', 'One']);
   });
 
-  it('keeps Rancher’s own page right after the default, wherever it was dragged', () => {
-    expect(names(orderViews([one, two, three, stock], ['one', 'two', 'three', 'built-in-stock'], byId, 'two'))).toStrictEqual(['Two', 'Home', 'One', 'Three']);
+  it('leaves Rancher’s own page where it was dragged, once it is not the default', () => {
+    expect(names(orderViews([one, two, three, stock], ['one', 'two', 'three', 'built-in-stock'], byId, 'two'))).toStrictEqual(['Two', 'One', 'Three', 'Home']);
     expect(names(orderViews([one, two, stock], ['one', 'two', 'built-in-stock'], byId))).toStrictEqual(['Home', 'One', 'Two']);
   });
 

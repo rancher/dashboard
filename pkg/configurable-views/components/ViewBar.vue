@@ -151,11 +151,8 @@ const isStock = (view: View) => isStockView(view);
 /** No default set means Rancher's own page is the one the page opens on */
 const isDefaultTab = (view: View) => (props.defaultId ? props.defaultId === view.id : isStock(view));
 
-/**
- * The tabs that stay where they are: the one the page opens on, and Rancher's own page right after
- * it. None can be dragged, nor anything dropped before them.
- */
-const lockedTabCount = computed(() => Math.max(1, props.views.findIndex(isStock) + 1));
+/** The tab the page opens on can't be dragged out of the front, nor anything dropped before it */
+const LOCKED_TAB_COUNT = 1;
 
 const isPublished = (view: View) => props.publishedIds.includes(view.id);
 
@@ -263,7 +260,7 @@ const {
   initialOrder: () => props.views.map((view) => view.id),
   measure:      captureTabSlots,
   indexAt:      tabIndexAt,
-  firstMovable: () => lockedTabCount.value,
+  firstMovable: () => LOCKED_TAB_COUNT,
   onBegin:      () => {
     // Otherwise the pointer selects the tab names it crosses
     window.getSelection()?.removeAllRanges();
@@ -277,7 +274,7 @@ const {
 });
 
 const startTabDrag = (view: View, event: MouseEvent) => {
-  if (event.button !== 0 || props.editing || renamingId.value || props.views.findIndex((v) => v.id === view.id) < lockedTabCount.value) {
+  if (event.button !== 0 || props.editing || renamingId.value || props.views.findIndex((v) => v.id === view.id) < LOCKED_TAB_COUNT) {
     return;
   }
 
