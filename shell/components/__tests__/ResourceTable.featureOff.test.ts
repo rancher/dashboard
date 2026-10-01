@@ -1,5 +1,5 @@
 import ResourceTableViews from '@shell/mixins/resource-table-views';
-import { IMPROVED_TABLES } from '@shell/store/features';
+import { CONFIGURABLE_TABLES } from '@shell/store/features';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import type { TableViewField } from '@shell/types/table-views';
 
@@ -54,7 +54,7 @@ function list(featureOn: boolean) {
     $store:                    {
       dispatch,
       getters: {
-        'features/get': (name: string) => (name === IMPROVED_TABLES ? featureOn : undefined),
+        'features/get': (name: string) => (name === CONFIGURABLE_TABLES ? featureOn : undefined),
         'prefs/get':    (key: string) => (key === TABLE_VIEWS ? { pod: SAVED } : undefined),
       },
     },

@@ -6,7 +6,7 @@ import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst, randomStr } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { valueFor as columnValueFor } from '@shell/utils/table-columns';
-import { isExtensionTable, isImprovedTablesEnabled, TABLE_VIEWS_SHELL_KEY } from '@shell/utils/table-views/feature';
+import { isExtensionTable, isConfigurableTablesEnabled, TABLE_VIEWS_SHELL_KEY } from '@shell/utils/table-views/feature';
 import { RcButton } from '@components/RcButton';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -697,7 +697,7 @@ export default {
       }
 
       // An extension's table keeps the masthead it was written for unless it asks for this one
-      return isImprovedTablesEnabled(this.$store) && !isExtensionTable({
+      return isConfigurableTablesEnabled(this.$store) && !isExtensionTable({
         providedShell: this.providedTableViewsShell, route: this.$route, extensions: this.$store?.state?.$extension
       });
     },

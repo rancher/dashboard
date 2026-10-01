@@ -1,10 +1,10 @@
 import ResourceTableViews from '@shell/mixins/resource-table-views';
 import SortableTable from '@shell/components/SortableTable/index.vue';
-import { IMPROVED_TABLES } from '@shell/store/features';
+import { CONFIGURABLE_TABLES } from '@shell/store/features';
 import { TABLE_VIEWS_SHELL } from '@shell/utils/table-views/feature';
 
 const store = {
-  getters: { 'features/get': (name: string) => (name === IMPROVED_TABLES ? true : undefined) },
+  getters: { 'features/get': (name: string) => (name === CONFIGURABLE_TABLES ? true : undefined) },
   state:   { $extension: { getPlugins: () => ({}) } },
 };
 

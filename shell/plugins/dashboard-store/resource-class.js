@@ -42,7 +42,7 @@ import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
 import { useResourceCardRow, useResourceCardRowFromRelationships } from '@shell/components/Resource/Detail/Card/StateCard/composables';
-import { isImprovedTablesEnabled } from '@shell/utils/table-views/feature';
+import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -1005,7 +1005,7 @@ export default class Resource {
       { divider: true },
       {
         action:     'download',
-        label:      this.t(this.improvedTables ? 'action.downloadExport' : 'action.download'),
+        label:      this.t(this.configurableTables ? 'action.downloadExport' : 'action.download'),
         icon:       'icon icon-download',
         bulkable:   true,
         bulkAction: 'downloadBulk',
@@ -1635,20 +1635,20 @@ export default class Resource {
     this.currentRouter().push(location);
   }
 
-  get improvedTables() {
-    return isImprovedTablesEnabled({ rootGetters: this.$rootGetters });
+  get configurableTables() {
+    return isConfigurableTablesEnabled({ rootGetters: this.$rootGetters });
   }
 
   /**
-   * With improved tables on this asks for a format; YAML is the download it has always been. The
+   * With configurable tables on this asks for a format; YAML is the download it has always been. The
    * action keeps its name either way, since models hide or keep it by name
    */
   download() {
-    return this.improvedTables ? this.openExportModal([this]) : this.downloadYaml();
+    return this.configurableTables ? this.openExportModal([this]) : this.downloadYaml();
   }
 
   downloadBulk(items) {
-    return this.improvedTables ? this.openExportModal(items) : this.downloadYamlBulk(items);
+    return this.configurableTables ? this.openExportModal(items) : this.downloadYamlBulk(items);
   }
 
   async openExportModal(items) {

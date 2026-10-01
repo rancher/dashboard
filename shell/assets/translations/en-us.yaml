@@ -9278,7 +9278,7 @@ action:
   clone: Clone
   disable: Disable
   download: Download YAML
-  # What the same action is called when the improved tables feature is on, where it offers the
+  # What the same action is called when the configurable tables feature is on, where it offers the
   # other formats alongside the yaml it has always given
   downloadExport: Export As...
   edit: Edit Config

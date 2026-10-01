@@ -17,7 +17,7 @@ import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import DOMPurify from 'dompurify';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
-import { isImprovedTablesEnabled } from '@shell/utils/table-views/feature';
+import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
 import perfSettingsUtils from '@shell/utils/perf-setting.utils';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
@@ -138,7 +138,7 @@ export default {
       let headers;
 
       // The toolbar's columns are the View menu's to decide, grouped or not
-      if (this.groupMode === 'none' || isImprovedTablesEnabled(this.$store)) {
+      if (this.groupMode === 'none' || isConfigurableTablesEnabled(this.$store)) {
         headers = [STATE, NAME, DESCRIPTION];
 
         const projectHeader = {
@@ -216,7 +216,7 @@ export default {
     groupPreference: mapPref(GROUP_RESOURCES),
     // With the toolbar the table decides, starting from none; without it, the old buttons' preference
     groupMode() {
-      if (isImprovedTablesEnabled(this.$store)) {
+      if (isConfigurableTablesEnabled(this.$store)) {
         return this.tableGroup || 'none';
       }
 

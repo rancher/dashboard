@@ -1,7 +1,7 @@
 import debounce from 'lodash/debounce';
 
 import { optionalHeadersFor } from '@shell/utils/table-views/optional-headers';
-import { isExtensionTable, isImprovedTablesEnabled, TABLE_VIEWS_SHELL_KEY } from '@shell/utils/table-views/feature';
+import { isExtensionTable, isConfigurableTablesEnabled, TABLE_VIEWS_SHELL_KEY } from '@shell/utils/table-views/feature';
 import { AGE } from '@shell/config/table-headers';
 import { NotificationLevel } from '@shell/types/notifications';
 import { downloadFile } from '@shell/utils/download';
@@ -336,7 +336,7 @@ export default {
      * turning it off
      */
     showTableViews() {
-      if (!isImprovedTablesEnabled(this.$store)) {
+      if (!isConfigurableTablesEnabled(this.$store)) {
         return false;
       }
 
