@@ -1,5 +1,14 @@
 import { ResourcesApiClassImpl } from '../resources-api-class';
+import { OpenApiV3, PATCH_CONTENT_TYPE } from '@shell/apis/resources/open-api-v3';
 import { Store } from 'vuex';
+
+const CLUSTER_ID = 'c-m-abcde';
+
+/**
+ * The cluster the OpenAPI spec is read from. Management resources are defined in the local cluster,
+ * not in the cluster currently being viewed
+ */
+const OPEN_API_CLUSTER = { cluster: CLUSTER_ID, management: 'local' } as Record<string, string>;
 
 describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with storeType: %s', (storeType) => {
   let mockStore: Store<any>;
@@ -30,11 +39,14 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
     mockStore = {
       dispatch: mockDispatch,
       getters:  {
+        clusterId:                            CLUSTER_ID,
         [`${ storeType }/schemaFor`]:         mockSchemaFor,
         [`${ storeType }/paginationEnabled`]: mockPaginationEnabled,
         [`${ storeType }/urlFor`]:            mockUrlFor
       }
     } as any;
+
+    OpenApiV3.clearCache();
 
     resourcesApi = new ResourcesApiClassImpl(mockStore, storeType);
   });
@@ -621,15 +633,35 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
   });
 
   describe('update', () => {
-    it('should send a PATCH request with strategic-merge-patch content type', async() => {
+    const OPEN_API_URL = `/k8s/clusters/${ OPEN_API_CLUSTER[storeType] }/openapi/v3/api/v1`;
+    const CONFIG_MAP_PATH = '/api/v1/namespaces/{namespace}/configmaps/{name}';
+
+    /**
+     * Mock the schema and the two requests `update` makes - one to read the OpenAPI spec, one to
+     * send the patch itself
+     */
+    const mockUpdate = (patchContentTypes: string[], patchResponse: any = {}) => {
+      mockSchemaFor.mockReturnValue({
+        attributes: {
+          group: '', version: 'v1', resource: 'configmaps', namespaced: true
+        },
+        linkFor: () => 'https://rancher/v1/configmaps'
+      });
+
+      mockDispatch.mockImplementation((_action: string, payload: any) => {
+        if (payload?.opt?.url === OPEN_API_URL) {
+          return Promise.resolve({ paths: { [CONFIG_MAP_PATH]: { patch: { requestBody: { content: patchContentTypes.reduce((acc, type) => ({ ...acc, [type]: {} }), {}) } } } } });
+        }
+
+        return Promise.resolve(patchResponse);
+      });
+    };
+
+    it('should send a PATCH request with strategic-merge-patch content type when the resource supports it', async() => {
       // Arrange
       const mockResponse = { metadata: { name: 'my-config' }, data: { key: 'patched' } };
 
-      mockSchemaFor.mockReturnValue({
-        attributes: { namespaced: true },
-        linkFor:    () => 'https://rancher/v1/configmaps'
-      });
-      mockDispatch.mockResolvedValue(mockResponse);
+      mockUpdate([PATCH_CONTENT_TYPE.MERGE, PATCH_CONTENT_TYPE.STRATEGIC_MERGE], mockResponse);
 
       // Act
       const result = await resourcesApi.update('configmap', 'default/my-config', { data: { key: 'patched' } });
@@ -640,10 +672,58 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
         opt: {
           url:     'https://rancher/v1/configmaps/default/my-config',
           method:  'patch',
-          headers: { 'content-type': 'application/strategic-merge-patch+json' },
+          headers: { 'content-type': PATCH_CONTENT_TYPE.STRATEGIC_MERGE },
           data:    { data: { key: 'patched' } },
         }
       });
+    });
+
+    it('should send a PATCH request with merge-patch content type when the resource is a CRD', async() => {
+      // Arrange - CRDs don't advertise support for strategic merge patch
+      mockUpdate([PATCH_CONTENT_TYPE.MERGE]);
+
+      // Act
+      await resourcesApi.update('configmap', 'default/my-config', { data: { key: 'patched' } });
+
+      // Assert
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/request`, {
+        opt: {
+          url:     'https://rancher/v1/configmaps/default/my-config',
+          method:  'patch',
+          headers: { 'content-type': PATCH_CONTENT_TYPE.MERGE },
+          data:    { data: { key: 'patched' } },
+        }
+      });
+    });
+
+    it('should send a PATCH request with merge-patch content type when the OpenAPI spec cannot be read', async() => {
+      // Arrange
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      mockSchemaFor.mockReturnValue({
+        attributes: {
+          group: '', version: 'v1', resource: 'configmaps', namespaced: true
+        },
+        linkFor: () => 'https://rancher/v1/configmaps'
+      });
+      mockDispatch.mockImplementation((_action: string, payload: any) => {
+        return payload?.opt?.url === OPEN_API_URL ? Promise.reject(new Error('Forbidden')) : Promise.resolve({});
+      });
+
+      // Act
+      await resourcesApi.update('configmap', 'default/my-config', { data: { key: 'patched' } });
+
+      // Assert
+      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/request`, {
+        opt: {
+          url:     'https://rancher/v1/configmaps/default/my-config',
+          method:  'patch',
+          headers: { 'content-type': PATCH_CONTENT_TYPE.MERGE },
+          data:    { data: { key: 'patched' } },
+        }
+      });
+
+      consoleWarnSpy.mockRestore();
     });
 
     it('should throw error for namespaced resource without namespace in id', async() => {
