@@ -887,10 +887,9 @@ export const actions = {
     });
 
     if ( res[FLEET.WORKSPACE] ) {
-      commit('updateWorkspace', {
+      dispatch('restoreWorkspace', {
         value: getters['prefs/get'](WORKSPACE),
-        all:   res[FLEET.WORKSPACE],
-        getters
+        all:   res[FLEET.WORKSPACE]
       });
     }
 
@@ -1306,6 +1305,21 @@ export const actions = {
 
   showWorkspaceSwitcher({ commit }, value) {
     commit('showWorkspaceSwitcher', value);
+  },
+
+  // Corrects the selection in use only. The stored preference is deliberately left alone, so a list
+  // that has not caught up yet - right after creating a workspace - can never cost the user their choice.
+  restoreWorkspace({ commit, getters, state }, { value, all }) {
+    commit('updateWorkspace', {
+      value, all: all || state.allWorkspaces, getters
+    });
+  },
+
+  // Sets the selection without correcting it against anything. For callers that already know which
+  // value they want and whose options the store cannot see - the workspace-annotated namespaces the
+  // switcher falls back to when the user has no permission to list workspaces.
+  setWorkspace({ commit, getters }, { value }) {
+    commit('updateWorkspace', { value, getters });
   },
 
   ...gcActions

@@ -75,6 +75,7 @@ exports[`component: General rendering & initial state should render with default
               localizedlabel="false"
               lockedoptions=""
               mode="create"
+              mutedvalue="false"
               nooptionslabelkey="labelSelect.noOptions.empty"
               optionlabel="label"
               options="[object Object],[object Object],[object Object],[object Object]"

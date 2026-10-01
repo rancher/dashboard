@@ -1,0 +1,26 @@
+{
+  "name": "cert-manager",
+  "description": "Manage cert-manager Certificates, Issuers and ACME resources from the Cluster Explorer",
+  "version": "1.0.0",
+  "private": false,
+  "rancher": {
+    "annotations": {
+      "catalog.cattle.io/rancher-version": ">= v2.16.0-0",
+      "catalog.cattle.io/display-name": "Cert Manager"
+    }
+  },
+
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/cli-plugin-typescript": "~5.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

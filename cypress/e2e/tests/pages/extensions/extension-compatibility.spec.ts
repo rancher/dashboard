@@ -10,6 +10,7 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { createPodBlueprint } from '@/cypress/e2e/blueprints/explorer/workload-pods';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { qase } from '@/cypress/support/qase';
 
 // Cypress coerces numeric-looking CYPRESS_* values (e.g. "2.13") to numbers, so stringify it.
 const RANCHER_VERSION = String(Cypress.env('rancher_version') ?? '');
@@ -305,7 +306,7 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
   // ── Test Group 1: ActionLocation.HEADER ──
 
   describe('Test Group 1: ActionLocation.HEADER', () => {
-    it('1.1 Header Action Button 1 (click + CMD+M shortcut)', () => {
+    qase(50499, it('1.1 Header Action Button 1 (click + CMD+M shortcut)', () => {
       cy.visit('/home');
       cy.window().then((win) => cy.spy(win.console, 'log').as('consoleLog'));
 
@@ -317,9 +318,9 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       cy.get('@consoleLog').then((spy: any) => spy.resetHistory());
       cy.get('body').type(`${ MOD_KEY }m`);
       cy.get('@consoleLog').should('be.calledWithMatch', /action executed 1/);
-    });
+    }));
 
-    it('1.2 Header Action Button 2 (click + CMD+B shortcut)', () => {
+    qase(50500, it('1.2 Header Action Button 2 (click + CMD+B shortcut)', () => {
       cy.visit(`/c/${ CLUSTER_ID }/explorer`);
       cy.window().then((win) => cy.spy(win.console, 'log').as('consoleLog'));
 
@@ -331,7 +332,7 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       cy.get('@consoleLog').then((spy: any) => spy.resetHistory());
       cy.get('body').type(`${ MOD_KEY }b`);
       cy.get('@consoleLog').should('be.calledWithMatch', /action executed 2/);
-    });
+    }));
   });
 
   // ── Test Group 2: Tab Extension Points ──
@@ -339,13 +340,13 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
   describe('Test Group 2: Tab Extension Points', () => {
     const conditionalIt = skipTabDetailPage ? it.skip : it;
 
-    conditionalIt('2.1 Tab RESOURCE_DETAIL_PAGE', () => {
+    qase(50501, conditionalIt('2.1 Tab RESOURCE_DETAIL_PAGE', () => {
       // Visit the service detail (view) page directly - clicking the name link can land on edit.
       cy.visit(`/c/${ CLUSTER_ID }/explorer/service/${ NS }/${ svcName }`);
       clickDemoTabAndAssert('detail-page-id');
-    });
+    }));
 
-    conditionalIt('2.2 Tab RESOURCE_CREATE_PAGE', () => {
+    qase(50502, conditionalIt('2.2 Tab RESOURCE_CREATE_PAGE', () => {
       const services = new ServicesPagePo(CLUSTER_ID);
 
       services.goTo();
@@ -354,46 +355,46 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
 
       cy.contains('Cluster IP', MEDIUM_TIMEOUT_OPT).click();
       clickDemoTabAndAssert('create-page-id');
-    });
+    }));
 
-    conditionalIt('2.3 Tab RESOURCE_EDIT_PAGE', () => {
+    qase(50503, conditionalIt('2.3 Tab RESOURCE_EDIT_PAGE', () => {
       const table = goToServicesList();
 
       table.rowActionMenuOpen(svcName).getMenuItem('Edit Config').click();
       clickDemoTabAndAssert('edit-page-id');
-    });
+    }));
 
-    conditionalIt('2.4 Tab RESOURCE_SHOW_CONFIGURATION', () => {
+    qase(50504, conditionalIt('2.4 Tab RESOURCE_SHOW_CONFIGURATION', () => {
       cy.visit(`/c/${ CLUSTER_ID }/explorer/service/${ NS }/${ svcName }`);
       cy.contains('Show Configuration', MEDIUM_TIMEOUT_OPT).click();
       clickDemoTabAndAssert('show-configuration-id');
-    });
+    }));
 
-    (skipClusterRke2 ? it.skip : it)('2.5 Tab CLUSTER_CREATE_RKE2', () => {
+    qase(50505, (skipClusterRke2 ? it.skip : it)('2.5 Tab CLUSTER_CREATE_RKE2', () => {
       cy.visit(`/c/${ CLUSTER_ID }/manager/provisioning.cattle.io.cluster/create?type=custom#basic`);
       // Wait for the RKE2 config form's tab bar to render before looking for the extension tab.
       cy.get('[data-testid="tabbed"], .tabbed', LONG_TIMEOUT_OPT).should('exist');
       clickDemoTabAndAssert('cluster-create-rke2-id');
-    });
+    }));
 
     // Version conditional: the legacy RESOURCE_DETAIL TabLocation is the one extension point that
     // differs between the tested versions. It is native to 2.14 (skip_resource_detail_legacy=false)
     // and skipped on 2.15/latest (skip_resource_detail_legacy=true) per the test spec's
     // "legacy - up until rancher v2.14.0" note. All other tests run identically on both versions.
-    (skipResourceDetailLegacy ? it.skip : it)('2.6 Tab RESOURCE_DETAIL (legacy, up to v2.14)', () => {
+    qase(50506, (skipResourceDetailLegacy ? it.skip : it)('2.6 Tab RESOURCE_DETAIL (legacy, up to v2.14)', () => {
       // Visit the pod detail page directly (as 2.1 does for services). Navigating via the pods list
       // raced the post-filter table re-render: the row-link click was intermittently swallowed, so we
       // never left the list and the extension's detail tab never rendered ("btn-pod-detail-id" not
       // found). Direct navigation removes that race - the tab is still what the test asserts.
       cy.visit(`/c/${ CLUSTER_ID }/explorer/pod/${ NS }/${ podName }`);
       clickDemoTabAndAssert('pod-detail-id');
-    });
+    }));
   });
 
   // ── Test Group 3: ActionLocation.TABLE ──
 
   describe('Test Group 3: ActionLocation.TABLE', () => {
-    (OLD_ACTION_MENU ? it.skip : it)('3.1 Table Action (row actions, non-bulkable + bulkable)', () => {
+    qase(50507, (OLD_ACTION_MENU ? it.skip : it)('3.1 Table Action (row actions, non-bulkable + bulkable)', () => {
       const table = goToReposTable();
 
       cy.window().then((win) => cy.spy(win.console, 'log').as('consoleLog'));
@@ -405,9 +406,9 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       // "Demo bulkable action" as a row action
       openRowActionMenu(table).getMenuItem('Demo bulkable action').click({ force: true });
       cy.get('@consoleLog').should('be.calledWithMatch', /table action executed 2/);
-    });
+    }));
 
-    it('3.2 Table Action (bulkable, via selection + bulk bar)', () => {
+    qase(50508, it('3.2 Table Action (bulkable, via selection + bulk bar)', () => {
       // Wide viewport so the bulk action button renders inline (it collapses into a dropdown otherwise)
       cy.viewport(1920, 1080);
 
@@ -420,18 +421,18 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
 
       table.bulkActionButton('Demo bulkable action').should('be.visible').and('not.be.disabled').click();
       cy.get('@consoleLog').should('be.calledWithMatch', /table action executed 2/);
-    });
+    }));
   });
 
   // ── Test Group 4: PanelLocation Extension Points ──
 
   describe('Test Group 4: PanelLocation Extension Points', () => {
-    it('4.1 PanelLocation.RESOURCE_LIST', () => {
+    qase(50509, it('4.1 PanelLocation.RESOURCE_LIST', () => {
       goToReposTable();
       cy.contains('Just a sample banner to show that we can render anything here', LONG_TIMEOUT_OPT).should('be.visible');
-    });
+    }));
 
-    it('4.2 PanelLocation.DETAILS_MASTHEAD & DETAILS_TOP (details)', () => {
+    qase(50510, it('4.2 PanelLocation.DETAILS_MASTHEAD & DETAILS_TOP (details)', () => {
       const table = goToReposTable();
 
       table.row(0).self().find('a')
@@ -439,35 +440,35 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
         .click();
       cy.contains('This is a generic masthead component example', MEDIUM_TIMEOUT_OPT).should('be.visible');
       cy.contains('This is an example on DetailTop').should('be.visible');
-    });
+    }));
 
-    (OLD_ACTION_MENU ? it.skip : it)('4.3 PanelLocation.DETAILS_MASTHEAD & DETAILS_TOP (edit)', () => {
+    qase(50511, (OLD_ACTION_MENU ? it.skip : it)('4.3 PanelLocation.DETAILS_MASTHEAD & DETAILS_TOP (edit)', () => {
       const table = goToReposTable();
 
       openRowActionMenu(table).getMenuItem('Edit Config').click({ force: true });
       cy.contains('This is a generic masthead component example', MEDIUM_TIMEOUT_OPT).should('be.visible');
       cy.contains('This is another component example for masthead details - edit view').should('be.visible');
-    });
+    }));
 
-    (skipAboutTop ? it.skip : it)('4.4 PanelLocation.ABOUT_TOP', () => {
+    qase(50512, (skipAboutTop ? it.skip : it)('4.4 PanelLocation.ABOUT_TOP', () => {
       cy.visit('/about');
       cy.contains('Just a sample banner to show that we can render anything here', LONG_TIMEOUT_OPT).should('be.visible');
-    });
+    }));
   });
 
   // ── Test Group 5: CLUSTER_DASHBOARD_CARD ──
 
   describe('Test Group 5: CLUSTER_DASHBOARD_CARD', () => {
-    it('5.1 Dashboard Card', () => {
+    qase(50513, it('5.1 Dashboard Card', () => {
       cy.visit(`/c/${ CLUSTER_ID }/explorer`);
       cy.contains('Demo card title 1', LONG_TIMEOUT_OPT).should('be.visible');
-    });
+    }));
   });
 
   // ── Test Group 6: Table Hook & Table Columns ──
 
   describe('Test Group 6: Table Hook & Table Columns', () => {
-    (skipTableHook ? it.skip : it)('6.1 Table Hook (load, filter, sort)', () => {
+    qase(50514, (skipTableHook ? it.skip : it)('6.1 Table Hook (load, filter, sort)', () => {
       // The extension's table hook logs via console.error (see elemental index.ts).
       // The spy must be attached before the table renders so the initial hook call is captured.
       cy.visit(`/c/${ CLUSTER_ID }/explorer/pod`, {
@@ -495,9 +496,9 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       cy.get('@consoleError').then((spy: any) => spy.resetHistory());
       table.self().find('thead tr th').contains('Name').click();
       cy.get('@consoleError').should('be.calledWithMatch', /TABLE HOOK TRIGGERED/);
-    });
+    }));
 
-    it('6.2 Add Table Column 1 - Custom Formatter', () => {
+    qase(50515, it('6.2 Add Table Column 1 - Custom Formatter', () => {
       const secrets = new SecretsListPagePo(CLUSTER_ID);
 
       secrets.goTo();
@@ -511,9 +512,9 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
 
       cy.contains('Extension Col - Example 1', MEDIUM_TIMEOUT_OPT).should('be.visible');
       cy.contains('Formatter: Custom Cell Value 1').should('be.visible');
-    });
+    }));
 
-    it('6.3 Add Table Column 2 - Pagination', () => {
+    qase(50516, it('6.3 Add Table Column 2 - Pagination', () => {
       const configMaps = new ConfigMapListPagePo(CLUSTER_ID);
 
       configMaps.goTo();
@@ -526,7 +527,7 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       table.rowElementWithName(cmName).should('be.visible');
 
       cy.contains('Extension Col - Example 2', MEDIUM_TIMEOUT_OPT).should('be.visible');
-    });
+    }));
   });
 
   // ── Test Group 7: Shell API Tests ──
@@ -534,28 +535,28 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
   describe('Test Group 7: Shell API Tests', () => {
     const conditionalIt = skipShellApi ? it.skip : it;
 
-    conditionalIt('7.1 Slide-in API', () => {
+    qase(50517, conditionalIt('7.1 Slide-in API', () => {
       navToElementalEntry('shell-api-demo');
       cy.contains('Test Slide-in API', MEDIUM_TIMEOUT_OPT).click();
       cy.contains('Hello from SlideIn panel!').should('be.visible');
-    });
+    }));
 
-    conditionalIt('7.2 Modal API', () => {
+    qase(50518, conditionalIt('7.2 Modal API', () => {
       navToElementalEntry('shell-api-demo');
       cy.contains('Test Modal API', MEDIUM_TIMEOUT_OPT).click();
       cy.contains('Sample general title').should('be.visible');
       cy.contains('Cancel').should('be.visible');
       cy.contains('Add').should('be.visible');
-    });
+    }));
 
-    conditionalIt('7.3 Notification API', () => {
+    qase(50519, conditionalIt('7.3 Notification API', () => {
       navToElementalEntry('shell-api-demo');
       cy.contains('Test Notification API', MEDIUM_TIMEOUT_OPT).click();
       cy.contains('Some notification title').should('be.visible');
       cy.contains('Hello world! Success!').should('be.visible');
-    });
+    }));
 
-    conditionalIt('7.4 System API', () => {
+    qase(50520, conditionalIt('7.4 System API', () => {
       navToElementalEntry('shell-api-demo');
       cy.contains('Test System API', MEDIUM_TIMEOUT_OPT).click();
       cy.contains('gitCommit').should('be.visible');
@@ -564,13 +565,13 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       cy.contains('isRancherPrime').should('be.visible');
       cy.contains('kubernetesVersion').should('be.visible');
       cy.contains('rancherVersion').should('be.visible');
-    });
+    }));
   });
 
   // ── Test Group 8: Elemental Extension Tests ──
 
   describe('Test Group 8: Elemental Extension Tests', () => {
-    it('8.1 Elemental Extension Setup', () => {
+    qase(50521, it('8.1 Elemental Extension Setup', () => {
       navToElementalEntry('Dashboard');
       cy.contains('Install Elemental Operator', MEDIUM_TIMEOUT_OPT).click();
       cy.contains('button', 'Next').click();
@@ -583,12 +584,12 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       cy.get('.closer').click();
       navToElementalEntry('Dashboard');
       cy.contains('OS Management Dashboard', LONG_TIMEOUT_OPT).should('be.visible');
-    });
+    }));
 
     // Version conditional: on the older dashboard runtimes (2.12 / 2.13) the machineregistration
     // create form renders with a different (tabbed) layout, so the standard name + save create flow
     // doesn't navigate to the resource. The create-via-YAML path (8.3) still covers create there.
-    (LEGACY_DASHBOARD ? it.skip : it)('8.2 Elemental EDIT/CREATE Interface', () => {
+    qase(50522, (LEGACY_DASHBOARD ? it.skip : it)('8.2 Elemental EDIT/CREATE Interface', () => {
       navToElementalEntry('Registration Endpoint');
       // Exact match so we don't accidentally hit "Create from YAML"
       cy.contains(/^Create$/, MEDIUM_TIMEOUT_OPT).click();
@@ -609,9 +610,9 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       // Name is reliably visible as a row in the list view
       navToElementalEntry('Registration Endpoint');
       cy.contains('demo-reg-endpoint-1', LONG_TIMEOUT_OPT).should('be.visible');
-    });
+    }));
 
-    it('8.3 Elemental EDIT/CREATE YAML Interface', () => {
+    qase(50523, it('8.3 Elemental EDIT/CREATE YAML Interface', () => {
       navToElementalEntry('Inventory of Machines');
       cy.contains('Create from YAML', MEDIUM_TIMEOUT_OPT).click();
 
@@ -623,7 +624,7 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
 
       cy.contains('button', 'Create').click();
       cy.contains('demo-mach-inv-1', LONG_TIMEOUT_OPT).should('be.visible');
-    });
+    }));
   });
 
   after(() => {

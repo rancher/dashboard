@@ -1,3 +1,7 @@
+import fs from 'fs';
+import path from 'path';
+import postcss from 'postcss';
+import { compileStyle, parse } from '@vue/compiler-sfc';
 import { mount, VueWrapper } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import ResourcePopoverCard from '@shell/components/Resource/Detail/ResourcePopover/ResourcePopoverCard.vue';
@@ -103,5 +107,40 @@ describe('component: ResourcePopoverCard.vue', () => {
     const secondValue = wrapper.findAll('.value')[1];
 
     expect(secondValue.find('#first-glance-item').exists()).toBe(false);
+  });
+});
+
+describe('component: ResourcePopoverCard.vue row layout', () => {
+  // jsdom has no layout, so check the compiled CSS. Each row is a flex row: if the label can shrink, a long value such as
+  // a namespace:name or a URL takes width from it and starts further left than the values of the other rows
+  const decls = (className: string) => {
+    const source = fs.readFileSync(path.resolve(__dirname, '../ResourcePopoverCard.vue'), 'utf8');
+    const style = parse(source).descriptor.styles[0];
+    const { code } = compileStyle({
+      source:         style.content,
+      filename:       'ResourcePopoverCard.vue',
+      id:             'data-v-test',
+      scoped:         style.scoped,
+      preprocessLang: style.lang as 'scss',
+    });
+    const out: Record<string, string> = {};
+
+    postcss.parse(code).walkRules((rule) => {
+      if (rule.selectors.some((selector) => selector.includes(`.row ${ className }`))) {
+        rule.walkDecls((decl) => {
+          out[decl.prop] = decl.value;
+        });
+      }
+    });
+
+    return out;
+  };
+
+  it('should keep the label at half the card, whatever the length of the value', () => {
+    expect(decls('.label')).toStrictEqual({ width: '50%', 'flex-shrink': '0' });
+  });
+
+  it('should let the value wrap within the rest of the card rather than overflow it', () => {
+    expect(decls('.value')).toStrictEqual({ 'min-width': '0' });
   });
 });

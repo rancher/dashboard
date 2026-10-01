@@ -131,7 +131,7 @@ describe('Home Page List', { testIsolation: false }, () => {
     homePage.waitForPage();
 
     // check table headers
-    const expectedHeaders = ['State', 'Name', 'Provider Distro', 'Kubernetes Version Architecture', 'CPU', 'Memory', 'Pods'];
+    const expectedHeaders = ['State', 'Name', 'Badge', 'Provider Distro', 'Kubernetes Version Architecture', 'CPU', 'Memory', 'Pods'];
 
     homePage.list().resourceTable().sortableTable().tableHeaderRow()
       .get('.table-header-container .content')

@@ -7,7 +7,7 @@ import Type from '@shell/components/nav/Type.vue';
 type GlobalStubs = Record<string, boolean | Component>;
 
 describe('component: Group', () => {
-  it('isOverview ignores query parameters and hash strings when checking active state', () => {
+  it('isOverview is true when the current route name matches the overview route name', () => {
     const group = {
       name:     'test',
       children: [
@@ -24,12 +24,136 @@ describe('component: Group', () => {
       },
       global: {
         mocks: {
-          $route:  { path: '/test/route', fullPath: '/test/route?query=val#hash' },
+          $route: {
+            name:     'overview-route',
+            path:     '/test/route',
+            fullPath: '/test/route',
+            params:   {},
+            matched:  [],
+          },
+          $router: { getRoutes: jest.fn().mockReturnValue([]) },
+          t:       (key: string) => key
+        }
+      }
+    });
+
+    expect((wrapper.vm as any).isOverview).toBe(true);
+  });
+
+  it('isOverview remains true when the URL has query parameters or a hash (regression for #17281)', () => {
+    // Applying a filter (e.g. Charts repo filter) appends query params to the URL.
+    // Route name is unaffected by query params or hashes, so the comparison stays correct.
+    const group = {
+      name:     'test',
+      children: [
+        {
+          route:    { name: 'overview-route' },
+          overview: true
+        }
+      ]
+    };
+
+    const wrapper = shallowMount(Group as any, {
+      props: {
+        group, canCollapse: true, idPrefix: ''
+      },
+      global: {
+        mocks: {
+          $route: {
+            name:     'overview-route',
+            path:     '/test/route',
+            fullPath: '/test/route?query=val#hash',
+            params:   {},
+            matched:  [],
+          },
+          $router: { getRoutes: jest.fn().mockReturnValue([]) },
+          t:       (key: string) => key
+        }
+      }
+    });
+
+    expect((wrapper.vm as any).isOverview).toBe(true);
+  });
+
+  it('isOverview is false when the current route name does not match the overview route name', () => {
+    const group = {
+      name:     'test',
+      children: [
+        {
+          route:    { name: 'myprod-c-cluster-admin' },
+          overview: true
+        }
+      ]
+    };
+
+    const wrapper = shallowMount(Group as any, {
+      props: {
+        group, canCollapse: true, idPrefix: ''
+      },
+      global: {
+        mocks: {
+          $route: {
+            name:     'myprod-c-cluster-roles',
+            path:     '/myprod/c/local/roles',
+            fullPath: '/myprod/c/local/roles',
+            params:   {},
+            matched:  [],
+          },
           $router: {
-            resolve:   jest.fn().mockReturnValue({ path: '/test/route', fullPath: '/test/route' }),
-            getRoutes: jest.fn().mockReturnValue([])
+            resolve:   jest.fn().mockReturnValue({ path: '/myprod/c/local/admin' }),
+            getRoutes: jest.fn().mockReturnValue([]),
           },
           t: (key: string) => key
+        }
+      }
+    });
+
+    expect((wrapper.vm as any).isOverview).toBe(false);
+  });
+
+  it.each([
+    [
+      'overview at index 0, startRouteWithProduct=true',
+      'myprod-c-cluster-admin',
+      [{ route: { name: 'myprod-c-cluster-admin', params: { cluster: '_' } }, overview: true }],
+    ],
+    [
+      'overview at index 0, startRouteWithProduct=false',
+      'c-cluster-myprod-admin',
+      [{ route: { name: 'c-cluster-myprod-admin', params: { cluster: '_' } }, overview: true }],
+    ],
+    [
+      'overview at index 1 — new product registration API pushes overview last after weight-based reordering',
+      'myprod-c-cluster-admin',
+      [
+        { route: { name: 'myprod-c-cluster-child', params: {} } },
+        { route: { name: 'myprod-c-cluster-admin', params: { cluster: '_' } }, overview: true },
+      ],
+    ],
+  ])('isOverview is true even when stored route has BLANK_CLUSTER — %s (issue #19169)', (_label, routeName, children) => {
+    // The stored nav-tree route always has params: { cluster: '_' } (BLANK_CLUSTER).
+    // The new product registration API also pushes the overview child last (not at index 0)
+    // after weight-based reordering. Both issues made isOverview always return false.
+    const group = {
+      name: 'test',
+      children,
+    };
+
+    const wrapper = shallowMount(Group as any, {
+      props: {
+        group, canCollapse: true, idPrefix: ''
+      },
+      global: {
+        mocks: {
+          $route: {
+            name:     routeName,
+            path:     '/myprod/c/_/admin',
+            fullPath: '/myprod/c/_/admin',
+            params:   {},
+            matched:  [],
+          },
+          $router: { getRoutes: jest.fn().mockReturnValue([]) },
+          t:       (key: string) => key
         }
       }
     });

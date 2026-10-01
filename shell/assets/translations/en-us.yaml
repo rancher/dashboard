@@ -434,7 +434,6 @@ about:
   title: About
   versions:
     downloadImages: "Download {listName} images list"
-    downloadCli: "Download CLI for {os}: {file}"
     githubRepo: "Open GitHub repository for the {name} component"
     title: Versions
     component: Component
@@ -444,14 +443,12 @@ about:
     machine: Machine
     rancher: Rancher
     releaseNotes: 'View release notes'
-  os:
-    mac: macOS
-    windows: Windows
-    linux: Linux
   downloadImageList:
     title: Image Lists
-  downloadCLI:
-    title: CLI Downloads
+  cli:
+    title: "{vendor} CLI"
+    description: The {vendor} CLI lets you manage clusters, projects and resources from the command line. Builds are available for a range of operating systems and architectures, and the documentation covers how to download and install them.
+    docsLink: View {vendor} CLI documentation
   diagnostic:
     title: Diagnostics
     checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources. These may take a while to complete
@@ -2019,6 +2016,8 @@ cluster:
   explore: Explore
   importAction: Import Existing
   manageAction: Manage
+  pinAction: Pin
+  unpinAction: Unpin
   kubeConfig:
     error:
       title: Unable to generate KubeConfig
@@ -3791,6 +3790,62 @@ fleet:
           =0 { Adding namespaces here will create a GitRepoRestriction. }
           other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction}
         }"
+  policy:
+    name:
+      label: Policy name
+    serviceAccounts:
+      title: Service accounts
+      require:
+        label: Require service account
+        description: Enforces that a ServiceAccount is specified on targeted resources.
+      allowNamespaceCreation:
+        title: Namespace creation
+        label: Allow namespace creation
+        description: While a service account is required, Fleet does not create namespaces on downstream clusters, so target namespaces have to exist already. Allow it only where namespace creation is controlled by other means.
+        link: Namespace creation in the Fleet documentation
+      restrict:
+        all: Allow all service accounts
+        selected: Only allow selected service accounts
+        description: Restricts the set of service accounts that GitRepo, HelmOp and Bundle resources may reference.
+      allowed:
+        title: Select allowed service accounts
+        label: Allowed service accounts
+    gitRepo:
+      title: GitRepo Policy
+      defaultServiceAccount:
+        label: Default service account
+        description: This will be applied to GitRepo app bundles with no service account provided.
+      defaultSecret:
+        label: Default client secret
+        description: This will be applied to GitRepo app bundles with no client secret provided.
+      restrict:
+        all: Allow all client secrets
+        selected: Only allow selected client secrets
+        description: Restricts the set of clientSecretName values GitRepos may reference.
+      allowed:
+        title: Select allowed client secrets
+        label: Allowed client secrets
+    helmOp:
+      title: HelmOps Policy
+      defaultServiceAccount:
+        label: Default service account
+        description: This will be applied to HelmOps app bundles with no service account provided.
+      defaultSecret:
+        label: Default Helm secret
+        description: This will be applied to HelmOps app bundles with no Helm secret provided.
+      restrict:
+        all: Allow all Helm secrets
+        selected: Only allow selected Helm secrets
+        description: Restricts the set of credential secret names HelmOps may reference.
+      allowed:
+        title: Select allowed Helm secrets
+        label: Allowed Helm secrets
+    defaultServiceAccountNotAllowed: The selected default service account must be allowed in the policy.
+    defaultSecretNotAllowed: The selected default secret must be allowed in the policy.
+    placeholder:
+      serviceAccount: Select or enter a service account name
+      secret: Select or enter a secret name
+      allowList: Select or enter names
   configMaps:
     label: Config Maps
   secrets:
@@ -7218,6 +7273,7 @@ tableHeaders:
   accessModes: Access Modes
   address: Address
   age: Age
+  badge: Badge
   apiGroup: API Groups
   apikey: API Key
   available: Available
@@ -8124,6 +8180,7 @@ workload:
     containerImage: Container {name} - "Container Image" is required.
     containerName: Container - "Container Name" is required.
     localhostProfile: Container {name} - "Container Localhost Profile" is required when SeccompProfile Type is Localhost.
+    volumeMountPath: Container {name} - "Mount Point" is required.
   replicas: Replicas
   showTabs: 'Show Advanced Options'
   scheduling:
@@ -9757,9 +9814,18 @@ component:
         namespace: Namespace
         project: Project
         type: Type
+        ready: Ready
+        restarts: Restarts
+        podRestarts: Pod Restarts
+        endpoints: Endpoints
+        podIp: Pod IP
+        workload: Workload
+        node: Node
+        loadError: Unable to load the details of this resource
         ariaLabel:
           showDetails: Show Resource Information about { resource } named { name }
           actionMenu: Resource Actions - { resource }
+          loading: Loading resource information
   cron:
     expressionEditor:
       label:

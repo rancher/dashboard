@@ -3,6 +3,7 @@ import { FleetApplicationCreatePo, FleetGitRepoCreateEditPo } from '~/cypress/e2
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import FleetApplicationDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.application.po';
+import { qase } from '@/cypress/support/qase';
 
 describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () => {
   const fleetDashboardPage = new FleetDashboardListPagePo('_');
@@ -25,7 +26,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     });
   });
 
-  it('Has the correct title', () => {
+  qase(9705, it('Has the correct title', () => {
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
 
@@ -36,9 +37,9 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
       cy.title().should('eq', expectedTitle);
     });
-  });
+  }));
 
-  it('Get Started button takes you to the correct page', () => {
+  qase(6561, it('Get Started button takes you to the correct page', () => {
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
 
@@ -52,9 +53,9 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     gitRepoCreatePage.mastheadTitle().then((title) => {
       expect(title.replace(/\s+/g, ' ')).to.contain('App Bundle: Create');
     });
-  });
+  }));
 
-  it('Should display workspace cards', () => {
+  qase(9706, it('Should display workspace cards', () => {
     // create gitrepo
     cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(localWorkspace, repoName, gitRepoUrl, branch, paths)).then(() => {
       removeGitRepo = true;
@@ -91,9 +92,9 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     clusterGroupsPanel.chart().should('not.exist');
     clusterGroupsPanel.stateBadge('success').should('exist');
     clusterGroupsPanel.description().should('contain', '1');
-  });
+  }));
 
-  it('Should show workspace cards panel when expanded', () => {
+  qase(9707, it('Should show workspace cards panel when expanded', () => {
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
 
@@ -123,9 +124,9 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     activeStatePanel.title().click();
 
     activeStatePanel.card(repoName).should('be.visible');
-  });
+  }));
 
-  it('Should filter by GitRepo type', () => {
+  qase(9708, it('Should filter by GitRepo type', () => {
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
 
@@ -141,9 +142,9 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     const activeStatePanel = cardsPanel.statePanel('Active');
 
     activeStatePanel.self().should('not.be.visible');
-  });
+  }));
 
-  it('Should change ViewMode', () => {
+  qase(9709, it('Should change ViewMode', () => {
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
 
@@ -164,9 +165,9 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     const tablePanel = workspaceCard.expandedPanel().tablePanel();
 
     tablePanel.checkVisible();
-  });
+  }));
 
-  it('Should open slide-in panel', () => {
+  qase(9710, it('Should open slide-in panel', () => {
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
 
@@ -187,9 +188,9 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     details.should('be.visible');
     details.should('contain.text', repoName);
-  });
+  }));
 
-  it('Should navigate to App Bundles details page from Fleet Dashboard', () => {
+  qase(9711, it('Should navigate to App Bundles details page from Fleet Dashboard', () => {
     const appDetails = new FleetApplicationDetailsPo(localWorkspace, repoName, 'fleet.cattle.io.gitrepo');
 
     fleetDashboardPage.goTo();
@@ -213,7 +214,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     details.find('.title').should('contain.text', repoName).click();
 
     appDetails.waitForPage(null, 'bundles');
-  });
+  }));
 
   after(() => {
     if (removeGitRepo) {

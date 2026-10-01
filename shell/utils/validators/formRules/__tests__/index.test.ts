@@ -420,6 +420,48 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
+  it.each([
+    ['without volume mounts', { name: 'testName' }],
+    ['with no volume mounts', { name: 'testName', volumeMounts: [] }],
+    ['whose volume mounts all have a mount path', { name: 'testName', volumeMounts: [{ name: 'vol', mountPath: '/data' }] }],
+  ])('"volumeMountPath" : returns undefined for a container %s', (_desc, testValue) => {
+    const formRuleResult = formRules.volumeMountPath(testValue);
+
+    expect(formRuleResult).toBeUndefined();
+  });
+
+  it('"volumeMountPath" : returns correct message when a volume mount has no mount path', () => {
+    const testValue = { name: 'testName', volumeMounts: [{ name: 'vol', mountPath: '/data' }, { name: 'vol', mountPath: '' }] };
+    const formRuleResult = formRules.volumeMountPath(testValue);
+    const expectedResult = JSON.stringify({
+      message: 'workload.validation.volumeMountPath',
+      name:    testValue.name
+    });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"persistentVolumeClaimSpec" : returns undefined for a claim with a capacity and an access mode', () => {
+    const testValue = { spec: { resources: { requests: { storage: '10Gi' } }, accessModes: ['ReadWriteOnce'] } };
+    const formRuleResult = formRules.persistentVolumeClaimSpec(testValue);
+
+    expect(formRuleResult).toBeUndefined();
+  });
+
+  it.each([
+    ['without a capacity', { spec: { resources: { requests: {} }, accessModes: ['ReadWriteOnce'] } }, 'persistentVolumeClaim.capacity'],
+    ['with a null capacity', { spec: { resources: { requests: { storage: null } }, accessModes: ['ReadWriteOnce'] } }, 'persistentVolumeClaim.capacity'],
+    ['without an access mode', { spec: { resources: { requests: { storage: '10Gi' } }, accessModes: [] } }, 'persistentVolumeClaim.accessModes'],
+  ])('"persistentVolumeClaimSpec" : returns correct message for a claim %s', (_desc, testValue, labelKey) => {
+    const formRuleResult = formRules.persistentVolumeClaimSpec(testValue);
+    const expectedResult = JSON.stringify({
+      message: 'validation.required',
+      key:     JSON.stringify({ message: labelKey })
+    });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
   it('"containerImages" : returns undefined when valid jobTemplate value is supplied', () => {
     const testValue = { jobTemplate: { spec: { template: { spec: { containers: [{ image: 'imageName', name: 'name' }] } } } } };
     const formRuleResult = formRules.containerImages(testValue);

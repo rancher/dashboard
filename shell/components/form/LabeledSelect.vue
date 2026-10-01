@@ -94,6 +94,14 @@ export default {
       default: null,
       type:    String
     },
+    /**
+     * Show the selected value in the muted colour, for a value the form keeps but does not treat
+     * as one the user can rely on.
+     */
+    mutedValue: {
+      default: false,
+      type:    Boolean
+    },
     tooltip: {
       default: null,
       type:    [String, Object]
@@ -247,6 +255,24 @@ export default {
     showTagPrompts() {
       return !this.options.length && this.$attrs.taggable && this.isSearchable;
     },
+  },
+
+  watch: {
+    // vue-select only refreshes the selected option on options change when the value is truthy,
+    // so a selected option with a falsy value ('', 0, false) would keep showing its old label.
+    // Refresh it once per options change rather than looking it up on every label render.
+    _options: {
+      handler() {
+        const select = this.$refs['select-input'];
+
+        if (!select?.isTrackingValues || select.modelValue || select.modelValue === undefined) {
+          return;
+        }
+
+        select.setInternalValueFromOptions(select.modelValue);
+      },
+      flush: 'post'
+    }
   },
 
   methods: {
@@ -483,6 +509,7 @@ export default {
         taggable: $attrs.taggable,
         taggable: $attrs.multiple,
         hoverable: hoverTooltip,
+        'muted-value': mutedValue,
         'compact-input': isCompact,
         'no-label': !hasLabel,
         [`ls-${size}`]: true
@@ -774,6 +801,10 @@ export default {
         padding: 0;
       }
     }
+  }
+
+  &.muted-value :deep(.vs__selected) {
+    color: var(--muted);
   }
 
   &.taggable.compact-input {
