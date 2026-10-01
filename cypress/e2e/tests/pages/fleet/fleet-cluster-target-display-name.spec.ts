@@ -2,6 +2,7 @@ import { FleetGitRepoCreateEditPo, FleetApplicationListPagePo, FleetApplicationC
 import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+import { qase } from '@/cypress/support/qase';
 
 const METADATA_NAME = 'c-m-e2etest';
 const DISPLAY_NAME = 'e2e-custom-display-cluster';
@@ -56,7 +57,7 @@ describe('Fleet Cluster Targets - Display Name', { testIsolation: 'off', tags: [
   });
 
   describe('Create GitRepo - cluster target dropdown should show display name', () => {
-    it('should display cluster nameDisplay (not metadata.name) in the target selector dropdown', () => {
+    qase(50496, it('should display cluster nameDisplay (not metadata.name) in the target selector dropdown', () => {
       interceptFleetClustersWithDisplayName();
 
       // Select workspace from list page first, then navigate to create
@@ -99,9 +100,9 @@ describe('Fleet Cluster Targets - Display Name', { testIsolation: 'off', tags: [
         expect(hasDisplayName).to.eq(true);
         expect(hasMetadataName).to.eq(false);
       });
-    });
+    }));
 
-    it('should use display name as clusterName value when selecting a cluster target', () => {
+    qase(50497, it('should use display name as clusterName value when selecting a cluster target', () => {
       interceptFleetClustersWithDisplayName();
 
       // Select workspace from list page first, then navigate to create
@@ -152,7 +153,7 @@ describe('Fleet Cluster Targets - Display Name', { testIsolation: 'off', tags: [
       cy.get<string>('@createRepoName').then((name) => {
         cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', `${ workspace }/${ name }`);
       });
-    });
+    }));
   });
 
   describe('Edit GitRepo - should resolve metadata.name targets to display name', () => {
@@ -175,7 +176,7 @@ describe('Fleet Cluster Targets - Display Name', { testIsolation: 'off', tags: [
       });
     });
 
-    it('should show display name in cluster target selector when editing a gitrepo that references a cluster by metadata.name', () => {
+    qase(50498, it('should show display name in cluster target selector when editing a gitrepo that references a cluster by metadata.name', () => {
       interceptFleetClustersWithDisplayName();
 
       const listPage = new FleetApplicationListPagePo();
@@ -200,7 +201,7 @@ describe('Fleet Cluster Targets - Display Name', { testIsolation: 'off', tags: [
 
       // The selected cluster should show the display name, not metadata.name
       editPage.targetCluster().checkOptionSelected(DISPLAY_NAME);
-    });
+    }));
 
     after(() => {
       if (gitRepoName) {
