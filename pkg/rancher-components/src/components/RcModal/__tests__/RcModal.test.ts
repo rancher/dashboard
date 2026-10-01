@@ -18,7 +18,9 @@ jest.mock('focus-trap', () => ({
   })),
 }));
 
-const resizeCallbacks: ResizeObserverCallback[] = [];
+type ResizeCallback = ConstructorParameters<typeof ResizeObserver>[0];
+
+const resizeCallbacks: ResizeCallback[] = [];
 const resizeObservers: ResizeObserverMock[] = [];
 
 class ResizeObserverMock {
@@ -26,7 +28,7 @@ class ResizeObserverMock {
   unobserve = jest.fn();
   observe = jest.fn();
 
-  constructor(callback: ResizeObserverCallback) {
+  constructor(callback: ResizeCallback) {
     resizeCallbacks.push(callback);
     resizeObservers.push(this);
   }
