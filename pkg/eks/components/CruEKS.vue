@@ -518,7 +518,7 @@ export default defineComponent({
     },
 
     async saveRoleBindings(): Promise<void> {
-      return saveRoleBindings(this.membershipUpdate, this.normanCluster.id);
+      return saveRoleBindings(this.membershipUpdate, this.normanCluster.id as string);
     },
 
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details

@@ -237,7 +237,7 @@ describe('eKS provisioning form', () => {
     expect(nodeGroupTabErrors(wrapper)).toStrictEqual([true, true, false]);
 
     // wrapper.vm exposes raw (non-reactive) data for components with a setup(), so mutate via the instance proxy
-    wrapper.vm.$.proxy.nodeGroups[1].nodegroupName = 'ghi';
+    (wrapper.vm.$.proxy as any).nodeGroups[1].nodegroupName = 'ghi';
     await wrapper.vm.$nextTick();
 
     expect(wrapper.vm.fvUnreportedValidationErrors).not.toContain('eks.errors.nodeGroups.nameUnique');
