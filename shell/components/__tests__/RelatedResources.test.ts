@@ -1,6 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import RelatedResources from '@shell/components/RelatedResources.vue';
-import { CONFIG_MAP, POD } from '@shell/config/types';
+import { CONFIG_MAP, POD, WORKLOAD_TYPES } from '@shell/config/types';
 
 const relationships = [
   {
@@ -8,6 +8,9 @@ const relationships = [
   },
   {
     toType: CONFIG_MAP, toId: 'default/kube-root-ca.crt', rel: 'uses', state: 'active'
+  },
+  {
+    toType: WORKLOAD_TYPES.REPLICA_SET, toId: 'default/frontend-567d5b464c', rel: 'owner', state: 'active'
   },
 ];
 
@@ -76,6 +79,27 @@ describe('component: RelatedResources', () => {
         name:   'c-cluster-product-resource-namespace-id',
         params: {
           product: 'explorer', cluster: 'local', resource: POD, namespace: 'default', id: 'frontend-abcde'
+        }
+      },
+    }));
+  });
+
+  it('should show the name of a ReplicaSet with a lazy popover that has no status dot', () => {
+    const wrapper = createWrapper();
+
+    const popover = wrapper.find('[data-testid="default/frontend-567d5b464c"]').findComponent({ name: 'ResourcePopover' });
+
+    expect(popover.exists()).toBe(true);
+    expect(popover.props()).toStrictEqual(expect.objectContaining({
+      type:           WORKLOAD_TYPES.REPLICA_SET,
+      id:             'default/frontend-567d5b464c',
+      name:           'frontend-567d5b464c',
+      showStatus:     false,
+      lazy:           true,
+      detailLocation: {
+        name:   'c-cluster-product-resource-namespace-id',
+        params: {
+          product: 'explorer', cluster: 'local', resource: WORKLOAD_TYPES.REPLICA_SET, namespace: 'default', id: 'frontend-567d5b464c'
         }
       },
     }));

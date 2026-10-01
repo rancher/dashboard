@@ -207,6 +207,107 @@ describe('class Pod', () => {
 
       expect(workloadRow.label).toStrictEqual('ReplicaSet');
     });
+
+    const replicaSetRef = { ...workloadRef, id: `${ workloadRef.namespace }/${ workloadRef.name }` };
+    const everyTypeButReplicaSets = [NODE, ...Object.values(WORKLOAD_TYPES).filter((type) => type !== WORKLOAD_TYPES.REPLICA_SET)];
+
+    // Only the given types have a schema, so checking the wrong type finds none
+    const createPodOwnedBy = (ref: any, typesWithSchema: string[] = [WORKLOAD_TYPES.REPLICA_SET]): any => {
+      const pod = new Pod({
+        metadata: { name: 'frontend-57b8b59b77-abcde', namespace: 'default' },
+        spec:     {},
+        status:   { podIP: '10.42.0.1' },
+      }, {
+        getters:     { schemaFor: jest.fn((type: string) => (typesWithSchema.includes(type) ? { id: type } : null)) },
+        dispatch:    jest.fn(),
+        rootGetters: {
+          'i18n/t':            (key: string) => key,
+          'type-map/labelFor': jest.fn(() => 'ReplicaSet'),
+          productId:           'explorer',
+          clusterId:           'local',
+        },
+      });
+
+      jest.spyOn(pod, 'workloadRef', 'get').mockReturnValue(ref);
+
+      return pod;
+    };
+
+    const ownerRow = (pod: any) => pod.details.find((detail: any) => detail.content === pod.workloadRef.name);
+
+    it('should show a popover for a ReplicaSet owner, without its state', () => {
+      const { valueOverride } = ownerRow(createPodOwnedBy(replicaSetRef));
+
+      expect(valueOverride.props).toStrictEqual({
+        type:           WORKLOAD_TYPES.REPLICA_SET,
+        id:             'default/frontend-57b8b59b77',
+        name:           'frontend-57b8b59b77',
+        showStatus:     false,
+        detailLocation: {
+          name:   'c-cluster-product-resource-namespace-id',
+          params: {
+            product: 'explorer', cluster: 'local', resource: WORKLOAD_TYPES.REPLICA_SET, namespace: 'default', id: 'frontend-57b8b59b77'
+          }
+        }
+      });
+    });
+
+    it('should show the ReplicaSet with the ResourcePopover component', async() => {
+      const { default: ResourcePopover } = await import('@shell/components/Resource/Detail/ResourcePopover/index.vue');
+      const { valueOverride } = ownerRow(createPodOwnedBy(replicaSetRef));
+
+      expect(await valueOverride.component.__asyncLoader()).toBe(ResourcePopover);
+    });
+
+    it('should check that the user can see ReplicaSets before showing the popover', () => {
+      const pod = createPodOwnedBy(replicaSetRef);
+
+      ownerRow(pod);
+
+      expect(pod.$getters.schemaFor).toHaveBeenCalledWith(WORKLOAD_TYPES.REPLICA_SET);
+    });
+
+    it('should reuse the same popover component every time the details are built', () => {
+      const pod = createPodOwnedBy(replicaSetRef);
+
+      const first = ownerRow(pod);
+      const second = ownerRow(pod);
+
+      expect(first.valueOverride.component).toBeDefined();
+      expect(second.valueOverride.component).toBe(first.valueOverride.component);
+    });
+
+    it('should keep the plain link on a ReplicaSet row for consumers that ignore the popover', () => {
+      const row = ownerRow(createPodOwnedBy(replicaSetRef));
+
+      expect(row.formatter).toStrictEqual('LinkName');
+      expect(row.formatterOpts).toStrictEqual({
+        value: 'frontend-57b8b59b77', type: WORKLOAD_TYPES.REPLICA_SET, namespace: 'default'
+      });
+    });
+
+    it.each([
+      WORKLOAD_TYPES.DEPLOYMENT,
+      WORKLOAD_TYPES.JOB,
+      WORKLOAD_TYPES.STATEFUL_SET,
+      WORKLOAD_TYPES.DAEMON_SET,
+      WORKLOAD_TYPES.REPLICATION_CONTROLLER,
+    ])('should show a plain link rather than a popover for a %p owner', (type) => {
+      // Every type has a schema, so only the type of the owner rules out the popover
+      const row = ownerRow(createPodOwnedBy({
+        type, name: 'owner', namespace: 'default', id: 'default/owner'
+      }, [WORKLOAD_TYPES.REPLICA_SET, type]));
+
+      expect(row.valueOverride).toBeUndefined();
+      expect(row.formatter).toStrictEqual('LinkName');
+    });
+
+    it('should show a plain link when the user can see every type but ReplicaSets', () => {
+      const row = ownerRow(createPodOwnedBy(replicaSetRef, everyTypeButReplicaSets));
+
+      expect(row.valueOverride).toBeUndefined();
+      expect(row.formatter).toStrictEqual('LinkName');
+    });
   });
 
   describe('glance', () => {

@@ -18,6 +18,11 @@
       padding: 2px;
       vertical-align: middle;
     }
+
+    code {
+      background: var(--box-bg--inverted);
+      border-color: var(--box-border--inverted);
+    }
   }
 
   .v-popper__arrow-container {

@@ -244,8 +244,8 @@ export interface TypeMapConfigureType {
  * Used by type-map virtualType
  */
 export interface TypeMapVirtualType {
-  /** Display only if condition is met (relates to IF_HAVE in shell/store/type-map) */
-  ifHave?: boolean;
+  /** Display only if condition is met. One of the `IF_HAVE` values in shell/store/type-map */
+  ifHave?: string;
   /** Display only if feature is present (relates to shell/store/features) */
   ifFeature?: string;
   /** Display only if resource type exists */
@@ -280,6 +280,24 @@ export interface TypeMapVirtualType {
    */
   navResources?: string[];
 }
+
+/**
+ * A conditional `ignoreGroup` rule, as stored in type-map's `groupIgnore` state
+ *
+ * `type` is a regex source (RegExp objects don't serialize into state) and `cb` decides, at
+ * runtime, whether the group is actually ignored for the current context
+ */
+export interface TypeMapConditionalIgnoreRule {
+  type: string,
+  cb: (getters: any) => boolean,
+}
+
+/**
+ * An entry of type-map's `typeIgnore` / `groupIgnore` state
+ *
+ * A plain string is an unconditional rule, an object is a conditional one
+ */
+export type TypeMapIgnoreRule = string | TypeMapConditionalIgnoreRule;
 
 /**
  * interface for type-map's' definition for table headers/columns

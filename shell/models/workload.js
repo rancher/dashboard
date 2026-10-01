@@ -234,20 +234,11 @@ export default class Workload extends WorkloadService {
     return this.goToEdit({ sidecar: true });
   }
 
+  /**
+   * How many times the pods of the workload have restarted, adding up the RESTARTS column of `kubectl get pods` and the Pods list
+   */
   get restartCount() {
-    return this.pods.reduce((total, pod) => {
-      const { status:{ containerStatuses = [] } } = pod;
-
-      if (containerStatuses.length) {
-        total += containerStatuses.reduce((tot, container) => {
-          tot += container.restartCount || 0;
-
-          return tot;
-        }, 0);
-      }
-
-      return total;
-    }, 0);
+    return this.pods.reduce((total, pod) => total + (pod.totalRestartCount || 0), 0);
   }
 
   get hasSidecars() {
@@ -899,8 +890,10 @@ export default class Workload extends WorkloadService {
     }
 
     const services = this.relatedServices;
+    const endpoints = httpRoutes.flatMap((httpRoute) => httpRoute.endpointsForServices(services));
 
-    return httpRoutes.flatMap((httpRoute) => httpRoute.endpointsForServices(services));
+    // Two routes can send the same URL to the workload, e.g. an old and a new one while migrating, so show it once
+    return endpoints.filter((endpoint, i) => endpoints.findIndex(({ link }) => link === endpoint.link) === i);
   }
 
   get resourcesCardRows() {

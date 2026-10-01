@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { qase } from '@/cypress/support/qase';
 
 const bundle = 'fleet-agent-local';
 const localWorkspace = 'fleet-local';
@@ -22,7 +23,7 @@ describe('Bundles', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, ()
       cy.login();
     });
 
-    it('validate bundles table in empty state', () => {
+    qase(4073, it('validate bundles table in empty state', () => {
       FleetBundlesListPagePo.navTo();
       fleetBundlesListPage.waitForPage();
       headerPo.selectWorkspace(defaultWorkspace);
@@ -36,9 +37,9 @@ describe('Bundles', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, ()
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedHeaders[i]);
         });
-    });
+    }));
 
-    it('check table headers are available in list and details view', () => {
+    qase(4110, it('check table headers are available in list and details view', () => {
       FleetBundlesListPagePo.navTo();
       fleetBundlesListPage.waitForPage();
       headerPo.selectWorkspace(localWorkspace);
@@ -72,7 +73,7 @@ describe('Bundles', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, ()
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedHeadersDetailsViewEvents[i]);
         });
-    });
+    }));
   });
 
   describe('CRUD', { tags: ['@fleet', '@adminUser'] }, () => {
@@ -83,7 +84,7 @@ describe('Bundles', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, ()
       });
     });
 
-    it('can create a bundle', () => {
+    qase(8557, it('can create a bundle', () => {
       cy.intercept('POST', '/v1/fleet.cattle.io.bundles').as('createBundle');
       const fleetBundleCreateEditPage = new FleetBundlesCreateEditPo();
 
@@ -138,7 +139,7 @@ describe('Bundles', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, ()
       fleetBundlesListPage.list().rowWithName(customBundleName).checkVisible();
       // Does the bundle deployment have `1` Deployment
       fleetBundlesListPage.resourceTableDetails(customBundleName, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
-    });
+    }));
 
     // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/13990
     // it.skip('can Edit Config', () => {
@@ -175,7 +176,7 @@ describe('Bundles', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, ()
     //   fleetBundlesListPage.waitForPage();
     // });
 
-    it('can clone a bundle', () => {
+    qase(8559, it('can clone a bundle', () => {
       const fleetBundleCreateEditPage = new FleetBundlesCreateEditPo(localWorkspace, customBundleName);
 
       cy.intercept('POST', '/v1/fleet.cattle.io.bundles').as('cloneBundle');
@@ -216,9 +217,9 @@ describe('Bundles', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, ()
 
       // Does the bundle deployment have `1` Deployment
       fleetBundlesListPage.resourceTableDetails(`${ customBundleName }-clone`, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
-    });
+    }));
 
-    it('can Download YAML', () => {
+    qase(8560, it('can Download YAML', () => {
       cy.deleteDownloadsFolder();
 
       fleetBundlesListPage.goTo();
@@ -236,9 +237,9 @@ describe('Bundles', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, ()
         expect(obj.kind).to.equal('Bundle');
         expect(obj.metadata['name']).to.equal(customBundleName);
       });
-    });
+    }));
 
-    it('can delete a bundle', () => {
+    qase(8561, it('can delete a bundle', () => {
       fleetBundlesListPage.goTo();
       fleetBundlesListPage.waitForPage();
       headerPo.selectWorkspace(localWorkspace);
@@ -260,7 +261,7 @@ describe('Bundles', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, ()
             .rowNames('.col-link-detail')
             .should('not.contain', `${ customBundleName }-clone`);
         });
-    });
+    }));
 
     after('clean up', () => {
       if (removeBundle) {

@@ -1,4 +1,4 @@
-import { TYPE_MODES, getters } from '../type-map';
+import { FAVORITE_GROUP, TYPE_MODES, getters } from '../type-map';
 import { SCHEMA } from '@shell/config/types';
 
 jest.mock('@shell/utils/router', () => ({ filterLocationValidParams: (_router: any, route: any) => route }));
@@ -41,9 +41,11 @@ const allTypes = () => ({
 
 const namesIn = (nodes: any[]): string[] => (nodes || []).flatMap((n) => [n.name, ...namesIn(n.children)]);
 
-const usedTree = (count: number) => getters.getTree(
+const tree = (mode: string, count: number) => getters.getTree(
   {} as any, typeMapGetters() as any, { $router: {} } as any, rootGetters(count) as any
-)('explorer', TYPE_MODES.USED, allTypes(), 'c1', null, null);
+)('explorer', mode, allTypes(), 'c1', null, null);
+
+const usedTree = (count: number) => tree(TYPE_MODES.USED, count);
 
 describe('type-map', () => {
   describe('getters', () => {
@@ -55,6 +57,16 @@ describe('type-map', () => {
 
         it('includes a used type with a positive count', () => {
           expect(namesIn(usedTree(5))).toContain('pod');
+        });
+      });
+
+      describe("mode: 'favorite'", () => {
+        // SideNav expands this group by default, so it has to match the name SideNav looks for
+        it('puts starred types in the favorite group', () => {
+          const groups: any[] = tree(TYPE_MODES.FAVORITE, 1);
+
+          expect(groups.map((g) => g.name)).toStrictEqual([FAVORITE_GROUP]);
+          expect(namesIn(groups[0].children)).toStrictEqual(['pod']);
         });
       });
     });

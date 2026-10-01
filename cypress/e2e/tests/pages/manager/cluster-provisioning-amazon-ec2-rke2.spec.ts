@@ -484,26 +484,28 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     createRKE2ClusterPage.ipv6Recommendations().should('have.length', 3);
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
-    // toggle off ipv6-only and ensure the dialog no longer has flannel masq warning
+    // toggle off ipv6-only (pool becomes dual-stack) - stack pref is left unset which defaults to 'Dual', so only the CIDR warning remains
     createRKE2ClusterPage.machinePoolTab().enableIpv6().set();
 
     createRKE2ClusterPage.create();
     createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
-    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 2);
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 1);
     createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'Masq');
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
     // verify that setting stack preference to 'IPv6' clears the warning
     createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-networking"]');
+    // verify that setting stack preference to 'IPv6' reintroduces the warning, since dual-stack pools require the 'Dual' preference
+    createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-networking"]');
     createRKE2ClusterPage.networkTab().stackPreference().toggle();
     createRKE2ClusterPage.networkTab().stackPreference().clickOptionWithLabel('IPv6');
     createRKE2ClusterPage.create();
     createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
-    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 1);
-    createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'Stack Preference');
+    createRKE2ClusterPage.ipv6Recommendations().should('have.length', 2);
+    createRKE2ClusterPage.ipv6Recommendations().should('contain.text', 'Stack Preference');
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
-    // verify that setting stack pref to dual does not reintroduce the warning
+    // verify that setting stack pref to dual clears the warning
     createRKE2ClusterPage.networkTab().stackPreference().toggle();
     createRKE2ClusterPage.networkTab().stackPreference().clickOptionWithLabel('Dual');
     createRKE2ClusterPage.create();
@@ -529,6 +531,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     createRKE2ClusterPage.ipv6ConfirmationDialog().should('be.visible');
     createRKE2ClusterPage.ipv6Recommendations().should('have.length', 2);
     createRKE2ClusterPage.ipv6Recommendations().should('not.contain.text', 'Stack Preference');
+    createRKE2ClusterPage.ipv6Recommendations().should('contain.text', 'Masq');
     createRKE2ClusterPage.ipv6ConfirmationDialog().find('[data-testid="ipv6-dialog-cancel"]').click();
 
     // set cluster/service CIDR and verify that the confirmation modal is updated
@@ -580,15 +583,15 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     // set cluster name to enable save button
     createRKE2ClusterPage.nameNsDescription().name().set(this.rke2Ec2ClusterName);
 
-    // set region
+    // set region - must match the AvailabilityZone (us-west-2a) used by the mocked subnets, otherwise none of them render as options
     createRKE2ClusterPage.machinePoolTab().region().toggle();
-    createRKE2ClusterPage.machinePoolTab().region().clickOptionWithLabel('us-west-1');
-    createRKE2ClusterPage.machinePoolTab().region().checkOptionSelected('us-west-1');
+    createRKE2ClusterPage.machinePoolTab().region().clickOptionWithLabel('us-west-2');
+    createRKE2ClusterPage.machinePoolTab().region().checkOptionSelected('us-west-2');
 
     createRKE2ClusterPage.machinePoolTab().enableDualStack().set();
 
     createRKE2ClusterPage.machinePoolTab().networks().toggle();
-    createRKE2ClusterPage.machinePoolTab().networks().clickOptionWithLabel('ipv6only');
+    createRKE2ClusterPage.machinePoolTab().networks().clickOptionWithLabel('test-vpc-ipv6-ipv6only');
 
     // verify that the enable ipv6 checkbox is automatically set
     createRKE2ClusterPage.machinePoolTab().enableIpv6().isChecked();

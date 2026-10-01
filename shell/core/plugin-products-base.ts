@@ -12,7 +12,9 @@ import {
 import {
   ProductChild, ProductChildCustomPage, ProductChildGroup, ProductChildResourcePage, ProductMetadata, ProductMetadataSinglePage
 } from '@shell/core/plugin-products-external';
-import { TypeMapConfigureType, TypeMapProduct, TypeMapVirtualType } from '@shell/types/store/type-map';
+import {
+  TypeMapConditionalIgnoreRule, TypeMapConfigureType, TypeMapIgnoreRule, TypeMapProduct, TypeMapVirtualType
+} from '@shell/types/store/type-map';
 import { AdvancedProductConfigOptionsInternal, ProductChildCustomPageInternal, ProductChildResourcePageInternal, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
 import { RouteRecordRaw } from 'vue-router';
 import { RouteRecordRawWithParams } from '@shell/core/plugin-types';
@@ -38,6 +40,26 @@ const applyIfDefined = function(value: any, apply: () => void) {
     apply();
   }
 };
+
+/**
+ * type-map ignore rule that always applies, stored as a plain regex source
+ */
+const isUnconditionalIgnoreRule = (rule: TypeMapIgnoreRule): rule is string => typeof rule === 'string';
+
+/**
+ * type-map ignore rule that only applies when its callback says so at runtime
+ */
+const isConditionalIgnoreRule = (rule: TypeMapIgnoreRule): rule is TypeMapConditionalIgnoreRule => typeof rule === 'object' && rule !== null && !!rule.type;
+
+/**
+ * The store each product was applied with, deliberately kept outside of the product instance.
+ *
+ * Product instances are reachable from vuex state (`uiplugins.plugins[].productConfigs[]`) and
+ * a store references the root state, so holding one as a field makes the state a cyclic object
+ * graph. That breaks anything walking it - most visibly the Diagnostics page, which serialises
+ * the whole root state with `JSON.stringify`.
+ */
+const productStores = new WeakMap<BasePluginProduct, any>();
 
 /**
  * Base class for product registration in extensions
@@ -122,6 +144,12 @@ export abstract class BasePluginProduct {
    * This is where we register the product and its children via the DSL
    */
   apply(plugin: IExtension, store: any): void {
+    // Tracked off-instance so registration-time checks (which run deep in the config traversal)
+    // can read store state without threading it through every method signature, and without
+    // putting a store reference on an object that lives in vuex state - see `productStores`
+    // prevents circular references that would break JSON serialization of the root state
+    productStores.set(this, store);
+
     // store the DSL methods for easier access
     this.DSLMethods = plugin.DSL(store, this.name);
 
@@ -184,17 +212,27 @@ export abstract class BasePluginProduct {
       this.surfaceError('Children defined for group are not in an array format');
     }
 
+    // "enableOverviewPage" gates the group's overview page, so without a component there's nothing to
+    // gate. The types already rule this out, but extensions written in JS can still get here, hence the
+    // loosely typed alias (narrowing `itemGroup` itself would leave it as `never` inside the branch).
+    const untypedGroup = itemGroup as { enableOverviewPage?: unknown, component?: unknown };
+
+    if (untypedGroup.enableOverviewPage && !untypedGroup.component) {
+      this.surfaceError(`Group "${ itemGroup.name }" has an "enableOverviewPage" block but no "component". "enableOverviewPage" gates the group's overview page, so the group must define a "component".`);
+    }
+
     const navNames = this.getIDsForGroupsOrBasicTypes(groupName, itemGroup.sideMenu.children);
 
     // Build the full hierarchical path with :: separators for the store's _ensureGroup function
     // For example: "explorer-root::explorer-root-group1" tells the store to nest group1 inside root
     const hierarchicalPath = parentHierarchicalPath ? `${ parentHierarchicalPath }::${ groupName }` : groupName;
 
-    // For root-level groups (no parent), add the group itself to establish its identity.
-    // For nested groups, skip this - they're already registered in their parent's basicType.
-    // Adding nested groups here would overwrite their parent registration and make them
-    // appear at the wrong level in the hierarchy.
-    if (!parentGroupName) {
+    // Add the group itself so that its own overview page lands inside it rather than beside it.
+    // Root-level groups need this to establish their identity. Nested groups are already listed in
+    // their parent's basicType call, which puts their overview page in the parent group - only a
+    // group that actually has an overview page needs to override that, and it can, because this
+    // registration runs after the parent's and therefore wins.
+    if (!parentGroupName || itemGroup.component) {
       navNames.push(groupName);
     }
 
@@ -454,12 +492,23 @@ export abstract class BasePluginProduct {
       // if the item with COMPONENT has children then it's a GROUP virtualType, so set "exact" and "overview" to "true"
       // so that when navigating to the group page, it shows the custom page for the group
       if (isProductChildGroup(item)) {
+        const itemGroup = item as ProductChildGroup;
+
         virtualTypeConfig.exact = true;
         virtualTypeConfig.overview = true;
         // Pass group metadata as pageChild so the route gets a unique path segment (e.g. /product/c/:cluster/groupName)
         virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, {
           extendProduct: !this.isNewProduct, component: item.component, startRouteWithProduct: this.startRouteWithProduct
         });
+
+        // The conditions gate the group's overview page only, never its children. The side menu only
+        // creates a group once it has a visible child, so hiding the overview - along with children
+        // that hide themselves when their resource type is absent - takes the whole group out of the
+        // navigation.
+        applyIfDefined(itemGroup.enableOverviewPage?.ifHave, () => virtualTypeConfig.ifHave = itemGroup.enableOverviewPage?.ifHave); // eslint-disable-line no-return-assign
+        applyIfDefined(itemGroup.enableOverviewPage?.ifFeature, () => virtualTypeConfig.ifFeature = itemGroup.enableOverviewPage?.ifFeature); // eslint-disable-line no-return-assign
+        applyIfDefined(itemGroup.enableOverviewPage?.ifHaveType, () => virtualTypeConfig.ifHaveType = itemGroup.enableOverviewPage?.ifHaveType); // eslint-disable-line no-return-assign
+        applyIfDefined(itemGroup.enableOverviewPage?.ifHaveVerb, () => virtualTypeConfig.ifHaveVerb = itemGroup.enableOverviewPage?.ifHaveVerb); // eslint-disable-line no-return-assign
       } else {
         virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, {
           extendProduct: !this.isNewProduct, component: item.component, startRouteWithProduct: this.startRouteWithProduct
@@ -536,6 +585,62 @@ export abstract class BasePluginProduct {
       if (itemRP.sideMenu?.weight !== undefined) {
         weightType(typeValue, itemRP.sideMenu?.weight, true);
       }
+
+      if (!itemRP.sideMenu?.hideFromNav) {
+        this.warnIfIgnoredType(typeValue);
+      }
+    }
+  }
+
+  /**
+   * Emits a console.warn if a resource page type is ignored by type-map rules, surfacing a
+   * silent misconfiguration that would cause the nav entry to never appear.
+   *
+   * Ignore rules are stored as regex sources, so they're matched here the same way
+   * `isIgnored` in `type-map.js` matches them.
+   */
+  private warnIfIgnoredType(type: string): void {
+    const store = productStores.get(this);
+    const typeMapState = store?.state?.['type-map'];
+
+    if (!typeMapState) {
+      return;
+    }
+
+    const typeIgnore: TypeMapIgnoreRule[] = typeMapState.typeIgnore ?? [];
+    const groupIgnore: TypeMapIgnoreRule[] = typeMapState.groupIgnore ?? [];
+    // `allowThrow: false` matters - products register before the management schemas have
+    // loaded, and the default schemaFor throws in that window, which would take down
+    // registration for the whole product. Without a schema we just skip the group checks
+    const group: string | undefined = store?.getters?.['management/schemaFor']?.(type, false, false)?.attributes?.group;
+    const useCustomPage = 'Use a ProductChildCustomPage with a custom component instead.';
+
+    // Checked in order, first match wins. Each entry pairs the value the rules apply to with
+    // the rules themselves (as regex sources) and the reason shown to the developer
+    const checks: { value?: string, rules: string[], reason: string }[] = [
+      {
+        value:  type,
+        rules:  typeIgnore.filter(isUnconditionalIgnoreRule),
+        reason: `is globally ignored via ignoreType() and will not appear in the navigation. ${ useCustomPage }`,
+      },
+      {
+        value:  group,
+        rules:  groupIgnore.filter(isUnconditionalIgnoreRule),
+        reason: `belongs to API group "${ group }" which is globally ignored via ignoreGroup() and will not appear in the navigation. ${ useCustomPage }`,
+      },
+      {
+        value:  group,
+        rules:  groupIgnore.filter(isConditionalIgnoreRule).map((rule) => rule.type),
+        reason: `belongs to API group "${ group }" which is conditionally ignored at runtime. The nav entry may not appear depending on the current cluster context.`,
+      },
+    ];
+
+    const match = checks.find(({ value, rules }) => !!value && rules.some((rule) => new RegExp(rule).test(value)));
+
+    if (match) {
+      // Aimed at extension developers looking at the browser console, so deliberately not
+      // translated - same as the registration errors surfaced by `surfaceError`
+      console.warn(`[Extensions] Product "${ this.name }": resource page type "${ type }" ${ match.reason }`); // eslint-disable-line no-console
     }
   }
 
