@@ -332,7 +332,6 @@ export default {
   .namespace-name {
     display: inline;
     font-weight: bold;
-    margin-right: 0 4px;
     white-space: nowrap;
   }
 }

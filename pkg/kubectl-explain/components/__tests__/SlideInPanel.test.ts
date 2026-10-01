@@ -26,40 +26,47 @@ function mountPanel(dataOverrides: Record<string, unknown> = {}) {
 }
 
 describe('component: SlideInPanel', () => {
-  describe('aside — dialog semantics', () => {
+  describe('dialog semantics', () => {
+    it('renders the dialog on an element that permits role="dialog"', () => {
+      const wrapper = mountPanel();
+      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
+
+      expect(panel.element.tagName).toStrictEqual('DIV');
+    });
+
     it('has role="dialog"', () => {
       const wrapper = mountPanel();
-      const aside = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
+      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
 
-      expect(aside.attributes('role')).toBe('dialog');
+      expect(panel.attributes('role')).toBe('dialog');
     });
 
     it('has aria-modal="true"', () => {
       const wrapper = mountPanel();
-      const aside = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
+      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
 
-      expect(aside.attributes('aria-modal')).toBe('true');
+      expect(panel.attributes('aria-modal')).toBe('true');
     });
 
     it('has aria-hidden="true" when panel is closed', () => {
       const wrapper = mountPanel({ isOpen: false });
-      const aside = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
+      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
 
-      expect(aside.attributes('aria-hidden')).toBe('true');
+      expect(panel.attributes('aria-hidden')).toBe('true');
     });
 
     it('has aria-hidden="false" when panel is open', () => {
       const wrapper = mountPanel({ isOpen: true });
-      const aside = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
+      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
 
-      expect(aside.attributes('aria-hidden')).toBe('false');
+      expect(panel.attributes('aria-hidden')).toBe('false');
     });
 
     it('has aria-label from kubectl-explain.title key', () => {
       const wrapper = mountPanel();
-      const aside = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
+      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
 
-      expect(aside.attributes('aria-label')).toBe('kubectl-explain.title');
+      expect(panel.attributes('aria-label')).toBe('kubectl-explain.title');
     });
   });
 
@@ -126,23 +133,23 @@ describe('component: SlideInPanel', () => {
 
     it('holds focusable elements that need to be taken out of the tab order while closed', () => {
       const wrapper = mountPanel({ isOpen: false });
-      const aside = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
+      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
 
-      expect(aside.element.querySelectorAll(FOCUSABLE).length).toBeGreaterThan(0);
+      expect(panel.element.querySelectorAll(FOCUSABLE).length).toBeGreaterThan(0);
     });
 
     it('is inert while closed', () => {
       const wrapper = mountPanel({ isOpen: false });
-      const aside = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
+      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
 
-      expect(aside.attributes('inert')).toBeDefined();
+      expect(panel.attributes('inert')).toBeDefined();
     });
 
     it('is not inert while open', () => {
       const wrapper = mountPanel({ isOpen: true });
-      const aside = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
+      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
 
-      expect(aside.attributes('inert')).toBeUndefined();
+      expect(panel.attributes('inert')).toBeUndefined();
     });
 
     it('becomes inert again after being opened and then closed', async() => {

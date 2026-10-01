@@ -47,7 +47,6 @@ export default {
     position: relative;
     cursor: pointer;
     font-size: 20px;
-    transform: ease-in-out-all 1s;
 
     &.icon-star-open {
       color: var(--muted);

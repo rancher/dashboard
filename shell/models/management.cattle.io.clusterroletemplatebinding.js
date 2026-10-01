@@ -74,19 +74,7 @@ export default class CRTB extends HybridModel {
    * This is used in a table formatter on the management.cattle.io.user detail view which exists outside harvester so no override on this route as there is with listLocation
    */
   get clusterDetailLocation() {
-    if (this.cluster) {
-      return this.cluster.detailLocation;
-    }
-
-    const name = `c-cluster-product-resource-id`;
-
-    const params = {
-      resource: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
-      id:       this.clusterName,
-      product:  'explorer',
-    };
-
-    return { name, params };
+    return this.cluster?.canExplore ? { name: 'c-cluster-explorer', params: { cluster: this.clusterName } } : null;
   }
 
   get listLocation() {

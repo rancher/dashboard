@@ -279,3 +279,9 @@ $spacing-property-map: (
   font-size: 0.8em;
   cursor: help;
 }
+
+// Mirror an icon, for an action whose icon is only a class name. Not named `icon-*`: that prefix puts
+// a whole subtree in the icon font.
+.flip-x {
+  transform: scaleX(-1);
+}

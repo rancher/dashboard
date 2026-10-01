@@ -350,6 +350,7 @@ export default {
           :t-args="tArgs"
           :disable="disable"
           :edit="goToEdit"
+          :provider-id="model.id"
         >
           <template #rows>
             <tr><td>{{ t('authConfig.oidc.rancherUrl') }}: </td><td>{{ model.rancherUrl }}</td></tr>

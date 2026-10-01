@@ -2,6 +2,7 @@ import { shallowMount } from '@vue/test-utils';
 import Charts from '@shell/pages/c/_cluster/apps/charts/index.vue';
 import AsyncButton from '@shell/components/AsyncButton';
 import { UI_PLUGIN_ANNOTATION } from '@shell/config/uiplugins';
+import { SETTING } from '@shell/config/settings';
 
 describe('page: Charts Index', () => {
   describe('computed: tagOptions', () => {
@@ -229,6 +230,47 @@ describe('page: Charts Index', () => {
 
       expect(search.exists()).toBe(true);
       expect(search.attributes('role')).toBeUndefined();
+    });
+  });
+
+  describe('computed: suseAppCollectionEnabled', () => {
+    const createContext = (settings: Record<string, string>) => ({ $store: { getters: { 'management/byId': (_type: string, id: string) => (settings[id] !== undefined ? { value: settings[id] } : undefined) } } });
+
+    // `ui-appco-enabled` wins when set, otherwise `system-catalog` of `bundled` (airgap / bundled charts only) disables it.
+    it.each([
+      [{}, true],
+      [{ [SETTING.SYSTEM_CATALOG]: 'external' }, true],
+      [{ [SETTING.SYSTEM_CATALOG]: 'bundled' }, false],
+      [{ [SETTING.UI_APPCO_ENABLED]: 'true', [SETTING.SYSTEM_CATALOG]: 'bundled' }, true],
+      [{ [SETTING.UI_APPCO_ENABLED]: 'false', [SETTING.SYSTEM_CATALOG]: 'external' }, false],
+    ])('reflects the settings (%p)', (settings, expected) => {
+      const ctx = createContext(settings);
+
+      expect((Charts.computed!.suseAppCollectionEnabled as () => boolean).call(ctx)).toBe(expected);
+    });
+  });
+
+  describe('computed: showAppCollectionBannerLogic', () => {
+    const baseContext = {
+      hasSuseAppCollectionRepo: false,
+      canCreateRepos:           true,
+      showAppCollectionBanner:  true,
+      hideBannerPref:           false,
+      isPrime:                  true,
+      suseAppCollectionEnabled: true,
+    };
+
+    it('is truthy when all conditions including the setting are met', () => {
+      const result = (Charts.computed!.showAppCollectionBannerLogic as () => unknown).call(baseContext);
+
+      expect(!!result).toBe(true);
+    });
+
+    it('is falsy when the SUSE Application Collection integration is disabled', () => {
+      const ctx = { ...baseContext, suseAppCollectionEnabled: false };
+      const result = (Charts.computed!.showAppCollectionBannerLogic as () => unknown).call(ctx);
+
+      expect(!!result).toBe(false);
     });
   });
 });

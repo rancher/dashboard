@@ -406,6 +406,74 @@ describe('class: Resource', () => {
     });
   });
 
+  describe('condition helpers', () => {
+    const ctx = {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootGetters: { 'i18n/t': jest.fn() },
+    };
+
+    function withConditions(conditions?: any[]) {
+      return new Resource({ type: 'test', status: conditions ? { conditions } : {} }, ctx);
+    }
+
+    describe('method: condition', () => {
+      it('should return the matching condition entry', () => {
+        const ready = { type: 'Ready', status: 'True' };
+
+        expect(withConditions([ready]).condition('Ready')).toStrictEqual(ready);
+      });
+
+      it('should return undefined when the condition is absent', () => {
+        expect(withConditions([{ type: 'Ready', status: 'True' }]).condition('Missing')).toBeUndefined();
+      });
+
+      it('should return undefined when status.conditions is missing', () => {
+        expect(withConditions().condition('Ready')).toBeUndefined();
+      });
+    });
+
+    describe('method: hasCondition', () => {
+      it('should be true when the condition exists regardless of status', () => {
+        expect(withConditions([{ type: 'Ready', status: 'False' }]).hasCondition('Ready')).toBe(true);
+      });
+
+      it('should be false when the condition is absent', () => {
+        expect(withConditions([{ type: 'Ready', status: 'True' }]).hasCondition('Missing')).toBe(false);
+      });
+
+      it('should be false when status.conditions is missing', () => {
+        expect(withConditions().hasCondition('Ready')).toBe(false);
+      });
+    });
+
+    describe('method: isCondition', () => {
+      it('should default to matching a True status', () => {
+        expect(withConditions([{ type: 'Ready', status: 'True' }]).isCondition('Ready')).toBe(true);
+      });
+
+      it('should be false when the status does not match', () => {
+        expect(withConditions([{ type: 'Ready', status: 'False' }]).isCondition('Ready')).toBe(false);
+      });
+
+      it('should match a requested status case-insensitively', () => {
+        expect(withConditions([{ type: 'Ready', status: 'True' }]).isCondition('Ready', 'true')).toBe(true);
+      });
+
+      it('should match an explicit non-True status', () => {
+        expect(withConditions([{ type: 'Ready', status: 'False' }]).isCondition('Ready', 'False')).toBe(true);
+      });
+
+      it('should be false when the condition is absent', () => {
+        expect(withConditions([{ type: 'Ready', status: 'True' }]).isCondition('Missing')).toBe(false);
+      });
+
+      it('should be false when status.conditions is missing', () => {
+        expect(withConditions().isCondition('Ready')).toBe(false);
+      });
+    });
+  });
+
   describe('getter: resourceEvents', () => {
     it('should return events from the store', () => {
       const mockEvents = [{ type: 'Normal', reason: 'Test' }];
@@ -707,6 +775,58 @@ describe('class: Resource', () => {
 
       expect(showConfig.enabled).toBe(false);
       expect(viewYaml.enabled).toBe(true);
+    });
+
+    it('should hide "View Config" when "Show Configuration" is enabled and resource cannot be updated', () => {
+      const resource = createResource(
+        { view: '/api/v1/test' },
+        { rootGetters: { 'type-map/hasCustomEdit': () => true } },
+      );
+
+      const actions = resource._availableActions;
+      const viewConfig = findAction(actions, 'goToViewConfig');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(true);
+      expect(viewConfig.enabled).toBe(false);
+    });
+
+    it('should show "Edit Config" even when "Show Configuration" is enabled', () => {
+      const resource = createResource(
+        { view: '/api/v1/test', update: '/api/v1/test' },
+        {
+          rootGetters: {
+            'type-map/hasCustomEdit': () => true,
+            'type-map/optionsFor':    () => ({
+              isEditable: true, isRemovable: true, isCreatable: false
+            }),
+          },
+        },
+      );
+
+      const actions = resource._availableActions;
+      const editConfig = findAction(actions, 'goToEdit');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(true);
+      expect(editConfig.enabled).toBe(true);
+    });
+
+    it('should show "View Config" when "Show Configuration" is not enabled', () => {
+      const resource = createResource(
+        { view: '/api/v1/test' },
+        {
+          disableResourceDetailDrawer: true,
+          rootGetters:                 { 'type-map/hasCustomEdit': () => true },
+        },
+      );
+
+      const actions = resource._availableActions;
+      const viewConfig = findAction(actions, 'goToViewConfig');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(false);
+      expect(viewConfig.enabled).toBe(true);
     });
   });
 

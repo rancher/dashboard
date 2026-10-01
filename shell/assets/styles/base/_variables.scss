@@ -6,6 +6,8 @@ $app-bar-collapsed-width: 70px;
 // The expanded nav (`.side-menu.menu-open`). The cluster-switcher flyout and its scrim anchor to the nav
 // in EITHER state, so both widths have to live together — split them and the flyout drifts off the nav.
 $app-bar-expanded-width: 300px;
+// Shared with the roll-out wipe in ClusterSwitcher.vue, which has to reach across the panel.
+$cluster-switcher-flyout-width: 380px;
 $max-width: 1440px !default;
 $min-width: 75% !default;
 $input-height: 61px;

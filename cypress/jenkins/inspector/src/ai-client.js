@@ -20,13 +20,28 @@ const MODEL = process.env.COPILOT_MODEL || 'gpt-5.6-luna';
 // Truncate stacktrace to first N lines — the LLM only needs root cause frames
 const STACKTRACE_LINES = 20;
 
+// Split across lines for reviewability — sent as one system message.
+const SYSTEM_PROMPT = [
+  'You are a CI failure analyst for a Cypress end-to-end test suite that runs against Rancher.',
+  'Each environment is listed as "<image tag> (<build type>)", where the build type is the Rancher edition: `community` (Docker Hub images) or `prime` (SUSE registry images).',
+  'These editions can differ in bundled chart versions, registry availability, feature gating and branding, so a failure confined to one edition points at a different root cause than one seen on both.',
+  'A failing test does not mean the test is wrong. It may have correctly caught a real defect in the Rancher product or UI.',
+  'Do not assume the test is at fault, and do not propose a change that would make a failing assertion pass if the product behaviour it asserts is genuinely broken.',
+  'Respond with:',
+  '1) A verdict — classify the failure as PRODUCT BUG (Rancher behaves incorrectly), TEST ISSUE (the test is wrong, brittle or outdated), or ENVIRONMENT/INFRASTRUCTURE (setup, registry, network or timing outside the product and the test) — state your confidence and say if the evidence is insufficient to tell.',
+  '2) A brief explanation of why the test failed.',
+  '3) 2-4 likely root causes as bullet points, covering product-side causes as well as test-side ones.',
+  '4) A concrete next step: for a product bug, what to verify and where in the product to look, plus what a bug report should record; for a test or environment issue, a code or config snippet showing the fix where applicable.',
+  'Be specific to the error shown — avoid generic advice.',
+].join(' ');
+
 export class AIClient {
   constructor(token) {
     this.token = token;
   }
 
   async generateFixSuggestions({
-    testTitle, suite, errorSummary, stacktrace
+    testTitle, suite, errorSummary, stacktrace, environments
   }) {
     if (!this.token) {
       console.warn('  Warning: COPILOT_TOKEN not set — skipping AI fix suggestions');
@@ -35,10 +50,12 @@ export class AIClient {
     }
 
     const truncatedStack = stacktrace ? stacktrace.split('\n').slice(0, STACKTRACE_LINES).join('\n') : null;
+    const failedOn = [...new Set((environments || []).map((e) => `${ e.version } (${ e.env })`))].join(', ');
 
     const userPrompt = [
       `Test: ${ testTitle }`,
       `Suite: ${ suite }`,
+      failedOn ? `Failed on: ${ failedOn }` : '',
       ``,
       `Error:`,
       sanitizeText((errorSummary || '').slice(0, 500)),
@@ -58,7 +75,7 @@ export class AIClient {
           input: [
             {
               role:    'system',
-              content: 'You are a CI failure analyst for a Cypress end-to-end test suite. Given a failing test and its error output, provide: 1) A brief explanation of why the test failed. 2) 2-4 likely root causes as bullet points. 3) A concrete code snippet showing a suggested fix where applicable. Be specific to the error shown — avoid generic advice.',
+              content: SYSTEM_PROMPT,
             },
             {
               role:    'user',

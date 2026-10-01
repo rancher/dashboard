@@ -52,7 +52,9 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
 
   describe('Create/Edit', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
-      cy.createE2EResourceName('ingress').then((name) => {
+      // Must differ from the namespace name (context 'ingress' below), otherwise when the list is grouped by
+      // namespace rowWithName(ingressName) matches the namespace group row, which has no action button
+      cy.createE2EResourceName('ingress-rules').then((name) => {
         ingressName = name;
       });
 

@@ -14,6 +14,7 @@ exports[`component: AppCoVersionSelect should match snapshot 1`] = `
   localizedlabel="false"
   lockedoptions=""
   mode="edit"
+  mutedvalue="false"
   nooptionslabelkey="labelSelect.noOptions.empty"
   optionkey="value"
   optionlabel="label"

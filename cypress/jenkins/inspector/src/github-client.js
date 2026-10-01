@@ -23,6 +23,8 @@ class GitHubClient {
       .split(',').map((l) => l.trim()).filter(Boolean);
     this.statusFieldId = process.env.STATUS_FIELD_ID;
     this.backlogOptionId = process.env.BACKLOG_OPTION_ID;
+    // Optional — reopened regressions land in Backlog alongside new issues until set.
+    this.reopenedOptionId = process.env.REOPENED_OPTION_ID || process.env.BACKLOG_OPTION_ID;
     this.headers = {
       Authorization:  `token ${ token }`,
       Accept:         'application/vnd.github.v3+json',
@@ -178,15 +180,17 @@ class GitHubClient {
   }
 
   _renderEnvironmentsTable(environments) {
-    // Renders a markdown table listing each environment the test failed in
+    // Renders a markdown table listing each environment the test failed in.
+    // `env` is the Rancher build type (community/prime) and `user` the Cypress
+    // tag expression — both come from the Jenkins build description.
     if (!environments?.length) return '';
     const rows = environments.map((e) => {
-      const user = e.user ? `\`${ e.user }\`` : '—';
+      const tags = e.user ? `\`${ e.user }\`` : '—';
 
-      return `| ${ e.version || '—' } | ${ e.env || '—' } | ${ user } |`;
+      return `| ${ e.version || '—' } | ${ e.env || '—' } | ${ tags } |`;
     }).join('\n');
 
-    return `### Failing Environments\n| Version | Environment | User |\n|---------|-------------|------|\n${ rows }`;
+    return `### Failing Environments\n| Version | Build Type | Cypress Tags |\n|---------|------------|--------------|\n${ rows }`;
   }
 
   async reopenIssue(issueNumber, environments = [], failure = {}, aiSuggestions = null) {
@@ -343,10 +347,10 @@ ${ aiSection }
     return nodeIds;
   }
 
-  async addToProject(issueNodeId) {
+  async addToProject(issueNodeId, statusOptionId = this.backlogOptionId) {
     try {
       const projectId = await this._getProjectId();
-      const canSetStatus = !!this.statusFieldId && !!this.backlogOptionId;
+      const canSetStatus = !!this.statusFieldId && !!statusOptionId;
 
       // addProjectV2ItemById is idempotent — if already on board it returns the existing item
       const addRes = await this._projectRequest('POST', '/graphql', {
@@ -365,12 +369,12 @@ ${ aiSection }
       const itemId = addRes.data.addProjectV2ItemById.item.id;
 
       if (!canSetStatus) {
-        console.warn('STATUS_FIELD_ID or BACKLOG_OPTION_ID not set — skipping status assignment');
+        console.warn('STATUS_FIELD_ID or the target status option ID not set — skipping status assignment');
 
         return { projectItemId: itemId };
       }
 
-      // Set status to Backlog
+      // Move the item into its target column
       const updateRes = await this._projectRequest('POST', '/graphql', {
         query: `
           mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
@@ -386,7 +390,7 @@ ${ aiSection }
           projectId,
           itemId,
           fieldId:  this.statusFieldId,
-          optionId: this.backlogOptionId
+          optionId: statusOptionId
         }
       });
 

@@ -38,6 +38,10 @@ safe-outputs:
   add-comment:
 
 tools:
+  # Explicit since gh-aw requires shell access to be declared when
+  # `github.min-integrity` is `none`. `true` preserves the unrestricted
+  # shell these workflows have always run with.
+  bash: true
   web-fetch:
   github:
     toolsets: [issues]

@@ -66,4 +66,33 @@ describe('composables: useFetch', () => {
     expect(result.value.data).toBe(mockData);
     expect(result.value.error).toBeUndefined();
   });
+
+  describe('with immediate set to false', () => {
+    it('should not call the fetch function or be loading', () => {
+      const mockFetch = jest.fn(() => Promise.resolve('data'));
+
+      const result = useFetch(mockFetch, { immediate: false });
+
+      expect(result.value.loading).toBe(false);
+      expect(result.value.data).toBeUndefined();
+      expect(mockFetch).toHaveBeenCalledTimes(0);
+    });
+
+    it('should fetch data when load is called', async() => {
+      const mockData = { id: 1 };
+      const mockFetch = jest.fn(() => Promise.resolve(mockData));
+
+      const result = useFetch(mockFetch, { immediate: false });
+
+      const loading = result.value.load();
+
+      expect(result.value.loading).toBe(true);
+      expect(mockFetch).toHaveBeenCalledWith();
+
+      await loading;
+
+      expect(result.value.loading).toBe(false);
+      expect(result.value.data).toStrictEqual(mockData);
+    });
+  });
 });

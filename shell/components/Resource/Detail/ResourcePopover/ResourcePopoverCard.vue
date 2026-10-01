@@ -69,6 +69,8 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
     .badge-state {
       height: 20px;
       font-size: 12px;
+      // Fits the text in the 20px pill. Inside a table cell the pill is clipped, so the row line-height would cut it off
+      line-height: 14px;
     }
 
     .heading {
@@ -116,8 +118,14 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
       margin-top: 4px;
     }
 
+    // Keep the values lined up when a long value, e.g. a node's OS, wraps
     .label {
       width: 50%;
+      flex-shrink: 0;
+    }
+
+    .value {
+      min-width: 0;
     }
   }
 }

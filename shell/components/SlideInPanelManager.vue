@@ -95,6 +95,8 @@ const showHeader = computed(() => {
 
 const panelTitle = computed(() => currentProps.value?.title || (showHeader.value ? 'Details' : ''));
 
+const isPanelInert = computed(() => (isOpen.value ? undefined : true));
+
 const closeOnRouteChange = computed(() => {
   const propsCloseOnRouteChange = currentProps.value?.closeOnRouteChange;
 
@@ -209,6 +211,9 @@ function closePanel() {
       <aside
         class="slide-in"
         :class="{ 'slide-in-open': isOpen }"
+        :aria-hidden="!isOpen"
+        :inert="isPanelInert"
+        :aria-label="panelTitle || undefined"
         :style="{
           width: panelWidth,
           right: panelRight,

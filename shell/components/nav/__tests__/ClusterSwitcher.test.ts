@@ -310,16 +310,19 @@ describe('component: ClusterSwitcher', () => {
       expect(vm.recentRows).toHaveLength(2);
     });
 
-    // A recent cluster may also BE the fixed tile or a row of the estate. Two elements answering to one id
-    // would make `aria-activedescendant` ambiguous and hand Vue duplicate keys.
+    // `local` is on screen three times over — the fixed tile, a RECENTLY USED shortcut and its row in the
+    // estate. Two elements answering to one id would hand Vue duplicate keys and leave "scroll this row
+    // into view" resolving to whichever the DOM reached last.
     it('gives its options ids of their own, so a repeated cluster cannot collide', async() => {
       const wrapper = mountSwitcher({
-        local: cluster('local'), recent: [cluster('local'), cluster('p1')], all: [cluster('p1')], clusterCount: 1
+        local: cluster('local'), recent: [cluster('local'), cluster('p1')], all: [cluster('local'), cluster('p1')], clusterCount: 2
       });
       const vm = wrapper.vm as any;
       const ids = wrapper.findAll('[id^="cluster-switcher-opt"]').map((el: any) => el.attributes('id'));
 
       expect(ids).toStrictEqual([...new Set(ids)]);
+      // One cluster, three places, three ids.
+      expect(ids).toContain('cluster-switcher-opt-tile-local');
       expect(ids).toContain('cluster-switcher-opt-recent-local');
       expect(ids).toContain('cluster-switcher-opt-local');
 
@@ -1025,17 +1028,39 @@ describe('component: ClusterSwitcher', () => {
     it('announces aria-current once when the current cluster is on screen more than once', () => {
       const local = cluster('local');
       const wrapper = mountSwitcher({
-        local, recent: [local, cluster('r1')], all: [cluster('p1')], currentClusterId: 'local'
+        local, recent: [local, cluster('r1')], all: [local, cluster('p1')], currentClusterId: 'local'
       });
 
       const rows = wrapper.findAllComponents(ClusterSwitcherRow);
       const announced = rows.filter((row) => row.props('current') && row.props('announceCurrent'));
       const markedCurrent = rows.filter((row) => row.props('current'));
 
-      // Twice on screen, announced once. Neither is marked in the panel — no fill, no "current" in the
-      // row's text — so `aria-current` is the only thing saying it, and it may only say it once.
-      expect(markedCurrent).toHaveLength(2);
+      // All three places `local` can be — the tile, RECENTLY USED and its row in the estate — announced
+      // once. None is marked in the panel — no fill, no "current" in the row's text — so `aria-current`
+      // is the only thing saying it, and it may only say it once.
+      expect(markedCurrent).toHaveLength(3);
       expect(announced).toHaveLength(1);
+    });
+
+    // `local` is a row of ALL CLUSTERS like any other cluster — the tile above it is a shortcut to the
+    // same place, not the only way there. The one thing that still sets it apart is the pin: pinning is
+    // what the fixed tile already does for it, so its row has no pin control while the estate's do.
+    it('lists local among the estate rows, as the one row that cannot be pinned', () => {
+      const local = cluster('local');
+      const wrapper = mountSwitcher({
+        local, all: [local, cluster('p1')], clusterCount: 2
+      });
+
+      const byId = (id: string) => wrapper.findAllComponents(ClusterSwitcherRow).filter((row) => (row.props('cluster') as any).id === id);
+
+      // The estate is `all` as handed over, `local` among it — and on screen that is the tile plus both
+      // estate rows.
+      expect((wrapper.vm as any).rows.map((c: any) => c.id)).toStrictEqual(['local', 'p1']);
+      expect(wrapper.findAllComponents(ClusterSwitcherRow)).toHaveLength(3);
+
+      // Two rows for `local`: the tile and its place in the estate. Neither offers a pin.
+      expect(byId('local').map((row) => row.props('pinnable'))).toStrictEqual([false, false]);
+      expect(byId('p1').map((row) => row.props('pinnable'))).toStrictEqual([true]);
     });
 
     // A page 1 that fails leaves the list empty — exactly like a page 1 that has not landed yet. Shown as

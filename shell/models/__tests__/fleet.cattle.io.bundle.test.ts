@@ -255,4 +255,119 @@ describe('class FleetBundle', () => {
       expect(bundle.targetClusters).toStrictEqual([]);
     });
   });
+
+  describe('state', () => {
+    // Payloads as Steve serves them: `metadata.state` is normalised from the backend's
+    // `status.display.state`, and the Ready condition flags every non-ready state as an
+    // error that is transitioning.
+    function createFleetBundle(stateName: string, message = '', error = false) {
+      return new FleetBundle({
+        metadata: {
+          namespace: 'fleet-local',
+          state:     {
+            name: stateName, error, transitioning: false, message: ''
+          }
+        },
+        status: {
+          conditions: message ? [{
+            type: 'Ready', status: 'False', error: true, transitioning: true, message
+          }] : []
+        },
+      });
+    }
+
+    const waitingMessage = 'WaitingForDependency(1) [Cluster fleet-local/local: waiting for dependent bundle(s) to reach an accepted state: zz-dep-broken (state: ErrApplied, accepted: Ready)]';
+    const errAppliedMessage = 'ErrApplied(1) [Cluster fleet-local/local: unable to build kubernetes objects from release manifest]';
+    const notReadyMessage = 'NotReady(1) [Cluster fleet-local/local]; deployment.apps default/foo error] ReplicaSet has timed out progressing';
+
+    it.each([
+      ['waitingfordependency', waitingMessage, 'Waiting for Dependency', 'text-info'],
+      ['errapplied', errAppliedMessage, 'Err Applied', 'text-error'],
+      ['notready', notReadyMessage, 'Not Ready', 'text-warning'],
+      ['modified', 'Modified(1) [Cluster fleet-local/local]', 'Modified', 'text-warning'],
+      ['active', '', 'Active', 'text-success'],
+    ])('should report %s as it is reported by the backend', (stateName, message, display, color) => {
+      const bundle = createFleetBundle(stateName, message);
+
+      expect(bundle.state).toBe(stateName);
+      expect(bundle.stateDisplay).toBe(display);
+      expect(bundle.stateColor).toBe(color);
+    });
+
+    it('should not report a bundle held back by a dependency as an error, even though the message names the dependency\'s ErrApplied state', () => {
+      const bundle = createFleetBundle('waitingfordependency', waitingMessage);
+
+      expect(bundle.state).not.toBe('errapplied');
+      expect(bundle.stateColor).not.toBe('text-error');
+    });
+
+    it('should not report a bundle as an error because the word error appears in its message', () => {
+      const bundle = createFleetBundle('notready', notReadyMessage);
+
+      expect(bundle.state).toBe('notready');
+      expect(bundle.stateColor).not.toBe('text-error');
+    });
+
+    // The backend raises `error` on anything that is not Ready, and does so unevenly - bundles in the
+    // same state disagree on it - so the state itself has to decide the colour.
+    describe('given the backend also flags the state as an error', () => {
+      it.each([
+        ['waitingfordependency', 'text-info'],
+        ['waitapplied', 'text-info'],
+        ['pending', 'text-info'],
+        ['modified', 'text-warning'],
+        ['notready', 'text-warning'],
+      ])('should colour %s from the state, not from the flag', (stateName, color) => {
+        const flagged = createFleetBundle(stateName, 'some message', true);
+        const unflagged = createFleetBundle(stateName, 'some message', false);
+
+        expect(flagged.stateColor).toBe(color);
+        expect(flagged.stateColor).toBe(unflagged.stateColor);
+      });
+
+      it('should still colour a state the UI classifies as an error as an error', () => {
+        const bundle = createFleetBundle('errapplied', 'ErrApplied(1) [...]', true);
+
+        expect(bundle.stateColor).toBe('text-error');
+      });
+
+      it('should leave a state the UI does not know to the flag', () => {
+        const bundle = createFleetBundle('somethingnewfromfleet', 'some message', true);
+
+        expect(bundle.stateColor).toBe('text-error');
+      });
+    });
+
+    describe('stateDescription', () => {
+      it('should describe a non ready bundle with the Ready condition message', () => {
+        const bundle = createFleetBundle('waitingfordependency', waitingMessage);
+
+        expect(bundle.stateDescription).toBe(waitingMessage);
+      });
+
+      it('should not describe a ready bundle', () => {
+        const bundle = createFleetBundle('active');
+
+        expect(bundle.stateDescription).toBe('');
+      });
+
+      it('should not describe a ready bundle whose Ready condition carries a message', () => {
+        const bundle = new FleetBundle({
+          metadata: {
+            namespace: 'fleet-local',
+            state:     {
+              name: 'active', error: false, transitioning: false, message: ''
+            }
+          },
+          status: {
+            conditions: [{
+              type: 'Ready', status: 'True', message: 'Deployment ready'
+            }]
+          },
+        });
+
+        expect(bundle.stateDescription).toBe('');
+      });
+    });
+  });
 });

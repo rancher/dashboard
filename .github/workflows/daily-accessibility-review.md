@@ -42,6 +42,10 @@ safe-outputs:
     max: 5
 
 tools:
+  # Explicit since gh-aw requires shell access to be declared when
+  # `github.min-integrity` is `none`. `true` preserves the unrestricted
+  # shell these workflows have always run with.
+  bash: true
   playwright:
     args: ["--ignore-https-errors"]
   web-fetch:

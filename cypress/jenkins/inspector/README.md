@@ -29,7 +29,8 @@ Runs automatically **Tue–Sat at 4:00 AM PST** (11:00 UTC) via GitHub Actions, 
 | `JENKINS_BASE_URL` | Repo secret | Jenkins instance base URL |
 | `INSPECTOR_JENKINS_JOB_PATH` | Repo secret | Job path |
 | `INSPECTOR_STATUS_FIELD_ID` | Repo secret | ProjectV2 Status field node ID |
-| `INSPECTOR_BACKLOG_OPTION_ID` | Repo secret | Status option ID for Backlog column |
+| `INSPECTOR_BACKLOG_OPTION_ID` | Repo secret | Status option ID for Backlog column — where newly created issues land |
+| `INSPECTOR_REOPENED_OPTION_ID` | Repo secret | Status option ID for the Reopened column — where regressions land. Falls back to the Backlog column if unset |
 | `UI_QA_SLACK_BOT_TOKEN` | Repo secret | Slack bot token for high-failure alerts |
 | `UI_QA_SLACK_CHANNEL` | Repo secret | Slack channel ID for alerts (e.g. `#team-rancher-ui-qa-jenkins-test-results`) |
 | `UI_QA_SLACK_GROUP_ID` | Repo secret | Slack user group ID for `@ui-qa` mentions (e.g. `S01234ABC`) |

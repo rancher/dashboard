@@ -221,7 +221,7 @@ export default {
       :class="{ 'slide-in-glass-open': isOpen }"
       @click="close()"
     />
-    <aside
+    <div
       ref="slideInPanelResourceExplain"
       class="slide-in"
       :class="{ 'slide-in-open': isOpen }"
@@ -358,7 +358,7 @@ export default {
           </div>
         </div>
       </div>
-    </aside>
+    </div>
   </div>
 </template>
 

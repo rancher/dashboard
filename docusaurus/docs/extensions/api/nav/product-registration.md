@@ -331,7 +331,7 @@ The metadata that defines a product — its identity, icon, and product-level se
 | Property | Type | Description |
 | --- | --- | --- |
 | `ifFeature` | `string \| RegExp` | Only show the product if a feature flag is present |
-| `ifHave` | `string` | Only show if the specified resource type exists |
+| `ifHave` | `string` | Only show if a condition is met — an `IF_HAVE` value from `@shell/store/type-map`, e.g. `IF_HAVE.ADMIN` |
 | `ifHaveGroup` | `string \| RegExp` | Only show if the specified API group is present |
 | `ifHaveType` | `string \| RegExp` | Only show if the specified resource type is present |
 | `ifNotHaveType` | `string \| RegExp` | Hide if the specified resource type is present (opposite of `ifHaveType`) |
@@ -400,7 +400,7 @@ A page inside a product that renders a Vue component you provide. Equivalent to 
 
 | Property | Type | Description |
 | --- | --- | --- |
-| `ifHave` | `boolean` | Display only if a condition is met (relates to `IF_HAVE` in the store) |
+| `ifHave` | `string` | Display only if a condition is met — an `IF_HAVE` value from `@shell/store/type-map`, e.g. `IF_HAVE.ADMIN` |
 | `ifFeature` | `string` | Display only if the specified feature flag is present |
 | `ifHaveType` | `string` | Display only if the specified resource type exists |
 | `ifHaveVerb` | `string` | Used with `ifHaveType` — display only if the resource type allows this verb (`GET`, `POST`, `PUT`, `DELETE`) |
@@ -483,7 +483,8 @@ A page that displays a Kubernetes resource type using Rancher Dashboard's built-
 
 | Property | Type | Description |
 | --- | --- | --- |
-| `headers` | `HeaderOptions[]` | Custom table column headers for the list view. See [Table headers](#table-headers-listconfigheaders) |
+| `headers` | `HeaderOptions[]` | Custom table column headers for the list view, used with server-side pagination. See [Table headers](#table-headers-listconfigheaders) |
+| `localHeaders` | `HeaderOptions[]` | Custom table column headers for the list view, used with local (client-side) pagination. See [Local pagination headers](#local-pagination-headers-listconfiglocalheaders) |
 | `hideBulkActions` | `boolean` | Hide bulk action buttons (e.g. delete) for this resource in the list view. See [Hiding bulk actions](#hiding-bulk-actions-listconfighidebulkactions) |
 
 <br/>
@@ -498,7 +499,49 @@ A collapsible folder/group in the product's side-menu that contains pages or oth
 | `label` | `string` | Yes* | Display label (* either `label` or `labelKey` is required) |
 | `labelKey` | `string` | Yes* | Translation key for the label |
 | `component` | `VueRouteComponent` | No | Optional component to render when the group header is clicked |
+| `enableOverviewPage` | `Object` | No | Conditions that control when this group's overview page is shown. Only available alongside `component`. Check [enableOverviewPage](#enableoverviewpage-optional--conditions-that-control-when-the-groups-overview-page-is-shown) object definition |
 | `sideMenu` | `Object` | Yes | Defines the group's children and ordering. Check [sideMenu](#sidemenu-required--defines-the-groups-children-and-ordering) object definition |
+
+<br/>
+
+#### **`enableOverviewPage`** *(optional)* — Conditions that control when the group's overview page is shown:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `ifHave` | `string` | Display only if a condition is met — an `IF_HAVE` value from `@shell/store/type-map`, e.g. `IF_HAVE.ADMIN` |
+| `ifFeature` | `string` | Display only if the specified feature flag is present |
+| `ifHaveType` | `string` | Display only if the specified resource type exists |
+| `ifHaveVerb` | `string` | Used with `ifHaveType` — display only if the resource type allows this verb (`GET`, `POST`, `PUT`, `DELETE`) |
+
+The name is literal: these conditions gate the group's **overview page** and nothing else. They never cascade to the group's children. The property is only available on a group that defines a `component`, because that component is the overview page being gated — TypeScript rejects `enableOverviewPage` without a `component`, and registration throws the same error at runtime for extensions written in JavaScript.
+
+Hiding the overview can still take the whole group out of the navigation, because the side-menu only creates a group once it has at least one visible child. So:
+
+- **No child is visible** — overview gated away, children hidden too, and the group never appears. Resource pages hide themselves when their type is absent, so a group whose children are all resource pages of the same missing CRD behaves the way you'd want.
+- **A child is still visible** — for example an always-available custom page. The group stays in the menu, only the overview is removed, and the group header renders as plain text instead of a link.
+
+The first case is the recommended way to build a "the whole feature is hidden until its CRDs are installed" product area, with the group header itself acting as the landing page:
+
+```ts
+const certManagerGroup: ProductChildGroup = {
+  name:               'cert-manager',
+  labelKey:           'certmanager.title',
+  component:          () => import('./pages/Overview.vue'),
+  enableOverviewPage: { ifHaveType: 'cert-manager.io.certificate' },
+  sideMenu:           {
+    children: [
+      { type: 'cert-manager.io.certificate' },
+      { type: 'cert-manager.io.clusterissuer' },
+    ],
+  },
+};
+```
+
+:::note
+
+If a gated group is the **first** item in a new product's config, it also determines the product's landing route — which would point at a hidden page when the conditions are not met. Put the equivalent condition on the product's own [`enable`](#enable-optional--conditions-that-control-when-this-product-is-visible) block so the product is hidden too.
+
+:::
 
 <br/>
 
@@ -655,6 +698,41 @@ When server-side pagination is enabled for a resource type, Rancher Dashboard us
 
 Before using headers with server-side pagination, it must be enabled for the resource type via `plugin.enableServerSidePagination`. See [Update Global Configuration](../../performance/scaling/global-config.md) for details on how to set this up.
 
+### Local pagination headers (`listConfig.localHeaders`)
+
+We recommend `listConfig.headers` with server-side pagination for most lists. It scales and performs better because the backend does the sorting, filtering and paging, so the browser only ever holds one page of rows.
+
+Some lists cannot use server-side pagination. That happens when the columns you want to sort or search on are not fields the backend indexes, which is common for:
+
+- custom resources whose CRD you do not control, so you cannot add indexed fields
+- columns whose value is computed in the Dashboard's model rather than stored on the resource itself
+
+For these lists, use `listConfig.localHeaders` instead. The list then renders with local (client-side) pagination, so the full set of rows is loaded into the browser. Because sorting and filtering happen locally, `sort` and `search` here may reference any field or model getter, not just indexed string paths.
+
+```ts
+import { STATE, NAME, AGE } from '@shell/config/table-headers';
+
+const myResourcePage: ProductChildResourcePage = {
+  type:       'my.crd.group.myresource',
+  listConfig: {
+    localHeaders: [
+      STATE,
+      NAME,
+      {
+        name:  'computed',
+        label: 'Computed',
+        // A model getter is fine here because sorting and filtering run in the browser.
+        value: 'someModelGetter',
+        sort:  'someModelGetter',
+      },
+      AGE,
+    ],
+  },
+};
+```
+
+> **Trade-off:** the whole list is loaded into the browser, so only reach for `localHeaders` when the fields rule out server-side pagination. Prefer `headers` and server-side pagination whenever they can work.
+
 ### Renaming types (`label`)
 
 Use the `label` property directly on a resource page to override the display name for a resource type in the list view. This maps the resource's internal type to a custom label via the DSL `mapType` method.
@@ -712,6 +790,10 @@ Only custom pages and groups can have `sideMenu.children`. A resource page (an i
 
 A group (an item with `sideMenu.children`) cannot also have a `type` property. Groups are for organizing navigation — they do not display Kubernetes resources directly. Place resource pages as children of the group instead.
 
+### Groups with `enableOverviewPage` must have a `component`
+
+`enableOverviewPage` gates a group's overview page, so a group that sets it without a `component` has nothing to gate. TypeScript rejects the combination, and registration throws an error at runtime for extensions written in JavaScript. See [`ProductChildGroup.enableOverviewPage`](#enableoverviewpage-optional--conditions-that-control-when-the-groups-overview-page-is-shown) for how gating the overview affects the group as a whole.
+
 ### Naming requirements
 
 - Custom pages and groups require a `name` property (unique identifier used in routes)
@@ -728,6 +810,16 @@ Each custom page and group must have a unique `name` within the same product con
 ### Resource types must be unique within a product
 
 Each resource page `type` must appear only once in a product configuration. Registering the same Kubernetes resource type twice will throw an error at registration time.
+
+### Globally ignored types will not appear in navigation
+
+Rancher Dashboard maintains an internal list of types that are always excluded from navigation (e.g. `management.cattle.io.user`, `management.cattle.io.setting`). If you register a `ProductChildResourcePage` whose `type` appears on this list, the nav entry will silently not render — no error is thrown and routing still works, but the item will never be visible in the side-menu.
+
+Additionally, some API groups (e.g. `harvesterhci.io`, `kubevirt.io`) are conditionally excluded depending on the current cluster type — nav entries for those types may appear or disappear at runtime.
+
+If your resource page is unexpectedly missing from the side-menu, open the browser console: a `[Extensions]` warning will be emitted at registration time if the type or its API group is on one of these lists.
+
+The recommended workaround is to register a `ProductChildCustomPage` with a custom component instead and use `virtualType` to point at your own view.
 
 ### Ordering and default routes
 

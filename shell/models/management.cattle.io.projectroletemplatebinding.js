@@ -1,6 +1,7 @@
 import { CREATOR_ID } from '@shell/config/labels-annotations';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
 
 export default class PRTB extends HybridModel {
   get canCustomEdit() {
@@ -77,31 +78,20 @@ export default class PRTB extends HybridModel {
       return this.project.detailLocation;
     }
 
-    const name = `c-cluster-product-resource-id`;
-
-    const params = {
-      resource: MANAGEMENT.PROJECT,
-      id:       this.projectId,
-      product:  'explorer',
+    return {
+      name:   'c-cluster-product-resource-namespace-id',
+      params: {
+        cluster:   this.clusterId,
+        product:   EXPLORER,
+        resource:  MANAGEMENT.PROJECT,
+        namespace: this.clusterId,
+        id:        this.projectId.replace(/.*\//, ''),
+      }
     };
-
-    return { name, params };
   }
 
   get clusterDetailLocation() {
-    if (this.cluster) {
-      return this.cluster.detailLocation;
-    }
-
-    const name = `c-cluster-product-resource-id`;
-
-    const params = {
-      resource: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
-      id:       this.clusterName,
-      product:  'explorer',
-    };
-
-    return { name, params };
+    return this.cluster?.canExplore ? { name: 'c-cluster-explorer', params: { cluster: this.clusterId } } : null;
   }
 
   get roleTemplate() {

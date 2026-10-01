@@ -306,4 +306,42 @@ describe('slideInPanelManager.vue with Teleport', () => {
       expect(header).toBeNull();
     });
   });
+
+  describe('accessibility', () => {
+    const panel = () => document.querySelector('#slides .slide-in') as HTMLElement;
+
+    it('keeps the closed panel out of the accessibility tree and the tab order', async() => {
+      getters['slideInPanel/isOpen'] = () => false;
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': jest.fn() }
+      });
+      factory();
+      await nextTick();
+
+      expect(panel().getAttribute('aria-hidden')).toBe('true');
+      expect(panel().hasAttribute('inert')).toBe(true);
+    });
+
+    it('exposes the open panel and names it after its title', async() => {
+      factory();
+      await nextTick();
+
+      expect(panel().getAttribute('aria-hidden')).toBe('false');
+      expect(panel().hasAttribute('inert')).toBe(false);
+      expect(panel().getAttribute('aria-label')).toBe('Test Title');
+    });
+
+    it('leaves the open panel unnamed when it has no title', async() => {
+      getters['slideInPanel/componentProps'] = () => ({});
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': jest.fn() }
+      });
+      factory();
+      await nextTick();
+
+      expect(panel().hasAttribute('aria-label')).toBe(false);
+    });
+  });
 });

@@ -408,6 +408,7 @@ export default {
           :t-args="tArgs"
           :disable="disable"
           :edit="goToEdit"
+          :provider-id="model.id"
         >
           <template #rows>
             <tr>

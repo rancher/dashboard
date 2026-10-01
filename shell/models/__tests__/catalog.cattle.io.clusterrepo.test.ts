@@ -32,7 +32,7 @@ describe('clusterRepo', () => {
 
       expect(model.spec.forceUpdate).toBe('2023-01-01T12:00:00Z');
       expect(model.save).toHaveBeenCalledWith();
-      expect(model.waitForState).toHaveBeenCalledWith('active', 10000, 1000);
+      expect(model.waitForState).toHaveBeenCalledWith('active', 30000, 1000);
       expect(model.$dispatch).toHaveBeenCalledWith('catalog/load', { force: true, repoKeys: [model._key] }, { root: true });
 
       spy.mockRestore();
@@ -42,7 +42,7 @@ describe('clusterRepo', () => {
       await model.refresh(false);
 
       expect(model.save).toHaveBeenCalledWith();
-      expect(model.waitForState).toHaveBeenCalledWith('active', 10000, 1000);
+      expect(model.waitForState).toHaveBeenCalledWith('active', 30000, 1000);
       expect(model.$dispatch).not.toHaveBeenCalled();
     });
 

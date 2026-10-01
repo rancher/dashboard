@@ -18,6 +18,9 @@ export const GITHUB_NONCE = 'state';
 export const GITHUB_SCOPE = 'scope';
 export const GITHUB_REDIRECT = 'redirect_uri';
 
+// Auth Provider
+export const EDIT_CONFIG = 'editConfig';
+
 // General
 export const _FLAGGED = null; // The value for a key-only flag, like `?desc`
 export const _UNFLAG = undefined; // The value to remove a query param

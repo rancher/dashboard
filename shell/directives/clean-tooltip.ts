@@ -348,6 +348,10 @@ function showSingletonTooltip(target: TooltipHTMLElement, options: TooltipOption
   }
 
   // Create a new tooltip instance.
+  //
+  // a11y: the popper is appended to <body>, outside any landmark, so a shown tooltip fails axe's
+  // best-practice region rule (https://dequeuniversity.com/rules/axe/4.10/region). Accepted because it
+  // only exists on hover and its text is also exposed through the trigger's aria-describedby.
   singleton = createTooltip(target, getTooltipConfig(target, options, purifiedContent), {});
 
   cancelScheduledHide();

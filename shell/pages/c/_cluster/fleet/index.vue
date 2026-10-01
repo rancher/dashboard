@@ -970,10 +970,6 @@ export default {
 
             p {
               font-size: small;
-
-              .icon {
-                line-height: -1px;
-              }
             }
           }
         }

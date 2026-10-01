@@ -1,3 +1,4 @@
+import { shallowMount } from '@vue/test-utils';
 import Chart from '@shell/pages/c/_cluster/apps/charts/chart.vue';
 import { APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import {
@@ -395,6 +396,46 @@ describe('page: Chart Detail', () => {
           'new-instance': null
         }
       });
+    });
+  });
+
+  describe('template', () => {
+    it('should not render a nested main landmark inside the layout main', () => {
+      const wrapper = shallowMount(Chart as any, {
+        data: () => ({
+          chart: {
+            deprecated: false, experimental: false, chartName: 'my-chart', chartNameDisplay: 'My Chart', icon: '', featured: false, versions: [], cardContent: { statuses: [], subHeaderItems: [{}] }
+          },
+          version:            null,
+          versionInfo:        null,
+          versionInfoError:   null,
+          existing:           null,
+          installedInstances: [],
+        }),
+        global: {
+          mocks: {
+            $fetchState: { pending: false },
+            $store:      {
+              getters: {
+                currentCluster: { workerOSs: ['linux'] },
+                isRancher:      false,
+                'prefs/get':    () => false,
+                'i18n/t':       (key: string) => key,
+              },
+              dispatch: () => Promise.resolve(),
+            },
+            $route:  { query: {}, params: { cluster: 'local' } },
+            $router: { resolve: () => ({ href: '' }) },
+            t:       (key: string) => key,
+          },
+          stubs: {
+            Loading: true, Banner: true, LazyImage: true, RcButton: true, RcButtonSplit: true, RcDropdownItem: true, RcHeading: true, LabeledSelect: true, ChartReadme: true, AppChartCardSubHeader: true, AppChartCardFooter: true
+          },
+        },
+      });
+
+      expect(wrapper.element.tagName).not.toBe('MAIN');
+      expect(wrapper.find('main').exists()).toBe(false);
     });
   });
 });

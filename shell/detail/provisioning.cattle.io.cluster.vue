@@ -34,6 +34,7 @@ import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeploym
 import { isAlternate } from '@shell/utils/platform';
 import DetailPage from '@shell/components/Resource/Detail/Page.vue';
 import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
+import ClusterPinControl from '@shell/components/ClusterPinControl.vue';
 import AutoscalerTab from '@shell/components/AutoscalerTab.vue';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
@@ -80,6 +81,7 @@ export default {
     MachineSummaryGraph,
     DetailPage,
     Masthead,
+    ClusterPinControl,
   },
 
   props: {
@@ -883,6 +885,9 @@ export default {
   <DetailPage :loading="$fetchState.pending">
     <template #top-area>
       <Masthead v-bind="customMastheadProps">
+        <template #title-suffix>
+          <ClusterPinControl :cluster="value" />
+        </template>
         <template #additional-actions>
           <button
             data-testid="detail-explore-button"

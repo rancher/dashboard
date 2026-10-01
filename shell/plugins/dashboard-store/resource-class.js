@@ -21,6 +21,7 @@ import { clone, get } from '@shell/utils/object';
 import { eachLimit } from '@shell/utils/promise';
 import { sortableNumericSuffix } from '@shell/utils/sort';
 import { escapeHtml, ucFirst } from '@shell/utils/string';
+import { isProductPrefixedTopLevel } from '@shell/utils/extension-product-routing';
 import {
   validateChars,
   validateDnsLikeTypes,
@@ -56,7 +57,8 @@ const REMAP_STATE = {
   waitcheckin:              'Wait Check-In',
   off:                      'Disabled',
   waitingforinfrastructure: 'Waiting for Infra',
-  waitingfornoderef:        'Waiting for Node Ref'
+  waitingfornoderef:        'Waiting for Node Ref',
+  waitingfordependency:     'Waiting for Dependency'
 };
 
 const DEFAULT_COLOR = 'warning';
@@ -66,99 +68,100 @@ const DEFAULT_WAIT_INTERVAL = 1000;
 const DEFAULT_WAIT_TIMEOUT = 30000;
 
 export const STATES_ENUM = {
-  IN_USE:           'in-use',
-  IN_PROGRESS:      'in-progress',
-  PENDING_ROLLBACK: 'pending-rollback',
-  PENDING_UPGRADE:  'pending-upgrade',
-  ABORTED:          'aborted',
-  ACTIVATING:       'activating',
-  ACTIVE:           'active',
-  AVAILABLE:        'available',
-  BACKED_UP:        'backedup',
-  BOUND:            'bound',
-  BUILDING:         'building',
-  COMPLETED:        'completed',
-  CORDONED:         'cordoned',
-  CANCELLED:        'cancelled',
-  COUNT:            'count',
-  CREATED:          'created',
-  CREATING:         'creating',
-  DEACTIVATING:     'deactivating',
-  DEGRADED:         'degraded',
-  DENIED:           'denied',
-  DEPLOYED:         'deployed',
-  DEPLOYING:        'deploying',
-  DISABLED:         'disabled',
-  DISCONNECTED:     'disconnected',
-  DRAINED:          'drained',
-  DRAINING:         'draining',
-  ENABLED:          'enabled',
-  ERR_APPLIED:      'errapplied',
-  ERROR:            'error',
-  ERRORING:         'erroring',
-  ERRORS:           'errors',
-  EXPIRED:          'expired',
-  EXPIRING:         'expiring',
-  FAIL:             'fail',
-  FAILED:           'failed',
-  HEALTHY:          'healthy',
-  INACTIVE:         'inactive',
-  INFO:             'info',
-  INITIALIZING:     'initializing',
-  INPROGRESS:       'inprogress',
-  LOCKED:           'locked',
-  MIGRATING:        'migrating',
-  MISSING:          'missing',
-  MODIFIED:         'modified',
-  NOT_APPLICABLE:   'notApplicable',
-  NOT_APLLIED:      'notapplied',
-  NOT_READY:        'notready',
-  OFF:              'off',
-  ORPHANED:         'orphaned',
-  OTHER:            'other',
-  OUT_OF_SYNC:      'outofsync',
-  ON_GOING:         'on-going',
-  PASS:             'pass',
-  PASSED:           'passed',
-  PAUSED:           'paused',
-  PENDING:          'pending',
-  PROVISIONING:     'provisioning',
-  PROVISIONED:      'provisioned',
-  PURGED:           'purged',
-  PURGING:          'purging',
-  READY:            'ready',
-  RECONNECTING:     'reconnecting',
-  REGISTERING:      'registering',
-  REINITIALIZING:   'reinitializing',
-  RELEASED:         'released',
-  REMOVED:          'removed',
-  REMOVING:         'removing',
-  REQUESTED:        'requested',
-  RESTARTING:       'restarting',
-  RESTORING:        'restoring',
-  RESIZING:         'resizing',
-  RUNNING:          'running',
-  SKIP:             'skip',
-  SKIPPED:          'skipped',
-  STARTING:         'starting',
-  STOPPED:          'stopped',
-  STOPPING:         'stopping',
-  SUCCEEDED:        'succeeded',
-  SUCCESS:          'success',
-  SUCCESSFUL:       'successful',
-  SUPERSEDED:       'superseded',
-  SUSPENDED:        'suspended',
-  UNAVAILABLE:      'unavailable',
-  UNHEALTHY:        'unhealthy',
-  UNINSTALLED:      'uninstalled',
-  UNINSTALLING:     'uninstalling',
-  UNKNOWN:          'unknown',
-  UNTRIGGERED:      'untriggered',
-  UPDATING:         'updating',
-  WAIT_APPLIED:     'waitapplied',
-  WAIT_CHECKIN:     'waitcheckin',
-  WAITING:          'waiting',
-  WARNING:          'warning',
+  IN_USE:                 'in-use',
+  IN_PROGRESS:            'in-progress',
+  PENDING_ROLLBACK:       'pending-rollback',
+  PENDING_UPGRADE:        'pending-upgrade',
+  ABORTED:                'aborted',
+  ACTIVATING:             'activating',
+  ACTIVE:                 'active',
+  AVAILABLE:              'available',
+  BACKED_UP:              'backedup',
+  BOUND:                  'bound',
+  BUILDING:               'building',
+  COMPLETED:              'completed',
+  CORDONED:               'cordoned',
+  CANCELLED:              'cancelled',
+  COUNT:                  'count',
+  CREATED:                'created',
+  CREATING:               'creating',
+  DEACTIVATING:           'deactivating',
+  DEGRADED:               'degraded',
+  DENIED:                 'denied',
+  DEPLOYED:               'deployed',
+  DEPLOYING:              'deploying',
+  DISABLED:               'disabled',
+  DISCONNECTED:           'disconnected',
+  DRAINED:                'drained',
+  DRAINING:               'draining',
+  ENABLED:                'enabled',
+  ERR_APPLIED:            'errapplied',
+  ERROR:                  'error',
+  ERRORING:               'erroring',
+  ERRORS:                 'errors',
+  EXPIRED:                'expired',
+  EXPIRING:               'expiring',
+  FAIL:                   'fail',
+  FAILED:                 'failed',
+  HEALTHY:                'healthy',
+  INACTIVE:               'inactive',
+  INFO:                   'info',
+  INITIALIZING:           'initializing',
+  INPROGRESS:             'inprogress',
+  LOCKED:                 'locked',
+  MIGRATING:              'migrating',
+  MISSING:                'missing',
+  MODIFIED:               'modified',
+  NOT_APPLICABLE:         'notApplicable',
+  NOT_APLLIED:            'notapplied',
+  NOT_READY:              'notready',
+  OFF:                    'off',
+  ORPHANED:               'orphaned',
+  OTHER:                  'other',
+  OUT_OF_SYNC:            'outofsync',
+  ON_GOING:               'on-going',
+  PASS:                   'pass',
+  PASSED:                 'passed',
+  PAUSED:                 'paused',
+  PENDING:                'pending',
+  PROVISIONING:           'provisioning',
+  PROVISIONED:            'provisioned',
+  PURGED:                 'purged',
+  PURGING:                'purging',
+  READY:                  'ready',
+  RECONNECTING:           'reconnecting',
+  REGISTERING:            'registering',
+  REINITIALIZING:         'reinitializing',
+  RELEASED:               'released',
+  REMOVED:                'removed',
+  REMOVING:               'removing',
+  REQUESTED:              'requested',
+  RESTARTING:             'restarting',
+  RESTORING:              'restoring',
+  RESIZING:               'resizing',
+  RUNNING:                'running',
+  SKIP:                   'skip',
+  SKIPPED:                'skipped',
+  STARTING:               'starting',
+  STOPPED:                'stopped',
+  STOPPING:               'stopping',
+  SUCCEEDED:              'succeeded',
+  SUCCESS:                'success',
+  SUCCESSFUL:             'successful',
+  SUPERSEDED:             'superseded',
+  SUSPENDED:              'suspended',
+  UNAVAILABLE:            'unavailable',
+  UNHEALTHY:              'unhealthy',
+  UNINSTALLED:            'uninstalled',
+  UNINSTALLING:           'uninstalling',
+  UNKNOWN:                'unknown',
+  UNTRIGGERED:            'untriggered',
+  UPDATING:               'updating',
+  WAIT_APPLIED:           'waitapplied',
+  WAIT_CHECKIN:           'waitcheckin',
+  WAITING:                'waiting',
+  WAITING_FOR_DEPENDENCY: 'waitingfordependency',
+  WARNING:                'warning',
 };
 
 export function mapStateToEnum(statusString) {
@@ -441,6 +444,9 @@ export const STATES = {
   },
   [STATES_ENUM.WAITING]: {
     color: 'info', icon: 'tag', label: 'Waiting', compoundIcon: 'info'
+  },
+  [STATES_ENUM.WAITING_FOR_DEPENDENCY]: {
+    color: 'info', icon: 'tag', label: 'Waiting for Dependency', compoundIcon: 'info'
   },
   [STATES_ENUM.WARNING]: {
     color: 'warning', icon: 'error', label: 'Warning', compoundIcon: 'warning'
@@ -857,6 +863,10 @@ export default class Resource {
     }, `link=${ name }`, undefined, undefined);
   }
 
+  condition(condition) {
+    return findBy((this.status?.conditions || []), 'type', condition);
+  }
+
   hasCondition(condition) {
     return this.isCondition(condition, null);
   }
@@ -866,7 +876,7 @@ export default class Resource {
       return false;
     }
 
-    const entry = findBy((this.status.conditions || []), 'type', condition);
+    const entry = this.condition(condition);
 
     if ( !entry ) {
       return false;
@@ -977,7 +987,7 @@ export default class Resource {
         action:  this.canUpdate ? 'goToEdit' : 'goToViewConfig',
         label:   this.t(this.canUpdate ? 'action.edit' : 'action.view'),
         icon:    'icon icon-edit',
-        enabled: this.canCustomEdit,
+        enabled: this.canCustomEdit && (this.canUpdate || !showConfigEnabled), // Hide "View Config" when "Show Configuration" is available since it already includes config viewing
       },
       {
         action:  this.canEditYaml ? 'goToEditYaml' : 'goToViewYaml',
@@ -1426,15 +1436,17 @@ export default class Resource {
     // this is for the new extension product registration model
     let currPluginName = '';
     const plugins = this.$extension.getPlugins();
+    const currentProductId = this.$rootGetters['productId'];
 
     Object.keys(plugins).forEach((key) => {
-      if (plugins[key].productNames.includes(this.$rootGetters['productId'])) {
+      if (plugins[key].productNames.includes(currentProductId)) {
         currPluginName = key;
       }
     });
 
-    // the flag "topLevelProduct" only exists in the V2 product registration model
-    return plugins[currPluginName]?.topLevelProduct || false;
+    // Resolved per-product, so a single plugin registering several products (some top-level,
+    // some extending) gets the correct answer for whichever product is currently active.
+    return isProductPrefixedTopLevel(plugins[currPluginName], currentProductId);
   }
 
   get listLocation() {

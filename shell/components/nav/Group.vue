@@ -57,8 +57,15 @@ export default {
       return this.group.children?.length > 0;
     },
 
+    // Finds the overview child regardless of its position in the children array.
+    // The new product registration API (PR #17990) pushes the overview last in navNames,
+    // so it may not be at index 0 after weight-based reordering.
+    overviewChild() {
+      return this.group.children?.find((child) => child.overview) || null;
+    },
+
     hasOverview() {
-      return this.group.children?.[0]?.overview;
+      return !!this.overviewChild;
     },
 
     onlyHasOverview() {
@@ -66,17 +73,10 @@ export default {
     },
 
     isOverview() {
-      if (this.group.children && this.group.children.length > 0) {
-        const grp = this.group.children[0];
-        const overviewRoute = grp?.route;
+      const overview = this.overviewChild;
 
-        if (overviewRoute && grp.overview) {
-          const validRoute = filterLocationValidParams(this.$router, overviewRoute || {});
-          const route = this.$router.resolve(validRoute);
-
-          // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
-          return this.$route.path === route?.path;
-        }
+      if (overview?.route?.name) {
+        return this.$route.name === overview.route.name;
       }
 
       return false;
@@ -96,7 +96,7 @@ export default {
     },
 
     headerRoute() {
-      return filterLocationValidParams(this.$router, this.group.children[0].route);
+      return filterLocationValidParams(this.$router, this.overviewChild.route);
     }
   },
 
@@ -266,7 +266,7 @@ export default {
           <router-link
             v-if="hasOverview && hasChildren"
             :to="headerRoute"
-            :exact="group.children[0].exact"
+            :exact="overviewChild.exact"
           >
             <h6>
               <span v-clean-html="group.labelDisplay || group.label" />

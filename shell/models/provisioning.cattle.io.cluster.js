@@ -13,6 +13,7 @@ import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { SETTING } from '@shell/config/settings';
 import { createOperationCR } from '@shell/utils/operation-cr';
+import { reportPinWriteFailure } from '@shell/utils/cluster-pref-writer';
 import jsyaml from 'js-yaml';
 import { defineAsyncComponent, markRaw } from 'vue';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
@@ -21,6 +22,8 @@ import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store
 const RKE1_ALLOWED_ACTIONS = [
   'promptRemove',
   'openShell',
+  'pinCluster',
+  'unpinCluster',
   'downloadKubeConfig',
   'copyKubeConfig',
   'download',
@@ -157,7 +160,28 @@ export default class ProvCluster extends SteveModel {
     const canDayTwoOps = ready && this.isDayTwoOpsEnabled && this.canUpdate;
     const canEditRKE2cluster = this.isRke2 && ready && this.canUpdate;
 
+    const pinnable = !!this.mgmt && !isLocal;
+
     const actions = [
+      // Weighted, or the bulk bar splits the pair: unweighted it falls back to the order the actions are
+      // first met across the rows, and `unpinCluster` is enabled only on a pinned cluster.
+      {
+        action:     'pinCluster',
+        bulkAction: 'pinClusterBulk',
+        label:      this.t('cluster.pinAction'),
+        icon:       'icon icon-pin flip-x',
+        bulkable:   true,
+        enabled:    pinnable && !this.mgmt.pinned,
+        weight:     2,
+      }, {
+        action:     'unpinCluster',
+        bulkAction: 'unpinClusterBulk',
+        label:      this.t('cluster.unpinAction'),
+        icon:       'icon icon-pin-outlined flip-x',
+        bulkable:   true,
+        enabled:    pinnable && this.mgmt.pinned,
+        weight:     1,
+      },
       // Note: Actions are not supported in the Steve API, so we check
       // available actions for RKE1 clusters, but not RKE2 clusters.
       {
@@ -583,6 +607,30 @@ export default class ProvCluster extends SteveModel {
 
   copyKubeConfigBulk(items) {
     return this.mgmt?.copyKubeConfigBulk(items);
+  }
+
+  // A failed preference write RESOLVES with `{ type, status }` rather than throwing, and the optimistic
+  // pin is on screen by then — so it has to be reported, as `Pinned` reports the row control's write.
+  reportPin(write) {
+    const dispatch = (action, payload) => this.$dispatch(action, payload, { root: true });
+
+    return reportPinWriteFailure({ dispatch }, this.t, write);
+  }
+
+  pinCluster() {
+    return this.reportPin(this.mgmt?.pin());
+  }
+
+  unpinCluster() {
+    return this.reportPin(this.mgmt?.unpin());
+  }
+
+  pinClusterBulk(items) {
+    return this.reportPin(this.mgmt?.pinBulk(items));
+  }
+
+  unpinClusterBulk(items) {
+    return this.reportPin(this.mgmt?.unpinBulk(items));
   }
 
   async snapshotAction() {

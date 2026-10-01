@@ -306,9 +306,13 @@ class Fleet {
       STATES_ENUM.INFO,
       STATES_ENUM.WARNING,
       STATES_ENUM.NOT_READY,
+      STATES_ENUM.MODIFIED,
+      STATES_ENUM.OUT_OF_SYNC,
+      STATES_ENUM.PENDING,
       STATES_ENUM.ERROR,
       STATES_ENUM.ERR_APPLIED,
       STATES_ENUM.WAIT_APPLIED,
+      STATES_ENUM.WAITING_FOR_DEPENDENCY,
       STATES_ENUM.UNKNOWN,
     ].reduce((acc: Record<string, any>, state) => {
       acc[state] = {
@@ -320,6 +324,25 @@ class Fleet {
 
       return acc;
     }, {});
+  }
+
+  /**
+   * The backend raises `error` on the state of anything that is not Ready, and does so unevenly - two
+   * bundles in the same state can disagree on it. `colorForState` reads that flag before it reads the
+   * state, so it decides the colour, and the same state ends up rendered red on one row and not on the
+   * next.
+   *
+   * Where the state is one the UI knows, and is classified as something other than an error, that
+   * classification is the more accurate of the two, so the flag is dropped.
+   */
+  resourceStateObj<T extends { name?: string, error?: boolean }>(state?: T): T | undefined {
+    const known = state?.name ? STATES[state.name.toLowerCase()] : undefined;
+
+    if (state?.error && known && known.color !== STATES[STATES_ENUM.ERROR].color) {
+      return { ...state, error: false };
+    }
+
+    return state;
   }
 
   getDashboardStateId(resource: { stateColor: string }): string {

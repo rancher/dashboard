@@ -70,6 +70,7 @@ jobs:
           GITHUB_ISSUE_LABELS: area/automation-test-ui,kind/flaky-test
           STATUS_FIELD_ID: ${{ secrets.INSPECTOR_STATUS_FIELD_ID }}
           BACKLOG_OPTION_ID: ${{ secrets.INSPECTOR_BACKLOG_OPTION_ID }}
+          REOPENED_OPTION_ID: ${{ secrets.INSPECTOR_REOPENED_OPTION_ID }}
           INSPECTOR_BUILD_WINDOW: ${{ vars.INSPECTOR_BUILD_WINDOW }}
           INSPECTOR_ANCHOR_DESCRIPTION: ${{ vars.INSPECTOR_ANCHOR_DESCRIPTION }}
           INSPECTOR_VERSION_FILTER: ${{ inputs.version_filter }}
