@@ -404,7 +404,8 @@ class EmacsHandler {
         // control. Handling those is currently not supported in this handler
         if (!key)
             return undefined;
-        if (key == "Tab" && (modifier == "" || modifier == "S-") && !this.view.state.facet(emacsTabIndent))
+        // A read-only document has nothing to indent, so Tab and Shift-Tab move focus
+        if (key == "Tab" && (modifier == "" || modifier == "S-") && (!this.view.state.facet(emacsTabIndent) || this.view.state.readOnly))
             return undefined;
         var editor = this;
         var data = this.$data;

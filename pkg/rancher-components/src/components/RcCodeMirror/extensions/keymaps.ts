@@ -85,6 +85,11 @@ export function getKeymapExtension(mode?: RcCodeMirrorKeymap, variant?: RcCodeMi
         ...(tabIndent ? [{
           key: 'Tab',
           run: (view) => {
+            // A read-only document has nothing to indent, so Tab and Shift-Tab move focus as in the other keymaps
+            if (view.state.readOnly) {
+              return false;
+            }
+
             const cm = getCM(view);
 
             if (cm?.state.vim?.insertMode) {
@@ -100,7 +105,7 @@ export function getKeymapExtension(mode?: RcCodeMirrorKeymap, variant?: RcCodeMi
         } satisfies KeyBinding, {
           // Keep Shift-Tab in the editor too, so Escape then Tab is the one way out as in the other keymaps
           key: 'Shift-Tab',
-          run: (view) => (getCM(view)?.state.vim?.insertMode ? indentLess(view) : true)
+          run: (view) => !view.state.readOnly && (getCM(view)?.state.vim?.insertMode ? indentLess(view) : true)
         } satisfies KeyBinding] : [])
       ])),
       vim(),
