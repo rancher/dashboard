@@ -67,7 +67,7 @@ describe('component: ResourcePopover/index.vue', () => {
   });
 
   describe('data Fetching and Rendering', () => {
-    it('should display a loading indicator while fetching data', async() => {
+    it('should display the id and a loading indicator while fetching data', async() => {
       mockClusterFind.mockImplementation(() => new Promise(() => { }));
       const wrapper = createWrapper(undefined, undefined, PopoverCardStub);
 
@@ -75,8 +75,23 @@ describe('component: ResourcePopover/index.vue', () => {
       await wrapper.vm.$nextTick();
       await wrapper.vm.$nextTick();
 
-      expect(wrapper.text()).toContain('...');
-      expect(wrapper.find('.display').exists()).toBe(false);
+      expect(wrapper.find('.display').text()).toBe('test-ns/test-pod');
+      expect(wrapper.find('[data-testid="resource-popover-loading"]').exists()).toBe(true);
+      expect(wrapper.findComponent({ name: 'RcStatusIndicator' }).exists()).toBe(false);
+    });
+
+    it('should announce the loading indicator and let it take focus when the card is opened with the keyboard', async() => {
+      mockClusterFind.mockImplementation(() => new Promise(() => { }));
+      const wrapper = createWrapper(undefined, undefined, PopoverCardStub);
+
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+
+      const loading = wrapper.find('[data-testid="resource-popover-loading"]');
+
+      expect(loading.attributes()).toStrictEqual(expect.objectContaining({
+        role: 'status', tabindex: '-1', 'aria-label': 'component.resource.detail.glance.ariaLabel.loading'
+      }));
     });
 
     it('should show plain text and no PopoverCard when fetch fails', async() => {
@@ -142,7 +157,7 @@ describe('component: ResourcePopover/index.vue', () => {
   });
 
   describe('computed Properties', () => {
-    it('resourceTypeLabel: should be empty if data is not loaded', async() => {
+    it('resourceTypeLabel: should use the label of the type prop if data is not loaded', async() => {
       mockClusterFind.mockReturnValue(undefined);
       const wrapper = createWrapper();
 
@@ -153,7 +168,23 @@ describe('component: ResourcePopover/index.vue', () => {
       const popoverCard = wrapper.findComponent(PopoverCard);
       const ariaLabel = popoverCard.props('showPopoverAriaLabel');
 
-      expect(ariaLabel).toBe('component.resource.detail.glance.ariaLabel.showDetails-{\"name\":\"\",\"resource\":\"\"}');
+      expect(ariaLabel).toBe('component.resource.detail.glance.ariaLabel.showDetails-{\"name\":\"test-ns/test-pod\",\"resource\":\"Pod\"}');
+    });
+
+    it('resourceTypeLabel: should be empty if there is no schema for the type', async() => {
+      mockClusterFind.mockReturnValue(undefined);
+      const wrapper = createWrapper(undefined, {
+        ...defaultStore,
+        getters: { ...defaultStore.getters, 'cluster/schemaFor': () => () => undefined }
+      });
+
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+
+      const ariaLabel = wrapper.findComponent(PopoverCard).props('showPopoverAriaLabel');
+
+      expect(ariaLabel).toBe('component.resource.detail.glance.ariaLabel.showDetails-{\"name\":\"test-ns/test-pod\",\"resource\":\"\"}');
     });
 
     it('resourceTypeLabel: should use parentNameOverride when available', async() => {
@@ -199,7 +230,7 @@ describe('component: ResourcePopover/index.vue', () => {
       const popoverCard = wrapper.findComponent(PopoverCard);
 
       expect(popoverCard.props('cardTitle')).toBe(mockResource.nameDisplay);
-      expect(popoverCard.props('fallbackFocus')).toBe("[data-testid='resource-popover-action-menu']");
+      expect(popoverCard.props('fallbackFocus')).toBe("[data-testid='resource-popover-action-menu'], [data-testid='resource-popover-loading'], [data-testid='resource-popover-error']");
 
       const expectedAriaLabel = 'component.resource.detail.glance.ariaLabel.showDetails-{\"name\":\"My Test Pod\",\"resource\":\"Overridden Pod\"}';
 
@@ -234,6 +265,149 @@ describe('component: ResourcePopover/index.vue', () => {
       const resourceCard = wrapper.findComponent({ name: 'ResourcePopoverCard' });
 
       expect(resourceCard.props('resource')).toStrictEqual(mockResource);
+    });
+  });
+
+  describe('name, showStatus and lazy props', () => {
+    const flush = async(wrapper: any) => {
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+    };
+
+    it('should show the name prop while the resource is loading', async() => {
+      mockClusterFind.mockImplementation(() => new Promise(() => { }));
+      const wrapper = createWrapper({ name: 'test-pod' }, undefined, PopoverCardStub);
+
+      await flush(wrapper);
+
+      expect(wrapper.find('.display').text()).toBe('test-pod');
+    });
+
+    it('should link to the detailLocation prop while the resource is loading', async() => {
+      const customLocation = { name: 'custom-route' };
+
+      mockClusterFind.mockImplementation(() => new Promise(() => { }));
+      const wrapper = createWrapper({ name: 'test-pod', detailLocation: customLocation }, undefined, PopoverCardStub);
+
+      await flush(wrapper);
+
+      const link = wrapper.findComponent(RouterLinkStub);
+
+      expect(link.text()).toBe('test-pod');
+      expect(link.props('to')).toStrictEqual(customLocation);
+    });
+
+    it('should show a link with the name prop when the fetch fails and there is a detailLocation', async() => {
+      const customLocation = { name: 'custom-route' };
+
+      mockClusterFind.mockRejectedValue(new Error('Not found'));
+      const wrapper = createWrapper({ name: 'test-pod', detailLocation: customLocation }, undefined, PopoverCardStub);
+
+      await flush(wrapper);
+
+      const link = wrapper.findComponent(RouterLinkStub);
+
+      expect(wrapper.findComponent(PopoverCard).exists()).toBe(false);
+      expect(link.text()).toBe('test-pod');
+      expect(link.props('to')).toStrictEqual(customLocation);
+    });
+
+    it('should show the status of the resource by default', async() => {
+      mockClusterFind.mockReturnValue({ ...mockResource, stateSimpleColor: 'success' });
+      const wrapper = createWrapper(undefined, undefined, PopoverCardStub);
+
+      await flush(wrapper);
+
+      expect(wrapper.findComponent({ name: 'RcStatusIndicator' }).props('status')).toBe('success');
+    });
+
+    it('should hide the status of the resource when showStatus is false', async() => {
+      mockClusterFind.mockReturnValue(mockResource);
+      const wrapper = createWrapper({ showStatus: false }, undefined, PopoverCardStub);
+
+      await flush(wrapper);
+
+      expect(wrapper.findComponent({ name: 'RcStatusIndicator' }).exists()).toBe(false);
+      expect(wrapper.findComponent(RouterLinkStub).text()).toBe(mockResource.nameDisplay);
+    });
+
+    it('should not fetch a lazy resource until the user hovers it', async() => {
+      mockClusterFind.mockReturnValue(mockResource);
+      const wrapper = createWrapper({ lazy: true, name: 'test-pod' }, undefined, PopoverCardStub);
+
+      await flush(wrapper);
+
+      expect(mockClusterFind).toHaveBeenCalledTimes(0);
+      expect(wrapper.find('.display').text()).toBe('test-pod');
+
+      await wrapper.findComponent(PopoverCard).trigger('mouseenter');
+      await flush(wrapper);
+
+      expect(mockClusterFind).toHaveBeenCalledWith(expect.any(Object), { type: 'pod', id: 'test-ns/test-pod' });
+      expect(wrapper.find('.display').text()).toBe(mockResource.nameDisplay);
+    });
+
+    it('should fetch a lazy resource when the user focuses it', async() => {
+      mockClusterFind.mockReturnValue(mockResource);
+      const wrapper = createWrapper({ lazy: true }, undefined, PopoverCardStub);
+
+      await flush(wrapper);
+      await wrapper.findComponent(PopoverCard).trigger('focusin');
+      await flush(wrapper);
+
+      expect(mockClusterFind).toHaveBeenCalledWith(expect.any(Object), { type: 'pod', id: 'test-ns/test-pod' });
+    });
+
+    it('should fetch a lazy resource only once', async() => {
+      mockClusterFind.mockReturnValue(mockResource);
+      const wrapper = createWrapper({ lazy: true }, undefined, PopoverCardStub);
+      const popoverCard = wrapper.findComponent(PopoverCard);
+
+      await popoverCard.trigger('mouseenter');
+      await flush(wrapper);
+      await popoverCard.trigger('mouseenter');
+      await flush(wrapper);
+
+      expect(mockClusterFind).toHaveBeenCalledTimes(1);
+    });
+
+    it('should keep the card of a lazy resource and show an error in it when the fetch fails', async() => {
+      mockClusterFind.mockRejectedValue(new Error('Not found'));
+      const wrapper = createWrapper({ lazy: true, name: 'test-pod' }, undefined, PopoverCardStub);
+
+      await wrapper.findComponent(PopoverCard).trigger('focusin');
+      await flush(wrapper);
+
+      expect(wrapper.findComponent(PopoverCard).exists()).toBe(true);
+      expect(wrapper.find('.display').text()).toBe('test-pod');
+      expect(wrapper.find('[data-testid="resource-popover-loading"]').exists()).toBe(false);
+    });
+
+    it('should let the error of a lazy resource take focus when the card is opened with the keyboard', async() => {
+      mockClusterFind.mockRejectedValue(new Error('Not found'));
+      const wrapper = createWrapper({ lazy: true }, undefined, PopoverCardStub);
+
+      await wrapper.findComponent(PopoverCard).trigger('focusin');
+      await flush(wrapper);
+
+      const error = wrapper.find('[data-testid="resource-popover-error"]');
+
+      expect(error.text()).toBe('component.resource.detail.glance.loadError');
+      expect(error.attributes()).toStrictEqual(expect.objectContaining({ role: 'status', tabindex: '-1' }));
+    });
+
+    it('should not fetch a lazy resource again after the fetch fails', async() => {
+      mockClusterFind.mockRejectedValue(new Error('Not found'));
+      const wrapper = createWrapper({ lazy: true }, undefined, PopoverCardStub);
+      const popoverCard = wrapper.findComponent(PopoverCard);
+
+      await popoverCard.trigger('mouseenter');
+      await flush(wrapper);
+      await popoverCard.trigger('mouseenter');
+      await flush(wrapper);
+
+      expect(mockClusterFind).toHaveBeenCalledTimes(1);
     });
   });
 });

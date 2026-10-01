@@ -11,6 +11,7 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { qase } from '@/cypress/support/qase';
 
 const globalRoleNameYaml = 'test-global-role-yaml';
 const globalRoleYaml = `apiVersion: management.cattle.io/v3
@@ -84,7 +85,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.login();
     });
 
-    it('can create a Global Role template', () => {
+    qase(5515, it('can create a Global Role template', () => {
       // We want to define these here because if this test fails after it created the global role all subsequent
       // retries will reference the wrong global-role because a second roll will with the same name but different id will be created
       runTimestamp = +new Date();
@@ -164,9 +165,9 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         });
       // eo test
       });
-    });
+    }));
 
-    it('can create a Cluster Role template', () => {
+    qase(5516, it('can create a Cluster Role template', () => {
       const clusterRoleName = `${ runPrefix }-my-cluster-role`;
       const fragment = 'CLUSTER';
 
@@ -209,9 +210,9 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         clusterRoleDetails.waitForPage();
         cy.contains(`Cluster - ${ clusterRoleName }`);
       });
-    });
+    }));
 
-    it('can create a Project/Namespaces Role template', () => {
+    qase(5517, it('can create a Project/Namespaces Role template', () => {
       const fragment = 'NAMESPACE';
       const projectRoleName = `${ runPrefix }-my-project-role`;
 
@@ -252,9 +253,9 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         projectRoleDetails.waitForPage();
         cy.contains(`Project/Namespaces - ${ projectRoleName }`);
       });
-    });
+    }));
 
-    it('can Download YAML', () => {
+    qase(4024, it('can Download YAML', () => {
     // Download YAML and verify file exists
 
       roles.waitForRequests();
@@ -265,9 +266,9 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       const downloadedFilename = path.join(downloadsFolder, `${ globalRoleName }.yaml`);
 
       cy.readFile(downloadedFilename).should('exist');
-    });
+    }));
 
-    it('shows warning message when deleting the Administrator role', () => {
+    qase(4025, it('shows warning message when deleting the Administrator role', () => {
       const fragment = 'GLOBAL';
       const globalAdminRoleName = 'Administrator';
 
@@ -283,9 +284,9 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       promptRemove.warning().should('be.visible');
       promptRemove.warning().shouldHaveCssVar('color', '--warning'); // Check warning message color
       promptRemove.warning().first().should('contain.text', 'Caution:'); // Check warning message content
-    });
+    }));
 
-    it('can delete a role template from the detail page', () => {
+    qase(5611, it('can delete a role template from the detail page', () => {
       // Delete role and verify role is removed from list
       roles.waitForRequests();
       const oneRoleTemplateId = roleTemplatesToDelete.splice(0, 1)[0];
@@ -302,9 +303,9 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       promptRemove.remove();
       roles.list('CLUSTER').elementWithName(oneRoleTemplateId).should('not.exist');
-    });
+    }));
 
-    it('can delete a role template', () => {
+    qase(5518, it('can delete a role template', () => {
     // Delete role and verify role is removed from list
       roles.waitForRequests();
       roles.list('GLOBAL').elementWithName(globalRoleName).click();
@@ -315,9 +316,9 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       promptRemove.remove();
       cy.wait('@deleteRole').its('response.statusCode').should('be.lessThan', 300); // Can sometimes be 204
       roles.list('GLOBAL').elementWithName(globalRoleName).should('not.exist');
-    });
+    }));
 
-    it('Cloning a Global Role with "inheritedClusterRoles" should pass the property correctly', () => {
+    qase(6237, it('Cloning a Global Role with "inheritedClusterRoles" should pass the property correctly', () => {
       const clusterDashboard = new ClusterDashboardPagePo('local');
       const header = new HeaderPo();
 
@@ -353,7 +354,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         expect(response?.statusCode).to.eq(201);
         expect('projects-view').to.be.oneOf(response?.body?.inheritedClusterRoles);
       });
-    });
+    }));
 
     after(() => {
       roleTemplatesToDelete.forEach((r) => cy.deleteRancherResource('v3', 'roleTemplates', r, false));
@@ -399,7 +400,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
     });
 
-    it('filter global roles', () => {
+    qase(4020, it('filter global roles', () => {
       usersPo.goTo();
       RolesPo.navTo();
       roles.waitForPage();
@@ -422,9 +423,9 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         .should('be.visible');
 
       rolesList.resourceTable().sortableTable().resetFilter();
-    });
+    }));
 
-    it('sorting changes the order of paginated global roles data', () => {
+    qase(4018, it('sorting changes the order of paginated global roles data', () => {
       usersPo.goTo();
       RolesPo.navTo();
       roles.waitForPage();
@@ -469,9 +470,9 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       rolesList.resourceTable().sortableTable().rowElementWithName(uniqueRoleName)
         .scrollIntoView()
         .should('be.visible');
-    });
+    }));
 
-    it('pagination is visible and user is able to navigate through global roles data', () => {
+    qase(4021, it('pagination is visible and user is able to navigate through global roles data', () => {
       const count = initialCount + 26;
 
       cy.waitForRancherResources('v1', 'management.cattle.io.globalroles', count).then((resp: Cypress.Response<any>) => {
@@ -541,9 +542,9 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         paginatedRoleTab.beginningButton().isDisabled();
         paginatedRoleTab.leftButton().isDisabled();
       });
-    });
+    }));
 
-    it('pagination is hidden', () => {
+    qase(4019, it('pagination is hidden', () => {
       generateGlobalRolesDataSmall();
       usersPo.goTo(); // this is needed here for the intercept to work
       RolesPo.navTo();
@@ -554,7 +555,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       rolesList.resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       rolesList.resourceTable().sortableTable().checkRowCount(false, 2);
       paginatedRoleTab.checkNotExists();
-    });
+    }));
 
     after(() => {
       cy.deleteManyResources({
@@ -575,7 +576,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.login();
     });
 
-    it('Standard user with List, Get & Resources: Global Roles should be able to list users in Users and Auth', () => {
+    qase(4022, it('Standard user with List, Get & Resources: Global Roles should be able to list users in Users and Auth', () => {
       runTimestamp = +new Date();
       runPrefix = `e2e-test-${ runTimestamp }`;
 
@@ -641,7 +642,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.waitForRequests();
       usersPo.list().masthead().title().should('contain', 'Users');
       usersPo.list().elements().should('have.length', 1);
-    });
+    }));
 
     afterEach(() => {
       // Log in as someone with permission to delete things

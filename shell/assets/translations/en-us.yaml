@@ -434,7 +434,6 @@ about:
   title: About
   versions:
     downloadImages: "Download {listName} images list"
-    downloadCli: "Download CLI for {os}: {file}"
     githubRepo: "Open GitHub repository for the {name} component"
     title: Versions
     component: Component
@@ -444,14 +443,12 @@ about:
     machine: Machine
     rancher: Rancher
     releaseNotes: 'View release notes'
-  os:
-    mac: macOS
-    windows: Windows
-    linux: Linux
   downloadImageList:
     title: Image Lists
-  downloadCLI:
-    title: CLI Downloads
+  cli:
+    title: "{vendor} CLI"
+    description: The {vendor} CLI lets you manage clusters, projects and resources from the command line. Builds are available for a range of operating systems and architectures, and the documentation covers how to download and install them.
+    docsLink: View {vendor} CLI documentation
   diagnostic:
     title: Diagnostics
     checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources. These may take a while to complete
@@ -2028,6 +2025,8 @@ cluster:
   explore: Explore
   importAction: Import Existing
   manageAction: Manage
+  pinAction: Pin
+  unpinAction: Unpin
   kubeConfig:
     error:
       title: Unable to generate KubeConfig
@@ -3017,10 +3016,15 @@ copyToClipboard:
   error: Error Copying
 
 codeMirror:
+  # Shown by CodeMirror 5 editors in extensions built with an older shell
   escapeText: Press Shift+Escape to blur from editor
+  leaveEditor: Press Escape, then Tab to leave the editor
+  foldLine: Fold line
+  unfoldLine: Unfold line
   keymap:
     tooltip: Key mapping preference.
     indicatorToolip: "Key mapping: {name}"
+    hideIndicator: "Hide key mapping: {name}"
 
 yamlOverridesEditor:
   search:
@@ -7229,6 +7233,7 @@ tableHeaders:
   accessModes: Access Modes
   address: Address
   age: Age
+  badge: Badge
   apiGroup: API Groups
   apikey: API Key
   available: Available
@@ -8133,6 +8138,7 @@ workload:
     containerImage: Container {name} - "Container Image" is required.
     containerName: Container - "Container Name" is required.
     localhostProfile: Container {name} - "Container Localhost Profile" is required when SeccompProfile Type is Localhost.
+    volumeMountPath: Container {name} - "Mount Point" is required.
   replicas: Replicas
   showTabs: 'Show Advanced Options'
   scheduling:
@@ -9434,6 +9440,8 @@ resourceQuota:
   helpText: Configure how much of the resources the namespace as a whole can consume.
   helpTextDetail: The amount of resources the namespace as a whole can consume.
   helpTextHarvester: VMs need to reserve additional memory overhead.
+  invalidAnnotation: The {annotation} annotation on this namespace is malformed, so its resource quota could not be read. Saving will replace it with the limits below.
+  invalidAnnotationDetail: The {annotation} annotation on this namespace is malformed. Its resource quota could not be read, so no limits are shown.
   custom: Custom
   resourceIdentifier:
     placeholder: e.g. configmaps
@@ -9764,9 +9772,16 @@ component:
         namespace: Namespace
         project: Project
         type: Type
+        ready: Ready
+        restarts: Restarts
+        podIp: Pod IP
+        workload: Workload
+        node: Node
+        loadError: Unable to load the details of this resource
         ariaLabel:
           showDetails: Show Resource Information about { resource } named { name }
           actionMenu: Resource Actions - { resource }
+          loading: Loading resource information
   cron:
     expressionEditor:
       label:

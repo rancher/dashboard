@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import { qase } from '@/cypress/support/qase';
 
 const chartBranch = `release-${ CURRENT_RANCHER_VERSION }`;
 const gitRepoUrl = 'https://github.com/rancher/charts';
@@ -14,7 +15,7 @@ describe('Visual Testing', { testIsolation: false, tags: ['@manager', '@adminUse
     cy.clearAllSessions();
     cy.login();
   });
-  it('validating repositories page with percy', () => {
+  qase(8565, it('validating repositories page with percy', () => {
     const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
 
     ChartRepositoriesPagePo.navTo();
@@ -31,7 +32,7 @@ describe('Visual Testing', { testIsolation: false, tags: ['@manager', '@adminUse
     cy.hideElementBySelector("[data-testid='type-count']");
     // takes percy snapshot.
     cy.percySnapshot('repositories Page');
-  });
+  }));
 });
 
 describe('Cluster Management Helm Repositories', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
@@ -54,12 +55,28 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     });
   });
 
+  /**
+   * Verify a created repo references its auth secret and that the secret has the expected type and data
+   */
+  const verifyRepoAuthSecret = (repo: any, type: string, expectedData: Record<string, string>) => {
+    const { name, namespace } = repo?.spec?.clientSecret || {};
+
+    expect(name, 'repo clientSecret name').to.be.a('string').and.not.be.empty;
+
+    return cy.getRancherResource('v1', 'secrets', `${ namespace }/${ name }`).then((resp) => {
+      expect(resp.body._type).to.eq(type);
+      Object.entries(expectedData).forEach(([key, value]) => {
+        expect(atob(resp.body.data[key]).trim(), `secret data ${ key }`).to.eq(value.trim());
+      });
+    });
+  };
+
   beforeEach(() => {
     cy.createE2EResourceName('repo').as('repoName');
     cy.createE2EResourceName('repo-oci').as('ociRepoName');
   });
 
-  it('can create a repository', function() {
+  qase(2215, it('can create a repository', function() {
     // Idempotent across retries: on the first attempt the list can intermittently omit the
     // freshly-created repo from its rendered rows even though it exists (issue 17554), failing
     // the row lookup. With the deterministic name the retry's re-create then returns 409, so
@@ -88,9 +105,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     // out of the rendered rows after create (issue 17554).
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
-  });
+  }));
 
-  it('can edit a repository', function() {
+  qase(2211, it('can edit a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     // Wait for the repo created above to render in the list before opening its action menu.
@@ -104,9 +121,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     // check details page
     repositoriesPage.list().details(this.repoName, 2).click();
     cy.contains(`${ this.repoName }-desc-edit`).should('be.visible');
-  });
+  }));
 
-  it('can clone a repository', function() {
+  qase(2213, it('can clone a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     // Wait for the repo created above to render in the list before opening its action menu.
@@ -120,9 +137,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
 
     // check list details
     repositoriesPage.list().details(`${ this.repoName }-clone`, 2).should('be.visible');
-  });
+  }));
 
-  it('can download YAML', function() {
+  qase(2216, it('can download YAML', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     // Wait for the repo created above to render in the list before opening its action menu.
@@ -139,9 +156,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
       expect(obj.metadata.name).to.equal(this.repoName);
       expect(obj.kind).to.equal('ClusterRepo');
     });
-  });
+  }));
 
-  it('can refresh a repository', function() {
+  qase(2214, it('can refresh a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
@@ -172,9 +189,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     // Enable check once the in progress state issue is resolved https://github.com/rancher/dashboard/issues/17554
     // repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
     repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
-  });
+  }));
 
-  it('can delete a repository', function() {
+  qase(2217, it('can delete a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     // Wait for the cloned repo created above to render in the list before deleting it.
@@ -200,9 +217,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
 
     // check list details
     cy.contains(`${ this.repoName }-clone`).should('not.exist');
-  });
+  }));
 
-  it('can create a repository with basic auth', function() {
+  qase(2518, it('can create a repository with basic auth', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.create();
@@ -213,15 +230,22 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
     repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL)
+      .then(({ response }) => {
+        expect(response?.statusCode).to.eq(201);
+
+        // The dummy credentials are rejected by GitHub, so the repo never downloads and never
+        // settles as Active - assert what the UI owns instead: the repo references a new
+        // basic-auth secret holding the entered credentials.
+        return verifyRepoAuthSecret(response?.body, 'kubernetes.io/basic-auth', { username: 'test', password: 'test' });
+      });
     repositoriesPage.waitForPage();
 
     // check list details
     repositoriesPage.list().details(`${ this.repoName }basic`, 2).should('be.visible');
-    repositoriesPage.list().details(`${ this.repoName }basic`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
-  });
+  }));
 
-  it('can create a repository with SSH key', function() {
+  qase(2519, it('can create a repository with SSH key', function() {
     // Idempotent across retries (mirrors the plain create test): remove any leftover SSH
     // repo so the retry's re-create does not 409 and strand the list render.
     cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', `${ this.repoName }ssh`, false);
@@ -236,21 +260,22 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
     repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createSSHAuth(sshPrivateKey, 'publicKey');
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL).its('response.statusCode').should('eq', 201);
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL)
+      .then(({ response }) => {
+        expect(response?.statusCode).to.eq(201);
+
+        // An SSH key can't authenticate against the https repo URL (the backend reports
+        // "invalid auth method"), so the repo never downloads and never becomes Active - assert
+        // what the UI owns instead: the repo references a new ssh-auth secret holding the key.
+        return verifyRepoAuthSecret(response?.body, 'kubernetes.io/ssh-auth', { 'ssh-privatekey': sshPrivateKey, 'ssh-publickey': 'publicKey' });
+      });
     repositoriesPage.waitForPage();
 
     // check list details
     repositoriesPage.list().details(`${ this.repoName }ssh`, 2).should('be.visible');
-    // The rancher/charts clone is large and slow in CI (~30s for the plain repo, and slower
-    // here with several repos downloading), so the default 10s Active check is too short. Wait
-    // for the download to finish at the API level, then for the row to render, before asserting
-    // Active with the long timeout - the same pattern the plain create test uses.
-    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', `${ this.repoName }ssh`, 40);
-    repositoriesPage.list().details(`${ this.repoName }ssh`, 2).should('be.visible');
-    repositoriesPage.list().details(`${ this.repoName }ssh`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
-  });
+  }));
 
-  it('can delete repositories via bulk actions', function() {
+  qase(3237, it('can delete repositories via bulk actions', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
 
@@ -288,9 +313,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     cy.contains(this.repoName).should('not.exist');
     cy.contains(`${ this.repoName }basic`).should('not.exist');
     cy.contains(`${ this.repoName }ssh`).should('not.exist');
-  });
+  }));
 
-  it('can create an oci repository with basic auth', function() {
+  qase(3540, it('can create an oci repository with basic auth', function() {
     // Clean up any existing repository with the same name from previous failed test runs
     cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.ociRepoName, false);
 
@@ -337,7 +362,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
 
     // delete repo
     cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.ociRepoName);
-  });
+  }));
 });
 
 describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
@@ -366,7 +391,7 @@ describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager',
     });
   });
 
-  it('can disable a repository', () => {
+  qase(16279, it('can disable a repository', () => {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', repoName).then(() => {
@@ -394,9 +419,9 @@ describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager',
       repoName,
       (resp: Cypress.Response<any>) => resp?.body?.spec?.enabled === false,
     );
-  });
+  }));
 
-  it('refresh menu item is not displayed for disabled repository', () => {
+  qase(16280, it('refresh menu item is not displayed for disabled repository', () => {
     // This test verifies the Refresh action is hidden for a disabled repo; it must not silently
     // depend on the previous test having left it disabled (retry-independence). The 'Disabled' State
     // badge is derived purely from spec.enabled === false, so guarantee that precondition via API and
@@ -433,9 +458,9 @@ describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager',
 
     // Close action menu
     repositoriesPage.list().actionMenuClose(repoName);
-  });
+  }));
 
-  it('can enable a repository', () => {
+  qase(16281, it('can enable a repository', () => {
     // Ensure repository exists before enabling
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
@@ -452,7 +477,7 @@ describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager',
         repositoriesPage.list().details(repoName, 1).contains('Active', MEDIUM_TIMEOUT_OPT).should('be.visible');
       });
     });
-  });
+  }));
 
   after(() => {
     if (repoName) {

@@ -20,7 +20,8 @@
     // cypress/support/e2e.ts instead.
     "types": [
       "cypress",
-      "cypress-axe"
+      "cypress-axe",
+      "cypress-real-events"
     ],
     "paths": {
       "~/*": [

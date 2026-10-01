@@ -222,9 +222,11 @@ export interface HeaderOptions {
   labelKey?: string;
 
   /**
-   * A string which represents the path to access the value from the row object i.e. `row.meta.value`.
+   * How the cell's value is resolved: either a string path into the row (i.e. `metadata.name`), or
+   * a function given the row that returns the value to display. Under server-side pagination a
+   * function is display-only - `sort`/`search` must still be string paths to indexed fields.
    */
-  value?: string;
+  value?: string | ((row: any) => any);
 
   /**
    * A string which represents the path to access the value from the row object which we'll use to sort i.e. `row.meta.value`
@@ -235,7 +237,7 @@ export interface HeaderOptions {
    * A string which represents the path to access the value from the row object which we'll use to search i.e. `row.meta.value`.
    * It can be false to disable searching on this field
    */
-  search?: string | boolean;
+  search?: string | boolean | string[];
 
   /**
    * Number of pixels the column should be in the table

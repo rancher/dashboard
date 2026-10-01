@@ -7,12 +7,17 @@
 // be undefined. Instead each package is replaced with a stub that uses the host's copy when there
 // is one, and otherwise falls back to a copy bundled with the extension.
 
+const fs = require('fs');
+const path = require('path');
+
 const CODEMIRROR_PACKAGES = [
   '@codemirror/autocomplete',
   '@codemirror/commands',
+  '@codemirror/lang-javascript',
   '@codemirror/lang-json',
   '@codemirror/lang-yaml',
   '@codemirror/language',
+  '@codemirror/lint',
   '@codemirror/search',
   '@codemirror/state',
   '@codemirror/view',
@@ -31,13 +36,28 @@ function stubModule(pkg) {
 }
 
 /**
+ * Directory of the given package as installed for the shell, or the package name if it can't be found.
+ *
+ * The stubs live in the extension's node_modules, which won't contain the package when the shell's
+ * dependencies aren't hoisted there (e.g. a linked shell). The packages don't export package.json,
+ * so it can't be found with require.resolve
+ */
+function packageDir(pkg) {
+  const dir = (require.resolve.paths(pkg) || [])
+    .map((modules) => path.join(modules, pkg))
+    .find((candidate) => fs.existsSync(path.join(candidate, 'package.json')));
+
+  return dir || pkg;
+}
+
+/**
  * Source of the stub that replaces the given package
  */
 function stubSource(pkg) {
   return [
     `var host = typeof window !== 'undefined' && window.__codemirror && window.__codemirror[${ JSON.stringify(pkg) }];`,
     '',
-    `module.exports = host || require(${ JSON.stringify(pkg) });`,
+    `module.exports = host || require(${ JSON.stringify(packageDir(pkg)) });`,
     '',
   ].join('\n');
 }
@@ -66,5 +86,5 @@ function replacementFor(request, issuer = '') {
 }
 
 module.exports = {
-  CODEMIRROR_PACKAGES, stubSource, stubModules, replacementFor
+  CODEMIRROR_PACKAGES, packageDir, stubSource, stubModules, replacementFor
 };

@@ -483,7 +483,8 @@ A page that displays a Kubernetes resource type using Rancher Dashboard's built-
 
 | Property | Type | Description |
 | --- | --- | --- |
-| `headers` | `HeaderOptions[]` | Custom table column headers for the list view. See [Table headers](#table-headers-listconfigheaders) |
+| `headers` | `HeaderOptions[]` | Custom table column headers for the list view, used with server-side pagination. See [Table headers](#table-headers-listconfigheaders) |
+| `localHeaders` | `HeaderOptions[]` | Custom table column headers for the list view, used with local (client-side) pagination. See [Local pagination headers](#local-pagination-headers-listconfiglocalheaders) |
 | `hideBulkActions` | `boolean` | Hide bulk action buttons (e.g. delete) for this resource in the list view. See [Hiding bulk actions](#hiding-bulk-actions-listconfighidebulkactions) |
 
 <br/>
@@ -654,6 +655,41 @@ When server-side pagination is enabled for a resource type, Rancher Dashboard us
 > **Important:** Property paths used to display, sort and search on must exist natively on the resource and not in the Dashboard's model for the resource type. For more information please see [Choosing fields to display, sort and filter on](https://extensions.rancher.io/extensions/next/performance/scaling/lists#choosing-fields-to-display-sort-and-filter-on).
 
 Before using headers with server-side pagination, it must be enabled for the resource type via `plugin.enableServerSidePagination`. See [Update Global Configuration](../../performance/scaling/global-config.md) for details on how to set this up.
+
+### Local pagination headers (`listConfig.localHeaders`)
+
+We recommend `listConfig.headers` with server-side pagination for most lists. It scales and performs better because the backend does the sorting, filtering and paging, so the browser only ever holds one page of rows.
+
+Some lists cannot use server-side pagination. That happens when the columns you want to sort or search on are not fields the backend indexes, which is common for:
+
+- custom resources whose CRD you do not control, so you cannot add indexed fields
+- columns whose value is computed in the Dashboard's model rather than stored on the resource itself
+
+For these lists, use `listConfig.localHeaders` instead. The list then renders with local (client-side) pagination, so the full set of rows is loaded into the browser. Because sorting and filtering happen locally, `sort` and `search` here may reference any field or model getter, not just indexed string paths.
+
+```ts
+import { STATE, NAME, AGE } from '@shell/config/table-headers';
+
+const myResourcePage: ProductChildResourcePage = {
+  type:       'my.crd.group.myresource',
+  listConfig: {
+    localHeaders: [
+      STATE,
+      NAME,
+      {
+        name:  'computed',
+        label: 'Computed',
+        // A model getter is fine here because sorting and filtering run in the browser.
+        value: 'someModelGetter',
+        sort:  'someModelGetter',
+      },
+      AGE,
+    ],
+  },
+};
+```
+
+> **Trade-off:** the whole list is loaded into the browser, so only reach for `localHeaders` when the fields rule out server-side pagination. Prefer `headers` and server-side pagination whenever they can work.
 
 ### Renaming types (`label`)
 

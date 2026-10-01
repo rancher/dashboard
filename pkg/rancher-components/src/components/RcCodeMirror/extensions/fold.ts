@@ -1,9 +1,11 @@
 import type { Extension, EditorState } from '@codemirror/state';
 import {
-  codeFolding, foldGutter as cmFoldGutter, foldService, foldEffect, foldable, syntaxTree, ensureSyntaxTree
+  codeFolding, foldService, foldEffect, foldable, matchBrackets, syntaxTree, forceParsing, language
 } from '@codemirror/language';
 import type { EditorView } from '@codemirror/view';
-import type { SyntaxNode } from '@lezer/common';
+
+// Match the Lezer copy used by CodeMirror's parser when dependencies resolve separately.
+type SyntaxNode = ReturnType<ReturnType<typeof syntaxTree>['resolve']>;
 
 /** The raw callback signature accepted by foldService.of() */
 export type FoldServiceFn = (
@@ -57,105 +59,33 @@ export const indentFoldService: Extension = foldService.of(
   }
 );
 
-/** Match positions are cached for each immutable editor state so gutter checks share one scan. */
-const bracketPairs = new WeakMap<EditorState, Map<number, number>>();
-
-function getBracketPairs(state: EditorState): Map<number, number> {
-  const cached = bracketPairs.get(state);
-
-  if (cached) {
-    return cached;
-  }
-
-  const pairs = new Map<number, number>();
-  const braces: number[] = [];
-  const brackets: number[] = [];
-  const parentheses: number[] = [];
-  const text = state.doc.toString();
-
-  for (let pos = 0; pos < text.length; pos++) {
-    switch (text[pos]) {
-    case '{':
-      braces.push(pos);
-      break;
-    case '}':
-      if (braces.length) {
-        pairs.set(braces.pop()!, pos);
-      }
-      break;
-    case '[':
-      brackets.push(pos);
-      break;
-    case ']':
-      if (brackets.length) {
-        pairs.set(brackets.pop()!, pos);
-      }
-      break;
-    case '(':
-      parentheses.push(pos);
-      break;
-    case ')':
-      if (parentheses.length) {
-        pairs.set(parentheses.pop()!, pos);
-      }
-      break;
-    }
-  }
-
-  bracketPairs.set(state, pairs);
-
-  return pairs;
-}
-
-/** Folds matching bracket pairs: {}, [], (). */
+/** Folds matching pairs: {}, [], (). Language syntax distinguishes strings and comments. */
 export const bracketFoldService: Extension = foldService.of(
   (state: EditorState, lineStart: number): { from: number; to: number } | null => {
     const line = state.doc.lineAt(lineStart);
-    const text = line.text;
-    let openPos = -1;
 
-    for (let i = 0; i < text.length; i++) {
-      const ch = text.charAt(i);
+    for (let i = 0; i < line.text.length; i++) {
+      if (!'{[('.includes(line.text[i])) {
+        continue;
+      }
 
-      if (ch === '{' || ch === '[' || ch === '(') {
-        openPos = line.from + i;
-        break;
+      const match = matchBrackets(state, line.from + i, 1);
+
+      if (match?.matched && match.end && state.doc.lineAt(match.end.from).number > line.number) {
+        return { from: match.start.to, to: match.end.from };
       }
     }
 
-    if (openPos === -1) {
-      return null;
-    }
-
-    const closePos = getBracketPairs(state).get(openPos);
-
-    if (closePos === undefined) {
-      return null;
-    }
-
-    const closeLine = state.doc.lineAt(closePos);
-
-    return closeLine.number > line.number ? { from: line.to, to: closeLine.from - 1 } : null;
+    return null;
   }
 );
 
-function foldMarkerDOM(open: boolean): HTMLElement {
-  const span = document.createElement('span');
-
-  span.textContent = open ? '⌄' : '›';
-  span.title = open ? 'Fold line' : 'Unfold line';
-  if (open) {
-    // The down glyph sits below the text center in the editor font.
-    span.style.display = 'inline-block';
-    span.style.transform = 'translateY(-0.25em)';
-  }
-
-  return span;
-}
-
+/**
+ * Enables folding with the given strategy. The fold gutter is separate, so folding still
+ * works (programmatically or from the keyboard) when the gutter is hidden.
+ */
 export function buildFoldExtension(opts?: FoldOptions): Extension {
-  // The gutter enables folding; this configuration replaces its default ellipsis.
-  const extensions: Extension[] = [cmFoldGutter({ markerDOM: foldMarkerDOM }), codeFolding({ placeholderText: '↔️' })];
+  const extensions: Extension[] = [codeFolding({ placeholderText: '↔️' })];
   const strategy = opts?.strategy ?? 'language';
 
   if (strategy === 'indent') {
@@ -172,14 +102,24 @@ export function buildFoldExtension(opts?: FoldOptions): Extension {
 }
 
 /**
+ * A copy of `pattern` without the global and sticky flags. With either flag, test() resumes
+ * from the previous match's lastIndex, so testing line after line would skip matches.
+ */
+function statelessPattern(pattern: RegExp): RegExp {
+  return new RegExp(pattern.source, pattern.flags.replace(/[gy]/g, ''));
+}
+
+/**
  * Declarative fold service: marks lines matching `pattern` as foldable.
  * The fold range covers the indented block below the matching line.
  */
 export function foldByLineMatch(pattern: RegExp): Extension {
+  const matcher = statelessPattern(pattern);
+
   return foldService.of((state, lineStart) => {
     const line = state.doc.lineAt(lineStart);
 
-    if (!pattern.test(line.text)) {
+    if (!matcher.test(line.text)) {
       return null;
     }
 
@@ -386,17 +326,27 @@ export function foldAllComments(view: EditorView): void {
 }
 
 /**
- * The syntax tree is parsed lazily, so content beyond the viewport may not be
- * parsed when the editor is ready. Parse the whole document so language fold
- * ranges are available everywhere, then apply an empty transaction so the
- * state picks up the new tree.
+ * Language parsing may stop before the end of a long document. Continue in
+ * short tasks before looking for folds, so a parse timeout cannot silently
+ * discard a requested fold outside the viewport.
  */
-function parseDocument(view: EditorView): void {
-  const tree = ensureSyntaxTree(view.state, view.state.doc.length, 500);
+function parseDocument(view: EditorView, onParsed: () => void): void {
+  const doc = view.state.doc;
+  const wasConnected = view.dom.isConnected;
 
-  if (tree && tree !== syntaxTree(view.state)) {
-    view.dispatch({});
+  function continueParsing(): void {
+    if (view.state.doc !== doc || (wasConnected && !view.dom.isConnected)) {
+      return;
+    }
+
+    if (!view.state.facet(language) || forceParsing(view, doc.length, 100)) {
+      onParsed();
+    } else {
+      setTimeout(continueParsing, 16);
+    }
   }
+
+  continueParsing();
 }
 
 /**
@@ -404,26 +354,28 @@ function parseDocument(view: EditorView): void {
  * Delegates range detection to registered fold services via `foldable()`.
  */
 export function foldMatchingLines(view: EditorView, pattern: RegExp): void {
-  parseDocument(view);
+  const matcher = statelessPattern(pattern);
 
-  const { state } = view;
-  const ranges: { from: number; to: number }[] = [];
+  parseDocument(view, () => {
+    const { state } = view;
+    const ranges: { from: number; to: number }[] = [];
 
-  for (let i = 1; i <= state.doc.lines; i++) {
-    const line = state.doc.line(i);
+    for (let i = 1; i <= state.doc.lines; i++) {
+      const line = state.doc.line(i);
 
-    if (!pattern.test(line.text)) {
-      continue;
+      if (!matcher.test(line.text)) {
+        continue;
+      }
+      const range = foldable(state, line.from, line.to);
+
+      if (range) {
+        ranges.push(range);
+      }
     }
-    const range = foldable(state, line.from, line.to);
-
-    if (range) {
-      ranges.push(range);
+    if (ranges.length > 0) {
+      view.dispatch({ effects: ranges.map((r) => foldEffect.of(r)) });
     }
-  }
-  if (ranges.length > 0) {
-    view.dispatch({ effects: ranges.map((r) => foldEffect.of(r)) });
-  }
+  });
 }
 
 /**
@@ -431,41 +383,42 @@ export function foldMatchingLines(view: EditorView, pattern: RegExp): void {
  * Call in a `ready` handler.
  */
 export function foldYamlPath(view: EditorView, path: string): void {
-  parseDocument(view);
-
-  const { state } = view;
   const segments = path.split('.');
   const lastSegment = segments[segments.length - 1];
-  const tree = syntaxTree(state);
 
-  let targetFrom: number | null = null;
+  parseDocument(view, () => {
+    const { state } = view;
+    const tree = syntaxTree(state);
 
-  tree.iterate({
-    enter(node) {
-      if (targetFrom !== null) {
-        return false;
-      }
-      if (node.name !== 'Key') {
-        return;
-      }
-      if (state.doc.sliceString(node.from, node.to).trim() !== lastSegment) {
-        return;
-      }
-      if (getKeyPath(node.node, state) === path) {
-        targetFrom = state.doc.lineAt(node.from).from;
+    let targetFrom: number | null = null;
 
-        return false;
+    tree.iterate({
+      enter(node) {
+        if (targetFrom !== null) {
+          return false;
+        }
+        if (node.name !== 'Key') {
+          return;
+        }
+        if (state.doc.sliceString(node.from, node.to).trim() !== lastSegment) {
+          return;
+        }
+        if (getKeyPath(node.node, state) === path) {
+          targetFrom = state.doc.lineAt(node.from).from;
+
+          return false;
+        }
       }
+    });
+
+    if (targetFrom === null) {
+      return;
+    }
+    const line = state.doc.lineAt(targetFrom);
+    const range = foldable(state, line.from, line.to);
+
+    if (range) {
+      view.dispatch({ effects: foldEffect.of(range) });
     }
   });
-
-  if (targetFrom === null) {
-    return;
-  }
-  const line = state.doc.lineAt(targetFrom);
-  const range = foldable(state, line.from, line.to);
-
-  if (range) {
-    view.dispatch({ effects: foldEffect.of(range) });
-  }
 }

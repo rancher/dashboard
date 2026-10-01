@@ -127,6 +127,16 @@ export const SETTING = {
   DYNAMIC_CONTENT_ENDPOINT:                      'ui-content-endpoint',
   IMPORTED_CLUSTER_DAY2_OPS_DEFAULT:             'imported-cluster-day2-ops-enabled',
   DELETE_MACHINE_ON_FAILURE_AFTER:               'delete-machine-on-failure-after',
+  /**
+   * Rancher's catalog mode (`CATTLE_SYSTEM_CATALOG`), either `external` or `bundled`. `bundled` means Rancher only
+   * serves bundled/airgap charts. Read-only (set by the backend), so not in ALLOWED_SETTINGS.
+   */
+  SYSTEM_CATALOG:                                'system-catalog',
+  /**
+   * Controls the SUSE Application Collection features in the UI: `true` always shows them, `false` never does and
+   * empty (the default) falls back to SYSTEM_CATALOG, showing them unless it is `bundled`.
+   */
+  UI_APPCO_ENABLED:                              'ui-appco-enabled',
 } as const;
 
 // These are the settings that are allowed to be edited via the UI

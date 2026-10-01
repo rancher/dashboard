@@ -1,9 +1,11 @@
 import { EditorState, type Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import {
-  codeFolding, foldable, foldedRanges, foldService, ensureSyntaxTree
+  codeFolding, foldable, foldedRanges, foldService, ensureSyntaxTree, syntaxTreeAvailable
 } from '@codemirror/language';
 import { yaml } from '@codemirror/lang-yaml';
+import { json } from '@codemirror/lang-json';
+import * as cmLanguage from '@codemirror/language';
 import {
   indentFoldService,
   bracketFoldService,
@@ -15,6 +17,14 @@ import {
   foldMatchingLines,
   foldYamlPath,
 } from './fold';
+
+jest.mock('@codemirror/language', () => {
+  const original = jest.requireActual<typeof import('@codemirror/language')>('@codemirror/language');
+
+  return { ...original, forceParsing: jest.fn(original.forceParsing) };
+});
+
+const actualForceParsing = jest.requireActual<typeof import('@codemirror/language')>('@codemirror/language').forceParsing;
 
 function createState(doc: string, extensions: Extension[]): EditorState {
   const state = EditorState.create({ doc, extensions });
@@ -28,6 +38,12 @@ function foldableAt(state: EditorState, lineNumber: number) {
   const line = state.doc.line(lineNumber);
 
   return foldable(state, line.from, line.to);
+}
+
+function bracketServiceAt(state: EditorState, lineNumber: number) {
+  const line = state.doc.line(lineNumber);
+
+  return state.facet(foldService)[0](state, line.from, line.to);
 }
 
 function createView(doc: string, extensions: Extension[]): EditorView {
@@ -101,6 +117,38 @@ describe('fold extensions', () => {
   });
 
   describe('bracketFoldService', () => {
+    const jsonWithQuotedBracket = [
+      '{',
+      '  "name": "demo",',
+      '  "closing": "}",',
+      '  "items": [',
+      '    1,',
+      '    2',
+      '  ]',
+      '}'
+    ].join('\n');
+
+    it.each([1, 4])('should match the JSON language fold on line %s when a string contains a bracket', (line) => {
+      const bracketState = createState(jsonWithQuotedBracket, [json(), bracketFoldService]);
+      const languageState = createState(jsonWithQuotedBracket, [json()]);
+
+      expect(bracketServiceAt(bracketState, line)).toStrictEqual(foldableAt(languageState, line));
+    });
+
+    it('should ignore the quoted brace when the JSON sample is parsed as YAML', () => {
+      const state = createState(jsonWithQuotedBracket, [yaml(), bracketFoldService]);
+
+      expect(bracketServiceAt(state, 1)).toStrictEqual({ from: 1, to: state.doc.line(8).from });
+    });
+
+    it('should skip brackets inside a string before the real opening bracket', () => {
+      const doc = '{\n  "quoted": "[", "items": [\n    1\n  ]\n}';
+      const state = createState(doc, [json(), bracketFoldService]);
+      const languageState = createState(doc, [json()]);
+
+      expect(bracketServiceAt(state, 2)).toStrictEqual(foldableAt(languageState, 2));
+    });
+
     it.each([
       ['{', '}'],
       ['[', ']'],
@@ -108,13 +156,13 @@ describe('fold extensions', () => {
     ])('should fold between %s and %s across lines', (open, close) => {
       const state = createState(`${ open }\n  1\n${ close }`, [bracketFoldService]);
 
-      expect(foldableAt(state, 1)).toStrictEqual({ from: 1, to: 5 });
+      expect(foldableAt(state, 1)).toStrictEqual({ from: 1, to: 6 });
     });
 
     it('should match nested brackets of the same type', () => {
       const state = createState('{\n  {\n  }\n}', [bracketFoldService]);
 
-      expect(foldableAt(state, 1)).toStrictEqual({ from: 1, to: 9 });
+      expect(foldableAt(state, 1)).toStrictEqual({ from: 1, to: 10 });
     });
 
     it('should recompute bracket pairs after the document changes', () => {
@@ -179,7 +227,7 @@ describe('fold extensions', () => {
   describe('buildFoldExtension', () => {
     it.each([
       ['indent', 'a:\n  b', { from: 2, to: 6 }],
-      ['bracket', '{\n}', { from: 1, to: 1 }],
+      ['bracket', '{\n}', { from: 1, to: 2 }],
     ] as const)('should register the %s fold service', (strategy, doc, expected) => {
       const state = createState(doc, [buildFoldExtension({ strategy })]);
 
@@ -198,10 +246,18 @@ describe('fold extensions', () => {
       expect(foldableAt(state, 1)).toStrictEqual({ from: 2, to: 6 });
     });
 
-    it('should include the fold gutter', () => {
+    it('should enable folding', () => {
+      const view = new EditorView({ state: createState('a:\n  b', [buildFoldExtension({ strategy: 'indent' })]) });
+
+      foldMatchingLines(view, /^a:/);
+
+      expect(folded(view)).toStrictEqual([{ from: 2, to: 6 }]);
+    });
+
+    it('should not include the fold gutter', () => {
       const view = new EditorView({ state: createState('a', [buildFoldExtension()]) });
 
-      expect(view.dom.querySelector('.cm-foldGutter')).not.toBeNull();
+      expect(view.dom.querySelector('.cm-foldGutter')).toBeNull();
     });
   });
 
@@ -216,6 +272,20 @@ describe('fold extensions', () => {
       const state = createState(yamlDoc, [foldByLineMatch(/^spec:/)]);
 
       expect(foldableAt(state, 1)).toBeNull();
+    });
+
+    it('should fold a matching line every time it is checked with a global pattern', () => {
+      const state = createState(yamlDoc, [foldByLineMatch(/^spec:/g)]);
+
+      foldableAt(state, 5);
+
+      expect(foldableAt(state, 5)).toStrictEqual({ from: 46, to: 67 });
+    });
+
+    it('should fold a line matching a sticky pattern after the start of the line', () => {
+      const state = createState(yamlDoc, [foldByLineMatch(/labels:/y)]);
+
+      expect(foldableAt(state, 3)).toStrictEqual({ from: 29, to: 40 });
     });
   });
 
@@ -282,6 +352,17 @@ describe('fold extensions', () => {
       expect(folded(view)).toStrictEqual([{ from: 29, to: 40 }, { from: 56, to: 67 }]);
     });
 
+    it.each([
+      ['global', /labels:/g],
+      ['sticky', /labels:/y],
+    ])('should fold every matching line with a %s pattern', (_, pattern) => {
+      const view = createView(yamlDoc, [indentFoldService]);
+
+      foldMatchingLines(view, pattern);
+
+      expect(folded(view)).toStrictEqual([{ from: 29, to: 40 }, { from: 56, to: 67 }]);
+    });
+
     it('should not dispatch when no line matches', () => {
       const view = createView(yamlDoc, [indentFoldService]);
       const dispatch = jest.spyOn(view, 'dispatch');
@@ -292,14 +373,61 @@ describe('fold extensions', () => {
     });
 
     it('should fold a language fold range beyond the initially parsed content', () => {
-      const filler = Array.from({ length: 5000 }, (_, i) => `key${ i }: value`).join('\n');
+      const filler = Array.from({ length: 500 }, (_, i) => `key${ i }: value`).join('\n');
       const doc = `${ filler }\nstatus:\n  phase: Running\n`;
       const view = new EditorView({ state: EditorState.create({ doc, extensions: [codeFolding(), yaml()] }) });
-      const status = view.state.doc.line(5001);
+      const status = view.state.doc.line(501);
+
+      expect(syntaxTreeAvailable(view.state, status.to)).toBe(false);
 
       foldMatchingLines(view, /^status:\s*$/);
 
-      expect(folded(view)).toStrictEqual([{ from: status.to, to: view.state.doc.line(5002).to }]);
+      expect(folded(view)).toStrictEqual([{ from: status.to, to: view.state.doc.line(502).to }]);
+    });
+
+    it('should finish parsing a long document after the first parse times out', () => {
+      const filler = Array.from({ length: 500 }, (_, i) => `key${ i }: value`).join('\n');
+      const doc = `${ filler }\nstatus:\n  phase: Running\n`;
+      const view = new EditorView({ state: EditorState.create({ doc, extensions: [codeFolding(), yaml()] }) });
+      const status = view.state.doc.line(501);
+      const parse = jest.mocked(cmLanguage.forceParsing).mockImplementationOnce(() => false);
+
+      jest.useFakeTimers();
+      try {
+        foldMatchingLines(view, /^status:\s*$/);
+
+        expect(folded(view)).toStrictEqual([]);
+
+        jest.advanceTimersByTime(16);
+
+        expect(folded(view)).toStrictEqual([{ from: status.to, to: view.state.doc.line(502).to }]);
+      } finally {
+        jest.useRealTimers();
+        parse.mockReset().mockImplementation(actualForceParsing);
+        view.destroy();
+      }
+    });
+
+    it('should cancel a pending fold when the document changes', () => {
+      const view = new EditorView({ state: EditorState.create({ doc: yamlDoc, extensions: [codeFolding(), yaml()] }) });
+      const parse = jest.mocked(cmLanguage.forceParsing).mockImplementationOnce(() => false);
+
+      jest.useFakeTimers();
+      try {
+        foldMatchingLines(view, /^spec:/);
+        view.dispatch({
+          changes: {
+            from: 0, to: view.state.doc.length, insert: 'new: value'
+          }
+        });
+        jest.advanceTimersByTime(16);
+
+        expect(folded(view)).toStrictEqual([]);
+      } finally {
+        jest.useRealTimers();
+        parse.mockReset().mockImplementation(actualForceParsing);
+        view.destroy();
+      }
     });
   });
 
@@ -336,6 +464,29 @@ describe('fold extensions', () => {
       foldYamlPath(view, 'spec.containers[1].resources');
 
       expect(folded(view)).toStrictEqual([{ from: view.state.doc.line(10).to, to: view.state.doc.line(12).to }]);
+    });
+
+    it('should find a YAML path after the first parse times out', () => {
+      const filler = Array.from({ length: 500 }, (_, i) => `key${ i }: value`).join('\n');
+      const doc = `${ filler }\nstatus:\n  phase: Running\n`;
+      const view = new EditorView({ state: EditorState.create({ doc, extensions: [codeFolding(), yaml()] }) });
+      const status = view.state.doc.line(501);
+      const parse = jest.mocked(cmLanguage.forceParsing).mockImplementationOnce(() => false);
+
+      jest.useFakeTimers();
+      try {
+        foldYamlPath(view, 'status');
+
+        expect(folded(view)).toStrictEqual([]);
+
+        jest.advanceTimersByTime(16);
+
+        expect(folded(view)).toStrictEqual([{ from: status.to, to: view.state.doc.line(502).to }]);
+      } finally {
+        jest.useRealTimers();
+        parse.mockReset().mockImplementation(actualForceParsing);
+        view.destroy();
+      }
     });
   });
 });

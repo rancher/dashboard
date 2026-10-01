@@ -69,6 +69,7 @@ module.exports = {
     '<rootDir>/shell/**/*.{vue,ts,js}',
     '<rootDir>/pkg/rancher-components/src/components/**/*.{vue,ts,js}',
     '!<rootDir>/shell/scripts/',
+    '!**/vendor/**',
   ],
   coveragePathIgnorePatterns: [
     '\\.d\\.ts'

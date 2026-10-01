@@ -348,7 +348,6 @@ export default {
 
   p {
     font-size: 11px;
-    font-weight: light;
     padding: 5px 0;
   }
 

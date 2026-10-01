@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { ref } from 'vue';
 import type { EditorView } from '@codemirror/view';
+import type { Diagnostic, LintSource } from '@codemirror/lint';
 import {
   RcCodeMirror, foldByLineMatch, foldByYamlPath, foldMatchingLines, foldYamlPath
 } from '@components/RcCodeMirror';
@@ -76,9 +77,14 @@ const meta: Meta<typeof RcCodeMirror> = {
     },
     readOnly:     { control: 'boolean', description: 'Prevents the document from being edited.' },
     lineNumbers:  { control: 'boolean', description: 'Shows the line number gutter.' },
-    foldGutter:   { control: 'boolean', description: 'Shows the fold gutter. Only read on mount.' },
+    foldGutter:   { control: 'boolean', description: 'Shows the fold gutter. Folding still works from the keyboard and the fold helpers when it is hidden.' },
     lineWrapping: { control: 'boolean', description: 'Wraps long lines instead of scrolling horizontally.' },
-    foldOptions:  {
+    linter:       {
+      control:     false,
+      description: 'Returns the document\'s problems, which are underlined. The editor variant also marks their lines in a gutter.'
+    },
+    keymapIndicator: { control: 'boolean', description: 'Shows an indicator when the Vim or Emacs keymap is active. Selecting it hides it until the editor is remounted.' },
+    foldOptions:     {
       control:     'object',
       description: 'Fold strategy (`language`, `indent` or `bracket`) plus an optional custom fold extension. Only read on mount.'
     },
@@ -112,7 +118,7 @@ export const Default: Story = {
     },
     template: `
       <div style="height: 400px;">
-        <RcCodeMirror v-bind="args" v-model="value" />
+        <RcCodeMirror v-bind="args" v-model="value" aria-label="Deployment" />
       </div>
     `,
   }),
@@ -145,6 +151,48 @@ export const Json: Story = {
 export const ReadOnly: Story = {
   ...Default,
   args: { readOnly: true },
+};
+
+export const KeymapIndicator: Story = {
+  ...Default,
+  args: { keymap: 'vim', keymapIndicator: true },
+};
+
+// YAML does not allow tabs for indentation
+const tabIndentLinter: LintSource = (view) => {
+  const diagnostics: Diagnostic[] = [];
+
+  for (let number = 1; number <= view.state.doc.lines; number++) {
+    const line = view.state.doc.line(number);
+    const indent = /^[ \t]*/.exec(line.text)?.[0] ?? '';
+    const tab = indent.indexOf('\t');
+
+    if (tab >= 0) {
+      diagnostics.push({
+        from: line.from + tab, to: line.from + tab + 1, severity: 'error', message: 'Tabs are not allowed for indentation'
+      });
+    }
+  }
+
+  return diagnostics;
+};
+
+export const Linter: Story = {
+  render: (args: any) => ({
+    components: { RcCodeMirror },
+    setup() {
+      const value = ref('metadata:\n  name: nginx\n\tnamespace: default\nspec:\n  replicas: 3\n');
+
+      return {
+        args, value, linter: tabIndentLinter
+      };
+    },
+    template: `
+      <div style="height: 200px;">
+        <RcCodeMirror v-bind="args" v-model="value" :linter="linter" aria-label="Deployment" />
+      </div>
+    `,
+  }),
 };
 
 export const ReadOnlyKeyboard: Story = {
@@ -187,11 +235,36 @@ export const CustomFolding: Story = {
     },
     template: `
       <div style="height: 400px;">
-        <RcCodeMirror v-bind="args" v-model="value" :extensions="extensions" @ready="onReady" />
+        <RcCodeMirror :key="args.foldOptions?.strategy" v-bind="args" v-model="value" aria-label="Deployment" :extensions="extensions" @ready="onReady" />
       </div>
     `,
   }),
   args: { foldOptions: { strategy: 'indent' } },
+};
+
+export const BracketFolding: Story = {
+  render: () => ({
+    components: { RcCodeMirror },
+    setup() {
+      const sample = '{\n  "name": "demo",\n  "closing": "}",\n  "items": [\n    1,\n    2\n  ]\n}';
+      const bracketValue = ref(sample);
+      const languageValue = ref(sample);
+
+      return { bracketValue, languageValue };
+    },
+    template: `
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+        <div>
+          <p>Bracket strategy</p>
+          <RcCodeMirror v-model="bracketValue" language="json" :fold-options="{ strategy: 'bracket' }" aria-label="JSON with bracket folding" style="height: 240px;" />
+        </div>
+        <div>
+          <p>Language strategy</p>
+          <RcCodeMirror v-model="languageValue" language="json" :fold-options="{ strategy: 'language' }" aria-label="JSON with language folding" style="height: 240px;" />
+        </div>
+      </div>
+    `,
+  }),
 };
 
 export const VModel: Story = {
@@ -204,7 +277,7 @@ export const VModel: Story = {
     },
     template: `
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; height: 400px;">
-        <RcCodeMirror v-bind="args" v-model="value" />
+        <RcCodeMirror v-bind="args" v-model="value" aria-label="Deployment" />
         <pre style="margin: 0; overflow: auto;">{{ value }}</pre>
       </div>
     `,
@@ -224,7 +297,8 @@ export const Input: Story = {
     },
     template: `
       <div style="width: 400px;">
-        <RcCodeMirror v-bind="args" v-model="value" />
+        <label id="certificate-label">Certificate</label>
+        <RcCodeMirror v-bind="args" v-model="value" aria-labelledby="certificate-label" />
       </div>
     `,
   }),

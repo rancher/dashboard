@@ -69,6 +69,12 @@ export default {
       default: false,
       type:    Boolean
     },
+
+    // validators for required volume fields, keyed by field path within a volume
+    rules: {
+      type:    Object,
+      default: () => ({}),
+    },
   },
 
   data() {
@@ -269,6 +275,7 @@ export default {
             :register-before-hook="registerBeforeHook"
             :save-pvc-hook-name="savePvcHookName"
             :loading="loading"
+            :rules="rules"
             :data-testid="`volume-component-${props.i}`"
             @removePvcForm="removePvcForm"
           />

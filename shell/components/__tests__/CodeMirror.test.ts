@@ -1,7 +1,9 @@
 import { nextTick } from 'vue';
 import { shallowMount, VueWrapper } from '@vue/test-utils';
-import type { Extension } from '@codemirror/state';
+import { EditorState, type Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
+import type { LintSource } from '@codemirror/lint';
+import jsyaml from 'js-yaml';
 import { RcCodeMirror } from '@components/RcCodeMirror';
 import CodeMirror from '@shell/components/CodeMirror.vue';
 import { _EDIT, _VIEW, _YAML } from '@shell/config/query-params';
@@ -53,40 +55,26 @@ describe('component: CodeMirror.vue', () => {
 
   };
 
-  // eslint-disable-next-line jest/no-disabled-tests
-  describe('keyMap info', () => {
-    wrapper = shallowMount(
-      CodeMirror,
-      mountOptions,
-    );
+  describe('keymap indicator', () => {
+    it.each([
+      [true, true],
+      [false, false],
+    ])('should pass showKeyMapBox %p to RcCodeMirror keymapIndicator', (showKeyMapBox, keymapIndicator) => {
+      wrapper = shallowMount(CodeMirror, { ...mountOptions, props: { ...mountOptions.props, showKeyMapBox } });
 
-    it(`should show keyMap preference`, async() => {
-      await nextTick();
-
-      const keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"] .keymap-indicator');
-
-      const closeIcon = wrapper.find('[data-testid="code-mirror-keymap"] .icon-close');
-
-      expect(keyMapBox).toBeDefined();
-      expect(closeIcon).toBeDefined();
+      expect(wrapper.findComponent(RcCodeMirror).props('keymapIndicator')).toStrictEqual(keymapIndicator);
     });
 
-    it(`should remove keyMap box`, async() => {
-      await nextTick();
+    it.each([
+      ['Key mapping: $', '%codeMirror.keymap.indicatorToolip%'],
+      ['Hide key mapping: $', '%codeMirror.keymap.hideIndicator%'],
+      ['Vim', '%prefs.keymap.vim%'],
+      ['Emacs', '%prefs.keymap.emacs%'],
+    ])('should translate the RcCodeMirror phrase %p', (phrase, translation) => {
+      wrapper = shallowMount(CodeMirror, mountOptions);
+      const extensions = wrapper.findComponent(RcCodeMirror).props('extensions') as Extension[];
 
-      let keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
-
-      keyMapBox.trigger('mouseenter');
-      await nextTick();
-
-      const closeIcon = keyMapBox.find('.icon-close');
-
-      (closeIcon.element as HTMLElement).click();
-      await nextTick();
-
-      keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
-
-      expect(keyMapBox.exists()).toBe(false);
+      expect(EditorState.create({ extensions }).phrase(phrase)).toStrictEqual(translation);
     });
   });
 
@@ -114,6 +102,9 @@ describe('component: CodeMirror.vue', () => {
       ['yaml', 'yaml'],
       ['json', 'json'],
       [{ name: 'javascript', json: true }, 'json'],
+      ['javascript', 'javascript'],
+      ['text/javascript', 'javascript'],
+      [{ name: 'javascript' }, 'javascript'],
       [null, undefined],
       ['text/x-properties', undefined],
     ])('should map mode %p to language %p', (mode, language) => {
@@ -161,11 +152,47 @@ describe('component: CodeMirror.vue', () => {
       expect(rc.props('variant')).toStrictEqual(variant);
     });
 
-    it('should not bind Tab to indent when displayed as a text area', () => {
-      const extensions = createWrapper({ asTextArea: true }).findComponent(RcCodeMirror).props('extensions') as Extension[];
-      const editor = createWrapper({ asTextArea: false }).findComponent(RcCodeMirror).props('extensions') as Extension[];
+    it.each([
+      ['Fold line', '%codeMirror.foldLine%'],
+      ['Unfold line', '%codeMirror.unfoldLine%'],
+      ['Press Escape, then Tab to leave the editor', '%codeMirror.leaveEditor%'],
+    ])('should translate the RcCodeMirror phrase %p', (phrase, translation) => {
+      const extensions = createWrapper().findComponent(RcCodeMirror).props('extensions') as Extension[];
+      const state = EditorState.create({ extensions });
 
-      expect(extensions).toHaveLength(editor.length - 1);
+      expect(state.phrase(phrase)).toStrictEqual(translation);
+    });
+
+    it.each([
+      'Fold line',
+      'Press Escape, then Tab to leave the editor',
+      'Hide key mapping: $',
+    ])('should keep the RcCodeMirror phrase %p on a Rancher version without its translation', (phrase) => {
+      const exists = (key: string) => key.startsWith('prefs.');
+      const extensions = createWrapper({}, { 'i18n/exists': exists }).findComponent(RcCodeMirror).props('extensions') as Extension[];
+      const state = EditorState.create({ extensions });
+
+      expect(state.phrase(phrase)).toStrictEqual(phrase);
+    });
+
+    it('should translate the phrases a Rancher version has', () => {
+      const exists = (key: string) => key.startsWith('prefs.');
+      const extensions = createWrapper({}, { 'i18n/exists': exists }).findComponent(RcCodeMirror).props('extensions') as Extension[];
+      const state = EditorState.create({ extensions });
+
+      expect(state.phrase('Vim')).toStrictEqual('%prefs.keymap.vim%');
+    });
+
+    it('should pass the screen reader label to the editor as its aria-label', () => {
+      const rc = createWrapper({ options: { screenReaderLabel: 'Values' } }).findComponent(RcCodeMirror);
+
+      expect(rc.attributes('aria-label')).toStrictEqual('Values');
+    });
+
+    it('should not render an escape hint of its own', () => {
+      const wrapper = createWrapper();
+
+      expect(wrapper.find('.escape-text').exists()).toStrictEqual(false);
     });
 
     it('should show line numbers and fold gutter by default', () => {
@@ -180,6 +207,14 @@ describe('component: CodeMirror.vue', () => {
       const rc = createWrapper({ extensions: [extension] }).findComponent(RcCodeMirror);
 
       expect(rc.props('extensions')).toContain(extension);
+    });
+
+    it('should translate deprecated CodeMirror 5 options to extensions', () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const extensions = createWrapper({ options: { tabSize: 8 } }).findComponent(RcCodeMirror).props('extensions') as Extension[];
+      const state = EditorState.create({ extensions });
+
+      expect(state.tabSize).toStrictEqual(8);
     });
   });
 
@@ -214,6 +249,54 @@ describe('component: CodeMirror.vue', () => {
       wrapper.findComponent(RcCodeMirror).vm.$emit('ready', view);
 
       expect(wrapper.emitted('onReady')).toStrictEqual([[view]]);
+    });
+
+    it('should emit onReady with the deprecated CodeMirror 5 methods on the view', () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const wrapper = createWrapper();
+      const view = new EditorView({ doc: 'foo: bar' });
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('ready', view);
+      const [[emitted]] = wrapper.emitted('onReady') as [[any]];
+
+      expect(emitted.getValue()).toStrictEqual('foo: bar');
+    });
+  });
+
+  describe('host shortcuts', () => {
+    const createWrapper = (shortkey: object) => shallowMount(CodeMirror, {
+      ...mountOptions,
+      global: { ...mountOptions.global, directives: { shortkey } }
+    });
+
+    afterEach(() => {
+      delete (window as any).__codemirror;
+    });
+
+    it('should exclude the editor from the shortcuts of a Rancher version without CodeMirror 6', () => {
+      const shortkey = { beforeMount: jest.fn() };
+      const view = new EditorView({ doc: '' });
+
+      createWrapper(shortkey).findComponent(RcCodeMirror).vm.$emit('ready', view);
+
+      expect(shortkey.beforeMount).toHaveBeenCalledWith(view.contentDOM, { modifiers: { avoid: true } }, null);
+    });
+
+    it('should leave the shortcuts of a Rancher version with CodeMirror 6 alone', () => {
+      const shortkey = { beforeMount: jest.fn() };
+
+      (window as any).__codemirror = {};
+      createWrapper(shortkey).findComponent(RcCodeMirror).vm.$emit('ready', new EditorView({ doc: '' }));
+
+      expect(shortkey.beforeMount).not.toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.anything());
+    });
+
+    it('should not fail without a shortcut directive', () => {
+      const wrapper = shallowMount(CodeMirror, mountOptions);
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('ready', new EditorView({ doc: '' }));
+
+      expect(wrapper.emitted('onReady')).toHaveLength(1);
     });
   });
 
@@ -271,6 +354,66 @@ describe('component: CodeMirror.vue', () => {
     });
   });
 
+  describe('yaml lint markers', () => {
+    const createWrapper = (props = {}) => shallowMount(CodeMirror, {
+      ...mountOptions,
+      props: { ...mountOptions.props, ...props },
+    });
+
+    function lintSource(wrapper: ReturnType<typeof createWrapper>): LintSource {
+      return wrapper.findComponent(RcCodeMirror).props('linter') as LintSource;
+    }
+
+    function lintDoc(doc: string, props = {}) {
+      return lintSource(createWrapper(props))(new EditorView({ doc }));
+    }
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it.each([
+      ['lint is disabled', { options: { ...options, lint: false } }],
+      ['the editor is in view mode', { mode: _VIEW }],
+      ['the editor is read only', { options: { ...options, readOnly: true } }],
+      ['the content is json', { options: { ...options, mode: 'json' } }],
+    ])('should not pass RcCodeMirror a linter when %s', (_case, props) => {
+      expect(lintSource(createWrapper(props))).toBeUndefined();
+    });
+
+    it('should report no problems for valid yaml', () => {
+      expect(lintDoc('foo: bar\n---\nbaz: qux')).toStrictEqual([]);
+    });
+
+    it.each([
+      ['a: 1\nb:\n  - x\n c: 2', 15, 'bad indentation of a mapping entry (4:2)'],
+      // js-yaml reports the end of the stream one past the end of the document
+      ['foo: [', 6, 'unexpected end of the stream within a flow collection (2:1)'],
+    ])('should mark where parsing %p failed', (doc, position, message) => {
+      expect(lintDoc(doc)).toStrictEqual([{
+        from: position, to: position, severity: 'error', message
+      }]);
+    });
+
+    it('should reuse the parse from validating the same content', () => {
+      const wrapper = createWrapper();
+      const loadAll = jest.spyOn(jsyaml, 'loadAll');
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('update:modelValue', 'foo: [');
+      lintSource(wrapper)(new EditorView({ doc: 'foo: [' }));
+
+      expect(loadAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('should validate content the markers see first', () => {
+      const wrapper = createWrapper();
+
+      lintSource(wrapper)(new EditorView({ doc: 'foo: [' }));
+
+      expect(wrapper.vm.hasLintErrors).toStrictEqual(true);
+    });
+  });
+
   describe('updateValue', () => {
     it('should replace the editor content', () => {
       const wrapper = shallowMount(CodeMirror, mountOptions);
@@ -280,53 +423,6 @@ describe('component: CodeMirror.vue', () => {
       (wrapper.vm as any).updateValue('baz: qux');
 
       expect(view.state.doc.toString()).toStrictEqual('baz: qux');
-    });
-  });
-
-  describe('keyboard tab navigation', () => {
-    const mountWithMode = (mode: string) => shallowMount(CodeMirror, {
-      ...mountOptions,
-      props: { ...mountOptions.props, mode },
-    });
-
-    it('takes a read-only editor out of the tab order once ready', () => {
-      const readOnlyWrapper = mountWithMode(_VIEW);
-      const view = new EditorView({ doc: '' });
-
-      readOnlyWrapper.findComponent(RcCodeMirror).vm.$emit('ready', view);
-
-      expect(view.contentDOM.tabIndex).toStrictEqual(-1);
-    });
-
-    it('keeps an editable editor in the tab order', () => {
-      const editWrapper = mountWithMode(_EDIT);
-      const view = new EditorView({ doc: '' });
-      const tabIndex = view.contentDOM.tabIndex;
-
-      editWrapper.findComponent(RcCodeMirror).vm.$emit('ready', view);
-
-      expect(view.contentDOM.tabIndex).toStrictEqual(tabIndex);
-    });
-
-    it('sets container tabindex to 0 for a read-only editor so it can be focused', () => {
-      const readOnlyWrapper = mountWithMode(_VIEW);
-
-      expect(readOnlyWrapper.vm.codeMirrorContainerTabIndex).toStrictEqual(0);
-    });
-
-    it('sets container tabindex to -1 for an unfocused editable editor', () => {
-      const editWrapper = mountWithMode(_EDIT);
-
-      expect(editWrapper.vm.codeMirrorContainerTabIndex).toStrictEqual(-1);
-    });
-
-    it('sets container tabindex to 0 for a focused editable editor', async() => {
-      const editWrapper = mountWithMode(_EDIT);
-
-      editWrapper.vm.onFocus();
-      await nextTick();
-
-      expect(editWrapper.vm.codeMirrorContainerTabIndex).toStrictEqual(0);
     });
   });
 });

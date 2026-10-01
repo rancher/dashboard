@@ -249,6 +249,24 @@ export default {
     },
   },
 
+  watch: {
+    // vue-select only refreshes the selected option on options change when the value is truthy,
+    // so a selected option with a falsy value ('', 0, false) would keep showing its old label.
+    // Refresh it once per options change rather than looking it up on every label render.
+    _options: {
+      handler() {
+        const select = this.$refs['select-input'];
+
+        if (!select?.isTrackingValues || select.modelValue || select.modelValue === undefined) {
+          return;
+        }
+
+        select.setInternalValueFromOptions(select.modelValue);
+      },
+      flush: 'post'
+    }
+  },
+
   methods: {
     clickSelect(event) {
       if (this.mode === _VIEW || this.loading === true || this.disabled === true) {

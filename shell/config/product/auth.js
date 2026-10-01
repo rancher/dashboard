@@ -6,6 +6,7 @@ import {
   RBAC_BUILTIN, RBAC_DEFAULT, STATE, NAME as HEADER_NAME, AGE, SIMPLE_NAME
 } from '@shell/config/table-headers';
 import { MULTI_CLUSTER } from '@shell/store/features';
+import { BLANK_CLUSTER } from '@shell/store/store-types';
 
 export const NAME = 'auth';
 
@@ -35,6 +36,14 @@ export function init(store) {
     showClusterSwitcher: false,
     category:            'configuration',
     extendable:          true,
+    to:                  {
+      name:   'c-cluster-product-resource',
+      params: {
+        cluster:  BLANK_CLUSTER,
+        product:  NAME,
+        resource: MANAGEMENT.USER,
+      }
+    },
   });
 
   virtualType({
@@ -57,7 +66,7 @@ export function init(store) {
     route:      {
       name:   'c-cluster-product-resource',
       params: {
-        cluster:  'local',
+        cluster:  BLANK_CLUSTER,
         product:  NAME,
         resource: MANAGEMENT.USER,
       }

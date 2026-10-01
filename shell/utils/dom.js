@@ -24,3 +24,10 @@ export const MODAL_CONTAINER_SELECTOR = '#modal-container-element';
 // is open exactly as they do for a dialog, and the flyout owns the few keys it acts on itself.
 export const SWITCHER_POPPER_CLASS = 'cluster-switcher-popper';
 export const SWITCHER_POPPER_SELECTOR = `.${ SWITCHER_POPPER_CLASS }`;
+
+// Focused elements that own the keyboard, so the shortcut plugin (installed with these as `prevent`) lets
+// their keys through instead of firing app shortcuts. CodeMirror 6 takes focus on a contenteditable
+// `.cm-content` rather than a textarea, and read-only editors mark it contenteditable="false" but keep it
+// focusable, so any contenteditable value counts. Without it Ctrl+K opens the nav search instead of
+// reaching the editor's Emacs kill-line.
+export const SHORTKEY_PREVENT_SELECTORS = ['input', 'textarea', 'select', '[contenteditable]'];
