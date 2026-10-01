@@ -215,6 +215,11 @@ export default class MgmtCluster extends SteveModel {
       return true;
     }
 
+    // hosted (e.g. EKS) cluster registered via the generic (Import any Kubernetes cluster) type
+    if (this.isGenericImportedHostedProvider) {
+      return true;
+    }
+
     // imported KEv2
     // we can't rely on this.provisioner to determine imported-ness for these clusters, as it will return 'aks' 'eks' 'gke' for both provisioned and imported clusters
     if (this.isHostedKubernetesProvider && !!this.provCluster?.providerConfig?.imported) {
@@ -287,6 +292,15 @@ export default class MgmtCluster extends SteveModel {
     };
 
     return isHostedProvider(context, this.provisioner);
+  }
+
+  /**
+   * Is this a hosted (e.g. EKS) cluster registered via the generic import type?
+   *
+   * Hosted clusters provisioned or registered via the hosted provider flow have a matching 'status.driver' (e.g. 'EKS'), generic imported ones have 'imported'
+   */
+  get isGenericImportedHostedProvider() {
+    return this.isHostedKubernetesProvider && this.status?.driver === 'imported';
   }
 
   get isPrivateHostedProvider() {
