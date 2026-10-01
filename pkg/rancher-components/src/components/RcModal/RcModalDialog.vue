@@ -47,16 +47,24 @@ const measureBody = () => {
 
 const bodyIsNamedRegion = computed(() => bodyScrolls.value && hasTitle.value);
 
-function initialFocus(): HTMLElement {
-  for (const region of [body.value, actions.value]) {
-    const first = region && getFirstFocusableElement(region);
+function firstControlIn(region: HTMLElement | null): HTMLElement | null {
+  const first = region && getFirstFocusableElement(region);
 
-    if (first && first !== document.body) {
-      return first;
-    }
+  return first && first !== document.body ? first : null;
+}
+
+function autofocusTarget(): HTMLElement | null {
+  const marked = dialog.value?.querySelector<HTMLElement>('[autofocus]');
+
+  if (!marked) {
+    return null;
   }
 
-  return (body.value || dialog.value) as HTMLElement;
+  return marked.tabIndex >= 0 || marked.hasAttribute('tabindex') ? marked : firstControlIn(marked);
+}
+
+function initialFocus(): HTMLElement {
+  return (autofocusTarget() || firstControlIn(body.value) || (bodyScrolls.value ? body.value : null) || firstControlIn(actions.value) || body.value || dialog.value) as HTMLElement;
 }
 
 let bodyResize: ResizeObserver | undefined;
