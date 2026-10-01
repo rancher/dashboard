@@ -251,12 +251,6 @@ export default defineComponent({
           :label="t('cluster.credential.harvester.storageOptions.io.nativeTip')"
         />
       </template>
-
-      <Banner
-        v-if="value.cache === 'none'"
-        color="warning"
-        :label="t('cluster.credential.harvester.storageOptions.cache.noneWarning')"
-      />
     </div>
   </div>
 </template>
