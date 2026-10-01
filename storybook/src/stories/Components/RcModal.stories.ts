@@ -147,6 +147,45 @@ export const WithSections: Story = {
 };
 
 /**
+ * The field marked `autofocus` takes the opening focus, rather than the first
+ * field in the body.
+ */
+export const Autofocus: Story = {
+  render: (args: any) => {
+    const [, updateArgs] = useArgs();
+
+    return {
+      components: {
+        RcModal, RcButton, LabeledInput
+      },
+      setup: () => ({
+        args,
+        ...showHandlers(updateArgs),
+        namespace: ref('my-namespace'),
+        name:      ref(''),
+      }),
+      template: `
+        <RcButton variant="primary" @click="openModal">Rename namespace</RcButton>
+        <RcModal v-bind="args" @close="closeModal" @primary-action="closeModal">
+          <LabeledInput v-model:value="namespace" label="Namespace" />
+          <LabeledInput v-model:value="name" label="New name" autofocus />
+          <template #actions="{ cancel, primaryAction }">
+            <RcButton variant="tertiary" size="large" @click="cancel">Cancel</RcButton>
+            <RcButton variant="primary" size="large" @click="primaryAction">Rename</RcButton>
+          </template>
+        </RcModal>
+      `,
+    };
+  },
+  args: {
+    show:         false,
+    title:        'Rename namespace',
+    size:         'small',
+    clickToClose: true,
+  },
+};
+
+/**
  * Content taller than the viewport scrolls, and the modal stays within the
  * viewport, less the 40px of breathing room around it.
  */

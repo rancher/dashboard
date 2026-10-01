@@ -634,11 +634,41 @@ describe('component: RcModal', () => {
       wrapper.unmount();
     });
 
-    it('should open focus on the footer when the body holds nothing to focus', async() => {
+    it('should open focus on the scrolling body ahead of the footer when the body holds nothing to focus', async() => {
       const wrapper = mountModal({ slots: { 'primary-action': '<button class="confirm">Delete</button>' } });
 
       setBodyOverflow(900, 300);
       await nextTick();
+
+      const opts = (createFocusTrap as jest.Mock).mock.calls[0][1];
+
+      expect(opts.initialFocus()).toStrictEqual(modalBody());
+
+      wrapper.unmount();
+    });
+
+    it('should open focus on the element marked autofocus ahead of the first control', () => {
+      const wrapper = mountModal({ slots: { default: '<input class="first"><input class="marked" autofocus>' } });
+
+      const opts = (createFocusTrap as jest.Mock).mock.calls[0][1];
+
+      expect(opts.initialFocus()).toStrictEqual(document.querySelector('.marked'));
+
+      wrapper.unmount();
+    });
+
+    it('should open focus on the first control inside an autofocus wrapper that cannot take focus itself', () => {
+      const wrapper = mountModal({ slots: { default: '<input class="first"><div autofocus><input class="inner"></div>' } });
+
+      const opts = (createFocusTrap as jest.Mock).mock.calls[0][1];
+
+      expect(opts.initialFocus()).toStrictEqual(document.querySelector('.inner'));
+
+      wrapper.unmount();
+    });
+
+    it('should open focus on the footer when the body fits and holds nothing to focus', () => {
+      const wrapper = mountModal({ slots: { 'primary-action': '<button class="confirm">Delete</button>' } });
 
       const opts = (createFocusTrap as jest.Mock).mock.calls[0][1];
 

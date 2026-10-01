@@ -105,15 +105,6 @@ keeps modals looking like each other.
 The size is the width of the modal, padding included, so two modals of the same
 size line up whatever they contain.
 
-The widths are in pixels rather than `rem` because a rem buys nothing here: the
-shell pins the root font size to 14px, so a rem is a fixed 14px and tracks
-nothing the user has set. Browser zoom, which is what actually scales a modal,
-scales pixels as it is.
-
-Three sizes is the whole of it. A layout that will not sit in any of them is a
-layout to take back to design, rather than a width to invent from the modal's
-own class.
-
 <Canvas of={RcModalStories.Confirmation} />
 
 ## Content sections
@@ -133,11 +124,28 @@ dialog is asking.
 
 While it is scrolling, the body is a tab stop, so the content is reachable with
 the arrow keys and not by mouse alone. It leaves the tab order again as soon as
-the content fits, so a short modal gains no empty stop. Opening focus is
-unaffected: it goes to the first control, and only to the body when the modal
-holds nothing else to focus.
+the content fits, so a short modal gains no empty stop. A modal opens on the
+first control in its body, so a form still opens on its first field. When the
+body holds no controls and scrolls, the modal opens on the body instead of the
+actions, so the content can be read before the buttons that answer it.
 
 <Canvas of={RcModalStories.TallContent} />
+
+## Opening on a particular element
+
+By default a modal opens on the first control in its body, then on a scrolling
+body, then on the actions. To open somewhere else, mark the element
+`autofocus`. On an element that can't take focus itself, such as a wrapper,
+focus goes to the first control inside it.
+
+```vue
+<RcModal :show="show" title="Rename namespace">
+  <LabeledInput v-model:value="namespace" label="Namespace" />
+  <LabeledInput v-model:value="name" label="New name" autofocus />
+</RcModal>
+```
+
+<Canvas of={RcModalStories.Autofocus} />
 
 ## Headings that need markup
 
@@ -155,6 +163,8 @@ still what names the dialog for assistive technology, via `aria-labelledby`.
 - Focus is trapped inside the modal while it is open and returned to whatever
   opened it when it closes. A modal holding nothing focusable takes focus on the
   dialog itself.
+- An element marked `autofocus` takes the opening focus, ahead of the default
+  order. See [Opening on a particular element](#opening-on-a-particular-element).
 - The trap holds until the modal is gone. `Esc` is handled by the modal rather
   than by the trap, so focus never leaves a modal that is still on screen.
 - `Esc` always emits `close`, whatever `click-to-close` says, so no modal is a
@@ -164,9 +174,8 @@ still what names the dialog for assistive technology, via `aria-labelledby`.
   same refusal already covers the cancel button.
 - A scrolling body is a tab stop, so content that only a mouse could reach is
   reachable by keyboard. It is announced as a region named by the modal's
-  heading, rather than by reading its whole content out as a label, and it does
-  not take the focus the modal opens with unless there is nothing else to take
-  it.
+  heading, rather than by reading its whole content out as a label. It takes
+  the opening focus only when it holds no controls of its own.
 
 ## Owning the show prop
 
