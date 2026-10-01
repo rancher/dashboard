@@ -7,6 +7,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { DEFAULT_FOCUS_TRAP_OPTS, getFirstFocusableElement, useBasicSetupFocusTrap } from '@shell/composables/focusTrap';
 import { generateRandomAlphaString } from '@shell/utils/string';
 import RcButton from '@components/RcButton/RcButton.vue';
+import { RcHeading } from '@components/RcHeading';
 import { widthFor, type RcModalProps } from './types';
 
 defineOptions({ inheritAttrs: false });
@@ -140,16 +141,17 @@ function onOverlayClick(event: MouseEvent) {
       @keydown="onKeydown"
     >
       <div class="content">
-        <h2
+        <RcHeading
           v-if="hasTitle"
           :id="titleId"
+          :size="3"
           class="title"
           data-testid="rc-modal-title"
         >
           <slot name="title">
             {{ title }}
           </slot>
-        </h2>
+        </RcHeading>
         <div
           ref="body"
           class="body"
@@ -236,10 +238,7 @@ $focus-ring-gutter: 4px;
   .title {
     flex-shrink: 0;
     margin: 0;
-    font-size: 18px;
-    font-weight: 600;
     line-height: 1.4;
-    color: var(--body-text);
   }
 
   .body {

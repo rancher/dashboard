@@ -39,6 +39,34 @@ const meta: Meta<typeof RcModal> = {
       control:     { type: 'boolean' },
       description: 'When false, clicking the background does not emit close. Esc closes either way, so the modal is never a keyboard trap.',
     },
+    open: {
+      description: 'Emitted when the modal appears.',
+      table:       { category: 'events' },
+    },
+    close: {
+      description: 'Emitted when the user asks to leave, by any route. Set `show` false to close the modal.',
+      table:       { category: 'events' },
+    },
+    cancel: {
+      description: 'Emitted when the user backs out with the cancel button, `Esc` or a background click. Always followed by `close`.',
+      table:       { category: 'events' },
+    },
+    'primary-action': {
+      description: 'Emitted when the confirming button is pressed. The modal stays open until you set `show` false.',
+      table:       { category: 'events' },
+    },
+    titleSlot: {
+      name:        'title',
+      description: 'The heading, for when it needs more than the string the `title` prop takes.',
+      control:     false,
+      table:       { category: 'slots' },
+    },
+    primaryActionSlot: {
+      name:        'primary-action',
+      description: 'Just the confirming button; the cancel button comes with it. Receives `close`, `cancel` and `primaryAction`.',
+      control:     false,
+      table:       { category: 'slots' },
+    },
   },
 };
 
