@@ -11,6 +11,7 @@ const DEFAULT_TLS_PORT = 636;
 
 export const SHIBBOLETH = 'shibboleth';
 export const OKTA = 'okta';
+export const ADFS = 'adfs';
 export const OPEN_LDAP = 'openldap';
 export const FREE_IPA = 'freeipa';
 
@@ -65,7 +66,7 @@ export default {
   computed: {
     // Does the auth provider support LDAP for search in addition to SAML?
     isSamlProvider() {
-      return this.type === SHIBBOLETH || this.type === OKTA;
+      return this.type === SHIBBOLETH || this.type === OKTA || this.type === ADFS;
     },
 
     // Allow to enable user search just for these providers
