@@ -5,6 +5,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import { STATE, NAME, NAMESPACE, AGE } from '@shell/config/table-headers';
+import { MANAGEMENT } from '@shell/config/types';
 import type { PaginationArgs } from '@shell/types/store/pagination.types';
 import WidgetCard from './WidgetCard.vue';
 import {
@@ -200,9 +201,21 @@ const {
   filtered: filtered.value,
 }));
 
+// A per-cluster type's rows all come from the widget's cluster, which no field on them names - so a
+// target naming that cluster, by id or by the name it is shown under, takes every one of them.
+const ownCluster = computed(() => {
+  if (!downstream.value || !cluster.value) {
+    return [];
+  }
+
+  const shown = store.getters['management/byId'](MANAGEMENT.CLUSTER, cluster.value)?.nameDisplay;
+
+  return [cluster.value, shown].filter(Boolean);
+});
+
 function inTargets(row: ResourceRow): boolean {
   const targets = props.widget.targets.map((t) => t.toLowerCase());
-  const candidates = [fieldValue(row, 'namespace'), row.clusterName, row.spec?.clusterName].filter(Boolean);
+  const candidates = [fieldValue(row, 'namespace'), row.clusterName, row.spec?.clusterName, ...ownCluster.value].filter(Boolean);
 
   return candidates.some((c) => targets.includes(`${ c }`.toLowerCase()));
 }
