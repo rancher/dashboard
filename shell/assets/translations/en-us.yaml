@@ -6898,6 +6898,38 @@ setup:
   welcome: Welcome to {vendor}!
   setup: Setup
 
+shareUsageData:
+  title: Share anonymous usage data?
+  description: "{vendor} can send anonymous usage statistics to SUSE to help prioritize features and fix issues in the community edition. Choose an option to continue — you can change this any time in Global Settings."
+  options:
+    ariaLabel: Usage data choice
+    share:
+      label: Share usage data
+      description: Anonymous metrics only. No names, secrets, or configuration contents.
+    dontShare:
+      label: Don't share
+      description: "{vendor} sends nothing. All features work exactly the same."
+  details:
+    title: What's collected, and what never is
+    collected:
+      title: Collected
+      featureUsage: Feature usage patterns
+      resourceCounts: Resource counts, never contents
+      crashTraces: Anonymized crash traces
+      performance: Performance timings
+    neverCollected:
+      title: Never collected
+      workloadNames: Workload names or labels
+      secrets: Secrets and credentials
+      personalInfo: Personal information
+      network: Network topology, images, config
+    transport: Sent over TLS to telemetry.suse.com, retained 24 months. Air-gapped installs send nothing.
+    privacyPrefix: Read the
+    privacyLink: SUSE Privacy Policy
+    newTab: (opens in a new tab)
+  required: Required to continue
+  confirm: Confirm and continue
+
 sortableTable:
   ariaLabel:
     firstPageBtn: First page of results

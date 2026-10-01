@@ -472,6 +472,7 @@ Cypress.Commands.add('userPreferences', (preferences: Partial<UserPreferences> =
             provisioner:         '',
             'read-whatsnew':     '',
             'seen-whatsnew':     '2.x.x',
+            'share-usage-data':  '"dont-share"',
             theme:               '',
             ...preferences,
           },
