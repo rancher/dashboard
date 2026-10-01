@@ -82,7 +82,7 @@ describe('component: RcModal', () => {
 
       expect(regions).toStrictEqual(['content', 'actions']);
 
-      const content = Array.from(dialog().querySelectorAll(':scope > .content > *')).map((el) => el.className);
+      const content = Array.from(dialog().querySelectorAll(':scope > .content > *')).map((el) => ['title', 'body'].find((region) => el.classList.contains(region)));
 
       expect(content).toStrictEqual(['title', 'body']);
       expect(dialog().querySelector('[data-testid="rc-modal-title"]')?.textContent?.trim()).toStrictEqual('Are you sure?');

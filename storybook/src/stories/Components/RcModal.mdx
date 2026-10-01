@@ -8,16 +8,6 @@ import * as RcModalStories from './RcModal.stories';
 `RcModal` is the standard modal. Use it for every new modal, and reach for
 `AppModal` directly only when you need a dialog with no chrome at all.
 
-It owns the behaviour modals already had - teleport into `#modals`, focus trap,
-`Esc` and click-outside close - and adds the layout that modals used to
-re-implement one by one: the heading, the body, the right-aligned actions, and
-the padding and spacing between them. `AppModal` is the older equivalent and
-will be replaced by `RcModal` in the shell.
-
-The first example starts open and the rest open on click. Each one covers the
-whole page, because a modal leaves its place in the markup for `#modals`: the
-container the shell renders once, at the end of the body.
-
 <Canvas of={RcModalStories.Default} />
 
 <Controls of={RcModalStories.Default} />
@@ -35,13 +25,10 @@ between. Everything about its content is a slot.
 | `primary-action` | Just the confirming button. The cancel button comes with it. |
 | `actions` | The whole footer, when the default pairing does not fit. |
 
-Give neither footer slot and no footer row is rendered. Buttons are
-right-aligned with 16px between them. The design system pairs `variant="primary"`
-for the action that proceeds with `variant="tertiary"` for cancel, at
-`size="large"`, which is what the supplied cancel button uses. A button put in
-either footer slot should match it: `size="large"` is the 40px button the spec
-asks for, and it is the height the rest of the shell's buttons already are, so
-anything smaller sits short beside the cancel button.
+Give neither footer slot and no footer row is rendered. Buttons in either
+footer slot should be `size="large"`, with `variant="primary"` for the action
+that proceeds and `variant="tertiary"` for cancel, to match the supplied cancel
+button.
 
 | Emitted | When |
 |---|---|
@@ -66,13 +53,8 @@ either raises the matching event and the consumer wires nothing up:
 </RcModal>
 ```
 
-`primary-action` says what happened; it does not take the modal down. That is
-still the consumer's call, so a confirm that fails validation or a request that
-errors leaves the modal where it is.
-
-The modal holds no state of its own, so emitting `close` does not take it down
-either. It stays open until the consumer sets `show` false, which is what lets a
-modal keep itself open while a form is still invalid or a request is in flight.
+Neither `close` nor `primary-action` takes the modal down. It stays open until
+you set `show` false. See [Owning the show prop](#owning-the-show-prop).
 
 Attributes that are not props land on the dialog element, so `class` and
 `data-testid` work as usual:
@@ -93,17 +75,13 @@ Attributes that are not props land on the dialog element, so `class` and
 
 ## Sizes
 
-There are three, and no arbitrary widths. Picking one of the three is what
-keeps modals looking like each other.
+Pick one of three widths with `size`.
 
 | Size | Width | Use for |
 |---|---|---|
 | `small` | 480px | Confirmations and single-field prompts. |
 | `medium` | 640px | The default. Short forms. |
 | `large` | 960px | Long forms, tables, side-by-side content. |
-
-The size is the width of the modal, padding included, so two modals of the same
-size line up whatever they contain.
 
 <Canvas of={RcModalStories.Confirmation} />
 
@@ -117,26 +95,16 @@ inside a modal.
 
 ## Tall content
 
-The modal never grows past the viewport, less the 40px of breathing room around
-it. Past that only the body scrolls: the title and the actions stay in view, so
-the primary action is never below the fold and the user can always see what the
-dialog is asking.
-
-While it is scrolling, the body is a tab stop, so the content is reachable with
-the arrow keys and not by mouse alone. It leaves the tab order again as soon as
-the content fits, so a short modal gains no empty stop. A modal opens on the
-first control in its body, so a form still opens on its first field. When the
-body holds no controls and scrolls, the modal opens on the body instead of the
-actions, so the content can be read before the buttons that answer it.
+Content taller than the viewport scrolls inside the body, and the title and
+actions stay in view. There is nothing to configure.
 
 <Canvas of={RcModalStories.TallContent} />
 
 ## Opening on a particular element
 
-By default a modal opens on the first control in its body, then on a scrolling
-body, then on the actions. To open somewhere else, mark the element
-`autofocus`. On an element that can't take focus itself, such as a wrapper,
-focus goes to the first control inside it.
+A modal opens on the first control in its body. To open somewhere else, mark
+the element `autofocus`. On a wrapper, focus goes to the first control inside
+it.
 
 ```vue
 <RcModal :show="show" title="Rename namespace">
@@ -149,33 +117,16 @@ focus goes to the first control inside it.
 
 ## Headings that need markup
 
-Use the `title` slot when the heading is more than a string. The heading is
-still what names the dialog for assistive technology, via `aria-labelledby`.
+Use the `title` slot when the heading is more than a string.
 
 <Canvas of={RcModalStories.RichTitle} />
 
 ## Accessibility
 
-- The dialog is `role="dialog"` with `aria-modal="true"`.
-- `RcModal` points `aria-labelledby` at its own heading, so the dialog is
-  announced by its title. Always give a modal a `title` or a `title` slot;
-  without one the dialog has no accessible name.
-- Focus is trapped inside the modal while it is open and returned to whatever
-  opened it when it closes. A modal holding nothing focusable takes focus on the
-  dialog itself.
-- An element marked `autofocus` takes the opening focus, ahead of the default
-  order. See [Opening on a particular element](#opening-on-a-particular-element).
-- The trap holds until the modal is gone. `Esc` is handled by the modal rather
-  than by the trap, so focus never leaves a modal that is still on screen.
-- `Esc` always emits `close`, whatever `click-to-close` says, so no modal is a
-  keyboard trap. A modal can be built from the `actions` slot with no cancel
-  button in it, and a keyboard user still needs a way out of that one. Refusing
-  the close stays the consumer's call, made in the `close` handler where the
-  same refusal already covers the cancel button.
-- A scrolling body is a tab stop, so content that only a mouse could reach is
-  reachable by keyboard. It is announced as a region named by the modal's
-  heading, rather than by reading its whole content out as a label. It takes
-  the opening focus only when it holds no controls of its own.
+- Always give a modal a `title` or a `title` slot. It names the dialog for
+  screen readers, and without one the dialog has no accessible name.
+- `Esc` closes the modal even when `click-to-close` is false. To keep a modal
+  open, refuse the close in your `close` handler.
 
 ## Owning the show prop
 
