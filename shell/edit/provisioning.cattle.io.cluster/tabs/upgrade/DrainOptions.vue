@@ -2,6 +2,7 @@
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
+import { Banner } from '@components/Banner';
 import { mapGetters } from 'vuex';
 
 const DEFAULTS = {
@@ -19,7 +20,7 @@ export default {
   emits: ['update:value'],
 
   components: {
-    RadioGroup, Checkbox, UnitInput
+    RadioGroup, Checkbox, UnitInput, Banner
   },
   props: {
     value: {
@@ -99,6 +100,11 @@ export default {
     />
 
     <template v-if="enabled">
+      <Banner
+        color="warning"
+        class="mt-20"
+        :label="t('cluster.rke2.drain.enabledWarning')"
+      />
       <div class="mt-20">
         <Checkbox
           v-model:value="deleteEmptyDirData"
