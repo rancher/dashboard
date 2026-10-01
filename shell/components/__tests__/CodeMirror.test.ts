@@ -156,6 +156,17 @@ describe('component: CodeMirror.vue', () => {
       ['Fold line', '%codeMirror.foldLine%'],
       ['Unfold line', '%codeMirror.unfoldLine%'],
       ['Press Escape, then Tab to leave the editor', '%codeMirror.leaveEditor%'],
+      ['Find', '%codeMirror.search.find%'],
+      ['next', '%codeMirror.search.next%'],
+      ['previous', '%codeMirror.search.previous%'],
+      ['all', '%codeMirror.search.all%'],
+      ['match case', '%codeMirror.search.matchCase%'],
+      ['regexp', '%codeMirror.search.regexp%'],
+      ['by word', '%codeMirror.search.byWord%'],
+      ['Replace', '%codeMirror.search.replaceField%'],
+      ['replace', '%codeMirror.search.replace%'],
+      ['replace all', '%codeMirror.search.replaceAll%'],
+      ['close', '%codeMirror.search.close%'],
     ])('should translate the RcCodeMirror phrase %p', (phrase, translation) => {
       const extensions = createWrapper().findComponent(RcCodeMirror).props('extensions') as Extension[];
       const state = EditorState.create({ extensions });

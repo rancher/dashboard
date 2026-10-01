@@ -26,9 +26,10 @@
  *
  * ARIA attributes (e.g. `aria-label`, `aria-labelledby`) and `tabindex` are
  * forwarded to the editor's textbox. Give every instance an accessible name.
- * In the editor variant, Tab and Shift-Tab change indentation with the default
- * and Emacs keymaps. Vim uses Tab for its jump list in Normal mode and inserts
- * a tab at the cursor in Insert mode. Press Escape then Tab to move focus out.
+ * In the editor variant, Tab indents at the cursor (or indents the selected
+ * lines) and Shift-Tab unindents with the default keymap and in Vim Insert mode.
+ * Emacs Tab reindents the line. In Vim Normal mode Tab moves through the jump
+ * list and Shift-Tab does nothing. Press Escape then Tab to move focus out.
  */
 import {
   ref, shallowRef, computed, onMounted, onBeforeUnmount, watch, useAttrs
@@ -246,9 +247,12 @@ function handleEditorKeydown(event: KeyboardEvent): void {
 }
 
 // Escape belongs to the editor (Vim uses it to leave Insert mode), so it must not also reach page
-// handlers such as a modal closing on Escape. This runs after CodeMirror has handled the key.
+// handlers such as a modal closing on Escape. This runs after CodeMirror has handled the key. Escape in the
+// search panel removes the panel before the event bubbles here, so check the path it was dispatched along.
 function stopEditorEscape(event: KeyboardEvent): void {
-  if (event.code === 'Escape' && event.target instanceof Node && view.value?.dom.contains(event.target)) {
+  const editor = view.value?.dom;
+
+  if (event.code === 'Escape' && editor && event.composedPath().includes(editor)) {
     event.stopPropagation();
   }
 }
@@ -471,6 +475,9 @@ defineExpose({ view });
   --rc-cm-gutter: #5B626C;
   --rc-cm-fold-hover: #E8ECF2;
   --rc-cm-active-line: rgba(0, 0, 0, 0.04);
+  --rc-cm-search-match: rgba(255, 213, 0, 0.4);
+  --rc-cm-search-match-selected: rgba(255, 140, 0, 0.5);
+  --rc-cm-color-scheme: light;
 
   display: block;
   height: 100%;
@@ -603,7 +610,8 @@ defineExpose({ view });
       inset: 0;
       border: 2px solid var(--primary-keyboard-focus);
       pointer-events: none;
-      z-index: 1;
+      // Above CodeMirror's panels (z-index 300), so the search panel does not cover the ring
+      z-index: 301;
     }
   }
 
@@ -657,5 +665,8 @@ defineExpose({ view });
   --rc-cm-gutter: #9AA1AC;
   --rc-cm-fold-hover: #3C4655;
   --rc-cm-active-line: rgba(255, 255, 255, 0.04);
+  --rc-cm-search-match: rgba(255, 213, 0, 0.25);
+  --rc-cm-search-match-selected: rgba(255, 140, 0, 0.45);
+  --rc-cm-color-scheme: dark;
 }
 </style>
