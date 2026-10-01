@@ -9,6 +9,7 @@ export interface SubTypeDetectionParams {
   value: {
     id?: string;
     isImported?: boolean;
+    isGenericImportedHostedProvider?: boolean;
     isLocal?: boolean;
     isRke2?: boolean;
     isCustom?: boolean;
@@ -27,7 +28,7 @@ export interface SubTypeDetectionParams {
  * Priority order:
  * 1. SUB_TYPE query parameter (explicit navigation)
  * 2. UI_CUSTOM_PROVIDER annotation with a matching loaded extension
- * 3. isImported → 'imported' (with provisioner-to-extension override for hosted providers)
+ * 3. isImported → 'imported' (with provisioner-to-extension override for hosted providers, unless registered via the generic import flow)
  * 4. isLocal → 'local'
  * 5. Auto-detect from RKE2/provisioner for existing clusters
  */
@@ -55,7 +56,9 @@ export function resolveSubType({
   // For imported clusters, check if the provisioner has a matching extension
   // component and override the subType so the correct custom form loads instead of
   // the generic imported configuration page.
-  if (subType === IMPORTED && value?.id && value.provisioner) {
+  // Hosted clusters registered via the generic import flow have a hosted provisioner (e.g. EKS) but
+  // no hosted provider config, so should use the generic imported configuration page.
+  if (subType === IMPORTED && value?.id && value.provisioner && !value.isGenericImportedHostedProvider) {
     const provisionerLower = value.provisioner.toLowerCase();
     const hasExtension = extensions.some((ext) => ext.id === provisionerLower);
 
