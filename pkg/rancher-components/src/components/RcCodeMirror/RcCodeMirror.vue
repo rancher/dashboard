@@ -61,6 +61,7 @@ import RcButton from '@components/RcButton/RcButton.vue';
 import { getLanguageExtension } from './extensions/syntax';
 import { getKeymapExtension } from './extensions/keymaps';
 import { buildFoldExtension } from './extensions/fold';
+import { bottomPanelsExtension } from './extensions/panels';
 import { rancherInputTheme, rancherTheme } from './extensions/theme';
 import type { RcCodeMirrorKeymap, RcCodeMirrorProps, RcCodeMirrorTheme, RcCodeMirrorVariant } from './types';
 
@@ -92,6 +93,7 @@ const emit = defineEmits<{
 
 const attrs = useAttrs();
 const container = ref<HTMLDivElement>();
+const bottomPanels = ref<HTMLDivElement>();
 const view = shallowRef<EditorView>();
 const isEditorFocused = ref(false);
 const ESCAPE_HINT = 'Press Escape, then Tab to leave the editor';
@@ -307,6 +309,7 @@ onMounted(() => {
       readOnlyCompartment.of(getReadOnlyExtension(props.readOnly ?? false)),
       contentAttributesCompartment.of(getContentAttributesExtension(editorAttributes())),
       updateListener,
+      ...(bottomPanels.value ? [bottomPanelsExtension(bottomPanels.value)] : []),
       ...(props.extensions ?? [])
     ]
   });
@@ -461,6 +464,10 @@ defineExpose({ view });
         aria-hidden="true"
       />
     </RcButton>
+    <!-- CodeMirror gives the panels' container the editor's theme classes, whose root styles would unstick it -->
+    <div class="rc-cm-bottom-panels">
+      <div ref="bottomPanels" />
+    </div>
   </div>
 </template>
 
@@ -480,7 +487,9 @@ defineExpose({ view });
   --rc-cm-search-match-selected: rgba(255, 140, 0, 0.5);
   --rc-cm-color-scheme: light;
 
-  display: block;
+  // A column, so the editor shrinks to make room for the bottom panels strip in a fixed height
+  display: flex;
+  flex-direction: column;
   height: 100%;
   box-sizing: border-box;
   position: relative;
@@ -554,6 +563,65 @@ defineExpose({ view });
 
   :deep(.cm-editor) {
     height: 100%;
+    min-height: 0;
+  }
+
+  // Holds CodeMirror's bottom panels, such as Vim's command line, above the editor (see extensions/panels.ts)
+  .rc-cm-bottom-panels {
+    position: sticky;
+    top: 0;
+    // Above the editor's panels and focus ring
+    z-index: 302;
+
+    // As tall as the Dashboard's side navigation toolbar, the "Jump to..." search, including its border, so their
+    // bottom borders line up when the strip sticks below the header
+    :deep(.cm-panels) {
+      position: static;
+      box-sizing: border-box;
+      height: 40px;
+      color: var(--rc-cm-text);
+      background-color: var(--rc-cm-bg);
+      border: none;
+      border-bottom: 1px solid var(--border, #DCDEE7);
+    }
+
+    :deep(.cm-vim-panel) {
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+      height: 100%;
+      min-height: 0;
+      padding: 0 8px;
+      font-size: 14px;
+
+      // Vim sets the prompt's font and its hint's color inline
+      span {
+        font-family: $mono-font !important;
+        align-items: center;
+      }
+
+      span + span {
+        color: var(--rc-cm-comment) !important;
+        font-family: inherit !important;
+      }
+
+      // The Dashboard's global styles make text inputs full width blocks with a border, which put the field on
+      // its own line below the prompt
+      input {
+        display: inline-block;
+        width: auto;
+        min-width: 0;
+        height: auto;
+        padding: 0 0 0 2px;
+        border: none;
+        border-radius: 0;
+        outline: none;
+        color: inherit;
+        caret-color: var(--rc-cm-key);
+        background-color: transparent;
+        font: inherit;
+      }
+    }
   }
 
   :deep(.cm-editor.cm-focused) {
