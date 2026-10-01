@@ -40,6 +40,8 @@ import { HCI as HCI_ANNOTATIONS, STORAGE } from '@shell/config/labels-annotation
 import { isEqual } from 'lodash';
 import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { RcSeparator } from '@components/RcSeparator';
+import DiskStorageOptions, { hasPerformanceOptions } from './DiskStorageOptions.vue';
+import VmStorageOptions from './VmStorageOptions.vue';
 
 const STORAGE_NETWORK = 'storage-network.settings.harvesterhci.io';
 const HARVESTER_CPU_MODEL = 'harvester-system/node-cpu-model-configuration';
@@ -87,7 +89,7 @@ export default {
   name: 'ConfigComponentHarvester',
 
   components: {
-    ArrayListSelect, Checkbox, draggable, Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity, PodAffinity, InfoBox, RcSeparator
+    ArrayListSelect, Checkbox, draggable, Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity, PodAffinity, InfoBox, RcSeparator, DiskStorageOptions, VmStorageOptions
   },
 
   mixins: [CreateEditView],
@@ -287,6 +289,7 @@ export default {
 
       this.getAvailableVGpuDevices();
       this.fetchHasHostDeviceInfo().then((supported) => supported && this.getAvailablePciDevices());
+      this.fetchHasStorageOptions();
 
       this.update();
     } catch (e) {
@@ -393,6 +396,7 @@ export default {
       hostDevices,
       hasHostDeviceInfo:  false,
       cpuModelConfigMap:  null,
+      hasStorageOptions:  false,
     };
   },
 
@@ -546,6 +550,10 @@ export default {
         label: this.vGpuOptionLabel(type),
         value: type
       }));
+    },
+
+    hasDedicatedIoThread() {
+      return this.disks.some((disk) => disk.dedicatedIOThread);
     },
 
     showVGpuAllocationInfo() {
@@ -813,7 +821,12 @@ export default {
         }
       });
 
-      if (this.isOldFormat && this.disks.length === 1 && this.interfaces.length === 1) {
+      if (this.value.ioThreadsPolicy === 'supplementalPool' && !(Number(this.value.ioThreadCount) >= 1)) {
+        errors.push(this.t('cluster.credential.harvester.vmStorageOptions.ioThreadCount.invalid'));
+      }
+
+      // The old format has no room for the storage options
+      if (this.isOldFormat && this.disks.length === 1 && this.interfaces.length === 1 && !hasPerformanceOptions(this.disks[0])) {
         // It should be converted back to the old format, otherwise the user does not modify any value, and the vm will be automatically recreated after saving
         delete this.value.diskInfo;
         delete this.value.networkInfo;
@@ -1150,6 +1163,27 @@ export default {
         this.value.networkInfo = JSON.stringify(networkInfo);
       } else {
         this.value.networkInfo = this.networksHistoric;
+      }
+    },
+
+    updateDisk(idx, disk) {
+      this.disks.splice(idx, 1, disk);
+      this.update();
+    },
+
+    /**
+     * The storage options only exist in the HarvesterConfig schema when Rancher ships a node driver that supports
+     * them. An older driver would silently ignore them, so they are only shown when the schema has them.
+     */
+    async fetchHasStorageOptions() {
+      try {
+        const schema = this.$store.getters['management/schemaFor'](HCI.HARVESTER_CONFIG);
+
+        await schema?.fetchResourceFields?.();
+
+        this.hasStorageOptions = !!this.$store.getters['management/pathExistsInSchema'](HCI.HARVESTER_CONFIG, 'ioThreadsPolicy');
+      } catch (e) {
+        this.hasStorageOptions = false;
       }
     },
 
@@ -1627,6 +1661,14 @@ export default {
                 </div>
               </div>
 
+              <DiskStorageOptions
+                v-if="hasStorageOptions"
+                :value="disk"
+                :mode="mode"
+                :disabled="disabled"
+                @update:value="updateDisk(i, $event)"
+              />
+
               <div class="bootOrder">
                 <div
                   class="mr-15"
@@ -1674,6 +1716,16 @@ export default {
           {{ t('cluster.credential.harvester.volume.addVMImage') }}
         </button>
       </div>
+
+      <VmStorageOptions
+        v-if="hasStorageOptions"
+        v-model:block-multi-queue="value.blockMultiQueue"
+        v-model:io-threads-policy="value.ioThreadsPolicy"
+        v-model:io-thread-count="value.ioThreadCount"
+        :has-dedicated-io-thread="hasDedicatedIoThread"
+        :mode="mode"
+        :disabled="disabled"
+      />
 
       <RcSeparator class="mt-10 mb-10" />
 
