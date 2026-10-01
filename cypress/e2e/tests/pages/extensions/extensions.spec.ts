@@ -6,6 +6,7 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import UiPluginsPagePo from '@/cypress/e2e/po/pages/explorer/uiplugins.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import { qase } from '@/cypress/support/qase';
 
 const namespaceFilter = new NamespaceFilterPo();
 const cluster = 'local';
@@ -25,7 +26,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     cy.login();
   });
 
-  it('should go to the available tab by default and preserve active tab on reload', () => {
+  qase(14839, it('should go to the available tab by default and preserve active tab on reload', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     // With no extensions installed, should default to "Available"
@@ -41,9 +42,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     cy.reload();
     extensionsPo.waitForPage(null, 'builtin');
     cy.setUserPreference({ 'plugin-developer': false });
-  });
+  }));
 
-  it('should show built-in extensions only when configured', () => {
+  qase(7277, it('should show built-in extensions only when configured', () => {
     const extensionsPo = new ExtensionsPagePo();
     const pluginVersion = '1.0.0';
 
@@ -94,9 +95,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionDetailsCloseClick();
 
     cy.setUserPreference({ 'plugin-developer': false });
-  });
+  }));
 
-  it('add repository', () => {
+  qase(3800, it('add repository', () => {
     // This should be in a `before` however is flaky. Move it to an `it` to let cypress retry
     const extensionsPo = new ExtensionsPagePo();
 
@@ -108,9 +109,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', GIT_REPO_NAME).then(() => {
       removeExtensions = true;
     });
-  });
+  }));
 
-  it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', { tags: '@prime' }, () => {
+  qase(5814, it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', { tags: '@prime' }, () => {
     cy.getRancherResource('v3', 'setting', 'display-add-extension-repos-banner', null).then((resp: Cypress.Response<any>) => {
       const notFound = resp.status === 404;
       const requiredValue = resp.body?.value === '';
@@ -149,9 +150,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     });
 
     extensionsPo.repoBanner().checkVisible();
-  });
+  }));
 
-  it('Should check the feature flag', () => {
+  qase(3554, it('Should check the feature flag', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -181,9 +182,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     cy.wait('@getFeatureFlag').then(() => {
       extensionsPo.extensionTabs.checkVisible();
     });
-  });
+  }));
 
-  it('using "Add Rancher Repositories" should add a new repository (Partners repo)', () => {
+  qase(1498, it('using "Add Rancher Repositories" should add a new repository (Partners repo)', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -209,9 +210,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     appRepoList.goTo(cluster, 'apps');
     appRepoList.waitForPage();
     appRepoList.sortableTable().rowElementWithName(UI_PLUGINS_PARTNERS_REPO_URL).should('exist');
-  });
+  }));
 
-  it('New repos banner should only appear once (after dismiss should NOT appear again)', () => {
+  qase(1494, it('New repos banner should only appear once (after dismiss should NOT appear again)', () => {
     cy.getRancherResource('v3', 'setting', 'display-add-extension-repos-banner', null).then((resp: Cypress.Response<any>) => {
       const notFound = resp.status === 404;
       const requiredValue = resp.body?.value === 'true';
@@ -262,9 +263,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForTitle();
     extensionsPo.loading().should('not.exist');
     extensionsPo.repoBanner().checkNotExists();
-  });
+  }));
 
-  it('Should toggle the extension details', () => {
+  qase(1495, it('Should toggle the extension details', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -293,9 +294,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // clicking outside the details tab should also close it
     extensionsPo.extensionDetailsBgClick();
     extensionsPo.extensionDetails().should('not.be.visible');
-  });
+  }));
 
-  it('Should install an extension', () => {
+  qase(1502, it('Should install an extension', () => {
     cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=install`).as('installExtension');
     const extensionsPo = new ExtensionsPagePo();
 
@@ -325,9 +326,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionCardClick(EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
     extensionsPo.extensionDetailsCloseClick();
-  });
+  }));
 
-  it('Should not display installed extensions within the available tab', () => {
+  qase(1497, it('Should not display installed extensions within the available tab', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -341,9 +342,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.waitForPage(null, 'available');
     cy.contains(`[data-testid="extension-card-${ EXTENSION_NAME }"]`).should('not.exist');
-  });
+  }));
 
-  it('Should upgrade an extension version', () => {
+  qase(14840, it('Should upgrade an extension version', () => {
     cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=upgrade`).as('upgradeExtension');
     const extensionsPo = new ExtensionsPagePo();
 
@@ -367,9 +368,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionTabInstalledClick();
     extensionsPo.waitForPage(null, 'installed');
     extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
-  });
+  }));
 
-  it('Should downgrade an extension version', () => {
+  qase(14841, it('Should downgrade an extension version', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -391,10 +392,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionTabInstalledClick();
     extensionsPo.waitForPage(null, 'installed');
     extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
-  });
+  }));
 
   // ui-plugin-operator updated cache disabled threshold to 30mb as per https://github.com/rancher/rancher/pull/47565
-  it('An extension larger than 30mb, which will trigger cacheState disabled, should install and work fine', () => {
+  qase(6584, it('An extension larger than 30mb, which will trigger cacheState disabled, should install and work fine', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -440,9 +441,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     uiPluginsPo.resourceTable().sortableTable().groupByButtons(1).click();
     uiPluginsPo.cacheState(DISABLED_CACHE_EXTENSION_NAME).should('contain.text', 'disabled');
-  });
+  }));
 
-  it('Should respect authentication when importing extension scripts', () => {
+  qase(3194, it('Should respect authentication when importing extension scripts', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -485,9 +486,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForTitle();
     extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
     extensionsPo.extensionScriptImport(EXTENSION_NAME).should('exist');
-  });
+  }));
 
-  it('Should uninstall extensions', () => {
+  qase(3195, it('Should uninstall extensions', () => {
     // Because we logged out in the previous test this one will also have to use an uncached login
     cy.login(undefined, undefined, false);
     const extensionsPo = new ExtensionsPagePo();
@@ -513,9 +514,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage(null, 'available');
     extensionsPo.extensionCardClick(EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
-  });
+  }));
 
-  it('Should uninstall unauthenticated extensions', () => {
+  qase(6585, it('Should uninstall unauthenticated extensions', () => {
     // Because we logged out in the previous test this one will also have to use an uncached login
     cy.login(undefined, undefined, false);
     const extensionsPo = new ExtensionsPagePo();
@@ -541,9 +542,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage(null, 'available');
     extensionsPo.extensionCardClick(UNAUTHENTICATED_EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', UNAUTHENTICATED_EXTENSION_NAME);
-  });
+  }));
 
-  it('Should uninstall un-cached extensions', () => {
+  qase(3931, it('Should uninstall un-cached extensions', () => {
     // Because we logged out in the previous test this one will also have to use an uncached login
     cy.login(undefined, undefined, false);
     const extensionsPo = new ExtensionsPagePo();
@@ -568,7 +569,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage(null, 'available');
     extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
-  });
+  }));
 
   after(() => {
     if ( removeExtensions ) {
