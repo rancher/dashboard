@@ -134,7 +134,7 @@ export default {
 
     <template #actions>
       <rc-button
-        variant="secondary"
+        variant="outline"
         size="large"
         :aria-label="t('generic.cancel')"
         @click="close"

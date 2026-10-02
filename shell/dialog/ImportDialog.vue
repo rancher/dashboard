@@ -145,7 +145,7 @@ export default {
             <div class="col span-6">
               <FileSelector
                 :aria-label="t('generic.readFromFileArea', { area: t('import.title') })"
-                variant="secondary"
+                variant="outline"
                 class="pull-left"
                 :label="t('generic.readFromFile')"
                 @selected="onFileSelected"
@@ -204,7 +204,7 @@ export default {
         <rc-button
           :aria-label="t('generic.close')"
           type="button"
-          variant="primary"
+          variant="solid"
           size="large"
           data-testid="import-yaml-close"
           @click="close"
@@ -220,7 +220,7 @@ export default {
         <rc-button
           :aria-label="t('generic.cancel')"
           type="button"
-          variant="secondary"
+          variant="outline"
           size="large"
           class="mr-10"
           data-testid="import-yaml-cancel"

@@ -171,7 +171,7 @@ export default {
       <div class="dialog-buttons">
         <rc-button
           :disabled="busy"
-          variant="secondary"
+          variant="outline"
           size="large"
           data-testid="uninstall-ext-modal-cancel-btn"
           @click="closeDialog(false)"

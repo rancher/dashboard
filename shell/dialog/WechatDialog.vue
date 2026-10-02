@@ -25,7 +25,7 @@ export default {
     <div class="qr-img" />
     <div>
       <rc-button
-        variant="primary"
+        variant="solid"
         size="large"
         tabindex="0"
         :aria-label="t('generic.close')"

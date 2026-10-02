@@ -141,7 +141,7 @@ export default {
     </template>
     <template #actions>
       <rc-button
-        variant="secondary"
+        variant="outline"
         size="large"
         @click="close"
       >
