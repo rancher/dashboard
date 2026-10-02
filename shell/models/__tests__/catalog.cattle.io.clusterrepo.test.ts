@@ -145,15 +145,40 @@ describe('clusterRepo', () => {
       'rancher-charts',
       'rancher-partner-charts',
     ])('returns true for a mirrored %p repo in an airgap environment', (name) => {
-      expect(build({ url: 'https://internal-mirror.example.com/charts' }, name, 'bundle').isRancherSource).toBe(true);
+      expect(build({ url: 'https://internal-mirror.example.com/charts' }, name, 'bundled').isRancherSource).toBe(true);
     });
 
     it('returns false for a mirrored repo with a non-rancher name in an airgap environment', () => {
-      expect(build({ url: 'https://internal-mirror.example.com/charts' }, 'my-charts', 'bundle').isRancherSource).toBe(false);
+      expect(build({ url: 'https://internal-mirror.example.com/charts' }, 'my-charts', 'bundled').isRancherSource).toBe(false);
+    });
+
+    it('returns false when the system-catalog setting is not exactly bundled', () => {
+      expect(build({ url: 'https://internal-mirror.example.com/charts' }, 'rancher-charts', 'bundle').isRancherSource).toBe(false);
     });
 
     it('returns false when the system-catalog setting is missing', () => {
       expect(build({ url: 'https://internal-mirror.example.com/charts' }, 'rancher-charts', undefined).isRancherSource).toBe(false);
+    });
+
+    describe('isAirgapMirror', () => {
+      it.each([
+        'rancher-charts',
+        'rancher-partner-charts',
+      ])('returns true for a mirrored %p repo in an airgap environment', (name) => {
+        expect(build({ url: 'https://internal-mirror.example.com/charts' }, name, 'bundled').isAirgapMirror).toBe(true);
+      });
+
+      it('returns false for a *.rancher.io url in an airgap environment', () => {
+        expect(build({ url: 'https://charts.rancher.io' }, 'rancher-charts', 'bundled').isAirgapMirror).toBe(false);
+      });
+
+      it('returns false for a mirrored repo in a connected environment', () => {
+        expect(build({ url: 'https://internal-mirror.example.com/charts' }, 'rancher-charts', 'external').isAirgapMirror).toBe(false);
+      });
+
+      it('returns false for a non-rancher name in an airgap environment', () => {
+        expect(build({ url: 'https://internal-mirror.example.com/charts' }, 'my-charts', 'bundled').isAirgapMirror).toBe(false);
+      });
     });
   });
 

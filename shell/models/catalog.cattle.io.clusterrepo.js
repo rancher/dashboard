@@ -118,13 +118,29 @@ export default class ClusterRepo extends SteveModel {
 
   /**
    * True when Rancher is running in an airgapped install, detected via the
-   * `system-catalog` setting which is `bundle` in airgap and `external` otherwise.
+   * `system-catalog` setting which is `bundled` in airgap and `external` otherwise.
    */
   get isAirgap() {
-    return this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.SYSTEM_CATALOG)?.value === 'bundle';
+    return this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.SYSTEM_CATALOG)?.value === 'bundled';
   }
 
   get isRancherSource() {
+    return this.isRancherHost || this.isAirgapMirror;
+  }
+
+  /**
+   * In airgap the repos are mirrored internally so their URLs no longer point
+   * at *.rancher.io. Fall back to the well-known repo names in that case only,
+   * so a third-party repo can't spoof a Rancher repo in a connected install.
+   *
+   * Anyone can create a repo with these names, so charts from it should also
+   * be checked for the matching certified annotation (see store/catalog).
+   */
+  get isAirgapMirror() {
+    return this.isAirgap && !this.isRancherHost && ['rancher-charts', 'rancher-partner-charts'].includes(this.metadata?.name);
+  }
+
+  get isRancherHost() {
     let parsed;
 
     if ( this.spec?.url && this.spec?.gitRepo ) {
@@ -144,13 +160,6 @@ export default class ClusterRepo extends SteveModel {
       if ( parsed && ok(parsed.host) ) {
         return true;
       }
-    }
-
-    // In airgap the repos are mirrored internally so their URLs no longer point
-    // at *.rancher.io. Fall back to the well-known repo names in that case only,
-    // so a third-party repo can't spoof a Rancher badge in a connected install.
-    if ( this.isAirgap && ['rancher-charts', 'rancher-partner-charts'].includes(this.metadata?.name) ) {
-      return true;
     }
 
     return false;

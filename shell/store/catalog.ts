@@ -628,10 +628,11 @@ function addChart(ctx: CatalogContext, map: Record<string, any>, chart: any, rep
 
   let certified = null;
   let sideLabel = null;
+  const certifiedForRepo = isCertifiedForRepo(repo, chart);
 
-  if ( repo.isRancher ) {
+  if ( repo.isRancher && certifiedForRepo ) {
     certified = CATALOG_ANNOTATIONS._RANCHER;
-  } else if ( repo.isPartner ) {
+  } else if ( repo.isPartner && certifiedForRepo ) {
     certified = CATALOG_ANNOTATIONS._PARTNER;
   } else {
     certified = CATALOG_ANNOTATIONS._OTHER;
@@ -923,7 +924,21 @@ export function filterAndArrangeCharts(charts: any[], {
  * Detects if a repository is a Rancher repository.
  */
 export function isRancherRepo(repo: any, chart: any) {
-  return !!(chart?.isRancherRepo || repo?.isRancherSource);
+  return !!(chart?.isRancherRepo || (repo?.isRancherSource && isCertifiedForRepo(repo, chart)));
+}
+
+/**
+ * Repos matched only by name in airgap could be any repo with that name, so the chart
+ * must also carry the matching certified annotation. Other repos need no extra check.
+ */
+function isCertifiedForRepo(repo: any, chart: any) {
+  if ( !repo?.isAirgapMirror ) {
+    return true;
+  }
+
+  const expected = repo.isRancher ? CATALOG_ANNOTATIONS._RANCHER : CATALOG_ANNOTATIONS._PARTNER;
+
+  return chart?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === expected;
 }
 
 /**
