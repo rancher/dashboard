@@ -67,7 +67,7 @@ export default {
     </template>
     <template #actions>
       <rc-button
-        variant="secondary"
+        variant="outline"
         size="large"
         @click="close"
       >
@@ -75,8 +75,8 @@ export default {
       </rc-button>
       <div class="spacer" />
       <rc-button
-        variant="primary"
-        severity="destructive"
+        variant="solid"
+        color="destructive"
         size="large"
         class="ml-10"
         :data-testid="componentTestid + '-confirm-button'"

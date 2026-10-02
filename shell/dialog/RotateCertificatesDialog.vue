@@ -169,7 +169,7 @@ export default {
     <template #actions>
       <div class="buttons">
         <rc-button
-          variant="secondary"
+          variant="outline"
           size="large"
           class="mr-20"
           @click="close"

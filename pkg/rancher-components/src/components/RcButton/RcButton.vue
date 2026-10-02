@@ -15,20 +15,28 @@ import {
   ButtonSizeNewProps,
   ButtonSize,
   ButtonVariant,
-  ButtonSeverityProps,
+  ButtonColorProps,
+  DeprecatedButtonVariant,
   IconProps,
   NavigationProps,
 } from './types';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 
 const buttonVariants: { variant: ButtonVariant, className: string }[] = [
-  { variant: 'primary', className: 'variant-primary' },
-  { variant: 'secondary', className: 'variant-secondary' },
+  { variant: 'solid', className: 'variant-primary' },
+  { variant: 'outline', className: 'variant-secondary' },
   { variant: 'tertiary', className: 'variant-tertiary' },
   { variant: 'link', className: 'variant-link' },
   { variant: 'multiAction', className: 'variant-multi-action' },
   { variant: 'ghost', className: 'variant-ghost' },
 ];
+
+const deprecatedVariants: Record<DeprecatedButtonVariant, ButtonVariant> = {
+  primary:   'solid',
+  secondary: 'outline',
+};
+
+const deprecatedVariantProps: (keyof ButtonVariantProps)[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'];
 
 const buttonSizes: { size: keyof ButtonSizeProps, className: string }[] = [
   { size: 'small', className: 'btn-sm' },
@@ -46,15 +54,16 @@ const props = withDefaults(
         ButtonSizeProps &
         ButtonVariantNewProps &
         ButtonSizeNewProps &
-        ButtonSeverityProps &
+        ButtonColorProps &
         IconProps &
         NavigationProps
     >(),
   {
-    size:     'medium',
-    severity: undefined,
-    to:       undefined,
-    href:     undefined,
+    size:    'medium',
+    variant: 'solid',
+    color:   'primary',
+    to:      undefined,
+    href:    undefined,
   }
 );
 
@@ -91,25 +100,40 @@ const linkProps = computed(() => {
   return {};
 });
 
+const resolvedVariant = computed<ButtonVariant>(() => {
+  const replacement = deprecatedVariants[props.variant as DeprecatedButtonVariant];
+
+  if (replacement) {
+    console.warn( // eslint-disable-line no-console
+      `[RcButton] variant="${ props.variant }" is deprecated and will be removed in a future version. ` +
+      `Please use variant="${ replacement }" with color="primary" instead.`
+    );
+
+    return replacement;
+  }
+
+  return props.variant as ButtonVariant;
+});
+
 const activeVariantClassName = computed(() => {
-  if (props.variant === 'multiAction' || props.multiAction) {
+  if (resolvedVariant.value === 'multiAction' || props.multiAction) {
     console.warn('[RcButton] The "multiAction" variant is deprecated and will be removed in a future version.'); // eslint-disable-line no-console
   }
 
-  const activeVariant = buttonVariants.find(({ variant }) => (props as Record<string, unknown>)[variant]);
+  const activeProp = deprecatedVariantProps.find((variant) => props[variant]);
 
-  if (activeVariant) {
+  if (activeProp) {
+    const replacement = deprecatedVariants[activeProp as DeprecatedButtonVariant] ?? activeProp;
+
     console.warn( // eslint-disable-line no-console
-      `[RcButton] The "${ activeVariant.variant }" prop is deprecated and will be removed in a future version. ` +
-      `Please use variant="${ activeVariant.variant }" instead.`
+      `[RcButton] The "${ activeProp }" prop is deprecated and will be removed in a future version. ` +
+      `Please use variant="${ replacement }" instead.`
     );
 
-    return activeVariant.className;
-  } else {
-    const variantConfig = buttonVariants.find(({ variant }) => variant === props.variant);
-
-    return variantConfig?.className || 'variant-primary';
+    return buttonVariants.find(({ variant }) => variant === replacement)?.className || 'variant-primary';
   }
+
+  return buttonVariants.find(({ variant }) => variant === resolvedVariant.value)?.className || 'variant-primary';
 });
 
 const activeSizeClassName = computed(() => {
@@ -133,11 +157,11 @@ const activeSizeClassName = computed(() => {
 
 const buttonClass = computed(() => {
   return {
-    'rc-button':                      true,
-    btn:                              true,
-    [activeVariantClassName.value]:   true,
-    [activeSizeClassName.value]:      !!activeSizeClassName.value,
-    [`severity-${ props.severity }`]: !!props.severity,
+    'rc-button':                    true,
+    btn:                            true,
+    [activeVariantClassName.value]: true,
+    [activeSizeClassName.value]:    !!activeSizeClassName.value,
+    [`color-${ props.color }`]:     !!props.color,
   };
 });
 
@@ -355,7 +379,7 @@ defineExpose({ focus });
     }
   }
 
-  &.variant-primary.severity-destructive {
+  &.variant-primary.color-destructive {
     background: var(--buttons-destructive);
     color: var(--buttons-on-destructive);
 

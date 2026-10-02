@@ -60,7 +60,7 @@ export default {
     <template #actions>
       <div class="buttons">
         <rc-button
-          variant="secondary"
+          variant="outline"
           size="large"
           class="mr-10"
           @click="close"
@@ -69,7 +69,7 @@ export default {
         </rc-button>
 
         <rc-button
-          variant="primary"
+          variant="solid"
           size="large"
           @click="apply"
         >

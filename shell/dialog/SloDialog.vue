@@ -67,7 +67,7 @@ export default {
     <template #actions>
       <div class="btn-block">
         <rc-button
-          variant="secondary"
+          variant="outline"
           size="large"
           @click="cancel()"
         >
@@ -75,7 +75,7 @@ export default {
         </rc-button>
         <div class="spacer" />
         <rc-button
-          variant="secondary"
+          variant="outline"
           size="large"
           @click="doLogout()"
         >
