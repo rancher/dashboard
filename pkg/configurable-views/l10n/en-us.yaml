@@ -212,9 +212,6 @@ configurableViews:
     homeClusterTable:
       name: Home cluster table
       desc: The Home’s own cluster table, exactly as it is
-    clusterList:
-      name: Cluster list
-      desc: Table of Cluster
     clusterHeader:
       name: Cluster header
       desc: Name, state, provider and version of a cluster

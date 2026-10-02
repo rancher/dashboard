@@ -131,20 +131,6 @@ export const READY_MADE: CatalogEntry[] = [
     spec:     { kind: WIDGET_CLUSTER_TABLE, title: '' },
   },
   {
-    id:       'cluster-list',
-    labelKey: 'configurableViews.catalog.clusterList.name',
-    descKey:  'configurableViews.catalog.clusterList.desc',
-    icon:     'table',
-    span:     8,
-    spec:     {
-      kind:     WIDGET_TABLE,
-      title:    'Clusters',
-      resource: CLUSTER,
-      columns:  ['state', 'name', 'provider', 'version', 'nodes', 'cpu'],
-      sortBy:   'name',
-    },
-  },
-  {
     id:       'cluster-header',
     labelKey: 'configurableViews.catalog.clusterHeader.name',
     descKey:  'configurableViews.catalog.clusterHeader.desc',
