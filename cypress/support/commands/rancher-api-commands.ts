@@ -33,7 +33,7 @@ Cypress.Commands.add('login', (
     const loginPage = new LoginPagePo();
 
     // Guard the shared login flow against the login page hanging on its loading spinner (see
-    // LoginPagePo.ensureFormReady - [CREATE ISSUE TO INVESTIGATE]). No-op on the happy path.
+    // LoginPagePo.ensureFormReady - rancher/dashboard#19320). No-op on the happy path.
     loginPage.ensureFormReady();
 
     // Match on the path, not the whole URL: the login page can carry query params such as

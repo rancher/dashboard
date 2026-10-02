@@ -309,12 +309,20 @@ export default class ExtensionsPagePo extends PagePo {
     // Wait for the tab to render before clicking it. The tabs load asynchronously,
     // and unlike the 'Available' tab this one had no guard, so it would flake when
     // the tab button hadn't rendered within the default retry window.
+    //
+    // The timeout on .contains() below only covers that query: allTabs() first looks up the tabs
+    // container with the default timeout, and fails there ("extension-tabs" never found) when the
+    // page is still mounting after a fresh load. Wait for the container itself first.
+    this.waitForTabs();
     this.extensionTabs.allTabs().contains('Installed', MEDIUM_TIMEOUT_OPT).should('be.visible');
 
     return this.extensionTabs.clickTabWithName('installed');
   }
 
   extensionTabAvailableClick(): Cypress.Chainable {
+    // As above: wait for the tabs container, which allTabs() would otherwise look up with the default
+    // timeout before the longer one on .contains() ever applies.
+    this.waitForTabs();
     this.extensionTabs.allTabs().contains('Available', MEDIUM_TIMEOUT_OPT).should('be.visible');
 
     return this.extensionTabs.clickTabWithName('available');
