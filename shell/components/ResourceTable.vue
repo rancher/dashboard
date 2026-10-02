@@ -10,7 +10,7 @@ import { findBy } from '@shell/utils/array';
 import { ExtensionPoint, TableColumnLocation, TableLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
-import { dateText, fieldValue, stringifyValue } from '@shell/utils/table-views/fields';
+import { dateText, fieldValue, monthLabel, stringifyValue } from '@shell/utils/table-views/fields';
 import ResourceTableViews, { TABLE_GROUPING_PREFIX } from '@shell/mixins/resource-table-views';
 import ResourceTableWatch from '@shell/mixins/resource-table-watch';
 import paginationUtils from '@shell/utils/pagination-utils';
@@ -608,6 +608,21 @@ export default {
     },
 
     /**
+     * What each group's tab reads for a toolbar grouping: a month by name rather than its key. The
+     * page's own `group-ref`, eg a machine's pool, labels its own groupings and none of the toolbar's
+     */
+    computedGroupRef() {
+      const field = this.viewGroupField;
+      const groupBy = this.computedGroupBy;
+
+      if (!field || typeof groupBy !== 'function') {
+        return this.$attrs.groupRef ?? this.$attrs['group-ref'] ?? null;
+      }
+
+      return field.byMonth ? (row) => monthLabel(groupBy(row)) : groupBy;
+    },
+
+    /**
      * The groupings this list brings beyond grouping by a column, offered in the toolbar's Group By.
      * None while the list says it can't be grouped, as the old buttons were hidden then. A plain
      * namespace option is left out: the namespace column already groups the same way
@@ -803,6 +818,7 @@ export default {
     :loading="loading || viewSwitching"
     :alt-loading="altLoading && !viewSwitching"
     :group-by="computedGroupBy"
+    :group-ref="computedGroupRef"
     :group-sort="viewGroupSort"
     :group="group"
     :group-options="_groupOptions"

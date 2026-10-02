@@ -396,4 +396,35 @@ describe('grouping a date by month', () => {
     expect(key({ metadata: { creationTimestamp: '2026-09-28T19:02:29Z' } })).toBe('2026-09');
     expect(key({ metadata: {} })).toBe('(none)');
   });
+
+  describe('the label on each group', () => {
+    const { computedGroupBy, computedGroupRef } = ResourceTable.computed as unknown as Record<string, (this: object) => unknown>;
+    const t = (k: string) => (k === 'tableViews.group.empty' ? '(none)' : k);
+    const labelFor = (viewGroupField: TableViewField | null, $attrs: Record<string, unknown> = {}) => {
+      const groupBy = computedGroupBy.call({ viewGroupField, t });
+
+      return computedGroupRef.call({
+        viewGroupField, computedGroupBy: groupBy, $attrs
+      });
+    };
+
+    it('should name a month rather than show its key', () => {
+      const label = labelFor(methods.groupFieldFor.call(ctx, `${ MONTH_GROUPING_PREFIX }age`)) as (row: object) => string;
+
+      expect(label({ metadata: { creationTimestamp: '2026-09-28T19:02:29Z' } })).toBe('September 2026');
+      expect(label({ metadata: {} })).toBe('(none)');
+    });
+
+    it('should keep the page\'s own label for the page\'s own groupings', () => {
+      expect(labelFor(null, { 'group-ref': 'pool' })).toBe('pool');
+      expect(labelFor(null)).toBeNull();
+    });
+
+    it('should not label a toolbar grouping with the page\'s own label', () => {
+      const label = labelFor(methods.groupFieldFor.call(ctx, 'name'), { 'group-ref': 'pool' }) as (row: object) => string;
+
+      expect(typeof label).toBe('function');
+      expect(label({ metadata: { name: 'web' } })).not.toBe('pool');
+    });
+  });
 });
