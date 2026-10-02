@@ -381,8 +381,9 @@ export default {
 
 
     /**
-     * Every column the type has, not just the page's. The page's headers keep their order; the
-     * type's others are added after the last data column
+     * The page's columns and the optional ones its type registers (see optionalHeadersFor). The
+     * page's keep their order; the others are added after the last data column, or before the one
+     * they name
      */
     availableHeaders() {
       const own = this._headers || [];
@@ -397,9 +398,7 @@ export default {
         known[headerFieldId(header)] = true;
       });
 
-      const fromType = this.headers ? this.$store.getters['type-map/headersFor'](this.schema, this.externalPaginationEnabled) : [];
-      const extra = fromType
-        .concat(optionalHeadersFor(this.schema.id, this.$store, this.externalPaginationEnabled))
+      const extra = optionalHeadersFor(this.schema.id, this.$store, this.externalPaginationEnabled)
         .filter((header) => {
           const id = headerFieldId(header);
 
