@@ -31,6 +31,8 @@ export type DropdownContext = {
   /** The pointer is over an item: a submenu's, or null for any other */
   hoverSubmenu: (submenu: DropdownSubmenu | null) => void;
   cancelSubmenuSwitch: () => void;
+  /** Set for the items of a submenu, where a submenu of their own isn't drawn: one level is supported */
+  inSubmenu?: boolean;
 }
 
 export const defaultContext: DropdownContext = {
@@ -47,6 +49,7 @@ export const defaultContext: DropdownContext = {
   openSubmenu:         () => null,
   hoverSubmenu:        () => null,
   cancelSubmenuSwitch: () => null,
+  inSubmenu:           false,
 };
 
 export type DropdownOption = {
