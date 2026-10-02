@@ -20,19 +20,19 @@ interface OptionalHeader {
 const OPTIONAL_HEADERS: Record<string, OptionalHeader[]> = {
   [MANAGEMENT.CLUSTER]: [
     {
-      header: MGMT_CLUSTER_CPU, paginationHeader: STEVE_MGMT_CLUSTER_CPU, before: 'summary'
+      header: MGMT_CLUSTER_CPU, paginationHeader: STEVE_MGMT_CLUSTER_CPU, before: 'machines'
     },
     {
-      header: MGMT_CLUSTER_MEMORY, paginationHeader: STEVE_MGMT_CLUSTER_MEMORY, before: 'summary'
+      header: MGMT_CLUSTER_MEMORY, paginationHeader: STEVE_MGMT_CLUSTER_MEMORY, before: 'machines'
     },
     {
-      header: MGMT_CLUSTER_PODS, paginationHeader: STEVE_MGMT_CLUSTER_PODS, before: 'summary'
+      header: MGMT_CLUSTER_PODS, paginationHeader: STEVE_MGMT_CLUSTER_PODS, before: 'machines'
     },
     {
       header:           AUTOSCALER_ENABLED,
       paginationHeader: STEVE_AUTOSCALER_ENABLED,
       enabled:          (store) => isAutoscalerFeatureFlagEnabled(store),
-      before:           'summary',
+      before:           'machines',
     },
   ],
 };
