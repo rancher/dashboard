@@ -12,6 +12,7 @@ import { FLEET } from '@shell/config/types';
 import { convert, matching, simplify } from '@shell/utils/selector';
 import throttle from 'lodash/throttle';
 import { allHash } from '@shell/utils/promise';
+import { fleetWorkspaceOptions, showFleetWorkspace } from '@shell/utils/fleet-workspace';
 
 export default {
   name: 'CruClusterGroup',
@@ -71,9 +72,19 @@ export default {
     };
   },
 
+  created() {
+    if (this.isEdit) {
+      showFleetWorkspace(this.$store, this.value.metadata?.namespace);
+    }
+
+    if (this.isCreate) {
+      this.registerAfterHook(() => showFleetWorkspace(this.$store, this.value.metadata?.namespace), 'showSavedWorkspace');
+    }
+  },
+
   computed: {
-    FLEET_WORKSPACE() {
-      return FLEET.WORKSPACE;
+    workspaceOptions() {
+      return fleetWorkspaceOptions(this.$store.state?.allWorkspaces, this.$store.state?.allNamespaces).map((opt) => opt.value);
     },
 
     clustersForWorkspace() {
@@ -134,7 +145,7 @@ export default {
     :mode="mode"
     :resource="value"
     :subtypes="[]"
-    :validation-passed="true"
+    :validation-passed="!!value.metadata.namespace"
     :errors="errors"
     @error="e=>errors = e"
     @finish="save"
@@ -144,9 +155,10 @@ export default {
       v-if="!isView"
       :value="value"
       :mode="mode"
-      :namespaced="false"
       namespace-label="nameNsDescription.workspace.label"
-      :namespace-type="FLEET_WORKSPACE"
+      namespace-placeholder="nameNsDescription.workspace.placeholder"
+      :namespace-options="workspaceOptions"
+      :namespace-create-allowed="false"
       @update:value="$emit('input', $event)"
     />
     <MatchExpressions

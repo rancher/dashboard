@@ -10,6 +10,7 @@ import { FLEET, SECRET, SERVICE_ACCOUNT } from '@shell/config/types';
 import { SECRET_TYPES } from '@shell/config/secret';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { set } from '@shell/utils/object';
+import { showFleetWorkspace } from '@shell/utils/fleet-workspace';
 
 // A policy can only usefully name a credential a GitRepo or HelmOp is able to pick, so each list
 // mirrors what the matching form offers: basic-auth and SSH for both, and for GitRepo also a
@@ -77,6 +78,14 @@ export default {
     // Defaults for a new policy come from the model, applied by ResourceDetail on create only.
     set(this.value, 'gitRepo', this.value.gitRepo || {});
     set(this.value, 'helmOp', this.value.helmOp || {});
+
+    if (this.isEdit) {
+      showFleetWorkspace(this.$store, this.namespace);
+    }
+
+    if (this.isCreate) {
+      this.registerAfterHook(() => showFleetWorkspace(this.$store, this.namespace), 'showSavedWorkspace');
+    }
   },
 
   computed: {
@@ -126,6 +135,7 @@ export default {
       ];
 
       return !!this.value.name &&
+        !!this.namespace &&
         this.gitRepoDefaultServiceAccountAllowed &&
         this.helmOpDefaultServiceAccountAllowed &&
         this.gitRepoDefaultSecretAllowed &&
@@ -202,6 +212,9 @@ export default {
         :value="value"
         :mode="mode"
         :namespace-options="workspaceOptions"
+        :namespace-create-allowed="false"
+        namespace-label="nameNsDescription.workspace.label"
+        namespace-placeholder="nameNsDescription.workspace.placeholder"
         name-label="fleet.policy.name.label"
         :no-bottom-margin="true"
         data-testid="fleet-policy-name-ns-description"
