@@ -4,6 +4,7 @@ import { createStore } from 'vuex';
 
 import { useSavedTableViews } from '@shell/composables/useSavedTableViews';
 import { TABLE_VIEWS } from '@shell/store/prefs';
+import { SAVED_VIEWS_VERSION, savedViewsByType } from '@shell/utils/table-views/views';
 import type { TableViewSaved } from '@shell/types/table-views';
 
 const view = (id: string, name = id): TableViewSaved => ({
@@ -14,6 +15,14 @@ const view = (id: string, name = id): TableViewSaved => ({
 const stored = (id: string, name = id) => ({
   id, name, labelColumns: []
 });
+
+/** A type's entry as written: its views, and the pages keeping their own */
+interface WrittenEntry {
+  views: TableViewSaved[];
+  defaultViewId?: string | null;
+  allIndex?: number;
+  pages: Record<string, WrittenEntry>;
+}
 
 function setup(stored: Record<string, unknown>, type = 'pod', page: string | null = null) {
   const setPref = jest.fn();
@@ -31,14 +40,47 @@ function setup(stored: Record<string, unknown>, type = 'pod', page: string | nul
     }
   }), { global: { plugins: [store] } });
 
-  const written = () => setPref.mock.calls[setPref.mock.calls.length - 1][0].value;
+  const writtenPref = () => setPref.mock.calls[setPref.mock.calls.length - 1][0].value;
+  /** What was written, inside the version it was written with */
+  const written = () => savedViewsByType<WrittenEntry>(writtenPref());
 
   return {
-    saved: saved!, setPref, written
+    saved: saved!, setPref, written, writtenPref
   };
 }
 
 describe('useSavedTableViews', () => {
+  describe('the version of the shape it is written in', () => {
+    it('should write the views with the version of their shape', () => {
+      const { saved, writtenPref } = setup({});
+
+      saved.persist([view('a')]);
+
+      expect(writtenPref()).toStrictEqual({ metadata: { version: SAVED_VIEWS_VERSION }, payload: { pod: { views: [stored('a')], allIndex: 0 } } });
+      expect(SAVED_VIEWS_VERSION).toBe(1);
+    });
+
+    it('should read views written with a version', () => {
+      const { saved } = setup({ metadata: { version: 1 }, payload: { pod: { views: [view('a')], defaultViewId: 'a' } } });
+
+      expect(saved.savedViews.value.map((v) => v.id)).toStrictEqual(['a']);
+      expect(saved.defaultViewId.value).toBe('a');
+    });
+
+    it('should read views written before there was a version, and write them with one', () => {
+      const { saved, writtenPref } = setup({ pod: { views: [view('a')] }, node: { views: [view('z')] } });
+
+      expect(saved.savedViews.value.map((v) => v.id)).toStrictEqual(['a']);
+
+      saved.persist([view('a'), view('b')]);
+
+      expect(writtenPref()).toStrictEqual({
+        metadata: { version: 1 },
+        payload:  { pod: { views: [stored('a'), stored('b')], allIndex: 0 }, node: { views: [view('z')] } },
+      });
+    });
+  });
+
   it('should read the views, the default and the table tab\'s place for its own type', () => {
     const { saved } = setup({
       pod: {

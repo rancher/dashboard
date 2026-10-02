@@ -18,7 +18,7 @@ import { TABLE_VIEWS } from '@shell/store/prefs';
 import { DEFAULT_MANDATORY_SORT } from '@shell/components/SortableTable/sorting';
 import { sortBy } from '@shell/utils/sort';
 import { uniq } from '@shell/utils/array';
-import { NO_GROUPING } from '@shell/utils/table-views/views';
+import { NO_GROUPING, savedViewsByType } from '@shell/utils/table-views/views';
 
 /** Most rows an "all matching" export will fetch - a limit on what the browser holds, not on the api */
 const EXPORT_ROW_LIMIT = 50000;
@@ -47,7 +47,7 @@ function savedViewsEntry(vm) {
 
   // An older Rancher running an extension built with this shell has no such preference, and its store throws
   try {
-    stored = vm.$store.getters['prefs/get'](TABLE_VIEWS)?.[vm.schema?.id];
+    stored = savedViewsByType(vm.$store.getters['prefs/get'](TABLE_VIEWS))[vm.schema?.id];
   } catch {
     return undefined;
   }
