@@ -1,0 +1,291 @@
+product:
+  configurable-views: Configurable Views
+configurableViews:
+  settings:
+    label: Settings
+    intro: Views are stored as labeled ConfigMaps and edited on each page — the Home and a cluster’s dashboard.
+    enabled: Configurable views enabled
+    enabledHint: When off, the Home and every cluster’s dashboard are Rancher’s own pages again. This page stays available so you can turn it back on.
+  views:
+    label: Configurable Views
+  toggle:
+    title: Configurable Views
+    turnedOn: Configurable views are on.
+    turnedOff: Configurable views are off — Rancher’s own pages are showing.
+    failed: Could not change the setting
+  pages:
+    home:
+      firstView: My Home
+    clusterDashboard:
+      firstView: My dashboard
+  bar:
+    viewName: View name
+    newView: New view
+    editing: Editing
+    notSaved: Not saved yet.
+    notSavedFrom: "From {source}. Not saved yet."
+    publishedHint: Changes are published to everyone.
+    personalHint: Changes are saved to your account only.
+    saveAsNew: Save as new view
+    save: Save
+    saving: Saving…
+    edit: Edit View
+    menuFor: "Actions for {name}"
+    tabsLabel: Views
+    moreActions: View actions
+    addView: New View
+    showEditor: Show the editor
+    hideEditor: Hide the editor
+    rename: Rename View
+    duplicate: Duplicate View
+    setDefault: Set as Default View
+    publish: Publish View
+    unpublish: Unpublish View
+    delete: Delete View
+    shared: Published to the organization
+    sharedCopy: Your copy of a view published to the organization
+    deleted: View deleted
+    deletedMessage: "“{name}” was deleted."
+    undo: Undo
+    toggle: Views bar
+    toggleLocked: The views bar stays open while you edit a view. Save or cancel to hide it.
+  page:
+    untitled: Untitled view
+    stockName: Stock Dashboard
+    copyOf: "Copy {name}"
+    copyName: "{name} copy"
+    orgTemplate: the organization template
+    discard:
+      title: Discard changes?
+      body: The changes to this view have not been saved. Leaving the editor discards them.
+      action: Discard
+    publish:
+      title: Publish to the organization?
+      body: "“{name}” becomes an organization template: everyone sees it on their {page}, and can fork their own copy of it."
+      action: Publish
+    unpublish:
+      title: Unpublish this view?
+      body: "“{name}” is published for the organization, so this removes it for everyone. Personal copies of it are kept."
+      action: Unpublish
+  sidebar:
+    title: Edit view
+    resize: Drawer width
+    closeEditor: Close the editor
+    tabs:
+      add: Add
+      layout: Layout
+      view: View
+    stockHint: This view is Rancher’s own page. It has no grid, so there is nothing to add to it or lay out — make a new view to build one of your own.
+    newView: New view
+    newViewFrom: "New view, started from {source}"
+    newHint: "Name it in the header. Drag widgets in, or change the starting point:"
+    startEmpty: Start empty instead
+    startStock: Rancher’s {page}
+    newFootnote: Nothing is saved until you press Save. Cancel throws the new view away.
+    search: Search components
+    dragHint: Drag onto the grid. Building blocks ask what to show once placed; ready-made widgets come with their data set.
+    blocks: Building blocks
+    blocksHint: Any resource, including your own CRDs.
+    noBlocks: "No building block matches “{query}”."
+    readyMade: Ready-made
+    readyMadeHint: Building blocks with their data already set. Save your own from any widget.
+    noReadyMade: "No ready-made widget matches “{query}”."
+    selected: "Selected: {title} ({block})"
+    layoutHint: Click a widget on the grid to lay it out. Width, height and spacing are per widget; the grid gap is the same for the whole view.
+    width: Width
+    height: Height
+    spacing: Spacing
+    viewHint: These apply to the whole view — every widget on it.
+    name: Name
+    gap: Grid gap
+    gapLabel: Grid gap in pixels
+    gapHint: pixels between widgets
+    pagePadding: Page padding
+    pagePaddingLabel: Page padding in pixels
+    pagePaddingHint: pixels around the whole grid
+    thisView: This view
+    isDefault: This is my default view
+    setDefault: Set as my default
+    publish: Publish as organization template
+    delete: Delete view
+  presets:
+    width:
+      third: 1/3
+      half: 1/2
+      twoThirds: 2/3
+      full: Full
+    height:
+      fit: Fit content
+      rows2: 2 rows
+      rows3: 3 rows
+    spacing:
+      compact: Compact
+      default: Default
+      spacious: Spacious
+  grid:
+    dropToAdd: "Drop here to add a {name}"
+    dropHere: Drop a component here
+    dropInTab: Drop a component into this tab
+  widget:
+    dragToMove: Drag to move
+    settings: What this widget shows
+    remove: Remove from view
+    resize: Drag to resize by columns
+    resizeStart: Drag to move the left edge by columns
+    resizeHeight: Drag to set the height, double-click to fit the content
+    dragTile: "Drag {name} onto the grid, or click to add it"
+    unknown: "There is no “{kind}” building block."
+    nothingToShow: Nothing to show.
+    noCapacity: This cluster reports no capacity yet.
+    noCluster: Choose a cluster in this widget’s settings — it follows the page’s cluster, and this page has none.
+    noMonitoring: "{what} come from Rancher’s monitoring, which this cluster does not have."
+    noExtensionCards: No extension adds a card to this cluster’s dashboard.
+    noType: "Rancher has no “{type}” here — the type may not be installed, or you may not have permission to see it."
+    tableTruncated: This cluster has more rows than a filtered widget reads at once, so the filter was applied to the first of them. Narrow the filter, or drop it to page through all of them.
+    certsTruncated: This cluster has more certificates than are read at once, so the list is ordered over the first of them.
+    tabs:
+      label: Tabs
+      empty: Nothing in this tab yet.
+      count: "{count, plural, =1 {1 widget in this tab} other {# widgets in this tab}}"
+  errors:
+    alerts: "Could not read the alerts of cluster “{cluster}”."
+    capacity: "Could not read the capacity of cluster “{cluster}”."
+    certificates: "Could not read the certificates of cluster “{cluster}”."
+    cluster: "Could not read the cluster “{cluster}”."
+    componentStatus: "Could not read the component status of cluster “{cluster}”."
+    counts: "Could not read the counts of cluster “{cluster}”."
+    workloads: "Could not read the workloads of cluster “{cluster}”."
+    resource: "Could not read {resource} from cluster “{cluster}”."
+  widgetSettings:
+    label: Widget settings
+    heading: "{title}: what this {what} shows"
+    headingPlural: "{title}: what this widget shows"
+    title: Title
+    clusterTableHint: This is the Home’s own cluster table — its columns, sorting and buttons come with it.
+    resource: Resource
+    resourceHint: Any kind Rancher knows, including your own CRDs.
+    where: Where
+    whereView: Same as the view (all clusters I can see)
+    whereCustom: Only these clusters or namespaces
+    filter: Filter
+    filterHint: Labels or fields, such as env=prod or state != Active.
+    cluster: Cluster
+    pageCluster: This page’s cluster
+    clusterHint: One cluster per widget. “This page’s cluster” shows whichever cluster’s dashboard it is placed on — the Home has none, so pick one here.
+    columns: Columns
+    columnsHint: Columns appear in this order. Untick one to drop it from the table.
+    sortBy: Sort by
+    sortNothing: Nothing
+    ascending: Ascending
+    descending: Descending
+    show: Show
+    linksHome: Rancher’s own links, as the Home shows them
+    linksCustom: My own list
+    linksHomeHint: Rancher’s list follows the ui-custom-links setting, so it stays in step with the Home.
+    links: Links
+    linksHint: "One per line: the label, then the URL."
+    subtitle: Subtitle
+    image: Background image
+    imagePlaceholder: Leave empty for the Rancher banner
+    dashboard: Dashboard
+    dashboardHint: One of the Grafana dashboards the cluster dashboard shows when the cluster has Rancher’s monitoring.
+    tabs: Tabs
+    tabName: "Name of tab {index}"
+    newTab: "Tab {index}"
+    moveLeft: Move left
+    moveRight: Move right
+    removeTab: Remove this tab
+    removeTabWith: "{count, plural, =1 {Remove this tab and the 1 widget in it} other {Remove this tab and the # widgets in it}}"
+    addTab: Add tab
+    tabsHint: "Put widgets in a tab on the view itself: drag them into it while editing. Removing a tab removes what is in it."
+    remove: Remove from view
+  catalog:
+    table:
+      name: Table
+      desc: Rows of a resource with the columns you pick
+    links:
+      name: Links
+      desc: Your own list of links
+    tabs:
+      name: Tabs
+      desc: Tabs, each holding widgets of its own
+    homeClusterTable:
+      name: Home cluster table
+      desc: The Home’s own cluster table, exactly as it is
+    clusterHeader:
+      name: Cluster header
+      desc: Name, state, provider and version of a cluster
+    resourceCards:
+      name: Resource cards
+      desc: A cluster’s total resources, nodes and deployments
+    capacity:
+      name: Capacity
+      desc: A cluster’s pods, CPU and memory, reserved against what it has
+    componentStatus:
+      name: Component status
+      desc: A cluster’s etcd, scheduler, controller manager and Rancher and Fleet agents
+    workloadOverview:
+      name: Workload overview
+      desc: A cluster’s workloads by state, by type and by namespace
+    events:
+      name: Events
+      desc: A cluster’s events, newest first
+    certificates:
+      name: Certificates
+      desc: A cluster’s TLS certificates, soonest to expire first
+    alerts:
+      name: Alerts
+      desc: A cluster’s firing alerts, from its monitoring
+    clusterMetrics:
+      name: Cluster metrics
+      desc: A cluster’s Grafana dashboard, from its monitoring
+    k8sMetrics:
+      name: Kubernetes component metrics
+      desc: A cluster’s API server, controller manager and scheduler in Grafana
+    etcdMetrics:
+      name: etcd metrics
+      desc: A cluster’s etcd in Grafana, with its leader and proposals
+    extensionCards:
+      name: Extension cards
+      desc: The cards extensions add to the cluster dashboard
+    welcomeBanner:
+      name: Welcome banner
+      desc: The Rancher banner across the top
+    communityLinks:
+      name: Community links
+      desc: Rancher’s own Docs / Forums / Slack list
+  fields:
+    state: State
+    name: Name
+    provider: Provider
+    version: K8s version
+    nodes: Nodes
+    cpu: CPU
+    memory: Memory
+    pods: Pods
+    created: Created
+    namespace: Namespace
+    type: Type
+    message: Message
+  savedViews:
+    title: Configurable Views
+    intro: Each configurable page has one or more <b>views</b> — the tabs in its bar — and each view has its <b>widgets</b>. Here is everything saved for each page, in the <code>templating-home</code> config. Edit views on the page itself, or by hand with <b>Edit YAML</b>.
+    open: "Open the {page}"
+    openCluster: Open any cluster to edit its dashboard’s views.
+    editYaml: Edit YAML
+    editing: Editing
+    saved: Saved.
+    invalidYaml: Invalid YAML
+    none: "No views are saved for the {page} yet — it shows Rancher’s own page. Open it and choose <b>Edit</b> to build one."
+    organization: Organization (everyone)
+    yours: Yours
+    count: "{count, plural, =1 {1 view} other {# views}}"
+    default: default
+    stock: stock
+    stockHint: "Rancher’s own {page}, shown as a tab. Nothing to configure."
+    noWidgets: No widgets yet.
+    columns:
+      widget: Widget
+      kind: Kind
+      width: Width
+      padding: Padding
