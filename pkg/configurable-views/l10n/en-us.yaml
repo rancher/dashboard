@@ -51,6 +51,7 @@ configurableViews:
     toggleLocked: The views bar stays open while you edit a view. Save or cancel to hide it.
   page:
     untitled: Untitled view
+    stockName: Stock Dashboard
     copyOf: "Copy {name}"
     copyName: "{name} copy"
     orgTemplate: the organization template
@@ -94,16 +95,6 @@ configurableViews:
     width: Width
     height: Height
     spacing: Spacing
-    advanced: Advanced
-    advancedHint: Exact values in pixels. Overrides the Spacing preset for this component only.
-    margin: Margin
-    padding: Padding
-    sides:
-      top: Top
-      right: Right
-      bottom: Bottom
-      left: Left
-    columnSpan: Column span
     viewHint: These apply to the whole view — every widget on it.
     name: Name
     gap: Grid gap

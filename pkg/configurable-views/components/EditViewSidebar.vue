@@ -9,19 +9,19 @@ import {
   BUILDING_BLOCKS, READY_MADE, searchCatalog, blockLabelKey, type CatalogEntry
 } from '../templating/widget-catalog';
 import {
-  WIDTH_PRESETS, HEIGHT_PRESETS, SPACING_PRESETS, COLUMN_SPANS,
+  WIDTH_PRESETS, HEIGHT_PRESETS, SPACING_PRESETS,
   DEFAULT_GAP, DEFAULT_PAGE_PADDING, widthPresetOf, heightPresetOf, spacingPresetOf
 } from '../templating/view-model';
-import type { View, Sides, WidgetNode } from '../templating/types';
+import type { View, WidgetNode } from '../templating/types';
 
 // The "Edit view" drawer. Three tabs, and the split between them is the point:
 //
 //   ADD     what goes on the grid — building blocks (a shape, you say what it shows) and
 //           ready-made widgets (the same shapes with their data already chosen).
-//   LAYOUT  how the SELECTED widget sits — width, height, spacing, and exact pixels under Advanced.
+//   LAYOUT  how the SELECTED widget sits — width, height and spacing.
 //   VIEW   what is true of the WHOLE view — its name, its gap, whether it is your default.
 //
-// Everything is emitted; the drawer holds only its own tab, search box and Advanced toggle.
+// Everything is emitted; the drawer holds only its own tab and search box.
 
 /** A view a new one can start as a copy of. */
 export interface StartingPoint {
@@ -37,8 +37,6 @@ type SidebarEmits = {
   'set-width': [span: number];
   'set-height': [preset: string];
   'set-spacing': [preset: string];
-  'set-box': [box: 'margin' | 'padding', side: keyof Sides, value: string];
-  'set-col-span': [span: number];
   'set-gap': [value: string];
   'set-page-padding': [value: string];
   'set-name': [name: string];
@@ -166,13 +164,10 @@ const PANEL_ID = 'configurable-views-editor-panel';
 
 const tab = ref('add');
 const search = ref('');
-const advancedOpen = ref(false);
 
 const widths = WIDTH_PRESETS;
 const heights = HEIGHT_PRESETS;
 const spacings = SPACING_PRESETS;
-const columnSpans = COLUMN_SPANS;
-const sides: (keyof Sides)[] = ['top', 'right', 'bottom', 'left'];
 
 // Searched as it reads: the translated name and description.
 const tileText = (entry: CatalogEntry) => `${ t(entry.labelKey) } ${ t(entry.descKey) }`;
@@ -199,14 +194,6 @@ const selectedLabel = computed(() => {
 const widthPreset = computed(() => (props.selected ? widthPresetOf(props.selected.colSpan) : null));
 const heightPreset = computed(() => (props.selected ? heightPresetOf(props.selected.height, gap.value) : null));
 const spacingPreset = computed(() => (props.selected ? spacingPresetOf(props.selected.padding) : null));
-
-function toggleAdvanced(): void {
-  advancedOpen.value = !advancedOpen.value;
-}
-
-function sideLabel(side: keyof Sides): string {
-  return t(`configurableViews.sidebar.sides.${ side }`);
-}
 
 /** What an input or select holds, from its event. */
 function valueOf(ev: Event): string {
@@ -441,81 +428,6 @@ function valueOf(ev: Event): string {
               </button>
             </div>
           </div>
-
-          <button
-            class="evs__advanced"
-            :aria-expanded="advancedOpen ? 'true' : 'false'"
-            @click="toggleAdvanced"
-          >
-            <i
-              class="icon"
-              :class="advancedOpen ? 'icon-chevron-down' : 'icon-chevron-right'"
-            />
-            {{ t('configurableViews.sidebar.advanced') }}
-          </button>
-
-          <template v-if="advancedOpen">
-            <p class="evs__hint">
-              {{ t('configurableViews.sidebar.advancedHint') }}
-            </p>
-
-            <div class="evs__control">
-              <h4 class="evs__label evs__label--margin">
-                {{ t('configurableViews.sidebar.margin') }}
-              </h4>
-              <div class="evs__sides">
-                <label
-                  v-for="side in sides"
-                  :key="`m-${ side }`"
-                >
-                  <input
-                    class="evs__field evs__field--num"
-                    type="number"
-                    :value="selected.margin[side]"
-                    @change="$emit('set-box', 'margin', side, valueOf($event))"
-                  >
-                  <span>{{ sideLabel(side) }}</span>
-                </label>
-              </div>
-            </div>
-
-            <div class="evs__control">
-              <h4 class="evs__label evs__label--padding">
-                {{ t('configurableViews.sidebar.padding') }}
-              </h4>
-              <div class="evs__sides">
-                <label
-                  v-for="side in sides"
-                  :key="`p-${ side }`"
-                >
-                  <input
-                    class="evs__field evs__field--num"
-                    type="number"
-                    :value="selected.padding[side]"
-                    @change="$emit('set-box', 'padding', side, valueOf($event))"
-                  >
-                  <span>{{ sideLabel(side) }}</span>
-                </label>
-              </div>
-            </div>
-
-            <div class="evs__control">
-              <h4 class="evs__label">
-                {{ t('configurableViews.sidebar.columnSpan') }}
-              </h4>
-              <div class="evs__seg">
-                <button
-                  v-for="span in columnSpans"
-                  :key="span"
-                  class="evs__pill evs__pill--narrow"
-                  :class="{ 'evs__pill--on': selected.colSpan === span }"
-                  @click="$emit('set-col-span', span)"
-                >
-                  {{ span }}
-                </button>
-              </div>
-            </div>
-          </template>
         </template>
       </template>
 
@@ -726,29 +638,6 @@ function valueOf(ev: Event): string {
     font-weight:   700;
     line-height:   14px;
     margin:        0 0 6px;
-
-    // Colour-keyed to the bands drawn on the canvas: amber = margin, teal = padding.
-    &--margin,
-    &--padding {
-      align-items: center;
-      display:     flex;
-      gap:         6px;
-
-      &::before {
-        border-radius: 2px;
-        content:       '';
-        height:        9px;
-        width:         9px;
-      }
-    }
-
-    &--margin::before {
-      background: rgba(247, 181, 0, 0.9);
-    }
-
-    &--padding::before {
-      background: rgba(0, 170, 90, 0.9);
-    }
   }
 
   &__selected {
@@ -824,52 +713,6 @@ function valueOf(ev: Event): string {
     &--on {
       background: var(--primary);
       color:      var(--primary-text);
-    }
-
-    &--narrow {
-      min-width: 24px;
-    }
-  }
-
-  // Advanced opens a further set of controls, so it is separated by a rule and titled like the
-  // Add tab's section headings.
-  &__advanced {
-    align-items:  center;
-    background:   transparent;
-    border:       none;
-    border-top:   1px solid var(--border);
-    color:        var(--body-text);
-    cursor:       pointer;
-    display:      flex;
-    font-size:    13px;
-    font-weight:  700;
-    gap:          8px;
-    line-height:  16px;
-    min-height:   0;
-    padding:      12px 0 0;
-    width:        100%;
-
-    i {
-      font-size: 16px;
-    }
-  }
-
-  &__sides {
-    display:               grid;
-    gap:                   8px;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-
-    label {
-      display:        flex;
-      flex-direction: column;
-      gap:            3px;
-    }
-
-    span {
-      color:       var(--muted);
-      font-size:   12px;
-      line-height: 12px;
-      text-align:  center;
     }
   }
 

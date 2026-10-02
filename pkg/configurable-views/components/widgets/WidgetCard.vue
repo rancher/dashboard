@@ -109,6 +109,10 @@ const { t } = useI18n(store);
   }
 
   &__body {
+    // Clips painting as well as layout: the "Ask Liz" extension lays a `position: fixed` copy over
+    // each state badge, which `overflow` alone does not clip, so the copies of rows scrolled out of
+    // the card were drawn below it.
+    clip-path:  inset(0);
     flex:       1 1 auto;
     font-size:  14px;
     min-height: 0;

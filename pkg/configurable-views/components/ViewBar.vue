@@ -54,8 +54,6 @@ type BarEmits = {
 };
 
 const props = withDefaults(defineProps<{
-  /** The page's name, at the start of the bar: "Home", "Cluster Dashboard". */
-  title?: string;
   /** In the bar's order - see orderViews. */
   views?: View[];
   activeId?: string | null;
@@ -73,7 +71,6 @@ const props = withDefaults(defineProps<{
   /** Whether the editor's drawer is open, while editing. */
   drawerOpen?: boolean;
 }>(), {
-  title:        'Home',
   views:        () => [],
   activeId:     '',
   editing:      false,
@@ -477,10 +474,6 @@ defineExpose({ openRename, focusTab });
     class="vbar"
     :class="{ 'vbar--editing': editing }"
   >
-    <h1 class="vbar__home">
-      {{ title }}
-    </h1>
-
     <!-- The views. While editing, the one being edited is renamed in place and the rest go quiet:
        you cannot switch away mid-edit without deciding what to do with your changes. -->
     <div
@@ -490,7 +483,7 @@ defineExpose({ openRename, focusTab });
       <TransitionGroup
         tag="div"
         name="vbar-slot"
-        class="vbar__list"
+        class="vbar__list btn-group"
         :class="{ 'is-reordering': heldTabKey !== null }"
         role="tablist"
         :aria-label="t('configurableViews.bar.tabsLabel')"
@@ -536,9 +529,10 @@ defineExpose({ openRename, focusTab });
             :ref="(el) => keepRef(tabButtons, view.id, el as HTMLElement | null)"
             type="button"
             role="tab"
-            class="vbar__view"
+            class="btn btn-sm vbar__view"
             :class="{
-              'vbar__view--active': !editing && view.id === activeId,
+              'bg-primary': !editing && view.id === activeId,
+              'bg-disabled': editing || view.id !== activeId,
               'vbar__view--default': !editing && isDefaultTab(view),
             }"
             :aria-selected="view.id === activeId"
@@ -561,6 +555,12 @@ defineExpose({ openRename, focusTab });
           </button>
         </div>
       </TransitionGroup>
+
+      <!-- Sticky at the end of the strip: the scroll shadow over the tabs passing under it, gone at the end -->
+      <span
+        class="vbar__shadow"
+        aria-hidden="true"
+      />
     </div>
 
     <template v-if="editing">
@@ -732,6 +732,12 @@ defineExpose({ openRename, focusTab });
 // The same curves the side nav's pinned shelf uses
 $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
 
+// Same as `cluster-scroll-shadow` in TopLevelMenu: shown along the scroll, gone at the end
+@keyframes vbar-scroll-shadow {
+  0%, 88% { opacity: 1; }
+  100%    { opacity: 0; }
+}
+
 // Drawn the way the app bar marks a cluster arriving on the pinned shelf
 @keyframes vbar-slot-arrive {
   0%   { opacity: 0; transform: translateX(-6px) scale(0.985); }
@@ -768,26 +774,16 @@ $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
     background: color-mix(in srgb, var(--primary) 12%, var(--body-bg));
   }
 
-  &__home {
-    flex:        0 0 auto;
-    font-size:   18px;
-    font-weight: 400;
-    margin:      0 20px 0 0;
-  }
-
-  // The views are a SEGMENTED CONTROL: one track, the buttons sitting in it a pixel apart, the
-  // active one filled. That is what makes them read as "pick one of these" rather than as links.
-  //
-  // One row, always. When the bar runs out of room the hint gives way first (below), then the
-  // track scrolls — it never wraps onto a second line.
+  // The views are the shell's BUTTON GROUP (see ButtonGroup): buttons side by side, joined, the
+  // active one filled. One row, always: when the bar runs out of room the hint gives way first
+  // (below), then the group scrolls - it never wraps onto a second line.
   &__views {
     align-items:     center;
-    background:      var(--default);
-    border-radius:   4px;
     display:         flex;
     flex:            0 1 auto;
     min-width:       0;
     overflow-x:      auto;
+    overflow-y:      hidden;
     scrollbar-width: none;
 
     &::-webkit-scrollbar {
@@ -798,50 +794,57 @@ $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
   &__list {
     align-items: center;
     display:     flex;
-    gap:         1px;
+    flex:        0 0 auto;
   }
 
-  // A view tab: 30px tall, 12px of side padding, and the active one filled in the primary colour.
+  // Each button is in a slot of its own (the drag moves the slot), so the group's joined corners are
+  // drawn per slot rather than per button.
+  &__list &__slot .btn {
+    border-radius: 0;
+  }
+
+  &__list &__slot:first-child .btn {
+    border-bottom-left-radius: var(--border-radius);
+    border-top-left-radius:    var(--border-radius);
+  }
+
+  &__list &__slot:last-child .btn {
+    border-bottom-right-radius: var(--border-radius);
+    border-top-right-radius:    var(--border-radius);
+  }
+
   &__view {
-    align-items:   center;
-    background:    transparent;
-    border:        none;
-    border-radius: 4px;
-    color:         var(--body-text);
-    cursor:        pointer;
-    display:       flex;
-    flex:          0 0 auto;
-    font-size:     14px;
-    gap:           6px;
-    // The shell's global button rule sets a 40px min-height and line-height; a segmented control
-    // is 30px, so both have to be said explicitly.
-    height:        30px;
-    line-height:   30px;
-    min-height:    30px;
-    padding:       0 12px;
-    white-space:   nowrap;
+    flex:        0 0 auto;
+    gap:         6px;
+    white-space: nowrap;
 
-    &:hover:not(:disabled):not(&--active) {
-      background: color-mix(in srgb, var(--primary) 12%, transparent);
-    }
-
-    &--active {
-      background: var(--primary);
-      color:      var(--primary-text);
-    }
-
-    // The view the page opens on, boxed. Drawn inside, so the box doesn't change the tab's size
+    // The view the page opens on, boxed. Drawn inside, so the box doesn't change the button's size
     &--default {
       box-shadow: inset 0 0 0 1px var(--primary);
     }
 
-    &--active#{&}--default {
+    &.bg-primary#{&}--default {
       box-shadow: inset 0 0 0 1px var(--primary), inset 0 0 0 2px var(--primary-text);
     }
+  }
 
-    &:disabled {
-      color:  var(--muted);
-      cursor: default;
+  // The same scroll shadow as the table views' tab strip: shown while there is more to the right,
+  // gone once the strip reaches its end.
+  &__shadow {
+    align-self:     stretch;
+    background:     linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--body-text) 18%, transparent) 100%);
+    flex:           0 0 12px;
+    margin-left:    -12px;
+    opacity:        0;
+    pointer-events: none;
+    position:       sticky;
+    right:          0;
+    z-index:        2;
+    animation:          vbar-scroll-shadow linear both;
+    animation-timeline: scroll(nearest inline);
+
+    @supports not (animation-timeline: scroll()) {
+      opacity: 1;
     }
   }
 
