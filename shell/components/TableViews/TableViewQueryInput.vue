@@ -906,6 +906,7 @@ onBeforeUnmount(() => {
         class="vs__dropdown-menu table-view-query-menu"
         role="listbox"
         :aria-label="t('tableViews.query.suggestions')"
+        :aria-busy="!suggestions.length && !!loadingValuesFor"
         :style="menuStyle"
         data-testid="table-views-suggestions"
         @mousemove="keyboardNav = false"
