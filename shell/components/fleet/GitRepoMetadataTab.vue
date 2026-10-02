@@ -1,6 +1,7 @@
 <script setup>
 import Labels from '@shell/components/form/Labels';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
+import { Banner } from '@components/Banner';
 
 defineProps({
   value: {
@@ -18,6 +19,14 @@ defineProps({
   nameRules: {
     type:    Array,
     default: () => []
+  },
+  workspaceOptions: {
+    type:    Array,
+    default: () => []
+  },
+  workspaceNotice: {
+    type:    String,
+    default: ''
   }
 });
 
@@ -33,10 +42,19 @@ const updateValue = (event) => {
     <NameNsDescription
       v-if="!isView"
       :value="value"
-      :namespaced="false"
       :mode="mode"
       :rules="{ name: nameRules }"
+      namespace-label="nameNsDescription.workspace.label"
+      namespace-placeholder="nameNsDescription.workspace.placeholder"
+      :namespace-options="workspaceOptions"
+      :namespace-create-allowed="false"
       @update:value="updateValue"
+    />
+    <Banner
+      v-if="!isView && workspaceNotice"
+      color="info"
+      :label="workspaceNotice"
+      data-testid="gitrepo-workspace-notice"
     />
     <Labels
       :value="value"

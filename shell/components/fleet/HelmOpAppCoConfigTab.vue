@@ -327,11 +327,13 @@ defineExpose({ refreshYamlEditor });
       >
         <NameNsDescription
           :value="value"
-          :namespaced="false"
           :mode="mode"
           :name-label="'fleet.helmOp.appCoConfig.name'"
           :no-bottom-margin="true"
           :rules="{ name: nameRules }"
+          namespace-label="nameNsDescription.workspace.label"
+          :namespace-disabled="true"
+          :namespace-create-allowed="false"
           data-testid="appco-config-name-ns-description"
           @update:value="emit('update:value', $event)"
         />
@@ -374,10 +376,12 @@ defineExpose({ refreshYamlEditor });
         <!-- Name and Description -->
         <NameNsDescription
           :value="value"
-          :namespaced="false"
           :mode="mode"
           :name-label="'fleet.helmOp.appCoConfig.name'"
           :rules="{ name: nameRules }"
+          namespace-label="nameNsDescription.workspace.label"
+          :namespace-disabled="true"
+          :namespace-create-allowed="false"
           data-testid="appco-config-name-ns-description"
           @update:value="emit('update:value', $event)"
         />

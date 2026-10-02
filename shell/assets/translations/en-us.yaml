@@ -3806,6 +3806,12 @@ fleet:
     timeout: Workspace creation timeout. It's possible the workspace was created. We suggest checking the workspace page before trying to create another.
     remove:
       warning: "Deleting a Workspace also deletes all resources in the Workspace. This includes GitRepos but also Clusters.<br><br>Deleted Clusters will be removed from {vendor}, and if {vendor} manages the life-cycle of the Cluster it's underlying infrastructure will also be deleted."
+    moved:
+      removed: "Changing the workspace clears previous selections. The following items are not available in the {workspace} workspace and have been deselected: {names}."
+      cluster: "cluster {name}"
+      clusterGroup: "cluster group {name}"
+      secret: "secret {name}"
+      configMap: "config map {name}"
   restrictions:
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add
@@ -5209,7 +5215,7 @@ nameNsDescription:
     placeholder: ''
   workspace:
     label: Workspace
-    placeholder:
+    placeholder: Select a workspace
   description:
     label: Description
     placeholder: Any text you want that better describes this resource

@@ -5,7 +5,7 @@ import jsyaml from 'js-yaml';
 import { saferDump } from '@shell/utils/create-yaml';
 import { mapGetters } from 'vuex';
 import { base64Encode } from '@shell/utils/crypto';
-import { _CREATE, _EDIT, SUB_TYPE } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW, SUB_TYPE } from '@shell/config/query-params';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import {
   AUTH_TYPE, CONFIG_MAP, FLEET, AUTH_GENERATE_NAME, NORMAN, SECRET
@@ -23,6 +23,9 @@ import { mapPref, DIFF } from '@shell/store/prefs';
 import { SECRET_TYPES } from '@shell/config/secret';
 import { toSeconds } from '@shell/utils/duration';
 import { getFleetPolicyDefaults } from '@shell/utils/fleet-policy';
+import { existsInNamespace, fleetWorkspaceOptions, retargetToWorkspaceFromStore, showFleetWorkspace } from '@shell/utils/fleet-workspace';
+import FleetUtils from '@shell/utils/fleet';
+import { HARVESTER_CONTAINER } from '@shell/store/features';
 import { EDITOR_MODES } from '@shell/components/YamlEditor';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
@@ -125,6 +128,11 @@ export default {
       appCoChartDeprecated: false,
       // True while fetching the chart index from the ClusterRepo
       appCoChartsLoading:   false,
+
+      // What the workspace's Policy filled in, so moving workspace swaps it for the new one's
+      policyDefaults:  {},
+      workspaceNotice: '',
+      workspaceChange: null,
     };
   },
 
@@ -132,8 +140,12 @@ export default {
     this.registerBeforeHook(this.doCreateSecrets, `registerAuthSecrets${ new Date().getTime() }`, 99);
     this.registerBeforeHook(this.updateBeforeSave);
 
-    if (this.realMode === _EDIT && this.workspace !== this.value.namespace) {
-      this.$store.commit('updateWorkspace', { value: this.value.namespace, getters: this.$store.getters });
+    if (this.realMode === _EDIT || this.realMode === _VIEW) {
+      showFleetWorkspace(this.$store, this.value.namespace);
+    }
+
+    if (this.isCreate) {
+      this.registerAfterHook(() => showFleetWorkspace(this.$store, this.value.metadata.namespace), 'showSavedWorkspace');
     }
   },
 
@@ -188,6 +200,10 @@ export default {
   computed: {
     ...mapGetters(['workspace']),
 
+    workspaceOptions() {
+      return fleetWorkspaceOptions(this.$store.state?.allWorkspaces, this.$store.state?.allNamespaces).map((opt) => opt.value);
+    },
+
     steps() {
       if (this.isSuseAppCollection) {
         return [];
@@ -200,7 +216,7 @@ export default {
           label:          this.t('fleet.helmOp.add.steps.metadata.label'),
           subtext:        this.t('fleet.helmOp.add.steps.metadata.subtext'),
           descriptionKey: 'fleet.helmOp.add.steps.metadata.description',
-          ready:          this.isView || (!!this.value.metadata.name && this.stepPathErrors('basics').length === 0),
+          ready:          this.isView || (!!this.value.metadata.name && !!this.value.metadata.namespace && this.stepPathErrors('basics').length === 0),
           weight:         1
         },
         {
@@ -384,9 +400,18 @@ export default {
   },
 
   watch: {
-    workspace(neu) {
-      if (this.isCreate) {
+    workspace(neu, old) {
+      const namespace = this.value.metadata.namespace;
+
+      // Follow the header only until the user picks a workspace in the form
+      if (this.isCreate && (namespace === old || !this.workspaceOptions.includes(namespace))) {
         set(this.value, 'metadata.namespace', neu);
+      }
+    },
+
+    'value.metadata.namespace'(neu, old) {
+      if (this.isCreate && !this.isSuseAppCollection && neu && old && neu !== old) {
+        this.workspaceChange = this.moveToWorkspace(neu);
       }
     },
   },
@@ -407,6 +432,87 @@ export default {
 
       if (helmSecretName) {
         set(this.value.spec, 'helmSecretName', helmSecretName);
+        this.policyDefaults = { helmSecretName };
+      }
+    },
+
+    /**
+     * References are resolved in the resource's own workspace: drop the ones the new workspace
+     * does not have rather than let the save fail.
+     */
+    async moveToWorkspace(workspace) {
+      const spec = this.value.spec;
+      const removed = [];
+      const exists = (type, name) => existsInNamespace(this.$store, type, workspace, name);
+      const label = (type, name) => this.t(`fleet.workspaces.moved.${ type === SECRET ? 'secret' : 'configMap' }`, { name });
+
+      const { targets, removedClusters, removedClusterGroups } = await retargetToWorkspaceFromStore(this.$store, spec.targets, workspace);
+
+      spec.targets = targets;
+      removedClusters.forEach((name) => removed.push(this.t('fleet.workspaces.moved.cluster', { name })));
+      removedClusterGroups.forEach((name) => removed.push(this.t('fleet.workspaces.moved.clusterGroup', { name })));
+
+      if (this.targetsCreated) {
+        this.targetsCreated = FleetUtils.Application.getTargetMode(targets || [], workspace, this.$store.getters['features/get'](HARVESTER_CONTAINER));
+      }
+
+      if (this.tempCachedValues.helmSecretName?.selected?.includes('/')) {
+        delete this.tempCachedValues.helmSecretName;
+      }
+
+      // The App Collection flow stores it as `<namespace>/<name>` until save
+      const helmSecretName = spec.helmSecretName?.split('/').pop();
+
+      if (helmSecretName) {
+        const fromPolicy = helmSecretName === this.policyDefaults.helmSecretName;
+
+        if (fromPolicy || !(await exists(SECRET, helmSecretName))) {
+          delete spec.helmSecretName;
+
+          if (!fromPolicy) {
+            removed.push(label(SECRET, helmSecretName));
+          }
+        }
+      }
+
+      if (spec.helm?.valuesFrom?.length) {
+        const valuesFrom = [];
+
+        for (const entry of spec.helm.valuesFrom) {
+          const [refKey, type] = entry.secretKeyRef ? ['secretKeyRef', SECRET] : ['configMapKeyRef', CONFIG_MAP];
+          const ref = entry[refKey];
+
+          if (ref?.name && await exists(type, ref.name)) {
+            valuesFrom.push({ [refKey]: { ...ref, namespace: workspace } });
+          } else if (ref?.name) {
+            removed.push(label(type, ref.name));
+          }
+        }
+
+        spec.helm.valuesFrom = valuesFrom.length ? valuesFrom : undefined;
+      }
+
+      if (spec.downstreamResources?.length) {
+        const downstreamResources = [];
+
+        for (const resource of spec.downstreamResources) {
+          const type = resource.kind === 'Secret' ? SECRET : CONFIG_MAP;
+
+          if (await exists(type, resource.name)) {
+            downstreamResources.push(resource);
+          } else {
+            removed.push(label(type, resource.name));
+          }
+        }
+
+        spec.downstreamResources = downstreamResources;
+      }
+
+      this.policyDefaults = {};
+      await this.applyPolicyDefaults();
+
+      if (this.value.metadata.namespace === workspace) {
+        this.workspaceNotice = removed.length ? this.t('fleet.workspaces.moved.removed', { workspace, names: [...new Set(removed)].join(', ') }) : '';
       }
     },
 
@@ -795,6 +901,8 @@ export default {
         return;
       }
 
+      await this.workspaceChange;
+
       await this.value.dryRunCreate({
         type:     this.value.type,
         metadata: {
@@ -845,6 +953,8 @@ export default {
         :is-view="isView"
         data-testid="helmop-metadata-tab"
         :name-rules="fvGetAndReportPathRules('metadata.name')"
+        :workspace-options="workspaceOptions"
+        :workspace-notice="workspaceNotice"
         @update:value="$emit('input', $event)"
       />
     </template>
@@ -943,8 +1053,10 @@ export default {
       <div v-if="!isSuseAppCollection">
         <NameNsDescription
           :value="value"
-          :namespaced="false"
           :mode="mode"
+          namespace-label="nameNsDescription.workspace.label"
+          :namespace-options="workspaceOptions"
+          :namespace-create-allowed="false"
           data-testid="helmop-view-name-ns-description"
           @update:value="$emit('input', $event)"
         />
