@@ -1,8 +1,15 @@
+import { toRaw } from 'vue';
 import { mapGetters } from 'vuex';
 import { isMore, isRange, suppressContextMenu, isAlternate } from '@shell/utils/platform';
 import { get } from '@shell/utils/object';
 import { filterBy } from '@shell/utils/array';
 import { getParent } from '@shell/utils/dom';
+
+/**
+ * The selection hands back reactive versions of the rows in it, so a row a list gave as a plain object
+ * is a different object there. Compare what they wrap
+ */
+const sameRow = (a, b) => toRaw(a) === toRaw(b);
 
 export const ALL = 'all';
 export const SOME = 'some';
@@ -151,7 +158,7 @@ export default {
       const toRemove = [];
 
       for (const node of this.selectedRows) {
-        if (!page.includes(node) ) {
+        if (!page.some((row) => sameRow(row, node))) {
           toRemove.push(node);
         }
       }
@@ -464,7 +471,7 @@ export default {
 
     update(toAdd, toRemove) {
       toRemove.forEach((row) => {
-        const index = this.selectedRows.findIndex((r) => r === row);
+        const index = this.selectedRows.findIndex((r) => sameRow(r, row));
 
         if (index !== -1) {
           this.selectedRows.splice(index, 1);
