@@ -246,7 +246,7 @@ export default {
         <div class="left">
           <rc-button
             :disabled="!selectedRevision"
-            variant="secondary"
+            variant="outline"
             size="large"
             class="diff"
             @click="showDiff = !showDiff; sizeDialog()"
@@ -256,7 +256,7 @@ export default {
         </div>
         <div class="right">
           <rc-button
-            variant="secondary"
+            variant="outline"
             size="large"
             class="mr-10"
             @click="close"

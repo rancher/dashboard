@@ -9,16 +9,22 @@ export type RcButtonType = {
   focus: () => void;
 }
 
-export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'link' | 'multiAction' | 'ghost';
+export type ButtonVariant = 'solid' | 'outline' | 'tertiary' | 'link' | 'multiAction' | 'ghost';
 
-export type ButtonSeverity = 'destructive';
+/**
+ * @deprecated Describe the button with `variant` and `color` instead: `primary` is
+ * `variant="solid"` and `secondary` is `variant="outline"`, both with `color="primary"`.
+ */
+export type DeprecatedButtonVariant = 'primary' | 'secondary';
+
+export type ButtonColor = 'primary' | 'destructive';
 
 export type ButtonVariantNewProps = {
-  variant?: ButtonVariant;
+  variant?: ButtonVariant | DeprecatedButtonVariant;
 }
 
-export type ButtonSeverityProps = {
-  severity?: ButtonSeverity;
+export type ButtonColorProps = {
+  color?: ButtonColor;
 }
 
 /**

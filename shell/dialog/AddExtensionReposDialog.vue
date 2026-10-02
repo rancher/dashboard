@@ -161,7 +161,7 @@ export default {
     </div>
     <div class="dialog-buttons mt-20">
       <rc-button
-        variant="secondary"
+        variant="outline"
         size="large"
         @click="$emit('close')"
       >
