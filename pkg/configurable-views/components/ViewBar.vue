@@ -1033,15 +1033,20 @@ $tab-height: 30px;
     cursor: grabbing;
   }
 
-  // Lifted like the app bar's pinned shelf rows, with the same shadow
+  // Lifted like the app bar's pinned shelf rows, with the same shadow. As there, the selected one
+  // keeps its own fill and type while it is carried - only the others take the tint, which their
+  // dark type reads on and the selected one's light type would not.
   .vbar__slot.held {
     position: relative;
     z-index: 1;
     transform: scale(1.02);
-    transition: transform 0.2s $drag-displace-curve;
+    transition: transform 0.2s $drag-displace-curve, box-shadow 0.2s $drag-displace-curve, background-color 0.2s $drag-displace-curve;
     border-radius: var(--border-radius);
-    background: color-mix(in srgb, var(--primary) 14%, var(--body-bg));
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+  }
+
+  .vbar__slot.held:not(.vbar__slot--active) {
+    background: color-mix(in srgb, var(--primary) 14%, var(--body-bg));
   }
 }
 
