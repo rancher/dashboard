@@ -1,0 +1,103 @@
+import { Meta, Canvas, Controls } from '@storybook/blocks';
+import * as RcCodeMirrorStories from './RcCodeMirror.stories';
+
+<Meta of={RcCodeMirrorStories} />
+
+# RcCodeMirror
+
+A code editor built on CodeMirror 6 for YAML and JSON documents. Bind the document with `v-model`. Language, keymap, theme, variant, read-only, line numbers, fold gutter and line wrapping can all change after mount.
+
+The default `rancher` theme uses the Rancher light or dark palette from the surrounding `theme-light` or `theme-dark` class. Use `theme="none"` to inherit surrounding styles instead.
+
+<Canvas of={RcCodeMirrorStories.Default} />
+
+<Controls of={RcCodeMirrorStories.Default} />
+
+## Keymaps
+
+Set `keymap="emacs"` for Emacs movement, undo, kill/yank, and multi-key commands. Browser shortcuts still take priority when the browser reserves them; for example, Chrome intercepts Ctrl-N and Ctrl-W before the editor receives those keys.
+
+The CodeMirror search panel is currently disabled. Search shortcuts such as Ctrl-F or Cmd-F do not open a panel inside this editor.
+
+## Layout styles
+
+Styles and classes passed to `RcCodeMirror` apply to its outer box. Set a height on the component to size the editor, or let it fill a parent with a defined height.
+
+<Canvas of={RcCodeMirrorStories.ForwardedStyle} />
+
+## Accessibility
+
+CodeMirror renders its own textbox, so ARIA attributes such as `aria-label`, `aria-labelledby` and `aria-describedby` are forwarded to it rather than the component's root element. Every instance needs an accessible name from one of them. A `<label for>` does not work, because the textbox is not a form control; give the label an `id` and reference it with `aria-labelledby`, as the input example below does.
+
+In the editor variant, Tab indents and Shift-Tab unindents with the default and Emacs keymaps. With Vim, Tab moves forward in the jump list in Normal mode and inserts a tab at the cursor in Insert mode; Shift-Tab moves focus out. A hint appears while the editor is focused: press Escape then Tab (or Escape then Shift-Tab) to leave, as described in [CodeMirror's Tab guidance](https://codemirror.net/examples/tab/). This works with every keymap. In the input variant, Tab and Shift-Tab move focus normally.
+
+Folds can be toggled from the keyboard with every keymap:
+
+| Action | Windows / Linux | macOS |
+| --- | --- | --- |
+| Fold the line at the cursor | Ctrl-Shift-[ | Cmd-Alt-[ |
+| Unfold the line at the cursor | Ctrl-Shift-] | Cmd-Alt-] |
+| Fold everything | Ctrl-Alt-[ | Ctrl-Alt-[ |
+| Unfold everything | Ctrl-Alt-] | Ctrl-Alt-] |
+
+## JSON
+
+<Canvas of={RcCodeMirrorStories.Json} />
+
+## Read only
+
+<Canvas of={RcCodeMirrorStories.ReadOnly} />
+
+Use Tab to focus the read-only editor. Keyboard selection, copy, and fold shortcuts remain available. An explicit `tabindex` on `RcCodeMirror` applies to the editor's textbox.
+
+<Canvas of={RcCodeMirrorStories.ReadOnlyKeyboard} />
+
+## Input
+
+The `input` variant is a multi-line form input rather than a code editor. It has no gutters, uses the body font and is styled like the other form inputs. Line breaks are marked with ↵ so values that contain them are distinguishable.
+
+With the `rancher` theme, syntax colors and the caret match the editor palette while the input keeps its form background, border, spacing and selection.
+
+<Canvas of={RcCodeMirrorStories.Input} />
+
+The YAML example shows the shared syntax colors in a form field.
+
+<Canvas of={RcCodeMirrorStories.InputYaml} />
+
+## Custom folding
+
+`foldOptions.strategy` picks how fold ranges are found: `language` (the default) uses the language's syntax tree, `indent` folds by indentation and `bracket` folds matching brackets.
+
+The package also exports fold services for the `extensions` prop and imperative helpers to call from the `ready` event:
+
+- `foldByLineMatch(pattern)` and `foldMatchingLines(view, pattern)` for lines matching a regular expression
+- `foldByYamlPath(path)` and `foldYamlPath(view, path)` for a dot-notation YAML path such as `metadata.labels`
+- `commentFoldService` and `foldAllComments(view)` for nested comment blocks
+
+This story folds `spec` and `metadata.labels` on load. Changing its fold strategy in Controls remounts the editor so the new strategy takes effect.
+
+<Canvas of={RcCodeMirrorStories.CustomFolding} />
+
+The JSON example compares bracket folding with language folding. The string value `"}"` must not close the outer object.
+
+<Canvas of={RcCodeMirrorStories.BracketFolding} />
+
+## Translations
+
+Pass CodeMirror translations through the `extensions` prop. The host application can use its own i18n system to supply the translated strings:
+
+```ts
+import { EditorState } from '@codemirror/state';
+
+const extensions = [EditorState.phrases.of({
+  'Fold line': t('codeMirror.foldLine'),
+  'Unfold line': t('codeMirror.unfoldLine'),
+  'Press Escape, then Tab to leave the editor': t('codeMirror.escapeTabText')
+})];
+```
+
+`<RcCodeMirror :extensions="extensions" />` uses these phrases for the fold controls and the escape hint. The `extensions` prop is read on mount, so remount the editor when changing its locale.
+
+## v-model
+
+<Canvas of={RcCodeMirrorStories.VModel} />

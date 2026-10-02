@@ -11,6 +11,7 @@ import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations
 import { SECRET_TYPES, GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import FormValidation from '@shell/mixins/form-validation';
 import { toSeconds } from '@shell/utils/duration';
+import { getFleetPolicyDefaults } from '@shell/utils/fleet-policy';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import GitRepoMetadataTab from '@shell/components/fleet/GitRepoMetadataTab.vue';
@@ -49,6 +50,7 @@ export default {
 
   async fetch() {
     this.currentUser = await this.value.getCurrentUser();
+    await this.applyPolicyDefaults();
   },
 
   data() {
@@ -215,6 +217,23 @@ export default {
   },
 
   methods: {
+    /**
+     * A Policy in the workspace can name the credential a GitRepo falls back to, which Fleet
+     * applies on save whether or not the form shows it. Filling it in leaves the user looking at
+     * what will be used, and free to pick something else.
+     */
+    async applyPolicyDefaults() {
+      if (this.mode !== _CREATE || this.value.spec.clientSecretName) {
+        return;
+      }
+
+      const { clientSecretName } = await getFleetPolicyDefaults(this.$store, this.value.metadata?.namespace);
+
+      if (clientSecretName) {
+        set(this.value.spec, 'clientSecretName', clientSecretName);
+      }
+    },
+
     stepPathErrors(stepName) {
       // Helper is used to check which validations is for each step
       const paths = this.fvFormRuleSets

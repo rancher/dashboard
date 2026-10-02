@@ -1,4 +1,4 @@
-import { getters, mutations } from '../index';
+import { actions, getters, mutations } from '../index';
 
 describe('mutations', () => {
   describe('updateNamespaces', () => {
@@ -135,6 +135,77 @@ describe('getters', () => {
       const result = getters.namespaces(state, stateGetters)();
 
       expect(result).toStrictEqual(expectation);
+    });
+  });
+});
+
+describe('actions', () => {
+  describe('restoreWorkspace', () => {
+    const workspaces = [{ id: 'fleet-default' }, { id: 'fleet-local' }, { id: 'my-workspace' }];
+
+    const context = (allWorkspaces: { id: string }[] = workspaces) => {
+      const state = { allWorkspaces, workspace: '' };
+      const storeGetters = { currentProduct: { showWorkspaceSwitcher: true } };
+
+      return {
+        state,
+        getters: storeGetters,
+        commit:  (name: string, payload: { value: string, all: { id: string }[], getters: unknown }) => {
+          expect(name).toBe('updateWorkspace');
+
+          return mutations.updateWorkspace(state, payload);
+        },
+      };
+    };
+
+    it('should keep a workspace that exists', () => {
+      const ctx = context();
+
+      actions.restoreWorkspace(ctx, { value: 'my-workspace', all: undefined });
+
+      expect(ctx.state.workspace).toBe('my-workspace');
+    });
+
+    it('should replace a workspace that no longer exists with the default one', () => {
+      const ctx = context();
+
+      actions.restoreWorkspace(ctx, { value: 'removed-workspace', all: undefined });
+
+      expect(ctx.state.workspace).toBe('fleet-default');
+    });
+
+    it('should fall back to the first workspace when there is no default one', () => {
+      const ctx = context([{ id: 'my-workspace' }]);
+
+      actions.restoreWorkspace(ctx, { value: 'removed-workspace', all: undefined });
+
+      expect(ctx.state.workspace).toBe('my-workspace');
+    });
+
+    it('should keep the value when no workspaces are known', () => {
+      const ctx = context([]);
+
+      actions.restoreWorkspace(ctx, { value: 'my-workspace', all: undefined });
+
+      expect(ctx.state.workspace).toBe('my-workspace');
+    });
+
+    it('should not correct the value when the caller sets it directly', () => {
+      const ctx = context();
+
+      actions.setWorkspace(ctx, { value: 'removed-workspace' });
+
+      expect(ctx.state.workspace).toBe('removed-workspace');
+      expect(ctx.state.allWorkspaces).toStrictEqual(workspaces);
+    });
+
+    it('should validate against a list given to it', () => {
+      const ctx = context([]);
+
+      actions.restoreWorkspace(ctx, { value: 'removed-workspace', all: workspaces });
+
+      expect(ctx.state.allWorkspaces).toStrictEqual(workspaces);
+      expect(ctx.state.workspace).toBe('fleet-default');
     });
   });
 });

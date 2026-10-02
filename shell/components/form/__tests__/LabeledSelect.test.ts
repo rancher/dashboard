@@ -135,6 +135,102 @@ describe('component: LabeledSelect', () => {
         // Component is from a library and class is not going to be changed
         expect(wrapper.find('.vs__selected').text()).toBe(translation);
       });
+
+      it.each([
+        ['empty string', ''],
+        ['zero', 0],
+        ['false', false],
+      ])('using new label with a falsy value (%s)', async(_, value) => {
+        const wrapper = mount(LabeledSelect, { props: { value, options: [{ label: 'Foo', value }] } });
+
+        await wrapper.setProps({ options: [{ label: 'Baz', value }] });
+
+        expect(wrapper.find('.vs__selected').text()).toBe('Baz');
+      });
+
+      it('using new label with a null value matching an empty string option', async() => {
+        const wrapper = mount(LabeledSelect, { props: { value: null as any, options: [{ label: 'Foo', value: '' }] } });
+
+        await wrapper.setProps({ options: [{ label: 'Baz', value: '' }] });
+
+        expect(wrapper.find('.vs__selected').text()).toBe('Baz');
+      });
+
+      it('using new custom key label with a falsy value', async() => {
+        const customLabelKey = 'bananas';
+        const wrapper = mount(LabeledSelect, {
+          props: {
+            value:       '',
+            optionLabel: customLabelKey,
+            options:     [{ [customLabelKey]: 'Foo', value: '' }],
+          }
+        });
+
+        await wrapper.setProps({ options: [{ [customLabelKey]: 'Baz', value: '' }] });
+
+        expect(wrapper.find('.vs__selected').text()).toBe('Baz');
+      });
+
+      it('using translated value with a falsy value', async() => {
+        const i18nMap: Record<string, string> = { Baz: 'bananas' };
+        const wrapper = mount(LabeledSelect, {
+          props: {
+            value:          '',
+            localizedLabel: true,
+            options:        [{ label: 'Foo', value: '' }],
+          },
+          global: { mocks: { $store: { getters: { 'i18n/t': (text: string) => i18nMap[text] } } } }
+        });
+
+        await wrapper.setProps({ options: [{ label: 'Baz', value: '' }] });
+
+        expect(wrapper.find('.vs__selected').text()).toBe('bananas');
+      });
+
+      // An array value is always truthy, so vue-select refreshes it itself: this guards against a regression only
+      it('using new label in multiple mode with a falsy item', async() => {
+        const wrapper = mount(LabeledSelect, {
+          props: { value: [''], options: [{ label: 'Foo', value: '' }] },
+          attrs: { multiple: true }
+        });
+
+        await wrapper.setProps({ options: [{ label: 'Baz', value: '' }] });
+
+        expect(wrapper.find('.vs__selected').text()).toBe('Baz');
+      });
+
+      it('showing no label when a falsy value is no longer in the options', async() => {
+        const wrapper = mount(LabeledSelect, { props: { value: '', options: [{ label: 'Foo', value: '' }] } });
+
+        await wrapper.setProps({ options: [{ label: 'Baz', value: 'baz' }] });
+
+        expect(wrapper.find('.vs__selected').exists()).toBe(false);
+      });
+
+      it('showing no label when options become empty with a falsy value', async() => {
+        const wrapper = mount(LabeledSelect, { props: { value: '', options: [{ label: 'Foo', value: '' }] } });
+
+        await wrapper.setProps({ options: [] });
+
+        expect(wrapper.find('.vs__selected').exists()).toBe(false);
+      });
+
+      // Earlier fixes looked the option up on every label render, which was O(n²) with long lists (#9668)
+      it('reducing each option once, not once per option pair, when options change with a falsy value', async() => {
+        const count = 1000;
+        const createOptions = (prefix: string) => Array.from({ length: count }, (_, i) => ({ label: `${ prefix } ${ i }`, value: i ? `value-${ i }` : '' }));
+        const reduce = jest.fn((option: any) => (option && typeof option === 'object' ? option.value : option));
+        const wrapper = mount(LabeledSelect, {
+          props: {
+            value: '', reduce, options: createOptions('Foo')
+          }
+        });
+
+        reduce.mockClear();
+        await wrapper.setProps({ options: createOptions('Baz') });
+
+        expect(reduce).toHaveBeenCalledTimes(count);
+      });
     });
   });
 

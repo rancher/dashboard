@@ -56,8 +56,8 @@ export type ProductChildCustomPage = LabelOrLabelKey & {
 
   /** Determine when this product is enabled and shown */
   enable?: {
-    /** Display only if condition is met (relates to IF_HAVE in shell/store/type-map) */
-    ifHave?: boolean;
+    /** Display only if condition is met. Pass an `IF_HAVE` value from shell/store/type-map, e.g. `IF_HAVE.ADMIN` */
+    ifHave?: string;
     /** Display only if feature is present (relates to shell/store/features) */
     ifFeature?: string;
     /** Display only if resource type exists */
@@ -146,8 +146,28 @@ export type ProductChildResourcePage = {
 
   /** Control how all lists that show this resource behave  */
   listConfig?: {
-    /** Table headers for this resource type (server-side pagination) */
+    /**
+     * Table headers for this resource type when it renders under server-side pagination. `sort`/`search`
+     * on these must be string paths to fields the backend indexes.
+     *
+     * Prefer this with server-side pagination. It scales and performs better because the backend does
+     * the sorting, filtering and paging, so the browser only ever holds one page of rows.
+     */
     headers?: HeaderOptions[];
+
+    /**
+     * Table headers for this resource type when it renders with local (client-side) pagination.
+     *
+     * Use this only when server-side pagination cannot work. That happens when `sort`/`search` need
+     * fields the backend does not index, which is common for custom resources whose CRD you do not
+     * control, or for lists whose displayed value is computed in the UI rather than stored on the
+     * object. Because filtering and sorting then happen in the browser over the full set of rows,
+     * `sort`/`search` here may reference any field or model getter, not just indexed string paths.
+     * The trade-off is that the whole list is loaded into the browser, so prefer `headers` and
+     * server-side pagination whenever the fields allow it.
+     */
+    localHeaders?: HeaderOptions[];
+
     /** Whether to hide bulk actions for this resource */
     hideBulkActions?: boolean;
   }
@@ -165,14 +185,59 @@ export type ProductChildPage = ProductChildCustomPage | ProductChildResourcePage
 export type ProductChild = ProductChildGroup | ProductChildPage; // eslint-disable-line no-use-before-define
 
 /**
+ * Conditions that determine when a group's overview page is shown.
+ *
+ * These apply to the overview page only, never to the group's children. The side menu materialises a
+ * group once it has at least one visible child, so hiding the overview removes the whole group from
+ * the navigation only when every remaining child is hidden too (resource pages hide themselves when
+ * their type is absent).
+ */
+type ProductChildGroupOverviewPageEnable = {
+  /** Display only if condition is met. Pass an `IF_HAVE` value from shell/store/type-map, e.g. `IF_HAVE.ADMIN` */
+  ifHave?: string;
+  /** Display only if feature is present (relates to shell/store/features) */
+  ifFeature?: string;
+  /** Display only if resource type exists */
+  ifHaveType?: string;
+  /** Used in conjunction with "ifHaveType", display only if resource type allows this verb (GET, POST, PUT, DELETE) */
+  ifHaveVerb?: string;
+};
+
+/**
+ * A group's overview page. `enableOverviewPage` gates that page, so it can only be used by a group
+ * that has a `component` to gate.
+ */
+type ProductChildGroupOverviewPage = (
+  | {
+    /** Component to render for this group's overview page */
+    component: VueRouteComponent;
+
+    /**
+     * Determine when this group's overview page is shown. Only available on a group that defines a
+     * `component`, as that component is what gets gated.
+     *
+     * This does NOT cascade to the group's children. The side menu only materialises a group once it
+     * has at least one visible child, so gating the overview away hides the group as a whole only
+     * when the remaining children are hidden too (resource pages hide themselves when their type is
+     * absent). A group whose children are always visible stays in the navigation, minus its overview,
+     * with the group header rendered as plain text rather than a link.
+     */
+    enableOverviewPage?: ProductChildGroupOverviewPageEnable;
+  }
+  | {
+    component?: undefined;
+
+    /** Not available without a `component` - there would be no overview page to gate */
+    enableOverviewPage?: never;
+  }
+)
+
+/**
  * Represents a group of child pages in a product configuration
  */
-export type ProductChildGroup = LabelOrLabelKey & {
+export type ProductChildGroup = LabelOrLabelKey & ProductChildGroupOverviewPage & {
   /** Product name/unique identifier for the product */
   name: string;
-
-  /** Component to render for this group */
-  component?: VueRouteComponent;
 
   /** Control how the child displays menu items in the side menu  */
   sideMenu: {

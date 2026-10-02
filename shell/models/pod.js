@@ -1,3 +1,4 @@
+import { defineAsyncComponent, markRaw } from 'vue';
 import { insertAt } from '@shell/utils/array';
 import { colorForState, simpleColorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
@@ -7,6 +8,9 @@ import { deleteProperty } from '@shell/utils/object';
 import { POD_RESTARTS_REG_EX } from '@shell/types/resources/pod';
 import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 import { POD_SHELL } from '@shell/store/features';
+
+// Defined once so the component identity is stable; creating it in `details` remounts the popover, and closes its card, on every pod update
+const WorkloadResourcePopover = markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue')));
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -222,6 +226,15 @@ export default class Pod extends WorkloadService {
     return !!this.workloadRef;
   }
 
+  /**
+   * Display label of the type of workload that owns this pod, e.g. `ReplicaSet`
+   */
+  get workloadTypeLabel() {
+    const schema = this.workloadRef ? this.$getters['schemaFor'](this.workloadRef.type) : null;
+
+    return schema ? this.$rootGetters['type-map/labelFor'](schema) : this.t('component.resource.detail.glance.workload');
+  }
+
   get details() {
     const out = [
       {
@@ -231,15 +244,38 @@ export default class Pod extends WorkloadService {
     ];
 
     if ( this.workloadRef ) {
+      const isReplicaSet = this.workloadRef.type === WORKLOAD_TYPES.REPLICA_SET && !!this.$getters['schemaFor'](WORKLOAD_TYPES.REPLICA_SET);
+
       out.push({
-        label:         'Workload',
+        label:         this.workloadTypeLabel,
         formatter:     'LinkName',
         formatterOpts: {
           value:     this.workloadRef.name,
           type:      this.workloadRef.type,
           namespace: this.workloadRef.namespace
         },
-        content: this.workloadRef.name
+        content:       this.workloadRef.name,
+        // The masthead shows a card with the key facts of a ReplicaSet. Other owners keep the plain link
+        valueOverride: isReplicaSet ? {
+          component: WorkloadResourcePopover,
+          props:     {
+            type:           this.workloadRef.type,
+            id:             this.workloadRef.id,
+            name:           this.workloadRef.name,
+            // Like the design, only the namespace row of the masthead has a state dot
+            showStatus:     false,
+            detailLocation: {
+              name:   'c-cluster-product-resource-namespace-id',
+              params: {
+                product:   this.$rootGetters['productId'],
+                cluster:   this.$rootGetters['clusterId'],
+                resource:  this.workloadRef.type,
+                namespace: this.workloadRef.namespace,
+                id:        this.workloadRef.name,
+              }
+            }
+          }
+        } : undefined
       });
     }
 
@@ -278,6 +314,78 @@ export default class Pod extends WorkloadService {
   }
 
   /**
+   * Counts ready containers and restarts the same way `kubectl get pods` does in its READY and RESTARTS columns.
+   *
+   * Sidecars (init containers with `restartPolicy: Always`) keep running alongside the app containers, so they count too.
+   * While the pod is still initialising only the init containers are counted
+   */
+  get kubectlContainerCounts() {
+    const sidecars = (this.spec?.initContainers || [])
+      .filter((container) => container.restartPolicy === 'Always')
+      .map((container) => container.name);
+    let ready = 0;
+    let initRestarts = 0;
+    let sidecarRestarts = 0;
+    let initializing = false;
+
+    for (const status of this.status?.initContainerStatuses || []) {
+      const isSidecar = sidecars.includes(status.name);
+
+      initRestarts += status.restartCount || 0;
+
+      if (isSidecar) {
+        sidecarRestarts += status.restartCount || 0;
+      }
+
+      if (status.state?.terminated?.exitCode === 0) {
+        continue;
+      }
+
+      if (isSidecar && status.started) {
+        ready += status.ready ? 1 : 0;
+        continue;
+      }
+
+      initializing = true;
+      break;
+    }
+
+    const initialized = (this.status?.conditions || []).some((condition) => condition.type === 'Initialized' && condition.status === 'True');
+    let restarts = initRestarts;
+
+    if (!initializing || initialized) {
+      restarts = sidecarRestarts;
+
+      for (const status of this.status?.containerStatuses || []) {
+        restarts += status.restartCount || 0;
+        ready += status.ready && status.state?.running ? 1 : 0;
+      }
+    }
+
+    return {
+      ready,
+      total: (this.spec?.containers?.length || 0) + sidecars.length,
+      restarts,
+    };
+  }
+
+  /**
+   * How many containers are ready out of how many there are, as `kubectl get pods` shows in its READY column
+   */
+  get containerReadiness() {
+    const { ready, total } = this.kubectlContainerCounts;
+
+    return { ready, total };
+  }
+
+  /**
+   * How many times the containers have restarted, as `kubectl get pods` shows in its RESTARTS column
+   */
+  get totalRestartCount() {
+    return this.kubectlContainerCounts.restarts;
+  }
+
+  /**
    * How many times does native kube report this pod has restarted
    */
   get restartsCount() {
@@ -289,6 +397,67 @@ export default class Pod extends WorkloadService {
    */
   get restartsLaster() {
     return this.metadata?.fields?.[3]?.match(POD_RESTARTS_REG_EX)?.[2] || '';
+  }
+
+  get glance() {
+    const glance = [...this._glance];
+    const { ready, total } = this.containerReadiness;
+    const podIP = this.status?.podIP;
+    // Once a pod has completed or failed its containers are no longer expected to be ready
+    const hasFinished = ['Succeeded', 'Failed'].includes(this.status?.phase);
+    const rows = [
+      {
+        name:          'ready',
+        label:         this.t('component.resource.detail.glance.ready'),
+        formatter:     'ReadyIndicator',
+        formatterOpts: {
+          ready, total, status: hasFinished ? 'none' : undefined
+        },
+        content: `${ ready }/${ total }`
+      },
+      {
+        name:    'restarts',
+        label:   this.t('component.resource.detail.glance.restarts'),
+        content: this.totalRestartCount
+      },
+      {
+        name:          'podIp',
+        label:         this.t('component.resource.detail.glance.podIp'),
+        formatter:     podIP ? 'CopyToClipboard' : undefined,
+        formatterOpts: { plain: true },
+        content:       podIP || '—'
+      },
+    ];
+
+    if (this.workloadRef) {
+      rows.push({
+        name:          'workload',
+        label:         this.workloadTypeLabel,
+        formatter:     'LinkName',
+        formatterOpts: {
+          value:     this.workloadRef.name,
+          type:      this.workloadRef.type,
+          namespace: this.workloadRef.namespace
+        },
+        content: this.workloadRef.name
+      });
+    }
+
+    if (this.spec?.nodeName) {
+      rows.push({
+        name:          'node',
+        label:         this.t('component.resource.detail.glance.node'),
+        formatter:     'LinkName',
+        formatterOpts: { type: NODE, value: this.spec.nodeName },
+        content:       this.spec.nodeName
+      });
+    }
+
+    const ageIndex = glance.findIndex((item) => item.name === 'age');
+
+    glance.splice(ageIndex > -1 ? ageIndex : glance.length, 0, ...rows);
+
+    return glance;
   }
 
   processSaveResponse(res) {

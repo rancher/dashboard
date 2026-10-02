@@ -196,6 +196,11 @@ if [ "${GITHUB_BUILD}" == "false" ]; then
     EXT_VERSION="0.0.0"
   fi
 
+  # Override version with "head" tag if specified
+  if [[ "${GITHUB_RELEASE_TAG}" == "head" ]]; then
+    EXT_VERSION="head"
+  fi
+
   if [[ -z ${REGISTRY_ORG} ]]; then
     # Infer that the user has the same Docker registry org as their GitHub org
     GITHUB_REPO=$(git config --get remote.origin.url | sed -e 's/^git@.*:\([[:graph:]]*\).git/\1/')
@@ -209,7 +214,7 @@ if [ "${GITHUB_BUILD}" == "false" ]; then
     exit 1
   fi
 
-  if [ -n "${GITHUB_RELEASE_TAG}" ] && [[ ${GITHUB_RELEASE_TAG} != "${BASE_EXT}-${EXT_VERSION}" ]]; then
+  if [ -n "${GITHUB_RELEASE_TAG}" ] && [[ "${GITHUB_RELEASE_TAG}" != "head" ]] && [[ ${GITHUB_RELEASE_TAG} != "${BASE_EXT}-${EXT_VERSION}" ]]; then
     echo -e "${YELLOW}Github tagged release name does not match ${RESET}${BOLD}${BASE_EXT}-${EXT_VERSION}${RESET}"
     echo -e "${YELLOW}Stopping build${RESET}"
     exit 1
@@ -319,7 +324,7 @@ if [ "${UPDATE_LATEST_PACAKGES}" = "true" ]; then
       PKG_ASSET=${ASSETS}/${pkg}/${PKG_NAME}.tgz
 
       # Skip the build for a package that does not match the tagged release name
-      if [[ -n "${GITHUB_RELEASE_TAG}" ]] && [ ${GITHUB_BUILD} == "true" ] && [[ ${GITHUB_RELEASE_TAG} != ${PKG_NAME} ]]; then
+      if [[ -n "${GITHUB_RELEASE_TAG}" ]] && [[ "${GITHUB_RELEASE_TAG}" != "head" ]] && [ ${GITHUB_BUILD} == "true" ] && [[ ${GITHUB_RELEASE_TAG} != ${PKG_NAME} ]]; then
         echo -e "${YELLOW}Github release tag ${RESET}${BOLD}${GITHUB_RELEASE_TAG}${RESET}${YELLOW} does not match asset name${RESET}"
         echo -e "${YELLOW}Skipping ${RESET}${BOLD}${PKG_NAME}${RESET}"
         continue
@@ -446,7 +451,7 @@ if [ "${BUILT}" == "true" ]; then
   fi
 fi
 
-if [ "${GITHUB_BUILD}" == "true" ] && [[ -n "${GITHUB_RELEASE_TAG}" ]] && [ "${BUILT}" == "false" ]; then
+if [ "${GITHUB_BUILD}" == "true" ] && [[ "${GITHUB_RELEASE_TAG}" != "head" ]] && [[ -n "${GITHUB_RELEASE_TAG}" ]] && [ "${BUILT}" == "false" ]; then
   echo -e "${YELLOW}Github release tag ${RESET}${BOLD}${GITHUB_RELEASE_TAG}${RESET}${YELLOW} did not match any package name.${RESET}"
   echo -e "${YELLOW}Stopping build${RESET}"
 
@@ -469,7 +474,7 @@ if [ "${GITHUB_BUILD}" == "false" ]; then
   echo -e "${CYAN}Extension version: ${EXT_VERSION}${RESET}"
 
   # Build the container image
-  ${SCRIPT_DIR}/bundle "${BASE_EXT}" "${EXT_VERSION}" "${REGISTRY}" "${REGISTRY_ORG}" "${IMAGE_PREFIX}" "${PUSH}" "${PODMAN_CONTAINER}"
+  ${SCRIPT_DIR}/bundle "${BASE_EXT}" "${EXT_VERSION}" "${REGISTRY}" "${REGISTRY_ORG}" "${IMAGE_PREFIX}" "${PUSH}" "${PODMAN_CONTAINER}" || exit 1
 else
   rm -rf ${CHART_TEMPLATE}
 fi

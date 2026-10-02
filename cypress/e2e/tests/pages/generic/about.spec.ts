@@ -91,58 +91,14 @@ describe('About Page', { testIsolation: true, tags: ['@generic', '@adminUser', '
     }));
   });
 
-  describe('CLI Downloads', () => {
-    // Shouldn't be needed with https://github.com/rancher/dashboard/issues/11393
-    const expectedLinkStatusCode = 200;
+  it('links to the Rancher CLI documentation instead of CLI binaries', () => {
+    aboutPage.goTo();
+    aboutPage.waitForPage();
 
-    // workaround to make the following CLI tests work https://github.com/cypress-io/cypress/issues/8089#issuecomment-1585159023
-    beforeEach(() => {
-      aboutPage.goTo();
-      aboutPage.waitForPage();
-      cy.intercept('GET', 'https://releases.rancher.com/cli2/**').as('download');
-    });
-
-    qase(1450, it('can download macOS CLI', () => {
-      aboutPage.getLinkDestination('rancher-darwin').then((el) => {
-        const macOsVersion = el.split('/')[5];
-
-        aboutPage.getCliDownloadLinkByLabel('rancher-darwin').then((el: any) => {
-          el.attr('download', '');
-        }).click();
-        cy.wait('@download').then(({ request, response }) => {
-          expect(response?.statusCode).to.eq(expectedLinkStatusCode);
-          expect(request.url).includes(macOsVersion);
-        });
-      });
-    }));
-
-    qase(1451, it('can download Linux CLI', () => {
-      aboutPage.getLinkDestination('rancher-linux').then((el) => {
-        const linuxVersion = el.split('/')[5];
-
-        aboutPage.getCliDownloadLinkByLabel('rancher-linux').then((el: any) => {
-          el.attr('download', '');
-        }).click();
-        cy.wait('@download').then(({ request, response }) => {
-          expect(response?.statusCode).to.eq(expectedLinkStatusCode);
-          expect(request.url).includes(linuxVersion);
-        });
-      });
-    }));
-
-    qase(1449, it('can download Windows CLI', () => {
-      aboutPage.getLinkDestination('rancher-windows').then((el) => {
-        const windowsVersion = el.split('/')[5];
-
-        aboutPage.getCliDownloadLinkByLabel('rancher-windows').then((el: any) => {
-          el.attr('download', '');
-        }).click();
-        cy.wait('@download').then(({ request, response }) => {
-          expect(response?.statusCode).to.eq(expectedLinkStatusCode);
-          expect(request.url).includes(windowsVersion);
-        });
-      });
-    }));
+    aboutPage.cliDocsLink()
+      .should('have.attr', 'href')
+      .and('include', '/reference-guides/cli-with-rancher/rancher-cli');
+    aboutPage.self().find('a[href*="releases.rancher.com/cli2"]').should('not.exist');
   });
 
   describe('Rancher Prime', { tags: '@prime' }, () => {

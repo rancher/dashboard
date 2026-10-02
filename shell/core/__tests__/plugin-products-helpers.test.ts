@@ -316,13 +316,16 @@ describe('plugin-products-helpers', () => {
       });
     });
 
-    it('should generate cluster-level extension resource route when extendProduct is true', () => {
+    it('should reuse the parent product core resource route when extendProduct is true', () => {
+      // An extended product's resource pages reuse the core `c-cluster-product-resource` route rather
+      // than a per-extension `c-cluster-my-product-resource`. A static product segment would outrank
+      // the core `:product` route and shadow the parent's specific virtual-type routes.
       const page: ProductChildPage = { type: 'provisioning.cattle.io.cluster' };
 
       const route = generateConfigureTypeRoute('my-product', page, { extendProduct: true });
 
-      expect(route.name).toBe('c-cluster-my-product-resource');
-      expect(route.path).toBe('c/:cluster/my-product/:resource');
+      expect(route.name).toBe('c-cluster-product-resource');
+      expect(route.path).toBe('c/:cluster/:product/:resource');
       expect(route.params).toStrictEqual({
         product:  'my-product',
         resource: 'provisioning.cattle.io.cluster',

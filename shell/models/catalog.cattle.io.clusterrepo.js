@@ -66,7 +66,7 @@ export default class ClusterRepo extends SteveModel {
       this.spec.forceUpdate = now;
       await this.save();
 
-      await this.waitForState('active', 10000, 1000);
+      await this.waitForState('active', 30000, 1000);
 
       if (dispatchLoad) {
         this.$dispatch('catalog/load', { force: true, repoKeys: [this._key] }, { root: true });

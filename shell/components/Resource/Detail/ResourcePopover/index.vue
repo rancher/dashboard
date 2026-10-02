@@ -13,13 +13,28 @@ export interface Props {
   id: string;
   currentStore?: string;
   detailLocation?: object;
+  /**
+   * Text shown before the resource has loaded, or when it can't be loaded. Defaults to the id
+   */
+  name?: string;
+  /**
+   * Show the state of the resource as a coloured dot next to the name
+   */
+  showStatus?: boolean;
+  /**
+   * Fetch the resource only when the user hovers or focuses it, rather than straight away.
+   * Use this where many popovers can be shown at once, e.g. in a table
+   */
+  lazy?: boolean;
 }
 </script>
 
 <script setup lang="ts">
 const store = useStore();
 const i18n = useI18n(store);
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  currentStore: undefined, detailLocation: undefined, name: undefined, showStatus: true, lazy: false
+});
 const card = ref<any>(null);
 const showPopover = ref<boolean>(false);
 
@@ -29,26 +44,38 @@ const fetch = useFetch(async() => {
   const r = await store.dispatch(`${ currentStore }/find`, { type: props.type, id: props.id });
 
   return r;
-});
+}, { immediate: !props.lazy });
+
+// A lazy popover fetches the resource the first time the user hovers or focuses it
+const loadResource = () => {
+  if (!fetch.value.data && !fetch.value.loading && !fetch.value.error) {
+    fetch.value.load();
+  }
+};
+
+const fallbackLocation = computed(() => props.detailLocation || fetch.value.data?.detailLocation);
 
 const stateBackground = computed(() => {
   return fetch.value.data?.stateSimpleColor || 'unknown';
 });
 
 const resourceTypeLabel = computed(() => {
-  if (!fetch.value.data) {
-    return '';
+  const resource = fetch.value.data;
+
+  if (resource?.parentNameOverride) {
+    return resource.parentNameOverride;
   }
 
-  const resource = fetch.value.data;
-  const currentStore = store.getters['currentStore'](resource.type);
-  const schema = store.getters[`${ currentStore }/schemaFor`](resource.type);
+  // The type is known before the resource is fetched, e.g. while a lazy popover waits to be opened
+  const type = resource?.type || props.type;
+  const currentStore = store.getters['currentStore'](type);
+  const schema = store.getters[`${ currentStore }/schemaFor`](type);
 
-  return resource.parentNameOverride || store.getters['type-map/labelFor'](schema);
+  return schema ? store.getters['type-map/labelFor'](schema) : '';
 });
 
 const nameDisplay = computed(() => {
-  return fetch.value.data?.nameDisplay || '';
+  return fetch.value.data?.nameDisplay || props.name || props.id;
 });
 
 const actionInvoked = () => {
@@ -57,30 +84,32 @@ const actionInvoked = () => {
 </script>
 
 <template>
+  <!-- A lazy popover keeps its card when loading fails, because the user is hovering or focusing it at that point -->
   <PopoverCard
-    v-if="!fetch.error"
+    v-if="!fetch.error || props.lazy"
     class="resource-popover"
     :card-title="nameDisplay"
-    fallback-focus="[data-testid='resource-popover-action-menu']"
+    fallback-focus="[data-testid='resource-popover-action-menu'], [data-testid='resource-popover-loading'], [data-testid='resource-popover-error']"
     :show-popover-aria-label="i18n.t('component.resource.detail.glance.ariaLabel.showDetails', { name: nameDisplay, resource: resourceTypeLabel })"
+    @mouseenter="loadResource"
+    @focusin="loadResource"
   >
-    <span>
-      <span
-        v-if="fetch.data"
-        class="display"
-        @mouseenter="showPopover=true"
+    <span
+      class="display"
+      @mouseenter="showPopover=true"
+    >
+      <RcStatusIndicator
+        v-if="props.showStatus && fetch.data"
+        shape="disc"
+        :status="stateBackground"
+      />
+      <router-link
+        v-if="fallbackLocation"
+        :to="fallbackLocation"
       >
-        <RcStatusIndicator
-          shape="disc"
-          :status="stateBackground"
-        />
-        <router-link
-          :to="props.detailLocation || fetch.data.detailLocation || '#'"
-        >
-          {{ nameDisplay }}
-        </router-link>
-      </span>
-      <span v-else>{{ fetch.loading }}...</span>
+        {{ nameDisplay }}
+      </router-link>
+      <span v-else>{{ nameDisplay }}</span>
     </span>
     <template
       v-if="fetch.data"
@@ -93,19 +122,46 @@ const actionInvoked = () => {
         @action-invoked="close"
       />
     </template>
-    <template
-      v-if="fetch.data"
-      #card-body
-    >
+    <template #card-body>
       <ResourcePopoverCard
+        v-if="fetch.data"
         id="resource-popover-card"
         ref="card"
         :resource="fetch.data"
         @action-invoked="actionInvoked"
       />
+      <!-- Focusable so a card opened with the keyboard has somewhere to put focus -->
+      <div
+        v-else-if="fetch.error"
+        class="load-error text-muted"
+        data-testid="resource-popover-error"
+        role="status"
+        tabindex="-1"
+      >
+        {{ i18n.t('component.resource.detail.glance.loadError') }}
+      </div>
+      <div
+        v-else
+        class="loading"
+        data-testid="resource-popover-loading"
+        role="status"
+        tabindex="-1"
+        :aria-label="i18n.t('component.resource.detail.glance.ariaLabel.loading')"
+      >
+        <i
+          class="icon icon-spinner icon-spin"
+          aria-hidden="true"
+        />
+      </div>
     </template>
   </PopoverCard>
-  <span v-else>{{ props.id }}</span>
+  <router-link
+    v-else-if="props.detailLocation"
+    :to="props.detailLocation"
+  >
+    {{ nameDisplay }}
+  </router-link>
+  <span v-else>{{ nameDisplay }}</span>
 </template>
 
 <style lang="scss" scoped>
@@ -124,6 +180,17 @@ const actionInvoked = () => {
       text-overflow: ellipsis;
       white-space: nowrap;
       min-width: 0;
+    }
+  }
+
+  .loading, .load-error {
+    // Same width as the loaded card, so the popover doesn't jump when the details replace the spinner
+    width: 288px;
+    padding: 16px 0;
+    text-align: center;
+
+    &:focus-visible {
+      @include focus-outline;
     }
   }
 

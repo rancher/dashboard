@@ -4,6 +4,7 @@ import { WORKLOAD_TYPES, SERVICE, INGRESS, GATEWAY_API } from '@shell/config/typ
 import HttpRoute from '@shell/models/gateway.networking.k8s.io.httproute';
 import Gateway from '@shell/models/gateway.networking.k8s.io.gateway';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
+import Pod from '@shell/models/pod';
 
 describe('class: Workload', () => {
   describe('given custom workload keys', () => {
@@ -1062,6 +1063,37 @@ describe('class: Workload', () => {
       ]);
     });
 
+    const makeRoute = (name: string, path: string) => new HttpRoute({
+      metadata: { name, namespace: 'default' },
+      spec:     {
+        parentRefs: [{ name: 'gw' }],
+        hostnames:  ['demo.example.com'],
+        rules:      [{ matches: [{ path: { value: path } }], backendRefs: [{ name: 'svc1' }] }]
+      }
+    }, {
+      rootGetters: {
+        'cluster/schemaFor': () => ({}),
+        'cluster/all':       (type: string) => (type === GATEWAY_API.GATEWAY ? [mockGateway] : [])
+      }
+    });
+
+    it('should show a link once when two routes send it to the workload', () => {
+      const routes = [mockRoute, makeRoute('route2', '/shop')];
+
+      expect(makeWorkload(undefined, routes).gatewayEndpoints).toStrictEqual([
+        { link: 'http://demo.example.com/shop', linkDisplay: 'http://demo.example.com/shop' }
+      ]);
+    });
+
+    it('should keep the links of every route when they differ', () => {
+      const routes = [mockRoute, makeRoute('route2', '/cart')];
+
+      expect(makeWorkload(undefined, routes).gatewayEndpoints).toStrictEqual([
+        { link: 'http://demo.example.com/shop', linkDisplay: 'http://demo.example.com/shop' },
+        { link: 'http://demo.example.com/cart', linkDisplay: 'http://demo.example.com/cart' }
+      ]);
+    });
+
     it('should combine published endpoints with gateway endpoints', () => {
       const workload = makeWorkload({ [CATTLE_PUBLIC_ENDPOINTS]: JSON.stringify([publicEndpoint]) }, [mockRoute]);
 
@@ -1074,6 +1106,86 @@ describe('class: Workload', () => {
     it('should be undefined when the workload is exposed by nothing, so the masthead row stays hidden', () => {
       // An empty array would be truthy and leave a labelled Endpoints row with no value.
       expect(makeWorkload(undefined).detailEndpoints).toBeUndefined();
+    });
+  });
+
+  describe('getter: restartCount', () => {
+    const makeWorkload = (pods: any[], type = WORKLOAD_TYPES.DEPLOYMENT) => {
+      const workload = new Workload({ type, metadata: { name: 'test', namespace: 'default' } }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key, 'cluster/schemaFor': () => undefined },
+      });
+
+      Object.defineProperty(workload, 'pods', { get: () => pods });
+
+      return workload;
+    };
+
+    const makePod = (spec: any, status: any) => new Pod({
+      metadata: { name: 'test-abcde', namespace: 'default' }, spec, status
+    }, {
+      getters: {}, dispatch: jest.fn(), rootGetters: {}
+    });
+
+    it.each([
+      ['no pods', [], 0],
+      ['pods that never restarted', [{ totalRestartCount: 0 }, { totalRestartCount: 0 }], 0],
+      ['pods that restarted', [{ totalRestartCount: 17 }, { totalRestartCount: 16 }, { totalRestartCount: 18 }], 51],
+      ['a pod without a restart count', [{ totalRestartCount: 2 }, {}], 2],
+      ['a very large number of restarts', [{ totalRestartCount: Number.MAX_SAFE_INTEGER - 1 }, { totalRestartCount: 1 }], Number.MAX_SAFE_INTEGER],
+    ])('should add up the restarts of %s', (_, pods, expected) => {
+      expect(makeWorkload(pods).restartCount).toStrictEqual(expected);
+    });
+
+    it.each([
+      WORKLOAD_TYPES.DEPLOYMENT,
+      WORKLOAD_TYPES.DAEMON_SET,
+      WORKLOAD_TYPES.STATEFUL_SET,
+      WORKLOAD_TYPES.REPLICA_SET,
+      WORKLOAD_TYPES.JOB,
+      WORKLOAD_TYPES.CRON_JOB,
+      WORKLOAD_TYPES.REPLICATION_CONTROLLER,
+    ])('should count the restarts of sidecar containers like kubectl and the Pods list, for a %s', (type) => {
+      // Restarts of a sidecar (an init container that keeps running) count, as they do in the RESTARTS column of kubectl
+      const pod = makePod({
+        initContainers: [{ name: 'sidecar', restartPolicy: 'Always' }],
+        containers:     [{ name: 'app' }],
+      }, {
+        conditions:            [{ type: 'Initialized', status: 'True' }],
+        initContainerStatuses: [{
+          name: 'sidecar', restartCount: 2, started: true, ready: true
+        }],
+        containerStatuses: [{
+          name: 'app', restartCount: 3, ready: true, state: { running: {} }
+        }],
+      });
+
+      expect(makeWorkload([pod, pod], type).restartCount).toStrictEqual(10);
+    });
+
+    it('should show the restarts in the masthead', () => {
+      const restarts: any = makeWorkload([{ totalRestartCount: 4 }]).details.find((item: any) => item.label === 'resourceDetail.masthead.restartCount');
+
+      expect(restarts?.content).toStrictEqual(4);
+    });
+  });
+
+  describe('getter: ready', () => {
+    const makeWorkload = (type: string, spec: any, status: any) => new Workload({
+      type, metadata: { name: 'test', namespace: 'default' }, spec, status
+    }, {
+      getters: {}, dispatch: jest.fn(), rootGetters: {}
+    });
+
+    it.each([
+      [WORKLOAD_TYPES.DEPLOYMENT, { replicas: 3 }, { replicas: 3, unavailableReplicas: 1 }, '2/3'],
+      [WORKLOAD_TYPES.STATEFUL_SET, { replicas: 3 }, { replicas: 3 }, '3/3'],
+      [WORKLOAD_TYPES.REPLICATION_CONTROLLER, { replicas: 2 }, { replicas: 2, unavailableReplicas: 2 }, '0/2'],
+      [WORKLOAD_TYPES.DAEMON_SET, {}, { replicas: 4, unavailableReplicas: 1 }, 3],
+      [WORKLOAD_TYPES.DEPLOYMENT, { replicas: 3 }, undefined, '0/3'],
+    ])('should count the replicas that are not unavailable for a %s', (type, spec, status, expected) => {
+      expect(makeWorkload(type, spec, status).ready).toStrictEqual(expected);
     });
   });
 });

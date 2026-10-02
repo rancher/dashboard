@@ -1,6 +1,8 @@
 import { PluginProduct } from '@shell/core/plugin-products';
 import { IExtension } from '@shell/core/types';
 import { ProductChildGroup, ProductChildPage, ProductMetadata, StandardProductNames } from '@shell/core/plugin-products-external';
+import { ProductChildResourcePageInternal } from '@shell/core/plugin-products-internal';
+import { IF_HAVE } from '@shell/store/type-map';
 
 // Mock the helper functions
 jest.mock('@shell/core/plugin-products-helpers', () => ({
@@ -67,6 +69,19 @@ function createMockStore(extendableProducts: string[] = Object.values(StandardPr
       'type-map/productByName': (productName: string) => (extendableProducts.includes(productName) ? { name: productName, extendable: true } : undefined),
       'management/schemaFor':   (type: string) => (managementSchemas.includes(type) ? { id: type } : undefined),
     }
+  };
+}
+
+function createMockDSL() {
+  return {
+    product:             jest.fn(),
+    basicType:           jest.fn(),
+    labelGroup:          jest.fn(),
+    setGroupDefaultType: jest.fn(),
+    weightGroup:         jest.fn(),
+    virtualType:         jest.fn(),
+    configureType:       jest.fn(),
+    weightType:          jest.fn(),
   };
 }
 
@@ -381,6 +396,84 @@ describe('pluginProduct', () => {
       );
     });
 
+    it('should register a nested group with a component under its own hierarchical path', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const config: ProductChildGroup[] = [
+        {
+          name:      'parent',
+          label:     'Parent',
+          component: { name: 'ParentOverview' },
+          sideMenu:  {
+            children: [
+              {
+                name:      'nested',
+                label:     'Nested',
+                component: { name: 'NestedOverview' },
+                sideMenu:  {
+                  children: [{
+                    name: 'leaf', label: 'Leaf', component: { name: 'LeafComponent' }
+                  }]
+                },
+              },
+            ],
+          },
+        },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'nested-overview', label: 'Nested Overview' }, config);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      // Without this the nested group's overview page is registered in the parent group, which puts it
+      // beside the nested group rather than inside it, and the nested header can never link to it
+      expect(mockDSL.basicType).toHaveBeenCalledWith(
+        expect.arrayContaining(['nestedoverview-parent-nested']),
+        'nestedoverview-parent::nestedoverview-parent-nested'
+      );
+    });
+
+    it('should not register a nested group without a component under its own hierarchical path', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const config: ProductChildGroup[] = [
+        {
+          name:     'parent',
+          label:    'Parent',
+          sideMenu: {
+            children: [
+              {
+                name:     'nested',
+                label:    'Nested',
+                sideMenu: {
+                  children: [{
+                    name: 'leaf', label: 'Leaf', component: { name: 'LeafComponent' }
+                  }]
+                },
+              },
+            ],
+          },
+        },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'nested-plain', label: 'Nested Plain' }, config);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(mockDSL.basicType).toHaveBeenCalledWith(
+        ['nestedplain-parent-nested-leaf'],
+        'nestedplain-parent::nestedplain-parent-nested'
+      );
+    });
+
     it('should apply group weight when specified', () => {
       const mockPlugin = createMockPlugin();
       const mockStore = createMockStore();
@@ -427,6 +520,157 @@ describe('pluginProduct', () => {
         50,
         true
       );
+    });
+  });
+
+  describe('group enableOverviewPage conditions', () => {
+    const groupWithComponent = (enableOverviewPage?: ProductChildGroup['enableOverviewPage']): ProductChildGroup[] => [
+      {
+        name:      'certmanager',
+        label:     'Cert Manager',
+        component: { name: 'CertManagerOverview' },
+        enableOverviewPage,
+        sideMenu:  { children: [{ type: 'cert-manager.io.certificate' }] },
+      },
+    ];
+
+    const overviewCallFor = (mockDSL: ReturnType<typeof createMockDSL>, name: string) => mockDSL.virtualType.mock.calls.find((call) => call[0].name === name)?.[0];
+
+    it('should reject enableOverviewPage on a group with no component at compile time', () => {
+      // The only thing wrong with this literal is "enableOverviewPage" without a "component" - drop that
+      // one property and it type checks. If the constraint is ever lost the directive below becomes an
+      // unused-directive error of its own, so the suite stops compiling either way.
+      // @ts-expect-error - "enableOverviewPage" is only available on a group that defines a "component"
+      const invalidGroup: ProductChildGroup = {
+        name:               'nocomponent',
+        label:              'No Component',
+        sideMenu:           { children: [] },
+        enableOverviewPage: { ifHaveType: 'test.io.thing' },
+      };
+
+      expect(invalidGroup.name).toStrictEqual('nocomponent');
+    });
+
+    it('should apply every enableOverviewPage condition to the group overview virtualType', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const config = groupWithComponent({
+        ifHave:     IF_HAVE.ADMIN,
+        ifFeature:  'some-feature',
+        ifHaveType: 'cert-manager.io.certificate',
+        ifHaveVerb: 'GET',
+      });
+
+      new PluginProduct(mockPlugin, { name: 'gated', label: 'Gated' }, config).apply(mockPlugin, mockStore);
+
+      expect(overviewCallFor(mockDSL, 'gated-certmanager')).toStrictEqual({
+        label:      'Cert Manager',
+        labelKey:   undefined,
+        namespaced: false,
+        name:       'gated-certmanager',
+        weight:     undefined,
+        exact:      true,
+        overview:   true,
+        route:      expect.any(Object),
+        ifHave:     IF_HAVE.ADMIN,
+        ifFeature:  'some-feature',
+        ifHaveType: 'cert-manager.io.certificate',
+        ifHaveVerb: 'GET',
+      });
+    });
+
+    it('should leave the group overview virtualType ungated when no enableOverviewPage block is given', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      new PluginProduct(mockPlugin, { name: 'ungated', label: 'Ungated' }, groupWithComponent()).apply(mockPlugin, mockStore);
+
+      const call = overviewCallFor(mockDSL, 'ungated-certmanager');
+
+      expect(call).not.toHaveProperty('ifHave');
+      expect(call).not.toHaveProperty('ifFeature');
+      expect(call).not.toHaveProperty('ifHaveType');
+      expect(call).not.toHaveProperty('ifHaveVerb');
+    });
+
+    it('should gate a nested group on its own enableOverviewPage conditions', () => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const config: ProductChildGroup[] = [
+        {
+          name:      'certmanager',
+          label:     'Cert Manager',
+          component: { name: 'CertManagerOverview' },
+          sideMenu:  {
+            children: [
+              {
+                name:               'advanced',
+                label:              'Advanced',
+                component:          { name: 'AdvancedOverview' },
+                enableOverviewPage: { ifHaveType: 'cert-manager.io.clusterissuer' },
+                sideMenu:           { children: [{ type: 'cert-manager.io.clusterissuer' }] },
+              },
+            ],
+          },
+        },
+      ];
+
+      new PluginProduct(mockPlugin, { name: 'nestedgate', label: 'Nested Gate' }, config).apply(mockPlugin, mockStore);
+
+      expect(overviewCallFor(mockDSL, 'nestedgate-certmanager-advanced')).toMatchObject({
+        overview:   true,
+        ifHaveType: 'cert-manager.io.clusterissuer',
+      });
+      // the parent is not gated just because a child is
+      expect(overviewCallFor(mockDSL, 'nestedgate-certmanager')).not.toHaveProperty('ifHaveType');
+    });
+
+    it.each([
+      ['a root group', undefined],
+      ['a nested group', 'nested'],
+    ])('should throw when %s declares enableOverviewPage but has no component', (_label, nestedName) => {
+      const mockPlugin = createMockPlugin();
+      const mockStore = createMockStore();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const enableOverviewPage = { ifHaveType: 'cert-manager.io.certificate' };
+      const leaf = {
+        name: 'leaf', label: 'Leaf', component: { name: 'LeafComponent' }
+      };
+
+      // deliberately invalid - the types forbid "enableOverviewPage" without a "component", but
+      // extensions written in JS get no such protection, so the runtime guard has to catch it
+      const config = (nestedName ? [
+        {
+          name:      'parent',
+          label:     'Parent',
+          component: { name: 'ParentOverview' },
+          sideMenu:  {
+            children: [{
+              name: nestedName, label: 'Nested', enableOverviewPage, sideMenu: { children: [leaf] }
+            }],
+          },
+        },
+      ] : [{
+        name: 'parent', label: 'Parent', enableOverviewPage, sideMenu: { children: [leaf] }
+      }]) as unknown as ProductChildGroup[];
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'badgate', label: 'Bad Gate' }, config);
+
+      expect(() => pluginProduct.apply(mockPlugin, mockStore)).toThrow(/has an "enableOverviewPage" block but no "component"/);
     });
   });
 
@@ -763,6 +1007,276 @@ describe('pluginProduct', () => {
     });
   });
 
+  /* eslint-disable no-console */
+  describe('warnIfIgnoredType', () => {
+    const createMockDSL = () => ({
+      product:             jest.fn(),
+      basicType:           jest.fn(),
+      labelGroup:          jest.fn(),
+      setGroupDefaultType: jest.fn(),
+      weightGroup:         jest.fn(),
+      virtualType:         jest.fn(),
+      configureType:       jest.fn(),
+      weightType:          jest.fn(),
+      mapType:             jest.fn(),
+      ignoreType:          jest.fn(),
+      hideBulkActions:     jest.fn(),
+      headers:             jest.fn(),
+    });
+
+    const createStoreWithTypeMapState = (
+      typeIgnore: string[] = [],
+      groupIgnore: (string | { type: string; cb: Function })[] = [],
+      schemaMap: Record<string, { attributes?: { group?: string } }> = {}
+    ): any => ({
+      state:   { 'type-map': { typeIgnore, groupIgnore } },
+      getters: {
+        'type-map/productByName': () => undefined,
+        'management/schemaFor':   (type: string) => schemaMap[type],
+      },
+    });
+
+    beforeEach(() => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      (console.warn as jest.Mock).mockRestore();
+    });
+
+    it('should warn when resource page type matches a global typeIgnore rule', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const ignoredTypeRegexSource = '^management\\.cattle\\.io\\.user$';
+      const mockStore = createStoreWithTypeMapState([ignoredTypeRegexSource]);
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type: 'management.cattle.io.user', label: 'Users' },
+      ]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('"management.cattle.io.user" is globally ignored via ignoreType()')
+      );
+    });
+
+    it('should warn when resource page type belongs to a hard-ignored group', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const ignoredGroupRegexSource = '^harvesterhci\\.io$';
+      const mockStore = createStoreWithTypeMapState(
+        [],
+        [ignoredGroupRegexSource],
+        { 'harvesterhci.io.host': { attributes: { group: 'harvesterhci.io' } } }
+      );
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type: 'harvesterhci.io.host', label: 'Hosts' },
+      ]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('"harvesterhci.io.host" belongs to API group "harvesterhci.io" which is globally ignored')
+      );
+    });
+
+    it('should warn when resource page type belongs to a conditionally ignored group', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const conditionalGroupRule = { type: '^harvesterhci\\.io$', cb: jest.fn() };
+      const mockStore = createStoreWithTypeMapState(
+        [],
+        [conditionalGroupRule],
+        { 'harvesterhci.io.host': { attributes: { group: 'harvesterhci.io' } } }
+      );
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type: 'harvesterhci.io.host', label: 'Hosts' },
+      ]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('"harvesterhci.io.host" belongs to API group "harvesterhci.io" which is conditionally ignored at runtime')
+      );
+    });
+
+    it('should not warn when hideFromNav is true even if the type is globally ignored', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const ignoredTypeRegexSource = '^management\\.cattle\\.io\\.user$';
+      const mockStore = createStoreWithTypeMapState([ignoredTypeRegexSource]);
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        {
+          type:     'management.cattle.io.user',
+          label:    'Users',
+          sideMenu: { hideFromNav: true },
+        } as ProductChildResourcePageInternal,
+      ]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
+    it('should not warn for a normal type that is not in any ignore list', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const mockStore = createStoreWithTypeMapState(
+        ['^management\\.cattle\\.io\\.user$'],
+        [],
+        { 'apps.deployment': { attributes: { group: 'apps' } } }
+      );
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type: 'apps.deployment', label: 'Deployments' },
+      ]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
+    it('should name ignoreGroup() and suggest a custom page in the group warning', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const mockStore = createStoreWithTypeMapState(
+        [],
+        ['^harvesterhci\\.io$'],
+        { 'harvesterhci.io.host': { attributes: { group: 'harvesterhci.io' } } }
+      );
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type: 'harvesterhci.io.host', label: 'Hosts' },
+      ]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      expect(console.warn).toHaveBeenCalledWith(
+        // the product name is reported as registered internally - dashes are stripped by the base class
+        '[Extensions] Product "myproduct": resource page type "harvesterhci.io.host" belongs to API group "harvesterhci.io" which is globally ignored via ignoreGroup() and will not appear in the navigation. Use a ProductChildCustomPage with a custom component instead.'
+      );
+    });
+
+    it('should emit a single warning for the first matching rule when a type matches both a typeIgnore and a groupIgnore rule', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const mockStore = createStoreWithTypeMapState(
+        ['^harvesterhci\\.io\\.host$'],
+        ['^harvesterhci\\.io$'],
+        { 'harvesterhci.io.host': { attributes: { group: 'harvesterhci.io' } } }
+      );
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type: 'harvesterhci.io.host', label: 'Hosts' },
+      ]);
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      // typeIgnore is checked before groupIgnore, so the developer gets the most specific reason only once
+      expect(console.warn).toHaveBeenCalledTimes(1);
+      expect(console.warn).toHaveBeenCalledWith(
+        // the product name is reported as registered internally - dashes are stripped by the base class
+        '[Extensions] Product "myproduct": resource page type "harvesterhci.io.host" is globally ignored via ignoreType() and will not appear in the navigation. Use a ProductChildCustomPage with a custom component instead.'
+      );
+    });
+
+    it.each([
+      [
+        'the store has no type-map state',
+        (): any => ({
+          state:   {},
+          getters: {
+            'type-map/productByName': () => undefined,
+            'management/schemaFor':   () => undefined,
+          },
+        }),
+        'apps.deployment',
+      ],
+      [
+        'the type-map state holds no ignore lists',
+        (): any => ({
+          state:   { 'type-map': {} },
+          getters: {
+            'type-map/productByName': () => undefined,
+            'management/schemaFor':   () => undefined,
+          },
+        }),
+        'apps.deployment',
+      ],
+      [
+        'the type has no schema, so no API group can be resolved',
+        (): any => createStoreWithTypeMapState([], ['^harvesterhci\\.io$'], {}),
+        'harvesterhci.io.host',
+      ],
+      [
+        'the management schemas have not loaded yet',
+        (): any => ({
+          state:   { 'type-map': { typeIgnore: [], groupIgnore: ['^harvesterhci\\.io$'] } },
+          getters: {
+            'type-map/productByName': () => undefined,
+            // mirrors the real getter, which throws unless allowThrow is explicitly false
+            'management/schemaFor':   (_type: string, _fuzzy = false, allowThrow = true) => {
+              if (allowThrow) {
+                throw new Error("Schemas aren't loaded yet");
+              }
+
+              return null;
+            },
+          },
+        }),
+        'harvesterhci.io.host',
+      ],
+      [
+        'a conditional groupIgnore rule is missing its type property',
+        (): any => createStoreWithTypeMapState(
+          [],
+          [{ cb: jest.fn() } as any],
+          { 'harvesterhci.io.host': { attributes: { group: 'harvesterhci.io' } } }
+        ),
+        'harvesterhci.io.host',
+      ],
+    ])('should not warn when %s', (_scenario, createStore, type) => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = createMockDSL();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type, label: 'A page' },
+      ]);
+
+      pluginProduct.apply(mockPlugin, createStore());
+
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+  });
+  /* eslint-enable no-console */
+
   describe('state verification', () => {
     it('should set newProduct flag for new products', () => {
       const mockPlugin = createMockPlugin();
@@ -783,6 +1297,52 @@ describe('pluginProduct', () => {
       const pluginProduct = new PluginProduct(mockPlugin, validStandardProduct, []);
 
       expect(pluginProduct.newProduct).toBe(false);
+    });
+  });
+
+  describe('vuex state serialisation', () => {
+    it('should not leave a store reference on the product, keeping root state serialisable', () => {
+      const mockPlugin = createMockPlugin();
+      const mockDSL = {
+        product:             jest.fn(),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+        mapType:             jest.fn(),
+        ignoreType:          jest.fn(),
+        hideBulkActions:     jest.fn(),
+        headers:             jest.fn(),
+      };
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+      const pluginProduct = new PluginProduct(mockPlugin, { name: 'my-product', label: 'My Product' }, [
+        { type: 'apps.deployment', label: 'Deployments' },
+      ]);
+
+      // Mirror how the app wires this up: product instances are reachable from vuex state via
+      // `uiplugins.plugins[].productConfigs[]`, and the store's `state` is the root state itself
+      const rootState: any = {
+        'type-map': { typeIgnore: [], groupIgnore: [] },
+        uiplugins:  { plugins: [{ name: 'my-extension', productConfigs: [pluginProduct] }] },
+      };
+      const mockStore: any = {
+        state:   rootState,
+        getters: {
+          'type-map/productByName': () => undefined,
+          'management/schemaFor':   () => undefined,
+        },
+      };
+
+      pluginProduct.apply(mockPlugin, mockStore);
+
+      // The Diagnostics page serialises the whole root state, so a store reference held on the
+      // product would close a cycle here and break the diagnostics package download
+      expect(() => JSON.stringify(rootState)).not.toThrow();
     });
   });
 });
