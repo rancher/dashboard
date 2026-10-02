@@ -122,6 +122,11 @@ export const useDropdownContext = (emit: EmitFn<['update:open']>) => {
       return;
     }
 
+    // The popper's box outlives an opening, so what an earlier one set is undone first
+    const scroller = target.closest('.v-popper__inner') as HTMLElement | null || target;
+
+    scroller.style.overflowY = '';
+
     const { top, bottom } = target.getBoundingClientRect();
     const padding = 32;
 
@@ -136,7 +141,7 @@ export const useDropdownContext = (emit: EmitFn<['update:open']>) => {
       target.style.height = `${ height - padding }px`;
       // Only a menu cut to the screen scrolls. The popper's box scrolls rather than the menu, so
       // content reaching over the menu's padding, such as a banner meeting its top, isn't clipped
-      (target.closest('.v-popper__inner') as HTMLElement | null || target).style.overflowY = 'auto';
+      scroller.style.overflowY = 'auto';
     }
   };
 

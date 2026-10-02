@@ -81,7 +81,6 @@ provideDropdownContext();
 
 const popperContainer = ref<HTMLElement | null>(null);
 const dropdownTarget = ref<HTMLElement | null>(null);
-const submenuContainer = ref<HTMLElement | null>(null);
 
 watch(() => props.open, (open) => {
   if (open === isMenuOpen.value) {
@@ -194,7 +193,8 @@ const applyShow = () => {
         </slot>
       </div>
 
-      <!-- Beside the menu, never over it: flipping would cover the items the pointer came from -->
+      <!-- Beside the menu, never over it: flipping would cover the items the pointer came from. Its
+           popper goes beside the menu's rather than inside it, which scrolls once cut to the screen -->
       <v-dropdown
         v-if="registeredSubmenus.length"
         no-auto-focus
@@ -202,7 +202,7 @@ const applyShow = () => {
         :triggers="[]"
         :shown="!!activeSubmenu"
         :auto-hide="false"
-        :container="submenuContainer"
+        :container="popperContainer"
         :placement="shownSubmenu?.side === 'left' ? 'left-start' : 'right-start'"
         :distance="-menuBorder"
         :flip="false"
@@ -233,12 +233,6 @@ const applyShow = () => {
           </div>
         </template>
       </v-dropdown>
-      <div
-        ref="submenuContainer"
-        class="submenuContainer"
-      >
-        <!--Empty container for mounting the submenu-->
-      </div>
     </template>
   </v-dropdown>
   <div
@@ -292,10 +286,6 @@ const applyShow = () => {
         overflow-y: auto;
       }
     }
-  }
-
-  .submenuContainer {
-    display: contents;
   }
 
   .dropdownTarget {
