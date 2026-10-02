@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
  * The question useConfirm asks, opened through the shell's modal API and laid out like the shell's
- * own dialogs (see RedeployWorkloadDialog): a Card with the title, the question, then Cancel on the
- * left and the action on the right
+ * own prompts (see GenericPrompt): a Card with the title, the question, then Cancel and the action
+ * together on the right
  */
 import { onMounted } from 'vue';
 import { useStore } from 'vuex';
@@ -57,24 +57,27 @@ function answer(ok: boolean): void {
     </template>
 
     <template #actions>
-      <button
-        role="button"
-        class="btn role-secondary"
-        data-testid="configurable-views-confirm-cancel"
-        @click="answer(false)"
-      >
-        {{ t('generic.cancel') }}
-      </button>
-      <div class="spacer" />
-      <button
-        role="button"
-        class="btn ml-10"
-        :class="danger ? 'bg-error' : 'role-primary'"
-        data-testid="configurable-views-confirm-action"
-        @click="answer(true)"
-      >
-        {{ action }}
-      </button>
+      <div class="configurable-views-confirm__bottom">
+        <div class="configurable-views-confirm__buttons">
+          <button
+            role="button"
+            class="btn role-secondary mr-10"
+            data-testid="configurable-views-confirm-cancel"
+            @click="answer(false)"
+          >
+            {{ t('generic.cancel') }}
+          </button>
+          <button
+            role="button"
+            class="btn"
+            :class="danger ? 'bg-error' : 'role-primary'"
+            data-testid="configurable-views-confirm-action"
+            @click="answer(true)"
+          >
+            {{ action }}
+          </button>
+        </div>
+      </div>
     </template>
   </Card>
 </template>
@@ -85,8 +88,17 @@ function answer(ok: boolean): void {
     box-shadow: none;
   }
 
-  .spacer {
-    flex: 1;
+  // As GenericPrompt: the actions fill the row and sit at its right end
+  &__bottom {
+    display:        flex;
+    flex:           1;
+    flex-direction: column;
+  }
+
+  &__buttons {
+    display:         flex;
+    justify-content: flex-end;
+    width:           100%;
   }
 }
 </style>
