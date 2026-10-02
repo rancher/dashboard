@@ -14,6 +14,13 @@ export default class CodeMirrorPo extends ComponentPo {
   }
 
   /**
+   * Find the first editor on the page
+   */
+  static first(options?: Partial<Cypress.Timeoutable>): CodeMirrorPo {
+    return new CodeMirrorPo(cy.get('.CodeMirror', options).first());
+  }
+
+  /**
    * Type value in the input
    * @param value Value to be typed
    * @returns
