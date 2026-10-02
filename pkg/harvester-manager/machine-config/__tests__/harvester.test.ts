@@ -315,6 +315,34 @@ describe('component: harvester machine config - PCI devices', () => {
     });
   });
 
+  describe('add row', () => {
+    const GPU_OPTION = { label: GPU_TYPE, value: GPU_TYPE };
+    const NIC_OPTION = { label: NIC_TYPE, value: NIC_TYPE };
+
+    const createCtx = (pciDeviceOptions: any[], hostDevices: string[]) => ({ pciDeviceOptions, hostDevices });
+
+    it.each([
+      [[], [GPU_TYPE, NIC_TYPE]],
+      [[GPU_TYPE], [NIC_TYPE, GPU_TYPE]],
+      [[NIC_TYPE], [GPU_TYPE, NIC_TYPE]],
+    ])('should list unselected devices first when %p is selected', (hostDevices, expected) => {
+      const ctx = createCtx([GPU_OPTION, NIC_OPTION], hostDevices);
+
+      expect(harvester.computed.hostDeviceSelectOptions.call(ctx).map((o: any) => o.value)).toStrictEqual(expected);
+    });
+
+    it.each([
+      [[GPU_OPTION, NIC_OPTION], [], false],
+      [[GPU_OPTION, NIC_OPTION], [GPU_TYPE], false],
+      [[GPU_OPTION, NIC_OPTION], [GPU_TYPE, NIC_TYPE], true],
+      [[], [], true],
+    ])('should disable add for options %p and selection %p: %p', (options, hostDevices, expected) => {
+      const ctx = createCtx(options, hostDevices);
+
+      expect(harvester.computed.hostDevicesAddDisabled.call(ctx)).toStrictEqual(expected);
+    });
+  });
+
   describe('pciDeviceOptionLabel', () => {
     const label = (pciDevice: any, mode = _EDIT) => harvester.methods.pciDeviceOptionLabel.call({
       mode, t: mockT, pciDevices: { a: pciDevice }
