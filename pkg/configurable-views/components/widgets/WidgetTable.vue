@@ -15,6 +15,7 @@ import {
 import { isDownstream, PAGINATION_CONTEXT } from '../../templating/widget-catalog';
 import { useWidgetCluster, NO_CLUSTER } from '../../composables/useWidgetCluster';
 import { useClusterPage } from '../../composables/useClusterPage';
+import { useSharedTypeList } from '../../composables/useSharedTypeList';
 import type { ResourceRow, WidgetSpec } from '../../templating/types';
 
 // TABLE — "Rows of a resource with the columns you pick".
@@ -179,8 +180,11 @@ const paginationHeaders = computed(() => headers.value.map((header) => {
  * the column's default), and the filter, which is part of the request rather than something applied
  * to rows afterwards.
  */
+// Rebuilt, too, when another table of the same global type leaves the page (see useSharedTypeList).
+const shared = useSharedTypeList(() => (!downstream.value && props.widget.resource ? `${ inStore.value }/${ props.widget.resource }` : null));
+
 const tableKey = computed(() => JSON.stringify([
-  props.widget.resource, props.widget.sortBy, props.widget.sortDir, props.widget.filter || '', scoped.value ? props.widget.targets : [], paginationContext.value
+  props.widget.resource, props.widget.sortBy, props.widget.sortDir, props.widget.filter || '', scoped.value ? props.widget.targets : [], paginationContext.value, shared.value
 ]));
 
 // The table pages for us, so the spec's limit is a page size rather than a hard cut.
