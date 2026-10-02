@@ -1051,10 +1051,16 @@ $tab-height: 30px;
 }
 
 .menu-panel {
+  // A tab's menu mounts INSIDE the tab, so it would inherit the tab's type and colour: no size at all
+  // (see .vbar__slot) and, on the active tab, white. It takes back what a menu has anywhere else.
+  color: var(--dropdown-text, var(--body-text));
+  cursor: default;
   display: flex;
   flex-direction: column;
+  font-size: 14px;
   min-width: 240px;
   text-align: left;
+  white-space: normal;
 
   // Not named `icon-*`: the icon font claims `[class*=" icon-"]` with !important
   .menu-gutter {
