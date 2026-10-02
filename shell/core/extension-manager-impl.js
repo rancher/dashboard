@@ -6,6 +6,7 @@ import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 import { ExtensionPoint } from './types';
 import { addLinkInterceptor, removeLinkInterceptor } from '@shell/plugins/clean-html';
+import { forgetExtensionProductRouting } from '@shell/core/plugin-products-route-registry';
 
 export const DEVELOPER_LOAD_NAME_SUFFIX = '-developer-load';
 
@@ -253,6 +254,11 @@ export const createExtensionManager = (context) => {
       plugin.productNames.forEach((product) => {
         promises.push(store.dispatch('type-map/removeProduct', { product, plugin }));
       });
+
+      // Forget the routing of the products this plugin owns. Keyed off productConfigs rather than
+      // productNames, which also holds the products this plugin merely extends - forgetting one of
+      // those would drop the routing of a product another extension still owns.
+      plugin.productConfigs?.filter((p) => p.newProduct).forEach((p) => forgetExtensionProductRouting(p.productName));
 
       // Remove all of the types
       Object.keys(plugin.types).forEach((typ) => {

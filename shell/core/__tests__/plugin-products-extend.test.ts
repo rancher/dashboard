@@ -1,6 +1,11 @@
 import { PluginProduct } from '@shell/core/plugin-products';
 import { IExtension } from '@shell/core/types';
-import { ProductChildPage, StandardProductNames } from '@shell/core/plugin-products-external';
+import pluginProductsHelpers from '@shell/core/plugin-products-helpers';
+import {
+  ProductChild, ProductChildCustomPage, ProductChildPage, ProductChildResourcePage, ProductMetadata, StandardProductNames
+} from '@shell/core/plugin-products-external';
+import { ProductMetadataInternal } from '@shell/core/plugin-products-internal';
+import { resetExtensionProductRouting } from '@shell/core/plugin-products-route-registry';
 
 // Mock the helper functions
 jest.mock('@shell/core/plugin-products-helpers', () => ({
@@ -70,7 +75,30 @@ function createMockStore(extendableProducts: string[] = Object.values(StandardPr
   };
 }
 
+function createMockDSL(): any {
+  return {
+    product:             jest.fn(),
+    basicType:           jest.fn(),
+    labelGroup:          jest.fn(),
+    setGroupDefaultType: jest.fn(),
+    weightGroup:         jest.fn(),
+    virtualType:         jest.fn(),
+    configureType:       jest.fn(),
+    weightType:          jest.fn(),
+    mapType:             jest.fn(),
+    ignoreType:          jest.fn(),
+    hideBulkActions:     jest.fn(),
+    headers:             jest.fn(),
+  };
+}
+
 describe('pluginProduct', () => {
+  // The route registry outlives any single plugin, so it has to be cleared between tests
+  beforeEach(() => {
+    resetExtensionProductRouting();
+    jest.clearAllMocks();
+  });
+
   describe('extending standard product', () => {
     it('should extend an existing standard product with valid name', () => {
       const mockPlugin = createMockPlugin();
@@ -184,6 +212,180 @@ describe('pluginProduct', () => {
 
       new PluginProduct(mockPlugin, validStandardProduct, []);
 
+      expect(mockPlugin._registerTopLevelProduct).not.toHaveBeenCalled();
+    });
+  });
+
+  // See https://github.com/rancher/dashboard/issues/19124.
+  // A top level extension product routes as `<product>/c/:cluster/...`, which nothing in the core
+  // router covers, so extending one has to match that shape - and has to register the generic
+  // `:resource` routes when the product has no resource page of its own.
+  describe('extending a top level extension product', () => {
+    const TOP_LEVEL_PRODUCT = 'mytoplevelprod';
+
+    const customPage: ProductChildCustomPage = {
+      name:      'overview',
+      label:     'Overview',
+      component: { name: 'Overview' },
+    };
+
+    const resourcePage: ProductChildResourcePage = { type: 'some-resource' };
+
+    const generateResourceRoutes = pluginProductsHelpers.generateResourceRoutes as jest.Mock;
+    const generateConfigureTypeRoute = pluginProductsHelpers.generateConfigureTypeRoute as jest.Mock;
+    const generateVirtualTypeRoute = pluginProductsHelpers.generateVirtualTypeRoute as jest.Mock;
+
+    /** Registers `TOP_LEVEL_PRODUCT` as a top level product, which is what seeds the route registry */
+    function addTopLevelProduct(plugin: IExtension, config: ProductChild[], startRouteWithProduct = true) {
+      const product: ProductMetadataInternal = {
+        name:       TOP_LEVEL_PRODUCT,
+        label:      'My Top Level Product',
+        extendable: true,
+        startRouteWithProduct,
+      };
+
+      return new PluginProduct(plugin, product as ProductMetadata, config);
+    }
+
+    it('should register the generic resource routes when the product has no resource page of its own', () => {
+      const mockPlugin = createMockPlugin();
+
+      addTopLevelProduct(mockPlugin, [customPage]);
+      generateResourceRoutes.mockClear();
+
+      new PluginProduct(mockPlugin, TOP_LEVEL_PRODUCT, [resourcePage]);
+
+      expect(generateResourceRoutes).toHaveBeenCalledWith(
+        TOP_LEVEL_PRODUCT,
+        resourcePage,
+        { extendProduct: false, startRouteWithProduct: true }
+      );
+    });
+
+    it('should point the resource page at the product prefixed route rather than the core one', () => {
+      const mockPlugin = createMockPlugin();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(createMockDSL());
+
+      addTopLevelProduct(mockPlugin, [customPage]);
+      generateConfigureTypeRoute.mockClear();
+
+      new PluginProduct(mockPlugin, TOP_LEVEL_PRODUCT, [resourcePage]).apply(
+        mockPlugin,
+        createMockStore([TOP_LEVEL_PRODUCT])
+      );
+
+      expect(generateConfigureTypeRoute).toHaveBeenCalledWith(
+        TOP_LEVEL_PRODUCT,
+        resourcePage,
+        { extendProduct: false, startRouteWithProduct: true }
+      );
+    });
+
+    it('should register a custom page under the product prefixed path', () => {
+      const mockPlugin = createMockPlugin();
+
+      addTopLevelProduct(mockPlugin, [customPage]);
+      generateVirtualTypeRoute.mockClear();
+
+      const extraPage: ProductChildCustomPage = {
+        name:      'extra',
+        label:     'Extra',
+        component: { name: 'Extra' },
+      };
+
+      new PluginProduct(mockPlugin, TOP_LEVEL_PRODUCT, [extraPage]);
+
+      expect(generateVirtualTypeRoute).toHaveBeenCalledWith(
+        TOP_LEVEL_PRODUCT,
+        'extra',
+        {
+          component: extraPage.component, extendProduct: false, startRouteWithProduct: true
+        }
+      );
+    });
+
+    it('should mark the extending plugin as owning a product prefixed top level product', () => {
+      const mockPlugin = createMockPlugin();
+      const extendingPlugin = createMockPlugin();
+
+      addTopLevelProduct(mockPlugin, [customPage]);
+
+      new PluginProduct(extendingPlugin, TOP_LEVEL_PRODUCT, [resourcePage]);
+
+      expect(extendingPlugin._registerTopLevelProduct).toHaveBeenCalledWith(TOP_LEVEL_PRODUCT);
+      expect(extendingPlugin._setStartRouteWithProduct).toHaveBeenCalledWith(TOP_LEVEL_PRODUCT, true);
+    });
+
+    it('should not register the generic resource routes when the product already has a resource page', () => {
+      const mockPlugin = createMockPlugin();
+
+      addTopLevelProduct(mockPlugin, [{ type: 'existing-resource' }]);
+      generateResourceRoutes.mockClear();
+
+      new PluginProduct(mockPlugin, TOP_LEVEL_PRODUCT, [resourcePage]);
+
+      expect(generateResourceRoutes).not.toHaveBeenCalled();
+    });
+
+    it('should not register the generic resource routes twice when two registrations extend the same product', () => {
+      const mockPlugin = createMockPlugin();
+
+      addTopLevelProduct(mockPlugin, [customPage]);
+
+      new PluginProduct(mockPlugin, TOP_LEVEL_PRODUCT, [resourcePage]);
+      generateResourceRoutes.mockClear();
+
+      new PluginProduct(mockPlugin, TOP_LEVEL_PRODUCT, [{ type: 'another-resource' }]);
+
+      expect(generateResourceRoutes).not.toHaveBeenCalled();
+    });
+
+    it('should use the cluster prefixed shape for a product registered with startRouteWithProduct false', () => {
+      const mockPlugin = createMockPlugin();
+      const extendingPlugin = createMockPlugin();
+
+      addTopLevelProduct(mockPlugin, [customPage], false);
+
+      new PluginProduct(extendingPlugin, TOP_LEVEL_PRODUCT, [resourcePage]);
+
+      expect(generateResourceRoutes).toHaveBeenCalledWith(
+        TOP_LEVEL_PRODUCT,
+        resourcePage,
+        { extendProduct: false, startRouteWithProduct: false }
+      );
+      expect(extendingPlugin._registerTopLevelProduct).not.toHaveBeenCalled();
+      expect(extendingPlugin._setStartRouteWithProduct).toHaveBeenCalledWith(TOP_LEVEL_PRODUCT, false);
+    });
+  });
+
+  // Regression guard for https://github.com/rancher/dashboard/issues/18749. Adding
+  // `c/:cluster/explorer/:resource` shadows explorer's own `c/:cluster/:product/projectsnamespaces`,
+  // because the static product segment outranks the core dynamic one.
+  describe('extending a core product with a resource page', () => {
+    const resourcePage: ProductChildResourcePage = { type: 'some-resource' };
+
+    it('should not register any generic resource routes', () => {
+      const mockPlugin = createMockPlugin();
+
+      new PluginProduct(mockPlugin, StandardProductNames.EXPLORER, [resourcePage]);
+
+      expect(pluginProductsHelpers.generateResourceRoutes).not.toHaveBeenCalled();
+      expect(mockPlugin.addRoute).not.toHaveBeenCalled();
+    });
+
+    it('should point the resource page at the core c-cluster-product-resource route', () => {
+      const mockPlugin = createMockPlugin();
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(createMockDSL());
+
+      new PluginProduct(mockPlugin, StandardProductNames.EXPLORER, [resourcePage]).apply(mockPlugin, createMockStore());
+
+      expect(pluginProductsHelpers.generateConfigureTypeRoute).toHaveBeenCalledWith(
+        StandardProductNames.EXPLORER,
+        resourcePage,
+        { extendProduct: true, startRouteWithProduct: false }
+      );
       expect(mockPlugin._registerTopLevelProduct).not.toHaveBeenCalled();
     });
   });

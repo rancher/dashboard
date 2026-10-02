@@ -1,4 +1,5 @@
 import { PluginProduct } from '@shell/core/plugin-products';
+import { resetExtensionProductRouting } from '@shell/core/plugin-products-route-registry';
 import { Plugin } from '@shell/core/plugin';
 import { IExtension } from '@shell/core/types';
 import { ProductChildPage, ProductMetadata, ProductMetadataSinglePage, StandardProductNames } from '@shell/core/plugin-products-external';
@@ -72,6 +73,9 @@ function createMockStore(extendableProducts: string[] = Object.values(StandardPr
 }
 
 describe('pluginProduct', () => {
+  // The product route registry outlives any single plugin, so it has to be cleared between tests
+  beforeEach(() => resetExtensionProductRouting());
+
   describe('new product scenarios', () => {
     it('should create a new product with config items', () => {
       const mockPlugin = createMockPlugin();
