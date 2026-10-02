@@ -1,5 +1,6 @@
 <script>
 import Loading from '@shell/components/Loading';
+import FailWhale from '@shell/components/FailWhale';
 import ChartMixin from '@shell/mixins/chart';
 import { Banner } from '@components/Banner';
 import ChartReadme from '@shell/components/ChartReadme';
@@ -27,6 +28,7 @@ export default {
   components: {
     Banner,
     ChartReadme,
+    FailWhale,
     LazyImage,
     Loading,
     LabeledSelect,
@@ -388,6 +390,10 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
+  <FailWhale
+    v-else-if="cannotListAppsError"
+    :error="cannotListAppsError"
+  />
   <div v-else>
     <div
       v-if="chart"
