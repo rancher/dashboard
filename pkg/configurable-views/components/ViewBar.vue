@@ -835,6 +835,7 @@ $tab-height: 30px;
   // Inline beside its chevron: the two sit on one line inside the box the menu is placed against.
   &__view {
     display:        inline-flex;
+    font-size:      14px;
     gap:            6px;
     height:         $tab-height;
     vertical-align: top;
@@ -871,9 +872,12 @@ $tab-height: 30px;
   }
 
   // The active view's name, edited where the tab was.
+  // No type of its own: the tab and its chevron are inline, and the space the markup leaves between
+  // them would otherwise open a gap in the segment. Each sets its own size.
   &__slot {
     display:     flex;
     flex:        0 0 auto;
+    font-size:   0;
     white-space: nowrap;
   }
 
