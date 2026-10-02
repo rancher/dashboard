@@ -48,6 +48,7 @@ interface Props {
   options?: (string | RawNamespace)[] | null;
   mapper?: Mapper | null;
   createNamespaceOverride?: boolean;
+  createAllowed?: boolean;
   rules?: Validator[];
   name?: string;
   appendToBody?: boolean;
@@ -69,6 +70,7 @@ const props = withDefaults(defineProps<Props>(), {
   options:                 null,
   mapper:                  null,
   createNamespaceOverride: false,
+  createAllowed:           true,
   rules:                   () => [],
   name:                    undefined,
   appendToBody:            false,
@@ -222,7 +224,7 @@ const isReallyDisabled = computed(() => !!props.forceNamespace || props.disabled
     :placeholder="t(placeholder)"
     :create-label="t('namespace.createNamespace')"
     :create-placeholder="t(createPlaceholder)"
-    :create-allowed="canCreateNamespace || createNamespaceOverride"
+    :create-allowed="createAllowed && (canCreateNamespace || createNamespaceOverride)"
     :rules="rules"
     :append-to-body="appendToBody"
     :require-dirty="requireDirty"
