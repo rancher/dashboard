@@ -458,7 +458,7 @@ describe('component: ResourcePopover/index.vue', () => {
       await flushPromises();
       await openCard(wrapper);
 
-      expect(resource.fetchGlanceResources).toHaveBeenCalledWith();
+      expect(resource.fetchGlanceResources).toHaveBeenCalledWith(expect.any(AbortSignal));
 
       await closeCard(wrapper);
       await openCard(wrapper);
@@ -489,7 +489,7 @@ describe('component: ResourcePopover/index.vue', () => {
       await flushPromises();
       await openCard(wrapper);
 
-      expect(resource.fetchGlanceResources).toHaveBeenCalledWith();
+      expect(resource.fetchGlanceResources).toHaveBeenCalledWith(expect.any(AbortSignal));
       expect(wrapper.find('[data-testid="resource-popover-error"]').exists()).toBe(false);
       expect(wrapper.findComponent({ name: 'ResourcePopoverCard' }).props('resource')).toStrictEqual(resource);
     });
@@ -570,6 +570,53 @@ describe('component: ResourcePopover/index.vue', () => {
       await openCard(wrapper);
 
       expect(wrapper.find('[data-testid="resource-popover-error"]').exists()).toBe(true);
+    });
+
+    describe('cancelling', () => {
+      const signalOf = (resource: any, call = 0): AbortSignal => resource.fetchGlanceResources.mock.calls[call][0];
+
+      const openWithPendingFetch = async() => {
+        const resource = resourceWithGlanceResources(jest.fn(() => new Promise(() => { })));
+
+        mockClusterFind.mockResolvedValue(resource);
+        const wrapper = createWrapper(undefined, undefined, OpenablePopoverCardStub);
+
+        await flushPromises();
+        await openCard(wrapper);
+
+        return { wrapper, resource };
+      };
+
+      it('should not cancel the requests while the card is open', async() => {
+        const { resource } = await openWithPendingFetch();
+
+        expect(signalOf(resource).aborted).toBe(false);
+      });
+
+      it('should cancel the requests when the card closes before they finish', async() => {
+        const { wrapper, resource } = await openWithPendingFetch();
+
+        await closeCard(wrapper);
+
+        expect(signalOf(resource).aborted).toBe(true);
+      });
+
+      it('should cancel the requests when the popover is removed before they finish', async() => {
+        const { wrapper, resource } = await openWithPendingFetch();
+
+        wrapper.unmount();
+
+        expect(signalOf(resource).aborted).toBe(true);
+      });
+
+      it('should only cancel the requests of the card that closed when it opens again', async() => {
+        const { wrapper, resource } = await openWithPendingFetch();
+
+        await closeCard(wrapper);
+        await openCard(wrapper);
+
+        expect([signalOf(resource, 0).aborted, signalOf(resource, 1).aborted]).toStrictEqual([true, false]);
+      });
     });
 
     describe('loading', () => {

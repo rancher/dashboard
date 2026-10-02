@@ -313,19 +313,24 @@ describe('class Node', () => {
     });
 
     describe('fetchGlanceResources', () => {
+      const signal = new AbortController().signal;
+
       const METRICS_FETCH = ['cluster/find', {
         type: METRIC.NODE,
         id:   'node-1',
-        opt:  { force: true, watch: false }
+        opt:  {
+          force: true, watch: false, signal
+        }
       }, { root: true }];
 
-      const RUNNING_PODS_REQUEST = ['cluster/request', { url: 'https://rancher/k8s/clusters/local/v1/pods?filter=spec.nodeName=node-1' }, { root: true }];
+      const RUNNING_PODS_REQUEST = ['cluster/request', { url: 'https://rancher/k8s/clusters/local/v1/pods?filter=spec.nodeName=node-1', signal }, { root: true }];
 
       const RUNNING_PODS_COUNT_FETCH = ['cluster/findPage', {
         type: POD,
         opt:  {
           transient:   true,
           saveCountAs: RUNNING_PODS_COUNT,
+          signal,
           pagination:  new PaginationArgs({
             page:     1,
             pageSize: 1,
@@ -340,7 +345,7 @@ describe('class Node', () => {
       it('should fetch the metrics of the node without watching them, and request the pods on the node without storing them', async() => {
         const { node, dispatch, rootGetters } = createNode();
 
-        await node.fetchGlanceResources();
+        await node.fetchGlanceResources(signal);
 
         expect(dispatch.mock.calls).toStrictEqual([METRICS_FETCH, RUNNING_PODS_REQUEST]);
         expect(rootGetters['cluster/urlFor']).toHaveBeenCalledWith(POD);
@@ -349,7 +354,7 @@ describe('class Node', () => {
       it('should not fetch pods when every pod is already in the store, as they are counted there', async() => {
         const { node, dispatch, commit } = createNode({}, { haveAllPods: true });
 
-        await node.fetchGlanceResources();
+        await node.fetchGlanceResources(signal);
 
         expect(dispatch.mock.calls).toStrictEqual([METRICS_FETCH]);
         expect(commit).toHaveBeenCalledTimes(0);
@@ -358,7 +363,7 @@ describe('class Node', () => {
       it('should only count the running pods on the node with server-side pagination, without storing them', async() => {
         const { node, dispatch } = createNode({}, { paginated: true });
 
-        await node.fetchGlanceResources();
+        await node.fetchGlanceResources(signal);
 
         expect(dispatch.mock.calls).toStrictEqual([METRICS_FETCH, RUNNING_PODS_COUNT_FETCH]);
       });
@@ -366,7 +371,7 @@ describe('class Node', () => {
       it('should not fetch metrics when the cluster has no metrics API', async() => {
         const { node, dispatch, rootGetters } = createNode({}, { hasMetricsSchema: false });
 
-        await node.fetchGlanceResources();
+        await node.fetchGlanceResources(signal);
 
         expect(rootGetters['cluster/schemaFor']).toHaveBeenCalledWith(METRIC.NODE);
         expect(dispatch.mock.calls).toStrictEqual([RUNNING_PODS_REQUEST]);
@@ -375,7 +380,7 @@ describe('class Node', () => {
       it.each([false, true])('should not fetch pods when the user can not see them (server-side pagination: %p)', async(paginated) => {
         const { node, dispatch, rootGetters } = createNode({}, { canViewPods: false, paginated });
 
-        await node.fetchGlanceResources();
+        await node.fetchGlanceResources(signal);
 
         expect(rootGetters['cluster/schemaFor']).toHaveBeenCalledWith(POD);
         expect(dispatch.mock.calls).toStrictEqual([METRICS_FETCH]);
@@ -384,7 +389,7 @@ describe('class Node', () => {
       it('should fetch nothing when the user can see neither metrics nor pods', async() => {
         const { node, dispatch } = createNode({}, { hasMetricsSchema: false, canViewPods: false });
 
-        await expect(node.fetchGlanceResources()).resolves.toBeUndefined();
+        await expect(node.fetchGlanceResources(signal)).resolves.toBeUndefined();
         expect(dispatch.mock.calls).toStrictEqual([]);
       });
 
@@ -393,7 +398,7 @@ describe('class Node', () => {
 
         dispatch.mockImplementation((action: string) => (action === 'cluster/find' ? Promise.reject(new Error('forbidden')) : Promise.resolve()));
 
-        await expect(node.fetchGlanceResources()).rejects.toThrow('forbidden');
+        await expect(node.fetchGlanceResources(signal)).rejects.toThrow('forbidden');
         expect(dispatch.mock.calls).toStrictEqual([METRICS_FETCH, RUNNING_PODS_COUNT_FETCH]);
       });
 
@@ -411,7 +416,7 @@ describe('class Node', () => {
           });
         });
 
-        await expect(node.fetchGlanceResources()).rejects.toThrow('forbidden');
+        await expect(node.fetchGlanceResources(signal)).rejects.toThrow('forbidden');
         expect(countFinished).toBe(true);
       });
 
@@ -434,7 +439,7 @@ describe('class Node', () => {
             ]
           });
 
-          await node.fetchRunningPods();
+          await node.fetchRunningPods(signal);
 
           expect(commit.mock.calls).toStrictEqual([SAVE_COUNT(11)]);
         });
@@ -444,7 +449,7 @@ describe('class Node', () => {
 
           requestReturning(dispatch, { data: [apiPod('node-1', 'running'), apiPod('node-10', 'running'), apiPod('my-node-1', 'running')] });
 
-          await node.fetchRunningPods();
+          await node.fetchRunningPods(signal);
 
           expect(commit.mock.calls).toStrictEqual([SAVE_COUNT(1)]);
         });
@@ -458,7 +463,7 @@ describe('class Node', () => {
 
           requestReturning(dispatch, response);
 
-          await node.fetchRunningPods();
+          await node.fetchRunningPods(signal);
 
           expect(commit.mock.calls).toStrictEqual([SAVE_COUNT(0)]);
         });
@@ -469,9 +474,9 @@ describe('class Node', () => {
           rootGetters['cluster/urlFor'].mockReturnValue('https://rancher/k8s/clusters/local/v1/pods?exclude=metadata.managedFields');
           requestReturning(dispatch, { data: [] });
 
-          await node.fetchRunningPods();
+          await node.fetchRunningPods(signal);
 
-          expect(dispatch).toHaveBeenCalledWith('cluster/request', { url: 'https://rancher/k8s/clusters/local/v1/pods?exclude=metadata.managedFields&filter=spec.nodeName=node-1' }, { root: true });
+          expect(dispatch).toHaveBeenCalledWith('cluster/request', { url: 'https://rancher/k8s/clusters/local/v1/pods?exclude=metadata.managedFields&filter=spec.nodeName=node-1', signal }, { root: true });
         });
 
         it('should encode the node name in the request', async() => {
@@ -479,9 +484,9 @@ describe('class Node', () => {
 
           requestReturning(dispatch, { data: [] });
 
-          await node.fetchRunningPods();
+          await node.fetchRunningPods(signal);
 
-          expect(dispatch).toHaveBeenCalledWith('cluster/request', { url: 'https://rancher/k8s/clusters/local/v1/pods?filter=spec.nodeName=node%201%26x' }, { root: true });
+          expect(dispatch).toHaveBeenCalledWith('cluster/request', { url: 'https://rancher/k8s/clusters/local/v1/pods?filter=spec.nodeName=node%201%26x', signal }, { root: true });
         });
       });
 
@@ -490,14 +495,28 @@ describe('class Node', () => {
 
         dispatch.mockRejectedValue(new Error('server error'));
 
-        await expect(node.fetchGlanceResources()).rejects.toThrow('server error');
+        await expect(node.fetchGlanceResources(signal)).rejects.toThrow('server error');
         expect(commit.mock.calls).toStrictEqual([['cluster/setSavedCount', { name: RUNNING_PODS_COUNT, count: undefined }, { root: true }]]);
+      });
+
+      it.each([false, true])('should keep the last count of running pods, and reject, when the request is cancelled (server-side pagination: %p)', async(paginated) => {
+        const { node, dispatch, commit } = createNode({}, { hasMetricsSchema: false, paginated });
+        const abort = new AbortController();
+
+        dispatch.mockImplementation(() => {
+          abort.abort();
+
+          return Promise.reject(new Error('canceled'));
+        });
+
+        await expect(node.fetchGlanceResources(abort.signal)).rejects.toThrow('canceled');
+        expect(commit).toHaveBeenCalledTimes(0);
       });
 
       it('should not save a count itself with server-side pagination, as the API saves it', async() => {
         const { node, commit } = createNode({}, { hasMetricsSchema: false, paginated: true });
 
-        await node.fetchGlanceResources();
+        await node.fetchGlanceResources(signal);
 
         expect(commit).toHaveBeenCalledTimes(0);
       });

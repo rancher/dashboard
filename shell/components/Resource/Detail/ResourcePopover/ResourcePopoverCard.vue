@@ -1,5 +1,4 @@
 <script lang="ts">
-import { computed } from 'vue';
 import { useStore } from 'vuex';
 import PercentageBar from '@shell/components/PercentageBar.vue';
 import { useI18n } from '@shell/composables/useI18n';
@@ -31,12 +30,10 @@ const props = withDefaults(defineProps<Props>(), { usageLoading: false });
 const store = useStore();
 const i18n = useI18n(store);
 
-const usage = computed<GlanceUsageItem[]>(() => props.resource.glanceUsage || []);
-
-const hasPercentage = (item: GlanceUsageItem): boolean => typeof item.percentage === 'number' && Number.isFinite(item.percentage);
+const hasPercentage = (item: GlanceUsageItem): item is GlanceUsageItem & { percentage: number } => typeof item.percentage === 'number' && Number.isFinite(item.percentage);
 
 // The bar is empty when the usage isn't known, and full when usage goes over 100%
-const barPercentage = (item: GlanceUsageItem): number => (hasPercentage(item) ? Math.min(Math.max(item.percentage as number, 0), 100) : 0);
+const barPercentage = (item: GlanceUsageItem): number => (hasPercentage(item) ? Math.min(Math.max(item.percentage, 0), 100) : 0);
 
 const usageDisplay = (item: GlanceUsageItem): string => (hasPercentage(item) ? formatPercent(item.percentage) : i18n.t('generic.na'));
 
@@ -84,12 +81,12 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
       </div>
     </div>
     <div
-      v-if="usage.length"
+      v-if="props.resource.glanceUsage?.length"
       class="usage"
       data-testid="resource-popover-usage"
     >
       <div
-        v-for="item in usage"
+        v-for="item in props.resource.glanceUsage"
         :key="item.name"
         class="usage-item"
         :data-testid="`resource-popover-usage-${ item.name }`"

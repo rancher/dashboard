@@ -4,7 +4,7 @@ import { useStore } from 'vuex';
 import ResourcePopoverCard from '@shell/components/Resource/Detail/ResourcePopover/ResourcePopoverCard.vue';
 import RcStatusIndicator from '@components/Pill/RcStatusIndicator/RcStatusIndicator.vue';
 import { useI18n } from '@shell/composables/useI18n';
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import PopoverCard from '@shell/components/PopoverCard.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 
@@ -43,7 +43,14 @@ const card = ref<any>(null);
 const showPopover = ref<boolean>(false);
 
 const glanceResourcesLoading = ref<boolean>(false);
-let glanceResourcesRequest = 0;
+let glanceResourcesAbort: AbortController | undefined;
+
+// Nothing shows them once the card has closed, so their requests don't need to finish
+const cancelGlanceResources = () => {
+  glanceResourcesAbort?.abort();
+  glanceResourcesAbort = undefined;
+  glanceResourcesLoading.value = false;
+};
 
 // Some cards show more than the resource itself, e.g. a node's CPU and memory usage comes from its metrics. It's fetched each
 // time the card opens so it's current, and the card shows it as loading meanwhile
@@ -52,17 +59,21 @@ const fetchGlanceResources = async(resource: any) => {
     return;
   }
 
-  // Only the latest fetch ends the loading, e.g. when the card is closed and opened again before the first one finishes
-  const request = ++glanceResourcesRequest;
+  cancelGlanceResources();
 
+  const abort = new AbortController();
+
+  glanceResourcesAbort = abort;
   glanceResourcesLoading.value = true;
 
   try {
-    await resource.fetchGlanceResources();
+    await resource.fetchGlanceResources(abort.signal);
   } catch (e) {
     // The card can still show the resource without them
   } finally {
-    if (request === glanceResourcesRequest) {
+    // Only the latest fetch ends the loading, e.g. when the card is closed and opened again before the first one finishes
+    if (glanceResourcesAbort === abort) {
+      glanceResourcesAbort = undefined;
       glanceResourcesLoading.value = false;
     }
   }
@@ -80,8 +91,12 @@ const fetch = useFetch(async() => {
 watch(card, (neu) => {
   if (neu) {
     fetchGlanceResources(fetch.value.data);
+  } else {
+    cancelGlanceResources();
   }
 });
+
+onBeforeUnmount(cancelGlanceResources);
 
 // A lazy popover fetches the resource the first time the user hovers or focuses it
 const loadResource = () => {

@@ -527,8 +527,10 @@ export default class ClusterNode extends SteveModel {
 
   /**
    * Fetch what the node's popover card shows besides the node: its metrics, for CPU and memory usage, and its running pods
+   *
+   * @param {AbortSignal} [signal] cancels the requests, e.g. when the card closes before they finish
    */
-  async fetchGlanceResources() {
+  async fetchGlanceResources(signal) {
     const promises = [];
 
     if (this.$rootGetters['cluster/schemaFor'](METRIC.NODE)) {
@@ -536,12 +538,14 @@ export default class ClusterNode extends SteveModel {
       promises.push(this.$dispatch('cluster/find', {
         type: METRIC.NODE,
         id:   this.id,
-        opt:  { force: true, watch: false }
+        opt:  {
+          force: true, watch: false, signal
+        }
       }, { root: true }));
     }
 
     if (this.$rootGetters['cluster/schemaFor'](POD)) {
-      promises.push(this.fetchRunningPods());
+      promises.push(this.fetchRunningPods(signal));
     }
 
     // Wait for every request, so the card only stops loading once it has all it can show
@@ -554,8 +558,10 @@ export default class ClusterNode extends SteveModel {
 
   /**
    * Count the running pods on the node, the same way the Nodes list does, without storing the pods
+   *
+   * @param {AbortSignal} [signal] cancels the request
    */
-  async fetchRunningPods() {
+  async fetchRunningPods(signal) {
     if (this.hasAllPods) {
       return;
     }
@@ -568,6 +574,7 @@ export default class ClusterNode extends SteveModel {
           opt:  {
             transient:   true,
             saveCountAs: this.runningPodsCountName,
+            signal,
             pagination:  new PaginationArgs({
               page:     1,
               pageSize: 1,
@@ -586,13 +593,16 @@ export default class ClusterNode extends SteveModel {
       // see, like the Nodes list. Without the SQL cache the filter matches part of the name, so the node is checked again here
       const collectionUrl = this.$rootGetters['cluster/urlFor'](POD);
       const url = `${ collectionUrl }${ collectionUrl.includes('?') ? '&' : '?' }filter=spec.nodeName=${ encodeURIComponent(this.name) }`;
-      const res = await this.$dispatch('cluster/request', { url }, { root: true });
+      const res = await this.$dispatch('cluster/request', { url, signal }, { root: true });
       const running = (res?.data || []).filter((pod) => pod.spec?.nodeName === this.name && pod.metadata?.state?.name === 'running');
 
       this.saveRunningPodsCount(running.length);
     } catch (e) {
-      // Show the count as unknown rather than an old one
-      this.saveRunningPodsCount(undefined);
+      // Show the count as unknown rather than an old one. A cancelled request says nothing about the count, so the card shows
+      // the last one while it fetches it again
+      if (!signal?.aborted) {
+        this.saveRunningPodsCount(undefined);
+      }
 
       throw e;
     }
