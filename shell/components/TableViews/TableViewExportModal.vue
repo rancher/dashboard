@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
  * Asks what to export as. From the toolbar the table does the writing; from a resource action the
- * resources come in as a prop and are written here
+ * resources come in as a prop and are written here. Either way the modal closes on Download, and the
+ * export is followed in the notification centre
  */
 import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
@@ -14,6 +15,7 @@ import { downloadFile } from '@shell/utils/download';
 import { escapeHtml } from '@shell/utils/string';
 import { exportColumnsFor, rowsToCsv, rowsToJson } from '@shell/utils/table-views/export';
 import { useI18n } from '@shell/composables/useI18n';
+import { NotificationLevel } from '@shell/types/notifications';
 import type { TableViewRow } from '@shell/types/table-views';
 
 const FORMATS = ['yaml', 'json', 'csv'] as const;
@@ -27,8 +29,9 @@ interface ExportResource extends TableViewRow {
   type: string;
   schema?: object;
   $ctx?: { getters?: { paginationEnabled?: (args: { id: string }) => boolean } };
+  nameDisplay?: string;
   downloadYaml(): Promise<unknown>;
-  downloadYamlBulk(items: ExportResource[]): Promise<unknown>;
+  downloadYamlBulk(items: ExportResource[], onProgress?: (done: number, total: number) => void): Promise<unknown>;
 }
 
 const props = withDefaults(defineProps<{
@@ -93,31 +96,82 @@ const intro = computed(() => {
   return { k: slow ? 'tableViews.export.introSlow' : 'tableViews.export.intro', args: { count: props.count, name } };
 });
 
-const exportResources = async() => {
-  const items = props.resources;
+/** Writes the file and says what it was called. Given everything it needs, as the modal is closed by then */
+const exportResources = async(items: ExportResource[], as: Format, columns: ReturnType<typeof exportColumnsFor>, onProgress: (done: number, total: number) => void) => {
   const first = items[0];
 
-  if (format.value === 'yaml') {
-    return items.length === 1 ? first.downloadYaml() : first.downloadYamlBulk(items);
+  if (as === 'yaml') {
+    if (items.length === 1) {
+      await first.downloadYaml();
+
+      return `${ first.nameDisplay || 'resource' }.yaml`;
+    }
+
+    await first.downloadYamlBulk(items, onProgress);
+
+    return 'resources.zip';
   }
 
-  const columns = selectionColumns.value;
   const name = (first?.type || 'resources').replace(/[^a-z0-9]+/gi, '-');
 
-  if (format.value === 'json') {
-    return downloadFile(`${ name }.json`, rowsToJson(items, columns), 'application/json;charset=utf-8');
+  if (as === 'json') {
+    await downloadFile(`${ name }.json`, rowsToJson(items, columns), 'application/json;charset=utf-8');
+
+    return `${ name }.json`;
   }
 
-  return downloadFile(`${ name }.csv`, rowsToCsv(items, columns), 'text/csv;charset=utf-8');
+  await downloadFile(`${ name }.csv`, rowsToCsv(items, columns), 'text/csv;charset=utf-8');
+
+  return `${ name }.csv`;
 };
 
-const download = async() => {
+/** As a view's export is: the modal is gone at once, and the export is followed as a notification */
+const exportSelection = async(items: ExportResource[], as: Format, columns: ReturnType<typeof exportColumnsFor>) => {
+  const count = items.length;
+  const id = await store.dispatch('notifications/add', {
+    level:    NotificationLevel.Task,
+    title:    t('tableViews.export.notification.title'),
+    message:  t('tableViews.export.notification.selectionMessage', { count, format: as.toUpperCase() }),
+    progress: 0,
+  });
+  const onProgress = (done: number, total: number) => store.dispatch('notifications/update', { id, progress: Math.round((100 * done) / (total || 1)) });
+
+  try {
+    const file = await exportResources(items, as, columns, onProgress);
+
+    await store.dispatch('notifications/update', {
+      id,
+      level:    NotificationLevel.Success,
+      title:    t('tableViews.export.notification.doneTitle'),
+      message:  t('tableViews.export.notification.selectionDoneMessage', { count, file }),
+      progress: 100,
+    });
+  } catch (e) {
+    console.error('Unable to export the selection', e); // eslint-disable-line no-console
+
+    await store.dispatch('notifications/update', {
+      id,
+      level:   NotificationLevel.Error,
+      title:   t('tableViews.export.notification.failedTitle'),
+      message: t('tableViews.export.notification.selectionFailedMessage', { count }),
+    });
+  }
+};
+
+const download = () => {
   if (props.resources.length) {
-    await exportResources();
-  } else {
-    emit('export', format.value);
+    // Read now: the modal, and its props, go with the close
+    const items = [...props.resources];
+    const as = format.value;
+    const columns = selectionColumns.value;
+
+    emit('close');
+    exportSelection(items, as, columns);
+
+    return;
   }
 
+  emit('export', format.value);
   emit('close');
 };
 </script>

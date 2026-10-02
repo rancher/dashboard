@@ -57,4 +57,84 @@ describe('TableViewExportModal', () => {
     // The warning is for the second round trip, and a thousand is still the first
     expect(introFor({ count: 1000 })).toContain('tableViews.export.intro-');
   });
+
+  describe('exporting a selection', () => {
+    const notifications = () => {
+      const calls: { action: string, payload: Record<string, unknown> }[] = [];
+      const record = (action: string) => (_ctx: unknown, payload: Record<string, unknown>) => {
+        calls.push({ action, payload });
+
+        return action === 'add' ? 'n1' : undefined;
+      };
+
+      return {
+        calls,
+        store: createStore({
+          getters: {
+            'type-map/headersFor': () => () => [],
+            'i18n/t':              () => (key: string) => key,
+          },
+          modules: { notifications: { namespaced: true, actions: { add: record('add'), update: record('update') } } },
+        }),
+      };
+    };
+
+    const mountSelection = (resource: object) => {
+      const { calls, store } = notifications();
+      const wrapper = mount(TableViewExportModal, {
+        props: {
+          count:       1,
+          isSelection: true,
+          resources:   [{
+            type: 'pod', nameDisplay: 'web', downloadYaml: jest.fn(), downloadYamlBulk: jest.fn(), ...resource
+          }]
+        },
+        global:  { plugins: [store] },
+        shallow: true,
+      });
+
+      return { wrapper, calls };
+    };
+
+    const flush = () => new Promise((resolve) => setTimeout(resolve));
+
+    it('should close at once, and follow the export as a notification', async() => {
+      let finish: () => void = () => undefined;
+      const downloadYaml = jest.fn(() => new Promise<void>((resolve) => {
+        finish = resolve;
+      }));
+      const { wrapper, calls } = mountSelection({ downloadYaml });
+
+      await wrapper.find('[data-testid="table-views-export-download"]').trigger('click');
+
+      expect(wrapper.emitted('close')).toHaveLength(1);
+      await flush();
+      expect(downloadYaml).toHaveBeenCalledTimes(1);
+      expect(calls.map((c) => c.action)).toStrictEqual(['add']);
+      expect(calls[0].payload.message).toContain('tableViews.export.notification.selectionMessage');
+      expect(calls[0].payload.message).toContain('"format":"YAML"');
+
+      finish();
+      await flush();
+
+      expect(calls[1]).toMatchObject({
+        action:  'update',
+        payload: {
+          id: 'n1', title: 'tableViews.export.notification.doneTitle', progress: 100
+        }
+      });
+    });
+
+    it('should say so when the export fails', async() => {
+      const { wrapper, calls } = mountSelection({ downloadYaml: jest.fn(() => Promise.reject(new Error('nope'))) });
+      const error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+      await wrapper.find('[data-testid="table-views-export-download"]').trigger('click');
+      await flush();
+      await flush();
+
+      expect(calls[calls.length - 1]).toMatchObject({ action: 'update', payload: { id: 'n1', title: 'tableViews.export.notification.failedTitle' } });
+      error.mockRestore();
+    });
+  });
 });

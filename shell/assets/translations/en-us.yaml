@@ -7401,6 +7401,22 @@ tableViews:
       doneMessage: The {name} view has been exported to {file}.
       failedTitle: Export failed
       failedMessage: The {name} view could not be exported.
+      # The same for a selection exported from its rows' actions
+      selectionMessage: |-
+        Exporting {count, plural,
+        one {1 selected item}
+        other {{count, number} selected items}
+        } as {format}...
+      selectionDoneMessage: |-
+        {count, plural,
+        one {1 selected item has}
+        other {{count, number} selected items have}
+        } been exported to {file}.
+      selectionFailedMessage: |-
+        {count, plural,
+        one {The selected item}
+        other {The {count, number} selected items}
+        } could not be exported.
 tableHeaders:
   assuredConcurrencyShares: Assured Concurrency Shares
   autoscaler: Autoscaler
