@@ -1356,312 +1356,314 @@ export default {
         <slot name="sub-header-row" />
       </div>
     </div>
-    <table
-      ref="table"
-      class="sortable-table"
-      :class="classObject"
-      width="100%"
-      role="table"
-    >
-      <THead
-        v-if="showHeaders"
-        :label-for="labelFor"
-        :select-all-label="selectAllCheckboxLabel"
-        :columns="columns"
-        :group="group"
-        :group-options="advGroupOptions"
-        :has-advanced-filtering="hasAdvancedFiltering"
-        :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
-        :table-actions="tableActions"
-        :table-cols-options="columnOptions"
-        :row-actions="rowActions"
-        :sub-expand-column="subExpandColumn"
-        :row-actions-width="rowActionsWidth"
-        :how-much-selected="howMuchSelected"
-        :sort-by="sortBy"
-        :default-sort-by="_defaultSortBy"
-        :descending="descending"
-        :no-rows="noRows"
-        :loading="isLoading && !loadingDelay"
-        :no-results="noResults"
-        @on-toggle-all="onToggleAll"
-        @on-sort-change="changeSort"
-        @col-visibility-change="changeColVisibility"
-        @group-value-change="(val) => $emit('group-value-change', val)"
-        @update-cols-options="updateColsOptions"
-      />
-
-      <!-- Don't display anything if we're loading and the delay has yet to pass -->
-      <div v-if="isLoading && !loadingDelay" />
-
-      <tbody v-else-if="isLoading && !altLoading">
-        <slot name="loading">
-          <tr>
-            <td :colspan="fullColspan">
-              <div class="data-loading">
-                <i class="icon-spin icon icon-spinner" />
-                <t
-                  k="generic.loading"
-                  :raw="true"
-                />
-              </div>
-            </td>
-          </tr>
-        </slot>
-      </tbody>
-      <tbody v-else-if="noRows">
-        <slot name="no-rows">
-          <tr class="no-rows">
-            <td :colspan="fullColspan">
-              <t
-                v-if="showNoRows"
-                :k="noRowsKey"
-              />
-            </td>
-          </tr>
-        </slot>
-      </tbody>
-      <tbody v-else-if="noResults">
-        <slot name="no-results">
-          <tr class="no-results">
-            <td
-              :colspan="fullColspan"
-              class="text-center"
-            >
-              <t :k="noDataKey" />
-            </td>
-          </tr>
-        </slot>
-      </tbody>
-      <tbody
-        v-for="(groupedRows) in displayRows"
-        v-else
-        :key="groupedRows.key"
-        tabindex="-1"
-        :class="{ group: groupBy }"
+    <div class="sortable-table-scroll">
+      <table
+        ref="table"
+        class="sortable-table"
+        :class="classObject"
+        width="100%"
+        role="table"
       >
-        <slot
-          v-if="groupBy"
-          name="group-row"
-          :group="groupedRows"
-          :fullColspan="fullColspan"
-        >
-          <tr class="group-row">
-            <td :colspan="fullColspan">
-              <slot
-                name="group-by"
-                :group="groupedRows.grp"
-              >
-                <div
-                  v-trim-whitespace
-                  class="group-tab"
-                >
-                  {{ groupedRows.ref }}
+        <THead
+          v-if="showHeaders"
+          :label-for="labelFor"
+          :select-all-label="selectAllCheckboxLabel"
+          :columns="columns"
+          :group="group"
+          :group-options="advGroupOptions"
+          :has-advanced-filtering="hasAdvancedFiltering"
+          :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
+          :table-actions="tableActions"
+          :table-cols-options="columnOptions"
+          :row-actions="rowActions"
+          :sub-expand-column="subExpandColumn"
+          :row-actions-width="rowActionsWidth"
+          :how-much-selected="howMuchSelected"
+          :sort-by="sortBy"
+          :default-sort-by="_defaultSortBy"
+          :descending="descending"
+          :no-rows="noRows"
+          :loading="isLoading && !loadingDelay"
+          :no-results="noResults"
+          @on-toggle-all="onToggleAll"
+          @on-sort-change="changeSort"
+          @col-visibility-change="changeColVisibility"
+          @group-value-change="(val) => $emit('group-value-change', val)"
+          @update-cols-options="updateColsOptions"
+        />
+
+        <!-- Don't display anything if we're loading and the delay has yet to pass -->
+        <div v-if="isLoading && !loadingDelay" />
+
+        <tbody v-else-if="isLoading && !altLoading">
+          <slot name="loading">
+            <tr>
+              <td :colspan="fullColspan">
+                <div class="data-loading">
+                  <i class="icon-spin icon icon-spinner" />
+                  <t
+                    k="generic.loading"
+                    :raw="true"
+                  />
                 </div>
-              </slot>
-            </td>
-          </tr>
-        </slot>
-        <template
-          v-for="(row, i) in groupedRows.rows"
-          :key="row.key"
+              </td>
+            </tr>
+          </slot>
+        </tbody>
+        <tbody v-else-if="noRows">
+          <slot name="no-rows">
+            <tr class="no-rows">
+              <td :colspan="fullColspan">
+                <t
+                  v-if="showNoRows"
+                  :k="noRowsKey"
+                />
+              </td>
+            </tr>
+          </slot>
+        </tbody>
+        <tbody v-else-if="noResults">
+          <slot name="no-results">
+            <tr class="no-results">
+              <td
+                :colspan="fullColspan"
+                class="text-center"
+              >
+                <t :k="noDataKey" />
+              </td>
+            </tr>
+          </slot>
+        </tbody>
+        <tbody
+          v-for="(groupedRows) in displayRows"
+          v-else
+          :key="groupedRows.key"
+          tabindex="-1"
+          :class="{ group: groupBy }"
         >
           <slot
-            name="main-row"
-            :row="row.row"
+            v-if="groupBy"
+            name="group-row"
+            :group="groupedRows"
+            :fullColspan="fullColspan"
+          >
+            <tr class="group-row">
+              <td :colspan="fullColspan">
+                <slot
+                  name="group-by"
+                  :group="groupedRows.grp"
+                >
+                  <div
+                    v-trim-whitespace
+                    class="group-tab"
+                  >
+                    {{ groupedRows.ref }}
+                  </div>
+                </slot>
+              </td>
+            </tr>
+          </slot>
+          <template
+            v-for="(row, i) in groupedRows.rows"
+            :key="row.key"
           >
             <slot
-              :name="'main-row:' + (row.row.mainRowKey || i)"
-              :full-colspan="fullColspan"
+              name="main-row"
+              :row="row.row"
             >
-              <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
+              <slot
+                :name="'main-row:' + (row.row.mainRowKey || i)"
+                :full-colspan="fullColspan"
+              >
+                <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
                 because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
                 the value of :class changes. -->
-              <tr
-                class="main-row"
-                :data-testid="componentTestid + '-' + i + '-row'"
-                :class="{ 'has-sub-row': row.showSubRow}"
-                :data-node-id="row.key"
-                :data-cant-run-bulk-action-of-interest="actionOfInterest && !row.canRunBulkActionOfInterest"
-              >
-                <td
-                  v-if="tableActions"
-                  class="row-check"
-                  align="middle"
+                <tr
+                  class="main-row"
+                  :data-testid="componentTestid + '-' + i + '-row'"
+                  :class="{ 'has-sub-row': row.showSubRow}"
+                  :data-node-id="row.key"
+                  :data-cant-run-bulk-action-of-interest="actionOfInterest && !row.canRunBulkActionOfInterest"
                 >
-                  {{ row.mainRowKey }}
-                  <Checkbox
-                    class="selection-checkbox"
-                    :data-node-id="row.key"
-                    :data-testid="componentTestid + '-' + i + '-checkbox'"
-                    :value="selectedRows.includes(row.row)"
-                    :alternate-label="rowCheckboxLabel(row)"
-                  />
-                </td>
-                <td
-                  v-if="subExpandColumn"
-                  class="row-expand"
-                  align="middle"
-                >
-                  <i
-                    data-title="Toggle Expand"
-                    :class="{
-                      icon: true,
-                      'icon-chevron-right': !expanded[row.row[keyField]],
-                      'icon-chevron-down': !!expanded[row.row[keyField]]
-                    }"
-                    @click.stop="toggleExpand(row.row)"
-                  />
-                </td>
-                <template
-                  v-for="(col, j) in row.columns"
-                  :key="j"
-                >
-                  <slot
-                    :name="'col:' + col.col.name"
-                    :row="row.row"
-                    :col="col.col"
-                    :dt="dt"
-                    :expanded="expanded"
-                    :rowKey="row.key"
+                  <td
+                    v-if="tableActions"
+                    class="row-check"
+                    align="middle"
                   >
-                    <td
-                      v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.col.isColVisible)"
-                      :key="col.col.name"
-                      v-ui-context="col.col.name === 'state' ? { icon: 'icon-folder', hookable: true, value: row.row, tag: '__sortable-table-row', description: 'Row' } : undefined"
-                      :data-title="col.col.label"
-                      :data-testid="`sortable-cell-${ i }-${ j }`"
-                      :align="col.col.align || 'left'"
-                      :class="{['col-'+col.dasherize]: !!col.col.formatter, [col.col.breakpoint]: !!col.col.breakpoint, ['skip-select']: col.col.skipSelect}"
-                      :width="col.col.width"
+                    {{ row.mainRowKey }}
+                    <Checkbox
+                      class="selection-checkbox"
+                      :data-node-id="row.key"
+                      :data-testid="componentTestid + '-' + i + '-checkbox'"
+                      :value="selectedRows.includes(row.row)"
+                      :alternate-label="rowCheckboxLabel(row)"
+                    />
+                  </td>
+                  <td
+                    v-if="subExpandColumn"
+                    class="row-expand"
+                    align="middle"
+                  >
+                    <i
+                      data-title="Toggle Expand"
+                      :class="{
+                        icon: true,
+                        'icon-chevron-right': !expanded[row.row[keyField]],
+                        'icon-chevron-down': !!expanded[row.row[keyField]]
+                      }"
+                      @click.stop="toggleExpand(row.row)"
+                    />
+                  </td>
+                  <template
+                    v-for="(col, j) in row.columns"
+                    :key="j"
+                  >
+                    <slot
+                      :name="'col:' + col.col.name"
+                      :row="row.row"
+                      :col="col.col"
+                      :dt="dt"
+                      :expanded="expanded"
+                      :rowKey="row.key"
                     >
-                      <slot
-                        :name="'cell:' + col.col.name"
-                        :row="row.row"
-                        :col="col.col"
-                        :value="col.value"
+                      <td
+                        v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.col.isColVisible)"
+                        :key="col.col.name"
+                        v-ui-context="col.col.name === 'state' ? { icon: 'icon-folder', hookable: true, value: row.row, tag: '__sortable-table-row', description: 'Row' } : undefined"
+                        :data-title="col.col.label"
+                        :data-testid="`sortable-cell-${ i }-${ j }`"
+                        :align="col.col.align || 'left'"
+                        :class="{['col-'+col.dasherize]: !!col.col.formatter, [col.col.breakpoint]: !!col.col.breakpoint, ['skip-select']: col.col.skipSelect}"
+                        :width="col.col.width"
                       >
-                        <component
-                          :is="col.component"
-                          v-if="col.component && col.needRef"
-                          ref="column"
-                          :value="col.value"
+                        <slot
+                          :name="'cell:' + col.col.name"
                           :row="row.row"
                           :col="col.col"
-                          :get-custom-detail-link="getCustomDetailLink"
-                          v-bind="col.col.formatterOpts"
-                          :row-key="row.key"
-                        />
-                        <component
-                          :is="col.component"
-                          v-else-if="col.component"
                           :value="col.value"
-                          :row="row.row"
-                          :col="col.col"
-                          v-bind="col.col.formatterOpts"
-                          :row-key="row.key"
-                        />
-                        <component
-                          :is="col.col.formatter"
-                          v-else-if="col.col.formatter"
-                          :value="col.value"
-                          :row="row.row"
-                          :col="col.col"
-                          v-bind="col.col.formatterOpts"
-                          :row-key="row.key"
-                        />
-                        <template v-else-if="col.value !== ''">
-                          {{ col.formatted }}
-                        </template>
-                        <template v-else-if="col.col.dashIfEmpty">
-                          <span class="text-muted">&mdash;</span>
-                        </template>
-                      </slot>
-                    </td>
-                  </slot>
-                </template>
-                <td
-                  v-if="rowActions"
-                >
-                  <slot
-                    name="row-actions"
-                    :row="row.row"
-                    :index="i"
+                        >
+                          <component
+                            :is="col.component"
+                            v-if="col.component && col.needRef"
+                            ref="column"
+                            :value="col.value"
+                            :row="row.row"
+                            :col="col.col"
+                            :get-custom-detail-link="getCustomDetailLink"
+                            v-bind="col.col.formatterOpts"
+                            :row-key="row.key"
+                          />
+                          <component
+                            :is="col.component"
+                            v-else-if="col.component"
+                            :value="col.value"
+                            :row="row.row"
+                            :col="col.col"
+                            v-bind="col.col.formatterOpts"
+                            :row-key="row.key"
+                          />
+                          <component
+                            :is="col.col.formatter"
+                            v-else-if="col.col.formatter"
+                            :value="col.value"
+                            :row="row.row"
+                            :col="col.col"
+                            v-bind="col.col.formatterOpts"
+                            :row-key="row.key"
+                          />
+                          <template v-else-if="col.value !== ''">
+                            {{ col.formatted }}
+                          </template>
+                          <template v-else-if="col.col.dashIfEmpty">
+                            <span class="text-muted">&mdash;</span>
+                          </template>
+                        </slot>
+                      </td>
+                    </slot>
+                  </template>
+                  <td
+                    v-if="rowActions"
                   >
-                    <template v-if="featureDropdownMenu">
-                      <ActionMenu
-                        :resource="row.row"
-                        :data-testid="componentTestid + '-' + i + '-action-button'"
-                        :button-aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
-                      />
-                    </template>
-                    <template v-else>
-                      <ButtonMultiAction
-                        :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
-                        :ref="`actionButton${i}`"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                        :aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
-                        :data-testid="componentTestid + '-' + i + '-action-button'"
-                        :borderless="true"
-                        @click="handleActionButtonClick(i, $event)"
-                        @keyup.enter="handleActionButtonClick(i, $event)"
-                        @keyup.space="handleActionButtonClick(i, $event)"
-                      />
-                    </template>
-                  </slot>
-                </td>
-              </tr>
+                    <slot
+                      name="row-actions"
+                      :row="row.row"
+                      :index="i"
+                    >
+                      <template v-if="featureDropdownMenu">
+                        <ActionMenu
+                          :resource="row.row"
+                          :data-testid="componentTestid + '-' + i + '-action-button'"
+                          :button-aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
+                        />
+                      </template>
+                      <template v-else>
+                        <ButtonMultiAction
+                          :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
+                          :ref="`actionButton${i}`"
+                          aria-haspopup="true"
+                          aria-expanded="false"
+                          :aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
+                          :data-testid="componentTestid + '-' + i + '-action-button'"
+                          :borderless="true"
+                          @click="handleActionButtonClick(i, $event)"
+                          @keyup.enter="handleActionButtonClick(i, $event)"
+                          @keyup.space="handleActionButtonClick(i, $event)"
+                        />
+                      </template>
+                    </slot>
+                  </td>
+                </tr>
+              </slot>
             </slot>
-          </slot>
-          <slot
-            v-if="row.showSubRow"
-            name="sub-row"
-            :full-colspan="fullColspan"
-            :row="row.row"
-            :sub-matches="subMatches"
-            :keyField="keyField"
-            :componentTestid="componentTestid"
-            :i="i"
-            :onRowMouseEnter="onRowMouseEnter"
-            :onRowMouseLeave="onRowMouseLeave"
-          >
             <slot
+              v-if="row.showSubRow"
+              name="sub-row"
               :full-colspan="fullColspan"
               :row="row.row"
-              :show-sub-row="row.row.stateDescription"
               :sub-matches="subMatches"
               :keyField="keyField"
               :componentTestid="componentTestid"
               :i="i"
               :onRowMouseEnter="onRowMouseEnter"
               :onRowMouseLeave="onRowMouseLeave"
-              name="additional-sub-row"
-            />
-            <tr
-              v-if="row.row.stateDescription"
-              :key="row.row[keyField] + '-description'"
-              :data-testid="componentTestid + '-' + i + '-row-description'"
-              class="state-description sub-row"
-              @mouseenter="onRowMouseEnter"
-              @mouseleave="onRowMouseLeave"
             >
-              <td
-                v-if="tableActions"
-                class="row-check"
-                align="middle"
+              <slot
+                :full-colspan="fullColspan"
+                :row="row.row"
+                :show-sub-row="row.row.stateDescription"
+                :sub-matches="subMatches"
+                :keyField="keyField"
+                :componentTestid="componentTestid"
+                :i="i"
+                :onRowMouseEnter="onRowMouseEnter"
+                :onRowMouseLeave="onRowMouseLeave"
+                name="additional-sub-row"
               />
-              <td
-                :colspan="fullColspan - (tableActions ? 1: 0)"
-                :class="{ 'text-error' : row.row.stateObj.error }"
+              <tr
+                v-if="row.row.stateDescription"
+                :key="row.row[keyField] + '-description'"
+                :data-testid="componentTestid + '-' + i + '-row-description'"
+                class="state-description sub-row"
+                @mouseenter="onRowMouseEnter"
+                @mouseleave="onRowMouseLeave"
               >
-                {{ row.row.stateDescription }}
-              </td>
-            </tr>
-          </slot>
-        </template>
-      </tbody>
-    </table>
+                <td
+                  v-if="tableActions"
+                  class="row-check"
+                  align="middle"
+                />
+                <td
+                  :colspan="fullColspan - (tableActions ? 1: 0)"
+                  :class="{ 'text-error' : row.row.stateObj.error }"
+                >
+                  {{ row.row.stateDescription }}
+                </td>
+              </tr>
+            </slot>
+          </template>
+        </tbody>
+      </table>
+    </div>
     <div
       v-if="showPaging"
       class="paging"
@@ -1971,6 +1973,14 @@ export default {
 
   .filter-select .vs__selected-options .vs__selected {
     text-align: left;
+  }
+
+  // Wide tables scroll on their own instead of making the whole page scroll sideways
+  .sortable-table-scroll {
+    overflow-x: auto;
+    // The table border is an outline, which the scroll container would clip. Make room for it without moving the table
+    margin: -1px;
+    padding: 1px;
   }
 
   .sortable-table {
