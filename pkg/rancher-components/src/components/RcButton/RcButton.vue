@@ -25,15 +25,15 @@ import RcIcon from '@components/RcIcon/RcIcon.vue';
 const buttonVariants: { variant: ButtonVariant, className: string }[] = [
   { variant: 'solid', className: 'variant-primary' },
   { variant: 'outline', className: 'variant-secondary' },
-  { variant: 'tertiary', className: 'variant-tertiary' },
   { variant: 'link', className: 'variant-link' },
-  { variant: 'multiAction', className: 'variant-multi-action' },
   { variant: 'ghost', className: 'variant-ghost' },
 ];
 
-const deprecatedVariants: Record<DeprecatedButtonVariant, ButtonVariant> = {
-  primary:   'solid',
-  secondary: 'outline',
+const deprecatedVariants: Record<DeprecatedButtonVariant, { className: string, replacement?: ButtonVariant }> = {
+  primary:     { className: 'variant-primary', replacement: 'solid' },
+  secondary:   { className: 'variant-secondary', replacement: 'outline' },
+  tertiary:    { className: 'variant-tertiary' },
+  multiAction: { className: 'variant-multi-action' },
 };
 
 const deprecatedVariantProps: (keyof ButtonVariantProps)[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'];
@@ -100,40 +100,39 @@ const linkProps = computed(() => {
   return {};
 });
 
-const resolvedVariant = computed<ButtonVariant>(() => {
-  const replacement = deprecatedVariants[props.variant as DeprecatedButtonVariant];
-
-  if (replacement) {
-    console.warn( // eslint-disable-line no-console
-      `[RcButton] variant="${ props.variant }" is deprecated and will be removed in a future version. ` +
-      `Please use variant="${ replacement }" with color="primary" instead.`
-    );
-
-    return replacement;
-  }
-
-  return props.variant as ButtonVariant;
-});
-
 const activeVariantClassName = computed(() => {
-  if (resolvedVariant.value === 'multiAction' || props.multiAction) {
-    console.warn('[RcButton] The "multiAction" variant is deprecated and will be removed in a future version.'); // eslint-disable-line no-console
+  if (props.multiAction) {
+    console.warn('[RcButton] The "multiAction" prop is deprecated and will be removed in a future version.'); // eslint-disable-line no-console
+
+    return deprecatedVariants.multiAction.className;
   }
 
   const activeProp = deprecatedVariantProps.find((variant) => props[variant]);
 
   if (activeProp) {
-    const replacement = deprecatedVariants[activeProp as DeprecatedButtonVariant] ?? activeProp;
+    const deprecatedProp = deprecatedVariants[activeProp as DeprecatedButtonVariant];
+    const replacement = deprecatedProp?.replacement ?? activeProp;
 
     console.warn( // eslint-disable-line no-console
       `[RcButton] The "${ activeProp }" prop is deprecated and will be removed in a future version. ` +
       `Please use variant="${ replacement }" instead.`
     );
 
-    return buttonVariants.find(({ variant }) => variant === replacement)?.className || 'variant-primary';
+    return deprecatedProp?.className ?? buttonVariants.find(({ variant }) => variant === replacement)?.className ?? 'variant-primary';
   }
 
-  return buttonVariants.find(({ variant }) => variant === resolvedVariant.value)?.className || 'variant-primary';
+  const deprecated = deprecatedVariants[props.variant as DeprecatedButtonVariant];
+
+  if (deprecated) {
+    console.warn( // eslint-disable-line no-console
+      `[RcButton] variant="${ props.variant }" is deprecated and will be removed in a future version.` +
+      (deprecated.replacement ? ` Please use variant="${ deprecated.replacement }" with color="primary" instead.` : '')
+    );
+
+    return deprecated.className;
+  }
+
+  return buttonVariants.find(({ variant }) => variant === props.variant)?.className || 'variant-primary';
 });
 
 const activeSizeClassName = computed(() => {
