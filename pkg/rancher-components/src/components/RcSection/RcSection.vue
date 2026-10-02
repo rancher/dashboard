@@ -57,7 +57,7 @@
  * </RcSection>
  */
 import {
-  computed, inject, provide, useTemplateRef, type Ref
+  computed, inject, nextTick, provide, useTemplateRef, type Ref
 } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
@@ -92,9 +92,19 @@ const name = 'RcSection';
 
 // Register this section in form summary/table-of-contents context (if provided)
 const sectionRef = useTemplateRef<HTMLElement>('rc-section-summarized-container');
+
+// Navigating to a section from the table of contents opens it if it's collapsed, then scrolls to it
+function scrollTo() {
+  if (props.expandable) {
+    expanded.value = true;
+  }
+
+  nextTick(() => sectionRef.value?.scrollIntoView(true));
+}
+
 const { summary } = useInSummary({
   label:      displayTitle,
-  scrollTo:   () => sectionRef.value?.scrollIntoView(true),
+  scrollTo,
   elementRef: sectionRef,
 });
 
