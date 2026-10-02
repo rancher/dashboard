@@ -127,6 +127,42 @@ export const DisabledVariants: Story = {
   },
 };
 
+export const Colors: Story = {
+  render: () => ({
+    components: { RcButton },
+    setup() {
+      const rows: { variant: ButtonVariant, color: ButtonColor }[] = [
+        { variant: 'solid', color: 'primary' },
+        { variant: 'solid', color: 'destructive' },
+        { variant: 'outline', color: 'primary' },
+        { variant: 'outline', color: 'destructive' },
+      ];
+
+      return { rows };
+    },
+    template: `<div style="display: flex; flex-direction: column; gap: 16px; max-width: 800px;">
+      <div v-for="row in rows" :key="row.variant + row.color" style="display: flex; align-items: center; gap: 20px;">
+        <code style="min-width: 240px; font-size: 12px;">variant="{{ row.variant }}" color="{{ row.color }}"</code>
+        <RcButton :variant="row.variant" :color="row.color" size="medium">Button</RcButton>
+        <RcButton :variant="row.variant" :color="row.color" size="medium" :disabled="true">Disabled</RcButton>
+      </div>
+    </div>`,
+  }),
+  parameters: {
+    controls: { disabled: true },
+    docs:     {
+      description: { story: 'Shape and colour compose. Destructive marks an irreversible action, solid for the primary confirm and outline for the quieter form.' },
+      source:      {
+        code: `<RcButton variant="solid" color="primary">Save</RcButton>
+<RcButton variant="solid" color="destructive">Delete</RcButton>
+<RcButton variant="outline" color="primary">Cancel</RcButton>
+<RcButton variant="outline" color="destructive">Remove</RcButton>`,
+        language: 'html',
+      }
+    }
+  },
+};
+
 export const DeprecatedVariants: Story = {
   render: () => ({
     components: { RcButton },
