@@ -3,7 +3,7 @@ import { createStore } from 'vuex';
 
 import TableViewTabs from '@shell/components/TableViews/TableViewTabs.vue';
 import { TABLE_VIEWS } from '@shell/store/prefs';
-import { isViewDirty, selectedViewIdFor } from '@shell/utils/table-views/views';
+import { isViewDirty, selectedViewIdFor, savedViewsByType } from '@shell/utils/table-views/views';
 import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
 
 const EMPTY: TableViewState = {
@@ -217,7 +217,8 @@ describe('TableViewTabs', () => {
         shallow: true,
       });
 
-      const stored = () => (store.state.stored as { test: { views: TableViewSaved[] } }).test.views;
+      // Read as the table does, through the version the preference is written with
+      const stored = () => savedViewsByType<{ views: TableViewSaved[] }>(store.state.stored).test.views;
       const shown = () => wrapper.emitted<[TableViewState]>('update:view')?.pop()?.[0];
 
       return {
