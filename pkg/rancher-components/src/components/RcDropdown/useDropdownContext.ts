@@ -134,8 +134,9 @@ export const useDropdownContext = (emit: EmitFn<['update:open']>) => {
       );
 
       target.style.height = `${ height - padding }px`;
-      // Only a menu cut to the screen scrolls, so content may otherwise reach over its padding
-      target.style.overflowY = 'auto';
+      // Only a menu cut to the screen scrolls. The popper's box scrolls rather than the menu, so
+      // content reaching over the menu's padding, such as a banner meeting its top, isn't clipped
+      (target.closest('.v-popper__inner') as HTMLElement | null || target).style.overflowY = 'auto';
     }
   };
 
