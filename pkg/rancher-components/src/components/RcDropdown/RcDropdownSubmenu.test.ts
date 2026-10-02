@@ -103,6 +103,8 @@ describe('component: RcDropdownSubmenu.vue', () => {
     expect(byId(submenu.getAttribute('aria-labelledby') as string).textContent?.trim()).toBe('Group By');
     expect(submenu.contains(byId('radio-a'))).toBe(true);
     expect(byId('command').closest('[dropdown-menu-collection]')).not.toBe(submenu);
+    // Beside the menu's popper, not inside it, where scrolling would clip it
+    expect(byId('command').closest('.v-popper__wrapper')?.contains(submenu)).toBe(false);
   });
 
   it('should open toward its side from the keyboard, focusing its first item, and close back to its row', async() => {
