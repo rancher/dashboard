@@ -26,7 +26,7 @@ import {
 import type { CatalogEntry } from '../templating/widget-catalog';
 import { stockWidgets, stockView } from '../templating/stock-layouts';
 import type {
-  LayoutView, View, Sides, ViewSet, WidgetNode, WidgetPlace, WidgetSpec
+  LayoutView, View, ViewSet, WidgetNode, WidgetPlace, WidgetSpec
 } from '../templating/types';
 
 // A configurable PAGE: the Home, or a cluster's dashboard. It holds that page's views, and one of
@@ -134,7 +134,7 @@ const UNDO_TIMEOUT = 10000;
 // Shared, reactive editor UI state: what is being dragged — a widget already on the grid, or a
 // catalog entry on its way in.
 const ui = reactive<ViewEditorUi>({
-  dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', dragSpan: 0, dragGrab: null, flashBox: null, flashSide: null
+  dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', dragSpan: 0, dragGrab: null, flashBox: null
 });
 
 // ---- what is stored, and what is shown --------------------------------------------------------------
@@ -172,7 +172,7 @@ const views = computed<View[]>(() => {
   const all = [...published, ...own];
 
   // Rancher's own page is always one of the tabs.
-  const list = all.some(isStockView) ? all : [builtInStockView(props.title), ...all];
+  const list = all.some(isStockView) ? all : [builtInStockView(t('configurableViews.page.stockName')), ...all];
 
   return orderViews(list, set?.order, (view) => orderKeyOf(view, orgIds.value), defaultViewId.value);
 });
@@ -195,25 +195,22 @@ const gap = computed(() => (activeView.value && !isStockView(activeView.value) ?
 // The space between the grid and the edges of the page — a view-level setting like the gap.
 /**
  * The spacing just changed in the drawer, lit on the page for a moment so you see what it moves:
- * the view's gap or padding, or the selected widget's margin or padding.
+ * the view's gap or padding, or the selected widget's padding.
  */
-type Spacing = 'gap' | 'pad' | 'margin' | 'padding';
+type Spacing = 'gap' | 'pad' | 'padding';
 
 const flash = ref<Spacing | null>(null);
 let flashTimer: ReturnType<typeof setTimeout> | undefined;
 const FLASH_MS = 1000;
 
-// Only what is changing is lit: a new change puts out the last one, and one side of a margin or
-// padding lights that side alone.
-function flashSpacing(which: Spacing, side: keyof Sides | null = null): void {
+// Only what is changing is lit: a new change puts out the last one.
+function flashSpacing(which: Spacing): void {
   clearTimeout(flashTimer);
   flash.value = which;
-  ui.flashBox = which === 'margin' || which === 'padding' ? which : null;
-  ui.flashSide = ui.flashBox ? side : null;
+  ui.flashBox = which === 'padding' ? which : null;
   flashTimer = setTimeout(() => {
     flash.value = null;
     ui.flashBox = null;
-    ui.flashSide = null;
   }, FLASH_MS);
 }
 
@@ -1037,14 +1034,6 @@ function setSelectedSpacing(presetId: string): void {
   }
 }
 
-// Advanced: one side of the margin or the padding, in whole pixels.
-function setNodeBox(box: 'margin' | 'padding', side: keyof Sides, value: string): void {
-  const px = Math.max(0, Math.round(Number(value) || 0));
-
-  updateSelected((w) => ({ ...w, [box]: { ...w[box], [side]: px } }));
-  flashSpacing(box, side);
-}
-
 function setGap(value: string): void {
   const view = workingLayout();
 
@@ -1192,7 +1181,6 @@ const barListeners = {
     <ViewBar
       v-if="showBar"
       ref="bar"
-      :title="title"
       v-bind="barProps"
       v-on="barListeners"
     />
@@ -1225,7 +1213,6 @@ const barListeners = {
     <ViewBar
       v-if="loaded && showBar"
       ref="bar"
-      :title="title"
       v-bind="barProps"
       v-on="barListeners"
     />
@@ -1291,8 +1278,6 @@ const barListeners = {
         @set-width="setSelectedWidth"
         @set-height="setSelectedHeight"
         @set-spacing="setSelectedSpacing"
-        @set-box="setNodeBox"
-        @set-col-span="setSelectedWidth"
         @set-gap="setGap"
         @set-page-padding="setPagePadding"
         @set-name="renameView"

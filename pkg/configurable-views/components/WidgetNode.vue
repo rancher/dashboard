@@ -24,10 +24,7 @@ import type { Sides, WidgetNode } from '../templating/types';
 // is stacking-isolated so its own z-indexes — sticky table headers, dropdowns — can never cover the
 // editor or steal its clicks.
 
-/** A box's four sides in px, as measured. */
-interface Measured { top: number; right: number; bottom: number; left: number }
-
-/** One strip of a box-model band, and the side it stands for. */
+/** One strip of the padding band, and the side it stands for. */
 interface Band { side: keyof Sides; style: CSSProperties }
 
 const props = withDefaults(defineProps<{
@@ -56,11 +53,6 @@ const root = ref<HTMLElement | null>(null);
 /** The edge being dragged, if one is. */
 const resizing = ref<'' | 'start' | 'end' | 'bottom'>('');
 
-// Measured margin/padding in PX. The bands cannot reuse the authored values: a band is absolutely
-// positioned, so a percentage on it resolves against THIS tile, while the real margin resolves
-// against the line — a col-span-3 tile would draw the band 4x too small. getComputedStyle gives the
-// used value in px, which is exact for %, rem, anything.
-const usedMargin = ref<Measured | null>(null);
 /** The padding bands, placed over the card that carries the padding (see measurePadding). */
 const paddingBands = ref<Band[]>([]);
 
@@ -76,18 +68,9 @@ const absent = computed(() => !props.editing && !present(props.node.widget));
 const holdsWidgets = computed(() => !!props.node.widget.tabs);
 const span = computed(() => clampSpan(props.node.colSpan));
 
-// The margin/padding bands answer "where do these pixels go?", so they are drawn for a moment
-// after the number changes, not all the time.
-/** The band lit for a moment after the selected widget's margin or padding changes. */
-const flashBox = computed(() => (props.selected ? viewEditor.ui.flashBox : null));
-const showBoxModel = computed(() => !!flashBox.value);
-
-/** Only the strip that is changing; all four when every side changed at once. */
-function lit(bands: Band[]): Band[] {
-  const side = viewEditor.ui.flashSide;
-
-  return side ? bands.filter((b) => b.side === side) : bands;
-}
+// The padding band answers "where do these pixels go?", so it is drawn for a moment after the
+// spacing changes, not all the time.
+const showBoxModel = computed(() => props.selected && viewEditor.ui.flashBox === 'padding');
 
 const style = computed<CSSProperties>(() => {
   const cell = props.cell;
@@ -128,56 +111,7 @@ const style = computed<CSSProperties>(() => {
   return s;
 });
 
-// ---- box-model bands (selected widget, just after its margin or padding changed) ----
-// Four strips per box, sized from the real values. The MARGIN sits outside the element (negative
-// offsets), the PADDING inside it. Filled, no numbers — amber for margin, green for padding.
-
-// `outside` puts the strips beyond the element's edges (margin) rather than inside (padding).
-function bandsFor(box: Measured | null, outside: boolean): Band[] {
-  if (!box) {
-    return [];
-  }
-
-  const px = (v: number) => `${ outside ? -v : 0 }px`;
-  const out: Band[] = [];
-
-  if (box.top) {
-    out.push({
-      side:  'top',
-      style: {
-        top: px(box.top), left: px(box.left), right: px(box.right), height: `${ box.top }px`
-      },
-    });
-  }
-  if (box.bottom) {
-    out.push({
-      side:  'bottom',
-      style: {
-        bottom: px(box.bottom), left: px(box.left), right: px(box.right), height: `${ box.bottom }px`
-      },
-    });
-  }
-  if (box.left) {
-    out.push({
-      side:  'left',
-      style: {
-        top: 0, bottom: 0, left: px(box.left), width: `${ box.left }px`
-      },
-    });
-  }
-  if (box.right) {
-    out.push({
-      side:  'right',
-      style: {
-        top: 0, bottom: 0, right: px(box.right), width: `${ box.right }px`
-      },
-    });
-  }
-
-  return out;
-}
-
-const marginBands = computed(() => bandsFor(usedMargin.value, true));
+// ---- the padding band (selected widget, just after its spacing changed) ----
 
 /**
  * Padding lives on the CARD, split between its parts: the head carries the top and the sides, the
@@ -245,24 +179,11 @@ function measurePadding(el: HTMLElement): Band[] {
   return out;
 }
 
-// Read the USED margin/padding (always px, whatever unit was authored) for the band overlays.
+// Read the USED padding (always px, whatever unit was authored) for the band.
 function measure(): void {
   const el = root.value;
 
-  if (!showBoxModel.value || !el) {
-    usedMargin.value = null;
-    paddingBands.value = [];
-
-    return;
-  }
-
-  const n = (v: string) => Math.round((parseFloat(v) || 0) * 10) / 10;
-  const cs = getComputedStyle(el);
-
-  usedMargin.value = {
-    top: n(cs.marginTop), right: n(cs.marginRight), bottom: n(cs.marginBottom), left: n(cs.marginLeft)
-  };
-  paddingBands.value = measurePadding(el);
+  paddingBands.value = showBoxModel.value && el ? measurePadding(el) : [];
 }
 
 function scheduleMeasure(): void {
@@ -428,16 +349,10 @@ function fitHeight(): void {
     @dragstart="onDragStart"
     @dragend="onDragEnd"
   >
-    <!-- The selected widget's margin (amber, outside) or padding (green, inside), lit as it changes -->
+    <!-- The selected widget's padding, lit green as it changes -->
     <template v-if="showBoxModel">
       <div
-        v-for="band in (flashBox === 'margin' ? lit(marginBands) : [])"
-        :key="`m-${ band.side }`"
-        class="wnode__band wnode__band--margin"
-        :style="band.style"
-      />
-      <div
-        v-for="band in (flashBox === 'padding' ? lit(paddingBands) : [])"
+        v-for="band in paddingBands"
         :key="`p-${ band.side }`"
         class="wnode__band wnode__band--padding"
         :style="band.style"
@@ -567,10 +482,6 @@ function fitHeight(): void {
     z-index:        3;
   }
 
-  &__band--margin {
-    background: rgba(247, 181, 0, 0.35);
-  }
-
   &__band--padding {
     background: rgba(0, 170, 90, 0.30);
   }
@@ -643,11 +554,15 @@ function fitHeight(): void {
 
   // Traps the rendered widget's stacking context at level 0, so its own z-indexes can't cover the
   // editor chrome (and steal its clicks).
+  // Kept to its cells: a widget wider than them - a table with many columns in a narrow tile, or in
+  // a tab - scrolls sideways inside itself rather than running over its neighbours.
   &__content {
-    height:    100%;
-    isolation: isolate;
-    position:  relative;
-    z-index:   0;
+    height:     100%;
+    isolation:  isolate;
+    overflow-x: auto;
+    overflow-y: hidden;
+    position:   relative;
+    z-index:    0;
   }
 
   &__shield {

@@ -2,7 +2,7 @@ import { inject, type InjectionKey } from 'vue';
 import type { CatalogEntry } from '../templating/widget-catalog';
 import type { DropTarget } from '../templating/grid-layout';
 import type { Size } from '../templating/view-model';
-import type { Sides, WidgetPlace } from '../templating/types';
+import type { WidgetPlace } from '../templating/types';
 
 /**
  * What the grid and every widget on it share while a view is being edited. One reactive object,
@@ -23,10 +23,8 @@ export interface ViewEditorUi {
   dragSpan: number;
   /** How far right of its left edge the dragged widget was picked up, in px; null to centre it on the pointer. */
   dragGrab: number | null;
-  /** The selected widget's margin or padding just changed: that band is lit for a moment. */
-  flashBox: 'margin' | 'padding' | null;
-  /** Which side of that band changed; null when all four did (a spacing preset). */
-  flashSide: keyof Sides | null;
+  /** The selected widget's padding just changed: it is lit for a moment. */
+  flashBox: 'padding' | null;
 }
 
 /** One edge of a widget, moved: its right edge (span), its left edge (start column) or its bottom (height). */
@@ -94,7 +92,7 @@ export function useViewEditor(): ViewEditor {
     resize:      () => undefined,
     endResize:   () => undefined,
     ui:          {
-      dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', dragSpan: 0, dragGrab: null, flashBox: null, flashSide: null
+      dragId: null, dragEntry: null, dragLabel: '', dragKind: '', dropPlace: '', dragSpan: 0, dragGrab: null, flashBox: null
     },
   }), true);
 }
