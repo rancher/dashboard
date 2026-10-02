@@ -1982,6 +1982,25 @@ describe('component: FleetClusterTargets', () => {
     });
   });
 
+  describe('targetModeOptions', () => {
+    it.each([
+      ['offers picking clusters when the workspace has some', [{ metadata: { namespace: 'fleet-default', name: 'c-1' }, nameDisplay: 'c-1' }], [], true],
+      ['keeps targets picked by label selectable in a workspace without clusters', [], [{ clusterSelector: { matchLabels: { env: 'dev' } } }], true],
+      ['hides picking clusters in a workspace without clusters', [], [], false],
+    ])('%s', async(_, allClusters, targets, expected) => {
+      const wrapper = mount(FleetClusterTargets, {
+        ...requiredSetup(),
+        props: {
+          targets, namespace: 'fleet-default', mode: _EDIT
+        }
+      });
+
+      await wrapper.setData({ allClusters });
+
+      expect(wrapper.vm.targetModeOptions.some((opt: { value: string }) => opt.value === 'clusters')).toBe(expected);
+    });
+  });
+
   describe('allClusters watcher', () => {
     it('should resolve selectedClusters metadata.name values to nameDisplay when clusters load', async() => {
       const mockClusters = [
