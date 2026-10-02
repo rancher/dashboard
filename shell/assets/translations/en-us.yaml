@@ -9807,10 +9807,18 @@ component:
         workload: Workload
         node: Node
         loadError: Unable to load the details of this resource
+        externalIp: External IP
+        internalIp: Internal IP
+        version: Version
+        os: OS
+        cpu: CPU
+        memory: Memory
+        pods: Pods
         ariaLabel:
           showDetails: Show Resource Information about { resource } named { name }
           actionMenu: Resource Actions - { resource }
           loading: Loading resource information
+          loadingUsage: Loading usage
   cron:
     expressionEditor:
       label:

@@ -84,8 +84,11 @@ export default {
 
       for ( const r of this.filteredRelationships) {
         const type = r[`${ this.direction }Type`];
-        const state = r.state || this.$store.getters[`${ inStore }/byId`](type, r[`${ this.direction }Id`])?.state || STATES_ENUM.MISSING;
-        const stateColor = colorForState(state, r.error, r.transitioning);
+        // The resource's own state, when loaded, matches its list, detail page and popover. The relationship only has a
+        // summary of it, e.g. a pod in CrashLoopBackOff is unavailable
+        const resource = this.$store.getters[`${ inStore }/byId`](type, r[`${ this.direction }Id`]);
+        const state = resource?.state || r.state || STATES_ENUM.MISSING;
+        const stateColor = resource ? resource.stateColor : colorForState(state, r.error, r.transitioning);
         const schema = this.$store.getters[`${ inStore }/schemaFor`](type);
 
         let name = r[`${ this.direction }Id`];
@@ -135,8 +138,8 @@ export default {
           stateColor,
           detailLocation,
           typeDisplay:     this.$store.getters['type-map/labelFor'](schema),
-          stateDisplay:    stateDisplay(state),
-          stateBackground: stateColor.replace('text-', 'bg-'),
+          stateDisplay:    resource ? resource.stateDisplay : stateDisplay(state),
+          stateBackground: resource ? resource.stateBackground : stateColor.replace('text-', 'bg-'),
           groupByLabel:    namespace,
         });
       }
