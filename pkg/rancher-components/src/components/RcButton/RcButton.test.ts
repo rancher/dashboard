@@ -111,25 +111,11 @@ describe('rcButton.vue', () => {
       expect(button.classes()).toContain('variant-secondary');
     });
 
-    it('applies variant-tertiary class when variant="tertiary"', () => {
-      const wrapper = mount(RcButton, { props: { variant: 'tertiary' } });
-      const button = wrapper.find('button');
-
-      expect(button.classes()).toContain('variant-tertiary');
-    });
-
     it('applies variant-link class when variant="link"', () => {
       const wrapper = mount(RcButton, { props: { variant: 'link' } });
       const button = wrapper.find('button');
 
       expect(button.classes()).toContain('variant-link');
-    });
-
-    it('applies variant-multi-action class when variant="multiAction"', () => {
-      const wrapper = mount(RcButton, { props: { variant: 'multiAction' } });
-      const button = wrapper.find('button');
-
-      expect(button.classes()).toContain('variant-multi-action');
     });
 
     it('applies variant-ghost class when variant="ghost"', () => {
@@ -166,6 +152,19 @@ describe('rcButton.vue', () => {
       expect(wrapper.find('button').classes()).toContain(className);
       expect(warn).toHaveBeenCalledWith(expect.stringContaining(`variant="${ deprecated }" is deprecated`));
       expect(warn).toHaveBeenCalledWith(expect.stringContaining(`variant="${ replacement }"`));
+      warn.mockRestore();
+    });
+
+    it.each([
+      ['tertiary', 'variant-tertiary'],
+      ['multiAction', 'variant-multi-action'],
+    ] as [DeprecatedButtonVariant, string][])('keeps rendering variant="%s" and warns without naming a replacement', (deprecated, className) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const wrapper = mount(RcButton, { props: { variant: deprecated } });
+
+      expect(wrapper.find('button').classes()).toContain(className);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining(`variant="${ deprecated }" is deprecated`));
+      expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('Please use variant='));
       warn.mockRestore();
     });
 

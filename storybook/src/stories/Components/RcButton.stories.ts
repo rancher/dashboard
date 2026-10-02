@@ -7,9 +7,9 @@ const meta: Meta<typeof RcButton> = {
   component: RcButton,
   argTypes:  {
     variant: {
-      options:     ['solid', 'outline', 'tertiary', 'link', 'multiAction', 'ghost'] as ButtonVariant[],
+      options:     ['solid', 'outline', 'link', 'ghost'] as ButtonVariant[],
       control:     { type: 'select' },
-      description: 'Determines the shape of the button. Solid for main actions, outline for supporting actions, tertiary for less prominent actions, link for navigation, multiAction for dropdown buttons, and ghost for transparent buttons. The values primary and secondary are deprecated aliases for solid and outline.'
+      description: 'Determines the shape of the button. Solid for main actions, outline for supporting actions, link for navigation and ghost for transparent buttons. The values primary, secondary, tertiary and multiAction are deprecated.'
     },
     color: {
       options:     ['primary', 'destructive'] as ButtonColor[],
@@ -64,7 +64,7 @@ export const AllVariants: Story = {
   render: () => ({
     components: { RcButton },
     setup() {
-      const variants: ButtonVariant[] = ['solid', 'outline', 'tertiary', 'link', 'multiAction', 'ghost'];
+      const variants: ButtonVariant[] = ['solid', 'outline', 'link', 'ghost'];
 
       return { variants };
     },
@@ -95,7 +95,7 @@ export const DisabledVariants: Story = {
   render: () => ({
     components: { RcButton },
     setup() {
-      const variants: ButtonVariant[] = ['solid', 'outline', 'tertiary', 'link', 'multiAction', 'ghost'];
+      const variants: ButtonVariant[] = ['solid', 'outline', 'link', 'ghost'];
 
       return { variants };
     },
@@ -126,7 +126,7 @@ export const AsRouterLink: Story = {
   render: () => ({
     components: { RcButton },
     setup() {
-      const variants: ButtonVariant[] = ['solid', 'outline', 'tertiary', 'link'];
+      const variants: ButtonVariant[] = ['solid', 'outline', 'link'];
 
       return { variants };
     },

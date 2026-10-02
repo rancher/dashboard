@@ -9,13 +9,14 @@ export type RcButtonType = {
   focus: () => void;
 }
 
-export type ButtonVariant = 'solid' | 'outline' | 'tertiary' | 'link' | 'multiAction' | 'ghost';
+export type ButtonVariant = 'solid' | 'outline' | 'link' | 'ghost';
 
 /**
- * @deprecated Describe the button with `variant` and `color` instead: `primary` is
- * `variant="solid"` and `secondary` is `variant="outline"`, both with `color="primary"`.
+ * @deprecated `primary` is `variant="solid"` and `secondary` is `variant="outline"`, both
+ * with `color="primary"`. `tertiary` and `multiAction` have no replacement yet and still
+ * render as they always have.
  */
-export type DeprecatedButtonVariant = 'primary' | 'secondary';
+export type DeprecatedButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'multiAction';
 
 export type ButtonColor = 'primary' | 'destructive';
 
