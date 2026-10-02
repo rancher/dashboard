@@ -330,6 +330,31 @@ describe('class ProvCluster', () => {
     );
   });
 
+  describe('isK3s', () => {
+    it.each([
+      ['a k3s management cluster', { status: { provider: 'k3s' } }, 'v1.35.0+rke2r1', true],
+      ['an rke2 management cluster', { status: { provider: 'rke2' } }, 'v1.35.0+k3s1', false],
+    ])('should use the management cluster when there is one (%s)', (_, mgmtData, kubernetesVersion, expected) => {
+      const cluster = new ProvCluster({ spec: { kubernetesVersion, rkeConfig: {} } });
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(new MgmtCluster(mgmtData));
+
+      expect(cluster.isK3s).toBe(expected);
+    });
+
+    it.each([
+      ['v1.35.0+k3s1', true],
+      ['v1.35.0+rke2r1', false],
+      [undefined, false],
+    ])('without a management cluster (e.g. when creating), should use kubernetes version %p', (kubernetesVersion, expected) => {
+      const cluster = new ProvCluster({ spec: { kubernetesVersion, rkeConfig: {} } });
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(null);
+
+      expect(cluster.isK3s).toBe(expected);
+    });
+  });
+
   describe('supportsWindows', () => {
     const testCases = [
       {
