@@ -878,14 +878,19 @@ $tab-height: 30px;
     }
   }
 
-  // Two classes deep, to win over the dropdown trigger's own button look (and its hover).
-  &__list &__caret,
-  &__list &__caret:hover,
-  &__list &__caret:focus {
+  // Three classes deep, to win over the dropdown trigger's own button look in every state - at rest
+  // as well as hovered or focused, so its size never changes under the pointer.
+  &__list &__slot &__caret {
     background: transparent;
     color:      inherit;
     min-width:  0;
     padding:    0 10px 0 2px;
+
+    &:hover,
+    &:focus {
+      background: transparent;
+      color:      inherit;
+    }
 
     i {
       font-size: 12px;
