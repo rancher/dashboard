@@ -525,7 +525,14 @@ defineExpose({ openRename, focusTab });
             @blur="commitRename"
             @click.stop
           >
-          <template v-else>
+          <!-- The tab and its chevron are what the menu is placed against, so it opens under the tab,
+             lined up with its start, as the table views' menus do -->
+          <rc-dropdown
+            v-else
+            placement="bottom-start"
+            :distance="4"
+            :aria-label="t('configurableViews.bar.moreActions')"
+          >
             <button
               :ref="(el) => keepRef(tabButtons, view.id, el as HTMLElement | null)"
               type="button"
@@ -554,112 +561,105 @@ defineExpose({ openRename, focusTab });
               />
             </button>
 
-            <!-- The tab's own menu, as the table views have it: opened from its chevron, under the tab -->
-            <rc-dropdown
+            <rc-dropdown-trigger
               v-if="!editing"
-              placement="bottom-end"
-              :distance="4"
-              :aria-label="t('configurableViews.bar.moreActions')"
+              variant="ghost"
+              size="small"
+              class="btn btn-sm vbar__caret"
+              :class="view.id === activeId ? 'bg-primary' : 'bg-disabled'"
+              :aria-label="t('configurableViews.bar.menuFor', { name: view.name })"
+              :data-testid="`configurable-views-tab-menu-${ view.id }`"
             >
-              <rc-dropdown-trigger
-                variant="ghost"
-                size="small"
-                class="btn btn-sm vbar__caret"
-                :class="view.id === activeId ? 'bg-primary' : 'bg-disabled'"
-                :aria-label="t('configurableViews.bar.menuFor', { name: view.name })"
-                :data-testid="`configurable-views-tab-menu-${ view.id }`"
-              >
-                <i class="icon icon-chevron-down" />
-              </rc-dropdown-trigger>
+              <i class="icon icon-chevron-down" />
+            </rc-dropdown-trigger>
 
-              <template #dropdownCollection>
-                <div class="menu-panel">
+            <template #dropdownCollection>
+              <div class="menu-panel">
+                <rc-dropdown-item
+                  v-if="!isStock(view)"
+                  :data-testid="`configurable-views-edit-${ view.id }`"
+                  @click="$emit('edit', view.id)"
+                >
+                  <template #before>
+                    <i class="icon icon-edit" />
+                  </template>
+                  {{ t('configurableViews.bar.edit') }}
+                </rc-dropdown-item>
+                <rc-dropdown-item
+                  v-if="!isStock(view)"
+                  :data-testid="`configurable-views-rename-${ view.id }`"
+                  @click="openRename(view.id)"
+                >
+                  <template #before>
+                    <i class="menu-gutter" />
+                  </template>
+                  {{ t('configurableViews.bar.rename') }}
+                </rc-dropdown-item>
+                <rc-dropdown-item
+                  :data-testid="`configurable-views-duplicate-${ view.id }`"
+                  @click="$emit('duplicate', view.id)"
+                >
+                  <template #before>
+                    <i class="icon icon-copy" />
+                  </template>
+                  {{ t('configurableViews.bar.duplicate') }}
+                  <span class="menu-shortcut">{{ shortcuts.duplicate }}</span>
+                </rc-dropdown-item>
+                <rc-dropdown-item
+                  :class="{ selected: isDefaultTab(view) }"
+                  :data-testid="`configurable-views-set-default-${ view.id }`"
+                  @click="setDefaultView(view)"
+                >
+                  <template #before>
+                    <i class="menu-gutter" />
+                  </template>
+                  {{ t('configurableViews.bar.setDefault') }}
+                  <i
+                    v-if="isDefaultTab(view)"
+                    class="icon icon-checkmark menu-check"
+                  />
+                </rc-dropdown-item>
+
+                <template v-if="!isStock(view)">
+                  <rc-dropdown-separator />
                   <rc-dropdown-item
-                    v-if="!isStock(view)"
-                    :data-testid="`configurable-views-edit-${ view.id }`"
-                    @click="$emit('edit', view.id)"
+                    v-if="!view.org"
+                    :data-testid="`configurable-views-publish-${ view.id }`"
+                    @click="$emit('publish', view.id)"
                   >
                     <template #before>
-                      <i class="icon icon-edit" />
+                      <i class="icon icon-groups" />
                     </template>
-                    {{ t('configurableViews.bar.edit') }}
+                    {{ t('configurableViews.bar.publish') }}
                   </rc-dropdown-item>
                   <rc-dropdown-item
-                    v-if="!isStock(view)"
-                    :data-testid="`configurable-views-rename-${ view.id }`"
-                    @click="openRename(view.id)"
+                    v-if="isPublished(view)"
+                    :data-testid="`configurable-views-unpublish-${ view.id }`"
+                    @click="$emit('unpublish', view.id)"
                   >
                     <template #before>
                       <i class="menu-gutter" />
                     </template>
-                    {{ t('configurableViews.bar.rename') }}
+                    {{ t('configurableViews.bar.unpublish') }}
                   </rc-dropdown-item>
+                </template>
+
+                <!-- A published view is everyone's: it is unpublished, not deleted -->
+                <template v-if="!isStock(view) && !view.org">
+                  <rc-dropdown-separator />
                   <rc-dropdown-item
-                    :data-testid="`configurable-views-duplicate-${ view.id }`"
-                    @click="$emit('duplicate', view.id)"
+                    :data-testid="`configurable-views-delete-${ view.id }`"
+                    @click="$emit('delete', view.id)"
                   >
                     <template #before>
-                      <i class="icon icon-copy" />
+                      <i class="icon icon-trash" />
                     </template>
-                    {{ t('configurableViews.bar.duplicate') }}
-                    <span class="menu-shortcut">{{ shortcuts.duplicate }}</span>
+                    {{ t('configurableViews.bar.delete') }}
                   </rc-dropdown-item>
-                  <rc-dropdown-item
-                    :class="{ selected: isDefaultTab(view) }"
-                    :data-testid="`configurable-views-set-default-${ view.id }`"
-                    @click="setDefaultView(view)"
-                  >
-                    <template #before>
-                      <i class="menu-gutter" />
-                    </template>
-                    {{ t('configurableViews.bar.setDefault') }}
-                    <i
-                      v-if="isDefaultTab(view)"
-                      class="icon icon-checkmark menu-check"
-                    />
-                  </rc-dropdown-item>
-
-                  <template v-if="!isStock(view)">
-                    <rc-dropdown-separator />
-                    <rc-dropdown-item
-                      v-if="!view.org"
-                      :data-testid="`configurable-views-publish-${ view.id }`"
-                      @click="$emit('publish', view.id)"
-                    >
-                      <template #before>
-                        <i class="icon icon-groups" />
-                      </template>
-                      {{ t('configurableViews.bar.publish') }}
-                    </rc-dropdown-item>
-                    <rc-dropdown-item
-                      v-if="isPublished(view)"
-                      :data-testid="`configurable-views-unpublish-${ view.id }`"
-                      @click="$emit('unpublish', view.id)"
-                    >
-                      <template #before>
-                        <i class="menu-gutter" />
-                      </template>
-                      {{ t('configurableViews.bar.unpublish') }}
-                    </rc-dropdown-item>
-                  </template>
-
-                  <!-- A published view is everyone's: it is unpublished, not deleted -->
-                  <template v-if="!isStock(view) && !view.org">
-                    <rc-dropdown-separator />
-                    <rc-dropdown-item
-                      :data-testid="`configurable-views-delete-${ view.id }`"
-                      @click="$emit('delete', view.id)"
-                    >
-                      <template #before>
-                        <i class="icon icon-trash" />
-                      </template>
-                      {{ t('configurableViews.bar.delete') }}
-                    </rc-dropdown-item>
-                  </template>
-                </div>
-              </template>
-            </rc-dropdown>
-          </template>
+                </template>
+              </div>
+            </template>
+          </rc-dropdown>
         </div>
       </TransitionGroup>
 
@@ -728,6 +728,9 @@ defineExpose({ openRename, focusTab });
 <style lang="scss" scoped>
 // The same curves the side nav's pinned shelf uses
 $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
+
+// A view's button in the bar, and its chevron beside it
+$tab-height: 30px;
 
 // Same as `cluster-scroll-shadow` in TopLevelMenu: shown along the scroll, gone at the end
 @keyframes vbar-scroll-shadow {
@@ -815,20 +818,27 @@ $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
   }
 
   // A view's chevron: the same segment as its name, so the two read as one button.
-  &__caret {
-    min-width:     0;
-    padding-left:  2px;
-    padding-right: 8px;
+  // Two classes deep, to win over the button's own small size: the same height as its tab.
+  &__list &__caret {
+    height:         $tab-height;
+    min-height:     $tab-height;
+    min-width:      0;
+    padding-left:   2px;
+    padding-right:  8px;
+    vertical-align: top;
 
     i {
       font-size: 12px;
     }
   }
 
+  // Inline beside its chevron: the two sit on one line inside the box the menu is placed against.
   &__view {
-    flex:        0 0 auto;
-    gap:         6px;
-    white-space: nowrap;
+    display:        inline-flex;
+    gap:            6px;
+    height:         $tab-height;
+    vertical-align: top;
+    white-space:    nowrap;
 
     // Its chevron finishes the segment
     &:not(:last-child) {
@@ -862,8 +872,9 @@ $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
 
   // The active view's name, edited where the tab was.
   &__slot {
-    display: flex;
-    flex:    0 0 auto;
+    display:     flex;
+    flex:        0 0 auto;
+    white-space: nowrap;
   }
 
   &__name {
