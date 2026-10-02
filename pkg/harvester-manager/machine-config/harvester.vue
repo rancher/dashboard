@@ -571,6 +571,22 @@ export default {
       }));
     },
 
+    /**
+     * ArrayListSelect pre-fills a new row with options[0], so list the devices that aren't selected yet
+     * first and a new row starts on the first free device. Each row's dropdown only offers its own value
+     * plus the unselected devices, so the order shown to the user doesn't change.
+     */
+    hostDeviceSelectOptions() {
+      const unselected = this.pciDeviceOptions.filter((o) => !this.hostDevices.includes(o.value));
+      const selected = this.pciDeviceOptions.filter((o) => this.hostDevices.includes(o.value));
+
+      return [...unselected, ...selected];
+    },
+
+    hostDevicesAddDisabled() {
+      return this.pciDeviceOptions.every((o) => this.hostDevices.includes(o.value));
+    },
+
     showPciDeviceAllocationInfo() {
       return this.mode !== _VIEW && !!Object.values(this.pciDevices).find((d) => d.allocatable);
     },
@@ -1764,6 +1780,8 @@ export default {
               v-model:value="hostDevices"
               class="mt-20"
               :array-list-props="{
+                addAllowed: true,
+                addDisabled: hostDevicesAddDisabled,
                 mode,
                 disabled
               }"
@@ -1771,8 +1789,7 @@ export default {
                 mode,
                 disabled,
               }"
-              :options="pciDeviceOptions"
-              :enable-default-add-value="false"
+              :options="hostDeviceSelectOptions"
               label-key="harvesterManager.hostDevices.label"
               @update:value="updateHostDevices"
             />
