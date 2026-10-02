@@ -505,5 +505,167 @@ describe('component: Basics', () => {
       expect(ingress.exists()).toBe(true);
       expect(ingress.props('kubernetesVersion')).toBe('v1.37.0+rke2r1');
     });
+
+    describe('rke2', () => {
+      const rke2ServerArgs = { disable: { options: ['rke2-coredns', RKE2_INGRESS_NGINX, RKE2_TRAEFIK] }, cni: { options: [] } };
+
+      function mountRke2Basics() {
+        const version = {
+          id: 'v1.35.0+rke2r1', value: 'v1.35.0+rke2r1', label: 'v1.35.0+rke2r1', serverArgs: rke2ServerArgs
+        };
+
+        return mount(Basics, {
+          props: {
+            ...requiredProps(version),
+            value: {
+              isK3s: false,
+              spec:  {
+                ...defaultSpec,
+                rkeConfig:         { ...defaultSpec.rkeConfig, machineGlobalConfig: { cni: 'calico', 'ingress-controller': 'traefik' } },
+                kubernetesVersion: version.value
+              },
+              agentConfig: { 'cloud-provider-name': '' },
+            },
+          },
+          global: {
+            mocks: {
+              ...defaultMocks,
+              $store: { getters: defaultGetters },
+            },
+            stubs: defaultStubs,
+          },
+        });
+      }
+
+      it('should not offer the ingress charts as system services', () => {
+        const wrapper = mountRke2Basics();
+
+        expect((wrapper.vm as any).disableOptions.map((o: any) => o.value)).toStrictEqual(['rke2-coredns']);
+      });
+
+      it('should show the Ingress section with isK3s false and nginx supported', () => {
+        const wrapper = mountRke2Basics();
+        const ingress = wrapper.findComponent(Ingress);
+
+        expect(ingress.exists()).toBe(true);
+        expect(ingress.props('isK3s')).toBe(false);
+        expect(ingress.props('nginxSupported')).toBe(true);
+        expect(ingress.props('value')).toBe('traefik');
+      });
+
+      it('should set the ingress-controller config when the ingress selection changes', () => {
+        const wrapper = mountRke2Basics();
+
+        (wrapper.vm as any).ingressController = 'ingress-nginx';
+
+        expect((wrapper.vm as any).serverConfig['ingress-controller']).toBe('ingress-nginx');
+        expect(wrapper.emitted('enabled-system-services-changed')).toBeUndefined();
+      });
+    });
+
+    describe('k3s', () => {
+      const k3sServerArgs = { disable: { options: ['coredns', 'servicelb', 'traefik', 'local-storage', 'metrics-server'] }, cni: { options: [] } };
+
+      function mountK3sBasics(disable?: string[], serverArgs: any = k3sServerArgs) {
+        const version = {
+          id: 'v1.35.0+k3s1', value: 'v1.35.0+k3s1', label: 'v1.35.0+k3s1', serverArgs
+        };
+
+        return mount(Basics, {
+          props: {
+            ...requiredProps(version),
+            value: {
+              isK3s: true,
+              spec:  {
+                ...defaultSpec,
+                rkeConfig:         { ...defaultSpec.rkeConfig, machineGlobalConfig: { cni: 'calico', ...(disable ? { disable } : {}) } },
+                kubernetesVersion: version.value
+              },
+              agentConfig: { 'cloud-provider-name': '' },
+            },
+          },
+          global: {
+            mocks: {
+              ...defaultMocks,
+              $store: { getters: defaultGetters },
+            },
+            stubs: defaultStubs,
+          },
+        });
+      }
+
+      it('should not offer traefik as a system service', () => {
+        const wrapper = mountK3sBasics();
+
+        expect((wrapper.vm as any).disableOptions.map((o: any) => o.value)).toStrictEqual(['coredns', 'servicelb', 'local-storage', 'metrics-server']);
+      });
+
+      it('should show the Ingress section flagged as k3s, with traefik but not nginx supported', () => {
+        const wrapper = mountK3sBasics();
+        const ingress = wrapper.findComponent(Ingress);
+
+        expect(ingress.exists()).toBe(true);
+        expect(ingress.props('isK3s')).toBe(true);
+        expect(ingress.props('traefikSupported')).toBe(true);
+        expect(ingress.props('nginxSupported')).toBe(false);
+      });
+
+      it('should hide the Ingress section if traefik cannot be disabled for the version', () => {
+        const wrapper = mountK3sBasics(undefined, { disable: { options: ['coredns'] }, cni: { options: [] } });
+
+        expect(wrapper.findComponent(Ingress).exists()).toBe(false);
+      });
+
+      it.each([
+        [undefined, 'traefik'],
+        [['coredns'], 'traefik'],
+        [['traefik'], 'none'],
+        [['coredns', 'traefik'], 'none'],
+      ])('given disable list %p, should select ingress %p', (disable, expected) => {
+        const wrapper = mountK3sBasics(disable);
+
+        expect(wrapper.findComponent(Ingress).props('value')).toBe(expected);
+      });
+
+      it('should add traefik to the disable list when ingress is turned off', () => {
+        const wrapper = mountK3sBasics(['coredns']);
+
+        (wrapper.vm as any).ingressController = 'none';
+
+        expect(wrapper.emitted('enabled-system-services-changed')).toStrictEqual([[['coredns', 'traefik']]]);
+        expect((wrapper.vm as any).serverConfig['ingress-controller']).toBeUndefined();
+      });
+
+      it('should remove traefik from the disable list when traefik is selected', () => {
+        const wrapper = mountK3sBasics(['traefik', 'coredns']);
+
+        (wrapper.vm as any).ingressController = 'traefik';
+
+        expect(wrapper.emitted('enabled-system-services-changed')).toStrictEqual([[['coredns']]]);
+        expect((wrapper.vm as any).serverConfig['ingress-controller']).toBeUndefined();
+      });
+    });
   });
 });
+
+function requiredProps(version: any) {
+  return {
+    mode:                        'create',
+    provider:                    'custom',
+    userChartValues:             {},
+    addonVersions:               [],
+    versionInfo:                 {},
+    allPsas:                     [],
+    selectedVersion:             version,
+    versionOptions:              [version],
+    isHarvesterDriver:           false,
+    isHarvesterIncompatible:     false,
+    showDeprecatedPatchVersions: false,
+    isElementalCluster:          false,
+    haveArgInfo:                 true,
+    showCni:                     true,
+    showCloudProvider:           false,
+    cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
+    complianceOverride:          false,
+  };
+}

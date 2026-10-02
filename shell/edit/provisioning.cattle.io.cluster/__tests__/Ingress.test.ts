@@ -418,4 +418,62 @@ describe('ingress.vue', () => {
       expect(options.every((o) => o.disabled)).toBe(true);
     });
   });
+
+  describe('k3s', () => {
+    const TRANSITIONING_KEY = 'cluster.ingress.banners.transitioning.label';
+    const bannerKeys = (wrapper: any) => wrapper.findAllComponents({ name: 'Banner' }).map((b: any) => b.props('labelKey'));
+    const migrationBanner = (wrapper: any) => wrapper.findAllComponents({ name: 'Banner' }).filter((b: any) => !b.props('labelKey'));
+
+    it.each([_CREATE, _EDIT])('shows the transitioning banner for rke2 in %p mode', (mode) => {
+      const wrapper = createWrapper({ value: TRAEFIK, mode });
+
+      expect(bannerKeys(wrapper)).toContain(TRANSITIONING_KEY);
+    });
+
+    it.each([_CREATE, _EDIT])('hides the transitioning banner for k3s in %p mode', (mode) => {
+      const wrapper = createWrapper({
+        value: TRAEFIK, mode, isK3s: true, nginxSupported: false
+      });
+
+      expect(bannerKeys(wrapper)).not.toContain(TRANSITIONING_KEY);
+    });
+
+    it('shows the migration banner for rke2 when editing a cluster without traefik selected', () => {
+      const wrapper = createWrapper({ value: INGRESS_NGINX, mode: _EDIT });
+
+      expect(migrationBanner(wrapper)).toHaveLength(1);
+    });
+
+    it('hides the migration banner for k3s when switching to traefik while editing', async() => {
+      const wrapper = createWrapper({
+        value: INGRESS_NONE, mode: _EDIT, isK3s: true, nginxSupported: false
+      });
+
+      await wrapper.findComponent({ name: 'Checkbox' }).vm.$emit('update:value', true);
+      await wrapper.setProps({ value: TRAEFIK });
+      wrapper.findComponent({ name: 'IngressCards' }).vm.$emit('select', TRAEFIK);
+      await wrapper.vm.$nextTick();
+
+      expect(migrationBanner(wrapper)).toHaveLength(0);
+    });
+
+    it('hides the rke2 chart configuration for k3s even when rke2 chart info is loaded', () => {
+      const wrapper = createWrapper({
+        value: TRAEFIK, isK3s: true, nginxSupported: false
+      });
+
+      expect(wrapper.findComponent({ name: 'IngressConfiguration' }).exists()).toBe(false);
+      expect(wrapper.find('.advanced-toggle').exists()).toBe(false);
+    });
+
+    it('still lets k3s turn ingress off', async() => {
+      const wrapper = createWrapper({
+        value: TRAEFIK, isK3s: true, nginxSupported: false
+      });
+
+      await wrapper.findComponent({ name: 'Checkbox' }).vm.$emit('update:value', false);
+
+      expect(wrapper.emitted('update:value')).toStrictEqual([[INGRESS_NONE]]);
+    });
+  });
 });

@@ -10,7 +10,7 @@ import YamlEditor from '@shell/components/YamlEditor';
 import semver from 'semver';
 import Ingress from '@shell/edit/provisioning.cattle.io.cluster/ingress/index';
 import {
-  HARVESTER, RKE2_INGRESS_NGINX, RKE2_TRAEFIK, INGRESS_CONTROLLER, INGRESS_NGINX, INGRESS_NONE
+  HARVESTER, RKE2_INGRESS_NGINX, RKE2_TRAEFIK, INGRESS_CONTROLLER, INGRESS_NGINX, INGRESS_NONE, TRAEFIK
 } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
 export default {
@@ -165,8 +165,17 @@ export default {
 
       return out;
     },
+    isK3s() {
+      return !!this.value?.isK3s;
+    },
+
     ingressController: {
       get() {
+        // K3s has no ingress-controller config, its bundled Traefik is turned off via the disable list
+        if (this.isK3s) {
+          return (this.serverConfig?.disable || []).includes(TRAEFIK) ? INGRESS_NONE : TRAEFIK;
+        }
+
         if (this.serverConfig) {
           if (this.serverConfig[INGRESS_CONTROLLER]) {
             return this.serverConfig[INGRESS_CONTROLLER];
@@ -181,6 +190,18 @@ export default {
       },
 
       set(neu) {
+        if (this.isK3s) {
+          const disable = (this.serverConfig.disable || []).filter((service) => service !== TRAEFIK);
+
+          if (neu === INGRESS_NONE) {
+            disable.push(TRAEFIK);
+          }
+
+          this.$emit('enabled-system-services-changed', disable);
+
+          return;
+        }
+
         this.serverConfig[INGRESS_CONTROLLER] = neu;
       },
     },
@@ -207,7 +228,7 @@ export default {
      * Get the default label for the PSA template option
      */
     defaultPsaOptionLabel() {
-      const optionCase = !this.value.isK3s ? 'default' : 'none';
+      const optionCase = !this.isK3s ? 'default' : 'none';
 
       return this.$store.getters['i18n/t'](`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ optionCase }`);
     },
@@ -248,15 +269,22 @@ export default {
     },
 
     disableOptions() {
-      // For RKE2 clusters Ingress is configured separately, so we should not allow disabling it here
-      return (this.serverArgs.disable.options || []).filter((value) => value !== RKE2_INGRESS_NGINX && value !== RKE2_TRAEFIK).map((value) => {
+      // Ingress is configured in its own section, so we should not allow disabling it here
+      const ingressServices = this.isK3s ? [TRAEFIK] : [RKE2_INGRESS_NGINX, RKE2_TRAEFIK];
+
+      return (this.serverArgs.disable.options || []).filter((value) => !ingressServices.includes(value)).map((value) => {
         return {
-          label: this.$store.getters['i18n/withFallback'](`cluster.${ this.value.isK3s ? 'k3s' : 'rke2' }.systemService."${ value }"`, null, value.replace(/^(rke2|rancher)-/, '')),
+          label: this.$store.getters['i18n/withFallback'](`cluster.${ this.isK3s ? 'k3s' : 'rke2' }.systemService."${ value }"`, null, value.replace(/^(rke2|rancher)-/, '')),
           value,
         };
       });
     },
     nginxSupported() {
+      // K3s doesn't bundle Ingress-NGINX
+      if (this.isK3s) {
+        return false;
+      }
+
       if (Object.keys(this.serverArgs).length === 0 || this.serverArgs?.disable?.options.includes(RKE2_INGRESS_NGINX)) {
         return true;
       }
@@ -265,6 +293,10 @@ export default {
     },
     // If version is too old and we couldn't get serverArgs, it has to be NGINX
     traefikSupported() {
+      if (this.isK3s) {
+        return !!this.serverArgs?.disable?.options?.includes(TRAEFIK);
+      }
+
       return Object.keys(this.serverArgs).length > 0;
     },
 
@@ -371,7 +403,8 @@ export default {
     },
 
     showIngress() {
-      return !this.value?.isK3s;
+      // K3s Ingress is only its bundled Traefik, which can only be managed when the version lists it as a disableable service
+      return !this.isK3s || this.traefikSupported;
     }
   },
 
@@ -391,7 +424,7 @@ export default {
 <template>
   <div>
     <Banner
-      v-if="!haveArgInfo || ((!nginxChart || !traefikChart) && showIngress)"
+      v-if="!haveArgInfo || ((!nginxChart || !traefikChart) && !isK3s)"
       color="warning"
       :label="t('cluster.banner.haveArgInfo')"
     />
@@ -569,7 +602,7 @@ export default {
       <div class="col span-6">
         <!-- PSA template selector -->
         <LabeledSelect
-          :key="value.isK3s"
+          :key="isK3s"
           v-model:value="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
           :mode="mode"
           data-testid="rke2-custom-edit-psa"
@@ -643,6 +676,7 @@ export default {
       :version-info="versionInfo"
       :original-ingress-controller="originalIngressController"
       :kubernetes-version="value.spec.kubernetesVersion"
+      :is-k3s="isK3s"
       @update-values="(name, val) => $emit('update-values', name, val)"
       @error="$emit('error', $event)"
       @yaml-validation-changed="e => $emit('yaml-validation-changed', e)"

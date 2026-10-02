@@ -28,6 +28,7 @@ interface Props {
   versionInfo: any;
   originalIngressController?: string | string[];
   kubernetesVersion?: string;
+  isK3s?: boolean;
 }
 const {
   mode = _CREATE,
@@ -39,7 +40,8 @@ const {
   userChartValues,
   versionInfo,
   originalIngressController = INGRESS_NONE,
-  kubernetesVersion
+  kubernetesVersion,
+  isK3s = false
 } = defineProps<Props>();
 
 const emit = defineEmits(['update:value', 'error', 'config-validation-changed', 'yaml-validation-changed', 'update-values']);
@@ -55,10 +57,11 @@ const isCreate = computed(() => mode === _CREATE);
 const showTraefikBanner = ref<Boolean>(false);
 const traefikMerged = ref(initYamlEditor(traefikChart));
 const nginxMerged = ref(initYamlEditor(nginxChart));
-const showConfig = computed(() => !!versionInfo[traefikChart] || !!versionInfo[nginxChart]);
+const showConfig = computed(() => !isK3s && (!!versionInfo[traefikChart] || !!versionInfo[nginxChart]));
 const isPrime = ref( getVersionData().RancherPrime === 'true');
 const isIngressDisableVersion = computed(() => isCreate.value && !!kubernetesVersion && semver.gte(kubernetesVersion, 'v1.37.0'));
-const showTransitioningBanner = computed(() => traefikSupported && (!isIngressDisableVersion.value || !!isPrime.value));
+const showTransitioningBanner = computed(() => !isK3s && traefikSupported && (!isIngressDisableVersion.value || !!isPrime.value));
+const showSelectedBanner = computed(() => !isK3s && ((isEdit.value && ingressSelection.value !== TRAEFIK) || !!showTraefikBanner.value));
 
 // in traefik v40 the nginx key changed from kubernetesIngressNginx to kubernetesIngressNGINX
 const traefikNginxKey = computed(() => {
@@ -281,7 +284,7 @@ function updateYaml(component: any, value: any) {
       @select="selectIngress"
     />
     <Banner
-      v-if="(isEdit && ingressSelection !== TRAEFIK) || showTraefikBanner"
+      v-if="showSelectedBanner"
       color="warning"
     >
       <RichTranslation :k="`cluster.ingress.banners.selected.${ingressSelection}.label`">
