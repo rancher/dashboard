@@ -166,7 +166,7 @@ export function init(store) {
   weightGroup('advanced', -1, true);
 
   const MACHINE_SUMMARY = {
-    name:      'summary',
+    name:      'machines',
     labelKey:  'tableHeaders.machines',
     sort:      false,
     search:    false,
