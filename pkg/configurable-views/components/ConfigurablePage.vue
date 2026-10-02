@@ -1153,9 +1153,15 @@ onBeforeUnmount(() => {
 });
 
 const barListeners = {
-  select:          setActiveView,
-  // Rancher's own page has nothing to edit: it is duplicated instead
-  edit:            () => !activeIsStock.value && enterEdit(),
+  select: setActiveView,
+  // From a tab's menu: that view is opened, then edited. Rancher's own page has nothing to edit, so
+  // its menu does not offer to.
+  edit:   (id: string) => {
+    setActiveView(id);
+    if (!activeIsStock.value) {
+      enterEdit();
+    }
+  },
   cancel:          cancelEdit,
   save:            () => save(),
   'save-as-new':   saveAsNewView,
