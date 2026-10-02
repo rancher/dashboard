@@ -101,7 +101,7 @@ export default {
     </template>
     <template #actions>
       <rc-button
-        variant="secondary"
+        variant="outline"
         size="large"
         class="mr-10"
         @click="close"
@@ -110,8 +110,8 @@ export default {
       </rc-button>
       <div class="spacer" />
       <rc-button
-        variant="primary"
-        severity="destructive"
+        variant="solid"
+        color="destructive"
         size="large"
         class="ml-10"
         @click="remove"

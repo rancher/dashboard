@@ -97,7 +97,7 @@ export default {
       <div class="dialog-actions">
         <div class="action-pannel file-selector">
           <FileSelector
-            variant="secondary"
+            variant="outline"
             data-testid="ssh-known-hosts-dialog_file-selector"
             :label="t('generic.readFromFile')"
             @selected="onTextChange"
@@ -105,7 +105,7 @@ export default {
         </div>
         <div class="action-pannel form-actions">
           <rc-button
-            variant="secondary"
+            variant="outline"
             size="large"
             data-testid="ssh-known-hosts-dialog_cancel-btn"
             @click="closeDialog(false)"
@@ -113,7 +113,7 @@ export default {
             {{ t('generic.cancel') }}
           </rc-button>
           <rc-button
-            variant="primary"
+            variant="solid"
             size="large"
             data-testid="ssh-known-hosts-dialog_save-btn"
             @click="closeDialog(true)"

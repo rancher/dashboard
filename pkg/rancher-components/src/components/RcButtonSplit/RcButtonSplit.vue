@@ -41,7 +41,7 @@ withDefaults(
   defineProps<RcButtonSplitProps>(),
   {
     disabled:          false,
-    variant:           'primary',
+    variant:           'solid',
     size:              'medium',
     ariaLabel:         undefined,
     ariaLabelTrigger:  undefined,

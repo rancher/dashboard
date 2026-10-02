@@ -1,20 +1,20 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { RcButton } from '@components/RcButton';
-import { ButtonVariant, ButtonSize, ButtonSeverity } from '@components/RcButton/types';
+import { ButtonVariant, ButtonSize, ButtonColor } from '@components/RcButton/types';
 import { RcIconTypeToClass } from '@components/RcIcon/types';
 
 const meta: Meta<typeof RcButton> = {
   component: RcButton,
   argTypes:  {
     variant: {
-      options:     ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'] as ButtonVariant[],
+      options:     ['solid', 'outline', 'tertiary', 'link', 'multiAction', 'ghost'] as ButtonVariant[],
       control:     { type: 'select' },
-      description: 'Determines the visual style and purpose of the button. Primary for main actions, secondary for supporting actions, tertiary for less prominent actions, link for navigation, multiAction for dropdown buttons, and ghost for transparent buttons.'
+      description: 'Determines the shape of the button. Solid for main actions, outline for supporting actions, tertiary for less prominent actions, link for navigation, multiAction for dropdown buttons, and ghost for transparent buttons. The values primary and secondary are deprecated aliases for solid and outline.'
     },
-    severity: {
-      options:     [undefined, 'destructive'] as (ButtonSeverity | undefined)[],
+    color: {
+      options:     ['primary', 'destructive'] as ButtonColor[],
       control:     { type: 'select' },
-      description: 'Colours the button for a destructive action, independently of the variant.'
+      description: 'Colours the button independently of its shape. Destructive marks an irreversible action.'
     },
     size: {
       options:     ['small', 'medium', 'large'] as ButtonSize[],
@@ -64,7 +64,7 @@ export const AllVariants: Story = {
   render: () => ({
     components: { RcButton },
     setup() {
-      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'];
+      const variants: ButtonVariant[] = ['solid', 'outline', 'tertiary', 'link', 'multiAction', 'ghost'];
 
       return { variants };
     },
@@ -95,7 +95,7 @@ export const DisabledVariants: Story = {
   render: () => ({
     components: { RcButton },
     setup() {
-      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'];
+      const variants: ButtonVariant[] = ['solid', 'outline', 'tertiary', 'link', 'multiAction', 'ghost'];
 
       return { variants };
     },
@@ -126,7 +126,7 @@ export const AsRouterLink: Story = {
   render: () => ({
     components: { RcButton },
     setup() {
-      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link'];
+      const variants: ButtonVariant[] = ['solid', 'outline', 'tertiary', 'link'];
 
       return { variants };
     },
