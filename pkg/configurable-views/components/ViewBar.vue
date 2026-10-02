@@ -39,7 +39,8 @@ type BarEmits = {
   /** The name typed while editing the active view. */
   rename: [name: string];
   'rename-view': [id: string, name: string];
-  edit: [];
+  /** Edit this view: it is opened first if it is not the one on screen. */
+  edit: [id: string];
   cancel: [];
   save: [];
   'save-as-new': [];
@@ -524,34 +525,141 @@ defineExpose({ openRename, focusTab });
             @blur="commitRename"
             @click.stop
           >
-          <button
-            v-else
-            :ref="(el) => keepRef(tabButtons, view.id, el as HTMLElement | null)"
-            type="button"
-            role="tab"
-            class="btn btn-sm vbar__view"
-            :class="{
-              'bg-primary': !editing && view.id === activeId,
-              'bg-disabled': editing || view.id !== activeId,
-            }"
-            :aria-selected="view.id === activeId"
-            :tabindex="view.id === focusableTabId ? 0 : -1"
-            :disabled="editing"
-            @click="$emit('select', view.id)"
-            @keydown.left.prevent="stepTab(-1)"
-            @keydown.right.prevent="stepTab(1)"
-            @keydown.home.prevent="edgeTab('first')"
-            @keydown.end.prevent="edgeTab('last')"
-          >
-            {{ view.name }}
-            <i
-              v-if="isPublished(view)"
-              v-clean-tooltip="publishedTooltip(view)"
-              class="icon icon-groups vbar__shared"
-              :aria-label="publishedTooltip(view)"
-              data-testid="configurable-views-tab-shared"
-            />
-          </button>
+          <template v-else>
+            <button
+              :ref="(el) => keepRef(tabButtons, view.id, el as HTMLElement | null)"
+              type="button"
+              role="tab"
+              class="btn btn-sm vbar__view"
+              :class="{
+                'bg-primary': !editing && view.id === activeId,
+                'bg-disabled': editing || view.id !== activeId,
+              }"
+              :aria-selected="view.id === activeId"
+              :tabindex="view.id === focusableTabId ? 0 : -1"
+              :disabled="editing"
+              @click="$emit('select', view.id)"
+              @keydown.left.prevent="stepTab(-1)"
+              @keydown.right.prevent="stepTab(1)"
+              @keydown.home.prevent="edgeTab('first')"
+              @keydown.end.prevent="edgeTab('last')"
+            >
+              {{ view.name }}
+              <i
+                v-if="isPublished(view)"
+                v-clean-tooltip="publishedTooltip(view)"
+                class="icon icon-groups vbar__shared"
+                :aria-label="publishedTooltip(view)"
+                data-testid="configurable-views-tab-shared"
+              />
+            </button>
+
+            <!-- The tab's own menu, as the table views have it: opened from its chevron, under the tab -->
+            <rc-dropdown
+              v-if="!editing"
+              placement="bottom-end"
+              :distance="4"
+              :aria-label="t('configurableViews.bar.moreActions')"
+            >
+              <rc-dropdown-trigger
+                variant="ghost"
+                size="small"
+                class="btn btn-sm vbar__caret"
+                :class="view.id === activeId ? 'bg-primary' : 'bg-disabled'"
+                :aria-label="t('configurableViews.bar.menuFor', { name: view.name })"
+                :data-testid="`configurable-views-tab-menu-${ view.id }`"
+              >
+                <i class="icon icon-chevron-down" />
+              </rc-dropdown-trigger>
+
+              <template #dropdownCollection>
+                <div class="menu-panel">
+                  <rc-dropdown-item
+                    v-if="!isStock(view)"
+                    :data-testid="`configurable-views-edit-${ view.id }`"
+                    @click="$emit('edit', view.id)"
+                  >
+                    <template #before>
+                      <i class="icon icon-edit" />
+                    </template>
+                    {{ t('configurableViews.bar.edit') }}
+                  </rc-dropdown-item>
+                  <rc-dropdown-item
+                    v-if="!isStock(view)"
+                    :data-testid="`configurable-views-rename-${ view.id }`"
+                    @click="openRename(view.id)"
+                  >
+                    <template #before>
+                      <i class="menu-gutter" />
+                    </template>
+                    {{ t('configurableViews.bar.rename') }}
+                  </rc-dropdown-item>
+                  <rc-dropdown-item
+                    :data-testid="`configurable-views-duplicate-${ view.id }`"
+                    @click="$emit('duplicate', view.id)"
+                  >
+                    <template #before>
+                      <i class="icon icon-copy" />
+                    </template>
+                    {{ t('configurableViews.bar.duplicate') }}
+                    <span class="menu-shortcut">{{ shortcuts.duplicate }}</span>
+                  </rc-dropdown-item>
+                  <rc-dropdown-item
+                    :class="{ selected: isDefaultTab(view) }"
+                    :data-testid="`configurable-views-set-default-${ view.id }`"
+                    @click="setDefaultView(view)"
+                  >
+                    <template #before>
+                      <i class="menu-gutter" />
+                    </template>
+                    {{ t('configurableViews.bar.setDefault') }}
+                    <i
+                      v-if="isDefaultTab(view)"
+                      class="icon icon-checkmark menu-check"
+                    />
+                  </rc-dropdown-item>
+
+                  <template v-if="!isStock(view)">
+                    <rc-dropdown-separator />
+                    <rc-dropdown-item
+                      v-if="!view.org"
+                      :data-testid="`configurable-views-publish-${ view.id }`"
+                      @click="$emit('publish', view.id)"
+                    >
+                      <template #before>
+                        <i class="icon icon-groups" />
+                      </template>
+                      {{ t('configurableViews.bar.publish') }}
+                    </rc-dropdown-item>
+                    <rc-dropdown-item
+                      v-if="isPublished(view)"
+                      :data-testid="`configurable-views-unpublish-${ view.id }`"
+                      @click="$emit('unpublish', view.id)"
+                    >
+                      <template #before>
+                        <i class="menu-gutter" />
+                      </template>
+                      {{ t('configurableViews.bar.unpublish') }}
+                    </rc-dropdown-item>
+                  </template>
+
+                  <!-- A published view is everyone's: it is unpublished, not deleted -->
+                  <template v-if="!isStock(view) && !view.org">
+                    <rc-dropdown-separator />
+                    <rc-dropdown-item
+                      :data-testid="`configurable-views-delete-${ view.id }`"
+                      @click="$emit('delete', view.id)"
+                    >
+                      <template #before>
+                        <i class="icon icon-trash" />
+                      </template>
+                      {{ t('configurableViews.bar.delete') }}
+                    </rc-dropdown-item>
+                  </template>
+                </div>
+              </template>
+            </rc-dropdown>
+          </template>
         </div>
       </TransitionGroup>
 
@@ -561,6 +669,17 @@ defineExpose({ openRename, focusTab });
         aria-hidden="true"
       />
     </div>
+
+    <button
+      v-if="!editing"
+      type="button"
+      class="btn btn-sm role-link vbar__new"
+      data-testid="configurable-views-new"
+      @click="$emit('new-view')"
+    >
+      <i class="icon icon-plus" />
+      {{ t('configurableViews.bar.addView') }}
+    </button>
 
     <template v-if="editing">
       <i class="icon icon-edit vbar__pencil" />
@@ -602,127 +721,6 @@ defineExpose({ openRename, focusTab });
       >
         <i class="icon icon-dock" />
       </button>
-    </template>
-
-    <template v-else>
-      <!-- The tooltip sits on a wrapper: a disabled button gets no hover to show it on -->
-      <span
-        v-clean-tooltip="activeView && isStock(activeView) ? t('configurableViews.bar.editStock') : t('configurableViews.bar.edit')"
-        class="vbar__edit"
-      >
-        <button
-          class="vbar__icon-btn"
-          :aria-label="activeView && isStock(activeView) ? t('configurableViews.bar.editStock') : t('configurableViews.bar.edit')"
-          :disabled="!!activeView && isStock(activeView)"
-          data-testid="configurable-views-edit"
-          @click="$emit('edit')"
-        >
-          <i class="icon icon-edit" />
-        </button>
-      </span>
-
-      <!-- The view menu, for the view on screen. Kept inside the window by the dropdown itself -->
-      <rc-dropdown
-        v-if="activeView"
-        placement="bottom-start"
-        :distance="4"
-        :aria-label="t('configurableViews.bar.moreActions')"
-      >
-        <rc-dropdown-trigger
-          class="vbar__icon-btn vbar__menu-btn"
-          :aria-label="t('configurableViews.bar.moreActions')"
-          data-testid="configurable-views-menu"
-        >
-          <i class="icon icon-actions" />
-        </rc-dropdown-trigger>
-
-        <template #dropdownCollection>
-          <div class="menu-panel">
-            <rc-dropdown-item
-              data-testid="configurable-views-new"
-              @click="$emit('new-view')"
-            >
-              <template #before>
-                <i class="icon icon-plus" />
-              </template>
-              {{ t('configurableViews.bar.addView') }}
-            </rc-dropdown-item>
-            <rc-dropdown-separator />
-            <rc-dropdown-item
-              v-if="!isStock(activeView)"
-              data-testid="configurable-views-rename"
-              @click="openRename(activeView.id)"
-            >
-              <template #before>
-                <i class="icon icon-edit" />
-              </template>
-              {{ t('configurableViews.bar.rename') }}
-            </rc-dropdown-item>
-            <rc-dropdown-item
-              data-testid="configurable-views-duplicate"
-              @click="$emit('duplicate', activeView.id)"
-            >
-              <template #before>
-                <i class="icon icon-copy" />
-              </template>
-              {{ t('configurableViews.bar.duplicate') }}
-              <span class="menu-shortcut">{{ shortcuts.duplicate }}</span>
-            </rc-dropdown-item>
-            <rc-dropdown-item
-              :class="{ selected: isDefaultTab(activeView) }"
-              data-testid="configurable-views-set-default"
-              @click="setDefaultView(activeView)"
-            >
-              <template #before>
-                <i class="menu-gutter" />
-              </template>
-              {{ t('configurableViews.bar.setDefault') }}
-              <i
-                v-if="isDefaultTab(activeView)"
-                class="icon icon-checkmark menu-check"
-              />
-            </rc-dropdown-item>
-
-            <template v-if="!isStock(activeView)">
-              <rc-dropdown-separator />
-              <rc-dropdown-item
-                v-if="!activeView.org"
-                data-testid="configurable-views-publish"
-                @click="$emit('publish', activeView.id)"
-              >
-                <template #before>
-                  <i class="icon icon-groups" />
-                </template>
-                {{ t('configurableViews.bar.publish') }}
-              </rc-dropdown-item>
-              <rc-dropdown-item
-                v-if="isPublished(activeView)"
-                data-testid="configurable-views-unpublish"
-                @click="$emit('unpublish', activeView.id)"
-              >
-                <template #before>
-                  <i class="menu-gutter" />
-                </template>
-                {{ t('configurableViews.bar.unpublish') }}
-              </rc-dropdown-item>
-            </template>
-
-            <!-- A published view is everyone's: it is unpublished, not deleted -->
-            <template v-if="!isStock(activeView) && !activeView.org">
-              <rc-dropdown-separator />
-              <rc-dropdown-item
-                data-testid="configurable-views-delete"
-                @click="$emit('delete', activeView.id)"
-              >
-                <template #before>
-                  <i class="icon icon-trash" />
-                </template>
-                {{ t('configurableViews.bar.delete') }}
-              </rc-dropdown-item>
-            </template>
-          </div>
-        </template>
-      </rc-dropdown>
     </template>
   </div>
 </template>
@@ -790,32 +788,52 @@ $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
     }
   }
 
+  // Not positioned, though the shell's button group is: a tab's menu mounts inside the strip, and a
+  // positioned box between the two would clip it to the strip and scroll the strip to reach it.
   &__list {
     align-items: center;
     display:     flex;
     flex:        0 0 auto;
+    position:    static;
   }
 
-  // Each button is in a slot of its own (the drag moves the slot), so the group's joined corners are
-  // drawn per slot rather than per button.
+  // Each view is a slot of its own (the drag moves the slot) holding its button and its chevron, so
+  // the group's joined corners are drawn per slot: the outer corners of the first and last only.
   &__list &__slot .btn {
     border-radius: 0;
   }
 
-  &__list &__slot:first-child .btn {
+  &__list &__slot:first-child .vbar__view {
     border-bottom-left-radius: var(--border-radius);
     border-top-left-radius:    var(--border-radius);
   }
 
-  &__list &__slot:last-child .btn {
+  &__list &__slot:last-child .vbar__caret,
+  &__list &__slot:last-child .vbar__view:last-child {
     border-bottom-right-radius: var(--border-radius);
     border-top-right-radius:    var(--border-radius);
+  }
+
+  // A view's chevron: the same segment as its name, so the two read as one button.
+  &__caret {
+    min-width:     0;
+    padding-left:  2px;
+    padding-right: 8px;
+
+    i {
+      font-size: 12px;
+    }
   }
 
   &__view {
     flex:        0 0 auto;
     gap:         6px;
     white-space: nowrap;
+
+    // Its chevron finishes the segment
+    &:not(:last-child) {
+      padding-right: 6px;
+    }
   }
 
   // The same scroll shadow as the table views' tab strip: shown while there is more to the right,
@@ -897,8 +915,7 @@ $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
   }
 
   // ---- icon buttons ----
-  // 38x32, and always in the accent style the design draws them in — they are the two ways into
-  // editing, not incidental icons that only light up when you find them.
+  // 38x32, in the accent style the design draws them in: the drawer's toggle while editing.
   &__icon-btn {
     align-items:     center;
     background:      color-mix(in srgb, var(--primary) 12%, transparent);
@@ -922,35 +939,15 @@ $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
       color:      var(--primary-text);
     }
 
-    // Rancher's own page: there is nothing to edit
-    &:disabled {
-      cursor:  not-allowed;
-      opacity: 0.4;
-    }
-
     i {
       font-size: 14px;
     }
   }
 
-  &__edit {
-    display: flex;
-    flex:    0 0 auto;
-  }
-
-  // The menu's trigger is an RcButton: two classes deep to beat its own variant and size, so it
-  // matches the edit button beside it
-  &__icon-btn#{&}__menu-btn {
-    background: color-mix(in srgb, var(--primary) 12%, transparent);
-    border:     1px solid var(--primary);
-    color:      var(--primary);
-    padding:    0;
-
-    &:hover,
-    &[aria-expanded="true"] {
-      background: var(--primary);
-      color:      var(--primary-text);
-    }
+  &__new {
+    flex:   0 0 auto;
+    gap:    6px;
+    margin: 0 0 0 8px;
   }
 }
 
