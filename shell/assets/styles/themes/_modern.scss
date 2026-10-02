@@ -374,6 +374,7 @@ BODY, .theme-light {
   --buttons-destructive      : #D42B3A;
   --buttons-destructive-hover: #B62532;
   --buttons-on-destructive   : #{$lightest};
+  --buttons-destructive-quiet: #D42B3A;
   --error-banner-bg          : #{rgba($error, 0.15)};
   --error-light-bg           : #{rgba($error, 0.05)};
 
@@ -1107,6 +1108,7 @@ BODY, .theme-dark {
   --rc-image-color: #{$darkest};
 
   --error-text    : #FFAC99;
+  --buttons-destructive-quiet: #FFAC99;
   --warning-text  : #{contrast-color($warning)};
 
   --success-badge     : #{rgba($success, 10%)};

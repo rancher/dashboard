@@ -407,6 +407,38 @@ defineExpose({ focus });
     }
   }
 
+  &.variant-secondary.color-destructive {
+    background: transparent;
+    color: var(--buttons-destructive-quiet);
+    border-color: var(--buttons-destructive-quiet);
+
+    &:hover, &._hover {
+      background: var(--buttons-destructive);
+      color: var(--buttons-on-destructive);
+      border-color: var(--buttons-destructive);
+    }
+
+    &:focus, &.focused {
+      background: var(--buttons-destructive);
+      color: var(--buttons-on-destructive);
+      border-color: var(--buttons-destructive);
+    }
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      &, &:hover, &:focus {
+        color: var(--disabled-text);
+        background: var(--disabled-bg);
+        border-color: var(--disabled-bg);
+        cursor: not-allowed;
+      }
+    }
+  }
+
   // Size styles
   &.btn-small {
     //:not(.btn-sm) is being used to make the style more specific to override global styles. We may want to get rid of those styles at some point.
