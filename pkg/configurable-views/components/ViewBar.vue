@@ -892,6 +892,17 @@ $tab-height: 30px;
       color:      inherit;
     }
 
+    // The trigger's own ring shows on ANY focus, a click included, and outside the button, where the
+    // strip clips it to a stray line: only the keyboard's ring, drawn inside, as the name's is.
+    &:focus {
+      outline: none;
+    }
+
+    &:focus-visible {
+      outline:        2px solid var(--primary-keyboard-focus);
+      outline-offset: -2px;
+    }
+
     i {
       font-size: 12px;
     }
