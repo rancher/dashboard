@@ -7320,6 +7320,7 @@ tableViews:
     inUse: "{count} in use"
     label: Label
     suggestions: Filter suggestions
+    loadingValues: Loading values…
     suggestionsAvailable: |-
       {count, plural,
       one {1 suggestion available}

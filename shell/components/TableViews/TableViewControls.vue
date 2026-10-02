@@ -44,6 +44,8 @@ const props = withDefaults(defineProps<{
   fieldValues?: Record<string, { value: string, count: number }[]>,
   /** Ids of the fields whose values are on their way */
   pendingFields?: string[],
+  /** Ids of the fields whose values for suggesting are being asked for */
+  loadingValues?: string[],
   /** All rows, before the view's query is applied */
   rows?: TableViewRow[],
 }>(), {
@@ -57,6 +59,7 @@ const props = withDefaults(defineProps<{
   dateFields:        () => [],
   fieldValues:       () => ({}),
   pendingFields:     () => [],
+  loadingValues:     () => [],
   rows:              () => [],
 });
 
@@ -350,6 +353,7 @@ watch(groupPanel, (panel) => {
           :rows="rows"
           :field-values="fieldValues"
           :pending-fields="pendingFields"
+          :loading-values="loadingValues"
           @update:value="update({ query: $event })"
           @update:focused="queryFocused = $event"
           @request-values="$emit('request-values', $event)"
