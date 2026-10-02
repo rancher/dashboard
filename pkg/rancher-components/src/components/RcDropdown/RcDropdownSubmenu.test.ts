@@ -191,6 +191,46 @@ describe('component: RcDropdownSubmenu.vue', () => {
     expect(document.activeElement).toBe(byId('group'));
   });
 
+  it('should not draw a submenu inside a submenu, and say why', async() => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const Nested = defineComponent({
+      components: {
+        RcDropdown, RcDropdownItem, RcDropdownSubmenu
+      },
+      template: `
+        <rc-dropdown :open="true">
+          <template #dropdownCollection>
+            <rc-dropdown-submenu id="outer">
+              Outer
+              <template #submenu>
+                <rc-dropdown-item id="outer-item">Outer item</rc-dropdown-item>
+                <rc-dropdown-submenu id="inner">
+                  Inner
+                  <template #submenu>
+                    <rc-dropdown-item id="inner-item">Inner item</rc-dropdown-item>
+                  </template>
+                </rc-dropdown-submenu>
+              </template>
+            </rc-dropdown-submenu>
+          </template>
+        </rc-dropdown>
+      `,
+    });
+
+    wrapper = mount(Nested, { attachTo: document.body, global: { components: { 'v-dropdown': vDropdownMock } } });
+    await nextTick();
+    await nextTick();
+    byId('outer').click();
+    await nextTick();
+
+    expect(byId('outer-item')).not.toBeNull();
+    expect(byId('inner')).toBeNull();
+    expect(byId('inner-item')).toBeNull();
+    expect(byId('outer').getAttribute('aria-expanded')).toBe('true');
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('one level deep'));
+    warn.mockRestore();
+  });
+
   it('should close with the arrow back toward its menu', async() => {
     await openMenu();
 

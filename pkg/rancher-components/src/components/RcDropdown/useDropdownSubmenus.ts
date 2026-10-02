@@ -173,7 +173,10 @@ export const useDropdownSubmenus = (isMenuOpen: Ref<boolean>, closeMenu: () => v
         focusFirstElement: () => focusSubmenuItem('first'),
         // Within its own submenu, the pointer is where it should be
         hoverSubmenu:      () => cancelSubmenuSwitch(),
+        // One level: a submenu here would take over this one's popper
         registerSubmenu:   () => () => null,
+        openSubmenu:       () => null,
+        inSubmenu:         true,
       });
 
       return () => props.submenu.render();

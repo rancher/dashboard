@@ -1,6 +1,7 @@
 <script setup lang="ts">
 /**
- * An item that opens a submenu beside its menu. Used in conjunction with RcDropdown, one level deep.
+ * An item that opens a submenu beside its menu. Used in conjunction with RcDropdown, one level deep:
+ * one inside a submenu isn't drawn, and says so in the console during development.
  *
  * It opens on click, hover, Enter, Space or the arrow toward its side, and the submenu closes with
  * Escape or the arrow back, returning the focus to this item.
@@ -38,8 +39,13 @@ const props = withDefaults(defineProps<{
 }>(), { side: 'right', disabled: false });
 
 const {
-  submenuId, activeSubmenu, registerSubmenu, openSubmenu, hoverSubmenu, cancelSubmenuSwitch
+  submenuId, activeSubmenu, registerSubmenu, openSubmenu, hoverSubmenu, cancelSubmenuSwitch, inSubmenu
 } = inject<DropdownContext>('dropdownContext') || defaultContext;
+
+if (inSubmenu && process.env.NODE_ENV !== 'production') {
+  // eslint-disable-next-line no-console
+  console.warn('RcDropdownSubmenu: submenus are one level deep, so one inside a submenu is not drawn');
+}
 
 const { handleKeydown, scrollIntoView } = useDropdownItem();
 
@@ -87,6 +93,7 @@ const onKeydown = (e: KeyboardEvent) => {
 
 <template>
   <div
+    v-if="!inSubmenu"
     :id="rowId"
     ref="row"
     dropdown-menu-item
