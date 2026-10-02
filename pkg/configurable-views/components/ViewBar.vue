@@ -484,7 +484,7 @@ defineExpose({ openRename, focusTab });
       <TransitionGroup
         tag="div"
         name="vbar-slot"
-        class="vbar__list btn-group"
+        class="vbar__list"
         :class="{ 'is-reordering': heldTabKey !== null }"
         role="tablist"
         :aria-label="t('configurableViews.bar.tabsLabel')"
@@ -500,6 +500,8 @@ defineExpose({ openRename, focusTab });
           :class="{
             held: heldTabKey === view.id,
             flash: flashTabId === view.id,
+            'vbar__slot--active': !editing && view.id === activeId,
+            'vbar__slot--field': (editing && view.id === activeId) || renamingId === view.id,
           }"
           :data-testid="`configurable-views-tab-${ view.id }`"
           @mousedown="startTabDrag(view, $event)"
@@ -537,11 +539,7 @@ defineExpose({ openRename, focusTab });
               :ref="(el) => keepRef(tabButtons, view.id, el as HTMLElement | null)"
               type="button"
               role="tab"
-              class="btn btn-sm vbar__view"
-              :class="{
-                'bg-primary': !editing && view.id === activeId,
-                'bg-disabled': editing || view.id !== activeId,
-              }"
+              class="vbar__view"
               :aria-selected="view.id === activeId"
               :tabindex="view.id === focusableTabId ? 0 : -1"
               :disabled="editing"
@@ -565,8 +563,7 @@ defineExpose({ openRename, focusTab });
               v-if="!editing"
               variant="ghost"
               size="small"
-              class="btn btn-sm vbar__caret"
-              :class="view.id === activeId ? 'bg-primary' : 'bg-disabled'"
+              class="vbar__caret"
               :aria-label="t('configurableViews.bar.menuFor', { name: view.name })"
               :data-testid="`configurable-views-tab-menu-${ view.id }`"
             >
@@ -774,9 +771,9 @@ $tab-height: 30px;
     background: color-mix(in srgb, var(--primary) 12%, var(--body-bg));
   }
 
-  // The views are the shell's BUTTON GROUP (see ButtonGroup): buttons side by side, joined, the
-  // active one filled. One row, always: when the bar runs out of room the hint gives way first
-  // (below), then the group scrolls - it never wraps onto a second line.
+  // The views are a BUTTON GROUP, coloured as the shell's (see ButtonGroup): buttons side by side,
+  // joined, the active one filled. One row, always: when the bar runs out of room the hint gives way
+  // first (below), then the group scrolls - it never wraps onto a second line.
   &__views {
     align-items:     center;
     display:         flex;
@@ -791,59 +788,107 @@ $tab-height: 30px;
     }
   }
 
-  // Not positioned, though the shell's button group is: a tab's menu mounts inside the strip, and a
-  // positioned box between the two would clip it to the strip and scroll the strip to reach it.
+  // Nothing between a tab's menu and the strip is positioned: the menu mounts inside the strip, and
+  // a positioned box between the two would clip it to the strip and scroll the strip to reach it.
   &__list {
     align-items: center;
     display:     flex;
     flex:        0 0 auto;
-    position:    static;
   }
 
-  // Each view is a slot of its own (the drag moves the slot) holding its button and its chevron, so
-  // the group's joined corners are drawn per slot: the outer corners of the first and last only.
-  &__list &__slot .btn {
-    border-radius: 0;
-  }
+  // ONE BUTTON per view: the slot. Its name and its chevron are parts of it, with no look of their
+  // own, so the whole button lights up wherever it is hovered. No type size of its own either: the two
+  // parts are inline, and the space the markup leaves between them would open a gap. Each sets its own.
+  &__slot {
+    background:  var(--toggle-off-bg, var(--disabled-bg));
+    color:       var(--toggle-off-color, var(--body-text));
+    display:     flex;
+    flex:        0 0 auto;
+    font-size:   0;
+    white-space: nowrap;
 
-  &__list &__slot:first-child .vbar__view {
-    border-bottom-left-radius: var(--border-radius);
-    border-top-left-radius:    var(--border-radius);
-  }
+    &:hover {
+      background: var(--toggle-off-hover, var(--disabled-bg));
+      color:      var(--toggle-off-color, var(--disabled-hover-text));
+    }
 
-  &__list &__slot:last-child .vbar__caret,
-  &__list &__slot:last-child .vbar__view:last-child {
-    border-bottom-right-radius: var(--border-radius);
-    border-top-right-radius:    var(--border-radius);
-  }
+    &--active,
+    &--active:hover {
+      background: var(--toggle-on-bg, var(--primary));
+      color:      var(--toggle-on-color, var(--primary-hover-text));
+    }
 
-  // A view's chevron: the same segment as its name, so the two read as one button.
-  // Two classes deep, to win over the button's own small size: the same height as its tab.
-  &__list &__caret {
-    height:         $tab-height;
-    min-height:     $tab-height;
-    min-width:      0;
-    padding-left:   2px;
-    padding-right:  8px;
-    vertical-align: top;
+    &--active:hover {
+      background: var(--active-hover);
+    }
 
-    i {
-      font-size: 12px;
+    // Holding the name box: the box is the button now
+    &--field,
+    &--field:hover {
+      background: transparent;
+    }
+
+    // The group's outer corners only
+    &:first-child {
+      border-bottom-left-radius: var(--border-radius);
+      border-top-left-radius:    var(--border-radius);
+    }
+
+    &:last-child {
+      border-bottom-right-radius: var(--border-radius);
+      border-top-right-radius:    var(--border-radius);
     }
   }
 
-  // Inline beside its chevron: the two sit on one line inside the box the menu is placed against.
-  &__view {
-    display:        inline-flex;
-    font-size:      14px;
-    gap:            6px;
+  // The parts of a view's button: its name, then its chevron, on one line inside the box its menu is
+  // placed against.
+  &__view,
+  &__list &__caret {
+    background:     transparent;
+    border:         0;
+    border-radius:  0;
+    color:          inherit;
+    cursor:         pointer;
     height:         $tab-height;
+    min-height:     $tab-height;
     vertical-align: top;
-    white-space:    nowrap;
 
-    // Its chevron finishes the segment
+    &:focus-visible {
+      outline:        2px solid var(--primary-keyboard-focus);
+      outline-offset: -2px;
+    }
+  }
+
+  &__view {
+    align-items:   center;
+    display:       inline-flex;
+    font-size:     14px;
+    gap:           6px;
+    line-height:   $tab-height;
+    padding:       0 12px;
+
+    // Its chevron finishes the button
     &:not(:last-child) {
-      padding-right: 6px;
+      padding-right: 4px;
+    }
+
+    &:disabled {
+      color:  var(--muted);
+      cursor: default;
+    }
+  }
+
+  // Two classes deep, to win over the dropdown trigger's own button look (and its hover).
+  &__list &__caret,
+  &__list &__caret:hover,
+  &__list &__caret:focus {
+    background: transparent;
+    color:      inherit;
+    min-width:  0;
+    padding:    0 10px 0 2px;
+
+    i {
+      font-size: 12px;
     }
   }
 
@@ -872,15 +917,6 @@ $tab-height: 30px;
   }
 
   // The active view's name, edited where the tab was.
-  // No type of its own: the tab and its chevron are inline, and the space the markup leaves between
-  // them would otherwise open a gap in the segment. Each sets its own size.
-  &__slot {
-    display:     flex;
-    flex:        0 0 auto;
-    font-size:   0;
-    white-space: nowrap;
-  }
-
   &__name {
     background:    var(--body-bg);
     border:        1px solid var(--primary);
