@@ -47,6 +47,14 @@ export default {
 
     showPreRelease: mapPref(SHOW_PRE_RELEASE),
 
+    canListApps() {
+      return !!this.$store.getters['cluster/canList'](CATALOG.APP);
+    },
+
+    cannotListAppsError() {
+      return this.canListApps ? null : new Error(this.t('catalog.charts.cannotListApps'));
+    },
+
     repo() {
       return this.$store.getters['catalog/repo']({
         repoType: this.query.repoType,
@@ -318,6 +326,10 @@ export default {
 
     async fetchChart() {
       this.versionInfoError = null;
+
+      if (!this.canListApps) {
+        return;
+      }
 
       await Promise.all([
         this.$store.dispatch('catalog/load'),
