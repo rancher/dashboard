@@ -543,12 +543,11 @@ describe('component: Basics', () => {
         expect((wrapper.vm as any).disableOptions.map((o: any) => o.value)).toStrictEqual(['rke2-coredns']);
       });
 
-      it('should show the Ingress section with isK3s false and nginx supported', () => {
+      it('should show the Ingress section', () => {
         const wrapper = mountRke2Basics();
         const ingress = wrapper.findComponent(Ingress);
 
         expect(ingress.exists()).toBe(true);
-        expect(ingress.props('isK3s')).toBe(false);
         expect(ingress.props('nginxSupported')).toBe(true);
         expect(ingress.props('value')).toBe('traefik');
       });
@@ -594,55 +593,42 @@ describe('component: Basics', () => {
         });
       }
 
-      it('should not offer traefik as a system service', () => {
+      it('should offer traefik as a system service', () => {
         const wrapper = mountK3sBasics();
 
-        expect((wrapper.vm as any).disableOptions.map((o: any) => o.value)).toStrictEqual(['coredns', 'servicelb', 'local-storage', 'metrics-server']);
+        expect((wrapper.vm as any).disableOptions.map((o: any) => o.value)).toStrictEqual(['coredns', 'servicelb', 'traefik', 'local-storage', 'metrics-server']);
       });
 
-      it('should show the Ingress section flagged as k3s, with traefik but not nginx supported', () => {
+      it('should not show the Ingress section', () => {
         const wrapper = mountK3sBasics();
-        const ingress = wrapper.findComponent(Ingress);
-
-        expect(ingress.exists()).toBe(true);
-        expect(ingress.props('isK3s')).toBe(true);
-        expect(ingress.props('traefikSupported')).toBe(true);
-        expect(ingress.props('nginxSupported')).toBe(false);
-      });
-
-      it('should hide the Ingress section if traefik cannot be disabled for the version', () => {
-        const wrapper = mountK3sBasics(undefined, { disable: { options: ['coredns'] }, cni: { options: [] } });
 
         expect(wrapper.findComponent(Ingress).exists()).toBe(false);
       });
 
       it.each([
-        [undefined, 'traefik'],
-        [['coredns'], 'traefik'],
-        [['traefik'], 'none'],
-        [['coredns', 'traefik'], 'none'],
-      ])('given disable list %p, should select ingress %p', (disable, expected) => {
+        [undefined, true],
+        [['coredns'], true],
+        [['traefik'], false],
+      ])('given disable list %p, should report traefik enabled %p', (disable, expected) => {
         const wrapper = mountK3sBasics(disable);
 
-        expect(wrapper.findComponent(Ingress).props('value')).toBe(expected);
+        expect((wrapper.vm as any).enabledSystemServices.includes('traefik')).toBe(expected);
       });
 
-      it('should add traefik to the disable list when ingress is turned off', () => {
-        const wrapper = mountK3sBasics(['coredns']);
+      it('should add traefik to the disable list when its system service is unchecked', () => {
+        const wrapper = mountK3sBasics();
 
-        (wrapper.vm as any).ingressController = 'none';
+        (wrapper.vm as any).enabledSystemServices = ['coredns', 'servicelb', 'local-storage', 'metrics-server'];
 
-        expect(wrapper.emitted('enabled-system-services-changed')).toStrictEqual([[['coredns', 'traefik']]]);
-        expect((wrapper.vm as any).serverConfig['ingress-controller']).toBeUndefined();
+        expect(wrapper.emitted('enabled-system-services-changed')).toStrictEqual([[['traefik']]]);
       });
 
-      it('should remove traefik from the disable list when traefik is selected', () => {
-        const wrapper = mountK3sBasics(['traefik', 'coredns']);
+      it('should remove traefik from the disable list when its system service is checked', () => {
+        const wrapper = mountK3sBasics(['traefik']);
 
-        (wrapper.vm as any).ingressController = 'traefik';
+        (wrapper.vm as any).enabledSystemServices = ['coredns', 'servicelb', 'traefik', 'local-storage', 'metrics-server'];
 
-        expect(wrapper.emitted('enabled-system-services-changed')).toStrictEqual([[['coredns']]]);
-        expect((wrapper.vm as any).serverConfig['ingress-controller']).toBeUndefined();
+        expect(wrapper.emitted('enabled-system-services-changed')).toStrictEqual([[[]]]);
       });
     });
   });
