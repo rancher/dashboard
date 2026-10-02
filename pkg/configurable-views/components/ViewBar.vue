@@ -533,7 +533,6 @@ defineExpose({ openRename, focusTab });
             :class="{
               'bg-primary': !editing && view.id === activeId,
               'bg-disabled': editing || view.id !== activeId,
-              'vbar__view--default': !editing && isDefaultTab(view),
             }"
             :aria-selected="view.id === activeId"
             :tabindex="view.id === focusableTabId ? 0 : -1"
@@ -817,15 +816,6 @@ $drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
     flex:        0 0 auto;
     gap:         6px;
     white-space: nowrap;
-
-    // The view the page opens on, boxed. Drawn inside, so the box doesn't change the button's size
-    &--default {
-      box-shadow: inset 0 0 0 1px var(--primary);
-    }
-
-    &.bg-primary#{&}--default {
-      box-shadow: inset 0 0 0 1px var(--primary), inset 0 0 0 2px var(--primary-text);
-    }
   }
 
   // The same scroll shadow as the table views' tab strip: shown while there is more to the right,
