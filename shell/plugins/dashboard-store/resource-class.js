@@ -12,7 +12,7 @@ import {
   AS,
   MODE
 } from '@shell/config/query-params';
-import { EVENT } from '@shell/config/types';
+import { EVENT, NAMESPACE } from '@shell/config/types';
 import { VIEW_IN_API, DEV } from '@shell/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
 import CustomValidators from '@shell/utils/custom-validators';
@@ -2064,32 +2064,13 @@ export default class Resource {
 
   get _glance() {
     const type = this.parentNameOverride || this.$rootGetters['type-map/labelFor'](this.schema);
-    let toRoute = null;
-
-    if (this.isProdRegistrationV2TopLevelProductResoure) {
-      toRoute = {
-        name:   `${ this.$rootGetters['productId'] }-c-cluster-resource-id`,
-        params: {
-          product:  this.$rootGetters['currentProduct']?.id,
-          cluster:  this.$rootGetters['currentCluster']?.id,
-          resource: this.type,
-        }
-      };
-    } else {
-      toRoute = {
-        name:     `c-cluster-product-resource-id`,
-        product:  this.$rootGetters['currentProduct']?.id,
-        cluster:  this.$rootGetters['currentCluster']?.id,
-        resource: this.type
-      };
-    }
 
     return [
       {
         name:          'state',
         label:         this.t('component.resource.detail.glance.state'),
         formatter:     'BadgeStateFormatter',
-        formatterOpts: { row: this },
+        formatterOpts: { row: { stateDisplay: this.stateDisplay, stateBackground: this.glanceStateBackground } },
         content:       this.stateDisplay
       },
       {
@@ -2101,17 +2082,18 @@ export default class Resource {
         },
         content: type
       },
-      {
+      // A resource that isn't namespaced has no namespace row
+      ...(this.metadata?.namespace ? [{
         name:          'namespace',
         label:         this.t('component.resource.detail.glance.namespace'),
-        formatter:     this.$rootGetters['currentProduct']?.id && this.$rootGetters['currentCluster']?.id ? 'Link' : undefined,
+        formatter:     this.glanceNamespaceLocation ? 'Link' : undefined,
         formatterOpts: {
-          to:      toRoute,
+          to:      this.glanceNamespaceLocation,
           row:     {},
           options: { internal: true }
         },
-        content: this.namespacedName
-      },
+        content: this.metadata.namespace
+      }] : []),
       {
         name:      'age',
         label:     this.t('component.resource.detail.glance.age'),
@@ -2119,6 +2101,40 @@ export default class Resource {
         content:   this.creationTimestamp
       }
     ];
+  }
+
+  // Steve marks a resource that keeps failing, e.g. a pod in CrashLoopBackOff, as transitioning, which would show its
+  // error state in the colour of an update in progress
+  get glanceStateBackground() {
+    if (this.stateObj?.transitioning && colorForState.call(this, this.state) === 'text-error') {
+      return 'bg-error';
+    }
+
+    return this.stateBackground;
+  }
+
+  // Like the masthead, link the namespace when the user can list namespaces and it's in a cluster they can reach
+  get glanceNamespaceLocation() {
+    const namespace = this.metadata?.namespace;
+    const inStore = this.$rootGetters['currentStore']?.(NAMESPACE);
+
+    if (!namespace || !inStore || !this.$rootGetters[`${ inStore }/canList`]?.(NAMESPACE)) {
+      return null;
+    }
+
+    if (this.namespaceLocation === null || this.$rootGetters['currentProduct']?.hideNamespaceLocation) {
+      return null;
+    }
+
+    return this.namespaceLocation || {
+      name:   'c-cluster-product-resource-id',
+      params: {
+        cluster:  this.$rootGetters['clusterId'],
+        product:  this.$rootGetters['productId'],
+        resource: NAMESPACE,
+        id:       namespace
+      }
+    };
   }
 
   get t() {
