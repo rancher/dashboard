@@ -6310,10 +6310,16 @@ promptRedeploy:
 
 promptRotateEncryptionKey:
   title: Rotate Encryption Keys
-  description: The last backup {name} was performed on {date}
-  warning: Before proceeding, ensure a successful ETCD backup of the cluster has been completed.
+  description: Rotation re-encrypts every secret in this cluster with a new key. The cluster shows as Updating while control plane nodes restart one at a time, which can take several minutes.
+  warning:
+    noBackup: No etcd snapshot found for this cluster. Take a snapshot, then rotate the keys once it has completed, so you can restore the cluster if rotation fails.
+    outdated: "The latest snapshot is {days} days old. Changes made since then cannot be restored if rotation fails."
+  snapshotInfo:
+    title: Latest etcd snapshot
+    viewSnapshots: View snapshots
+    taken: Taken
+  rotateKeys: Rotate Keys
   error:
-    noBackup: No backup found
     unableToResolveTargetCluster: Unable to resolve target cluster for encryption key rotation
 
 rancherAlertingDrivers:
