@@ -1241,6 +1241,26 @@ export const MGMT_CLUSTER_PODS = {
   delayLoading: true,
 };
 
+/** A cluster's machines, drawn as a summary of their states and sorted by how many there are */
+export const MGMT_CLUSTER_MACHINES = {
+  name:      'machines',
+  labelKey:  'tableHeaders.machines',
+  sort:      'statusInfo.nodeCount',
+  search:    false,
+  // Falls back to a count when there are no machine states to draw
+  formatter: 'ClusterMachineSummary',
+  align:     'center',
+  width:     100,
+};
+
+export const FLEET_GIT_REPO_COMMIT = {
+  name:     'commit',
+  labelKey: 'tableHeaders.commit',
+  value:    'status.commit',
+  sort:     ['status.commit'],
+  search:   ['status.commit'],
+};
+
 export const AUTOSCALER_ENABLED = {
   name:      'autoscaler',
   labelKey:  'tableHeaders.autoscaler',

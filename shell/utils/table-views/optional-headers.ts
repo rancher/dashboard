@@ -1,13 +1,18 @@
 import type { HeaderOptions, PaginationHeaderOptions } from '@shell/core/types';
-import { MANAGEMENT } from '@shell/config/types';
-import { AUTOSCALER_ENABLED, MGMT_CLUSTER_CPU, MGMT_CLUSTER_MEMORY, MGMT_CLUSTER_PODS } from '@shell/config/table-headers';
-import { STEVE_AUTOSCALER_ENABLED, STEVE_MGMT_CLUSTER_CPU, STEVE_MGMT_CLUSTER_MEMORY, STEVE_MGMT_CLUSTER_PODS } from '@shell/config/pagination-table-headers';
+import { FLEET, MANAGEMENT } from '@shell/config/types';
+import {
+  AGE, AUTOSCALER_ENABLED, FLEET_GIT_REPO_COMMIT, MGMT_CLUSTER_CPU, MGMT_CLUSTER_MACHINES, MGMT_CLUSTER_MEMORY, MGMT_CLUSTER_PODS
+} from '@shell/config/table-headers';
+import {
+  STEVE_AGE_COL, STEVE_AUTOSCALER_ENABLED, STEVE_MGMT_CLUSTER_CPU, STEVE_MGMT_CLUSTER_MACHINES, STEVE_MGMT_CLUSTER_MEMORY, STEVE_MGMT_CLUSTER_PODS
+} from '@shell/config/pagination-table-headers';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import type { GetterSource } from '@shell/utils/table-views/feature';
 
 /**
  * Columns a type offers that not every list of it shows, eg the autoscaler column, so the column
- * menu can add them anywhere
+ * menu can add them anywhere. Only these are offered beyond a list's own: a list that names its
+ * columns has chosen them, and the type's other columns can repeat or contradict its own
  */
 interface OptionalHeader {
   header: HeaderOptions;
@@ -34,6 +39,13 @@ const OPTIONAL_HEADERS: Record<string, OptionalHeader[]> = {
       enabled:          (store) => isAutoscalerFeatureFlagEnabled(store),
       before:           'machines',
     },
+    // Home and Cluster Management list the same clusters, so each offers what the other shows
+    { header: MGMT_CLUSTER_MACHINES, paginationHeader: STEVE_MGMT_CLUSTER_MACHINES },
+    { header: AGE, paginationHeader: STEVE_AGE_COL },
+  ],
+  [FLEET.GIT_REPO]: [
+    // The commit deployed, which the list doesn't show
+    { header: FLEET_GIT_REPO_COMMIT },
   ],
 };
 
