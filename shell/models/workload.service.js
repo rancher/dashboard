@@ -1,15 +1,90 @@
 
 import { findBy } from '@shell/utils/array';
 import { TARGET_WORKLOADS, UI_MANAGED, HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { WORKLOAD_TYPES, SERVICE } from '@shell/config/types';
+import { WORKLOAD_TYPES, SERVICE, PVC } from '@shell/config/types';
 import { clone, get } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { shortenedImage } from '@shell/utils/string';
 import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default class WorkloadService extends SteveModel {
   get stateDisplay() {
     return stateDisplay(this.state, true);
+  }
+
+  /**
+   * The pod spec that carries the volumes for this workload (or a standalone Pod).
+   */
+  get storagePodSpec() {
+    if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+      return this.spec?.jobTemplate?.spec?.template?.spec;
+    }
+
+    // Workloads nest the pod spec under spec.template.spec; a standalone Pod stores it natively
+    return this.spec?.template?.spec ?? this.spec;
+  }
+
+  /**
+   * Names of the PersistentVolumeClaims mounted by this workload.
+   *
+   * Claims referenced directly by the pod template are always included. Claims generated from
+   * volumeClaimTemplates (e.g. StatefulSets) are picked up from the workload's pods, so those need
+   * to be loaded (via fetchPods) before this getter can see them.
+   */
+  get persistentVolumeClaimNames() {
+    const names = new Set();
+    const addClaims = (volumes) => {
+      (volumes || []).forEach((volume) => {
+        const claimName = volume?.persistentVolumeClaim?.claimName;
+
+        if (claimName) {
+          names.add(claimName);
+        }
+      });
+    };
+
+    addClaims(this.storagePodSpec?.volumes);
+
+    (this.pods || []).forEach((pod) => addClaims(pod.spec?.volumes));
+
+    return [...names];
+  }
+
+  /**
+   * Fetch the PersistentVolumeClaims mounted by this workload.
+   *
+   * The claim names are known up front so this filters server-side by name (SSP) when available,
+   * scoped to the workload's namespace, falling back to a namespaced client-side filter otherwise.
+   */
+  async fetchPersistentVolumeClaims() {
+    const names = this.persistentVolumeClaimNames;
+
+    if (!names.length || !this.$getters['schemaFor'](PVC)) {
+      return [];
+    }
+
+    const namespace = this.metadata.namespace;
+
+    if (this.$getters['paginationEnabled']?.(PVC)) {
+      const opt = {
+        pagination: new FilterArgs({
+          filters: [
+            PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: namespace }),
+            PaginationParamFilter.createMultipleFields(names.map((name) => new PaginationFilterField({ field: 'metadata.name', value: name }))),
+          ],
+        }),
+        transient: true,
+      };
+
+      const { data = [] } = await this.$dispatch('findPage', { type: PVC, opt });
+
+      return data;
+    }
+
+    const all = await this.$dispatch('findAll', { type: PVC });
+
+    return all.filter((pvc) => pvc.metadata.namespace === namespace && names.includes(pvc.metadata.name));
   }
 
   async getPortsWithServiceType() {
