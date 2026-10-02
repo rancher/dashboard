@@ -318,14 +318,31 @@ const resetView = () => update({
   query: '', columns: null, labelColumns: [], columnOrder: null, groupBy: null, sort: null, sortDescending: false
 });
 
-/** Scroll the grouped field into view when the list opens, a frame later so the popper has its height */
+/**
+ * Scroll the grouped field into view when the list opens, a frame later so the popper has its
+ * height. The list scrolls itself only: `scrollIntoView` would scroll the page too, and move the menu
+ * from under the pointer, while the popper is still being placed
+ */
 watch(groupPanel, (panel) => {
   if (!panel) {
     return;
   }
 
   requestAnimationFrame(() => {
-    panel.querySelector(`[data-testid="table-views-group-${ appliedGroupBy.value || 'none' }"]`)?.scrollIntoView({ block: 'nearest' });
+    const option = panel.querySelector(`[data-testid="table-views-group-${ appliedGroupBy.value || 'none' }"]`);
+
+    if (!option) {
+      return;
+    }
+
+    const list = panel.getBoundingClientRect();
+    const at = option.getBoundingClientRect();
+
+    if (at.top < list.top) {
+      panel.scrollTop -= list.top - at.top;
+    } else if (at.bottom > list.bottom) {
+      panel.scrollTop += at.bottom - list.bottom;
+    }
   });
 });
 </script>
