@@ -2,7 +2,7 @@
 import { LAST_NAMESPACE, WORKSPACE } from '@shell/store/prefs';
 import { mapState } from 'vuex';
 import Select from '@shell/components/form/Select';
-import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
+import { fleetWorkspaceOptions } from '@shell/utils/fleet-workspace';
 
 export default {
   name:       'WorkspaceSwitcher',
@@ -32,27 +32,7 @@ export default {
     },
 
     options() {
-      if (this.allWorkspaces.length) {
-        const out = this.allWorkspaces.map((obj) => {
-          return {
-            label: obj.nameDisplay,
-            value: obj.id,
-          };
-        });
-
-        return out;
-      }
-
-      // If doesn't have workspaces (e.g. no permissions)
-      // Then find the workspaces from the annotation.
-      return this.allNamespaces.filter((item) => {
-        return item.metadata.annotations[WORKSPACE_ANNOTATION] === WORKSPACE;
-      }).map((obj) => {
-        return {
-          label: obj.nameDisplay,
-          value: obj.id,
-        };
-      });
+      return fleetWorkspaceOptions(this.allWorkspaces, this.allNamespaces);
     },
   },
 
