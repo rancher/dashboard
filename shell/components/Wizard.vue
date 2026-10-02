@@ -464,6 +464,7 @@ export default {
               type="button"
               variant="secondary"
               size="large"
+              :tabindex="0"
               @click="cancel"
             >
               <t k="generic.cancel" />
@@ -480,6 +481,7 @@ export default {
                 type="button"
                 variant="secondary"
                 size="large"
+                :tabindex="0"
                 @click="back()"
               >
                 <t k="wizard.previous" />
@@ -494,6 +496,7 @@ export default {
                 v-if="!isView"
                 :disabled="!activeStep.ready"
                 :mode="finishMode"
+                :tab-index="0"
                 @click="finish"
               />
             </slot>
@@ -507,6 +510,7 @@ export default {
                 type="button"
                 variant="primary"
                 size="large"
+                :tabindex="0"
                 @click="next()"
               >
                 <t :k="nextButtonLabel" />
@@ -534,7 +538,7 @@ $spacer: 10px;
   display: flex;
   align-content: space-between;
   align-items: center;
-  margin-bottom: 2*$spacer;
+  margin-bottom: 16px;
 
   border-bottom: var(--header-border-size) solid var(--header-border);
 
@@ -707,6 +711,10 @@ $spacer: 10px;
 
   &__step {
     overflow: hidden;
+    // Room for the focus outline (2px wide, 2px away) of a control at the edge,
+    // which this box would clip. The margin keeps the content in place.
+    padding-inline: 4px;
+    margin-inline: -4px;
     display: flex;
     flex-direction: column;
     flex: 1;

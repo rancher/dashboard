@@ -221,6 +221,28 @@ describe('component: AsyncButton', () => {
     expect(item.find('i').attributes('alt')).toBeDefined();
   });
 
+  it('a11y: passes the tabIndex prop correctly to the HTML tabindex attribute', () => {
+    const mockExists = jest.fn().mockReturnValue(true);
+    const mockT = jest.fn().mockReturnValue('some-string');
+    const wrapper: VueWrapper<InstanceType<typeof AsyncButton>> = mount(AsyncButton, {
+      props:  { tabIndex: 0 },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              'i18n/exists': mockExists,
+              'i18n/t':      mockT
+            }
+          },
+        }
+      },
+    });
+
+    const button = wrapper.find('button');
+
+    expect(button.element.getAttribute('tabindex')).toBe('0');
+  });
+
   describe('a11y: stable aria-label prevents VoiceOver re-reading on phase reset', () => {
     // VoiceOver and JAWS track the accessible name of the focused element in real time.
     // When the button's text changes (Applied → Apply after the timer), the screen reader

@@ -1467,6 +1467,12 @@ catalog:
       chartOptions: Edit Options
       valuesYaml: Edit YAML
       diff: Compare Changes
+      chartDefaults:
+        label: Chart values
+        hint: Edit the chart default values with overrides, if any, overlayed below, exactly how Helm will resolve it. Only your changes, shown to the right, are saved. To unset a property, explicitly set it to “null”.
+      overrides:
+        label: Your values
+        hint: These values will override the chart default values. Only these values will be saved.
     slideIn:
       dock: Dock to shell
     steps:
@@ -1505,6 +1511,8 @@ catalog:
         label: Values
         subtext: Change how the App works
         description: Configure Values used by Helm that help define the App.
+        overridesDescription:
+          upgrade: Your values from {from} are applied on top of the {to} defaults, just like helm upgrade does.
         chartInfo:
           button: View Chart Info
           label: Chart Info
@@ -3007,10 +3015,30 @@ copyToClipboard:
   error: Error Copying
 
 codeMirror:
+  # Shown by CodeMirror 5 editors in extensions built with an older shell
   escapeText: Press Shift+Escape to blur from editor
+  leaveEditor: Press Escape, then Tab to leave the editor
+  foldLine: Fold line
+  unfoldLine: Unfold line
   keymap:
     tooltip: Key mapping preference.
     indicatorToolip: "Key mapping: {name}"
+    hideIndicator: "Hide key mapping: {name}"
+
+yamlOverridesEditor:
+  search:
+    placeholder: Search values…
+    ariaLabel: Search the chart defaults
+    matches: |-
+      {count, plural,
+        =0 {No matches}
+        =1 {1 match}
+        other {{count, number} matches}
+      }
+    position: '{current, number} of {total, number}'
+    next: Next match
+    previous: Previous match
+    clear: Clear search
 
 cruResource:
   backToForm: Back to Form

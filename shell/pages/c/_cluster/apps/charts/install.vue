@@ -20,6 +20,7 @@ import Questions from '@shell/components/Questions';
 import Tabbed from '@shell/components/Tabbed';
 import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
+import YamlOverridesEditor from '@shell/components/YamlOverridesEditor';
 import Wizard from '@shell/components/Wizard';
 import ChartMixin from '@shell/mixins/chart';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
@@ -38,7 +39,9 @@ import {
 } from '@shell/utils/object';
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
-import { saferDump } from '@shell/utils/create-yaml';
+import {
+  mergeOverrides, mergeOverridesRawText, mergeOverridesValues, overridesFromValues, sameYamlOverrides
+} from '@shell/utils/chart-values';
 import { addParam } from '@shell/utils/url';
 import { WINDOWS } from '@shell/store/catalog';
 import { SETTING } from '@shell/config/settings';
@@ -97,6 +100,7 @@ export default {
     Tabbed,
     UnitInput,
     YamlEditor,
+    YamlOverridesEditor,
     Wizard,
     SelectOrCreateAuthSecret,
     PrivateRegistry,
@@ -353,8 +357,15 @@ export default {
         }
       }
 
-      /* Serializes an object as a YAML document */
-      this.valuesYaml = saferDump(this.chartValues);
+      /*
+        The overrides YAML pane shows ONLY the user's overrides - the values that
+        differ from the chart defaults - mirroring `helm install --values`. The
+        chart defaults pane next to it shows the defaults merged with them. On a
+        fresh install this is empty; on edit it is the previously-saved
+        overrides. Saving overrides only is what stops removed keys from being
+        sent to Helm as `null`.
+      */
+      this.valuesYaml = overridesFromValues(this.chartDefaults, this.chartValues);
 
       /* For YAML diff */
       if ( !this.loadedVersion ) {
@@ -427,6 +438,9 @@ export default {
       showValuesComponent:                    true,
       showQuestions:                          true,
       showSlideIn:                            false,
+      // The element that opened the chart info drawer, so focus can return to it
+      // when the drawer closes (keyboard accessibility).
+      slideInTrigger:                         null,
       shownReadmeWindows:                     [],
       showCommandStep:                        false,
       showCustomRegistryInput:                false,
@@ -446,6 +460,7 @@ export default {
       disabledCheckbox:                       false,
       appCoDataFetched:                       false,
       AUTH_TYPE,
+      EDITOR_MODES,
       CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME,
       PRIVATE_REGISTRY_CONTEXT,
       skipPullSecrets:                        false,
@@ -511,6 +526,11 @@ export default {
       }
 
       return null;
+    },
+
+    /** The chart's default values. A stable object, so the values editor doesn't re-merge on every render. */
+    chartDefaults() {
+      return this.versionInfo?.values || {};
     },
 
     /**
@@ -651,6 +671,50 @@ export default {
       return EDITOR_MODES.EDIT_CODE;
     },
 
+    /** The values step shows the editable YAML (defaults and overrides panes). */
+    showOverridesEditor() {
+      return !(this.valuesComponent && this.showValuesComponent) && !(this.hasQuestions && this.showQuestions) && !this.showDiff;
+    },
+
+    /*
+      The "before" side of the Compare Changes diff: defaults + the originally-saved
+      overrides (none on a fresh install). Serialized like `diffFinalYaml` so only
+      real changes show.
+    */
+    originalYamlFull() {
+      return mergeOverrides(this.chartDefaults, this.originalYamlValues || '');
+    },
+
+    /*
+      The "after" side of the diff: defaults + edited overrides. Mid-edit/invalid
+      overrides keep their raw lines (via mergeOverridesRawText) so the diff shows
+      the whole document instead of hiding them or collapsing to defaults.
+    */
+    diffFinalYaml() {
+      return mergeOverridesRawText(this.chartDefaults, this.valuesYaml);
+    },
+
+    /*
+      Whether the full document actually changed. False only when the overrides
+      change nothing (e.g. empty), where we fall back to a raw overrides diff so
+      the tab is never a blank "no changes".
+    */
+    diffHasFullDocChanges() {
+      return this.diffFinalYaml !== this.originalYamlFull;
+    },
+
+    /*
+      Compare Changes shows the full document; only when it has no changes does it
+      fall back to the raw overrides text, so the tab stays honest and never blank.
+    */
+    diffValue() {
+      return this.diffHasFullDocChanges ? this.diffFinalYaml : this.valuesYaml;
+    },
+
+    diffOriginal() {
+      return this.diffHasFullDocChanges ? this.originalYamlFull : this.originalYamlValues;
+    },
+
     showingYaml() {
       return this.formYamlOption === VALUES_STATE.YAML || ( !this.valuesComponent && !this.hasQuestions );
     },
@@ -674,8 +738,9 @@ export default {
       }, {
         labelKey: 'catalog.install.section.diff',
         value:    VALUES_STATE.DIFF,
-        // === quite obviously shouldn't work, but has been and still does. When the magic breaks address with heavier stringify/jsyaml.dump
-        disabled: this.formYamlOption === VALUES_STATE.FORM ? this.originalYamlValues === jsyaml.dump(this.chartValues || {}) : this.originalYamlValues === this.valuesYaml,
+        // The editable pane holds overrides only, so compare against the overrides (diff), not the full merged chartValues.
+        // Compare parsed content so editor whitespace (e.g. a leftover newline after typing then deleting) doesn't count as a change.
+        disabled: this.formYamlOption === VALUES_STATE.FORM ? sameYamlOverrides(this.originalYamlValues, overridesFromValues(this.chartDefaults, this.chartValues || {})) : sameYamlOverrides(this.originalYamlValues, this.valuesYaml),
       });
 
       return options;
@@ -718,6 +783,14 @@ export default {
 
     step2Description() {
       const descriptionKey = this.steps.find((s) => s.name === 'helmValues').descriptionKey;
+
+      if (descriptionKey === this.stepValues.descriptionKey) {
+        if (this.currentVersion && this.currentVersion !== this.targetVersion) {
+          return this.t('catalog.install.steps.helmValues.overridesDescription.upgrade', { from: this.currentVersion, to: this.targetVersion }, true);
+        }
+
+        return '';
+      }
 
       return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action.name, existing: !!this.existing }, '');
     },
@@ -843,6 +916,16 @@ export default {
       await this.setImagePullSecretData();
     },
 
+    // When the chart info drawer opens, move keyboard focus into it so Tab
+    // navigation continues inside the panel rather than jumping to the editor.
+    // `preventScroll` stops the browser scrolling the off-screen panel into
+    // view, which otherwise yanks/animates the rest of the page.
+    showSlideIn(neu) {
+      if (neu) {
+        this.$nextTick(() => this.$refs.slideInPanel?.focus?.({ preventScroll: true }));
+      }
+    },
+
     preFormYamlOption(neu, old) {
       if (neu === VALUES_STATE.FORM && this.valuesYaml !== this.previousYamlValues && !!this.$refs.cancelModal) {
         this.$refs.cancelModal.show();
@@ -863,9 +946,10 @@ export default {
         this.showDiff = false;
         break;
       case VALUES_STATE.YAML:
-        // Show the YAML preview
+        // Show the YAML preview. The editable pane holds overrides only, so seed
+        // it with the diff between the chart defaults and the form's values.
         if (old === VALUES_STATE.FORM) {
-          this.valuesYaml = jsyaml.dump(this.chartValues || {});
+          this.valuesYaml = overridesFromValues(this.chartDefaults, this.chartValues || {});
           this.previousYamlValues = this.valuesYaml;
         }
 
@@ -875,16 +959,16 @@ export default {
         this.showDiff = false;
         break;
       case VALUES_STATE.DIFF:
-        // Show the YAML diff
+        // Show the YAML diff. The editable pane holds overrides only, so seed it
+        // with the diff between the chart defaults and the form's values.
         if (old === VALUES_STATE.FORM) {
-          this.valuesYaml = jsyaml.dump(this.chartValues || {});
+          this.valuesYaml = overridesFromValues(this.chartDefaults, this.chartValues || {});
           this.previousYamlValues = this.valuesYaml;
         }
 
         this.showValuesComponent = false;
         this.showQuestions = false;
 
-        this.updateValue(this.valuesYaml);
         this.showDiff = true;
         break;
       }
@@ -1077,7 +1161,9 @@ export default {
           }
         }
 
-        this.valuesYaml = saferDump(this.chartValues);
+        // Reflect the pull-secret change in the values editor, which holds
+        // overrides only (the diff from the chart defaults).
+        this.valuesYaml = overridesFromValues(this.chartDefaults, this.chartValues);
       }
     },
 
@@ -1091,12 +1177,6 @@ export default {
       });
 
       return globalRegistry.value;
-    },
-
-    updateValue(value) {
-      if (this.$refs.yaml) {
-        this.$refs.yaml.updateValue(value);
-      }
     },
 
     async loadValuesComponent() {
@@ -1357,7 +1437,14 @@ export default {
 
     applyYamlToValues() {
       try {
-        this.chartValues = jsyaml.load(this.valuesYaml);
+        /*
+          The editable pane holds only the user's overrides. Merge them onto the
+          chart defaults so chartValues stays the full effective document - the
+          same shape the form produces. actionInput then diffs this against the
+          defaults, so only the overrides are sent (and never `null`s for keys
+          the user removed), matching `helm install --values`.
+        */
+        this.chartValues = mergeOverridesValues(this.chartDefaults, jsyaml.load(this.valuesYaml));
       } catch (err) {
         return { errors: exceptionToErrorsArray(err) };
       }
@@ -1543,6 +1630,30 @@ export default {
       this.shownReadmeWindows.push(this.readmeWindowName);
     },
 
+    toggleSlideIn(ev) {
+      if (this.showSlideIn) {
+        this.closeSlideIn();
+      } else {
+        // Remember the trigger so focus can return to it when the drawer closes.
+        this.slideInTrigger = ev?.currentTarget || null;
+        this.showSlideIn = true;
+      }
+    },
+
+    closeSlideIn() {
+      if (!this.showSlideIn) {
+        return;
+      }
+
+      this.showSlideIn = false;
+      // Return focus to the button that opened the drawer so keyboard users
+      // aren't dropped back at the top of the document.
+      this.$nextTick(() => {
+        this.slideInTrigger?.focus?.();
+        this.slideInTrigger = null;
+      });
+    },
+
     updateStep(stepName, update) {
       const step = this.steps.find((step) => step.name === stepName);
 
@@ -1610,6 +1721,7 @@ export default {
   >
     <Wizard
       v-if="value"
+      tabindex="-1"
       :steps="steps"
       :errors="errors"
       :edit-first-step="true"
@@ -1888,7 +2000,7 @@ export default {
               type="button"
               class="btn bg-primary btn-sm"
               :disabled="!hasReadme || showingReadmeWindow"
-              @click="showSlideIn = !showSlideIn"
+              @click="toggleSlideIn"
             >
               {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
             </button>
@@ -1929,14 +2041,17 @@ export default {
             <button
               type="button"
               class="btn bg-primary btn-sm"
-              @click="showSlideIn = !showSlideIn"
+              @click="toggleSlideIn"
             >
               {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
             </button>
           </div>
         </div>
 
-        <div class="scroll__container">
+        <div
+          class="scroll__container"
+          :class="{ 'scroll__container--panes': showOverridesEditor }"
+        >
           <div class="scroll__content">
             <!-- Values (as Custom Component in ./shell/charts/) -->
             <template v-if="valuesComponent && showValuesComponent">
@@ -1977,16 +2092,33 @@ export default {
                 :target-namespace="targetNamespace"
               />
             </Tabbed>
-            <!-- Values (as YAML) -->
-            <template v-else>
+            <!-- Values (as YAML diff): full-document diff of original vs final merged
+                 values; invalid mid-edit overrides keep their raw lines so the diff
+                 is never empty. See diffValue / diffOriginal. -->
+            <template v-else-if="showDiff">
               <YamlEditor
-                ref="yaml"
-                v-model:value="valuesYaml"
+                ref="diffEditor"
+                :value="diffValue"
                 class="step__values__content"
                 :scrolling="true"
-                :initial-yaml-values="originalYamlValues"
+                :initial-yaml-values="diffOriginal"
                 :editor-mode="editorMode"
                 :hide-preview-buttons="true"
+                :allow-empty-diff-base="true"
+              />
+            </template>
+            <!-- Values (as YAML): editable chart defaults (left) + editable overrides (right) -->
+            <template v-else>
+              <YamlOverridesEditor
+                v-model:value="valuesYaml"
+                class="step__values__content"
+                :defaults="chartDefaults"
+                :editor-mode="editorMode"
+                :chart-defaults-label="t('catalog.install.section.chartDefaults.label')"
+                :chart-defaults-hint="t('catalog.install.section.chartDefaults.hint')"
+                :overrides-label="t('catalog.install.section.overrides.label')"
+                :overrides-hint="t('catalog.install.section.overrides.hint')"
+                testid-prefix="chart-values"
               />
             </template>
           </div>
@@ -2093,8 +2225,12 @@ export default {
       </template>
     </Wizard>
     <div
+      ref="slideInPanel"
       class="slideIn"
+      tabindex="-1"
       :class="{'hide': false, 'slideIn__show': showSlideIn}"
+      :inert="!showSlideIn || null"
+      @keydown.esc="closeSlideIn"
     >
       <h2 class="slideIn__header">
         {{ t('catalog.install.steps.helmValues.chartInfo.label') }}
@@ -2102,13 +2238,23 @@ export default {
           <div
             v-clean-tooltip="t('catalog.install.slideIn.dock')"
             class="slideIn__header__button"
-            @click="showSlideIn = false; showReadmeWindow()"
+            role="button"
+            tabindex="0"
+            :aria-label="t('catalog.install.slideIn.dock')"
+            @click="closeSlideIn(); showReadmeWindow()"
+            @keydown.enter.prevent="closeSlideIn(); showReadmeWindow()"
+            @keydown.space.prevent="closeSlideIn(); showReadmeWindow()"
           >
             <i class="icon icon-dock" />
           </div>
           <div
             class="slideIn__header__button"
-            @click="showSlideIn = false"
+            role="button"
+            tabindex="0"
+            :aria-label="t('generic.close')"
+            @click="closeSlideIn"
+            @keydown.enter.prevent="closeSlideIn"
+            @keydown.space.prevent="closeSlideIn"
           >
             <i class="icon icon-close" />
           </div>
@@ -2132,6 +2278,8 @@ export default {
   $title-height: 50px;
   $padding: 5px;
   $slideout-width: 35%;
+  // A focus outline is 2px wide and 2px away from its control.
+  $focus-outline-room: 4px;
 
   .install-steps {
     height: 0;
@@ -2310,17 +2458,52 @@ export default {
       display: flex;
       flex: 1;
       overflow: auto;
+      // Room for the editor's focus outline so it isn't clipped at the edges.
+      padding: 2px;
     }
+
+
+    // The chart defaults and overrides panes scroll on their own, so these boxes
+    // don't need to.
+    &__container--panes, &__container--panes &__content {
+      overflow: visible;
+    }
+
+    // The wizard's footer also covers the page's bottom padding, so only the rest
+    // of its height needs clearing. The editors keep their own space under them for
+    // the "press Esc" hint.
+    &__container--panes {
+      margin-bottom: calc($footer-height - $space-m);
+    }
+  }
+
+  // The values step fills the wizard, so the panes get its height rather than grow
+  // with their documents. The wizard doesn't give its steps a height (the box
+  // around them is a plain block), so that box is made to fill it here.
+  :deep(div:has(> .step-container__step > .scroll__container--panes)) {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  // Don't shrink the step below the smallest height of the panes, so on a short
+  // screen the wizard scrolls to them rather than cutting them off.
+  :deep(.step-container__step:has(> .scroll__container--panes)) {
+    min-height: min-content;
   }
 
   :deep() .yaml-editor {
     flex: 1
   }
 
+// The wizard scrolls here, so it clips its content at its edges, which cut off the
+// focus outline of a control at the edge, like the chart name link at the top. The
+// padding gives the outline room, and the margin keeps the content in place.
 .outer-container {
   display: flex;
   flex-direction: column;
-  padding: 0;
+  padding: $focus-outline-room $focus-outline-room 0;
+  margin: (-$focus-outline-room) (-$focus-outline-room) 0;
   overflow: auto;
 }
 

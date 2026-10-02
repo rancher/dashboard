@@ -19,6 +19,10 @@ Set `keymap="emacs"` for Emacs movement, undo, kill/yank, and multi-key commands
 
 The CodeMirror search panel is currently disabled. Search shortcuts such as Ctrl-F or Cmd-F do not open a panel inside this editor.
 
+Set `keymap-indicator` to show a button in the top-right corner while the Vim or Emacs keymap is active, so users know why keys behave differently. Selecting it hides it until the editor is remounted and moves focus into the editor. It is never shown for the default keymap or the input variant.
+
+<Canvas of={RcCodeMirrorStories.KeymapIndicator} />
+
 ## Layout styles
 
 Styles and classes passed to `RcCodeMirror` apply to its outer box. Set a height on the component to size the editor, or let it fill a parent with a defined height.
@@ -30,6 +34,8 @@ Styles and classes passed to `RcCodeMirror` apply to its outer box. Set a height
 CodeMirror renders its own textbox, so ARIA attributes such as `aria-label`, `aria-labelledby` and `aria-describedby` are forwarded to it rather than the component's root element. Every instance needs an accessible name from one of them. A `<label for>` does not work, because the textbox is not a form control; give the label an `id` and reference it with `aria-labelledby`, as the input example below does.
 
 In the editor variant, Tab indents and Shift-Tab unindents with the default and Emacs keymaps. With Vim, Tab moves forward in the jump list in Normal mode and inserts a tab at the cursor in Insert mode; Shift-Tab moves focus out. A hint appears while the editor is focused: press Escape then Tab (or Escape then Shift-Tab) to leave, as described in [CodeMirror's Tab guidance](https://codemirror.net/examples/tab/). This works with every keymap. In the input variant, Tab and Shift-Tab move focus normally.
+
+Escape pressed in the editor stays in the editor: it does not propagate to the page, so it will not close a surrounding modal while leaving Vim's Insert mode, for example.
 
 Folds can be toggled from the keyboard with every keymap:
 
@@ -82,6 +88,14 @@ The JSON example compares bracket folding with language folding. The string valu
 
 <Canvas of={RcCodeMirrorStories.BracketFolding} />
 
+## Linting
+
+Pass a `@codemirror/lint` source as `linter` to check the document. It returns the problems as diagnostics, which are underlined in the text with their message on hover. In the editor variant a gutter between the line numbers and the fold gutter also marks the lines with problems; the input variant has no gutters, so it only underlines them. The source runs shortly after the document stops changing, and the prop can change after mount.
+
+This example marks tab indentation, which YAML does not allow.
+
+<Canvas of={RcCodeMirrorStories.Linter} />
+
 ## Translations
 
 Pass CodeMirror translations through the `extensions` prop. The host application can use its own i18n system to supply the translated strings:
@@ -92,11 +106,16 @@ import { EditorState } from '@codemirror/state';
 const extensions = [EditorState.phrases.of({
   'Fold line': t('codeMirror.foldLine'),
   'Unfold line': t('codeMirror.unfoldLine'),
-  'Press Escape, then Tab to leave the editor': t('codeMirror.escapeTabText')
+  'Press Escape, then Tab to leave the editor': t('codeMirror.escapeText'),
+  // `$` is replaced with the translated keymap name
+  'Key mapping: $': t('codeMirror.keymap.indicatorToolip', { name: '$' }),
+  'Hide key mapping: $': t('codeMirror.keymap.hideIndicator', { name: '$' }),
+  'Vim': t('prefs.keymap.vim'),
+  'Emacs': t('prefs.keymap.emacs')
 })];
 ```
 
-`<RcCodeMirror :extensions="extensions" />` uses these phrases for the fold controls and the escape hint. The `extensions` prop is read on mount, so remount the editor when changing its locale.
+`<RcCodeMirror :extensions="extensions" />` uses these phrases for the fold controls, the escape hint and the keymap indicator's tooltip and label. The `extensions` prop is read on mount, so remount the editor when changing its locale.
 
 ## v-model
 

@@ -2,6 +2,7 @@ import { shallowMount, VueWrapper } from '@vue/test-utils';
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { foldable, foldedRanges, foldEffect } from '@codemirror/language';
+import { diagnosticCount, forceLinting, type LintSource } from '@codemirror/lint';
 import { foldByLineMatch, foldMatchingLines } from './extensions/fold';
 import RcCodeMirror from './RcCodeMirror.vue';
 
@@ -24,7 +25,10 @@ describe('component: RcCodeMirror', () => {
 
   function mountEditor(props: Record<string, unknown> = {}, attrs: Record<string, unknown> = {}): Wrapper {
     wrapper = shallowMount(RcCodeMirror, {
-      props, attrs, attachTo: document.body
+      props,
+      attrs,
+      attachTo: document.body,
+      global:   { stubs: { RcButton: false } }
     }) as Wrapper;
 
     return wrapper;
@@ -103,6 +107,90 @@ describe('component: RcCodeMirror', () => {
       await wrapper.vm.$nextTick();
 
       expect(wrapper.find('.rc-cm-escape-hint').text()).toStrictEqual('Use Escape, then Tab');
+    });
+
+    describe('escape key', () => {
+      function listenOnDocument(): jest.Mock {
+        const listener = jest.fn();
+
+        document.addEventListener('keydown', listener);
+
+        return listener;
+      }
+
+      function pressEscape(target: EventTarget, shiftKey = false): KeyboardEvent {
+        const event = new KeyboardEvent('keydown', {
+          key: 'Escape', code: 'Escape', keyCode: 27, shiftKey, bubbles: true, cancelable: true
+        });
+
+        target.dispatchEvent(event);
+
+        return event;
+      }
+
+      let listener: jest.Mock;
+
+      beforeEach(() => {
+        listener = listenOnDocument();
+      });
+
+      afterEach(() => {
+        document.removeEventListener('keydown', listener);
+      });
+
+      it.each([
+        ['default', false],
+        ['emacs', false],
+        ['vim', false],
+        ['default', true],
+      ])('should keep Escape from reaching the page in %s mode (shift: %p)', (keymap, shiftKey) => {
+        mountEditor({ keymap });
+        const view = getView(wrapper);
+
+        view.focus();
+        pressEscape(view.contentDOM, shiftKey);
+
+        expect(listener).toHaveBeenCalledTimes(0);
+      });
+
+      it('should still let Vim leave Insert mode on Escape', () => {
+        mountEditor({ keymap: 'vim', modelValue: 'foo' });
+        const view = getView(wrapper);
+
+        view.focus();
+        view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'i', code: 'KeyI', keyCode: 73, bubbles: true, cancelable: true
+        }));
+        pressEscape(view.contentDOM);
+        view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'x', code: 'KeyX', keyCode: 88, bubbles: true, cancelable: true
+        }));
+
+        // In Normal mode x deletes the character under the cursor rather than typing an x
+        expect(view.state.doc.toString()).toStrictEqual('oo');
+      });
+
+      it('should let Escape reach the page when pressed outside the editor', () => {
+        mountEditor();
+
+        const event = pressEscape(wrapper.element);
+
+        expect(listener).toHaveBeenCalledWith(event);
+      });
+
+      it('should let other keys reach the page', () => {
+        mountEditor();
+        const view = getView(wrapper);
+
+        view.focus();
+        const enter = new KeyboardEvent('keydown', {
+          key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true, cancelable: true
+        });
+
+        view.contentDOM.dispatchEvent(enter);
+
+        expect(listener).toHaveBeenCalledWith(enter);
+      });
     });
 
     it.each(['default', 'emacs', 'vim'])('should let Tab leave after Escape in %s mode', (keymap) => {
@@ -338,6 +426,184 @@ describe('component: RcCodeMirror', () => {
     }).toStrictEqual({ ...original, defaultPrevented: true });
   });
 
+  describe('linter prop', () => {
+    const problem: LintSource = (view) => [{
+      from: 0, to: Math.min(3, view.state.doc.length), severity: 'error', message: 'Broken'
+    }];
+
+    function gutterClasses(): string[] {
+      return wrapper.findAll('.cm-gutter').map((gutter) => gutter.classes().find((name) => name !== 'cm-gutter') as string);
+    }
+
+    async function lint(): Promise<void> {
+      forceLinting(getView(wrapper));
+      await new Promise((resolve) => setTimeout(resolve));
+    }
+
+    it('should not show a lint gutter without a linter', () => {
+      mountEditor({ modelValue: 'foo' });
+
+      expect(gutterClasses()).toStrictEqual(['cm-lineNumbers', 'cm-foldGutter']);
+    });
+
+    it('should show the lint gutter between the line numbers and the fold gutter', () => {
+      mountEditor({ modelValue: 'foo', linter: problem });
+
+      expect(gutterClasses()).toStrictEqual(['cm-lineNumbers', 'cm-gutter-lint', 'cm-foldGutter']);
+    });
+
+    it('should mark the lines with problems in the gutter', async() => {
+      mountEditor({ modelValue: 'foo', linter: problem });
+
+      await lint();
+
+      expect(wrapper.find('.cm-gutter-lint .cm-lint-marker-error').exists()).toStrictEqual(true);
+    });
+
+    it('should underline problems in the text', async() => {
+      mountEditor({ modelValue: 'foo', linter: problem });
+
+      await lint();
+
+      expect(wrapper.find('.cm-lintRange-error').text()).toStrictEqual('foo');
+    });
+
+    it('should report the linter problems', async() => {
+      mountEditor({ modelValue: 'foo', linter: problem });
+
+      await lint();
+
+      expect(diagnosticCount(getView(wrapper).state)).toStrictEqual(1);
+    });
+
+    it('should underline problems without a gutter in the input variant', async() => {
+      mountEditor({
+        modelValue: 'foo', linter: problem, variant: 'input'
+      });
+
+      await lint();
+
+      expect(gutterClasses()).toStrictEqual([]);
+      expect(wrapper.find('.cm-lintRange-error').exists()).toStrictEqual(true);
+    });
+
+    it('should add the linter after mount', async() => {
+      mountEditor({ modelValue: 'foo' });
+
+      await wrapper.setProps({ linter: problem });
+      await lint();
+
+      expect(gutterClasses()).toStrictEqual(['cm-lineNumbers', 'cm-gutter-lint', 'cm-foldGutter']);
+      expect(diagnosticCount(getView(wrapper).state)).toStrictEqual(1);
+    });
+
+    it('should remove the gutter and problems when the linter is removed', async() => {
+      mountEditor({ modelValue: 'foo', linter: problem });
+      await lint();
+
+      await wrapper.setProps({ linter: undefined });
+
+      expect(gutterClasses()).toStrictEqual(['cm-lineNumbers', 'cm-foldGutter']);
+      expect(wrapper.find('.cm-lintRange-error').exists()).toStrictEqual(false);
+    });
+  });
+
+  describe('keymapIndicator prop', () => {
+    const INDICATOR = '[data-testid="code-mirror-keymap"]';
+
+    // The indicator renders once the view, which translates its text, exists
+    async function mountRendered(props: Record<string, unknown>): Promise<Wrapper> {
+      mountEditor(props);
+      await wrapper.vm.$nextTick();
+
+      return wrapper;
+    }
+
+    it('should not show the indicator by default', async() => {
+      await mountRendered({ keymap: 'vim' });
+
+      expect(wrapper.find(INDICATOR).exists()).toStrictEqual(false);
+    });
+
+    it.each([
+      ['vim', 'Hide key mapping: Vim'],
+      ['emacs', 'Hide key mapping: Emacs'],
+    ])('should show a button naming the %s keymap', async(keymap, label) => {
+      await mountRendered({ keymap, keymapIndicator: true });
+      const indicator = wrapper.find(INDICATOR);
+
+      expect(indicator.element.tagName).toStrictEqual('BUTTON');
+      expect(indicator.classes()).toContain('variant-ghost');
+      expect(indicator.attributes('type')).toStrictEqual('button');
+      expect(indicator.attributes('aria-label')).toStrictEqual(label);
+    });
+
+    it.each([undefined, 'default'])('should not show the indicator for the %p keymap', async(keymap) => {
+      await mountRendered({ keymap, keymapIndicator: true });
+
+      expect(wrapper.find(INDICATOR).exists()).toStrictEqual(false);
+    });
+
+    it('should not show the indicator in the input variant', async() => {
+      await mountRendered({
+        keymap: 'vim', keymapIndicator: true, variant: 'input'
+      });
+
+      expect(wrapper.find(INDICATOR).exists()).toStrictEqual(false);
+    });
+
+    it('should show the indicator when the keymap changes to Vim', async() => {
+      await mountRendered({ keymapIndicator: true });
+
+      await wrapper.setProps({ keymap: 'vim' });
+
+      expect(wrapper.find(INDICATOR).exists()).toStrictEqual(true);
+    });
+
+    it('should translate the label and keymap name through CodeMirror phrases', async() => {
+      await mountRendered({
+        keymap:          'vim',
+        keymapIndicator: true,
+        extensions:      [EditorState.phrases.of({ 'Hide key mapping: $': 'Masquer le clavier $', Vim: 'VIM' })]
+      });
+
+      expect(wrapper.find(INDICATOR).attributes('aria-label')).toStrictEqual('Masquer le clavier VIM');
+    });
+
+    it('should hide the indicator when it is selected', async() => {
+      await mountRendered({ keymap: 'vim', keymapIndicator: true });
+
+      await wrapper.find(INDICATOR).trigger('click');
+
+      expect(wrapper.find(INDICATOR).exists()).toStrictEqual(false);
+    });
+
+    it('should move focus to the editor when the indicator is selected', async() => {
+      await mountRendered({ keymap: 'vim', keymapIndicator: true });
+      const indicator = wrapper.find(INDICATOR);
+
+      (indicator.element as HTMLButtonElement).focus();
+      await indicator.trigger('click');
+
+      expect(document.activeElement).toStrictEqual(getView(wrapper).contentDOM);
+    });
+
+    it('should let Escape on the indicator reach the page', async() => {
+      const listener = jest.fn();
+
+      await mountRendered({ keymap: 'vim', keymapIndicator: true });
+      document.addEventListener('keydown', listener);
+      const escape = new KeyboardEvent('keydown', {
+        key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true, cancelable: true
+      });
+
+      wrapper.find(INDICATOR).element.dispatchEvent(escape);
+      document.removeEventListener('keydown', listener);
+
+      expect(listener).toHaveBeenCalledWith(escape);
+    });
+  });
+
   describe('v-model', () => {
     it('should emit update:modelValue when the document changes', () => {
       mountEditor({ modelValue: 'a' });
@@ -535,6 +801,23 @@ describe('component: RcCodeMirror', () => {
       mountEditor({ language: 'json', modelValue: '{"enabled": true, "replicas": 3}' });
 
       expect(wrapper.find(selector).text()).toStrictEqual(expected);
+    });
+
+    it.each([
+      ['property names', '.cm-rancher-key', 'name'],
+      ['strings', '.cm-rancher-string', '"nginx"'],
+      ['booleans', '.cm-rancher-keyword', 'true'],
+      ['comments', '.cm-rancher-comment', '// a comment']
+    ])('should highlight JavaScript %s', (_token, selector, expected) => {
+      mountEditor({ language: 'javascript', modelValue: 'object.name == "nginx" && true // a comment' });
+
+      expect(wrapper.find(selector).text()).toStrictEqual(expected);
+    });
+
+    it('should not complete JavaScript while typing', () => {
+      mountEditor({ language: 'javascript', modelValue: '' });
+
+      expect(getView(wrapper).state.languageDataAt('autocomplete', 0)).toStrictEqual([]);
     });
 
     it('should highlight YAML booleans when the language changes to YAML', async() => {
