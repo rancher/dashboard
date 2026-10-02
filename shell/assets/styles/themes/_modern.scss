@@ -371,10 +371,10 @@ BODY, .theme-light {
   --error-active-bg          : #{darken($error, 25%)};
   --error-active-text        : #{contrast-color(darken($error, 25%))};
   --error-border             : #{$error};
-  --buttons-destructive      : #D42B3A;
-  --buttons-destructive-hover: #B62532;
+  --buttons-destructive      : var(--error);
+  --buttons-destructive-hover: var(--error-hover-bg);
   --buttons-on-destructive   : #{$lightest};
-  --buttons-destructive-quiet: #D42B3A;
+  --buttons-destructive-quiet: var(--error);
   --error-banner-bg          : #{rgba($error, 0.15)};
   --error-light-bg           : #{rgba($error, 0.05)};
 
@@ -1108,7 +1108,6 @@ BODY, .theme-dark {
   --rc-image-color: #{$darkest};
 
   --error-text    : #FFAC99;
-  --buttons-destructive-quiet: #FFAC99;
   --warning-text  : #{contrast-color($warning)};
 
   --success-badge     : #{rgba($success, 10%)};
