@@ -4,6 +4,14 @@ import { createStore } from 'vuex';
 import DayTwoOps from '../DayTwoOps.vue';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { DAY_2_OPS_DEFAULT as DEFAULT } from '../../util/shared';
+import { SECTION_TYPE } from '@components/RcSection';
+
+// RcSection's default shallow-mount stub doesn't render its default slot, which would hide the content under test
+const RcSectionStub = {
+  name:     'RcSection',
+  props:    ['title', 'type', 'mode', 'expandable', 'expanded'],
+  template: '<div><slot /></div>',
+};
 
 describe('component: DayTwoOps', () => {
   const defaultSetup = () => {
@@ -12,7 +20,10 @@ describe('component: DayTwoOps', () => {
     return {
       global: {
         plugins: [store],
-        stubs:   { Banner: { template: '<div v-bind="$attrs"><slot /></div>' } }
+        stubs:   {
+          Banner:    { template: '<div v-bind="$attrs"><slot /></div>' },
+          RcSection: RcSectionStub,
+        }
       }
     };
   };
@@ -25,7 +36,8 @@ describe('component: DayTwoOps', () => {
 
     const radioGroup = wrapper.findComponent({ name: 'RadioGroup' });
 
-    expect(wrapper.find('h3').exists()).toBe(true);
+    // In templates `t` resolves to the global jest mock from jest.setup.js, which renders keys as `%key%`
+    expect(wrapper.findComponent(RcSectionStub).props('title')).toBe('%imported.basics.dayTwoOpsEnabled.title%');
     expect(radioGroup.exists()).toBe(true);
     expect(radioGroup.props('value')).toBe(DEFAULT);
     expect(radioGroup.props('mode')).toBe(_EDIT);
@@ -191,5 +203,17 @@ describe('component: DayTwoOps', () => {
     expect(wrapper.emitted('update:value')).toHaveLength(2);
     expect(wrapper.emitted('update:value')?.[0]).toStrictEqual(['true']);
     expect(wrapper.emitted('update:value')?.[1]).toStrictEqual([DEFAULT]);
+  });
+
+  it('should render as an expandable secondary section', () => {
+    const wrapper = shallowMount(DayTwoOps, {
+      props: { globalSetting: true },
+      ...defaultSetup()
+    });
+
+    const section = wrapper.findComponent(RcSectionStub);
+
+    expect(section.props('type')).toBe(SECTION_TYPE.SECONDARY);
+    expect(section.props('expandable')).toBe(true);
   });
 });
