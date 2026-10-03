@@ -194,4 +194,55 @@ describe('view: autoscaling.horizontalpodautoscaler', () => {
       });
     });
   });
+
+  describe('with malformed metrics:', () => {
+    const valueWithMalformedMetrics = {
+      status: {
+        currentMetrics: [],
+      },
+      spec: {
+        metrics: [
+          {
+            type: 'Pods',
+            // Missing 'pods' property - causes metricValue to be undefined
+          },
+          {
+            type: 'External',
+            external: {
+              // Missing 'metric' property - metricValue.metric is undefined
+              target: { averageValue: 100, type: 'AverageValue' }
+            }
+          },
+          {
+            type: 'Resource',
+            // Missing 'resource' property
+          }
+        ]
+      }
+    };
+
+    it('should not throw TypeError when metrics are malformed', () => {
+      expect(() => {
+        mount(HorizontalPodAutoScaler, {
+          props:  { value: valueWithMalformedMetrics },
+          global: { mocks, stubs },
+        });
+      }).not.toThrow();
+    });
+
+    it('should gracefully handle malformed metrics with null values', () => {
+      const wrapper = mount(HorizontalPodAutoScaler, {
+        props:  { value: valueWithMalformedMetrics },
+        global: { mocks, stubs },
+      });
+
+      expect(wrapper.exists()).toBe(true);
+      expect(wrapper.vm.mappedMetrics).toHaveLength(3);
+
+      // Metric names should be null for malformed metrics
+      expect(wrapper.vm.mappedMetrics[0].metricName).toBeNull();
+      expect(wrapper.vm.mappedMetrics[1].metricName).toBeNull();
+      expect(wrapper.vm.mappedMetrics[2].metricName).toBeNull();
+    });
+  });
 });
