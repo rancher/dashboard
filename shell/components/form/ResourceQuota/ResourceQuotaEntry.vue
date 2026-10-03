@@ -15,6 +15,7 @@ const props = defineProps<{
   index: number,
   mode: string,
   types: any[],
+  duplicate?: boolean,
 }>();
 
 const emit = defineEmits(['remove']);
@@ -48,12 +49,16 @@ const removeAriaLabel = computed(() => {
 });
 
 const customTypeRules = computed(() => {
-  // Return a validation rule that makes the field required when isCustom is true
+  // Return a validation rule that makes the field required and unique when isCustom is true
   if (isCustom.value) {
     return [
       (value: string) => {
         if (!value) {
           return t('resourceQuota.errors.customTypeRequired');
+        }
+
+        if (props.duplicate) {
+          return t('resourceQuota.errors.duplicateIdentifier');
         }
 
         return undefined;
