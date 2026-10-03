@@ -286,6 +286,7 @@ export default {
       this.networksHistoric = this.value.networkInfo;
 
       this.getAvailableVGpuDevices();
+      this.fetchHasHostDeviceInfo().then((supported) => supported && this.getAvailablePciDevices());
 
       this.update();
     } catch (e) {
@@ -314,6 +315,7 @@ export default {
     vmAffinity = { affinity: clone(vmAffinityObj) };
 
     let vGpus = [];
+    let hostDevices = [];
     let networkData = '';
     let userData = '';
     let installAgent;
@@ -349,6 +351,12 @@ export default {
       vGpus = vGPURequests?.map((r) => r?.deviceName).filter((f) => f) || [];
     }
 
+    if (this.value.hostDeviceInfo) {
+      const hostDeviceRequests = JSON.parse(this.value.hostDeviceInfo)?.hostDevices;
+
+      hostDevices = hostDeviceRequests?.map((r) => r?.deviceName).filter((f) => f) || [];
+    }
+
     return {
       credential:         null,
       vmAffinity,
@@ -381,6 +389,9 @@ export default {
       vGpuDevices:        {},
       vGpusInit:          vGpus,
       vGpus,
+      pciDevices:         {},
+      hostDevices,
+      hasHostDeviceInfo:  false,
       cpuModelConfigMap:  null,
     };
   },
@@ -539,6 +550,45 @@ export default {
 
     showVGpuAllocationInfo() {
       return this.mode !== _VIEW && !!Object.values(this.vGpuDevices).find((d) => d.allocatable);
+    },
+
+    pciDeviceOptions() {
+      const availableDevices = Object.values(this.pciDevices)
+        .filter((pciDevice) => pciDevice.enabled &&
+          pciDevice.type &&
+          /**
+           * A device already requested by this pool is reported as unallocatable, so keep it in
+           * the list to avoid dropping the current selection when editing an existing pool.
+           */
+          (pciDevice.allocatable === null || pciDevice.allocatable > 0 || this.hostDevices.includes(pciDevice.type))
+        );
+
+      const uniqueTypes = uniq(availableDevices.map((pciDevice) => pciDevice.type));
+
+      return uniqueTypes.map((type) => ({
+        label: this.pciDeviceOptionLabel(type),
+        value: type
+      }));
+    },
+
+    /**
+     * ArrayListSelect pre-fills a new row with options[0], so list the devices that aren't selected yet
+     * first and a new row starts on the first free device. Each row's dropdown only offers its own value
+     * plus the unselected devices, so the order shown to the user doesn't change.
+     */
+    hostDeviceSelectOptions() {
+      const unselected = this.pciDeviceOptions.filter((o) => !this.hostDevices.includes(o.value));
+      const selected = this.pciDeviceOptions.filter((o) => this.hostDevices.includes(o.value));
+
+      return [...unselected, ...selected];
+    },
+
+    hostDevicesAddDisabled() {
+      return this.pciDeviceOptions.every((o) => this.hostDevices.includes(o.value));
+    },
+
+    showPciDeviceAllocationInfo() {
+      return this.mode !== _VIEW && !!Object.values(this.pciDevices).find((d) => d.allocatable);
     },
 
     enableCpuPinningCheckbox() {
@@ -701,6 +751,8 @@ export default {
 
       this.validatorVGpus(errors);
 
+      this.validatorHostDevices(errors);
+
       podAffinityValidator(this.vmAffinity.affinity, this.$store.getters, errors);
 
       return { errors };
@@ -806,6 +858,39 @@ export default {
       });
     },
 
+    validatorHostDevices(errors) {
+      const notAllocatable = this.hostDevices
+        .map((type) => {
+          const allocated = this.machinePools.reduce((acc, machinePool) => {
+            const hostDeviceRequests = JSON.parse(machinePool?.config?.hostDeviceInfo || '{}')?.hostDevices;
+
+            const deviceNames = hostDeviceRequests?.map((r) => r?.deviceName).filter((f) => f) || [];
+
+            if (deviceNames.includes(type)) {
+              return acc + machinePool.pool.quantity;
+            }
+
+            return acc;
+          }, 0);
+
+          return {
+            pciDevice: Object.values(this.pciDevices).filter((f) => f.type === type)?.[0],
+            allocated
+          };
+        })
+        .filter(({ pciDevice, allocated }) => pciDevice && pciDevice.allocatable > 0 && pciDevice.allocatable < allocated);
+
+      notAllocatable.forEach(({ pciDevice, allocated }) => {
+        const message = this.$store.getters['i18n/t']('cluster.credential.harvester.hostDevices.errors.notAllocatable', {
+          hostDevice:  pciDevice?.type,
+          allocated,
+          allocatable: pciDevice?.allocatable
+        });
+
+        errors.push(message);
+      });
+    },
+
     valuesChanged(value, type) {
       this.value[type] = base64Encode(value);
     },
@@ -879,6 +964,82 @@ export default {
               [v.id]: {
                 id:      v.id,
                 enabled: v.spec.enabled,
+                allocatable,
+                type,
+              },
+            };
+          }, {});
+      }
+    },
+
+    /**
+     * 'hostDeviceInfo' only exists in the HarvesterConfig schema when Rancher ships a node driver
+     * that supports it. Without it the API server silently drops the field on save, so the PCI
+     * device picker is only shown when the schema has it.
+     */
+    async fetchHasHostDeviceInfo() {
+      try {
+        const schema = this.$store.getters['management/schemaFor'](HCI.HARVESTER_CONFIG);
+
+        await schema?.fetchResourceFields?.();
+
+        this.hasHostDeviceInfo = !!this.$store.getters['management/pathExistsInSchema'](HCI.HARVESTER_CONFIG, 'hostDeviceInfo');
+      } catch (e) {
+        this.hasHostDeviceInfo = false;
+      }
+
+      return this.hasHostDeviceInfo;
+    },
+
+    async getAvailablePciDevices() {
+      const clusterId = get(this.credential, 'decodedData.clusterId');
+
+      if (clusterId) {
+        const url = `/k8s/clusters/${ clusterId }/v1`;
+
+        // These live on the Harvester cluster behind the cloud credential, not the cluster the store is loaded for,
+        // so they are raw requests like the rest of this form. Each may fail on its own without losing the others.
+        const res = await allHashSettled({
+          pciDevices:       this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.PCI_DEVICE }` }),
+          pciDeviceClaims:  this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.PCI_DEVICE_CLAIM }` }),
+          harvesterCluster: this.$store.dispatch('cluster/request', { url: `${ url }/harvester/cluster/local` }),
+        });
+
+        const pciDevices = res.pciDevices.value;
+        const pciDeviceClaims = res.pciDeviceClaims.value;
+        const deviceCapacityUrl = res.harvesterCluster.value?.links?.deviceCapacity;
+
+        let deviceCapacity = null;
+
+        if (deviceCapacityUrl) {
+          try {
+            deviceCapacity = await this.$store.dispatch('cluster/request', { url: deviceCapacityUrl });
+          } catch (e) {
+          }
+        }
+
+        /**
+         * A PCI device is only offered for passthrough once it has been claimed on the Harvester
+         * cluster; the device plugin advertises the node resource for claimed devices only.
+         */
+        const claimed = (pciDeviceClaims?.data || [])
+          .reduce((acc, c) => ({ ...acc, [`${ c.spec?.nodeName }/${ c.spec?.address }`]: true }), {});
+
+        this.pciDevices = (pciDevices?.data || [])
+          .reduce((acc, d) => {
+            const type = d.status?.resourceName || '';
+
+            let allocatable = null;
+
+            if (deviceCapacity) {
+              allocatable = deviceCapacity[type] ? Number(deviceCapacity[type]) : 0;
+            }
+
+            return {
+              ...acc,
+              [d.id]: {
+                id:      d.id,
+                enabled: !!claimed[`${ d.status?.nodeName }/${ d.status?.address }`],
                 allocatable,
                 type,
               },
@@ -1037,6 +1198,19 @@ export default {
       })) || [];
 
       this.value.vgpuInfo = vGPURequests.length > 0 ? JSON.stringify({ vGPURequests }) : '';
+    },
+
+    updateHostDevices() {
+      const hostDevices = uniq(this.hostDevices?.filter((f) => f) || []).map((deviceName, index) => ({
+        /**
+         * 'name' only has to be unique within the VM's device list; the physical device to attach
+         * is resolved by the scheduler from 'deviceName', which is the node resource name.
+         */
+        name: `hostdevice-${ index + 1 }`,
+        deviceName,
+      }));
+
+      this.value.hostDeviceInfo = hostDevices.length > 0 ? JSON.stringify({ hostDevices }) : '';
     },
 
     addCloudConfigComment(value) {
@@ -1251,6 +1425,28 @@ export default {
         label += ` (${ this.t('harvesterManager.vGpu.allocatableUnknown') })`;
       } else if (vGpu?.allocatable > 0) {
         label += ` (${ this.t('harvesterManager.vGpu.allocatable') }: ${ vGpu.allocatable })`;
+      }
+
+      return label;
+    },
+
+    pciDeviceOptionLabel(opt) {
+      const pciDevice = Object.values(this.pciDevices).filter((f) => f.type === opt)?.[0];
+
+      /**
+       * Unlike vGPU types, PCI resource names come from many vendors, so there is no common prefix
+       * to strip; the full resource name is shown.
+       */
+      let label = opt;
+
+      if (this.mode === _VIEW) {
+        return label;
+      }
+
+      if (pciDevice?.allocatable === null) {
+        label += ` (${ this.t('harvesterManager.hostDevices.allocatableUnknown') })`;
+      } else if (pciDevice?.allocatable > 0) {
+        label += ` (${ this.t('harvesterManager.hostDevices.allocatable') }: ${ pciDevice.allocatable })`;
       }
 
       return label;
@@ -1569,6 +1765,36 @@ export default {
             @update:value="updateVGpu"
           />
         </div>
+
+        <template v-if="hasHostDeviceInfo">
+          <h3 class="mt-20">
+            {{ t("harvesterManager.hostDevices.title") }}
+          </h3>
+          <div>
+            <Banner
+              v-if="showPciDeviceAllocationInfo"
+              color="warning"
+              :label="t('cluster.credential.harvester.hostDevices.warnings.minimumAllocatable')"
+            />
+            <ArrayListSelect
+              v-model:value="hostDevices"
+              class="mt-20"
+              :array-list-props="{
+                addAllowed: true,
+                addDisabled: hostDevicesAddDisabled,
+                mode,
+                disabled
+              }"
+              :select-props="{
+                mode,
+                disabled,
+              }"
+              :options="hostDeviceSelectOptions"
+              label-key="harvesterManager.hostDevices.label"
+              @update:value="updateHostDevices"
+            />
+          </div>
+        </template>
 
         <h3 class="mt-20">
           {{ t("cluster.credential.harvester.userData.title") }}
