@@ -31,7 +31,6 @@ export default {
 
   data() {
     return {
-      disabled: false,
       expanded: false,
       loading:  true,
       cParts:   [],
@@ -89,28 +88,14 @@ export default {
       event.stopPropagation();
     },
 
-    async scaleDown() {
-      await this.scale(false);
+    // Not awaited, and nothing is blocked whilst the request runs. The model moves `spec.replicas`
+    // as soon as it is called, so the count the rocker shows follows the click immediately, and it
+    // reports its own failures with the same growl this used to raise.
+    scaleDown() {
+      this.row.scale(false);
     },
-    async scaleUp() {
-      await this.scale(true);
-    },
-    async scale(isUp) {
-      this['disabled'] = true;
-      try {
-        if (isUp) {
-          await this.row.scaleUp();
-        } else {
-          await this.row.scaleDown();
-        }
-      } catch (err) {
-        this.$store.dispatch('growl/fromError', {
-          title: this.t('workload.list.errorCannotScale', { direction: isUp ? 'up' : 'down', workloadName: this.row.name }),
-          err
-        },
-        { root: true });
-      }
-      this['disabled'] = false;
+    scaleUp() {
+      this.row.scale(true);
     },
 
     insideBounds(bounding, bounds) {
@@ -223,8 +208,7 @@ export default {
         >
           <span>{{ t('tableHeaders.scale') }} </span>
           <PlusMinus
-            :value="row.spec.replicas"
-            :disabled="disabled"
+            :value="row.desired"
             @minus="scaleDown"
             @plus="scaleUp"
           />
