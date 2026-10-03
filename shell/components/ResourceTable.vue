@@ -761,7 +761,6 @@ export default {
 
     <template
       v-if="showGrouping"
-      #header-right
     >
       <slot
         name="header-right"
