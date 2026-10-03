@@ -45,7 +45,7 @@ export async function installPlugins(vueApp) {
     {
       prevent:          ['input', 'textarea', 'select'],
       // A surface that owns the screen silences the app's shortcuts while it is up.
-      preventContainer: [MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR]
+      preventContainer: [MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR, '.rc-modal']
     });
   vueApp.use(InstallCodeMirror);
 }
