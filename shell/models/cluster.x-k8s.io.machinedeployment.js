@@ -3,11 +3,44 @@ import { escapeHtml } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
-import { CAPI as CAPI_ANNOTATIONS, MACHINE_ROLES } from '@shell/config/labels-annotations';
+import { MACHINE_ROLES } from '@shell/config/labels-annotations';
+import {
+  AUTOSCALER_PAUSE_FIELDS,
+  isAutoscalerFeatureFlagEnabled,
+  isMachinePoolAutoscaling,
+  isMachinePoolAutoscalerPaused,
+  machinePoolAutoscalerRange,
+  pauseMachinePoolAutoscaler,
+  resumeMachinePoolAutoscaler
+} from '@shell/utils/autoscaler-utils';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 import { KIND } from '../config/elemental-types';
 import { KIND as HARVESTER_KIND } from '../config/harvester-manager-types';
 import CapiMachineRoot from '@shell/models/base-cluster.x-k8s.io';
+
+function snapshotAutoscalerFields(pool) {
+  return AUTOSCALER_PAUSE_FIELDS.reduce((out, field) => {
+    if (field in pool) {
+      out[field] = pool[field];
+    }
+
+    return out;
+  }, {});
+}
+
+function restoreAutoscalerFields(pool, snapshot) {
+  if (!pool) {
+    return;
+  }
+
+  AUTOSCALER_PAUSE_FIELDS.forEach((field) => {
+    if (field in snapshot) {
+      pool[field] = snapshot[field];
+    } else {
+      delete pool[field];
+    }
+  });
+}
 
 export default class CapiMachineDeployment extends CapiMachineRoot {
   get groupByPoolLabel() {
@@ -101,9 +134,9 @@ export default class CapiMachineDeployment extends CapiMachineRoot {
     const infrastructureRefName = this.spec?.template?.spec?.infrastructureRef?.name;
     const machineTemplateName = rkeMachineConfigName || infrastructureRefName;
 
-    const machinePools = this.cluster.spec.rkeConfig.machinePools;
+    const machinePools = this.cluster?.spec?.rkeConfig?.machinePools || [];
 
-    return machinePools.find((pool) => pool.machineConfigRef.name === machineTemplateName);
+    return machinePools.find((pool) => pool.machineConfigRef?.name === machineTemplateName);
   }
 
   scalePool(delta, save = true, depth = 0) {
@@ -160,8 +193,199 @@ export default class CapiMachineDeployment extends CapiMachineRoot {
     }, 1000);
   }
 
+  get _availableActions() {
+    const out = super._availableActions;
+
+    if (!this.autoscalerStatusKey || !isAutoscalerFeatureFlagEnabled({ rootGetters: this.$rootGetters })) {
+      return out;
+    }
+
+    const paused = this.isAutoscalerPaused;
+
+    return [{
+      action:  'toggleAutoscalerPause',
+      label:   this.t(paused ? 'cluster.machinePool.autoscaler.pause.resumeAction' : 'cluster.machinePool.autoscaler.pause.pauseAction'),
+      icon:    `icon ${ paused ? 'icon-play' : 'icon-pause' }`,
+      enabled: this.canPauseResumeAutoscaler
+    },
+    { divider: true },
+    ...out];
+  }
+
   get isAutoscalerEnabled() {
-    return this.annotations?.[CAPI_ANNOTATIONS.AUTOSCALER_MACHINE_POOL_MIN_SIZE] || this.annotations?.[CAPI_ANNOTATIONS.AUTOSCALER_MACHINE_POOL_MAX_SIZE];
+    return isMachinePoolAutoscaling(this.inClusterSpec);
+  }
+
+  get isAutoscalerPaused() {
+    return isMachinePoolAutoscalerPaused(this.inClusterSpec);
+  }
+
+  get isClusterAutoscalerPaused() {
+    return !!this.cluster?.isAutoscalerPaused;
+  }
+
+  get autoscalerRange() {
+    return machinePoolAutoscalerRange(this.inClusterSpec);
+  }
+
+  /**
+   * Translation key naming the pool's autoscaler state, or null when the pool does not autoscale
+   */
+  get autoscalerStatusKey() {
+    if (!this.isAutoscalerEnabled && !this.isAutoscalerPaused) {
+      return null;
+    }
+
+    if (this.isClusterAutoscalerPaused) {
+      return 'cluster.machinePool.autoscaler.pause.statusClusterPaused';
+    }
+
+    return this.isAutoscalerEnabled ? 'cluster.machinePool.autoscaler.pause.statusAutoscaling' : 'cluster.machinePool.autoscaler.pause.statusPaused';
+  }
+
+  get autoscalerNodeGroupName() {
+    return `MachineDeployment/${ this.metadata.namespace }/${ this.metadata.name }`;
+  }
+
+  /**
+   * Summary rows for the pool's autoscaler popover, in the shape `AutoscalerCard` renders. The
+   * cluster autoscaler reports per node group, keyed by the pool's machine deployment.
+   */
+  async loadAutoscalerDetails() {
+    const out = [{
+      label: this.t('autoscaler.card.details.status'),
+      value: this.t(this.autoscalerStatusKey)
+    }, {
+      label: this.t('cluster.machinePool.autoscaler.pause.range'),
+      value: this.t('cluster.machinePool.autoscaler.pause.rangeValue', this.autoscalerRange)
+    }];
+
+    if (this.isAutoscalerPaused || this.isClusterAutoscalerPaused) {
+      return out;
+    }
+
+    const status = await this.cluster?.loadAutoscalerStatus();
+    const nodeGroup = typeof status === 'object' ? status?.nodeGroups?.find((group) => group.name === this.autoscalerNodeGroupName) : undefined;
+
+    if (!nodeGroup) {
+      return out;
+    }
+
+    if (nodeGroup.health?.status) {
+      out.push({
+        label: this.t('autoscaler.card.details.health'),
+        value: {
+          component: 'BadgeStateFormatter',
+          props:     {
+            value: nodeGroup.health.status, arbitrary: true, row: {}
+          }
+        }
+      });
+    }
+
+    if (nodeGroup.scaleDown?.lastTransitionTime) {
+      out.push({
+        label: this.t('autoscaler.card.details.scaleDown'),
+        value: {
+          component: 'LiveDate',
+          props:     { value: nodeGroup.scaleDown.lastTransitionTime, addSuffix: true }
+        }
+      });
+    }
+
+    if (nodeGroup.scaleUp?.lastTransitionTime) {
+      out.push({
+        label: this.t('autoscaler.card.details.scaleUp'),
+        value: {
+          component: 'LiveDate',
+          props:     { value: nodeGroup.scaleUp.lastTransitionTime, addSuffix: true }
+        }
+      });
+    }
+
+    const registered = nodeGroup.health?.nodeCounts?.registered;
+
+    if (registered) {
+      out.push({ label: this.t('autoscaler.card.details.nodes') });
+      out.push({ label: this.t('autoscaler.card.details.ready'), value: registered.ready || '0' });
+      out.push({ label: this.t('autoscaler.card.details.notStarted'), value: registered.notStarted || '0' });
+      out.push({ label: this.t('autoscaler.card.details.inTotal'), value: registered.total || '0' });
+    }
+
+    return out;
+  }
+
+  get isLastAutoscalingPool() {
+    const pool = this.inClusterSpec;
+
+    if (!isMachinePoolAutoscaling(pool)) {
+      return false;
+    }
+
+    const machinePools = this.cluster?.spec?.rkeConfig?.machinePools || [];
+
+    return !machinePools.some((other) => other !== pool && isMachinePoolAutoscaling(other));
+  }
+
+  get canPauseResumeAutoscaler() {
+    if (!this.inClusterSpec || !this.autoscalerStatusKey || !this.cluster?.canUpdate || this.isClusterAutoscalerPaused) {
+      return false;
+    }
+
+    return !this.isLastAutoscalingPool;
+  }
+
+  /**
+   * Pause or resume the autoscaler for this pool, saving the provisioning cluster. A toggle that is
+   * already in flight is handed back rather than started again.
+   *
+   * @returns a promise for whether the change was saved
+   */
+  toggleAutoscalerPause() {
+    if (!this.autoscalerPauseRequest) {
+      this.autoscalerPauseRequest = this.saveAutoscalerPause().finally(() => {
+        this.autoscalerPauseRequest = null;
+      });
+    }
+
+    return this.autoscalerPauseRequest;
+  }
+
+  async saveAutoscalerPause(depth = 0) {
+    const pool = this.inClusterSpec;
+
+    if (!pool || !this.canPauseResumeAutoscaler) {
+      return false;
+    }
+
+    const rollback = snapshotAutoscalerFields(pool);
+
+    if (this.isAutoscalerPaused) {
+      resumeMachinePoolAutoscaler(pool);
+    } else {
+      pauseMachinePoolAutoscaler(pool, this.desired);
+    }
+
+    try {
+      await this.cluster.save();
+
+      return true;
+    } catch (err) {
+      if ( err.status === 409 ) {
+        if ( depth < 2 ) {
+          return this.saveAutoscalerPause(depth + 1);
+        }
+      } else {
+        restoreAutoscalerFields(this.inClusterSpec, rollback);
+      }
+
+      this.$dispatch('growl/fromError', {
+        title: this.t('cluster.machinePool.autoscaler.pause.error'),
+        err:   exceptionToErrorsArray(err)
+      }, { root: true });
+
+      return false;
+    }
   }
 
   // prevent scaling pool to 0 if it would scale down the only etcd or control plane node

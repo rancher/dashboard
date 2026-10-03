@@ -1,3 +1,4 @@
+import { h } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import ProvisioningCattleIoCluster from '@shell/detail/provisioning.cattle.io.cluster.vue';
 import * as TitleBarComposables from '@shell/components/Resource/Detail/TitleBar/composables';
@@ -295,6 +296,137 @@ describe('view: provisioning.cattle.io.cluster', () => {
       });
 
       expect(wrapper.vm.showLog).toBeFalsy();
+    });
+  });
+
+  describe('machine pool autoscaler indicator and actions', () => {
+    const autoscalingPool = (overrides = {}) => ({
+      nameDisplay:               'pool1',
+      autoscalerStatusKey:       'cluster.machinePool.autoscaler.pause.autoscaling',
+      autoscalerRange:           { min: 1, max: 4 },
+      isAutoscalerEnabled:       true,
+      isAutoscalerPaused:        false,
+      isClusterAutoscalerPaused: false,
+      isLastAutoscalingPool:     false,
+      canPauseResumeAutoscaler:  true,
+      showScalePool:             false,
+      toggleAutoscalerPause:     jest.fn().mockResolvedValue(true),
+      ...overrides,
+    });
+
+    const mountWithPool = async(pool: any, featureEnabled = true) => {
+      const slotStub = {
+        render() {
+          return h('div', (this as any).$slots.default?.());
+        }
+      };
+      const resourceTableStub = {
+        render() {
+          return h('div', (this as any).$slots['group-by']?.({ group: { ref: pool } }));
+        }
+      };
+
+      const commit = jest.fn();
+      const tableMocks = {
+        ...mocks,
+        $store: {
+          ...mockStore,
+          commit,
+          getters: {
+            ...mockStore.getters,
+            'features/get': () => featureEnabled,
+            'i18n/exists':  () => true,
+          },
+        },
+      };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props: {
+          value: {
+            isRke2:   true,
+            name:     'c1',
+            spec:     { rkeConfig: { machinePools: [] } },
+            machines: [],
+            pools:    [],
+            hasLink:  () => true,
+          }
+        },
+        global: {
+          mocks: tableMocks,
+          stubs: {
+            DetailPage: {
+              render() {
+                return h('div', (this as any).$slots['bottom-area']?.());
+              }
+            },
+            ResourceTabs:  slotStub,
+            Tab:           slotStub,
+            ResourceTable: resourceTableStub,
+            PopoverCard:   slotStub,
+          },
+        },
+      });
+
+      await wrapper.setData({ haveMachines: true });
+
+      return { wrapper, commit };
+    };
+
+    it('should mark an autoscaling pool with the autoscaler indicator', async() => {
+      const { wrapper } = await mountWithPool(autoscalingPool());
+      const indicator = wrapper.find('[data-testid="autoscaler-indicator"]');
+
+      expect(indicator.exists()).toBe(true);
+      expect(indicator.find('i').classes()).toContain('icon-checkmark');
+    });
+
+    it('should mark a paused pool with the paused indicator', async() => {
+      const { wrapper } = await mountWithPool(autoscalingPool({
+        isAutoscalerEnabled: false,
+        isAutoscalerPaused:  true,
+        autoscalerStatusKey: 'cluster.machinePool.autoscaler.pause.statusPaused',
+      }));
+
+      expect(wrapper.find('[data-testid="autoscaler-indicator"]').find('i').classes()).toContain('icon-pause');
+    });
+
+    it('should mark a pool as paused while the cluster autoscaler is paused', async() => {
+      const { wrapper } = await mountWithPool(autoscalingPool({
+        isClusterAutoscalerPaused: true,
+        autoscalerStatusKey:       'cluster.machinePool.autoscaler.pause.statusClusterPaused',
+      }));
+
+      expect(wrapper.find('[data-testid="autoscaler-indicator"]').find('i').classes()).toContain('icon-pause');
+    });
+
+    it('should render no indicator for a pool that does not autoscale', async() => {
+      const { wrapper } = await mountWithPool(autoscalingPool({ isAutoscalerEnabled: false, autoscalerStatusKey: null }));
+
+      expect(wrapper.find('[data-testid="autoscaler-indicator"]').exists()).toBe(false);
+    });
+
+    it('should render no indicator while the autoscaler feature flag is off', async() => {
+      const { wrapper } = await mountWithPool(autoscalingPool(), false);
+
+      expect(wrapper.find('[data-testid="autoscaler-indicator"]').exists()).toBe(false);
+    });
+
+    it('should open the pool action menu for a pool that has actions', async() => {
+      const pool = autoscalingPool({ availableActions: [{ action: 'toggleAutoscalerPause' }] });
+      const { wrapper, commit } = await mountWithPool(pool);
+      const button = wrapper.find('[data-testid="pool-actions-button"]');
+
+      expect(button.classes()).not.toContain('invisible');
+
+      await button.trigger('click');
+
+      expect(commit).toHaveBeenCalledWith('action-menu/show', expect.objectContaining({ resources: [pool] }));
+    });
+
+    it('should hide the action button for a pool with no actions', async() => {
+      const { wrapper } = await mountWithPool(autoscalingPool({ availableActions: [] }));
+
+      expect(wrapper.find('[data-testid="pool-actions-button"]').classes()).toContain('invisible');
     });
   });
 
