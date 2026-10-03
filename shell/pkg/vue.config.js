@@ -4,6 +4,7 @@ const webpack = require('webpack');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const VirtualModulesPlugin = require('webpack-virtual-modules');
 const { generateTypeImport } = require('./auto-import');
+const sharedCodeMirror = require('./shared-codemirror');
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 module.exports = function(dir) {
@@ -87,6 +88,16 @@ module.exports = function(dir) {
         resource.request = path.join(__dirname, 'vue-router.lib.js');
       });
 
+      // Use the host's CodeMirror 6 when it provides one, otherwise a bundled copy - see shared-codemirror.js
+      const codeMirrorOverride = new webpack.NormalModuleReplacementPlugin(/^@(codemirror|lezer|replit)\//, (resource) => {
+        const replacement = sharedCodeMirror.replacementFor(resource.request, resource.contextInfo?.issuer);
+
+        if (replacement) {
+          resource.request = replacement;
+        }
+      });
+      const codeMirrorStubsPlugin = new VirtualModulesPlugin(sharedCodeMirror.stubModules());
+
       // Auto-generate module to import the types (model, detail, edit etc)
       const autoImportPlugin = new VirtualModulesPlugin({ 'node_modules/@rancher/auto-import': generateTypeImport('@pkg', dir) });
 
@@ -94,6 +105,8 @@ module.exports = function(dir) {
       config.plugins.unshift(modelLoaderImporterOverride);
       config.plugins.unshift(requireAssetOverride);
       config.plugins.unshift(vueRouterOverride);
+      config.plugins.unshift(codeMirrorOverride);
+      config.plugins.unshift(codeMirrorStubsPlugin);
       config.plugins.unshift(autoImportPlugin);
       config.plugins.unshift(new NodePolyfillPlugin()); // required from Webpack 5 to polyfill node modules
       // config.plugins.unshift(debug);

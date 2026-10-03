@@ -1,11 +1,84 @@
-<script>
+<script lang="ts">
+import { defineComponent, markRaw, PropType, toRaw } from 'vue';
+import jsyaml from 'js-yaml';
+import { EditorState, type Extension } from '@codemirror/state';
+import type { EditorView } from '@codemirror/view';
+import type { Diagnostic, LintSource } from '@codemirror/lint';
+import { RcCodeMirror } from '@components/RcCodeMirror';
+import type { RcCodeMirrorKeymap, RcCodeMirrorLanguage, RcCodeMirrorVariant } from '@components/RcCodeMirror';
 import { KEYMAP } from '@shell/store/prefs';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { codeMirror5OptionExtensions, withCodeMirror5Api } from '@shell/utils/codemirror-compat';
 
-export default {
+type CodeMirrorMode = string | { name?: string, json?: boolean } | null;
+
+export interface CodeMirrorOptions {
+  /**
+   * Language of the editor content. Defaults to yaml, `null` disables syntax highlighting.
+   * Accepts `yaml`, `json`, `javascript` or `{ name: 'javascript', json: true }`.
+   */
+  mode?: CodeMirrorMode;
+  readOnly?: boolean;
+  /**
+   * Validate the content as yaml and emit `validationChanged`. Editable editors also mark the problem
+   */
+  lint?: boolean;
+  lineNumbers?: boolean;
+  foldGutter?: boolean;
+  lineWrapping?: boolean;
+  screenReaderLabel?: string;
+  /**
+   * Deprecated CodeMirror 5 options. Some, such as `extraKeys` and `tabSize`, are translated to
+   * CodeMirror 6 and the rest are ignored. Pass CodeMirror 6 extensions with `extensions` instead.
+   */
+  [option: string]: unknown;
+}
+
+// Maps the dashboard keymap preference to the keymaps supported by RcCodeMirror
+const KEYMAP_PREFS: Record<string, RcCodeMirrorKeymap> = {
+  sublime: 'default',
+  vim:     'vim',
+  emacs:   'emacs',
+};
+
+function toLanguage(mode: CodeMirrorMode): RcCodeMirrorLanguage | undefined {
+  if (mode === 'yaml' || mode === 'text/x-yaml') {
+    return 'yaml';
+  }
+
+  if (mode === 'json' || mode === 'application/json' || (typeof mode === 'object' && mode?.json)) {
+    return 'json';
+  }
+
+  if (mode === 'javascript' || mode === 'text/javascript' || (typeof mode === 'object' && mode?.name === 'javascript')) {
+    return 'javascript';
+  }
+
+  return undefined;
+}
+
+/**
+ * Marks where js-yaml stopped parsing. Like the CodeMirror 5 yaml lint addon, only the first line of
+ * the message is kept, the rest is a snippet of the document
+ */
+function yamlDiagnostic(error: unknown, docLength: number): Diagnostic {
+  const { mark, message } = error as { mark?: { position?: number }, message?: string };
+  const from = Math.min(Math.max(mark?.position ?? 0, 0), docLength);
+
+  return {
+    from,
+    to:       from,
+    severity: 'error',
+    message:  (message || String(error)).split('\n')[0],
+  };
+}
+
+export default defineComponent({
   name: 'CodeMirror',
 
-  emits: ['onReady', 'onInput', 'onChanges', 'onFocus', 'validationChanged'],
+  components: { RcCodeMirror },
+
+  emits: ['onReady', 'onInput', 'onFocus', 'validationChanged'],
 
   props: {
     /**
@@ -21,9 +94,19 @@ export default {
       required: true,
     },
     options: {
-      type:    Object,
-      default: () => {}
+      type:    Object as PropType<CodeMirrorOptions>,
+      default: () => ({})
     },
+    /**
+     * Additional CodeMirror extensions. Only read on mount.
+     */
+    extensions: {
+      type:    Array as PropType<Extension[]>,
+      default: () => []
+    },
+    /**
+     * Display as a multi-line form input rather than a code editor, see RcCodeMirror's `input` variant
+     */
     asTextArea: {
       type:    Boolean,
       default: false
@@ -36,107 +119,115 @@ export default {
 
   data() {
     return {
-      codeMirrorRef:          null,
-      loaded:                 false,
-      removeKeyMapBox:        false,
-      hasLintErrors:          false,
-      currFocusedElem:        undefined,
-      isCodeMirrorFocused:    false,
-      codeMirrorContainerRef: undefined
+      view:          null as EditorView | null,
+      hasLintErrors: false,
+      // The last value linted and the error it had, so the markers reuse the validation's parse
+      lintedValue:   null as string | null,
+      lintError:     null as unknown,
     };
   },
 
   computed: {
-    isDisabled() {
+    isDisabled(): boolean {
       return this.mode === _VIEW;
     },
 
-    combinedOptions() {
-      const theme = this.$store.getters['prefs/theme'];
-      const keymap = this.$store.getters['prefs/get'](KEYMAP);
+    isReadOnly(): boolean {
+      return this.isDisabled || !!this.options?.readOnly;
+    },
 
-      const out = {
-        // codemirror default options
-        tabSize:                 2,
-        indentWithTabs:          false,
-        mode:                    'yaml',
-        keyMap:                  keymap,
-        theme:                   `base16-${ theme }`,
-        lineNumbers:             true,
-        line:                    true,
-        styleActiveLine:         false,
-        lineWrapping:            true,
-        foldGutter:              true,
-        styleSelectedText:       true,
-        showCursorWhenSelecting: true,
-        autocorrect:             false,
+    language(): RcCodeMirrorLanguage | undefined {
+      return toLanguage(this.options && 'mode' in this.options ? this.options.mode as CodeMirrorMode : 'yaml');
+    },
+
+    lintEnabled(): boolean {
+      return !!this.options?.lint && this.language === 'yaml';
+    },
+
+    // As in CodeMirror 5, only editable editors mark problems. Read-only content is still validated
+    linter(): LintSource | undefined {
+      if (!this.lintEnabled || this.isReadOnly) {
+        return undefined;
+      }
+
+      return (view: EditorView) => {
+        const value = view.state.doc.toString();
+
+        if (value !== this.lintedValue) {
+          this.lint(value);
+        }
+
+        return this.lintError ? [yamlDiagnostic(this.lintError, value.length)] : [];
       };
-
-      if (this.asTextArea) {
-        out.lineNumbers = false;
-        out.foldGutter = false;
-        out.tabSize = 0;
-        out.extraKeys = { Tab: false };
-      }
-
-      Object.assign(out, this.options);
-
-      // parent components control lint with a boolean; if linting is enabled, we need to override that boolean with a custom error handler to wire lint errors into dashboard validation
-      if (this.options?.lint) {
-        out.lint = { onUpdateLinting: this.handleLintErrors };
-      }
-
-      // fixes https://github.com/rancher/dashboard/issues/13653
-      // we can't use the inert HTML prop on the parent because it disables all interaction
-      out.readOnly = !!this.isDisabled;
-
-      return out;
     },
 
-    keyMapTooltip() {
-      if (this.combinedOptions?.keyMap) {
-        const name = this.t(`prefs.keymap.${ this.combinedOptions.keyMap }`);
-
-        return this.t('codeMirror.keymap.indicatorToolip', { name });
-      }
-
-      return null;
+    variant(): RcCodeMirrorVariant {
+      return this.asTextArea ? 'input' : 'editor';
     },
 
-    isNonDefaultKeyMap() {
-      return this.combinedOptions?.keyMap !== 'sublime';
+    lineNumbers(): boolean {
+      return this.options?.lineNumbers ?? true;
     },
 
-    isCodeMirrorContainerFocused() {
-      return this.currFocusedElem === this.codeMirrorContainerRef;
+    foldGutter(): boolean {
+      return this.options?.foldGutter ?? true;
     },
 
-    codeMirrorContainerTabIndex() {
-      return this.isCodeMirrorFocused ? 0 : -1;
-    }
-  },
+    lineWrapping(): boolean {
+      return this.options?.lineWrapping ?? true;
+    },
 
-  created() {
-    if (window.__codeMirrorLoader) {
-      window.__codeMirrorLoader().then(() => {
-        this.loaded = true;
-      });
-    } else {
-      console.error('Code mirror loader not available'); // eslint-disable-line no-console
-    }
-  },
+    keymapPref(): string {
+      return this.$store.getters['prefs/get'](KEYMAP);
+    },
 
-  async mounted() {
-    const el = this.$refs.codeMirrorContainer;
+    keymap(): RcCodeMirrorKeymap {
+      return KEYMAP_PREFS[this.keymapPref] || 'default';
+    },
 
-    el.addEventListener('keydown', this.handleKeyPress);
-    this.codeMirrorContainerRef = this.$refs.codeMirrorContainer;
-  },
+    // Translates the text RcCodeMirror renders itself. Like the other extensions, only read on mount
+    phrases(): Extension {
+      const translations: [string, string, Record<string, string>?][] = [
+        ['Fold line', 'codeMirror.foldLine'],
+        ['Unfold line', 'codeMirror.unfoldLine'],
+        ['Press Escape, then Tab to leave the editor', 'codeMirror.leaveEditor'],
+        // The search panel opened with Mod-F
+        ['Find', 'codeMirror.search.find'],
+        ['next', 'codeMirror.search.next'],
+        ['previous', 'codeMirror.search.previous'],
+        ['all', 'codeMirror.search.all'],
+        ['match case', 'codeMirror.search.matchCase'],
+        ['regexp', 'codeMirror.search.regexp'],
+        ['by word', 'codeMirror.search.byWord'],
+        ['Replace', 'codeMirror.search.replaceField'],
+        ['replace', 'codeMirror.search.replace'],
+        ['replace all', 'codeMirror.search.replaceAll'],
+        ['close', 'codeMirror.search.close'],
+        // RcCodeMirror replaces `$` with the keymap name
+        ['Key mapping: $', 'codeMirror.keymap.indicatorToolip', { name: '$' }],
+        ['Hide key mapping: $', 'codeMirror.keymap.hideIndicator', { name: '$' }],
+        ['Vim', 'prefs.keymap.vim'],
+        ['Emacs', 'prefs.keymap.emacs'],
+      ];
+      // An extension showing this editor on an older version of Rancher only has that version's
+      // translations, so phrases it lacks keep RcCodeMirror's own text
+      const exists = this.$store.getters['i18n/exists'] || (() => true);
 
-  beforeUnmount() {
-    const el = this.$refs.codeMirrorContainer;
+      return EditorState.phrases.of(Object.fromEntries(
+        translations
+          .filter(([, key]) => exists(key))
+          .map(([phrase, key, args]) => [phrase, this.t(key, args)])
+      ));
+    },
 
-    el.removeEventListener('keydown', this.handleKeyPress);
+    combinedExtensions(): Extension[] {
+      // Extensions must not be reactive proxies, CodeMirror compares them by identity
+      return [
+        this.phrases,
+        ...codeMirror5OptionExtensions(toRaw(this.options)),
+        ...this.extensions.map((e) => toRaw(e))
+      ];
+    },
   },
 
   watch: {
@@ -144,346 +235,152 @@ export default {
       this.$emit('validationChanged', !neu);
     },
 
-    isCodeMirrorContainerFocused: {
-      handler(neu) {
-        const codeMirrorEl = this.codeMirrorRef?.getInputField();
-
-        if (codeMirrorEl) {
-          codeMirrorEl.tabIndex = neu ? -1 : 0;
-        }
-      },
-      immediate: true
-    }
+    value(neu) {
+      this.lint(neu);
+    },
   },
 
   methods: {
-    focusChanged(ev, isBlurred = false) {
-      if (isBlurred) {
-        this.currFocusedElem = undefined;
-      } else {
-        this.currFocusedElem = ev.target;
-      }
-    },
-
-    handleKeyPress(ev) {
-      // allows pressing escape in the editor, useful for modal editing with vim
-      if (this.isCodeMirrorFocused && ev.code === 'Escape') {
-        ev.preventDefault();
-        ev.stopPropagation();
-      }
-
-      // make focus leave the editor for it's parent container so that we can tab
-      const didPressEscapeSequence = ev.shiftKey && ev.code === 'Escape';
-
-      if (this.isCodeMirrorFocused && didPressEscapeSequence) {
-        this.$refs?.codeMirrorContainer?.focus();
-      }
-
-      // if parent container is focused and we press a trigger, focus goes to the editor inside
-      if (this.isCodeMirrorContainerFocused && (ev.code === 'Enter' || ev.code === 'Space')) {
-        this.codeMirrorRef.focus();
-      }
-    },
     /**
-     * Codemirror yaml linting uses js-yaml parse
-     * it does not distinguish between warnings and errors so we will treat all yaml lint messages as errors
-     * other codemirror linters (eg json) will report from, to, severity where severity may be 'warning' or 'error'
-     * only 'error' level linting will trigger a validation event from this component
-    */
-    handleLintErrors(diagnostics = []) {
-      const hasLintErrors = diagnostics.filter((d) => !d.severity || d.severity === 'error').length > 0;
+     * Validates yaml content with js-yaml, treating every parse failure as an error
+     */
+    lint(value: string) {
+      if (!this.lintEnabled || value === this.lintedValue) {
+        return;
+      }
 
-      this.hasLintErrors = hasLintErrors;
+      try {
+        jsyaml.loadAll(value || '', () => {});
+        this.lintError = null;
+      } catch (e) {
+        this.lintError = e;
+      }
+      this.lintedValue = value;
+      this.hasLintErrors = !!this.lintError;
     },
 
     focus() {
-      if ( this.$refs.codeMirrorRef ) {
-        this.$refs.codeMirrorRef.cminstance.focus();
-      }
+      this.view?.focus();
     },
 
+    /**
+     * CodeMirror 6 measures itself, retained for components that call refresh when an editor is revealed
+     */
     refresh() {
-      if ( this.$refs.codeMirrorRef ) {
-        this.$refs.codeMirrorRef.refresh();
+      this.view?.requestMeasure();
+    },
+
+    /**
+     * Rancher versions from before CodeMirror 6 only stand their keyboard shortcuts down in inputs,
+     * textareas and selects, where CodeMirror 5 kept focus, so their single-key shortcuts (e.g. `n` for
+     * the namespace filter) take keys typed in this editor when an extension shows it there. Their
+     * shortcut directive can exclude the editor like one of those.
+     */
+    avoidHostShortcuts(view: EditorView) {
+      // Versions that share CodeMirror 6 with extensions already exclude editors
+      if ((window as any).__codemirror) {
+        return;
       }
+
+      const shortkey = this.$.appContext.directives?.shortkey as { beforeMount?: (el: Element, binding: unknown, vnode: unknown) => void } | undefined;
+
+      shortkey?.beforeMount?.(view.contentDOM, { modifiers: { avoid: true } }, null);
     },
 
-    onReady(codeMirrorRef) {
+    onReady(view: EditorView) {
+      this.view = markRaw(view);
+      this.avoidHostShortcuts(view);
+
       this.$emit('validationChanged', true);
-
-      this.$nextTick(() => {
-        codeMirrorRef.refresh();
-        this.codeMirrorRef = codeMirrorRef;
-      });
-      this.$emit('onReady', codeMirrorRef);
+      this.lint(this.value);
+      // Handlers written for CodeMirror 5 still call its methods on the view
+      this.$emit('onReady', withCodeMirror5Api(view));
     },
 
-    onInput(newCode) {
-      this.$emit('onInput', newCode);
-    },
-
-    onChanges(codeMirrorRef, changes) {
-      this.$emit('onChanges', codeMirrorRef, changes);
+    onInput(value: string) {
+      this.lint(value);
+      this.$emit('onInput', value);
     },
 
     onFocus() {
-      this.isCodeMirrorFocused = true;
-      this.$emit('onFocus', this.isCodeMirrorFocused);
+      this.$emit('onFocus', true);
     },
 
     onBlur() {
-      this.isCodeMirrorFocused = false;
       this.$emit('onFocus', false);
     },
 
-    updateValue(value) {
-      if ( this.$refs.codeMirrorRef ) {
-        this.$refs.codeMirrorRef.cminstance.doc.setValue(value);
-      }
-    },
+    updateValue(value: string) {
+      const view = this.view;
 
-    closeKeyMapInfo() {
-      this.removeKeyMapBox = true;
+      if (!view || view.state.doc.toString() === value) {
+        return;
+      }
+
+      view.dispatch({
+        changes: {
+          from: 0, to: view.state.doc.length, insert: value || ''
+        }
+      });
     },
   }
-};
+});
 </script>
 
 <template>
-  <div
-    ref="codeMirrorContainer"
-    :tabindex="codeMirrorContainerTabIndex"
-    class="code-mirror code-mirror-container"
-    :class="{['as-text-area']: asTextArea}"
-    @focusin="focusChanged"
-    @blur="focusChanged($event, true)"
-  >
-    <div v-if="loaded">
-      <div
-        v-if="showKeyMapBox && !removeKeyMapBox && keyMapTooltip && isNonDefaultKeyMap"
-        class="keymap overlay"
-      >
-        <div
-          v-clean-tooltip="keyMapTooltip"
-          class="keymap-indicator"
-          data-testid="code-mirror-keymap"
-          @click="closeKeyMapInfo"
-        >
-          <i class="icon icon-keyboard keymap-icon" />
-          <div class="close-indicator">
-            <i class="icon icon-close icon-sm" />
-          </div>
-        </div>
-      </div>
-      <Codemirror
-        id="code-mirror-el"
-        ref="codeMirrorRef"
-        :value="value"
-        :options="combinedOptions"
-        :disabled="isDisabled"
-        :original-style="true"
+  <div class="code-mirror code-mirror-container">
+    <div class="codemirror-container">
+      <RcCodeMirror
+        :model-value="value"
+        :language="language"
+        :keymap="keymap"
+        theme="rancher"
+        :variant="variant"
+        :read-only="isReadOnly"
+        :line-numbers="lineNumbers"
+        :fold-gutter="foldGutter"
+        :line-wrapping="lineWrapping"
+        :keymap-indicator="showKeyMapBox"
+        :linter="linter"
+        :extensions="combinedExtensions"
+        :aria-label="options.screenReaderLabel"
         @ready="onReady"
-        @update:value="onInput"
-        @changes="onChanges"
+        @update:model-value="onInput"
         @focus="onFocus"
         @blur="onBlur"
       />
-      <span
-        v-show="isCodeMirrorFocused"
-        class="escape-text"
-        role="alert"
-        :aria-describedby="t('wm.containerShell.escapeText')"
-      >{{ t('codeMirror.escapeText') }}</span>
-    </div>
-    <div v-else>
-      Loading...
     </div>
   </div>
 </template>
 
 <style lang="scss">
-  $code-mirror-animation-time: 0.1s;
-
-  .code-mirror {
-    &.code-mirror-container:focus-visible {
-      @include focus-outline;
-    }
-
-    &.as-text-area .codemirror-container{
-      min-height: 40px;
-      position: relative;
-      display: block;
-      box-sizing: border-box;
-      width: 100%;
-      padding: 10px;
-      background-color: var(--input-bg);
-      border-radius: var(--border-radius);
-      border: solid var(--border-width) var(--input-border);
-      color: var(--input-text);
-
-      &:hover {
-        border-color: var(--input-hover-border);
-      }
-
-      &:focus, &.focus {
-        outline: none;
-        border-color: var(--primary-border);
-      }
-
-      .CodeMirror-code {
-        .CodeMirror-line {
-          &:not(:last-child)>span:after,
-          .cm-markdown-single-trailing-space-odd:before,
-          .cm-markdown-single-trailing-space-even:before {
-            color: var(--muted);
-            position: absolute;
-            line-height: 20px;
-            pointer-events: none;
-          }
-          &:not(:last-child)>span:after {
-            content: '↵';
-            margin-left: 2px;
-          }
-          .cm-markdown-single-trailing-space-odd:before,
-          .cm-markdown-single-trailing-space-even:before {
-            font-weight: bold;
-            content: '·';
-          }
-        }
-      }
-
-      .CodeMirror-lines {
-        color: var(--input-text);
-        padding: 0;
-
-        .CodeMirror-line > span > span {
-          &.cm-overlay {
-            font-family: monospace;
-          }
-        }
-
-        .CodeMirror-line > span {
-          font-family: $body-font;
-        }
-      }
-
-      .CodeMirror-sizer {
-        min-height: 20px;
-      }
-
-      .CodeMirror-selected {
-        background-color: var(--primary) !important;
-      }
-
-      .CodeMirror-selectedtext {
-        color: var(--primary-text);
-      }
-
-      .CodeMirror-line::selection,
-      .CodeMirror-line > span::selection,
-      .CodeMirror-line > span > span::selection {
-        color: var(--primary-text);
-        background-color: var(--primary);
-      }
-
-      .CodeMirror-line::-moz-selection,
-      .CodeMirror-line > span::-moz-selection,
-      .CodeMirror-line > span > span::-moz-selection {
-        color: var(--primary-text);
-        background-color: var(--primary);
-      }
-
-      .CodeMirror-gutters .CodeMirror-foldgutter:empty {
-        display: none;
-      }
-    }
-  }
-
   .code-mirror {
     position: relative;
     margin-bottom: 20px;
 
-    .escape-text {
-      font-size: 12px;
-      position: absolute;
-      bottom: -20px;
-      left: 0;
-    }
-
     .codemirror-container {
       z-index: 0;
       font-size: inherit !important;
-
-      //rm no longer extant selector
-      .CodeMirror {
-        height: initial;
-        background: none
-      }
-
-      .CodeMirror-gutters {
-        background: inherit;
-      }
-
-      .CodeMirror-wrap pre {
-        word-break: break-word;
-      }
     }
 
-    .keymap.overlay {
-      position: absolute;
-      display: flex;
-      top: 7px;
-      right: 7px;
-      z-index: 1;
-      cursor: pointer;
+    // Like the CodeMirror 5 editor, show the hint to leave the editor in the margin below it, not over the code
+    .codemirror-container .rc-code-mirror .rc-cm-escape-hint {
+      top: auto;
+      right: auto;
+      bottom: -20px;
+      left: 0;
+      padding: 0;
+      color: inherit;
+      background-color: transparent;
+    }
 
-      .keymap-indicator {
-        width: 48px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid transparent;
-        color: var(--darker);
-        background-color: var(--subtle-overlay-bg);
-        font-size: 12px;
-
-        .close-indicator {
-          width: 0;
-
-          .icon-close {
-            color: var(--primary);
-            opacity: 0;
-          }
-        }
-
-        .keymap-icon {
-          font-size: 24px;
-          opacity: 0.8;
-          transition: margin-right $code-mirror-animation-time ease-in-out;
-        }
-
-        &:hover {
-          border: 1px solid var(--primary);
-          border-radius: var(--border-radius);;
-
-          .close-indicator {
-            margin-left: -6px;
-            width: auto;
-
-            .icon-close {
-              opacity: 1;
-              transition: opacity $code-mirror-animation-time ease-in-out $code-mirror-animation-time; // Only animate when being shown
-            }
-          }
-
-          .keymap-icon {
-            opacity: 0.6;
-            margin-right: 10px;
-          }
-        }
-      }
+    // Once an extension built with an older shell shows a CodeMirror 5 editor, codemirror-editor-vue3 adds a
+    // global .codemirror-container rule that shrinks this wrapper to its content, see plugins/codemirror-loader.js
+    > .codemirror-container {
+      display: block;
+      width: auto;
+      height: auto;
+      overflow: visible;
     }
   }
-
 </style>

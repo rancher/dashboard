@@ -1,7 +1,12 @@
 import { nextTick } from 'vue';
 import { shallowMount, VueWrapper } from '@vue/test-utils';
+import { EditorState, type Extension } from '@codemirror/state';
+import { EditorView } from '@codemirror/view';
+import type { LintSource } from '@codemirror/lint';
+import jsyaml from 'js-yaml';
+import { RcCodeMirror } from '@components/RcCodeMirror';
 import CodeMirror from '@shell/components/CodeMirror.vue';
-import { _EDIT, _YAML } from '@shell/config/query-params';
+import { _EDIT, _VIEW, _YAML } from '@shell/config/query-params';
 
 // eslint-disable-next-line jest/no-disabled-tests
 describe('component: CodeMirror.vue', () => {
@@ -50,44 +55,385 @@ describe('component: CodeMirror.vue', () => {
 
   };
 
-  // eslint-disable-next-line jest/no-disabled-tests
-  describe('keyMap info', () => {
-    (window as any).__codeMirrorLoader = () => new Promise((resolve) => {
-      resolve(true);
+  describe('keymap indicator', () => {
+    it.each([
+      [true, true],
+      [false, false],
+    ])('should pass showKeyMapBox %p to RcCodeMirror keymapIndicator', (showKeyMapBox, keymapIndicator) => {
+      wrapper = shallowMount(CodeMirror, { ...mountOptions, props: { ...mountOptions.props, showKeyMapBox } });
+
+      expect(wrapper.findComponent(RcCodeMirror).props('keymapIndicator')).toStrictEqual(keymapIndicator);
     });
 
-    wrapper = shallowMount(
-      CodeMirror,
-      mountOptions,
-    );
+    it.each([
+      ['Key mapping: $', '%codeMirror.keymap.indicatorToolip%'],
+      ['Hide key mapping: $', '%codeMirror.keymap.hideIndicator%'],
+      ['Vim', '%prefs.keymap.vim%'],
+      ['Emacs', '%prefs.keymap.emacs%'],
+    ])('should translate the RcCodeMirror phrase %p', (phrase, translation) => {
+      wrapper = shallowMount(CodeMirror, mountOptions);
+      const extensions = wrapper.findComponent(RcCodeMirror).props('extensions') as Extension[];
 
-    it(`should show keyMap preference`, async() => {
-      await nextTick();
+      expect(EditorState.create({ extensions }).phrase(phrase)).toStrictEqual(translation);
+    });
+  });
 
-      const keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"] .keymap-indicator');
-
-      const closeIcon = wrapper.find('[data-testid="code-mirror-keymap"] .icon-close');
-
-      expect(keyMapBox).toBeDefined();
-      expect(closeIcon).toBeDefined();
+  describe('rcCodeMirror props', () => {
+    const createWrapper = (props = {}, getters = {}) => shallowMount(CodeMirror, {
+      ...mountOptions,
+      props:  { ...mountOptions.props, ...props },
+      global: {
+        mocks: {
+          ...mountOptions.global.mocks,
+          $store: {
+            getters: {
+              ...mountOptions.global.mocks.$store.getters,
+              'prefs/get':   () => 'sublime',
+              'prefs/theme': 'light',
+              ...getters
+            }
+          }
+        }
+      }
     });
 
-    it(`should remove keyMap box`, async() => {
+    it.each([
+      [undefined, 'yaml'],
+      ['yaml', 'yaml'],
+      ['json', 'json'],
+      [{ name: 'javascript', json: true }, 'json'],
+      ['javascript', 'javascript'],
+      ['text/javascript', 'javascript'],
+      [{ name: 'javascript' }, 'javascript'],
+      [null, undefined],
+      ['text/x-properties', undefined],
+    ])('should map mode %p to language %p', (mode, language) => {
+      const options = mode === undefined ? {} : { mode };
+      const rc = createWrapper({ options }).findComponent(RcCodeMirror);
+
+      expect(rc.props('language')).toStrictEqual(language);
+    });
+
+    it.each([
+      ['sublime', 'default'],
+      ['vim', 'vim'],
+      ['emacs', 'emacs'],
+    ])('should map keymap preference %p to keymap %p', (pref, keymap) => {
+      const rc = createWrapper({}, { 'prefs/get': () => pref }).findComponent(RcCodeMirror);
+
+      expect(rc.props('keymap')).toStrictEqual(keymap);
+    });
+
+    it.each([
+      ['dark', 'rancher'],
+      ['light', 'rancher'],
+    ])('should use the Rancher theme with %p preference', (pref, theme) => {
+      const rc = createWrapper({}, { 'prefs/theme': pref }).findComponent(RcCodeMirror);
+
+      expect(rc.props('theme')).toStrictEqual(theme);
+    });
+
+    it.each([
+      [_EDIT, {}, false],
+      [_VIEW, {}, true],
+      [_EDIT, { readOnly: true }, true],
+    ])('should set read only for mode %p and options %p to %p', (mode, options, readOnly) => {
+      const rc = createWrapper({ mode, options }).findComponent(RcCodeMirror);
+
+      expect(rc.props('readOnly')).toStrictEqual(readOnly);
+    });
+
+    it.each([
+      [true, 'input'],
+      [false, 'editor'],
+    ])('should map asTextArea %p to variant %p', (asTextArea, variant) => {
+      const rc = createWrapper({ asTextArea }).findComponent(RcCodeMirror);
+
+      expect(rc.props('variant')).toStrictEqual(variant);
+    });
+
+    it.each([
+      ['Fold line', '%codeMirror.foldLine%'],
+      ['Unfold line', '%codeMirror.unfoldLine%'],
+      ['Press Escape, then Tab to leave the editor', '%codeMirror.leaveEditor%'],
+      ['Find', '%codeMirror.search.find%'],
+      ['next', '%codeMirror.search.next%'],
+      ['previous', '%codeMirror.search.previous%'],
+      ['all', '%codeMirror.search.all%'],
+      ['match case', '%codeMirror.search.matchCase%'],
+      ['regexp', '%codeMirror.search.regexp%'],
+      ['by word', '%codeMirror.search.byWord%'],
+      ['Replace', '%codeMirror.search.replaceField%'],
+      ['replace', '%codeMirror.search.replace%'],
+      ['replace all', '%codeMirror.search.replaceAll%'],
+      ['close', '%codeMirror.search.close%'],
+    ])('should translate the RcCodeMirror phrase %p', (phrase, translation) => {
+      const extensions = createWrapper().findComponent(RcCodeMirror).props('extensions') as Extension[];
+      const state = EditorState.create({ extensions });
+
+      expect(state.phrase(phrase)).toStrictEqual(translation);
+    });
+
+    it.each([
+      'Fold line',
+      'Press Escape, then Tab to leave the editor',
+      'Hide key mapping: $',
+    ])('should keep the RcCodeMirror phrase %p on a Rancher version without its translation', (phrase) => {
+      const exists = (key: string) => key.startsWith('prefs.');
+      const extensions = createWrapper({}, { 'i18n/exists': exists }).findComponent(RcCodeMirror).props('extensions') as Extension[];
+      const state = EditorState.create({ extensions });
+
+      expect(state.phrase(phrase)).toStrictEqual(phrase);
+    });
+
+    it('should translate the phrases a Rancher version has', () => {
+      const exists = (key: string) => key.startsWith('prefs.');
+      const extensions = createWrapper({}, { 'i18n/exists': exists }).findComponent(RcCodeMirror).props('extensions') as Extension[];
+      const state = EditorState.create({ extensions });
+
+      expect(state.phrase('Vim')).toStrictEqual('%prefs.keymap.vim%');
+    });
+
+    it('should pass the screen reader label to the editor as its aria-label', () => {
+      const rc = createWrapper({ options: { screenReaderLabel: 'Values' } }).findComponent(RcCodeMirror);
+
+      expect(rc.attributes('aria-label')).toStrictEqual('Values');
+    });
+
+    it('should not render an escape hint of its own', () => {
+      const wrapper = createWrapper();
+
+      expect(wrapper.find('.escape-text').exists()).toStrictEqual(false);
+    });
+
+    it('should show line numbers and fold gutter by default', () => {
+      const rc = createWrapper().findComponent(RcCodeMirror);
+
+      expect(rc.props('lineNumbers')).toStrictEqual(true);
+      expect(rc.props('foldGutter')).toStrictEqual(true);
+    });
+
+    it('should pass through additional extensions', () => {
+      const extension = EditorView.lineWrapping;
+      const rc = createWrapper({ extensions: [extension] }).findComponent(RcCodeMirror);
+
+      expect(rc.props('extensions')).toContain(extension);
+    });
+
+    it('should translate deprecated CodeMirror 5 options to extensions', () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const extensions = createWrapper({ options: { tabSize: 8 } }).findComponent(RcCodeMirror).props('extensions') as Extension[];
+      const state = EditorState.create({ extensions });
+
+      expect(state.tabSize).toStrictEqual(8);
+    });
+  });
+
+  describe('events', () => {
+    const createWrapper = (props = {}) => shallowMount(CodeMirror, {
+      ...mountOptions,
+      props: { ...mountOptions.props, ...props },
+    });
+
+    it('should emit onInput when the editor content changes', () => {
+      const wrapper = createWrapper();
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('update:modelValue', 'foo: bar');
+
+      expect(wrapper.emitted('onInput')).toStrictEqual([['foo: bar']]);
+    });
+
+    it('should emit onFocus with the focus state', () => {
+      const wrapper = createWrapper();
+      const rc = wrapper.findComponent(RcCodeMirror);
+
+      rc.vm.$emit('focus');
+      rc.vm.$emit('blur');
+
+      expect(wrapper.emitted('onFocus')).toStrictEqual([[true], [false]]);
+    });
+
+    it('should emit onReady with the editor view', () => {
+      const wrapper = createWrapper();
+      const view = new EditorView({ doc: '' });
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('ready', view);
+
+      expect(wrapper.emitted('onReady')).toStrictEqual([[view]]);
+    });
+
+    it('should emit onReady with the deprecated CodeMirror 5 methods on the view', () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const wrapper = createWrapper();
+      const view = new EditorView({ doc: 'foo: bar' });
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('ready', view);
+      const [[emitted]] = wrapper.emitted('onReady') as [[any]];
+
+      expect(emitted.getValue()).toStrictEqual('foo: bar');
+    });
+  });
+
+  describe('host shortcuts', () => {
+    const createWrapper = (shortkey: object) => shallowMount(CodeMirror, {
+      ...mountOptions,
+      global: { ...mountOptions.global, directives: { shortkey } }
+    });
+
+    afterEach(() => {
+      delete (window as any).__codemirror;
+    });
+
+    it('should exclude the editor from the shortcuts of a Rancher version without CodeMirror 6', () => {
+      const shortkey = { beforeMount: jest.fn() };
+      const view = new EditorView({ doc: '' });
+
+      createWrapper(shortkey).findComponent(RcCodeMirror).vm.$emit('ready', view);
+
+      expect(shortkey.beforeMount).toHaveBeenCalledWith(view.contentDOM, { modifiers: { avoid: true } }, null);
+    });
+
+    it('should leave the shortcuts of a Rancher version with CodeMirror 6 alone', () => {
+      const shortkey = { beforeMount: jest.fn() };
+
+      (window as any).__codemirror = {};
+      createWrapper(shortkey).findComponent(RcCodeMirror).vm.$emit('ready', new EditorView({ doc: '' }));
+
+      expect(shortkey.beforeMount).not.toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.anything());
+    });
+
+    it('should not fail without a shortcut directive', () => {
+      const wrapper = shallowMount(CodeMirror, mountOptions);
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('ready', new EditorView({ doc: '' }));
+
+      expect(wrapper.emitted('onReady')).toHaveLength(1);
+    });
+  });
+
+  describe('yaml lint', () => {
+    const createWrapper = (props = {}) => shallowMount(CodeMirror, {
+      ...mountOptions,
+      props: { ...mountOptions.props, ...props },
+    });
+
+    it('should emit valid when the editor is ready with valid yaml', () => {
+      const wrapper = createWrapper({ value: 'foo: bar' });
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('ready', new EditorView({ doc: 'foo: bar' }));
+
+      expect(wrapper.emitted('validationChanged')).toStrictEqual([[true]]);
+    });
+
+    it('should emit invalid when the content becomes invalid yaml', async() => {
+      const wrapper = createWrapper({ value: 'foo: bar' });
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('update:modelValue', 'foo: [');
       await nextTick();
 
-      let keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
+      expect(wrapper.emitted('validationChanged')).toStrictEqual([[false]]);
+    });
 
-      keyMapBox.trigger('mouseenter');
+    it('should emit valid when invalid content is corrected', async() => {
+      const wrapper = createWrapper({ value: 'foo: [' });
+      const rc = wrapper.findComponent(RcCodeMirror);
+
+      rc.vm.$emit('update:modelValue', 'foo: [');
+      await nextTick();
+      rc.vm.$emit('update:modelValue', 'foo: []');
       await nextTick();
 
-      const closeIcon = keyMapBox.find('.icon-close');
+      expect(wrapper.emitted('validationChanged')).toStrictEqual([[false], [true]]);
+    });
 
-      (closeIcon.element as HTMLElement).click();
+    it('should accept multiple yaml documents', async() => {
+      const wrapper = createWrapper();
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('update:modelValue', 'foo: bar\n---\nbaz: qux');
       await nextTick();
 
-      keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
+      expect(wrapper.emitted('validationChanged')).toBeUndefined();
+    });
 
-      expect(keyMapBox.exists()).toBe(false);
+    it('should not lint when lint is disabled', async() => {
+      const wrapper = createWrapper({ options: { lint: false } });
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('update:modelValue', 'foo: [');
+      await nextTick();
+
+      expect(wrapper.emitted('validationChanged')).toBeUndefined();
+    });
+  });
+
+  describe('yaml lint markers', () => {
+    const createWrapper = (props = {}) => shallowMount(CodeMirror, {
+      ...mountOptions,
+      props: { ...mountOptions.props, ...props },
+    });
+
+    function lintSource(wrapper: ReturnType<typeof createWrapper>): LintSource {
+      return wrapper.findComponent(RcCodeMirror).props('linter') as LintSource;
+    }
+
+    function lintDoc(doc: string, props = {}) {
+      return lintSource(createWrapper(props))(new EditorView({ doc }));
+    }
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it.each([
+      ['lint is disabled', { options: { ...options, lint: false } }],
+      ['the editor is in view mode', { mode: _VIEW }],
+      ['the editor is read only', { options: { ...options, readOnly: true } }],
+      ['the content is json', { options: { ...options, mode: 'json' } }],
+    ])('should not pass RcCodeMirror a linter when %s', (_case, props) => {
+      expect(lintSource(createWrapper(props))).toBeUndefined();
+    });
+
+    it('should report no problems for valid yaml', () => {
+      expect(lintDoc('foo: bar\n---\nbaz: qux')).toStrictEqual([]);
+    });
+
+    it.each([
+      ['a: 1\nb:\n  - x\n c: 2', 15, 'bad indentation of a mapping entry (4:2)'],
+      // js-yaml reports the end of the stream one past the end of the document
+      ['foo: [', 6, 'unexpected end of the stream within a flow collection (2:1)'],
+    ])('should mark where parsing %p failed', (doc, position, message) => {
+      expect(lintDoc(doc)).toStrictEqual([{
+        from: position, to: position, severity: 'error', message
+      }]);
+    });
+
+    it('should reuse the parse from validating the same content', () => {
+      const wrapper = createWrapper();
+      const loadAll = jest.spyOn(jsyaml, 'loadAll');
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('update:modelValue', 'foo: [');
+      lintSource(wrapper)(new EditorView({ doc: 'foo: [' }));
+
+      expect(loadAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('should validate content the markers see first', () => {
+      const wrapper = createWrapper();
+
+      lintSource(wrapper)(new EditorView({ doc: 'foo: [' }));
+
+      expect(wrapper.vm.hasLintErrors).toStrictEqual(true);
+    });
+  });
+
+  describe('updateValue', () => {
+    it('should replace the editor content', () => {
+      const wrapper = shallowMount(CodeMirror, mountOptions);
+      const view = new EditorView({ doc: 'foo: bar' });
+
+      wrapper.findComponent(RcCodeMirror).vm.$emit('ready', view);
+      (wrapper.vm as any).updateValue('baz: qux');
+
+      expect(view.state.doc.toString()).toStrictEqual('baz: qux');
     });
   });
 });

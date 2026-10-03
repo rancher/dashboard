@@ -26,9 +26,11 @@
  *
  * ARIA attributes (e.g. `aria-label`, `aria-labelledby`) and `tabindex` are
  * forwarded to the editor's textbox. Give every instance an accessible name.
- * In the editor variant, Tab and Shift-Tab change indentation with the default
- * and Emacs keymaps. Vim uses Tab for its jump list in Normal mode and inserts
- * a tab at the cursor in Insert mode. Press Escape then Tab to move focus out.
+ * In the editor variant, Tab indents at the cursor (or indents the selected
+ * lines) and Shift-Tab unindents with the default keymap and in Vim Insert mode.
+ * Emacs Tab reindents the line. In Vim Normal mode Tab moves through the jump
+ * list and Shift-Tab does nothing. Press Escape then Tab to move focus out.
+ * In a read-only editor Tab and Shift-Tab move focus with every keymap.
  */
 import {
   ref, shallowRef, computed, onMounted, onBeforeUnmount, watch, useAttrs
@@ -54,26 +56,31 @@ import {
   foldGutter as cmFoldGutter
 } from '@codemirror/language';
 import { closeBrackets, autocompletion } from '@codemirror/autocomplete';
+import { linter as cmLinter, lintGutter, type LintSource } from '@codemirror/lint';
+import RcButton from '@components/RcButton/RcButton.vue';
 import { getLanguageExtension } from './extensions/syntax';
 import { getKeymapExtension } from './extensions/keymaps';
 import { buildFoldExtension } from './extensions/fold';
+import { bottomPanelsExtension } from './extensions/panels';
 import { rancherInputTheme, rancherTheme } from './extensions/theme';
-import type { RcCodeMirrorProps, RcCodeMirrorTheme, RcCodeMirrorVariant } from './types';
+import type { RcCodeMirrorKeymap, RcCodeMirrorProps, RcCodeMirrorTheme, RcCodeMirrorVariant } from './types';
 
 defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<RcCodeMirrorProps>(), {
-  modelValue:   '',
-  language:     undefined,
-  keymap:       undefined,
-  theme:        'rancher',
-  variant:      'editor',
-  readOnly:     false,
-  lineNumbers:  true,
-  foldGutter:   true,
-  lineWrapping: false,
-  extensions:   undefined,
-  foldOptions:  undefined
+  modelValue:      '',
+  language:        undefined,
+  keymap:          undefined,
+  theme:           'rancher',
+  variant:         'editor',
+  readOnly:        false,
+  lineNumbers:     true,
+  foldGutter:      true,
+  lineWrapping:    false,
+  extensions:      undefined,
+  foldOptions:     undefined,
+  linter:          undefined,
+  keymapIndicator: false
 });
 
 const emit = defineEmits<{
@@ -86,11 +93,34 @@ const emit = defineEmits<{
 
 const attrs = useAttrs();
 const container = ref<HTMLDivElement>();
+const bottomPanels = ref<HTMLDivElement>();
 const view = shallowRef<EditorView>();
 const isEditorFocused = ref(false);
 const ESCAPE_HINT = 'Press Escape, then Tab to leave the editor';
 let initialState: EditorState | undefined;
 const escapeHint = computed(() => view.value?.state.phrase(ESCAPE_HINT) ?? ESCAPE_HINT);
+
+const KEYMAP_NAMES: Partial<Record<RcCodeMirrorKeymap, string>> = { vim: 'Vim', emacs: 'Emacs' };
+const isKeymapIndicatorDismissed = ref(false);
+const keymapName = computed(() => (props.keymap ? KEYMAP_NAMES[props.keymap] : undefined));
+// Waits for the view, whose phrases translate the indicator's text
+const showKeymapIndicator = computed(() => !!view.value && props.keymapIndicator && props.variant !== 'input' && !!keymapName.value && !isKeymapIndicatorDismissed.value);
+
+// `$` is replaced with the keymap name, so translations can place it anywhere
+function keymapPhrase(phrase: string): string {
+  const state = view.value?.state;
+
+  return state && keymapName.value ? state.phrase(phrase, state.phrase(keymapName.value)) : '';
+}
+
+const keymapIndicatorTooltip = computed(() => keymapPhrase('Key mapping: $'));
+const keymapIndicatorLabel = computed(() => keymapPhrase('Hide key mapping: $'));
+
+// The indicator is removed as it is selected, so give focus to the editor rather than losing it
+function dismissKeymapIndicator(): void {
+  isKeymapIndicatorDismissed.value = true;
+  view.value?.focus();
+}
 
 function isEditorAttribute(name: string): boolean {
   return name.startsWith('aria-') || name.toLowerCase() === 'tabindex';
@@ -124,6 +154,7 @@ const readOnlyCompartment = new Compartment();
 const lineNumbersCompartment = new Compartment();
 const lineWrappingCompartment = new Compartment();
 const foldGutterCompartment = new Compartment();
+const lintCompartment = new Compartment();
 const contentAttributesCompartment = new Compartment();
 
 function getThemeExtension(theme?: RcCodeMirrorTheme, variant?: RcCodeMirrorVariant): Extension {
@@ -170,6 +201,15 @@ function showFoldGutter(): boolean {
   return props.variant !== 'input' && (props.foldGutter ?? true);
 }
 
+// The input variant has no gutters, so its problems are only underlined
+function getLintExtension(source: LintSource | undefined, variant: RcCodeMirrorVariant): Extension {
+  if (!source) {
+    return [];
+  }
+
+  return variant === 'input' ? cmLinter(source) : [cmLinter(source), lintGutter()];
+}
+
 // The input variant always wraps, like a textarea
 function wrapLines(): boolean {
   return props.variant === 'input' || (props.lineWrapping ?? false);
@@ -206,6 +246,17 @@ function handleEditorKeydown(event: KeyboardEvent): void {
 
   if (editor && event.code === 'Escape' && !event.shiftKey && event.target === editor.contentDOM) {
     editor.setTabFocusMode(2000);
+  }
+}
+
+// Escape belongs to the editor (Vim uses it to leave Insert mode), so it must not also reach page
+// handlers such as a modal closing on Escape. This runs after CodeMirror has handled the key. Escape in the
+// search panel removes the panel before the event bubbles here, so check the path it was dispatched along.
+function stopEditorEscape(event: KeyboardEvent): void {
+  const editor = view.value?.dom;
+
+  if (event.code === 'Escape' && editor && event.composedPath().includes(editor)) {
+    event.stopPropagation();
   }
 }
 
@@ -250,12 +301,15 @@ onMounted(() => {
       languageCompartment.of(getLanguageExtension(props.language)),
       keymapCompartment.of(getKeymapExtension(props.keymap, props.variant)),
       themeCompartment.of(getThemeExtension(props.theme, props.variant)),
+      // Gutters are shown in this order
       lineNumbersCompartment.of(getLineNumbersExtension(showLineNumbers())),
+      lintCompartment.of(getLintExtension(props.linter, props.variant)),
       foldGutterCompartment.of(getFoldGutterExtension(showFoldGutter())),
       lineWrappingCompartment.of(getLineWrappingExtension(wrapLines())),
       readOnlyCompartment.of(getReadOnlyExtension(props.readOnly ?? false)),
       contentAttributesCompartment.of(getContentAttributesExtension(editorAttributes())),
       updateListener,
+      ...(bottomPanels.value ? [bottomPanelsExtension(bottomPanels.value)] : []),
       ...(props.extensions ?? [])
     ]
   });
@@ -340,6 +394,14 @@ watch(
   }
 );
 
+// Hot-swap linter
+watch(
+  () => [props.linter, props.variant] as const,
+  ([source, variant]) => {
+    view.value?.dispatch({ effects: lintCompartment.reconfigure(getLintExtension(source, variant)) });
+  }
+);
+
 // Hot-swap foldGutter
 watch(
   () => showFoldGutter(),
@@ -374,14 +436,38 @@ defineExpose({ view });
     class="rc-code-mirror"
     :class="`rc-code-mirror--${ variant }`"
     @keydown.capture="handleEditorKeydown"
+    @keydown="stopEditorEscape"
     @focusin="handleFocusIn"
     @focusout="handleFocusOut"
   >
     <span
-      v-show="isEditorFocused && variant !== 'input'"
+      v-show="isEditorFocused && variant !== 'input' && !readOnly"
       class="rc-cm-escape-hint"
       role="alert"
     >{{ escapeHint }}</span>
+    <RcButton
+      v-if="showKeymapIndicator"
+      v-clean-tooltip="keymapIndicatorTooltip"
+      type="button"
+      variant="ghost"
+      class="rc-cm-keymap-indicator"
+      data-testid="code-mirror-keymap"
+      :aria-label="keymapIndicatorLabel"
+      @click="dismissKeymapIndicator"
+    >
+      <i
+        class="icon icon-keyboard rc-cm-keymap-icon"
+        aria-hidden="true"
+      />
+      <i
+        class="icon icon-close icon-sm rc-cm-keymap-close"
+        aria-hidden="true"
+      />
+    </RcButton>
+    <!-- CodeMirror gives the panels' container the editor's theme classes, whose root styles would unstick it -->
+    <div class="rc-cm-bottom-panels">
+      <div ref="bottomPanels" />
+    </div>
   </div>
 </template>
 
@@ -396,8 +482,14 @@ defineExpose({ view });
   --rc-cm-text: #16181D;
   --rc-cm-gutter: #5B626C;
   --rc-cm-fold-hover: #E8ECF2;
+  --rc-cm-active-line: rgba(0, 0, 0, 0.04);
+  --rc-cm-search-match: rgba(255, 213, 0, 0.4);
+  --rc-cm-search-match-selected: rgba(255, 140, 0, 0.5);
+  --rc-cm-color-scheme: light;
 
-  display: block;
+  // A column, so the editor shrinks to make room for the bottom panels strip in a fixed height
+  display: flex;
+  flex-direction: column;
   height: 100%;
   box-sizing: border-box;
   position: relative;
@@ -414,12 +506,131 @@ defineExpose({ view });
     pointer-events: none;
   }
 
+  .rc-cm-keymap-indicator {
+    $animation-time: 0.1s;
+
+    --rc-button-padding: 0;
+
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    z-index: 2;
+    width: 48px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius);
+    color: var(--darker);
+    background-color: var(--subtle-overlay-bg);
+    cursor: pointer;
+
+    .rc-cm-keymap-icon {
+      font-size: 24px;
+      opacity: 0.8;
+      transition: margin-right $animation-time ease-in-out;
+    }
+
+    .rc-cm-keymap-close {
+      width: 0;
+      overflow: hidden;
+      color: var(--primary);
+      opacity: 0;
+    }
+
+    &:hover, &:focus-visible {
+      border-color: var(--primary);
+
+      .rc-cm-keymap-icon {
+        opacity: 0.6;
+        margin-right: 4px;
+      }
+
+      .rc-cm-keymap-close {
+        width: auto;
+        opacity: 1;
+        transition: opacity $animation-time ease-in-out $animation-time; // Only animate when being shown
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--primary-keyboard-focus);
+      outline-offset: 1px;
+    }
+  }
+
   :deep(.cm-editor) {
     height: 100%;
+    min-height: 0;
+  }
+
+  // Holds CodeMirror's bottom panels, such as Vim's command line, above the editor (see extensions/panels.ts)
+  .rc-cm-bottom-panels {
+    position: sticky;
+    top: 0;
+    // Above the editor's panels and focus ring
+    z-index: 302;
+
+    // As tall as the Dashboard's side navigation toolbar, the "Jump to..." search, including its border, so their
+    // bottom borders line up when the strip sticks below the header
+    :deep(.cm-panels) {
+      position: static;
+      box-sizing: border-box;
+      height: 40px;
+      color: var(--rc-cm-text);
+      background-color: var(--rc-cm-bg);
+      border: none;
+      border-bottom: 1px solid var(--border, #DCDEE7);
+    }
+
+    :deep(.cm-vim-panel) {
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+      height: 100%;
+      min-height: 0;
+      padding: 0 8px;
+      font-size: 14px;
+
+      // Vim sets the prompt's font and its hint's color inline
+      span {
+        font-family: $mono-font !important;
+        align-items: center;
+      }
+
+      span + span {
+        color: var(--rc-cm-comment) !important;
+        font-family: inherit !important;
+      }
+
+      // The Dashboard's global styles make text inputs full width blocks with a border, which put the field on
+      // its own line below the prompt
+      input {
+        display: inline-block;
+        width: auto;
+        min-width: 0;
+        height: auto;
+        padding: 0 0 0 2px;
+        border: none;
+        border-radius: 0;
+        outline: none;
+        color: inherit;
+        caret-color: var(--rc-cm-key);
+        background-color: transparent;
+        font: inherit;
+      }
+    }
   }
 
   :deep(.cm-editor.cm-focused) {
     outline: none;
+  }
+
+  &.rc-code-mirror--editor :deep(.cm-scroller),
+  &.rc-code-mirror--editor :deep(.cm-tooltip-autocomplete > ul) {
+    font-family: $mono-font;
   }
 
   &.rc-code-mirror--editor :deep(.cm-foldGutter) {
@@ -468,7 +679,8 @@ defineExpose({ view });
       inset: 0;
       border: 2px solid var(--primary-keyboard-focus);
       pointer-events: none;
-      z-index: 1;
+      // Above CodeMirror's panels (z-index 300), so the search panel does not cover the ring
+      z-index: 301;
     }
   }
 
@@ -521,5 +733,9 @@ defineExpose({ view });
   --rc-cm-text: #E6E9EF;
   --rc-cm-gutter: #9AA1AC;
   --rc-cm-fold-hover: #3C4655;
+  --rc-cm-active-line: rgba(255, 255, 255, 0.04);
+  --rc-cm-search-match: rgba(255, 213, 0, 0.25);
+  --rc-cm-search-match-selected: rgba(255, 140, 0, 0.45);
+  --rc-cm-color-scheme: dark;
 }
 </style>
