@@ -7,11 +7,14 @@ import { SteveResource } from '@shell/apis/intf/resources-api/resource-base';
  */
 export interface ResourceInstanceApi {
   /**
-   * Applies a partial update to a resource using HTTP PATCH
-   * with merge-patch semantics (`application/strategic-merge-patch+json`).
+   * Applies a partial update to a resource using HTTP PATCH.
    *
    * Only the fields provided in `data` are sent to the server — the rest of the resource
    * remains unchanged. The server response is merged back into this instance.
+   *
+   * The patch media type is taken from the resource's OpenAPI definition:
+   * `application/strategic-merge-patch+json` where the resource supports it, otherwise
+   * `application/merge-patch+json` (which is the case for CRDs).
    *
    * Requires edit permissions (`canEdit`).
    *
