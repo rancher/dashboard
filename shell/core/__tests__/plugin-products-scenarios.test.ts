@@ -804,7 +804,7 @@ describe('pluginProduct', () => {
         }).toThrow('Duplicate page name "overview"');
       });
 
-      it('should not throw when pages with the same name are in different groups (different resolved names)', () => {
+      it('should throw when pages with the same name are in different groups', () => {
         const mockPlugin = createMockPlugin();
         const mockStore = createMockStore();
         const mockDSL = {
@@ -820,7 +820,8 @@ describe('pluginProduct', () => {
 
         (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
 
-        // Same page name 'overview' but in different groups produces different resolved names
+        // The group gives the two entries different nav item names, but both still resolve to the
+        // same route, because the route name and its path segment come from the page name alone
         const standalonePage: ProductChildCustomPage = {
           name:      'cost-analysis',
           label:     'Cost Analysis',
@@ -848,10 +849,59 @@ describe('pluginProduct', () => {
         const config: ProductChild[] = [standalonePage, group];
         const pluginProduct = new PluginProduct(mockPlugin, product, config);
 
-        // Different groups produce different resolved names (myapp-cost-analysis vs myapp-insights-cost-analysis)
+        // Both pages generate the route `myapp-cost-analysis`, so vue-router would register a
+        // duplicate and the side nav could not tell the two entries apart. Page names have to be
+        // unique across the whole product, not just within a group.
         expect(() => {
           pluginProduct.apply(mockPlugin, mockStore);
-        }).not.toThrow();
+        }).toThrow('Duplicate page name "cost-analysis"');
+      });
+
+      it('should throw when a group overview and a page share a name', () => {
+        const mockPlugin = createMockPlugin();
+        const mockStore = createMockStore();
+        const mockDSL = {
+          product:             jest.fn(),
+          basicType:           jest.fn(),
+          labelGroup:          jest.fn(),
+          setGroupDefaultType: jest.fn(),
+          weightGroup:         jest.fn(),
+          virtualType:         jest.fn(),
+          configureType:       jest.fn(),
+          weightType:          jest.fn(),
+        };
+
+        (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+
+        // A group with a component registers an overview page of its own, so its name competes for
+        // a route with every other page in the product - here both want `myapp-settings`
+        const group: ProductChildGroup = {
+          name:      'settings',
+          label:     'Settings',
+          component: { name: 'SettingsOverview' },
+          sideMenu:  {
+            children: [{
+              name: 'general', label: 'General', component: { name: 'General' }
+            }]
+          },
+        };
+
+        const clashingPage: ProductChildCustomPage = {
+          name:      'settings',
+          label:     'Settings Page',
+          component: { name: 'SettingsPage' },
+        };
+
+        const product: ProductMetadata = {
+          name:  'my-app',
+          label: 'My App',
+        };
+
+        const pluginProduct = new PluginProduct(mockPlugin, product, [group, clashingPage]);
+
+        expect(() => {
+          pluginProduct.apply(mockPlugin, mockStore);
+        }).toThrow('Duplicate page name "settings"');
       });
 
       it('should throw when two resource pages have the same type', () => {
