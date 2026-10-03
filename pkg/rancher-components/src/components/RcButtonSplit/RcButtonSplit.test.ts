@@ -57,8 +57,8 @@ describe('rcButtonSplit.vue', () => {
 
   describe('variant prop', () => {
     const variantCases: [RcButtonSplitVariant, string][] = [
-      ['primary', 'variant-primary'],
-      ['secondary', 'variant-secondary'],
+      ['solid', 'variant-primary'],
+      ['outline', 'variant-secondary'],
       ['tertiary', 'variant-tertiary'],
     ];
 
