@@ -245,8 +245,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
 
           it('Projects-Namespaces - Delete Project dialog', () => {
             projectsNamespacesPage.waitForPage();
-            projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(1)
-              .click();
+            projectsNamespacesPage.list().resourceTable().sortableTable().groupBy('Project');
             projectsNamespacesPage.list().resourceTable().sortableTable().rowActionMenuOpen('Project: Default')
               .getMenuItem('Delete')
               .click();
@@ -300,8 +299,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
 
           it('Projects-Namespaces - Create Namespace', () => {
             projectsNamespacesPage.waitForPage();
-            projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(0)
-              .click();
+            projectsNamespacesPage.list().resourceTable().sortableTable().groupBy('None');
             projectsNamespacesPage.createNamespaceButton().should('be.visible').click();
             projectsNamespacesPage.mastheadTitle().then((title) => {
               expect(title.replace(/\s+/g, ' ')).to.contain('Namespace: Create');
@@ -730,9 +728,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
       it('Import Extension Catalog Modal', () => {
         extensionsPo.extensionMenuToggle();
         extensionsPo.manageExtensionCatalogsClick();
-        extensionsPo.catalogsList().sortableTable()
-          .bulkActionButton('Import Extension Catalog')
-          .click();
+        extensionsPo.importExtensionCatalogClick();
         dialogModal().checkVisible();
 
         cy.injectAxe();

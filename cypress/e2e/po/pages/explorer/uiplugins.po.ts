@@ -19,8 +19,13 @@ export default class UiPluginsPagePo extends PagePo {
     return new ResourceTablePo(this.self());
   }
 
+  /**
+   * By the cell's title, not its place: grouping by namespace takes the Namespace column away only
+   * without table views
+   */
   cacheState(name: string) {
-    return this.resourceTable().sortableTable().rowWithName(name).column(5);
+    return this.resourceTable().sortableTable().rowWithName(name).self()
+      .find('td[data-title="State"]');
   }
 
   goToDetailsPage(elemName: string) {

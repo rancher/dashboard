@@ -12,6 +12,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { qase } from '@/cypress/support/qase';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 const globalRoleNameYaml = 'test-global-role-yaml';
 const globalRoleYaml = `apiVersion: management.cattle.io/v3
@@ -262,6 +263,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       roles.list('GLOBAL').elementWithName(globalRoleName).click();
       cy.intercept('GET', '/v1/management.cattle.io.globalroles/*').as('downloadYaml');
       roles.list('GLOBAL').downloadYaml().click();
+      new ExportModalPo().download();
       cy.wait('@downloadYaml', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
       const downloadedFilename = path.join(downloadsFolder, `${ globalRoleName }.yaml`);
 

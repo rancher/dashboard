@@ -60,11 +60,10 @@ describe('Roles', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, (
       cy.wait('@rolesDataSmall2');
 
       // group by namespace
-      rolesPage.list().resourceTable().sortableTable().groupByButtons(1)
-        .click();
+      rolesPage.list().resourceTable().sortableTable().groupBy('Namespace');
 
       //  check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Created At'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Created At'];
 
       rolesPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')
