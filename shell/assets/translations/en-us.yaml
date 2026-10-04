@@ -1944,6 +1944,50 @@ cluster:
         addVolume: Add Volume
         addVMImage: Add VM Image
         storageClass: Storage Class
+      storageOptions:
+        title: Storage Options
+        profile:
+          label: Performance Profile
+          tip: '"High Performance" disables the host cache, uses native AIO and gives the disk a dedicated I/O thread. Choose "Custom" to set each option yourself.'
+          default: Default
+          highPerformance: High Performance
+          custom: Custom
+        highPerformanceTip: This disk will use no host cache, native AIO and a dedicated I/O thread.
+        cache:
+          label: Cache Mode
+          tip: 'How the host caches disk I/O. "None" is best for high-throughput guests on block storage, "WriteBack" favors performance and "WriteThrough" favors durability.'
+          default: Default (hypervisor)
+          none: None (no host cache)
+          writeback: WriteBack
+          writethrough: WriteThrough
+        io:
+          label: I/O Mode
+          tip: 'How QEMU submits I/O. "Native" (Linux AIO) has the lowest overhead and needs cache mode "None". "Threads" uses a host thread pool.'
+          default: Default (hypervisor)
+          native: Native (AIO)
+          threads: Threads
+          nativeTip: Native I/O mode needs the host cache disabled, so cache mode is set to None.
+        dedicatedIOThread:
+          label: Dedicated I/O Thread
+          tip: Give this disk its own I/O thread instead of sharing one. Useful for disks with heavy I/O.
+      vmStorageOptions:
+        title: Storage Options (I/O Threads and Multi-Queue)
+        description: These options apply to all volumes of the virtual machine.
+        blockMultiQueue:
+          label: Virtio Block Multi-Queue
+          tip: Spread disk I/O over one queue per vCPU so that it is processed on multiple CPUs.
+        ioThreadsPolicy:
+          label: I/O Threads Policy
+          tip: '"Shared" uses one I/O thread for all disks. "Auto" spreads disks over a pool of threads. "Supplemental Pool" uses a fixed number of threads.'
+          default: Disabled (default)
+          shared: Shared
+          auto: Auto
+          supplementalPool: Supplemental Pool
+          sharedTip: A volume asks for a dedicated I/O thread, so the Shared policy will be used.
+        ioThreadCount:
+          label: I/O Thread Count
+          tip: Number of I/O threads in the supplemental pool.
+          invalid: I/O Thread Count must be at least 1 with the "Supplemental Pool" policy.
       reservedMemory: Reserved Memory
       sshUser: SSH User
       userData:
