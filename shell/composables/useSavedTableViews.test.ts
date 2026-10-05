@@ -21,10 +21,11 @@ interface WrittenEntry {
   views: TableViewSaved[];
   defaultViewId?: string | null;
   allIndex?: number;
+  order?: string[];
   pages: Record<string, WrittenEntry>;
 }
 
-function setup(stored: Record<string, unknown>, type = 'pod', page: string | null = null) {
+function setup(stored: Record<string, unknown>, type = 'pod', page: string | null = null, shared: TableViewSaved[] = []) {
   const setPref = jest.fn();
   const store = createStore({
     getters: { 'prefs/get': () => (key: string) => (key === TABLE_VIEWS ? stored : undefined) },
@@ -34,7 +35,7 @@ function setup(stored: Record<string, unknown>, type = 'pod', page: string | nul
 
   mount(defineComponent({
     setup() {
-      saved = useSavedTableViews(() => type, () => page);
+      saved = useSavedTableViews(() => type, () => page, () => shared);
 
       return () => h('div');
     }
@@ -275,6 +276,70 @@ describe('useSavedTableViews', () => {
       saved.persistAll([], null);
 
       expect(written().pod.pages.home.views).toStrictEqual([view('own')]);
+    });
+  });
+
+  describe('beside views shared with everyone', () => {
+    it('should keep a default on a shared view', () => {
+      const { saved, written } = setup({ pod: { views: [view('a')] } }, 'pod', null, [view('g')]);
+
+      saved.persistAll([view('a')], 'g');
+
+      expect(written().pod.defaultViewId).toBe('g');
+    });
+
+    it('should keep `all`, the table\'s own tab chosen over the page\'s shared default', () => {
+      const { saved, written } = setup({ pod: { views: [] } }, 'pod', null, [view('g')]);
+
+      saved.persistAll([], 'all');
+
+      expect(written().pod.defaultViewId).toBe('all');
+    });
+
+    it('should keep a default on a shared view that has not loaded yet', () => {
+      const { saved, written } = setup({ pod: { views: [view('a')], defaultViewId: 'g' } });
+
+      saved.persist([view('a'), view('b')]);
+
+      expect(written().pod.defaultViewId).toBe('g');
+    });
+
+    it('should write the order of every tab, and keep it when the views are written', () => {
+      const { saved, written } = setup({ pod: { views: [view('a')] } }, 'pod', null, [view('g')]);
+
+      saved.persistAll([view('a')], null, 1, ['g', 'all', 'a']);
+
+      expect(written().pod.order).toStrictEqual(['g', 'all', 'a']);
+
+      const again = setup({ pod: { views: [view('a')], order: ['g', 'all', 'a'] } }, 'pod', null, [view('g')]);
+
+      again.saved.persist([view('a'), view('b')]);
+
+      expect(again.written().pod.order).toStrictEqual(['g', 'all', 'a']);
+    });
+
+    it('should drop a view of the user\'s own from the order when it goes, but not one that went to the shared views', () => {
+      const { saved, written } = setup({ pod: { views: [view('a'), view('b')], order: ['all', 'a', 'b'] } }, 'pod', null, [view('b')]);
+
+      saved.persist([]);
+
+      expect(written().pod.order).toStrictEqual(['all', 'b']);
+    });
+
+    it('should keep an entry with no views of the user\'s own while it holds their order or default', () => {
+      const { saved, written } = setup({ pod: { views: [view('a')] } }, 'pod', null, [view('g')]);
+
+      saved.persistAll([], 'g', 0, ['all', 'g']);
+
+      expect(written().pod).toStrictEqual({
+        views: [], defaultViewId: 'g', allIndex: 0, order: ['all', 'g']
+      });
+    });
+
+    it('should not name a view after a shared one', () => {
+      const { saved } = setup({ pod: { views: [] } }, 'pod', null, [view('g', 'Untitled')]);
+
+      expect(saved.unusedViewName('Untitled', 1)).toBe('Untitled 1');
     });
   });
 

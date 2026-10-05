@@ -3,13 +3,20 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 
 import { TABLE_VIEWS } from '@shell/store/prefs';
+import { ALL_TAB_KEY } from '@shell/utils/table-views/global';
 import { persistenceIdOf, savedViewsByType, savedViewsPref } from '@shell/utils/table-views/views';
 import type { TableViewSaved } from '@shell/types/table-views';
 
 interface SavedEntry {
   views: TableViewSaved[];
+  /** A view's id, shared views' included, or `all` for the table's own tab over the page's shared default */
   defaultViewId?: string | null;
   allIndex?: number;
+  /**
+   * Every tab's key in the user's order, shared views' included. Only kept once there are shared
+   * views; without them the views' order and `allIndex` say it all
+   */
+  order?: string[] | null;
 }
 
 interface TypeEntry extends SavedEntry {
@@ -24,9 +31,14 @@ function compact<T extends object>(value: T): T {
 
 /**
  * `page` is set for a page keeping views of its own, which live under the type's entry. Unset, the
- * views are the type's own, shared by every other list of it
+ * views are the type's own, shared by every other list of it. `shared` is the views shared with
+ * everyone on the list, which the user's default and order can point at
  */
-export function useSavedTableViews(resourceType: () => string, page: () => string | null = () => null) {
+export function useSavedTableViews(
+  resourceType: () => string,
+  page: () => string | null = () => null,
+  shared: () => TableViewSaved[] = () => []
+) {
   const store = useStore();
 
   /** Every type's, by type; written with the version of its shape, keeping the persistence id */
@@ -55,12 +67,26 @@ export function useSavedTableViews(resourceType: () => string, page: () => strin
     return Math.min(Math.max(Number.isInteger(at) ? at as number : 0, 0), savedViews.value.length);
   });
 
-  const persistAll = (views: TableViewSaved[], viewId: string | null, allIndex: number = allTabIndex.value) => {
-    const validDefault = views.find((v) => v.id === viewId) ? viewId : null;
+  /** The user's own tab order, shared views' included; null until there are shared views to place */
+  const tabOrder = computed<string[] | null>(() => (entry.value?.order?.length ? entry.value.order : null));
+
+  /**
+   * @param order every tab's key in order; left out, the stored one stays, less any view dropped
+   */
+  const persistAll = (views: TableViewSaved[], viewId: string | null, allIndex: number = allTabIndex.value, order?: string[] | null) => {
+    const ids = new Set(views.map((v) => v.id));
+    const sharedIds = new Set(shared().map((v) => v.id));
+    // A view gone to the shared ones keeps its place and default
+    const dropped = new Set(savedViews.value.map((v) => v.id).filter((id) => !ids.has(id) && !sharedIds.has(id)));
+    // A default on a shared view stays while those views are still loading, unless the view was the user's own
+    const keptDefault = viewId === defaultViewId.value && !!viewId && !dropped.has(viewId);
+    const validDefault = viewId && (ids.has(viewId) || sharedIds.has(viewId) || viewId === ALL_TAB_KEY || keptDefault) ? viewId : null;
+    const nextOrder = (order === undefined ? tabOrder.value : order)?.filter((key) => !dropped.has(key)) || null;
     const saved: SavedEntry = compact({
       views:         views.map((view) => compact(view)),
       defaultViewId: validDefault,
-      allIndex:      Math.min(Math.max(allIndex, 0), views.length)
+      allIndex:      Math.min(Math.max(allIndex, 0), views.length),
+      order:         nextOrder?.length ? nextOrder : null,
     });
     const current = typeEntry.value || { views: [] };
     // A page's views go beside the type's own, and saving either keeps the other
@@ -72,9 +98,11 @@ export function useSavedTableViews(resourceType: () => string, page: () => strin
 
     const next: TypeEntry = { ...(page() ? current : saved) };
 
-    // Nothing is kept for a type or a page left with no views: no default or tab place without them
+    // Nothing is kept for a type or a page left with nothing of the user's: no views, default or order
+    const isEmpty = (kept: SavedEntry) => !kept.views?.length && !kept.defaultViewId && !kept.order?.some((key) => key !== ALL_TAB_KEY);
+
     Object.keys(pages).forEach((key) => {
-      if (!pages[key].views.length) {
+      if (isEmpty(pages[key])) {
         delete pages[key];
       }
     });
@@ -87,7 +115,7 @@ export function useSavedTableViews(resourceType: () => string, page: () => strin
 
     const all = { ...(allSavedViews.value || {}) };
 
-    if (next.views.length || next.pages) {
+    if (!isEmpty(next) || next.pages) {
       all[resourceType()] = next;
     } else {
       delete all[resourceType()];
@@ -103,7 +131,9 @@ export function useSavedTableViews(resourceType: () => string, page: () => strin
     let name = base;
     let n = from;
 
-    while (savedViews.value.find((v) => v.name === name)) {
+    const taken = new Set(savedViews.value.concat(shared()).map((v) => v.name));
+
+    while (taken.has(name)) {
       name = `${ base } ${ n++ }`;
     }
 
@@ -111,6 +141,6 @@ export function useSavedTableViews(resourceType: () => string, page: () => strin
   };
 
   return {
-    savedViews, defaultViewId, allTabIndex, persistAll, persist, unusedViewName
+    savedViews, defaultViewId, allTabIndex, tabOrder, persistAll, persist, unusedViewName
   };
 }
