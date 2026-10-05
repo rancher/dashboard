@@ -25,6 +25,11 @@ jest.mock('vuex', () => ({
   useStore: () => ({}),
 }));
 
+jest.mock('vue-router', () => ({
+  ...jest.requireActual('vue-router'),
+  useRouter: () => ({ resolve: (route: { params: { resource: string } }) => ({ href: `/list/${ route.params.resource }` }) }),
+}));
+
 const mockT = (key: string, args?: Record<string, any>) => (args ? `${ key }:${ JSON.stringify(args) }` : key);
 
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: mockT }) }));
@@ -36,6 +41,7 @@ const LabeledSelectStub = defineComponent({
   props: {
     options:          { type: Array, default: () => [] },
     selectable:       { type: Function, default: undefined },
+    reduce:           { type: Function, default: undefined },
     appendToBody:     { type: Boolean, default: true },
     filterable:       { type: Boolean, default: true },
     searchable:       { type: Boolean, default: false },
@@ -144,7 +150,7 @@ describe('component: WorkloadSearch', () => {
     it.each([
       ['a result', makeResult('nginx'), true],
       ['a group header', groupOption('apps.deployment'), false],
-      ['a "more" row', moreOption, false],
+      ['a "more" row', moreOption, true],
     ])('should treat %s as selectable: %s', (_, option, expected) => {
       const wrapper = createWrapper();
       const selectable = wrapper.findComponent(LabeledSelectStub).props('selectable') as (o: WorkloadSearchOption) => boolean;
@@ -203,43 +209,73 @@ describe('component: WorkloadSearch', () => {
   });
 
   describe('"more" rows', () => {
+    const reduce = (wrapper: ReturnType<typeof createWrapper>) => wrapper.findComponent(LabeledSelectStub).props('reduce') as (o: WorkloadSearchOption) => any;
+
     it('should render the "more" label', () => {
       mockOptions.value = [moreOption];
       const wrapper = createWrapper();
 
-      expect(wrapper.find('.more-row').text()).toStrictEqual('+3 more');
+      expect(wrapper.find('.option-wrapper > .more-link').text()).toStrictEqual('+3 more');
     });
 
-    it('should navigate to the type list filtered by the search term when clicked', async() => {
+    it('should render the "more" row as a link to the type list filtered by the search term', () => {
       mockOptions.value = [moreOption];
       const wrapper = createWrapper();
 
-      await wrapper.find('.more-row').trigger('click');
+      const link = wrapper.find('.option-wrapper > .more-link');
 
-      expect(resourceRoute).toHaveBeenCalledWith('apps.deployment', undefined, 'nginx');
-      expect(mockOnSelect).toHaveBeenCalledWith({
-        name: 'list', params: { resource: 'apps.deployment' }, query: { nameFilter: 'nginx' }
-      });
+      expect(link.element.tagName).toStrictEqual('A');
+      expect(link.attributes('href')).toStrictEqual('/list/apps.deployment');
     });
 
-    it('should stop the click reaching the select', async() => {
+    it('should not render an href when the "more" row has no resource type', () => {
+      mockOptions.value = [{ ...moreOption, resourceType: undefined }];
+      const wrapper = createWrapper();
+
+      expect(wrapper.find('.option-wrapper > .more-link').attributes('href')).toBeUndefined();
+    });
+
+    it('should not follow the "more" link href when clicked', () => {
+      mockOptions.value = [moreOption];
+      const wrapper = createWrapper();
+      const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+      wrapper.find('.option-wrapper > .more-link').element.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('should let the "more" link click reach the select, so it selects the option', () => {
       mockOptions.value = [moreOption];
       const wrapper = createWrapper();
       const parentClick = jest.fn();
 
       wrapper.find('.option-wrapper').element.addEventListener('click', parentClick);
-      await wrapper.find('.more-row').trigger('click');
+      wrapper.find('.option-wrapper > .more-link').element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
 
-      expect(parentClick).not.toHaveBeenCalled();
+      expect(parentClick).toHaveBeenCalledTimes(1);
     });
 
-    it('should not navigate when the row has no resource type', async() => {
-      mockOptions.value = [{ ...moreOption, resourceType: undefined }];
+    it('should select the type list filtered by the search term', () => {
       const wrapper = createWrapper();
 
-      await wrapper.find('.more-row').trigger('click');
+      expect(reduce(wrapper)(moreOption)).toStrictEqual({
+        name: 'list', params: { resource: 'apps.deployment' }, query: { nameFilter: 'nginx' }
+      });
+      expect(resourceRoute).toHaveBeenCalledWith('apps.deployment', undefined, 'nginx');
+    });
 
-      expect(mockOnSelect).not.toHaveBeenCalled();
+    it('should select nothing when the row has no resource type', () => {
+      const wrapper = createWrapper();
+
+      expect(reduce(wrapper)({ ...moreOption, resourceType: undefined })).toBeUndefined();
+    });
+
+    it('should select the detail page for a result', () => {
+      const wrapper = createWrapper();
+      const result = makeResult('nginx');
+
+      expect(reduce(wrapper)(result)).toStrictEqual(result.value);
     });
   });
 
@@ -292,8 +328,27 @@ describe('component: WorkloadSearch', () => {
 
       const namespace = wrapper.find('.namespace');
 
+      expect(namespace.element.tagName).toStrictEqual('A');
       expect(namespace.text()).toStrictEqual('default');
       expect(namespace.classes()).toContain('more-link');
+    });
+
+    it('should link the namespace to the list page of the result type', () => {
+      mockOptions.value = [makeResult('nginx')];
+      const wrapper = createWrapper();
+
+      expect(wrapper.find('.namespace').attributes('href')).toStrictEqual('/list/apps.deployment');
+      expect(resourceRoute).toHaveBeenCalledWith('apps.deployment');
+    });
+
+    it('should not follow the namespace link href when clicked', async() => {
+      mockOptions.value = [makeResult('nginx')];
+      const wrapper = createWrapper();
+      const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+      wrapper.find('.namespace').element.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(true);
     });
 
     it('should render an empty, non-link namespace for a cluster-scoped result', () => {
@@ -324,6 +379,16 @@ describe('component: WorkloadSearch', () => {
       await wrapper.find('.namespace').trigger('click');
 
       expect(parentClick).not.toHaveBeenCalled();
+    });
+
+    it('should show the namespace as plain text when the result has no resource type', () => {
+      mockOptions.value = [makeResult('nginx', { resource: { id: 'default/nginx' } })];
+      const wrapper = createWrapper();
+
+      const namespace = wrapper.find('.namespace');
+
+      expect(namespace.element.tagName).toStrictEqual('SPAN');
+      expect(namespace.text()).toStrictEqual('default');
     });
 
     it('should not navigate when the namespace is clicked on a result without a resource type', async() => {

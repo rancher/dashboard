@@ -5,6 +5,7 @@ import LiveDate from '@shell/components/formatter/LiveDate.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
+import { useRouter, type RouteLocationRaw } from 'vue-router';
 import { computed, ref } from 'vue';
 import { useWorkloadSearch } from './useWorkloadSearch';
 import { type WorkloadSearchOption } from './types';
@@ -32,6 +33,7 @@ const dropdownVisibleRows = 14;
 const dropdownVisibleRowHeight = 24 + 16;
 
 const store = useStore();
+const router = useRouter();
 const { t } = useI18n(store);
 
 const {
@@ -59,8 +61,28 @@ const firstGroupUniqueId = computed(() => options.value.find((option) => option.
 const openingActionMenu = ref(false);
 const lastSearchTerm = ref('');
 
+// "+X more" rows are selectable options (rather than buttons inside an option)
+// so they're reachable with the arrow keys and Enter, like any other result.
 function isOptionSelectable(option: WorkloadSearchOption): boolean {
-  return !option.kind;
+  return option.kind !== 'group';
+}
+
+function optionRoute(option: WorkloadSearchOption) {
+  if (option.kind === 'more' && option.resourceType) {
+    return props.resourceRoute(option.resourceType, undefined, option.searchTerm);
+  }
+
+  return option.value;
+}
+
+function routeHref(route?: RouteLocationRaw): string | undefined {
+  return route ? router.resolve(route).href : undefined;
+}
+
+// The page the namespace link leads to. Clicking it also sets the header
+// namespace filter (see onNamespaceClick), which a plain href can't carry.
+function namespaceHref(option: WorkloadSearchOption): string | undefined {
+  return routeHref(props.resourceRoute(option.resource?.type));
 }
 
 function onNamespaceClick(event: MouseEvent, option: WorkloadSearchOption): void {
@@ -72,18 +94,12 @@ function onNamespaceClick(event: MouseEvent, option: WorkloadSearchOption): void
   }
 }
 
-function onMoreClick(event: MouseEvent, option: WorkloadSearchOption): void {
-  // Prevent vue-select from treating this as selecting the option.
-  event.stopPropagation();
-
-  if (option.resourceType) {
-    onSelect(props.resourceRoute(option.resourceType, undefined, option.searchTerm));
-  }
-}
-
 function onActionsClick(event: MouseEvent) {
   // Prevent vue-select from treating this as selecting the option.
   event.stopPropagation();
+  // Setting this on click is early enough: vue-select prevents the default
+  // mousedown inside its dropdown, so the input keeps focus until the action
+  // menu takes it after this click.
   openingActionMenu.value = true;
 }
 
@@ -122,6 +138,7 @@ function onActionInvoked(): void {
     :visible-rows="dropdownVisibleRows"
     :visible-row-height="dropdownVisibleRowHeight"
     :selectable="isOptionSelectable"
+    :reduce="optionRoute"
     option-key="uniqueId"
     :placeholder="t('workloadDashboard.search.placeholder')"
     :aria-label="t('workloadDashboard.search.ariaLabel')"
@@ -136,12 +153,13 @@ function onActionInvoked(): void {
         class="group-label"
         :class="{ 'group-label--first': option.uniqueId === firstGroupUniqueId }"
       >{{ option.label }}</b>
-      <span
+      <!-- The click carries on to vue-select, which selects the option like any other result -->
+      <a
         v-else-if="option.kind === 'more'"
         class="workload-search-option more-link"
-        role="button"
-        @click="onMoreClick($event, option)"
-      >{{ option.label }}</span>
+        :href="routeHref(optionRoute(option))"
+        @click.prevent
+      >{{ option.label }}</a>
       <div
         v-else
         class="workload-search-option"
@@ -153,16 +171,16 @@ function onActionInvoked(): void {
         />
         <span class="name">{{ option.label }}</span>
         <div class="meta text-muted">
-          <span
-            v-if="option.namespace"
+          <a
+            v-if="option.namespace && option.resource?.type"
             class="namespace more-link"
-            role="button"
-            @click="onNamespaceClick($event, option)"
-          >{{ option.namespace }}</span>
+            :href="namespaceHref(option)"
+            @click.prevent="onNamespaceClick($event, option)"
+          >{{ option.namespace }}</a>
           <span
             v-else
             class="namespace"
-          />
+          >{{ option.namespace }}</span>
           <span class="restarts">{{ t('workloadDashboard.search.restarts', { count: option.resource?.restartCount || 0 }) }}</span>
           <LiveDate
             class="age"
