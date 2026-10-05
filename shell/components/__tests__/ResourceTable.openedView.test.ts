@@ -199,6 +199,57 @@ describe('ResourceTable', () => {
       });
     });
 
+    describe('views shared with everyone', () => {
+      const pageConfig = {
+        metadata: { name: 'page', creationTimestamp: '2026-01-01T00:00:00Z' },
+        spec:     {
+          type:  'PAGE',
+          page:  'pod',
+          views: [{
+            id: 'team', name: 'Team', query: 'state:error'
+          }],
+          defaultViewId: 'team'
+        },
+      };
+
+      function openShared(prefs: Record<string, unknown> | undefined, loaded = true) {
+        return data.call({
+          schema: { id: 'pod' },
+          $store: {
+            getters: {
+              'prefs/get':            (key: string) => (key === TABLE_VIEWS && prefs ? { pod: prefs } : undefined),
+              'management/schemaFor': () => ({ id: 'ui.cattle.io.tableconfiguration' }),
+              'management/haveAll':   () => loaded,
+              'management/all':       () => [pageConfig],
+            }
+          },
+        });
+      }
+
+      it('should open on the page\'s shared default when the user has none', () => {
+        const opened = openShared(undefined);
+
+        expect(opened.openedViewId).toBe('team');
+        expect(opened.view.query).toBe('state:error');
+      });
+
+      it('should open on the user\'s default over the shared one', () => {
+        expect(openShared(saved).openedViewId).toBe('bbb');
+      });
+
+      it('should open on the table\'s own tab when the user chose it over the shared default', () => {
+        expect(openShared({ ...saved, defaultViewId: 'all' }).openedViewId).toBeUndefined();
+      });
+
+      it('should open on a shared view the user made their default', () => {
+        expect(openShared({ ...saved, defaultViewId: 'team' }).openedViewId).toBe('team');
+      });
+
+      it('should leave the shared default to the tabs while the shared views are still loading', () => {
+        expect(openShared(undefined, false).openedViewId).toBeUndefined();
+      });
+    });
+
     describe('a table without the saved view tabs', () => {
       const filtering = {
         ...saved,

@@ -15,6 +15,7 @@ import TableViewShareModal from '@shell/components/TableViews/TableViewShareModa
 import { useDragReorder } from '@shell/composables/useDragReorder';
 import { useI18n } from '@shell/composables/useI18n';
 import { useSavedTableViews } from '@shell/composables/useSavedTableViews';
+import { useGlobalTableViews } from '@shell/composables/useGlobalTableViews';
 import { isMac, shortcutLabel } from '@shell/utils/platform';
 import { shareTableView, sharedTableKey } from '@shell/utils/table-views/share';
 import type { SharedTableView } from '@shell/utils/table-views/share';
@@ -25,6 +26,7 @@ import {
   isViewDirty, isViewModified, persistenceIdOf, savedViewNamed, selectedViewIdFor
 } from '@shell/utils/table-views/views';
 import { TABLE_VIEWS } from '@shell/store/prefs';
+import { ALL_TAB_KEY, defaultViewIdFor, tabOrderFor } from '@shell/utils/table-views/global';
 import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
 import { RcDropdown, RcDropdownItem, RcDropdownSeparator, RcDropdownTrigger } from '@components/RcDropdown';
 
@@ -46,11 +48,13 @@ interface Tab {
   name: string;
   view?: TableViewSaved;
   isDefaultTab?: boolean;
+  /** Shared with everyone rather than the user's own */
+  shared?: boolean;
 }
 
 /** The table's own tab has no id, and null also means "nothing" */
 function tabKey(tab: { id?: string | null }) {
-  return tab.id || 'all';
+  return tab.id || ALL_TAB_KEY;
 }
 
 const props = withDefaults(defineProps<{
@@ -81,8 +85,22 @@ const store = useStore();
 const { t } = useI18n(store);
 
 const {
-  savedViews, defaultViewId, allTabIndex, persistAll, persist, unusedViewName
-} = useSavedTableViews(() => props.resourceType, () => props.tableViewsPage);
+  globalViews, sharedViews, canShare, isShared, canEdit: canEditShared, canRemove: canRemoveShared,
+  share, update: updateShared, remove: removeShared
+} = useGlobalTableViews(() => props.resourceType, () => props.tableViewsPage);
+
+const {
+  savedViews, defaultViewId: ownDefaultViewId, allTabIndex, tabOrder, persistAll, persist, unusedViewName
+} = useSavedTableViews(() => props.resourceType, () => props.tableViewsPage, () => sharedViews.value);
+
+/** The user's views, less any that is now shared with everyone */
+const ownViews = computed(() => savedViews.value.filter((view) => !isShared(view.id)));
+
+/** Every view the strip shows: shared, then the user's */
+const allViews = computed(() => sharedViews.value.concat(ownViews.value));
+
+/** The view the list opens on: the user's choice, else the page's shared default */
+const defaultViewId = computed(() => defaultViewIdFor(ownDefaultViewId.value, globalViews.value, allViews.value.map((view) => view.id)));
 
 /** The table a shared view is for - see sharedTableKey */
 const tableKey = computed(() => sharedTableKey(props.resourceType, props.tableViewsPage));
@@ -156,14 +174,22 @@ const shortcuts = computed(() => {
 
 /** The saved strip: the view the list opens on leads, then the table's own tab and the other views */
 const baseTabs = computed<Tab[]>(() => {
-  const all: Tab = {
-    id: null, name: t('tableViews.tabs.all'), isDefaultTab: true
+  const byKey: Record<string, Tab> = {
+    [ALL_TAB_KEY]: {
+      id: null, name: t('tableViews.tabs.all'), isDefaultTab: true
+    }
   };
-  const tabs: Tab[] = savedViews.value.map((view) => ({
-    id: view.id, name: view.name, view
-  }));
 
-  tabs.splice(allTabIndex.value, 0, all);
+  allViews.value.forEach((view) => {
+    byKey[view.id] = {
+      id: view.id, name: view.name, view, shared: isShared(view.id)
+    };
+  });
+
+  const order = tabOrderFor({
+    personal: savedViews.value, personalAllIndex: allTabIndex.value, global: globalViews.value, order: tabOrder.value
+  });
+  const tabs: Tab[] = order.map((key) => byKey[key]).filter(Boolean);
 
   // With no default set, the table's own tab leads
   const lead = tabs.findIndex((tab) => (defaultViewId.value ? tab.view?.id === defaultViewId.value : tab.isDefaultTab));
@@ -194,7 +220,7 @@ const tabs = computed<Tab[]>(() => {
 /** The tab the list opens on can't be dragged out of the front, nor anything dropped before it */
 const LOCKED_TAB_COUNT = 1;
 
-const selectedViewId = computed(() => selectedViewIdFor(savedViews.value, props.view, pickedViewId.value));
+const selectedViewId = computed(() => selectedViewIdFor(allViews.value, props.view, pickedViewId.value));
 
 /** The one tab Tab can land on (roving tabindex); the first if the current view isn't among them */
 const focusableTabId = computed(() => {
@@ -204,7 +230,7 @@ const focusableTabId = computed(() => {
   return (selected || list[0])?.id;
 });
 
-const isDirty = computed(() => isViewDirty(savedViews.value, props.view, pickedViewId.value));
+const isDirty = computed(() => isViewDirty(allViews.value, props.view, pickedViewId.value));
 
 
 const draftKey = (id: string | null | undefined) => id || '__default';
@@ -351,6 +377,25 @@ const runTabScroll = () => {
   tabScrollFrame = requestAnimationFrame(step);
 };
 
+/**
+ * The user's order, as their views' order and the table's own tab's place among them; and, once
+ * there are shared views, as every tab's key
+ */
+const persistOrder = (order: string[], own: TableViewSaved[] = ownViews.value) => {
+  const byId: Record<string, TableViewSaved> = {};
+
+  own.forEach((view) => {
+    byId[view.id] = view;
+  });
+
+  const ordered = order.map((key) => byId[key]).filter(Boolean);
+  const allIndex = order.slice(0, order.indexOf(ALL_TAB_KEY)).filter((key) => byId[key]).length;
+  // Any the order doesn't name yet go last
+  const rest = own.filter((view) => !order.includes(view.id));
+
+  persistAll(ordered.concat(rest), ownDefaultViewId.value, allIndex, sharedViews.value.length || tabOrder.value ? order : undefined);
+};
+
 /** The table's own tab isn't a saved view, so its place is kept beside them */
 const {
   heldId: heldTabKey, order: tabDragOrder, moved: tabDragMoved, pointer: tabDragPointer, start: armTabDrag, place: placeDraggedTab
@@ -370,15 +415,7 @@ const {
     cancelAnimationFrame(tabScrollFrame);
     tabBounds.value = null;
   },
-  onCommit: (order) => {
-    const byId: Record<string, TableViewSaved> = {};
-
-    savedViews.value.forEach((view) => {
-      byId[view.id] = view;
-    });
-
-    persistAll(order.map((key) => byId[key]).filter(Boolean), defaultViewId.value, order.indexOf('all'));
-  },
+  onCommit: persistOrder,
 });
 
 const startTabDrag = (tab: Tab, event: MouseEvent) => {
@@ -577,6 +614,15 @@ const saveChanges = (tab = selectedTab()) => {
 
   const state = viewStateOf(tabState(tab));
 
+  if (tab.shared) {
+    // Not the user's to change: Save as New keeps the changes as a view of their own
+    if (canEditShared(tab.id)) {
+      updateShared(tab.view.id, state).then((saved) => saved && forgetDraft(tab.id));
+    }
+
+    return;
+  }
+
   persist(savedViews.value.map((v) => (v.id === tab.view?.id ? { ...v, ...state } : v)));
   forgetDraft(tab.id);
 };
@@ -682,12 +728,20 @@ const flashTabWhenScrolled = (strip: HTMLElement, key: string) => {
 const commitRename = () => {
   const id = renamingId.value;
   const name = (renameDraft.value || '').trim();
-  const saved = savedViews.value.find((v) => v.id === id);
+  const saved = allViews.value.find((v) => v.id === id);
 
   renamingId.value = null;
   renameDraft.value = '';
 
   if (!name || !saved || name === saved.name) {
+    return;
+  }
+
+  if (isShared(saved.id)) {
+    if (canEditShared(saved.id)) {
+      updateShared(saved.id, { name });
+    }
+
     return;
   }
 
@@ -773,7 +827,10 @@ const duplicateCurrent = () => {
 
 /** Picking the table's own tab is how to go back to no default */
 const setDefaultView = (tab: Tab) => {
-  persistAll(savedViews.value, tab.isDefaultTab ? null : tab.view?.id || null);
+  // Over a page's shared default, the table's own tab is a choice to keep
+  const ownTab = globalViews.value.defaultViewId ? ALL_TAB_KEY : null;
+
+  persistAll(savedViews.value, tab.isDefaultTab ? ownTab : tab.view?.id || null);
 
   // The tab just moved to the front, so scroll there and flash it to say why the strip moved
   const key = tabKey(tab.isDefaultTab ? { id: null } : { id: tab.view?.id });
@@ -796,13 +853,19 @@ const isDefaultTab = (tab: Tab) => (tab.isDefaultTab ? !defaultViewId.value : de
  * Deleted at once and offered back, rather than confirmed first. Undo restores its place, default
  * and held edits too
  */
-const deleteView = (saved?: TableViewSaved) => {
+const deleteView = async(saved?: TableViewSaved) => {
   if (!saved) {
     return;
   }
 
+  const shared = isShared(saved.id);
+
+  if (shared && !canRemoveShared(saved.id)) {
+    return;
+  }
+
   const wasSelected = selectedViewId.value === saved.id;
-  const wasDefault = defaultViewId.value === saved.id;
+  const wasDefault = ownDefaultViewId.value === saved.id;
   const at = savedViews.value.findIndex((v) => v.id === saved.id);
   // The table's own tab is placed among the views by how many come before it, one fewer once this goes
   const beforeAll = at >= 0 && at < allTabIndex.value;
@@ -812,9 +875,17 @@ const deleteView = (saved?: TableViewSaved) => {
   const index = list.findIndex((tab) => tab.id === saved.id);
   const neighbour = list[index > 0 ? index - 1 : index + 1];
 
+  // Gone for everyone, so only once the cluster agrees
+  if (shared && !await removeShared(saved.id)) {
+    return;
+  }
+
   // Its edits go with it, so nothing of it is left on screen for the tab taking its place
   forgetDraft(saved.id);
-  persistAll(savedViews.value.filter((v) => v.id !== saved.id), defaultViewId.value, allTabIndex.value - (beforeAll ? 1 : 0));
+
+  if (!shared) {
+    persistAll(savedViews.value.filter((v) => v.id !== saved.id), ownDefaultViewId.value, allTabIndex.value - (beforeAll ? 1 : 0));
+  }
 
   if (wasSelected) {
     showTab(neighbour);
@@ -829,20 +900,27 @@ const deleteView = (saved?: TableViewSaved) => {
   store.dispatch('growl/success', {
     title:   t('tableViews.tab.deleted'),
     // Raw, since the growl renders text: escaped, the quotes would show as `&quot;`
-    message: t('tableViews.tab.deletedMessage', { name: saved.name }, true),
+    message: t(shared ? 'tableViews.tab.deletedSharedMessage' : 'tableViews.tab.deletedMessage', { name: saved.name }, true),
     timeout: UNDO_TIMEOUT,
     action:  {
       label: t('tableViews.tab.undo'),
-      run:   () => {
-        const views = [...savedViews.value];
-        const back = Math.min(Math.max(at, 0), views.length);
-        // All may have been moved since: it shifts when the view comes back before it, or at its place
-        // when it was before it then
-        const allNow = allTabIndex.value;
-        const allShifts = back < allNow || (back === allNow && beforeAll);
+      run:   async() => {
+        // Shared again under its id, so it comes back to its place in everyone's order
+        if (shared) {
+          if (!await share(saved)) {
+            return;
+          }
+        } else {
+          const views = [...savedViews.value];
+          const back = Math.min(Math.max(at, 0), views.length);
+          // All may have been moved since: it shifts when the view comes back before it, or at its place
+          // when it was before it then
+          const allNow = allTabIndex.value;
+          const allShifts = back < allNow || (back === allNow && beforeAll);
 
-        views.splice(back, 0, saved);
-        persistAll(views, wasDefault ? saved.id : defaultViewId.value, allNow + (allShifts ? 1 : 0));
+          views.splice(back, 0, saved);
+          persistAll(views, wasDefault ? saved.id : ownDefaultViewId.value, allNow + (allShifts ? 1 : 0));
+        }
 
         if (draft) {
           drafts.value = { ...drafts.value, [draftKey(saved.id)]: draft };
@@ -854,6 +932,43 @@ const deleteView = (saved?: TableViewSaved) => {
       },
     },
   });
+};
+
+/** The strip's order as it stands, so a view moving between the user's and the shared keeps its place */
+const currentOrder = () => baseTabs.value.map(tabKey);
+
+/** Shared as saved; edits held on the tab stay edits */
+const shareView = async(tab: Tab) => {
+  const view = tab.view;
+
+  if (!view || tab.shared) {
+    return;
+  }
+
+  const order = currentOrder();
+
+  if (await share(view)) {
+    persistOrder(order, savedViews.value.filter((v) => v.id !== view.id));
+  }
+};
+
+/** Back to the user's alone: a view of their own first, so it is never lost if the cluster says no */
+const unshareView = async(tab: Tab) => {
+  const view = tab.view;
+
+  if (!view || !tab.shared) {
+    return;
+  }
+
+  const order = currentOrder();
+  const before = savedViews.value;
+  const copy = Object.fromEntries(Object.entries(view).filter(([, v]) => v !== null && v !== '')) as TableViewSaved;
+
+  persistOrder(order, before.filter((v) => v.id !== view.id).concat([copy]));
+
+  if (!await removeShared(view.id)) {
+    persistOrder(order, before);
+  }
 };
 
 const doExport = (format: string) => {
@@ -906,6 +1021,25 @@ const SHORTCUT_ACTIONS: Record<TableViewShortcutAction, () => void> = {
 };
 
 watch(tabQueries, (queries) => emit('tab-queries', queries), { immediate: true });
+
+/**
+ * Shared views come after the list has opened the first time, so a default among them is opened
+ * when they arrive - unless the user has picked a tab or changed the table since
+ */
+const stopOpeningSharedDefault = watch(sharedViews, (views) => {
+  if (!views.length) {
+    return;
+  }
+
+  stopOpeningSharedDefault();
+
+  const id = defaultViewId.value;
+  const view = id ? allViews.value.find((candidate) => candidate.id === id) : undefined;
+
+  if (view && pickedViewId.value === undefined && !isViewModified(props.view)) {
+    applyView(view);
+  }
+});
 
 /** The keys are bound in ResourceTable's shortkeys template; the list the focus is in answers them */
 let unregisterShortcuts: (() => void) | null = null;
@@ -993,6 +1127,14 @@ onBeforeUnmount(() => {
               @keydown.end.prevent="edgeTab('last')"
               @keydown.down.prevent="openTabMenu(tab)"
             >
+              <i
+                v-if="tab.shared"
+                v-clean-tooltip="t('tableViews.tab.shared')"
+                class="icon icon-globe shared-mark"
+                role="img"
+                :aria-label="t('tableViews.tab.shared')"
+                :data-testid="`table-views-shared-${ tab.id }`"
+              />
               {{ tabLabel(tab) }}
               <span
                 v-if="isTabDirty(tab)"
@@ -1029,7 +1171,7 @@ onBeforeUnmount(() => {
                       {{ t('tableViews.view.unsaved') }}
                     </div>
                     <rc-dropdown-item
-                      v-if="!tab.isDefaultTab"
+                      v-if="!tab.isDefaultTab && (!tab.shared || canEditShared(tab.id))"
                       data-testid="table-views-save-changes"
                       @click="saveChanges(tab)"
                     >
@@ -1065,9 +1207,9 @@ onBeforeUnmount(() => {
                     <rc-dropdown-separator />
                   </template>
 
-                  <!-- The table's own tab can't be renamed, saved over or deleted -->
+                  <!-- The table's own tab can't be renamed, saved over or deleted, nor can a shared view by most -->
                   <rc-dropdown-item
-                    v-if="!tab.isDefaultTab"
+                    v-if="!tab.isDefaultTab && (!tab.shared || canEditShared(tab.id))"
                     :data-testid="`table-views-rename-${ tab.id }`"
                     @click="openRename(tab.view)"
                   >
@@ -1145,7 +1287,28 @@ onBeforeUnmount(() => {
                     </template>
                   </rc-dropdown-item>
 
-                  <template v-if="!tab.isDefaultTab">
+                  <rc-dropdown-item
+                    v-if="!tab.isDefaultTab && !tab.shared && canShare"
+                    :data-testid="`table-views-share-${ tab.id }`"
+                    @click="shareView(tab)"
+                  >
+                    <template #before>
+                      <i class="icon icon-globe" />
+                    </template>
+                    {{ t('tableViews.tab.share') }}
+                  </rc-dropdown-item>
+                  <rc-dropdown-item
+                    v-if="tab.shared && canRemoveShared(tab.id)"
+                    :data-testid="`table-views-unshare-${ tab.id }`"
+                    @click="unshareView(tab)"
+                  >
+                    <template #before>
+                      <i class="menu-gutter" />
+                    </template>
+                    {{ t('tableViews.tab.unshare') }}
+                  </rc-dropdown-item>
+
+                  <template v-if="!tab.isDefaultTab && (!tab.shared || canRemoveShared(tab.id))">
                     <rc-dropdown-separator />
                     <rc-dropdown-item
                       :data-testid="`table-views-delete-${ tab.id }`"
@@ -1390,6 +1553,12 @@ onBeforeUnmount(() => {
       top: 2px;
       left: 100%;
       margin-left: 1px;
+    }
+
+    // Closer to its name than the tab's gap
+    > .shared-mark {
+      font-size: 14px;
+      margin-right: -4px;
     }
     // The global button rule's 40px min-height
     min-height: 32px;

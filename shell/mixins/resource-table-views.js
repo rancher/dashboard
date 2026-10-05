@@ -21,6 +21,8 @@ import { DEFAULT_MANDATORY_SORT } from '@shell/components/SortableTable/sorting'
 import { sortBy } from '@shell/utils/sort';
 import { uniq } from '@shell/utils/array';
 import { NO_GROUPING, savedViewsByType } from '@shell/utils/table-views/views';
+import { defaultViewIdFor, globalPageKey, globalViewsFor } from '@shell/utils/table-views/global';
+import { UI } from '@shell/config/types';
 
 /** Most rows an "all matching" export will fetch - a limit on what the browser holds, not on the api */
 const EXPORT_ROW_LIMIT = 50000;
@@ -60,6 +62,26 @@ function savedViewsEntry(vm) {
   const typeEntry = Array.isArray(stored) ? { views: stored } : stored;
 
   return vm.tableViewsPage ? typeEntry?.pages?.[vm.tableViewsPage] : typeEntry;
+}
+
+/**
+ * The table's views shared with everyone, as far as the store has them; the tabs load them. Outside
+ * the component so `data` can ask
+ */
+function globalViewsOf(vm) {
+  const getters = vm.$store.getters;
+  const type = UI.TABLE_CONFIGURATION;
+  const configs = getters['management/schemaFor']?.(type) && getters['management/haveAll'](type) ? getters['management/all'](type) : [];
+
+  return globalViewsFor(configs, globalPageKey(vm.schema?.id || '', vm.tableViewsPage));
+}
+
+/** Every view the table's tabs show: shared, then the user's */
+function allViewsOf(vm, saved = savedViewsEntry(vm), shared = globalViewsOf(vm)) {
+  const sharedViews = shared.views.map((entry) => entry.view);
+  const sharedIds = new Set(sharedViews.map((view) => view.id));
+
+  return sharedViews.concat((saved?.views || []).filter((view) => !sharedIds.has(view.id)));
 }
 
 /** Whether a table would show the saved view tabs, table views allowing. Outside the component so `data` can ask */
@@ -123,6 +145,9 @@ export default {
   data() {
     /** @type {{ views: import('@shell/types/table-views').TableViewSaved[], defaultViewId: string|null }} */
     const saved = savedViewsEntry(this);
+    const shared = globalViewsOf(this);
+    const views = allViewsOf(this, saved, shared);
+    const defaultId = defaultViewIdFor(saved?.defaultViewId, shared, views.map((view) => view.id));
     /**
      * A link to some of the list's states, eg from an overview's counts, opens the table's own tab
      * filtered to them, rather than the default view
@@ -134,7 +159,7 @@ export default {
      *
      * @type {import('@shell/types/table-views').TableViewSaved|undefined}
      */
-    const defaultView = wantsTableViewTabs(this) && !linkedQuery ? (saved?.views || []).find((view) => view.id === saved?.defaultViewId) : undefined;
+    const defaultView = wantsTableViewTabs(this) && !linkedQuery ? views.find((view) => view.id === defaultId) : undefined;
 
     return {
       /**
@@ -813,7 +838,7 @@ export default {
 
 
     savedViews() {
-      return savedViewsEntry(this)?.views || [];
+      return allViewsOf(this);
     },
 
     /** Queries rather than views: two views filtering alike share one count */
