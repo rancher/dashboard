@@ -212,8 +212,8 @@ const rancherSearchTheme = EditorView.theme({
     padding:         '0',
     border:          '0',
     backgroundColor: 'transparent',
-    color:           'var(--rc-cm-text)',
-    fontSize:        '16px',
+    color:           'var(--muted, #6B6D85)',
+    fontSize:        '12px',
     lineHeight:      '1',
     cursor:          'pointer',
     '&:hover':       { color: 'var(--primary, #3D98D3)' }
