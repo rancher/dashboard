@@ -126,12 +126,13 @@ const rancherSearchTheme = EditorView.theme({
     display:    'flex',
     alignItems: 'center',
     gap:        '8px',
-    padding:    '8px',
+    padding:    '8px 0',
     fontSize:   '14px'
   },
   '.cm-search-field': {
     display:          'flex',
     flex:             '1 1 auto',
+    boxSizing:        'border-box',
     minWidth:         '0',
     height:           '36px',
     border:           '1px solid var(--input-border, #C4C8CF)',
@@ -140,12 +141,13 @@ const rancherSearchTheme = EditorView.theme({
     '&:hover':        { borderColor: 'var(--input-hover-border, var(--input-border, #C4C8CF))' },
     '&:focus-within': {
       borderColor: 'var(--primary-border, var(--primary, #3D98D3))',
-      outline:     '1px solid var(--primary-border, var(--primary, #3D98D3))'
+      boxShadow:   'inset 0 0 0 1px var(--primary-border, var(--primary, #3D98D3))'
     }
   },
-  '.cm-textfield': {
+  '.cm-panel.cm-search .cm-textfield': {
     display:         'block',
     flex:            '1 1 auto',
+    boxSizing:       'border-box',
     minWidth:        '0',
     width:           '100%',
     height:          '100%',
@@ -155,7 +157,8 @@ const rancherSearchTheme = EditorView.theme({
     color:           'var(--input-text, inherit)',
     backgroundColor: 'transparent',
     border:          '0',
-    outline:         'none'
+    outline:         'none',
+    boxShadow:       'none'
   },
   '.cm-search-controls': {
     display:    'flex',
@@ -171,17 +174,20 @@ const rancherSearchTheme = EditorView.theme({
     fontSize:   '12px',
     padding:    '0 2px'
   },
-  '.cm-search-controls button': {
+  '.cm-panel.cm-search .cm-search-controls button': {
     display:         'inline-flex',
     alignItems:      'center',
     justifyContent:  'center',
     width:           '24px',
     height:          '28px',
+    minHeight:       '0',
+    boxSizing:       'border-box',
     margin:          '0',
     padding:         '0',
     border:          '0',
     backgroundColor: 'transparent',
     color:           'inherit',
+    lineHeight:      '1',
     cursor:          'pointer',
     '&:hover':       { color: 'var(--primary, #3D98D3)' },
     '&:disabled':    { opacity: '0.4', cursor: 'default' }
@@ -194,16 +200,18 @@ const rancherSearchTheme = EditorView.theme({
     margin:          '0',
     padding:         '0 6px',
     height:          '32px',
+    minHeight:       '0',
     border:          '0',
     backgroundColor: 'transparent',
     color:           'var(--rc-cm-text)',
     fontSize:        '12px',
+    lineHeight:      '1',
     cursor:          'pointer',
     '&:hover':       { color: 'var(--primary, #3D98D3)' }
   },
   '.cm-panel.cm-search button:focus-visible': {
     outline:       '2px solid var(--primary-keyboard-focus, #3D98D3)',
-    outlineOffset: '1px'
+    outlineOffset: '-2px'
   },
   '.cm-searchMatch':          { backgroundColor: 'var(--rc-cm-search-match)' },
   '.cm-searchMatch-selected': { backgroundColor: 'var(--rc-cm-search-match-selected)' }
