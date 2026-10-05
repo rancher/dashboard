@@ -197,11 +197,18 @@ describe('TableViewTabs', () => {
 
     /** A strip whose saved views change as they are written, the way the preference does */
     function createWrapper({
-      views = [first, second], defaultViewId = null as string | null, view = { ...EMPTY }, initialViewId = undefined as string | undefined
+      views = [first, second], defaultViewId = null as string | null, view = { ...EMPTY }, initialViewId = undefined as string | undefined,
+      allIndex = 0
     } = {}) {
       const growl = jest.fn();
       const store = createStore({
-        state:     { stored: { test: { views, defaultViewId } } as Record<string, unknown> },
+        state: {
+          stored: {
+            test: {
+              views, defaultViewId, allIndex
+            }
+          } as Record<string, unknown>
+        },
         getters:   { 'prefs/get': (state) => (key: string) => (key === TABLE_VIEWS ? state.stored : undefined) },
         mutations: { write: (state, value) => (state.stored = value) },
         actions:   {
@@ -219,10 +226,11 @@ describe('TableViewTabs', () => {
 
       // Read as the table does, through the version the preference is written with
       const stored = () => savedViewsByType<{ views: TableViewSaved[] }>(store.state.stored).test.views;
+      const storedAllIndex = () => savedViewsByType<{ allIndex?: number }>(store.state.stored).test.allIndex;
       const shown = () => wrapper.emitted<[TableViewState]>('update:view')?.pop()?.[0];
 
       return {
-        wrapper, vm: internals(wrapper), stored, shown, growl
+        wrapper, vm: internals(wrapper), stored, storedAllIndex, shown, growl
       };
     }
 
@@ -295,6 +303,43 @@ describe('TableViewTabs', () => {
     });
 
     describe('deleting a view', () => {
+      describe('the table\'s own tab', () => {
+        const third = makeView('ccc', 'third', { query: 'name:baz' });
+
+        // [first, All, second, third], with `third` the default, which leads: [third, first, All, second]
+        const setup = () => createWrapper({
+          views: [first, second, third], defaultViewId: 'ccc', allIndex: 1
+        });
+
+        it('should keep its place when a view before it goes', () => {
+          const { vm, storedAllIndex } = setup();
+
+          vm.deleteView(first);
+
+          expect(storedAllIndex()).toBe(0);
+          expect((vm as unknown as { tabs: { id: string | null }[] }).tabs.map((tab) => tab.id)).toStrictEqual(['ccc', null, 'bbb']);
+        });
+
+        it('should keep its place when a view after it goes', () => {
+          const { vm, storedAllIndex } = setup();
+
+          vm.deleteView(second);
+
+          expect(storedAllIndex()).toBe(1);
+          expect((vm as unknown as { tabs: { id: string | null }[] }).tabs.map((tab) => tab.id)).toStrictEqual(['ccc', 'aaa', null]);
+        });
+
+        it('should be back where it was when the view is put back', () => {
+          const { vm, storedAllIndex, growl } = setup();
+
+          vm.deleteView(first);
+          growl.mock.calls[0][0].action.run();
+
+          expect(storedAllIndex()).toBe(1);
+          expect((vm as unknown as { tabs: { id: string | null }[] }).tabs.map((tab) => tab.id)).toStrictEqual(['ccc', 'aaa', null, 'bbb']);
+        });
+      });
+
       it('should drop the view from the saved list and offer it back', () => {
         const { vm, stored, growl } = createWrapper();
 
