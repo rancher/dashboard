@@ -754,6 +754,8 @@ const deleteView = (saved?: TableViewSaved) => {
   const wasSelected = selectedViewId.value === saved.id;
   const wasDefault = defaultViewId.value === saved.id;
   const at = savedViews.value.findIndex((v) => v.id === saved.id);
+  // The table's own tab is placed among the views by how many come before it, one fewer once this goes
+  const beforeAll = at >= 0 && at < allTabIndex.value;
   const draft = drafts.value[draftKey(saved.id)];
   // Taken before the view goes: the tab to its left, or to its right when it was the first
   const list = tabs.value || [];
@@ -762,7 +764,7 @@ const deleteView = (saved?: TableViewSaved) => {
 
   // Its edits go with it, so nothing of it is left on screen for the tab taking its place
   forgetDraft(saved.id);
-  persist(savedViews.value.filter((v) => v.id !== saved.id));
+  persistAll(savedViews.value.filter((v) => v.id !== saved.id), defaultViewId.value, allTabIndex.value - (beforeAll ? 1 : 0));
 
   if (wasSelected) {
     showTab(neighbour);
@@ -785,7 +787,7 @@ const deleteView = (saved?: TableViewSaved) => {
         const views = [...savedViews.value];
 
         views.splice(Math.min(Math.max(at, 0), views.length), 0, saved);
-        persistAll(views, wasDefault ? saved.id : defaultViewId.value);
+        persistAll(views, wasDefault ? saved.id : defaultViewId.value, allTabIndex.value + (beforeAll ? 1 : 0));
 
         if (draft) {
           drafts.value = { ...drafts.value, [draftKey(saved.id)]: draft };
