@@ -86,7 +86,9 @@ export function createSearchPanel(view: EditorView): Panel {
     count.textContent = query.search ? state.phrase('$1 of $2', current, total) : '';
     count.hidden = !query.search;
     clear.hidden = !query.search;
+    clear.style.display = query.search ? '' : 'none';
     searchIcon.hidden = !!query.search;
+    searchIcon.style.display = query.search ? 'none' : '';
     next.disabled = total === 0;
     previous.disabled = total === 0;
   }
