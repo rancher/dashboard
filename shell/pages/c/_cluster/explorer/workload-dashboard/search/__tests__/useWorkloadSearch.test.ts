@@ -1,6 +1,8 @@
 import { useWorkloadSearch } from '@shell/pages/c/_cluster/explorer/workload-dashboard/search/useWorkloadSearch';
 import { WORKLOAD_DASHBOARD_RESOURCE_TYPES } from '@shell/pages/c/_cluster/explorer/workload-dashboard/types';
-import { WORKLOAD_SEARCH_DEBOUNCE_MS } from '@shell/pages/c/_cluster/explorer/workload-dashboard/search/types';
+import { WORKLOAD_SEARCH_DEBOUNCE_MS, WORKLOAD_SEARCH_RESULTS_PER_TYPE } from '@shell/pages/c/_cluster/explorer/workload-dashboard/search/types';
+import { PaginationParamFilter } from '@shell/types/store/pagination.types';
+import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { defineComponent, h } from 'vue';
 import { shallowMount, flushPromises } from '@vue/test-utils';
 
@@ -66,9 +68,25 @@ function mountComposable() {
 
 function makeResource(name: string, namespace = 'default') {
   return {
-    metadata:       { name, namespace },
-    detailLocation: { name: 'detail', params: { id: name, namespace } },
+    metadata:         { name, namespace },
+    detailLocation:   { name: 'detail', params: { id: name, namespace } },
+    stateSimpleColor: 'success',
   };
+}
+
+const FIRST_TYPE = WORKLOAD_DASHBOARD_RESOURCE_TYPES[0];
+
+// Returns `response` for the first workload type and no results for the rest.
+function mockFirstTypeResponse(response: any) {
+  mockDispatch.mockImplementation((action: string, { type }: { type: string }) => {
+    return Promise.resolve(type === FIRST_TYPE ? response : { data: [] });
+  });
+}
+
+async function search(result: ReturnType<typeof useWorkloadSearch>, term: string) {
+  result.onSearch(term);
+  jest.advanceTimersByTime(WORKLOAD_SEARCH_DEBOUNCE_MS);
+  await flushPromises();
 }
 
 describe('composable: useWorkloadSearch', () => {
@@ -111,12 +129,57 @@ describe('composable: useWorkloadSearch', () => {
           watch:      false,
           pagination: expect.objectContaining({
             page:     1,
-            pageSize: 10,
-            sort:     [{ field: 'metadata.name', asc: true }],
+            pageSize: WORKLOAD_SEARCH_RESULTS_PER_TYPE,
+            sort:     [],
           }),
         }),
       }));
     });
+  });
+
+  it('filters each request by a partial match on the resource name', async() => {
+    mockDispatch.mockResolvedValue({ data: [] });
+    const { result } = mountComposable();
+
+    await search(result, 'nginx');
+
+    const { filters } = mockDispatch.mock.calls[0][1].opt.pagination;
+
+    expect(filters).toStrictEqual([
+      PaginationParamFilter.createSingleField({
+        field: 'metadata.name',
+        value: 'nginx',
+        exact: false,
+      }),
+    ]);
+  });
+
+  it('scopes each request to the header namespace filter', async() => {
+    const nsFilter = PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: 'default' });
+
+    (stevePaginationUtils.createParamsFromNsFilter as jest.Mock).mockReturnValueOnce({
+      projectsOrNamespaces: [{ projectOrNamespace: 'p-1' }],
+      filters:              [nsFilter],
+    });
+    mockDispatch.mockResolvedValue({ data: [] });
+    const { result } = mountComposable();
+
+    await search(result, 'nginx');
+
+    const { pagination } = mockDispatch.mock.calls[0][1].opt;
+
+    expect(pagination.projectsOrNamespaces).toStrictEqual([{ projectOrNamespace: 'p-1' }]);
+    expect(pagination.filters[0]).toStrictEqual(nsFilter);
+  });
+
+  it('skips types without a schema', async() => {
+    mockDispatch.mockResolvedValue({ data: [] });
+    setupGetters({ 'cluster/schemaFor': (type: string) => (type === FIRST_TYPE ? null : { id: type }) });
+    const { result } = mountComposable();
+
+    await search(result, 'nginx');
+
+    expect(mockDispatch).toHaveBeenCalledTimes(WORKLOAD_DASHBOARD_RESOURCE_TYPES.length - 1);
   });
 
   it('skips types the user cannot list', async() => {
@@ -132,38 +195,178 @@ describe('composable: useWorkloadSearch', () => {
   });
 
   it('groups returned resources under a type header option', async() => {
-    mockDispatch.mockImplementation((action: string, { type }: { type: string }) => {
-      if (type === WORKLOAD_DASHBOARD_RESOURCE_TYPES[0]) {
-        return Promise.resolve({ data: [makeResource('nginx-a'), makeResource('nginx-b', 'kube-system')] });
-      }
+    const resourceA = makeResource('nginx-a');
+    const resourceB = makeResource('nginx-b', 'kube-system');
 
-      return Promise.resolve({ data: [] });
-    });
+    mockFirstTypeResponse({ data: [resourceA, resourceB] });
     const { result } = mountComposable();
 
-    result.onSearch('nginx');
-    jest.advanceTimersByTime(WORKLOAD_SEARCH_DEBOUNCE_MS);
-    await flushPromises();
+    await search(result, 'nginx');
 
     expect(result.options.value).toStrictEqual([
       {
         kind:     'group',
         label:    expect.any(String),
-        uniqueId: `group-${ WORKLOAD_DASHBOARD_RESOURCE_TYPES[0] }`,
+        uniqueId: `group-${ FIRST_TYPE }`,
       },
       {
         label:     'nginx-a',
         namespace: 'default',
-        uniqueId:  `${ WORKLOAD_DASHBOARD_RESOURCE_TYPES[0] }/default/nginx-a`,
+        uniqueId:  `${ FIRST_TYPE }/default/nginx-a`,
         value:     { name: 'detail', params: { id: 'nginx-a', namespace: 'default' } },
+        color:     'success',
+        resource:  resourceA,
       },
       {
         label:     'nginx-b',
         namespace: 'kube-system',
-        uniqueId:  `${ WORKLOAD_DASHBOARD_RESOURCE_TYPES[0] }/kube-system/nginx-b`,
+        uniqueId:  `${ FIRST_TYPE }/kube-system/nginx-b`,
         value:     { name: 'detail', params: { id: 'nginx-b', namespace: 'kube-system' } },
+        color:     'success',
+        resource:  resourceB,
       },
     ]);
+  });
+
+  it('labels the group header with the type and the total match count', async() => {
+    mockFirstTypeResponse({ data: [makeResource('nginx-a')], pagination: { result: { count: 12 } } });
+    const { result } = mountComposable();
+
+    await search(result, 'nginx');
+
+    expect(result.options.value[0].label).toStrictEqual(`%typeLabel."${ FIRST_TYPE }"%{"count":2} (12)`);
+  });
+
+  it('falls back to the number of returned resources when no total count is returned', async() => {
+    mockFirstTypeResponse({ data: [makeResource('nginx-a'), makeResource('nginx-b')] });
+    const { result } = mountComposable();
+
+    await search(result, 'nginx');
+
+    expect(result.options.value[0].label).toStrictEqual(`%typeLabel."${ FIRST_TYPE }"%{"count":2} (2)`);
+  });
+
+  it('appends a "more" option when the total count exceeds the returned resources', async() => {
+    mockFirstTypeResponse({ data: [makeResource('nginx-a'), makeResource('nginx-b')], pagination: { result: { count: 5 } } });
+    const { result } = mountComposable();
+
+    await search(result, 'nginx');
+
+    const typeLabel = `%typeLabel."${ FIRST_TYPE }"%{"count":2}`;
+
+    expect(result.options.value[result.options.value.length - 1]).toStrictEqual({
+      kind:         'more',
+      label:        `%workloadDashboard.search.moreResults%${ JSON.stringify({ count: 3, type: typeLabel.toLowerCase() }) }`,
+      uniqueId:     `more-${ FIRST_TYPE }`,
+      resourceType: FIRST_TYPE,
+      searchTerm:   'nginx',
+    });
+  });
+
+  it('does not append a "more" option when all matches were returned', async() => {
+    mockFirstTypeResponse({ data: [makeResource('nginx-a')], pagination: { result: { count: 1 } } });
+    const { result } = mountComposable();
+
+    await search(result, 'nginx');
+
+    expect(result.options.value.some((option) => option.kind === 'more')).toBe(false);
+  });
+
+  it('omits a type whose request fails and keeps the results of the others', async() => {
+    const [failingType, okType] = WORKLOAD_DASHBOARD_RESOURCE_TYPES;
+
+    mockDispatch.mockImplementation((action: string, { type }: { type: string }) => {
+      if (type === failingType) {
+        return Promise.reject(new Error('boom'));
+      }
+
+      return Promise.resolve(type === okType ? { data: [makeResource('nginx-a')] } : { data: [] });
+    });
+    const { result } = mountComposable();
+
+    await search(result, 'nginx');
+
+    expect(result.options.value.map((option) => option.uniqueId)).toStrictEqual([
+      `group-${ okType }`,
+      `${ okType }/default/nginx-a`,
+    ]);
+  });
+
+  it('ignores a response for a search that has since been superseded by a newer search', async() => {
+    const resolvers: ((value: any) => void)[] = [];
+
+    mockDispatch.mockImplementation((action: string, { type }: { type: string }) => {
+      if (type !== FIRST_TYPE) {
+        return Promise.resolve({ data: [] });
+      }
+
+      return new Promise((resolve) => resolvers.push(resolve));
+    });
+    const { result } = mountComposable();
+
+    await search(result, 'ng');
+    await search(result, 'nginx');
+
+    resolvers[1]({ data: [makeResource('nginx-new')] });
+    await flushPromises();
+    resolvers[0]({ data: [makeResource('ng-old')] });
+    await flushPromises();
+
+    expect(result.options.value[1].label).toStrictEqual('nginx-new');
+  });
+
+  it('ignores a response whose term no longer matches the search term still waiting on the debounce', async() => {
+    let resolveFirst: (value: any) => void = () => {};
+
+    mockDispatch.mockImplementation((action: string, { type }: { type: string }) => {
+      if (type !== FIRST_TYPE) {
+        return Promise.resolve({ data: [] });
+      }
+
+      return new Promise((resolve) => {
+        resolveFirst = resolve;
+      });
+    });
+    const { result } = mountComposable();
+
+    await search(result, 'ng');
+    result.onSearch('nginx');
+
+    resolveFirst({ data: [makeResource('ng-old')] });
+    await flushPromises();
+
+    expect(result.options.value).toStrictEqual([]);
+  });
+
+  it('keeps loading set while a newer search term is still waiting on the debounce', async() => {
+    let resolveFirst: (value: any) => void = () => {};
+
+    mockDispatch.mockImplementation((action: string, { type }: { type: string }) => {
+      if (type !== FIRST_TYPE) {
+        return Promise.resolve({ data: [] });
+      }
+
+      return new Promise((resolve) => {
+        resolveFirst = resolve;
+      });
+    });
+    const { result } = mountComposable();
+
+    await search(result, 'ng');
+    result.onSearch('nginx');
+
+    resolveFirst({ data: [] });
+    await flushPromises();
+
+    expect(result.loading.value).toBe(true);
+  });
+
+  it('stores the latest search term', () => {
+    const { result } = mountComposable();
+
+    result.onSearch('nginx');
+
+    expect(result.searchTerm.value).toStrictEqual('nginx');
   });
 
   it('sets loading while requests are in flight and clears it once resolved', async() => {

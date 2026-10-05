@@ -103,4 +103,67 @@ describe('component: RcDropdown.vue', () => {
 
     expect(dropdownTarget.style.height).toBe('368px');
   });
+
+  describe('container prop', () => {
+    afterEach(() => {
+      document.body.innerHTML = '';
+    });
+
+    it('should render the popper container in place when no container is provided', () => {
+      const wrapper = mount(RcDropdown, { global: { components: { 'v-dropdown': vDropdownMock } } });
+
+      expect(wrapper.find('.popperContainer').exists()).toBe(true);
+      expect(document.body.querySelector(':scope > .popperContainer')).toBeNull();
+
+      wrapper.unmount();
+    });
+
+    it('should teleport the popper container to the body when container is "body"', () => {
+      const wrapper = mount(RcDropdown, {
+        props:  { container: 'body' },
+        global: { components: { 'v-dropdown': vDropdownMock } },
+      });
+
+      expect(wrapper.find('.popperContainer').exists()).toBe(false);
+      expect(document.body.querySelector(':scope > .popperContainer')).not.toBeNull();
+
+      wrapper.unmount();
+    });
+
+    it('should teleport the popper container into a given element', () => {
+      const target = document.createElement('div');
+
+      document.body.appendChild(target);
+
+      const wrapper = mount(RcDropdown, {
+        props:  { container: target },
+        global: { components: { 'v-dropdown': vDropdownMock } },
+      });
+
+      expect(target.querySelector(':scope > .popperContainer')).not.toBeNull();
+
+      wrapper.unmount();
+    });
+
+    it('should still mount the popper inside the teleported popper container', async() => {
+      const vDropdownWithContainer = defineComponent({
+        props:    { container: { type: Object, default: null } },
+        template: '<div class="popper" />',
+      });
+
+      const wrapper = mount(RcDropdown, {
+        props:  { container: 'body' },
+        global: { components: { 'v-dropdown': vDropdownWithContainer } },
+      });
+
+      // The container ref is only populated once the first render has run
+      await wrapper.vm.$nextTick();
+
+      const teleported = document.body.querySelector(':scope > .popperContainer');
+
+      expect(wrapper.findComponent(vDropdownWithContainer).props('container')).toBe(teleported);
+
+      wrapper.unmount();
+    });
+  });
 });

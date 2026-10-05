@@ -119,13 +119,15 @@ export function useWorkloadSearch() {
         WORKLOAD_DASHBOARD_RESOURCE_TYPES.map((type) => fetchOptionsForType(type, term, namespaceFilter))
       );
 
-      if (currentRequestId !== requestId) {
+      // The term check covers typing that's still waiting on the debounce, which
+      // hasn't bumped requestId yet.
+      if (currentRequestId !== requestId || term !== searchTerm.value) {
         return;
       }
 
       options.value = results.flat();
     } finally {
-      if (currentRequestId === requestId) {
+      if (currentRequestId === requestId && term === searchTerm.value) {
         loading.value = false;
       }
     }

@@ -7,7 +7,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import { computed, ref } from 'vue';
 import { useWorkloadSearch } from './useWorkloadSearch';
-import { WORKLOAD_SEARCH_RESULTS_PER_TYPE, type WorkloadSearchOption } from './types';
+import { type WorkloadSearchOption } from './types';
 import type { WorkloadDashboardNamespaceNavigateFn, WorkloadDashboardResourceRouteFn } from '../types';
 
 const props = defineProps<{
@@ -15,11 +15,20 @@ const props = defineProps<{
   resourceRoute: WorkloadDashboardResourceRouteFn;
 }>();
 
-// One row for the group label, the results shown per type, plus half a row
-// as a scroll affordance when there's more to see.
-const dropdownVisibleRows = WORKLOAD_SEARCH_RESULTS_PER_TYPE;
-// $rc-button-small-height (the action-menu button, the tallest thing in a
-// result row) plus the row's own 8px top/bottom padding.
+
+/**
+ * How many how many workloads to show in the entire drop down
+ *
+ * One row for the group label + the results shown per type + plus half a row (so user see's theres more results)
+ */
+const dropdownVisibleRows = 10;
+
+/**
+ * height of a row. we manually
+ *
+ * $rc-button-small-height (the action-menu button, the tallest thing in a
+ * result row) + plus the row's own $row-margin-y top and bottom padding.
+ */
 const dropdownVisibleRowHeight = 24 + 16;
 
 const store = useStore();
@@ -115,9 +124,10 @@ function onActionInvoked(): void {
     :selectable="isOptionSelectable"
     option-key="uniqueId"
     :placeholder="t('workloadDashboard.search.placeholder')"
+    :aria-label="t('workloadDashboard.search.ariaLabel')"
     data-testid="workload-dashboard-search"
     @search="handleSearch"
-    @selecting="onSelect"
+    @update:value="onSelect"
     @on-blur="onSearchBlur"
   >
     <template #option="option">
