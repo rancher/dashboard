@@ -1559,19 +1559,21 @@ describe('component: RcCodeMirror', () => {
       mountEditor({ modelValue: 'foo: bar' });
       openSearch(getView(wrapper));
 
-      expect(wrapper.find('.cm-search-icon').element.hasAttribute('hidden')).toBe(false);
-      expect(wrapper.find('.cm-search button[name=clear]').element.hasAttribute('hidden')).toBe(true);
+      expect(getComputedStyle(wrapper.find('.cm-search-icon').element).display).not.toStrictEqual('none');
+      expect(getComputedStyle(wrapper.find('.cm-search button[name=clear]').element).display).toStrictEqual('none');
 
       searchFor('foo');
+      expect(getComputedStyle(wrapper.find('.cm-search button[name=clear]').element).display).toStrictEqual('inline-flex');
+      expect(getComputedStyle(wrapper.find('.cm-search-icon').element).display).toStrictEqual('none');
       wrapper.find('.cm-search button[name=clear]').trigger('click');
 
       expect({
         value: wrapper.find<HTMLInputElement>('.cm-search input[name=search]').element.value,
         open:  wrapper.find('.cm-search').exists(),
-        icon:  wrapper.find('.cm-search-icon').element.hasAttribute('hidden'),
-        clear: wrapper.find('.cm-search button[name=clear]').element.hasAttribute('hidden')
+        icon:  getComputedStyle(wrapper.find('.cm-search-icon').element).display === 'none',
+        clear: getComputedStyle(wrapper.find('.cm-search button[name=clear]').element).display
       }).toStrictEqual({
-        value: '', open: true, icon: false, clear: true
+        value: '', open: true, icon: false, clear: 'none'
       });
     });
 

@@ -192,7 +192,6 @@ const rancherSearchTheme = EditorView.theme({
     '&:hover':       { color: 'var(--primary, #3D98D3)' },
     '&:disabled':    { opacity: '0.4', cursor: 'default' }
   },
-  '.cm-search-controls [hidden]':     { display: 'none' },
   '.cm-search-icon':                  { padding: '0 5px' },
   '.cm-panel.cm-search [name=close]': {
     position:        'static',
