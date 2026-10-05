@@ -98,8 +98,7 @@ const rancherEditorTheme = EditorView.theme({
   }
 });
 
-// The search panel's own styles use fixed light colors and small controls. Match the editor's colors and the
-// Dashboard's inputs and secondary buttons. Selectors repeat the panel's own so these rules win.
+// Keep the search controls in one Rancher-style input with a separate close action.
 const rancherSearchTheme = EditorView.theme({
   '.cm-panels': {
     color:           'var(--rc-cm-text)',
@@ -124,115 +123,85 @@ const rancherSearchTheme = EditorView.theme({
     pointerEvents:   'none'
   },
   '.cm-panel.cm-search': {
-    padding:  '4px 40px 4px 8px',
-    fontSize: '14px'
+    display:    'flex',
+    alignItems: 'center',
+    gap:        '8px',
+    padding:    '8px',
+    fontSize:   '14px'
   },
-  // The panel lays its controls out inline. Give them all one height and middle alignment so labels line up with
-  // the fields and buttons beside them.
-  '.cm-panel.cm-search input, .cm-panel.cm-search button, .cm-panel.cm-search label': {
-    margin:        '4px 8px 4px 0',
-    verticalAlign: 'middle'
+  '.cm-search-field': {
+    display:          'flex',
+    flex:             '1 1 auto',
+    minWidth:         '0',
+    height:           '36px',
+    border:           '1px solid var(--input-border, #C4C8CF)',
+    borderRadius:     'var(--border-radius, 4px)',
+    backgroundColor:  'var(--input-bg, transparent)',
+    '&:hover':        { borderColor: 'var(--input-hover-border, var(--input-border, #C4C8CF))' },
+    '&:focus-within': {
+      borderColor: 'var(--primary-border, var(--primary, #3D98D3))',
+      outline:     '1px solid var(--primary-border, var(--primary, #3D98D3))'
+    }
   },
   '.cm-textfield': {
-    // The Dashboard's global form styles make inputs without a type full width blocks, which would leave the
-    // field alone on its row with the close button at its end, as if it cleared the field
-    display:         'inline-block',
-    width:           '240px',
-    maxWidth:        'calc(100% - 8px)',
-    height:          '32px',
-    boxSizing:       'border-box',
+    display:         'block',
+    flex:            '1 1 auto',
+    minWidth:        '0',
+    width:           '100%',
+    height:          '100%',
     padding:         '0 8px',
+    margin:          '0',
     fontSize:        'inherit',
     color:           'var(--input-text, inherit)',
-    backgroundColor: 'var(--input-bg, transparent)',
-    border:          '1px solid var(--input-border, #C4C8CF)',
-    borderRadius:    'var(--border-radius, 4px)',
-    '&:hover':       { borderColor: 'var(--input-hover-border, var(--input-border, #C4C8CF))' },
-    '&:focus':       {
-      outline:     'none',
-      borderColor: 'var(--primary-border, var(--primary, #3D98D3))'
-    }
+    backgroundColor: 'transparent',
+    border:          '0',
+    outline:         'none'
   },
-  // Matches RcButton's secondary variant
-  '.cm-button': {
-    height:             '32px',
-    boxSizing:          'border-box',
-    padding:            '0 12px',
-    fontSize:           'inherit',
-    color:              'var(--on-secondary, var(--primary, #3D98D3))',
-    backgroundColor:    'var(--secondary, transparent)',
-    backgroundImage:    'none',
-    border:             '1px solid var(--secondary-border, var(--primary, #3D98D3))',
-    borderRadius:       'var(--border-radius, 4px)',
-    cursor:             'pointer',
-    '&:hover, &:focus': { backgroundColor: 'var(--secondary-hover, transparent)' },
-    '&:active':         { backgroundImage: 'none' }
-  },
-  '.cm-panel.cm-search label': {
-    display:    'inline-flex',
+  '.cm-search-controls': {
+    display:    'flex',
     alignItems: 'center',
-    gap:        '4px',
-    height:     '32px',
-    fontSize:   'inherit'
+    flex:       '0 0 auto',
+    height:     '100%',
+    gap:        '2px',
+    padding:    '0 4px',
+    color:      'var(--muted, #6B6D85)'
   },
-  '.cm-panel.cm-search input[type=checkbox]': {
-    margin:      '0',
-    accentColor: 'var(--primary, #3D98D3)'
+  '.cm-search-count': {
+    whiteSpace: 'nowrap',
+    fontSize:   '12px',
+    padding:    '0 2px'
   },
-  // Centered on the first row of controls
+  '.cm-search-controls button': {
+    display:         'inline-flex',
+    alignItems:      'center',
+    justifyContent:  'center',
+    width:           '24px',
+    height:          '28px',
+    margin:          '0',
+    padding:         '0',
+    border:          '0',
+    backgroundColor: 'transparent',
+    color:           'inherit',
+    cursor:          'pointer',
+    '&:hover':       { color: 'var(--primary, #3D98D3)' },
+    '&:disabled':    { opacity: '0.4', cursor: 'default' }
+  },
+  '.cm-search-controls [hidden]':     { display: 'none' },
+  '.cm-search-icon':                  { padding: '0 5px' },
   '.cm-panel.cm-search [name=close]': {
-    display:        'flex',
-    alignItems:     'center',
-    justifyContent: 'center',
-    top:            '8px',
-    right:          '4px',
-    width:          '32px',
-    height:         '32px',
-    margin:         '0',
-    color:          'var(--rc-cm-text)',
-    fontSize:       '20px',
-    lineHeight:     '1',
-    borderRadius:   'var(--border-radius, 4px)',
-    cursor:         'pointer',
-    '&:hover':      {
-      color:           'var(--primary, #3D98D3)',
-      backgroundColor: 'var(--secondary-hover, transparent)'
-    },
-    // A tooltip naming the button, styled like the Dashboard's, below it so it lies over the code rather than past
-    // the top of the editor. The panel's markup is not ours, so it shows the button's translated label.
-    '&::after': {
-      content:         'attr(aria-label)',
-      position:        'absolute',
-      top:             'calc(100% + 8px)',
-      right:           '0',
-      padding:         '8px',
-      whiteSpace:      'nowrap',
-      fontSize:        '14px',
-      lineHeight:      '1.2',
-      color:           'var(--tooltip-text, #141419)',
-      backgroundColor: 'var(--tooltip-bg, #DCDEE7)',
-      borderRadius:    'var(--border-radius, 4px)'
-    },
-    '&::before': {
-      content:           '""',
-      position:          'absolute',
-      top:               'calc(100% - 6px)',
-      right:             '9px',
-      border:            '7px solid transparent',
-      borderBottomColor: 'var(--tooltip-bg, #DCDEE7)'
-    },
-    '&::after, &::before': {
-      opacity:       '0',
-      visibility:    'hidden',
-      pointerEvents: 'none',
-      transition:    'opacity 0.15s, visibility 0.15s'
-    },
-    '&:hover::after, &:hover::before, &:focus-visible::after, &:focus-visible::before': {
-      opacity:    '1',
-      visibility: 'visible'
-    }
+    position:        'static',
+    flex:            '0 0 auto',
+    margin:          '0',
+    padding:         '0 6px',
+    height:          '32px',
+    border:          '0',
+    backgroundColor: 'transparent',
+    color:           'var(--rc-cm-text)',
+    fontSize:        '12px',
+    cursor:          'pointer',
+    '&:hover':       { color: 'var(--primary, #3D98D3)' }
   },
-  '.cm-panel.cm-search input:focus-visible, .cm-panel.cm-search button:focus-visible': {
+  '.cm-panel.cm-search button:focus-visible': {
     outline:       '2px solid var(--primary-keyboard-focus, #3D98D3)',
     outlineOffset: '1px'
   },

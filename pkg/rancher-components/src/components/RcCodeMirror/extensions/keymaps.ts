@@ -15,6 +15,7 @@ import { openSearchPanel, search, searchKeymap } from '@codemirror/search';
 import { emacs } from '../vendor/codemirror-emacs';
 import { getCM, Vim, vim } from '@replit/codemirror-vim';
 import type { RcCodeMirrorKeymap, RcCodeMirrorVariant } from '../types';
+import { createSearchPanel } from './searchPanel';
 
 // CodeMirror 5 redid with both Shift-Mod-Z and Mod-Y on every platform. historyKeymap binds only Ctrl-Y on
 // Windows and only Cmd-Shift-Z on macOS.
@@ -69,7 +70,7 @@ const findKeymap = searchKeymap.filter(({ key }) => key && FIND_KEYS.includes(ke
 
 // Pages such as Edit YAML stick their own footer to the bottom of the scroll area, where it would cover a bottom
 // panel. The top of the editor is clear, and the panel sticks there while the page scrolls.
-const findPanel = search({ top: true });
+const findPanel = search({ top: true, createPanel: createSearchPanel });
 
 // The fold gutter markers are not focusable, so folds need key bindings to be reachable from the keyboard
 export function getKeymapExtension(mode?: RcCodeMirrorKeymap, variant?: RcCodeMirrorVariant): Extension {

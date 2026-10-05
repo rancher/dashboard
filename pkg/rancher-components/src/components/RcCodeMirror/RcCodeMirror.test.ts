@@ -1500,7 +1500,7 @@ describe('component: RcCodeMirror', () => {
       const field = wrapper.find<HTMLInputElement>('.cm-search input[name=search]').element;
 
       field.value = text;
-      field.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+      field.dispatchEvent(new Event('input', { bubbles: true }));
 
       return field;
     }
@@ -1555,6 +1555,75 @@ describe('component: RcCodeMirror', () => {
       }).toStrictEqual({ search: true, replace: false });
     });
 
+    it('should show the search prompt until there is a query, then clear the query without closing', () => {
+      mountEditor({ modelValue: 'foo: bar' });
+      openSearch(getView(wrapper));
+
+      expect(wrapper.find('.cm-search-icon').element.hasAttribute('hidden')).toBe(false);
+      expect(wrapper.find('.cm-search button[name=clear]').element.hasAttribute('hidden')).toBe(true);
+
+      searchFor('foo');
+      wrapper.find('.cm-search button[name=clear]').trigger('click');
+
+      expect({
+        value: wrapper.find<HTMLInputElement>('.cm-search input[name=search]').element.value,
+        open:  wrapper.find('.cm-search').exists(),
+        icon:  wrapper.find('.cm-search-icon').element.hasAttribute('hidden'),
+        clear: wrapper.find('.cm-search button[name=clear]').element.hasAttribute('hidden')
+      }).toStrictEqual({
+        value: '', open: true, icon: false, clear: true
+      });
+    });
+
+    it('should keep the match count aligned with next and previous navigation', () => {
+      mountEditor({ modelValue: 'foo: 1\nfoo: 2\nfoo: 3' });
+      const view = getView(wrapper);
+
+      openSearch(view);
+      searchFor('foo');
+      expect(wrapper.find('.cm-search-count').text()).toStrictEqual('1 of 3');
+
+      wrapper.find('.cm-search button[name=next]').trigger('click');
+      expect(wrapper.find('.cm-search-count').text()).toStrictEqual('2 of 3');
+
+      wrapper.find('.cm-search button[name=prev]').trigger('click');
+      expect(wrapper.find('.cm-search-count').text()).toStrictEqual('1 of 3');
+    });
+
+    it('should show zero matches and disable navigation for a query with no results', () => {
+      mountEditor({ modelValue: 'foo: bar' });
+      openSearch(getView(wrapper));
+      searchFor('missing');
+
+      expect({
+        count: wrapper.find('.cm-search-count').text(),
+        next:  wrapper.find('.cm-search button[name=next]').attributes('disabled'),
+        prev:  wrapper.find('.cm-search button[name=prev]').attributes('disabled')
+      }).toStrictEqual({
+        count: '0 of 0', next: '', prev: ''
+      });
+    });
+
+    it('should update the count when the editor document changes', () => {
+      mountEditor({ modelValue: 'foo: 1\nfoo: 2' });
+      const view = getView(wrapper);
+
+      openSearch(view);
+      searchFor('foo');
+      view.dispatch({ changes: { from: view.state.doc.length, insert: '\nfoo: 3' } });
+
+      expect(wrapper.find('.cm-search-count').text()).toStrictEqual('1 of 3');
+    });
+
+    it('should close with the action outside the search input', () => {
+      mountEditor({ modelValue: 'foo: bar' });
+      openSearch(getView(wrapper));
+      searchFor('foo');
+      wrapper.find('.cm-search button[name=close]').trigger('click');
+
+      expect(wrapper.find('.cm-search').exists()).toBe(false);
+    });
+
     it('should leave Ctrl-F to the browser in the input variant', () => {
       mountEditor({ variant: 'input', modelValue: 'foo: bar' });
       const event = openSearch(getView(wrapper));
@@ -1596,8 +1665,7 @@ describe('component: RcCodeMirror', () => {
 
       expect({
         placeholder: wrapper.find('.cm-search input[name=search]').attributes('placeholder'),
-        next:        wrapper.find('.cm-search button[name=next]').text(),
-        // The close button's tooltip shows this label
+        next:        wrapper.find('.cm-search button[name=next]').attributes('aria-label'),
         close:       wrapper.find('.cm-search button[name=close]').attributes('aria-label')
       }).toStrictEqual({
         placeholder: 'Rechercher', next: 'Suivant', close: 'Fermer la recherche'
