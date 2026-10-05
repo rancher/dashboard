@@ -54,12 +54,12 @@ export default class CertManagerOverviewPo extends PagePo {
 
   /** The status cards within the ACME activity section (Orders only - Challenges are not shown). */
   acmeCards() {
-    return this.acmeSection().find('[data-testid="cert-manager-overview-card"]');
+    return this.acmeSection().find('[data-testid="status-summary-card"]');
   }
 
   /** Every status card across the sections. */
   cards() {
-    return this.self().get('[data-testid="cert-manager-overview-card"]');
+    return this.self().get('[data-testid="status-summary-card"]');
   }
 
   subtitle() {

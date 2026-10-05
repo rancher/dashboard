@@ -323,54 +323,96 @@ describe('composable: useWorkloadDashboard', () => {
       wrapper.unmount();
     });
 
-    it('should include type and title on each card', async() => {
+    it('should key each card by its workload type', async() => {
       const { wrapper, result } = mountComposable();
 
       await flushPromises();
 
       const card = result.byTypeCards.value[0];
 
-      expect(card.type).toStrictEqual(WORKLOAD_DASHBOARD_RESOURCE_TYPES[0]);
+      expect(card.key).toStrictEqual(WORKLOAD_DASHBOARD_RESOURCE_TYPES[0]);
+      wrapper.unmount();
+    });
+
+    it('should include a title on each card', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      const card = result.byTypeCards.value[0];
+
       expect(card.title).toBeTruthy();
       wrapper.unmount();
     });
 
-    it('should map resource states with correct colors', async() => {
+    it('should link the card to the unfiltered resource list', async() => {
       const { wrapper, result } = mountComposable();
 
       await flushPromises();
 
       const card = result.byTypeCards.value[0];
-      const colors = card.resources.map((r) => r.stateSimpleColor);
 
-      expect(colors).toContain('success');
-      expect(colors).toContain('error');
+      expect(card.to).toStrictEqual(result.resourceRoute(WORKLOAD_DASHBOARD_RESOURCE_TYPES[0]));
       wrapper.unmount();
     });
 
-    it('should capitalize stateDisplay for each resource', async() => {
+    it('should total the counts from the summary response', async() => {
       const { wrapper, result } = mountComposable();
 
       await flushPromises();
 
       const card = result.byTypeCards.value[0];
-      const runningResource = card.resources.find((r) => r.stateId === 'running');
 
-      expect(runningResource?.stateDisplay).toStrictEqual('Running');
+      expect(card.total).toStrictEqual(7);
       wrapper.unmount();
     });
 
-    it('should preserve counts from the summary response', async() => {
+    it('should build one row per state, most critical first, with capitalized labels and counts', async() => {
       const { wrapper, result } = mountComposable();
 
       await flushPromises();
 
       const card = result.byTypeCards.value[0];
-      const runningResource = card.resources.find((r) => r.stateId === 'running');
-      const errorResource = card.resources.find((r) => r.stateId === 'error');
 
-      expect(runningResource?.count).toStrictEqual(5);
-      expect(errorResource?.count).toStrictEqual(2);
+      expect(card.rows.map(({ label, color, count }) => ({
+        label, color, count
+      }))).toStrictEqual([
+        {
+          label: 'Error', color: 'error', count: 2
+        },
+        {
+          label: 'Running', color: 'success', count: 5
+        },
+      ]);
+      wrapper.unmount();
+    });
+
+    it('should link each row to the resource list filtered to its state', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      const type = WORKLOAD_DASHBOARD_RESOURCE_TYPES[0];
+      const card = result.byTypeCards.value[0];
+
+      expect(card.rows.map((r) => r.to)).toStrictEqual([
+        result.resourceRoute(type, ['error']),
+        result.resourceRoute(type, ['running']),
+      ]);
+      wrapper.unmount();
+    });
+
+    it('should build one bar segment per color as a percentage of the total', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      const card = result.byTypeCards.value[0];
+
+      expect(card.segments).toStrictEqual([
+        { color: 'error', percent: (2 / 7) * 100 },
+        { color: 'success', percent: (5 / 7) * 100 },
+      ]);
       wrapper.unmount();
     });
   });

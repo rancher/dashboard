@@ -16,13 +16,13 @@ import {
   NAMESPACE_FILTER_NS_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
+import type { StatusSummaryCardItem } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/types';
 import {
   WORKLOAD_DASHBOARD_RESOURCE_TYPES, COLOR_ORDER,
   type WorkloadDashboardSummaryEntry,
   type WorkloadDashboardEntry,
   type WorkloadDashboardStateCard,
   type WorkloadDashboardByStateLayout,
-  type WorkloadDashboardByTypeCard,
   type WorkloadDashboardByNamespaceCard,
 } from './types';
 
@@ -234,21 +234,35 @@ export function useWorkloadDashboard() {
 
   // ── By Type cards ──
 
-  const byTypeCards = computed<WorkloadDashboardByTypeCard[]>(() => {
+  const byTypeCards = computed<StatusSummaryCardItem[]>(() => {
     return workloadData.value.filter((w) => !w.error && w.total > 0).map((w) => {
-      const resources = Object.entries(w.stateCounts)
-        .sort(([a], [b]) => (COLOR_ORDER[toStateColor(a, w.type)] ?? 5) - (COLOR_ORDER[toStateColor(b, w.type)] ?? 5))
+      const states = Object.entries(w.stateCounts)
         .map(([state, count]) => ({
-          stateDisplay:     stateDisplay(state, true),
-          stateId:          state,
-          stateSimpleColor: toStateColor(state, w.type),
-          count,
-        }));
+          state, count, color: toStateColor(state, w.type)
+        }))
+        .sort((a, b) => (COLOR_ORDER[a.color] ?? 5) - (COLOR_ORDER[b.color] ?? 5));
+      const total = states.reduce((sum, s) => sum + s.count, 0);
+      const byColor: Partial<Record<StateColor, number>> = {};
+
+      for (const s of states) {
+        byColor[s.color] = (byColor[s.color] || 0) + s.count;
+      }
 
       return {
-        title: w.label,
-        type:  w.type,
-        resources,
+        key:      w.type,
+        title:    w.label,
+        to:       resourceRoute(w.type),
+        total,
+        segments: Object.entries(byColor).map(([color, count]) => ({
+          color:   color as StateColor,
+          percent: (count / total) * 100,
+        })),
+        rows: states.map((s) => ({
+          label: stateDisplay(s.state, true),
+          color: s.color,
+          count: s.count,
+          to:    resourceRoute(w.type, [s.state]),
+        })),
       };
     });
   });

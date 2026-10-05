@@ -1,8 +1,9 @@
 import { stateDisplay, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import type { StateColor } from '@shell/utils/style';
+import type { StatusSummaryRow } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/types';
 import { CERT_MANAGER } from '../../types';
 import type {
-  StatefulResource, OverviewStatRow, OverviewStatusCard, OverviewCreateAction, ExpiringSoonRow,
+  StatefulResource, OverviewStatusCard, OverviewCreateAction, ExpiringSoonRow,
   ExpiringCertificate, OverviewRouteFn,
 } from './types';
 
@@ -102,7 +103,7 @@ export function buildStatusCard(
     .sort((a, b) => COLOR_SEVERITY[a.color] - COLOR_SEVERITY[b.color] || indexIn(order, a.state) - indexIn(order, b.state));
   const total = resources.length;
 
-  const rows: OverviewStatRow[] = counts.map((c) => ({
+  const rows: StatusSummaryRow[] = counts.map((c) => ({
     label: stateDisplay(c.state, true),
     color: c.color,
     count: c.count,
