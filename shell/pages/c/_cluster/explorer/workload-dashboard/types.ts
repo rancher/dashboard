@@ -64,7 +64,3 @@ export const WORKLOAD_DASHBOARD_RESOURCE_TYPES: string[] = [
   WORKLOAD_TYPES.STATEFUL_SET,
   POD,
 ];
-
-export const COLOR_ORDER: Record<string, number> = {
-  error: 0, warning: 1, disabled: 2, info: 3, success: 4
-};

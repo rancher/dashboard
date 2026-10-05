@@ -7,7 +7,6 @@ import { NAMESPACE, WORKLOAD_TYPES } from '@shell/config/types';
 import type { StateColor } from '@shell/utils/style';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStateColor } from '@shell/composables/useStateColor';
-import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { ALL_NAMESPACES } from '@shell/store/prefs';
 import {
   NAMESPACE_FILTER_ALL_USER,
@@ -17,8 +16,9 @@ import {
 } from '@shell/utils/namespace-filter';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import type { StatusSummaryCardItem } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/types';
+import { buildStatusSummaryCard, compareStateColors } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/utils';
 import {
-  WORKLOAD_DASHBOARD_RESOURCE_TYPES, COLOR_ORDER,
+  WORKLOAD_DASHBOARD_RESOURCE_TYPES,
   type WorkloadDashboardSummaryEntry,
   type WorkloadDashboardEntry,
   type WorkloadDashboardStateCard,
@@ -235,36 +235,15 @@ export function useWorkloadDashboard() {
   // ── By Type cards ──
 
   const byTypeCards = computed<StatusSummaryCardItem[]>(() => {
-    return workloadData.value.filter((w) => !w.error && w.total > 0).map((w) => {
-      const states = Object.entries(w.stateCounts)
-        .map(([state, count]) => ({
-          state, count, color: toStateColor(state, w.type)
-        }))
-        .sort((a, b) => (COLOR_ORDER[a.color] ?? 5) - (COLOR_ORDER[b.color] ?? 5));
-      const total = states.reduce((sum, s) => sum + s.count, 0);
-      const byColor: Partial<Record<StateColor, number>> = {};
-
-      for (const s of states) {
-        byColor[s.color] = (byColor[s.color] || 0) + s.count;
-      }
-
-      return {
-        key:      w.type,
-        title:    w.label,
-        to:       resourceRoute(w.type),
-        total,
-        segments: Object.entries(byColor).map(([color, count]) => ({
-          color:   color as StateColor,
-          percent: (count / total) * 100,
-        })),
-        rows: states.map((s) => ({
-          label: stateDisplay(s.state, true),
-          color: s.color,
-          count: s.count,
-          to:    resourceRoute(w.type, [s.state]),
-        })),
-      };
-    });
+    return workloadData.value.filter((w) => !w.error && w.total > 0).map((w) => buildStatusSummaryCard({
+      key:    w.type,
+      title:  w.label,
+      to:     resourceRoute(w.type),
+      states: Object.entries(w.stateCounts).map(([name, count]) => ({
+        name, count, color: toStateColor(name, w.type)
+      })),
+      stateRoute: (name) => resourceRoute(w.type, [name]),
+    }));
   });
 
   // ── By Namespace cards ──
@@ -311,7 +290,7 @@ export function useWorkloadDashboard() {
           .map((type) => {
             const label = t(`typeLabel."${ type }"`, { count: 2 })?.trim() || type;
             const counts = Object.entries(typeMap[type])
-              .sort(([a], [b]) => (COLOR_ORDER[a] ?? 5) - (COLOR_ORDER[b] ?? 5))
+              .sort(([a], [b]) => compareStateColors(a, b))
               .map(([color, { count, stateNames }]) => ({
                 color:      color as StateColor,
                 count,

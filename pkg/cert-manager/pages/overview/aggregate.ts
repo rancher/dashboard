@@ -1,6 +1,6 @@
-import { stateDisplay, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import type { StateColor } from '@shell/utils/style';
-import type { StatusSummaryRow } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/types';
+import { buildStatusSummaryCard } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/utils';
 import { CERT_MANAGER } from '../../types';
 import type {
   StatefulResource, OverviewStatusCard, OverviewCreateAction, ExpiringSoonRow,
@@ -19,7 +19,7 @@ interface StateCount {
 /**
  * Health cards list states most critical (red) first, down to least critical (green), so the eye
  * lands on problems first - the same convention as the workload dashboard. The primary sort is the
- * state's colour (see COLOR_SEVERITY); these per-card orders only break ties between states that
+ * state's colour (see STATE_COLOR_ORDER in StatusSummaryCard/utils); these per-card orders only break ties between states that
  * share a colour. Anything not named here still renders, just after its same-coloured peers.
  */
 const CERTIFICATE_STATE_ORDER = [
@@ -43,21 +43,6 @@ const ACME_STATE_ORDER = [
 
 const DAY_MS = 86_400_000;
 
-/**
- * Severity by state colour, most critical first. Drives the row/segment order on every health card
- * so red reads before green. A colour maps directly to severity, so this covers any state - including
- * issuer-only ones like `warning`/`evaluating` that no per-card order lists.
- */
-const COLOR_SEVERITY: Record<StateColor, number> = {
-  error: 0, warning: 1, info: 2, success: 3, disabled: 4,
-};
-
-function indexIn(order: string[], state: string): number {
-  const i = order.indexOf(state);
-
-  return i === -1 ? order.length : i;
-}
-
 /** Group resources by their computed state, keeping the colour each model reports for that state. */
 export function countByState(resources: StatefulResource[]): StateCount[] {
   const map = new Map<string, StateCount>();
@@ -77,19 +62,12 @@ export function countByState(resources: StatefulResource[]): StateCount[] {
   return [...map.values()];
 }
 
-function toSegments(counts: StateCount[], total: number): { color: StateColor; percent: number }[] {
-  if (!total) {
-    return [];
-  }
-
-  return counts.map((c) => ({ color: c.color, percent: (c.count / total) * 100 }));
-}
-
 /**
- * Build a stacked-bar + rows card from a set of resources, ordered by `order`. `routeFor` links the
- * whole card to the resource list, and each row deep-links to that list filtered to its state. The
- * list filters client-side on the same model `state` getter these rows are built from, so the two
- * always agree - including for states the backend cannot filter (expiring, in-progress, ...).
+ * Build a stacked-bar + rows card from a set of resources, most critical colour first and then by
+ * `order` within a colour. `routeFor` links the whole card to the resource list, and each row
+ * deep-links to that list filtered to its state. The list filters client-side on the same model
+ * `state` getter these rows are built from, so the two always agree - including for states the
+ * backend cannot filter (expiring, in-progress, ...).
  */
 export function buildStatusCard(
   key: string,
@@ -99,25 +77,16 @@ export function buildStatusCard(
   order: string[],
   routeFor: OverviewRouteFn,
 ): OverviewStatusCard {
-  const counts = countByState(resources)
-    .sort((a, b) => COLOR_SEVERITY[a.color] - COLOR_SEVERITY[b.color] || indexIn(order, a.state) - indexIn(order, b.state));
-  const total = resources.length;
-
-  const rows: StatusSummaryRow[] = counts.map((c) => ({
-    label: stateDisplay(c.state, true),
-    color: c.color,
-    count: c.count,
-    to:    routeFor(type, c.state),
-  }));
-
-  return {
+  return buildStatusSummaryCard({
     key,
     title,
-    to:       routeFor(type),
-    total,
-    segments: toSegments(counts, total),
-    rows,
-  };
+    to:     routeFor(type),
+    states: countByState(resources).map((c) => ({
+      name: c.state, count: c.count, color: c.color
+    })),
+    stateRoute: (state) => routeFor(type, state),
+    stateOrder: order,
+  });
 }
 
 /** The certificates-by-state summary card (a stacked bar plus one row per state). */
