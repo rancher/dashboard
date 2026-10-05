@@ -47,20 +47,20 @@ export function createSearchPanel(view: EditorView): Panel {
   searchIcon.className = 'icon icon-search cm-search-icon';
   searchIcon.setAttribute('aria-hidden', 'true');
 
-  const clear = iconButton(view, 'clear', 'icon-close', 'Clear search', () => {
+  const clear = document.createElement('button');
+
+  clear.type = 'button';
+  clear.name = 'clear';
+  clear.textContent = view.state.phrase('Clear');
+  clear.setAttribute('aria-label', view.state.phrase('Clear search'));
+  clear.addEventListener('click', () => {
     field.value = '';
     field.dispatchEvent(new Event('input', { bubbles: true }));
     field.focus();
   });
   const next = iconButton(view, 'next', 'icon-chevron-down', 'next', () => findNext(view));
   const previous = iconButton(view, 'prev', 'icon-chevron-up', 'previous', () => findPrevious(view));
-  const close = document.createElement('button');
-
-  close.type = 'button';
-  close.name = 'close';
-  close.textContent = view.state.phrase('close');
-  close.setAttribute('aria-label', view.state.phrase('close'));
-  close.addEventListener('click', () => closeSearchPanel(view));
+  const close = iconButton(view, 'close', 'icon-close', 'close', () => closeSearchPanel(view));
 
   controls.append(next, count, previous, clear, searchIcon);
   fieldWrap.append(field, controls);

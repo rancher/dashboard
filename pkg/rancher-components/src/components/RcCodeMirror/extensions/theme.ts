@@ -192,18 +192,28 @@ const rancherSearchTheme = EditorView.theme({
     '&:hover':       { color: 'var(--primary, #3D98D3)' },
     '&:disabled':    { opacity: '0.4', cursor: 'default' }
   },
+  '.cm-panel.cm-search .cm-search-controls [name=clear]': {
+    width:    'auto',
+    padding:  '0 6px',
+    color:    'var(--link, var(--primary, #3D98D3))',
+    fontSize: '12px'
+  },
   '.cm-search-icon':                  { padding: '0 5px' },
   '.cm-panel.cm-search [name=close]': {
     position:        'static',
-    flex:            '0 0 auto',
-    margin:          '0',
-    padding:         '0 6px',
+    display:         'inline-flex',
+    alignItems:      'center',
+    justifyContent:  'center',
+    flex:            '0 0 32px',
+    width:           '32px',
     height:          '32px',
     minHeight:       '0',
+    margin:          '0',
+    padding:         '0',
     border:          '0',
     backgroundColor: 'transparent',
     color:           'var(--rc-cm-text)',
-    fontSize:        '12px',
+    fontSize:        '16px',
     lineHeight:      '1',
     cursor:          'pointer',
     '&:hover':       { color: 'var(--primary, #3D98D3)' }
