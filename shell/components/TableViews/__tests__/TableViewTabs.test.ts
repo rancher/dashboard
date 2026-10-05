@@ -635,7 +635,7 @@ describe('TableViewTabs', () => {
 
     function createWrapper({
       admin = true, configs = null as FakeConfig[] | null, view = { ...EMPTY }, initialViewId = undefined as string | undefined,
-      defaultViewId = null as string | null, failWrites = false
+      defaultViewId = null as string | null, failWrites = false, loaded = true, canCreate = null as boolean | null, order = null as string[] | null
     } = {}) {
       const all = configs || [
         config('page', {
@@ -648,24 +648,30 @@ describe('TableViewTabs', () => {
       const saves: { spec: Record<string, unknown> }[] = [];
       const created: { metadata: unknown, spec: Record<string, unknown> }[] = [];
       const fromError = jest.fn();
+      const growl = jest.fn();
+      const written = order ? {
+        views: [mine], defaultViewId, order
+      } : { views: [mine], defaultViewId };
       const store = createStore({
         state: {
-          stored:  { test: { views: [mine], defaultViewId } } as Record<string, unknown>,
+          stored:  { test: written } as Record<string, unknown>,
           configs: all,
+          loaded,
         },
         getters: {
           'prefs/get':            (state) => (key: string) => (key === TABLE_VIEWS ? state.stored : undefined),
-          'management/schemaFor': () => () => ({ collectionMethods: admin ? ['GET', 'POST'] : ['GET'] }),
-          'management/haveAll':   () => () => true,
+          'management/schemaFor': () => () => ({ collectionMethods: (canCreate ?? admin) ? ['GET', 'POST'] : ['GET'] }),
+          'management/haveAll':   (state) => () => state.loaded,
           'management/all':       (state) => () => state.configs,
         },
         mutations: {
           write:   (state, value) => (state.stored = value),
           configs: (state, value) => (state.configs = value),
+          loaded:  (state, value) => (state.loaded = value),
         },
         actions: {
           'prefs/set':          ({ commit }, { value }) => commit('write', value),
-          'growl/success':      jest.fn(),
+          'growl/success':      (_ctx: unknown, payload: unknown) => growl(payload),
           'growl/fromError':    (_ctx: unknown, payload: unknown) => fromError(payload),
           'management/findAll': jest.fn(),
           // Saved into the store, as the api's answer is
@@ -704,7 +710,7 @@ describe('TableViewTabs', () => {
       const entry = () => savedViewsByType<Entry>(store.state.stored).test;
 
       return {
-        wrapper, vm: wrapper.vm as unknown as SharedInternals, store, entry, saves, created, fromError, configs: all
+        wrapper, vm: wrapper.vm as unknown as SharedInternals, store, entry, saves, created, fromError, growl, configs: all
       };
     }
 
@@ -725,23 +731,38 @@ describe('TableViewTabs', () => {
     });
 
     it('should open on the page\'s shared default when the shared views arrive after the list opened', async() => {
-      const { wrapper, store, configs } = createWrapper({ configs: [] });
+      const { wrapper, store } = createWrapper({ loaded: false });
 
-      store.commit('configs', [config('page', {
-        type: 'PAGE', page: 'test', views: [pageView], defaultViewId: 'pv'
-      }, true)]);
+      store.commit('loaded', true);
       await wrapper.vm.$nextTick();
 
       expect(wrapper.emitted<[TableViewState]>('update:view')?.pop()?.[0].query).toBe('state:Running');
-      expect(configs).toHaveLength(0);
     });
 
     it('should not move a list the user has already changed when the shared views arrive', async() => {
-      const { wrapper, store } = createWrapper({ configs: [], view: { ...EMPTY, query: 'name:typed' } });
+      const { wrapper, store } = createWrapper({ loaded: false, view: { ...EMPTY, query: 'name:typed' } });
 
-      store.commit('configs', [config('page', {
-        type: 'PAGE', page: 'test', views: [pageView], defaultViewId: 'pv'
-      }, true)]);
+      store.commit('loaded', true);
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.emitted('update:view')).toBeUndefined();
+    });
+
+    it('should not move the list when a shared default is set after the shared views were in', async() => {
+      const { wrapper, store } = createWrapper({
+        configs: [config('single', {
+          type: 'VIEW', page: 'test', view: single
+        }, true)]
+      });
+
+      store.commit('configs', [
+        config('page', {
+          type: 'PAGE', page: 'test', views: [pageView], defaultViewId: 'pv'
+        }, true),
+        config('single', {
+          type: 'VIEW', page: 'test', view: single
+        }, true),
+      ]);
       await wrapper.vm.$nextTick();
 
       expect(wrapper.emitted('update:view')).toBeUndefined();
@@ -828,6 +849,67 @@ describe('TableViewTabs', () => {
 
         expect(entry().views.map((v) => v.id)).toStrictEqual(['own']);
         expect(fromError).toHaveBeenCalledWith(expect.objectContaining({ err: expect.any(Error) }));
+      });
+
+      it('should offer to put a deleted VIEW resource back, and create it again under its id', async() => {
+        const { vm, created, growl } = createWrapper();
+
+        await vm.deleteView(single);
+        await growl.mock.calls[0][0].action.run();
+
+        expect(created[0]).toStrictEqual(expect.objectContaining({
+          metadata: { name: 'view-test-sv' },
+          spec:     expect.objectContaining({ type: 'VIEW', view: expect.objectContaining({ id: 'sv' }) })
+        }));
+      });
+
+      it('should put a view of the PAGE resource back in its place, with the default it was', async() => {
+        const {
+          vm, saves, growl, store
+        } = createWrapper({ defaultViewId: 'all' });
+
+        await vm.deleteView(pageView);
+
+        // The cluster's answer: the page as saved without it
+        store.commit('configs', [
+          config('page', {
+            type: 'PAGE', page: 'test', views: []
+          }, true),
+          config('single', {
+            type: 'VIEW', page: 'test', view: single
+          }, true),
+        ]);
+        await growl.mock.calls[0][0].action.run();
+
+        expect(saves[0].spec.views).toStrictEqual([]);
+        expect(saves[0].spec.defaultViewId).toBeUndefined();
+        expect(saves[1].spec).toStrictEqual(expect.objectContaining({
+          views: [{
+            id: 'pv', name: 'Page view', query: 'state:Running', labelColumns: []
+          }],
+          defaultViewId: 'pv',
+        }));
+      });
+
+      it('should not offer the undo to a user who can delete a VIEW resource but not create one', async() => {
+        const { vm, growl, configs } = createWrapper({ canCreate: false });
+
+        await vm.deleteView(single);
+
+        expect(configs[1].remove).toHaveBeenCalledWith();
+        expect(growl.mock.calls[0][0].action).toBeUndefined();
+      });
+
+      it('should put a view of the user\'s own back in its place in their order', async() => {
+        const { vm, growl, entry } = createWrapper({ order: ['all', 'own', 'pv', 'sv'] });
+
+        await vm.deleteView(mine);
+
+        expect(entry().order).toStrictEqual(['all', 'pv', 'sv']);
+
+        await growl.mock.calls[0][0].action.run();
+
+        expect(entry().order).toStrictEqual(['all', 'own', 'pv', 'sv']);
       });
 
       it('should delete a shared view for everyone, leaving the user\'s views alone', async() => {

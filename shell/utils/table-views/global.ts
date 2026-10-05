@@ -142,6 +142,30 @@ export function tabOrderFor({
 }
 
 /**
+ * A new tab order that keeps the keys an older one had and it doesn't, each after the key it
+ * followed: shared views not loaded when the user reordered keep their places
+ */
+export function mergeTabOrder(next: string[], previous?: string[] | null): string[] {
+  if (!previous?.length) {
+    return next;
+  }
+
+  const out = [...next];
+
+  previous.forEach((key, i) => {
+    if (out.includes(key)) {
+      return;
+    }
+
+    const before = previous.slice(0, i).reverse().find((candidate) => out.includes(candidate));
+
+    out.splice(before ? out.indexOf(before) + 1 : 0, 0, key);
+  });
+
+  return out;
+}
+
+/**
  * The view a list opens on, or null for the table's own tab. The user's choice wins, `all` being
  * theirs for the table's own tab; without one, the page's shared default
  */

@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 
 import { TABLE_VIEWS } from '@shell/store/prefs';
-import { ALL_TAB_KEY } from '@shell/utils/table-views/global';
+import { ALL_TAB_KEY, mergeTabOrder } from '@shell/utils/table-views/global';
 import { persistenceIdOf, savedViewsByType, savedViewsPref } from '@shell/utils/table-views/views';
 import type { TableViewSaved } from '@shell/types/table-views';
 
@@ -71,7 +71,8 @@ export function useSavedTableViews(
   const tabOrder = computed<string[] | null>(() => (entry.value?.order?.length ? entry.value.order : null));
 
   /**
-   * @param order every tab's key in order; left out, the stored one stays, less any view dropped
+   * @param order every tab's key in order, keeping the stored order's keys it doesn't know; left
+   * out, the stored one stays; null clears it. Either way less any view of the user's dropped
    */
   const persistAll = (views: TableViewSaved[], viewId: string | null, allIndex: number = allTabIndex.value, order?: string[] | null) => {
     const ids = new Set(views.map((v) => v.id));
@@ -81,7 +82,8 @@ export function useSavedTableViews(
     // A default on a shared view stays while those views are still loading, unless the view was the user's own
     const keptDefault = viewId === defaultViewId.value && !!viewId && !dropped.has(viewId);
     const validDefault = viewId && (ids.has(viewId) || sharedIds.has(viewId) || viewId === ALL_TAB_KEY || keptDefault) ? viewId : null;
-    const nextOrder = (order === undefined ? tabOrder.value : order)?.filter((key) => !dropped.has(key)) || null;
+    const merged = order === undefined ? tabOrder.value : order && mergeTabOrder(order, tabOrder.value);
+    const nextOrder = merged?.filter((key) => !dropped.has(key)) || null;
     const saved: SavedEntry = compact({
       views:         views.map((view) => compact(view)),
       defaultViewId: validDefault,

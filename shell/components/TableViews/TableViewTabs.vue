@@ -85,7 +85,7 @@ const store = useStore();
 const { t } = useI18n(store);
 
 const {
-  globalViews, sharedViews, canShare, isShared, canEdit: canEditShared, canRemove: canRemoveShared,
+  globalViews, sharedViews, loaded: sharedLoaded, canShare, isShared, canEdit: canEditShared, canRemove: canRemoveShared,
   share, update: updateShared, remove: removeShared
 } = useGlobalTableViews(() => props.resourceType, () => props.tableViewsPage);
 
@@ -869,6 +869,8 @@ const deleteView = async(saved?: TableViewSaved) => {
   const at = savedViews.value.findIndex((v) => v.id === saved.id);
   // The table's own tab is placed among the views by how many come before it, one fewer once this goes
   const beforeAll = at >= 0 && at < allTabIndex.value;
+  // Its place in the user's order, which deleting it takes out
+  const orderBefore = tabOrder.value;
   const draft = drafts.value[draftKey(saved.id)];
   // Taken before the view goes: the tab to its left, or to its right when it was the first
   const list = tabs.value || [];
@@ -876,9 +878,13 @@ const deleteView = async(saved?: TableViewSaved) => {
   const neighbour = list[index > 0 ? index - 1 : index + 1];
 
   // Gone for everyone, so only once the cluster agrees
-  if (shared && !await removeShared(saved.id)) {
+  const removed = shared ? await removeShared(saved.id) : null;
+
+  if (removed && !removed.ok) {
     return;
   }
+
+  const undoShared = removed?.undo;
 
   // Its edits go with it, so nothing of it is left on screen for the tab taking its place
   forgetDraft(saved.id);
@@ -895,19 +901,30 @@ const deleteView = async(saved?: TableViewSaved) => {
     focusTab(neighbour.id);
   }
 
-  // The undo only lives on the growl: the notification centre stores a copy, and a callback can't
-  // be stored
-  store.dispatch('growl/success', {
+  const growl = {
     title:   t('tableViews.tab.deleted'),
     // Raw, since the growl renders text: escaped, the quotes would show as `&quot;`
     message: t(shared ? 'tableViews.tab.deletedSharedMessage' : 'tableViews.tab.deletedMessage', { name: saved.name }, true),
+  };
+
+  // A shared view comes back only for a user allowed to put it back
+  if (shared && !undoShared) {
+    store.dispatch('growl/success', growl);
+
+    return;
+  }
+
+  // The undo only lives on the growl: the notification centre stores a copy, and a callback can't
+  // be stored
+  store.dispatch('growl/success', {
+    ...growl,
     timeout: UNDO_TIMEOUT,
     action:  {
       label: t('tableViews.tab.undo'),
       run:   async() => {
-        // Shared again under its id, so it comes back to its place in everyone's order
-        if (shared) {
-          if (!await share(saved)) {
+        // Back under its id, so it comes back to its place in everyone's order
+        if (undoShared) {
+          if (!await undoShared()) {
             return;
           }
         } else {
@@ -919,7 +936,7 @@ const deleteView = async(saved?: TableViewSaved) => {
           const allShifts = back < allNow || (back === allNow && beforeAll);
 
           views.splice(back, 0, saved);
-          persistAll(views, wasDefault ? saved.id : ownDefaultViewId.value, allNow + (allShifts ? 1 : 0));
+          persistAll(views, wasDefault ? saved.id : ownDefaultViewId.value, allNow + (allShifts ? 1 : 0), orderBefore || undefined);
         }
 
         if (draft) {
@@ -966,7 +983,7 @@ const unshareView = async(tab: Tab) => {
 
   persistOrder(order, before.filter((v) => v.id !== view.id).concat([copy]));
 
-  if (!await removeShared(view.id)) {
+  if (!(await removeShared(view.id)).ok) {
     persistOrder(order, before);
   }
 };
@@ -1023,23 +1040,26 @@ const SHORTCUT_ACTIONS: Record<TableViewShortcutAction, () => void> = {
 watch(tabQueries, (queries) => emit('tab-queries', queries), { immediate: true });
 
 /**
- * Shared views come after the list has opened the first time, so a default among them is opened
- * when they arrive - unless the user has picked a tab or changed the table since
+ * Shared views can come after the list has opened the first time, so a default among them is
+ * opened when they arrive - unless the user has picked a tab or changed the table since. Once in,
+ * a later change to them never moves the table: the list opened on its default already
  */
-const stopOpeningSharedDefault = watch(sharedViews, (views) => {
-  if (!views.length) {
-    return;
-  }
+if (!sharedLoaded.value) {
+  const stopOpeningSharedDefault = watch(sharedLoaded, (isLoaded) => {
+    if (!isLoaded) {
+      return;
+    }
 
-  stopOpeningSharedDefault();
+    stopOpeningSharedDefault();
 
-  const id = defaultViewId.value;
-  const view = id ? allViews.value.find((candidate) => candidate.id === id) : undefined;
+    const id = defaultViewId.value;
+    const view = id ? allViews.value.find((candidate) => candidate.id === id) : undefined;
 
-  if (view && pickedViewId.value === undefined && !isViewModified(props.view)) {
-    applyView(view);
-  }
-});
+    if (view && pickedViewId.value === undefined && !isViewModified(props.view)) {
+      applyView(view);
+    }
+  });
+}
 
 /** The keys are bound in ResourceTable's shortkeys template; the list the focus is in answers them */
 let unregisterShortcuts: (() => void) | null = null;
