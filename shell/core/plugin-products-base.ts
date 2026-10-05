@@ -78,6 +78,10 @@ export abstract class BasePluginProduct {
 
   protected registeredPageNames: Set<string> = new Set();
 
+  // Route names already handed out by configurePageItem, used to reject two pages that would
+  // resolve to the same route (see the duplicate check there for why the nav item name won't do)
+  protected registeredRouteNames: Set<string> = new Set();
+
   // Maps user-friendly group name → internal resolved name (e.g. 'monitoring' → 'myapp-monitoring')
   // Populated during processGroupRecursively, consumed by moveToGroup resolution in processProductLevelDSLOptions
   protected groupNameMap: Map<string, string> = new Map();
@@ -472,12 +476,26 @@ export abstract class BasePluginProduct {
       // Extract properties we need from the narrowed item
       const name = `${ parentName }-${ item.name }`;
       const finalName = groupNaming ? `${ parentName }-${ groupNaming }-${ item.name }` : name;
+      const component = (item as ProductChildCustomPage | ProductChildGroup).component;
 
-      // Check for duplicate page names within the same product
-      if (this.registeredPageNames.has(finalName)) {
+      // The route gets a unique path segment from the item's name (e.g. /product/c/:cluster/groupName)
+      const route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, {
+        extendProduct: !this.isNewProduct, component, startRouteWithProduct: this.startRouteWithProduct
+      });
+
+      // Check for duplicate page names within the same product.
+      //
+      // This is keyed on the generated route name rather than on `finalName`. The nav item name is
+      // scoped by the group the item sits in, but the route behind it is not - both the route name
+      // and its path segment are built from `item.name` alone. Two pages sharing a name in different
+      // groups therefore end up pointing at the very same route, so vue-router registers a duplicate
+      // and the side nav has no way to tell the two entries apart. Names have to be unique across the
+      // whole product, which is what this guard has always said and can now actually enforce.
+      if (this.registeredRouteNames.has(route.name as string)) {
         this.surfaceError(`Duplicate page name "${ item.name }" - each page must have a unique name within a product`);
       }
 
+      this.registeredRouteNames.add(route.name as string);
       this.registeredPageNames.add(finalName);
       this.pageIdMap.set(item.name, finalName);
 
@@ -487,6 +505,7 @@ export abstract class BasePluginProduct {
         namespaced: false,
         name:       finalName,
         weight:     item.sideMenu?.weight, // ordering is done here and not via "weightType"
+        route,
       };
 
       // if the item with COMPONENT has children then it's a GROUP virtualType, so set "exact" and "overview" to "true"
@@ -496,10 +515,6 @@ export abstract class BasePluginProduct {
 
         virtualTypeConfig.exact = true;
         virtualTypeConfig.overview = true;
-        // Pass group metadata as pageChild so the route gets a unique path segment (e.g. /product/c/:cluster/groupName)
-        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, {
-          extendProduct: !this.isNewProduct, component: item.component, startRouteWithProduct: this.startRouteWithProduct
-        });
 
         // The conditions gate the group's overview page only, never its children. The side menu only
         // creates a group once it has a visible child, so hiding the overview - along with children
@@ -509,10 +524,6 @@ export abstract class BasePluginProduct {
         applyIfDefined(itemGroup.enableOverviewPage?.ifFeature, () => virtualTypeConfig.ifFeature = itemGroup.enableOverviewPage?.ifFeature); // eslint-disable-line no-return-assign
         applyIfDefined(itemGroup.enableOverviewPage?.ifHaveType, () => virtualTypeConfig.ifHaveType = itemGroup.enableOverviewPage?.ifHaveType); // eslint-disable-line no-return-assign
         applyIfDefined(itemGroup.enableOverviewPage?.ifHaveVerb, () => virtualTypeConfig.ifHaveVerb = itemGroup.enableOverviewPage?.ifHaveVerb); // eslint-disable-line no-return-assign
-      } else {
-        virtualTypeConfig.route = pluginProductsHelpers.generateVirtualTypeRoute(parentName, item.name, {
-          extendProduct: !this.isNewProduct, component: item.component, startRouteWithProduct: this.startRouteWithProduct
-        });
       }
 
       if (isProductChildWithComponent(item)) {

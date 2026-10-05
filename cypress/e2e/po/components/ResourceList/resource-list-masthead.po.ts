@@ -1,4 +1,4 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 export default class ResourceListMastheadPo extends ComponentPo {
   actions() {
@@ -13,7 +13,11 @@ export default class ResourceListMastheadPo extends ComponentPo {
     return this.self().find('[data-testid="masthead-create-yaml"]').click();
   }
 
+  createButton(options?: GetOptions) {
+    return cy.get('[data-testid="masthead-create"]', options);
+  }
+
   create() {
-    return cy.get('[data-testid="masthead-create"]').click();
+    return this.createButton().click();
   }
 }
