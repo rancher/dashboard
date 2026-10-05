@@ -28,7 +28,10 @@ export function useGlobalTableViews(resourceType: () => string, page: () => stri
   // A host without the upstream store, eg a standalone product, has no shared views
   const schema = computed(() => store.getters['management/schemaFor']?.(TYPE));
 
-  const configs = computed<TableConfiguration[]>(() => (schema.value && store.getters['management/haveAll'](TYPE) ? store.getters['management/all'](TYPE) : []));
+  /** Whether the shared views are in: none to load counts, so a list without them doesn't wait */
+  const loaded = computed(() => !schema.value || !!store.getters['management/haveAll'](TYPE));
+
+  const configs = computed<TableConfiguration[]>(() => (schema.value && loaded.value ? store.getters['management/all'](TYPE) : []));
 
   const pageKey = computed(() => globalPageKey(resourceType(), page()));
 
@@ -89,19 +92,29 @@ export function useGlobalTableViews(resourceType: () => string, page: () => stri
     }
   };
 
-  /** Saves changes to a shared view, in its own resource or in its page's list */
-  const update = async(id: string, changes: Partial<TableViewSaved>): Promise<boolean> => {
-    const entry = entryFor(id);
+  /**
+   * Saves changes to a shared view, in its own resource or in its page's list. `edit` changes the
+   * spec instead, for a PAGE resource named by `pageName` that may no longer list the view
+   */
+  const update = async(
+    id: string,
+    changes: Partial<TableViewSaved>,
+    edit?: (spec: NonNullable<TableConfiguration['spec']>) => void,
+    pageName?: string
+  ): Promise<boolean> => {
+    const config = pageName ? configs.value.find((c) => c.metadata?.name === pageName) : entryFor(id)?.config;
 
-    if (!entry) {
+    if (!config) {
       return false;
     }
 
     try {
-      const copy: SavableConfig = await store.dispatch('management/clone', { resource: entry.config });
+      const copy: SavableConfig = await store.dispatch('management/clone', { resource: config });
       const spec = copy.spec as NonNullable<TableConfiguration['spec']>;
 
-      if (spec.type === 'PAGE') {
+      if (edit) {
+        edit(spec);
+      } else if (spec.type === 'PAGE') {
         spec.views = (spec.views || []).map((view) => (view.id === id ? compactView({ ...view, ...changes }) : view));
       } else {
         spec.view = compactView({ ...(spec.view as TableViewSaved), ...changes });
@@ -117,49 +130,78 @@ export function useGlobalTableViews(resourceType: () => string, page: () => stri
     }
   };
 
-  /** Takes a shared view away from everyone: its resource goes, or its entry in its page's list */
-  const remove = async(id: string): Promise<boolean> => {
+  /**
+   * Takes a shared view away from everyone: its resource goes, or its entry in its page's list.
+   * `undo` puts it back where it was, when the user may: a VIEW resource is created again, which
+   * takes the right to create them
+   */
+  const remove = async(id: string): Promise<{ ok: boolean, undo?: () => Promise<boolean> }> => {
     const entry = entryFor(id);
 
     if (!entry) {
-      return false;
+      return { ok: false };
     }
+
+    const view = entry.view;
 
     try {
       if (entry.config.spec?.type !== 'PAGE') {
         await (entry.config as SavableConfig).remove();
 
-        return true;
+        return { ok: true, undo: canShare.value ? () => share(view) : undefined };
       }
 
+      const name = entry.config.metadata?.name;
       const copy: SavableConfig = await store.dispatch('management/clone', { resource: entry.config });
       const spec = copy.spec as NonNullable<TableConfiguration['spec']>;
-      const at = (spec.views || []).findIndex((view) => view.id === id);
+      const at = (spec.views || []).findIndex((v) => v.id === id);
+      const wasDefault = spec.defaultViewId === id;
+      const movedAll = Number.isInteger(spec.allIndex) && at >= 0 && at < (spec.allIndex as number);
 
-      spec.views = (spec.views || []).filter((view) => view.id !== id);
+      spec.views = (spec.views || []).filter((v) => v.id !== id);
 
-      if (spec.defaultViewId === id) {
+      if (wasDefault) {
         delete spec.defaultViewId;
       }
 
       // The table's own tab keeps its place among what is left
-      if (Number.isInteger(spec.allIndex) && at >= 0 && at < (spec.allIndex as number)) {
+      if (movedAll) {
         spec.allIndex = (spec.allIndex as number) - 1;
       }
 
       await copy.save();
 
-      return true;
+      // Back into the page's list where it was, with the default and tab place it changed
+      const undo = () => update(id, {}, (current) => {
+        if ((current.views || []).some((v) => v.id === id)) {
+          return;
+        }
+
+        const views = [...(current.views || [])];
+
+        views.splice(Math.min(Math.max(at, 0), views.length), 0, compactView(view));
+        current.views = views;
+
+        if (wasDefault && !current.defaultViewId) {
+          current.defaultViewId = id;
+        }
+
+        if (movedAll && Number.isInteger(current.allIndex)) {
+          current.allIndex = (current.allIndex as number) + 1;
+        }
+      }, name);
+
+      return { ok: true, undo };
     } catch (err) {
       failed(err);
 
-      return false;
+      return { ok: false };
     }
   };
 
   onMounted(load);
 
   return {
-    globalViews, sharedViews, canShare, isShared, canEdit, canRemove, share, update, remove, load
+    globalViews, sharedViews, loaded, canShare, isShared, canEdit, canRemove, share, update, remove, load
   };
 }

@@ -1,5 +1,5 @@
 import {
-  ALL_TAB_KEY, defaultViewIdFor, globalPageKey, globalViewsFor, tabOrderFor, viewConfigName
+  ALL_TAB_KEY, defaultViewIdFor, globalPageKey, globalViewsFor, mergeTabOrder, tabOrderFor, viewConfigName
 } from '@shell/utils/table-views/global';
 import type { GlobalTableViews, TableConfiguration } from '@shell/utils/table-views/global';
 import type { TableViewSaved } from '@shell/types/table-views';
@@ -121,6 +121,21 @@ describe('shared table views', () => {
 
     it('should show a view that is both the user\'s and shared once, as shared', () => {
       expect(tabOrderFor({ personal: [view('g1'), view('a')], global: shared() })).toStrictEqual([ALL_TAB_KEY, 'g1', 'g2', 'a']);
+    });
+  });
+
+  describe('mergeTabOrder', () => {
+    it('should be the new order when there was none', () => {
+      expect(mergeTabOrder(['a', 'all'], null)).toStrictEqual(['a', 'all']);
+    });
+
+    it('should keep the keys the new order leaves out after the key they followed', () => {
+      // `g1` and `g2` were not loaded when the user moved `b` to the front
+      expect(mergeTabOrder(['b', 'all', 'a'], ['all', 'g1', 'a', 'g2', 'b'])).toStrictEqual(['b', 'all', 'g1', 'a', 'g2']);
+    });
+
+    it('should put a key that followed nothing still placed at the front', () => {
+      expect(mergeTabOrder(['all', 'a'], ['g1', 'all', 'a'])).toStrictEqual(['g1', 'all', 'a']);
     });
   });
 

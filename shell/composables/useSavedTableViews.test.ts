@@ -326,6 +326,14 @@ describe('useSavedTableViews', () => {
       expect(written().pod.order).toStrictEqual(['all', 'b']);
     });
 
+    it('should keep the stored order\'s shared views when a new order is written without them', () => {
+      const { saved, written } = setup({ pod: { views: [view('a'), view('b')], order: ['all', 'g', 'a', 'b'] } });
+
+      saved.persistAll([view('b'), view('a')], null, 0, ['all', 'b', 'a']);
+
+      expect(written().pod.order).toStrictEqual(['all', 'g', 'b', 'a']);
+    });
+
     it('should keep an entry with no views of the user\'s own while it holds their order or default', () => {
       const { saved, written } = setup({ pod: { views: [view('a')] } }, 'pod', null, [view('g')]);
 
