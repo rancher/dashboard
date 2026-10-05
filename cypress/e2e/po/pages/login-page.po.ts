@@ -131,7 +131,7 @@ export class LoginPagePo extends PagePo {
   ].join(', ');
 
   /**
-   * [CREATE ISSUE TO INVESTIGATE] The login page's async fetch (shell/pages/auth/login.vue) awaits
+   * Known issue rancher/dashboard#19320: the login page's async fetch (shell/pages/auth/login.vue) awaits
    * settings/auth-provider requests with no timeout or retry and shows a <Loading> spinner while
    * pending; if one of those requests hangs the page spins forever and the login form never renders.
    * The app should time out / retry / surface an error rather than spinning indefinitely.

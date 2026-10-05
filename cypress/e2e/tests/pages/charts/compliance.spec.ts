@@ -101,6 +101,13 @@ describe('Charts', { testIsolation: false, tags: ['@charts', '@adminUser'] }, ()
 
           terminal.closeTerminal();
 
+          // Clicking Create straight after this page is reached can land while the list behind it
+          // is still loading, and the test then fails because the URL is still the list rather
+          // than the create form. Wait for the list to settle first.
+          //
+          // Note: an early Create click was not reproducible on ordinary resource lists on master,
+          // so this is test hardening for this product page rather than a known application bug.
+          complianceList.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
           complianceList.createScan();
           compliance.waitForPage();
           compliance.cruResource().saveAndWaitForRequests('POST', 'v1/compliance.cattle.io.clusterscans')

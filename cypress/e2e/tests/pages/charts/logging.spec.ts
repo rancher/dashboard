@@ -7,8 +7,7 @@ import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import ChartInstalledAppsListPagePo from '@/cypress/e2e/po/pages/chart-installed-apps.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import { MEDIUM_TIMEOUT_OPT, VERY_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT, VERY_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_APPS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import CardPo from '@/cypress/e2e/po/components/card.po';
 import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
@@ -47,7 +46,6 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       const chartPage = new ChartPage();
       const loggingOutputList = new LoggingClusteroutputListPagePo();
       const loggingOutputEdit = new LoggingClusterOutputCreateEditPagePo('local');
-      const sideNav = new ProductNavPo();
 
       // Make each attempt independent (testIsolation is off): a failed earlier attempt can leave
       // the chart partially installed, so the Install button is no longer shown and the install
@@ -91,11 +89,19 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
 
       waitForClusterOutputType();
 
-      // Navigate through the product side-nav. The ClusterOutput entry appears once the freshly-
-      // installed CRD's schema propagates into the nav, which can lag the install - so navTo (via
-      // ProductNavPo.sideMenuEntryByLabel) waits for the entry to render before clicking it.
-      LoggingClusteroutputListPagePo.navTo();
+      // Go straight to the ClusterOutput list rather than clicking through the product side-nav.
+      // The nav is built from the schemas loaded when the cluster was entered, so the CRD this
+      // install just registered is served by the API (the wait above) while the nav still has no
+      // entry for it - the entry then never appears. Even once it does, the nav lookup queries the
+      // menu twice and can lose the entry between the two queries. A direct visit loads the schema
+      // set that includes the logging types and does not depend on the menu at all.
+      loggingOutputList.goTo();
       loggingOutputList.waitForPage();
+      // Visiting directly means the page is still loading when we arrive, and this list has been seen
+      // to take longer than the default timeout to render. Wait for the Create button itself with the
+      // long timeout. (checkLoadingIndicatorNotVisible has a fixed 10s, and the table page object ignores
+      // timeouts, so neither can be lengthened.)
+      loggingOutputList.baseResourceList().masthead().createButton(LONG_TIMEOUT_OPT).should('be.visible');
       loggingOutputList.baseResourceList().masthead().create();
       loggingOutputEdit.waitForPage();
       loggingOutputEdit.resourceDetail().createEditView().nameNsDescription().name()
@@ -107,14 +113,25 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
           expect(response?.body.metadata).to.have.property('name', outputName);
         });
       loggingOutputList.waitForPage();
-      loggingOutputList.baseResourceList().resourceTable().sortableTable().rowElementWithName(outputName)
+      // The create POST returns before the new ClusterOutput is indexed, so confirm it at the API
+      // first. Even then the list can read "There are no rows to show" while the API already serves the
+      // resource. That matches the list-blanking behaviour on master tracked in rancher/dashboard#18381:
+      // fetching a single resource by id invalidates the paginated list's page, so the list empties
+      // itself until something re-fetches it. Reload so the page is fetched fresh.
+      cy.waitForRancherResource('v1', 'logging.banzaicloud.io.clusteroutputs', `cattle-logging-system/${ outputName }`, (resp: any) => resp?.status === 200, 20, { failOnStatusCode: false });
+      cy.reload();
+      loggingOutputList.waitForPage();
+      loggingOutputList.list().self(LONG_TIMEOUT_OPT).find('tbody', LONG_TIMEOUT_OPT).should('exist');
+      loggingOutputList.baseResourceList().resourceTable().sortableTable().rowElementWithName(outputName, MEDIUM_TIMEOUT_OPT)
         .should('exist');
 
-      // The Logging group is already expanded (from the ClusterOutput nav above), so click the
-      // ClusterFlow entry directly rather than re-toggling the group. sideMenuEntryByLabel waits for
-      // the entry to render (its schema can also lag the install).
-      sideNav.navToSideMenuEntryByLabel('ClusterFlow');
+      // Visit the ClusterFlow list directly, for the same reason as the ClusterOutput list above:
+      // this entry is rendered from a schema registered by the install, and the menu lookup queries
+      // the nav twice, so it can lose the entry between the two queries.
+      loggingFlowList.goTo();
       loggingFlowList.waitForPage();
+      // As for the ClusterOutput list above: wait for Create itself, with a timeout that applies.
+      loggingFlowList.baseResourceList().masthead().createButton(LONG_TIMEOUT_OPT).should('be.visible');
       loggingFlowList.baseResourceList().masthead().create();
       loggingFlowCreate.waitForPage();
       loggingFlowCreate.resourceDetail().createEditView()
@@ -140,7 +157,16 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
           expect(response?.body.spec.match[0].select.namespaces[1]).to.equal(namespaces[1]);
         });
       loggingFlowList.waitForPage();
-      loggingFlowList.list().resourceTable().sortableTable().rowElementWithName(flowName)
+      // The create POST returns before the new ClusterFlow is indexed and served to the list, so
+      // reading the row straight away can miss it. Confirm it exists at the API level first, then
+      // allow the row lookup the medium timeout for the list to catch up.
+      cy.waitForRancherResource('v1', 'logging.banzaicloud.io.clusterflows', `cattle-logging-system/${ flowName }`, (resp: any) => resp?.status === 200, 20, { failOnStatusCode: false });
+      // Same as the ClusterOutput list above (rancher/dashboard#18381): the list can empty itself after
+      // the create even once the API serves the resource, so reload before reading the row.
+      cy.reload();
+      loggingFlowList.waitForPage();
+      loggingFlowList.list().self(LONG_TIMEOUT_OPT).find('tbody', LONG_TIMEOUT_OPT).should('exist');
+      loggingFlowList.list().resourceTable().sortableTable().rowElementWithName(flowName, MEDIUM_TIMEOUT_OPT)
         .should('exist');
       loggingFlowList.list().resourceTable().goToDetailsPage(flowName);
       const loggingFlowDetail = new LoggingClusterFlowDetailPagePo('local', 'cattle-logging-system', flowName);
