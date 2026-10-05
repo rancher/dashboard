@@ -21,10 +21,7 @@
 - Ensure you have the latest of that branch `git pull --rebase`
 - Checkout the branch to commit the changes to `git checkout issue-${issueNumber}`. Replace `${issueNumber}` with the issue number.
 
-## Comments
 
-- Comments should only accompany a code change if the reason for the change is not clear and obvious.
-- Comments should be short and concise.
 
 ## Creating a commit
 
@@ -40,3 +37,14 @@
   - The pull request checklist has been completed
   - ALL CI gates have passed
   - At least one rancher/dashboard team member reviews and approves the PR
+
+## Creating Code
+
+### Comments
+
+- Comments should only accompany a code change if the reason for the change is not clear and obvious.
+- Comments should be short and concise.
+
+### CSS
+
+- never use `:deep`

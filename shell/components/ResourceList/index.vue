@@ -209,6 +209,10 @@ export default {
       });
     },
 
+    activeNameFilter() {
+      return this.$route?.query?.nameFilter || '';
+    },
+
   },
 
   methods: {
@@ -242,6 +246,13 @@ export default {
       const query = { ...this.$route.query };
 
       delete query.stateFilter;
+      this.$router.push({ ...this.$route, query });
+    },
+
+    clearNameFilter() {
+      const query = { ...this.$route.query };
+
+      delete query.nameFilter;
       this.$router.push({ ...this.$route, query });
     },
   },
@@ -355,10 +366,13 @@ export default {
       :load-indeterminate="loadIndeterminate"
     >
       <template
-        v-if="activeStateFilters.length"
+        v-if="activeStateFilters.length || activeNameFilter"
         #subHeader
       >
-        <div class="state-filter-bar text-muted">
+        <div
+          v-if="activeStateFilters.length"
+          class="state-filter-bar text-muted"
+        >
           {{ t('resourceList.stateFilterApplied') }}
           <BadgeState
             v-for="state in activeStateFilters"
@@ -371,6 +385,20 @@ export default {
           <a
             role="button"
             @click="clearStateFilter"
+          >
+            {{ t('resourceList.clearStateFilter') }}
+          </a>
+        </div>
+        <div
+          v-if="activeNameFilter"
+          class="state-filter-bar text-muted"
+        >
+          {{ t('resourceList.nameFilterApplied') }}
+          <span>{{ activeNameFilter }}</span>
+          <span>.</span>
+          <a
+            role="button"
+            @click="clearNameFilter"
           >
             {{ t('resourceList.clearStateFilter') }}
           </a>

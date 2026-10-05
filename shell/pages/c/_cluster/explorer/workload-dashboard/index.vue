@@ -100,7 +100,10 @@ const {
         </template>
       </Masthead>
       <div class="workload-search-row">
-        <WorkloadSearch />
+        <WorkloadSearch
+          :navigate-to-namespace="navigateToNamespace"
+          :resource-route="resourceRoute"
+        />
       </div>
       <div class="workload-content">
         <!-- ━━━ By State ━━━ -->

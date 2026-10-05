@@ -6577,6 +6577,7 @@ resourceList:
   nsFilterToolTip: "Filtering is restricted to projects and namespaces"
   stateFilterApplied: "State filter applied:"
   clearStateFilter: "Clear filter"
+  nameFilterApplied: "Name filter applied:"
 resourceLoadingIndicator:
   loading: Loading
 
@@ -7988,9 +7989,15 @@ workloadDashboard:
     byType: By Type
     byNamespace: By Namespace
   search:
-    placeholder: Search by name
+    placeholder: Find workloads in the selected namespaces...
     startTyping: Start typing to search
     searching: Searching...
+    restarts: |-
+      {count, plural,
+        =1 {{count} restart}
+        other {{count} restarts}
+      }
+    moreResults: "+ {count} more {type}"
   errors:
     noAccess: "No access to {type}"
     fetchType: "Failed to fetch {type}"

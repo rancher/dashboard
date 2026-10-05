@@ -316,7 +316,7 @@ export function useWorkloadDashboard() {
     });
   }
 
-  function resourceRoute(type: string, stateNames?: string[]): RouteLocationRaw {
+  function resourceRoute(type: string, stateNames?: string[], nameFilter?: string): RouteLocationRaw {
     const loc: { name: string; params: Record<string, string>; query?: Record<string, string> } = {
       name:   'c-cluster-product-resource',
       params: {
@@ -326,8 +326,18 @@ export function useWorkloadDashboard() {
       },
     };
 
+    const query: Record<string, string> = {};
+
     if (stateNames?.length) {
-      loc.query = { stateFilter: stateNames.join(',') };
+      query.stateFilter = stateNames.join(',');
+    }
+
+    if (nameFilter) {
+      query.nameFilter = nameFilter;
+    }
+
+    if (Object.keys(query).length) {
+      loc.query = query;
     }
 
     return loc;

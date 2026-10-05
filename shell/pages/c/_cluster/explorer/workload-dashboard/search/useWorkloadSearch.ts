@@ -4,17 +4,20 @@ import { useRouter, type RouteLocationRaw } from 'vue-router';
 import debounce from 'lodash/debounce';
 import { useI18n } from '@shell/composables/useI18n';
 import { PaginationParamFilter, type PaginationParamProjectOrNamespace } from '@shell/types/store/pagination.types';
-import { WORKLOAD_RESOURCE_TYPES } from '../types';
+import type { StateColor } from '@shell/utils/style';
+import { WORKLOAD_DASHBOARD_RESOURCE_TYPES } from '../types';
 import { getWorkloadNamespaceFilterParams } from '../namespaceFilter';
 import {
   WORKLOAD_SEARCH_DEBOUNCE_MS,
   WORKLOAD_SEARCH_RESULTS_PER_TYPE,
   type WorkloadSearchOption,
 } from './types';
+import { ActionFindPageArgs, ActionFindPageTransientResponse } from '@shell/types/store/dashboard-store.types';
 
 interface WorkloadSearchResource {
   metadata?: { name?: string; namespace?: string };
   detailLocation?: RouteLocationRaw;
+  stateSimpleColor?: StateColor;
 }
 
 export function useWorkloadSearch() {
@@ -38,27 +41,29 @@ export function useWorkloadSearch() {
       return [];
     }
 
+    const opt: ActionFindPageArgs = {
+      pagination: {
+        page:                 1,
+        pageSize:             WORKLOAD_SEARCH_RESULTS_PER_TYPE,
+        projectsOrNamespaces: namespaceFilter.projectsOrNamespaces,
+        filters:              [
+          ...namespaceFilter.filters,
+          PaginationParamFilter.createSingleField({
+            field: 'metadata.name',
+            value: term,
+            exact: false,
+          }),
+        ],
+        sort: [],
+      },
+      transient: true,
+      watch:     false,
+    };
+
     try {
-      const res = await store.dispatch('cluster/findPage', {
+      const res: ActionFindPageTransientResponse = await store.dispatch('cluster/findPage', {
         type,
-        opt: {
-          pagination: {
-            page:                 1,
-            pageSize:             WORKLOAD_SEARCH_RESULTS_PER_TYPE,
-            sort:                 [{ field: 'metadata.name', asc: true }],
-            projectsOrNamespaces: namespaceFilter.projectsOrNamespaces,
-            filters:              [
-              ...namespaceFilter.filters,
-              PaginationParamFilter.createSingleField({
-                field: 'metadata.name',
-                value: term,
-                exact: false,
-              }),
-            ],
-          },
-          transient: true,
-          watch:     false,
-        },
+        opt,
       });
 
       const data: WorkloadSearchResource[] = res?.data || [];
@@ -68,11 +73,13 @@ export function useWorkloadSearch() {
       }
 
       const label = t(`typeLabel."${ type }"`, { count: 2 })?.trim() || type;
+      const totalCount = res.pagination?.result.count ?? data.length;
+      const remaining = totalCount - data.length;
 
-      return [
+      const options: WorkloadSearchOption[] = [
         {
           kind:     'group',
-          label,
+          label:    `${ label } (${ totalCount })`,
           uniqueId: `group-${ type }`,
         },
         ...data.map((resource) => ({
@@ -80,8 +87,22 @@ export function useWorkloadSearch() {
           namespace: resource.metadata?.namespace,
           uniqueId:  `${ type }/${ resource.metadata?.namespace }/${ resource.metadata?.name }`,
           value:     resource.detailLocation,
+          color:     resource.stateSimpleColor,
+          resource,
         })),
       ];
+
+      if (remaining > 0) {
+        options.push({
+          kind:         'more',
+          label:        t('workloadDashboard.search.moreResults', { count: remaining, type: label.toLowerCase() }),
+          uniqueId:     `more-${ type }`,
+          resourceType: type,
+          searchTerm:   term,
+        });
+      }
+
+      return options;
     } catch {
       return [];
     }
@@ -95,7 +116,7 @@ export function useWorkloadSearch() {
     try {
       const namespaceFilter = getWorkloadNamespaceFilterParams(store);
       const results = await Promise.all(
-        WORKLOAD_RESOURCE_TYPES.map((type) => fetchOptionsForType(type, term, namespaceFilter))
+        WORKLOAD_DASHBOARD_RESOURCE_TYPES.map((type) => fetchOptionsForType(type, term, namespaceFilter))
       );
 
       if (currentRequestId !== requestId) {

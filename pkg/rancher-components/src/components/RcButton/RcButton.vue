@@ -200,6 +200,8 @@ defineExpose({ focus });
 </template>
 
 <style lang="scss" scoped>
+@import '../_variables.scss';
+
 .rc-button {
   display: inline-flex;
   align-items: center;
@@ -360,7 +362,7 @@ defineExpose({ focus });
       // flex-centered button in Chrome, but not in Firefox.
       line-height: calc(4 / 3);
       font-size: 12px;
-      min-height: 24px;
+      min-height: $rc-button-small-height;
 
       padding: var(--rc-button-padding, 0 8px);
       gap: 8px;
@@ -374,7 +376,7 @@ defineExpose({ focus });
       // is a whole pixel value. See note in .btn-small for why this matters.
       line-height: calc(10 / 7);
       font-size: 14px;
-      min-height: 32px;
+      min-height: $rc-button-medium-height;
 
       padding: var(--rc-button-padding, 0 12px);
       gap: 8px;
@@ -388,7 +390,7 @@ defineExpose({ focus });
       // is a whole pixel value. See note in .btn-small for why this matters.
       line-height: 1.5;
       font-size: 16px;
-      min-height: 40px;
+      min-height: $rc-button-large-height;
 
       padding: var(--rc-button-padding, 0 16px);
       gap: 12px;

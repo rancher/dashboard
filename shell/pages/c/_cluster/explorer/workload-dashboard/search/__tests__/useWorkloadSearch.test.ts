@@ -1,5 +1,5 @@
 import { useWorkloadSearch } from '@shell/pages/c/_cluster/explorer/workload-dashboard/search/useWorkloadSearch';
-import { WORKLOAD_RESOURCE_TYPES } from '@shell/pages/c/_cluster/explorer/workload-dashboard/types';
+import { WORKLOAD_DASHBOARD_RESOURCE_TYPES } from '@shell/pages/c/_cluster/explorer/workload-dashboard/types';
 import { WORKLOAD_SEARCH_DEBOUNCE_MS } from '@shell/pages/c/_cluster/explorer/workload-dashboard/search/types';
 import { defineComponent, h } from 'vue';
 import { shallowMount, flushPromises } from '@vue/test-utils';
@@ -101,9 +101,9 @@ describe('composable: useWorkloadSearch', () => {
     jest.advanceTimersByTime(WORKLOAD_SEARCH_DEBOUNCE_MS);
     await flushPromises();
 
-    expect(mockDispatch).toHaveBeenCalledTimes(WORKLOAD_RESOURCE_TYPES.length);
+    expect(mockDispatch).toHaveBeenCalledTimes(WORKLOAD_DASHBOARD_RESOURCE_TYPES.length);
 
-    WORKLOAD_RESOURCE_TYPES.forEach((type) => {
+    WORKLOAD_DASHBOARD_RESOURCE_TYPES.forEach((type) => {
       expect(mockDispatch).toHaveBeenCalledWith('cluster/findPage', expect.objectContaining({
         type,
         opt: expect.objectContaining({
@@ -121,19 +121,19 @@ describe('composable: useWorkloadSearch', () => {
 
   it('skips types the user cannot list', async() => {
     mockDispatch.mockResolvedValue({ data: [] });
-    setupGetters({ 'cluster/canList': (type: string) => type !== WORKLOAD_RESOURCE_TYPES[0] });
+    setupGetters({ 'cluster/canList': (type: string) => type !== WORKLOAD_DASHBOARD_RESOURCE_TYPES[0] });
     const { result } = mountComposable();
 
     result.onSearch('nginx');
     jest.advanceTimersByTime(WORKLOAD_SEARCH_DEBOUNCE_MS);
     await flushPromises();
 
-    expect(mockDispatch).toHaveBeenCalledTimes(WORKLOAD_RESOURCE_TYPES.length - 1);
+    expect(mockDispatch).toHaveBeenCalledTimes(WORKLOAD_DASHBOARD_RESOURCE_TYPES.length - 1);
   });
 
   it('groups returned resources under a type header option', async() => {
     mockDispatch.mockImplementation((action: string, { type }: { type: string }) => {
-      if (type === WORKLOAD_RESOURCE_TYPES[0]) {
+      if (type === WORKLOAD_DASHBOARD_RESOURCE_TYPES[0]) {
         return Promise.resolve({ data: [makeResource('nginx-a'), makeResource('nginx-b', 'kube-system')] });
       }
 
@@ -149,18 +149,18 @@ describe('composable: useWorkloadSearch', () => {
       {
         kind:     'group',
         label:    expect.any(String),
-        uniqueId: `group-${ WORKLOAD_RESOURCE_TYPES[0] }`,
+        uniqueId: `group-${ WORKLOAD_DASHBOARD_RESOURCE_TYPES[0] }`,
       },
       {
         label:     'nginx-a',
         namespace: 'default',
-        uniqueId:  `${ WORKLOAD_RESOURCE_TYPES[0] }/default/nginx-a`,
+        uniqueId:  `${ WORKLOAD_DASHBOARD_RESOURCE_TYPES[0] }/default/nginx-a`,
         value:     { name: 'detail', params: { id: 'nginx-a', namespace: 'default' } },
       },
       {
         label:     'nginx-b',
         namespace: 'kube-system',
-        uniqueId:  `${ WORKLOAD_RESOURCE_TYPES[0] }/kube-system/nginx-b`,
+        uniqueId:  `${ WORKLOAD_DASHBOARD_RESOURCE_TYPES[0] }/kube-system/nginx-b`,
         value:     { name: 'detail', params: { id: 'nginx-b', namespace: 'kube-system' } },
       },
     ]);
