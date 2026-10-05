@@ -18,6 +18,7 @@ const setNotification = (store: Store<any>) => {
   const {
     registration,
     initRegistration,
+    canReadRegistration,
   } = usePrimeRegistration(store);
 
   initRegistration().then(() => {
@@ -26,7 +27,7 @@ const setNotification = (store: Store<any>) => {
       return;
     }
 
-    if (!registration.value.active && isAdminUser(store.getters) && store.getters['features/get'](SCC)) {
+    if (canReadRegistration.value && !registration.value.active && isAdminUser(store.getters) && store.getters['features/get'](SCC)) {
       const { t } = useI18n(store);
 
       const notification = {
