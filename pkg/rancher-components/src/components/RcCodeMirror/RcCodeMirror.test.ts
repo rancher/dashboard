@@ -1711,7 +1711,7 @@ describe('component: RcCodeMirror', () => {
   });
 
   describe('vim enter', () => {
-    function pressKeys(view: EditorView, keys: Partial<KeyboardEventInit>[]): void {
+    function pressKeys(view: EditorView, keys: { key: string; code: string; keyCode: number }[]): void {
       keys.forEach((init) => view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
         bubbles: true, cancelable: true, ...init
       })));
