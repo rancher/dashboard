@@ -21,10 +21,10 @@ const props = defineProps<{
  *
  * One row for the group label + the results shown per type + plus half a row (so user see's theres more results)
  */
-const dropdownVisibleRows = 10;
+const dropdownVisibleRows = 14;
 
 /**
- * height of a row. we manually
+ * height of a row
  *
  * $rc-button-small-height (the action-menu button, the tallest thing in a
  * result row) + plus the row's own $row-margin-y top and bottom padding.
@@ -138,7 +138,7 @@ function onActionInvoked(): void {
       >{{ option.label }}</b>
       <span
         v-else-if="option.kind === 'more'"
-        class="more-link more-row"
+        class="workload-search-option more-link"
         role="button"
         @click="onMoreClick($event, option)"
       >{{ option.label }}</span>
@@ -268,17 +268,11 @@ $row-margin-y: 8px;
     flex-shrink: 0;
     margin-left: 8px;
   }
+
+  &.more-link {
+    color: var(--link);
+    cursor: pointer;
+  }
 }
 
-.more-link {
-  color: var(--link);
-  cursor: pointer;
-}
-
-// Shares .more-link's color/cursor with the namespace link inside a result
-// row, but as the standalone "+X more" row it also needs its own padding.
-.more-row {
-  display: block;
-  padding: 0px $row-option-padding-x;
-}
 </style>
