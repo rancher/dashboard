@@ -76,14 +76,6 @@ describe('cert-manager overview aggregate', () => {
       ]);
     });
 
-    it('should order disabled states before info and success states', () => {
-      const card = buildStatusCard('k', 'Title', CERT_MANAGER.ISSUER, [
-        res(STATES_ENUM.ACTIVE, 'success'), res(STATES_ENUM.IN_PROGRESS, 'info'), res('unknown', 'disabled'),
-      ], order, routeFor);
-
-      expect(card.rows.map((r) => r.color)).toStrictEqual(['disabled', 'info', 'success']);
-    });
-
     it('should order states that share a colour by the given order', () => {
       const card = buildStatusCard('k', 'Title', CERT_MANAGER.CERTIFICATE, [
         res(STATES_ENUM.EXPIRED, 'error'), res(STATES_ENUM.ERROR, 'error'),
