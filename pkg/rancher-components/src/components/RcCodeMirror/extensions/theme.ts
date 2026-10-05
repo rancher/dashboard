@@ -51,7 +51,7 @@ const rancherSharedTheme = EditorView.theme({
   '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--rc-cm-key)' },
   '.cm-rancher-key':            {
     color:      'var(--rc-cm-key)',
-    fontWeight: '600'
+    fontWeight: 'normal'
   },
   '.cm-rancher-string':  { color: 'var(--rc-cm-string)' },
   '.cm-rancher-keyword': { color: 'var(--rc-cm-keyword)' },
