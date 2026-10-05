@@ -51,6 +51,7 @@ export function createSearchPanel(view: EditorView): Panel {
 
   clear.type = 'button';
   clear.name = 'clear';
+  clear.className = 'role-tertiary';
   clear.textContent = view.state.phrase('Clear');
   clear.setAttribute('aria-label', view.state.phrase('Clear search'));
   clear.addEventListener('click', () => {
