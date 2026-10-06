@@ -1,5 +1,5 @@
 import {
-  SearchQuery, closeSearchPanel, findNext, findPrevious, getSearchQuery, setSearchQuery
+  SearchQuery, findNext, findPrevious, getSearchQuery, setSearchQuery
 } from '@codemirror/search';
 import type { EditorView, Panel, ViewUpdate } from '@codemirror/view';
 import { runScopeHandlers } from '@codemirror/view';
@@ -47,25 +47,17 @@ export function createSearchPanel(view: EditorView): Panel {
   searchIcon.className = 'icon icon-search cm-search-icon';
   searchIcon.setAttribute('aria-hidden', 'true');
 
-  const clear = document.createElement('button');
-
-  clear.type = 'button';
-  clear.name = 'clear';
-  clear.className = 'role-tertiary';
-  clear.textContent = view.state.phrase('Clear');
-  clear.setAttribute('aria-label', view.state.phrase('Clear search'));
-  clear.addEventListener('click', () => {
+  const clear = iconButton(view, 'clear', 'icon-close', 'Clear search', () => {
     field.value = '';
     field.dispatchEvent(new Event('input', { bubbles: true }));
     field.focus();
   });
   const next = iconButton(view, 'next', 'icon-chevron-down', 'next', () => findNext(view));
   const previous = iconButton(view, 'prev', 'icon-chevron-up', 'previous', () => findPrevious(view));
-  const close = iconButton(view, 'close', 'icon-close', 'close', () => closeSearchPanel(view));
 
   controls.append(next, count, previous, clear, searchIcon);
   fieldWrap.append(field, controls);
-  dom.append(fieldWrap, close);
+  dom.append(fieldWrap);
 
   function updateCount(): void {
     const state = view.state;
