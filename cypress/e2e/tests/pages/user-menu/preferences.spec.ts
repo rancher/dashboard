@@ -28,10 +28,6 @@ const LANGUAGE_TEST = 'Can select a language';
 
 describe('User can update their preferences', () => {
   beforeEach(() => {
-    // Unrelated to preferences: logging out resets the store while the Prime registration extension
-    // is still resolving, and its rejection is unhandled. Remove once rancher/dashboard#19172 is fixed.
-    cy.on('uncaught:exception', (err) => (err.message.includes(`Schemas aren't loaded yet`) ? false : undefined));
-
     cy.login();
   });
 

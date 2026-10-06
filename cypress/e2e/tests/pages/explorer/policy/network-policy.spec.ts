@@ -65,7 +65,6 @@ describe('NetworkPolicies', { testIsolation: false, tags: ['@explorer', '@adminU
       // Check if the NetworkPolicy is created successfully
       networkPolicyPage.waitForPage();
       networkPolicyPage.baseResourceList().resourceTable().sortableTable().filter(customNetworkPolicyName);
-      networkPolicyPage.waitForPage(`q=${ customNetworkPolicyName }`);
       networkPolicyPage.baseResourceList().resourceTable().sortableTable().rowElementWithName(customNetworkPolicyName)
         .should('exist')
         .and('be.visible');
@@ -137,7 +136,6 @@ describe('NetworkPolicies', { testIsolation: false, tags: ['@explorer', '@adminU
     });
     networkPolicyPage.waitForPage();
     networkPolicyPage.baseResourceList().resourceTable().sortableTable().filter(networkPolicyName);
-    networkPolicyPage.waitForPage(`q=${ networkPolicyName }`);
     networkPolicyPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     networkPolicyPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
     networkPolicyPage.list().actionMenu(networkPolicyName).getMenuItem('Edit Config').click();

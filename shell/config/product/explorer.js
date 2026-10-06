@@ -422,8 +422,14 @@ export function init(store) {
     [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL],
   );
 
+  // Pods link to their node with a popover showing the node's details. Other lists with a node column keep a plain link.
+  // The card is inside the cell, so clicking it mustn't select the row
+  const POD_NODE_COL = {
+    ...NODE_COL, formatter: 'LinkNamePopover', skipSelect: true
+  };
+
   headers(POD,
-    [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', NODE_COL, AGE],
+    [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', POD_NODE_COL, AGE],
     [
       STEVE_STATE_COL,
       STEVE_NAME_COL,
@@ -448,7 +454,7 @@ export function init(store) {
       },
       'IP',
       {
-        ...NODE_COL,
+        ...POD_NODE_COL,
         search: 'spec.nodeName'
       },
       STEVE_AGE_COL

@@ -6,7 +6,41 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import PaginationPo from '@/cypress/e2e/po/components/pagination.po';
 import HeaderRowPo from '@/cypress/e2e/po/components/header-row.po';
 
+/**
+ * Matches only a list's real resource rows.
+ *
+ * A bare `tbody tr` also matches the `tr.group-row` headers rendered when the list is grouped (for
+ * example the `Namespace: <name>` headers of a namespace-grouped list) and the sub-rows some
+ * resources expand into. Those rows carry no per-row action button and no select checkbox, so a
+ * lookup that lands on one can never resolve them.
+ */
+export const RESOURCE_ROW_SELECTOR = 'tbody tr:not(.sub-row):not(.group-row):not(.additional-sub-row)';
+
 export default class SortableTablePo extends ComponentPo {
+  /**
+   * Is the table on screen laid out for table views: a query box instead of the search box, and the
+   * bulk actions in one menu for the selection. Tables without a schema keep the old layout even
+   * with the feature on.
+   *
+   * Read from the page rather than `self()`: a table built from a chainable shares it, and each
+   * `find` moves its subject, so after one lookup `self()` is no longer the table
+   */
+  private withTableViews<S>(tableViews: () => Cypress.Chainable<S>, old: () => Cypress.Chainable<S>): Cypress.Chainable<S> {
+    return cy.get('body').then(($body) => ($body.find('.has-table-views').filter((_, el) => this.isRendered(el)).length ? tableViews() : old()));
+  }
+
+  /**
+   * Laid out, which leaves out a table in a tab not shown. Not `:visible`: Cypress reads that as on
+   * screen, so it misses a control scrolled out of a narrow toolbar, which a click would scroll to
+   */
+  private isRendered(el: HTMLElement) {
+    return el.getClientRects().length > 0;
+  }
+
+  private rendered(selector: string) {
+    return cy.get(selector).filter((_, el) => this.isRendered(el));
+  }
+
   /**
    * Create a name that should, when sorted by name, by default appear first
    */
@@ -25,26 +59,41 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   /**
-   * Get the bulk action button
-   * @param label
-   * @returns
+   * Get the bulk action button. With table views the bulk actions are in the selection's menu, which
+   * this opens
    */
   bulkActionButton(label: string) {
-    return this.self().find(`.fixed-header-actions .bulk button`).contains(label);
+    return this.withTableViews(() => {
+      this.openSelectionActions();
+
+      return this.bulkActionDropDownPopOver().contains('[dropdown-menu-item]', label);
+    }, () => this.self().find(`.fixed-header-actions .bulk button`).contains(label));
   }
 
   /**
-   * Get the bulk action dropdown button (this is where collapsed bulk actions go when screen width is too small)
+   * A bulk action by its action name (eg `activate`). With table views, opens the selection's menu
+   */
+  bulkAction(action: string) {
+    return this.withTableViews(() => {
+      this.openSelectionActions();
+
+      return cy.get(`[data-testid$="-selection-action-${ action === 'promptRemove' ? 'delete' : action }"]`);
+    }, () => cy.get(`[data-testid="sortable-table-${ action }"]`));
+  }
+
+  /**
+   * Get the bulk action dropdown button (this is where collapsed bulk actions go when screen width is
+   * too small). With table views, the selection's menu
    */
   bulkActionDropDown() {
-    return this.self().find(`.fixed-header-actions .bulk .bulk-actions-dropdown`);
+    return this.withTableViews(() => this.selectionActionsButton(), () => this.self().find(`.fixed-header-actions .bulk .bulk-actions-dropdown`));
   }
 
   /**
    * Open the bulk action drop down
    */
   bulkActionDropDownOpen() {
-    return this.bulkActionDropDown().click();
+    return this.withTableViews(() => this.openSelectionActions(), () => this.bulkActionDropDown().click());
   }
 
   /**
@@ -67,7 +116,37 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   /**
-   * Get group by buttons (flat list, group by namespace, or group by node)
+   * The "N Selected" menu that holds the bulk actions with table views. Only there while rows are
+   * selected
+   */
+  selectionActionsButton() {
+    return this.rendered('[data-testid$="-selection-actions"]');
+  }
+
+  /**
+   * Nothing is selected, so there is no menu of bulk actions. Not through `selectionActionsButton`,
+   * whose `get` would fail before `not.exist` could pass
+   */
+  checkNoSelectionActions() {
+    return cy.get('[data-testid$="-selection-actions"]').should('not.exist');
+  }
+
+  openSelectionActions() {
+    return this.selectionActionsButton().then(($button) => {
+      if ($button.attr('aria-expanded') === 'true') {
+        return;
+      }
+
+      // A menu closing from the last pick stays on the page while it fades, and takes a click on its
+      // button as one outside it, closing the menu that click opens
+      cy.get('[data-testid*="-selection-action-"]').should('not.exist');
+      cy.wrap($button).click();
+    });
+  }
+
+  /**
+   * Get group by buttons (flat list, group by namespace, or group by node). Tables with table views
+   * group from their View menu instead, see `groupBy`
    * @param index
    * @returns
    */
@@ -75,19 +154,76 @@ export default class SortableTablePo extends ComponentPo {
     return this.self().find(`[data-testid="button-group-child-${ index }"]`);
   }
 
+  viewMenuButton() {
+    return this.rendered('[data-testid="table-views-view-menu"]');
+  }
+
+  /**
+   * Open the View menu's Group By list
+   */
+  openGroupBy() {
+    this.viewMenuButton().then(($button) => {
+      if ($button.attr('aria-expanded') === 'true') {
+        return;
+      }
+
+      // As with the selection's menu: one still fading would close the menu this click opens
+      cy.getId('table-views-view-group').should('not.exist');
+      cy.wrap($button).click();
+    });
+
+    return cy.getId('table-views-view-group').click();
+  }
+
+  /**
+   * An entry of the open Group By list, by its label
+   */
+  groupByOption(label: string) {
+    return cy.contains('[data-testid^="table-views-group-"]', new RegExp(`^\\s*${ label }\\s*$`));
+  }
+
+  /**
+   * Close the View menu, and the list it opened
+   */
+  closeViewMenu() {
+    return this.viewMenuButton().click();
+  }
+
+  /**
+   * Group the table by one of its View menu's Group By entries, by label (`None` for a flat list)
+   */
+  groupBy(label: string) {
+    this.openGroupBy();
+    this.groupByOption(label).then(($option) => {
+      // A click on the current grouping would turn it off. Forced: the list is drawn beside the View
+      // menu but sits inside its popper on the page, so Cypress can think the popper covers it
+      if ($option.attr('aria-checked') !== 'true') {
+        cy.wrap($option).click({ force: true });
+      }
+    });
+
+    return this.closeViewMenu();
+  }
+
   /**
    * Delete button (displays on page after row element selected)
    */
   deleteButton() {
-    return cy.getId('sortable-table-promptRemove');
+    return this.bulkAction('promptRemove');
   }
 
+  /**
+   * How many rows are selected, eg "2 selected" (reads "2 Selected" with table views)
+   */
   selectedCountText() {
-    return cy.get('.action-availability');
+    return this.withTableViews(() => this.selectionActionsButton(), () => cy.get('.action-availability'));
   }
 
+  /**
+   * The search box, or with table views the query box
+   */
   filterComponent() {
-    return this.self().find('[data-testid="search-box-filter-row"] input');
+    return this.self().find('[data-testid="table-views-query"], [data-testid="search-box-filter-row"] input').first();
   }
 
   /**
@@ -96,10 +232,18 @@ export default class SortableTablePo extends ComponentPo {
    * @returns
    */
   filter(searchText: string, delay?: number) {
-    return this.filterComponent()
-      .focus()
-      .clear()
-      .type(searchText, { delay });
+    return this.resetFilter()
+      .type(searchText, { delay })
+      .then(($el) => {
+        if (!$el.is('[contenteditable]')) {
+          return;
+        }
+
+        // The query box's suggestions would cover the rows
+        cy.wrap($el).blur();
+        // Until the query settles and its rows arrive, the rows on screen are the old query's
+        cy.get('.has-table-views[aria-busy="true"]').should('not.exist');
+      });
   }
 
   resetFilter() {
@@ -130,15 +274,21 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   rowElements(options?: any) {
-    return this.self().find('tbody tr:not(.sub-row):not(.group-row):not(.additional-sub-row)', options);
+    return this.self().find(RESOURCE_ROW_SELECTOR, options);
   }
 
-  rowElementWithName(name: string, options?: GetOptions) {
+  /**
+   * @param resourceRowsOnly restrict the lookup to real resource rows, skipping group headers and
+   * sub-rows. Needed when the name also appears in a group header - a namespaced resource that
+   * shares its namespace's name matches the `Namespace: <name>` header first, and that row has no
+   * action button or checkbox to act on. Defaults to the historic `tbody tr` match.
+   */
+  rowElementWithName(name: string, options?: GetOptions, resourceRowsOnly = false) {
     // Assert the container exists before .contains() runs. Under Cypress 12's
     // grouped-query retries, a transiently empty container (e.g. during SPA
     // navigation) would otherwise flow an empty jQuery{0} subject into
     // .contains(), which rejects it ("requires a DOM element").
-    return this.self().should('exist').contains('tbody tr', new RegExp(`${ name }`), options);
+    return this.self().should('exist').contains(resourceRowsOnly ? RESOURCE_ROW_SELECTOR : 'tbody tr', new RegExp(`${ name }`), options);
   }
 
   rowElementWithPartialName(name: string, options?: GetOptions) {
@@ -178,8 +328,12 @@ export default class SortableTablePo extends ComponentPo {
     return new ListRowPo(this.rowElementWithPartialName(name, options));
   }
 
-  rowWithName(name: string) {
-    return new ListRowPo(this.rowElementWithName(name));
+  /**
+   * @param resourceRowsOnly see `rowElementWithName`
+   * @param options optional Cypress options (e.g. a longer timeout) for the row lookup
+   */
+  rowWithName(name: string, resourceRowsOnly = false, options?: GetOptions) {
+    return new ListRowPo(this.rowElementWithName(name, options, resourceRowsOnly));
   }
 
   /**
@@ -242,8 +396,8 @@ export default class SortableTablePo extends ComponentPo {
   /**
    * For a row with the given name open it's action menu and return the drop down
    */
-  rowActionMenuOpen(name: string, skipNoActionAvailableCheck?: boolean) {
-    this.rowWithName(name).actionBtn()
+  rowActionMenuOpen(name: string, skipNoActionAvailableCheck?: boolean, resourceRowsOnly = false) {
+    this.rowWithName(name, resourceRowsOnly).actionBtn()
       .click().then((el) => {
         expect(el).to.have.attr('aria-expanded', 'true');
       });

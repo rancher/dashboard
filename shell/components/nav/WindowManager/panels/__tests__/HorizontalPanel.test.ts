@@ -73,4 +73,38 @@ describe('component: HorizontalPanel', () => {
 
     expect(closeTabMock).toHaveBeenCalledWith(expect.anything(), { id: tabs[0].id });
   });
+
+  it('should not nest a focusable element inside a tab', () => {
+    const wrapper = mountPanel();
+
+    const nested = wrapper.findAll('[role="tab"]').flatMap((tab) => tab.findAll('button, a, input, select, textarea, [tabindex]'));
+
+    expect(nested).toHaveLength(0);
+  });
+
+  it('should render each close button as the sibling of its tab', () => {
+    const wrapper = mountPanel();
+
+    const closeButtons = wrapper.findAll('[role="tab"] + [data-testid="wm-tab-close-button"]');
+
+    expect(closeButtons).toHaveLength(tabs.length);
+  });
+
+  it.each(['click', 'keyup.enter', 'keyup.space'])('should activate the tab on %s', async(event) => {
+    const setActiveMock = jest.fn();
+    const wrapper = mountPanel({ 'wm/setActive': setActiveMock });
+
+    await wrapper.findAll('[role="tab"]').at(1)?.trigger(event);
+
+    expect(setActiveMock).toHaveBeenCalledWith(expect.anything(), { position: BOTTOM, id: tabs[1].id });
+  });
+
+  it('should not activate the tab when its close button is clicked', async() => {
+    const setActiveMock = jest.fn();
+    const wrapper = mountPanel({ 'wm/setActive': setActiveMock });
+
+    await wrapper.findAll('[data-testid="wm-tab-close-button"]').at(1)?.trigger('click');
+
+    expect(setActiveMock).toHaveBeenCalledTimes(0);
+  });
 });

@@ -26,9 +26,11 @@
  *
  * ARIA attributes (e.g. `aria-label`, `aria-labelledby`) and `tabindex` are
  * forwarded to the editor's textbox. Give every instance an accessible name.
- * In the editor variant, Tab and Shift-Tab change indentation with the default
- * and Emacs keymaps. Vim uses Tab for its jump list in Normal mode and inserts
- * a tab at the cursor in Insert mode. Press Escape then Tab to move focus out.
+ * In the editor variant, Tab indents at the cursor (or indents the selected
+ * lines) and Shift-Tab unindents with the default keymap and in Vim Insert mode.
+ * Emacs Tab reindents the line. In Vim Normal mode Tab moves through the jump
+ * list and Shift-Tab does nothing. Press Escape then Tab to move focus out.
+ * In a read-only editor Tab and Shift-Tab move focus with every keymap.
  */
 import {
   ref, shallowRef, computed, onMounted, onBeforeUnmount, watch, useAttrs
@@ -59,6 +61,7 @@ import RcButton from '@components/RcButton/RcButton.vue';
 import { getLanguageExtension } from './extensions/syntax';
 import { getKeymapExtension } from './extensions/keymaps';
 import { buildFoldExtension } from './extensions/fold';
+import { bottomPanelsExtension } from './extensions/panels';
 import { rancherInputTheme, rancherTheme } from './extensions/theme';
 import type { RcCodeMirrorKeymap, RcCodeMirrorProps, RcCodeMirrorTheme, RcCodeMirrorVariant } from './types';
 
@@ -90,6 +93,7 @@ const emit = defineEmits<{
 
 const attrs = useAttrs();
 const container = ref<HTMLDivElement>();
+const bottomPanels = ref<HTMLDivElement>();
 const view = shallowRef<EditorView>();
 const isEditorFocused = ref(false);
 const ESCAPE_HINT = 'Press Escape, then Tab to leave the editor';
@@ -246,9 +250,12 @@ function handleEditorKeydown(event: KeyboardEvent): void {
 }
 
 // Escape belongs to the editor (Vim uses it to leave Insert mode), so it must not also reach page
-// handlers such as a modal closing on Escape. This runs after CodeMirror has handled the key.
+// handlers such as a modal closing on Escape. This runs after CodeMirror has handled the key. Escape in the
+// search panel removes the panel before the event bubbles here, so check the path it was dispatched along.
 function stopEditorEscape(event: KeyboardEvent): void {
-  if (event.code === 'Escape' && event.target instanceof Node && view.value?.dom.contains(event.target)) {
+  const editor = view.value?.dom;
+
+  if (event.code === 'Escape' && editor && event.composedPath().includes(editor)) {
     event.stopPropagation();
   }
 }
@@ -302,6 +309,7 @@ onMounted(() => {
       readOnlyCompartment.of(getReadOnlyExtension(props.readOnly ?? false)),
       contentAttributesCompartment.of(getContentAttributesExtension(editorAttributes())),
       updateListener,
+      ...(bottomPanels.value ? [bottomPanelsExtension(bottomPanels.value)] : []),
       ...(props.extensions ?? [])
     ]
   });
@@ -433,7 +441,7 @@ defineExpose({ view });
     @focusout="handleFocusOut"
   >
     <span
-      v-show="isEditorFocused && variant !== 'input'"
+      v-show="isEditorFocused && variant !== 'input' && !readOnly"
       class="rc-cm-escape-hint"
       role="alert"
     >{{ escapeHint }}</span>
@@ -456,6 +464,10 @@ defineExpose({ view });
         aria-hidden="true"
       />
     </RcButton>
+    <!-- CodeMirror gives the panels' container the editor's theme classes, whose root styles would unstick it -->
+    <div class="rc-cm-bottom-panels">
+      <div ref="bottomPanels" />
+    </div>
   </div>
 </template>
 
@@ -471,8 +483,13 @@ defineExpose({ view });
   --rc-cm-gutter: #5B626C;
   --rc-cm-fold-hover: #E8ECF2;
   --rc-cm-active-line: rgba(0, 0, 0, 0.04);
+  --rc-cm-search-match: rgba(255, 213, 0, 0.4);
+  --rc-cm-search-match-selected: rgba(255, 140, 0, 0.5);
+  --rc-cm-color-scheme: light;
 
-  display: block;
+  // A column, so the editor shrinks to make room for the bottom panels strip in a fixed height
+  display: flex;
+  flex-direction: column;
   height: 100%;
   box-sizing: border-box;
   position: relative;
@@ -546,6 +563,65 @@ defineExpose({ view });
 
   :deep(.cm-editor) {
     height: 100%;
+    min-height: 0;
+  }
+
+  // Holds CodeMirror's bottom panels, such as Vim's command line, above the editor (see extensions/panels.ts)
+  .rc-cm-bottom-panels {
+    position: sticky;
+    top: 0;
+    // Above the editor's panels and focus ring
+    z-index: 302;
+
+    // As tall as the Dashboard's side navigation toolbar, the "Jump to..." search, including its border, so their
+    // bottom borders line up when the strip sticks below the header
+    :deep(.cm-panels) {
+      position: static;
+      box-sizing: border-box;
+      height: 40px;
+      color: var(--rc-cm-text);
+      background-color: var(--rc-cm-bg);
+      border: none;
+      border-bottom: 1px solid var(--border, #DCDEE7);
+    }
+
+    :deep(.cm-vim-panel) {
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+      height: 100%;
+      min-height: 0;
+      padding: 0 8px;
+      font-size: 14px;
+
+      // Vim sets the prompt's font and its hint's color inline
+      span {
+        font-family: $mono-font !important;
+        align-items: center;
+      }
+
+      span + span {
+        color: var(--rc-cm-comment) !important;
+        font-family: inherit !important;
+      }
+
+      // The Dashboard's global styles make text inputs full width blocks with a border, which put the field on
+      // its own line below the prompt
+      input {
+        display: inline-block;
+        width: auto;
+        min-width: 0;
+        height: auto;
+        padding: 0 0 0 2px;
+        border: none;
+        border-radius: 0;
+        outline: none;
+        color: inherit;
+        caret-color: var(--rc-cm-key);
+        background-color: transparent;
+        font: inherit;
+      }
+    }
   }
 
   :deep(.cm-editor.cm-focused) {
@@ -603,7 +679,8 @@ defineExpose({ view });
       inset: 0;
       border: 2px solid var(--primary-keyboard-focus);
       pointer-events: none;
-      z-index: 1;
+      // Above CodeMirror's panels (z-index 300), so the search panel does not cover the ring
+      z-index: 301;
     }
   }
 
@@ -657,5 +734,8 @@ defineExpose({ view });
   --rc-cm-gutter: #9AA1AC;
   --rc-cm-fold-hover: #3C4655;
   --rc-cm-active-line: rgba(255, 255, 255, 0.04);
+  --rc-cm-search-match: rgba(255, 213, 0, 0.25);
+  --rc-cm-search-match-selected: rgba(255, 140, 0, 0.45);
+  --rc-cm-color-scheme: dark;
 }
 </style>

@@ -8,6 +8,7 @@ import * as jsyaml from 'js-yaml';
 import { settings } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 import { qase } from '@/cypress/support/qase';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 // If there's more than one cluster the currentCluster used in links can be different to `local`
 const settingsClusterId = '_';
@@ -569,9 +570,12 @@ describe('Settings', { testIsolation: false }, () => {
 
     clusterList.goTo();
     clusterList.waitForPage();
-    // Wait for the cluster list to finish loading before opening the row action menu. Acting on a
-    // still-loading list fails to find [data-testid="cluster-list"], and with testIsolation off that
-    // mid-test failure wedges the app so later retries cannot even open the side menu to navTo.
+    // Saving kubeconfig-generate-token twice above leaves the backend re-reading settings, so this
+    // first render of Cluster Management regularly needs longer than the default 10s - without this
+    // the list container itself is never found. Wait for it explicitly, because with testIsolation
+    // off that mid-test failure wedges the app and later retries cannot even open the side menu.
+    clusterList.list().checkVisible(LONG_TIMEOUT_OPT);
+    // Then wait for the list to finish loading before opening the row action menu.
     clusterList.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
     clusterList.list().actionMenu('local').getMenuItem('Download KubeConfig').click();

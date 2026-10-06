@@ -17,7 +17,7 @@ The default `rancher` theme uses the Rancher light or dark palette from the surr
 
 Set `keymap="emacs"` for Emacs movement, undo, kill/yank, and multi-key commands. Browser shortcuts still take priority when the browser reserves them; for example, Chrome intercepts Ctrl-N and Ctrl-W before the editor receives those keys.
 
-The CodeMirror search panel is currently disabled. Search shortcuts such as Ctrl-F or Cmd-F do not open a panel inside this editor.
+CodeMirror renders only the lines in view, so the browser's own find cannot reach the rest of a long document. In the editor variant, Ctrl-F (Cmd-F on macOS) opens CodeMirror's search panel instead; with Emacs outside macOS, Ctrl-S opens it, since Ctrl-F moves forward a character. Enter and Shift-Enter, F3 and Shift-F3, or Mod-G and Shift-Mod-G move between matches, and Escape closes the panel. Vim searches with `/`. The input variant leaves Ctrl-F to the browser. The panel's labels can be translated through `EditorState.phrases`.
 
 Set `keymap-indicator` to show a button in the top-right corner while the Vim or Emacs keymap is active, so users know why keys behave differently. Selecting it hides it until the editor is remounted and moves focus into the editor. It is never shown for the default keymap or the input variant.
 
@@ -33,7 +33,7 @@ Styles and classes passed to `RcCodeMirror` apply to its outer box. Set a height
 
 CodeMirror renders its own textbox, so ARIA attributes such as `aria-label`, `aria-labelledby` and `aria-describedby` are forwarded to it rather than the component's root element. Every instance needs an accessible name from one of them. A `<label for>` does not work, because the textbox is not a form control; give the label an `id` and reference it with `aria-labelledby`, as the input example below does.
 
-In the editor variant, Tab indents and Shift-Tab unindents with the default and Emacs keymaps. With Vim, Tab moves forward in the jump list in Normal mode and inserts a tab at the cursor in Insert mode; Shift-Tab moves focus out. A hint appears while the editor is focused: press Escape then Tab (or Escape then Shift-Tab) to leave, as described in [CodeMirror's Tab guidance](https://codemirror.net/examples/tab/). This works with every keymap. In the input variant, Tab and Shift-Tab move focus normally.
+In the editor variant, with the default keymap and in Vim Insert mode, Tab fills from the cursor to the next indent stop using the document's indent unit (two spaces by default), or indents the selected lines. Shift-Tab unindents. With Emacs, Tab reindents the line and Shift-Tab unindents. In Vim Normal mode, Tab moves forward in the jump list and Shift-Tab does nothing. A hint appears while the editor is focused: press Escape then Tab (or Escape then Shift-Tab) to leave, as described in [CodeMirror's Tab guidance](https://codemirror.net/examples/tab/). This works with every keymap. In the input variant and in a read-only editor, Tab and Shift-Tab move focus normally and the hint is not shown.
 
 Escape pressed in the editor stays in the editor: it does not propagate to the page, so it will not close a surrounding modal while leaving Vim's Insert mode, for example.
 

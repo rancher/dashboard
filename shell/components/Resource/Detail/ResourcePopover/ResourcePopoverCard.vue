@@ -1,11 +1,44 @@
 <script lang="ts">
+import { useStore } from 'vuex';
+import PercentageBar from '@shell/components/PercentageBar.vue';
+import { useI18n } from '@shell/composables/useI18n';
+import { formatPercent } from '@shell/utils/string';
+
 export interface Props {
   resource: any;
+  /**
+   * What the usage is worked out from is still being fetched, so usage that isn't known yet is shown as loading rather than n/a
+   */
+  usageLoading?: boolean;
+}
+
+/**
+ * An item a model can return from its optional `glanceUsage` getter, shown as a bar below the rows of the card
+ */
+export interface GlanceUsageItem {
+  name: string;
+  label: string;
+  /**
+   * Leave out when the usage isn't known, e.g. there are no metrics
+   */
+  percentage?: number;
 }
 </script>
 
 <script setup lang="ts">
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), { usageLoading: false });
+const store = useStore();
+const i18n = useI18n(store);
+
+const hasPercentage = (item: GlanceUsageItem): item is GlanceUsageItem & { percentage: number } => typeof item.percentage === 'number' && Number.isFinite(item.percentage);
+
+// The bar is empty when the usage isn't known, and full when usage goes over 100%
+const barPercentage = (item: GlanceUsageItem): number => (hasPercentage(item) ? Math.min(Math.max(item.percentage, 0), 100) : 0);
+
+const usageDisplay = (item: GlanceUsageItem): string => (hasPercentage(item) ? formatPercent(item.percentage) : i18n.t('generic.na'));
+
+// A known usage is shown while it's refreshed
+const isUsageLoading = (item: GlanceUsageItem): boolean => props.usageLoading && !hasPercentage(item);
 
 const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.label }:${ glanceItem.content }`.toLowerCase().replaceAll(' ', '');
 </script>
@@ -47,6 +80,40 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
         </div>
       </div>
     </div>
+    <div
+      v-if="props.resource.glanceUsage?.length"
+      class="usage"
+      data-testid="resource-popover-usage"
+    >
+      <div
+        v-for="item in props.resource.glanceUsage"
+        :key="item.name"
+        class="usage-item"
+        :data-testid="`resource-popover-usage-${ item.name }`"
+        :aria-busy="isUsageLoading(item)"
+      >
+        <span class="text-deemphasized">{{ item.label }}</span>
+        <PercentageBar
+          :model-value="barPercentage(item)"
+          aria-hidden="true"
+        />
+        <span
+          v-if="isUsageLoading(item)"
+          class="usage-value"
+          :data-testid="`resource-popover-usage-${ item.name }-loading`"
+        >
+          <i
+            class="icon icon-spinner icon-spin"
+            aria-hidden="true"
+          />
+          <span class="sr-only">{{ i18n.t('component.resource.detail.glance.ariaLabel.loadingUsage') }}</span>
+        </span>
+        <span
+          v-else
+          class="usage-value"
+        >{{ usageDisplay(item) }}</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -71,6 +138,8 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
       font-size: 12px;
       // Fits the text in the 20px pill. Inside a table cell the pill is clipped, so the row line-height would cut it off
       line-height: 14px;
+      // A table cell also limits the pill to 110px, which cuts off a long state such as CrashLoopBackOff
+      max-width: 100%;
     }
 
     .heading {
@@ -126,6 +195,29 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
 
     .value {
       min-width: 0;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .usage {
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+    gap: 16px;
+    margin-top: 16px;
+    line-height: 21px;
+
+    .usage-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    // A thin bar, rather than the thick one used in tables
+    :deep(.bar) {
+      height: 4px;
+      border-radius: 2px;
     }
   }
 }

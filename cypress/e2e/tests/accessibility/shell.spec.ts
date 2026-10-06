@@ -245,8 +245,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
 
           it('Projects-Namespaces - Delete Project dialog', () => {
             projectsNamespacesPage.waitForPage();
-            projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(1)
-              .click();
+            projectsNamespacesPage.list().resourceTable().sortableTable().groupBy('Project');
             projectsNamespacesPage.list().resourceTable().sortableTable().rowActionMenuOpen('Project: Default')
               .getMenuItem('Delete')
               .click();
@@ -300,8 +299,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
 
           it('Projects-Namespaces - Create Namespace', () => {
             projectsNamespacesPage.waitForPage();
-            projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(0)
-              .click();
+            projectsNamespacesPage.list().resourceTable().sortableTable().groupBy('None');
             projectsNamespacesPage.createNamespaceButton().should('be.visible').click();
             projectsNamespacesPage.mastheadTitle().then((title) => {
               expect(title.replace(/\s+/g, ' ')).to.contain('Namespace: Create');
@@ -685,7 +683,33 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
       it('Chart Detail Page - Kubecost', () => {
         const chartPage = new ChartPage();
 
-        ChartPage.navTo(null, 'Kubecost');
+        // Kubecost ships from the partner charts repo, which Rancher downloads and indexes
+        // asynchronously after install. Until that finishes the Charts page lists no card for it,
+        // so filtering finds nothing and the click fails on a card lookup that never resolves.
+        // Wait for the chart to actually be served before navigating. failOnStatusCode is off
+        // because the index answers 500 while the repo is still being indexed.
+        const waitForPartnerChart = (retries = 30): void => {
+          cy.request({
+            url:              `${ Cypress.env('api') }/v1/catalog.cattle.io.clusterrepos/rancher-partner-charts?link=index`,
+            failOnStatusCode: false,
+          }).then((resp) => {
+            if ((resp.status === 200 && resp.body?.entries?.['cost-analyzer']) || retries === 0) {
+              return;
+            }
+            cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+            waitForPartnerChart(retries - 1);
+          });
+        };
+
+        waitForPartnerChart();
+
+        // Go straight to the detail page rather than through the Charts list. This test checks the
+        // accessibility of the detail page; the list, filter and click on the way there are what
+        // flaked. The list lazy-loads its cards, so a card can be absent without anything being
+        // wrong, and it can render a catalog from before the partner chart was published and never
+        // re-read it (Known issue rancher/dashboard#19319). A full page load of the detail URL
+        // reads a fresh catalog and needs none of that.
+        chartPage.goTo('repo-type=cluster&repo=rancher-partner-charts&chart=cost-analyzer');
         chartPage.waitForChartPage('rancher-partner-charts', 'cost-analyzer');
         chartPage.waitForChartHeader('Kubecost', MEDIUM_TIMEOUT_OPT);
 
@@ -730,9 +754,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
       it('Import Extension Catalog Modal', () => {
         extensionsPo.extensionMenuToggle();
         extensionsPo.manageExtensionCatalogsClick();
-        extensionsPo.catalogsList().sortableTable()
-          .bulkActionButton('Import Extension Catalog')
-          .click();
+        extensionsPo.importExtensionCatalogClick();
         dialogModal().checkVisible();
 
         cy.injectAxe();

@@ -1,0 +1,61 @@
+// Shared by the tabs and the controls, imported into each one's scoped style
+
+// The same curves the side nav's pinned shelf uses
+$drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
+$drag-drop-curve: cubic-bezier(0.2, 1, 0.1, 1);
+
+@mixin toolbar-icon($box, $glyph) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: $box;
+  height: $box;
+  font-size: $glyph;
+  line-height: 1;
+}
+
+// The filter's minimum plus the View button, or the View menu and its sub menu, whichever is wider
+$toolbar-min-width: 544px;
+
+.table-views {
+  display: flex;
+  flex-direction: column;
+  min-width: $toolbar-min-width;
+  margin: 0;
+  width: 100%;
+}
+
+.menu-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  // In a submenu, which is sized to the page, the panel gives way and scrolls itself
+  min-height: 0;
+  // Naming one axis sets the other to `auto`, which shows a scrollbar for a fractional width
+  overflow-x: hidden;
+  overflow-y: auto;
+  text-align: left;
+  // Room for the top and bottom rows' focus rings, which the scroll box would clip
+  margin: -3px 0;
+  padding: 3px 0;
+
+  // Not named `icon-*`: the icon font claims `[class*=" icon-"]` with !important
+  .menu-gutter {
+    display: inline-block;
+    flex: none;
+    width: 14px;
+  }
+
+  // Above the neighbouring rows' hover tint, which would cover the ring's edge
+  [dropdown-menu-item]:focus-visible {
+    position: relative;
+    z-index: 1;
+  }
+
+  // `--active` follows the brand in both themes; `--info` doesn't
+  [dropdown-menu-item].selected,
+  [role="menuitemradio"][aria-checked="true"] {
+    color: var(--active, var(--primary));
+  }
+}

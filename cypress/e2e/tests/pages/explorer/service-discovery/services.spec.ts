@@ -196,11 +196,10 @@ describe('Services', { testIsolation: false, tags: ['@explorer', '@adminUser'] }
       cy.wait('@servicesDataSmall');
 
       // group by namespace
-      servicesPagePo.list().resourceTable().sortableTable().groupByButtons(1)
-        .click();
+      servicesPagePo.list().resourceTable().sortableTable().groupBy('Namespace');
 
       //  check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Target', 'Selector', 'Type', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Target', 'Selector', 'Type', 'Age'];
 
       servicesPagePo.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')
