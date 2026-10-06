@@ -164,6 +164,11 @@ export default {
         }
 
         await this.applyHooks(AFTER_SAVE_HOOKS, this.value);
+
+        if ( this.isCreate ) {
+          this.value.notifyGeneratedName?.();
+        }
+
         buttonDone && buttonDone(true);
 
         this.done();
@@ -195,7 +200,7 @@ export default {
     async actuallySave(url) {
       if ( this.isCreate ) {
         url = url || this.schema.linkFor('collection');
-        const res = await this.value.save({ url, showGeneratedNameToast: true });
+        const res = await this.value.save({ url });
 
         if (res) {
           Object.assign(this.value, res);

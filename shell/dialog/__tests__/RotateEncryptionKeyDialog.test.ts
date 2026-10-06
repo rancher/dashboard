@@ -51,7 +51,7 @@ describe('component: RotateEncryptionKeyDialog', () => {
         kind:       'Cluster',
         name:       'c-m-1',
       }
-    }, 'c-m-1', 'c-m-1');
+    }, 'c-m-1', 'c-m-1', { notifyGeneratedName: true });
     expect(cluster.save).not.toHaveBeenCalled();
     expect(buttonDone).toHaveBeenCalledWith(true);
   });

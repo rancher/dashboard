@@ -1266,10 +1266,9 @@ export default class Resource {
   processSaveResponse(res, opt = {}) { }
 
   /**
-   * Allow to notify the user of the name generated for a newly created resource
-   * @param {*} res Full request response
+   * Allow to notify the user of the name generated for this resource, once it has been created
    */
-  notifyGeneratedName(res) { }
+  notifyGeneratedName() { }
 
   async _save(opt = { }) {
     const forNew = !this.id;
@@ -1901,7 +1900,7 @@ export default class Resource {
       });
 
       if (isCreate) {
-        this.notifyGeneratedName(res);
+        this.notifyGeneratedName();
       }
 
       if (this.isSpoofed) {

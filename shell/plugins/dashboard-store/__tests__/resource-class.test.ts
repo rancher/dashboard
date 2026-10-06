@@ -284,7 +284,7 @@ describe('class: Resource', () => {
       await instance._saveYaml(jsyaml.dump({ metadata: { namespace: 'aaa', generateName: 'my-' } }));
 
       expect(followLink).toHaveBeenCalledWith('collection', expect.objectContaining({ method: 'POST' }));
-      expect(notifyGeneratedName).toHaveBeenCalledWith(response);
+      expect(notifyGeneratedName).toHaveBeenCalledWith();
     });
 
     it('should not notify the generated name when updating', async() => {
@@ -294,7 +294,7 @@ describe('class: Resource', () => {
 
       await resourceInstance._saveYaml(jsyaml.dump({ metadata: { namespace: 'aaa', name: 'my-resource' } }));
 
-      expect(notifyGeneratedName).not.toHaveBeenCalled();
+      expect(notifyGeneratedName).toHaveBeenCalledTimes(0);
     });
   });
 

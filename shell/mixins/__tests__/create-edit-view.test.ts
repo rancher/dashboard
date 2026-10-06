@@ -2,6 +2,7 @@ import { _EDIT } from '@shell/config/query-params';
 import { mount } from '@vue/test-utils';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import impl from '@shell/mixins/create-edit-view/impl';
+import { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 
 describe('createEditView should', () => {
   it('add value', () => {
@@ -55,23 +56,54 @@ describe('createEditView should', () => {
     expect(spyConflict).toHaveBeenCalledTimes(1);
   });
 
-  describe('actuallySave', () => {
-    it('asks for the generated name growl when creating the resource', async() => {
-      const save = jest.fn().mockResolvedValue({ id: 'default/test-abc12' });
-      const vm: any = { isCreate: true, value: { save } };
+  describe('save', () => {
+    const createVm = (isCreate: boolean, afterSaveHook: () => unknown = jest.fn()) => {
+      const calls: string[] = [];
+      const vm: any = {
+        isCreate,
+        value:        { notifyGeneratedName: jest.fn(() => calls.push('notify')) },
+        actuallySave: jest.fn(() => calls.push('save')),
+        applyHooks:   jest.fn(async(hooks: string) => {
+          calls.push(hooks);
+          if (hooks === AFTER_SAVE_HOOKS) {
+            await afterSaveHook();
+          }
+        }),
+        done:   jest.fn(),
+        $store: { getters: { 'type-map/isSpoofed': () => false } },
+      };
 
-      await (impl.methods as any).actuallySave.call(vm, 'url');
+      return { vm, calls };
+    };
 
-      expect(save).toHaveBeenCalledWith({ url: 'url', showGeneratedNameToast: true });
+    it('shows the generated name growl after the after save hooks when creating', async() => {
+      const { vm, calls } = createVm(true);
+      const buttonDone = jest.fn();
+
+      await (impl.methods as any).save.call(vm, buttonDone);
+
+      expect(calls).toStrictEqual([BEFORE_SAVE_HOOKS, 'save', AFTER_SAVE_HOOKS, 'notify']);
+      expect(buttonDone).toHaveBeenCalledWith(true);
     });
 
-    it('does not ask for the generated name growl when editing the resource', async() => {
-      const save = jest.fn().mockResolvedValue({});
-      const vm: any = { isCreate: false, value: { save } };
+    it('does not show the generated name growl when editing', async() => {
+      const { vm } = createVm(false);
 
-      await (impl.methods as any).actuallySave.call(vm);
+      await (impl.methods as any).save.call(vm, jest.fn());
 
-      expect(save).toHaveBeenCalledWith();
+      expect(vm.value.notifyGeneratedName).toHaveBeenCalledTimes(0);
+    });
+
+    it('does not show the generated name growl when an after save hook fails', async() => {
+      const { vm } = createVm(true, () => Promise.reject(new Error('hook failed')));
+      const buttonDone = jest.fn();
+
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      await (impl.methods as any).save.call(vm, buttonDone);
+
+      expect(vm.value.notifyGeneratedName).toHaveBeenCalledTimes(0);
+      expect(buttonDone).toHaveBeenCalledWith(false);
     });
   });
 });

@@ -25,8 +25,28 @@ describe('util: operation-cr', () => {
         ttl: 60,
       },
     }, { root: true });
-    expect(save).toHaveBeenCalledWith({ showGeneratedNameToast: true });
+    expect(save).toHaveBeenCalledWith();
     expect(out).toStrictEqual({ id: 'op-1' });
+  });
+
+  it('should not show the generated name growl by default', async() => {
+    const notifyGeneratedName = jest.fn();
+    const save = jest.fn().mockResolvedValue({ id: 'op-1', notifyGeneratedName });
+    const dispatch = jest.fn().mockResolvedValue({ save });
+
+    await createOperationCR(dispatch, 'operation.test', {}, 'c-m-1', 'cluster-name');
+
+    expect(notifyGeneratedName).toHaveBeenCalledTimes(0);
+  });
+
+  it('should show the generated name growl when asked to', async() => {
+    const notifyGeneratedName = jest.fn();
+    const save = jest.fn().mockResolvedValue({ id: 'op-1', notifyGeneratedName });
+    const dispatch = jest.fn().mockResolvedValue({ save });
+
+    await createOperationCR(dispatch, 'operation.test', {}, 'c-m-1', 'cluster-name', { notifyGeneratedName: true });
+
+    expect(notifyGeneratedName).toHaveBeenCalledWith();
   });
 
   it('should surface create failures', async() => {
