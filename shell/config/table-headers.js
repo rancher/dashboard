@@ -1,4 +1,4 @@
-import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
+import { CATTLE_PUBLIC_ENDPOINTS, DESCRIPTION as DESCRIPTION_ANNOTATION } from '@shell/config/labels-annotations';
 import { NODE as NODE_TYPE, NAMESPACE as NAMESPACE_TYPE } from '@shell/config/types';
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
@@ -1251,6 +1251,13 @@ export const MGMT_CLUSTER_MACHINES = {
   formatter: 'ClusterMachineSummary',
   align:     'center',
   width:     100,
+};
+
+/** The description the edit forms keep in an annotation; `DESCRIPTION` reads the model's, with its fallbacks */
+export const DESCRIPTION_ANNOTATION_COL = {
+  ...DESCRIPTION,
+  value: `metadata.annotations."${ DESCRIPTION_ANNOTATION }"`,
+  sort:  [`metadata.annotations."${ DESCRIPTION_ANNOTATION }"`],
 };
 
 export const FLEET_GIT_REPO_COMMIT = {
