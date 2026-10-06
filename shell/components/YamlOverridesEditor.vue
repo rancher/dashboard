@@ -465,10 +465,11 @@ onBeforeUnmount(() => {
         color: var(--input-label);
       }
 
-      // The lines that differ from the chart defaults, on the code and the gutter
+      // The lines that differ from the chart defaults, on the code and the gutter, in
+      // the blue of a tertiary button (see RcButton)
       :deep(.cm-line.line-override-highlight),
       :deep(.cm-gutterElement.line-override-highlight) {
-        background-color: var(--info-banner-bg);
+        background-color: var(--tertiary, var(--accent-btn));
       }
 
       &--overrides {
@@ -486,10 +487,11 @@ onBeforeUnmount(() => {
         }
 
         // Every line here is an override, so the whole editor gets the tint of the
-        // changed lines in the chart defaults pane. The tint is see-through, so the
-        // gutter lets the editor's tint show instead of painting it a second time.
+        // changed lines in the chart defaults pane. Some themes have a see-through
+        // tint, so the gutter lets the editor's tint show instead of painting it a
+        // second time.
         :deep(.codemirror-container .rc-code-mirror) {
-          --rc-cm-bg: var(--info-banner-bg);
+          --rc-cm-bg: var(--tertiary, var(--accent-btn));
         }
 
         :deep(.codemirror-container .cm-gutters) {
