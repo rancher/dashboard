@@ -11,7 +11,9 @@ import {
 } from '@codemirror/commands';
 import { foldKeymap, getIndentUnit, indentString } from '@codemirror/language';
 import { closeBracketsKeymap } from '@codemirror/autocomplete';
-import { openSearchPanel, search, searchKeymap } from '@codemirror/search';
+import {
+  closeSearchPanel, openSearchPanel, search, searchKeymap, searchPanelOpen
+} from '@codemirror/search';
 import { emacs } from '../vendor/codemirror-emacs';
 import { getCM, Vim, vim } from '@replit/codemirror-vim';
 import type { RcCodeMirrorKeymap, RcCodeMirrorVariant } from '../types';
@@ -62,11 +64,17 @@ const dashboardDefaultKeymap = defaultKeymap.filter(({ key }) => key !== 'Alt-Ar
 const emacsFallbackKeymap = dashboardDefaultKeymap.filter(({ key }) => key !== 'Mod-/');
 
 // CodeMirror only renders the lines in view, so the browser's own find cannot reach the rest of a long document.
-// Mod-F opens CodeMirror's search panel instead, with F3 and Mod-G for the next and previous match and Escape to
+// Mod-F toggles CodeMirror's search panel, with F3 and Mod-G for the next and previous match and Escape to
 // close it. The rest of searchKeymap (select all matches, go to line, select next occurrence) is left out, as the
 // CodeMirror 5 editor had none of them.
+function toggleSearchPanel(view: EditorView): boolean {
+  return searchPanelOpen(view.state) ? closeSearchPanel(view) : openSearchPanel(view);
+}
+
 const FIND_KEYS = ['Mod-f', 'F3', 'Mod-g', 'Escape'];
-const findKeymap = searchKeymap.filter(({ key }) => key && FIND_KEYS.includes(key));
+const findKeymap = searchKeymap.filter(({ key }) => key && FIND_KEYS.includes(key)).map((binding) => (
+  binding.key === 'Mod-f' ? { ...binding, run: toggleSearchPanel } : binding
+));
 
 // Pages such as Edit YAML stick their own footer to the bottom of the scroll area, where it would cover a bottom
 // panel. The top of the editor is clear, and the panel sticks there while the page scrolls.
@@ -130,7 +138,7 @@ export function getKeymapExtension(mode?: RcCodeMirrorKeymap, variant?: RcCodeMi
       keymap.of([
         { key: 'Ctrl-h', run: deleteCharBackward },
         ...(find ? [{
-          key: 'Ctrl-s', run: openSearchPanel, scope: 'editor search-panel'
+          key: 'Ctrl-s', run: toggleSearchPanel, scope: 'editor search-panel'
         }, ...findKeymap] : []),
         ...emacsFallbackKeymap,
         ...historyKeymap,

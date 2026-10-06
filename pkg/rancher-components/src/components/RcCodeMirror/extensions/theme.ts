@@ -98,7 +98,7 @@ const rancherEditorTheme = EditorView.theme({
   }
 });
 
-// Keep the search controls in one Rancher-style input with a separate close action.
+// Keep the search controls in one Rancher-style input.
 const rancherSearchTheme = EditorView.theme({
   '.cm-panels': {
     color:           'var(--rc-cm-text)',
@@ -125,7 +125,6 @@ const rancherSearchTheme = EditorView.theme({
   '.cm-panel.cm-search': {
     display:    'flex',
     alignItems: 'center',
-    gap:        '8px',
     padding:    '8px 0',
     fontSize:   '14px'
   },
@@ -192,46 +191,9 @@ const rancherSearchTheme = EditorView.theme({
     '&:hover':       { color: 'var(--primary, #3D98D3)' },
     '&:disabled':    { opacity: '0.4', cursor: 'default' }
   },
-  '.cm-panel.cm-search .cm-search-controls [name=clear]': {
-    width:           'auto',
-    height:          '24px',
-    padding:         '0 8px',
-    border:          '1px solid var(--tertiary-border, var(--primary, #3D98D3))',
-    borderRadius:    'var(--border-radius, 4px)',
-    backgroundColor: 'var(--tertiary, var(--accent-btn))',
-    color:           'var(--on-tertiary, var(--primary, #3D98D3))',
-    fontSize:        '12px',
-    lineHeight:      'calc(4 / 3)',
-    '&:hover':       {
-      backgroundColor: 'var(--tertiary-hover, var(--accent-btn))',
-      color:           'var(--on-tertiary-hover, var(--lightest))'
-    },
-    '&:focus': {
-      backgroundColor: 'var(--tertiary-hover, var(--primary-hover-bg))',
-      color:           'var(--on-tertiary, var(--primary-text))'
-    }
-  },
-  '.cm-search-icon':                  { padding: '0 5px' },
-  '.cm-panel.cm-search [name=close]': {
-    position:        'static',
-    display:         'inline-flex',
-    alignItems:      'center',
-    justifyContent:  'center',
-    flex:            '0 0 32px',
-    width:           '32px',
-    height:          '32px',
-    minHeight:       '0',
-    margin:          '0',
-    padding:         '0',
-    border:          '0',
-    backgroundColor: 'transparent',
-    color:           'var(--muted, #6B6D85)',
-    fontSize:        '12px',
-    lineHeight:      '1',
-    cursor:          'pointer',
-    '&:hover':       { color: 'var(--primary, #3D98D3)' }
-  },
-  '.cm-panel.cm-search button:focus-visible': {
+  '.cm-panel.cm-search .cm-search-controls [name=clear]': { fontSize: '12px' },
+  '.cm-search-icon':                                      { padding: '0 5px' },
+  '.cm-panel.cm-search button:focus-visible':             {
     outline:       '2px solid var(--primary-keyboard-focus, #3D98D3)',
     outlineOffset: '-2px'
   },

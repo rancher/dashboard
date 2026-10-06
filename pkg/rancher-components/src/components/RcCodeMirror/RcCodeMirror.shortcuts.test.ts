@@ -133,6 +133,25 @@ describe.each(PLATFORMS)('component: RcCodeMirror shortcuts on %s', (platform, n
     expect(wrapper.find('.cm-search').exists()).toBe(true);
   });
 
+  it.each(SEARCH_PANEL_SHORTCUTS
+    .filter(([, , only]) => runsHere(only))
+    .map(([keymap, keys]) => [keymap, label(keys), keys] as const)
+  )('%s keymap: toggles the search panel with %s', (keymap, _label, keys) => {
+    const view = mountEditor(keymap);
+
+    view.contentDOM.dispatchEvent(keyEvent(keys, mac));
+    const field = wrapper.find<HTMLInputElement>('.cm-search input[name=search]').element;
+
+    field.focus();
+    const closeEvent = keyEvent(keys, mac);
+
+    field.dispatchEvent(closeEvent);
+    expect({ open: wrapper.find('.cm-search').exists(), defaultPrevented: closeEvent.defaultPrevented }).toStrictEqual({ open: false, defaultPrevented: true });
+
+    view.contentDOM.dispatchEvent(keyEvent(keys, mac));
+    expect(wrapper.find('.cm-search').exists()).toBe(true);
+  });
+
   it.each(NO_SEARCH_PANEL_SHORTCUTS
     .filter(([, , only]) => runsHere(only))
     .map(([keymap, keys]) => [keymap, label(keys), keys] as const)
