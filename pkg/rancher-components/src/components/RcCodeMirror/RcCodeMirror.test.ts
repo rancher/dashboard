@@ -1565,7 +1565,7 @@ describe('component: RcCodeMirror', () => {
       searchFor('foo');
       expect(getComputedStyle(wrapper.find('.cm-search button[name=clear]').element).display).toStrictEqual('inline-flex');
       expect(getComputedStyle(wrapper.find('.cm-search-icon').element).display).toStrictEqual('none');
-      expect(wrapper.find('.cm-search button[name=clear]').text()).toStrictEqual('Clear');
+      expect(wrapper.find('.cm-search button[name=clear] .icon-close').exists()).toBe(true);
       wrapper.find('.cm-search button[name=clear]').trigger('click');
 
       expect({
@@ -1618,14 +1618,12 @@ describe('component: RcCodeMirror', () => {
       expect(wrapper.find('.cm-search-count').text()).toStrictEqual('1 of 3');
     });
 
-    it('should close with the action outside the search input', () => {
+    it('should have no separate close button', () => {
       mountEditor({ modelValue: 'foo: bar' });
       openSearch(getView(wrapper));
       searchFor('foo');
-      expect(wrapper.find('.cm-search button[name=close] .icon-close').exists()).toBe(true);
-      wrapper.find('.cm-search button[name=close]').trigger('click');
 
-      expect(wrapper.find('.cm-search').exists()).toBe(false);
+      expect(wrapper.find('.cm-search button[name=close]').exists()).toBe(false);
     });
 
     it('should leave Ctrl-F to the browser in the input variant', () => {
@@ -1662,7 +1660,7 @@ describe('component: RcCodeMirror', () => {
       mountEditor({
         modelValue: 'foo: bar',
         extensions: [EditorState.phrases.of({
-          Find: 'Rechercher', next: 'Suivant', close: 'Fermer la recherche', Clear: 'Effacer', 'Clear search': 'Effacer la recherche'
+          Find: 'Rechercher', next: 'Suivant', 'Clear search': 'Effacer la recherche'
         })]
       });
       openSearch(getView(wrapper));
@@ -1671,11 +1669,9 @@ describe('component: RcCodeMirror', () => {
       expect({
         placeholder: wrapper.find('.cm-search input[name=search]').attributes('placeholder'),
         next:        wrapper.find('.cm-search button[name=next]').attributes('aria-label'),
-        clear:       wrapper.find('.cm-search button[name=clear]').text(),
-        clearLabel:  wrapper.find('.cm-search button[name=clear]').attributes('aria-label'),
-        close:       wrapper.find('.cm-search button[name=close]').attributes('aria-label')
+        clearLabel:  wrapper.find('.cm-search button[name=clear]').attributes('aria-label')
       }).toStrictEqual({
-        placeholder: 'Rechercher', next: 'Suivant', clear: 'Effacer', clearLabel: 'Effacer la recherche', close: 'Fermer la recherche'
+        placeholder: 'Rechercher', next: 'Suivant', clearLabel: 'Effacer la recherche'
       });
     });
   });
