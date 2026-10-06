@@ -69,8 +69,11 @@ export function isClusterWidget(kind: string): boolean {
   return (CLUSTER_WIDGETS as string[]).includes(kind);
 }
 
-/** The resource a fresh building block starts on — the one every Rancher install has. */
-const CLUSTER = CAPI.RANCHER_CLUSTER;
+/**
+ * The resource a fresh building block starts on: clusters, which every Rancher install has, of the
+ * type Rancher lists them by (the Home's cluster list, the side bar).
+ */
+const CLUSTER = MANAGEMENT.CLUSTER;
 
 /**
  * BUILDING BLOCKS — "Any resource, including your own CRDs."
