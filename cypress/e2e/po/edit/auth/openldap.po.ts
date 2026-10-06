@@ -13,6 +13,11 @@ export default class OpenLdapPo extends PagePo {
     return super.goTo(OpenLdapPo.createPath(clusterId));
   }
 
+  // Opens the config form of an enabled provider, as the Edit action on the provider list does
+  static goToEditConfig(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(`${ OpenLdapPo.createPath(clusterId) }&editConfig=true`);
+  }
+
   constructor(clusterId: string) {
     super(OpenLdapPo.createPath(clusterId));
   }

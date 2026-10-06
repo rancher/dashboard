@@ -539,6 +539,7 @@ export default {
           <div class="row">
             <Checkbox
               v-model:value="showLdap"
+              data-testid="saml-show-ldap"
               :mode="mode"
               :label="t('authConfig.saml.showLdap')"
             />

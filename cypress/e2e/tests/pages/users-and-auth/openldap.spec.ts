@@ -64,8 +64,9 @@ describe('OpenLDAP', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
       });
     }).as('authConfig');
 
-    OpenLdapPo.goTo(authClusterId);
-    openLdapPo.userIdAttribute().expectToBeDisabled();
-    openLdapPo.groupIdAttribute().expectToBeDisabled();
+    OpenLdapPo.goToEditConfig(authClusterId);
+    cy.wait('@authConfig');
+    openLdapPo.userIdAttribute().self().should('be.disabled');
+    openLdapPo.groupIdAttribute().self().should('be.disabled');
   });
 });

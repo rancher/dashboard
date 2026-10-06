@@ -8,6 +8,7 @@ export enum AuthProvider {
   GITHUB_APP = 'githubapp', // eslint-disable-line no-unused-vars
   GENERIC_SAML = 'genericsaml', // eslint-disable-line no-unused-vars
   OPEN_LDAP = 'openldap', // eslint-disable-line no-unused-vars
+  OKTA = 'okta', // eslint-disable-line no-unused-vars
 }
 
 export class AuthProviderPo extends PagePo {
