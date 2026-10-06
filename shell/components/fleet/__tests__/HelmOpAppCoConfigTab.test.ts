@@ -1,5 +1,5 @@
 import { defineComponent, h, nextTick } from 'vue';
-import { shallowMount } from '@vue/test-utils';
+import { shallowMount, VueWrapper } from '@vue/test-utils';
 import HelmOpAppCoConfigTab from '@shell/components/fleet/HelmOpAppCoConfigTab.vue';
 import HelmOpAppCoResourcesSection from '@shell/components/fleet/HelmOpAppCoResourcesSection.vue';
 import { _EDIT } from '@shell/config/query-params';
@@ -100,6 +100,7 @@ describe('component: HelmOpAppCoConfigTab', () => {
 
   describe('advanced section expansion', () => {
     const ADVANCED = '[data-testid="appco-config-advanced"]';
+    const findAdvanced = (wrapper: VueWrapper<any, any>) => wrapper.findComponent(ADVANCED) as VueWrapper<any, any>;
 
     const mountWithValuesTab = (refreshYaml: jest.Mock) => {
       const HelmOpValuesTabStub = defineComponent({
@@ -131,23 +132,23 @@ describe('component: HelmOpAppCoConfigTab', () => {
     it('should start with the advanced section collapsed', () => {
       const wrapper = mountWithValuesTab(jest.fn());
 
-      expect(wrapper.findComponent(ADVANCED).props('expanded')).toBe(false);
+      expect(findAdvanced(wrapper).props('expanded')).toBe(false);
     });
 
     it('should pass the new expanded state back to the advanced section', async() => {
       const wrapper = mountWithValuesTab(jest.fn());
 
-      wrapper.findComponent(ADVANCED).vm.$emit('update:expanded', true);
+      findAdvanced(wrapper).vm.$emit('update:expanded', true);
       await nextTick();
 
-      expect(wrapper.findComponent(ADVANCED).props('expanded')).toBe(true);
+      expect(findAdvanced(wrapper).props('expanded')).toBe(true);
     });
 
     it('should refresh the values YAML editor when the advanced section is expanded', async() => {
       const refreshYaml = jest.fn();
       const wrapper = mountWithValuesTab(refreshYaml);
 
-      wrapper.findComponent(ADVANCED).vm.$emit('update:expanded', true);
+      findAdvanced(wrapper).vm.$emit('update:expanded', true);
       await nextTick();
       await nextTick();
 
@@ -158,7 +159,7 @@ describe('component: HelmOpAppCoConfigTab', () => {
       const refreshYaml = jest.fn();
       const wrapper = mountWithValuesTab(refreshYaml);
 
-      wrapper.findComponent(ADVANCED).vm.$emit('update:expanded', false);
+      findAdvanced(wrapper).vm.$emit('update:expanded', false);
       await nextTick();
       await nextTick();
 
