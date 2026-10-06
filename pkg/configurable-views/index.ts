@@ -17,11 +17,13 @@ interface HeaderContext {
 }
 
 // The kill switch's shortcut, Cmd/Ctrl + Shift + . - a header action with no button, on every page.
-// The shell binds a shortcut by the character it types, and Shift + . types '>' on US and UK keyboards.
+// The shell binds a shortcut by the character the browser reports, which differs by platform: on a Mac
+// Cmd is held, and the key comes through unshifted ('.'); elsewhere Shift applies, and Shift + . is
+// '>' on US and UK keyboards.
 const killSwitch: Action = {
   labelKey: 'configurableViews.toggle.title',
   hidden:   true,
-  shortcut: { windows: ['ctrl', 'shift', '>'], mac: ['meta', 'shift', '>'] },
+  shortcut: { windows: ['ctrl', 'shift', '>'], mac: ['meta', 'shift', '.'] },
   invoke(this: HeaderContext) {
     const store = this.$store;
     const t = store.getters['i18n/t'];

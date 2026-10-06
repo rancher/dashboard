@@ -95,7 +95,8 @@ describe('extension: configurable-views', () => {
 
       expect([where, when]).toStrictEqual(['header-action', {}]);
       expect(action.hidden).toBe(true);
-      expect(action.shortcut).toStrictEqual({ windows: ['ctrl', 'shift', '>'], mac: ['meta', 'shift', '>'] });
+      // A Mac reports the key unshifted while Cmd is held
+      expect(action.shortcut).toStrictEqual({ windows: ['ctrl', 'shift', '>'], mac: ['meta', 'shift', '.'] });
     });
 
     it('flips the switch and says so through the notification API', async() => {
