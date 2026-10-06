@@ -73,7 +73,7 @@ const grid = ref<InstanceType<typeof WidgetGrid> | null>(null);
 const vs = useViewSet(props, store, t);
 const {
   loaded, editing, activeViewId, selectedNodeId, startedFrom, settingsAnchor, saving, drawerOpen, error,
-  templatingEnabled, defaultViewId, views, publishedIds, activeView, isNewView, activeIsStock, widgets, gap, dirty,
+  templatingEnabled, defaultViewId, views, publishedIds, changedIds, activeView, isNewView, activeIsStock, widgets, gap, dirty,
 } = vs;
 
 const {
@@ -130,6 +130,7 @@ const barProps = computed(() => ({
   isNew:        isNewView.value,
   defaultId:    defaultViewId.value,
   publishedIds: publishedIds.value,
+  changedIds:   changedIds.value,
   dirty:        dirty.value,
   saving:       saving.value,
   startedFrom:  startedFrom.value,

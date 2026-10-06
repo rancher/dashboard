@@ -40,6 +40,7 @@ configurableViews:
     duplicate: Duplicate View
     setDefault: Set as Default View
     publish: Publish View
+    publishChanges: Publish Your Changes
     unpublish: Unpublish View
     delete: Delete View
     shared: Published to the organization

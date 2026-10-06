@@ -65,6 +65,8 @@ const props = withDefaults(defineProps<{
   defaultId?: string | null;
   /** The views that are published, or are this user's copy of a published view. */
   publishedIds?: string[];
+  /** This user's copies of a published view that no longer match it. */
+  changedIds?: string[];
   dirty?: boolean;
   saving?: boolean;
   /** Where a new view was started from, shown beside "New view". */
@@ -78,6 +80,7 @@ const props = withDefaults(defineProps<{
   isNew:        false,
   defaultId:    '',
   publishedIds: () => [],
+  changedIds:   () => [],
   dirty:        false,
   saving:       false,
   startedFrom:  '',
@@ -619,8 +622,10 @@ defineExpose({ openRename, focusTab });
 
                 <template v-if="!isStock(view)">
                   <rc-dropdown-separator />
+                  <!-- One or the other: a view is published, or it is not. Your copy of a published
+                     view can also send its changes to everyone, while it has any. -->
                   <rc-dropdown-item
-                    v-if="!view.org"
+                    v-if="!isPublished(view)"
                     :data-testid="`configurable-views-publish-${ view.id }`"
                     @click="$emit('publish', view.id)"
                   >
@@ -628,6 +633,16 @@ defineExpose({ openRename, focusTab });
                       <i class="icon icon-groups" />
                     </template>
                     {{ t('configurableViews.bar.publish') }}
+                  </rc-dropdown-item>
+                  <rc-dropdown-item
+                    v-if="changedIds.includes(view.id)"
+                    :data-testid="`configurable-views-publish-changes-${ view.id }`"
+                    @click="$emit('publish', view.id)"
+                  >
+                    <template #before>
+                      <i class="icon icon-groups" />
+                    </template>
+                    {{ t('configurableViews.bar.publishChanges') }}
                   </rc-dropdown-item>
                   <rc-dropdown-item
                     v-if="isPublished(view)"

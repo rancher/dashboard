@@ -15,6 +15,20 @@ import type { LayoutView, View, ViewSet } from '../templating/types';
 export const clone = <T, >(value: T): T => JSON.parse(JSON.stringify(value));
 
 /**
+ * What a view shows, without what only says WHICH view it is (its id, the published view it was copied
+ * from, whether it is the organization's) - so a copy and its source compare equal until one changes.
+ */
+export function viewContent(view: View): string {
+  const copy: Partial<View> = { ...view };
+
+  delete copy.id;
+  delete copy.from;
+  delete copy.org;
+
+  return JSON.stringify(copy);
+}
+
+/**
  * A configurable page's VIEWS: what is stored, what the bar shows, and which one is open.
  *
  * The state every other part of the page reads - the editor, the bar's actions, the grid - lives here,
@@ -102,6 +116,13 @@ export function useViewSet(props: { page: PageKey }, store: Store<unknown>, t: I
 
   /** The tabs showing a published view, or your copy of one. */
   const publishedIds = computed(() => views.value.filter((p) => p.org || (p.from && orgIds.value.has(p.from))).map((p) => p.id));
+
+  /** Your copies of a published view that no longer match it: what "Publish your changes" sends. */
+  const changedIds = computed(() => {
+    const published = new Map(orgViews.value.map((p) => [p.id, viewContent(p)]));
+
+    return views.value.filter((p) => !p.org && p.from && published.has(p.from) && published.get(p.from) !== viewContent(p)).map((p) => p.id);
+  });
 
   const activeView = computed(() => views.value.find((p) => p.id === activeViewId.value) || views.value[0] || null);
 
@@ -264,6 +285,7 @@ export function useViewSet(props: { page: PageKey }, store: Store<unknown>, t: I
     defaultViewId,
     views,
     publishedIds,
+    changedIds,
     activeView,
     isNewView,
     activeIsStock,

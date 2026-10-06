@@ -4,7 +4,7 @@ import type { I18n } from '@shell/composables/useI18n';
 import { saveView, fetchTemplatingConfigMaps, type PageKey } from '../templating/template-engine';
 import { DEFAULT_GAP, newId, newLayoutView, isStockView } from '../templating/view-model';
 import { stockWidgets, stockView } from '../templating/stock-layouts';
-import { clone, type ViewSetState } from './useViewSet';
+import { clone, viewContent, type ViewSetState } from './useViewSet';
 import type { ConfirmOptions } from './useConfirm';
 import type { LayoutView, View, ViewSet } from '../templating/types';
 
@@ -93,20 +93,11 @@ export function useEditSession(
    * those are dropped on the way out.
    */
   function pruneUntouchedForks(draft: ViewSet): void {
-    const strip = (view: View) => {
-      const copy: Partial<View> = { ...view };
-
-      delete copy.id;
-      delete copy.from;
-      delete copy.org;
-
-      return JSON.stringify(copy);
-    };
-    const sources = new Map(orgViews.value.map((p) => [p.id, strip(p)]));
+    const sources = new Map(orgViews.value.map((p) => [p.id, viewContent(p)]));
     const dropped = new Set<string>();
 
     draft.views = draft.views.filter((view) => {
-      const untouched = !!view.from && sources.get(view.from) === strip(view);
+      const untouched = !!view.from && sources.get(view.from) === viewContent(view);
 
       if (untouched) {
         dropped.add(view.id);
