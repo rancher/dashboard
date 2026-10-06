@@ -18,7 +18,7 @@ import { isMac, shortcutLabel } from '@shell/utils/platform';
 import { registerTableViewShortcuts } from '@shell/utils/table-views/shortcuts';
 import type { TableViewShortcutAction } from '@shell/utils/table-views/shortcuts';
 import { randomStr } from '@shell/utils/string';
-import { isViewDirty, selectedViewIdFor } from '@shell/utils/table-views/views';
+import { isViewDirty, isViewModified, selectedViewIdFor } from '@shell/utils/table-views/views';
 import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
 import { RcDropdown, RcDropdownItem, RcDropdownSeparator, RcDropdownTrigger } from '@components/RcDropdown';
 
@@ -713,6 +713,28 @@ const duplicateTab = (tab: Tab) => {
   duplicateView(tab.view || { ...viewStateOf(), name: t('tableViews.tabs.all') });
 };
 
+/**
+ * The table as it comes - no filter, its own grouping, columns and sort - on the tab the menu was
+ * opened on, as changes to save or discard
+ */
+const resetTab = (tab: Tab) => {
+  const reset = viewStateOf();
+
+  if (tab.id === selectedViewId.value) {
+    // Pinned, or a view matched by its config would give way to the table's own tab
+    pickedViewId.value = tab.id;
+    emit('update:view', reset);
+
+    return;
+  }
+
+  if (isViewModified(viewStateOf(tab.view))) {
+    drafts.value = { ...drafts.value, [draftKey(tab.id)]: reset };
+  } else {
+    forgetDraft(tab.id);
+  }
+};
+
 const duplicateCurrent = () => {
   const tab = tabs.value.find((candidate) => candidate.id === selectedViewId.value);
 
@@ -997,6 +1019,16 @@ onBeforeUnmount(() => {
                     <template #after>
                       <span class="menu-shortcut">{{ shortcuts.duplicate }}</span>
                     </template>
+                  </rc-dropdown-item>
+                  <rc-dropdown-item
+                    :disabled="!isViewModified(tabState(tab))"
+                    :data-testid="tab.isDefaultTab ? 'table-views-reset-all' : `table-views-reset-${ tab.id }`"
+                    @click="resetTab(tab)"
+                  >
+                    <template #before>
+                      <i class="menu-gutter" />
+                    </template>
+                    {{ t('tableViews.view.reset') }}
                   </rc-dropdown-item>
 
                   <rc-dropdown-item
