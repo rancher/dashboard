@@ -53,7 +53,7 @@ describe('OpenLDAP', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   });
 
   it('locks the principal identifier attributes once the provider is enabled', () => {
-    cy.intercept('GET', 'v3/authConfigs/openldap', (req) => {
+    cy.intercept('GET', 'v3/authconfig/openldap', (req) => {
       req.reply(mockStatusCode, {
         type:             'openLdapConfig',
         id:               'openldap',

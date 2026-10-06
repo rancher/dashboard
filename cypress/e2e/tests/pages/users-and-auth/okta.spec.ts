@@ -74,7 +74,7 @@ describe('Okta', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   });
 
   it('keeps the principal identifier attributes editable once Okta is enabled', () => {
-    cy.intercept('GET', 'v3/authConfigs/okta', (req) => {
+    cy.intercept('GET', 'v3/authconfig/okta', (req) => {
       req.reply(mockStatusCode, {
         type:           'oktaConfig',
         id:             'okta',

@@ -58,7 +58,7 @@ export default class OpenLdapPo extends PagePo {
   }
 
   enterTestPassword(value: string) {
-    return new LabeledInputPo('[data-testid="ldap-test-password"]').set(value, true);
+    return new LabeledInputPo('[data-testid="ldap-test-password"] input').set(value, true);
   }
 
   saveButton(): AsyncButtonPo {
