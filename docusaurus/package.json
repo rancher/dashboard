@@ -53,7 +53,8 @@
     "ws": "8.21.0",
     "serialize-javascript": "7.0.5",
     "webpack-dev-server": "5.2.6",
-    "qs": "6.16.0"
+    "qs": "6.16.0",
+    "tinypool": "2.1.2"
   },
   "engines": {
     "node": ">=18.0"
