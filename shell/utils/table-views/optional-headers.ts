@@ -1,6 +1,6 @@
 import type { HeaderOptions, PaginationHeaderOptions } from '@shell/core/types';
 import {
-  BACKUP_RESTORE, CATALOG, CONFIG_MAP, FLEET, HPA, INGRESS, LOGGING, MANAGEMENT, MONITORING, NAMESPACE, NETWORK_POLICY, NODE, POD,
+  BACKUP_RESTORE, CAPI, CATALOG, CONFIG_MAP, FLEET, HPA, INGRESS, LOGGING, MANAGEMENT, MONITORING, NAMESPACE, NETWORK_POLICY, NODE, POD,
   POD_DISRUPTION_BUDGET, PV, PVC, SECRET, SERVICE, SERVICE_ACCOUNT, STORAGE_CLASS, WORKLOAD_TYPES
 } from '@shell/config/types';
 import {
@@ -32,8 +32,12 @@ const DESCRIPTION_COLUMN: OptionalHeader = {
   header: DESCRIPTION_ANNOTATION_COL, paginationHeader: STEVE_DESCRIPTION_ANNOTATION_COL, before: 'age'
 };
 
-/** Types whose edit forms keep a description in its annotation; others keep it elsewhere, or have none */
+/**
+ * Types whose edit forms keep a description in its annotation; others keep it elsewhere, or have none.
+ * A cluster's is kept on its provisioning cluster and copied to its management cluster's
+ */
 const DESCRIBED_TYPES = [
+  MANAGEMENT.CLUSTER, CAPI.RANCHER_CLUSTER,
   CONFIG_MAP, SECRET, SERVICE, SERVICE_ACCOUNT, NODE, NAMESPACE, PV, PVC, STORAGE_CLASS, POD_DISRUPTION_BUDGET, HPA, INGRESS, NETWORK_POLICY,
   WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.CRON_JOB, POD,
   FLEET.GIT_REPO, FLEET.HELM_OP, FLEET.CLUSTER, FLEET.CLUSTER_GROUP, FLEET.POLICY, FLEET.WORKSPACE,
