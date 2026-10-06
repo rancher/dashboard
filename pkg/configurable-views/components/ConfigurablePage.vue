@@ -196,6 +196,7 @@ const barListeners = {
     <component
       :is="stock"
       v-bind="$attrs"
+      class="view-host__stock"
       :class="{ 'view-host__unpadded': layout === 'home' }"
     />
     <UndoGrowl
@@ -327,6 +328,13 @@ const barListeners = {
 //                          grid is inset by the view's own spacing setting (see surfaceStyle).
 .view-host__unpadded {
   padding: 0;
+}
+
+// The stock page keeps its z-indexes to itself, as a widget does (see WidgetNode): the bar sits above
+// it, and a sticky table header of its own - the table views' sits at 13 - would otherwise paint over
+// the bar's menus. Its own dropdowns are drawn on the body, so they are not held in by it.
+.view-host__stock {
+  isolation: isolate;
 }
 
 .ai-home {
