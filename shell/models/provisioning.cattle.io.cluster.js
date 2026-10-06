@@ -733,7 +733,11 @@ export default class ProvCluster extends SteveModel {
   rotateEncryptionKey(cluster = this) {
     this.$dispatch('promptModal', {
       componentProps: { cluster },
-      component:      'RotateEncryptionKeyDialog'
+      component:      'RotateEncryptionKeyDialog',
+      // Wider than the 600px default so the etcd snapshot id (cluster name +
+      // node name + timestamp + hash, often 70+ chars) fits on one line
+      // without forcing the dialog to horizontally scroll.
+      modalWidth:     '800px'
     });
   }
 
