@@ -1147,7 +1147,6 @@ onBeforeUnmount(() => {
               @keydown.end.prevent="edgeTab('last')"
               @keydown.down.prevent="openTabMenu(tab)"
             >
-              {{ tabLabel(tab) }}
               <i
                 v-if="tab.shared"
                 v-clean-tooltip="t('tableViews.tab.shared')"
@@ -1156,6 +1155,7 @@ onBeforeUnmount(() => {
                 :aria-label="t('tableViews.tab.shared')"
                 :data-testid="`table-views-shared-${ tab.id }`"
               />
+              {{ tabLabel(tab) }}
               <span
                 v-if="isTabDirty(tab)"
                 v-clean-tooltip="t('tableViews.view.unsavedShort')"
@@ -1578,7 +1578,7 @@ onBeforeUnmount(() => {
     // Closer to its name than the tab's gap
     > .shared-mark {
       font-size: 14px;
-      margin-left: -4px;
+      margin-right: -4px;
     }
     // The global button rule's 40px min-height
     min-height: 32px;
