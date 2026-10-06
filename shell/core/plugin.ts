@@ -33,6 +33,7 @@ import {
   ProductChild
 } from '@shell/core/plugin-products-external';
 import { AdvancedProductConfigOptionsInternal } from '@shell/core/plugin-products-internal';
+import { HOME_LAYOUT } from '@shell/config/router/route-names';
 
 /** Registration IDs used for different extension points in the extensions catalog */
 export const EXT_IDS = {
@@ -362,7 +363,7 @@ export class Plugin implements IPlugin {
   setHomePage(component: any) {
     // The Home page lives under the home layout. Without a parent the route would be put under the
     // 'default' layout, which renders nothing without a cluster - and the Home has none.
-    this.addRoute('home-layout', {
+    this.addRoute(HOME_LAYOUT, {
       name: 'home',
       path: '/home',
       component

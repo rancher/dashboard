@@ -2,6 +2,7 @@ import { createMemoryHistory, createRouter, type RouteRecordRaw } from 'vue-rout
 import { Plugin } from '@shell/core/plugin';
 import { PluginRoutes } from '@shell/core/plugin-routes';
 import routes from '@shell/config/router/routes';
+import { HOME_LAYOUT } from '@shell/config/router/route-names';
 
 const HomeLayout = { template: '<router-view />' };
 const StockHome = { template: '<div>stock home</div>' };
@@ -14,7 +15,7 @@ describe('plugin.setHomePage', () => {
     plugin.setHomePage(ExtensionHome);
 
     expect(plugin.routes).toHaveLength(1);
-    expect(plugin.routes[0].parent).toBe('home-layout');
+    expect(plugin.routes[0].parent).toBe(HOME_LAYOUT);
     expect(plugin.routes[0].route).toStrictEqual(expect.objectContaining({
       name: 'home', path: '/home', component: ExtensionHome, meta: { pkg: 'test-extension' }
     }));
@@ -25,7 +26,7 @@ describe('plugin.setHomePage', () => {
       history: createMemoryHistory(),
       routes:  [{
         path:      '/',
-        name:      'home-layout',
+        name:      HOME_LAYOUT,
         component: HomeLayout,
         meta:      { requiresAuthentication: true },
         children:  [{
@@ -41,7 +42,7 @@ describe('plugin.setHomePage', () => {
 
     const matched = router.resolve({ name: 'home' }).matched;
 
-    expect(matched.map((r) => r.name)).toStrictEqual(['home-layout', 'home']);
+    expect(matched.map((r) => r.name)).toStrictEqual([HOME_LAYOUT, 'home']);
     expect(matched[1].components?.default).toBe(ExtensionHome);
     expect(matched[0].meta.requiresAuthentication).toBe(true);
   });
@@ -49,7 +50,7 @@ describe('plugin.setHomePage', () => {
 
 describe('the home layout route', () => {
   it('is named, so the home page can be added under it', () => {
-    const layout = routes.find((r) => r.name === 'home-layout');
+    const layout = routes.find((r) => r.name === HOME_LAYOUT);
 
     expect(layout?.children?.map((r) => r.name)).toContain('home');
   });
