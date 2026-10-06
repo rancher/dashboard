@@ -452,7 +452,8 @@ export default {
         event,
         action,
         isAlt:   isAlternate(event),
-        product: this.currentProduct.name,
+        // A global action (a shortcut, say) can run on a page with no product
+        product: this.currentProduct?.name,
         cluster: this.currentCluster,
       };
       const enabled = await this.isActionEnabled(action);
@@ -732,30 +733,42 @@ export default {
         v-if="extensionHeaderActions.length"
         class="header-buttons"
       >
-        <button
+        <template
           v-for="action, i in extensionHeaderActions"
           :key="`${action.label}${i}`"
-          v-clean-tooltip="handleExtensionTooltip(action, extensionHeaderActionsEnabled[i])"
-          v-shortkey="action.shortcutKey"
-          :disabled="!extensionHeaderActionsEnabled[i]"
-          type="button"
-          class="btn header-btn role-tertiary"
-          :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
-          role="button"
-          tabindex="0"
-          :aria-label="action.labelKey ? t(action.labelKey) : action.label"
-          :aria-expanded="extensionHeaderActionsAriaExpanded[i]"
-          @shortkey="handleExtensionAction(action, $event)"
-          @click="handleExtensionAction(action, $event)"
         >
-          <IconOrSvg
-            class="icon icon-lg"
-            :icon="action.icon"
-            :src="action.svg"
-            :img-alt="action.tooltipKey ? t(action.tooltipKey) : action.labelKey ? t(action.labelKey) : action.label ? action.label : t('generic.imageAlt')"
-            color="header"
+          <!-- A hidden action is only its shortcut: no button, nothing to see or tab to -->
+          <span
+            v-if="action.hidden"
+            v-shortkey="action.shortcutKey"
+            class="hide"
+            :data-testid="`extension-header-shortcut-${ action.labelKey || action.label }`"
+            @shortkey="handleExtensionAction(action, $event)"
           />
-        </button>
+          <button
+            v-else
+            v-clean-tooltip="handleExtensionTooltip(action, extensionHeaderActionsEnabled[i])"
+            v-shortkey="action.shortcutKey"
+            :disabled="!extensionHeaderActionsEnabled[i]"
+            type="button"
+            class="btn header-btn role-tertiary"
+            :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
+            role="button"
+            tabindex="0"
+            :aria-label="action.labelKey ? t(action.labelKey) : action.label"
+            :aria-expanded="extensionHeaderActionsAriaExpanded[i]"
+            @shortkey="handleExtensionAction(action, $event)"
+            @click="handleExtensionAction(action, $event)"
+          >
+            <IconOrSvg
+              class="icon icon-lg"
+              :icon="action.icon"
+              :src="action.svg"
+              :img-alt="action.tooltipKey ? t(action.tooltipKey) : action.labelKey ? t(action.labelKey) : action.label ? action.label : t('generic.imageAlt')"
+              color="header"
+            />
+          </button>
+        </template>
       </div>
 
       <div class="center-self">

@@ -142,6 +142,11 @@ export type Action = {
    */
   enabled?: Function | boolean;
   ariaExpanded?: boolean | (() => boolean);
+  /**
+   * Header actions: no button, only the `shortcut` - for an action that is a keyboard shortcut and
+   * nothing else. Defaults to false: the action is a button.
+   */
+  hidden?: boolean;
   invoke: (opts: ActionOpts, resources: any[], globals?: any) => void | boolean | Promise<boolean>;
 };
 

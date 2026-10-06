@@ -56,6 +56,7 @@ _Arguments_
 |`enabled`| Function | Whether the action/button is enabled or not. A function returning a boolean is checked again whenever the reactive state it reads changes; one returning a promise is checked on navigation |
 |`disabledTooltip`| String | Text for the tooltip while the button is disabled, saying why |
 |`disabledTooltipKey`| String | Same as "disabledTooltip" but allows for translation. Will superseed "disabledTooltip" |
+|`hidden`| Boolean | No button: the action is only its `shortcut`. Defaults to `false` |
 |`invoke`| Function | function executed when action/button is clicked |
 
 Usage example for `'ActionLocation.HEADER'`:

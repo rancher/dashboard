@@ -384,6 +384,40 @@ describe('component: Header', () => {
     });
   });
 
+  describe('hidden extension header actions', () => {
+    it('draws no button for a hidden action, only its shortcut', async() => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        {
+          label: 'Switch', invoke: jest.fn(), hidden: true, shortcutKey: { windows: ['ctrl', 'shift', '>'], mac: ['meta', 'shift', '>'] }
+        },
+        { label: 'Bar', invoke: jest.fn() },
+      ];
+
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('[data-testid="extension-header-action-Switch"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="extension-header-shortcut-Switch"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="extension-header-action-Bar"]').exists()).toBe(true);
+    });
+
+    it('runs a hidden action from its shortcut', async() => {
+      const wrapper = createWrapper();
+      const invoke = jest.fn();
+
+      (wrapper.vm as any).extensionHeaderActions = [{
+        label: 'Switch', invoke, hidden: true
+      }];
+
+      await wrapper.vm.$nextTick();
+      await wrapper.find('[data-testid="extension-header-shortcut-Switch"]').trigger('shortkey');
+      await new Promise((resolve) => setTimeout(resolve));
+
+      expect(invoke).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('extensionHeaderActionsAriaExpanded', () => {
     it('returns undefined for an action with no ariaExpanded', () => {
       const wrapper = createWrapper();
