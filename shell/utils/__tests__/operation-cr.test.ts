@@ -25,7 +25,7 @@ describe('util: operation-cr', () => {
         ttl: 60,
       },
     }, { root: true });
-    expect(save).toHaveBeenCalledWith();
+    expect(save).toHaveBeenCalledWith({ showGeneratedNameToast: true });
     expect(out).toStrictEqual({ id: 'op-1' });
   });
 

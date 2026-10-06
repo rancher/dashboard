@@ -195,7 +195,7 @@ export default {
     async actuallySave(url) {
       if ( this.isCreate ) {
         url = url || this.schema.linkFor('collection');
-        const res = await this.value.save({ url });
+        const res = await this.value.save({ url, showGeneratedNameToast: true });
 
         if (res) {
           Object.assign(this.value, res);

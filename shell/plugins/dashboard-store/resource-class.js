@@ -1265,6 +1265,12 @@ export default class Resource {
    */
   processSaveResponse(res, opt = {}) { }
 
+  /**
+   * Allow to notify the user of the name generated for a newly created resource
+   * @param {*} res Full request response
+   */
+  notifyGeneratedName(res) { }
+
   async _save(opt = { }) {
     const forNew = !this.id;
     let errors;
@@ -1893,6 +1899,10 @@ export default class Resource {
         data:     res,
         existing: (isCreate ? this : undefined)
       });
+
+      if (isCreate) {
+        this.notifyGeneratedName(res);
+      }
 
       if (this.isSpoofed) {
         await this.$dispatch('cluster/findAll', { type: this.type, opt: { force: true } }, { root: true });

@@ -1,6 +1,7 @@
 import { _EDIT } from '@shell/config/query-params';
 import { mount } from '@vue/test-utils';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import impl from '@shell/mixins/create-edit-view/impl';
 
 describe('createEditView should', () => {
   it('add value', () => {
@@ -52,5 +53,25 @@ describe('createEditView should', () => {
     await instance.save(() => '', 'url');
 
     expect(spyConflict).toHaveBeenCalledTimes(1);
+  });
+
+  describe('actuallySave', () => {
+    it('asks for the generated name growl when creating the resource', async() => {
+      const save = jest.fn().mockResolvedValue({ id: 'default/test-abc12' });
+      const vm: any = { isCreate: true, value: { save } };
+
+      await (impl.methods as any).actuallySave.call(vm, 'url');
+
+      expect(save).toHaveBeenCalledWith({ url: 'url', showGeneratedNameToast: true });
+    });
+
+    it('does not ask for the generated name growl when editing the resource', async() => {
+      const save = jest.fn().mockResolvedValue({});
+      const vm: any = { isCreate: false, value: { save } };
+
+      await (impl.methods as any).actuallySave.call(vm);
+
+      expect(save).toHaveBeenCalledWith();
+    });
   });
 });

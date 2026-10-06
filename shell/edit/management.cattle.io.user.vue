@@ -153,10 +153,7 @@ export default {
         username:           this.form.username
       });
 
-      const userSaved = await user.save({
-        // Don't show a success toast until the secret and GRB are also created
-        suppressSuccessToast: true,
-      });
+      const userSaved = await user.save();
 
       return userSaved;
     },

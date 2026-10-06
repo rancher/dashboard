@@ -15,5 +15,5 @@ export async function createOperationCR(dispatch, type, spec, namespace, namePre
     spec:     { ...{ ttl: 60 }, ...spec },
   }, { root: true });
 
-  return resource.save();
+  return resource.save({ showGeneratedNameToast: true });
 }
