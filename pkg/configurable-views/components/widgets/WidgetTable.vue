@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useStore } from 'vuex';
+import { CAPI, MANAGEMENT } from '@shell/config/types';
 import { useI18n } from '@shell/composables/useI18n';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import ResourceTable from '@shell/components/ResourceTable.vue';
@@ -42,9 +43,17 @@ const PER_PAGE = 10;
 // Read from a cluster's own API rather than Rancher's: a different fetch, and a different table.
 const downstream = computed(() => !!props.widget.fromCluster);
 
-const inStore = computed(() => storeForType(store.getters, props.widget.resource));
+/**
+ * The type the table lists. Rancher's own list of provisioning clusters lists their MANAGEMENT
+ * clusters - its rows and columns (provider, version, machines) are the management cluster's - so a
+ * table of provisioning clusters read from Rancher does the same. Read whole, a provisioning cluster
+ * has only its CRD's columns: its id for a name, and no provider, version or machines.
+ */
+const listed = computed(() => (!downstream.value && props.widget.resource === CAPI.RANCHER_CLUSTER ? MANAGEMENT.CLUSTER : props.widget.resource));
 
-const storeSchema = computed(() => (props.widget.resource ? store.getters[`${ inStore.value }/schemaFor`](props.widget.resource) : null));
+const inStore = computed(() => storeForType(store.getters, listed.value));
+
+const storeSchema = computed(() => (listed.value ? store.getters[`${ inStore.value }/schemaFor`](listed.value) : null));
 
 /**
  * The schema of a type only the widget's cluster has - a CRD the local cluster does not - which no
@@ -94,9 +103,9 @@ const viewTabs = computed(() => !!props.widget.viewTabs);
 const tableViewsPage = computed(() => (props.widget.ownViews && props.nodeId ? `widget-${ props.nodeId }` : null));
 
 // Rebuilt, too, when another table of the same global type leaves the page (see useSharedTypeList).
-const shared = useSharedTypeList(() => (!downstream.value && props.widget.resource ? `${ inStore.value }/${ props.widget.resource }` : null));
+const shared = useSharedTypeList(() => (!downstream.value && listed.value ? `${ inStore.value }/${ listed.value }` : null));
 
-const tableKey = computed(() => JSON.stringify([props.widget.resource, downstream.value, !!schema.value, viewTabs.value, tableViewsPage.value, shared.value]));
+const tableKey = computed(() => JSON.stringify([listed.value, downstream.value, !!schema.value, viewTabs.value, tableViewsPage.value, shared.value]));
 
 // ---- a per-cluster type -----------------------------------------------------------------------------
 
@@ -125,13 +134,13 @@ const count = computed<number | null>(() => {
     return null;
   }
 
-  const page = store.getters[`${ inStore.value }/havePage`]?.(props.widget.resource);
+  const page = store.getters[`${ inStore.value }/havePage`]?.(listed.value);
 
   if (typeof page?.result?.count === 'number') {
     return page.result.count;
   }
 
-  return (store.getters[`${ inStore.value }/all`]?.(props.widget.resource) || []).length;
+  return (store.getters[`${ inStore.value }/all`]?.(listed.value) || []).length;
 });
 
 const downstreamMessage = computed(() => (cluster.value ? rowsError.value : t(NO_CLUSTER)));
