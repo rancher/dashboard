@@ -7314,11 +7314,11 @@ tableViews:
     importedName: Imported ({name})
     deleted: View Deleted
     deletedMessage: The "{name}" view has been successfully deleted.
-    deletedSharedMessage: The "{name}" view has been deleted for everyone.
+    deletedSharedMessage: The "{name}" view has been unpublished and deleted.
     undo: Undo
-    shared: Shared with everyone
-    share: Share with Everyone
-    unshare: Stop Sharing
+    shared: Published
+    share: Publish
+    unshare: Unpublish
   bulk:
     selected: "{count} Selected"
     deleteSelected: Delete Selected
