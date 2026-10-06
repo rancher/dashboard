@@ -58,7 +58,8 @@ function isSameViewConfig(a: Partial<TableViewState>, b: Partial<TableViewState>
   return isEqual(comparable(a), comparable(b));
 }
 
-function isViewModified(view: Partial<TableViewState>): boolean {
+/** Whether a view differs from the table as it comes */
+export function isViewModified(view: Partial<TableViewState>): boolean {
   return !!view.query || !!view.groupBy || !!view.columns || !!view.labelColumns?.length ||
     !!view.columnOrder || !!view.sort;
 }

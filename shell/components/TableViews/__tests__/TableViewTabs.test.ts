@@ -34,6 +34,7 @@ interface TabsInternals {
   discardChanges(tab: { id: string | null, name: string, view?: TableViewSaved }): void;
   saveChanges(tab: { id: string | null, name: string, view?: TableViewSaved }): void;
   openSaveAsNew(tab: { id: string | null, name: string, view?: TableViewSaved }): void;
+  resetTab(tab: { id: string | null, name: string, view?: TableViewSaved, isDefaultTab?: boolean }): void;
 }
 
 const internals = (wrapper: { vm: unknown }) => wrapper.vm as TabsInternals;
@@ -300,6 +301,44 @@ describe('TableViewTabs', () => {
       expect(stored()[2].query).toBe('state:Running name:x');
       expect(stored()[0].query).toBe('state:Running');
       expect(vm.drafts.aaa?.query).toBe('state:Running name:x');
+    });
+
+    describe('resetting a tab to the table as it comes', () => {
+      it('should clear the tab in front of everything, keeping it in front with unsaved changes', () => {
+        const { vm, shown } = createWrapper({
+          view: {
+            ...EMPTY, ...first, groupBy: 'node'
+          },
+          initialViewId: 'aaa'
+        });
+
+        vm.resetTab(tabFor(first));
+
+        expect(shown()).toStrictEqual({
+          query: '', columns: null, columnOrder: null, labelColumns: [], groupBy: null, sort: null, sortDescending: false
+        });
+        expect(vm.selectedViewId).toBe('aaa');
+      });
+
+      it('should hold the reset as changes on a tab that is not in front, leaving the one in front alone', () => {
+        const { vm, wrapper } = createWrapper({ view: { ...EMPTY, query: 'state:Running' }, initialViewId: 'aaa' });
+
+        vm.resetTab(tabFor(second));
+
+        expect(vm.drafts.bbb).toStrictEqual(expect.objectContaining({ query: '', groupBy: null }));
+        expect(wrapper.emitted('update:view')).toBeUndefined();
+      });
+
+      it('should drop held changes when the tab saved is already the table as it comes', () => {
+        const { vm } = createWrapper({ view: { ...EMPTY, query: 'state:Running' }, initialViewId: 'aaa' });
+
+        vm.drafts = { __default: { ...EMPTY, query: 'name:x' } };
+        vm.resetTab({
+          id: null, name: 'All', isDefaultTab: true
+        });
+
+        expect(vm.drafts.__default).toBeUndefined();
+      });
     });
 
     describe('deleting a view', () => {
