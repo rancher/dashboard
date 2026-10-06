@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`component: AppCoEmptyState should match snapshot with error badge state 1`] = `
 <div
@@ -17,7 +17,7 @@ exports[`component: AppCoEmptyState should match snapshot with error badge state
       role="status"
     >
       <rc-icon-stub
-        ariahidden="true"
+        aria-hidden="true"
         size="large"
         status="error"
         type="alert-alt"
@@ -76,7 +76,7 @@ exports[`component: AppCoEmptyState should match snapshot with transitioning bad
       role="status"
     >
       <rc-icon-stub
-        ariahidden="true"
+        aria-hidden="true"
         class="icon-spin"
         size="large"
         status="inherit"
