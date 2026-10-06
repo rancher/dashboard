@@ -34,3 +34,19 @@ These settings generate URLs; they do not configure the web server. The server m
 - Authentication return URLs already account for the router base in [shell/utils/auth.js](../../shell/utils/auth.js).
 
 The asset base is independent of the navigation base: a CDN URL for assets does not change where users navigate. Neither base should be prepended to Rancher API paths such as `/v3`.
+
+### Reading the prefix when needed
+
+If code really needs the navigation prefix, read it from the router. In an Options API component:
+
+```js
+const base = this.$router.options.base;
+```
+
+Code without a router instance can read the build-time value:
+
+```js
+const base = process.env.routerBase || '/';
+```
+
+`process.env.routerBase` is replaced at build time by webpack; it is not a browser environment variable. For the embedded and hosted builds above, the value is `/dashboard/`; the default is `/`. These values describe the navigation base, not the asset base. Prefer the router helpers above for generating URLs rather than concatenating the prefix manually.
