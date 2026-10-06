@@ -329,6 +329,10 @@ export default {
   created() {
     this.queueUpdate = debounce(this.update, 500);
   },
+  beforeUnmount() {
+    // Emit any pending edit now, emits from an unmounted component are dropped (e.g. when inside a collapsed RcSection)
+    this.queueUpdate.flush();
+  },
   watch: {
     /**
      * KV works with v-model:value=value
@@ -685,7 +689,7 @@ export default {
               :aria-colindex="extraColumns.length+3"
             >
               <slot name="remove">
-                <span />
+                <span class="sr-only">{{ t('generic.remove') }}</span>
               </slot>
             </div>
           </div>

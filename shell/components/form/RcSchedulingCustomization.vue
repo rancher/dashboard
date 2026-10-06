@@ -78,17 +78,19 @@ export default {
           v-if="feature && isEdit && settingMissmatch"
           #extra
         >
-          <Banner
-            class="m-0"
-            color="info"
-            :label="t('cluster.agentConfig.subGroups.agentsScheduling.banner', { agent: t(`cluster.agentConfig.subGroups.agentsScheduling.${type}`)})"
-          />
-          <Checkbox
-            :value="applyGlobal"
-            :mode="mode"
-            :label="t('cluster.agentConfig.subGroups.agentsScheduling.innerCheckbox', { agent: t(`cluster.agentConfig.subGroups.agentsScheduling.${type}`)})"
-            @update:value="$emit('scheduling-customization-changed', { event: $event, agentType: type })"
-          />
+          <RcContentGroup>
+            <Banner
+              class="m-0"
+              color="info"
+              :label="t('cluster.agentConfig.subGroups.agentsScheduling.banner', { agent: t(`cluster.agentConfig.subGroups.agentsScheduling.${type}`)})"
+            />
+            <Checkbox
+              :value="applyGlobal"
+              :mode="mode"
+              :label="t('cluster.agentConfig.subGroups.agentsScheduling.innerCheckbox', { agent: t(`cluster.agentConfig.subGroups.agentsScheduling.${type}`)})"
+              @update:value="$emit('scheduling-customization-changed', { event: $event, agentType: type })"
+            />
+          </RcContentGroup>
         </template>
       </Checkbox>
     </div>

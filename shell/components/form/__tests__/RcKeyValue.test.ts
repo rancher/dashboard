@@ -38,4 +38,24 @@ describe('component: RcKeyValue', () => {
       expect(wrapper.find('[data-testid="add_row_item_button"]').exists()).toBe(true);
     });
   });
+
+  describe('unmounting', () => {
+    it('should emit a pending debounced edit before unmounting', async() => {
+      const wrapper = mountComponent({ value: { foo: 'bar' } });
+
+      await wrapper.setData({ rows: [{ key: 'foo', value: 'changed' }] });
+      (wrapper.vm as any).queueUpdate();
+      wrapper.unmount();
+
+      expect(wrapper.emitted('update:value')).toStrictEqual([[{ foo: 'changed' }]]);
+    });
+
+    it('should not emit when there is no pending edit', () => {
+      const wrapper = mountComponent({ value: { foo: 'bar' } });
+
+      wrapper.unmount();
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
+    });
+  });
 });

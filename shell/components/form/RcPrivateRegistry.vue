@@ -19,8 +19,8 @@ const props = withDefaults(defineProps<{
   checkboxTestId?: string;
   inputTestId?: string;
   pullSecret?: string;
-  registerBeforeHook?: Function;
-  context?: PrivateRegistryContext;
+  registerBeforeHook: Function;
+  context?:PrivateRegistryContext;
   defaultRegistry?: string;
   namespace?: string;
   inStore?: string;
@@ -29,6 +29,11 @@ const props = withDefaults(defineProps<{
   skipPullSecrets?: boolean;
   repoDefaultPullSecrets?: string[];
   existingValuesPullSecrets?: string[];
+  /**
+   * In-progress pull secret choice (e.g. a new secret's type and credentials) which only exists in the form until save.
+   * Bind with v-model so it survives this component being unmounted, e.g. when it's within a collapsed RcSection
+   */
+  authSecretDraft?: Record<string, any> | null;
 }>(), {
   value:                     undefined,
   enabled:                   false,
@@ -37,7 +42,6 @@ const props = withDefaults(defineProps<{
   checkboxTestId:            undefined,
   inputTestId:               undefined,
   pullSecret:                undefined,
-  registerBeforeHook:        undefined,
   context:                   PRIVATE_REGISTRY_CONTEXT.PROVISIONING,
   defaultRegistry:           undefined,
   namespace:                 'fleet-default',
@@ -47,6 +51,7 @@ const props = withDefaults(defineProps<{
   skipPullSecrets:           false,
   repoDefaultPullSecrets:    () => [],
   existingValuesPullSecrets: () => [],
+  authSecretDraft:           null,
 });
 
 const emit = defineEmits<{
@@ -54,12 +59,14 @@ const emit = defineEmits<{
   'update:enabled': [val: boolean];
   'update:pullSecret': [val: string | undefined];
   'update:skipPullSecrets': [val: boolean];
+  'update:authSecretDraft': [val: Record<string, any>];
 }>();
 
 const store = useStore();
 const { t } = useI18n(store);
 
-const showInput = ref(!!props.value);
+// Respect `enabled` as well as `value`, otherwise remounting with the registry enabled but no URL yet unchecks the box
+const showInput = ref(props.enabled || !!props.value);
 const globalRegistry = ref('');
 const defaultPullSecrets = ref<string[]>([]);
 const localSkipPullSecrets = ref(props.skipPullSecrets);
@@ -291,7 +298,9 @@ watch(() => props.skipPullSecrets, (neu) => {
             :none-label="defaultPullSecretLabel"
             :image-pull-secret-docker-json-url-config="value || globalRegistry"
             :register-before-hook="registerBeforeHook"
+            :pre-select="authSecretDraft ?? undefined"
             @update:value="(val) => emit('update:pullSecret', val)"
+            @inputauthval="(val) => emit('update:authSecretDraft', val)"
           />
         </div>
       </RcContentGroup>

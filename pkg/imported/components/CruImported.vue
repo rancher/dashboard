@@ -133,6 +133,9 @@ export default defineComponent({
       needsReplace:                             false,
       clusterAgentDefaultPriorityClassHash:     SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
       privateRegistryEnabled:                   false,
+      privateRegistryAuthDraft:                 null,
+      selectedKubernetesVersion:                null,
+      showDeprecatedPatchVersions:              false,
       s3Backup:                                 false,
       dayTwoOpsGlobalSetting:                   false,
       dayTwoOpsFlagEnabled:                     false,
@@ -371,6 +374,7 @@ export default defineComponent({
     },
 
     kubernetesVersionChanged(val) {
+      this.selectedKubernetesVersion = val;
       if ( !this.isK3s ) {
         this.normanCluster.rke2Config.kubernetesVersion = val;
       } else {
@@ -534,7 +538,10 @@ export default defineComponent({
           :day-two-ops="dayTwoOps"
           :day-two-ops-old="dayTwoOpsOld"
           :rules="{workerConcurrency: fvGetAndReportPathRules('workerConcurrency'), controlPlaneConcurrency: fvGetAndReportPathRules('controlPlaneConcurrency') }"
+          :selected-kubernetes-version="selectedKubernetesVersion"
+          :show-deprecated-patches="showDeprecatedPatchVersions"
           @kubernetes-version-changed="kubernetesVersionChanged"
+          @show-deprecated-patches-changed="(val)=>showDeprecatedPatchVersions = val"
           @drain-server-nodes-changed="(val)=>upgradeStrategy.drainServerNodes = val"
           @drain-worker-nodes-changed="(val)=>upgradeStrategy.drainWorkerNodes = val"
           @server-concurrency-changed="(val)=>upgradeStrategy.serverConcurrency = val"
@@ -568,6 +575,7 @@ export default defineComponent({
             v-if="canManageMembers"
             :mode="mode"
             :parent-id="normanCluster.id ? normanCluster.id : null"
+            :pending-update="membershipUpdate"
             @membership-update="onMembershipUpdate"
           />
         </RcContentGroup>
@@ -680,6 +688,7 @@ export default defineComponent({
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
           v-model:pull-secret="pullSecrets"
           v-model:enabled="privateRegistryEnabled"
+          v-model:auth-secret-draft="privateRegistryAuthDraft"
           :context="PRIVATE_REGISTRY_CONTEXT.IMPORTING"
           :mode="mode"
           :rules="fvGetAndReportPathRules('privateRegistry')"

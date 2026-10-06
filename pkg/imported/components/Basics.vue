@@ -109,10 +109,19 @@ export default defineComponent({
       }),
       type: Object,
     },
+    // The version picked by the user, and the deprecated patches toggle, so both survive this being remounted (e.g. within a collapsed RcSection)
+    selectedKubernetesVersion: {
+      type:    String,
+      default: null
+    },
+    showDeprecatedPatches: {
+      type:    Boolean,
+      default: false
+    },
 
   },
   emits: ['kubernetes-version-changed', 'drain-server-nodes-changed', 'server-concurrency-changed',
-    'drain-worker-nodes-changed', 'worker-concurrency-changed', 'enable-day-two-ops-changed', 'version-management-changed', 'input'],
+    'drain-worker-nodes-changed', 'worker-concurrency-changed', 'enable-day-two-ops-changed', 'version-management-changed', 'show-deprecated-patches-changed', 'input'],
   data() {
     const store = this.$store;
     const supportedVersionRange = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
@@ -120,8 +129,13 @@ export default defineComponent({
     const versionMismatch = false;
 
     return {
-      supportedVersionRange, originalVersion, showDeprecatedPatchVersions: false, kubernetesVersion: originalVersion, versionMismatch, SECTION_TYPE
+      supportedVersionRange, originalVersion, showDeprecatedPatchVersions: this.showDeprecatedPatches, kubernetesVersion: this.selectedKubernetesVersion || originalVersion, versionMismatch, SECTION_TYPE
     };
+  },
+  watch: {
+    showDeprecatedPatchVersions(neu) {
+      this.$emit('show-deprecated-patches-changed', neu);
+    }
   },
   created() {
     if ( !!this.config?.kubernetesVersion && !!this.value?.version?.gitVersion) {

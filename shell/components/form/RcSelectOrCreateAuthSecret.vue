@@ -122,8 +122,8 @@ export default {
     },
 
     registerBeforeHook: {
-      type:    Function,
-      default: undefined,
+      type:     Function,
+      required: true,
     },
 
     hookName: {
@@ -505,7 +505,8 @@ export default {
   },
 
   watch: {
-    selected:                'update',
+    // Also report the selection via inputauthval so a parent holding preSelect stays in step when this component is remounted
+    selected:                ['update', 'updateKeyVal'],
     publicKey:               'updateKeyVal',
     privateKey:              'updateKeyVal',
     sshKnownHosts:           'updateKeyVal',
@@ -528,15 +529,19 @@ export default {
   },
 
   created() {
-    if (this.registerBeforeHook) {
-      const hookName = this.appendUniqueIdToHook ? this.hookName + this.uniqueId : this.hookName;
+    // When the parent creates the secret this component never registers the hook, so it isn't needed
+    if (this.delegateCreateToParent) {
+      return;
+    }
 
-      if (!this.delegateCreateToParent) {
-        this.registerBeforeHook(this.doCreate, hookName, this.hookPriority);
-      }
-    } else {
+    // Without the hook a "create new secret" choice would silently never be created on save
+    if (!this.registerBeforeHook) {
       throw new Error('Before Hook is missing');
     }
+
+    const hookName = this.appendUniqueIdToHook ? this.hookName + this.uniqueId : this.hookName;
+
+    this.registerBeforeHook(this.doCreate, hookName, this.hookPriority);
   },
 
   methods: {
