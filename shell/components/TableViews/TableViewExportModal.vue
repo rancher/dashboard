@@ -1,8 +1,7 @@
 <script setup lang="ts">
 /**
  * Asks what to export as. From the toolbar the table does the writing; from a resource action the
- * resources come in as a prop and are written here. Either way the modal closes on Download, and the
- * export is followed in the notification centre
+ * resources come in as a prop and are written here, followed in the notification centre
  */
 import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
@@ -104,7 +103,7 @@ const exportResources = async(items: ExportResource[], as: Format, columns: Retu
     if (items.length === 1) {
       await first.downloadYaml();
 
-      return `${ first.nameDisplay || 'resource' }.yaml`;
+      return `${ first.nameDisplay }.yaml`;
     }
 
     await first.downloadYamlBulk(items, onProgress);
@@ -125,7 +124,6 @@ const exportResources = async(items: ExportResource[], as: Format, columns: Retu
   return `${ name }.csv`;
 };
 
-/** As a view's export is: the modal is gone at once, and the export is followed as a notification */
 const exportSelection = async(items: ExportResource[], as: Format, columns: ReturnType<typeof exportColumnsFor>) => {
   const count = items.length;
   const id = await store.dispatch('notifications/add', {
@@ -166,7 +164,8 @@ const download = () => {
     const columns = selectionColumns.value;
 
     emit('close');
-    exportSelection(items, as, columns);
+    // Running on with nothing on screen, so a failure the notification can't report is at least logged
+    exportSelection(items, as, columns).catch((e) => console.error('Unable to export the selection', e)); // eslint-disable-line no-console
 
     return;
   }

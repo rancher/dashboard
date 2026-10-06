@@ -243,8 +243,8 @@ const showClear = computed(() => !!props.value);
 const suggestableFields = computed<TableViewField[]>(() => props.filterFields || props.fields);
 
 /**
- * The field being typed while the api is asked for its values: the page's would show first and then
- * change, so nothing is offered until they come
+ * The field typed while the api is asked for its values: nothing is offered until they come, rather than
+ * the page's and then the api's. The row saying so is not an option, as there is nothing to pick
  */
 const loadingValuesFor = computed(() => {
   const { field } = parsedToken.value;
@@ -773,7 +773,6 @@ const onKeyDown = (event: KeyboardEvent) => {
   } else if (event.key === 'Enter') {
     event.preventDefault();
 
-    // Nothing to pick while values load
     if (suggestions.value[activeIndex.value]) {
       pick(suggestions.value[activeIndex.value]);
     }
@@ -906,7 +905,7 @@ onBeforeUnmount(() => {
         class="vs__dropdown-menu table-view-query-menu"
         role="listbox"
         :aria-label="t('tableViews.query.suggestions')"
-        :aria-busy="!suggestions.length && !!loadingValuesFor"
+        :aria-busy="!!loadingValuesFor"
         :style="menuStyle"
         data-testid="table-views-suggestions"
         @mousemove="keyboardNav = false"
@@ -940,9 +939,8 @@ onBeforeUnmount(() => {
             <span class="suggestion-detail">{{ entry.detail }}</span>
           </li>
         </template>
-        <!-- Not an option: there's nothing to pick yet -->
         <li
-          v-if="!suggestions.length && loadingValuesFor"
+          v-if="loadingValuesFor"
           class="suggestion-loading"
           role="presentation"
           data-testid="table-views-suggestions-loading"

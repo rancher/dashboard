@@ -146,6 +146,8 @@ const menuBorder = ref(0);
 /** The menu's popper, border included, so a submenu lines up with its top */
 const menuBox = () => dropdownTarget.value?.closest('.v-popper__popper') || dropdownTarget.value;
 
+// The submenus' popper is beside the menu's, not in it, which scrolls once cut to the screen, and
+// never flips over the menu, which would cover the items the pointer came from
 const { submenuLift, start: placeSubmenu, stop: stopPlacingSubmenu } = useSubmenuPlacement(menuBox, shownSubmenu, submenuTarget);
 
 const onSubmenuApplyShow = () => {
@@ -198,8 +200,6 @@ const applyShow = () => {
         </slot>
       </div>
 
-      <!-- Beside the menu, never over it: flipping would cover the items the pointer came from. Its
-           popper goes beside the menu's rather than inside it, which scrolls once cut to the screen -->
       <v-dropdown
         v-if="registeredSubmenus.length"
         no-auto-focus

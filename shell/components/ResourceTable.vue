@@ -607,10 +607,7 @@ export default {
       return null;
     },
 
-    /**
-     * What each group's tab reads for a toolbar grouping: a month by name rather than its key. The
-     * page's own `group-ref`, eg a machine's pool, labels its own groupings and none of the toolbar's
-     */
+    /** A toolbar grouping's labels, eg a month by name; the page's own `group-ref` is for its own groupings */
     computedGroupRef() {
       const field = this.viewGroupField;
       const groupBy = this.computedGroupBy;

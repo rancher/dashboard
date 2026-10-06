@@ -380,11 +380,7 @@ export default {
     },
 
 
-    /**
-     * The page's columns and the optional ones its type registers (see optionalHeadersFor). The
-     * page's keep their order; the others are added after the last data column, or before the one
-     * they name
-     */
+    /** The page's columns, then the optional ones its type registers (see optionalHeadersFor) */
     availableHeaders() {
       const own = this._headers || [];
 
