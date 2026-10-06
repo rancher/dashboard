@@ -107,4 +107,21 @@ describe('component: HorizontalPanel', () => {
 
     expect(setActiveMock).toHaveBeenCalledTimes(0);
   });
+
+  it('should not render a button inside the tablist', () => {
+    const wrapper = mountPanel();
+
+    const buttons = wrapper.findAll('[role="tablist"] button, [role="tablist"] [role="button"]');
+
+    expect(buttons).toHaveLength(0);
+  });
+
+  it('should own every tab from the tablist', () => {
+    const wrapper = mountPanel();
+
+    const owned = wrapper.find('[role="tablist"]').attributes('aria-owns')?.split(' ');
+    const tabIds = wrapper.findAll('[role="tab"]').map((tab) => tab.attributes('id'));
+
+    expect(owned).toStrictEqual(tabIds);
+  });
 });
