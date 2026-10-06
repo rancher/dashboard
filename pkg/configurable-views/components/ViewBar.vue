@@ -157,7 +157,13 @@ const LOCKED_TAB_COUNT = 1;
 
 const isPublished = (view: View) => props.publishedIds.includes(view.id);
 
-const publishedTooltip = (view: View) => (view.org ? t('configurableViews.bar.shared') : t('configurableViews.bar.sharedCopy'));
+const publishedTooltip = (view: View) => {
+  if (view.org) {
+    return t('configurableViews.bar.shared');
+  }
+
+  return props.changedIds.includes(view.id) ? t('configurableViews.bar.sharedChanged') : t('configurableViews.bar.sharedCopy');
+};
 
 const tabs = computed<View[]>(() => {
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -552,14 +558,22 @@ defineExpose({ openRename, focusTab });
               @keydown.home.prevent="edgeTab('first')"
               @keydown.end.prevent="edgeTab('last')"
             >
-              {{ view.name }}
-              <i
+              <!-- Published, and - the dot - changed since, with changes to publish -->
+              <span
                 v-if="isPublished(view)"
                 v-clean-tooltip="publishedTooltip(view)"
-                class="icon icon-groups vbar__shared"
+                class="vbar__shared"
                 :aria-label="publishedTooltip(view)"
                 data-testid="configurable-views-tab-shared"
-              />
+              >
+                <i class="icon icon-groups" />
+                <span
+                  v-if="changedIds.includes(view.id)"
+                  class="vbar__changed"
+                  data-testid="configurable-views-tab-changed"
+                />
+              </span>
+              {{ view.name }}
             </button>
 
             <rc-dropdown-trigger
@@ -944,7 +958,20 @@ $tab-height: 30px;
   }
 
   &__shared {
+    display:   inline-flex;
     font-size: 14px;
+    position:  relative;
+  }
+
+  // Changes to publish: the table views' unsaved-changes dot, on the icon's corner
+  &__changed {
+    background:    var(--error);
+    border-radius: 50%;
+    height:        6px;
+    position:      absolute;
+    right:         -3px;
+    top:           -2px;
+    width:         6px;
   }
 
   // The active view's name, edited where the tab was.

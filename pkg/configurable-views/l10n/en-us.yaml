@@ -45,6 +45,7 @@ configurableViews:
     delete: Delete View
     shared: Published to the organization
     sharedCopy: Your copy of a view published to the organization
+    sharedChanged: Your copy of a view published to the organization, with changes not yet published
     deleted: View deleted
     deletedMessage: "“{name}” was deleted."
     undo: Undo
