@@ -1,6 +1,6 @@
 import ResourceTableViews from '@shell/mixins/resource-table-views';
 import {
-  CONFIG_MAP, FLEET, MANAGEMENT, NAMESPACE, WORKLOAD_TYPES
+  CAPI, CONFIG_MAP, FLEET, MANAGEMENT, NAMESPACE, WORKLOAD_TYPES
 } from '@shell/config/types';
 import { AGE, DESCRIPTION, NAME, STATE } from '@shell/config/table-headers';
 
@@ -39,7 +39,7 @@ describe('the columns a list offers', () => {
   it('should offer a list of clusters the columns the other list of them shows', () => {
     const { ctx } = page(MANAGEMENT.CLUSTER, [STATE, NAME], true);
 
-    expect(names(ctx)).toStrictEqual(['state', 'name', 'cpu', 'memory', 'pods', 'autoscaler', 'machines', 'age']);
+    expect(names(ctx)).toStrictEqual(['state', 'name', 'cpu', 'memory', 'pods', 'autoscaler', 'machines', 'description', 'age']);
   });
 
   it('should keep a page\'s own column rather than offer it twice', () => {
@@ -72,6 +72,11 @@ describe('the columns a list offers', () => {
       const { ctx } = page(CONFIG_MAP, [STATE, NAME], false, true);
 
       expect(description(ctx)).toStrictEqual(expect.objectContaining({ sort: 'metadata.annotations[field.cattle.io/description]', search: 'metadata.annotations[field.cattle.io/description]' }));
+    });
+
+    it('should be offered on both lists of clusters, read from the annotation the management cluster is given', () => {
+      expect(names(page(MANAGEMENT.CLUSTER).ctx)).toContain('description');
+      expect(description(page(CAPI.RANCHER_CLUSTER, [STATE, NAME], false, true).ctx)).toStrictEqual(expect.objectContaining({ sort: 'metadata.annotations[field.cattle.io/description]' }));
     });
 
     it('should not be offered where the description is kept somewhere else', () => {
