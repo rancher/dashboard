@@ -1918,6 +1918,9 @@ export default {
             this.serverConfig[INGRESS_CONTROLLER] = INGRESS_NONE;
           }
         }
+      } else if (this.isCreate) {
+        // Switching from an RKE2 to a K3s version while creating, drop the RKE2 only setting
+        delete this.serverConfig[INGRESS_CONTROLLER];
       }
     },
 

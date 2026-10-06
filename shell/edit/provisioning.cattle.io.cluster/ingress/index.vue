@@ -59,6 +59,7 @@ const showConfig = computed(() => !!versionInfo[traefikChart] || !!versionInfo[n
 const isPrime = ref( getVersionData().RancherPrime === 'true');
 const isIngressDisableVersion = computed(() => isCreate.value && !!kubernetesVersion && semver.gte(kubernetesVersion, 'v1.37.0'));
 const showTransitioningBanner = computed(() => traefikSupported && (!isIngressDisableVersion.value || !!isPrime.value));
+const showSelectedBanner = computed(() => (isEdit.value && ingressSelection.value !== TRAEFIK) || !!showTraefikBanner.value);
 
 // in traefik v40 the nginx key changed from kubernetesIngressNginx to kubernetesIngressNGINX
 const traefikNginxKey = computed(() => {
@@ -281,7 +282,7 @@ function updateYaml(component: any, value: any) {
       @select="selectIngress"
     />
     <Banner
-      v-if="(isEdit && ingressSelection !== TRAEFIK) || showTraefikBanner"
+      v-if="showSelectedBanner"
       color="warning"
     >
       <RichTranslation :k="`cluster.ingress.banners.selected.${ingressSelection}.label`">
