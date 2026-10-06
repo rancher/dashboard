@@ -47,6 +47,11 @@ export const EXT_IDS = {
    * string. If a global is not registered, the token name is used as the value.
    */
   I18N_GLOBAL:                      'l10n-global',
+  /**
+   * SUSE extensions can provide a function that returns additional query string
+   * params (telemetry) to be included in the dynamic content request
+   */
+  TELEMETRY:                        'telemetry',
 } as const;
 export type EXT_IDS_VALUES = (typeof EXT_IDS)[keyof typeof EXT_IDS];
 

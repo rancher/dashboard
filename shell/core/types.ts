@@ -280,6 +280,19 @@ export type PaginationTableColumn = PaginationHeaderOptions;
  */
 export type ServerSidePaginationExtensionConfig = PaginationSettingsStores;
 
+/**
+ * Telemetry values returned by an extension's telemetry function - a map of query string param name to value
+ */
+export type TelemetryParams = { [param: string]: string | number | boolean };
+
+/**
+ * Function registered by an extension (via `plugin.register('telemetry', name, fn)`) that returns
+ * additional query string params to send with the dynamic content request
+ *
+ * @param getters Store getters, so that the extension can access the store to generate its values
+ */
+export type TelemetryFunction = (getters: any) => TelemetryParams;
+
 export interface ConfigureTypeOptions {
   /**
    * Override for the create button string on a list view
@@ -694,6 +707,11 @@ export interface IExtension extends IExtensionProducts {
    * localisations. The value can be a string or a function returning a string.
    * If no global is registered for a given name, the token's name is used as
    * the value.
+   *
+   * A special type `'telemetry'` can be used by SUSE extensions to register a function
+   * (see `TelemetryFunction`) that returns a map of additional query string params to be
+   * sent with the dynamic content request. These params can not overwrite any of the
+   * params that are already sent. Telemetry functions from non-SUSE extensions are ignored.
    *
    * @param {String} type type of thing to register, e.g. 'edit'
    * @param {String} name unique name of 'something'

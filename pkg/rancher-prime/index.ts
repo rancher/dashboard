@@ -1,5 +1,5 @@
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin, PanelLocation } from '@shell/core/types';
+import { IPlugin, PanelLocation, TelemetryParams } from '@shell/core/types';
 import { installDocHandler } from './docs';
 import routing from './routing/index';
 import { useI18n } from '@shell/composables/useI18n';
@@ -63,9 +63,9 @@ const poolRegistration = (store: Store<any>) => {
 
 // Init the package
 export default function(plugin: IPlugin) {
-  if (!plugin.environment.isPrime) {
-    return false;
-  }
+  // if (!plugin.environment.isPrime) {
+  //   return false;
+  // }
 
   // Auto-import model, detail, edit from the folders
   importTypes(plugin);
@@ -87,6 +87,12 @@ export default function(plugin: IPlugin) {
 
   // About page panel
   plugin.addPanel(PanelLocation.ABOUT_TOP, {}, { component: () => import('./components/AboutPanel.vue') });
+
+  // Telemetry - extra query string params included in the dynamic content request
+  // Note: these can not overwrite any of the params that Rancher already sends
+  plugin.register('telemetry', 'prime', (getters: any): TelemetryParams => {
+    return { 'rp-scc': !!getters['features/get'](SCC) };
+  });
 
   plugin.addNavHooks({
     onLogin: async(store: any) => {
