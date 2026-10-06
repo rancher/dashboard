@@ -1,6 +1,8 @@
 import type { Store } from 'vuex';
 import { importTypes } from '@rancher/auto-import';
 import { ActionLocation, IPlugin, type Action } from '@shell/core/types';
+import type { ShellApi } from '@shell/apis';
+import { NotificationLevel } from '@shell/types/notifications';
 import { fetchTemplatingConfigMaps, toggleTemplating } from './templating/template-engine';
 import routing from './routing/index';
 import { PAGINATED_RESOURCES } from './templating/widget-catalog';
@@ -8,46 +10,29 @@ import Home from './pages/Home.vue';
 import ClusterDashboard from './pages/ClusterDashboard.vue';
 import { toggleViewBar, viewBarLocked, viewBarVisible } from './composables/useViewBarVisibility';
 
-/**
- * What the shell leaves on `window` that this file uses: the running app, for the store the
- * shortcut toggles, and the shortcut's own once-only flag.
- */
-interface ShellWindow extends Window {
-  $globalApp?: { $store?: Store<unknown> };
-  __configurableViewsShortcut?: boolean;
+/** What a header action runs with as `this`: the header, with the store and the shell API on it. */
+interface HeaderContext {
+  $store: Store<unknown>;
+  $shell: ShellApi;
 }
 
-const shellWindow = window as ShellWindow;
+// The kill switch's shortcut, Cmd/Ctrl + Shift + . - a header action with no button, on every page.
+// The shell binds a shortcut by the character it types, and Shift + . types '>' on US and UK keyboards.
+const killSwitch: Action = {
+  labelKey: 'configurableViews.toggle.title',
+  hidden:   true,
+  shortcut: { windows: ['ctrl', 'shift', '>'], mac: ['meta', 'shift', '>'] },
+  invoke(this: HeaderContext) {
+    const store = this.$store;
+    const t = store.getters['i18n/t'];
 
-// Global shortcut: Cmd/Ctrl + Shift + . toggles the kill switch. Extensions can't add a global
-// mounted component, but plugin init runs in the browser, so a raw document keydown listener works.
-// Matched on event.code === 'Period' (layout-independent). Registered once.
-function installShortcut(): void {
-  if (shellWindow.__configurableViewsShortcut) {
-    return;
-  }
-  shellWindow.__configurableViewsShortcut = true;
-
-  window.addEventListener('keydown', (e) => {
-    if (!((e.metaKey || e.ctrlKey) && e.shiftKey && e.code === 'Period')) {
-      return;
-    }
-
-    const store = shellWindow.$globalApp?.$store;
-
-    if (store) {
-      e.preventDefault();
-      toggleTemplating(store).then((now) => {
-        const t = store.getters['i18n/t'];
-
-        store.dispatch('growl/success', {
-          title:   t('configurableViews.toggle.title'),
-          message: now ? t('configurableViews.toggle.turnedOn') : t('configurableViews.toggle.turnedOff'),
-        }, { root: true });
-      }).catch(() => {});
-    }
-  });
-}
+    toggleTemplating(store).then((now) => {
+      this.$shell.notification.send(NotificationLevel.Success, t('configurableViews.toggle.title'), now ? t('configurableViews.toggle.turnedOn') : t('configurableViews.toggle.turnedOff'));
+    }).catch(() => {
+      this.$shell.notification.send(NotificationLevel.Error, t('configurableViews.toggle.failed'));
+    });
+  },
+};
 
 // Init the package
 export default function(plugin: IPlugin): void {
@@ -83,8 +68,6 @@ export default function(plugin: IPlugin): void {
     component: ClusterDashboard,
   });
 
-  installShortcut();
-
   // The view bar is hidden until asked for: a header button on each configurable page shows and
   // hides it, and Cmd/Ctrl + Shift + V does the same - V for views, beside the kill switch's
   // Cmd/Ctrl + Shift + . The shell ignores the shortcut while the focus is in a text field, where it
@@ -102,6 +85,7 @@ export default function(plugin: IPlugin): void {
     invoke:             () => toggleViewBar(),
   };
 
+  plugin.addAction(ActionLocation.HEADER, {}, killSwitch);
   plugin.addAction(ActionLocation.HEADER, { product: ['home'] }, toggleBar);
   plugin.addAction(ActionLocation.HEADER, { product: ['explorer'], path: [{ urlPath: '/explorer', endsWith: true }] }, toggleBar);
 }
