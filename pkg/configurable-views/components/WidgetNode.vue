@@ -452,6 +452,12 @@ function fitHeight(): void {
     opacity: 0.4;
   }
 
+  // A widget with a menu open in it - the table views' View menu - sits above its neighbours, so the
+  // menu is not painted under the widget beside or below it (see __content).
+  &:has(.v-popper__popper--shown) {
+    z-index: 1;
+  }
+
   // A drop over the grid would move it over: say so before it happens.
   &--shifting > .wnode__frame {
     border:     2px dashed var(--primary);
@@ -563,6 +569,15 @@ function fitHeight(): void {
     overflow-y: hidden;
     position:   relative;
     z-index:    0;
+
+    // A menu opened in the widget is drawn FIXED, so it is neither cut off at the widget's edges nor
+    // counted in its scroll width. Drawn absolute, a submenu opening past the edge widened the widget
+    // for a frame, the browser scrolled the widget to the focused submenu, the table jumped, and the
+    // menu flickered on every hover. The menu library places a fixed menu against the window, which
+    // is where the page is: Rancher scrolls its <main>, not the window.
+    :deep(.v-popper__popper) {
+      position: fixed !important;
+    }
   }
 
   &__shield {
