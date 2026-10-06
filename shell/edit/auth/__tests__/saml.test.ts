@@ -391,7 +391,7 @@ describe('saml.vue', () => {
 
       const options = mountOptionsForProvider(provider, { ...validModel, id: provider });
 
-      options.global.mocks.$store.getters['features/get'] = (name: string) => name === 'adfs-ldap-search' && featureEnabled;
+      (options.global.mocks.$store.getters as Record<string, unknown>)['features/get'] = (name: string) => name === 'adfs-ldap-search' && featureEnabled;
 
       return mount(Saml, options);
     };
