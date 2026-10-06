@@ -2,6 +2,8 @@
 import { computed, onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
+import { useShell } from '@shell/apis';
+import { NotificationLevel } from '@shell/types/notifications';
 import { Checkbox } from '@components/Form/Checkbox';
 import { isTemplatingEnabled, toggleTemplating, fetchTemplatingConfigMaps } from '../templating/template-engine';
 
@@ -10,6 +12,7 @@ import { isTemplatingEnabled, toggleTemplating, fetchTemplatingConfigMaps } from
 
 const store = useStore();
 const { t } = useI18n(store);
+const shell = useShell();
 
 const toggling = ref(false);
 
@@ -26,15 +29,9 @@ async function onToggle(value: boolean): Promise<void> {
   try {
     const now = await toggleTemplating(store, value);
 
-    store.dispatch('growl/success', {
-      title:   t('configurableViews.toggle.title'),
-      message: now ? t('configurableViews.toggle.turnedOn') : t('configurableViews.toggle.turnedOff'),
-    }, { root: true });
+    shell.notification.send(NotificationLevel.Success, t('configurableViews.toggle.title'), now ? t('configurableViews.toggle.turnedOn') : t('configurableViews.toggle.turnedOff'));
   } catch (e) {
-    store.dispatch('growl/error', {
-      title:   t('configurableViews.toggle.failed'),
-      message: (e as Error)?.message || String(e),
-    }, { root: true });
+    shell.notification.send(NotificationLevel.Error, t('configurableViews.toggle.failed'), (e as Error)?.message || String(e));
   } finally {
     toggling.value = false;
   }
