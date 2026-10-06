@@ -737,6 +737,12 @@ export const getters = {
           continue;
         }
 
+        // Skip schema backed types the user can't list (e.g. SelfSubjectAccessReviews), their list page would only show an error.
+        // Virtual and spoofed types have no schema. Types with a custom route or list component don't hit that error (see ResourceList)
+        if ( typeObj.schema && !typeObj.route && !rootGetters[`${ inStore }/canList`](typeObj.name) && !getters.hasCustomList(typeObj.name) ) {
+          continue;
+        }
+
         const label = typeObj.labelKey ? rootGetters['i18n/t'](typeObj.labelKey) || typeObj.label : typeObj.label;
 
         let labelDisplay = highlightLabel(label, count, typeObj.schema);
