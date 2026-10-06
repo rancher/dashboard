@@ -1,0 +1,48 @@
+name: Dead Code Detector (Anthropic fallback)
+
+# Re-runs a failed scheduled Dead Code Detector run against Anthropic instead of
+# Copilot. A spent Copilot quota answers every model call with a 429 and fails
+# the run inside the Copilot step; this gives that day's run a second chance.
+#
+# Does nothing unless the ANTHROPIC_API_KEY secret is set. workflow_run only
+# fires for workflows on the default branch, so this takes effect once merged.
+on:
+  workflow_run:
+    workflows: [Dead Code Detector]
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  fallback:
+    # Scheduled runs only. The fallback is itself a workflow_dispatch run, so it
+    # can never trigger another fallback; a person dispatching by hand picks the
+    # provider themselves.
+    if: github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.event == 'schedule'
+    permissions:
+      actions: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Re-run on Anthropic if the Copilot step failed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HAS_ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          if [ "$HAS_ANTHROPIC_KEY" != "true" ]; then
+            echo "No ANTHROPIC_API_KEY secret, so there is nothing to fall back to."
+            exit 0
+          fi
+
+          # A failure anywhere else (Rancher setup, MCP gateway, safe outputs) is
+          # not a provider problem, and switching provider would not fix it.
+          STEP=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/jobs" \
+            --jq '.jobs[] | select(.name == "agent") | .steps[] | select(.name == "Execute GitHub Copilot CLI") | .conclusion')
+          if [ "$STEP" != "failure" ]; then
+            echo "Copilot step conclusion: ${STEP:-not reached}. Not a provider failure."
+            exit 0
+          fi
+
+          gh workflow run dead-code-detector.lock.yml --repo "$GITHUB_REPOSITORY" --ref "$RUN_BRANCH" -f provider=anthropic
+          echo "Dispatched an Anthropic re-run of run ${RUN_ID}."

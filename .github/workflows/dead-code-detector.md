@@ -5,6 +5,12 @@ on:
   schedule: daily
   # Manual dispatch is kept enabled while the remediation path is being proven out.
   workflow_dispatch:
+    inputs:
+      provider:
+        description: Model provider. anthropic needs the ANTHROPIC_API_KEY secret
+        type: choice
+        options: [copilot, anthropic]
+        default: copilot
   # Deterministic budget gate, evaluated before the agent starts. The shared
   # reporting protocol asks the agent to count its own open pull requests and
   # stand down at three; this enforces the number without trusting it to.
@@ -42,6 +48,27 @@ sandbox:
   agent:
     runtime: docker-sudo-iptables
     allow-host-ports: [9443]
+
+# Copilot by default. A dispatch with `provider: anthropic` keeps the Copilot
+# CLI, and so every tool rule this prompt is written against, but routes the
+# model calls to Anthropic through Copilot's bring-your-own-key mode, billed to
+# the ANTHROPIC_API_KEY secret. An empty base URL leaves BYOK off. The
+# Anthropic fallback workflow dispatches this when a scheduled run fails inside
+# the Copilot step, which is where a spent Copilot quota surfaces (429).
+engine:
+  id: copilot
+  env:
+    COPILOT_PROVIDER_BASE_URL: ${{ inputs.provider == 'anthropic' && 'https://api.anthropic.com' || '' }}
+    COPILOT_PROVIDER_TYPE: anthropic
+    COPILOT_GITHUB_TOKEN: ${{ inputs.provider == 'anthropic' && '' || github.token }}
+    COPILOT_PROVIDER_API_KEY: ${{ inputs.provider == 'anthropic' && secrets.ANTHROPIC_API_KEY || '' }}
+
+# The base URL above is an expression, so gh-aw cannot derive its host for the
+# firewall. Everything else here is what gh-aw allows by default.
+network:
+  allowed:
+    - defaults
+    - api.anthropic.com
 
 permissions:
   contents: read
