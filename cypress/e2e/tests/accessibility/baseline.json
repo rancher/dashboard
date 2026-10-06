@@ -9,13 +9,6 @@
   },
   "violations": [
     {
-      "fingerprint": "912aa1b5477dac3b8541ec269c85894f444a760d7ab4fa0f5db3e129e5d91b76",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Header > Kubectl Shell",
-      "rule": "nested-interactive",
-      "impact": "serious",
-      "help": "Interactive controls must not be nested"
-    },
-    {
       "fingerprint": "dfcb29b8bfd5d9a1eb2a592f4ee24e366a7b2bc3edab16855663c6abb249b73c",
       "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Header > Kubectl Shell",
       "rule": "aria-required-children",
