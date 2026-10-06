@@ -1,6 +1,7 @@
 import { md5 } from '@shell/utils/crypto';
 import { randomStr } from '@shell/utils/string';
 import {
+  ENCRYPTED_FIELDS,
   EncryptedNotification,
   Notification,
   NotificationLevel,
@@ -315,7 +316,16 @@ export const actions = {
     return notification.id;
   },
 
-  update({ commit, getters }: any, notification: Notification) {
+  async update({ commit, getters }: any, notification: Partial<Notification>) {
+    // Only progress lives in the index; anything else has to rewrite the encrypted entry
+    if (notification.id && ENCRYPTED_FIELDS.some((field) => field in notification)) {
+      const existing = getters.item(notification.id);
+
+      if (existing) {
+        await saveEncryptedNotification(getters, { ...existing, ...notification });
+      }
+    }
+
     commit('update', notification);
     sync(getters['userId'], 'update', notification);
   },

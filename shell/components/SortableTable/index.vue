@@ -5,10 +5,14 @@ import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst, randomStr } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
+import { valueFor as columnValueFor } from '@shell/utils/table-columns';
+import { isExtensionTable, isConfigurableTablesEnabled, TABLE_VIEWS_SHELL_KEY } from '@shell/utils/table-views/feature';
+import { RcButton } from '@components/RcButton';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
 import ActionDropdown from '@shell/components/ActionDropdown';
+import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
 import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
 import THead from './THead';
@@ -25,9 +29,8 @@ import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import TableSelectionActions from '@shell/components/TableViews/TableSelectionActions.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
-import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
-import { RcButton } from '@components/RcButton';
 import { useTabCountUpdater } from '@shell/components/form/ResourceTabs/composable';
 
 // Uncomment for table performance debugging
@@ -63,13 +66,17 @@ export default {
     Checkbox,
     AsyncButton,
     ActionDropdown,
+    ActionDropdownShell,
     LabeledSelect,
     LabeledInput,
     ButtonMultiAction,
     ActionMenu,
-    ActionDropdownShell,
+    TableSelectionActions,
+    // Only rendered with the table views feature off
     RcButton,
   },
+
+  inject: { providedTableViewsShell: { from: TABLE_VIEWS_SHELL_KEY, default: null } },
 
   mixins: [
     filtering,
@@ -125,13 +132,14 @@ export default {
     },
 
     groupBy: {
-      // Field to group rows by, row[groupBy] must be something that can be a map key
-      type:    String,
+      // Field to group rows by, row[groupBy] must be something that can be a map key. Or a function
+      // of the row, for keys that aren't a simple path
+      type:    [String, Function],
       default: null
     },
     groupRef: {
       // Object to provide as the reference for rendering the grouping row
-      type:    String,
+      type:    [String, Function],
       default: null,
     },
     groupSort: {
@@ -151,6 +159,27 @@ export default {
       // Show bulk table actions
       type:    Boolean,
       default: true
+    },
+
+    /** The view's server side filters, sent with the page and sort on `pagination-changed` */
+    viewFilters: {
+      type:    Array,
+      default: () => []
+    },
+
+    /** The rows were already narrowed by a query from outside the table, so none left means no matches */
+    queried: {
+      type:    Boolean,
+      default: false
+    },
+
+    /**
+     * Lay the masthead out for the table views toolbar. Unset, the feature flag decides; `false`
+     * keeps the original masthead
+     */
+    tableViewsLayout: {
+      type:    Boolean,
+      default: null
     },
 
     rowActions: {
@@ -466,6 +495,16 @@ export default {
   },
 
   watch: {
+    /** Back to the first page: the old filter's page three is not the new one's */
+    viewFilters(neu, old) {
+      if (JSON.stringify(neu || []) === JSON.stringify(old || [])) {
+        return;
+      }
+
+      this.setPage(1);
+      this.debouncedPaginationChanged();
+    },
+
     eventualSearchQuery: debounce(function(q) {
       this.searchQuery = q;
 
@@ -643,11 +682,32 @@ export default {
     },
 
     noResults() {
-      return !!this.searchQuery && this.pagedRows.length === 0;
+      return (!!this.searchQuery || this.queried) && this.pagedRows.length === 0;
     },
 
     noRows() {
       return !this.noResults && (this.rows || []).length === 0;
+    },
+
+    useTableViewsLayout() {
+      const stated = this.tableViewsLayout;
+
+      if (stated !== null && stated !== undefined) {
+        return stated;
+      }
+
+      // An extension's table keeps the masthead it was written for unless it asks for this one
+      return isConfigurableTablesEnabled(this.$store) && !isExtensionTable({
+        providedShell: this.providedTableViewsShell, route: this.$route, extensions: this.$store?.state?.$extension
+      });
+    },
+
+    tableViewsTopRowEmpty() {
+      return this.useTableViewsLayout && !this.$slots['header-left'] && !this.$slots['header-middle'];
+    },
+
+    tableViewsTabsEmpty() {
+      return this.useTableViewsLayout && !this.$slots['table-views'];
     },
 
     showHeaderRow() {
@@ -939,35 +999,7 @@ export default {
     },
 
     valueFor(row, col, isLabel) {
-      if (typeof col.value === 'function') {
-        return col.value(row);
-      }
-
-      if (isLabel) {
-        if (row.metadata?.labels && row.metadata?.labels[col.label]) {
-          return row.metadata?.labels[col.label];
-        }
-
-        return '';
-      }
-
-      // Use to debug table columns using expensive value getters
-      // console.warn(`Performance: Table valueFor: ${ col.name } ${ col.value }`); // eslint-disable-line no-console
-
-      const expr = col.value || col.name;
-
-      if (!expr) {
-        console.error('No path has been defined for this column, unable to get value of cell', col); // eslint-disable-line no-console
-
-        return '';
-      }
-      const out = get(row, expr);
-
-      if ( out === null || out === undefined ) {
-        return '';
-      }
-
-      return out;
+      return columnValueFor(row, col, isLabel);
     },
 
     isExpanded(row) {
@@ -1119,8 +1151,9 @@ export default {
           searchFields: this.searchFields,
           searchQuery:  this.searchQuery
         },
-        sort:       this.sortFields,
-        descending: this.descending
+        sort:        this.sortFields,
+        descending:  this.descending,
+        viewFilters: this.viewFilters
       });
     }
   }
@@ -1130,6 +1163,7 @@ export default {
 <template>
   <div
     ref="container"
+    :class="{ 'has-table-views': useTableViewsLayout }"
     :data-testid="componentTestid + '-list-container'"
   >
     <div
@@ -1140,14 +1174,14 @@ export default {
       <div
         v-if="showHeaderRow"
         class="fixed-header-actions"
-        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering}"
+        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering, 'table-views-layout': useTableViewsLayout, 'no-top-row': tableViewsTopRowEmpty, 'no-views-row': tableViewsTabsEmpty}"
       >
         <div
           :class="bulkActionsClass"
           class="bulk"
         >
           <slot name="header-left">
-            <template v-if="tableActions">
+            <template v-if="tableActions && !useTableViewsLayout">
               <RcButton
                 v-for="(act) in availableActions"
                 :id="act.action"
@@ -1241,6 +1275,13 @@ export default {
         >
           <slot name="header-middle" />
         </div>
+        <!-- After the top row in source order too, so tabbing reaches the page's buttons first -->
+        <div
+          v-if="useTableViewsLayout && !tableViewsTabsEmpty"
+          class="table-views-row"
+        >
+          <slot name="table-views" />
+        </div>
 
         <div
           v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || $slots['header-right']"
@@ -1263,6 +1304,16 @@ export default {
               <div class="bg" />
             </li>
           </ul>
+          <TableSelectionActions
+            v-if="useTableViewsLayout && tableActions"
+            :actions="availableActions"
+            :count="selectedRows.length"
+            :action-tooltip="actionTooltip"
+            :testid="componentTestid"
+            @click="applyTableAction"
+            @mouseover="setBulkActionOfInterest"
+            @mouseleave="setBulkActionOfInterest"
+          />
           <slot name="watch-controls" />
           <slot name="header-right" />
           <AsyncButton
@@ -1753,8 +1804,9 @@ export default {
         class="hide"
         @shortkey="focusPrevious($event, true)"
       />
-      <slot name="shortkeys" />
     </template>
+    <!-- Outside the actions: a list without any, such as Home's, still has shortcuts of its own -->
+    <slot name="shortkeys" />
   </div>
 </template>
 
@@ -2174,6 +2226,13 @@ export default {
     grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 350px);
   }
 
+  // A hovered state chip can be left at z-index('loading'), eg by the AI extension, and the toolbar's
+  // menus open inside this header, so the header sits just above it. Ties with the window manager and
+  // the nav toolbar's menu go to them, as they come later in the page
+  .has-table-views .sortable-table-header {
+    z-index: calc(#{z-index('loading')} + 1);
+  }
+
   $header-padding: 20px;
   .sub-header-row {
     padding: 0 0 calc($header-padding / 2) 0;
@@ -2194,6 +2253,80 @@ export default {
 
     &.advanced-filtering {
       grid-template-columns: [bulk] auto [middle] minmax(min-content, auto) [search] minmax(min-content, auto);
+    }
+
+    // Table views mode: the page's masthead, then the view tabs, then the filter and selection
+    // actions
+    &.table-views-layout {
+      grid-template-columns: [left] auto [middle] minmax(0, 1fr);
+      grid-template-areas:
+        "bulk   middle"
+        "views  views"
+        "filter filter";
+      align-items: center;
+      // 16 down to the tabs; the filter row adds the extra 8 on each side of it
+      row-gap: 16px;
+      padding-bottom: 24px;
+
+      &.no-top-row {
+        grid-template-areas:
+          "views  views"
+          "filter filter";
+
+        .bulk {
+          display: none;
+        }
+      }
+
+      &.no-views-row {
+        grid-template-areas:
+          "bulk   middle"
+          "filter filter";
+      }
+
+      &.no-top-row.no-views-row {
+        grid-template-areas: "filter filter";
+
+        .bulk {
+          display: none;
+        }
+      }
+
+      .bulk {
+        grid-area: bulk;
+        height: 32px;
+      }
+
+      .middle {
+        grid-area: middle;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        height: 32px;
+      }
+      .table-views-row { grid-area: views; }
+
+      .search {
+        grid-area: filter;
+        display: flex;
+        align-items: flex-start;
+        align-self: start;
+        // A minimum, top aligned: the filter grows a line underneath for a query problem
+        min-height: 32px;
+        margin-top: 8px;
+        justify-content: flex-start;
+        gap: 10px;
+        max-width: none;
+        width: 100%;
+        margin-left: 0;
+        text-align: left;
+
+        // `.row`'s clearfix pseudo elements would be flex items, adding a gap before the filter
+        &::before,
+        &::after {
+          display: none;
+        }
+      }
     }
 
     .bulk {

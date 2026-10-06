@@ -87,6 +87,7 @@ export function init(store) {
         value:      'kind',
         field:      'kind',
         tooltipKey: 'fleet.application.groupBy',
+        labelKey:   'tableViews.group.by.type',
         hideColumn: FLEET_APPLICATION_TYPE.name,
       }
     ],

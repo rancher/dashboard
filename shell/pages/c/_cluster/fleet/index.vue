@@ -757,6 +757,7 @@ export default {
             class="table-panel"
           >
             <FleetApplications
+              :table-view-tabs="false"
               :workspace="workspace.id"
               :rows="tableResources[workspace.id]"
               :schema="{
