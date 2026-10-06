@@ -1,16 +1,7 @@
 import type { Store } from 'vuex';
 import {
-  applyFilter, applySort, expectedAgents, fetchAlerts, fetchMonitoring, fetchStateSummaries, fieldValue, objectRoute, parseFilter,
-  steveFilters, summarizeCounts
+  expectedAgents, fetchAlerts, fetchMonitoring, fetchStateSummaries, objectRoute, summarizeCounts
 } from '@pkg/configurable-views/templating/widget-data';
-import type { ResourceRow } from '@pkg/configurable-views/templating/types';
-
-const row = (name: string, extra: Partial<ResourceRow> = {}): ResourceRow => ({
-  metadata: {
-    name, namespace: 'default', labels: { env: name.startsWith('prod') ? 'prod' : 'dev' }
-  },
-  ...extra
-});
 
 // A store whose management/request answers by the PATH asked for (query aside): a value, or an
 // Error to reject with. Anything else is a 404.
@@ -24,67 +15,6 @@ function storeAnswering(answers: Record<string, unknown>) {
 
   return { store: { dispatch } as unknown as Store<unknown>, dispatch };
 }
-
-describe('filters', () => {
-  it('reads comma-separated clauses, a bare word being a name search', () => {
-    expect(parseFilter('state != Active, env==prod, web')).toStrictEqual([
-      {
-        field: 'state', op: '!=', value: 'Active'
-      },
-      {
-        field: 'env', op: '=', value: 'prod'
-      },
-      {
-        field: 'name', op: 'contains', value: 'web'
-      },
-    ]);
-    expect(parseFilter('')).toStrictEqual([]);
-  });
-
-  it('keeps the rows matching every clause', () => {
-    const rows = [row('prod-web'), row('prod-db'), row('dev-web')];
-
-    expect(applyFilter(rows, 'label:env = prod, web').map((r) => r.metadata?.name)).toStrictEqual(['prod-web']);
-    expect(applyFilter(rows, 'name != dev-web')).toHaveLength(2);
-    expect(applyFilter(rows, '')).toBe(rows);
-  });
-
-  it('compares numbers as numbers, and never matches a comparison on text', () => {
-    const rows = [row('a', { spec: { replicas: 3 } }), row('b', { spec: { replicas: 12 } })];
-
-    expect(applyFilter(rows, 'spec.replicas > 5').map((r) => r.metadata?.name)).toStrictEqual(['b']);
-    expect(applyFilter(rows, 'metadata.name > 5')).toStrictEqual([]);
-  });
-
-  it('pushes a filter to the API only when the API can apply all of it', () => {
-    expect(steveFilters('')).toStrictEqual([]);
-    expect(steveFilters('name=web, namespace != kube-system')).toHaveLength(2);
-    // Provider is worked out by the dashboard, so there is no field to ask the API about.
-    expect(steveFilters('name=web, provider=k3s')).toBeNull();
-    // Steve does not compare.
-    expect(steveFilters('created > 2024')).toBeNull();
-  });
-});
-
-describe('reading and sorting', () => {
-  it('reads a known field, a dotted path, or a label', () => {
-    const r = row('prod-web', { nameDisplay: 'Web', spec: { nodeName: 'n1' } });
-
-    expect(fieldValue(r, 'name')).toBe('Web');
-    expect(fieldValue(r, 'spec.nodeName')).toBe('n1');
-    expect(fieldValue(r, 'labels.env')).toBe('prod');
-    expect(fieldValue(r, 'spec.missing')).toBe('');
-    expect(fieldValue(null, 'name')).toBe('');
-  });
-
-  it('sorts numbers as numbers and text as text, either way', () => {
-    const rows = [row('b', { spec: { n: 10 } }), row('a', { spec: { n: 9 } }), row('C', { spec: { n: 100 } })];
-
-    expect(applySort(rows, 'spec.n').map((r) => r.metadata?.name)).toStrictEqual(['a', 'b', 'C']);
-    expect(applySort(rows, 'metadata.name', 'desc').map((r) => r.metadata?.name)).toStrictEqual(['C', 'b', 'a']);
-    expect(applySort(rows, '')).toBe(rows);
-  });
-});
 
 describe('cluster counts', () => {
   it('splits a type into useful, warning and error by state', () => {

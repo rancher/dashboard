@@ -87,8 +87,8 @@ export const BUILDING_BLOCKS: CatalogEntry[] = [
     icon:     'table',
     span:     8,
     spec:     {
-      // No columns: a fresh Table shows everything its resource has (see WidgetTable).
-      kind: WIDGET_TABLE, title: 'Table', resource: CLUSTER, sortBy: 'name'
+      // Columns, sort and filter are the table views' own (see WidgetTable).
+      kind: WIDGET_TABLE, title: 'Table', resource: CLUSTER
     },
   },
   {
@@ -343,24 +343,14 @@ export const SUGGESTED_RESOURCES: SuggestedResource[] = [
 ];
 
 /**
- * The name this extension's tables page under.
+ * The context a table widget pages under: the Home's own.
  *
- * Server-side pagination is enabled per resource per CONTEXT, so a context is what keeps this
- * feature's paging to this feature. Registered in index.ts; passed by the table widget.
+ * Server-side pagination is enabled per type per context, and the shell enables the cluster types
+ * here, with the server-side columns their sorting and filtering need. Any other type is not paged in
+ * this context, so its table reads it whole and pages it in the browser. The package registers no
+ * paging of its own.
  */
-export const PAGINATION_CONTEXT = 'configurable-views';
-
-/**
- * The global types whose tables should page.
- *
- * Only the ones this extension suggests, and only the global ones - a downstream type is read
- * through a cluster's own API, which this widget pages itself. Being a list rather than "everything
- * this extension shows" is the point: each entry is a type we have looked at and a table we have
- * seen page correctly, not a promise made on behalf of types nobody has tried.
- */
-export const PAGINATED_RESOURCES: { resource: string; context: string[] }[] = SUGGESTED_RESOURCES
-  .filter((r) => !r.downstream)
-  .map((r) => ({ resource: r.value, context: [PAGINATION_CONTEXT] }));
+export const PAGINATION_CONTEXT = 'home';
 
 /**
  * Does this type have to be read from a named cluster?

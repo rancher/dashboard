@@ -5,7 +5,7 @@ import {
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { MANAGEMENT } from '@shell/config/types';
-import { FIELDS, typeColumns, clusterOptions, METRICS_DASHBOARDS } from '../templating/widget-data';
+import { clusterOptions, METRICS_DASHBOARDS } from '../templating/widget-data';
 import { newId } from '../templating/view-model';
 import {
   SUGGESTED_RESOURCES, blockLabelKey, isDownstream, isClusterWidget, WIDGET_TABLE, WIDGET_LINKS,
@@ -21,8 +21,10 @@ import type { WidgetLink, WidgetSpec } from '../templating/types';
 // modal over a dimmed page would hide exactly what you are configuring.
 //
 // It edits a COPY and only hands it back on Done, so Cancel really does leave the widget alone. The
-// fields shown depend on the building block: a table needs a resource, columns and a sort; a links
-// box needs links; a cluster widget needs only its cluster; a Tabs widget needs its tabs.
+// fields shown depend on the building block: a table needs a resource (and its cluster, for a type
+// that lives once per cluster) and how much of the table views it shows - its columns, sort and filter
+// are set in the table itself; a links box needs links; a cluster widget needs only its cluster; a
+// Tabs widget needs its tabs.
 
 // Building blocks with plural names, where "what this <name> shows" does not read.
 const PLURAL_KINDS = [WIDGET_LINKS, WIDGET_TABS];
@@ -31,11 +33,6 @@ const DIALOG_WIDTH = 400;
 const MARGIN = 12;
 
 /** One tickable column: an id, how it is labelled, and whether it can be sorted by. */
-interface ColumnOption {
-  id: string;
-  label: string;
-  sortable: boolean;
-}
 
 const props = withDefaults(defineProps<{
   widget: WidgetSpec;
@@ -103,8 +100,7 @@ const readsData = computed(() => ![WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_T
 // there, so there is nothing here to change but the heading.
 const titleOnly = computed(() => draft.kind === WIDGET_CLUSTER_TABLE);
 
-const hasColumns = computed(() => draft.kind === WIDGET_TABLE);
-const hasSort = computed(() => draft.kind === WIDGET_TABLE);
+const isTable = computed(() => draft.kind === WIDGET_TABLE);
 
 /**
  * A Kubernetes type exists once per CLUSTER, and a cluster widget is about one, so either has a
@@ -118,42 +114,12 @@ const needsClusters = computed(() => (readsData.value && isDownstream(draft.reso
 
 const clusters = computed(() => clusterOptions(store.getters));
 
-/**
- * The columns on offer belong to the RESOURCE, not to these settings: a User has a username and a last
- * login, a Cluster has a provider and a Kubernetes version. So the ticks are rebuilt from whatever
- * type the picker is currently pointing at, and only a type Rancher describes nothing about falls
- * back to the generic field list.
- */
-const columns = computed<ColumnOption[]>(() => {
-  const own = typeColumns(store.getters, draft.resource);
-
-  return own.length ? own : FIELDS.map((f) => ({
-    id: f.id, label: t(f.labelKey), sortable: true
-  }));
-});
-
-// A table sorts through the column itself, so it can only offer the ones the type says are sortable.
-const sortFields = computed<ColumnOption[]>(() => {
-  const sortable = columns.value.filter((c) => c.sortable);
-
-  return sortable.length ? sortable : FIELDS.map((f) => ({
-    id: f.id, label: t(f.labelKey), sortable: true
-  }));
-});
-
 // The suggested list, plus whatever this widget already points at (which may be a CRD that is not on
 // the list) so the picker never silently drops it.
 const resourceOptions = computed<SuggestedResource[]>(() => {
   const known = SUGGESTED_RESOURCES.some((r) => r.value === draft.resource);
 
   return known || !draft.resource ? SUGGESTED_RESOURCES : [{ value: draft.resource, label: draft.resource }, ...SUGGESTED_RESOURCES];
-});
-
-const targetsText = computed({
-  get: () => (draft.targets || []).join(', '),
-  set: (value: string) => {
-    draft.targets = `${ value }`.split(',').map((t) => t.trim()).filter(Boolean);
-  },
 });
 
 // One link per line, "Label https://url" - the URL is whatever follows the last space.
@@ -203,33 +169,6 @@ function removeTabLabel(count: number): string {
   return count ? t('configurableViews.widgetSettings.removeTabWith', { count }) : t('configurableViews.widgetSettings.removeTab');
 }
 
-function hasColumn(id: string): boolean {
-  return (draft.columns || []).includes(id);
-}
-
-function toggleColumn(id: string): void {
-  const next = [...(draft.columns || [])];
-  const at = next.indexOf(id);
-
-  if (at >= 0) {
-    next.splice(at, 1);
-  } else {
-    // Keep the canonical field order so the table reads the same however they were ticked.
-    next.push(id);
-    next.sort((a, b) => columns.value.findIndex((c) => c.id === a) - columns.value.findIndex((c) => c.id === b));
-  }
-
-  draft.columns = next;
-}
-
-// A widget that has never been configured has no `columns`, and the table reads that as "show
-// everything". Materialise it here so the ticks match what is actually drawn — otherwise the settings
-// opens with nothing ticked beside a table showing every column, and ticking one box would read as
-// "add a column" while actually dropping the other eight.
-if (hasColumns.value && !draft.columns?.length) {
-  draft.columns = columns.value.map((c) => c.id);
-}
-
 /**
  * Load the clusters the picker offers, the moment it is shown.
  *
@@ -244,23 +183,6 @@ watch(needsClusters, (needed) => {
     store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }).catch(() => undefined);
   }
 }, { immediate: true });
-
-/**
- * Changing the type changes what a column even means — `user-id` is not a column a Cluster has — so
- * the old ticks cannot carry over. Everything the new type has is ticked: you drop what you do not
- * want, rather than hunt for what you do. A sort that no longer applies is cleared.
- */
-watch(() => draft.resource, (neu, old) => {
-  if (neu === old) {
-    return;
-  }
-
-  draft.columns = columns.value.map((c) => c.id);
-
-  if (draft.sortBy && !sortFields.value.some((f) => f.id === draft.sortBy)) {
-    draft.sortBy = '';
-  }
-});
 
 // Escape closes it, like every other dialog in the product.
 function onKey(ev: KeyboardEvent): void {
@@ -353,40 +275,6 @@ onBeforeUnmount(() => {
           <p class="wsm__hint">
             {{ t('configurableViews.widgetSettings.resourceHint') }}
           </p>
-
-          <label class="wsm__label">{{ t('configurableViews.widgetSettings.where') }}</label>
-          <label class="wsm__radio">
-            <input
-              v-model="draft.where"
-              type="radio"
-              value="view"
-            >
-            {{ t('configurableViews.widgetSettings.whereView') }}
-          </label>
-          <label class="wsm__radio">
-            <input
-              v-model="draft.where"
-              type="radio"
-              value="custom"
-            >
-            {{ t('configurableViews.widgetSettings.whereCustom') }}
-          </label>
-          <input
-            v-if="draft.where === 'custom'"
-            v-model="targetsText"
-            class="wsm__field"
-            placeholder="prod-eu-1, prod-us-2"
-          >
-
-          <label class="wsm__label">{{ t('configurableViews.widgetSettings.filter') }}</label>
-          <input
-            v-model="draft.filter"
-            class="wsm__field"
-            placeholder="state != Active"
-          >
-          <p class="wsm__hint">
-            {{ t('configurableViews.widgetSettings.filterHint') }}
-          </p>
         </template>
 
         <template v-if="needsClusters">
@@ -411,56 +299,29 @@ onBeforeUnmount(() => {
           </p>
         </template>
 
-        <template v-if="hasColumns">
-          <label class="wsm__label">{{ t('configurableViews.widgetSettings.columns') }}</label>
-          <div class="wsm__columns">
-            <label
-              v-for="column in columns"
-              :key="column.id"
+        <!-- Columns, sort, filter and grouping are the table views', set in the table itself -->
+        <template v-if="isTable">
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.views') }}</label>
+          <label class="wsm__radio">
+            <input
+              v-model="draft.viewTabs"
+              type="checkbox"
+              data-testid="configurable-views-table-view-tabs"
             >
-              <input
-                type="checkbox"
-                :checked="hasColumn(column.id)"
-                @change="toggleColumn(column.id)"
-              >
-              {{ column.label }}
-            </label>
-          </div>
+            {{ t('configurableViews.widgetSettings.viewTabs') }}
+          </label>
+          <label class="wsm__radio">
+            <input
+              v-model="draft.ownViews"
+              type="checkbox"
+              :disabled="!draft.viewTabs"
+              data-testid="configurable-views-table-own-views"
+            >
+            {{ t('configurableViews.widgetSettings.ownViews') }}
+          </label>
           <p class="wsm__hint">
-            {{ t('configurableViews.widgetSettings.columnsHint') }}
+            {{ t('configurableViews.widgetSettings.viewsHint') }}
           </p>
-        </template>
-
-        <template v-if="hasSort">
-          <label class="wsm__label">{{ t('configurableViews.widgetSettings.sortBy') }}</label>
-          <div class="wsm__pair">
-            <select
-              v-model="draft.sortBy"
-              class="wsm__field"
-            >
-              <option value="">
-                {{ t('configurableViews.widgetSettings.sortNothing') }}
-              </option>
-              <option
-                v-for="field in sortFields"
-                :key="field.id"
-                :value="field.id"
-              >
-                {{ field.label }}
-              </option>
-            </select>
-            <select
-              v-model="draft.sortDir"
-              class="wsm__field"
-            >
-              <option value="asc">
-                {{ t('configurableViews.widgetSettings.ascending') }}
-              </option>
-              <option value="desc">
-                {{ t('configurableViews.widgetSettings.descending') }}
-              </option>
-            </select>
-          </div>
         </template>
 
         <template v-if="draft.kind === 'links'">

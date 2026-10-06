@@ -1,56 +1,23 @@
-// What a widget SHOWS, worked out from its spec — shared by every widget renderer so a filter or a
-// column means the same thing whichever building block you dropped.
+// What a widget SHOWS: the data behind the cluster widgets (counts, capacity, health, monitoring), read
+// from whichever cluster a widget names, and where a resource type is read from.
 //
-// One idea runs through the whole file: a widget names fields the way a person would ("state",
-// "provider", "K8s version"), not the way the API stores them. FIELDS maps those names onto a
-// resource, and anything not in the map falls through to a dotted path (`spec.nodeName`), so any
-// CRD still works without being taught here.
+// A Table widget's columns, sort and filter are not here: they are the table views' own (see
+// WidgetTable).
 //
 // Pure functions — no Vue. `rows` are Steve/Norman resource instances.
 
 import type { Store } from 'vuex';
 import type { RouteLocationRaw } from 'vue-router';
-import type { TableColumn } from '@shell/types/store/type-map';
-import { get } from '@shell/utils/object';
-import { parseSi, formatSi, createMemoryFormat, createMemoryValues } from '@shell/utils/units';
+import { parseSi, createMemoryValues } from '@shell/utils/units';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { MANAGEMENT, METRIC, NODE } from '@shell/config/types';
 import { NODE_ROLES } from '@shell/config/labels-annotations';
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { colorToCountName } from '@shell/components/ResourceSummary';
 import { RESOURCES as DASHBOARD_RESOURCES } from '@shell/pages/c/_cluster/explorer/index.vue';
-import type { MetricsDashboard, ResourceRow, SortDir } from './types';
+import type { MetricsDashboard, ResourceRow } from './types';
 
 type Getters = Store<unknown>['getters'];
-
-/** A field a widget can show, sort or filter on: how a person names it, and how to read it off a row. */
-export interface Field {
-  id: string;
-  /** Translation key for what a person calls it. */
-  labelKey: string;
-  value: (row: ResourceRow) => unknown;
-}
-
-/** One clause of a filter expression: `state != Active` is { field: 'state', op: '!=', value: 'Active' }. */
-export interface FilterClause {
-  field: string;
-  op: string;
-  value: string;
-}
-
-/**
- * A table header as the shell writes them. The shell's own TableColumn type leaves out `labelKey`,
- * which nearly every header in the shell sets - so it is added here rather than cast away.
- */
-export type Header = TableColumn & { labelKey?: string };
-
-/** A column a type declares for itself, as the settings offer it. `header` is Rancher's own definition. */
-export interface TypeColumn {
-  id: string;
-  label: string;
-  sortable: boolean;
-  header: Header;
-}
 
 /** One way a Steve list can be sorted. */
 export interface SteveSort {
@@ -58,145 +25,6 @@ export interface SteveSort {
   asc: boolean;
 }
 
-/**
- * The fields a widget can filter, sort, group and tabulate on. `value` reads one off a row; `labelKey`
- * is what the settings dialog and the table header call it.
- *
- * Order matters — it is the order the Columns checkboxes appear in.
- */
-export const FIELDS: Field[] = [
-  {
-    id: 'state', labelKey: 'configurableViews.fields.state', value: (row) => row.stateDisplay || row.state || ''
-  },
-  {
-    id: 'name', labelKey: 'configurableViews.fields.name', value: (row) => row.nameDisplay || get(row, 'metadata.name') || row.name || ''
-  },
-  {
-    id: 'provider', labelKey: 'configurableViews.fields.provider', value: (row) => providerOf(row)
-  },
-  {
-    id: 'version', labelKey: 'configurableViews.fields.version', value: (row) => versionOf(row)
-  },
-  {
-    id: 'nodes', labelKey: 'configurableViews.fields.nodes', value: (row) => nodeCountOf(row)
-  },
-  {
-    id: 'cpu', labelKey: 'configurableViews.fields.cpu', value: (row) => cpuOf(row)
-  },
-  {
-    id: 'memory', labelKey: 'configurableViews.fields.memory', value: (row) => memoryOf(row)
-  },
-  {
-    id: 'pods', labelKey: 'configurableViews.fields.pods', value: (row) => podsOf(row)
-  },
-  {
-    id: 'created', labelKey: 'configurableViews.fields.created', value: (row) => get(row, 'metadata.creationTimestamp') || ''
-  },
-  {
-    id: 'namespace', labelKey: 'configurableViews.fields.namespace', value: (row) => get(row, 'metadata.namespace') || ''
-  },
-  {
-    id: 'type', labelKey: 'configurableViews.fields.type', value: (row) => typeOf(row)
-  },
-  {
-    id: 'message', labelKey: 'configurableViews.fields.message', value: (row) => row.message || get(row, 'status.message') || ''
-  },
-];
-
-const FIELD_BY_ID = FIELDS.reduce<Record<string, Field>>((acc, f) => {
-  acc[f.id] = f;
-
-  return acc;
-}, {});
-
-/** The translation key for a field's label; '' for a raw path (a CRD's own field), which is shown as written. */
-export function fieldLabelKey(id: string): string {
-  return FIELD_BY_ID[id]?.labelKey || '';
-}
-
-
-// ---- per-resource readers ----------------------------------------------------------------------
-// Rancher spreads the same idea over several shapes (a provisioning cluster, a management cluster,
-// a node). These read whichever one the row actually is, and return '' when it is neither.
-
-// How Rancher writes the distros in its own tables. Anything else (an imported or local cluster)
-// has no distro to name, so only the provider is shown.
-const DISTROS: Record<string, string> = {
-  rke2: 'RKE2', k3s: 'K3s', rke: 'RKE', k3s1: 'K3s'
-};
-
-function providerOf(row: ResourceRow): string {
-  const provider = row.machineProviderDisplay || row.machineProvider || row.provider ||
-    get(row, 'status.provider') || get(row, 'mgmt.status.provider') || '';
-  const distro = DISTROS[`${ row.provisioner || row.kubernetesDistro || '' }`.toLowerCase()] || '';
-
-  if (provider && distro) {
-    return `${ distro } · ${ provider }`;
-  }
-
-  return provider || distro || '';
-}
-
-function versionOf(row: ResourceRow): string {
-  return row.kubernetesVersion ||
-    get(row, 'spec.kubernetesVersion') ||
-    get(row, 'status.version.gitVersion') ||
-    get(row, 'mgmt.status.version.gitVersion') ||
-    get(row, 'status.kubernetesVersion') ||
-    '';
-}
-
-function nodeCountOf(row: ResourceRow): number | '' {
-  const nodes = Number(get(row, 'status.nodeCount') ?? get(row, 'mgmt.status.nodeCount'));
-
-  return Number.isFinite(nodes) && nodes > 0 ? nodes : '';
-}
-
-function cpuOf(row: ResourceRow): string {
-  const cpu = get(row, 'status.allocatable.cpu') ?? get(row, 'mgmt.status.allocatable.cpu');
-
-  if (cpu === undefined || cpu === null) {
-    return '';
-  }
-
-  const cores = Math.round(parseSi(cpu));
-
-  // A cluster still coming up reports 0 — it has no CPU to report yet, which is not "0 cores".
-  return Number.isFinite(cores) && cores > 0 ? `${ cores } cores` : '';
-}
-
-function memoryOf(row: ResourceRow): string {
-  const memory = get(row, 'status.allocatable.memory') ?? get(row, 'mgmt.status.allocatable.memory');
-
-  if (memory === undefined || memory === null) {
-    return '';
-  }
-
-  const bytes = parseSi(memory);
-
-  if (!Number.isFinite(bytes) || bytes <= 0) {
-    return '';
-  }
-
-  const format = createMemoryFormat(bytes);
-
-  return formatSi(bytes, format);
-}
-
-// An Event's `type` is its severity (Normal / Warning); on most other resources `type` is the Steve
-// type id ("provisioning.cattle.io.cluster"), which is the same for every row and so says nothing.
-// Only the former is worth showing.
-function typeOf(row: ResourceRow): string {
-  const type = `${ row.type || '' }`;
-
-  return type.includes('.') ? '' : type;
-}
-
-function podsOf(row: ResourceRow): string {
-  const pods = Number(get(row, 'status.allocatable.pods') ?? get(row, 'mgmt.status.allocatable.pods'));
-
-  return Number.isFinite(pods) && pods > 0 ? `${ pods }` : '';
-}
 
 // ---- where a resource lives ---------------------------------------------------------------------
 
@@ -221,286 +49,6 @@ export function storeForType(getters: Getters, type: string): string {
   return stores.find((store) => store && getters[`${ store }/schemaFor`]?.(type)) || 'management';
 }
 
-// ---- a type's own columns -----------------------------------------------------------------------
-
-/**
- * The columns Rancher itself defines for a type, via its type-map.
- *
- * This matters because the columns worth showing are a property of the RESOURCE, not of this
- * extension: a Cluster has a provider and a Kubernetes version, a User has a username and a last
- * login, and a CRD has whatever its own list page declares. A fixed list of generic fields can only
- * ever be wrong for most types.
- *
- * Returns `{ id, label, sortable, header }` per column, where `header` is Rancher's real header
- * definition — pass it to a table verbatim and the column gets its proper formatter and value.
- */
-export function typeColumns(getters: Getters, resource: string): TypeColumn[] {
-  if (!resource) {
-    return [];
-  }
-
-  const schema = getters[`${ storeForType(getters, resource) }/schemaFor`]?.(resource);
-
-  if (!schema) {
-    return [];
-  }
-
-  const headers = getters['type-map/headersFor']?.(schema) || [];
-
-  return headers.map((header: Header) => ({
-    id:       header.name,
-    label:    header.labelKey ? getters['i18n/t'](header.labelKey) : (header.label || header.name),
-    sortable: !!header.sort,
-    header,
-  // A type can declare an ACTION column: Rancher's cluster list ends with `explorer`, a 65px column
-  // labelled ' ' that exists only so a row can slot its Explore button into it. There is nothing to
-  // show and nothing to name, so it is not a column anyone can pick — a blank label is the tell.
-  })).filter((column: TypeColumn) => column.label.trim());
-}
-
-/**
- * Rancher's header, minus the link into the resource's detail page.
- *
- * That link needs a cluster context the Home does not have, and without one it renders an empty
- * cell — the stock Home's own cluster table drops the same formatter for the same reason.
- */
-export function withoutDetailLink(header: Header): Header {
-  if (header?.formatter !== 'LinkDetail') {
-    return header;
-  }
-
-  const { formatter, ...rest } = header;
-
-  return rest;
-}
-
-// ---- reading a field ----------------------------------------------------------------------------
-
-/**
- * One field off one row. A known field id uses its reader; anything else is treated as a dotted
- * path, so `spec.nodeName` or a CRD's own field works with no extra plumbing. A leading `label:`
- * (or `labels.`) reads a Kubernetes label instead.
- */
-export function fieldValue(row: ResourceRow | null | undefined, field: string): unknown {
-  if (!row || !field) {
-    return '';
-  }
-
-  if (FIELD_BY_ID[field]) {
-    return FIELD_BY_ID[field].value(row) ?? '';
-  }
-
-  const label = field.match(/^(?:label:|labels\.)(.+)$/);
-
-  if (label) {
-    return get(row, 'metadata.labels')?.[label[1]] ?? '';
-  }
-
-  return get(row, field) ?? '';
-}
-
-// ---- filtering ----------------------------------------------------------------------------------
-
-const OPERATORS = ['>=', '<=', '!=', '==', '=', '>', '<'];
-
-/**
- * Parse a filter expression into clauses. Written the way the hint describes it — "Labels or
- * fields, such as env=prod or state != Active" — so several clauses are comma separated and ALL
- * must match:
- *
- *   state != Active, env=prod          → [{ field: 'state', op: '!=', value: 'Active' }, …]
- *   prod                               → [{ field: 'name', op: 'contains', value: 'prod' }]
- *
- * A bare word with no operator matches the row's name.
- */
-export function parseFilter(expression: string | null | undefined): FilterClause[] {
-  return `${ expression || '' }`
-    .split(',')
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .map((part) => {
-      const op = OPERATORS.find((candidate) => part.includes(candidate));
-
-      if (!op) {
-        return {
-          field: 'name', op: 'contains', value: part
-        };
-      }
-
-      const at = part.indexOf(op);
-
-      return {
-        field: part.slice(0, at).trim(),
-        op:    op === '==' ? '=' : op,
-        value: part.slice(at + op.length).trim(),
-      };
-    });
-}
-
-function clauseMatches(row: ResourceRow, clause: FilterClause): boolean {
-  const actual = fieldValue(row, clause.field);
-  const a = `${ actual }`.trim().toLowerCase();
-  const b = `${ clause.value }`.trim().toLowerCase();
-
-  switch (clause.op) {
-  case 'contains':
-    return a.includes(b);
-  case '!=':
-    return a !== b;
-  case '>':
-  case '<':
-  case '>=':
-  case '<=': {
-    const left = parseFloat(`${ actual }`);
-    const right = parseFloat(clause.value);
-
-    if (Number.isNaN(left) || Number.isNaN(right)) {
-      return false;
-    }
-
-    return clause.op === '>' ? left > right : clause.op === '<' ? left < right : clause.op === '>=' ? left >= right : left <= right;
-  }
-  default:
-    return a === b;
-  }
-}
-
-/** Keep the rows matching EVERY clause of a filter expression (no filter keeps everything). */
-export function applyFilter<T extends ResourceRow>(rows: T[], expression: string | null | undefined): T[] {
-  const clauses = parseFilter(expression);
-
-  if (!clauses.length) {
-    return rows;
-  }
-
-  return (rows || []).filter((row) => clauses.every((clause) => clauseMatches(row, clause)));
-}
-
-// ---- sorting & grouping -------------------------------------------------------------------------
-
-/** Sort rows by a field. Numbers compare as numbers, everything else as lower-cased text. */
-export function applySort<T extends ResourceRow>(rows: T[], field: string, dir: SortDir = 'asc'): T[] {
-  if (!field) {
-    return rows;
-  }
-
-  const sign = dir === 'desc' ? -1 : 1;
-
-  return [...(rows || [])].sort((a, b) => {
-    const left = fieldValue(a, field);
-    const right = fieldValue(b, field);
-    const ln = parseFloat(`${ left }`);
-    const rn = parseFloat(`${ right }`);
-
-    if (!Number.isNaN(ln) && !Number.isNaN(rn) && `${ ln }` === `${ left }`.trim() && `${ rn }` === `${ right }`.trim()) {
-      return (ln - rn) * sign;
-    }
-
-    return `${ left }`.toLowerCase().localeCompare(`${ right }`.toLowerCase()) * sign;
-  });
-}
-
-// ---- downstream clusters -------------------------------------------------------------------------
-// A Kubernetes type does not exist once. It exists once PER CLUSTER, behind that cluster's own Steve
-// API at /k8s/clusters/<id>/v1. The management store can address it directly — give findPage the
-// url and `transient: true` and it returns properly classed models (a Pod with its real state and
-// name) without caching them, which matters: two clusters' pods would otherwise collide in the
-// store under the same type.
-
-// The names a table sorts by in the BROWSER are not the names Steve sorts by. A pod's Name column
-// sorts on `nameSort`, a computed property that exists only in the dashboard; ask the API for it and
-// it answers 422 "column is invalid" and the whole page fails. These are the few that have a real
-// field behind them.
-const STEVE_SORT: Record<string, string> = {
-  nameSort:          'metadata.name',
-  namespace:         'metadata.namespace',
-  stateSort:         'metadata.state.name',
-  creationTimestamp: 'metadata.creationTimestamp',
-};
-
-// What Steve will sort any type by, on top of whatever that type's own schema declares.
-const STEVE_SORT_ALWAYS = ['metadata.name', 'metadata.namespace', 'id', 'metadata.state.name', 'metadata.creationTimestamp'];
-
-/**
- * The field Steve can sort this column by, or null if it cannot.
- *
- * Returning null is the point: a sort the API rejects fails the REQUEST, so an untranslatable
- * column has to mean "ask unsorted" rather than "ask and break".
- */
-export function steveSortField(getters: Getters, resource: string, column: string): string | null {
-  if (!column) {
-    return null;
-  }
-
-  const schema = getters[`${ storeForType(getters, resource) }/schemaFor`]?.(resource);
-  const header = (getters['type-map/headersFor']?.(schema) || []).find((h: Header) => h.name === column) as Header | undefined;
-  const raw = Array.isArray(header?.sort) ? header.sort[0] : (header?.sort || column);
-  const field = STEVE_SORT[`${ raw }`.split(':')[0]] || `${ raw }`.split(':')[0];
-
-  if (STEVE_SORT_ALWAYS.includes(field)) {
-    return field;
-  }
-
-  // The schema lists the columns the API indexes, as JSONPath — `$.spec.nodeName` is `spec.nodeName`.
-  const known = (schema?.attributes?.columns || []).some(
-    (c: { field?: string }) => `${ c.field }`.replace('$.', '').replace('[', '.').replace(']', '') === field
-  );
-
-  return known ? field : null;
-}
-
-/**
- * The field Steve FILTERS each of our field names on, where it can filter it at all.
- *
- * Short on purpose. Everything here is stored on the object, so the API can compare it. The rest of
- * FIELDS - provider, version, cpu, memory, pods - is computed by Rancher's model from several
- * places at once, so no field path exists to ask the API about, and no amount of mapping invents
- * one.
- */
-const STEVE_FILTER: Record<string, string> = {
-  name:      'metadata.name',
-  namespace: 'metadata.namespace',
-  state:     'metadata.state.name',
-  created:   'metadata.creationTimestamp',
-};
-
-/** The operators Steve understands. A comparison is arithmetic, and Steve does not do arithmetic. */
-const STEVE_OPS = ['=', '!=', 'contains'];
-
-/**
- * A widget's filter expression as filters the API can apply, or null if it cannot apply it.
- *
- * ALL of it, or none of it. A filter half-pushed is the worst of the three outcomes: the API
- * returns a page narrowed by one clause, the other clause is applied to that page, and rows that
- * match sit on page two forever without appearing anywhere. So an expression with a single clause
- * the API cannot answer is refused here, and the caller keeps the whole-collection path it already
- * has - slower, and correct.
- *
- * Returns [] for no filter at all, which is not the same as null: nothing to push, still pushable.
- */
-export function steveFilters(expression: string | null | undefined): PaginationParamFilter[] | null {
-  const clauses = parseFilter(expression);
-  const out: PaginationParamFilter[] = [];
-
-  for (const clause of clauses) {
-    const field = STEVE_FILTER[clause.field];
-
-    if (!field || !STEVE_OPS.includes(clause.op)) {
-      return null;
-    }
-
-    out.push(PaginationParamFilter.createSingleField({
-      field,
-      value:  clause.value,
-      // `contains` is a partial match, which is what `exact: false` means to Steve.
-      exact:  clause.op !== 'contains',
-      equals: clause.op !== '!=',
-    }));
-  }
-
-  return out;
-}
-
 /** Every cluster the user can see, as picker options, by the name a person would recognise. */
 export function clusterOptions(getters: Getters): { id: string; label: string }[] {
   const clusters: { id: string; nameDisplay?: string; spec?: { displayName?: string } }[] = getters['management/all']?.(MANAGEMENT.CLUSTER) || [];
@@ -518,27 +66,19 @@ export function clusterOptions(getters: Getters): { id: string; label: string }[
  * names a single cluster and gets real pagination — the backend is asked for that page and returns
  * it with the total count.
  *
- * A filter the API can apply goes into the request as `filters` (see steveFilters), and the page
- * that comes back is already narrowed - still one request per page.
- *
- * A filter it CANNOT apply is the exception. That one is applied here, so filtering one page of ten
- * would search ten rows and call the rest absent. Such a widget passes `filtered`, asks for up to
- * `cap` rows, and filters and pages what came back; `truncated` says when the cluster had more,
- * because a total that quietly stops being a total is worse than a visible limit.
+ * Or `whole`: up to `cap` rows at once, for a table that pages, sorts and filters them itself (the
+ * table views do, and only see what they hold). `truncated` says when the cluster had more, because a
+ * total that quietly stops being a total is worse than a visible limit.
  */
 export interface ClusterPageArgs {
   resource: string;
   cluster: string;
   page?: number;
   pageSize?: number;
-  /** The column picked in the widget's settings; translated to a Steve field if it can be. */
-  sortBy?: string;
-  sortDir?: SortDir;
-  /** A fixed order, as Steve fields - wins over `sortBy`. */
+  /** A fixed order, as Steve fields. */
   sort?: SteveSort[];
-  filters?: PaginationParamFilter[];
-  /** The widget filters locally, so read up to `cap` rows instead of a page. */
-  filtered?: boolean;
+  /** Read up to `cap` rows at once instead of a page. */
+  whole?: boolean;
   cap?: number;
 }
 
@@ -550,7 +90,7 @@ export interface ClusterPage {
 }
 
 export async function fetchClusterPage(store: Store<unknown>, {
-  resource, cluster, page = 1, pageSize = 10, sortBy = '', sortDir = 'asc', sort: fixedSort, filters, filtered = false, cap = 500
+  resource, cluster, page = 1, pageSize = 10, sort = [], whole = false, cap = 500
 }: ClusterPageArgs): Promise<ClusterPage> {
   if (!resource || !cluster) {
     return {
@@ -558,20 +98,16 @@ export async function fetchClusterPage(store: Store<unknown>, {
     };
   }
 
-  // A widget with a fixed order (newest events first) passes it as Steve fields; otherwise the
-  // chosen column is translated, and one Steve cannot sort by means "ask unsorted".
-  const field = fixedSort ? null : steveSortField(store.getters, resource, sortBy);
-  const sort: SteveSort[] = fixedSort || (field ? [{ field, asc: sortDir !== 'desc' }] : []);
   const res = await store.dispatch('management/findPage', {
     type: resource,
     opt:  {
       url:        `/k8s/clusters/${ encodeURIComponent(cluster) }/v1/${ resource }`,
       transient:  true,
       watch:      false,
-      pagination: filtered ? {
+      pagination: whole ? {
         page: 1, pageSize: cap, sort
       } : {
-        page, pageSize, sort, filters: filters || []
+        page, pageSize, sort, filters: []
       },
     },
   });
@@ -580,9 +116,9 @@ export async function fetchClusterPage(store: Store<unknown>, {
 
   return {
     rows:        res?.data || [],
-    count:       filtered ? (res?.data?.length ?? 0) : count,
-    truncated:   filtered && count > cap,
-    serverPaged: !filtered,
+    count:       whole ? (res?.data?.length ?? 0) : count,
+    truncated:   whole && count > cap,
+    serverPaged: !whole,
   };
 }
 

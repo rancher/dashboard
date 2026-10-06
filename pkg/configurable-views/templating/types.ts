@@ -26,11 +26,6 @@ export type WidgetKind =
   | 'clusterExtensionCards'
   | 'tabs';
 
-export type SortDir = 'asc' | 'desc';
-
-/** 'view' covers every cluster the view can see; 'custom' only those named in `targets`. */
-export type WidgetScope = 'view' | 'custom';
-
 /** Which of the cluster dashboard's Grafana dashboards a metrics widget shows. */
 export type MetricsDashboard = 'cluster' | 'k8s' | 'etcd';
 
@@ -48,21 +43,24 @@ export interface WidgetSpec {
   title: string;
   /** The Rancher/Kubernetes type it reads, including CRDs. */
   resource: string;
-  where: WidgetScope;
   source: LinkSource;
-  targets: string[];
   /**
    * The cluster it shows, for a Kubernetes type or a cluster widget. '' follows the page: a cluster's
    * dashboard supplies its own, and the Home, which has none, asks. See useWidgetCluster.
    */
   cluster: string;
-  /** A labels-or-fields expression: `env=prod`, `state != Active`. */
-  filter: string;
-  columns: string[];
-  sortBy: string;
-  sortDir: SortDir;
-  /** Rows per page of a table; 0 means the default. */
+  /** Rows per page of the events list; 0 means the default. */
   limit: number;
+  /**
+   * A Table: show the table views' saved-view tabs. Without them the table opens on its type's own
+   * columns, and what is changed in its toolbar lasts until the page is left.
+   */
+  viewTabs?: boolean;
+  /**
+   * A Table: keep saved views of its own, rather than the ones every list of its type shares. They are
+   * kept under the type, by this widget's id.
+   */
+  ownViews?: boolean;
   links: WidgetLink[];
   subtitle?: string;
   image?: string;

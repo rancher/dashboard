@@ -2,26 +2,20 @@ import { ref, watch, type Ref } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { fetchClusterPage, type SteveSort } from '../templating/widget-data';
-import type { PaginationParamFilter } from '@shell/types/store/pagination.types';
-import type { ResourceRow, SortDir } from '../templating/types';
+import type { ResourceRow } from '../templating/types';
 
 export interface ClusterPageQuery {
   resource: string;
   /** '' reads nothing: the widget has no cluster to read from. */
   cluster: string;
   perPage: number;
-  /** Filters the API applies, so each page arrives already narrowed. */
-  filters?: PaginationParamFilter[];
   /** A fixed order, as Steve fields. */
   sort?: SteveSort[];
-  /** Or the column picked in the widget's settings, translated where Steve can sort by it. */
-  sortBy?: string;
-  sortDir?: SortDir;
   /**
-   * The widget filters the rows itself, because the API cannot apply its filter. Then there is no
-   * paging to ask for: up to a capped number of rows is read at once and paged in the browser.
+   * Read up to a capped number of rows at once rather than a page, for a table that pages, sorts and
+   * filters them itself.
    */
-  filtered?: boolean;
+  whole?: boolean;
 }
 
 /**
@@ -58,7 +52,7 @@ export function useClusterPage(query: () => ClusterPageQuery) {
 
     const pageNo = pagination?.page || page.value;
     const pageSize = pagination?.perPage || q.perPage;
-    const key = JSON.stringify([q.resource, q.cluster, q.filters || [], q.sort || [], q.sortBy || '', q.sortDir || '', !!q.filtered, pageNo, pageSize]);
+    const key = JSON.stringify([q.resource, q.cluster, q.sort || [], !!q.whole, pageNo, pageSize]);
 
     if (key === lastKey) {
       return;
@@ -76,10 +70,7 @@ export function useClusterPage(query: () => ClusterPageQuery) {
         page:     pageNo,
         pageSize,
         sort:     q.sort,
-        sortBy:   q.sortBy,
-        sortDir:  q.sortDir,
-        filters:  q.filters || [],
-        filtered: q.filtered,
+        whole:    q.whole,
       });
 
       rows.value = res.rows;

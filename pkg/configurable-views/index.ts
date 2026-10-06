@@ -5,7 +5,6 @@ import type { ShellApi } from '@shell/apis';
 import { NotificationLevel } from '@shell/types/notifications';
 import { fetchTemplatingConfigMaps, toggleTemplating } from './templating/template-engine';
 import routing from './routing/index';
-import { PAGINATED_RESOURCES } from './templating/widget-catalog';
 import Home from './pages/Home.vue';
 import ClusterDashboard from './pages/ClusterDashboard.vue';
 import { toggleViewBar, viewBarLocked, viewBarVisible } from './composables/useViewBarVisibility';
@@ -46,16 +45,6 @@ export default function(plugin: IPlugin): void {
   plugin.addRoutes(routing);
 
   plugin.addNavHooks({ onEnter: (store) => fetchTemplatingConfigMaps(store) });
-
-  // Let this extension's tables be paged by the BACKEND rather than fetched whole.
-  //
-  // Every entry names our own context, so this turns paging on for our widgets and for nothing
-  // else. The same types are listed elsewhere with other contexts - the cluster list in the side
-  // bar, on the Home, in Cluster Management - and those are untouched by this.
-  //
-  // Optional-chained because the API arrived in 2.12: on an older Rancher the call is skipped and
-  // the tables simply fetch as they did before.
-  plugin.enableServerSidePagination?.({ management: { resources: { enableSome: { enabled: PAGINATED_RESOURCES, generic: false } } } });
 
   // The two pages this package makes configurable, each replacing the stock one in place.
   //

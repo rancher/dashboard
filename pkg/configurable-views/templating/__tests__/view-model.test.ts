@@ -121,17 +121,23 @@ describe('normalizeWidget', () => {
       kind:     'table',
       title:    '',
       resource: '',
-      where:    'view',
       source:   'home',
-      targets:  [],
       cluster:  '',
-      filter:   '',
-      columns:  [],
-      sortBy:   '',
-      sortDir:  'asc',
       limit:    0,
       links:    [],
     });
+  });
+
+  it("keeps a table's two table-views switches only when on, and leaves its older columns, sort and filter behind", () => {
+    const old = normalizeWidget({
+      kind: 'table', resource: 'pod', columns: ['name'], sortBy: 'name', filter: 'env=prod', where: 'custom', targets: ['a']
+    });
+
+    expect(Object.keys(old).sort()).toStrictEqual(['cluster', 'kind', 'limit', 'links', 'resource', 'source', 'title']);
+    expect(normalizeWidget({
+      kind: 'table', viewTabs: true, ownViews: true
+    })).toMatchObject({ viewTabs: true, ownViews: true });
+    expect('viewTabs' in normalizeWidget({ kind: 'table', viewTabs: false })).toBe(false);
   });
 
   it('keeps a kind it does not know, so the grid can name it', () => {

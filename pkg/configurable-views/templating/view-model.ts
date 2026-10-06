@@ -249,13 +249,9 @@ export function spacingPresetOf(padding: unknown): string | null {
  *               clusterExtensionCards | tabs
  *   title       heading shown on the widget
  *   resource    the Rancher/Kubernetes type it reads (any kind Rancher knows, including CRDs)
- *   where       'view'   — the same clusters the view covers
- *               'custom' — only the clusters/namespaces in `targets`
- *   filter      a labels-or-fields expression: `env=prod`, `state != Active`
  *   cluster     the cluster it shows; '' follows the page (see useWidgetCluster)
- *   columns     table columns to show, in order
- *   sortBy      field to sort on, `sortDir` 'asc' | 'desc'
- *   limit       how many rows a table shows per page
+ *   limit       how many events a page of the events list shows
+ *   viewTabs    a table shows its saved-view tabs; `ownViews` keeps views of its own (table widget)
  *   source      'home' — Rancher's own links | 'custom' — the `links` below (links widget)
  *   links       [{ label, url }] (links widget)
  *   metrics     'cluster' | 'k8s' | 'etcd' (metrics widget)
@@ -271,19 +267,22 @@ export function normalizeWidget(widget: unknown): WidgetSpec {
     kind:     str(w.kind, 'table') as WidgetKind,
     title:    str(w.title),
     resource: str(w.resource),
-    where:    w.where === 'custom' ? 'custom' : 'view',
     source:   w.source === 'custom' ? 'custom' : 'home',
-    targets:  strings(w.targets),
     // Which cluster it shows. One, because several clusters are several APIs and cannot be paged as
     // one list; '' follows the page's cluster (see useWidgetCluster).
     cluster:  str(w.cluster) || strings(w.clusters)[0] || '',
-    filter:   str(w.filter),
-    columns:  strings(w.columns),
-    sortBy:   str(w.sortBy),
-    sortDir:  w.sortDir === 'desc' ? 'desc' : 'asc',
     limit:    Number.isFinite(limit) && limit > 0 ? Math.round(limit) : 0,
     links:    arr(w.links).filter(isObject).map((l) => ({ label: str(l.label), url: str(l.url) })),
   };
+
+  // A table's columns, sort and filter are its table views' now: what an older widget kept of them
+  // is left behind here. Its two switches are kept only when on, so stored specs stay small.
+  if (w.viewTabs === true) {
+    out.viewTabs = true;
+  }
+  if (w.ownViews === true) {
+    out.ownViews = true;
+  }
 
   // `subtitle` and `image` are banner-only extras; keep them only when set so stored specs stay small.
   if (w.subtitle) {

@@ -49,13 +49,13 @@ describe('extension: configurable-views', () => {
     });
   });
 
-  it('adds its product, routes and navigation hook, and pages its tables on the server', async() => {
+  it('adds its product, routes and navigation hook, and registers no paging of its own', async() => {
     const plugin = await initialize();
 
     expect(plugin.addProduct).toHaveBeenCalledTimes(1);
     expect(plugin.addRoutes).toHaveBeenCalledWith(['product routes']);
     expect(plugin.addNavHooks).toHaveBeenCalledWith({ onEnter: expect.any(Function) });
-    expect(plugin.enableServerSidePagination).toHaveBeenCalledWith({ management: { resources: { enableSome: { enabled: expect.any(Array), generic: false } } } });
+    expect(plugin.enableServerSidePagination).not.toHaveBeenCalled();
   });
 
   it('offers a header button, with a shortcut, on each configurable page that shows and hides the view bar', async() => {

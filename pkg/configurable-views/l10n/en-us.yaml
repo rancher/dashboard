@@ -141,7 +141,7 @@ configurableViews:
     noMonitoring: "{what} come from Rancher’s monitoring, which this cluster does not have."
     noExtensionCards: No extension adds a card to this cluster’s dashboard.
     noType: "Rancher has no “{type}” here — the type may not be installed, or you may not have permission to see it."
-    tableTruncated: This cluster has more rows than a filtered widget reads at once, so the filter was applied to the first of them. Narrow the filter, or drop it to page through all of them.
+    tableTruncated: This cluster has more rows than a widget reads at once, so the table shows, sorts and filters the first of them.
     certsTruncated: This cluster has more certificates than are read at once, so the list is ordered over the first of them.
     tabs:
       label: Tabs
@@ -164,20 +164,13 @@ configurableViews:
     clusterTableHint: This is the Home’s own cluster table — its columns, sorting and buttons come with it.
     resource: Resource
     resourceHint: Any kind Rancher knows, including your own CRDs.
-    where: Where
-    whereView: Same as the view (all clusters I can see)
-    whereCustom: Only these clusters or namespaces
-    filter: Filter
-    filterHint: Labels or fields, such as env=prod or state != Active.
     cluster: Cluster
     pageCluster: This page’s cluster
     clusterHint: One cluster per widget. “This page’s cluster” shows whichever cluster’s dashboard it is placed on — the Home has none, so pick one here.
-    columns: Columns
-    columnsHint: Columns appear in this order. Untick one to drop it from the table.
-    sortBy: Sort by
-    sortNothing: Nothing
-    ascending: Ascending
-    descending: Descending
+    views: Table views
+    viewTabs: Show saved view tabs
+    ownViews: Keep saved views of its own
+    viewsHint: Columns, sort, filter and grouping are set in the table itself. With the tabs shown they can be saved as views - shared with every list of this type, or kept for this widget alone.
     show: Show
     linksHome: Rancher’s own links, as the Home shows them
     linksCustom: My own list
@@ -202,7 +195,7 @@ configurableViews:
   catalog:
     table:
       name: Table
-      desc: Rows of a resource with the columns you pick
+      desc: Rows of a resource, set up in the table itself
     links:
       name: Links
       desc: Your own list of links
@@ -254,19 +247,6 @@ configurableViews:
     communityLinks:
       name: Community links
       desc: Rancher’s own Docs / Forums / Slack list
-  fields:
-    state: State
-    name: Name
-    provider: Provider
-    version: K8s version
-    nodes: Nodes
-    cpu: CPU
-    memory: Memory
-    pods: Pods
-    created: Created
-    namespace: Namespace
-    type: Type
-    message: Message
   savedViews:
     title: Configurable Views
     intro: Each configurable page has one or more <b>views</b> — the tabs in its bar — and each view has its <b>widgets</b>. Here is everything saved for each page, in the <code>templating-home</code> config. Edit views on the page itself, or by hand with <b>Edit YAML</b>.
