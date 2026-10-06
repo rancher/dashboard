@@ -33,11 +33,11 @@ import Tab from '@shell/components/Tabbed/Tab';
 import { allDashboardsExist } from '@shell/utils/grafana';
 import EtcdInfoBanner from '@shell/components/EtcdInfoBanner';
 import metricPoller from '@shell/mixins/metric-poller';
-import ResourceSummary, { resourceCounts } from '@shell/components/ResourceSummary';
 import HardwareResourceGauge from '@shell/components/HardwareResourceGauge';
 import { isEmpty } from '@shell/utils/object';
 import ConfigBadge from './ConfigBadge';
 import EventsTable from './EventsTable';
+import ResourceStatusCards from './resource-status/ResourceStatusCards.vue';
 import { fetchClusterResources } from './explorer-utils';
 import SimpleBox from '@shell/components/SimpleBox';
 import { ExtensionPoint, CardLocation } from '@shell/core/types';
@@ -82,7 +82,7 @@ export default {
     EtcdInfoBanner,
     DashboardMetrics,
     HardwareResourceGauge,
-    ResourceSummary,
+    ResourceStatusCards,
     Tab,
     Tabbed,
     AlertTable,
@@ -251,18 +251,6 @@ export default {
       return ['rke', 'rke.windows', 'rke2', 'rke2.windows'].includes((this.currentCluster.status.provider || '').toLowerCase());
     },
 
-    accessibleResources() {
-      // This is a list of IDs for allowed resources counts.
-      const defaultAllowedResources = Object.keys(this.clusterCounts?.[0]?.counts || {}).filter((typeId) => {
-        return this.$store.getters['type-map/isIgnored']({ id: typeId });
-      });
-
-      // Merge with RESOURCES list
-      const allowedResources = [...new Set([...defaultAllowedResources, ...RESOURCES])];
-
-      return allowedResources.filter((resource) => this.$store.getters['cluster/schemaFor'](resource));
-    },
-
     clusterServices() {
       const services = [];
 
@@ -322,26 +310,6 @@ export default {
       ];
 
       return this.getAgentStatus(resources);
-    },
-
-    totalCountGaugeInput() {
-      const totalInput = {
-        name:         this.t('clusterIndexPage.resourceGauge.totalResources'),
-        total:        0,
-        useful:       0,
-        warningCount: 0,
-        errorCount:   0
-      };
-
-      this.accessibleResources.forEach((resource) => {
-        const counts = resourceCounts(this.$store, resource);
-
-        Object.entries(counts).forEach((entry) => {
-          totalInput[entry[0]] += entry[1];
-        });
-      });
-
-      return totalInput;
     },
 
     hasSchedulableWorkerNodes() {
@@ -467,14 +435,6 @@ export default {
 
     hasMonitoring() {
       return !!this.clusterCounts?.[0]?.counts?.[CATALOG.APP]?.namespaces?.['cattle-monitoring-system'];
-    },
-
-    canAccessNodes() {
-      return !!this.clusterCounts?.[0]?.counts?.[NODE];
-    },
-
-    canAccessDeployments() {
-      return !!this.clusterCounts?.[0]?.counts?.[WORKLOAD_TYPES.DEPLOYMENT];
     },
 
     hasMetricsTabs() {
@@ -718,17 +678,7 @@ export default {
       />
     </div>
 
-    <div class="resource-gauges">
-      <ResourceSummary :spoofed-counts="totalCountGaugeInput" />
-      <ResourceSummary
-        v-if="canAccessNodes"
-        resource="node"
-      />
-      <ResourceSummary
-        v-if="canAccessDeployments"
-        resource="apps.deployment"
-      />
-    </div>
+    <ResourceStatusCards />
 
     <!-- extension cards -->
     <div

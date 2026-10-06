@@ -3,7 +3,6 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import CardPo from '@/cypress/e2e/po/components/card.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
 import { EventsPageListPo } from '@/cypress/e2e/po/pages/explorer/events.po';
@@ -30,7 +29,6 @@ __clone: true
 #immutable: boolean`;
 
 const clusterDashboard = new ClusterDashboardPagePo('local');
-const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
 const CLUSTER_BADGE_ANNOTATIONS = ['ui.rancher/badge-text', 'ui.rancher/badge-color', 'ui.rancher/badge-icon-text'];
@@ -234,14 +232,15 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
     cy.getRancherResource('v1', 'apps.deployments', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
       const count = resp.body['count'];
 
-      simpleBox.simpleBox().eq(2).should('contain.text', count).and('contain.text', 'Deployments');
-    }).then((el: any) => {
-      el.click();
-
-      const workloadDeployments = new WorkloadsDeploymentsListPagePo('local', 'apps.deployment' as any);
-
-      workloadDeployments.waitForPage();
+      clusterDashboard.statusSummaryCard('Deployments').should('have.attr', 'aria-label', `Deployments: ${ count } total`);
     });
+
+    // Click the title rather than the card's centre, which could land on a state row link
+    clusterDashboard.statusSummaryCard('Deployments').find('.title').click();
+
+    const workloadDeployments = new WorkloadsDeploymentsListPagePo('local', 'apps.deployment' as any);
+
+    workloadDeployments.waitForPage();
   }));
 
   qase(2037, it('can view nodes', () => {
@@ -250,21 +249,15 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
 
     cy.getRancherResource('v1', 'nodes', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
       const count = resp.body['count'];
-      let text = '';
 
-      if (count > 1) {
-        text = 'Nodes';
-      } else {
-        text = 'Node';
-      }
-      simpleBox.simpleBox().eq(1).should('contain.text', count).and('contain.text', text);
-    }).then((el: any) => {
-      el.click();
-
-      const nodesPage = new NodesPagePo('local');
-
-      nodesPage.waitForPage();
+      clusterDashboard.statusSummaryCard('Nodes').should('have.attr', 'aria-label', `Nodes: ${ count } total`);
     });
+
+    clusterDashboard.statusSummaryCard('Nodes').find('.title').click();
+
+    const nodesPage = new NodesPagePo('local');
+
+    nodesPage.waitForPage();
   }));
 
   const projIds: string[] = [];

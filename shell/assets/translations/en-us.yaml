@@ -2938,6 +2938,11 @@ clusterIndexPage:
   header: Cluster Dashboard
   resourceGauge:
     totalResources: Total Resources
+  resourceStatus:
+    none: None
+    unhealthy:
+      title: Other, Unhealthy Resources
+      empty: No other unhealthy resources
   sections:
     capacity:
       label: Capacity
