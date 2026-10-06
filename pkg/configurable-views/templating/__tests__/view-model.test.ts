@@ -118,13 +118,14 @@ describe('migrateViewSet', () => {
 describe('normalizeWidget', () => {
   it('fills every field, and makes a widget with no kind a table', () => {
     expect(normalizeWidget({})).toStrictEqual({
-      kind:     'table',
-      title:    '',
-      resource: '',
-      source:   'home',
-      cluster:  '',
-      limit:    0,
-      links:    [],
+      kind:        'table',
+      title:       '',
+      resource:    '',
+      source:      'home',
+      cluster:     '',
+      limit:       0,
+      links:       [],
+      fromCluster: false,
     });
   });
 
@@ -133,11 +134,24 @@ describe('normalizeWidget', () => {
       kind: 'table', resource: 'pod', columns: ['name'], sortBy: 'name', filter: 'env=prod', where: 'custom', targets: ['a']
     });
 
-    expect(Object.keys(old).sort()).toStrictEqual(['cluster', 'kind', 'limit', 'links', 'resource', 'source', 'title']);
+    expect(Object.keys(old).sort()).toStrictEqual(['cluster', 'fromCluster', 'kind', 'limit', 'links', 'resource', 'source', 'title']);
     expect(normalizeWidget({
       kind: 'table', viewTabs: true, ownViews: true
     })).toMatchObject({ viewTabs: true, ownViews: true });
     expect('viewTabs' in normalizeWidget({ kind: 'table', viewTabs: false })).toBe(false);
+  });
+
+  it('says where a table reads from, and reads a table saved before it could say so from where it did then', () => {
+    expect(normalizeWidget({
+      kind: 'table', resource: 'pod', fromCluster: false
+    }).fromCluster).toBe(false);
+    expect(normalizeWidget({
+      kind: 'table', resource: 'management.cattle.io.cluster', fromCluster: true
+    }).fromCluster).toBe(true);
+    expect(normalizeWidget({ kind: 'table', resource: 'pod' }).fromCluster).toBe(true);
+    expect(normalizeWidget({ kind: 'table', resource: 'apps.deployment' }).fromCluster).toBe(true);
+    expect(normalizeWidget({ kind: 'table', resource: 'management.cattle.io.cluster' }).fromCluster).toBe(false);
+    expect('fromCluster' in normalizeWidget({ kind: 'links' })).toBe(false);
   });
 
   it('keeps a kind it does not know, so the grid can name it', () => {

@@ -10,9 +10,7 @@
 // Pure data — no Vue, no store. `spec` is a WIDGET spec (see normalizeWidget in view-model.ts);
 // `span` is the column width the widget lands on the grid with.
 
-import {
-  MANAGEMENT, CAPI, EVENT, FLEET, LONGHORN, POD, SERVICE, INGRESS, PVC, NODE, WORKLOAD_TYPES
-} from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
 import type { WidgetKind, WidgetSpec } from './types';
 
 /** The little preview drawn on a catalog tile (see CatalogTile.vue). */
@@ -28,13 +26,6 @@ export interface CatalogEntry {
   /** The column width it lands on the grid with. */
   span: number;
   spec: Partial<WidgetSpec> & { kind: WidgetKind };
-}
-
-/** One entry in a widget's Resource picker, and where that type lives (see SUGGESTED_RESOURCES). */
-export interface SuggestedResource {
-  value: string;
-  label: string;
-  downstream?: boolean;
 }
 
 /** Every widget kind the renderer knows. */
@@ -282,67 +273,6 @@ export function searchCatalog(list: CatalogEntry[], query: string, textOf: (entr
  * but these are the ones worth suggesting.
  */
 /**
- * The types the Resource picker suggests, and — the part that matters — WHERE each one lives.
- *
- * Rancher serves two different APIs and a widget has to know which it is asking:
- *
- *   GLOBAL      /v1 on the Rancher server. Its own management types (Cluster, User, Project,
- *               Fleet) plus, incidentally, the LOCAL cluster's own Kubernetes resources.
- *   DOWNSTREAM  /k8s/clusters/<id>/v1, a separate Steve API per cluster. Every Kubernetes type
- *               lives here, once per cluster, so a widget showing one has to say WHICH cluster.
- *
- * `downstream: true` is what makes the settings ask for a cluster. Without it a Pod widget
- * would silently show the local cluster's pods and call them "Pods", which is the sort of quiet
- * wrong answer a dashboard should never give.
- */
-export const SUGGESTED_RESOURCES: SuggestedResource[] = [
-  { value: CAPI.RANCHER_CLUSTER, label: 'Cluster (provisioning.cattle.io)' },
-  { value: MANAGEMENT.CLUSTER, label: 'Cluster (management.cattle.io)' },
-  { value: MANAGEMENT.NODE, label: 'Node (management.cattle.io)' },
-  { value: MANAGEMENT.PROJECT, label: 'Project (management.cattle.io)' },
-  { value: MANAGEMENT.USER, label: 'User (management.cattle.io)' },
-  {
-    value: EVENT, label: 'Event (v1)', downstream: true
-  },
-  { value: FLEET.GIT_REPO, label: 'GitRepo (fleet.cattle.io)' },
-  { value: FLEET.BUNDLE, label: 'Bundle (fleet.cattle.io)' },
-
-  {
-    value: POD, label: 'Pod', downstream: true
-  },
-  {
-    value: WORKLOAD_TYPES.DEPLOYMENT, label: 'Deployment (apps)', downstream: true
-  },
-  {
-    value: WORKLOAD_TYPES.DAEMON_SET, label: 'DaemonSet (apps)', downstream: true
-  },
-  {
-    value: WORKLOAD_TYPES.STATEFUL_SET, label: 'StatefulSet (apps)', downstream: true
-  },
-  {
-    value: WORKLOAD_TYPES.JOB, label: 'Job (batch)', downstream: true
-  },
-  {
-    value: WORKLOAD_TYPES.CRON_JOB, label: 'CronJob (batch)', downstream: true
-  },
-  {
-    value: NODE, label: 'Node (v1)', downstream: true
-  },
-  {
-    value: SERVICE, label: 'Service (v1)', downstream: true
-  },
-  {
-    value: INGRESS, label: 'Ingress (networking.k8s.io)', downstream: true
-  },
-  {
-    value: PVC, label: 'PersistentVolumeClaim (v1)', downstream: true
-  },
-  {
-    value: LONGHORN.VOLUMES, label: 'Volume (longhorn.io)', downstream: true
-  },
-];
-
-/**
  * The context a table widget pages under: the Home's own.
  *
  * Server-side pagination is enabled per type per context, and the shell enables the cluster types
@@ -351,13 +281,3 @@ export const SUGGESTED_RESOURCES: SuggestedResource[] = [
  * paging of its own.
  */
 export const PAGINATION_CONTEXT = 'home';
-
-/**
- * Does this type have to be read from a named cluster?
- *
- * Only the suggestions say so — a type typed in by hand is assumed to be global, because that is
- * the API this extension can always reach.
- */
-export function isDownstream(resource: string): boolean {
-  return !!SUGGESTED_RESOURCES.find((r) => r.value === resource)?.downstream;
-}

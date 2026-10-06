@@ -49,6 +49,11 @@ export interface WidgetSpec {
    * dashboard supplies its own, and the Home, which has none, asks. See useWidgetCluster.
    */
   cluster: string;
+  /**
+   * A Table reads one cluster's own API - the one in `cluster`, or the page's - rather than Rancher's.
+   * Rancher's has Rancher's own types (clusters, users, Fleet) and the local cluster's resources.
+   */
+  fromCluster?: boolean;
   /** Rows per page of the events list; 0 means the default. */
   limit: number;
   /**

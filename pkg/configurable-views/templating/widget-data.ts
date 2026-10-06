@@ -1,5 +1,5 @@
 // What a widget SHOWS: the data behind the cluster widgets (counts, capacity, health, monitoring), read
-// from whichever cluster a widget names, and where a resource type is read from.
+// from whichever cluster a widget names, where a resource type is read from, and what a cluster serves.
 //
 // A Table widget's columns, sort and filter are not here: they are the table views' own (see
 // WidgetTable).
@@ -16,6 +16,7 @@ import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { colorToCountName } from '@shell/components/ResourceSummary';
 import { RESOURCES as DASHBOARD_RESOURCES } from '@shell/pages/c/_cluster/explorer/index.vue';
 import type { MetricsDashboard, ResourceRow } from './types';
+import type { TypeSchema } from './resource-types';
 
 type Getters = Store<unknown>['getters'];
 
@@ -56,6 +57,16 @@ export function clusterOptions(getters: Getters): { id: string; label: string }[
   return clusters
     .map((c) => ({ id: c.id, label: c.nameDisplay || c.spec?.displayName || c.id }))
     .sort((a, b) => a.label.localeCompare(b.label));
+}
+
+/**
+ * The schemas of one cluster's own API - every type it serves, for the Resource picker, and the
+ * schema of a type that only that cluster has. Read, not loaded: nothing goes into a store.
+ */
+export async function fetchClusterSchemas(store: Store<unknown>, cluster: string): Promise<TypeSchema[]> {
+  const res = await store.dispatch('management/request', { url: `/k8s/clusters/${ encodeURIComponent(cluster) }/v1/schemas` });
+
+  return res?.data || [];
 }
 
 /**

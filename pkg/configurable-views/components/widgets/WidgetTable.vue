@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import WidgetCard from './WidgetCard.vue';
-import { storeForType } from '../../templating/widget-data';
-import { isDownstream, PAGINATION_CONTEXT } from '../../templating/widget-catalog';
+import { fetchClusterSchemas, storeForType } from '../../templating/widget-data';
+import { PAGINATION_CONTEXT } from '../../templating/widget-catalog';
+import type { TypeSchema } from '../../templating/resource-types';
 import { useWidgetCluster, NO_CLUSTER } from '../../composables/useWidgetCluster';
 import { useClusterPage } from '../../composables/useClusterPage';
 import { useSharedTypeList } from '../../composables/useSharedTypeList';
@@ -15,16 +16,16 @@ import type { WidgetSpec } from '../../templating/types';
 
 // TABLE — "Rows of a resource".
 //
-// The widget says WHAT the table shows: the resource, and - for a type that lives once per cluster -
-// the cluster. HOW it shows it is the table views': the toolbar every resource list has, with its
+// The widget says WHAT the table shows: the resource, and where it is read from - Rancher's own API,
+// or one cluster's (`fromCluster`). HOW it shows it is the table views': the toolbar every resource list has, with its
 // filter query, columns, grouping, sort and export, and, when the widget asks (`viewTabs`), the
 // saved-view tabs. The saved views are the type's own, shared with every list of it, unless the
 // widget keeps its own (`ownViews`), which live under the type by the widget's id.
 //
-// A GLOBAL type is rendered by Rancher's PaginatedResourceTable - the fetch, server-side paging where
-// the shell pages the type (see PAGINATION_CONTEXT), and the plumbing that goes with them. A type that
-// lives once PER CLUSTER is read from the cluster the widget names instead (see useClusterPage), whole,
-// for the table to page, sort and filter itself.
+// From RANCHER, it is rendered by Rancher's PaginatedResourceTable - the fetch, server-side paging
+// where the shell pages the type (see PAGINATION_CONTEXT), and the plumbing that goes with them. From a
+// CLUSTER, it is read from that cluster's own API instead (see useClusterPage), whole, for the table to
+// page, sort and filter itself.
 //
 // It is KEYED on what it asks for (see tableKey): the table fetches for the schema it was built with
 // and reads its saved views once, when it is built, so a new question is a new table.
@@ -38,14 +39,32 @@ const { cluster } = useWidgetCluster(() => props.widget);
 /** Rows per page: a widget is a glance at a list, not the list. */
 const PER_PAGE = 10;
 
-// A Kubernetes type lives once PER CLUSTER, so it is read from a named cluster rather than from the
-// global API. That is a different fetch, a different table, and a question the settings have to
-// have asked.
-const downstream = computed(() => isDownstream(props.widget.resource));
+// Read from a cluster's own API rather than Rancher's: a different fetch, and a different table.
+const downstream = computed(() => !!props.widget.fromCluster);
 
 const inStore = computed(() => storeForType(store.getters, props.widget.resource));
 
-const schema = computed(() => (props.widget.resource ? store.getters[`${ inStore.value }/schemaFor`](props.widget.resource) : null));
+const storeSchema = computed(() => (props.widget.resource ? store.getters[`${ inStore.value }/schemaFor`](props.widget.resource) : null));
+
+/**
+ * The schema of a type only the widget's cluster has - a CRD the local cluster does not - which no
+ * store holds, so it is read from that cluster. Its columns are then the ones the CRD declares.
+ */
+const clusterSchema = ref<TypeSchema | null>(null);
+
+watch(() => [downstream.value && !storeSchema.value ? props.widget.resource : '', downstream.value ? cluster.value : ''], async([resource, from]) => {
+  clusterSchema.value = null;
+
+  if (!resource || !from) {
+    return;
+  }
+
+  const schemas = await fetchClusterSchemas(store, from).catch(() => []);
+
+  clusterSchema.value = schemas.find((s) => s.id === resource) || null;
+}, { immediate: true });
+
+const schema = computed(() => storeSchema.value || clusterSchema.value);
 
 /**
  * A type's header, minus the link into the resource's detail page.
@@ -77,7 +96,7 @@ const tableViewsPage = computed(() => (props.widget.ownViews && props.nodeId ? `
 // Rebuilt, too, when another table of the same global type leaves the page (see useSharedTypeList).
 const shared = useSharedTypeList(() => (!downstream.value && props.widget.resource ? `${ inStore.value }/${ props.widget.resource }` : null));
 
-const tableKey = computed(() => JSON.stringify([props.widget.resource, viewTabs.value, tableViewsPage.value, shared.value]));
+const tableKey = computed(() => JSON.stringify([props.widget.resource, downstream.value, !!schema.value, viewTabs.value, tableViewsPage.value, shared.value]));
 
 // ---- a per-cluster type -----------------------------------------------------------------------------
 

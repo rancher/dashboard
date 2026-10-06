@@ -3,14 +3,18 @@ import {
   computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch, type CSSProperties
 } from 'vue';
 import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
 import { useI18n } from '@shell/composables/useI18n';
-import { MANAGEMENT } from '@shell/config/types';
-import { clusterOptions, METRICS_DASHBOARDS } from '../templating/widget-data';
+import { MANAGEMENT, SCHEMA } from '@shell/config/types';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import { clusterOptions, fetchClusterSchemas, METRICS_DASHBOARDS } from '../templating/widget-data';
 import { newId } from '../templating/view-model';
+import { typeOptions, type TypeOption, type TypeSchema } from '../templating/resource-types';
 import {
-  SUGGESTED_RESOURCES, blockLabelKey, isDownstream, isClusterWidget, WIDGET_TABLE, WIDGET_LINKS,
-  WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW, WIDGET_TABS, type SuggestedResource
+  blockLabelKey, isClusterWidget, WIDGET_TABLE, WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW,
+  WIDGET_TABS
 } from '../templating/widget-catalog';
+import { pageClusterOf } from '../composables/useWidgetCluster';
 import type { SettingsAnchor } from '../composables/viewEditor';
 import type { WidgetLink, WidgetSpec } from '../templating/types';
 
@@ -21,8 +25,8 @@ import type { WidgetLink, WidgetSpec } from '../templating/types';
 // modal over a dimmed page would hide exactly what you are configuring.
 //
 // It edits a COPY and only hands it back on Done, so Cancel really does leave the widget alone. The
-// fields shown depend on the building block: a table needs a resource (and its cluster, for a type
-// that lives once per cluster) and how much of the table views it shows - its columns, sort and filter
+// fields shown depend on the building block: a table needs where it reads from - Rancher, or a
+// cluster - and a resource there, and how much of the table views it shows - its columns, sort and filter
 // are set in the table itself; a links box needs links; a cluster widget needs only its cluster; a
 // Tabs widget needs its tabs.
 
@@ -103,24 +107,86 @@ const titleOnly = computed(() => draft.kind === WIDGET_CLUSTER_TABLE);
 const isTable = computed(() => draft.kind === WIDGET_TABLE);
 
 /**
- * A Kubernetes type exists once per CLUSTER, and a cluster widget is about one, so either has a
- * cluster to name. Asking only then keeps the question off the widgets that do not have it — a
- * Cluster or a User is global, there is nothing to pick.
+ * Where a table reads from, and which cluster a cluster widget shows - one field.
+ *
+ * A table reads Rancher's own API (its clusters, users and Fleet, and the local cluster's resources),
+ * or one cluster's: picking a cluster is what makes it a table of that cluster. A cluster widget is
+ * about one cluster, so it has no Rancher to pick.
  *
  * ONE cluster, not several: each is a separate API with its own paging, so a widget spanning two of
  * them could not be paged at all. One cluster is what makes a table a real table.
  */
-const needsClusters = computed(() => (readsData.value && isDownstream(draft.resource)) || isClusterWidget(draft.kind));
+const needsClusters = computed(() => isTable.value || isClusterWidget(draft.kind));
 
 const clusters = computed(() => clusterOptions(store.getters));
 
-// The suggested list, plus whatever this widget already points at (which may be a CRD that is not on
-// the list) so the picker never silently drops it.
-const resourceOptions = computed<SuggestedResource[]>(() => {
-  const known = SUGGESTED_RESOURCES.some((r) => r.value === draft.resource);
+/** The Cluster field's value for "Rancher" - never a cluster's id, which has no colon. */
+const RANCHER = ':rancher';
 
-  return known || !draft.resource ? SUGGESTED_RESOURCES : [{ value: draft.resource, label: draft.resource }, ...SUGGESTED_RESOURCES];
+const where = computed({
+  get: () => (isTable.value && !draft.fromCluster ? RANCHER : draft.cluster),
+  set: (value: string) => {
+    if (isTable.value) {
+      draft.fromCluster = value !== RANCHER;
+    }
+    draft.cluster = value === RANCHER ? '' : value;
+  },
 });
+
+// ---- the Resource picker: every type where the table reads ----
+
+const route = useRoute();
+const typeSchemas = ref<TypeSchema[]>([]);
+const loadingTypes = ref(false);
+
+/**
+ * The schemas of where the table reads: Rancher's, or its cluster's.
+ *
+ * A table following the page on the Home has no cluster yet, so it is offered the local cluster's
+ * types - the Kubernetes ones are the same everywhere. A type only another cluster has can be typed.
+ */
+const typesFrom = computed(() => (draft.fromCluster ? draft.cluster || pageClusterOf(route) : ''));
+
+let typesAsked = 0;
+
+watch([readsData, typesFrom], async([reads, cluster]) => {
+  if (!reads) {
+    return;
+  }
+
+  const asked = ++typesAsked;
+  const local = () => store.getters['management/all'](SCHEMA) as TypeSchema[];
+
+  if (!cluster) {
+    typeSchemas.value = local();
+
+    return;
+  }
+
+  loadingTypes.value = true;
+
+  try {
+    const schemas = await fetchClusterSchemas(store, cluster);
+
+    if (asked === typesAsked) {
+      typeSchemas.value = schemas;
+    }
+  } catch {
+    if (asked === typesAsked) {
+      typeSchemas.value = local();
+    }
+  } finally {
+    if (asked === typesAsked) {
+      loadingTypes.value = false;
+    }
+  }
+}, { immediate: true });
+
+const resourceOptions = computed(() => typeOptions(typeSchemas.value, draft.resource));
+
+// A picked entry is its type; one typed in is the text itself, which the select hands back as a
+// `{ label }` of its own making, with no value.
+const typeOf = (option: Partial<TypeOption> | string): string => (typeof option === 'string' ? option : option.value ?? option.label ?? '');
 
 // One link per line, "Label https://url" - the URL is whatever follows the last space.
 const linksText = computed({
@@ -198,7 +264,14 @@ function measure(): void {
 
 // With no scrim there is nothing to click "through" to, so a click anywhere outside closes it.
 function onOutside(ev: MouseEvent): void {
-  if (!root.value?.contains(ev.target as Node | null)) {
+  const target = ev.target as HTMLElement | null;
+
+  // The Resource picker draws its list on the page's body, outside this dialog
+  if (target?.closest?.('.vs__dropdown-menu')) {
+    return;
+  }
+
+  if (!root.value?.contains(target)) {
     emit('cancel');
   }
 }
@@ -258,31 +331,19 @@ onBeforeUnmount(() => {
           {{ t('configurableViews.widgetSettings.clusterTableHint') }}
         </p>
 
-        <template v-if="readsData">
-          <label class="wsm__label">{{ t('configurableViews.widgetSettings.resource') }}</label>
-          <select
-            v-model="draft.resource"
-            class="wsm__field"
-          >
-            <option
-              v-for="option in resourceOptions"
-              :key="option.value"
-              :value="option.value"
-            >
-              {{ option.label }}
-            </option>
-          </select>
-          <p class="wsm__hint">
-            {{ t('configurableViews.widgetSettings.resourceHint') }}
-          </p>
-        </template>
-
         <template v-if="needsClusters">
           <label class="wsm__label">{{ t('configurableViews.widgetSettings.cluster') }}</label>
           <select
-            v-model="draft.cluster"
+            v-model="where"
             class="wsm__field"
+            data-testid="configurable-views-widget-cluster"
           >
+            <option
+              v-if="isTable"
+              :value="RANCHER"
+            >
+              {{ t('configurableViews.widgetSettings.rancher') }}
+            </option>
             <option value="">
               {{ t('configurableViews.widgetSettings.pageCluster') }}
             </option>
@@ -295,7 +356,25 @@ onBeforeUnmount(() => {
             </option>
           </select>
           <p class="wsm__hint">
-            {{ t('configurableViews.widgetSettings.clusterHint') }}
+            {{ t(isTable ? 'configurableViews.widgetSettings.tableClusterHint' : 'configurableViews.widgetSettings.clusterHint') }}
+          </p>
+        </template>
+
+        <template v-if="readsData">
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.resource') }}</label>
+          <LabeledSelect
+            v-model:value="draft.resource"
+            class="wsm__select"
+            :options="resourceOptions"
+            :loading="loadingTypes"
+            :searchable="true"
+            :taggable="true"
+            :clearable="false"
+            :reduce="typeOf"
+            data-testid="configurable-views-widget-resource"
+          />
+          <p class="wsm__hint">
+            {{ t('configurableViews.widgetSettings.resourceHint') }}
           </p>
         </template>
 
@@ -573,6 +652,11 @@ onBeforeUnmount(() => {
       padding: 6px 8px;
       resize:  vertical;
     }
+  }
+
+  // The Resource picker: the shell's searchable select, across the dialog like the fields around it
+  &__select {
+    width: 100%;
   }
 
   &__hint {

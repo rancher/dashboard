@@ -163,10 +163,12 @@ configurableViews:
     title: Title
     clusterTableHint: This is the Home’s own cluster table — its columns, sorting and buttons come with it.
     resource: Resource
-    resourceHint: Any kind Rancher knows, including your own CRDs.
+    resourceHint: Every type where it reads, by API group, including your own CRDs. Or type one in.
     cluster: Cluster
     pageCluster: This page’s cluster
     clusterHint: One cluster per widget. “This page’s cluster” shows whichever cluster’s dashboard it is placed on — the Home has none, so pick one here.
+    rancher: Rancher (global)
+    tableClusterHint: “Rancher” reads Rancher’s own types — clusters, users, Fleet — and the local cluster’s resources. A cluster reads that cluster’s own. “This page’s cluster” reads whichever cluster’s dashboard it is placed on; the Home has none, so pick one there.
     views: Table views
     viewTabs: Show saved view tabs
     ownViews: Keep saved views of its own

@@ -20,11 +20,26 @@
 // what it gets: a view round-trips through a ConfigMap anyone with access can edit by hand.
 
 import {
+  EVENT, INGRESS, LONGHORN, NODE, POD, PVC, SERVICE, WORKLOAD_TYPES
+} from '@shell/config/types';
+import {
   NODE_WIDGET, type LayoutView, type View, type Sides, type StockView, type ViewSet, type WidgetKind,
   type WidgetNode, type WidgetPlace, type WidgetSpec, type WidgetTab, type MetricsDashboard
 } from './types';
 
 export { NODE_WIDGET };
+
+/** The widget that shows rows of a type. */
+const TABLE_KIND = 'table';
+
+/**
+ * The types a Table always read from a cluster before it could say where it reads from. A table saved
+ * then, with one of these, reads a cluster still.
+ */
+const READ_FROM_A_CLUSTER: string[] = [
+  EVENT, POD, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB,
+  WORKLOAD_TYPES.CRON_JOB, NODE, SERVICE, INGRESS, PVC, LONGHORN.VOLUMES,
+];
 
 /** The widget that holds other widgets, in tabs. */
 const TABS_KIND = 'tabs';
@@ -250,6 +265,7 @@ export function spacingPresetOf(padding: unknown): string | null {
  *   title       heading shown on the widget
  *   resource    the Rancher/Kubernetes type it reads (any kind Rancher knows, including CRDs)
  *   cluster     the cluster it shows; '' follows the page (see useWidgetCluster)
+ *   fromCluster a table reads a cluster's API (`cluster`, or the page's) rather than Rancher's
  *   limit       how many events a page of the events list shows
  *   viewTabs    a table shows its saved-view tabs; `ownViews` keeps views of its own (table widget)
  *   source      'home' — Rancher's own links | 'custom' — the `links` below (links widget)
@@ -282,6 +298,9 @@ export function normalizeWidget(widget: unknown): WidgetSpec {
   }
   if (w.ownViews === true) {
     out.ownViews = true;
+  }
+  if (out.kind === TABLE_KIND) {
+    out.fromCluster = typeof w.fromCluster === 'boolean' ? w.fromCluster : READ_FROM_A_CLUSTER.includes(out.resource);
   }
 
   // `subtitle` and `image` are banner-only extras; keep them only when set so stored specs stay small.
