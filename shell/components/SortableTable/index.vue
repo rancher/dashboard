@@ -2096,7 +2096,7 @@ export default {
       }
       tbody {
         tr {
-          border-bottom: 1px solid var(--sortable-table-top-divider);
+          border-bottom: 0;
         }
       }
     }
@@ -2138,21 +2138,21 @@ export default {
         }
 
         // if a main-row is hovered also hover it's sibling sub row. note - the reverse is handled in selection.js
-        &.main-row:not(.row-selected):hover {
+        &.main-row:not(.row-selected):hover + .sub-row:not(:has(.sub-table)) {
           background-color: var(--sortable-table-hover-bg);
         }
 
         // Case with only additional-sub-row
-        &.main-row:not(.row-selected):hover {
+        &.main-row:not(.row-selected):hover + .additional-sub-row:not(:has(.sub-table)) {
           background-color: var(--sortable-table-hover-bg);
         }
 
         // Case with both additional-sub-row and sub-row
-        &.main-row:not(.row-selected):hover {
+        &.main-row:not(.row-selected):hover + .additional-sub-row:not(:has(.sub-table)) + .sub-row:not(:has(.sub-table)) {
           background-color: var(--sortable-table-hover-bg);
         }
 
-        &.sub-row:hover {
+        &.sub-row:has(.sub-table):hover {
           background-color: var(--body-bg);
         }
 
