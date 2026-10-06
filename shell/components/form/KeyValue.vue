@@ -440,7 +440,7 @@ export default {
     },
     removeEmptyRows() {
       const cleaned = this.rows.filter((row) => {
-        return (row.value.length || row.key.length);
+        return (row[this.valueName]?.length || row[this.keyName]?.length);
       });
 
       this['rows'] = cleaned;
@@ -451,14 +451,18 @@ export default {
       if (!this.parseLinesFromFile) {
         this.add(name, value, this.displayValuesAsBinary);
       } else {
-        const lines = value.split('\n');
+        // Files saved on Windows use \r\n line endings
+        const lines = value.split(/\r?\n/);
 
         lines.forEach((line) => {
           // Ignore empty lines
-          if (line.length) {
-            const [key, value] = line.split('=');
+          if (line.trim().length) {
+            const separatorIndex = line.indexOf('=');
+            const key = separatorIndex === -1 ? line : line.substring(0, separatorIndex);
+            const value = separatorIndex === -1 ? '' : line.substring(separatorIndex + 1);
 
-            this.add(key, value);
+            // Like kubectl --from-env-file, whitespace in the value is kept as part of it
+            this.add(key.trim(), value);
           }
         });
 
