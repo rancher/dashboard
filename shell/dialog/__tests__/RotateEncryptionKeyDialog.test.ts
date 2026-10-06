@@ -56,6 +56,25 @@ describe('component: RotateEncryptionKeyDialog', () => {
     expect(buttonDone).toHaveBeenCalledWith(true);
   });
 
+  it('should keep the dialog open with the error when the operation CR cannot be created', async() => {
+    (createOperationCR as jest.Mock).mockRejectedValue({ status: 403, message: 'forbidden' });
+
+    const cluster = {
+      isImportedWithDayTwoOps: true,
+      mgmt:                    { id: 'c-m-1' },
+      save:                    jest.fn(),
+      spec:                    { rkeConfig: {} }
+    };
+    const buttonDone = jest.fn();
+    const wrapper = createWrapper(cluster);
+
+    await wrapper.vm.apply(buttonDone);
+
+    expect(wrapper.vm.errors).toStrictEqual(['forbidden']);
+    expect(buttonDone).toHaveBeenCalledWith(false);
+    expect(buttonDone).toHaveBeenCalledTimes(1);
+  });
+
   it('should update generation and save for non-day-2 clusters', async() => {
     const save = jest.fn().mockResolvedValue(undefined);
     const cluster = {
