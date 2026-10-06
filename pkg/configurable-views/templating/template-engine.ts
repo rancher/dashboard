@@ -36,10 +36,14 @@ const configLabels = { [LABEL_MARKER]: 'true', [LABEL_TYPE]: TYPE_CONFIG };
 /** A page that can be configured, and the key its views are stored under in templating-home. */
 export type PageKey = 'home' | 'clusterDashboard';
 
-// This package's product and route names, kept here so product.ts and routing/index.ts agree.
-export const PRODUCT_NAME = 'configurable-views';
-export const ROUTE_SETTINGS = 'configurable-views-settings';
-export const ROUTE_VIEWS = 'configurable-views-views';
+// This package's product, its pages, and the routes the Product API makes for them - kept here so
+// product.ts and routing/index.ts agree. The name has no dashes: the API takes them out of a
+// product's name, so its routes do not read as nested route names.
+export const PRODUCT_NAME = 'configurableviews';
+export const PAGE_SETTINGS = 'settings';
+export const PAGE_VIEWS = 'views';
+export const ROUTE_SETTINGS = `${ PRODUCT_NAME }-c-cluster-${ PAGE_SETTINGS }`;
+export const ROUTE_VIEWS = `${ PRODUCT_NAME }-c-cluster-${ PAGE_VIEWS }`;
 
 /** A ConfigMap as the management store hands it back: its fields, and `save`. */
 interface ConfigMapModel {

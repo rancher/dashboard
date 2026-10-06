@@ -1,38 +1,33 @@
 import type { RouteRecordRaw } from 'vue-router';
-import { PRODUCT_NAME, ROUTE_SETTINGS, ROUTE_VIEWS } from '../templating/template-engine';
+import { ROUTE_SETTINGS, ROUTE_VIEWS } from '../templating/template-engine';
 
-import Settings from '../pages/Settings.vue';
-import SavedViews from '../pages/SavedViews.vue';
-
-// Routes for the Configurable Views product: its Settings, and the views saved for each page. They
-// sit under the 'default' layout - named, as the shell asks of an extension's routes.
+// The product's own pages are routed by the Product API (see product.ts). These are only where they
+// used to be, so an old link or bookmark still lands. They sit under the 'default' layout - named, as
+// the shell asks of an extension's routes.
 const LAYOUT = 'default';
+const OLD = '/c/:cluster/configurable-views';
 
 const routes: { parent: string; route: RouteRecordRaw }[] = [
   {
     parent: LAYOUT,
     route:  {
-      name:      ROUTE_SETTINGS,
-      path:      `/c/:cluster/${ PRODUCT_NAME }`,
-      component: Settings,
-      meta:      { product: PRODUCT_NAME },
+      path:     OLD,
+      redirect: (to) => ({ name: ROUTE_SETTINGS, params: { cluster: to.params.cluster } }),
     },
   },
   {
     parent: LAYOUT,
     route:  {
-      name:      ROUTE_VIEWS,
-      path:      `/c/:cluster/${ PRODUCT_NAME }/views`,
-      component: SavedViews,
-      meta:      { product: PRODUCT_NAME },
+      path:     `${ OLD }/views`,
+      redirect: (to) => ({ name: ROUTE_VIEWS, params: { cluster: to.params.cluster } }),
     },
   },
-  // Where this page used to be, when it listed the Home's views only.
+  // Where the views page was when it listed the Home's views only.
   {
     parent: LAYOUT,
     route:  {
-      path:     `/c/:cluster/${ PRODUCT_NAME }/layouts`,
-      redirect: (to) => ({ name: ROUTE_VIEWS, params: to.params }),
+      path:     `${ OLD }/layouts`,
+      redirect: (to) => ({ name: ROUTE_VIEWS, params: { cluster: to.params.cluster } }),
     },
   },
 ];

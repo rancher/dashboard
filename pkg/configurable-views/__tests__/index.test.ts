@@ -5,7 +5,7 @@ jest.mock('@rancher/auto-import', () => ({ importTypes: jest.fn() }), { virtual:
 jest.mock('@pkg/configurable-views/pages/Home.vue', () => ({ name: 'ConfigurableHome' }));
 jest.mock('@pkg/configurable-views/pages/ClusterDashboard.vue', () => ({ name: 'ConfigurableClusterDashboard' }));
 jest.mock('@pkg/configurable-views/routing/index', () => ['product routes']);
-jest.mock('@pkg/configurable-views/product', () => ({ init: jest.fn() }));
+jest.mock('@pkg/configurable-views/product', () => ({ product: { name: 'the product' }, pages: ['the pages'] }));
 // The switch itself is stored elsewhere; here it only answers
 const mockToggle = jest.fn();
 
@@ -53,6 +53,7 @@ describe('extension: configurable-views', () => {
     const plugin = await initialize();
 
     expect(plugin.addProduct).toHaveBeenCalledTimes(1);
+    expect(plugin.addProduct).toHaveBeenCalledWith({ name: 'the product' }, ['the pages']);
     expect(plugin.addRoutes).toHaveBeenCalledWith(['product routes']);
     expect(plugin.addNavHooks).toHaveBeenCalledWith({ onEnter: expect.any(Function) });
     expect(plugin.enableServerSidePagination).not.toHaveBeenCalled();

@@ -5,6 +5,7 @@ import type { ShellApi } from '@shell/apis';
 import { NotificationLevel } from '@shell/types/notifications';
 import { fetchTemplatingConfigMaps, toggleTemplating } from './templating/template-engine';
 import routing from './routing/index';
+import { product, pages } from './product';
 import Home from './pages/Home.vue';
 import ClusterDashboard from './pages/ClusterDashboard.vue';
 import { toggleViewBar, viewBarLocked, viewBarVisible } from './composables/useViewBarVisibility';
@@ -41,7 +42,7 @@ export default function(plugin: IPlugin): void {
 
   plugin.metadata = require('./package.json');
 
-  plugin.addProduct(require('./product'));
+  plugin.addProduct(product, pages);
   plugin.addRoutes(routing);
 
   plugin.addNavHooks({ onEnter: (store) => fetchTemplatingConfigMaps(store) });
