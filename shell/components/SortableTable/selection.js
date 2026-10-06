@@ -5,10 +5,7 @@ import { get } from '@shell/utils/object';
 import { filterBy } from '@shell/utils/array';
 import { getParent } from '@shell/utils/dom';
 
-/**
- * The selection hands back reactive versions of the rows in it, so a row a list gave as a plain object
- * is a different object there. Compare what they wrap
- */
+/** The selection holds reactive versions of its rows, so a row given as a plain object is compared by what they wrap */
 const sameRow = (a, b) => toRaw(a) === toRaw(b);
 
 export const ALL = 'all';

@@ -48,7 +48,6 @@ export default defineComponent({
           sort:      ['certState', 'nameSort'],
           // What the cell shows, so grouping, filtering and export read the same
           value:     'certStateDisplay',
-          getValue:  (row: Secret) => row.certStateDisplay,
         },
         NAME_COL,
         NAMESPACE_COL,

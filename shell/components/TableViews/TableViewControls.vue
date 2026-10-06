@@ -319,9 +319,8 @@ const resetView = () => update({
 });
 
 /**
- * Scroll the grouped field into view when the list opens, a frame later so the popper has its
- * height. The list scrolls itself only: `scrollIntoView` would scroll the page too, and move the menu
- * from under the pointer, while the popper is still being placed
+ * Scroll the grouped field into view a frame after the list opens, by the list alone: `scrollIntoView`
+ * would scroll the page too, moving the menu from under the pointer while it is being placed
  */
 watch(groupPanel, (panel) => {
   if (!panel) {

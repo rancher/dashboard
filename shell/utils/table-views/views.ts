@@ -6,13 +6,9 @@ import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
 /** What a view stores to turn off the grouping its table groups by by default */
 export const NO_GROUPING = 'none';
 
-/**
- * The shape of the saved views preference. It goes up when that shape changes, so a release reading
- * an older one knows to convert it
- */
+/** Goes up when the saved views preference changes shape, so a release reading an older one can convert it */
 export const SAVED_VIEWS_VERSION = 1;
 
-/** The saved views preference as written: what it holds, with the version of its shape */
 export interface SavedViewsPref<T> {
   metadata: { version: number };
   payload: Record<string, T>;
@@ -33,7 +29,6 @@ export function savedViewsByType<T>(stored: unknown): Record<string, T> {
   return stored as Record<string, T>;
 }
 
-/** The saved views by resource type, as the preference is written */
 export function savedViewsPref<T>(byType: Record<string, T>): SavedViewsPref<T> {
   return { metadata: { version: SAVED_VIEWS_VERSION }, payload: byType };
 }

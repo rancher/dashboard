@@ -25,13 +25,9 @@ const visibleArea = (el: Element) => {
 };
 
 /**
- * Where an RcDropdown's submenu sits beside its menu. It keeps the size it opens with and moves only as
- * the menu does, raised above the menu's top to fit the page: only up, and no further than where its
- * foot meets the row it opened from. Worked out again whenever the menu moves, as if opening anew.
- *
- * Left to the popper, it would be kept on screen at any cost, and stay behind as the menu scrolls away.
- *
- * @param menuBox the menu's popper, which the submenu is placed against
+ * Where an RcDropdown's submenu sits: at its menu's top, raised to fit the page but never past the
+ * row it opened from, and worked out again whenever the menu moves. Left to the popper, it would be
+ * kept on screen at any cost and stay behind as the menu scrolls away
  */
 export const useSubmenuPlacement = (
   menuBox: () => Element | null | undefined,
@@ -51,11 +47,7 @@ export const useSubmenuPlacement = (
     } : null;
   };
 
-  /**
-   * No taller than it can show once raised: from the area's top to the window's foot, or to its row's
-   * when that is lower, as raising stops there. Set as it opens and as the window changes, not as the
-   * page scrolls; its items scroll past that
-   */
+  /** No taller than it can show once raised, which stops at its row; not changed by a scroll */
   const size = () => {
     const found = parts();
 
@@ -110,7 +102,6 @@ export const useSubmenuPlacement = (
     window.removeEventListener('resize', onWindowResize);
   };
 
-  /** As the submenu shows: placed, then kept in place as the menu moves, with any box scrolling it */
   const start = () => {
     place();
     stop();
