@@ -2,7 +2,7 @@ import ResourceTableViews from '@shell/mixins/resource-table-views';
 import {
   CONFIG_MAP, FLEET, MANAGEMENT, NAMESPACE, WORKLOAD_TYPES
 } from '@shell/config/types';
-import { DESCRIPTION, NAME, STATE } from '@shell/config/table-headers';
+import { AGE, DESCRIPTION, NAME, STATE } from '@shell/config/table-headers';
 
 const { availableHeaders } = ResourceTableViews.computed as unknown as Record<string, (this: object) => { name: string }[]>;
 
@@ -60,6 +60,12 @@ describe('the columns a list offers', () => {
 
       expect(names(ctx)).toStrictEqual(['state', 'name', 'description']);
       expect(description(ctx)).toStrictEqual(expect.objectContaining({ value: 'metadata.annotations."field.cattle.io/description"', sort: ['metadata.annotations."field.cattle.io/description"'] }));
+    });
+
+    it('should go in before Age, which stays the last column', () => {
+      const { ctx } = page(CONFIG_MAP, [STATE, NAME, AGE]);
+
+      expect(names(ctx)).toStrictEqual(['state', 'name', 'description', 'age']);
     });
 
     it('should be sorted and filtered on by the api on a paginated list, which indexes the annotation', () => {

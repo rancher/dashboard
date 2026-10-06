@@ -420,12 +420,15 @@ export default {
         }
       }
 
-      const out = own.slice(0, at).concat(extra.filter((header) => !header.insertBefore), own.slice(at));
+      const plain = extra.filter((header) => !header.insertBefore);
+      const out = own.slice(0, at).concat(plain, own.slice(at));
+      // Without the column it goes before, after the others added
+      let fallback = at + plain.length;
 
       extra.filter((header) => header.insertBefore).forEach((header) => {
         const index = out.findIndex((existing) => existing.name === header.insertBefore);
 
-        out.splice(index >= 0 ? index : at, 0, header);
+        out.splice(index >= 0 ? index : fallback++, 0, header);
       });
 
       return out;

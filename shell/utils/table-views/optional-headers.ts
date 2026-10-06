@@ -27,7 +27,10 @@ interface OptionalHeader {
   before?: string;
 }
 
-const DESCRIPTION_COLUMN: OptionalHeader = { header: DESCRIPTION_ANNOTATION_COL, paginationHeader: STEVE_DESCRIPTION_ANNOTATION_COL };
+// Age stays the last column
+const DESCRIPTION_COLUMN: OptionalHeader = {
+  header: DESCRIPTION_ANNOTATION_COL, paginationHeader: STEVE_DESCRIPTION_ANNOTATION_COL, before: 'age'
+};
 
 /** Types whose edit forms keep a description in its annotation; others keep it elsewhere, or have none */
 const DESCRIBED_TYPES = [
