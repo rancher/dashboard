@@ -32,6 +32,17 @@ imports:
   - shared/report-and-fix.md
   - shared/lessons.md
 
+# The default sandbox runtime has no route from the agent to anything on the
+# runner, whatever the network allowlist says. This runtime is the only one
+# that can open host ports. 9443 is the Rancher backend that
+# shared/rancher-server.md forwards there; gh-aw adds 80, 443 and 8080 to the
+# list on its own. gh-aw does not merge `sandbox:` from imports, so it has to
+# live here.
+sandbox:
+  agent:
+    runtime: docker-sudo-iptables
+    allow-host-ports: [9443]
+
 permissions:
   contents: read
   issues: read
@@ -118,6 +129,10 @@ env:
   # the call is aborted and the run ends with an issue but no pull request.
   # Ten minutes covers a push on a repository this size.
   GH_AW_HARNESS_WATCHDOG_TIMEOUT_MS: "600000"
+  # The dashboard dev server started for UI evidence is still running when the
+  # agent finishes, and Copilot CLI then waits for it — 600s by default — before
+  # exiting. Nothing it would wait for matters once the safe outputs are written.
+  COPILOT_TASK_WAIT_TIMEOUT_SECONDS: "30"
 # Remediation runs `yarn lint` and `yarn test:ci` before opening a pull request,
 # and a UI removal additionally builds and records the dashboard, so the budget
 # has to cover a dependency install, a full unit test run and a dev build.
