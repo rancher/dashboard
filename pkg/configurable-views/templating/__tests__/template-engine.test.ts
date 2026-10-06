@@ -1,6 +1,6 @@
 import type { Store } from 'vuex';
 import {
-  appliedViewScopes, getPageConfig, isTemplatingEnabled, saveView, toggleTemplating
+  appliedViewScopes, getPageConfig, isTemplatingEnabled, saveView, toggleTemplating, viewsOffInUrl
 } from '@pkg/configurable-views/templating/template-engine';
 import type { ViewSet } from '@pkg/configurable-views/templating/types';
 
@@ -98,6 +98,15 @@ describe('the kill switch', () => {
   it('is on unless it says "false"', () => {
     expect(isTemplatingEnabled(storeWith().store.getters)).toBe(true);
     expect(isTemplatingEnabled(storeWith(configMap('templating-config', { enabled: 'false' })).store.getters)).toBe(false);
+  });
+
+  it('is off in the URL with ?confviews=false, and only then', () => {
+    expect(viewsOffInUrl({ confviews: 'false' })).toBe(true);
+    expect(viewsOffInUrl({ confviews: ['false', 'true'] })).toBe(true);
+    expect(viewsOffInUrl({ confviews: 'true' })).toBe(false);
+    expect(viewsOffInUrl({ confviews: '' })).toBe(false);
+    expect(viewsOffInUrl({})).toBe(false);
+    expect(viewsOffInUrl(undefined)).toBe(false);
   });
 
   it('flips and saves the stored switch', async() => {

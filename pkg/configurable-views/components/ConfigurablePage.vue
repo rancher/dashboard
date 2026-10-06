@@ -4,6 +4,7 @@ import {
   , Component
 } from 'vue';
 import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
 import { useI18n } from '@shell/composables/useI18n';
 import WidgetGrid from './WidgetGrid.vue';
 import ViewBar from './ViewBar.vue';
@@ -14,7 +15,7 @@ import { VIEW_EDITOR, type SettingsAnchor, type ViewEditorUi, type WidgetResize 
 import { useConfirm } from '../composables/useConfirm';
 import { viewBarLocked, viewBarVisible } from '../composables/useViewBarVisibility';
 import {
-  isTemplatingEnabled, appliedViewScopes, saveView, fetchTemplatingConfigMaps, type PageKey
+  isTemplatingEnabled, viewsOffInUrl, appliedViewScopes, saveView, fetchTemplatingConfigMaps, type PageKey
 } from '../templating/template-engine';
 import {
   DEFAULT_GAP, DEFAULT_PAGE_PADDING, newId, newLayoutView, newWidgetNode, isStockView, findWidget, builtInStockView,
@@ -139,7 +140,10 @@ const ui = reactive<ViewEditorUi>({
 
 // ---- what is stored, and what is shown --------------------------------------------------------------
 
-const templatingEnabled = computed(() => isTemplatingEnabled(store.getters));
+// Off when the kill switch is off - or, for as long as the URL says so, when it carries
+// `?confviews=false`: Rancher's own page, with nothing stored and the switch untouched.
+const route = useRoute();
+const templatingEnabled = computed(() => isTemplatingEnabled(store.getters) && !viewsOffInUrl(route?.query));
 
 const scopes = computed(() => appliedViewScopes(store.getters, userId.value, props.page));
 

@@ -154,6 +154,20 @@ export function isTemplatingEnabled(getters: Getters): boolean {
   return cmNamed(getters, CONFIG_NAME)?.data?.enabled !== 'false';
 }
 
+/** The URL's own switch: `?confviews=false`. */
+export const VIEWS_QUERY = 'confviews';
+
+/**
+ * Whether the URL turns the configurable pages off: `?confviews=false` shows Rancher's own page, as
+ * the kill switch does, but only for as long as it is in the URL - nothing is stored, and the switch
+ * itself is not touched.
+ */
+export function viewsOffInUrl(query: Record<string, unknown> | null | undefined): boolean {
+  const value = query?.[VIEWS_QUERY];
+
+  return (Array.isArray(value) ? value[0] : value) === 'false';
+}
+
 /** Set the kill switch - or flip it, with no argument. Resolves to the new state. */
 export async function toggleTemplating(store: Store<unknown>, enabled?: boolean): Promise<boolean> {
   const desired = typeof enabled === 'boolean' ? enabled : !isTemplatingEnabled(store.getters);
