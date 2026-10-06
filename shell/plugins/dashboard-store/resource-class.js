@@ -1899,10 +1899,6 @@ export default class Resource {
         existing: (isCreate ? this : undefined)
       });
 
-      if (isCreate) {
-        this.notifyGeneratedName();
-      }
-
       if (this.isSpoofed) {
         await this.$dispatch('cluster/findAll', { type: this.type, opt: { force: true } }, { root: true });
       }

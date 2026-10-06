@@ -272,30 +272,6 @@ describe('class: Resource', () => {
       expect(resourceInstance.followLink).toHaveBeenCalledTimes(1);
       expect(mockStore.dispatch).not.toHaveBeenCalledWith('load', expect.any(Object));
     });
-
-    it('should notify the generated name when creating', async() => {
-      const instance = new Resource({ type: 'testType', metadata: { namespace: 'aaa', generateName: 'my-' } }, mockStore);
-      const response = { id: 'aaa/my-abc12', type: 'testType' };
-      const followLink = jest.fn().mockResolvedValue(response);
-      const notifyGeneratedName = jest.spyOn(instance, 'notifyGeneratedName');
-
-      jest.spyOn(instance, 'schema', 'get').mockReturnValue({ attributes: { namespaced: true }, followLink });
-
-      await instance._saveYaml(jsyaml.dump({ metadata: { namespace: 'aaa', generateName: 'my-' } }));
-
-      expect(followLink).toHaveBeenCalledWith('collection', expect.objectContaining({ method: 'POST' }));
-      expect(notifyGeneratedName).toHaveBeenCalledWith();
-    });
-
-    it('should not notify the generated name when updating', async() => {
-      const notifyGeneratedName = jest.spyOn(resourceInstance, 'notifyGeneratedName');
-
-      resourceInstance.followLink.mockResolvedValueOnce({ id: 'test-id', type: 'testType' });
-
-      await resourceInstance._saveYaml(jsyaml.dump({ metadata: { namespace: 'aaa', name: 'my-resource' } }));
-
-      expect(notifyGeneratedName).toHaveBeenCalledTimes(0);
-    });
   });
 
   describe('getter: resourceConditions', () => {
