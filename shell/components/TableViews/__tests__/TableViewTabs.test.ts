@@ -365,4 +365,46 @@ describe('TableViewTabs', () => {
       });
     });
   });
+
+  describe('the tablist', () => {
+    const first = makeView('aaa', 'Need attention');
+    const second = makeView('bbb', 'test');
+
+    function createWrapper() {
+      const stored = { test: { views: [first, second], defaultViewId: null } };
+      const store = createStore({
+        getters: { 'prefs/get': () => (key: string) => (key === TABLE_VIEWS ? stored : undefined) },
+        actions: { 'prefs/set': jest.fn() },
+      });
+
+      return mount(TableViewTabs, {
+        props:  { view: { ...EMPTY }, resourceType: 'test' },
+        global: {
+          plugins: [store],
+          stubs:   {
+            RcDropdown:        { template: '<div><slot /></div>' },
+            RcDropdownTrigger: { template: '<button><slot /></button>' },
+          },
+        },
+        shallow: true,
+      });
+    }
+
+    it('should not render a tab\'s menu button inside the tablist', () => {
+      const wrapper = createWrapper();
+
+      const buttons = wrapper.findAll('[role="tablist"] button:not([role="tab"])');
+
+      expect(buttons).toHaveLength(0);
+    });
+
+    it('should own every tab from the tablist', () => {
+      const wrapper = createWrapper();
+
+      const owned = wrapper.find('[role="tablist"]').attributes('aria-owns')?.split(' ');
+      const tabIds = wrapper.findAll('[role="tab"]').map((tab) => tab.attributes('id'));
+
+      expect(owned).toStrictEqual(tabIds);
+    });
+  });
 });
