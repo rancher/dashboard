@@ -74,23 +74,23 @@ describe('Okta', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   });
 
   it('keeps the principal identifier attributes editable once Okta is enabled', () => {
+    // Patch the real config so the page gets every field it expects, only marked as enabled
     cy.intercept('GET', 'v3/authconfig/okta', (req) => {
-      req.reply(mockStatusCode, {
-        type:           'oktaConfig',
-        id:             'okta',
-        enabled:        true,
-        displayNameField,
-        userNameField,
-        uidField,
-        groupsField,
-        rancherApiHost,
-        openLdapConfig: {
+      req.continue((res) => {
+        res.body.enabled = true;
+        res.body.displayNameField = displayNameField;
+        res.body.userNameField = userNameField;
+        res.body.uidField = uidField;
+        res.body.groupsField = groupsField;
+        res.body.rancherApiHost = rancherApiHost;
+        res.body.openLdapConfig = {
+          ...res.body.openLdapConfig,
           servers:          [ldapHostname],
           port:             389,
           userSearchBase,
           userIDAttribute:  userIdAttribute,
           groupIDAttribute: groupIdAttribute,
-        },
+        };
       });
     }).as('authConfig');
 

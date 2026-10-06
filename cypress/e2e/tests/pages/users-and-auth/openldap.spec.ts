@@ -53,14 +53,13 @@ describe('OpenLDAP', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   });
 
   it('locks the principal identifier attributes once the provider is enabled', () => {
+    // Patch the real config so the page gets every field it expects, only marked as enabled
     cy.intercept('GET', 'v3/authconfig/openldap', (req) => {
-      req.reply(mockStatusCode, {
-        type:             'openLdapConfig',
-        id:               'openldap',
-        enabled:          true,
-        servers:          [hostname],
-        userIDAttribute:  userIdAttribute,
-        groupIDAttribute: groupIdAttribute,
+      req.continue((res) => {
+        res.body.enabled = true;
+        res.body.servers = [hostname];
+        res.body.userIDAttribute = userIdAttribute;
+        res.body.groupIDAttribute = groupIdAttribute;
       });
     }).as('authConfig');
 
