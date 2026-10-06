@@ -645,19 +645,20 @@ export default defineComponent({
       >
         <div
           v-if="enableNetworkPolicySupported"
-          class="mb-20"
         >
-          <Banner
-            v-if="!!normanCluster.enableNetworkPolicy"
-            color="info"
-            label-key="imported.network.banner"
-            class="m-0"
-          />
-          <Checkbox
-            v-model:value="normanCluster.enableNetworkPolicy"
-            :mode="mode"
-            :label="t('cluster.rke2.enableNetworkPolicy.label')"
-          />
+          <RcContentGroup>
+            <Banner
+              v-if="!!normanCluster.enableNetworkPolicy"
+              color="info"
+              label-key="imported.network.banner"
+              class="m-0"
+            />
+            <Checkbox
+              v-model:value="normanCluster.enableNetworkPolicy"
+              :mode="mode"
+              :label="t('cluster.rke2.enableNetworkPolicy.label')"
+            />
+          </RcContentGroup>
         </div>
         <RcSection
           v-if="!isLocal"
