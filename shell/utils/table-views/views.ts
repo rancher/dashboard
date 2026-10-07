@@ -10,7 +10,11 @@ export const NO_GROUPING = 'none';
 export const SAVED_VIEWS_VERSION = 1;
 
 export interface SavedViewsPref<T> {
-  metadata: { version: number };
+  metadata: {
+    version: number;
+    /** A random key that tells the user's own table links apart from others' - see useTableViewsLink */
+    persistenceId?: string;
+  };
   payload: Record<string, T>;
 }
 
@@ -29,8 +33,21 @@ export function savedViewsByType<T>(stored: unknown): Record<string, T> {
   return stored as Record<string, T>;
 }
 
-export function savedViewsPref<T>(byType: Record<string, T>): SavedViewsPref<T> {
-  return { metadata: { version: SAVED_VIEWS_VERSION }, payload: byType };
+export function savedViewsPref<T>(byType: Record<string, T>, persistenceId?: string | null): SavedViewsPref<T> {
+  const metadata: SavedViewsPref<T>['metadata'] = { version: SAVED_VIEWS_VERSION };
+
+  if (persistenceId) {
+    metadata.persistenceId = persistenceId;
+  }
+
+  return { metadata, payload: byType };
+}
+
+/** The persistence id the preference holds, if it has one yet */
+export function persistenceIdOf(stored: unknown): string | null {
+  const id = (stored as Partial<SavedViewsPref<unknown>> | null)?.metadata?.persistenceId;
+
+  return typeof id === 'string' && id ? id : null;
 }
 
 /** Each key's empty value, so `null`, `undefined` and `[]` compare as the same */

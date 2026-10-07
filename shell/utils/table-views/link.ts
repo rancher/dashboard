@@ -1,9 +1,10 @@
 /**
  * What the tables on a page show, carried in its URL so it can be bookmarked or sent to someone. One
- * parameter holds every table's, encoded; the user it was showing for sits beside it in the clear,
- * so a link of one's own is told apart without decoding anything
+ * parameter holds every table's, encoded; the persistence id of the user it was showing for - a
+ * random key kept in their preferences, not who they are - sits beside it in the clear, so a link of
+ * one's own is told apart without decoding anything
  */
-import { TABLE_VIEWS_QUERY, TABLE_VIEWS_USER_QUERY } from '@shell/config/query-params';
+import { TABLE_STATE_QUERY, TABLE_STATE_KEY_QUERY } from '@shell/config/query-params';
 import type { TableViewState } from '@shell/types/table-views';
 
 /** One table's view as a link carries it: the name of its tab, and what it shows */
@@ -12,7 +13,8 @@ export interface LinkedTableView extends TableViewState {
 }
 
 export interface LinkedTableViews {
-  user: string;
+  /** The persistence id of the user the tables were showing for */
+  key: string;
   /** By table - see linkedTableKey */
   tables: Record<string, LinkedTableView>;
 }
@@ -102,7 +104,7 @@ export function encodeLinkedViews(linked: LinkedTableViews): string {
     tables[key] = shorten(view);
   });
 
-  return toBase64Url(JSON.stringify({ u: linked.user, t: tables }));
+  return toBase64Url(JSON.stringify({ k: linked.key, t: tables }));
 }
 
 /** Null for anything that doesn't decode to views */
@@ -110,7 +112,7 @@ export function decodeLinkedViews(encoded: string): LinkedTableViews | null {
   try {
     const parsed = JSON.parse(fromBase64Url(encoded));
 
-    if (!parsed || typeof parsed.u !== 'string' || !parsed.t || typeof parsed.t !== 'object') {
+    if (!parsed || typeof parsed.k !== 'string' || !parsed.t || typeof parsed.t !== 'object') {
       return null;
     }
 
@@ -124,7 +126,7 @@ export function decodeLinkedViews(encoded: string): LinkedTableViews | null {
       }
     });
 
-    return { user: parsed.u, tables };
+    return { key: parsed.k, tables };
   } catch {
     return null;
   }
@@ -132,17 +134,18 @@ export function decodeLinkedViews(encoded: string): LinkedTableViews | null {
 
 /**
  * The views a link was sent with, by table. Null for a link of one's own - which is just the page as
- * it was left, and needs nothing decoded - and for one whose views don't say they are the sender's
+ * it was left, and needs nothing decoded - and for one whose views don't say they are the sender's.
+ * `mine` is the user's persistence id, if they have one yet
  */
-export function sharedViewsIn(query: Record<string, unknown>, me: string | null | undefined): Record<string, LinkedTableView> | null {
-  const sender = query[TABLE_VIEWS_USER_QUERY];
-  const encoded = query[TABLE_VIEWS_QUERY];
+export function sharedViewsIn(query: Record<string, unknown>, mine: string | null | undefined): Record<string, LinkedTableView> | null {
+  const sender = query[TABLE_STATE_KEY_QUERY];
+  const encoded = query[TABLE_STATE_QUERY];
 
-  if (!me || typeof sender !== 'string' || !sender || sender === me || typeof encoded !== 'string') {
+  if (typeof sender !== 'string' || !sender || sender === mine || typeof encoded !== 'string') {
     return null;
   }
 
   const linked = decodeLinkedViews(encoded);
 
-  return linked && linked.user === sender ? linked.tables : null;
+  return linked && linked.key === sender ? linked.tables : null;
 }
