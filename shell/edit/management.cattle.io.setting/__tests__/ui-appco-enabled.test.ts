@@ -1,6 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import UiAppcoEnabled from '@shell/edit/management.cattle.io.setting/ui-appco-enabled.vue';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import { RadioGroup } from '@components/Form/Radio';
 
 jest.mock('vuex', () => ({
   ...jest.requireActual('vuex'),
@@ -8,11 +8,11 @@ jest.mock('vuex', () => ({
 }));
 
 describe('component: ui-appco-enabled setting', () => {
-  const select = (settingValue?: string) => shallowMount(UiAppcoEnabled, { props: { settingValue } })
-    .findComponent(LabeledSelect);
+  const radioGroup = (settingValue?: string) => shallowMount(UiAppcoEnabled, { props: { settingValue } })
+    .findComponent(RadioGroup);
 
   it('should offer the True, False and None options', () => {
-    expect(select('true').props('options')).toStrictEqual([
+    expect(radioGroup('true').props('options')).toStrictEqual([
       { label: 'advancedSettings.edit.trueOption', value: 'true' },
       { label: 'advancedSettings.edit.falseOption', value: 'false' },
       { label: 'advancedSettings.none', value: 'none' },
@@ -24,18 +24,18 @@ describe('component: ui-appco-enabled setting', () => {
     ['false', 'false'],
     ['', 'none'],
     [undefined, 'none'],
-  ])('should select the option for the setting value %p', (settingValue, expected) => {
-    expect(select(settingValue).props('value')).toBe(expected);
+  ])('should check the option for the setting value %p', (settingValue, expected) => {
+    expect(radioGroup(settingValue).props('value')).toBe(expected);
   });
 
   it.each([
     ['true', 'true'],
     ['false', 'false'],
     ['none', ''],
-  ])('should emit the setting value when %p is selected', async(option, expected) => {
+  ])('should emit the setting value when %p is checked', async(option, expected) => {
     const wrapper = shallowMount(UiAppcoEnabled, { props: { settingValue: 'true' } });
 
-    await wrapper.findComponent(LabeledSelect).vm.$emit('update:value', option);
+    await wrapper.findComponent(RadioGroup).vm.$emit('update:value', option);
 
     expect(wrapper.emitted('update:settingValue')).toStrictEqual([[expected]]);
   });

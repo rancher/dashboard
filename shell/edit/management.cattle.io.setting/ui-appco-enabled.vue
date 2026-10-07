@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useStore } from 'vuex';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import { RadioGroup } from '@components/Form/Radio';
 import { useI18n } from '@shell/composables/useI18n';
 
-// The select treats an empty value as "nothing selected", so None needs a value of its own
+// RadioGroup's value prop casts an empty string to `true`, so None needs a value of its own
 const NONE = 'none';
 
 const props = defineProps<{
   settingValue?: string;
-  rules?: Array<(value: unknown) => string | undefined>;
 }>();
 
 const emit = defineEmits(['update:settingValue']);
@@ -29,12 +28,10 @@ const selected = computed({
 </script>
 
 <template>
-  <LabeledSelect
+  <RadioGroup
     v-model:value="selected"
     data-testid="input-setting-ui-appco-enabled"
-    :label="t('advancedSettings.edit.value')"
+    name="settings_value"
     :options="options"
-    :rules="rules"
-    :searchable="false"
   />
 </template>
