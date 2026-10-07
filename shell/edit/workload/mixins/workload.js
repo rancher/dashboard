@@ -545,21 +545,34 @@ export default {
       const containers = this.podTemplateSpec?.containers || [];
       const initContainers = this.podTemplateSpec?.initContainers || [];
       const key = this.idKey;
+      // Containers can already carry an id (e.g. cloned from the model the view page used),
+      // so skip ids in use. Otherwise two container tabs share a name and render as one.
+      const usedIds = new Set([...containers, ...initContainers].map((each) => each[key]).filter(Boolean));
+      const ensureId = (each) => {
+        if (each[key]) {
+          return;
+        }
+
+        let id = serialMaker.genSym();
+
+        while (usedIds.has(id)) {
+          id = serialMaker.genSym();
+        }
+
+        each[key] = id;
+        usedIds.add(id);
+      };
 
       return [
         ...containers.map((each) => {
           each._init = false;
-          if (!each[key]) {
-            each[key] = serialMaker.genSym();
-          }
+          ensureId(each);
 
           return each;
         }),
         ...initContainers.map((each) => {
           each._init = true;
-          if (!each[key]) {
-            each[key] = serialMaker.genSym();
-          }
+          ensureId(each);
 
           return each;
         }),
@@ -1112,7 +1125,8 @@ export default {
       this.podTemplateSpec.containers.push(container);
       this.selectContainer(container);
       this.$nextTick(() => {
-        this.$refs.containersTabbed?.select(container.name);
+        // Container tabs are named by container id, not container name
+        this.$refs.containersTabbed?.select(container[this.idKey]);
       });
     },
 
