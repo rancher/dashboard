@@ -186,3 +186,67 @@ describe('CodeMirror editor shortcuts', { tags: ['@components', '@adminUser', '@
     editor().value().should('eq', 'first: line');
   });
 });
+
+describe('CodeMirror Sublime shortcuts', { tags: ['@components', '@adminUser', '@standardUser'] }, () => {
+  const yamlEditorPage = new ResourceYamlEditorPagePo('resourcequota');
+  const editor = () => CodeMirrorPo.first();
+  const modKey = Cypress.platform === 'darwin' ? 'Meta' : 'Control';
+
+  const focusDocStart = (value: string) => {
+    editor().set(value);
+    editor().self().realClick();
+    if (Cypress.platform === 'darwin') {
+      cy.realPress(['Meta', 'ArrowUp']);
+    } else {
+      cy.realPress(['Control', 'Home']);
+    }
+  };
+
+  beforeEach(() => {
+    cy.login();
+    cy.setUserPreference({ keymap: 'sublime' }, true);
+
+    yamlEditorPage.goTo();
+    yamlEditorPage.waitForPage();
+    editor().checkVisible();
+  });
+
+  it('selects the next occurrence with Mod-D', () => {
+    focusDocStart('alpha alpha');
+
+    cy.realPress([modKey, 'd']);
+    cy.realPress([modKey, 'd']);
+    cy.realType('x');
+
+    editor().value().should('eq', 'x x');
+  });
+
+  it('duplicates a line with Mod-Shift-D', () => {
+    focusDocStart('alpha\nbeta');
+
+    cy.realPress([modKey, 'Shift', 'd']);
+
+    editor().value().should('eq', 'alpha\nalpha\nbeta');
+  });
+
+  it('swaps a line down with the platform Sublime shortcut', () => {
+    focusDocStart('alpha\nbeta');
+
+    if (Cypress.platform === 'darwin') {
+      cy.realPress(['Control', 'Meta', 'ArrowDown']);
+    } else {
+      cy.realPress(['Control', 'Shift', 'ArrowDown']);
+    }
+
+    editor().value().should('eq', 'beta\nalpha');
+  });
+
+  it('selects a line with Mod-L', () => {
+    focusDocStart('alpha\nbeta');
+
+    cy.realPress([modKey, 'l']);
+    cy.realType('x');
+
+    editor().value().should('eq', 'xbeta');
+  });
+});
