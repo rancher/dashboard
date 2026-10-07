@@ -129,12 +129,24 @@ export type Action = {
   labelKey?: string;
   tooltipKey?: string;
   tooltip?: string;
+  /** Header actions: the tooltip while the action is disabled, saying why. */
+  disabledTooltipKey?: string;
+  disabledTooltip?: string;
   shortcut?: string | ShortCutKey;
   svg?: Function;
   icon?: string;
   multiple?: boolean;
+  /**
+   * Whether the action can be used. For a header action, a function returning a boolean is asked
+   * again whenever the reactive state it reads changes; one returning a promise, on navigation.
+   */
   enabled?: Function | boolean;
   ariaExpanded?: boolean | (() => boolean);
+  /**
+   * Header actions: no button, only the `shortcut` - for an action that is a keyboard shortcut and
+   * nothing else. Defaults to false: the action is a button.
+   */
+  hidden?: boolean;
   invoke: (opts: ActionOpts, resources: any[], globals?: any) => void | boolean | Promise<boolean>;
 };
 

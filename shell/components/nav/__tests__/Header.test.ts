@@ -1,5 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
-import { isReactive, markRaw } from 'vue';
+import { isReactive, markRaw, ref } from 'vue';
 import Header from '@shell/components/nav/Header.vue';
 import ClusterBadge from '@shell/components/ClusterBadge.vue';
 import ClusterPinControl from '@shell/components/ClusterPinControl.vue';
@@ -324,6 +324,97 @@ describe('component: Header', () => {
       const wrapper = createWrapper({}, {}, { getDynamic: jest.fn(() => undefined) });
 
       expect((wrapper.vm as any).navHeaderRight).toBeNull();
+    });
+  });
+
+  describe('extensionHeaderActionsEnabled', () => {
+    it('follows a synchronous enabled as the state it reads changes', async() => {
+      const wrapper = createWrapper();
+      const locked = ref(false);
+
+      (wrapper.vm as any).extensionHeaderActions = [{
+        label: 'Bar', invoke: jest.fn(), enabled: () => !locked.value
+      }];
+
+      expect((wrapper.vm as any).extensionHeaderActionsEnabled).toStrictEqual([true]);
+
+      locked.value = true;
+
+      expect((wrapper.vm as any).extensionHeaderActionsEnabled).toStrictEqual([false]);
+
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('[data-testid="extension-header-action-Bar"]').attributes('disabled')).toBeDefined();
+    });
+
+    it('leaves an async enabled to the check made on navigation', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [{
+        label: 'Async', invoke: jest.fn(), enabled: () => Promise.resolve(true)
+      }];
+      (wrapper.vm as any).extensionActionsEnabled = { 0: false };
+
+      expect((wrapper.vm as any).extensionHeaderActionsEnabled).toStrictEqual([false]);
+    });
+
+    it('treats an action with no enabled as enabled once checked, and a boolean as given', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        { label: 'Plain', invoke: jest.fn() },
+        {
+          label: 'Off', invoke: jest.fn(), enabled: false
+        },
+      ];
+      (wrapper.vm as any).extensionActionsEnabled = { 0: true, 1: true };
+
+      expect((wrapper.vm as any).extensionHeaderActionsEnabled).toStrictEqual([true, false]);
+    });
+
+    it('says why a disabled action is disabled, when it gives a reason', () => {
+      const wrapper = createWrapper();
+      const action = {
+        label: 'Bar', invoke: jest.fn(), tooltip: 'Views bar', disabledTooltip: 'Not while editing'
+      };
+
+      expect((wrapper.vm as any).handleExtensionTooltip(action, false)).toBe('Not while editing');
+      expect((wrapper.vm as any).handleExtensionTooltip(action, true)).toBe('Views bar ');
+      expect((wrapper.vm as any).handleExtensionTooltip({ ...action, disabledTooltip: undefined }, false)).toBe('Views bar ');
+    });
+  });
+
+  describe('hidden extension header actions', () => {
+    it('draws no button for a hidden action, only its shortcut', async() => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        {
+          label: 'Switch', invoke: jest.fn(), hidden: true, shortcutKey: { windows: ['ctrl', 'shift', '>'], mac: ['meta', 'shift', '>'] }
+        },
+        { label: 'Bar', invoke: jest.fn() },
+      ];
+
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('[data-testid="extension-header-action-Switch"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="extension-header-shortcut-Switch"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="extension-header-action-Bar"]').exists()).toBe(true);
+    });
+
+    it('runs a hidden action from its shortcut', async() => {
+      const wrapper = createWrapper();
+      const invoke = jest.fn();
+
+      (wrapper.vm as any).extensionHeaderActions = [{
+        label: 'Switch', invoke, hidden: true
+      }];
+
+      await wrapper.vm.$nextTick();
+      await wrapper.find('[data-testid="extension-header-shortcut-Switch"]').trigger('shortkey');
+      await new Promise((resolve) => setTimeout(resolve));
+
+      expect(invoke).toHaveBeenCalledTimes(1);
     });
   });
 
