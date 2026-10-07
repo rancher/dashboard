@@ -21,6 +21,9 @@ import { runTableViewShortcut } from '@shell/utils/table-views/shortcuts';
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
 
+// A paginated list's namespace grouping - see STEVE_LIST_GROUPS
+const PAGINATED_NAMESPACE_GROUP = 'metadata.namespace';
+
 export const defaultTableSortGenerationFn = (schema, $store) => {
   if ( !schema ) {
     return null;
@@ -636,10 +639,10 @@ export default {
     },
 
     /**
-     * The grouping a view starts with: the one the list started with before table views, for a user
-     * who had never picked one. The grouping preference held the namespace, so that, when the list
-     * offers it; else the list's own default, eg machines by pool; else its first. A list grouped by
-     * a field it is given, eg members by project, keeps that
+     * The grouping a view starts with: the namespace, whenever the list offers to group by it, as a
+     * paginated list does under its own name; else the list's own default, eg machines by pool; else
+     * the first it offers, eg secrets by project. A list grouped by a field it is given, eg members by
+     * project, keeps that
      */
     defaultGroupBy() {
       if (!this.showGrouping) {
@@ -647,8 +650,7 @@ export default {
       }
 
       const offered = (value) => this.tableGroupings.find((option) => option.value === value);
-      const first = this._groupOptions[0]?.value;
-      const start = offered(DEFAULT_GROUP) || offered(this.groupDefault) || (first && offered(first));
+      const start = offered(DEFAULT_GROUP) || offered(PAGINATED_NAMESPACE_GROUP) || offered(this.groupDefault) || this.tableGroupings[0];
 
       if (!start || (this.groupBy && !start.field)) {
         return null;

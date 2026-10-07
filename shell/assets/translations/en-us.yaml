@@ -7375,6 +7375,7 @@ tableViews:
       cluster: Cluster
       device: Device
       pool: Pool
+      provider: Provider
       workspace: Workspace
       type: Type
   export:
