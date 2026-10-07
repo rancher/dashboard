@@ -239,32 +239,39 @@ describe('component: RcModal', () => {
       const opts = (createFocusTrap as jest.Mock).mock.calls[0][1];
 
       expect(opts.escapeDeactivates).toBe(false);
-      expect(opts.allowOutsideClick({ target: document.querySelector('.rc-modal-overlay') })).toBe(false);
 
       wrapper.unmount();
     });
 
-    it('should let an outside click through when the modal is dismissable, so the backdrop can close it', () => {
-      const wrapper = mountModal({ props: { clickToClose: true } });
+    it.each([true, false])('should let the trap pass clicks outside the dialog when clickToClose is %s, so a menu appended to the body still works', (clickToClose) => {
+      const wrapper = mountModal({ props: { clickToClose } });
 
       const opts = (createFocusTrap as jest.Mock).mock.calls[0][1];
 
-      expect(opts.allowOutsideClick({ target: document.querySelector('.rc-modal-overlay') })).toBe(true);
+      expect(opts.allowOutsideClick).toBe(true);
 
       wrapper.unmount();
     });
 
-    it('should let a click through to a layer outside the overlay when the modal is not dismissable, so a menu appended to the body still works', () => {
-      const wrapper = mountModal({ props: { clickToClose: false } });
-      const menu = document.createElement('ul');
+    it.each([true, false])('should keep focus in the dialog when the background is pressed and clickToClose is %s', (clickToClose) => {
+      const wrapper = mountModal({ props: { clickToClose } });
+      const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
 
-      document.body.appendChild(menu);
+      (document.querySelector('.rc-modal-overlay') as HTMLElement).dispatchEvent(press);
 
-      const opts = (createFocusTrap as jest.Mock).mock.calls[0][1];
+      expect(press.defaultPrevented).toBe(true);
 
-      expect(opts.allowOutsideClick({ target: menu })).toBe(true);
+      wrapper.unmount();
+    });
 
-      menu.remove();
+    it('should leave a press inside the dialog alone, so fields still take focus and text can be selected', () => {
+      const wrapper = mountModal();
+      const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+
+      dialog().dispatchEvent(press);
+
+      expect(press.defaultPrevented).toBe(false);
+
       wrapper.unmount();
     });
 

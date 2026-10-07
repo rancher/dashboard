@@ -36,7 +36,6 @@ const hasTitle = computed(() => !!props.title || !!slots.title);
 
 const hasActions = computed(() => !!slots.actions || !!slots['primary-action']);
 
-const overlay = ref<HTMLElement | null>(null);
 const dialog = ref<HTMLElement | null>(null);
 const body = ref<HTMLElement | null>(null);
 const actions = ref<HTMLElement | null>(null);
@@ -87,7 +86,6 @@ onBeforeUnmount(() => bodyResize?.disconnect());
 useBasicSetupFocusTrap(`#${ dialogId }`, {
   ...DEFAULT_FOCUS_TRAP_OPTS,
   escapeDeactivates: false,
-  allowOutsideClick: (event: Event) => props.clickToClose || !overlay.value?.contains(event.target as Node),
   fallbackFocus:     `#${ dialogId }`,
   initialFocus,
 });
@@ -118,8 +116,8 @@ function onKeydown(event: KeyboardEvent) {
   }
 }
 
-function onOverlayClick(event: MouseEvent) {
-  if (props.clickToClose && dialog.value && !dialog.value.contains(event.target as Node)) {
+function onBackgroundClick() {
+  if (props.clickToClose) {
     cancel();
   }
 }
@@ -127,9 +125,9 @@ function onOverlayClick(event: MouseEvent) {
 
 <template>
   <div
-    ref="overlay"
     class="rc-modal-overlay"
-    @click="onOverlayClick"
+    @mousedown.self.prevent
+    @click.self="onBackgroundClick"
   >
     <div
       :id="dialogId"
