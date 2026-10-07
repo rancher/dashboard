@@ -4,7 +4,7 @@ import type { FoldOptions } from './extensions/fold';
 
 export type RcCodeMirrorLanguage = 'yaml' | 'json' | 'javascript';
 
-export type RcCodeMirrorKeymap = 'default' | 'vim' | 'emacs';
+export type RcCodeMirrorKeymap = 'default' | 'sublime' | 'vim' | 'emacs';
 
 export type RcCodeMirrorTheme = 'rancher' | 'none';
 

@@ -3031,6 +3031,8 @@ codeMirror:
     replace: Replace
     replaceAll: Replace all
     close: Close search
+    clear: Clear search
+    count: "{current} of {total}"
   keymap:
     tooltip: Key mapping preference.
     indicatorToolip: "Key mapping: {name}"

@@ -24,6 +24,7 @@ const HISTORY_SHORTCUTS: [RcCodeMirrorKeymap, string, 'undo' | 'redo', Only?][] 
 
 const SEARCH_PANEL_SHORTCUTS: [RcCodeMirrorKeymap, string, Only?][] = [
   ['default', 'Mod-f'],
+  ['sublime', 'Mod-f'],
   // Elsewhere Ctrl-F is Emacs forward-char
   ['emacs', 'Mod-f', 'macOS'],
   ['emacs', 'Ctrl-s'],
@@ -32,6 +33,7 @@ const SEARCH_PANEL_SHORTCUTS: [RcCodeMirrorKeymap, string, Only?][] = [
 const NO_SEARCH_PANEL_SHORTCUTS: [RcCodeMirrorKeymap, string, Only?][] = [
   ['default', 'Ctrl-s'],
   ['default', 'Ctrl-r'],
+  ['sublime', 'Ctrl-s'],
   ['emacs', 'Mod-f', 'other'],
   ['emacs', 'Ctrl-r'],
   ['vim', 'Mod-f'],
@@ -162,4 +164,77 @@ describe.each(PLATFORMS)('component: RcCodeMirror shortcuts on %s', (platform, n
 
     expect(wrapper.find('.cm-search').exists()).toBe(false);
   });
+
+  it('sublime keymap: selects the next occurrence with Mod-D', () => {
+    const view = mountEditor('sublime');
+
+    view.dispatch({
+      changes: {
+        from: 0, to: view.state.doc.length, insert: 'alpha alpha'
+      }
+    });
+    view.dispatch({ selection: { anchor: 1 } });
+    view.contentDOM.dispatchEvent(keyEvent('Mod-d', mac));
+    view.contentDOM.dispatchEvent(keyEvent('Mod-d', mac));
+
+    expect(view.state.selection.ranges.map(({ from, to }) => [from, to])).toStrictEqual([[0, 5], [6, 11]]);
+  });
+
+  it('sublime keymap: duplicates the line with Mod-Shift-D', () => {
+    const view = mountEditor('sublime');
+
+    view.dispatch({
+      changes: {
+        from: 0, to: view.state.doc.length, insert: 'alpha\nbeta'
+      }
+    });
+    view.contentDOM.dispatchEvent(keyEvent('Mod-Shift-d', mac));
+
+    expect(view.state.doc.toString()).toStrictEqual('alpha\nalpha\nbeta');
+  });
+
+  it('sublime keymap: selects the line with Mod-L', () => {
+    const view = mountEditor('sublime');
+
+    view.dispatch({
+      changes: {
+        from: 0, to: view.state.doc.length, insert: 'alpha\nbeta'
+      }
+    });
+    view.contentDOM.dispatchEvent(keyEvent('Mod-l', mac));
+
+    expect(view.state.sliceDoc(view.state.selection.main.from, view.state.selection.main.to)).toStrictEqual('alpha\n');
+  });
+
+  if (mac) {
+    it('sublime keymap: swaps lines with Ctrl-Cmd-Down', () => {
+      const view = mountEditor('sublime');
+
+      view.dispatch({
+        changes: {
+          from: 0, to: view.state.doc.length, insert: 'alpha\nbeta'
+        }
+      });
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'ArrowDown', code: 'ArrowDown', keyCode: 40, ctrlKey: true, metaKey: true, bubbles: true, cancelable: true
+      }));
+
+      expect(view.state.doc.toString()).toStrictEqual('beta\nalpha');
+    });
+  } else {
+    it('sublime keymap: swaps lines with Shift-Ctrl-Down', () => {
+      const view = mountEditor('sublime');
+
+      view.dispatch({
+        changes: {
+          from: 0, to: view.state.doc.length, insert: 'alpha\nbeta'
+        }
+      });
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'ArrowDown', code: 'ArrowDown', keyCode: 40, ctrlKey: true, shiftKey: true, bubbles: true, cancelable: true
+      }));
+
+      expect(view.state.doc.toString()).toStrictEqual('beta\nalpha');
+    });
+  }
 });

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * A code editor built on CodeMirror 6 with YAML and JSON support, swappable
- * keymaps (default, vim, emacs) and configurable code folding. Every prop can
+ * keymaps (default, sublime, vim, emacs) and configurable code folding. Every prop can
  * change after mount without rebuilding the editor.
  *
  * Example:
@@ -48,6 +48,7 @@ import {
   lineNumbers as cmLineNumbers
 } from '@codemirror/view';
 import { history } from '@codemirror/commands';
+import { searchPanelOpen } from '@codemirror/search';
 import {
   indentOnInput,
   syntaxHighlighting,
@@ -96,6 +97,7 @@ const container = ref<HTMLDivElement>();
 const bottomPanels = ref<HTMLDivElement>();
 const view = shallowRef<EditorView>();
 const isEditorFocused = ref(false);
+const isSearchPanelOpen = ref(false);
 const ESCAPE_HINT = 'Press Escape, then Tab to leave the editor';
 let initialState: EditorState | undefined;
 const escapeHint = computed(() => view.value?.state.phrase(ESCAPE_HINT) ?? ESCAPE_HINT);
@@ -104,7 +106,7 @@ const KEYMAP_NAMES: Partial<Record<RcCodeMirrorKeymap, string>> = { vim: 'Vim', 
 const isKeymapIndicatorDismissed = ref(false);
 const keymapName = computed(() => (props.keymap ? KEYMAP_NAMES[props.keymap] : undefined));
 // Waits for the view, whose phrases translate the indicator's text
-const showKeymapIndicator = computed(() => !!view.value && props.keymapIndicator && props.variant !== 'input' && !!keymapName.value && !isKeymapIndicatorDismissed.value);
+const showKeymapIndicator = computed(() => !!view.value && props.keymapIndicator && props.variant !== 'input' && !!keymapName.value && !isKeymapIndicatorDismissed.value && !isSearchPanelOpen.value);
 
 // `$` is replaced with the keymap name, so translations can place it anywhere
 function keymapPhrase(phrase: string): string {
@@ -266,6 +268,7 @@ onMounted(() => {
   }
 
   const updateListener = EditorView.updateListener.of((update) => {
+    isSearchPanelOpen.value = searchPanelOpen(update.state);
     if (update.docChanged) {
       const value = update.state.doc.toString();
 
@@ -672,16 +675,11 @@ defineExpose({ view });
 
   &.rc-code-mirror--editor :deep(.cm-editor.cm-focused) {
     outline: none;
+  }
 
-    &::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border: 2px solid var(--primary-keyboard-focus);
-      pointer-events: none;
-      // Above CodeMirror's panels (z-index 300), so the search panel does not cover the ring
-      z-index: 301;
-    }
+  &.rc-code-mirror--editor :deep(.cm-editor:has(.cm-content:focus) > .cm-scroller) {
+    outline: 2px solid var(--primary-keyboard-focus);
+    outline-offset: -2px;
   }
 
   &.rc-code-mirror--input :deep(.cm-editor) {
