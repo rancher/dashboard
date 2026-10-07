@@ -1,27 +1,18 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useStore } from 'vuex';
-
-const store = useStore();
-
-// The card is dark in both themes: the theme-dark class applies the dark theme variables to the card only.
-// The brand class keeps brand specific dark variables (e.g. `.suse.theme-dark`) working, like on the body
-const themeClasses = computed(() => ['theme-dark', store.getters['management/brand']].filter(Boolean));
+// The card looks the same in every theme and brand: theme-dark provides the base variables and
+// theme-suse-prime (shell/assets/styles/themes/_suse-prime.scss) applies the SUSE Rancher Prime colours on top
 </script>
 
 <template>
-  <section
-    class="prime-card"
-    :class="themeClasses"
-  >
+  <section class="prime-card theme-dark theme-suse-prime">
     <slot />
   </section>
 </template>
 
 <style lang="scss" scoped>
 .prime-card {
-  // SUSE pine, the only colour the themes don't have
-  --prime-card-bg: #0c322c;
+  // Sized for the call to action: 12px text on a 38px tall button
+  --rc-button-padding: 11px 32px;
 
   display: flex;
   flex-direction: column;
@@ -29,8 +20,8 @@ const themeClasses = computed(() => ['theme-dark', store.getters['management/bra
   gap: 14px;
   padding: 22px 24px;
   border-radius: 14px;
-  background: var(--prime-card-bg);
-  // The text colour is inherited from the body, so it has to be set again from the dark variables
+  background: var(--body-bg);
+  // The text colour is inherited from the body, so it has to be set again from the theme variables
   color: var(--body-text);
 
   :slotted(h3) {
@@ -41,11 +32,11 @@ const themeClasses = computed(() => ['theme-dark', store.getters['management/bra
     color: var(--body-text);
   }
 
-  // Not --muted, it doesn't have enough contrast on the pine background
   :slotted(p) {
     margin: 0;
     font-size: 14px;
     line-height: 22px;
+    color: var(--muted);
   }
 
   :slotted(a:not(.btn)) {

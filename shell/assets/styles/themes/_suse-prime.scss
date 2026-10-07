@@ -1,0 +1,37 @@
+// SUSE Rancher Prime marketing theme: pine surface, persimmon calls to action and jungle accents.
+//
+// Applied on top of `.theme-dark` on an element (e.g. `class="theme-dark theme-suse-prime"`), so the
+// element's subtree is re-themed whatever the user's theme or brand. It's imported after the other
+// themes, so it wins over `.theme-dark` at the same specificity.
+.theme-suse-prime {
+  $pine: #0C322C;
+  $jungle: #30BA78;
+  $persimmon: #FE7C3F;
+  $light-persimmon: #FF9F72;
+
+  --title-font-family: 'SUSE', 'Lato', sans-serif;
+  --border-radius: 0;
+
+  --body-bg: #{$pine};
+  --box-bg: #{$pine};
+  --body-text: #FFFFFF;
+  --muted: #{mix(#FFFFFF, $pine, 78%)};
+  --link: #{$jungle};
+  --success: #{$jungle};
+
+  --primary: #{$persimmon};
+  --primary-text: #{$pine};
+  --primary-hover: #{$light-persimmon};
+  --primary-hover-bg: #{$light-persimmon};
+  --primary-hover-text: #{$pine};
+  --primary-active-bg: #{$light-persimmon};
+  --primary-active-text: #{$pine};
+  --primary-border: #{$persimmon};
+  --primary-keyboard-focus: #FFFFFF;
+
+  --rc-active-border: #{$jungle};
+  --rc-inactive-border: #{$jungle};
+  --rc-inactive-background: transparent;
+
+  font-family: var(--title-font-family);
+}
