@@ -1,4 +1,6 @@
-import { mount } from '@vue/test-utils';
+import { defineComponent, onMounted, ref } from 'vue';
+import { flushPromises, mount } from '@vue/test-utils';
+import { useField, useForm } from 'vee-validate';
 import RcContentGroup from '@components/Layout/RcContentGroup/RcContentGroup.vue';
 import RcSection from './RcSection.vue';
 
@@ -242,7 +244,16 @@ describe('component: RcSection', () => {
         slots: { default: '<p>Content</p>' },
       });
 
-      expect(wrapper.find('.section-content').exists()).toBe(false);
+      expect(wrapper.find('.section-content').isVisible()).toBe(false);
+    });
+
+    it('should keep the content in the DOM when expanded is false', () => {
+      const wrapper = mount(RcSection, {
+        props: { ...defaultProps, expanded: false },
+        slots: { default: '<p>Content</p>' },
+      });
+
+      expect(wrapper.find('.section-content').exists()).toBe(true);
     });
 
     it('should apply expandable-content class when expandable is true', () => {
@@ -329,7 +340,7 @@ describe('component: RcSection', () => {
       expect(wrapper.find('.rc-content-group').exists()).toBe(false);
     });
 
-    it('should not render the default slot content when collapsed', () => {
+    it('should not show the default slot content when collapsed', () => {
       const wrapper = mount(RcSection, {
         props: {
           ...defaultProps, expandable: true, expanded: false
@@ -337,7 +348,7 @@ describe('component: RcSection', () => {
         slots: { default: '<p class="test-content">Content</p>' },
       });
 
-      expect(wrapper.find('.test-content').exists()).toBe(false);
+      expect(wrapper.find('.test-content').isVisible()).toBe(false);
     });
 
     it('should keep several content groups as siblings the section can space apart', () => {
@@ -365,6 +376,93 @@ describe('component: RcSection', () => {
       const wrapper = mount(RcSection, { props: { ...defaultProps, background: 'secondary' } });
 
       expect(wrapper.find('.counter').exists()).toBe(false);
+    });
+  });
+
+  describe('collapsed content validation (#18850)', () => {
+    const REQUIRED = 'Required';
+
+    // A field that registers with the surrounding vee-validate form on mount
+    // and unregisters on unmount, like the fields of a real form.
+    let mountCount = 0;
+
+    const RequiredField = defineComponent({
+      name: 'RequiredField',
+      setup() {
+        onMounted(() => {
+          mountCount++;
+        });
+        const { value } = useField<string>('name', (v: unknown) => (v ? true : REQUIRED));
+
+        return { value };
+      },
+      template: '<input class="required-field" v-model="value" />',
+    });
+
+    const mountForm = (expanded: boolean) => {
+      let form!: ReturnType<typeof useForm>;
+
+      const Host = defineComponent({
+        components: { RcSection, RequiredField },
+        setup() {
+          form = useForm();
+          const sectionExpanded = ref(expanded);
+
+          return { sectionExpanded };
+        },
+        template: `
+          <RcSection
+            v-model:expanded="sectionExpanded"
+            type="primary"
+            mode="with-header"
+            title="Network"
+            expandable
+          >
+            <RequiredField />
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      return { wrapper, form: () => form };
+    };
+
+    it('should keep a field inside a collapsed section registered with the form', async() => {
+      const { form } = mountForm(false);
+
+      await flushPromises();
+
+      expect(Object.keys(form().values)).toStrictEqual(['name']);
+    });
+
+    it('should report the form as invalid when an invalid field is inside a collapsed section', async() => {
+      const { form } = mountForm(false);
+
+      const result = await form().validate();
+
+      expect(result.valid).toBe(false);
+    });
+
+    it('should report the form as invalid after collapsing a section holding an invalid field', async() => {
+      const { wrapper, form } = mountForm(true);
+
+      await wrapper.find('.section-header').trigger('click');
+      await flushPromises();
+
+      const result = await form().validate();
+
+      expect({ collapsed: !wrapper.find('.section-content').isVisible(), errors: result.errors }).toStrictEqual({ collapsed: true, errors: { name: REQUIRED } });
+    });
+
+    it('should not remount the content when the section is collapsed and expanded again', async() => {
+      mountCount = 0;
+      const { wrapper } = mountForm(true);
+
+      await wrapper.find('.section-header').trigger('click');
+      await wrapper.find('.section-header').trigger('click');
+
+      expect(mountCount).toStrictEqual(1);
     });
   });
 });

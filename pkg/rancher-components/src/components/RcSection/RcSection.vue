@@ -184,8 +184,13 @@ function toggle() {
         </div>
       </div>
     </div>
+    <!--
+      v-show (not v-if) keeps collapsed content mounted, so form fields inside
+      it stay registered with their validation (e.g. vee-validate useField)
+      and keep reporting errors while the section is collapsed.
+    -->
     <div
-      v-if="expanded"
+      v-show="expanded"
       :class="contentClass"
     >
       <slot />
