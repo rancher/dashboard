@@ -100,8 +100,8 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
       installChartPage.nextPage().editYaml();
 
       // Both panes render with their distinct titles
-      installChartPage.defaultsPane().should('be.visible').and('contain.text', 'Chart defaults');
-      installChartPage.overridesPane().should('be.visible').and('contain.text', 'Your overrides');
+      installChartPage.defaultsPane().should('be.visible').and('contain.text', 'Chart values');
+      installChartPage.overridesPane().should('be.visible').and('contain.text', 'Your values');
 
       // An override typed into the overrides pane appears in the chart-defaults
       // pane (the defaults + overrides merge kept in sync via the watcher). Read
