@@ -994,6 +994,18 @@ describe('cruImported component', () => {
     it.each([
       ['cluster-agent-config-accordion'],
       ['fleet-agent-config-accordion'],
+    ])('should hide the tolerations and affinity groups in the %p section', (testId) => {
+      const wrapper = mountWith({});
+
+      const agentConfig = wrapper.find(`[data-testid="${ testId }"]`).findComponent({ name: 'RcAgentConfiguration' });
+
+      expect(agentConfig.props('showTolerations')).toBe(false);
+      expect(agentConfig.props('showAffinity')).toBe(false);
+    });
+
+    it.each([
+      ['cluster-agent-config-accordion'],
+      ['fleet-agent-config-accordion'],
     ])('should not render the %p section for the local cluster', (testId) => {
       const wrapper = mountWith({ isLocal: true });
 
@@ -1054,7 +1066,7 @@ describe('cruImported component', () => {
       expect(vm.normanCluster.clusterAgentDeploymentCustomization).toStrictEqual(existing);
     });
 
-    it('should remove empty values and auxiliary affinity props from the agent configurations before save', () => {
+    it('should remove empty values from the agent configurations before save, keeping an existing affinity with an empty namespaceSelector', () => {
       const wrapper = mountWithCluster({
         clusterAgentDeploymentCustomization: {
           appendTolerations:            [],
@@ -1062,14 +1074,8 @@ describe('cruImported component', () => {
           overrideResourceRequirements: { requests: { cpu: '100m', memory: '128Mi' }, limits: {} },
         },
         fleetAgentDeploymentCustomization: {
-          appendTolerations: [],
-          overrideAffinity:  {
-            podAffinity: {
-              requiredDuringSchedulingIgnoredDuringExecution: [{
-                _id: 'abc', topologyKey: 'zone', namespaceSelector: {}
-              }]
-            }
-          },
+          appendTolerations:            [],
+          overrideAffinity:             { podAffinity: { requiredDuringSchedulingIgnoredDuringExecution: [{ topologyKey: 'zone', namespaceSelector: {} }] } },
           overrideResourceRequirements: {},
         },
       });

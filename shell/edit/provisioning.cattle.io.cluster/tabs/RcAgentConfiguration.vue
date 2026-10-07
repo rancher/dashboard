@@ -22,7 +22,8 @@ const CUSTOM = 'custom';
  * customization) is an RcSection instead, and the pod/node affinity
  * sub-headings are nested RcSections.
  *
- * Used for both Cluster Agent and Fleet Agent configuration.
+ * Used for both Cluster Agent and Fleet Agent configuration. The tolerations
+ * and affinity groups can be hidden with `showTolerations`/`showAffinity`.
  */
 export default {
   name: 'RcAgentConfiguration',
@@ -75,6 +76,16 @@ export default {
     defaultPDB: {
       type:    Object,
       default: () => {},
+    },
+
+    showTolerations: {
+      type:    Boolean,
+      default: true
+    },
+
+    showAffinity: {
+      type:    Boolean,
+      default: true
     }
   },
 
@@ -235,18 +246,12 @@ export default {
 
 <template>
   <RcContentGroup>
-    <Banner
-      :closable="false"
-      color="info"
-      label-key="cluster.agentConfig.banners.advanced"
-      class="m-0"
-    />
-
     <RcSection
       :title="t('cluster.agentConfig.groups.podRequestsAndLimits')"
       mode="with-header"
       :type="SECTION_TYPE.SECONDARY"
       expandable
+      :expanded="false"
       data-testid="agent-config-requests-limits"
     >
       <Banner
@@ -264,10 +269,12 @@ export default {
     </RcSection>
 
     <RcSection
+      v-if="showTolerations"
       :title="t('cluster.agentConfig.groups.podTolerations')"
       mode="with-header"
       :type="SECTION_TYPE.SECONDARY"
       expandable
+      :expanded="false"
       data-testid="agent-config-tolerations"
     >
       <Banner
@@ -283,10 +290,12 @@ export default {
     </RcSection>
 
     <RcSection
+      v-if="showAffinity"
       :title="t('cluster.agentConfig.groups.podAffinity')"
       mode="with-header"
       :type="SECTION_TYPE.SECONDARY"
       expandable
+      :expanded="false"
       data-testid="agent-config-affinity"
     >
       <RadioGroup
@@ -312,6 +321,7 @@ export default {
           mode="with-header"
           :type="SECTION_TYPE.SECONDARY"
           expandable
+          :expanded="false"
         >
           <PodAffinity
             :value="value"
@@ -330,6 +340,7 @@ export default {
           mode="with-header"
           :type="SECTION_TYPE.SECONDARY"
           expandable
+          :expanded="false"
         >
           <NodeAffinity
             v-model:value="nodeAffinity"
@@ -348,6 +359,7 @@ export default {
       mode="with-header"
       :type="SECTION_TYPE.SECONDARY"
       expandable
+      :expanded="false"
       data-testid="agent-config-scheduling-customization"
     >
       <RcSchedulingCustomization
