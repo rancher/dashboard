@@ -32,6 +32,7 @@ import {
 } from '@components/RcDropdown';
 import { SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 import { CLUSTER_SHELL } from '@shell/store/features';
+import { openReleaseWelcome, releaseWelcomeVersion } from '@shell/utils/release-welcome';
 
 export default {
 
@@ -179,6 +180,11 @@ export default {
       const canSeeTokens = this.$store.getters['rancher/schemaFor'](NORMAN.TOKEN, false, false);
 
       return canSeeTokens && (this.isRancher || this.isSingleProduct);
+    },
+
+    // Reopens the welcome modal shown after each minor release, so not for builds without one (e.g. dev)
+    showWhatsNewLink() {
+      return this.isRancher && !this.isSingleProduct && !!releaseWelcomeVersion();
     },
 
     showPageActions() {
@@ -363,6 +369,10 @@ export default {
   },
 
   methods: {
+    openWhatsNew() {
+      openReleaseWelcome(this.$store.commit, this.$store.dispatch);
+    },
+
     showSloModal() {
       this.$store.dispatch('management/promptModal', {
         component:      'SloDialog',
@@ -822,6 +832,13 @@ export default {
               @click="$router.push({ name: 'account'})"
             >
               {{ t('nav.userMenu.accountAndKeys', {}, true) }}
+            </rc-dropdown-item>
+            <rc-dropdown-item
+              v-if="showWhatsNewLink"
+              data-testid="user-menu-whats-new"
+              @click="openWhatsNew"
+            >
+              {{ t('nav.userMenu.whatsNew', {}, true) }}
             </rc-dropdown-item>
             <rc-dropdown-item
               v-if="authEnabled && shouldShowSloLogoutModal"
