@@ -250,6 +250,7 @@
     "@tootallnate/once": "^2.0.1",
     "cookie": "0.7.2",
     "qs": "6.16.0",
-    "fast-xml-parser": "5.11.1"
+    "fast-xml-parser": "5.11.1",
+    "basic-ftp": "6.2.2"
   }
 }
