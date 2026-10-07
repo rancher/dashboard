@@ -621,25 +621,40 @@ export default {
 
     /**
      * The groupings this list brings beyond grouping by a column, offered in the toolbar's Group By.
-     * None while the list says it can't be grouped, as the old buttons were hidden then. A plain
-     * namespace option is left out: the namespace column already groups the same way
+     * None while the list says it can't be grouped, as the old buttons were hidden then. The plain
+     * namespace grouping stands in for the namespace column, as a paginated list's does: it groups by
+     * the resource's own namespace, which some lists' column doesn't show
      */
     tableGroupings() {
       if (!this.showGrouping) {
         return [];
       }
 
-      return this._groupOptions.filter((option) => option.value !== 'none' && (option.field || this.groupBy || option.value !== 'namespace'));
+      return this._groupOptions
+        .filter((option) => option.value !== 'none')
+        .map((option) => (option.value === DEFAULT_GROUP && !option.field && !option.hideColumn ? { ...option, hideColumn: NAMESPACE.name } : option));
     },
 
     /**
-     * The grouping a view starts with: one of the table's own groupings the list names as its
-     * default, eg machines by pool. Not the namespace every list falls back to, so most start flat
+     * The grouping a view starts with: the one the list started with before table views, for a user
+     * who had never picked one. The grouping preference held the namespace, so that, when the list
+     * offers it; else the list's own default, eg machines by pool; else its first. A list grouped by
+     * a field it is given, eg members by project, keeps that
      */
     defaultGroupBy() {
-      const grouping = this.groupDefault !== DEFAULT_GROUP && this.tableGroupings.find((option) => option.value === this.groupDefault);
+      if (!this.showGrouping) {
+        return null;
+      }
 
-      return grouping ? `${ TABLE_GROUPING_PREFIX }${ grouping.value }` : null;
+      const offered = (value) => this.tableGroupings.find((option) => option.value === value);
+      const first = this._groupOptions[0]?.value;
+      const start = offered(DEFAULT_GROUP) || offered(this.groupDefault) || (first && offered(first));
+
+      if (!start || (this.groupBy && !start.field)) {
+        return null;
+      }
+
+      return `${ TABLE_GROUPING_PREFIX }${ start.value }`;
     },
 
     _groupOptions() {
