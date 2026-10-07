@@ -16,7 +16,16 @@ export interface Props {
   resources?: any[];
   summaryData?: SummaryResult | null;
   showScaling?: boolean;
+  /**
+   * The number the scale buttons change, which is not always the number of resources shown.
+   */
+  scaleValue?: number;
   noResourcesMessage?: string;
+  /**
+   * Further clicks are ignored until the returned promise resolves.
+   */
+  onIncrease?: () => Promise<void> | void;
+  onDecrease?: () => Promise<void> | void;
 }
 </script>
 
@@ -28,9 +37,23 @@ const props = withDefaults(defineProps<Props>(), {
   resources:          undefined,
   summaryData:        undefined,
   showScaling:        false,
-  noResourcesMessage: undefined
+  scaleValue:         0,
+  noResourcesMessage: undefined,
+  onIncrease:         undefined,
+  onDecrease:         undefined
 });
-const emit = defineEmits(['decrease', 'increase']);
+
+let scaling = false;
+
+const scale = async(scaleFn?: () => Promise<void> | void) => {
+  if (scaling) {
+    return;
+  }
+
+  scaling = true;
+  await scaleFn?.();
+  scaling = false;
+};
 
 const summaryStateCounts = computed(() => {
   const summary = props.summaryData?.summary;
@@ -142,13 +165,16 @@ const rows = computed(() => {
       v-if="props.showScaling"
       #heading-action
     >
-      <Scaler
-        :ariaResourceName="i18n.t('component.resource.detail.card.podsCard.ariaResourceName')"
-        :value="count"
-        :min="0"
-        @increase="(newValue) => emit('increase', newValue)"
-        @decrease="(newValue) => emit('decrease', newValue)"
-      />
+      <div class="scale">
+        <span>{{ i18n.t('tableHeaders.scale') }}</span>
+        <Scaler
+          :ariaResourceName="i18n.t('component.resource.detail.card.podsCard.ariaResourceName')"
+          :value="props.scaleValue"
+          :min="0"
+          @increase="scale(props.onIncrease)"
+          @decrease="scale(props.onDecrease)"
+        />
+      </div>
     </template>
     <StatusBar
       v-if="rows.length > 0"
@@ -181,5 +207,11 @@ const rows = computed(() => {
 .pod-distribution {
     display: flex;
     flex-direction: column;
+}
+
+.scale {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 </style>

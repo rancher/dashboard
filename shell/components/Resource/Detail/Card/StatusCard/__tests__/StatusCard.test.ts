@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils';
+import { flushPromises, mount } from '@vue/test-utils';
 import StatusCard from '@shell/components/Resource/Detail/Card/StatusCard/index.vue';
 import StatusBar from '@shell/components/Resource/Detail/StatusBar.vue';
 import StatusRow from '@shell/components/Resource/Detail/StatusRow.vue';
@@ -97,6 +97,38 @@ describe('component: StatusCard', () => {
       const wrapper = mountCard({ resources, showScaling: true });
 
       expect(wrapper.findComponent(Scaler).exists()).toBe(true);
+    });
+
+    it('should label the Scaler when showScaling is true', () => {
+      const wrapper = mountCard({ showScaling: true });
+
+      expect(wrapper.find('.scale').text()).toContain('tableHeaders.scale');
+    });
+
+    it.each([
+      ['increase', 'onIncrease'],
+      ['decrease', 'onDecrease'],
+    ])('should call the %s handler when the Scaler emits it', async(event, prop) => {
+      const handler = jest.fn();
+      const wrapper = mountCard({ showScaling: true, [prop]: handler });
+
+      await wrapper.findComponent(Scaler).vm.$emit(event);
+
+      expect(handler).toHaveBeenCalledWith();
+    });
+
+    it.each([
+      ['ignore a second click while the scale handler is pending', () => new Promise<void>(() => {}), 1],
+      ['accept a second click once the scale handler resolves', () => Promise.resolve(), 2],
+    ])('should %s', async(_, result, calls) => {
+      const onIncrease = jest.fn(result);
+      const scaler = mountCard({ showScaling: true, onIncrease }).findComponent(Scaler);
+
+      await scaler.vm.$emit('increase');
+      await flushPromises();
+      await scaler.vm.$emit('increase');
+
+      expect(onIncrease).toHaveBeenCalledTimes(calls);
     });
 
     it('should not render Scaler when showScaling is false', () => {

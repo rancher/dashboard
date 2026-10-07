@@ -14,6 +14,8 @@ import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/State
 import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
 import { POD_SHELL } from '@shell/store/features';
 
+const StatusCard = markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue')));
+
 export const defaultContainer = {
   imagePullPolicy: 'Always',
   name:            'container-0',
@@ -175,18 +177,34 @@ export default class Workload extends WorkloadService {
     this.save();
   }
 
+  async _scaleTo(replicas, retryConflict = true) {
+    const previous = this.spec.replicas;
+
+    set(this.spec, 'replicas', replicas);
+
+    try {
+      await this.save();
+    } catch (err) {
+      if (err?._status === 409 && retryConflict) {
+        return this._scaleTo(replicas, false);
+      }
+
+      set(this.spec, 'replicas', previous);
+
+      throw err;
+    }
+  }
+
   async scaleDown() {
     const newScale = this.spec.replicas - 1;
 
     if (newScale >= 0) {
-      set(this.spec, 'replicas', newScale);
-      await this.save();
+      await this._scaleTo(newScale);
     }
   }
 
   async scaleUp() {
-    set(this.spec, 'replicas', this.spec.replicas + 1);
-    await this.save();
+    await this._scaleTo(this.spec.replicas + 1);
   }
 
   async scale(isUp) {
@@ -197,7 +215,7 @@ export default class Workload extends WorkloadService {
         await this.scaleDown();
       }
     } catch (err) {
-      this.$store.dispatch('growl/fromError', {
+      this.$dispatch('growl/fromError', {
         title: this.t('workload.list.errorCannotScale', { direction: isUp ? 'up' : 'down', workloadName: this.name }),
         err
       },
@@ -939,12 +957,13 @@ export default class Workload extends WorkloadService {
     }
 
     return {
-      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue'))),
+      component: StatusCard,
       props:     {
         title:              this.t('component.resource.detail.card.podsCard.title'),
         resources:          this.pods,
         summaryData,
         showScaling:        canScale,
+        scaleValue:         this.desired,
         onIncrease:         () => this.scale(true),
         onDecrease:         () => this.scale(false),
         noResourcesMessage: this.t('component.resource.detail.card.podsCard.noPods')
@@ -960,7 +979,7 @@ export default class Workload extends WorkloadService {
     }
 
     return {
-      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue'))),
+      component: StatusCard,
       props:     {
         title:       this.t('component.resource.detail.card.jobsCard.title'),
         resources:   this.jobs,
