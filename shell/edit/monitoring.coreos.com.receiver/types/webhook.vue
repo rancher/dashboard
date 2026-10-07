@@ -29,13 +29,17 @@ export default {
       required: true
     }
   },
-  data() {
-    this.value['http_config'] = this.value.http_config || {};
-    this.value['send_resolved'] = this.value.send_resolved || false;
-    const isDriverUrl = this.value.url === MS_TEAMS_URL || this.value.url === ALIBABA_CLOUD_SMS_URL;
+  computed: {
+    showNamespaceBanner() {
+      const isDriverUrl = this.value.url === MS_TEAMS_URL || this.value.url === ALIBABA_CLOUD_SMS_URL;
 
-    return { showNamespaceBanner: isDriverUrl && this.mode !== _VIEW };
-  }
+      return isDriverUrl && this.mode !== _VIEW;
+    }
+  },
+  created() {
+    this.value.http_config = this.value.http_config || {};
+    this.value.send_resolved = this.value.send_resolved || false;
+  },
 };
 </script>
 

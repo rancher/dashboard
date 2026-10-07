@@ -22,10 +22,8 @@ export default {
       required: true
     }
   },
-  data() {
+  created() {
     this.value.tls_config = this.value.tls_config || {};
-
-    return {};
   },
 };
 </script>
