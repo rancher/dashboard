@@ -110,4 +110,21 @@ export default class LabeledSelectPo extends ComponentPo {
         .next('.v-select')
     );
   }
+
+
+  /**
+   * Wait until the LabeledSelect is not loading
+   * The loading property is used when labeledselect contents depend on an async method, eg a dropdown of aws instance types fetched from an aws api
+   * @param timeout how long to wait for the loading spinner to disappear before throwing an error
+   * @returns
+   */
+  waitForLoading(timeout = 20000): Cypress.Chainable {
+    // data-testid lands on the inner v-select (LabeledSelect
+    // has inheritAttrs: false), but the loading spinner is a sibling of v-select under
+    // the outer .labeled-select wrapper, so we have to search from there instead
+    return this.self()
+      .closest('.labeled-select')
+      .find('.icon-spinner', { timeout })
+      .should('not.exist');
+  }
 }
