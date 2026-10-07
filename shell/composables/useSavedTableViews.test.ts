@@ -60,6 +60,14 @@ describe('useSavedTableViews', () => {
       expect(SAVED_VIEWS_VERSION).toBe(1);
     });
 
+    it('should keep the persistence id the preference holds', () => {
+      const { saved, writtenPref } = setup({ metadata: { version: SAVED_VIEWS_VERSION, persistenceId: 'k1' }, payload: {} });
+
+      saved.persist([view('a')]);
+
+      expect(writtenPref().metadata).toStrictEqual({ version: SAVED_VIEWS_VERSION, persistenceId: 'k1' });
+    });
+
     it('should read views written with a version', () => {
       const { saved } = setup({ metadata: { version: 1 }, payload: { pod: { views: [view('a')], defaultViewId: 'a' } } });
 

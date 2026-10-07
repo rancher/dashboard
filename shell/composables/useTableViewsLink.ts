@@ -5,10 +5,14 @@
 import { getCurrentInstance, onBeforeUnmount } from 'vue';
 import type { Router } from 'vue-router';
 import { useStore } from 'vuex';
+import type { Store } from 'vuex';
 
-import { TABLE_VIEWS_QUERY, TABLE_VIEWS_USER_QUERY } from '@shell/config/query-params';
+import { TABLE_STATE_QUERY, TABLE_STATE_KEY_QUERY } from '@shell/config/query-params';
+import { TABLE_VIEWS } from '@shell/store/prefs';
 import { encodeLinkedViews, sharedViewsIn } from '@shell/utils/table-views/link';
 import type { LinkedTableView } from '@shell/utils/table-views/link';
+import { randomStr } from '@shell/utils/string';
+import { persistenceIdOf, savedViewsByType, savedViewsPref } from '@shell/utils/table-views/views';
 
 /** Typing in the filter changes the view per key; the URL follows once it settles */
 const WRITE_DELAY = 300;
@@ -24,9 +28,28 @@ let unclaimed: { path: string, tables: Record<string, LinkedTableView> } | null 
 
 let router: Router | null = null;
 
-let me: string | null = null;
+let store: Store<unknown> | null = null;
 
 let writeTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** The user's persistence id, kept with their saved views, if they have one yet */
+const persistenceId = (): string | null => persistenceIdOf(store?.getters['prefs/get'](TABLE_VIEWS));
+
+/** Made the first time the user's tables have something to put in the URL, and kept from then on */
+function ensurePersistenceId(): string | null {
+  const existing = persistenceId();
+
+  if (existing || !store) {
+    return existing;
+  }
+
+  const id = randomStr(16);
+  const views = savedViewsByType(store.getters['prefs/get'](TABLE_VIEWS));
+
+  store.dispatch('prefs/set', { key: TABLE_VIEWS, value: savedViewsPref(views, id) });
+
+  return id;
+}
 
 function write() {
   const route = router?.currentRoute.value;
@@ -36,16 +59,17 @@ function write() {
   }
 
   const query = { ...route.query };
+  const key = shown.size ? ensurePersistenceId() : null;
 
-  if (shown.size && me) {
-    query[TABLE_VIEWS_QUERY] = encodeLinkedViews({ user: me, tables: Object.fromEntries(shown) });
-    query[TABLE_VIEWS_USER_QUERY] = me;
+  if (key) {
+    query[TABLE_STATE_QUERY] = encodeLinkedViews({ key, tables: Object.fromEntries(shown) });
+    query[TABLE_STATE_KEY_QUERY] = key;
   } else {
-    delete query[TABLE_VIEWS_QUERY];
-    delete query[TABLE_VIEWS_USER_QUERY];
+    delete query[TABLE_STATE_QUERY];
+    delete query[TABLE_STATE_KEY_QUERY];
   }
 
-  if (query[TABLE_VIEWS_QUERY] === route.query[TABLE_VIEWS_QUERY] && query[TABLE_VIEWS_USER_QUERY] === route.query[TABLE_VIEWS_USER_QUERY]) {
+  if (query[TABLE_STATE_QUERY] === route.query[TABLE_STATE_QUERY] && query[TABLE_STATE_KEY_QUERY] === route.query[TABLE_STATE_KEY_QUERY]) {
     return;
   }
 
@@ -61,10 +85,8 @@ function scheduleWrite() {
 
 /** `tableKey` is the table's key in the link - see linkedTableKey */
 export function useTableViewsLink(tableKey: () => string) {
-  const store = useStore();
-
+  store = useStore();
   router = getCurrentInstance()?.proxy?.$router || router;
-  me = store.getters['auth/user']?.id || null;
 
   let ownKey: string | null = null;
 
@@ -78,7 +100,7 @@ export function useTableViewsLink(tableKey: () => string) {
     }
 
     if (unclaimed?.path !== route.path) {
-      const tables = sharedViewsIn(route.query, me);
+      const tables = sharedViewsIn(route.query, persistenceId());
 
       unclaimed = tables ? { path: route.path, tables: { ...tables } } : null;
     }

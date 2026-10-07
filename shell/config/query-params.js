@@ -31,9 +31,9 @@ export const SORT_BY = 'sort';
 export const DESCENDING = 'desc';
 export const PAGE = 'page';
 
-// Table views: what each table on the page shows, encoded, and who it was showing for
-export const TABLE_VIEWS_QUERY = 'tableViews';
-export const TABLE_VIEWS_USER_QUERY = 'tableViewsUser';
+// Table views: what each table on the page shows, encoded, and the persistence id of the user it was showing for
+export const TABLE_STATE_QUERY = 'tableState';
+export const TABLE_STATE_KEY_QUERY = 'tableStateKey';
 
 // ResourceDetail/Yaml
 export const MODE = 'mode';
