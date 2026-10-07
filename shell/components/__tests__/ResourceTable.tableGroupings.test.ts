@@ -240,6 +240,14 @@ describe('ResourceTable', () => {
       expect(defaultGroupBy.call(table([NONE, NAMESPACE]))).toBe(`${ TABLE_GROUPING_PREFIX }namespace`);
     });
 
+    it('should start grouped by a paginated list\'s namespace grouping', () => {
+      const PAGINATED_NAMESPACE: GroupOption = {
+        value: 'metadata.namespace', field: 'metadata.namespace', hideColumn: 'namespace'
+      };
+
+      expect(defaultGroupBy.call(table([NONE, PAGINATED_NAMESPACE, NODE]))).toBe(`${ TABLE_GROUPING_PREFIX }metadata.namespace`);
+    });
+
     it('should start grouped by a namespace grouping of the list\'s own, eg projects, whatever it is given', () => {
       expect(defaultGroupBy.call(table([NONE, PROJECT]))).toBe(`${ TABLE_GROUPING_PREFIX }namespace`);
       expect(defaultGroupBy.call(table([NONE, PROJECT], { groupBy: 'groupById' }))).toBe(`${ TABLE_GROUPING_PREFIX }namespace`);
@@ -249,12 +257,13 @@ describe('ResourceTable', () => {
       expect(defaultGroupBy.call(table([NONE, POOL], { groupDefault: 'poolId' }))).toBe(`${ TABLE_GROUPING_PREFIX }poolId`);
     });
 
-    it('should start grouped by the list\'s first grouping when it offers neither', () => {
+    it('should start grouped by the first grouping the list offers when it offers neither, after none', () => {
       expect(defaultGroupBy.call(table([POOL, NODE], { groupDefault: 'other' }))).toBe(`${ TABLE_GROUPING_PREFIX }poolId`);
+      expect(defaultGroupBy.call(table([NONE, NODE]))).toBe(`${ TABLE_GROUPING_PREFIX }role`);
     });
 
     it.each([
-      ['a list whose first grouping is none, eg a paginated one', table([NONE, NODE])],
+      ['a list that offers no grouping', table([NONE])],
       ['a list that can\'t be grouped', table([NONE, NAMESPACE], { showGrouping: false })],
       ['a list grouped by a field it is given, which keeps it', table([NONE, NAMESPACE], { groupBy: 'projectId' })],
     ])('should start flat on %s', (_, ctx) => {
