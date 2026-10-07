@@ -18,10 +18,10 @@ const defaultProps: StatusSummaryCardProps = {
   segments: [{ color: 'error', percent: 33 }, { color: 'success', percent: 67 }],
   rows:     [
     {
-      label: 'Error', color: 'error', count: 1, to: errorRoute
+      key: 'error', label: 'Error', color: 'error', count: 1, to: errorRoute
     },
     {
-      label: 'Running', color: 'success', count: 2
+      key: 'running', label: 'Running', color: 'success', count: 2
     },
   ],
   to: listRoute,
@@ -91,6 +91,12 @@ describe('component: StatusSummaryCard', () => {
       expect(link.props('to')).toStrictEqual(errorRoute);
     });
 
+    it('should keep the row link inside the growing label, so the link is only as wide as its text', () => {
+      const wrapper = mountCard();
+
+      expect(wrapper.find('.status-row .label > .subtle-link').exists()).toStrictEqual(true);
+    });
+
     it('should render plain text for a row without a route', () => {
       const wrapper = mountCard();
 
@@ -140,7 +146,7 @@ describe('component: StatusSummaryCard', () => {
 
       await wrapper.find('.subtle-link').trigger('click');
 
-      expect(mockRouterPush).not.toHaveBeenCalledWith(listRoute);
+      expect(mockRouterPush).toHaveBeenCalledTimes(0);
     });
 
     it('should not open the card route while text is selected', async() => {
@@ -149,7 +155,7 @@ describe('component: StatusSummaryCard', () => {
 
       await wrapper.find('.body').trigger('click');
 
-      expect(mockRouterPush).not.toHaveBeenCalledWith(listRoute);
+      expect(mockRouterPush).toHaveBeenCalledTimes(0);
     });
 
     it('should be focusable when it has a route', () => {
@@ -169,7 +175,7 @@ describe('component: StatusSummaryCard', () => {
 
       await wrapper.find('.body').trigger('click');
 
-      expect(mockRouterPush).not.toHaveBeenCalledWith(expect.anything());
+      expect(mockRouterPush).toHaveBeenCalledTimes(0);
     });
 
     it('should not be focusable when it has no route', () => {

@@ -64,7 +64,7 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
     >
       <li
         v-for="row in rows"
-        :key="row.label"
+        :key="row.key"
         class="status-row"
       >
         <span
@@ -72,17 +72,15 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
           :style="{ backgroundColor: stateColorCssVar(row.color) }"
           aria-hidden="true"
         />
-        <SubtleLink
-          v-if="row.to"
-          :to="row.to"
-          class="label"
-        >
-          {{ row.label }}
-        </SubtleLink>
-        <span
-          v-else
-          class="label"
-        >{{ row.label }}</span>
+        <span class="label">
+          <SubtleLink
+            v-if="row.to"
+            :to="row.to"
+          >
+            {{ row.label }}
+          </SubtleLink>
+          <template v-else>{{ row.label }}</template>
+        </span>
         <RcCounterBadge
           :count="row.count"
           type="inactive"

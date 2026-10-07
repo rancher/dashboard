@@ -67,6 +67,7 @@ export function buildStatusSummaryCard({
       percent: ((count as number) / total) * 100,
     })) : [],
     rows: sorted.map((s) => ({
+      key:   s.name,
       label: stateDisplay(s.name, true),
       color: s.color,
       count: s.count,

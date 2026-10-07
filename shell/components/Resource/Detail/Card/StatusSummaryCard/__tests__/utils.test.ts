@@ -46,10 +46,10 @@ describe('utils: StatusSummaryCard', () => {
         segments: [{ color: 'error', percent: 25 }, { color: 'success', percent: 75 }],
         rows:     [
           {
-            label: 'Error', color: 'error', count: 1, to: stateRoute('error')
+            key: 'error', label: 'Error', color: 'error', count: 1, to: stateRoute('error')
           },
           {
-            label: 'Active', color: 'success', count: 3, to: stateRoute('active')
+            key: 'active', label: 'Active', color: 'success', count: 3, to: stateRoute('active')
           },
         ],
       });
@@ -114,6 +114,23 @@ describe('utils: StatusSummaryCard', () => {
       expect(card.rows.map((r) => r.label)).toStrictEqual(['Error', 'Active']);
     });
 
+    it('should key rows by state name, so states with the same label get different keys', () => {
+      const card = buildStatusSummaryCard({
+        key:    'k',
+        title:  'Title',
+        states: [
+          {
+            name: 'in-progress', count: 1, color: 'info'
+          },
+          {
+            name: 'In Progress', count: 1, color: 'info'
+          },
+        ],
+      });
+
+      expect(card.rows.map((r) => [r.key, r.label])).toStrictEqual([['in-progress', 'In Progress'], ['In Progress', 'In Progress']]);
+    });
+
     it('should group segments by color', () => {
       const card = buildStatusSummaryCard({
         key:    'node',
@@ -146,7 +163,7 @@ describe('utils: StatusSummaryCard', () => {
         total:    1,
         segments: [{ color: 'success', percent: 100 }],
         rows:     [{
-          label: 'Active', color: 'success', count: 1
+          key: 'active', label: 'Active', color: 'success', count: 1
         }],
       });
     });

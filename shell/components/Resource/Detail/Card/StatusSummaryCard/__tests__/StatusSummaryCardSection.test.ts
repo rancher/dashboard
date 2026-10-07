@@ -10,7 +10,7 @@ const cards: StatusSummaryCardItem[] = [
     total:    2,
     segments: [{ color: 'success', percent: 100 }],
     rows:     [{
-      label: 'Running', color: 'success', count: 2
+      key: 'running', label: 'Running', color: 'success', count: 2
     }],
     to: { name: 'deployments' },
   },

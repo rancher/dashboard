@@ -3,6 +3,8 @@ import type { StateColor } from '@shell/utils/style';
 
 /** One state's contribution to the card: a coloured indicator, a label and a count. */
 export interface StatusSummaryRow {
+  /** Unique within the card, usually the state id. Labels can repeat once formatted for display */
+  key: string;
   label: string;
   color: StateColor;
   count: number;
