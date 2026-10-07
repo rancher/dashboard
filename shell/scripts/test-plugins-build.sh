@@ -201,6 +201,12 @@ function clone_repo_test_extension_build() {
   git clone https://github.com/$REPO_ORG/$REPO_NAME.git
   pushd ${BASE_DIR}/$REPO_NAME
 
+  # yarn add has to write yarn.lock for the reinstall below. The extension inherits our .yarnrc
+  # (it is cloned inside this repo) and may have its own, and either can set --frozen-lockfile,
+  # which makes yarn add update package.json but not yarn.lock. Appended, so the extension's
+  # other settings are kept and this line wins
+  printf '\n--frozen-lockfile false\n' >> .yarnrc
+
   echo -e "\nInstalling dependencies for $REPO_NAME\n"
   yarn install --frozen-lockfile
 
@@ -215,6 +221,12 @@ function clone_repo_test_extension_build() {
 
   # installing new version of shell
   yarn add @rancher/shell@${SHELL_VERSION} -W 
+
+  # Build from a fresh install of the lockfile the add wrote, which is what the extension's own
+  # CI installs. yarn 1 links an add incrementally and can leave a package from the old tree
+  # without a dependency it still needs (a vue bump left @vue/compiler-core without entities@7)
+  rm -rf node_modules
+  yarn install --frozen-lockfile
 
   # test build-pkg
   FORCE_COLOR=true yarn build-pkg $PKG_NAME | cat
