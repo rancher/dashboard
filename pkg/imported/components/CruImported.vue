@@ -40,8 +40,6 @@ import { RcContentGroup } from '@components/Layout';
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
 const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
-// Auxiliary props used by the pod/node affinity components that shouldn't be sent to the server
-const AGENT_CONFIGURATION_AUX_KEYS = ['_namespaceOption', '_namespaces', '_anti', '_id'];
 
 /**
  * Whether any object key present in `original` is missing from `current` (recursing into nested objects, but not
@@ -523,10 +521,6 @@ export default defineComponent({
         delete model[key];
       } else if (v && typeof v === 'object') {
         Object.keys(v).forEach((k) => {
-          if (AGENT_CONFIGURATION_AUX_KEYS.includes(k)) {
-            delete v[k];
-          }
-
           // prevent cleanup of "namespaceSelector" when an empty object because it represents all namespaces in pod/node affinity
           // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#podaffinityterm-v1-core
           if (k !== 'namespaceSelector') {
@@ -774,13 +768,15 @@ export default defineComponent({
           mode="with-header"
           :type="SECTION_TYPE.SECONDARY"
           expandable
-          :expanded="false"
+          :expanded="true"
         >
           <RcAgentConfiguration
             v-model:value="normanCluster.clusterAgentDeploymentCustomization"
             data-testid="imported-cluster-agent-config"
             :type="AGENT_CONFIGURATION_TYPES.CLUSTER"
             :mode="mode"
+            :show-tolerations="false"
+            :show-affinity="false"
             :scheduling-customization-feature-enabled="schedulingCustomizationFeatureEnabled"
             :scheduling-customization-originally-enabled="schedulingCustomizationOriginallyEnabled"
             :default-p-c="clusterAgentDefaultPC"
@@ -795,13 +791,15 @@ export default defineComponent({
           mode="with-header"
           :type="SECTION_TYPE.SECONDARY"
           expandable
-          :expanded="false"
+          :expanded="true"
         >
           <RcAgentConfiguration
             v-model:value="normanCluster.fleetAgentDeploymentCustomization"
             data-testid="imported-fleet-agent-config"
             :type="AGENT_CONFIGURATION_TYPES.FLEET"
             :mode="mode"
+            :show-tolerations="false"
+            :show-affinity="false"
             :scheduling-customization-feature-enabled="schedulingCustomizationFeatureEnabled"
             :scheduling-customization-originally-enabled="schedulingCustomizationOriginallyEnabled"
             :default-p-c="fleetAgentDefaultPC"

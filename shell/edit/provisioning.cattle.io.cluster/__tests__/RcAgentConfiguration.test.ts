@@ -144,4 +144,42 @@ describe('component: RcAgentConfiguration', () => {
       '%cluster.agentConfig.subGroups.nodeAffinity%',
     ]));
   });
+
+  describe('section visibility flags', () => {
+    it.each([
+      [{ showTolerations: false }, ['%cluster.agentConfig.groups.podRequestsAndLimits%', '%cluster.agentConfig.groups.podAffinity%']],
+      [{ showAffinity: false }, ['%cluster.agentConfig.groups.podRequestsAndLimits%', '%cluster.agentConfig.groups.podTolerations%']],
+      [{ showTolerations: false, showAffinity: false }, ['%cluster.agentConfig.groups.podRequestsAndLimits%']],
+    ])('given props %p should only render sections %p', (props, expected) => {
+      const wrapper = mountComponent(props);
+
+      expect(sectionTitles(wrapper)).toStrictEqual(expected);
+    });
+
+    it('should not render the Tolerations component when showTolerations is false', () => {
+      const wrapper = mountComponent({ showTolerations: false });
+
+      expect(wrapper.find('[data-testid="agent-config-tolerations"]').exists()).toBe(false);
+      expect(wrapper.findComponent({ name: 'Tolerations' }).exists()).toBe(false);
+    });
+
+    it('should not render the affinity controls when showAffinity is false, even with custom affinity', () => {
+      const wrapper = mountComponent({
+        showAffinity: false,
+        value:        { overrideAffinity: { nodeAffinity: { requiredDuringSchedulingIgnoredDuringExecution: { nodeSelectorTerms: [] } } } }
+      });
+
+      expect(wrapper.find('[data-testid="agent-config-affinity"]').exists()).toBe(false);
+      expect(wrapper.findComponent({ name: 'PodAffinity' }).exists()).toBe(false);
+      expect(wrapper.findComponent({ name: 'NodeAffinity' }).exists()).toBe(false);
+    });
+
+    it('should keep the scheduling customization section when tolerations and affinity are hidden', () => {
+      const wrapper = mountComponent({
+        showTolerations: false, showAffinity: false, schedulingCustomizationFeatureEnabled: true
+      });
+
+      expect(wrapper.find('[data-testid="agent-config-scheduling-customization"]').exists()).toBe(true);
+    });
+  });
 });
