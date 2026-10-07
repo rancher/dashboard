@@ -231,6 +231,7 @@ export default {
       podTemplateSpec.securityContext = { seccompProfile: { type: 'RuntimeDefault' } };
     }
 
+    const hadAffinity = !!podTemplateSpec.affinity;
     let containers = podTemplateSpec.containers || [];
     let container;
 
@@ -295,6 +296,7 @@ export default {
       servicesToRemove:           [],
       portsForServices:           [],
       container,
+      hadAffinity,
       containerChange:            0,
       tabChange:                  0,
       savePvcHookName:            'savePvcHook',
@@ -973,7 +975,7 @@ export default {
 
       // The fields are being removed because they are not allowed to be editabble
       if (this.mode === _EDIT) {
-        if (template?.spec?.affinity && Object.keys(template?.spec?.affinity).length === 0) {
+        if (!this.hadAffinity && template?.spec?.affinity && Object.keys(template?.spec?.affinity).length === 0) {
           delete template.spec.affinity;
         }
 
