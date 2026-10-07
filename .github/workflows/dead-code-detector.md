@@ -55,11 +55,18 @@ sandbox:
 # the ANTHROPIC_API_KEY secret. An empty base URL leaves BYOK off. The
 # Anthropic fallback workflow dispatches this when a scheduled run fails inside
 # the Copilot step, which is where a spent Copilot quota surfaces (429).
+#
+# Setting COPILOT_PROVIDER_API_KEY at all makes gh-aw drop the Copilot token, so
+# it is passed back here for Copilot runs. On Anthropic the model is named
+# outright: gh-aw's default `auto` alias needs a model catalog, and the base URL
+# needs `/v1` for that catalog request to reach Anthropic's `/v1/models` at all.
+# The Copilot model falls back to what gh-aw would have picked on its own.
 engine:
   id: copilot
   env:
-    COPILOT_PROVIDER_BASE_URL: ${{ inputs.provider == 'anthropic' && 'https://api.anthropic.com' || '' }}
+    COPILOT_PROVIDER_BASE_URL: ${{ inputs.provider == 'anthropic' && 'https://api.anthropic.com/v1' || '' }}
     COPILOT_PROVIDER_TYPE: anthropic
+    COPILOT_MODEL: ${{ inputs.provider == 'anthropic' && 'claude-sonnet-5-5' || vars.GH_AW_MODEL_AGENT_COPILOT || vars.GH_AW_DEFAULT_MODEL_COPILOT || 'auto' }}
     COPILOT_GITHUB_TOKEN: ${{ inputs.provider == 'anthropic' && '' || github.token }}
     COPILOT_PROVIDER_API_KEY: ${{ inputs.provider == 'anthropic' && secrets.ANTHROPIC_API_KEY || '' }}
 
@@ -76,6 +83,14 @@ permissions:
   pull-requests: read
   copilot-requests: write
 safe-outputs:
+  # The threat-detection job inherits the engine env above, model included.
+  # `detection` is the small model gh-aw uses there by default, and the
+  # Anthropic alias resolution would not find it in Anthropic's catalog.
+  threat-detection:
+    engine:
+      id: copilot
+      env:
+        COPILOT_MODEL: ${{ inputs.provider == 'anthropic' && 'claude-haiku-4-5-20251001' || 'detection' }}
   create-issue:
     title-prefix: "[dead-code] "
     labels: [bot/dead-code-detector, bot/skip-grooming, kind/tech-debt]
