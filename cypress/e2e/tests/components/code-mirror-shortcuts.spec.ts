@@ -278,6 +278,15 @@ describe('CodeMirror Vim shortcuts', { tags: ['@components', '@adminUser', '@sta
     cy.setUserPreference({ keymap: 'sublime' });
   });
 
+  it('moves to the end of a line with $ before deleting a character', () => {
+    focusNormalModeAtStart('name: app');
+
+    cy.realPress('$');
+    cy.realPress('x');
+
+    editor().value().should('eq', 'name: ap');
+  });
+
   it('deletes a line with dd and restores it with u', () => {
     focusNormalModeAtStart('name: app\nreplicas: 2');
 
