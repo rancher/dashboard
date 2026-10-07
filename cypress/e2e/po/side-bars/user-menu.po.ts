@@ -74,24 +74,24 @@ export default class UserMenuPo extends ComponentPo {
    * @returns
    */
   getMenuItems(): Cypress.Chainable {
-    return this.userMenuContainer().find('[dropdown-menu-item]').should('be.visible').and('have.length', 3);
+    return this.userMenuContainer().find('[dropdown-menu-item]').should('be.visible').and('have.length', 4);
   }
 
   /**
-   * label: 'Preferences', 'Account & API Keys', or 'Log Out'
+   * label: 'Preferences', 'Account & API Keys', 'What\'s New' or 'Log Out'
    * @param label
    * @returns
    */
-  getMenuItem(label: 'Preferences' | 'Account & API Keys' | 'Log Out') {
+  getMenuItem(label: 'Preferences' | 'Account & API Keys' | 'What\'s New' | 'Log Out') {
     return this.ensureOpen().then(() => this.getMenuItems().contains(label));
   }
 
   /**
-   * label: 'Preferences', 'Account & API Keys', or 'Log Out'
+   * label: 'Preferences', 'Account & API Keys', 'What\'s New' or 'Log Out'
    * @param label
    * @returns
    */
-  clickMenuItem(label: 'Preferences' | 'Account & API Keys' | 'Log Out') {
+  clickMenuItem(label: 'Preferences' | 'Account & API Keys' | 'What\'s New' | 'Log Out') {
     this.getMenuItem(label).click();
 
     if (label === 'Log Out') {

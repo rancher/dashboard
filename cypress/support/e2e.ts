@@ -36,28 +36,28 @@ Cypress.on('uncaught:exception', (err, runnable) => {
 });
 
 /**
- * Admins are asked once whether to share usage data, in a dialog that covers the page under test.
- * Report it as already answered, unless a spec opts in with `Cypress.env('showShareUsageData', true)`.
+ * The welcome modal opens after login once per minor release and would cover the page under test.
+ * Report it as already read, unless a spec opts in with `Cypress.env('showReleaseWelcome', true)`.
  * Intercepts are cleared before every test, so register it for specs that log in within `before` too
  */
-const answerShareUsageData = () => {
+const hideReleaseWelcome = () => {
   cy.intercept('GET', '/v1/userpreferences*', (req) => {
-    if (Cypress.env('showShareUsageData')) {
+    if (Cypress.env('showReleaseWelcome')) {
       return;
     }
 
     req.continue((res) => {
       const prefs = res.body?.data?.[0]?.data;
 
-      if (prefs && !prefs['share-usage-data']) {
-        prefs['share-usage-data'] = '"dont-share"';
+      if (prefs) {
+        prefs['read-release-welcome'] = '"99.0"';
       }
     });
   });
 };
 
-before(answerShareUsageData);
-beforeEach(answerShareUsageData);
+before(hideReleaseWelcome);
+beforeEach(hideReleaseWelcome);
 
 require('cypress-terminal-report/src/installLogsCollector')({
   collectTypes:            ['cons:log', 'cons:info', 'cons:warn', 'cons:error', 'cy:log', 'cy:request', 'cy:xhr'],

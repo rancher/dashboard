@@ -40,7 +40,7 @@ import paginationUtils from '@shell/utils/pagination-utils';
 import { addReleaseNotesNotification } from '@shell/utils/release-notes';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { fetchAndProcessDynamicContent } from '@shell/utils/dynamic-content';
-import { askShareUsageDataIfNeeded } from '@shell/utils/share-usage-data';
+import { showReleaseWelcomeIfNew } from '@shell/utils/release-welcome';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -874,8 +874,8 @@ export const actions = {
 
       fetchAndProcessDynamicContent(dispatch, getters, this.$axios);
 
-      // Ask admins once whether to share anonymous usage data
-      askShareUsageDataIfNeeded(commit, getters);
+      // Welcome users to a new minor release, once
+      showReleaseWelcomeIfNew(commit, dispatch, getters);
     }
 
     if (systemNamespaces) {
