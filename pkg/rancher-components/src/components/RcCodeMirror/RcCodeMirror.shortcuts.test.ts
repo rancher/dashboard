@@ -15,6 +15,9 @@ const HISTORY_SHORTCUTS: [RcCodeMirrorKeymap, string, 'undo' | 'redo', Only?][] 
   ['default', 'Mod-z', 'undo'],
   ['default', 'Mod-Shift-z', 'redo'],
   ['default', 'Mod-y', 'redo'],
+  ['sublime', 'Mod-z', 'undo'],
+  ['sublime', 'Mod-Shift-z', 'redo'],
+  ['sublime', 'Mod-y', 'redo'],
   ['emacs', 'Mod-z', 'undo'],
   ['emacs', 'Mod-Shift-z', 'redo'],
   ['emacs', 'Ctrl-/', 'undo'],
@@ -24,6 +27,7 @@ const HISTORY_SHORTCUTS: [RcCodeMirrorKeymap, string, 'undo' | 'redo', Only?][] 
 
 const SEARCH_PANEL_SHORTCUTS: [RcCodeMirrorKeymap, string, Only?][] = [
   ['default', 'Mod-f'],
+  ['sublime', 'Mod-f'],
   // Elsewhere Ctrl-F is Emacs forward-char
   ['emacs', 'Mod-f', 'macOS'],
   ['emacs', 'Ctrl-s'],
@@ -32,6 +36,7 @@ const SEARCH_PANEL_SHORTCUTS: [RcCodeMirrorKeymap, string, Only?][] = [
 const NO_SEARCH_PANEL_SHORTCUTS: [RcCodeMirrorKeymap, string, Only?][] = [
   ['default', 'Ctrl-s'],
   ['default', 'Ctrl-r'],
+  ['sublime', 'Ctrl-s'],
   ['emacs', 'Mod-f', 'other'],
   ['emacs', 'Ctrl-r'],
   ['vim', 'Mod-f'],
@@ -105,6 +110,20 @@ describe.each(PLATFORMS)('component: RcCodeMirror shortcuts on %s', (platform, n
     return view;
   }
 
+  function mountYamlSublime(modelValue: string): EditorView {
+    wrapper = shallowMount(RcCodeMirror, {
+      props: {
+        keymap: 'sublime', language: 'yaml', modelValue
+      },
+      attachTo: document.body
+    }) as VueWrapper;
+    const view = (wrapper.vm as unknown as { view: EditorView }).view;
+
+    view.focus();
+
+    return view;
+  }
+
   it.each(HISTORY_SHORTCUTS
     .filter(([, , , only]) => runsHere(only))
     .map(([keymap, keys, action]) => [keymap, action, label(keys), keys] as const)
@@ -162,4 +181,139 @@ describe.each(PLATFORMS)('component: RcCodeMirror shortcuts on %s', (platform, n
 
     expect(wrapper.find('.cm-search').exists()).toBe(false);
   });
+
+  it('sublime keymap: selects the next occurrence with Mod-D', () => {
+    const view = mountEditor('sublime');
+
+    view.dispatch({
+      changes: {
+        from: 0, to: view.state.doc.length, insert: 'alpha alpha'
+      }
+    });
+    view.dispatch({ selection: { anchor: 1 } });
+    view.contentDOM.dispatchEvent(keyEvent('Mod-d', mac));
+    view.contentDOM.dispatchEvent(keyEvent('Mod-d', mac));
+
+    expect(view.state.selection.ranges.map(({ from, to }) => [from, to])).toStrictEqual([[0, 5], [6, 11]]);
+  });
+
+  it('sublime keymap: duplicates the line with Mod-Shift-D', () => {
+    const view = mountEditor('sublime');
+
+    view.dispatch({
+      changes: {
+        from: 0, to: view.state.doc.length, insert: 'alpha\nbeta'
+      }
+    });
+    view.contentDOM.dispatchEvent(keyEvent('Mod-Shift-d', mac));
+
+    expect(view.state.doc.toString()).toStrictEqual('alpha\nalpha\nbeta');
+  });
+
+  it('sublime keymap: selects the line with Mod-L', () => {
+    const view = mountEditor('sublime');
+
+    view.dispatch({
+      changes: {
+        from: 0, to: view.state.doc.length, insert: 'alpha\nbeta'
+      }
+    });
+    view.contentDOM.dispatchEvent(keyEvent('Mod-l', mac));
+
+    expect(view.state.sliceDoc(view.state.selection.main.from, view.state.selection.main.to)).toStrictEqual('alpha\n');
+  });
+
+  it('sublime keymap: toggles a YAML line comment with Mod-/', () => {
+    const view = mountYamlSublime('name: app');
+
+    view.contentDOM.dispatchEvent(keyEvent('Mod-/', mac));
+    expect(view.state.doc.toString()).toStrictEqual('# name: app');
+
+    view.contentDOM.dispatchEvent(keyEvent('Mod-/', mac));
+    expect(view.state.doc.toString()).toStrictEqual('name: app');
+  });
+
+  it('sublime keymap: decreases indentation with Shift-Tab', () => {
+    const view = mountYamlSublime('  name: app');
+
+    view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'Tab', code: 'Tab', keyCode: 9, shiftKey: true, bubbles: true, cancelable: true
+    }));
+
+    expect(view.state.doc.toString()).toStrictEqual('name: app');
+  });
+
+  it('sublime keymap: deletes one indentation unit with Backspace', () => {
+    const view = mountYamlSublime('    name: app');
+
+    view.dispatch({ selection: { anchor: 4 } });
+    view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'Backspace', code: 'Backspace', keyCode: 8, bubbles: true, cancelable: true
+    }));
+
+    expect(view.state.doc.toString()).toStrictEqual('  name: app');
+  });
+
+  it('sublime keymap: opens an indented line below with Mod-Enter', () => {
+    const view = mountYamlSublime('metadata:\n  name: app');
+
+    view.dispatch({ selection: { anchor: 15 } });
+    view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'Enter', code: 'Enter', keyCode: 13, ctrlKey: !mac, metaKey: mac, bubbles: true, cancelable: true
+    }));
+
+    expect(view.state.doc.toString()).toStrictEqual('metadata:\n  name: app\n  ');
+  });
+
+  if (mac) {
+    it('sublime keymap: swaps lines with Ctrl-Cmd-Down', () => {
+      const view = mountEditor('sublime');
+
+      view.dispatch({
+        changes: {
+          from: 0, to: view.state.doc.length, insert: 'alpha\nbeta'
+        }
+      });
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'ArrowDown', code: 'ArrowDown', keyCode: 40, ctrlKey: true, metaKey: true, bubbles: true, cancelable: true
+      }));
+
+      expect(view.state.doc.toString()).toStrictEqual('beta\nalpha');
+    });
+  } else {
+    it('sublime keymap: swaps lines with Shift-Ctrl-Down', () => {
+      const view = mountEditor('sublime');
+
+      view.dispatch({
+        changes: {
+          from: 0, to: view.state.doc.length, insert: 'alpha\nbeta'
+        }
+      });
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'ArrowDown', code: 'ArrowDown', keyCode: 40, ctrlKey: true, shiftKey: true, bubbles: true, cancelable: true
+      }));
+
+      expect(view.state.doc.toString()).toStrictEqual('beta\nalpha');
+    });
+  }
+});
+
+// These worked in Dashboard's CM5 Sublime editor but do not have an equivalent binding in RcCodeMirror yet.
+// The CM5 search, replace, and hard-wrap commands whose addons Dashboard did not load are excluded.
+describe('CM5 Sublime bindings pending parity', () => {
+  it.todo('Ctrl-Left/Right on Mac and Alt-Left/Right elsewhere move by subword, not syntax node');
+  it.todo('Ctrl-Alt-Up/Down on Mac and Ctrl-Up/Down elsewhere scroll by one line');
+  it.todo('Shift-Mod-L splits a multiline selection into one cursor per line');
+  it.todo('Shift-Mod-Space selects scope; Shift-Mod-M selects between brackets; Mod-M jumps to a bracket');
+  it.todo('Shift-Ctrl-K deletes a line on Mac and Ctrl-T transposes characters elsewhere');
+  it.todo('Shift-Mod-Enter inserts a line above the cursor');
+  it.todo('Shift-Ctrl-Up/Down adds a cursor on Mac as Ctrl-Alt-Up/Down does elsewhere');
+  it.todo('Mod-J joins lines');
+  it.todo('F5/F9 and their Shift and Mod variants sort lines in both directions and case modes');
+  it.todo('F2, Shift-F2, Mod-F2, Shift-Mod-F2, and Alt-F2 navigate and select bookmarks');
+  it.todo('Mod-K then D skips an occurrence, K deletes to line end, and Backspace deletes to line start');
+  it.todo('Mod-K then U/L changes case, Space/A/W/X/Y manipulates the mark, and C centers the cursor');
+  it.todo('Mod-K then 1/0/J folds or unfolds all, and Shift-Mod-[ or ] folds or unfolds at the cursor');
+  it.todo('Mod-F3, Shift-Mod-F3, and Alt-F3 find or select occurrences under the cursor');
+  it.todo('Ctrl-Up/Down on Mac moves to document start/end');
 });

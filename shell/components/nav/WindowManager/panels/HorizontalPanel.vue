@@ -3,9 +3,9 @@ import { PropType } from 'vue';
 import { RcButton } from '@components/RcButton';
 import { RcIcon } from '@components/RcIcon';
 import { BOTTOM } from '@shell/utils/position';
-import { Position } from '@shell/types/window-manager';
+import { Position, Tab } from '@shell/types/window-manager';
 import TabBodyContainer from './TabBodyContainer.vue';
-import { tabBodyId } from './tab-body';
+import { tabBodyId, tabId } from './tab-body';
 import usePanelHandler from '../composables/usePanelHandler';
 
 const props = defineProps({
@@ -49,11 +49,14 @@ const {
     <div
       v-if="isTabsHeaderEnabled"
       :class="['tabs', { 'tab-bar-highlight': dragOverTabBarActive }]"
-      role="tablist"
       @dragover="onTabBarDragOver"
       @dragleave="onTabBarDragLeave"
       @drop="onTabBarDrop"
     >
+      <div
+        role="tablist"
+        :aria-owns="tabs.map((tab: Tab) => tabId(props.position, tab.id)).join(' ')"
+      />
       <div
         v-for="(tab, i) in tabs"
         :key="i"
@@ -68,6 +71,7 @@ const {
         @dragend="onDragPositionEnd({ event: $event, tab })"
       >
         <div
+          :id="tabId(props.position, tab.id)"
           class="tab-title"
           role="tab"
           :aria-selected="tab.id === activeTab[props.position]"

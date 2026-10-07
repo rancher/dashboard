@@ -3,9 +3,9 @@ import { RIGHT, LEFT } from '@shell/utils/position';
 import { PropType } from 'vue';
 import { RcButton } from '@components/RcButton';
 import { RcIcon } from '@components/RcIcon';
-import { Position } from '@shell/types/window-manager';
+import { Position, Tab } from '@shell/types/window-manager';
 import TabBodyContainer from './TabBodyContainer.vue';
-import { tabBodyId } from './tab-body';
+import { tabBodyId, tabId } from './tab-body';
 import usePanelHandler from '../composables/usePanelHandler';
 
 const props = defineProps({
@@ -57,7 +57,6 @@ const {
           'resizer-left': props.position === LEFT,
         }
       ]"
-      role="tablist"
       @dragover="onTabBarDragOver"
       @dragleave="onTabBarDragLeave"
       @drop="onTabBarDrop"
@@ -80,6 +79,10 @@ const {
         />
       </div>
       <div
+        role="tablist"
+        :aria-owns="tabs.map((tab: Tab) => tabId(props.position, tab.id)).join(' ')"
+      />
+      <div
         v-for="(tab, i) in tabs"
         :key="i"
         class="tab"
@@ -93,6 +96,7 @@ const {
         @dragend="onDragPositionEnd({ event: $event, tab })"
       >
         <div
+          :id="tabId(props.position, tab.id)"
           class="tab-title"
           role="tab"
           :aria-selected="tab.id === activeTab[props.position]"

@@ -3,6 +3,7 @@ import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { foldable, foldedRanges, foldEffect, indentUnit } from '@codemirror/language';
 import { diagnosticCount, forceLinting, type LintSource } from '@codemirror/lint';
+import { closeSearchPanel, openSearchPanel } from '@codemirror/search';
 import { foldByLineMatch, foldMatchingLines } from './extensions/fold';
 import RcCodeMirror from './RcCodeMirror.vue';
 
@@ -688,6 +689,20 @@ describe('component: RcCodeMirror', () => {
 
       await wrapper.setProps({ keymap: 'vim' });
 
+      expect(wrapper.find(INDICATOR).exists()).toStrictEqual(true);
+    });
+
+    it.each(['vim', 'emacs'])('should hide the %s indicator while the search panel is open', async(keymap) => {
+      await mountRendered({ keymap, keymapIndicator: true });
+      const view = getView(wrapper);
+
+      expect(wrapper.find(INDICATOR).exists()).toStrictEqual(true);
+      openSearchPanel(view);
+      await wrapper.vm.$nextTick();
+      expect(wrapper.find(INDICATOR).exists()).toStrictEqual(false);
+
+      closeSearchPanel(view);
+      await wrapper.vm.$nextTick();
       expect(wrapper.find(INDICATOR).exists()).toStrictEqual(true);
     });
 
@@ -1660,7 +1675,7 @@ describe('component: RcCodeMirror', () => {
       mountEditor({
         modelValue: 'foo: bar',
         extensions: [EditorState.phrases.of({
-          Find: 'Rechercher', next: 'Suivant', 'Clear search': 'Effacer la recherche'
+          Find: 'Rechercher', next: 'Suivant', 'Clear search': 'Effacer la recherche', '$1 of $2': '$1 sur $2'
         })]
       });
       openSearch(getView(wrapper));
@@ -1669,9 +1684,10 @@ describe('component: RcCodeMirror', () => {
       expect({
         placeholder: wrapper.find('.cm-search input[name=search]').attributes('placeholder'),
         next:        wrapper.find('.cm-search button[name=next]').attributes('aria-label'),
-        clearLabel:  wrapper.find('.cm-search button[name=clear]').attributes('aria-label')
+        clearLabel:  wrapper.find('.cm-search button[name=clear]').attributes('aria-label'),
+        count:       wrapper.find('.cm-search-count').text()
       }).toStrictEqual({
-        placeholder: 'Rechercher', next: 'Suivant', clearLabel: 'Effacer la recherche'
+        placeholder: 'Rechercher', next: 'Suivant', clearLabel: 'Effacer la recherche', count: '1 sur 1'
       });
     });
   });

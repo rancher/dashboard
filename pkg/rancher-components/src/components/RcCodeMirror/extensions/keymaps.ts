@@ -2,17 +2,21 @@ import { countColumn, EditorSelection, Prec, type Extension } from '@codemirror/
 import { keymap, type EditorView, type KeyBinding } from '@codemirror/view';
 import {
   defaultKeymap,
+  copyLineUp,
   deleteCharBackward,
   historyKeymap,
   indentLess,
   indentMore,
   insertNewlineAndIndent,
+  moveLineDown,
+  moveLineUp,
+  selectLine,
   redo
 } from '@codemirror/commands';
 import { foldKeymap, getIndentUnit, indentString } from '@codemirror/language';
 import { closeBracketsKeymap } from '@codemirror/autocomplete';
 import {
-  closeSearchPanel, openSearchPanel, search, searchKeymap, searchPanelOpen
+  closeSearchPanel, openSearchPanel, search, searchKeymap, searchPanelOpen, selectNextOccurrence
 } from '@codemirror/search';
 import { emacs } from '../vendor/codemirror-emacs';
 import { getCM, Vim, vim } from '@replit/codemirror-vim';
@@ -62,6 +66,32 @@ function insertIndentUnit(view: EditorView): boolean {
 // The CodeMirror 5 Dashboard editor did not move lines with Alt-Up or Alt-Down.
 const dashboardDefaultKeymap = defaultKeymap.filter(({ key }) => key !== 'Alt-ArrowUp' && key !== 'Alt-ArrowDown');
 const emacsFallbackKeymap = dashboardDefaultKeymap.filter(({ key }) => key !== 'Mod-/');
+
+// Dashboard's `sublime` preference loaded CodeMirror 5's Sublime keymap. Keep its most-used
+// editing bindings on both platforms; the component's `default` keymap remains available.
+const sublimeKeymap: KeyBinding[] = [
+  {
+    key: 'Mod-d', run: selectNextOccurrence, preventDefault: true
+  },
+  {
+    key: 'Mod-Shift-d', run: copyLineUp, preventDefault: true
+  },
+  {
+    mac: 'Ctrl-Cmd-ArrowUp', run: moveLineUp, preventDefault: true
+  },
+  {
+    mac: 'Ctrl-Cmd-ArrowDown', run: moveLineDown, preventDefault: true
+  },
+  {
+    win: 'Shift-Ctrl-ArrowUp', linux: 'Shift-Ctrl-ArrowUp', run: moveLineUp, preventDefault: true
+  },
+  {
+    win: 'Shift-Ctrl-ArrowDown', linux: 'Shift-Ctrl-ArrowDown', run: moveLineDown, preventDefault: true
+  },
+  {
+    key: 'Mod-l', run: selectLine, preventDefault: true
+  },
+];
 
 // CodeMirror only renders the lines in view, so the browser's own find cannot reach the rest of a long document.
 // Mod-F toggles CodeMirror's search panel, with F3 and Mod-G for the next and previous match and Escape to
@@ -156,6 +186,7 @@ export function getKeymapExtension(mode?: RcCodeMirrorKeymap, variant?: RcCodeMi
         key: 'Tab', run: insertIndentUnit, shift: indentLess
       }] : []),
       ...(find ? findKeymap : []),
+      ...(mode === 'sublime' ? sublimeKeymap : []),
       ...closeBracketsKeymap,
       ...dashboardDefaultKeymap,
       ...historyKeymap,

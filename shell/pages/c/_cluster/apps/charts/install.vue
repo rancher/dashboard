@@ -9,6 +9,7 @@ import { Banner } from '@components/Banner';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import ChartReadme from '@shell/components/ChartReadme';
 import { Checkbox } from '@components/Form/Checkbox';
+import FailWhale from '@shell/components/FailWhale';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { LabeledTooltip } from '@components/LabeledTooltip';
@@ -89,6 +90,7 @@ export default {
     ButtonGroup,
     ChartReadme,
     Checkbox,
+    FailWhale,
     LabeledInput,
     LabeledSelect,
     LabeledTooltip,
@@ -114,6 +116,11 @@ export default {
 
   async fetch() {
     this.errors = [];
+
+    if (!this.canListApps) {
+      return;
+    }
+
     // IMPORTANT! Any exception thrown before this.value is set will result in an empty page
 
     /*
@@ -1714,6 +1721,10 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
+  <FailWhale
+    v-else-if="cannotListAppsError"
+    :error="cannotListAppsError"
+  />
   <div
     v-else
     class="install-steps"

@@ -36,7 +36,7 @@ export interface CodeMirrorOptions {
 
 // Maps the dashboard keymap preference to the keymaps supported by RcCodeMirror
 const KEYMAP_PREFS: Record<string, RcCodeMirrorKeymap> = {
-  sublime: 'default',
+  sublime: 'sublime',
   vim:     'vim',
   emacs:   'emacs',
 };
@@ -203,6 +203,8 @@ export default defineComponent({
         ['replace', 'codeMirror.search.replace'],
         ['replace all', 'codeMirror.search.replaceAll'],
         ['close', 'codeMirror.search.close'],
+        ['Clear search', 'codeMirror.search.clear'],
+        ['$1 of $2', 'codeMirror.search.count', { current: '$1', total: '$2' }],
         // RcCodeMirror replaces `$` with the keymap name
         ['Key mapping: $', 'codeMirror.keymap.indicatorToolip', { name: '$' }],
         ['Hide key mapping: $', 'codeMirror.keymap.hideIndicator', { name: '$' }],

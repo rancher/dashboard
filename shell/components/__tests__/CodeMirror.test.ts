@@ -115,7 +115,7 @@ describe('component: CodeMirror.vue', () => {
     });
 
     it.each([
-      ['sublime', 'default'],
+      ['sublime', 'sublime'],
       ['vim', 'vim'],
       ['emacs', 'emacs'],
     ])('should map keymap preference %p to keymap %p', (pref, keymap) => {
@@ -167,6 +167,8 @@ describe('component: CodeMirror.vue', () => {
       ['replace', '%codeMirror.search.replace%'],
       ['replace all', '%codeMirror.search.replaceAll%'],
       ['close', '%codeMirror.search.close%'],
+      ['Clear search', '%codeMirror.search.clear%'],
+      ['$1 of $2', '%codeMirror.search.count%'],
     ])('should translate the RcCodeMirror phrase %p', (phrase, translation) => {
       const extensions = createWrapper().findComponent(RcCodeMirror).props('extensions') as Extension[];
       const state = EditorState.create({ extensions });

@@ -240,6 +240,10 @@ export default {
           await this.applyHooks(AFTER_SAVE_HOOKS);
         }
 
+        if ( this.isCreate ) {
+          this.value.notifyGeneratedName?.();
+        }
+
         buttonDone(true);
         this.done();
       } catch (err) {

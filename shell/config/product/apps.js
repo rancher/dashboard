@@ -40,6 +40,8 @@ export function init(store) {
     name:       'charts',
     weight:     100,
     route:      { name: 'c-cluster-apps-charts' },
+    // The charts pages need to list installed apps to show their status
+    ifHaveType: [CATALOG.CLUSTER_REPO, CATALOG.APP],
   });
 
   weightType(CATALOG.APP, 99, true);

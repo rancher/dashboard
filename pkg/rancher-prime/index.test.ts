@@ -59,7 +59,7 @@ describe('extension: rancher-prime registration notification', () => {
   /**
    * Start the registration poll on login and return the controls of the pending initRegistration
    */
-  const login = async(store: any) => {
+  const login = async(store: any, canReadRegistration = true) => {
     let resolveInit: () => void = () => {};
     let rejectInit: (error: Error) => void = () => {};
     const initRegistration = jest.fn(() => new Promise<void>((resolve, reject) => {
@@ -70,7 +70,8 @@ describe('extension: rancher-prime registration notification', () => {
     jest.resetModules();
     jest.doMock('./pages/registration.composable', () => ({
       usePrimeRegistration: () => ({
-        registration: { value: { active: false } },
+        registration:        { value: { active: false } },
+        canReadRegistration: { value: canReadRegistration },
         initRegistration,
       })
     }));
@@ -114,6 +115,26 @@ describe('extension: rancher-prime registration notification', () => {
     await flushPromises();
 
     expect(store.dispatch).toHaveBeenCalledWith('notifications/add', expect.objectContaining({ id: REGISTRATION_NOTIFICATION_ID }));
+  });
+
+  it('should remove the notification given the user cannot read the registration', async() => {
+    const store = createStore();
+    const { resolveInit } = await login(store, false);
+
+    resolveInit();
+    await flushPromises();
+
+    expect(store.dispatch).toHaveBeenCalledWith('notifications/remove', REGISTRATION_NOTIFICATION_ID);
+  });
+
+  it('should not add the notification given the user cannot read the registration', async() => {
+    const store = createStore();
+    const { resolveInit } = await login(store, false);
+
+    resolveInit();
+    await flushPromises();
+
+    expect(store.dispatch).not.toHaveBeenCalledWith('notifications/add', expect.anything());
   });
 
   it('should not look up schemas when logged out while the registration is resolving', async() => {

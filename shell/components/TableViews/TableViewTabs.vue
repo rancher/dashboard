@@ -4,7 +4,7 @@
  * applied view lives in the `view` prop; the filter and View menu below are TableViewControls
  */
 import {
-  computed, nextTick, onBeforeUnmount, onMounted, ref, watch
+  computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch
 } from 'vue';
 import type { ComponentPublicInstance } from 'vue';
 import { useStore } from 'vuex';
@@ -244,6 +244,10 @@ const ownsTarget = (target: EventTarget | null) => {
 const tabWrap = (tab: Tab) => tabWraps.get(tabKey(tab));
 
 const tabButton = (tab: Tab) => tabButtons.get(tabKey(tab));
+
+const uid = useId();
+
+const tabElementId = (tab: Tab) => `${ uid }-${ tabKey(tab) }`;
 
 /** A component, so its element is one step down */
 const tabCaret = (tab: Tab) => {
@@ -837,6 +841,11 @@ onBeforeUnmount(() => {
     <!-- The rule belongs to the row, so it spans the width however far the tabs scroll -->
     <div class="view-tabs-row">
       <div
+        role="tablist"
+        :aria-label="t('tableViews.tabs.label')"
+        :aria-owns="tabs.map(tabElementId).join(' ')"
+      />
+      <div
         ref="tabStrip"
         class="view-tabs"
         @scroll="closeTabMenus"
@@ -847,8 +856,6 @@ onBeforeUnmount(() => {
           name="view-tab"
           class="view-tabs-list"
           :class="{ 'is-reordering': heldTabKey !== null }"
-          role="tablist"
-          :aria-label="t('tableViews.tabs.label')"
         >
           <div
             v-for="tab in tabs"
@@ -879,6 +886,7 @@ onBeforeUnmount(() => {
             >
             <button
               v-else
+              :id="tabElementId(tab)"
               :ref="(el) => keepRef(tabButtons, tab.id || 'all', el)"
               type="button"
               role="tab"

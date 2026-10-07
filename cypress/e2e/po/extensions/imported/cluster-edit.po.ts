@@ -5,6 +5,7 @@ import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.p
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
+import RcSectionPo from '@/cypress/e2e/po/components/rc-section.po';
 
 /**
  * Edit page for imported cluster
@@ -30,12 +31,15 @@ export default class ClusterManagerEditImportedPagePo extends PagePo {
     return new ACE();
   }
 
-  accordion(index: number, label: string) {
-    return this.self().find(`.accordion-container:nth-of-type(${ index })`).contains(label);
+  section(title: string): RcSectionPo {
+    return RcSectionPo.byTitle(() => this.self(), title);
   }
 
-  toggleAccordion(index: number, label: string) {
-    return this.accordion(index, label).click();
+  /**
+   * Titles of the page's top-level sections, in order
+   */
+  sectionTitles() {
+    return RcSectionPo.topLevelTitles(() => this.self());
   }
 
   versionManagementBanner() {

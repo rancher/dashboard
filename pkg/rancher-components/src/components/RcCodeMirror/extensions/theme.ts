@@ -125,7 +125,7 @@ const rancherSearchTheme = EditorView.theme({
   '.cm-panel.cm-search': {
     display:    'flex',
     alignItems: 'center',
-    padding:    '8px 0',
+    padding:    '8px 4px',
     fontSize:   '14px'
   },
   '.cm-search-field': {

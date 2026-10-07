@@ -7,13 +7,5 @@
     "totalFailed": 0,
     "totalSuites": 18
   },
-  "violations": [
-    {
-      "fingerprint": "dfcb29b8bfd5d9a1eb2a592f4ee24e366a7b2bc3edab16855663c6abb249b73c",
-      "where": "shell.spec.ts > Shell a11y testing > Logged in > Explorer > Header > Kubectl Shell",
-      "rule": "aria-required-children",
-      "impact": "critical",
-      "help": "Certain ARIA roles must contain particular children"
-    }
-  ]
+  "violations": []
 }
