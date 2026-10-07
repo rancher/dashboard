@@ -9756,6 +9756,15 @@ component:
           rows:
             conditions: Conditions
             events: Events
+        statusBreakdownCard:
+          ariaLabel:
+            count: '{count} {label}, {color}'
+          color:
+            error: Error
+            warning: Warning
+            info: Info
+            success: Success
+            disabled: Disabled
         extrasCard:
           title: Extras
           message: 'Consider installing additional <extensionsLink>extensions</extensionsLink> and / or <clusterToolsLink>cluster tools</clusterToolsLink> to enrich your Rancher experience.'

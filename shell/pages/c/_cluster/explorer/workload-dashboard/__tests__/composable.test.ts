@@ -470,7 +470,7 @@ describe('composable: useWorkloadDashboard', () => {
       const defaultCard = result.byNamespaceCards.value.find((c) => c.title === 'default');
 
       expect(defaultCard?.rows).toHaveLength(WORKLOAD_DASHBOARD_RESOURCE_TYPES.length);
-      expect(defaultCard?.rows.map((r) => r.type)).toStrictEqual(WORKLOAD_DASHBOARD_RESOURCE_TYPES);
+      expect(defaultCard?.rows.map((r) => r.key)).toStrictEqual(WORKLOAD_DASHBOARD_RESOURCE_TYPES);
       wrapper.unmount();
     });
 
@@ -525,7 +525,7 @@ describe('composable: useWorkloadDashboard', () => {
       wrapper.unmount();
     });
 
-    it('should include stateNames in each count entry for routing', async() => {
+    it('should link each count to the resource list filtered to the states of its color', async() => {
       const { wrapper, result } = mountComposable();
 
       await flushPromises();
@@ -534,8 +534,31 @@ describe('composable: useWorkloadDashboard', () => {
       const firstRow = defaultCard?.rows[0];
       const successCount = firstRow?.counts.find((c) => c.color === 'success');
 
-      expect(successCount?.stateNames).toContain('running');
-      expect(successCount?.count).toStrictEqual(5);
+      expect(successCount).toStrictEqual({
+        color: 'success', count: 5, to: result.resourceRoute(WORKLOAD_DASHBOARD_RESOURCE_TYPES[0], ['running'])
+      });
+      wrapper.unmount();
+    });
+
+    it('should link each row to the unfiltered resource list', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      const defaultCard = result.byNamespaceCards.value.find((c) => c.title === 'default');
+
+      expect(defaultCard?.rows[0].to).toStrictEqual(result.resourceRoute(WORKLOAD_DASHBOARD_RESOURCE_TYPES[0]));
+      wrapper.unmount();
+    });
+
+    it('should key each card by its namespace and make it selectable', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      const defaultCard = result.byNamespaceCards.value.find((c) => c.title === 'default');
+
+      expect([defaultCard?.key, defaultCard?.selectable]).toStrictEqual(['default', true]);
       wrapper.unmount();
     });
   });
@@ -552,53 +575,6 @@ describe('composable: useWorkloadDashboard', () => {
       expect(mockDispatch).toHaveBeenCalledWith('switchNamespaces', {
         ids: ['ns://cattle-system'],
         key: 'local',
-      });
-      wrapper.unmount();
-    });
-  });
-
-  describe('navigateToNamespace', () => {
-    it('should switch namespace filter and navigate to resource page', async() => {
-      const { wrapper, result } = mountComposable();
-
-      await flushPromises();
-      mockDispatch.mockClear();
-      mockRouterPush.mockClear();
-
-      result.navigateToNamespace('apps.deployment', 'cattle-system');
-
-      expect(mockDispatch).toHaveBeenCalledWith('switchNamespaces', {
-        ids: ['ns://cattle-system'],
-        key: 'local',
-      });
-      expect(mockRouterPush).toHaveBeenCalledWith({
-        name:   'c-cluster-product-resource',
-        params: {
-          cluster:  'local',
-          product:  'explorer',
-          resource: 'apps.deployment',
-        },
-      });
-      wrapper.unmount();
-    });
-
-    it('should include state filter query when stateNames are provided', async() => {
-      const { wrapper, result } = mountComposable();
-
-      await flushPromises();
-      mockDispatch.mockClear();
-      mockRouterPush.mockClear();
-
-      result.navigateToNamespace('apps.deployment', 'default', ['running', 'active']);
-
-      expect(mockRouterPush).toHaveBeenCalledWith({
-        name:   'c-cluster-product-resource',
-        params: {
-          cluster:  'local',
-          product:  'explorer',
-          resource: 'apps.deployment',
-        },
-        query: { stateFilter: 'running,active' },
       });
       wrapper.unmount();
     });

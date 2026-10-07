@@ -37,22 +37,6 @@ export interface WorkloadDashboardByStateLayout {
 
 export type WorkloadDashboardResourceRouteFn = (type: string, stateNames?: string[]) => RouteLocationRaw;
 
-export interface WorkloadDashboardByNamespaceCardRow {
-  label: string;
-  type: string;
-  counts: {
-    color: StateColor;
-    count: number;
-    stateNames: string[];
-  }[];
-}
-
-export interface WorkloadDashboardByNamespaceCard {
-  title: string;
-  rows: WorkloadDashboardByNamespaceCardRow[];
-}
-
-export type WorkloadDashboardNamespaceNavigateFn = (type: string, namespace: string, stateNames?: string[]) => void;
 export type WorkloadDashboardFilterByNamespaceFn = (namespace: string) => void;
 
 export const WORKLOAD_DASHBOARD_RESOURCE_TYPES: string[] = [

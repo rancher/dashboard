@@ -1,23 +1,27 @@
 <script setup lang="ts">
-import WorkloadNamespaceCard from './WorkloadNamespaceCard.vue';
-import type { WorkloadDashboardByNamespaceCard, WorkloadDashboardNamespaceNavigateFn, WorkloadDashboardFilterByNamespaceFn } from './types';
+import StatusBreakdownCard from '@shell/components/Resource/Detail/Card/StatusBreakdownCard/index.vue';
+import type { StatusBreakdownCardItem } from '@shell/components/Resource/Detail/Card/StatusBreakdownCard/types';
+import type { WorkloadDashboardFilterByNamespaceFn } from './types';
 
 defineProps<{
-  cards: WorkloadDashboardByNamespaceCard[];
-  navigateToNamespace: WorkloadDashboardNamespaceNavigateFn;
+  cards: StatusBreakdownCardItem[];
   filterByNamespace: WorkloadDashboardFilterByNamespaceFn;
 }>();
 </script>
 
 <template>
   <div class="card-grid">
-    <WorkloadNamespaceCard
+    <!-- Card links go to the workload lists. Each click also sets the namespace filter to the card's namespace -->
+    <StatusBreakdownCard
       v-for="card in cards"
-      :key="card.title"
+      :key="card.key"
       :title="card.title"
       :rows="card.rows"
-      :navigate-to-namespace="navigateToNamespace"
-      :filter-by-namespace="filterByNamespace"
+      :selectable="card.selectable"
+      data-testid="workload-dashboard-namespace-card"
+      @select="filterByNamespace(card.title)"
+      @select-row="filterByNamespace(card.title)"
+      @select-count="filterByNamespace(card.title)"
     />
   </div>
 </template>

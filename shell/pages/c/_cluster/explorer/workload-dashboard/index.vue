@@ -26,7 +26,6 @@ const {
   resetNamespaceFilter,
   filterByNamespace,
   resourceRoute,
-  navigateToNamespace,
 } = useWorkloadDashboard();
 </script>
 
@@ -131,7 +130,6 @@ const {
           </h4>
           <ByNamespaceSection
             :cards="byNamespaceCards"
-            :navigate-to-namespace="navigateToNamespace"
             :filter-by-namespace="filterByNamespace"
           />
         </div>

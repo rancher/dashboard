@@ -17,13 +17,13 @@ import {
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import type { StatusSummaryCardItem } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/types';
 import { buildStatusSummaryCard, compareStateColors } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/utils';
+import type { StatusBreakdownCardItem } from '@shell/components/Resource/Detail/Card/StatusBreakdownCard/types';
 import {
   WORKLOAD_DASHBOARD_RESOURCE_TYPES,
   type WorkloadDashboardSummaryEntry,
   type WorkloadDashboardEntry,
   type WorkloadDashboardStateCard,
   type WorkloadDashboardByStateLayout,
-  type WorkloadDashboardByNamespaceCard,
 } from './types';
 
 const WORKLOAD_DASHBOARD_ROUTE = 'c-cluster-explorer-workload-dashboard';
@@ -248,7 +248,7 @@ export function useWorkloadDashboard() {
 
   // ── By Namespace cards ──
 
-  const byNamespaceCards = computed<WorkloadDashboardByNamespaceCard[]>(() => {
+  const byNamespaceCards = computed<StatusBreakdownCardItem[]>(() => {
     // namespace -> type -> color -> { count, stateNames }
     const nsMap: Record<string, Record<string, Record<string, { count: number; stateNames: Set<string> }>>> = {};
 
@@ -292,17 +292,19 @@ export function useWorkloadDashboard() {
             const counts = Object.entries(typeMap[type])
               .sort(([a], [b]) => compareStateColors(a, b))
               .map(([color, { count, stateNames }]) => ({
-                color:      color as StateColor,
+                color: color as StateColor,
                 count,
-                stateNames: Array.from(stateNames),
+                to:    resourceRoute(type, Array.from(stateNames)),
               }));
 
             return {
-              label, type, counts
+              key: type, label, to: resourceRoute(type), counts
             };
           });
 
-        return { title: ns, rows };
+        return {
+          key: ns, title: ns, rows, selectable: true
+        };
       });
   });
 
@@ -337,11 +339,6 @@ export function useWorkloadDashboard() {
     }
 
     return loc;
-  }
-
-  function navigateToNamespace(type: string, namespace: string, stateNames?: string[]): void {
-    filterByNamespace(namespace);
-    router.push(resourceRoute(type, stateNames));
   }
 
   // ── Fetching & polling ──
@@ -496,6 +493,5 @@ export function useWorkloadDashboard() {
     resetNamespaceFilter,
     filterByNamespace,
     resourceRoute,
-    navigateToNamespace,
   };
 }
