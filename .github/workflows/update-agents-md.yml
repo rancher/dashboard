@@ -1,0 +1,48 @@
+name: Update AGENTS.md
+
+on:
+  pull_request:
+    paths:
+      - 'docs/agents.md/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-agents:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+
+      - name: Generate AGENTS.md
+        run: |
+          chmod +x ./scripts/generate-agent-and-persona-mds.sh
+          ./scripts/generate-agent-and-persona-mds.sh
+
+      - name: Commit and Push
+        id: commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          if [[ -n $(git status --porcelain AGENTS.md) ]]; then
+            git add AGENTS.md
+            git commit -m "Update AGENTS.md"
+            git push
+            echo "pushed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No changes to AGENTS.md"
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment on PR
+        if: steps.commit.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "Root AGENTS file has automatically been updated and automatically added to this PR"
