@@ -283,7 +283,6 @@ describe('Events', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, 
 
       // filter by namespace
       events.list().resourceTable().sortableTable().filter(nsName2);
-      events.waitForPage(`q=${ nsName2 }`);
       events.list().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
         .should('have.length.lte', 5);
       events.list().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
@@ -291,7 +290,6 @@ describe('Events', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, 
 
       // filter by name
       events.list().resourceTable().sortableTable().filter(uniquePod);
-      events.waitForPage(`q=${ uniquePod }`);
       events.list().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
         .should('have.length.lte', 5);
       events.list().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)

@@ -353,9 +353,15 @@ skipGeometric=true`;
       configMapListPage.list().resourceTable().sortableTable().rowElementWithName(cmNamesList[0])
         .should('be.visible');
 
-      // filter by namespace
+      // filter by namespace. Not a count: kube-root-ca.crt turns up in every namespace, soon after it's made
       configMapListPage.list().resourceTable().sortableTable().filter(nsName2);
-      configMapListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+      configMapListPage.list().resourceTable().sortableTable().rowElements()
+        .should(($rows) => {
+          expect($rows.length).to.be.greaterThan(0);
+          $rows.each((_, row) => {
+            expect(row.innerText).to.contain(nsName2);
+          });
+        });
       configMapListPage.list().resourceTable().sortableTable().rowElementWithName(uniqueConfigMap)
         .should('be.visible');
     });

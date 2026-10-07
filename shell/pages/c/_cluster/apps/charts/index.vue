@@ -2,6 +2,7 @@
 import { markRaw } from 'vue';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
+import FailWhale from '@shell/components/FailWhale';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, SORT_BY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
 } from '@shell/config/query-params';
@@ -44,6 +45,7 @@ export default {
   components: {
     AsyncButton,
     Banner,
+    FailWhale,
     RcItemCard,
     FilterPanel,
     AppChartCardSubHeader,
@@ -54,6 +56,10 @@ export default {
   },
 
   async fetch() {
+    if (this.cannotListAppsError) {
+      return;
+    }
+
     await this.$store.dispatch('catalog/load');
 
     const query = this.$route.query;
@@ -159,6 +165,10 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
+
+    cannotListAppsError() {
+      return this.$store.getters['cluster/canList'](CATALOG_TYPES.APP) ? null : new Error(this.t('catalog.charts.cannotListApps'));
+    },
 
     hideBannerPref() {
       return this.$store.getters['prefs/get'](HIDE_SUSE_APP_COLLECTION_REPO_BANNER);
@@ -586,7 +596,11 @@ export default {
 </script>
 
 <template>
-  <div>
+  <FailWhale
+    v-if="cannotListAppsError"
+    :error="cannotListAppsError"
+  />
+  <div v-else>
     <div class="header">
       <h1
         data-testid="charts-header-title"

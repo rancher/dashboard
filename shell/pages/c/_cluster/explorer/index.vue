@@ -129,6 +129,11 @@ export default {
     }
   },
 
+  /** The tables here are this cluster's own, not the type's list, so no saved view tabs */
+  provide() {
+    return { showTableViewTabs: false };
+  },
+
   data() {
     return {
       nodeHeaders,

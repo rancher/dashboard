@@ -31,6 +31,7 @@ import {
 } from '@/cypress/support/utils/timeouts';
 import HostedProvidersPagePo from '@/cypress/e2e/po/pages/cluster-manager/hosted-providers.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const createClusterTestName = (suffix: string) => `e2e-test-${ +new Date() }-create-${ suffix }`;
@@ -340,7 +341,8 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
         cy.deleteDownloadsFolder();
 
         ClusterManagerListPagePo.navTo();
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download YAML').click();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Export As...').click();
+        new ExportModalPo().download();
 
         const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
 
@@ -455,13 +457,12 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
         importClusterPage.waitForPage('mode=import&type=import&rkeType=rke2');
         cy.wait('@getUsers');
 
-        // check accordions are displayed or not
-        importClusterPage.accordion(2, 'Basics').should('be.visible');
-        importClusterPage.accordion(3, 'Member Roles').should('be.visible');
-        importClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
-        importClusterPage.accordion(5, 'Registries').scrollIntoView().should('be.visible');
-        importClusterPage.accordion(6, 'Advanced').scrollIntoView().should('be.visible');
-        importClusterPage.networkingAccordion().should('not.exist');
+        // check sections are displayed or not, and in the right order
+        const importSections = ['Basics', 'Member Roles', 'Labels & Annotations', 'Registries', 'Advanced'];
+
+        importClusterPage.sectionTitles().should('deep.equal', importSections);
+        importSections.forEach((title) => importClusterPage.section(title).self().scrollIntoView().should('be.visible'));
+        importClusterPage.section('Networking').self().should('not.exist');
 
         importClusterPage.nameNsDescription().name().checkVisible();
         importClusterPage.nameNsDescription().name().set(importGenericName);
@@ -513,7 +514,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
         clusterList.list().providerSubType(importGenericName).should('contain.text', 'K3s');
       }));
 
-      it('creation page should include a table of contents containing an entry for each Accordion on the page', () => {
+      it('creation page should include a table of contents containing an entry for each section on the page', () => {
         cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('getUsers');
 
         clusterList.goTo();
@@ -524,22 +525,21 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
         importClusterPage.selectGeneric(0);
         importClusterPage.waitForPage('mode=import&type=import&rkeType=rke2');
         cy.wait('@getUsers');
-        // verify that the table of contents is shown and contains the same number of entries as there are accordions on the page
-        cy.get('[data-testid="accordion-header"]')
-          .its('length')
-          .then((accordionHeaderCount) => {
-            cy.get('[data-testid^="toc-list-item-"]')
-              .should('have.length', accordionHeaderCount);
-          });
+        // verify that the table of contents is shown and has a top-level entry for each top-level section on the page
+        // (nested entries are `toc-list-item-<i>-<j>`, so only count `toc-list-item-<i>`)
+        importClusterPage.sectionTitles().then((titles) => {
+          cy.get('[data-testid^="toc-list-item-"]')
+            .filter((_, el) => /^toc-list-item-\d+$/.test(el.getAttribute('data-testid') || ''))
+            .should('have.length', titles.length);
+        });
 
-        // verify that clicking an accordion label in the table of contents scrolls the page to the associated accordion and opens it
-        cy.get('[data-testid="toc-list-item-3"] button').click();
+        // verify that clicking a section title in the table of contents scrolls the page to the associated section and opens it
+        cy.contains('[data-testid^="toc-list-item-"] button', 'Registries').click();
 
         cy.window().its('scrollY').should('be.greaterThan', 0);
 
-        cy.get('[data-testid="registries-accordion"]')
-          .find('[data-testid="accordion-body"]')
-          .should('be.visible');
+        importClusterPage.section('Registries').checkExpanded();
+        importClusterPage.section('Registries').content().should('be.visible');
       });
 
       qase(6978, it('can edit imported cluster and see changes afterwards', () => {
@@ -555,13 +555,11 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
           editImportedClusterPage.nameNsDescription().name().value().should('eq', importGenericName);
           cy.wait('@pageLoad');
 
-          // check accordions are properly displayed
-          editImportedClusterPage.accordion(2, 'K3S Options').should('be.visible');
-          editImportedClusterPage.accordion(3, 'Member Roles').should('be.visible');
-          editImportedClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
-          editImportedClusterPage.accordion(5, 'Networking').scrollIntoView().should('be.visible');
-          editImportedClusterPage.accordion(6, 'Registries').scrollIntoView().should('be.visible');
-          editImportedClusterPage.accordion(7, 'Advanced').scrollIntoView().should('be.visible');
+          // check sections are properly displayed, and in the right order
+          const editSections = ['K3S Options', 'Member Roles', 'Labels & Annotations', 'Networking', 'Registries', 'Advanced'];
+
+          editImportedClusterPage.sectionTitles().should('deep.equal', editSections);
+          editSections.forEach((title) => editImportedClusterPage.section(title).self().scrollIntoView().should('be.visible'));
 
           // Issue #10432: Edit Cluster screen falsely gives impression imported cluster's name and description can be edited
           editImportedClusterPage.nameNsDescription().name().expectToBeDisabled();
@@ -573,12 +571,12 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
           editImportedClusterPage.versionManagementBanner().should('exist').and('be.visible');
           editImportedClusterPage.defaultVersionManagement();
 
-          editImportedClusterPage.toggleAccordion(5, 'Networking');
+          editImportedClusterPage.section('Networking').expand();
           editImportedClusterPage.ace().enable();
           editImportedClusterPage.ace().enterFdqn(fqdn);
           editImportedClusterPage.ace().enterCaCerts(cacert);
 
-          editImportedClusterPage.toggleAccordion(6, 'Registries');
+          editImportedClusterPage.section('Registries').expand();
           editImportedClusterPage.enablePrivateRegistryCheckbox();
           editImportedClusterPage.privateRegistry().set(privateRegistry);
 
@@ -642,7 +640,6 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
 
       clusterList.waitForPage();
       clusterList.list().resourceTable().sortableTable().filter('local', 100);
-      clusterList.waitForPage('q=local');
       clusterList.goToDetailsPage('local', '.cluster-link a');
       clusterDetail.waitForPage();
     });
@@ -666,7 +663,8 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
 
       clusterDetail.waitForPage(undefined, 'node-pools');
       clusterDetail.poolsList('node').details('machine-', 2).should('be.visible');
-      clusterDetail.poolsList('node').downloadYamlButton().should('be.disabled');
+      // Nothing is selected, so there are no bulk actions to take
+      clusterDetail.poolsList('node').resourceTable().sortableTable().checkNoSelectionActions();
     }));
 
     qase(12219, it(`Show Configuration allows to edit config and view yaml for local cluster`, () => {
@@ -708,13 +706,13 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
       cy.wait('@pageLoad');
       editLocalClusterPage.nameNsDescription().name().value().should('eq', 'local' );
 
-      // check accordions are properly displayed
-      editLocalClusterPage.accordion(2, 'K3S Options').should('be.visible'); // for K3S local cluster its K3S Options
-      editLocalClusterPage.accordion(3, 'Member Roles').scrollIntoView().should('be.visible');
-      editLocalClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
-      editLocalClusterPage.accordion(5, 'Networking').should('not.exist');
-      editLocalClusterPage.accordion(5, 'Registries').scrollIntoView().should('be.visible');
-      editLocalClusterPage.accordion(6, 'Advanced').scrollIntoView().should('be.visible');
+      // check sections are properly displayed, and in the right order
+      // for K3S local cluster its K3S Options
+      const localSections = ['K3S Options', 'Member Roles', 'Labels & Annotations', 'Registries', 'Advanced'];
+
+      editLocalClusterPage.sectionTitles().should('deep.equal', localSections);
+      localSections.forEach((title) => editLocalClusterPage.section(title).self().scrollIntoView().should('be.visible'));
+      editLocalClusterPage.section('Networking').self().should('not.exist');
 
       // Issue #13614: Imported Cluster Version Mgmt: Conditionally show warning message
       editLocalClusterPage.versionManagementBanner().should('not.exist');
@@ -748,7 +746,8 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
     clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
       .click();
     clusterList.list().openBulkActionDropdown();
-    clusterList.list().bulkActionButton('Download YAML').click({ force: true });
+    clusterList.list().bulkActionButton('Export As...').click({ force: true });
+    new ExportModalPo().download();
     const downloadedFilename = path.join(downloadsFolder, `local.yaml`);
 
     cy.readFile(downloadedFilename).then((buffer) => {
@@ -783,7 +782,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
     // The bulk action bar only lays its buttons out once the selection has registered
     clusterList.list().resourceTable().sortableTable().selectedCountText()
       .should('be.visible')
-      .and('contain', '1 selected');
+      .and(($el) => expect($el.text().toLowerCase()).to.contain('1 selected'));
     cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
     clusterList.list().downloadKubeConfig().should('be.visible')
       .and('not.be.disabled')

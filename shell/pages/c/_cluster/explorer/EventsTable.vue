@@ -7,7 +7,8 @@ import { STEVE_EVENT_FIRST_SEEN, STEVE_EVENT_LAST_SEEN, STEVE_EVENT_OBJECT, STEV
 import { headerFromSchemaColString } from '@shell/store/type-map.utils';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { ROWS_PER_PAGE } from '@shell/store/prefs';
-import { RcDropdown, RcDropdownTrigger, RcDropdownItem } from '@components/RcDropdown';
+import EventsTableLink from './EventsTableLink';
+import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
 
 const reason = {
   ...REASON,
@@ -39,12 +40,7 @@ const ROWS_PREF_USE_TABLE = -1;
 const ROWS_COUNT_DEFAULT = 10;
 
 export default {
-  components: {
-    PaginatedResourceTable,
-    RcDropdown,
-    RcDropdownItem,
-    RcDropdownTrigger
-  },
+  components: { PaginatedResourceTable, EventsTableLink },
 
   data() {
     const tableRowOptions = this.$store.getters['prefs/options'](ROWS_PER_PAGE);
@@ -102,6 +98,10 @@ export default {
   },
 
   computed: {
+    configurableTables() {
+      return isConfigurableTablesEnabled(this.$store);
+    },
+
     userPrefRowsPerPage() {
       return parseInt(this.$store.getters['prefs/get'](ROWS_PER_PAGE), 10) || undefined;
     },
@@ -145,65 +145,52 @@ export default {
 </script>
 
 <template>
-  <PaginatedResourceTable
-    v-if="!!schema"
-    :schema="schema"
-    :headers="eventHeaders"
-    :pagination-headers="paginationHeaders"
-
-    key-field="id"
-    :search="false"
-    :table-actions="false"
-    :row-actions="false"
-    :groupable="false"
-    :rows-per-page="rowsPerPage"
-  >
-    <template v-slot:header-right>
-      <router-link
-        data-testid="events-link"
+  <div>
+    <!-- Above the table when it has a toolbar, in its header row when it doesn't -->
+    <div
+      v-if="!!schema && configurableTables"
+      class="events-table-link-row"
+    >
+      <EventsTableLink
+        :rows-per-page="rowsPerPage"
         :to="allEventsLink"
-        class="events-link"
+        :options="rowOptions"
+        @update:rows-per-page="updateRowsCount"
+      />
+    </div>
+    <PaginatedResourceTable
+      v-if="!!schema"
+      :schema="schema"
+      :headers="eventHeaders"
+      :pagination-headers="paginationHeaders"
+
+      key-field="id"
+      :search="false"
+      :table-actions="false"
+      :row-actions="false"
+      :groupable="false"
+      :rows-per-page="rowsPerPage"
+    >
+      <template
+        v-if="!configurableTables"
+        #header-right
       >
-        <span>{{ t('glance.eventsTable') }}</span>
-      </router-link>
-      <rc-dropdown>
-        <rc-dropdown-trigger
-          data-testid="events-list-row-count-menu-toggle"
-          :aria-label="t('glance.changeEventsListRowCount')"
-          variant="ghost"
-          size="small"
-        >
-          <i class="icon icon-gear" />
-        </rc-dropdown-trigger>
-        <template #dropdownCollection>
-          <rc-dropdown-item
-            v-for="(item, i) in rowOptions"
-            :key="i"
-            :value="item.value"
-            @click.stop="updateRowsCount(item.value)"
-          >
-            <span :class="{ 'selected-pagesize-option': rowsPerPage === item.value }">
-              {{ item.label }}
-            </span>
-          </rc-dropdown-item>
-        </template>
-      </rc-dropdown>
-    </template>
-  </PaginatedResourceTable>
+        <EventsTableLink
+          :rows-per-page="rowsPerPage"
+          :to="allEventsLink"
+          :options="rowOptions"
+          @update:rows-per-page="updateRowsCount"
+        />
+      </template>
+    </PaginatedResourceTable>
+  </div>
 </template>
 
 <style lang="scss" scoped>
-.icon.icon-gear {
-  color: var(--primary);
-  padding: 0 8px;
-}
-.events-link {
-  align-self: center;
-  margin-right: 10px;
-  white-space: nowrap;
-}
-
-.selected-pagesize-option {
-  font-weight: bold;
+.events-table-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 20px;
 }
 </style>

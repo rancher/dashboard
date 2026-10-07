@@ -9,6 +9,7 @@ import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { ociSecretCreateRequest } from '@/cypress/e2e/blueprints/explorer/storage/secret';
 import { qase } from '@/cypress/support/qase';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 const defaultWorkspace = 'fleet-default';
 const workspaceNameList: string[] = [];
@@ -483,8 +484,9 @@ describe('Workspaces', { testIsolation: false, tags: ['@fleet', '@adminUser'] },
       fleetWorkspacesListPage.waitForPage();
       fleetWorkspacesListPage.list().resourceTable().sortableTable()
         .noRowsShouldNotExist();
-      fleetWorkspacesListPage.list().actionMenu(customWorkspace).getMenuItem('Download YAML')
+      fleetWorkspacesListPage.list().actionMenu(customWorkspace).getMenuItem('Export As...')
         .click();
+      new ExportModalPo().download();
 
       const downloadedFilename = path.join(downloadsFolder, `${ customWorkspace }.yaml`);
 

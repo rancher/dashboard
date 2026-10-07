@@ -161,7 +161,6 @@ describe('CustomResourceDefinitions', { testIsolation: false, tags: ['@explorer'
 
       // filter by name
       crdsPage.sortableTable().filter(crdName);
-      crdsPage.waitForPage(`q=${ crdName }`);
       crdsPage.sortableTable().rowElementWithPartialName(crdName)
         .should('have.length.lte', 1);
       crdsPage.sortableTable().rowElementWithPartialName(crdName).should('be.visible');
@@ -176,7 +175,6 @@ describe('CustomResourceDefinitions', { testIsolation: false, tags: ['@explorer'
       crdsPage.sortableTable().checkVisible();
       crdsPage.sortableTable().checkNoRowsNotVisible();
       crdsPage.sortableTable().filter(filter);
-      crdsPage.waitForPage(`q=${ filter }`);
 
       // Wait for the filter to apply (vai on -- http request -- populate results)
       // This is brittle, we should wait for the response for the page to be received

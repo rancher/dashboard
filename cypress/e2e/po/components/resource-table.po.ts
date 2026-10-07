@@ -7,7 +7,7 @@ export default class ResourceTablePo extends ComponentPo {
   }
 
   downloadYamlButton() {
-    return cy.getId('sortable-table-download');
+    return this.sortableTable().bulkAction('download');
   }
 
   snapshotNowButton() {

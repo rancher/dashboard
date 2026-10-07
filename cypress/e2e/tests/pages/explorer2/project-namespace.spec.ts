@@ -14,8 +14,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
   });
 
   qase(1524, it('flat list view should have create Namespace button', () => {
-    projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(0)
-      .click();
+    projectsNamespacesPage.list().resourceTable().sortableTable().groupBy('None');
     projectsNamespacesPage.createNamespaceButton().should('exist');
     projectsNamespacesPage.baseResourceList().masthead().actions().contains('Create Project')
       .should('exist');
@@ -229,8 +228,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
 
     qase(18580, it('should show all projects with same name when filtering in Group by Project view', () => {
       // Switch to Group by Project view
-      projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(1)
-        .click();
+      projectsNamespacesPage.list().resourceTable().sortableTable().groupBy('Project');
 
       // Filter by the project name
       projectsNamespacesPage.list().resourceTable().sortableTable()
@@ -252,8 +250,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
 
     qase(18581, it('should show projects without namespaces when filtering in Group by Project view', () => {
       // Switch to Group by Project view
-      projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(1)
-        .click();
+      projectsNamespacesPage.list().resourceTable().sortableTable().groupBy('Project');
 
       // Filter by the project name
       projectsNamespacesPage.list().resourceTable().sortableTable()
@@ -267,8 +264,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
 
     qase(18582, it('should show projects with namespaces when filtering in flat list view', () => {
       // Switch to flat list view
-      projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(0)
-        .click();
+      projectsNamespacesPage.list().resourceTable().sortableTable().groupBy('None');
 
       // Filter by the project name
       projectsNamespacesPage.list().resourceTable().sortableTable()

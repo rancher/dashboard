@@ -25,8 +25,8 @@ export default {
       const map = {};
 
       for ( const obj of this.pagedRows ) {
-        const key = get(obj, groupKey) || '';
-        const ref = get(obj, refKey);
+        const key = (typeof groupKey === 'function' ? groupKey(obj) : get(obj, groupKey)) || '';
+        const ref = typeof refKey === 'function' ? refKey(obj) : get(obj, refKey);
         let entry = map[key];
 
         if ( entry ) {

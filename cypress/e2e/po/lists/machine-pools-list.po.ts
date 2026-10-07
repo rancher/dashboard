@@ -1,15 +1,10 @@
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
-import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import TooltipPo from '@/cypress/e2e/po/components/tooltip.po';
 import { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 export default class MachinePoolsListPo extends BaseResourceList {
   details(name: string, index: number) {
     return this.resourceTable().sortableTable().rowWithPartialName(name).column(index);
-  }
-
-  downloadYamlButton() {
-    return new ResourceTablePo(this.self()).downloadYamlButton();
   }
 
   machinePoolReadyofDesiredCount(poolName: string, count: number | RegExp, options?: GetOptions) {

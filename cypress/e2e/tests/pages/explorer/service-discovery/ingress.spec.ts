@@ -398,8 +398,7 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
       cy.wait('@ingressesDataSmall');
 
       // group by namespace
-      ingressListPagePo.list().resourceTable().sortableTable().groupByButtons(1)
-        .click();
+      ingressListPagePo.list().resourceTable().sortableTable().groupBy('Namespace');
 
       // Grouping moves the Namespace column out of the header row and into the group headers, but
       // the table only re-renders once the click has been applied. Reading the headers straight
@@ -416,7 +415,7 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
         .should('exist');
 
       //  check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Target', 'Default', 'Ingress Class', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Target', 'Default', 'Ingress Class', 'Age'];
 
       ingressListPagePo.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')

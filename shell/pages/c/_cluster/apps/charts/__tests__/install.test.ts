@@ -1,6 +1,7 @@
 
 import { mount } from '@vue/test-utils';
 import Install from '@shell/pages/c/_cluster/apps/charts/install.vue';
+import FailWhale from '@shell/components/FailWhale.vue';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 const defaultStubs = {
@@ -21,6 +22,7 @@ const defaultStubs = {
   ChartReadme:         true,
   ButtonGroup:         true,
   PrivateRegistry:     true,
+  FailWhale:           true,
 };
 
 const defaultGetters = {
@@ -32,6 +34,7 @@ const defaultGetters = {
   'type-map/hasCustomChart': () => false,
   'cluster/all':             () => [],
   'cluster/byId':            () => null,
+  'cluster/canList':         () => true,
   'management/all':          () => [],
   'prefs/get':               () => {},
   'catalog/charts':          [],
@@ -107,6 +110,28 @@ describe('page: Install', () => {
 
     expect(wrapper.vm.forceNamespace).toBe('custom-ns');
     expect(wrapper.vm.value.metadata.name).toBe('custom-name');
+  });
+
+  describe('when the user cannot list apps', () => {
+    it('should show the error instead of the install form', () => {
+      const wrapper = mountInstall({ getters: { 'cluster/canList': () => false } });
+      const failWhale = wrapper.findComponent(FailWhale);
+
+      expect(failWhale.exists()).toBe(true);
+      expect(failWhale.props('error')).toStrictEqual(new Error('catalog.charts.cannotListApps'));
+      expect(wrapper.find('.install-steps').exists()).toBe(false);
+    });
+
+    it('should not fetch the chart', async() => {
+      const wrapper = mountInstall({ getters: { 'cluster/canList': () => false } });
+      const fetchChart = jest.spyOn((wrapper.vm as any), 'fetchChart').mockImplementation().mockResolvedValue(undefined);
+      const fetchAutoInstallInfo = jest.spyOn((wrapper.vm as any), 'fetchAutoInstallInfo').mockImplementation().mockResolvedValue(undefined);
+
+      await Install.fetch.call(wrapper.vm);
+
+      expect(fetchChart).not.toHaveBeenCalledWith();
+      expect(fetchAutoInstallInfo).not.toHaveBeenCalledWith();
+    });
   });
 
   describe('cancel()', () => {
@@ -534,6 +559,7 @@ describe('page: Install', () => {
           'prefs/get':               () => {},
           'management/all':          () => [],
           'cluster/all':             () => [],
+          'cluster/canList':         () => true,
           'cluster/byId':            (type: string, id: string) => {
             if (type === 'catalog.cattle.io.app') {
               return installedApps.find((app) => app.id === id);

@@ -8,6 +8,9 @@ import {
   WORKLOAD_HEALTH_SCALE,
   MGMT_CLUSTER_PROVIDER,
   MGMT_CLUSTER_KUBE_VERSION,
+  MGMT_CLUSTER_CPU,
+  MGMT_CLUSTER_MEMORY,
+  MGMT_CLUSTER_PODS,
   AUTOSCALER_ENABLED
 } from '@shell/config/table-headers';
 
@@ -121,6 +124,12 @@ export const STEVE_MGMT_CLUSTER_KUBE_VERSION = {
   sort:   'status.info.kubernetesVersion',
   search: 'status.info.kubernetesVersion',
 };
+
+export const STEVE_MGMT_CLUSTER_CPU = { ...MGMT_CLUSTER_CPU };
+
+export const STEVE_MGMT_CLUSTER_MEMORY = { ...MGMT_CLUSTER_MEMORY };
+
+export const STEVE_MGMT_CLUSTER_PODS = { ...MGMT_CLUSTER_PODS };
 
 export const STEVE_AUTOSCALER_ENABLED = {
   ...AUTOSCALER_ENABLED,

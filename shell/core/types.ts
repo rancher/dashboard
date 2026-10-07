@@ -212,6 +212,12 @@ export interface HeaderOptions {
   name?: string;
 
   /**
+   * `false` for a column that isn't data, eg a button: table views leaves it out of Columns, Group
+   * By, the query and exports
+   */
+  tableViews?: boolean;
+
+  /**
    * A string that will show in the table column as a header
    */
   label?: string;
@@ -235,7 +241,7 @@ export interface HeaderOptions {
 
   /**
    * A string which represents the path to access the value from the row object which we'll use to search i.e. `row.meta.value`.
-   * It can be false to disable searching on this field
+   * A column can name more than one path, as `sort` can. It can be false to disable searching on this field
    */
   search?: string | boolean | string[];
 

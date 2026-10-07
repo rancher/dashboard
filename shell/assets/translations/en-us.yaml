@@ -743,6 +743,7 @@ authConfig:
     cert: Certificate
     disabledStatusBitmask: Disabled Status Bitmask
     groupDNAttribute: Group DN Attribute
+    groupIDAttribute: Group Identifier Attribute
     groupMemberMappingAttribute: Group Member Mapping Attribute
     groupMemberUserAttribute: Group Member User Attribute
     groupSearchBase:
@@ -752,6 +753,10 @@ authConfig:
       label: Hostname/IP
       placeholder: eg server1,server2
       hint: Multiple servers can be specified as a comma separated list
+    idAttribute:
+      tip: Attribute whose value identifies the user or group in Rancher instead of its Distinguished Name, so that moving or renaming the entry in the directory keeps its permissions. Leave empty to use the Distinguished Name.
+      locked: Cannot be changed while the provider is enabled. Disable the provider to change it.
+      samlTip: Attribute whose value matches what the identity provider sends in the UID Field for users or the Groups Field for groups, so that search results match logged-in principals. Leave empty to use the Login Attribute for users and the Group DN Attribute for groups.
     loginAttribute: Login Attribute
     nameAttribute: Name Attribute
     nestedGroupMembership:
@@ -785,6 +790,7 @@ authConfig:
       tip: When enabled, Rancher will use the service account instead of the user account to search for users and groups.
     tls: TLS
     userEnabledAttribute: User Enabled Attribute
+    userIDAttribute: User Identifier Attribute
     userMemberAttribute: User Member Attribute
     userLoginFilter: User Login Filter
     userSearchBase:
@@ -1330,6 +1336,7 @@ catalog:
     windowsIncompatible: Linux only
     versionWindowsIncompatible: Linux only version
     header: Charts
+    cannotListApps: You do not have permission to list installed apps, which is required to view charts
     noCharts:
       title: No charts to show
       message: '<b>Tips:</b> undo the last filter you applied or <resetAllFilters>clear all filters</resetAllFilters>, and ensure you have the right <repositoriesUrl>repositories</repositoriesUrl> in place.'
@@ -3007,10 +3014,29 @@ copyToClipboard:
   error: Error Copying
 
 codeMirror:
+  # Shown by CodeMirror 5 editors in extensions built with an older shell
   escapeText: Press Shift+Escape to blur from editor
+  leaveEditor: Press Escape, then Tab to leave the editor
+  foldLine: Fold line
+  unfoldLine: Unfold line
+  search:
+    find: Find
+    next: Next
+    previous: Previous
+    all: Select all
+    matchCase: Match case
+    regexp: Regular expression
+    byWord: Whole word
+    replaceField: Replace
+    replace: Replace
+    replaceAll: Replace all
+    close: Close search
+    clear: Clear search
+    count: "{current} of {total}"
   keymap:
     tooltip: Key mapping preference.
     indicatorToolip: "Key mapping: {name}"
+    hideIndicator: "Hide key mapping: {name}"
 
 cruResource:
   backToForm: Back to Form
@@ -7252,6 +7278,127 @@ storageClass:
       placeholder: Storage class name on the host [[Harvester]] cluster
       tooltip: By default the default storage class on the host [[Harvester]] cluster is used.
 
+tableViews:
+  tabs:
+    all: Explorer
+    label: Saved views
+    newView: Add View
+    count: "{name} ({count})"
+  view:
+    label: View
+    unsaved: You have unsaved changes...
+    unsavedShort: Unsaved changes
+    discard: Discard Changes
+    saveChanges: Save Changes
+    saveAsNew: Save Changes to New View
+    groupBy: Group By
+    columnsConfiguration: Columns Configuration
+    columnsDefault: Default
+    columnsCount: "{shown} / {total}"
+    reset: Reset to Default
+  tab:
+    menu: View options
+    rename: Rename View
+    duplicate: Duplicate View
+    copySuffix: (copy)
+    delete: Delete View
+    setDefault: Set as Default View
+    newViewName: Untitled
+    deleted: View Deleted
+    deletedMessage: The "{name}" view has been successfully deleted.
+    undo: Undo
+  bulk:
+    selected: "{count} Selected"
+    deleteSelected: Delete Selected
+  query:
+    fields:
+      pinned: Pinned
+      clusterId: Cluster ID
+    placeholder: 'Filter across all columns or only specific ones (e.g. state:error)'
+    clear: Clear filter
+    inUse: "{count} in use"
+    label: Label
+    suggestions: Filter suggestions
+    suggestionsAvailable: |-
+      {count, plural,
+      one {1 suggestion available}
+      other {{count} suggestions available}
+      }
+    connective:
+      and: Both must match
+      or: Either can match
+      not: Leave these out
+    # What the toolbar says about a query it cannot read as written. Nothing here stops the query
+    # running - the table filters by as much of it as it can.
+    problem:
+      emptyValue: '<b>{label}</b> has no value to match.'
+      trailingOperator: 'The query ends with <b>{text}</b>.'
+      leadingJoiner: '<b>{text}</b> has nothing before it to join.'
+      consecutiveOperators: '<b>{text}</b> follows another operator.'
+      danglingNegation: '<b>{text}</b> on its own negates nothing.'
+      unbalancedQuote: 'A quote is opened and never closed.'
+      noTerms: 'There is nothing to filter by.'
+    # Shown when part of a query names something this list cannot be filtered by on the server
+    unsupported: |-
+      {count, plural,
+      one {<b>{fields}</b> cannot be filtered on this list, so that part of the query was ignored.}
+      other {<b>{fields}</b> cannot be filtered on this list, so those parts of the query were ignored.}
+      }
+  columns:
+    selectAll: Select All Columns
+    reset: Reset to Default
+    locked: This column cannot be hidden
+    reorder: Drag to reorder
+    moveKeys: '{modifier}+Up Arrow or {modifier}+Down Arrow moves it'
+    moved: '{label} moved to position {position} of {total}'
+    allShown: 'All {count} columns shown'
+    resetDone: Columns reset to the default
+  group:
+    none: None
+    resetDone: 'Grouping reset to {label}'
+    empty: (none)
+    # A list's own groupings, as the Group By menu names them
+    by:
+      namespace: Namespace
+      project: Project
+      node: Node
+      role: Role
+      cluster: Cluster
+      device: Device
+      pool: Pool
+      workspace: Workspace
+      type: Type
+  export:
+    label: Export All View Contents
+    title: Export All View Contents
+    intro: 'You are about to <b>export all items ({count, number})</b> from the <b>{name}</b> view. Based on the format you choose below (e.g. CSV), the structure of the export will match the current view settings, if any (e.g. selected grouping method and / or columns configuration).'
+    # The same, once there is more than a page of rows to fetch and the wait is worth warning about
+    introSlow: 'You are about to <b>export all items ({count, number})</b> from the <b>{name}</b> view - depending on your connection, this might take a while. Based on the format you choose below (e.g. CSV), the structure of the export will match the current view settings, if any (e.g. selected grouping method and / or columns configuration).'
+    # A view the api could not count: exported all the same, with no number to put to it
+    introUncounted: 'You are about to <b>export all items</b> from the <b>{name}</b> view. Based on the format you choose below (e.g. CSV), the structure of the export will match the current view settings, if any (e.g. selected grouping method and / or columns configuration).'
+    choose: '<b>Please choose the export format</b> to continue...'
+    # What the same modal says when it was opened for a selection rather than for a whole view
+    selectionTitle: Export As...
+    selectionIntro: |-
+      You are about to <b>export {count, plural,
+      one {1 selected item}
+      other {{count, number} selected items}
+      }</b>. Based on the format you choose below (e.g. CSV), the structure of the export will match the current view settings, if any (e.g. selected grouping method and / or columns configuration).
+    selectionIntroSlow: 'You are about to <b>export {count, number} selected items</b> - depending on your connection, this might take a while. Based on the format you choose below (e.g. CSV), the structure of the export will match the current view settings, if any (e.g. selected grouping method and / or columns configuration).'
+    download: Download
+    format:
+      yaml: YAML
+      json: JSON
+      csv: CSV
+    # What the notification centre shows while the export runs, and what that entry becomes once
+    # it is done. The file can take a while, so the export is watched there rather than blocking.
+    notification:
+      title: Export in progress
+      message: Exporting all items from the {name} view as {format}...
+      doneTitle: Export completed
+      doneMessage: The {name} view has been exported to {file}.
+      failedTitle: Export failed
+      failedMessage: The {name} view could not be exported.
 tableHeaders:
   assuredConcurrencyShares: Assured Concurrency Shares
   autoscaler: Autoscaler
@@ -9157,6 +9304,9 @@ action:
   clone: Clone
   disable: Disable
   download: Download YAML
+  # What the same action is called when the configurable tables feature is on, where it offers the
+  # other formats alongside the yaml it has always given
+  downloadExport: Export As...
   edit: Edit Config
   editYaml: Edit YAML
   enable: Enable

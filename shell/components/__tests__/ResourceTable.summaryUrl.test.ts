@@ -1,0 +1,101 @@
+import ResourceTableViews from '@shell/mixins/resource-table-views';
+
+// The table views half of ResourceTable is its own mixin, so that is where these live
+const { summaryBaseUrl, listScopeFilters, listScopeNamespaces } = ResourceTableViews.computed;
+
+interface UrlForCall {
+  type: string;
+  id: string | null;
+  opt?: { pagination: { page?: number, sort?: unknown, filters: unknown[], projectsOrNamespaces: string[] } };
+}
+
+describe('ResourceTable', () => {
+  describe('summaryBaseUrl', () => {
+    const nsFilter = { param: 'filter', fields: [{ field: 'metadata.namespace', value: 'kube-system' }] };
+    const viewFilter = { param: 'filter', fields: [{ field: 'metadata.name', value: 'nginx' }] };
+
+    function createContext({
+      args = undefined as Record<string, unknown> | undefined,
+      viewFilters = [] as object[],
+    } = {}) {
+      const calls: UrlForCall[] = [];
+
+      const ctx = {
+        calls,
+        serverSideTableViews:   true,
+        inStore:                'cluster',
+        schema:                 { id: 'pod' },
+        externalPaginationArgs: args,
+        serverViewFilters:      { filters: viewFilters, unsupported: [] },
+        $store:                 {
+          getters: {
+            'cluster/urlFor': (type: string, id: string | null, opt?: UrlForCall['opt']) => {
+              calls.push({
+                type, id, opt
+              });
+
+              return '/v1/pods?pagesize=100';
+            }
+          }
+        },
+      };
+
+      // summaryBaseUrl reads these computeds off the instance
+      Object.defineProperty(ctx, 'listScopeFilters', { get: () => listScopeFilters.call(ctx) });
+      Object.defineProperty(ctx, 'listScopeNamespaces', { get: () => listScopeNamespaces.call(ctx) });
+
+      return ctx;
+    }
+
+    it('should ask for nothing on a list that is not filtered server side', () => {
+      const ctx = { ...createContext(), serverSideTableViews: false };
+
+      expect(summaryBaseUrl.call(ctx)).toBeNull();
+      expect(ctx.calls).toStrictEqual([]);
+    });
+
+    it('should ask for a plain url when the list has no pagination args', () => {
+      const ctx = createContext();
+
+      expect(summaryBaseUrl.call(ctx)).toBe('/v1/pods?pagesize=100');
+      expect(ctx.calls[0].opt).toBeUndefined();
+    });
+
+    it('should scope the summary by the list\'s project and namespace filter', () => {
+      const ctx = createContext({ args: { projectsOrNamespaces: ['p-abc'], filters: [] } });
+
+      summaryBaseUrl.call(ctx);
+
+      expect(ctx.calls[0].opt?.pagination.projectsOrNamespaces).toStrictEqual(['p-abc']);
+    });
+
+    it('should keep the filters the list applies on the user\'s behalf', () => {
+      const ctx = createContext({ args: { filters: [nsFilter] } });
+
+      summaryBaseUrl.call(ctx);
+
+      expect(ctx.calls[0].opt?.pagination.filters).toStrictEqual([nsFilter]);
+    });
+
+    it('should drop the view\'s own query filters, so a field is not narrowed by its own term', () => {
+      const ctx = createContext({ args: { filters: [nsFilter, viewFilter] }, viewFilters: [viewFilter] });
+
+      summaryBaseUrl.call(ctx);
+
+      expect(ctx.calls[0].opt?.pagination.filters).toStrictEqual([nsFilter]);
+    });
+
+    it('should not ask for a page or a sort, as a summary counts the whole matching set', () => {
+      const ctx = createContext({
+        args: {
+          page: 3, pageSize: 100, sort: [{ field: 'metadata.name', asc: true }], filters: []
+        }
+      });
+
+      summaryBaseUrl.call(ctx);
+
+      expect(ctx.calls[0].opt?.pagination.page).toBeUndefined();
+      expect(ctx.calls[0].opt?.pagination.sort).toBeUndefined();
+    });
+  });
+});

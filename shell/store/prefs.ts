@@ -102,6 +102,8 @@ export const FAVORITE_TYPES = create('fav-type', [], { parseJSON });
 export const PINNED_CLUSTERS = create('pinned-clusters', [], { parseJSON });
 export const RECENT_CLUSTERS = create('recent-clusters', [], { parseJSON });
 export const GROUP_RESOURCES = create('group-by', 'namespace');
+// Saved table views by resource type - see useSavedTableViews
+export const TABLE_VIEWS = create('table-views', {}, { parseJSON });
 export const DIFF = create('diff', 'unified', { options: ['unified', 'split'] });
 export const THEME = create('theme', 'auto', {
   options:     ['light', 'auto', 'dark'],
@@ -358,7 +360,24 @@ export const mutations = {
 // Keys with a local write in flight. A read taken mid-write must not commit the server's copy over one of
 // these — it is older than what we are about to send — but every OTHER key is free to refresh, which is
 // how a change made in another tab reaches this one.
-const pendingWrites = new Set<string>();
+//
+// Counted, because one key can have several writes queued (a checkbox ticked and unticked quickly): the
+// first to finish must not release the key while a later one is still waiting its turn.
+const pendingWrites = new Map<string, number>();
+
+function holdPending(key: string) {
+  pendingWrites.set(key, (pendingWrites.get(key) || 0) + 1);
+}
+
+function releasePending(key: string) {
+  const left = (pendingWrites.get(key) || 0) - 1;
+
+  if (left > 0) {
+    pendingWrites.set(key, left);
+  } else {
+    pendingWrites.delete(key);
+  }
+}
 
 let writeChain: Promise<any> = Promise.resolve();
 
@@ -440,10 +459,12 @@ export const actions = {
         return;
       }
 
+      // In flight from now, not from when the queue reaches it: a write queued ahead of this one reads the
+      // server first, and would otherwise commit the server's copy over the value just committed above.
+      holdPending(key);
+
       // Queued: this is a get-before-set on the shared Preference, so it must not overlap another one.
       return enqueuePreferenceWrite(async() => {
-        pendingWrites.add(key);
-
         try {
           const server = await dispatch('loadServer'); // There's no watch on prefs, so get before set...
 
@@ -467,7 +488,7 @@ export const actions = {
           // Return the error
           return { type: error.type, status: error.status };
         } finally {
-          pendingWrites.delete(key);
+          releasePending(key);
         }
       });
     }
@@ -517,7 +538,7 @@ export const actions = {
     });
 
     // In flight from here until the reconcile has sent them.
-    list.forEach(({ key }) => pendingWrites.add(key));
+    list.forEach(({ key }) => holdPending(key));
 
     // Before login there's no server to reconcile against — stash so loadServer replays them post-login.
     if (!rootGetters['auth/loggedIn']) {
@@ -550,7 +571,7 @@ export const actions = {
   ): Promise<PrefError | undefined> {
     const list = Array.isArray(writes) ? writes.filter((m) => m && m.key && typeof m.apply === 'function') : [];
     const serverEntries = list.filter(({ key }) => state.definitions[key]?.asUserPreference);
-    const release = () => list.forEach(({ key }) => pendingWrites.delete(key));
+    const release = () => list.forEach(({ key }) => releasePending(key));
 
     if (!serverEntries.length || !rootGetters['auth/loggedIn']) {
       release();

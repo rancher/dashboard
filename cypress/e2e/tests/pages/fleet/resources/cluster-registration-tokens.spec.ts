@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { qase } from '@/cypress/support/qase';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 // const localWorkspace = 'fleet-local';
 const defaultWorkspace = 'fleet-default';
@@ -143,8 +144,9 @@ describe('Cluster Registration Tokens', { testIsolation: false, tags: ['@fleet',
       fleetTokensListPage.waitForPage();
       // Re-select the workspace so the token is listed (see the Clone test above).
       headerPo.selectWorkspace(defaultWorkspace);
-      fleetTokensListPage.list().actionMenu(customTokenName).getMenuItem('Download YAML')
+      fleetTokensListPage.list().actionMenu(customTokenName).getMenuItem('Export As...')
         .click();
+      new ExportModalPo().download();
 
       const downloadedFilename = path.join(downloadsFolder, `${ customTokenName }.yaml`);
 

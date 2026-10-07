@@ -170,7 +170,8 @@ export function init(store) {
     labelKey:  'tableHeaders.machines',
     sort:      false,
     search:    false,
-    formatter: 'MachineSummaryGraph',
+    // Falls back to a count when there are no machine states to draw
+    formatter: 'ClusterMachineSummary',
     align:     'center',
     width:     100,
   };
@@ -182,7 +183,10 @@ export function init(store) {
     align:               'right',
     width:               65,
     sort:                false,
-    search:              false
+    search:              false,
+    formatter:           'ClusterExplore',
+    // A button, not data
+    tableViews:          false,
   };
 
   headers(MANAGEMENT.CLUSTER, [

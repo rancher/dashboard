@@ -3,6 +3,7 @@ import { defineComponent } from 'vue';
 import { RcDropdown } from '@components/RcDropdown';
 
 const vDropdownMock = defineComponent({
+  props:    { shown: Boolean },
   template: `
     <div class="popper">
       <slot name="popper" />
@@ -11,6 +12,13 @@ const vDropdownMock = defineComponent({
 });
 
 describe('component: RcDropdown.vue', () => {
+  it('should open when mounted open', () => {
+    const wrapper = mount(RcDropdown, { props: { open: true }, global: { components: { 'v-dropdown': vDropdownMock } } });
+
+    expect(wrapper.findComponent(vDropdownMock).props('shown')).toBe(true);
+    expect(wrapper.emitted('update:open')).toStrictEqual([[true]]);
+  });
+
   it('should not change the height if the dropdown fits within the screen', async() => {
     Object.defineProperty(window, 'innerHeight', { value: 800 });
 

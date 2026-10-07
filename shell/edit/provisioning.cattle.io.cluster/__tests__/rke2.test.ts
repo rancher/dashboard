@@ -648,6 +648,30 @@ describe('component: rke2', () => {
 
       expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NGINX);
     });
+
+    it('should drop the rke2 ingress-controller setting when switching to a k3s version while creating', () => {
+      const wrapper = createWrapper(_CREATE);
+      const k3sVersion = 'v1.26.0+k3s1';
+
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER] = TRAEFIK;
+      wrapper.vm.value.isK3s = true;
+      wrapper.vm.value.spec.kubernetesVersion = k3sVersion;
+      (wrapper.vm as any).handleKubernetesChange(k3sVersion);
+
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBeUndefined();
+    });
+
+    it('should leave the ingress-controller setting of an existing k3s cluster alone', () => {
+      const wrapper = createWrapper(_EDIT);
+      const k3sVersion = 'v1.26.0+k3s1';
+
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER] = TRAEFIK;
+      wrapper.vm.value.isK3s = true;
+      wrapper.vm.value.spec.kubernetesVersion = k3sVersion;
+      (wrapper.vm as any).handleKubernetesChange(k3sVersion);
+
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(TRAEFIK);
+    });
   });
 
   describe('method: showIpv6Warning', () => {

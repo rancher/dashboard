@@ -42,6 +42,7 @@ import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
 import { useResourceCardRow, useResourceCardRowFromRelationships } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -1004,7 +1005,7 @@ export default class Resource {
       { divider: true },
       {
         action:     'download',
-        label:      this.t('action.download'),
+        label:      this.t(this.configurableTables ? 'action.downloadExport' : 'action.download'),
         icon:       'icon icon-download',
         bulkable:   true,
         bulkAction: 'downloadBulk',
@@ -1263,6 +1264,11 @@ export default class Resource {
    * @param {*} res Full request response
    */
   processSaveResponse(res, opt = {}) { }
+
+  /**
+   * Allow to notify the user of the name generated for this resource, once it has been created
+   */
+  notifyGeneratedName() { }
 
   async _save(opt = { }) {
     const forNew = !this.id;
@@ -1634,16 +1640,50 @@ export default class Resource {
     this.currentRouter().push(location);
   }
 
-  async download() {
+  get configurableTables() {
+    return isConfigurableTablesEnabled({ rootGetters: this.$rootGetters });
+  }
+
+  /**
+   * With configurable tables on this asks for a format; YAML is the download it has always been. The
+   * action keeps its name either way, since models hide or keep it by name
+   */
+  download() {
+    return this.configurableTables ? this.openExportModal([this]) : this.downloadYaml();
+  }
+
+  downloadBulk(items) {
+    return this.configurableTables ? this.openExportModal(items) : this.downloadYamlBulk(items);
+  }
+
+  async openExportModal(items) {
+    // Imported on demand, to keep the component out of every bundle
+    const { default: TableViewExportModal } = await import('@shell/components/TableViews/TableViewExportModal.vue');
+
+    this.$ctx.commit('modal/openModal', {
+      component:           markRaw(TableViewExportModal),
+      componentProps:      { count: items.length, isSelection: true },
+      resources:           items,
+      closeOnClickOutside: true,
+      modalWidth:          '640px',
+    }, { root: true });
+  }
+
+  async downloadYaml() {
     const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
     const data = await this.cleanForDownload(value.data);
 
     downloadFile(`${ this.nameDisplay }.yaml`, data, 'application/yaml');
   }
 
-  async downloadBulk(items) {
+  /**
+   * @param items the resources to write into the zip
+   * @param onProgress called with (done, total), as it is one request per resource
+   */
+  async downloadYamlBulk(items, onProgress) {
     const files = {};
     const names = [];
+    let done = 0;
 
     for ( const item of items ) {
       let name = `${ item.nameDisplay }.yaml`;
@@ -1662,6 +1702,7 @@ export default class Resource {
         const cleanedYaml = await this.cleanForDownload(yaml);
 
         files[`resources/${ names[idx] }`] = cleanedYaml;
+        onProgress?.(++done, items.length);
       });
     });
 

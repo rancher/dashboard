@@ -585,7 +585,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     namespaceFilter.clickOptionByLabel('All Namespaces');
     namespaceFilter.closeDropdown();
 
-    uiPluginsPo.resourceTable().sortableTable().groupByButtons(1).click();
+    uiPluginsPo.resourceTable().sortableTable().groupBy('Namespace');
     uiPluginsPo.cacheState(DISABLED_CACHE_EXTENSION_NAME).should('contain.text', 'disabled');
   }));
 

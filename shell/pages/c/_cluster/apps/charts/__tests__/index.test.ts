@@ -1,8 +1,10 @@
 import { shallowMount } from '@vue/test-utils';
 import Charts from '@shell/pages/c/_cluster/apps/charts/index.vue';
 import AsyncButton from '@shell/components/AsyncButton';
+import FailWhale from '@shell/components/FailWhale.vue';
 import { UI_PLUGIN_ANNOTATION } from '@shell/config/uiplugins';
 import { SETTING } from '@shell/config/settings';
+import { CATALOG } from '@shell/config/types';
 
 describe('page: Charts Index', () => {
   describe('computed: tagOptions', () => {
@@ -120,6 +122,7 @@ describe('page: Charts Index', () => {
           $store:      {
             getters: {
               currentCluster:      { status: { provider: 'other' }, workerOSs: [] },
+              'cluster/canList':   () => true,
               'catalog/charts':    [],
               'catalog/errors':    [],
               'catalog/repos':     [],
@@ -156,6 +159,61 @@ describe('page: Charts Index', () => {
       expect(wrapper.find('[data-testid="charts-filter-input"]').attributes('disabled')).toBeUndefined();
       expect(wrapper.findComponent(AsyncButton).props('disabled')).toBe(false);
       expect(wrapper.find('[data-testid="charts-loading"]').exists()).toBe(false);
+    });
+  });
+
+  describe('when the user cannot list apps', () => {
+    const mountCharts = (canList: boolean) => shallowMount(Charts, {
+      global: {
+        mocks: {
+          t:           (key: string) => key,
+          $fetchState: { pending: false },
+          $route:      { params: { cluster: 'c-1' }, query: {} },
+          $store:      {
+            getters: {
+              currentCluster:      { status: { provider: 'other' }, workerOSs: [] },
+              'cluster/canList':   () => canList,
+              'catalog/charts':    [],
+              'catalog/errors':    [],
+              'catalog/repos':     [],
+              'prefs/get':         () => false,
+              'i18n/withFallback': (_key: string, _fallback: any, val: string) => val,
+              clusterId:           'c-1',
+              productId:           'apps',
+            },
+          },
+        },
+        directives: { shortkey: () => {} },
+      },
+    });
+
+    it('should show the error instead of the charts list', () => {
+      const wrapper = mountCharts(false);
+      const failWhale = wrapper.findComponent(FailWhale);
+
+      expect(failWhale.exists()).toBe(true);
+      expect(failWhale.props('error')).toStrictEqual(new Error('catalog.charts.cannotListApps'));
+      expect(wrapper.find('[data-testid="charts-header-title"]').exists()).toBe(false);
+    });
+
+    it('should show the charts list when the user can list apps', () => {
+      const wrapper = mountCharts(true);
+
+      expect(wrapper.findComponent(FailWhale).exists()).toBe(false);
+      expect(wrapper.find('[data-testid="charts-header-title"]').exists()).toBe(true);
+    });
+
+    it('should not fetch charts or apps', async() => {
+      const dispatch = jest.fn();
+      const ctx = {
+        cannotListAppsError: new Error('catalog.charts.cannotListApps'),
+        $store:              { dispatch },
+      };
+
+      await (Charts as any).fetch.call(ctx);
+
+      expect(dispatch).not.toHaveBeenCalledWith('catalog/load');
+      expect(dispatch).not.toHaveBeenCalledWith('cluster/findAll', { type: CATALOG.APP });
     });
   });
 
@@ -210,11 +268,12 @@ describe('page: Charts Index', () => {
           mocks: {
             $store: {
               getters: {
-                'catalog/charts': [],
-                'catalog/errors': [],
-                'catalog/repos':  [],
-                'prefs/get':      jest.fn(),
-                currentCluster:   { status: { provider: 'k3s' } },
+                'cluster/canList': () => true,
+                'catalog/charts':  [],
+                'catalog/errors':  [],
+                'catalog/repos':   [],
+                'prefs/get':       jest.fn(),
+                currentCluster:    { status: { provider: 'k3s' } },
               }
             },
             $fetchState: { pending: false },

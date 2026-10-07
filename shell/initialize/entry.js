@@ -7,11 +7,16 @@ import { installComponents } from '@shell/initialize/install-components.js';
 import { installPlugins } from '@shell/initialize/install-plugins.js';
 import App from '@shell/initialize/App.vue';
 import { createApp } from 'vue';
+import { TABLE_VIEWS_SHELL, TABLE_VIEWS_SHELL_KEY } from '@shell/utils/table-views/feature';
 
 const vueApp = createApp(App);
 
 // Fetch mixin
 vueApp.mixin(fetchMixin);
+
+// Tables built into an extension carry their own copy of this, which is how they tell they aren't the
+// dashboard's own
+vueApp.provide(TABLE_VIEWS_SHELL_KEY, TABLE_VIEWS_SHELL);
 
 // Bulk install components
 installComponents(vueApp);

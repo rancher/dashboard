@@ -351,10 +351,9 @@ describe('Kontainer Drivers', { testIsolation: false, tags: ['@manager', '@admin
     driversPage.list().resourceTable().sortableTable().checkVisible();
     driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
-    cy.intercept('DELETE', '/v3/kontainerDrivers/*', {
-      statusCode: 200,
-      body:       { }
-    }).as('deleteDriver');
+    // A 204 says the driver is gone, so the list drops it. A 200 says it may be terminating, and the
+    // driver that was never really deleted stays in the list
+    cy.intercept('DELETE', '/v3/kontainerDrivers/*', { statusCode: 204 }).as('deleteDriver');
 
     driversPage.list().actionMenu(exampleDriver).getMenuItem('Delete').click();
 
@@ -363,7 +362,7 @@ describe('Kontainer Drivers', { testIsolation: false, tags: ['@manager', '@admin
     promptRemove.remove();
 
     cy.wait('@deleteDriver').then(({ response }) => {
-      expect(response?.statusCode).to.eq(200);
+      expect(response?.statusCode).to.eq(204);
     });
 
     driversPage.waitForPage();

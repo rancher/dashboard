@@ -384,6 +384,11 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   // ------------------ Import Extension Catalog modal ------------------
+  /** The catalogs page's own button, above its table: not one of the table's bulk actions */
+  importExtensionCatalogClick(): Cypress.Chainable {
+    return cy.getId('extensions-catalog-load-dialog').click();
+  }
+
   importExtensionCatalogModal(): Cypress.Chainable {
     return this.self().get('.plugin-install-dialog');
   }

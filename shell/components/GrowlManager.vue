@@ -29,6 +29,11 @@ export default {
       this.$store.dispatch('growl/remove', growl.id);
     },
 
+    runAction(growl) {
+      growl.action?.run?.();
+      this.close(growl);
+    },
+
     close(growl) {
       this.$store.dispatch('growl/close', growl.id);
 
@@ -133,6 +138,15 @@ export default {
             >
               {{ growl.message }}
             </p>
+            <button
+              v-if="growl.action"
+              type="button"
+              class="growl-action"
+              :data-testid="`growl-action-${ idx }`"
+              @click="runAction(growl)"
+            >
+              {{ growl.action.label }}
+            </button>
           </div>
         </div>
       </div>
@@ -141,6 +155,24 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .growl-action {
+    margin-top: 8px;
+    padding: 0;
+    min-height: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    font-weight: 600;
+    line-height: 20px;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
+    }
+  }
+
   .growl-container {
     z-index: 1000;
     position: absolute;

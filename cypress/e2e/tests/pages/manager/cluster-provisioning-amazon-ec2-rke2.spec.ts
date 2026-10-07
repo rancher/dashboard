@@ -197,8 +197,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.resourceDetail().title().should('contain', this.rke2Ec2ClusterName);
 
     // Verify scaling buttons are present in the machine pools section
-    clusterDetails.poolsList('machine').resourceTable().sortableTable().groupByButtons(1)
-      .click();
+    clusterDetails.poolsList('machine').resourceTable().sortableTable().groupBy('Pool');
 
     // Check for scale up button (it should be enabled)
     clusterDetails.poolsList('machine').scaleUpButton(`${ this.rke2Ec2ClusterName }-pool1`)
@@ -276,8 +275,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.resourceDetail().title().should('contain', this.rke2Ec2ClusterName);
 
     // Verify we have 2 nodes to start with (from the previous scale up test)
-    clusterDetails.poolsList('machine').resourceTable().sortableTable().groupByButtons(1)
-      .click();
+    clusterDetails.poolsList('machine').resourceTable().sortableTable().groupBy('Pool');
 
     clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ this.rke2Ec2ClusterName }-pool1`, /^2$/, MEDIUM_TIMEOUT_OPT);
     clusterDetails.poolsList('machine').progressBarElements(`${ this.rke2Ec2ClusterName }-pool1`, '.bg-error').should('not.exist');
