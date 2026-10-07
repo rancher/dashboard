@@ -41,6 +41,10 @@ describe('Settings Configuration', () => {
       expect(SETTING.UI_APPCO_ENABLED).toBe('ui-appco-enabled');
     });
 
+    it('should be included in ALLOWED_SETTINGS', () => {
+      expect(ALLOWED_SETTINGS).toHaveProperty(SETTING.UI_APPCO_ENABLED);
+    });
+
     it('should not be included in PROVISIONING_SETTINGS', () => {
       expect(PROVISIONING_SETTINGS).not.toContain(SETTING.UI_APPCO_ENABLED);
     });

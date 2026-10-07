@@ -182,6 +182,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     kind:    'enum',
     options: ['dynamic', 'true', 'false']
   },
+  [SETTING.UI_APPCO_ENABLED]:   {},
   [SETTING.BRAND]:              { canReset: true },
   [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
   [SETTING.AGENT_TLS_MODE]:     {
