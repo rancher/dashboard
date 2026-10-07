@@ -234,6 +234,8 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
               .getMenuItem('Move')
               .click();
 
+            promptModal().self().should('have.attr', 'aria-labelledby');
+
             cy.injectAxe();
 
             promptModal().self().then((el) => {
