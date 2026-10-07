@@ -239,9 +239,9 @@ jobs:
           path: cypress/accessibility
 
       # Ratchet gate: fail only on a11y violations that are not in the committed
-      # baseline (cypress/e2e/tests/accessibility/baseline.json). Enforcement is
-      # opt-in: report-only unless the A11Y_RATCHET_ENFORCE repo variable is
-      # exactly 'true'.
+      # baseline (cypress/e2e/tests/accessibility/baseline.json). Enforced by
+      # default; set the A11Y_RATCHET_ENFORCE repo variable to 'false' to drop
+      # back to report-only without a code change.
       #
       # Deliberately `success()`, not `always()`. Violations are collected with
       # skipFailures, so they never redden the test step -- a red test step means
@@ -253,7 +253,7 @@ jobs:
         if: success()
         run: yarn a11y:compare
         env:
-          A11Y_RATCHET_ENFORCE: ${{ vars.A11Y_RATCHET_ENFORCE }}
+          A11Y_RATCHET_ENFORCE: ${{ vars.A11Y_RATCHET_ENFORCE || 'true' }}
 
   unit-test:
     runs-on: ubuntu-latest
