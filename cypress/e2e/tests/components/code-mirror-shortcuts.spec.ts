@@ -187,7 +187,8 @@ describe('CodeMirror editor shortcuts', { tags: ['@components', '@adminUser', '@
   });
 });
 
-describe('CodeMirror Sublime shortcuts', { tags: ['@components', '@adminUser', '@standardUser'] }, () => {
+// The Dashboard's default keymap preference is Sublime ("Normal human" in the UI).
+describe('CodeMirror default (Sublime) shortcuts', { tags: ['@components', '@adminUser', '@standardUser'] }, () => {
   const yamlEditorPage = new ResourceYamlEditorPagePo('resourcequota');
   const editor = () => CodeMirrorPo.first();
   const modKey = Cypress.platform === 'darwin' ? 'Meta' : 'Control';
@@ -248,5 +249,60 @@ describe('CodeMirror Sublime shortcuts', { tags: ['@components', '@adminUser', '
     cy.realType('x');
 
     editor().value().should('eq', 'xbeta');
+  });
+});
+
+describe('CodeMirror Vim shortcuts', { tags: ['@components', '@adminUser', '@standardUser'] }, () => {
+  const yamlEditorPage = new ResourceYamlEditorPagePo('resourcequota');
+  const editor = () => CodeMirrorPo.first();
+
+  const focusNormalModeAtStart = (value: string) => {
+    editor().set(value);
+    editor().self().realClick();
+    cy.realPress('Escape');
+    cy.realPress('g');
+    cy.realPress('g');
+  };
+
+  beforeEach(() => {
+    cy.login();
+    cy.setUserPreference({ keymap: 'vim' }, true);
+
+    yamlEditorPage.goTo();
+    yamlEditorPage.waitForPage();
+    editor().checkVisible();
+  });
+
+  after(() => {
+    cy.login();
+    cy.setUserPreference({ keymap: 'sublime' });
+  });
+
+  it('deletes a line with dd and restores it with u', () => {
+    focusNormalModeAtStart('name: app\nreplicas: 2');
+
+    cy.realPress('d');
+    cy.realPress('d');
+    editor().value().should('eq', 'replicas: 2');
+
+    cy.realPress('u');
+    editor().value().should('eq', 'name: app\nreplicas: 2');
+  });
+
+  it('writes a YAML list item, yanks it, pastes it, and undoes the paste', () => {
+    focusNormalModeAtStart('- name: app');
+
+    cy.realPress('o');
+    cy.realType('- name: worker');
+    cy.realPress('Escape');
+    editor().value().should('eq', '- name: app\n- name: worker');
+
+    cy.realPress('y');
+    cy.realPress('y');
+    cy.realPress('p');
+    editor().value().should('eq', '- name: app\n- name: worker\n- name: worker');
+
+    cy.realPress('u');
+    editor().value().should('eq', '- name: app\n- name: worker');
   });
 });
