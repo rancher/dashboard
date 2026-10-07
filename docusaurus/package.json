@@ -54,7 +54,8 @@
     "serialize-javascript": "7.0.5",
     "webpack-dev-server": "5.2.6",
     "qs": "6.16.0",
-    "tinypool": "2.1.2"
+    "tinypool": "2.1.2",
+    "postcss-selector-parser": "7.1.6"
   },
   "engines": {
     "node": ">=18.0"
