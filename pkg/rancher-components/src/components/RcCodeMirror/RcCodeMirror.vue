@@ -675,11 +675,16 @@ defineExpose({ view });
 
   &.rc-code-mirror--editor :deep(.cm-editor.cm-focused) {
     outline: none;
-  }
 
-  &.rc-code-mirror--editor :deep(.cm-editor:has(.cm-content:focus) > .cm-scroller) {
-    outline: 2px solid var(--primary-keyboard-focus);
-    outline-offset: -2px;
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 2px solid var(--primary-keyboard-focus);
+      pointer-events: none;
+      // Above CodeMirror's panels (z-index 300), so the search panel does not cover the ring
+      z-index: 301;
+    }
   }
 
   &.rc-code-mirror--input :deep(.cm-editor) {
