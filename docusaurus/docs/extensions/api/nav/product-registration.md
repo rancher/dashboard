@@ -292,7 +292,7 @@ The products available for extension are:
 | `'settings'` | Global Settings |
 | `'auth'` | Authentication & API Keys |
 
-You can also extend a product that another extension registered, as long as that extension set [`extendable: true`](#productmetadata) on it. Pass the product's name as the first argument. The extension that owns the product has to be loaded before the one extending it, otherwise the call fails with `Product "<name>" is not extendable`.
+You can also extend a product that another extension registered, as long as that extension set [`extendable: true`](#productmetadata) on it. Pass the product's `name` as the first argument, exactly as the owning extension wrote it in `addProduct` — names with dashes (e.g. `'my-product'`) work as-is. The two extensions can load in any order: if yours loads first, its pages are added as soon as the extension that owns the product loads. If that extension never loads (it isn't installed, or failed to load), your extension is flagged with an error on the Extensions page. Extending a product that is registered without `extendable: true` fails with `Product "<name>" is not extendable`.
 
 Pages you add this way inherit the routing of the product you are extending, so they behave exactly like the product's own pages — including top level products, whose pages live at `<product>/c/:cluster/...` rather than `c/:cluster/<product>/...`.
 

@@ -132,6 +132,15 @@ export abstract class BasePluginProduct {
   }
 
   /**
+   * Strip dashes from a product name, so as not to interfere with vue-router route names, which use
+   * dashes. Extending a product registered via `addProduct` has to use this too, otherwise extending
+   * `my-product` would look for a product that was registered as `myproduct`.
+   */
+  protected normalizeProductName(productName: string): string {
+    return productName.replaceAll('-', '');
+  }
+
+  /**
    * Helper to throw errors during product registration
    */
   protected surfaceError(message: string, e?: any): never {

@@ -28,6 +28,28 @@ export const createExtensionManager = (context) => {
   // Builtin extensions - these are registered when the UI loads and then initialized/loaded at the same time as the external extensions
   let builtin = [];
 
+  // Product extends waiting for the product they extend to be registered - see `applyProductConfig`
+  let pendingExtends = [];
+
+  // Bumped whenever routes are added to vue-router after the extension that owns them loaded. The
+  // products navigation guard compares it to see whether the route it is navigating to may now
+  // match one of them.
+  let lateRoutesAdded = 0;
+
+  function addLateRoutes(routes) {
+    if (routes.length) {
+      pluginRoutes.addRoutes(routes);
+      lateRoutesAdded++;
+    }
+  }
+
+  function isProductRegistered(productName) {
+    const productByName = store.getters['type-map/productByName'];
+
+    // `addProduct` strips dashes from the product name, but the extension extending it may not have
+    return !!(productByName(productName) || productByName(productName.replaceAll('-', '')));
+  }
+
   for (const ep in ExtensionPoint) {
     uiConfig[ExtensionPoint[ep]] = {};
   }
@@ -259,6 +281,9 @@ export const createExtensionManager = (context) => {
       // productNames, which also holds the products this plugin merely extends - forgetting one of
       // those would drop the routing of a product another extension still owns.
       plugin.productConfigs?.filter((p) => p.newProduct).forEach((p) => forgetExtensionProductRouting(p.productName));
+
+      // Stop waiting to extend products on behalf of this plugin
+      pendingExtends = pendingExtends.filter((p) => p.plugin !== plugin);
 
       // Remove all of the types
       Object.keys(plugin.types).forEach((typ) => {
@@ -517,8 +542,18 @@ export const createExtensionManager = (context) => {
       return dynamic.products || [];
     },
 
+    /**
+     * How many times routes have been added to vue-router after the extension that owns them loaded
+     */
+    get lateRoutesAdded() {
+      return lateRoutesAdded;
+    },
+
     // Load all of the products provided by plugins
     loadProducts(loadPlugins) {
+      // Every loaded plugin is about to be applied - see `reportPendingExtends` below
+      const allPlugins = !loadPlugins;
+
       if (!loadPlugins) {
         loadPlugins = Object.values(plugins);
       }
@@ -542,12 +577,12 @@ export const createExtensionManager = (context) => {
         if (plugin.productConfigs?.length) {
           // Add new products first
           plugin.productConfigs.filter((p) => p.newProduct).forEach((productConfig) => {
-            productConfig.apply(plugin, store, app.router, pluginRoutes);
+            this.applyProductConfig(plugin, productConfig);
           });
 
           // Extend existing products after new products are added
           plugin.productConfigs.filter((p) => !p.newProduct).forEach((productConfig) => {
-            productConfig.apply(plugin, store, app.router, pluginRoutes);
+            this.applyProductConfig(plugin, productConfig);
           });
         }
 
@@ -557,6 +592,77 @@ export const createExtensionManager = (context) => {
             resourceTypeConfig.apply(plugin, store, app.router, pluginRoutes);
           });
         }
+      });
+
+      // One of the products added above may be what an extension applied earlier is waiting for
+      this.applyPendingExtends();
+
+      if (allPlugins) {
+        // Nothing still waiting can be satisfied by an extension that has already loaded
+        this.reportPendingExtends();
+      }
+    },
+
+    /**
+     * Apply one of the product registrations (`addProduct` or `extendProduct`) of a plugin.
+     *
+     * Extensions load in whatever order their code arrives, so the product an extension extends may
+     * not be registered yet. That extend waits until it is - see `applyPendingExtends`.
+     *
+     * A registration that fails is logged and flagged against its extension rather than thrown, so
+     * that one broken extension can't stop the products of the others being applied, or block the
+     * navigation that applies them.
+     */
+    applyProductConfig(plugin, productConfig) {
+      if (!productConfig.newProduct && !isProductRegistered(productConfig.productName)) {
+        pendingExtends.push({ plugin, productConfig });
+
+        return;
+      }
+
+      try {
+        productConfig.apply(plugin, store, addLateRoutes);
+      } catch (e) {
+        console.error(`Error applying the products of extension ${ plugin.name }`, e); // eslint-disable-line no-console
+        store.dispatch('uiplugins/setError', { name: plugin.name, error: 'plugins.error.generic' }); // i18n-uses plugins.error.generic
+      }
+    },
+
+    /**
+     * Apply the product extends that were waiting for a product which is now registered
+     */
+    applyPendingExtends() {
+      const ready = pendingExtends.filter(({ productConfig }) => isProductRegistered(productConfig.productName));
+
+      if (!ready.length) {
+        return;
+      }
+
+      pendingExtends = pendingExtends.filter((p) => !ready.includes(p));
+
+      ready.forEach(({ plugin, productConfig, reported }) => {
+        // Clear the error flagged while it waited, unless the plugin is still waiting on another product
+        if (reported && !pendingExtends.some((p) => p.plugin === plugin && p.reported)) {
+          store.dispatch('uiplugins/setError', { name: plugin.name, error: false });
+        }
+
+        this.applyProductConfig(plugin, productConfig);
+      });
+    },
+
+    /**
+     * Report the product extends still waiting for the product they extend - it isn't installed,
+     * failed to load, or the name is wrong. They keep waiting, in case that product turns up later
+     * (e.g. it is installed from the Extensions page).
+     */
+    reportPendingExtends() {
+      pendingExtends.filter((p) => !p.reported).forEach((pending) => {
+        const { plugin, productConfig } = pending;
+
+        pending.reported = true;
+
+        console.error(`Extension ${ plugin.name } extends product "${ productConfig.productName }", which is not registered. Its pages for that product will not show until it is.`); // eslint-disable-line no-console
+        store.dispatch('uiplugins/setError', { name: plugin.name, error: 'plugins.error.extendedProductMissing' }); // i18n-uses plugins.error.extendedProductMissing
       });
     },
   };

@@ -31,17 +31,10 @@ export class TopLevelPluginProduct extends BasePluginProduct {
       product = emptyProduct;
     }
 
-    let prodName = product.name;
-
-    // the goal here is not to interfere with vue-router route names, which use dashes
-    if (prodName.includes('-')) {
-      prodName = prodName.replaceAll('-', '');
-    }
-
     // convert this to "string" to match all types moving forward
     // doesn't impact anything, fixes build problems of extensions
     // and allows extensions to use either string literal or enum value for product name
-    this.name = prodName;
+    this.name = this.normalizeProductName(product.name);
     this.product = product;
     this.startRouteWithProduct = (product as ProductMetadataInternal).startRouteWithProduct ?? true;
 

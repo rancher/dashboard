@@ -357,6 +357,187 @@ describe('pluginProduct', () => {
       expect(extendingPlugin._registerTopLevelProduct).not.toHaveBeenCalled();
       expect(extendingPlugin._setStartRouteWithProduct).toHaveBeenCalledWith(TOP_LEVEL_PRODUCT, false);
     });
+
+    describe('when the product name has dashes', () => {
+      // `addProduct` strips the dashes, but extension authors will pass the name as they wrote it
+      const DASHED_PRODUCT = 'my-top-level-prod';
+
+      function addDashedTopLevelProduct(plugin: IExtension) {
+        const product: ProductMetadata = {
+          name:       DASHED_PRODUCT,
+          label:      'My Top Level Product',
+          extendable: true,
+        };
+
+        return new PluginProduct(plugin, product, [customPage]);
+      }
+
+      it('should find the product in the route registry and register its generic resource routes', () => {
+        const mockPlugin = createMockPlugin();
+
+        addDashedTopLevelProduct(mockPlugin);
+        generateResourceRoutes.mockClear();
+
+        new PluginProduct(mockPlugin, DASHED_PRODUCT, [resourcePage]);
+
+        expect(generateResourceRoutes).toHaveBeenCalledWith(
+          TOP_LEVEL_PRODUCT,
+          resourcePage,
+          { extendProduct: false, startRouteWithProduct: true }
+        );
+      });
+
+      it('should report the same product name that addProduct registered', () => {
+        const mockPlugin = createMockPlugin();
+
+        addDashedTopLevelProduct(mockPlugin);
+
+        const extending = new PluginProduct(mockPlugin, DASHED_PRODUCT, [resourcePage]);
+
+        expect(extending.productName).toBe(TOP_LEVEL_PRODUCT);
+      });
+
+      it('should keep the dashes for a product that was not registered via addProduct', () => {
+        // Legacy DSL products keep their dashes in the type-map, e.g. `harvester-manager`
+        const extending = new PluginProduct(createMockPlugin(), DASHED_PRODUCT, [resourcePage]);
+
+        expect(extending.productName).toBe(DASHED_PRODUCT);
+      });
+
+      it('should pass the extendable check when applied', () => {
+        const mockPlugin = createMockPlugin();
+
+        (mockPlugin.DSL as jest.Mock).mockReturnValue(createMockDSL());
+
+        addDashedTopLevelProduct(mockPlugin);
+
+        const extending = new PluginProduct(mockPlugin, DASHED_PRODUCT, [resourcePage]);
+
+        expect(() => extending.apply(mockPlugin, createMockStore([TOP_LEVEL_PRODUCT]))).not.toThrow();
+      });
+    });
+
+    // `extendProduct` called before `addProduct` in the same extension, or an extension extending a
+    // product owned by one that loaded after it
+    describe('when the product is registered after the extend', () => {
+      type PluginRecordingRoutes = IExtension & { routes: { parent?: string, route: any }[] };
+
+      /** `apply` reads back the routes the plugin recorded, so they have to be recorded */
+      function createMockPluginRecordingRoutes(): PluginRecordingRoutes {
+        const plugin = createMockPlugin() as PluginRecordingRoutes;
+
+        plugin.routes = [];
+        (plugin.addRoute as jest.Mock).mockImplementation((route) => plugin.routes.push({ route }));
+        (plugin.DSL as jest.Mock).mockReturnValue(createMockDSL());
+
+        return plugin;
+      }
+
+      /** Extends `TOP_LEVEL_PRODUCT` and only then registers it, the order that used to break */
+      function extendThenAdd(plugin: IExtension, productName = TOP_LEVEL_PRODUCT) {
+        const extending = new PluginProduct(plugin, productName, [resourcePage]);
+
+        addTopLevelProduct(plugin, [customPage]);
+        jest.clearAllMocks();
+
+        return extending;
+      }
+
+      it('should generate the product prefixed resource routes when applied', () => {
+        const mockPlugin = createMockPluginRecordingRoutes();
+        const extending = extendThenAdd(mockPlugin);
+
+        extending.apply(mockPlugin, createMockStore([TOP_LEVEL_PRODUCT]), jest.fn());
+
+        expect(generateResourceRoutes).toHaveBeenCalledWith(
+          TOP_LEVEL_PRODUCT,
+          resourcePage,
+          { extendProduct: false, startRouteWithProduct: true }
+        );
+      });
+
+      it('should hand the generated routes to vue-router straight away', () => {
+        const mockPlugin = createMockPluginRecordingRoutes();
+        const extending = extendThenAdd(mockPlugin);
+        const addLateRoutes = jest.fn();
+
+        extending.apply(mockPlugin, createMockStore([TOP_LEVEL_PRODUCT]), addLateRoutes);
+
+        expect(addLateRoutes.mock.calls[0][0].map((r: { route: { name: string } }) => r.route.name)).toStrictEqual([
+          `${ TOP_LEVEL_PRODUCT }-${ resourcePage.type }-list`,
+          `${ TOP_LEVEL_PRODUCT }-${ resourcePage.type }-detail`,
+        ]);
+      });
+
+      it('should point the resource page at the product prefixed route', () => {
+        const mockPlugin = createMockPluginRecordingRoutes();
+        const extending = extendThenAdd(mockPlugin);
+
+        extending.apply(mockPlugin, createMockStore([TOP_LEVEL_PRODUCT]), jest.fn());
+
+        expect(generateConfigureTypeRoute).toHaveBeenCalledWith(
+          TOP_LEVEL_PRODUCT,
+          resourcePage,
+          { extendProduct: false, startRouteWithProduct: true }
+        );
+      });
+
+      it('should mark the plugin as owning a product prefixed top level product', () => {
+        const mockPlugin = createMockPluginRecordingRoutes();
+        const extending = extendThenAdd(mockPlugin);
+
+        extending.apply(mockPlugin, createMockStore([TOP_LEVEL_PRODUCT]), jest.fn());
+
+        expect(mockPlugin._registerTopLevelProduct).toHaveBeenCalledWith(TOP_LEVEL_PRODUCT);
+      });
+
+      it('should switch the plugin to the product prefixed route shape for the product', () => {
+        const mockPlugin = createMockPluginRecordingRoutes();
+        const extending = extendThenAdd(mockPlugin);
+
+        extending.apply(mockPlugin, createMockStore([TOP_LEVEL_PRODUCT]), jest.fn());
+
+        expect(mockPlugin._setStartRouteWithProduct).toHaveBeenLastCalledWith(TOP_LEVEL_PRODUCT, true);
+      });
+
+      it('should switch to the name addProduct registered when the extend passed it with dashes', () => {
+        const mockPlugin = createMockPluginRecordingRoutes();
+        const extending = extendThenAdd(mockPlugin, 'my-top-level-prod');
+
+        extending.apply(mockPlugin, createMockStore([TOP_LEVEL_PRODUCT]), jest.fn());
+
+        expect(extending.productName).toBe(TOP_LEVEL_PRODUCT);
+      });
+
+      it('should not add routes to vue-router when the product was registered before the extend', () => {
+        const mockPlugin = createMockPluginRecordingRoutes();
+        const addLateRoutes = jest.fn();
+
+        addTopLevelProduct(mockPlugin, [customPage]);
+
+        new PluginProduct(mockPlugin, TOP_LEVEL_PRODUCT, [resourcePage]).apply(mockPlugin, createMockStore([TOP_LEVEL_PRODUCT]), addLateRoutes);
+
+        expect(addLateRoutes).not.toHaveBeenCalled();
+      });
+
+      it('should not add routes to vue-router when extending a core product', () => {
+        const mockPlugin = createMockPluginRecordingRoutes();
+        const addLateRoutes = jest.fn();
+
+        new PluginProduct(mockPlugin, StandardProductNames.EXPLORER, [resourcePage]).apply(mockPlugin, createMockStore(), addLateRoutes);
+
+        expect(addLateRoutes).not.toHaveBeenCalled();
+      });
+
+      it('should not add routes to vue-router when the product is not extendable', () => {
+        const mockPlugin = createMockPluginRecordingRoutes();
+        const extending = extendThenAdd(mockPlugin);
+        const addLateRoutes = jest.fn();
+
+        expect(() => extending.apply(mockPlugin, createMockStore([]), addLateRoutes)).toThrow('is not extendable');
+        expect(addLateRoutes).not.toHaveBeenCalled();
+      });
+    });
   });
 
   // Regression guard for https://github.com/rancher/dashboard/issues/18749. Adding

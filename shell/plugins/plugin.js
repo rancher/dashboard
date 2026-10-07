@@ -105,5 +105,8 @@ export default async function(context) {
     }
   });
 
+  // Every extension has now loaded, so a product extend still waiting for its product has nothing left to wait for
+  context.$extension.reportPendingExtends();
+
   return true;
 }

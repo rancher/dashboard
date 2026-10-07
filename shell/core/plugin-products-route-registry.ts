@@ -4,15 +4,16 @@
  * Extending a product has to generate routes that match how the product being extended already
  * routes, and it has to know whether that product already owns the generic `:resource` routes:
  *
- * - Products that live under `c/:cluster/...` (every core product, and top level extension
- *   products registered with `startRouteWithProduct: false`) are already covered by the core
- *   `c/:cluster/:product/:resource` routes in `shell/config/router/routes.js`. Minting
- *   `c/:cluster/<product>/:resource` for them re-introduces rancher/dashboard#18749: the static
- *   product segment outranks the core dynamic `:product` one, so it shadows the product's own
- *   specific routes (e.g. `projectsnamespaces`).
- * - A top level extension product routes as `<product>/c/:cluster/...`, which nothing in the core
- *   router matches. It only owns `:resource` routes if it registered at least one resource page
- *   itself, so extending it with the first resource page has to add them.
+ * - Core products are already covered by the core `c/:cluster/:product/:resource` routes in
+ *   `shell/config/router/routes.js`, and they also have specific routes of their own (e.g.
+ *   explorer's `projectsnamespaces`). Minting `c/:cluster/<product>/:resource` for them
+ *   re-introduces rancher/dashboard#18749: the static product segment outranks the core dynamic
+ *   `:product` one, so it shadows those specific routes.
+ * - Extension products route as `<product>/c/:cluster/...`, or as `c/:cluster/<product>/...` when
+ *   registered with `startRouteWithProduct: false`. They have no specific routes to shadow - their
+ *   custom pages are static paths, which outrank `:resource` - so they get their own generic
+ *   `:resource` routes in either shape. They only own them if they registered at least one
+ *   resource page themselves, so extending one with its first resource page has to add them.
  *
  * Not in the registry means "core product" - the core routes cover it.
  *
