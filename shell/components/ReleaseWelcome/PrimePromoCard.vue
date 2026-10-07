@@ -32,6 +32,7 @@ const { t } = useI18n(store);
     <RcButton
       class="cta"
       variant="primary"
+      size="small"
       :href="PRIME_URL"
       target="_blank"
       rel="noopener noreferrer nofollow"
@@ -51,9 +52,19 @@ const { t } = useI18n(store);
   margin: 0;
   padding: 0;
   list-style: none;
+
+  // Pill shaped chips in the theme font
+  :deep(.rc-tag) {
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 16px;
+  }
 }
 
 .cta {
   margin-top: 4px;
+  font-weight: 600;
 }
 </style>

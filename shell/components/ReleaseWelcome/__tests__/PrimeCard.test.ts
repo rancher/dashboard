@@ -1,28 +1,14 @@
 import { shallowMount } from '@vue/test-utils';
 import PrimeCard from '@shell/components/ReleaseWelcome/PrimeCard.vue';
 
-let mockStore: any;
-
-jest.mock('vuex', () => ({ ...jest.requireActual('vuex'), useStore: () => mockStore }));
-
-const createWrapper = (brand?: string) => {
-  mockStore = { getters: { 'management/brand': brand } };
-
-  return shallowMount(PrimeCard, { slots: { default: '<h3>Title</h3>' } });
-};
+const createWrapper = () => shallowMount(PrimeCard, { slots: { default: '<h3>Title</h3>' } });
 
 describe('component: PrimeCard', () => {
-  // The card is dark in both themes
-  it('should apply the dark theme to the card', () => {
+  // The card looks the same in every theme and brand
+  it('should apply the SUSE Rancher Prime theme on top of the dark theme', () => {
     const wrapper = createWrapper();
 
-    expect(wrapper.classes()).toStrictEqual(['prime-card', 'theme-dark']);
-  });
-
-  it('should apply the brand to the card, for brand specific dark theme variables', () => {
-    const wrapper = createWrapper('suse');
-
-    expect(wrapper.classes()).toStrictEqual(['prime-card', 'theme-dark', 'suse']);
+    expect(wrapper.classes()).toStrictEqual(['prime-card', 'theme-dark', 'theme-suse-prime']);
   });
 
   it('should render the content', () => {
