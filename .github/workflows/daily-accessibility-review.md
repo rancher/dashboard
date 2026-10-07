@@ -57,12 +57,12 @@ timeout-minutes: 60
 
 steps:
   - name: Checkout repository
-    uses: actions/checkout@v6.0.2
+    uses: actions/checkout@v7.0.1
     with:
       fetch-depth: 1
       persist-credentials: false
   - name: Setup env
-    uses: actions/setup-node@v6.4.0
+    uses: actions/setup-node@v7.0.0
     with:
       node-version-file: '.nvmrc'
   - name: Install packages
