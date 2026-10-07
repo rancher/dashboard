@@ -32,6 +32,9 @@ export function computeDashboardUrl(monitoringVersion, embedUrl, clusterId, para
   return newUrl;
 }
 
+/**
+ * @param {string | null} [projectId]
+ */
 export async function dashboardExists(monitoringVersion, store, clusterId, embedUrl, storeName = 'cluster', projectId = null) {
   if ( !haveV2Monitoring(store.getters) ) {
     return false;
