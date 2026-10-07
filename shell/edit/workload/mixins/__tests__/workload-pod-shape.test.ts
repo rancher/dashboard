@@ -126,4 +126,42 @@ describe('workload mixin: Pod uses native shape', () => {
       expect(ctx.spec.selector).toBeUndefined();
     });
   });
+
+  describe('method: saveWorkload - empty affinity in edit mode', () => {
+    const editCtx = (hadAffinity: boolean) => {
+      const ctx = {
+        ...podCtx(),
+        type:             POD,
+        mode:             'edit',
+        realMode:         'edit',
+        container:        undefined,
+        portsForServices: [],
+        fixNodeAffinity:  jest.fn(),
+        fixPodAffinity:   jest.fn(),
+        nvidiaIsValid:    jest.fn(() => true),
+        hadAffinity,
+      } as any;
+
+      ctx.value.spec.affinity = {};
+      ctx.spec = ctx.value.spec;
+
+      return ctx;
+    };
+
+    it('keeps an empty affinity the pod was saved with, as removing it is a forbidden pod update', () => {
+      const ctx = editCtx(true);
+
+      (workloadMixin.methods as any).saveWorkload.call(ctx);
+
+      expect(ctx.value.spec.affinity).toStrictEqual({});
+    });
+
+    it('removes an empty affinity the pod was not saved with', () => {
+      const ctx = editCtx(false);
+
+      (workloadMixin.methods as any).saveWorkload.call(ctx);
+
+      expect(ctx.value.spec.affinity).toBeUndefined();
+    });
+  });
 });

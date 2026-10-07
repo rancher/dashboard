@@ -333,12 +333,6 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
 
           const clonedSpec = response?.body?.spec;
 
-          // In Dashboard adds empty affinity object by default
-          // Remove this to compare
-          if (!Object.keys(clonedSpec.affinity).length) {
-            delete clonedSpec.affinity;
-          }
-
           expect(clonedSpec).to.deep.eq(origPodSpec);
           expect(clonedSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
         });
