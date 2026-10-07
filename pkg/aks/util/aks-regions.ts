@@ -25,6 +25,7 @@ export const regionsWithAvailabilityZones: Record<string, boolean> = {
   malaysiawest:       true,
   mexicocentral:      true,
   newzealandnorth:    true,
+  northcentralus:     true,
   northeurope:        true,
   norwayeast:         true,
   polandcentral:      true,
