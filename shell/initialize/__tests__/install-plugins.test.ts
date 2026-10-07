@@ -10,8 +10,9 @@ jest.mock('@rancher/dynamic', () => ({}), { virtual: true });
 describe('fx: installPlugins', () => {
   it('should suppress global shortcuts while focus is inside either modal component', async() => {
     const use = jest.fn();
+    const component = jest.fn();
 
-    await installPlugins({ use } as any);
+    await installPlugins({ use, component } as any);
 
     const shortKey = use.mock.calls.find(([plugin]) => plugin === ShortKey);
 
