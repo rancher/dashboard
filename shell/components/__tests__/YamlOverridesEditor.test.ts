@@ -1,7 +1,7 @@
 import { defineComponent, markRaw } from 'vue';
 import { shallowMount } from '@vue/test-utils';
-import { EditorView } from '@codemirror/view';
-import { getSearchQuery } from '@codemirror/search';
+import { EditorView, runScopeHandlers } from '@codemirror/view';
+import { getSearchQuery, openSearchPanel, searchPanelOpen } from '@codemirror/search';
 import YamlOverridesEditor from '@shell/components/YamlOverridesEditor.vue';
 import { mergeOverridesRawText, overridesFromValues } from '@shell/utils/chart-values';
 
@@ -616,6 +616,52 @@ describe('component: YamlOverridesEditor', () => {
 
       expect(searchMarks(left)).toStrictEqual(['sachet', 'sachet']);
       expect(countLabel(wrapper).text()).toStrictEqual('yamlOverridesEditor.search.matches {"count":2}');
+    });
+
+    describe('find keys in the chart-defaults editor', () => {
+      const press = (editor: any, init: ConstructorParameters<typeof KeyboardEvent>[1]) => runScopeHandlers(editor.view, new KeyboardEvent('keydown', init), 'editor');
+
+      it('keeps the editor\'s own search panel closed', async() => {
+        const wrapper = mountEditor();
+        const { left } = editors(wrapper);
+
+        openSearchPanel(left.view);
+        await settle(wrapper);
+
+        expect(searchPanelOpen(left.view.state)).toBe(false);
+      });
+
+      it('focuses the search box instead of opening the editor\'s search panel', async() => {
+        const wrapper = mountEditor();
+        const focus = jest.spyOn(searchInput(wrapper).element as HTMLInputElement, 'focus');
+
+        openSearchPanel(editors(wrapper).left.view);
+        await settle(wrapper);
+
+        expect(focus).toHaveBeenCalledWith();
+      });
+
+      it('focuses the search box on F3 when nothing is searched', async() => {
+        const wrapper = mountEditor();
+        const focus = jest.spyOn(searchInput(wrapper).element as HTMLInputElement, 'focus');
+
+        press(editors(wrapper).left, { key: 'F3' });
+
+        expect(focus).toHaveBeenCalledWith();
+      });
+
+      it.each([
+        ['next', { key: 'F3' }, 2],
+        ['previous', { key: 'F3', shiftKey: true }, 3],
+      ])('selects the %p match and updates the count on %p', async(_, init, current) => {
+        const wrapper = mountEditor({ value: THREE_MATCHES });
+
+        await search(wrapper, 'replicas');
+        press(editors(wrapper).left, init);
+        await wrapper.vm.$nextTick();
+
+        expect(countLabel(wrapper).text()).toStrictEqual(`yamlOverridesEditor.search.position {"current":${ current },"total":3}`);
+      });
     });
   });
 });

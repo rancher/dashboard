@@ -3,12 +3,14 @@
  * YamlOverridesEditor.vue). Matching works like a browser's find in page: a plain,
  * case-insensitive substring match, so "bar" also matches "fooBar".
  */
-import { EditorSelection, RangeSetBuilder, StateEffect } from '@codemirror/state';
-import type { EditorState, Extension } from '@codemirror/state';
-import { Decoration, EditorView, ViewPlugin } from '@codemirror/view';
+import {
+  EditorSelection, EditorState, Prec, RangeSetBuilder, StateEffect
+} from '@codemirror/state';
+import type { Extension } from '@codemirror/state';
+import { Decoration, EditorView, ViewPlugin, keymap } from '@codemirror/view';
 import type { DecorationSet, ViewUpdate } from '@codemirror/view';
 import {
-  SearchQuery, findNext, findPrevious, getSearchQuery, search, setSearchQuery
+  SearchQuery, findNext, findPrevious, getSearchQuery, search, searchPanelOpen, setSearchQuery
 } from '@codemirror/search';
 
 /** The search only runs once the query has at least this many characters. */
@@ -89,6 +91,44 @@ export function setYamlSearch(view: EditorView, query = '') {
   if (!getSearchQuery(view.state).eq(next)) {
     view.dispatch({ effects: setSearchQuery.of(next) });
   }
+}
+
+export interface YamlSearchBox {
+  /** Called instead of opening CodeMirror's search panel, e.g. to focus the search box. */
+  open: () => void;
+  /** Called for F3 and Mod-G (next), or with Shift (previous). */
+  find: (direction: 'next' | 'previous') => void;
+}
+
+/**
+ * Keep CodeMirror's own search panel closed in an editor that has a search box
+ * outside it. Whatever would open the panel (Mod-F, or Ctrl-S in Emacs) calls
+ * `box.open` instead. F3 and Mod-G call `box.find`, so the box can keep its match
+ * count right.
+ */
+export function connectYamlSearchBox(view: EditorView, box: YamlSearchBox) {
+  const keepPanelClosed = EditorState.transactionFilter.of((tr) => {
+    if (!tr.effects.length || searchPanelOpen(tr.startState) || !searchPanelOpen(tr.state)) {
+      return tr;
+    }
+
+    // Focusing the box blurs the editor, so wait until this update is over
+    queueMicrotask(box.open);
+
+    return [];
+  });
+
+  const find = (direction: 'next' | 'previous') => () => {
+    box.find(direction);
+
+    return true;
+  };
+
+  const findKeys = Prec.highest(keymap.of(['F3', 'Mod-g'].map((key) => ({
+    key, run: find('next'), shift: find('previous')
+  }))));
+
+  view.dispatch({ effects: StateEffect.appendConfig.of([keepPanelClosed, findKeys]) });
 }
 
 /** Count the matches of the query set by `setYamlSearch` and find the selected one. */

@@ -7,7 +7,9 @@ import type { EditorView } from '@codemirror/view';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { overridesFromEditedValues, mergeOverridesRawText, changedLineNumbers, sameYamlOverrides } from '@shell/utils/chart-values';
 import { setLineClasses } from '@shell/utils/code-mirror-line-classes';
-import { MIN_SEARCH_LENGTH, findYamlSearchMatch, setYamlSearch, yamlSearchMatches } from '@shell/utils/yaml-search';
+import {
+  MIN_SEARCH_LENGTH, connectYamlSearchBox, findYamlSearchMatch, setYamlSearch, yamlSearchMatches
+} from '@shell/utils/yaml-search';
 import type { YamlSearchMatches } from '@shell/utils/yaml-search';
 
 /**
@@ -76,6 +78,7 @@ const emit = defineEmits<{(e: 'update:value', value: string): void }>();
 // after mount, so cross-pane updates are pushed in via these refs).
 const defaultsEditor = ref<any>(null);
 const overridesEditor = ref<any>(null);
+const searchInput = ref<HTMLInputElement | null>(null);
 
 // The chart-defaults CodeMirror view, once it's ready. Not reactive on purpose.
 let defaultsView: EditorView | null = null;
@@ -250,6 +253,21 @@ function goToMatch(direction: 'next' | 'previous') {
   }
 }
 
+function focusSearch() {
+  searchInput.value?.focus();
+  searchInput.value?.select();
+}
+
+// The editor's find keys use the search box instead of CodeMirror's own search
+// panel. F3 and Mod-G go to the next match, or to the box when nothing is searched.
+function findFromEditor(direction: 'next' | 'previous') {
+  if (activeSearchQuery.value) {
+    goToMatch(direction);
+  } else {
+    focusSearch();
+  }
+}
+
 // --- External prop changes --------------------------------------------------
 
 // React to `value` changing from outside (e.g. the parent seeding the pane). Our
@@ -279,6 +297,7 @@ watch(() => props.defaults, () => {
 function onDefaultsReady(view: EditorView) {
   defaultsView = view;
   applyDefaultsDecorations();
+  connectYamlSearchBox(view, { open: focusSearch, find: findFromEditor });
 }
 
 onBeforeUnmount(() => {
@@ -311,6 +330,7 @@ onBeforeUnmount(() => {
           :class="{ 'values-search--active': !!activeSearchQuery }"
         >
           <input
+            ref="searchInput"
             v-model="searchQuery"
             type="search"
             class="input-sm values-search__input"

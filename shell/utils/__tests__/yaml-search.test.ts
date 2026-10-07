@@ -1,6 +1,7 @@
 import { EditorSelection } from '@codemirror/state';
-import { EditorView, lineNumbers } from '@codemirror/view';
-import { setYamlSearch, findYamlSearchMatch, yamlSearchMatches } from '@shell/utils/yaml-search';
+import { EditorView, lineNumbers, runScopeHandlers } from '@codemirror/view';
+import { openSearchPanel, searchPanelOpen } from '@codemirror/search';
+import { connectYamlSearchBox, setYamlSearch, findYamlSearchMatch, yamlSearchMatches } from '@shell/utils/yaml-search';
 
 const MATCH = 'cm-searchMatch';
 const SELECTED = 'cm-searchMatch-selected';
@@ -219,6 +220,71 @@ describe('fx: yaml-search', () => {
         view.dispatch({ changes: { from: 0, insert: 'bar: 1\n' } });
 
         expect(yamlSearchMatches(view.state)).toStrictEqual({ current: 2, total: 4 });
+      });
+    });
+
+    describe('connectYamlSearchBox', () => {
+      const connect = (view: EditorView) => {
+        const box = { open: jest.fn(), find: jest.fn() };
+
+        connectYamlSearchBox(view, box);
+
+        return box;
+      };
+      const press = (view: EditorView, init: ConstructorParameters<typeof KeyboardEvent>[1]) => runScopeHandlers(view, new KeyboardEvent('keydown', init), 'editor');
+
+      it('keeps the search panel closed', () => {
+        const view = createView();
+
+        connect(view);
+        openSearchPanel(view);
+
+        expect(searchPanelOpen(view.state)).toBe(false);
+      });
+
+      it('opens the search box instead of the search panel', async() => {
+        const view = createView();
+        const box = connect(view);
+
+        openSearchPanel(view);
+        await Promise.resolve();
+
+        expect(box.open).toHaveBeenCalledWith();
+      });
+
+      it('lets other changes through', () => {
+        const view = createView('a: 1');
+
+        connect(view);
+        view.dispatch({ changes: { from: 0, insert: 'b: 2\n' } });
+
+        expect(view.state.doc.toString()).toStrictEqual('b: 2\na: 1');
+      });
+
+      it.each([
+        ['F3', { key: 'F3' }, 'next'],
+        ['Shift-F3', { key: 'F3', shiftKey: true }, 'previous'],
+        ['Mod-G', { key: 'g', ctrlKey: true }, 'next'],
+        ['Shift-Mod-G', {
+          key: 'G', keyCode: 71, ctrlKey: true, shiftKey: true
+        }, 'previous'],
+      ])('finds the %s match with %s', (_label, init, direction) => {
+        const view = createView();
+        const box = connect(view);
+
+        press(view, init);
+
+        expect(box.find).toHaveBeenCalledWith(direction);
+      });
+
+      it('does not move the selection itself on F3', () => {
+        const view = createView();
+
+        connect(view);
+        setYamlSearch(view, 'bar');
+        press(view, { key: 'F3' });
+
+        expect(view.state.selection.main.from).toStrictEqual(0);
       });
     });
   });
