@@ -239,7 +239,7 @@ describe('component: RcModal', () => {
       const opts = (createFocusTrap as jest.Mock).mock.calls[0][1];
 
       expect(opts.escapeDeactivates).toBe(false);
-      expect(opts.allowOutsideClick()).toBe(false);
+      expect(opts.allowOutsideClick({ target: document.querySelector('.rc-modal-overlay') })).toBe(false);
 
       wrapper.unmount();
     });
@@ -249,8 +249,22 @@ describe('component: RcModal', () => {
 
       const opts = (createFocusTrap as jest.Mock).mock.calls[0][1];
 
-      expect(opts.allowOutsideClick()).toBe(true);
+      expect(opts.allowOutsideClick({ target: document.querySelector('.rc-modal-overlay') })).toBe(true);
 
+      wrapper.unmount();
+    });
+
+    it('should let a click through to a layer outside the overlay when the modal is not dismissable, so a menu appended to the body still works', () => {
+      const wrapper = mountModal({ props: { clickToClose: false } });
+      const menu = document.createElement('ul');
+
+      document.body.appendChild(menu);
+
+      const opts = (createFocusTrap as jest.Mock).mock.calls[0][1];
+
+      expect(opts.allowOutsideClick({ target: menu })).toBe(true);
+
+      menu.remove();
       wrapper.unmount();
     });
 

@@ -4,6 +4,7 @@ import { ref } from 'vue';
 import { RcModal, useModal, type RcModalSize } from '@components/RcModal';
 import { RcButton } from '@components/RcButton';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 if (!document.getElementById('modals')) {
   const target = document.createElement('div');
@@ -171,6 +172,44 @@ export const WithSections: Story = {
     title:        'Move to a new project?',
     size:         'medium',
     clickToClose: true,
+  },
+};
+
+/**
+ * A select's menu is appended to the body, outside the modal. Its options stay
+ * clickable when `clickToClose` is false.
+ */
+export const WithSelect: Story = {
+  render: (args: any) => {
+    const [, updateArgs] = useArgs();
+
+    return {
+      components: {
+        RcModal, RcButton, LabeledSelect
+      },
+      setup: () => ({
+        args,
+        ...showHandlers(updateArgs),
+        project:  ref('Default'),
+        projects: ['Default', 'System', 'Monitoring', 'Logging'],
+      }),
+      template: `
+        <RcButton variant="primary" @click="openModal">Move namespace</RcButton>
+        <RcModal v-bind="args" @close="closeModal" @primary-action="closeModal">
+          <LabeledSelect v-model:value="project" label="Target project" :options="projects" />
+          <template #actions="{ cancel, primaryAction }">
+            <RcButton variant="tertiary" size="large" @click="cancel">Cancel</RcButton>
+            <RcButton variant="primary" size="large" @click="primaryAction">Move</RcButton>
+          </template>
+        </RcModal>
+      `,
+    };
+  },
+  args: {
+    show:         false,
+    title:        'Move to a new project?',
+    size:         'small',
+    clickToClose: false,
   },
 };
 
