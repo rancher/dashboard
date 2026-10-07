@@ -9,7 +9,9 @@ import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/ti
 const MANAGEMENT_CLUSTER_NAME_ANNOTATION = 'provisioning.cattle.io/management-cluster-name';
 const OTHER_CATTLE_ANNOTATION = 'some.cattle.io/other-annotation';
 
-const mgmtClusterNameValue = 'custom-mgmt-id';
+// The webhook only accepts a management cluster name of the form `c-m-` plus 8 lowercase letters or
+// digits, and rejects a name another cluster already uses, so generate a valid, unique one per run.
+const mgmtClusterNameValue = `c-m-${ Date.now().toString(36).slice(-8).padStart(8, '0') }`;
 const otherAnnotationValue = 'some-value';
 
 const namespace = 'fleet-default';
