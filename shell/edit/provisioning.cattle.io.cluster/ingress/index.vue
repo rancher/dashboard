@@ -391,10 +391,7 @@ function updateYaml(component: any, value: any) {
 }
 
 .ingress-yaml-editor {
-  :deep(.CodeMirror) {
-    height: auto !important;
-  }
-  :deep(.CodeMirror-scroll) {
+  :deep(.cm-editor) {
     max-height: 600px;
   }
 }

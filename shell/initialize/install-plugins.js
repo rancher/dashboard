@@ -1,12 +1,11 @@
 import PortalVue from 'portal-vue';
-import { MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR } from '@shell/utils/dom';
+import { MODAL_CONTAINER_SELECTOR, SHORTKEY_PREVENT_SELECTORS, SWITCHER_POPPER_SELECTOR } from '@shell/utils/dom';
 import Vue3Resize from 'vue3-resize';
 import FloatingVue from 'floating-vue';
 import 'vue3-resize/dist/vue3-resize.css';
 
 // import '@shell/plugins/extend-router';
 import '@shell/plugins/formatters';
-import '@shell/plugins/js-yaml';
 
 import i18n from '@shell/plugins/i18n';
 import globalFormatters from '@shell/plugins/global-formatters';
@@ -14,8 +13,7 @@ import globalFormatters from '@shell/plugins/global-formatters';
 import axios from '@shell/utils/axios';
 import config from '@shell/utils/config';
 import axiosShell from '@shell/plugins/axios';
-import codeMirror from '@shell/plugins/codemirror-loader';
-import { InstallCodeMirror } from 'codemirror-editor-vue3';
+import { CodeMirror5 } from '@shell/plugins/codemirror-loader';
 import * as intNumber from '@shell/directives/int-number';
 import dashboardClientInit from '@shell/plugins/dashboard-client-init';
 import plugin from '@shell/plugins/plugin';
@@ -43,12 +41,12 @@ export async function installPlugins(vueApp) {
   vueApp.use(
     ShortKey,
     {
-      // A contenteditable takes typing like an input, so shortcuts must not fire in it
-      prevent:          ['input', 'textarea', 'select', '[contenteditable="true"]', '[contenteditable="plaintext-only"]'],
+      prevent:          SHORTKEY_PREVENT_SELECTORS,
       // A surface that owns the screen silences the app's shortcuts while it is up.
       preventContainer: [MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR]
     });
-  vueApp.use(InstallCodeMirror);
+  // Deprecated, for the editors of extensions built with a shell from before CodeMirror 6
+  vueApp.component('Codemirror', CodeMirror5);
 }
 
 export async function installInjectedPlugins(app, vueApp) {
@@ -59,7 +57,6 @@ export async function installInjectedPlugins(app, vueApp) {
     pluginsLoader,
     axiosShell,
     intNumber,
-    codeMirror,
     dashboardClientInit,
     replaceAll,
     plugin,

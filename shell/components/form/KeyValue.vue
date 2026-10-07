@@ -262,8 +262,7 @@ export default {
 
     return {
       rows,
-      codeMirrorFocus: {},
-      lastUpdated:     null
+      lastUpdated: null
     };
   },
   computed: {
@@ -587,12 +586,6 @@ export default {
       this.rows = this.rows.map((row, i) => i === idx ? { ...row, value } : row);
       this.queueUpdate();
     },
-    /**
-     * Set focus on CodeMirror fields
-     */
-    onFocusMarkdownMultiline(idx, value) {
-      this.codeMirrorFocus[idx] = value;
-    },
     onValueFileSelected(idx, file) {
       const { name, value } = file;
 
@@ -811,7 +804,6 @@ export default {
                     v-if="valueMarkdownMultiline"
                     ref="cm"
                     data-testid="code-mirror-multiline-field"
-                    :class="{['focus']: codeMirrorFocus[i]}"
                     :value="row[valueName]"
                     :as-text-area="true"
                     :mode="mode"
@@ -819,7 +811,6 @@ export default {
                       screenReaderLabel: t('generic.ariaLabel.value', { index: i+1 })
                     }"
                     @onInput="onInputMarkdownMultiline(i, $event)"
-                    @onFocus="onFocusMarkdownMultiline(i, $event)"
                   />
                   <div
                     v-else-if="valueConcealed"
