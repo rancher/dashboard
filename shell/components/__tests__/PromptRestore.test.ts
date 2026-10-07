@@ -144,6 +144,59 @@ describe('component: PromptRestore', () => {
     expect(buttonDone).toHaveBeenCalledWith(true);
   });
 
+  it('should not report the restore as started when the operation CR cannot be created', async() => {
+    (createOperationCR as jest.Mock).mockRejectedValue({ status: 403, message: 'forbidden' });
+    const buttonDone = jest.fn();
+    const growlSuccess = jest.fn();
+
+    const importedCluster = {
+      isImported:              true,
+      isImportedWithDayTwoOps: true,
+      type:                    CAPI.RANCHER_CLUSTER,
+      metadata:                { name: 'imported-cluster' },
+      mgmt:                    { id: 'c-m-imported' },
+      save:                    jest.fn(),
+    };
+
+    const getters: any = {};
+
+    getters['i18n/t'] = () => (key: string) => key;
+
+    const store = createStore({
+      modules: {
+        'action-menu': {
+          namespaced: true,
+          state:      {
+            showPromptRestore: true,
+            toRestore:         [importedCluster]
+          },
+          mutations: { togglePromptRestore: jest.fn() }
+        },
+      },
+      getters,
+      actions: {
+        'management/findAll': jest.fn().mockResolvedValue([]),
+        'growl/success':      growlSuccess,
+      }
+    });
+
+    const wrapper = shallowMount(PromptRestore, { global: { mocks: { $store: store } } });
+
+    wrapper.vm.allSnapshots = {
+      'snapshot-1': {
+        name:     'snapshot-1',
+        metadata: { name: 'snapshot-1' }
+      }
+    };
+    (wrapper.vm as any).selectedSnapshot = 'snapshot-1';
+
+    await wrapper.vm.apply(buttonDone);
+
+    expect(growlSuccess).toHaveBeenCalledTimes(0);
+    expect((wrapper.vm as any).errors).toStrictEqual(['forbidden']);
+    expect(buttonDone).toHaveBeenCalledWith(false);
+  });
+
   it('should restore imported snapshot by resolving target cluster from store', async() => {
     (createOperationCR as jest.Mock).mockResolvedValue(undefined);
     const buttonDone = jest.fn();

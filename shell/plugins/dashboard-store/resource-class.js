@@ -1265,6 +1265,11 @@ export default class Resource {
    */
   processSaveResponse(res, opt = {}) { }
 
+  /**
+   * Allow to notify the user of the name generated for this resource, once it has been created
+   */
+  notifyGeneratedName() { }
+
   async _save(opt = { }) {
     const forNew = !this.id;
     let errors;

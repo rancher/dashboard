@@ -103,7 +103,7 @@ export default {
             }
           };
 
-          createOperationCR(this.$store.dispatch, OPERATION.ENCRYPTION_KEY_ROTATE, spec, namespace, safePrefix);
+          await createOperationCR(this.$store.dispatch, OPERATION.ENCRYPTION_KEY_ROTATE, spec, namespace, safePrefix, { notifyGeneratedName: true });
         } else {
           const currentGeneration = this.cluster.spec?.rkeConfig?.rotateEncryptionKeys?.generation || 0;
 
