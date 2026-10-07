@@ -191,7 +191,7 @@ export function init(store) {
   configureType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING, { isEditable: false, depaginate: dePaginateBindings });
   configureType(MANAGEMENT.PROJECT, { displayName: store.getters['i18n/t']('namespace.project.label') });
   configureType(NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
-  configureType(NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
+  configureType(NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, { depaginate: true });
   configureType(SNAPSHOT, { depaginate: true });
 
   configureType(SECRET, { showListMasthead: false });

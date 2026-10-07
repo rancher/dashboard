@@ -45,7 +45,8 @@ export default {
         principalId:     '',
         roleTemplateIds: []
       },
-      error: null
+      error:            null,
+      duplicateWarning: null
     };
   },
 
@@ -77,12 +78,35 @@ export default {
       this.close();
     },
 
+    // Returns the subset of roleTemplateIds that already exist for this principal+project.
+    existingRoleTemplateIds(principalProperty, principalId) {
+      const all = this.$store.getters['rancher/all'](NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
+
+      return this.member.roleTemplateIds.filter((roleTemplateId) => all.some(
+        (b) => b.projectId === this.projectId &&
+               b.roleTemplateId === roleTemplateId &&
+               b[principalProperty] === principalId
+      ));
+    },
+
     async createBindings() {
       const principalProperty = await this.principalProperty();
-      const promises = this.member.roleTemplateIds.map((roleTemplateId) => this.$store.dispatch(`rancher/create`, {
+      const principalId = this.member.principalId;
+      const duplicates = this.existingRoleTemplateIds(principalProperty, principalId);
+      const newRoleTemplateIds = this.member.roleTemplateIds.filter((id) => !duplicates.includes(id));
+
+      if (newRoleTemplateIds.length === 0) {
+        throw new Error(this.t('addProjectMemberDialog.duplicateRolesError'));
+      }
+
+      if (duplicates.length > 0) {
+        this.duplicateWarning = this.t('addProjectMemberDialog.duplicateRolesSkipped');
+      }
+
+      const promises = newRoleTemplateIds.map((roleTemplateId) => this.$store.dispatch(`rancher/create`, {
         type:                NORMAN.PROJECT_ROLE_TEMPLATE_BINDING,
         roleTemplateId,
-        [principalProperty]: this.member.principalId,
+        [principalProperty]: principalId,
         projectId:           this.projectId,
       }));
 
@@ -91,6 +115,7 @@ export default {
 
     saveBindings(btnCB) {
       this.error = null;
+      this.duplicateWarning = null;
       this.createBindings()
         .then((bindings) => {
           return Promise.all(bindings.map((b) => b.save()));
@@ -128,6 +153,12 @@ export default {
           color="error"
         >
           {{ error }}
+        </Banner>
+        <Banner
+          v-if="duplicateWarning"
+          color="warning"
+        >
+          {{ duplicateWarning }}
         </Banner>
         <ProjectMemberEditor
           v-model:value="member"
