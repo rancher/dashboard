@@ -14,6 +14,12 @@ const mockedStore = () => {
 
 const mockedRoute = { query: {} };
 
+// The default shallow-mount stub doesn't render its default slot, which would hide the content under test
+const RcContentGroupStub = {
+  name:     'RcContentGroup',
+  template: '<div><slot /></div>',
+};
+
 const requiredSetup = () => {
   return {
     global: {
@@ -21,7 +27,8 @@ const requiredSetup = () => {
         $store:      mockedStore(),
         $route:      mockedRoute,
         $fetchState: {},
-      }
+      },
+      stubs: { RcContentGroup: RcContentGroupStub },
     }
   };
 };
