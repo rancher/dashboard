@@ -1,6 +1,6 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import { EditorView } from '@codemirror/view';
-import { getCM, Vim } from '@replit/codemirror-vim';
+import { getCM, Vim, type CodeMirrorV } from '@replit/codemirror-vim';
 import RcCodeMirror from './RcCodeMirror.vue';
 
 type Wrapper = VueWrapper<InstanceType<typeof RcCodeMirror>>;
@@ -51,6 +51,16 @@ function keyEvent(spec: string) {
   });
 }
 
+function vimEditor(view: EditorView): CodeMirrorV {
+  const cm = getCM(view);
+
+  if (!cm?.state.vim) {
+    throw new Error('Vim editor was not initialized');
+  }
+
+  return cm as CodeMirrorV;
+}
+
 describe('component: RcCodeMirror Vim keymap', () => {
   let wrapper: Wrapper;
 
@@ -94,7 +104,7 @@ describe('component: RcCodeMirror Vim keymap', () => {
     view.dispatch({ changes: { from: view.state.selection.main.head, insert: 'sibling: new' } });
     keys(view, '<Esc>');
 
-    expect({ doc: view.state.doc.toString(), insertMode: getCM(view)!.state.vim.insertMode }).toStrictEqual({ doc: 'parent:\nsibling: new\n  child: old', insertMode: false });
+    expect({ doc: view.state.doc.toString(), insertMode: vimEditor(view).state.vim.insertMode }).toStrictEqual({ doc: 'parent:\nsibling: new\n  child: old', insertMode: false });
   });
 
   it('finds the word under the cursor and repeats the search', () => {
@@ -112,7 +122,7 @@ describe('component: RcCodeMirror Vim keymap', () => {
   ])('%s with an Ex command', (_description, command, before, after) => {
     const view = editor(before);
 
-    Vim.handleEx(getCM(view)!, command);
+    Vim.handleEx(vimEditor(view), command);
 
     expect(view.state.doc.toString()).toStrictEqual(after);
   });
