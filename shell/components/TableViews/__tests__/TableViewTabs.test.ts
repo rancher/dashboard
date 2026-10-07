@@ -288,7 +288,7 @@ describe('TableViewTabs', () => {
       const { vm, stored } = createWrapper({ view: { ...EMPTY, query: 'state:Running name:x' } });
       const before = stored();
 
-      vm.saveChanges({ id: null, name: 'Explorer' });
+      vm.saveChanges({ id: null, name: 'All' });
 
       expect(stored()).toStrictEqual(before);
     });
