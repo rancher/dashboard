@@ -5,7 +5,7 @@ import {
 } from '@shell/apis/intf/resources-api/resource-base';
 import { ResourceInstance } from '@shell/apis/intf/resources-api/resource-instance';
 import { ResourcesApi } from '@shell/apis/intf/resources-api/resources-api';
-import { OpenApiV3, openApiClusterId } from '@shell/apis/resources/open-api-v3';
+import { patchWithFallback } from '@shell/apis/resources/patch-content-type';
 import { ActionFindPageTransientResponse } from '@shell/types/store/dashboard-store.types';
 import { Store } from 'vuex';
 
@@ -13,8 +13,6 @@ export class ResourcesApiClassImpl implements ResourcesApi {
   private store: Store<any>;
 
   private storeType: 'cluster' | 'management' | string;
-
-  private openApi: OpenApiV3;
 
   private createLogMessage(message: string, level: 'error' | 'warning' = 'error') {
     return `Resource API ${ level } - ${ this.storeType } - ${ message }`;
@@ -51,22 +49,6 @@ export class ResourcesApiClassImpl implements ResourcesApi {
   constructor(store: Store<any>, storeType: 'cluster' | 'management' | string) {
     this.store = store;
     this.storeType = storeType;
-    this.openApi = new OpenApiV3({
-      schemaFor: (resourceType: string) => this.store.getters[`${ this.storeType }/schemaFor`]?.(resourceType),
-      request:   (opt: { url: string }) => this.store.dispatch(`${ this.storeType }/request`, { opt }),
-    });
-  }
-
-  /**
-   * Find the media type to use when sending a PATCH request for a resource.
-   *
-   * Strategic merge patch isn't supported by every resource (CRDs reject it), so the resource's
-   * OpenAPI definition decides which media type is sent. See {@link OpenApiV3.patchContentType}.
-   */
-  private patchContentType(resourceType: ResourceType): Promise<string> {
-    const cluster = openApiClusterId(this.storeType, this.store.getters['clusterId']);
-
-    return this.openApi.patchContentType(cluster, resourceType);
   }
 
   /**
@@ -292,8 +274,8 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * Only the fields provided in `data` are sent to the server.
    * This is a raw HTTP operation — it does not check permissions or update the store cache.
    *
-   * The patch media type is taken from the resource's OpenAPI definition. Strategic merge patch
-   * is used where the resource supports it, otherwise merge patch.
+   * Strategic merge patch is attempted first. Resources that reject it (CRDs, which is most of
+   * Rancher) are retried with merge patch, and remembered so the retry only happens once per type.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
@@ -309,14 +291,18 @@ export class ResourcesApiClassImpl implements ResourcesApi {
   ): Promise<I> {
     try {
       const url = this.resourceUrl(resourceType, resourceId);
-      const contentType = await this.patchContentType(resourceType);
-      const res = await this.store.dispatch(`${ this.storeType }/request`, {
-        opt: {
-          url,
-          method:  'patch',
-          headers: { 'content-type': contentType },
-          data,
-        }
+      const res = await patchWithFallback({
+        storeName: this.storeType,
+        resourceType,
+        send:      (contentType: string) => this.store.dispatch(`${ this.storeType }/request`, {
+          opt: {
+            url,
+            method:  'patch',
+            headers: { 'content-type': contentType },
+            data,
+          }
+        }),
+        onFallback: (message: string, e: any) => this.surfaceWarning(message, e),
       });
 
       return res as I;

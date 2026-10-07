@@ -1,14 +1,6 @@
 import { ResourcesApiClassImpl } from '../resources-api-class';
-import { OpenApiV3, PATCH_CONTENT_TYPE } from '@shell/apis/resources/open-api-v3';
+import { PATCH_CONTENT_TYPE, clearPatchStrategyCache } from '@shell/apis/resources/patch-content-type';
 import { Store } from 'vuex';
-
-const CLUSTER_ID = 'c-m-abcde';
-
-/**
- * The cluster the OpenAPI spec is read from. Management resources are defined in the local cluster,
- * not in the cluster currently being viewed
- */
-const OPEN_API_CLUSTER = { cluster: CLUSTER_ID, management: 'local' } as Record<string, string>;
 
 describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with storeType: %s', (storeType) => {
   let mockStore: Store<any>;
@@ -39,20 +31,20 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
     mockStore = {
       dispatch: mockDispatch,
       getters:  {
-        clusterId:                            CLUSTER_ID,
         [`${ storeType }/schemaFor`]:         mockSchemaFor,
         [`${ storeType }/paginationEnabled`]: mockPaginationEnabled,
         [`${ storeType }/urlFor`]:            mockUrlFor
       }
     } as any;
 
-    OpenApiV3.clearCache();
+    clearPatchStrategyCache();
 
     resourcesApi = new ResourcesApiClassImpl(mockStore, storeType);
   });
 
   afterEach(() => {
     consoleErrorSpy.mockRestore();
+    clearPatchStrategyCache();
   });
 
   describe('find', () => {
@@ -633,95 +625,127 @@ describe.each(['cluster', 'management'] as const)('resourcesApiClassImpl with st
   });
 
   describe('update', () => {
-    const OPEN_API_URL = `/k8s/clusters/${ OPEN_API_CLUSTER[storeType] }/openapi/v3/api/v1`;
-    const CONFIG_MAP_PATH = '/api/v1/namespaces/{namespace}/configmaps/{name}';
-
     /**
-     * Mock the schema and the two requests `update` makes - one to read the OpenAPI spec, one to
-     * send the patch itself
+     * A Steve error - the response body, with the status attached by the store's `request` action
      */
-    const mockUpdate = (patchContentTypes: string[], patchResponse: any = {}) => {
-      mockSchemaFor.mockReturnValue({
-        attributes: {
-          group: '', version: 'v1', resource: 'configmaps', namespaced: true
-        },
-        linkFor: () => 'https://rancher/v1/configmaps'
-      });
+    const steveError = (status: number, message: string) => {
+      const error: Record<string, any> = {
+        type: 'error', status, message
+      };
 
-      mockDispatch.mockImplementation((_action: string, payload: any) => {
-        if (payload?.opt?.url === OPEN_API_URL) {
-          return Promise.resolve({ paths: { [CONFIG_MAP_PATH]: { patch: { requestBody: { content: patchContentTypes.reduce((acc, type) => ({ ...acc, [type]: {} }), {}) } } } } });
-        }
+      Object.defineProperty(error, '_status', { value: status });
 
-        return Promise.resolve(patchResponse);
-      });
+      return error;
     };
 
-    it('should send a PATCH request with strategic-merge-patch content type when the resource supports it', async() => {
+    /**
+     * The error the Kubernetes API returns when a resource is sent a patch media type it doesn't
+     * accept, which is what happens to a CRD sent a strategic merge patch
+     */
+    const unsupportedMediaType = () => steveError(415, 'the body of the request was in an unknown format - accepted media types include: application/json-patch+json, application/merge-patch+json, application/apply-patch+yaml');
+
+    /**
+     * The expected `request` payload for a patch sent with a given media type
+     */
+    const patchRequest = (contentType: string) => [`${ storeType }/request`, {
+      opt: {
+        url:     'https://rancher/v1/configmaps/default/my-config',
+        method:  'patch',
+        headers: { 'content-type': contentType },
+        data:    { data: { key: 'patched' } },
+      }
+    }];
+
+    beforeEach(() => {
+      mockSchemaFor.mockReturnValue({
+        attributes: { namespaced: true },
+        linkFor:    () => 'https://rancher/v1/configmaps'
+      });
+    });
+
+    it('should send a PATCH request with strategic-merge-patch content type when the resource accepts it', async() => {
       // Arrange
       const mockResponse = { metadata: { name: 'my-config' }, data: { key: 'patched' } };
 
-      mockUpdate([PATCH_CONTENT_TYPE.MERGE, PATCH_CONTENT_TYPE.STRATEGIC_MERGE], mockResponse);
+      mockDispatch.mockResolvedValue(mockResponse);
 
       // Act
       const result = await resourcesApi.update('configmap', 'default/my-config', { data: { key: 'patched' } });
 
       // Assert
       expect(result).toStrictEqual(mockResponse);
-      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/request`, {
-        opt: {
-          url:     'https://rancher/v1/configmaps/default/my-config',
-          method:  'patch',
-          headers: { 'content-type': PATCH_CONTENT_TYPE.STRATEGIC_MERGE },
-          data:    { data: { key: 'patched' } },
-        }
-      });
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith(...patchRequest(PATCH_CONTENT_TYPE.STRATEGIC_MERGE));
     });
 
-    it('should send a PATCH request with merge-patch content type when the resource is a CRD', async() => {
-      // Arrange - CRDs don't advertise support for strategic merge patch
-      mockUpdate([PATCH_CONTENT_TYPE.MERGE]);
+    it('should retry with merge-patch content type when the resource rejects strategic-merge-patch', async() => {
+      // Arrange - this is what a CRD does
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const mockResponse = { metadata: { name: 'my-config' }, data: { key: 'patched' } };
+
+      mockDispatch
+        .mockRejectedValueOnce(unsupportedMediaType())
+        .mockResolvedValueOnce(mockResponse);
+
+      // Act
+      const result = await resourcesApi.update('configmap', 'default/my-config', { data: { key: 'patched' } });
+
+      // Assert
+      expect(result).toStrictEqual(mockResponse);
+      expect(mockDispatch).toHaveBeenCalledTimes(2);
+      expect(mockDispatch).toHaveBeenNthCalledWith(1, ...patchRequest(PATCH_CONTENT_TYPE.STRATEGIC_MERGE));
+      expect(mockDispatch).toHaveBeenNthCalledWith(2, ...patchRequest(PATCH_CONTENT_TYPE.MERGE));
+      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('configmap'), expect.anything());
+
+      consoleWarnSpy.mockRestore();
+    });
+
+    it('should go straight to merge-patch content type once the resource has rejected strategic-merge-patch', async() => {
+      // Arrange - the first update teaches it that this type won't accept a strategic merge patch
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      mockDispatch
+        .mockRejectedValueOnce(unsupportedMediaType())
+        .mockResolvedValue({});
+
+      await resourcesApi.update('configmap', 'default/my-config', { data: { key: 'patched' } });
+      mockDispatch.mockClear();
 
       // Act
       await resourcesApi.update('configmap', 'default/my-config', { data: { key: 'patched' } });
 
       // Assert
-      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/request`, {
-        opt: {
-          url:     'https://rancher/v1/configmaps/default/my-config',
-          method:  'patch',
-          headers: { 'content-type': PATCH_CONTENT_TYPE.MERGE },
-          data:    { data: { key: 'patched' } },
-        }
-      });
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith(...patchRequest(PATCH_CONTENT_TYPE.MERGE));
+
+      consoleWarnSpy.mockRestore();
     });
 
-    it('should send a PATCH request with merge-patch content type when the OpenAPI spec cannot be read', async() => {
+    it('should not retry when the PATCH fails for a reason other than the media type', async() => {
+      // Arrange
+      mockDispatch.mockRejectedValue(steveError(403, 'forbidden'));
+
+      // Act & Assert
+      await expect(resourcesApi.update('configmap', 'default/my-config', { data: { key: 'patched' } })).rejects.toThrow(
+        `Resource API error - ${ storeType } - Failed to update resource configmap/default/my-config: forbidden`
+      );
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith(...patchRequest(PATCH_CONTENT_TYPE.STRATEGIC_MERGE));
+    });
+
+    it('should surface a failing merge-patch retry to the caller', async() => {
       // Arrange
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-      mockSchemaFor.mockReturnValue({
-        attributes: {
-          group: '', version: 'v1', resource: 'configmaps', namespaced: true
-        },
-        linkFor: () => 'https://rancher/v1/configmaps'
-      });
-      mockDispatch.mockImplementation((_action: string, payload: any) => {
-        return payload?.opt?.url === OPEN_API_URL ? Promise.reject(new Error('Forbidden')) : Promise.resolve({});
-      });
+      mockDispatch
+        .mockRejectedValueOnce(unsupportedMediaType())
+        .mockRejectedValueOnce(steveError(409, 'the object has been modified'));
 
-      // Act
-      await resourcesApi.update('configmap', 'default/my-config', { data: { key: 'patched' } });
-
-      // Assert
-      expect(mockDispatch).toHaveBeenCalledWith(`${ storeType }/request`, {
-        opt: {
-          url:     'https://rancher/v1/configmaps/default/my-config',
-          method:  'patch',
-          headers: { 'content-type': PATCH_CONTENT_TYPE.MERGE },
-          data:    { data: { key: 'patched' } },
-        }
-      });
+      // Act & Assert
+      await expect(resourcesApi.update('configmap', 'default/my-config', { data: { key: 'patched' } })).rejects.toThrow(
+        `Resource API error - ${ storeType } - Failed to update resource configmap/default/my-config: the object has been modified`
+      );
+      expect(mockDispatch).toHaveBeenCalledTimes(2);
 
       consoleWarnSpy.mockRestore();
     });

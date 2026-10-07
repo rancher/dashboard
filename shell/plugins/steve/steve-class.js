@@ -3,7 +3,7 @@ import HybridModel from './hybrid-class';
 import { NEVER_ADD } from '@shell/utils/create-yaml';
 import { deleteProperty } from '@shell/utils/object';
 import { EXT_IDS } from '@shell/core/plugin';
-import { OpenApiV3, openApiClusterId } from '@shell/apis/resources/open-api-v3';
+import { patchWithFallback } from '@shell/apis/resources/patch-content-type';
 
 // Some fields that are removed for YAML (NEVER_ADD) are required via API
 const STEVE_ADD = [
@@ -93,25 +93,23 @@ export default class SteveModel extends HybridModel {
   /**
    * RESOURCES API - ResourceInstance update method to send a PATCH request
    *
-   * The patch media type is taken from the resource's OpenAPI definition. Strategic merge patch
-   * is used where the resource supports it, otherwise merge patch.
+   * Strategic merge patch is attempted first, and resources that reject it are retried with merge
+   * patch. See `patchWithFallback`.
    */
   async update(data) {
     if (!this.canEdit) {
       throw new Error(`ResourceInstance API error - ${ this.type }/${ this.id } - Cannot patch: permission denied`);
     }
 
-    const openApi = new OpenApiV3({
-      schemaFor: (resourceType) => this.$getters['schemaFor']?.(resourceType),
-      request:   (opt) => this.$dispatch('request', { opt, type: this.type }),
-    });
-    const cluster = openApiClusterId(this.$getters['storeName'], this.$rootGetters['clusterId']);
-    const contentType = await openApi.patchContentType(cluster, this.type);
-
-    await this.save({
-      data,
-      method:  'patch',
-      headers: { 'content-type': contentType }
+    await patchWithFallback({
+      storeName:    this.$getters['storeName'],
+      resourceType: this.type,
+      // A new options object per attempt - `save` mutates the one it's given
+      send:         (contentType) => this.save({
+        data,
+        method:  'patch',
+        headers: { 'content-type': contentType }
+      }),
     });
 
     return this;

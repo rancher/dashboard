@@ -12,9 +12,9 @@ export interface ResourceInstanceApi {
    * Only the fields provided in `data` are sent to the server — the rest of the resource
    * remains unchanged. The server response is merged back into this instance.
    *
-   * The patch media type is taken from the resource's OpenAPI definition:
-   * `application/strategic-merge-patch+json` where the resource supports it, otherwise
-   * `application/merge-patch+json` (which is the case for CRDs).
+   * `application/strategic-merge-patch+json` is attempted first, which merges list fields by key.
+   * Resources that reject it (CRDs, which is most of Rancher) are retried with
+   * `application/merge-patch+json`, which replaces list fields instead.
    *
    * Requires edit permissions (`canEdit`).
    *
