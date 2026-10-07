@@ -14,7 +14,9 @@ import TableViewExportModal from '@shell/components/TableViews/TableViewExportMo
 import { useDragReorder } from '@shell/composables/useDragReorder';
 import { useI18n } from '@shell/composables/useI18n';
 import { useSavedTableViews } from '@shell/composables/useSavedTableViews';
+import { useTableViewsLink } from '@shell/composables/useTableViewsLink';
 import { isMac, shortcutLabel } from '@shell/utils/platform';
+import { linkedTableKey } from '@shell/utils/table-views/link';
 import { registerTableViewShortcuts } from '@shell/utils/table-views/shortcuts';
 import type { TableViewShortcutAction } from '@shell/utils/table-views/shortcuts';
 import { randomStr } from '@shell/utils/string';
@@ -77,6 +79,8 @@ const { t } = useI18n(store);
 const {
   savedViews, defaultViewId, allTabIndex, persistAll, persist, unusedViewName
 } = useSavedTableViews(() => props.resourceType, () => props.tableViewsPage);
+
+const { takeShared, show: showInLink } = useTableViewsLink(() => (props.resourceType ? linkedTableKey(props.resourceType, props.tableViewsPage) : ''));
 
 const root = ref<HTMLElement | null>(null);
 
@@ -833,6 +837,33 @@ const doExport = (format: string) => {
   closeModal();
 };
 
+/** A view someone sent in a link is kept as a view of the user's own, and opened */
+const openSharedView = () => {
+  const shared = takeShared();
+
+  if (!shared) {
+    return;
+  }
+
+  const { name, ...state } = shared;
+  const view: TableViewSaved = {
+    ...viewStateOf(state), id: randomStr(8), name: unusedViewName(t('tableViews.tab.sharedName', { name }, true), 2)
+  };
+
+  persist(savedViews.value.concat([view]));
+  applyView(view);
+  focusTab(view.id, true);
+};
+
+/** The table as it stands, under its tab's name; nothing when it shows the table as it comes */
+const linkedView = () => {
+  if (!isViewModified(props.view)) {
+    return null;
+  }
+
+  return { ...viewStateOf(props.view), name: selectedTab()?.name || t('tableViews.tabs.all') };
+};
+
 const SHORTCUT_ACTIONS: Record<TableViewShortcutAction, () => void> = {
   saveChanges, openSaveAsNew, duplicateCurrent
 };
@@ -847,6 +878,9 @@ onMounted(() => {
     owns: ownsTarget,
     run:  (action) => SHORTCUT_ACTIONS[action](),
   });
+
+  openSharedView();
+  watch(linkedView, showInLink, { immediate: true, deep: true });
 });
 
 onBeforeUnmount(() => {
