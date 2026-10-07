@@ -28,6 +28,7 @@ const {
   deregister,
   errors,
   initRegistration,
+  canReadRegistration,
   registrationCode,
   registrationBanner
 } = usePrimeRegistration();
@@ -41,6 +42,11 @@ const isRegistered = computed(() => registrationStatus.value === 'registered');
  * Track both registering progresses as generic operation to disable all the inputs
  */
 const isRegistering = computed(() => registrationStatus.value === 'registering-online' || registrationStatus.value === 'registering-offline');
+
+/**
+ * Disable every action when the user cannot read the registration state
+ */
+const isReadOnly = computed(() => !canReadRegistration.value);
 
 /**
  * Track offline registration progress, to switch between file selector and async button
@@ -110,7 +116,7 @@ onMounted(async() => {
         <LabeledInput
           v-model:value="registrationCode"
           class="mt-20"
-          :disabled="isRegistered || isRegistering"
+          :disabled="isRegistered || isRegistering || isReadOnly"
           label-key="registration.online.input.label"
           placeholder-key="registration.online.input.placeholder"
           data-testid="registration-code-input"
@@ -123,7 +129,7 @@ onMounted(async() => {
           :success-label="t('registration.online.button-cta.label')"
           successColor="role-primary"
           data-testid="registration-online-cta"
-          :disabled="isRegistered || isRegistering || !registrationCode"
+          :disabled="isRegistered || isRegistering || isReadOnly || !registrationCode"
           @click="registerOnline"
         />
       </Tab>
@@ -148,7 +154,7 @@ onMounted(async() => {
             :action-label="t('registration.offline.button.download.label')"
             :success-label="t('registration.offline.button.download.label')"
             data-testid="registration-offline-download"
-            :disabled="isRegistered"
+            :disabled="isRegistered || isReadOnly"
             @click="downloadOfflineRequest"
           />
         </div>
@@ -162,7 +168,7 @@ onMounted(async() => {
           variant="secondary"
           class="mt-20"
           data-testid="registration-offline-visit-scc"
-          :disabled="isRegistered || isRegistering"
+          :disabled="isRegistered || isRegistering || isReadOnly"
           @click="visitScc"
         >
           {{ t('registration.offline.button.visit.label') }}
@@ -180,7 +186,7 @@ onMounted(async() => {
             :waitingLabel="t('registration.offline.button.register.progress')"
             :action-label="t('registration.offline.button.register.label')"
             data-testid="registration-offline-cta"
-            :disabled="isRegistered || isRegistering"
+            :disabled="isRegistered || isRegistering || isReadOnly"
             :currentPhase="isRegisteringOffline ? 'waiting' : 'success'"
           />
         </div>
@@ -191,7 +197,7 @@ onMounted(async() => {
             variant="primary"
             class="mt-20"
             :label="t('registration.offline.button.register.label')"
-            :disabled="isRegistered || isRegistering"
+            :disabled="isRegistered || isRegistering || isReadOnly"
             accept=".cert"
             data-testid="registration-offline-cta"
             @selected="registerOffline"
@@ -250,7 +256,7 @@ onMounted(async() => {
             :action-label="t('registration.list.table.button.label')"
             :success-label="t('registration.list.table.button.label')"
             data-testid="registration-deregister-cta"
-            :disabled="isRegistering || !isRegistered"
+            :disabled="isRegistering || isReadOnly || !isRegistered"
             @click="deregister"
           />
         </div>
