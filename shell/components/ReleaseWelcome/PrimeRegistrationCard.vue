@@ -51,6 +51,7 @@ const SUPPORT_BENEFIT = 'releaseWelcome.registration.benefits.support';
     <RcButton
       class="cta"
       variant="primary"
+      size="small"
       :href="SCC_URL"
       target="_blank"
       rel="noopener noreferrer nofollow"
@@ -93,10 +94,12 @@ const SUPPORT_BENEFIT = 'releaseWelcome.registration.benefits.support';
 
   a {
     font-size: 13px;
+    font-weight: 500;
   }
 }
 
 .cta {
   margin-top: 4px;
+  font-weight: 600;
 }
 </style>
