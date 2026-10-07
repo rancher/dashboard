@@ -91,6 +91,7 @@ describe('list/management.cattle.io.feature', () => {
     it('should filter out hidden feature flags', () => {
       const rows = [
         { metadata: { name: 'fleet' } },
+        { metadata: { name: 'ui-configurable-dashboards' } },
         { metadata: { name: 'some-feature' } },
       ];
 
