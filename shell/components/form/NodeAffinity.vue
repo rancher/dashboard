@@ -9,12 +9,13 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { randomStr } from '@shell/utils/string';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
+import { RcSection, SECTION_TYPE, SECTION_BACKGROUND } from '@components/RcSection';
 
 export default {
   emits: ['update:value'],
 
   components: {
-    ArrayListGrouped, MatchExpressions, LabeledSelect, LabeledInput
+    ArrayListGrouped, MatchExpressions, LabeledSelect, LabeledInput, RcSection
   },
 
   props: {
@@ -36,6 +37,29 @@ export default {
     matchingSelectorDisplay: {
       type:    Boolean,
       default: false,
+    },
+
+    rcCompatible: {
+      type:    Boolean,
+      default: false
+    },
+
+    // Heading shown when rcCompatible renders the fields inside a nested RcSection.
+    title: {
+      type:    String,
+      default: ''
+    },
+
+    // RcSection `type` used when rcCompatible is true.
+    sectionType: {
+      type:    String,
+      default: SECTION_TYPE.PRIMARY
+    },
+
+    // RcSection `background` used when rcCompatible is true.
+    sectionBackground: {
+      type:    String,
+      default: SECTION_BACKGROUND.SECONDARY
     },
   },
 
@@ -71,6 +95,10 @@ export default {
       const out = [this.t('workload.scheduling.affinity.preferred'), this.t('workload.scheduling.affinity.required')];
 
       return out;
+    },
+
+    sectionTitle() {
+      return this.title || this.t('cluster.agentConfig.subGroups.nodeAffinity');
     }
   },
 
@@ -196,7 +224,74 @@ export default {
 </script>
 
 <template>
+  <RcSection
+    v-if="rcCompatible"
+    :title="sectionTitle"
+    mode="with-header"
+    :type="sectionType"
+    :background="sectionBackground"
+    :expandable="true"
+  >
+    <div
+      class="row"
+      @update:value="queueUpdate"
+    >
+      <div class="col span-12">
+        <ArrayListGrouped
+          v-model:value="allSelectorTerms"
+          class="mt-20"
+          :mode="mode"
+          :default-add-value="{matchExpressions:[]}"
+          :add-label="t('workload.scheduling.affinity.addNodeSelector')"
+          @remove="remove"
+        >
+          <template #default="props">
+            <div class="row">
+              <div class="col span-9">
+                <LabeledSelect
+                  :options="affinityOptions"
+                  :value="priorityDisplay(props.row.value)"
+                  :label="t('workload.scheduling.affinity.priority')"
+                  :mode="mode"
+                  :data-testid="`node-affinity-priority-index${props.i}`"
+                  @update:value="(changePriority(props.row.value))"
+                />
+              </div>
+              <div
+                v-if="'weight' in props.row.value"
+                class="col span-3"
+              >
+                <LabeledInput
+                  v-model:value.number="props.row.value.weight"
+                  :mode="mode"
+                  type="number"
+                  min="1"
+                  max="100"
+                  :label="t('workload.scheduling.affinity.weight.label')"
+                  :placeholder="t('workload.scheduling.affinity.weight.placeholder')"
+                  :data-testid="`node-affinity-weight-index${props.i}`"
+                  @update:value="update"
+                />
+              </div>
+            </div>
+            <MatchExpressions
+              :value="matchingSelectorDisplay ? props.row.value : props.row.value.matchExpressions"
+              :matching-selector-display="matchingSelectorDisplay"
+              :mode="mode"
+              class="col span-12 mt-20"
+              :type="node"
+              :show-remove="false"
+              :data-testid="`node-affinity-expressions-index${props.i}`"
+              @update:value="(updateExpressions(props.row.value, $event))"
+            />
+          </template>
+        </ArrayListGrouped>
+      </div>
+    </div>
+  </RcSection>
+
   <div
+    v-else
     class="row"
     @update:value="queueUpdate"
   >

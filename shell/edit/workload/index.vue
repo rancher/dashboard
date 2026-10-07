@@ -21,7 +21,7 @@ export default {
     mode: {
       type:    String,
       default: 'create',
-    },
+    }
   },
   data() {
     const inStore = this.$store.getters['currentStore'](NODE);
