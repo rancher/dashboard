@@ -7281,7 +7281,7 @@ storageClass:
 
 tableViews:
   tabs:
-    all: Explorer
+    all: All
     label: Saved views
     newView: Add View
     count: "{name} ({count})"
