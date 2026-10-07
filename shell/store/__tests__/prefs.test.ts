@@ -18,6 +18,7 @@ import {
   NAMESPACE_FILTERS,
   PINNED_CLUSTERS,
   RECENT_CLUSTERS,
+  SHOW_PRE_RELEASE,
   enqueuePreferenceWrite,
 } from '@shell/store/prefs';
 import { commitAndReconcile, movePinned, prependRecent } from '@shell/utils/cluster-pref-writer';
@@ -1778,6 +1779,115 @@ describe('prefs store', () => {
         expect(JSON.parse(backend[RECENT_CLUSTERS])).toStrictEqual(['heron', 'local']);
         // The namespace write still landed — serialized, not dropped.
         expect(JSON.parse(backend[NAMESPACE_FILTERS])).toStrictEqual({ 'heron/x': ['all://user'] });
+      });
+    });
+
+    // Ticking two checkboxes on the Preferences page before the first PUT returns. The queue keeps the
+    // SERVER right, but the earlier write's GET used to commit the server's stale copy over the box just
+    // ticked: the key was only marked in flight once its own queued task started, and nothing put it back.
+    describe('quick successive sets', () => {
+      const quickSets = () => {
+        create(DEV, false, { parseJSON: true });
+        create(SHOW_PRE_RELEASE, false, { parseJSON: true });
+
+        let backend: Record<string, any> = { [DEV]: 'false', [SHOW_PRE_RELEASE]: 'false' };
+        const server: any = {
+          data: {},
+          save: jest.fn(() => {
+            const body = { ...server.data };
+
+            return new Promise<void>((resolve) => setTimeout(() => {
+              backend = { ...body };
+              resolve();
+            }, 0));
+          }),
+        };
+
+        const s: any = state();
+
+        s.data[DEV] = false;
+        s.data[SHOW_PRE_RELEASE] = false;
+
+        const commit = jest.fn((name: string, payload: any) => {
+          if (name === 'load') {
+            s.data[payload.key] = payload.value;
+          }
+        });
+        const ctx: any = {
+          state: s, commit, rootGetters: { 'auth/loggedIn': true }, rootState: {}
+        };
+        const dispatch: any = (action: string, payload?: any) => {
+          switch (action) {
+          case 'management/findAll':
+            server.data = { ...backend };
+
+            return Promise.resolve([server]);
+          case 'loadServer':
+            return actions.loadServer({ ...ctx, dispatch }, payload);
+          default:
+            return Promise.resolve();
+          }
+        };
+        const set = (key: string, value: any) => actions.set({ ...ctx, dispatch }, { key, value });
+        const ui = () => ({ [DEV]: s.data[DEV], [SHOW_PRE_RELEASE]: s.data[SHOW_PRE_RELEASE] });
+        const onServer = () => ({ [DEV]: JSON.parse(backend[DEV]), [SHOW_PRE_RELEASE]: JSON.parse(backend[SHOW_PRE_RELEASE]) });
+
+        return {
+          set, ui, onServer
+        };
+      };
+
+      it('should keep a box ticked while an earlier write is still in flight', async() => {
+        const { set, ui } = quickSets();
+
+        const developer = set(DEV, true);
+        const preRelease = set(SHOW_PRE_RELEASE, true);
+        const seen: string[] = [];
+
+        for (let i = 0; i < 8; i++) {
+          await Promise.resolve();
+          seen.push(JSON.stringify(ui()));
+        }
+        await Promise.all([developer, preRelease]);
+
+        expect([...new Set(seen)]).toStrictEqual([JSON.stringify({ [DEV]: true, [SHOW_PRE_RELEASE]: true })]);
+      });
+
+      it('should leave the store agreeing with the server once both writes land', async() => {
+        const { set, ui, onServer } = quickSets();
+
+        await Promise.all([set(DEV, true), set(SHOW_PRE_RELEASE, true)]);
+
+        expect(ui()).toStrictEqual({ [DEV]: true, [SHOW_PRE_RELEASE]: true });
+        expect(onServer()).toStrictEqual({ [DEV]: true, [SHOW_PRE_RELEASE]: true });
+      });
+
+      // The first write of a key finishing must not release it while its second write is still queued,
+      // or the write in between reads the first value back and commits it over the second.
+      it('should keep the last value of a key toggled twice with another write in between', async() => {
+        const { set, ui, onServer } = quickSets();
+
+        await Promise.all([set(DEV, true), set(SHOW_PRE_RELEASE, true), set(DEV, false)]);
+
+        expect(ui()).toStrictEqual({ [DEV]: false, [SHOW_PRE_RELEASE]: true });
+        expect(onServer()).toStrictEqual({ [DEV]: false, [SHOW_PRE_RELEASE]: true });
+      });
+
+      // The count must drop back to zero, or the key stays "in flight" for good and never picks up a change
+      // made in another tab.
+      it('should let a later read refresh the key once every write to it has landed', async() => {
+        const { set } = quickSets();
+
+        await Promise.all([set(DEV, true), set(DEV, false)]);
+
+        const commit = jest.fn();
+        const otherTab = { data: { [DEV]: 'true' }, save: jest.fn() };
+
+        await actions.loadServer({
+          state: state(), dispatch: jest.fn().mockResolvedValue([otherTab]), commit, rootState: {}, rootGetters: {}
+        } as any, undefined);
+
+        expect(commit).toHaveBeenCalledWith('load', { key: DEV, value: true });
       });
     });
   });
