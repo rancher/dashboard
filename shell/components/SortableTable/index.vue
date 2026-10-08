@@ -173,6 +173,12 @@ export default {
       default: false
     },
 
+    /** The table views query filtering the rows, which extension table hooks get as the search query */
+    viewQuery: {
+      type:    String,
+      default: null
+    },
+
     /**
      * Lay the masthead out for the table views toolbar. Unset, the feature flag decides; `false`
      * keeps the original masthead
@@ -502,6 +508,10 @@ export default {
       }
 
       this.setPage(1);
+      this.debouncedPaginationChanged();
+    },
+
+    viewQuery() {
       this.debouncedPaginationChanged();
     },
 
@@ -1131,7 +1141,7 @@ export default {
         },
         filtering: {
           searchFields: this.searchFields,
-          searchQuery:  this.searchQuery
+          searchQuery:  this.viewQuery ?? this.searchQuery
         },
         sorting: {
           sort:       this.sortFields,
