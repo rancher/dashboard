@@ -531,7 +531,7 @@ describe('component: Header', () => {
 
       await wrapper.find('[data-testid="user-menu-whats-new"]').trigger('click');
 
-      expect(open).toHaveBeenCalledWith(wrapper.vm.$store.commit, wrapper.vm.$store.dispatch);
+      expect(open).toHaveBeenCalledWith(wrapper.vm.$store.commit, wrapper.vm.$store.dispatch, wrapper.vm.$store.getters, wrapper.vm.$store.$axios);
       open.mockRestore();
     });
   });

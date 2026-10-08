@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, PropType } from 'vue';
 import { useStore } from 'vuex';
 import { RcButton } from '@components/RcButton';
 import BrandImage from '@shell/components/BrandImage.vue';
@@ -13,11 +13,20 @@ import { isRancherPrime } from '@shell/config/version';
 import { SCC } from '@shell/store/features';
 import { isAdminUser } from '@shell/store/type-map';
 import { releaseWelcomeVersion } from '@shell/utils/release-welcome';
+import { FirstRunFeature } from '@shell/utils/dynamic-content/types';
 
 defineProps({
   componentTestid: {
     type:    String,
     default: 'release-welcome'
+  },
+
+  /**
+   * "What's new" features from dynamic content, the built-in features are shown when not set
+   */
+  features: {
+    type:    Array as PropType<FirstRunFeature[]>,
+    default: undefined
   },
 
   // Passed by the ModalManager
@@ -104,7 +113,10 @@ const close = () => emit('close');
         {{ t('releaseWelcome.subtitleCommunity', { vendor, version }, true) }}
       </p>
 
-      <WhatsNewCard :version="version" />
+      <WhatsNewCard
+        :version="version"
+        :features="features"
+      />
       <PrimeRegistrationCard v-if="canRegister" />
       <PrimePromoCard v-else-if="!isPrime" />
     </div>

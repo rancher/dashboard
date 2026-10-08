@@ -1,6 +1,12 @@
 import { setVersionData } from '@shell/config/version';
 import { READ_RELEASE_WELCOME } from '@shell/store/prefs';
 import { openReleaseWelcome, releaseWelcomeVersion, shouldShowReleaseWelcome, showReleaseWelcomeIfNew } from '@shell/utils/release-welcome';
+import { fetchFirstRunFeatures } from '@shell/utils/dynamic-content/first-run';
+
+jest.mock('@shell/utils/dynamic-content/first-run', () => ({ fetchFirstRunFeatures: jest.fn() }));
+
+const mockFetchFirstRunFeatures = fetchFirstRunFeatures as jest.Mock;
+const axios = jest.fn();
 
 const setVersion = (version: string) => setVersionData({
   Version: version, RancherPrime: 'false', GitCommit: ''
@@ -12,6 +18,11 @@ const createGetters = (lastRead: string, isSingleProduct: any = undefined): any 
 });
 
 describe('utils: release-welcome', () => {
+  beforeEach(() => {
+    mockFetchFirstRunFeatures.mockReset();
+    mockFetchFirstRunFeatures.mockResolvedValue(undefined);
+  });
+
   afterEach(() => {
     setVersion('');
     jest.restoreAllMocks();
@@ -68,22 +79,55 @@ describe('utils: release-welcome', () => {
   });
 
   describe('openReleaseWelcome', () => {
-    it('should open the modal', async() => {
+    it('should open the modal with the built-in content when there is no dynamic content', async() => {
       setVersion('v2.16.0');
       const commit = jest.fn();
 
-      await openReleaseWelcome(commit, jest.fn().mockResolvedValue(undefined));
+      await openReleaseWelcome(commit, jest.fn().mockResolvedValue(undefined), createGetters(''), axios);
 
       expect(commit).toHaveBeenCalledWith('modal/openModal', {
-        component: expect.any(Object), modalWidth: '900px', closeOnClickOutside: true
+        component: expect.any(Object), componentProps: { features: undefined }, modalWidth: '900px', closeOnClickOutside: true
       });
+    });
+
+    it('should open the modal with the features from dynamic content', async() => {
+      setVersion('v2.16.0');
+      const features = [{
+        id: 'remote', title: 'Remote title', description: 'Remote description'
+      }];
+      const commit = jest.fn();
+
+      mockFetchFirstRunFeatures.mockResolvedValue(features);
+
+      await openReleaseWelcome(commit, jest.fn().mockResolvedValue(undefined), createGetters(''), axios);
+
+      expect(commit).toHaveBeenCalledWith('modal/openModal', {
+        component: expect.any(Object), componentProps: { features }, modalWidth: '900px', closeOnClickOutside: true
+      });
+    });
+
+    it('should fetch the dynamic content for the running minor version', async() => {
+      setVersion('v2.16.1');
+      const getters = createGetters('');
+
+      await openReleaseWelcome(jest.fn(), jest.fn().mockResolvedValue(undefined), getters, axios);
+
+      expect(mockFetchFirstRunFeatures).toHaveBeenCalledWith(getters, axios, '2.16');
+    });
+
+    it('should not fetch the dynamic content when the version cannot be parsed', async() => {
+      setVersion('dev');
+
+      await openReleaseWelcome(jest.fn(), jest.fn(), createGetters(''), axios);
+
+      expect(mockFetchFirstRunFeatures).toHaveBeenCalledTimes(0);
     });
 
     it('should mark the modal as read for the running minor version', async() => {
       setVersion('v2.16.1');
       const dispatch = jest.fn().mockResolvedValue(undefined);
 
-      await openReleaseWelcome(jest.fn(), dispatch);
+      await openReleaseWelcome(jest.fn(), dispatch, createGetters(''), axios);
 
       expect(dispatch).toHaveBeenCalledWith('prefs/set', { key: READ_RELEASE_WELCOME, value: '2.16' });
     });
@@ -92,7 +136,7 @@ describe('utils: release-welcome', () => {
       setVersion('dev');
       const dispatch = jest.fn();
 
-      await openReleaseWelcome(jest.fn(), dispatch);
+      await openReleaseWelcome(jest.fn(), dispatch, createGetters(''), axios);
 
       expect(dispatch).toHaveBeenCalledTimes(0);
     });
@@ -102,7 +146,7 @@ describe('utils: release-welcome', () => {
       const error = new Error('forbidden');
       const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await expect(openReleaseWelcome(jest.fn(), jest.fn().mockRejectedValue(error))).resolves.toBeUndefined();
+      await expect(openReleaseWelcome(jest.fn(), jest.fn().mockRejectedValue(error), createGetters(''), axios)).resolves.toBeUndefined();
       expect(warn).toHaveBeenCalledWith('Unable to mark the welcome modal as read', error);
     });
   });
@@ -112,7 +156,7 @@ describe('utils: release-welcome', () => {
       setVersion('v2.16.0');
       const commit = jest.fn();
 
-      await showReleaseWelcomeIfNew(commit, jest.fn().mockResolvedValue(undefined), createGetters('2.15'));
+      await showReleaseWelcomeIfNew(commit, jest.fn().mockResolvedValue(undefined), createGetters('2.15'), axios);
 
       expect(commit).toHaveBeenCalledTimes(1);
     });
@@ -122,10 +166,18 @@ describe('utils: release-welcome', () => {
       const commit = jest.fn();
       const dispatch = jest.fn();
 
-      await showReleaseWelcomeIfNew(commit, dispatch, createGetters('2.16'));
+      await showReleaseWelcomeIfNew(commit, dispatch, createGetters('2.16'), axios);
 
       expect(commit).toHaveBeenCalledTimes(0);
       expect(dispatch).toHaveBeenCalledTimes(0);
+    });
+
+    it('should not fetch the dynamic content when it was read for this minor version', async() => {
+      setVersion('v2.16.0');
+
+      await showReleaseWelcomeIfNew(jest.fn(), jest.fn(), createGetters('2.16'), axios);
+
+      expect(mockFetchFirstRunFeatures).toHaveBeenCalledTimes(0);
     });
   });
 });
