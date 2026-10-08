@@ -722,5 +722,49 @@ describe('component: YamlOverridesEditor', () => {
         expect(countLabel(wrapper).text()).toStrictEqual(`yamlOverridesEditor.search.position {"current":${ current },"total":3}`);
       });
     });
+
+    describe('find keys in the search box', () => {
+      it.each([
+        ['next', { key: 'F3' }, 2],
+        ['previous', { key: 'F3', shiftKey: true }, 3],
+        ['next', { key: 'g', ctrlKey: true }, 2],
+        ['previous', {
+          key: 'G', ctrlKey: true, shiftKey: true
+        }, 3],
+      ])('selects the %p match on %p', async(_, init, current) => {
+        const wrapper = mountEditor({ value: THREE_MATCHES });
+
+        await search(wrapper, 'replicas');
+        await searchInput(wrapper).trigger('keydown', init);
+
+        expect(countLabel(wrapper).text()).toStrictEqual(`yamlOverridesEditor.search.position {"current":${ current },"total":3}`);
+      });
+
+      it('stops the browser\'s own find on Mod-G', () => {
+        const wrapper = mountEditor();
+        const event = new KeyboardEvent('keydown', {
+          key: 'g', ctrlKey: true, cancelable: true
+        });
+
+        searchInput(wrapper).element.dispatchEvent(event);
+
+        expect(event.defaultPrevented).toBe(true);
+      });
+
+      it.each([
+        ['G without Mod', { key: 'g' }],
+        ['Mod-F3', { key: 'F3', ctrlKey: true }],
+        ['Alt-Mod-G', {
+          key: 'g', ctrlKey: true, altKey: true
+        }],
+      ])('leaves %s alone', async(_, init) => {
+        const wrapper = mountEditor({ value: THREE_MATCHES });
+
+        await search(wrapper, 'replicas');
+        await searchInput(wrapper).trigger('keydown', init);
+
+        expect(countLabel(wrapper).text()).toStrictEqual('yamlOverridesEditor.search.position {"current":1,"total":3}');
+      });
+    });
   });
 });

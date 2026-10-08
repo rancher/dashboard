@@ -11,6 +11,7 @@ import {
   MIN_SEARCH_LENGTH, connectYamlSearchBox, findYamlSearchMatch, setYamlSearch, yamlSearchMatches
 } from '@shell/utils/yaml-search';
 import type { YamlSearchMatches } from '@shell/utils/yaml-search';
+import { isMac } from '@shell/utils/platform';
 
 /**
  * Two editable YAML panes for chart values:
@@ -284,6 +285,22 @@ function goToMatch(direction: 'next' | 'previous') {
   }
 }
 
+// F3 and Mod-G work in the search box too, like in CodeMirror's own search panel.
+// Shift goes to the previous match. Only F3 and G keydowns get here.
+function onSearchKeydown(event: KeyboardEvent) {
+  const mod = isMac ? event.metaKey : event.ctrlKey;
+  // F3 on its own, or G with Mod
+  const isFindKey = event.key === 'F3' ? !mod : mod;
+
+  if (!isFindKey || event.altKey) {
+    return;
+  }
+
+  // Mod-G would also open the browser's own find
+  event.preventDefault();
+  goToMatch(event.shiftKey ? 'previous' : 'next');
+}
+
 function focusSearch() {
   searchInput.value?.focus();
   searchInput.value?.select();
@@ -371,6 +388,8 @@ onBeforeUnmount(() => {
             @keydown.esc.prevent="clearSearch"
             @keydown.enter.exact.prevent="goToMatch('next')"
             @keydown.shift.enter.exact.prevent="goToMatch('previous')"
+            @keydown.f3="onSearchKeydown"
+            @keydown.g="onSearchKeydown"
           >
           <div class="values-search__addons">
             <button
