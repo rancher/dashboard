@@ -38,6 +38,43 @@ describe('an extension\'s table', () => {
     });
   });
 
+  describe('on a Rancher from before table views', () => {
+    const { data, computed } = ResourceTableViews;
+
+    const unknown = (kind: string) => (name: string) => {
+      throw new Error(`Unknown ${ kind }: ${ name }`);
+    };
+
+    function table() {
+      const base: Record<string, unknown> = {
+        $store: {
+          getters: { 'features/get': unknown('feature'), 'prefs/get': unknown('preference') },
+          state:   { $extension: { getPlugins: () => ({}) } },
+        },
+        $route:                  { meta: {}, params: {} },
+        schema:                  { id: 'pod' },
+        hasAdvancedFiltering:    false,
+        tableViews:              null,
+        providedTableViewsShell: EXTENSION_COPY,
+      };
+      const ctx: Record<string, unknown> = Object.assign(base, data.call(base));
+
+      Object.entries(computed).forEach(([name, get]) => {
+        Object.defineProperty(ctx, name, { get: () => get.call(ctx), configurable: true });
+      });
+
+      return ctx;
+    }
+
+    it('should render the table without saved views or table views', () => {
+      const ctx = table();
+
+      expect(ctx.savedViews).toStrictEqual([]);
+      expect(ctx.openedViewId).toBeUndefined();
+      expect(ctx.showTableViews).toBe(false);
+    });
+  });
+
   describe('sortableTable', () => {
     const { useTableViewsLayout } = SortableTable.computed as unknown as Record<string, (this: object) => boolean>;
 

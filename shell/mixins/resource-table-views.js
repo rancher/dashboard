@@ -43,7 +43,15 @@ export const MONTH_GROUPING_PREFIX = 'month:';
  * `data` can ask
  */
 function savedViewsEntry(vm) {
-  const stored = vm.$store.getters['prefs/get'](TABLE_VIEWS)?.[vm.schema?.id];
+  let stored;
+
+  // An older Rancher running an extension built with this shell has no such preference, and its store throws
+  try {
+    stored = vm.$store.getters['prefs/get'](TABLE_VIEWS)?.[vm.schema?.id];
+  } catch {
+    return undefined;
+  }
+
   const typeEntry = Array.isArray(stored) ? { views: stored } : stored;
 
   return vm.tableViewsPage ? typeEntry?.pages?.[vm.tableViewsPage] : typeEntry;
