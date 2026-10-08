@@ -2,6 +2,7 @@
  * Content of the welcome modal, shown once per minor release.
  *
  * Update WHATS_NEW_FEATURES for every minor release. The card is hidden when the list is empty.
+ * It can be replaced after the release through dynamic content (see shell/utils/dynamic-content/first-run.ts)
  */
 
 export interface WhatsNewFeature {
