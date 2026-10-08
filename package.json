@@ -81,7 +81,7 @@
     "@popperjs/core": "2.11.8",
     "@rancher/icons": "2.0.64",
     "@smithy/fetch-http-handler": "5.1.1",
-    "@types/semver": "7.7.1",
+    "@types/semver": "7.8.0",
     "@vee-validate/zod": "4.15.1",
     "@xterm/addon-canvas": "0.7.0",
     "@xterm/addon-fit": "0.11.0",
