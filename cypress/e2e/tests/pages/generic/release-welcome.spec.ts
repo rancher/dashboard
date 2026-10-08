@@ -21,6 +21,9 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
         RancherPrime: 'false'
       }
     });
+
+    // Use the built-in content, unless a test replaces it through dynamic content
+    cy.intercept('GET', '**/first-run', { statusCode: 404 }).as('firstRun');
   });
 
   afterEach(() => {
@@ -40,6 +43,7 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     dialog.checkVisible();
     dialog.title().should('contain', 'Welcome to');
     dialog.whatsNew().should('be.visible');
+    dialog.whatsNewFeatures().should('have.length', 4);
     dialog.primePromo().should('be.visible');
 
     cy.wait('@markRead');
@@ -50,6 +54,29 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     HomePagePo.goTo();
     homePage.waitForPage();
     dialog.checkNotExists();
+  });
+
+  it('shows the what\'s new content from dynamic content', () => {
+    cy.setUserPreference({ 'read-release-welcome': '""' });
+    cy.intercept('GET', '**/first-run', {
+      statusCode: 200,
+      body:       {
+        version:  1,
+        releases: [{
+          version:  '2.16',
+          whatsNew: [{
+            id: 'remote', title: 'Updated after the release', description: 'Fetched from the dynamic content endpoint'
+          }]
+        }]
+      }
+    }).as('firstRun');
+
+    HomePagePo.goTo();
+    cy.wait('@firstRun');
+    dialog.checkVisible();
+    dialog.whatsNewFeatures().should('have.length', 1);
+    dialog.whatsNewFeatures().first().should('have.attr', 'data-testid', 'release-welcome-feature-remote');
+    dialog.whatsNewFeatures().first().should('contain', 'Updated after the release');
   });
 
   it('closes with the close button', () => {

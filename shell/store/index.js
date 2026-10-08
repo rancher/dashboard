@@ -875,7 +875,7 @@ export const actions = {
       fetchAndProcessDynamicContent(dispatch, getters, this.$axios);
 
       // Welcome users to a new minor release, once
-      showReleaseWelcomeIfNew(commit, dispatch, getters);
+      showReleaseWelcomeIfNew(commit, dispatch, getters, this.$axios);
     }
 
     if (systemNamespaces) {

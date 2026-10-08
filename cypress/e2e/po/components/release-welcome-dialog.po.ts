@@ -14,6 +14,10 @@ export default class ReleaseWelcomeDialogPo extends ComponentPo {
     return cy.get('[data-testid="release-welcome-whats-new"]');
   }
 
+  whatsNewFeatures() {
+    return this.whatsNew().find('[data-testid^="release-welcome-feature-"]');
+  }
+
   primePromo() {
     return cy.get('[data-testid="release-welcome-prime"]');
   }

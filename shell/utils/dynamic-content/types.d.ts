@@ -151,3 +151,28 @@ export type DynamicContent = {
   announcements: Announcement[],
   settings?: Partial<SettingsInfo>,
 };
+
+/**
+ * Feature listed in the "What's new" card of the release welcome modal
+ */
+export type FirstRunFeature = {
+  id: string; // Unique id, used for test ids
+  title: string;
+  description: string;
+};
+
+/**
+ * Release welcome modal content for a minor release
+ */
+export type FirstRunRelease = {
+  version: string; // Minor version, e.g. '2.16'
+  whatsNew: FirstRunFeature[];
+};
+
+/**
+ * Main type for the release welcome modal content that is retrieved from the dynamic content endpoint ('first-run' document)
+ */
+export type FirstRunContent = {
+  version: number;
+  releases: FirstRunRelease[];
+};

@@ -1,15 +1,25 @@
 <script setup lang="ts">
+import { computed, PropType } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { WHATS_NEW_FEATURES } from '@shell/config/release-welcome';
+import { FirstRunFeature } from '@shell/utils/dynamic-content/types';
 
-defineProps({
+const props = defineProps({
   /**
    * Minor version of the release, e.g. '2.16'
    */
   version: {
     type:     String,
     required: true
+  },
+
+  /**
+   * Features from dynamic content, the built-in features are shown when not set
+   */
+  features: {
+    type:    Array as PropType<FirstRunFeature[]>,
+    default: undefined
   }
 });
 
@@ -17,11 +27,17 @@ const store = useStore();
 const { t } = useI18n(store);
 
 const releaseNotesUrl = store.getters['releaseNotesUrl'];
+
+const items = computed<FirstRunFeature[]>(() => props.features || WHATS_NEW_FEATURES.map((feature) => ({
+  id:          feature.id,
+  title:       t(feature.titleKey, {}, true),
+  description: t(feature.descriptionKey, {}, true),
+})));
 </script>
 
 <template>
   <section
-    v-if="WHATS_NEW_FEATURES.length"
+    v-if="items.length"
     class="whats-new"
     aria-labelledby="release-welcome-whats-new-title"
     data-testid="release-welcome-whats-new"
@@ -49,12 +65,12 @@ const releaseNotesUrl = store.getters['releaseNotesUrl'];
     </div>
     <ul class="whats-new__features">
       <li
-        v-for="feature in WHATS_NEW_FEATURES"
+        v-for="feature in items"
         :key="feature.id"
         :data-testid="`release-welcome-feature-${ feature.id }`"
       >
-        <span class="whats-new__feature-title">{{ t(feature.titleKey, {}, true) }}</span>
-        <span class="whats-new__feature-description">{{ t(feature.descriptionKey, {}, true) }}</span>
+        <span class="whats-new__feature-title">{{ feature.title }}</span>
+        <span class="whats-new__feature-description">{{ feature.description }}</span>
       </li>
     </ul>
   </section>

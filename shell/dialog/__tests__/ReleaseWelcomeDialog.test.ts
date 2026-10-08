@@ -23,13 +23,16 @@ const createStore = ({ admin = true, scc = true } = {}): any => ({
   },
 });
 
-const createWrapper = ({ prime = false, admin = true, scc = true } = {}) => {
+const createWrapper = ({
+  prime = false, admin = true, scc = true, features = undefined as any[] | undefined
+} = {}) => {
   setVersionData({
     Version: 'v2.16.1', RancherPrime: prime ? 'true' : 'false', GitCommit: ''
   });
   mockStore = createStore({ admin, scc });
 
   return shallowMount(ReleaseWelcomeDialog, {
+    props:  { features },
     global: {
       mocks: { t: (key: string) => key },
       stubs: { 'router-link': RouterLinkStub }
@@ -65,6 +68,21 @@ describe('component: ReleaseWelcomeDialog', () => {
     const wrapper = createWrapper();
 
     expect(wrapper.findComponent(WhatsNewCard).props('version')).toStrictEqual('2.16');
+  });
+
+  it('should pass the features from dynamic content to the what\'s new card', () => {
+    const features = [{
+      id: 'remote', title: 'Remote title', description: 'Remote description'
+    }];
+    const wrapper = createWrapper({ features });
+
+    expect(wrapper.findComponent(WhatsNewCard).props('features')).toStrictEqual(features);
+  });
+
+  it('should leave the built-in features to the what\'s new card without dynamic content', () => {
+    const wrapper = createWrapper();
+
+    expect(wrapper.findComponent(WhatsNewCard).props('features')).toBeUndefined();
   });
 
   describe('community', () => {

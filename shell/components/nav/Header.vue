@@ -370,7 +370,7 @@ export default {
 
   methods: {
     openWhatsNew() {
-      openReleaseWelcome(this.$store.commit, this.$store.dispatch);
+      openReleaseWelcome(this.$store.commit, this.$store.dispatch, this.$store.getters, this.$store.$axios);
     },
 
     showSloModal() {

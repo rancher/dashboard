@@ -7,8 +7,14 @@ const RELEASE_NOTES_URL = 'https://github.com/rancher/rancher/releases/tag/v2.16
 jest.mock('vuex', () => ({ ...jest.requireActual('vuex'), useStore: () => ({ getters: { releaseNotesUrl: 'https://github.com/rancher/rancher/releases/tag/v2.16.0' } }) }));
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 
-const createWrapper = () => shallowMount(WhatsNewCard, {
-  props:  { version: '2.16' },
+const REMOTE_FEATURES = [
+  {
+    id: 'remote', title: 'Remote title', description: 'Remote description'
+  },
+];
+
+const createWrapper = (features?: any[]) => shallowMount(WhatsNewCard, {
+  props:  { version: '2.16', features },
   global: { mocks: { t: (key: string, args?: any) => (args?.version ? `${ key } ${ args.version }` : key) } },
 });
 
@@ -49,5 +55,26 @@ describe('component: WhatsNewCard', () => {
     const wrapper = createWrapper();
 
     expect(wrapper.find('section').attributes('aria-labelledby')).toStrictEqual(wrapper.find('h3').attributes('id'));
+  });
+
+  describe('with features from dynamic content', () => {
+    it('should list the features instead of the built-in ones', () => {
+      const wrapper = createWrapper(REMOTE_FEATURES);
+      const ids = wrapper.findAll('li').map((li) => li.attributes('data-testid'));
+
+      expect(ids).toStrictEqual(['release-welcome-feature-remote']);
+    });
+
+    it('should show the title and description of each feature', () => {
+      const wrapper = createWrapper(REMOTE_FEATURES);
+
+      expect(wrapper.find('[data-testid="release-welcome-feature-remote"]').text()).toStrictEqual('Remote titleRemote description');
+    });
+
+    it('should hide the card when there are no features', () => {
+      const wrapper = createWrapper([]);
+
+      expect(wrapper.find('[data-testid="release-welcome-whats-new"]').exists()).toStrictEqual(false);
+    });
   });
 });
