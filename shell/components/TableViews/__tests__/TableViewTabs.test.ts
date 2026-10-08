@@ -336,15 +336,14 @@ describe('TableViewTabs', () => {
         expect(wrapper.emitted('update:view')).toBeUndefined();
       });
 
-      it('should drop held changes when the tab saved is already the table as it comes', () => {
+      it('should drop held changes when the view saved is already the table as it comes', () => {
+        const plain = makeView('ccc', 'Plain');
         const { vm } = createWrapper({ view: { ...EMPTY, query: 'state:Running' }, initialViewId: 'aaa' });
 
-        vm.drafts = { __default: { ...EMPTY, query: 'name:x' } };
-        vm.resetTab({
-          id: null, name: 'All', isDefaultTab: true
-        });
+        vm.drafts = { ccc: { ...EMPTY, query: 'name:x' } };
+        vm.resetTab(tabFor(plain));
 
-        expect(vm.drafts.__default).toBeUndefined();
+        expect(vm.drafts.ccc).toBeUndefined();
       });
     });
 

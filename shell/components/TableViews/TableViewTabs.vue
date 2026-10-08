@@ -1073,8 +1073,9 @@ onBeforeUnmount(() => {
                     </template>
                   </rc-dropdown-item>
                   <rc-dropdown-item
+                    v-if="!tab.isDefaultTab"
                     :disabled="!isViewModified(tabState(tab))"
-                    :data-testid="tab.isDefaultTab ? 'table-views-reset-all' : `table-views-reset-${ tab.id }`"
+                    :data-testid="`table-views-reset-${ tab.id }`"
                     @click="resetTab(tab)"
                   >
                     <template #before>
