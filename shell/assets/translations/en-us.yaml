@@ -532,7 +532,7 @@ addProjectMemberDialog:
   title: Add Project Member
 
 authConfig:
-  enableLimitReached: Another external provider is already enabled. Community enables one at a time, so disable it first, or use Rancher Prime to run several together.
+  enableLimitReached: Another external provider is already enabled. Rancher Community allows for one external auth provider to be configured at a time. Disable the active provider to add a different one, or use Rancher Prime to run several together.
   list:
     title: Authentication Providers
     description: Configure the identity providers people can use to log in to Rancher.
@@ -548,7 +548,7 @@ authConfig:
       learnMore: How external authentication works
     prime:
       title: Configure more than one provider with Rancher Prime
-      description: Community enables one external provider at a time. To use a different one, disable this one first — Prime lets you run several together.
+      description: Rancher Community allows for one external auth provider to be configured at a time. Disable the active provider to add a different one, or use Rancher Prime to run several together.
     disableLocal:
       label: Disable login with local users
       description: Users sign in through external providers only. Local accounts remain, but cannot be used to sign in.
@@ -568,7 +568,7 @@ authConfig:
   create:
     back: Authentication Providers
     unknownProvider: '{provider} is not a provider this Rancher supports.'
-    limitReached: Community enables one external provider at a time. Disable the enabled provider to add a different one, or use Rancher Prime to run several together.
+    limitReached: Another external provider is already enabled. Rancher Community allows for one external auth provider to be configured at a time. Disable the active provider to add a different one, or use Rancher Prime to run several together.
     provider:
       title: 'Add {provider}'
     name:
