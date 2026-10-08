@@ -14,8 +14,7 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
     cy.login();
     cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('testWorkload');
 
-    deploymentsListPage.goTo();
-    deploymentsListPage.createWithKubectl(createDeploymentBlueprint);
+    cy.createRancherResource('v1', 'apps.deployments', createDeploymentBlueprint);
   });
   beforeEach(() => {
     cy.login();
@@ -105,8 +104,17 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
 
   it('Should access to every navigation provided from the server link, including nested cases, without errors', () => {
     const productNavPo = new ProductNavPo();
-    // iterate through top-level groups
+    const visitEach = (links: () => Cypress.Chainable) => {
+      links().each((link, idx) => {
+        links().eq(idx)
+          .click({ force: true })
+          .then((linkEl) => cy.url().should('contain', linkEl.prop('href')));
+      });
+    };
 
+    visitEach(() => productNavPo.ungroupedNavTypes());
+
+    // iterate through top-level groups
     productNavPo.groups().each((_, index) => {
       const group = productNavPo.groups().eq(index);
 
@@ -130,12 +138,8 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
         cy.wrap($group).find('ul').should('have.length.gt', 0);
       });
 
-      // Visit each link and confirm the app has navigated to that location
-      productNavPo.visibleNavTypes().each((link, idx) => {
-        productNavPo.visibleNavTypes().eq(idx)
-          .click({ force: true })
-          .then((linkEl) => cy.url().should('contain', linkEl.prop('href')));
-      });
+      // Visit each link of this group and confirm the app has navigated to that location
+      visitEach(() => productNavPo.groupNavTypes(index));
     });
   });
 
@@ -159,8 +163,6 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
 
   after(() => {
     cy.login();
-    deploymentsListPage?.goTo();
-
-    deploymentsListPage.deleteWithKubectl(workloadName, namespace);
+    cy.deleteRancherResource('v1', 'apps.deployments', `${ namespace }/${ workloadName }`, false);
   });
 });
