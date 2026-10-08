@@ -422,11 +422,11 @@ describe('grouping a date by month', () => {
   describe('the label on each group', () => {
     const { computedGroupBy, computedGroupRef } = ResourceTable.computed as unknown as Record<string, (this: object) => unknown>;
     const t = (k: string) => (k === 'tableViews.group.empty' ? '(none)' : k);
-    const labelFor = (viewGroupField: TableViewField | null, $attrs: Record<string, unknown> = {}) => {
+    const labelFor = (viewGroupField: TableViewField | null, groupRef: string | null = null) => {
       const groupBy = computedGroupBy.call({ viewGroupField, t });
 
       return computedGroupRef.call({
-        viewGroupField, computedGroupBy: groupBy, $attrs
+        viewGroupField, computedGroupBy: groupBy, groupRef
       });
     };
 
@@ -438,12 +438,12 @@ describe('grouping a date by month', () => {
     });
 
     it('should keep the page\'s own label for the page\'s own groupings', () => {
-      expect(labelFor(null, { 'group-ref': 'pool' })).toBe('pool');
+      expect(labelFor(null, 'pool')).toBe('pool');
       expect(labelFor(null)).toBeNull();
     });
 
     it('should not label a toolbar grouping with the page\'s own label', () => {
-      const label = labelFor(methods.groupFieldFor.call(ctx, 'name'), { 'group-ref': 'pool' }) as (row: object) => string;
+      const label = labelFor(methods.groupFieldFor.call(ctx, 'name'), 'pool') as (row: object) => string;
 
       expect(typeof label).toBe('function');
       expect(label({ metadata: { name: 'web' } })).not.toBe('pool');
