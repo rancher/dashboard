@@ -232,6 +232,56 @@ describe('view: fleet.cattle.io.helmop - workspace', () => {
     expect(wrapper.vm.workspaceNotice).toBe('');
   });
 
+  it('brings back what was dropped when the workspace it came from is picked again', async() => {
+    const original = {
+      helmSecretName: 'helm-creds',
+      helm:           {
+        repo:       'https://charts.example.com',
+        chart:      'app',
+        valuesFrom: [{
+          configMapKeyRef: {
+            name: 'values', key: 'v', namespace: 'fleet-default'
+          }
+        }],
+      },
+      downstreamResources: [{ kind: 'Secret', name: 'downstream' }],
+      targets:             [{ clusterGroup: 'group' }],
+    };
+    const { wrapper, value } = mountHelmOp({ spec: JSON.parse(JSON.stringify(original)) });
+
+    mockExists.mockImplementation((store, type, workspace) => Promise.resolve(workspace === 'fleet-default'));
+    mockRetarget.mockImplementation((store, targets, workspace) => Promise.resolve({
+      targets:              workspace === 'fleet-default' ? targets : undefined,
+      removedClusters:      [],
+      removedClusterGroups: workspace === 'fleet-default' ? [] : ['group'],
+    }));
+
+    await move(wrapper, value, 'team-a');
+
+    expect(value.spec.helmSecretName).toBeUndefined();
+    expect(value.spec.helm.valuesFrom).toBeUndefined();
+    expect(value.spec.downstreamResources).toStrictEqual([]);
+    expect(value.spec.targets).toBeUndefined();
+
+    await move(wrapper, value, 'fleet-default');
+
+    expect(value.spec.helmSecretName).toBe('helm-creds');
+    expect(value.spec.helm.valuesFrom).toStrictEqual(original.helm.valuesFrom);
+    expect(value.spec.downstreamResources).toStrictEqual(original.downstreamResources);
+    expect(value.spec.targets).toStrictEqual(original.targets);
+    expect(wrapper.vm.workspaceNotice).toBe('');
+  });
+
+  it('does not add downstream resources to a bundle without any', async() => {
+    const { wrapper, value } = mountHelmOp();
+
+    mockExists.mockResolvedValue(true);
+
+    await move(wrapper, value, 'team-a');
+
+    expect(value.spec.downstreamResources).toBeUndefined();
+  });
+
   it('leaves an App Collection bundle alone, whose workspace is the one of its credential', async() => {
     const { wrapper, value } = mountHelmOp({
       annotations: { [CATALOG.SUSE_APP_COLLECTION]: 'true' },

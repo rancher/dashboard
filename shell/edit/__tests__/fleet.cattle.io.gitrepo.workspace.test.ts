@@ -228,6 +228,93 @@ describe('view: fleet.cattle.io.gitrepo - workspace', () => {
     });
   });
 
+  describe('when going back to a workspace', () => {
+    // git-creds and helm-creds live in fleet-default only, other-creds everywhere; c-1 is a fleet-default cluster
+    const inWorkspace = (workspace: string, name: string) => name === 'other-creds' || workspace === 'fleet-default';
+
+    beforeEach(() => {
+      mockExists.mockImplementation((store, type, workspace, name) => Promise.resolve(inWorkspace(workspace, name)));
+      mockRetarget.mockImplementation((store, targets, workspace) => {
+        const kept = (targets || []).filter((t: any) => !t.clusterName || workspace === 'fleet-default');
+
+        return Promise.resolve({
+          targets:              kept.length ? kept : undefined,
+          removedClusters:      (targets || []).filter((t: any) => t.clusterName && workspace !== 'fleet-default').map((t: any) => t.clusterName),
+          removedClusterGroups: [],
+        });
+      });
+    });
+
+    const spec = {
+      clientSecretName: 'git-creds',
+      helmSecretName:   'helm-creds',
+      helmRepoURLRegex: 'https://charts.example.com/.*',
+      targets:          [{ clusterName: 'c-1' }, { clusterSelector: { matchLabels: { env: 'dev' } } }],
+    };
+
+    it('brings back what was dropped when the workspace it came from is picked again', async() => {
+      const { wrapper, value } = mountGitRepo({ spec: { ...spec, targets: [...spec.targets] } });
+
+      await move(wrapper, value, 'team-a');
+
+      expect(value.spec.clientSecretName).toBeUndefined();
+      expect(value.spec.targets).toStrictEqual([{ clusterSelector: { matchLabels: { env: 'dev' } } }]);
+      expect(wrapper.vm.workspaceNotice).not.toBe('');
+
+      await move(wrapper, value, 'fleet-default');
+
+      expect(value.spec.clientSecretName).toBe('git-creds');
+      expect(value.spec.helmSecretName).toBe('helm-creds');
+      expect(value.spec.helmRepoURLRegex).toBe('https://charts.example.com/.*');
+      expect(value.spec.targets).toStrictEqual(spec.targets);
+      expect(wrapper.vm.workspaceNotice).toBe('');
+    });
+
+    it('brings them back after passing through several workspaces', async() => {
+      const { wrapper, value } = mountGitRepo({ spec: { ...spec, targets: [...spec.targets] } });
+
+      await move(wrapper, value, 'team-a');
+      await move(wrapper, value, 'fleet-local');
+      await move(wrapper, value, 'fleet-default');
+
+      expect(value.spec.clientSecretName).toBe('git-creds');
+      expect(value.spec.targets).toStrictEqual(spec.targets);
+    });
+
+    it('replaces the credential the Policy filled in on the way with the original one', async() => {
+      mockPolicyDefaults.mockImplementation((store, namespace) => Promise.resolve({ clientSecretName: namespace === 'team-a' ? 'other-creds' : '', helmSecretName: '' }));
+
+      const { wrapper, value } = mountGitRepo({ spec: { clientSecretName: 'git-creds' } });
+
+      await move(wrapper, value, 'team-a');
+      expect(value.spec.clientSecretName).toBe('other-creds');
+
+      await move(wrapper, value, 'fleet-default');
+      expect(value.spec.clientSecretName).toBe('git-creds');
+    });
+
+    it('keeps what the user picked in between', async() => {
+      const { wrapper, value } = mountGitRepo({ spec: { clientSecretName: 'git-creds' } });
+
+      await move(wrapper, value, 'team-a');
+      value.spec.clientSecretName = 'other-creds';
+      await move(wrapper, value, 'fleet-default');
+
+      expect(value.spec.clientSecretName).toBe('other-creds');
+    });
+
+    it('still lists what is missing when the user changed it in between', async() => {
+      const { wrapper, value } = mountGitRepo({ spec: { clientSecretName: 'git-creds' } });
+
+      await move(wrapper, value, 'fleet-local');
+      value.spec.clientSecretName = 'helm-creds';
+      await move(wrapper, value, 'team-a');
+
+      expect(value.spec.clientSecretName).toBeUndefined();
+      expect(wrapper.vm.workspaceNotice).toContain('fleet.workspaces.moved.secret:{\\"name\\":\\"helm-creds\\"}');
+    });
+  });
+
   it('does not touch the resource when the workspace of an existing one is shown', async() => {
     const { wrapper, value } = mountGitRepo({ mode: _EDIT, spec: { clientSecretName: 'git-creds' } });
 

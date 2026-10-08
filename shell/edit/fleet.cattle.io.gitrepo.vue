@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import { AUTH_TYPE, NORMAN, SECRET } from '@shell/config/types';
-import { set } from '@shell/utils/object';
+import { clone, set } from '@shell/utils/object';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import Loading from '@shell/components/Loading';
@@ -12,7 +12,9 @@ import { SECRET_TYPES, GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import FormValidation from '@shell/mixins/form-validation';
 import { toSeconds } from '@shell/utils/duration';
 import { getFleetPolicyDefaults } from '@shell/utils/fleet-policy';
-import { existsInNamespace, fleetWorkspaceOptions, retargetToWorkspaceFromStore, showFleetWorkspace } from '@shell/utils/fleet-workspace';
+import {
+  existsInNamespace, fleetWorkspaceOptions, retargetToWorkspaceFromStore, sameReference, showFleetWorkspace
+} from '@shell/utils/fleet-workspace';
 import FleetUtils from '@shell/utils/fleet';
 import { HARVESTER_CONTAINER } from '@shell/store/features';
 import Tab from '@shell/components/Tabbed/Tab.vue';
@@ -117,11 +119,13 @@ export default {
           rules: ['urlRepository'],
         },
       ],
-      touched:         null,
+      touched:             null,
       // What the workspace's Policy filled in, so moving workspace swaps it for the new one's
-      policyDefaults:  {},
-      workspaceNotice: '',
-      workspaceChange: null,
+      policyDefaults:      {},
+      workspaceNotice:     '',
+      workspaceChange:     null,
+      // The references as they were before the first workspace change, and as the last change left them
+      workspaceReferences: null,
     };
   },
 
@@ -263,15 +267,29 @@ export default {
 
     /**
      * References are resolved in the resource's own workspace: drop the ones the new workspace
-     * does not have rather than let the save fail.
+     * does not have rather than let the save fail. One the user has not changed since is worked
+     * out again from what it was before the first change, so going back to a workspace brings
+     * back what was dropped on the way.
      */
     async moveToWorkspace(workspace) {
       const spec = this.value.spec;
+
+      if (!this.workspaceReferences) {
+        const original = { targets: clone(spec.targets), helmRepoURLRegex: spec.helmRepoURLRegex };
+
+        SECRET_KEYS.forEach((key) => {
+          original[key] = spec[key] === this.policyDefaults[key] ? undefined : spec[key];
+        });
+        this.workspaceReferences = { original, last: clone(original) };
+      }
+
+      const { original, last } = this.workspaceReferences;
       const removed = [];
 
-      const { targets, removedClusters, removedClusterGroups } = await retargetToWorkspaceFromStore(this.$store, spec.targets, workspace);
+      const { targets, removedClusters, removedClusterGroups } = await retargetToWorkspaceFromStore(this.$store, this.referenceBase('targets', spec.targets), workspace);
 
       spec.targets = targets;
+      last.targets = clone(targets);
       removedClusters.forEach((name) => removed.push(this.t('fleet.workspaces.moved.cluster', { name })));
       removedClusterGroups.forEach((name) => removed.push(this.t('fleet.workspaces.moved.clusterGroup', { name })));
 
@@ -280,29 +298,30 @@ export default {
       }
 
       for (const key of SECRET_KEYS) {
-        const name = spec[key];
-
         // An existing secret picked in the form is cached as `<namespace>/<name>` and would be put back
         if (this.tempCachedValues[key]?.selected?.includes('/')) {
           delete this.tempCachedValues[key];
         }
 
-        if (!name) {
-          continue;
-        }
+        const name = this.referenceBase(key, spec[key], this.policyDefaults[key]);
 
-        const fromPolicy = name === this.policyDefaults[key];
-
-        if (fromPolicy || !(await existsInNamespace(this.$store, SECRET, workspace, name))) {
+        if (name && await existsInNamespace(this.$store, SECRET, workspace, name)) {
+          spec[key] = name;
+        } else {
           delete spec[key];
 
-          if (!fromPolicy) {
+          if (name) {
             removed.push(this.t('fleet.workspaces.moved.secret', { name }));
           }
         }
+        last[key] = spec[key];
       }
 
-      if (!spec.helmSecretName && !this.tempCachedValues.helmSecretName) {
+      if (spec.helmSecretName) {
+        if (spec.helmSecretName === original.helmSecretName && !spec.helmRepoURLRegex) {
+          spec.helmRepoURLRegex = original.helmRepoURLRegex;
+        }
+      } else if (!this.tempCachedValues.helmSecretName) {
         this.toggleHelmRepoURLRegex(false);
       }
 
@@ -312,6 +331,18 @@ export default {
       if (this.value.metadata.namespace === workspace) {
         this.workspaceNotice = removed.length ? this.t('fleet.workspaces.moved.removed', { workspace, names: [...new Set(removed)].join(', ') }) : '';
       }
+    },
+
+    /**
+     * What a reference is worked out from on a workspace change: its value from before the first
+     * change while it still holds what a change, or the workspace's Policy, put there, and the
+     * user's own value once they changed it.
+     */
+    referenceBase(field, current, filledIn) {
+      const { original, last } = this.workspaceReferences;
+      const untouched = sameReference(current, last[field]) || (!!filledIn && current === filledIn);
+
+      return untouched ? clone(original[field]) : current;
     },
 
     stepPathErrors(stepName) {

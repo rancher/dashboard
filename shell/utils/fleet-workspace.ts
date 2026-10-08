@@ -1,4 +1,5 @@
 import type { Store } from 'vuex';
+import isEqual from 'lodash/isEqual';
 import { FLEET } from '@shell/config/types';
 import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
 import { WORKSPACE } from '@shell/store/prefs';
@@ -119,6 +120,16 @@ export async function retargetToWorkspaceFromStore(store: Store<any>, targets: T
   const localTargets = [store.getters['features/get'](HARVESTER_CONTAINER) ? includeAllWorkgroupRule : excludeHarvesterRule];
 
   return retargetToWorkspace(targets, workspace, hash.clusters || [], hash.clusterGroups || [], localTargets);
+}
+
+const isEmptyReference = (value: unknown) => value === undefined || value === null || value === '' || (Array.isArray(value) && !value.length);
+
+/**
+ * Whether a reference still holds what moving workspace last set it to, so the next move may
+ * recompute it. Empty values compare equal however they are written.
+ */
+export function sameReference(a: unknown, b: unknown): boolean {
+  return (isEmptyReference(a) && isEmptyReference(b)) || isEqual(a, b);
 }
 
 /**

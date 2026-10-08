@@ -23,7 +23,9 @@ import { mapPref, DIFF } from '@shell/store/prefs';
 import { SECRET_TYPES } from '@shell/config/secret';
 import { toSeconds } from '@shell/utils/duration';
 import { getFleetPolicyDefaults } from '@shell/utils/fleet-policy';
-import { existsInNamespace, fleetWorkspaceOptions, retargetToWorkspaceFromStore, showFleetWorkspace } from '@shell/utils/fleet-workspace';
+import {
+  existsInNamespace, fleetWorkspaceOptions, retargetToWorkspaceFromStore, sameReference, showFleetWorkspace
+} from '@shell/utils/fleet-workspace';
 import FleetUtils from '@shell/utils/fleet';
 import { HARVESTER_CONTAINER } from '@shell/store/features';
 import { EDITOR_MODES } from '@shell/components/YamlEditor';
@@ -130,9 +132,11 @@ export default {
       appCoChartsLoading:   false,
 
       // What the workspace's Policy filled in, so moving workspace swaps it for the new one's
-      policyDefaults:  {},
-      workspaceNotice: '',
-      workspaceChange: null,
+      policyDefaults:      {},
+      workspaceNotice:     '',
+      workspaceChange:     null,
+      // The references as they were before the first workspace change, and as the last change left them
+      workspaceReferences: null,
     };
   },
 
@@ -438,17 +442,33 @@ export default {
 
     /**
      * References are resolved in the resource's own workspace: drop the ones the new workspace
-     * does not have rather than let the save fail.
+     * does not have rather than let the save fail. One the user has not changed since is worked
+     * out again from what it was before the first change, so going back to a workspace brings
+     * back what was dropped on the way.
      */
     async moveToWorkspace(workspace) {
       const spec = this.value.spec;
+
+      if (!this.workspaceReferences) {
+        const original = {
+          targets:             clone(spec.targets),
+          helmSecretName:      spec.helmSecretName === this.policyDefaults.helmSecretName ? undefined : spec.helmSecretName,
+          valuesFrom:          clone(spec.helm?.valuesFrom),
+          downstreamResources: clone(spec.downstreamResources),
+        };
+
+        this.workspaceReferences = { original, last: clone(original) };
+      }
+
+      const { last } = this.workspaceReferences;
       const removed = [];
       const exists = (type, name) => existsInNamespace(this.$store, type, workspace, name);
       const label = (type, name) => this.t(`fleet.workspaces.moved.${ type === SECRET ? 'secret' : 'configMap' }`, { name });
 
-      const { targets, removedClusters, removedClusterGroups } = await retargetToWorkspaceFromStore(this.$store, spec.targets, workspace);
+      const { targets, removedClusters, removedClusterGroups } = await retargetToWorkspaceFromStore(this.$store, this.referenceBase('targets', spec.targets), workspace);
 
       spec.targets = targets;
+      last.targets = clone(targets);
       removedClusters.forEach((name) => removed.push(this.t('fleet.workspaces.moved.cluster', { name })));
       removedClusterGroups.forEach((name) => removed.push(this.t('fleet.workspaces.moved.clusterGroup', { name })));
 
@@ -460,53 +480,54 @@ export default {
         delete this.tempCachedValues.helmSecretName;
       }
 
+      const helmSecret = this.referenceBase('helmSecretName', spec.helmSecretName, this.policyDefaults.helmSecretName);
       // The App Collection flow stores it as `<namespace>/<name>` until save
-      const helmSecretName = spec.helmSecretName?.split('/').pop();
+      const helmSecretName = helmSecret?.split('/').pop();
 
-      if (helmSecretName) {
-        const fromPolicy = helmSecretName === this.policyDefaults.helmSecretName;
+      if (helmSecretName && await exists(SECRET, helmSecretName)) {
+        spec.helmSecretName = helmSecret;
+      } else {
+        delete spec.helmSecretName;
 
-        if (fromPolicy || !(await exists(SECRET, helmSecretName))) {
-          delete spec.helmSecretName;
+        if (helmSecretName) {
+          removed.push(label(SECRET, helmSecretName));
+        }
+      }
+      last.helmSecretName = spec.helmSecretName;
 
-          if (!fromPolicy) {
-            removed.push(label(SECRET, helmSecretName));
-          }
+      const valuesFrom = [];
+
+      for (const entry of this.referenceBase('valuesFrom', spec.helm?.valuesFrom) || []) {
+        const [refKey, type] = entry.secretKeyRef ? ['secretKeyRef', SECRET] : ['configMapKeyRef', CONFIG_MAP];
+        const ref = entry[refKey];
+
+        if (ref?.name && await exists(type, ref.name)) {
+          valuesFrom.push({ [refKey]: { ...ref, namespace: workspace } });
+        } else if (ref?.name) {
+          removed.push(label(type, ref.name));
         }
       }
 
-      if (spec.helm?.valuesFrom?.length) {
-        const valuesFrom = [];
-
-        for (const entry of spec.helm.valuesFrom) {
-          const [refKey, type] = entry.secretKeyRef ? ['secretKeyRef', SECRET] : ['configMapKeyRef', CONFIG_MAP];
-          const ref = entry[refKey];
-
-          if (ref?.name && await exists(type, ref.name)) {
-            valuesFrom.push({ [refKey]: { ...ref, namespace: workspace } });
-          } else if (ref?.name) {
-            removed.push(label(type, ref.name));
-          }
-        }
-
+      if (spec.helm) {
         spec.helm.valuesFrom = valuesFrom.length ? valuesFrom : undefined;
       }
+      last.valuesFrom = clone(spec.helm?.valuesFrom);
 
-      if (spec.downstreamResources?.length) {
-        const downstreamResources = [];
+      const downstreamBase = this.referenceBase('downstreamResources', spec.downstreamResources);
+      const downstreamResources = [];
 
-        for (const resource of spec.downstreamResources) {
-          const type = resource.kind === 'Secret' ? SECRET : CONFIG_MAP;
+      for (const resource of downstreamBase || []) {
+        const type = resource.kind === 'Secret' ? SECRET : CONFIG_MAP;
 
-          if (await exists(type, resource.name)) {
-            downstreamResources.push(resource);
-          } else {
-            removed.push(label(type, resource.name));
-          }
+        if (await exists(type, resource.name)) {
+          downstreamResources.push(resource);
+        } else {
+          removed.push(label(type, resource.name));
         }
-
-        spec.downstreamResources = downstreamResources;
       }
+
+      spec.downstreamResources = downstreamBase?.length ? downstreamResources : downstreamBase;
+      last.downstreamResources = clone(spec.downstreamResources);
 
       this.policyDefaults = {};
       await this.applyPolicyDefaults();
@@ -514,6 +535,18 @@ export default {
       if (this.value.metadata.namespace === workspace) {
         this.workspaceNotice = removed.length ? this.t('fleet.workspaces.moved.removed', { workspace, names: [...new Set(removed)].join(', ') }) : '';
       }
+    },
+
+    /**
+     * What a reference is worked out from on a workspace change: its value from before the first
+     * change while it still holds what a change, or the workspace's Policy, put there, and the
+     * user's own value once they changed it.
+     */
+    referenceBase(field, current, filledIn) {
+      const { original, last } = this.workspaceReferences;
+      const untouched = sameReference(current, last[field]) || (!!filledIn && current === filledIn);
+
+      return untouched ? clone(original[field]) : current;
     },
 
     emitInput(e) {

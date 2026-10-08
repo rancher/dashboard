@@ -2,7 +2,7 @@ import { FLEET, SECRET } from '@shell/config/types';
 import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
 import FleetUtils from '@shell/utils/fleet';
 import {
-  existsInNamespace, fleetWorkspaceOptions, retargetToWorkspace, retargetToWorkspaceFromStore, showFleetWorkspace
+  existsInNamespace, fleetWorkspaceOptions, retargetToWorkspace, retargetToWorkspaceFromStore, sameReference, showFleetWorkspace
 } from '@shell/utils/fleet-workspace';
 
 const cluster = (namespace: string, name: string, nameDisplay = name) => ({ nameDisplay, metadata: { namespace, name } });
@@ -174,6 +174,21 @@ describe('fleet-workspace', () => {
       const res = await retargetToWorkspaceFromStore(store, [{ clusterSelector: { matchLabels: { a: 'b' } } }], 'fleet-local');
 
       expect(res.targets).toStrictEqual([rule]);
+    });
+  });
+
+  describe('sameReference', () => {
+    it.each([
+      ['empty values written differently', undefined, null, true],
+      ['an empty list and nothing', [], undefined, true],
+      ['an empty string and null', '', null, true],
+      ['equal names', 'creds', 'creds', true],
+      ['equal lists', [{ clusterGroup: 'a' }], [{ clusterGroup: 'a' }], true],
+      ['different names', 'creds', 'other', false],
+      ['a name and nothing', 'creds', undefined, false],
+      ['different lists', [{ clusterGroup: 'a' }], [{ clusterGroup: 'b' }], false],
+    ])('compares %s', (_, a, b, expected) => {
+      expect(sameReference(a, b)).toBe(expected);
     });
   });
 
