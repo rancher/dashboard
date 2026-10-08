@@ -471,9 +471,16 @@ export default {
     },
 
 
-    /** The columns and the fields that exist only for the query: what a query is read and applied with */
+    /**
+     * The columns and the fields that exist only for the query: what a query is read and applied with.
+     * A column that searches with free text only while it is on the table, eg the description, is left
+     * out of it otherwise; a term naming it still works
+     */
     viewQueryFields() {
-      return this.queryFields?.length ? this.viewFields.concat(this.queryFields) : this.viewFields;
+      const shown = new Set((this.viewHeaders || []).map((header) => headerFieldId(header)));
+      const fields = this.viewFields.map((field) => (field.header?.freeTextWhenShown && !shown.has(field.id) ? { ...field, notInFreeText: true } : field));
+
+      return this.queryFields?.length ? fields.concat(this.queryFields) : fields;
     },
 
 
@@ -949,8 +956,10 @@ export default {
       const raw = field ? serverPathFor(field) : null;
       // A column searched on several paths is summarised on its own
       const path = Array.isArray(raw) ? raw[0] : raw;
+      // The query only offers values for these, so there is no point asking for another's
+      const offered = this.viewFilterFields.some((f) => f.id === fieldId);
 
-      if (typeof path !== 'string') {
+      if (typeof path !== 'string' || !offered) {
         // Claimed anyway, so the input stops asking and falls back to the page
         this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
 

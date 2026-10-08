@@ -34,6 +34,8 @@ export interface TableViewField {
   paginationHeader?: PaginationHeaderOptions;
   /** Only for the query: not a column, not grouped by, not searched by free text */
   queryOnly?: boolean;
+  /** Left out of free text for now, eg the description while its column isn't on the table */
+  notInFreeText?: boolean;
   /** Matched whole rather than as a part, eg an id */
   exact?: boolean;
   /** The values it takes, suggested as they are rather than read from the rows */
