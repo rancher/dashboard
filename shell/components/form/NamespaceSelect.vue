@@ -208,6 +208,8 @@ function onCancel() {
   emitChange(defaultNs);
 }
 
+const createAllowedHere = computed(() => props.createAllowed && (canCreateNamespace.value || props.createNamespaceOverride));
+
 const isReallyDisabled = computed(() => !!props.forceNamespace || props.disabled || props.mode === _EDIT);
 </script>
 
@@ -215,7 +217,7 @@ const isReallyDisabled = computed(() => !!props.forceNamespace || props.disabled
   <LabeledSelectWithCreate
     :value="namespace"
     :name="name"
-    :clearable="true"
+    :clearable="createAllowedHere"
     :options="namespaceSelectOptions"
     :disabled="isReallyDisabled"
     :mode="mode"
@@ -224,7 +226,7 @@ const isReallyDisabled = computed(() => !!props.forceNamespace || props.disabled
     :placeholder="t(placeholder)"
     :create-label="t('namespace.createNamespace')"
     :create-placeholder="t(createPlaceholder)"
-    :create-allowed="createAllowed && (canCreateNamespace || createNamespaceOverride)"
+    :create-allowed="createAllowedHere"
     :rules="rules"
     :append-to-body="appendToBody"
     :require-dirty="requireDirty"

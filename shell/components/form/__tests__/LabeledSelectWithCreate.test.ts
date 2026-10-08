@@ -185,6 +185,19 @@ describe('component: LabeledSelectWithCreate', () => {
       expect(findInput(wrapper).exists()).toBe(true);
     });
 
+    it.each([
+      ['clearing', null],
+      ['a stale create entry', { label: 'Create new…', value: '__create__' }],
+    ])('does not switch to create mode on %s when creating is not allowed', async(_, opt) => {
+      const wrapper = mountComponent({ createAllowed: false });
+
+      await findSelect(wrapper).vm.$emit('selecting', opt);
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.emitted('creating')).toBeFalsy();
+      expect(findInput(wrapper).exists()).toBe(false);
+    });
+
     it('does not switch to create mode when a regular option is selected', async() => {
       const wrapper = mountComponent();
 

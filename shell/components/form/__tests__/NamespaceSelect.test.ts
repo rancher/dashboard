@@ -233,5 +233,18 @@ describe('namespaceSelect', () => {
 
       expect(wrapper.findComponent(LabeledSelectWithCreate).props('createAllowed')).toStrictEqual(expected);
     });
+
+    it.each([
+      ['the user can create namespaces', {}, {}, true],
+      ['createAllowed is false', { createAllowed: false }, {}, false],
+      ['the user cannot create namespaces', {}, { currentCluster: () => ({ canUpdate: false }) }, false],
+    ])('can be cleared only when a namespace can be created: %s', (_, props, getters, expected) => {
+      const wrapper = shallowMount(NamespaceSelect, {
+        ...requiredSetup(getters),
+        props,
+      });
+
+      expect(wrapper.findComponent(LabeledSelectWithCreate).props('clearable')).toStrictEqual(expected);
+    });
   });
 });
