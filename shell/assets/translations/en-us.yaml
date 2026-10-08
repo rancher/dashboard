@@ -9411,11 +9411,6 @@ advancedSettings:
       fleet: Fleet
     trueOption: "True"
     falseOption: "False"
-    uiAppcoEnabled:
-      true: Always shows these features.
-      false: Always hides these features. Useful for air-gapped installations that cannot reach the Application Collection registry.
-      noneLabel: None (default)
-      none: Inherits behavior from the system-catalog setting. Features are hidden if the catalog is “bundled” (serving only bundled charts) and shown otherwise.
     value: Value
     useDefault: Use the default value
     invalidJSON: Invalid JSON - please check and correct your input before saving
@@ -9479,6 +9474,15 @@ advancedSettings:
     'agent-tls-mode':
       strict: 'Strict'
       system-store: 'System Store'
+    'ui-appco-enabled':
+      'true': 'True'
+      'false': 'False'
+      none: None (default)
+  enumDescription:
+    'ui-appco-enabled':
+      'true': Always shows these features.
+      'false': Always hides these features. Useful for air-gapped installations that cannot reach the Application Collection registry.
+      none: Inherits behavior from the system-catalog setting. Features are hidden if the catalog is “bundled” (serving only bundled charts) and shown otherwise.
   provisioning:
     header: Cluster Provisioning
 

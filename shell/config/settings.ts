@@ -20,6 +20,11 @@ interface GlobalSetting {
     customFormatter?: string,
     from?: string,
     kind?: string,
+    /**
+     * How an `enum` setting is edited: a select (the default) or radio buttons. Only radio buttons support an empty
+     * option (`''`), labelled by the `none` key in `advancedSettings.enum.<id>`.
+     */
+    display?: 'radio',
     options?: string[]
     readOnly?: boolean,
     agent?: typeof AGENT_CONFIGURATION_TYPES.CLUSTER | typeof AGENT_CONFIGURATION_TYPES.FLEET,
@@ -182,7 +187,12 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     kind:    'enum',
     options: ['dynamic', 'true', 'false']
   },
-  [SETTING.UI_APPCO_ENABLED]:   { canReset: true },
+  [SETTING.UI_APPCO_ENABLED]: {
+    kind:     'enum',
+    display:  'radio',
+    options:  ['true', 'false', ''],
+    canReset: true,
+  },
   [SETTING.BRAND]:              { canReset: true },
   [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
   [SETTING.AGENT_TLS_MODE]:     {

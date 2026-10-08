@@ -45,8 +45,13 @@ describe('Settings Configuration', () => {
       expect(ALLOWED_SETTINGS).toHaveProperty(SETTING.UI_APPCO_ENABLED);
     });
 
-    it('should allow resetting to the default (None)', () => {
-      expect(ALLOWED_SETTINGS[SETTING.UI_APPCO_ENABLED].canReset).toBe(true);
+    it('should be edited as radio buttons with an empty (None) option, and allow resetting to it', () => {
+      expect(ALLOWED_SETTINGS[SETTING.UI_APPCO_ENABLED]).toStrictEqual({
+        kind:     'enum',
+        display:  'radio',
+        options:  ['true', 'false', ''],
+        canReset: true,
+      });
     });
 
     it('should not be included in PROVISIONING_SETTINGS', () => {

@@ -52,7 +52,7 @@ export default {
       } else if (s.kind === 'enum') {
         const v = s.data.value || s.data.default;
 
-        s.enum = `advancedSettings.enum.${ id }.${ v }`;
+        s.enum = `advancedSettings.enum.${ id }.${ v || 'none' }`;
       }
       // There are only 2 actions that can be enabled - Edit Setting or View in API
       // If neither is available for this setting then we hide the action menu button

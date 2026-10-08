@@ -14,6 +14,9 @@ import { setBrand } from '@shell/config/private-label';
 import { keyBy, mapValues } from 'lodash';
 import { isLocalhost, isServerUrl } from '@shell/utils/validators/setting';
 
+// RadioGroup's value prop casts an empty string to `true`, so an empty enum option needs a value of its own
+const EMPTY_ENUM_OPTION = '__empty__';
+
 export default {
   components: {
     CruResource,
@@ -72,6 +75,32 @@ export default {
   },
 
   computed: {
+    enumRadioOptions() {
+      const t = this.$store.getters['i18n/t'];
+      const exists = this.$store.getters['i18n/exists'];
+
+      return (this.setting?.options || []).map((id) => {
+        const key = id || 'none';
+        const descriptionKey = `advancedSettings.enumDescription.${ this.value.id }.${ key }`;
+
+        return {
+          // i18n-uses advancedSettings.enum.*, advancedSettings.enumDescription.*
+          label:       t(`advancedSettings.enum.${ this.value.id }.${ key }`),
+          description: exists(descriptionKey) ? t(descriptionKey) : undefined,
+          value:       id || EMPTY_ENUM_OPTION,
+        };
+      });
+    },
+
+    enumRadioValue: {
+      get() {
+        return this.value.value || EMPTY_ENUM_OPTION;
+      },
+      set(neu) {
+        this.value.value = neu === EMPTY_ENUM_OPTION ? '' : neu;
+      }
+    },
+
     fvExtraRules() {
       const t = this.$store.getters['i18n/t'];
 
@@ -220,7 +249,15 @@ export default {
       v-else
       class="mt-20"
     >
-      <div v-if="setting.kind === 'enum'">
+      <div v-if="setting.kind === 'enum' && setting.display === 'radio'">
+        <RadioGroup
+          v-model:value="enumRadioValue"
+          data-testid="input-setting-enum-radio"
+          name="settings_value"
+          :options="enumRadioOptions"
+        />
+      </div>
+      <div v-else-if="setting.kind === 'enum'">
         <LabeledSelect
           v-model:value="value.value"
           data-testid="input-setting-enum"
