@@ -108,13 +108,16 @@ describe('fx: providerIcon', () => {
     expect(providerIcon('githubConfig')).toBe(providerIcon('githubProvider'));
   });
 
+  it.each(['localProvider', 'localConfig'])('should give %p the Rancher local mark', (type: string) => {
+    expect(providerIcon(type)).toBe('~shell/assets/images/vendor/local.svg');
+  });
+
   it('should fall back to an empty string when the vendor has no logo', () => {
-    // `local` has no vendor SVG, so `requireAsset` throws for it.
     jest.mocked(requireAsset).mockImplementationOnce(() => {
       throw new Error('Asset not found');
     });
 
-    expect(providerIcon('localProvider')).toBe('');
+    expect(providerIcon('unknownProvider')).toBe('');
   });
 
   it.each([undefined, null, ''])('should not throw for %p', (type) => {

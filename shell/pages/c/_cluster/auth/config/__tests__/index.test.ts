@@ -5,6 +5,10 @@ import AuthProviderRow from '@shell/components/auth/AuthProviderRow.vue';
 import AuthProvidersEmptyState from '@shell/components/auth/AuthProvidersEmptyState.vue';
 import DisableLocalLoginCard from '@shell/components/auth/DisableLocalLoginCard.vue';
 
+jest.mock('@shell/utils/require-asset', () => {
+  return { requireAsset: jest.fn((path: string) => path) };
+});
+
 const localConfig: any = { id: 'local', enabled: true };
 
 const oktaConfig = {
@@ -235,6 +239,10 @@ describe('page: AuthConfigList', () => {
 
   describe('the local provider row', () => {
     const localRow = (wrapper: any) => wrapper.findAllComponents(AuthProviderRow)[1];
+
+    it('should show the Rancher local mark', () => {
+      expect(localRow(createWrapper()).props('icon')).toBe('~shell/assets/images/vendor/local.svg');
+    });
 
     it('should describe what local accounts are for', () => {
       expect(localRow(createWrapper()).props('description')).toBe('%authConfig.list.localRow.description%');

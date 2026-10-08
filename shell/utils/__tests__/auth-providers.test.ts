@@ -143,7 +143,12 @@ describe('fx: toProviderOptions', () => {
       expect(result.name).toBe('Local account');
       expect(result.description).toBe('Signs in with a username and password held by Rancher itself.');
       expect(result.meta).toBe('Username and password');
-      expect(result.icon).toBe('');
+    });
+
+    it('should give local the Rancher local mark', () => {
+      const [result] = toProviderOptions([driver('local', 'localProvider')], i18n);
+
+      expect(result.icon).toBe('~shell/assets/images/vendor/local.svg');
     });
 
     it('should omit local when it is not configured', () => {

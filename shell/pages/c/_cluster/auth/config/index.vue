@@ -1,6 +1,6 @@
 <script>
 import { MANAGEMENT } from '@shell/config/types';
-import { providerKey } from '@shell/models/management.cattle.io.authconfig';
+import { providerIcon, providerKey } from '@shell/models/management.cattle.io.authconfig';
 import { Banner } from '@components/Banner';
 import { RcButton } from '@components/RcButton';
 import Loading from '@shell/components/Loading';
@@ -92,6 +92,10 @@ export default {
       }
 
       return this.disableLocalAuth ? this.t('authConfig.list.localRow.descriptionDisabled') : this.t('authConfig.list.localRow.description');
+    },
+
+    localIcon() {
+      return providerIcon(LOCAL_AUTH_ID);
     },
 
     localUsersRoute() {
@@ -321,6 +325,7 @@ export default {
     <AuthProviderRow
       :divided="false"
       :title="t('authConfig.list.localRow.title')"
+      :icon="localIcon"
       :chips="[t('authConfig.list.localRow.chip')]"
       :description="localDescription"
       :meta="t('authConfig.list.localRow.meta')"

@@ -80,7 +80,7 @@ export const toProviderOptions = (drivers: AuthProviderDriver[], i18n: I18n): Au
       name:        t('login.providers.local.name'),
       description: t('login.providers.local.description'),
       meta:        t('login.providers.local.meta'),
-      icon:        '',
+      icon:        providerIcon(LOCAL_PROVIDER),
       isLocal:     true,
     },
   ];
