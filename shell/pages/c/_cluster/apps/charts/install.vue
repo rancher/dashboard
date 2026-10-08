@@ -1702,6 +1702,7 @@ export default {
     class="install-steps"
     :class="{ 'isPlainLayout': isPlainLayout}"
   >
+    <!-- tabindex lets a click focus the wizard, so the arrow and page keys scroll it -->
     <Wizard
       v-if="value"
       tabindex="-1"
