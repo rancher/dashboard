@@ -81,6 +81,11 @@ export function isViewModified(view: Partial<TableViewState>): boolean {
     !!view.columnOrder || !!view.sort;
 }
 
+/** The saved view of this name holding exactly this config, if there is one */
+export function savedViewNamed(savedViews: TableViewSaved[], name: string, view: Partial<TableViewState>): TableViewSaved | null {
+  return savedViews.find((saved) => saved.name === name && isSameViewConfig(saved, view)) || null;
+}
+
 function matchingViewId(savedViews: TableViewSaved[], view: Partial<TableViewState>): string | null {
   return savedViews.find((saved) => isSameViewConfig(saved, view))?.id || null;
 }
