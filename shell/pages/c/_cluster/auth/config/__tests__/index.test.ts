@@ -4,6 +4,7 @@ import AuthProviderAccessDrawer from '@shell/components/auth/AuthProviderAccessD
 import AuthProviderRow from '@shell/components/auth/AuthProviderRow.vue';
 import AuthProvidersEmptyState from '@shell/components/auth/AuthProvidersEmptyState.vue';
 import DisableLocalLoginCard from '@shell/components/auth/DisableLocalLoginCard.vue';
+import AuthProvidersPrimeNotice from '@shell/components/auth/AuthProvidersPrimeNotice.vue';
 
 jest.mock('@shell/utils/require-asset', () => {
   return { requireAsset: jest.fn((path: string) => path) };
@@ -49,6 +50,9 @@ const createFeature = (value: boolean, lockedValue: boolean | null = null) => ({
   save:   jest.fn(),
 });
 
+// Whether the server has the `multiple-auth-providers` feature on
+let multipleAllowed = false;
+
 const createWrapper = ({
   configs = [localConfig, oktaConfig],
   types = providerTypes,
@@ -65,7 +69,7 @@ const createWrapper = ({
         commit:   jest.fn(),
         dispatch: jest.fn(),
         getters:  {
-          'features/get':         () => feature.spec.value,
+          'features/get':         (name: string) => (name === 'multiple-auth-providers' ? multipleAllowed : feature.spec.value),
           'management/byId':      () => feature,
           'management/schemaFor': () => ({ resourceMethods: canUpdateFeature ? ['GET', 'PUT'] : ['GET'] }),
           'i18n/withFallback':    (_key: string, _args: any, fallback: string) => fallback,
@@ -135,12 +139,24 @@ describe('page: AuthConfigList', () => {
   });
 
   it('should size the add provider header action like resource list actions', () => {
+    multipleAllowed = true;
     const wrapper = createWrapper();
+
+    multipleAllowed = false;
 
     expect(wrapper.find('[data-testid="auth-config-create"]').attributes('size')).toBe('large');
   });
 
   describe('adding a provider', () => {
+    // With multiple providers allowed, these add alongside the enabled Okta config
+    beforeEach(() => {
+      multipleAllowed = true;
+    });
+
+    afterEach(() => {
+      multipleAllowed = false;
+    });
+
     // The picker is for new entries, so it offers the provider types the server
     // supports rather than anything read off the configs that already exist.
     it('should offer the provider types the server supports', () => {
@@ -234,6 +250,83 @@ describe('page: AuthConfigList', () => {
 
       expect(rows).toHaveLength(1);
       expect(rows[0].props('title')).toBe('%authConfig.list.localRow.title%');
+    });
+  });
+
+  describe('the Rancher Prime notice', () => {
+    beforeEach(() => {
+      multipleAllowed = false;
+    });
+
+    it('should point community to Prime for more than one provider', () => {
+      multipleAllowed = false;
+
+      expect(createWrapper().findComponent(AuthProvidersPrimeNotice).exists()).toBe(true);
+    });
+
+    it('should not be shown when multiple providers are allowed', () => {
+      multipleAllowed = true;
+
+      expect(createWrapper().findComponent(AuthProvidersPrimeNotice).exists()).toBe(false);
+    });
+
+    it('should not be shown before any provider is configured', () => {
+      multipleAllowed = false;
+
+      expect(createWrapper({ configs: [localConfig] }).findComponent(AuthProvidersPrimeNotice).exists()).toBe(false);
+    });
+  });
+
+  describe('the community provider limit', () => {
+    const createButton = (wrapper: any) => wrapper.find('[data-testid="auth-config-create"]');
+
+    beforeEach(() => {
+      multipleAllowed = false;
+    });
+
+    it('should not offer to add a provider in community while one is enabled', () => {
+      multipleAllowed = false;
+
+      expect(createButton(createWrapper()).exists()).toBe(false);
+    });
+
+    it('should offer to add another provider when multiple are allowed', () => {
+      multipleAllowed = true;
+
+      expect(createButton(createWrapper()).exists()).toBe(true);
+    });
+
+    it('should not open the provider picker in community while a provider is enabled', () => {
+      multipleAllowed = false;
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).promptAddProvider();
+
+      expect(wrapper.vm.$store.dispatch).not.toHaveBeenCalledWith('management/promptModal', expect.anything());
+    });
+
+    it('should offer to add a provider in community when the configured one is switched off', () => {
+      multipleAllowed = false;
+
+      expect(createButton(createWrapper({ configs: [localConfig, disabledConfig] })).exists()).toBe(true);
+    });
+
+    it('should open the provider picker in community before any provider exists', () => {
+      multipleAllowed = false;
+      const wrapper = createWrapper({ configs: [localConfig] });
+
+      (wrapper.vm as any).promptAddProvider();
+
+      expect(wrapper.vm.$store.dispatch).toHaveBeenCalledWith('management/promptModal', expect.objectContaining({ component: 'AddAuthProviderDialog' }));
+    });
+
+    it('should open the provider picker when multiple are allowed and a provider is enabled', () => {
+      multipleAllowed = true;
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).promptAddProvider();
+
+      expect(wrapper.vm.$store.dispatch).toHaveBeenCalledWith('management/promptModal', expect.objectContaining({ component: 'AddAuthProviderDialog' }));
     });
   });
 

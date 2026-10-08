@@ -1,5 +1,6 @@
 import {
   REMEMBERED_PROVIDER_KEY,
+  canEnableAuthProvider,
   clearRememberedProviderId,
   getRememberedProviderId,
   isValidAuthConfigName,
@@ -339,5 +340,21 @@ describe('fx: isValidAuthConfigName', () => {
     ['a name over 63 characters', 'a'.repeat(64)],
   ])('should reject %s', (_label, name) => {
     expect(isValidAuthConfigName(name)).toBe(false);
+  });
+});
+
+describe('fx: canEnableAuthProvider', () => {
+  const local = { id: 'local', enabled: true };
+
+  it.each([
+    ['nothing is configured', [], false, undefined, true],
+    ['only local is enabled', [local], false, undefined, true],
+    ['the external provider is switched off', [local, { id: 'azuread', enabled: false }], false, undefined, true],
+    ['an external provider is enabled', [local, { id: 'okta', enabled: true }], false, undefined, false],
+    ['the enabled provider is the one being switched on', [local, { id: 'okta', enabled: true }], false, 'okta', true],
+    ['another provider is enabled than the one being switched on', [local, { id: 'okta', enabled: true }, { id: 'azuread', enabled: false }], false, 'azuread', false],
+    ['several are enabled with multiple providers allowed', [local, { id: 'okta', enabled: true }, { id: 'github', enabled: true }], true, undefined, true],
+  ])('should decide when %s', (_: string, configs: { id: string, enabled?: boolean }[], multipleAllowed: boolean, id: string | undefined, expected: boolean) => {
+    expect(canEnableAuthProvider(configs, multipleAllowed, id)).toBe(expected);
   });
 });

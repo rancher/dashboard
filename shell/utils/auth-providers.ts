@@ -198,3 +198,18 @@ export const nextAuthConfigName = (takenIds: string[], key: string): string => {
 
 /** `metadata.name` is a DNS label, and Rancher rejects anything else. */
 export const isValidAuthConfigName = (name: string): boolean => /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(name) && name.length <= 63;
+
+/**
+ * Whether an external provider can be switched on. Without the
+ * `multiple-auth-providers` feature only one is enabled at a time, though
+ * any number may be configured.
+ *
+ * @param configs every authconfig, local included
+ * @param multipleAllowed whether the `multiple-auth-providers` feature is on
+ * @param id the config being switched on, when it already exists
+ */
+export const canEnableAuthProvider = (
+  configs: { id: string, enabled?: boolean }[],
+  multipleAllowed: boolean,
+  id?: string,
+): boolean => multipleAllowed || !configs.some((config) => config.enabled && config.id !== LOCAL_AUTH_ID && config.id !== id);

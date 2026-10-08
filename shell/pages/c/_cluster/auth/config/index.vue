@@ -9,11 +9,12 @@ import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import AuthProviderAccessDrawer from '@shell/components/auth/AuthProviderAccessDrawer.vue';
 import AuthProviderRow from '@shell/components/auth/AuthProviderRow.vue';
 import AuthProvidersEmptyState from '@shell/components/auth/AuthProvidersEmptyState.vue';
+import AuthProvidersPrimeNotice from '@shell/components/auth/AuthProvidersPrimeNotice.vue';
 import DisableLocalLoginCard from '@shell/components/auth/DisableLocalLoginCard.vue';
-import { HIDE_LOCAL_AUTH_PROVIDER } from '@shell/store/features';
+import { HIDE_LOCAL_AUTH_PROVIDER, MULTIPLE_AUTH_PROVIDERS } from '@shell/store/features';
 import { MODE, _EDIT } from '@shell/config/query-params';
 import { LOCAL_AUTH_ID, UNSUPPORTED_AUTH_IDS, canWriteLocalAuthFeature, localAuthFeature } from '@shell/utils/auth';
-import { toProviderTypes } from '@shell/utils/auth-providers';
+import { canEnableAuthProvider, toProviderTypes } from '@shell/utils/auth-providers';
 
 const resource = MANAGEMENT.AUTH_CONFIG;
 
@@ -23,6 +24,7 @@ export default {
     ActionMenu,
     AuthProviderRow,
     AuthProvidersEmptyState,
+    AuthProvidersPrimeNotice,
     Banner,
     DisableLocalLoginCard,
     Loading,
@@ -64,6 +66,19 @@ export default {
      */
     hasEnabledProvider() {
       return this.allConfigs.some((c) => c.id !== LOCAL_AUTH_ID && c.enabled);
+    },
+
+    multipleAllowed() {
+      return this.$store.getters['features/get'](MULTIPLE_AUTH_PROVIDERS);
+    },
+
+    canAddProvider() {
+      return canEnableAuthProvider(this.allConfigs, this.multipleAllowed);
+    },
+
+    /** Without Prime's `multiple-auth-providers` feature, one provider is enabled at a time. */
+    showPrimeNotice() {
+      return this.rows.length > 0 && !this.multipleAllowed;
     },
 
     localConfig() {
@@ -135,6 +150,10 @@ export default {
     },
 
     async promptAddProvider() {
+      if (!this.canAddProvider) {
+        return;
+      }
+
       if (!this.providerTypes) {
         const err = await this.loadProviderTypes();
 
@@ -241,7 +260,7 @@ export default {
         </p>
       </div>
       <RcButton
-        v-if="rows.length"
+        v-if="rows.length && canAddProvider"
         variant="primary"
         size="large"
         data-testid="auth-config-create"
@@ -311,6 +330,7 @@ export default {
           />
         </template>
       </AuthProviderRow>
+      <AuthProvidersPrimeNotice v-if="showPrimeNotice" />
     </template>
 
     <h2 class="auth-config-section-title auth-config-section-title--standalone">

@@ -2,7 +2,8 @@ import { EDIT_CONFIG, MODE, _EDIT } from '@shell/config/query-params';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { providerKey } from '@shell/models/management.cattle.io.authconfig';
-import { isValidAuthConfigName } from '@shell/utils/auth-providers';
+import { canEnableAuthProvider, isValidAuthConfigName } from '@shell/utils/auth-providers';
+import { MULTIPLE_AUTH_PROVIDERS } from '@shell/store/features';
 import { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { BASE_SCOPES, SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 import { addObject, findBy } from '@shell/utils/array';
@@ -217,6 +218,12 @@ export default {
   },
 
   methods: {
+    async canEnable() {
+      const configs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.AUTH_CONFIG });
+
+      return canEnableAuthProvider(configs, this.$store.getters['features/get'](MULTIPLE_AUTH_PROVIDERS), this.authConfigName || this.model.id);
+    },
+
     updateAuthProviders() {
       // we need to forcefully re-fetch the authProviders list so that we can update the logout method
       // this is to satisfy the SLO usecase where after setting an auth provider the logout method
@@ -296,6 +303,24 @@ export default {
 
       this.errors = [];
       const wasEnabled = this.model.enabled;
+
+      let canEnable;
+
+      try {
+        canEnable = wasEnabled || await this.canEnable();
+      } catch (err) {
+        this.errors = exceptionToErrorsArray(err);
+        btnCb(false);
+
+        return;
+      }
+
+      if (!canEnable) {
+        this.errors = [this.t('authConfig.enableLimitReached')];
+        btnCb(false);
+
+        return;
+      }
 
       if (!wasEnabled) {
         this.isEnabling = true;

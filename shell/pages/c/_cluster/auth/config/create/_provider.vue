@@ -6,7 +6,8 @@ import { RcButton } from '@components/RcButton';
 import { RcSeparator } from '@components/RcSeparator';
 import AuthProviderLogo from '@shell/components/auth/AuthProviderLogo.vue';
 import { MANAGEMENT } from '@shell/config/types';
-import { nextAuthConfigName, toProviderTypes } from '@shell/utils/auth-providers';
+import { canEnableAuthProvider, nextAuthConfigName, toProviderTypes } from '@shell/utils/auth-providers';
+import { MULTIPLE_AUTH_PROVIDERS } from '@shell/store/features';
 import { allHash } from '@shell/utils/promise';
 
 const resource = MANAGEMENT.AUTH_CONFIG;
@@ -46,6 +47,12 @@ export default {
       return;
     }
 
+    if (!canEnableAuthProvider(hash.configs, this.$store.getters['features/get'](MULTIPLE_AUTH_PROVIDERS))) {
+      this.limitReached = true;
+
+      return;
+    }
+
     this.type = type;
     this.authConfigCreate.normanType = type.configTypeName;
     // Existing configs are here only to keep the new one from colliding with them
@@ -62,6 +69,7 @@ export default {
       type:          null,
       value:         null,
       editComponent: null,
+      limitReached:  false,
     };
   },
 
@@ -95,6 +103,24 @@ export default {
     color="error"
     :label="t('authConfig.create.unknownProvider', { provider })"
   />
+  <div v-else-if="limitReached">
+    <Banner
+      color="info"
+      :label="t('authConfig.create.limitReached')"
+      data-testid="auth-config-limit-reached"
+    />
+    <rc-button
+      variant="link"
+      class="auth-config-back"
+      :to="listLocation"
+      data-testid="auth-config-back"
+    >
+      <template #before>
+        <i class="icon icon-chevron-left" />
+      </template>
+      {{ t('authConfig.create.back') }}
+    </rc-button>
+  </div>
   <div v-else>
     <div class="auth-config-masthead">
       <rc-button

@@ -85,7 +85,7 @@ describe('mixin: authConfigMixin', () => {
     const FakeComponent = {
       render() {},
       mixins:  [authConfigMixin, childHook],
-      methods: { applyHooks: jest.fn() },
+      methods: { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
     };
 
     it('should return error', async() => {
@@ -136,7 +136,7 @@ describe('mixin: authConfigMixin', () => {
     const FakeComponent = {
       render() {},
       mixins:  [authConfigMixin, childHook],
-      methods: { applyHooks: jest.fn() },
+      methods: { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
     };
 
     const createMock = (model: any, overrides: Record<string, any> = {}, routeQuery: Record<string, string> = { mode: 'edit' }) => ({
@@ -240,7 +240,7 @@ describe('mixin: authConfigMixin', () => {
       const FakeComponent = {
         render() {},
         mixins:   [authConfigMixin, childHook],
-        methods:  { applyHooks: jest.fn() },
+        methods:  { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
         computed: { toSave: () => toSave },
       };
 
@@ -296,7 +296,7 @@ describe('mixin: authConfigMixin', () => {
     const FakeComponent = {
       render() {},
       mixins:  [authConfigMixin, childHook],
-      methods: { applyHooks: jest.fn() },
+      methods: { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
     };
 
     const createMock = (dispatch: jest.Mock, replace: jest.Mock, authConfigCreate: any) => ({
@@ -492,7 +492,7 @@ describe('mixin: authConfigMixin', () => {
     const FakeComponent = {
       render() {},
       mixins:  [authConfigMixin, childHook],
-      methods: { applyHooks: jest.fn() },
+      methods: { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
     };
 
     const createInstance = (authConfigCreate: any, dispatch = jest.fn()) => mount(FakeComponent, {
@@ -586,7 +586,7 @@ describe('mixin: authConfigMixin', () => {
     const FakeComponent = {
       render() {},
       mixins:  [authConfigMixin, childHook],
-      methods: { applyHooks: jest.fn() },
+      methods: { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
     };
 
     const createInstance = (model: any) => mount(FakeComponent, {
@@ -640,7 +640,7 @@ describe('mixin: authConfigMixin', () => {
     const FakeComponent = {
       render() {},
       mixins:  [authConfigMixin, childHook],
-      methods: { applyHooks: jest.fn() },
+      methods: { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
     };
 
     const createInstance = (authConfigCreate: any) => mount(FakeComponent, {
@@ -677,6 +677,84 @@ describe('mixin: authConfigMixin', () => {
 
     it('should have nothing to say about a config that already exists', () => {
       expect(createInstance(null).configNameError).toBeNull();
+    });
+  });
+
+  describe('the single enabled provider limit', () => {
+    const FakeComponent = {
+      render() {},
+      mixins:  [authConfigMixin, childHook],
+      methods: { applyHooks: jest.fn() },
+    };
+
+    const createInstance = ({ configs = [] as any[], multipleAllowed = false, enabled = false } = {}) => {
+      const model = {
+        id: 'azuread', enabled, doAction: jest.fn(), save: jest.fn()
+      };
+      const dispatch = jest.fn((action: string) => Promise.resolve(action === 'management/findAll' ? configs : model));
+
+      const instance = mount(FakeComponent, {
+        data:     () => ({ value: { configType: 'oauth' }, model }),
+        computed: { principal: () => ({ me: {} }) },
+        global:   {
+          mocks: {
+            $store: { dispatch, getters: { 'features/get': (name: string) => name === 'multiple-auth-providers' && multipleAllowed } },
+            $route: { params: { id: 'azuread' }, query: { mode: 'edit' } },
+            t:      (key: string) => key,
+          },
+        },
+      }).vm as any;
+
+      return {
+        instance, model, dispatch
+      };
+    };
+
+    it('should refuse to switch a provider on while another is enabled', async() => {
+      const { instance, model } = createInstance({ configs: [{ id: 'okta', enabled: true }] });
+      const btnCb = jest.fn();
+
+      await instance.save(btnCb);
+
+      expect(btnCb).toHaveBeenCalledWith(false);
+      expect(instance.errors).toStrictEqual(['authConfig.enableLimitReached']);
+      expect(model.doAction).not.toHaveBeenCalledWith(expect.anything(), expect.anything());
+    });
+
+    it('should allow switching a provider on when no other is enabled', async() => {
+      const { instance } = createInstance({ configs: [{ id: 'local', enabled: true }, { id: 'okta', enabled: false }] });
+
+      expect(await instance.canEnable()).toBe(true);
+    });
+
+    it('should allow switching a provider on beside another when multiple are allowed', async() => {
+      const { instance } = createInstance({ configs: [{ id: 'okta', enabled: true }], multipleAllowed: true });
+
+      expect(await instance.canEnable()).toBe(true);
+    });
+
+    // The check reads the other providers from the server, and a failure there
+    // has to reach the form rather than leave the save button spinning.
+    it('should report a failure to read the other providers', async() => {
+      const { instance, model, dispatch } = createInstance();
+      const btnCb = jest.fn();
+
+      dispatch.mockImplementation((action: string) => (action === 'management/findAll' ? Promise.reject(Object.assign(new Error('network down'), { status: 503 })) : Promise.resolve(model)));
+
+      await instance.save(btnCb);
+
+      expect(btnCb).toHaveBeenCalledWith(false);
+      expect(instance.errors).toStrictEqual(['network down']);
+      expect(model.doAction).not.toHaveBeenCalledWith(expect.anything(), expect.anything());
+    });
+
+    it('should not check the limit when saving a provider that is already on', async() => {
+      const { instance, dispatch } = createInstance({ configs: [{ id: 'okta', enabled: true }], enabled: true });
+
+      await instance.save(jest.fn());
+
+      expect(dispatch).not.toHaveBeenCalledWith('management/findAll', expect.anything());
+      expect(instance.errors).not.toStrictEqual(['authConfig.enableLimitReached']);
     });
   });
 });
