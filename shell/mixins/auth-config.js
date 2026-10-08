@@ -1,4 +1,4 @@
-import { EDIT_CONFIG, MODE, _EDIT } from '@shell/config/query-params';
+import { EDIT_CONFIG, _EDIT } from '@shell/config/query-params';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { providerKey } from '@shell/models/management.cattle.io.authconfig';
@@ -428,12 +428,11 @@ export default {
         btnCb(true);
 
         if (this.isCreate) {
-          // The config exists now, so the form belongs at its own URL rather than
-          // at the one that creates providers - a reload of which would start over.
+          // Replaced rather than pushed, so going back does not return to the
+          // page that creates providers - a reload of which would start over.
           this.$router.replace({
-            name:   'c-cluster-auth-config-id',
-            params: { cluster: this.$route.params.cluster, id: this.authConfigName },
-            query:  { [MODE]: _EDIT },
+            name:   'c-cluster-auth-config',
+            params: { cluster: this.$route.params.cluster },
           });
         }
       } catch (err) {

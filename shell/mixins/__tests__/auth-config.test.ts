@@ -393,15 +393,14 @@ describe('mixin: authConfigMixin', () => {
       expect(instance.authConfigName).toBe('github-2');
     });
 
-    it('should move to the new config own page once it exists', async() => {
+    it('should return to the provider list once the new config is enabled', async() => {
       const { instance, replace } = createInstance();
 
       await instance.save(jest.fn());
 
       expect(replace).toHaveBeenCalledWith({
-        name:   'c-cluster-auth-config-id',
-        params: { cluster: 'local', id: 'github-2' },
-        query:  { mode: 'edit' },
+        name:   'c-cluster-auth-config',
+        params: { cluster: 'local' },
       });
     });
 
