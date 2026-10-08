@@ -10,7 +10,7 @@ const CENTER_TOLERANCE_PX = 1.5;
  * The label (`h6`) should be vertically centered within its `.header` row. Jest/jsdom has no
  * layout engine, so this is asserted in a real browser via getBoundingClientRect midpoints.
  */
-describe('Side navigation: group label alignment', { tags: ['@navigation', '@adminUser'] }, () => {
+describe('Side navigation: group label alignment', { tags: ['@navigation2', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
 

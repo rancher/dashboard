@@ -7,7 +7,7 @@ import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/w
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { catchTargetPageException } from '@/cypress/support/utils/exception-utils';
 
-describe('Jobs', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Jobs', { testIsolation: false, tags: ['@explorer3', '@adminUser'] }, () => {
   const localCluster = 'local';
 
   before(() => {

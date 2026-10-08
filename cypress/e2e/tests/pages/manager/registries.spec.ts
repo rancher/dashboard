@@ -8,7 +8,7 @@ const registryAuthHost = 'a.registry.com';
 const clusters = [];
 const secrets = [];
 
-describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
+describe('Registries for RKE2', { tags: ['@manager2', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
     cy.createE2EResourceName('cluster').as('clusterName');

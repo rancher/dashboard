@@ -83,7 +83,7 @@ describe('Banners', { testIsolation: false }, () => {
       }
     });
 
-    it('can navigate to Banners Page', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
+    it('can navigate to Banners Page', { tags: ['@globalSettings2', '@adminUser', '@standardUser'] }, () => {
       const productMenu = new ProductNavPo();
 
       BurgerMenuPo.toggle();
@@ -107,7 +107,7 @@ describe('Banners', { testIsolation: false }, () => {
 
     let restoreSettings = false;
 
-    it('can show and hide Header Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    it('can show and hide Header Banner', { tags: ['@globalSettings2', '@adminUser'] }, () => {
       BannersPagePo.navTo();
 
       // Show Banner
@@ -187,7 +187,7 @@ describe('Banners', { testIsolation: false }, () => {
       bannersPage.banner().should('not.exist');
     });
 
-    it('can show and hide Footer Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    it('can show and hide Footer Banner', { tags: ['@globalSettings2', '@adminUser'] }, () => {
       bannersPage.goTo();
 
       // Show Banner
@@ -260,7 +260,7 @@ describe('Banners', { testIsolation: false }, () => {
       bannersPage.banner().should('not.exist');
     });
 
-    it('can show and hide Login Screen Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    it('can show and hide Login Screen Banner', { tags: ['@globalSettings2', '@adminUser'] }, () => {
       cy.login(undefined, undefined, false);
       BannersPagePo.navTo();
 
@@ -325,7 +325,7 @@ describe('Banners', { testIsolation: false }, () => {
     // Note: This test needs to be in its own `describe` with two `it` blocks for Show and Hide scenarios.
     // 401 error is throw when the user attempts to login with valid credentials the second time
     // which unexpectedly fails the test. This an automation specific issue it seems
-    describe('Login Failed Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    describe('Login Failed Banner', { tags: ['@globalSettings2', '@adminUser'] }, () => {
       it('Show Banner', () => {
         cy.login(undefined, undefined, false);
         BannersPagePo.navTo();
@@ -368,7 +368,7 @@ describe('Banners', { testIsolation: false }, () => {
       });
     });
 
-    it('standard user has only read access to Banner page', { tags: ['@globalSettings', '@standardUser'] }, () => {
+    it('standard user has only read access to Banner page', { tags: ['@globalSettings2', '@standardUser'] }, () => {
       // verify action buttons/checkboxes etc. are disabled/hidden for standard user
       BannersPagePo.navTo();
       bannersPage.headerBannerCheckbox().isDisabled();
@@ -378,7 +378,7 @@ describe('Banners', { testIsolation: false }, () => {
       bannersPage.applyButton().checkNotExists();
     });
 
-    describe('HTML Banners', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    describe('HTML Banners', { tags: ['@globalSettings2', '@adminUser'] }, () => {
       before(() => {
         cy.login();
         HomePagePo.goTo();
@@ -567,7 +567,7 @@ describe('Banners', { testIsolation: false }, () => {
       HomePagePo.goTo();
     });
 
-    it('Should not have banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    it('Should not have banner', { tags: ['@globalSettings2', '@adminUser'] }, () => {
       const banner = new FixedBannerPo(`#banner-${ bannerName.toLowerCase() }`);
 
       HomePagePo.goToAndWaitForGet();
@@ -575,7 +575,7 @@ describe('Banners', { testIsolation: false }, () => {
       banner.checkNotExists();
     });
 
-    it('Should use banner from ui-banners setting', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    it('Should use banner from ui-banners setting', { tags: ['@globalSettings2', '@adminUser'] }, () => {
       const banner = new FixedBannerPo(`#banner-${ bannerName.toLowerCase() }`);
 
       HomePagePo.goToAndWaitForGet();
@@ -607,7 +607,7 @@ describe('Banners', { testIsolation: false }, () => {
       banner.checkNotExists();
     });
 
-    it('Should use banner from individual setting', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    it('Should use banner from individual setting', { tags: ['@globalSettings2', '@adminUser'] }, () => {
       const banner = new FixedBannerPo(`#banner-${ bannerName.toLowerCase() }`);
 
       HomePagePo.goToAndWaitForGet();
@@ -635,7 +635,7 @@ describe('Banners', { testIsolation: false }, () => {
       banner.checkNotExists();
     });
 
-    it('Should prefer setting from individual setting', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    it('Should prefer setting from individual setting', { tags: ['@globalSettings2', '@adminUser'] }, () => {
       const banner = new FixedBannerPo(`#banner-${ bannerName.toLowerCase() }`);
 
       HomePagePo.goToAndWaitForGet();
@@ -713,7 +713,7 @@ describe('Banners', { testIsolation: false }, () => {
       HomePagePo.goTo();
     });
 
-    it('Should not have banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    it('Should not have banner', { tags: ['@globalSettings2', '@adminUser'] }, () => {
       const banner = new FixedBannerPo('#banner-consent');
 
       cy.logout();
@@ -728,7 +728,7 @@ describe('Banners', { testIsolation: false }, () => {
       banner.checkNotExists();
     });
 
-    it('Should use banner from individual setting', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    it('Should use banner from individual setting', { tags: ['@globalSettings2', '@adminUser'] }, () => {
       cy.then(() => Cypress.session.clearAllSavedSessions());
       cy.login();
       HomePagePo.goTo();
@@ -762,7 +762,7 @@ describe('Banners', { testIsolation: false }, () => {
       updateIndividualBannersSetting('ui-banner-login-consent');
     });
 
-    it('Should prefer banner from individual setting ', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    it('Should prefer banner from individual setting ', { tags: ['@globalSettings2', '@adminUser'] }, () => {
       cy.then(() => Cypress.session.clearAllSavedSessions());
       cy.login();
       HomePagePo.goTo();

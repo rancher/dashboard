@@ -15,7 +15,7 @@ let removeBundle = false;
 const bundlesNameList = [];
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Bundles', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
+describe('Bundles', { testIsolation: false, tags: ['@fleet2', '@adminUser'] }, () => {
   const fleetBundlesListPage = new FleetBundlesListPagePo();
   const headerPo = new HeaderPo();
 
@@ -77,7 +77,7 @@ describe('Bundles', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, ()
     }));
   });
 
-  describe('CRUD', { tags: ['@fleet', '@adminUser'] }, () => {
+  describe('CRUD', { tags: ['@fleet2', '@adminUser'] }, () => {
     before(() => {
       cy.login();
       cy.createE2EResourceName('fleet-bundle').then((name) => {

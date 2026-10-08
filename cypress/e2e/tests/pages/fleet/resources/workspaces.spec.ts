@@ -16,7 +16,7 @@ const workspaceNameList: string[] = [];
 let customWorkspace = '';
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Workspaces', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
+describe('Workspaces', { testIsolation: false, tags: ['@fleet2', '@adminUser'] }, () => {
   const fleetWorkspacesListPage = new FleetWorkspaceListPagePo();
 
   const headerPo = new HeaderPo();
@@ -358,7 +358,7 @@ describe('Workspaces', { testIsolation: false, tags: ['@fleet', '@adminUser'] },
     });
   });
 
-  describe('CRUD', { tags: ['@fleet', '@adminUser'] }, () => {
+  describe('CRUD', { tags: ['@fleet2', '@adminUser'] }, () => {
     qase(8552, it('can create a fleet workspace', () => {
       const fleetWorkspaceCreateEditPage = new FleetWorkspaceCreateEditPo();
 
