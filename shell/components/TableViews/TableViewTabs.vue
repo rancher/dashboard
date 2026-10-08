@@ -20,7 +20,7 @@ import { linkedTableKey } from '@shell/utils/table-views/link';
 import { registerTableViewShortcuts } from '@shell/utils/table-views/shortcuts';
 import type { TableViewShortcutAction } from '@shell/utils/table-views/shortcuts';
 import { randomStr } from '@shell/utils/string';
-import { isViewDirty, isViewModified, selectedViewIdFor } from '@shell/utils/table-views/views';
+import { isViewDirty, isViewModified, savedViewNamed, selectedViewIdFor } from '@shell/utils/table-views/views';
 import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
 import { RcDropdown, RcDropdownItem, RcDropdownSeparator, RcDropdownTrigger } from '@components/RcDropdown';
 
@@ -811,9 +811,14 @@ const deleteView = (saved?: TableViewSaved) => {
       label: t('tableViews.tab.undo'),
       run:   () => {
         const views = [...savedViews.value];
+        const back = Math.min(Math.max(at, 0), views.length);
+        // All may have been moved since: it shifts when the view comes back before it, or at its place
+        // when it was before it then
+        const allNow = allTabIndex.value;
+        const allShifts = back < allNow || (back === allNow && beforeAll);
 
-        views.splice(Math.min(Math.max(at, 0), views.length), 0, saved);
-        persistAll(views, wasDefault ? saved.id : defaultViewId.value, allTabIndex.value + (beforeAll ? 1 : 0));
+        views.splice(back, 0, saved);
+        persistAll(views, wasDefault ? saved.id : defaultViewId.value, allNow + (allShifts ? 1 : 0));
 
         if (draft) {
           drafts.value = { ...drafts.value, [draftKey(saved.id)]: draft };
@@ -837,7 +842,10 @@ const doExport = (format: string) => {
   closeModal();
 };
 
-/** A view someone sent in a link is kept as a view of the user's own, and opened */
+/**
+ * A view someone sent in a link is kept as a view of the user's own, and opened. The view a link was
+ * kept as before - its name and config unchanged - is opened rather than kept again
+ */
 const openSharedView = () => {
   const shared = takeShared();
 
@@ -846,8 +854,18 @@ const openSharedView = () => {
   }
 
   const { name, ...state } = shared;
+  const sharedName = t('tableViews.tab.sharedName', { name }, true);
+  const kept = savedViewNamed(savedViews.value, sharedName, viewStateOf(state));
+
+  if (kept) {
+    applyView(kept);
+    focusTab(kept.id);
+
+    return;
+  }
+
   const view: TableViewSaved = {
-    ...viewStateOf(state), id: randomStr(8), name: unusedViewName(t('tableViews.tab.sharedName', { name }, true), 2)
+    ...viewStateOf(state), id: randomStr(8), name: unusedViewName(sharedName, 2)
   };
 
   persist(savedViews.value.concat([view]));

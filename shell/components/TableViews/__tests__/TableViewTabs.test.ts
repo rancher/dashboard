@@ -5,6 +5,12 @@ import TableViewTabs from '@shell/components/TableViews/TableViewTabs.vue';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { isViewDirty, selectedViewIdFor, savedViewsByType } from '@shell/utils/table-views/views';
 import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
+import type { LinkedTableView } from '@shell/utils/table-views/link';
+
+// What the page's link hands the tabs on mount: nothing, unless a test sends a view
+const mockTakeShared = jest.fn((): LinkedTableView | null => null);
+
+jest.mock('@shell/composables/useTableViewsLink', () => ({ useTableViewsLink: () => ({ takeShared: () => mockTakeShared(), show: jest.fn() }) }));
 
 const EMPTY: TableViewState = {
   query: '', columns: null, labelColumns: [], groupBy: null
@@ -35,6 +41,7 @@ interface TabsInternals {
   saveChanges(tab: { id: string | null, name: string, view?: TableViewSaved }): void;
   openSaveAsNew(tab: { id: string | null, name: string, view?: TableViewSaved }): void;
   resetTab(tab: { id: string | null, name: string, view?: TableViewSaved, isDefaultTab?: boolean }): void;
+  persistAll(views: TableViewSaved[], defaultViewId: string | null, allIndex?: number): void;
 }
 
 const internals = (wrapper: { vm: unknown }) => wrapper.vm as TabsInternals;
@@ -341,6 +348,61 @@ describe('TableViewTabs', () => {
       });
     });
 
+    describe('a view sent in a link', () => {
+      const sent = (view: TableViewSaved, name: string): LinkedTableView => {
+        const { id, name: _, ...state } = view;
+
+        return {
+          ...EMPTY, ...state, name
+        };
+      };
+
+      afterEach(() => mockTakeShared.mockReset());
+
+      it('should be kept as a view of the user\'s own and opened', () => {
+        mockTakeShared.mockReturnValueOnce(sent(makeView('x', 'x', { query: 'name:new' }), 'Errors'));
+        const { vm, stored } = createWrapper();
+
+        // The store here has no translations, so the name is the key and what it is given
+        expect(stored().map((v) => v.name)).toStrictEqual([first.name, second.name, 'tableViews.tab.sharedName-{"name":"Errors"}']);
+        expect(vm.selectedViewId).toBe(stored()[2].id);
+      });
+
+      describe('a link opened again', () => {
+        // The name the link's view is kept under; the store here has no translations
+        const KEPT_NAME = 'tableViews.tab.sharedName-{"name":"Theirs"}';
+        const kept = makeView('kpt', KEPT_NAME, { query: 'name:shared' });
+        const views = (more: TableViewSaved[]) => ({ views: [first, second, ...more] });
+
+        it('should open the view it was kept as, keeping nothing more', () => {
+          mockTakeShared.mockReturnValueOnce(sent(kept, 'Theirs'));
+          const { vm, stored } = createWrapper(views([kept]));
+
+          expect(stored().map((v) => v.id)).toStrictEqual([first.id, second.id, kept.id]);
+          expect(vm.selectedViewId).toBe(kept.id);
+        });
+
+        it('should keep it again once that view has been changed', () => {
+          mockTakeShared.mockReturnValueOnce(sent(kept, 'Theirs'));
+          const changed = { ...kept, query: 'name:changed' };
+          const { stored } = createWrapper(views([changed]));
+
+          expect(stored()).toHaveLength(4);
+          expect(stored()[3].name).toBe(`${ KEPT_NAME } 2`);
+        });
+
+        it('should keep it under its own name beside a view of the user\'s holding the same config', () => {
+          mockTakeShared.mockReturnValueOnce(sent(kept, 'Theirs'));
+          const mine = {
+            ...kept, id: 'mine', name: 'Mine'
+          };
+          const { stored } = createWrapper(views([mine]));
+
+          expect(stored().map((v) => v.name)).toStrictEqual([first.name, second.name, 'Mine', KEPT_NAME]);
+        });
+      });
+    });
+
     describe('deleting a view', () => {
       describe('the table\'s own tab', () => {
         const third = makeView('ccc', 'third', { query: 'name:baz' });
@@ -366,6 +428,21 @@ describe('TableViewTabs', () => {
 
           expect(storedAllIndex()).toBe(1);
           expect((vm as unknown as { tabs: { id: string | null }[] }).tabs.map((tab) => tab.id)).toStrictEqual(['ccc', 'aaa', null]);
+        });
+
+        it('should stay where it was moved to when the view is put back after the move', () => {
+          // [third, first, second, All]
+          const { vm, storedAllIndex, growl } = createWrapper({
+            views: [first, second, third], defaultViewId: 'ccc', allIndex: 2
+          });
+
+          vm.deleteView(second);
+          // Dragged in front of `first` before the undo: [third, All, first]
+          vm.persistAll([first, third], 'ccc', 0);
+          growl.mock.calls[0][0].action.run();
+
+          expect(storedAllIndex()).toBe(0);
+          expect((vm as unknown as { tabs: { id: string | null }[] }).tabs.map((tab) => tab.id)).toStrictEqual(['ccc', null, 'aaa', 'bbb']);
         });
 
         it('should be back where it was when the view is put back', () => {
