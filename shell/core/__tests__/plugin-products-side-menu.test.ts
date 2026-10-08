@@ -1,4 +1,5 @@
 import { PluginProduct } from '@shell/core/plugin-products';
+import { resetExtensionProductRouting } from '@shell/core/plugin-products-route-registry';
 import { IExtension } from '@shell/core/types';
 import { ProductChildGroup, ProductChildPage, ProductMetadata, StandardProductNames } from '@shell/core/plugin-products-external';
 
@@ -71,6 +72,9 @@ function createMockStore(extendableProducts: string[] = Object.values(StandardPr
 }
 
 describe('pluginProduct', () => {
+  // The product route registry outlives any single plugin, so it has to be cleared between tests
+  beforeEach(() => resetExtensionProductRouting());
+
   // describe('side menu structure and ordering', () => {
   //   describe('new product - virtualType ordering', () => {
   //     it('should register virtualTypes in config array order when no weights specified', () => {

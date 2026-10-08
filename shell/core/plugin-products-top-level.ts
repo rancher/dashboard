@@ -5,6 +5,7 @@ import { BasePluginProduct } from '@shell/core/plugin-products-base';
 import { isProductSinglePage } from '@shell/core/plugin-products-type-guards';
 import { ProductChild, ProductMetadata, ProductMetadataSinglePage } from '@shell/core/plugin-products-external';
 import { AdvancedProductConfigOptionsInternal, ProductMetadataInternal } from '@shell/core/plugin-products-internal';
+import { registerExtensionProductRouting } from '@shell/core/plugin-products-route-registry';
 
 /**
  * Represents a new top-level product being added by an extension
@@ -30,23 +31,20 @@ export class TopLevelPluginProduct extends BasePluginProduct {
       product = emptyProduct;
     }
 
-    let prodName = product.name;
-
-    // the goal here is not to interfere with vue-router route names, which use dashes
-    if (prodName.includes('-')) {
-      prodName = prodName.replaceAll('-', '');
-    }
-
     // convert this to "string" to match all types moving forward
     // doesn't impact anything, fixes build problems of extensions
     // and allows extensions to use either string literal or enum value for product name
-    this.name = prodName;
+    this.name = this.normalizeProductName(product.name);
     this.product = product;
     this.startRouteWithProduct = (product as ProductMetadataInternal).startRouteWithProduct ?? true;
 
     // register the product as a top-level product in the plugin object (will be needed for routes correction when on list views for top-level products)
     plugin._registerTopLevelProduct(this.name);
     plugin._setStartRouteWithProduct(this.name, this.startRouteWithProduct);
+
+    // Record how this product routes so that anything extending it later generates matching
+    // routes. Must happen before `addRoutes`, which flags the generic resource routes on it.
+    registerExtensionProductRouting(this.name, this.startRouteWithProduct);
 
     this.processConfigChildren();
 

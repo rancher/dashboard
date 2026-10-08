@@ -1,4 +1,5 @@
 import { PluginProduct } from '@shell/core/plugin-products';
+import { resetExtensionProductRouting } from '@shell/core/plugin-products-route-registry';
 import { IExtension } from '@shell/core/types';
 import {
   ProductChild,
@@ -74,6 +75,9 @@ function createMockStore(extendableProducts: string[] = Object.values(StandardPr
 }
 
 describe('pluginProduct', () => {
+  // The product route registry outlives any single plugin, so it has to be cleared between tests
+  beforeEach(() => resetExtensionProductRouting());
+
   describe('real-world scenarios from pkg/add-new-prod', () => {
     describe('scenario 1: simple product with single page component (plain layout)', () => {
       it('should create single page product with plain layout', () => {

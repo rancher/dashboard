@@ -5,6 +5,7 @@ import { ExtendingPluginProduct } from '@shell/core/plugin-products-extending';
 import { ProductChild, ProductMetadata, ProductMetadataSinglePage, StandardProductName } from '@shell/core/plugin-products-external';
 import { AdvancedProductConfigOptionsInternal } from '@shell/core/plugin-products-internal';
 import { ProductFunction } from '@shell/core/plugin';
+import { AddLateRoutes } from '@shell/core/plugin-types';
 
 /**
  * Factory class for creating plugin products
@@ -39,8 +40,12 @@ export class PluginProduct {
     return instance;
   }
 
-  apply(plugin: IExtension, store: any): void {
-    this.instance.apply(plugin, store);
+  apply(plugin: IExtension, store: any, addLateRoutes?: AddLateRoutes): void {
+    if (this.instance instanceof ExtendingPluginProduct) {
+      this.instance.apply(plugin, store, addLateRoutes);
+    } else {
+      this.instance.apply(plugin, store);
+    }
   }
 
   get newProduct(): boolean {
