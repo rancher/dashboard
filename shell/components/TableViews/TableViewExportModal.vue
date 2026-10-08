@@ -124,12 +124,27 @@ const exportResources = async(items: ExportResource[], as: Format, columns: Retu
   return `${ name }.csv`;
 };
 
+/** What the selection is, eg "Pods": items when its rows are of more than one type, as on Workloads */
+const selectionType = (items: ExportResource[]): string => {
+  const count = items.length;
+  const { schema, type } = items[0] || {};
+
+  if (schema && items.every((item) => item.type === type)) {
+    return store.getters['type-map/labelFor'](schema, count);
+  }
+
+  return t('tableViews.export.notification.items', { count });
+};
+
 const exportSelection = async(items: ExportResource[], as: Format, columns: ReturnType<typeof exportColumnsFor>) => {
   const count = items.length;
+  const type = selectionType(items);
   const id = await store.dispatch('notifications/add', {
-    level:    NotificationLevel.Task,
-    title:    t('tableViews.export.notification.title'),
-    message:  t('tableViews.export.notification.selectionMessage', { count, format: as.toUpperCase() }, true),
+    level:   NotificationLevel.Task,
+    title:   t('tableViews.export.notification.title'),
+    message: t('tableViews.export.notification.selectionMessage', {
+      count, type, format: as.toUpperCase()
+    }, true),
     progress: 0,
   });
   const onProgress = (done: number, total: number) => store.dispatch('notifications/update', { id, progress: Math.round((100 * done) / (total || 1)) });
@@ -139,9 +154,11 @@ const exportSelection = async(items: ExportResource[], as: Format, columns: Retu
 
     await store.dispatch('notifications/update', {
       id,
-      level:    NotificationLevel.Success,
-      title:    t('tableViews.export.notification.doneTitle'),
-      message:  t('tableViews.export.notification.selectionDoneMessage', { count, file }, true),
+      level:   NotificationLevel.Success,
+      title:   t('tableViews.export.notification.doneTitle'),
+      message: t('tableViews.export.notification.selectionDoneMessage', {
+        count, type, file
+      }, true),
       progress: 100,
     });
   } catch (e) {
@@ -151,7 +168,7 @@ const exportSelection = async(items: ExportResource[], as: Format, columns: Retu
       id,
       level:   NotificationLevel.Error,
       title:   t('tableViews.export.notification.failedTitle'),
-      message: t('tableViews.export.notification.selectionFailedMessage', { count }, true),
+      message: t('tableViews.export.notification.selectionFailedMessage', { count, type }, true),
     });
   }
 };
