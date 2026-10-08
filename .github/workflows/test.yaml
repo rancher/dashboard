@@ -25,6 +25,7 @@ env:
   BUILD_DASHBOARD: true
 
   E2E_RANCHER_LOG: rancher.log
+  E2E_RANCHER_START_LOG: rancher-start.log
   E2E_BUILD_DIST_NAME: dist
   E2E_BUILD_DIST_DIR: dist
   E2E_BUILD_DIST_EMBER_NAME: dist_ember
@@ -103,6 +104,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
+      - name: Start Rancher in the background
+        run: |
+          nohup bash -c './scripts/e2e-k3s-start.sh > "$E2E_RANCHER_START_LOG" 2>&1; echo $? > "$E2E_RANCHER_START_LOG.exit"' > /dev/null 2>&1 &
+        env:
+          DOWNLOAD_UIS: true
+          GH_TOKEN: ${{ github.token }}
+
       - name: Setup env
         uses: ./.github/actions/setup
 
@@ -122,10 +130,12 @@ jobs:
 
       - name: Run Rancher
         if: ${{ steps.has-tests.outputs.found != 'false' }}
-        run: yarn e2e:k3s
-        env:
-          DOWNLOAD_UIS: true
-          GH_TOKEN: ${{ github.token }}
+        run: |
+          tail -n +1 -F "$E2E_RANCHER_START_LOG" 2> /dev/null &
+          until [ -f "$E2E_RANCHER_START_LOG.exit" ]; do sleep 2; done
+          sleep 2
+          kill $!
+          exit "$(cat "$E2E_RANCHER_START_LOG.exit")"
       
       - name: Setup Rancher and user
         if: ${{ steps.has-tests.outputs.found != 'false' }}
