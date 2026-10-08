@@ -145,6 +145,14 @@ describe('fx: applyQuery', () => {
   it('searches every field for free text', () => {
     expect(run('redis')).toStrictEqual(['redis-a']);
   });
+
+  it('leaves a field off the table out of free text, and still filters on it when named', () => {
+    const offTable = fields.map((field) => (field.id === 'namespace' ? { ...field, notInFreeText: true } : field));
+    const names = (query: string) => applyQuery(ROWS, parseQuery(query, offTable), offTable).map((r) => r.metadata.name);
+
+    expect(names('cattle-system')).toStrictEqual([]);
+    expect(names('namespace:cattle-system')).toStrictEqual(run('namespace:cattle-system'));
+  });
 });
 
 describe('fx: valuesInUse', () => {
@@ -360,6 +368,21 @@ describe('fx: termsToServerFilters', () => {
     expect(pathsOf(free.filters[0])).not.toContain('metadata.creationTimestamp');
     expect(named.unsupported).toStrictEqual([]);
     expect(pathsOf(named.filters[0])).toStrictEqual(['metadata.creationTimestamp']);
+  });
+
+  it('should leave a column off the table out of free text, and filter it when named', () => {
+    const description: TableViewField = {
+      id: 'description', label: 'Description', isLabel: false, notInFreeText: true, paginationHeader: { search: 'metadata.annotations[field.cattle.io/description]' }
+    };
+    const free = termsToServerFilters([{
+      field: null, value: 'payments', negated: false
+    }], [...FIELDS, description]);
+    const named = termsToServerFilters([{
+      field: 'description', value: 'payments', negated: false
+    }], [...FIELDS, description]);
+
+    expect(pathsOf(free.filters[0])).toStrictEqual(['metadata.name', 'metadata.namespace']);
+    expect(pathsOf(named.filters[0])).toStrictEqual(['metadata.annotations[field.cattle.io/description]']);
   });
 
   it('should search every ordinary column for a free text term', () => {

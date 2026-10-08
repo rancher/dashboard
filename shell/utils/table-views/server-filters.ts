@@ -38,12 +38,12 @@ export function termsToServerFilters(terms: TableViewTerm[], fields: TableViewFi
   };
 
   // Label columns are left out: each costs the api a join, and OR'ing several hangs it. So are the
-  // columns that say they aren't searched
+  // columns that say they aren't searched, and the optional ones off the table
   const freeTextPaths: string[] = [];
   const seenPath: Record<string, boolean> = {};
 
   fields.forEach((field) => {
-    if (field.isLabel || field.queryOnly || field.paginationHeader?.search === false) {
+    if (field.isLabel || field.queryOnly || field.notInFreeText || field.paginationHeader?.search === false) {
       return;
     }
 

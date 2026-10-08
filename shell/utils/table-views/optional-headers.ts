@@ -13,23 +13,34 @@ import {
 } from '@shell/config/pagination-table-headers';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import type { GetterSource } from '@shell/utils/table-views/feature';
+import { canQueryDescription } from '@shell/utils/table-views/server-support';
 
 /**
  * Columns a type offers that not every list of it shows, eg the autoscaler column, so the column
  * menu can add them anywhere. Only these are offered beyond a list's own: a list that names its
  * columns has chosen them, and the type's other columns can repeat or contradict its own
  */
+type HeaderStore = GetterSource & { dispatch?: (action: string, payload: unknown) => Promise<unknown> };
+
 interface OptionalHeader {
   header: HeaderOptions;
   paginationHeader?: PaginationHeaderOptions;
-  enabled?: (store: GetterSource) => boolean;
+  enabled?: (store: HeaderStore) => boolean;
+  /**
+   * Whether the api can sort and filter by the paginated column. Until it can, the column shows on a
+   * paginated list without either, so no request names a field the api would reject
+   */
+  serverQuery?: (store: HeaderStore) => boolean;
   /** The column this one goes in front of, when it is there */
   before?: string;
 }
 
 // Age stays the last column
 const DESCRIPTION_COLUMN: OptionalHeader = {
-  header: DESCRIPTION_ANNOTATION_COL, paginationHeader: STEVE_DESCRIPTION_ANNOTATION_COL, before: 'age'
+  header:           DESCRIPTION_ANNOTATION_COL,
+  paginationHeader: STEVE_DESCRIPTION_ANNOTATION_COL,
+  serverQuery:      (store) => canQueryDescription(store),
+  before:           'age',
 };
 
 /**
@@ -78,7 +89,7 @@ DESCRIBED_TYPES.forEach((type) => {
 
 export function optionalHeadersFor(
   type: string,
-  store: GetterSource,
+  store: HeaderStore,
   pagination = false
 ): (HeaderOptions & { insertBefore?: string })[] {
   const entries = OPTIONAL_HEADERS[type];
@@ -90,7 +101,13 @@ export function optionalHeadersFor(
   return entries
     .filter((entry) => !entry.enabled || entry.enabled(store))
     .map((entry) => {
-      const header = pagination && entry.paginationHeader ? entry.paginationHeader : entry.header;
+      let header = pagination && entry.paginationHeader ? entry.paginationHeader : entry.header;
+
+      if (pagination && entry.paginationHeader && entry.serverQuery && !entry.serverQuery(store)) {
+        header = {
+          ...header, sort: false, search: false
+        };
+      }
 
       return entry.before ? { ...header, insertBefore: entry.before } : header;
     });

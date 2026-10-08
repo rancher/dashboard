@@ -1259,9 +1259,11 @@ export const MGMT_CLUSTER_MACHINES = {
  */
 export const DESCRIPTION_ANNOTATION_COL = {
   ...DESCRIPTION,
-  value:     `metadata.annotations."${ DESCRIPTION_ANNOTATION }"`,
-  sort:      [`metadata.annotations."${ DESCRIPTION_ANNOTATION }"`],
-  formatter: 'ClampedLongText',
+  value:             `metadata.annotations."${ DESCRIPTION_ANNOTATION }"`,
+  sort:              [`metadata.annotations."${ DESCRIPTION_ANNOTATION }"`],
+  formatter:         'ClampedLongText',
+  // Off by default: free text reaches it only once the column is added
+  freeTextWhenShown: true,
 };
 
 export const FLEET_GIT_REPO_COMMIT = {

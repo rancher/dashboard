@@ -57,6 +57,21 @@ describe('TableViewQueryInput', () => {
     expect(options().map((option) => option.textContent)).toStrictEqual([expect.stringContaining('active')]);
   });
 
+  it('should not say it is loading values for a field whose values it doesn\'t offer', async() => {
+    const NAME: TableViewField = {
+      id: 'name', label: 'Name', isLabel: false
+    };
+
+    // `name` can be queried, but its values are not among those offered
+    mountWith({
+      fields: [STATE, NAME], filterFields: [STATE], loadingValues: ['name']
+    });
+    await type('name:');
+
+    expect(loadingRow()).toBeNull();
+    expect(menu()?.getAttribute('aria-busy')).not.toBe('true');
+  });
+
   it('should pick nothing on Enter while the values load', async() => {
     mountWith({ loadingValues: ['state'] });
     await type('state:');

@@ -38,7 +38,7 @@ function matchesTerm(row: TableViewRow, term: TableViewTerm, fields: TableViewFi
     return fieldContains(row, field, needle);
   }
 
-  return fields.some((field) => !field.queryOnly && fieldContains(row, field, needle));
+  return fields.some((field) => !field.queryOnly && !field.notInFreeText && fieldContains(row, field, needle));
 }
 
 /** Different fields AND'd, repeated terms for one field OR'd */

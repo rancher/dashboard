@@ -249,7 +249,8 @@ const suggestableFields = computed<TableViewField[]>(() => props.filterFields ||
 const loadingValuesFor = computed(() => {
   const { field } = parsedToken.value;
 
-  return field && props.loadingValues.includes(field.id) ? field : null;
+  // Only a field whose values are offered: for another, nothing would follow the row
+  return field && props.loadingValues.includes(field.id) && suggestableFields.value.some((f) => f.id === field.id) ? field : null;
 });
 
 const suggestions = computed<Suggestion[]>(() => {
