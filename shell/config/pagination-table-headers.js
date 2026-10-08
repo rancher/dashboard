@@ -131,7 +131,6 @@ export const STEVE_MGMT_CLUSTER_CPU = { ...MGMT_CLUSTER_CPU };
 
 export const STEVE_MGMT_CLUSTER_MACHINES = { ...MGMT_CLUSTER_MACHINES, sort: 'status.info.nodeCount' };
 
-/** A paginated list sorts and filters on it where the api indexes it - see server-support.ts */
 export const STEVE_DESCRIPTION_ANNOTATION_COL = {
   ...DESCRIPTION_ANNOTATION_COL,
   sort:   `metadata.annotations[${ DESCRIPTION }]`,

@@ -1255,13 +1255,16 @@ export const MGMT_CLUSTER_MACHINES = {
 
 /**
  * The description the edit forms keep in an annotation; `DESCRIPTION` reads the model's, with its
- * fallbacks. 300px where there is room, narrowing to 100px, on up to three lines - see ClampedLongText
+ * fallbacks. 300px where there is room, narrowing to 100px, on up to three lines
  */
 export const DESCRIPTION_ANNOTATION_COL = {
   ...DESCRIPTION,
   value:             `metadata.annotations."${ DESCRIPTION_ANNOTATION }"`,
   sort:              [`metadata.annotations."${ DESCRIPTION_ANNOTATION }"`],
-  formatter:         'ClampedLongText',
+  formatter:         undefined,
+  minWidth:          100,
+  maxWidth:          300,
+  lineClamp:         3,
   // Off by default: free text reaches it only once the column is added
   freeTextWhenShown: true,
 };
