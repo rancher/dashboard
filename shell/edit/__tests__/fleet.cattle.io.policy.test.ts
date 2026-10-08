@@ -2,7 +2,8 @@ import { shallowMount } from '@vue/test-utils';
 import flushPromises from 'flush-promises';
 import FleetPolicyComponent from '@shell/edit/fleet.cattle.io.policy.vue';
 import FleetPolicySourceSection from '@shell/components/fleet/FleetPolicySourceSection.vue';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { SECRET } from '@shell/config/types';
 
 const mockStore = {
@@ -286,6 +287,58 @@ describe('edit: fleet.cattle.io.policy', () => {
       await wrapper.setData({ restrictServiceAccounts: true });
 
       expect(wrapper.vm.validationPassed).toBe(true);
+    });
+  });
+
+  describe('workspace', () => {
+    const storeWith = (workspace: string) => ({
+      ...mockStore, getters: { ...mockStore.getters, workspace }, commit: jest.fn()
+    });
+
+    it('should be picked from the workspaces, without offering to create a namespace', async() => {
+      const wrapper = mountPolicy(policy(), { workspaces: [{ id: 'fleet-local' }, { id: 'fleet-default' }] });
+
+      await wrapper.vm.$nextTick();
+
+      const field = wrapper.findComponent({ name: 'NameNsDescription' });
+
+      expect(field.props('namespaceOptions')).toStrictEqual(['fleet-default', 'fleet-local']);
+      expect(field.props('namespaceCreateAllowed')).toBe(false);
+      expect(field.props('namespaceLabel')).toBe('nameNsDescription.workspace.label');
+    });
+
+    it.each([
+      ['pass with', 'fleet-default', true],
+      ['fail without', '', false],
+    ])('should %s a workspace', (_, namespace, expected) => {
+      const wrapper = mountPolicy(policy({ name: 'policy', metadata: { namespace } }));
+
+      expect(wrapper.vm.validationPassed).toBe(expected);
+    });
+
+    it('should move the header to the workspace the new policy was saved in', async() => {
+      const $store = storeWith('fleet-default');
+      const value = policy();
+      const wrapper = mountPolicy(value, {}, $store);
+
+      value.metadata.namespace = 'fleet-local';
+      await wrapper.vm.applyHooks(AFTER_SAVE_HOOKS);
+
+      expect($store.commit).toHaveBeenCalledWith('updateWorkspace', { value: 'fleet-local', getters: $store.getters });
+    });
+
+    it('should move the header to the workspace of the policy being edited', () => {
+      const $store = storeWith('fleet-local');
+
+      shallowMount(FleetPolicyComponent, {
+        props:  { value: policy(), mode: _EDIT },
+        global: {
+          mocks: { ...mocks, $store },
+          stubs: { CruResource: { template: '<div><slot /></div>' } }
+        },
+      });
+
+      expect($store.commit).toHaveBeenCalledWith('updateWorkspace', { value: 'fleet-default', getters: $store.getters });
     });
   });
 });

@@ -10,7 +10,7 @@ export default class GitRepo extends FleetApplication {
     const spec = this.spec || {};
     const meta = this.metadata || {};
 
-    meta.namespace = this.$rootGetters['workspace'];
+    meta.namespace = meta.namespace || this.$rootGetters['workspace'];
 
     spec.repo = spec.repo || '';
 
@@ -21,7 +21,7 @@ export default class GitRepo extends FleetApplication {
     spec.paths = spec.paths || [];
     spec.clientSecretName = spec.clientSecretName || null;
 
-    spec['correctDrift'] = { enabled: false };
+    spec['correctDrift'] = spec.correctDrift || { enabled: false };
 
     set(this, 'spec', spec);
     set(this, 'metadata', meta);

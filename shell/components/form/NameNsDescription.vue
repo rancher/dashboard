@@ -121,6 +121,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    namespaceCreateAllowed: {
+      type:    Boolean,
+      default: true,
+    },
     descriptionLabel: {
       type:    String,
       default: 'nameNsDescription.description.label',
@@ -356,6 +360,7 @@ export default {
         :options="namespaceOptions"
         :mapper="namespaceMapper"
         :create-namespace-override="createNamespaceOverride"
+        :create-allowed="namespaceCreateAllowed"
         :placeholder="namespacePlaceholder"
         :create-placeholder="namespaceCreatePlaceholder"
         :rules="rules.namespace"
