@@ -4,6 +4,7 @@ import { DEFAULT_PERF_SETTING, PerfSettings, SETTING } from '@shell/config/setti
 import { pluralize } from '@shell/utils/string';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { ClusterProvisionerContext } from '@shell/core/types';
+import { VuexStore } from '@shell/types/store/vuex';
 
 export const fetchOrCreateSetting = async(store: Store<any>, id: string, val: string, save = true): Promise<any> => {
   let setting;
@@ -127,13 +128,13 @@ export const isProviderEnabled = (context: ClusterProvisionerContext, provider: 
 
 /**
  * Whether the SUSE Application Collection integration (App Bundle install wizard entry points in
- * Continuous Delivery and Charts) is enabled.
+ * Continuous Delivery and Charts, and the repository option in Apps > Repositories) is enabled.
  *
  * `ui-appco-enabled` decides when it is `true` or `false`. When it is empty or absent this falls back to
  * Rancher's catalog mode: `system-catalog` of `bundled` (airgap / bundled charts only) has no external catalog
  * access, so the integration is hidden, any other value leaves it enabled.
  */
-export const isSuseAppCollectionEnabled = (store: Store<any>): boolean => {
+export const isSuseAppCollectionEnabled = (store: Store<any> | VuexStore): boolean => {
   const appCoEnabled = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_APPCO_ENABLED)?.value;
 
   if (appCoEnabled === 'true') {

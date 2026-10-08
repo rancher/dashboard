@@ -18,6 +18,7 @@ import {
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { getVersionData } from '@shell/config/version';
+import { isSuseAppCollectionEnabled } from '@shell/utils/settings';
 import { SECONDS_PER, secondsToLargestUnit } from '@shell/utils/duration';
 import { RcItemCard } from '@components/RcItemCard';
 import { _CREATE, _EDIT, TARGET, _VIEW } from '@shell/config/query-params.js';
@@ -111,8 +112,11 @@ export default {
       },
     ];
 
-    // Only show SUSE App Collection option for RancherPrime
-    if (getVersionData()?.RancherPrime === 'true') {
+    // Only show SUSE App Collection option for RancherPrime, when the ui-appco-enabled setting allows it.
+    // An existing SUSE App Collection repo always keeps it, so that it can still be edited.
+    const isAppCoRepo = clusterRepoType === CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION;
+
+    if (getVersionData()?.RancherPrime === 'true' && (isAppCoRepo || isSuseAppCollectionEnabled(this.$store))) {
       clusterRepoTargets.push({
         id:      CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION,
         header:  { title: { key: 'catalog.repo.target.suseAppCollection.title' } },
@@ -159,7 +163,7 @@ export default {
     // When creating a new repo with a target query parameter, initialize the form properly
     const targetFromQuery = this.mode === _CREATE ? this.$route.query[TARGET] : null;
 
-    if (targetFromQuery && Object.values(CLUSTER_REPO_TYPES).includes(targetFromQuery)) {
+    if (targetFromQuery && this.clusterRepoTargets.some(({ id }) => id === targetFromQuery)) {
       // Trigger onTargetChange to properly initialize form fields for the selected target
       this.onTargetChange(targetFromQuery);
     }

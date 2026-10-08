@@ -52,10 +52,11 @@ jest.mock('@shell/utils/require-asset', () => ({ requireAsset: (path: string) =>
 const defaultGlobalMocks = {
   $store: {
     getters: {
-      'i18n/t':       (key: string) => key,
-      currentProduct: { inStore: 'cluster' },
-      'cluster/byId': () => null,
-      'cluster/all':  () => [],
+      'i18n/t':          (key: string) => key,
+      currentProduct:    { inStore: 'cluster' },
+      'cluster/byId':    () => null,
+      'cluster/all':     () => [],
+      'management/byId': () => undefined,
     },
     dispatch: jest.fn(),
   },
@@ -266,6 +267,71 @@ describe('CruCatalogRepo - target cards', () => {
     const wrapper = createWrapper({}, _CREATE);
 
     expect(imageAlts(wrapper)).toStrictEqual([{ text: '' }, { text: '' }]);
+  });
+});
+
+describe('CruCatalogRepo - SUSE App Collection card', () => {
+  const createAppCoWrapper = ({ appCoEnabled = '', isAppCoRepo = false, mode = _CREATE } = {}): VueWrapper<any> => shallowMount(CruCatalogRepo, {
+    props: {
+      value: {
+        spec:                      { url: isAppCoRepo ? 'oci://dp.apps.rancher.io/charts' : 'https://test.com' },
+        isOciType:                 isAppCoRepo,
+        isSuseAppCollectionFromUI: isAppCoRepo,
+        metadata:                  { name: 'test-repo', annotations: {} },
+      },
+      mode,
+      realMode: mode,
+    },
+    mixins: [createEditViewMock],
+    global: {
+      mocks: {
+        ...defaultGlobalMocks,
+        $store: {
+          ...defaultGlobalMocks.$store,
+          getters: {
+            ...defaultGlobalMocks.$store.getters,
+            'management/byId': (type: string, id: string) => (id === 'ui-appco-enabled' ? { value: appCoEnabled } : undefined),
+          },
+        },
+      },
+      stubs: {
+        AsyncButton:              true,
+        Footer:                   true,
+        NameNsDescription:        true,
+        Labels:                   true,
+        SelectOrCreateAuthSecret: true,
+        Banner:                   true,
+        RcItemCard:               true,
+        UnitInput:                true,
+      },
+    },
+  });
+
+  const targetIds = (wrapper: VueWrapper<any>) => wrapper.vm.clusterRepoTargets.map(({ id }: { id: string }) => id);
+
+  beforeEach(() => {
+    (getVersionData as jest.Mock).mockReturnValue({ RancherPrime: 'true' });
+  });
+
+  afterEach(() => {
+    (getVersionData as jest.Mock).mockReturnValue({ RancherPrime: 'false' });
+  });
+
+  it.each(['', 'true'])('should show the card when ui-appco-enabled is %p', (appCoEnabled) => {
+    expect(targetIds(createAppCoWrapper({ appCoEnabled }))).toContain(CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION);
+  });
+
+  it('should hide the card when ui-appco-enabled is false', () => {
+    expect(targetIds(createAppCoWrapper({ appCoEnabled: 'false' }))).not.toContain(CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION);
+  });
+
+  it('should keep the card when editing an existing SUSE App Collection repo and ui-appco-enabled is false', () => {
+    const wrapper = createAppCoWrapper({
+      appCoEnabled: 'false', isAppCoRepo: true, mode: _EDIT
+    });
+
+    expect(targetIds(wrapper)).toContain(CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION);
+    expect(wrapper.vm.clusterRepoType).toBe(CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION);
   });
 });
 
