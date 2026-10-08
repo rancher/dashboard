@@ -38,12 +38,8 @@ jobs:
     name: Linked Issue
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        # Use the script from the default branch so the check also works on PRs to release branches
-        with:
-          ref: ${{ github.event.repository.default_branch }}
-          fetch-depth: 1
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
       - name: Check PR fixes an issue or has the QA/None label
         run: node ./.github/workflows/scripts/pr-check-linked-issue.js
