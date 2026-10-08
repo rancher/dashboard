@@ -975,15 +975,25 @@ export default {
       this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
       this.fieldValuesLoading = [...this.fieldValuesLoading, fieldId];
 
+      // The scope can change while the api answers, and the values are then asked for it afresh
+      const base = this.summaryBaseUrl;
+
       try {
-        const url = `${ this.summaryBaseUrl }&summary=${ encodeURIComponent(path) }&summaryonly`;
+        const url = `${ base }&summary=${ encodeURIComponent(path) }&summaryonly`;
         const res = await this.$store.dispatch(`${ this.inStore }/request`, { opt: { url } });
         // Every timestamp, to count each month in full
         const max = this.viewDateFieldIds.includes(fieldId) ? Infinity : undefined;
 
-        this.fieldValues = { ...this.fieldValues, [fieldId]: summaryToValues(res, max) };
+        if (base === this.summaryBaseUrl) {
+          this.fieldValues = { ...this.fieldValues, [fieldId]: summaryToValues(res, max) };
+        }
       } catch (e) {
-        this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
+        // Not kept, so the field asks again the next time it's picked. Meanwhile the box offers the page's values
+        if (base === this.summaryBaseUrl) {
+          const { [fieldId]: failed, ...fieldValues } = this.fieldValues;
+
+          this.fieldValues = fieldValues;
+        }
       } finally {
         this.fieldValuesLoading = this.fieldValuesLoading.filter((id) => id !== fieldId);
       }
