@@ -611,6 +611,88 @@ describe('page: Install', () => {
       expect(diffOption()?.disabled).toBe(true);
     });
 
+    describe('charts with the Rancher registry values', () => {
+      const registryValues = () => ({
+        global: {
+          systemDefaultRegistry: '',
+          cattle:                { systemDefaultRegistry: '', psp: { enabled: false } },
+        },
+        replicas: 1,
+      });
+
+      const mountWithRegistry = (data: Record<string, any> = {}) => mountInstall({
+        data: () => ({
+          value:            { metadata: { namespace: 'default', name: 'test' } },
+          chart:            { chartName: 'test-chart', versions: [] },
+          version:          { version: '1.0.0', annotations: {} },
+          query:            { versionName: '1.0.0' },
+          repo:             { spec: {}, metadata: { name: 'test-repo' } },
+          currentCluster:   null,
+          serverUrlSetting: { value: '' },
+          versionInfo:      { values: registryValues() },
+          chartValues:      {},
+          ...data,
+        })
+      });
+
+      const fetchWithRegistry = async(existing: Record<string, any> | null) => {
+        const wrapper = mountWithRegistry({ existing });
+
+        jest.spyOn(wrapper.vm as any, 'fetchChart').mockResolvedValue(undefined);
+        jest.spyOn(wrapper.vm as any, 'fetchAutoInstallInfo').mockResolvedValue(undefined);
+        jest.spyOn(wrapper.vm as any, 'getClusterRegistry').mockResolvedValue(undefined);
+        jest.spyOn(wrapper.vm as any, 'getGlobalRegistry').mockResolvedValue(undefined);
+        jest.spyOn(wrapper.vm as any, 'loadValuesComponent').mockResolvedValue(undefined);
+        jest.spyOn(wrapper.vm as any, 'updateStepOneReady').mockImplementation();
+
+        await Install.fetch.call(wrapper.vm);
+
+        return wrapper;
+      };
+
+      it('leaves the registry keys out of the defaults the values editor compares', () => {
+        const wrapper = mountWithRegistry();
+
+        expect(wrapper.vm.chartDefaults).toStrictEqual({ global: { cattle: { psp: { enabled: false } } }, replicas: 1 });
+      });
+
+      it('keeps the registry keys in the chart\'s own values', () => {
+        const wrapper = mountWithRegistry();
+
+        expect(wrapper.vm.chartDefaults).toBeDefined();
+        expect(wrapper.vm.versionInfo.values).toStrictEqual(registryValues());
+      });
+
+      it('uses the chart\'s values as they are when the chart has no registry keys', () => {
+        const wrapper = mountWithRegistry({ versionInfo: { values: { replicas: 1 } } });
+
+        expect(wrapper.vm.chartDefaults).toStrictEqual({ replicas: 1 });
+      });
+
+      it.each([
+        ['a fresh install', null],
+        ['an upgrade of an app saved with a registry', {
+          metadata:    { namespace: 'default', name: 'test' },
+          fetchValues: jest.fn().mockResolvedValue(undefined),
+          values:      { global: { systemDefaultRegistry: 'my.registry', cattle: { systemDefaultRegistry: 'my.registry' } } },
+        }],
+      ])('shows no registry override in the values editor for %s', async(_, existing) => {
+        const wrapper = await fetchWithRegistry(existing);
+
+        expect(wrapper.vm.valuesYaml).toStrictEqual('');
+      });
+
+      it('still sends the registry from the private registry setting', () => {
+        const wrapper = mountWithRegistry({ valuesYaml: 'replicas: 2\n', customRegistrySetting: 'my.registry' });
+
+        const { values } = wrapper.vm.actionInput(false).input.charts[0];
+
+        expect(values.replicas).toStrictEqual(2);
+        expect(values.global.systemDefaultRegistry).toStrictEqual('my.registry');
+        expect(values.global.cattle.systemDefaultRegistry).toStrictEqual('my.registry');
+      });
+    });
+
     // The tests above stub YamlEditor, so they only verify the props install passes.
     // These render the real YamlEditor and capture what FileDiff actually receives -
     // the render path where "only the new value showed" regressions live. FileDiff is

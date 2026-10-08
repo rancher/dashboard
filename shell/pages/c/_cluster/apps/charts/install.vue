@@ -535,9 +535,24 @@ export default {
       return null;
     },
 
-    /** The chart's default values. A stable object, so the values editor doesn't re-merge on every render. */
+    /**
+     * The chart's default values, as the values editor compares them. A stable object, so the values editor doesn't
+     * re-merge on every render. The registry keys are left out, like fetch() leaves them out of chartValues, or they
+     * would show as `null`. The private registry setting owns them, and addGlobalValuesTo adds them back.
+     */
     chartDefaults() {
-      return this.versionInfo?.values || {};
+      const values = this.versionInfo?.values || {};
+
+      if (!this.showCustomRegistry) {
+        return values;
+      }
+
+      const out = clone(values);
+
+      delete out.global?.systemDefaultRegistry;
+      delete out.global?.cattle?.systemDefaultRegistry;
+
+      return out;
     },
 
     /**
