@@ -323,9 +323,12 @@ echo "Dashboard UI is ready"
 # if it regularly takes 10 minutes we have problems...
 wait=60
 
+# the webhook gets 4 minutes (sleep 10 seconds * 24 iterations), it either runs well inside that or never does
+webhook_wait=24
+
 echo "Waiting for rancher-webhook to be running..."
 okay=0
-while [ $okay -lt $wait ] ; do
+while [ $okay -lt $webhook_wait ] ; do
   if kubectl -n cattle-system get po -l app=rancher-webhook | grep -q '1/1.*Running' ; then
     break
   else
@@ -335,7 +338,7 @@ while [ $okay -lt $wait ] ; do
   fi
 done
 
-if [ $okay -eq $wait ]; then
+if [ $okay -eq $webhook_wait ]; then
   reprovision "Rancher webhook did not become ready in a reasonable time"
 fi
 
