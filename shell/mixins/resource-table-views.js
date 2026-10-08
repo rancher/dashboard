@@ -10,10 +10,11 @@ import {
   LABEL_FIELD_PREFIX, coreFieldIdsFor, fieldsFor, findField, headerFieldId, holdsDates, isIgnoredColumn, serverPathFor, summaryToValues
 } from '@shell/utils/table-views/fields';
 import { applyQueryExpression } from '@shell/utils/table-views/filter-rows';
-import { parseQuery, parseQueryExpression } from '@shell/utils/table-views/query';
+import { parseQuery, parseQueryExpression, stateQueryFor } from '@shell/utils/table-views/query';
 import { queryToServerFilters } from '@shell/utils/table-views/server-filters';
 import { expandQuery } from '@shell/utils/table-views/query-fields';
 import { SEARCH_DEBOUNCE } from '@shell/config/search';
+import { STATE_FILTER_QUERY } from '@shell/config/query-params';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { DEFAULT_MANDATORY_SORT } from '@shell/components/SortableTable/sorting';
 import { sortBy } from '@shell/utils/sort';
@@ -119,19 +120,24 @@ export default {
     /** @type {{ views: import('@shell/types/table-views').TableViewSaved[], defaultViewId: string|null }} */
     const saved = savedViewsEntry(this);
     /**
+     * A link to some of the list's states, eg from an overview's counts, opens the table's own tab
+     * filtered to them, rather than the default view
+     */
+    const linkedQuery = wantsTableViewTabs(this) && isConfigurableTablesEnabled(this.$store) ? stateQueryFor(this.$route?.query?.[STATE_FILTER_QUERY]) : '';
+    /**
      * Only a table showing the saved view tabs opens on the default one. Another, eg a detail page's
      * Pods tab, would be filtered by a view it has no tab to show or leave
      *
      * @type {import('@shell/types/table-views').TableViewSaved|undefined}
      */
-    const defaultView = wantsTableViewTabs(this) ? (saved?.views || []).find((view) => view.id === saved?.defaultViewId) : undefined;
+    const defaultView = wantsTableViewTabs(this) && !linkedQuery ? (saved?.views || []).find((view) => view.id === saved?.defaultViewId) : undefined;
 
     return {
       /**
        * Needed because an empty default holds what the All tab holds, and two views can hold the
        * same config
        */
-      openedViewId: defaultView?.id,
+      openedViewId: linkedQuery ? null : defaultView?.id,
 
       fieldValues: {},
 
@@ -144,7 +150,7 @@ export default {
       countingInFlight: false,
 
       view: {
-        query:          defaultView?.query || '',
+        query:          linkedQuery || defaultView?.query || '',
         columns:        defaultView?.columns || null,
         columnOrder:    defaultView?.columnOrder || null,
         labelColumns:   defaultView?.labelColumns || [],
@@ -164,7 +170,7 @@ export default {
        * counting are too expensive per keystroke. A saved view applied is flushed at once - see the
        * watcher
        */
-      settledQuery: defaultView?.query || '',
+      settledQuery: linkedQuery || defaultView?.query || '',
 
       debouncedSettleQuery: debounce(function(query) {
         this.settledQuery = query;

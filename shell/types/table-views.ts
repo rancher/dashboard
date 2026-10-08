@@ -9,6 +9,8 @@ export interface TableViewRow {
     labels?: Record<string, string>;
     [key: string]: unknown;
   };
+  /** The model's own state name, eg `in-progress`, which the State column shows as "In Progress" */
+  state?: unknown;
 }
 
 /** A table column: the extension header shape, plus a `value` that can be a function */

@@ -81,6 +81,19 @@ export function quoteIfNeeded(value: string): string {
   return /[\s:]/.test(value) ? `"${ value }"` : value;
 }
 
+/**
+ * The query a list opens with when a link names some of its states, eg `running,active` from an
+ * overview's counts: a term for each, so a row in either state matches. Empty when it names none
+ */
+export function stateQueryFor(states: unknown): string {
+  const named = (Array.isArray(states) ? states : [states])
+    .flatMap((value) => (typeof value === 'string' ? value.split(',') : []))
+    .map((state) => state.trim())
+    .filter(Boolean);
+
+  return Array.from(new Set(named)).map((state) => `state:${ quoteIfNeeded(state) }`).join(' ');
+}
+
 /** A label field's id contains a colon (`label:app`), so it ends at the last colon rather than the first */
 function fieldAt(text: string, fields: TableViewField[]): TableViewField | null {
   const idx = text.indexOf(':');

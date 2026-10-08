@@ -14,11 +14,11 @@ const VIEW: LinkedTableView = {
   name: 'All', query: 'state:active', columns: null, columnOrder: null, labelColumns: [], groupBy: null, sort: null, sortDescending: false
 };
 
-function setup() {
+function setup(query: Record<string, string> = {}) {
   const failure = { catch: jest.fn() };
   const router = {
     currentRoute: ref({
-      path: '/c/local/explorer/pod', query: {}, hash: ''
+      path: '/c/local/explorer/pod', query, hash: ''
     }),
     replace: jest.fn(() => failure),
   };
@@ -82,6 +82,39 @@ describe('useTableViewsLink', () => {
     jest.advanceTimersByTime(300);
 
     expect(failure.catch).toHaveBeenCalledTimes(1);
+    wrapper.unmount();
+  });
+
+  it('should drop the states a link opened the table with, as the query holds them now, and keep the rest', () => {
+    const { router, link, wrapper } = setup({ stateFilter: 'running,active', other: 'kept' });
+
+    link.show(VIEW);
+    jest.advanceTimersByTime(300);
+
+    expect(router.replace).toHaveBeenCalledTimes(1);
+    expect(router.replace).toHaveBeenCalledWith(expect.objectContaining({ query: expect.objectContaining({ other: 'kept', tableStateKey: 'k1' }) }));
+    expect(router.replace).toHaveBeenCalledWith(expect.objectContaining({ query: expect.not.objectContaining({ stateFilter: expect.anything() }) }));
+    wrapper.unmount();
+  });
+
+  it('should keep those states in the URL while another page is on its way', () => {
+    const { router, link, wrapper } = setup({ stateFilter: 'running' });
+
+    jest.mocked(isNavigating).mockReturnValue(true);
+    link.show(VIEW);
+    jest.advanceTimersByTime(900);
+
+    expect(router.replace).not.toHaveBeenCalled();
+    wrapper.unmount();
+  });
+
+  it('should drop those states even when the table has nothing else to write', () => {
+    const { router, link, wrapper } = setup({ stateFilter: 'running' });
+
+    link.show(null);
+    jest.advanceTimersByTime(300);
+
+    expect(router.replace).toHaveBeenCalledWith(expect.objectContaining({ query: {} }));
     wrapper.unmount();
   });
 });

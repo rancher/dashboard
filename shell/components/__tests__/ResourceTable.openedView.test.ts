@@ -34,6 +34,34 @@ describe('ResourceTable', () => {
       expect(open({ ...saved, defaultViewId: null }).openedViewId).toBeUndefined();
     });
 
+    describe('a link naming some of the list\'s states', () => {
+      const linked = (table: Record<string, unknown> = {}) => open(saved, { $route: { path: '/c/local/explorer/pod', query: { stateFilter: 'running,active' } }, ...table });
+
+      it('should open the table\'s own tab, filtered to them, rather than the default view', () => {
+        const opened = linked();
+
+        expect(opened.openedViewId).toBeNull();
+        expect(opened.view.query).toBe('state:running state:active');
+        expect(opened.settledQuery).toBe('state:running state:active');
+      });
+
+      it.each([
+        ['on a table without the saved view tabs', { providedShowTableViewTabs: false }],
+        ['with table views turned off', {
+          $store: {
+            getters: {
+              'prefs/get':    (key: string) => (key === TABLE_VIEWS ? { pod: saved } : undefined),
+              'features/get': () => false,
+            }
+          }
+        }],
+      ])('should leave the link alone %s', (_, table) => {
+        const opened = linked(table);
+
+        expect(opened.view.query).toBe('');
+      });
+    });
+
     describe('a page keeping saved views of its own', () => {
       const views = (id: string, query: string) => ({
         views: [{

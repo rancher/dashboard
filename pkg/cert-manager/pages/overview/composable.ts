@@ -3,6 +3,7 @@ import { useStore } from 'vuex';
 import type { RouteLocationRaw } from 'vue-router';
 import { useI18n } from '@shell/composables/useI18n';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
+import { STATE_FILTER_QUERY } from '@shell/config/query-params';
 import { CERT_MANAGER } from '../../types';
 import { buildCertificateSummary, buildExpiringSoon, buildIssuerCard, buildAcmeCard } from './aggregate';
 import type { OverviewRouteFn } from './types';
@@ -58,16 +59,16 @@ export function useCertManagerOverview() {
 
   // ── Routing ──
 
-  // Links to a resource list. With a `state`, deep-links to that list filtered to the state via
-  // `?stateFilter=`. The list filters client-side on the same model `state` getter these buckets are
-  // built from (see list/cert-manager.io.certificate.vue), so bucket and filter always agree -
-  // including for states the backend does not store under `metadata.state.name` (expiring, ...).
+  // Links to a resource list. With a `state`, the list opens filtered to it (`state:<state>` in its
+  // query), matched client-side on the same model `state` these buckets are built from - see
+  // table-headers.ts - so bucket and filter agree, including for states the backend does not store
+  // under `metadata.state.name` (expiring, ...).
   const resourceRoute: OverviewRouteFn = (type: string, state?: string): RouteLocationRaw => ({
     name:   'c-cluster-product-resource',
     params: {
       cluster: clusterId.value, product: 'explorer', resource: type
     },
-    ...(state ? { query: { stateFilter: state } } : {}),
+    ...(state ? { query: { [STATE_FILTER_QUERY]: state } } : {}),
   });
 
   function createRoute(type: string): RouteLocationRaw {
