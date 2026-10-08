@@ -100,19 +100,11 @@ describe('toggleSwitch.vue', () => {
     expect(emitted[0][0]).toBe(offValue);
   });
 
-  it('adds focus class when input is focused', async() => {
+  // The ring comes from `input:focus-visible`, so a mouse click must not force it on with a class
+  it('does not add a focus class when the input is focused', async() => {
     const wrapper = shallowMount(ToggleSwitch);
 
     await wrapper.find('input').trigger('focus');
-
-    expect(wrapper.find('.slider').classes()).toContain('focus');
-  });
-
-  it('removes focus class when input is blurred', async() => {
-    const wrapper = shallowMount(ToggleSwitch);
-
-    await wrapper.find('input').trigger('focus');
-    await wrapper.find('input').trigger('blur');
 
     expect(wrapper.find('.slider').classes()).not.toContain('focus');
   });
