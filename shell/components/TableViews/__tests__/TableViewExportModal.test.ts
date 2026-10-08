@@ -72,6 +72,7 @@ describe('TableViewExportModal', () => {
         store: createStore({
           getters: {
             'type-map/headersFor': () => () => [],
+            'type-map/labelFor':   () => (schema: { id: string }, count: number) => `${ schema.id }${ count === 1 ? '' : 's' }`,
             'i18n/t':              () => (key: string) => key,
           },
           modules: { notifications: { namespaced: true, actions: { add: record('add'), update: record('update') } } },
@@ -79,15 +80,15 @@ describe('TableViewExportModal', () => {
       };
     };
 
-    const mountSelection = (resource: object) => {
+    const mountSelection = (resource: object, others: object[] = []) => {
       const { calls, store } = notifications();
+      const row = (props: object) => ({
+        type: 'pod', nameDisplay: 'web', downloadYaml: jest.fn(), downloadYamlBulk: jest.fn(() => Promise.resolve()), ...props
+      });
+      const resources = [resource, ...others].map(row);
       const wrapper = mount(TableViewExportModal, {
         props: {
-          count:       1,
-          isSelection: true,
-          resources:   [{
-            type: 'pod', nameDisplay: 'web', downloadYaml: jest.fn(), downloadYamlBulk: jest.fn(), ...resource
-          }]
+          count: resources.length, isSelection: true, resources
         },
         global:  { plugins: [store] },
         shallow: true,
@@ -135,6 +136,23 @@ describe('TableViewExportModal', () => {
 
       expect(calls[calls.length - 1]).toMatchObject({ action: 'update', payload: { id: 'n1', title: 'tableViews.export.notification.failedTitle' } });
       error.mockRestore();
+    });
+
+    it.each([
+      ['its rows\' type, as many as there are', [{ type: 'pod', schema: { id: 'Pod' } }], '"type":"Pod"'],
+      ['its rows\' type, as many as there are', [{ type: 'pod', schema: { id: 'Pod' } }, { type: 'pod', schema: { id: 'Pod' } }], '"type":"Pods"'],
+      ['items, when its rows are of more than one type', [{ type: 'pod', schema: { id: 'Pod' } }, { type: 'apps.deployment', schema: { id: 'Deployment' } }], '"type":"tableViews.export.notification.items-'],
+      ['items, without the type\'s schema', [{ type: 'pod' }], '"type":"tableViews.export.notification.items-'],
+    ])('should call the selection %s', async(_, rows, type) => {
+      const [first, ...others] = rows;
+      const { wrapper, calls } = mountSelection(first, others);
+
+      await wrapper.find('[data-testid="table-views-export-download"]').trigger('click');
+      await flush();
+      await flush();
+
+      expect(calls[0].payload.message).toContain(type);
+      expect(calls[calls.length - 1].payload.message).toContain(type);
     });
   });
 });
