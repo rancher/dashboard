@@ -51,11 +51,11 @@ export default class WorkloadDashboardPagePo extends PagePo {
   }
 
   byTypeCard(index = 0) {
-    return new CardPo(`[data-testid="resource-detail-status-card"]:eq(${ index })`);
+    return new CardPo(`[data-testid="status-summary-card"]:eq(${ index })`);
   }
 
   byTypeCards() {
-    return cy.get('[data-testid="resource-detail-status-card"]');
+    return cy.get('[data-testid="status-summary-card"]');
   }
 
   interceptSummariesAsEmpty() {

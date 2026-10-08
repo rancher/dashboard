@@ -76,6 +76,17 @@ describe('cert-manager overview aggregate', () => {
       ]);
     });
 
+    it('should order states that share a colour by the given order', () => {
+      const card = buildStatusCard('k', 'Title', CERT_MANAGER.CERTIFICATE, [
+        res(STATES_ENUM.EXPIRED, 'error'), res(STATES_ENUM.ERROR, 'error'),
+      ], [STATES_ENUM.ERROR, STATES_ENUM.EXPIRED], routeFor);
+
+      expect(card.rows.map((r) => r.to)).toStrictEqual([
+        { type: CERT_MANAGER.CERTIFICATE, query: { stateFilter: STATES_ENUM.ERROR } },
+        { type: CERT_MANAGER.CERTIFICATE, query: { stateFilter: STATES_ENUM.EXPIRED } },
+      ]);
+    });
+
     it('should have no segments and no rows when empty', () => {
       const card = buildStatusCard('k', 'Title', CERT_MANAGER.ISSUER, [], order, routeFor);
 

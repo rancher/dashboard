@@ -1,5 +1,6 @@
 import type { RouteLocationRaw } from 'vue-router';
 import type { StateColor } from '@shell/utils/style';
+import type { StatusSummaryCardItem } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/types';
 
 /** A resource with enough state for the overview to bucket and colour it. */
 export interface StatefulResource {
@@ -7,29 +8,14 @@ export interface StatefulResource {
   stateSimpleColor: StateColor;
 }
 
-/** One state's contribution to a card: a coloured dot, a label and a count. */
-export interface OverviewStatRow {
-  label: string;
-  color: StateColor;
-  count: number;
-  /** Links to the resource list filtered to this state (via `?stateFilter=`). */
-  to?: RouteLocationRaw;
-}
-
-/** An optional "create" call-to-action rendered in a card's header. */
+/** An optional "create" call-to-action shown on a card with no resources. */
 export interface OverviewCreateAction {
   to: RouteLocationRaw;
   label: string;
 }
 
 /** A stacked-bar + rows card (Certificates summary, an Issuer type, an ACME resource). */
-export interface OverviewStatusCard {
-  key: string;
-  title: string;
-  to?: RouteLocationRaw;
-  total: number;
-  segments: { color: StateColor; percent: number }[];
-  rows: OverviewStatRow[];
+export interface OverviewStatusCard extends StatusSummaryCardItem {
   createAction?: OverviewCreateAction;
   /** Message shown when the card has no resources. Falls back to a generic string when unset. */
   emptyLabel?: string;
