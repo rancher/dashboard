@@ -1,5 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import AuthConfigCreateProvider from '@shell/pages/c/_cluster/auth/config/create/_provider.vue';
+import FailWhale from '@shell/components/FailWhale.vue';
 jest.mock('@shell/utils/require-asset', () => {
   return { requireAsset: jest.fn((path: string) => path) };
 });
@@ -39,7 +40,7 @@ describe('page: AuthConfigCreateProvider', () => {
     });
   });
 
-  it('should report a provider this Rancher does not have', () => {
+  it('should report a provider this Rancher does not have on the error page', () => {
     const wrapper = shallowMount(AuthConfigCreateProvider, {
       data:   () => ({ type: null } as any),
       global: {
@@ -51,7 +52,25 @@ describe('page: AuthConfigCreateProvider', () => {
       },
     }) as any;
 
-    expect(wrapper.find('[data-testid="auth-config-back"]').exists()).toBe(false);
+    expect(wrapper.findComponent(FailWhale).props('error').message).toBe('%authConfig.create.unknownProvider%');
+    expect(wrapper.find('.auth-config-title').exists()).toBe(false);
+  });
+
+  // A request that failed says nothing about whether the provider is supported.
+  it('should report a failure to load rather than call the provider unsupported', () => {
+    const error = { message: 'Service Unavailable', statusCode: 503 };
+    const wrapper = shallowMount(AuthConfigCreateProvider, {
+      data:   () => ({ type: null } as any),
+      global: {
+        mocks: {
+          $route:      { params: { cluster: 'local', provider: 'github' } },
+          $fetchState: { pending: false, error },
+          $store:      { dispatch: jest.fn(), getters: { 'i18n/withFallback': () => 'GitHub' } },
+        },
+      },
+    }) as any;
+
+    expect(wrapper.findComponent(FailWhale).props('error')).toStrictEqual(error);
   });
 
   describe('the single enabled provider limit', () => {
@@ -115,9 +134,10 @@ describe('page: AuthConfigCreateProvider', () => {
       expect(ctx.limitReached).toBe(false);
     });
 
-    it('should explain the limit instead of showing the form', () => {
+    it('should explain the limit on the error page instead of showing the form', () => {
       const wrapper = shallowMount(AuthConfigCreateProvider, {
-        data:   () => ({ type, limitReached: true } as any),
+        // fetch() stops at the limit before it resolves the provider type
+        data:   () => ({ type: null, limitReached: true } as any),
         global: {
           mocks: {
             $route:      { params: { cluster: 'local', provider: 'github' } },
@@ -127,7 +147,7 @@ describe('page: AuthConfigCreateProvider', () => {
         },
       }) as any;
 
-      expect(wrapper.find('[data-testid="auth-config-limit-reached"]').attributes('label')).toBe('%authConfig.create.limitReached%');
+      expect(wrapper.findComponent(FailWhale).props('error').message).toBe('%authConfig.create.limitReached%');
       expect(wrapper.find('.auth-config-title').exists()).toBe(false);
     });
   });

@@ -1,7 +1,7 @@
 <script>
 import { provide, reactive } from 'vue';
 import Loading from '@shell/components/Loading';
-import { Banner } from '@components/Banner';
+import FailWhale from '@shell/components/FailWhale';
 import { RcButton } from '@components/RcButton';
 import { RcSeparator } from '@components/RcSeparator';
 import AuthProviderLogo from '@shell/components/auth/AuthProviderLogo.vue';
@@ -16,7 +16,7 @@ export default {
   name:       'AuthConfigCreateProvider',
   components: {
     AuthProviderLogo,
-    Banner,
+    FailWhale,
     Loading,
     RcButton,
     RcSeparator,
@@ -86,6 +86,20 @@ export default {
       return this.type?.name || this.provider;
     },
 
+    /** Why the form cannot be shown, if it cannot. */
+    failure() {
+      // A request that failed says nothing about whether the provider is supported
+      if (this.$fetchState.error) {
+        return this.$fetchState.error;
+      }
+
+      if (this.limitReached) {
+        return new Error(this.t('authConfig.create.limitReached'));
+      }
+
+      return this.type ? null : new Error(this.t('authConfig.create.unknownProvider', { provider: this.provider }));
+    },
+
     listLocation() {
       return {
         name:   'c-cluster-auth-config',
@@ -98,29 +112,23 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <Banner
-    v-else-if="!type"
-    color="error"
-    :label="t('authConfig.create.unknownProvider', { provider })"
-  />
-  <div v-else-if="limitReached">
-    <Banner
-      color="info"
-      :label="t('authConfig.create.limitReached')"
-      data-testid="auth-config-limit-reached"
-    />
-    <rc-button
-      variant="link"
-      class="auth-config-back"
-      :to="listLocation"
-      data-testid="auth-config-back"
-    >
-      <template #before>
-        <i class="icon icon-chevron-left" />
-      </template>
-      {{ t('authConfig.create.back') }}
-    </rc-button>
-  </div>
+  <FailWhale
+    v-else-if="failure"
+    :error="failure"
+    data-testid="auth-config-create-failure"
+  >
+    <template #actions>
+      <p class="mt-20">
+        <rc-button
+          size="large"
+          :to="listLocation"
+          data-testid="auth-config-back"
+        >
+          {{ t('authConfig.create.back') }}
+        </rc-button>
+      </p>
+    </template>
+  </FailWhale>
   <div v-else>
     <div class="auth-config-masthead">
       <rc-button
