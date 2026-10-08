@@ -410,6 +410,72 @@ describe('component: Group', () => {
     });
   });
 
+  // The new product registration API can sort a group's overview after its other children, so the
+  // header has to link to the overview child wherever it sits, not to whichever child comes first
+  describe('group header with the overview child not first', () => {
+    const group = () => ({
+      name:        'myprod-certmanager',
+      label:       'Cert Manager',
+      defaultType: 'myprod-certmanager',
+      children:    [
+        { name: 'test.io.certificate', route: { name: 'myprod-c-cluster-resource', params: { cluster: 'local', resource: 'test.io.certificate' } } },
+        {
+          name: 'myprod-certmanager', route: { name: 'myprod-c-cluster-certmanager', params: { cluster: 'local' } }, overview: true, exact: true
+        },
+      ],
+    });
+
+    const RouterLinkStub = {
+      name:     'RouterLink',
+      props:    ['to', 'exact'],
+      template: '<a><slot /></a>',
+    };
+
+    const mountGroup = (replace = jest.fn()) => shallowMount(Group as any, {
+      props: {
+        group: group(), canCollapse: true, idPrefix: ''
+      },
+      global: {
+        stubs: { 'router-link': RouterLinkStub },
+        mocks: {
+          $route: {
+            name: 'c-cluster-explorer', params: {}, path: '/c/local/explorer', fullPath: '/c/local/explorer', matched: []
+          },
+          $router: {
+            replace,
+            resolve:   jest.fn().mockReturnValue({ path: '/myprod/c/local/somewhere-else' }),
+            getRoutes: jest.fn().mockReturnValue([
+              { name: 'myprod-c-cluster-resource', path: '/myprod/c/:cluster/:resource' },
+              { name: 'myprod-c-cluster-certmanager', path: '/myprod/c/:cluster/certmanager' },
+            ]),
+          },
+          t: (key: string) => key
+        }
+      }
+    });
+
+    it('links the header to the overview child route', () => {
+      const link = mountGroup().findComponent({ name: 'RouterLink' });
+
+      expect(link.props('to')).toStrictEqual({ name: 'myprod-c-cluster-certmanager', params: { cluster: 'local' } });
+    });
+
+    it('takes the header link exact flag from the overview child', () => {
+      const link = mountGroup().findComponent({ name: 'RouterLink' });
+
+      expect(link.props('exact')).toBe(true);
+    });
+
+    it('navigates to the overview, not the first child, when the group header is clicked', async() => {
+      const replace = jest.fn();
+      const wrapper = mountGroup(replace);
+
+      await wrapper.find('.header').trigger('click');
+
+      expect(replace).toHaveBeenCalledWith({ name: 'myprod-c-cluster-certmanager', params: { cluster: 'local' } });
+    });
+  });
+
   /**
    * Regression guard for the nested-interactive a11y fix (issue #17260).
    *
