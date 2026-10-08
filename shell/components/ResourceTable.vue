@@ -153,6 +153,14 @@ export default {
       default: null
     },
 
+    /**
+     * Labels the page's own groupings, as SortableTable's `groupRef` does
+     */
+    groupRef: {
+      type:    [String, Function],
+      default: null
+    },
+
     groupable: {
       type:    Boolean,
       default: null, // Null: auto based on namespaced and type custom groupings
@@ -616,7 +624,7 @@ export default {
       const groupBy = this.computedGroupBy;
 
       if (!field || typeof groupBy !== 'function') {
-        return this.$attrs.groupRef ?? this.$attrs['group-ref'] ?? null;
+        return this.groupRef;
       }
 
       return field.byMonth ? (row) => monthLabel(groupBy(row)) : groupBy;
