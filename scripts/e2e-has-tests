@@ -1,0 +1,62 @@
+#!/usr/bin/env node
+
+/**
+ * Reports whether any e2e spec has a test matching the GREP_TAGS filter, using the same
+ * static pre-filter that @cypress/grep applies at the start of a run.
+ *
+ * Usage: GREP_TAGS="@standardUser+@charts --@jenkins" ./scripts/e2e-has-tests
+ *
+ * Prints `found=true` or `found=false`, and appends it to $GITHUB_OUTPUT when that is set.
+ */
+
+const fs = require('fs');
+const path = require('path');
+const { plugin } = require('@cypress/grep/plugin');
+
+const ROOT = path.resolve(__dirname, '..');
+const grepTags = process.env.GREP_TAGS;
+
+/**
+ * @param {string} tags a @cypress/grep tag filter, for example `@adminUser+@charts --@jenkins`
+ * @returns {string[]} absolute paths of the matching spec files, empty when nothing matches
+ */
+function matchingSpecs(tags) {
+  const specPattern = ['cypress/e2e/tests/**/*.spec.ts'];
+  const log = console.log;
+
+  console.log = () => {};
+
+  try {
+    const config = plugin({
+      specPattern,
+      excludeSpecPattern: ['cypress/e2e/tests/setup/**'],
+      expose:             {
+        grepTags: tags, grepFilterSpecs: true, grepIntegrationFolder: ROOT
+      },
+    });
+
+    return config.specPattern === specPattern ? [] : config.specPattern;
+  } finally {
+    console.log = log;
+  }
+}
+
+if (!grepTags) {
+  console.error('GREP_TAGS is required');
+  process.exit(1);
+}
+
+const specs = matchingSpecs(grepTags);
+const found = specs.length > 0;
+
+if (found) {
+  console.log(`${ specs.length } spec file(s) have tests matching "${ grepTags }"`);
+} else {
+  console.log(`::notice::No e2e test matches "${ grepTags }", there is nothing for this job to run`);
+}
+
+console.log(`found=${ found }`);
+
+if (process.env.GITHUB_OUTPUT) {
+  fs.appendFileSync(process.env.GITHUB_OUTPUT, `found=${ found }\n`);
+}
