@@ -2,11 +2,6 @@ import { shallowMount } from '@vue/test-utils';
 import UiAppcoEnabled from '@shell/edit/management.cattle.io.setting/ui-appco-enabled.vue';
 import { RadioGroup } from '@components/Form/Radio';
 
-jest.mock('vuex', () => ({
-  ...jest.requireActual('vuex'),
-  useStore: () => ({ getters: { 'i18n/t': (key: string) => key } }),
-}));
-
 describe('component: ui-appco-enabled setting', () => {
   const radioGroup = (settingValue?: string) => shallowMount(UiAppcoEnabled, { props: { settingValue } })
     .findComponent(RadioGroup);

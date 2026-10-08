@@ -9,6 +9,8 @@ const NONE = 'none';
 
 const props = defineProps<{
   settingValue?: string;
+  defaultValue?: string;
+  rules?: Array<(value: unknown) => string | undefined>;
 }>();
 
 const emit = defineEmits(['update:settingValue']);

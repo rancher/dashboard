@@ -91,38 +91,12 @@ export default {
       clusterRepoType = CLUSTER_REPO_TYPES.HELM_URL;
     }
 
-    const clusterRepoTargets = [
-      {
-        id:      CLUSTER_REPO_TYPES.HELM_URL,
-        header:  { title: { key: 'catalog.repo.target.http.title' } },
-        image:   { icon: 'helm' as RcIconType, alt: { key: 'catalog.repo.target.http.title' } },
-        content: { key: 'catalog.repo.target.http.description' },
-      },
-      {
-        id:      CLUSTER_REPO_TYPES.GIT_REPO,
-        header:  { title: { key: 'catalog.repo.target.git.title' } },
-        image:   { icon: 'git' as RcIconType, alt: { key: 'catalog.repo.target.git.title' } },
-        content: { key: 'catalog.repo.target.git.description' },
-      },
-      {
-        id:      CLUSTER_REPO_TYPES.OCI_URL,
-        header:  { title: { key: 'catalog.repo.target.oci.title' } },
-        image:   { src: requireAsset('@shell/assets/images/providers/oci-open-containers.svg'), alt: { text: '' } },
-        content: { key: 'catalog.repo.target.oci.description' },
-      },
-    ];
+    // Only an existing SUSE App Collection repo keeps its card whatever the ui-appco-enabled setting says, so that it
+    // can still be edited. A clone of one starts as a plain OCI repository when the setting hides the card.
+    const isExistingAppCoRepo = [_EDIT, _VIEW].includes(this.realMode) && clusterRepoType === CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION;
 
-    // Only show SUSE App Collection option for RancherPrime, when the ui-appco-enabled setting allows it.
-    // An existing SUSE App Collection repo always keeps it, so that it can still be edited.
-    const isAppCoRepo = clusterRepoType === CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION;
-
-    if (getVersionData()?.RancherPrime === 'true' && (isAppCoRepo || isSuseAppCollectionEnabled(this.$store))) {
-      clusterRepoTargets.push({
-        id:      CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION,
-        header:  { title: { key: 'catalog.repo.target.suseAppCollection.title' } },
-        image:   { src: requireAsset('@shell/assets/images/content/suse.svg'), alt: { text: '' } },
-        content: { key: 'catalog.repo.target.suseAppCollection.description' },
-      });
+    if (clusterRepoType === CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION && !isExistingAppCoRepo && !isSuseAppCollectionEnabled(this.$store)) {
+      clusterRepoType = CLUSTER_REPO_TYPES.OCI_URL;
     }
 
     const storedInterval = this.value.spec.refreshInterval;
@@ -150,7 +124,7 @@ export default {
       getVersionData,
       isView:              this.mode === _VIEW,
       isCreate:            this.mode === _CREATE,
-      clusterRepoTargets,
+      isExistingAppCoRepo,
       previousName:        '',
       previousDescription: '',
       refreshEnabled,
@@ -170,6 +144,41 @@ export default {
   },
 
   computed: {
+    clusterRepoTargets() {
+      const targets = [
+        {
+          id:      CLUSTER_REPO_TYPES.HELM_URL,
+          header:  { title: { key: 'catalog.repo.target.http.title' } },
+          image:   { icon: 'helm' as RcIconType, alt: { key: 'catalog.repo.target.http.title' } },
+          content: { key: 'catalog.repo.target.http.description' },
+        },
+        {
+          id:      CLUSTER_REPO_TYPES.GIT_REPO,
+          header:  { title: { key: 'catalog.repo.target.git.title' } },
+          image:   { icon: 'git' as RcIconType, alt: { key: 'catalog.repo.target.git.title' } },
+          content: { key: 'catalog.repo.target.git.description' },
+        },
+        {
+          id:      CLUSTER_REPO_TYPES.OCI_URL,
+          header:  { title: { key: 'catalog.repo.target.oci.title' } },
+          image:   { src: requireAsset('@shell/assets/images/providers/oci-open-containers.svg'), alt: { text: '' } },
+          content: { key: 'catalog.repo.target.oci.description' },
+        },
+      ];
+
+      // Only show SUSE App Collection option for RancherPrime, when the ui-appco-enabled setting allows it
+      if (getVersionData()?.RancherPrime === 'true' && (this.isExistingAppCoRepo || isSuseAppCollectionEnabled(this.$store))) {
+        targets.push({
+          id:      CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION,
+          header:  { title: { key: 'catalog.repo.target.suseAppCollection.title' } },
+          image:   { src: requireAsset('@shell/assets/images/content/suse.svg'), alt: { text: '' } },
+          content: { key: 'catalog.repo.target.suseAppCollection.description' },
+        });
+      }
+
+      return targets;
+    },
+
     inStore() {
       return this.$store.getters['currentProduct']?.inStore || MANAGEMENT;
     },
@@ -205,6 +214,15 @@ export default {
 
       return this.$store.getters[`${ this.inStore }/all`](NAMESPACE)[0]?.id;
     }
+  },
+
+  watch: {
+    clusterRepoTargets(targets: { id: string }[]) {
+      // The ui-appco-enabled setting can hide the selected card while the form is open
+      if (!targets.some(({ id }) => id === this.clusterRepoType)) {
+        this.onTargetChange(CLUSTER_REPO_TYPES.HELM_URL);
+      }
+    },
   },
 
   methods: {

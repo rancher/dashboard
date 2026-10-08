@@ -4,7 +4,7 @@ import { DEFAULT_PERF_SETTING, PerfSettings, SETTING } from '@shell/config/setti
 import { pluralize } from '@shell/utils/string';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { ClusterProvisionerContext } from '@shell/core/types';
-import { VuexStore } from '@shell/types/store/vuex';
+import type { VuexStore } from '@shell/types/store/vuex';
 
 export const fetchOrCreateSetting = async(store: Store<any>, id: string, val: string, save = true): Promise<any> => {
   let setting;

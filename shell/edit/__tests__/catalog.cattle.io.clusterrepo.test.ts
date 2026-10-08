@@ -1,7 +1,8 @@
 import { flushPromises, mount, shallowMount, VueWrapper } from '@vue/test-utils';
 import { createStore } from 'vuex';
+import { nextTick, reactive } from 'vue';
 import CruCatalogRepo from '@shell/edit/catalog.cattle.io.clusterrepo.vue';
-import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { _CLONE, _CREATE, _EDIT, TARGET } from '@shell/config/query-params';
 import { AUTH_TYPE, CLUSTER_REPO_TYPES } from '@shell/config/types';
 import { getVersionData } from '@shell/config/version';
 
@@ -14,6 +15,10 @@ const createEditViewMock = {
     realMode: {
       type:    String,
       default: _CREATE,
+    },
+    mode: {
+      type:    String,
+      default: _EDIT,
     },
   },
   data() {
@@ -271,41 +276,58 @@ describe('CruCatalogRepo - target cards', () => {
 });
 
 describe('CruCatalogRepo - SUSE App Collection card', () => {
-  const createAppCoWrapper = ({ appCoEnabled = '', isAppCoRepo = false, mode = _CREATE } = {}): VueWrapper<any> => shallowMount(CruCatalogRepo, {
-    props: {
-      value: {
-        spec:                      { url: isAppCoRepo ? 'oci://dp.apps.rancher.io/charts' : 'https://test.com' },
-        isOciType:                 isAppCoRepo,
-        isSuseAppCollectionFromUI: isAppCoRepo,
-        metadata:                  { name: 'test-repo', annotations: {} },
+  interface AppCoWrapperOptions {
+    appCoEnabled?: string;
+    systemCatalog?: string;
+    isAppCoRepo?: boolean;
+    mode?: string;
+    realMode?: string;
+    query?: Record<string, string>;
+  }
+
+  const createAppCoWrapper = ({
+    appCoEnabled = '', systemCatalog = 'external', isAppCoRepo = false, mode = _CREATE, realMode, query = {}
+  }: AppCoWrapperOptions = {}) => {
+    const settings = reactive<Record<string, string>>({ 'ui-appco-enabled': appCoEnabled, 'system-catalog': systemCatalog });
+    const wrapper: VueWrapper<any> = shallowMount(CruCatalogRepo, {
+      props: {
+        value: {
+          spec:                      { url: isAppCoRepo ? 'oci://dp.apps.rancher.io/charts' : 'https://test.com' },
+          isOciType:                 isAppCoRepo,
+          isSuseAppCollectionFromUI: isAppCoRepo,
+          metadata:                  { name: 'test-repo', annotations: {} },
+        },
+        mode,
+        realMode: realMode || mode,
       },
-      mode,
-      realMode: mode,
-    },
-    mixins: [createEditViewMock],
-    global: {
-      mocks: {
-        ...defaultGlobalMocks,
-        $store: {
-          ...defaultGlobalMocks.$store,
-          getters: {
-            ...defaultGlobalMocks.$store.getters,
-            'management/byId': (type: string, id: string) => (id === 'ui-appco-enabled' ? { value: appCoEnabled } : undefined),
+      mixins: [createEditViewMock],
+      global: {
+        mocks: {
+          ...defaultGlobalMocks,
+          $store: {
+            ...defaultGlobalMocks.$store,
+            getters: {
+              ...defaultGlobalMocks.$store.getters,
+              'management/byId': (type: string, id: string) => (id in settings ? { value: settings[id] } : undefined),
+            },
           },
+          $route: { ...defaultGlobalMocks.$route, query },
+        },
+        stubs: {
+          AsyncButton:              true,
+          Footer:                   true,
+          NameNsDescription:        true,
+          Labels:                   true,
+          SelectOrCreateAuthSecret: true,
+          Banner:                   true,
+          RcItemCard:               true,
+          UnitInput:                true,
         },
       },
-      stubs: {
-        AsyncButton:              true,
-        Footer:                   true,
-        NameNsDescription:        true,
-        Labels:                   true,
-        SelectOrCreateAuthSecret: true,
-        Banner:                   true,
-        RcItemCard:               true,
-        UnitInput:                true,
-      },
-    },
-  });
+    });
+
+    return { wrapper, settings };
+  };
 
   const targetIds = (wrapper: VueWrapper<any>) => wrapper.vm.clusterRepoTargets.map(({ id }: { id: string }) => id);
 
@@ -317,21 +339,67 @@ describe('CruCatalogRepo - SUSE App Collection card', () => {
     (getVersionData as jest.Mock).mockReturnValue({ RancherPrime: 'false' });
   });
 
-  it.each(['', 'true'])('should show the card when ui-appco-enabled is %p', (appCoEnabled) => {
-    expect(targetIds(createAppCoWrapper({ appCoEnabled }))).toContain(CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION);
-  });
+  it.each([
+    ['', 'external', true],
+    ['', 'bundled', false],
+    ['true', 'bundled', true],
+    ['false', 'external', false],
+  ])('should show the card only when ui-appco-enabled (%p) and system-catalog (%p) allow it', (appCoEnabled, systemCatalog, expected) => {
+    const { wrapper } = createAppCoWrapper({ appCoEnabled, systemCatalog });
 
-  it('should hide the card when ui-appco-enabled is false', () => {
-    expect(targetIds(createAppCoWrapper({ appCoEnabled: 'false' }))).not.toContain(CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION);
+    expect(targetIds(wrapper).includes(CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION)).toBe(expected);
   });
 
   it('should keep the card when editing an existing SUSE App Collection repo and ui-appco-enabled is false', () => {
-    const wrapper = createAppCoWrapper({
+    const { wrapper } = createAppCoWrapper({
       appCoEnabled: 'false', isAppCoRepo: true, mode: _EDIT
     });
 
     expect(targetIds(wrapper)).toContain(CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION);
     expect(wrapper.vm.clusterRepoType).toBe(CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION);
+  });
+
+  it.each([
+    ['', true, CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION],
+    ['false', false, CLUSTER_REPO_TYPES.OCI_URL],
+  ])('should only keep the card when cloning a SUSE App Collection repo if ui-appco-enabled (%p) allows it', (appCoEnabled, shown, expectedType) => {
+    const { wrapper } = createAppCoWrapper({
+      appCoEnabled, isAppCoRepo: true, mode: _CREATE, realMode: _CLONE
+    });
+
+    expect(targetIds(wrapper).includes(CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION)).toBe(shown);
+    expect(wrapper.vm.clusterRepoType).toBe(expectedType);
+  });
+
+  it.each([
+    ['true', CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION, 'oci://dp.apps.rancher.io/charts'],
+    ['false', CLUSTER_REPO_TYPES.HELM_URL, 'https://test.com'],
+  ])('should only preselect the card from the target query when it is shown (ui-appco-enabled: %p)', (appCoEnabled, expectedType, expectedUrl) => {
+    const { wrapper } = createAppCoWrapper({ appCoEnabled, query: { [TARGET]: CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION } });
+
+    expect(wrapper.vm.clusterRepoType).toBe(expectedType);
+    expect(wrapper.vm.value.spec.url).toBe(expectedUrl);
+  });
+
+  it('should follow ui-appco-enabled when it changes while the form is open', async() => {
+    const { wrapper, settings } = createAppCoWrapper({ appCoEnabled: 'false' });
+
+    expect(targetIds(wrapper)).not.toContain(CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION);
+
+    settings['ui-appco-enabled'] = 'true';
+    await nextTick();
+
+    expect(targetIds(wrapper)).toContain(CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION);
+  });
+
+  it('should go back to the Helm card when ui-appco-enabled hides the selected SUSE App Collection card', async() => {
+    const { wrapper, settings } = createAppCoWrapper({ appCoEnabled: 'true' });
+
+    wrapper.vm.onTargetChange(CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION);
+    settings['ui-appco-enabled'] = 'false';
+    await nextTick();
+
+    expect(wrapper.vm.clusterRepoType).toBe(CLUSTER_REPO_TYPES.HELM_URL);
   });
 });
 
