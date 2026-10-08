@@ -159,7 +159,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     kubewardenPo.goTo();
     kubewardenPo.waitForPage();
 
-    const kubewardenNavItem = productMenu.groups().contains('Admission Policy Management');
+    const kubewardenNavItem = productMenu.groups().contains('Admission Controller');
 
     kubewardenNavItem.should('exist');
     kubewardenNavItem.click();
