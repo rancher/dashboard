@@ -134,7 +134,7 @@ describe('view: fleet.cattle.io.gitrepo - workspace', () => {
       expect(value.spec.helmSecretName).toBe('helm-creds');
       expect(wrapper.vm.workspaceNotice).toContain('fleet.workspaces.moved.removed');
       expect(wrapper.vm.workspaceNotice).toContain('fleet.workspaces.moved.secret:{\\"name\\":\\"git-creds\\"}');
-      expect(wrapper.find('[data-testid="gitrepo-workspace-notice"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="gitrepo-workspace-notice"]').attributes('role')).toBe('status');
     });
 
     it('drops an existing secret picked in the form, which is cached against the old workspace', async() => {

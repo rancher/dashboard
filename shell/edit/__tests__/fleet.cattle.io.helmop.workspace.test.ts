@@ -206,6 +206,7 @@ describe('view: fleet.cattle.io.helmop - workspace', () => {
 
     expect(value.spec.downstreamResources).toStrictEqual([{ kind: 'Secret', name: 'shared-secret' }]);
     expect(wrapper.vm.workspaceNotice.match(/local-values/g)).toHaveLength(1);
+    expect(wrapper.find('[data-testid="helmop-workspace-notice"]').attributes('role')).toBe('status');
   });
 
   it('checks a helm secret stored with its namespace by its name only', async() => {

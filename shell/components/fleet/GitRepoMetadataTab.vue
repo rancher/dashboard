@@ -53,6 +53,7 @@ const updateValue = (event) => {
     <Banner
       v-if="!isView && workspaceNotice"
       color="info"
+      role="status"
       :label="workspaceNotice"
       data-testid="gitrepo-workspace-notice"
     />

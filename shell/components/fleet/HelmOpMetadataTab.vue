@@ -53,6 +53,7 @@ const updateValue = (value) => {
     <Banner
       v-if="!isView && workspaceNotice"
       color="info"
+      role="status"
       :label="workspaceNotice"
       data-testid="helmop-workspace-notice"
     />
