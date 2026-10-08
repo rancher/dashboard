@@ -42,7 +42,7 @@ describe('Branding', { testIsolation: false }, () => {
     homePage.goTo();
   });
 
-  it('Can navigate to Branding Page', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
+  it('Can navigate to Branding Page', { tags: ['@globalSettings2', '@adminUser', '@standardUser'] }, () => {
     const productMenu = new ProductNavPo();
 
     BurgerMenuPo.toggle();
@@ -70,7 +70,7 @@ describe('Branding', { testIsolation: false }, () => {
     brandingPage.waitForPageWithClusterId();
   });
 
-  it('Private Label', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Private Label', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
     BrandingPagePo.navTo();
@@ -123,7 +123,7 @@ describe('Branding', { testIsolation: false }, () => {
     cy.title({ timeout: 2000 }).should('eq', `${ settings.privateLabel.original } - Homepage`);
   });
 
-  it('Logo', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Logo', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
 
     BrandingPagePo.navTo();
@@ -200,7 +200,7 @@ describe('Branding', { testIsolation: false }, () => {
     });
   });
 
-  it('Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Banner', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
 
     // Clear any banner hiding preferences
@@ -271,7 +271,7 @@ describe('Branding', { testIsolation: false }, () => {
     });
   });
 
-  it('Login Background (Dark)', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Login Background (Dark)', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
 
     BrandingPagePo.navTo();
@@ -327,7 +327,7 @@ describe('Branding', { testIsolation: false }, () => {
     });
   });
 
-  it('Login Background (Light)', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Login Background (Light)', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     BrandingPagePo.navTo();
 
     // Ensure login background customization is disabled to clear any leftover dark config
@@ -370,7 +370,7 @@ describe('Branding', { testIsolation: false }, () => {
     HomePagePo.goToAndWaitForGet();
   });
 
-  it('Favicon', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Favicon', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     BrandingPagePo.navTo();
     brandingPage.customFaviconCheckbox().set();
 
@@ -413,7 +413,7 @@ describe('Branding', { testIsolation: false }, () => {
     });
   });
 
-  it('Primary Color', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Primary Color', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
     BrandingPagePo.navTo();
@@ -464,7 +464,7 @@ describe('Branding', { testIsolation: false }, () => {
     brandingPage.applyAndWait('**/ui-primary-color', 200);
   });
 
-  it('Link Color', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Link Color', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     const brandingPage = new BrandingPagePo();
 
     brandingPage.goTo();
@@ -509,7 +509,7 @@ describe('Branding', { testIsolation: false }, () => {
     brandingPage.applyAndWait('**/ui-link-color', 200);
   });
 
-  it('standard user has only read access to Branding page', { tags: ['@globalSettings', '@standardUser'] }, () => {
+  it('standard user has only read access to Branding page', { tags: ['@globalSettings2', '@standardUser'] }, () => {
     // verify action buttons/checkboxes etc. are disabled/hidden for standard user
     BrandingPagePo.navTo();
     brandingPage.privateLabel().self().should('be.disabled');

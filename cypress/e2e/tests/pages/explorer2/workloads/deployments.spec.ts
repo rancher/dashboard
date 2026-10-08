@@ -10,7 +10,7 @@ import { qase } from '@/cypress/support/qase';
 
 const localCluster = 'local';
 
-describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Deployments', { testIsolation: false, tags: ['@explorer3', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
