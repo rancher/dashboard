@@ -47,6 +47,7 @@ const createWrapper = ({
 };
 
 const saveButton = (wrapper: any) => wrapper.find('[data-testid="auth-provider-access-save"]');
+const footerCloseButton = (wrapper: any) => wrapper.find('.footer .actions button');
 
 describe('component: AuthProviderAccessDrawer', () => {
   // The list holds the management copy of a provider, but who may log in is
@@ -244,5 +245,42 @@ describe('component: AuthProviderAccessDrawer', () => {
 
     expect(wrapper.findComponent(AllowedPrincipals).props('mode')).toBe('view');
     expect(saveButton(wrapper).exists()).toBe(false);
+  });
+
+  it('should offer to cancel beside the save', async() => {
+    const { wrapper } = createWrapper();
+
+    await flushPromises();
+
+    expect(footerCloseButton(wrapper).text()).toBe('generic.cancel');
+  });
+
+  it('should name the cancel button by its visible text', async() => {
+    const { wrapper } = createWrapper();
+
+    await flushPromises();
+
+    expect(footerCloseButton(wrapper).attributes('aria-label')).toBeUndefined();
+  });
+
+  it('should offer to close when there is nothing to save', async() => {
+    const { wrapper } = createWrapper({
+      resource: {
+        id: 'github', nameDisplay: 'GitHub', canUpdate: false
+      } as any
+    });
+
+    await flushPromises();
+
+    expect(footerCloseButton(wrapper).text()).toBe('component.drawer.chrome.close');
+  });
+
+  it('should close the drawer when cancelled', async() => {
+    const { wrapper } = createWrapper();
+
+    await flushPromises();
+    await footerCloseButton(wrapper).trigger('click');
+
+    expect(wrapper.emitted('close')).toHaveLength(1);
   });
 });
