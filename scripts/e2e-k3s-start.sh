@@ -8,6 +8,7 @@
 USE_LOCAL_BRANCH_METADATA=false # branch_metadata usually just comes from `master`. if there are dependent changes in a PR and the local version is needed toggle this to `true`
 KUBE_TYPE=${KUBE_TYPE:-K3S} # K3S or K3D
 OVERRIDE_UIS=${OVERRIDE_UIS:-true} # use UI bits supplied externally (e.g. by CI) rather than the built in UI bits
+DOWNLOAD_UIS=${DOWNLOAD_UIS:-false} # fetch the UI bits from this GitHub Actions run's build job when they're needed, instead of expecting them on disk (see `scripts/e2e-download-build`)
 TEST_BASE_URL=${TEST_BASE_URL:-https://127.0.0.1.sslip.io}
 
 # On a probe wedge (steve/RBAC not converged) we do a FULL REBUILD: k3s-uninstall + re-run this whole
@@ -274,6 +275,10 @@ fi
 
 
 if [ "$OVERRIDE_UIS" == "true" ]; then
+  if [ "$DOWNLOAD_UIS" == "true" ] && [ ! -d dashboard ]; then
+    ./scripts/e2e-download-build || exit 1
+  fi
+
   echo "Updating UI within Rancher container.........."
   # Note - these will pick the first container within the pod, so replicas=1 above is important
   POD_NAME=$(kubectl get pods --selector=app=rancher -n $RANCHER_NAMESPACE | tail -n 1 | cut -d ' ' -f1)

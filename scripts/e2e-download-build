@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+# Waits for the UI build job of the current GitHub Actions run to succeed, then downloads the
+# dashboard and ember builds it uploaded. Fails as soon as that job fails, or after the timeout.
+#
+# Requires `gh` and GH_TOKEN, plus GITHUB_REPOSITORY and GITHUB_RUN_ID (set by GitHub Actions).
+#
+# E2E_BUILD_JOB       name of the job that uploads the builds (default e2e-ui-build)
+# E2E_BUILD_TIMEOUT   seconds to wait for that job (default 900)
+# E2E_BUILD_POLL      seconds between checks (default 15)
+
+BUILD_JOB=${E2E_BUILD_JOB:-e2e-ui-build}
+TIMEOUT=${E2E_BUILD_TIMEOUT:-900}
+POLL=${E2E_BUILD_POLL:-15}
+
+DIST_NAME=${E2E_BUILD_DIST_NAME:-dist}
+DIST_DIR=${E2E_BUILD_DIST_DIR:-dist}
+EMBER_NAME=${E2E_BUILD_DIST_EMBER_NAME:-dist_ember}
+EMBER_DIR=${E2E_BUILD_DIST_EMBER_DIR:-dist_ember}
+
+for REQUIRED in GH_TOKEN GITHUB_REPOSITORY GITHUB_RUN_ID; do
+  if [ -z "${!REQUIRED}" ]; then
+    echo "Error: $REQUIRED is not set"
+    exit 1
+  fi
+done
+
+build_job_state() {
+  gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs?filter=latest&per_page=100" --paginate \
+    --jq ".jobs[] | select(.name == \"$BUILD_JOB\") | \"\(.status) \(.conclusion)\"" 2>/dev/null | tail -n 1
+}
+
+echo "Waiting for the '$BUILD_JOB' job to finish.........."
+waited=0
+while true; do
+  read -r STATUS CONCLUSION <<< "$(build_job_state)"
+
+  if [ "$STATUS" == "completed" ]; then
+    if [ "$CONCLUSION" == "success" ]; then
+      break
+    fi
+
+    echo "Error: the '$BUILD_JOB' job finished with '$CONCLUSION', there is no UI build to test"
+    exit 1
+  fi
+
+  if [ $waited -ge $TIMEOUT ]; then
+    echo "Error: the '$BUILD_JOB' job did not finish within ${TIMEOUT}s (last status: '${STATUS:-unknown}')"
+    exit 1
+  fi
+
+  echo "'$BUILD_JOB' is '${STATUS:-unknown}', checking again in ${POLL}s (total time waited: ${waited}s)..."
+  sleep $POLL
+  waited=$((waited+POLL))
+done
+
+download() {
+  local name="$1" dir="$2" try
+
+  for try in 1 2 3; do
+    rm -rf "$dir"
+    if gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "$name" --dir "$dir" && [ -n "$(ls -A "$dir" 2>/dev/null)" ]; then
+      echo "Downloaded '$name' to $dir"
+      return 0
+    fi
+
+    echo "Failed to download '$name' (try $try of 3)"
+    sleep 5
+  done
+
+  echo "Error: could not download the '$name' artifact"
+  exit 1
+}
+
+download "$DIST_NAME" "$DIST_DIR"
+download "$EMBER_NAME" "$EMBER_DIR"
