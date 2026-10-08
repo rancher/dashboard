@@ -494,7 +494,8 @@ export default {
         subtext:        this.t('catalog.install.steps.helmValues.subtext'),
         descriptionKey: 'catalog.install.steps.helmValues.description',
         ready:          true,
-        weight:         20
+        weight:         20,
+        fullHeight:     false
       },
       stepCommands: {
         name:           'helmCli',
@@ -909,6 +910,15 @@ export default {
   },
 
   watch: {
+    // The values step fills the wizard when it shows the panes, so the panes get its
+    // height rather than grow with their documents
+    showOverridesEditor: {
+      handler(neu) {
+        this.stepValues.fullHeight = neu;
+      },
+      immediate: true
+    },
+
     '$route.query'(neu, old) {
       // If the query changes, refetch the chart
       // When going back to app list, the query is empty and we don't want to refetch
@@ -2501,21 +2511,6 @@ export default {
     &__container--panes {
       margin-bottom: calc($footer-height - $space-m);
     }
-  }
-
-  // The values step fills the wizard, so the panes get its height rather than grow
-  // with their documents. The wizard doesn't give its steps a height (the box
-  // around them is a plain block), so that box is made to fill it here.
-  :deep(div:has(> .step-container__step > .scroll__container--panes)) {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-  }
-
-  // Don't shrink the step below the smallest height of the panes, so on a short
-  // screen the wizard scrolls to them rather than cutting them off.
-  :deep(.step-container__step:has(> .scroll__container--panes)) {
-    min-height: min-content;
   }
 
   :deep() .yaml-editor {

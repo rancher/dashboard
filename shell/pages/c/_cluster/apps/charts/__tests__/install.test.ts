@@ -826,6 +826,24 @@ describe('page: Install', () => {
         expect(wrapper.find('.scroll__container').classes()).not.toContain('scroll__container--panes');
       });
 
+      it('asks the wizard for a full-height step when the overrides editor is shown', () => {
+        const wrapper = mountValuesStep({});
+
+        expect(wrapper.vm.stepValues.fullHeight).toBe(true);
+      });
+
+      it.each([
+        ['the diff', { showDiff: true }],
+        ['the questions', { versionInfo: { values: versionInfoValues, questions: { questions: [] } } }],
+        ['a custom values component', { valuesComponent: { template: '<div/>' } }],
+      ])('does not ask the wizard for a full-height step when %s is shown', (_, data) => {
+        const wrapper = mountValuesStep({
+          preFormYamlOption: 'FORM', formYamlOption: 'FORM', ...data
+        });
+
+        expect(wrapper.vm.stepValues.fullHeight).toBe(false);
+      });
+
       it('lets a click in the wizard focus it, so keyboard scrolling reaches it', () => {
         const wrapper = mountValuesStep({});
 

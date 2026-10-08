@@ -50,6 +50,7 @@ export default {
     previousButton: {
       disable: defaults to false
     }
+    fullHeight: Boolean (optional) - the step fills the wizard's height, e.g. for content that scrolls on its own
   }
   */
     steps: {
@@ -180,6 +181,10 @@ export default {
       return (this.activeStepIndex < this.visibleSteps.length - 1) && activeStep.ready;
     },
 
+    activeStepFullHeight() {
+      return !!this.visibleSteps[this.activeStepIndex]?.fullHeight;
+    },
+
     readySteps() {
       return this.visibleSteps.filter((step) => step.ready);
     },
@@ -305,7 +310,7 @@ export default {
       class="outer-container"
       :class="{'hide': !stepsLoaded}"
     >
-      <div>
+      <div :class="{ 'full-height-step': activeStepFullHeight }">
         <div class="header">
           <div :class="['title', !showStepHeader ? 'mmb-4' : '']">
             <div
@@ -416,7 +421,7 @@ export default {
               :id="'step-container-' + step.name"
               :key="step.name"
               class="step-container__step"
-              :class="{'hide': step.name !== activeStep.name && step.hidden}"
+              :class="{'hide': step.name !== activeStep.name && step.hidden, 'step-container__step--full-height': step.fullHeight}"
             >
               <slot
                 :step="step"
@@ -718,7 +723,21 @@ $spacer: 10px;
     display: flex;
     flex-direction: column;
     flex: 1;
+
+    // Don't shrink below the content's smallest height, so on a short screen the
+    // wizard scrolls to it rather than cutting it off
+    &--full-height {
+      min-height: min-content;
+    }
   }
+}
+
+// The box around the header and the steps is a plain block, so it's made to fill
+// the wizard for a full-height step
+.full-height-step {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 // We have to account for the absolute position of the .controls-row

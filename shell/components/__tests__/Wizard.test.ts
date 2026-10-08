@@ -180,4 +180,44 @@ describe('component: Wizard', () => {
     expect(wrapper.findAll('.steps li.divider').map((d: any) => d.attributes('aria-hidden')))
       .toStrictEqual(['true', 'true']);
   });
+
+  describe('full-height steps', () => {
+    const fullHeightSteps = [
+      {
+        name: 'stepOne', label: 'One', ready: true
+      },
+      {
+        name: 'stepTwo', label: 'Two', ready: true, fullHeight: true
+      },
+    ];
+
+    const mountFullHeight = (initStepIndex: number) => mount(Wizard, {
+      props:  { steps: fullHeightSteps, initStepIndex },
+      global: {
+        mocks: {
+          $store:  { getters: { 'i18n/t': jest.fn(), 'i18n/exists': jest.fn() } },
+          $route:  { query: {} },
+          $router: { applyQuery: jest.fn() },
+        },
+      },
+    });
+
+    it.each([
+      ['a full-height step', 1, true],
+      ['a step without the option', 0, false],
+    ])('should fill the wizard with the steps box on %s', (_, initStepIndex, filled) => {
+      const wrapper = mountFullHeight(initStepIndex);
+
+      expect(wrapper.find('.full-height-step').exists()).toBe(filled);
+    });
+
+    it.each([
+      ['stepOne', false],
+      ['stepTwo', true],
+    ])('should mark %p as full height only when it asks to be', (name, fullHeight) => {
+      const wrapper = mountFullHeight(fullHeightSteps.findIndex((s) => s.name === name));
+
+      expect(wrapper.find(`#step-container-${ name }`).classes('step-container__step--full-height')).toBe(fullHeight);
+    });
+  });
 });
