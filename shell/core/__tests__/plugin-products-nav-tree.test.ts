@@ -186,6 +186,63 @@ describe('product registration nav tree', () => {
         },
       ]);
     });
+    // Covers the side-by-side nested groups from the manual test. Each nested overview has to land in
+    // its own group, not in a sibling's and not as a stray entry in the parent
+    it('should place each nested group overview inside its own group when nested groups are siblings', () => {
+      const config: ProductChildGroup[] = [
+        {
+          name:      'certmanager',
+          label:     'Cert Manager',
+          component: { name: 'Overview' },
+          sideMenu:  {
+            children: [
+              {
+                name:      'custom',
+                label:     'Custom',
+                component: { name: 'CustomOverview' },
+                sideMenu:  {
+                  children: [{
+                    name: 'leaf', label: 'Leaf', component: { name: 'Leaf' }
+                  }]
+                },
+              },
+              {
+                name:      'resource',
+                label:     'Resource',
+                component: { name: 'ResourceOverview' },
+                sideMenu:  { children: [{ type: CLUSTER_ISSUER }] },
+              },
+            ],
+          },
+        },
+      ];
+
+      expect(summarise(navTreeFor(config, [CLUSTER_ISSUER]))).toStrictEqual([
+        {
+          name:     'myprod-certmanager',
+          overview: false,
+          children: [
+            {
+              name:     'myprod-certmanager-custom',
+              overview: false,
+              children: [
+                { name: 'myprod-certmanager-custom', overview: true },
+                { name: 'myprod-certmanager-custom-leaf', overview: false },
+              ],
+            },
+            { name: 'myprod-certmanager', overview: true },
+            {
+              name:     'myprod-certmanager-resource',
+              overview: false,
+              children: [
+                { name: CLUSTER_ISSUER, overview: false },
+                { name: 'myprod-certmanager-resource', overview: true },
+              ],
+            },
+          ],
+        },
+      ]);
+    });
   });
 
   describe('group enableOverviewPage conditions', () => {
