@@ -6,7 +6,7 @@ To get started running the UI for development:
 
 Prerequisites:
 
-* Node 24 (the version pinned in `.nvmrc`)
+* Node 24 (later versions are currently not supported)
 
 * yarn:
   ```npm install --global yarn```
