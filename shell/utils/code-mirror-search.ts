@@ -4,21 +4,15 @@ import type { EditorView } from '@codemirror/view';
 import { openSearchPanel, searchPanelOpen } from '@codemirror/search';
 
 export interface SearchPanelOptions {
-  /** The placeholder and accessible name of the search field, instead of "Find". */
+  /** The search field's placeholder, instead of "Find" */
   placeholder?: string;
-  /**
-   * Where to put the panel instead of the top of the editor, e.g. above the editor's
-   * frame like a search box. It keeps the editor's theme. This needs a search panel at
-   * the top, like RcCodeMirror's.
-   */
+  /** Where to put the panel instead of the top of the editor. The panel must be a top one, like RcCodeMirror's. */
   container?: HTMLElement | null;
 }
 
 /**
- * Open CodeMirror's search panel and keep it open, so the search is always in view
- * like a search box. Nothing closes it: Mod-F moves the focus to it rather than
- * closing it, and Escape in it goes back to the editor. Opening it doesn't take the
- * focus from where it is, e.g. the button that showed the editor.
+ * Open CodeMirror's search panel and keep it open like a search box. Mod-F focuses it
+ * and Escape goes back to the editor.
  */
 export function keepSearchPanelOpen(view: EditorView, { placeholder, container }: SearchPanelOptions = {}) {
   const keepOpen = EditorState.transactionFilter.of((tr) => {
@@ -30,8 +24,7 @@ export function keepSearchPanelOpen(view: EditorView, { placeholder, container }
     key: 'Mod-f', run: openSearchPanel, scope: 'editor search-panel'
   }]));
 
-  // The panel names its field with the "Find" phrase. The first phrase found wins, so
-  // this one goes before the editor's own translations.
+  // The first phrase found wins, so this goes before the editor's own translations
   const fieldName = placeholder ? Prec.highest(EditorState.phrases.of({ Find: placeholder })) : [];
 
   const place = container ? panels({ topContainer: container }) : [];

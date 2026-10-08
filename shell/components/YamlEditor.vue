@@ -71,10 +71,7 @@ export default {
     },
 
     /**
-     * By default an empty `initialYamlValues` baseline falls back to the current
-     * value, so the diff shows "no changes" when no baseline is supplied. Set
-     * this when an empty string is a meaningful baseline (e.g. an overrides diff
-     * where the saved overrides are genuinely empty) so additions still show.
+     * Diff against an empty `initialYamlValues` instead of treating it as no baseline
      */
     allowEmptyDiffBase: {
       type:    Boolean,

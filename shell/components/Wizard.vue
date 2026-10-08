@@ -716,24 +716,20 @@ $spacer: 10px;
 
   &__step {
     overflow: hidden;
-    // Room for the focus outline (2px wide, 2px away) of a control at the edge,
-    // which this box would clip. The margin keeps the content in place.
+    // Room for the focus outline of a control at the edge. The margin keeps the content in place.
     padding-inline: 4px;
     margin-inline: -4px;
     display: flex;
     flex-direction: column;
     flex: 1;
 
-    // Don't shrink below the content's smallest height, so on a short screen the
-    // wizard scrolls to it rather than cutting it off
+    // On a short screen the wizard scrolls instead of cutting the step off
     &--full-height {
       min-height: min-content;
     }
   }
 }
 
-// The box around the header and the steps is a plain block, so it's made to fill
-// the wizard for a full-height step
 .full-height-step {
   display: flex;
   flex-direction: column;

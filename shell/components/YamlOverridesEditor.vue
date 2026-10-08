@@ -10,51 +10,27 @@ import { setLineClasses } from '@shell/utils/code-mirror-line-classes';
 import { keepSearchPanelOpen } from '@shell/utils/code-mirror-search';
 
 /**
- * Two editable YAML panes for chart values:
- *  - LEFT "Chart values": the full effective document (defaults + overrides).
- *    Lines that differ from the defaults are tinted.
- *  - RIGHT "Your values": only the values that differ from the defaults - what
- *    is actually saved (mirrors `helm install --values`). The whole pane is tinted.
- *
- * The UI calls both panes "values", but the code keeps the names "defaults" (LEFT)
- * and "overrides" (RIGHT), as "values" is already used for other data here.
- *
- * Editing either side updates the other: the RIGHT pane is the source of truth
- * (bound to `value` via v-model). Editing the LEFT pane diffs it back against the
- * defaults to recompute the overrides. Only the overrides are ever emitted/saved.
- *
- * The work that grows with the document is debounced: deriving the overrides
- * from an edited LEFT pane (parse + diff), pushing the text into the *other* pane
- * (merge + dump) and re-tinting. The text is pushed via the editor's ref, since
- * YamlEditor doesn't react to its `value` prop after mount. The tint and the
- * search talk to the chart-defaults CodeMirror view directly. The search is
- * CodeMirror's own search bar, kept open in the chart-defaults pane.
+ * Two editable YAML panes for chart values. The left one ("defaults") shows the chart
+ * defaults merged with the overrides. The right one ("overrides") shows only the values
+ * that differ from the defaults, which is what `value` holds. Editing either pane
+ * updates the other.
  */
 
-// Delay before the overrides, the opposite pane and the decorations recompute after
-// the last keystroke, so the pane being typed in stays responsive on large values files.
+// Syncing the other pane grows with the document, so it waits for typing to stop
 const SYNC_DEBOUNCE_MS = 400;
 
-// Line-background class for the changed lines. It's the same tint as the overrides pane.
 const OVERRIDE_LINE_CLASS = 'line-override-highlight';
 
 interface Props {
-  /** Editable overrides YAML - the saved value (use with v-model:value). */
   value?: string;
-  /** Chart default values; the LEFT pane shows these merged with the overrides. */
   defaults?: object | null;
-  /** Editor mode for both panes (e.g. EDIT_CODE). */
   editorMode?: string;
   chartDefaultsLabel?: string;
   chartDefaultsHint?: string;
   overridesLabel?: string;
   overridesHint?: string;
-  /** Placeholder of the search in the chart-defaults pane. CodeMirror's "Find" when empty. */
+  /** CodeMirror's "Find" when empty */
   searchPlaceholder?: string;
-  /**
-   * Prefix for the data-testids on each pane/editor, e.g. `chart-values` produces
-   * `chart-values-defaults-pane` and (via YamlEditor) `chart-values-defaults-code-mirror`.
-   */
   testidPrefix?: string;
 }
 
@@ -72,18 +48,15 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{(e: 'update:value', value: string): void }>();
 
-// Editors are driven imperatively (YamlEditor doesn't react to its `value` prop
-// after mount, so cross-pane updates are pushed in via these refs).
+// YamlEditor doesn't react to its `value` prop after mount, so text is pushed in with updateValue
 interface YamlEditorRef {
   updateValue(value: string): void;
 }
 
 const defaultsEditor = ref<YamlEditorRef | null>(null);
 const overridesEditor = ref<YamlEditorRef | null>(null);
-// Holds the chart-defaults editor's search panel, above the editor
 const searchContainer = ref<HTMLElement | null>(null);
 
-// The chart-defaults CodeMirror view, once it's ready. Not reactive on purpose.
 let defaultsView: EditorView | null = null;
 
 // The live text of each pane. An editor echoes the text we push into it back as
@@ -96,7 +69,6 @@ const overridesPaneTestid = () => `${ props.testidPrefix }-overrides-pane`;
 const defaultsTestid = () => `${ props.testidPrefix }-defaults`;
 const overridesTestid = () => `${ props.testidPrefix }-overrides`;
 
-/** LEFT-pane decorations: tint each leaf line that differs from the defaults. */
 function applyDefaultsDecorations() {
   if (!defaultsView) {
     return;
@@ -107,8 +79,6 @@ function applyDefaultsDecorations() {
     className: OVERRIDE_LINE_CLASS,
   })));
 }
-
-// --- Editing the RIGHT (overrides) pane -------------------------------------
 
 function syncFromOverrides() {
   defaultsContent.value = mergeOverridesRawText(props.defaults || {}, overridesContent.value);
@@ -129,9 +99,7 @@ function onOverridesInput(value: string) {
   queueSyncFromOverrides();
 }
 
-// --- Editing the LEFT (chart defaults) pane ---------------------------------
-
-/** Parse the LEFT pane, or undefined for mid-edit text that isn't a valid mapping. */
+// Undefined for mid-edit text that isn't a mapping
 function parseDefaultsContent(): object | undefined {
   let parsed: unknown;
 
@@ -141,7 +109,6 @@ function parseDefaultsContent(): object | undefined {
     return undefined;
   }
 
-  // Helm values must be a mapping, so a bare scalar/array is still mid-edit
   if (parsed !== undefined && parsed !== null && !isPlainObject(parsed)) {
     return undefined;
   }
@@ -149,10 +116,6 @@ function parseDefaultsContent(): object | undefined {
   return (parsed as object) || {};
 }
 
-/**
- * Derive the overrides from the edited LEFT pane and emit them. Mid-edit text that
- * isn't a valid mapping keeps the last good overrides.
- */
 function deriveOverrides() {
   const parsed = parseDefaultsContent();
 
@@ -160,7 +123,6 @@ function deriveOverrides() {
     return;
   }
 
-  // A key the user deleted here keeps its default rather than being saved as null.
   const overrides = overridesFromEditedValues(props.defaults || {}, parsed);
 
   if (overrides !== overridesContent.value) {
@@ -186,21 +148,14 @@ function onDefaultsInput(value: string) {
   queueSyncFromDefaults();
 }
 
-// --- Leaving a pane ---------------------------------------------------------
-
-// A sync is only ever pending for the pane the user was last typing in. Run it
-// right away when focus leaves that pane. Then the other pane is up to date before
-// the user types in it, so their next keystroke doesn't overwrite the edit that was
-// still waiting. And the parent has the latest overrides before a button (e.g.
-// Install) is clicked.
+// Sync right away when leaving a pane, so typing in the other pane doesn't overwrite
+// the waiting edit, and the parent has the overrides before e.g. Install is clicked
 function onDefaultsBlur() {
   queueSyncFromDefaults.flush();
   redrawDefaults();
 }
 
-// Redraw the LEFT pane from the defaults and the overrides once the user leaves it,
-// so a default they deleted shows again, as it is still what Helm will use. Mid-edit
-// text that doesn't parse is kept, so the user doesn't lose it.
+// A deleted default shows again, as Helm still uses it. Text that doesn't parse is kept.
 function redrawDefaults() {
   if (!parseDefaultsContent()) {
     return;
@@ -221,10 +176,6 @@ function onOverridesBlur() {
   queueSyncFromOverrides.flush();
 }
 
-// --- External prop changes --------------------------------------------------
-
-// React to `value` changing from outside (e.g. the parent seeding the pane). Our
-// own emits are ignored via the content compare so this doesn't loop.
 watch(() => props.value, (neu) => {
   if (sameYamlOverrides(neu || '', overridesContent.value)) {
     return;
@@ -245,8 +196,6 @@ watch(() => props.defaults, () => {
   applyDefaultsDecorations();
 });
 
-// --- Ready / lifecycle ------------------------------------------------------
-
 function onDefaultsReady(view: EditorView) {
   defaultsView = view;
   applyDefaultsDecorations();
@@ -254,7 +203,6 @@ function onDefaultsReady(view: EditorView) {
 }
 
 onBeforeUnmount(() => {
-  // Don't lose a chart-defaults edit that is still waiting to be emitted
   queueSyncFromDefaults.flush();
   queueSyncFromOverrides.cancel();
   defaultsView = null;
@@ -327,8 +275,6 @@ onBeforeUnmount(() => {
   .values-panes {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    // The bodies take the height left under the headers, and each editor scrolls
-    // inside it rather than growing the page.
     grid-template-rows: auto minmax(0, 1fr);
     column-gap: var(--gap-lg);
     min-height: 0;
@@ -349,7 +295,6 @@ onBeforeUnmount(() => {
         min-height: 0;
       }
 
-      // Pass the height down to CodeMirror, whose own scroller then scrolls the document.
       &__editor, &__editor :deep(.code-mirror), &__editor :deep(.codemirror-container) {
         display: flex;
         flex-direction: column;
@@ -357,9 +302,7 @@ onBeforeUnmount(() => {
         min-height: 0;
       }
 
-      // The document doesn't count towards the size of the pane, so a long one
-      // scrolls rather than stretches it. When there isn't room the editor still
-      // keeps this height, and the page scrolls instead.
+      // A long document scrolls instead of stretching the pane
       &__editor {
         contain: size;
         min-height: 200px;
@@ -369,15 +312,12 @@ onBeforeUnmount(() => {
         margin-bottom: 16px;
       }
 
-      // CodeMirror's search panel, moved out of the editor's frame so it looks like a
-      // search box above it, the size of an input without a label. The `.cm-panel.cm-search`
-      // makes these win over the editor's theme.
+      // CodeMirror's search panel, styled like a search box above the editor
       &__search {
         :deep(.cm-panels-top) {
           background-color: transparent;
           border-bottom: none;
 
-          // A layer that mutes the code scrolling past above the panel, which isn't needed here
           &::before {
             display: none;
           }
@@ -390,7 +330,6 @@ onBeforeUnmount(() => {
             height: $unlabeled-input-height;
           }
 
-          // Like the charts page search, the arrows only show when there are matches
           .cm-search-controls button:disabled {
             display: none;
           }
@@ -406,17 +345,13 @@ onBeforeUnmount(() => {
         color: var(--input-label);
       }
 
-      // The lines that differ from the chart defaults, on the code and the gutter, in
-      // the blue of a tertiary button (see RcButton)
       :deep(.cm-line.line-override-highlight),
       :deep(.cm-gutterElement.line-override-highlight) {
         background-color: var(--tertiary, var(--accent-btn));
       }
 
       &--overrides {
-        // The overrides editor takes the height of its document instead, up to the
-        // room under the header, and then scrolls. So the body keeps the document
-        // out of the size of the pane.
+        // This editor is as tall as its document, up to the room it has
         .values-pane__body {
           contain: size;
         }
@@ -427,10 +362,8 @@ onBeforeUnmount(() => {
           min-height: 0;
         }
 
-        // Every line here is an override, so the whole editor gets the tint of the
-        // changed lines in the chart defaults pane. Some themes have a see-through
-        // tint, so the gutter lets the editor's tint show instead of painting it a
-        // second time.
+        // Every line here is an override. The gutter is see-through so a see-through
+        // tint isn't painted twice.
         :deep(.codemirror-container .rc-code-mirror) {
           --rc-cm-bg: var(--tertiary, var(--accent-btn));
         }

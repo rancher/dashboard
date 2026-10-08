@@ -364,14 +364,6 @@ export default {
         }
       }
 
-      /*
-        The overrides YAML pane shows ONLY the user's overrides - the values that
-        differ from the chart defaults - mirroring `helm install --values`. The
-        chart defaults pane next to it shows the defaults merged with them. On a
-        fresh install this is empty; on edit it is the previously-saved
-        overrides. Saving overrides only is what stops removed keys from being
-        sent to Helm as `null`.
-      */
       this.valuesYaml = overridesFromValues(this.chartDefaults, this.chartValues);
 
       /* For YAML diff */
@@ -445,8 +437,6 @@ export default {
       showValuesComponent:                    true,
       showQuestions:                          true,
       showSlideIn:                            false,
-      // The element that opened the chart info drawer, so focus can return to it
-      // when the drawer closes (keyboard accessibility).
       slideInTrigger:                         null,
       shownReadmeWindows:                     [],
       showCommandStep:                        false,
@@ -536,11 +526,7 @@ export default {
       return null;
     },
 
-    /**
-     * The chart's default values, as the values editor compares them. A stable object, so the values editor doesn't
-     * re-merge on every render. The registry keys are left out, like fetch() leaves them out of chartValues, or they
-     * would show as `null`. The private registry setting owns them, and addGlobalValuesTo adds them back.
-     */
+    // The registry keys are left out like in chartValues, or they would show as `null`. addGlobalValuesTo adds them back.
     chartDefaults() {
       const values = this.versionInfo?.values || {};
 
@@ -694,42 +680,23 @@ export default {
       return EDITOR_MODES.EDIT_CODE;
     },
 
-    /** The values step shows the editable YAML (defaults and overrides panes). */
     showOverridesEditor() {
       return !(this.valuesComponent && this.showValuesComponent) && !(this.hasQuestions && this.showQuestions) && !this.showDiff;
     },
 
-    /*
-      The "before" side of the Compare Changes diff: defaults + the originally-saved
-      overrides (none on a fresh install). Serialized like `diffFinalYaml` so only
-      real changes show.
-    */
     originalYamlFull() {
       return mergeOverrides(this.chartDefaults, this.originalYamlValues || '');
     },
 
-    /*
-      The "after" side of the diff: defaults + edited overrides. Mid-edit/invalid
-      overrides keep their raw lines (via mergeOverridesRawText) so the diff shows
-      the whole document instead of hiding them or collapsing to defaults.
-    */
     diffFinalYaml() {
       return mergeOverridesRawText(this.chartDefaults, this.valuesYaml);
     },
 
-    /*
-      Whether the full document actually changed. False only when the overrides
-      change nothing (e.g. empty), where we fall back to a raw overrides diff so
-      the tab is never a blank "no changes".
-    */
     diffHasFullDocChanges() {
       return this.diffFinalYaml !== this.originalYamlFull;
     },
 
-    /*
-      Compare Changes shows the full document; only when it has no changes does it
-      fall back to the raw overrides text, so the tab stays honest and never blank.
-    */
+    // When the overrides change nothing, show them on their own, so the diff isn't empty
     diffValue() {
       return this.diffHasFullDocChanges ? this.diffFinalYaml : this.valuesYaml;
     },
@@ -761,8 +728,6 @@ export default {
       }, {
         labelKey: 'catalog.install.section.diff',
         value:    VALUES_STATE.DIFF,
-        // The editable pane holds overrides only, so compare against the overrides (diff), not the full merged chartValues.
-        // Compare parsed content so editor whitespace (e.g. a leftover newline after typing then deleting) doesn't count as a change.
         disabled: this.formYamlOption === VALUES_STATE.FORM ? sameYamlOverrides(this.originalYamlValues, overridesFromValues(this.chartDefaults, this.chartValues || {})) : sameYamlOverrides(this.originalYamlValues, this.valuesYaml),
       });
 
@@ -910,8 +875,6 @@ export default {
   },
 
   watch: {
-    // The values step fills the wizard when it shows the panes, so the panes get its
-    // height rather than grow with their documents
     showOverridesEditor: {
       handler(neu) {
         this.stepValues.fullHeight = neu;
@@ -948,10 +911,7 @@ export default {
       await this.setImagePullSecretData();
     },
 
-    // When the chart info drawer opens, move keyboard focus into it so Tab
-    // navigation continues inside the panel rather than jumping to the editor.
-    // `preventScroll` stops the browser scrolling the off-screen panel into
-    // view, which otherwise yanks/animates the rest of the page.
+    // preventScroll, or the browser scrolls the page to the drawer while it slides in
     showSlideIn(neu) {
       if (neu) {
         this.$nextTick(() => this.$refs.slideInPanel?.focus?.({ preventScroll: true }));
@@ -978,8 +938,7 @@ export default {
         this.showDiff = false;
         break;
       case VALUES_STATE.YAML:
-        // Show the YAML preview. The editable pane holds overrides only, so seed
-        // it with the diff between the chart defaults and the form's values.
+        // Show the YAML preview
         if (old === VALUES_STATE.FORM) {
           this.valuesYaml = overridesFromValues(this.chartDefaults, this.chartValues || {});
           this.previousYamlValues = this.valuesYaml;
@@ -991,8 +950,7 @@ export default {
         this.showDiff = false;
         break;
       case VALUES_STATE.DIFF:
-        // Show the YAML diff. The editable pane holds overrides only, so seed it
-        // with the diff between the chart defaults and the form's values.
+        // Show the YAML diff
         if (old === VALUES_STATE.FORM) {
           this.valuesYaml = overridesFromValues(this.chartDefaults, this.chartValues || {});
           this.previousYamlValues = this.valuesYaml;
@@ -1193,8 +1151,6 @@ export default {
           }
         }
 
-        // Reflect the pull-secret change in the values editor, which holds
-        // overrides only (the diff from the chart defaults).
         this.valuesYaml = overridesFromValues(this.chartDefaults, this.chartValues);
       }
     },
@@ -1469,13 +1425,7 @@ export default {
 
     applyYamlToValues() {
       try {
-        /*
-          The editable pane holds only the user's overrides. Merge them onto the
-          chart defaults so chartValues stays the full effective document - the
-          same shape the form produces. actionInput then diffs this against the
-          defaults, so only the overrides are sent (and never `null`s for keys
-          the user removed), matching `helm install --values`.
-        */
+        // chartValues holds the full document, like the form makes. actionInput only sends the overrides.
         this.chartValues = mergeOverridesValues(this.chartDefaults, jsyaml.load(this.valuesYaml));
       } catch (err) {
         return { errors: exceptionToErrorsArray(err) };
@@ -1666,7 +1616,6 @@ export default {
       if (this.showSlideIn) {
         this.closeSlideIn();
       } else {
-        // Remember the trigger so focus can return to it when the drawer closes.
         this.slideInTrigger = ev?.currentTarget || null;
         this.showSlideIn = true;
       }
@@ -1678,8 +1627,6 @@ export default {
       }
 
       this.showSlideIn = false;
-      // Return focus to the button that opened the drawer so keyboard users
-      // aren't dropped back at the top of the document.
       this.$nextTick(() => {
         this.slideInTrigger?.focus?.();
         this.slideInTrigger = null;
@@ -2128,9 +2075,7 @@ export default {
                 :target-namespace="targetNamespace"
               />
             </Tabbed>
-            <!-- Values (as YAML diff): full-document diff of original vs final merged
-                 values; invalid mid-edit overrides keep their raw lines so the diff
-                 is never empty. See diffValue / diffOriginal. -->
+            <!-- Values (as YAML diff) -->
             <template v-else-if="showDiff">
               <YamlEditor
                 ref="diffEditor"
@@ -2143,7 +2088,7 @@ export default {
                 :allow-empty-diff-base="true"
               />
             </template>
-            <!-- Values (as YAML): editable chart defaults (left) + editable overrides (right) -->
+            <!-- Values (as YAML) -->
             <template v-else>
               <YamlOverridesEditor
                 v-model:value="valuesYaml"
@@ -2315,7 +2260,6 @@ export default {
   $title-height: 50px;
   $padding: 5px;
   $slideout-width: 35%;
-  // A focus outline is 2px wide and 2px away from its control.
   $focus-outline-room: 4px;
 
   .install-steps {
@@ -2495,20 +2439,16 @@ export default {
       display: flex;
       flex: 1;
       overflow: auto;
-      // Room for the editor's focus outline so it isn't clipped at the edges.
+      // Room for the editor's focus outline
       padding: 2px;
     }
 
-
-    // The chart defaults and overrides panes scroll on their own, so these boxes
-    // don't need to.
+    // The panes scroll on their own
     &__container--panes, &__container--panes &__content {
       overflow: visible;
     }
 
-    // The wizard's footer also covers the page's bottom padding, so only the rest
-    // of its height needs clearing. The editors keep their own space under them for
-    // the "press Esc" hint.
+    // The footer also covers the page's bottom padding
     &__container--panes {
       margin-bottom: calc($footer-height - $space-m);
     }
@@ -2518,9 +2458,7 @@ export default {
     flex: 1
   }
 
-// The wizard scrolls here, so it clips its content at its edges, which cut off the
-// focus outline of a control at the edge, like the chart name link at the top. The
-// padding gives the outline room, and the margin keeps the content in place.
+// Room for the focus outline of a control at the edge. The margin keeps the content in place.
 .outer-container {
   display: flex;
   flex-direction: column;
