@@ -199,11 +199,12 @@ describe('managementSetting - Scroll Behavior', () => {
 
 describe('managementSetting - enum values', () => {
   it.each([
-    ['true', 'advancedSettings.enum.ui-appco-enabled.true'],
-    ['', 'advancedSettings.enum.ui-appco-enabled.none'],
-  ])('should label the enum value %p with its translation key', async(value, expected) => {
+    [SETTING.UI_APPCO_ENABLED, 'true', 'advancedSettings.enum.ui-appco-enabled.true'],
+    [SETTING.UI_APPCO_ENABLED, '', 'advancedSettings.enum.ui-appco-enabled.none'],
+    [SETTING.UI_OFFLINE_PREFERRED, '', 'advancedSettings.enum.ui-offline-preferred.'],
+  ])('should label the %p enum value %p with its translation key', async(id, value, expected) => {
     mockStore.dispatch.mockResolvedValue([{
-      id: SETTING.UI_APPCO_ENABLED, value, default: '', availableActions: ['edit']
+      id, value, default: '', availableActions: ['edit']
     }]);
 
     const wrapper: any = mount(ManagementSetting, {
@@ -224,7 +225,7 @@ describe('managementSetting - enum values', () => {
 
     await wrapper.vm.$options.fetch.call(wrapper.vm);
 
-    expect(wrapper.vm.settings.find(({ id }: { id: string }) => id === SETTING.UI_APPCO_ENABLED).enum).toBe(expected);
+    expect(wrapper.vm.settings.find((setting: { id: string }) => setting.id === id).enum).toBe(expected);
     wrapper.unmount();
   });
 });
