@@ -106,6 +106,57 @@ describe('fx: keepSearchPanelOpen', () => {
     expect(document.activeElement).toStrictEqual(field());
   });
 
+  describe('in Vim mode', () => {
+    const createVimView = () => {
+      view = new EditorView({
+        doc: 'replicas: 2\nsachet: true\n', extensions: [getKeymapExtension('vim')], parent: document.body
+      });
+
+      return view;
+    };
+    const pressInField = (init: ConstructorParameters<typeof KeyboardEvent>[1]) => field()?.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, ...init }));
+
+    it('uses RcCodeMirror\'s search panel instead of CodeMirror\'s', () => {
+      keepSearchPanelOpen(createVimView());
+
+      expect([document.querySelector('.cm-search-field') !== null, document.querySelector('.cm-search [name=replace]')]).toStrictEqual([true, null]);
+    });
+
+    it('leaves Ctrl-F in the editor to Vim', () => {
+      keepSearchPanelOpen(createVimView());
+
+      view.focus();
+      view.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'f', ctrlKey: true, bubbles: true
+      }));
+
+      expect(document.activeElement).not.toStrictEqual(field());
+    });
+
+    it.each([
+      ['F3', { key: 'F3' }],
+      ['Mod-G', { key: 'g', ctrlKey: true }],
+    ])('goes to the next match on %s in the panel', (_, init) => {
+      keepSearchPanelOpen(createVimView());
+      (field() as HTMLInputElement).value = 'a';
+      field()?.dispatchEvent(new Event('input', { bubbles: true }));
+
+      pressInField(init);
+
+      // From the "a" of replicas to the "a" of sachet
+      expect(view.state.selection.main.from).toStrictEqual(13);
+    });
+
+    it('goes back to the editor on Escape in the panel', () => {
+      keepSearchPanelOpen(createVimView());
+
+      (field() as HTMLInputElement).focus();
+      pressInField({ key: 'Escape' });
+
+      expect(view.hasFocus).toBe(true);
+    });
+  });
+
   it('goes back to the editor on Escape in the panel', () => {
     keepSearchPanelOpen(createView());
 
