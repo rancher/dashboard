@@ -310,6 +310,65 @@ describe('component: YamlOverridesEditor', () => {
     });
   });
 
+  describe('redrawing the chart-defaults pane when focus leaves it', () => {
+    // Type into the chart-defaults editor, which emits the new text like the real one
+    const type = (editor: any, text: string) => editor.updateValue(text);
+    const leaveDefaultsPane = (wrapper: any) => wrapper.find('[data-testid="values-defaults-pane"]').trigger('focusout');
+
+    it('shows a deleted default again', () => {
+      const wrapper = mountEditor({ value: '' });
+      const { left } = editors(wrapper);
+
+      type(left, 'replicas: 2\n');
+      leaveDefaultsPane(wrapper);
+
+      expect(docOf(left)).toStrictEqual(mergeOverridesRawText(defaults, ''));
+    });
+
+    it('keeps the overrides empty when a default is deleted', () => {
+      const wrapper = mountEditor({ value: '' });
+
+      type(editors(wrapper).left, 'replicas: 2\n');
+      leaveDefaultsPane(wrapper);
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
+    });
+
+    it('keeps the user\'s change next to the deleted default it shows again', () => {
+      const wrapper = mountEditor({ value: '' });
+      const { left } = editors(wrapper);
+
+      type(left, 'replicas: 7\n');
+      leaveDefaultsPane(wrapper);
+
+      expect(docOf(left)).toStrictEqual(mergeOverridesRawText(defaults, 'replicas: 7\n'));
+    });
+
+    it('tints the changed line where it is after the redraw', () => {
+      const wrapper = mountEditor({ value: '' });
+      const { left } = editors(wrapper);
+
+      // The deleted default comes back above the changed line, which moves it down
+      type(left, 'sachet:\n  enabled: false\n');
+      leaveDefaultsPane(wrapper);
+
+      expect(tintedLines(left)).toStrictEqual(['  enabled: false']);
+    });
+
+    it.each([
+      ['invalid YAML', 'replicas: 5\nsachet: ['],
+      ['a value that is not a mapping', 'just text'],
+    ])('keeps mid-edit text with %s', (_, text) => {
+      const wrapper = mountEditor();
+      const { left } = editors(wrapper);
+
+      type(left, text);
+      leaveDefaultsPane(wrapper);
+
+      expect(docOf(left)).toStrictEqual(text);
+    });
+  });
+
   describe('line decorations', () => {
     it('tints a changed default line', () => {
       const wrapper = mountEditor({ value: 'replicas: 5\n' });

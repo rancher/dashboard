@@ -135,26 +135,37 @@ function onOverridesInput(value: string) {
 
 // --- Editing the LEFT (chart defaults) pane ---------------------------------
 
-/**
- * Derive the overrides from the edited LEFT pane and emit them. Mid-edit text that
- * isn't a valid mapping keeps the last good overrides.
- */
-function deriveOverrides() {
+/** Parse the LEFT pane, or undefined for mid-edit text that isn't a valid mapping. */
+function parseDefaultsContent(): object | undefined {
   let parsed: unknown;
 
   try {
     parsed = jsyaml.load(defaultsContent.value);
   } catch (e) {
-    return;
+    return undefined;
   }
 
   // Helm values must be a mapping, so a bare scalar/array is still mid-edit
   if (parsed !== undefined && parsed !== null && !isPlainObject(parsed)) {
+    return undefined;
+  }
+
+  return (parsed as object) || {};
+}
+
+/**
+ * Derive the overrides from the edited LEFT pane and emit them. Mid-edit text that
+ * isn't a valid mapping keeps the last good overrides.
+ */
+function deriveOverrides() {
+  const parsed = parseDefaultsContent();
+
+  if (!parsed) {
     return;
   }
 
   // A key the user deleted here keeps its default rather than being saved as null.
-  const overrides = overridesFromEditedValues(props.defaults || {}, (parsed as object) || {});
+  const overrides = overridesFromEditedValues(props.defaults || {}, parsed);
 
   if (overrides !== overridesContent.value) {
     overridesContent.value = overrides;
@@ -188,6 +199,26 @@ function onDefaultsInput(value: string) {
 // Install) is clicked.
 function onDefaultsBlur() {
   queueSyncFromDefaults.flush();
+  redrawDefaults();
+}
+
+// Redraw the LEFT pane from the defaults and the overrides once the user leaves it,
+// so a default they deleted shows again, as it is still what Helm will use. Mid-edit
+// text that doesn't parse is kept, so the user doesn't lose it.
+function redrawDefaults() {
+  if (!parseDefaultsContent()) {
+    return;
+  }
+
+  const merged = mergeOverridesRawText(props.defaults || {}, overridesContent.value);
+
+  if (merged === defaultsContent.value) {
+    return;
+  }
+
+  defaultsContent.value = merged;
+  defaultsEditor.value?.updateValue(merged);
+  applyDefaultsDecorations();
 }
 
 function onOverridesBlur() {
