@@ -9437,6 +9437,7 @@ advancedSettings:
     'auth-token-max-ttl-minutes': 'Max TTL (in minutes) for all tokens except those controlled by "auth-user-session-ttl-minutes" (user session tokens). When set to 0, the token never expires.'
     'kubeconfig-generate-token': 'Automatically generate tokens for users when a kubeconfig is requested.'
     'kubeconfig-default-token-ttl-minutes': 'TTL (in minutes) applied on all kubeconfig tokens. When set to 0, the token never expires.'
+    'kubeconfig-prefer-rancher-proxy': 'Preferred current context in downloaded Kubeconfig files for clusters with Authorized Cluster Endpoint (ACE) enabled.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
     'custom-notifications': Edit custom notifications
@@ -9455,6 +9456,9 @@ advancedSettings:
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
+    'kubeconfig-prefer-rancher-proxy':
+      false: ACE (Authorized Cluster Endpoint)
+      true: Rancher-proxied
     'ui-default-landing':
       ember: Cluster Manager
       vue: Cluster Explorer
