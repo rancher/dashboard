@@ -16,9 +16,15 @@ const emit = defineEmits(['update:settingValue']);
 const { t } = useI18n(useStore());
 
 const options = [
-  { label: t('advancedSettings.edit.trueOption'), value: 'true' },
-  { label: t('advancedSettings.edit.falseOption'), value: 'false' },
-  { label: t('advancedSettings.none'), value: NONE },
+  {
+    label: t('advancedSettings.edit.trueOption'), description: t('advancedSettings.edit.uiAppcoEnabled.true'), value: 'true'
+  },
+  {
+    label: t('advancedSettings.edit.falseOption'), description: t('advancedSettings.edit.uiAppcoEnabled.false'), value: 'false'
+  },
+  {
+    label: t('advancedSettings.edit.uiAppcoEnabled.noneLabel'), description: t('advancedSettings.edit.uiAppcoEnabled.none'), value: NONE
+  },
 ];
 
 const selected = computed({

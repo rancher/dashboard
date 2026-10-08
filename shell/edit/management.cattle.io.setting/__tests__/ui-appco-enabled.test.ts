@@ -11,11 +11,17 @@ describe('component: ui-appco-enabled setting', () => {
   const radioGroup = (settingValue?: string) => shallowMount(UiAppcoEnabled, { props: { settingValue } })
     .findComponent(RadioGroup);
 
-  it('should offer the True, False and None options', () => {
+  it('should offer the True, False and None options, each with its description', () => {
     expect(radioGroup('true').props('options')).toStrictEqual([
-      { label: 'advancedSettings.edit.trueOption', value: 'true' },
-      { label: 'advancedSettings.edit.falseOption', value: 'false' },
-      { label: 'advancedSettings.none', value: 'none' },
+      {
+        label: 'advancedSettings.edit.trueOption', description: 'advancedSettings.edit.uiAppcoEnabled.true', value: 'true'
+      },
+      {
+        label: 'advancedSettings.edit.falseOption', description: 'advancedSettings.edit.uiAppcoEnabled.false', value: 'false'
+      },
+      {
+        label: 'advancedSettings.edit.uiAppcoEnabled.noneLabel', description: 'advancedSettings.edit.uiAppcoEnabled.none', value: 'none'
+      },
     ]);
   });
 
