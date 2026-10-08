@@ -5,6 +5,7 @@ import {
 } from '@shell/apis/intf/resources-api/resource-base';
 import { ResourceInstance } from '@shell/apis/intf/resources-api/resource-instance';
 import { ResourcesApi } from '@shell/apis/intf/resources-api/resources-api';
+import { patchWithFallback } from '@shell/apis/resources/patch-content-type';
 import { ActionFindPageTransientResponse } from '@shell/types/store/dashboard-store.types';
 import { Store } from 'vuex';
 
@@ -268,10 +269,13 @@ export class ResourcesApiClassImpl implements ResourcesApi {
   }
 
   /**
-   * Applies a partial update to a resource using HTTP PATCH (merge-patch).
+   * Applies a partial update to a resource using HTTP PATCH.
    *
    * Only the fields provided in `data` are sent to the server.
    * This is a raw HTTP operation — it does not check permissions or update the store cache.
+   *
+   * Strategic merge patch is attempted first. Resources that reject it (CRDs, which is most of
+   * Rancher) are retried with merge patch, and remembered so the retry only happens once per type.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
@@ -287,13 +291,18 @@ export class ResourcesApiClassImpl implements ResourcesApi {
   ): Promise<I> {
     try {
       const url = this.resourceUrl(resourceType, resourceId);
-      const res = await this.store.dispatch(`${ this.storeType }/request`, {
-        opt: {
-          url,
-          method:  'patch',
-          headers: { 'content-type': 'application/strategic-merge-patch+json' },
-          data,
-        }
+      const res = await patchWithFallback({
+        storeName: this.storeType,
+        resourceType,
+        send:      (contentType: string) => this.store.dispatch(`${ this.storeType }/request`, {
+          opt: {
+            url,
+            method:  'patch',
+            headers: { 'content-type': contentType },
+            data,
+          }
+        }),
+        onFallback: (message: string, e: any) => this.surfaceWarning(message, e),
       });
 
       return res as I;
