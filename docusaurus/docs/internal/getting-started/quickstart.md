@@ -26,11 +26,9 @@ API=https://your-rancher yarn dev
 
 > Note: `API` is the URL of a deployed Rancher environment (backend API)
 
-## Troubleshooting
+## Troubleshooting 
 
-### `ERR_OSSL_EVP_UNSUPPORTED` on older release branches
-
-Release branches 2.9 and earlier build with webpack 4, which fails on Node 17 and later. If `yarn dev` on one of those branches fails with the following error:
+If `yarn dev` fails with the following error:
 
 ```
 Error: error:0308010C:digital envelope routines::unsupported
@@ -47,10 +45,10 @@ Error: error:0308010C:digital envelope routines::unsupported
 }
 ```
 
-Use Node 16 (pinned in release-2.9's `.nvmrc`). If you have to use a newer Node, force it to use the legacy OpenSSL provider:
+You can force Node to use the legacy openssl provider via:
 
 ```
 export NODE_OPTIONS=--openssl-legacy-provider
 ```
 
-`master` and release branches 2.10 and later use webpack 5 and do not need this.
+The need for this option will be removed as soon as later Node versions get supported.
