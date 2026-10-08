@@ -98,6 +98,133 @@ describe('steve: subscribe', () => {
       });
     });
 
+    describe('unwatch', () => {
+      const type = 'pod';
+      const changesWatch = {
+        type, namespace: 'ns-a', mode: STEVE_WATCH_MODE.RESOURCE_CHANGES
+      };
+      const idWatch = {
+        type, namespace: 'ns-b', id: 'pod-1'
+      };
+
+      const unwatch = actions.unwatch as (ctx: any, params: any) => void;
+      const makeCtx = ({ started = [], hasEventListeners = false }: { started?: any[], hasEventListeners?: boolean } = {}) => {
+        const state = { started };
+
+        return {
+          state,
+          commit:   jest.fn(),
+          dispatch: jest.fn(),
+          getters:  {
+            storeName:           'test',
+            schemaFor:           () => ({ id: type }),
+            normalizeType:       (type: string) => type,
+            typeRegistered:      () => true,
+            inError:             () => false,
+            nextResourceVersion: () => null,
+            watchesOfType:       getters.watchesOfType(state),
+            watchStarted:        getters.watchStarted(state),
+            listenerManager:     {
+              hasStandardWatch:  () => false,
+              hasEventListeners: () => hasEventListeners,
+              setStandardWatch:  jest.fn(),
+            },
+          },
+          rootGetters: {
+            'type-map/isSpoofed': () => false,
+            'management/byId':    () => undefined,
+          },
+        };
+      };
+
+      describe('all watches of a type', () => {
+        it.each([
+          ['namespaced resource.changes watch', changesWatch],
+          ['watch of a single resource', idWatch],
+        ])('should mark the %s as stopped', (_, watch) => {
+          const ctx = makeCtx({ started: [changesWatch, idWatch] });
+
+          unwatch(ctx, { type, all: true });
+
+          expect(ctx.commit).toHaveBeenCalledWith('setWatchStopped', watch);
+        });
+
+        it.each([
+          ['namespaced resource.changes watch', changesWatch],
+          ['watch of a single resource', idWatch],
+        ])('should ask the backend to stop the %s', (_, watch) => {
+          const ctx = makeCtx({ started: [changesWatch, idWatch] });
+
+          unwatch(ctx, { type, all: true });
+
+          expect(ctx.dispatch).toHaveBeenCalledWith('watch', { ...watch, stop: true });
+        });
+
+        it('should not stop watches of another type', () => {
+          const other = { type: 'node' };
+          const ctx = makeCtx({ started: [changesWatch, other] });
+
+          unwatch(ctx, { type, all: true });
+
+          expect(ctx.dispatch).not.toHaveBeenCalledWith('watch', expect.objectContaining({ type: other.type }));
+        });
+      });
+
+      describe('all watches of a type, through the watch action', () => {
+        it('should send a stop message for a namespaced resource.changes watch', () => {
+          const ctx = makeCtx({ started: [changesWatch] });
+
+          ctx.dispatch.mockImplementation((action: string, params: any) => {
+            if (action === 'watch') {
+              return actions.watch(ctx, params);
+            }
+          });
+
+          unwatch(ctx, { type, all: true });
+
+          expect(ctx.dispatch).toHaveBeenCalledWith('send', expect.objectContaining({
+            resourceType: type,
+            namespace:    changesWatch.namespace,
+            mode:         changesWatch.mode,
+            stop:         true,
+          }));
+        });
+      });
+
+      describe('single watch', () => {
+        it('should ask the backend to stop the watch', () => {
+          const ctx = makeCtx({ started: [changesWatch] });
+
+          unwatch(ctx, changesWatch);
+
+          expect(ctx.dispatch).toHaveBeenCalledWith('watch', {
+            ...changesWatch, id: undefined, selector: undefined, stop: true
+          });
+        });
+
+        it('should not ask the backend to stop a watch that was never started', () => {
+          const ctx = makeCtx({ started: [idWatch] });
+
+          unwatch(ctx, changesWatch);
+
+          expect(ctx.dispatch).not.toHaveBeenCalledWith('watch', expect.anything());
+        });
+      });
+
+      describe('watch with event listeners', () => {
+        it.each([
+          ['all watches of a type', { type, all: true }],
+          ['a single watch', changesWatch],
+        ])('should not stop the watch when unwatching %s', (_, params) => {
+          const ctx = makeCtx({ started: [changesWatch], hasEventListeners: true });
+
+          unwatch(ctx, params);
+
+          expect(ctx.dispatch).not.toHaveBeenCalledWith('watch', expect.anything());
+        });
+      });
+    });
+
     describe('ws.resource.error', () => {
       it('handle no permission error', () => {
         const commit = jest.fn();
