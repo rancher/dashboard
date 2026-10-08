@@ -114,7 +114,7 @@ describe('component: RcDropdown.vue', () => {
     expect(dropdownTarget.style.overflowY).toBe('');
   });
 
-  it('should stop scrolling the popper\'s box once an opening fits again', async() => {
+  it('should stop scrolling the popper\'s box, and drop the height it was cut to, once an opening fits again', async() => {
     Object.defineProperty(window, 'innerHeight', { value: 400 });
 
     const innerMock = defineComponent({
@@ -132,6 +132,7 @@ describe('component: RcDropdown.vue', () => {
 
     await wrapper.findComponent(innerMock).vm.$emit('apply-show');
     expect(inner.style.overflowY).toBe('auto');
+    expect(dropdownTarget.style.height).not.toBe('');
 
     rect = {
       top: 100, bottom: 200, height: 100
@@ -139,6 +140,7 @@ describe('component: RcDropdown.vue', () => {
     await wrapper.findComponent(innerMock).vm.$emit('apply-show');
 
     expect(inner.style.overflowY).toBe('');
+    expect(dropdownTarget.style.height).toBe('');
   });
 
   it('should apply correct height if dropdown exceeds both top and bottom edges', async() => {
