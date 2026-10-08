@@ -40,6 +40,8 @@ import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
 import { useDefaultMetadataForLegacyPagesProps } from '@shell/components/Resource/Detail/Metadata/composables';
 import { computed } from 'vue';
+import { importCommands, isServerUrlMissing } from '@shell/utils/cluster-registration';
+import { SETTING } from '@shell/config/settings';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -693,6 +695,18 @@ export default {
       return false;
     },
 
+    serverUrlSetting() {
+      return this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SERVER_URL);
+    },
+
+    serverUrlMissing() {
+      return isServerUrlMissing(this.serverUrlSetting, this.clusterToken);
+    },
+
+    importCommands() {
+      return importCommands(this.serverUrlSetting, this.clusterToken);
+    },
+
     isClusterReady() {
       return this.value.mgmt?.isReady;
     },
@@ -1175,6 +1189,12 @@ export default {
               color="warning"
               :label="t('cluster.import.warningBanner')"
             />
+            <Banner
+              v-if="serverUrlMissing"
+              color="warning"
+              :label-key="value.isCustom ? 'cluster.registration.serverUrlMissing.custom' : 'cluster.registration.serverUrlMissing.import'"
+              data-testid="registration-server-url-missing"
+            />
             <CustomCommand
               v-if="value.isCustom"
               :cluster-token="clusterToken"
@@ -1184,7 +1204,7 @@ export default {
             <template v-else>
               <h4 v-clean-html="t('cluster.import.commandInstructions', null, true)" />
               <CopyCode class="m-10 p-10">
-                {{ clusterToken.command }}
+                {{ importCommands.command }}
               </CopyCode>
 
               <h4
@@ -1192,7 +1212,7 @@ export default {
                 class="mt-10"
               />
               <CopyCode class="m-10 p-10">
-                {{ clusterToken.insecureCommand }}
+                {{ importCommands.insecureCommand }}
               </CopyCode>
 
               <h4
