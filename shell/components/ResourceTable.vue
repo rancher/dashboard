@@ -647,10 +647,10 @@ export default {
     },
 
     /**
-     * The grouping a view starts with: the namespace, whenever the list offers to group by it, as a
-     * paginated list does under its own name; else the list's own default, eg machines by pool; else
-     * the first it offers, eg secrets by project. A list grouped by a field it is given, eg members by
-     * project, keeps that
+     * The grouping a view starts with: the one the page names as its default, eg cluster members by
+     * role, machines by pool; else the namespace, whenever the list offers to group by it, as a
+     * paginated list does under its own name; else the first it offers, eg secrets by project. A list
+     * grouped by a field it is given, eg project members by project, keeps that
      */
     defaultGroupBy() {
       if (!this.showGrouping) {
@@ -658,7 +658,7 @@ export default {
       }
 
       const offered = (value) => this.tableGroupings.find((option) => option.value === value);
-      const start = offered(DEFAULT_GROUP) || offered(PAGINATED_NAMESPACE_GROUP) || offered(this.groupDefault) || this.tableGroupings[0];
+      const start = offered(this.groupDefault) || offered(DEFAULT_GROUP) || offered(PAGINATED_NAMESPACE_GROUP) || this.tableGroupings[0];
 
       if (!start || (this.groupBy && !start.field)) {
         return null;
