@@ -7,7 +7,7 @@ import type { Router } from 'vue-router';
 import { useStore } from 'vuex';
 import type { Store } from 'vuex';
 
-import { TABLE_STATE_QUERY, TABLE_STATE_KEY_QUERY } from '@shell/config/query-params';
+import { STATE_FILTER_QUERY, TABLE_STATE_QUERY, TABLE_STATE_KEY_QUERY } from '@shell/config/query-params';
 import { isNavigating } from '@shell/config/router/navigation-guards/navigation-state';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { encodeLinkedViews, sharedViewsIn } from '@shell/utils/table-views/link';
@@ -79,7 +79,11 @@ function write() {
     delete query[TABLE_STATE_KEY_QUERY];
   }
 
-  if (query[TABLE_STATE_QUERY] === route.query[TABLE_STATE_QUERY] && query[TABLE_STATE_KEY_QUERY] === route.query[TABLE_STATE_KEY_QUERY]) {
+  // A link naming some of the list's states opened the table with them in its query, which the URL now
+  // holds. Left, the parameter would filter the list again on a reload after the query was cleared
+  delete query[STATE_FILTER_QUERY];
+
+  if (query[TABLE_STATE_QUERY] === route.query[TABLE_STATE_QUERY] && query[TABLE_STATE_KEY_QUERY] === route.query[TABLE_STATE_KEY_QUERY] && !(STATE_FILTER_QUERY in route.query)) {
     return;
   }
 

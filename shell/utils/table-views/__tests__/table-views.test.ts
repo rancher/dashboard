@@ -1,6 +1,6 @@
 import {
   applyQuery, applyQueryExpression, fieldsFor, parseQuery,
-  parseQueryExpression, queryToServerFilters, replaceToken, rowsToCsv, tokenAt, validateQuery, valuesInUse,
+  parseQueryExpression, queryToServerFilters, replaceToken, rowsToCsv, stateQueryFor, tokenAt, validateQuery, valuesInUse,
   coreFieldIdsFor, CORE_FIELD_IDS,
   moveInOrder,
   serverPathFor,
@@ -152,6 +152,34 @@ describe('fx: applyQuery', () => {
 
     expect(names('cattle-system')).toStrictEqual([]);
     expect(names('namespace:cattle-system')).toStrictEqual(run('namespace:cattle-system'));
+  });
+
+  describe('a state the State column shows remapped', () => {
+    const remapped = [
+      {
+        ...ROWS[0], state: 'in-progress', stateDisplay: 'In Progress'
+      },
+      {
+        ...ROWS[1], state: 'active', stateDisplay: 'Active'
+      },
+    ];
+    const names = (query: string) => applyQuery(remapped, parseQuery(query, fields), fields).map((r) => r.metadata.name);
+
+    it.each([
+      ['its own name', 'state:in-progress'],
+      ['the name shown', 'state:"In Progress"'],
+      ['part of either', 'state:progress'],
+    ])('matches by %s', (_, query) => {
+      expect(names(query)).toStrictEqual(['nginx-a']);
+    });
+
+    it('excludes by its own name', () => {
+      expect(names('-state:in-progress')).toStrictEqual(['nginx-b']);
+    });
+
+    it('matches only the State column by the row\'s state name', () => {
+      expect(names('namespace:in-progress')).toStrictEqual([]);
+    });
   });
 });
 
@@ -529,6 +557,22 @@ describe('fx: queryToServerFilters', () => {
 
     expect(filters).toHaveLength(0);
     expect(unsupported.map((t) => t.value)).toStrictEqual(['Error', 'nginx']);
+  });
+});
+
+describe('fx: stateQueryFor', () => {
+  it.each([
+    ['one state', 'running', 'state:running'],
+    ['several, as a link lists them', 'running,active', 'state:running state:active'],
+    ['empty parts, spaces and repeats left out', ' running,,active,running ', 'state:running state:active'],
+    ['a state needing quotes', 'in progress', 'state:"in progress"'],
+    ['a list of them', ['error', 'expired'], 'state:error state:expired'],
+  ])('should give a term per state for %s', (_, states, expected) => {
+    expect(stateQueryFor(states)).toBe(expected);
+  });
+
+  it.each([undefined, null, '', ',', 3])('should give nothing for %p', (states) => {
+    expect(stateQueryFor(states)).toBe('');
   });
 });
 
