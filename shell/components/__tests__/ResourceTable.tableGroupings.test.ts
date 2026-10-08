@@ -257,6 +257,10 @@ describe('ResourceTable', () => {
       expect(defaultGroupBy.call(table([NONE, POOL], { groupDefault: 'poolId' }))).toBe(`${ TABLE_GROUPING_PREFIX }poolId`);
     });
 
+    it('should start grouped by the grouping the page names as its default, even where it offers the namespace too', () => {
+      expect(defaultGroupBy.call(table([NONE, NAMESPACE, NODE], { groupDefault: 'role' }))).toBe(`${ TABLE_GROUPING_PREFIX }role`);
+    });
+
     it('should start grouped by the first grouping the list offers when it offers neither, after none', () => {
       expect(defaultGroupBy.call(table([POOL, NODE], { groupDefault: 'other' }))).toBe(`${ TABLE_GROUPING_PREFIX }poolId`);
       expect(defaultGroupBy.call(table([NONE, NODE]))).toBe(`${ TABLE_GROUPING_PREFIX }role`);
