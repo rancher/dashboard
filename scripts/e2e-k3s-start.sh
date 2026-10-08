@@ -119,11 +119,21 @@ if [ "$KUBE_TYPE" = "K3S" ]; then
     exit 1
   fi
 
-  INSTALL_K3S_VERSION="$KUBE_VERSION" sh k3s-script
+  # Embedded etcd in place of the default sqlite datastore. Wedged starts showed the API server
+  # timing out watches with "Too large resource version", and service account tokens never populated.
+  INSTALL_K3S_VERSION="$KUBE_VERSION" INSTALL_K3S_EXEC="server --cluster-init" sh k3s-script
   export KUBECONFIG=~/.kube/config
   mkdir ~/.kube 2> /dev/null
   sudo k3s kubectl config view --raw > "$KUBECONFIG"
   chmod 600 "$KUBECONFIG"
+
+  # The install returns once the k3s service has started, which can be before its API answers
+  echo "Waiting for the k3s API to be ready.........."
+  okay=0
+  until [ "$(kubectl get --raw /readyz 2> /dev/null)" == "ok" ] || [ $okay -ge 60 ]; do
+    okay=$((okay+1))
+    sleep 2
+  done
   
   echo "Installing helm.........."
   # Pin the get-helm-3 installer to a fixed release tag rather than `main`. `main` is a moving ref, so
