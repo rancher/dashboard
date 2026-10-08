@@ -60,7 +60,11 @@ const mutations: MutationTree<ModalState> = {
   }
 };
 
-const actions: ActionTree<ModalState, any> = {};
+const actions: ActionTree<ModalState, any> = {
+  openModal({ commit }, payload) {
+    commit('openModal', payload);
+  }
+};
 
 export default {
   namespaced: true,

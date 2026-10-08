@@ -14,6 +14,7 @@ import {
   promptDisableAuthProvider,
 } from '@shell/utils/auth';
 import { onExtensionsReady } from '@shell/utils/uiplugins';
+import DisableAuthProviderDialog from '@shell/dialog/DisableAuthProviderDialog.vue';
 
 jest.mock('@shell/utils/uiplugins', () => ({ onExtensionsReady: jest.fn().mockResolvedValue(undefined) }));
 
@@ -586,14 +587,14 @@ describe('fx: promptDisableAuthProvider', () => {
     };
   };
 
-  const modalArgs = (dispatch: jest.Mock) => (dispatch.mock.calls.find(([action]) => action === 'management/promptModal') as any[])[1];
+  const modalArgs = (dispatch: jest.Mock) => (dispatch.mock.calls.find(([action]) => ['management/promptModal', 'modal/openModal'].includes(action)) as any[])[1];
 
   it('should open the ordinary dialog while local login is on', async() => {
     const args = makeArgs({ configs: [{ id: 'github', enabled: true }] });
 
     await promptDisableAuthProvider(args);
 
-    expect(modalArgs(args.dispatch).component).toBe('DisableAuthProviderDialog');
+    expect(modalArgs(args.dispatch).component).toBe(DisableAuthProviderDialog);
     expect(modalArgs(args.dispatch).componentProps.disableCb).toBe(args.disableCb);
   });
 
@@ -646,7 +647,7 @@ describe('fx: promptDisableAuthProvider', () => {
 
     await promptDisableAuthProvider(args);
 
-    expect(modalArgs(args.dispatch).component).toBe('DisableAuthProviderDialog');
+    expect(modalArgs(args.dispatch).component).toBe(DisableAuthProviderDialog);
   });
 
   // `findAll` resolves to undefined against a store that has nothing cached.
@@ -657,15 +658,20 @@ describe('fx: promptDisableAuthProvider', () => {
 
     await expect(promptDisableAuthProvider(args)).resolves.toBeUndefined();
 
-    expect(modalArgs(args.dispatch).component).toBe('DisableAuthProviderDialog');
+    expect(modalArgs(args.dispatch).component).toBe(DisableAuthProviderDialog);
+  });
+
+  it('should open the ordinary dialog through the modal store', async() => {
+    const args = makeArgs({ configs: [{ id: 'github', enabled: true }] });
+
+    await promptDisableAuthProvider(args);
+
+    expect(args.dispatch).toHaveBeenCalledWith('modal/openModal', expect.objectContaining({ component: DisableAuthProviderDialog }));
   });
 
   // AppModal drops a width carrying no unit and falls back to its own default.
-  it.each([
-    ['ordinary', false],
-    ['lockout', true],
-  ])('should ask the %s dialog for a width the modal can use', async(_desc, localLoginDisabled) => {
-    const args = makeArgs({ configs: [{ id: 'github', enabled: true }], localLoginDisabled });
+  it('should ask the lockout dialog for a width the modal can use', async() => {
+    const args = makeArgs({ configs: [{ id: 'github', enabled: true }], localLoginDisabled: true });
 
     await promptDisableAuthProvider(args);
 

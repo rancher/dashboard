@@ -115,6 +115,9 @@ export interface ModalApi {
    * The Vue component to be displayed inside the modal.
    * This can be any SFC (Single-File Component) imported and passed in as a `Component`.
    *
+   * A component that declares a `modal` prop renders its own `RcModal` instead of being wrapped
+   * in the default modal. It receives `modal` as `{ show, onClose }` to spread onto `RcModal`,
+   * and `width` and `closeOnClickOutside` do not apply to it.
    *
    * @param config Modal configuration object
    *

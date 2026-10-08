@@ -1,6 +1,7 @@
 import AuthConfig, { configTypeForProvider, providerIcon, providerKey } from '@shell/models/management.cattle.io.authconfig';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
 import { requireAsset } from '@shell/utils/require-asset';
+import DisableAuthProviderDialog from '@shell/dialog/DisableAuthProviderDialog.vue';
 
 jest.mock('@shell/utils/require-asset', () => {
   return { requireAsset: jest.fn((path: string) => path) };
@@ -133,7 +134,7 @@ describe('class AuthConfig', () => {
 
     // `promptDisable` has to read the other providers before it can pick a dialog,
     // so the modal is no longer the first thing dispatched.
-    const modalCall = (dispatch: jest.Mock) => (dispatch.mock.calls as any[]).find(([action]) => action === 'management/promptModal');
+    const modalCall = (dispatch: jest.Mock) => (dispatch.mock.calls as any[]).find(([action]) => ['management/promptModal', 'modal/openModal'].includes(action));
 
     it('should be a method the action menu can actually call', () => {
       expect(typeof makeConfig({ id: 'github' }).disable).toBe('function');
@@ -148,18 +149,8 @@ describe('class AuthConfig', () => {
 
       const call = modalCall(dispatch);
 
-      expect(call[1].component).toBe('DisableAuthProviderDialog');
+      expect(call[1].component).toBe(DisableAuthProviderDialog);
       expect(call[1].componentProps.name).toBe(config.nameDisplay);
-    });
-
-    // AppModal drops a width carrying no unit and falls back to its own default,
-    // so the dialog would quietly render narrower than it was asked to be.
-    it('should ask for a width the modal can use', async() => {
-      const { config, dispatch } = makeDisableable({});
-
-      await config.promptDisable();
-
-      expect(modalCall(dispatch)[1].modalWidth).toMatch(/(px|%)$/);
     });
 
     it('should disable only once the dialog calls back', async() => {
@@ -222,7 +213,7 @@ describe('class AuthConfig', () => {
 
         await config.promptDisable();
 
-        expect(modalCall(dispatch)[1].component).toBe('DisableAuthProviderDialog');
+        expect(modalCall(dispatch)[1].component).toBe(DisableAuthProviderDialog);
       });
 
       it('should keep the ordinary dialog while local login is still on', async() => {
@@ -230,7 +221,7 @@ describe('class AuthConfig', () => {
 
         await config.promptDisable();
 
-        expect(modalCall(dispatch)[1].component).toBe('DisableAuthProviderDialog');
+        expect(modalCall(dispatch)[1].component).toBe(DisableAuthProviderDialog);
       });
     });
 

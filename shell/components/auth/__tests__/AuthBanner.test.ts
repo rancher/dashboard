@@ -1,5 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import AuthBanner from '@shell/components/auth/AuthBanner.vue';
+import DisableAuthProviderDialog from '@shell/dialog/DisableAuthProviderDialog.vue';
 
 const tArgs = { provider: 'Microsoft Entra ID' };
 
@@ -35,7 +36,7 @@ const createWrapper = (props = {}, getters = {}, configs: any[] = []) => {
 
 // The banner reads the other providers before it picks a dialog, so the modal is
 // no longer the first thing dispatched.
-const modalCall = (dispatch: jest.Mock) => dispatch.mock.calls.find(([action]) => action === 'management/promptModal') as any[];
+const modalCall = (dispatch: jest.Mock) => dispatch.mock.calls.find(([action]) => ['management/promptModal', 'modal/openModal'].includes(action)) as any[];
 
 const modalArgs = (dispatch: jest.Mock) => modalCall(dispatch)[1];
 
@@ -46,7 +47,7 @@ describe('component: AuthBanner', () => {
 
     await (wrapper.vm as any).showDisableModal();
 
-    expect(dispatch).toHaveBeenCalledWith('management/promptModal', expect.objectContaining({ component: 'DisableAuthProviderDialog' }));
+    expect(dispatch).toHaveBeenCalledWith('modal/openModal', expect.objectContaining({ component: DisableAuthProviderDialog }));
     expect(disable).not.toHaveBeenCalled();
   });
 
@@ -69,16 +70,6 @@ describe('component: AuthBanner', () => {
     modalArgs(dispatch).componentProps.disableCb();
 
     expect(disable).toHaveBeenCalledWith();
-  });
-
-  // AppModal drops a width carrying no unit and falls back to its own default,
-  // so the dialog would quietly render narrower than it was asked to be.
-  it('should ask for a width the modal can use', async() => {
-    const { wrapper, dispatch } = createWrapper();
-
-    await (wrapper.vm as any).showDisableModal();
-
-    expect(modalArgs(dispatch).modalWidth).toMatch(/(px|%)$/);
   });
 
   // The provider page is a second way to reach Disable, so it has to refuse the
@@ -110,7 +101,7 @@ describe('component: AuthBanner', () => {
 
       await (wrapper.vm as any).showDisableModal();
 
-      expect(modalArgs(dispatch).component).toBe('DisableAuthProviderDialog');
+      expect(modalArgs(dispatch).component).toBe(DisableAuthProviderDialog);
     });
   });
 });

@@ -19,7 +19,6 @@ import ScaleMachineDownDialog from '@shell/dialog/ScaleMachineDownDialog.vue';
 import ScalePoolDownDialog from '@shell/dialog/ScalePoolDownDialog.vue';
 import SloDialog from '@shell/dialog/SloDialog.vue';
 
-import DisableAuthProviderDialog from '@shell/dialog/DisableAuthProviderDialog.vue';
 import DisableLastAuthProviderDialog from '@shell/dialog/DisableLastAuthProviderDialog.vue';
 import DisableLocalLoginDialog from '@shell/dialog/DisableLocalLoginDialog.vue';
 import WechatDialog from '@shell/dialog/WechatDialog.vue';
@@ -101,7 +100,6 @@ describe('component: PromptModal', () => {
     ['ScaleMachineDownDialog', ScaleMachineDownDialog],
     ['ScalePoolDownDialog', ScalePoolDownDialog],
     // new modals created/moved
-    ['DisableAuthProviderDialog', DisableAuthProviderDialog],
     ['DisableLastAuthProviderDialog', DisableLastAuthProviderDialog],
     ['DisableLocalLoginDialog', DisableLocalLoginDialog],
     ['WechatDialog', WechatDialog],

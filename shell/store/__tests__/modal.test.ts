@@ -128,4 +128,17 @@ describe('modal store', () => {
       });
     });
   });
+
+  describe('actions', () => {
+    describe('openModal', () => {
+      it('commits openModal with its payload', () => {
+        const commit = jest.fn();
+        const payload = { component: fakeComponent };
+
+        (modalStore.actions.openModal as Function)({ commit }, payload);
+
+        expect(commit).toHaveBeenCalledWith('openModal', payload);
+      });
+    });
+  });
 });
