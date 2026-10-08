@@ -1,7 +1,8 @@
 import { defineComponent, markRaw } from 'vue';
 import { shallowMount } from '@vue/test-utils';
-import { EditorView, runScopeHandlers } from '@codemirror/view';
-import { getSearchQuery, openSearchPanel, searchPanelOpen } from '@codemirror/search';
+import { EditorView } from '@codemirror/view';
+import { closeSearchPanel, searchPanelOpen } from '@codemirror/search';
+import { getKeymapExtension } from '@components/RcCodeMirror/extensions/keymaps';
 import YamlOverridesEditor from '@shell/components/YamlOverridesEditor.vue';
 import { mergeOverridesRawText, overridesFromValues } from '@shell/utils/chart-values';
 
@@ -9,7 +10,8 @@ describe('component: YamlOverridesEditor', () => {
   // Stub YamlEditor with a real CodeMirror view, so the search and the tint run for
   // real. Like YamlEditor, it doesn't react to its `value` prop after mount: text is
   // pushed in with `updateValue`, and every change is emitted as update:value. The
-  // view isn't attached to the page, since jsdom can't measure it.
+  // view isn't attached to the page, since jsdom can't measure it. It has YamlEditor's
+  // key bindings and search panel.
   const YamlEditorStub = defineComponent({
     name:  'YamlEditor',
     props: {
@@ -21,7 +23,7 @@ describe('component: YamlOverridesEditor', () => {
     mounted() {
       this.view = markRaw(new EditorView({
         doc:        this.value || '',
-        extensions: [EditorView.updateListener.of((update) => {
+        extensions: [getKeymapExtension(), EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             this.$emit('update:value', update.state.doc.toString());
           }
@@ -70,14 +72,8 @@ describe('component: YamlOverridesEditor', () => {
   const docOf = (editor: any): string => editor.view.state.doc.toString();
   const textsOf = (editor: any, selector: string) => Array.from(editor.view.contentDOM.querySelectorAll(selector)).map((el: any) => el.textContent);
   const tintedLines = (editor: any) => textsOf(editor, '.cm-line.line-override-highlight');
-  const searchMarks = (editor: any) => textsOf(editor, '.cm-searchMatch');
-  const selectedText = (editor: any) => {
-    const { from, to } = editor.view.state.selection.main;
 
-    return editor.view.state.sliceDoc(from, to);
-  };
-
-  // Let the watchers run, then the debounced syncs and search
+  // Let the watchers run, then the debounced syncs
   const settle = async(wrapper: any) => {
     await wrapper.vm.$nextTick();
     jest.runAllTimers();
@@ -444,327 +440,38 @@ describe('component: YamlOverridesEditor', () => {
   });
 
   describe('searching the chart defaults', () => {
-    // With the default props the chart-defaults pane holds
-    // "replicas: 5\nsachet:\n  enabled: true\n".
-    const searchInput = (wrapper: any) => wrapper.find('[data-testid="values-defaults-search"]');
-    const countLabel = (wrapper: any) => wrapper.find('[data-testid="values-defaults-search-count"]');
-    const clearButton = (wrapper: any) => wrapper.find('[data-testid="values-defaults-search-clear"]');
-    const nextButton = (wrapper: any) => wrapper.find('[data-testid="values-defaults-search-next"]');
-    const previousButton = (wrapper: any) => wrapper.find('[data-testid="values-defaults-search-previous"]');
-    const searchIcon = (wrapper: any) => wrapper.find('.values-search__icon');
-
-    const search = async(wrapper: any, query: string) => {
-      await searchInput(wrapper).setValue(query);
-      jest.runAllTimers();
-      await wrapper.vm.$nextTick();
-    };
-
-    // A document with three matches of "replicas"
-    const THREE_MATCHES = 'replicas: 5\nreplicasA: 1\nreplicasB: 1\n';
-    const queryOf = (editor: any) => getSearchQuery(editor.view.state).search;
-
-    it('does not search before the third character', async() => {
+    it('opens CodeMirror\'s search panel in the chart-defaults editor', () => {
       const wrapper = mountEditor();
 
-      await search(wrapper, 'en');
-
-      expect(queryOf(editors(wrapper).left)).toStrictEqual('');
-      expect(countLabel(wrapper).text()).toStrictEqual('');
+      expect(searchPanelOpen(editors(wrapper).left.view.state)).toBe(true);
     });
 
-    it('waits for the user to stop typing before searching', async() => {
+    it('puts the search panel above the chart-defaults editor', () => {
+      const wrapper = mountEditor();
+
+      expect(wrapper.find('[data-testid="values-defaults-pane"] .values-pane__search .cm-search').exists()).toBe(true);
+    });
+
+    it('uses the search placeholder', () => {
+      const wrapper = mountEditor({ searchPlaceholder: 'Search values...' });
+      const field = wrapper.find('.cm-search [main-field]').element;
+
+      expect(field.getAttribute('placeholder')).toStrictEqual('Search values...');
+    });
+
+    it('keeps the search panel open', () => {
       const wrapper = mountEditor();
       const { left } = editors(wrapper);
 
-      await searchInput(wrapper).setValue('ena');
-      await searchInput(wrapper).setValue('enab');
+      closeSearchPanel(left.view);
 
-      expect(queryOf(left)).toStrictEqual('');
-
-      jest.runAllTimers();
-
-      expect(queryOf(left)).toStrictEqual('enab');
+      expect(searchPanelOpen(left.view.state)).toBe(true);
     });
 
-    it('highlights the matches in the chart-defaults editor, ignoring case', async() => {
+    it('leaves the overrides editor\'s search panel closed', () => {
       const wrapper = mountEditor();
 
-      await search(wrapper, 'ENAbled');
-
-      expect(searchMarks(editors(wrapper).left)).toStrictEqual(['enabled']);
-    });
-
-    it('counts every match', async() => {
-      const wrapper = mountEditor({ value: THREE_MATCHES });
-
-      await search(wrapper, 'replicas');
-
-      expect(countLabel(wrapper).text()).toStrictEqual('yamlOverridesEditor.search.position {"current":1,"total":3}');
-    });
-
-    it('ignores spaces around the query', async() => {
-      const wrapper = mountEditor();
-
-      await search(wrapper, '  sachet  ');
-
-      expect(queryOf(editors(wrapper).left)).toStrictEqual('sachet');
-    });
-
-    it('shows the search icon and no clear button before anything is typed', () => {
-      const wrapper = mountEditor();
-
-      expect(searchIcon(wrapper).exists()).toBe(true);
-      expect(clearButton(wrapper).exists()).toBe(false);
-    });
-
-    it.each([
-      ['a short query', 'en'],
-      ['a query with matches', 'sachet'],
-      ['a query with no matches', 'nothing-here'],
-    ])('swaps the search icon for a clear button after typing %s', async(_, query) => {
-      const wrapper = mountEditor();
-
-      await search(wrapper, query);
-
-      expect(clearButton(wrapper).exists()).toBe(true);
-      expect(searchIcon(wrapper).exists()).toBe(false);
-    });
-
-    it('shows the search icon again after the search is cleared', async() => {
-      const wrapper = mountEditor();
-
-      await search(wrapper, 'sachet');
-      await clearButton(wrapper).trigger('click');
-
-      expect(searchIcon(wrapper).exists()).toBe(true);
-    });
-
-    it.each([
-      ['next', nextButton],
-      ['previous', previousButton],
-    ])('shows the %p button when there are matches', async(_, button) => {
-      const wrapper = mountEditor();
-
-      await search(wrapper, 'sachet');
-
-      expect(button(wrapper).exists()).toBe(true);
-    });
-
-    it.each([
-      ['next', nextButton],
-      ['previous', previousButton],
-    ])('hides the %p button when nothing matches', async(_, button) => {
-      const wrapper = mountEditor();
-
-      await search(wrapper, 'nothing-here');
-
-      expect(button(wrapper).exists()).toBe(false);
-    });
-
-    it('selects the first match of a new query', async() => {
-      const wrapper = mountEditor({ value: THREE_MATCHES });
-      const { left } = editors(wrapper);
-
-      await search(wrapper, 'replicas');
-
-      expect(left.view.state.selection.main.from).toStrictEqual(0);
-      expect(selectedText(left)).toStrictEqual('replicas');
-    });
-
-    it('shows the position of the selected match', async() => {
-      const wrapper = mountEditor();
-
-      await search(wrapper, 'sachet');
-
-      expect(countLabel(wrapper).text()).toStrictEqual('yamlOverridesEditor.search.position {"current":1,"total":1}');
-    });
-
-    it.each([
-      ['next', nextButton, 2],
-      ['previous', previousButton, 3],
-    ])('selects the %p match when its button is clicked', async(_, button, current) => {
-      const wrapper = mountEditor({ value: THREE_MATCHES });
-
-      await search(wrapper, 'replicas');
-      await button(wrapper).trigger('click');
-
-      expect(countLabel(wrapper).text()).toStrictEqual(`yamlOverridesEditor.search.position {"current":${ current },"total":3}`);
-    });
-
-    it.each([
-      ['next', {}, 2],
-      ['previous', { shiftKey: true }, 3],
-    ])('selects the %p match when Enter is pressed with %p', async(_, modifiers, current) => {
-      const wrapper = mountEditor({ value: THREE_MATCHES });
-
-      await search(wrapper, 'replicas');
-      await searchInput(wrapper).trigger('keydown', { key: 'Enter', ...modifiers });
-
-      expect(countLabel(wrapper).text()).toStrictEqual(`yamlOverridesEditor.search.position {"current":${ current },"total":3}`);
-    });
-
-    it('runs a waiting search on Enter instead of moving past its first match', async() => {
-      const wrapper = mountEditor({ value: THREE_MATCHES });
-
-      await searchInput(wrapper).setValue('replicas');
-      await searchInput(wrapper).trigger('keydown', { key: 'Enter' });
-
-      expect(countLabel(wrapper).text()).toStrictEqual('yamlOverridesEditor.search.position {"current":1,"total":3}');
-    });
-
-    it('keeps the selection when the chart-defaults document is edited', async() => {
-      const wrapper = mountEditor({ value: THREE_MATCHES });
-      const { left } = editors(wrapper);
-
-      await search(wrapper, 'replicas');
-      await nextButton(wrapper).trigger('click');
-      left.view.dispatch({ changes: { from: left.view.state.doc.length, insert: 'other: replicas\n' } });
-      await settle(wrapper);
-
-      expect(countLabel(wrapper).text()).toStrictEqual('yamlOverridesEditor.search.position {"current":2,"total":4}');
-    });
-
-    it('shows no matches and no highlight when nothing matches', async() => {
-      const wrapper = mountEditor();
-
-      await search(wrapper, 'nothing-here');
-
-      expect(searchMarks(editors(wrapper).left)).toStrictEqual([]);
-      expect(countLabel(wrapper).text()).toStrictEqual('yamlOverridesEditor.search.matches {"count":0}');
-    });
-
-    it('clears the search when the clear button is clicked', async() => {
-      const wrapper = mountEditor();
-      const { left } = editors(wrapper);
-
-      await search(wrapper, 'sachet');
-      await clearButton(wrapper).trigger('click');
-
-      expect((searchInput(wrapper).element as HTMLInputElement).value).toStrictEqual('');
-      expect(searchMarks(left)).toStrictEqual([]);
-      expect(countLabel(wrapper).text()).toStrictEqual('');
-    });
-
-    it('clears the search when Escape is pressed', async() => {
-      const wrapper = mountEditor();
-
-      await search(wrapper, 'sachet');
-      await searchInput(wrapper).trigger('keydown', { key: 'Escape' });
-
-      expect((searchInput(wrapper).element as HTMLInputElement).value).toStrictEqual('');
-      expect(searchMarks(editors(wrapper).left)).toStrictEqual([]);
-    });
-
-    it('clears the highlight right away when the query gets too short', async() => {
-      const wrapper = mountEditor();
-
-      await search(wrapper, 'sachet');
-      await searchInput(wrapper).setValue('sa');
-
-      expect(searchMarks(editors(wrapper).left)).toStrictEqual([]);
-    });
-
-    it('recounts the matches when the chart-defaults document changes', async() => {
-      const wrapper = mountEditor();
-      const { left, right } = editors(wrapper);
-
-      await search(wrapper, 'sachet');
-      right.$emit('update:value', 'replicas: 5\nsachetExtra: 1\n');
-      await settle(wrapper);
-      await settle(wrapper);
-
-      expect(searchMarks(left)).toStrictEqual(['sachet', 'sachet']);
-      expect(countLabel(wrapper).text()).toStrictEqual('yamlOverridesEditor.search.matches {"count":2}');
-    });
-
-    describe('find keys in the chart-defaults editor', () => {
-      const press = (editor: any, init: ConstructorParameters<typeof KeyboardEvent>[1]) => runScopeHandlers(editor.view, new KeyboardEvent('keydown', init), 'editor');
-
-      it('keeps the editor\'s own search panel closed', async() => {
-        const wrapper = mountEditor();
-        const { left } = editors(wrapper);
-
-        openSearchPanel(left.view);
-        await settle(wrapper);
-
-        expect(searchPanelOpen(left.view.state)).toBe(false);
-      });
-
-      it('focuses the search box instead of opening the editor\'s search panel', async() => {
-        const wrapper = mountEditor();
-        const focus = jest.spyOn(searchInput(wrapper).element as HTMLInputElement, 'focus');
-
-        openSearchPanel(editors(wrapper).left.view);
-        await settle(wrapper);
-
-        expect(focus).toHaveBeenCalledWith();
-      });
-
-      it('focuses the search box on F3 when nothing is searched', async() => {
-        const wrapper = mountEditor();
-        const focus = jest.spyOn(searchInput(wrapper).element as HTMLInputElement, 'focus');
-
-        press(editors(wrapper).left, { key: 'F3' });
-
-        expect(focus).toHaveBeenCalledWith();
-      });
-
-      it.each([
-        ['next', { key: 'F3' }, 2],
-        ['previous', { key: 'F3', shiftKey: true }, 3],
-      ])('selects the %p match and updates the count on %p', async(_, init, current) => {
-        const wrapper = mountEditor({ value: THREE_MATCHES });
-
-        await search(wrapper, 'replicas');
-        press(editors(wrapper).left, init);
-        await wrapper.vm.$nextTick();
-
-        expect(countLabel(wrapper).text()).toStrictEqual(`yamlOverridesEditor.search.position {"current":${ current },"total":3}`);
-      });
-    });
-
-    describe('find keys in the search box', () => {
-      it.each([
-        ['next', { key: 'F3' }, 2],
-        ['previous', { key: 'F3', shiftKey: true }, 3],
-        ['next', { key: 'g', ctrlKey: true }, 2],
-        ['previous', {
-          key: 'G', ctrlKey: true, shiftKey: true
-        }, 3],
-      ])('selects the %p match on %p', async(_, init, current) => {
-        const wrapper = mountEditor({ value: THREE_MATCHES });
-
-        await search(wrapper, 'replicas');
-        await searchInput(wrapper).trigger('keydown', init);
-
-        expect(countLabel(wrapper).text()).toStrictEqual(`yamlOverridesEditor.search.position {"current":${ current },"total":3}`);
-      });
-
-      it('stops the browser\'s own find on Mod-G', () => {
-        const wrapper = mountEditor();
-        const event = new KeyboardEvent('keydown', {
-          key: 'g', ctrlKey: true, cancelable: true
-        });
-
-        searchInput(wrapper).element.dispatchEvent(event);
-
-        expect(event.defaultPrevented).toBe(true);
-      });
-
-      it.each([
-        ['G without Mod', { key: 'g' }],
-        ['Mod-F3', { key: 'F3', ctrlKey: true }],
-        ['Alt-Mod-G', {
-          key: 'g', ctrlKey: true, altKey: true
-        }],
-      ])('leaves %s alone', async(_, init) => {
-        const wrapper = mountEditor({ value: THREE_MATCHES });
-
-        await search(wrapper, 'replicas');
-        await searchInput(wrapper).trigger('keydown', init);
-
-        expect(countLabel(wrapper).text()).toStrictEqual('yamlOverridesEditor.search.position {"current":1,"total":3}');
-      });
+      expect(searchPanelOpen(editors(wrapper).right.view.state)).toBe(false);
     });
   });
 });

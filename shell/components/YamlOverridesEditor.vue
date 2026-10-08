@@ -7,11 +7,7 @@ import type { EditorView } from '@codemirror/view';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { overridesFromEditedValues, mergeOverridesRawText, changedLineNumbers, sameYamlOverrides } from '@shell/utils/chart-values';
 import { setLineClasses } from '@shell/utils/code-mirror-line-classes';
-import {
-  MIN_SEARCH_LENGTH, connectYamlSearchBox, findYamlSearchMatch, setYamlSearch, yamlSearchMatches
-} from '@shell/utils/yaml-search';
-import type { YamlSearchMatches } from '@shell/utils/yaml-search';
-import { isMac } from '@shell/utils/platform';
+import { keepSearchPanelOpen } from '@shell/utils/code-mirror-search';
 
 /**
  * Two editable YAML panes for chart values:
@@ -30,8 +26,9 @@ import { isMac } from '@shell/utils/platform';
  * The work that grows with the document is debounced: deriving the overrides
  * from an edited LEFT pane (parse + diff), pushing the text into the *other* pane
  * (merge + dump) and re-tinting. The text is pushed via the editor's ref, since
- * YamlEditor doesn't react to its `value` prop after mount. Search and tint talk
- * to the chart-defaults CodeMirror view directly.
+ * YamlEditor doesn't react to its `value` prop after mount. The tint and the
+ * search talk to the chart-defaults CodeMirror view directly. The search is
+ * CodeMirror's own search bar, kept open in the chart-defaults pane.
  */
 
 // Delay before the overrides, the opposite pane and the decorations recompute after
@@ -40,9 +37,6 @@ const SYNC_DEBOUNCE_MS = 400;
 
 // Line-background class for the changed lines. It's the same tint as the overrides pane.
 const OVERRIDE_LINE_CLASS = 'line-override-highlight';
-
-// Delay before the chart-defaults search runs after the last keystroke.
-const SEARCH_DEBOUNCE_MS = 250;
 
 interface Props {
   /** Editable overrides YAML - the saved value (use with v-model:value). */
@@ -55,6 +49,8 @@ interface Props {
   chartDefaultsHint?: string;
   overridesLabel?: string;
   overridesHint?: string;
+  /** Placeholder of the search in the chart-defaults pane. CodeMirror's "Find" when empty. */
+  searchPlaceholder?: string;
   /**
    * Prefix for the data-testids on each pane/editor, e.g. `chart-values` produces
    * `chart-values-defaults-pane` and (via YamlEditor) `chart-values-defaults-code-mirror`.
@@ -70,6 +66,7 @@ const props = withDefaults(defineProps<Props>(), {
   chartDefaultsHint:  '',
   overridesLabel:     '',
   overridesHint:      '',
+  searchPlaceholder:  '',
   testidPrefix:       'values',
 });
 
@@ -83,7 +80,8 @@ interface YamlEditorRef {
 
 const defaultsEditor = ref<YamlEditorRef | null>(null);
 const overridesEditor = ref<YamlEditorRef | null>(null);
-const searchInput = ref<HTMLInputElement | null>(null);
+// Holds the chart-defaults editor's search panel, above the editor
+const searchContainer = ref<HTMLElement | null>(null);
 
 // The chart-defaults CodeMirror view, once it's ready. Not reactive on purpose.
 let defaultsView: EditorView | null = null;
@@ -97,13 +95,6 @@ const defaultsPaneTestid = () => `${ props.testidPrefix }-defaults-pane`;
 const overridesPaneTestid = () => `${ props.testidPrefix }-overrides-pane`;
 const defaultsTestid = () => `${ props.testidPrefix }-defaults`;
 const overridesTestid = () => `${ props.testidPrefix }-overrides`;
-const searchTestid = () => `${ props.testidPrefix }-defaults-search`;
-
-// The chart-defaults search: what the user typed, the query it ran with (empty
-// until it has MIN_SEARCH_LENGTH characters), and its matches.
-const searchQuery = ref('');
-const activeSearchQuery = ref('');
-const matches = ref<YamlSearchMatches>({ current: 0, total: 0 });
 
 /** LEFT-pane decorations: tint each leaf line that differs from the defaults. */
 function applyDefaultsDecorations() {
@@ -230,96 +221,6 @@ function onOverridesBlur() {
   queueSyncFromOverrides.flush();
 }
 
-// --- Searching the LEFT (chart defaults) pane -------------------------------
-
-// Highlight and count the matches in the editor. The editor stays editable, and
-// CodeMirror re-highlights the lines the user edits by itself.
-function runSearch() {
-  const query = searchQuery.value.trim();
-  const active = query.length >= MIN_SEARCH_LENGTH ? query : '';
-  const isNewQuery = active !== activeSearchQuery.value;
-
-  activeSearchQuery.value = active;
-
-  if (!defaultsView) {
-    return;
-  }
-
-  setYamlSearch(defaultsView, active);
-
-  // Like a browser, a new query selects its first match. An edit keeps the selection.
-  matches.value = isNewQuery ? findYamlSearchMatch(defaultsView, 'first') : yamlSearchMatches(defaultsView.state);
-}
-
-const queueSearch = debounce(runSearch, SEARCH_DEBOUNCE_MS);
-
-// Wait for the user to stop typing before searching, but clear a search right away
-// once the query gets too short, since that costs nothing.
-watch(searchQuery, (query) => {
-  if (query.trim().length < MIN_SEARCH_LENGTH) {
-    queueSearch.cancel();
-    runSearch();
-  } else {
-    queueSearch();
-  }
-});
-
-// Keep the match count right while the chart-defaults document changes.
-watch(defaultsContent, () => {
-  if (activeSearchQuery.value) {
-    queueSearch();
-  }
-});
-
-function clearSearch() {
-  searchQuery.value = '';
-}
-
-/** Select the next or previous match (wrapping around) and scroll to it. */
-function goToMatch(direction: 'next' | 'previous') {
-  // A search still waiting for the debounce runs first, which selects its first match.
-  if (searchQuery.value.trim() !== activeSearchQuery.value) {
-    queueSearch.flush();
-
-    return;
-  }
-
-  if (defaultsView && matches.value.total) {
-    matches.value = findYamlSearchMatch(defaultsView, direction);
-  }
-}
-
-// F3 and Mod-G work in the search box too, like in CodeMirror's own search panel.
-// Shift goes to the previous match. Only F3 and G keydowns get here.
-function onSearchKeydown(event: KeyboardEvent) {
-  const mod = isMac ? event.metaKey : event.ctrlKey;
-  // F3 on its own, or G with Mod
-  const isFindKey = event.key === 'F3' ? !mod : mod;
-
-  if (!isFindKey || event.altKey) {
-    return;
-  }
-
-  // Mod-G would also open the browser's own find
-  event.preventDefault();
-  goToMatch(event.shiftKey ? 'previous' : 'next');
-}
-
-function focusSearch() {
-  searchInput.value?.focus();
-  searchInput.value?.select();
-}
-
-// The editor's find keys use the search box instead of CodeMirror's own search
-// panel. F3 and Mod-G go to the next match, or to the box when nothing is searched.
-function findFromEditor(direction: 'next' | 'previous') {
-  if (activeSearchQuery.value) {
-    goToMatch(direction);
-  } else {
-    focusSearch();
-  }
-}
-
 // --- External prop changes --------------------------------------------------
 
 // React to `value` changing from outside (e.g. the parent seeding the pane). Our
@@ -349,14 +250,13 @@ watch(() => props.defaults, () => {
 function onDefaultsReady(view: EditorView) {
   defaultsView = view;
   applyDefaultsDecorations();
-  connectYamlSearchBox(view, { open: focusSearch, find: findFromEditor });
+  keepSearchPanelOpen(view, { placeholder: props.searchPlaceholder, container: searchContainer.value });
 }
 
 onBeforeUnmount(() => {
   // Don't lose a chart-defaults edit that is still waiting to be emitted
   queueSyncFromDefaults.flush();
   queueSyncFromOverrides.cancel();
-  queueSearch.cancel();
   defaultsView = null;
 });
 </script>
@@ -378,70 +278,9 @@ onBeforeUnmount(() => {
       </div>
       <div class="values-pane__body">
         <div
-          class="values-search"
-          :class="{ 'values-search--active': !!activeSearchQuery }"
-        >
-          <input
-            ref="searchInput"
-            v-model="searchQuery"
-            type="search"
-            class="input-sm values-search__input"
-            :placeholder="t('yamlOverridesEditor.search.placeholder')"
-            :aria-label="t('yamlOverridesEditor.search.ariaLabel')"
-            :data-testid="searchTestid()"
-            @keydown.esc.prevent="clearSearch"
-            @keydown.enter.exact.prevent="goToMatch('next')"
-            @keydown.shift.enter.exact.prevent="goToMatch('previous')"
-            @keydown.f3="onSearchKeydown"
-            @keydown.g="onSearchKeydown"
-          >
-          <div class="values-search__addons">
-            <button
-              v-if="matches.total"
-              type="button"
-              class="btn role-link values-search__button"
-              :aria-label="t('yamlOverridesEditor.search.next')"
-              :data-testid="`${ searchTestid() }-next`"
-              @click="goToMatch('next')"
-            >
-              <i class="icon icon-chevron-down" />
-            </button>
-            <!-- Always rendered so screen readers announce the count when it changes -->
-            <span
-              class="values-search__count"
-              aria-live="polite"
-              :data-testid="`${ searchTestid() }-count`"
-            >
-              <template v-if="matches.current">{{ t('yamlOverridesEditor.search.position', { current: matches.current, total: matches.total }) }}</template>
-              <template v-else-if="activeSearchQuery">{{ t('yamlOverridesEditor.search.matches', { count: matches.total }) }}</template>
-            </span>
-            <button
-              v-if="matches.total"
-              type="button"
-              class="btn role-link values-search__button"
-              :aria-label="t('yamlOverridesEditor.search.previous')"
-              :data-testid="`${ searchTestid() }-previous`"
-              @click="goToMatch('previous')"
-            >
-              <i class="icon icon-chevron-up" />
-            </button>
-            <!-- Like the charts page search, the magnifier turns into a clear button once something is typed -->
-            <button
-              v-if="searchQuery"
-              type="button"
-              class="btn role-link values-search__button"
-              :aria-label="t('yamlOverridesEditor.search.clear')"
-              :data-testid="`${ searchTestid() }-clear`"
-              @click="clearSearch"
-            >
-              <i class="icon icon-close" />
-            </button>
-            <i
-              v-else
-              class="icon icon-search values-search__icon"
-            />
-          </div>
-        </div>
+          ref="searchContainer"
+          class="values-pane__search"
+        />
         <YamlEditor
           ref="defaultsEditor"
           class="values-pane__editor"
@@ -530,6 +369,34 @@ onBeforeUnmount(() => {
         margin-bottom: 16px;
       }
 
+      // CodeMirror's search panel, moved out of the editor's frame so it looks like a
+      // search box above it, the size of an input without a label. The `.cm-panel.cm-search`
+      // makes these win over the editor's theme.
+      &__search {
+        :deep(.cm-panels-top) {
+          background-color: transparent;
+          border-bottom: none;
+
+          // A layer that mutes the code scrolling past above the panel, which isn't needed here
+          &::before {
+            display: none;
+          }
+        }
+
+        :deep(.cm-panel.cm-search) {
+          padding: 0 0 8px;
+
+          .cm-search-field {
+            height: $unlabeled-input-height;
+          }
+
+          // Like the charts page search, the arrows only show when there are matches
+          .cm-search-controls button:disabled {
+            display: none;
+          }
+        }
+      }
+
       &__title {
         font-weight: 600;
         margin: 0 0 4px 0;
@@ -571,71 +438,6 @@ onBeforeUnmount(() => {
         :deep(.codemirror-container .cm-gutters) {
           background-color: transparent;
         }
-      }
-    }
-  }
-
-  .values-search {
-    // Holds the absolutely placed addons
-    position: relative;
-    padding-bottom: 8px;
-
-    // Same spot and colour as the clear button that replaces it
-    &__icon {
-      padding: 4px;
-      color: var(--muted);
-    }
-
-    // Same size as the icon of the charts page search
-    &__icon, &__button .icon-close {
-      font-size: 16px;
-    }
-
-    &__input {
-      width: 100%;
-      // Make room for the icon or the clear button
-      padding-right: 36px;
-
-      // We show our own clear button, so it looks the same in every browser.
-      &::-webkit-search-cancel-button {
-        -webkit-appearance: none;
-      }
-    }
-
-    // Make room so the typed text doesn't run under the count and the buttons.
-    &--active &__input {
-      padding-right: 180px;
-    }
-
-    &__addons {
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding-right: 8px;
-      // Let clicks on the empty space reach the input underneath.
-      pointer-events: none;
-    }
-
-    &__count {
-      color: var(--input-label);
-      font-size: 12px;
-      white-space: nowrap;
-    }
-
-    &__button {
-      color: var(--muted);
-      pointer-events: auto;
-      min-height: 0;
-      line-height: 1;
-      padding: 4px;
-
-      // `.role-link` turns white on hover, which disappears on the input.
-      &:hover, &:focus-visible {
-        color: var(--body-text);
       }
     }
   }

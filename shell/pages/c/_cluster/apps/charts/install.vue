@@ -2152,6 +2152,7 @@ export default {
                 :editor-mode="editorMode"
                 :chart-defaults-label="t('catalog.install.section.chartDefaults.label')"
                 :chart-defaults-hint="t('catalog.install.section.chartDefaults.hint')"
+                :search-placeholder="t('catalog.install.section.chartDefaults.searchPlaceholder')"
                 :overrides-label="t('catalog.install.section.overrides.label')"
                 :overrides-hint="t('catalog.install.section.overrides.hint')"
                 testid-prefix="chart-values"
