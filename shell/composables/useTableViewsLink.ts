@@ -8,6 +8,7 @@ import { useStore } from 'vuex';
 import type { Store } from 'vuex';
 
 import { TABLE_STATE_QUERY, TABLE_STATE_KEY_QUERY } from '@shell/config/query-params';
+import { isNavigating } from '@shell/config/router/navigation-guards/navigation-state';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { encodeLinkedViews, sharedViewsIn } from '@shell/utils/table-views/link';
 import type { LinkedTableView } from '@shell/utils/table-views/link';
@@ -58,6 +59,15 @@ function write() {
     return;
   }
 
+  // Another page is on its way: written now, the URL would call that navigation off. Once it has
+  // settled, the tables then on screen are written
+  if (isNavigating()) {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    scheduleWrite();
+
+    return;
+  }
+
   const query = { ...route.query };
   const key = shown.size ? ensurePersistenceId() : null;
 
@@ -73,9 +83,11 @@ function write() {
     return;
   }
 
+  // The route's guards run for it too, and can fail, eg with the session ending; the URL is just
+  // written again on the next change
   router.replace({
     path: route.path, query, hash: route.hash
-  });
+  }).catch(() => {});
 }
 
 function scheduleWrite() {
