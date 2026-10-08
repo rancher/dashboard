@@ -212,10 +212,7 @@ export async function promptDisableAuthProvider({
 
   return dispatch('management/promptModal', {
     component:      'DisableAuthProviderDialog',
-    customClass:    'remove-modal',
-    modalWidth:     '640px', // AppModal ignores a width with no unit and falls back to 600px
-    height:         'auto',
-    styles:         'max-height: 100vh;',
+    ownsModal:      true,
     componentProps: { name, disableCb },
   });
 }

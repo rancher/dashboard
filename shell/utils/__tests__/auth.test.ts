@@ -660,12 +660,17 @@ describe('fx: promptDisableAuthProvider', () => {
     expect(modalArgs(args.dispatch).component).toBe('DisableAuthProviderDialog');
   });
 
+  it('should let the ordinary dialog render its own modal', async() => {
+    const args = makeArgs({ configs: [{ id: 'github', enabled: true }] });
+
+    await promptDisableAuthProvider(args);
+
+    expect(modalArgs(args.dispatch).ownsModal).toBe(true);
+  });
+
   // AppModal drops a width carrying no unit and falls back to its own default.
-  it.each([
-    ['ordinary', false],
-    ['lockout', true],
-  ])('should ask the %s dialog for a width the modal can use', async(_desc, localLoginDisabled) => {
-    const args = makeArgs({ configs: [{ id: 'github', enabled: true }], localLoginDisabled });
+  it('should ask the lockout dialog for a width the modal can use', async() => {
+    const args = makeArgs({ configs: [{ id: 'github', enabled: true }], localLoginDisabled: true });
 
     await promptDisableAuthProvider(args);
 
