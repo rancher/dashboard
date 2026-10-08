@@ -129,7 +129,7 @@ const exportSelection = async(items: ExportResource[], as: Format, columns: Retu
   const id = await store.dispatch('notifications/add', {
     level:    NotificationLevel.Task,
     title:    t('tableViews.export.notification.title'),
-    message:  t('tableViews.export.notification.selectionMessage', { count, format: as.toUpperCase() }),
+    message:  t('tableViews.export.notification.selectionMessage', { count, format: as.toUpperCase() }, true),
     progress: 0,
   });
   const onProgress = (done: number, total: number) => store.dispatch('notifications/update', { id, progress: Math.round((100 * done) / (total || 1)) });
@@ -141,7 +141,7 @@ const exportSelection = async(items: ExportResource[], as: Format, columns: Retu
       id,
       level:    NotificationLevel.Success,
       title:    t('tableViews.export.notification.doneTitle'),
-      message:  t('tableViews.export.notification.selectionDoneMessage', { count, file }),
+      message:  t('tableViews.export.notification.selectionDoneMessage', { count, file }, true),
       progress: 100,
     });
   } catch (e) {
@@ -151,7 +151,7 @@ const exportSelection = async(items: ExportResource[], as: Format, columns: Retu
       id,
       level:   NotificationLevel.Error,
       title:   t('tableViews.export.notification.failedTitle'),
-      message: t('tableViews.export.notification.selectionFailedMessage', { count }),
+      message: t('tableViews.export.notification.selectionFailedMessage', { count }, true),
     });
   }
 };

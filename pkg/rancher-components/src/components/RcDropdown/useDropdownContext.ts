@@ -122,10 +122,12 @@ export const useDropdownContext = (emit: EmitFn<['update:open']>) => {
       return;
     }
 
-    // The popper's box outlives an opening, so what an earlier one set is undone first
+    // The popper's box outlives an opening, so what an earlier one set is undone first, before the
+    // menu is measured as it comes
     const scroller = target.closest('.v-popper__inner') as HTMLElement | null || target;
 
     scroller.style.overflowY = '';
+    target.style.height = '';
 
     const { top, bottom } = target.getBoundingClientRect();
     const padding = 32;
