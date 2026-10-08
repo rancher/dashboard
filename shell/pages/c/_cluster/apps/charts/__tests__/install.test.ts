@@ -660,7 +660,7 @@ describe('page: Install', () => {
         const wrapper = mountWithRegistry();
 
         expect(wrapper.vm.chartDefaults).toBeDefined();
-        expect(wrapper.vm.versionInfo.values).toStrictEqual(registryValues());
+        expect(wrapper.vm.versionInfo?.values).toStrictEqual(registryValues());
       });
 
       it('uses the chart\'s values as they are when the chart has no registry keys', () => {

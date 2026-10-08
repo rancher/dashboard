@@ -77,8 +77,12 @@ const emit = defineEmits<{(e: 'update:value', value: string): void }>();
 
 // Editors are driven imperatively (YamlEditor doesn't react to its `value` prop
 // after mount, so cross-pane updates are pushed in via these refs).
-const defaultsEditor = ref<any>(null);
-const overridesEditor = ref<any>(null);
+interface YamlEditorRef {
+  updateValue(value: string): void;
+}
+
+const defaultsEditor = ref<YamlEditorRef | null>(null);
+const overridesEditor = ref<YamlEditorRef | null>(null);
 const searchInput = ref<HTMLInputElement | null>(null);
 
 // The chart-defaults CodeMirror view, once it's ready. Not reactive on purpose.
