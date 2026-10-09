@@ -7,6 +7,13 @@ const FEATURE = {
   id: 'navigation', title: 'Navigation', description: 'A new navigation'
 };
 
+const PRIME_PROMO = {
+  title:       'Go Prime',
+  description: 'Everything, plus support',
+  products:    ['Rancher Manager', 'SUSE Storage'],
+  cta:         { action: 'Explore', link: 'https://www.suse.com/products/rancher/' },
+};
+
 const DOCUMENT = `
 version: 1
 releases:
@@ -15,6 +22,15 @@ releases:
       - id: navigation
         title: Navigation
         description: A new navigation
+    primePromo:
+      title: Go Prime
+      description: Everything, plus support
+      products:
+        - Rancher Manager
+        - SUSE Storage
+      cta:
+        action: Explore
+        link: https://www.suse.com/products/rancher/
 `;
 
 describe('dynamic content: first-run', () => {
@@ -86,15 +102,77 @@ describe('dynamic content: first-run', () => {
     });
   });
 
-  describe('fetchFirstRunFeatures', () => {
-    it('should return the features of the fetched document', async() => {
-      const features = await firstRun.fetchFirstRunFeatures(getters, axios, '2.16');
+  describe('firstRunPrimePromo', () => {
+    const contentWith = (primePromo: any) => ({
+      version:  1,
+      releases: [{
+        version: '2.16', whatsNew: [FEATURE], primePromo
+      }]
+    });
 
-      expect(features).toStrictEqual([FEATURE]);
+    it('should return the promotion of the version', () => {
+      expect(firstRun.firstRunPrimePromo(contentWith(PRIME_PROMO), '2.16')).toStrictEqual(PRIME_PROMO);
+    });
+
+    it('should drop unknown fields of the promotion', () => {
+      const promo = {
+        ...PRIME_PROMO, icon: 'star', cta: { ...PRIME_PROMO.cta, style: 'link' }
+      };
+
+      expect(firstRun.firstRunPrimePromo(contentWith(promo), '2.16')).toStrictEqual(PRIME_PROMO);
+    });
+
+    it('should accept a promotion without products', () => {
+      const promo = { ...PRIME_PROMO, products: [] };
+
+      expect(firstRun.firstRunPrimePromo(contentWith(promo), '2.16')).toStrictEqual(promo);
+    });
+
+    it.each([
+      ['no promotion', undefined],
+      ['a promotion that is not an object', 'Go Prime'],
+      ['no title', { ...PRIME_PROMO, title: undefined }],
+      ['an empty description', { ...PRIME_PROMO, description: '' }],
+      ['products that are not a list', { ...PRIME_PROMO, products: 'Rancher Manager' }],
+      ['an empty product', { ...PRIME_PROMO, products: ['Rancher Manager', ''] }],
+      ['no call to action', { ...PRIME_PROMO, cta: undefined }],
+      ['a call to action without a label', { ...PRIME_PROMO, cta: { link: PRIME_PROMO.cta.link } }],
+      ['an http link', { ...PRIME_PROMO, cta: { ...PRIME_PROMO.cta, link: 'http://www.suse.com' } }],
+      ['a javascript link', { ...PRIME_PROMO, cta: { ...PRIME_PROMO.cta, link: 'javascript:alert(1)' } }],
+      ['a relative link', { ...PRIME_PROMO, cta: { ...PRIME_PROMO.cta, link: '/home' } }],
+    ])('should return undefined for %s', (_, promo) => {
+      expect(firstRun.firstRunPrimePromo(contentWith(promo), '2.16')).toBeUndefined();
+    });
+
+    it('should return undefined when there is no release for the version', () => {
+      expect(firstRun.firstRunPrimePromo(contentWith(PRIME_PROMO), '2.17')).toBeUndefined();
+    });
+  });
+
+  describe('fetchFirstRunContent', () => {
+    it('should return the content of the fetched document', async() => {
+      const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16');
+
+      expect(content).toStrictEqual({ features: [FEATURE], primePromo: PRIME_PROMO });
+    });
+
+    it('should use each part of the document on its own', async() => {
+      axios.mockResolvedValue({
+        data: JSON.stringify({
+          version:  1,
+          releases: [{
+            version: '2.16', whatsNew: [FEATURE], primePromo: { title: 'Go Prime' }
+          }]
+        })
+      });
+
+      const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16');
+
+      expect(content).toStrictEqual({ features: [FEATURE], primePromo: undefined });
     });
 
     it('should fetch the document without credentials', async() => {
-      await firstRun.fetchFirstRunFeatures(getters, axios, '2.16');
+      await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
       expect(axios).toHaveBeenCalledWith({
         url:             'https://updates.rancher.io/rancher/community/first-run',
@@ -108,11 +186,18 @@ describe('dynamic content: first-run', () => {
     });
 
     it('should accept a JSON document', async() => {
-      axios.mockResolvedValue({ data: JSON.stringify({ version: 1, releases: [{ version: '2.16', whatsNew: [FEATURE] }] }) });
+      axios.mockResolvedValue({
+        data: JSON.stringify({
+          version:  1,
+          releases: [{
+            version: '2.16', whatsNew: [FEATURE], primePromo: PRIME_PROMO
+          }]
+        })
+      });
 
-      const features = await firstRun.fetchFirstRunFeatures(getters, axios, '2.16');
+      const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
-      expect(features).toStrictEqual([FEATURE]);
+      expect(content).toStrictEqual({ features: [FEATURE], primePromo: PRIME_PROMO });
     });
 
     it('should not fetch the document when dynamic content is disabled', async() => {
@@ -120,51 +205,57 @@ describe('dynamic content: first-run', () => {
         enabled: false, debug: false, log: false, endpoint: DEFAULT_ENDPOINT, prime: true, distribution: 'prime'
       });
 
-      const features = await firstRun.fetchFirstRunFeatures(getters, axios, '2.16');
+      const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
-      expect(features).toBeUndefined();
+      expect(content).toStrictEqual({});
       expect(axios).toHaveBeenCalledTimes(0);
     });
 
-    it('should return undefined when the document cannot be fetched', async() => {
+    it('should use the built-in content when the document cannot be fetched', async() => {
       const error = new Error('Forbidden');
 
       axios.mockRejectedValue(error);
 
-      const features = await firstRun.fetchFirstRunFeatures(getters, axios, '2.16');
+      const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
-      expect(features).toBeUndefined();
+      expect(content).toStrictEqual({});
       expect(mockLogger.info).toHaveBeenCalledWith('Unable to fetch the release welcome content, using the built-in content', error);
     });
 
-    it('should return undefined when the document is not valid YAML', async() => {
+    it('should use the built-in content when the document is not valid YAML', async() => {
       axios.mockResolvedValue({ data: 'releases: [' });
 
-      const features = await firstRun.fetchFirstRunFeatures(getters, axios, '2.16');
+      const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
-      expect(features).toBeUndefined();
+      expect(content).toStrictEqual({});
     });
 
     it.each([
       ['an empty document', ''],
       ['no response data', undefined],
-    ])('should return undefined for %s', async(_, data) => {
+    ])('should use the built-in content for %s', async(_, data) => {
       axios.mockResolvedValue({ data });
 
-      const features = await firstRun.fetchFirstRunFeatures(getters, axios, '2.16');
+      const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
-      expect(features).toBeUndefined();
+      expect(content).toStrictEqual({ features: undefined, primePromo: undefined });
     });
 
     it('should log when the document has no content for the version', async() => {
-      await firstRun.fetchFirstRunFeatures(getters, axios, '2.17');
+      await firstRun.fetchFirstRunContent(getters, axios, '2.17');
 
       expect(mockLogger.info).toHaveBeenCalledWith('No valid release welcome content for 2.17 in https://updates.rancher.io/rancher/community/first-run, using the built-in content');
     });
 
+    it('should log when the document has no Prime promotion for the version', async() => {
+      await firstRun.fetchFirstRunContent(getters, axios, '2.17');
+
+      expect(mockLogger.info).toHaveBeenCalledWith('No valid Prime promotion for 2.17 in https://updates.rancher.io/rancher/community/first-run, using the built-in content');
+    });
+
     it('should fetch the document once per session', async() => {
-      await firstRun.fetchFirstRunFeatures(getters, axios, '2.16');
-      await firstRun.fetchFirstRunFeatures(getters, axios, '2.16');
+      await firstRun.fetchFirstRunContent(getters, axios, '2.16');
+      await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
       expect(axios).toHaveBeenCalledTimes(1);
     });
@@ -172,8 +263,8 @@ describe('dynamic content: first-run', () => {
     it('should not fetch the document again after a failure', async() => {
       axios.mockRejectedValue(new Error('Forbidden'));
 
-      await firstRun.fetchFirstRunFeatures(getters, axios, '2.16');
-      await firstRun.fetchFirstRunFeatures(getters, axios, '2.16');
+      await firstRun.fetchFirstRunContent(getters, axios, '2.16');
+      await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
       expect(axios).toHaveBeenCalledTimes(1);
     });

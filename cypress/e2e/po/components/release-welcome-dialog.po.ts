@@ -22,6 +22,10 @@ export default class ReleaseWelcomeDialogPo extends ComponentPo {
     return cy.get('[data-testid="release-welcome-prime"]');
   }
 
+  primePromoExplore() {
+    return cy.get('[data-testid="release-welcome-prime-explore"]');
+  }
+
   closeButton() {
     return cy.get('[data-testid="release-welcome-close"]');
   }

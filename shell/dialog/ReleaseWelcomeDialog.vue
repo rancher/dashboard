@@ -13,7 +13,7 @@ import { isRancherPrime } from '@shell/config/version';
 import { SCC } from '@shell/store/features';
 import { isAdminUser } from '@shell/store/type-map';
 import { releaseWelcomeVersion } from '@shell/utils/release-welcome';
-import { FirstRunFeature } from '@shell/utils/dynamic-content/types';
+import { FirstRunFeature, FirstRunPrimePromo } from '@shell/utils/dynamic-content/types';
 
 defineProps({
   componentTestid: {
@@ -26,6 +26,14 @@ defineProps({
    */
   features: {
     type:    Array as PropType<FirstRunFeature[]>,
+    default: undefined
+  },
+
+  /**
+   * Prime promotion from dynamic content, the built-in promotion is shown when not set
+   */
+  primePromo: {
+    type:    Object as PropType<FirstRunPrimePromo>,
     default: undefined
   },
 
@@ -118,7 +126,10 @@ const close = () => emit('close');
         :features="features"
       />
       <PrimeRegistrationCard v-if="canRegister" />
-      <PrimePromoCard v-else-if="!isPrime" />
+      <PrimePromoCard
+        v-else-if="!isPrime"
+        :promo="primePromo"
+      />
     </div>
 
     <footer class="release-welcome__footer">
