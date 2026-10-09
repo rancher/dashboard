@@ -1,8 +1,9 @@
 import { mount } from '@vue/test-utils';
 
 import DetailText from '@shell/components/DetailText.vue';
+import { readTextFromClipboard } from '@shell/utils/clipboard';
 
-jest.mock('@shell/utils/clipboard', () => ({ copyTextToClipboard: jest.fn() }));
+jest.mock('@shell/utils/clipboard', () => ({ copyTextToClipboard: jest.fn(), readTextFromClipboard: jest.fn() }));
 
 describe('component: DetailText', () => {
   const defaultMocks = {
@@ -108,6 +109,93 @@ describe('component: DetailText', () => {
       expect(concealedSpan.exists()).toBe(true);
       expect(concealedSpan.classes()).toContain('conceal');
       expect(concealedSpan.text()).not.toContain('secret-key-123');
+    });
+  });
+
+  describe('an editable value', () => {
+    const mountEditable = (props: Record<string, unknown> = {}) => mount(DetailText, {
+      props: {
+        value: 'abc', label: 'View', editable: true, ...props
+      },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              ...defaultMocks.$store.getters,
+              'i18n/exists': () => false,
+            }
+          }
+        },
+        directives: {
+          'clean-html': () => {}, 'clean-tooltip': () => {}, t: () => {}
+        },
+        stubs: { CopyToClipboard: true, CodeMirror: true },
+      },
+    });
+    const flush = () => new Promise((resolve) => setTimeout(resolve));
+
+    it('should be a text box named by its label, in place of the text', () => {
+      const wrapper = mountEditable();
+      const box = wrapper.find('textarea');
+
+      expect((box.element as HTMLTextAreaElement).value).toBe('abc');
+      expect(box.attributes('aria-labelledby')).toBe(wrapper.find('h5').attributes('id'));
+      expect(wrapper.find('[data-testid="detail-top_html"]').exists()).toBe(false);
+    });
+
+    it('should hand back what is typed', async() => {
+      const wrapper = mountEditable();
+
+      await wrapper.find('textarea').setValue('typed');
+
+      expect(wrapper.emitted('update:value')?.[0]).toStrictEqual(['typed']);
+    });
+
+    it('should say when its value is wrong, and where that is said', () => {
+      const box = mountEditable({ invalid: true, describedBy: 'problem-1' }).find('textarea');
+
+      expect(box.attributes('aria-invalid')).toBe('true');
+      expect(box.attributes('aria-describedby')).toBe('problem-1');
+    });
+
+    it('should leave the text as it was shown without editable', () => {
+      expect(mountEditable({ editable: false }).find('textarea').exists()).toBe(false);
+    });
+
+    describe('with paste', () => {
+      it('should offer Paste where Copy goes, framed as with Copy', () => {
+        const wrapper = mountEditable({ copy: false, paste: true });
+
+        expect(wrapper.find('.action-group [data-testid="detail-text-paste"]').exists()).toBe(true);
+        expect(wrapper.classes()).toContain('with-copy');
+      });
+
+      it('should hand back what the clipboard holds', async() => {
+        jest.mocked(readTextFromClipboard).mockResolvedValueOnce('pasted');
+        const wrapper = mountEditable({ copy: false, paste: true });
+
+        await wrapper.find('[data-testid="detail-text-paste"]').trigger('click');
+        await flush();
+
+        expect(wrapper.emitted('update:value')?.[0]).toStrictEqual(['pasted']);
+      });
+
+      it.each([
+        ['is empty', () => Promise.resolve('')],
+        ['can\'t be read', () => Promise.reject(new Error('denied'))],
+      ])('should hand back nothing when the clipboard %s', async(_, read) => {
+        jest.mocked(readTextFromClipboard).mockImplementationOnce(read);
+        const wrapper = mountEditable({ copy: false, paste: true });
+
+        await wrapper.find('[data-testid="detail-text-paste"]').trigger('click');
+        await flush();
+
+        expect(wrapper.emitted('update:value')).toBeUndefined();
+      });
+
+      it('should not offer Paste unless asked', () => {
+        expect(mountEditable().find('[data-testid="detail-text-paste"]').exists()).toBe(false);
+      });
     });
   });
 });

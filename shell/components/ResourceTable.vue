@@ -10,7 +10,7 @@ import { findBy } from '@shell/utils/array';
 import { ExtensionPoint, TableColumnLocation, TableLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
-import { dateText, fieldValue, stringifyValue } from '@shell/utils/table-views/fields';
+import { dateText, fieldValue, monthLabel, stringifyValue } from '@shell/utils/table-views/fields';
 import ResourceTableViews, { TABLE_GROUPING_PREFIX } from '@shell/mixins/resource-table-views';
 import ResourceTableWatch from '@shell/mixins/resource-table-watch';
 import paginationUtils from '@shell/utils/pagination-utils';
@@ -20,6 +20,9 @@ import { runTableViewShortcut } from '@shell/utils/table-views/shortcuts';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
+
+// A paginated list's namespace grouping - see STEVE_LIST_GROUPS
+const PAGINATED_NAMESPACE_GROUP = 'metadata.namespace';
 
 export const defaultTableSortGenerationFn = (schema, $store) => {
   if ( !schema ) {
@@ -147,6 +150,14 @@ export default {
      */
     groupOptions: {
       type:    Array,
+      default: null
+    },
+
+    /**
+     * Labels the page's own groupings, as SortableTable's `groupRef` does
+     */
+    groupRef: {
+      type:    [String, Function],
       default: null
     },
 
@@ -607,27 +618,53 @@ export default {
       return null;
     },
 
+    /** A toolbar grouping's labels, eg a month by name; the page's own `group-ref` is for its own groupings */
+    computedGroupRef() {
+      const field = this.viewGroupField;
+      const groupBy = this.computedGroupBy;
+
+      if (!field || typeof groupBy !== 'function') {
+        return this.groupRef;
+      }
+
+      return field.byMonth ? (row) => monthLabel(groupBy(row)) : groupBy;
+    },
+
     /**
      * The groupings this list brings beyond grouping by a column, offered in the toolbar's Group By.
-     * None while the list says it can't be grouped, as the old buttons were hidden then. A plain
-     * namespace option is left out: the namespace column already groups the same way
+     * None while the list says it can't be grouped, as the old buttons were hidden then. The plain
+     * namespace grouping stands in for the namespace column, as a paginated list's does: it groups by
+     * the resource's own namespace, which some lists' column doesn't show
      */
     tableGroupings() {
       if (!this.showGrouping) {
         return [];
       }
 
-      return this._groupOptions.filter((option) => option.value !== 'none' && (option.field || this.groupBy || option.value !== 'namespace'));
+      return this._groupOptions
+        .filter((option) => option.value !== 'none')
+        .map((option) => (option.value === DEFAULT_GROUP && !option.field && !option.hideColumn ? { ...option, hideColumn: NAMESPACE.name } : option));
     },
 
     /**
-     * The grouping a view starts with: one of the table's own groupings the list names as its
-     * default, eg machines by pool. Not the namespace every list falls back to, so most start flat
+     * The grouping a view starts with: the one the page names as its default, eg cluster members by
+     * role, machines by pool; else the namespace, whenever the list offers to group by it, as a
+     * paginated list does under its own name; else the first it offers, eg secrets by project. A list
+     * grouped by a field it is given, eg project members by project, keeps that
      */
     defaultGroupBy() {
-      const grouping = this.groupDefault !== DEFAULT_GROUP && this.tableGroupings.find((option) => option.value === this.groupDefault);
+      if (!this.showGrouping) {
+        return null;
+      }
 
-      return grouping ? `${ TABLE_GROUPING_PREFIX }${ grouping.value }` : null;
+      const offered = (value) => this.tableGroupings.find((option) => option.value === value);
+      const start = offered(this.groupDefault) || offered(DEFAULT_GROUP) || offered(PAGINATED_NAMESPACE_GROUP) || this.tableGroupings[0];
+
+      if (!start || (this.groupBy && !start.field)) {
+        return null;
+      }
+
+      return `${ TABLE_GROUPING_PREFIX }${ start.value }`;
     },
 
     _groupOptions() {
@@ -803,6 +840,7 @@ export default {
     :loading="loading || viewSwitching"
     :alt-loading="altLoading && !viewSwitching"
     :group-by="computedGroupBy"
+    :group-ref="computedGroupRef"
     :group-sort="viewGroupSort"
     :group="group"
     :group-options="_groupOptions"
@@ -882,12 +920,14 @@ export default {
         :date-fields="viewDateFieldIds"
         :field-values="viewFieldValues"
         :pending-fields="viewPendingFields"
+        :loading-values="fieldValuesLoading"
         :rows="filteredRows"
         :unsupported-fields="unsupportedViewFields"
         :default-columns="defaultColumnIds"
         :core-columns="coreColumnIds"
         @update:view="view = $event"
         @request-values="fetchFieldValues"
+        @refresh-values="refreshFieldValues"
       />
       <slot
         name="header-right"

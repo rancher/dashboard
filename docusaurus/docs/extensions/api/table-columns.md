@@ -58,6 +58,9 @@ plugin.addTableColumn(where: String, when: LocationConfig, column: TableColumn, 
 |`value`| String | Object property to obtain the value from |
 |`getValue`| Function | Same as "value", but it can be a function. Will supersede "value" |
 |`width`| Int | Column width (in `px`). Optional |
+|`minWidth` *(From Rancher version v2.16.0)*| Int | Narrowest the column's cells get (in `px`), however little room the table has. Optional |
+|`maxWidth` *(From Rancher version v2.16.0)*| Int | Widest the column's cells get (in `px`); longer text wraps. Optional |
+|`lineClamp` *(From Rancher version v2.16.0)*| Int | Lines a cell shows at most. Longer text ends in an ellipsis, with the whole text as a tooltip. Optional |
 |`sort`| string, string[] | Object properties to be bound to the table sorting. Optional |
 |`search`| boolean (false to disable), string, string[] | Object properties to be bound to the table search. Optional |
 | `formatter`| string | Name of a `formatter` component used to render the cell. Components should be in the extension `formatters` folder

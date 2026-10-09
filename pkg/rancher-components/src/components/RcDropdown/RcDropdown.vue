@@ -23,13 +23,11 @@
 import { ref, watch } from 'vue';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 import { focusedFromKeyboard, useDropdownContext } from '@components/RcDropdown/useDropdownContext';
+import { useSubmenuPlacement } from '@components/RcDropdown/useSubmenuPlacement';
 
 import type { Placement } from 'floating-vue';
 
 type ReferenceNode = () => Element | undefined | null;
-
-/** How far a submenu's popper keeps from the edges of the page */
-const SUBMENU_EDGE_GAP = 16;
 
 const props = withDefaults(
   defineProps<{
@@ -81,7 +79,6 @@ provideDropdownContext();
 
 const popperContainer = ref<HTMLElement | null>(null);
 const dropdownTarget = ref<HTMLElement | null>(null);
-const submenuContainer = ref<HTMLElement | null>(null);
 
 watch(() => props.open, (open) => {
   if (open === isMenuOpen.value) {
@@ -149,6 +146,15 @@ const menuBorder = ref(0);
 /** The menu's popper, border included, so a submenu lines up with its top */
 const menuBox = () => dropdownTarget.value?.closest('.v-popper__popper') || dropdownTarget.value;
 
+// The submenus' popper is beside the menu's, not in it, which scrolls once cut to the screen, and
+// never flips over the menu, which would cover the items the pointer came from
+const { submenuLift, start: placeSubmenu, stop: stopPlacingSubmenu } = useSubmenuPlacement(menuBox, shownSubmenu, submenuTarget);
+
+const onSubmenuApplyShow = () => {
+  placeSubmenu();
+  onSubmenuShown();
+};
+
 const applyShow = () => {
   const box = menuBox();
 
@@ -194,22 +200,22 @@ const applyShow = () => {
         </slot>
       </div>
 
-      <!-- Beside the menu, never over it: flipping would cover the items the pointer came from -->
       <v-dropdown
         v-if="registeredSubmenus.length"
         no-auto-focus
-        auto-boundary-max-size
         :triggers="[]"
         :shown="!!activeSubmenu"
         :auto-hide="false"
-        :container="submenuContainer"
+        :container="popperContainer"
         :placement="shownSubmenu?.side === 'left' ? 'left-start' : 'right-start'"
         :distance="-menuBorder"
         :flip="false"
-        :overflow-padding="SUBMENU_EDGE_GAP"
+        :shift="false"
+        :skidding="-submenuLift"
         popper-class="rc-dropdown-submenu"
         :reference-node="menuBox"
-        @apply-show="onSubmenuShown"
+        @apply-show="onSubmenuApplyShow"
+        @apply-hide="stopPlacingSubmenu"
       >
         <template #popper>
           <div
@@ -233,12 +239,6 @@ const applyShow = () => {
           </div>
         </template>
       </v-dropdown>
-      <div
-        ref="submenuContainer"
-        class="submenuContainer"
-      >
-        <!--Empty container for mounting the submenu-->
-      </div>
     </template>
   </v-dropdown>
   <div
@@ -276,11 +276,12 @@ const applyShow = () => {
       transition: none;
     }
 
-    // Sized to the page, and each box down to the items gives way to that, so they scroll (or
-    // content that scrolls itself does) rather than the page
+    // Its height is capped (see useSubmenuPlacement): each box down to the items gives way to that,
+    // so they scroll, or content that scrolls itself does
     &:deep(.rc-dropdown-submenu .v-popper__inner) {
       display: flex;
       flex-direction: column;
+      box-sizing: border-box;
 
       > div, .dropdownTarget {
         display: flex;
@@ -292,10 +293,6 @@ const applyShow = () => {
         overflow-y: auto;
       }
     }
-  }
-
-  .submenuContainer {
-    display: contents;
   }
 
   .dropdownTarget {

@@ -10,15 +10,17 @@ import {
   LABEL_FIELD_PREFIX, coreFieldIdsFor, fieldsFor, findField, headerFieldId, holdsDates, isIgnoredColumn, serverPathFor, summaryToValues
 } from '@shell/utils/table-views/fields';
 import { applyQueryExpression } from '@shell/utils/table-views/filter-rows';
-import { parseQuery, parseQueryExpression } from '@shell/utils/table-views/query';
+import { parseQuery, parseQueryExpression, stateQueryFor } from '@shell/utils/table-views/query';
 import { queryToServerFilters } from '@shell/utils/table-views/server-filters';
 import { expandQuery } from '@shell/utils/table-views/query-fields';
 import { SEARCH_DEBOUNCE } from '@shell/config/search';
+import { STATE_FILTER_QUERY } from '@shell/config/query-params';
+import { isNavigating } from '@shell/config/router/navigation-guards/navigation-state';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { DEFAULT_MANDATORY_SORT } from '@shell/components/SortableTable/sorting';
 import { sortBy } from '@shell/utils/sort';
 import { uniq } from '@shell/utils/array';
-import { NO_GROUPING } from '@shell/utils/table-views/views';
+import { NO_GROUPING, savedViewsByType } from '@shell/utils/table-views/views';
 
 /** Most rows an "all matching" export will fetch - a limit on what the browser holds, not on the api */
 const EXPORT_ROW_LIMIT = 50000;
@@ -30,6 +32,9 @@ const EXPORT_ROW_LIMIT_YAML = 10000;
 const EXPORT_PAGE_SIZE = 1000;
 
 const VIEW_SWITCH_TIMEOUT = 8000;
+
+/** A field's values are asked for again as its suggestions open, but not within this of the last answer */
+const FIELD_VALUES_REFRESH_GAP = 2000;
 
 /** Marks a view's grouping as one of the table's own rather than a column */
 export const TABLE_GROUPING_PREFIX = 'group:';
@@ -47,7 +52,7 @@ function savedViewsEntry(vm) {
 
   // An older Rancher running an extension built with this shell has no such preference, and its store throws
   try {
-    stored = vm.$store.getters['prefs/get'](TABLE_VIEWS)?.[vm.schema?.id];
+    stored = savedViewsByType(vm.$store.getters['prefs/get'](TABLE_VIEWS))[vm.schema?.id];
   } catch {
     return undefined;
   }
@@ -119,24 +124,43 @@ export default {
     /** @type {{ views: import('@shell/types/table-views').TableViewSaved[], defaultViewId: string|null }} */
     const saved = savedViewsEntry(this);
     /**
+     * A link to some of the list's states, eg from an overview's counts, opens the table's own tab
+     * filtered to them, rather than the default view
+     */
+    const linkedQuery = wantsTableViewTabs(this) && isConfigurableTablesEnabled(this.$store) ? stateQueryFor(this.$route?.query?.[STATE_FILTER_QUERY]) : '';
+    /**
      * Only a table showing the saved view tabs opens on the default one. Another, eg a detail page's
      * Pods tab, would be filtered by a view it has no tab to show or leave
      *
      * @type {import('@shell/types/table-views').TableViewSaved|undefined}
      */
-    const defaultView = wantsTableViewTabs(this) ? (saved?.views || []).find((view) => view.id === saved?.defaultViewId) : undefined;
+    const defaultView = wantsTableViewTabs(this) && !linkedQuery ? (saved?.views || []).find((view) => view.id === saved?.defaultViewId) : undefined;
 
     return {
       /**
        * Needed because an empty default holds what the All tab holds, and two views can hold the
        * same config
        */
-      openedViewId: defaultView?.id,
+      openedViewId: linkedQuery ? null : defaultView?.id,
+
+      /**
+       * Opened by a link naming some of the list's states, whose parameter is still in the URL: kept
+       * while the query is the one it opened with, so Back or a reload opens the list filtered again
+       */
+      stateLinkPending: !!linkedQuery,
+
+      stateLinkQuery: linkedQuery,
 
       fieldValues: {},
 
       /** Ids of the fields whose values are being asked for */
       fieldValuesLoading: [],
+
+      /** Ids of the fields whose values in hand are being asked for again, quietly */
+      fieldValuesRefreshing: [],
+
+      /** When each field's values last came, by id */
+      fieldValuesAt: {},
 
       /** query -> rows matched, or null when the api wouldn't say */
       viewCounts: {},
@@ -144,7 +168,7 @@ export default {
       countingInFlight: false,
 
       view: {
-        query:          defaultView?.query || '',
+        query:          linkedQuery || defaultView?.query || '',
         columns:        defaultView?.columns || null,
         columnOrder:    defaultView?.columnOrder || null,
         labelColumns:   defaultView?.labelColumns || [],
@@ -164,7 +188,7 @@ export default {
        * counting are too expensive per keystroke. A saved view applied is flushed at once - see the
        * watcher
        */
-      settledQuery: defaultView?.query || '',
+      settledQuery: linkedQuery || defaultView?.query || '',
 
       debouncedSettleQuery: debounce(function(query) {
         this.settledQuery = query;
@@ -182,6 +206,8 @@ export default {
       viewSwitching: false,
 
       viewSwitchTimer: null,
+
+      stateLinkTimer: null,
 
       /** The request in hand when the switch began: its answer is the old view's, whatever it filters by */
       viewSwitchFromArgs: null,
@@ -205,6 +231,7 @@ export default {
 
   beforeUnmount() {
     clearTimeout(this.viewSwitchTimer);
+    clearTimeout(this.stateLinkTimer);
     this.debouncedSettleQuery.cancel();
   },
 
@@ -282,6 +309,10 @@ export default {
     'view.query'(neu, old) {
       const query = neu || '';
       const previous = old || '';
+
+      if (this.stateLinkPending && query !== this.stateLinkQuery) {
+        this.dropStateLink();
+      }
 
       // Settled already, eg by a tab
       if (query === (this.settledQuery || '')) {
@@ -380,10 +411,7 @@ export default {
     },
 
 
-    /**
-     * Every column the type has, not just the page's. The page's headers keep their order; the
-     * type's others are added after the last data column
-     */
+    /** The page's columns, then the optional ones its type registers (see optionalHeadersFor) */
     availableHeaders() {
       const own = this._headers || [];
 
@@ -397,9 +425,7 @@ export default {
         known[headerFieldId(header)] = true;
       });
 
-      const fromType = this.headers ? this.$store.getters['type-map/headersFor'](this.schema, this.externalPaginationEnabled) : [];
-      const extra = fromType
-        .concat(optionalHeadersFor(this.schema.id, this.$store, this.externalPaginationEnabled))
+      const extra = optionalHeadersFor(this.schema.id, this.$store, this.externalPaginationEnabled)
         .filter((header) => {
           const id = headerFieldId(header);
 
@@ -425,12 +451,15 @@ export default {
         }
       }
 
-      const out = own.slice(0, at).concat(extra.filter((header) => !header.insertBefore), own.slice(at));
+      const plain = extra.filter((header) => !header.insertBefore);
+      const out = own.slice(0, at).concat(plain, own.slice(at));
+      // Without the column it goes before, after the others added
+      let fallback = at + plain.length;
 
       extra.filter((header) => header.insertBefore).forEach((header) => {
         const index = out.findIndex((existing) => existing.name === header.insertBefore);
 
-        out.splice(index >= 0 ? index : at, 0, header);
+        out.splice(index >= 0 ? index : fallback++, 0, header);
       });
 
       return out;
@@ -473,9 +502,16 @@ export default {
     },
 
 
-    /** The columns and the fields that exist only for the query: what a query is read and applied with */
+    /**
+     * The columns and the fields that exist only for the query: what a query is read and applied with.
+     * A column that searches with free text only while it is on the table, eg the description, is left
+     * out of it otherwise; a term naming it still works
+     */
     viewQueryFields() {
-      return this.queryFields?.length ? this.viewFields.concat(this.queryFields) : this.viewFields;
+      const shown = new Set((this.viewHeaders || []).map((header) => headerFieldId(header)));
+      const fields = this.viewFields.map((field) => (field.header?.freeTextWhenShown && !shown.has(field.id) ? { ...field, notInFreeText: true } : field));
+
+      return this.queryFields?.length ? fields.concat(this.queryFields) : fields;
     },
 
 
@@ -826,6 +862,38 @@ export default {
   },
 
   methods: {
+    /**
+     * A link naming some of the list's states leaves the URL once the query is changed from the one it
+     * opened with: left, a reload after the query was cleared would filter the list again. Not while
+     * another page is on its way, as writing the URL would call that navigation off
+     */
+    dropStateLink() {
+      if (!this.stateLinkPending || !this.showTableViews) {
+        return;
+      }
+
+      if (isNavigating()) {
+        clearTimeout(this.stateLinkTimer);
+        this.stateLinkTimer = setTimeout(() => this.dropStateLink(), 300);
+
+        return;
+      }
+
+      this.stateLinkPending = false;
+
+      if (!(STATE_FILTER_QUERY in (this.$route?.query || {}))) {
+        return;
+      }
+
+      const query = { ...this.$route.query };
+
+      delete query[STATE_FILTER_QUERY];
+      // The route's guards run for it too, and can fail, eg with the session ending
+      this.$router.replace({
+        path: this.$route.path, query, hash: this.$route.hash
+      }).catch(() => {});
+    },
+
     /** The field a view's grouping names - a column, or a date column taken by month - or null */
     /** A query as the list applies it: fields that stand for others swapped for those */
     parseViewQuery(query) {
@@ -935,7 +1003,27 @@ export default {
     },
 
 
+    /** The path a field's values are summarised on, or null for one whose values the query doesn't offer */
+    fieldSummaryPath(field) {
+      const raw = field ? serverPathFor(field) : null;
+      // A column searched on several paths is summarised on its own
+      const path = Array.isArray(raw) ? raw[0] : raw;
+      // The query only offers values for these, so there is no point asking for another's
+      const offered = this.viewFilterFields.some((f) => f.id === field?.id);
+
+      return typeof path === 'string' && offered ? path : null;
+    },
+
     /** Values in use for a field, from a steve summary: it counts every row without returning any */
+    async summaryValues(fieldId, path) {
+      const url = `${ this.summaryBaseUrl }&summary=${ encodeURIComponent(path) }&summaryonly`;
+      const res = await this.$store.dispatch(`${ this.inStore }/request`, { opt: { url } });
+      // Every timestamp, to count each month in full
+      const max = this.viewDateFieldIds.includes(fieldId) ? Infinity : undefined;
+
+      return summaryToValues(res, max);
+    },
+
     async fetchFieldValues(fieldId) {
       if (!this.serverSideTableViews || this.fieldValues[fieldId] !== undefined) {
         return;
@@ -948,11 +1036,9 @@ export default {
         return field.values ? this.fetchQueryFieldCounts(field) : undefined;
       }
 
-      const raw = field ? serverPathFor(field) : null;
-      // A column searched on several paths is summarised on its own
-      const path = Array.isArray(raw) ? raw[0] : raw;
+      const path = this.fieldSummaryPath(field);
 
-      if (typeof path !== 'string') {
+      if (!path) {
         // Claimed anyway, so the input stops asking and falls back to the page
         this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
 
@@ -962,20 +1048,65 @@ export default {
       this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
       this.fieldValuesLoading = [...this.fieldValuesLoading, fieldId];
 
-      try {
-        const url = `${ this.summaryBaseUrl }&summary=${ encodeURIComponent(path) }&summaryonly`;
-        const res = await this.$store.dispatch(`${ this.inStore }/request`, { opt: { url } });
-        // Every timestamp, to count each month in full
-        const max = this.viewDateFieldIds.includes(fieldId) ? Infinity : undefined;
+      // The scope can change while the api answers, and the values are then asked for it afresh
+      const base = this.summaryBaseUrl;
 
-        this.fieldValues = { ...this.fieldValues, [fieldId]: summaryToValues(res, max) };
+      try {
+        const values = await this.summaryValues(fieldId, path);
+
+        if (base === this.summaryBaseUrl) {
+          this.fieldValues = { ...this.fieldValues, [fieldId]: values };
+          this.fieldValuesAt = { ...this.fieldValuesAt, [fieldId]: Date.now() };
+        }
       } catch (e) {
-        this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
+        // Not kept, so the field asks again the next time it's picked. Meanwhile the box offers the page's values
+        if (base === this.summaryBaseUrl) {
+          const { [fieldId]: failed, ...fieldValues } = this.fieldValues;
+
+          this.fieldValues = fieldValues;
+        }
       } finally {
         this.fieldValuesLoading = this.fieldValuesLoading.filter((id) => id !== fieldId);
       }
     },
 
+    /**
+     * Ask again for a field's values as its suggestions open, so they show what is there now: the ones
+     * in hand stay offered meanwhile, with no loading, and are swapped for the answer. Not while it is
+     * being asked already, nor again soon after an answer
+     */
+    async refreshFieldValues(fieldId) {
+      const asked = this.fieldValuesLoading.includes(fieldId) || this.fieldValuesRefreshing.includes(fieldId);
+      const recent = Date.now() - (this.fieldValuesAt[fieldId] || 0) < FIELD_VALUES_REFRESH_GAP;
+
+      // Values not in hand yet are asked for the first time instead - see fetchFieldValues
+      if (!this.serverSideTableViews || this.fieldValues[fieldId] === undefined || asked || recent) {
+        return;
+      }
+
+      const path = this.fieldSummaryPath(findField(this.viewQueryFields, fieldId));
+
+      if (!path) {
+        return;
+      }
+
+      const base = this.summaryBaseUrl;
+
+      this.fieldValuesRefreshing = [...this.fieldValuesRefreshing, fieldId];
+
+      try {
+        const values = await this.summaryValues(fieldId, path);
+
+        if (base === this.summaryBaseUrl) {
+          this.fieldValues = { ...this.fieldValues, [fieldId]: values };
+          this.fieldValuesAt = { ...this.fieldValuesAt, [fieldId]: Date.now() };
+        }
+      } catch (e) {
+        // The values in hand are still the best there is
+      } finally {
+        this.fieldValuesRefreshing = this.fieldValuesRefreshing.filter((id) => id !== fieldId);
+      }
+    },
 
     async fetchQueryFieldCounts(field) {
       this.fieldValues = { ...this.fieldValues, [field.id]: [] };

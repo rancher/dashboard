@@ -31,6 +31,9 @@ export const SORT_BY = 'sort';
 export const DESCENDING = 'desc';
 export const PAGE = 'page';
 
+// A list linked to some of its states, eg from an overview's counts: `a,b`. The table opens filtered to them
+export const STATE_FILTER_QUERY = 'stateFilter';
+
 // ResourceDetail/Yaml
 export const MODE = 'mode';
 export const _CREATE = 'create';

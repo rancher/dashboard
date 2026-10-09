@@ -113,6 +113,8 @@ export default {
         MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING
       ),
       headers:        [STATE, PRINCIPAL, ROLE, AGE],
+      // The value of the role grouping the type's lists offer (see explorer.js): its members are all in the cluster's namespace
+      roleGrouping:   'node',
       createLocation: {
         ...this.createLocationOverride,
         params: {
@@ -382,6 +384,7 @@ export default {
           :rows="filteredClusterRoleTemplateBindings"
           :groupable="true"
           :show-grouping="true"
+          :group-default="roleGrouping"
           :namespaced="false"
           :loading="$fetchState.pending || !currentCluster || loadingClusterBindings"
           sub-search="subSearch"
