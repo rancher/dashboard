@@ -10,7 +10,7 @@ const clusterDashboard = new ClusterDashboardPagePo('local');
  * jump-to search, the collapse-all control, and the expanded state that is now
  * persisted per cluster rather than reset on every navigation.
  */
-describe('Side navigation: action bar', { tags: ['@navigation', '@adminUser'] }, () => {
+describe('Side navigation: action bar', { tags: ['@navigation2', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
 

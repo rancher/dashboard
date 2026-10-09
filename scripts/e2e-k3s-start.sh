@@ -8,6 +8,7 @@
 USE_LOCAL_BRANCH_METADATA=false # branch_metadata usually just comes from `master`. if there are dependent changes in a PR and the local version is needed toggle this to `true`
 KUBE_TYPE=${KUBE_TYPE:-K3S} # K3S or K3D
 OVERRIDE_UIS=${OVERRIDE_UIS:-true} # use UI bits supplied externally (e.g. by CI) rather than the built in UI bits
+DOWNLOAD_UIS=${DOWNLOAD_UIS:-false} # fetch the UI bits from this GitHub Actions run's build job when they're needed, instead of expecting them on disk (see `scripts/e2e-download-build`)
 TEST_BASE_URL=${TEST_BASE_URL:-https://127.0.0.1.sslip.io}
 
 # On a probe wedge (steve/RBAC not converged) we do a FULL REBUILD: k3s-uninstall + re-run this whole
@@ -118,11 +119,21 @@ if [ "$KUBE_TYPE" = "K3S" ]; then
     exit 1
   fi
 
-  INSTALL_K3S_VERSION="$KUBE_VERSION" sh k3s-script
+  # Embedded etcd in place of the default sqlite datastore. Wedged starts showed the API server
+  # timing out watches with "Too large resource version", and service account tokens never populated.
+  INSTALL_K3S_VERSION="$KUBE_VERSION" INSTALL_K3S_EXEC="server --cluster-init" sh k3s-script
   export KUBECONFIG=~/.kube/config
   mkdir ~/.kube 2> /dev/null
   sudo k3s kubectl config view --raw > "$KUBECONFIG"
   chmod 600 "$KUBECONFIG"
+
+  # The install returns once the k3s service has started, which can be before its API answers
+  echo "Waiting for the k3s API to be ready.........."
+  okay=0
+  until [ "$(kubectl get --raw /readyz 2> /dev/null)" == "ok" ] || [ $okay -ge 60 ]; do
+    okay=$((okay+1))
+    sleep 2
+  done
   
   echo "Installing helm.........."
   # Pin the get-helm-3 installer to a fixed release tag rather than `main`. `main` is a moving ref, so
@@ -274,6 +285,10 @@ fi
 
 
 if [ "$OVERRIDE_UIS" == "true" ]; then
+  if [ "$DOWNLOAD_UIS" == "true" ] && [ ! -d dashboard ]; then
+    ./scripts/e2e-download-build || exit 1
+  fi
+
   echo "Updating UI within Rancher container.........."
   # Note - these will pick the first container within the pod, so replicas=1 above is important
   POD_NAME=$(kubectl get pods --selector=app=rancher -n $RANCHER_NAMESPACE | tail -n 1 | cut -d ' ' -f1)
@@ -318,11 +333,21 @@ echo "Dashboard UI is ready"
 # if it regularly takes 10 minutes we have problems...
 wait=60
 
+# the webhook gets 4 minutes (sleep 10 seconds * 24 iterations), it either runs well inside that or never does
+webhook_wait=24
+
+# A Rancher that cannot get its impersonation service account tokens never deploys the webhook.
+# It logs this error for two service accounts every 30 seconds, and a healthy start never logs it.
+impersonation_error='impersonation: error ensuring secret for service account'
+impersonation_error_max=3
+
 echo "Waiting for rancher-webhook to be running..."
 okay=0
-while [ $okay -lt $wait ] ; do
+while [ $okay -lt $webhook_wait ] ; do
   if kubectl -n cattle-system get po -l app=rancher-webhook | grep -q '1/1.*Running' ; then
     break
+  elif [ "$(kubectl -n cattle-system logs deploy/rancher --tail=-1 2>/dev/null | grep -c "$impersonation_error")" -ge $impersonation_error_max ]; then
+    reprovision "Rancher cannot create its impersonation tokens, so the webhook will not start"
   else
     echo "Webhook not ready, checking again in 10s (total time waited: $((okay * 10))s)..."
     okay=$((okay+1))
@@ -330,7 +355,7 @@ while [ $okay -lt $wait ] ; do
   fi
 done
 
-if [ $okay -eq $wait ]; then
+if [ $okay -eq $webhook_wait ]; then
   reprovision "Rancher webhook did not become ready in a reasonable time"
 fi
 

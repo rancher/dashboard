@@ -10,7 +10,7 @@ import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-ap
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 Cypress.config();
-describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser'] }, () => {
+describe('Side navigation: Highlighting ', { tags: ['@navigation2', '@adminUser'] }, () => {
   const chartsPage = new ChartsPage();
   const chartPage = new ChartPage();
   const CHART = {
