@@ -1,5 +1,5 @@
 import {
-  SearchQuery, findNext, findPrevious, getSearchQuery, setSearchQuery
+  SearchQuery, findNext, findPrevious, getSearchQuery, search, setSearchQuery
 } from '@codemirror/search';
 import type { EditorView, Panel, ViewUpdate } from '@codemirror/view';
 import { runScopeHandlers } from '@codemirror/view';
@@ -143,3 +143,7 @@ export function createSearchPanel(view: EditorView): Panel {
     }
   };
 }
+
+// Pages such as Edit YAML stick their own footer to the bottom of the scroll area, where it would cover a bottom
+// panel. The top of the editor is clear, and the panel sticks there while the page scrolls.
+export const searchPanel = search({ top: true, createPanel: createSearchPanel });
