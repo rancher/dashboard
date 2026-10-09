@@ -8,6 +8,11 @@ import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 export class HarvesterClusterPagePo extends PagePo {
+  private static readonly UPDATE_OR_INSTALL_BUTTON = '[data-testid="action-button-async-button"]';
+
+  // Shown in place of the install button when the automatic install has failed.
+  private static readonly MANUAL_INSTALL_STEPS = '.extension-info .steps';
+
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/harvesterManager/harvesterhci.io.management.cluster`;
   }
@@ -32,8 +37,8 @@ export class HarvesterClusterPagePo extends PagePo {
     return this.masthead().title();
   }
 
-  importHarvesterClusterButton() {
-    return this.masthead().actions();
+  importHarvesterClusterButton(options?: GetOptions) {
+    return this.masthead().actions(options);
   }
 
   list(): BaseResourceList {
@@ -53,7 +58,15 @@ export class HarvesterClusterPagePo extends PagePo {
   }
 
   updateOrInstallButton(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="action-button-async-button"]', this.self());
+    return new AsyncButtonPo(HarvesterClusterPagePo.UPDATE_OR_INSTALL_BUTTON, this.self());
+  }
+
+  /**
+   * Whether the page shows that the automatic install failed: the manual install steps are shown in place
+   * of the install button. Does not retry, so a caller can poll it.
+   */
+  isInstallAbandoned(): Cypress.Chainable<boolean> {
+    return this.self().then(($page) => $page.find(HarvesterClusterPagePo.MANUAL_INSTALL_STEPS).length > 0);
   }
 
   createHarvesterClusterForm(namespace?: string, id?: string): HarvesterClusterCreateEditPo {
