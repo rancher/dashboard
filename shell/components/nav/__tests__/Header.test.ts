@@ -3,6 +3,8 @@ import { isReactive, markRaw, ref } from 'vue';
 import Header from '@shell/components/nav/Header.vue';
 import ClusterBadge from '@shell/components/ClusterBadge.vue';
 import ClusterPinControl from '@shell/components/ClusterPinControl.vue';
+import * as releaseWelcome from '@shell/utils/release-welcome';
+import { setVersionData } from '@shell/config/version';
 
 describe('component: Header', () => {
   const defaultStoreMock = {
@@ -488,6 +490,49 @@ describe('component: Header', () => {
       const button = wrapper.find('[data-testid="extension-header-action-Open"]');
 
       expect(button.attributes('aria-expanded')).toBe('true');
+    });
+  });
+
+  describe('the what\'s new user menu item', () => {
+    beforeEach(() => {
+      setVersionData({
+        Version: 'v2.16.0', RancherPrime: 'false', GitCommit: ''
+      });
+    });
+
+    afterEach(() => {
+      setVersionData({
+        Version: '', RancherPrime: 'false', GitCommit: ''
+      });
+    });
+
+    it.each([
+      ['in Rancher', { isRancher: true, isSingleProduct: false }, true],
+      ['outside Rancher', { isRancher: false, isSingleProduct: false }, false],
+      ['in single product mode', { isRancher: true, isSingleProduct: { productNameKey: 'harvester', logoRoute: { name: 'c-cluster' } } }, false],
+    ])('should show the item %s: %p', (_, getters, expected) => {
+      const wrapper = createWrapper({}, getters);
+
+      expect(wrapper.find('[data-testid="user-menu-whats-new"]').exists()).toStrictEqual(expected);
+    });
+
+    it('should not show the item when the version has no minor release, e.g. dev builds', () => {
+      setVersionData({
+        Version: 'dev', RancherPrime: 'false', GitCommit: ''
+      });
+      const wrapper = createWrapper({}, { isRancher: true });
+
+      expect(wrapper.find('[data-testid="user-menu-whats-new"]').exists()).toStrictEqual(false);
+    });
+
+    it('should reopen the welcome modal', async() => {
+      const open = jest.spyOn(releaseWelcome, 'openReleaseWelcome').mockResolvedValue(undefined);
+      const wrapper = createWrapper({}, { isRancher: true });
+
+      await wrapper.find('[data-testid="user-menu-whats-new"]').trigger('click');
+
+      expect(open).toHaveBeenCalledWith(wrapper.vm.$store.commit, wrapper.vm.$store.dispatch, wrapper.vm.$store.getters, wrapper.vm.$store.$axios);
+      open.mockRestore();
     });
   });
 });

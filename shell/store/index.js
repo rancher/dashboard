@@ -40,6 +40,7 @@ import paginationUtils from '@shell/utils/pagination-utils';
 import { addReleaseNotesNotification } from '@shell/utils/release-notes';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { fetchAndProcessDynamicContent } from '@shell/utils/dynamic-content';
+import { showReleaseWelcomeIfNew } from '@shell/utils/release-welcome';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -872,6 +873,9 @@ export const actions = {
       await addReleaseNotesNotification(dispatch, getters);
 
       fetchAndProcessDynamicContent(dispatch, getters, this.$axios);
+
+      // Welcome users to a new minor release, once
+      showReleaseWelcomeIfNew(commit, dispatch, getters, this.$axios);
     }
 
     if (systemNamespaces) {

@@ -208,3 +208,39 @@ describe('theme colour contrast (WCAG 2.1 AA)', () => {
     });
   });
 });
+
+describe('suse prime theme colour contrast (WCAG 2.1 AA)', () => {
+  let tokens: Tokens;
+
+  // `.theme-suse-prime` is applied on top of `.theme-dark` on an element, and wins over it by import order
+  beforeAll(() => {
+    const { css } = sass.compileString(
+      `@import "base/functions"; @import "base/color"; @import "themes/modern"; @import "themes/suse-prime";`,
+      {
+        loadPaths:           [STYLES_DIR],
+        quietDeps:           true,
+        silenceDeprecations: ['import', 'global-builtin', 'color-functions'],
+      }
+    );
+
+    tokens = {
+      ...blockTokens(css, /BODY, \.theme-light\s*\{([^{}]*)\}/g),
+      ...blockTokens(css, /BODY, \.theme-dark\s*\{([^{}]*)\}/g),
+      ...blockTokens(css, /\.theme-suse-prime\s*\{([^{}]*)\}/g),
+    };
+  });
+
+  it.each([
+    ['--body-text', '--body-bg', TEXT],
+    ['--muted', '--body-bg', TEXT],
+    ['--link', '--body-bg', TEXT],
+    ['--primary-text', '--primary', TEXT],
+    ['--primary-hover-text', '--primary-hover-bg', TEXT],
+    ['--primary-active-text', '--primary-active-bg', TEXT],
+    ['--primary-keyboard-focus', '--body-bg', NON_TEXT],
+    ['--success', '--body-bg', NON_TEXT],
+    ['--rc-inactive-border', '--body-bg', NON_TEXT],
+  ] as [string, string, number][])('%s on %s meets %s:1', (foreground, background, min) => {
+    expect(ratio(tokens, foreground, background)).toBeGreaterThanOrEqual(min);
+  });
+});

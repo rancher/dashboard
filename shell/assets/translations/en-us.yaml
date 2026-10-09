@@ -343,6 +343,7 @@ nav:
   userMenu:
     preferences: Preferences
     accountAndKeys: Account & API Keys
+    whatsNew: What's New
     logOut: Log Out
     label: User menu
     button:
@@ -4514,6 +4515,59 @@ landing:
       lastVisited: Take me to the area I last visited
       custom: "Take me to cluster:"
   welcomeToRancher: 'Welcome to {vendor}'
+
+releaseWelcome:
+  logo: "{vendor} logo"
+  close: Close
+  titleCommunity: Welcome to {vendor} Community
+  titlePrime: Welcome to SUSE {vendor} Prime
+  subtitleCommunity: "{vendor} Community v{version} is up and running. Here's what's new in this release, and where to go next."
+  subtitlePrime: "{vendor} Prime v{version} is up and running."
+  registerLead: To activate your subscription benefits, register this system on the
+  registrationPage: Registration page
+  newTab: (opens in a new tab)
+  reopenHint: You can reopen this any time from the user menu at the top right.
+  goToDashboard: Go to Dashboard
+  whatsNew:
+    title: What's new in this release
+    version: v{version}
+    releaseNotes: Release notes
+    features:
+      navigation:
+        title: Improved navigation
+        description: Jump to any cluster with the new switcher (⌘K, Ctrl+K on Windows/Linux), plus a cleaner, reorganized side menu.
+      tables:
+        title: Smarter tables
+        description: "Tables across the UI are super-charged in this release: advanced filtering, customizable columns and much faster performance on large lists."
+      kubernetes:
+        title: Broader Kubernetes support
+        description: Provision and manage clusters on Kubernetes 1.33 across RKE2 and K3s.
+      hostedProvisioning:
+        title: Unified hosted provisioning
+        description: EKS, AKS and GKE provisioning now runs on the Cluster Provisioning v2 framework.
+  prime:
+    title: Ready for production? Go Prime.
+    description: "Everything in the community edition, plus 24×7 enterprise support, hardened images from a trusted registry, extended lifecycles and the full SUSE cloud-native suite:"
+    products:
+      manager: Rancher Manager
+      distributions: RKE2, k3k & K3s
+      fleet: SUSE Continuous Integration & Delivery
+      security: SUSE Security
+      storage: SUSE Storage
+      virtualization: SUSE Virtualization
+      observability: SUSE Observability
+      appCollection: Application Collection
+    explore: Explore SUSE Rancher Prime
+  registration:
+    title: Register to activate your Prime benefits
+    description: "Registering with SUSE Customer Center unlocks:"
+    benefits:
+      support: "24×7 support: open cases directly from your account"
+      appCollection: "Application Collection: curated, signed apps ready to deploy"
+      images: Hardened images from the Prime trusted registry
+      academy: "Rancher Academy: free certification courses for your team"
+    supportHandbook: Support handbook
+    open: Open SUSE Customer Center
 
 logging:
   clusterFlow:
