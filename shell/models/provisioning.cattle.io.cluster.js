@@ -10,6 +10,7 @@ import { findBy } from '@shell/utils/array';
 import { clone, get, set } from '@shell/utils/object';
 import { isElementalMachinePool, machinePoolStoreFor, saveMachineConfigYaml, saveMachinePool } from '@shell/utils/machine-pools';
 import { findIfExists } from '@shell/utils/related-resources';
+import { getClusterProvisioner } from '@shell/utils/provider';
 import { compare } from '@shell/utils/version';
 import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -300,11 +301,31 @@ export default class ProvCluster extends SteveModel {
   }
 
   get canEditYaml() {
-    if (!this.isRke2) {
+    // the provisioner of an extension can decide for the clusters it handles, see `IClusterProvisioner.canEditYaml`
+    const editable = this.extensionProvisioner?.canEditYaml?.(this) ?? this.isRke2;
+
+    if (!editable) {
       return false;
     }
 
     return super.canEditYaml;
+  }
+
+  /**
+   * The provisioner from an extension that handles this cluster, as the cluster's edit page finds it
+   *
+   * @returns {import('@shell/core/types').IClusterProvisioner | undefined}
+   */
+  get extensionProvisioner() {
+    const context = {
+      dispatch:   this.$dispatch,
+      getters:    this.$getters,
+      axios:      this.$axios,
+      $extension: this.$extension,
+      t:          (...args) => this.t.apply(this, args),
+    };
+
+    return getClusterProvisioner(context, this);
   }
 
   get isHostedKubernetesProvider() {
@@ -596,6 +617,8 @@ export default class ProvCluster extends SteveModel {
       resource,
       groupKey: 'resourceYaml.resourceGraph.groups.machinePools',
       save,
+      // the cluster is the controller of its machine configs, but does not overwrite edits to them
+      readOnly: false,
     }));
   }
 

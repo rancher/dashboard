@@ -6666,6 +6666,7 @@ resourceYaml:
     saveFailed: '{kind} {name}: {error}'
   resourceGraph:
     title: Resources
+    loading: Loading related resources...
     modified: Edited
     modifiedTooltip: This resource has unsaved changes
     saveResource: 'Save {name}'

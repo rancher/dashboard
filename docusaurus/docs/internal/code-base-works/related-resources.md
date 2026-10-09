@@ -12,7 +12,7 @@ This page covers how to get a resource shown in the editor for a type. For the e
 |---|---|---|
 | Schema references | Fields of the resource that name another resource, for example a ConfigMap volume or the `scaleTargetRef` of a HorizontalPodAutoscaler | Usually nothing. For a built-in Kubernetes field that is not found, add it to the tables in `shell/utils/schema-references.ts` |
 | The type's model | Anything the schema can not show: resources that use this one, resources matched by label selector, names in plain string fields of custom resources | Override `fetchModelRelatedResources` in the model in `shell/models` |
-| Owned resources | Resources listing this one in their `ownerReferences` | Nothing. Can be turned off per type |
+| Owned resources | Resources listing this one in their `ownerReferences`, except RBAC Roles, ClusterRoles, RoleBindings and ClusterRoleBindings | Nothing. Can be turned off per type |
 | Extensions | Anything an extension adds or removes | See the extension docs |
 
 A resource whose model returns `false` from `canYaml` is left out, whichever source returns it.
@@ -22,7 +22,7 @@ A resource whose model returns `false` from `canYaml` is left out, whichever sou
 `expandRelatedResourceTree` in `shell/components/ResourceYaml/index.vue` marks an entry read-only, whichever source returned it, when:
 
 - the model returns `false` from `canEditYaml`: the user can not update it, its schema blocks PUT, or its type is configured with `isEditable: false`
-- it has an ownerReference with `controller: true`. The controller would overwrite the edit, for example a Deployment rewriting its ReplicaSet. An ownerReference without `controller` only has the resource deleted with its owner, so it does not make the resource read-only
+- it has an ownerReference with `controller: true`. The controller would overwrite the edit, for example a Deployment rewriting its ReplicaSet. An ownerReference without `controller` only has the resource deleted with its owner, so it does not make the resource read-only. A source sets `readOnly: false` for a resource whose controller does not overwrite edits, for example the provisioning cluster model for its machine configs
 - the source set `readOnly: true`
 
 A read-only resource is listed in the "Read-only" section of the graph, grouped by type, wherever it was found. It is not asked for its own related resources.

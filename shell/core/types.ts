@@ -297,8 +297,21 @@ export type RelatedResource = {
    * (`canEditYaml` false), or where another resource controls it (an ownerReference with
    * `controller: true`). A read-only resource is listed in the read-only section of the resource
    * graph, wherever it was found, and is not asked for its own related resources
+   *
+   * `false` keeps a resource with a controller editable, for one whose controller does not overwrite
+   * edits, for example the machine configs of a provisioning cluster. It does not make editable a
+   * resource the user can not edit
    */
   readOnly?: boolean,
+
+  /**
+   * The source set `readOnly: false`, so the controller of `resource` is not named in the banner the
+   * editor adds for a resource something else writes
+   *
+   * Populated by the consuming component as it flattens the tree, as `readOnly` then holds whether
+   * the entry is read-only for any reason, so a model or extension doesn't set this
+   */
+  ignoreController?: boolean,
 
   /** Run before `resource` is saved, for example to apply changes made to the primary resource */
   beforeSaveHook?: RelatedResourceSaveHook,

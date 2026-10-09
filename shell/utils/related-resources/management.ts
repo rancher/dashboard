@@ -69,10 +69,11 @@ export function controllerReferenceOf(resource: ResourceModel): ObjectReference 
  * so a chart can leave it out, and pods copy it from their template
  *
  * @param resource
+ * @param options.ignoreController the controller does not overwrite edits, so is not a match, for example a provisioning cluster controlling its machine configs
  * @returns the match, or null
  */
-export function managementOf(resource: ResourceModel): ResourceManagement | null {
-  const controller = controllerReferenceOf(resource);
+export function managementOf(resource: ResourceModel, { ignoreController = false } = {}): ResourceManagement | null {
+  const controller = ignoreController ? undefined : controllerReferenceOf(resource);
 
   if (controller) {
     return { by: 'controller', owner: controller };

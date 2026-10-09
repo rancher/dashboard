@@ -5,9 +5,13 @@ import { deleteProperty } from '@shell/utils/object';
 import { EXT_IDS } from '@shell/core/plugin';
 import { patchWithFallback } from '@shell/apis/resources/patch-content-type';
 import { keyForResource } from '@shell/utils/resource-key';
-import { SCHEMA } from '@shell/config/types';
+import { RBAC, SCHEMA } from '@shell/config/types';
 import { findIfExists, relatedEntry } from '@shell/utils/related-resources';
 import { schemaForReference, schemaReferencesIn, schemasByKind } from '@shell/utils/schema-references';
+
+// rbac resources are left out of the owned resources
+// rancher creates roles and role bindings for the users of a resource, for example the members of a cluster
+const OWNED_TYPES_LEFT_OUT = Object.values(RBAC);
 
 // Some fields that are removed for YAML (NEVER_ADD) are required via API
 const STEVE_ADD = [
@@ -167,7 +171,8 @@ export default class SteveModel extends HybridModel {
    * and the `toType` / `toId` of the resource owned.
    *
    * A resource of a type the user can not get is dropped before fetching, as in
-   * `fetchSchemaRelatedResources`. So is one of a type with no schema in this resource's store.
+   * `fetchSchemaRelatedResources`. So is one of a type with no schema in this resource's store,
+   * and an rbac Role, ClusterRole, RoleBinding or ClusterRoleBinding.
    * One the fetch finds missing or forbidden is dropped without a warning, see `findIfExists`
    *
    * An owned resource names this one in its `ownerReferences`, so it is a `dependent`
@@ -181,7 +186,7 @@ export default class SteveModel extends HybridModel {
    */
   async fetchOwnedRelatedResources() {
     const { ids } = this._relationshipsFor('owner', 'to');
-    const wanted = ids.filter(({ type }) => !!type && this.$getters['schemaFor'](type)?.resourceMethods?.includes('GET'));
+    const wanted = ids.filter(({ type }) => !!type && !OWNED_TYPES_LEFT_OUT.includes(type) && this.$getters['schemaFor'](type)?.resourceMethods?.includes('GET'));
 
     const resources = await Promise.all(wanted.map(({ type, id }) => findIfExists(this, type, id)));
 

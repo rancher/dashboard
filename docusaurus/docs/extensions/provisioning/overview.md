@@ -34,6 +34,9 @@ The class provides a way to...
     - This is done by setting the `ui.rancher/provider` annotation in the cluster
     - It's used in the UI whenever showing the cluster's provider
 1. show custom tabs on the Detail page of the custom cluster
+1. allow or prevent editing the YAML of the clusters it handles, with `canEditYaml(cluster)`
+    - By default only the YAML of an RKE2/K3s cluster can be edited
+    - The provisioner that handles a cluster is the one its edit page uses, for example the provisioner whose id is in the cluster's `ui.rancher/provider` annotation
 
 To make API calls from the UI to a third-party domain, use the **`shell.proxy` API** (`this.$shell.proxy`). It routes requests through Rancher's server-side `/meta/proxy` endpoint, avoiding browser CORS restrictions and keeping cloud credentials out of the browser.
 

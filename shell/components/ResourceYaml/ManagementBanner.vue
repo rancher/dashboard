@@ -15,6 +15,9 @@ const props = defineProps<{
 
   /** The resource being edited, which is named without a link, as it is already open */
   primaryResource?: ResourceModel,
+
+  /** The resource's controller does not overwrite edits, so it is not named, see `RelatedResource.ignoreController` */
+  ignoreController?: boolean,
 }>();
 
 const MESSAGE_KEYS: Record<ResourceManagement['by'], string> = {
@@ -25,7 +28,7 @@ const MESSAGE_KEYS: Record<ResourceManagement['by'], string> = {
 };
 
 const management = computed<ResourceManagement | null>(() => {
-  const found = managementOf(props.resource);
+  const found = managementOf(props.resource, { ignoreController: props.ignoreController });
 
   return props.readOnly && found?.by !== 'controller' ? null : found;
 });

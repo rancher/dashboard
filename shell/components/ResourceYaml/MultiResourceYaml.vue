@@ -51,6 +51,9 @@ const props = defineProps<{
 
   /** the yaml is shown in place of a form, so going back to the form is offered */
   showEditAsForm?: boolean,
+
+  /** `relatedResources` are still being fetched, so the graph shows that they are loading */
+  loading?: boolean,
 }>();
 
 const emit = defineEmits<{ error: [errors: any[]], 'edit-as-form': [] }>();
@@ -557,6 +560,7 @@ defineExpose({ editorState });
       :nodes="graphNodes"
       :selected="editorState.selected"
       :saving="saving"
+      :loading="loading"
       @select="editorState.selected = $event"
       @save="saveOne"
     />
@@ -604,6 +608,7 @@ defineExpose({ editorState });
             :resource="selectedResource"
             :read-only="selectedReadOnly"
             :primary-resource="primaryResource"
+            :ignore-controller="!!selectedEntry?.ignoreController"
           />
           <div class="multi-yaml-code">
             <!-- YamlEditor remounts when mode changes, the diff toggle stays mounted so it keeps focus -->

@@ -5,6 +5,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import ResourceGraphGroups from '@shell/components/ResourceYaml/ResourceGraphGroups.vue';
 import ResourceGraphSection from '@shell/components/ResourceYaml/ResourceGraphSection.vue';
 import { RcCounterBadge } from '@components/Pill';
+import { RcIcon } from '@components/RcIcon';
 import { ResourceGraphGroup, ResourceGraphNode, ResourceGraphTreeNode } from '@shell/components/ResourceYaml/types';
 
 const props = withDefaults(defineProps<{
@@ -16,9 +17,13 @@ const props = withDefaults(defineProps<{
 
   /** A save is in progress, so no other save can be started */
   saving?: boolean,
+
+  /** The related resources are still being fetched, so a loading message is shown in their place */
+  loading?: boolean,
 }>(), {
   selected: null,
   saving:   false,
+  loading:  false,
 });
 
 const emit = defineEmits<{
@@ -155,7 +160,9 @@ const sections = computed(() => [
       <h3 class="resource-graph-title mb-0">
         {{ i18n.t('resourceYaml.resourceGraph.title') }}
       </h3>
+      <!-- the count would be of the primary resource alone until the related resources are fetched -->
       <RcCounterBadge
+        v-if="!loading"
         :count="nodes.length"
         type="inactive"
         data-testid="resource-graph-count"
@@ -171,21 +178,36 @@ const sections = computed(() => [
         @save="emit('save', $event)"
       />
 
-      <ResourceGraphSection
-        v-for="section in sections"
-        :key="section.id"
-        v-model:expanded="expanded[section.id]"
-        :title="i18n.t(`resourceYaml.resourceGraph.${ section.id }`)"
-        :data-testid="`resource-graph-${ section.id }`"
+      <div
+        v-if="loading"
+        class="resource-graph-loading"
+        role="status"
+        data-testid="resource-graph-loading"
       >
-        <ResourceGraphGroups
-          :groups="section.groups"
-          :selected="selected"
-          :saving="saving"
-          @select="emit('select', $event)"
-          @save="emit('save', $event)"
+        <RcIcon
+          type="spinner"
+          size="small"
+          class="icon-spin"
         />
-      </ResourceGraphSection>
+        <span>{{ i18n.t('resourceYaml.resourceGraph.loading') }}</span>
+      </div>
+      <template v-else>
+        <ResourceGraphSection
+          v-for="section in sections"
+          :key="section.id"
+          v-model:expanded="expanded[section.id]"
+          :title="i18n.t(`resourceYaml.resourceGraph.${ section.id }`)"
+          :data-testid="`resource-graph-${ section.id }`"
+        >
+          <ResourceGraphGroups
+            :groups="section.groups"
+            :selected="selected"
+            :saving="saving"
+            @select="emit('select', $event)"
+            @save="emit('save', $event)"
+          />
+        </ResourceGraphSection>
+      </template>
     </div>
   </nav>
 </template>
@@ -217,5 +239,13 @@ const sections = computed(() => [
   flex: 1 1 0;
   min-height: 0;
   overflow: auto;
+}
+
+// lined up with the top-level nodes
+.resource-graph-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 0 var(--resource-graph-indent);
 }
 </style>

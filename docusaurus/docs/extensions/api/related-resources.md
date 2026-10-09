@@ -6,7 +6,7 @@ Rancher gathers the related resources of a resource from three sources:
 
 - the resource's model, see [Shipping a model for your own type](#shipping-a-model-for-your-own-type)
 - references found in the schema of the resource's type, see [References found without an extension](#references-found-without-an-extension)
-- the resources it owns, from Steve's `metadata.relationships`
+- the resources it owns, from Steve's `metadata.relationships`, except RBAC Roles, ClusterRoles, RoleBindings and ClusterRoleBindings
 
 An extension can add, remove or reorder related resources with the `addRelatedResources` method.
 
@@ -170,7 +170,7 @@ Each entry of the list wraps one related resource with the configuration for it.
 |---|---|---|
 |`resource`| Object | The related resource, a model in the store |
 |`dependent`| Boolean | `resource` uses the resource it was gathered for, or is selected by it. See [Dependencies and dependents](#dependencies-and-dependents) |
-|`readOnly`| Boolean | `resource` is shown in view mode, with no save button, in the collapsed "Read-only" section of the graph, wherever it was found. It is not asked for its own related resources. The editor also makes an entry read-only where the model's `canEditYaml` is `false` or the resource has an ownerReference with `controller: true` |
+|`readOnly`| Boolean | `resource` is shown in view mode, with no save button, in the collapsed "Read-only" section of the graph, wherever it was found. It is not asked for its own related resources. The editor also makes an entry read-only where the model's `canEditYaml` is `false` or the resource has an ownerReference with `controller: true`. `false` keeps a resource with a controller editable, where the controller does not overwrite edits, but does not make editable a resource whose `canEditYaml` is `false` |
 |`group`| String | The heading the resource is shown under in the graph, already translated |
 |`groupKey`| String | A translation key for the heading. `group` takes precedence |
 |`banner`| Function | `(ctx) => { color?, label?, labelKey?, icon? } \| null`. A banner shown above the YAML while the resource is selected. Must be synchronous. Shown above the banner the editor adds, see [Banners the editor adds](#banners-the-editor-adds) |

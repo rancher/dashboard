@@ -88,11 +88,19 @@ export default {
   },
 
   data() {
-    return { relatedResources: [] };
+    return {
+      relatedResources: [],
+
+      // the primary resource has related resources, and the rest of the tree is still being fetched
+      loadingRelatedResources: false,
+    };
   },
 
+  // resolves once the primary resource's own related resources are known, so the editor shows before the rest of the tree is fetched
   async fetch() {
-    await this.loadRelatedResources();
+    await new Promise((resolve, reject) => {
+      this.loadRelatedResources(resolve).then(resolve, reject);
+    });
   },
 
   computed: {
@@ -107,7 +115,7 @@ export default {
     },
 
     needsMultiEdit() {
-      return this.isEdit && this.relatedResources.length > 0;
+      return this.isEdit && (this.loadingRelatedResources || this.relatedResources.length > 0);
     },
 
     // SingleResourceYaml does not declare `showEditAsForm`, so it would fall through to its root element
@@ -118,7 +126,6 @@ export default {
     },
   },
 
-  // TODO nb does this watcher do anything
   watch: {
     value() {
       this.loadRelatedResources();
@@ -144,23 +151,50 @@ export default {
      * badly behaved model or extension can't break the editor.
      *
      * This is resolved on initialization (vs computed property) to accomodate async operations, either in resource models or extensions
+     *
+     * The primary resource's own related resources decide whether there are any: the rest of the tree is found from them.
+     * Once those are known `onFound` is called and `loadingRelatedResources` is set, until the tree is expanded
+     *
+     * @param {Function} [onFound] called once the primary resource is known to have related resources
      */
-    async loadRelatedResources() {
+    async loadRelatedResources(onFound = () => {}) {
       // Ensure a slow load for a previous resource, or one started before leaving edit mode, doesn't overwrite the current result
       const forResource = this.value;
+      const isCurrent = () => this.value === forResource && this.isEdit;
 
       if (!this.isEdit) {
         this.relatedResources = [];
+        this.loadingRelatedResources = false;
 
         return;
       }
 
-      let resources = await this.fetchRelatedResourcesFor(this.value, this.$route, ALL_RELATED_RESOURCES);
+      const found = (await this.fetchRelatedResourcesFor(this.value, this.$route, ALL_RELATED_RESOURCES)).filter((entry) => this.isRelatedResource(entry));
 
-      resources = await this.expandRelatedResourceTree(resources);
+      if (!isCurrent()) {
+        return;
+      }
 
-      if (this.value === forResource && this.isEdit) {
-        this.relatedResources = resources.filter((entry) => this.isRelatedResource(entry));
+      if (!found.length) {
+        this.relatedResources = [];
+        this.loadingRelatedResources = false;
+
+        return;
+      }
+
+      this.loadingRelatedResources = true;
+      onFound();
+
+      try {
+        const resources = await this.expandRelatedResourceTree(found);
+
+        if (isCurrent()) {
+          this.relatedResources = resources.filter((entry) => this.isRelatedResource(entry));
+        }
+      } finally {
+        if (isCurrent()) {
+          this.loadingRelatedResources = false;
+        }
       }
     },
 
@@ -310,12 +344,25 @@ export default {
       const nodeIdFor = (resource) => keyForResource(resource) || `related-${ generatedIds++ }`;
 
       // an edit would fail on save, or be overwritten by the controller
-      const isReadOnly = (entry) => !!(entry.readOnly || entry.resource?.canEditYaml === false || controllerReferenceOf(entry.resource));
+      // a source sets `readOnly: false` for a resource whose controller does not overwrite edits, but can not allow one the user can not edit
+      const isReadOnly = (entry) => {
+        if (entry.resource?.canEditYaml === false) {
+          return true;
+        }
+
+        return entry.readOnly === undefined ? !!controllerReferenceOf(entry.resource) : !!entry.readOnly;
+      };
+
+      // `readOnly` becomes the result for the entry, so a source's `readOnly: false` is kept for the banner as `ignoreController`
+      const readOnlyFields = (entry) => ({
+        ...(isReadOnly(entry) ? { readOnly: true } : {}),
+        ...(entry.readOnly === false ? { ignoreController: true } : {}),
+      });
 
       // Everything gathered for the primary resource sits at the top of the tree, with no parent
       const result = entries.map((entry) => {
         const top = {
-          ...entry, depth: 1, nodeId: nodeIdFor(entry.resource), ...(isReadOnly(entry) ? { readOnly: true } : {})
+          ...entry, depth: 1, nodeId: nodeIdFor(entry.resource), ...readOnlyFields(entry)
         };
 
         delete top.parentId;
@@ -342,7 +389,7 @@ export default {
               depth:    entry.depth + 1,
               nodeId:   nodeIdFor(child.resource),
               parentId: entry.nodeId,
-              ...(isReadOnly(child) ? { readOnly: true } : {}),
+              ...readOnlyFields(child),
             };
 
             result.push(expanded);
@@ -386,6 +433,7 @@ export default {
     :apply-hooks="applyHooks"
     :show-edit-as-form="showEditAsForm"
     :related-resources="relatedResources"
+    :loading="loadingRelatedResources"
     :done-route="doneRoute"
     :done-override="doneOverride"
     @error="$emit('error', $event)"
