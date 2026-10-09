@@ -129,6 +129,10 @@ export default class MgmtCluster extends SteveModel {
   get provisioner() {
     // Sometimes the driver will be empty (like unconnected custom rke2 clusters), so fall back on the new and improved status.provider
     if (this.status?.provider) {
+      if (['gke', 'eks', 'aks'].includes(this.status.provider) && this.status.driver === 'imported') {
+        return 'imported';
+      }
+
       if (['gke', 'eks', 'aks', 'k3s'].includes(this.status.provider)) {
         // Defensive coding. we're now using status.provider which uses lowercase for some distro's
         // To support the old use case of upper case status.driver values make status.provider upper case...
@@ -144,6 +148,14 @@ export default class MgmtCluster extends SteveModel {
     }
 
     return 'imported';
+  }
+
+  get importedDistroDisplay() {
+    if (this.provisioner !== 'imported' || !this.provider) {
+      return undefined;
+    }
+
+    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ this.provider }"`, null, this.provider.toUpperCase());
   }
 
   get provisionerDisplay() {

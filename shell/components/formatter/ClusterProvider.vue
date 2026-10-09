@@ -24,11 +24,17 @@ export default {
         {{ row.machineProviderDisplay }}
       </span>
     </template>
+    <template v-else-if="row.isImported">
+      {{ t('cluster.provider.imported') }}
+    </template>
+    <template v-else-if="row.isCustom">
+      {{ t('cluster.provider.custom') }}
+    </template>
     <div
-      v-if="row.machineProviderDisplay !== row.provisionerDisplay"
+      v-if="row.importedDistroDisplay || row.machineProviderDisplay !== row.provisionerDisplay"
       class="text-muted"
     >
-      {{ row.provisionerDisplay }}
+      {{ row.importedDistroDisplay || row.provisionerDisplay }}
     </div>
   </div>
 </template>
