@@ -71,14 +71,12 @@ describe('component: AuthBanner', () => {
     expect(disable).toHaveBeenCalledWith();
   });
 
-  // AppModal drops a width carrying no unit and falls back to its own default,
-  // so the dialog would quietly render narrower than it was asked to be.
-  it('should ask for a width the modal can use', async() => {
+  it('should let the dialog render its own modal', async() => {
     const { wrapper, dispatch } = createWrapper();
 
     await (wrapper.vm as any).showDisableModal();
 
-    expect(modalArgs(dispatch).modalWidth).toMatch(/(px|%)$/);
+    expect(modalArgs(dispatch).ownsModal).toBe(true);
   });
 
   // The provider page is a second way to reach Disable, so it has to refuse the

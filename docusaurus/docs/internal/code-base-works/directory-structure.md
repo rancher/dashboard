@@ -23,6 +23,9 @@ Components in the dialog folder are used within the `PromptModal` component. Dis
 |component| String | Optional- the name of the custom modal component|
 |modalWidth| String CSS Property | Desired width of the modal (default 600px)|
 |modalSticky| Boolean | Whether or not to apply sticky positioning (default false)| 
+|ownsModal| Boolean | Optional - the component renders its own `RcModal` and is not wrapped in the default modal (default false). Rancher `2.16` and onwards|
+
+A dialog opened with `ownsModal: true` receives a `modal` prop holding `show` and `onClose`, and spreads it onto its own `RcModal` (`<RcModal v-bind="modal">`). `modalWidth` and `modalSticky` do not apply to it. See `shell/dialog/DisableAuthProviderDialog.vue` for an example.
 
 ## formatters 
 This is not a top-level folder in the shell, which uses `/components/formatter`, but a top-level `formatters` directory works the same way in an extension as the shell `formatter` directory does. Formatters are used to format data within tables. see [Defining Products](./products-and-navigation.md) for more information on configuring resource tables.
