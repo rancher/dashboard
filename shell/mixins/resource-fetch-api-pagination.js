@@ -27,6 +27,18 @@ export function parseStateFilter(stateFilter) {
   })];
 }
 
+export function parseNameFilter(nameFilter) {
+  if (!nameFilter) {
+    return null;
+  }
+
+  return [new PaginationFilterField({
+    field: 'metadata.name',
+    value: nameFilter,
+    exact: false,
+  })];
+}
+
 /**
  * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace
  */
@@ -94,6 +106,7 @@ export default {
         page, perPage, filter, sort, descending, viewFilters
       } = event;
       const stateFilters = parseStateFilter(this.$route?.query?.stateFilter) || [];
+      const nameFilters = parseNameFilter(this.$route?.query?.nameFilter) || [];
       const searchFilters = filter.searchQuery ? filter.searchFields.map((field) => new PaginationFilterField({
         field,
         value: filter.searchQuery,
@@ -111,6 +124,7 @@ export default {
         filters:              [
           new PaginationParamFilter({ fields: searchFilters }),
           new PaginationParamFilter({ fields: stateFilters }),
+          new PaginationParamFilter({ fields: nameFilters }),
           ...this.requestFilters.filters, // Apply the additional filters. these aren't from the user but from ns filtering
           ...(viewFilters || []), // Table views toolbar filters (AND'd with everything else)
         ]

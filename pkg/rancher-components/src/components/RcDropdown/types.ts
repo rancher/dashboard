@@ -76,4 +76,6 @@ export type RcDropdownMenuComponentProps = {
   buttonAriaLabel?: string;
   dropdownAriaLabel?: string;
   dataTestid?: string;
+  /** Forwarded to RcDropdown's `container` prop. */
+  container?: string | HTMLElement;
 }

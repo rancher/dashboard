@@ -46,6 +46,16 @@ const props = withDefaults(
      */
     open?: boolean;
     placement?: Placement;
+    /**
+     * Where the local popper anchor itself is teleported to (via Vue
+     * Teleport, not floating-vue's own `container`, so the popper stays a
+     * real DOM descendant of that anchor and the styling below still
+     * applies). Defaults to rendering in place; pass 'body' to escape an
+     * ancestor with overflow clipping instead. When unset the Teleport is
+     * disabled, so its 'body' fallback target is ignored.
+     */
+    // eslint-disable-next-line vue/require-default-prop
+    container?: string | HTMLElement;
   }>(),
   { placement: 'bottom-end', open: false }
 );
@@ -241,14 +251,19 @@ const applyShow = () => {
       </div>
     </template>
   </v-dropdown>
-  <div
-    ref="popperContainer"
-    class="popperContainer"
-    @keydown.tab="onTab"
-    @keydown.escape="onEscape"
+  <Teleport
+    :to="container || 'body'"
+    :disabled="!container"
   >
-    <!--Empty container for mounting popper content-->
-  </div>
+    <div
+      ref="popperContainer"
+      class="popperContainer"
+      @keydown.tab="onTab"
+      @keydown.escape="onEscape"
+    >
+      <!--Empty container for mounting popper content-->
+    </div>
+  </Teleport>
 </template>
 
 <style lang="scss" scoped>

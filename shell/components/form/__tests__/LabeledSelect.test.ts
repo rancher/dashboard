@@ -470,6 +470,107 @@ describe('component: LabeledSelect', () => {
     });
   });
 
+  describe('visibleRows and visibleRowHeight props', () => {
+    // 10px top and bottom padding on the dropdown menu
+    const menuPadding = 20;
+
+    it('should not set a dropdown max height when visibleRows is not provided', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
+
+      expect(wrapper.vm.dropdownStyle).toBeUndefined();
+    });
+
+    it('should not set a dropdown max height when visibleRows is 0', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'], visibleRows: 0 } });
+
+      expect(wrapper.vm.dropdownStyle).toBeUndefined();
+    });
+
+    it('should size the dropdown using the default row height when only visibleRows is provided', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'], visibleRows: 5 } });
+
+      expect(wrapper.vm.dropdownStyle).toStrictEqual({ '--vs-dropdown-max-height': `${ 5 * 18 + menuPadding }px` });
+    });
+
+    it.each([
+      [7, 40, 7 * 40 + menuPadding],
+      [7.5, 40, 7.5 * 40 + menuPadding],
+      [1, 24, 24 + menuPadding],
+    ])('should size the dropdown for %s rows of %spx', (visibleRows, visibleRowHeight, expected) => {
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          options: ['Option1'], visibleRows, visibleRowHeight
+        }
+      });
+
+      expect(wrapper.vm.dropdownStyle).toStrictEqual({ '--vs-dropdown-max-height': `${ expected }px` });
+    });
+
+    it('should apply the dropdown max height to the vue-select element', () => {
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          options: ['Option1'], visibleRows: 2, visibleRowHeight: 40
+        }
+      });
+
+      const style = (wrapper.find('.v-select').element as HTMLElement).style;
+
+      expect(style.getPropertyValue('--vs-dropdown-max-height')).toStrictEqual(`${ 2 * 40 + menuPadding }px`);
+    });
+  });
+
+  describe('function: forceOpen', () => {
+    it('should open the dropdown, including vue-select itself', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
+
+      wrapper.vm.forceOpen('opt');
+
+      expect(wrapper.vm.isOpen).toBe(true);
+      expect((wrapper.vm.$refs['select-input'] as any).open).toBe(true);
+    });
+
+    it('should restore the given search text in vue-select', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
+
+      wrapper.vm.forceOpen('opt');
+
+      expect((wrapper.vm.$refs['select-input'] as any).search).toStrictEqual('opt');
+    });
+  });
+
+  describe('function: forceClose', () => {
+    it('should close the dropdown, including vue-select itself', async() => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
+
+      wrapper.vm.forceOpen('opt');
+      await wrapper.vm.$nextTick();
+
+      wrapper.vm.forceClose();
+
+      expect(wrapper.vm.isOpen).toBe(false);
+      expect((wrapper.vm.$refs['select-input'] as any).open).toBe(false);
+    });
+
+    it('should clear the search text in vue-select', async() => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
+
+      wrapper.vm.forceOpen('opt');
+      await wrapper.vm.$nextTick();
+
+      wrapper.vm.forceClose();
+
+      expect((wrapper.vm.$refs['select-input'] as any).search).toStrictEqual('');
+    });
+
+    it('should not throw when vue-select is not rendered', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
+
+      wrapper.unmount();
+
+      expect(() => wrapper.vm.forceClose()).not.toThrow();
+    });
+  });
+
   describe('function: clickSelect', () => {
     it('should open dropdown when clickSelect is called and not disabled', async() => {
       const label = 'Foo';

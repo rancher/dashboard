@@ -1,0 +1,166 @@
+import { ref } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter, type RouteLocationRaw } from 'vue-router';
+import debounce from 'lodash/debounce';
+import { useI18n } from '@shell/composables/useI18n';
+import { PaginationParamFilter, type PaginationParamProjectOrNamespace } from '@shell/types/store/pagination.types';
+import type { StateColor } from '@shell/utils/style';
+import { WORKLOAD_DASHBOARD_RESOURCE_TYPES } from '../types';
+import { getWorkloadNamespaceFilterParams } from '../namespaceFilter';
+import {
+  WORKLOAD_SEARCH_DEBOUNCE_MS,
+  WORKLOAD_SEARCH_RESULTS_PER_TYPE,
+  type WorkloadSearchOption,
+} from './types';
+import { ActionFindPageArgs, ActionFindPageTransientResponse } from '@shell/types/store/dashboard-store.types';
+
+interface WorkloadSearchResource {
+  metadata?: { name?: string; namespace?: string };
+  detailLocation?: RouteLocationRaw;
+  stateSimpleColor?: StateColor;
+}
+
+export function useWorkloadSearch() {
+  const store = useStore();
+  const router = useRouter();
+  const { t } = useI18n(store);
+
+  const searchTerm = ref('');
+  const loading = ref(false);
+  const options = ref<WorkloadSearchOption[]>([]);
+
+  // Guards against a slower, earlier search response overwriting a later one.
+  let requestId = 0;
+
+  async function fetchOptionsForType(
+    type: string,
+    term: string,
+    namespaceFilter: { projectsOrNamespaces: PaginationParamProjectOrNamespace[]; filters: PaginationParamFilter[] }
+  ): Promise<WorkloadSearchOption[]> {
+    if (!store.getters['cluster/schemaFor'](type) || !store.getters['cluster/canList'](type)) {
+      return [];
+    }
+
+    const opt: ActionFindPageArgs = {
+      pagination: {
+        page:                 1,
+        pageSize:             WORKLOAD_SEARCH_RESULTS_PER_TYPE,
+        projectsOrNamespaces: namespaceFilter.projectsOrNamespaces,
+        filters:              [
+          ...namespaceFilter.filters,
+          PaginationParamFilter.createSingleField({
+            field: 'metadata.name',
+            value: term,
+            exact: false,
+          }),
+        ],
+        sort: [],
+      },
+      transient: true,
+      watch:     false,
+    };
+
+    try {
+      const res: ActionFindPageTransientResponse = await store.dispatch('cluster/findPage', {
+        type,
+        opt,
+      });
+
+      const data: WorkloadSearchResource[] = res?.data || [];
+
+      if (!data.length) {
+        return [];
+      }
+
+      const label = t(`typeLabel."${ type }"`, { count: 2 })?.trim() || type;
+      const totalCount = res.pagination?.result.count ?? data.length;
+      const remaining = totalCount - data.length;
+
+      const options: WorkloadSearchOption[] = [
+        {
+          kind:     'group',
+          label:    `${ label } (${ totalCount })`,
+          uniqueId: `group-${ type }`,
+        },
+        ...data.map((resource) => ({
+          label:     resource.metadata?.name || '',
+          namespace: resource.metadata?.namespace,
+          uniqueId:  `${ type }/${ resource.metadata?.namespace }/${ resource.metadata?.name }`,
+          value:     resource.detailLocation,
+          color:     resource.stateSimpleColor,
+          resource,
+        })),
+      ];
+
+      if (remaining > 0) {
+        options.push({
+          kind:         'more',
+          label:        t('workloadDashboard.search.moreResults', { count: remaining, type: label.toLowerCase() }),
+          uniqueId:     `more-${ type }`,
+          resourceType: type,
+          searchTerm:   term,
+        });
+      }
+
+      return options;
+    } catch {
+      return [];
+    }
+  }
+
+  async function performSearch(term: string): Promise<void> {
+    const currentRequestId = ++requestId;
+
+    loading.value = true;
+
+    try {
+      const namespaceFilter = getWorkloadNamespaceFilterParams(store);
+      const results = await Promise.all(
+        WORKLOAD_DASHBOARD_RESOURCE_TYPES.map((type) => fetchOptionsForType(type, term, namespaceFilter))
+      );
+
+      // The term check covers typing that's still waiting on the debounce, which
+      // hasn't bumped requestId yet.
+      if (currentRequestId !== requestId || term !== searchTerm.value) {
+        return;
+      }
+
+      options.value = results.flat();
+    } finally {
+      if (currentRequestId === requestId && term === searchTerm.value) {
+        loading.value = false;
+      }
+    }
+  }
+
+  const debouncedSearch = debounce(performSearch, WORKLOAD_SEARCH_DEBOUNCE_MS);
+
+  function onSearch(term: string): void {
+    searchTerm.value = term;
+
+    if (!term) {
+      debouncedSearch.cancel();
+      requestId++;
+      options.value = [];
+      loading.value = false;
+
+      return;
+    }
+
+    debouncedSearch(term);
+  }
+
+  function onSelect(route?: RouteLocationRaw): void {
+    if (route) {
+      router.push(route);
+    }
+  }
+
+  return {
+    searchTerm,
+    loading,
+    options,
+    onSearch,
+    onSelect,
+  };
+}

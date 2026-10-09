@@ -88,6 +88,7 @@ exports[`component: General rendering & initial state should render with default
               selectable="[Function]"
               size="large"
               value="0"
+              visiblerowheight="18"
             />
           </div>
         </div>

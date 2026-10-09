@@ -139,6 +139,26 @@ export default {
     name: {
       type:    String,
       default: null
+    },
+
+    /**
+     * Number of options to show before the dropdown scrolls. Fractional
+     * values (e.g. 7.5) partially reveal the next row as a scroll affordance.
+     * Requires appendToBody to be false to take effect.
+     */
+    visibleRows: {
+      type:    Number,
+      default: undefined
+    },
+
+    /**
+     * Height in px of a single option row, used only when visibleRows is
+     * set. Defaults to a plain text row's height; override when options
+     * render taller custom content.
+     */
+    visibleRowHeight: {
+      type:    Number,
+      default: 18
     }
   },
 
@@ -249,6 +269,17 @@ export default {
       } = this.$attrs;
 
       return rest;
+    },
+
+    dropdownStyle() {
+      if (!this.visibleRows) {
+        return undefined;
+      }
+
+      // Matches $input-padding-sm in _variables.scss.
+      const menuPadding = 10 * 2;
+
+      return { '--vs-dropdown-max-height': `${ this.visibleRows * this.visibleRowHeight + menuPadding }px` };
     },
 
     // update placeholder text to inform user they can add their own opts when none are found
@@ -407,6 +438,38 @@ export default {
       this.onClose();
     },
 
+    /**
+     * Force the dropdown shut and clear its search text, including
+     * vue-select's own internal state - unlike `close()`, which only
+     * updates this component's own `isOpen`/aria state. Needed when the
+     * dropdown was reopened via direct `$refs['select-input']` access (e.g.
+     * after a blur caused by opening a nested popover) and won't receive a
+     * normal close-triggering event.
+     */
+    forceClose() {
+      this.isOpen = false;
+
+      if (this.$refs['select-input']) {
+        this.$refs['select-input'].open = false;
+        this.$refs['select-input'].search = '';
+      }
+    },
+
+    /**
+     * Force the dropdown open with the given search text, including
+     * vue-select's own internal open state. Needed to restore the dropdown
+     * after a blur caused by opening a nested popover (e.g. an action menu)
+     * triggers vue-select's own blur handling to close/clear it.
+     */
+    forceOpen(searchText) {
+      this.isOpen = true;
+
+      if (this.$refs['select-input']) {
+        this.$refs['select-input'].open = true;
+        this.$refs['select-input'].search = searchText;
+      }
+    },
+
     onClose() {
       this.$emit('on-close');
       this.focusWrapper();
@@ -554,6 +617,7 @@ export default {
       :append-to-body="appendToBody"
       :calculate-position="positionDropdown"
       :class="{ 'no-label': !(label || '').length}"
+      :style="dropdownStyle"
       :clearable="clearable"
       :disabled="isView || disabled || loading"
       :get-option-key="getOptionKey"
