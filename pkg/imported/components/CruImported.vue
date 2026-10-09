@@ -33,7 +33,7 @@ import { privateRegistryRequired } from '@shell/utils/validators/private-registr
 import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT, DAY_2_OPS_DEFAULT } from '@pkg/imported/util/shared.ts';
-import RcAgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/RcAgentConfiguration.vue';
+import RcAgentConfiguration from '@shell/components/form/RcAgentConfiguration.vue';
 import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 import { RcContentGroup } from '@components/Layout';
 

@@ -1,5 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
-import RcAgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/RcAgentConfiguration.vue';
+import RcAgentConfiguration from '@shell/components/form/RcAgentConfiguration.vue';
 import { AGENT_CONFIGURATION_TYPES } from '@shell/config/settings';
 import { _CREATE } from '@shell/config/query-params';
 import { SECTION_TYPE } from '@components/RcSection';
