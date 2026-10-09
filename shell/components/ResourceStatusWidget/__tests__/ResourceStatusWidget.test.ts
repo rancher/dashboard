@@ -4,6 +4,7 @@ import ResourceStatusWidget from '@shell/components/ResourceStatusWidget/index.v
 import StatusSummaryCard from '@shell/components/Resource/Detail/Card/StatusSummaryCard/index.vue';
 import StatusBreakdownCard from '@shell/components/Resource/Detail/Card/StatusBreakdownCard/index.vue';
 import type { ResourceStatusWidgetConfig } from '@shell/components/ResourceStatusWidget/types';
+import type { StatusBreakdownRow } from '@shell/components/Resource/Detail/Card/StatusBreakdownCard/types';
 import { COUNT } from '@shell/config/types';
 
 const mockGetters: Record<string, any> = reactive({});
@@ -185,6 +186,10 @@ describe('component: ResourceStatusWidget', () => {
       return wrapper.findComponent(StatusBreakdownCard).props('rows');
     }
 
+    function row(wrapper: ReturnType<typeof mountWidget>, key: string): StatusBreakdownRow {
+      return rows(wrapper).find((r: StatusBreakdownRow) => r.key === key)!;
+    }
+
     it('should pass the title from the config', () => {
       const wrapper = mountWidget(config);
 
@@ -233,31 +238,31 @@ describe('component: ResourceStatusWidget', () => {
     it('should add up the states of each color, most severe first', () => {
       const wrapper = mountWidget(config);
 
-      expect(rows(wrapper).find((r: any) => r.key === 'apps.daemonset').counts.map((c: any) => [c.color, c.count])).toStrictEqual([['error', 1], ['warning', 2]]);
+      expect(row(wrapper, 'apps.daemonset').counts.map((c: any) => [c.color, c.count])).toStrictEqual([['error', 1], ['warning', 2]]);
     });
 
     it('should leave out states with colors that are not shown', () => {
       const wrapper = mountWidget(config);
 
-      expect(rows(wrapper).find((r: any) => r.key === 'pod').counts.map((c: any) => [c.color, c.count])).toStrictEqual([['error', 2]]);
+      expect(row(wrapper, 'pod').counts.map((c: any) => [c.color, c.count])).toStrictEqual([['error', 2]]);
     });
 
     it('should show every color when no colors are given', () => {
       const wrapper = mountWidget({ ...config, colors: undefined });
 
-      expect(rows(wrapper).find((r: any) => r.key === 'pod').counts.map((c: any) => [c.color, c.count])).toStrictEqual([['error', 2], ['success', 5]]);
+      expect(row(wrapper, 'pod').counts.map((c: any) => [c.color, c.count])).toStrictEqual([['error', 2], ['success', 5]]);
     });
 
     it('should link each count to the list filtered by its states', () => {
       const wrapper = mountWidget(config);
 
-      expect(rows(wrapper).find((r: any) => r.key === 'pod').counts[0].to).toStrictEqual(route('pod', 'error,crashloopbackoff'));
+      expect(row(wrapper, 'pod').counts[0].to).toStrictEqual(route('pod', 'error,crashloopbackoff'));
     });
 
     it('should link each row to the resource list', () => {
       const wrapper = mountWidget(config);
 
-      expect(rows(wrapper).find((r: any) => r.key === 'pod').to).toStrictEqual(route('pod'));
+      expect(row(wrapper, 'pod').to).toStrictEqual(route('pod'));
     });
 
     it('should sort the rows by label', () => {
