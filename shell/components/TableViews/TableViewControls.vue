@@ -66,6 +66,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   'update:view': [view: TableViewState],
   'request-values': [fieldId: string],
+  'refresh-values': [fieldId: string],
 }>();
 
 const store = useStore();
@@ -380,6 +381,7 @@ watch(groupPanel, (panel) => {
           @update:value="update({ query: $event })"
           @update:focused="queryFocused = $event"
           @request-values="$emit('request-values', $event)"
+          @refresh-values="$emit('refresh-values', $event)"
         />
         <!-- Under the box, like a field's validation message -->
         <p

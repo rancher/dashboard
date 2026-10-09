@@ -33,6 +33,9 @@ const EXPORT_PAGE_SIZE = 1000;
 
 const VIEW_SWITCH_TIMEOUT = 8000;
 
+/** A field's values are asked for again as its suggestions open, but not within this of the last answer */
+const FIELD_VALUES_REFRESH_GAP = 2000;
+
 /** Marks a view's grouping as one of the table's own rather than a column */
 export const TABLE_GROUPING_PREFIX = 'group:';
 
@@ -152,6 +155,12 @@ export default {
 
       /** Ids of the fields whose values are being asked for */
       fieldValuesLoading: [],
+
+      /** Ids of the fields whose values in hand are being asked for again, quietly */
+      fieldValuesRefreshing: [],
+
+      /** When each field's values last came, by id */
+      fieldValuesAt: {},
 
       /** query -> rows matched, or null when the api wouldn't say */
       viewCounts: {},
@@ -994,7 +1003,27 @@ export default {
     },
 
 
+    /** The path a field's values are summarised on, or null for one whose values the query doesn't offer */
+    fieldSummaryPath(field) {
+      const raw = field ? serverPathFor(field) : null;
+      // A column searched on several paths is summarised on its own
+      const path = Array.isArray(raw) ? raw[0] : raw;
+      // The query only offers values for these, so there is no point asking for another's
+      const offered = this.viewFilterFields.some((f) => f.id === field?.id);
+
+      return typeof path === 'string' && offered ? path : null;
+    },
+
     /** Values in use for a field, from a steve summary: it counts every row without returning any */
+    async summaryValues(fieldId, path) {
+      const url = `${ this.summaryBaseUrl }&summary=${ encodeURIComponent(path) }&summaryonly`;
+      const res = await this.$store.dispatch(`${ this.inStore }/request`, { opt: { url } });
+      // Every timestamp, to count each month in full
+      const max = this.viewDateFieldIds.includes(fieldId) ? Infinity : undefined;
+
+      return summaryToValues(res, max);
+    },
+
     async fetchFieldValues(fieldId) {
       if (!this.serverSideTableViews || this.fieldValues[fieldId] !== undefined) {
         return;
@@ -1007,13 +1036,9 @@ export default {
         return field.values ? this.fetchQueryFieldCounts(field) : undefined;
       }
 
-      const raw = field ? serverPathFor(field) : null;
-      // A column searched on several paths is summarised on its own
-      const path = Array.isArray(raw) ? raw[0] : raw;
-      // The query only offers values for these, so there is no point asking for another's
-      const offered = this.viewFilterFields.some((f) => f.id === fieldId);
+      const path = this.fieldSummaryPath(field);
 
-      if (typeof path !== 'string' || !offered) {
+      if (!path) {
         // Claimed anyway, so the input stops asking and falls back to the page
         this.fieldValues = { ...this.fieldValues, [fieldId]: [] };
 
@@ -1027,13 +1052,11 @@ export default {
       const base = this.summaryBaseUrl;
 
       try {
-        const url = `${ base }&summary=${ encodeURIComponent(path) }&summaryonly`;
-        const res = await this.$store.dispatch(`${ this.inStore }/request`, { opt: { url } });
-        // Every timestamp, to count each month in full
-        const max = this.viewDateFieldIds.includes(fieldId) ? Infinity : undefined;
+        const values = await this.summaryValues(fieldId, path);
 
         if (base === this.summaryBaseUrl) {
-          this.fieldValues = { ...this.fieldValues, [fieldId]: summaryToValues(res, max) };
+          this.fieldValues = { ...this.fieldValues, [fieldId]: values };
+          this.fieldValuesAt = { ...this.fieldValuesAt, [fieldId]: Date.now() };
         }
       } catch (e) {
         // Not kept, so the field asks again the next time it's picked. Meanwhile the box offers the page's values
@@ -1047,6 +1070,43 @@ export default {
       }
     },
 
+    /**
+     * Ask again for a field's values as its suggestions open, so they show what is there now: the ones
+     * in hand stay offered meanwhile, with no loading, and are swapped for the answer. Not while it is
+     * being asked already, nor again soon after an answer
+     */
+    async refreshFieldValues(fieldId) {
+      const asked = this.fieldValuesLoading.includes(fieldId) || this.fieldValuesRefreshing.includes(fieldId);
+      const recent = Date.now() - (this.fieldValuesAt[fieldId] || 0) < FIELD_VALUES_REFRESH_GAP;
+
+      // Values not in hand yet are asked for the first time instead - see fetchFieldValues
+      if (!this.serverSideTableViews || this.fieldValues[fieldId] === undefined || asked || recent) {
+        return;
+      }
+
+      const path = this.fieldSummaryPath(findField(this.viewQueryFields, fieldId));
+
+      if (!path) {
+        return;
+      }
+
+      const base = this.summaryBaseUrl;
+
+      this.fieldValuesRefreshing = [...this.fieldValuesRefreshing, fieldId];
+
+      try {
+        const values = await this.summaryValues(fieldId, path);
+
+        if (base === this.summaryBaseUrl) {
+          this.fieldValues = { ...this.fieldValues, [fieldId]: values };
+          this.fieldValuesAt = { ...this.fieldValuesAt, [fieldId]: Date.now() };
+        }
+      } catch (e) {
+        // The values in hand are still the best there is
+      } finally {
+        this.fieldValuesRefreshing = this.fieldValuesRefreshing.filter((id) => id !== fieldId);
+      }
+    },
 
     async fetchQueryFieldCounts(field) {
       this.fieldValues = { ...this.fieldValues, [field.id]: [] };

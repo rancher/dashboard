@@ -927,6 +927,7 @@ export default {
         :core-columns="coreColumnIds"
         @update:view="view = $event"
         @request-values="fetchFieldValues"
+        @refresh-values="refreshFieldValues"
       />
       <slot
         name="header-right"
