@@ -24,7 +24,7 @@ const createStore = ({ admin = true, scc = true } = {}): any => ({
 });
 
 const createWrapper = ({
-  prime = false, admin = true, scc = true, features = undefined as any[] | undefined
+  prime = false, admin = true, scc = true, features = undefined as any[] | undefined, primePromo = undefined as any
 } = {}) => {
   setVersionData({
     Version: 'v2.16.1', RancherPrime: prime ? 'true' : 'false', GitCommit: ''
@@ -32,7 +32,7 @@ const createWrapper = ({
   mockStore = createStore({ admin, scc });
 
   return shallowMount(ReleaseWelcomeDialog, {
-    props:  { features },
+    props:  { features, primePromo },
     global: {
       mocks: { t: (key: string) => key },
       stubs: { 'router-link': RouterLinkStub }
@@ -90,6 +90,21 @@ describe('component: ReleaseWelcomeDialog', () => {
       const wrapper = createWrapper();
 
       expect(wrapper.findComponent(PrimePromoCard).exists()).toStrictEqual(true);
+    });
+
+    it('should pass the promotion from dynamic content to the Prime card', () => {
+      const primePromo = {
+        title: 'Go Prime', description: 'Remote promotion', products: ['Remote product'], cta: { action: 'Explore', link: 'https://www.suse.com' }
+      };
+      const wrapper = createWrapper({ primePromo });
+
+      expect(wrapper.findComponent(PrimePromoCard).props('promo')).toStrictEqual(primePromo);
+    });
+
+    it('should leave the built-in promotion to the Prime card without dynamic content', () => {
+      const wrapper = createWrapper();
+
+      expect(wrapper.findComponent(PrimePromoCard).props('promo')).toBeUndefined();
     });
 
     it('should not show the registration card', () => {
