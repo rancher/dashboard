@@ -42,32 +42,13 @@ export default class PagePo extends ComponentPo {
   }
 
   waitForPage(params?: string, fragment?: string, options?: any) {
-    const expected = `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`;
-
     // Timeout options must go on cy.url(); .should() does not accept an
     // options argument (it would be consumed as the assertion message).
-    return cy.url(options).should((url) => {
-      expect(PagePo.withoutTableState(url)).to.include(expected);
-    });
+    return cy.url(options).should('include', `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
   }
 
   waitForPageWithExactUrl(params?: string, fragment?: string) {
-    const expected = `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`;
-
-    return cy.url().should((url) => {
-      expect(PagePo.withoutTableState(url)).to.equal(expected);
-    });
-  }
-
-  /**
-   * The page's URL without what its tables show, which a table writes into the query as soon as it is
-   * filtered, sorted or changed - see TABLE_STATE_QUERY - and which no test names
-   */
-  static withoutTableState(url: string): string {
-    return url
-      .replace(/([?&])tableState(?:Key)?=[^&#]*/g, '$1')
-      .replace(/([?&])&+/g, '$1')
-      .replace(/[?&]+(#|$)/, '$1');
+    return cy.url().should('equal', `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
   }
 
   // This method provides partial URL matching when cluster context differences cause test failures.

@@ -5,12 +5,8 @@ import TableViewTabs from '@shell/components/TableViews/TableViewTabs.vue';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { isViewDirty, selectedViewIdFor, savedViewsByType } from '@shell/utils/table-views/views';
 import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
-import type { LinkedTableView } from '@shell/utils/table-views/link';
-
-// What the page's link hands the tabs on mount: nothing, unless a test sends a view
-const mockTakeShared = jest.fn((): LinkedTableView | null => null);
-
-jest.mock('@shell/composables/useTableViewsLink', () => ({ useTableViewsLink: () => ({ takeShared: () => mockTakeShared(), show: jest.fn() }) }));
+import { decodeSharedViews } from '@shell/utils/table-views/share';
+import type { SharedTableView } from '@shell/utils/table-views/share';
 
 const EMPTY: TableViewState = {
   query: '', columns: null, labelColumns: [], groupBy: null
@@ -32,7 +28,7 @@ interface ExportArgs {
 interface TabsInternals {
   selectedViewId: string | null;
   drafts: Record<string, TableViewState>;
-  modal: { count: number | null } | null;
+  modal: { kind: string, count?: number | null, text?: string } | null;
   isDirty: boolean;
   openExport(tab: { id: string, name: string, view: TableViewSaved }): void;
   doExport(format: string): void;
@@ -42,6 +38,9 @@ interface TabsInternals {
   openSaveAsNew(tab: { id: string | null, name: string, view?: TableViewSaved }): void;
   resetTab(tab: { id: string | null, name: string, view?: TableViewSaved, isDefaultTab?: boolean }): void;
   persistAll(views: TableViewSaved[], defaultViewId: string | null, allIndex?: number): void;
+  openShare(tab: { id: string | null, name: string, view?: TableViewSaved, isDefaultTab?: boolean }): void;
+  openImport(): void;
+  importView(view: SharedTableView): void;
 }
 
 const internals = (wrapper: { vm: unknown }) => wrapper.vm as TabsInternals;
@@ -347,8 +346,38 @@ describe('TableViewTabs', () => {
       });
     });
 
-    describe('a view sent in a link', () => {
-      const sent = (view: TableViewSaved, name: string): LinkedTableView => {
+    describe('sharing a tab', () => {
+      const sharedIn = (vm: TabsInternals) => decodeSharedViews(vm.modal?.text || '')?.tables;
+
+      it('should hand out the tab in front as it stands, unsaved changes and all, under its name', () => {
+        const { vm } = createWrapper({ view: { ...EMPTY, query: 'state:Running name:x' }, initialViewId: 'aaa' });
+
+        vm.openShare(tabFor(first));
+
+        expect(vm.modal?.kind).toBe('share');
+        expect(sharedIn(vm)).toStrictEqual({ test: expect.objectContaining({ name: first.name, query: 'state:Running name:x' }) });
+      });
+
+      it('should hand out another tab with the changes held for it', () => {
+        const { vm } = createWrapper({ view: { ...EMPTY, query: 'state:Running' }, initialViewId: 'aaa' });
+
+        vm.drafts = { bbb: { ...EMPTY, query: 'name:held' } };
+        vm.openShare(tabFor(second));
+
+        expect(sharedIn(vm)?.test).toStrictEqual(expect.objectContaining({ name: second.name, query: 'name:held' }));
+      });
+
+      it('should open an empty import', () => {
+        const { vm } = createWrapper();
+
+        vm.openImport();
+
+        expect(vm.modal).toStrictEqual({ kind: 'import' });
+      });
+    });
+
+    describe('an imported view', () => {
+      const imported = (view: TableViewSaved, name: string): SharedTableView => {
         const { id, name: _, ...state } = view;
 
         return {
@@ -356,46 +385,48 @@ describe('TableViewTabs', () => {
         };
       };
 
-      afterEach(() => mockTakeShared.mockReset());
-
       it('should be kept as a view of the user\'s own and opened', () => {
-        mockTakeShared.mockReturnValueOnce(sent(makeView('x', 'x', { query: 'name:new' }), 'Errors'));
         const { vm, stored } = createWrapper();
 
+        vm.importView(imported(makeView('x', 'x', { query: 'name:new' }), 'Errors'));
+
         // The store here has no translations, so the name is the key and what it is given
-        expect(stored().map((v) => v.name)).toStrictEqual([first.name, second.name, 'tableViews.tab.sharedName-{"name":"Errors"}']);
+        expect(stored().map((v) => v.name)).toStrictEqual([first.name, second.name, 'tableViews.tab.importedName-{"name":"Errors"}']);
         expect(vm.selectedViewId).toBe(stored()[2].id);
       });
 
-      describe('a link opened again', () => {
-        // The name the link's view is kept under; the store here has no translations
-        const KEPT_NAME = 'tableViews.tab.sharedName-{"name":"Theirs"}';
+      describe('imported again', () => {
+        // The name the view is kept under; the store here has no translations
+        const KEPT_NAME = 'tableViews.tab.importedName-{"name":"Theirs"}';
         const kept = makeView('kpt', KEPT_NAME, { query: 'name:shared' });
         const views = (more: TableViewSaved[]) => ({ views: [first, second, ...more] });
 
         it('should open the view it was kept as, keeping nothing more', () => {
-          mockTakeShared.mockReturnValueOnce(sent(kept, 'Theirs'));
           const { vm, stored } = createWrapper(views([kept]));
+
+          vm.importView(imported(kept, 'Theirs'));
 
           expect(stored().map((v) => v.id)).toStrictEqual([first.id, second.id, kept.id]);
           expect(vm.selectedViewId).toBe(kept.id);
         });
 
         it('should keep it again once that view has been changed', () => {
-          mockTakeShared.mockReturnValueOnce(sent(kept, 'Theirs'));
           const changed = { ...kept, query: 'name:changed' };
-          const { stored } = createWrapper(views([changed]));
+          const { vm, stored } = createWrapper(views([changed]));
+
+          vm.importView(imported(kept, 'Theirs'));
 
           expect(stored()).toHaveLength(4);
           expect(stored()[3].name).toBe(`${ KEPT_NAME } 2`);
         });
 
         it('should keep it under its own name beside a view of the user\'s holding the same config', () => {
-          mockTakeShared.mockReturnValueOnce(sent(kept, 'Theirs'));
           const mine = {
             ...kept, id: 'mine', name: 'Mine'
           };
-          const { stored } = createWrapper(views([mine]));
+          const { vm, stored } = createWrapper(views([mine]));
+
+          vm.importView(imported(kept, 'Theirs'));
 
           expect(stored().map((v) => v.name)).toStrictEqual([first.name, second.name, 'Mine', KEPT_NAME]);
         });
