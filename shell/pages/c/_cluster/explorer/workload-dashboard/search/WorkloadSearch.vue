@@ -7,6 +7,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
 import { computed, ref } from 'vue';
+import { POD } from '@shell/config/types';
 import { useWorkloadSearch } from './useWorkloadSearch';
 import { type WorkloadSearchOption } from './types';
 import type { WorkloadDashboardNamespaceNavigateFn, WorkloadDashboardResourceRouteFn } from '../types';
@@ -181,7 +182,8 @@ function onActionInvoked(): void {
             v-else
             class="namespace"
           >{{ option.namespace }}</span>
-          <span class="restarts">{{ t('workloadDashboard.search.restarts', { count: option.resource?.restartCount || 0 }) }}</span>
+          <!-- Workload restart counts need their pods, which aren't fetched here. Keep the span for column alignment -->
+          <span class="restarts">{{ option.resource?.type === POD ? t('workloadDashboard.search.restarts', { count: option.resource?.restartCount || 0 }) : '' }}</span>
           <LiveDate
             class="age"
             :value="option.resource?.creationTimestamp"
