@@ -27,7 +27,7 @@
     "type-check:ci": "node scripts/type-check-diff.mjs",
     "type-check:baseline": "node scripts/type-check-diff.mjs --update",
     "test": "NODE_OPTIONS=--max_old_space_size=8192 jest --watch",
-    "test:ci": "NODE_OPTIONS=--max_old_space_size=8192 jest --collectCoverage --silent",
+    "test:ci": "NODE_OPTIONS=--max_old_space_size=8192 jest --collectCoverage --silent --logHeapUsage",
     "install:ci": "yarn install --frozen-lockfile",
     "install:no-lock": "./scripts/yarn-no-lock.sh install",
     "add:no-lock": "./scripts/yarn-no-lock.sh add",
