@@ -1,3 +1,4 @@
+import { h } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import ProvisioningCattleIoCluster from '@shell/detail/provisioning.cattle.io.cluster.vue';
 import * as TitleBarComposables from '@shell/components/Resource/Detail/TitleBar/composables';
@@ -295,6 +296,134 @@ describe('view: provisioning.cattle.io.cluster', () => {
       });
 
       expect(wrapper.vm.showLog).toBeFalsy();
+    });
+  });
+
+  describe('machine pool actions', () => {
+    const autoscalingPool = (overrides = {}) => ({
+      nameDisplay:               'pool1',
+      autoscalerRange:           { min: 1, max: 4 },
+      isAutoscalerEnabled:       true,
+      isAutoscalerManaged:       true,
+      isAutoscalerPaused:        false,
+      isClusterAutoscalerPaused: false,
+      isLastAutoscalingPool:     false,
+      canPauseResumeAutoscaler:  true,
+      showScalePool:             false,
+      toggleAutoscalerPause:     jest.fn().mockResolvedValue(true),
+      ...overrides,
+    });
+
+    const mountWithPool = async(pool: any, featureEnabled = true) => {
+      const slotStub = {
+        render() {
+          return h('div', (this as any).$slots.default?.());
+        }
+      };
+      const resourceTableStub = {
+        render() {
+          return h('div', (this as any).$slots['group-by']?.({ group: { ref: pool } }));
+        }
+      };
+
+      const commit = jest.fn();
+      const tableMocks = {
+        ...mocks,
+        $store: {
+          ...mockStore,
+          commit,
+          getters: {
+            ...mockStore.getters,
+            'features/get': () => featureEnabled,
+            'i18n/exists':  () => true,
+          },
+        },
+      };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props: {
+          value: {
+            isRke2:   true,
+            name:     'c1',
+            spec:     { rkeConfig: { machinePools: [] } },
+            machines: [],
+            pools:    [],
+            hasLink:  () => true,
+          }
+        },
+        global: {
+          mocks: tableMocks,
+          stubs: {
+            DetailPage: {
+              render() {
+                return h('div', (this as any).$slots['bottom-area']?.());
+              }
+            },
+            ResourceTabs:  slotStub,
+            Tab:           slotStub,
+            ResourceTable: resourceTableStub,
+          },
+        },
+      });
+
+      await wrapper.setData({ haveMachines: true });
+
+      return { wrapper, commit };
+    };
+
+    it.each([
+      ['an autoscaling pool', { isAutoscalerManaged: true, isAutoscalerEnabled: true }, { icon: undefined, color: 'bg-info' }],
+      ['a paused pool', {
+        isAutoscalerManaged: true, isAutoscalerEnabled: false, isAutoscalerPaused: true
+      }, { icon: 'icon-pause', color: 'bg-darker' }],
+      ['a pool paused for the whole cluster', { isAutoscalerManaged: true, isClusterAutoscalerPaused: true }, { icon: 'icon-pause', color: 'bg-darker' }],
+    ])('should badge %s', async(_label, overrides, expected) => {
+      const { wrapper } = await mountWithPool(autoscalingPool(overrides));
+      const badge = wrapper.find('[data-testid="autoscaler-badge"]');
+
+      expect(badge.attributes('label')).toContain('cluster.machinePool.autoscaler.pause.badge');
+      expect(badge.attributes('icon')).toStrictEqual(expected.icon);
+      expect(badge.attributes('color')).toStrictEqual(expected.color);
+    });
+
+    it('should size the badge to the scale controls only while the autoscaler is running', async() => {
+      const { wrapper: running } = await mountWithPool(autoscalingPool({ isAutoscalerManaged: true, isAutoscalerEnabled: true }));
+      const { wrapper: paused } = await mountWithPool(autoscalingPool({
+        isAutoscalerManaged: true, isAutoscalerEnabled: false, isAutoscalerPaused: true
+      }));
+
+      expect(running.find('[data-testid="autoscaler-badge"]').classes()).toContain('autoscaler-badge-sized');
+      expect(paused.find('[data-testid="autoscaler-badge"]').classes()).not.toContain('autoscaler-badge-sized');
+    });
+
+    it('should not badge a pool the autoscaler does not manage', async() => {
+      const { wrapper } = await mountWithPool(autoscalingPool({ isAutoscalerManaged: false, isAutoscalerEnabled: false }));
+
+      expect(wrapper.find('[data-testid="autoscaler-badge"]').exists()).toBe(false);
+    });
+
+    it('should not badge anything while the autoscaler feature flag is off', async() => {
+      const { wrapper } = await mountWithPool(autoscalingPool(), false);
+
+      expect(wrapper.find('[data-testid="autoscaler-badge"]').exists()).toBe(false);
+    });
+
+    it('should open the pool action menu for a pool that has actions', async() => {
+      const pool = autoscalingPool({ availableActions: [{ action: 'toggleAutoscalerPause' }] });
+      const { wrapper, commit } = await mountWithPool(pool);
+      const button = wrapper.find('[data-testid="pool-actions-button"]');
+
+      expect(button.classes()).not.toContain('invisible');
+
+      await button.trigger('click');
+
+      expect(commit).toHaveBeenCalledWith('action-menu/show', expect.objectContaining({ resources: [pool] }));
+    });
+
+    it('should hide the action button for a pool with no actions', async() => {
+      const { wrapper } = await mountWithPool(autoscalingPool({ availableActions: [] }));
+
+      expect(wrapper.find('[data-testid="pool-actions-button"]').classes()).toContain('invisible');
     });
   });
 
