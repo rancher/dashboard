@@ -47,8 +47,15 @@ export default class ExtensionsPagePo extends PagePo {
     return this.self().get('.data-loading');
   }
 
-  waitForTabs() {
-    return this.extensionTabs.checkVisible(LONG_TIMEOUT_OPT);
+  /**
+   * Wait for the extension tabs, which only render once the page has finished loading.
+   *
+   * The tab bar is at the top of the page, so assert it without scrolling: checkVisible() scrolls by
+   * default, and the page re-renders the tabs while it finishes loading, which detaches the element
+   * mid-scroll ("the page updated as a result of this command").
+   */
+  waitForTabs(): Cypress.Chainable<boolean> {
+    return this.extensionTabs.checkVisible(LONG_TIMEOUT_OPT, { scrollIntoView: false });
   }
 
   /**

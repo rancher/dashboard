@@ -7,7 +7,7 @@ import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import ChartInstalledAppsListPagePo from '@/cypress/e2e/po/pages/chart-installed-apps.po';
-import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT, VERY_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_APPS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import CardPo from '@/cypress/e2e/po/components/card.po';
 import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
@@ -54,6 +54,9 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartApp }?action=uninstall`, '{}', false);
       cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartCrd }?action=uninstall`, '{}', false);
       cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartApp }`, (resp: any) => resp?.status === 404, 30, { failOnStatusCode: false });
+      // Wait for the CRD app to be gone too: installing while its uninstall is still running leaves the
+      // CRD app Failed, and the chart then never deploys on any later attempt.
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartCrd }`, (resp: any) => resp?.status === 404, 60, { failOnStatusCode: false });
 
       cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
       ChartPage.navTo(null, 'Logging');
@@ -72,22 +75,70 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       // ClusterOutput type to actually be served before navigating to it - otherwise the logging nav
       // entry is missing (attempt 1 failure) and creating a ClusterOutput 404s because the type is not
       // registered yet (attempt 2 failure).
-      cy.waitForResourceState('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartApp }`, 'deployed', 60);
+      // The deploy (helm operation pods, then the operator) has been seen to take well over the 60
+      // retries this used to allow, so give it longer.
+      cy.waitForResourceState('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartApp }`, 'deployed', 150);
 
-      const waitForClusterOutputType = (retries = 30): void => {
-        cy.request({
-          url:              `${ Cypress.env('api') }/v1/logging.banzaicloud.io.clusteroutputs`,
-          failOnStatusCode: false
-        }).then((resp) => {
+      // Wait for the logging types at the URLs the list pages actually load them from - the cluster's
+      // schemas. The top-level /v1 collection can answer 200 while the cluster schemas do not have the
+      // type yet, and the list page then renders blank (no Create button, no list request at all).
+      const waitForServed = (url: string, retries = 60): void => {
+        cy.request({ url: `${ Cypress.env('api') }${ url }`, failOnStatusCode: false }).then((resp) => {
           if (resp.status === 200 || retries === 0) {
             return;
           }
           cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
-          waitForClusterOutputType(retries - 1);
+          waitForServed(url, retries - 1);
         });
       };
 
-      waitForClusterOutputType();
+      waitForServed('/v1/logging.banzaicloud.io.clusteroutputs');
+      waitForServed('/k8s/clusters/local/v1/schemas/logging.banzaicloud.io.clusteroutput');
+      waitForServed('/k8s/clusters/local/v1/schemas/logging.banzaicloud.io.clusterflow');
+
+      // The by-id GET can answer 200 for a new resource while the collection the list page reads still
+      // omits it - the reloaded list then shows "There are no rows to show". Wait until the collection
+      // itself includes the resource. Logs instead of asserting on exhaustion; the row check fails then.
+      const waitForInCollection = (type: string, name: string, retries = 30): void => {
+        cy.request({
+          url:              `${ Cypress.env('api') }/v1/${ type }?pagesize=100000`,
+          headers:          { Accept: 'application/json' },
+          failOnStatusCode: false
+        }).then((resp) => {
+          const ids: string[] = (resp.body?.data || []).map((r: any) => r.id);
+
+          if (ids.includes(`${ chartNamespace }/${ name }`)) {
+            return;
+          }
+          if (retries === 0) {
+            cy.log(`${ type } collection still does not include ${ name }`);
+
+            return;
+          }
+          cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+          waitForInCollection(type, name, retries - 1);
+        });
+      };
+
+      // Known issue rancher/dashboard#18381: the ClusterOutput and ClusterFlow lists can render "There are
+      // no rows to show" while the API already serves the new resource. Give the list a bounded number of
+      // checks and reloads to show the row; the row assertion after each call still fails the test if it
+      // never does.
+      const waitForListed = (name: string, reloads = 2, checks = 15): void => {
+        cy.get('body').then(($body) => {
+          if ($body.find('tbody tr').filter((_, row) => (row.textContent || '').includes(name)).length > 0) {
+            return;
+          }
+
+          if (checks > 0) {
+            cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+            waitForListed(name, reloads, checks - 1);
+          } else if (reloads > 0) {
+            cy.reload();
+            waitForListed(name, reloads - 1);
+          }
+        });
+      };
 
       // Go straight to the ClusterOutput list rather than clicking through the product side-nav.
       // The nav is built from the schemas loaded when the cluster was entered, so the CRD this
@@ -119,9 +170,11 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       // fetching a single resource by id invalidates the paginated list's page, so the list empties
       // itself until something re-fetches it. Reload so the page is fetched fresh.
       cy.waitForRancherResource('v1', 'logging.banzaicloud.io.clusteroutputs', `cattle-logging-system/${ outputName }`, (resp: any) => resp?.status === 200, 20, { failOnStatusCode: false });
+      waitForInCollection('logging.banzaicloud.io.clusteroutputs', outputName);
       cy.reload();
       loggingOutputList.waitForPage();
       loggingOutputList.list().self(LONG_TIMEOUT_OPT).find('tbody', LONG_TIMEOUT_OPT).should('exist');
+      waitForListed(outputName);
       loggingOutputList.baseResourceList().resourceTable().sortableTable().rowElementWithName(outputName, MEDIUM_TIMEOUT_OPT)
         .should('exist');
 
@@ -161,16 +214,21 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
       // reading the row straight away can miss it. Confirm it exists at the API level first, then
       // allow the row lookup the medium timeout for the list to catch up.
       cy.waitForRancherResource('v1', 'logging.banzaicloud.io.clusterflows', `cattle-logging-system/${ flowName }`, (resp: any) => resp?.status === 200, 20, { failOnStatusCode: false });
+      waitForInCollection('logging.banzaicloud.io.clusterflows', flowName);
       // Same as the ClusterOutput list above (rancher/dashboard#18381): the list can empty itself after
       // the create even once the API serves the resource, so reload before reading the row.
       cy.reload();
       loggingFlowList.waitForPage();
       loggingFlowList.list().self(LONG_TIMEOUT_OPT).find('tbody', LONG_TIMEOUT_OPT).should('exist');
+      waitForListed(flowName);
       loggingFlowList.list().resourceTable().sortableTable().rowElementWithName(flowName, MEDIUM_TIMEOUT_OPT)
         .should('exist');
-      loggingFlowList.list().resourceTable().goToDetailsPage(flowName);
+
+      // Open the flow's detail page directly by URL.
       const loggingFlowDetail = new LoggingClusterFlowDetailPagePo('local', 'cattle-logging-system', flowName);
 
+      loggingFlowDetail.goTo();
+      loggingFlowDetail.waitForPage();
       loggingFlowDetail.ruleItem(0).should('be.visible');
     });
   });
@@ -288,19 +346,12 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
         });
       });
 
-      // EXPERIMENT (PR review): wait on the app's UI state instead of polling the API for a 404. The
-      // uninstall (Helm + CRD/finalizer cleanup) can take minutes - the row shows "Uninstalling ..."
-      // that whole time - so wait (very generously) for the row to leave the list. If this re-flakes
-      // (the installed-apps list can finish rendering empty spuriously - rancher/dashboard#18558 - or
-      // may not drop the row reactively) we revert to polling the API for a 404.
-      installedAppsPage.goTo();
-      installedAppsPage.waitForPage();
-      cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-      installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
-      installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
-      installedAppsPage.appsList().sortableTable().filter(chartApp);
-      installedAppsPage.appsList().sortableTable().rowElementWithName(chartApp, VERY_LONG_TIMEOUT_OPT)
-        .should('not.exist');
+      // Wait for the chart app itself to be gone, by its exact id. This used to wait for a list row
+      // matching /rancher-logging/ to disappear, but that also matches rancher-logging-crd, so a CRD
+      // app left behind (seen in Failed state) kept the check failing for its whole 700s timeout. The
+      // uninstall (Helm + CRD/finalizer cleanup) can take minutes, so allow a generous budget.
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', `${ chartNamespace }/${ chartApp }`, (resp: any) => resp?.status === 404, 300, { failOnStatusCode: false })
+        .should('eq', true);
     });
   });
 

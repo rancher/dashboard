@@ -13,6 +13,7 @@ import { qase } from '@/cypress/support/qase';
 const namespaceFilter = new NamespaceFilterPo();
 const cluster = 'local';
 let removeExtensions = false;
+let extensionDowngraded = false;
 
 const DISABLED_CACHE_EXTENSION_NAME = 'large-extension';
 // const DISABLED_CACHE_EXTENSION_MENU_LABEL = 'Large-extension';
@@ -471,14 +472,34 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionTabInstalledClick();
     extensionsPo.waitForPage(undefined, 'installed');
 
-    // click on the downgrade button on card
-    // this will downgrade to the immediate previous version
-    extensionsPo.extensionCardDowngradeClick(EXTENSION_NAME);
-    extensionsPo.installModal().installButton().click();
+    // Retry-safe: an attempt can send the downgrade and still fail afterwards. Downgrading again on the
+    // retry takes the extension two versions back, and the script-import test below then never sees its
+    // script load. Only downgrade once per run.
+    if (!extensionDowngraded) {
+      cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=upgrade`).as('downgradeExtension');
 
-    // let's check the extension reload banner and reload the page
-    extensionsPo.extensionReloadBanner().should('be.visible');
-    extensionsPo.extensionReloadClick();
+      // click on the downgrade button on card
+      // this will downgrade to the immediate previous version
+      extensionsPo.extensionCardDowngradeClick(EXTENSION_NAME);
+      extensionsPo.installModal().installButton().click();
+      cy.wait('@downgradeExtension', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 201)
+        .then(() => {
+          extensionDowngraded = true;
+        });
+
+      // The reload banner follows the helm app settling, so wait for that first, then reload the page
+      // through the banner.
+      cy.waitForRancherResource(
+        'v1',
+        'catalog.cattle.io.apps',
+        `${ UI_PLUGIN_NAMESPACE }/${ EXTENSION_NAME }`,
+        (resp: any) => resp?.status === 200 && resp?.body?.metadata?.state?.transitioning === false,
+        40,
+        { failOnStatusCode: false }
+      );
+      extensionsPo.extensionReloadBanner().should('be.visible');
+      extensionsPo.extensionReloadClick();
+    }
 
     // make sure extension card is on the installed tab and is visible
     extensionsPo.extensionTabInstalledClick();
@@ -652,8 +673,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
     extensionsPo.extensionReloadClick();
+    // The reloaded page can take longer than the default timeout to leave "Loading...", so wait for the
+    // tabs, which only render once it has loaded, rather than the indicator.
+    extensionsPo.waitForTabs();
     extensionsPo.waitForPage(undefined, 'installed');
-    extensionsPo.loading().should('not.exist');
 
     // make sure both extensions have been imported. The reload re-initialises the app and each
     // plugin's script is fetched asynchronously afterwards, so allow the long timeout.
