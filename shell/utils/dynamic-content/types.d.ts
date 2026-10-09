@@ -167,6 +167,25 @@ export type FirstRunFeature = {
 export type FirstRunRelease = {
   version: string; // Minor version, e.g. '2.16'
   whatsNew: FirstRunFeature[];
+  primePromo?: FirstRunPrimePromo;
+};
+
+/**
+ * Rancher Prime promotion of the release welcome modal, shown to Community installations
+ */
+export type FirstRunPrimePromo = {
+  title: string;
+  description: string;
+  products: string[];
+  cta: CallToAction; // The link must be https
+};
+
+/**
+ * Release welcome modal content for the running version: each part is undefined when the built-in content should be used
+ */
+export type FirstRunReleaseContent = {
+  features?: FirstRunFeature[];
+  primePromo?: FirstRunPrimePromo;
 };
 
 /**

@@ -45,6 +45,7 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     dialog.whatsNew().should('be.visible');
     dialog.whatsNewFeatures().should('have.length', 4);
     dialog.primePromo().should('be.visible');
+    dialog.primePromo().should('contain', 'Ready for production? Go Prime.');
 
     cy.wait('@markRead');
 
@@ -56,7 +57,7 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     dialog.checkNotExists();
   });
 
-  it('shows the what\'s new content from dynamic content', () => {
+  it('shows the content from dynamic content', () => {
     cy.setUserPreference({ 'read-release-welcome': '""' });
     cy.intercept('GET', '**/first-run', {
       statusCode: 200,
@@ -66,7 +67,13 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
           version:  '2.16',
           whatsNew: [{
             id: 'remote', title: 'Updated after the release', description: 'Fetched from the dynamic content endpoint'
-          }]
+          }],
+          primePromo: {
+            title:       'Prime, updated after the release',
+            description: 'Fetched from the dynamic content endpoint',
+            products:    ['Remote product'],
+            cta:         { action: 'Explore the remote offer', link: 'https://www.suse.com/remote' }
+          }
         }]
       }
     }).as('firstRun');
@@ -77,6 +84,10 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     dialog.whatsNewFeatures().should('have.length', 1);
     dialog.whatsNewFeatures().first().should('have.attr', 'data-testid', 'release-welcome-feature-remote');
     dialog.whatsNewFeatures().first().should('contain', 'Updated after the release');
+    dialog.primePromo().should('contain', 'Prime, updated after the release');
+    dialog.primePromo().find('li').should('have.length', 1);
+    dialog.primePromoExplore().should('have.attr', 'href', 'https://www.suse.com/remote');
+    dialog.primePromoExplore().should('contain', 'Explore the remote offer');
   });
 
   it('closes with the close button', () => {

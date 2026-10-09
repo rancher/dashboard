@@ -5,12 +5,15 @@
  * next to the dynamic content package (e.g. https://updates.rancher.io/rancher/community/first-run)
  *
  * Unlike the dynamic content package, the document is fetched straight away, when the modal is opened. When dynamic content
- * is disabled, or the document can't be fetched or has no valid content for the running version, the built-in content is used
+ * is disabled, or the document can't be fetched or has no valid content for the running version, the built-in content is used.
+ * Each part ("What's new" and the Prime promotion) falls back to its built-in content on its own
  */
 
 import * as jsyaml from 'js-yaml';
 import { getConfig } from './config';
-import { FirstRunContent, FirstRunFeature } from './types';
+import {
+  FirstRunContent, FirstRunFeature, FirstRunPrimePromo, FirstRunRelease, FirstRunReleaseContent
+} from './types';
 import { createLogger } from './util';
 
 const FIRST_RUN_DOCUMENT = 'first-run';
@@ -50,8 +53,27 @@ async function fetchDocument(axios: any, url: string): Promise<Partial<FirstRunC
   return (jsyaml.load(res?.data || '') || {}) as Partial<FirstRunContent>;
 }
 
+const isText = (value: any): value is string => typeof value === 'string' && !!value;
+
 function isFeature(feature: any): feature is FirstRunFeature {
-  return ['id', 'title', 'description'].every((key) => typeof feature?.[key] === 'string' && !!feature[key]);
+  return ['id', 'title', 'description'].every((key) => isText(feature?.[key]));
+}
+
+function isPrimePromo(promo: any): promo is FirstRunPrimePromo {
+  return isText(promo?.title) &&
+    isText(promo.description) &&
+    Array.isArray(promo.products) &&
+    promo.products.every(isText) &&
+    isText(promo.cta?.action) &&
+    // Opened by the modal, so only secure links (no javascript: or data: URLs)
+    isText(promo.cta.link) &&
+    promo.cta.link.startsWith('https://');
+}
+
+function findRelease(content: Partial<FirstRunContent> | undefined, version: string): FirstRunRelease | undefined {
+  const releases = Array.isArray(content?.releases) ? content.releases : [];
+
+  return releases.find((release) => release?.version === version);
 }
 
 /**
@@ -59,8 +81,7 @@ function isFeature(feature: any): feature is FirstRunFeature {
  * Content is remote, so a release with any invalid feature is ignored as a whole
  */
 export function firstRunFeatures(content: Partial<FirstRunContent> | undefined, version: string): FirstRunFeature[] | undefined {
-  const releases = Array.isArray(content?.releases) ? content.releases : [];
-  const features = releases.find((release) => release?.version === version)?.whatsNew;
+  const features = findRelease(content, version)?.whatsNew;
 
   if (!Array.isArray(features) || !features.every(isFeature)) {
     return undefined;
@@ -72,18 +93,36 @@ export function firstRunFeatures(content: Partial<FirstRunContent> | undefined, 
 }
 
 /**
- * Fetch the "What's new" features for the given version from the dynamic content endpoint
+ * Rancher Prime promotion for the given version, or undefined when the document has no valid promotion for it
+ */
+export function firstRunPrimePromo(content: Partial<FirstRunContent> | undefined, version: string): FirstRunPrimePromo | undefined {
+  const promo = findRelease(content, version)?.primePromo;
+
+  if (!isPrimePromo(promo)) {
+    return undefined;
+  }
+
+  return {
+    title:       promo.title,
+    description: promo.description,
+    products:    [...promo.products],
+    cta:         { action: promo.cta.action, link: promo.cta.link },
+  };
+}
+
+/**
+ * Fetch the release welcome modal content for the given version from the dynamic content endpoint
  *
  * @param getters Store getters, to read the dynamic content settings
  * @param axios Axios instance
  * @param version Minor version, e.g. '2.16'
- * @returns The features, or undefined when the built-in content should be used
+ * @returns The content, each part is undefined when the built-in content should be used
  */
-export async function fetchFirstRunFeatures(getters: any, axios: any, version: string): Promise<FirstRunFeature[] | undefined> {
+export async function fetchFirstRunContent(getters: any, axios: any, version: string): Promise<FirstRunReleaseContent> {
   const config = getConfig(getters);
 
   if (!config.enabled) {
-    return undefined;
+    return {};
   }
 
   const logger = createLogger(config);
@@ -93,16 +132,22 @@ export async function fetchFirstRunFeatures(getters: any, axios: any, version: s
 
     requests[url] = requests[url] || fetchDocument(axios, url);
 
-    const features = firstRunFeatures(await requests[url], version);
+    const content = await requests[url];
+    const features = firstRunFeatures(content, version);
+    const primePromo = firstRunPrimePromo(content, version);
 
     if (!features) {
       logger.info(`No valid release welcome content for ${ version } in ${ url }, using the built-in content`);
     }
 
-    return features;
+    if (!primePromo) {
+      logger.info(`No valid Prime promotion for ${ version } in ${ url }, using the built-in content`);
+    }
+
+    return { features, primePromo };
   } catch (e) {
     logger.info('Unable to fetch the release welcome content, using the built-in content', e);
 
-    return undefined;
+    return {};
   }
 }
