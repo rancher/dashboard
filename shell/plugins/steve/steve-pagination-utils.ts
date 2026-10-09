@@ -18,7 +18,9 @@ import {
   SECRET,
   CRD
 } from '@shell/config/types';
-import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
+import {
+  CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, DESCRIPTION, STORAGE, UI_PROJECT_SECRET_COPY
+} from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
@@ -232,6 +234,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'metadata.state.name' },
       { field: 'metadata.creationTimestamp' },
       { field: 'metadata.labels', startsWith: true },
+      // Where the api indexes it - the table views ask first, see server-support.ts
+      { field: `metadata.annotations[${ DESCRIPTION }]` },
     ],
     [NODE]: [
       { field: 'status.nodeInfo.kubeletVersion' },

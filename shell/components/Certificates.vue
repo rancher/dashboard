@@ -46,7 +46,8 @@ export default defineComponent({
           formatter: null,
           name:      'certState',
           sort:      ['certState', 'nameSort'],
-          value:     'certState',
+          // What the cell shows, so grouping, filtering and export read the same
+          value:     'certStateDisplay',
         },
         NAME_COL,
         NAMESPACE_COL,

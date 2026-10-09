@@ -6,6 +6,50 @@ import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
 /** What a view stores to turn off the grouping its table groups by by default */
 export const NO_GROUPING = 'none';
 
+/** Goes up when the saved views preference changes shape, so a release reading an older one can convert it */
+export const SAVED_VIEWS_VERSION = 1;
+
+export interface SavedViewsPref<T> {
+  metadata: {
+    version: number;
+    /** A random key kept with the user's views, which a view they share carries - see share.ts. Not checked */
+    persistenceId?: string;
+  };
+  payload: Record<string, T>;
+}
+
+/** The saved views by resource type, from the preference as written, or as it was before it had a version */
+export function savedViewsByType<T>(stored: unknown): Record<string, T> {
+  if (!stored || typeof stored !== 'object') {
+    return {};
+  }
+
+  const wrapped = stored as Partial<SavedViewsPref<T>>;
+
+  if (wrapped.metadata && typeof wrapped.metadata === 'object' && 'payload' in wrapped) {
+    return wrapped.payload || {};
+  }
+
+  return stored as Record<string, T>;
+}
+
+export function savedViewsPref<T>(byType: Record<string, T>, persistenceId?: string | null): SavedViewsPref<T> {
+  const metadata: SavedViewsPref<T>['metadata'] = { version: SAVED_VIEWS_VERSION };
+
+  if (persistenceId) {
+    metadata.persistenceId = persistenceId;
+  }
+
+  return { metadata, payload: byType };
+}
+
+/** The persistence id the preference holds, if it has one yet */
+export function persistenceIdOf(stored: unknown): string | null {
+  const id = (stored as Partial<SavedViewsPref<unknown>> | null)?.metadata?.persistenceId;
+
+  return typeof id === 'string' && id ? id : null;
+}
+
 /** Each key's empty value, so `null`, `undefined` and `[]` compare as the same */
 const EMPTY_VIEW: Required<TableViewState> = {
   query:          '',
@@ -31,9 +75,15 @@ function isSameViewConfig(a: Partial<TableViewState>, b: Partial<TableViewState>
   return isEqual(comparable(a), comparable(b));
 }
 
-function isViewModified(view: Partial<TableViewState>): boolean {
+/** Whether a view differs from the table as it comes */
+export function isViewModified(view: Partial<TableViewState>): boolean {
   return !!view.query || !!view.groupBy || !!view.columns || !!view.labelColumns?.length ||
     !!view.columnOrder || !!view.sort;
+}
+
+/** The saved view of this name holding exactly this config, if there is one */
+export function savedViewNamed(savedViews: TableViewSaved[], name: string, view: Partial<TableViewState>): TableViewSaved | null {
+  return savedViews.find((saved) => saved.name === name && isSameViewConfig(saved, view)) || null;
 }
 
 function matchingViewId(savedViews: TableViewSaved[], view: Partial<TableViewState>): string | null {

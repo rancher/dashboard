@@ -1,13 +1,19 @@
 <script>
 import { mapGetters } from 'vuex';
-import { asciiLike, nlToBr } from '@shell/utils/string';
+import { asciiLike, nlToBr, randomStr } from '@shell/utils/string';
 import { HIDE_SENSITIVE } from '@shell/store/prefs';
+import AsyncButton from '@shell/components/AsyncButton';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import CodeMirror from '@shell/components/CodeMirror';
 import { binarySize } from '@shell/utils/crypto';
+import { readTextFromClipboard } from '@shell/utils/clipboard';
 
 export default {
-  components: { CopyToClipboard, CodeMirror },
+  components: {
+    AsyncButton, CopyToClipboard, CodeMirror
+  },
+
+  emits: ['update:value'],
 
   props: {
     label: {
@@ -54,13 +60,46 @@ export default {
     copy: {
       type:    Boolean,
       default: true
+    },
+
+    /**
+     * The value in a text box to type or paste into, in the same frame, as `v-model:value`; for a value
+     * to come back in, eg one shared from here
+     */
+    editable: {
+      type:    Boolean,
+      default: false
+    },
+
+    /** A Paste button where Copy goes, filling an editable value from the clipboard */
+    paste: {
+      type:    Boolean,
+      default: false
+    },
+
+    placeholder: {
+      type:    String,
+      default: null
+    },
+
+    /** An editable value said to be wrong, and the id of what says so */
+    invalid: {
+      type:    Boolean,
+      default: false
+    },
+
+    describedBy: {
+      type:    String,
+      default: null
     }
   },
 
   data() {
     const expanded = this.value.length <= this.maxLength;
 
-    return { expanded, standAloneHide: true };
+    return {
+      expanded, standAloneHide: true, labelId: `detail-text-label-${ randomStr(4) }`
+    };
   },
 
   computed: {
@@ -158,26 +197,57 @@ export default {
     expand() {
       this.expanded = !this.expanded;
     },
+
+    async pasteValue(done) {
+      try {
+        const text = await readTextFromClipboard();
+
+        // Nothing on the clipboard is nothing pasted
+        if (text) {
+          this.$emit('update:value', text);
+        }
+        done(!!text);
+      } catch {
+        // Refused, or a browser that won't read the clipboard; pasting into the box still works
+        done(false);
+      }
+    },
   }
 };
 </script>
 
 <template>
-  <div :class="{'force-wrap': true, 'with-copy':copy}">
+  <div :class="{'force-wrap': true, 'with-copy': copy || paste}">
     <h5
       v-if="labelKey"
+      :id="labelId"
       v-t="labelKey"
       v-clean-tooltip="{content: itemLabel, popperClass: 'detail-text-tooltip'}"
     />
     <h5
       v-else-if="label"
+      :id="labelId"
       v-clean-tooltip="{content: label, popperClass: 'detail-text-tooltip'}"
     >
       {{ label }}
     </h5>
 
+    <textarea
+      v-if="editable"
+      class="editable monospace"
+      :value="value"
+      :placeholder="placeholder"
+      :aria-labelledby="labelKey || label ? labelId : undefined"
+      :aria-label="labelKey || label ? undefined : itemLabel"
+      :aria-invalid="invalid"
+      :aria-describedby="describedBy || undefined"
+      spellcheck="false"
+      data-testid="detail-top_input"
+      @input="$emit('update:value', $event.target.value)"
+    />
+
     <span
-      v-if="isEmpty"
+      v-else-if="isEmpty"
       v-t="'detailText.empty'"
       class="text-italic"
     />
@@ -212,7 +282,7 @@ export default {
       />
     </div>
 
-    <template v-if="!isBinary && !jsonStr && isLong && !expanded">
+    <template v-if="!editable && !isBinary && !jsonStr && isLong && !expanded">
       <a
         href="#"
         class="more-characters"
@@ -239,6 +309,22 @@ export default {
         class="role-tertiary"
         action-color=""
         :aria-label="t('detailText.copyAriaLabel', {item: itemLabel })"
+      />
+      <AsyncButton
+        v-if="paste"
+        icon="icon-document"
+        class="role-tertiary"
+        action-color=""
+        waiting-color="role-primary"
+        success-color="role-primary"
+        :action-label="t('detailText.paste.action')"
+        :waiting-label="t('detailText.paste.waiting')"
+        :success-label="t('detailText.paste.success')"
+        :error-label="t('detailText.paste.error')"
+        :aria-label="t('detailText.paste.ariaLabel', {item: itemLabel })"
+        :delay="2000"
+        data-testid="detail-text-paste"
+        @click="pasteValue"
       />
     </div>
   </div>
@@ -307,6 +393,22 @@ export default {
 
 .monospace {
   white-space: pre-wrap;
+}
+
+.editable {
+  display: block;
+  width: 100%;
+  min-height: 120px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--input-text);
+  resize: vertical;
+  overflow-wrap: anywhere;
+
+  &:focus-visible {
+    outline: 1px solid var(--outline);
+  }
 }
 
 .more-characters {

@@ -1,6 +1,6 @@
 import {
   applyQuery, applyQueryExpression, fieldsFor, parseQuery,
-  parseQueryExpression, queryToServerFilters, replaceToken, rowsToCsv, tokenAt, validateQuery, valuesInUse,
+  parseQueryExpression, queryToServerFilters, replaceToken, rowsToCsv, stateQueryFor, tokenAt, validateQuery, valuesInUse,
   coreFieldIdsFor, CORE_FIELD_IDS,
   moveInOrder,
   serverPathFor,
@@ -144,6 +144,42 @@ describe('fx: applyQuery', () => {
 
   it('searches every field for free text', () => {
     expect(run('redis')).toStrictEqual(['redis-a']);
+  });
+
+  it('leaves a field off the table out of free text, and still filters on it when named', () => {
+    const offTable = fields.map((field) => (field.id === 'namespace' ? { ...field, notInFreeText: true } : field));
+    const names = (query: string) => applyQuery(ROWS, parseQuery(query, offTable), offTable).map((r) => r.metadata.name);
+
+    expect(names('cattle-system')).toStrictEqual([]);
+    expect(names('namespace:cattle-system')).toStrictEqual(run('namespace:cattle-system'));
+  });
+
+  describe('a state the State column shows remapped', () => {
+    const remapped = [
+      {
+        ...ROWS[0], state: 'in-progress', stateDisplay: 'In Progress'
+      },
+      {
+        ...ROWS[1], state: 'active', stateDisplay: 'Active'
+      },
+    ];
+    const names = (query: string) => applyQuery(remapped, parseQuery(query, fields), fields).map((r) => r.metadata.name);
+
+    it.each([
+      ['its own name', 'state:in-progress'],
+      ['the name shown', 'state:"In Progress"'],
+      ['part of either', 'state:progress'],
+    ])('matches by %s', (_, query) => {
+      expect(names(query)).toStrictEqual(['nginx-a']);
+    });
+
+    it('excludes by its own name', () => {
+      expect(names('-state:in-progress')).toStrictEqual(['nginx-b']);
+    });
+
+    it('matches only the State column by the row\'s state name', () => {
+      expect(names('namespace:in-progress')).toStrictEqual([]);
+    });
   });
 });
 
@@ -362,6 +398,21 @@ describe('fx: termsToServerFilters', () => {
     expect(pathsOf(named.filters[0])).toStrictEqual(['metadata.creationTimestamp']);
   });
 
+  it('should leave a column off the table out of free text, and filter it when named', () => {
+    const description: TableViewField = {
+      id: 'description', label: 'Description', isLabel: false, notInFreeText: true, paginationHeader: { search: 'metadata.annotations[field.cattle.io/description]' }
+    };
+    const free = termsToServerFilters([{
+      field: null, value: 'payments', negated: false
+    }], [...FIELDS, description]);
+    const named = termsToServerFilters([{
+      field: 'description', value: 'payments', negated: false
+    }], [...FIELDS, description]);
+
+    expect(pathsOf(free.filters[0])).toStrictEqual(['metadata.name', 'metadata.namespace']);
+    expect(pathsOf(named.filters[0])).toStrictEqual(['metadata.annotations[field.cattle.io/description]']);
+  });
+
   it('should search every ordinary column for a free text term', () => {
     const { filters, unsupported } = termsToServerFilters([{
       field: null, value: 'nginx', negated: false
@@ -506,6 +557,22 @@ describe('fx: queryToServerFilters', () => {
 
     expect(filters).toHaveLength(0);
     expect(unsupported.map((t) => t.value)).toStrictEqual(['Error', 'nginx']);
+  });
+});
+
+describe('fx: stateQueryFor', () => {
+  it.each([
+    ['one state', 'running', 'state:running'],
+    ['several, as a link lists them', 'running,active', 'state:running state:active'],
+    ['empty parts, spaces and repeats left out', ' running,,active,running ', 'state:running state:active'],
+    ['a state needing quotes', 'in progress', 'state:"in progress"'],
+    ['a list of them', ['error', 'expired'], 'state:error state:expired'],
+  ])('should give a term per state for %s', (_, states, expected) => {
+    expect(stateQueryFor(states)).toBe(expected);
+  });
+
+  it.each([undefined, null, '', ',', 3])('should give nothing for %p', (states) => {
+    expect(stateQueryFor(states)).toBe('');
   });
 });
 

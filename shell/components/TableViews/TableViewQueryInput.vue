@@ -58,6 +58,8 @@ const props = withDefaults(defineProps<{
   dateFields?: string[],
   /** Ids of the fields whose values are on their way, eg as the page opens */
   pendingFields?: string[],
+  /** Ids of the fields whose values for suggesting are being asked for */
+  loadingValues?: string[],
 }>(), {
   value:         '',
   fields:        () => [],
@@ -66,11 +68,14 @@ const props = withDefaults(defineProps<{
   rows:          () => [],
   dateFields:    () => [],
   pendingFields: () => [],
+  loadingValues: () => [],
 });
 
 const emit = defineEmits<{
   'update:value': [value: string],
   'request-values': [fieldId: string],
+  /** A field's values are being offered: those in hand can be asked for again, to be fresh */
+  'refresh-values': [fieldId: string],
   'update:focused': [focused: boolean],
 }>();
 
@@ -239,13 +244,24 @@ const showClear = computed(() => !!props.value);
 
 const suggestableFields = computed<TableViewField[]>(() => props.filterFields || props.fields);
 
+/**
+ * The field typed while the api is asked for its values: nothing is offered until they come, rather than
+ * the page's and then the api's. The row saying so is not an option, as there is nothing to pick
+ */
+const loadingValuesFor = computed(() => {
+  const { field } = parsedToken.value;
+
+  // Only a field whose values are offered: for another, nothing would follow the row
+  return field && props.loadingValues.includes(field.id) && suggestableFields.value.some((f) => f.id === field.id) ? field : null;
+});
+
 const suggestions = computed<Suggestion[]>(() => {
   const { negate, field, typed } = parsedToken.value;
   const needle = typed.toLowerCase();
 
   if (field) {
     // The page scan would offer real-looking values for a term that is then ignored
-    if (!suggestableFields.value.some((f) => f.id === field.id)) {
+    if (!suggestableFields.value.some((f) => f.id === field.id) || loadingValuesFor.value) {
       return [];
     }
 
@@ -265,8 +281,8 @@ const suggestions = computed<Suggestion[]>(() => {
     .slice(0, 20)
     .map((f) => ({
       key:    f.id,
-      label:  f.isLabel ? `${ LABEL_FIELD_PREFIX }${ f.label }` : f.id,
-      detail: f.isLabel ? t('tableViews.query.label') : f.label,
+      label:  f.isLabel ? `${ LABEL_FIELD_PREFIX }${ f.label }` : f.label,
+      detail: f.isLabel ? t('tableViews.query.label') : f.id,
       insert: `${ negate }${ f.id }:`,
       field:  f,
     })));
@@ -305,14 +321,18 @@ const suggestionGroups = computed(() => {
 
 const suggestionsKey = computed(() => suggestions.value.map((suggestion) => suggestion.key).join(KEY_SEP));
 
-const showSuggestions = computed(() => focused.value && !dismissed.value && !!suggestions.value.length);
+const showSuggestions = computed(() => focused.value && !dismissed.value && (!!suggestions.value.length || !!loadingValuesFor.value));
 
-const activeDescendantId = computed(() => (showSuggestions.value ? optionId(activeIndex.value) : undefined));
+const activeDescendantId = computed(() => (showSuggestions.value && suggestions.value.length ? optionId(activeIndex.value) : undefined));
 
 /** A combobox announces its active option, but not that a list appeared or how long it is */
 const suggestionsAnnouncement = computed(() => {
   if (!showSuggestions.value) {
     return '';
+  }
+
+  if (!suggestions.value.length) {
+    return t('tableViews.query.loadingValues');
   }
 
   return t('tableViews.query.suggestionsAvailable', { count: suggestions.value.length }, true);
@@ -755,7 +775,10 @@ const onKeyDown = (event: KeyboardEvent) => {
     moveActive(-1);
   } else if (event.key === 'Enter') {
     event.preventDefault();
-    pick(suggestions.value[activeIndex.value]);
+
+    if (suggestions.value[activeIndex.value]) {
+      pick(suggestions.value[activeIndex.value]);
+    }
   } else if (event.key === 'Escape') {
     dismissed.value = true;
   }
@@ -771,6 +794,30 @@ const wantedFieldIds = computed(() => Array.from(new Set([...queryFieldIds.value
 watch(wantedFieldIds, (ids) => {
   ids.split(KEY_SEP).filter(Boolean).forEach((id: string) => emit('request-values', id));
 }, { immediate: true });
+
+/** The field whose values the box is offering, if any */
+const offeredFieldId = computed(() => {
+  const { field } = parsedToken.value;
+
+  return field && suggestableFields.value.some((f) => f.id === field.id) ? field.id : null;
+});
+
+/** The field whose values were last asked for again since the box was focused or its list shown */
+let refreshedFieldId: string | null = null;
+
+/** As a field's values open: once while the list stays up, whatever is typed, and again once reopened */
+watch([offeredFieldId, focused, dismissed], ([id, isFocused, isDismissed]) => {
+  if (!isFocused || isDismissed) {
+    refreshedFieldId = null;
+
+    return;
+  }
+
+  if (id && id !== refreshedFieldId) {
+    refreshedFieldId = id;
+    emit('refresh-values', id);
+  }
+});
 
 /** Keyed on the contents: the computed array is new whenever the caret moves */
 watch(suggestionsKey, () => {
@@ -885,6 +932,7 @@ onBeforeUnmount(() => {
         class="vs__dropdown-menu table-view-query-menu"
         role="listbox"
         :aria-label="t('tableViews.query.suggestions')"
+        :aria-busy="!!loadingValuesFor"
         :style="menuStyle"
         data-testid="table-views-suggestions"
         @mousemove="keyboardNav = false"
@@ -918,6 +966,15 @@ onBeforeUnmount(() => {
             <span class="suggestion-detail">{{ entry.detail }}</span>
           </li>
         </template>
+        <li
+          v-if="loadingValuesFor"
+          class="suggestion-loading"
+          role="presentation"
+          data-testid="table-views-suggestions-loading"
+        >
+          <i class="icon icon-spinner icon-spin" />
+          {{ t('tableViews.query.loadingValues') }}
+        </li>
       </ul>
     </Teleport>
   </div>
@@ -1080,6 +1137,14 @@ $query-height: 32px;
     opacity: 0.6;
     font-size: 12px;
     white-space: nowrap;
+  }
+
+  .suggestion-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    cursor: default;
   }
 }
 </style>

@@ -4,6 +4,7 @@ import { createStore } from 'vuex';
 
 import { useSavedTableViews } from '@shell/composables/useSavedTableViews';
 import { TABLE_VIEWS } from '@shell/store/prefs';
+import { SAVED_VIEWS_VERSION, savedViewsByType } from '@shell/utils/table-views/views';
 import type { TableViewSaved } from '@shell/types/table-views';
 
 const view = (id: string, name = id): TableViewSaved => ({
@@ -15,7 +16,16 @@ const stored = (id: string, name = id) => ({
   id, name, labelColumns: []
 });
 
-function setup(stored: Record<string, unknown>, type = 'pod', page: string | null = null) {
+/** A type's entry as written: its views, and the pages keeping their own */
+interface WrittenEntry {
+  views: TableViewSaved[];
+  defaultViewId?: string | null;
+  allIndex?: number;
+  order?: string[];
+  pages: Record<string, WrittenEntry>;
+}
+
+function setup(stored: Record<string, unknown>, type = 'pod', page: string | null = null, shared: TableViewSaved[] = []) {
   const setPref = jest.fn();
   const store = createStore({
     getters: { 'prefs/get': () => (key: string) => (key === TABLE_VIEWS ? stored : undefined) },
@@ -25,20 +35,61 @@ function setup(stored: Record<string, unknown>, type = 'pod', page: string | nul
 
   mount(defineComponent({
     setup() {
-      saved = useSavedTableViews(() => type, () => page);
+      saved = useSavedTableViews(() => type, () => page, () => shared);
 
       return () => h('div');
     }
   }), { global: { plugins: [store] } });
 
-  const written = () => setPref.mock.calls[setPref.mock.calls.length - 1][0].value;
+  const writtenPref = () => setPref.mock.calls[setPref.mock.calls.length - 1][0].value;
+  /** What was written, inside the version it was written with */
+  const written = () => savedViewsByType<WrittenEntry>(writtenPref());
 
   return {
-    saved: saved!, setPref, written
+    saved: saved!, setPref, written, writtenPref
   };
 }
 
 describe('useSavedTableViews', () => {
+  describe('the version of the shape it is written in', () => {
+    it('should write the views with the version of their shape', () => {
+      const { saved, writtenPref } = setup({});
+
+      saved.persist([view('a')]);
+
+      expect(writtenPref()).toStrictEqual({ metadata: { version: SAVED_VIEWS_VERSION }, payload: { pod: { views: [stored('a')], allIndex: 0 } } });
+      expect(SAVED_VIEWS_VERSION).toBe(1);
+    });
+
+    it('should keep the persistence id the preference holds', () => {
+      const { saved, writtenPref } = setup({ metadata: { version: SAVED_VIEWS_VERSION, persistenceId: 'k1' }, payload: {} });
+
+      saved.persist([view('a')]);
+
+      expect(writtenPref().metadata).toStrictEqual({ version: SAVED_VIEWS_VERSION, persistenceId: 'k1' });
+    });
+
+    it('should read views written with a version', () => {
+      const { saved } = setup({ metadata: { version: 1 }, payload: { pod: { views: [view('a')], defaultViewId: 'a' } } });
+
+      expect(saved.savedViews.value.map((v) => v.id)).toStrictEqual(['a']);
+      expect(saved.defaultViewId.value).toBe('a');
+    });
+
+    it('should read views written before there was a version, and write them with one', () => {
+      const { saved, writtenPref } = setup({ pod: { views: [view('a')] }, node: { views: [view('z')] } });
+
+      expect(saved.savedViews.value.map((v) => v.id)).toStrictEqual(['a']);
+
+      saved.persist([view('a'), view('b')]);
+
+      expect(writtenPref()).toStrictEqual({
+        metadata: { version: 1 },
+        payload:  { pod: { views: [stored('a'), stored('b')], allIndex: 0 }, node: { views: [view('z')] } },
+      });
+    });
+  });
+
   it('should read the views, the default and the table tab\'s place for its own type', () => {
     const { saved } = setup({
       pod: {
@@ -225,6 +276,78 @@ describe('useSavedTableViews', () => {
       saved.persistAll([], null);
 
       expect(written().pod.pages.home.views).toStrictEqual([view('own')]);
+    });
+  });
+
+  describe('beside views shared with everyone', () => {
+    it('should keep a default on a shared view', () => {
+      const { saved, written } = setup({ pod: { views: [view('a')] } }, 'pod', null, [view('g')]);
+
+      saved.persistAll([view('a')], 'g');
+
+      expect(written().pod.defaultViewId).toBe('g');
+    });
+
+    it('should keep `all`, the table\'s own tab chosen over the page\'s shared default', () => {
+      const { saved, written } = setup({ pod: { views: [] } }, 'pod', null, [view('g')]);
+
+      saved.persistAll([], 'all');
+
+      expect(written().pod.defaultViewId).toBe('all');
+    });
+
+    it('should keep a default on a shared view that has not loaded yet', () => {
+      const { saved, written } = setup({ pod: { views: [view('a')], defaultViewId: 'g' } });
+
+      saved.persist([view('a'), view('b')]);
+
+      expect(written().pod.defaultViewId).toBe('g');
+    });
+
+    it('should write the order of every tab, and keep it when the views are written', () => {
+      const { saved, written } = setup({ pod: { views: [view('a')] } }, 'pod', null, [view('g')]);
+
+      saved.persistAll([view('a')], null, 1, ['g', 'all', 'a']);
+
+      expect(written().pod.order).toStrictEqual(['g', 'all', 'a']);
+
+      const again = setup({ pod: { views: [view('a')], order: ['g', 'all', 'a'] } }, 'pod', null, [view('g')]);
+
+      again.saved.persist([view('a'), view('b')]);
+
+      expect(again.written().pod.order).toStrictEqual(['g', 'all', 'a']);
+    });
+
+    it('should drop a view of the user\'s own from the order when it goes, but not one that went to the shared views', () => {
+      const { saved, written } = setup({ pod: { views: [view('a'), view('b')], order: ['all', 'a', 'b'] } }, 'pod', null, [view('b')]);
+
+      saved.persist([]);
+
+      expect(written().pod.order).toStrictEqual(['all', 'b']);
+    });
+
+    it('should keep the stored order\'s shared views when a new order is written without them', () => {
+      const { saved, written } = setup({ pod: { views: [view('a'), view('b')], order: ['all', 'g', 'a', 'b'] } });
+
+      saved.persistAll([view('b'), view('a')], null, 0, ['all', 'b', 'a']);
+
+      expect(written().pod.order).toStrictEqual(['all', 'g', 'b', 'a']);
+    });
+
+    it('should keep an entry with no views of the user\'s own while it holds their order or default', () => {
+      const { saved, written } = setup({ pod: { views: [view('a')] } }, 'pod', null, [view('g')]);
+
+      saved.persistAll([], 'g', 0, ['all', 'g']);
+
+      expect(written().pod).toStrictEqual({
+        views: [], defaultViewId: 'g', allIndex: 0, order: ['all', 'g']
+      });
+    });
+
+    it('should not name a view after a shared one', () => {
+      const { saved } = setup({ pod: { views: [] } }, 'pod', null, [view('g', 'Untitled')]);
+
+      expect(saved.unusedViewName('Untitled', 1)).toBe('Untitled 1');
     });
   });
 

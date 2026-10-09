@@ -300,6 +300,7 @@ export const COMPLIANCE: {
 };
 export const UI: {
     NAV_LINK: string;
+    TABLE_CONFIGURATION: string;
 };
 export const VIRTUAL_TYPES: {
     CLUSTER_MEMBERS: string;

@@ -1,4 +1,5 @@
 
+import day from 'dayjs';
 import { NAME, STATE } from '@shell/config/table-headers';
 import { get } from '@shell/utils/object';
 import { valueFor } from '@shell/utils/table-columns';
@@ -406,6 +407,11 @@ export function dateText(value: unknown): string {
   }
 
   return text;
+}
+
+/** A month grouping's key, eg `2026-11`, as it reads: "November 2026". Anything else is left alone */
+export function monthLabel(key: string): string {
+  return /^\d{4}-\d{2}$/.test(key) ? day(`${ key }-01`).format('MMMM YYYY') : key;
 }
 
 /**

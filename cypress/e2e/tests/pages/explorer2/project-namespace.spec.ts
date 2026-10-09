@@ -21,6 +21,8 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
   }));
 
   qase(1523, it('create namespace screen should have a projects dropdown', () => {
+    // Grouped by project, as the list opens, each project offers its own; the list's button is the flat list's
+    projectsNamespacesPage.list().resourceTable().sortableTable().groupBy('None');
     projectsNamespacesPage.createNamespaceButton().click();
     createNamespacePage.resourceDetail().createEditView().nameNsDescription()
       .project()

@@ -3103,6 +3103,12 @@ drivers:
 
 detailText:
   copyAriaLabel: Copy {item} value to clipboard
+  paste:
+    ariaLabel: Paste a {item} value from the clipboard
+    action: Paste
+    waiting: Pasting...
+    success: Pasted!
+    error: Error Pasting
   collapse: Hide
   binary: '<Binary Data: {n, number} bytes>'
   empty: '<Empty>'
@@ -6575,8 +6581,6 @@ resourceList:
   nsFiltering: "Please select one or more namespaces or projects using the filter above."
   nsFilteringGeneric: "Please select a valid namespace or project option using the filter above."
   nsFilterToolTip: "Filtering is restricted to projects and namespaces"
-  stateFilterApplied: "State filter applied:"
-  clearStateFilter: "Clear filter"
 resourceLoadingIndicator:
   loading: Loading
 
@@ -7287,7 +7291,7 @@ storageClass:
 
 tableViews:
   tabs:
-    all: Explorer
+    all: All
     label: Saved views
     newView: Add View
     count: "{name} ({count})"
@@ -7307,13 +7311,20 @@ tableViews:
     menu: View options
     rename: Rename View
     duplicate: Duplicate View
+    shareView: Share View
+    importView: Import View
     copySuffix: (copy)
     delete: Delete View
     setDefault: Set as Default View
     newViewName: Untitled
+    importedName: Imported ({name})
     deleted: View Deleted
     deletedMessage: The "{name}" view has been successfully deleted.
+    deletedSharedMessage: The "{name}" view has been unpublished and deleted.
     undo: Undo
+    shared: Published
+    share: Publish
+    unshare: Unpublish
   bulk:
     selected: "{count} Selected"
     deleteSelected: Delete Selected
@@ -7326,6 +7337,7 @@ tableViews:
     inUse: "{count} in use"
     label: Label
     suggestions: Filter suggestions
+    loadingValues: Loading values…
     suggestionsAvailable: |-
       {count, plural,
       one {1 suggestion available}
@@ -7373,8 +7385,23 @@ tableViews:
       cluster: Cluster
       device: Device
       pool: Pool
+      provider: Provider
       workspace: Workspace
       type: Type
+  # A view as text: Share View hands it out, Import View takes it in, and either shows it in the same box
+  share:
+    title: Share View
+    intro: 'Copy this text and send it to whoever should see this view. It holds the view as it is now, unsaved changes included: its filter, columns, grouping and sort - <b>so any resource or namespace names in its filter are shared too</b>.'
+    label: View
+  import:
+    title: Import View
+    intro: 'Paste the text of a view shared with you. It is added as a new view, and saved.'
+    placeholder: Paste the view here
+    import: Import
+    invalid: This isn't a shared view. Check that the whole text was copied.
+    # `list` names the table the view was shared from, eg Pods
+    otherTable: This view was shared from the {list} list. Open Import View there to import it.
+    otherPage: This view was shared from the {list} list on another page. Open Import View there to import it.
   export:
     label: Export All View Contents
     title: Export All View Contents
@@ -7406,6 +7433,20 @@ tableViews:
       doneMessage: The {name} view has been exported to {file}.
       failedTitle: Export failed
       failedMessage: The {name} view could not be exported.
+      # The same for a selection exported from its rows' actions. `type` is what the rows are, as many as
+      # `count` (eg Pod, Pods), else `items`
+      selectionMessage: Exporting {count, number} selected {type} as {format}...
+      selectionDoneMessage: |-
+        {count, plural,
+        one {1 selected {type} has}
+        other {{count, number} selected {type} have}
+        } been exported to {file}.
+      selectionFailedMessage: |-
+        {count, plural,
+        one {The selected {type}}
+        other {The {count, number} selected {type}}
+        } could not be exported.
+      items: "{count, plural, one {item} other {items}}"
 tableHeaders:
   assuredConcurrencyShares: Assured Concurrency Shares
   autoscaler: Autoscaler
