@@ -92,4 +92,38 @@ describe('TableViewQueryInput', () => {
     expect(field?.querySelector('.suggestion-label')?.textContent?.trim()).toBe('State');
     expect(field?.querySelector('.suggestion-detail')?.textContent?.trim()).toBe('state');
   });
+
+  describe('asking for a field\'s values again', () => {
+    const refreshed = () => (wrapper.emitted('refresh-values') || []).map(([id]) => id);
+
+    it('should ask as the field\'s values open, not as more of the value is typed', async() => {
+      mountWith({ fieldValues: { state: ACTIVE } });
+
+      await type('state:');
+      await type('state:ac');
+      await type('state:act');
+
+      expect(refreshed()).toStrictEqual(['state']);
+    });
+
+    it('should ask again when they open again, once the box was left', async() => {
+      mountWith({ fieldValues: { state: ACTIVE } });
+
+      await type('state:');
+      // Left for real: the box waits a moment, so a click on a suggestion lands first
+      await wrapper.find('[data-testid="table-views-query"]').trigger('blur');
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      await type('state:');
+
+      expect(refreshed()).toStrictEqual(['state', 'state']);
+    });
+
+    it('should not ask for a field whose values it doesn\'t offer', async() => {
+      mountWith({ filterFields: [], fieldValues: { state: ACTIVE } });
+
+      await type('state:');
+
+      expect(refreshed()).toStrictEqual([]);
+    });
+  });
 });

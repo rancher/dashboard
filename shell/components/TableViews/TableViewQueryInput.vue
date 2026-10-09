@@ -74,6 +74,8 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   'update:value': [value: string],
   'request-values': [fieldId: string],
+  /** A field's values are being offered: those in hand can be asked for again, to be fresh */
+  'refresh-values': [fieldId: string],
   'update:focused': [focused: boolean],
 }>();
 
@@ -792,6 +794,30 @@ const wantedFieldIds = computed(() => Array.from(new Set([...queryFieldIds.value
 watch(wantedFieldIds, (ids) => {
   ids.split(KEY_SEP).filter(Boolean).forEach((id: string) => emit('request-values', id));
 }, { immediate: true });
+
+/** The field whose values the box is offering, if any */
+const offeredFieldId = computed(() => {
+  const { field } = parsedToken.value;
+
+  return field && suggestableFields.value.some((f) => f.id === field.id) ? field.id : null;
+});
+
+/** The field whose values were last asked for again since the box was focused or its list shown */
+let refreshedFieldId: string | null = null;
+
+/** As a field's values open: once while the list stays up, whatever is typed, and again once reopened */
+watch([offeredFieldId, focused, dismissed], ([id, isFocused, isDismissed]) => {
+  if (!isFocused || isDismissed) {
+    refreshedFieldId = null;
+
+    return;
+  }
+
+  if (id && id !== refreshedFieldId) {
+    refreshedFieldId = id;
+    emit('refresh-values', id);
+  }
+});
 
 /** Keyed on the contents: the computed array is new whenever the caret moves */
 watch(suggestionsKey, () => {
