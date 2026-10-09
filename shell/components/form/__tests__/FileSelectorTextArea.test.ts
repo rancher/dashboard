@@ -214,4 +214,63 @@ describe('component: FileSelectorTextArea', () => {
 
     expect(wrapper.emitted('update:value')).toBeUndefined();
   });
+
+  describe('the help text', () => {
+    const SUB_LABEL = '[data-testid="file-selector-text-area__sub-label"]';
+    const describedBy = (wrapper: any) => wrapper.find('textarea').attributes('aria-describedby');
+
+    it.each([
+      ['between the text area and the file selector when editing', {}, `.drop-zone + ${ SUB_LABEL } + .file-selector-row`],
+      ['directly under the text area in view mode', { mode: _VIEW }, `.drop-zone + ${ SUB_LABEL }`],
+    ])('should render %s', (_, props, selector) => {
+      const wrapper = mountComponent({ subLabel: 'Some help', ...props });
+
+      expect(wrapper.find(selector).exists()).toBe(true);
+    });
+
+    it('should not be rendered by the labeled input', () => {
+      const wrapper = mountComponent({ subLabel: 'Some help' });
+
+      expect(wrapper.find('.labeled-input [data-testid="sub-label"]').exists()).toBe(false);
+    });
+
+    it('should render the HTML it is given', () => {
+      const wrapper = mountComponent({ subLabel: 'Read the <a href="https://example.com/docs">docs</a>.' });
+
+      expect(wrapper.find(`${ SUB_LABEL } a`).attributes('href')).toBe('https://example.com/docs');
+    });
+
+    it.each([
+      ['is not set', undefined],
+      ['is empty', ''],
+    ])('should not render when it %s', (_, subLabel) => {
+      const wrapper = mountComponent({ subLabel });
+
+      expect(wrapper.find(SUB_LABEL).exists()).toBe(false);
+    });
+
+    it('should describe the text area', () => {
+      const wrapper = mountComponent({ subLabel: 'Some help' });
+
+      expect(wrapper.find(`${ SUB_LABEL }[id="${ describedBy(wrapper) }"]`).exists()).toBe(true);
+    });
+
+    it('should describe the text area alongside a description the caller supplies', () => {
+      const wrapper = mountComponent({ subLabel: 'Some help', 'aria-describedby': 'caller-hint' });
+
+      expect(describedBy(wrapper)).toBe(`caller-hint ${ wrapper.find(SUB_LABEL).attributes('id') }`);
+    });
+
+    it('should leave a description the caller supplies alone when there is no help text', () => {
+      const wrapper = mountComponent({ 'aria-describedby': 'caller-hint' });
+
+      expect(describedBy(wrapper)).toBe('caller-hint');
+    });
+
+    it('should not describe the text area when there is no help text', () => {
+      const wrapper = mountComponent();
+
+      expect(describedBy(wrapper)).toBeUndefined();
+    });
+  });
 });

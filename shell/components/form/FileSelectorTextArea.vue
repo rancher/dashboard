@@ -4,7 +4,9 @@
  * either with the "Read from File" button or by dropping a file onto the text
  * area. Used for pasted blobs such as certificates and private keys.
  */
-import { computed, ref, useAttrs, type StyleValue } from 'vue';
+import {
+  computed, ref, useAttrs, useId, type StyleValue
+} from 'vue';
 import { useStore } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import FileSelector, { readFileContents } from '@shell/components/form/FileSelector.vue';
@@ -20,6 +22,8 @@ const props = withDefaults(defineProps<{
   value?: string;
   label?: string;
   labelKey?: string;
+  /** Help text shown below the text area, above the "Read from File" button. May contain HTML. */
+  subLabel?: string;
   placeholder?: string;
   placeholderKey?: string;
   mode?: string;
@@ -45,6 +49,7 @@ const props = withDefaults(defineProps<{
   value:              '',
   label:              undefined,
   labelKey:           undefined,
+  subLabel:           undefined,
   placeholder:        undefined,
   placeholderKey:     undefined,
   mode:               undefined,
@@ -76,6 +81,9 @@ const inputAttrs = computed(() => {
 const fileSelectorAttrs = computed(() => (props.fileSelectorTestid ? { 'data-testid': props.fileSelectorTestid } : {}));
 const rootClass = computed(() => attrs.class as string | string[] | Record<string, boolean> | undefined);
 const rootStyle = computed(() => attrs.style as StyleValue);
+
+const subLabelId = useId();
+const describedBy = computed(() => [attrs['aria-describedby'], props.subLabel && subLabelId].filter(Boolean).join(' ') || undefined);
 
 // Nested elements fire their own dragenter/dragleave, so count entries and
 // exits rather than toggling a boolean, otherwise the overlay flickers.
@@ -179,6 +187,7 @@ const onDrop = async(event: DragEvent) => {
         :min-height="minHeight"
         :max-height="maxHeight"
         :resize-on-value-change-and-resize-window="true"
+        :aria-describedby="describedBy"
         @update:value="$emit('update:value', $event)"
       />
       <div
@@ -189,6 +198,13 @@ const onDrop = async(event: DragEvent) => {
         <span>{{ t('fileSelectorTextArea.dropToReplace') }}</span>
       </div>
     </div>
+    <div
+      v-if="subLabel"
+      :id="subLabelId"
+      v-clean-html="subLabel"
+      class="sub-label"
+      data-testid="file-selector-text-area__sub-label"
+    />
     <div
       v-if="!isView"
       class="file-selector-row"
@@ -248,6 +264,11 @@ const onDrop = async(event: DragEvent) => {
       // Keeps the message to the design's compact, centred two-line measure
       max-width: 210px;
     }
+  }
+
+  .sub-label {
+    padding-top: 5px;
+    color: var(--input-label);
   }
 
   .file-selector-row {
