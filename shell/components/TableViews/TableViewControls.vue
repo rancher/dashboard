@@ -10,7 +10,7 @@ import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInpu
 import { useDragReorder } from '@shell/composables/useDragReorder';
 import { useI18n } from '@shell/composables/useI18n';
 import { validateQuery } from '@shell/utils/table-views/query';
-import { NO_GROUPING } from '@shell/utils/table-views/views';
+import { NO_GROUPING, isViewModified } from '@shell/utils/table-views/views';
 import { isMac } from '@shell/utils/platform';
 import type { TableViewField, TableViewQueryProblem, TableViewRow, TableViewState } from '@shell/types/table-views';
 import {
@@ -156,10 +156,17 @@ const isColumnVisible = (field: TableViewField) => {
   return !props.defaultColumns.length || props.defaultColumns.includes(field.id);
 };
 
+/** The table's own columns, grouping, or all of it: then the matching Reset has nothing to undo */
+const columnsAsTheyCome = computed(() => !props.view.columns && !props.view.labelColumns?.length && !props.view.columnOrder);
+
+const groupingAsItComes = computed(() => !props.view.groupBy);
+
+const viewAsItComes = computed(() => !isViewModified(props.view));
+
 const visibleColumnCount = computed(() => columnFields.value.filter((f) => isColumnVisible(f)).length + (props.view.labelColumns?.length || 0));
 
 const columnsSummary = computed(() => {
-  if (!props.view.columns && !props.view.labelColumns?.length && !props.view.columnOrder) {
+  if (columnsAsTheyCome.value) {
     return t('tableViews.view.columnsDefault');
   }
 
@@ -439,6 +446,7 @@ watch(groupPanel, (panel) => {
                     class="menu-reset"
                     acts-on-checkable-items
                     data-testid="table-views-group-reset"
+                    :disabled="groupingAsItComes"
                     @click="resetGroupBy"
                   >
                     {{ t('tableViews.view.reset') }}
@@ -514,6 +522,7 @@ watch(groupPanel, (panel) => {
                     class="menu-reset"
                     acts-on-checkable-items
                     data-testid="table-views-columns-reset"
+                    :disabled="columnsAsTheyCome"
                     @click="resetColumns"
                   >
                     <template #before>
@@ -529,6 +538,7 @@ watch(groupPanel, (panel) => {
             <rc-dropdown-item
               class="menu-reset"
               data-testid="table-views-reset"
+              :disabled="viewAsItComes"
               @click="resetView"
             >
               {{ t('tableViews.view.reset') }}
