@@ -6,7 +6,7 @@ import StatusBar from '@shell/components/Resource/Detail/StatusBar.vue';
 import StatusRow from '@shell/components/Resource/Detail/StatusRow.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { StateColor } from '@shell/utils/style';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
 import type { SummaryResult } from '@shell/components/Resource/Detail/Card/StateCard/composables';
@@ -22,10 +22,10 @@ export interface Props {
   scaleValue?: number;
   noResourcesMessage?: string;
   /**
-   * Further clicks are ignored until the returned promise resolves.
+   * Called with the value being scaled to, which is shown with the scale buttons blocked until the returned promise settles.
    */
-  onIncrease?: () => Promise<void> | void;
-  onDecrease?: () => Promise<void> | void;
+  onIncrease?: (newValue: number) => Promise<void> | void;
+  onDecrease?: (newValue: number) => Promise<void> | void;
 }
 </script>
 
@@ -43,16 +43,16 @@ const props = withDefaults(defineProps<Props>(), {
   onDecrease:         undefined
 });
 
-let scaling = false;
+const scalingTo = ref<number>();
 
-const scale = async(scaleFn?: () => Promise<void> | void) => {
-  if (scaling) {
-    return;
+const scale = async(newValue: number, scaleFn?: (newValue: number) => Promise<void> | void) => {
+  scalingTo.value = newValue;
+
+  try {
+    await scaleFn?.(newValue);
+  } finally {
+    scalingTo.value = undefined;
   }
-
-  scaling = true;
-  await scaleFn?.();
-  scaling = false;
 };
 
 const summaryStateCounts = computed(() => {
@@ -169,10 +169,11 @@ const rows = computed(() => {
         <span>{{ i18n.t('tableHeaders.scale') }}</span>
         <Scaler
           :ariaResourceName="i18n.t('component.resource.detail.card.podsCard.ariaResourceName')"
-          :value="props.scaleValue"
+          :value="scalingTo ?? props.scaleValue"
           :min="0"
-          @increase="scale(props.onIncrease)"
-          @decrease="scale(props.onDecrease)"
+          :disabled="scalingTo !== undefined"
+          @increase="(newValue) => scale(newValue, props.onIncrease)"
+          @decrease="(newValue) => scale(newValue, props.onDecrease)"
         />
       </div>
     </template>
@@ -212,6 +213,6 @@ const rows = computed(() => {
 .scale {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--gap);
 }
 </style>

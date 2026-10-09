@@ -98,7 +98,7 @@ describe('class: Workload', () => {
   describe.each([
     ['scaleUp', 2, 3],
     ['scaleDown', 2, 1],
-  ])('method: %s', (method, replicas, expected) => {
+  ] as const)('method: %s', (method, replicas, expected) => {
     const createWorkload = (save: jest.Mock) => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
@@ -115,10 +115,16 @@ describe('class: Workload', () => {
       return workload;
     };
 
+    const conflictReloading = (workload: Workload, reloaded: number) => () => {
+      workload.spec.replicas = reloaded;
+
+      return Promise.reject(Object.assign(new Error('Conflict'), { _status: 409 }));
+    };
+
     it('should show the new replica count before the save completes', () => {
       const workload = createWorkload(jest.fn().mockReturnValue(new Promise(() => {})));
 
-      (workload as any)[method]();
+      workload[method]();
 
       expect(workload.spec.replicas).toStrictEqual(expected);
     });
@@ -126,56 +132,60 @@ describe('class: Workload', () => {
     it('should go back to the previous replica count when the save fails', async() => {
       const workload = createWorkload(jest.fn().mockRejectedValue(new Error('Scale failed')));
 
-      await (workload as any)[method]().catch(() => {});
+      await workload[method]().catch(() => {});
 
       expect(workload.spec.replicas).toStrictEqual(replicas);
-    });
-
-    const conflict = () => Object.assign(new Error('Conflict'), { _status: 409 });
-
-    it('should keep the new replica count when the save after a conflict succeeds', async() => {
-      const workload = createWorkload(jest.fn());
-
-      (workload.save as jest.Mock).mockImplementationOnce(() => {
-        workload.spec.replicas = replicas;
-
-        return Promise.reject(conflict());
-      }).mockResolvedValue(undefined);
-
-      await (workload as any)[method]();
-
-      expect(workload.spec.replicas).toStrictEqual(expected);
-    });
-
-    it('should only save twice when it keeps conflicting', async() => {
-      const save = jest.fn().mockRejectedValue(conflict());
-      const workload = createWorkload(save);
-
-      await (workload as any)[method]().catch(() => {});
-
-      expect(save).toHaveBeenCalledTimes(2);
-    });
-
-    it('should go back to the reloaded replica count when the save after a conflict fails', async() => {
-      const workload = createWorkload(jest.fn());
-      const reloaded = 7;
-
-      (workload.save as jest.Mock).mockImplementationOnce(() => {
-        workload.spec.replicas = reloaded;
-
-        return Promise.reject(conflict());
-      }).mockRejectedValue(new Error('Scale failed'));
-
-      await (workload as any)[method]().catch(() => {});
-
-      expect(workload.spec.replicas).toStrictEqual(reloaded);
     });
 
     it('should reject when the save fails', async() => {
       const err = new Error('Scale failed');
       const workload = createWorkload(jest.fn().mockRejectedValue(err));
 
-      await expect((workload as any)[method]()).rejects.toStrictEqual(err);
+      await expect(workload[method]()).rejects.toStrictEqual(err);
+    });
+
+    it('should keep the new replica count when the save after a conflict succeeds', async() => {
+      const save = jest.fn();
+      const workload = createWorkload(save);
+
+      save.mockImplementationOnce(conflictReloading(workload, replicas)).mockResolvedValue(undefined);
+
+      await workload[method]();
+
+      expect(workload.spec.replicas).toStrictEqual(expected);
+    });
+
+    it('should only save twice when it keeps conflicting', async() => {
+      const save = jest.fn();
+      const workload = createWorkload(save);
+
+      save.mockImplementation(conflictReloading(workload, replicas));
+
+      await workload[method]().catch(() => {});
+
+      expect(save).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not save again when the conflict changed the replica count', async() => {
+      const save = jest.fn();
+      const workload = createWorkload(save);
+
+      save.mockImplementationOnce(conflictReloading(workload, 7)).mockResolvedValue(undefined);
+
+      await workload[method]().catch(() => {});
+
+      expect(save).toHaveBeenCalledTimes(1);
+    });
+
+    it('should keep the reloaded replica count when the conflict changed it', async() => {
+      const save = jest.fn();
+      const workload = createWorkload(save);
+
+      save.mockImplementationOnce(conflictReloading(workload, 7)).mockResolvedValue(undefined);
+
+      await workload[method]().catch(() => {});
+
+      expect(workload.spec.replicas).toStrictEqual(7);
     });
   });
 

@@ -185,11 +185,15 @@ export default class Workload extends WorkloadService {
     try {
       await this.save();
     } catch (err) {
-      if (err?._status === 409 && retryConflict) {
-        return this._scaleTo(replicas, false);
-      }
+      if (err?._status === 409) {
+        const reloadedReplicasUnchanged = this.spec.replicas === previous;
 
-      set(this.spec, 'replicas', previous);
+        if (retryConflict && reloadedReplicasUnchanged) {
+          return this._scaleTo(replicas, false);
+        }
+      } else {
+        set(this.spec, 'replicas', previous);
+      }
 
       throw err;
     }
