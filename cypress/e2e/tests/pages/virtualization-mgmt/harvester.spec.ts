@@ -43,6 +43,38 @@ function harvesterExtensionCatalog(version: Cypress.RancherVersion) {
 // page, so skip the scroll.
 const waitForExtensionTabs = () => extensionsPo.extensionTabs.checkVisible(LONG_TIMEOUT_OPT, { scrollIntoView: false });
 
+// Repo download poll (~27s) + the post-refresh wait for the repo to be active (up to 200s), with headroom.
+const HARVESTER_INSTALL_TIMEOUT_OPT = { timeout: 4 * 60 * 1000 };
+
+/**
+ * Click Install again if the app abandoned the install. While it is still working the button stays
+ * disabled, so wait for either the install request or an enabled button. Bounded; it does not assert,
+ * so a genuine failure is reported by the install wait that follows.
+ */
+function installAgainIfAbandoned(checks = 60): void {
+  cy.get('@installHarvesterExtension.all').then((installs: any) => {
+    if (installs.length > 0) {
+      return;
+    }
+
+    cy.get('body').then(($body) => {
+      const button = $body.find('[data-testid="action-button-async-button"]');
+
+      if (button.length > 0 && !button.is(':disabled')) {
+        cy.log('The install was abandoned (repository download timed out in the app) - clicking Install again');
+        harvesterPo.updateOrInstallButton().click();
+
+        return;
+      }
+
+      if (checks > 0) {
+        cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+        installAgainIfAbandoned(checks - 1);
+      }
+    });
+  });
+}
+
 describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
   before(() => {
     cy.login();
@@ -100,12 +132,21 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       // install harvester extension
       harvesterPo.updateOrInstallButton().click();
       cy.wait('@createChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 201);
-      cy.wait('@updateChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-      cy.wait('@installHarvesterExtension', MEDIUM_TIMEOUT_OPT);
+
+      // Known issue rancher/dashboard#19476: after creating the repo the app polls only ~27s (11 x 2.5s)
+      // for its git clone to download, then gives up with "Failed to add Helm Chart Repository" and never
+      // sends the install - and on CI the clone regularly takes longer. Wait for the download at the API,
+      // and if the app gave up, click Install again: with the repo now present it refreshes it and installs.
+      cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', chartRepo, 60);
+      installAgainIfAbandoned();
+
+      // Don't wait for any @updateChart PUT - the app sends it a variable number of times. Wait for the
+      // install request instead, with the app's own budget: after the download it forces a refresh and
+      // waits up to 200s for the repo to be active again before it installs (shell/utils/uiplugins.ts).
+      cy.wait('@installHarvesterExtension', HARVESTER_INSTALL_TIMEOUT_OPT);
       harvesterPo.waitForPage();
-      // Don't wait for a 2nd @updateChart PUT - the app sends it a variable number of times, so a fixed
-      // count hangs ("no request occurred"). Gate on the outcome instead (the warning clears).
-      harvesterPo.extensionWarning(MEDIUM_TIMEOUT_OPT).should('not.exist');
+      // After the install the app waits for the extension and its package to load, then reloads.
+      harvesterPo.extensionWarning(LONG_TIMEOUT_OPT).should('not.exist');
 
       // verify harvester extension added to extensions page
       extensionsPo.goTo();
@@ -122,7 +163,8 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       // begin process of importing harvester cluster
       harvesterPo.goTo();
       harvesterPo.waitForPage();
-      cy.wait('@updateChart', LONG_TIMEOUT_OPT);
+      // As above, wait for the import button rather than for an @updateChart PUT that may never be sent.
+      harvesterPo.importHarvesterClusterButton(LONG_TIMEOUT_OPT).should('be.visible');
       harvesterPo.importHarvesterClusterButton().click();
       harvesterPo.createHarvesterClusterForm().waitForPage(undefined, 'memberRoles');
       harvesterPo.createHarvesterClusterForm().title().should('contain', `${ harvesterTitle } Cluster:`);
@@ -145,7 +187,11 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         // wraps an already-resolved chainable (`.should('exist').contains(...)`), so `checkVisible()`
         // hands `cy.scrollIntoView()` a frozen subject that detaches when the list re-renders; assert
         // visibility without scrolling instead.
-        harvesterPo.list().resourceTable().sortableTable().rowElementWithName(harvesterClusterName)
+        // The list container itself can take longer than the default timeout to render here, and a
+        // timeout passed to rowElementWithName() does not reach that container lookup, so wait for it first
+        // (list() is built from a selector, so the timeout applies to it).
+        harvesterPo.list().self(LONG_TIMEOUT_OPT).should('exist');
+        harvesterPo.list().resourceTable().sortableTable().rowElementWithName(harvesterClusterName, LONG_TIMEOUT_OPT)
           .should('be.visible');
         harvesterPo.harvesterLogo().should('not.exist');
         harvesterPo.harvesterTagline().should('not.exist');
