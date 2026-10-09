@@ -1,4 +1,4 @@
-import { defineComponent, h, reactive } from 'vue';
+import { defineComponent, h, reactive, ref } from 'vue';
 import { shallowMount, flushPromises } from '@vue/test-utils';
 import { useClusterResourceStatus } from '@shell/pages/c/_cluster/explorer/resource-status/composable';
 import { COUNT, NODE, WORKLOAD_TYPES } from '@shell/config/types';
@@ -8,6 +8,7 @@ const DEPLOYMENT = WORKLOAD_TYPES.DEPLOYMENT;
 const mockGetters: Record<string, any> = reactive({});
 const mockDispatch = jest.fn();
 const mockResolveStateColors = jest.fn();
+const mockNamespaceFilterParam = ref('');
 const mockColors: Record<string, string> = {
   active:           'success',
   running:          'success',
@@ -22,6 +23,8 @@ jest.mock('vuex', () => ({ useStore: () => ({ getters: mockGetters, dispatch: mo
 
 jest.mock('lodash/debounce', () => (fn: () => void) => Object.assign(() => fn(), { cancel: jest.fn() }));
 
+jest.mock('@shell/composables/useNamespaceFilterParam', () => ({ useNamespaceFilterParam: () => mockNamespaceFilterParam }));
+
 jest.mock('@shell/composables/useStateColor', () => ({
   useStateColor: () => ({
     toStateColor:       (state: string) => mockColors[state] || 'success',
@@ -30,12 +33,12 @@ jest.mock('@shell/composables/useStateColor', () => ({
 }));
 
 const schemas: Record<string, any> = {
-  [DEPLOYMENT]:          { id: DEPLOYMENT, attributes: { namespaced: true } },
-  [NODE]:                { id: NODE, attributes: { namespaced: false } },
-  pod:                   { id: 'pod', attributes: { namespaced: true } },
-  'batch.job':           { id: 'batch.job', attributes: { namespaced: true } },
-  persistentvolume:      { id: 'persistentvolume', attributes: { namespaced: false } },
-  'hidden.example.type': { id: 'hidden.example.type', attributes: { namespaced: true } },
+  [DEPLOYMENT]:     { id: DEPLOYMENT, attributes: { namespaced: true } },
+  [NODE]:           { id: NODE, attributes: { namespaced: false } },
+  pod:              { id: 'pod', attributes: { namespaced: true } },
+  'batch.job':      { id: 'batch.job', attributes: { namespaced: true } },
+  'apps.daemonset': { id: 'apps.daemonset', attributes: { namespaced: true } },
+  persistentvolume: { id: 'persistentvolume', attributes: { namespaced: false } },
 };
 
 const labels: Record<string, string> = {
@@ -60,12 +63,12 @@ function summaryResponse(counts: Record<string, number>) {
 }
 
 const defaultCounts = {
-  [DEPLOYMENT]:          countEntry(),
-  [NODE]:                countEntry(),
-  pod:                   countEntry({ error: 2 }),
-  'batch.job':           countEntry({ 'in-progress': 1 }),
-  persistentvolume:      countEntry(),
-  'hidden.example.type': countEntry({ error: 1 }),
+  [DEPLOYMENT]:     countEntry(),
+  [NODE]:           countEntry(),
+  pod:              countEntry({ error: 2 }),
+  'batch.job':      countEntry({ 'in-progress': 1 }),
+  'apps.daemonset': countEntry(),
+  persistentvolume: countEntry(),
 };
 
 const defaultResponses: Record<string, any> = {
@@ -89,7 +92,7 @@ function setupGetters(overrides: Record<string, any> = {}) {
     'cluster/schemaFor':  (type: string) => schemas[type],
     'cluster/canList':    (type: string) => !!schemas[type],
     'cluster/urlFor':     (type: string) => `/v1/${ type }?exclude=metadata.managedFields`,
-    'type-map/isIgnored': (schema: { id: string }) => schema.id === 'hidden.example.type',
+    'type-map/isIgnored': () => false,
     'type-map/labelFor':  (schema: { id: string }) => labels[schema.id],
     ...overrides,
   });
@@ -134,6 +137,7 @@ function route(resource: string, stateFilter?: string) {
 describe('composable: useClusterResourceStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNamespaceFilterParam.value = '';
     counts = { ...defaultCounts };
     responses = { ...defaultResponses };
 
@@ -161,7 +165,7 @@ describe('composable: useClusterResourceStatus', () => {
       wrapper.unmount();
     });
 
-    it('should fetch deployments, nodes and the listable, visible types with problems', async() => {
+    it('should fetch deployments, nodes and the listable, visible workload types with problems', async() => {
       const { wrapper } = mountComposable();
 
       await flushPromises();
@@ -175,17 +179,28 @@ describe('composable: useClusterResourceStatus', () => {
       wrapper.unmount();
     });
 
-    it('should not apply the namespace filter', async() => {
-      const { wrapper } = mountComposable({ namespaceFilters: ['ns://default'] });
+    it('should apply the namespace filter to deployments and workloads but not to nodes', async() => {
+      mockNamespaceFilterParam.value = 'projectsornamespaces=default';
+      const { wrapper } = mountComposable();
 
       await flushPromises();
 
       expect(requestedUrls()).toStrictEqual([
-        `/v1/${ DEPLOYMENT }?exclude=metadata.managedFields&summary=metadata.state.name&summaryonly`,
+        `/v1/${ DEPLOYMENT }?exclude=metadata.managedFields&projectsornamespaces=default&summary=metadata.state.name&summaryonly`,
         `/v1/${ NODE }?exclude=metadata.managedFields&summary=metadata.state.name&summaryonly`,
-        '/v1/batch.job?exclude=metadata.managedFields&summary=metadata.state.name&summaryonly',
-        '/v1/pod?exclude=metadata.managedFields&summary=metadata.state.name&summaryonly',
+        '/v1/batch.job?exclude=metadata.managedFields&projectsornamespaces=default&summary=metadata.state.name&summaryonly',
+        '/v1/pod?exclude=metadata.managedFields&projectsornamespaces=default&summary=metadata.state.name&summaryonly',
       ]);
+      wrapper.unmount();
+    });
+
+    it('should not fetch types that are not workloads', async() => {
+      counts.persistentvolume = countEntry({ error: 1 });
+      const { wrapper } = mountComposable();
+
+      await flushPromises();
+
+      expect(requestedUrls().some((url) => url.includes('persistentvolume'))).toStrictEqual(false);
       wrapper.unmount();
     });
 
@@ -238,16 +253,21 @@ describe('composable: useClusterResourceStatus', () => {
       wrapper.unmount();
     });
 
-    it('should not refetch when the namespace filter changes', async() => {
+    it('should refetch with the new namespace filter when it changes', async() => {
       const { wrapper } = mountComposable();
 
       await flushPromises();
       mockDispatch.mockClear();
 
-      mockGetters.namespaceFilters = ['ns://default'];
+      mockNamespaceFilterParam.value = 'projectsornamespaces=default';
       await flushPromises();
 
-      expect(requestedUrls()).toStrictEqual([]);
+      expect(requestedUrls()).toStrictEqual([
+        `/v1/${ DEPLOYMENT }?exclude=metadata.managedFields&projectsornamespaces=default&summary=metadata.state.name&summaryonly`,
+        `/v1/${ NODE }?exclude=metadata.managedFields&summary=metadata.state.name&summaryonly`,
+        '/v1/batch.job?exclude=metadata.managedFields&projectsornamespaces=default&summary=metadata.state.name&summaryonly',
+        '/v1/pod?exclude=metadata.managedFields&projectsornamespaces=default&summary=metadata.state.name&summaryonly',
+      ]);
       wrapper.unmount();
     });
 
@@ -405,11 +425,12 @@ describe('composable: useClusterResourceStatus', () => {
     });
 
     it('should leave out hidden types', async() => {
-      const { wrapper } = mountComposable();
+      counts['apps.daemonset'] = countEntry({ error: 1 });
+      const { wrapper } = mountComposable({ 'type-map/isIgnored': (schema: { id: string }) => schema.id === 'apps.daemonset' });
 
       await flushPromises();
 
-      expect(requestedUrls().some((url) => url.includes('hidden.example.type'))).toStrictEqual(false);
+      expect(requestedUrls().some((url) => url.includes('apps.daemonset'))).toStrictEqual(false);
       wrapper.unmount();
     });
 

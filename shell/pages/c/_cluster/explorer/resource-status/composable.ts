@@ -5,14 +5,21 @@ import debounce from 'lodash/debounce';
 import { COUNT, NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import type { StateColor } from '@shell/utils/style';
 import { useStateColor, type StateSummaryEntry } from '@shell/composables/useStateColor';
+import { useNamespaceFilterParam } from '@shell/composables/useNamespaceFilterParam';
 import type { StatusSummaryCardItem } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/types';
 import { buildStatusSummaryCard, compareStateColors } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/utils';
 import type { StatusBreakdownRow } from '@shell/components/Resource/Detail/Card/StatusBreakdownCard/types';
+import { WORKLOAD_DASHBOARD_RESOURCE_TYPES } from '../workload-dashboard/types';
 
 const DEPLOYMENT = WORKLOAD_TYPES.DEPLOYMENT;
 
 /**
- * Colors shown in the "Other, Unhealthy Resources" card
+ * Types that can appear in the "Other, Unhealthy Workloads" card
+ */
+const OTHER_WORKLOAD_TYPES = WORKLOAD_DASHBOARD_RESOURCE_TYPES.filter((type) => type !== DEPLOYMENT);
+
+/**
+ * Colors shown in the "Other, Unhealthy Workloads" card
  */
 const UNHEALTHY_COLORS: StateColor[] = ['error', 'warning'];
 
@@ -27,16 +34,18 @@ interface CountEntry {
 }
 
 /**
- * State counts for the cluster dashboard status cards: Deployments, Nodes and "Other, Unhealthy
- * Resources".
+ * State counts for the cluster dashboard status cards: Nodes, Deployments and "Other, Unhealthy
+ * Workloads".
  *
- * Counts come from steve summary requests (`?summary=metadata.state.name`) and cover the whole
- * cluster, they do not follow the namespace filter. They are refetched when the live resource counts
- * change.
+ * Counts come from steve summary requests (`?summary=metadata.state.name`). Deployments and other
+ * workloads follow the namespace filter, nodes are cluster scoped so they always cover the whole
+ * cluster. They are refetched when the live resource counts or the namespace filter change.
  */
 export function useClusterResourceStatus() {
   const store = useStore();
   const { toStateColor, resolveStateColors } = useStateColor();
+
+  const namespaceFilterParam = useNamespaceFilterParam(WORKLOAD_DASHBOARD_RESOURCE_TYPES);
 
   const summaries = ref<StateSummaryEntry[]>([]);
   const loaded = ref(false);
@@ -50,18 +59,14 @@ export function useClusterResourceStatus() {
   const canListNodes = computed<boolean>(() => !!store.getters['cluster/canList'](NODE));
 
   /**
-   * Types, other than deployments and nodes, that have items in an error or in-progress state. The
-   * count API does not give more detail than that, so these are the candidates we fetch summaries
-   * for.
+   * Workload types, other than deployments, that have items in an error or in-progress state across
+   * the cluster. The count API does not give more detail than that, so these are the candidates we
+   * fetch summaries for. The namespace filter is applied by the summary request.
    */
   const unhealthyTypes = computed<string[]>(() => {
-    return Object.entries(counts.value)
-      .filter(([type, entry]) => {
-        if (type === DEPLOYMENT || type === NODE) {
-          return false;
-        }
-
-        if (!Object.values(entry?.summary?.states || {}).some((n) => n > 0)) {
+    return OTHER_WORKLOAD_TYPES
+      .filter((type) => {
+        if (!Object.values(counts.value[type]?.summary?.states || {}).some((n) => n > 0)) {
           return false;
         }
 
@@ -69,7 +74,6 @@ export function useClusterResourceStatus() {
 
         return !!schema && !!store.getters['cluster/canList'](type) && !store.getters['type-map/isIgnored'](schema);
       })
-      .map(([type]) => type)
       .sort();
   });
 
@@ -86,7 +90,13 @@ export function useClusterResourceStatus() {
 
   async function fetchSummary(type: string): Promise<StateSummaryEntry> {
     try {
-      const url = `${ store.getters['cluster/urlFor'](type) }&summary=metadata.state.name&summaryonly`;
+      let url = store.getters['cluster/urlFor'](type);
+
+      if (type !== NODE && namespaceFilterParam.value) {
+        url += `&${ namespaceFilterParam.value }`;
+      }
+      url += '&summary=metadata.state.name&summaryonly';
+
       const res = await store.dispatch('cluster/request', { url });
 
       return { type, summary: res?.summary || [] };
@@ -124,6 +134,12 @@ export function useClusterResourceStatus() {
       debouncedFetch();
     }
   }, { immediate: true });
+
+  // Changing the namespace filter is a user action, so show the result without waiting
+  watch(namespaceFilterParam, () => {
+    debouncedFetch.cancel();
+    fetchSummaries();
+  });
 
   onBeforeUnmount(() => {
     debouncedFetch.cancel();

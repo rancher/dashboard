@@ -14,7 +14,7 @@ const {
   loaded, deploymentsCard, nodesCard, unhealthyRows
 } = useClusterResourceStatus();
 
-const summaryCards = computed(() => [deploymentsCard.value, nodesCard.value].filter((c): c is StatusSummaryCardItem => !!c));
+const summaryCards = computed(() => [nodesCard.value, deploymentsCard.value].filter((c): c is StatusSummaryCardItem => !!c));
 </script>
 
 <template>

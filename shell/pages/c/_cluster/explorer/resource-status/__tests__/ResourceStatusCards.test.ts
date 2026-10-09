@@ -53,17 +53,17 @@ describe('component: ResourceStatusCards', () => {
     expect(wrapper.find('[data-testid="cluster-dashboard-resource-status"]').exists()).toStrictEqual(false);
   });
 
-  it('should render the deployments and nodes cards in order', () => {
+  it('should render the nodes and deployments cards in order', () => {
     const wrapper = shallowMount(ResourceStatusCards);
 
-    expect(wrapper.findAllComponents(StatusSummaryCard).map((c) => c.props('title'))).toStrictEqual(['Deployments', 'Nodes']);
+    expect(wrapper.findAllComponents(StatusSummaryCard).map((c) => c.props('title'))).toStrictEqual(['Nodes', 'Deployments']);
   });
 
   it('should pass each card its props', () => {
     const wrapper = shallowMount(ResourceStatusCards);
     const { key, ...props } = deploymentsCard;
 
-    expect(wrapper.findAllComponents(StatusSummaryCard)[0].props()).toStrictEqual(props);
+    expect(wrapper.findAllComponents(StatusSummaryCard)[1].props()).toStrictEqual(props);
   });
 
   it('should leave out a card that is not available', () => {
@@ -73,7 +73,7 @@ describe('component: ResourceStatusCards', () => {
     expect(wrapper.findAllComponents(StatusSummaryCard).map((c) => c.props('title'))).toStrictEqual(['Nodes']);
   });
 
-  it('should render the unhealthy resources card', () => {
+  it('should render the unhealthy workloads card', () => {
     const wrapper = shallowMount(ResourceStatusCards);
     const card = wrapper.findComponent(StatusBreakdownCard);
 
@@ -82,7 +82,7 @@ describe('component: ResourceStatusCards', () => {
     });
   });
 
-  it('should render the unhealthy resources card after the summary cards', () => {
+  it('should render the unhealthy workloads card after the summary cards', () => {
     const wrapper = shallowMount(ResourceStatusCards);
     const children = Array.from((wrapper.element as HTMLElement).children).map((c) => c.tagName.toLowerCase());
 

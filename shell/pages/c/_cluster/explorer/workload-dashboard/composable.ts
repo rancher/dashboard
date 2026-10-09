@@ -3,18 +3,17 @@ import {
 } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
-import { NAMESPACE, WORKLOAD_TYPES } from '@shell/config/types';
+import { WORKLOAD_TYPES } from '@shell/config/types';
 import type { StateColor } from '@shell/utils/style';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStateColor } from '@shell/composables/useStateColor';
-import { ALL_NAMESPACES } from '@shell/store/prefs';
+import { useNamespaceFilterParam } from '@shell/composables/useNamespaceFilterParam';
 import {
   NAMESPACE_FILTER_ALL_USER,
   NAMESPACE_FILTER_ALL_SYSTEM,
   NAMESPACE_FILTER_P_FULL_PREFIX,
   NAMESPACE_FILTER_NS_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
-import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import type { StatusSummaryCardItem } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/types';
 import { buildStatusSummaryCard, compareStateColors } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/utils';
 import type { StatusBreakdownCardItem } from '@shell/components/Resource/Detail/Card/StatusBreakdownCard/types';
@@ -52,43 +51,7 @@ export function useWorkloadDashboard() {
 
   const isAllNamespaces = computed<boolean>(() => store.getters['isAllNamespaces']);
 
-  const namespaceFilterParam = ref('');
-
-  function buildNamespaceFilterParam(): string {
-    const selection: string[] = store.getters['namespaceFilters'];
-    const { projectsOrNamespaces, filters } = stevePaginationUtils.createParamsFromNsFilter({
-      allNamespaces:                 store.getters['cluster/all'](NAMESPACE),
-      selection,
-      isAllNamespaces:               isAllNamespaces.value,
-      isLocalCluster:                store.getters['currentCluster']?.isLocal,
-      showReservedRancherNamespaces: store.getters['prefs/get'](ALL_NAMESPACES),
-      productHidesSystemNamespaces:  store.getters['currentProduct']?.hideSystemResources,
-    });
-
-    // Getting the first schema is sufficient since the namespace filter param structure is the same across all resource types
-    const schema = WORKLOAD_DASHBOARD_RESOURCE_TYPES
-      .map((type) => store.getters['cluster/schemaFor'](type))
-      .find((s) => !!s);
-
-    // To generate proper params path to be used
-    const path = stevePaginationUtils.createParamsForPagination({
-      schema,
-      opt: {
-        pagination: {
-          filters,
-          projectsOrNamespaces,
-          page: 1,
-          sort: [],
-        }
-      }
-    }) || '';
-
-    return path.replace(/page=\d+&?/g, '').replace(/pagesize=\d+&?/g, '').replace(/&$/, '');
-  }
-
-  watch(() => store.getters['namespaceFilters'], () => {
-    namespaceFilterParam.value = buildNamespaceFilterParam();
-  }, { immediate: true });
+  const namespaceFilterParam = useNamespaceFilterParam(WORKLOAD_DASHBOARD_RESOURCE_TYPES);
 
   // ── Subtitle ──
 

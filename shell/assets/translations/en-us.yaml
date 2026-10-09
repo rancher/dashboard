@@ -2941,8 +2941,8 @@ clusterIndexPage:
   resourceStatus:
     none: None
     unhealthy:
-      title: Other, Unhealthy Resources
-      empty: No other unhealthy resources
+      title: Other, Unhealthy Workloads
+      empty: No other unhealthy workloads
   sections:
     capacity:
       label: Capacity

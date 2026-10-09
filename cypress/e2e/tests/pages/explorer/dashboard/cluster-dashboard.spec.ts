@@ -227,6 +227,8 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
   }));
 
   qase(2040, it('can view deployments', () => {
+    // The card follows the namespace filter, show all namespaces so it matches the cluster wide count
+    cy.updateNamespaceFilter('local', 'none', '{"local":[]}');
     clusterDashboard.goTo();
     clusterDashboard.waitForPage();
     cy.getRancherResource('v1', 'apps.deployments', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
