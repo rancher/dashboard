@@ -201,6 +201,12 @@ function clone_repo_test_extension_build() {
   git clone https://github.com/$REPO_ORG/$REPO_NAME.git
   pushd ${BASE_DIR}/$REPO_NAME
 
+  # yarn add has to write yarn.lock for the reinstall below. The extension inherits our .yarnrc
+  # (it is cloned inside this repo) and may have its own, and either can set --frozen-lockfile,
+  # which makes yarn add update package.json but not yarn.lock. Appended, so the extension's
+  # other settings are kept and this line wins
+  printf '\n--frozen-lockfile false\n' >> .yarnrc
+
   echo -e "\nInstalling dependencies for $REPO_NAME\n"
   yarn install --frozen-lockfile
 
@@ -215,6 +221,12 @@ function clone_repo_test_extension_build() {
 
   # installing new version of shell
   yarn add @rancher/shell@${SHELL_VERSION} -W 
+
+  # Build from a fresh install of the lockfile the add wrote, which is what the extension's own
+  # CI installs. yarn 1 links an add incrementally and can leave a package from the old tree
+  # without a dependency it still needs (a vue bump left @vue/compiler-core without entities@7)
+  rm -rf node_modules
+  yarn install --frozen-lockfile
 
   # test build-pkg
   FORCE_COLOR=true yarn build-pkg $PKG_NAME | cat
@@ -235,15 +247,14 @@ function clone_repo_test_extension_build() {
 
 # Here we just add the extension that we want to include as a check (all our official extensions should be included here)
 # Don't forget to add the unit tests exception to clone_repo_test_extension_build function if a new extension has those
-# TODO: ISSUE #16858 - Reenable the tests as packages migrate to node version 24
 clone_repo_test_extension_build "rancher" "kubewarden-ui" "kubewarden"
-# clone_repo_test_extension_build "rancher" "elemental-ui" "elemental"
+clone_repo_test_extension_build "rancher" "elemental-ui" "elemental"
 clone_repo_test_extension_build "neuvector" "manager-ext" "neuvector-ui-ext"
+# Re-enable once observability builds on node 24
 # clone_repo_test_extension_build "StackVista" "rancher-extension-stackstate" "observability"
-# Uncomment once https://github.com/harvester/harvester/issues/10691 is resolved
-#clone_repo_test_extension_build "harvester" "harvester-ui-extension" "harvester"
+clone_repo_test_extension_build "harvester" "harvester-ui-extension" "harvester"
 clone_repo_test_extension_build "rancher" "ali-ui" "ali"
 clone_repo_test_extension_build "rancher" "virtual-clusters-ui" "virtual-clusters"
-# clone_repo_test_extension_build "rancher" "rancher-ai-ui" "rancher-ai-ui"
+clone_repo_test_extension_build "rancher" "rancher-ai-ui" "rancher-ai-ui"
 
 echo "All done"
