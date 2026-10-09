@@ -642,7 +642,7 @@ export default {
     padding: calc(2 * var(--outline-width));
     height: 100%;
 
-    &:focus-visible, &:focus {
+    &:focus-visible {
       @include focus-outline;
       outline-offset: -2px;
     }

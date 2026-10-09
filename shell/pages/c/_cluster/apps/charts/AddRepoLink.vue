@@ -25,7 +25,7 @@ defineProps<{
   color: var(--link-text-secondary);
   margin-left: 4px;
 
-  &:focus-visible, &:focus {
+  &:focus-visible {
     @include focus-outline;
   }
 

@@ -442,11 +442,6 @@ $fontColor: var(--input-label);
       outline-offset: 2px;
       border-radius: 0;
     }
-    &:focus {
-      @include focus-outline;
-      outline-offset: 2px;
-      border-radius: 0;
-    }
   }
 
   input {
