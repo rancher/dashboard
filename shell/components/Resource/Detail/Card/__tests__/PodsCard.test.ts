@@ -36,7 +36,7 @@ describe('component: PodsCard', () => {
   it('should pass the appropriate props to the Scaler component', async() => {
     const wrapper = mount(PodsCard, {
       props: {
-        title: 'Test', showScaling: true, resources: [podSuccess]
+        title: 'Test', showScaling: true, resources: [podSuccess, podFail], scaleValue: 1
       },
       global: { provide: { store } }
     });

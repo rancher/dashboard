@@ -6,7 +6,7 @@ import StatusBar from '@shell/components/Resource/Detail/StatusBar.vue';
 import StatusRow from '@shell/components/Resource/Detail/StatusRow.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { StateColor } from '@shell/utils/style';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import { colorForState as colorForStateFn, stateDisplay as stateDisplayFn } from '@shell/plugins/dashboard-store/resource-class';
 import type { SummaryResult } from '@shell/components/Resource/Detail/Card/StateCard/composables';
@@ -16,7 +16,16 @@ export interface Props {
   resources?: any[];
   summaryData?: SummaryResult | null;
   showScaling?: boolean;
+  /**
+   * The number the scale buttons change, which is not always the number of resources shown.
+   */
+  scaleValue?: number;
   noResourcesMessage?: string;
+  /**
+   * Called with the value being scaled to, which is shown with the scale buttons blocked until the returned promise settles.
+   */
+  onIncrease?: (newValue: number) => Promise<void> | void;
+  onDecrease?: (newValue: number) => Promise<void> | void;
 }
 </script>
 
@@ -28,9 +37,23 @@ const props = withDefaults(defineProps<Props>(), {
   resources:          undefined,
   summaryData:        undefined,
   showScaling:        false,
-  noResourcesMessage: undefined
+  scaleValue:         0,
+  noResourcesMessage: undefined,
+  onIncrease:         undefined,
+  onDecrease:         undefined
 });
-const emit = defineEmits(['decrease', 'increase']);
+
+const scalingTo = ref<number>();
+
+const scale = async(newValue: number, scaleFn?: (newValue: number) => Promise<void> | void) => {
+  scalingTo.value = newValue;
+
+  try {
+    await scaleFn?.(newValue);
+  } finally {
+    scalingTo.value = undefined;
+  }
+};
 
 const summaryStateCounts = computed(() => {
   const summary = props.summaryData?.summary;
@@ -142,13 +165,17 @@ const rows = computed(() => {
       v-if="props.showScaling"
       #heading-action
     >
-      <Scaler
-        :ariaResourceName="i18n.t('component.resource.detail.card.podsCard.ariaResourceName')"
-        :value="count"
-        :min="0"
-        @increase="(newValue) => emit('increase', newValue)"
-        @decrease="(newValue) => emit('decrease', newValue)"
-      />
+      <div class="scale">
+        <span>{{ i18n.t('tableHeaders.scale') }}</span>
+        <Scaler
+          :ariaResourceName="i18n.t('component.resource.detail.card.podsCard.ariaResourceName')"
+          :value="scalingTo ?? props.scaleValue"
+          :min="0"
+          :disabled="scalingTo !== undefined"
+          @increase="(newValue) => scale(newValue, props.onIncrease)"
+          @decrease="(newValue) => scale(newValue, props.onDecrease)"
+        />
+      </div>
     </template>
     <StatusBar
       v-if="rows.length > 0"
@@ -181,5 +208,11 @@ const rows = computed(() => {
 .pod-distribution {
     display: flex;
     flex-direction: column;
+}
+
+.scale {
+    display: flex;
+    align-items: center;
+    gap: var(--gap);
 }
 </style>
