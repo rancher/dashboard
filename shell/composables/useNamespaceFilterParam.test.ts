@@ -1,4 +1,6 @@
-import { defineComponent, h, nextTick, reactive } from 'vue';
+import {
+  defineComponent, h, nextTick, reactive, ref, type MaybeRefOrGetter
+} from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import { useNamespaceFilterParam } from '@shell/composables/useNamespaceFilterParam';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
@@ -34,7 +36,7 @@ function setupGetters(overrides: Record<string, any> = {}) {
   });
 }
 
-function mountComposable(types: string[] = ['pod']) {
+function mountComposable(types: MaybeRefOrGetter<string[]> = ['pod']) {
   let param: ReturnType<typeof useNamespaceFilterParam>;
 
   const wrapper = shallowMount(defineComponent({
@@ -111,6 +113,24 @@ describe('composable: useNamespaceFilterParam', () => {
     await nextTick();
 
     expect(param.value).toStrictEqual('projectsornamespaces=kube-system');
+    wrapper.unmount();
+  });
+
+  it('should use the schema of the new types when the types change', async() => {
+    const types = ref(['pod']);
+    const { wrapper } = mountComposable(types);
+
+    types.value = ['apps.deployment'];
+    await nextTick();
+
+    expect(stevePaginationUtils.createParamsForPagination).toHaveBeenLastCalledWith({
+      schema: schemas['apps.deployment'],
+      opt:    {
+        pagination: {
+          filters: [], projectsOrNamespaces: ['default'], page: 1, sort: []
+        }
+      },
+    });
     wrapper.unmount();
   });
 });

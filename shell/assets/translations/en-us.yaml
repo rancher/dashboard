@@ -2939,7 +2939,6 @@ clusterIndexPage:
   resourceGauge:
     totalResources: Total Resources
   resourceStatus:
-    none: None
     unhealthy:
       title: Other, Unhealthy Workloads
       empty: No other unhealthy workloads

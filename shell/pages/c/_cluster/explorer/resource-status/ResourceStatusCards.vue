@@ -1,49 +1,43 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import { useI18n } from '@shell/composables/useI18n';
-import StatusSummaryCard from '@shell/components/Resource/Detail/Card/StatusSummaryCard/index.vue';
-import StatusBreakdownCard from '@shell/components/Resource/Detail/Card/StatusBreakdownCard/index.vue';
-import type { StatusSummaryCardItem } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/types';
-import { useClusterResourceStatus } from './composable';
+import ResourceStatusWidget from '@shell/components/ResourceStatusWidget/index.vue';
+import type { ResourceStatusSummaryWidgetConfig, ResourceStatusBreakdownWidgetConfig } from '@shell/components/ResourceStatusWidget/types';
+import { WORKLOAD_DASHBOARD_RESOURCE_TYPES } from '../workload-dashboard/types';
 
 const store = useStore();
 const { t } = useI18n(store);
 
-const {
-  loaded, deploymentsCard, nodesCard, unhealthyRows
-} = useClusterResourceStatus();
+const SUMMARY_WIDGETS: ResourceStatusSummaryWidgetConfig[] = [
+  { kind: 'summary', resource: NODE },
+  { kind: 'summary', resource: WORKLOAD_TYPES.DEPLOYMENT },
+];
 
-const summaryCards = computed(() => [nodesCard.value, deploymentsCard.value].filter((c): c is StatusSummaryCardItem => !!c));
+const unhealthyWorkloadsWidget = computed<ResourceStatusBreakdownWidgetConfig>(() => ({
+  kind:      'breakdown',
+  title:     t('clusterIndexPage.resourceStatus.unhealthy.title'),
+  resources: WORKLOAD_DASHBOARD_RESOURCE_TYPES.filter((type) => type !== WORKLOAD_TYPES.DEPLOYMENT),
+  colors:    ['error', 'warning'],
+}));
 </script>
 
 <template>
   <div
-    v-if="loaded"
     class="resource-status-cards"
     data-testid="cluster-dashboard-resource-status"
   >
-    <StatusSummaryCard
-      v-for="card in summaryCards"
-      :key="card.key"
-      :title="card.title"
-      :total="card.total"
-      :segments="card.segments"
-      :rows="card.rows"
-      :to="card.to"
-    >
-      <template #empty>
-        <span class="text-deemphasized">{{ t('clusterIndexPage.resourceStatus.none') }}</span>
-      </template>
-    </StatusSummaryCard>
-    <StatusBreakdownCard
-      :title="t('clusterIndexPage.resourceStatus.unhealthy.title')"
-      :rows="unhealthyRows"
-    >
+    <ResourceStatusWidget
+      v-for="config in SUMMARY_WIDGETS"
+      :key="config.resource"
+      :config="config"
+    />
+    <ResourceStatusWidget :config="unhealthyWorkloadsWidget">
       <template #empty>
         <span class="text-deemphasized">{{ t('clusterIndexPage.resourceStatus.unhealthy.empty') }}</span>
       </template>
-    </StatusBreakdownCard>
+    </ResourceStatusWidget>
   </div>
 </template>
 
