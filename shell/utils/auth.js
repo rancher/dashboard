@@ -367,7 +367,8 @@ export async function isLoggedIn(store, userData) {
 export function notLoggedIn(store, redirect, route) {
   store.commit('auth/hasAuth', true);
 
-  if (!route.name.includes('auth')) {
+  // The index route is not a specific page, so leave the landing page preference in charge
+  if (!route.name.includes('auth') && route.name !== 'index') {
     store.commit('prefs/setAuthRedirect', route);
   }
 

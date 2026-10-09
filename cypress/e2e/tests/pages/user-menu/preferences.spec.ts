@@ -537,36 +537,34 @@ describe('User can update their preferences', () => {
     });
     prefPage.landingPageRadioBtn().isChecked(parseInt(key.index));
 
-    // Verify that an auth redirect works (a user visits a page while not authorized and will be redirect to that page after loggin in, only active when "Take me to the area I last visited" is selected)
-    if (key.index === '1') {
-      const redirectUrl = '/c/local/explorer/node';
+    // Verify that an auth redirect works (a user visits a page while not authorized and will be redirected to that page after logging in, whatever the landing page option)
+    const redirectUrl = '/c/local/explorer/node';
 
-      const attemptAuthRedirect = () => {
-        userMenu.clickMenuItem('Log Out');
-        cy.url().should('contain', 'auth/login?logged-out');
+    const attemptAuthRedirect = () => {
+      userMenu.clickMenuItem('Log Out');
+      cy.url().should('contain', 'auth/login?logged-out');
 
-        cy.visit(redirectUrl);
-        cy.url().should('contain', 'auth/login?timed-out');
+      cy.visit(redirectUrl);
+      cy.url().should('contain', 'auth/login?timed-out');
 
-        cy.login(undefined, undefined, false, true);
-        cy.url().should('not.contain', 'auth/login');
-      };
+      cy.login(undefined, undefined, false, true);
+      cy.url().should('not.contain', 'auth/login');
+    };
 
-      attemptAuthRedirect();
-      // Wait for the redirect chain to settle on either the expected page or the home page.
-      // A transient failure fetching preferences after login lands the user on the home page
-      // instead - retry the flow once to recover (authRedirect only lives in the store, so
-      // the whole timed-out flow needs to run again)
-      cy.location('pathname', MEDIUM_TIMEOUT_OPT).should('match', new RegExp(`(/home|${ redirectUrl })`));
-      cy.location('pathname').then((pathname) => {
-        if (pathname.endsWith('/home')) {
-          attemptAuthRedirect();
-        }
-      });
-      cy.url().should('contain', redirectUrl);
-      prefPage.goTo();
-      prefPage.landingPageRadioBtn().checkVisible();
-    }
+    attemptAuthRedirect();
+    // Wait for the redirect chain to settle on either the expected page or the landing page.
+    // A transient failure fetching preferences after login lands the user on the landing page
+    // instead - retry the flow once to recover (authRedirect only lives in the store, so
+    // the whole timed-out flow needs to run again)
+    cy.location('pathname', MEDIUM_TIMEOUT_OPT).should('match', new RegExp(`(/home|${ key.page }|${ redirectUrl })`));
+    cy.location('pathname').then((pathname) => {
+      if (!pathname.endsWith(redirectUrl)) {
+        attemptAuthRedirect();
+      }
+    });
+    cy.url().should('contain', redirectUrl);
+    prefPage.goTo();
+    prefPage.landingPageRadioBtn().checkVisible();
 
     // Verify the option functions after a login
     userMenu.clickMenuItem('Log Out');
