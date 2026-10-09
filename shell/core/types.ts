@@ -63,6 +63,7 @@ export enum ExtensionPoint {
   CARD = 'Card', // eslint-disable-line no-unused-vars
   TABLE_COL = 'TableColumn', // eslint-disable-line no-unused-vars
   TABLE = 'Table', // eslint-disable-line no-unused-vars
+  RELATED_RESOURCES = 'RelatedResources', // eslint-disable-line no-unused-vars
 }
 
 /** Enum regarding action locations that are extensible in the UI */
@@ -105,9 +106,300 @@ export enum TableLocation {
   RESOURCE = 'resource-list', // eslint-disable-line no-unused-vars
 }
 
+/** Enum regarding related resource locations that are extensible in the UI */
+export enum RelatedResourcesLocation {
+  RESOURCE_YAML = 'resource-yaml', // eslint-disable-line no-unused-vars
+}
+
 /** Definition of a Table extension hook */
 export type TableAction = {
   tableHook: Function
+};
+
+/**
+ * A resource model shown in the multi-resource YAML editor: the primary resource, or a related
+ * resource, editable or read-only
+ *
+ * TODO: `resource` and `primaryResource` are typed as `any` until there's a shared type for a
+ * classified Steve model
+ */
+export type ResourceModel = any;
+
+/**
+ * The state of the editor showing the related resources
+ *
+ * This is reactive and owned by the editor, so anything read from it inside a
+ * `RelatedResourceCompute` function is re-evaluated when it changes
+ */
+export type RelatedResourcesEditorState = {
+  /**
+   * The YAML currently in the editor for each resource, keyed by that resource's `nodeId`
+   *
+   * A `nodeId` is the resource's type and `id` together, not its `id` alone: an `id` is only
+   * `namespace/name`, which two resources of different types can share
+   */
+  yaml: { [nodeId: string]: string },
+
+  /** The `nodeId` of the resource currently shown in the editor */
+  selected: string | null,
+};
+
+/**
+ * Everything a `RelatedResourceCompute` function or `RelatedResourceSaveHook` is
+ * given
+ */
+export type RelatedResourceContext = {
+  /** The related resource the value is being computed for */
+  resource: ResourceModel,
+
+  /** Every related resource of the primary resource, including `resource` itself */
+  relatedResources: RelatedResource[],
+
+  /** The resource that all of the related resources relate to */
+  primaryResource: ResourceModel,
+
+  /** The reactive state of the editor */
+  editorState: RelatedResourcesEditorState,
+
+  /**
+   * The `nodeId` of the entry of `resource`, its key in `editorState.yaml`
+   *
+   * A resource that replaced another on save keeps the `nodeId` of the one it replaced, so this is
+   * not always the key of `resource`
+   */
+  nodeId: string,
+
+  /** The `nodeId` of `primaryResource`, its key in `editorState.yaml` */
+  primaryNodeId: string,
+
+  /**
+   * What the YAML of each resource is compared with, keyed by `nodeId`
+   *
+   * The YAML as loaded. For a primary resource edited in a form before its YAML was shown, the YAML
+   * from before those edits
+   *
+   * `editorState.yaml` has an entry for the primary resource and every resource shown in the
+   * editor. For any other resource this is its YAML
+   */
+  initialYaml: { [nodeId: string]: string },
+
+  /**
+   * Saves the resource with this `nodeId` as the editor's save button for that resource does, its
+   * save hooks included, for example to save the primary resource once a save changed its YAML
+   *
+   * Resolves to the saved resource, or null when its `beforeSaveHook` cancelled the save. Rejects
+   * when the save fails
+   */
+  saveResource: (nodeId: string) => Promise<ResourceModel | null>,
+};
+
+/**
+ * A function providing a value derived from the resources and the state of the editor
+ *
+ * The editor wraps these in its own `computed`, so the returned value is re-evaluated whenever
+ * anything the function read changes. That means the function must read its inputs from the
+ * context it is given (`ctx.editorState.yaml[id]`), rather than from values captured when the
+ * related resource was created, otherwise there's nothing reactive to track
+ *
+ * These are resolved during render, so unlike the save hooks they must be synchronous
+ */
+export type RelatedResourceCompute<T = any> = (ctx: RelatedResourceContext) => T;
+
+/**
+ * A hook that runs either side of saving one related resource
+ *
+ * It is given the same context as a `RelatedResourceCompute` function. For a
+ * `beforeSaveHook` `resource` is the related resource about to be saved. For an `afterSaveHook` it
+ * is the saved resource, which can be a replacement for the one loaded
+ *
+ * Without a `save`, the resource is saved from its YAML in `editorState.yaml`, not from `resource`.
+ * A `beforeSaveHook` changes what is saved by writing `editorState.yaml[nodeId]`
+ *
+ * A `beforeSaveHook` resolving to `false` cancels the save without an error, for example when the
+ * user declines a confirmation. When the editor is saving every modified resource, the resources
+ * not saved yet are not saved either
+ *
+ * Throwing (or rejecting) aborts the save and surfaces the error to the user
+ */
+export type RelatedResourceSaveHook = (ctx: RelatedResourceContext) => void | boolean | Promise<void | boolean>;
+
+/**
+ * Saves one related resource, in place of the resource model's own `save`
+ *
+ * It is given the same context as a `RelatedResourceCompute` function, where `resource` is
+ * the related resource to save. The save hooks still run either side of it
+ *
+ * Resolves to the saved resource. When that is a different resource than `resource`, for example a
+ * replacement for an immutable resource, the editor shows it in place of `resource` from then on
+ *
+ * Throwing (or rejecting) aborts the save and surfaces the error to the user
+ */
+export type RelatedResourceSave = (ctx: RelatedResourceContext) => any | Promise<any>;
+
+/**
+ * A banner to show for a related resource, for example to explain why it is shown
+ * alongside the primary resource
+ *
+ * Matches the props of the `Banner` component. `label` is shown as is, use `labelKey` for a
+ * translation
+ */
+export type RelatedResourceBanner = {
+  color?: string,
+  label?: string,
+  labelKey?: string,
+  icon?: string,
+};
+
+/**
+ * One related resource, plus the configuration that describes how it should be handled
+ *
+ * This is the entry type of the lists returned by a model's `fetchRelatedResources` and by
+ * the `RELATED_RESOURCES` extension point.
+ */
+export type RelatedResource = {
+  /** The related resource itself */
+  resource: ResourceModel,
+
+  /**
+   * i18n key resolving to the group heading this resource is shown under in the resource graph
+   *
+   * Resources sharing the same key, below the same resource, are grouped together under a single
+   * heading, in the order they first appear. Resources without a key are shown first, under no
+   * heading. A resource contributed by another related resource is grouped below that resource
+   * rather than alongside it, so the same key can be used at every level of the tree
+   */
+  groupKey?: string,
+
+  /**
+   * The group heading this resource is shown under, already in the user's language
+   *
+   * Takes precedence over `groupKey`. For a heading that is itself resolved from the resource,
+   * such as a type name from `typeDisplay`, which there is no i18n key for
+   */
+  group?: string,
+
+  /**
+   * `resource` is gathered only when the resource it was gathered for is the primary resource, is
+   * not asked for its own related resources, and is saved after the primary resource
+   *
+   * Set it where `resource` uses the resource it was gathered for, for example an Ingress gathered
+   * for the Service it routes to, a workload gathered for a PersistentVolumeClaim it mounts, or a
+   * resource gathered for its owner. Set it too where the resource it was gathered for selects
+   * `resource` by label, for example the workloads a Service selects, so the tree does not take in
+   * everything each of them uses. See `RelatedResourcesFetchOptions`
+   */
+  dependent?: boolean,
+
+  /**
+   * `resource` is shown for reference only, and can not be edited or saved in the editor
+   *
+   * The editor also makes an entry read-only where the user can not edit the yaml of `resource`
+   * (`canEditYaml` false), or where another resource controls it (an ownerReference with
+   * `controller: true`). A read-only resource is listed in the read-only section of the resource
+   * graph, wherever it was found, and is not asked for its own related resources
+   */
+  readOnly?: boolean,
+
+  /** Run before `resource` is saved, for example to apply changes made to the primary resource */
+  beforeSaveHook?: RelatedResourceSaveHook,
+
+  /**
+   * Saves `resource`
+   *
+   * When this is defined it is called instead of the resource model's own `save`, for example
+   * where the resource has to be saved via the primary resource or another API. The save hooks run
+   * either side of it as usual
+   */
+  save?: RelatedResourceSave,
+
+  /** Run after `resource` has been saved, for example to update references to it */
+  afterSaveHook?: RelatedResourceSaveHook,
+
+  /**
+   * A banner to show above this resource in the editor, or a falsy value to show none
+   *
+   * This is re-evaluated as the state of the editor changes, so it can react to what the user is
+   * doing, for example warning that an edit to this resource will be overwritten by the primary
+   * resource
+   *
+   * Shown above the banner the editor adds itself for a resource that a controller, rancher, fleet
+   * or helm writes
+   */
+  banner?: RelatedResourceCompute<RelatedResourceBanner | null | undefined>,
+
+  /**
+   * Identifies this entry within the flattened tree
+   *
+   * The resource's type and id together where it has an id, otherwise a generated one, so that
+   * every entry can be pointed at by a `parentId`. The type is part of it because an id alone is
+   * only `namespace/name`, which two resources of different types can share. Populated by the
+   * consuming component as it flattens the tree, so a model or extension doesn't set this -
+   * anything it does set is replaced
+   */
+  nodeId?: string,
+
+  /**
+   * How far below the primary resource this resource was found
+   *
+   * `1` for the resources gathered for the primary resource itself, one more for each level below
+   * that. Populated by the consuming component as it flattens the tree, so a model or extension
+   * doesn't set this - anything it does set is replaced
+   */
+  depth?: number,
+
+  /**
+   * The `nodeId` of the related resource that contributed this one
+   *
+   * Absent for resources at the top of the tree, which were contributed for the primary resource
+   * rather than by another related resource. Resources below another related resource are shown
+   * nested below it in the resource graph. Populated by the consuming component as it flattens the
+   * tree, so a model or extension doesn't set this - anything it does set is replaced
+   */
+  parentId?: string,
+};
+
+/**
+ * Which related resources to gather for one resource in the tree
+ *
+ * The primary resource is asked for both. A dependency is asked only for its own dependencies, so
+ * the tree follows chains of dependencies down from the primary resource. A dependent is not asked
+ * for anything, so only the primary resource's own dependents are shown, one level up. Nor is a
+ * read-only resource, see `RelatedResource.readOnly`
+ *
+ * Without this the tree would also take in the other dependents of every dependency, for example
+ * each workload using the same ConfigMap, then everything those use, until it held most of the
+ * namespace. Entries of the kind not asked for are dropped, so gathering them only costs requests
+ */
+export type RelatedResourcesFetchOptions = {
+  /** Gather the resources this one uses, for example the ConfigMaps a workload mounts */
+  dependencies: boolean,
+
+  /**
+   * Gather the entries with `dependent` set: the resources that use this one, for example the
+   * Ingresses routing to a Service, and those it selects by label. Only the primary resource is
+   * asked for these
+   */
+  dependents: boolean,
+};
+
+/**
+ * Definition of a related resources extension
+ *
+ * `fetchExtensionRelatedResources` is given the resource being shown and the list of related resources
+ * gathered so far (from the resource's `fetchRelatedResources` and any previously applied
+ * extensions). It should return the new list, so entries can be added, removed or re-ordered.
+ *
+ * It is also given which related resources are wanted, see `RelatedResourcesFetchOptions`
+ *
+ * It is resolved when the consuming component initialises (and not in a computed property), so it
+ * may be async, for example to fetch the related resources it wants to add.
+ */
+export type RelatedResourcesExtension = {
+  fetchExtensionRelatedResources: (
+    resource: ResourceModel,
+    relatedResources: RelatedResource[],
+    options?: RelatedResourcesFetchOptions
+  ) => RelatedResource[] | Promise<RelatedResource[]>
 };
 
 /** Definition of the shortcut object (keyboard shortcuts) */
@@ -664,6 +956,21 @@ export interface IExtension extends IExtensionProducts {
    * @param action
    */
   addTableHook(where: TableLocation | string, when: LocationConfig | string, action: TableAction): void;
+
+  /**
+   * Adds to the list of related resources that can be edited alongside a resource (for example in
+   * the multi-resource YAML editor)
+   *
+   * `when` is matched against the current route for the primary resource. For each related
+   * resource it is matched against the current route with `resource`, `namespace` and `id` set to
+   * that resource, so an extension registered for a type contributes wherever a resource of that
+   * type appears in the tree
+   *
+   * @param where
+   * @param when
+   * @param action
+   */
+  addRelatedResources(where: RelatedResourcesLocation | string, when: LocationConfig | string, action: RelatedResourcesExtension): void;
 
   /**
    * Set the component to use for the landing home page

@@ -29,6 +29,7 @@ const sidebars = {
         'code-base-works/auth-sessions-and-tokens',
         'code-base-works/cluster-management-resources',
         'code-base-works/customising-how-k8s-resources-are-presented',
+        'code-base-works/related-resources',
         'code-base-works/directory-structure',
         'code-base-works/products-and-navigation',
         'code-base-works/forms-and-validation',

@@ -166,6 +166,7 @@ const sidebars = {
             'api/tabs',
             'api/table-columns',
             'api/table',
+            'api/related-resources',
             {
               type:  'category',
               label: 'Components',

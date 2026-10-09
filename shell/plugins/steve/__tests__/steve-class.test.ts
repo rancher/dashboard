@@ -103,4 +103,66 @@ describe('class: Steve', () => {
       });
     });
   });
+
+  describe('method: fetchOwnedRelatedResources', () => {
+    // a Deployment owning one ReplicaSet, in a store where the user can get ReplicaSets
+    const owner = (dispatch: jest.Mock) => new Steve({
+      type:     'apps.deployment',
+      id:       'ns/web',
+      metadata: {
+        name:          'web',
+        namespace:     'ns',
+        relationships: [{
+          rel: 'owner', toType: 'apps.replicaset', toId: 'ns/web-1'
+        }]
+      },
+    }, {
+      getters: {
+        schemaFor: () => ({ resourceMethods: ['GET'] }),
+        byId:      () => undefined,
+      },
+      dispatch,
+      rootGetters: { 'i18n/t': jest.fn() },
+    });
+
+    // steve's relationships do not say whether the owner is the controller, the editor reads that from the resource
+    it('should return an owned resource as a dependent, without `readOnly`', async() => {
+      const replicaSet = {
+        type: 'apps.replicaset', id: 'ns/web-1', typeDisplay: 'ReplicaSet'
+      };
+      const dispatch = jest.fn(() => Promise.resolve(replicaSet));
+
+      expect(await owner(dispatch).fetchOwnedRelatedResources()).toStrictEqual([{
+        resource: replicaSet, group: 'ReplicaSet', dependent: true
+      }]);
+    });
+
+    // a schema's resourceMethods cover every namespace, so a type the user can get can still be forbidden in one namespace
+    it.each([
+      ['does not exist', 404],
+      ['is forbidden in its namespace', 403],
+    ])('should leave out, without a warning, an owned resource that %s', async(_label, status) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const dispatch = jest.fn(() => Promise.reject({ _status: status })); // eslint-disable-line prefer-promise-reject-errors
+
+      expect(await owner(dispatch).fetchOwnedRelatedResources()).toStrictEqual([]);
+      expect(dispatch).toHaveBeenCalledWith('find', {
+        type: 'apps.replicaset', id: 'ns/web-1', opt: { watch: false }
+      });
+      expect(warn).toHaveBeenCalledTimes(0);
+
+      warn.mockRestore();
+    });
+
+    it('should leave out, with a warning, an owned resource whose request fails for another reason', async() => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const error = { _status: 500 };
+      const dispatch = jest.fn(() => Promise.reject(error));
+
+      expect(await owner(dispatch).fetchOwnedRelatedResources()).toStrictEqual([]);
+      expect(warn).toHaveBeenCalledWith('Failed to fetch apps.replicaset ns/web-1', error);
+
+      warn.mockRestore();
+    });
+  });
 });

@@ -20,6 +20,7 @@ import {
   ExtensionEnvironment,
   ServerSidePaginationExtensionConfig,
   TableAction,
+  RelatedResourcesExtension,
 } from './types';
 import { RouteRecordRawWithParams } from './plugin-types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
@@ -358,6 +359,14 @@ export class Plugin implements IPlugin {
    */
   addTableHook(where: string, when: LocationConfig | string, action: TableAction): void {
     this._addUIConfig(ExtensionPoint.TABLE, where, when, action);
+  }
+
+  /**
+   * Adds to the list of related resources that can be edited alongside a resource (for example in
+   * the multi-resource YAML editor)
+   */
+  addRelatedResources(where: string, when: LocationConfig | string, action: RelatedResourcesExtension): void {
+    this._addUIConfig(ExtensionPoint.RELATED_RESOURCES, where, when, action);
   }
 
   setHomePage(component: any) {

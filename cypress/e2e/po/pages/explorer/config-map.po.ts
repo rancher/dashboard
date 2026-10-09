@@ -29,6 +29,10 @@ export class ConfigMapListPagePo extends BaseListPagePo {
   searchForConfigMap(name: string) {
     return this.list().resourceTable().sortableTable().filter(name);
   }
+
+  goToEditYamlPage(name: string) {
+    return this.list().actionMenu(name).getMenuItem('Edit YAML').click();
+  }
 }
 
 export class ConfigMapCreateEditPagePo extends BaseDetailPagePo {

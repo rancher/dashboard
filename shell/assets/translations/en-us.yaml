@@ -6662,11 +6662,41 @@ resourceTabs:
 resourceYaml:
   errors:
     namespaceRequired: This resource is namespaced, so a namespace must be provided.
+    machinePoolNotFound: 'No node pool in the cluster uses the machine config "{name}".'
+    saveFailed: '{kind} {name}: {error}'
+  resourceGraph:
+    title: Resources
+    modified: Edited
+    modifiedTooltip: This resource has unsaved changes
+    saveResource: 'Save {name}'
+    related: Related resources
+    referenced: Read-only
+    resize: Resize the resource graph - use the left and right arrow keys to resize with the keyboard
+    groups:
+      machinePools: "Node Pools · Machine Templates"
+      capiCluster: CAPI Cluster
+      managementCluster: Management Cluster
+      fleetCluster: Fleet Cluster
+    banners:
+      serviceFromContainerPorts: 'This Service was created from the container ports of {workload}. Saving {workload} from its form replaces the ports of this Service. Changing the container ports in the YAML of {workload} does not update this Service.'
+      claimFromTemplate: 'This PersistentVolumeClaim was created by {workload} from its volume claim template "{template}", one claim for each replica. A change made here applies to this claim only.'
+      sharedByClusters: 'This ClusterClass is shared by every Cluster that uses it. A change made here applies to all of them.'
+      autoscaler: 'This HorizontalPodAutoscaler sets the replica count of {workload}. A replica count set in the YAML of {workload} is replaced by the autoscaler.'
+  management:
+    controller: 'The <manager/> controls this resource, and can overwrite changes made here.'
+    controllerReadOnly: 'The <manager/> controls this resource, so it is read-only here.'
+    rancher: 'Rancher applies this resource for the <manager/>, and can overwrite changes made here.'
+    fleet: 'Fleet deployed this resource in Helm release <manager/>, and can overwrite changes made here when it deploys again.'
+    helm: 'Helm release <manager/> installed this resource. An upgrade of the release overwrites changes made here.'
+    helmRecord: 'Helm keeps the history of release <manager/> in this Secret, and reads it to upgrade or roll back the release. A change made here can break the release.'
   buttons:
     continue: Continue Editing
     edit: Edit YAML
     diff: Show Diff
     hideDiff: Hide Diff
+    saveAll: Save All Resources
+    editAsForm: Edit as Form
+    editAsYaml: Edit as YAML
     unified: Unified
     split: Split
 

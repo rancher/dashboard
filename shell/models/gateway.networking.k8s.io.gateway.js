@@ -1,4 +1,6 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { GATEWAY_API } from '@shell/config/types';
+import { findAllOf, relatedEntry } from '@shell/utils/related-resources';
 
 export const GATEWAY_GROUP = 'gateway.networking.k8s.io';
 
@@ -62,5 +64,44 @@ export default class Gateway extends SteveModel {
 
       return this.allowsRoute(listener, routeNamespace, kind);
     });
+  }
+
+  /**
+   * The ids of the Secrets the listeners name in `tls.certificateRefs`
+   *
+   * `group`, `kind` and `namespace` default to the core group, `Secret`, and the gateway's own
+   * namespace
+   */
+  get certificateSecretIds() {
+    const refs = this.listeners.flatMap((listener) => listener?.tls?.certificateRefs || []);
+
+    return [...new Set(refs
+      .filter((ref) => ref?.name && (ref.group ?? '') === '' && (ref.kind ?? 'Secret') === 'Secret')
+      .map((ref) => `${ ref.namespace ?? this.metadata?.namespace }/${ ref.name }`)
+    )];
+  }
+
+  /**
+   * The resources related to this Gateway, to edit by YAML alongside it
+   *
+   * Dependents: the HTTPRoutes naming it in `parentRefs`, from every namespace, as a listener can
+   * accept routes from other namespaces
+   *
+   * The Secrets its listeners use as certificates are found from the schema, see
+   * `fetchSchemaRelatedResources`
+   *
+   * @param {import('@shell/core/types').RelatedResourcesFetchOptions} [options]
+   * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
+   */
+  async fetchModelRelatedResources({ dependents = true } = {}) {
+    if (!this.metadata?.uid || !dependents) {
+      return [];
+    }
+
+    const routes = await findAllOf(this, GATEWAY_API.HTTP_ROUTE);
+
+    return routes
+      .filter((route) => route.gatewayIds?.includes(this.id))
+      .map((route) => relatedEntry(route, { dependent: true }));
   }
 }

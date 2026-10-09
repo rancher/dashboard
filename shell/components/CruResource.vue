@@ -989,8 +989,10 @@ export default {
           :done-override="resource.doneOverride"
           :show-errors="false"
           :apply-hooks="applyHooks"
+          :show-edit-as-form="true"
           class="resource-container cru__content"
           @error="e=>$emit('error', e)"
+          @edit-as-form="confirmCancel(false)"
         >
           <template #yamlFooter="{yamlSave, showPreview, yamlPreview, yamlUnpreview, canDiff}">
             <slot name="cru-yaml-footer">

@@ -187,4 +187,13 @@ export default class HttpRoute extends SteveModel {
 
     return uniq(links).map((link) => ({ link, linkDisplay: link }));
   }
+
+  /**
+   * The ids of the Gateways named in `parentRefs`
+   */
+  get gatewayIds() {
+    return uniq((this.spec?.parentRefs || [])
+      .filter((parentRef) => isGatewayRef(parentRef) && parentRef.name)
+      .map((parentRef) => `${ parentRef.namespace ?? this.metadata?.namespace }/${ parentRef.name }`));
+  }
 }

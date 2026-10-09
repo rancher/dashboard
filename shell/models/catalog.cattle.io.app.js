@@ -16,6 +16,11 @@ export default class CatalogApp extends SteveModel {
     return mode === _VIEW;
   }
 
+  // `spec.resources` lists every resource of the helm release, too many to edit alongside the app
+  get includeSchemaRelatedResources() {
+    return false;
+  }
+
   applyDefaults() {
     set(this, 'disableOpenApiValidation', false);
     set(this, 'noHooks', false);

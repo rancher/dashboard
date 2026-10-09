@@ -36,7 +36,14 @@ export default {
     minHeight: {
       type:    Number,
       default: 200,
-    }
+    },
+
+    // lines of unchanged text shown around each change
+    // undefined uses the `diff` package default
+    context: {
+      type:    Number,
+      default: undefined,
+    },
   },
 
   mounted() {
@@ -55,7 +62,10 @@ export default {
       const patch = createPatch(
         this.filename,
         this.orig,
-        this.neu
+        this.neu,
+        undefined,
+        undefined,
+        this.context === undefined ? undefined : { context: this.context }
       );
       const configuration = {
         // UI

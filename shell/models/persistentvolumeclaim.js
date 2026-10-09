@@ -10,7 +10,8 @@ import {
 } from '@shell/config/query-params';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
-import { STORAGE_CLASS } from '@shell/config/types';
+import { PVC as PVC_TYPE, STORAGE_CLASS } from '@shell/config/types';
+import { relatedEntry, workloadsInNamespace } from '@shell/utils/related-resources';
 
 export default class PVC extends SteveModel {
   applyDefaults(_, realMode) {
@@ -59,5 +60,29 @@ export default class PVC extends SteveModel {
     };
 
     this.currentRouter().push(location);
+  }
+
+  /**
+   * The resources related to this claim, to edit by YAML alongside it
+   *
+   * Dependents: the workloads in its namespace whose pods use it, see the workload model's
+   * `usesResource`
+   *
+   * The PersistentVolume, StorageClass and VolumeAttributesClass are found from the schema, see
+   * `fetchSchemaRelatedResources`
+   *
+   * @param {import('@shell/core/types').RelatedResourcesFetchOptions} [options]
+   * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
+   */
+  async fetchModelRelatedResources({ dependents = true } = {}) {
+    if (!this.metadata?.uid || !dependents) {
+      return [];
+    }
+
+    const workloads = await workloadsInNamespace(this, this.metadata.namespace);
+
+    return workloads
+      .filter((workload) => workload.usesResource(PVC_TYPE, this.metadata.name))
+      .map((workload) => relatedEntry(workload, { dependent: true }));
   }
 }

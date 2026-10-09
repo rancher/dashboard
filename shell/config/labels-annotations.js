@@ -33,6 +33,21 @@ export const KUBERNETES = {
   INSTANCE:             'app.kubernetes.io/instance',
 };
 
+// written by helm on every object a release creates
+export const HELM_RELEASE = {
+  NAME:      'meta.helm.sh/release-name',
+  NAMESPACE: 'meta.helm.sh/release-namespace',
+};
+
+// written by wrangler's apply, which rancher controllers, the fleet agent and steve's import yaml use
+// the owner keys are written only by an apply given an owner, never by import yaml
+export const OBJECTSET = {
+  ID:              WORKSPACE_ANNOTATION,
+  OWNER_GVK:       'objectset.rio.cattle.io/owner-gvk',
+  OWNER_NAME:      'objectset.rio.cattle.io/owner-name',
+  OWNER_NAMESPACE: 'objectset.rio.cattle.io/owner-namespace',
+};
+
 export const CERTMANAGER = { ISSUER: 'cert-manager.io/issuer-name' };
 
 export const STORAGE = {

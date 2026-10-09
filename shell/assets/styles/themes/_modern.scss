@@ -742,6 +742,15 @@ BODY, .theme-light {
   --rc-section-counter-background: #{$gray003};
   --rc-section-counter-border: #{$gray004};
 
+  --rc-cm-bg: #FFFFFF;
+  --rc-cm-selection: #E0E0E0;
+  --rc-cm-key: #1A4FA8;
+  --rc-cm-string: #8A4B10;
+  --rc-cm-keyword: #9A2B94;
+  --rc-cm-comment: #5B616D;
+  --rc-cm-text: #16181D;
+  --rc-cm-gutter: #5B626C;
+
   --rc-image-bg: #{$lightest};
   --rc-image-color: #{$darkest};
 
@@ -1099,6 +1108,15 @@ BODY, .theme-dark {
   --rc-section-action-color: #{$gray010};
   --rc-section-counter-background: #{$gray005};
   --rc-section-counter-border: #{$gray004};
+
+  --rc-cm-bg: #171C22;
+  --rc-cm-selection: #303030;
+  --rc-cm-key: #79B8FF;
+  --rc-cm-string: #E0A458;
+  --rc-cm-keyword: #E48AD8;
+  --rc-cm-comment: #9AA1AC;
+  --rc-cm-text: #E6E9EF;
+  --rc-cm-gutter: #9AA1AC;
 
   --rc-image-bg: #{$lightest};
   --rc-image-color: #{$darkest};

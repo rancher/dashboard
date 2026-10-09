@@ -49,6 +49,12 @@ export default {
       default: true,
     },
 
+    // passed to FileDiff as `context`: unchanged lines shown around each change in diff mode
+    diffContext: {
+      type:    Number,
+      default: undefined,
+    },
+
     value: {
       type:    [String, Object],
       default: '',
@@ -175,6 +181,11 @@ export default {
     updateValue(value) {
       this.curValue = value;
       this.$refs.cm?.updateValue(value);
+    },
+
+    // for the `preview-buttons` slot, where `diffMode` can not be assigned
+    setDiffMode(mode) {
+      this.diffMode = mode;
     }
   }
 };
@@ -183,28 +194,35 @@ export default {
 <template>
   <div class="yaml-editor">
     <div class="text-right">
-      <span
+      <!-- the unified / split buttons in diff mode, replaceable through `diffMode` and `setDiffMode` -->
+      <slot
         v-if="isPreview && !hidePreviewButtons"
-        v-trim-whitespace
-        class="btn-group btn-sm diff-mode"
+        name="preview-buttons"
+        :diff-mode="diffMode"
+        :set-diff-mode="setDiffMode"
       >
-        <button
-          role="button"
-          :aria-label="t('generic.unified')"
-          type="button"
-          class="btn btn-sm bg-default"
-          :class="{'active': diffMode !== 'split'}"
-          @click="diffMode='unified'"
-        >{{ t('generic.unified') }}</button>
-        <button
-          role="button"
-          :aria-label="t('generic.split')"
-          type="button"
-          class="btn btn-sm bg-default"
-          :class="{'active': diffMode === 'split'}"
-          @click="diffMode='split'"
-        >{{ t('generic.split') }}</button>
-      </span>
+        <span
+          v-trim-whitespace
+          class="btn-group btn-sm diff-mode"
+        >
+          <button
+            role="button"
+            :aria-label="t('generic.unified')"
+            type="button"
+            class="btn btn-sm bg-default"
+            :class="{'active': diffMode !== 'split'}"
+            @click="diffMode='unified'"
+          >{{ t('generic.unified') }}</button>
+          <button
+            role="button"
+            :aria-label="t('generic.split')"
+            type="button"
+            class="btn btn-sm bg-default"
+            :class="{'active': diffMode === 'split'}"
+            @click="diffMode='split'"
+          >{{ t('generic.split') }}</button>
+        </span>
+      </slot>
     </div>
     <CodeMirror
       v-if="showCodeEditor"
@@ -227,6 +245,7 @@ export default {
       :side-by-side="diffMode === 'split'"
       :orig="original"
       :neu="curValue"
+      :context="diffContext"
       :footer-space="80"
     />
   </div>
@@ -252,6 +271,7 @@ export default {
     border-bottom-right-radius: 0;
     border-bottom-left-radius: 0;
   }
+
 
   .d2h-file-wrapper {
     border-top-right-radius: 0;
