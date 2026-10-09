@@ -1095,7 +1095,7 @@ onBeforeUnmount(() => {
                     <template #before>
                       <i class="menu-gutter" />
                     </template>
-                    {{ t('tableViews.tab.share') }}
+                    {{ t('tableViews.tab.shareView') }}
                   </rc-dropdown-item>
                   <rc-dropdown-item
                     :data-testid="tab.isDefaultTab ? 'table-views-import-all' : `table-views-import-${ tab.id }`"
@@ -1104,7 +1104,7 @@ onBeforeUnmount(() => {
                     <template #before>
                       <i class="menu-gutter" />
                     </template>
-                    {{ t('tableViews.tab.import') }}
+                    {{ t('tableViews.tab.importView') }}
                   </rc-dropdown-item>
                   <rc-dropdown-item
                     v-if="!tab.isDefaultTab"

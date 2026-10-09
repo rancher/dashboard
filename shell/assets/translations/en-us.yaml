@@ -7305,8 +7305,8 @@ tableViews:
     menu: View options
     rename: Rename View
     duplicate: Duplicate View
-    share: Share View
-    import: Import View
+    shareView: Share View
+    importView: Import View
     copySuffix: (copy)
     delete: Delete View
     setDefault: Set as Default View
