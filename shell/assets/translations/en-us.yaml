@@ -3103,6 +3103,12 @@ drivers:
 
 detailText:
   copyAriaLabel: Copy {item} value to clipboard
+  paste:
+    ariaLabel: Paste a {item} value from the clipboard
+    action: Paste
+    waiting: Pasting...
+    success: Pasted!
+    error: Error Pasting
   collapse: Hide
   binary: '<Binary Data: {n, number} bytes>'
   empty: '<Empty>'
