@@ -51,7 +51,8 @@ const props = withDefaults(
      * Teleport, not floating-vue's own `container`, so the popper stays a
      * real DOM descendant of that anchor and the styling below still
      * applies). Defaults to rendering in place; pass 'body' to escape an
-     * ancestor with overflow clipping instead.
+     * ancestor with overflow clipping instead. When unset the Teleport is
+     * disabled, so its 'body' fallback target is ignored.
      */
     // eslint-disable-next-line vue/require-default-prop
     container?: string | HTMLElement;
@@ -250,7 +251,6 @@ const applyShow = () => {
       </div>
     </template>
   </v-dropdown>
-  <!-- 'body' fallback is inert when disabled - to is ignored, renders in place -->
   <Teleport
     :to="container || 'body'"
     :disabled="!container"
