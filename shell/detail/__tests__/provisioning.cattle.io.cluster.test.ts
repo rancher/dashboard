@@ -364,4 +364,120 @@ describe('view: provisioning.cattle.io.cluster', () => {
       expect(result.metadataProps).toStrictEqual(metadataProps);
     });
   });
+
+  describe('registration tab: server-url missing', () => {
+    const tokenWithoutCommands = {
+      clusterId:       'c-m-abc123',
+      token:           'tok123',
+      command:         '',
+      insecureCommand: '',
+    };
+
+    const populatedToken = {
+      clusterId:       'c-m-abc123',
+      token:           'tok123',
+      command:         'kubectl apply -f https://rancher.example.com/v3/import/tok123_c-m-abc123.yaml',
+      insecureCommand: 'curl --insecure -sfL https://rancher.example.com/v3/import/tok123_c-m-abc123.yaml | kubectl apply -f -',
+    };
+
+    const createWrapper = (value: any, serverUrlSetting: any = { value: '' }) => shallowMount(ProvisioningCattleIoCluster, {
+      props:  { value },
+      global: {
+        mocks: {
+          ...mocks,
+          $store: {
+            getters: {
+              ...mockStore.getters,
+              'features/get':    () => false,
+              'management/byId': (type: string, id: string) => (id === 'server-url' ? serverUrlSetting : undefined),
+            },
+          },
+        },
+        renderStubDefaultSlot: true,
+        stubs:                 { DetailPage: { template: '<div><slot name="bottom-area" /></div>' } },
+      },
+    });
+
+    const importedValue = {
+      isImported: true,
+      hasLink:    () => false,
+      mgmt:       {
+        hasLink: () => false,
+        linkFor: () => '',
+        isReady: false
+      }
+    };
+
+    it.each([
+      ['a token without commands', tokenWithoutCommands, true],
+      ['a token with commands', populatedToken, false],
+      ['no token', null, false],
+    ])('serverUrlMissing should be correct for %s', async(_, clusterToken, expected) => {
+      const wrapper = createWrapper(importedValue);
+
+      await wrapper.setData({ clusterToken });
+
+      expect(wrapper.vm.serverUrlMissing).toStrictEqual(expected);
+    });
+
+    it('should show the import variant of the server-url banner for an imported cluster', async() => {
+      const wrapper = createWrapper(importedValue);
+
+      await wrapper.setData({ clusterToken: tokenWithoutCommands });
+
+      const banner: any = wrapper.findComponent('[data-testid="registration-server-url-missing"]');
+
+      expect(banner.props('labelKey')).toStrictEqual('cluster.registration.serverUrlMissing.import');
+    });
+
+    it('should show the custom variant of the server-url banner for a custom cluster', async() => {
+      const wrapper = createWrapper({ ...importedValue, isCustom: true });
+
+      await wrapper.setData({ clusterToken: tokenWithoutCommands });
+
+      const banner: any = wrapper.findComponent('[data-testid="registration-server-url-missing"]');
+
+      expect(banner.props('labelKey')).toStrictEqual('cluster.registration.serverUrlMissing.custom');
+    });
+
+    it('should not show the server-url banner when the token has commands', async() => {
+      const wrapper = createWrapper(importedValue);
+
+      await wrapper.setData({ clusterToken: populatedToken });
+
+      expect(wrapper.find('[data-testid="registration-server-url-missing"]').exists()).toStrictEqual(false);
+    });
+
+    it('should not show the server-url banner when server-url is set and the token has no commands yet', async() => {
+      const wrapper = createWrapper(importedValue, { value: 'https://rancher.example.com' });
+
+      await wrapper.setData({ clusterToken: tokenWithoutCommands });
+
+      expect(wrapper.find('[data-testid="registration-server-url-missing"]').exists()).toStrictEqual(false);
+    });
+
+    it('should show the import commands with a server URL placeholder when the token has no commands', async() => {
+      const wrapper = createWrapper(importedValue);
+
+      await wrapper.setData({ clusterToken: tokenWithoutCommands });
+
+      const url = '<SERVER_URL>/v3/import/tok123_c-m-abc123.yaml';
+      const copyCodes = wrapper.findAllComponents({ name: 'CopyCode' }).map((c) => c.text());
+
+      expect(copyCodes.slice(0, 2)).toStrictEqual([
+        `kubectl apply -f ${ url }`,
+        `curl --insecure -sfL ${ url } | kubectl apply -f -`,
+      ]);
+    });
+
+    it('should show the import commands from the token when they are populated', async() => {
+      const wrapper = createWrapper(importedValue);
+
+      await wrapper.setData({ clusterToken: populatedToken });
+
+      const copyCodes = wrapper.findAllComponents({ name: 'CopyCode' }).map((c) => c.text());
+
+      expect(copyCodes.slice(0, 2)).toStrictEqual([populatedToken.command, populatedToken.insecureCommand]);
+    });
+  });
 });
