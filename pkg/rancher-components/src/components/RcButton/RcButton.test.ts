@@ -1,5 +1,6 @@
 import { mount, RouterLinkStub } from '@vue/test-utils';
 import RcButton from './RcButton.vue';
+import { ButtonVariant, DeprecatedButtonVariant } from './types';
 
 describe('rcButton.vue', () => {
   it('renders with default variant', () => {
@@ -96,25 +97,18 @@ describe('rcButton.vue', () => {
   });
 
   describe('variant prop', () => {
-    it('applies variant-primary class when variant="primary"', () => {
-      const wrapper = mount(RcButton, { props: { variant: 'primary' } });
+    it('applies variant-primary class when variant="solid"', () => {
+      const wrapper = mount(RcButton, { props: { variant: 'solid' } });
       const button = wrapper.find('button');
 
       expect(button.classes()).toContain('variant-primary');
     });
 
-    it('applies variant-secondary class when variant="secondary"', () => {
-      const wrapper = mount(RcButton, { props: { variant: 'secondary' } });
+    it('applies variant-secondary class when variant="outline"', () => {
+      const wrapper = mount(RcButton, { props: { variant: 'outline' } });
       const button = wrapper.find('button');
 
       expect(button.classes()).toContain('variant-secondary');
-    });
-
-    it('applies variant-tertiary class when variant="tertiary"', () => {
-      const wrapper = mount(RcButton, { props: { variant: 'tertiary' } });
-      const button = wrapper.find('button');
-
-      expect(button.classes()).toContain('variant-tertiary');
     });
 
     it('applies variant-link class when variant="link"', () => {
@@ -124,18 +118,63 @@ describe('rcButton.vue', () => {
       expect(button.classes()).toContain('variant-link');
     });
 
-    it('applies variant-multi-action class when variant="multiAction"', () => {
-      const wrapper = mount(RcButton, { props: { variant: 'multiAction' } });
-      const button = wrapper.find('button');
-
-      expect(button.classes()).toContain('variant-multi-action');
-    });
-
     it('applies variant-ghost class when variant="ghost"', () => {
       const wrapper = mount(RcButton, { props: { variant: 'ghost' } });
       const button = wrapper.find('button');
 
       expect(button.classes()).toContain('variant-ghost');
+    });
+
+    it('applies color-destructive alongside the variant when color="destructive"', () => {
+      const wrapper = mount(RcButton, { props: { variant: 'solid', color: 'destructive' } });
+      const button = wrapper.find('button');
+
+      expect(button.classes()).toContain('variant-primary');
+      expect(button.classes()).toContain('color-destructive');
+    });
+
+    it('defaults to color="primary"', () => {
+      const wrapper = mount(RcButton, { props: { variant: 'solid' } });
+      const button = wrapper.find('button');
+
+      expect(button.classes()).toContain('color-primary');
+    });
+  });
+
+  describe('deprecated variant values', () => {
+    it.each([
+      ['primary', 'solid', 'variant-primary'],
+      ['secondary', 'outline', 'variant-secondary'],
+    ] as [DeprecatedButtonVariant, ButtonVariant, string][])('maps variant="%s" to %s and warns', (deprecated, replacement, className) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const wrapper = mount(RcButton, { props: { variant: deprecated } });
+
+      expect(wrapper.find('button').classes()).toContain(className);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining(`variant="${ deprecated }" is deprecated`));
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining(`variant="${ replacement }"`));
+      warn.mockRestore();
+    });
+
+    it.each([
+      ['tertiary', 'variant-tertiary'],
+      ['multiAction', 'variant-multi-action'],
+    ] as [DeprecatedButtonVariant, string][])('keeps rendering variant="%s" and warns without naming a replacement', (deprecated, className) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const wrapper = mount(RcButton, { props: { variant: deprecated } });
+
+      expect(wrapper.find('button').classes()).toContain(className);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining(`variant="${ deprecated }" is deprecated`));
+      expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('Please use variant='));
+      warn.mockRestore();
+    });
+
+    it('does not warn for a current variant value', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      mount(RcButton, { props: { variant: 'outline' } });
+
+      expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('is deprecated'));
+      warn.mockRestore();
     });
   });
 
@@ -223,7 +262,7 @@ describe('rcButton.vue', () => {
     });
 
     it('applies button classes when rendered as an anchor', () => {
-      const wrapper = mount(RcButton, { props: { href: 'https://example.com', variant: 'secondary' } });
+      const wrapper = mount(RcButton, { props: { href: 'https://example.com', variant: 'outline' } });
       const anchor = wrapper.find('a');
 
       expect(anchor.classes()).toContain('rc-button');

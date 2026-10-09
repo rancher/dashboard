@@ -14,19 +14,29 @@ import {
   ButtonVariantNewProps,
   ButtonSizeNewProps,
   ButtonSize,
+  ButtonVariant,
+  ButtonColorProps,
+  DeprecatedButtonVariant,
   IconProps,
   NavigationProps,
 } from './types';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 
-const buttonVariants: { variant: keyof ButtonVariantProps, className: string }[] = [
-  { variant: 'primary', className: 'variant-primary' },
-  { variant: 'secondary', className: 'variant-secondary' },
-  { variant: 'tertiary', className: 'variant-tertiary' },
+const buttonVariants: { variant: ButtonVariant, className: string }[] = [
+  { variant: 'solid', className: 'variant-primary' },
+  { variant: 'outline', className: 'variant-secondary' },
   { variant: 'link', className: 'variant-link' },
-  { variant: 'multiAction', className: 'variant-multi-action' },
   { variant: 'ghost', className: 'variant-ghost' },
 ];
+
+const deprecatedVariants: Record<DeprecatedButtonVariant, { className: string, replacement?: ButtonVariant }> = {
+  primary:     { className: 'variant-primary', replacement: 'solid' },
+  secondary:   { className: 'variant-secondary', replacement: 'outline' },
+  tertiary:    { className: 'variant-tertiary' },
+  multiAction: { className: 'variant-multi-action' },
+};
+
+const deprecatedVariantProps: (keyof ButtonVariantProps)[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'];
 
 const buttonSizes: { size: keyof ButtonSizeProps, className: string }[] = [
   { size: 'small', className: 'btn-sm' },
@@ -44,13 +54,16 @@ const props = withDefaults(
         ButtonSizeProps &
         ButtonVariantNewProps &
         ButtonSizeNewProps &
+        ButtonColorProps &
         IconProps &
         NavigationProps
     >(),
   {
-    size: 'medium',
-    to:   undefined,
-    href: undefined,
+    size:    'medium',
+    variant: 'solid',
+    color:   'primary',
+    to:      undefined,
+    href:    undefined,
   }
 );
 
@@ -88,24 +101,38 @@ const linkProps = computed(() => {
 });
 
 const activeVariantClassName = computed(() => {
-  if (props.variant === 'multiAction' || props.multiAction) {
-    console.warn('[RcButton] The "multiAction" variant is deprecated and will be removed in a future version.'); // eslint-disable-line no-console
+  if (props.multiAction) {
+    console.warn('[RcButton] The "multiAction" prop is deprecated and will be removed in a future version.'); // eslint-disable-line no-console
+
+    return deprecatedVariants.multiAction.className;
   }
 
-  const activeVariant = buttonVariants.find(({ variant }) => props[variant]);
+  const activeProp = deprecatedVariantProps.find((variant) => props[variant]);
 
-  if (activeVariant) {
+  if (activeProp) {
+    const deprecatedProp = deprecatedVariants[activeProp as DeprecatedButtonVariant];
+    const replacement = deprecatedProp?.replacement ?? activeProp;
+
     console.warn( // eslint-disable-line no-console
-      `[RcButton] The "${ activeVariant.variant }" prop is deprecated and will be removed in a future version. ` +
-      `Please use variant="${ activeVariant.variant }" instead.`
+      `[RcButton] The "${ activeProp }" prop is deprecated and will be removed in a future version. ` +
+      `Please use variant="${ replacement }" instead.`
     );
 
-    return activeVariant.className;
-  } else {
-    const variantConfig = buttonVariants.find(({ variant }) => variant === props.variant);
-
-    return variantConfig?.className || 'variant-primary';
+    return deprecatedProp?.className ?? buttonVariants.find(({ variant }) => variant === replacement)?.className ?? 'variant-primary';
   }
+
+  const deprecated = deprecatedVariants[props.variant as DeprecatedButtonVariant];
+
+  if (deprecated) {
+    console.warn( // eslint-disable-line no-console
+      `[RcButton] variant="${ props.variant }" is deprecated and will be removed in a future version.` +
+      (deprecated.replacement ? ` Please use variant="${ deprecated.replacement }" with color="primary" instead.` : '')
+    );
+
+    return deprecated.className;
+  }
+
+  return buttonVariants.find(({ variant }) => variant === props.variant)?.className || 'variant-primary';
 });
 
 const activeSizeClassName = computed(() => {
@@ -133,6 +160,7 @@ const buttonClass = computed(() => {
     btn:                            true,
     [activeVariantClassName.value]: true,
     [activeSizeClassName.value]:    !!activeSizeClassName.value,
+    [`color-${ props.color }`]:     !!props.color,
   };
 });
 
@@ -347,6 +375,67 @@ defineExpose({ focus });
     &:focus-visible {
       @include focus-outline;
       outline-offset: 0;
+    }
+  }
+
+  &.variant-primary.color-destructive {
+    background: var(--buttons-destructive);
+    color: var(--buttons-on-destructive);
+
+    &:hover, &._hover {
+      background-color: var(--buttons-destructive-hover);
+      color: var(--buttons-on-destructive);
+    }
+
+    &:focus, &.focused {
+      background-color: var(--buttons-destructive-hover);
+      color: var(--buttons-on-destructive);
+    }
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      &, &:hover, &:focus {
+        color: var(--disabled-text);
+        background: var(--disabled-bg);
+        border-color: var(--disabled-bg);
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  &.variant-secondary.color-destructive {
+    background: transparent;
+    color: var(--buttons-destructive-quiet);
+    border-color: var(--buttons-destructive-quiet);
+
+    &:hover, &._hover {
+      background: var(--buttons-destructive);
+      color: var(--buttons-on-destructive);
+      border-color: var(--buttons-destructive);
+    }
+
+    &:focus, &.focused {
+      background: var(--buttons-destructive);
+      color: var(--buttons-on-destructive);
+      border-color: var(--buttons-destructive);
+    }
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      &, &:hover, &:focus {
+        color: var(--disabled-text);
+        background: var(--disabled-bg);
+        border-color: var(--disabled-bg);
+        cursor: not-allowed;
+      }
     }
   }
 
