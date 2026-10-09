@@ -12,7 +12,7 @@ export const SAVED_VIEWS_VERSION = 1;
 export interface SavedViewsPref<T> {
   metadata: {
     version: number;
-    /** A random key that tells the user's own table links apart from others' - see useTableViewsLink */
+    /** A random key kept with the user's views, which a view they share carries - see share.ts. Not checked */
     persistenceId?: string;
   };
   payload: Record<string, T>;

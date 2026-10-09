@@ -11,16 +11,20 @@ import { useStore } from 'vuex';
 
 import AppModal from '@shell/components/AppModal.vue';
 import TableViewExportModal from '@shell/components/TableViews/TableViewExportModal.vue';
+import TableViewShareModal from '@shell/components/TableViews/TableViewShareModal.vue';
 import { useDragReorder } from '@shell/composables/useDragReorder';
 import { useI18n } from '@shell/composables/useI18n';
 import { useSavedTableViews } from '@shell/composables/useSavedTableViews';
-import { useTableViewsLink } from '@shell/composables/useTableViewsLink';
 import { isMac, shortcutLabel } from '@shell/utils/platform';
-import { linkedTableKey } from '@shell/utils/table-views/link';
+import { shareTableView, sharedTableKey } from '@shell/utils/table-views/share';
+import type { SharedTableView } from '@shell/utils/table-views/share';
 import { registerTableViewShortcuts } from '@shell/utils/table-views/shortcuts';
 import type { TableViewShortcutAction } from '@shell/utils/table-views/shortcuts';
 import { randomStr } from '@shell/utils/string';
-import { isViewDirty, isViewModified, savedViewNamed, selectedViewIdFor } from '@shell/utils/table-views/views';
+import {
+  isViewDirty, isViewModified, persistenceIdOf, savedViewNamed, selectedViewIdFor
+} from '@shell/utils/table-views/views';
+import { TABLE_VIEWS } from '@shell/store/prefs';
 import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
 import { RcDropdown, RcDropdownItem, RcDropdownSeparator, RcDropdownTrigger } from '@components/RcDropdown';
 
@@ -80,7 +84,8 @@ const {
   savedViews, defaultViewId, allTabIndex, persistAll, persist, unusedViewName
 } = useSavedTableViews(() => props.resourceType, () => props.tableViewsPage);
 
-const { takeShared, show: showInLink } = useTableViewsLink(() => (props.resourceType ? linkedTableKey(props.resourceType, props.tableViewsPage) : ''));
+/** The table a shared view is for - see sharedTableKey */
+const tableKey = computed(() => sharedTableKey(props.resourceType, props.tableViewsPage));
 
 const root = ref<HTMLElement | null>(null);
 
@@ -112,8 +117,16 @@ const pickedViewId = ref<string | null | undefined>(props.initialViewId);
 /** Unsaved edits per tab, kept while the page is open so leaving a tab doesn't lose them */
 const drafts = ref<Record<string, TableViewState>>({});
 
-/** For an export: the tab's name, its row count (null if unknown) and, for a tab not on screen, its view */
-const modal = ref<{ kind: 'export', name: string, count: number | null, view?: TableViewState } | null>(null);
+/**
+ * An export: the tab's name, its row count (null if unknown) and, for a tab not on screen, its view.
+ * A share: the tab's view as text. An import: nothing until something is pasted
+ */
+const modal = ref<
+  { kind: 'export', name: string, count: number | null, view?: TableViewState } |
+  { kind: 'share', text: string } |
+  { kind: 'import' } |
+  null
+>(null);
 
 const renamingId = ref<string | null>(null);
 
@@ -708,6 +721,17 @@ const openExport = (tab: Tab) => {
   };
 };
 
+const openShare = (tab: Tab) => {
+  // The tab on screen as it stands, another with any edits held for it
+  const view: SharedTableView = { ...viewStateOf(tabState(tab)), name: tab.name };
+
+  modal.value = { kind: 'share', text: shareTableView(tableKey.value, view, persistenceIdOf(store.getters['prefs/get'](TABLE_VIEWS))) };
+};
+
+const openImport = () => {
+  modal.value = { kind: 'import' };
+};
+
 const closeModal = () => {
   modal.value = null;
 };
@@ -833,29 +857,24 @@ const deleteView = (saved?: TableViewSaved) => {
 };
 
 const doExport = (format: string) => {
+  const exported = modal.value?.kind === 'export' ? modal.value : null;
   // Kept for the notification, which outlives the modal
-  const name = modal.value?.name || t('tableViews.tabs.all');
+  const name = exported?.name || t('tableViews.tabs.all');
 
   emit('export', {
-    format, name, view: modal.value?.view
+    format, name, view: exported?.view
   });
   closeModal();
 };
 
 /**
- * A view someone sent in a link is kept as a view of the user's own, and opened. The view a link was
- * kept as before - its name and config unchanged - is opened rather than kept again
+ * An imported view is kept as a view of the user's own, and opened. One imported before - its name
+ * and config unchanged - is opened rather than kept again
  */
-const openSharedView = () => {
-  const shared = takeShared();
-
-  if (!shared) {
-    return;
-  }
-
-  const { name, ...state } = shared;
-  const sharedName = t('tableViews.tab.sharedName', { name }, true);
-  const kept = savedViewNamed(savedViews.value, sharedName, viewStateOf(state));
+const importView = (imported: SharedTableView) => {
+  const { name, ...state } = imported;
+  const importedName = t('tableViews.tab.importedName', { name }, true);
+  const kept = savedViewNamed(savedViews.value, importedName, viewStateOf(state));
 
   if (kept) {
     applyView(kept);
@@ -865,7 +884,7 @@ const openSharedView = () => {
   }
 
   const view: TableViewSaved = {
-    ...viewStateOf(state), id: randomStr(8), name: unusedViewName(sharedName, 2)
+    ...viewStateOf(state), id: randomStr(8), name: unusedViewName(importedName, 2)
   };
 
   persist(savedViews.value.concat([view]));
@@ -873,13 +892,13 @@ const openSharedView = () => {
   focusTab(view.id, true);
 };
 
-/** The table as it stands, under its tab's name; nothing when it shows the table as it comes */
-const linkedView = () => {
-  if (!isViewModified(props.view)) {
-    return null;
-  }
-
-  return { ...viewStateOf(props.view), name: selectedTab()?.name || t('tableViews.tabs.all') };
+/**
+ * Once the modal has gone and handed the focus back to the menu it was opened from, or that would
+ * take the focus off the view just opened
+ */
+const importFromModal = (imported: SharedTableView) => {
+  closeModal();
+  nextTick(() => setTimeout(() => importView(imported)));
 };
 
 const SHORTCUT_ACTIONS: Record<TableViewShortcutAction, () => void> = {
@@ -896,9 +915,6 @@ onMounted(() => {
     owns: ownsTarget,
     run:  (action) => SHORTCUT_ACTIONS[action](),
   });
-
-  openSharedView();
-  watch(linkedView, showInLink, { immediate: true, deep: true });
 });
 
 onBeforeUnmount(() => {
@@ -1073,6 +1089,24 @@ onBeforeUnmount(() => {
                     </template>
                   </rc-dropdown-item>
                   <rc-dropdown-item
+                    :data-testid="tab.isDefaultTab ? 'table-views-share-all' : `table-views-share-${ tab.id }`"
+                    @click="openShare(tab)"
+                  >
+                    <template #before>
+                      <i class="menu-gutter" />
+                    </template>
+                    {{ t('tableViews.tab.share') }}
+                  </rc-dropdown-item>
+                  <rc-dropdown-item
+                    :data-testid="tab.isDefaultTab ? 'table-views-import-all' : `table-views-import-${ tab.id }`"
+                    @click="openImport"
+                  >
+                    <template #before>
+                      <i class="menu-gutter" />
+                    </template>
+                    {{ t('tableViews.tab.import') }}
+                  </rc-dropdown-item>
+                  <rc-dropdown-item
                     v-if="!tab.isDefaultTab"
                     :disabled="!isViewModified(tabState(tab))"
                     :data-testid="`table-views-reset-${ tab.id }`"
@@ -1156,6 +1190,22 @@ onBeforeUnmount(() => {
       :view-name="modal.name"
       @close="closeModal"
       @export="doExport"
+    />
+  </app-modal>
+  <app-modal
+    v-else-if="modal"
+    :name="modal.kind === 'share' ? 'tableViewsShareModal' : 'tableViewsImportModal'"
+    :width="640"
+    height="auto"
+    :trigger-focus-trap="true"
+    @close="closeModal"
+  >
+    <TableViewShareModal
+      :mode="modal.kind"
+      :value="modal.kind === 'share' ? modal.text : ''"
+      :table-key="tableKey"
+      @close="closeModal"
+      @import="importFromModal"
     />
   </app-modal>
 </template>

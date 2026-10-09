@@ -15,6 +15,7 @@ import { queryToServerFilters } from '@shell/utils/table-views/server-filters';
 import { expandQuery } from '@shell/utils/table-views/query-fields';
 import { SEARCH_DEBOUNCE } from '@shell/config/search';
 import { STATE_FILTER_QUERY } from '@shell/config/query-params';
+import { isNavigating } from '@shell/config/router/navigation-guards/navigation-state';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { DEFAULT_MANDATORY_SORT } from '@shell/components/SortableTable/sorting';
 import { sortBy } from '@shell/utils/sort';
@@ -139,6 +140,14 @@ export default {
        */
       openedViewId: linkedQuery ? null : defaultView?.id,
 
+      /**
+       * Opened by a link naming some of the list's states, whose parameter is still in the URL: kept
+       * while the query is the one it opened with, so Back or a reload opens the list filtered again
+       */
+      stateLinkPending: !!linkedQuery,
+
+      stateLinkQuery: linkedQuery,
+
       fieldValues: {},
 
       /** Ids of the fields whose values are being asked for */
@@ -189,6 +198,8 @@ export default {
 
       viewSwitchTimer: null,
 
+      stateLinkTimer: null,
+
       /** The request in hand when the switch began: its answer is the old view's, whatever it filters by */
       viewSwitchFromArgs: null,
 
@@ -211,6 +222,7 @@ export default {
 
   beforeUnmount() {
     clearTimeout(this.viewSwitchTimer);
+    clearTimeout(this.stateLinkTimer);
     this.debouncedSettleQuery.cancel();
   },
 
@@ -288,6 +300,10 @@ export default {
     'view.query'(neu, old) {
       const query = neu || '';
       const previous = old || '';
+
+      if (this.stateLinkPending && query !== this.stateLinkQuery) {
+        this.dropStateLink();
+      }
 
       // Settled already, eg by a tab
       if (query === (this.settledQuery || '')) {
@@ -837,6 +853,38 @@ export default {
   },
 
   methods: {
+    /**
+     * A link naming some of the list's states leaves the URL once the query is changed from the one it
+     * opened with: left, a reload after the query was cleared would filter the list again. Not while
+     * another page is on its way, as writing the URL would call that navigation off
+     */
+    dropStateLink() {
+      if (!this.stateLinkPending || !this.showTableViews) {
+        return;
+      }
+
+      if (isNavigating()) {
+        clearTimeout(this.stateLinkTimer);
+        this.stateLinkTimer = setTimeout(() => this.dropStateLink(), 300);
+
+        return;
+      }
+
+      this.stateLinkPending = false;
+
+      if (!(STATE_FILTER_QUERY in (this.$route?.query || {}))) {
+        return;
+      }
+
+      const query = { ...this.$route.query };
+
+      delete query[STATE_FILTER_QUERY];
+      // The route's guards run for it too, and can fail, eg with the session ending
+      this.$router.replace({
+        path: this.$route.path, query, hash: this.$route.hash
+      }).catch(() => {});
+    },
+
     /** The field a view's grouping names - a column, or a date column taken by month - or null */
     /** A query as the list applies it: fields that stand for others swapped for those */
     parseViewQuery(query) {

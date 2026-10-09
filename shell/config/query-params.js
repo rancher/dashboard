@@ -34,10 +34,6 @@ export const PAGE = 'page';
 // A list linked to some of its states, eg from an overview's counts: `a,b`. The table opens filtered to them
 export const STATE_FILTER_QUERY = 'stateFilter';
 
-// Table views: what each table on the page shows, encoded, and the persistence id of the user it was showing for
-export const TABLE_STATE_QUERY = 'tableState';
-export const TABLE_STATE_KEY_QUERY = 'tableStateKey';
-
 // ResourceDetail/Yaml
 export const MODE = 'mode';
 export const _CREATE = 'create';

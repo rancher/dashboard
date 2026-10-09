@@ -1,5 +1,8 @@
 import ResourceTableViews from '@shell/mixins/resource-table-views';
+import { isNavigating } from '@shell/config/router/navigation-guards/navigation-state';
 import { TABLE_VIEWS } from '@shell/store/prefs';
+
+jest.mock('@shell/config/router/navigation-guards/navigation-state', () => ({ isNavigating: jest.fn(() => false) }));
 
 // The table views half of ResourceTable is its own mixin, so that is where this lives
 const { data } = ResourceTableViews;
@@ -43,6 +46,107 @@ describe('ResourceTable', () => {
         expect(opened.openedViewId).toBeNull();
         expect(opened.view.query).toBe('state:running state:active');
         expect(opened.settledQuery).toBe('state:running state:active');
+      });
+
+      describe('its parameter, once the query holds the states', () => {
+        const { dropStateLink } = (ResourceTableViews as unknown as { methods: { dropStateLink: (this: object) => void } }).methods;
+        const table = (more: Record<string, unknown> = {}) => {
+          const ctx: Record<string, unknown> = {
+            stateLinkPending: true,
+            showTableViews:   true,
+            $route:           {
+              path: '/c/local/explorer/pod', query: { stateFilter: 'running', other: 'kept' }, hash: '#x'
+            },
+            $router: { replace: jest.fn(() => Promise.resolve()) },
+            ...more,
+          };
+
+          ctx.dropStateLink = () => dropStateLink.call(ctx);
+
+          return ctx as { stateLinkPending: boolean, dropStateLink: () => void, $router: { replace: jest.Mock } };
+        };
+
+        afterEach(() => {
+          jest.mocked(isNavigating).mockReturnValue(false);
+          jest.useRealTimers();
+        });
+
+        it('should leave the URL, keeping the rest of it, so a reload after the query was cleared doesn\'t filter again', () => {
+          const ctx = table();
+
+          ctx.dropStateLink();
+          ctx.dropStateLink();
+
+          expect(ctx.$router.replace).toHaveBeenCalledTimes(1);
+          expect(ctx.$router.replace).toHaveBeenCalledWith({
+            path: '/c/local/explorer/pod', query: { other: 'kept' }, hash: '#x'
+          });
+          expect(ctx.stateLinkPending).toBe(false);
+        });
+
+        it('should wait while another page is on its way, so as not to call that navigation off', () => {
+          jest.useFakeTimers();
+          jest.mocked(isNavigating).mockReturnValue(true);
+          const ctx = table();
+
+          ctx.dropStateLink();
+          jest.advanceTimersByTime(900);
+          expect(ctx.$router.replace).not.toHaveBeenCalled();
+
+          jest.mocked(isNavigating).mockReturnValue(false);
+          jest.advanceTimersByTime(300);
+          expect(ctx.$router.replace).toHaveBeenCalledTimes(1);
+        });
+
+        describe('as the query changes', () => {
+          const queryChanged = (ResourceTableViews as unknown as { watch: Record<string, (this: object, neu: string, old: string) => void> }).watch['view.query'];
+          const watching = () => {
+            const debouncedSettleQuery = Object.assign(jest.fn(), { cancel: jest.fn(), flush: jest.fn() });
+
+            return {
+              stateLinkPending: true, stateLinkQuery: 'state:running', settledQuery: 'state:running', debouncedSettleQuery, dropStateLink: jest.fn()
+            };
+          };
+
+          it('should keep the link\'s states in the URL while the query is still theirs, so Back or a reload filters again', () => {
+            const ctx = watching();
+
+            queryChanged.call(ctx, 'state:running', '');
+
+            expect(ctx.dropStateLink).not.toHaveBeenCalled();
+          });
+
+          it.each([
+            ['typed into', 'state:running name:web'],
+            ['cleared', ''],
+            ['swapped for a tab\'s', 'namespace:default'],
+          ])('should drop them once the query is %s', (_, query) => {
+            const ctx = watching();
+
+            queryChanged.call(ctx, query, 'state:running');
+
+            expect(ctx.dropStateLink).toHaveBeenCalledTimes(1);
+          });
+
+          it('should leave the URL alone once they are gone', () => {
+            const ctx = { ...watching(), stateLinkPending: false };
+
+            queryChanged.call(ctx, '', 'state:running');
+
+            expect(ctx.dropStateLink).not.toHaveBeenCalled();
+          });
+        });
+
+        it.each([
+          ['until the table shows its views', { showTableViews: false }],
+          ['when no link named any states', { stateLinkPending: false }],
+        ])('should leave the URL alone %s', (_, more) => {
+          const ctx = table(more);
+
+          ctx.dropStateLink();
+
+          expect(ctx.$router.replace).not.toHaveBeenCalled();
+        });
       });
 
       it.each([
