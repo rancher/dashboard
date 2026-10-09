@@ -196,3 +196,36 @@ describe('managementSetting - Scroll Behavior', () => {
     expect(ids).toContain(SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS);
   });
 });
+
+describe('managementSetting - enum values', () => {
+  it.each([
+    [SETTING.UI_APPCO_ENABLED, 'true', 'advancedSettings.enum.ui-appco-enabled.true'],
+    [SETTING.UI_APPCO_ENABLED, '', 'advancedSettings.enum.ui-appco-enabled.none'],
+    [SETTING.UI_OFFLINE_PREFERRED, '', 'advancedSettings.enum.ui-offline-preferred.'],
+  ])('should label the %p enum value %p with its translation key', async(id, value, expected) => {
+    mockStore.dispatch.mockResolvedValue([{
+      id, value, default: '', availableActions: ['edit']
+    }]);
+
+    const wrapper: any = mount(ManagementSetting, {
+      global: {
+        mocks: {
+          $store:      mockStore,
+          $route:      mockRoute,
+          $router:     mockRouter,
+          $fetchState: { pending: false }
+        },
+        stubs: {
+          Loading: true,
+          Banner:  true,
+          Setting: true
+        }
+      }
+    });
+
+    await wrapper.vm.$options.fetch.call(wrapper.vm);
+
+    expect(wrapper.vm.settings.find((setting: { id: string }) => setting.id === id).enum).toBe(expected);
+    wrapper.unmount();
+  });
+});

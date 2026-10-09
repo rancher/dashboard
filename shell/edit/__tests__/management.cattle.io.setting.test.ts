@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import Settings from '@shell/edit/management.cattle.io.setting/index.vue';
 import { SETTING } from '@shell/config/settings';
+import { RadioGroup } from '@components/Form/Radio';
 
 const requiredSetup = () => ({
   // Remove all these mocks after migration to Vue 2.7/3 due mixin logic
@@ -106,5 +107,58 @@ describe('edit: management.cattle.io.setting should', () => {
     const errorBanner = wrapper.find('[data-testid="banner-content"]');
 
     expect(errorBanner.element.textContent).toBe('generic');
+  });
+});
+
+describe('edit: management.cattle.io.setting with radio enum display', () => {
+  const createWrapper = (value: string) => {
+    const { global } = requiredSetup();
+    const $store = {
+      ...global.mocks.$store,
+      getters: {
+        ...global.mocks.$store.getters,
+        'i18n/t':      (key: string) => key,
+        'i18n/exists': () => true,
+      },
+    };
+
+    return mount(Settings, {
+      props:  { value: { id: SETTING.UI_APPCO_ENABLED, value } },
+      global: { ...global, mocks: { ...global.mocks, $store } },
+    });
+  };
+
+  it('should offer each option, the empty one included, with its label and description', () => {
+    const radioGroup = createWrapper('true').findComponent(RadioGroup);
+
+    expect(radioGroup.props('options')).toStrictEqual([
+      {
+        label: 'advancedSettings.enum.ui-appco-enabled.true', description: 'advancedSettings.enumDescription.ui-appco-enabled.true', value: 'true'
+      },
+      {
+        label: 'advancedSettings.enum.ui-appco-enabled.false', description: 'advancedSettings.enumDescription.ui-appco-enabled.false', value: 'false'
+      },
+      {
+        label: 'advancedSettings.enum.ui-appco-enabled.none', description: 'advancedSettings.enumDescription.ui-appco-enabled.none', value: '__empty__'
+      },
+    ]);
+  });
+
+  it.each([
+    ['true', 'true'],
+    ['', '__empty__'],
+  ])('should check the option for the value %p', (value, expected) => {
+    expect(createWrapper(value).findComponent(RadioGroup).props('value')).toBe(expected);
+  });
+
+  it.each([
+    ['false', 'false'],
+    ['__empty__', ''],
+  ])('should save %p as %p', async(option, expected) => {
+    const wrapper = createWrapper('true');
+
+    await wrapper.findComponent(RadioGroup).vm.$emit('update:value', option);
+
+    expect((wrapper.props('value') as any).value).toBe(expected);
   });
 });
