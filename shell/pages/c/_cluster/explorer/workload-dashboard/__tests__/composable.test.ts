@@ -610,6 +610,42 @@ describe('composable: useWorkloadDashboard', () => {
     });
   });
 
+  describe('navigateToNamespace', () => {
+    it('should dispatch switchNamespaces with the namespace filter', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+      mockDispatch.mockClear();
+
+      result.navigateToNamespace('apps.deployment', 'cattle-system');
+
+      expect(mockDispatch).toHaveBeenCalledWith('switchNamespaces', {
+        ids: ['ns://cattle-system'],
+        key: 'local',
+      });
+      wrapper.unmount();
+    });
+
+    it('should navigate to the resource list for the type', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+      mockRouterPush.mockClear();
+
+      result.navigateToNamespace('apps.deployment', 'cattle-system');
+
+      expect(mockRouterPush).toHaveBeenCalledWith({
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster:  'local',
+          product:  'explorer',
+          resource: 'apps.deployment',
+        },
+      });
+      wrapper.unmount();
+    });
+  });
+
   describe('response validation', () => {
     // The composable caches malformed clusters in a module-level singleton, so each
     // invalid-data test uses a unique cluster id to stay independent of the others.

@@ -50,6 +50,8 @@ export type WorkloadDashboardResourceRouteFn = (type: string, stateNames?: strin
 
 export type WorkloadDashboardFilterByNamespaceFn = (namespace: string) => void;
 
+export type WorkloadDashboardNamespaceNavigateFn = (type: string, namespace: string) => void;
+
 export const WORKLOAD_DASHBOARD_RESOURCE_TYPES: string[] = [
   WORKLOAD_TYPES.CRON_JOB,
   WORKLOAD_TYPES.DAEMON_SET,

@@ -343,6 +343,11 @@ export function useWorkloadDashboard() {
     return loc;
   }
 
+  function navigateToNamespace(type: string, namespace: string): void {
+    filterByNamespace(namespace);
+    router.push(resourceRoute(type));
+  }
+
   // ── Fetching & polling ──
 
   /**
@@ -495,5 +500,6 @@ export function useWorkloadDashboard() {
     resetNamespaceFilter,
     filterByNamespace,
     resourceRoute,
+    navigateToNamespace,
   };
 }

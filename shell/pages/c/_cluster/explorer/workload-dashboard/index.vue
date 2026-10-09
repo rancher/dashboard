@@ -27,6 +27,7 @@ const {
   resetNamespaceFilter,
   filterByNamespace,
   resourceRoute,
+  navigateToNamespace,
 } = useWorkloadDashboard();
 </script>
 
