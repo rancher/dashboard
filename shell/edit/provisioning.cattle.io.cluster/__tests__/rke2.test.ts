@@ -105,7 +105,9 @@ type Rke2Vm = {
   _doSaveOverride: (done: () => void) => Promise<void>,
   chartVersionKey: (chart: string) => string,
   applyChartValues: (rkeConfig: Record<string, any>) => void,
-  machinePools: { drainBeforeDelete: boolean }[],
+  cloneMachinePool: (idx: number) => Promise<void>,
+  machinePools: any[],
+  lastIdx: number,
 };
 
 const rke2Vm = (wrapper: VueWrapper<any>) => wrapper.vm as Rke2Vm;
@@ -219,6 +221,100 @@ describe('component: rke2', () => {
     await rkeVm.initSpecs();
 
     rkeVm.machinePools.forEach((p) => expect(p.drainBeforeDelete).toBe(true));
+  });
+
+  it('should clone a VMware machine pool without copying its identity', async() => {
+    const dispatch = jest.fn(async(action: string) => {
+      if (action === 'management/createPopulated') {
+        return {
+          type:     'rke-machine-config.cattle.io.vmwarevsphereconfigs',
+          metadata: { namespace: 'fleet-default' },
+        };
+      }
+
+      return undefined;
+    });
+    const source = {
+      id:          'pool1',
+      uid:         'pool1',
+      create:      false,
+      update:      true,
+      remove:      false,
+      isIpv6:      false,
+      isDualStack: false,
+      pool:        {
+        name:             'pool1',
+        quantity:         2,
+        workerRole:       true,
+        labels:           { role: 'worker' },
+        machineConfigRef: { kind: 'VmwarevsphereConfig', name: 'config1' },
+      },
+      config: {
+        id:       'fleet-default/config1',
+        type:     'rke-machine-config.cattle.io.vmwarevsphereconfigs',
+        metadata: {
+          name:      'config1',
+          namespace: 'fleet-default',
+          uid:       'uid1'
+        },
+        datacenter:  'dc1',
+        datastore:   'ds1',
+        network:     ['network1'],
+        nestedValue: { keep: true },
+      },
+    };
+    const wrapper = mount(rke2, {
+      props: {
+        mode:  _EDIT,
+        value: {
+          metadata: { namespace: 'fleet-default' },
+          spec:     { ...defaultSpec, kubernetesVersion: 'v1.25.0+k3s1' },
+        },
+        provider: 'vmwarevsphere',
+      },
+      data: () => ({
+        credentialId: 'credential-id',
+        lastIdx:      1,
+      }),
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store:     { dispatch, getters: defaultGetters },
+          $extension: { getDynamic: jest.fn(() => undefined) },
+        },
+        stubs: defaultStubs,
+      },
+    });
+    const rkeVm = rke2Vm(wrapper);
+
+    rkeVm.machinePools = [source];
+
+    await rkeVm.cloneMachinePool(0);
+
+    expect(rkeVm.machinePools).toHaveLength(2);
+    const cloned = rkeVm.machinePools[1];
+
+    expect(cloned.id).toBe('pool2');
+    expect(cloned.pool.name).toBe('pool2');
+    expect(cloned.create).toBe(true);
+    expect(cloned.update).toBe(false);
+    expect(cloned.remove).toBe(false);
+    expect(cloned.pool.machineConfigRef).toStrictEqual({ kind: 'VmwarevsphereConfig', name: null });
+    expect(cloned.config.id).toBeUndefined();
+    expect(cloned.config.metadata).toStrictEqual({ namespace: 'fleet-default' });
+    expect(cloned.config.datacenter).toBe('dc1');
+    expect(cloned.config.network).toStrictEqual(['network1']);
+    expect(cloned.config.nestedValue).toStrictEqual({ keep: true });
+
+    cloned.config.network.push('network2');
+    cloned.pool.labels.role = 'control-plane';
+
+    expect(source.config.network).toStrictEqual(['network1']);
+    expect(source.pool.labels).toStrictEqual({ role: 'worker' });
+    expect(dispatch).toHaveBeenCalledWith('management/createPopulated', {
+      type:     'rke-machine-config.cattle.io.vmwarevsphereconfigs',
+      metadata: { namespace: 'fleet-default' },
+    });
   });
 
   it('should set distro root directory from k8sDistro on a Harvester cluster creation on save override (_doSaveOverride)', async() => {

@@ -1188,7 +1188,7 @@ export default {
         config.applyDefaults(idx, this.machinePools);
       }
 
-      const name = `pool${ ++this.lastIdx }`;
+      const name = this.nextMachinePoolName();
 
       const pool = {
         id:          name,
@@ -1235,6 +1235,75 @@ export default {
       }
 
       this.machinePools.push(pool);
+
+      this.$nextTick(() => {
+        if (this.$refs.pools?.select) {
+          this.$refs.pools.select(name);
+        }
+      });
+    },
+
+    nextMachinePoolName() {
+      return `pool${ ++this.lastIdx }`;
+    },
+
+    async cloneMachinePool(idx) {
+      if (this.provider !== VMWARE_VSPHERE) {
+        return;
+      }
+
+      const source = this.machinePools?.[idx];
+
+      if (!source?.config || source.remove || source.configMissing) {
+        return;
+      }
+
+      const sourceConfig = source.config.toJSON ? source.config.toJSON() : source.config;
+      const config = await this.$store.dispatch('management/createPopulated', {
+        type:     source.config.type || this.machineConfigSchema?.id,
+        metadata: { namespace: source.config.metadata?.namespace || DEFAULT_WORKSPACE }
+      });
+      const configIdentity = new Set([
+        'id',
+        '_id',
+        'uid',
+        'metadata',
+        'links',
+        'actions',
+        'type',
+        '_type',
+        '__clone',
+        '__rehydrate'
+      ]);
+
+      Object.entries(sourceConfig).forEach(([key, value]) => {
+        if (!configIdentity.has(key)) {
+          config[key] = clone(value);
+        }
+      });
+
+      const name = this.nextMachinePoolName();
+      const pool = clone(source.pool);
+
+      pool.name = name;
+      pool.machineConfigRef = {
+        ...clone(source.pool.machineConfigRef || {}),
+        name: null,
+      };
+
+      const clonedPool = {
+        id:          name,
+        config,
+        remove:      false,
+        create:      true,
+        update:      false,
+        uid:         name,
+        isIpv6:      source.isIpv6,
+        isDualStack: source.isDualStack,
+        pool,
+      };
+
+      this.machinePools.push(clonedPool);
 
       this.$nextTick(() => {
         if (this.$refs.pools?.select) {
@@ -2167,7 +2236,9 @@ export default {
             ref="pools"
             :side-tabs="true"
             :show-tabs-add-remove="!isView"
+            :show-tabs-clone="provider === VMWARE_VSPHERE && !isView"
             @addTab="addMachinePool($event)"
+            @cloneTab="cloneMachinePool($event)"
             @removeTab="removeMachinePool($event)"
           >
             <template
