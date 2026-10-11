@@ -38,8 +38,8 @@ mkdir -p tmp/
 echo "Copying source files..."
 
 # Copy the main package structure to a temporary directory for processing
-cp -r e2e/ tmp/
-cp -r support/ tmp/
+cp -r e2e tmp/
+cp -r support tmp/
 cp base-config.ts tmp/
 cp extend-config.ts tmp/
 cp globals.d.ts tmp/
@@ -65,13 +65,14 @@ find tmp/ -name "*.ts" -type f | while read file; do
   fi
   
   # Replace @/cypress/ with the relative path
-  sed -i "s|@/cypress/|${relative_path}|g" "$file"
+  sed -i.bak "s|@/cypress/|${relative_path}|g" "$file"
   # Also handle @/cypress without trailing slash
-  sed -i "s|@/cypress|${relative_path}|g" "$file"
+  sed -i.bak "s|@/cypress|${relative_path}|g" "$file"
   # Replace ~/cypress/ with the relative path
-  sed -i "s|~/cypress/|${relative_path}|g" "$file"
+  sed -i.bak "s|~/cypress/|${relative_path}|g" "$file"
   # Also handle ~/cypress without trailing slash
-  sed -i "s|~/cypress|${relative_path}|g" "$file"
+  sed -i.bak "s|~/cypress|${relative_path}|g" "$file"
+  rm -f "$file.bak"
 done
 
 echo "Compiling TypeScript from tmp/ to dist/..."
