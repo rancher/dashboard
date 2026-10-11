@@ -6,6 +6,13 @@ import SimpleSecretSelector from '@shell/components/form/SimpleSecretSelector';
 import { _VIEW } from '@shell/config/query-params';
 import Banner from '@components/Banner/Banner.vue';
 
+const integrationMapping = {
+  'Events API v2': 'routingKey',
+  Prometheus:      'serviceKey'
+};
+
+const integrationTypeOptions = Object.keys(integrationMapping);
+
 export default {
   components: {
     Banner, Checkbox, LabeledInput, LabeledSelect, SimpleSecretSelector
@@ -25,27 +32,27 @@ export default {
     }
   },
   data() {
-    this.value['httpConfig'] = this.value.httpConfig || {};
-    this.value['sendResolved'] = typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true;
-
-    const integrationMapping = {
-      'Events API v2': 'routingKey',
-      Prometheus:      'serviceKey'
-    };
-
-    const integrationTypeOptions = Object.keys(integrationMapping);
-
     return {
       integrationMapping,
       integrationTypeOptions,
-      integrationType:             this.value.serviceKey ? integrationTypeOptions[1] : integrationTypeOptions[0],
-      initialRoutingKeySecretKey:  this.value.routingKey?.key || '',
-      initialRoutingKeySecretName: this.value.routingKey?.name || '',
-      initialServiceKeySecretKey:  this.value.serviceKey?.key || '',
-      initialServiceKeySecretName: this.value.serviceKey?.name || '',
-      view:                        _VIEW,
-      none:                        '__[[NONE]]__',
+      integrationType: this.value.serviceKey ? integrationTypeOptions[1] : integrationTypeOptions[0],
+      view:            _VIEW,
+      none:            '__[[NONE]]__',
     };
+  },
+  computed: {
+    initialRoutingKeySecretKey() {
+      return this.value.routingKey?.key || '';
+    },
+    initialRoutingKeySecretName() {
+      return this.value.routingKey?.name || '';
+    },
+    initialServiceKeySecretKey() {
+      return this.value.serviceKey?.key || '';
+    },
+    initialServiceKeySecretName() {
+      return this.value.serviceKey?.name || '';
+    },
   },
   watch: {
     integrationType() {
@@ -53,6 +60,10 @@ export default {
         this.value[this.integrationMapping[option]] = null;
       });
     }
+  },
+  created() {
+    this.value.httpConfig = this.value.httpConfig || {};
+    this.value.sendResolved = typeof this.value.sendResolved === 'boolean' ? this.value.sendResolved : true;
   },
   methods: {
     updateRoutingKeySecretName(name) {
