@@ -7,6 +7,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { isMac, shortcutLabel } from '@shell/utils/platform';
 import { RcDropdown, RcDropdownItem, RcDropdownSeparator, RcDropdownTrigger } from '@components/RcDropdown';
 import { useDragReorder } from '../composables/useDragReorder';
+import { viewBarScroll } from '../composables/viewBarScroll';
 import { isStockView } from '../templating/view-model';
 import type { View } from '../templating/types';
 
@@ -465,9 +466,31 @@ function onName(ev: Event): void {
 
 onMounted(() => {
   window.addEventListener('keydown', onShortcut);
+
+  // A bar drawn again - the page moved between Rancher's own page and a view of widgets - picks up
+  // where the last one was scrolled to, and keeps the open view's tab in sight
+  nextTick(() => {
+    const strip = tabStrip.value;
+    const active = activeView.value && tabButton(activeView.value);
+
+    if (!strip) {
+      return;
+    }
+    strip.scrollLeft = viewBarScroll.left;
+
+    if (active) {
+      const tab = active.getBoundingClientRect();
+      const box = strip.getBoundingClientRect();
+
+      if (tab.left < box.left || tab.right > box.right) {
+        active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }
+    }
+  });
 });
 
 onBeforeUnmount(() => {
+  viewBarScroll.left = tabStrip.value?.scrollLeft || 0;
   window.removeEventListener('keydown', onShortcut);
   clearTimeout(flashTimer);
   cancelAnimationFrame(flashFrame);
