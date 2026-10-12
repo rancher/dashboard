@@ -234,7 +234,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'metadata.state.name' },
       { field: 'metadata.creationTimestamp' },
       { field: 'metadata.labels', startsWith: true },
-      // Where the api indexes it - the table views ask first, see server-support.ts
       { field: `metadata.annotations[${ DESCRIPTION }]` },
     ],
     [NODE]: [

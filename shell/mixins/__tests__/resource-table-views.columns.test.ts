@@ -1,17 +1,10 @@
 import ResourceTableViews from '@shell/mixins/resource-table-views';
-import { canQueryDescription } from '@shell/utils/table-views/server-support';
 import {
   CAPI, CONFIG_MAP, FLEET, MANAGEMENT, NAMESPACE, WORKLOAD_TYPES
 } from '@shell/config/types';
 import {
   AGE, DESCRIPTION, DESCRIPTION_ANNOTATION_COL, NAME, STATE
 } from '@shell/config/table-headers';
-
-// Whether the api indexes the description is asked of the server; here it says yes unless a test says no
-jest.mock('@shell/utils/table-views/server-support', () => ({
-  ...jest.requireActual('@shell/utils/table-views/server-support'),
-  canQueryDescription: jest.fn(() => true),
-}));
 
 const { availableHeaders } = ResourceTableViews.computed as unknown as Record<string, (this: object) => { name: string }[]>;
 
@@ -77,17 +70,10 @@ describe('the columns a list offers', () => {
       expect(names(ctx)).toStrictEqual(['state', 'name', 'description', 'age']);
     });
 
-    it('should be sorted and filtered on by the api on a paginated list, where the api indexes the annotation', () => {
+    it('should be sorted and filtered on by the api on a paginated list', () => {
       const { ctx } = page(CONFIG_MAP, [STATE, NAME], false, true);
 
       expect(description(ctx)).toStrictEqual(expect.objectContaining({ sort: 'metadata.annotations[field.cattle.io/description]', search: 'metadata.annotations[field.cattle.io/description]' }));
-    });
-
-    it('should show on a paginated list without asking the api for it, where the api has no index for it', () => {
-      jest.mocked(canQueryDescription).mockReturnValueOnce(false);
-      const { ctx } = page(CONFIG_MAP, [STATE, NAME], false, true);
-
-      expect(description(ctx)).toStrictEqual(expect.objectContaining({ sort: false, search: false }));
     });
 
     it('should be offered on both lists of clusters, read from the annotation the management cluster is given', () => {
