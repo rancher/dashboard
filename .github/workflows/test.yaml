@@ -21,6 +21,8 @@ env:
   CATTLE_BOOTSTRAP_PASSWORD: password
   TEST_BASE_URL: https://127.0.0.1.sslip.io
   API: https://127.0.0.1.sslip.io
+  # In a pull request the video of a spec that passes is replaced by a placeholder, unless the PR has the ci/videos-all label
+  TEST_NO_PASSED_VIDEOS: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ci/videos-all') }}
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
   BUILD_DASHBOARD: true
 
