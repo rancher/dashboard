@@ -194,4 +194,8 @@ export class LoginPagePo extends PagePo {
   localSelector() {
     return cy.getId('locale-selector');
   }
+
+  localeMenuItems() {
+    return cy.get('[dropdown-menu-item][lang]');
+  }
 }

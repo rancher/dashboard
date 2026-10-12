@@ -37,13 +37,23 @@ type AxeResults = {
  * full results object.
  *
  * As before, nothing here fails the test - we only record.
+ *
+ * Finite animations and transitions are allowed to finish first. axe blends a fading element's
+ * colours with whatever is behind it, so checking a popover mid fade-in reports a contrast failure
+ * that a user never sees. Infinite animations (spinners) are skipped, as they never finish.
  */
 function runAxe(context?: any): Cypress.Chainable<AxeResults> {
   return cy.window({ log: false }).then(LONG_TIMEOUT_OPT, (win: any) => {
-    return (win.axe.run(context || win.document, {}) as Promise<AxeResults>).then((results) => ({
-      ...results,
-      availableRules: win.axe.getRules().map((rule: any) => rule.ruleId),
-    }));
+    const finishing = win.document.getAnimations()
+      .filter((animation: Animation) => animation.effect?.getComputedTiming().endTime !== Infinity)
+      .map((animation: Animation) => animation.finished.catch(() => undefined));
+
+    return Promise.all(finishing)
+      .then(() => win.axe.run(context || win.document, {}) as Promise<AxeResults>)
+      .then((results) => ({
+        ...results,
+        availableRules: win.axe.getRules().map((rule: any) => rule.ruleId),
+      }));
   });
 }
 
