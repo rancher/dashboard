@@ -1311,7 +1311,7 @@ onBeforeUnmount(() => {
 
                   <rc-dropdown-item
                     v-if="!tab.isDefaultTab && !tab.shared && canShare"
-                    :data-testid="`table-views-share-${ tab.id }`"
+                    :data-testid="`table-views-publish-${ tab.id }`"
                     @click="shareView(tab)"
                   >
                     <template #before>
@@ -1321,7 +1321,7 @@ onBeforeUnmount(() => {
                   </rc-dropdown-item>
                   <rc-dropdown-item
                     v-if="tab.shared && canRemoveShared(tab.id)"
-                    :data-testid="`table-views-unshare-${ tab.id }`"
+                    :data-testid="`table-views-unpublish-${ tab.id }`"
                     @click="unshareView(tab)"
                   >
                     <template #before>
