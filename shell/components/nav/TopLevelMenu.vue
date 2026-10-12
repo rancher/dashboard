@@ -1836,10 +1836,10 @@ export default {
     }
 
     &.is-active {
-      background: var(--active-nav, var(--primary-hover-bg));
+      background: var(--active);
 
       &:hover {
-        background: var(--active-hover, var(--primary-hover-bg));
+        background: var(--active-hover);
       }
     }
 
@@ -1875,11 +1875,11 @@ export default {
 
     // Current row: the control paints itself, so the sibling pin has to be told to match.
     &.is-active .pin.is-pinned {
-      color: var(--on-active, var(--primary-hover-text)) !important;
+      color: var(--on-active) !important;
     }
 
     &.is-active .pin:not(.is-pinned) {
-      color: color-mix(in srgb, var(--on-active, var(--primary-hover-text)) 65%, transparent) !important;
+      color: color-mix(in srgb, var(--on-active) 65%, transparent) !important;
     }
   }
 
@@ -2201,7 +2201,7 @@ export default {
       & .category {
         & a.router-link-active {
           &:hover {
-            color: var(--on-active-nav, var(--default));
+            color: var(--on-active);
           }
         }
       }
@@ -2335,38 +2335,38 @@ export default {
             outline-offset: -4px;
           }
 
-          background: var(--active-nav, var(--primary-hover-bg));
-          color: var(--on-active-nav, var(--primary-hover-text));
+          background: var(--active);
+          color: var(--on-active);
 
           svg {
-            fill: var(--on-active-nav, var(--primary-hover-text));
+            fill: var(--on-active);
           }
 
           i {
-            color: var(--on-active-nav, var(--primary-hover-text));
+            color: var(--on-active);
           }
 
           // Current row (selected): white name + pinned pin; light meta + light-grey not-pinned pin.
           // !important overrides the base black/muted name+pin invariants.
           .cluster-name > p {
-            color: var(--on-active-nav, var(--primary-hover-text)) !important;
+            color: var(--on-active) !important;
           }
           .pin.is-pinned {
-            color: var(--on-active-nav, var(--primary-hover-text)) !important;
+            color: var(--on-active) !important;
           }
           .pin:not(.is-pinned) {
-            color: color-mix(in srgb, var(--on-active-nav, var(--primary-hover-text)) 65%, transparent) !important;
+            color: color-mix(in srgb, var(--on-active) 65%, transparent) !important;
           }
 
           &:hover {
-            background: var(--nav-active-hover, var(--primary-hover-bg));
+            background: var(--active-hover);
 
             div {
-              color: var(--on-active-nav, var(--default));
+              color: var(--on-active);
             }
 
             svg {
-              fill: var(--on-active-nav, var(--primary-hover-text));
+              fill: var(--on-active);
             }
           }
         }
