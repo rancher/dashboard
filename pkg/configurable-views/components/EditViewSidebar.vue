@@ -6,12 +6,13 @@ import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import CatalogTile from './CatalogTile.vue';
 import {
-  BUILDING_BLOCKS, READY_MADE, searchCatalog, blockLabelKey, type CatalogEntry
+  BUILDING_BLOCKS, READY_MADE, searchCatalog, blockLabelKey, generatedEntries, entryLabel, entryDesc, type CatalogEntry
 } from '../templating/widget-catalog';
 import {
   WIDTH_PRESETS, HEIGHT_PRESETS, SPACING_PRESETS,
   DEFAULT_GAP, DEFAULT_PAGE_PADDING, widthPresetOf, heightPresetOf, spacingPresetOf
 } from '../templating/view-model';
+import { generatedWidgets, widgetApprovals } from '../templating/template-engine';
 import type { View, WidgetNode } from '../templating/types';
 
 // The "Edit view" drawer. Three tabs, and the split between them is the point:
@@ -170,9 +171,11 @@ const heights = HEIGHT_PRESETS;
 const spacings = SPACING_PRESETS;
 
 // Searched as it reads: the translated name and description.
-const tileText = (entry: CatalogEntry) => `${ t(entry.labelKey) } ${ t(entry.descKey) }`;
+const tileText = (entry: CatalogEntry) => `${ entryLabel(entry, t) } ${ entryDesc(entry, t) }`;
 const blocks = computed(() => searchCatalog(BUILDING_BLOCKS, search.value, tileText));
 const readyMade = computed(() => searchCatalog(READY_MADE, search.value, tileText));
+// The widgets Liz wrote that an admin approved - new kinds of widget, dropped like any other
+const generated = computed(() => searchCatalog(generatedEntries(generatedWidgets(store.getters), widgetApprovals(store.getters)), search.value, tileText));
 
 const gap = computed(() => (props.view && 'gap' in props.view ? props.view.gap : DEFAULT_GAP));
 const pagePadding = computed(() => (props.view && 'pad' in props.view ? props.view.pad : DEFAULT_PAGE_PADDING));
@@ -340,6 +343,25 @@ function valueOf(ev: Event): string {
             {{ t('configurableViews.sidebar.noBlocks', { query: search }) }}
           </p>
         </div>
+
+        <template v-if="generated.length">
+          <h4 class="evs__group">
+            {{ t('configurableViews.sidebar.generated') }}
+          </h4>
+          <p class="evs__hint">
+            {{ t('configurableViews.sidebar.generatedHint') }}
+          </p>
+          <div class="evs__tiles">
+            <CatalogTile
+              v-for="entry in generated"
+              :key="entry.id"
+              :entry="entry"
+              @dragstart="(e, ev) => $emit('drag-start', e, ev)"
+              @dragend="$emit('drag-end')"
+              @add="$emit('add', $event)"
+            />
+          </div>
+        </template>
 
         <h4 class="evs__group">
           {{ t('configurableViews.sidebar.readyMade') }}

@@ -45,6 +45,9 @@ const READ_FROM_A_CLUSTER: string[] = [
 /** The widget that counts a cluster's resources into status cards. */
 const STATUS_KIND = 'statusCards';
 
+/** A widget Liz wrote the code of. */
+const GENERATED_KIND = 'generated';
+
 /** The widget that holds other widgets, in tabs. */
 const TABS_KIND = 'tabs';
 
@@ -322,6 +325,9 @@ export function normalizeWidget(widget: unknown): WidgetSpec {
   }
   if (out.kind === STATUS_KIND) {
     out.status = normalizeStatusCards(w.status);
+  }
+  if (out.kind === GENERATED_KIND) {
+    out.component = str(w.component);
   }
 
   return out;

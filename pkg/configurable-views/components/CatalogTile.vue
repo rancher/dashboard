@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
-import type { CatalogEntry } from '../templating/widget-catalog';
+import { entryLabel, entryDesc, type CatalogEntry } from '../templating/widget-catalog';
 
 // One row of the Add tab's catalog: a drag handle, a small picture of what the component looks
 // like, its name and one line saying what it is for.
@@ -21,7 +21,7 @@ const { t } = useI18n(store);
   <div
     class="ctile"
     draggable="true"
-    :title="t('configurableViews.widget.dragTile', { name: t(entry.labelKey) })"
+    :title="t('configurableViews.widget.dragTile', { name: entryLabel(entry, t) })"
     @dragstart="$emit('dragstart', entry, $event)"
     @dragend="$emit('dragend')"
     @click="$emit('add', entry)"
@@ -103,8 +103,8 @@ const { t } = useI18n(store);
     </span>
 
     <div class="ctile__text">
-      <span class="ctile__name">{{ t(entry.labelKey) }}</span>
-      <span class="ctile__desc">{{ t(entry.descKey) }}</span>
+      <span class="ctile__name">{{ entryLabel(entry, t) }}</span>
+      <span class="ctile__desc">{{ entryDesc(entry, t) }}</span>
     </div>
   </div>
 </template>

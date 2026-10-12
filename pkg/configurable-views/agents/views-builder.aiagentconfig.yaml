@@ -98,6 +98,11 @@ spec:
     - "clusterTable"  the Home's own cluster list (home only).               Fields: "title". colSpan 12.
     - "banner"        a welcome banner. Fields: "title", optional "subtitle". colSpan 12.
     - "links"         links. Fields: "title", "source": "custom", "links": [{"label":"..","url":"https://.."}]. colSpan 3-4.
+    - "generated"     a widget Liz WROTE (new kinds of widget). Fields: "component": the widget's
+                      ConfigMap name, "cluster", "title". Only use ones that exist and are approved:
+                      list ConfigMaps labelled templates.rancher.io/type=widget in namespace default
+                      (cluster "local"); approved ones are the keys of data.approvedWidgets (a JSON
+                      string) in the ConfigMap "templating-config" - READ it, never change it.
     - "tabs"          widgets inside tabs. Fields: "tabs": [{"id":"t1","name":"..","widgets":[NODE,...]}]. No tabs in tabs.
 
     ## GOOD VIEWS

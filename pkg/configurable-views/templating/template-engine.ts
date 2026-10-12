@@ -29,6 +29,8 @@ const LABEL_TYPE = 'templates.rancher.io/type';
 const TYPE_CONFIG = 'config';
 /** A view in a ConfigMap of its own - what Liz writes when asked to build a page (see generatedViews). */
 const TYPE_VIEW = 'view';
+/** A widget Liz wrote the code of - a new kind of widget (see generatedWidgets). */
+const TYPE_WIDGET = 'widget';
 
 const CONFIG_NAME = 'templating-config';
 const HOME_CONFIG_NAME = 'templating-home';
@@ -197,6 +199,92 @@ export function generatedViews(getters: Getters, page: PageKey = 'home'): View[]
 export async function deleteGeneratedView(store: Store<unknown>, id: string): Promise<void> {
   const cm = cmNamed(store.getters, id.slice(GENERATED_VIEW_PREFIX.length)) as (ConfigMapModel & { remove(): Promise<unknown> }) | undefined;
 
+  if (cm) {
+    await cm.remove();
+  }
+}
+
+// ---- widgets Liz wrote --------------------------------------------------------------------------
+
+/** A widget whose code Liz wrote, from a ConfigMap of its own. */
+export interface GeneratedWidget {
+  /** The ConfigMap's name - what a view's widget names it by. */
+  name: string;
+  displayName: string;
+  description: string;
+  /** The widget, as a Vue single-file component. */
+  source: string;
+  created: string;
+}
+
+/**
+ * The widgets Liz wrote: ConfigMaps labelled type `widget`, each with `displayName`, `description` and
+ * `component` (a Vue single-file component). Their code only runs once an admin approves it (see
+ * widgetApprovals).
+ */
+export function generatedWidgets(getters: Getters): GeneratedWidget[] {
+  return (getters['management/all']?.(CONFIGMAP) || [])
+    .filter((cm: ConfigMapModel & { metadata: { namespace?: string } }) => cm.metadata?.labels?.[LABEL_MARKER] === 'true' &&
+      cm.metadata?.labels?.[LABEL_TYPE] === TYPE_WIDGET && (!cm.metadata.namespace || cm.metadata.namespace === NAMESPACE))
+    .map((cm: ConfigMapModel & { metadata: { creationTimestamp?: string } }) => ({
+      name:        cm.metadata.name,
+      displayName: cm.data?.displayName || cm.metadata.name,
+      description: cm.data?.description || '',
+      source:      cm.data?.component || '',
+      created:     cm.metadata.creationTimestamp || '',
+    }))
+    .sort((a: GeneratedWidget, b: GeneratedWidget) => a.displayName.localeCompare(b.displayName));
+}
+
+/**
+ * Which widgets' code an admin approved, and exactly which code: widget name -> the SHA-256 of the
+ * source approved. A widget runs only while its source still has that hash, so any change - by Liz
+ * or by hand - needs approving again. Kept beside the kill switch, in templating-config.
+ */
+export function widgetApprovals(getters: Getters): Record<string, string> {
+  const parsed = parse(cmNamed(getters, CONFIG_NAME)?.data?.approvedWidgets) as Record<string, unknown>;
+
+  return Object.fromEntries(Object.entries(parsed).filter(([, hash]) => typeof hash === 'string')) as Record<string, string>;
+}
+
+/** Approve a widget's code as it is now (its hash), or revoke the approval (null). */
+export async function setWidgetApproval(store: Store<unknown>, name: string, hash: string | null): Promise<void> {
+  const approvals = { ...widgetApprovals(store.getters) };
+
+  if (hash) {
+    approvals[name] = hash;
+  } else {
+    delete approvals[name];
+  }
+
+  const existing = cmNamed(store.getters, CONFIG_NAME);
+  const approvedWidgets = JSON.stringify(approvals);
+
+  if (existing) {
+    existing.data = { ...(existing.data || {}), approvedWidgets };
+    await existing.save();
+
+    return;
+  }
+
+  const cm: ConfigMapModel = await store.dispatch('management/create', {
+    type:     CONFIGMAP,
+    metadata: {
+      name: CONFIG_NAME, namespace: NAMESPACE, labels: configLabels
+    },
+    data: { approvedWidgets },
+  });
+
+  await cm.save();
+}
+
+/** Remove a widget Liz wrote: its ConfigMap goes, and its approval with it. */
+export async function deleteGeneratedWidget(store: Store<unknown>, name: string): Promise<void> {
+  const cm = cmNamed(store.getters, name) as (ConfigMapModel & { remove(): Promise<unknown> }) | undefined;
+
+  if (widgetApprovals(store.getters)[name]) {
+    await setWidgetApproval(store, name, null);
+  }
   if (cm) {
     await cm.remove();
   }

@@ -10,7 +10,7 @@ import {
 import {
   dropWidget, liftWidget, moveWidgetToCell, resizeWidget, resizeWidgetStart, type DropTarget
 } from '../templating/grid-layout';
-import type { CatalogEntry } from '../templating/widget-catalog';
+import { entryLabel, type CatalogEntry } from '../templating/widget-catalog';
 import type { ViewSetState } from './useViewSet';
 import type { WidgetNode, WidgetPlace, WidgetSpec } from '../templating/types';
 
@@ -122,7 +122,7 @@ export function useGridEditing(vs: ViewSetState, t: I18n['t']) {
 
   function onCatalogDragStart(entry: CatalogEntry, ev: DragEvent): void {
     ui.dragEntry = entry;
-    ui.dragLabel = t(entry.labelKey);
+    ui.dragLabel = entryLabel(entry, t);
     ui.dragKind = entry.spec.kind;
     ui.dragSpan = entry.span;
     ui.dragGrab = null;

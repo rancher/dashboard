@@ -1,6 +1,7 @@
 import type { Store } from 'vuex';
 import {
-  appliedViewScopes, generatedViews, getPageConfig, isTemplatingEnabled, saveView, toggleTemplating, viewsOffInUrl
+  appliedViewScopes, generatedViews, generatedWidgets, getPageConfig, isTemplatingEnabled, saveView, setWidgetApproval, toggleTemplating,
+  viewsOffInUrl, widgetApprovals
 } from '@pkg/configurable-views/templating/template-engine';
 import type { ViewSet } from '@pkg/configurable-views/templating/types';
 
@@ -203,6 +204,37 @@ describe('views built by Liz', () => {
     const { store } = storeWith({ ...lizView('liz-bad', 'home', {}), data: { page: 'home', view: '{not json' } });
 
     expect(generatedViews(store.getters, 'home').map((v) => v.id)).toStrictEqual(['cm:liz-bad']);
+  });
+});
+
+describe('widgets Liz wrote', () => {
+  const widget = (name: string, data: Record<string, string>) => configMap(name, data, 'widget');
+
+  it('reads each from a ConfigMap of its own', () => {
+    const { store } = storeWith(widget('liz-widget-b', {
+      displayName: 'B', description: 'two', component: '<template />'
+    }), widget('liz-widget-a', { component: '<p />' }));
+
+    // By name as people read it; a widget with no displayName is called by its ConfigMap's name
+    expect(generatedWidgets(store.getters).map((w) => [w.name, w.displayName, w.description, w.source])).toStrictEqual([
+      ['liz-widget-b', 'B', 'two', '<template />'],
+      ['liz-widget-a', 'liz-widget-a', '', '<p />'],
+    ]);
+  });
+
+  it('keeps approvals beside the kill switch, by the hash of the code approved', async() => {
+    const config = configMap('templating-config', { enabled: 'true' });
+    const { store } = storeWith(config);
+
+    await setWidgetApproval(store, 'liz-widget-a', 'h1');
+
+    expect(JSON.parse(config.data.approvedWidgets)).toStrictEqual({ 'liz-widget-a': 'h1' });
+    expect(config.data.enabled).toBe('true');
+    expect(widgetApprovals(store.getters)).toStrictEqual({ 'liz-widget-a': 'h1' });
+
+    await setWidgetApproval(store, 'liz-widget-a', null);
+
+    expect(widgetApprovals(store.getters)).toStrictEqual({});
   });
 });
 

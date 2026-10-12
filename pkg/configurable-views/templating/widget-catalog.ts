@@ -27,6 +27,29 @@ export interface CatalogEntry {
   /** The column width it lands on the grid with. */
   span: number;
   spec: Partial<WidgetSpec> & { kind: WidgetKind };
+  /** A tile's name and description as they are - for an entry the catalog does not translate (a widget Liz wrote). */
+  label?: string;
+  desc?: string;
+}
+
+/** A tile's name and description as the reader sees them. */
+export const entryLabel = (entry: CatalogEntry, t: (key: string) => string): string => entry.label || t(entry.labelKey);
+export const entryDesc = (entry: CatalogEntry, t: (key: string) => string): string => entry.desc ?? t(entry.descKey);
+
+/** The tiles for the widgets Liz wrote that an admin approved. */
+export function generatedEntries(widgets: { name: string; displayName: string; description: string }[], approvals: Record<string, string>): CatalogEntry[] {
+  return widgets.filter((w) => approvals[w.name]).map((w) => ({
+    id:       `generated:${ w.name }`,
+    labelKey: '',
+    descKey:  '',
+    label:    w.displayName,
+    desc:     w.description,
+    icon:     'table',
+    span:     6,
+    spec:     {
+      kind: WIDGET_GENERATED, title: '', component: w.name
+    },
+  }));
 }
 
 /** Every widget kind the renderer knows. */
@@ -46,6 +69,7 @@ export const WIDGET_ALERTS: WidgetKind = 'clusterAlerts';
 export const WIDGET_METRICS: WidgetKind = 'clusterMetrics';
 export const WIDGET_EXTENSION_CARDS: WidgetKind = 'clusterExtensionCards';
 export const WIDGET_STATUS_CARDS: WidgetKind = 'statusCards';
+export const WIDGET_GENERATED: WidgetKind = 'generated';
 
 /**
  * The kinds that are ABOUT one cluster - the pieces of a cluster's dashboard.
@@ -55,7 +79,7 @@ export const WIDGET_STATUS_CARDS: WidgetKind = 'statusCards';
  */
 const CLUSTER_WIDGETS: WidgetKind[] = [
   WIDGET_CLUSTER_HEADER, WIDGET_RESOURCE_CARDS, WIDGET_CAPACITY, WIDGET_COMPONENT_STATUS, WIDGET_OVERVIEW, WIDGET_EVENTS,
-  WIDGET_CERTIFICATES, WIDGET_ALERTS, WIDGET_METRICS, WIDGET_EXTENSION_CARDS, WIDGET_STATUS_CARDS
+  WIDGET_CERTIFICATES, WIDGET_ALERTS, WIDGET_METRICS, WIDGET_EXTENSION_CARDS, WIDGET_STATUS_CARDS, WIDGET_GENERATED
 ];
 
 export function isClusterWidget(kind: string): boolean {

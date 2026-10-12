@@ -5,7 +5,8 @@ import { computed, type Component } from 'vue';
 import {
   WIDGET_TABLE, WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW,
   WIDGET_CLUSTER_HEADER, WIDGET_RESOURCE_CARDS, WIDGET_CAPACITY, WIDGET_EVENTS, WIDGET_CERTIFICATES,
-  WIDGET_COMPONENT_STATUS, WIDGET_TABS, WIDGET_ALERTS, WIDGET_METRICS, WIDGET_EXTENSION_CARDS, WIDGET_STATUS_CARDS
+  WIDGET_COMPONENT_STATUS, WIDGET_TABS, WIDGET_ALERTS, WIDGET_METRICS, WIDGET_EXTENSION_CARDS, WIDGET_STATUS_CARDS,
+  WIDGET_GENERATED
 } from '../../templating/widget-catalog';
 import WidgetTable from './WidgetTable.vue';
 import WidgetLinks from './WidgetLinks.vue';
@@ -23,6 +24,7 @@ import WidgetAlerts from './WidgetAlerts.vue';
 import WidgetMetrics from './WidgetMetrics.vue';
 import WidgetExtensionCards from './WidgetExtensionCards.vue';
 import WidgetStatusCards from './WidgetStatusCards.vue';
+import WidgetGenerated from './WidgetGenerated.vue';
 import type { WidgetSpec } from '../../templating/types';
 
 /** The only place a `kind` maps onto a component: a new building block is added here and to the catalog. */
@@ -43,6 +45,7 @@ const RENDERERS: Record<string, Component> = {
   [WIDGET_METRICS]:          WidgetMetrics,
   [WIDGET_EXTENSION_CARDS]:  WidgetExtensionCards,
   [WIDGET_STATUS_CARDS]:     WidgetStatusCards,
+  [WIDGET_GENERATED]:        WidgetGenerated,
 };
 
 const props = withDefaults(defineProps<{
