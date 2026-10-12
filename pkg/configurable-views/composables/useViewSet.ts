@@ -121,9 +121,11 @@ export function useViewSet(props: { page: PageKey }, store: Store<unknown>, t: I
     const keyOf = (view: View) => orderKeyOf(view, orgIds.value);
     const ordered = orderViews(list, set?.order, keyOf, defaultViewId.value);
 
-    // Featured views - examples everyone should find first - follow the view the page opens on,
-    // wherever the bar was dragged to. A copy of one keeps its place.
-    const featured = scopes.value.featured.filter((id) => ordered.slice(1).some((view) => keyOf(view) === id));
+    // Featured views - examples everyone should find first - follow the view the page opens on until
+    // the person places them: once the bar has been dragged, their order is the person's. A copy of
+    // one keeps its place.
+    const placed = new Set(set?.order || []);
+    const featured = scopes.value.featured.filter((id) => !placed.has(id) && ordered.slice(1).some((view) => keyOf(view) === id));
 
     if (!featured.length) {
       return ordered;
