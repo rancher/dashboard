@@ -118,7 +118,20 @@ export function useViewSet(props: { page: PageKey }, store: Store<unknown>, t: I
     // Rancher's own page is always one of the tabs.
     const list = all.some(isStockView) ? all : [builtInStockView(t('configurableViews.page.stockName')), ...all];
 
-    return orderViews(list, set?.order, (view) => orderKeyOf(view, orgIds.value), defaultViewId.value);
+    const keyOf = (view: View) => orderKeyOf(view, orgIds.value);
+    const ordered = orderViews(list, set?.order, keyOf, defaultViewId.value);
+
+    // Featured views - examples everyone should find first - follow the view the page opens on,
+    // wherever the bar was dragged to. A copy of one keeps its place.
+    const featured = scopes.value.featured.filter((id) => ordered.slice(1).some((view) => keyOf(view) === id));
+
+    if (!featured.length) {
+      return ordered;
+    }
+
+    const rest = ordered.filter((view, i) => i === 0 || !featured.includes(keyOf(view)));
+
+    return [rest[0], ...featured.map((id) => ordered.find((view) => keyOf(view) === id) as View), ...rest.slice(1)];
   });
 
   /** The tabs showing a published view, or your copy of one. */

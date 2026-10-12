@@ -15,6 +15,7 @@ import { NAMESPACE } from '@shell/config/types';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import type { StateColor } from '@shell/utils/style';
+import { ucFirst } from '@shell/utils/string';
 import { useWidgetCluster, NO_CLUSTER } from '../../composables/useWidgetCluster';
 import { fetchClusterCounts, fetchStateSummaries } from '../../templating/widget-data';
 import {
@@ -143,7 +144,16 @@ function rancherColor(state: string, type: string): StateColor {
 
 const data = computed<StatusCardData[]>(() => buildStatusCards(counts.value, config.value, { stateColor: rancherColor }));
 
-const typeLabel = (type: string) => t(`typeLabel."${ type }"`, { count: 2 })?.trim() || type;
+/**
+ * A type's plural name, as the dashboard names it - or, for a type it has no name for (a CRD), its kind
+ * in the plural with its API group: "Events (events.k8s.io)".
+ */
+function typeLabel(type: string): string {
+  const [kind, ...group] = type.split('.').reverse();
+  const fallback = `${ ucFirst(kind) }s${ group.length ? ` (${ group.reverse().join('.') })` : '' }`;
+
+  return store.getters['i18n/withFallback'](`typeLabel."${ type }"`, { count: 2 }, fallback);
+}
 
 function label(key: string, dimension: string): string {
   if (dimension === 'state') {
