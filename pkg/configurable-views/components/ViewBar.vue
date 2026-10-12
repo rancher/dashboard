@@ -714,10 +714,11 @@ defineExpose({ openRename, focusTab });
 
     <!-- While editing: the view being edited, by its name, renamed where it stands - at the start of the
        bar, whichever view it is, so there is no strip of tabs to find it in -->
-    <div
+    <label
       v-else
       class="vbar__title"
     >
+      <i class="icon icon-edit vbar__pencil" />
       <input
         class="vbar__title-input"
         :value="activeView?.name || ''"
@@ -726,7 +727,7 @@ defineExpose({ openRename, focusTab });
         data-testid="configurable-views-title"
         @input="onName"
       >
-    </div>
+    </label>
 
     <button
       v-if="!editing"
@@ -740,7 +741,6 @@ defineExpose({ openRename, focusTab });
     </button>
 
     <template v-if="editing">
-      <i class="icon icon-edit vbar__pencil" />
       <span class="vbar__mode">{{ isNew ? t('configurableViews.bar.newView') : t('configurableViews.bar.editing') }}</span>
       <span class="vbar__hint">{{ editingHint }}</span>
 
@@ -1020,34 +1020,47 @@ $tab-height: 30px;
     width:         180px;
   }
 
-  // The view being edited, as the bar's title: a heading that is typed into
+  // The view being edited, by name, at the start of the bar: a rename box - bordered, with a pencil -
+  // so it reads as the place to name the view. What it is (New view / Editing) follows it.
   &__title {
-    align-items: center;
-    display:     flex;
-    flex:        1 1 auto;
-    min-width:   0;
+    align-items:   center;
+    background:    var(--body-bg);
+    border:        1px solid var(--border);
+    border-radius: var(--border-radius);
+    cursor:        text;
+    display:       flex;
+    flex:          0 1 320px;
+    gap:           8px;
+    height:        32px;
+    min-width:     160px;
+    padding:       0 10px;
+
+    &:hover {
+      border-color: var(--input-hover-border, var(--primary));
+    }
+
+    &:focus-within {
+      border-color: var(--primary);
+      box-shadow:   0 0 0 1px var(--primary);
+    }
+
+    .vbar__pencil {
+      color:     var(--muted);
+      font-size: 14px;
+    }
   }
 
   &__title-input {
-    background:    transparent;
-    border:        1px solid transparent;
-    border-radius: var(--border-radius);
-    color:         var(--body-text);
-    font-size:     16px;
-    font-weight:   600;
-    height:        32px;
-    max-width:     420px;
-    padding:       0 8px;
-    width:         100%;
-
-    &:hover {
-      border-color: var(--border);
-    }
-
-    &:focus {
-      border-color: var(--primary);
-      outline:      none;
-    }
+    background:  transparent;
+    border:      none;
+    color:       var(--body-text);
+    flex:        1 1 auto;
+    font-size:   14px;
+    font-weight: 600;
+    height:      100%;
+    min-width:   0;
+    outline:     none;
+    padding:     0;
   }
 
   &__pencil {
