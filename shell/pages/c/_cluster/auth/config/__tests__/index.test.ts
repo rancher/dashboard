@@ -31,11 +31,12 @@ const createFeature = (value: boolean, lockedValue: boolean | null = null) => ({
 
 const createWrapper = ({
   configs = [localConfig, oktaConfig],
+  placeholders = [] as any[],
   feature = createFeature(false),
   canUpdateFeature = true,
 } = {}) => shallowMount(AuthConfigList, {
   // The page loads its configs in fetch(), which shallowMount does not run
-  data:   () => ({ allConfigs: configs } as any),
+  data:   () => ({ allConfigs: configs, placeholders } as any),
   global: {
     mocks: {
       $route:      { params: { cluster: 'local' } },
@@ -47,7 +48,6 @@ const createWrapper = ({
           'features/get':         () => feature.spec.value,
           'management/byId':      () => feature,
           'management/schemaFor': () => ({ resourceMethods: canUpdateFeature ? ['GET', 'PUT'] : ['GET'] }),
-          'management/classify':  (obj: any) => ({ ...obj, provider: obj.id }),
         },
       },
     },
@@ -177,18 +177,36 @@ describe('page: AuthConfigList', () => {
     });
 
     // Rancher only creates the local config, the others are created when first chosen
+    it('should create a placeholder for each provider that has no config yet', async() => {
+      const dispatch = jest.fn((action: string, data: any) => {
+        if (action === 'management/findAll') {
+          return Promise.resolve([localConfig, disabledConfig]);
+        }
+
+        return Promise.resolve(action === 'management/createMany' ? data : undefined);
+      });
+      const vm: any = { $store: { dispatch } };
+
+      await (AuthConfigList as any).fetch.call(vm);
+
+      const expected = Object.keys(providerConfigs).filter((id) => id !== 'github');
+
+      expect(dispatch).toHaveBeenCalledWith('management/createMany', expect.any(Array));
+      expect(vm.placeholders.map((p: any) => p.id).sort()).toStrictEqual(expected.sort());
+      expect(vm.placeholders[0].type).toBe('management.cattle.io.authconfig');
+    });
+
     it('should offer the providers that have no config yet', () => {
-      const wrapper = createWrapper({ configs: [localConfig] });
+      const placeholders = ['github', 'okta', 'oidc'].map((id) => ({ id, provider: id }));
+      const wrapper = createWrapper({ configs: [localConfig, oktaConfig], placeholders });
 
       (wrapper.vm as any).promptAddProvider();
 
       const { rows } = ((wrapper.vm as any).$store.dispatch as jest.Mock).mock.calls[0][1].componentProps;
-      const expected = Object.keys(providerConfigs).filter((id) => id !== 'oidc');
 
-      expect(rows.map((r: any) => r.id).sort()).toStrictEqual(expected.sort());
-      expect(rows.find((r: any) => r.id === 'github')).toMatchObject({
-        type: 'management.cattle.io.authconfig', enabled: false, metadata: { name: 'github' }
-      });
+      // okta comes from its config, and oidc can't be configured in the UI
+      expect(rows.map((r: any) => r.id).sort()).toStrictEqual(['github', 'okta']);
+      expect(rows.find((r: any) => r.id === 'okta')).toStrictEqual(oktaConfig);
     });
 
     const chooseProvider = async(wrapper: any, id: string) => {

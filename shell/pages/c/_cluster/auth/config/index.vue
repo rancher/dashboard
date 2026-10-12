@@ -30,12 +30,18 @@ export default {
 
   async fetch() {
     this.allConfigs = await this.$store.dispatch('management/findAll', { type: resource });
+
+    // Providers with no config yet are offered from a placeholder, and their config is created when chosen
+    const missing = Object.keys(providerConfigs).filter((id) => !this.allConfigs.some((c) => c.id === id));
+
+    this.placeholders = await this.$store.dispatch('management/createMany', missing.map((id) => ({ id, type: resource })));
   },
 
   data() {
     return {
-      allConfigs:  [],
-      toggleError: null,
+      allConfigs:   [],
+      placeholders: [],
+      toggleError:  null,
     };
   },
 
@@ -62,12 +68,7 @@ export default {
 
     providerTypes() {
       const existing = this.allConfigs.filter((c) => c.id !== LOCAL_AUTH_ID);
-      // Providers with no config yet are offered from a placeholder, created when chosen
-      const missing = Object.keys(providerConfigs)
-        .filter((id) => !existing.some((c) => c.id === id))
-        .map((id) => this.$store.getters['management/classify']({
-          ...emptyProviderConfig(id), id, type: resource
-        }));
+      const missing = this.placeholders.filter((p) => !existing.some((c) => c.id === p.id));
       const configurable = [...existing, ...missing].filter((c) => !UNSUPPORTED_AUTH_IDS.includes(c.id));
 
       return sortBy(configurable, ['sideLabel', 'provider']);
