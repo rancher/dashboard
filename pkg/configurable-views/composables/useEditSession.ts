@@ -27,7 +27,7 @@ export function useEditSession(
 ) {
   const {
     editing, working, savedBaseline, activeViewId, pinnedView, selectedNodeId, newViewId, startedFrom,
-    settingsNodeId, saving, drawerOpen, error, userId, orgViews, orgTemplate, activeView, views, dirty,
+    settingsNodeId, saving, drawerOpen, error, userId, orgViews, activeView, views, dirty,
   } = vs;
 
   // With nothing of yours to edit - no views on this page, and the one showing is Rancher's own or
@@ -184,8 +184,8 @@ export function useEditSession(
     }
   }
 
-  // A new view starts from the organization template when there is one — the design's "From the
-  // organization template. Not saved yet."
+  // A new view starts empty. The starting points on it (see startFrom) put Rancher's own page or a copy
+  // of another view on it instead.
   function newView(): void {
     if (!editing.value) {
       enterEdit({ seedFirst: false });
@@ -197,18 +197,12 @@ export function useEditSession(
       return;
     }
 
-    const template = orgTemplate.value;
-    const view: LayoutView = template ? {
-      ...clone(template), id: newId('view'), name: t('configurableViews.page.untitled')
-    } : newLayoutView(t('configurableViews.page.untitled'));
-
-    delete view.org;
-    delete view.from;
+    const view: LayoutView = newLayoutView(t('configurableViews.page.untitled'));
 
     draft.views.push(view);
     vs.setActiveView(view.id);
     newViewId.value = view.id;
-    startedFrom.value = template ? t('configurableViews.page.orgTemplate') : '';
+    startedFrom.value = '';
   }
 
   const stockStartLabel = computed(() => t('configurableViews.sidebar.startStock', { page: props.title }));

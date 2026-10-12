@@ -56,7 +56,6 @@ configurableViews:
     stockName: Stock Dashboard
     copyOf: "Copy {name}"
     copyName: "{name} copy"
-    orgTemplate: the organization template
     discard:
       title: Discard changes?
       body: The changes to this view have not been saved. Leaving the editor discards them.
@@ -83,7 +82,7 @@ configurableViews:
     newView: New view
     newViewFrom: "New view, started from {source}"
     newHint: "Name it in the header. Drag widgets in, or change the starting point:"
-    startEmpty: Start empty instead
+    startEmpty: Empty
     startStock: Rancher’s {page}
     newFootnote: Nothing is saved until you press Save. Cancel throws the new view away.
     search: Search components

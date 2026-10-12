@@ -95,10 +95,6 @@ export function useViewSet(props: { page: PageKey }, store: Store<unknown>, t: I
   /** A working copy of your stored views, for an action to change and write back. */
   const userDraft = (): ViewSet => (userSet.value ? clone(userSet.value) : { views: [] });
 
-  // What a brand-new view is seeded from: the organization template. A stock view is skipped — it
-  // has no grid, so starting from it would give you nothing to edit.
-  const orgTemplate = computed(() => orgViews.value.find((p): p is LayoutView => !isStockView(p)) || null);
-
   const defaultViewId = computed(() => userSet.value?.defaultViewId || '');
 
   // Every view in the bar, in the order you dragged them into: the organization's, then your own,
@@ -312,7 +308,6 @@ export function useViewSet(props: { page: PageKey }, store: Store<unknown>, t: I
     orgViews,
     orgIds,
     userDraft,
-    orgTemplate,
     defaultViewId,
     views,
     publishedIds,
