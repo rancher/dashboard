@@ -269,8 +269,9 @@ const single = computed(() => config.value.cards === 'none');
     class="wstatus"
     :class="{ 'wstatus--plain': plain }"
   >
+    <!-- A single card carries the title itself - unless there is nothing to put in it -->
     <h3
-      v-if="widget.title && !single"
+      v-if="widget.title && (!single || !cards.length)"
       class="wstatus__title"
     >
       {{ widget.title }}
@@ -299,7 +300,7 @@ const single = computed(() => config.value.cards === 'none');
       v-else-if="!cards.length"
       class="text-muted m-0"
     >
-      {{ t('configurableViews.status.empty') }}
+      {{ t(config.only === 'all' ? 'configurableViews.status.empty' : 'configurableViews.status.allClear') }}
     </p>
 
     <div

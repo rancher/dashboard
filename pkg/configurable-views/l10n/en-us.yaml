@@ -160,6 +160,7 @@ configurableViews:
     resource: "Could not read {resource} from cluster “{cluster}”."
   status:
     empty: Nothing to count here.
+    allClear: Nothing needs attention here.
     error: Could not read the resources of “{cluster}”.
     defaultTitle:
       state: By status
