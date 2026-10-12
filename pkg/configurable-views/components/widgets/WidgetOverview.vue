@@ -3,7 +3,7 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import Loading from '@shell/components/Loading';
 import ByStateSection from '@shell/pages/c/_cluster/explorer/workload-dashboard/ByStateSection.vue';
-import ByTypeSection from '@shell/pages/c/_cluster/explorer/workload-dashboard/ByTypeSection.vue';
+import StatusSummaryCardSection from '@shell/components/Resource/Detail/Card/StatusSummaryCard/StatusSummaryCardSection.vue';
 import ByNamespaceSection from '@shell/pages/c/_cluster/explorer/workload-dashboard/ByNamespaceSection.vue';
 import { useWidgetCluster, NO_CLUSTER } from '../../composables/useWidgetCluster';
 import { useClusterOverview } from '../../composables/useClusterOverview';
@@ -30,7 +30,6 @@ const {
   byTypeCards,
   byNamespaceCards,
   resourceRoute,
-  navigateToNamespace,
   filterByNamespace,
 } = useClusterOverview(cluster);
 </script>
@@ -84,15 +83,10 @@ const {
         />
       </div>
 
-      <div class="section">
-        <h4 class="m-0 text-deemphasized">
-          {{ t('workloadDashboard.sections.byType') }}
-        </h4>
-        <ByTypeSection
-          :cards="byTypeCards"
-          :resource-route="resourceRoute"
-        />
-      </div>
+      <StatusSummaryCardSection
+        :title="t('workloadDashboard.sections.byType')"
+        :cards="byTypeCards"
+      />
 
       <div class="section">
         <h4 class="m-0 text-deemphasized">
@@ -100,7 +94,6 @@ const {
         </h4>
         <ByNamespaceSection
           :cards="byNamespaceCards"
-          :navigate-to-namespace="navigateToNamespace"
           :filter-by-namespace="filterByNamespace"
         />
       </div>

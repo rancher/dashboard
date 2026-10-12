@@ -2,20 +2,19 @@ import {
   computed, onBeforeUnmount, onMounted, ref, toValue, watch, type MaybeRefOrGetter
 } from 'vue';
 import { useStore } from 'vuex';
-import { useRouter, type RouteLocationRaw } from 'vue-router';
-import { NAMESPACE } from '@shell/config/types';
+import type { RouteLocationRaw } from 'vue-router';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import type { StateColor } from '@shell/utils/style';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStateColor } from '@shell/composables/useStateColor';
-import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { NAMESPACE_FILTER_NS_FULL_PREFIX } from '@shell/utils/namespace-filter';
+import type { StatusSummaryCardItem } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/types';
+import { buildStatusSummaryCard, compareStateColors } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/utils';
+import type { StatusBreakdownCardItem } from '@shell/components/Resource/Detail/Card/StatusBreakdownCard/types';
 import {
-  WORKLOAD_DASHBOARD_RESOURCE_TYPES, COLOR_ORDER,
+  WORKLOAD_DASHBOARD_RESOURCE_TYPES,
   type WorkloadDashboardStateCard,
   type WorkloadDashboardByStateLayout,
-  type WorkloadDashboardByTypeCard,
-  type WorkloadDashboardByNamespaceCard,
 } from '@shell/pages/c/_cluster/explorer/workload-dashboard/types';
 import { fetchStateSummaries, type StateSummary } from '../templating/widget-data';
 
@@ -42,7 +41,6 @@ interface TypeEntry {
 
 export function useClusterOverview(cluster: MaybeRefOrGetter<string>) {
   const store = useStore();
-  const router = useRouter();
   const { t } = useI18n(store);
   const { toStateColor, resolveStateColors } = useStateColor();
 
@@ -113,19 +111,21 @@ export function useClusterOverview(cluster: MaybeRefOrGetter<string>) {
     };
   });
 
-  // ── By Type: one card per type, its states worst first ──
-  const byTypeCards = computed<WorkloadDashboardByTypeCard[]>(() => entries.value.filter((e) => e.total > 0).map((e) => ({
-    title:     e.label,
-    type:      e.type,
-    resources: Object.entries(e.stateCounts)
-      .sort(([a], [b]) => (COLOR_ORDER[toStateColor(a, e.type)] ?? 5) - (COLOR_ORDER[toStateColor(b, e.type)] ?? 5))
-      .map(([state, count]) => ({
-        stateDisplay: stateDisplay(state, true), stateId: state, stateSimpleColor: toStateColor(state, e.type), count
-      })),
+  // ── By Type: one status summary card per type, as the overview builds them ──
+  const byTypeCards = computed<StatusSummaryCardItem[]>(() => entries.value.filter((e) => e.total > 0).map((e) => buildStatusSummaryCard({
+    key:    e.type,
+    title:  e.label,
+    to:     resourceRoute(e.type),
+    states: Object.entries(e.stateCounts).map(([name, count]) => ({
+      name, count, color: toStateColor(name, e.type)
+    })),
+    stateRoute: (name) => resourceRoute(e.type, [name]),
   })));
 
   // ── By Namespace: one card per namespace, a row per type, a count per colour ──
-  const byNamespaceCards = computed<WorkloadDashboardByNamespaceCard[]>(() => {
+  // A card narrows the namespace picker, which belongs to the open cluster: so only the open
+  // cluster's cards can be picked. Its rows and counts link into the widget's cluster either way.
+  const byNamespaceCards = computed<StatusBreakdownCardItem[]>(() => {
     const byNs: Record<string, Record<string, Record<string, { count: number; stateNames: Set<string> }>>> = {};
 
     for (const e of summaries.value) {
@@ -148,15 +148,20 @@ export function useClusterOverview(cluster: MaybeRefOrGetter<string>) {
       }
     }
 
+    const open = store.getters['clusterId'] === toValue(cluster);
+
     return Object.entries(byNs).sort(([a], [b]) => a.localeCompare(b)).map(([ns, types]) => ({
-      title: ns,
-      rows:  WORKLOAD_DASHBOARD_RESOURCE_TYPES.filter((type) => types[type]).map((type) => ({
+      key:        ns,
+      title:      ns,
+      selectable: open,
+      rows:       WORKLOAD_DASHBOARD_RESOURCE_TYPES.filter((type) => types[type]).map((type) => ({
+        key:    type,
         label:  labelOf(type),
-        type,
+        to:     resourceRoute(type),
         counts: Object.entries(types[type])
-          .sort(([a], [b]) => (COLOR_ORDER[a] ?? 5) - (COLOR_ORDER[b] ?? 5))
+          .sort(([a], [b]) => compareStateColors(a, b))
           .map(([color, { count, stateNames }]) => ({
-            color: color as StateColor, count, stateNames: Array.from(stateNames)
+            color: color as StateColor, count, to: resourceRoute(type, Array.from(stateNames))
           })),
       })),
     }));
@@ -174,30 +179,14 @@ export function useClusterOverview(cluster: MaybeRefOrGetter<string>) {
     };
   }
 
-  // The namespace picker belongs to the cluster that is open. For that cluster a namespace card
-  // narrows it, as the overview's does; for any other it leads to the namespace itself.
+  // The namespace picker belongs to the cluster that is open, so only for that cluster does a
+  // namespace card narrow it, as the overview's does. The card's links lead on by themselves.
   function filterByNamespace(namespace: string): void {
     const id = toValue(cluster);
 
     if (store.getters['clusterId'] === id) {
       store.dispatch('switchNamespaces', { ids: [`${ NAMESPACE_FILTER_NS_FULL_PREFIX }${ namespace }`], key: id });
-
-      return;
     }
-
-    router.push({
-      name:   'c-cluster-product-resource-id',
-      params: {
-        cluster: id, product: EXPLORER, resource: NAMESPACE, id: namespace
-      },
-    });
-  }
-
-  function navigateToNamespace(type: string, namespace: string, stateNames?: string[]): void {
-    if (store.getters['clusterId'] === toValue(cluster)) {
-      filterByNamespace(namespace);
-    }
-    router.push(resourceRoute(type, stateNames));
   }
 
   // ── Fetching & polling ──
@@ -272,6 +261,6 @@ export function useClusterOverview(cluster: MaybeRefOrGetter<string>) {
   });
 
   return {
-    loading, error, hasWorkloads, byStateLayout, byTypeCards, byNamespaceCards, resourceRoute, filterByNamespace, navigateToNamespace
+    loading, error, hasWorkloads, byStateLayout, byTypeCards, byNamespaceCards, resourceRoute, filterByNamespace
   };
 }
