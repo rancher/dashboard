@@ -53,7 +53,28 @@ describe('utils: cluster-registration', () => {
     });
 
     it.each([
-      ['a populated setting and a token that has no commands yet', populatedSetting, tokenWithoutCommands],
+      ['a server URL', 'https://rancher.example.com'],
+      ['a trailing slash', 'https://rancher.example.com/'],
+      ['a path', 'https://rancher.example.com/some/path'],
+    ])('should build the commands from server-url with %s when the token has no commands', (_, value) => {
+      const url = 'https://rancher.example.com/v3/import/tok123_c-m-abc123.yaml';
+
+      expect(importCommands({ value }, tokenWithoutCommands)).toStrictEqual({
+        command:         `kubectl apply -f ${ url }`,
+        insecureCommand: `curl --insecure -sfL ${ url } | kubectl apply -f -`,
+      });
+    });
+
+    it('should keep a server-url that is not a valid URL, without its trailing slash', () => {
+      const url = 'rancher.example.com/v3/import/tok123_c-m-abc123.yaml';
+
+      expect(importCommands({ value: 'rancher.example.com/' }, tokenWithoutCommands)).toStrictEqual({
+        command:         `kubectl apply -f ${ url }`,
+        insecureCommand: `curl --insecure -sfL ${ url } | kubectl apply -f -`,
+      });
+    });
+
+    it.each([
       ['an unreadable setting and a token without commands', undefined, tokenWithoutCommands],
       ['a blank setting and a token without a token value', blankSetting, { ...tokenWithoutCommands, token: '' }],
       ['a blank setting and an empty token', blankSetting, {}],

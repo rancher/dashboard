@@ -22,18 +22,33 @@ export function isServerUrlMissing(serverUrlSetting?: Setting | null, clusterTok
 }
 
 /**
- * The commands to import an existing cluster. When server-url is blank, build them like Rancher would,
- * with a placeholder in place of the server URL.
+ * The import manifest URL, built the way Rancher builds it: the server URL with its path replaced.
+ */
+function importUrl(serverUrl: string, clusterToken: ClusterRegistrationToken): string {
+  const path = `/v3/import/${ clusterToken.token }_${ clusterToken.clusterId }.yaml`;
+
+  try {
+    return `${ new URL(serverUrl).origin }${ path }`;
+  } catch {
+    return `${ serverUrl.replace(/\/+$/, '') }${ path }`;
+  }
+}
+
+/**
+ * The commands to import an existing cluster.
+ *
+ * Rancher doesn't regenerate the commands of an existing token when server-url is set later, so build them here
+ * whenever the token has none: from server-url when it's set, otherwise with a placeholder.
  */
 export function importCommands(serverUrlSetting?: Setting | null, clusterToken?: ClusterRegistrationToken | null): { command: string, insecureCommand: string } {
-  if (!clusterToken || !isServerUrlMissing(serverUrlSetting, clusterToken)) {
+  if (!serverUrlSetting || !clusterToken?.token || clusterToken.command) {
     return {
       command:         clusterToken?.command || '',
       insecureCommand: clusterToken?.insecureCommand || '',
     };
   }
 
-  const url = `${ SERVER_URL_PLACEHOLDER }/v3/import/${ clusterToken.token }_${ clusterToken.clusterId }.yaml`;
+  const url = importUrl(serverUrlSetting.value || SERVER_URL_PLACEHOLDER, clusterToken);
 
   return {
     command:         `kubectl apply -f ${ url }`,

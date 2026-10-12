@@ -456,6 +456,16 @@ describe('view: provisioning.cattle.io.cluster', () => {
       expect(wrapper.find('[data-testid="registration-server-url-missing"]').exists()).toStrictEqual(false);
     });
 
+    it('should show the import commands built from server-url when it was set after the token was created', async() => {
+      const wrapper = createWrapper(importedValue, { value: 'https://rancher.example.com' });
+
+      await wrapper.setData({ clusterToken: tokenWithoutCommands });
+
+      const copyCodes = wrapper.findAllComponents({ name: 'CopyCode' }).map((c) => c.text());
+
+      expect(copyCodes.slice(0, 2)).toStrictEqual([populatedToken.command, populatedToken.insecureCommand]);
+    });
+
     it('should show the import commands with a server URL placeholder when the token has no commands', async() => {
       const wrapper = createWrapper(importedValue);
 
