@@ -476,6 +476,13 @@ onMounted(() => {
     if (!strip) {
       return;
     }
+
+    // A brand-new view's tab is the last one: the strip runs to it
+    if (props.isNew) {
+      runToEnd();
+
+      return;
+    }
     strip.scrollLeft = viewBarScroll.left;
 
     if (active) {
@@ -487,6 +494,26 @@ onMounted(() => {
       }
     }
   });
+});
+
+/**
+ * Run the strip to its end - where "New view" puts its tab, often out of sight. While editing, that
+ * tab is the name being typed rather than a tab button, so the strip is scrolled, not a tab focused.
+ */
+function runToEnd(): void {
+  nextTick(() => requestAnimationFrame(() => {
+    const strip = tabStrip.value;
+
+    if (strip) {
+      strip.scrollLeft = strip.scrollWidth;
+    }
+  }));
+}
+
+watch(() => (props.isNew ? props.activeId : null), (id) => {
+  if (id) {
+    runToEnd();
+  }
 });
 
 onBeforeUnmount(() => {
