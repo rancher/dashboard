@@ -119,6 +119,14 @@ export interface SlideInApi {
    * });
    * ```
    *
+   * The panel closes when the component emits `close`:
+   *
+   * ```ts
+   * const emit = defineEmits<{ close: [] }>();
+   *
+   * emit('close');
+   * ```
+   *
    * @param component
    * The Vue component to be displayed inside the slide in panel.
    * This can be any SFC (Single-File Component) imported and passed in as a `Component`.

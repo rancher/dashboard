@@ -1,55 +1,48 @@
 <script>
 import ExplainPanel from './ExplainPanel';
-import { KEY } from '@shell/utils/platform';
+import Drawer from '@shell/components/Drawer/Chrome.vue';
+import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
 import { expandOpenAPIDefinition, getOpenAPISchemaName, makeOpenAPIBreadcrumb } from '../open-api-utils.ts';
-import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
-import { isExplainPanelOpen } from '../slide-in';
-
-const HEADER_HEIGHT = 55;
+import { openAPI } from '../open-api';
 
 export default {
-  components: { ExplainPanel },
+  components: {
+    ExplainPanel, Drawer, DrawerCard
+  },
+
+  emits: ['close'],
 
   props: {
     schema: {
       type:    Object,
-      default: () => {}
+      default: undefined
+    },
+
+    cluster: {
+      type:    String,
+      default: undefined
     }
   },
 
   data() {
     return {
-      isOpen:         false,
-      definition:     undefined,
-      busy:           true,
-      error:          false,
-      expandAll:      false,
-      isResizing:     false,
-      resizeLeft:     '',
-      resizePosition: 'absolute',
-      width:          '33%',
-      right:          '-33%',
-      breadcrumbs:    undefined,
-      definitions:    {},
-      noResource:     false,
-      notFound:       false,
+      definition:  undefined,
+      busy:        true,
+      error:       false,
+      expandAll:   false,
+      breadcrumbs: undefined,
+      definitions: {},
+      noResource:  false,
+      notFound:    false,
     };
   },
 
-  watch: {
-    // better to trigger focus-trap based on "isOpen" rather than using the "created" hook
-    // because re-opening an already loaded resource data would not run the "created" hook
-    // and therefore not triggering the focus trap
-    isOpen(neu, old) {
-      if (neu && neu !== old) {
-        useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.isOpen, this.$refs.slideInPanelResourceExplain, {
-          escapeDeactivates: false,
-          allowOutsideClick: true,
-          // putting the initial focus on the first element that is not conditionally displayed
-          initialFocus:      '[data-testid="slide-in-panel-close-resource-explain"]'
-        });
-      }
-    }
+  created() {
+    openAPI.get(this.cluster, this.$store.dispatch).then((data) => {
+      this.load(data, this.schema);
+    }).catch((e) => {
+      this.load(undefined, this.schema, e);
+    });
   },
 
   computed: {
@@ -59,64 +52,12 @@ export default {
      */
     definitionId() {
       return this.breadcrumbs?.[this.breadcrumbs.length - 1]?.id || '';
-    },
-
-    // The panel stays mounted when closed (it's only moved off-screen), so without `inert` all of its
-    // links and buttons remain in the tab order and can be reached by tabbing past the end of the page.
-    // Returns `undefined` rather than `false` when open so that Vue drops the attribute entirely -
-    // `inert="false"` would still be inert, since `inert` is a boolean attribute.
-    isPanelInert() {
-      return this.isOpen ? undefined : true;
-    },
-
-    top() {
-      const banner = document.getElementById('banner-header');
-      let height = HEADER_HEIGHT;
-
-      if (banner) {
-        height += banner.clientHeight;
-      }
-
-      return `${ height }px`;
-    },
-
-    height() {
-      return `calc(100vh - ${ this.top })`;
     }
   },
 
   methods: {
-    open() {
-      this.busy = true;
-      this.isOpen = true;
-      isExplainPanelOpen.value = true;
-      this.addCloseKeyHandler();
-      this.right = '0';
-    },
-
-    close() {
-      this.isOpen = false;
-      isExplainPanelOpen.value = false;
-      this.removeCloseKeyHandler();
-      this.right = `-${ this.width }`;
-    },
-
     scrollTop() {
-      this.$refs.main.$el.scrollTop = 0;
-    },
-
-    addCloseKeyHandler() {
-      document.addEventListener('keyup', this.closeKeyHandler);
-    },
-
-    removeCloseKeyHandler() {
-      document.removeEventListener('keyup', this.closeKeyHandler);
-    },
-
-    closeKeyHandler(e) {
-      if (e.keyCode === KEY.ESCAPE ) {
-        this.close();
-      }
+      this.$refs.content?.$el.scrollIntoView({ block: 'start' });
     },
 
     toggleAll() {
@@ -167,30 +108,6 @@ export default {
       this.busy = false;
     },
 
-    startPanelResize(ev) {
-      this.isResizing = true;
-      this.$refs.resizer.setPointerCapture(ev.pointerId);
-    },
-
-    doPanelResize(ev) {
-      if (this.isResizing) {
-        this.resizePosition = 'fixed';
-        this.resizeLeft = `${ ev.clientX }px`;
-      }
-    },
-
-    endPanelResize(ev) {
-      this.isResizing = false;
-      this.$refs.resizer.releasePointerCapture(ev.pointerId);
-
-      const width = window.innerWidth - ev.clientX + 2;
-
-      this.resizePosition = 'absolute';
-      this.resizeLeft = '';
-
-      this.width = `${ width }px`;
-    },
-
     navigate(breadcrumbs) {
       const goto = breadcrumbs[breadcrumbs.length - 1];
 
@@ -215,111 +132,72 @@ export default {
 </script>
 
 <template>
-  <div>
-    <div
-      class="slide-in-glass"
-      :class="{ 'slide-in-glass-open': isOpen }"
-      @click="close()"
-    />
-    <div
-      ref="slideInPanelResourceExplain"
-      class="slide-in"
-      :class="{ 'slide-in-open': isOpen }"
-      :style="{ width, right, top, height }"
-      data-testid="slide-in-panel-resource-explain"
-      role="dialog"
-      aria-modal="true"
-      :aria-hidden="!isOpen"
-      :inert="isPanelInert"
-      :aria-label="t('kubectl-explain.title')"
-    >
-      <div
-        ref="resizer"
-        class="panel-resizer"
-        :style="{ position: resizePosition, left: resizeLeft }"
-        @pointerdown="startPanelResize"
-        @pointermove="doPanelResize"
-        @pointerup="endPanelResize"
-      />
-      <div class="main-panel">
-        <div class="header">
-          <nav
-            v-if="breadcrumbs"
-            class="breadcrumbs"
-          >
-            <div v-if="noResource">
-              {{ t('kubectl-explain.title') }}
-            </div>
-            <div
-              v-for="(b, i) in breadcrumbs"
-              v-else
-              :key="b.id"
-            >
-              <span
-                v-if="i > 0"
-                class="ml-5 mr-5"
-              >&gt;</span>
-              <span
-                v-if="i === breadcrumbs.length - 1"
-              >{{ b.name }}
-              </span>
-              <a
-                v-else
-                href="#"
-                class="breadcrumb-link"
-                role="button"
-                :aria-label="t('kubectl-explain.navigateToBreadcrumb', { breadcrumb: b.name })"
-                @click="navigate(breadcrumbs.slice(0, i + 1))"
-                @keydown.enter.space.stop.prevent="navigate(breadcrumbs.slice(0, i + 1))"
-              >{{ b.name }}</a>
-            </div>
-          </nav>
-          <div
+  <Drawer
+    :ariaTarget="t('kubectl-explain.title')"
+    @close="$emit('close')"
+  >
+    <template #title>
+      <nav
+        v-if="breadcrumbs && !noResource"
+        class="breadcrumbs"
+      >
+        <div
+          v-for="(b, i) in breadcrumbs"
+          :key="b.id"
+        >
+          <span
+            v-if="i > 0"
+            class="ml-5 mr-5"
+          >&gt;</span>
+          <span
+            v-if="i === breadcrumbs.length - 1"
+          >{{ b.name }}
+          </span>
+          <a
             v-else
-            class="scroll-title"
-          >
-            <span
-              role="button"
-              :aria-label="t('kubectl-explain.scrollToTop')"
-              tabindex="0"
-              @click="scrollTop()"
-              @keydown.space.enter.stop.prevent="scrollTop()"
-            >{{ t('kubectl-explain.title') }}</span>
-          </div>
-          <i
-            v-if="!busy && !noResource && definition"
-            class="icon icon-sort mr-10"
+            href="#"
+            class="breadcrumb-link"
             role="button"
-            :aria-label="expandAll ? t('kubectl-explain.collapseAll') : t('kubectl-explain.expandAll')"
-            :aria-expanded="expandAll"
-            tabindex="0"
-            @click="toggleAll()"
-            @keydown.space.enter.stop.prevent="toggleAll()"
-          />
-          <i
-            role="button"
-            :aria-label="t('kubectl-explain.close')"
-            class="icon icon-close"
-            data-testid="slide-in-panel-close-resource-explain"
-            tabindex="0"
-            @click="close()"
-            @keydown.space.enter.stop.prevent="close()"
-          />
+            :aria-label="t('kubectl-explain.navigateToBreadcrumb', { breadcrumb: b.name })"
+            @click="navigate(breadcrumbs.slice(0, i + 1))"
+            @keydown.enter.space.stop.prevent="navigate(breadcrumbs.slice(0, i + 1))"
+          >{{ b.name }}</a>
         </div>
+      </nav>
+      <div
+        v-else
+        class="title-text"
+      >
+        {{ t('kubectl-explain.title') }}
+      </div>
+      <button
+        v-if="!busy && !noResource && definition"
+        type="button"
+        class="btn role-link expand-all"
+        :aria-label="expandAll ? t('kubectl-explain.collapseAll') : t('kubectl-explain.expandAll')"
+        :aria-expanded="expandAll"
+        @click="toggleAll()"
+      >
+        <i class="icon icon-sort" />
+      </button>
+    </template>
+    <template #body>
+      <DrawerCard
+        ref="content"
+        class="content"
+        data-testid="slide-in-panel-resource-explain"
+      >
         <div
           v-if="busy"
-          class="loading panel-loading"
+          class="loading"
         >
-          <div>
-            <i
-              class="icon icon-lg icon-spinner icon-spin"
-              :alt="t('kubectl-explain.informationLoading')"
-            />
-          </div>
+          <i
+            class="icon icon-lg icon-spinner icon-spin"
+            :alt="t('kubectl-explain.informationLoading')"
+          />
         </div>
         <ExplainPanel
           v-if="!noResource && definition"
-          ref="main"
           :expand-all="expandAll"
           :definition="definition"
           :definition-id="definitionId"
@@ -357,155 +235,80 @@ export default {
             {{ t('kubectl-explain.prompt') }}
           </div>
         </div>
-      </div>
-    </div>
-  </div>
+      </DrawerCard>
+    </template>
+  </Drawer>
 </template>
 
 <style lang="scss" scoped>
-  $slidein-width: 33%;
-
-  .scroll-title span:focus-visible {
-    @include focus-outline;
-    outline-offset: 2px;
+  .title-text {
+    flex: 1;
   }
 
-  .panel-resizer {
-    position: absolute;
-    height: 100%;
-    border: 2px solid transparent;
-
-    &:hover {
-      border: 2px solid var(--primary);
-      cursor: col-resize;
-    }
-  }
-
-  .main-panel {
-    padding-left: 4px;
+  .breadcrumbs {
     display: flex;
-    flex-direction: column;
-    overflow: auto;
+    flex: 1;
+    flex-wrap: wrap;
+    min-width: 0;
 
-    .select-resource {
-      font-size: 16px;
-      margin: 40px;
-      text-align: center;
-
-      > svg, i {
-        margin-bottom: 20px;
-        opacity: 0.5;
-        height: 64px;
-        width: 64px;
-      }
-
-      // Ensure the icon uses the correct color for the theme
-      > svg {
-        fill: var(--body-text);
-      }
-
-      > i {
-        font-size: 64px;
-      }
-    }
-  }
-
-  .header {
-    align-items: center;
-    display: flex;
-    padding: 4px;
-    border-bottom: 1px solid var(--border);
-
-    .breadcrumbs {
-      display: flex;
-      flex-wrap: wrap;
-
-      .breadcrumb-link {
-        color: var(--text);
-
-        &:hover {
-          color: var(--link);
-        }
-      }
-    }
-
-    > :first-child {
-      flex: 1;
-      font-weight: bold;
-    }
-
-    > i {
-      padding: 8px;
-      opacity: 0.7;
+    .breadcrumb-link {
+      color: var(--text);
 
       &:hover {
-        background-color: var(--primary);
-        color: var(--primary-text);
-        cursor: pointer;
-        opacity: 1;
+        color: var(--link);
       }
     }
+  }
+
+  .expand-all {
+    $size: 24px;
+
+    display: inline-flex;
+    flex-shrink: 0;
+    justify-content: center;
+    width: $size;
+    height: $size;
+    margin-left: 8px;
+    color: var(--body-text);
+  }
+
+  .content {
+    scroll-margin-top: 16px;
+  }
+
+  .explain-panel {
+    max-width: 90ch;
   }
 
   .loading {
-    align-items: center;
     display: flex;
-    flex: 1;
     justify-content: center;
+    padding: 20px;
 
     .icon-spinner {
       font-size: 24px;
     }
   }
 
-  .glass {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-  }
+  .select-resource {
+    font-size: 16px;
+    margin: 40px;
+    text-align: center;
 
-  .slide-in {
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    top: 0;
-    width: $slidein-width;
-    background-color: var(--body-bg);
-    right: -$slidein-width;
-    transition: right 0.5s;
-    border-left: 1px solid var(--border);
-
-    z-index: calc(z-index('slide-in') + 1);
-  }
-
-  .slide-in-open {
-    right: 0;
-  }
-
-  .explain-panel {
-    padding: 10px;
-  }
-
-  .slide-in-glass {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      height :100vh;
-      width: 100vw;
-
-      z-index: z-index('slide-in');
-
-    &.slide-in-glass-open {
-      background-color: var(--body-bg);
-      display: block;
+    > svg, i {
+      margin-bottom: 20px;
       opacity: 0.5;
+      height: 64px;
+      width: 64px;
     }
-  }
 
-  .panel-loading {
-    margin-top: 20px;
+    // Ensure the icon uses the correct color for the theme
+    > svg {
+      fill: var(--body-text);
+    }
+
+    > i {
+      font-size: 64px;
+    }
   }
 </style>

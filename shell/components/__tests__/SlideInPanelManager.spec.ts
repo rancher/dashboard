@@ -2,10 +2,21 @@ import { mount } from '@vue/test-utils';
 import { createStore, Store } from 'vuex';
 import { nextTick } from 'vue';
 import SlideInPanelManager from '@shell/components/SlideInPanelManager.vue';
+import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
+
+jest.mock('@shell/composables/focusTrap', () => ({
+  ...jest.requireActual('@shell/composables/focusTrap'),
+  useWatcherBasedSetupFocusTrapWithDestroyIncluded: jest.fn(),
+}));
 
 const MockComponent = {
   template: '<div data-testid="slide-in-panel-component">Mock Panel Content</div>',
   props:    ['title', 'extraProp']
+};
+
+const ClosingComponent = {
+  template: '<div><button data-testid="mock-panel-close" @click="$emit(\'close\')">Close</button></div>',
+  emits:    ['close']
 };
 
 describe('slideInPanelManager.vue with Teleport', () => {
@@ -161,6 +172,213 @@ describe('slideInPanelManager.vue with Teleport', () => {
     await nextTick();
 
     expect(closeMutation).toHaveBeenCalledWith({}, undefined);
+  });
+
+  describe('panel asking to be closed', () => {
+    const mountClosing = (componentProps: Record<string, unknown>) => {
+      const closeMutation = jest.fn();
+
+      getters['slideInPanel/component'] = () => ClosingComponent;
+      getters['slideInPanel/componentProps'] = () => componentProps;
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': closeMutation }
+      });
+      factory();
+
+      return closeMutation;
+    };
+
+    const emitClose = async() => {
+      await nextTick();
+      (document.querySelector('[data-testid="mock-panel-close"]') as HTMLElement).click();
+      await nextTick();
+    };
+
+    it.each([
+      ['a panel that renders its own drawer', {}],
+      ['a titled panel', { title: 'Test Title' }],
+    ])('closes when %s emits close', async(_, componentProps) => {
+      const closeMutation = mountClosing(componentProps);
+
+      await emitClose();
+
+      expect(closeMutation).toHaveBeenCalledWith({}, undefined);
+    });
+
+    it('leaves closing to the handler the panel was opened with, when it has one', async() => {
+      const onClose = jest.fn();
+      const closeMutation = mountClosing({ onClose });
+
+      await emitClose();
+
+      expect(onClose).toHaveBeenCalledWith();
+      expect(closeMutation).not.toHaveBeenCalledWith({}, undefined);
+    });
+  });
+
+  it('mounts a new panel instance for every open', async() => {
+    const mounted = jest.fn();
+    const state = { openCount: 1 };
+
+    store = createStore({
+      state,
+      getters: {
+        ...getters,
+        'slideInPanel/component': () => ({ template: '<div />', mounted }),
+        'slideInPanel/openCount': (s: typeof state) => s.openCount,
+      },
+      mutations: {
+        'slideInPanel/close': jest.fn(),
+        reopen(s: typeof state) {
+          s.openCount++;
+        }
+      }
+    });
+    factory();
+    await nextTick();
+    store.commit('reopen');
+    await nextTick();
+
+    expect(mounted).toHaveBeenCalledTimes(2);
+  });
+
+  describe('escape key', () => {
+    const pressEscapeOn = (target: EventTarget) => target.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+    const mountWith = (isOpen: boolean) => {
+      const closeMutation = jest.fn();
+
+      getters['slideInPanel/isOpen'] = () => isOpen;
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': closeMutation }
+      });
+
+      return { wrapper: factory(), closeMutation };
+    };
+
+    it('closes when escape is pressed inside the panel', async() => {
+      const { closeMutation } = mountWith(true);
+
+      await nextTick();
+      pressEscapeOn(document.querySelector('[data-testid="slide-in-panel-component"]') as HTMLElement);
+
+      expect(closeMutation).toHaveBeenCalledWith({}, undefined);
+    });
+
+    it('closes when escape is pressed after focus has fallen back to the body', async() => {
+      const { closeMutation } = mountWith(true);
+
+      await nextTick();
+      pressEscapeOn(document.body);
+
+      expect(closeMutation).toHaveBeenCalledWith({}, undefined);
+    });
+
+    it('leaves escape alone when it is pressed elsewhere on the page', async() => {
+      const { closeMutation } = mountWith(true);
+      const elsewhere = document.createElement('input');
+
+      document.body.appendChild(elsewhere);
+      await nextTick();
+      pressEscapeOn(elsewhere);
+      document.body.removeChild(elsewhere);
+
+      expect(closeMutation).not.toHaveBeenCalledWith({}, undefined);
+    });
+
+    it('ignores escape while closed', async() => {
+      const { closeMutation } = mountWith(false);
+
+      await nextTick();
+      pressEscapeOn(document.body);
+
+      expect(closeMutation).not.toHaveBeenCalledWith({}, undefined);
+    });
+
+    it('stops listening once unmounted', async() => {
+      const { wrapper, closeMutation } = mountWith(true);
+
+      await nextTick();
+      wrapper.unmount();
+      closeMutation.mockClear();
+      pressEscapeOn(document.body);
+
+      expect(closeMutation).not.toHaveBeenCalledWith({}, undefined);
+    });
+  });
+
+  describe('initial focus', () => {
+    const openPanel = async(componentProps: Record<string, unknown>) => {
+      const state = { isOpen: false };
+
+      store = createStore({
+        state,
+        getters: {
+          ...getters,
+          'slideInPanel/isOpen':         (s: typeof state) => s.isOpen,
+          'slideInPanel/isClosing':      () => false,
+          'slideInPanel/componentProps': () => componentProps,
+        },
+        mutations: {
+          'slideInPanel/close': jest.fn(),
+          open(s: typeof state) {
+            s.isOpen = true;
+          }
+        }
+      });
+      factory();
+      await nextTick();
+      store.commit('open');
+      await nextTick();
+
+      return (useWatcherBasedSetupFocusTrapWithDestroyIncluded as jest.Mock).mock.lastCall[2];
+    };
+
+    it('lands on the close button of the drawer chrome', async() => {
+      const opts = await openPanel({ title: 'Test Title' });
+
+      expect(opts.initialFocus()).toBe(document.querySelector('#slides [data-testid="slide-in-close"]'));
+    });
+
+    it('falls back to the panel when its content has no drawer chrome', async() => {
+      const opts = await openPanel({});
+
+      expect(opts.initialFocus()).toBe(document.querySelector('#slide-in-panel-manager'));
+    });
+  });
+
+  describe('standard drawer chrome', () => {
+    const chrome = () => document.querySelector('#slides .slide-in .chrome') as HTMLElement;
+
+    it('wraps a titled panel in the drawer chrome', async() => {
+      factory();
+      await nextTick();
+
+      expect(chrome()).toBeTruthy();
+      expect(chrome().querySelector('.body > [data-testid="slide-in-panel-component"]')).toBeTruthy();
+    });
+
+    it('does not add a footer to a titled panel', async() => {
+      factory();
+      await nextTick();
+
+      expect(chrome().querySelector('.footer')).toBeNull();
+    });
+
+    it('leaves a panel without a title to render its own chrome', async() => {
+      getters['slideInPanel/componentProps'] = () => ({});
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': jest.fn() }
+      });
+      factory();
+      await nextTick();
+
+      expect(chrome()).toBeNull();
+      expect(document.querySelector('#slides .slide-in .main-panel [data-testid="slide-in-panel-component"]')).toBeTruthy();
+    });
   });
 
   describe('width preset', () => {

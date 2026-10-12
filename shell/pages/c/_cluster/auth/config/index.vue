@@ -214,7 +214,6 @@ export default {
         component:      AuthProviderAccessDrawer,
         componentProps: {
           resource:            row,
-          onClose:             () => this.$store.commit('slideInPanel/close'),
           width:               'wide',
           height:              'full',
           returnFocusSelector: `[data-testid="auth-config-row-${ row.id }"] .auth-provider-row__title`,

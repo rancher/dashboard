@@ -15,8 +15,13 @@ const ariaLabel = computed(() => i18n.t('component.drawer.chrome.ariaLabel.close
 
 </script>
 <template>
-  <div class="chrome">
-    <div class="header pp-4">
+  <div
+    class="chrome"
+    role="dialog"
+    aria-modal="true"
+    :aria-label="ariaTarget"
+  >
+    <div class="header">
       <slot name="header">
         <div class="title">
           <slot name="title" />
@@ -25,6 +30,7 @@ const ariaLabel = computed(() => i18n.t('component.drawer.chrome.ariaLabel.close
           <button
             class="btn role-link"
             :aria-label="ariaLabel"
+            data-testid="slide-in-close"
             @click="emit('close')"
           >
             <i class="icon icon-close" />
@@ -70,19 +76,25 @@ const ariaLabel = computed(() => i18n.t('component.drawer.chrome.ariaLabel.close
       display: flex;
       flex-direction: row;
       align-items: center;
+      gap: 8px;
 
       background-color: var(--body-bg);
       border-bottom: 1px solid var(--border);
-      height: var(--header-height);
+      min-height: var(--header-height);
+      padding: 6px 16px;
 
       & > .title {
         display: flex;
         align-items: center;
         flex: 1;
+        min-width: 0;
+        overflow-wrap: anywhere;
         font-size: 16px;
       }
 
       & > .actions {
+        flex-shrink: 0;
+
         button {
           display: inline-flex;
           $size: 24px;
