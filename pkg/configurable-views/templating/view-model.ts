@@ -26,6 +26,7 @@ import {
   NODE_WIDGET, type LayoutView, type View, type Sides, type StockView, type ViewSet, type WidgetKind,
   type WidgetNode, type WidgetPlace, type WidgetSpec, type WidgetTab, type MetricsDashboard
 } from './types';
+import { normalizeStatusCards } from './status-cards';
 
 export { NODE_WIDGET };
 
@@ -40,6 +41,9 @@ const READ_FROM_A_CLUSTER: string[] = [
   EVENT, POD, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB,
   WORKLOAD_TYPES.CRON_JOB, NODE, SERVICE, INGRESS, PVC, LONGHORN.VOLUMES,
 ];
+
+/** The widget that counts a cluster's resources into status cards. */
+const STATUS_KIND = 'statusCards';
 
 /** The widget that holds other widgets, in tabs. */
 const TABS_KIND = 'tabs';
@@ -315,6 +319,9 @@ export function normalizeWidget(widget: unknown): WidgetSpec {
   }
   if (out.kind === TABS_KIND) {
     out.tabs = normalizeTabs(w.tabs);
+  }
+  if (out.kind === STATUS_KIND) {
+    out.status = normalizeStatusCards(w.status);
   }
 
   return out;

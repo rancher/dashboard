@@ -10,7 +10,8 @@
 // Pure data — no Vue, no store. `spec` is a WIDGET spec (see normalizeWidget in view-model.ts);
 // `span` is the column width the widget lands on the grid with.
 
-import { MANAGEMENT } from '@shell/config/types';
+import { MANAGEMENT, POD, WORKLOAD_TYPES } from '@shell/config/types';
+import { DEFAULT_STATUS_CARDS } from './status-cards';
 import type { WidgetKind, WidgetSpec } from './types';
 
 /** The little preview drawn on a catalog tile (see CatalogTile.vue). */
@@ -44,6 +45,7 @@ export const WIDGET_TABS: WidgetKind = 'tabs';
 export const WIDGET_ALERTS: WidgetKind = 'clusterAlerts';
 export const WIDGET_METRICS: WidgetKind = 'clusterMetrics';
 export const WIDGET_EXTENSION_CARDS: WidgetKind = 'clusterExtensionCards';
+export const WIDGET_STATUS_CARDS: WidgetKind = 'statusCards';
 
 /**
  * The kinds that are ABOUT one cluster - the pieces of a cluster's dashboard.
@@ -53,12 +55,17 @@ export const WIDGET_EXTENSION_CARDS: WidgetKind = 'clusterExtensionCards';
  */
 const CLUSTER_WIDGETS: WidgetKind[] = [
   WIDGET_CLUSTER_HEADER, WIDGET_RESOURCE_CARDS, WIDGET_CAPACITY, WIDGET_COMPONENT_STATUS, WIDGET_OVERVIEW, WIDGET_EVENTS,
-  WIDGET_CERTIFICATES, WIDGET_ALERTS, WIDGET_METRICS, WIDGET_EXTENSION_CARDS
+  WIDGET_CERTIFICATES, WIDGET_ALERTS, WIDGET_METRICS, WIDGET_EXTENSION_CARDS, WIDGET_STATUS_CARDS
 ];
 
 export function isClusterWidget(kind: string): boolean {
   return (CLUSTER_WIDGETS as string[]).includes(kind);
 }
+
+/** The types the Workloads overview counts, in its order - a status widget's "workloads". */
+const WORKLOAD_TYPES_COUNTED = [
+  WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.CRON_JOB, POD
+];
 
 /**
  * The resource a fresh building block starts on: clusters, which every Rancher install has, of the
@@ -80,6 +87,17 @@ export const BUILDING_BLOCKS: CatalogEntry[] = [
     spec:     {
       // Columns, sort and filter are the table views' own (see WidgetTable).
       kind: WIDGET_TABLE, title: 'Table', resource: CLUSTER
+    },
+  },
+  {
+    id:       WIDGET_STATUS_CARDS,
+    labelKey: 'configurableViews.catalog.statusCards.name',
+    descKey:  'configurableViews.catalog.statusCards.desc',
+    icon:     'table',
+    span:     6,
+    // Pods by status: the card the Workloads overview draws per type
+    spec:     {
+      kind: WIDGET_STATUS_CARDS, title: '', status: { ...DEFAULT_STATUS_CARDS }
     },
   },
   {
@@ -163,6 +181,63 @@ export const READY_MADE: CatalogEntry[] = [
     icon:     'table',
     span:     12,
     spec:     { kind: WIDGET_OVERVIEW, title: '' },
+  },
+  // The status cards, set up for the questions an overview is asked most
+  {
+    id:       'status-workloads-by-namespace',
+    labelKey: 'configurableViews.catalog.statusByNamespace.name',
+    descKey:  'configurableViews.catalog.statusByNamespace.desc',
+    icon:     'table',
+    span:     12,
+    spec:     {
+      kind:   WIDGET_STATUS_CARDS,
+      title:  '',
+      status: {
+        ...DEFAULT_STATUS_CARDS, resources: [...WORKLOAD_TYPES_COUNTED], cards: 'namespace', rows: 'type'
+      },
+    },
+  },
+  {
+    id:       'status-needs-attention',
+    labelKey: 'configurableViews.catalog.statusNeedsAttention.name',
+    descKey:  'configurableViews.catalog.statusNeedsAttention.desc',
+    icon:     'table',
+    span:     6,
+    spec:     {
+      kind:   WIDGET_STATUS_CARDS,
+      title:  'Needs attention',
+      status: {
+        ...DEFAULT_STATUS_CARDS, resources: [], cards: 'none', rows: 'type', only: 'warning', top: 10
+      },
+    },
+  },
+  {
+    id:       'status-top-resources',
+    labelKey: 'configurableViews.catalog.statusTopResources.name',
+    descKey:  'configurableViews.catalog.statusTopResources.desc',
+    icon:     'table',
+    span:     6,
+    spec:     {
+      kind:   WIDGET_STATUS_CARDS,
+      title:  'Top resources by count',
+      status: {
+        ...DEFAULT_STATUS_CARDS, resources: [], cards: 'none', rows: 'type', top: 10, colors: 'none'
+      },
+    },
+  },
+  {
+    id:       'status-busiest-namespaces',
+    labelKey: 'configurableViews.catalog.statusBusiestNamespaces.name',
+    descKey:  'configurableViews.catalog.statusBusiestNamespaces.desc',
+    icon:     'table',
+    span:     6,
+    spec:     {
+      kind:   WIDGET_STATUS_CARDS,
+      title:  'Namespaces with the most pods',
+      status: {
+        ...DEFAULT_STATUS_CARDS, cards: 'none', rows: 'namespace', top: 10
+      },
+    },
   },
   {
     id:       'cluster-events',

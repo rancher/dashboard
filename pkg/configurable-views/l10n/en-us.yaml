@@ -158,6 +158,13 @@ configurableViews:
     counts: "Could not read the counts of cluster “{cluster}”."
     workloads: "Could not read the workloads of cluster “{cluster}”."
     resource: "Could not read {resource} from cluster “{cluster}”."
+  status:
+    empty: Nothing to count here.
+    error: Could not read the resources of “{cluster}”.
+    defaultTitle:
+      state: By status
+      type: By resource type
+      namespace: By namespace
   widgetSettings:
     label: Widget settings
     heading: "{title}: what this {what} shows"
@@ -175,6 +182,41 @@ configurableViews:
     viewTabs: Show saved view tabs
     ownViews: Keep saved views of its own
     viewsHint: Columns, sort, filter and grouping are set in the table itself. With the tabs shown they can be saved as views - shared with every list of this type, or kept for this widget alone.
+    status:
+      resources: Resources
+      resourcesPlaceholder: pod, apps.deployment
+      resourcesHint: Types to count, comma-separated. Leave it empty to count every type the cluster has.
+      namespace: Namespace
+      namespacePlaceholder: All namespaces
+      cards: Cards
+      cardsBy:
+        none: One card
+        type: One per resource type
+        namespace: One per namespace
+      rows: Rows
+      rowsBy:
+        state: By status
+        type: By resource type
+        namespace: By namespace
+      only: Count
+      onlyBy:
+        all: Everything
+        error: Only errors
+        warning: Only errors and warnings
+      sort: Order
+      sortBy:
+        count: Most first
+        name: By name
+      top: Top rows
+      maxCards: Top cards
+      topHint: 0 shows them all.
+      colors: Colors
+      colorsBy:
+        state: Rancher’s state colors
+        none: No colors - a list with counts
+        custom: My own colors
+      customColors: Color per status
+      customColorsHint: One per line, “status=color”, the color one of success, info, warning, error, disabled. A status left out has none.
     show: Show
     linksHome: Rancher’s own links, as the Home shows them
     linksCustom: My own list
@@ -224,6 +266,21 @@ configurableViews:
     workloadOverview:
       name: Workload overview
       desc: A cluster’s workloads by state, by type and by namespace
+    statusCards:
+      name: Status cards
+      desc: Count a cluster’s resources into cards - by status, type or namespace
+    statusByNamespace:
+      name: Workloads by namespace
+      desc: A card per namespace, its workloads by status
+    statusNeedsAttention:
+      name: Needs attention
+      desc: The resource types with the most errors and warnings
+    statusTopResources:
+      name: Top resources by count
+      desc: The ten resource types a cluster has the most of
+    statusBusiestNamespaces:
+      name: Busiest namespaces
+      desc: The namespaces with the most pods, by status
     events:
       name: Events
       desc: A cluster’s events, newest first

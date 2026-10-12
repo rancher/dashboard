@@ -12,8 +12,10 @@ import { newId } from '../templating/view-model';
 import { typeOptions, type TypeOption, type TypeSchema } from '../templating/resource-types';
 import {
   blockLabelKey, isClusterWidget, WIDGET_TABLE, WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_TABLE, WIDGET_OVERVIEW,
-  WIDGET_TABS
+  WIDGET_TABS, WIDGET_STATUS_CARDS
 } from '../templating/widget-catalog';
+import { normalizeStatusCards, STATE_COLORS } from '../templating/status-cards';
+import type { StateColor } from '@shell/utils/style';
 import { pageClusterOf } from '../composables/useWidgetCluster';
 import type { SettingsAnchor } from '../composables/viewEditor';
 import type { WidgetLink, WidgetSpec } from '../templating/types';
@@ -105,6 +107,47 @@ const readsData = computed(() => ![WIDGET_LINKS, WIDGET_BANNER, WIDGET_CLUSTER_T
 const titleOnly = computed(() => draft.kind === WIDGET_CLUSTER_TABLE);
 
 const isTable = computed(() => draft.kind === WIDGET_TABLE);
+
+// ---- a status widget's cards ----
+
+const isStatus = computed(() => draft.kind === WIDGET_STATUS_CARDS);
+
+if (isStatus.value) {
+  draft.status = normalizeStatusCards(draft.status);
+}
+
+const status = computed(() => draft.status || normalizeStatusCards(undefined));
+
+// Typed as one line of types, comma-separated; none means every type.
+const resourcesText = computed({
+  get: () => status.value.resources.join(', '),
+  set: (value: string) => {
+    status.value.resources = `${ value }`.split(',').map((r) => r.trim()).filter(Boolean);
+  },
+});
+
+// One "status=color" per line; a line whose colour is not one of the state colours is left out.
+const customColorsText = computed({
+  get: () => Object.entries(status.value.customColors).map(([state, color]) => `${ state }=${ color }`).join('\n'),
+  set: (value: string) => {
+    const colors: Record<string, StateColor> = {};
+
+    for (const line of `${ value }`.split('\n')) {
+      const [state, color] = line.split('=').map((part) => part?.trim().toLowerCase());
+
+      if (state && STATE_COLORS.includes(color as StateColor)) {
+        colors[state] = color as StateColor;
+      }
+    }
+    status.value.customColors = colors;
+  },
+});
+
+const STATUS_CARDS = ['none', 'type', 'namespace'];
+const STATUS_ROWS = ['state', 'type', 'namespace'];
+const STATUS_ONLY = ['all', 'error', 'warning'];
+const STATUS_SORT = ['count', 'name'];
+const STATUS_COLORS = ['state', 'none', 'custom'];
 
 /**
  * Where a table reads from, and which cluster a cluster widget shows - one field.
@@ -376,6 +419,140 @@ onBeforeUnmount(() => {
           <p class="wsm__hint">
             {{ t('configurableViews.widgetSettings.resourceHint') }}
           </p>
+        </template>
+
+        <!-- What a status widget counts, how it cuts it into cards and rows, and how it colours them -->
+        <template v-if="isStatus">
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.status.resources') }}</label>
+          <input
+            v-model.lazy="resourcesText"
+            class="wsm__field"
+            :placeholder="t('configurableViews.widgetSettings.status.resourcesPlaceholder')"
+            data-testid="configurable-views-status-resources"
+          >
+          <p class="wsm__hint">
+            {{ t('configurableViews.widgetSettings.status.resourcesHint') }}
+          </p>
+
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.status.namespace') }}</label>
+          <input
+            v-model.trim="status.namespace"
+            class="wsm__field"
+            :placeholder="t('configurableViews.widgetSettings.status.namespacePlaceholder')"
+          >
+
+          <div class="wsm__pair">
+            <div>
+              <label class="wsm__label">{{ t('configurableViews.widgetSettings.status.cards') }}</label>
+              <select
+                v-model="status.cards"
+                class="wsm__field"
+                data-testid="configurable-views-status-cards"
+              >
+                <option
+                  v-for="opt in STATUS_CARDS"
+                  :key="opt"
+                  :value="opt"
+                >
+                  {{ t(`configurableViews.widgetSettings.status.cardsBy.${ opt }`) }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label class="wsm__label">{{ t('configurableViews.widgetSettings.status.rows') }}</label>
+              <select
+                v-model="status.rows"
+                class="wsm__field"
+                data-testid="configurable-views-status-rows"
+              >
+                <option
+                  v-for="opt in STATUS_ROWS"
+                  :key="opt"
+                  :value="opt"
+                >
+                  {{ t(`configurableViews.widgetSettings.status.rowsBy.${ opt }`) }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label class="wsm__label">{{ t('configurableViews.widgetSettings.status.only') }}</label>
+              <select
+                v-model="status.only"
+                class="wsm__field"
+              >
+                <option
+                  v-for="opt in STATUS_ONLY"
+                  :key="opt"
+                  :value="opt"
+                >
+                  {{ t(`configurableViews.widgetSettings.status.onlyBy.${ opt }`) }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label class="wsm__label">{{ t('configurableViews.widgetSettings.status.sort') }}</label>
+              <select
+                v-model="status.sort"
+                class="wsm__field"
+              >
+                <option
+                  v-for="opt in STATUS_SORT"
+                  :key="opt"
+                  :value="opt"
+                >
+                  {{ t(`configurableViews.widgetSettings.status.sortBy.${ opt }`) }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label class="wsm__label">{{ t('configurableViews.widgetSettings.status.top') }}</label>
+              <input
+                v-model.number="status.top"
+                type="number"
+                min="0"
+                class="wsm__field"
+              >
+            </div>
+            <div>
+              <label class="wsm__label">{{ t('configurableViews.widgetSettings.status.maxCards') }}</label>
+              <input
+                v-model.number="status.maxCards"
+                type="number"
+                min="0"
+                class="wsm__field"
+              >
+            </div>
+          </div>
+          <p class="wsm__hint">
+            {{ t('configurableViews.widgetSettings.status.topHint') }}
+          </p>
+
+          <label class="wsm__label">{{ t('configurableViews.widgetSettings.status.colors') }}</label>
+          <select
+            v-model="status.colors"
+            class="wsm__field"
+            data-testid="configurable-views-status-colors"
+          >
+            <option
+              v-for="opt in STATUS_COLORS"
+              :key="opt"
+              :value="opt"
+            >
+              {{ t(`configurableViews.widgetSettings.status.colorsBy.${ opt }`) }}
+            </option>
+          </select>
+          <template v-if="status.colors === 'custom'">
+            <label class="wsm__label">{{ t('configurableViews.widgetSettings.status.customColors') }}</label>
+            <textarea
+              v-model.lazy="customColorsText"
+              class="wsm__field wsm__area"
+              rows="4"
+              placeholder="running=success&#10;imagepullbackoff=warning&#10;crashloopbackoff=error"
+            />
+            <p class="wsm__hint">
+              {{ t('configurableViews.widgetSettings.status.customColorsHint') }}
+            </p>
+          </template>
         </template>
 
         <!-- Columns, sort, filter and grouping are the table views', set in the table itself -->
@@ -664,6 +841,19 @@ onBeforeUnmount(() => {
     font-size:   12px;
     line-height: 14px;
     margin:      6px 0 0;
+  }
+
+  // Two settings side by side, where each is a short choice.
+  &__pair {
+    display:               grid;
+    gap:                   0 12px;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  &__area {
+    height:      auto;
+    line-height: 18px;
+    padding:     4px 6px;
   }
 
   &__radio {
