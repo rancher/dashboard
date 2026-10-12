@@ -12,7 +12,7 @@ const running: SharedTableView = {
   name: 'Running', query: 'state:running', columns: null, columnOrder: null, labelColumns: [], groupBy: null, sort: null, sortDescending: false
 };
 
-function mountModal(props: { mode: 'share' | 'import', value?: string, tableKey?: string }) {
+function mountModal(props: { mode: 'share' | 'import', value?: string, tableKey?: string, intoNewView?: boolean }) {
   const store = createStore({
     getters: {
       'type-map/labelFor': () => (schema: { id: string }) => `${ schema.id } list`,
@@ -54,6 +54,16 @@ describe('TableViewShareModal', () => {
 
       expect(wrapper.emitted('close')).toHaveLength(1);
     });
+  });
+
+  it.each([
+    ['sharing', { mode: 'share' as const, value: 'abc' }, 'tableViews.share.intro'],
+    ['importing over a view\'s settings', { mode: 'import' as const, tableKey: 'pod' }, 'tableViews.import.intro'],
+    ['importing into a view added for it', {
+      mode: 'import' as const, tableKey: 'pod', intoNewView: true
+    }, 'tableViews.import.introNew'],
+  ])('should say what %s does', (_, props, key) => {
+    expect(mountModal(props).find('rich-translation-stub').attributes('k')).toBe(key);
   });
 
   describe('importing', () => {

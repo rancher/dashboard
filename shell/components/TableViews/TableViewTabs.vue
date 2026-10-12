@@ -21,9 +21,7 @@ import type { SharedTableView } from '@shell/utils/table-views/share';
 import { registerTableViewShortcuts } from '@shell/utils/table-views/shortcuts';
 import type { TableViewShortcutAction } from '@shell/utils/table-views/shortcuts';
 import { randomStr } from '@shell/utils/string';
-import {
-  isViewDirty, isViewModified, persistenceIdOf, savedViewNamed, selectedViewIdFor
-} from '@shell/utils/table-views/views';
+import { isViewDirty, isViewModified, persistenceIdOf, selectedViewIdFor } from '@shell/utils/table-views/views';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
 import { RcDropdown, RcDropdownItem, RcDropdownSeparator, RcDropdownTrigger } from '@components/RcDropdown';
@@ -119,12 +117,13 @@ const drafts = ref<Record<string, TableViewState>>({});
 
 /**
  * An export: the tab's name, its row count (null if unknown) and, for a tab not on screen, its view.
- * A share: the tab's view as text. An import: nothing until something is pasted
+ * A share: the tab's view as text. An import: the saved view it replaces the settings of, or null
+ * from the table's own tab, which can't be changed: a new view is added to take it
  */
 const modal = ref<
   { kind: 'export', name: string, count: number | null, view?: TableViewState } |
   { kind: 'share', text: string } |
-  { kind: 'import' } |
+  { kind: 'import', tabId: string | null } |
   null
 >(null);
 
@@ -582,7 +581,7 @@ const saveChanges = (tab = selectedTab()) => {
 };
 
 /** Saved straight away with the table's defaults, and renamed once it is worth naming */
-const addView = () => {
+const addView = (): TableViewSaved => {
   const view: TableViewSaved = {
     ...viewStateOf(), id: randomStr(8), name: nextNewViewName()
   };
@@ -590,6 +589,8 @@ const addView = () => {
   persist(savedViews.value.concat([view]));
   applyView(view);
   focusTab(view.id, true);
+
+  return view;
 };
 
 /** Focus follows: with a roving tabindex, the tab left behind is no longer reachable */
@@ -728,8 +729,8 @@ const openShare = (tab: Tab) => {
   modal.value = { kind: 'share', text: shareTableView(tableKey.value, view, persistenceIdOf(store.getters['prefs/get'](TABLE_VIEWS))) };
 };
 
-const openImport = () => {
-  modal.value = { kind: 'import' };
+const openImport = (tab: Tab) => {
+  modal.value = { kind: 'import', tabId: tab.id };
 };
 
 const closeModal = () => {
@@ -868,37 +869,56 @@ const doExport = (format: string) => {
 };
 
 /**
- * An imported view is kept as a view of the user's own, and opened. One imported before - its name
- * and config unchanged - is opened rather than kept again
+ * A view imported into a tab replaces that tab's settings, as unsaved changes to save or discard, and
+ * the tab is brought in front to show them. It keeps its own name: the shared view's isn't taken
  */
-const importView = (imported: SharedTableView) => {
-  const { name, ...state } = imported;
-  const importedName = t('tableViews.tab.importedName', { name }, true);
-  const kept = savedViewNamed(savedViews.value, importedName, viewStateOf(state));
+const importIntoTab = (tabId: string, imported: SharedTableView) => {
+  const tab = (tabs.value || []).find((candidate) => candidate.id === tabId);
 
-  if (kept) {
-    applyView(kept);
-    focusTab(kept.id);
-
+  if (!tab?.view) {
     return;
   }
 
-  const view: TableViewSaved = {
-    ...viewStateOf(state), id: randomStr(8), name: unusedViewName(importedName, 2)
-  };
+  const view = viewStateOf(imported);
 
-  persist(savedViews.value.concat([view]));
-  applyView(view);
-  focusTab(view.id, true);
+  if (tab.id === selectedViewId.value) {
+    // Pinned, or a view matched by its config would give way to another tab
+    pickedViewId.value = tab.id;
+    emit('update:view', view);
+  } else {
+    // Held for the tab, then shown: the tab left keeps any edits of its own
+    drafts.value = { ...drafts.value, [draftKey(tab.id)]: view };
+    applyView(tab.view);
+  }
+
+  focusTab(tab.id);
 };
 
 /**
  * Once the modal has gone and handed the focus back to the menu it was opened from, or that would
- * take the focus off the view just opened
+ * take the focus off the tab just changed
  */
 const importFromModal = (imported: SharedTableView) => {
+  if (modal.value?.kind !== 'import') {
+    return;
+  }
+
+  const { tabId } = modal.value;
+
   closeModal();
-  nextTick(() => setTimeout(() => importView(imported)));
+
+  nextTick(() => setTimeout(() => {
+    if (tabId) {
+      importIntoTab(tabId, imported);
+
+      return;
+    }
+
+    // From the table's own tab: into a view added for it, as Add View adds one, once its tab is there
+    const added = addView();
+
+    nextTick(() => importIntoTab(added.id, imported));
+  }));
 };
 
 const SHORTCUT_ACTIONS: Record<TableViewShortcutAction, () => void> = {
@@ -1089,24 +1109,6 @@ onBeforeUnmount(() => {
                     </template>
                   </rc-dropdown-item>
                   <rc-dropdown-item
-                    :data-testid="tab.isDefaultTab ? 'table-views-share-all' : `table-views-share-${ tab.id }`"
-                    @click="openShare(tab)"
-                  >
-                    <template #before>
-                      <i class="menu-gutter" />
-                    </template>
-                    {{ t('tableViews.tab.shareView') }}
-                  </rc-dropdown-item>
-                  <rc-dropdown-item
-                    :data-testid="tab.isDefaultTab ? 'table-views-import-all' : `table-views-import-${ tab.id }`"
-                    @click="openImport"
-                  >
-                    <template #before>
-                      <i class="menu-gutter" />
-                    </template>
-                    {{ t('tableViews.tab.importView') }}
-                  </rc-dropdown-item>
-                  <rc-dropdown-item
                     v-if="!tab.isDefaultTab"
                     :disabled="!isViewModified(tabState(tab))"
                     :data-testid="`table-views-reset-${ tab.id }`"
@@ -1143,6 +1145,26 @@ onBeforeUnmount(() => {
                     >
                       <i class="icon icon-checkmark" />
                     </template>
+                  </rc-dropdown-item>
+
+                  <rc-dropdown-separator />
+                  <rc-dropdown-item
+                    :data-testid="tab.isDefaultTab ? 'table-views-share-all' : `table-views-share-${ tab.id }`"
+                    @click="openShare(tab)"
+                  >
+                    <template #before>
+                      <i class="menu-gutter" />
+                    </template>
+                    {{ t('tableViews.tab.shareView') }}
+                  </rc-dropdown-item>
+                  <rc-dropdown-item
+                    :data-testid="tab.isDefaultTab ? 'table-views-import-all' : `table-views-import-${ tab.id }`"
+                    @click="openImport(tab)"
+                  >
+                    <template #before>
+                      <i class="menu-gutter" />
+                    </template>
+                    {{ t('tableViews.tab.importView') }}
                   </rc-dropdown-item>
 
                   <template v-if="!tab.isDefaultTab">
@@ -1204,6 +1226,7 @@ onBeforeUnmount(() => {
       :mode="modal.kind"
       :value="modal.kind === 'share' ? modal.text : ''"
       :table-key="tableKey"
+      :into-new-view="modal.kind === 'import' && !modal.tabId"
       @close="closeModal"
       @import="importFromModal"
     />

@@ -22,9 +22,12 @@ const props = withDefaults(defineProps<{
   value?: string,
   /** The table an imported view is for - see sharedTableKey */
   tableKey?: string,
+  /** Imported into a view added for it, rather than over one's settings */
+  intoNewView?: boolean,
 }>(), {
-  value:    '',
-  tableKey: '',
+  value:       '',
+  tableKey:    '',
+  intoNewView: false,
 });
 
 const emit = defineEmits<{
@@ -40,6 +43,14 @@ const fieldId = useId();
 const pasted = ref('');
 
 const sharing = computed(() => props.mode === 'share');
+
+const introKey = computed(() => {
+  if (sharing.value) {
+    return 'tableViews.share.intro';
+  }
+
+  return props.intoNewView ? 'tableViews.import.introNew' : 'tableViews.import.intro';
+});
 
 const imported = computed(() => (sharing.value ? null : importTableView(pasted.value, props.tableKey)));
 
@@ -90,7 +101,7 @@ const doImport = () => {
         {{ t(`tableViews.${ mode }.title`) }}
       </RcHeading>
       <RichTranslation
-        :k="`tableViews.${ mode }.intro`"
+        :k="introKey"
         tag="p"
         class="share-intro"
       >

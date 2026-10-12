@@ -7317,7 +7317,6 @@ tableViews:
     delete: Delete View
     setDefault: Set as Default View
     newViewName: Untitled
-    importedName: Imported ({name})
     deleted: View Deleted
     deletedMessage: The "{name}" view has been successfully deleted.
     undo: Undo
@@ -7384,14 +7383,16 @@ tableViews:
       provider: Provider
       workspace: Workspace
       type: Type
-  # A view as text: Share View hands it out, Import View takes it in, and either shows it in the same box
+  # A view as text: Share View hands it out, Import View takes it into a saved view, both in the same box
   share:
     title: Share View
-    intro: 'Copy this text and send it to whoever should see this view. It holds the view as it is now, unsaved changes included: its filter, columns, grouping and sort - <b>so any resource or namespace names in its filter are shared too</b>.'
+    intro: 'Copy this text and share it. Anyone with the text can import the view using <b>Import View</b>. It holds the view as it is now, unsaved changes included: columns, grouping, sort and filter. <b>The filter is included and can reveal information such as resource or namespace names.</b>'
     label: View
   import:
     title: Import View
-    intro: 'Paste the text of a view shared with you. It is added as a new view, and saved.'
+    intro: "Paste the text of a view shared with you. It replaces this view's settings, including any unsaved changes, as changes you can save or discard."
+    # From the All tab, which can't be changed
+    introNew: 'Paste the text of a view shared with you. It is added as a new view, with its settings as changes you can save or discard.'
     placeholder: Paste the view here
     import: Import
     invalid: This isn't a shared view. Check that the whole text was copied.

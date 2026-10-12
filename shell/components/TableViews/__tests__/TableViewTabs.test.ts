@@ -39,8 +39,9 @@ interface TabsInternals {
   resetTab(tab: { id: string | null, name: string, view?: TableViewSaved, isDefaultTab?: boolean }): void;
   persistAll(views: TableViewSaved[], defaultViewId: string | null, allIndex?: number): void;
   openShare(tab: { id: string | null, name: string, view?: TableViewSaved, isDefaultTab?: boolean }): void;
-  openImport(): void;
-  importView(view: SharedTableView): void;
+  openImport(tab: { id: string | null, name: string, view?: TableViewSaved, isDefaultTab?: boolean }): void;
+  importIntoTab(tabId: string, view: SharedTableView): void;
+  importFromModal(view: SharedTableView): void;
 }
 
 const internals = (wrapper: { vm: unknown }) => wrapper.vm as TabsInternals;
@@ -367,69 +368,122 @@ describe('TableViewTabs', () => {
         expect(sharedIn(vm)?.test).toStrictEqual(expect.objectContaining({ name: second.name, query: 'name:held' }));
       });
 
-      it('should open an empty import', () => {
+      it('should open an import into a saved view, or, from the table\'s own tab, into a view added for it', () => {
         const { vm } = createWrapper();
 
-        vm.openImport();
+        vm.openImport(tabFor(second));
+        expect(vm.modal).toStrictEqual({ kind: 'import', tabId: 'bbb' });
 
-        expect(vm.modal).toStrictEqual({ kind: 'import' });
+        vm.openImport({
+          id: null, name: 'All', isDefaultTab: true
+        });
+        expect(vm.modal).toStrictEqual({ kind: 'import', tabId: null });
       });
     });
 
-    describe('an imported view', () => {
-      const imported = (view: TableViewSaved, name: string): SharedTableView => {
-        const { id, name: _, ...state } = view;
-
-        return {
-          ...EMPTY, ...state, name
-        };
+    describe('a view imported into a tab', () => {
+      const shared: SharedTableView = {
+        ...EMPTY, name: 'Theirs', query: 'name:shared', groupBy: 'node'
+      };
+      const sharedState = {
+        query: 'name:shared', columns: null, columnOrder: null, labelColumns: [], groupBy: 'node', sort: null, sortDescending: false
       };
 
-      it('should be kept as a view of the user\'s own and opened', () => {
-        const { vm, stored } = createWrapper();
+      it('should replace the settings of the tab in front, as changes to save or discard, keeping its name', async() => {
+        // Opened on `aaa` by its config, with no pick: what is imported matches `bbb`'s config, which
+        // would otherwise take the selection over
+        const { id, name, ...firstState } = first;
+        const { id: _, name: __, ...secondState } = second;
+        const {
+          vm, wrapper, stored, shown
+        } = createWrapper({ view: { ...EMPTY, ...firstState } });
+        const before = stored();
 
-        vm.importView(imported(makeView('x', 'x', { query: 'name:new' }), 'Errors'));
+        expect(vm.selectedViewId).toBe('aaa');
 
-        // The store here has no translations, so the name is the key and what it is given
-        expect(stored().map((v) => v.name)).toStrictEqual([first.name, second.name, 'tableViews.tab.importedName-{"name":"Errors"}']);
-        expect(vm.selectedViewId).toBe(stored()[2].id);
+        vm.importIntoTab('aaa', {
+          ...EMPTY, ...secondState, name: 'Theirs'
+        });
+        await wrapper.setProps({ view: shown() });
+
+        expect(vm.selectedViewId).toBe('aaa');
+        expect(vm.isDirty).toBe(true);
+        expect(stored()).toStrictEqual(before);
+        expect(stored()[0].name).toBe(name);
+        expect(id).toBe('aaa');
       });
 
-      describe('imported again', () => {
-        // The name the view is kept under; the store here has no translations
-        const KEPT_NAME = 'tableViews.tab.importedName-{"name":"Theirs"}';
-        const kept = makeView('kpt', KEPT_NAME, { query: 'name:shared' });
-        const views = (more: TableViewSaved[]) => ({ views: [first, second, ...more] });
+      it('should bring another tab in front with the settings, the tab left keeping its own edits', () => {
+        const { vm, stored, shown } = createWrapper({ view: { ...EMPTY, query: 'state:Running name:x' }, initialViewId: 'aaa' });
+        const before = stored();
 
-        it('should open the view it was kept as, keeping nothing more', () => {
-          const { vm, stored } = createWrapper(views([kept]));
+        vm.importIntoTab('bbb', shared);
 
-          vm.importView(imported(kept, 'Theirs'));
+        expect(shown()).toStrictEqual(sharedState);
+        expect(vm.selectedViewId).toBe('bbb');
+        expect(vm.drafts.aaa?.query).toBe('state:Running name:x');
+        expect(stored()).toStrictEqual(before);
+      });
 
-          expect(stored().map((v) => v.id)).toStrictEqual([first.id, second.id, kept.id]);
-          expect(vm.selectedViewId).toBe(kept.id);
+      describe('from the modal', () => {
+        beforeEach(() => jest.useFakeTimers());
+        afterEach(() => jest.useRealTimers());
+
+        it('should close it first, then import into the tab it was opened for, once the focus is back', async() => {
+          const { vm, wrapper, shown } = createWrapper({ view: { ...EMPTY, query: 'state:Running' }, initialViewId: 'aaa' });
+
+          vm.openImport(tabFor(second));
+          vm.importFromModal(shared);
+
+          expect(vm.modal).toBeNull();
+          expect(wrapper.emitted('update:view')).toBeUndefined();
+
+          await wrapper.vm.$nextTick();
+          jest.runAllTimers();
+
+          expect(vm.selectedViewId).toBe('bbb');
+          expect(shown()).toStrictEqual(sharedState);
         });
 
-        it('should keep it again once that view has been changed', () => {
-          const changed = { ...kept, query: 'name:changed' };
-          const { vm, stored } = createWrapper(views([changed]));
+        it('should, from the table\'s own tab, add a view and import into it, saved as it comes', async() => {
+          const {
+            vm, wrapper, stored, shown
+          } = createWrapper();
 
-          vm.importView(imported(kept, 'Theirs'));
+          vm.openImport({
+            id: null, name: 'All', isDefaultTab: true
+          });
+          vm.importFromModal(shared);
+          await wrapper.vm.$nextTick();
+          jest.runAllTimers();
+          await wrapper.vm.$nextTick();
 
-          expect(stored()).toHaveLength(4);
-          expect(stored()[3].name).toBe(`${ KEPT_NAME } 2`);
+          const added = stored()[2];
+
+          expect(stored()).toHaveLength(3);
+          expect(vm.selectedViewId).toBe(added.id);
+          expect(shown()).toStrictEqual(sharedState);
+          // Saved as the table comes, which keeps no filter
+          expect(added.query || '').toBe('');
         });
 
-        it('should keep it under its own name beside a view of the user\'s holding the same config', () => {
-          const mine = {
-            ...kept, id: 'mine', name: 'Mine'
-          };
-          const { vm, stored } = createWrapper(views([mine]));
+        it('should import nothing when the modal open isn\'t an import', async() => {
+          const { vm, wrapper } = createWrapper({ view: { ...EMPTY, query: 'state:Running' }, initialViewId: 'aaa' });
 
-          vm.importView(imported(kept, 'Theirs'));
+          vm.importFromModal(shared);
+          await wrapper.vm.$nextTick();
+          jest.runAllTimers();
 
-          expect(stored().map((v) => v.name)).toStrictEqual([first.name, second.name, 'Mine', KEPT_NAME]);
+          expect(wrapper.emitted('update:view')).toBeUndefined();
         });
+      });
+
+      it('should take nothing into a tab that isn\'t a saved view', () => {
+        const { vm, wrapper } = createWrapper();
+
+        vm.importIntoTab('nope', shared);
+
+        expect(wrapper.emitted('update:view')).toBeUndefined();
       });
     });
 
