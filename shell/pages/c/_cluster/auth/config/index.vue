@@ -12,6 +12,7 @@ import { HIDE_LOCAL_AUTH_PROVIDER } from '@shell/store/features';
 import { MODE, _EDIT } from '@shell/config/query-params';
 import { LOCAL_AUTH_ID, UNSUPPORTED_AUTH_IDS, canWriteLocalAuthFeature, localAuthFeature } from '@shell/utils/auth';
 import { sortBy } from '@shell/utils/sort';
+import { emptyProviderConfig, providerConfigs } from '@shell/models/management.cattle.io.authconfig';
 
 const resource = MANAGEMENT.AUTH_CONFIG;
 
@@ -60,7 +61,14 @@ export default {
     },
 
     providerTypes() {
-      const configurable = this.allConfigs.filter((c) => c.id !== LOCAL_AUTH_ID && !UNSUPPORTED_AUTH_IDS.includes(c.id));
+      const existing = this.allConfigs.filter((c) => c.id !== LOCAL_AUTH_ID);
+      // Providers with no config yet are offered from a placeholder, created when chosen
+      const missing = Object.keys(providerConfigs)
+        .filter((id) => !existing.some((c) => c.id === id))
+        .map((id) => this.$store.getters['management/classify']({
+          ...emptyProviderConfig(id), id, type: resource
+        }));
+      const configurable = [...existing, ...missing].filter((c) => !UNSUPPORTED_AUTH_IDS.includes(c.id));
 
       return sortBy(configurable, ['sideLabel', 'provider']);
     },
@@ -99,9 +107,31 @@ export default {
         styles:         'max-height: 100vh;',
         componentProps: {
           rows:     this.providerTypes,
-          selectCb: (id) => this.$router.push(this.editLocation({ id })),
+          selectCb: (id) => this.addProvider(id),
         },
       });
+    },
+
+    async addProvider(id) {
+      if (!this.allConfigs.some((c) => c.id === id)) {
+        try {
+          // Neither the v1 nor the v3 API can create an AuthConfig, so go through the cluster's own API
+          await this.$store.dispatch('management/request', {
+            url:    '/k8s/clusters/local/apis/management.cattle.io/v3/authconfigs',
+            method: 'POST',
+            data:   emptyProviderConfig(id),
+          });
+        } catch (err) {
+          // Another admin may have just created it
+          if (err?._status !== 409) {
+            this.$store.dispatch('growl/fromError', { title: this.t('generic.notification.title.error'), err });
+
+            return;
+          }
+        }
+      }
+
+      this.$router.push(this.editLocation({ id }));
     },
 
     editLocation(row) {

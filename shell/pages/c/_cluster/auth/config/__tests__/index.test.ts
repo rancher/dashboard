@@ -4,6 +4,7 @@ import AuthProviderAccessDrawer from '@shell/components/auth/AuthProviderAccessD
 import AuthProviderRow from '@shell/components/auth/AuthProviderRow.vue';
 import AuthProvidersEmptyState from '@shell/components/auth/AuthProvidersEmptyState.vue';
 import DisableLocalLoginCard from '@shell/components/auth/DisableLocalLoginCard.vue';
+import { providerConfigs } from '@shell/models/management.cattle.io.authconfig';
 
 const localConfig: any = { id: 'local', enabled: true };
 
@@ -46,6 +47,7 @@ const createWrapper = ({
           'features/get':         () => feature.spec.value,
           'management/byId':      () => feature,
           'management/schemaFor': () => ({ resourceMethods: canUpdateFeature ? ['GET', 'PUT'] : ['GET'] }),
+          'management/classify':  (obj: any) => ({ ...obj, provider: obj.id }),
         },
       },
     },
@@ -160,32 +162,109 @@ describe('page: AuthConfigList', () => {
       (wrapper.vm as any).promptAddProvider();
 
       const [action, payload] = ((wrapper.vm as any).$store.dispatch as jest.Mock).mock.calls[0];
+      const ids = payload.componentProps.rows.map((r: any) => r.id);
 
       expect(action).toBe('management/promptModal');
       expect(payload.component).toBe('AddAuthProviderDialog');
       // A width with no unit is not valid CSS, and the modal silently falls back to 600px
       expect(payload.modalWidth).toMatch(/(px|%)$/);
-      expect(payload.componentProps.rows.map((r: any) => r.id)).toStrictEqual(['github', 'okta']);
+      expect(ids).toStrictEqual(expect.arrayContaining(['github', 'okta']));
+      expect(ids).not.toContain('local');
+      expect(ids).not.toContain('oidc');
+      // Each provider is offered once, from its config where there is one
+      expect(new Set(ids).size).toBe(ids.length);
+      expect(payload.componentProps.rows.find((r: any) => r.id === 'okta')).toStrictEqual(oktaConfig);
     });
 
-    // Rancher pre-creates an empty config per provider, so connecting to one
-    // configures the config that is already there.
-    it('should send the chosen provider to its own config page', () => {
+    // Rancher only creates the local config, the others are created when first chosen
+    it('should offer the providers that have no config yet', () => {
+      const wrapper = createWrapper({ configs: [localConfig] });
+
+      (wrapper.vm as any).promptAddProvider();
+
+      const { rows } = ((wrapper.vm as any).$store.dispatch as jest.Mock).mock.calls[0][1].componentProps;
+      const expected = Object.keys(providerConfigs).filter((id) => id !== 'oidc');
+
+      expect(rows.map((r: any) => r.id).sort()).toStrictEqual(expected.sort());
+      expect(rows.find((r: any) => r.id === 'github')).toMatchObject({
+        type: 'management.cattle.io.authconfig', enabled: false, metadata: { name: 'github' }
+      });
+    });
+
+    const chooseProvider = async(wrapper: any, id: string) => {
+      wrapper.vm.promptAddProvider();
+
+      const { selectCb } = (wrapper.vm.$store.dispatch as jest.Mock).mock.calls[0][1].componentProps;
+
+      await selectCb(id);
+    };
+
+    const editLocation = (id: string) => ({
+      name:   'c-cluster-auth-config-id',
+      params: { cluster: 'local', id },
+      query:  { mode: 'edit' },
+    });
+
+    it('should send the chosen provider to its own config page', async() => {
       const push = jest.fn();
       const wrapper = createWrapper({ configs: [localConfig, disabledConfig] });
 
       (wrapper.vm as any).$router = { push };
-      (wrapper.vm as any).promptAddProvider();
+      await chooseProvider(wrapper, 'github');
 
-      const { selectCb } = ((wrapper.vm as any).$store.dispatch as jest.Mock).mock.calls[0][1].componentProps;
+      expect(push).toHaveBeenCalledWith(editLocation('github'));
+      // The config is already there, so there is nothing to create
+      expect(((wrapper.vm as any).$store.dispatch as jest.Mock).mock.calls.map(([action]) => action)).not.toContain('management/request');
+    });
 
-      selectCb('github');
+    it('should create the config of a provider that has none before configuring it', async() => {
+      const push = jest.fn();
+      const wrapper = createWrapper({ configs: [localConfig] });
 
-      expect(push).toHaveBeenCalledWith({
-        name:   'c-cluster-auth-config-id',
-        params: { cluster: 'local', id: 'github' },
-        query:  { mode: 'edit' },
+      (wrapper.vm as any).$router = { push };
+      await chooseProvider(wrapper, 'azuread');
+
+      const dispatch = (wrapper.vm as any).$store.dispatch as jest.Mock;
+      const [action, request] = dispatch.mock.calls[1];
+
+      expect(action).toBe('management/request');
+      expect(request.method).toBe('POST');
+      expect(request.url).toBe('/k8s/clusters/local/apis/management.cattle.io/v3/authconfigs');
+      expect(request.data).toMatchObject({
+        kind:               'AuthConfig',
+        metadata:           { name: 'azuread' },
+        type:               'azureADConfig',
+        enabled:            false,
+        logoutAllSupported: true,
       });
+      expect(push).toHaveBeenCalledWith(editLocation('azuread'));
+    });
+
+    it('should configure a provider whose config was created in the meantime', async() => {
+      const push = jest.fn();
+      const wrapper = createWrapper({ configs: [localConfig] });
+      const dispatch = (wrapper.vm as any).$store.dispatch as jest.Mock;
+
+      dispatch.mockImplementation((action: string) => (action === 'management/request' ? Promise.reject(Object.assign(new Error('Conflict'), { _status: 409 })) : undefined));
+      (wrapper.vm as any).$router = { push };
+      await chooseProvider(wrapper, 'github');
+
+      expect(push).toHaveBeenCalledWith(editLocation('github'));
+      expect(dispatch.mock.calls.map(([action]) => action)).not.toContain('growl/fromError');
+    });
+
+    it('should stay on the list when the config cannot be created', async() => {
+      const push = jest.fn();
+      const wrapper = createWrapper({ configs: [localConfig] });
+      const dispatch = (wrapper.vm as any).$store.dispatch as jest.Mock;
+      const err = Object.assign(new Error('Forbidden'), { _status: 403 });
+
+      dispatch.mockImplementation((action: string) => (action === 'management/request' ? Promise.reject(err) : undefined));
+      (wrapper.vm as any).$router = { push };
+      await chooseProvider(wrapper, 'github');
+
+      expect(push).not.toHaveBeenCalled();
+      expect(dispatch).toHaveBeenCalledWith('growl/fromError', expect.objectContaining({ err }));
     });
 
     // Rancher runs one external provider at a time, so there is nothing to add

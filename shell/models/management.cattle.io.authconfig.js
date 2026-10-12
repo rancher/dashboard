@@ -38,6 +38,49 @@ export const configType = {
 };
 
 /**
+ * The AuthConfig `type` of each provider, and whether it supports single logout.
+ *
+ * Rancher used to create an empty, disabled config per provider at start-up. It now only
+ * creates `local`, so the UI creates a provider's config the first time it is chosen.
+ */
+export const providerConfigs = {
+  activedirectory: { type: 'activeDirectoryConfig', logoutAllSupported: false },
+  adfs:            { type: 'adfsConfig', logoutAllSupported: true },
+  azuread:         { type: 'azureADConfig', logoutAllSupported: true },
+  cognito:         { type: 'cognitoConfig', logoutAllSupported: true },
+  freeipa:         { type: 'freeIpaConfig', logoutAllSupported: false },
+  genericoidc:     { type: 'genericOIDCConfig', logoutAllSupported: true },
+  genericsaml:     { type: 'genericSAMLConfig', logoutAllSupported: true },
+  github:          { type: 'githubConfig', logoutAllSupported: false },
+  githubapp:       { type: 'githubAppConfig', logoutAllSupported: false },
+  googleoauth:     { type: 'googleOauthConfig', logoutAllSupported: false },
+  keycloak:        { type: 'keyCloakConfig', logoutAllSupported: true },
+  keycloakoidc:    { type: 'keyCloakOIDCConfig', logoutAllSupported: true },
+  oidc:            { type: 'oidcConfig', logoutAllSupported: true },
+  okta:            { type: 'oktaConfig', logoutAllSupported: true },
+  openldap:        { type: 'openLdapConfig', logoutAllSupported: false },
+  ping:            { type: 'pingConfig', logoutAllSupported: true },
+  shibboleth:      { type: 'shibbolethConfig', logoutAllSupported: true },
+};
+
+/**
+ * The empty, disabled AuthConfig Rancher used to create for a provider at start-up.
+ */
+export const emptyProviderConfig = (id) => ({
+  apiVersion: 'management.cattle.io/v3',
+  kind:       'AuthConfig',
+  metadata:   {
+    name:        id,
+    annotations: {
+      'management.cattle.io/auth-provider-cleanup': 'rancher-locked',
+      ...(id === 'azuread' ? { 'auth.cattle.io/azuread-endpoint-migrated': 'true' } : {}),
+    },
+  },
+  enabled: false,
+  ...providerConfigs[id],
+});
+
+/**
  * Look up a category from any provider identifier, e.g. `keyCloakOIDCProvider`.
  */
 export const configTypeForProvider = (type) => configType[providerKey(type)];
