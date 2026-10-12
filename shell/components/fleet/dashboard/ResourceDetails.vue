@@ -15,6 +15,8 @@ import suseAppCoLogoDark from '@shell/assets/images/content/dark/suse.svg';
 export default {
   name: 'FleetDashboardResourceDetails',
 
+  emits: ['close'],
+
   components: {
     FleetResources,
     FleetApplicationSource,
@@ -78,12 +80,6 @@ export default {
       return this.$store.getters['prefs/theme'] === 'dark' ? suseAppCoLogoDark : suseAppCoLogo;
     }
 
-  },
-
-  methods: {
-    closePanel() {
-      this.$store.commit('slideInPanel/close');
-    }
   }
 };
 </script>
@@ -92,7 +88,7 @@ export default {
   <Drawer
     :ariaTarget="value.id"
     :removeFooter="true"
-    @close="closePanel"
+    @close="$emit('close')"
   >
     <template
       #title

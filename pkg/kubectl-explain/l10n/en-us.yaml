@@ -6,8 +6,6 @@ kubectl-explain:
   errorLoading: Error loading information
   informationLoading: Information loading
   navigateToBreadcrumb: Navigate to breadcrumb {breadcrumb}
-  scrollToTop: Scroll to top
-  close: Close Describe Resource
   action: Describe Resource
   errors:
     load: Could not load the Open API data from the cluster

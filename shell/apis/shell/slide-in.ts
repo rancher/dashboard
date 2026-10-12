@@ -40,6 +40,14 @@ export class SlideInApiImpl implements SlideInApi {
    * });
    * ```
    *
+   * The panel closes when the component emits `close`:
+   *
+   * ```ts
+   * const emit = defineEmits<{ close: [] }>();
+   *
+   * emit('close');
+   * ```
+   *
    * @param component - A Vue component (imported SFC, functional component, etc.) to be rendered in the panel.
    * @param config - Slide-In configuration object
    */

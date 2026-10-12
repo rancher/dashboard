@@ -337,7 +337,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // close the details on the cross icon X
     extensionsPo.extensionDetailsCloseClick();
-    extensionsPo.extensionDetails().should('not.be.visible');
+    extensionsPo.extensionDetails().should('not.exist');
 
     // show extension details again...
     extensionsPo.extensionCardClick(EXTENSION_NAME);
@@ -345,7 +345,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // clicking outside the details tab should also close it
     extensionsPo.extensionDetailsBgClick();
-    extensionsPo.extensionDetails().should('not.be.visible');
+    extensionsPo.extensionDetails().should('not.exist');
   }));
 
   qase(1502, it('Should install an extension', () => {
