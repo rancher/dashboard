@@ -118,22 +118,7 @@ export function useViewSet(props: { page: PageKey }, store: Store<unknown>, t: I
     // Rancher's own page is always one of the tabs.
     const list = all.some(isStockView) ? all : [builtInStockView(t('configurableViews.page.stockName')), ...all];
 
-    const keyOf = (view: View) => orderKeyOf(view, orgIds.value);
-    const ordered = orderViews(list, set?.order, keyOf, defaultViewId.value);
-
-    // Featured views - examples everyone should find first - follow the view the page opens on until
-    // the person places them: once the bar has been dragged, their order is the person's. A copy of
-    // one keeps its place.
-    const placed = new Set(set?.order || []);
-    const featured = scopes.value.featured.filter((id) => !placed.has(id) && ordered.slice(1).some((view) => keyOf(view) === id));
-
-    if (!featured.length) {
-      return ordered;
-    }
-
-    const rest = ordered.filter((view, i) => i === 0 || !featured.includes(keyOf(view)));
-
-    return [rest[0], ...featured.map((id) => ordered.find((view) => keyOf(view) === id) as View), ...rest.slice(1)];
+    return orderViews(list, set?.order, (view) => orderKeyOf(view, orgIds.value), defaultViewId.value);
   });
 
   /** The tabs showing a published view, or your copy of one. */

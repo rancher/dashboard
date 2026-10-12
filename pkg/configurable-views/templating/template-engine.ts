@@ -75,8 +75,6 @@ export interface ViewScopes {
    * own (see generatedViews). Never part of `global`, so nothing written back to it copies them.
    */
   generated: View[];
-  /** Of those, the ids of the ones that lead the bar (data.featured), in their order. */
-  featured: string[];
 }
 
 // ---- reading ----------------------------------------------------------------------------------------
@@ -158,7 +156,6 @@ export function appliedViewScopes(getters: Getters, userId?: string | null, page
     hasGlobal: !!rawGlobal,
     hasUser:   !!rawUser,
     generated: generatedViews(getters, page),
-    featured:  featuredViewIds(getters, page),
   };
 }
 
@@ -183,17 +180,6 @@ function viewMaps(getters: Getters, page: PageKey): ConfigMapModel[] {
     .filter((cm: ConfigMapModel & { metadata: { namespace?: string } }) => cm.metadata?.labels?.[LABEL_MARKER] === 'true' &&
       cm.metadata?.labels?.[LABEL_TYPE] === TYPE_VIEW && (!cm.metadata.namespace || cm.metadata.namespace === NAMESPACE) &&
       (cm.data?.page || 'home') === page);
-}
-
-/**
- * The ids of the views in ConfigMaps of their own that lead the bar - `data.featured: "true"`, in the
- * order of `data.order` - such as a set of examples every person should find first.
- */
-export function featuredViewIds(getters: Getters, page: PageKey = 'home'): string[] {
-  return viewMaps(getters, page)
-    .filter((cm) => cm.data?.featured === 'true')
-    .sort((a, b) => (Number(a.data?.order) || 0) - (Number(b.data?.order) || 0) || a.metadata.name.localeCompare(b.metadata.name))
-    .map((cm) => `${ GENERATED_VIEW_PREFIX }${ cm.metadata.name }`);
 }
 
 export function generatedViews(getters: Getters, page: PageKey = 'home'): View[] {
