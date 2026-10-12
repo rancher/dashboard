@@ -98,7 +98,6 @@ const root = ref<HTMLElement | null>(null);
 const tabStrip = ref<HTMLElement | null>(null);
 
 // The editable name while editing - inside the tab loop, so a list; at most one is rendered.
-const nameInput = ref<HTMLInputElement[]>([]);
 
 /** Function refs, as there is a set per tab */
 const tabWraps = new Map<string, HTMLElement>();
@@ -477,12 +476,6 @@ onMounted(() => {
       return;
     }
 
-    // A brand-new view's tab is the last one: the strip runs to it
-    if (props.isNew) {
-      runToEnd();
-
-      return;
-    }
     strip.scrollLeft = viewBarScroll.left;
 
     if (active) {
@@ -494,26 +487,6 @@ onMounted(() => {
       }
     }
   });
-});
-
-/**
- * Run the strip to its end - where "New view" puts its tab, often out of sight. While editing, that
- * tab is the name being typed rather than a tab button, so the strip is scrolled, not a tab focused.
- */
-function runToEnd(): void {
-  nextTick(() => requestAnimationFrame(() => {
-    const strip = tabStrip.value;
-
-    if (strip) {
-      strip.scrollLeft = strip.scrollWidth;
-    }
-  }));
-}
-
-watch(() => (props.isNew ? props.activeId : null), (id) => {
-  if (id) {
-    runToEnd();
-  }
 });
 
 onBeforeUnmount(() => {
@@ -534,9 +507,10 @@ defineExpose({ openRename, focusTab });
     class="vbar"
     :class="{ 'vbar--editing': editing }"
   >
-    <!-- The views. While editing, the one being edited is renamed in place and the rest go quiet:
-       you cannot switch away mid-edit without deciding what to do with your changes. -->
+    <!-- The views, to switch between. While editing they make way for the view being edited (see
+       vbar__title): you cannot switch away mid-edit without deciding what to do with your changes. -->
     <div
+      v-if="!editing"
       ref="tabStrip"
       class="vbar__views"
     >
@@ -560,21 +534,13 @@ defineExpose({ openRename, focusTab });
             held: heldTabKey === view.id,
             flash: flashTabId === view.id,
             'vbar__slot--active': !editing && view.id === activeId,
-            'vbar__slot--field': (editing && view.id === activeId) || renamingId === view.id,
+            'vbar__slot--field': renamingId === view.id,
           }"
           :data-testid="`configurable-views-tab-${ view.id }`"
           @mousedown="startTabDrag(view, $event)"
         >
           <input
-            v-if="editing && view.id === activeId"
-            ref="nameInput"
-            class="vbar__name"
-            :value="view.name"
-            :aria-label="t('configurableViews.bar.viewName')"
-            @input="onName"
-          >
-          <input
-            v-else-if="renamingId === view.id"
+            v-if="renamingId === view.id"
             :ref="(el) => keepRef(renameInputs, view.id, el as HTMLInputElement | null)"
             v-model="renameDraft"
             type="text"
@@ -744,6 +710,22 @@ defineExpose({ openRename, focusTab });
         class="vbar__shadow"
         aria-hidden="true"
       />
+    </div>
+
+    <!-- While editing: the view being edited, by its name, renamed where it stands - at the start of the
+       bar, whichever view it is, so there is no strip of tabs to find it in -->
+    <div
+      v-else
+      class="vbar__title"
+    >
+      <input
+        class="vbar__title-input"
+        :value="activeView?.name || ''"
+        :placeholder="t('configurableViews.page.untitled')"
+        :aria-label="t('configurableViews.bar.viewName')"
+        data-testid="configurable-views-title"
+        @input="onName"
+      >
     </div>
 
     <button
@@ -1036,6 +1018,36 @@ $tab-height: 30px;
     min-height:    30px;
     padding:       0 10px;
     width:         180px;
+  }
+
+  // The view being edited, as the bar's title: a heading that is typed into
+  &__title {
+    align-items: center;
+    display:     flex;
+    flex:        1 1 auto;
+    min-width:   0;
+  }
+
+  &__title-input {
+    background:    transparent;
+    border:        1px solid transparent;
+    border-radius: var(--border-radius);
+    color:         var(--body-text);
+    font-size:     16px;
+    font-weight:   600;
+    height:        32px;
+    max-width:     420px;
+    padding:       0 8px;
+    width:         100%;
+
+    &:hover {
+      border-color: var(--border);
+    }
+
+    &:focus {
+      border-color: var(--primary);
+      outline:      none;
+    }
   }
 
   &__pencil {
