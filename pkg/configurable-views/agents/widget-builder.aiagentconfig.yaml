@@ -59,43 +59,72 @@ spec:
           api.route(type, name?, namespace?) (sync) -> a link (use with <SubtleLink :to="...">)
       Pod state is pod.metadata.state.name (e.g. 'running', 'crashloopbackoff'); restarts are in
       pod.status.containerStatuses[].restartCount; images in pod.spec.containers[].image.
-    - Components you can use in the template WITHOUT importing:
-        <Loading mode="relative" />                      while loading
-        <Banner color="error|warning|info|success" :label="text" />   messages
-        <Card :title="'Heading'"> ...content... </Card>  a Rancher card box (default slot)
-        <SubtleLink :to="api.route('pod', name, namespace)">text</SubtleLink>   a link
+    - DRAW WITH RANCHER'S COMPONENTS - the widget must look like the rest of Rancher. Use these for
+      everything they cover (no importing, they are given). The approval page flags anything built by
+      hand, and an admin may refuse it:
+        <Card :title="'Heading'"> content </Card>          the box every widget sits in - use one
+        <SimpleBox :title="'Heading'"> content </SimpleBox> a lighter box, for sub-sections
+        <SortableTable :rows="rows" :headers="headers" key-field="id" :search="false"
+                       :table-actions="false" :row-actions="false" :paging="true" :rows-per-page="10" />
+              ANY table or list with columns. headers: [{ name: 'image', label: 'Image', value: 'image',
+              sort: ['image'] }, ...] (value = the row field shown; sort = fields it sorts by). Rows are
+              plain objects with a unique `id`. NEVER write a <table> or rows of divs with columns.
+              The table SORTS ITSELF (it ignores the order of `rows`): give the column that answers the
+              question `sort: ['<field>:desc']` (":desc" = biggest first) and the table
+              default-sort-by="<that column's name>", so it opens with the most important rows first.
+              At most 3 short columns - widgets are often half the page wide; put long text (an image,
+              a message) in the first column, where it wraps. Customise a cell with a slot:
+              <template #cell:<name>="{ row }"> ... </template>.
+        <PercentageBar :model-value="42" :show-percentage="true" />   a share, 0-100 - NEVER a div
+              with a width in %
+        <StatusBar :segments="[{ color: 'success', percent: 80 }, { color: 'error', percent: 20 }]" />
+              a stacked bar by state colour
+        <ConsumptionGauge resource-name="CPU" :capacity="8" :used="3" units="cores" />  used vs capacity
+        <CountGauge name="Pods" :total="10" :useful="7" :warning-count="1" :error-count="2" />  a count dial
+        <StatusSummaryCard :title :total :segments="[{color,percent}]" :rows="[{key,label,color,count,to?}]" />
+        <StatusBreakdownCard :title :rows="[{key,label,to?,counts:[{color,count,to?}]}]" />
         <BadgeState :label="text" color="bg-success|bg-warning|bg-error|bg-info" />   a state pill
         <RcCounterBadge :count="n" type="inactive" />    a count pill
-        <StatusSummaryCard :title :total :segments="[{color,percent}]"
-                           :rows="[{key,label,color,count,to?}]" />   a bar + rows of counts
-        <StatusBreakdownCard :title :rows="[{key,label,to?,counts:[{color,count,to?}]}]" />
+        <Tag>text</Tag>                                  a small tag (a registry, a label)
+        <LabelValue name="Version" :value="version" />   a label and its value
+        <SubtleLink :to="api.route('pod', name, namespace)">text</SubtleLink>   a link
+        <Loading mode="relative" />                      while loading
+        <Banner color="error|warning|info|success" :label="text" />   messages and empty states
+      Colours are only ever 'success', 'info', 'warning', 'error', 'disabled' (component props) or
+      Rancher's CSS variables - never #hex, rgb() or named colours.
     - Load data in mounted(); keep `loading` and `error` in data(); show <Loading> and a <Banner
       color="error"> for them. Re-load every 30 seconds with setInterval and clearInterval it in
       beforeUnmount(). Re-load when `cluster` changes (watch it).
-    - Style with Rancher's CSS variables so it fits light and dark themes: var(--body-text),
-      var(--muted), var(--border), var(--box-bg), var(--primary), var(--success), var(--warning),
-      var(--error), var(--info), var(--border-radius). Use simple flex/grid layouts; for bars use divs
-      with a width in %, not a chart library.
-    - Keep it under ~150 lines, readable, no comments needed.
+    - Custom CSS is for LAYOUT only (flex/grid, gaps, margins), a few lines, using Rancher's variables
+      when needed: var(--body-text), var(--muted), var(--border), var(--border-radius). The components
+      carry the look; do not restyle them.
+    - Keep it under ~120 lines, readable, no comments needed.
 
     ## EXAMPLE (shape only)
       <template>
-        <div class="w">
-          <p v-if="!cluster" class="hint">Pick a cluster in the widget's settings.</p>
+        <div>
+          <Banner v-if="!cluster" color="info" label="Pick a cluster in the widget's settings." />
           <Loading v-else-if="loading" mode="relative" />
           <Banner v-else-if="error" color="error" :label="error" />
           <Card v-else :title="'Pods restarting most'">
-            <div v-for="p in top" :key="p.id" class="row">
-              <SubtleLink :to="api.route('pod', p.name, p.namespace)">{{ p.name }}</SubtleLink>
-              <RcCounterBadge :count="p.restarts" type="inactive" />
-            </div>
+            <SortableTable :rows="rows" :headers="headers" key-field="id" default-sort-by="restarts"
+                           :search="false" :table-actions="false" :row-actions="false" :paging="true" :rows-per-page="5" />
           </Card>
         </div>
       </template>
       <script>
       export default {
         props: ['cluster', 'api', 'title'],
-        data() { return { loading: true, error: '', top: [], timer: null }; },
+        data() {
+          return {
+            loading: true, error: '', rows: [], timer: null,
+            headers: [
+              { name: 'name', label: 'Pod', value: 'name', sort: ['name'] },
+              { name: 'namespace', label: 'Namespace', value: 'namespace', sort: ['namespace'] },
+              { name: 'restarts', label: 'Restarts', value: 'restarts', sort: ['restarts:desc', 'name'] },
+            ],
+          };
+        },
         watch: { cluster() { this.load(); } },
         mounted() { this.load(); this.timer = setInterval(this.load, 30000); },
         beforeUnmount() { clearInterval(this.timer); },
@@ -104,9 +133,9 @@ spec:
             if (!this.cluster) { this.loading = false; return; }
             try {
               const pods = await this.api.list('pod');
-              this.top = pods.map((p) => ({ id: p.id, name: p.metadata.name, namespace: p.metadata.namespace,
+              this.rows = pods.map((p) => ({ id: p.id, name: p.metadata.name, namespace: p.metadata.namespace,
                 restarts: (p.status?.containerStatuses || []).reduce((n, c) => n + (c.restartCount || 0), 0) }))
-                .sort((a, b) => b.restarts - a.restarts).slice(0, 5);
+                .sort((a, b) => b.restarts - a.restarts).slice(0, 20);
               this.error = '';
             } catch (e) { this.error = e.message || String(e); }
             this.loading = false;
@@ -114,10 +143,6 @@ spec:
         },
       };
       </script>
-      <style scoped>
-      .row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border); }
-      .hint { color: var(--muted); }
-      </style>
 
     ## YOUR ANSWER
     After creating the ConfigMap, reply in 2-3 short lines: the widget's name, what it shows, and

@@ -13,6 +13,14 @@ import StatusBreakdownCard from '@shell/components/Resource/Detail/Card/StatusBr
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
 import RcCounterBadge from '@components/Pill/RcCounterBadge';
+import SortableTable from '@shell/components/SortableTable/index.vue';
+import PercentageBar from '@shell/components/PercentageBar.vue';
+import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
+import CountGauge from '@shell/components/CountGauge.vue';
+import StatusBar from '@shell/components/Resource/Detail/StatusBar.vue';
+import SimpleBox from '@shell/components/SimpleBox.vue';
+import LabelValue from '@shell/components/LabelValue.vue';
+import Tag from '@shell/components/Tag.vue';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import type { StateColor } from '@shell/utils/style';
@@ -23,6 +31,7 @@ import { fetchClusterCounts, fetchStateSummaries } from '../../templating/widget
 import { countsFromSummaries } from '../../templating/status-cards';
 import { widgetHash } from '../../templating/widget-hash';
 import type { CompiledWidget } from '../../templating/widget-compiler';
+import type { GeneratedComponentName } from '../../templating/widget-review';
 import type { WidgetSpec } from '../../templating/types';
 
 // A WIDGET LIZ WROTE — a Vue component from a ConfigMap of its own (see generatedWidgets), compiled in
@@ -41,9 +50,29 @@ const store = useStore();
 const { t } = useI18n(store);
 const { cluster } = useWidgetCluster(() => props.widget);
 
-/** The components a generated widget can draw with, by the names it uses in its template. */
-const COMPONENTS: Record<string, Component> = {
-  Loading, SubtleLink, Card, StatusSummaryCard, StatusBreakdownCard, BadgeState, Banner, RcCounterBadge
+/**
+ * The components a generated widget can draw with, by the names it uses in its template - Rancher's
+ * own, so what Liz writes looks and behaves like the rest of the dashboard. Keyed by the review's list
+ * (see widget-review), so the two cannot drift apart. The Widget Builder agent is told to use these
+ * for anything they cover, and the approval page says when a widget built something by hand instead.
+ */
+const COMPONENTS: Record<GeneratedComponentName, Component> = {
+  Loading,
+  SubtleLink,
+  Card,
+  SimpleBox,
+  Banner,
+  BadgeState,
+  Tag,
+  RcCounterBadge,
+  LabelValue,
+  SortableTable,
+  StatusSummaryCard,
+  StatusBreakdownCard,
+  StatusBar,
+  PercentageBar,
+  ConsumptionGauge,
+  CountGauge,
 };
 
 const source = computed(() => generatedWidgets(store.getters).find((w) => w.name === props.widget.component) || null);

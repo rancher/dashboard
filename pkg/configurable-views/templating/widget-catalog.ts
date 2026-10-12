@@ -45,7 +45,8 @@ export function generatedEntries(widgets: { name: string; displayName: string; d
     label:    w.displayName,
     desc:     w.description,
     icon:     'table',
-    span:     6,
+    // Full width: a widget Liz writes is often a table, which needs the room. Resized like any other.
+    span:     12,
     spec:     {
       kind: WIDGET_GENERATED, title: '', component: w.name
     },

@@ -9,6 +9,7 @@ import {
   generatedWidgets, widgetApprovals, setWidgetApproval, deleteGeneratedWidget, fetchTemplatingConfigMaps
 } from '../templating/template-engine';
 import { widgetHash } from '../templating/widget-hash';
+import { reviewWidget } from '../templating/widget-review';
 
 // The widgets Liz wrote, and the gate in front of them: an admin reads each one's code and approves
 // it. Approving records the hash of the code as it is, so a widget runs only as long as its code is
@@ -19,6 +20,10 @@ const { t } = useI18n(store);
 const shell = useShell();
 
 const widgets = computed(() => generatedWidgets(store.getters));
+
+// What a reviewer should know before approving: the Rancher components each one draws with, and
+// what it built by hand or reached for outside what it is given
+const reviews = computed(() => Object.fromEntries(widgets.value.map((w) => [w.name, reviewWidget(w.source)])));
 const approvals = computed(() => widgetApprovals(store.getters));
 
 // Each widget's code, hashed - what an approval is compared with
@@ -110,6 +115,32 @@ const remove = (name: string) => run(name, () => deleteGeneratedWidget(store, na
         {{ w.description }}
       </p>
 
+      <div class="gwa__review">
+        <span class="text-muted">{{ t('configurableViews.generatedAdmin.uses') }}</span>
+        <span
+          v-for="c in reviews[w.name].components"
+          :key="c"
+          class="gwa__component"
+        >{{ c }}</span>
+        <span
+          v-if="!reviews[w.name].components.length"
+          class="text-muted"
+        >{{ t('configurableViews.generatedAdmin.usesNone') }}</span>
+      </div>
+      <ul
+        v-if="reviews[w.name].findings.length"
+        class="gwa__findings"
+        :data-testid="`generated-widget-findings-${ w.name }`"
+      >
+        <li
+          v-for="f in reviews[w.name].findings"
+          :key="f"
+        >
+          <i class="icon icon-warning" />
+          {{ t(`configurableViews.generatedAdmin.finding.${ f }`, { names: reviews[w.name].unknown.join(', ') }) }}
+        </li>
+      </ul>
+
       <div class="gwa__actions">
         <button
           class="btn btn-sm role-secondary"
@@ -178,6 +209,34 @@ const remove = (name: string) => run(name, () => deleteGeneratedWidget(store, na
 
   &__desc {
     margin: 8px 0 0;
+  }
+
+  &__review {
+    align-items: center;
+    display:     flex;
+    flex-wrap:   wrap;
+    gap:         6px;
+    margin-top:  10px;
+  }
+
+  &__component {
+    background:    var(--body-bg);
+    border:        1px solid var(--border);
+    border-radius: var(--border-radius);
+    font-family:   monospace;
+    font-size:     12px;
+    padding:       1px 6px;
+  }
+
+  &__findings {
+    color:      var(--warning);
+    list-style: none;
+    margin:     10px 0 0;
+    padding:    0;
+
+    li {
+      margin: 2px 0;
+    }
   }
 
   &__actions {

@@ -185,6 +185,16 @@ configurableViews:
       pending: Waiting for approval
       approved: Approved
       changed: Changed since approved
+    uses: "Draws with:"
+    usesNone: none of Rancher’s components
+    finding:
+      unknownComponent: "Uses components it is not given ({names}) - they will not draw."
+      rawTable: Builds its own table - SortableTable is Rancher’s.
+      handBar: Draws its own bars - PercentageBar, StatusBar or a gauge are Rancher’s.
+      hardColour: Hard-codes colours - Rancher’s colour variables follow the theme.
+      muchCss: Has a lot of its own CSS - Rancher’s components should carry the look.
+      outsideApi: Reaches outside the api it is given (store, router, network or browser storage).
+      imports: Imports something other than vue - it will not run.
   generated:
     missing: The widget “{name}” is not there any more.
     pending: “{name}” was written by Liz and is waiting for an admin to approve its code (Configurable Views → Settings).
