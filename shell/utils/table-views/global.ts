@@ -8,8 +8,8 @@ import type { TableViewSaved } from '@shell/types/table-views';
 export const ALL_TAB_KEY = 'all';
 
 export interface TableConfigurationSpec {
-  /** PAGE: a page's views, default and tab place, one per page. VIEW: one view adding to a page */
-  type: 'PAGE' | 'VIEW';
+  /** Page: a page's views, default and tab place, one per page. View: one view adding to a page */
+  type: 'Page' | 'View';
   /** A resource type, eg `pod`, or a page keeping views of its own, eg `home` */
   page: string;
   view?: TableViewSaved;
@@ -34,9 +34,9 @@ export interface GlobalTableView {
 
 export interface GlobalTableViews {
   views: GlobalTableView[];
-  /** The page's default, from its PAGE resource */
+  /** The page's default, from its Page resource */
   defaultViewId: string | null;
-  /** Where the table's own tab sits among the PAGE resource's views */
+  /** Where the table's own tab sits among the Page resource's views */
   allIndex: number;
 }
 
@@ -53,13 +53,13 @@ const nameOf = (config: TableConfiguration) => config.metadata?.name || '';
 const byAge = (a: TableConfiguration, b: TableConfiguration) => createdOf(a).localeCompare(createdOf(b)) || nameOf(a).localeCompare(nameOf(b));
 
 /**
- * A page's shared views: its PAGE resource's, in their order, then each VIEW resource's. Only one
- * PAGE resource counts, the oldest; a view id seen twice keeps its first
+ * A page's shared views: its Page resource's, in their order, then each View resource's. Only one
+ * Page resource counts, the oldest; a view id seen twice keeps its first
  */
 export function globalViewsFor(configs: TableConfiguration[] | null | undefined, pageKey: string): GlobalTableViews {
   const forPage = (configs || []).filter((config) => config?.spec?.page === pageKey);
-  const pageConfig = forPage.filter((config) => config.spec?.type === 'PAGE').sort(byAge)[0];
-  const viewConfigs = forPage.filter((config) => config.spec?.type === 'VIEW' && config.spec.view?.id).sort(byAge);
+  const pageConfig = forPage.filter((config) => config.spec?.type === 'Page').sort(byAge)[0];
+  const viewConfigs = forPage.filter((config) => config.spec?.type === 'View' && config.spec.view?.id).sort(byAge);
 
   const views: GlobalTableView[] = [];
   const seen = new Set<string>();
@@ -181,7 +181,7 @@ export function defaultViewIdFor(personalDefault: string | null | undefined, glo
   return global.defaultViewId && ids.includes(global.defaultViewId) ? global.defaultViewId : null;
 }
 
-/** A resource name for a VIEW resource: lower case letters, digits and dashes, kept short */
+/** A resource name for a View resource: lower case letters, digits and dashes, kept short */
 export function viewConfigName(pageKey: string, id: string): string {
   const clean = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 

@@ -693,10 +693,10 @@ describe('TableViewTabs', () => {
     } = {}) {
       const all = configs || [
         config('page', {
-          type: 'PAGE', page: 'test', views: [pageView], defaultViewId: 'pv'
+          type: 'Page', page: 'test', views: [pageView], defaultViewId: 'pv'
         }, admin),
         config('single', {
-          type: 'VIEW', page: 'test', view: single
+          type: 'View', page: 'test', view: single
         }, admin),
       ];
       const saves: { spec: Record<string, unknown> }[] = [];
@@ -805,16 +805,16 @@ describe('TableViewTabs', () => {
     it('should not move the list when a shared default is set after the shared views were in', async() => {
       const { wrapper, store } = createWrapper({
         configs: [config('single', {
-          type: 'VIEW', page: 'test', view: single
+          type: 'View', page: 'test', view: single
         }, true)]
       });
 
       store.commit('configs', [
         config('page', {
-          type: 'PAGE', page: 'test', views: [pageView], defaultViewId: 'pv'
+          type: 'Page', page: 'test', views: [pageView], defaultViewId: 'pv'
         }, true),
         config('single', {
-          type: 'VIEW', page: 'test', view: single
+          type: 'View', page: 'test', view: single
         }, true),
       ]);
       await wrapper.vm.$nextTick();
@@ -867,7 +867,7 @@ describe('TableViewTabs', () => {
         });
       });
 
-      it('should save changes over a view of the PAGE resource in its list', async() => {
+      it('should save changes over a view of the Page resource in its list', async() => {
         const { vm, saves } = createWrapper({ view: { ...EMPTY, query: 'name:changed' }, initialViewId: 'pv' });
 
         vm.saveChanges(tabFor(pageView, true));
@@ -886,7 +886,7 @@ describe('TableViewTabs', () => {
           type:     'ui.cattle.io.tableconfiguration',
           metadata: { name: 'view-test-own' },
           spec:     {
-            type: 'VIEW',
+            type: 'View',
             page: 'test',
             view: {
               id: 'own', name: 'Mine', query: 'name:mine', labelColumns: []
@@ -905,7 +905,7 @@ describe('TableViewTabs', () => {
         expect(fromError).toHaveBeenCalledWith(expect.objectContaining({ err: expect.any(Error) }));
       });
 
-      it('should offer to put a deleted VIEW resource back, and create it again under its id', async() => {
+      it('should offer to put a deleted View resource back, and create it again under its id', async() => {
         const { vm, created, growl } = createWrapper();
 
         await vm.deleteView(single);
@@ -913,11 +913,11 @@ describe('TableViewTabs', () => {
 
         expect(created[0]).toStrictEqual(expect.objectContaining({
           metadata: { name: 'view-test-sv' },
-          spec:     expect.objectContaining({ type: 'VIEW', view: expect.objectContaining({ id: 'sv' }) })
+          spec:     expect.objectContaining({ type: 'View', view: expect.objectContaining({ id: 'sv' }) })
         }));
       });
 
-      it('should put a view of the PAGE resource back in its place, with the default it was', async() => {
+      it('should put a view of the Page resource back in its place, with the default it was', async() => {
         const {
           vm, saves, growl, store
         } = createWrapper({ defaultViewId: 'all' });
@@ -927,10 +927,10 @@ describe('TableViewTabs', () => {
         // The cluster's answer: the page as saved without it
         store.commit('configs', [
           config('page', {
-            type: 'PAGE', page: 'test', views: []
+            type: 'Page', page: 'test', views: []
           }, true),
           config('single', {
-            type: 'VIEW', page: 'test', view: single
+            type: 'View', page: 'test', view: single
           }, true),
         ]);
         await growl.mock.calls[0][0].action.run();
@@ -945,7 +945,7 @@ describe('TableViewTabs', () => {
         }));
       });
 
-      it('should not offer the undo to a user who can delete a VIEW resource but not create one', async() => {
+      it('should not offer the undo to a user who can delete a View resource but not create one', async() => {
         const { vm, growl, configs } = createWrapper({ canCreate: false });
 
         await vm.deleteView(single);

@@ -181,7 +181,7 @@ describe('ResourceTable', () => {
       const pageConfig = {
         metadata: { name: 'page', creationTimestamp: '2026-01-01T00:00:00Z' },
         spec:     {
-          type:  'PAGE',
+          type:  'Page',
           page:  'pod',
           views: [{
             id: 'team', name: 'Team', query: 'state:error'

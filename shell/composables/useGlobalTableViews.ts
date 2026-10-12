@@ -48,11 +48,11 @@ export function useGlobalTableViews(resourceType: () => string, page: () => stri
 
   const canEdit = (id?: string | null) => !!entryFor(id)?.config.canUpdate;
 
-  /** A PAGE resource's view is taken out of its list, so that is an edit of the resource */
+  /** A Page resource's view is taken out of its list, so that is an edit of the resource */
   const canRemove = (id?: string | null) => {
     const config = entryFor(id)?.config;
 
-    return !!(config?.spec?.type === 'PAGE' ? config.canUpdate : config?.canDelete);
+    return !!(config?.spec?.type === 'Page' ? config.canUpdate : config?.canDelete);
   };
 
   const failed = (err: unknown) => {
@@ -78,7 +78,7 @@ export function useGlobalTableViews(resourceType: () => string, page: () => stri
         type:     TYPE,
         metadata: { name: viewConfigName(pageKey.value, view.id) },
         spec:     {
-          type: 'VIEW', page: pageKey.value, view: compactView(view)
+          type: 'View', page: pageKey.value, view: compactView(view)
         },
       });
 
@@ -94,7 +94,7 @@ export function useGlobalTableViews(resourceType: () => string, page: () => stri
 
   /**
    * Saves changes to a shared view, in its own resource or in its page's list. `edit` changes the
-   * spec instead, for a PAGE resource named by `pageName` that may no longer list the view
+   * spec instead, for a Page resource named by `pageName` that may no longer list the view
    */
   const update = async(
     id: string,
@@ -114,7 +114,7 @@ export function useGlobalTableViews(resourceType: () => string, page: () => stri
 
       if (edit) {
         edit(spec);
-      } else if (spec.type === 'PAGE') {
+      } else if (spec.type === 'Page') {
         spec.views = (spec.views || []).map((view) => (view.id === id ? compactView({ ...view, ...changes }) : view));
       } else {
         spec.view = compactView({ ...(spec.view as TableViewSaved), ...changes });
@@ -132,7 +132,7 @@ export function useGlobalTableViews(resourceType: () => string, page: () => stri
 
   /**
    * Takes a shared view away from everyone: its resource goes, or its entry in its page's list.
-   * `undo` puts it back where it was, when the user may: a VIEW resource is created again, which
+   * `undo` puts it back where it was, when the user may: a View resource is created again, which
    * takes the right to create them
    */
   const remove = async(id: string): Promise<{ ok: boolean, undo?: () => Promise<boolean> }> => {
@@ -145,7 +145,7 @@ export function useGlobalTableViews(resourceType: () => string, page: () => stri
     const view = entry.view;
 
     try {
-      if (entry.config.spec?.type !== 'PAGE') {
+      if (entry.config.spec?.type !== 'Page') {
         await (entry.config as SavableConfig).remove();
 
         return { ok: true, undo: canShare.value ? () => share(view) : undefined };

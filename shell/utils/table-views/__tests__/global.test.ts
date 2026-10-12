@@ -9,14 +9,14 @@ const view = (id: string, name = id): TableViewSaved => ({ id, name });
 const pageConfig = (name: string, page: string, views: TableViewSaved[], extra: Record<string, unknown> = {}, created = '2026-01-01T00:00:00Z'): TableConfiguration => ({
   metadata: { name, creationTimestamp: created },
   spec:     {
-    type: 'PAGE', page, views, ...extra
+    type: 'Page', page, views, ...extra
   },
 });
 
 const viewConfig = (name: string, page: string, saved: TableViewSaved, created = '2026-01-01T00:00:00Z'): TableConfiguration => ({
   metadata: { name, creationTimestamp: created },
   spec:     {
-    type: 'VIEW', page, view: saved
+    type: 'View', page, view: saved
   },
 });
 
@@ -39,7 +39,7 @@ describe('shared table views', () => {
       expect(globalViewsFor(undefined, 'pod')).toStrictEqual(none);
     });
 
-    it('should take the PAGE resource\'s views in order, then each VIEW resource\'s, oldest first', () => {
+    it('should take the Page resource\'s views in order, then each View resource\'s, oldest first', () => {
       const shared = globalViewsFor([
         viewConfig('late', 'pod', view('v2'), '2026-03-01T00:00:00Z'),
         viewConfig('early', 'pod', view('v1'), '2026-02-01T00:00:00Z'),
@@ -55,7 +55,7 @@ describe('shared table views', () => {
       expect(ids(shared)).toStrictEqual(['v1']);
     });
 
-    it('should read only the oldest PAGE resource of a page', () => {
+    it('should read only the oldest Page resource of a page', () => {
       const shared = globalViewsFor([
         pageConfig('newer', 'pod', [view('b')], {}, '2026-02-01T00:00:00Z'),
         pageConfig('older', 'pod', [view('a')], {}, '2026-01-01T00:00:00Z'),
@@ -74,7 +74,7 @@ describe('shared table views', () => {
       expect(shared.views.map((entry) => entry.view.name)).toStrictEqual(['From the page']);
     });
 
-    it('should read the PAGE resource\'s default and tab place, ignoring a default it does not hold', () => {
+    it('should read the Page resource\'s default and tab place, ignoring a default it does not hold', () => {
       expect(globalViewsFor([pageConfig('page', 'pod', [view('a'), view('b')], { defaultViewId: 'b', allIndex: 1 })], 'pod')).toMatchObject({ defaultViewId: 'b', allIndex: 1 });
       expect(globalViewsFor([pageConfig('page', 'pod', [view('a')], { defaultViewId: 'gone', allIndex: 9 })], 'pod')).toMatchObject({ defaultViewId: null, allIndex: 1 });
     });
