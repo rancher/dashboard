@@ -830,6 +830,7 @@ export default {
     :external-pagination-result="externalPaginationResult"
     :view-filters="appliedViewFilters"
     :queried="showTableViews && viewTerms.length > 0"
+    :view-query="showTableViews ? settledQuery : null"
     :aria-busy="viewBusy ? 'true' : undefined"
     :mandatory-sort="_mandatorySort"
     @clickedActionButton="handleActionButtonClick"

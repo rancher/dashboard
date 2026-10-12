@@ -1,7 +1,8 @@
 import { parse } from '@shell/utils/url';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { insertAt } from '@shell/utils/array';
-import { CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME, CATALOG as CATALOG_TYPE } from '@shell/config/types';
+import { CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME, CATALOG as CATALOG_TYPE, MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { _CREATE } from '@shell/config/query-params';
 import { formatDuration } from '@shell/utils/duration';
@@ -115,7 +116,31 @@ export default class ClusterRepo extends SteveModel {
     return hasExplicitOciUrl || hasInsecurePlainHttp;
   }
 
+  /**
+   * True when Rancher is running in an airgapped install, detected via the
+   * `system-catalog` setting which is `bundled` in airgap and `external` otherwise.
+   */
+  get isAirgap() {
+    return this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.SYSTEM_CATALOG)?.value === 'bundled';
+  }
+
   get isRancherSource() {
+    return this.isRancherHost || this.isAirgapMirror;
+  }
+
+  /**
+   * In airgap the repos are mirrored internally so their URLs no longer point
+   * at *.rancher.io. Fall back to the well-known repo names in that case only,
+   * so a third-party repo can't spoof a Rancher repo in a connected install.
+   *
+   * Anyone can create a repo with these names, so charts from it should also
+   * be checked for the matching certified annotation (see store/catalog).
+   */
+  get isAirgapMirror() {
+    return this.isAirgap && !this.isRancherHost && ['rancher-charts', 'rancher-partner-charts'].includes(this.metadata?.name);
+  }
+
+  get isRancherHost() {
     let parsed;
 
     if ( this.spec?.url && this.spec?.gitRepo ) {
@@ -152,22 +177,6 @@ export default class ClusterRepo extends SteveModel {
 
   get isPartner() {
     return this.isRancherSource && this.metadata.name === 'rancher-partner-charts';
-  }
-
-  get color() {
-    if ( this.isRancher ) {
-      return 'rancher';
-    } else if ( this.isPartner ) {
-      return 'partner';
-    } else {
-      const color = parseInt(this.metadata?.annotations?.[CATALOG.COLOR], 10);
-
-      if ( isNaN(color) || color <= 0 || color > 8 ) {
-        return null;
-      }
-
-      return `color${ color }`;
-    }
   }
 
   get canLoad() {

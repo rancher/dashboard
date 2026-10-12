@@ -71,6 +71,21 @@ export default {
     // Allow to enable user search just for these providers
     isSearchAllowed() {
       return this.type === OPEN_LDAP || this.type === FREE_IPA;
+    },
+
+    // LDAP and AD build principal IDs from the identifier attributes, so they are fixed once the provider
+    // is enabled. SAML providers get their principal IDs from the assertion, and the LDAP search attributes
+    // only have to match it, so they stay editable.
+    idAttributeLocked() {
+      return !this.isSamlProvider && !this.isCreate;
+    },
+
+    idAttributeTooltip() {
+      if (this.isSamlProvider) {
+        return this.t('authConfig.ldap.idAttribute.samlTip');
+      }
+
+      return this.idAttributeLocked ? this.t('authConfig.ldap.idAttribute.locked') : this.t('authConfig.ldap.idAttribute.tip');
     }
   },
 
@@ -111,6 +126,7 @@ export default {
         <LabeledInput
           v-model:value="hostname"
           name="hostname"
+          data-testid="ldap-hostname"
           required
           :mode="mode"
           :hoover-tooltip="true"
@@ -123,6 +139,7 @@ export default {
         <LabeledInput
           :value="model.port"
           name="port"
+          data-testid="ldap-port"
           type="number"
           required
           :min="0"
@@ -189,6 +206,7 @@ export default {
         <LabeledInput
           v-model:value="model.serviceAccountUsername"
           name="serviceAccountUsername"
+          data-testid="ldap-service-account-username"
           required
           :mode="mode"
           :label="t('authConfig.ldap.serviceAccountDN')"
@@ -202,6 +220,7 @@ export default {
         <LabeledInput
           v-model:value="model.serviceAccountDistinguishedName"
           name="serviceAccountDistinguishedName"
+          data-testid="ldap-service-account-dn"
           required
           :mode="mode"
           :label="t('authConfig.ldap.serviceAccountDN')"
@@ -211,6 +230,7 @@ export default {
         <LabeledInput
           v-model:value="model.serviceAccountPassword"
           name="serviceAccountPassword"
+          data-testid="ldap-service-account-password"
           required
           type="password"
           :mode="mode"
@@ -255,6 +275,7 @@ export default {
         <LabeledInput
           v-model:value="model.userSearchBase"
           name="userSearchBase"
+          data-testid="ldap-user-search-base"
           required
           :mode="mode"
           :label="t('authConfig.ldap.userSearchBase.label')"
@@ -299,6 +320,14 @@ export default {
           :label="t('authConfig.ldap.loginAttribute')"
         />
         <LabeledInput
+          v-model:value="model.userIDAttribute"
+          data-testid="ldap-user-id-attribute"
+          :mode="mode"
+          :disabled="idAttributeLocked"
+          :label="t('authConfig.ldap.userIDAttribute')"
+          :tooltip="idAttributeTooltip"
+        />
+        <LabeledInput
           v-model:value="model.userMemberAttribute"
           :mode="mode"
           :label="t('authConfig.ldap.userMemberAttribute')"
@@ -341,6 +370,14 @@ export default {
           v-model:value="model.groupNameAttribute"
           :mode="mode"
           :label="t('authConfig.ldap.nameAttribute')"
+        />
+        <LabeledInput
+          v-model:value="model.groupIDAttribute"
+          data-testid="ldap-group-id-attribute"
+          :mode="mode"
+          :disabled="idAttributeLocked"
+          :label="t('authConfig.ldap.groupIDAttribute')"
+          :tooltip="idAttributeTooltip"
         />
         <LabeledInput
           v-model:value="model.groupMemberUserAttribute"

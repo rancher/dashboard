@@ -743,6 +743,7 @@ authConfig:
     cert: Certificate
     disabledStatusBitmask: Disabled Status Bitmask
     groupDNAttribute: Group DN Attribute
+    groupIDAttribute: Group Identifier Attribute
     groupMemberMappingAttribute: Group Member Mapping Attribute
     groupMemberUserAttribute: Group Member User Attribute
     groupSearchBase:
@@ -752,6 +753,10 @@ authConfig:
       label: Hostname/IP
       placeholder: eg server1,server2
       hint: Multiple servers can be specified as a comma separated list
+    idAttribute:
+      tip: Attribute whose value identifies the user or group in Rancher instead of its Distinguished Name, so that moving or renaming the entry in the directory keeps its permissions. Leave empty to use the Distinguished Name.
+      locked: Cannot be changed while the provider is enabled. Disable the provider to change it.
+      samlTip: Attribute whose value matches what the identity provider sends in the UID Field for users or the Groups Field for groups, so that search results match logged-in principals. Leave empty to use the Login Attribute for users and the Group DN Attribute for groups.
     loginAttribute: Login Attribute
     nameAttribute: Name Attribute
     nestedGroupMembership:
@@ -785,6 +790,7 @@ authConfig:
       tip: When enabled, Rancher will use the service account instead of the user account to search for users and groups.
     tls: TLS
     userEnabledAttribute: User Enabled Attribute
+    userIDAttribute: User Identifier Attribute
     userMemberAttribute: User Member Attribute
     userLoginFilter: User Login Filter
     userSearchBase:
@@ -1330,6 +1336,7 @@ catalog:
     windowsIncompatible: Linux only
     versionWindowsIncompatible: Linux only version
     header: Charts
+    cannotListApps: You do not have permission to list installed apps, which is required to view charts
     noCharts:
       title: No charts to show
       message: '<b>Tips:</b> undo the last filter you applied or <resetAllFilters>clear all filters</resetAllFilters>, and ensure you have the right <repositoriesUrl>repositories</repositoriesUrl> in place.'
@@ -3007,10 +3014,29 @@ copyToClipboard:
   error: Error Copying
 
 codeMirror:
+  # Shown by CodeMirror 5 editors in extensions built with an older shell
   escapeText: Press Shift+Escape to blur from editor
+  leaveEditor: Press Escape, then Tab to leave the editor
+  foldLine: Fold line
+  unfoldLine: Unfold line
+  search:
+    find: Find
+    next: Next
+    previous: Previous
+    all: Select all
+    matchCase: Match case
+    regexp: Regular expression
+    byWord: Whole word
+    replaceField: Replace
+    replace: Replace
+    replaceAll: Replace all
+    close: Close search
+    clear: Clear search
+    count: "{current} of {total}"
   keymap:
     tooltip: Key mapping preference.
     indicatorToolip: "Key mapping: {name}"
+    hideIndicator: "Hide key mapping: {name}"
 
 cruResource:
   backToForm: Back to Form
@@ -3780,6 +3806,12 @@ fleet:
     timeout: Workspace creation timeout. It's possible the workspace was created. We suggest checking the workspace page before trying to create another.
     remove:
       warning: "Deleting a Workspace also deletes all resources in the Workspace. This includes GitRepos but also Clusters.<br><br>Deleted Clusters will be removed from {vendor}, and if {vendor} manages the life-cycle of the Cluster it's underlying infrastructure will also be deleted."
+    moved:
+      removed: "Changing the workspace clears previous selections. The following items are not available in the {workspace} workspace and have been deselected: {names}."
+      cluster: "cluster {name}"
+      clusterGroup: "cluster group {name}"
+      secret: "secret {name}"
+      configMap: "config map {name}"
   restrictions:
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add
@@ -5183,7 +5215,7 @@ nameNsDescription:
     placeholder: ''
   workspace:
     label: Workspace
-    placeholder:
+    placeholder: Select a workspace
   description:
     label: Description
     placeholder: Any text you want that better describes this resource
@@ -5851,6 +5883,7 @@ plugins:
     kubeVersion: Unable to load Extension. The version installed is not compatible with the current Rancher kubernetes version
     load: An error occurred loading the code for this Extension
     developerPkg: This Extension has been loaded internally, so we won't load the external version
+    extendedProductMissing: This Extension adds pages to a product that is not available. Install the Extension that provides that product, or check that it loaded without errors
   success:
     title: Loaded extension {name}
     message: Extension was loaded successfully
@@ -9402,6 +9435,7 @@ advancedSettings:
     'ui-dashboard-index': 'HTML index location for the {appName} UI.'
     'ui-offline-preferred': 'Controls whether UI assets are served locally by the server container or from the remote URL defined in the ui-dashboard-index setting. The `Dynamic` option will use local assets in production builds of {appName}.'
     'ui-pl': 'Private-Label company name.'
+    'ui-appco-enabled': 'Determines the visibility of SUSE Application Collection features, specifically the option to create App Bundles in Continuous Delivery and the preconfigured option to create an Application Collection repository.'
     'auth-user-info-max-age-seconds': 'The maximum age of a users auth tokens before an auth provider group membership sync will be performed.'
     'auth-user-info-resync-cron': 'Default cron schedule for resyncing auth provider group memberships.'
     'cluster-template-enforcement': 'Non-admins will be restricted to launching clusters via preapproved RKE Templates only.'
@@ -9446,6 +9480,15 @@ advancedSettings:
     'agent-tls-mode':
       strict: 'Strict'
       system-store: 'System Store'
+    'ui-appco-enabled':
+      'true': 'True'
+      'false': 'False'
+      none: None (default)
+  enumDescription:
+    'ui-appco-enabled':
+      'true': Always shows these features.
+      'false': Always hides these features. Useful for air-gapped installations that cannot reach the Application Collection registry.
+      none: Inherits behavior from the system-catalog setting. Features are hidden if the catalog is “bundled” (serving only bundled charts) and shown otherwise.
   provisioning:
     header: Cluster Provisioning
 
@@ -9880,6 +9923,15 @@ component:
           rows:
             conditions: Conditions
             events: Events
+        statusBreakdownCard:
+          ariaLabel:
+            count: '{count} {label}, {color}'
+          color:
+            error: Error
+            warning: Warning
+            info: Info
+            success: Success
+            disabled: Disabled
         extrasCard:
           title: Extras
           message: 'Consider installing additional <extensionsLink>extensions</extensionsLink> and / or <clusterToolsLink>cluster tools</clusterToolsLink> to enrich your Rancher experience.'

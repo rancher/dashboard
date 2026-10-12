@@ -20,6 +20,10 @@ export default {
     };
   },
 
+  created() {
+    this.dialogs = new Map();
+  },
+
   computed: {
     ...mapState('action-menu', ['showModal', 'modalData']),
     resources() {
@@ -55,7 +59,15 @@ export default {
     },
     component() {
       // Looks for a dialog component by looking up in plugins and @shell/dialog/${name}.
-      return this.$store.getters['type-map/importDialog'](this.modalData?.component);
+      // importDialog returns a new async component on every call, so resolve each dialog once;
+      // otherwise any re-evaluation remounts the open dialog.
+      const name = this.modalData?.component;
+
+      if (!this.dialogs.has(name)) {
+        this.dialogs.set(name, this.$store.getters['type-map/importDialog'](name));
+      }
+
+      return this.dialogs.get(name);
     },
     cssProps() {
       // this computed property lets us generate a scss var that we can use in the style

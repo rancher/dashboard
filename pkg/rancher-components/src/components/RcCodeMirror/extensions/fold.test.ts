@@ -380,9 +380,17 @@ describe('fold extensions', () => {
 
       expect(syntaxTreeAvailable(view.state, status.to)).toBe(false);
 
-      foldMatchingLines(view, /^status:\s*$/);
+      // The parse budget is measured with Date.now(). Freeze it so a slow runner cannot run out
+      // of budget and defer the fold to a timer.
+      jest.useFakeTimers();
+      try {
+        foldMatchingLines(view, /^status:\s*$/);
 
-      expect(folded(view)).toStrictEqual([{ from: status.to, to: view.state.doc.line(502).to }]);
+        expect(folded(view)).toStrictEqual([{ from: status.to, to: view.state.doc.line(502).to }]);
+      } finally {
+        jest.useRealTimers();
+        view.destroy();
+      }
     });
 
     it('should finish parsing a long document after the first parse times out', () => {

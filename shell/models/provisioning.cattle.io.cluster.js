@@ -387,7 +387,12 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isK3s() {
-    return this.mgmt?.isK3s;
+    if (this.mgmt) {
+      return this.mgmt.isK3s;
+    }
+
+    // No management cluster yet (e.g. the create flow), fall back to the selected kubernetes version
+    return (this.spec?.kubernetesVersion || '').includes('k3s');
   }
 
   get isRke2() {

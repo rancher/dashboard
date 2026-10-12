@@ -11,6 +11,16 @@ const namespaceRequest = {
 };
 
 jest.mock('vuex', () => ({ useStore: () => ({ dispatch: dispatchSpy }) }));
+
+/**
+ * Store for a user allowed to read the registration secret and resources
+ */
+const createStore = (schemaFor = jest.fn().mockReturnValue({})): any => ({
+  state:    {},
+  dispatch: dispatchSpy,
+  getters:  { 'management/schemaFor': schemaFor }
+});
+
 jest.mock('@shell/utils/download', () => ({ downloadFile: (...args: any) => downloadSpy(...args) }));
 
 /**
@@ -87,7 +97,7 @@ describe('registration composable', () => {
       dispatchSpy = jest.fn()
         .mockReturnValueOnce(Promise.resolve(secrets))
         .mockReturnValue(Promise.resolve(registrations));
-      const store = { state: {}, dispatch: dispatchSpy } as any;
+      const store = createStore();
       const {
         initRegistration, registrationCode, registration, registrationStatus
       } = usePrimeRegistration(store);
@@ -134,7 +144,7 @@ describe('registration composable', () => {
       dispatchSpy = jest.fn()
         .mockReturnValueOnce(Promise.resolve(secrets))
         .mockReturnValue(Promise.resolve(registrations));
-      const store = { state: {}, dispatch: dispatchSpy } as any;
+      const store = createStore();
       const { initRegistration, errors } = usePrimeRegistration(store);
 
       await initRegistration();
@@ -185,7 +195,7 @@ describe('registration composable', () => {
         .mockReturnValueOnce(Promise.resolve(createdSecret)) // createSecret
         .mockReturnValueOnce(Promise.resolve(secrets)) // poll findOfflineRequest
         .mockReturnValue(Promise.resolve(registrations));
-      const store = { state: {}, dispatch: dispatchSpy } as any;
+      const store = createStore();
       const { downloadOfflineRequest } = usePrimeRegistration(store);
 
       await downloadOfflineRequest(() => { });
@@ -212,7 +222,7 @@ describe('registration composable', () => {
         .mockReturnValueOnce(Promise.resolve([])) // deleteSecret → getSecret
         .mockReturnValueOnce(Promise.resolve(createdSecret)) // createSecret
         .mockReturnValue(Promise.resolve([])); // poll never finds offline-request
-      const store = { state: {}, dispatch: dispatchSpy } as any;
+      const store = createStore();
       const { downloadOfflineRequest, errors } = usePrimeRegistration(store);
       let resolved: boolean | undefined;
 
@@ -438,7 +448,7 @@ describe('registration composable', () => {
       dispatchSpy = jest.fn()
         .mockReturnValueOnce(Promise.resolve(secrets))
         .mockReturnValue(Promise.resolve(registrations));
-      const store = { state: {}, dispatch: dispatchSpy } as any;
+      const store = createStore();
       const { initRegistration, errors } = usePrimeRegistration(store);
 
       await initRegistration();
@@ -450,7 +460,7 @@ describe('registration composable', () => {
     describe('registering online', () => {
       it.skip('given no registration code', async() => {
         const expectation = 'registration.errors.missing-code';
-        const store = { state: {}, dispatch: dispatchSpy } as any;
+        const store = createStore();
         const { errors } = usePrimeRegistration(store);
 
         expect(errors.value[0]).toStrictEqual(expectation);
@@ -458,7 +468,7 @@ describe('registration composable', () => {
 
       it.skip('given a mismatched registration code', async() => {
         const expectation = 'registration.errors.mismatch-code';
-        const store = { state: {}, dispatch: dispatchSpy } as any;
+        const store = createStore();
         const { errors } = usePrimeRegistration(store);
 
         expect(errors.value[0]).toStrictEqual(expectation);
@@ -466,7 +476,7 @@ describe('registration composable', () => {
 
       it.skip('given no response', async() => {
         const expectation = 'registration.errors.timeout-registration';
-        const store = { state: {}, dispatch: dispatchSpy } as any;
+        const store = createStore();
         const { errors, registerOnline, registrationCode } = usePrimeRegistration(store);
 
         registrationCode.value = 'not a real code';
@@ -475,6 +485,118 @@ describe('registration composable', () => {
 
         expect(errors.value[0]).toStrictEqual(expectation);
       });
+    });
+  });
+
+  describe('when the user cannot read the registration', () => {
+    const forbidden = Object.assign(new Error('Forbidden'), { status: 403 });
+    const notFound = Object.assign(new Error('Not Found'), { status: 404 });
+    const registeredSecret = {
+      metadata: {
+        namespace: REGISTRATION_NAMESPACE,
+        name:      REGISTRATION_SECRET,
+        labels:    { [REGISTRATION_LABEL]: 'anything' }
+      },
+      data: { regCode: btoa('whatever') }
+    };
+
+    /**
+     * Route dispatched actions: find the secret by id, list secrets, list no registrations
+     */
+    const mockDispatch = (secrets: any[], findResult: () => Promise<any>) => {
+      dispatchSpy = jest.fn().mockImplementation((action: string, { type }: { type: string }) => {
+        if (action === 'management/find') {
+          return findResult();
+        }
+
+        return Promise.resolve(type === 'secret' ? secrets : []);
+      });
+    };
+
+    it.each([
+      ['secret', 'secret'],
+      ['registration', 'scc.cattle.io.registration'],
+    ])('should block the page given no %p schema', async(_, missingType) => {
+      mockDispatch([], () => Promise.resolve({}));
+      const schemaFor = jest.fn().mockImplementation((type: string) => type === missingType ? undefined : {});
+      const { initRegistration, canReadRegistration } = usePrimeRegistration(createStore(schemaFor));
+
+      await initRegistration();
+
+      expect(canReadRegistration.value).toStrictEqual(false);
+    });
+
+    it('should block the page given the secret cannot be read in the registration namespace', async() => {
+      mockDispatch([], () => Promise.reject(forbidden));
+      const { initRegistration, canReadRegistration } = usePrimeRegistration(createStore());
+
+      await initRegistration();
+
+      expect(canReadRegistration.value).toStrictEqual(false);
+    });
+
+    it('should look up the secret by id given it is not listed', async() => {
+      mockDispatch([], () => Promise.reject(forbidden));
+      const { initRegistration } = usePrimeRegistration(createStore());
+
+      await initRegistration();
+
+      expect(dispatchSpy).toHaveBeenCalledWith('management/find', {
+        type: 'secret',
+        id:   `${ REGISTRATION_NAMESPACE }/${ REGISTRATION_SECRET }`,
+        opt:  { force: true, watch: false }
+      });
+    });
+
+    it('should show the registration as unknown instead of unregistered', async() => {
+      mockDispatch([], () => Promise.reject(forbidden));
+      const { initRegistration, registration, registrationStatus } = usePrimeRegistration(createStore());
+
+      await initRegistration();
+
+      expect(registration.value.message).toStrictEqual('registration.list.table.badge.unknown');
+      expect(registrationStatus.value).toStrictEqual(null);
+    });
+
+    it('should display the missing permission banner', async() => {
+      mockDispatch([], () => Promise.reject(forbidden));
+      const { initRegistration, registrationBanner } = usePrimeRegistration(createStore());
+
+      await initRegistration();
+
+      expect(registrationBanner.value).toStrictEqual({
+        message: 'registration.banner.status.forbidden',
+        type:    'warning',
+      });
+    });
+
+    it('should not report registration errors', async() => {
+      mockDispatch([], () => Promise.reject(forbidden));
+      const { initRegistration, errors } = usePrimeRegistration(createStore());
+
+      await initRegistration();
+
+      expect(errors.value).toStrictEqual([]);
+    });
+
+    it('should allow the page given no registration secret exists', async() => {
+      mockDispatch([], () => Promise.reject(notFound));
+      const { initRegistration, canReadRegistration, registration } = usePrimeRegistration(createStore());
+
+      await initRegistration();
+
+      expect(canReadRegistration.value).toStrictEqual(true);
+      expect(registration.value.message).toStrictEqual('registration.list.table.badge.none');
+    });
+
+    it('should not look up the secret by id given it is listed', async() => {
+      mockDispatch([registeredSecret], () => Promise.reject(forbidden));
+      const { initRegistration, canReadRegistration } = usePrimeRegistration(createStore());
+
+      await initRegistration();
+
+      expect(canReadRegistration.value).toStrictEqual(true);
+      expect(dispatchSpy).not.toHaveBeenCalledWith('management/find', expect.objectContaining({ type: 'secret' }));
     });
   });
 });

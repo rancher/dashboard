@@ -170,10 +170,7 @@ export default {
   },
 
   created() {
-    if (!this.value[this.field]) {
-      this.value[this.field] = {};
-    }
-    const { podAffinity = {}, podAntiAffinity = {} } = this.value[this.field];
+    const { podAffinity = {}, podAntiAffinity = {} } = this.value[this.field] || {};
     const allAffinityTerms = [...(podAffinity.preferredDuringSchedulingIgnoredDuringExecution || []), ...(podAffinity.requiredDuringSchedulingIgnoredDuringExecution || [])].map((term) => {
       let out = clone(term);
 
@@ -249,6 +246,9 @@ export default {
         }
       });
 
+      if (!this.value[this.field]) {
+        this.value[this.field] = {};
+      }
       Object.assign(this.value[this.field], { podAffinity, podAntiAffinity });
       this.$emit('update', this.value);
     },

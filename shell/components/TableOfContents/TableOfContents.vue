@@ -27,7 +27,7 @@ const handleScrollTo = (entry, event) => {
           <button
             v-if="acc.scrollTo"
             type="button"
-            class="btn role-link accordion-link"
+            class="btn role-link accordion-link toc-parent-link"
             @click="handleScrollTo(acc, $event)"
           >
             {{ acc.label }}
@@ -43,7 +43,7 @@ const handleScrollTo = (entry, event) => {
                 <button
                   v-if="childAcc.scrollTo"
                   type="button"
-                  class="btn role-link accordion-link"
+                  class="btn role-link accordion-link toc-child-link"
                   @click="handleScrollTo(childAcc, $event)"
                 >
                   {{ childAcc.label }}
@@ -105,5 +105,9 @@ const handleScrollTo = (entry, event) => {
     overflow-wrap: anywhere;
     word-break: break-word;
     display: block;
+  }
+
+  .toc-parent-link {
+    font-weight: 700;
   }
 </style>

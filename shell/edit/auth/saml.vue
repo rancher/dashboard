@@ -324,6 +324,12 @@ export default {
                 <tr><td>{{ t('authConfig.ldap.serviceAccountDN') }}:</td><td>{{ model.openLdapConfig.serviceAccountDistinguishedName }}</td></tr>
                 <tr><td>{{ t('authConfig.ldap.userSearchBase.label') }}:</td><td>{{ model.openLdapConfig.userSearchBase }}</td></tr>
                 <tr><td>{{ t('authConfig.ldap.groupSearchBase.label') }}:</td><td>{{ model.openLdapConfig.groupSearchBase }}</td></tr>
+                <tr v-if="model.openLdapConfig.userIDAttribute">
+                  <td>{{ t('authConfig.ldap.userIDAttribute') }}:</td><td>{{ model.openLdapConfig.userIDAttribute }}</td>
+                </tr>
+                <tr v-if="model.openLdapConfig.groupIDAttribute">
+                  <td>{{ t('authConfig.ldap.groupIDAttribute') }}:</td><td>{{ model.openLdapConfig.groupIDAttribute }}</td>
+                </tr>
               </tbody>
             </table>
           </template>
@@ -533,6 +539,7 @@ export default {
           <div class="row">
             <Checkbox
               v-model:value="showLdap"
+              data-testid="saml-show-ldap"
               :mode="mode"
               :label="t('authConfig.saml.showLdap')"
             />

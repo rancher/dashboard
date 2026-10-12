@@ -253,11 +253,6 @@ declare global {
       shouldHaveCssVar(name: string, value: string): Chainable<void>;
 
       /**
-       * realHover event from cypress-real-events
-       */
-      realHover(): Chainable<Element>;
-
-      /**
        * Fetch the steve `revision` / timestamp of request
        */
       fetchRevision(): Chainable<string>;

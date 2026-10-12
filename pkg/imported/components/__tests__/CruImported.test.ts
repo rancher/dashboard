@@ -27,15 +27,15 @@ describe('cruImported component', () => {
       },
       stubs: {
         CruResource:             { template: '<div><slot></slot></div>' },
-        Accordion:               { template: '<div class="accordion"><slot></slot></div>' },
+        RcSection:               { template: '<div><slot></slot></div>' },
         Banner:                  true,
         ClusterMembershipEditor: true,
-        Labels:                  true,
+        RcLabelsAndAnnotations:  true,
         Basics:                  true,
-        ACE:                     true,
+        RcACE:                   true,
         Checkbox:                true,
         SchedulingCustomization: true,
-        KeyValue:                true,
+        RcKeyValue:              true,
         NameNsDescription:       true,
         Loading:                 true,
         'router-link':           true
@@ -199,7 +199,7 @@ describe('cruImported component', () => {
       expect(networkAccordion.exists()).toBe(false);
     });
 
-    it('should not display the ACE component if cluster is local', () => {
+    it('should not display the RcACE component if cluster is local', () => {
       const wrapper = shallowMount(CruImported, {
         props: {
           mode:  _EDIT,
@@ -213,11 +213,11 @@ describe('cruImported component', () => {
         ...defaultSetup
       });
 
-      const ace = wrapper.findComponent({ name: 'ACE' });
+      const ace = wrapper.findComponent({ name: 'RcACE' });
 
       expect(ace.exists()).toBe(false);
     });
-    it('should display the ACE component if cluster is not local', () => {
+    it('should display the RcACE component if cluster is not local', () => {
       const wrapper = shallowMount(CruImported, {
         props: {
           mode:  _EDIT,
@@ -231,7 +231,7 @@ describe('cruImported component', () => {
         ...defaultSetup
       });
 
-      const ace = wrapper.findComponent({ name: 'ACE' });
+      const ace = wrapper.findComponent({ name: 'RcACE' });
 
       expect(ace.exists()).toBe(true);
     });

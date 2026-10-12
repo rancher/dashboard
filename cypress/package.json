@@ -28,6 +28,7 @@
     "cypress": "15.19.0"
   },
   "dependencies": {
+    "@codemirror/view": "6.43.13",
     "@cypress/code-coverage": "4.0.3",
     "@cypress/grep": "6.0.2",
     "@cypress/vue": "5.0.5",
@@ -52,7 +53,6 @@
     "junit-report-merger": "9.0.3",
     "mocha-junit-reporter": "2.2.1",
     "sha.js": "^2.4.12",
-    "ts-node": "10.9.2",
     "typescript": "^5.9.3",
     "ws": "8.21.0"
   },

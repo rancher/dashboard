@@ -10,6 +10,8 @@ import { LOGGING, NAMESPACE, NODE, SCHEMA } from '@shell/config/types';
 import jsyaml from 'js-yaml';
 import { createYaml } from '@shell/utils/create-yaml';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
+import { foldAllComments } from '@components/RcCodeMirror';
+import { unfoldCode } from '@codemirror/language';
 import { allHash } from '@shell/utils/promise';
 import { isArray } from '@shell/utils/array';
 import { matchRuleIsPopulated } from '@shell/models/logging.banzaicloud.io.flow';
@@ -366,10 +368,10 @@ export default {
         }
       }
     },
-    onYamlEditorReady(cm) {
-      cm.getMode().fold = 'yamlcomments';
-      cm.execCommand('foldAll');
-      cm.execCommand('unfold');
+    onYamlEditorReady(view) {
+      // Fold the documentation comments, leaving the first one open
+      foldAllComments(view);
+      unfoldCode(view);
     },
     isTag(options, option) {
       return !options.find((o) => o.value === option.value);

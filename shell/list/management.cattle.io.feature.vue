@@ -7,6 +7,7 @@ import ResourceFetch from '@shell/mixins/resource-fetch';
 const hideFeatureFlags = [
   'fleet', // Note - this is the id of the ff we want, not sure what FLEET in store/features is
   'ui-sql-cache', // This can be removed once https://github.com/rancher/rancher/issues/53996 merges
+  'ui-configurable-dashboards', // Experimental, hidden until the configurable dashboards feature ships in the UI
 ];
 
 export default {

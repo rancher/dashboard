@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils';
+import { h, nextTick } from 'vue';
 import PromptModal from '@shell/components/PromptModal.vue';
 
 import GenericPrompt from '@shell/dialog/GenericPrompt.vue';
@@ -140,5 +141,75 @@ describe('component: PromptModal', () => {
 
     expect(wrapper.vm.opened).toBe(true);
     expect(wrapper.findComponent(component as any).exists()).toBe(true);
+  });
+});
+
+describe('component: PromptModal dialog resolution', () => {
+  const dialogMounted = jest.fn();
+
+  function generateReactiveStore() {
+    return createStore({
+      state:     { typeMapVersion: 0 },
+      mutations: { bumpTypeMap: (state: any) => state.typeMapVersion++ },
+      modules:   {
+        'action-menu': {
+          namespaced: true,
+          state:      { showModal: false, modalData: { component: 'TestDialog' } },
+          mutations:  {
+            setShowModal: (state: any, show: boolean) => (state.showModal = show),
+            setComponent: (state: any, component: string) => (state.modalData = { component }),
+          },
+        },
+      },
+      getters: {
+        'type-map/importDialog': (state: any) => (name: string) => ({
+          name,
+          typeMapVersion: state.typeMapVersion,
+          mounted:        dialogMounted,
+          render:         () => h('div'),
+        }),
+      },
+    });
+  }
+
+  function mountPromptModal(store: any) {
+    document.body.innerHTML = '<div id="modals"></div>';
+
+    return mount(PromptModal, {
+      attachTo: document.body,
+      global:   {
+        mocks: { $store: store },
+        stubs: { transition: false },
+      },
+    });
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should mount the dialog once when the type-map changes while it is open', async() => {
+    const store = generateReactiveStore();
+
+    mountPromptModal(store);
+    store.commit('action-menu/setShowModal', true);
+    await nextTick();
+
+    store.commit('bumpTypeMap');
+    await nextTick();
+
+    expect(dialogMounted).toHaveBeenCalledTimes(1);
+  });
+
+  it('should render a different dialog when the requested dialog changes', async() => {
+    const store = generateReactiveStore();
+    const wrapper = mountPromptModal(store);
+
+    store.commit('action-menu/setShowModal', true);
+    await nextTick();
+    store.commit('action-menu/setComponent', 'OtherDialog');
+    await nextTick();
+
+    expect(wrapper.findComponent({ name: 'OtherDialog' }).exists()).toBe(true);
   });
 });

@@ -1,36 +1,45 @@
 import Registration from './Registration.vue';
-import { mount, VueWrapper } from '@vue/test-utils';
+import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 
 const dispatchSpy = jest.fn().mockReturnValue(Promise.resolve([]));
+let schemaForSpy = jest.fn().mockReturnValue({});
 
-jest.mock('vuex', () => ({ useStore: () => ({ dispatch: dispatchSpy }) }));
+jest.mock('vuex', () => ({
+  useStore: () => ({
+    dispatch: dispatchSpy,
+    getters:  { 'management/schemaFor': (...args: any[]) => schemaForSpy(...args) }
+  })
+}));
 
 describe('page: Registration', () => {
   let wrapper: VueWrapper<any>;
 
-  beforeEach(() => {
-    wrapper = mount(Registration, {
-      global: {
-        mocks: {
-          $store: {
-            getters: {
-              'i18n/exists': jest.fn().mockReturnValue(true),
-              'i18n/t':      (t: string) => t,
-            },
-          },
-          $route:  { hash: 'online' },
-          $router: {
-            currentRoute: { _value: { name: 'online' } },
-            replace:      jest.fn()
+  const mountPage = () => mount(Registration, {
+    global: {
+      mocks: {
+        $store: {
+          getters: {
+            'i18n/exists': jest.fn().mockReturnValue(true),
+            'i18n/t':      (t: string) => t,
           },
         },
-        stubs: {
-          LabeledInput: true,
-          AsyncButton:  true,
-          FileSelector: true
-        }
+        $route:  { hash: 'online' },
+        $router: {
+          currentRoute: { _value: { name: 'online' } },
+          replace:      jest.fn()
+        },
+      },
+      stubs: {
+        LabeledInput: true,
+        AsyncButton:  true,
+        FileSelector: true
       }
-    });
+    }
+  });
+
+  beforeEach(() => {
+    schemaForSpy = jest.fn().mockReturnValue({});
+    wrapper = mountPage();
   });
 
   it('should render', () => {
@@ -200,6 +209,47 @@ describe('page: Registration', () => {
       const registerOfflineButton = wrapper.find('[data-testid="registration-offline-cta"]');
 
       expect(registerOfflineButton['isDisabled']()).toStrictEqual(true);
+    });
+  });
+
+  describe('given a user who cannot read the registration', () => {
+    beforeEach(async() => {
+      schemaForSpy = jest.fn().mockReturnValue(undefined);
+      wrapper = mountPage();
+      await flushPromises();
+    });
+
+    it('should display the missing permission message', () => {
+      const banner = wrapper.find('[data-testid="registration-banner-status"]');
+
+      expect(banner.text()).toContain('registration.banner.status.forbidden');
+    });
+
+    it('should display the registration status as unknown', () => {
+      const badge = wrapper.find('.badge-state');
+
+      expect(badge.text()).toContain('registration.list.table.badge.unknown');
+    });
+
+    it.each([
+      'registration-code-input',
+      'registration-online-cta',
+      'registration-offline-download',
+      'registration-offline-visit-scc',
+      'registration-offline-cta',
+      'registration-deregister-cta',
+    ])('should disable %p', (testId) => {
+      const element = wrapper.find(`[data-testid="${ testId }"]`);
+
+      expect(element['isDisabled']()).toStrictEqual(true);
+    });
+
+    it('should keep the online registration disabled given a registration code', async() => {
+      wrapper.vm.registrationCode = 'whatever';
+      await wrapper.vm.$nextTick();
+      const registerOnlineButton = wrapper.find('[data-testid="registration-online-cta"]');
+
+      expect(registerOnlineButton['isDisabled']()).toStrictEqual(true);
     });
   });
 });

@@ -18,10 +18,16 @@ const setNotification = (store: Store<any>) => {
   const {
     registration,
     initRegistration,
+    canReadRegistration,
   } = usePrimeRegistration(store);
 
   initRegistration().then(() => {
-    if (!registration.value.active && isAdminUser(store.getters) && store.getters['features/get'](SCC)) {
+    // Logging out resets the store while the registration is still resolving
+    if (!store.state['managementReady']) {
+      return;
+    }
+
+    if (canReadRegistration.value && !registration.value.active && isAdminUser(store.getters) && store.getters['features/get'](SCC)) {
       const { t } = useI18n(store);
 
       const notification = {
@@ -39,6 +45,11 @@ const setNotification = (store: Store<any>) => {
       store.dispatch('notifications/add', notification);
     } else {
       store.dispatch('notifications/remove', REGISTRATION_NOTIFICATION_ID);
+    }
+  }).catch((error) => {
+    // Lookups fail once logging out has reset the store
+    if (store.state['managementReady']) {
+      console.error('Failed to resolve the registration state', error); // eslint-disable-line no-console
     }
   });
 };

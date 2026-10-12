@@ -9,6 +9,8 @@ const defaultGetters = {
   'current_store/all':    jest.fn(),
   'i18n/t':               jest.fn(),
   'i18n/withFallback':    jest.fn((key, args, fallback) => fallback),
+  'prefs/get':            jest.fn(),
+  'prefs/theme':          'light',
 };
 
 const defaultMocks = { $store: { getters: defaultGetters }, $fetchState: { pending: false } };

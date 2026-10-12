@@ -31,11 +31,11 @@ export default class HelmOp extends FleetApplication {
     const spec = this.spec || {};
     const meta = this.metadata || {};
 
-    meta.namespace = this.$rootGetters['workspace'];
+    meta.namespace = meta.namespace || this.$rootGetters['workspace'];
 
     spec.helm = spec.helm || {};
 
-    spec['correctDrift'] = { enabled: false };
+    spec['correctDrift'] = spec.correctDrift || { enabled: false };
 
     set(this, 'spec', spec);
     set(this, 'metadata', meta);

@@ -1,9 +1,12 @@
 /*
- * NOTE: This isn't actually a real plugin anymore, it's is dynamically loaded in components/CodeMirror.vue
- * so that it doesn't all get loaded put into vendor.js
+ * CodeMirror 5, as configured for the editors of extensions built with a shell from before CodeMirror 6.
+ * It is only loaded when one of them shows an editor, see plugins/codemirror-loader.js
+ *
+ * Deprecated, the shell's own editors use CodeMirror 6.
  */
 
 import CodeMirror from 'codemirror';
+import '@shell/plugins/js-yaml';
 
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/mode/yaml/yaml.js';
