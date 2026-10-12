@@ -83,6 +83,12 @@ export default {
     },
     modalName() {
       return this.modalData?.modalName;
+    },
+    ownsModal() {
+      return !!this.modalData?.ownsModal;
+    },
+    modal() {
+      return { show: this.opened, onClose: this.close };
     }
   },
 
@@ -127,8 +133,15 @@ export default {
 </script>
 
 <template>
+  <component
+    :is="component"
+    v-if="opened && component && ownsModal"
+    v-bind="modalData.componentProps || {}"
+    :resources="resources"
+    :modal="modal"
+  />
   <app-modal
-    v-if="opened && component"
+    v-else-if="opened && component"
     :name="modalName"
     :click-to-close="closeOnClickOutside"
     :width="modalWidth"
