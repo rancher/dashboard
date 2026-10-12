@@ -1,7 +1,9 @@
 import { onBeforeUnmount, ref, type Ref } from 'vue';
 import type { Store } from 'vuex';
 import type { I18n } from '@shell/composables/useI18n';
-import { saveView, fetchTemplatingConfigMaps, type PageKey } from '../templating/template-engine';
+import {
+  saveView, fetchTemplatingConfigMaps, deleteGeneratedView, isGeneratedView, type PageKey
+} from '../templating/template-engine';
 import {
   newId, newLayoutView, isStockView, BUILT_IN_STOCK_ID, orderKeyOf
 } from '../templating/view-model';
@@ -208,10 +210,15 @@ export function useViewActions(
     error.value = '';
 
     try {
-      const org: ViewSet = scopes.value.global ? clone(scopes.value.global) : { views: [] };
+      if (isGeneratedView(orgId) && !scopes.value.global?.views.some((p) => p.id === orgId)) {
+        // A view Liz built lives in a ConfigMap of its own: removing it from everyone deletes that
+        await deleteGeneratedView(store, orgId);
+      } else {
+        const org: ViewSet = scopes.value.global ? clone(scopes.value.global) : { views: [] };
 
-      org.views = org.views.filter((p) => p.id !== orgId);
-      await saveView(store, 'global', org.views.length ? org : null, userId.value, props.page);
+        org.views = org.views.filter((p) => p.id !== orgId);
+        await saveView(store, 'global', org.views.length ? org : null, userId.value, props.page);
+      }
       await fetchTemplatingConfigMaps(store);
 
       if (view.org) {

@@ -1,6 +1,6 @@
 import type { Store } from 'vuex';
 import {
-  appliedViewScopes, getPageConfig, isTemplatingEnabled, saveView, toggleTemplating, viewsOffInUrl
+  appliedViewScopes, generatedViews, getPageConfig, isTemplatingEnabled, saveView, toggleTemplating, viewsOffInUrl
 } from '@pkg/configurable-views/templating/template-engine';
 import type { ViewSet } from '@pkg/configurable-views/templating/types';
 
@@ -158,3 +158,51 @@ describe('saveView', () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 });
+
+describe('views built by Liz', () => {
+  const lizView = (name: string, page: string, view: unknown) => configMap(name, { page, view }, 'view');
+
+  it('reads each view from a ConfigMap of its own, for its page, as a stored view is read', () => {
+    const { store } = storeWith(
+      lizView('liz-pods', 'home', {
+        name:    'Pods',
+        widgets: [{
+          type: 'widget', widget: { kind: 'statusCards' }, colSpan: 6
+        }]
+      }),
+      lizView('liz-cd', 'clusterDashboard', { name: 'Cluster', widgets: [] }),
+      configMap('templating-home', { home: { global: { views: [] } } }),
+    );
+    const views = generatedViews(store.getters, 'home');
+
+    expect(views.map((v) => [v.id, v.name])).toStrictEqual([['cm:liz-pods', 'Pods']]);
+    expect((views[0] as { widgets: { colSpan: number }[] }).widgets[0].colSpan).toBe(6);
+    expect(generatedViews(store.getters, 'clusterDashboard').map((v) => v.id)).toStrictEqual(['cm:liz-cd']);
+  });
+
+  it('keeps them apart from the organization\'s own views, so writing those never copies them', () => {
+    const { store } = storeWith(
+      lizView('liz-pods', 'home', { name: 'Pods', widgets: [] }),
+      configMap('templating-home', {
+        home: {
+          global: {
+            views: [{
+              id: 'org-1', name: 'Org', widgets: []
+            }]
+          }
+        }
+      }),
+    );
+    const scopes = appliedViewScopes(store.getters, null, 'home');
+
+    expect(scopes.global?.views.map((v) => v.id)).toStrictEqual(['org-1']);
+    expect(scopes.generated.map((v) => v.id)).toStrictEqual(['cm:liz-pods']);
+  });
+
+  it('keeps one whose view is not JSON it can read, empty, so it can still be taken away', () => {
+    const { store } = storeWith({ ...lizView('liz-bad', 'home', {}), data: { page: 'home', view: '{not json' } });
+
+    expect(generatedViews(store.getters, 'home').map((v) => v.id)).toStrictEqual(['cm:liz-bad']);
+  });
+});
+

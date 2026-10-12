@@ -1,4 +1,4 @@
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import type { Store } from 'vuex';
 import { useRoute } from 'vue-router';
 import type { I18n } from '@shell/composables/useI18n';
@@ -82,7 +82,14 @@ export function useViewSet(props: { page: PageKey }, store: Store<unknown>, t: I
 
   // Your saved views (what the editor writes), and the ones an admin published for the organization.
   const userSet = computed<ViewSet | null>(() => optimistic.value || scopes.value.user);
-  const orgViews = computed(() => scopes.value.global?.views || []);
+  // The organization's views, and after them the ones Liz built - unless the organization's already
+  // has one by that id (a copy of Liz's view published back), which then stands in for it.
+  const orgViews = computed(() => {
+    const own = scopes.value.global?.views || [];
+    const ids = new Set(own.map((p) => p.id));
+
+    return [...own, ...scopes.value.generated.filter((p) => !ids.has(p.id))];
+  });
   const orgIds = computed(() => new Set(orgViews.value.map((p) => p.id)));
 
   /** A working copy of your stored views, for an action to change and write back. */
@@ -216,7 +223,31 @@ export function useViewSet(props: { page: PageKey }, store: Store<unknown>, t: I
 
     syncActiveView();
     loaded.value = true;
+    keepFresh();
   }
+
+  // Views can arrive from elsewhere - Liz builds one into a ConfigMap of its own while the page is
+  // open - so the stored ones are read again now and then: only while the page is in view, and not
+  // during an edit, which works on its own draft.
+  const REFRESH_MS = 15000;
+  let refreshTimer: ReturnType<typeof setInterval> | null = null;
+
+  function keepFresh(): void {
+    if (refreshTimer) {
+      return;
+    }
+    refreshTimer = setInterval(() => {
+      if (!editing.value && !document.hidden) {
+        fetchTemplatingConfigMaps(store);
+      }
+    }, REFRESH_MS);
+  }
+
+  onBeforeUnmount(() => {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+    }
+  });
 
   // ---- writing ----
 
