@@ -263,6 +263,22 @@ export interface HeaderOptions {
   width?: number;
 
   /**
+   * Number of pixels the column's cells narrow to at most, however little room the table has
+   */
+  minWidth?: number;
+
+  /**
+   * Number of pixels the column's cells widen to at most. Longer text wraps
+   */
+  maxWidth?: number;
+
+  /**
+   * Number of lines a cell shows at most. Text that needs more ends in an ellipsis, and the whole
+   * text is offered as a tooltip
+   */
+  lineClamp?: number;
+
+  /**
    * The name of a custom formatter. The available formatters can bee seen in `@rancher/shell/components/formatter`
    */
   formatter?: string;

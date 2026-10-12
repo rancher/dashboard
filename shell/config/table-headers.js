@@ -1,4 +1,4 @@
-import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
+import { CATTLE_PUBLIC_ENDPOINTS, DESCRIPTION as DESCRIPTION_ANNOTATION } from '@shell/config/labels-annotations';
 import { NODE as NODE_TYPE, NAMESPACE as NAMESPACE_TYPE } from '@shell/config/types';
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
@@ -1239,6 +1239,42 @@ export const MGMT_CLUSTER_PODS = {
   search:       ['status.allocatable.pods', 'status.requested.pods'],
   formatter:    'PodsUsage',
   delayLoading: true,
+};
+
+/** A cluster's machines, drawn as a summary of their states and sorted by how many there are */
+export const MGMT_CLUSTER_MACHINES = {
+  name:      'machines',
+  labelKey:  'tableHeaders.machines',
+  sort:      'statusInfo.nodeCount',
+  search:    false,
+  // Falls back to a count when there are no machine states to draw
+  formatter: 'ClusterMachineSummary',
+  align:     'center',
+  width:     100,
+};
+
+/**
+ * The description the edit forms keep in an annotation; `DESCRIPTION` reads the model's, with its
+ * fallbacks. 300px where there is room, narrowing to 100px, on up to three lines
+ */
+export const DESCRIPTION_ANNOTATION_COL = {
+  ...DESCRIPTION,
+  value:             `metadata.annotations."${ DESCRIPTION_ANNOTATION }"`,
+  sort:              [`metadata.annotations."${ DESCRIPTION_ANNOTATION }"`],
+  formatter:         undefined,
+  minWidth:          100,
+  maxWidth:          300,
+  lineClamp:         3,
+  // Off by default: free text reaches it only once the column is added
+  freeTextWhenShown: true,
+};
+
+export const FLEET_GIT_REPO_COMMIT = {
+  name:     'commit',
+  labelKey: 'tableHeaders.commit',
+  value:    'status.commit',
+  sort:     ['status.commit'],
+  search:   ['status.commit'],
 };
 
 export const AUTOSCALER_ENABLED = {

@@ -43,6 +43,7 @@ export default {
         value:      'none',
       }, {
         tooltipKey: 'manager.cloudCredentials.list.groupBy.provider',
+        labelKey:   'tableViews.group.by.provider',
         hideColumn: 'provider',
         icon:       'icon-folder',
         value:      'providerDisplay',

@@ -10,7 +10,7 @@ import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInpu
 import { useDragReorder } from '@shell/composables/useDragReorder';
 import { useI18n } from '@shell/composables/useI18n';
 import { validateQuery } from '@shell/utils/table-views/query';
-import { NO_GROUPING } from '@shell/utils/table-views/views';
+import { NO_GROUPING, isViewModified } from '@shell/utils/table-views/views';
 import { isMac } from '@shell/utils/platform';
 import type { TableViewField, TableViewQueryProblem, TableViewRow, TableViewState } from '@shell/types/table-views';
 import {
@@ -44,6 +44,8 @@ const props = withDefaults(defineProps<{
   fieldValues?: Record<string, { value: string, count: number }[]>,
   /** Ids of the fields whose values are on their way */
   pendingFields?: string[],
+  /** Ids of the fields whose values for suggesting are being asked for */
+  loadingValues?: string[],
   /** All rows, before the view's query is applied */
   rows?: TableViewRow[],
 }>(), {
@@ -57,12 +59,14 @@ const props = withDefaults(defineProps<{
   dateFields:        () => [],
   fieldValues:       () => ({}),
   pendingFields:     () => [],
+  loadingValues:     () => [],
   rows:              () => [],
 });
 
 const emit = defineEmits<{
   'update:view': [view: TableViewState],
   'request-values': [fieldId: string],
+  'refresh-values': [fieldId: string],
 }>();
 
 const store = useStore();
@@ -153,10 +157,17 @@ const isColumnVisible = (field: TableViewField) => {
   return !props.defaultColumns.length || props.defaultColumns.includes(field.id);
 };
 
+/** The table's own columns, grouping, or all of it: then the matching Reset has nothing to undo */
+const columnsAsTheyCome = computed(() => !props.view.columns && !props.view.labelColumns?.length && !props.view.columnOrder);
+
+const groupingAsItComes = computed(() => !props.view.groupBy);
+
+const viewAsItComes = computed(() => !isViewModified(props.view));
+
 const visibleColumnCount = computed(() => columnFields.value.filter((f) => isColumnVisible(f)).length + (props.view.labelColumns?.length || 0));
 
 const columnsSummary = computed(() => {
-  if (!props.view.columns && !props.view.labelColumns?.length && !props.view.columnOrder) {
+  if (columnsAsTheyCome.value) {
     return t('tableViews.view.columnsDefault');
   }
 
@@ -315,14 +326,30 @@ const resetView = () => update({
   query: '', columns: null, labelColumns: [], columnOrder: null, groupBy: null, sort: null, sortDescending: false
 });
 
-/** Scroll the grouped field into view when the list opens, a frame later so the popper has its height */
+/**
+ * Scroll the grouped field into view a frame after the list opens, by the list alone: `scrollIntoView`
+ * would scroll the page too, moving the menu from under the pointer while it is being placed
+ */
 watch(groupPanel, (panel) => {
   if (!panel) {
     return;
   }
 
   requestAnimationFrame(() => {
-    panel.querySelector(`[data-testid="table-views-group-${ appliedGroupBy.value || 'none' }"]`)?.scrollIntoView({ block: 'nearest' });
+    const option = panel.querySelector(`[data-testid="table-views-group-${ appliedGroupBy.value || 'none' }"]`);
+
+    if (!option) {
+      return;
+    }
+
+    const list = panel.getBoundingClientRect();
+    const at = option.getBoundingClientRect();
+
+    if (at.top < list.top) {
+      panel.scrollTop -= list.top - at.top;
+    } else if (at.bottom > list.bottom) {
+      panel.scrollTop += at.bottom - list.bottom;
+    }
   });
 });
 </script>
@@ -350,9 +377,11 @@ watch(groupPanel, (panel) => {
           :rows="rows"
           :field-values="fieldValues"
           :pending-fields="pendingFields"
+          :loading-values="loadingValues"
           @update:value="update({ query: $event })"
           @update:focused="queryFocused = $event"
           @request-values="$emit('request-values', $event)"
+          @refresh-values="$emit('refresh-values', $event)"
         />
         <!-- Under the box, like a field's validation message -->
         <p
@@ -419,6 +448,7 @@ watch(groupPanel, (panel) => {
                     class="menu-reset"
                     acts-on-checkable-items
                     data-testid="table-views-group-reset"
+                    :disabled="groupingAsItComes"
                     @click="resetGroupBy"
                   >
                     {{ t('tableViews.view.reset') }}
@@ -494,6 +524,7 @@ watch(groupPanel, (panel) => {
                     class="menu-reset"
                     acts-on-checkable-items
                     data-testid="table-views-columns-reset"
+                    :disabled="columnsAsTheyCome"
                     @click="resetColumns"
                   >
                     <template #before>
@@ -509,6 +540,7 @@ watch(groupPanel, (panel) => {
             <rc-dropdown-item
               class="menu-reset"
               data-testid="table-views-reset"
+              :disabled="viewAsItComes"
               @click="resetView"
             >
               {{ t('tableViews.view.reset') }}
