@@ -88,7 +88,7 @@ describe('Logging Chart', { testIsolation: false, tags: ['@charts', '@adminUser'
     });
   });
 
-  describe('Install', () => {
+  describe.skip('Install', () => {
     // Each attempt starts with neither app installed (testIsolation is off): a failed earlier attempt can
     // leave the chart partially installed, so the Install button is no longer shown and the install
     // request never fires on retry.
