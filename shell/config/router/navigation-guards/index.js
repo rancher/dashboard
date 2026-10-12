@@ -1,4 +1,3 @@
-import { install as installNavigationState } from '@shell/config/router/navigation-guards/navigation-state';
 import { install as installLoadInitialSettings } from '@shell/config/router/navigation-guards/load-initial-settings';
 import { install as installRecordLastRoute } from '@shell/config/router/navigation-guards/record-last-route';
 import { install as installAttemptFirstLogin } from '@shell/config/router/navigation-guards/attempt-first-login';
@@ -19,8 +18,7 @@ export function installNavigationGuards(router, context) {
   // NOTE: the order of the installation matters.
   // Be intentional when adding, removing or modifying the guards that are installed.
 
-  // Navigation state first, so it knows a navigation is under way while the guards after it work
-  const navigationGuardInstallers = [installNavigationState, installLoadInitialSettings, installAttemptFirstLogin, installAuthentication, installProducts, installClusters, installExtensionRouteGuard, installRuntimeExtensionRoute, installI18N, installHandleInstallRedirect, installPageTitle, installRecordLastRoute, installServerUpgradeGrowl];
+  const navigationGuardInstallers = [installLoadInitialSettings, installAttemptFirstLogin, installAuthentication, installProducts, installClusters, installExtensionRouteGuard, installRuntimeExtensionRoute, installI18N, installHandleInstallRedirect, installPageTitle, installRecordLastRoute, installServerUpgradeGrowl];
 
   navigationGuardInstallers.forEach((installer) => installer(router, context));
 }

@@ -15,7 +15,6 @@ import { queryToServerFilters } from '@shell/utils/table-views/server-filters';
 import { expandQuery } from '@shell/utils/table-views/query-fields';
 import { SEARCH_DEBOUNCE } from '@shell/config/search';
 import { STATE_FILTER_QUERY } from '@shell/config/query-params';
-import { isNavigating } from '@shell/config/router/navigation-guards/navigation-state';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { DEFAULT_MANDATORY_SORT } from '@shell/components/SortableTable/sorting';
 import { sortBy } from '@shell/utils/sort';
@@ -207,8 +206,6 @@ export default {
 
       viewSwitchTimer: null,
 
-      stateLinkTimer: null,
-
       /** The request in hand when the switch began: its answer is the old view's, whatever it filters by */
       viewSwitchFromArgs: null,
 
@@ -231,7 +228,6 @@ export default {
 
   beforeUnmount() {
     clearTimeout(this.viewSwitchTimer);
-    clearTimeout(this.stateLinkTimer);
     this.debouncedSettleQuery.cancel();
   },
 
@@ -864,18 +860,10 @@ export default {
   methods: {
     /**
      * A link naming some of the list's states leaves the URL once the query is changed from the one it
-     * opened with: left, a reload after the query was cleared would filter the list again. Not while
-     * another page is on its way, as writing the URL would call that navigation off
+     * opened with: left, a reload after the query was cleared would filter the list again
      */
     dropStateLink() {
       if (!this.stateLinkPending || !this.showTableViews) {
-        return;
-      }
-
-      if (isNavigating()) {
-        clearTimeout(this.stateLinkTimer);
-        this.stateLinkTimer = setTimeout(() => this.dropStateLink(), 300);
-
         return;
       }
 

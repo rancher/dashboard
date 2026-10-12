@@ -1,8 +1,5 @@
 import ResourceTableViews from '@shell/mixins/resource-table-views';
-import { isNavigating } from '@shell/config/router/navigation-guards/navigation-state';
 import { TABLE_VIEWS } from '@shell/store/prefs';
-
-jest.mock('@shell/config/router/navigation-guards/navigation-state', () => ({ isNavigating: jest.fn(() => false) }));
 
 // The table views half of ResourceTable is its own mixin, so that is where this lives
 const { data } = ResourceTableViews;
@@ -66,11 +63,6 @@ describe('ResourceTable', () => {
           return ctx as { stateLinkPending: boolean, dropStateLink: () => void, $router: { replace: jest.Mock } };
         };
 
-        afterEach(() => {
-          jest.mocked(isNavigating).mockReturnValue(false);
-          jest.useRealTimers();
-        });
-
         it('should leave the URL, keeping the rest of it, so a reload after the query was cleared doesn\'t filter again', () => {
           const ctx = table();
 
@@ -82,20 +74,6 @@ describe('ResourceTable', () => {
             path: '/c/local/explorer/pod', query: { other: 'kept' }, hash: '#x'
           });
           expect(ctx.stateLinkPending).toBe(false);
-        });
-
-        it('should wait while another page is on its way, so as not to call that navigation off', () => {
-          jest.useFakeTimers();
-          jest.mocked(isNavigating).mockReturnValue(true);
-          const ctx = table();
-
-          ctx.dropStateLink();
-          jest.advanceTimersByTime(900);
-          expect(ctx.$router.replace).not.toHaveBeenCalled();
-
-          jest.mocked(isNavigating).mockReturnValue(false);
-          jest.advanceTimersByTime(300);
-          expect(ctx.$router.replace).toHaveBeenCalledTimes(1);
         });
 
         describe('as the query changes', () => {
