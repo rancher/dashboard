@@ -33,6 +33,15 @@ const protocolTag = (wrapper: any, id: string) => wrapper
   .find((tag: any) => tag.attributes('data-testid') === `add-auth-provider-tile-protocol-${ id }`);
 
 describe('component: AddAuthProviderDialog', () => {
+  // How many providers can be enabled at once decides what adding one means
+  it.each([
+    ['Community', { prime: false, multipleAllowed: false }, 'authConfig.add.subtitle'],
+    ['Prime with Multiple Auth Providers on', { prime: true, multipleAllowed: true }, 'authConfig.add.subtitleMultiple'],
+    ['Prime with Multiple Auth Providers off', { prime: true, multipleAllowed: false }, 'authConfig.add.subtitlePrimeSingle'],
+  ])('should explain the provider limit for %s', (_, props, expected) => {
+    expect(createWrapper(props).find('.add-auth-provider__subtitle').text()).toBe(expected);
+  });
+
   it('should offer every provider type it is given', () => {
     expect(tileNames(createWrapper())).toStrictEqual(['Okta', 'GitHub', 'OpenLDAP']);
   });

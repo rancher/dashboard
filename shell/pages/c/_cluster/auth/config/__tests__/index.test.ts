@@ -6,6 +6,8 @@ import AuthProvidersEmptyState from '@shell/components/auth/AuthProvidersEmptySt
 import DisableLocalLoginCard from '@shell/components/auth/DisableLocalLoginCard.vue';
 import AuthProvidersPrimeNotice from '@shell/components/auth/AuthProvidersPrimeNotice.vue';
 
+jest.mock('@shell/config/version', () => ({ isRancherPrime: jest.fn(() => true) }));
+
 jest.mock('@shell/utils/require-asset', () => {
   return { requireAsset: jest.fn((path: string) => path) };
 });
@@ -171,6 +173,17 @@ describe('page: AuthConfigList', () => {
       // A width with no unit is not valid CSS, and the modal silently falls back to 600px
       expect(payload.modalWidth).toMatch(/(px|%)$/);
       expect(payload.componentProps.rows).toStrictEqual(providerTypes);
+    });
+
+    it('should tell the picker whether this is Prime and how many providers can be enabled', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).promptAddProvider();
+
+      const { componentProps } = ((wrapper.vm as any).$store.dispatch as jest.Mock).mock.calls[0][1];
+
+      expect(componentProps.prime).toBe(true);
+      expect(componentProps.multipleAllowed).toBe(true);
     });
 
     // Every connection to a provider is a config of its own, and its name has to

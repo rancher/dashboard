@@ -582,6 +582,8 @@ authConfig:
   add:
     title: Add an authentication provider
     subtitle: Select the provider to connect. Rancher supports one external provider, so this is the one users will log in with. To use a different one later you delete this and configure the new one.
+    subtitleMultiple: Select the provider to connect. More than one external provider can be enabled at a time, and users choose which one to log in with.
+    subtitlePrimeSingle: Select the provider to connect. The multiple-auth-providers feature flag is off, so one external provider can be enabled at a time. Turn the flag on under Global Settings > Feature Flags to run several together.
     searchPlaceholder: Search providers
     filterLabel: Protocol
     filterAll: All

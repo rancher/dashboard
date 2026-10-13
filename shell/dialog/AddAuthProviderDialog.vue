@@ -18,6 +18,10 @@ const props = defineProps<{
   rows: AuthProviderType[];
   /** Called with the chosen provider. */
   selectCb:(id: string) => void;
+  /** Whether this is Rancher Prime. */
+  prime?: boolean;
+  /** Whether more than one external provider can be enabled at once. */
+  multipleAllowed?: boolean;
 }>();
 
 const emit = defineEmits<{(e: 'close'): void }>();
@@ -25,6 +29,14 @@ const emit = defineEmits<{(e: 'close'): void }>();
 const { t } = useI18n(useStore());
 
 const filterLabelId = useId();
+
+const subtitle = computed(() => {
+  if (props.multipleAllowed) {
+    return t('authConfig.add.subtitleMultiple');
+  }
+
+  return props.prime ? t('authConfig.add.subtitlePrimeSingle') : t('authConfig.add.subtitle');
+});
 
 const ANNOUNCE_DELAY = 500;
 
@@ -82,7 +94,7 @@ const select = (id: string) => {
     <template #body>
       <div class="add-auth-provider__body">
         <p class="add-auth-provider__subtitle">
-          {{ t('authConfig.add.subtitle') }}
+          {{ subtitle }}
         </p>
 
         <input

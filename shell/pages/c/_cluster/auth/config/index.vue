@@ -1,5 +1,6 @@
 <script>
 import { MANAGEMENT } from '@shell/config/types';
+import { isRancherPrime } from '@shell/config/version';
 import { providerIcon, providerKey } from '@shell/models/management.cattle.io.authconfig';
 import { Banner } from '@components/Banner';
 import { RcButton } from '@components/RcButton';
@@ -170,8 +171,10 @@ export default {
         height:         'auto',
         styles:         'max-height: 100vh;',
         componentProps: {
-          rows:     this.providerTypes,
-          selectCb: (provider) => this.$router.push(this.addLocation(provider)),
+          rows:            this.providerTypes,
+          selectCb:        (provider) => this.$router.push(this.addLocation(provider)),
+          prime:           isRancherPrime(),
+          multipleAllowed: this.multipleAllowed,
         },
       });
     },
