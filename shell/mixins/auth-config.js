@@ -8,6 +8,7 @@ import { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { BASE_SCOPES, SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 import { addObject, findBy } from '@shell/utils/array';
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import { clone } from '@shell/utils/object';
 import difference from 'lodash/difference';
 
 /**
@@ -241,12 +242,31 @@ export default {
       }
     },
 
+    /**
+     * The values Rancher gives a config of this type when nobody has set them.
+     *
+     * Rancher used to create a config for every provider up front, with these
+     * filled in. A config added here starts empty, and some of them are required -
+     * an LDAP config cannot be enabled without its connection timeout.
+     */
+    schemaDefaults(type) {
+      const fields = this.$store.getters['rancher/schemaFor']?.(type)?.resourceFields || {};
+
+      return Object.entries(fields).reduce((defaults, [key, field]) => {
+        if (field?.default !== undefined && field.default !== null) {
+          defaults[key] = clone(field.default);
+        }
+
+        return defaults;
+      }, {});
+    },
+
     async mixinFetch() {
       this.authConfigName = this.authConfigCreate?.name || this.$route.params.id;
 
       // Nothing exists to fetch until the form saves for the first time, so the
       // form is filled in against an empty config of the chosen provider's type.
-      this.originalModel = this.isCreate ? await this.$store.dispatch('rancher/create', { type: this.authConfigCreate.normanType }) : await this.$store.dispatch('rancher/find', {
+      this.originalModel = this.isCreate ? await this.$store.dispatch('rancher/create', { ...this.schemaDefaults(this.authConfigCreate.normanType), type: this.authConfigCreate.normanType }) : await this.$store.dispatch('rancher/find', {
         type: NORMAN.AUTH_CONFIG,
         id:   this.authConfigName,
         opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ this.authConfigName }`, force: true }

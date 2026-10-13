@@ -487,6 +487,83 @@ describe('mixin: authConfigMixin', () => {
   // Enabling can fail after the config has been written, and the form stays on the
   // page to be corrected and saved again. By then the config exists, so its name is
   // no longer the form's to choose.
+  // Rancher used to create a config for every provider with its defaults filled
+  // in. One added here starts empty unless the form fills them in itself.
+  describe('starting a new config', () => {
+    const FakeComponent = {
+      render() {},
+      mixins:  [authConfigMixin, childHook],
+      methods: { applyHooks: jest.fn() },
+    };
+
+    const schema = {
+      resourceFields: {
+        connectionTimeout: { type: 'int', default: 5000 },
+        port:              { type: 'int', default: 389 },
+        userObjectClass:   { type: 'string', default: 'inetOrgPerson' },
+        certificate:       { type: 'string', default: null },
+      },
+    };
+
+    const createInstance = (schemaFor: (type: string) => any = (type) => (type === 'openLdapConfig' ? schema : undefined)) => {
+      const dispatch = jest.fn((action: string, payload: any) => {
+        switch (action) {
+        case 'rancher/create': return Promise.resolve({ ...payload });
+        case 'rancher/clone': return Promise.resolve({ ...payload.resource });
+        case 'rancher/findAll': return Promise.resolve([]);
+        default: return Promise.resolve(undefined);
+        }
+      });
+
+      const instance = mount(FakeComponent, {
+        data:   () => ({ value: { configType: 'ldap' } }),
+        global: {
+          provide: {
+            authConfigCreate: {
+              name: 'openldap', normanType: 'openLdapConfig', takenIds: [], created: false
+            }
+          },
+          mocks: {
+            $store: { dispatch, getters: { 'rancher/schemaFor': schemaFor } },
+            $route: { params: { cluster: 'local' }, query: { mode: 'edit' } },
+          },
+        },
+      }).vm as any;
+
+      return { instance, dispatch };
+    };
+
+    it('should start from the values Rancher gives a config of its type', async() => {
+      const { instance, dispatch } = createInstance();
+
+      await instance.mixinFetch();
+
+      expect(dispatch).toHaveBeenCalledWith('rancher/create', {
+        connectionTimeout: 5000,
+        port:              389,
+        userObjectClass:   'inetOrgPerson',
+        type:              'openLdapConfig',
+      });
+    });
+
+    // The form cannot be enabled without it
+    it('should fill in the connection timeout an LDAP config requires', async() => {
+      const { instance } = createInstance();
+
+      await instance.mixinFetch();
+
+      expect(instance.model.connectionTimeout).toBe(5000);
+    });
+
+    it('should start empty when the type has no schema', async() => {
+      const { instance, dispatch } = createInstance(() => undefined);
+
+      await instance.mixinFetch();
+
+      expect(dispatch).toHaveBeenCalledWith('rancher/create', { type: 'openLdapConfig' });
+    });
+  });
+
   describe('a config that is still being added', () => {
     const FakeComponent = {
       render() {},
