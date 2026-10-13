@@ -19,9 +19,9 @@ const props = defineProps<{
 
 
 /**
- * How many how many workloads to show in the entire drop down
+ * How many workloads to show in the entire drop down
  *
- * One row for the group label + the results shown per type + plus half a row (so user see's theres more results)
+ * One row for the group label + the results shown per type + plus half a row (so user sees there's more results)
  */
 const dropdownVisibleRows = 14;
 
@@ -46,19 +46,12 @@ const {
 
 const searchRef = ref<InstanceType<typeof LabeledSelect> | null>(null);
 
-// Opening the row action menu moves DOM focus into its own menu container,
-// which blurs the search input. On any such blur vue-select (used internally
-// by LabeledSelect) both clears its search text and closes - and, since its
-// option list is v-if'd, unmounts - which would wipe the results and destroy
-// the action menu the instant it opens. Track that an action-menu click is in
-// flight, and the last real search term, so the blur handler can put vue-
-// select's internal state back before its next render/emit, keeping the
-// results (and the action menu nested inside them) intact.
+// Opening a row's action menu blurs the search input, which makes vue-select clear its search and
+// close, unmounting the results and the action menu with them. Remember enough to reopen it on that blur.
 const openingActionMenu = ref(false);
 const lastSearchTerm = ref('');
 
-// "+X more" rows are selectable options (rather than buttons inside an option)
-// so they're reachable with the arrow keys and Enter, like any other result.
+// "+X more" rows are options rather than buttons so they're reachable with the arrow keys and Enter
 function isOptionSelectable(option: WorkloadSearchOption): boolean {
   return option.kind !== 'group';
 }
@@ -75,8 +68,7 @@ function routeHref(route?: RouteLocationRaw): string | undefined {
   return route ? router.resolve(route).href : undefined;
 }
 
-// The page the namespace link leads to. Clicking it also sets the header
-// namespace filter (see onNamespaceClick), which a plain href can't carry.
+// Clicking also sets the header namespace filter (see onNamespaceClick), which an href can't carry
 function namespaceHref(option: WorkloadSearchOption): string | undefined {
   return routeHref(props.resourceRoute(option.resource?.type));
 }
@@ -93,9 +85,7 @@ function onNamespaceClick(event: MouseEvent, option: WorkloadSearchOption): void
 function onActionsClick(event: MouseEvent) {
   // Prevent vue-select from treating this as selecting the option.
   event.stopPropagation();
-  // Setting this on click is early enough: vue-select prevents the default
-  // mousedown inside its dropdown, so the input keeps focus until the action
-  // menu takes it after this click.
+  // Early enough, vue-select prevents mousedown in its dropdown so the input keeps focus until after this click
   openingActionMenu.value = true;
 }
 
@@ -117,8 +107,7 @@ function onSearchBlur() {
 }
 
 function onActionInvoked(): void {
-  // The search input is already blurred (from opening the action menu), so
-  // no further blur event will fire to close the dropdown on its own.
+  // The input already lost focus to the action menu, so no blur will close the dropdown
   searchRef.value?.forceClose();
 }
 </script>
@@ -232,9 +221,7 @@ $row-margin-y: 8px;
   }
 
   .name {
-    // Basis 0 (not auto) so its share of free space is a pure function of
-    // the grow ratio, not this row's own text length - otherwise .meta's
-    // start position would shift row to row.
+    // Basis 0 (here and on .meta) keeps columns aligned across rows whatever the name length
     flex: 3 1 0;
     min-width: 0;
     overflow: hidden;
@@ -245,9 +232,6 @@ $row-margin-y: 8px;
   .meta {
     display: flex;
     align-items: center;
-    // Basis 0 (not auto) for the same reason as .name - a nested flex
-    // container's auto basis is computed from its children's own content
-    // width, not their pixel flex-basis, so it would still vary by row.
     flex: 2 0 0;
     gap: 16px;
   }
@@ -260,8 +244,6 @@ $row-margin-y: 8px;
     white-space: nowrap;
   }
 
-  // Grow proportionally to one another (ratio matches the min-widths) as
-  // extra row space becomes available, without shrinking below them.
   .namespace {
     flex: 15 1 150px;
     min-width: 150px;
