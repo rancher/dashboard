@@ -208,11 +208,6 @@ export default class Secret extends SteveModel {
       return false;
     }
 
-    // The API strips the release data from helm secrets, so saving would wipe it
-    if ( this.isHelmRelease ) {
-      return false;
-    }
-
     return this.$rootGetters['type-map/optionsFor'](this.type).isEditable;
   }
 
@@ -236,7 +231,8 @@ export default class Secret extends SteveModel {
   }
 
   get canEditYaml() {
-    return this.isProjectSecretCopy ? false : super.canEditYaml;
+    // Saving yaml replaces the whole secret, which would wipe the helm release data the API strips out
+    return this.isProjectSecretCopy || this.isHelmRelease ? false : super.canEditYaml;
   }
 
   get keysDisplay() {
@@ -528,6 +524,27 @@ export default class Secret extends SteveModel {
     const color = colorForState(this.certState);
 
     return color.replace('text-', 'bg-');
+  }
+
+  save(opt = {}) {
+    // The API strips the release data from helm secrets, so a PUT would wipe it. Only patch the metadata the edit form can change
+    if ( this.isHelmRelease && this.id && !opt.method ) {
+      return super.save({
+        ...opt,
+        method:  'patch',
+        headers: { 'content-type': 'application/json-patch+json', ...opt.headers },
+        data:    [
+          {
+            op: 'add', path: '/metadata/labels', value: this.metadata?.labels || {}
+          },
+          {
+            op: 'add', path: '/metadata/annotations', value: this.metadata?.annotations || {}
+          },
+        ]
+      });
+    }
+
+    return super.save(...arguments);
   }
 
   cleanForSave(data, forNew) {
