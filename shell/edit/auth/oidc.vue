@@ -216,7 +216,9 @@ export default {
       this.$emit('validationChanged', !!newValue);
     },
 
-    'model.id': {
+    // A config's id is its own name (`cognito-2`), and a new one has none yet, so
+    // which OIDC provider the form is for comes from the mixin's provider key
+    NAME: {
       handler(newVal) {
         this.modelId = newVal;
       },
@@ -293,7 +295,7 @@ export default {
 
   methods: {
     updateEndpoints() {
-      const isKeycloak = this.model.id === 'keycloakoidc';
+      const isKeycloak = this.NAME === 'keycloakoidc';
 
       if (!this.oidcUrls.url) {
         this.model.issuer = '';
