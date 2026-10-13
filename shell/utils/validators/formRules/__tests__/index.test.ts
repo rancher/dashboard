@@ -1469,4 +1469,109 @@ describe('formRules', () => {
       expect(formRuleResult).toBeUndefined();
     });
   });
+
+  describe('secret key formats', () => {
+    const certificate = '-----BEGIN CERTIFICATE-----\nMIIBszCCAVmgAwIBAgIUZm9v\nYmFy\n-----END CERTIFICATE-----\n';
+    const rsaKey = '-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA\n-----END RSA PRIVATE KEY-----';
+
+    describe('pemCertificate', () => {
+      it.each([
+        ['empty value, left to "required"', ''],
+        ['undefined value, left to "required"', undefined],
+        ['a single certificate', certificate],
+        ['a certificate chain', `${ certificate }${ certificate }`],
+        ['text around the certificate block', `Bag Attributes\n${ certificate }`],
+      ])('returns undefined for %s', (_, value) => {
+        expect(formRules.pemCertificate(value)).toBeUndefined();
+      });
+
+      it.each([
+        ['plain text', 'not-a-cert'],
+        ['a private key', rsaKey],
+        ['a block with no end line', '-----BEGIN CERTIFICATE-----\nMIIBszCCAVmgAwIBAgIU'],
+        ['a block with a mismatched end line', '-----BEGIN CERTIFICATE-----\nMIIB\n-----END PRIVATE KEY-----'],
+        ['a block with invalid base64 content', '-----BEGIN CERTIFICATE-----\n@@@\n-----END CERTIFICATE-----'],
+      ])('returns the message for %s', (_, value) => {
+        expect(formRules.pemCertificate(value)).toStrictEqual(JSON.stringify({ message: 'validation.pemCertificate', key: 'testDisplayKey' }));
+      });
+    });
+
+    describe('pemPrivateKey', () => {
+      it.each([
+        ['empty value, left to "required"', ''],
+        ['a PKCS#8 key', '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEF\n-----END PRIVATE KEY-----'],
+        ['a PKCS#1 RSA key', rsaKey],
+        ['an EC key', '-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIA\n-----END EC PRIVATE KEY-----'],
+        ['an encrypted PKCS#8 key', '-----BEGIN ENCRYPTED PRIVATE KEY-----\nMIIFHDBOBgkqhkiG\n-----END ENCRYPTED PRIVATE KEY-----'],
+        ['an encrypted PEM key with headers', '-----BEGIN RSA PRIVATE KEY-----\nProc-Type: 4,ENCRYPTED\nDEK-Info: AES-128-CBC,AB12\n\nMIIE\n-----END RSA PRIVATE KEY-----'],
+        ['an OpenSSH key', '-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAA\n-----END OPENSSH PRIVATE KEY-----'],
+      ])('returns undefined for %s', (_, value) => {
+        expect(formRules.pemPrivateKey(value)).toBeUndefined();
+      });
+
+      it.each([
+        ['plain text', 'op'],
+        ['a certificate', certificate],
+        ['a public key', 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMq user@host'],
+        ['a block with a mismatched end line', '-----BEGIN RSA PRIVATE KEY-----\nMIIE\n-----END EC PRIVATE KEY-----'],
+        ['a block with no content', '-----BEGIN PRIVATE KEY----------END PRIVATE KEY-----'],
+      ])('returns the message for %s', (_, value) => {
+        expect(formRules.pemPrivateKey(value)).toStrictEqual(JSON.stringify({ message: 'validation.pemPrivateKey', key: 'testDisplayKey' }));
+      });
+    });
+
+    describe('sshPublicKey', () => {
+      it.each([
+        ['empty value, left to "required"', ''],
+        ['an ed25519 key with a comment', 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMq user@host'],
+        ['an RSA key without a comment', 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7=='],
+        ['an ECDSA key', 'ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTY='],
+        ['a security key', 'sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29t'],
+        ['a certificate', 'ssh-rsa-cert-v01@openssh.com AAAAHHNzaC1yc2EtY2VydC12MDFAb3BlbnNzaC5jb20='],
+        ['surrounding whitespace and a trailing newline', '  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMq user@host\n'],
+      ])('returns undefined for %s', (_, value) => {
+        expect(formRules.sshPublicKey(value)).toBeUndefined();
+      });
+
+      it.each([
+        ['plain text', 'opa'],
+        ['a key type with no key', 'ssh-rsa'],
+        ['an unknown key type', 'foo-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7'],
+        ['a key blob that is not base64', 'ssh-rsa AAAA@@@@'],
+        ['a key blob not starting with AAAA', 'ssh-rsa B3NzaC1yc2EAAAADAQAB'],
+        ['a private key', rsaKey],
+      ])('returns the message for %s', (_, value) => {
+        expect(formRules.sshPublicKey(value)).toStrictEqual(JSON.stringify({ message: 'validation.sshPublicKey', key: 'testDisplayKey' }));
+      });
+    });
+
+    describe('dataKey', () => {
+      it.each([
+        ['empty value', ''],
+        ['letters and digits', 'Key1'],
+        ['dots, dashes and underscores', '.dockerconfigjson-my_key'],
+        ['dots inside the key', 'a..b'],
+        ['253 characters', 'a'.repeat(253)],
+      ])('returns undefined for %s', (_, value) => {
+        expect(formRules.dataKey(value)).toBeUndefined();
+      });
+
+      it.each([
+        ['symbols', '@##$'],
+        ['a space', 'my key'],
+        ['a slash', 'path/key'],
+        ['a single dot', '.'],
+        ['two dots', '..'],
+        ['a leading double dot', '..key'],
+      ])('returns the characters message for %s', (_, value) => {
+        expect(formRules.dataKey(value)).toStrictEqual(JSON.stringify({ message: 'validation.dataKey', key: 'testDisplayKey' }));
+      });
+
+      it('returns the length message for more than 253 characters', () => {
+        expect(formRules.dataKey('a'.repeat(254))).toStrictEqual(JSON.stringify({
+          message: 'validation.stringLength.max', key: 'testDisplayKey', count: 253
+        }));
+      });
+    });
+  });
 });

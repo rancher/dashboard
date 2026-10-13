@@ -79,4 +79,17 @@ describe('component: CruSecret', () => {
     expect(wrapper.findComponent(GenericSecretData).exists()).toBe(true);
     expect(wrapper.findComponent({ name: 'CruResource' }).props('canYaml')).toBe(true);
   });
+
+  describe('nameRules', () => {
+    it.each([
+      ['Kubernetes secret', false, 'metadata.name'],
+      ['cloud credential', true, 'cloudCredentialName'],
+    ])('should use the %s name rules', (_, isCloud, path) => {
+      const getRules = jest.fn(() => []);
+
+      (CruSecret as any).computed.nameRules.call({ isCloud, getRules });
+
+      expect(getRules).toHaveBeenCalledWith(path);
+    });
+  });
 });
