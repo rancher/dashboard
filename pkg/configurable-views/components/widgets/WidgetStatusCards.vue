@@ -104,7 +104,10 @@ async function reload(): Promise<void> {
   loading.value = false;
 }
 
-watch(() => [cluster.value, config.value.resources.join(',')], reload);
+// Each value watched on its own: an array built afresh in one getter is never equal to the last, so
+// it would reload - and flash the spinner - whenever the widget's spec is replaced by an equal one,
+// which happens each time the stored views are read again.
+watch([cluster, () => config.value.resources.join(',')], reload);
 
 function onVisibility(): void {
   if (timer) {

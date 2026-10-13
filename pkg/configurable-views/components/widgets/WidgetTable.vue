@@ -61,7 +61,8 @@ const storeSchema = computed(() => (listed.value ? store.getters[`${ inStore.val
  */
 const clusterSchema = ref<TypeSchema | null>(null);
 
-watch(() => [downstream.value && !storeSchema.value ? props.widget.resource : '', downstream.value ? cluster.value : ''], async([resource, from]) => {
+// Each value watched on its own, so an equal spec read again does not fetch it again (see WidgetStatusCards)
+watch([() => (downstream.value && !storeSchema.value ? props.widget.resource : ''), () => (downstream.value ? cluster.value : '')], async([resource, from]) => {
   clusterSchema.value = null;
 
   if (!resource || !from) {

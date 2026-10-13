@@ -181,6 +181,24 @@ describe('views built by Liz', () => {
     expect(generatedViews(store.getters, 'clusterDashboard').map((v) => v.id)).toStrictEqual(['cm:liz-cd']);
   });
 
+  it('gives their widgets the same ids every time they are read, so the page does not draw them again', () => {
+    const { store } = storeWith(lizView('liz-x', 'home', {
+      name:    'X',
+      widgets: [
+        { type: 'widget', widget: { kind: 'statusCards' } },
+        { type: 'widget', widget: { kind: 'tabs', tabs: [{ name: 'A', widgets: [{ type: 'widget', widget: { kind: 'banner' } }] }] } },
+      ],
+    }));
+    const ids = () => {
+      const [view] = generatedViews(store.getters, 'home') as { widgets: { id: string, widget: { tabs?: { id: string, widgets: { id: string }[] }[] } }[] }[];
+
+      return [view.widgets.map((w) => w.id), view.widgets[1].widget.tabs?.[0].id, view.widgets[1].widget.tabs?.[0].widgets[0].id];
+    };
+
+    expect(ids()).toStrictEqual([['cm:liz-x-w0', 'cm:liz-x-w1'], 'cm:liz-x-w1-t0', 'cm:liz-x-w1-t0-w0']);
+    expect(ids()).toStrictEqual(ids());
+  });
+
   it('keeps them apart from the organization\'s own views, so writing those never copies them', () => {
     const { store } = storeWith(
       lizView('liz-pods', 'home', { name: 'Pods', widgets: [] }),

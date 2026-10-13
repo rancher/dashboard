@@ -188,11 +188,49 @@ export function generatedViews(getters: Getters, page: PageKey = 'home'): View[]
   return viewMaps(getters, page)
     .flatMap((cm) => {
       const raw = parse(cm.data?.view) as Record<string, unknown>;
-      const [view] = migrateViewSet({ views: [{ ...raw, id: `${ GENERATED_VIEW_PREFIX }${ cm.metadata.name }` }] }).views;
+      const id = `${ GENERATED_VIEW_PREFIX }${ cm.metadata.name }`;
+      const [view] = migrateViewSet({
+        views: [{
+          ...raw, id, widgets: withStableIds(raw.widgets, id)
+        }]
+      }).views;
 
       return view ? [view] : [];
     })
     .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Ids for the widgets of a view in a ConfigMap of its own, where they have none - Liz and the examples
+ * leave them out. Made from the view and the widget's place, so they are the same every time the view
+ * is read: a new id each read would make the page take them for new widgets and draw them all again,
+ * every time the stored views are read (every few seconds).
+ */
+function withStableIds(widgets: unknown, prefix: string): unknown {
+  if (!Array.isArray(widgets)) {
+    return widgets;
+  }
+
+  return widgets.map((node, i) => {
+    if (!node || typeof node !== 'object') {
+      return node;
+    }
+
+    const n = node as Record<string, unknown>;
+    const nodeId = typeof n.id === 'string' && n.id ? n.id : `${ prefix }-w${ i }`;
+    const widget = n.widget && typeof n.widget === 'object' ? n.widget as Record<string, unknown> : null;
+
+    // A Tabs widget's tabs, and the widgets in them, get theirs the same way
+    const tabs = Array.isArray(widget?.tabs) ? (widget?.tabs as Record<string, unknown>[]).map((tab, t) => ({
+      ...tab,
+      id:      typeof tab?.id === 'string' && tab.id ? tab.id : `${ nodeId }-t${ t }`,
+      widgets: withStableIds(tab?.widgets, `${ nodeId }-t${ t }`),
+    })) : undefined;
+
+    return {
+      ...n, id: nodeId, ...(widget && tabs ? { widget: { ...widget, tabs } } : {})
+    };
+  });
 }
 
 /** Take a view Liz built away from everyone: its ConfigMap goes. */
