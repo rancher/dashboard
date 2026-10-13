@@ -376,10 +376,10 @@ describe('noAuth', () => {
 describe('notLoggedIn', () => {
   it.each([
     {
-      desc:                  'index route redirects to /auth/login and sets authRedirect',
+      desc:                  'index route redirects to /auth/login but skips authRedirect',
       routeName:             'index',
       expectedRedirect:      '/auth/login',
-      authRedirectCallCount: 1,
+      authRedirectCallCount: 0,
     },
     {
       desc:                  'non-auth non-index route redirects with timed-out and sets authRedirect',
