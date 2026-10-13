@@ -6,7 +6,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
 import { SETTING } from '@shell/config/settings';
 import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
-import { getPluginChartVersionLabel, getPluginChartVersion } from '@shell/utils/uiplugins';
+import { getPluginChartVersionLabel, getPluginChartVersion, getLatestPluginVersions } from '@shell/utils/uiplugins';
 import { isChartVersionHigher, uiPluginHasAnnotation } from '@shell/config/uiplugins';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import Banner from '@components/Banner/Banner.vue';
@@ -42,7 +42,8 @@ export default {
       versionError:     undefined,
       defaultIcon:      genericPluginSvg,
       headerBannerSize: 0,
-      isActive:         false
+      isActive:         false,
+      showAllVersions:  false
     };
   },
   created() {
@@ -67,6 +68,34 @@ export default {
       }
 
       return warnings;
+    },
+
+    /**
+     * Chart version the versions list is anchored on: the installed one, or the one the panel
+     * pre-selects when the extension isn't installed
+     */
+    currentVersion() {
+      if (this.info?.installed) {
+        const installed = this.info.versions?.find((v) => this.info.installedVersion === (v.appVersion ?? v.version));
+
+        return installed?.version || this.info.installedVersion;
+      }
+
+      return getPluginChartVersion(this.info);
+    },
+
+    displayedVersions() {
+      const versions = this.info?.versions || [];
+
+      if (this.showAllVersions) {
+        return versions;
+      }
+
+      return getLatestPluginVersions(versions, this.currentVersion, [this.infoVersion]);
+    },
+
+    hasHiddenVersions() {
+      return this.displayedVersions.length < (this.info?.versions?.length || 0);
     },
 
     applyDarkModeBg() {
@@ -158,6 +187,7 @@ export default {
       this.versionInfo = null;
       this.versionError = null;
       this.infoVersion = undefined;
+      this.showAllVersions = false;
 
       this.loadPluginVersionInfo();
     },
@@ -357,7 +387,7 @@ export default {
               class="plugin-versions"
             >
               <div
-                v-for="v in info.versions"
+                v-for="v in displayedVersions"
                 :key="`${v.name}-${v.version}`"
               >
                 <a
@@ -371,6 +401,18 @@ export default {
                   @keyup.enter.space="loadPluginVersionInfo(v.version)"
                 >
                   {{ getVersionLabel(v) }}
+                </a>
+              </div>
+              <div v-if="hasHiddenVersions">
+                <a
+                  class="version-link show-all-versions"
+                  data-testid="extension-details-show-all-versions"
+                  tabindex="0"
+                  role="button"
+                  @click="showAllVersions = true"
+                  @keyup.enter.space="showAllVersions = true"
+                >
+                  {{ t('plugins.info.showAllVersions') }}
                 </a>
               </div>
             </div>
@@ -588,6 +630,14 @@ export default {
 
         &.version-builtin {
           display: inline-block;
+        }
+
+        &.show-all-versions {
+          border: none;
+
+          &:hover {
+            text-decoration: underline;
+          }
         }
 
         &:focus-visible {

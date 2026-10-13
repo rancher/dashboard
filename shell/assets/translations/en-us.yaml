@@ -5909,7 +5909,8 @@ plugins:
     actions: Actions
     noActions: No actions available
     detail: Detail
-    versions: Versions
+    versions: Latest Versions
+    showAllVersions: Show all
     versionError: Could not load version information
     requiresRancherPrime: "Requires Rancher Prime"
     requiresRancherVersion: "Requires Rancher {required}"
