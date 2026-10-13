@@ -127,10 +127,6 @@ export default {
       };
     },
 
-    NAME() {
-      return this.isGithubApp ? 'githubapp' : 'github';
-    },
-
     AUTH_CONFIG() {
       return MANAGEMENT.AUTH_CONFIG;
     },
@@ -143,8 +139,9 @@ export default {
       };
     },
 
+    // A config's id is its own name, so which GitHub it is comes from its type
     isGithubApp() {
-      return this.model?.id === 'githubapp';
+      return this.NAME === 'githubapp';
     },
 
     steps() {
@@ -162,7 +159,7 @@ export default {
   },
 
   watch: {
-    'model.id': {
+    NAME: {
       handler(newVal) {
         this.isGithubAppRef = newVal === 'githubapp';
       },

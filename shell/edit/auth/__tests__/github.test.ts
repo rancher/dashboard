@@ -18,6 +18,7 @@ const validTargetUrl = 'https://github.mycompany.com';
 const mockGitHubModel = {
   enabled:      false,
   id:           'github',
+  type:         'githubConfig',
   clientId:     validClientId,
   clientSecret: validClientSecret,
   hostname:     'github.com',
@@ -27,6 +28,7 @@ const mockGitHubModel = {
 const mockGitHubAppModel = {
   ...mockGitHubModel,
   id:         'githubapp',
+  type:       'githubAppConfig',
   appId:      validAppId,
   privateKey: validPrivateKey,
 };
@@ -202,6 +204,19 @@ describe('github.vue', () => {
 
       expect(wrapper.vm.model.tls).toBe(true);
       expect(wrapper.vm.model.hostname).toBe('github.com');
+    });
+  });
+
+  // A config's id is its own name, and a new config has none yet, so which
+  // GitHub the form is for comes from the config's type
+  describe.each([
+    ['named something else', 'corp-apps'],
+    ['that has not been created yet', undefined],
+  ])('a GitHub App config %s', (_label, id) => {
+    it('should show the GitHub App fields', () => {
+      const wrapper = mount(GitHub, { ...requiredSetup({ ...mockGitHubAppModel, id }) });
+
+      expect(wrapper.find('[data-testid="app-id"]').exists()).toBe(true);
     });
   });
 
