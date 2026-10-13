@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 import type { RouteLocationRaw } from 'vue-router';
 import { COUNT } from '@shell/config/types';
+import { STATE_FILTER_QUERY } from '@shell/config/query-params';
 import type { StateColor } from '@shell/utils/style';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStateColor } from '@shell/composables/useStateColor';
@@ -80,7 +81,7 @@ function resourceRoute(type: string, stateNames?: string[]): RouteLocationRaw {
   };
 
   if (stateNames?.length) {
-    loc.query = { stateFilter: stateNames.join(',') };
+    loc.query = { [STATE_FILTER_QUERY]: stateNames.join(',') };
   }
 
   return loc;
