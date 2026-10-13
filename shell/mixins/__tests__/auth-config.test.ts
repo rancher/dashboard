@@ -1,6 +1,7 @@
 import { flushPromises, mount, shallowMount } from '@vue/test-utils';
 import authConfigMixin from '@shell/mixins/auth-config';
 import childHook from '@shell/mixins/child-hook';
+import { setVersionData } from '@shell/config/version';
 //
 describe('mixin: authConfigMixin', () => {
   describe('method: cancel', () => {
@@ -903,6 +904,17 @@ describe('mixin: authConfigMixin', () => {
       expect(btnCb).toHaveBeenCalledWith(false);
       expect(instance.errors).toStrictEqual(['authConfig.enableLimitReached']);
       expect(model.doAction).not.toHaveBeenCalledWith(expect.anything(), expect.anything());
+    });
+
+    // Prime already has the feature; the flag being off is what to fix
+    it('should point Prime at the feature flag rather than at Prime', async() => {
+      setVersionData({ RancherPrime: 'true' });
+      const { instance } = createInstance({ configs: [{ id: 'okta', enabled: true }] });
+
+      await instance.save(jest.fn());
+      setVersionData({});
+
+      expect(instance.errors).toStrictEqual(['authConfig.enableLimitReachedPrime']);
     });
 
     it('should allow switching a provider on when no other is enabled', async() => {

@@ -533,6 +533,7 @@ addProjectMemberDialog:
 
 authConfig:
   enableLimitReached: Another external provider is already enabled. Rancher Community allows for one external auth provider to be configured at a time. Disable the active provider to add a different one, or use Rancher Prime to run several together.
+  enableLimitReachedPrime: Another external provider is already enabled. The multiple-auth-providers feature flag is off, so one external auth provider can be enabled at a time. Disable the active provider to add a different one, or turn the flag on under Global Settings > Feature Flags to run several together.
   list:
     title: Authentication Providers
     description: Configure the identity providers people can use to log in to Rancher.
@@ -549,6 +550,9 @@ authConfig:
     prime:
       title: Configure more than one provider with Rancher Prime
       description: Rancher Community allows for one external auth provider to be configured at a time. Disable the active provider to add a different one, or use Rancher Prime to run several together.
+    primeFlagOff:
+      title: Turn on multiple-auth-providers to configure more than one provider
+      description: The multiple-auth-providers feature flag is off, so one external auth provider can be enabled at a time. Disable the active provider to add a different one, or turn the flag on under Global Settings > Feature Flags to run several together.
     disableLocal:
       label: Disable login with local users
       description: Users sign in through external providers only. Local accounts remain, but cannot be used to sign in.
@@ -569,6 +573,7 @@ authConfig:
     back: Authentication Providers
     unknownProvider: '{provider} is not a provider this Rancher supports.'
     limitReached: Another external provider is already enabled. Rancher Community allows for one external auth provider to be configured at a time. Disable the active provider to add a different one, or use Rancher Prime to run several together.
+    limitReachedPrime: Another external provider is already enabled. The multiple-auth-providers feature flag is off, so one external auth provider can be enabled at a time. Disable the active provider to add a different one, or turn the flag on under Global Settings > Feature Flags to run several together.
     provider:
       title: 'Add {provider}'
     name:

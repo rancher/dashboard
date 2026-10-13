@@ -1,6 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import AuthConfigCreateProvider from '@shell/pages/c/_cluster/auth/config/create/_provider.vue';
 import FailWhale from '@shell/components/FailWhale.vue';
+import { setVersionData } from '@shell/config/version';
 jest.mock('@shell/utils/require-asset', () => {
   return { requireAsset: jest.fn((path: string) => path) };
 });
@@ -149,6 +150,26 @@ describe('page: AuthConfigCreateProvider', () => {
 
       expect(wrapper.findComponent(FailWhale).props('error').message).toBe('%authConfig.create.limitReached%');
       expect(wrapper.find('.auth-config-title').exists()).toBe(false);
+    });
+
+    // Prime already has the feature; the flag being off is what to fix
+    it('should point Prime at the feature flag rather than at Prime', () => {
+      setVersionData({ RancherPrime: 'true' });
+      const wrapper = shallowMount(AuthConfigCreateProvider, {
+        data:   () => ({ type: null, limitReached: true } as any),
+        global: {
+          mocks: {
+            $route:      { params: { cluster: 'local', provider: 'github' } },
+            $fetchState: { pending: false, error: null },
+            $store:      { dispatch: jest.fn(), getters: { 'i18n/withFallback': () => 'GitHub' } },
+          },
+        },
+      }) as any;
+      const message = wrapper.findComponent(FailWhale).props('error').message;
+
+      setVersionData({});
+
+      expect(message).toBe('%authConfig.create.limitReachedPrime%');
     });
   });
 });

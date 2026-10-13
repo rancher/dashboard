@@ -77,6 +77,10 @@ export default {
       return canEnableAuthProvider(this.allConfigs, this.multipleAllowed);
     },
 
+    isPrime() {
+      return isRancherPrime();
+    },
+
     /** Without Prime's `multiple-auth-providers` feature, one provider is enabled at a time. */
     showPrimeNotice() {
       return this.rows.length > 0 && !this.multipleAllowed;
@@ -173,7 +177,7 @@ export default {
         componentProps: {
           rows:            this.providerTypes,
           selectCb:        (provider) => this.$router.push(this.addLocation(provider)),
-          prime:           isRancherPrime(),
+          prime:           this.isPrime,
           multipleAllowed: this.multipleAllowed,
         },
       });
@@ -333,7 +337,10 @@ export default {
           />
         </template>
       </AuthProviderRow>
-      <AuthProvidersPrimeNotice v-if="showPrimeNotice" />
+      <AuthProvidersPrimeNotice
+        v-if="showPrimeNotice"
+        :prime="isPrime"
+      />
     </template>
 
     <h2 class="auth-config-section-title auth-config-section-title--standalone">

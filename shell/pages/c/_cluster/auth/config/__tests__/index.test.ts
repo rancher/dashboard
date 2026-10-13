@@ -277,6 +277,12 @@ describe('page: AuthConfigList', () => {
       expect(createWrapper().findComponent(AuthProvidersPrimeNotice).exists()).toBe(true);
     });
 
+    it('should tell the notice that this is Prime', () => {
+      multipleAllowed = false;
+
+      expect(createWrapper().findComponent(AuthProvidersPrimeNotice).props('prime')).toBe(true);
+    });
+
     it('should not be shown when multiple providers are allowed', () => {
       multipleAllowed = true;
 

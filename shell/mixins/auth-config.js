@@ -1,6 +1,7 @@
 import { EDIT_CONFIG, _EDIT } from '@shell/config/query-params';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
+import { isRancherPrime } from '@shell/config/version';
 import { providerKey } from '@shell/models/management.cattle.io.authconfig';
 import { canEnableAuthProvider, isValidAuthConfigName } from '@shell/utils/auth-providers';
 import { MULTIPLE_AUTH_PROVIDERS } from '@shell/store/features';
@@ -337,7 +338,7 @@ export default {
       }
 
       if (!canEnable) {
-        this.errors = [this.t('authConfig.enableLimitReached')];
+        this.errors = [this.t(isRancherPrime() ? 'authConfig.enableLimitReachedPrime' : 'authConfig.enableLimitReached')];
         btnCb(false);
 
         return;

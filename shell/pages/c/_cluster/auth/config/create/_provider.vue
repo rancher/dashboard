@@ -6,6 +6,7 @@ import { RcButton } from '@components/RcButton';
 import { RcSeparator } from '@components/RcSeparator';
 import AuthProviderLogo from '@shell/components/auth/AuthProviderLogo.vue';
 import { MANAGEMENT } from '@shell/config/types';
+import { isRancherPrime } from '@shell/config/version';
 import { canEnableAuthProvider, nextAuthConfigName, toProviderTypes } from '@shell/utils/auth-providers';
 import { MULTIPLE_AUTH_PROVIDERS } from '@shell/store/features';
 import { allHash } from '@shell/utils/promise';
@@ -94,7 +95,7 @@ export default {
       }
 
       if (this.limitReached) {
-        return new Error(this.t('authConfig.create.limitReached'));
+        return new Error(this.t(isRancherPrime() ? 'authConfig.create.limitReachedPrime' : 'authConfig.create.limitReached'));
       }
 
       return this.type ? null : new Error(this.t('authConfig.create.unknownProvider', { provider: this.provider }));

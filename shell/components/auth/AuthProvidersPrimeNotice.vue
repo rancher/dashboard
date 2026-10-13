@@ -1,5 +1,13 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { RcIcon } from '@components/RcIcon';
+
+const props = defineProps<{
+  /** Whether this is Rancher Prime, where the limit comes from a feature flag being off. */
+  prime?: boolean;
+}>();
+
+const key = computed(() => (props.prime ? 'authConfig.list.primeFlagOff' : 'authConfig.list.prime'));
 </script>
 
 <template>
@@ -14,10 +22,10 @@ import { RcIcon } from '@components/RcIcon';
     />
     <div class="auth-providers-prime__body">
       <h3 class="auth-providers-prime__title">
-        {{ t('authConfig.list.prime.title') }}
+        {{ t(`${ key }.title`) }}
       </h3>
       <p class="auth-providers-prime__description">
-        {{ t('authConfig.list.prime.description') }}
+        {{ t(`${ key }.description`) }}
       </p>
     </div>
   </div>
