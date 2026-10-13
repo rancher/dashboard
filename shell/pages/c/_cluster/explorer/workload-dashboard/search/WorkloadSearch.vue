@@ -9,7 +9,7 @@ import { useRouter, type RouteLocationRaw } from 'vue-router';
 import { computed, ref } from 'vue';
 import { POD } from '@shell/config/types';
 import { useWorkloadSearch } from './useWorkloadSearch';
-import { type WorkloadSearchOption } from './types';
+import { WORKLOAD_SEARCH_MIN_CHARS, type WorkloadSearchOption } from './types';
 import type { WorkloadDashboardNamespaceNavigateFn, WorkloadDashboardResourceRouteFn } from '../types';
 
 const props = defineProps<{
@@ -206,6 +206,7 @@ function onActionInvoked(): void {
     </template>
     <template #no-options="{ search }">
       <span v-if="loading">{{ t('workloadDashboard.search.searching') }}</span>
+      <span v-else-if="search && search.length < WORKLOAD_SEARCH_MIN_CHARS">{{ t('workloadDashboard.search.minCharacters', { count: WORKLOAD_SEARCH_MIN_CHARS }) }}</span>
       <span v-else-if="search">{{ t('labelSelect.noOptions.noMatch') }}</span>
       <span v-else>{{ t('workloadDashboard.search.startTyping') }}</span>
     </template>

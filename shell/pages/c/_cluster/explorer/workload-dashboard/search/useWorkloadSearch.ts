@@ -9,6 +9,7 @@ import { WORKLOAD_DASHBOARD_RESOURCE_TYPES } from '../types';
 import { getWorkloadNamespaceFilterParams } from '../namespaceFilter';
 import {
   WORKLOAD_SEARCH_DEBOUNCE_MS,
+  WORKLOAD_SEARCH_MIN_CHARS,
   WORKLOAD_SEARCH_RESULTS_PER_TYPE,
   type WorkloadSearchOption,
 } from './types';
@@ -138,7 +139,7 @@ export function useWorkloadSearch() {
   function onSearch(term: string): void {
     searchTerm.value = term;
 
-    if (!term) {
+    if (term.length < WORKLOAD_SEARCH_MIN_CHARS) {
       debouncedSearch.cancel();
       requestId++;
       options.value = [];

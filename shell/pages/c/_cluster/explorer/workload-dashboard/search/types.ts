@@ -6,6 +6,10 @@ import type { StateColor } from '@shell/utils/style';
  */
 export const WORKLOAD_SEARCH_DEBOUNCE_MS = 300;
 /**
+ * Minimum length of the search term before we kick off a request
+ */
+export const WORKLOAD_SEARCH_MIN_CHARS = 3;
+/**
  * how many workloads to show in the drop down, per type, before we show 'more resource' button
  */
 export const WORKLOAD_SEARCH_RESULTS_PER_TYPE = 7;
