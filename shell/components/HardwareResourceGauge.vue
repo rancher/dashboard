@@ -157,6 +157,7 @@ export default {
     position: relative;
     display: flex;
     flex-direction: column;
+    border-radius: var(--border-radius-md);
 
     .hw-gauge:not(:first-of-type) {
       margin-top: 20px;
