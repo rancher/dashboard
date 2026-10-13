@@ -35,17 +35,6 @@ export interface WorkloadDashboardByStateLayout {
   cards: WorkloadDashboardStateCard[];
 }
 
-export interface WorkloadDashboardByTypeCard {
-  title: string;
-  type: string;
-  resources: {
-    stateDisplay: string;
-    stateId: string;
-    stateSimpleColor: StateColor;
-    count: number;
-  }[];
-}
-
 export type WorkloadDashboardResourceRouteFn = (type: string, stateNames?: string[], nameFilter?: string) => RouteLocationRaw;
 
 export type WorkloadDashboardFilterByNamespaceFn = (namespace: string) => void;
