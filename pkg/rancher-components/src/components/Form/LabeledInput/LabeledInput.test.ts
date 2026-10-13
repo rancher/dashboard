@@ -59,6 +59,73 @@ describe('component: LabeledInput', () => {
 
       expect(subLabel.text()).toBe(hint);
     });
+
+    it('should mark the sub-label as a cron hint', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { value: '0 * * * *', type: 'cron' },
+        mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      const subLabel = wrapper.find('[data-testid="sub-label"]');
+
+      expect(subLabel.classes()).toContain('cron-hint');
+    });
+  });
+
+  describe('subLabelPosition prop', () => {
+    it.each([
+      ['cron', '0 * * * *', undefined],
+      ['text', 'some-value', 'some-sublabel'],
+    ])('for type %p should show the sub-label at the bottom by default', (type, value, subLabel) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          value, type, subLabel
+        },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      const subLabelElement = wrapper.find('[data-testid="sub-label"]');
+
+      expect(subLabelElement.classes()).not.toContain('sub-label-right');
+    });
+
+    it.each([
+      ['cron', '0 * * * *', undefined],
+      ['text', 'some-value', 'some-sublabel'],
+    ])('for type %p should show the sub-label on the right when set to right', (type, value, subLabel) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          value, type, subLabel, subLabelPosition: 'right'
+        },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      const subLabelElement = wrapper.find('[data-testid="sub-label"]');
+
+      expect(subLabelElement.classes()).toContain('sub-label-right');
+    });
+
+    it('should not mark a plain sub-label as a cron hint', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { value: 'some-value', subLabel: 'some-sublabel' },
+        mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      const subLabel = wrapper.find('[data-testid="sub-label"]');
+
+      expect(subLabel.classes()).not.toContain('cron-hint');
+    });
+
+    it.each([
+      ['bottom', true],
+      ['right', true],
+      ['left', false],
+    ])('should validate %p as %p', (position, isValid) => {
+      const props = LabeledInput.props as { subLabelPosition: { validator: (value: string) => boolean } };
+      const validator = props.subLabelPosition.validator;
+
+      expect(validator(position)).toBe(isValid);
+    });
   });
 
   describe('type "integer"', () => {

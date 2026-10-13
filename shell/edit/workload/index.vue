@@ -189,6 +189,7 @@ export default {
           <LabeledInput
             v-model:value="spec.schedule"
             type="cron"
+            sub-label-position="right"
             required
             :mode="mode"
             :label="t('workload.cronSchedule')"
