@@ -2020,6 +2020,10 @@ cluster:
     commandInstructionsInsecure: 'If you get a &quot;certificate signed by unknown authority&quot; error, your {vendor} installation has a self-signed or untrusted SSL certificate.  Run the command below instead to bypass the certificate verification:'
     clusterRoleBindingInstructions: 'If you get permission errors creating some of the resources, your user may not have the <code>cluster-admin</code> role.  Use this command to apply it:'
     clusterRoleBindingCommand: 'kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user <your username from your kubeconfig>'
+  registration:
+    serverUrlMissing:
+      import: 'The <code>server-url</code> setting is not set, so {vendor} cannot include its URL in the commands below. Replace <code>&lt;SERVER_URL&gt;</code> with a URL this cluster can reach {vendor} on, or ask an administrator to set <code>server-url</code> in Global Settings.'
+      custom: 'The <code>server-url</code> setting is not set, so {vendor} cannot generate the registration command. Ask an administrator to set <code>server-url</code> in Global Settings.'
   explore: Explore
   importAction: Import Existing
   manageAction: Manage
@@ -3107,6 +3111,12 @@ drivers:
 
 detailText:
   copyAriaLabel: Copy {item} value to clipboard
+  paste:
+    ariaLabel: Paste a {item} value from the clipboard
+    action: Paste
+    waiting: Pasting...
+    success: Pasted!
+    error: Error Pasting
   collapse: Hide
   binary: '<Binary Data: {n, number} bytes>'
   empty: '<Empty>'
@@ -5903,7 +5913,8 @@ plugins:
     actions: Actions
     noActions: No actions available
     detail: Detail
-    versions: Versions
+    versions: Latest Versions
+    showAllVersions: Show all
     versionError: Could not load version information
     requiresRancherPrime: "Requires Rancher Prime"
     requiresRancherVersion: "Requires Rancher {required}"
@@ -6579,8 +6590,6 @@ resourceList:
   nsFiltering: "Please select one or more namespaces or projects using the filter above."
   nsFilteringGeneric: "Please select a valid namespace or project option using the filter above."
   nsFilterToolTip: "Filtering is restricted to projects and namespaces"
-  stateFilterApplied: "State filter applied:"
-  clearStateFilter: "Clear filter"
 resourceLoadingIndicator:
   loading: Loading
 
@@ -7291,7 +7300,7 @@ storageClass:
 
 tableViews:
   tabs:
-    all: Explorer
+    all: All
     label: Saved views
     newView: Add View
     count: "{name} ({count})"
@@ -7311,6 +7320,8 @@ tableViews:
     menu: View options
     rename: Rename View
     duplicate: Duplicate View
+    shareView: Share View
+    importView: Import View
     copySuffix: (copy)
     delete: Delete View
     setDefault: Set as Default View
@@ -7330,6 +7341,7 @@ tableViews:
     inUse: "{count} in use"
     label: Label
     suggestions: Filter suggestions
+    loadingValues: Loading values…
     suggestionsAvailable: |-
       {count, plural,
       one {1 suggestion available}
@@ -7377,8 +7389,25 @@ tableViews:
       cluster: Cluster
       device: Device
       pool: Pool
+      provider: Provider
       workspace: Workspace
       type: Type
+  # A view as text: Share View hands it out, Import View takes it into a saved view, both in the same box
+  share:
+    title: Share View
+    intro: 'Copy this text and share it. Anyone with the text can import the view using <b>Import View</b>. It holds the view as it is now, unsaved changes included: columns, grouping, sort and filter. <b>The filter is included and can reveal information such as resource or namespace names.</b>'
+    label: View
+  import:
+    title: Import View
+    intro: "Paste the text of a view shared with you. It replaces this view's settings, including any unsaved changes, as changes you can save or discard."
+    # From the All tab, which can't be changed
+    introNew: 'Paste the text of a view shared with you. It is added as a new view, with its settings as changes you can save or discard.'
+    placeholder: Paste the view here
+    import: Import
+    invalid: This isn't a shared view. Check that the whole text was copied.
+    # `list` names the table the view was shared from, eg Pods
+    otherTable: This view was shared from the {list} list. Open Import View there to import it.
+    otherPage: This view was shared from the {list} list on another page. Open Import View there to import it.
   export:
     label: Export All View Contents
     title: Export All View Contents
@@ -7410,6 +7439,20 @@ tableViews:
       doneMessage: The {name} view has been exported to {file}.
       failedTitle: Export failed
       failedMessage: The {name} view could not be exported.
+      # The same for a selection exported from its rows' actions. `type` is what the rows are, as many as
+      # `count` (eg Pod, Pods), else `items`
+      selectionMessage: Exporting {count, number} selected {type} as {format}...
+      selectionDoneMessage: |-
+        {count, plural,
+        one {1 selected {type} has}
+        other {{count, number} selected {type} have}
+        } been exported to {file}.
+      selectionFailedMessage: |-
+        {count, plural,
+        one {The selected {type}}
+        other {The {count, number} selected {type}}
+        } could not be exported.
+      items: "{count, plural, one {item} other {items}}"
 tableHeaders:
   assuredConcurrencyShares: Assured Concurrency Shares
   autoscaler: Autoscaler

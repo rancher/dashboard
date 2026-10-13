@@ -51,34 +51,23 @@ describe('ResourceTable', () => {
     const { tableGroupings } = ResourceTable.computed as unknown as Record<string, (this: object) => GroupOption[]>;
 
     it('should offer a list\'s own groupings, never the flat list', () => {
-      const out = tableGroupings.call({
-        showGrouping: true, _groupOptions: [NONE, NODE], groupBy: null
-      });
+      const out = tableGroupings.call({ showGrouping: true, _groupOptions: [NONE, NODE] });
 
       expect(out.map((option) => option.value)).toStrictEqual(['role']);
     });
 
     it('should offer none while the list says it can\'t be grouped', () => {
-      expect(tableGroupings.call({
-        showGrouping: false, _groupOptions: [NONE, NODE], groupBy: null
-      })).toStrictEqual([]);
+      expect(tableGroupings.call({ showGrouping: false, _groupOptions: [NONE, NODE] })).toStrictEqual([]);
     });
 
-    it('should leave out the plain namespace option, which the namespace column already covers', () => {
-      const out = tableGroupings.call({
-        showGrouping: true, _groupOptions: [NONE, { value: 'namespace' }], groupBy: null
-      });
+    it('should offer the plain namespace grouping in place of the namespace column', () => {
+      const out = tableGroupings.call({ showGrouping: true, _groupOptions: [NONE, { value: 'namespace' }] });
 
-      expect(out).toStrictEqual([]);
+      expect(out).toStrictEqual([{ value: 'namespace', hideColumn: 'namespace' }]);
     });
 
-    it('should keep a namespace option that groups by something of its own', () => {
-      expect(tableGroupings.call({
-        showGrouping: true, _groupOptions: [NONE, PROJECT], groupBy: null
-      })).toStrictEqual([PROJECT]);
-      expect(tableGroupings.call({
-        showGrouping: true, _groupOptions: [NONE, { value: 'namespace' }], groupBy: 'groupById'
-      })).toHaveLength(1);
+    it('should keep a namespace option that groups by something of its own as it is', () => {
+      expect(tableGroupings.call({ showGrouping: true, _groupOptions: [NONE, PROJECT] })).toStrictEqual([PROJECT]);
     });
   });
 
@@ -237,15 +226,52 @@ describe('ResourceTable', () => {
       value: 'poolId', tooltipKey: 'resourceTable.groupBy.pool', field: 'poolId', hideColumn: 'pool'
     };
 
-    it('should start grouped by the grouping the list names as its default', () => {
-      expect(defaultGroupBy.call({ groupDefault: 'poolId', tableGroupings: [POOL] })).toBe(`${ TABLE_GROUPING_PREFIX }poolId`);
+    const NAMESPACE: GroupOption = { value: 'namespace', hideColumn: 'namespace' };
+    const table = (groupOptions: GroupOption[], more: Record<string, unknown> = {}) => ({
+      showGrouping:   true,
+      _groupOptions:  groupOptions,
+      groupDefault:   'namespace',
+      groupBy:        null,
+      tableGroupings: groupOptions.filter((option) => option.value !== 'none'),
+      ...more,
+    });
+
+    it('should start grouped by namespace, as the grouping preference did', () => {
+      expect(defaultGroupBy.call(table([NONE, NAMESPACE]))).toBe(`${ TABLE_GROUPING_PREFIX }namespace`);
+    });
+
+    it('should start grouped by a paginated list\'s namespace grouping', () => {
+      const PAGINATED_NAMESPACE: GroupOption = {
+        value: 'metadata.namespace', field: 'metadata.namespace', hideColumn: 'namespace'
+      };
+
+      expect(defaultGroupBy.call(table([NONE, PAGINATED_NAMESPACE, NODE]))).toBe(`${ TABLE_GROUPING_PREFIX }metadata.namespace`);
+    });
+
+    it('should start grouped by a namespace grouping of the list\'s own, eg projects, whatever it is given', () => {
+      expect(defaultGroupBy.call(table([NONE, PROJECT]))).toBe(`${ TABLE_GROUPING_PREFIX }namespace`);
+      expect(defaultGroupBy.call(table([NONE, PROJECT], { groupBy: 'groupById' }))).toBe(`${ TABLE_GROUPING_PREFIX }namespace`);
+    });
+
+    it('should start grouped by the grouping the list names as its default when it offers no namespace', () => {
+      expect(defaultGroupBy.call(table([NONE, POOL], { groupDefault: 'poolId' }))).toBe(`${ TABLE_GROUPING_PREFIX }poolId`);
+    });
+
+    it('should start grouped by the grouping the page names as its default, even where it offers the namespace too', () => {
+      expect(defaultGroupBy.call(table([NONE, NAMESPACE, NODE], { groupDefault: 'role' }))).toBe(`${ TABLE_GROUPING_PREFIX }role`);
+    });
+
+    it('should start grouped by the first grouping the list offers when it offers neither, after none', () => {
+      expect(defaultGroupBy.call(table([POOL, NODE], { groupDefault: 'other' }))).toBe(`${ TABLE_GROUPING_PREFIX }poolId`);
+      expect(defaultGroupBy.call(table([NONE, NODE]))).toBe(`${ TABLE_GROUPING_PREFIX }role`);
     });
 
     it.each([
-      ['every list\'s fallback to namespace', 'namespace', [PROJECT]],
-      ['a default the table doesn\'t offer', 'poolId', [NODE]],
-    ])('should start flat on %s', (_, groupDefault, tableGroupings) => {
-      expect(defaultGroupBy.call({ groupDefault, tableGroupings })).toBeNull();
+      ['a list that offers no grouping', table([NONE])],
+      ['a list that can\'t be grouped', table([NONE, NAMESPACE], { showGrouping: false })],
+      ['a list grouped by a field it is given, which keeps it', table([NONE, NAMESPACE], { groupBy: 'projectId' })],
+    ])('should start flat on %s', (_, ctx) => {
+      expect(defaultGroupBy.call(ctx)).toBeNull();
     });
 
     it.each([
@@ -395,5 +421,36 @@ describe('grouping a date by month', () => {
 
     expect(key({ metadata: { creationTimestamp: '2026-09-28T19:02:29Z' } })).toBe('2026-09');
     expect(key({ metadata: {} })).toBe('(none)');
+  });
+
+  describe('the label on each group', () => {
+    const { computedGroupBy, computedGroupRef } = ResourceTable.computed as unknown as Record<string, (this: object) => unknown>;
+    const t = (k: string) => (k === 'tableViews.group.empty' ? '(none)' : k);
+    const labelFor = (viewGroupField: TableViewField | null, groupRef: string | null = null) => {
+      const groupBy = computedGroupBy.call({ viewGroupField, t });
+
+      return computedGroupRef.call({
+        viewGroupField, computedGroupBy: groupBy, groupRef
+      });
+    };
+
+    it('should name a month rather than show its key', () => {
+      const label = labelFor(methods.groupFieldFor.call(ctx, `${ MONTH_GROUPING_PREFIX }age`)) as (row: object) => string;
+
+      expect(label({ metadata: { creationTimestamp: '2026-09-28T19:02:29Z' } })).toBe('September 2026');
+      expect(label({ metadata: {} })).toBe('(none)');
+    });
+
+    it('should keep the page\'s own label for the page\'s own groupings', () => {
+      expect(labelFor(null, 'pool')).toBe('pool');
+      expect(labelFor(null)).toBeNull();
+    });
+
+    it('should not label a toolbar grouping with the page\'s own label', () => {
+      const label = labelFor(methods.groupFieldFor.call(ctx, 'name'), 'pool') as (row: object) => string;
+
+      expect(typeof label).toBe('function');
+      expect(label({ metadata: { name: 'web' } })).not.toBe('pool');
+    });
   });
 });

@@ -212,10 +212,7 @@ export async function promptDisableAuthProvider({
 
   return dispatch('management/promptModal', {
     component:      'DisableAuthProviderDialog',
-    customClass:    'remove-modal',
-    modalWidth:     '640px', // AppModal ignores a width with no unit and falls back to 600px
-    height:         'auto',
-    styles:         'max-height: 100vh;',
+    ownsModal:      true,
     componentProps: { name, disableCb },
   });
 }
@@ -367,7 +364,8 @@ export async function isLoggedIn(store, userData) {
 export function notLoggedIn(store, redirect, route) {
   store.commit('auth/hasAuth', true);
 
-  if (!route.name.includes('auth')) {
+  // The index route is not a specific page, so leave the landing page preference in charge
+  if (!route.name.includes('auth') && route.name !== 'index') {
     store.commit('prefs/setAuthRedirect', route);
   }
 

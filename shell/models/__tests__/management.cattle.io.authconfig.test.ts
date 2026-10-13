@@ -152,14 +152,12 @@ describe('class AuthConfig', () => {
       expect(call[1].componentProps.name).toBe(config.nameDisplay);
     });
 
-    // AppModal drops a width carrying no unit and falls back to its own default,
-    // so the dialog would quietly render narrower than it was asked to be.
-    it('should ask for a width the modal can use', async() => {
+    it('should let the dialog render its own modal', async() => {
       const { config, dispatch } = makeDisableable({});
 
       await config.promptDisable();
 
-      expect(modalCall(dispatch)[1].modalWidth).toMatch(/(px|%)$/);
+      expect(modalCall(dispatch)[1].ownsModal).toBe(true);
     });
 
     it('should disable only once the dialog calls back', async() => {

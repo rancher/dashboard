@@ -1,4 +1,5 @@
 
+import { STATE } from '@shell/config/table-headers';
 import {
   dateText, fieldValue, findField, rawFieldValue, stringifyValue
 } from '@shell/utils/table-views/fields';
@@ -8,21 +9,25 @@ import type {
 
 /**
  * Both the shown and the filterable value count, so `state:Act` and `state:active` match client and
- * server side alike
+ * server side alike. The State column also matches the state's own name, which it shows remapped:
+ * `in-progress` as "In Progress"
  */
+function valuesOf(row: TableViewRow, field: TableViewField): unknown[] {
+  const values = [fieldValue(row, field), rawFieldValue(row, field)];
+
+  if (field.id === STATE.name) {
+    values.push(row.state);
+  }
+
+  return values;
+}
+
 function fieldContains(row: TableViewRow, field: TableViewField, needle: string): boolean {
   // A date matches as a date, however the row happens to hold it
   const text = field.isDate ? dateText : stringifyValue;
+  const values = valuesOf(row, field).map((value) => text(value).toLowerCase());
 
-  if (field.exact) {
-    return [fieldValue(row, field), rawFieldValue(row, field)].some((value) => text(value).toLowerCase() === needle);
-  }
-
-  if (text(fieldValue(row, field)).toLowerCase().includes(needle)) {
-    return true;
-  }
-
-  return text(rawFieldValue(row, field)).toLowerCase().includes(needle);
+  return values.some((value) => (field.exact ? value === needle : value.includes(needle)));
 }
 
 function matchesTerm(row: TableViewRow, term: TableViewTerm, fields: TableViewField[]): boolean {
@@ -38,7 +43,7 @@ function matchesTerm(row: TableViewRow, term: TableViewTerm, fields: TableViewFi
     return fieldContains(row, field, needle);
   }
 
-  return fields.some((field) => !field.queryOnly && fieldContains(row, field, needle));
+  return fields.some((field) => !field.queryOnly && !field.notInFreeText && fieldContains(row, field, needle));
 }
 
 /** Different fields AND'd, repeated terms for one field OR'd */
