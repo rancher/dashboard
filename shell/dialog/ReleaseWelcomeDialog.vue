@@ -13,7 +13,7 @@ import { isRancherPrime } from '@shell/config/version';
 import { SCC } from '@shell/store/features';
 import { isAdminUser } from '@shell/store/type-map';
 import { releaseWelcomeVersion } from '@shell/utils/release-welcome';
-import { FirstRunFeature, FirstRunPrimePromo } from '@shell/utils/dynamic-content/types';
+import { FirstRunFeature, FirstRunPrimePromo, FirstRunRegistration } from '@shell/utils/dynamic-content/types';
 
 defineProps({
   componentTestid: {
@@ -30,10 +30,26 @@ defineProps({
   },
 
   /**
+   * Version of the dynamic content the features come from, e.g. '2.16.1' for a patch, shown on the "What's new" card
+   */
+  matchedVersion: {
+    type:    String,
+    default: undefined
+  },
+
+  /**
    * Prime promotion from dynamic content, the built-in promotion is shown when not set
    */
   primePromo: {
     type:    Object as PropType<FirstRunPrimePromo>,
+    default: undefined
+  },
+
+  /**
+   * Registration card from dynamic content, the built-in card is shown when not set
+   */
+  registration: {
+    type:    Object as PropType<FirstRunRegistration>,
     default: undefined
   },
 
@@ -122,10 +138,13 @@ const close = () => emit('close');
       </p>
 
       <WhatsNewCard
-        :version="version"
+        :version="matchedVersion || version"
         :features="features"
       />
-      <PrimeRegistrationCard v-if="canRegister" />
+      <PrimeRegistrationCard
+        v-if="canRegister"
+        :registration="registration"
+      />
       <PrimePromoCard
         v-else-if="!isPrime"
         :promo="primePromo"

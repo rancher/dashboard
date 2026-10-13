@@ -165,9 +165,10 @@ export type FirstRunFeature = {
  * Release welcome modal content for a minor release
  */
 export type FirstRunRelease = {
-  version: string; // Minor version, e.g. '2.16'
-  whatsNew: FirstRunFeature[];
-  primePromo?: FirstRunPrimePromo;
+  version: string; // Minor version (e.g. '2.16', all its patches) or exact version (e.g. '2.16.1', wins over the minor version)
+  whatsNew?: FirstRunFeature[];
+  primePromo?: FirstRunPrimePromo; // Community only
+  registration?: FirstRunRegistration; // Prime only
 };
 
 /**
@@ -181,11 +182,23 @@ export type FirstRunPrimePromo = {
 };
 
 /**
+ * Registration card of the release welcome modal, shown to Prime admins
+ */
+export type FirstRunRegistration = {
+  title: string;
+  description: string;
+  benefits: { text: string; link?: CallToAction }[];
+  cta: CallToAction; // The links must be https
+};
+
+/**
  * Release welcome modal content for the running version: each part is undefined when the built-in content should be used
  */
 export type FirstRunReleaseContent = {
   features?: FirstRunFeature[];
+  matchedVersion?: string; // Version of the document the features come from, e.g. '2.16' or '2.16.1'
   primePromo?: FirstRunPrimePromo;
+  registration?: FirstRunRegistration;
 };
 
 /**

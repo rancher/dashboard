@@ -6,21 +6,36 @@ const homePage = new HomePagePo();
 const dialog = new ReleaseWelcomeDialogPo();
 const userMenu = new UserMenuPo();
 
+// Dev and head builds have no version, which never shows the modal
+const mockVersion = (version: string) => cy.intercept('GET', '/rancherversion', {
+  statusCode: 200,
+  body:       {
+    Version:      `v${ version }`,
+    GitCommit:    'abc1234',
+    RancherPrime: 'false'
+  }
+});
+
+const feature = (id: string, title: string) => ({
+  id, title, description: 'Fetched from the dynamic content endpoint'
+});
+
+// A patch with its own entry, next to its minor version
+const PATCH_DOCUMENT = {
+  version:  1,
+  releases: [
+    { version: '2.16', whatsNew: [feature('minor', 'For every 2.16 patch')] },
+    { version: '2.16.1', whatsNew: [feature('patch', 'Only for 2.16.1')] },
+  ]
+};
+
 describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
     // The modal is marked as read for every other spec, see cypress/support/e2e.ts
     Cypress.env('showReleaseWelcome', true);
     cy.login();
 
-    // Dev and head builds have no minor version, which never shows the modal
-    cy.intercept('GET', '/rancherversion', {
-      statusCode: 200,
-      body:       {
-        Version:      'v2.16.0',
-        GitCommit:    'abc1234',
-        RancherPrime: 'false'
-      }
-    });
+    mockVersion('2.16.0');
 
     // Use the built-in content, unless a test replaces it through dynamic content
     cy.intercept('GET', '**/first-run', { statusCode: 404 }).as('firstRun');
@@ -34,7 +49,7 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     cy.setUserPreference({ 'read-release-welcome': '"2.15"' });
     // Other preferences are saved on load too, wait for the one marking the modal as read
     cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-      if (req.body?.data?.['read-release-welcome'] === '"2.16"') {
+      if (req.body?.data?.['read-release-welcome'] === '"2.16.0"') {
         req.alias = 'markRead';
       }
     });
@@ -88,6 +103,53 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     dialog.primePromo().find('li').should('have.length', 1);
     dialog.primePromoExplore().should('have.attr', 'href', 'https://www.suse.com/remote');
     dialog.primePromoExplore().should('contain', 'Explore the remote offer');
+  });
+
+  it('shows the content of the exact version first', () => {
+    cy.setUserPreference({ 'read-release-welcome': '""' });
+    mockVersion('2.16.1');
+    cy.intercept('GET', '**/first-run', { statusCode: 200, body: PATCH_DOCUMENT }).as('firstRun');
+
+    HomePagePo.goTo();
+    cy.wait('@firstRun');
+    dialog.checkVisible();
+    dialog.whatsNewFeatures().should('have.length', 1);
+    dialog.whatsNewFeatures().first().should('have.attr', 'data-testid', 'release-welcome-feature-patch');
+    dialog.whatsNewVersion().should('contain', 'v2.16.1');
+  });
+
+  it('falls back to the content of the minor version', () => {
+    cy.setUserPreference({ 'read-release-welcome': '""' });
+    mockVersion('2.16.2');
+    cy.intercept('GET', '**/first-run', { statusCode: 200, body: PATCH_DOCUMENT }).as('firstRun');
+
+    HomePagePo.goTo();
+    cy.wait('@firstRun');
+    dialog.checkVisible();
+    dialog.whatsNewFeatures().first().should('have.attr', 'data-testid', 'release-welcome-feature-minor');
+    dialog.whatsNewVersion().should('contain', 'v2.16');
+  });
+
+  it('shows again after an upgrade to a version with its own content', () => {
+    cy.setUserPreference({ 'read-release-welcome': '"2.16.0"' });
+    mockVersion('2.16.1');
+    cy.intercept('GET', '**/first-run', { statusCode: 200, body: PATCH_DOCUMENT }).as('firstRun');
+
+    HomePagePo.goTo();
+    cy.wait('@firstRun');
+    dialog.checkVisible();
+    dialog.whatsNewFeatures().first().should('have.attr', 'data-testid', 'release-welcome-feature-patch');
+  });
+
+  it('does not show again after an upgrade to a version without its own content', () => {
+    cy.setUserPreference({ 'read-release-welcome': '"2.16.1"' });
+    mockVersion('2.16.2');
+    cy.intercept('GET', '**/first-run', { statusCode: 200, body: PATCH_DOCUMENT }).as('firstRun');
+
+    HomePagePo.goTo();
+    cy.wait('@firstRun');
+    homePage.waitForPage();
+    dialog.checkNotExists();
   });
 
   it('closes with the close button', () => {

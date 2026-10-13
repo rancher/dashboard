@@ -2,7 +2,14 @@ import { defineAsyncComponent } from 'vue';
 import semver from 'semver';
 import { getVersionData } from '@shell/config/version';
 import { READ_RELEASE_WELCOME } from '@shell/store/prefs';
-import { fetchFirstRunContent } from '@shell/utils/dynamic-content/first-run';
+import { fetchFirstRunContent, hasExactFirstRunRelease } from '@shell/utils/dynamic-content/first-run';
+
+/**
+ * Running version of Rancher (e.g. '2.16.1'), or undefined when the version can't be parsed (e.g. dev builds)
+ */
+export function runningVersion(): string | undefined {
+  return semver.coerce(getVersionData().Version)?.version;
+}
 
 /**
  * Minor version of the running Rancher (e.g. '2.16'), or undefined when the version can't be parsed (e.g. dev builds)
@@ -15,33 +22,43 @@ export function releaseWelcomeVersion(): string | undefined {
 
 /**
  * The welcome modal is shown once per minor release: when the user has not read it for this minor version or a later one.
+ * It's shown again after an upgrade to a version with its own entry in the dynamic content (e.g. a Prime patch).
  * Not shown in single product mode (e.g. Harvester), the content is about Rancher
  */
-export function shouldShowReleaseWelcome(getters: any): boolean {
-  const version = releaseWelcomeVersion();
+export async function shouldShowReleaseWelcome(getters: any, axios: any): Promise<boolean> {
+  const version = runningVersion();
 
   if (!version || getters['isSingleProduct']) {
     return false;
   }
 
+  // Older values only hold the minor version (e.g. '2.16'), read as its first patch
   const lastRead = semver.coerce(getters['prefs/get'](READ_RELEASE_WELCOME));
 
-  return !lastRead || semver.lt(lastRead, `${ version }.0`);
+  if (!lastRead || semver.lt(lastRead, `${ releaseWelcomeVersion() }.0`)) {
+    return true;
+  }
+
+  return semver.gt(version, lastRead) && hasExactFirstRunRelease(getters, axios, version);
 }
 
 /**
  * Open the welcome modal and mark it as read, it can be reopened from the user menu
  *
- * The "What's new" features and the Prime promotion can be updated after the release through dynamic content, the built-in
- * content is used otherwise
+ * The "What's new" features, the Prime promotion and the registration card can be updated after the release through dynamic
+ * content, the built-in content is used otherwise
  */
 export async function openReleaseWelcome(commit: any, dispatch: any, getters: any, axios: any) {
-  const version = releaseWelcomeVersion();
-  const { features, primePromo } = version ? await fetchFirstRunContent(getters, axios, version) : {};
+  const version = runningVersion();
+  const {
+    features, matchedVersion, primePromo, registration
+  } = version ? await fetchFirstRunContent(getters, axios, version) : {};
 
   commit('modal/openModal', {
-    component:           defineAsyncComponent(() => import('@shell/dialog/ReleaseWelcomeDialog.vue')),
-    componentProps:      { features, primePromo },
+    component:      defineAsyncComponent(() => import('@shell/dialog/ReleaseWelcomeDialog.vue')),
+    componentProps: {
+      features, matchedVersion, primePromo, registration
+    },
     modalWidth:          '900px',
     // Only informative, so Escape and clicking outside close it too
     closeOnClickOutside: true,
@@ -58,7 +75,7 @@ export async function openReleaseWelcome(commit: any, dispatch: any, getters: an
 }
 
 export async function showReleaseWelcomeIfNew(commit: any, dispatch: any, getters: any, axios: any) {
-  if (shouldShowReleaseWelcome(getters)) {
+  if (await shouldShowReleaseWelcome(getters, axios)) {
     await openReleaseWelcome(commit, dispatch, getters, axios);
   }
 }
