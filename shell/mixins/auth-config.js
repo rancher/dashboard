@@ -447,9 +447,10 @@ export default {
 
         btnCb(true);
 
-        if (this.isCreate) {
+        if (this.isCreate || this.openedOnConfig) {
           // Replaced rather than pushed, so going back does not return to the
-          // page that creates providers - a reload of which would start over.
+          // page that creates providers - a reload of which would start over -
+          // or to the edit form of a config that has just been saved.
           this.$router.replace({
             name:   'c-cluster-auth-config',
             params: { cluster: this.$route.params.cluster },

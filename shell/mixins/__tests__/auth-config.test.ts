@@ -66,7 +66,7 @@ describe('mixin: authConfigMixin', () => {
   });
 
   describe('method: save', () => {
-    const componentMock = (model: any) => ({
+    const componentMock = (model: any, query: Record<string, string> = { mode: 'edit' }, $router: any = undefined) => ({
       data: () => ({
         value: { configType: 'oidc' },
         model,
@@ -75,9 +75,10 @@ describe('mixin: authConfigMixin', () => {
       global:   {
         mocks: {
           $store: { dispatch: () => model },
+          $router,
           $route: {
-            params: { id: '123' },
-            query:  { mode: 'edit' },
+            params: { cluster: 'local', id: '123' },
+            query,
           },
         }
       }
@@ -129,6 +130,41 @@ describe('mixin: authConfigMixin', () => {
       await instance.save(jest.fn());
 
       expect(instance.model.scope).toStrictEqual(scope);
+    });
+
+    // The list's Edit action opens the page on the configuration, so once it is
+    // saved there is nothing left on the page to return to.
+    it('should return to the provider list once an edit opened from the list is saved', async() => {
+      const $router = { applyQuery: jest.fn(), replace: jest.fn() };
+      const model = {
+        enabled:  true,
+        doAction: jest.fn(),
+        save:     async() => {}
+      };
+      const instance = mount(FakeComponent, componentMock(model, { mode: 'edit', editConfig: 'true' }, $router)).vm as any;
+
+      await instance.save(jest.fn());
+
+      expect($router.replace).toHaveBeenCalledWith({
+        name:   'c-cluster-auth-config',
+        params: { cluster: 'local' },
+      });
+    });
+
+    it('should stay on the page when the edit started on the page', async() => {
+      const $router = { applyQuery: jest.fn(), replace: jest.fn() };
+      const model = {
+        enabled:  true,
+        doAction: jest.fn(),
+        save:     async() => {}
+      };
+      const instance = mount(FakeComponent, componentMock(model, { mode: 'edit' }, $router)).vm as any;
+
+      instance.goToEdit();
+      await instance.save(jest.fn());
+
+      expect($router.replace).not.toHaveBeenCalled();
+      expect(instance.editConfig).toBe(false);
     });
   });
 
