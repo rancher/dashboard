@@ -271,6 +271,78 @@ describe('mixin: authConfigMixin', () => {
 
   // Which config is being applied is read from the root of the request, so that
   // it does not have to be dug out of the provider config nested inside it.
+  describe('description on save', () => {
+    const FakeComponent = {
+      render() {},
+      mixins:  [authConfigMixin, childHook],
+      methods: { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
+    };
+
+    // The config as testAndApply leaves it, still carrying the old description.
+    const createInstance = () => {
+      const saved: any[] = [];
+      const stored = {
+        id:          'activedirectory-2',
+        type:        'activeDirectoryConfig',
+        enabled:     true,
+        annotations: { 'field.cattle.io/description': 'Old description' },
+        save:        jest.fn(function(this: any) {
+          saved.push({ ...this.annotations });
+        }),
+      };
+      const model = {
+        ...stored,
+        annotations: { ...stored.annotations },
+        doAction:    jest.fn(),
+      };
+      const dispatch = jest.fn((action: string, payload: any) => {
+        if (action === 'rancher/find') {
+          return { ...stored, annotations: { ...stored.annotations } };
+        }
+        if (action === 'rancher/clone') {
+          return payload.resource;
+        }
+        if (action === 'rancher/findAll') {
+          return [];
+        }
+
+        return undefined;
+      });
+      const instance = mount(FakeComponent, {
+        data:     () => ({ value: { configType: 'ldap' }, model }),
+        computed: { principal: () => ({ id: 'me' }) },
+        global:   {
+          mocks: {
+            $store: { dispatch, getters: {} },
+            $route: { params: { id: 'activedirectory-2' }, query: { mode: 'edit' } },
+          }
+        }
+      }).vm as any;
+
+      return { instance, saved };
+    };
+
+    it('should save a description changed while editing the config', async() => {
+      const { instance, saved } = createInstance();
+
+      instance.goToEdit();
+      instance.configDescription = 'New description';
+      await instance.save(jest.fn());
+
+      expect(saved).toStrictEqual([{ 'field.cattle.io/description': 'New description' }]);
+    });
+
+    it('should save a description cleared while editing the config', async() => {
+      const { instance, saved } = createInstance();
+
+      instance.goToEdit();
+      instance.configDescription = '';
+      await instance.save(jest.fn());
+
+      expect(saved).toStrictEqual([{}]);
+    });
+  });
+
   describe('naming the config being applied', () => {
     const createInstance = (toSave: any, model: any, id: string) => {
       const FakeComponent = {

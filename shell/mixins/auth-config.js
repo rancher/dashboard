@@ -323,6 +323,7 @@ export default {
 
       this.errors = [];
       const wasEnabled = this.model.enabled;
+      const description = this.configDescription;
 
       let canEnable;
 
@@ -412,6 +413,10 @@ export default {
           });
 
           this.model = await this.$store.dispatch(`rancher/clone`, { resource: newModel });
+
+          // testAndApply keeps the stored annotations, so the description entered
+          // in the form is only written by the save that follows.
+          this.configDescription = description;
 
           // Reload principals to get the new ones from the provider (including 'me')
           this.principals = await this.$store.dispatch('rancher/findAll', {
