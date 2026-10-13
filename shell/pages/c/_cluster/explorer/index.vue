@@ -703,7 +703,7 @@ export default {
 
     <h3
       v-if="hasStats"
-      class="mt-40"
+      class="mmt-7 mmb-4 text-deemphasized"
     >
       {{ t('clusterIndexPage.sections.capacity.label') }}
     </h3>
