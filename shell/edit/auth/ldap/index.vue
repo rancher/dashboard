@@ -86,7 +86,6 @@ export default {
 
   created() {
     this.tlsEnabledRef = !!(this.model?.tls || this.model?.starttls);
-    this.isActiveDirectoryRef = this.NAME === 'activedirectory';
     this.registerBeforeHook(this.validateAllFields, 'willSave');
   },
 
@@ -132,6 +131,12 @@ export default {
   },
 
   watch: {
+    NAME: {
+      handler(neu) {
+        this.isActiveDirectoryRef = neu === 'activedirectory';
+      },
+      immediate: true,
+    },
     'model.tls'(neu) {
       this.tlsEnabledRef = !!(neu || this.model?.starttls);
     },
