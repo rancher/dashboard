@@ -108,5 +108,43 @@ describe('ResourceTable', () => {
       jest.runAllTimers();
       expect(ctx.settledQuery).toBe('state:upd');
     });
+
+    it('should apply clearing the query at once', () => {
+      jest.useFakeTimers();
+      const { ctx, on } = list({ filters: [] });
+
+      ctx.settledQuery = 'nginx';
+      ctx.view = { query: '' };
+      on('view.query', '', 'nginx');
+
+      expect(ctx.settledQuery).toBe('');
+    });
+
+    it('should settle the same query again when it is cleared and retyped faster than the debounce', () => {
+      jest.useFakeTimers();
+      const { ctx, on } = list({ filters: [] });
+      const settled: string[] = [];
+
+      ctx.debouncedSettleQuery = debounce((query: string) => {
+        ctx.settledQuery = query;
+        settled.push(query);
+      }, 1000);
+      ctx.settledQuery = 'nginx';
+
+      const type = (query: string) => {
+        const old = (ctx.view as { query: string }).query;
+
+        ctx.view = { query };
+        on('view.query', query, old);
+        jest.advanceTimersByTime(10);
+      };
+
+      ctx.view = { query: 'nginx' };
+      ['', 'n', 'ng', 'ngi', 'ngin', 'nginx'].forEach(type);
+      jest.runAllTimers();
+
+      expect(settled).toStrictEqual(['', 'nginx']);
+      expect(ctx.settledQuery).toBe('nginx');
+    });
   });
 });

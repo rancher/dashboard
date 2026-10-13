@@ -302,6 +302,9 @@ describe('Events', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, 
       EventsPageListPo.navTo();
       events.waitForPage();
 
+      // The list opens grouped by namespace, which comes before any sort; this is about the sort alone
+      events.list().resourceTable().sortableTable().groupBy('None');
+
       // check table is sorted by `last seen` in ASC order by default
       events.list().resourceTable().sortableTable().tableHeaderRow()
         .checkSortOrder(2, 'down');

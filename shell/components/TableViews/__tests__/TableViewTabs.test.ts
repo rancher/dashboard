@@ -3,8 +3,10 @@ import { createStore } from 'vuex';
 
 import TableViewTabs from '@shell/components/TableViews/TableViewTabs.vue';
 import { TABLE_VIEWS } from '@shell/store/prefs';
-import { isViewDirty, selectedViewIdFor } from '@shell/utils/table-views/views';
+import { isViewDirty, selectedViewIdFor, savedViewsByType } from '@shell/utils/table-views/views';
 import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
+import { decodeSharedViews } from '@shell/utils/table-views/share';
+import type { SharedTableView } from '@shell/utils/table-views/share';
 
 const EMPTY: TableViewState = {
   query: '', columns: null, labelColumns: [], groupBy: null
@@ -26,7 +28,7 @@ interface ExportArgs {
 interface TabsInternals {
   selectedViewId: string | null;
   drafts: Record<string, TableViewState>;
-  modal: { count: number | null } | null;
+  modal: { kind: string, count?: number | null, text?: string } | null;
   isDirty: boolean;
   openExport(tab: { id: string, name: string, view: TableViewSaved }): void;
   doExport(format: string): void;
@@ -34,6 +36,12 @@ interface TabsInternals {
   discardChanges(tab: { id: string | null, name: string, view?: TableViewSaved }): void;
   saveChanges(tab: { id: string | null, name: string, view?: TableViewSaved }): void;
   openSaveAsNew(tab: { id: string | null, name: string, view?: TableViewSaved }): void;
+  resetTab(tab: { id: string | null, name: string, view?: TableViewSaved, isDefaultTab?: boolean }): void;
+  persistAll(views: TableViewSaved[], defaultViewId: string | null, allIndex?: number): void;
+  openShare(tab: { id: string | null, name: string, view?: TableViewSaved, isDefaultTab?: boolean }): void;
+  openImport(tab: { id: string | null, name: string, view?: TableViewSaved, isDefaultTab?: boolean }): void;
+  importIntoTab(tabId: string, view: SharedTableView): void;
+  importFromModal(view: SharedTableView): void;
 }
 
 const internals = (wrapper: { vm: unknown }) => wrapper.vm as TabsInternals;
@@ -197,11 +205,18 @@ describe('TableViewTabs', () => {
 
     /** A strip whose saved views change as they are written, the way the preference does */
     function createWrapper({
-      views = [first, second], defaultViewId = null as string | null, view = { ...EMPTY }, initialViewId = undefined as string | undefined
+      views = [first, second], defaultViewId = null as string | null, view = { ...EMPTY }, initialViewId = undefined as string | undefined,
+      allIndex = 0
     } = {}) {
       const growl = jest.fn();
       const store = createStore({
-        state:     { stored: { test: { views, defaultViewId } } as Record<string, unknown> },
+        state: {
+          stored: {
+            test: {
+              views, defaultViewId, allIndex
+            }
+          } as Record<string, unknown>
+        },
         getters:   { 'prefs/get': (state) => (key: string) => (key === TABLE_VIEWS ? state.stored : undefined) },
         mutations: { write: (state, value) => (state.stored = value) },
         actions:   {
@@ -217,11 +232,13 @@ describe('TableViewTabs', () => {
         shallow: true,
       });
 
-      const stored = () => (store.state.stored as { test: { views: TableViewSaved[] } }).test.views;
+      // Read as the table does, through the version the preference is written with
+      const stored = () => savedViewsByType<{ views: TableViewSaved[] }>(store.state.stored).test.views;
+      const storedAllIndex = () => savedViewsByType<{ allIndex?: number }>(store.state.stored).test.allIndex;
       const shown = () => wrapper.emitted<[TableViewState]>('update:view')?.pop()?.[0];
 
       return {
-        wrapper, vm: internals(wrapper), stored, shown, growl
+        wrapper, vm: internals(wrapper), stored, storedAllIndex, shown, growl
       };
     }
 
@@ -278,7 +295,7 @@ describe('TableViewTabs', () => {
       const { vm, stored } = createWrapper({ view: { ...EMPTY, query: 'state:Running name:x' } });
       const before = stored();
 
-      vm.saveChanges({ id: null, name: 'Explorer' });
+      vm.saveChanges({ id: null, name: 'All' });
 
       expect(stored()).toStrictEqual(before);
     });
@@ -293,7 +310,236 @@ describe('TableViewTabs', () => {
       expect(vm.drafts.aaa?.query).toBe('state:Running name:x');
     });
 
+    describe('resetting a tab to the table as it comes', () => {
+      it('should clear the tab in front of everything, keeping it in front with unsaved changes', () => {
+        const { vm, shown } = createWrapper({
+          view: {
+            ...EMPTY, ...first, groupBy: 'node'
+          },
+          initialViewId: 'aaa'
+        });
+
+        vm.resetTab(tabFor(first));
+
+        expect(shown()).toStrictEqual({
+          query: '', columns: null, columnOrder: null, labelColumns: [], groupBy: null, sort: null, sortDescending: false
+        });
+        expect(vm.selectedViewId).toBe('aaa');
+      });
+
+      it('should hold the reset as changes on a tab that is not in front, leaving the one in front alone', () => {
+        const { vm, wrapper } = createWrapper({ view: { ...EMPTY, query: 'state:Running' }, initialViewId: 'aaa' });
+
+        vm.resetTab(tabFor(second));
+
+        expect(vm.drafts.bbb).toStrictEqual(expect.objectContaining({ query: '', groupBy: null }));
+        expect(wrapper.emitted('update:view')).toBeUndefined();
+      });
+
+      it('should drop held changes when the view saved is already the table as it comes', () => {
+        const plain = makeView('ccc', 'Plain');
+        const { vm } = createWrapper({ view: { ...EMPTY, query: 'state:Running' }, initialViewId: 'aaa' });
+
+        vm.drafts = { ccc: { ...EMPTY, query: 'name:x' } };
+        vm.resetTab(tabFor(plain));
+
+        expect(vm.drafts.ccc).toBeUndefined();
+      });
+    });
+
+    describe('sharing a tab', () => {
+      const sharedIn = (vm: TabsInternals) => decodeSharedViews(vm.modal?.text || '')?.tables;
+
+      it('should hand out the tab in front as it stands, unsaved changes and all, under its name', () => {
+        const { vm } = createWrapper({ view: { ...EMPTY, query: 'state:Running name:x' }, initialViewId: 'aaa' });
+
+        vm.openShare(tabFor(first));
+
+        expect(vm.modal?.kind).toBe('share');
+        expect(sharedIn(vm)).toStrictEqual({ test: expect.objectContaining({ name: first.name, query: 'state:Running name:x' }) });
+      });
+
+      it('should hand out another tab with the changes held for it', () => {
+        const { vm } = createWrapper({ view: { ...EMPTY, query: 'state:Running' }, initialViewId: 'aaa' });
+
+        vm.drafts = { bbb: { ...EMPTY, query: 'name:held' } };
+        vm.openShare(tabFor(second));
+
+        expect(sharedIn(vm)?.test).toStrictEqual(expect.objectContaining({ name: second.name, query: 'name:held' }));
+      });
+
+      it('should open an import into a saved view, or, from the table\'s own tab, into a view added for it', () => {
+        const { vm } = createWrapper();
+
+        vm.openImport(tabFor(second));
+        expect(vm.modal).toStrictEqual({ kind: 'import', tabId: 'bbb' });
+
+        vm.openImport({
+          id: null, name: 'All', isDefaultTab: true
+        });
+        expect(vm.modal).toStrictEqual({ kind: 'import', tabId: null });
+      });
+    });
+
+    describe('a view imported into a tab', () => {
+      const shared: SharedTableView = {
+        ...EMPTY, name: 'Theirs', query: 'name:shared', groupBy: 'node'
+      };
+      const sharedState = {
+        query: 'name:shared', columns: null, columnOrder: null, labelColumns: [], groupBy: 'node', sort: null, sortDescending: false
+      };
+
+      it('should replace the settings of the tab in front, as changes to save or discard, keeping its name', async() => {
+        // Opened on `aaa` by its config, with no pick: what is imported matches `bbb`'s config, which
+        // would otherwise take the selection over
+        const { id, name, ...firstState } = first;
+        const { id: _, name: __, ...secondState } = second;
+        const {
+          vm, wrapper, stored, shown
+        } = createWrapper({ view: { ...EMPTY, ...firstState } });
+        const before = stored();
+
+        expect(vm.selectedViewId).toBe('aaa');
+
+        vm.importIntoTab('aaa', {
+          ...EMPTY, ...secondState, name: 'Theirs'
+        });
+        await wrapper.setProps({ view: shown() });
+
+        expect(vm.selectedViewId).toBe('aaa');
+        expect(vm.isDirty).toBe(true);
+        expect(stored()).toStrictEqual(before);
+        expect(stored()[0].name).toBe(name);
+        expect(id).toBe('aaa');
+      });
+
+      it('should bring another tab in front with the settings, the tab left keeping its own edits', () => {
+        const { vm, stored, shown } = createWrapper({ view: { ...EMPTY, query: 'state:Running name:x' }, initialViewId: 'aaa' });
+        const before = stored();
+
+        vm.importIntoTab('bbb', shared);
+
+        expect(shown()).toStrictEqual(sharedState);
+        expect(vm.selectedViewId).toBe('bbb');
+        expect(vm.drafts.aaa?.query).toBe('state:Running name:x');
+        expect(stored()).toStrictEqual(before);
+      });
+
+      describe('from the modal', () => {
+        beforeEach(() => jest.useFakeTimers());
+        afterEach(() => jest.useRealTimers());
+
+        it('should close it first, then import into the tab it was opened for, once the focus is back', async() => {
+          const { vm, wrapper, shown } = createWrapper({ view: { ...EMPTY, query: 'state:Running' }, initialViewId: 'aaa' });
+
+          vm.openImport(tabFor(second));
+          vm.importFromModal(shared);
+
+          expect(vm.modal).toBeNull();
+          expect(wrapper.emitted('update:view')).toBeUndefined();
+
+          await wrapper.vm.$nextTick();
+          jest.runAllTimers();
+
+          expect(vm.selectedViewId).toBe('bbb');
+          expect(shown()).toStrictEqual(sharedState);
+        });
+
+        it('should, from the table\'s own tab, add a view and import into it, saved as it comes', async() => {
+          const {
+            vm, wrapper, stored, shown
+          } = createWrapper();
+
+          vm.openImport({
+            id: null, name: 'All', isDefaultTab: true
+          });
+          vm.importFromModal(shared);
+          await wrapper.vm.$nextTick();
+          jest.runAllTimers();
+          await wrapper.vm.$nextTick();
+
+          const added = stored()[2];
+
+          expect(stored()).toHaveLength(3);
+          expect(vm.selectedViewId).toBe(added.id);
+          expect(shown()).toStrictEqual(sharedState);
+          // Saved as the table comes, which keeps no filter
+          expect(added.query || '').toBe('');
+        });
+
+        it('should import nothing when the modal open isn\'t an import', async() => {
+          const { vm, wrapper } = createWrapper({ view: { ...EMPTY, query: 'state:Running' }, initialViewId: 'aaa' });
+
+          vm.importFromModal(shared);
+          await wrapper.vm.$nextTick();
+          jest.runAllTimers();
+
+          expect(wrapper.emitted('update:view')).toBeUndefined();
+        });
+      });
+
+      it('should take nothing into a tab that isn\'t a saved view', () => {
+        const { vm, wrapper } = createWrapper();
+
+        vm.importIntoTab('nope', shared);
+
+        expect(wrapper.emitted('update:view')).toBeUndefined();
+      });
+    });
+
     describe('deleting a view', () => {
+      describe('the table\'s own tab', () => {
+        const third = makeView('ccc', 'third', { query: 'name:baz' });
+
+        // [first, All, second, third], with `third` the default, which leads: [third, first, All, second]
+        const setup = () => createWrapper({
+          views: [first, second, third], defaultViewId: 'ccc', allIndex: 1
+        });
+
+        it('should keep its place when a view before it goes', () => {
+          const { vm, storedAllIndex } = setup();
+
+          vm.deleteView(first);
+
+          expect(storedAllIndex()).toBe(0);
+          expect((vm as unknown as { tabs: { id: string | null }[] }).tabs.map((tab) => tab.id)).toStrictEqual(['ccc', null, 'bbb']);
+        });
+
+        it('should keep its place when a view after it goes', () => {
+          const { vm, storedAllIndex } = setup();
+
+          vm.deleteView(second);
+
+          expect(storedAllIndex()).toBe(1);
+          expect((vm as unknown as { tabs: { id: string | null }[] }).tabs.map((tab) => tab.id)).toStrictEqual(['ccc', 'aaa', null]);
+        });
+
+        it('should stay where it was moved to when the view is put back after the move', () => {
+          // [third, first, second, All]
+          const { vm, storedAllIndex, growl } = createWrapper({
+            views: [first, second, third], defaultViewId: 'ccc', allIndex: 2
+          });
+
+          vm.deleteView(second);
+          // Dragged in front of `first` before the undo: [third, All, first]
+          vm.persistAll([first, third], 'ccc', 0);
+          growl.mock.calls[0][0].action.run();
+
+          expect(storedAllIndex()).toBe(0);
+          expect((vm as unknown as { tabs: { id: string | null }[] }).tabs.map((tab) => tab.id)).toStrictEqual(['ccc', null, 'aaa', 'bbb']);
+        });
+
+        it('should be back where it was when the view is put back', () => {
+          const { vm, storedAllIndex, growl } = setup();
+
+          vm.deleteView(first);
+          growl.mock.calls[0][0].action.run();
+
+          expect(storedAllIndex()).toBe(1);
+          expect((vm as unknown as { tabs: { id: string | null }[] }).tabs.map((tab) => tab.id)).toStrictEqual(['ccc', 'aaa', null, 'bbb']);
+        });
+      });
+
       it('should drop the view from the saved list and offer it back', () => {
         const { vm, stored, growl } = createWrapper();
 

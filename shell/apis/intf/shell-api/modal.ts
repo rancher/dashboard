@@ -115,6 +115,25 @@ export interface ModalApi {
    * The Vue component to be displayed inside the modal.
    * This can be any SFC (Single-File Component) imported and passed in as a `Component`.
    *
+   * From Rancher `2.16` and onwards, a component that declares a `modal` prop renders its own
+   * `RcModal` instead of being wrapped in the default modal. It receives `modal` as
+   * `{ show, onClose }` to spread onto `RcModal`, and `width` and `closeOnClickOutside` do not
+   * apply to it. An older Rancher wraps the component and passes it no `modal` prop.
+   *
+   * Example:
+   * ```html
+   * <script setup lang="ts">
+   * import { RcModal } from '@components/RcModal';
+   *
+   * defineProps<{ modal: { show: boolean; onClose: () => void }; title: string }>();
+   * </script>
+   *
+   * <template>
+   *   <RcModal v-bind="modal" :title="title">
+   *     <p>Hello Modal</p>
+   *   </RcModal>
+   * </template>
+   * ```
    *
    * @param config Modal configuration object
    *
