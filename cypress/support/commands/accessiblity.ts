@@ -40,12 +40,16 @@ type AxeResults = {
  *
  * Finite animations and transitions are allowed to finish first. axe blends a fading element's
  * colours with whatever is behind it, so checking a popover mid fade-in reports a contrast failure
- * that a user never sees. Infinite animations (spinners) are skipped, as they never finish.
+ * that a user never sees. Only running, time-based animations are awaited: infinite animations
+ * (spinners), paused animations and scroll-driven animations (the nav's scroll shadows) would
+ * never finish.
  */
 function runAxe(context?: any): Cypress.Chainable<AxeResults> {
   return cy.window({ log: false }).then(LONG_TIMEOUT_OPT, (win: any) => {
     const finishing = win.document.getAnimations()
-      .filter((animation: Animation) => animation.effect?.getComputedTiming().endTime !== Infinity)
+      .filter((animation: Animation) => animation.playState === 'running' &&
+        animation.timeline === win.document.timeline &&
+        animation.effect?.getComputedTiming().endTime !== Infinity)
       .map((animation: Animation) => animation.finished.catch(() => undefined));
 
     return Promise.all(finishing)
