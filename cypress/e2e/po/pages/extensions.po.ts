@@ -47,8 +47,15 @@ export default class ExtensionsPagePo extends PagePo {
     return this.self().get('.data-loading');
   }
 
-  waitForTabs() {
-    return this.extensionTabs.checkVisible(LONG_TIMEOUT_OPT);
+  /**
+   * Wait for the extension tabs, which only render once the page has finished loading.
+   *
+   * The tab bar is at the top of the page, so assert it without scrolling: checkVisible() scrolls by
+   * default, and the page re-renders the tabs while it finishes loading, which detaches the element
+   * mid-scroll ("the page updated as a result of this command").
+   */
+  waitForTabs(): Cypress.Chainable<boolean> {
+    return this.extensionTabs.checkVisible(LONG_TIMEOUT_OPT, { scrollIntoView: false });
   }
 
   /**
@@ -230,6 +237,20 @@ export default class ExtensionsPagePo extends PagePo {
     });
 
     return menu.clickMenuItemIfPresent(actionLabel);
+  }
+
+  /**
+   * Check the card's action menu offers `actionLabel`, then close the menu again. Waits for the
+   * version-dependent actions (Upgrade, Downgrade), which appear once the chart repo versions load.
+   */
+  checkActionOffered(extensionTitle: string, actionLabel: string): void {
+    this.loading().should('not.exist');
+    const card = this.extensionCard(extensionTitle, LONG_TIMEOUT_OPT);
+
+    card.self().should('be.visible');
+    card.openActionMenu().getMenuItem(actionLabel, LONG_TIMEOUT_OPT).should('exist');
+    cy.get('body').type('{esc}');
+    ActionMenuPo.checkNoActionMenuIsVisible();
   }
 
   extensionCardVersion(extensionTitle: string): Cypress.Chainable<string> {
