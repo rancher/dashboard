@@ -43,3 +43,12 @@ export interface ResourceStatusBreakdownWidgetConfig extends ResourceStatusWidge
  * Everything a ResourceStatusWidget needs to show a card. Plain data, so it can be saved and edited
  */
 export type ResourceStatusWidgetConfig = ResourceStatusSummaryWidgetConfig | ResourceStatusBreakdownWidgetConfig;
+
+/**
+ * Several cards in a grid, with an optional title above them
+ */
+export interface ResourceStatusWidgetGroupConfig {
+  kind: 'group';
+  title?: string;
+  widgets: ResourceStatusWidgetConfig[];
+}
