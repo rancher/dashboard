@@ -24,7 +24,8 @@ const createStore = ({ admin = true, scc = true } = {}): any => ({
 });
 
 const createWrapper = ({
-  prime = false, admin = true, scc = true, features = undefined as any[] | undefined, primePromo = undefined as any
+  prime = false, admin = true, scc = true, features = undefined as any[] | undefined, primePromo = undefined as any,
+  registration = undefined as any, matchedVersion = undefined as string | undefined
 } = {}) => {
   setVersionData({
     Version: 'v2.16.1', RancherPrime: prime ? 'true' : 'false', GitCommit: ''
@@ -32,7 +33,9 @@ const createWrapper = ({
   mockStore = createStore({ admin, scc });
 
   return shallowMount(ReleaseWelcomeDialog, {
-    props:  { features, primePromo },
+    props: {
+      features, primePromo, registration, matchedVersion
+    },
     global: {
       mocks: { t: (key: string) => key },
       stubs: { 'router-link': RouterLinkStub }
@@ -68,6 +71,12 @@ describe('component: ReleaseWelcomeDialog', () => {
     const wrapper = createWrapper();
 
     expect(wrapper.findComponent(WhatsNewCard).props('version')).toStrictEqual('2.16');
+  });
+
+  it('should show the dynamic content version on the what\'s new card', () => {
+    const wrapper = createWrapper({ matchedVersion: '2.16.1' });
+
+    expect(wrapper.findComponent(WhatsNewCard).props('version')).toStrictEqual('2.16.1');
   });
 
   it('should pass the features from dynamic content to the what\'s new card', () => {
@@ -131,6 +140,21 @@ describe('component: ReleaseWelcomeDialog', () => {
       const wrapper = createWrapper({ prime: true });
 
       expect(wrapper.findComponent(PrimeRegistrationCard).exists()).toStrictEqual(true);
+    });
+
+    it('should pass the registration card from dynamic content', () => {
+      const registration = {
+        title: 'Register', description: 'Remote card', benefits: [{ text: 'Remote benefit' }], cta: { action: 'Open', link: 'https://scc.suse.com' }
+      };
+      const wrapper = createWrapper({ prime: true, registration });
+
+      expect(wrapper.findComponent(PrimeRegistrationCard).props('registration')).toStrictEqual(registration);
+    });
+
+    it('should leave the built-in registration card without dynamic content', () => {
+      const wrapper = createWrapper({ prime: true });
+
+      expect(wrapper.findComponent(PrimeRegistrationCard).props('registration')).toBeUndefined();
     });
 
     it('should link the registration page for admins', () => {
