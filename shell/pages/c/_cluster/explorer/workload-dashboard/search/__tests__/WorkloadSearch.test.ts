@@ -2,7 +2,7 @@ import { defineComponent, ref } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import WorkloadSearch from '@shell/pages/c/_cluster/explorer/workload-dashboard/search/WorkloadSearch.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
-import type { WorkloadSearchOption } from '@shell/pages/c/_cluster/explorer/workload-dashboard/search/types';
+import { WORKLOAD_SEARCH_MIN_CHARS, type WorkloadSearchOption } from '@shell/pages/c/_cluster/explorer/workload-dashboard/search/types';
 
 const mockLoading = ref(false);
 const mockOptions = ref<WorkloadSearchOption[]>([]);
@@ -192,19 +192,6 @@ describe('component: WorkloadSearch', () => {
       const wrapper = createWrapper();
 
       expect(wrapper.find('.group-label').text()).toStrictEqual('apps.deployment (2)');
-    });
-
-    it('should only mark the first group header as first', () => {
-      mockOptions.value = [
-        groupOption('apps.deployment'),
-        makeResult('nginx'),
-        groupOption('pod'),
-      ];
-      const wrapper = createWrapper();
-
-      const labels = wrapper.findAll('.group-label');
-
-      expect(labels.map((label) => label.classes('group-label--first'))).toStrictEqual([true, false]);
     });
   });
 
@@ -509,6 +496,14 @@ describe('component: WorkloadSearch', () => {
       const wrapper = createWrapper();
 
       expect(wrapper.text()).toStrictEqual('workloadDashboard.search.searching');
+    });
+
+    it('should ask for more characters when the search text is shorter than the minimum length', async() => {
+      const wrapper = createWrapper();
+
+      await wrapper.findComponent(LabeledSelectStub).setData({ search: 'n'.repeat(WORKLOAD_SEARCH_MIN_CHARS - 1) });
+
+      expect(wrapper.text()).toStrictEqual(`workloadDashboard.search.minCharacters:{"count":${ WORKLOAD_SEARCH_MIN_CHARS }}`);
     });
 
     it('should show the no match message when a search returned nothing', async() => {

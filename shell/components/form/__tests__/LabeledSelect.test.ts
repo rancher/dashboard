@@ -702,6 +702,29 @@ describe('component: LabeledSelect', () => {
       expect(wrapper.emitted('update:value')).toBeUndefined();
       expect(wrapper.vm.isOpen).toBe(false);
     });
+
+    it.each([
+      [true, true, true],
+      [true, false, false],
+      [false, true, false],
+    ])('given searchable %p and clicking the search input %p, should leave an open dropdown open: %p', async(searchable, clickSearchInput, expectedOpen) => {
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value:   'foo',
+          options: [{ label: 'Foo', value: 'foo' }],
+          searchable,
+          mode:    _EDIT
+        }
+      });
+
+      wrapper.vm.isOpen = true;
+      const searchEl = (wrapper.vm.$refs['select-input'] as any).searchEl;
+
+      wrapper.vm.clickSelect({ target: clickSearchInput ? searchEl : wrapper.element });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.isOpen).toBe(expectedOpen);
+    });
   });
 
   describe('vue-select-overrides (enter key selection)', () => {

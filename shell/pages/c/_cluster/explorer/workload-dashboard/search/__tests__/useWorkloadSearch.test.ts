@@ -1,6 +1,6 @@
 import { useWorkloadSearch } from '@shell/pages/c/_cluster/explorer/workload-dashboard/search/useWorkloadSearch';
 import { WORKLOAD_DASHBOARD_RESOURCE_TYPES } from '@shell/pages/c/_cluster/explorer/workload-dashboard/types';
-import { WORKLOAD_SEARCH_DEBOUNCE_MS, WORKLOAD_SEARCH_RESULTS_PER_TYPE } from '@shell/pages/c/_cluster/explorer/workload-dashboard/search/types';
+import { WORKLOAD_SEARCH_DEBOUNCE_MS, WORKLOAD_SEARCH_MIN_CHARS, WORKLOAD_SEARCH_RESULTS_PER_TYPE } from '@shell/pages/c/_cluster/explorer/workload-dashboard/search/types';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { defineComponent, h } from 'vue';
@@ -246,17 +246,20 @@ describe('composable: useWorkloadSearch', () => {
     expect(result.options.value[0].label).toStrictEqual(`%typeLabel."${ FIRST_TYPE }"%{"count":2} (2)`);
   });
 
-  it('appends a "more" option when the total count exceeds the returned resources', async() => {
-    mockFirstTypeResponse({ data: [makeResource('nginx-a'), makeResource('nginx-b')], pagination: { result: { count: 5 } } });
+  it.each([
+    [1, 3],
+    [3, 5],
+  ])('appends a "more" option labelled with the type for %i remaining match(es)', async(remaining, total) => {
+    mockFirstTypeResponse({ data: [makeResource('nginx-a'), makeResource('nginx-b')], pagination: { result: { count: total } } });
     const { result } = mountComposable();
 
     await search(result, 'nginx');
 
-    const typeLabel = `%typeLabel."${ FIRST_TYPE }"%{"count":2}`;
+    const typeLabel = `%typeLabel."${ FIRST_TYPE }"%{"count":${ remaining }}`;
 
     expect(result.options.value[result.options.value.length - 1]).toStrictEqual({
       kind:         'more',
-      label:        `%workloadDashboard.search.moreResults%${ JSON.stringify({ count: 3, type: typeLabel.toLowerCase() }) }`,
+      label:        `%workloadDashboard.search.moreResults%${ JSON.stringify({ count: remaining, type: typeLabel }) }`,
       uniqueId:     `more-${ FIRST_TYPE }`,
       resourceType: FIRST_TYPE,
       searchTerm:   'nginx',
@@ -304,12 +307,12 @@ describe('composable: useWorkloadSearch', () => {
     });
     const { result } = mountComposable();
 
-    await search(result, 'ng');
+    await search(result, 'ngi');
     await search(result, 'nginx');
 
     resolvers[1]({ data: [makeResource('nginx-new')] });
     await flushPromises();
-    resolvers[0]({ data: [makeResource('ng-old')] });
+    resolvers[0]({ data: [makeResource('ngi-old')] });
     await flushPromises();
 
     expect(result.options.value[1].label).toStrictEqual('nginx-new');
@@ -329,10 +332,10 @@ describe('composable: useWorkloadSearch', () => {
     });
     const { result } = mountComposable();
 
-    await search(result, 'ng');
+    await search(result, 'ngi');
     result.onSearch('nginx');
 
-    resolveFirst({ data: [makeResource('ng-old')] });
+    resolveFirst({ data: [makeResource('ngi-old')] });
     await flushPromises();
 
     expect(result.options.value).toStrictEqual([]);
@@ -352,7 +355,7 @@ describe('composable: useWorkloadSearch', () => {
     });
     const { result } = mountComposable();
 
-    await search(result, 'ng');
+    await search(result, 'ngi');
     result.onSearch('nginx');
 
     resolveFirst({ data: [] });
@@ -387,6 +390,40 @@ describe('composable: useWorkloadSearch', () => {
     await flushPromises();
 
     expect(result.loading.value).toBe(false);
+  });
+
+  it('sets loading as soon as a search term is entered, before the debounce has elapsed', () => {
+    mockDispatch.mockResolvedValue({ data: [] });
+    const { result } = mountComposable();
+
+    result.onSearch('nginx');
+
+    expect(result.loading.value).toBe(true);
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not search, and clears previous results, when the term is shorter than the minimum length', async() => {
+    mockDispatch.mockResolvedValue({ data: [makeResource('nginx-a')] });
+    const { result } = mountComposable();
+
+    await search(result, 'nginx');
+    expect(result.options.value.length).toBeGreaterThan(0);
+
+    mockDispatch.mockClear();
+    await search(result, 'n'.repeat(WORKLOAD_SEARCH_MIN_CHARS - 1));
+
+    expect(result.options.value).toStrictEqual([]);
+    expect(result.loading.value).toBe(false);
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('searches once the term reaches the minimum length', async() => {
+    mockDispatch.mockResolvedValue({ data: [] });
+    const { result } = mountComposable();
+
+    await search(result, 'n'.repeat(WORKLOAD_SEARCH_MIN_CHARS));
+
+    expect(mockDispatch).toHaveBeenCalledTimes(WORKLOAD_DASHBOARD_RESOURCE_TYPES.length);
   });
 
   it('clears options immediately without dispatching when the search term is emptied', async() => {
