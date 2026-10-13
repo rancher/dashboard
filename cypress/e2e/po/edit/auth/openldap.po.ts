@@ -5,7 +5,13 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 export default class OpenLdapPo extends PagePo {
+  // Adding a provider always creates a config of its own, so the form is reached
+  // through the create route rather than through an empty config's edit page.
   private static createPath(clusterId: string) {
+    return `/c/${ clusterId }/auth/config/create/openldap?mode=edit`;
+  }
+
+  private static editPath(clusterId: string) {
     return `/c/${ clusterId }/auth/config/openldap?mode=edit`;
   }
 
@@ -15,7 +21,7 @@ export default class OpenLdapPo extends PagePo {
 
   // Opens the config form of an enabled provider, as the Edit action on the provider list does
   static goToEditConfig(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(`${ OpenLdapPo.createPath(clusterId) }&editConfig=true`);
+    return super.goTo(`${ OpenLdapPo.editPath(clusterId) }&editConfig=true`);
   }
 
   constructor(clusterId: string) {

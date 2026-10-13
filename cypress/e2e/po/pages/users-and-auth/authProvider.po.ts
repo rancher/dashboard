@@ -52,6 +52,13 @@ export class AuthProviderPo extends PagePo {
     return this.createButton().click();
   }
 
+  /**
+   * The heading of the page a provider is added on, e.g. "Add Okta".
+   */
+  createTitle() {
+    return cy.getId('auth-config-create-title');
+  }
+
   providerSearch() {
     return cy.getId('add-auth-provider-search');
   }

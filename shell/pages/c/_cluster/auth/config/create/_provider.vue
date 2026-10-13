@@ -142,7 +142,10 @@ export default {
         </template>
         {{ t('authConfig.create.back') }}
       </rc-button>
-      <h1 class="auth-config-title">
+      <h1
+        class="auth-config-title"
+        data-testid="auth-config-create-title"
+      >
         <AuthProviderLogo :icon="icon" />
         {{ t('authConfig.create.provider.title', { provider: displayName }) }}
       </h1>
