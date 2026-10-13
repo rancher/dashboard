@@ -300,7 +300,8 @@ export default {
 
     /**
      * Only typing waits. A query arriving whole (a saved view) doesn't, and typing only changes the
-     * end, so one query starting with the other tells the two apart
+     * end, so one query starting with the other tells the two apart. Clearing is a whole-query action
+     * too: debouncing it lets a clear-and-retype of the same query never settle a change
      */
     'view.query'(neu, old) {
       const query = neu || '';
@@ -321,7 +322,7 @@ export default {
 
       this.debouncedSettleQuery(query);
 
-      if (!typed) {
+      if (!typed || !query) {
         this.debouncedSettleQuery.flush();
       }
     },
