@@ -317,6 +317,11 @@ export default {
         return;
       }
 
+      // Clicking into the search input of an open dropdown shouldn't close it
+      if (this.isOpen && this.isSearchable && event?.target === this.$refs['select-input']?.searchEl) {
+        return;
+      }
+
       this.isOpen = !this.isOpen;
 
       // Ensure we only focus on open, otherwise we re-open on close
