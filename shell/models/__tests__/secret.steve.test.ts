@@ -233,6 +233,22 @@ ${ part }`;
       expect(secret.canUpdate).toBe(false);
     });
 
+    it.each([
+      ['the helm release type', { _type: TYPES.HELM_RELEASE }],
+      ['the helm owner label', { _type: TYPES.OPAQUE, metadata: { labels: { owner: 'helm' } } }],
+    ])('canUpdate and canEditYaml are false for helm release secrets identified by %s', (_, data) => {
+      const secret = makeSecret({ links: { update: 'u' }, ...data });
+
+      expect(secret.canUpdate).toBe(false);
+      expect(secret.canEditYaml).toBe(false);
+    });
+
+    it('canDelete is still allowed for helm release secrets', () => {
+      const secret = makeSecret({ links: { remove: 'r' }, _type: TYPES.HELM_RELEASE });
+
+      expect(secret.canDelete).toBe(true);
+    });
+
     it('canUpdate delegates to the update link and edit permission for other types', () => {
       const secret = makeSecret({ links: { update: 'u' }, _type: TYPES.OPAQUE });
 

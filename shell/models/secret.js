@@ -208,7 +208,21 @@ export default class Secret extends SteveModel {
       return false;
     }
 
+    // The API strips the release data from helm secrets, so saving would wipe it
+    if ( this.isHelmRelease ) {
+      return false;
+    }
+
     return this.$rootGetters['type-map/optionsFor'](this.type).isEditable;
+  }
+
+  /**
+   * Is this a secret that holds a helm release?
+   *
+   * Steve drops `data.release` for secrets with the helm owner label (see steve DropHelmData formatter)
+   */
+  get isHelmRelease() {
+    return this._type === TYPES.HELM_RELEASE || this.metadata?.labels?.owner === 'helm';
   }
 
   get canDelete() {
