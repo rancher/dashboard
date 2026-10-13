@@ -10,8 +10,20 @@ import TabTitle from '@shell/components/TabTitle';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import { getVersionInfo } from '@shell/utils/version';
+import { getVersionData } from '@shell/config/version';
 import { RcButton } from '@components/RcButton';
 import { RcHeading } from '@components/RcHeading';
+
+// Remove the patch version when it is zero and Rancher is not in prime mode (so we show v2.16 rather than v2.16.0)
+function removePatchWhenZero(version) {
+  const isPrime = getVersionData().RancherPrime === 'true';
+
+  if (!isPrime && version.startsWith('v') && version.endsWith('.0')) {
+    return version.substr(0, version.length - 2);
+  }
+
+  return version;
+}
 
 export default {
   components: {
@@ -25,7 +37,7 @@ export default {
     return {
       extensionType:     ExtensionPoint.PANEL,
       extensionLocation: PanelLocation.ABOUT_TOP,
-      dashboardVersion:  this.$config.dashboardVersion,
+      dashboardVersion:  removePatchWhenZero(this.$config.dashboardVersion),
       cliDocsUrl:        `${ DOCS_BASE }/reference-guides/cli-with-rancher/rancher-cli`,
       settings:          null,
       SETTING
@@ -34,7 +46,7 @@ export default {
   computed: {
     ...mapGetters(['releaseNotesUrl']),
     rancherVersion() {
-      return getVersionInfo(this.$store).fullVersion;
+      return removePatchWhenZero(getVersionInfo(this.$store).fullVersion);
     },
     appName() {
       return getVendor();

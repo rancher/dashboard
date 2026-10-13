@@ -375,7 +375,8 @@ export default {
     aboutText() {
       // If a version number (starts with 'v') then use that
       if (this.displayVersion.startsWith('v')) {
-        if (this.shown) {
+        // Show the patch level if the nav is expanded and we are not Community, otherwise continue with the shortened version as appropriate
+        if (this.shown && isRancherPrime()) {
           return this.displayVersion;
         }
 
