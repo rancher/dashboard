@@ -96,7 +96,7 @@ export function useWorkloadSearch() {
       if (remaining > 0) {
         options.push({
           kind:         'more',
-          label:        t('workloadDashboard.search.moreResults', { count: remaining, type: label.toLowerCase() }),
+          label:        t('workloadDashboard.search.moreResults', { count: remaining, type: t(`typeLabel."${ type }"`, { count: remaining })?.trim() || type }),
           uniqueId:     `more-${ type }`,
           resourceType: type,
           searchTerm:   term,
