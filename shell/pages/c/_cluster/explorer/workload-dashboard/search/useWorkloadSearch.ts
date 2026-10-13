@@ -147,6 +147,8 @@ export function useWorkloadSearch() {
       return;
     }
 
+    // Covers the debounce window too, so it doesn't look like there are no matches
+    loading.value = true;
     debouncedSearch(term);
   }
 
