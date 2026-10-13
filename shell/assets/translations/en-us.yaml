@@ -7867,6 +7867,10 @@ validation:
       valuesMustBeDefined: Rule [{index}] of {group} {rules} - value must be defined if operator is 'In' or 'NotIn'
   port: A port must be a number between 1 and 65535.
   path: '"{key}" must be an absolute path'
+  pemCertificate: '"{key}" must be a PEM encoded certificate'
+  pemPrivateKey: '"{key}" must be a PEM encoded private key'
+  sshPublicKey: '"{key}" must be an SSH public key, e.g. "ssh-ed25519 AAAA..."'
+  dataKey: '"{key}" must consist of alphanumeric characters, "-", "_" or "."'
   prometheusRule:
     noEdit: This Prometheus Rule may not be edited due to invalid characters in name.
     groups:

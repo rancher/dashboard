@@ -2,6 +2,7 @@ import { Canvas, Meta } from "@storybook/addon-docs";
 import * as FormCompositionInput from './FormCompositionInput.stories';
 import * as FormCompositionNested from './FormCompositionNested.stories';
 import * as FormCompositionComponent from './FormCompositionComponent.stories';
+import * as FormCompositionInvalidValues from './FormCompositionInvalidValues.stories';
 
 import * as FormComponentInput from './FormComponentInput.stories';
 import * as FormComponentNested from './FormComponentNested.stories';
@@ -51,6 +52,16 @@ NOTE: A method to integrate custom validations without Zod library [is not defin
 In this case using [ArrayList](https://rancher.github.io/storybook/?path=/docs/stories-components-arraylist--docs) component, the terms 'openid', 'profile' and 'email' are required.
 
 <Canvas of={FormCompositionComponent.Default} />
+
+### Composition API: Block submission on invalid values
+
+Rules run on every change, not only on submit, so `isFormValid` from [`useFormValidation`](https://github.com/rancher/dashboard/blob/master/shell/composables/useFormValidation.ts) turns `false` as soon as a field holds an invalid value. Bind it to the submit button to keep it disabled until every field is valid.
+
+A blank field only fails `required`. To catch an invalid value, also add a format rule (here `subDomain` and `pemCertificate`). Format rules accept empty values and leave them to `required`.
+
+Messages appear after the field is blurred or after a submit attempt.
+
+<Canvas of={FormCompositionInvalidValues.Default} />
 
 ## Rules declaration
 

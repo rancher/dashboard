@@ -28,12 +28,12 @@ export default {
       [
         {
           path:           'ssh-publickey',
-          rules:          ['required'],
+          rules:          ['required', 'sshPublicKey'],
           translationKey: 'secret.ssh.public',
         },
         {
           path:           'ssh-privatekey',
-          rules:          ['required'],
+          rules:          ['required', 'pemPrivateKey'],
           translationKey: 'secret.ssh.private',
         },
       ]

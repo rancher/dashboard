@@ -608,6 +608,29 @@ export default function(
     return runValidators(val, [startHyphen('label'), endHyphen('label'), startDot('label'), endDot('label'), required]);
   };
 
+  // Format checks leave empty values to the `required` rule
+  const pemCertificate: Validator = (val: string) => val && !/-----BEGIN CERTIFICATE-----[A-Za-z0-9+/=\s]+-----END CERTIFICATE-----/.test(val) ? t('validation.pemCertificate', { key }) : undefined;
+
+  // Covers PKCS#1/#8, EC, DSA, encrypted and OpenSSH private keys
+  const pemPrivateKey: Validator = (val: string) => val && !/-----BEGIN ((?:[A-Z0-9]+ )*)PRIVATE KEY-----[\s\S]+?-----END \1PRIVATE KEY-----/.test(val) ? t('validation.pemPrivateKey', { key }) : undefined;
+
+  // Single authorized_keys style line, e.g. 'ssh-ed25519 AAAA... comment'. The base64 blob always starts with 'AAAA'
+  const sshPublicKey: Validator = (val: string) => val && !/^(ssh-[a-z0-9-]+|ecdsa-sha2-[a-z0-9-]+|sk-[a-z0-9-]+)(@openssh\.com)?\s+AAAA[A-Za-z0-9+/]+={0,3}(\s+\S.*)?$/.test(val.trim()) ? t('validation.sshPublicKey', { key }) : undefined;
+
+  // Keys of Secret and ConfigMap data
+  const dataKey: Validator = (val: string) => {
+    if (!val) {
+      return undefined;
+    }
+
+    // Kubernetes also rejects '.', '..' and anything starting with '..'
+    if (!/^[-._a-zA-Z0-9]+$/.test(val) || val === '.' || val.startsWith('..')) {
+      return t('validation.dataKey', { key });
+    }
+
+    return val.length > 253 ? t('validation.stringLength.max', { key, count: 253 }) : undefined;
+  };
+
   return {
     absolutePath,
     alphanumeric,
@@ -623,6 +646,7 @@ export default function(
     volumeMountPath,
     persistentVolumeClaimSpec,
     cronSchedule,
+    dataKey,
     dnsLabel,
     dnsLabelIanaServiceName,
     dnsLabelRestricted,
@@ -646,6 +670,8 @@ export default function(
     minValue,
     noUpperCase,
     ociRegistry,
+    pemCertificate,
+    pemPrivateKey,
     portNumber,
     registryUrl,
     required,
@@ -657,6 +683,7 @@ export default function(
     ruleGroups,
     semanticVersion,
     servicePort,
+    sshPublicKey,
     subDomain,
     testRule,
     version,
