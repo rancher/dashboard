@@ -6,7 +6,7 @@ import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { POD } from '@shell/config/types';
 import { useWorkloadSearch } from './useWorkloadSearch';
 import { WORKLOAD_SEARCH_MIN_CHARS, type WorkloadSearchOption } from './types';
@@ -45,11 +45,6 @@ const {
 } = useWorkloadSearch();
 
 const searchRef = ref<InstanceType<typeof LabeledSelect> | null>(null);
-
-// Result types with no matches are skipped, so the first group in the
-// flattened list isn't always the first entry in WORKLOAD_DASHBOARD_RESOURCE_TYPES -
-// find it directly instead of assuming which type it'll be.
-const firstGroupUniqueId = computed(() => options.value.find((option) => option.kind === 'group')?.uniqueId);
 
 // Opening the row action menu moves DOM focus into its own menu container,
 // which blurs the search input. On any such blur vue-select (used internally
@@ -152,7 +147,6 @@ function onActionInvoked(): void {
       <b
         v-if="option.kind === 'group'"
         class="group-label"
-        :class="{ 'group-label--first': option.uniqueId === firstGroupUniqueId }"
       >{{ option.label }}</b>
       <!-- The click carries on to vue-select, which selects the option like any other result -->
       <a
