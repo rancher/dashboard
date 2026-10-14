@@ -27,7 +27,12 @@ jest.mock('@shell/components/ResourceStatusWidget/useResourceStateSummaries', ()
     mockSummariesArgs.types = types;
     mockSummariesArgs.options = options;
 
-    return { loaded: mockLoaded, stateCounts: (type: string) => mockStateCounts[type] ?? null };
+    return {
+      loaded:      mockLoaded,
+      stateCounts: (type: string) => mockStateCounts[type] ?? null,
+      // A type set to null was fetched and failed, a type that is not set was not fetched
+      hasFailed:   (type: string) => mockLoaded.value && type in mockStateCounts && mockStateCounts[type] === null,
+    };
   },
 }));
 
@@ -148,11 +153,25 @@ describe('component: ResourceStatusWidget', () => {
       expect(wrapper.html()).toStrictEqual('<!--v-if-->');
     });
 
-    it('should render nothing when the counts could not be fetched', () => {
+    it('should show an error card with the title when the counts could not be fetched', () => {
       setStateCounts({ 'apps.deployment': null });
       const wrapper = mountWidget(config);
 
-      expect(wrapper.html()).toStrictEqual('<!--v-if-->');
+      expect(wrapper.find('[data-testid="resource-status-widget-error"]').attributes('title')).toStrictEqual('Deployments');
+    });
+
+    it('should show the error message when the counts could not be fetched', () => {
+      setStateCounts({ 'apps.deployment': null });
+      // The message is in the card's default slot, which a stub drops unless told otherwise
+      const wrapper = shallowMount(ResourceStatusWidget, { props: { config }, global: { renderStubDefaultSlot: true } });
+
+      expect(wrapper.find('[data-testid="resource-status-widget-error"]').text()).toStrictEqual('%component.resourceStatusWidget.loadError%');
+    });
+
+    it('should not show the error card when the counts were fetched', () => {
+      const wrapper = mountWidget(config);
+
+      expect(wrapper.find('[data-testid="resource-status-widget-error"]').exists()).toStrictEqual(false);
     });
 
     it('should show a loading card with the title before the first load', () => {
@@ -294,6 +313,30 @@ describe('component: ResourceStatusWidget', () => {
       expect(rows(wrapper).map((r: any) => r.key)).toStrictEqual(['batch.job']);
     });
 
+    it('should not show the error card when some types could not be fetched but others have rows', () => {
+      setStateCounts({ pod: null, 'batch.job': { pending: 1 } });
+      const wrapper = mountWidget(config);
+
+      expect(wrapper.find('[data-testid="resource-status-widget-error"]').exists()).toStrictEqual(false);
+    });
+
+    it.each([
+      ['every type could not be fetched', {
+        pod: null, 'batch.job': null, 'apps.daemonset': null
+      }],
+      ['the other types have nothing to show', {
+        pod: null, 'batch.job': { running: 1 }, 'apps.daemonset': { active: 1 }
+      }],
+    ])('should show an error card instead of the empty message when %s', (_, counts) => {
+      setStateCounts(counts);
+      const wrapper = mountWidget(config);
+
+      expect([
+        wrapper.find('[data-testid="resource-status-widget-error"]').attributes('title'),
+        wrapper.findComponent(StatusBreakdownCard).exists(),
+      ]).toStrictEqual(['Unhealthy', false]);
+    });
+
     it('should show the card with no rows when nothing is unhealthy', () => {
       countStates = {};
       setStateCounts({});
@@ -307,6 +350,14 @@ describe('component: ResourceStatusWidget', () => {
       const wrapper = mountWidget(config);
 
       expect(wrapper.find('[data-testid="resource-status-widget-loading"]').attributes('title')).toStrictEqual('Unhealthy');
+    });
+
+    it('should not show the error card before the first load', () => {
+      mockLoaded.value = false;
+      setStateCounts({ pod: null });
+      const wrapper = mountWidget(config);
+
+      expect(wrapper.find('[data-testid="resource-status-widget-error"]').exists()).toStrictEqual(false);
     });
   });
 });

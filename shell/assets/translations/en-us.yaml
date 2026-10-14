@@ -10042,6 +10042,8 @@ component:
           actionMenu: Resource Actions - { resource }
           loading: Loading resource information
           loadingUsage: Loading usage
+  resourceStatusWidget:
+    loadError: Could not load the status
   cron:
     expressionEditor:
       label:

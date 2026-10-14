@@ -236,6 +236,19 @@ describe('composable: useResourceStateSummaries', () => {
       wrapper.unmount();
     });
 
+    it('should not refetch when the namespace filter changes and none of the types are namespaced', async() => {
+      const { wrapper } = mountComposable([NODE]);
+
+      await flushPromises();
+      mockDispatch.mockClear();
+
+      mockNamespaceFilterParam.value = 'projectsornamespaces=default';
+      await flushPromises();
+
+      expect(requestedUrls()).toStrictEqual([]);
+      wrapper.unmount();
+    });
+
     it('should only use the latest response when requests overlap', async() => {
       let resolveFirst: (value: unknown) => void = () => {};
 
@@ -317,6 +330,84 @@ describe('composable: useResourceStateSummaries', () => {
       await flushPromises();
 
       expect(result.stateCounts('pod')).toBeNull();
+      wrapper.unmount();
+    });
+
+    it('should be null when the response has items but no summary', async() => {
+      responses[DEPLOYMENT] = { data: [{ id: 'default/nginx' }] };
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      expect(result.stateCounts(DEPLOYMENT)).toStrictEqual(null);
+      wrapper.unmount();
+    });
+
+    it('should be null when a state in the summary has no total', async() => {
+      responses[DEPLOYMENT] = { summary: [{ property: 'metadata.state.name', counts: { active: { namespace: {} } } }] };
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      expect(result.stateCounts(DEPLOYMENT)).toStrictEqual(null);
+      wrapper.unmount();
+    });
+
+    it('should be empty when the response has neither items nor a summary', async() => {
+      responses[DEPLOYMENT] = { data: [] };
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      expect(result.stateCounts(DEPLOYMENT)).toStrictEqual({});
+      wrapper.unmount();
+    });
+  });
+
+  describe('hasFailed', () => {
+    it('should be true when the request fails', async() => {
+      responses[NODE] = new Error('boom');
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      expect(result.hasFailed(NODE)).toStrictEqual(true);
+      wrapper.unmount();
+    });
+
+    it('should be true when the response is in the wrong shape', async() => {
+      responses[NODE] = { data: [{ id: 'node-1' }] };
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      expect(result.hasFailed(NODE)).toStrictEqual(true);
+      wrapper.unmount();
+    });
+
+    it('should be false when the request succeeds', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      expect(result.hasFailed(NODE)).toStrictEqual(false);
+      wrapper.unmount();
+    });
+
+    it('should be false before the first response', () => {
+      responses[NODE] = new Error('boom');
+      const { wrapper, result } = mountComposable();
+
+      expect(result.hasFailed(NODE)).toStrictEqual(false);
+      wrapper.unmount();
+    });
+
+    it('should be false for a type that was not fetched', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+
+      expect(result.hasFailed('pod')).toStrictEqual(false);
       wrapper.unmount();
     });
   });

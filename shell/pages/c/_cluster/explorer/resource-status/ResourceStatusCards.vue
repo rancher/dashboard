@@ -28,7 +28,7 @@ const group = computed<ResourceStatusWidgetGroupConfig>(() => ({
 <template>
   <ResourceStatusWidgetGroup
     :config="group"
-    class="resource-status-cards"
+    class="mmt-6"
     data-testid="cluster-dashboard-resource-status"
   >
     <template #empty="{ config }">
@@ -39,9 +39,3 @@ const group = computed<ResourceStatusWidgetGroupConfig>(() => ({
     </template>
   </ResourceStatusWidgetGroup>
 </template>
-
-<style lang="scss" scoped>
-.resource-status-cards {
-  margin-top: 24px;
-}
-</style>

@@ -3,8 +3,8 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 import type { RouteLocationRaw } from 'vue-router';
 import { COUNT } from '@shell/config/types';
-import { STATE_FILTER_QUERY } from '@shell/config/query-params';
 import type { StateColor } from '@shell/utils/style';
+import { resourceListRoute } from '@shell/utils/resource-state-summary';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStateColor } from '@shell/composables/useStateColor';
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
@@ -65,27 +65,16 @@ const types = computed<string[]>(() => {
   return config.resources.filter((type) => canShow(type) && (!onlyCountedColors || hasCountedStates(type)));
 });
 
-const { loaded, stateCounts } = useResourceStateSummaries(types, {
+const { loaded, stateCounts, hasFailed } = useResourceStateSummaries(types, {
   property:              () => props.config.property,
   followNamespaceFilter: () => props.config.followNamespaceFilter,
 });
 
 function resourceRoute(type: string, stateNames?: string[]): RouteLocationRaw {
-  const loc: { name: string; params: Record<string, string>; query?: Record<string, string> } = {
-    name:   'c-cluster-product-resource',
-    params: {
-      cluster:  clusterId.value,
-      product:  'explorer',
-      resource: type,
-    },
-  };
-
-  if (stateNames?.length) {
-    loc.query = { [STATE_FILTER_QUERY]: stateNames.join(',') };
-  }
-
-  return loc;
+  return resourceListRoute(clusterId.value, type, stateNames);
 }
+
+const failed = computed<boolean>(() => loaded.value && types.value.some(hasFailed));
 
 function typeLabel(type: string): string {
   const schema = store.getters['cluster/schemaFor'](type);
@@ -165,10 +154,12 @@ const breakdownRows = computed<StatusBreakdownRow[] | null>(() => {
     return null;
   }
 
-  return types.value
+  const rows = types.value
     .map((type) => breakdownRow(type, config.colors))
     .filter((row): row is StatusBreakdownRow => !!row)
     .sort((a, b) => a.label.localeCompare(b.label));
+
+  return rows.length || !failed.value ? rows : null;
 });
 
 // A summary card for a type the user cannot list is not shown at all
@@ -201,6 +192,13 @@ const loading = computed<boolean>(() => !loaded.value && (props.config.kind === 
       </slot>
     </template>
   </StatusBreakdownCard>
+  <Card
+    v-else-if="failed"
+    :title="title"
+    data-testid="resource-status-widget-error"
+  >
+    <span class="text-deemphasized">{{ t('component.resourceStatusWidget.loadError') }}</span>
+  </Card>
   <Card
     v-else-if="loading"
     :title="title"

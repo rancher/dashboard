@@ -840,6 +840,11 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.hardware-resource-gauges {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--gap-md);
+}
+
 .extension-card-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(calc((100%/3) - 40px), 1fr));

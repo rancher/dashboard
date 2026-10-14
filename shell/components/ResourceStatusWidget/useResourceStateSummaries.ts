@@ -6,6 +6,7 @@ import debounce from 'lodash/debounce';
 import { COUNT } from '@shell/config/types';
 import { useStateColor, type StateSummaryEntry } from '@shell/composables/useStateColor';
 import { useNamespaceFilterParam } from '@shell/composables/useNamespaceFilterParam';
+import { isValidSummaryResponse } from '@shell/utils/resource-state-summary';
 import { DEFAULT_RESOURCE_STATUS_WIDGET_PROPERTY, type ResourceStatusWidgetProperty } from './types';
 
 /**
@@ -57,11 +58,16 @@ export function useResourceStateSummaries(types: MaybeRefOrGetter<string[]>, opt
   // Changes when anything that affects the summaries changes
   const refetchSignature = computed<string>(() => JSON.stringify([property.value, toValue(types).map((type) => [type, counts.value[type]?.summary])]));
 
-  // ── Fetching ──
+  function isNamespaced(type: string): boolean {
+    return !!store.getters['cluster/schemaFor'](type)?.attributes?.namespaced;
+  }
 
   function filtersByNamespace(type: string): boolean {
-    return followNamespaceFilter.value && !!namespaceFilterParam.value && !!store.getters['cluster/schemaFor'](type)?.attributes?.namespaced;
+    return followNamespaceFilter.value && !!namespaceFilterParam.value && isNamespaced(type);
   }
+
+  // Types that are not namespaced give the same counts whatever the namespace filter is
+  const usesNamespaceFilter = computed<boolean>(() => followNamespaceFilter.value && toValue(types).some(isNamespaced));
 
   async function fetchSummary(type: string): Promise<StateSummaryEntry> {
     try {
@@ -74,7 +80,11 @@ export function useResourceStateSummaries(types: MaybeRefOrGetter<string[]>, opt
 
       const res = await store.dispatch('cluster/request', { url });
 
-      return { type, summary: res?.summary || [] };
+      if (!isValidSummaryResponse(res)) {
+        return { type, summary: null };
+      }
+
+      return { type, summary: res.summary || [] };
     } catch {
       return { type, summary: null };
     }
@@ -145,7 +155,7 @@ export function useResourceStateSummaries(types: MaybeRefOrGetter<string[]>, opt
   }, { immediate: true });
 
   // Changing the namespace filter is a user action, so show the result without waiting
-  watch(() => (followNamespaceFilter.value ? namespaceFilterParam.value : null), () => {
+  watch(() => (usesNamespaceFilter.value ? namespaceFilterParam.value : null), () => {
     debouncedFetch.cancel();
     fetchSummaries();
   });
@@ -183,8 +193,18 @@ export function useResourceStateSummaries(types: MaybeRefOrGetter<string[]>, opt
     return out;
   }
 
+  /**
+   * True when the last request for a type failed. A type that has not been requested yet has not failed
+   */
+  function hasFailed(type: string): boolean {
+    const entry = summaries.value.find((s) => s.type === type);
+
+    return !!entry && !entry.summary;
+  }
+
   return {
     loaded,
     stateCounts,
+    hasFailed,
   };
 }
