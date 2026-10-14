@@ -314,7 +314,7 @@ onBeforeUnmount(() => {
 
       :deep(.cm-line.line-override-highlight),
       :deep(.cm-gutterElement.line-override-highlight) {
-        background-color: var(--tertiary, var(--accent-btn));
+        background-color: var(--tertiary-hover, var(--accent-btn));
       }
 
       &--overrides {
