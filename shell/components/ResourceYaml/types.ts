@@ -2,38 +2,29 @@
  * One resource in the `ResourceGraph` of the multi-resource YAML editor
  */
 export interface ResourceGraphNode {
-  /** Identifies the node, usually the resource id. Emitted when the node is selected */
+  /** Usually the resource id */
   id: string;
 
-  /** Shown as the node's name, for example `workers` */
+  // display label for each resource, generally a model's nameDisplay
   label: string;
 
   /**
-   * The heading the node is shown under, for example `Node Pools · Machine Templates`
-   *
-   * Nodes are grouped in the order they first appear, and those without a group are shown first,
-   * without a heading
+   * The heading the node is shown under, eg `Node Pools · Machine Templates`
    */
   group?: string;
 
-  /** Shows that the resource has unsaved changes, and offers to save it unless it is read-only */
+  /** Shows that the resource has unsaved changes, and offers to save it */
   modified?: boolean;
 
   /**
-   * The resource can be shown but not edited
-   *
    * Read-only nodes are shown in the read-only section, collapsed by default, grouped by `group`
    * alone, wherever they were found. They are never top-level nodes
    */
   readOnly?: boolean;
 
   /**
-   * The `id` of the node this one was found below
-   *
-   * The node is shown in a group nested below that node, rather than alongside it, so a resource
-   * that belongs to a related resource is shown as belonging to it. A node with no parent, or one
-   * pointing at a node that isn't in the graph, is shown at the top level. A node below a read-only
-   * node is shown below the nearest node above that which is not read-only
+   * The `id` of the node this one was found below. A node with no parent, or one
+   * pointing at a node that isn't in the graph, is shown at the top level.
    */
   parentId?: string;
 }

@@ -6,16 +6,12 @@ import { RcButton } from '@components/RcButton';
 import { ResourceGraphGroup } from '@shell/components/ResourceYaml/types';
 
 withDefaults(defineProps<{
-  /** The groups to show, in the order they should appear */
   groups: ResourceGraphGroup[],
 
-  /** The id of the node currently shown in the editor */
   selected?: string | null,
 
-  /** How many levels these groups are nested below the top level */
   depth?: number,
 
-  /** A save is in progress, so no other save can be started */
   saving?: boolean,
 }>(), {
   selected: null,
@@ -24,10 +20,10 @@ withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
-  /** The user picked a resource to show in the editor */
+  // show a different resource in the editor
   select: [id: string],
 
-  /** The user asked to save one resource */
+  // save an individual resource
   save: [id: string],
 }>();
 
@@ -71,7 +67,6 @@ const i18n = useI18n(store);
               :data-testid="`resource-graph-node-${node.id}`"
               @click="emit('select', node.id)"
             >
-              <!-- the label is cut off with an ellipsis in a narrow graph -->
               <span
                 v-clean-tooltip="node.label"
                 class="resource-graph-node-label"
@@ -101,7 +96,6 @@ const i18n = useI18n(store);
             </RcButton>
           </div>
 
-          <!-- The resources found below this one, shown as groups nested within its own group -->
           <ResourceGraphGroups
             v-if="node.groups.length"
             class="resource-graph-groups--nested"
@@ -142,9 +136,6 @@ const i18n = useI18n(store);
   gap: 8px;
   transition: background-color 0.5s;
 
-  // pseudo-element instead of border or box-shadow:
-  // a border would shift the label when selected
-  // present on every node so opacity can transition when selected
   &::before {
     content: '';
     position: absolute;
@@ -166,8 +157,6 @@ const i18n = useI18n(store);
   }
 }
 
-// ::after covers the whole row, so the empty space also selects the node
-// a div badge is not valid content of a button, so it is a sibling of the button
 .resource-graph-node-select {
   min-width: 0;
   padding: 0;
@@ -185,7 +174,7 @@ const i18n = useI18n(store);
   text-overflow: ellipsis;
 }
 
-// positioned, so the badge and the save button paint above the select button's ::after and receive their own clicks
+// positioned so the badge and the save button are clickable above the select button/row
 .resource-graph-node .resource-graph-node-modified {
   position: relative;
   flex-shrink: 0;

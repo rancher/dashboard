@@ -38,8 +38,8 @@ export default {
       default: 200,
     },
 
-    // lines of unchanged text shown around each change
-    // undefined uses the `diff` package default
+    // how many lines of unchanged text to show
+    // above/below each change
     context: {
       type:    Number,
       default: undefined,
@@ -65,7 +65,7 @@ export default {
         this.neu,
         undefined,
         undefined,
-        this.context === undefined ? undefined : { context: this.context }
+        this.context ? { context: this.context } : undefined
       );
       const configuration = {
         // UI

@@ -5,8 +5,7 @@ export default class CapiMachinePool extends SteveModel {
   /**
    * The resources related to this machine pool, to edit by YAML alongside it
    *
-   * Dependencies: the bootstrap data Secret, see `capiBootstrapDataSecret`. The bootstrap config
-   * and infrastructure machine pool are found from the schema, see
+   * The bootstrap config and infrastructure machine pool are found from the schema, see
    * `fetchSchemaRelatedResources`
    *
    * @param {import('@shell/core/types').RelatedResourcesFetchOptions} [options]

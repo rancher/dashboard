@@ -49,7 +49,8 @@ export default {
       default: true,
     },
 
-    // passed to FileDiff as `context`: unchanged lines shown around each change in diff mode
+    // passed to FileDiff as `context`
+    // set how many lines to show above/below each changed line
     diffContext: {
       type:    Number,
       default: undefined,
@@ -183,7 +184,6 @@ export default {
       this.$refs.cm?.updateValue(value);
     },
 
-    // for the `preview-buttons` slot, where `diffMode` can not be assigned
     setDiffMode(mode) {
       this.diffMode = mode;
     }
@@ -194,7 +194,6 @@ export default {
 <template>
   <div class="yaml-editor">
     <div class="text-right">
-      <!-- the unified / split buttons in diff mode, replaceable through `diffMode` and `setDiffMode` -->
       <slot
         v-if="isPreview && !hidePreviewButtons"
         name="preview-buttons"

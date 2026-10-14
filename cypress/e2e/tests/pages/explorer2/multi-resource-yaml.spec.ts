@@ -5,17 +5,16 @@ import { ConfigMapListPagePo } from '@/cypress/e2e/po/pages/explorer/config-map.
 import DetailDrawer from '@/cypress/e2e/po/side-bars/detail-drawer.po';
 import ResourceYamlPo from '@/cypress/e2e/po/components/resource-yaml.po';
 import MultiResourceYamlPo from '@/cypress/e2e/po/components/multi-resource-yaml.po';
-import { browsingFixtures, Fixture, routeFixture, savingFixtures } from '@/cypress/e2e/blueprints/explorer/multi-resource-yaml';
+import { browsingFixtures, Fixture, savingFixtures } from '@/cypress/e2e/blueprints/explorer/multi-resource-yaml';
 
 const cluster = 'local';
 
 describe('Multi-resource YAML editor', { testIsolation: false, tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
-  // created for these tests, in a project the user is a member of so the user can see it
+  // created for these tests, in a project the standard user is a member of so the user can see it
   let namespace = '';
 
   const editPage = (type: string, name: string) => new ResourceYamlEditPagePo(type, `${ namespace }/${ name }`);
 
-  /** Open the YAML of a resource of `namespace` for editing */
   const openEditor = (type: string, name: string) => {
     const page = editPage(type, name);
 
@@ -275,23 +274,6 @@ describe('Multi-resource YAML editor', { testIsolation: false, tags: ['@explorer
       const graph = openEditor('persistentvolumeclaim', 'uploads-clone').multiResourceYaml().resourceGraph();
 
       graph.node('persistentvolumeclaim', `${ namespace }/uploads`).checkVisible();
-    });
-
-    it('shows the Services and the extensionRef ConfigMap of an HTTPRoute, including the Service of a request mirror', function() {
-      cy.request({ url: `${ Cypress.env('api') }/v1/schemas/gateway.networking.k8s.io.httproute`, failOnStatusCode: false }).then((resp) => {
-        if (resp.status !== 200) {
-          // the cluster has no gateway api, or the user can not see it
-          this.skip();
-        }
-
-        createFixtures([routeFixture(namespace)]);
-      });
-
-      const graph = openEditor('gateway.networking.k8s.io.httproute', 'web-route').multiResourceYaml().resourceGraph();
-
-      graph.node('service', `${ namespace }/web`).checkVisible();
-      graph.node('service', `${ namespace }/db`).checkVisible();
-      graph.node('configmap', `${ namespace }/app-config`).checkVisible();
     });
 
     it('shows no resource for a reference to a type the user can not get', () => {

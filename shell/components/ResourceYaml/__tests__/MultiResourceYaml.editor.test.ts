@@ -453,15 +453,6 @@ describe('component: MultiResourceYaml', () => {
 
       expect(nodeFor(wrapper, PRIMARY_ID).modified).toBe(false);
     });
-
-    // a save hook of a related resource reads the primary resource's yaml from the editor state
-    it('should give the primary resource its yaml in the editor state while another resource is shown', async() => {
-      const wrapper = mountWith({ yaml: fromForm, initialYamlForDiff: beforeForm });
-
-      await select(wrapper, 'config:ns/a');
-
-      expect(wrapper.vm.editorState.yaml[PRIMARY_ID]).toBe(fromForm);
-    });
   });
 
   describe('edit as form', () => {
@@ -497,12 +488,6 @@ describe('component: MultiResourceYaml', () => {
       expect(wrapper.emitted('edit-as-form')).toBeUndefined();
     });
 
-    it('should ask with the modal for going back to a form from yaml', () => {
-      const wrapper = mountWith({ showEditAsForm: true });
-
-      expect(modal(wrapper).props()).toStrictEqual({ isCancelModal: false, isForm: false });
-    });
-
     it('should emit `edit-as-form` once the user confirms', async() => {
       const wrapper = mountWith({ showEditAsForm: true });
 
@@ -510,42 +495,6 @@ describe('component: MultiResourceYaml', () => {
       modal(wrapper).vm.$emit('confirm-cancel', false);
 
       expect(wrapper.emitted('edit-as-form')).toStrictEqual([[]]);
-    });
-
-    it('should do nothing from Edit as YAML, as the yaml is already shown', async() => {
-      const wrapper = mountWith({ showEditAsForm: true });
-
-      await wrapper.find('[data-testid="multi-yaml-edit-as-yaml"]').trigger('click');
-
-      expect(mockShowCancelModal).toHaveBeenCalledTimes(0);
-      expect(wrapper.emitted('edit-as-form')).toBeUndefined();
-    });
-  });
-
-  // aria-valuemin and aria-valuemax describe the range the css allows the graph, not 0 to 100
-  describe('resize separator', () => {
-    const separator = (wrapper: any) => wrapper.find('[data-testid="multi-yaml-resize"]');
-
-    it('should report the limits of the graph width as a percentage of the container, measured once mounted', async() => {
-      const rect = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(() => ({
-        width: 1000, left: 0, top: 0, right: 1000, bottom: 0, height: 0, x: 0, y: 0, toJSON: () => ({})
-      }));
-      const wrapper = mountWith({});
-
-      await nextTick();
-
-      expect(separator(wrapper).attributes('aria-valuemin')).toBe('20');
-      expect(separator(wrapper).attributes('aria-valuemax')).toBe('60');
-      expect(separator(wrapper).attributes('aria-valuenow')).toBe('25');
-
-      rect.mockRestore();
-    });
-
-    it('should give the css the same limits it reports', () => {
-      const style = mountWith({}).find('.multi-yaml-container').attributes('style');
-
-      expect(style).toContain('--split-min: 200px');
-      expect(style).toContain('--split-max: 60%');
     });
   });
 });

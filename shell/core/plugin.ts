@@ -362,8 +362,8 @@ export class Plugin implements IPlugin {
   }
 
   /**
-   * Adds to the list of related resources that can be edited alongside a resource (for example in
-   * the multi-resource YAML editor)
+   * Adds to the list of related resources that can be edited alongside a resource in the yaml editor
+   * distinct from the 'related resources' tab in detail pages
    */
   addRelatedResources(where: string, when: LocationConfig | string, action: RelatedResourcesExtension): void {
     this._addUIConfig(ExtensionPoint.RELATED_RESOURCES, where, when, action);

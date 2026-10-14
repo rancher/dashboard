@@ -4,7 +4,7 @@ import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import Loading from '@shell/components/Loading.vue';
 import SingleResourceYaml from './SingleResourceYaml.vue';
 import MultiResourceYaml from './MultiResourceYaml.vue';
-import { keyForResource } from '@shell/utils/resource-key';
+import { keyForResource } from '@shell/utils/related-resources/resource-key';
 import { ALL_RELATED_RESOURCES } from '@shell/utils/related-resources';
 import { controllerReferenceOf } from '@shell/utils/related-resources/management';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
@@ -76,11 +76,7 @@ export default {
       default: null,
     },
 
-    /**
-     * The yaml is shown in place of a form, so the multi-resource editor offers to go back to it
-     *
-     * `edit-as-form` is emitted once the user confirms
-     */
+    // track if the user navigated here via form view and show a button to switch back to the form view
     showEditAsForm: {
       type:    Boolean,
       default: false,
@@ -89,14 +85,15 @@ export default {
 
   data() {
     return {
-      relatedResources: [],
-
-      // the primary resource has related resources, and the rest of the tree is still being fetched
+      relatedResources:        /** @type {import('@shell/core/types').RelatedResource[]} */ ([]),
       loadingRelatedResources: false,
     };
   },
 
-  // resolves once the primary resource's own related resources are known, so the editor shows before the rest of the tree is fetched
+  // resolve once primary resources are fetched
+  // resources related to those resources may still be loading
+  // this allows us to display the multi yaml editor and primary resource as soon as we know multi editor should be used
+  // the rest of the related resources are loaded asynchronously
   async fetch() {
     await new Promise((resolve, reject) => {
       this.loadRelatedResources(resolve).then(resolve, reject);
@@ -104,21 +101,18 @@ export default {
   },
 
   computed: {
-    /**
-     * Related resources are edited alongside the resource, so they are gathered in edit mode only
-     *
-     * View and create use SingleResourceYaml. A `mode` query of view shows the resource as view
-     * whatever `mode` is, as in the `editorMode` of SingleResourceYaml
-     */
     isEdit() {
       return this.mode === _EDIT && this.$route?.query?.mode !== _VIEW;
     },
 
+    // multi edit wont actually render until fetching related resources from the primary resource
     needsMultiEdit() {
       return this.isEdit && (this.loadingRelatedResources || this.relatedResources.length > 0);
     },
 
-    // SingleResourceYaml does not declare `showEditAsForm`, so it would fall through to its root element
+    // props are passed on on to SingleResourceYaml with v-bind
+    // `showEditAsForm` is not used in singleresourceyaml and the prop would ultimately be rendered on a dom element
+    // show-edit-as-form="…"
     singleResourceYamlProps() {
       const { showEditAsForm, ...props } = this.$props;
 
@@ -137,28 +131,30 @@ export default {
   },
 
   methods: {
+    // the resource detail drawer calls this when its yaml tab becomes visible, so the editor can resize
+    refresh() {
+      this.$refs.single?.refresh();
+    },
+
     /**
      * Resolve the related resources that can be edited by YAML alongside this one
      *
-     * The primary resource's list is resolved against the current route. The whole list is then
-     * transitively expanded: each related resource's list is resolved as though that resource were
-     * the one in the route, and any results not already in the tree are appended. So an extension
-     * registered for a type contributes wherever a resource of that type appears in the tree, with
-     * no model needed for it.
+     * Load resources to be edited by yaml alongside this.resource (the primary resource). This function describes loading behavior.
      *
-     * Entries are `RelatedResource` objects (a `resource` plus configuration for it, such
-     * as save hooks, banner and groupKey). Anything that isn't of that shape is dropped, so a
-     * badly behaved model or extension can't break the editor.
+     * - fetchRelatedResourcesFor describes actual resource retrieval
+     * - expandRelatedResourceTree describes fetching resources related to related resources, building a tree
      *
      * This is resolved on initialization (vs computed property) to accomodate async operations, either in resource models or extensions
      *
-     * The primary resource's own related resources decide whether there are any: the rest of the tree is found from them.
-     * Once those are known `onFound` is called and `loadingRelatedResources` is set, until the tree is expanded
      *
      * @param {Function} [onFound] called once the primary resource is known to have related resources
      */
     async loadRelatedResources(onFound = () => {}) {
-      // Ensure a slow load for a previous resource, or one started before leaving edit mode, doesn't overwrite the current result
+      // a load can be started again before this one finishes: the `value` and `isEdit` watchers call this method too
+      // each load awaits requests, so an earlier load can finish after a later one
+      // `forResource` records the resource this load is for, and `isCurrent` is checked after each await
+      // a load whose resource has since been replaced, or that finishes after edit mode was left, writes no state
+      // so `relatedResources` and `loadingRelatedResources` always describe the resource shown now
       const forResource = this.value;
       const isCurrent = () => this.value === forResource && this.isEdit;
 
@@ -199,19 +195,19 @@ export default {
     },
 
     /**
-     * The related resources for one resource: the list from its model, then the extensions whose
-     * location matches `route`, each seeing the previous result
+     * Resources related to the current resource - short list of other kubernetes resources a user might want to edit alongside the primary resource
      *
-     * Entries of a kind `options` does not ask for are dropped, for models and extensions that
-     * return them anyway
+     *  - load resources from steve-class methods that read schemas and metadata.relationships
+     *  - load resources from resource models
+     *  - load resources from extensions
      *
-     * Entries whose resource has `canYaml` false are dropped too, from every source, as their yaml
-     * is not shown on their own page either
+     * Entries are dropped when canYaml = false (no yanml representation to be shown in the UI)
+     * Entries are shown under a read-only group if the user doesn't have edit permission
      *
      * @param {Object} resource
      * @param {Object} route The route the extension location configs are matched against
      * @param {import('@shell/core/types').RelatedResourcesFetchOptions} options
-     * @returns {Promise<Array>} `RelatedResource` entries, not yet validated
+     * @returns {Promise<Array>} `RelatedResource` entries
      */
     async fetchRelatedResourcesFor(resource, route, options) {
       const wanted = (entries) => entries.filter((entry) => entry?.resource?.canYaml !== false &&
@@ -227,7 +223,7 @@ export default {
         }
       }
 
-      // gate it so that we prevent errors on older versions of dashboard
+      // avoid throwing errors w/ older extensions
       if (!this.$store.$extension?.getUIConfig) {
         return wanted(resources);
       }
@@ -239,7 +235,6 @@ export default {
         route
       );
 
-      // TODO nb track when multiple extensions are in play
       for (const { fetchExtensionRelatedResources } of extensions) {
         if (typeof fetchExtensionRelatedResources !== 'function') {
           continue;
@@ -260,10 +255,8 @@ export default {
     },
 
     /**
-     * The current route with the resource params pointing at `resource`
-     *
-     * Everything else (product, cluster, mode, query, hash) is kept, so an extension location
-     * config matches a related resource as it would match that resource shown on this page
+     * Extensions match by route - ensure the route used when checking extensions has the 'resource' prop here used
+     * in the 'resource' route param
      *
      * @param {Object} resource
      * @returns {Object}
@@ -285,44 +278,22 @@ export default {
     },
 
     /**
-     * Walk each entry's resource and collect their related resources, breadth-first, stopping
-     * before adding a resource that is already present in the tree, the primary resource included
+     * For each related resource, collect its related resources, ignoring duplicates. Dupes are determined with a type+id combo,
+     * which will fall back to object identity if type+id is not available.
+     *
+     * A read-only entry will not have related resources fetched.
      *
      * A resource found as a dependency is asked only for its own dependencies. A `dependent` is not
      * expanded, so only the primary resource's own dependents are shown, see
      * `RelatedResourcesFetchOptions`
      *
-     * An entry is read-only where its source marked it `readOnly`, where the user can not edit the
-     * resource's yaml (`canEditYaml` false: no update permission, a blocked PUT, or a type that is not
-     * editable), or where another resource controls it (an ownerReference with `controller: true`),
-     * as the controller would overwrite the edit. A read-only entry is not expanded
-     *
-     * The entries of one depth are expanded together, their results added in the order of the
-     * entries, so the tree is the same whichever request finishes first
-     *
-     * Deduplication uses the resource's type and `id` together where available, falling back to
-     * object identity so that resources fetched more than once are not added twice. The type is
-     * part of the key because an `id` alone is only `namespace/name`, which two resources of
-     * different types can share
-     *
-     * The result is a flat list, so each entry records where it sat in the tree it was discovered
-     * in: `nodeId` (identifies the entry), `depth` (1 for the resources contributed for the
-     * primary resource, one more for each level below that) and `parentId` (the `nodeId` of the
-     * entry that contributed it, absent at depth 1). Entries are copied rather than mutated so
-     * that a model or extension handing out the same object twice doesn't end up with the two
-     * positions fighting over it.
-     *
-     * A resource reachable from more than one parent is added once, under the first parent that
-     * reaches it, as that's the one that de-duplication keeps.
-     *
      * @param {Array} entries Initial list of `RelatedResource` entries
-     * @returns {Promise<Array>} The expanded list, original entries first
+     * @returns {Promise<Array>} The expanded list, original entries first, as a flat list where each entry contains information about its position in the tree.
      */
     async expandRelatedResourceTree(entries) {
       const keysSeen = new Set();
       const refsSeen = new WeakSet();
 
-      // true the first time a resource is passed, by key, or by identity for a resource with no key
       const isNew = (resource) => {
         const key = keyForResource(resource);
         const seen = key ? keysSeen.has(key) : refsSeen.has(resource);
@@ -338,13 +309,12 @@ export default {
 
       [this.value, ...entries.map((e) => e.resource)].filter(Boolean).forEach(isNew);
 
-      // Every entry needs an identity of its own, so that a child can still point at its parent
-      // when that parent's resource has no id
       let generatedIds = 0;
       const nodeIdFor = (resource) => keyForResource(resource) || `related-${ generatedIds++ }`;
 
-      // an edit would fail on save, or be overwritten by the controller
-      // a source sets `readOnly: false` for a resource whose controller does not overwrite edits, but can not allow one the user can not edit
+      // assyme an edit would fail on save if canEditYaml is false,
+      // or be shortly overwritten by the controller, if one is defined
+      // models/extensions may also set readOnly per resource
       const isReadOnly = (entry) => {
         if (entry.resource?.canEditYaml === false) {
           return true;
@@ -353,13 +323,14 @@ export default {
         return entry.readOnly === undefined ? !!controllerReferenceOf(entry.resource) : !!entry.readOnly;
       };
 
-      // `readOnly` becomes the result for the entry, so a source's `readOnly: false` is kept for the banner as `ignoreController`
+      // if readOnly is explicitly set to false (vs being undefined/null)
+      // ignore restrictions imposed by controllers - a model or extension is overriding that
       const readOnlyFields = (entry) => ({
         ...(isReadOnly(entry) ? { readOnly: true } : {}),
         ...(entry.readOnly === false ? { ignoreController: true } : {}),
       });
 
-      // Everything gathered for the primary resource sits at the top of the tree, with no parent
+      // 'no parent' is treated like primary is the parent
       const result = entries.map((entry) => {
         const top = {
           ...entry, depth: 1, nodeId: nodeIdFor(entry.resource), ...readOnlyFields(entry)
@@ -383,7 +354,7 @@ export default {
               continue;
             }
 
-            // Anything the model or extension set for the position of the entry is discarded
+
             const expanded = {
               ...child,
               depth:    entry.depth + 1,
@@ -404,7 +375,7 @@ export default {
     },
 
     /**
-     * Is this a valid `RelatedResource` entry?
+     * Ensure each RelatedResource entry is valid - fields that should be functions are functions
      *
      * @param {any} entry
      * @returns {boolean}
@@ -441,6 +412,7 @@ export default {
   />
   <SingleResourceYaml
     v-else
+    ref="single"
     v-bind="singleResourceYamlProps"
     @error="$emit('error', $event)"
   >

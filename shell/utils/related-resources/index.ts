@@ -42,13 +42,6 @@ export function relatedEntry(
   };
 }
 
-/**
- * A failed fetch that only means the resource is not shown: it does not exist, or the user can not get it
- *
- * A spec can name a resource that does not exist, for example an optional ConfigMap
- * A schema's `resourceMethods` cover every namespace together, so a type the user can get can still
- * be forbidden in one namespace
- */
 export const isExpectedFetchError = (e: any): boolean => [403, 404].includes(e?._status);
 
 /**
@@ -80,20 +73,17 @@ export async function findIfExists(model: ResourceModel, type: string, id: strin
 }
 
 /**
- * Every resource of `type`, in `namespace` when one is given, or none where the user can not list
+ * Every resource of `type`, in `namespace` when one is given, or an empty array where the user can not list
  * the type
  *
  * No watch is started, as the editor reads the list once
- * The resources are added to the store without marking the type as loaded: a list page that later
- * finds the type loaded starts its watch from the current revision, and would miss the changes
- * made in between
  *
  * @param model a model in the store of the resources, to fetch through
  * @param type the steve type of the resources
  * @param namespace limits the result to this namespace. Every namespace when not given
  * @returns the resources, or none where the request fails. Never rejects
  */
-export async function findAllOf(model: ResourceModel, type: string, namespace?: string): Promise<ResourceModel[]> {
+export async function findAllInNamespace(model: ResourceModel, type: string, namespace?: string): Promise<ResourceModel[]> {
   if (!model.$getters['schemaFor'](type)) {
     return [];
   }
@@ -106,7 +96,7 @@ export async function findAllOf(model: ResourceModel, type: string, namespace?: 
       }
     });
 
-    return (all || []).filter((resource: ResourceModel) => !namespace || resource.metadata?.namespace === namespace);
+    return all || [];
   } catch (e) {
     console.warn(`Failed to fetch ${ type }${ namespace ? ` in namespace ${ namespace }` : '' }`, e); // eslint-disable-line no-console
 
@@ -125,13 +115,13 @@ export async function findAllOf(model: ResourceModel, type: string, namespace?: 
  * @returns the workloads of every type in `WORKLOAD_TYPES`, and the pods, the user can list
  */
 export async function workloadsInNamespace(model: ResourceModel, namespace: string): Promise<ResourceModel[]> {
-  const byType = await Promise.all([...Object.values(WORKLOAD_TYPES), POD].map((type) => findAllOf(model, type, namespace)));
+  const byType = await Promise.all([...Object.values(WORKLOAD_TYPES), POD].map((type) => findAllInNamespace(model, type, namespace)));
 
   return byType.flat().filter((workload) => !workload.ownedByWorkload);
 }
 
 /**
- * The api group of an `apiVersion`, empty for the core group
+ * Parse the api group from an `apiVersion`, empty for the core group
  *
  * @param apiVersion `group/version`, or `version` alone for the core group
  * @returns the part before the `/`, or `''`

@@ -3,20 +3,20 @@ import { computed, ref, watch } from 'vue';
 import { Banner } from '@components/Banner';
 import RichTranslation from '@shell/components/RichTranslation.vue';
 import { ResourceModel } from '@shell/core/types';
-import { keyForResource } from '@shell/utils/resource-key';
+import { keyForResource } from '@shell/utils/related-resources/resource-key';
 import { ResourceManagement, findManager, managementOf } from '@shell/utils/related-resources/management';
 
 const props = defineProps<{
-  /** The resource shown in the editor */
+
   resource: ResourceModel,
 
-  /** The resource is shown read-only, so only a controller is named, as the reason it is read-only */
+
   readOnly?: boolean,
 
-  /** The resource being edited, which is named without a link, as it is already open */
+  // track the primary resource and avoid showing a link to it
   primaryResource?: ResourceModel,
 
-  /** The resource's controller does not overwrite edits, so it is not named, see `RelatedResource.ignoreController` */
+  /** some model or extension has flagged that the controller banner does not apply - see `RelatedResource.ignoreController` */
   ignoreController?: boolean,
 }>();
 
@@ -57,7 +57,7 @@ const managerLabel = computed(() => {
   return 'owner' in found ? `${ found.owner.kind } ${ found.owner.name }` : `${ found.release.namespace }/${ found.release.name }`;
 });
 
-// the resource the label links to, fetched once the banner is shown
+// the resource the banner should link to, unless the related resource is the primary resource
 const manager = ref<ResourceModel | null>(null);
 
 watch(management, async(found) => {
@@ -67,10 +67,9 @@ watch(management, async(found) => {
     return;
   }
 
-  // without the manager the label is shown unlinked
+
   const fetched = await findManager(props.resource, found).catch(() => null);
 
-  // a later change of resource has started another fetch
   if (management.value === found) {
     manager.value = fetched;
   }
@@ -91,7 +90,6 @@ const managerLocation = computed(() => {
   >
     <RichTranslation :k="messageKey">
       <template #manager>
-        <!-- a new tab, as leaving the page loses the edits in the editor -->
         <router-link
           v-if="managerLocation"
           :to="managerLocation"

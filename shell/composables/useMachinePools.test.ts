@@ -1,4 +1,4 @@
-import { useMachinePools, syncMachineConfigWithLatest } from '@shell/composables/useMachinePools';
+import { useMachinePools } from '@shell/composables/useMachinePools';
 
 const mockGetters: Record<string, any> = { 'i18n/t': (key: string) => key };
 
@@ -216,108 +216,6 @@ describe('composable: useMachinePools', () => {
       const result = recordMachinePoolError({ 'pool-1': [] });
 
       expect(result).toStrictEqual([message(1, 'pool-1', 'quantity')]);
-    });
-  });
-
-  describe('syncMachineConfigWithLatest', () => {
-    const buildStore = () => ({
-      dispatch: jest.fn((action: string, payload: any) => {
-        if (action === 'management/create') {
-          return Promise.resolve({ ...payload, toJSON: () => payload });
-        }
-        if (action === 'management/request') {
-          return Promise.resolve({ metadata: { resourceVersion: '1' } });
-        }
-
-        return Promise.resolve(payload);
-      }),
-      getters: { 'i18n/t': (key: string, params: any) => `${ key } ${ JSON.stringify(params) }` },
-    });
-
-    it('does nothing when the machine pool has no config id', async() => {
-      const store = buildStore();
-
-      await syncMachineConfigWithLatest(store as any, {}, { config: null });
-
-      expect(store.dispatch).not.toHaveBeenCalled();
-    });
-
-    it('fetches the latest config and initial value for the pool', async() => {
-      const store = buildStore();
-      const config: any = {
-        id: 'mc-1', type: 'rke-machine-config.digitaloceandroplet', metadata: { resourceVersion: '1' }
-      };
-
-      config.toJSON = () => config;
-
-      await syncMachineConfigWithLatest(store as any, { 'mc-1': { metadata: { resourceVersion: '1' } } }, { config });
-
-      expect(store.dispatch).toHaveBeenCalledWith('management/request', { url: '/v1/rke-machine-config.digitaloceandroplets/mc-1' });
-    });
-
-    it('does not throw and applies non-conflicting server changes when there is no real conflict', async() => {
-      const store = buildStore();
-      // Server added a label the user never touched; user only changed `size`.
-      const initial = { metadata: { resourceVersion: '1' }, size: 's-2vcpu-4gb' };
-      const config: any = {
-        id: 'mc-1', type: 'rke-machine-config.digitaloceandroplet', metadata: { resourceVersion: '1' }, size: 's-4vcpu-8gb'
-      };
-
-      config.toJSON = () => config;
-      const machinePool = { config };
-      const latestFromServer = { metadata: { resourceVersion: '2', labels: { env: 'prod' } }, size: 's-2vcpu-4gb' };
-
-      store.dispatch.mockImplementation((action: string, payload: any) => {
-        if (action === 'management/request') {
-          return Promise.resolve(latestFromServer);
-        }
-        if (action === 'management/create') {
-          if (payload === latestFromServer) {
-            return Promise.resolve({ ...latestFromServer, toJSON: () => latestFromServer });
-          }
-
-          return Promise.resolve({ ...payload, toJSON: () => payload });
-        }
-
-        return Promise.resolve(payload);
-      });
-
-      await expect(syncMachineConfigWithLatest(store as any, { 'mc-1': initial }, machinePool)).resolves.toBeUndefined();
-
-      // Background change (label) applied, user's own change (size) preserved.
-      expect((machinePool.config as any).metadata.labels).toStrictEqual({ env: 'prod' });
-      expect(machinePool.config.size).toBe('s-4vcpu-8gb');
-      expect(machinePool.config.metadata.resourceVersion).toBe('2');
-    });
-
-    it('throws when the server and the user changed the same field to different values', async() => {
-      const store = buildStore();
-      const initial = { metadata: { resourceVersion: '1' }, size: 's-2vcpu-4gb' };
-      const config: any = {
-        id: 'mc-1', type: 'rke-machine-config.digitaloceandroplet', metadata: { resourceVersion: '1' }, size: 's-4vcpu-8gb'
-      };
-
-      config.toJSON = () => config;
-      const machinePool = { config };
-      // Server also changed `size`, to a third value - a genuine conflict.
-      const latestFromServer = { metadata: { resourceVersion: '2' }, size: 's-8vcpu-16gb' };
-
-      store.dispatch.mockImplementation((action: string, payload: any) => {
-        if (action === 'management/request') {
-          return Promise.resolve(latestFromServer);
-        }
-        if (action === 'management/create') {
-          if (payload === latestFromServer) {
-            return Promise.resolve({ ...latestFromServer, toJSON: () => latestFromServer });
-          }
-
-          return Promise.resolve({ ...payload, toJSON: () => payload });
-        }
-
-        return Promise.resolve(payload);
-      });
-
-      await expect(syncMachineConfigWithLatest(store as any, { 'mc-1': initial }, machinePool)).rejects.toThrow();
     });
   });
 });

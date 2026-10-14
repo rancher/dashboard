@@ -1,8 +1,8 @@
 import find from 'lodash/find';
-import { NODE, POD, INGRESS, GATEWAY_API } from '@shell/config/types';
+import { NODE, POD, INGRESS } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { parse } from '@shell/utils/selector';
-import { findAllOf, ingressServiceNames, relatedEntry, workloadsInNamespace } from '@shell/utils/related-resources';
+import { findAllInNamespace, ingressServiceNames, relatedEntry, workloadsInNamespace } from '@shell/utils/related-resources';
 import { PaginationFilterEquality, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 // i18n-uses servicesPage.serviceTypes.clusterIp.*, servicesPage.serviceTypes.externalName.*, servicesPage.serviceTypes.headless.*
@@ -238,13 +238,10 @@ export default class Service extends SteveModel {
   }
 
   /**
-   * The resources related to this Service, to edit by YAML alongside it
-   *
-   * Dependents, all in its namespace:
-   * - the workloads it sends traffic to, see the workload model's `isSelectedByService`
-   * - the Ingresses and HTTPRoutes routing to it
-   *
-   * The workloads are dependents so the tree does not take in the resources they use
+   * Related resources to show in the yaml editor
+   * Found here, as dependents so the tree does not take in the resources they use, all in its namespace:
+   * - the workloads it sends traffic to - the workload model's `isSelectedByService`
+   * - the Ingresses routing to it - `ingressServiceNames`
    *
    * @param {import('@shell/core/types').RelatedResourcesFetchOptions} [options]
    * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
@@ -256,16 +253,14 @@ export default class Service extends SteveModel {
 
     const namespace = this.metadata.namespace;
 
-    const [workloads, ingresses, httpRoutes] = await Promise.all([
+    const [workloads, ingresses] = await Promise.all([
       workloadsInNamespace(this, namespace),
-      findAllOf(this, INGRESS, namespace),
-      findAllOf(this, GATEWAY_API.HTTP_ROUTE, namespace),
+      findAllInNamespace(this, INGRESS, namespace),
     ]);
 
     return [
       ...workloads.filter((workload) => workload.isSelectedByService(this)).map((workload) => relatedEntry(workload, { dependent: true })),
       ...ingresses.filter((ingress) => ingressServiceNames(ingress).includes(this.metadata.name)).map((ingress) => relatedEntry(ingress, { dependent: true })),
-      ...httpRoutes.filter((route) => route.targetsAnyService([this])).map((route) => relatedEntry(route, { dependent: true })),
     ];
   }
 }

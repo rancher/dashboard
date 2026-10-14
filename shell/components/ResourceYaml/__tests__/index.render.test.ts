@@ -17,10 +17,10 @@ describe('component: ResourceYaml', () => {
     doneRoute:          'done',
     offerPreview:       false,
     parentParams:       { a: 1 },
-    doneOverride:       null,
+    doneOverride:       null as any,
     showFooter:         false,
     showErrors:         false,
-    applyHooks:         null,
+    applyHooks:         null as any,
   };
 
   const mountComponent = ({

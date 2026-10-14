@@ -63,13 +63,14 @@ export default class PVC extends SteveModel {
   }
 
   /**
-   * The resources related to this claim, to edit by YAML alongside it
+   * Related resources to show in the yaml editor
+   * Found here, as dependents:
+   * - the workloads in its namespace whose pods use it - the workload model's `usesResource`
    *
-   * Dependents: the workloads in its namespace whose pods use it, see the workload model's
-   * `usesResource`
-   *
-   * The PersistentVolume, StorageClass and VolumeAttributesClass are found from the schema, see
-   * `fetchSchemaRelatedResources`
+   * Up to 3 more are located using generic steve-model methods fetchSchemaRelatedResources:
+   * - The PersistentVolume - `spec.volumeName`
+   * - The StorageClass - `spec.storageClassName`
+   * - The VolumeAttributesClass - `spec.volumeAttributesClassName`
    *
    * @param {import('@shell/core/types').RelatedResourcesFetchOptions} [options]
    * @returns {Promise<import('@shell/core/types').RelatedResource[]>}

@@ -8,8 +8,9 @@ import { clone, get } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { shortenedImage } from '@shell/utils/string';
 import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import {
-  apiGroupOf, findAllOf, findIfExists, isClaimFromTemplate, podSpecReferences, relatedEntry, selectsLabels
+  apiGroupOf, findAllInNamespace, findIfExists, isClaimFromTemplate, podSpecReferences, relatedEntry, selectsLabels
 } from '@shell/utils/related-resources';
 
 export default class WorkloadService extends SteveModel {
@@ -29,23 +30,14 @@ export default class WorkloadService extends SteveModel {
     return this.type === POD ? { metadata: this.metadata, spec: this.spec } : this.spec?.template;
   }
 
-  /**
-   * The names of the resources the pod template refers to, by type. See `podSpecReferences`
-   */
   get podReferences() {
     return podSpecReferences(this.podTemplate?.spec);
   }
 
-  /**
-   * The volume claim templates of a StatefulSet, empty for any other type
-   */
   get claimTemplates() {
     return this.type === WORKLOAD_TYPES.STATEFUL_SET ? this.spec?.volumeClaimTemplates || [] : [];
   }
 
-  /**
-   * The volume claim template that the claim named `claimName` was created from
-   */
   claimTemplateFor(claimName) {
     return this.claimTemplates.find((template) => isClaimFromTemplate(claimName, template.metadata?.name, this.metadata?.name));
   }
@@ -125,16 +117,21 @@ export default class WorkloadService extends SteveModel {
   }
 
   /**
-   * The resources related to this workload, or pod, to edit by YAML alongside it
+   * Related resources to show in the yaml editor, for a workload or a pod
+   * Found here:
+   * - the PersistentVolumeClaims created from a StatefulSet's templates - `spec.volumeClaimTemplates`
+   * - the PersistentVolumeClaims created for generic ephemeral volumes - `ephemeralClaimNames`
    *
-   * Dependencies: the PersistentVolumeClaims created from a StatefulSet's `volumeClaimTemplates`,
-   * or for a pod's generic ephemeral volumes. The other resources the pod template names are found
-   * from the schema, see `fetchSchemaRelatedResources`
+   * Found here, as dependents:
+   * - the Services sending traffic to the pods - `isSelectedByService`
+   * - the HorizontalPodAutoscalers scaling the workload - `isScaleTargetOf`
+   * - the PodDisruptionBudgets and NetworkPolicies selecting the pods - `hasPodsSelectedBy`
    *
-   * Dependents:
-   * - Services sending traffic to the pods, see `isSelectedByService`
-   * - HorizontalPodAutoscalers scaling the workload
-   * - PodDisruptionBudgets and NetworkPolicies selecting the pods
+   * More are located using generic steve-model methods fetchSchemaRelatedResources:
+   * - The ConfigMaps and Secrets of volumes, `env` and `envFrom`
+   * - The PersistentVolumeClaims of volumes - `volumes[].persistentVolumeClaim.claimName`
+   * - The ServiceAccount - `serviceAccountName`
+   * - The image pull Secrets - `imagePullSecrets`
    *
    * Types the user can not access are skipped, as are named resources that do not exist
    *
@@ -161,7 +158,7 @@ export default class WorkloadService extends SteveModel {
 
     const [ephemeralClaims, namespaceClaims] = await Promise.all([
       Promise.all(this.ephemeralClaimNames.map((name) => findIfExists(this, PVC, `${ namespace }/${ name }`))),
-      this.claimTemplates.length ? findAllOf(this, PVC, namespace) : [],
+      this.claimTemplates.length ? findAllInNamespace(this, PVC, namespace) : [],
     ]);
 
     const claimEntry = (claim) => {
@@ -181,14 +178,15 @@ export default class WorkloadService extends SteveModel {
     const workload = this.nameDisplay;
 
     const [services, autoscalers, disruptionBudgets, networkPolicies] = await Promise.all([
-      findAllOf(this, SERVICE, namespace),
-      this.type === POD ? [] : findAllOf(this, HPA, namespace),
-      findAllOf(this, POD_DISRUPTION_BUDGET, namespace),
-      findAllOf(this, NETWORK_POLICY, namespace),
+      findAllInNamespace(this, SERVICE, namespace),
+      this.type === POD ? [] : findAllInNamespace(this, HPA, namespace),
+      findAllInNamespace(this, POD_DISRUPTION_BUDGET, namespace),
+      findAllInNamespace(this, NETWORK_POLICY, namespace),
     ]);
 
     const serviceEntry = (service) => relatedEntry(service, {
       dependent: true,
+      // if the user created this service through the workload form, warn them that editing the service via yaml will not automatically update the workload
       banner:    this.isServiceFromContainerPorts(service) ? () => ({ color: 'warning', label: this.t('resourceYaml.resourceGraph.banners.serviceFromContainerPorts', { workload }) }) : undefined,
     });
 
@@ -275,7 +273,14 @@ export default class WorkloadService extends SteveModel {
   }
 
   async getServicesOwned(force = false) {
-    const allSvc = await this.$dispatch('cluster/findAll', { type: SERVICE, opt: { force } }, { root: true });
+    // services only select pods in their ns so we can assume the service we care will be in the same ns as this pod
+    // and avoid a cluster-wide fetch
+    const allSvc = await this.$dispatch('cluster/findAll', {
+      type: SERVICE,
+      opt:  {
+        force, load: _MULTI, namespaced: this.metadata.namespace
+      }
+    }, { root: true });
 
     return (allSvc || []).filter((svc) => this.isServiceFromContainerPorts(svc));
   }

@@ -1,13 +1,13 @@
 import Service from '@shell/models/service';
-import { findAllOf, workloadsInNamespace } from '@shell/utils/related-resources';
+import { findAllInNamespace, workloadsInNamespace } from '@shell/utils/related-resources';
 
 jest.mock('@shell/utils/related-resources', () => ({
   ...jest.requireActual('@shell/utils/related-resources'),
-  findAllOf:            jest.fn(),
+  findAllInNamespace:   jest.fn(),
   workloadsInNamespace: jest.fn(),
 }));
 
-const mockedFindAllOf = findAllOf as jest.Mock;
+const mockedFindAllOf = findAllInNamespace as jest.Mock;
 const mockedWorkloadsInNamespace = workloadsInNamespace as jest.Mock;
 
 // a workload whose pods the Service sends traffic to when `selected`

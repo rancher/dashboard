@@ -1,8 +1,8 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
 /**
- * The key the graph gives a resource: its type and id together, as an id alone (`namespace/name`)
- * can be shared by resources of different types
+ * unique identifier for each resource in the graph
+ * id alone is insufficient as it is not necessarily unique across types
  */
 const nodeKey = (type: string, id: string) => `${ type }:${ id }`;
 
@@ -26,7 +26,7 @@ export class ResourceGraphNodePo extends ComponentPo {
   }
 
   /**
-   * Show the YAML of the resource in the editor
+   * Select which resource from the resource tree is shown in the yaml editor
    */
   select(): Cypress.Chainable {
     return this.self().find('.resource-graph-node-select').click();

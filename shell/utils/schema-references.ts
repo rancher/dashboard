@@ -17,7 +17,6 @@ import { parseType } from '@shell/models/schema';
  *
  * Definitions of custom resources taken to be references, and the fields they declare:
  * - cluster api `Machine.spec.infrastructureRef`: `apiGroup`, `kind`, `name`
- * - gateway api `HTTPRoute.spec.rules.backendRefs`: `group`, `kind`, `name`, `namespace`, `port`
  * - provisioning `Cluster.spec.rkeConfig.machinePools.machineConfigRef`: `apiVersion`, `kind`, `name`
  *
  * The group is read from whichever of `apiGroup`, `group` or `apiVersion` the definition declares,
@@ -185,7 +184,7 @@ const SKIPPED_ROOT_FIELDS = new Set(['metadata', 'status']);
 /**
  * The group of a reference in a custom resource, from whichever field it is named in
  *
- * An empty or missing `group` is the core group, as in the gateway api. A missing `apiVersion`
+ * An empty or missing `group` is the core group. A missing `apiVersion`
  * leaves the group unknown, as in the machine config reference of a provisioning cluster
  */
 function groupOfShape(fields: { [field: string]: ResourceField }, value: any): string | undefined {
@@ -214,7 +213,7 @@ function readerFor(definitionName: string, definition: Definition): ReferenceRea
 
   // built-in definitions are named after their go type, so the table above is used for them
   // the shape test below is for custom resources, whose definitions are named after their path
-  // gateway api definitions are named `io.k8s.networking.gateway.*`, so these prefixes must not be widened to `io.k8s.`
+  // some custom resource definitions are also named `io.k8s.*`, so these prefixes must not be widened to `io.k8s.`
   if (definitionName.startsWith('io.k8s.api.') || definitionName.startsWith('io.k8s.apimachinery.')) {
     return null;
   }
@@ -280,7 +279,6 @@ export function schemaReferencesIn(schema: any, resource: any, schemaFor: (type:
     }
 
     // a reference can hold others, so the search continues inside it
-    // e.g. gateway api `backendRefs[].filters[].requestMirror.backendRef`
     for (const [childField, resourceField] of Object.entries(definition.resourceFields || {})) {
       const key = `${ definitionName }.${ childField }`;
       const childValue = value[childField];

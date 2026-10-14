@@ -120,7 +120,7 @@ export type TableAction = {
  * A resource model shown in the multi-resource YAML editor: the primary resource, or a related
  * resource, editable or read-only
  *
- * TODO: `resource` and `primaryResource` are typed as `any` until there's a shared type for a
+ *  `resource` and `primaryResource` are typed as `any` until there's a shared type for a
  * classified Steve model
  */
 export type ResourceModel = any;

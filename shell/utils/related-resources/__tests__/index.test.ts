@@ -2,7 +2,7 @@ import {
   ALL_RELATED_RESOURCES,
   apiGroupOf,
   capiBootstrapDataSecret,
-  findAllOf,
+  findAllInNamespace,
   findIfExists,
   ingressBackends,
   ingressServiceNames,
@@ -130,11 +130,11 @@ describe('utils: related-resources', () => {
     });
   });
 
-  describe('findAllOf', () => {
+  describe('findAllInNamespace', () => {
     it('should resolve to no resources without a request when the user has no schema for the type', async() => {
       const model = storeModel();
 
-      expect(await findAllOf(model, 'configmap')).toStrictEqual([]);
+      expect(await findAllInNamespace(model, 'configmap')).toStrictEqual([]);
       expect(model.$dispatch).toHaveBeenCalledTimes(0);
     });
 
@@ -142,7 +142,7 @@ describe('utils: related-resources', () => {
       const all = [{ metadata: { namespace: 'a' } }, { metadata: { namespace: 'b' } }];
       const model = storeModel({ types: ['configmap'], findAll: jest.fn(() => Promise.resolve(all)) });
 
-      expect(await findAllOf(model, 'configmap')).toStrictEqual(all);
+      expect(await findAllInNamespace(model, 'configmap')).toStrictEqual(all);
       expect(model.$dispatch).toHaveBeenCalledWith('findAll', { type: 'configmap', opt: LIST_OPTIONS });
     });
 
@@ -150,7 +150,7 @@ describe('utils: related-resources', () => {
       const inNamespace = { metadata: { namespace: 'a' } };
       const model = storeModel({ types: ['configmap'], findAll: jest.fn(() => Promise.resolve([inNamespace, { metadata: { namespace: 'b' } }])) });
 
-      expect(await findAllOf(model, 'configmap', 'a')).toStrictEqual([inNamespace]);
+      expect(await findAllInNamespace(model, 'configmap', 'a')).toStrictEqual([inNamespace]);
       expect(model.$dispatch).toHaveBeenCalledWith('findAll', { type: 'configmap', opt: { ...LIST_OPTIONS, namespaced: 'a' } });
     });
 
@@ -161,7 +161,7 @@ describe('utils: related-resources', () => {
     ])('should start no watch and leave the type unmarked as loaded, for %s', async(_label, namespace) => {
       const model = storeModel({ types: ['configmap'], findAll: jest.fn(() => Promise.resolve([])) });
 
-      await findAllOf(model, 'configmap', namespace);
+      await findAllInNamespace(model, 'configmap', namespace);
 
       const [[, { opt }]] = model.$dispatch.mock.calls;
 
@@ -172,7 +172,7 @@ describe('utils: related-resources', () => {
     it('should resolve to no resources when the store resolves to nothing', async() => {
       const model = storeModel({ types: ['configmap'], findAll: jest.fn(() => Promise.resolve(undefined)) });
 
-      expect(await findAllOf(model, 'configmap')).toStrictEqual([]);
+      expect(await findAllInNamespace(model, 'configmap')).toStrictEqual([]);
     });
 
     it('should resolve to no resources, with a warning, when the request fails', async() => {
@@ -180,7 +180,7 @@ describe('utils: related-resources', () => {
       const error = new Error('forbidden');
       const model = storeModel({ types: ['configmap'], findAll: jest.fn(() => Promise.reject(error)) });
 
-      expect(await findAllOf(model, 'configmap', 'a')).toStrictEqual([]);
+      expect(await findAllInNamespace(model, 'configmap', 'a')).toStrictEqual([]);
       expect(warn).toHaveBeenCalledWith('Failed to fetch configmap in namespace a', error);
 
       warn.mockRestore();

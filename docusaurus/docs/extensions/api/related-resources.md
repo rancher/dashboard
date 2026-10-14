@@ -1,6 +1,6 @@
 # Related Resources in the YAML Editor
 
-When a resource is edited as YAML and it has related resources, Rancher shows the multi-resource YAML editor in place of the single-resource one. The editor lists the resource and its related resources in a resource graph, and shows the YAML of the resource selected in the graph. Each resource can be saved on its own, or every edited resource can be saved together with "Save All Resources".
+When the YAML representation of a resource is edited in the UI, Rancher shows a multi-resource YAML editor in place of the single-resource one. The editor lists the resource that the user has selected to edit, along with its related resources in a resource tree next to the YAML editor. Each resource can be saved on its own, or every edited resource can be saved together with "Save All Resources".
 
 Rancher gathers the related resources of a resource from three sources:
 
@@ -14,7 +14,7 @@ A resource whose model returns `false` from `canYaml` is not shown in the editor
 
 Whichever source returns it, a resource is read-only when its model returns `false` from `canEditYaml`, or when it has an ownerReference with `controller: true`, as the controller would overwrite an edit. See `readOnly` in [RelatedResource](#relatedresource).
 
-## References found without an extension
+## References fetched by default
 
 Before writing an extension, check whether Rancher already finds the reference. For a custom resource, Rancher reads the schema definition of each object in the resource. An object whose definition declares both a `kind` field and a `name` field is treated as a reference to another resource:
 
@@ -30,7 +30,7 @@ When the definition declares no group field, or `apiVersion` is unset, the kind 
 
 A referenced resource is shown only when the user can get its type and the resource exists.
 
-These are not found, and need an extension or a model:
+These style of references will not be found automatically, and need an extension or a model:
 
 - a string field holding only a name, for example `spec.configMapName`
 - an object with no `kind` field, where the kind is implied by the field name
@@ -247,7 +247,6 @@ The editor shows a banner of its own, below the entry's `banner`, when something
 4. the annotation `meta.helm.sh/release-name`: the helm release, linked to its Rancher App where there is one
 5. a Secret named `sh.helm.release.v1.*` labelled `owner: helm`: the Secret helm keeps the release in
 
-On a read-only resource only the first is shown, as the reason it is read-only. The resource being edited gets these banners too. A link is left out where it would lead to the resource being edited.
 
 ### Saving
 

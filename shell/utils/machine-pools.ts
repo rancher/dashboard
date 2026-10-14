@@ -182,8 +182,10 @@ const editorYamlOf = ({ editorState, initialYaml }: RelatedResourceContext, node
 
 /**
  * The machine pool of a provisioning cluster that references the machine config named `configName`
+ *
+ * `saveMachineConfigYaml` finds the pool to repoint with this
  */
-const poolUsing = (cluster: any, configName: string): any => (cluster?.spec?.rkeConfig?.machinePools || []).find((p: any) => p.machineConfigRef?.name === configName);
+export const poolUsing = (cluster: any, configName: string): any => (cluster?.spec?.rkeConfig?.machinePools || []).find((p: any) => p.machineConfigRef?.name === configName);
 
 /**
  * Save a machine config edited in the multi-resource YAML editor

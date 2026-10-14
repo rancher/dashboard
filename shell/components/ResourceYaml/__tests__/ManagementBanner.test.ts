@@ -144,18 +144,6 @@ describe('component: ManagementBanner', () => {
     expect(wrapper.text()).toBe('Deployment web');
   });
 
-  it('should link to what writes the selected resource where it is not the resource being edited', async() => {
-    mockFindManager.mockResolvedValue({
-      type: 'apps.deployment', id: 'ns/web', detailLocation: { name: 'web' }
-    });
-
-    const wrapper = mountComponent(CONTROLLED, true, { type: 'apps.deployment', id: 'ns/other' });
-
-    await flushPromises();
-
-    expect(wrapper.findComponent(RouterLinkStub).props('to')).toStrictEqual({ name: 'web' });
-  });
-
   it.each([
     ['is not found', () => Promise.resolve(null)],
     ['can not be fetched', () => Promise.reject(new Error('nope'))],
@@ -168,25 +156,5 @@ describe('component: ManagementBanner', () => {
 
     expect(wrapper.findComponent(RouterLinkStub).exists()).toBe(false);
     expect(wrapper.text()).toBe('kube-system/traefik');
-  });
-
-  it('should keep the link of the current resource when the fetch for a previous one finishes later', async() => {
-    let resolveFirst: (value: any) => void = () => {};
-
-    mockFindManager
-      .mockImplementationOnce(() => new Promise((resolve) => {
-        resolveFirst = resolve;
-      }))
-      .mockResolvedValueOnce({ detailLocation: { name: 'second' } });
-
-    const wrapper = mountComponent(CONTROLLED);
-
-    await wrapper.setProps({ resource: HELM });
-    await flushPromises();
-
-    resolveFirst({ detailLocation: { name: 'first' } });
-    await flushPromises();
-
-    expect(wrapper.findComponent(RouterLinkStub).props('to')).toStrictEqual({ name: 'second' });
   });
 });

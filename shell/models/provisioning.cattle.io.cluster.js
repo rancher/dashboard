@@ -433,7 +433,7 @@ export default class ProvCluster extends SteveModel {
 
   // identify v2 provisioning clusters created using upstream capi infrastructure providers instead of rancher/machine
   get isCapiWithoutExtension() {
-    return this.mgmt?.isCapiHybrid && !this.mgmt?.isCAPIProvider;
+    return this.mgmt?.isCapiHybrid && !this.mgmt?.usesCAPIExtension;
   }
 
   get mgmtClusterId() {
@@ -518,10 +518,13 @@ export default class ProvCluster extends SteveModel {
   }
 
   /**
-   * Resources this cluster contributes, on top of the ones it owns
+   * Related resources to show in the yaml editor
+   * Found here:
+   * - the machine configs of an RKE2/K3s cluster - `fetchMachineConfigRelatedResources`
+   * - the clusters representing this one in other apis, read-only - `fetchReadOnlyClusterRelatedResources`
    *
-   * The machine configs of an RKE2/K3s cluster, see `fetchMachineConfigRelatedResources`, then the
-   * clusters shown read-only, see `fetchReadOnlyClusterRelatedResources`
+   * More are located using generic steve-model methods fetchOwnedRelatedResources:
+   * - The resources this cluster owns - `metadata.relationships`
    *
    * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
    */
@@ -536,10 +539,12 @@ export default class ProvCluster extends SteveModel {
 
   /**
    * The clusters representing this one in other apis, shown read-only
+   * - The cluster api Cluster - same namespace and name as this cluster
+   * - The management cluster - `metadata.relationships`
+   * - The fleet cluster - `metadata.relationships`
    *
-   * The cluster api Cluster has the same namespace and name as this cluster. The management and
-   * fleet clusters are found in `metadata.relationships`, in either direction: a management
-   * cluster can be the source of the relationship rather than its target
+   * Relationships are read in either direction: a management cluster can be the source of the
+   * relationship rather than its target
    *
    * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
    */
@@ -569,7 +574,8 @@ export default class ProvCluster extends SteveModel {
   }
 
   /**
-   * For an RKE2/K3s cluster, the machine configs referenced by each of the machine pools
+   * For an RKE2/K3s cluster, the machine configs of each machine pool
+   * - The machine config - `spec.rkeConfig.machinePools[].machineConfigRef`
    *
    * Saving a machine config runs the same steps as the cluster form, and writes any change to its
    * machine pool into the cluster's YAML in the editor, to be saved with the cluster

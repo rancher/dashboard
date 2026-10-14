@@ -1,10 +1,5 @@
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
-/**
- * Resources for the multi-resource YAML editor tests, all in one namespace
- *
- * Each entry is the steve type to create the resource through, and the resource
- */
 export type Fixture = [type: string, body: any];
 
 const container = (env: any[] = [], envFrom: any[] = []) => ({
@@ -182,31 +177,6 @@ export const browsingFixtures = (namespace: string): Fixture[] => [
     },
   }],
 ];
-
-/**
- * An HTTPRoute, for clusters with the gateway api, routing to the `web` Service, mirroring to the
- * `db` Service, and naming the `app-config` ConfigMap in an extension filter
- */
-export const routeFixture = (namespace: string): Fixture => ['gateway.networking.k8s.io.httproute', {
-  apiVersion: 'gateway.networking.k8s.io/v1',
-  kind:       'HTTPRoute',
-  metadata:   { name: 'web-route', namespace },
-  spec:       {
-    parentRefs: [{ name: 'missing-gateway' }],
-    rules:      [{
-      backendRefs: [{ name: 'web', port: 80 }],
-      filters:     [
-        { type: 'RequestMirror', requestMirror: { backendRef: { name: 'db', port: 80 } } },
-        {
-          type:         'ExtensionRef',
-          extensionRef: {
-            group: '', kind: 'ConfigMap', name: 'app-config'
-          }
-        },
-      ],
-    }],
-  },
-}];
 
 /**
  * A Deployment and the resources it uses, for one save test to edit

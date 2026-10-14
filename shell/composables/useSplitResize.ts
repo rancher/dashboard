@@ -27,7 +27,6 @@ export const useSplitResize = (container: Ref<HTMLElement | null | undefined>, {
     containerWidth.value = container.value?.getBoundingClientRect().width || 0;
   };
 
-  // custom properties for the clamp() in the css
   const limits = { '--split-min': `${ minPx }px`, '--split-max': `${ maxPercent }%` };
 
   const minPercent = computed(() => (containerWidth.value ? Math.min(maxPercent, minPx / containerWidth.value * 100) : 0));

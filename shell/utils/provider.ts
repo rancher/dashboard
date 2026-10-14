@@ -18,7 +18,7 @@ export function isHostedProvider(context: ClusterProvisionerContext, provisioner
 
   return provisioners.has(provisioner.toLowerCase());
 }
-export function isCAPIProvider(context: ClusterProvisionerContext, provisioner: string) {
+export function usesCAPIExtension(context: ClusterProvisionerContext, provisioner: string) {
   if (!provisioner) {
     return false;
   }

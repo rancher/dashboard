@@ -19,7 +19,7 @@ jest.mock('@shell/utils/provider', () => ({
   isHostedProvider: jest.fn().mockImplementation((context, provider) => {
     return ['GKE', 'EKS', 'AKS'].includes(provider);
   }),
-  isCAPIProvider: jest.fn().mockImplementation((context, provider) => {
+  usesCAPIExtension: jest.fn().mockImplementation((context, provider) => {
     return ['capa', 'capv'].includes(provider.toLowerCase());
   })
 }));
@@ -454,32 +454,32 @@ describe('class ProvCluster', () => {
   describe('isCapiWithoutExtension', () => {
     const testCases = [
       {
-        description:    'should return undefined when mgmt is undefined',
-        isCapiHybrid:   undefined,
-        isCAPIProvider: undefined,
-        expected:       undefined,
+        description:       'should return undefined when mgmt is undefined',
+        isCapiHybrid:      undefined,
+        usesCAPIExtension: undefined,
+        expected:          undefined,
       },
       {
-        description:    'should return false when not a CAPI cluster',
-        isCapiHybrid:   false,
-        isCAPIProvider: false,
-        expected:       false,
+        description:       'should return false when not a CAPI cluster',
+        isCapiHybrid:      false,
+        usesCAPIExtension: false,
+        expected:          false,
       },
       {
-        description:    'should return false when CAPI cluster and a registered CAPI provider extension exists',
-        isCapiHybrid:   true,
-        isCAPIProvider: true,
-        expected:       false,
+        description:       'should return false when CAPI cluster and a registered CAPI provider extension exists',
+        isCapiHybrid:      true,
+        usesCAPIExtension: true,
+        expected:          false,
       },
       {
-        description:    'should return true when CAPI cluster but no registered CAPI provider extension',
-        isCapiHybrid:   true,
-        isCAPIProvider: false,
-        expected:       true,
+        description:       'should return true when CAPI cluster but no registered CAPI provider extension',
+        isCapiHybrid:      true,
+        usesCAPIExtension: false,
+        expected:          true,
       },
     ];
 
-    it.each(testCases)('$description', ({ isCapiHybrid, isCAPIProvider, expected }) => {
+    it.each(testCases)('$description', ({ isCapiHybrid, usesCAPIExtension, expected }) => {
       const cluster = new ProvCluster({});
 
       if (isCapiHybrid === undefined) {
@@ -488,7 +488,7 @@ describe('class ProvCluster', () => {
         const mgmtCluster = new MgmtCluster({});
 
         jest.spyOn(mgmtCluster, 'isCapiHybrid', 'get').mockReturnValue(isCapiHybrid);
-        jest.spyOn(mgmtCluster, 'isCAPIProvider', 'get').mockReturnValue(isCAPIProvider);
+        jest.spyOn(mgmtCluster, 'usesCAPIExtension', 'get').mockReturnValue(usesCAPIExtension);
         jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(mgmtCluster);
       }
 

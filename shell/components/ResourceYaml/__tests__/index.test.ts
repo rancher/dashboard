@@ -3,7 +3,7 @@ import ResourceYaml from '@shell/components/ResourceYaml/index.vue';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { RelatedResource } from '@shell/core/types';
-import { keyForResource } from '@shell/utils/resource-key';
+import { keyForResource } from '@shell/utils/related-resources/resource-key';
 
 jest.mock('@shell/core/plugin-helpers', () => ({ getApplicableExtensionEnhancements: jest.fn(() => []) }));
 
@@ -165,7 +165,7 @@ describe('component: ResourceYaml', () => {
 
       await wrapper.vm.loadRelatedResources();
 
-      expect(wrapper.vm.relatedResources).toStrictEqual([atTop(valid, 'related-1')]);
+      expect(wrapper.vm.relatedResources).toStrictEqual([atTop(valid, 'related-0')]);
     });
 
     describe('tree expansion', () => {
@@ -676,7 +676,7 @@ describe('component: ResourceYaml', () => {
           fromA.resolve([shared]);
           await loading;
 
-          expect(wrapper.vm.relatedResources.find((e: any) => e.resource.id === 'ns/shared').parentId).toBe('service:ns/a');
+          expect(wrapper.vm.relatedResources.find((e: any) => e.resource.id === 'ns/shared')?.parentId).toBe('service:ns/a');
         });
       });
 

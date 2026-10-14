@@ -1,8 +1,6 @@
 # Related Resources in the YAML Editor
 
-When a resource is edited as YAML (`?mode=edit&as=yaml`, or Edit as YAML from its form) and it has related resources, the multi-resource YAML editor is shown in place of the single-resource editor. The resource graph on the left lists the resource being edited, then the editable resources related to it, each with the editable resources it refers to nested below it, then a collapsed "Read-only" list. Selecting a resource shows its YAML. Each resource has its own save button, and "Save All Resources" saves every edited resource.
-
-From a form, the editor also shows Edit as Form and Edit as YAML buttons. Edit as Form returns to the form after a confirmation, discarding the changes made in the YAML.
+When a resource is edited as YAML (`?mode=edit&as=yaml`, or Edit as YAML from its form) and it has related resources, the multi-resource YAML editor is shown in place of the single-resource editor. 
 
 This page covers how to get a resource shown in the editor for a type. For the extension point, and the full list of fields an entry can have, see [Related Resources in the YAML Editor](/extensions/next/api/related-resources) in the extension docs.
 
@@ -34,12 +32,7 @@ A read-only resource is listed in the "Read-only" section of the graph, grouped 
 Each related resource is one of:
 
 - a **dependency**: used by the resource it was found for, for example the Secret a Deployment mounts
-- a **dependent**: its entry has `dependent: true`. It is gathered only when the resource it was found for is the one being edited, it is not asked for its own related resources, and it is saved after the resource being edited
-
-Set `dependent: true` on:
-
-- a resource that uses the one it was found for, for example the Deployments mounting a ConfigMap
-- a resource the one it was found for selects by label, for example the workloads a Service, NetworkPolicy or PodDisruptionBudget selects
+- a **dependent**: uses the resource it was found for, and may use reference more of the same time of resource. its entry has `dependent: true`. 
 
 Dependencies are followed through the graph: a Deployment shows its ConfigMap, and the ConfigMap's own dependencies are shown below it. Dependents are only shown for the resource being edited, otherwise a shared ConfigMap would bring in every workload using it, and each workload found by a selector would bring in everything it uses.
 
@@ -71,25 +64,23 @@ On a read-only resource only the controller banner is shown. On the resource bei
 Steve describes every type with schema definitions (`/v1/schemaDefinitions/<type>`). The editor reads these to find fields of a resource that name another resource. No code is needed for a type whose references are found this way.
 
 ### Custom resources
-
-An object field in a custom resource is found when its definition has both a `kind` and a `name` field. The API group is read from `apiGroup`, `group` or `apiVersion`, and the namespace from `namespace` when there is one. Examples that are found:
+If an object in a custom resource has at least a `kind` and a `name` field, the UI will attempt to retrieve a resource matching that kind and name. The API group is read from `apiGroup`, `group` or `apiVersion`, and the namespace from `namespace` when there is one. If the UI cannot determine exactly one schema to match (`kind` alone may not be enough; sometimes `group` is needed), nothing is fetched. Examples that are found:
 
 - Cluster API `Machine.spec.infrastructureRef`
-- Gateway API `HTTPRoute.spec.rules[].backendRefs[]`
 - Provisioning `Cluster.spec.rkeConfig.machinePools[].machineConfigRef`
 
-These are not found, and need a model override:
+These types of reference will not be found automatically, and need a model override:
 
 | Case | Example | Model doing this |
 |---|---|---|
 | A string field holding only a name | Cluster API `bootstrap.dataSecretName` | `cluster.x-k8s.io.machinedeployment.js`, `cluster.x-k8s.io.machinepool.js` |
 | An object with no `kind` field | Cluster API `spec.topology.classRef` | `cluster.x-k8s.io.cluster.js` |
-| A resource that uses this one | Workloads mounting a ConfigMap, HTTPRoutes attached to a Gateway | `configmap.js`, `gateway.networking.k8s.io.gateway.js` |
+| A resource that uses this one | Workloads mounting a ConfigMap | `configmap.js` |
 | A label selector | Services and PodDisruptionBudgets selecting a workload's pods | `workload.service.js` |
 
 ### Built-in Kubernetes types
 
-Built-in types are found from tables in `shell/utils/schema-references.ts`, listed by definition name. To add a field that is not found:
+Built-in types have another approach available. Built-in types are found from tables in `shell/utils/schema-references.ts`, listed by definition name. To add a field that is not found:
 
 1. Find the definition name. Fetch `/v1/schemaDefinitions/<type>` for a type containing the field, and find the object or field in `definitions`. Built-in names start with `io.k8s.api.`, for example `io.k8s.api.core.v1.SecretKeySelector`
 2. Add it to the table that fits:
@@ -132,7 +123,7 @@ Guidelines:
 
 - return `[]` when `this.metadata?.uid` is unset
 - check `dependencies` and `dependents` before fetching, so no requests are made for a kind that is not wanted
-- return only resources directly related to this one. Resources further away are found from the models of the resources in between
+- return only resources directly related to this one. Related resources should load their own related resources.
 - set `dependent: true` on resources that use this one, and on resources this one selects by label
 - do not override `fetchRelatedResources`: it adds the schema references and owned resources to the model's list
 - a resource the model returns replaces the same resource found from the schema, so a model can return a resource only to add a banner or a save hook to it
@@ -145,7 +136,7 @@ From `shell/utils/related-resources/index.ts`:
 |---|---|
 | `relatedEntry(resource, { dependent, banner })` | Builds an entry shown under the resource's type name |
 | `findIfExists(model, type, id)` | Fetches one resource. Null when it does not exist or the user can not get it. Use this whenever the type and name are known. Starts no watch |
-| `findAllOf(model, type, namespace?)` | Fetches every resource of a type, for when the names are not known. Empty when the user can not list it. Starts no watch |
+| `findAllInNamespace(model, type, namespace?)` | Fetches every resource of a type, for when the names are not known. Empty when the user can not list it. Starts no watch |
 | `workloadsInNamespace(model, namespace)` | Fetches the workloads and pods in a namespace, leaving out those owned by another workload |
 | `podSpecReferences(podSpec)` | The ConfigMap, Secret, PersistentVolumeClaim and ServiceAccount names a pod spec uses |
 | `selectsLabels(labelSelector, labels)` | Whether a label selector selects a set of labels |

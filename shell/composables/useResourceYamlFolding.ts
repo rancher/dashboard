@@ -5,17 +5,9 @@ import { foldAllComments, foldMatchingLines, foldYamlPath } from '@components/Rc
 import { ANNOTATIONS_TO_FOLD } from '@shell/config/labels-annotations';
 import { ensureRegex } from '@shell/utils/string';
 
-const PATHS_TO_FOLD = [
-  'links',
-  'metadata.relationships',
-  'metadata.fields',
-  'metadata.finalizers',
-];
-
 /**
  * Folds the sections of a resource's yaml that are rarely edited: managedFields, comment blocks,
- * annotations written by tools (`ANNOTATIONS_TO_FOLD`), `PATHS_TO_FOLD` and the paths in the
- * model's `yamlFolding`
+ * annotations written by tools (`ANNOTATIONS_TO_FOLD`) and the paths in the model's `yamlFolding`
  *
  * @param resource The model whose yaml is in the editor, read when the editor is ready
  * @param foldStatus Fold the top-level `status`, read when the editor is ready
@@ -45,7 +37,8 @@ export function useResourceYamlFolding(
 
     foldMatchingLines(view, /managedFields/);
 
-    [...PATHS_TO_FOLD, ...(toValue(resource)?.yamlFolding || [])].forEach((path) => foldYamlPath(view, path));
+    [...(toValue(resource)?.yamlFolding || [])].forEach((path) => foldYamlPath(view, path));
+
 
     foldAllComments(view);
   };

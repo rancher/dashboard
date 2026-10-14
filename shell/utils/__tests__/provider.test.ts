@@ -1,4 +1,4 @@
-import { getHostedProviders, isHostedProvider, getCAPIProviders, isCAPIProvider } from '../provider';
+import { getHostedProviders, isHostedProvider, getCAPIProviders, usesCAPIExtension } from '../provider';
 import { ClusterProvisionerContext, IClusterProvisioner } from '@shell/core/types';
 
 const DEFAULT_CONTEXT = {
@@ -114,16 +114,16 @@ describe('utils/provider', () => {
       expect(isHostedProvider(context, 'prov1')).toBe(false);
     });
   });
-  describe('isCAPIProvider', () => {
+  describe('usesCAPIExtension', () => {
     it('should return false if provisioner is not provided', () => {
       const context = {
         ...DEFAULT_CONTEXT,
         $extension: { getProviders: jest.fn().mockReturnValue(MOCK_PROVIDERS) }
       } as ClusterProvisionerContext;
 
-      expect(isCAPIProvider(context, '')).toBe(false);
-      expect(isCAPIProvider(context, undefined as any)).toBe(false);
-      expect(isCAPIProvider(context, null as any)).toBe(false);
+      expect(usesCAPIExtension(context, '')).toBe(false);
+      expect(usesCAPIExtension(context, undefined as any)).toBe(false);
+      expect(usesCAPIExtension(context, null as any)).toBe(false);
     });
 
     it('should return true only if provisioner is in the list of CAPI providers', () => {
@@ -132,11 +132,11 @@ describe('utils/provider', () => {
         $extension: { getProviders: jest.fn().mockReturnValue(MOCK_PROVIDERS) }
       } as ClusterProvisionerContext;
 
-      expect(isCAPIProvider(context, 'capa')).toBe(true);
-      expect(isCAPIProvider(context, 'capv')).toBe(true);
-      expect(isCAPIProvider(context, 'eks')).toBe(false);
-      expect(isCAPIProvider(context, 'different')).toBe(false); // case-insensitive check
-      expect(isCAPIProvider(context, 'other')).toBe(false); // case-insensitive check
+      expect(usesCAPIExtension(context, 'capa')).toBe(true);
+      expect(usesCAPIExtension(context, 'capv')).toBe(true);
+      expect(usesCAPIExtension(context, 'eks')).toBe(false);
+      expect(usesCAPIExtension(context, 'different')).toBe(false); // case-insensitive check
+      expect(usesCAPIExtension(context, 'other')).toBe(false); // case-insensitive check
     });
 
     it('should return false if there are no hosted providers', () => {

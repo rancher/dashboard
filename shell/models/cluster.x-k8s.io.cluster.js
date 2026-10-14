@@ -1,23 +1,17 @@
 import { CAPI } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { findAllOf, findIfExists, relatedEntry } from '@shell/utils/related-resources';
+import { findAllInNamespace, findIfExists, relatedEntry } from '@shell/utils/related-resources';
 
 export default class CapiCluster extends SteveModel {
   /**
-   * The resources related to this cluster, to edit by YAML alongside it
+   * Related resources to show in the yaml editor
+   * 2-3 are found here:
+   * - the ClusterClass of a cluster with a managed topology (not relevant to Rancher provisioned clusters)
+   * - the MachineDeployments and MachinePools naming this cluster in `spec.clusterName`
    *
-   * Dependencies: the ClusterClass of a cluster with a managed topology, and the
-   * MachineDeployments and MachinePools naming this cluster in `spec.clusterName`
-   *
-   * The infrastructure cluster and control plane in `spec.infrastructureRef` and
-   * `spec.controlPlaneRef` are found from the schema, see `fetchSchemaRelatedResources`.
-   * The ClusterClass is not: `spec.topology.classRef` names no kind
-   *
-   * The MachineDeployments and MachinePools use this cluster, so by the usual rule they would be
-   * dependents. They are dependencies because a dependent is not expanded, and their bootstrap and
-   * infrastructure references are only found by expanding them. Each belongs to one cluster, so
-   * this adds nothing of another cluster to the tree
-   *
+   * 2 more a located using generic steve-model methods fetchSchemaRelatedResources:
+   * - The infrastructure cluster - `spec.infrastructureRef`
+   * - The control plane - `spec.controlPlaneRef`
    * @param {import('@shell/core/types').RelatedResourcesFetchOptions} [options]
    * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
    */
@@ -30,8 +24,8 @@ export default class CapiCluster extends SteveModel {
 
     const [clusterClass, machineDeployments, machinePools] = await Promise.all([
       findIfExists(this, CAPI.CLUSTER_CLASS, this.clusterClassId),
-      findAllOf(this, CAPI.MACHINE_DEPLOYMENT, namespace),
-      findAllOf(this, CAPI.MACHINE_POOL, namespace),
+      findAllInNamespace(this, CAPI.MACHINE_DEPLOYMENT, namespace),
+      findAllInNamespace(this, CAPI.MACHINE_POOL, namespace),
     ]);
 
     const inThisCluster = (resource) => resource.spec?.clusterName === this.metadata.name;

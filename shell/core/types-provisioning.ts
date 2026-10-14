@@ -253,9 +253,7 @@ export interface IClusterProvisioner {
   /**
    * Whether the YAML of a cluster this provisioner handles can be edited, in place of the default
    *
-   * By default only the YAML of an RKE2/K3s cluster can be edited. Either way the user needs permission to update the cluster
-   *
-   * The provisioner that handles a cluster is the one the cluster's edit page uses, for example the provisioner whose `id` is in the cluster's `ui.rancher/provider` annotation
+   * By default only the YAML of an RKE2/K3s cluster can be edited.
    *
    * @param cluster The cluster (`provisioning.cattle.io.cluster`)
    * @returns true to offer Edit YAML for the cluster, false to offer View YAML only

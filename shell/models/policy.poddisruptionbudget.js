@@ -3,11 +3,9 @@ import { relatedEntry, workloadsInNamespace } from '@shell/utils/related-resourc
 
 export default class PodDisruptionBudget extends SteveModel {
   /**
-   * The resources related to this PodDisruptionBudget, to edit by YAML alongside it
-   *
-   * Dependents: the workloads in its namespace whose pods `spec.selector` selects
-   *
-   * The workloads are dependents so the tree does not take in the resources they use
+   * Related resources to show in the yaml editor
+   * Found here, as dependents so the tree does not take in the resources they use:
+   * - the workloads in its namespace whose pods it selects - `spec.selector`
    *
    * See https://kubernetes.io/docs/concepts/workloads/pods/disruptions/
    *

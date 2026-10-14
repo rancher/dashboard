@@ -1,7 +1,7 @@
 import { STORAGE } from '@shell/config/labels-annotations';
 import { CSI_DRIVER, PV, PVC, STORAGE_CLASS } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { findAllOf, findIfExists, relatedEntry } from '@shell/utils/related-resources';
+import { findAllInNamespace, findIfExists, relatedEntry } from '@shell/utils/related-resources';
 
 // These are storage class drivers w/ custom components
 // all but longhorn are in-tree plugins
@@ -164,11 +164,13 @@ export default class extends SteveModel {
   }
 
   /**
-   * The resources related to this StorageClass, to edit by YAML alongside it
+   * Related resources to show in the yaml editor
+   * 0-1 are found here:
+   * - the CSIDriver, where the driver has one - `provisioner`
    *
-   * Dependencies: the CSIDriver object named by `provisioner`, where the driver has one
-   *
-   * Dependents: the PersistentVolumes and PersistentVolumeClaims of this class, from every namespace
+   * Found here, as dependents, from every namespace:
+   * - the PersistentVolumeClaims of this class - `spec.storageClassName`
+   * - the PersistentVolumes of this class - `spec.storageClassName`
    *
    * @param {import('@shell/core/types').RelatedResourcesFetchOptions} [options]
    * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
@@ -185,8 +187,8 @@ export default class extends SteveModel {
 
     const [driver, volumes, claims] = await Promise.all([
       dependencies ? findIfExists(this, CSI_DRIVER, driverName) : null,
-      dependents ? findAllOf(this, PV) : [],
-      dependents ? findAllOf(this, PVC) : [],
+      dependents ? findAllInNamespace(this, PV) : [],
+      dependents ? findAllInNamespace(this, PVC) : [],
     ]);
 
     const ofClass = (resource) => resource.spec?.storageClassName === name;

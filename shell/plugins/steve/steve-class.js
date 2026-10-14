@@ -4,7 +4,7 @@ import { NEVER_ADD } from '@shell/utils/create-yaml';
 import { deleteProperty } from '@shell/utils/object';
 import { EXT_IDS } from '@shell/core/plugin';
 import { patchWithFallback } from '@shell/apis/resources/patch-content-type';
-import { keyForResource } from '@shell/utils/resource-key';
+import { keyForResource } from '@shell/utils/related-resources/resource-key';
 import { RBAC, SCHEMA } from '@shell/config/types';
 import { findIfExists, relatedEntry } from '@shell/utils/related-resources';
 import { schemaForReference, schemaReferencesIn, schemasByKind } from '@shell/utils/schema-references';
@@ -60,53 +60,14 @@ export default class SteveModel extends HybridModel {
   }
 
   /**
-   * Resources related to this one that the user should be able to edit by YAML alongside it
+   * Resources the user can edit by YAML alongside this one
    *
-   * This is resolved when the consuming component initialises (and not in a computed property), so
-   * models extending this class can override it with an async implementation, for example to fetch
-   * the resources they want to add
+   * Override `fetchModelRelatedResources`, not this: overriding this drops the owned resources.
+   * Each entry may carry `beforeSaveHook`, `afterSaveHook`, `save` and `banner`, see the `RelatedResource` type
    *
-   * Each entry wraps the resource alongside configuration for it. These are all given the same
-   * context: the related resource in question, all of the related resources, the primary
-   * resource (this one) and the reactive state of the editor
-   * - `beforeSaveHook` / `afterSaveHook`, run either side of saving the related resource
-   * - `save`, called instead of the related resource's own `save` when it is defined
-   * - `banner`, resolving a banner to show for the resource, re-evaluated whenever anything it
-   *   read from the context changes
+   * A model returns only directly related resources.Further dependencies are found by expanding the tree.
    *
-   * Override `fetchModelRelatedResources`, not this. This merges the resources this one owns
-   * with the ones the model contributes itself, so a model that overrides this instead silently
-   * drops the owned resources.
-   *
-   * ```
-   * async fetchModelRelatedResources({ dependencies, dependents }) {
-   *   const others = dependencies ? await this.$dispatch('findAll', { type: SOME_TYPE }) : [];
-   *
-   *   return others.map((resource) => ({
-   *     resource,
-   *     // the save writes the yaml in the editor, not `resource`, so the hook changes the yaml
-   *     beforeSaveHook: ({ editorState, nodeId, initialYaml }) => {
-   *       const related = jsyaml.load(editorState.yaml[nodeId] ?? initialYaml[nodeId]);
-   *
-   *       related.spec.foo = this.spec.foo;
-   *       editorState.yaml[nodeId] = jsyaml.dump(related);
-   *     },
-   *     // `editorState.selected` is a `nodeId`, so compare with `keyForResource`, not `id`
-   *     banner:         ({ editorState }) => editorState.selected === keyForResource(resource) ? { labelKey: 'some.key' } : null,
-   *   }));
-   * }
-   * ```
-   *
-   * A model defines only the resources directly related to its own, and marks as `dependent` those
-   * that use it and those it selects by label. Dependencies further away are found as the tree is
-   * expanded, from the models of the resources in between, so every type in the tree gets the same
-   * related resources on its own page. Dependents are gathered only for the primary resource, and
-   * are not expanded. `options` says which of the two kinds are wanted, see `RelatedResourcesFetchOptions`
-   *
-   * Where more than one source gives the same resource, the first entry is kept, in this order
-   * - `fetchModelRelatedResources`, since it carries the model's own groupKey, hooks and banner
-   * - `fetchSchemaRelatedResources`
-   * - `fetchOwnedRelatedResources`
+   * Duplicates keep the first entry, in this order: model, schema, owned
    *
    * @param {import('@shell/core/types').RelatedResourcesFetchOptions} [options]
    * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
@@ -138,7 +99,6 @@ export default class SteveModel extends HybridModel {
   }
 
   /**
-   * //TODO nb these method names are bad
    * The related resources this model contributes, on top of the ones it owns
    *
    * This is the method for a model or an extension to override. See
@@ -154,9 +114,8 @@ export default class SteveModel extends HybridModel {
   /**
    * Gather the resources this one owns as related resources?
    *
-   * Override to false for a type whose owned resources are not worth editing alongside it. That is
-   * the deliberate way to suppress them; overriding `fetchRelatedResources` also works but
-   * drops the merge with `fetchModelRelatedResources` too.
+   * Override to false for a type whose owned resources are not worth editing alongside it. Overriding `fetchRelatedResources` also works will drop
+   * anything found by `fetchModelRelatedResources` too.
    *
    * @returns {boolean}
    */
@@ -180,7 +139,7 @@ export default class SteveModel extends HybridModel {
    * Steve's relationships do not say whether the owner is the controller, so the entry is not marked
    * `readOnly` here. The editor reads `controller` from the resource's own `ownerReferences`, for
    * every entry whichever source returned it. A resource that `fetchModelRelatedResources` or
-   * `fetchSchemaRelatedResources` also returns keeps the entry from that source, see `fetchRelatedResources`.
+   * `fetchSchemaRelatedResources` also returns keeps the entry from that source over this one, see `fetchRelatedResources`.
    *
    * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
    */
@@ -203,8 +162,7 @@ export default class SteveModel extends HybridModel {
   /**
    * Gather the resources this one refers to as related resources?
    *
-   * Override to false for a type whose references are not worth editing alongside it, for example
-   * one listing every resource of a helm release.
+   * Override to false for a type whose references are not worth editing alongside it
    *
    * @returns {boolean}
    */
@@ -223,7 +181,7 @@ export default class SteveModel extends HybridModel {
    * `resourceMethods`, as `attributes.verbs` lists what the api supports rather than what the user
    * may do.
    *
-   * A reference without a namespace is to a resource in this one's namespace.
+   * A reference without a namespace is assumed to refer to a resource in this one's namespace.
    *
    * A reference is a dependency, except for those `schemaReferencesIn` marks `dependent`.
    *

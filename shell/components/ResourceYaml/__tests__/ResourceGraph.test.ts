@@ -4,7 +4,6 @@ import ResourceGraph from '@shell/components/ResourceYaml/ResourceGraph.vue';
 import ResourceGraphGroups from '@shell/components/ResourceYaml/ResourceGraphGroups.vue';
 import { ResourceGraphGroup, ResourceGraphNode } from '@shell/components/ResourceYaml/types';
 
-// rendered components from pkg/rancher-components resolve a different copy of vue than shell
 jest.mock('@components/RcButton', () => ({ RcButton: { name: 'RcButtonStub', template: '<button><slot /></button>' } }));
 jest.mock('@components/Pill', () => ({
   RcStatusBadge:  { name: 'RcStatusBadgeStub', template: '<div><slot /></div>' },
@@ -100,7 +99,7 @@ describe('component: ResourceGraph', () => {
     expect(wrapper.findAll('.resource-graph-node--read-only').map((n) => n.text())).toStrictEqual(['cc-x7k2p']);
   });
 
-  it('should show a read-only node without a parent in the read-only section, not at the top level', async() => {
+  it('should show a read-only node in the read-only section, not at the top level', async() => {
     const wrapper = mountComponent();
 
     await toggle(referenced(wrapper)).trigger('click');
@@ -121,13 +120,6 @@ describe('component: ResourceGraph', () => {
     await wrapper.find('[data-testid="resource-graph-node-ns/workers"]').trigger('click');
 
     expect(wrapper.emitted('select')).toStrictEqual([['ns/workers']]);
-  });
-
-  it('should show nothing but the header when there are no resources', () => {
-    const wrapper = mountComponent({ nodes: [] });
-
-    expect(wrapper.find('[data-testid="resource-graph-count"]').text()).toBe('0');
-    expect(wrapper.findAll('.resource-graph-node')).toHaveLength(0);
   });
 
   it('should emit `save` with the id of the node whose save button is clicked', async() => {
@@ -161,24 +153,6 @@ describe('component: ResourceGraph', () => {
     // the ids of the nodes in the groups, each followed by the ids of the nodes nested below it
     const treeOf = (groups: ResourceGraphGroup[]): any[] => groups.flatMap((g) => g.nodes.map((n) => (n.groups.length ? [n.id, treeOf(n.groups)] : n.id)));
 
-    it('should show only the top-level nodes above the sections, without the nodes found below them', () => {
-      const wrapper = mountComponent({ nodes: tree });
-
-      expect(treeOf(wrapper.findComponent(ResourceGraphGroups).props('groups'))).toStrictEqual(['primary']);
-    });
-
-    it('should show the nodes below the top-level nodes in the related section', () => {
-      const wrapper = mountComponent({ nodes: tree });
-
-      expect(treeOf(related(wrapper).findComponent(ResourceGraphGroups).props('groups'))).toStrictEqual([['infra', ['template']]]);
-    });
-
-    it('should show no related section when no node is below a top-level node', () => {
-      const wrapper = mountComponent({ nodes: [tree[0]] });
-
-      expect(related(wrapper).exists()).toBe(false);
-    });
-
     it('should expand the related section by default', () => {
       const wrapper = mountComponent({ nodes: tree });
 
@@ -193,29 +167,6 @@ describe('component: ResourceGraph', () => {
 
       expect(treeOf(referenced(wrapper).findComponent(ResourceGraphGroups).props('groups'))).toStrictEqual(['capi', 'machine']);
       expect(labelsIn(related(wrapper))).toStrictEqual(['infra', 'template']);
-    });
-
-    it('should show a read-only node found below an editable one in the read-only section, not below its parent', async() => {
-      const wrapper = mountComponent({
-        nodes: [...tree, {
-          id: 'class', label: 'class', group: 'Classes', parentId: 'infra', readOnly: true
-        }]
-      });
-
-      await toggle(referenced(wrapper)).trigger('click');
-
-      expect(treeOf(related(wrapper).findComponent(ResourceGraphGroups).props('groups'))).toStrictEqual([['infra', ['template']]]);
-      expect(labelsIn(referenced(wrapper))).toStrictEqual(['capi', 'machine', 'class']);
-    });
-
-    it('should show a node found below a read-only node below the nearest parent that is not read-only', () => {
-      const wrapper = mountComponent({
-        nodes: [...tree, {
-          id: 'bootstrap', label: 'bootstrap', group: 'Secrets', parentId: 'machine'
-        }]
-      });
-
-      expect(treeOf(related(wrapper).findComponent(ResourceGraphGroups).props('groups'))).toStrictEqual([['infra', ['template']], 'bootstrap']);
     });
 
     it('should show no referenced section when no node is read-only', () => {

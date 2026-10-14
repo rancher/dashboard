@@ -2,7 +2,6 @@
 import { RcIcon } from '@components/RcIcon';
 
 defineProps<{
-  /** Shown in the header, and the accessible name of the toggle */
   title: string,
 }>();
 
@@ -49,7 +48,7 @@ const expanded = defineModel<boolean>('expanded', { default: true });
   font-weight: 700;
 }
 
-// the caret sits in a first column as wide as the top-level indent of the graph
+
 .resource-graph-section-toggle {
   display: grid;
   grid-template-columns: var(--resource-graph-indent) minmax(0, 1fr);
@@ -77,7 +76,6 @@ const expanded = defineModel<boolean>('expanded', { default: true });
   text-overflow: ellipsis;
 }
 
-// the first level of groups lines up with the title, deeper levels step in from it
 .resource-graph-section-content {
   --resource-graph-groups-indent: calc(var(--resource-graph-section-inset) + var(--resource-graph-indent));
 }

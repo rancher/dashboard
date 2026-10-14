@@ -12,11 +12,13 @@ import { capiBootstrapDataSecret, relatedEntry } from '@shell/utils/related-reso
 
 export default class CapiMachineDeployment extends CapiMachineRoot {
   /**
-   * The resources related to this machine deployment, to edit by YAML alongside it
+   * Related resources to show in the yaml editor
+   * 0-1 are found here:
+   * - the bootstrap data Secret, when no bootstrap config is used - `spec.template.spec.bootstrap.dataSecretName`
    *
-   * Dependencies: the bootstrap data Secret, see `capiBootstrapDataSecret`. The bootstrap config
-   * template and infrastructure machine template are found from the schema, see
-   * `fetchSchemaRelatedResources`
+   * 2 more are located using generic steve-model methods fetchSchemaRelatedResources:
+   * - The bootstrap config template - `spec.template.spec.bootstrap.configRef`
+   * - The infrastructure machine template - `spec.template.spec.infrastructureRef`
    *
    * @param {import('@shell/core/types').RelatedResourcesFetchOptions} [options]
    * @returns {Promise<import('@shell/core/types').RelatedResource[]>}

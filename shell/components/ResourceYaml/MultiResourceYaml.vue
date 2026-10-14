@@ -12,7 +12,7 @@ import ManagementBanner from '@shell/components/ResourceYaml/ManagementBanner.vu
 import { ResourceGraphNode } from '@shell/components/ResourceYaml/types';
 import { useResourceYamlFolding } from '@shell/composables/useResourceYamlFolding';
 import { useSplitResize } from '@shell/composables/useSplitResize';
-import { keyForResource } from '@shell/utils/resource-key';
+import { keyForResource } from '@shell/utils/related-resources/resource-key';
 import { fromEditorYaml, toEditorYaml } from '@shell/utils/related-resources/yaml';
 import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 import { saveWithConflictRetry } from '@shell/plugins/dashboard-store/normalize';
@@ -25,34 +25,33 @@ import {
   ResourceModel,
 } from '@shell/core/types';
 
-// parent layout classes (e.g. cru-resource's .resource-container) would override the root grid
+//  prevent parent layout classes(e.g. cru-resource's .resource-container) from overwriting the grid defined here
 defineOptions({ inheritAttrs: false });
 
 const props = defineProps<{
   value: ResourceModel,
 
-  /** edited alongside `value`, each carrying its own save hooks, banner and groupKey */
   relatedResources: RelatedResource[],
 
-  /** where to go once every resource is saved: a route name for `value`'s type, or a route */
   doneRoute?: string | RouteLocationRaw | null,
 
-  /** called, or navigated to, in place of `doneRoute` */
   doneOverride?:(() => void) | RouteLocationRaw | null,
 
-  /** the yaml of `value` made by the parent, as SingleResourceYaml shows it. Made from `value` when not given */
+  // will be parsed from 'value' if undefined here
   yaml?: string | null,
 
-  /** what the yaml of `value` is compared with, e.g. the yaml from before the edits made in a form. `yaml` when not given */
+  // the yaml before the user has made any edits
   initialYamlForDiff?: string | null,
 
-  /** runs the save hooks the parent's form registered, as in SingleResourceYaml */
+
   applyHooks?: ((hooks: string) => Promise<void>) | null,
 
-  /** the yaml is shown in place of a form, so going back to the form is offered */
+  // if the user navigated here from a form view offer them buttons to go back to the form view
+  // discarding unsaved changes as with the single yaml editor
   showEditAsForm?: boolean,
 
-  /** `relatedResources` are still being fetched, so the graph shows that they are loading */
+  // the primary resource has been loaded, and we have loaded enough to know to use this component instead of single yaml
+  // but don't yet have the full tree
   loading?: boolean,
 }>();
 
@@ -62,7 +61,8 @@ const store = useStore();
 const router = useRouter();
 const i18n = useI18n(store);
 
-// as SingleResourceYaml's `done`
+
+// this runs after all saving logic so it is very similar to SingleResourceYaml's `done`
 const done = () => {
   if (props.doneOverride) {
     return typeof props.doneOverride === 'function' ? props.doneOverride() : router.replace(props.doneOverride);
@@ -75,8 +75,8 @@ const done = () => {
   router.replace(typeof props.doneRoute === 'object' ? props.doneRoute : { name: props.doneRoute, params: { resource: props.value.type } });
 };
 
-// handed to the related resources' compute functions and save hooks
-// tracks which resource is currently shown in the yaml editor, as well as yaml editor state for each resource
+// track which resource is currently being shown and the (edited) state of each resource
+// passed in to related resources' computed functions (eg banner)
 const editorState = reactive<RelatedResourcesEditorState>({
   yaml:     {},
   selected: keyForResource(props.value) || null,
@@ -84,23 +84,24 @@ const editorState = reactive<RelatedResourcesEditorState>({
 
 const primaryId = computed(() => keyForResource(props.value) || 'primary');
 
-// `nodeId` is set when the tree was flattened; the fallbacks let a plain list work unflattened
+
 const nodeIdFor = (entry: RelatedResource, i: number): string => entry.nodeId || keyForResource(entry.resource) || String(i);
 
-// the node id of each entry of `relatedResources`, in the same order
+
 const relatedIds = computed(() => props.relatedResources.map(nodeIdFor));
 
-// -1 for the primary resource, which has no entry in `relatedResources`
+// return -1 if not found in relatedResources and treat that as the primary resource
 const relatedIndexOf = (nodeId: string | null): number => (nodeId ? relatedIds.value.indexOf(nodeId) : -1);
 
+
 // the store's copy of the primary resource once saved
-// `value` is a clone for editing, which the save does not update
+// this.value is a local clone (true in form view as well)
 const savedPrimary = ref<ResourceModel | null>(null);
 
 const primaryResource = computed<ResourceModel>(() => savedPrimary.value || props.value);
 
-// resources a save created in place of the one loaded, for example a replacement for an immutable resource, keyed by node id
-// the node keeps its id, so its selection and children stay attached to it
+// immutable resources may be replaced with a new version
+// keyed by node id to retain selection status and child relationships
 const replacedResources = reactive<{ [nodeId: string]: ResourceModel }>({});
 
 watch(() => props.value, (neu) => {
@@ -112,12 +113,11 @@ watch(() => props.relatedResources, () => {
   Object.keys(replacedResources).forEach((id) => delete replacedResources[id]);
 });
 
-// the resource of the entry at index `i` of `relatedResources`
+
 const resourceAt = (i: number): ResourceModel => replacedResources[relatedIds.value[i]] || props.relatedResources[i].resource;
 
 const resourceLabel = (resource: ResourceModel): string => resource?.nameDisplay || resource?.metadata?.name || resource?.id || '';
 
-// the resource of a node: the primary resource or a related one
 const resourceFor = (nodeId: string): ResourceModel => (nodeId === primaryId.value ? primaryResource.value : resourceAt(relatedIndexOf(nodeId)));
 
 // the editor yaml of each version of each resource, keyed by `type:id:resourceVersion`
@@ -142,29 +142,41 @@ const editorYamlOf = (resource: ResourceModel): string => {
   return yamlCache.get(cacheKey) as string;
 };
 
-// the parent's yaml describes `value`, not the saved resource
+// the yaml for the primary resource initially shown when the form loads
 const primaryInitialYaml = computed(() => (savedPrimary.value ? editorYamlOf(savedPrimary.value) : props.yaml || editorYamlOf(props.value)));
 
-// differs from `primaryInitialYaml` when the yaml was made after edits in a form, so those edits show as modified
+// the yaml the primary resource's editor content is compared with, by the diff view and to mark it as edited
+// when opened from form view this uses initialYamlForDiff
+// otherwise it uses the yaml the editor opens with as you'd expect
+// once a resource is successfully saved, the result becomes the new baseline for comparison
 const primaryBaselineYaml = computed(() => (savedPrimary.value ? primaryInitialYaml.value : props.initialYamlForDiff || primaryInitialYaml.value));
 
-// the yaml each resource is shown with, keyed by node id
-// the store updates it in the background, e.g. status after a save
+// the yaml each resource is shown with when it is first opened, keyed by node id
+// related resources are the store's models, so this follows them as the store updates them
+// it is not what an edit is compared with once the resource has been opened, see `seededYaml`
 const initialYamlById = computed<{ [nodeId: string]: string }>(() => ({
   [primaryId.value]: primaryInitialYaml.value,
   ...Object.fromEntries(relatedIds.value.map((id, i) => [id, editorYamlOf(resourceAt(i))])),
 }));
 
 // what each entry of `editorState.yaml` is compared with, keyed by node id
-// fixed when the entry is added, so a background update to `initialYamlById` does not mark the resource modified
+// recorded when the entry is added to `editorState.yaml`, and not changed by later store updates
+// if the comparison read `initialYamlById` instead, a background update would make the editor content differ from it
+// and the resource would be marked as edited, and diffed, though the user changed nothing
+// cleared with the entry after a save, so the next comparison is with the saved yaml
 const seededYaml = reactive<{ [nodeId: string]: string }>({});
 
-// what the yaml in the editor is compared with, for the diff view and to find the modified resources
+// what the yaml in the editor is compared with, keyed by node id
+// used by the diff view, the edited markers and Save All, and given to save hooks as `initialYaml`
+// later sources win: a recorded `seededYaml` entry, then the primary's baseline, then the yaml it is shown with
 const baselineYamlById = computed<{ [nodeId: string]: string }>(() => ({
   ...initialYamlById.value, [primaryId.value]: primaryBaselineYaml.value, ...seededYaml
 }));
 
-// a save function can write the yaml of a resource that was never shown in the editor
+// a save function or hook can write the yaml of a resource that was never shown in the editor
+// for example saving a machine config writes its changed pool into the provisioning cluster's yaml
+// such an entry was not added by `seed`, so it has no recorded baseline
+// recording the current baseline for it makes the write show as an edit, compared with the right yaml
 const seedUnseededYaml = () => {
   Object.keys(editorState.yaml).forEach((id) => {
     if (!(id in seededYaml) && id in baselineYamlById.value) {
@@ -173,7 +185,8 @@ const seedUnseededYaml = () => {
   });
 };
 
-// gives a resource its entry in `editorState.yaml`, the first time it is shown and again after it is saved
+// gives a resource its entry in `editorState.yaml`, and records the baseline it is compared with
+// called the first time the resource is shown, and again after it is saved
 const seed = (nodeId: string | null) => {
   if (!nodeId || nodeId in editorState.yaml || !(nodeId in initialYamlById.value)) {
     return;
@@ -183,18 +196,15 @@ const seed = (nodeId: string | null) => {
   editorState.yaml[nodeId] = initialYamlById.value[nodeId];
 };
 
-// the primary resource is seeded whether shown or not
-// its baseline can differ from its initial yaml, so a save function reading `initialYaml` for it would read the wrong yaml
 const seedShown = () => {
   seed(primaryId.value);
   seed(editorState.selected);
 };
 
-// a watcher rather than the getter of `currentYaml`, so rendering does not write state
+
 watch(() => [editorState.selected, primaryId.value], seedShown, { immediate: true });
 
-// ids of resources whose editor content differs from what it started from
-// a resource never opened in the editor has no entry in `editorState.yaml`, so is not modified
+// node ids of the resources whose yaml in the editor differs from their baseline
 const modifiedIds = computed(() => new Set(
   Object.keys(editorState.yaml).filter((id) => id in baselineYamlById.value && editorState.yaml[id] !== baselineYamlById.value[id])
 ));
@@ -206,7 +216,9 @@ const contextFor = (i: number): RelatedResourceContext => ({
   editorState,
   nodeId:           relatedIds.value[i],
   primaryNodeId:    primaryId.value,
-  // a getter, so a banner reading nothing from it does not re-evaluate when any resource changes
+  // a getter, so `baselineYamlById` is read only when a banner or hook reads `initialYaml`
+  // a banner is a `computed` over this context, see `bannerRefs`
+  // a plain property would read `baselineYamlById` for every banner, so every banner would re-run when any resource's yaml changed
   get initialYaml() {
     return baselineYamlById.value;
   },
@@ -214,8 +226,9 @@ const contextFor = (i: number): RelatedResourceContext => ({
 });
 
 // one `computed` per related resource, in the same order as `relatedResources`
-// so a banner re-evaluates only when the state it read changes
-// extensions define a plain function, the `computed` is created here
+// models and extensions give `banner` as a plain function of the context, the `computed` is created here
+// each banner then re-evaluates only when state it read changes, not when another resource's yaml changes
+// the computeds are created again when `relatedResources` changes
 const bannerRefs = computed(() => props.relatedResources.map((entry, i) => computed<RelatedResourceBanner | null>(() => {
   if (typeof entry.banner !== 'function') {
     return null;
@@ -224,16 +237,12 @@ const bannerRefs = computed(() => props.relatedResources.map((entry, i) => compu
   try {
     return entry.banner(contextFor(i)) || null;
   } catch (e) {
-    // TODO nb localize? Growl?
     console.warn('Failed to resolve banner for related resource', entry.resource?.id, e); // eslint-disable-line no-console
 
     return null;
   }
 })));
 
-// the primary resource is the root of the graph
-// a related resource without `parentId` is shown below it, one with `parentId` below the resource that contributed it
-// dependencies are listed before dependents, the order they are saved in
 const graphNodes = computed<ResourceGraphNode[]>(() => [
   {
     id:       primaryId.value,
@@ -267,10 +276,11 @@ const selectedBanner = computed(() => bannerRefs.value[selectedIndex.value]?.val
 
 const selectedModified = computed(() => !!editorState.selected && modifiedIds.value.has(editorState.selected));
 
-// what the diff view compares the editor with
+// what the diff view compares the editor with: the selected resource's baseline
+// falls back to the yaml of the resource for a selection with no baseline
 const selectedBaseline = computed(() => (editorState.selected && baselineYamlById.value[editorState.selected]) ?? toEditorYaml(selectedResource.value));
 
-// what is currently displayed in the yaml editor, see `seed`
+
 const currentYaml = computed({
   get(): string {
     const id = editorState.selected;
@@ -285,14 +295,12 @@ const currentYaml = computed({
   },
 });
 
-// runs on every mount of the editor: selecting a resource, leaving diff view and saving each remount it
-// `status` is folded only while editable, as in SingleResourceYaml
+// folds the rarely edited sections of the selected resource's yaml
 const { foldYaml } = useResourceYamlFolding(selectedResource, () => !selectedReadOnly.value);
 
 const showDiff = ref(false);
 
-// a diff with no changes is empty, so leave diff view once there is nothing to compare
-// switching resource also leaves it, so the next resource opens ready to edit
+// toggle the editor off diff view when users select a new resource or save the current resource
 watch([selectedModified, () => editorState.selected], ([modified], [, prevSelected]) => {
   if (!modified || editorState.selected !== prevSelected) {
     showDiff.value = false;
@@ -309,30 +317,31 @@ const editorMode = computed(() => {
 
 const DIFF_MODES = ['unified', 'split'] as const;
 
-// YamlEditor shows a unified diff for any `diffMode` other than split
 const isDiffMode = (diffMode: string, mode: typeof DIFF_MODES[number]) => (diffMode === 'split') === (mode === 'split');
 
 const container = ref<HTMLElement>();
 const split = reactive(useSplitResize(container));
 
-// asks before going back to the form, as the yaml edits are lost
+// back to form confirmation modal
 const cancelModal = ref<{ show:() => void } | null>(null);
 
 const saving = ref(false);
 
-// YamlEditor reads `value` only in data(), so a saved resource needs a remount to show its new yaml
+// use to force the yaml editor to remount when the editor's yaml has been replaced (save/conflict resolution on save)
 const editorRevision = ref(0);
 
-// the primary resource, and a related resource that defines no `save`, are saved by their own model's `save`
-// the yaml is classified in the resource's own store for that, with the steve fields the yaml leaves out
-// a resource that was never opened is saved from its baseline yaml
-// a 409 from a change made in the background, e.g. to status, is resolved against the baseline, the yaml the edits were made to
+// saves a resource from its yaml in the editor through its model's `save`
+// used for the primary resource, and for a related resource whose entry defines no `save`
+// a 409 from a change made in the background, for example to status, is merged with `handleConflict`
+// using the baseline as the yaml the edits were made to, then the save is tried once more
 const saveClassified = async(resource: ResourceModel, nodeId: string): Promise<ResourceModel> => {
   const baseline = baselineYamlById.value[nodeId];
   const data = fromEditorYaml(resource, editorState.yaml[nodeId] ?? baseline);
 
-  // the parent's yaml has no resourceVersion, so it is restored as in the model's `saveYaml`
-  // without it the save overwrites changes made since the yaml was made, instead of failing with a 409
+
+  // ResourceDetail's edit yaml hides server-managed metadata, resourceVersion included, see EDIT_HIDDEN_METADATA_KEYS
+  // it is restored from the model, as the model's `saveYaml` does
+  // without it the save would overwrite changes made since the yaml was made, instead of failing with a 409
   if (data.metadata && !data.metadata.resourceVersion && resource.metadata?.resourceVersion) {
     data.metadata.resourceVersion = resource.metadata.resourceVersion;
   }
@@ -340,9 +349,6 @@ const saveClassified = async(resource: ResourceModel, nodeId: string): Promise<R
   const classified = await resource.$dispatch('create', data);
 
   await saveWithConflictRetry(classified, fromEditorYaml(resource, baseline), {
-    // the server's version with the user's other changes is shown, compared with the server's version
-    // so the conflict banner describes the editor, and the next save does not conflict on the same fields again
-    // `handleConflict` leaves `status` out of the merge, so it is taken from the server too
     onConflict: (liveValue: ResourceModel) => {
       seededYaml[nodeId] = toEditorYaml(liveValue);
       editorState.yaml[nodeId] = toEditorYaml(liveValue?.status === undefined ? classified : { ...classified, status: liveValue.status });
@@ -350,11 +356,11 @@ const saveClassified = async(resource: ResourceModel, nodeId: string): Promise<R
     },
   });
 
-  // the save updates the store's copy, not `classified`
+  // falls back to `classified` in case the store doesn't contain a fresh copy
   return classified.$getters['byId'](classified.type, classified.id) || classified;
 };
 
-// the saved resource is the new initial state, so the editor is seeded from it again
+// after saving a new baseline yaml is set and the editor is remounted to pick up the changed resource
 const resetEditorState = (nodeId: string) => {
   delete editorState.yaml[nodeId];
   delete seededYaml[nodeId];
@@ -362,13 +368,11 @@ const resetEditorState = (nodeId: string) => {
   editorRevision.value++;
 };
 
-// the node of the resource each failed save was for, so the error can name it
-// the innermost node where a save hook saved another resource, as it records the error first
-// kept apart from the error, so `saveResource` rejects with the error the save threw
-// an error that is not an object can not be a key, and is shown without a name
+// the node id of the resource each failed save was for, keyed by the error thrown, so the error shown can name it
+// a save hook can save another resource through `saveResource`, so one error can pass through several `saveNode` calls
 const failedNodes = new WeakMap<object, string>();
 
-// the errors of a failed save, each prefixed with the kind and name of the resource
+
 const saveErrors = (err: any): any[] => {
   const nodeId = err && typeof err === 'object' ? failedNodes.get(err) : undefined;
 
@@ -379,14 +383,15 @@ const saveErrors = (err: any): any[] => {
   const resource = resourceFor(nodeId);
   const kind = resource?.kind || resource?.typeDisplay || resource?.type || '';
 
-  // raw, as the error banner escapes its label
+
   return exceptionToErrorsArray(err).map((error: any) => i18n.t('resourceYaml.errors.saveFailed', {
     kind, name: resourceLabel(resource), error: stringify(error)
   }, true));
 };
 
-// saves one resource without setting `saving`, so a save hook can save another one through `saveResource`
-// resolves to null when the `beforeSaveHook` cancelled the save
+// saves one resource, and records which resource a failure was for, see `failedNodes`
+// a save hook can save another resource through `saveResource` while a save is running
+// resolves to the saved resource, or to null when its `beforeSaveHook` cancelled the save
 const saveNode = async(nodeId: string): Promise<ResourceModel | null> => {
   try {
     return await saveNodeUnlabelled(nodeId);
@@ -401,7 +406,6 @@ const saveNode = async(nodeId: string): Promise<ResourceModel | null> => {
 
 const saveNodeUnlabelled = async(nodeId: string): Promise<ResourceModel | null> => {
   if (nodeId === primaryId.value) {
-    // as SingleResourceYaml's `save`, for the hooks registered by the form the yaml was made from
     await props.applyHooks?.(BEFORE_SAVE_HOOKS);
     savedPrimary.value = await saveClassified(primaryResource.value, nodeId);
     resetEditorState(nodeId);
@@ -428,7 +432,8 @@ const saveNodeUnlabelled = async(nodeId: string): Promise<ResourceModel | null> 
   try {
     saved = typeof entry.save === 'function' ? await entry.save(ctx) : await saveClassified(ctx.resource, nodeId);
   } finally {
-    // the save can write the yaml of other resources, e.g. the primary resource's
+    // an entry's `save` can write the yaml of other resources, for example a machine config's save writes the cluster's yaml
+    // likely not a good design, but extensions are not blocked from doing this, so handle it here
     seedUnseededYaml();
   }
 
@@ -440,21 +445,22 @@ const saveNodeUnlabelled = async(nodeId: string): Promise<ResourceModel | null> 
 
   resetEditorState(nodeId);
 
-  // a new context, so `resource` is the replacement where the save replaced the resource
+
   await entry.afterSaveHook?.(contextFor(i));
 
   return saved || resourceAt(i);
 };
 
-// the running save, kept so cancel can wait for it
-// resolves to true when the save left the editor, as save all does once every resource is saved
+// resolves to true when the save left the editor
+// resolves to false when the editor is still open: a failed save, or a save of one resource
 let pendingSave: Promise<boolean> | null = null;
 
-// one save at a time, started from a save button
+
+// runs a save started from a save button: a resource's own Save in the graph, or Save All
 const runSave = (save: () => Promise<boolean | void>): Promise<boolean> => {
   pendingSave = (async() => {
     saving.value = true;
-    // the editor stays open after a save, so errors from the previous save are cleared
+
     emit('error', []);
 
     try {
@@ -472,13 +478,15 @@ const runSave = (save: () => Promise<boolean | void>): Promise<boolean> => {
   return pendingSave;
 };
 
-// resolves to nothing, as saving one resource stays in the editor
+
 const saveOne = (nodeId: string) => runSave(async() => {
   await saveNode(nodeId);
 });
 
-// dependencies deepest first, then the primary resource, then the resources that use it
-// read-only resources are shown in view mode, so are never modified
+
+// node save order for Save All
+// dependencies deepest first, so a resource is saved before the resources that use it
+// then the primary resource, then its dependents, the resources that use it or that it selects
 const saveOrder = computed<string[]>(() => {
   const editable = props.relatedResources
     .map((entry, i) => ({ entry, id: relatedIds.value[i] }))
@@ -495,7 +503,9 @@ const canSaveAll = computed(() => !saving.value && saveOrder.value.some((id) => 
 
 const saveAll = () => runSave(async() => {
   for (const nodeId of saveOrder.value) {
-    // checked for each resource, as a save can save or change another one, e.g. the primary resource
+    // whether a resource is modified is checked as its turn comes, not once before the loop
+    // an earlier save can change another resource, for example a machine config's save writes the cluster's yaml
+    // or save it through `saveResource`, after which it is no longer modified
     if (modifiedIds.value.has(nodeId) && !await saveNode(nodeId)) {
       return;
     }
@@ -506,14 +516,13 @@ const saveAll = () => runSave(async() => {
   return true;
 });
 
-// a running save finishes first, its after save hooks included, as `saveNode` awaits them
+
 const cancel = async() => {
   if (!await pendingSave) {
     done();
   }
 };
 
-// the save path and the parent both read the editor's unsaved state
 defineExpose({ editorState });
 </script>
 
@@ -604,14 +613,15 @@ defineExpose({ editorState });
             :label-key="selectedBanner.labelKey"
             :icon="selectedBanner.icon"
           />
+          <!-- use selectedIndex to avoid showing the mgmt banner for the primary resource - ResourceDetailMasthead covers this -->
           <ManagementBanner
+            v-if="selectedIndex > 0"
             :resource="selectedResource"
             :read-only="selectedReadOnly"
             :primary-resource="primaryResource"
             :ignore-controller="!!selectedEntry?.ignoreController"
           />
           <div class="multi-yaml-code">
-            <!-- YamlEditor remounts when mode changes, the diff toggle stays mounted so it keeps focus -->
             <Transition
               name="yaml-fade"
               mode="out-in"
@@ -681,21 +691,16 @@ defineExpose({ editorState });
 <style lang="scss" scoped>
 .multi-yaml-container {
   display: grid;
-  // --graph-width and the --split-* limits are set from useSplitResize, which also reports them to assistive technology
   grid-template-columns: clamp(var(--split-min), var(--graph-width), var(--split-max)) 16px 1fr;
   grid-template-rows: 1fr auto;
   grid-template-areas:
     "graph resize editor"
     "footer footer footer";
   row-gap: 16px;
-
-  // fill vertical space below the masthead - graph and editor scroll independently
   flex: 1 1 0;
   min-height: 0;
   overflow: hidden;
 
-  // the pointer can leave the separator while dragging, so the cursor is set on the whole container
-  // user-select stops the drag from selecting text in the graph and editor
   &--resizing {
     cursor: col-resize;
     user-select: none;
@@ -710,8 +715,6 @@ defineExpose({ editorState });
       "footer";
   }
 
-  // a row of its own, as an empty grid row would still add a row-gap
-  // after the base rules, which have the same specificity
   &--view-toggle {
     grid-template-rows: auto 1fr auto;
     grid-template-areas:
@@ -734,6 +737,7 @@ defineExpose({ editorState });
   grid-area: toggle;
   display: flex;
   gap: 8px;
+  justify-content: flex-end;
 }
 
 .multi-yaml-resource-graph,
@@ -747,14 +751,13 @@ defineExpose({ editorState });
   grid-area: graph;
 }
 
-// the icon is centred in the 16px column, the whole column receives the pointer
+
 .multi-yaml-resize {
   grid-area: resize;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: col-resize;
-  // on touch screens a drag moves the separator instead of scrolling the page
   touch-action: none;
   color: var(--primary);
 
@@ -791,13 +794,12 @@ defineExpose({ editorState });
     overflow: auto;
   }
 
-  // FileDiff scrolls itself: it sets its own height in fit() and has overflow: auto
+
   &--diff :deep(.yaml-editor) {
     overflow: hidden;
   }
 }
 
-// the editor scrolls inside this, so the diff toggle stays in the top-right corner
 .multi-yaml-code {
   position: relative;
   flex: 1 1 0;
@@ -806,8 +808,7 @@ defineExpose({ editorState });
   flex-direction: column;
 }
 
-// over the top-left corner of the editor, opposite the diff toggle, in place of YamlEditor's row above the diff
-// positioned against .multi-yaml-code, outside the overflow of the diff, so it stays in place as the diff scrolls
+
 .multi-yaml-diff-mode {
   position: absolute;
   top: 8px;
@@ -824,7 +825,7 @@ defineExpose({ editorState });
   z-index: 1;
 }
 
-// out-in runs leave then enter, so the total switch time is the sum of both durations
+
 .yaml-fade-leave-active {
   transition: opacity 0.1s;
 }
@@ -833,7 +834,7 @@ defineExpose({ editorState });
   opacity: 0;
 }
 
-// mask is used to create a top-down fade-in effect
+
 .yaml-fade-enter-active {
   mask-image: linear-gradient(to bottom, #000 33.3%, transparent 66.6%);
   mask-size: 100% 300%;

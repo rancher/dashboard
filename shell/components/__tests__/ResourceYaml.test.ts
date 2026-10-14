@@ -1,4 +1,4 @@
-import ResourceYaml from '@shell/components/ResourceYaml.vue';
+import ResourceYaml from '@shell/components/ResourceYaml/SingleResourceYaml.vue';
 import { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 
 describe('component: ResourceYaml', () => {

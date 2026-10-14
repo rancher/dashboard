@@ -4,10 +4,9 @@ import { relatedEntry, workloadsInNamespace } from '@shell/utils/related-resourc
 
 export default class ConfigMap extends SteveModel {
   /**
-   * The resources related to this ConfigMap, to edit by YAML alongside it
-   *
-   * Dependents: the workloads in its namespace whose pods use it, see the workload model's
-   * `usesResource`
+   * Related resources to show in the yaml editor
+   * Found here, as dependents:
+   * - the workloads in its namespace whose pods use it - the workload model's `usesResource`
    *
    * @param {import('@shell/core/types').RelatedResourcesFetchOptions} [options]
    * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
