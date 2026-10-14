@@ -110,6 +110,7 @@ export default {
       :value="value"
       :mode="mode"
       :namespaced="isNamespaced"
+      namespace-label="nameNsDescription.workspace.label"
       @update:value="$emit('input', $event)"
     />
 

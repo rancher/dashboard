@@ -30,11 +30,17 @@ import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import TableSelectionActions from '@shell/components/TableViews/TableSelectionActions.vue';
+import LimitedCell from '@shell/components/SortableTable/LimitedCell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 import { useTabCountUpdater } from '@shell/components/form/ResourceTabs/composable';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
+
+/** A cell's content as it is, for a column with no `minWidth`, `maxWidth` or `lineClamp` */
+const CellContent = (_props, { slots }) => slots.default?.();
+
+CellContent.props = ['limits'];
 
 // @TODO:
 // Fixed header/scrolling
@@ -72,6 +78,8 @@ export default {
     ButtonMultiAction,
     ActionMenu,
     TableSelectionActions,
+    LimitedCell,
+    CellContent,
     // Only rendered with the table views feature off
     RcButton,
   },
@@ -171,6 +179,12 @@ export default {
     queried: {
       type:    Boolean,
       default: false
+    },
+
+    /** The table views query filtering the rows, which extension table hooks get as the search query */
+    viewQuery: {
+      type:    String,
+      default: null
     },
 
     /**
@@ -505,6 +519,10 @@ export default {
       this.debouncedPaginationChanged();
     },
 
+    viewQuery() {
+      this.debouncedPaginationChanged();
+    },
+
     eventualSearchQuery: debounce(function(q) {
       this.searchQuery = q;
 
@@ -811,6 +829,15 @@ export default {
     displayRows() {
       const rows = [];
       const columnFormmatterIDs = this.columnFormmatterIDs;
+      const limits = {};
+
+      this.columns.forEach((c) => {
+        if (c.minWidth || c.maxWidth || c.lineClamp) {
+          limits[c.name] = {
+            minWidth: c.minWidth, maxWidth: c.maxWidth, lineClamp: c.lineClamp
+          };
+        }
+      });
 
       this.groupedRows.forEach((grp) => {
         const group = {
@@ -868,6 +895,7 @@ export default {
               live:      c.formatter?.startsWith('Live') || c.liveUpdates,
               label:     this.labelFor(c),
               dasherize: columnFormmatterIDs[c.formatter] || '',
+              limits:    limits[c.name],
             });
           });
         });
@@ -1131,7 +1159,7 @@ export default {
         },
         filtering: {
           searchFields: this.searchFields,
-          searchQuery:  this.searchQuery
+          searchQuery:  this.viewQuery ?? this.searchQuery
         },
         sorting: {
           sort:       this.sortFields,
@@ -1586,48 +1614,53 @@ export default {
                       :class="{['col-'+col.dasherize]: !!col.col.formatter, [col.col.breakpoint]: !!col.col.breakpoint, ['skip-select']: col.col.skipSelect}"
                       :width="col.col.width"
                     >
-                      <slot
-                        :name="'cell:' + col.col.name"
-                        :row="row.row"
-                        :col="col.col"
-                        :value="col.value"
+                      <component
+                        :is="col.limits ? 'LimitedCell' : 'CellContent'"
+                        :limits="col.limits"
                       >
-                        <component
-                          :is="col.component"
-                          v-if="col.component && col.needRef"
-                          ref="column"
-                          :value="col.value"
+                        <slot
+                          :name="'cell:' + col.col.name"
                           :row="row.row"
                           :col="col.col"
-                          :get-custom-detail-link="getCustomDetailLink"
-                          v-bind="col.col.formatterOpts"
-                          :row-key="row.key"
-                        />
-                        <component
-                          :is="col.component"
-                          v-else-if="col.component"
                           :value="col.value"
-                          :row="row.row"
-                          :col="col.col"
-                          v-bind="col.col.formatterOpts"
-                          :row-key="row.key"
-                        />
-                        <component
-                          :is="col.col.formatter"
-                          v-else-if="col.col.formatter"
-                          :value="col.value"
-                          :row="row.row"
-                          :col="col.col"
-                          v-bind="col.col.formatterOpts"
-                          :row-key="row.key"
-                        />
-                        <template v-else-if="col.value !== ''">
-                          {{ col.formatted }}
-                        </template>
-                        <template v-else-if="col.col.dashIfEmpty">
-                          <span class="text-muted">&mdash;</span>
-                        </template>
-                      </slot>
+                        >
+                          <component
+                            :is="col.component"
+                            v-if="col.component && col.needRef"
+                            ref="column"
+                            :value="col.value"
+                            :row="row.row"
+                            :col="col.col"
+                            :get-custom-detail-link="getCustomDetailLink"
+                            v-bind="col.col.formatterOpts"
+                            :row-key="row.key"
+                          />
+                          <component
+                            :is="col.component"
+                            v-else-if="col.component"
+                            :value="col.value"
+                            :row="row.row"
+                            :col="col.col"
+                            v-bind="col.col.formatterOpts"
+                            :row-key="row.key"
+                          />
+                          <component
+                            :is="col.col.formatter"
+                            v-else-if="col.col.formatter"
+                            :value="col.value"
+                            :row="row.row"
+                            :col="col.col"
+                            v-bind="col.col.formatterOpts"
+                            :row-key="row.key"
+                          />
+                          <template v-else-if="col.value !== ''">
+                            {{ col.formatted }}
+                          </template>
+                          <template v-else-if="col.col.dashIfEmpty">
+                            <span class="text-muted">&mdash;</span>
+                          </template>
+                        </slot>
+                      </component>
                     </td>
                   </slot>
                 </template>

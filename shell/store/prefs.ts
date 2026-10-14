@@ -278,6 +278,11 @@ export const getters = {
   },
 
   afterLoginRoute: (state: PrefsState, getters: VuexStoreGetters) => {
+    // A page the user tried to open before logging in (e.g. a bookmark) wins over the landing page preference
+    if (state.authRedirect) {
+      return state.authRedirect;
+    }
+
     const afterLoginRoutePref = getters['get'](AFTER_LOGIN_ROUTE);
 
     if (typeof afterLoginRoutePref !== 'string') {
@@ -288,9 +293,6 @@ export const getters = {
     case (afterLoginRoutePref === 'home'):
       return { name: 'home' };
     case (afterLoginRoutePref === 'last-visited'): {
-      if (state.authRedirect) {
-        return state.authRedirect;
-      }
       const lastVisitedPref = getters['get'](LAST_VISITED);
 
       if (lastVisitedPref) {

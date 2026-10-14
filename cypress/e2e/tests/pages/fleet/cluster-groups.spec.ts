@@ -171,6 +171,53 @@ describe('Cluster Groups', { testIsolation: false, tags: ['@fleet', '@adminUser'
       });
   }));
 
+  it('can clone a cluster group into another workspace, picked in the form', () => {
+    const targetWorkspace = 'fleet-default';
+    const sourceName = `${ clusterGroupName }-ws`;
+    const cloneName = `${ clusterGroupName }-ws-clone`;
+    const fleetCreateEditClusterGroupPage = new FleetClusterGroupsCreateEditPo(localWorkspace, sourceName);
+    // Page objects share one chain that moves with every lookup, so build each from the page again
+    const nameNsDescription = () => fleetCreateEditClusterGroupPage.resourceDetail().createEditView().nameNsDescription();
+
+    // A retry starts over: drop what an earlier attempt created
+    cy.deleteRancherResource('v1', 'fleet.cattle.io.clustergroups', `${ targetWorkspace }/${ cloneName }`, false);
+    cy.deleteRancherResource('v1', 'fleet.cattle.io.clustergroups', `${ localWorkspace }/${ sourceName }`, false);
+    cy.createRancherResource('v1', 'fleet.cattle.io.clustergroups', {
+      type:     'fleet.cattle.io.clustergroup',
+      metadata: { name: sourceName, namespace: localWorkspace },
+      spec:     { selector: { matchLabels: { env: 'e2e' } } },
+    }).then(() => {
+      removeClusterGroups = true;
+      clusterGroupsToDelete.push(`${ localWorkspace }/${ sourceName }`, `${ targetWorkspace }/${ cloneName }`);
+    });
+
+    FleetClusterGroupsListPagePo.goTo('_');
+    fleetClusterGroupsListPage.waitForPage();
+    headerPo.selectWorkspace(localWorkspace);
+    fleetClusterGroupsListPage.list().actionMenu(sourceName).getMenuItem('Clone')
+      .click();
+    fleetCreateEditClusterGroupPage.waitForPage('mode=clone');
+
+    nameNsDescription().namespace().select()
+      .checkOptionSelected(localWorkspace);
+    nameNsDescription().selectNamespace(targetWorkspace);
+    nameNsDescription().namespace().select()
+      .checkOptionSelected(targetWorkspace);
+    nameNsDescription().name().set(cloneName);
+
+    fleetCreateEditClusterGroupPage.resourceDetail().cruResource()
+      .saveAndWaitForRequests('POST', 'v1/fleet.cattle.io.clustergroups')
+      .then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(201);
+        expect(request.body.metadata).to.include({ name: cloneName, namespace: targetWorkspace });
+        expect(request.body.spec.selector.matchLabels).to.deep.equal({ env: 'e2e' });
+      });
+
+    fleetClusterGroupsListPage.waitForPage();
+    headerPo.checkCurrentWorkspace(targetWorkspace);
+    fleetClusterGroupsListPage.list().rowWithName(cloneName).checkVisible();
+  });
+
   after(() => {
     if (removeClusterGroups) {
       // delete gitrepo

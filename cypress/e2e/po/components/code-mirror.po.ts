@@ -24,7 +24,8 @@ export default class CodeMirrorPo extends ComponentPo {
    * Find the first editor on the page
    */
   static first(options?: Partial<Cypress.Timeoutable>): CodeMirrorPo {
-    return new CodeMirrorPo(cy.get(EDITOR_SELECTOR, options).first());
+    // A function so each call queries again: a stored chain would take on the subject its last command yielded
+    return new CodeMirrorPo(() => cy.get(EDITOR_SELECTOR, options).first());
   }
 
   /**

@@ -11,7 +11,8 @@ import CruResource from '@shell/components/CruResource.vue';
 import Loading from '@shell/components/Loading.vue';
 import { RcSection, SECTION_TYPE } from '@components/RcSection';
 import Banner from '@components/Banner/Banner.vue';
-import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+import { useClusterMembership, saveRoleBindings } from '@shell/composables/useClusterMembership';
 import RcLabelsAndAnnotations from '@shell/components/RcLabelsAndAnnotations.vue';
 import Basics from '@pkg/imported/components/Basics.vue';
 import RcACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/RcACE.vue';
@@ -111,12 +112,15 @@ export default defineComponent({
     }
   },
 
+  setup() {
+    return useClusterMembership();
+  },
+
   data() {
     return {
       normanCluster:                            { name: '', importedConfig: { privateRegistryURL: null } },
       PRIVATE_REGISTRY_CONTEXT,
       loadingVersions:                          false,
-      membershipUpdate:                         {},
       config:                                   null,
       allVersions:                              [],
       defaultVersion:                           '',
@@ -260,10 +264,6 @@ export default defineComponent({
       return this.value?.listLocation?.name;
     },
 
-    canManageMembers() {
-      return canViewClusterMembershipEditor(this.$store);
-    },
-
     providerTabKey() {
       if (this.isK3s) {
         return this.t('imported.accordions.k3sOptions');
@@ -307,13 +307,8 @@ export default defineComponent({
   },
 
   methods: {
-    onMembershipUpdate(update) {
-      this.membershipUpdate = update;
-    },
     async saveRoleBindings() {
-      if (this.membershipUpdate.save) {
-        await this.membershipUpdate.save(this.normanCluster.id);
-      }
+      return saveRoleBindings(this.membershipUpdate, this.normanCluster.id);
     },
     async actuallySave() {
       if (this.isEdit) {

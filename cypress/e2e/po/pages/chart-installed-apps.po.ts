@@ -2,6 +2,7 @@ import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 const terminal = new Kubectl();
 
@@ -23,6 +24,15 @@ export default class ChartInstalledAppsListPagePo extends BaseListPagePo {
 
   appsList() {
     return new ResourceTablePo('[data-testid="installed-app-catalog-list"]');
+  }
+
+  /**
+   * The name cell of the installed app with exactly this name. Looking a row up by name
+   * (rowElementWithName) matches part of the name, so 'rancher-logging' would also find
+   * 'rancher-logging-crd'. Use with should('exist') / should('not.exist').
+   */
+  appNameCell(name: string, options?: GetOptions) {
+    return this.appsList().self().contains('td.col-link-detail', new RegExp(`^\\s*${ Cypress._.escapeRegExp(name) }\\s*$`), options);
   }
 
   waitForInstallCloseTerminal(interceptName: string, installableParts: Array<String>) {

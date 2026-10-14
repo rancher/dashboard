@@ -3,6 +3,7 @@ import HybridModel from './hybrid-class';
 import { NEVER_ADD } from '@shell/utils/create-yaml';
 import { deleteProperty } from '@shell/utils/object';
 import { EXT_IDS } from '@shell/core/plugin';
+import { patchWithFallback } from '@shell/apis/resources/patch-content-type';
 
 // Some fields that are removed for YAML (NEVER_ADD) are required via API
 const STEVE_ADD = [
@@ -91,18 +92,24 @@ export default class SteveModel extends HybridModel {
 
   /**
    * RESOURCES API - ResourceInstance update method to send a PATCH request
+   *
+   * Strategic merge patch is attempted first, and resources that reject it are retried with merge
+   * patch. See `patchWithFallback`.
    */
   async update(data) {
     if (!this.canEdit) {
       throw new Error(`ResourceInstance API error - ${ this.type }/${ this.id } - Cannot patch: permission denied`);
     }
 
-    console.error('Updating instance with data:', data); // eslint-disable-line no-console
-
-    await this.save({
-      data,
-      method:  'patch',
-      headers: { 'content-type': 'application/strategic-merge-patch+json' }
+    await patchWithFallback({
+      storeName:    this.$getters['storeName'],
+      resourceType: this.type,
+      // A new options object per attempt - `save` mutates the one it's given
+      send:         (contentType) => this.save({
+        data,
+        method:  'patch',
+        headers: { 'content-type': contentType }
+      }),
     });
 
     return this;

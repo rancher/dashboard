@@ -129,12 +129,24 @@ export type Action = {
   labelKey?: string;
   tooltipKey?: string;
   tooltip?: string;
+  /** Header actions: the tooltip while the action is disabled, saying why. */
+  disabledTooltipKey?: string;
+  disabledTooltip?: string;
   shortcut?: string | ShortCutKey;
   svg?: Function;
   icon?: string;
   multiple?: boolean;
+  /**
+   * Whether the action can be used. For a header action, a function returning a boolean is asked
+   * again whenever the reactive state it reads changes; one returning a promise, on navigation.
+   */
   enabled?: Function | boolean;
   ariaExpanded?: boolean | (() => boolean);
+  /**
+   * Header actions: no button, only the `shortcut` - for an action that is a keyboard shortcut and
+   * nothing else. Defaults to false: the action is a button.
+   */
+  hidden?: boolean;
   invoke: (opts: ActionOpts, resources: any[], globals?: any) => void | boolean | Promise<boolean>;
 };
 
@@ -249,6 +261,22 @@ export interface HeaderOptions {
    * Number of pixels the column should be in the table
    */
   width?: number;
+
+  /**
+   * Number of pixels the column's cells narrow to at most, however little room the table has
+   */
+  minWidth?: number;
+
+  /**
+   * Number of pixels the column's cells widen to at most. Longer text wraps
+   */
+  maxWidth?: number;
+
+  /**
+   * Number of lines a cell shows at most. Text that needs more ends in an ellipsis, and the whole
+   * text is offered as a tooltip
+   */
+  lineClamp?: number;
 
   /**
    * The name of a custom formatter. The available formatters can bee seen in `@rancher/shell/components/formatter`

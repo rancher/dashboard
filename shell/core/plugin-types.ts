@@ -10,3 +10,17 @@ export type RouteRecordRawWithParams = Omit<RouteRecordRaw, 'redirect' | 'childr
   /** Optional redirect */
   redirect?: RouteRecordRaw['redirect'];
 };
+
+/**
+ * A route as a plugin records it, ready to be handed to vue-router
+ */
+export interface PluginRouteInfo {
+  parent?: string;
+  route: RouteRecordRaw | RouteRecordRawWithParams;
+}
+
+/**
+ * Adds routes to vue-router straight away, for routes generated after the extension's own routes
+ * were handed to it
+ */
+export type AddLateRoutes = (routes: PluginRouteInfo[]) => void;

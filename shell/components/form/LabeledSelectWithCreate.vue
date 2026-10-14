@@ -95,7 +95,8 @@ const selectOptions = computed<SelectOption[]>(() => {
 });
 
 function onSelecting(opt: SelectOption | null) {
-  if (!opt || opt.value === '__create__') {
+  // Clearing the select is also a way into create mode, so it has to be allowed too
+  if (props.createAllowed && (!opt || opt.value === '__create__')) {
     creating.value = true;
     newValue.value = '';
     emit('creating');

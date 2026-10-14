@@ -9,6 +9,9 @@ module.exports = {
   testEnvironmentOptions: { customExportConditions: ['node', 'node-addons'] },
   setupFilesAfterEnv:     ['./jest.setup.js'],
   watchman:               false,
+  // Workers are reused for the whole run and their heap keeps growing (to ~4GB each in CI),
+  // which runs the 16GB GitHub runner out of memory. Replace a worker once it passes 1GB.
+  workerIdleMemoryLimit:  '1GB',
 
   // tell Jest to handle `*.vue` files
   moduleFileExtensions: ['js', 'mjs', 'json', 'vue', 'ts'],

@@ -207,11 +207,11 @@ describe('Feature Flags', { testIsolation: false }, () => {
       featureFlagsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       featureFlagsPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
       cy.getRancherResource('v1', 'management.cattle.io.features').then((resp: Cypress.Response<any>) => {
-        // The list view hides 'fleet' by name (see shell/list/management.cattle.io.feature.vue), so
+        // The list view hides flags by name (see shell/list/management.cattle.io.feature.vue), so
         // derive the expected visible-row count by applying the SAME filter to the API response rather
         // than subtracting a fixed number. ('ui-sql-cache' has now been removed from the backend -
         // rancher/rancher#53996 - so it no longer appears and no longer needs filtering here.)
-        const hideFeatureFlags = ['fleet'];
+        const hideFeatureFlags = ['fleet', 'ui-configurable-dashboards'];
         const featureCount = resp.body.data.filter((f: any) => !hideFeatureFlags.includes(f.metadata.name)).length;
 
         featureFlagsPage.list().resourceTable().sortableTable().checkRowCount(false, featureCount);

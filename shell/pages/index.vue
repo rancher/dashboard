@@ -20,13 +20,18 @@ export default {
     const versionInfo = getVersionInfo(this.$store);
     const isSingleProduct = this.$store.getters['isSingleProduct'];
     const dashboardHome = { name: 'home' };
+    const hasAuthRedirect = !!this.$store.state.prefs?.authRedirect;
+    const afterLoginRouteObject = this.$store.getters['prefs/afterLoginRoute'];
+
+    // Only use the page requested before login once, later visits follow the landing page preference
+    this.$store.commit('prefs/setAuthRedirect', null);
 
     // If this is a new version, then take the user to the home page to view the release notes
-    if (versionInfo.fullVersion !== seenWhatsNew && !isSingleProduct) {
+    // A page requested before login (e.g. a bookmark) wins, the release notes wait for the next login
+    if (versionInfo.fullVersion !== seenWhatsNew && !isSingleProduct && !hasAuthRedirect) {
       return this.$router.replace(dashboardHome);
     }
 
-    const afterLoginRouteObject = this.$store.getters['prefs/afterLoginRoute'];
     const targetRoute = resolveRoute(afterLoginRouteObject, this.$router);
 
     // If target route is /, then we will loop with endless redirect - so detect that here and

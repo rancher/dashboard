@@ -43,7 +43,7 @@ export async function installPlugins(vueApp) {
     {
       prevent:          SHORTKEY_PREVENT_SELECTORS,
       // A surface that owns the screen silences the app's shortcuts while it is up.
-      preventContainer: [MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR]
+      preventContainer: [MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR, '.rc-modal']
     });
   // Deprecated, for the editors of extensions built with a shell from before CodeMirror 6
   vueApp.component('Codemirror', CodeMirror5);

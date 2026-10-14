@@ -4,6 +4,7 @@ import {
   CAPI, MANAGEMENT, BACKUP_RESTORE, COMPLIANCE, VIRTUAL_TYPES
 } from '@shell/config/types';
 import { NAME as AUTH } from '@shell/config/product/auth';
+import { HOME_LAYOUT } from '@shell/config/router/route-names';
 
 // All these imports are related to the install-redirect.js navigation guard.
 import { installRedirectRouteMeta } from '@shell/config/router/navigation-guards/install-redirect';
@@ -53,6 +54,8 @@ export default [
   {
     path:      '/',
     component: () => interopDefault(import('@shell/components/templates/home.vue')),
+    // Named so the Home page can be replaced as its child - see setHomePage in shell/core/plugin.ts
+    name:      HOME_LAYOUT,
     meta:      { requiresAuthentication: true },
     children:  [
       {

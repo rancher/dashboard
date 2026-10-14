@@ -154,4 +154,32 @@ describe('class GitRepo', () => {
       expect(resource2.detailLocation).toBeDefined();
     });
   });
+
+  describe('applyDefaults', () => {
+    interface Data {
+      metadata: { namespace?: string };
+      spec: { repo?: string, correctDrift?: object };
+    }
+
+    const ctx = { rootGetters: { workspace: 'fleet-default' } };
+
+    it('puts a new resource in the header workspace, with drift correction off', () => {
+      const data: Data = { metadata: {}, spec: { repo: '' } };
+
+      new GitRepo(data, ctx).applyDefaults();
+
+      expect(data.metadata.namespace).toBe('fleet-default');
+      expect(data.spec.correctDrift).toStrictEqual({ enabled: false });
+    });
+
+    it('keeps the workspace and drift correction of a cloned resource', () => {
+      const correctDrift = { enabled: true, force: true };
+      const data: Data = { metadata: { namespace: 'team-a' }, spec: { repo: '', correctDrift } };
+
+      new GitRepo(data, ctx).applyDefaults();
+
+      expect(data.metadata.namespace).toBe('team-a');
+      expect(data.spec.correctDrift).toStrictEqual(correctDrift);
+    });
+  });
 });

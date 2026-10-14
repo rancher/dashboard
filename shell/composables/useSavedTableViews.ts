@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 
 import { TABLE_VIEWS } from '@shell/store/prefs';
+import { persistenceIdOf, savedViewsByType, savedViewsPref } from '@shell/utils/table-views/views';
 import type { TableViewSaved } from '@shell/types/table-views';
 
 interface SavedEntry {
@@ -28,9 +29,10 @@ function compact<T extends object>(value: T): T {
 export function useSavedTableViews(resourceType: () => string, page: () => string | null = () => null) {
   const store = useStore();
 
+  /** Every type's, by type; written with the version of its shape, keeping the persistence id */
   const allSavedViews = computed({
-    get: () => store.getters['prefs/get'](TABLE_VIEWS),
-    set: (value) => store.dispatch('prefs/set', { key: TABLE_VIEWS, value }),
+    get: () => savedViewsByType<TypeEntry | TableViewSaved[]>(store.getters['prefs/get'](TABLE_VIEWS)),
+    set: (value) => store.dispatch('prefs/set', { key: TABLE_VIEWS, value: savedViewsPref(value, persistenceIdOf(store.getters['prefs/get'](TABLE_VIEWS))) }),
   });
 
   /** The first shape views were kept in, before a default was stored beside them, was the bare list */

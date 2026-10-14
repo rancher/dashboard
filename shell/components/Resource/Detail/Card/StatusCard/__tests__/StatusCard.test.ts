@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils';
+import { flushPromises, mount } from '@vue/test-utils';
 import StatusCard from '@shell/components/Resource/Detail/Card/StatusCard/index.vue';
 import StatusBar from '@shell/components/Resource/Detail/StatusBar.vue';
 import StatusRow from '@shell/components/Resource/Detail/StatusRow.vue';
@@ -18,10 +18,11 @@ describe('component: StatusCard', () => {
     },
   };
 
-  const mountCard = (props: Record<string, unknown> = {}) => {
+  const mountCard = (props: Record<string, unknown> = {}, config: Record<string, unknown> = {}) => {
     return mount(StatusCard, {
       props:  { title: 'Pods', ...props },
       global: {
+        config,
         mocks: defaultMocks,
         stubs: {
           StatusBar: true,
@@ -97,6 +98,51 @@ describe('component: StatusCard', () => {
       const wrapper = mountCard({ resources, showScaling: true });
 
       expect(wrapper.findComponent(Scaler).exists()).toBe(true);
+    });
+
+    it('should label the Scaler when showScaling is true', () => {
+      const wrapper = mountCard({ showScaling: true });
+
+      expect(wrapper.find('.scale').text()).toContain('tableHeaders.scale');
+    });
+
+    it.each([
+      ['increase', 'onIncrease'],
+      ['decrease', 'onDecrease'],
+    ])('should call the %s handler with the new value when the Scaler emits it', async(event, prop) => {
+      const handler = jest.fn();
+      const wrapper = mountCard({ showScaling: true, [prop]: handler });
+
+      await wrapper.findComponent(Scaler).vm.$emit(event, 4);
+
+      expect(handler).toHaveBeenCalledWith(4);
+    });
+
+    it.each([
+      ['disable the Scaler', 'disabled', true],
+      ['show the value being scaled to', 'value', 4],
+    ] as const)('should %s while the scale handler is pending', async(_, prop, expected) => {
+      const wrapper = mountCard({
+        showScaling: true, scaleValue: 3, onIncrease: () => new Promise<void>(() => {})
+      });
+      const scaler = wrapper.findComponent(Scaler);
+
+      await scaler.vm.$emit('increase', 4);
+
+      expect(scaler.props(prop)).toStrictEqual(expected);
+    });
+
+    it.each([
+      ['resolves', () => Promise.resolve()],
+      ['rejects', () => Promise.reject(new Error('Scale failed'))],
+    ])('should enable the Scaler again once the scale handler %s', async(_, onIncrease) => {
+      const wrapper = mountCard({ showScaling: true, onIncrease }, { errorHandler: () => {} });
+      const scaler = wrapper.findComponent(Scaler);
+
+      await scaler.vm.$emit('increase', 4);
+      await flushPromises();
+
+      expect(scaler.props('disabled')).toStrictEqual(false);
     });
 
     it('should not render Scaler when showScaling is false', () => {

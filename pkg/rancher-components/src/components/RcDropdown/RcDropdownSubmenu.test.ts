@@ -1,12 +1,17 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import { defineComponent, nextTick } from 'vue';
+import { recomputeAllPoppers } from 'floating-vue';
 import {
   RcDropdown, RcDropdownItem, RcDropdownItemCheckbox, RcDropdownItemRadio, RcDropdownSubmenu
 } from '@components/RcDropdown';
 
+jest.mock('floating-vue', () => ({ ...jest.requireActual('floating-vue'), recomputeAllPoppers: jest.fn() }));
+
 /** Draws its popper into its container, as floating-vue does, so key presses bubble the same way */
 const vDropdownMock = defineComponent({
-  props:    { shown: Boolean, container: { type: Object, default: null } },
+  props: {
+    shown: Boolean, container: { type: Object, default: null }, skidding: { type: Number, default: 0 }, shift: { type: Boolean, default: true }
+  },
   template: `
     <div class="v-popper">
       <slot />
@@ -103,6 +108,130 @@ describe('component: RcDropdownSubmenu.vue', () => {
     expect(byId(submenu.getAttribute('aria-labelledby') as string).textContent?.trim()).toBe('Group By');
     expect(submenu.contains(byId('radio-a'))).toBe(true);
     expect(byId('command').closest('[dropdown-menu-collection]')).not.toBe(submenu);
+    // Beside the menu's popper, not inside it, where scrolling would clip it
+    expect(byId('command').closest('.v-popper__wrapper')?.contains(submenu)).toBe(false);
+  });
+
+  describe('raised to fit the page', () => {
+    const innerHeight = window.innerHeight;
+
+    afterEach(() => {
+      Object.defineProperty(window, 'innerHeight', { value: innerHeight, configurable: true });
+    });
+
+    /** Lays out the menu's top, the row's foot and the submenu's height, as jsdom has no layout */
+    const openAt = async({
+      menuTop, rowBottom, height, windowHeight
+    }: { menuTop: number, rowBottom: number, height: number, windowHeight: number }) => {
+      await openMenu();
+      Object.defineProperty(window, 'innerHeight', { value: windowHeight, configurable: true });
+
+      const row = byId('group');
+      const menu = byId('command').closest('[dropdown-menu-collection]') as HTMLElement;
+      const rect = (top: number, bottom: number) => (() => ({
+        top, bottom, height: bottom - top
+      })) as unknown as () => DOMRect;
+
+      menu.getBoundingClientRect = rect(menuTop, menuTop + 100);
+      row.getBoundingClientRect = rect(rowBottom - 30, rowBottom);
+      row.click();
+      await nextTick();
+      byId(row.getAttribute('aria-controls') as string).getBoundingClientRect = rect(0, height);
+      poppers(wrapper)[1].vm.$emit('apply-show');
+      await nextTick();
+
+      return poppers(wrapper)[1];
+    };
+
+    it('should rise just enough to fit, and not be kept on screen as the page scrolls', async() => {
+      const submenu = await openAt({
+        menuTop: 500, rowBottom: 540, height: 400, windowHeight: 700
+      });
+
+      // 500 + 400 + the 16px edge gap is 216px past the page's foot
+      expect(submenu.props('skidding')).toBe(-216);
+      expect(submenu.props('shift')).toBe(false);
+    });
+
+    it('should rise no further than where its foot meets its own row', async() => {
+      const submenu = await openAt({
+        menuTop: 300, rowBottom: 390, height: 100, windowHeight: 350
+      });
+
+      expect(submenu.props('skidding')).toBe(-10);
+    });
+
+    it('should keep fitting as the page scrolls, until it closes', async() => {
+      const submenu = await openAt({
+        menuTop: 100, rowBottom: 140, height: 400, windowHeight: 700
+      });
+
+      expect(submenu.props('skidding') || 0).toBe(0);
+
+      // The page scrolls the menu down to 500: it now runs 216px past the page's foot
+      const menu = byId('command').closest('[dropdown-menu-collection]') as HTMLElement;
+      const row = byId('group');
+
+      menu.getBoundingClientRect = (() => ({ top: 500, bottom: 600 })) as unknown as () => DOMRect;
+      row.getBoundingClientRect = (() => ({ top: 510, bottom: 540 })) as unknown as () => DOMRect;
+      document.dispatchEvent(new Event('scroll'));
+      await nextTick();
+
+      expect(submenu.props('skidding')).toBe(-216);
+
+      submenu.vm.$emit('apply-hide');
+      menu.getBoundingClientRect = (() => ({ top: 100, bottom: 200 })) as unknown as () => DOMRect;
+      document.dispatchEvent(new Event('scroll'));
+      await nextTick();
+
+      expect(submenu.props('skidding')).toBe(-216);
+    });
+
+    it('should be placed again once the menu has moved with the window', async() => {
+      await openAt({
+        menuTop: 100, rowBottom: 140, height: 200, windowHeight: 900
+      });
+      (recomputeAllPoppers as jest.Mock).mockClear();
+
+      window.dispatchEvent(new Event('resize'));
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+
+      expect(recomputeAllPoppers).toHaveBeenCalledTimes(1);
+    });
+
+    it('should keep its height once raised to its row, however short the window gets', async() => {
+      await openAt({
+        menuTop: 100, rowBottom: 290, height: 150, windowHeight: 300
+      });
+
+      // Where the popper caps its height
+      const inner = document.createElement('div');
+
+      inner.className = 'v-popper__inner';
+      byId(byId('group').getAttribute('aria-controls') as string).appendChild(inner);
+
+      const resize = async(windowHeight: number) => {
+        Object.defineProperty(window, 'innerHeight', { value: windowHeight, configurable: true });
+        window.dispatchEvent(new Event('resize'));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        return inner.style.maxHeight;
+      };
+
+      // Raised to its row, whose foot is below the window's less the edge gap: from the top to the row
+      expect(await resize(300)).toBe('274px');
+      expect(await resize(280)).toBe('274px');
+      // With room below its row, the window's foot is the limit
+      expect(await resize(700)).toBe('668px');
+    });
+
+    it('should stay at the menu\'s top when it fits, never lower', async() => {
+      const submenu = await openAt({
+        menuTop: 100, rowBottom: 140, height: 200, windowHeight: 900
+      });
+
+      expect(submenu.props('skidding') || 0).toBe(0);
+    });
   });
 
   it('should open toward its side from the keyboard, focusing its first item, and close back to its row', async() => {
