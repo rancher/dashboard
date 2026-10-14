@@ -8034,6 +8034,7 @@ workloadDashboard:
     placeholder: Find workloads in the selected namespaces...
     startTyping: Start typing to search
     minCharacters: Type at least {count} characters to search
+    noMatch: No matching workloads
     searching: Searching...
     restarts: |-
       {count, plural,

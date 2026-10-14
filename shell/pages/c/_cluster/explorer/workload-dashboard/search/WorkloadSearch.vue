@@ -283,7 +283,7 @@ function onResultsFocusout(event: FocusEvent): void {
     <template #no-options="{ search }">
       <span v-if="loading">{{ t('workloadDashboard.search.searching') }}</span>
       <span v-else-if="search && search.length < WORKLOAD_SEARCH_MIN_CHARS">{{ t('workloadDashboard.search.minCharacters', { count: WORKLOAD_SEARCH_MIN_CHARS }) }}</span>
-      <span v-else-if="search">{{ t('labelSelect.noOptions.noMatch') }}</span>
+      <span v-else-if="search">{{ t('workloadDashboard.search.noMatch') }}</span>
       <span v-else>{{ t('workloadDashboard.search.startTyping') }}</span>
     </template>
   </LabeledSelect>

@@ -681,7 +681,7 @@ describe('component: WorkloadSearch', () => {
 
       await wrapper.findComponent(LabeledSelectStub).setData({ search: 'nginx' });
 
-      expect(wrapper.text()).toStrictEqual('labelSelect.noOptions.noMatch');
+      expect(wrapper.text()).toStrictEqual('workloadDashboard.search.noMatch');
     });
 
     it('should prompt to start typing when there is no search text', () => {
