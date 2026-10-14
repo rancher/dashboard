@@ -37,4 +37,9 @@ export interface RcCodeMirrorProps {
    * hides it until the editor is remounted.
    */
   keymapIndicator?: boolean;
+  /**
+   * Open the search panel on mount, without taking the focus. Escape closes it as usual. Not for the
+   * input variant.
+   */
+  searchOpen?: boolean;
 }

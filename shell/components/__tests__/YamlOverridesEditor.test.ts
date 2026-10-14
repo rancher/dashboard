@@ -1,21 +1,21 @@
 import { defineComponent, markRaw } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import { EditorView } from '@codemirror/view';
-import { closeSearchPanel, searchPanelOpen } from '@codemirror/search';
-import { getKeymapExtension } from '@components/RcCodeMirror/extensions/keymaps';
 import YamlOverridesEditor from '@shell/components/YamlOverridesEditor.vue';
 import { mergeOverridesRawText, overridesFromValues } from '@shell/utils/chart-values';
 
 describe('component: YamlOverridesEditor', () => {
-  // Stub YamlEditor with a real CodeMirror view, so the search and the tint run for
-  // real. Like YamlEditor, it doesn't react to its `value` prop after mount: text is
-  // pushed in with `updateValue`, and every change is emitted as update:value. The
-  // view isn't attached to the page, since jsdom can't measure it. It has YamlEditor's
-  // key bindings and search panel.
+  // Stub YamlEditor with a real CodeMirror view, so the tint runs for real. Like
+  // YamlEditor, it doesn't react to its `value` prop after mount: text is pushed in
+  // with `updateValue`, and every change is emitted as update:value. The view isn't
+  // attached to the page, since jsdom can't measure it.
   const YamlEditorStub = defineComponent({
     name:  'YamlEditor',
     props: {
-      value: String, componentTestid: String, editorMode: String
+      value:           String,
+      componentTestid: String,
+      editorMode:      String,
+      searchOpen:      Boolean,
     },
     emits:    ['update:value', 'onReady'],
     data:     () => ({ view: null as EditorView | null }),
@@ -23,7 +23,7 @@ describe('component: YamlOverridesEditor', () => {
     mounted() {
       this.view = markRaw(new EditorView({
         doc:        this.value || '',
-        extensions: [getKeymapExtension(), EditorView.updateListener.of((update) => {
+        extensions: [EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             this.$emit('update:value', update.state.doc.toString());
           }
@@ -440,38 +440,16 @@ describe('component: YamlOverridesEditor', () => {
   });
 
   describe('searching the chart defaults', () => {
-    it('opens CodeMirror\'s search panel in the chart-defaults editor', () => {
+    it('opens the search panel in the chart-defaults editor', () => {
       const wrapper = mountEditor();
 
-      expect(searchPanelOpen(editors(wrapper).left.view.state)).toBe(true);
-    });
-
-    it('puts the search panel above the chart-defaults editor', () => {
-      const wrapper = mountEditor();
-
-      expect(wrapper.find('[data-testid="values-defaults-pane"] .values-pane__search .cm-search').exists()).toBe(true);
-    });
-
-    it('uses the search placeholder', () => {
-      const wrapper = mountEditor({ searchPlaceholder: 'Search values...' });
-      const field = wrapper.find('.cm-search [main-field]').element;
-
-      expect(field.getAttribute('placeholder')).toStrictEqual('Search values...');
-    });
-
-    it('keeps the search panel open', () => {
-      const wrapper = mountEditor();
-      const { left } = editors(wrapper);
-
-      closeSearchPanel(left.view);
-
-      expect(searchPanelOpen(left.view.state)).toBe(true);
+      expect(wrapper.findComponent({ ref: 'defaultsEditor' }).props('searchOpen')).toBe(true);
     });
 
     it('leaves the overrides editor\'s search panel closed', () => {
       const wrapper = mountEditor();
 
-      expect(searchPanelOpen(editors(wrapper).right.view.state)).toBe(false);
+      expect(wrapper.findComponent({ ref: 'overridesEditor' }).props('searchOpen')).toBe(false);
     });
   });
 });

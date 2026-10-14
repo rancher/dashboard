@@ -1,5 +1,6 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import { EditorView } from '@codemirror/view';
+import { openSearchPanel, searchPanelOpen } from '@codemirror/search';
 import { getCM, Vim, type CodeMirrorV } from '@replit/codemirror-vim';
 import RcCodeMirror from './RcCodeMirror.vue';
 
@@ -125,5 +126,67 @@ describe('component: RcCodeMirror Vim keymap', () => {
     Vim.handleEx(vimEditor(view), command);
 
     expect(view.state.doc.toString()).toStrictEqual(after);
+  });
+
+  describe('search panel', () => {
+    const field = () => wrapper.find<HTMLInputElement>('.cm-search input[name=search]').element;
+    const pressInPanel = (init: KeyboardEventInit) => field().dispatchEvent(new KeyboardEvent('keydown', {
+      bubbles: true, cancelable: true, ...init
+    }));
+
+    function searchFor(view: EditorView, text: string) {
+      openSearchPanel(view);
+      field().value = text;
+      field().dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    it('uses RcCodeMirror\'s search panel instead of CodeMirror\'s', () => {
+      openSearchPanel(editor('|replicas: 2'));
+
+      expect({ box: wrapper.find('.cm-search-field').exists(), replace: wrapper.find('.cm-search [name=replace]').exists() }).toStrictEqual({ box: true, replace: false });
+    });
+
+    it('leaves Ctrl-F in the editor to Vim', () => {
+      const view = editor('|replicas: 2');
+
+      keys(view, '<C-f>');
+
+      expect(searchPanelOpen(view.state)).toBe(false);
+    });
+
+    // From the "a" of replicas to the "a" of sachet
+    it('goes to the next match on F3 in the panel', () => {
+      const view = editor('|replicas: 2\nsachet: true');
+
+      searchFor(view, 'a');
+      pressInPanel({
+        key: 'F3', code: 'F3', keyCode: 114
+      });
+
+      expect(view.state.selection.main.from).toStrictEqual(13);
+    });
+
+    it('goes to the next match on Ctrl-G in the panel', () => {
+      const view = editor('|replicas: 2\nsachet: true');
+
+      searchFor(view, 'a');
+      pressInPanel({
+        key: 'g', code: 'KeyG', keyCode: 71, ctrlKey: true
+      });
+
+      expect(view.state.selection.main.from).toStrictEqual(13);
+    });
+
+    it('closes and goes back to the editor on Escape in the panel', () => {
+      const view = editor('|replicas: 2');
+
+      searchFor(view, 'a');
+      field().focus();
+      pressInPanel({
+        key: 'Escape', code: 'Escape', keyCode: 27
+      });
+
+      expect({ open: searchPanelOpen(view.state), focused: view.hasFocus }).toStrictEqual({ open: false, focused: true });
+    });
   });
 });

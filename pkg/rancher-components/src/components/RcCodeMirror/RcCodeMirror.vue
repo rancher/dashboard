@@ -63,6 +63,7 @@ import { getLanguageExtension } from './extensions/syntax';
 import { getKeymapExtension } from './extensions/keymaps';
 import { buildFoldExtension } from './extensions/fold';
 import { bottomPanelsExtension } from './extensions/panels';
+import { openSearchPanelQuietly } from './extensions/searchPanel';
 import { rancherInputTheme, rancherTheme } from './extensions/theme';
 import type { RcCodeMirrorKeymap, RcCodeMirrorProps, RcCodeMirrorTheme, RcCodeMirrorVariant } from './types';
 
@@ -81,7 +82,8 @@ const props = withDefaults(defineProps<RcCodeMirrorProps>(), {
   extensions:      undefined,
   foldOptions:     undefined,
   linter:          undefined,
-  keymapIndicator: false
+  keymapIndicator: false,
+  searchOpen:      false
 });
 
 const emit = defineEmits<{
@@ -325,6 +327,9 @@ onMounted(() => {
   });
 
   view.value = editorView;
+  if (props.searchOpen && props.variant !== 'input') {
+    openSearchPanelQuietly(editorView);
+  }
   emit('ready', editorView);
 });
 
@@ -476,7 +481,7 @@ defineExpose({ view });
 
 <style lang="scss" scoped>
 .rc-code-mirror {
-  --rc-cm-bg: #FFFFFF;
+  --rc-cm-bg: var(--rc-section-background-secondary, #F5F7FA);
   --rc-cm-selection: #E0E0E0;
   --rc-cm-key: #1A4FA8;
   --rc-cm-string: #8A4B10;

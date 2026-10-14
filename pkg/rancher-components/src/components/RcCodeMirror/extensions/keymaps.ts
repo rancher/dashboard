@@ -106,6 +106,9 @@ const findKeymap = searchKeymap.filter(({ key }) => key && FIND_KEYS.includes(ke
   binding.key === 'Mod-f' ? { ...binding, run: toggleSearchPanel } : binding
 ));
 
+// Vim has its own search, and Ctrl-F scrolls a page. Only the search panel takes these keys.
+const vimFindKeymap = findKeymap.filter(({ key }) => key !== 'Mod-f').map((binding) => ({ ...binding, scope: 'search-panel' }));
+
 // The fold gutter markers are not focusable, so folds need key bindings to be reachable from the keyboard
 export function getKeymapExtension(mode?: RcCodeMirrorKeymap, variant?: RcCodeMirrorVariant): Extension {
   const tabIndent = variant !== 'input';
@@ -148,9 +151,11 @@ export function getKeymapExtension(mode?: RcCodeMirrorKeymap, variant?: RcCodeMi
         // Vim leaves Insert mode Enter to the browser, which adds a bare line break. Indent the new line as
         // the default keymap does, which also puts the cursor on its own indented line between brackets.
         { key: 'Enter', run: (view) => !!getCM(view)?.state.vim?.insertMode && insertNewlineAndIndent(view) },
+        ...(find ? vimFindKeymap : []),
         ...closeBracketsKeymap,
         ...foldKeymap
-      ])
+      ]),
+      ...(find ? [searchPanel] : [])
     ];
   }
 

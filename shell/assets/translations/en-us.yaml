@@ -1476,7 +1476,6 @@ catalog:
       diff: Compare Changes
       chartDefaults:
         label: Chart values
-        searchPlaceholder: Search values...
         hint: Edit the chart default values with overrides, if any, overlayed below, exactly how Helm will resolve it. Only your changes, shown to the right, are saved. To unset a property, explicitly set it to “null”.
       overrides:
         label: Your values

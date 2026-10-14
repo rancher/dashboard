@@ -7,7 +7,6 @@ import type { EditorView } from '@codemirror/view';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { overridesFromEditedValues, mergeOverridesRawText, changedLineNumbers, sameYamlOverrides } from '@shell/utils/chart-values';
 import { setLineClasses } from '@shell/utils/code-mirror-line-classes';
-import { keepSearchPanelOpen } from '@shell/utils/code-mirror-search';
 
 /**
  * Two editable YAML panes for chart values. The left one ("defaults") shows the chart
@@ -29,8 +28,6 @@ interface Props {
   chartDefaultsHint?: string;
   overridesLabel?: string;
   overridesHint?: string;
-  /** CodeMirror's "Find" when empty */
-  searchPlaceholder?: string;
   testidPrefix?: string;
 }
 
@@ -42,7 +39,6 @@ const props = withDefaults(defineProps<Props>(), {
   chartDefaultsHint:  '',
   overridesLabel:     '',
   overridesHint:      '',
-  searchPlaceholder:  '',
   testidPrefix:       'values',
 });
 
@@ -55,7 +51,6 @@ interface YamlEditorRef {
 
 const defaultsEditor = ref<YamlEditorRef | null>(null);
 const overridesEditor = ref<YamlEditorRef | null>(null);
-const searchContainer = ref<HTMLElement | null>(null);
 
 let defaultsView: EditorView | null = null;
 
@@ -199,7 +194,6 @@ watch(() => props.defaults, () => {
 function onDefaultsReady(view: EditorView) {
   defaultsView = view;
   applyDefaultsDecorations();
-  keepSearchPanelOpen(view, { placeholder: props.searchPlaceholder, container: searchContainer.value });
 }
 
 onBeforeUnmount(() => {
@@ -225,10 +219,6 @@ onBeforeUnmount(() => {
         </p>
       </div>
       <div class="values-pane__body">
-        <div
-          ref="searchContainer"
-          class="values-pane__search"
-        />
         <YamlEditor
           ref="defaultsEditor"
           class="values-pane__editor"
@@ -237,6 +227,7 @@ onBeforeUnmount(() => {
           :scrolling="true"
           :editor-mode="editorMode"
           :hide-preview-buttons="true"
+          :search-open="true"
           @update:value="onDefaultsInput"
           @onReady="onDefaultsReady"
         />
@@ -280,7 +271,7 @@ onBeforeUnmount(() => {
     min-height: 0;
 
     // Both panes share the rows of the grid, so the headers take the same height
-    // and the overrides editor starts level with the chart defaults search.
+    // and the editors start level.
     .values-pane {
       display: grid;
       grid-row: span 2;
@@ -312,30 +303,6 @@ onBeforeUnmount(() => {
         margin-bottom: 16px;
       }
 
-      // CodeMirror's search panel, styled like a search box above the editor
-      &__search {
-        :deep(.cm-panels-top) {
-          background-color: transparent;
-          border-bottom: none;
-
-          &::before {
-            display: none;
-          }
-        }
-
-        :deep(.cm-panel.cm-search) {
-          padding: 0 0 8px;
-
-          .cm-search-field {
-            height: $unlabeled-input-height;
-          }
-
-          .cm-search-controls button:disabled {
-            display: none;
-          }
-        }
-      }
-
       &__title {
         font-weight: 600;
         margin: 0 0 4px 0;
@@ -362,10 +329,9 @@ onBeforeUnmount(() => {
           min-height: 0;
         }
 
-        // Every line here is an override. The gutter is see-through so a see-through
-        // tint isn't painted twice.
-        :deep(.codemirror-container .rc-code-mirror) {
-          --rc-cm-bg: var(--tertiary, var(--accent-btn));
+        // Every line here is an override (right pane), so the code is tinted but the search panel isn't
+        :deep(.codemirror-container .cm-scroller) {
+          background-color: var(--tertiary, var(--accent-btn));
         }
 
         :deep(.codemirror-container .cm-gutters) {

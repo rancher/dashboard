@@ -85,6 +85,14 @@ export default {
       type:    Array,
       default: () => [],
     },
+
+    /**
+     * Open the search panel on mount
+     */
+    searchOpen: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   data() {
@@ -224,6 +232,7 @@ export default {
       :options="codeMirrorOptions"
       :extensions="codeMirrorExtensions"
       :showKeyMapBox="true"
+      :search-open="searchOpen"
       :data-testid="componentTestid + '-code-mirror'"
       :mode="mode"
       @onInput="onInput"

@@ -1,8 +1,11 @@
 import {
-  SearchQuery, findNext, findPrevious, getSearchQuery, search, setSearchQuery
+  SearchQuery, findNext, findPrevious, getSearchQuery, openSearchPanel, search, setSearchQuery
 } from '@codemirror/search';
 import type { EditorView, Panel, ViewUpdate } from '@codemirror/view';
 import { runScopeHandlers } from '@codemirror/view';
+
+// Editors whose panel is opening without taking the focus
+const openingQuietly = new WeakSet<EditorView>();
 
 function iconButton(view: EditorView, name: string, icon: string, label: string, action: () => void): HTMLButtonElement {
   const button = document.createElement('button');
@@ -128,8 +131,12 @@ export function createSearchPanel(view: EditorView): Panel {
 
   return {
     dom,
-    top:    true,
-    mount:  () => field.select(),
+    top:   true,
+    mount: () => {
+      if (!openingQuietly.has(view)) {
+        field.select();
+      }
+    },
     update: (update: ViewUpdate) => {
       const currentQuery = getSearchQuery(update.state);
 
@@ -147,3 +154,10 @@ export function createSearchPanel(view: EditorView): Panel {
 // Pages such as Edit YAML stick their own footer to the bottom of the scroll area, where it would cover a bottom
 // panel. The top of the editor is clear, and the panel sticks there while the page scrolls.
 export const searchPanel = search({ top: true, createPanel: createSearchPanel });
+
+// Opens the search panel without moving the focus to it
+export function openSearchPanelQuietly(view: EditorView): void {
+  openingQuietly.add(view);
+  openSearchPanel(view);
+  openingQuietly.delete(view);
+}
