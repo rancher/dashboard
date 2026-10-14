@@ -340,7 +340,8 @@ describe('mixin: authConfigMixin', () => {
       instance.configDescription = '';
       await instance.save(jest.fn());
 
-      expect(saved).toStrictEqual([{}]);
+      // Norman keeps a `field.cattle.io/` annotation the update leaves out
+      expect(saved).toStrictEqual([{ 'field.cattle.io/description': '' }]);
     });
   });
 
@@ -810,12 +811,20 @@ describe('mixin: authConfigMixin', () => {
       expect(instance.model.annotations['management.cattle.io/auth-provider-cleanup']).toBe('unlocked');
     });
 
-    it('should take the description away when it has been cleared', () => {
+    it('should send the description empty when it has been cleared, as Norman keeps one left out', () => {
       const instance = createInstance(model({ 'field.cattle.io/description': 'Contractors' }));
 
       instance.configDescription = '';
 
-      expect(instance.model.annotations['field.cattle.io/description']).toBeUndefined();
+      expect(instance.model.annotations['field.cattle.io/description']).toBe('');
+    });
+
+    it('should not add an empty description to a config that never had one', () => {
+      const instance = createInstance(model({}));
+
+      instance.configDescription = '';
+
+      expect(instance.model.annotations).toStrictEqual({});
     });
   });
 

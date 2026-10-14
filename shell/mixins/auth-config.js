@@ -198,8 +198,10 @@ export default {
 
         if (value) {
           annotations[DESCRIPTION] = value;
-        } else {
-          delete annotations[DESCRIPTION];
+        } else if (DESCRIPTION in annotations) {
+          // Norman keeps a `field.cattle.io/` annotation an update leaves out, so
+          // clearing one means sending it empty.
+          annotations[DESCRIPTION] = '';
         }
 
         this.model.annotations = annotations;
