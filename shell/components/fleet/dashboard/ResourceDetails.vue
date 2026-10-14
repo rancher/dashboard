@@ -87,7 +87,6 @@ export default {
 <template>
   <Drawer
     :ariaTarget="value.id"
-    :removeFooter="true"
     @close="$emit('close')"
   >
     <template

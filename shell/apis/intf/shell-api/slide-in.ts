@@ -42,8 +42,6 @@ export interface SlideInConfig {
   /**
    *
    * Height preset for the Slide-In panel. Defaults to `'default'` (below header).
-   * When set to `'full'`, the panel covers the full viewport height and the z-index
-   * is automatically elevated above the side menu.
    *
    * - `'default'` — positioned below the header bar, filling the remaining viewport height
    * - `'full'` — full viewport height (100vh), covering the header and side menu

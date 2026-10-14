@@ -310,7 +310,7 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   extensionDetailsBgClick(): Cypress.Chainable {
-    return cy.getId('slide-in-glass').click('top');
+    return cy.getId('slide-in-glass').click('left');
   }
 
   extensionDetailsTitle(): Cypress.Chainable<string> {
