@@ -47,7 +47,7 @@ const createWrapper = ({
 };
 
 const saveButton = (wrapper: any) => wrapper.find('[data-testid="auth-provider-access-save"]');
-const footerCloseButton = (wrapper: any) => wrapper.find('.footer .actions button');
+const footerCloseButton = (wrapper: any) => wrapper.find('[data-testid="rc-drawer-footer"] button');
 
 describe('component: AuthProviderAccessDrawer', () => {
   // The list holds the management copy of a provider, but who may log in is
@@ -118,7 +118,7 @@ describe('component: AuthProviderAccessDrawer', () => {
 
     await flushPromises();
 
-    const card = wrapper.find('[data-testid="auth-provider-access-form"].drawer-card');
+    const card = wrapper.find('[data-testid="auth-provider-access-form"].rc-drawer-card');
 
     expect(card.findComponent(AllowedPrincipals).exists()).toBe(true);
     expect(wrapper.findComponent(AllowedPrincipals).props('stacked')).toBe(true);
@@ -156,7 +156,7 @@ describe('component: AuthProviderAccessDrawer', () => {
 
     // On a card of its own, so it reads as what the provider is rather than as
     // part of the form below it
-    expect(details.find('.drawer-card').exists()).toBe(true);
+    expect(details.find('.rc-drawer-card').exists()).toBe(true);
   });
 
   it('should leave out the configuration of a provider it cannot load', async() => {

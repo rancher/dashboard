@@ -166,7 +166,7 @@ describe('slideInPanelManager.vue with Teleport', () => {
     factory();
     await nextTick();
 
-    const closeIcon = document.querySelector('[data-testid="slide-in-close"]') as HTMLElement;
+    const closeIcon = document.querySelector('[data-testid="rc-drawer-close"]') as HTMLElement;
 
     closeIcon.click();
     await nextTick();
@@ -339,7 +339,7 @@ describe('slideInPanelManager.vue with Teleport', () => {
     it('lands on the close button of the drawer chrome', async() => {
       const opts = await openPanel({ title: 'Test Title' });
 
-      expect(opts.initialFocus()).toBe(document.querySelector('#slides [data-testid="slide-in-close"]'));
+      expect(opts.initialFocus()).toBe(document.querySelector('#slides [data-testid="rc-drawer-close"]'));
     });
 
     it('falls back to the panel when its content has no drawer chrome', async() => {
@@ -350,14 +350,14 @@ describe('slideInPanelManager.vue with Teleport', () => {
   });
 
   describe('standard drawer chrome', () => {
-    const chrome = () => document.querySelector('#slides .slide-in .chrome') as HTMLElement;
+    const chrome = () => document.querySelector('#slides .slide-in .rc-drawer') as HTMLElement;
 
     it('wraps a titled panel in the drawer chrome and a card', async() => {
       factory();
       await nextTick();
 
       expect(chrome()).toBeTruthy();
-      expect(chrome().querySelector('.body > .drawer-card > [data-testid="slide-in-panel-component"]')).toBeTruthy();
+      expect(chrome().querySelector('.body > .rc-drawer-card > [data-testid="slide-in-panel-component"]')).toBeTruthy();
     });
 
     it('closes a titled panel from the close button in its footer', async() => {

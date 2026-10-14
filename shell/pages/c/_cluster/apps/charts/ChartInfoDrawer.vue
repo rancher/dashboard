@@ -2,8 +2,7 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import ChartReadme from '@shell/components/ChartReadme.vue';
-import Drawer from '@shell/components/Drawer/Chrome.vue';
-import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
+import { RcDrawer, RcDrawerCard } from '@components/RcDrawer';
 import RcButton from '@components/RcButton/RcButton.vue';
 import { useI18n } from '@shell/composables/useI18n';
 
@@ -22,18 +21,13 @@ const dock = () => {
 </script>
 
 <template>
-  <Drawer
-    :ariaTarget="title"
+  <RcDrawer
+    :title="title"
     @close="emit('close')"
   >
-    <template #title>
-      {{ title }}
-    </template>
-    <template #body>
-      <DrawerCard>
-        <ChartReadme :version-info="versionInfo" />
-      </DrawerCard>
-    </template>
+    <RcDrawerCard>
+      <ChartReadme :version-info="versionInfo" />
+    </RcDrawerCard>
     <template #additional-actions>
       <RcButton
         variant="secondary"
@@ -44,5 +38,5 @@ const dock = () => {
         {{ i18n.t('catalog.install.slideIn.dock') }}
       </RcButton>
     </template>
-  </Drawer>
+  </RcDrawer>
 </template>

@@ -2,8 +2,7 @@
 import { mapGetters } from 'vuex';
 import ChartReadme from '@shell/components/ChartReadme';
 import LazyImage from '@shell/components/LazyImage';
-import Drawer from '@shell/components/Drawer/Chrome.vue';
-import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
+import { RcDrawer, RcDrawerCard } from '@components/RcDrawer';
 import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
 import { getPluginChartVersionLabel, getPluginChartVersion, getLatestPluginVersions } from '@shell/utils/uiplugins';
 import { isChartVersionHigher, uiPluginHasAnnotation } from '@shell/config/uiplugins';
@@ -18,8 +17,8 @@ export default {
   components: {
     Banner,
     ChartReadme,
-    Drawer,
-    DrawerCard,
+    RcDrawer,
+    RcDrawerCard,
     LazyImage,
     RcButton,
     AppChartCardFooter
@@ -226,8 +225,8 @@ export default {
 };
 </script>
 <template>
-  <Drawer
-    :ariaTarget="info.label"
+  <RcDrawer
+    :title="info.label"
     @close="$emit('close')"
   >
     <template #title>
@@ -255,87 +254,85 @@ export default {
         {{ info.label }}
       </h2>
     </template>
-    <template #body>
-      <DrawerCard class="mmb-4">
-        <p class="plugin-description">
-          {{ info.description }}
-        </p>
-        <AppChartCardFooter
-          v-if="info.tags && info.tags.length"
-          :items="info.tags"
-          class="plugin-tags-container"
-        />
-        <Banner
-          v-for="(msg, i) in warningMessages"
-          :key="i"
-          color="warning"
-        >
-          {{ msg }}
-        </Banner>
+    <RcDrawerCard class="mmb-4">
+      <p class="plugin-description">
+        {{ info.description }}
+      </p>
+      <AppChartCardFooter
+        v-if="info.tags && info.tags.length"
+        :items="info.tags"
+        class="plugin-tags-container"
+      />
+      <Banner
+        v-for="(msg, i) in warningMessages"
+        :key="i"
+        color="warning"
+      >
+        {{ msg }}
+      </Banner>
 
-        <Banner
-          v-if="errorMessage"
-          color="error"
-        >
-          {{ errorMessage }}
-        </Banner>
+      <Banner
+        v-if="errorMessage"
+        color="error"
+      >
+        {{ errorMessage }}
+      </Banner>
 
-        <h3>
-          {{ t('plugins.info.versions') }}
-        </h3>
-        <div v-if="!info.versions.length">
-          <div class="version-link version-active version-builtin">
-            {{ info.displayVersion }}
-          </div>
+      <h3>
+        {{ t('plugins.info.versions') }}
+      </h3>
+      <div v-if="!info.versions.length">
+        <div class="version-link version-active version-builtin">
+          {{ info.displayVersion }}
         </div>
+      </div>
+      <div
+        v-else
+        class="plugin-versions"
+      >
         <div
-          v-else
-          class="plugin-versions"
+          v-for="v in displayedVersions"
+          :key="`${v.name}-${v.version}`"
         >
-          <div
-            v-for="v in displayedVersions"
-            :key="`${v.name}-${v.version}`"
+          <a
+            v-clean-tooltip="handleVersionBtnTooltip(v)"
+            class="version-link"
+            :class="handleVersionBtnClass(v)"
+            :tabindex="!v.isVersionCompatible ? -1 : 0"
+            role="button"
+            :aria-label="t('plugins.viewVersionDetails', {name: v.name, version: v.version})"
+            @click="loadPluginVersionInfo(v.version)"
+            @keyup.enter.space="loadPluginVersionInfo(v.version)"
           >
-            <a
-              v-clean-tooltip="handleVersionBtnTooltip(v)"
-              class="version-link"
-              :class="handleVersionBtnClass(v)"
-              :tabindex="!v.isVersionCompatible ? -1 : 0"
-              role="button"
-              :aria-label="t('plugins.viewVersionDetails', {name: v.name, version: v.version})"
-              @click="loadPluginVersionInfo(v.version)"
-              @keyup.enter.space="loadPluginVersionInfo(v.version)"
-            >
-              {{ getVersionLabel(v) }}
-            </a>
-          </div>
-          <div v-if="hasHiddenVersions">
-            <a
-              class="version-link show-all-versions"
-              data-testid="extension-details-show-all-versions"
-              tabindex="0"
-              role="button"
-              @click="showAllVersions = true"
-              @keyup.enter.space="showAllVersions = true"
-            >
-              {{ t('plugins.info.showAllVersions') }}
-            </a>
-          </div>
+            {{ getVersionLabel(v) }}
+          </a>
         </div>
-      </DrawerCard>
+        <div v-if="hasHiddenVersions">
+          <a
+            class="version-link show-all-versions"
+            data-testid="extension-details-show-all-versions"
+            tabindex="0"
+            role="button"
+            @click="showAllVersions = true"
+            @keyup.enter.space="showAllVersions = true"
+          >
+            {{ t('plugins.info.showAllVersions') }}
+          </a>
+        </div>
+      </div>
+    </RcDrawerCard>
 
-      <DrawerCard v-if="versionError || hasReadme">
-        <div v-if="versionError">
-          {{ t('plugins.info.versionError') }}
-        </div>
-        <template v-if="hasReadme">
-          <h3>
-            {{ t('plugins.info.detail') }}
-          </h3>
-          <ChartReadme :version-info="versionInfo" />
-        </template>
-      </DrawerCard>
-    </template>
+    <RcDrawerCard v-if="versionError || hasReadme">
+      <div v-if="versionError">
+        {{ t('plugins.info.versionError') }}
+      </div>
+      <template v-if="hasReadme">
+        <h3>
+          {{ t('plugins.info.detail') }}
+        </h3>
+        <ChartReadme :version-info="versionInfo" />
+      </template>
+    </RcDrawerCard>
     <template #additional-actions>
       <RcButton
         v-for="btn in panelActions"
@@ -347,7 +344,7 @@ export default {
         {{ btn.label }}
       </RcButton>
     </template>
-  </Drawer>
+  </RcDrawer>
 </template>
 <style lang="scss" scoped>
   h3 {

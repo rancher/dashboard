@@ -65,7 +65,7 @@ describe('component: PluginInfoPanel', () => {
     it('should emit close when the drawer is closed', async() => {
       const { drawer } = mountDrawer();
 
-      await drawer.find('[data-testid="slide-in-close"]').trigger('click');
+      await drawer.find('[data-testid="rc-drawer-close"]').trigger('click');
 
       expect(drawer.emitted('close')).toHaveLength(1);
     });

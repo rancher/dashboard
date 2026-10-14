@@ -322,7 +322,7 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   extensionDetailsCloseClick(): Cypress.Chainable {
-    return this.extensionDetails().getId('slide-in-close').click();
+    return this.extensionDetails().getId('rc-drawer-close').click();
   }
 
   // ------------------ extension tabs ------------------

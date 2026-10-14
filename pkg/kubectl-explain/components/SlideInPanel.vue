@@ -1,13 +1,12 @@
 <script>
 import ExplainPanel from './ExplainPanel';
-import Drawer from '@shell/components/Drawer/Chrome.vue';
-import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
+import { RcDrawer, RcDrawerCard } from '@components/RcDrawer';
 import { expandOpenAPIDefinition, getOpenAPISchemaName, makeOpenAPIBreadcrumb } from '../open-api-utils.ts';
 import { openAPI } from '../open-api';
 
 export default {
   components: {
-    ExplainPanel, Drawer, DrawerCard
+    ExplainPanel, RcDrawer, RcDrawerCard
   },
 
   emits: ['close'],
@@ -132,8 +131,8 @@ export default {
 </script>
 
 <template>
-  <Drawer
-    :ariaTarget="t('kubectl-explain.title')"
+  <RcDrawer
+    :title="t('kubectl-explain.title')"
     @close="$emit('close')"
   >
     <template #title>
@@ -181,63 +180,61 @@ export default {
         <i class="icon icon-sort" />
       </button>
     </template>
-    <template #body>
-      <DrawerCard
-        ref="content"
-        class="content"
-        data-testid="slide-in-panel-resource-explain"
+    <RcDrawerCard
+      ref="content"
+      class="content"
+      data-testid="slide-in-panel-resource-explain"
+    >
+      <div
+        v-if="busy"
+        class="loading"
       >
-        <div
-          v-if="busy"
-          class="loading"
-        >
-          <i
-            class="icon icon-lg icon-spinner icon-spin"
-            :alt="t('kubectl-explain.informationLoading')"
-          />
-        </div>
-        <ExplainPanel
-          v-if="!noResource && definition"
-          :expand-all="expandAll"
-          :definition="definition"
-          :definition-id="definitionId"
-          class="explain-panel"
-          @navigate="navigate"
+        <i
+          class="icon icon-lg icon-spinner icon-spin"
+          :alt="t('kubectl-explain.informationLoading')"
         />
-        <div
-          v-if="error"
-          class="select-resource"
-        >
-          <i
-            class="icon icon-error"
-            :alt="t('kubectl-explain.errorLoading')"
-          />
-          <div>
-            {{ t('kubectl-explain.errors.load') }}
-          </div>
+      </div>
+      <ExplainPanel
+        v-if="!noResource && definition"
+        :expand-all="expandAll"
+        :definition="definition"
+        :definition-id="definitionId"
+        class="explain-panel"
+        @navigate="navigate"
+      />
+      <div
+        v-if="error"
+        class="select-resource"
+      >
+        <i
+          class="icon icon-error"
+          :alt="t('kubectl-explain.errorLoading')"
+        />
+        <div>
+          {{ t('kubectl-explain.errors.load') }}
         </div>
-        <div
-          v-if="noResource"
-          class="select-resource"
+      </div>
+      <div
+        v-if="noResource"
+        class="select-resource"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="24"
+          viewBox="0 -960 960 960"
+          width="24"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            height="24"
-            viewBox="0 -960 960 960"
-            width="24"
-          >
-            <path d="M260-320q47 0 91.5 10.5T440-278v-394q-41-24-87-36t-93-12q-36 0-71.5 7T120-692v396q35-12 69.5-18t70.5-6Zm260 42q44-21 88.5-31.5T700-320q36 0 70.5 6t69.5 18v-396q-33-14-68.5-21t-71.5-7q-47 0-93 12t-87 36v394Zm-40 118q-48-38-104-59t-116-21q-42 0-82.5 11T100-198q-21 11-40.5-1T40-234v-482q0-11 5.5-21T62-752q46-24 96-36t102-12q58 0 113.5 15T480-740q51-30 106.5-45T700-800q52 0 102 12t96 36q11 5 16.5 15t5.5 21v482q0 23-19.5 35t-40.5 1q-37-20-77.5-31T700-240q-60 0-116 21t-104 59ZM280-494Z" />
-          </svg>
-          <div v-if="notFound">
-            {{ t('kubectl-explain.errors.notFound') }}
-          </div>
-          <div v-else>
-            {{ t('kubectl-explain.prompt') }}
-          </div>
+          <path d="M260-320q47 0 91.5 10.5T440-278v-394q-41-24-87-36t-93-12q-36 0-71.5 7T120-692v396q35-12 69.5-18t70.5-6Zm260 42q44-21 88.5-31.5T700-320q36 0 70.5 6t69.5 18v-396q-33-14-68.5-21t-71.5-7q-47 0-93 12t-87 36v394Zm-40 118q-48-38-104-59t-116-21q-42 0-82.5 11T100-198q-21 11-40.5-1T40-234v-482q0-11 5.5-21T62-752q46-24 96-36t102-12q58 0 113.5 15T480-740q51-30 106.5-45T700-800q52 0 102 12t96 36q11 5 16.5 15t5.5 21v482q0 23-19.5 35t-40.5 1q-37-20-77.5-31T700-240q-60 0-116 21t-104 59ZM280-494Z" />
+        </svg>
+        <div v-if="notFound">
+          {{ t('kubectl-explain.errors.notFound') }}
         </div>
-      </DrawerCard>
-    </template>
-  </Drawer>
+        <div v-else>
+          {{ t('kubectl-explain.prompt') }}
+        </div>
+      </div>
+    </RcDrawerCard>
+  </RcDrawer>
 </template>
 
 <style lang="scss" scoped>
