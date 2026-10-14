@@ -6,7 +6,7 @@ import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { POD } from '@shell/config/types';
 import { useWorkloadSearch } from './useWorkloadSearch';
 import { WORKLOAD_SEARCH_MIN_CHARS, type WorkloadSearchOption } from './types';
@@ -76,10 +76,14 @@ function updateDropdownVisibleRows(): void {
 onMounted(() => window.addEventListener('resize', updateDropdownVisibleRows));
 onBeforeUnmount(() => window.removeEventListener('resize', updateDropdownVisibleRows));
 
-// Opening a row's action menu blurs the search input, which makes vue-select clear its search and
-// close, unmounting the results and the action menu with them. Remember enough to reopen it on that blur.
-const openingActionMenu = ref(false);
+// Moving focus from the search input into a result (its action menu, or a link by keyboard) blurs the input, which
+// makes vue-select clear its search and close, unmounting the results with them. Remember enough to reopen it on that blur.
+const keepOpenOnBlur = ref(false);
 const lastSearchTerm = ref('');
+
+function searchInput(): HTMLInputElement | null {
+  return searchRef.value?.$el?.querySelector('input.vs__search') || null;
+}
 
 // "+X more" rows are options rather than buttons so they're reachable with the arrow keys and Enter
 function isOptionSelectable(option: WorkloadSearchOption): boolean {
@@ -115,8 +119,11 @@ function onNamespaceClick(event: MouseEvent, option: WorkloadSearchOption): void
 function onActionsClick(event: MouseEvent) {
   // Prevent vue-select from treating this as selecting the option.
   event.stopPropagation();
-  // Early enough, vue-select prevents mousedown in its dropdown so the input keeps focus until after this click
-  openingActionMenu.value = true;
+  // Early enough, vue-select prevents mousedown in its dropdown so the input keeps focus until after this click.
+  // Opened by keyboard, focus is already on the button so the input won't blur
+  if (document.activeElement === searchInput()) {
+    keepOpenOnBlur.value = true;
+  }
 }
 
 function handleSearch(term: string): void {
@@ -127,11 +134,11 @@ function handleSearch(term: string): void {
 }
 
 function onSearchBlur() {
-  if (!openingActionMenu.value) {
+  if (!keepOpenOnBlur.value) {
     return;
   }
 
-  openingActionMenu.value = false;
+  keepOpenOnBlur.value = false;
 
   searchRef.value?.forceOpen(lastSearchTerm.value);
 }
@@ -139,6 +146,55 @@ function onSearchBlur() {
 function onActionInvoked(): void {
   // The input already lost focus to the action menu, so no blur will close the dropdown
   searchRef.value?.forceClose();
+}
+
+const resultFocusables = 'a[href], button:not([disabled])';
+
+// Tab and Shift+Tab move focus from the search through the links and buttons of the highlighted result and back,
+// Escape goes back to the search
+function onResultsKeydown(event: KeyboardEvent): void {
+  const input = searchInput();
+  const target = event.target as HTMLElement;
+  const fromInput = target === input;
+  const row = fromInput ? searchRef.value?.$el?.querySelector('.vs__dropdown-option--highlight') : target.closest('.vs__dropdown-option');
+  const focusables: HTMLElement[] = row ? Array.from(row.querySelectorAll(resultFocusables)) : [];
+
+  if (!input || !focusables.length || (!fromInput && !focusables.includes(target))) {
+    return;
+  }
+
+  if (event.key === 'Tab') {
+    const order = [input, ...focusables];
+    const at = order.indexOf(target);
+    const next = order[(at + (event.shiftKey ? -1 : 1) + order.length) % order.length];
+
+    event.preventDefault();
+
+    if (fromInput) {
+      keepOpenOnBlur.value = true;
+    }
+
+    next.focus();
+  } else if (event.key === 'Escape' && !fromInput) {
+    event.preventDefault();
+    input.focus();
+  }
+}
+
+function onResultsFocusout(event: FocusEvent): void {
+  const to = event.relatedTarget as HTMLElement | null;
+
+  // vue-select handles the input's own blur. Focus moving within the results, or into a result's action menu, keeps them open
+  if (event.target === searchInput() || (to && (searchRef.value?.$el?.contains(to) || to.closest('.v-popper__popper')))) {
+    return;
+  }
+
+  searchRef.value?.forceClose();
+
+  // Closing focuses the select (LabeledSelect onClose), put focus back where it was going
+  if (to) {
+    nextTick(() => to.focus());
+  }
 }
 </script>
 
@@ -162,6 +218,8 @@ function onActionInvoked(): void {
     @update:value="onSelect"
     @on-blur="onSearchBlur"
     @on-open="updateDropdownVisibleRows"
+    @keydown="onResultsKeydown"
+    @focusout="onResultsFocusout"
   >
     <template #option="option">
       <b

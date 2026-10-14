@@ -35,7 +35,8 @@ const mockT = (key: string, args?: Record<string, any>) => (args ? `${ key }:${ 
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: mockT }) }));
 
 // Renders each option through the component's #option slot (and #no-options when
-// there are none) so the row markup and its handlers can be exercised directly.
+// there are none) so the row markup and its handlers can be exercised directly. Has
+// vue-select's search input and highlighted option classes for keyboard navigation.
 const LabeledSelectStub = defineComponent({
   name:  'LabeledSelect',
   props: {
@@ -52,7 +53,7 @@ const LabeledSelectStub = defineComponent({
   },
   emits: ['search', 'update:value', 'on-blur'],
   data() {
-    return { search: '' };
+    return { search: '', highlight: -1 };
   },
   methods: {
     forceOpen(searchText: string) {
@@ -64,7 +65,13 @@ const LabeledSelectStub = defineComponent({
   },
   template: `
     <div>
-      <div v-for="option in options" :key="option.uniqueId" class="option-wrapper">
+      <input class="vs__search">
+      <div
+        v-for="(option, index) in options"
+        :key="option.uniqueId"
+        class="option-wrapper vs__dropdown-option"
+        :class="{ 'vs__dropdown-option--highlight': index === highlight }"
+      >
         <slot name="option" v-bind="option" />
       </div>
       <slot v-if="!options.length" name="no-options" :search="search" />
@@ -109,10 +116,12 @@ const errorOption: WorkloadSearchOption = {
   uniqueId: 'error-apps.deployment',
 };
 
-function createWrapper() {
+// Attach when a test needs real focus (document.activeElement)
+function createWrapper({ attach = false } = {}) {
   return shallowMount(WorkloadSearch, {
-    props:  { navigateToNamespace, resourceRoute },
-    global: {
+    props:    { navigateToNamespace, resourceRoute },
+    attachTo: attach ? document.body : undefined,
+    global:   {
       stubs: { LabeledSelect: LabeledSelectStub },
       // Overrides the global `t` mock from jest.setup.js, which would otherwise shadow useI18n's
       mocks: { t: mockT },
@@ -457,29 +466,51 @@ describe('component: WorkloadSearch', () => {
   });
 
   describe('keeping the dropdown open while the action menu is used', () => {
+    // A mouse click on the action menu leaves focus in the search input until the menu takes it
+    const clickActionsFromSearch = async(wrapper: ReturnType<typeof createWrapper>) => {
+      (wrapper.find('input.vs__search').element as HTMLInputElement).focus();
+      await wrapper.find('.actions').trigger('click');
+    };
+
     it('should reopen the dropdown with the last search term when opening the action menu blurs the search', async() => {
       mockOptions.value = [makeResult('nginx')];
-      const wrapper = createWrapper();
+      const wrapper = createWrapper({ attach: true });
       const select = wrapper.findComponent(LabeledSelectStub);
 
       select.vm.$emit('search', 'nginx');
-      await wrapper.find('.actions').trigger('click');
+      await clickActionsFromSearch(wrapper);
       select.vm.$emit('on-blur');
 
       expect(mockForceOpen).toHaveBeenCalledWith('nginx');
+      wrapper.unmount();
     });
 
     it('should keep the last non-empty search term when vue-select clears the search on blur', async() => {
       mockOptions.value = [makeResult('nginx')];
-      const wrapper = createWrapper();
+      const wrapper = createWrapper({ attach: true });
       const select = wrapper.findComponent(LabeledSelectStub);
 
       select.vm.$emit('search', 'nginx');
       select.vm.$emit('search', '');
-      await wrapper.find('.actions').trigger('click');
+      await clickActionsFromSearch(wrapper);
       select.vm.$emit('on-blur');
 
       expect(mockForceOpen).toHaveBeenCalledWith('nginx');
+      wrapper.unmount();
+    });
+
+    it('should not reopen the dropdown on a later blur when the action menu was opened by keyboard', async() => {
+      mockOptions.value = [makeResult('nginx')];
+      const wrapper = createWrapper({ attach: true });
+      const select = wrapper.findComponent(LabeledSelectStub);
+
+      select.vm.$emit('search', 'nginx');
+      // Focus is on the action menu button, not the search input
+      await wrapper.find('.actions').trigger('click');
+      select.vm.$emit('on-blur');
+
+      expect(mockForceOpen).not.toHaveBeenCalled();
+      wrapper.unmount();
     });
 
     it('should not reopen the dropdown on a blur unrelated to the action menu', () => {
@@ -492,15 +523,16 @@ describe('component: WorkloadSearch', () => {
 
     it('should only reopen the dropdown on the first blur after opening the action menu', async() => {
       mockOptions.value = [makeResult('nginx')];
-      const wrapper = createWrapper();
+      const wrapper = createWrapper({ attach: true });
       const select = wrapper.findComponent(LabeledSelectStub);
 
       select.vm.$emit('search', 'nginx');
-      await wrapper.find('.actions').trigger('click');
+      await clickActionsFromSearch(wrapper);
       select.vm.$emit('on-blur');
       select.vm.$emit('on-blur');
 
       expect(mockForceOpen).toHaveBeenCalledTimes(1);
+      wrapper.unmount();
     });
 
     it('should close the dropdown once an action is invoked', () => {
@@ -510,6 +542,121 @@ describe('component: WorkloadSearch', () => {
       wrapper.findComponent(ActionMenu).vm.$emit('action-invoked');
 
       expect(mockForceClose).toHaveBeenCalledWith();
+    });
+  });
+
+  describe('keyboard navigation into a result', () => {
+    // A result with a namespace link, highlighted as if by the arrow keys
+    async function createHighlighted() {
+      mockOptions.value = [makeResult('nginx')];
+      const wrapper = createWrapper({ attach: true });
+
+      await wrapper.findComponent(LabeledSelectStub).setData({ highlight: 0 });
+
+      const input = wrapper.find('input.vs__search');
+      const link = wrapper.find('a.namespace');
+
+      (input.element as HTMLInputElement).focus();
+
+      return {
+        wrapper, input, link
+      };
+    }
+
+    it('should move focus from the search to the highlighted result\'s first link on Tab', async() => {
+      const { wrapper, input, link } = await createHighlighted();
+
+      await input.trigger('keydown', { key: 'Tab' });
+
+      expect(document.activeElement).toBe(link.element);
+      wrapper.unmount();
+    });
+
+    it('should keep the dropdown open when Tab moves focus out of the search', async() => {
+      const { wrapper, input } = await createHighlighted();
+      const select = wrapper.findComponent(LabeledSelectStub);
+
+      select.vm.$emit('search', 'nginx');
+      await input.trigger('keydown', { key: 'Tab' });
+      select.vm.$emit('on-blur');
+
+      expect(mockForceOpen).toHaveBeenCalledWith('nginx');
+      wrapper.unmount();
+    });
+
+    it('should move focus from the search to the highlighted result\'s last link on Shift+Tab', async() => {
+      const { wrapper, input, link } = await createHighlighted();
+
+      await input.trigger('keydown', { key: 'Tab', shiftKey: true });
+
+      expect(document.activeElement).toBe(link.element);
+      wrapper.unmount();
+    });
+
+    it('should move focus back to the search on Tab from the result\'s last link', async() => {
+      const { wrapper, input, link } = await createHighlighted();
+
+      (link.element as HTMLElement).focus();
+      await link.trigger('keydown', { key: 'Tab' });
+
+      expect(document.activeElement).toBe(input.element);
+      wrapper.unmount();
+    });
+
+    it('should move focus back to the search on Escape from a result link', async() => {
+      const { wrapper, input, link } = await createHighlighted();
+
+      (link.element as HTMLElement).focus();
+      await link.trigger('keydown', { key: 'Escape' });
+
+      expect(document.activeElement).toBe(input.element);
+      wrapper.unmount();
+    });
+
+    it('should leave focus in the search on Tab when no result is highlighted', async() => {
+      mockOptions.value = [makeResult('nginx')];
+      const wrapper = createWrapper({ attach: true });
+      const input = wrapper.find('input.vs__search');
+
+      (input.element as HTMLInputElement).focus();
+      await input.trigger('keydown', { key: 'Tab' });
+
+      expect(document.activeElement).toBe(input.element);
+      wrapper.unmount();
+    });
+
+    it('should close the dropdown when focus leaves the results', async() => {
+      const { wrapper, link } = await createHighlighted();
+
+      await link.trigger('focusout', { relatedTarget: document.body });
+
+      expect(mockForceClose).toHaveBeenCalledWith();
+      wrapper.unmount();
+    });
+
+    it('should keep the dropdown open when focus moves within the results', async() => {
+      const { wrapper, input, link } = await createHighlighted();
+
+      await link.trigger('focusout', { relatedTarget: input.element });
+
+      expect(mockForceClose).not.toHaveBeenCalled();
+      wrapper.unmount();
+    });
+
+    it('should keep the dropdown open when focus moves into a result\'s action menu', async() => {
+      const { wrapper, link } = await createHighlighted();
+      const popper = document.createElement('div');
+      const menuItem = document.createElement('button');
+
+      popper.className = 'v-popper__popper';
+      popper.appendChild(menuItem);
+      document.body.appendChild(popper);
+
+      await link.trigger('focusout', { relatedTarget: menuItem });
+
+      expect(mockForceClose).not.toHaveBeenCalled();
+      popper.remove();
+      wrapper.unmount();
     });
   });
 
