@@ -248,6 +248,8 @@ function onResultsFocusout(event: FocusEvent): void {
         />
         <span class="name">{{ option.label }}</span>
         <div class="meta text-muted">
+          <!-- Workload restart counts need their pods, which aren't fetched here. Keep the span for column alignment -->
+          <span class="restarts">{{ option.resource?.type === POD ? t('workloadDashboard.search.restarts', { count: option.resource?.restartCount || 0 }) : '' }}</span>
           <a
             v-if="option.namespace && option.resource?.type"
             class="namespace more-link"
@@ -258,8 +260,6 @@ function onResultsFocusout(event: FocusEvent): void {
             v-else
             class="namespace"
           >{{ option.namespace }}</span>
-          <!-- Workload restart counts need their pods, which aren't fetched here. Keep the span for column alignment -->
-          <span class="restarts">{{ option.resource?.type === POD ? t('workloadDashboard.search.restarts', { count: option.resource?.restartCount || 0 }) : '' }}</span>
           <LiveDate
             class="age"
             :value="option.resource?.creationTimestamp"
