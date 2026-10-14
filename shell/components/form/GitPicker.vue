@@ -569,7 +569,7 @@ export default defineComponent({
   }
 
   .v-select .dropdown li {
-    border-bottom: 1px solid rgba(112, 128, 144, 0.1);
+    border-bottom: 1px solid var(--color-blue-407-a10);
   }
 
   .v-select .dropdown li:last-child {
@@ -580,11 +580,11 @@ export default defineComponent({
     padding: 10px 20px;
     width: 100%;
     font-size: 1.25em;
-    color: #3c3c3c;
+    color: var(--color-gray-644);
   }
 
   .v-select .dropdown-menu .active > a {
-    color: #fff;
+    color: var(--color-white);
   }
 }
 </style>

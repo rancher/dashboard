@@ -339,7 +339,7 @@ export default {
     overflow: scroll;
     max-height: 100vh;
     & ::-webkit-scrollbar-corner {
-      background: rgba(0,0,0,0);
+      background: var(--color-black-a0);
     }
 
     .prompt-restore form p {

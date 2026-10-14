@@ -47,19 +47,6 @@ export default {
       return Math.round(n * 100) / 100;
     },
 
-    strokes(primary, secondary) {
-      return {
-        primaryStrokeColor:           this.rgba(primary, 1),
-        primaryStrokeGradientColor:   this.rgba(secondary, 1),
-        secondaryStrokeColor:         this.rgba(primary, 0.1),
-        secondaryStrokeGradientColor: this.rgba(secondary, 0.1)
-      };
-    },
-
-    rgba(variable, opacity) {
-      return `rgba(var(${ variable }), ${ opacity })`;
-    },
-
     percentage(resource) {
       if (resource.total === 0) {
         return 0;

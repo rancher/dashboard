@@ -3,6 +3,7 @@ import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import { computeDashboardUrl } from '@shell/utils/grafana';
 import { fetchMonitoringVersion } from '@shell/utils/monitoring';
+import { COLOR_TOKENS } from '@components/design-system/colors';
 
 export default {
   components: { Banner, Loading },
@@ -31,7 +32,7 @@ export default {
     },
     backgroundColor: {
       type:    String,
-      default: '#1b1c21'
+      default: COLOR_TOKENS['--color-gray-772']
     },
     theme: {
       type:    String,

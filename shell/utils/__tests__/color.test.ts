@@ -9,6 +9,7 @@ import {
   normalizeHex,
   createCssVars,
 } from '@shell/utils/color';
+import { COLOR_TOKENS } from '@components/design-system/colors';
 
 describe('shell/utils/color', () => {
   describe('hexToRgb', () => {
@@ -143,16 +144,16 @@ describe('shell/utils/color', () => {
   describe('textColor', () => {
     it.each([
       {
-        desc: '"black" for a light color (#ffffff)', input: '#ffffff', expected: 'black'
+        desc: 'the black token for a light color (#ffffff)', input: '#ffffff', expected: COLOR_TOKENS['--color-black']
       },
       {
-        desc: '"white" for a dark color (#000000)', input: '#000000', expected: 'white'
+        desc: 'the white token for a dark color (#000000)', input: '#000000', expected: COLOR_TOKENS['--color-white']
       },
       {
-        desc: '"black" for brightness above threshold (rgb 200,200,200)', input: 'rgb(200, 200, 200)', expected: 'black'
+        desc: 'the black token for brightness above threshold (rgb 200,200,200)', input: 'rgb(200, 200, 200)', expected: COLOR_TOKENS['--color-black']
       },
       {
-        desc: '"white" for brightness below threshold (rgb 50,50,50)', input: 'rgb(50, 50, 50)', expected: 'white'
+        desc: 'the white token for brightness below threshold (rgb 50,50,50)', input: 'rgb(50, 50, 50)', expected: COLOR_TOKENS['--color-white']
       },
     ])('returns $desc', ({ input, expected }) => {
       const color = parseColor(input);
@@ -199,6 +200,11 @@ describe('shell/utils/color', () => {
         '--on-active-nav',
         '--category-active',
         '--non-primary-hover',
+        '--primary-held-bg',
+        '--primary-wash-bg',
+        '--active-muted',
+        '--active-light-bg',
+        '--on-active-muted',
         '--secondary-border',
         '--on-secondary',
       ];
@@ -223,6 +229,18 @@ describe('shell/utils/color', () => {
       expect(vars['--non-primary-hover']).toContain('rgba');
       expect(vars['--secondary-border']).toStrictEqual('#4a90d9');
       expect(vars['--on-secondary']).toStrictEqual('#4a90d9');
+    });
+
+    it.each([
+      ['--primary-held-bg', 'rgba(74, 144, 217, 0.14)'],
+      ['--primary-wash-bg', 'rgba(74, 144, 217, 0.15)'],
+      ['--active-muted', 'rgba(74, 144, 217, 0.5)'],
+      ['--active-light-bg', 'rgba(74, 144, 217, 0.12)'],
+      ['--on-active-muted', 'rgba(20, 20, 25, 0.65)'],
+    ])('derives %s from the custom primary color', (name, expected) => {
+      const vars = createCssVars('#4a90d9', 'light', 'primary');
+
+      expect(vars[name]).toStrictEqual(expected);
     });
 
     it('does not emit primary-only nav/active vars for the link name', () => {

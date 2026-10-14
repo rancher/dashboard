@@ -191,7 +191,7 @@ watch(
 
     .popover-card-container > .v-popper__popper {
       border-radius: 6px;
-      box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.04);
+      box-shadow: 4px 4px 8px 0 var(--color-black-a4);
 
       // floating-vue leaves a 5px gap between the link and the card. Crossing it would fire mouseleave and close the
       // card, so fill it with an invisible strip on whichever side faces the link. The strip belongs to the card, so

@@ -39,7 +39,7 @@ export default {
     },
     {
       files: ['shell/**', 'pkg/rancher-components/**'],
-      rules: { 'local-rules/no-color-literal': [true, { baseline: 'stylelint-color-baseline.json' }] },
+      rules: { 'local-rules/no-color-literal': true },
     },
     {
       files: ['shell/rancher-components/**'],

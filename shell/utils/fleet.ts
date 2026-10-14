@@ -11,6 +11,7 @@ import { FLEET as FLEET_LABELS, CAPI } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER_NAME } from '@shell/config/product/explorer';
 import { FleetDashboardState, FleetResourceState, Target, TargetMode } from '@shell/types/fleet';
 import { FLEET, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
+import { COLOR_TOKENS } from '@components/design-system/colors';
 
 interface Resource extends BundleDeploymentResource {
   state: string,
@@ -118,7 +119,7 @@ class Fleet {
       index:           0,
       id:              'error',
       label:           'Error',
-      color:           '#F64747',
+      color:           COLOR_TOKENS['--color-red-348'],
       icon:            'icon icon-error',
       stateBackground: 'bg-error'
     },
@@ -126,7 +127,7 @@ class Fleet {
       index:           1,
       id:              'warning',
       label:           'Warning',
-      color:           '#DAC342',
+      color:           COLOR_TOKENS['--color-yellow-186'],
       icon:            'icon icon-warning',
       stateBackground: 'bg-warning'
     },
@@ -134,7 +135,7 @@ class Fleet {
       index:           2,
       id:              'success',
       label:           'Active',
-      color:           '#5D995D',
+      color:           COLOR_TOKENS['--color-green-374'],
       icon:            'icon icon-checkmark',
       stateBackground: 'bg-success'
     },
@@ -142,7 +143,7 @@ class Fleet {
       index:           3,
       id:              'info',
       label:           'Pending',
-      color:           '#3d98d3',
+      color:           COLOR_TOKENS['--color-blue-349'],
       icon:            'icon icon-warning',
       stateBackground: 'bg-info'
     },

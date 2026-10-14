@@ -6,6 +6,7 @@ import { setTitle } from '@shell/config/private-label';
 import { requireJson } from '@shell/utils/require-asset';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 import { fetchInitialSettings } from '@shell/utils/settings';
+import { COLOR_TOKENS } from '@components/design-system/colors';
 
 export default {
   async fetch() {
@@ -109,7 +110,7 @@ export default {
     },
 
     removeCustomColor(name = 'primary') {
-      const vars = createCssVars('rgb(0,0,0)', this.theme, name);
+      const vars = createCssVars(COLOR_TOKENS['--color-black'], this.theme, name);
 
       for (const prop in vars) {
         document.body.style.removeProperty(prop);

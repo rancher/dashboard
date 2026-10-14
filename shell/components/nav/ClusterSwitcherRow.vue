@@ -146,7 +146,7 @@ function select() {
   transition: opacity 0.1s ease-in-out, background-color 0.1s ease-in-out;
 
   &:hover {
-    background: color-mix(in srgb, var(--body-text) 10%, transparent);
+    background: var(--subtle-hover-bg);
   }
 }
 
@@ -181,7 +181,7 @@ function select() {
   // let the list show a keyboard row and a hovered row at the same time, neither of which was clearly
   // "the" row Enter would take.
   &.active {
-    background: color-mix(in srgb, var(--body-text) 6%, transparent);
+    background: var(--subtle-active-bg);
   }
 
   // The ring belongs to the whole row, not just the control inside it — the pin is a sibling, so a ring

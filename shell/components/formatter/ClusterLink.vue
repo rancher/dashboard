@@ -110,7 +110,7 @@ export default {
     }
   }
   .mytooltip ul {
-    outline: 1px dashed red;
+    outline: 1px dashed var(--color-red-372);
   }
   .rke1-unsupported-icon {
     color: var(--warning);

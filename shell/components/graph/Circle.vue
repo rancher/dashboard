@@ -159,6 +159,6 @@ export default {
 
 <style lang="scss" scoped>
 svg.text {
-  fill: red
+  fill: var(--color-red-372)
 }
 </style>

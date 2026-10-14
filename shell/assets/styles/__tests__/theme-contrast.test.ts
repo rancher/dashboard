@@ -1,8 +1,10 @@
 import path from 'path';
+import { pathToFileURL } from 'url';
 import * as sass from 'sass';
 import { parseColor } from '@shell/utils/color';
 
 const STYLES_DIR = path.resolve(__dirname, '..');
+const COMPONENTS_DIR = path.resolve(__dirname, '../../../../pkg/rancher-components/src/components');
 
 type Tokens = Record<string, string>;
 
@@ -42,14 +44,16 @@ function blockTokens(css: string, selector: RegExp): Tokens {
 function compileThemes(): Record<'light' | 'dark' | 'primeLight' | 'primeDark', Tokens> {
   const { css } = sass.compileString(
     // `base/functions` supplies contrast-color(), which several tokens are built from
-    `@import "base/functions"; @import "base/color"; @import "themes/modern"; @import "themes/suse";`,
+    `@import "~@components/design-system/colors"; @import "base/functions"; @import "base/color"; @import "themes/modern"; @import "themes/suse";`,
     {
       loadPaths:           [STYLES_DIR],
+      importers:           [{ findFileUrl: (url) => (url.startsWith('~@components/') ? new URL(pathToFileURL(path.join(COMPONENTS_DIR, url.slice('~@components/'.length))).href) : null) }],
       quietDeps:           true,
       silenceDeprecations: ['import', 'global-builtin', 'color-functions'],
     }
   );
 
+  const primitives = blockTokens(css, /:root\s*\{([^{}]*)\}/g);
   const modernLight = blockTokens(css, /BODY, \.theme-light\s*\{([^{}]*)\}/g);
   const modernDark = blockTokens(css, /BODY, \.theme-dark\s*\{([^{}]*)\}/g);
   const suseCommon = blockTokens(css, /^\.suse\s*\{([^{}]*)\}/gm);
@@ -60,8 +64,12 @@ function compileThemes(): Record<'light' | 'dark' | 'primeLight' | 'primeDark', 
     throw new Error('Could not find every theme block in the compiled stylesheet');
   }
 
-  const light = { ...modernDark, ...modernLight };
-  const dark = { ...modernLight, ...modernDark };
+  const light = {
+    ...primitives, ...modernDark, ...modernLight
+  };
+  const dark = {
+    ...primitives, ...modernLight, ...modernDark
+  };
 
   return {
     light,

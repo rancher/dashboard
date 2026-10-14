@@ -22,7 +22,6 @@
     "lint:js": "./node_modules/.bin/eslint --max-warnings 0 .",
     "lint:lib": "cd pkg/rancher-components && yarn lint",
     "lint:style": "./node_modules/.bin/stylelint \"{shell,pkg,storybook,docusaurus}/**/*.{vue,scss,css}\"",
-    "lint:colors:prune": "UPDATE_COLOR_BASELINE=prune ./node_modules/.bin/stylelint \"{shell,pkg/rancher-components}/**/*.{vue,scss,css}\" --quiet; ./node_modules/.bin/eslint --prune-suppressions .; cd pkg/rancher-components && ../../node_modules/.bin/eslint --prune-suppressions .",
     "lint-l10n": "./node_modules/.bin/yamllint ./shell/assets/translations",
     "type-check": "NODE_OPTIONS=--max_old_space_size=8192 ./node_modules/.bin/vue-tsc --noEmit -p tsconfig.type-check.json",
     "type-check:ci": "node scripts/type-check-diff.mjs",

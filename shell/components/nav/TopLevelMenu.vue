@@ -1764,7 +1764,7 @@ export default {
     transition: background-color 0.1s ease-in-out;
 
     &:hover {
-      background: color-mix(in srgb, var(--body-text) 10%, transparent);
+      background: var(--subtle-hover-bg);
     }
   }
 
@@ -1879,7 +1879,7 @@ export default {
     }
 
     &.is-active .pin:not(.is-pinned) {
-      color: color-mix(in srgb, var(--on-active) 65%, transparent) !important;
+      color: var(--on-active-muted) !important;
     }
   }
 
@@ -1898,7 +1898,7 @@ export default {
 
   @keyframes cluster-wash {
     0% {
-      background: color-mix(in srgb, var(--primary) 15%, transparent);
+      background: var(--primary-wash-bg);
     }
 
     100% {
@@ -1926,7 +1926,7 @@ export default {
     }
 
     100% {
-      background: color-mix(in srgb, var(--primary) 15%, transparent);
+      background: var(--primary-wash-bg);
     }
   }
 
@@ -1952,7 +1952,7 @@ export default {
   // Scoped through `.shelf-rows` so it outranks the resting row's own background, which is set further
   // up the nav's cascade than the lift below can reach.
   .shelf-rows .shelf-row-held {
-    background: color-mix(in srgb, var(--primary) 14%, transparent);
+    background: var(--primary-held-bg);
   }
 
   .shelf-row-held {
@@ -1963,7 +1963,7 @@ export default {
   }
 
   .side-menu .shelf-rows .shelf-row-held {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 6px 16px var(--color-black-a28);
   }
 
   // The rows shuffling around the held one. `.shelf-row-move` is the TransitionGroup's own FLIP
@@ -2355,7 +2355,7 @@ export default {
             color: var(--on-active) !important;
           }
           .pin:not(.is-pinned) {
-            color: color-mix(in srgb, var(--on-active) 65%, transparent) !important;
+            color: var(--on-active-muted) !important;
           }
 
           &:hover {
@@ -2431,7 +2431,7 @@ export default {
           height: 8px;
           margin-top: -8px;
           pointer-events: none;
-          background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--body-text) 8%, transparent) 100%);
+          background: linear-gradient(180deg, transparent 0%, var(--scroll-shadow) 100%);
           // Hidden by default; only the scroll-driven animation reveals it. When the list ISN'T scrollable
           // the scroll timeline is inactive and this base value wins — so no stray shadow on a
           // short/collapsed list.

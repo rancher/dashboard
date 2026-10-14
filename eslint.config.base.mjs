@@ -234,7 +234,6 @@ export const eslintConfigBase = [
   },
 
   // Colors come from the design system tokens (pkg/rancher-components/src/components/design-system/colors.scss).
-  // Colors that predate the rule are recorded in eslint-suppressions.json until they are migrated.
   {
     files:   ['**/*.{js,ts,vue}'],
     ignores: testFiles,

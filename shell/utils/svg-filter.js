@@ -7,10 +7,6 @@ class Color {
     this.set(r, g, b);
   }
 
-  toString() {
-    return `rgb(${ Math.round(this.r) }, ${ Math.round(this.g) }, ${ Math.round(this.b) })`;
-  }
-
   set(r, g, b) {
     this.r = this.clamp(r);
     this.g = this.clamp(g);
