@@ -425,9 +425,10 @@ export default class SortableTablePo extends ComponentPo {
 
   /**
    * For a row with the given name return the checkbox used to select it
+   * @param resourceRowsOnly see `rowElementWithName`
    */
-  rowSelectCtlWithName(clusterName: string) {
-    return new CheckboxInputPo(this.rowWithName(clusterName).column(0));
+  rowSelectCtlWithName(clusterName: string, resourceRowsOnly = false) {
+    return new CheckboxInputPo(this.rowWithName(clusterName, resourceRowsOnly).column(0));
   }
 
   // FIXME: resource / context specific functionality shouldn't be in generic components

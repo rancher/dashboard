@@ -701,7 +701,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
 
       cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('pageLoad');
       clusterList.goTo();
-      clusterList.list().actionMenu('local').getMenuItem('Edit Config').click();
+      clusterList.list().actionMenu('local', true).getMenuItem('Edit Config').click();
       editLocalClusterPage.waitForPage('mode=edit');
       cy.wait('@pageLoad');
       editLocalClusterPage.nameNsDescription().name().value().should('eq', 'local' );
@@ -743,7 +743,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
     cy.deleteDownloadsFolder();
 
     ClusterManagerListPagePo.navTo();
-    clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
+    clusterList.list().resourceTable().sortableTable().rowElementWithName('local', undefined, true)
       .click();
     clusterList.list().openBulkActionDropdown();
     clusterList.list().bulkActionButton('Export As...').click({ force: true });
@@ -777,7 +777,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
     clusterList.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     // Select via the row checkbox instead of clicking the row: testIsolation is off, so on a
     // retry the row can already be selected and a row click would toggle the selection off.
-    clusterList.list().resourceTable().sortableTable().rowSelectCtlWithName('local')
+    clusterList.list().resourceTable().sortableTable().rowSelectCtlWithName('local', true)
       .check();
     // The bulk action bar only lays its buttons out once the selection has registered
     clusterList.list().resourceTable().sortableTable().selectedCountText()
@@ -810,7 +810,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
 
   qase(1975, it('can connect to kubectl shell', () => {
     ClusterManagerListPagePo.navTo();
-    clusterList.list().actionMenu('local').getMenuItem('Kubectl Shell').click();
+    clusterList.list().actionMenu('local', true).getMenuItem('Kubectl Shell').click();
 
     const shellPo = new Shell();
 
