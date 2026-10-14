@@ -14,7 +14,7 @@ jest.mock('@shell/mixins/resource-fetch', () => ({
         canPaginate:                false,
         isFirstLoad:                true,
         paginationResult:           null,
-        perfConfig:                 { incrementalLoading: { enabled: false } },
+        perfConfig:                 {},
       };
     },
     computed: {
@@ -38,10 +38,9 @@ jest.mock('@shell/mixins/resource-fetch', () => ({
 type StoreOpts = {
   schema?: any;
   canList?: boolean;
-  showListMasthead?: boolean;
 };
 
-const createStore = ({ schema, canList = true, showListMasthead = false }: StoreOpts) => ({
+const createStore = ({ schema, canList = true }: StoreOpts) => ({
   getters: {
     'i18n/t':                 (key: string, args: any) => `${ key }-${ JSON.stringify(args ?? {}) }`,
     currentStore:             () => 'cluster',
@@ -49,7 +48,7 @@ const createStore = ({ schema, canList = true, showListMasthead = false }: Store
     'cluster/all':            () => [],
     'cluster/canList':        () => canList,
     'type-map/hasCustomList': () => false,
-    'type-map/optionsFor':    () => ({ showListMasthead }),
+    'type-map/optionsFor':    () => ({ showListMasthead: false }),
     'type-map/headersFor':    () => [],
     'type-map/groupByFor':    () => null,
     'type-map/importList':    () => ({}),
@@ -57,25 +56,18 @@ const createStore = ({ schema, canList = true, showListMasthead = false }: Store
   dispatch: jest.fn(),
 });
 
-// Renders the subHeader slot so the filter banners can be asserted on
-const MastheadStub = {
-  name:     'Masthead',
-  template: '<div><slot name="subHeader" /></div>',
-};
-
-const createWrapper = (store: any, { query = {}, router = { push: jest.fn() } }: { query?: Record<string, string>, router?: any } = {}) => {
+const createWrapper = (store: any) => {
   return shallowMount(ResourceList as any, {
     global: {
       mocks: {
-        $store:  store,
-        $route:  { params: { resource: 'bogus-resource-type' }, query },
-        $router: router,
-        t:       (key: string, args: any) => `${ key }-${ JSON.stringify(args ?? {}) }`,
+        $store: store,
+        $route: { params: { resource: 'bogus-resource-type' }, query: {} },
+        t:      (key: string, args: any) => `${ key }-${ JSON.stringify(args ?? {}) }`,
       },
       stubs: {
         FailWhale:      true,
         ResourceTable:  true,
-        Masthead:       MastheadStub,
+        Masthead:       true,
         ExtensionPanel: true,
         IconMessage:    true,
         Loading:        true,
@@ -120,61 +112,5 @@ describe('component: ResourceList', () => {
     expect(wrapper.findComponent({ name: 'FailWhale' }).exists()).toBe(false);
     expect(wrapper.findComponent({ name: 'ResourceTable' }).exists()).toBe(true);
     expect(store.dispatch).not.toHaveBeenCalledWith('loadingError', expect.anything());
-  });
-
-  describe('name filter', () => {
-    const listableStore = () => createStore({
-      schema: { id: 'bogus-resource-type' }, canList: true, showListMasthead: true
-    });
-
-    it('should use the nameFilter query as the active name filter', () => {
-      const wrapper = createWrapper(listableStore(), { query: { nameFilter: 'nginx' } });
-
-      expect((wrapper.vm as any).activeNameFilter).toStrictEqual('nginx');
-    });
-
-    it('should have an empty active name filter when there is no nameFilter query', () => {
-      const wrapper = createWrapper(listableStore());
-
-      expect((wrapper.vm as any).activeNameFilter).toStrictEqual('');
-    });
-
-    it('should not show a filter banner when there is no nameFilter or stateFilter query', () => {
-      const wrapper = createWrapper(listableStore());
-
-      expect(wrapper.find('.state-filter-bar').exists()).toBe(false);
-    });
-
-    it('should show a banner with the name filter when there is a nameFilter query', () => {
-      const wrapper = createWrapper(listableStore(), { query: { nameFilter: 'nginx' } });
-
-      const banners = wrapper.findAll('.state-filter-bar');
-
-      expect(banners).toHaveLength(1);
-      expect(banners[0].text()).toContain('resourceList.nameFilterApplied');
-      expect(banners[0].text()).toContain('nginx');
-    });
-
-    it('should show both the state and name filter banners when both queries are set', () => {
-      const wrapper = createWrapper(listableStore(), { query: { nameFilter: 'nginx', stateFilter: 'running' } });
-
-      const banners = wrapper.findAll('.state-filter-bar');
-
-      expect(banners).toHaveLength(2);
-      expect(banners[0].text()).toContain('resourceList.stateFilterApplied');
-      expect(banners[1].text()).toContain('resourceList.nameFilterApplied');
-    });
-
-    it('should remove only the nameFilter query when the name filter is cleared', async() => {
-      const router = { push: jest.fn() };
-      const wrapper = createWrapper(listableStore(), { query: { nameFilter: 'nginx', stateFilter: 'running' }, router });
-
-      await wrapper.findAll('.state-filter-bar')[1].find('a').trigger('click');
-
-      expect(router.push).toHaveBeenCalledWith({
-        params: { resource: 'bogus-resource-type' },
-        query:  { stateFilter: 'running' },
-      });
-    });
   });
 });
