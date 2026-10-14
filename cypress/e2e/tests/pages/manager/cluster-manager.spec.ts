@@ -640,7 +640,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
 
       clusterList.waitForPage();
       clusterList.list().resourceTable().sortableTable().filter('local', 100);
-      clusterList.goToDetailsPage('local', '.cluster-link a');
+      clusterList.goToDetailsPage('local', '.cluster-link a', true);
       clusterDetail.waitForPage();
     });
 
@@ -931,7 +931,7 @@ describe('Cluster Manager as standard user', { testIsolation: false, tags: ['@ma
       const clusterList = new ClusterManagerListPagePo('_');
 
       clusterList.waitForPage();
-      clusterList.goToDetailsPage('local', '.cluster-link a');
+      clusterList.goToDetailsPage('local', '.cluster-link a', true);
     });
 
     qase(12222, it(`Show Configuration allows to view but not edit config and yaml for local cluster`, () => {
