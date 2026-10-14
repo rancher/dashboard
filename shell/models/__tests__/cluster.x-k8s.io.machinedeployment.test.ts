@@ -233,6 +233,43 @@ describe('class CapiMachineDeployment', () => {
     });
   });
 
+  describe('poolActions', () => {
+    it('should offer only the autoscaler action, without the inherited resource actions', () => {
+      const other = {
+        ...autoscalingPool(), name: 'pool2', machineConfigRef: { name: 'pool2-config' }
+      };
+      const { deployment } = createDeployment({ machinePools: [autoscalingPool(), other] });
+
+      jest.spyOn(Object.getPrototypeOf(Object.getPrototypeOf(deployment)), '_availableActions', 'get').mockReturnValue([{ action: 'promptRemove' }]);
+
+      expect(deployment.poolActions.map((a: any) => a.action)).toStrictEqual(['toggleAutoscalerPause']);
+
+      jest.restoreAllMocks();
+    });
+
+    it('should not read the inherited resource actions', () => {
+      const { deployment } = createDeployment({ machinePools: [autoscalingPool()] });
+      const inherited = jest.spyOn(Object.getPrototypeOf(Object.getPrototypeOf(deployment)), '_availableActions', 'get').mockImplementation(() => {
+        throw new Error('no router');
+      });
+
+      expect(() => deployment.poolActions).not.toThrow();
+      expect(inherited).not.toHaveBeenCalledWith();
+
+      jest.restoreAllMocks();
+    });
+
+    it('should offer nothing for a pool that does not autoscale', () => {
+      const { deployment } = createDeployment({ machinePools: [manualPool()] });
+
+      jest.spyOn(deployment, 'inClusterSpec', 'get').mockReturnValue(manualPool());
+
+      expect(deployment.poolActions).toStrictEqual([]);
+
+      jest.restoreAllMocks();
+    });
+  });
+
   describe('canPauseResumeAutoscaler', () => {
     it('should be false without the update permission on the cluster', () => {
       const other = {
@@ -383,6 +420,49 @@ describe('class CapiMachineDeployment', () => {
         machineConfigRef:             { name: 'pool1-config' },
         machineDeploymentAnnotations: { [PAUSED_MIN]: '1', [PAUSED_MAX]: '4' },
       });
+    });
+
+    it('should not resume a pool that someone else paused while a pause click hit a 409', async() => {
+      const other = {
+        ...autoscalingPool(), name: 'pool2', machineConfigRef: { name: 'pool2-config' }
+      };
+      const { deployment, cluster, dispatch } = createDeployment({ machinePools: [autoscalingPool(), other] });
+      const save = jest.fn()
+        .mockImplementationOnce(() => {
+          cluster.spec = { rkeConfig: { machinePools: [pausedPool(), other] } };
+
+          return Promise.reject(Object.assign(new Error('conflict'), { status: 409 }));
+        })
+        .mockResolvedValue({});
+
+      cluster.save = save;
+
+      await expect(deployment.toggleAutoscalerPause()).resolves.toStrictEqual(true);
+
+      expect(save).toHaveBeenCalledTimes(1);
+      expect(dispatch).not.toHaveBeenCalledWith('growl/fromError', expect.anything(), expect.anything());
+      expect(cluster.spec.rkeConfig.machinePools[0]).toStrictEqual(pausedPool());
+    });
+
+    it('should not pause a pool that someone else resumed while a resume click hit a 409', async() => {
+      const other = {
+        ...autoscalingPool(), name: 'pool2', machineConfigRef: { name: 'pool2-config' }
+      };
+      const { deployment, cluster } = createDeployment({ machinePools: [pausedPool(), other] });
+      const save = jest.fn()
+        .mockImplementationOnce(() => {
+          cluster.spec = { rkeConfig: { machinePools: [autoscalingPool(), other] } };
+
+          return Promise.reject(Object.assign(new Error('conflict'), { status: 409 }));
+        })
+        .mockResolvedValue({});
+
+      cluster.save = save;
+
+      await expect(deployment.toggleAutoscalerPause()).resolves.toStrictEqual(true);
+
+      expect(save).toHaveBeenCalledTimes(1);
+      expect(cluster.spec.rkeConfig.machinePools[0]).toStrictEqual(autoscalingPool());
     });
 
     it('should leave the re-fetched pool alone after a 409 it ran out of retries on', async() => {

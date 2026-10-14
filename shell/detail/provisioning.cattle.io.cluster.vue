@@ -36,6 +36,7 @@ import DetailPage from '@shell/components/Resource/Detail/Page.vue';
 import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
 import ClusterPinControl from '@shell/components/ClusterPinControl.vue';
 import AutoscalerTab from '@shell/components/AutoscalerTab.vue';
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
 import { useDefaultMetadataForLegacyPagesProps } from '@shell/components/Resource/Detail/Metadata/composables';
@@ -69,6 +70,7 @@ export default {
   emits: ['input'],
 
   components: {
+    ActionMenu,
     AutoscalerTab,
     Banner,
     ResourceTable,
@@ -769,7 +771,17 @@ export default {
       const t = (key, args) => this.t(`cluster.machinePool.autoscaler.pause.${ key }`, args);
       const scaling = pool.isAutoscalerEnabled && !pool.isClusterAutoscalerPaused;
       const range = pool.autoscalerRange;
-      const reason = pool.isClusterAutoscalerPaused ? 'clusterPausedTooltip' : (pool.isLastAutoscalingPool ? 'lastPoolTooltip' : 'unconfiguredTooltip');
+
+      if (!pool.isAutoscalerManaged) {
+        return {
+          icon:      'icon-play',
+          disabled:  true,
+          ariaLabel: t('unconfiguredTooltip'),
+          tooltip:   t('unconfiguredTooltip')
+        };
+      }
+
+      const reason = pool.isClusterAutoscalerPaused ? 'clusterPausedTooltip' : 'lastPoolTooltip';
 
       if (scaling) {
         return {
@@ -800,6 +812,20 @@ export default {
         this.$store.dispatch('growl/fromError', { title: 'Error creating snapshot', err });
         btnCb(false);
       }
+    },
+
+    toggleAutoscaler(pool) {
+      if (pool.canPauseResumeAutoscaler) {
+        pool.toggleAutoscalerPause();
+      }
+    },
+
+    poolActions(pool) {
+      return (pool.poolActions || []).filter((action) => action.enabled);
+    },
+
+    invokePoolAction(pool, { action }) {
+      pool[action]();
     },
 
     showPoolAction(event, pool) {
@@ -1056,12 +1082,13 @@ export default {
                       <button
                         v-if="autoscalerToggle(group.ref)"
                         v-clean-tooltip="{ content: autoscalerToggle(group.ref).tooltip, triggers: ['hover', 'focus'] }"
-                        :disabled="autoscalerToggle(group.ref).disabled"
+                        :aria-disabled="autoscalerToggle(group.ref).disabled"
                         :aria-label="autoscalerToggle(group.ref).ariaLabel"
                         type="button"
                         class="btn btn-sm role-secondary"
+                        :class="{ disabled: autoscalerToggle(group.ref).disabled }"
                         data-testid="autoscaler-toggle-button"
-                        @click="group.ref.toggleAutoscalerPause()"
+                        @click="toggleAutoscaler(group.ref)"
                       >
                         <i
                           class="icon icon-sm"
@@ -1069,16 +1096,17 @@ export default {
                         />
                       </button>
                     </div>
-                    <button
-                      type="button"
-                      class="project-action btn btn-sm role-multi-action actions ml-10"
-                      :class="{invisible: !showPoolActionButton(group.ref)}"
-                      :aria-label="t('node.list.poolActionsAriaLabel', { name: group.ref.nameDisplay })"
-                      data-testid="pool-actions-button"
-                      @click="showPoolAction($event, group.ref)"
+                    <div
+                      class="ml-10"
+                      :class="{ invisible: !poolActions(group.ref).length }"
                     >
-                      <i class="icon icon-actions" />
-                    </button>
+                      <ActionMenu
+                        :custom-actions="poolActions(group.ref)"
+                        :button-aria-label="t('node.list.poolActionsAriaLabel', { name: group.ref.nameDisplay })"
+                        data-testid="pool-actions-button"
+                        @action-invoked="invokePoolAction(group.ref, $event)"
+                      />
+                    </div>
                   </div>
                 </div>
               </template>
@@ -1324,8 +1352,6 @@ export default {
 </template>
 
 <style lang='scss' scoped>
-// the scale buttons and the autoscaler toggle read as one control, so they sit closer to each
-// other than to the pool action button beside them
 $pool-control-gap: 4px;
 
 .main-row .no-entries {

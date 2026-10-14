@@ -1,6 +1,7 @@
 import { h } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import ProvisioningCattleIoCluster from '@shell/detail/provisioning.cattle.io.cluster.vue';
+import ActionMenuShell from '@shell/components/ActionMenuShell.vue';
 import * as TitleBarComposables from '@shell/components/Resource/Detail/TitleBar/composables';
 import * as MetadataComposables from '@shell/components/Resource/Detail/Metadata/composables';
 
@@ -311,6 +312,7 @@ describe('view: provisioning.cattle.io.cluster', () => {
       canPauseResumeAutoscaler:  true,
       showScalePool:             false,
       toggleAutoscalerPause:     jest.fn().mockResolvedValue(true),
+      poolActions:               [],
       ...overrides,
     });
 
@@ -397,7 +399,8 @@ describe('view: provisioning.cattle.io.cluster', () => {
       const toggle = wrapper.find('[data-testid="autoscaler-toggle-button"]');
 
       expect(toggle.find('i').classes()).toContain(expected.icon);
-      expect(toggle.attributes('disabled')).toStrictEqual(expected.disabled ? '' : undefined);
+      expect(toggle.attributes('aria-disabled')).toStrictEqual(`${ expected.disabled }`);
+      expect(toggle.attributes('disabled')).toBeUndefined();
       expect(wrapper.find('[data-testid="scale-up-button"]').attributes('disabled')).toStrictEqual(expected.scaleDisabled ? '' : undefined);
     });
 
@@ -408,6 +411,23 @@ describe('view: provisioning.cattle.io.cluster', () => {
       await wrapper.find('[data-testid="autoscaler-toggle-button"]').trigger('click');
 
       expect(pool.toggleAutoscalerPause).toHaveBeenCalledWith();
+    });
+
+    it('should not toggle the autoscaler from a disabled toggle', async() => {
+      const pool = autoscalingPool({ isLastAutoscalingPool: true, canPauseResumeAutoscaler: false });
+      const { wrapper } = await mountWithPool(pool);
+
+      await wrapper.find('[data-testid="autoscaler-toggle-button"]').trigger('click');
+
+      expect(pool.toggleAutoscalerPause).not.toHaveBeenCalledWith();
+    });
+
+    it('should name the toggle of a pool with no autoscaler by why it is disabled', async() => {
+      const { wrapper } = await mountWithPool(autoscalingPool({
+        isAutoscalerEnabled: false, isAutoscalerManaged: false, canPauseResumeAutoscaler: false
+      }));
+
+      expect(wrapper.find('[data-testid="autoscaler-toggle-button"]').attributes('aria-label')).toStrictEqual('%cluster.machinePool.autoscaler.pause.unconfiguredTooltip%');
     });
 
     it('should keep the scale controls beside the toggle', async() => {
@@ -425,22 +445,42 @@ describe('view: provisioning.cattle.io.cluster', () => {
       expect(wrapper.find('[data-testid="autoscaler-toggle-button"]').exists()).toBe(false);
     });
 
-    it('should open the pool action menu for a pool that has actions', async() => {
-      const pool = autoscalingPool({ availableActions: [{ action: 'toggleAutoscalerPause' }] });
-      const { wrapper, commit } = await mountWithPool(pool);
-      const button = wrapper.find('[data-testid="pool-actions-button"]');
+    it('should offer only the pool actions that are enabled in the pool action menu', async() => {
+      const toggleAction = { action: 'toggleAutoscalerPause', enabled: true };
+      const { wrapper } = await mountWithPool(autoscalingPool({ poolActions: [toggleAction, { action: 'other', enabled: false }] }));
+      const menu = wrapper.findComponent(ActionMenuShell);
 
-      expect(button.classes()).not.toContain('invisible');
-
-      await button.trigger('click');
-
-      expect(commit).toHaveBeenCalledWith('action-menu/show', expect.objectContaining({ resources: [pool] }));
+      expect(menu.props('customActions')).toStrictEqual([toggleAction]);
+      expect(menu.element.parentElement?.classList.contains('invisible')).toBe(false);
     });
 
-    it('should hide the action button for a pool with no actions', async() => {
-      const { wrapper } = await mountWithPool(autoscalingPool({ availableActions: [] }));
+    it('should run the pool action picked from the pool action menu', async() => {
+      const pool = autoscalingPool({ poolActions: [{ action: 'toggleAutoscalerPause', enabled: true }] });
+      const { wrapper } = await mountWithPool(pool);
 
-      expect(wrapper.find('[data-testid="pool-actions-button"]').classes()).toContain('invisible');
+      wrapper.findComponent(ActionMenuShell).vm.$emit('action-invoked', { action: 'toggleAutoscalerPause' });
+
+      expect(pool.toggleAutoscalerPause).toHaveBeenCalledWith();
+    });
+
+    it('should hide the pool action menu for a pool with no actions', async() => {
+      const { wrapper } = await mountWithPool(autoscalingPool({ poolActions: [] }));
+
+      expect(wrapper.findComponent(ActionMenuShell).element.parentElement?.classList.contains('invisible')).toBe(true);
+    });
+
+    it('should render the row of a pool whose inherited resource actions cannot be built', async() => {
+      const pool = autoscalingPool();
+
+      Object.defineProperty(pool, 'availableActions', {
+        get() {
+          throw new Error('no router');
+        }
+      });
+
+      const { wrapper } = await mountWithPool(pool);
+
+      expect(wrapper.find('[data-testid="autoscaler-toggle-button"]').exists()).toBe(true);
     });
   });
 

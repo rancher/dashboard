@@ -195,9 +195,17 @@ export default class CapiMachineDeployment extends CapiMachineRoot {
 
   get _availableActions() {
     const out = super._availableActions;
+    const poolActions = this.poolActions;
 
+    return poolActions.length ? [...poolActions, { divider: true }, ...out] : out;
+  }
+
+  /**
+   * The actions that belong to the machine pool rather than to the MachineDeployment resource
+   */
+  get poolActions() {
     if (!this.isAutoscalerManaged || !isAutoscalerFeatureFlagEnabled({ rootGetters: this.$rootGetters })) {
-      return out;
+      return [];
     }
 
     const paused = this.isAutoscalerPaused;
@@ -207,9 +215,7 @@ export default class CapiMachineDeployment extends CapiMachineRoot {
       label:   this.t(paused ? 'cluster.machinePool.autoscaler.pause.resumeAction' : 'cluster.machinePool.autoscaler.pause.pauseAction'),
       icon:    `icon ${ paused ? 'icon-play' : 'icon-pause' }`,
       enabled: this.canPauseResumeAutoscaler
-    },
-    { divider: true },
-    ...out];
+    }];
   }
 
   get isAutoscalerEnabled() {
@@ -263,7 +269,7 @@ export default class CapiMachineDeployment extends CapiMachineRoot {
    */
   toggleAutoscalerPause() {
     if (!this.autoscalerPauseRequest) {
-      this.autoscalerPauseRequest = this.saveAutoscalerPause().finally(() => {
+      this.autoscalerPauseRequest = this.saveAutoscalerPause(!this.isAutoscalerPaused).finally(() => {
         this.autoscalerPauseRequest = null;
       });
     }
@@ -271,8 +277,12 @@ export default class CapiMachineDeployment extends CapiMachineRoot {
     return this.autoscalerPauseRequest;
   }
 
-  async saveAutoscalerPause(depth = 0) {
+  async saveAutoscalerPause(pause, depth = 0) {
     const pool = this.inClusterSpec;
+
+    if (pool && (pause ? this.isAutoscalerPaused : this.isAutoscalerEnabled)) {
+      return true;
+    }
 
     if (!pool || !this.canPauseResumeAutoscaler) {
       return false;
@@ -280,10 +290,10 @@ export default class CapiMachineDeployment extends CapiMachineRoot {
 
     const rollback = snapshotAutoscalerFields(pool);
 
-    if (this.isAutoscalerPaused) {
-      resumeMachinePoolAutoscaler(pool);
-    } else {
+    if (pause) {
       pauseMachinePoolAutoscaler(pool, this.desired);
+    } else {
+      resumeMachinePoolAutoscaler(pool);
     }
 
     try {
@@ -293,7 +303,7 @@ export default class CapiMachineDeployment extends CapiMachineRoot {
     } catch (err) {
       if ( err.status === 409 ) {
         if ( depth < 2 ) {
-          return this.saveAutoscalerPause(depth + 1);
+          return this.saveAutoscalerPause(pause, depth + 1);
         }
       } else {
         restoreAutoscalerFields(this.inClusterSpec, rollback);
