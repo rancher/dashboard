@@ -13,6 +13,11 @@ import { sameContents } from '@shell/utils/array';
 import { nearestMatches } from '@shell/utils/fuzzy';
 import { SCHEMA } from '@shell/config/types';
 import perfSettingsUtils from '@shell/utils/perf-setting.utils';
+import { BadgeState } from '@components/BadgeState';
+import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { useStateColor } from '@shell/composables/useStateColor';
+import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
+import { STATE_FILTER_QUERY } from '@shell/config/query-params';
 
 export default {
   name: ResourceListComponentName,
@@ -25,8 +30,15 @@ export default {
     ResourceLoadingIndicator,
     IconMessage,
     ExtensionPanel,
+    BadgeState,
   },
   mixins: [ResourceFetch],
+
+  setup() {
+    const { toStateColor } = useStateColor();
+
+    return { toStateColor };
+  },
 
   props: {
     hasAdvancedFiltering: {
@@ -172,6 +184,35 @@ export default {
     showIncrementalLoadingIndicator() {
       return perfSettingsUtils.incrementalLoadingUtils.isEnabled(this.calcCanPaginate(), this.perfConfig);
     },
+
+    activeStateFilters() {
+      const raw = this.$route?.query?.[STATE_FILTER_QUERY];
+
+      // With table views the states are terms in the table's query instead
+      if (!raw || isConfigurableTablesEnabled(this.$store)) {
+        return [];
+      }
+
+      const states = raw.split(',').filter(Boolean);
+
+      return states.map((s) => {
+        // The model's own state too: the backend doesn't store every state, eg a certificate's `expiring`
+        const match = this.rows.find((row) => row.metadata?.state?.name === s || row.state === s);
+
+        if (match) {
+          return {
+            label: match.stateDisplay,
+            color: match.stateBackground,
+          };
+        }
+
+        return {
+          label: stateDisplay(s, true),
+          color: `bg-${ this.toStateColor(s, this.resource) }`,
+        };
+      });
+    },
+
   },
 
   methods: {
@@ -199,6 +240,13 @@ export default {
       });
 
       return { label: match, url: href };
+    },
+
+    clearStateFilter() {
+      const query = { ...this.$route.query };
+
+      delete query[STATE_FILTER_QUERY];
+      this.$router.push({ ...this.$route, query });
     },
   },
 
@@ -310,6 +358,28 @@ export default {
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
     >
+      <template
+        v-if="activeStateFilters.length"
+        #subHeader
+      >
+        <div class="state-filter-bar text-muted">
+          {{ t('resourceList.stateFilterApplied') }}
+          <BadgeState
+            v-for="state in activeStateFilters"
+            :key="state.label"
+            :color="state.color"
+            :label="state.label"
+            class="badge-state-font-size"
+          />
+          <span>.</span>
+          <a
+            role="button"
+            @click="clearStateFilter"
+          >
+            {{ t('resourceList.clearStateFilter') }}
+          </a>
+        </div>
+      </template>
       <template #extraActions>
         <slot name="extraActions" />
       </template>
@@ -368,5 +438,19 @@ export default {
       position: absolute;
       top: 10px;
       right: 10px;
+    }
+
+    .state-filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      a {
+        cursor: pointer;
+      }
+    }
+
+    .badge-state-font-size {
+      font-size: .85em;
     }
 </style>
