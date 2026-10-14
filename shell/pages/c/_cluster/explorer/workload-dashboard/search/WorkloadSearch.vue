@@ -6,7 +6,7 @@ import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
-import { ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { POD } from '@shell/config/types';
 import { useWorkloadSearch } from './useWorkloadSearch';
 import { WORKLOAD_SEARCH_MIN_CHARS, type WorkloadSearchOption } from './types';
@@ -19,11 +19,21 @@ const props = defineProps<{
 
 
 /**
- * How many workloads to show in the entire drop down
+ * The most workloads to show in the entire drop down
  *
  * One row for the group label + the results shown per type + plus half a row (so user sees there's more results)
  */
-const dropdownVisibleRows = 14;
+const maxDropdownVisibleRows = 14;
+
+/**
+ * The fewest rows to show, even if they run past the bottom of the window
+ */
+const minDropdownVisibleRows = 3.5;
+
+/**
+ * Gap to leave between the bottom of the drop down and the bottom of the window
+ */
+const dropdownViewportMargin = 16;
 
 /**
  * height of a row
@@ -45,6 +55,26 @@ const {
 } = useWorkloadSearch();
 
 const searchRef = ref<InstanceType<typeof LabeledSelect> | null>(null);
+
+const dropdownVisibleRows = ref(maxDropdownVisibleRows);
+
+// Fit the drop down in the space below the search, so it doesn't run past the bottom of the window
+function updateDropdownVisibleRows(): void {
+  const searchEl = searchRef.value?.$el as HTMLElement | undefined;
+
+  if (!searchEl) {
+    return;
+  }
+
+  const available = window.innerHeight - searchEl.getBoundingClientRect().bottom - dropdownViewportMargin;
+  // Whole rows that fit, less half a row so the last one still hints there are more
+  const rows = Math.floor(available / dropdownVisibleRowHeight) - 0.5;
+
+  dropdownVisibleRows.value = Math.max(minDropdownVisibleRows, Math.min(maxDropdownVisibleRows, rows));
+}
+
+onMounted(() => window.addEventListener('resize', updateDropdownVisibleRows));
+onBeforeUnmount(() => window.removeEventListener('resize', updateDropdownVisibleRows));
 
 // Opening a row's action menu blurs the search input, which makes vue-select clear its search and
 // close, unmounting the results and the action menu with them. Remember enough to reopen it on that blur.
@@ -131,6 +161,7 @@ function onActionInvoked(): void {
     @search="handleSearch"
     @update:value="onSelect"
     @on-blur="onSearchBlur"
+    @on-open="updateDropdownVisibleRows"
   >
     <template #option="option">
       <b
