@@ -136,6 +136,10 @@ export default {
       return this.mode === _EDIT;
     },
 
+    showFleetManagedBanner() {
+      return this.isView || this.isEdit;
+    },
+
     isCreate() {
       return this.mode === _CREATE;
     },
@@ -605,6 +609,7 @@ export default {
       :label="t('resourceDetail.masthead.managedWarning', managedWarning)"
     />
     <FleetManagedBanner
+      v-if="showFleetManagedBanner"
       :resource="value"
       class="mb-20"
     />

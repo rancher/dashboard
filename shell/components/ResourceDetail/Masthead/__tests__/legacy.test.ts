@@ -2,7 +2,10 @@ import Legacy from '@shell/components/ResourceDetail/Masthead/legacy.vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { FLEET, KUBERNETES } from '@shell/config/labels-annotations';
 
-type LegacyComputed = { managedWarning: (this: { value: object, mode: string }) => { show: boolean } };
+type LegacyComputed = {
+  managedWarning: (this: { value: object, mode: string }) => { show: boolean };
+  showFleetManagedBanner: (this: { isView: boolean, isEdit: boolean }) => boolean;
+};
 
 describe('component: Masthead/legacy', () => {
   describe('computed: managedWarning', () => {
@@ -27,6 +30,18 @@ describe('component: Masthead/legacy', () => {
       };
 
       expect(managedWarning.call({ value, mode: _EDIT }).show).toBe(false);
+    });
+  });
+
+  describe('computed: showFleetManagedBanner', () => {
+    const { showFleetManagedBanner } = (Legacy as unknown as { computed: LegacyComputed }).computed;
+
+    it.each([
+      ['view', { isView: true, isEdit: false }, true],
+      ['edit', { isView: false, isEdit: true }, true],
+      ['create, clone or import', { isView: false, isEdit: false }, false],
+    ])('should return the expected value when the mode is %s', (_, mode, expected) => {
+      expect(showFleetManagedBanner.call(mode)).toBe(expected);
     });
   });
 });
