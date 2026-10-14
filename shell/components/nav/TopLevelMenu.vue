@@ -2612,12 +2612,12 @@ export default {
     transform: translateX($app-bar-collapsed-width);
     opacity: 1;
     justify-content: center;
+    width: 230px;
     transition: all $nav-open-duration $nav-easing;
     overflow: hidden;
     & IMG {
       object-fit: contain;
-      max-width: 220px;
-      height: 45px;
+      height: 35px;
     }
   }
 

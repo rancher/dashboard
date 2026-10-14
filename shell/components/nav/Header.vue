@@ -968,7 +968,7 @@ export default {
 
     .side-menu-logo-img {
       object-fit: contain;
-      height: 40px;
+      height: 35px;
     }
 
     > * {
