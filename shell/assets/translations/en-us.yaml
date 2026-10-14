@@ -6578,6 +6578,7 @@ resourceDetail:
         no {a {managedBy} app}
         yes {the {managedBy} app {appName}}
         other {a {managedBy} app}}; changes made here will likely be overwritten the next time {managedBy} runs.
+    fleetManaged: This resource is managed by <b>Fleet</b>. To make permanent changes, update the configuration in the source repository. Any manual changes made here will be overwritten during the next sync.
 resourceList:
   head:
     create: Create
