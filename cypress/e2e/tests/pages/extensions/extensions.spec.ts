@@ -160,9 +160,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.goTo();
     extensionsPo.waitForTitle();
 
-    // if rancher prime, title should be Rancher Prime - Extensions, otherewise Rancher - Extensions
+    // if rancher prime, title should be Rancher Prime - Extensions, otherwise Rancher Community - Extensions
     cy.getRancherVersion(true).then((version) => {
-      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Extensions' : 'Rancher - Extensions';
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Extensions' : 'Rancher Community - Extensions';
 
       cy.title().should('eq', expectedTitle);
     });

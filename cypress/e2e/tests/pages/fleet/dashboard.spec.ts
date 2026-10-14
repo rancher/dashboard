@@ -33,7 +33,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     fleetDashboardPage.fleetDashboardEmptyState().should('be.visible');
 
     cy.getRancherVersion().then((version) => {
-      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Continuous Delivery - Dashboard' : 'Rancher - Continuous Delivery - Dashboard';
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Continuous Delivery - Dashboard' : 'Rancher Community - Continuous Delivery - Dashboard';
 
       cy.title().should('eq', expectedTitle);
     });
