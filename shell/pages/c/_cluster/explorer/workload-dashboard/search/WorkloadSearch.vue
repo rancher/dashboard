@@ -83,7 +83,7 @@ const lastSearchTerm = ref('');
 
 // "+X more" rows are options rather than buttons so they're reachable with the arrow keys and Enter
 function isOptionSelectable(option: WorkloadSearchOption): boolean {
-  return option.kind !== 'group';
+  return option.kind !== 'group' && option.kind !== 'error';
 }
 
 function optionRoute(option: WorkloadSearchOption) {
@@ -168,6 +168,10 @@ function onActionInvoked(): void {
         v-if="option.kind === 'group'"
         class="group-label"
       >{{ option.label }}</b>
+      <span
+        v-else-if="option.kind === 'error'"
+        class="error-label text-error"
+      >{{ option.label }}</span>
       <!-- The click carries on to vue-select, which selects the option like any other result -->
       <a
         v-else-if="option.kind === 'more'"
@@ -236,7 +240,8 @@ $row-margin-y: 8px;
   width: 100%;
 }
 
-.group-label {
+.group-label,
+.error-label {
   display: block;
   padding: $row-margin-y $row-padding-x;
 }

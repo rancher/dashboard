@@ -103,6 +103,12 @@ const moreOption: WorkloadSearchOption = {
   searchTerm:   'nginx',
 };
 
+const errorOption: WorkloadSearchOption = {
+  kind:     'error',
+  label:    'Failed to fetch Deployments',
+  uniqueId: 'error-apps.deployment',
+};
+
 function createWrapper() {
   return shallowMount(WorkloadSearch, {
     props:  { navigateToNamespace, resourceRoute },
@@ -151,6 +157,7 @@ describe('component: WorkloadSearch', () => {
       ['a result', makeResult('nginx'), true],
       ['a group header', groupOption('apps.deployment'), false],
       ['a "more" row', moreOption, true],
+      ['an error row', errorOption, false],
     ])('should treat %s as selectable: %s', (_, option, expected) => {
       const wrapper = createWrapper();
       const selectable = wrapper.findComponent(LabeledSelectStub).props('selectable') as (o: WorkloadSearchOption) => boolean;
@@ -192,6 +199,22 @@ describe('component: WorkloadSearch', () => {
       const wrapper = createWrapper();
 
       expect(wrapper.find('.group-label').text()).toStrictEqual('apps.deployment (2)');
+    });
+  });
+
+  describe('error rows', () => {
+    it('should render the error label', () => {
+      mockOptions.value = [errorOption];
+      const wrapper = createWrapper();
+
+      expect(wrapper.find('.error-label').text()).toStrictEqual('Failed to fetch Deployments');
+    });
+
+    it('should not render a result row for an error', () => {
+      mockOptions.value = [errorOption];
+      const wrapper = createWrapper();
+
+      expect(wrapper.find('.workload-search-option').exists()).toBe(false);
     });
   });
 

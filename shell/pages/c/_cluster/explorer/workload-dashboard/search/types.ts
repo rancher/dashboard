@@ -16,10 +16,10 @@ export const WORKLOAD_SEARCH_RESULTS_PER_TYPE = 7;
 
 export interface WorkloadSearchOption {
   /**
-   * Set on group header (by-type) options and the trailing "+X more" row;
-   * omitted on real, selectable options.
+   * Set on group header (by-type) options, the trailing "+X more" row and the row for a type
+   * whose search failed; omitted on real, selectable options.
    */
-  kind?: 'group' | 'more';
+  kind?: 'group' | 'more' | 'error';
   label: string;
   uniqueId: string;
   namespace?: string;

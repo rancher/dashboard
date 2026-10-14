@@ -104,8 +104,14 @@ export function useWorkloadSearch() {
       }
 
       return options;
-    } catch {
-      return [];
+    } catch (err) {
+      console.error(`Failed to search ${ type }`, err); // eslint-disable-line no-console
+
+      return [{
+        kind:     'error',
+        label:    t('workloadDashboard.errors.fetchType', { type: t(`typeLabel."${ type }"`, { count: 2 })?.trim() || type }),
+        uniqueId: `error-${ type }`,
+      }];
     }
   }
 

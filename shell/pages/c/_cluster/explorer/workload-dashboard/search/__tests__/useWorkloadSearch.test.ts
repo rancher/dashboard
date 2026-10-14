@@ -275,7 +275,7 @@ describe('composable: useWorkloadSearch', () => {
     expect(result.options.value.some((option) => option.kind === 'more')).toBe(false);
   });
 
-  it('omits a type whose request fails and keeps the results of the others', async() => {
+  it('shows an error row for a type whose request fails and keeps the results of the others', async() => {
     const [failingType, okType] = WORKLOAD_DASHBOARD_RESOURCE_TYPES;
 
     mockDispatch.mockImplementation((action: string, { type }: { type: string }) => {
@@ -290,9 +290,25 @@ describe('composable: useWorkloadSearch', () => {
     await search(result, 'nginx');
 
     expect(result.options.value.map((option) => option.uniqueId)).toStrictEqual([
+      `error-${ failingType }`,
       `group-${ okType }`,
       `${ okType }/default/nginx-a`,
     ]);
+  });
+
+  it('labels the error row with the type that could not be searched', async() => {
+    mockDispatch.mockImplementation((action: string, { type }: { type: string }) => {
+      return type === FIRST_TYPE ? Promise.reject(new Error('boom')) : Promise.resolve({ data: [] });
+    });
+    const { result } = mountComposable();
+
+    await search(result, 'nginx');
+
+    expect(result.options.value).toStrictEqual([{
+      kind:     'error',
+      label:    `%workloadDashboard.errors.fetchType%${ JSON.stringify({ type: `%typeLabel."${ FIRST_TYPE }"%{"count":2}` }) }`,
+      uniqueId: `error-${ FIRST_TYPE }`,
+    }]);
   });
 
   it('ignores a response for a search that has since been superseded by a newer search', async() => {
