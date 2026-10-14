@@ -170,13 +170,10 @@ describe('component: MultiResourceYaml', () => {
   });
 
   describe('management banner', () => {
-    it('should give the management banner the primary resource, as editable, while it is selected', () => {
-      const primaryResource = { type: 'cluster', id: 'ns/primary' };
-      const wrapper = mountComponent([{ resource: { type: 'config', id: 'ns/a' } }], primaryResource);
-      const banner = wrapper.findComponent(ManagementBanner);
+    it('should show no management banner while the primary resource is selected', () => {
+      const wrapper = mountComponent([{ resource: { type: 'config', id: 'ns/a' } }]);
 
-      expect(banner.props('resource')).toStrictEqual(primaryResource);
-      expect(banner.props('readOnly')).toBe(false);
+      expect(wrapper.findComponent(ManagementBanner).exists()).toBe(false);
     });
 
     it.each([

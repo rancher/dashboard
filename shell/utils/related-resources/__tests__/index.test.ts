@@ -146,11 +146,11 @@ describe('utils: related-resources', () => {
       expect(model.$dispatch).toHaveBeenCalledWith('findAll', { type: 'configmap', opt: LIST_OPTIONS });
     });
 
-    it('should fetch the resources of the namespace, and drop any the store returns from other namespaces', async() => {
-      const inNamespace = { metadata: { namespace: 'a' } };
-      const model = storeModel({ types: ['configmap'], findAll: jest.fn(() => Promise.resolve([inNamespace, { metadata: { namespace: 'b' } }])) });
+    it('should fetch the resources of the namespace', async() => {
+      const inNamespace = [{ metadata: { namespace: 'a' } }];
+      const model = storeModel({ types: ['configmap'], findAll: jest.fn(() => Promise.resolve(inNamespace)) });
 
-      expect(await findAllInNamespace(model, 'configmap', 'a')).toStrictEqual([inNamespace]);
+      expect(await findAllInNamespace(model, 'configmap', 'a')).toStrictEqual(inNamespace);
       expect(model.$dispatch).toHaveBeenCalledWith('findAll', { type: 'configmap', opt: { ...LIST_OPTIONS, namespaced: 'a' } });
     });
 

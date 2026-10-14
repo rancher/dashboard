@@ -613,9 +613,9 @@ defineExpose({ editorState });
             :label-key="selectedBanner.labelKey"
             :icon="selectedBanner.icon"
           />
-          <!-- use selectedIndex to avoid showing the mgmt banner for the primary resource - ResourceDetailMasthead covers this -->
+          <!-- selectedEntry is undefined while the primary resource is selected - ResourceDetailMasthead covers the primary -->
           <ManagementBanner
-            v-if="selectedIndex > 0"
+            v-if="selectedEntry"
             :resource="selectedResource"
             :read-only="selectedReadOnly"
             :primary-resource="primaryResource"
