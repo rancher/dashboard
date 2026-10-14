@@ -3,7 +3,7 @@ import { useStore } from 'vuex';
 import type { RouteLocationRaw } from 'vue-router';
 import { useI18n } from '@shell/composables/useI18n';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
-import { STATE_FILTER_QUERY, NAME_FILTER_QUERY } from '@shell/config/query-params';
+import { STATE_FILTER_QUERY } from '@shell/config/query-params';
 import { CERT_MANAGER } from '../../types';
 import { buildCertificateSummary, buildExpiringSoon, buildIssuerCard, buildAcmeCard } from './aggregate';
 import type { OverviewRouteFn } from './types';
