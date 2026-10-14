@@ -267,7 +267,7 @@ const onDrop = async(event: DragEvent) => {
   }
 
   .sub-label {
-    padding-top: 5px;
+    padding-top: 4px;
     color: var(--input-label);
   }
 
