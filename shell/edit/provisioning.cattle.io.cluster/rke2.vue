@@ -8,6 +8,7 @@ import { useKubernetesVersions, getDefaultVersion } from '@shell/composables/use
 import { usePodSecurityAdmissionTemplates } from '@shell/composables/usePodSecurityAdmissionTemplates';
 import { useMachinePools, syncMachineConfigWithLatest } from '@shell/composables/useMachinePools';
 import { useRegistryConfig } from '@shell/composables/useRegistryConfig';
+import { useClusterMembership, saveRoleBindings } from '@shell/composables/useClusterMembership';
 import { normalizeName } from '@shell/utils/kube';
 import AccountAccess from '@shell/components/google/AccountAccess.vue';
 
@@ -38,7 +39,6 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 
-import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
 import semver from 'semver';
 
 import { CLOUD_CREDENTIAL_OVERRIDE } from '@shell/models/nodedriver';
@@ -137,6 +137,7 @@ export default {
       ...usePodSecurityAdmissionTemplates(),
       ...useMachinePools(),
       ...useRegistryConfig(props),
+      ...useClusterMembership(),
     };
   },
 
@@ -241,7 +242,6 @@ export default {
        * { [chartName:string]: { chart: json, readme: string, values: json } }
        */
       versionInfo:               {},
-      membershipUpdate:          {},
       userChartValues:           {},
       userChartValuesTemp:       {},
       addonsRev:                 0,
@@ -566,10 +566,6 @@ export default {
       }
 
       return out;
-    },
-
-    canManageMembers() {
-      return canViewClusterMembershipEditor(this.$store);
     },
 
     isHarvesterDriver() {
@@ -1357,9 +1353,7 @@ export default {
     async saveRoleBindings() {
       await this.value.waitForMgmt();
 
-      if (this.membershipUpdate.save) {
-        await this.membershipUpdate.save(this.value.mgmt.id);
-      }
+      return saveRoleBindings(this.membershipUpdate, this.value.mgmt.id);
     },
 
     async showIpv6Warning(hookContext) {
@@ -1779,10 +1773,6 @@ export default {
       const addonVersion = this.addonVersions.find((av) => av.name === name);
 
       return addonVersion ? `${ name }-${ addonVersion.version }` : name;
-    },
-
-    onMembershipUpdate(update) {
-      this['membershipUpdate'] = update;
     },
 
     generateYaml() {

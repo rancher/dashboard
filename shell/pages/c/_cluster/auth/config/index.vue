@@ -1,17 +1,21 @@
 <script>
 import { MANAGEMENT } from '@shell/config/types';
+import { isRancherPrime } from '@shell/config/version';
+import { providerIcon, providerKey } from '@shell/models/management.cattle.io.authconfig';
 import { Banner } from '@components/Banner';
+import { RcButton } from '@components/RcButton';
 import Loading from '@shell/components/Loading';
 import { RcCounterBadge } from '@components/Pill';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import AuthProviderAccessDrawer from '@shell/components/auth/AuthProviderAccessDrawer.vue';
 import AuthProviderRow from '@shell/components/auth/AuthProviderRow.vue';
 import AuthProvidersEmptyState from '@shell/components/auth/AuthProvidersEmptyState.vue';
+import AuthProvidersPrimeNotice from '@shell/components/auth/AuthProvidersPrimeNotice.vue';
 import DisableLocalLoginCard from '@shell/components/auth/DisableLocalLoginCard.vue';
-import { HIDE_LOCAL_AUTH_PROVIDER } from '@shell/store/features';
+import { HIDE_LOCAL_AUTH_PROVIDER, MULTIPLE_AUTH_PROVIDERS } from '@shell/store/features';
 import { MODE, _EDIT } from '@shell/config/query-params';
 import { LOCAL_AUTH_ID, UNSUPPORTED_AUTH_IDS, canWriteLocalAuthFeature, localAuthFeature } from '@shell/utils/auth';
-import { sortBy } from '@shell/utils/sort';
+import { canEnableAuthProvider, toProviderTypes } from '@shell/utils/auth-providers';
 
 const resource = MANAGEMENT.AUTH_CONFIG;
 
@@ -21,26 +25,65 @@ export default {
     ActionMenu,
     AuthProviderRow,
     AuthProvidersEmptyState,
+    AuthProvidersPrimeNotice,
     Banner,
     DisableLocalLoginCard,
     Loading,
+    RcButton,
     RcCounterBadge,
   },
 
   async fetch() {
-    this.allConfigs = await this.$store.dispatch('management/findAll', { type: resource });
+    const [configs] = await Promise.all([
+      this.$store.dispatch('management/findAll', { type: resource }),
+      this.loadProviderTypes(),
+    ]);
+
+    this.allConfigs = configs;
   },
 
   data() {
     return {
-      allConfigs:  [],
-      toggleError: null,
+      allConfigs:    [],
+      providerTypes: null,
+      toggleError:   null,
     };
   },
 
   computed: {
+    /**
+     * Every provider an admin has added. Nothing is pre-created, so a config that
+     * exists is one somebody made, whether or not it is currently switched on.
+     * Providers the dashboard has no form for are left out, as there is nothing
+     * an admin could do with their row.
+    */
     rows() {
-      return this.allConfigs.filter((c) => c.enabled && c.id !== LOCAL_AUTH_ID);
+      return this.allConfigs.filter((c) => c.id !== LOCAL_AUTH_ID && !UNSUPPORTED_AUTH_IDS.includes(providerKey(c._type)));
+    },
+
+    /**
+     * Local cannot be turned off until something else can let people in. A
+     * provider the dashboard cannot configure still lets people in.
+     */
+    hasEnabledProvider() {
+      return this.allConfigs.some((c) => c.id !== LOCAL_AUTH_ID && c.enabled);
+    },
+
+    multipleAllowed() {
+      return this.$store.getters['features/get'](MULTIPLE_AUTH_PROVIDERS);
+    },
+
+    canAddProvider() {
+      return canEnableAuthProvider(this.allConfigs, this.multipleAllowed);
+    },
+
+    isPrime() {
+      return isRancherPrime();
+    },
+
+    /** Without Prime's `multiple-auth-providers` feature, one provider is enabled at a time. */
+    showPrimeNotice() {
+      return this.rows.length > 0 && !this.multipleAllowed;
     },
 
     localConfig() {
@@ -59,18 +102,20 @@ export default {
       return canWriteLocalAuthFeature(this.$store.getters);
     },
 
-    providerTypes() {
-      const configurable = this.allConfigs.filter((c) => c.id !== LOCAL_AUTH_ID && !UNSUPPORTED_AUTH_IDS.includes(c.id));
-
-      return sortBy(configurable, ['sideLabel', 'provider']);
-    },
-
+    /**
+     * Local has no vendor copy of its own, so it falls back to describing what
+     * the built-in accounts are for.
+     */
     localDescription() {
       if (this.localConfig?.description) {
         return this.localConfig.description;
       }
 
       return this.disableLocalAuth ? this.t('authConfig.list.localRow.descriptionDisabled') : this.t('authConfig.list.localRow.description');
+    },
+
+    localIcon() {
+      return providerIcon(LOCAL_AUTH_ID);
     },
 
     localUsersRoute() {
@@ -91,19 +136,65 @@ export default {
   },
 
   methods: {
-    promptAddProvider() {
+    /**
+     * Only the add dialog needs the provider types, so failing to read them leaves
+     * the list standing. The dialog asks for them again when it is opened.
+     *
+     * @returns the error, if they could not be read
+     */
+    async loadProviderTypes() {
+      try {
+        const types = await this.$store.dispatch('auth/getAuthProviderTypes');
+
+        this.providerTypes = toProviderTypes(types, { withFallback: this.$store.getters['i18n/withFallback'] });
+
+        return null;
+      } catch (err) {
+        return err;
+      }
+    },
+
+    async promptAddProvider() {
+      if (!this.canAddProvider) {
+        return;
+      }
+
+      if (!this.providerTypes) {
+        const err = await this.loadProviderTypes();
+
+        if (err) {
+          this.$store.dispatch('growl/fromError', { title: this.t('generic.notification.title.error'), err });
+
+          return;
+        }
+      }
+
       this.$store.dispatch('management/promptModal', {
         component:      'AddAuthProviderDialog',
         modalWidth:     '960px', // AppModal ignores a width with no unit and falls back to 600px
         height:         'auto',
         styles:         'max-height: 100vh;',
         componentProps: {
-          rows:     this.providerTypes,
-          selectCb: (id) => this.$router.push(this.editLocation({ id })),
+          rows:            this.providerTypes,
+          selectCb:        (provider) => this.$router.push(this.addLocation(provider)),
+          prime:           this.isPrime,
+          multipleAllowed: this.multipleAllowed,
         },
       });
     },
 
+    /**
+     * Where picking a provider type in the add dialog goes.
+     *
+     * Every connection to a provider is a config of its own, which needs a name
+     * before it can be written, so adding one always starts on the create page.
+     */
+    addLocation(provider) {
+      return {
+        name:   'c-cluster-auth-config-create-provider',
+        params: { cluster: this.$route.params.cluster, provider },
+      };
+    },
     editLocation(row) {
       return {
         name:   'c-cluster-auth-config-id',
@@ -175,6 +266,15 @@ export default {
           {{ t('authConfig.list.description') }}
         </p>
       </div>
+      <RcButton
+        v-if="rows.length && canAddProvider"
+        variant="primary"
+        size="large"
+        data-testid="auth-config-create"
+        @click="promptAddProvider"
+      >
+        {{ t('generic.create') }}
+      </RcButton>
     </header>
 
     <Banner
@@ -183,8 +283,9 @@ export default {
       :label="toggleError"
     />
 
+    <!-- Nothing to disable local login in favour of until a provider is enabled -->
     <DisableLocalLoginCard
-      v-if="rows.length"
+      v-if="hasEnabledProvider"
       :value="disableLocalAuth"
       :disabled="!canToggleLocalAuth"
       @update:value="setDisableLocalAuth"
@@ -223,7 +324,7 @@ export default {
         :chips="chipsFor(row)"
         :description="row.description"
         :meta="row.id"
-        status="success"
+        :status="row.enabled ? 'success' : 'none'"
         :status-label="row.stateDisplay"
         selectable
         :data-testid="`auth-config-row-${ row.id }`"
@@ -236,16 +337,25 @@ export default {
           />
         </template>
       </AuthProviderRow>
+      <AuthProvidersPrimeNotice
+        v-if="showPrimeNotice"
+        :prime="isPrime"
+      />
     </template>
 
     <h2 class="auth-config-section-title auth-config-section-title--standalone">
       {{ t('authConfig.list.local') }}
     </h2>
 
+    <!--
+      Local is always there - it is how Rancher is first logged into - so the row
+      is not conditional on a config being found for it. Nothing follows it, so it
+      has nothing to be parted from.
+    -->
     <AuthProviderRow
-      v-if="localConfig"
       :divided="false"
       :title="t('authConfig.list.localRow.title')"
+      :icon="localIcon"
       :chips="[t('authConfig.list.localRow.chip')]"
       :description="localDescription"
       :meta="t('authConfig.list.localRow.meta')"

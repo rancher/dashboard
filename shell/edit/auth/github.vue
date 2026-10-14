@@ -12,6 +12,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import { MANAGEMENT } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
+import AuthConfigIdentity from '@shell/components/auth/AuthConfigIdentity.vue';
 import AuthConfig from '@shell/mixins/auth-config';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
@@ -24,6 +25,7 @@ import { zodValidators } from '@shell/utils/validators/zod-helpers';
 
 export default {
   components: {
+    AuthConfigIdentity,
     Loading,
     CruResource,
     RadioGroup,
@@ -83,7 +85,11 @@ export default {
     await this.mixinFetch();
 
     this.targetType = (!this.model.hostname || this.model.hostname === 'github.com' ? 'public' : 'private');
-    this.targetUrl = (this.model.tls ? 'https://' : 'http://') + (this.model.hostname || 'github.com');
+    // A config that has never been saved carries no `tls`, and the target it
+    // defaults to - public GitHub - only answers over https. A saved config always
+    // has a hostname, and the server can leave `tls` out when it is false, so for
+    // one of those a missing `tls` means http.
+    this.targetUrl = (this.model.tls || !this.model.hostname ? 'https://' : 'http://') + (this.model.hostname || 'github.com');
   },
 
   data() {
@@ -121,10 +127,6 @@ export default {
       };
     },
 
-    NAME() {
-      return this.isGithubApp ? 'githubapp' : 'github';
-    },
-
     AUTH_CONFIG() {
       return MANAGEMENT.AUTH_CONFIG;
     },
@@ -137,8 +139,9 @@ export default {
       };
     },
 
+    // A config's id is its own name, so which GitHub it is comes from its type
     isGithubApp() {
-      return this.model?.id === 'githubapp';
+      return this.NAME === 'githubapp';
     },
 
     steps() {
@@ -156,7 +159,7 @@ export default {
   },
 
   watch: {
-    'model.id': {
+    NAME: {
       handler(newVal) {
         this.isGithubAppRef = newVal === 'githubapp';
       },
@@ -210,9 +213,17 @@ export default {
       @finish="save"
       @cancel="cancel"
     >
+      <AuthConfigIdentity
+        v-model:name="configName"
+        v-model:description="configDescription"
+        :name-fixed="configNameFixed"
+        :name-error="configNameError"
+      />
+
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <AuthBanner
           :t-args="tArgs"
+          :name="authConfigDisplayName"
           :disable="disable"
           :edit="goToEdit"
           :provider-id="model.id"

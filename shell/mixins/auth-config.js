@@ -1,10 +1,22 @@
-import { _EDIT, EDIT_CONFIG } from '@shell/config/query-params';
+import { EDIT_CONFIG, _EDIT } from '@shell/config/query-params';
+import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
+import { isRancherPrime } from '@shell/config/version';
+import { providerKey } from '@shell/models/management.cattle.io.authconfig';
+import { canEnableAuthProvider, isValidAuthConfigName } from '@shell/utils/auth-providers';
+import { MULTIPLE_AUTH_PROVIDERS } from '@shell/store/features';
 import { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { BASE_SCOPES, SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 import { addObject, findBy } from '@shell/utils/array';
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import { clone } from '@shell/utils/object';
 import difference from 'lodash/difference';
+
+/**
+ * Fields a form never owns, so they survive from the config the server created
+ * rather than from the blank model the form was filled in against.
+ */
+const SERVER_OWNED_FIELDS = ['id', 'name', 'type', 'baseType', 'links', 'actions', 'created', 'createdTS', 'creatorId', 'uuid', 'annotations', 'labels', 'status'];
 
 export const SLO_OPTION_VALUES = {
   /**
@@ -22,6 +34,13 @@ export const SLO_OPTION_VALUES = {
 };
 
 export default {
+  /**
+   * Set by the page that adds a provider (see `auth/config/create/_provider.vue`).
+   * Its presence means no config exists on the server yet, and that this form is
+   * responsible for creating one when it first saves.
+   */
+  inject: { authConfigCreate: { default: null } },
+
   beforeCreate() {
     const { query } = this.$route;
 
@@ -82,8 +101,111 @@ export default {
       return this.t(`model.authConfig.provider.${ this.NAME }`);
     },
 
+    /**
+     * How this config is named in the UI, e.g. `GitHub — github-2`. Mirrors the
+     * Steve model's `nameDisplay`, which these pages cannot reach - they work
+     * from a Norman clone. A provider's own singleton is just the provider.
+     */
+    authConfigDisplayName() {
+      const name = this.configName;
+
+      return !name || name === this.NAME ? this.displayName : `${ this.displayName } — ${ name }`;
+    },
+
+    /**
+     * The provider a config is an instance of, e.g. `github` for a config named
+     * `github-2`. Forms are per provider, so their labels, defaults and branching
+     * all key off this rather than off the config's own name.
+     *
+     * Forms read this before their model exists - in `created()`, to decide which
+     * fields to require - so the provider being added answers for it until then.
+     * The route only names the config on the page that edits one.
+     */
     NAME() {
-      return this.$route.params.id;
+      return providerKey(this.model?.type) || providerKey(this.authConfigCreate?.normanType) || this.$route.params.id;
+    },
+
+    isCreate() {
+      return !!this.authConfigCreate;
+    },
+
+    /**
+     * The config's name. It is `metadata.name`, which the API rejects on update,
+     * so it can only be set while the config is still being added.
+     */
+    configName: {
+      get() {
+        // While adding, the name is still being chosen, and the page holds it -
+        // `authConfigName` is only settled once the config exists.
+        return this.configNameFixed ? this.authConfigName : this.authConfigCreate.name;
+      },
+      set(value) {
+        if (!this.configNameFixed) {
+          this.authConfigCreate.name = value;
+        }
+      },
+    },
+
+    /**
+     * Whether the name is settled.
+     *
+     * Enabling can fail after the config has been written - on bad credentials,
+     * say - and the form stays on the page to be corrected and saved again. The
+     * config exists by then, so its name is no longer the form's to choose: a
+     * rename would leave the page saving one config under another's name.
+     */
+    configNameFixed() {
+      return !this.isCreate || this.authConfigCreate.created;
+    },
+
+    /** Why the name cannot be used, or null. Only a new config has a say in it. */
+    configNameError() {
+      if (this.configNameFixed) {
+        return null;
+      }
+
+      const name = this.authConfigCreate.name;
+
+      if (!name) {
+        return this.t('authConfig.create.name.required');
+      }
+
+      if (!isValidAuthConfigName(name)) {
+        return this.t('authConfig.create.name.invalid');
+      }
+
+      if ((this.authConfigCreate.takenIds || []).includes(name)) {
+        return this.t('authConfig.create.name.taken', { name });
+      }
+
+      return null;
+    },
+
+    /**
+     * What the admin called this connection. The API has no field for one, so it
+     * lives in the annotation the rest of the UI reads descriptions from.
+     */
+    configDescription: {
+      get() {
+        return this.model?.annotations?.[DESCRIPTION] || '';
+      },
+      set(value) {
+        if (!this.model) {
+          return;
+        }
+
+        const annotations = { ...(this.model.annotations || {}) };
+
+        if (value) {
+          annotations[DESCRIPTION] = value;
+        } else if (DESCRIPTION in annotations) {
+          // Norman keeps a `field.cattle.io/` annotation an update leaves out, so
+          // clearing one means sending it empty.
+          annotations[DESCRIPTION] = '';
+        }
+
+        this.model.annotations = annotations;
+      },
     },
 
     AUTH_CONFIG() {
@@ -100,6 +222,12 @@ export default {
   },
 
   methods: {
+    async canEnable() {
+      const configs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.AUTH_CONFIG });
+
+      return canEnableAuthProvider(configs, this.$store.getters['features/get'](MULTIPLE_AUTH_PROVIDERS), this.authConfigName || this.model.id);
+    },
+
     updateAuthProviders() {
       // we need to forcefully re-fetch the authProviders list so that we can update the logout method
       // this is to satisfy the SLO usecase where after setting an auth provider the logout method
@@ -117,10 +245,31 @@ export default {
       }
     },
 
-    async mixinFetch() {
-      this.authConfigName = this.$route.params.id;
+    /**
+     * The values Rancher gives a config of this type when nobody has set them.
+     *
+     * Rancher used to create a config for every provider up front, with these
+     * filled in. A config added here starts empty, and some of them are required -
+     * an LDAP config cannot be enabled without its connection timeout.
+     */
+    schemaDefaults(type) {
+      const fields = this.$store.getters['rancher/schemaFor']?.(type)?.resourceFields || {};
 
-      this.originalModel = await this.$store.dispatch('rancher/find', {
+      return Object.entries(fields).reduce((defaults, [key, field]) => {
+        if (field?.default !== undefined && field.default !== null) {
+          defaults[key] = clone(field.default);
+        }
+
+        return defaults;
+      }, {});
+    },
+
+    async mixinFetch() {
+      this.authConfigName = this.authConfigCreate?.name || this.$route.params.id;
+
+      // Nothing exists to fetch until the form saves for the first time, so the
+      // form is filled in against an empty config of the chosen provider's type.
+      this.originalModel = this.isCreate ? await this.$store.dispatch('rancher/create', { ...this.schemaDefaults(this.authConfigCreate.normanType), type: this.authConfigCreate.normanType }) : await this.$store.dispatch('rancher/find', {
         type: NORMAN.AUTH_CONFIG,
         id:   this.authConfigName,
         opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ this.authConfigName }`, force: true }
@@ -177,15 +326,48 @@ export default {
 
       this.errors = [];
       const wasEnabled = this.model.enabled;
+      const description = this.configDescription;
+
+      let canEnable;
+
+      try {
+        canEnable = wasEnabled || await this.canEnable();
+      } catch (err) {
+        this.errors = exceptionToErrorsArray(err);
+        btnCb(false);
+
+        return;
+      }
+
+      if (!canEnable) {
+        this.errors = [this.t(isRancherPrime() ? 'authConfig.enableLimitReachedPrime' : 'authConfig.enableLimitReached')];
+        btnCb(false);
+
+        return;
+      }
 
       if (!wasEnabled) {
         this.isEnabling = true;
       }
-      let obj = this.toSave;
+      try {
+        if (this.isCreate) {
+          await this.createAuthConfig();
+        }
+      } catch (err) {
+        this.errors = exceptionToErrorsArray(err);
+        btnCb(false);
+        this.isEnabling = false;
 
-      if (!obj) {
-        obj = this.model;
+        return;
       }
+
+      // Which of a provider's configs is being applied is read from the root of
+      // the request, rather than from the provider's own config nested in it.
+      const obj = {
+        ...(this.toSave || this.model),
+        configName: this.configName,
+      };
+
       try {
         if (this.editConfig || !wasEnabled) {
           if (configType === 'oauth' || configType === 'oidc') {
@@ -209,7 +391,7 @@ export default {
             if (!this.model.accessMode) {
               this.model.accessMode = 'unrestricted';
             }
-            if (this.model.id === 'github' || this.model.id === 'githubapp') {
+            if (this.NAME === 'github' || this.NAME === 'githubapp') {
               this.model.accessMode = 'restricted';
             }
             await this.model.doAction('testAndApply', obj, { redirectUnauthorized: false });
@@ -234,6 +416,10 @@ export default {
           });
 
           this.model = await this.$store.dispatch(`rancher/clone`, { resource: newModel });
+
+          // testAndApply keeps the stored annotations, so the description entered
+          // in the form is only written by the save that follows.
+          this.configDescription = description;
 
           // Reload principals to get the new ones from the provider (including 'me')
           this.principals = await this.$store.dispatch('rancher/findAll', {
@@ -268,6 +454,16 @@ export default {
         await this.applyHooks(AFTER_SAVE_HOOKS);
 
         btnCb(true);
+
+        if (this.isCreate || this.openedOnConfig) {
+          // Replaced rather than pushed, so going back does not return to the
+          // page that creates providers - a reload of which would start over -
+          // or to the edit form of a config that has just been saved.
+          this.$router.replace({
+            name:   'c-cluster-auth-config',
+            params: { cluster: this.$route.params.cluster },
+          });
+        }
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
         btnCb(false);
@@ -300,11 +496,86 @@ export default {
       }
     },
 
-    async reloadModel() {
+    /**
+     * Writes the config this form was filled in against.
+     *
+     * `metadata.name` is rejected on update, so a provider cannot be created and
+     * then renamed - the name has to be settled first. Neither Steve nor Norman
+     * offers a POST on the collection, so the config is created through the
+     * Kubernetes API and then picked back up from Norman, whose actions the rest
+     * of the save path needs.
+     */
+    async createAuthConfig() {
+      const { name, normanType } = this.authConfigCreate;
+
+      // Enabling can fail after the config has been written - on bad credentials,
+      // say - and the config is still there on the next attempt.
+      if (!this.authConfigCreate.created) {
+        const description = this.configDescription;
+        const metadata = { name };
+
+        if (description) {
+          metadata.annotations = { [DESCRIPTION]: description };
+        }
+
+        // Auth configs are only ever stored on the management cluster.
+        await this.$store.dispatch('management/request', {
+          url:    '/k8s/clusters/local/apis/management.cattle.io/v3/authconfigs',
+          method: 'POST',
+          data:   {
+            apiVersion: 'management.cattle.io/v3',
+            kind:       'AuthConfig',
+            metadata,
+            type:       normanType,
+            enabled:    false,
+          },
+        });
+
+        // The name is the config's from here, even if picking it back up fails:
+        // writing it again would only be told it already exists.
+        this.authConfigCreate.created = true;
+      }
+
+      if (this.model.id === name) {
+        return;
+      }
+
+      const entered = { ...this.model };
+
       this.originalModel = await this.$store.dispatch('rancher/find', {
         type: NORMAN.AUTH_CONFIG,
-        id:   this.NAME,
-        opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ this.NAME }`, force: true }
+        id:   name,
+        opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ name }`, force: true }
+      });
+
+      const model = await this.$store.dispatch('rancher/clone', { resource: this.originalModel });
+
+      Object.keys(entered).forEach((key) => {
+        if (!SERVER_OWNED_FIELDS.includes(key)) {
+          model[key] = entered[key];
+        }
+      });
+
+      this.authConfigName = name;
+      this.model = model;
+    },
+
+    /**
+     * Picks the config back up from the server.
+     *
+     * There is nothing to pick up while a provider is still being added - the
+     * config has no name yet, let alone a record to read - so the form keeps
+     * what the admin has filled in.
+     */
+    async reloadModel() {
+      if (!this.configNameFixed) {
+        return this.model;
+      }
+
+      this.originalModel = await this.$store.dispatch('rancher/find', {
+        type: NORMAN.AUTH_CONFIG,
+        id:   this.authConfigName,
+        opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ this.authConfigName }`, force: true }
       });
 
       this.model = await this.$store.dispatch(`rancher/clone`, { resource: this.originalModel });
@@ -352,8 +623,8 @@ export default {
         this.model.rancherUrl = `${ serverUrl }/verify-auth`;
 
         // If there are base scopes defined for this provider, use those
-        if (Array.isArray(BASE_SCOPES[this.model.id])) {
-          this.model.scope = BASE_SCOPES[this.model.id][0];
+        if (Array.isArray(BASE_SCOPES[this.NAME])) {
+          this.model.scope = BASE_SCOPES[this.NAME][0];
         } else {
           // Default if base scopes not defined for this auth provider
           this.model.scope = BASE_SCOPES.genericoidc[0];
@@ -363,7 +634,7 @@ export default {
 
       case 'saml':
         this.model.accessMode = 'unrestricted';
-        if (this.model.id === 'genericsaml') {
+        if (this.NAME === 'genericsaml') {
           this.model.nameIDFormat = this.model.nameIDFormat || 'unspecified';
           this.model.signatureMethod = this.model.signatureMethod || 'RSA-SHA256';
         }
@@ -372,7 +643,7 @@ export default {
         this.model.servers = [];
         this.model.accessMode = 'unrestricted';
         this.model.starttls = false;
-        if (this.model.id === 'activedirectory') {
+        if (this.NAME === 'activedirectory') {
           this.model.disabledStatusBitmask = 2;
         } else {
           this.model.disabledStatusBitmask = 0;
