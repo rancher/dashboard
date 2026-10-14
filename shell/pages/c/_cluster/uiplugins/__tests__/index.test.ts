@@ -89,6 +89,7 @@ describe('page: UI plugins/Extensions', () => {
           onAction: wrapper.vm.handlePanelAction,
         },
         width:              'wide',
+        height:             'full',
         closeOnRouteChange: ['name', 'params', 'query'],
       });
     });

@@ -10,6 +10,7 @@ import {
 import { isEqual } from 'lodash';
 import { useRouter } from 'vue-router';
 import Drawer from '@shell/components/Drawer/Chrome.vue';
+import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
 
 const HEADER_HEIGHT = 55;
 
@@ -86,9 +87,6 @@ const panelWidth = computed(() => {
 });
 
 const panelRight = computed(() => (isOpen.value ? '0' : `-${ panelWidth.value }`));
-
-const glassZIndex = computed(() => (isFullHeight.value ? 101 : undefined));
-const panelZIndex = computed(() => (isFullHeight.value ? 102 : undefined));
 
 const showHeader = computed(() => {
   // Deprecated: explicit showHeader takes precedence for backwards compat
@@ -226,7 +224,6 @@ function closeOnEscape(event: KeyboardEvent) {
         data-testid="slide-in-glass"
         class="slide-in-glass"
         :class="{ 'slide-in-glass-open': isOpen }"
-        :style="{ zIndex: glassZIndex }"
         @click="closePanel"
       />
       <aside
@@ -240,27 +237,27 @@ function closeOnEscape(event: KeyboardEvent) {
           right: panelRight,
           top: panelTop,
           height: panelHeight,
-          zIndex: panelZIndex,
         }"
       >
         <Drawer
           v-if="showHeader"
           :ariaTarget="panelTitle"
-          :removeFooter="true"
           @close="closePanel"
         >
           <template #title>
             {{ panelTitle }}
           </template>
           <template #body>
-            <component
-              :is="currentComponent"
-              v-if="isOpen || currentComponent"
-              :key="openCount"
-              v-bind="panelProps"
-              data-testid="slide-in-panel-component"
-              class="dynamic-panel-content"
-            />
+            <DrawerCard>
+              <component
+                :is="currentComponent"
+                v-if="isOpen || currentComponent"
+                :key="openCount"
+                v-bind="panelProps"
+                data-testid="slide-in-panel-component"
+                class="dynamic-panel-content"
+              />
+            </DrawerCard>
           </template>
         </Drawer>
         <div

@@ -352,19 +352,28 @@ describe('slideInPanelManager.vue with Teleport', () => {
   describe('standard drawer chrome', () => {
     const chrome = () => document.querySelector('#slides .slide-in .chrome') as HTMLElement;
 
-    it('wraps a titled panel in the drawer chrome', async() => {
+    it('wraps a titled panel in the drawer chrome and a card', async() => {
       factory();
       await nextTick();
 
       expect(chrome()).toBeTruthy();
-      expect(chrome().querySelector('.body > [data-testid="slide-in-panel-component"]')).toBeTruthy();
+      expect(chrome().querySelector('.body > .drawer-card > [data-testid="slide-in-panel-component"]')).toBeTruthy();
     });
 
-    it('does not add a footer to a titled panel', async() => {
+    it('closes a titled panel from the close button in its footer', async() => {
+      const closeMutation = jest.fn();
+
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': closeMutation }
+      });
       factory();
       await nextTick();
 
-      expect(chrome().querySelector('.footer')).toBeNull();
+      (chrome().querySelector('.footer button') as HTMLElement).click();
+      await nextTick();
+
+      expect(closeMutation).toHaveBeenCalledWith({}, undefined);
     });
 
     it('leaves a panel without a title to render its own chrome', async() => {
@@ -430,7 +439,7 @@ describe('slideInPanelManager.vue with Teleport', () => {
       expect(styleAttr).toContain('top: 0');
     });
 
-    it('applies elevated z-index when panelHeight is "full"', async() => {
+    it('keeps a full-height panel on the slide-in layer so modals and tooltips stay above it', async() => {
       getters['slideInPanel/componentProps'] = () => ({ height: 'full', title: 'Test' });
       store = createStore({
         getters,
@@ -440,29 +449,10 @@ describe('slideInPanelManager.vue with Teleport', () => {
       await nextTick();
 
       const slidePanel = document.querySelector('#slides .slide-in') as HTMLElement;
-      const styleAttr = slidePanel.getAttribute('style') || '';
-
-      expect(styleAttr).toContain('z-index: 102');
-
       const slideGlass = document.querySelector('[data-testid="slide-in-glass"]') as HTMLElement;
-      const glassStyle = slideGlass.getAttribute('style') || '';
 
-      expect(glassStyle).toContain('z-index: 101');
-    });
-
-    it('does not apply elevated z-index for default panelHeight', async() => {
-      getters['slideInPanel/componentProps'] = () => ({ title: 'Test' });
-      store = createStore({
-        getters,
-        mutations: { 'slideInPanel/close': jest.fn() }
-      });
-      factory();
-      await nextTick();
-
-      const slidePanel = document.querySelector('#slides .slide-in') as HTMLElement;
-      const styleAttr = slidePanel.getAttribute('style') || '';
-
-      expect(styleAttr).not.toContain('z-index: 102');
+      expect(slidePanel.style.zIndex).toBe('');
+      expect(slideGlass.style.zIndex).toBe('');
     });
   });
 

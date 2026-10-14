@@ -25,6 +25,12 @@ describe('component: FleetDashboardResourceDetails', () => {
     expect(wrapper.findComponent(Drawer).props('ariaTarget')).toBe('fleet-default/repo');
   });
 
+  it('should show the standard drawer footer', () => {
+    const wrapper = createWrapper();
+
+    expect(wrapper.findComponent(Drawer).props('removeFooter')).toBe(false);
+  });
+
   it('should emit close when the drawer is closed', async() => {
     const wrapper = createWrapper();
 
