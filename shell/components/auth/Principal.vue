@@ -1,8 +1,11 @@
 <script>
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { configNameOfPrincipal, providerOfConfig } from '@shell/utils/auth-providers';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 
 export default {
+  components: { RcIconTooltip },
+
   props: {
     value: {
       type:     String,
@@ -21,7 +24,7 @@ export default {
   },
 
   async fetch() {
-    this.loadData();
+    await this.loadData();
   },
 
   data() {
@@ -34,6 +37,10 @@ export default {
       const p = this.principal;
 
       return p.name && p.loginName && p.name.trim().toLowerCase() !== p.loginName.trim().toLowerCase();
+    },
+
+    unresolvedName() {
+      return this.value?.replace('://', ' ');
     }
   },
 
@@ -199,18 +206,15 @@ export default {
           class="empty"
           :class="{'text-muted': useMuted}"
         >
-          <i class="icon icon-warning icon-lg" />
+          <i
+            class="icon icon-user icon-lg"
+            aria-hidden="true"
+          />
         </div>
       </div>
-      <div
-        v-t="'principal.error'"
-        class="name text-error"
-      />
-      <div
-        class="description"
-        :class="{'text-muted': useMuted}"
-      >
-        {{ value }}
+      <div class="name unresolved">
+        {{ unresolvedName }}
+        <rc-icon-tooltip :content="t('principal.unresolved')" />
       </div>
     </template>
   </div>
@@ -272,6 +276,11 @@ export default {
       grid-area: name;
       line-height: math.div($size, 2);
       overflow-wrap: anywhere;
+
+      &.unresolved {
+        grid-row: 1 / span 2;
+        align-self: center;
+      }
     }
 
     .description {

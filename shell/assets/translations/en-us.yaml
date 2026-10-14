@@ -6160,7 +6160,7 @@ prefs:
 
 principal:
   loading: Loading&hellip;
-  error: Unable to fetch principal info
+  unresolved: '{vendor} could not look up the name of this user or group, so its principal ID is shown instead.'
   name: Name
   loginName: Username
   type: Type
