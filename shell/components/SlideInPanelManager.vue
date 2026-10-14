@@ -9,8 +9,7 @@ import {
 } from '@shell/composables/focusTrap';
 import { isEqual } from 'lodash';
 import { useRouter } from 'vue-router';
-import Drawer from '@shell/components/Drawer/Chrome.vue';
-import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
+import { RcDrawer } from '@components/RcDrawer';
 
 const HEADER_HEIGHT = 55;
 
@@ -21,7 +20,7 @@ const WIDTH_MAP = {
 
 const HEIGHT_FULL = 'full';
 
-const CLOSE_SELECTOR = '[data-testid="slide-in-close"]';
+const CLOSE_SELECTOR = '[data-testid="rc-drawer-close"]';
 
 const slideInPanelManager = useTemplateRef('SlideInPanelManager');
 
@@ -239,27 +238,20 @@ function closeOnEscape(event: KeyboardEvent) {
           height: panelHeight,
         }"
       >
-        <Drawer
+        <RcDrawer
           v-if="showHeader"
-          :ariaTarget="panelTitle"
+          :title="panelTitle"
           @close="closePanel"
         >
-          <template #title>
-            {{ panelTitle }}
-          </template>
-          <template #body>
-            <DrawerCard>
-              <component
-                :is="currentComponent"
-                v-if="isOpen || currentComponent"
-                :key="openCount"
-                v-bind="panelProps"
-                data-testid="slide-in-panel-component"
-                class="dynamic-panel-content"
-              />
-            </DrawerCard>
-          </template>
-        </Drawer>
+          <component
+            :is="currentComponent"
+            v-if="isOpen || currentComponent"
+            :key="openCount"
+            v-bind="panelProps"
+            data-testid="slide-in-panel-component"
+            class="dynamic-panel-content"
+          />
+        </RcDrawer>
         <div
           v-else
           class="main-panel"

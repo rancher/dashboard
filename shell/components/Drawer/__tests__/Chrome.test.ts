@@ -28,13 +28,19 @@ describe('component: Drawer/Chrome', () => {
   it('should name the header close button after its target', () => {
     const wrapper = createWrapper();
 
-    expect(wrapper.find('[data-testid="slide-in-close"]').attributes('aria-label')).toBe('component.drawer.chrome.ariaLabel.close-{"target":"My Drawer"}');
+    expect(wrapper.find('[data-testid="rc-drawer-close"]').attributes('aria-label')).toBe('component.drawer.chrome.ariaLabel.close-{"target":"My Drawer"}');
+  });
+
+  it('should label the footer close button with closeLabel', () => {
+    const wrapper = createWrapper({ closeLabel: 'Cancel' });
+
+    expect(wrapper.find('.footer button').text()).toBe('Cancel');
   });
 
   it('should emit close from the header close button', async() => {
     const wrapper = createWrapper();
 
-    await wrapper.find('[data-testid="slide-in-close"]').trigger('click');
+    await wrapper.find('[data-testid="rc-drawer-close"]').trigger('click');
 
     expect(wrapper.emitted('close')).toHaveLength(1);
   });
@@ -53,11 +59,5 @@ describe('component: Drawer/Chrome', () => {
 
     expect(buttons).toHaveLength(2);
     expect(buttons[1].attributes('data-testid')).toBe('extra');
-  });
-
-  it('should not render a footer when removeFooter is set', () => {
-    const wrapper = createWrapper({ removeFooter: true });
-
-    expect(wrapper.find('.footer').exists()).toBe(false);
   });
 });

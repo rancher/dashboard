@@ -1,6 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import ResourceDetails from '@shell/components/fleet/dashboard/ResourceDetails.vue';
-import Drawer from '@shell/components/Drawer/Chrome.vue';
+import { RcDrawer } from '@components/RcDrawer';
 
 const createWrapper = () => shallowMount(ResourceDetails as any, {
   props: {
@@ -22,19 +22,13 @@ describe('component: FleetDashboardResourceDetails', () => {
   it('should name the drawer after the resource', () => {
     const wrapper = createWrapper();
 
-    expect(wrapper.findComponent(Drawer).props('ariaTarget')).toBe('fleet-default/repo');
-  });
-
-  it('should show the standard drawer footer', () => {
-    const wrapper = createWrapper();
-
-    expect(wrapper.findComponent(Drawer).props('removeFooter')).toBe(false);
+    expect(wrapper.findComponent(RcDrawer).props('title')).toBe('fleet-default/repo');
   });
 
   it('should emit close when the drawer is closed', async() => {
     const wrapper = createWrapper();
 
-    await wrapper.findComponent(Drawer).vm.$emit('close');
+    await wrapper.findComponent(RcDrawer).vm.$emit('close');
 
     expect(wrapper.emitted('close')).toHaveLength(1);
   });

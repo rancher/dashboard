@@ -25,7 +25,7 @@ describe('component: ChartInfoDrawer', () => {
   it('should emit close when the drawer is closed', async() => {
     const wrapper = createWrapper();
 
-    await wrapper.find('[data-testid="slide-in-close"]').trigger('click');
+    await wrapper.find('[data-testid="rc-drawer-close"]').trigger('click');
 
     expect(wrapper.emitted('close')).toHaveLength(1);
     expect(wrapper.emitted('dock')).toBeUndefined();

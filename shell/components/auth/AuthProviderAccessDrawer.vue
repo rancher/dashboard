@@ -3,8 +3,7 @@ import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import { Banner } from '@components/Banner';
 import AsyncButton, { AsyncButtonCallback } from '@shell/components/AsyncButton.vue';
-import Drawer from '@shell/components/Drawer/Chrome.vue';
-import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
+import { RcDrawer, RcDrawerCard } from '@components/RcDrawer';
 import Loading from '@shell/components/Loading.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals.vue';
 import AuthProviderDetails from '@shell/components/auth/AuthProviderDetails.vue';
@@ -75,8 +74,8 @@ const save = async(btnCb: AsyncButtonCallback) => {
 </script>
 
 <template>
-  <Drawer
-    :ariaTarget="title"
+  <RcDrawer
+    :title="title"
     :close-label="canSave ? i18n.t('generic.cancel') : undefined"
     @close="emit('close')"
   >
@@ -88,34 +87,32 @@ const save = async(btnCb: AsyncButtonCallback) => {
       />
       {{ title }}
     </template>
-    <template #body>
-      <AuthProviderDetails
-        v-if="model"
-        :config="model"
-        :name="resource.nameDisplay"
+    <AuthProviderDetails
+      v-if="model"
+      :config="model"
+      :name="resource.nameDisplay"
+    />
+    <RcDrawerCard data-testid="auth-provider-access-form">
+      <Loading
+        v-if="fetch.loading"
+        mode="relative"
       />
-      <DrawerCard data-testid="auth-provider-access-form">
-        <Loading
-          v-if="fetch.loading"
-          mode="relative"
-        />
-        <Banner
-          v-for="(error, i) in errors"
-          :key="i"
-          color="error"
-          :label="error"
-        />
-        <AllowedPrincipals
-          v-if="model"
-          :provider="resource.id"
-          :auth-config="model"
-          :mode="mode"
-          :stacked="true"
-          :append-search-to-body="false"
-          data-testid="auth-provider-access-principals"
-        />
-      </DrawerCard>
-    </template>
+      <Banner
+        v-for="(error, i) in errors"
+        :key="i"
+        color="error"
+        :label="error"
+      />
+      <AllowedPrincipals
+        v-if="model"
+        :provider="resource.id"
+        :auth-config="model"
+        :mode="mode"
+        :stacked="true"
+        :append-search-to-body="false"
+        data-testid="auth-provider-access-principals"
+      />
+    </RcDrawerCard>
     <template #additional-actions>
       <AsyncButton
         v-if="canSave"
@@ -124,7 +121,7 @@ const save = async(btnCb: AsyncButtonCallback) => {
         @click="save"
       />
     </template>
-  </Drawer>
+  </RcDrawer>
 </template>
 
 <style lang="scss" scoped>

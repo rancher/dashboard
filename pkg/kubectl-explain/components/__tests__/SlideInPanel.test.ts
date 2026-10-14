@@ -63,7 +63,7 @@ describe('component: SlideInPanel', () => {
     it('emits close when the drawer is closed', async() => {
       const { wrapper } = mountPanel();
 
-      await wrapper.find('[data-testid="slide-in-close"]').trigger('click');
+      await wrapper.find('[data-testid="rc-drawer-close"]').trigger('click');
 
       expect(wrapper.emitted('close')).toHaveLength(1);
     });
