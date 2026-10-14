@@ -18,7 +18,7 @@ import { RcHeading } from '@components/RcHeading';
 function removePatchWhenZero(version) {
   const isPrime = getVersionData().RancherPrime === 'true';
 
-  if (!isPrime && version.startsWith('v') && version.endsWith('.0')) {
+  if (!isPrime && version && version.startsWith('v') && version.endsWith('.0')) {
     return version.substr(0, version.length - 2);
   }
 
