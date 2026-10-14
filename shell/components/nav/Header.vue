@@ -962,16 +962,13 @@ export default {
     .side-menu-logo {
       align-items: center;
       display: flex;
-      height: 55px;
+      height: 100%;
       margin-right: 8px;
-      max-width: 200px;
-      padding: 12px 0;
     }
 
     .side-menu-logo-img {
       object-fit: contain;
-      max-width: 200px;
-      height: 36px;
+      height: 40px;
     }
 
     > * {
