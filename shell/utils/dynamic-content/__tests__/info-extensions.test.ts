@@ -67,6 +67,21 @@ describe('systemInfoProvider telemetry', () => {
     (version.getVersionData as jest.Mock).mockReturnValue({ Version: '2.13.0', RancherPrime: 'false' });
   });
 
+  /**
+   * Query string for a SUSE extension that provides no telemetry - used to assert that telemetry was ignored
+   */
+  const baselineQueryString = (): string => {
+    const current = mockPlugins;
+
+    mockPlugins = [ext('harvester')];
+
+    const qs = new SystemInfoProvider(mockGetters, {}).buildQueryString();
+
+    mockPlugins = current;
+
+    return qs;
+  };
+
   describe('collecting telemetry', () => {
     it('should include telemetry from a known SUSE extension', () => {
       mockPlugins = [ext('harvester', { harvester: () => ({ hv: 'yes' }) })];
@@ -162,13 +177,28 @@ describe('systemInfoProvider telemetry', () => {
       mockPlugins = [ext('harvester', { t: () => result })];
 
       const qs = new SystemInfoProvider(mockGetters, {}).buildQueryString();
-      const baseline = (() => {
-        mockPlugins = [ext('harvester')];
 
-        return new SystemInfoProvider(mockGetters, {}).buildQueryString();
-      })();
+      expect(qs).toStrictEqual(baselineQueryString());
+    });
 
-      expect(qs).toStrictEqual(baseline);
+    it('should ignore a telemetry function that returns an array', () => {
+      mockPlugins = [ext('harvester', { t: () => ['a', 'b'] })];
+
+      const qs = new SystemInfoProvider(mockGetters, {}).buildQueryString();
+
+      expect(qs).toStrictEqual(baselineQueryString());
+    });
+
+    it.each([
+      ['empty', ''],
+      ['whitespace only', ' '],
+    ])('should ignore a param with a name that is %s', (_, param) => {
+      mockPlugins = [ext('harvester', { t: () => ({ [param]: 'ignored', good: 'yes' }) })];
+
+      const qs = new SystemInfoProvider(mockGetters, {}).buildQueryString();
+
+      expect(qs).not.toContain('ignored');
+      expect(valuesOf(qs, 'good')).toStrictEqual(['yes']);
     });
 
     it('should ignore a registered value that is not a function', () => {
@@ -257,6 +287,39 @@ describe('systemInfoProvider telemetry', () => {
       const qs = new SystemInfoProvider(mockGetters, {}).buildQueryString();
 
       expect(valuesOf(qs, 'dcv')).toStrictEqual(['v1']);
+    });
+
+    it('should limit the size of the telemetry added to the query string', () => {
+      const debug = jest.spyOn(console, 'debug').mockImplementation(() => {});
+      const big = Object.fromEntries(Array.from({ length: 500 }, (_, i) => [`k${ i }`, 'x'.repeat(100)]));
+
+      mockPlugins = [ext('harvester', { t: () => big })];
+
+      const qs = new SystemInfoProvider(mockGetters, {}).buildQueryString();
+      const telemetryLength = qs.length - baselineQueryString().length;
+
+      expect(telemetryLength).toBeLessThanOrEqual(1024);
+      expect(debug).toHaveBeenCalledWith(expect.stringContaining('size limit reached'));
+
+      debug.mockRestore();
+    });
+
+    it('should include telemetry params that fit within the size limit', () => {
+      const debug = jest.spyOn(console, 'debug').mockImplementation(() => {});
+
+      mockPlugins = [ext('harvester', {
+        t: () => ({
+          first: 'a'.repeat(1015),
+          small: 'b',
+        })
+      })];
+
+      const qs = new SystemInfoProvider(mockGetters, {}).buildQueryString();
+
+      expect(valuesOf(qs, 'first')).toStrictEqual(['a'.repeat(1015)]);
+      expect(valuesOf(qs, 'small')).toStrictEqual([]);
+
+      debug.mockRestore();
     });
 
     it('should ignore an empty param name', () => {

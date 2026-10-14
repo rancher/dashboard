@@ -46,14 +46,17 @@ When the dynamic content request is being prepared, `SystemInfoProvider`:
    Telemetry functions registered by any other extension are ignored and never called.
 2. **Calls each function** with the store getters and merges the results:
    - Only `string`, `number` and `boolean` values are kept. Other value types (objects, arrays, `null`, `undefined`, functions) are dropped.
-   - If a function throws, or returns something that is not an object, it is skipped.
+   - If a function throws, or returns something that is not an object (including an array), it is skipped.
+   - Params with an empty (or whitespace only) name are dropped.
    - If more than one function returns the same param, the first value collected is used.
 3. **Adds the params to the query string** after all of the standard params:
    - Param names and values are URL-encoded.
    - **A telemetry param never overwrites an existing param.** If its name matches a param that is already present (for example `v`, `uuid`, `p` or `cc`), it is dropped. Extensions can add information but can't change what Rancher already reports.
+   - **Telemetry is limited in total size** (`MAX_TELEMETRY_LENGTH` characters, shared by all extensions). Once the limit is reached, any remaining params are dropped and logged with `console.debug`. This stops a buggy extension making the request URL long enough for the server to reject it.
 
 ## Guidelines for extension authors
 
 - **Prefix your param names** with a short extension-specific prefix (for example `rp-` for Rancher Prime). This avoids clashes with the standard params and with other extensions. Clashing params are silently dropped.
 - **Keep it basic and anonymous.** Send small values such as flags, counts and versions. Do NOT send personal data, resource names or anything identifying.
+- **Send only a handful of small params.** All extensions share a size budget for the query string, and params that don't fit are dropped. Never send a param per resource, or a long string.
 - **Keep the function synchronous and cheap.** It runs while the request is being built, and async results are not supported. Read values that are already in the store rather than making API calls.
