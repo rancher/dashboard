@@ -95,6 +95,100 @@ describe('class: Workload', () => {
     });
   });
 
+  describe.each([
+    ['scaleUp', 2, 3],
+    ['scaleDown', 2, 1],
+  ] as const)('method: %s', (method, replicas, expected) => {
+    const createWorkload = (save: jest.Mock) => {
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test-workload', namespace: 'default' },
+        spec:     { replicas }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      workload.save = save;
+
+      return workload;
+    };
+
+    const conflictReloading = (workload: Workload, reloaded: number) => () => {
+      workload.spec.replicas = reloaded;
+
+      return Promise.reject(Object.assign(new Error('Conflict'), { _status: 409 }));
+    };
+
+    it('should show the new replica count before the save completes', () => {
+      const workload = createWorkload(jest.fn().mockReturnValue(new Promise(() => {})));
+
+      workload[method]();
+
+      expect(workload.spec.replicas).toStrictEqual(expected);
+    });
+
+    it('should go back to the previous replica count when the save fails', async() => {
+      const workload = createWorkload(jest.fn().mockRejectedValue(new Error('Scale failed')));
+
+      await workload[method]().catch(() => {});
+
+      expect(workload.spec.replicas).toStrictEqual(replicas);
+    });
+
+    it('should reject when the save fails', async() => {
+      const err = new Error('Scale failed');
+      const workload = createWorkload(jest.fn().mockRejectedValue(err));
+
+      await expect(workload[method]()).rejects.toStrictEqual(err);
+    });
+
+    it('should keep the new replica count when the save after a conflict succeeds', async() => {
+      const save = jest.fn();
+      const workload = createWorkload(save);
+
+      save.mockImplementationOnce(conflictReloading(workload, replicas)).mockResolvedValue(undefined);
+
+      await workload[method]();
+
+      expect(workload.spec.replicas).toStrictEqual(expected);
+    });
+
+    it('should only save twice when it keeps conflicting', async() => {
+      const save = jest.fn();
+      const workload = createWorkload(save);
+
+      save.mockImplementation(conflictReloading(workload, replicas));
+
+      await workload[method]().catch(() => {});
+
+      expect(save).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not save again when the conflict changed the replica count', async() => {
+      const save = jest.fn();
+      const workload = createWorkload(save);
+
+      save.mockImplementationOnce(conflictReloading(workload, 7)).mockResolvedValue(undefined);
+
+      await workload[method]().catch(() => {});
+
+      expect(save).toHaveBeenCalledTimes(1);
+    });
+
+    it('should keep the reloaded replica count when the conflict changed it', async() => {
+      const save = jest.fn();
+      const workload = createWorkload(save);
+
+      save.mockImplementationOnce(conflictReloading(workload, 7)).mockResolvedValue(undefined);
+
+      await workload[method]().catch(() => {});
+
+      expect(workload.spec.replicas).toStrictEqual(7);
+    });
+  });
+
   describe('method: scale', () => {
     it('should call scaleUp when isUp is true', async() => {
       const scaleUpMock = jest.fn().mockResolvedValue(undefined);
@@ -148,11 +242,6 @@ describe('class: Workload', () => {
       });
 
       workload.scaleUp = scaleUpMock;
-      // `$store` does not exist anywhere on the model hierarchy, so the catch block in `scale` only
-      // reaches a dispatch because the test injects one. Once `workload.js:200` is corrected to
-      // `this.$dispatch(...)` the assertion below passes unchanged, since `$dispatch` is
-      // `this.$ctx.dispatch`, the same `dispatchMock`, and only this line gets deleted.
-      Object.defineProperty(workload, '$store', { get: () => ({ dispatch: dispatchMock }) });
 
       await workload.scale(true);
 
@@ -284,6 +373,40 @@ describe('class: Workload', () => {
       expect(card?.props.title).toBe('component.resource.detail.card.podsCard.title');
       expect(card?.props.showScaling).toBe(true);
       expect(card?.props.noResourcesMessage).toBe('component.resource.detail.card.podsCard.noPods');
+    });
+
+    it('should scale by spec.replicas rather than the number of matching pods', () => {
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     { replicas: 2 }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      Object.defineProperty(workload, 'pods', { get: () => [mockPod, mockPod, mockPod, mockPod] });
+      Object.defineProperty(workload, 'canUpdate', { get: () => true });
+
+      expect(workload.podsCard?.props.scaleValue).toStrictEqual(2);
+    });
+
+    it('should return the same component each time so the card is not remounted', () => {
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     { replicas: 2 }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      Object.defineProperty(workload, 'pods', { get: () => [mockPod] });
+      Object.defineProperty(workload, 'canUpdate', { get: () => true });
+
+      expect(workload.podsCard?.component).toBe(workload.podsCard?.component);
     });
 
     it('should return card for DaemonSet type without scaling', () => {
