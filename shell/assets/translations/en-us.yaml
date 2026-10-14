@@ -5439,8 +5439,8 @@ node:
         used: Used
         amount: "{used} of {total} {unit}"
         cpu: CPU
-        memory: MEMORY
-        pods: PODS
+        memory: Memory
+        pods: Pods
         running: Running
       diskPressure: Disk Pressure
       kubelet: kubelet

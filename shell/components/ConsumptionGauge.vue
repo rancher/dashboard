@@ -129,7 +129,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .consumption-gauge {
   .numbers {
     display: flex;
@@ -151,6 +151,12 @@ export default {
         margin-right: 10px;
       }
     }
+  }
+
+  // Same height as the status bars in the resource cards
+  .percentage-bar :deep(.bar) {
+    height: 4px;
+    border-radius: 4px;
   }
 }
 </style>
