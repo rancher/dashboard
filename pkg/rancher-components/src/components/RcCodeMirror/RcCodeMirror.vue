@@ -649,13 +649,12 @@ defineExpose({ view });
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 4px;
 
       &:has(.rc-cm-fold-marker) {
         cursor: pointer;
       }
 
-      &:has(.rc-cm-fold-marker):hover {
+      &:hover .rc-cm-fold-marker {
         background-color: var(--rc-cm-fold-hover);
       }
     }
@@ -668,6 +667,7 @@ defineExpose({ view });
       height: 100%;
       box-sizing: border-box;
       padding: 0;
+      border-radius: 4px;
     }
 
     svg {
