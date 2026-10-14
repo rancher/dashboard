@@ -8036,11 +8036,6 @@ workloadDashboard:
     minCharacters: Type at least {count} characters to search
     noMatch: No matching workloads
     searching: Searching...
-    restarts: |-
-      {count, plural,
-        =1 {{count} restart}
-        other {{count} restarts}
-      }
     moreResults: "+ {count} more {type}"
   errors:
     noAccess: "No access to {type}"

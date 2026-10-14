@@ -306,7 +306,7 @@ describe('component: WorkloadSearch', () => {
       expect(wrapper.find('.name').text()).toStrictEqual('nginx');
     });
 
-    it('should render the restart count for a pod', () => {
+    it('should not render a restart count, even for a pod', () => {
       mockOptions.value = [makeResult('nginx', {
         resource: {
           id: 'default/nginx', type: 'pod', restartCount: 3
@@ -314,21 +314,7 @@ describe('component: WorkloadSearch', () => {
       })];
       const wrapper = createWrapper();
 
-      expect(wrapper.find('.restarts').text()).toStrictEqual('workloadDashboard.search.restarts:{"count":3}');
-    });
-
-    it('should render zero restarts when a pod has no restart count', () => {
-      mockOptions.value = [makeResult('nginx', { resource: { id: 'default/nginx', type: 'pod' } })];
-      const wrapper = createWrapper();
-
-      expect(wrapper.find('.restarts').text()).toStrictEqual('workloadDashboard.search.restarts:{"count":0}');
-    });
-
-    it('should not render a restart count for a non-pod workload', () => {
-      mockOptions.value = [makeResult('nginx')];
-      const wrapper = createWrapper();
-
-      expect(wrapper.find('.restarts').text()).toStrictEqual('');
+      expect(wrapper.find('.restarts').exists()).toBe(false);
     });
 
     it('should render the age from the creation timestamp', () => {

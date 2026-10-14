@@ -7,7 +7,6 @@ import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
-import { POD } from '@shell/config/types';
 import { useWorkloadSearch } from './useWorkloadSearch';
 import { WORKLOAD_SEARCH_MIN_CHARS, type WorkloadSearchOption } from './types';
 import type { WorkloadDashboardNamespaceNavigateFn, WorkloadDashboardResourceRouteFn } from '../types';
@@ -248,8 +247,6 @@ function onResultsFocusout(event: FocusEvent): void {
         />
         <span class="name">{{ option.label }}</span>
         <div class="meta text-muted">
-          <!-- Workload restart counts need their pods, which aren't fetched here. Keep the span for column alignment -->
-          <span class="restarts">{{ option.resource?.type === POD ? t('workloadDashboard.search.restarts', { count: option.resource?.restartCount || 0 }) : '' }}</span>
           <a
             v-if="option.namespace && option.resource?.type"
             class="namespace more-link"
@@ -326,12 +323,11 @@ $row-margin-y: 8px;
   .meta {
     display: flex;
     align-items: center;
-    flex: 2 0 0;
+    flex: 1 0 0;
     gap: 16px;
   }
 
   .namespace,
-  .restarts,
   .age {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -341,12 +337,6 @@ $row-margin-y: 8px;
   .namespace {
     flex: 15 1 150px;
     min-width: 150px;
-  }
-
-  .restarts {
-    flex: 9 1 90px;
-    min-width: 90px;
-    text-align: right;
   }
 
   .age {
