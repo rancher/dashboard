@@ -4,7 +4,7 @@ import {
 import { useStore } from 'vuex';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
 import { WORKLOAD_TYPES } from '@shell/config/types';
-import { STATE_FILTER_QUERY } from '@shell/config/query-params';
+import { NAME_FILTER_QUERY, STATE_FILTER_QUERY } from '@shell/config/query-params';
 import type { StateColor } from '@shell/utils/style';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStateColor } from '@shell/composables/useStateColor';
@@ -331,7 +331,16 @@ export function useWorkloadDashboard() {
 
     if (stateNames?.length) {
       // The list opens filtered to these, in its query
-      loc.query = { [STATE_FILTER_QUERY]: stateNames.join(',') };
+      query[STATE_FILTER_QUERY] = stateNames.join(',');
+    }
+
+    if (nameFilter) {
+      // The list opens filtered to this name, in its query
+      query[NAME_FILTER_QUERY] = nameFilter;
+    }
+
+    if (Object.keys(query).length) {
+      loc.query = query;
     }
 
     return loc;
