@@ -12,7 +12,7 @@ describe('Feature Flags', { testIsolation: false }, () => {
     HomePagePo.goTo();
   });
 
-  it('can toggle harvester feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can toggle harvester feature flag', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     // Check Current State: should be active by default
     FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().details('harvester', 0).should('include.text', 'Active');
@@ -48,7 +48,7 @@ describe('Feature Flags', { testIsolation: false }, () => {
     newVirtualizationMgmtNavItem.should('be.visible');
   });
 
-  it('can toggle harvester-baremetal-container-workload feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can toggle harvester-baremetal-container-workload feature flag', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().details('harvester-baremetal-container-workload', 0).should('include.text', 'Disabled');
@@ -68,7 +68,7 @@ describe('Feature Flags', { testIsolation: false }, () => {
     featureFlagsPage.list().details('harvester-baremetal-container-workload', 0).should('include.text', 'Disabled');
   });
 
-  it('can toggle istio-virtual-service-ui feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can toggle istio-virtual-service-ui feature flag', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     // Check Current State: should be active by default
     FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().details('istio-virtual-service-ui', 0).should('include.text', 'Active');
@@ -88,7 +88,7 @@ describe('Feature Flags', { testIsolation: false }, () => {
     featureFlagsPage.list().details('istio-virtual-service-ui', 0).should('include.text', 'Active');
   });
 
-  it('can toggle token-hashing feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can toggle token-hashing feature flag', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().details('token-hashing', 0).should('include.text', 'Disabled');
@@ -106,7 +106,7 @@ describe('Feature Flags', { testIsolation: false }, () => {
     featureFlagsPage.list().details('token-hashing', 1).find('i.icon-lock').should('be.visible');
   });
 
-  it('can toggle unsupported-storage-drivers feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can toggle unsupported-storage-drivers feature flag', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
@@ -128,7 +128,7 @@ describe('Feature Flags', { testIsolation: false }, () => {
     featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
   });
 
-  it('error when toggling a feature flag is handled correctly', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('error when toggling a feature flag is handled correctly', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     const clusterDashboard = new ClusterDashboardPagePo('local');
 
     clusterDashboard.goTo();
@@ -169,7 +169,7 @@ describe('Feature Flags', { testIsolation: false }, () => {
     featureFlagsPage.cardActionButton('Cancel').click();
   });
 
-  it('standard user has only read access to Feature Flag page', { tags: ['@globalSettings', '@standardUser'] }, () => {
+  it('standard user has only read access to Feature Flag page', { tags: ['@globalSettings2', '@standardUser'] }, () => {
     // verify action menus are hidden for standard user
 
     const featureFlags = [
@@ -191,7 +191,7 @@ describe('Feature Flags', { testIsolation: false }, () => {
     });
   });
 
-  describe('List', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
+  describe('List', { tags: ['@globalSettings2', '@adminUser', '@standardUser'] }, () => {
     it('validate feature flags table header content', () => {
       FeatureFlagsPagePo.navTo();
       // check table headers are visible

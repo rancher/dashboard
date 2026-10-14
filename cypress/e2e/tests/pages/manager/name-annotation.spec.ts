@@ -19,7 +19,7 @@ const type = 'provisioning.cattle.io.cluster';
 
 const createClusterTestName = (suffix: string) => `e2e-test-${ +new Date() }-${ suffix }`;
 
-describe('Management Cluster Name Annotation', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
+describe('Management Cluster Name Annotation', { testIsolation: false, tags: ['@manager2', '@adminUser'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
   const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');

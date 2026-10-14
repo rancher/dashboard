@@ -53,7 +53,7 @@ const resetClusterBadge = () => {
   });
 };
 
-describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
+describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer5', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

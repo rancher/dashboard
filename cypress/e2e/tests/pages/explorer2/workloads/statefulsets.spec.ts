@@ -6,7 +6,7 @@ import { generateStatefulSetsDataSmall } from '@/cypress/e2e/blueprints/explorer
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
-describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
+describe('StatefulSets', { testIsolation: false, tags: ['@explorer4', '@adminUser'] }, () => {
   const localCluster = 'local';
   const statefulSetListPage = new WorkloadsStatefulSetsListPagePo(localCluster);
 

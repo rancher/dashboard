@@ -8,7 +8,7 @@ const STARRED = 'Starred';
  * The starred group holds the types the user picked, so it starts expanded
  * rather than collapsed like the other groups, until the user collapses it.
  */
-describe('Side navigation: starred group', { tags: ['@navigation', '@adminUser'] }, () => {
+describe('Side navigation: starred group', { tags: ['@navigation2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     cy.setUserPreference({ 'fav-type': '["configmap"]' }, true);

@@ -8,7 +8,7 @@ import { qase } from '@/cypress/support/qase';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
-describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
+describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager2', '@adminUser'] }, () => {
   const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo();
   const resourceDetails = new ResourceDetailPo('.main-layout');
   const downloadsFolder = Cypress.config('downloadsFolder');
@@ -180,7 +180,7 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
   }));
 });
 
-describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+describe('Visual Testing', { tags: ['@percy', '@manager2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     cy.applyDefaultTestTheme();

@@ -12,7 +12,7 @@ import { qase } from '@/cypress/support/qase';
 
 const localCluster = 'local';
 
-describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Pods', { testIsolation: false, tags: ['@explorer4', '@adminUser'] }, () => {
   const workloadsPodPage = new WorkloadsPodsListPagePo(localCluster);
 
   before(() => {

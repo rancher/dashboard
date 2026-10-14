@@ -11,7 +11,7 @@ import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 const chartBranch = `release-${ CURRENT_RANCHER_VERSION }`;
 const gitRepoUrl = 'https://github.com/rancher/charts';
 
-describe('Visual Testing', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
+describe('Visual Testing', { testIsolation: false, tags: ['@manager2', '@adminUser'] }, () => {
   before(() => {
     cy.clearAllSessions();
     cy.login();
@@ -36,7 +36,7 @@ describe('Visual Testing', { testIsolation: false, tags: ['@manager', '@adminUse
   }));
 });
 
-describe('Cluster Management Helm Repositories', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
+describe('Cluster Management Helm Repositories', { testIsolation: false, tags: ['@manager2', '@adminUser'] }, () => {
   const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
   const downloadsFolder = Cypress.config('downloadsFolder');
   // Generated at runtime in the before hook (see below) so no private key is committed.
@@ -367,7 +367,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
   }));
 });
 
-describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
+describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager2', '@adminUser'] }, () => {
   const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
   let repoName: string;
 

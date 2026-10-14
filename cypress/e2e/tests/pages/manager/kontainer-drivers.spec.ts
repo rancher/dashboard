@@ -8,7 +8,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { qase } from '@/cypress/support/qase';
 
-describe('Kontainer Drivers', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
+describe('Kontainer Drivers', { testIsolation: false, tags: ['@manager2', '@adminUser'] }, () => {
   const driversPage = new KontainerDriversPagePo();
   const createDriverPage = new KontainerDriverEditPo();
   const clusterList = new ClusterManagerListPagePo();
@@ -380,7 +380,7 @@ describe('Kontainer Drivers', { testIsolation: false, tags: ['@manager', '@admin
   });
 });
 
-describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+describe('Visual Testing', { tags: ['@percy', '@manager2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     cy.applyDefaultTestTheme();

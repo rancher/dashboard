@@ -47,7 +47,7 @@ describe('Settings', { testIsolation: false }, () => {
     }
   });
 
-  qase(15448, it('Inactivity ::: can update the setting "auth-user-session-idle-ttl-minutes" and should show the the inactivity modal', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(15448, it('Inactivity ::: can update the setting "auth-user-session-idle-ttl-minutes" and should show the the inactivity modal', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     let callCountGet = 0;
     let callCountPut = 0;
 
@@ -171,7 +171,7 @@ describe('Settings', { testIsolation: false }, () => {
     newSettingsPage.settingsValue(sessionIdleSetting).contains(settingsOriginal[sessionIdleSetting].default);
   }));
 
-  qase(2511, it('has the correct title', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2511, it('has the correct title', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
 
     cy.getRancherVersion().then((version) => {
@@ -181,13 +181,13 @@ describe('Settings', { testIsolation: false }, () => {
     });
   }));
 
-  qase(7387, it('has the correct banner text', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(7387, it('has the correct banner text', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
 
     settingsPage.settingBanner().banner().contains(BANNER_TEXT);
   }));
 
-  qase(2021, it('can update engine-iso-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2021, it('can update engine-iso-url', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('engine-iso-url');
@@ -229,7 +229,7 @@ describe('Settings', { testIsolation: false }, () => {
     resetSettings.push('engine-iso-url');
   }));
 
-  qase(2020, it('can update password-min-length', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2020, it('can update password-min-length', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
     settingsPage.waitForUrlPathWithoutContext();
 
@@ -269,7 +269,7 @@ describe('Settings', { testIsolation: false }, () => {
     resetSettings.push('password-min-length');
   }));
 
-  qase(2015, it('can update ingress-ip-domain', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2015, it('can update ingress-ip-domain', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('ingress-ip-domain');
@@ -307,7 +307,7 @@ describe('Settings', { testIsolation: false }, () => {
     resetSettings.push('ingress-ip-domain');
   }));
 
-  qase(2022, it('can update auth-user-info-max-age-seconds', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2022, it('can update auth-user-info-max-age-seconds', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-info-max-age-seconds');
@@ -345,7 +345,7 @@ describe('Settings', { testIsolation: false }, () => {
     resetSettings.push('auth-user-info-max-age-seconds');
   }));
 
-  qase(2025, it('can update auth-user-session-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2025, it('can update auth-user-session-ttl-minutes', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-session-ttl-minutes');
@@ -383,7 +383,7 @@ describe('Settings', { testIsolation: false }, () => {
     resetSettings.push('auth-user-session-ttl-minutes');
   }));
 
-  qase(2016, it('can update auth-token-max-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2016, it('can update auth-token-max-ttl-minutes', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     userMenu.getMenuItem('Account & API Keys').should('be.visible'); // Flaky test. Check required menu item visible (and not hidden later on due to content of test)
     userMenu.self().click();
 
@@ -424,7 +424,7 @@ describe('Settings', { testIsolation: false }, () => {
     resetSettings.push('auth-token-max-ttl-minutes');
   }));
 
-  qase(3978, it('can update agent-tls-mode', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(3978, it('can update agent-tls-mode', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('agent-tls-mode');
@@ -461,7 +461,7 @@ describe('Settings', { testIsolation: false }, () => {
     resetSettings.push('agent-tls-mode');
   }));
 
-  qase(2008, it('can update kubeconfig-default-token-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2008, it('can update kubeconfig-default-token-ttl-minutes', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('kubeconfig-default-token-ttl-minutes');
@@ -499,7 +499,7 @@ describe('Settings', { testIsolation: false }, () => {
     resetSettings.push('kubeconfig-default-token-ttl-minutes');
   }));
 
-  qase(2018, it('can update auth-user-info-resync-cron', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2018, it('can update auth-user-info-resync-cron', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-info-resync-cron');
@@ -537,7 +537,7 @@ describe('Settings', { testIsolation: false }, () => {
     resetSettings.push('auth-user-info-resync-cron');
   }));
 
-  qase(2009, it('can update kubeconfig-generate-token', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2009, it('can update kubeconfig-generate-token', { tags: ['@globalSettings2', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('kubeconfig-generate-token');
