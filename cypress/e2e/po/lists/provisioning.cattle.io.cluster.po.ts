@@ -64,7 +64,10 @@ export default class ProvClusterListPo extends BaseResourceList {
       .find('[data-testid="cluster-row-pin"]');
   }
 
-  actionMenu(clusterName: string) {
-    return this.resourceTable().sortableTable().rowActionMenuOpen(clusterName);
+  /**
+   * @param resourceRowsOnly see `SortableTablePo.rowElementWithName`
+   */
+  actionMenu(clusterName: string, resourceRowsOnly = false) {
+    return this.resourceTable().sortableTable().rowActionMenuOpen(clusterName, undefined, resourceRowsOnly);
   }
 }

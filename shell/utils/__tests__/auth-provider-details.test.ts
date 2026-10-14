@@ -27,6 +27,37 @@ describe('fx: authProviderDetails', () => {
     expect(valueOf({ id }, 'authConfig.access.type')).toBe(expected);
   });
 
+  // A config's id is its own name, so the provider has to come from its type
+  describe('a config named something other than its provider', () => {
+    it('should lead with the kind of provider it is', () => {
+      expect(valueOf({ id: 'github-2', type: 'githubConfig' }, 'authConfig.access.type')).toBe('model.authConfig.description.oauth');
+    });
+
+    it('should show the settings of its provider', () => {
+      const config = {
+        id: 'corp-ldap', type: 'openLdapConfig', servers: ['ldap.example.com'], port: 636
+      };
+
+      expect(valueOf(config, 'authConfig.ldap.table.server')).toBe('ldap.example.com:636');
+    });
+
+    it('should tell a GitHub App config from a GitHub one', () => {
+      const config = {
+        id: 'github-apps', type: 'githubAppConfig', hostname: 'github.com', tls: true
+      };
+
+      expect(labels(config)).toContain('authConfig.githubapp.table.server');
+    });
+
+    it('should show the generic settings of a generic SAML config', () => {
+      const config = {
+        id: 'corp-saml', type: 'genericSamlConfig', entityID: 'https://rancher.example.com', forceAuthn: true
+      };
+
+      expect(labels(config)).toContain('authConfig.saml.forceAuthn');
+    });
+  });
+
   it('should show nothing for a provider it does not know', () => {
     expect(authProviderDetails({ id: 'somethingelse' }, t)).toStrictEqual([]);
   });

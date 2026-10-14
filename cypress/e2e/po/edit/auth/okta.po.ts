@@ -4,7 +4,13 @@ import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 
 export default class OktaPo extends PagePo {
+  // Adding a provider always creates a config of its own, so the form is reached
+  // through the create route rather than through an empty config's edit page.
   private static createPath(clusterId: string) {
+    return `/c/${ clusterId }/auth/config/create/okta?mode=edit`;
+  }
+
+  private static editPath(clusterId: string) {
     return `/c/${ clusterId }/auth/config/okta?mode=edit`;
   }
 
@@ -14,7 +20,7 @@ export default class OktaPo extends PagePo {
 
   // Opens the config form of an enabled provider, as the Edit action on the provider list does
   static goToEditConfig(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(`${ OktaPo.createPath(clusterId) }&editConfig=true`);
+    return super.goTo(`${ OktaPo.editPath(clusterId) }&editConfig=true`);
   }
 
   constructor(clusterId: string) {

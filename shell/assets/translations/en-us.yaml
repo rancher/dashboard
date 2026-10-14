@@ -532,6 +532,8 @@ addProjectMemberDialog:
   title: Add Project Member
 
 authConfig:
+  enableLimitReached: Another external provider is already enabled. Rancher Community allows for one external auth provider to be configured at a time. Disable the active provider to add a different one, or use Rancher Prime to run several together.
+  enableLimitReachedPrime: Another external provider is already enabled. The multiple-auth-providers feature flag is off, so one external auth provider can be enabled at a time. Disable the active provider to add a different one, or turn the flag on under Global Settings > Feature Flags to run several together.
   list:
     title: Authentication Providers
     description: Configure the identity providers people can use to log in to Rancher.
@@ -545,6 +547,12 @@ authConfig:
       description: Everyone logs in with a local Rancher account. Connect an identity provider so people can use their existing company credentials.
       create: Add a provider
       learnMore: How external authentication works
+    prime:
+      title: Configure more than one provider with Rancher Prime
+      description: Rancher Community allows for one external auth provider to be configured at a time. Disable the active provider to add a different one, or use Rancher Prime to run several together.
+    primeFlagOff:
+      title: Turn on multiple-auth-providers to configure more than one provider
+      description: The multiple-auth-providers feature flag is off, so one external auth provider can be enabled at a time. Disable the active provider to add a different one, or turn the flag on under Global Settings > Feature Flags to run several together.
     disableLocal:
       label: Disable login with local users
       description: Users sign in through external providers only. Local accounts remain, but cannot be used to sign in.
@@ -561,9 +569,26 @@ authConfig:
   access:
     title: '{provider} - Access'
     type: Type
+  create:
+    back: Authentication Providers
+    unknownProvider: '{provider} is not a provider this Rancher supports.'
+    limitReached: Another external provider is already enabled. Rancher Community allows for one external auth provider to be configured at a time. Disable the active provider to add a different one, or use Rancher Prime to run several together.
+    limitReachedPrime: Another external provider is already enabled. The multiple-auth-providers feature flag is off, so one external auth provider can be enabled at a time. Disable the active provider to add a different one, or turn the flag on under Global Settings > Feature Flags to run several together.
+    provider:
+      title: 'Add {provider}'
+    name:
+      label: Name
+      required: A name is required.
+      invalid: Use lowercase letters, numbers and dashes, starting and ending with a letter or number.
+      taken: '{name} is already in use by another provider.'
+    descriptionField:
+      label: Description
+      placeholder: e.g. Engineering and support.
   add:
     title: Add an authentication provider
     subtitle: Select the provider to connect. Rancher supports one external provider, so this is the one users will log in with. To use a different one later you delete this and configure the new one.
+    subtitleMultiple: Select the provider to connect. More than one external provider can be enabled at a time, and users choose which one to log in with.
+    subtitlePrimeSingle: Select the provider to connect. The multiple-auth-providers feature flag is off, so one external provider can be enabled at a time. Turn the flag on under Global Settings > Feature Flags to run several together.
     searchPlaceholder: Search providers
     filterLabel: Protocol
     filterAll: All
@@ -4839,10 +4864,14 @@ login:
   loggingIn: Logging in...
   loggedIn: Logged in
   loginWithLocal: Log in with Local User
+  useProvider: Use a {provider} user
+  useNonLocal: Use a non-local user
   providers:
     heading: Choose how to sign in
     or: Or
+    choose: Choose another authentication provider
     chooseDifferent: Choose a different provider
+    menu: Authentication providers
     useLocal: Log in as a local user
     meta: "{vendor} · {protocol}"
     remember: Remember my choice on this device

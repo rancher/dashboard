@@ -203,5 +203,20 @@ describe('ldap/index.vue', () => {
       expect(saveButton.disabled).toBe(false);
       wrapper.unmount();
     });
+
+    // A config's own page is named after the config, which only says which
+    // provider it is once the config has loaded.
+    it('button is enabled for a named activedirectory config once it has loaded', async() => {
+      const wrapper = mount(LDAPIndex, buildSetup('activedirectory-2', {}, { model: { ...validActiveDirectoryModel } }));
+
+      (wrapper.vm as any).model = { ...validActiveDirectoryModel, type: 'activeDirectoryConfig' };
+      await wrapper.vm.validateAllFields();
+      await flushPromises();
+
+      const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
+
+      expect(saveButton.disabled).toBe(false);
+      wrapper.unmount();
+    });
   });
 });
