@@ -172,6 +172,24 @@ export default {
         {{ t('about.versions.releaseNotes') }}
       </a>
     </p>
+
+    <RcHeading
+      :size="3"
+      class="open-source-licenses pt-40"
+    >
+      {{ t('about.licenses.title') }}
+    </RcHeading>
+    <p>{{ t('about.licenses.description') }}</p>
+    <rc-button
+      size="small"
+      :to="{ name: 'licenses' }"
+      class="mt-10 view-licenses"
+      data-testid="about__licenses_button"
+      :aria-label="t('about.licenses.viewLicenses')"
+    >
+      {{ t('about.licenses.viewLicenses') }}
+    </rc-button>
+
     <RcHeading
       :size="3"
       class="pt-40"
@@ -200,6 +218,10 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
+  }
+
+  .view-licenses {
+    width: fit-content;
   }
 
   table {
