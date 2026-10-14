@@ -1,6 +1,27 @@
 import MgmtNodePool from '@shell/models/management.cattle.io.nodepool';
 
 describe('class MgmtNodePool', () => {
+  describe('scalePool', () => {
+    it('should not allow quantity to become negative', () => {
+      const norman = {
+        quantity: 0,
+        save:     jest.fn()
+      };
+      const mgmtNodePool = new MgmtNodePool({
+        id:       'fleet-default:np1',
+        metadata: {}
+      }, {
+        rootGetters: {
+          'rancher/byId': () => norman
+        }
+      });
+
+      mgmtNodePool.scalePool(-1);
+
+      expect(mgmtNodePool.norman.quantity).toBe(0);
+    });
+  });
+
   describe('canScaleDownPool', () => {
     const mgmtClusterId = 'test';
     const nodeId = 'test/id';
