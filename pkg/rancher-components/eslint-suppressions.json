@@ -1,0 +1,7 @@
+{
+  "src/components/RcCodeMirror/extensions/theme.ts": {
+    "local-rules/no-color-literal": {
+      "count": 11
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts": {
+    "local-rules/no-color-literal": {
+      "count": 11
+    }
+  },
+  "shell/components/CountBox.vue": {
+    "local-rules/no-color-literal": {
+      "count": 1
+    }
+  },
+  "shell/components/CountGauge.vue": {
+    "local-rules/no-color-literal": {
+      "count": 4
+    }
+  },
+  "shell/components/DashboardMetrics.vue": {
+    "local-rules/no-color-literal": {
+      "count": 2
+    }
+  },
+  "shell/components/GradientBox.vue": {
+    "local-rules/no-color-literal": {
+      "count": 1
+    }
+  },
+  "shell/components/GrafanaDashboard.vue": {
+    "local-rules/no-color-literal": {
+      "count": 1
+    }
+  },
+  "shell/components/HardwareResourceGauge.vue": {
+    "local-rules/no-color-literal": {
+      "count": 1
+    }
+  },
+  "shell/components/fleet/dashboard/ResourceCard.vue": {
+    "local-rules/no-color-literal": {
+      "count": 1
+    }
+  },
+  "shell/components/graph/ProgressArc.vue": {
+    "local-rules/no-color-literal": {
+      "count": 1
+    }
+  },
+  "shell/mixins/brand.js": {
+    "local-rules/no-color-literal": {
+      "count": 1
+    }
+  },
+  "shell/models/management.cattle.io.cluster.js": {
+    "local-rules/no-color-literal": {
+      "count": 1
+    }
+  },
+  "shell/pages/c/_cluster/fleet/graph/config.js": {
+    "local-rules/no-color-literal": {
+      "count": 5
+    }
+  },
+  "shell/utils/color.js": {
+    "local-rules/no-color-literal": {
+      "count": 6
+    }
+  },
+  "shell/utils/fleet.ts": {
+    "local-rules/no-color-literal": {
+      "count": 4
+    }
+  },
+  "shell/utils/svg-filter.js": {
+    "local-rules/no-color-literal": {
+      "count": 1
+    }
+  }
+}

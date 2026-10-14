@@ -1,0 +1,697 @@
+{
+  "source": "rancher/dashboard 0125826, before every color became a design system token (#19351)",
+  "primitives": {
+    "--color-black": [
+      {"expression":"darken($dark, 25%)","inputs":{"$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"darken($success, 25%)","inputs":{"$success":"--color-green-523"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"darken($dark, 25%)","inputs":{"$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"darken($warning, 60%)","inputs":{"$warning":"--color-yellow-170"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-182": [
+      {"expression":"darken($disabled, 10%)","inputs":{"$disabled":"--color-gray-96"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"darken($medium, 10%)","inputs":{"$medium":"--color-gray-96"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"darken($medium, 10%)","inputs":{"$medium":"--color-gray-96"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-183": [
+      {"expression":"darken(#EBEEF5, 15%)","inputs":{"#EBEEF5":"--color-gray-51"},"file":"shell/components/formatter/ImagePercentageBar.vue"}
+    ],
+    "--color-blue-186": [
+      {"expression":"darken($disabled, 10%)","inputs":{"$disabled":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"darken($medium, 10%)","inputs":{"$medium":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"darken($disabled, 10%)","inputs":{"$disabled":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"darken($medium, 10%)","inputs":{"$medium":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-blue-196-a12": [
+      {"expression":"color-mix(in srgb, var(--active, var(--primary)) 12%, transparent)","inputs":{"--active":"--color-blue-196","--primary":"--color-blue-451"},"file":"shell/components/TableViews/TableViewQueryInput.vue","themes":["modern dark"]}
+    ],
+    "--color-blue-196-a50": [
+      {"expression":"color-mix(in srgb, var(--active, var(--primary)) 50%, transparent)","inputs":{"--active":"--color-blue-196","--primary":"--color-blue-451"},"file":"shell/components/TableViews/TableViewControls.vue","themes":["modern dark"]}
+    ],
+    "--color-blue-224": [
+      {"expression":"darken($medium, 15%)","inputs":{"$medium":"--color-gray-96"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-230": [
+      {"expression":"darken($medium, 15%)","inputs":{"$medium":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-blue-244": [
+      {"expression":"darken($primary-50, 5%)","inputs":{"$primary-50":"--color-blue-196"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-270": [
+      {"expression":"darken($light, 25%)","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"darken($light, 25%)","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-313": [
+      {"expression":"darken($disabled, 25%)","inputs":{"$disabled":"--color-gray-96"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"darken($medium, 25%)","inputs":{"$medium":"--color-gray-96"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-315": [
+      {"expression":"rgba(var(--sizzle-3), 1)","inputs":{"--sizzle-3":"--color-blue-315"},"file":"shell/assets/styles/themes/_light.scss","themes":["classic light"]},
+      {"expression":"rgba(var(--sizzle-3), 1)","inputs":{"--sizzle-3":"--color-blue-315"},"file":"shell/assets/styles/themes/_modern.scss","themes":["modern light","modern dark","suse light","suse dark"]}
+    ],
+    "--color-blue-320": [
+      {"expression":"darken($disabled, 25%)","inputs":{"$disabled":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"darken($medium, 25%)","inputs":{"$medium":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-blue-349-a12": [
+      {"expression":"color-mix(in srgb, var(--active, var(--primary)) 12%, transparent)","inputs":{"--active":"--color-blue-349","--primary":"--color-blue-349"},"file":"shell/components/TableViews/TableViewQueryInput.vue","themes":["classic light","classic dark"]}
+    ],
+    "--color-blue-349-a14": [
+      {"expression":"color-mix(in srgb, var(--primary) 14%, transparent)","inputs":{"--primary":"--color-blue-349"},"file":"shell/components/TableViews/TableViewControls.vue","themes":["classic light","classic dark"]},
+      {"expression":"color-mix(in srgb, var(--primary) 14%, transparent)","inputs":{"--primary":"--color-blue-349"},"file":"shell/components/TableViews/TableViewTabs.vue","themes":["classic light","classic dark"]},
+      {"expression":"color-mix(in srgb, var(--primary) 14%, transparent)","inputs":{"--primary":"--color-blue-349"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["classic light","classic dark"]}
+    ],
+    "--color-blue-349-a15": [
+      {"expression":"rgba($primary, 0.15)","inputs":{"$primary":"--color-blue-349"},"file":"shell/assets/styles/base/_variables-classic.scss"},
+      {"expression":"rgba($link, 0.15)","inputs":{"$link":"--color-blue-349"},"file":"shell/assets/styles/base/_variables-classic.scss"},
+      {"expression":"rgba($info, 0.15)","inputs":{"$info":"--color-blue-349"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"color-mix(in srgb, var(--primary) 15%, transparent)","inputs":{"--primary":"--color-blue-349"},"file":"shell/components/TableViews/TableViewTabs.vue","themes":["classic light","classic dark"]},
+      {"expression":"color-mix(in srgb, var(--primary) 15%, transparent)","inputs":{"--primary":"--color-blue-349"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["classic light","classic dark"]}
+    ],
+    "--color-blue-349-a5": [
+      {"expression":"rgba($primary, 0.05)","inputs":{"$primary":"--color-blue-349"},"file":"shell/assets/styles/base/_variables-classic.scss"},
+      {"expression":"rgba($link, 0.05)","inputs":{"$link":"--color-blue-349"},"file":"shell/assets/styles/base/_variables-classic.scss"},
+      {"expression":"rgba($info, 0.05)","inputs":{"$info":"--color-blue-349"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-blue-349-a50": [
+      {"expression":"rgba(#3D98D3, .5)","inputs":{"#3D98D3":"--color-blue-349"},"file":"shell/assets/styles/base/_color-classic.scss"},
+      {"expression":"rgba(#3D98D3, .5)","inputs":{"#3D98D3":"--color-blue-349"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"color-mix(in srgb, var(--active, var(--primary)) 50%, transparent)","inputs":{"--active":"--color-blue-349","--primary":"--color-blue-349"},"file":"shell/components/TableViews/TableViewControls.vue","themes":["classic light","classic dark"]}
+    ],
+    "--color-blue-361": [
+      {"expression":"hsl(from var(--primary) h s calc(l + 10))","inputs":{"--primary":"--color-blue-451"},"file":"shell/assets/styles/themes/_modern.scss","themes":["modern dark"]}
+    ],
+    "--color-blue-406": [
+      {"expression":"rgba(var(--sizzle-5), 1)","inputs":{"--sizzle-5":"--color-blue-406"},"file":"shell/assets/styles/themes/_light.scss","themes":["classic light"]},
+      {"expression":"rgba(var(--sizzle-5), 1)","inputs":{"--sizzle-5":"--color-blue-406"},"file":"shell/assets/styles/themes/_modern.scss","themes":["modern light","modern dark","suse light","suse dark"]}
+    ],
+    "--color-blue-434": [
+      {"expression":"darken($primary, 10%)","inputs":{"$primary":"--color-blue-349"},"file":"shell/assets/styles/base/_variables-classic.scss"},
+      {"expression":"darken($link, 10%)","inputs":{"$link":"--color-blue-349"},"file":"shell/assets/styles/base/_variables-classic.scss"},
+      {"expression":"darken($info, 10%)","inputs":{"$info":"--color-blue-349"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"hsl(from var(--primary) h s calc(l - 10))","inputs":{"--primary":"--color-blue-349"},"file":"shell/assets/styles/base/_variables-classic.scss","themes":["classic light","classic dark"]}
+    ],
+    "--color-blue-438-a15": [
+      {"expression":"rgba($link, 0.15)","inputs":{"$link":"--color-blue-438"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-438-a5": [
+      {"expression":"rgba($link, 0.05)","inputs":{"$link":"--color-blue-438"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-449": [
+      {"expression":"darken($disabled, 40%)","inputs":{"$disabled":"--color-gray-96"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"darken($disabled, 40%)","inputs":{"$disabled":"--color-gray-96"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-451-a14": [
+      {"expression":"color-mix(in srgb, var(--primary) 14%, transparent)","inputs":{"--primary":"--color-blue-451"},"file":"shell/components/TableViews/TableViewControls.vue","themes":["modern light","modern dark"]},
+      {"expression":"color-mix(in srgb, var(--primary) 14%, transparent)","inputs":{"--primary":"--color-blue-451"},"file":"shell/components/TableViews/TableViewTabs.vue","themes":["modern light","modern dark"]},
+      {"expression":"color-mix(in srgb, var(--primary) 14%, transparent)","inputs":{"--primary":"--color-blue-451"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["modern light","modern dark"]}
+    ],
+    "--color-blue-451-a15": [
+      {"expression":"rgba($primary, 0.15)","inputs":{"$primary":"--color-blue-451"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"color-mix(in srgb, var(--primary) 15%, transparent)","inputs":{"--primary":"--color-blue-451"},"file":"shell/components/TableViews/TableViewTabs.vue","themes":["modern light","modern dark"]},
+      {"expression":"color-mix(in srgb, var(--primary) 15%, transparent)","inputs":{"--primary":"--color-blue-451"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["modern light","modern dark"]}
+    ],
+    "--color-blue-451-a5": [
+      {"expression":"rgba($primary, 0.05)","inputs":{"$primary":"--color-blue-451"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-458": [
+      {"expression":"darken($disabled, 40%)","inputs":{"$disabled":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"darken($disabled, 40%)","inputs":{"$disabled":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"darken($disabled, 40%)","inputs":{"$disabled":"--color-gray-99"},"file":"shell/assets/styles/themes/_suse.scss"}
+    ],
+    "--color-blue-460-a10": [
+      {"expression":"rgba($info, 0.10)","inputs":{"$info":"--color-blue-460"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-460-a15": [
+      {"expression":"rgba($info, 0.15)","inputs":{"$info":"--color-blue-460"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-460-a30": [
+      {"expression":"rgba($info, 30%)","inputs":{"$info":"--color-blue-460"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-460-a5": [
+      {"expression":"rgba($info, 0.05)","inputs":{"$info":"--color-blue-460"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-483": [
+      {"expression":"darken($lighter, 30%)","inputs":{"$lighter":"--color-gray-221"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"darken($lighter, 30%)","inputs":{"$lighter":"--color-gray-221"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-484": [
+      {"expression":"lighten($primary-120, 5%)","inputs":{"$primary-120":"--color-blue-521"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-521": [
+      {"expression":"darken($link, 10%)","inputs":{"$link":"--color-blue-438"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-521-a12": [
+      {"expression":"color-mix(in srgb, var(--active, var(--primary)) 12%, transparent)","inputs":{"--active":"--color-blue-521","--primary":"--color-blue-451"},"file":"shell/components/TableViews/TableViewQueryInput.vue","themes":["modern light"]}
+    ],
+    "--color-blue-521-a50": [
+      {"expression":"color-mix(in srgb, var(--active, var(--primary)) 50%, transparent)","inputs":{"--active":"--color-blue-521","--primary":"--color-blue-451"},"file":"shell/components/TableViews/TableViewControls.vue","themes":["modern light"]}
+    ],
+    "--color-blue-529": [
+      {"expression":"darken($primary, 10%)","inputs":{"$primary":"--color-blue-451"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"hsl(from var(--primary) h s calc(l - 10))","inputs":{"--primary":"--color-blue-451"},"file":"shell/assets/styles/themes/_modern.scss","themes":["modern light"]}
+    ],
+    "--color-blue-541": [
+      {"expression":"darken($info, 10%)","inputs":{"$info":"--color-blue-460"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-579": [
+      {"expression":"darken($primary, 25%)","inputs":{"$primary":"--color-blue-349"},"file":"shell/assets/styles/base/_variables-classic.scss"},
+      {"expression":"darken($link, 25%)","inputs":{"$link":"--color-blue-349"},"file":"shell/assets/styles/base/_variables-classic.scss"},
+      {"expression":"darken($info, 25%)","inputs":{"$info":"--color-blue-349"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-blue-619": [
+      {"expression":"darken($disabled, 60%)","inputs":{"$disabled":"--color-gray-96"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-624": [
+      {"expression":"rgba(var(--sizzle-7), 1)","inputs":{"--sizzle-7":"--color-blue-624"},"file":"shell/assets/styles/themes/_light.scss","themes":["classic light"]},
+      {"expression":"rgba(var(--sizzle-7), 1)","inputs":{"--sizzle-7":"--color-blue-624"},"file":"shell/assets/styles/themes/_modern.scss","themes":["modern light","modern dark","suse light","suse dark"]}
+    ],
+    "--color-blue-625": [
+      {"expression":"darken($disabled, 60%)","inputs":{"$disabled":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-blue-628": [
+      {"expression":"lighten($body-bg, 10%)","inputs":{"$body-bg":"--color-gray-723"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-641": [
+      {"expression":"darken($link, 25%)","inputs":{"$link":"--color-blue-438"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-648": [
+      {"expression":"darken($primary, 25%)","inputs":{"$primary":"--color-blue-451"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-blue-671": [
+      {"expression":"darken($info, 25%)","inputs":{"$info":"--color-blue-460"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-134": [
+      {"expression":"darken($light, 10%)","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"darken($light, 10%)","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-29-a75": [
+      {"expression":"rgba($lighter, 0.75)","inputs":{"$lighter":"--color-gray-29"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"rgba($lighter, 0.75)","inputs":{"$lighter":"--color-gray-29"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-32": [
+      {"expression":"mix($light, $lighter, 15%)","inputs":{"$light":"--color-gray-48","$lighter":"--color-gray-29"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"mix($light, $lighter, 15%)","inputs":{"$light":"--color-gray-48","$lighter":"--color-gray-29"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-39": [
+      {"expression":"darken($lightest, 5%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"darken($grey-0, 5%)","inputs":{"$grey-0":"--color-white"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-400": [
+      {"expression":"darken($lightest, 50%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"darken($lightest, 50%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-45": [
+      {"expression":"lighten($disabled, 50%)","inputs":{"$disabled":"--color-gray-466"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"lighten($disabled, 50%)","inputs":{"$disabled":"--color-gray-466"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-466-a15": [
+      {"expression":"rgba($darker, 0.15)","inputs":{"$darker":"--color-gray-466"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"rgba($darker, 0.15)","inputs":{"$darker":"--color-gray-466"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-466-a5": [
+      {"expression":"rgba($darker, 0.05)","inputs":{"$darker":"--color-gray-466"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"rgba($darker, 0.05)","inputs":{"$darker":"--color-gray-466"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-48-a15": [
+      {"expression":"rgba($light, 0.15)","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"rgba($light, 0.15)","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-48-a5": [
+      {"expression":"rgba($light, 0.05)","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"rgba($light, 0.05)","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-552": [
+      {"expression":"darken($disabled, 10%)","inputs":{"$disabled":"--color-gray-466"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"darken($disabled, 10%)","inputs":{"$disabled":"--color-gray-466"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"darken($darker, 10%)","inputs":{"$darker":"--color-gray-466"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"darken($darker, 10%)","inputs":{"$darker":"--color-gray-466"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"darken($disabled, 10%)","inputs":{"$disabled":"--color-gray-466"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"darken($disabled, 10%)","inputs":{"$disabled":"--color-gray-466"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-65": [
+      {"expression":"darken($light, 2%)","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"darken($light, 2%)","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-675": [
+      {"expression":"lighten($body-bg, 5%)","inputs":{"$body-bg":"--color-gray-723"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-692": [
+      {"expression":"mix($medium, $dark, 20%)","inputs":{"$medium":"--color-gray-586","$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"mix($medium, $dark, 20%)","inputs":{"$medium":"--color-gray-581","$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-693": [
+      {"expression":"darken($darker, 25%)","inputs":{"$darker":"--color-gray-466"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"darken($darker, 25%)","inputs":{"$darker":"--color-gray-466"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-703": [
+      {"expression":"mix($medium, $dark, 10%)","inputs":{"$medium":"--color-gray-581","$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"mix($medium, $dark, 10%)","inputs":{"$medium":"--color-gray-581","$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-705": [
+      {"expression":"mix($medium, $dark, 10%)","inputs":{"$medium":"--color-gray-586","$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"mix($medium, $dark, 10%)","inputs":{"$medium":"--color-gray-586","$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_dark.scss"}
+    ],
+    "--color-gray-707": [
+      {"expression":"lighten($darkest, 10%)","inputs":{"$darkest":"--color-gray-806"},"file":"shell/assets/styles/themes/_dark.scss"}
+    ],
+    "--color-gray-719-a15": [
+      {"expression":"rgba($dark, 0.15)","inputs":{"$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"rgba($dark, 0.15)","inputs":{"$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-719-a5": [
+      {"expression":"rgba($dark, 0.05)","inputs":{"$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"rgba($dark, 0.05)","inputs":{"$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-724": [
+      {"expression":"lighten($darkest, 5%)","inputs":{"$darkest":"--color-gray-777"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-743": [
+      {"expression":"darken($disabled, 30%)","inputs":{"$disabled":"--color-gray-466"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"darken($disabled, 30%)","inputs":{"$disabled":"--color-gray-466"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-748": [
+      {"expression":"darken($dark, 3%)","inputs":{"$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"darken($dark, 3%)","inputs":{"$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-757": [
+      {"expression":"lighten($darkest, 5%)","inputs":{"$darkest":"--color-gray-806"},"file":"shell/assets/styles/themes/_dark.scss"}
+    ],
+    "--color-gray-772": [
+      {"expression":"rgba($darker, 1)","inputs":{"$darker":"--color-gray-772"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"rgba($darker, 1)","inputs":{"$darker":"--color-gray-772"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-772-a0": [
+      {"expression":"rgba($darker, 0)","inputs":{"$darker":"--color-gray-772"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"rgba($darker, 0)","inputs":{"$darker":"--color-gray-772"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-777-a30": [
+      {"expression":"rgba($darkest, 0.3)","inputs":{"$darkest":"--color-gray-777"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-777-a75": [
+      {"expression":"rgba($darkest, 0.75)","inputs":{"$darkest":"--color-gray-777"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"color-mix(in srgb, var(--rc-cm-bg) 75%, transparent)","inputs":{"--rc-cm-bg":"--color-gray-777"},"file":"pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts","themes":["modern dark","classic dark","suse dark"]}
+    ],
+    "--color-gray-777-a90": [
+      {"expression":"rgba($darkest, 0.9)","inputs":{"$darkest":"--color-gray-777"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-801-a65": [
+      {"expression":"color-mix(in srgb, var(--on-active) 65%, transparent)","inputs":{"--on-active":"--color-gray-801"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["modern dark","suse dark"]}
+    ],
+    "--color-gray-806": [
+      {"expression":"contrast-color($light)","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"contrast-color(darken($light, 25%))","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"contrast-color($warning)","inputs":{"$warning":"--color-yellow-186"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"contrast-color($disabled)","inputs":{"$disabled":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"contrast-color(darken($disabled, 25%))","inputs":{"$disabled":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"contrast-color($light)","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color(darken($light, 25%))","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color($warning)","inputs":{"$warning":"--color-yellow-80"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color(darken($warning, 25%))","inputs":{"$warning":"--color-yellow-80"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color($disabled)","inputs":{"$disabled":"--color-gray-96"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color(darken($disabled, 25%))","inputs":{"$disabled":"--color-gray-96"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color($warning)","inputs":{"$warning":"--color-yellow-170"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-806-a10": [
+      {"expression":"color-mix(in srgb, var(--body-text) 10%, transparent)","inputs":{"--body-text":"--color-gray-806"},"file":"shell/components/nav/ClusterSwitcher.vue","themes":["modern light","classic light","suse light"]},
+      {"expression":"color-mix(in srgb, var(--body-text) 10%, transparent)","inputs":{"--body-text":"--color-gray-806"},"file":"shell/components/nav/ClusterSwitcherRow.vue","themes":["modern light","classic light","suse light"]},
+      {"expression":"color-mix(in srgb, var(--body-text) 10%, transparent)","inputs":{"--body-text":"--color-gray-806"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["modern light","classic light","suse light"]}
+    ],
+    "--color-gray-806-a15": [
+      {"expression":"color-mix(in srgb, var(--body-text) 15%, transparent)","inputs":{"--body-text":"--color-gray-806"},"file":"shell/components/nav/ClusterSwitcherSkeleton.vue","themes":["modern light","classic light","suse light"]}
+    ],
+    "--color-gray-806-a30": [
+      {"expression":"rgba($darkest, 0.3)","inputs":{"$darkest":"--color-gray-806"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"rgba($darkest, 0.3)","inputs":{"$darkest":"--color-gray-806"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"rgba($darkest, 0.3)","inputs":{"$darkest":"--color-gray-806"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-806-a6": [
+      {"expression":"color-mix(in srgb, var(--body-text) 6%, transparent)","inputs":{"--body-text":"--color-gray-806"},"file":"shell/components/nav/ClusterSwitcherRow.vue","themes":["modern light","classic light","suse light"]}
+    ],
+    "--color-gray-806-a7": [
+      {"expression":"color-mix(in srgb, var(--body-text) 7%, transparent)","inputs":{"--body-text":"--color-gray-806"},"file":"shell/components/nav/ClusterSwitcherSkeleton.vue","themes":["modern light","classic light","suse light"]}
+    ],
+    "--color-gray-806-a75": [
+      {"expression":"rgba($darkest, 0.75)","inputs":{"$darkest":"--color-gray-806"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"rgba($darkest, 0.75)","inputs":{"$darkest":"--color-gray-806"},"file":"shell/assets/styles/themes/_dark.scss"}
+    ],
+    "--color-gray-806-a8": [
+      {"expression":"color-mix(in srgb, var(--body-text) 8%, transparent)","inputs":{"--body-text":"--color-gray-806"},"file":"shell/components/TableViews/TableViewTabs.vue","themes":["modern light","classic light","suse light"]},
+      {"expression":"color-mix(in srgb, var(--body-text) 8%, transparent)","inputs":{"--body-text":"--color-gray-806"},"file":"shell/components/nav/ClusterSwitcher.vue","themes":["modern light","classic light","suse light"]},
+      {"expression":"color-mix(in srgb, var(--body-text) 8%, transparent)","inputs":{"--body-text":"--color-gray-806"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["modern light","classic light","suse light"]}
+    ],
+    "--color-gray-806-a90": [
+      {"expression":"rgba($darkest, 0.9)","inputs":{"$darkest":"--color-gray-806"},"file":"shell/assets/styles/themes/_dark.scss"}
+    ],
+    "--color-gray-826": [
+      {"expression":"darken($dark, 10%)","inputs":{"$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"darken($dark, 10%)","inputs":{"$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-9": [
+      {"expression":"lighten($info, 50%)","inputs":{"$info":"--color-blue-460"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-931": [
+      {"expression":"darken($medium, 30%)","inputs":{"$medium":"--color-gray-586"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"darken($medium, 30%)","inputs":{"$medium":"--color-gray-581"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-96-a15": [
+      {"expression":"rgba($disabled, 0.15)","inputs":{"$disabled":"--color-gray-96"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-96-a5": [
+      {"expression":"rgba($disabled, 0.05)","inputs":{"$disabled":"--color-gray-96"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-96-a85": [
+      {"expression":"rgba($medium, 0.85)","inputs":{"$medium":"--color-gray-96"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-99-a0": [
+      {"expression":"rgba($drag-over, 0)","inputs":{"$drag-over":"--color-gray-99"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"rgba($drag-over, 0)","inputs":{"$drag-over":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"rgba($drag-over, 0)","inputs":{"$drag-over":"--color-gray-99"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"rgba($drag-over, 0)","inputs":{"$drag-over":"--color-gray-99"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-99-a15": [
+      {"expression":"rgba($disabled, 0.15)","inputs":{"$disabled":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-gray-99-a5": [
+      {"expression":"rgba($disabled, 0.05)","inputs":{"$disabled":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-gray-99-a85": [
+      {"expression":"rgba($medium, 0.85)","inputs":{"$medium":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-gray-99-a90": [
+      {"expression":"rgba($drag-over, 0.9)","inputs":{"$drag-over":"--color-gray-99"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"rgba($drag-over, 0.9)","inputs":{"$drag-over":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"rgba($drag-over, 0.9)","inputs":{"$drag-over":"--color-gray-99"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"rgba($drag-over, 0.9)","inputs":{"$drag-over":"--color-gray-99"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-green-183": [
+      {"expression":"hsl(from var(--primary) h s calc(l + 10))","inputs":{"--primary":"--color-green-228"},"file":"shell/assets/styles/themes/_modern.scss","themes":["suse dark"]}
+    ],
+    "--color-green-228-a14": [
+      {"expression":"color-mix(in srgb, var(--primary) 14%, transparent)","inputs":{"--primary":"--color-green-228"},"file":"shell/components/TableViews/TableViewControls.vue","themes":["suse dark"]},
+      {"expression":"color-mix(in srgb, var(--primary) 14%, transparent)","inputs":{"--primary":"--color-green-228"},"file":"shell/components/TableViews/TableViewTabs.vue","themes":["suse dark"]},
+      {"expression":"color-mix(in srgb, var(--primary) 14%, transparent)","inputs":{"--primary":"--color-green-228"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["suse dark"]}
+    ],
+    "--color-green-228-a15": [
+      {"expression":"color-mix(in srgb, var(--primary) 15%, transparent)","inputs":{"--primary":"--color-green-228"},"file":"shell/components/TableViews/TableViewTabs.vue","themes":["suse dark"]},
+      {"expression":"color-mix(in srgb, var(--primary) 15%, transparent)","inputs":{"--primary":"--color-green-228"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["suse dark"]}
+    ],
+    "--color-green-374-a15": [
+      {"expression":"rgba($success, 0.15)","inputs":{"$success":"--color-green-374"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-green-374-a25": [
+      {"expression":"rgba($success, 0.25)","inputs":{"$success":"--color-green-374"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"rgba($success, 0.25)","inputs":{"$success":"--color-green-374"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-green-374-a30": [
+      {"expression":"rgba($success, 0.3)","inputs":{"$success":"--color-green-374"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"rgba($success, 0.3)","inputs":{"$success":"--color-green-374"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-green-374-a5": [
+      {"expression":"rgba($success, 0.05)","inputs":{"$success":"--color-green-374"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-green-374-a50": [
+      {"expression":"rgba($success, 0.5)","inputs":{"$success":"--color-green-374"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"rgba($success, 0.5)","inputs":{"$success":"--color-green-374"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-green-432-a10": [
+      {"expression":"rgba($success, 10%)","inputs":{"$success":"--color-green-432"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-green-432-a25": [
+      {"expression":"rgba($success, 0.25)","inputs":{"$success":"--color-green-432"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-green-432-a30": [
+      {"expression":"rgba($success, 0.3)","inputs":{"$success":"--color-green-432"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-green-432-a50": [
+      {"expression":"rgba($success, 0.5)","inputs":{"$success":"--color-green-432"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-green-453-a14": [
+      {"expression":"color-mix(in srgb, var(--primary) 14%, transparent)","inputs":{"--primary":"--color-green-453"},"file":"shell/components/TableViews/TableViewControls.vue","themes":["suse light"]},
+      {"expression":"color-mix(in srgb, var(--primary) 14%, transparent)","inputs":{"--primary":"--color-green-453"},"file":"shell/components/TableViews/TableViewTabs.vue","themes":["suse light"]},
+      {"expression":"color-mix(in srgb, var(--primary) 14%, transparent)","inputs":{"--primary":"--color-green-453"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["suse light"]}
+    ],
+    "--color-green-453-a15": [
+      {"expression":"color-mix(in srgb, var(--primary) 15%, transparent)","inputs":{"--primary":"--color-green-453"},"file":"shell/components/TableViews/TableViewTabs.vue","themes":["suse light"]},
+      {"expression":"color-mix(in srgb, var(--primary) 15%, transparent)","inputs":{"--primary":"--color-green-453"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["suse light"]}
+    ],
+    "--color-green-471": [
+      {"expression":"darken($success, 10%)","inputs":{"$success":"--color-green-374"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-green-523-a10": [
+      {"expression":"rgba($success, 0.10)","inputs":{"$success":"--color-green-523"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-green-523-a15": [
+      {"expression":"rgba($success, 0.15)","inputs":{"$success":"--color-green-523"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-green-523-a25": [
+      {"expression":"rgba($success, 0.25)","inputs":{"$success":"--color-green-523"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-green-523-a30": [
+      {"expression":"rgba($success, 0.3)","inputs":{"$success":"--color-green-523"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-green-523-a5": [
+      {"expression":"rgba($success, 0.05)","inputs":{"$success":"--color-green-523"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-green-523-a50": [
+      {"expression":"rgba($success, 0.5)","inputs":{"$success":"--color-green-523"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-green-534-a12": [
+      {"expression":"color-mix(in srgb, var(--active, var(--primary)) 12%, transparent)","inputs":{"--active":"--color-green-534","--primary":"--color-green-453"},"file":"shell/components/TableViews/TableViewQueryInput.vue","themes":["suse light"]}
+    ],
+    "--color-green-534-a50": [
+      {"expression":"color-mix(in srgb, var(--active, var(--primary)) 50%, transparent)","inputs":{"--active":"--color-green-534","--primary":"--color-green-453"},"file":"shell/components/TableViews/TableViewControls.vue","themes":["suse light"]}
+    ],
+    "--color-green-574": [
+      {"expression":"lighten($category-active, 10%)","inputs":{"$category-active":"--color-green-674"},"file":"shell/assets/styles/themes/_suse.scss"}
+    ],
+    "--color-green-609": [
+      {"expression":"hsl(from var(--primary) h s calc(l - 10))","inputs":{"--primary":"--color-green-453"},"file":"shell/assets/styles/themes/_modern.scss","themes":["suse light"]}
+    ],
+    "--color-green-623": [
+      {"expression":"darken($success, 25%)","inputs":{"$success":"--color-green-374"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-green-685": [
+      {"expression":"darken($success, 10%)","inputs":{"$success":"--color-green-523"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-green-85-a12": [
+      {"expression":"color-mix(in srgb, var(--active, var(--primary)) 12%, transparent)","inputs":{"--active":"--color-green-85","--primary":"--color-green-228"},"file":"shell/components/TableViews/TableViewQueryInput.vue","themes":["suse dark"]}
+    ],
+    "--color-green-85-a50": [
+      {"expression":"color-mix(in srgb, var(--active, var(--primary)) 50%, transparent)","inputs":{"--active":"--color-green-85","--primary":"--color-green-228"},"file":"shell/components/TableViews/TableViewControls.vue","themes":["suse dark"]}
+    ],
+    "--color-orange-267": [
+      {"expression":"rgba(var(--sizzle-4), 1)","inputs":{"--sizzle-4":"--color-orange-267"},"file":"shell/assets/styles/themes/_light.scss","themes":["classic light"]},
+      {"expression":"rgba(var(--sizzle-4), 1)","inputs":{"--sizzle-4":"--color-orange-267"},"file":"shell/assets/styles/themes/_modern.scss","themes":["modern light","modern dark","suse light","suse dark"]}
+    ],
+    "--color-pink-389": [
+      {"expression":"rgba(var(--sizzle-2), 1)","inputs":{"--sizzle-2":"--color-pink-389"},"file":"shell/assets/styles/themes/_light.scss","themes":["classic light"]},
+      {"expression":"rgba(var(--sizzle-2), 1)","inputs":{"--sizzle-2":"--color-pink-389"},"file":"shell/assets/styles/themes/_modern.scss","themes":["modern light","modern dark","suse light","suse dark"]}
+    ],
+    "--color-purple-467": [
+      {"expression":"rgba(var(--sizzle-6), 1)","inputs":{"--sizzle-6":"--color-purple-467"},"file":"shell/assets/styles/themes/_light.scss","themes":["classic light"]},
+      {"expression":"rgba(var(--sizzle-6), 1)","inputs":{"--sizzle-6":"--color-purple-467"},"file":"shell/assets/styles/themes/_modern.scss","themes":["modern light","modern dark","suse light","suse dark"]}
+    ],
+    "--color-red-11-a10": [
+      {"expression":"color-mix(in srgb, var(--body-text) 10%, transparent)","inputs":{"--body-text":"--color-red-11"},"file":"shell/components/nav/ClusterSwitcher.vue","themes":["modern dark","suse dark"]},
+      {"expression":"color-mix(in srgb, var(--body-text) 10%, transparent)","inputs":{"--body-text":"--color-red-11"},"file":"shell/components/nav/ClusterSwitcherRow.vue","themes":["modern dark","suse dark"]},
+      {"expression":"color-mix(in srgb, var(--body-text) 10%, transparent)","inputs":{"--body-text":"--color-red-11"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["modern dark","suse dark"]}
+    ],
+    "--color-red-11-a15": [
+      {"expression":"color-mix(in srgb, var(--body-text) 15%, transparent)","inputs":{"--body-text":"--color-red-11"},"file":"shell/components/nav/ClusterSwitcherSkeleton.vue","themes":["modern dark","suse dark"]}
+    ],
+    "--color-red-11-a6": [
+      {"expression":"color-mix(in srgb, var(--body-text) 6%, transparent)","inputs":{"--body-text":"--color-red-11"},"file":"shell/components/nav/ClusterSwitcherRow.vue","themes":["modern dark","suse dark"]}
+    ],
+    "--color-red-11-a7": [
+      {"expression":"color-mix(in srgb, var(--body-text) 7%, transparent)","inputs":{"--body-text":"--color-red-11"},"file":"shell/components/nav/ClusterSwitcherSkeleton.vue","themes":["modern dark","suse dark"]}
+    ],
+    "--color-red-11-a8": [
+      {"expression":"color-mix(in srgb, var(--body-text) 8%, transparent)","inputs":{"--body-text":"--color-red-11"},"file":"shell/components/TableViews/TableViewTabs.vue","themes":["modern dark","suse dark"]},
+      {"expression":"color-mix(in srgb, var(--body-text) 8%, transparent)","inputs":{"--body-text":"--color-red-11"},"file":"shell/components/nav/ClusterSwitcher.vue","themes":["modern dark","suse dark"]},
+      {"expression":"color-mix(in srgb, var(--body-text) 8%, transparent)","inputs":{"--body-text":"--color-red-11"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["modern dark","suse dark"]}
+    ],
+    "--color-red-348-a15": [
+      {"expression":"rgba($error, 0.15)","inputs":{"$error":"--color-red-348"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-red-348-a30": [
+      {"expression":"rgba($error, 0.3)","inputs":{"$error":"--color-red-348"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"rgba($error, 0.3)","inputs":{"$error":"--color-red-348"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-red-348-a5": [
+      {"expression":"rgba($error, 0.05)","inputs":{"$error":"--color-red-348"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-red-348-a75": [
+      {"expression":"rgba($error, 0.75)","inputs":{"$error":"--color-red-348"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"rgba($error, 0.75)","inputs":{"$error":"--color-red-348"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-red-387": [
+      {"expression":"darken($error, 10%)","inputs":{"$error":"--color-red-348"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-red-405": [
+      {"expression":"rgba(var(--sizzle-1), 1)","inputs":{"--sizzle-1":"--color-red-405"},"file":"shell/assets/styles/themes/_light.scss","themes":["classic light"]},
+      {"expression":"rgba(var(--sizzle-1), 1)","inputs":{"--sizzle-1":"--color-red-405"},"file":"shell/assets/styles/themes/_modern.scss","themes":["modern light","modern dark","suse light","suse dark"]}
+    ],
+    "--color-red-450-a30": [
+      {"expression":"rgba($error, 0.3)","inputs":{"$error":"--color-red-450"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-red-450-a75": [
+      {"expression":"rgba($error, 0.75)","inputs":{"$error":"--color-red-450"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-red-488-a15": [
+      {"expression":"rgba($error, 0.15)","inputs":{"$error":"--color-red-488"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-red-488-a30": [
+      {"expression":"rgba($error, 0.3)","inputs":{"$error":"--color-red-488"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-red-488-a5": [
+      {"expression":"rgba($error, 0.05)","inputs":{"$error":"--color-red-488"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-red-488-a75": [
+      {"expression":"rgba($error, 0.75)","inputs":{"$error":"--color-red-488"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-red-512": [
+      {"expression":"darken($error, 25%)","inputs":{"$error":"--color-red-348"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-red-572": [
+      {"expression":"darken($error, 10%)","inputs":{"$error":"--color-red-488"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-red-707": [
+      {"expression":"darken($error, 25%)","inputs":{"$error":"--color-red-488"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-white": [
+      {"expression":"contrast-color($primary)","inputs":{"$primary":"--color-blue-349"},"file":"shell/assets/styles/base/_variables-classic.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/base/_variables-classic.scss"},
+      {"expression":"contrast-color(darken($primary, 25%))","inputs":{"$primary":"--color-blue-349"},"file":"shell/assets/styles/base/_variables-classic.scss"},
+      {"expression":"contrast-color($link)","inputs":{"$link":"--color-blue-349"},"file":"shell/assets/styles/base/_variables-classic.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/base/_variables-classic.scss"},
+      {"expression":"contrast-color(darken($link, 25%))","inputs":{"$link":"--color-blue-349"},"file":"shell/assets/styles/base/_variables-classic.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"contrast-color(darken($dark, 25%))","inputs":{"$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"rgba($lightest, 1)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"contrast-color($darker)","inputs":{"$darker":"--color-gray-466"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"contrast-color(darken($darker, 25%))","inputs":{"$darker":"--color-gray-466"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"contrast-color($success)","inputs":{"$success":"--color-green-374"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"contrast-color(darken($success, 25%))","inputs":{"$success":"--color-green-374"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"contrast-color($info)","inputs":{"$info":"--color-blue-349"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"contrast-color(darken($info, 25%))","inputs":{"$info":"--color-blue-349"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"contrast-color(darken($warning, 25%))","inputs":{"$warning":"--color-yellow-186"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"contrast-color($error)","inputs":{"$error":"--color-red-348"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"contrast-color(darken($error, 25%))","inputs":{"$error":"--color-red-348"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"lighten($lightest, 10%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"contrast-color($primary)","inputs":{"$primary":"--color-blue-451"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color(darken($primary, 25%))","inputs":{"$primary":"--color-blue-451"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color($link)","inputs":{"$link":"--color-blue-438"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color(darken($link, 25%))","inputs":{"$link":"--color-blue-438"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"rgba($lightest, 1)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color($darker)","inputs":{"$darker":"--color-gray-466"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color(darken($darker, 25%))","inputs":{"$darker":"--color-gray-466"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color($success)","inputs":{"$success":"--color-green-523"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color(darken($success, 25%))","inputs":{"$success":"--color-green-523"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color($info)","inputs":{"$info":"--color-blue-460"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color(darken($info, 25%))","inputs":{"$info":"--color-blue-460"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color($error)","inputs":{"$error":"--color-red-488"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color(darken($error, 25%))","inputs":{"$error":"--color-red-488"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"lighten($lightest, 10%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"saturate($lightest, 20%)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_modern.scss"},
+      {"expression":"contrast-color(darken($dark, 25%))","inputs":{"$dark":"--color-gray-719"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-white-a0": [
+      {"expression":"rgba($lightest, 0)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_light.scss"},
+      {"expression":"rgba($lightest, 0)","inputs":{"$lightest":"--color-white"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-white-a10": [
+      {"expression":"color-mix(in srgb, var(--body-text) 10%, transparent)","inputs":{"--body-text":"--color-white"},"file":"shell/components/nav/ClusterSwitcher.vue","themes":["classic dark"]},
+      {"expression":"color-mix(in srgb, var(--body-text) 10%, transparent)","inputs":{"--body-text":"--color-white"},"file":"shell/components/nav/ClusterSwitcherRow.vue","themes":["classic dark"]},
+      {"expression":"color-mix(in srgb, var(--body-text) 10%, transparent)","inputs":{"--body-text":"--color-white"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["classic dark"]}
+    ],
+    "--color-white-a15": [
+      {"expression":"color-mix(in srgb, var(--body-text) 15%, transparent)","inputs":{"--body-text":"--color-white"},"file":"shell/components/nav/ClusterSwitcherSkeleton.vue","themes":["classic dark"]}
+    ],
+    "--color-white-a6": [
+      {"expression":"color-mix(in srgb, var(--body-text) 6%, transparent)","inputs":{"--body-text":"--color-white"},"file":"shell/components/nav/ClusterSwitcherRow.vue","themes":["classic dark"]}
+    ],
+    "--color-white-a65": [
+      {"expression":"color-mix(in srgb, var(--on-active) 65%, transparent)","inputs":{"--on-active":"--color-white"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["modern light","classic light","classic dark","suse light"]}
+    ],
+    "--color-white-a7": [
+      {"expression":"color-mix(in srgb, var(--body-text) 7%, transparent)","inputs":{"--body-text":"--color-white"},"file":"shell/components/nav/ClusterSwitcherSkeleton.vue","themes":["classic dark"]}
+    ],
+    "--color-white-a75": [
+      {"expression":"color-mix(in srgb, var(--rc-cm-bg) 75%, transparent)","inputs":{"--rc-cm-bg":"--color-white"},"file":"pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts","themes":["modern light","classic light","suse light"]}
+    ],
+    "--color-white-a8": [
+      {"expression":"color-mix(in srgb, var(--body-text) 8%, transparent)","inputs":{"--body-text":"--color-white"},"file":"shell/components/TableViews/TableViewTabs.vue","themes":["classic dark"]},
+      {"expression":"color-mix(in srgb, var(--body-text) 8%, transparent)","inputs":{"--body-text":"--color-white"},"file":"shell/components/nav/ClusterSwitcher.vue","themes":["classic dark"]},
+      {"expression":"color-mix(in srgb, var(--body-text) 8%, transparent)","inputs":{"--body-text":"--color-white"},"file":"shell/components/nav/TopLevelMenu.vue","themes":["classic dark"]}
+    ],
+    "--color-yellow-105": [
+      {"expression":"darken($warning, 10%)","inputs":{"$warning":"--color-yellow-80"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-yellow-150": [
+      {"expression":"darken($warning, 25%)","inputs":{"$warning":"--color-yellow-80"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-yellow-170": [
+      {"expression":"rgba($warning, 1)","inputs":{"$warning":"--color-yellow-170"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-yellow-170-a50": [
+      {"expression":"rgba($warning, 0.5)","inputs":{"$warning":"--color-yellow-170"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-yellow-186": [
+      {"expression":"rgba($warning, 1)","inputs":{"$warning":"--color-yellow-186"},"file":"shell/assets/styles/themes/_dark.scss"}
+    ],
+    "--color-yellow-186-a15": [
+      {"expression":"rgba($warning, 0.15)","inputs":{"$warning":"--color-yellow-186"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-yellow-186-a5": [
+      {"expression":"rgba($warning, 0.05)","inputs":{"$warning":"--color-yellow-186"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-yellow-186-a50": [
+      {"expression":"rgba($warning, 0.5)","inputs":{"$warning":"--color-yellow-186"},"file":"shell/assets/styles/themes/_dark.scss"},
+      {"expression":"rgba($warning, 0.5)","inputs":{"$warning":"--color-yellow-186"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-yellow-186-a80": [
+      {"expression":"rgba($warning, 0.8)","inputs":{"$warning":"--color-yellow-186"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-yellow-259": [
+      {"expression":"darken($warning, 10%)","inputs":{"$warning":"--color-yellow-186"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-yellow-445": [
+      {"expression":"darken($warning, 25%)","inputs":{"$warning":"--color-yellow-186"},"file":"shell/assets/styles/themes/_light.scss"}
+    ],
+    "--color-yellow-651": [
+      {"expression":"darken($warning, 60%)","inputs":{"$warning":"--color-yellow-80"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-yellow-73": [
+      {"expression":"rgba(var(--sizzle-8), 1)","inputs":{"--sizzle-8":"--color-yellow-73"},"file":"shell/assets/styles/themes/_light.scss","themes":["classic light"]},
+      {"expression":"rgba(var(--sizzle-8), 1)","inputs":{"--sizzle-8":"--color-yellow-73"},"file":"shell/assets/styles/themes/_modern.scss","themes":["modern light","modern dark","suse light","suse dark"]}
+    ],
+    "--color-yellow-80-a15": [
+      {"expression":"rgba($warning, 0.15)","inputs":{"$warning":"--color-yellow-80"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-yellow-80-a5": [
+      {"expression":"rgba($warning, 0.05)","inputs":{"$warning":"--color-yellow-80"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-yellow-80-a50": [
+      {"expression":"rgba($warning, 0.5)","inputs":{"$warning":"--color-yellow-80"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-yellow-80-a80": [
+      {"expression":"rgba($warning, 0.8)","inputs":{"$warning":"--color-yellow-80"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ]
+  }
+}

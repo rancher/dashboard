@@ -11,6 +11,9 @@
  * Vue's `v-bind()`. Those are ignored below so the rule reports only genuine
  * unknown values (e.g. `white-space: no-wrap`, `transform: ease-in-out-all 1s`)
  * and stays green enough to gate CI.
+ *
+ * The one policy rule is `local-rules/no-color-literal` (shell and @rancher/components only): colors come
+ * from the design system tokens in pkg/rancher-components/src/components/design-system/colors.scss.
  */
 
 // Value fragments that mean "this is SCSS/Vue syntax the CSS grammar can't parse".
@@ -24,6 +27,7 @@ const SCSS_VALUE_ESCAPES = [
 ];
 
 export default {
+  plugins:   ['./stylelint-local-rules/no-color-literal.mjs'],
   overrides: [
     {
       files:        ['**/*.scss'],
@@ -32,6 +36,14 @@ export default {
     {
       files:        ['**/*.vue', '**/*.html'],
       customSyntax: 'postcss-html',
+    },
+    {
+      files: ['shell/**', 'pkg/rancher-components/**'],
+      rules: { 'local-rules/no-color-literal': [true, { baseline: 'stylelint-color-baseline.json' }] },
+    },
+    {
+      files: ['shell/rancher-components/**'],
+      rules: { 'local-rules/no-color-literal': null },
     },
   ],
   rules: {

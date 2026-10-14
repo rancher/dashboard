@@ -203,6 +203,18 @@ export default [
     },
   },
 
+  // The design system color rule covers shell and @rancher/components only, not the copy of the
+  // components that publish-shell.sh puts in shell/rancher-components.
+  {
+    files:   ['**/*.{js,ts,vue}'],
+    ignores: ['shell/**', 'pkg/rancher-components/**'],
+    rules:   { 'local-rules/no-color-literal': 'off' },
+  },
+  {
+    files: ['shell/rancher-components/**/*.{js,ts,vue}'],
+    rules: { 'local-rules/no-color-literal': 'off' },
+  },
+
   // override: po (was overrides[7])
   {
     files: ['**/po/**/*.{js,ts,vue}'],
