@@ -43,10 +43,10 @@ When `extensionCredentialSection` is defined:
 | `mode`, `provider` | Form mode and provider id |
 | `provisioningCluster` | The `provisioning.cattle.io.cluster` being created or edited |
 | `infrastructureCluster` | The infrastructure cluster set up by `registerInitHooks`, so the component can write its credential reference (for example `spec.identityRef`) |
-| `registerSave(fn)` | `fn` is called when the user clicks Continue. It resolves to a list of errors, empty on success |
+| `registerSave(fn)` | `fn` is called when the user clicks Continue. It resolves to a list of errors, empty on success. Clicking Continue does not complete the step by itself: emit `update:value` with the new value (for example, within `fn`) to show the cluster form |
 | `registerBack(fn)` | `fn` is called when the user clicks Select Existing |
 
-`extensionCredentialSectionProps` adds props, either as an object or as a function that receives the props above and returns an object.
+`extensionCredentialSectionProps` adds props, either as an object or as a function that returns an object. The function receives one object with `value`, `mode`, `provider`, `provisioningCluster` and `infrastructureCluster`. If the function returns a `provisioningCluster` or `infrastructureCluster` they will overwrite the default, but returning `value`, `mode`, `provider`, `registerSave` or `registerBack` has no effect.
 
 ### Events
 
