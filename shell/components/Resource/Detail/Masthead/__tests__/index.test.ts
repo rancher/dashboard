@@ -3,6 +3,7 @@ import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
 import TitleBar from '@shell/components/Resource/Detail/TitleBar/index.vue';
 import Metadata from '@shell/components/Resource/Detail/Metadata/index.vue';
 import Cards from '@shell/components/Resource/Detail/Cards.vue';
+import FleetManagedBanner from '@shell/components/Resource/Detail/FleetManagedBanner.vue';
 
 jest.mock('@shell/utils/clipboard', () => ({ copyTextToClipboard: jest.fn() }));
 
@@ -28,9 +29,10 @@ describe('component: Masthead/index', () => {
 
   const globalStubs = {
     stubs: {
-      TitleBar: true,
-      Metadata: true,
-      Cards:    true
+      TitleBar:           true,
+      Metadata:           true,
+      Cards:              true,
+      FleetManagedBanner: true
     }
   };
 
@@ -142,5 +144,23 @@ describe('component: Masthead/index', () => {
 
     expect(titleBarIndex).toBeLessThan(bannerIndex);
     expect(bannerIndex).toBeLessThan(metadataIndex);
+  });
+
+  it('should pass the resource from titleBarProps to the FleetManagedBanner', () => {
+    const wrapper = mount(Masthead, {
+      props:  defaultProps,
+      global: globalStubs
+    });
+
+    expect(wrapper.findComponent(FleetManagedBanner).props('resource')).toStrictEqual(mockResource);
+  });
+
+  it('should not render the FleetManagedBanner when titleBarProps is not provided', () => {
+    const wrapper = mount(Masthead, {
+      props:  { metadataProps: defaultProps.metadataProps },
+      global: globalStubs
+    });
+
+    expect(wrapper.findComponent(FleetManagedBanner).exists()).toBe(false);
   });
 });

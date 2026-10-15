@@ -129,7 +129,7 @@ export default {
             role="link"
             :aria-label="t('about.versions.githubRepo', {name: t(`about.versions.cli`) })"
           >
-            {{ appName }} {{ t("about.versions.cli") }}
+            {{ t("about.versions.cli") }}
           </a>
         </td><td>{{ cliVersion.value }}</td>
       </tr>

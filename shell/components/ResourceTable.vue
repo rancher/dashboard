@@ -751,8 +751,11 @@ export default {
 
   methods: {
     /** For whichever list holds the focus, which needn't be this one - see runTableViewShortcut */
-    tableViewShortcut(action) {
-      runTableViewShortcut(action);
+    /** Takes the key only for a table the focus is in, so elsewhere it stays the browser's */
+    tableViewShortcut(action, event) {
+      if (runTableViewShortcut(action)) {
+        event.preventDefault();
+      }
     },
 
     keyAction(action) {
@@ -976,22 +979,23 @@ export default {
 
     <template #shortkeys>
       <!-- The saved view shortcuts. Not `once`: macOS sends no keyup for a key pressed with Cmd held.
-           `anywhere`, as the query box has the focus while a view is being edited -->
+           `anywhere`, as the query box has the focus while a view is being edited. `claim`, so with the
+           focus outside the table the browser still saves the page (Cmd+S) or bookmarks it (Cmd+D) -->
       <template v-if="showTableViewTabs">
         <button
-          v-shortkey.anywhere="{windows: ['ctrl', 's'], mac: ['meta', 's']}"
+          v-shortkey.anywhere.claim="{windows: ['ctrl', 's'], mac: ['meta', 's']}"
           class="hide"
-          @shortkey="tableViewShortcut('saveChanges')"
+          @shortkey="tableViewShortcut('saveChanges', $event)"
         />
         <button
-          v-shortkey.anywhere="{windows: ['ctrl', 'shift', 's'], mac: ['meta', 'shift', 's']}"
+          v-shortkey.anywhere.claim="{windows: ['ctrl', 'shift', 's'], mac: ['meta', 'shift', 's']}"
           class="hide"
-          @shortkey="tableViewShortcut('openSaveAsNew')"
+          @shortkey="tableViewShortcut('openSaveAsNew', $event)"
         />
         <button
-          v-shortkey.anywhere="{windows: ['ctrl', 'd'], mac: ['meta', 'd']}"
+          v-shortkey.anywhere.claim="{windows: ['ctrl', 'd'], mac: ['meta', 'd']}"
           class="hide"
-          @shortkey="tableViewShortcut('duplicateCurrent')"
+          @shortkey="tableViewShortcut('duplicateCurrent', $event)"
         />
       </template>
       <!-- These act on the selection, so they need the table's actions -->

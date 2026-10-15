@@ -77,7 +77,7 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
     ClusterDashboardPagePo.navTo();
 
     cy.getRancherVersion().then((version) => {
-      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Cluster Dashboard' : 'Rancher - local - Cluster Dashboard';
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Cluster Dashboard' : 'Rancher Community - local - Cluster Dashboard';
 
       cy.title().should('eq', expectedTitle);
     });
