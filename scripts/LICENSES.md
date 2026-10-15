@@ -1,9 +1,14 @@
 # Third-party licenses
 
-The dashboard ships a `licenses.json` file listing every third-party npm
+The dashboard ships a `licenses.txt` file listing every third-party npm
 package that ends up in the bundle, along with the full text of each
 package's license. The `/licenses` page in the app reads this file at
 runtime.
+
+The file contains JSON but uses a `.txt` extension because some CDNs that
+host the dashboard don't serve `.json` files. The page parses the response as
+JSON whatever content type it's served with, and treats an HTML response
+(typically an `index.html` fallback for a missing file) the same as a 404.
 
 Each package is listed once. The dashboard's own packages — the repo root and
 any workspace declaring the same `repository` as the root `package.json` — are
@@ -11,8 +16,10 @@ not listed at all.
 
 ## Files
 
-- `licenses.json` (repo root) — the committed bundle. Shipped to production.
-- `scripts/analyze-licenses` — generates `licenses.json` from a webpack build.
+- `shell/static/licenses.txt` — the committed bundle. Copied into the build
+  output with the rest of `shell/static`, so it's served by `yarn dev` and
+  shipped in production builds.
+- `scripts/analyze-licenses` — generates `licenses.txt` from a webpack build.
 
 ## Shape
 
@@ -23,14 +30,14 @@ text once as `{ text }` or `{ markdown }`. Every field except `name` and
 `license` is omitted when the package doesn't declare it. Versions are
 deliberately not shipped.
 
-## Regenerating `licenses.json`
+## Regenerating `licenses.txt`
 
 When you add, remove, or upgrade a bundled dependency:
 
 ```sh
 ANALYZE_LICENSES=true yarn build
 node ./scripts/analyze-licenses -u
-git add licenses.json
+git add shell/static/licenses.txt
 ```
 
 `ANALYZE_LICENSES=true` tells [`shell/vue.config.js`](../shell/vue.config.js)
@@ -38,7 +45,8 @@ to emit `dist/report.json` via `webpack-bundle-analyzer`. The script reads
 that report to enumerate the packages that actually made it into the bundle
 (transitive deps included), resolves each one's license text from — in
 order — its `LICENSE` file, its README's `License` section, or GitHub's
-Contents API, and (with `-u`) writes the result to `licenses.json`.
+Contents API, and (with `-u`) writes the result to
+`shell/static/licenses.txt`.
 
 ### Packages that ship no license text
 
@@ -80,7 +88,7 @@ The `check-licenses` job in
 analyzer-enabled build and then the script with no flags on every PR. It:
 
 - fails when the freshly-generated bundle differs from the committed
-  `licenses.json` (dependency drift), or
+  `licenses.txt` (dependency drift), or
 - fails when any bundled package uses a license outside the allow-list
   (`MIT`, `Apache-2.0`, `BSD-3-Clause`, `ISC`, `BSD`) or has no license
   content after every fallback, including the generated notice.
@@ -92,8 +100,8 @@ The failure message repeats the commands above.
 ```
 node ./scripts/analyze-licenses [options]
 
-  -u, --update   Write the generated bundle to licenses.json at the repo
-                 root. Without this, the script runs in check mode.
+  -u, --update   Write the generated bundle to shell/static/licenses.txt.
+                 Without this, the script runs in check mode.
   -h, --help     Show help.
 ```
 

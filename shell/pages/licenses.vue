@@ -6,10 +6,12 @@ import Banner from '@components/Banner/Banner.vue';
 import LicenseSlideIn from '@shell/components/LicenseSlideIn.vue';
 import { RcButton } from '@components/RcButton';
 
-// Build the URL relative to the deployed router base — e.g. `/licenses.json`
-// at root, `/dashboard/licenses.json` when the app is served from /dashboard.
+// Build the URL relative to the deployed router base — e.g. `/licenses.txt`
+// at root, `/dashboard/licenses.txt` when the app is served from /dashboard.
 // `routerBase` is injected by webpack DefinePlugin and always ends in `/`.
-const LICENSES_URL = `${ process.env.routerBase || '/' }licenses.json`;
+// The content is JSON, but the file uses a .txt extension because some CDNs
+// don't serve .json files.
+const LICENSES_URL = `${ process.env.routerBase || '/' }licenses.txt`;
 
 export default {
   name: 'Licenses',

@@ -7,7 +7,7 @@ type FetchContext = {
   data: any;
 };
 
-const mockResponse = ({ status = 200, contentType = 'application/json', body = {} }: { status?: number; contentType?: string | null; body?: any } = {}) => ({
+const mockResponse = ({ status = 200, contentType = 'text/plain', body = {} }: { status?: number; contentType?: string | null; body?: any } = {}) => ({
   status,
   ok:      status >= 200 && status < 300,
   headers: { get: (name: string) => (name.toLowerCase() === 'content-type' ? contentType : null) },

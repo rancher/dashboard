@@ -23,7 +23,7 @@ export default {
       type:    String,
       default: null
     },
-    // The license payload from licenses.json — either `{ markdown }` or
+    // The license payload from licenses.txt — either `{ markdown }` or
     // `{ text }`, or null when no license content was found.
     content: {
       type:    Object,
