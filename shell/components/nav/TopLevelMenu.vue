@@ -2611,7 +2611,6 @@ export default {
     display: flex;
     transform: translateX($app-bar-collapsed-width);
     opacity: 1;
-    justify-content: center;
     max-width: 200px;
     width: 100%;
     transition: all $nav-open-duration $nav-easing;
