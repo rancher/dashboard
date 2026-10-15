@@ -757,7 +757,14 @@ export default {
             this.fvFormIsValid &&
             this.etcdConfigValid &&
             this.basicsValid &&
-            this.registryConfigValid;
+            this.registryConfigValid &&
+            !this.ingressNginxUnsupported;
+    },
+    ingressNginxUnsupported() {
+      return !this.isK3s &&
+        !!this.value.spec.kubernetesVersion &&
+        semver.gte(this.value.spec.kubernetesVersion, 'v1.37.0') &&
+        this.value.spec.rkeConfig.machineGlobalConfig?.[INGRESS_CONTROLLER] === INGRESS_NGINX;
     },
     nginxSupported() {
       if (this.serverArgs?.disable?.options.includes(RKE2_INGRESS_NGINX)) {
@@ -1478,6 +1485,13 @@ export default {
     },
 
     async _doSaveOverride(btnCb) {
+      if (this.ingressNginxUnsupported) {
+        this.errors.push(this.t('cluster.ingress.banners.nginxUpgradeBlocked.label'));
+        btnCb(false);
+
+        return;
+      }
+
       // We cannot use the hook, because it is triggered on YAML toggle without restore initialized data
       this.agentConfigurationCleanup();
 

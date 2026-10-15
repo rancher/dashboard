@@ -15,7 +15,6 @@ import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { set, get, mergeWithReplace } from '@shell/utils/object';
 import { saferDump } from '@shell/utils/create-yaml';
 import RichTranslation from '@shell/components/RichTranslation.vue';
-import { getVersionData } from '@shell/config/version';
 
 interface Props {
   mode?: string;
@@ -51,14 +50,14 @@ const traefikYaml = useTemplateRef('traefik-yaml');
 const showAdvanced = ref<Boolean>(false);
 const isView = computed(() => mode === _VIEW);
 const isEdit = computed(() => mode === _EDIT);
-const isCreate = computed(() => mode === _CREATE);
 const showTraefikBanner = ref<Boolean>(false);
 const traefikMerged = ref(initYamlEditor(traefikChart));
 const nginxMerged = ref(initYamlEditor(nginxChart));
 const showConfig = computed(() => !!versionInfo[traefikChart] || !!versionInfo[nginxChart]);
-const isPrime = ref( getVersionData().RancherPrime === 'true');
-const isIngressDisableVersion = computed(() => isCreate.value && !!kubernetesVersion && semver.gte(kubernetesVersion, 'v1.37.0'));
-const showTransitioningBanner = computed(() => traefikSupported && (!isIngressDisableVersion.value || !!isPrime.value));
+const isIngressDisableVersion = computed(() => !!kubernetesVersion && semver.gte(kubernetesVersion, 'v1.37.0'));
+const showTransitioningBanner = computed(() => traefikSupported && !isIngressDisableVersion.value);
+const showNginxUpgradeBlocked = computed(() => isEdit.value && isIngressDisableVersion.value && ingressSelection.value === INGRESS_NGINX);
+const showNginxUpgradeWarning = computed(() => isEdit.value && isIngressDisableVersion.value && ingressSelection.value !== INGRESS_NGINX);
 const showSelectedBanner = computed(() => (isEdit.value && ingressSelection.value !== TRAEFIK) || !!showTraefikBanner.value);
 
 // in traefik v40 the nginx key changed from kubernetesIngressNginx to kubernetesIngressNGINX
@@ -122,14 +121,14 @@ const ingressOptions = computed(() => {
 
     return true;
   }).map((option) => {
-    const primeOnlyDisabled = !isPrime.value && !!option.prime && isIngressDisableVersion.value;
+    const nginxDisabled = option.id === INGRESS_NGINX && isIngressDisableVersion.value;
 
     return {
       ...option,
-      content:  primeOnlyDisabled && option.newContent ? option.newContent : (option.oldContent || option.content),
-      doc:      primeOnlyDisabled && option.newDoc ? option.newDoc : (option.oldDoc || option.doc),
+      content:  nginxDisabled && option.unsupportedContent ? option.unsupportedContent : option.content,
+      doc:      option.doc,
       selected: option.id === ingressSelection.value,
-      disabled: mode === _VIEW || primeOnlyDisabled
+      disabled: mode === _VIEW || nginxDisabled
     };
   });
 });
@@ -144,7 +143,7 @@ const ingressEnabled = computed({
     } else {
       if (traefikSupported) {
         emit('update:value', TRAEFIK);
-      } else if (nginxSupported) {
+      } else if (nginxSupported && !isIngressDisableVersion.value) {
         emit('update:value', INGRESS_NGINX);
       } else {
         emit('update:value', INGRESS_NONE);
@@ -232,6 +231,10 @@ const compatibilityMode = computed({
 });
 
 function selectIngress(id: string) {
+  if (id === INGRESS_NGINX && isIngressDisableVersion.value) {
+    return;
+  }
+
   if ( id === INGRESS_DUAL) {
     const newValue: string | string[] = !Array.isArray(originalIngressController) ? (originalIngressController === TRAEFIK ? [TRAEFIK, INGRESS_NGINX] : [INGRESS_NGINX, TRAEFIK]) : originalIngressController;
 
@@ -262,6 +265,16 @@ function updateYaml(component: any, value: any) {
     :mode="mode"
     :label="t('cluster.ingress.enableIngress')"
   />
+  <Banner
+    v-if="showNginxUpgradeBlocked"
+    color="error"
+    label-key="cluster.ingress.banners.nginxUpgradeBlocked.label"
+  />
+  <Banner
+    v-else-if="showNginxUpgradeWarning"
+    color="warning"
+    label-key="cluster.ingress.banners.nginxUpgradeWarning.label"
+  />
   <div v-if="!ingressEnabled">
     <Banner
       color="warning"
@@ -278,7 +291,6 @@ function updateYaml(component: any, value: any) {
       :options="ingressOptions"
       :mode="mode"
       :class="!showTransitioningBanner ? 'mt-10' : ''"
-      :is-prime="isPrime"
       @select="selectIngress"
     />
     <Banner
