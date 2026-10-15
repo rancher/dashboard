@@ -29,6 +29,35 @@ describe('utils: resource-state-summary', () => {
         },
       });
     });
+
+    it('should filter the list by the given name', () => {
+      expect(resourceListRoute('c-123', 'pod', undefined, 'nginx')).toStrictEqual({
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster: 'c-123', product: 'explorer', resource: 'pod'
+        },
+        query: { nameFilter: 'nginx' },
+      });
+    });
+
+    it('should filter the list by both the states and the name', () => {
+      expect(resourceListRoute('c-123', 'pod', ['error'], 'nginx')).toStrictEqual({
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster: 'c-123', product: 'explorer', resource: 'pod'
+        },
+        query: { stateFilter: 'error', nameFilter: 'nginx' },
+      });
+    });
+
+    it('should not filter the list when the name is empty', () => {
+      expect(resourceListRoute('c-123', 'pod', undefined, '')).toStrictEqual({
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster: 'c-123', product: 'explorer', resource: 'pod'
+        },
+      });
+    });
   });
 
   describe('isValidSummaryResponse', () => {

@@ -1,11 +1,11 @@
 import type { RouteLocationRaw } from 'vue-router';
-import { STATE_FILTER_QUERY } from '@shell/config/query-params';
+import { NAME_FILTER_QUERY, STATE_FILTER_QUERY } from '@shell/config/query-params';
 import type { StateSummaryEntry } from '@shell/composables/useStateColor';
 
 /**
- * Route to the list of a resource type in the cluster explorer, opened filtered to the given states
+ * Route to the list of a resource type in the cluster explorer, opened filtered to the given states and name
  */
-export function resourceListRoute(clusterId: string, type: string, stateNames?: string[]): RouteLocationRaw {
+export function resourceListRoute(clusterId: string, type: string, stateNames?: string[], nameFilter?: string): RouteLocationRaw {
   const loc: { name: string; params: Record<string, string>; query?: Record<string, string> } = {
     name:   'c-cluster-product-resource',
     params: {
@@ -15,9 +15,20 @@ export function resourceListRoute(clusterId: string, type: string, stateNames?: 
     },
   };
 
+  const query: Record<string, string> = {};
+
   if (stateNames?.length) {
     // The list opens filtered to these, in its query
-    loc.query = { [STATE_FILTER_QUERY]: stateNames.join(',') };
+    query[STATE_FILTER_QUERY] = stateNames.join(',');
+  }
+
+  if (nameFilter) {
+    // The list opens filtered to this name, in its query
+    query[NAME_FILTER_QUERY] = nameFilter;
+  }
+
+  if (Object.keys(query).length) {
+    loc.query = query;
   }
 
   return loc;

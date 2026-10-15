@@ -33,6 +33,7 @@ export const PAGE = 'page';
 
 // A list linked to some of its states, eg from an overview's counts: `a,b`. The table opens filtered to them
 export const STATE_FILTER_QUERY = 'stateFilter';
+export const NAME_FILTER_QUERY = 'nameFilter';
 
 // ResourceDetail/Yaml
 export const MODE = 'mode';

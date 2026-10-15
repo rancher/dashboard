@@ -288,8 +288,13 @@ export function useWorkloadDashboard() {
     });
   }
 
-  function resourceRoute(type: string, stateNames?: string[]): RouteLocationRaw {
-    return resourceListRoute(clusterId.value, type, stateNames);
+  function resourceRoute(type: string, stateNames?: string[], nameFilter?: string): RouteLocationRaw {
+    return resourceListRoute(clusterId.value, type, stateNames, nameFilter);
+  }
+
+  function navigateToNamespace(type: string, namespace: string): void {
+    filterByNamespace(namespace);
+    router.push(resourceRoute(type));
   }
 
   function redirectToDeployment(): void {
@@ -423,5 +428,6 @@ export function useWorkloadDashboard() {
     resetNamespaceFilter,
     filterByNamespace,
     resourceRoute,
+    navigateToNamespace,
   };
 }
