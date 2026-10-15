@@ -58,6 +58,16 @@ describe('class EtcdSnapshot', () => {
       it('should be false when the management cluster cannot be found', () => {
         expect(createImportedSnapshot(undefined).restoreEnabled).toBe(false);
       });
+
+      it.each([
+        ['older than the management cluster', '2026-10-16T00:00:00Z', true],
+        ['newer than the management cluster', '2026-10-01T00:00:00Z', false],
+      ])('should check the age of a snapshot %s', (_desc, creationTimestamp, expected) => {
+        const snapshot = createImportedSnapshot({ isDayTwoOpsEnabled: true, metadata: { creationTimestamp } });
+
+        expect(snapshot.isSnapshotTooOld).toBe(expected);
+        expect(snapshot.restoreEnabled).toBe(!expected);
+      });
     });
 
     it.each([

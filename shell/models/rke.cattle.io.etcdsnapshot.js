@@ -49,13 +49,13 @@ export default class EtcdBackup extends NormanModel {
     return this.snapshotFile?.name || this.name;
   }
 
-  get isDayTwoOpsEnabled() {
-    if (this.cluster) {
-      return !!this.cluster.isDayTwoOpsEnabled;
-    }
+  // Imported cluster snapshots live in the management cluster's namespace, so `cluster` can't find them
+  get resolvedCluster() {
+    return this.cluster || this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, this.spec?.clusterName);
+  }
 
-    // Imported cluster snapshots live in the management cluster's namespace, so `cluster` can't find them
-    return !!this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, this.spec?.clusterName)?.isDayTwoOpsEnabled;
+  get isDayTwoOpsEnabled() {
+    return !!this.resolvedCluster?.isDayTwoOpsEnabled;
   }
 
   get restoreEnabled() {
@@ -63,7 +63,7 @@ export default class EtcdBackup extends NormanModel {
   }
 
   get isSnapshotTooOld() {
-    return this.snapshotFile?.createdAt <= this.cluster?.metadata?.creationTimestamp;
+    return this.snapshotFile?.createdAt <= this.resolvedCluster?.metadata?.creationTimestamp;
   }
 
   get errorMessage() {
