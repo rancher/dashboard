@@ -1,8 +1,10 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { requireAsset } from '@shell/utils/require-asset';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
-import { EDIT_CONFIG } from '@shell/config/query-params';
-import { promptDisableAuthProvider } from '@shell/utils/auth';
+import { CLONE_CONFIG, EDIT_CONFIG } from '@shell/config/query-params';
+import { LOCAL_AUTH_ID, promptDisableAuthProvider } from '@shell/utils/auth';
+import { canEnableAuthProvider } from '@shell/utils/auth-providers';
+import { MULTIPLE_AUTH_PROVIDERS } from '@shell/store/features';
 
 /**
  * Normalises a provider identifier to a stable key.
@@ -99,10 +101,34 @@ export default class AuthConfig extends SteveModel {
       enabled: this.enabled === true,
     };
 
-    const out = inherited.filter((a) => !destructive.includes(a.action));
+    const out = inherited
+      .filter((a) => !destructive.includes(a.action))
+      .map((a) => (a.action === 'goToClone' ? { ...a, enabled: this.canCloneConfig } : a));
     const away = [disable, ...inherited.filter((a) => destructive.includes(a.action))];
 
     return [...out, { divider: true }, ...away];
+  }
+
+  /**
+   * Auth configs can't be created through the generic resource pages, so the
+   * inherited Clone is never enabled. A clone is added like any other config,
+   * on the create page, which starts from this one's settings.
+   */
+  get canCloneConfig() {
+    const configs = this.$rootGetters['management/all'](MANAGEMENT.AUTH_CONFIG);
+
+    return this.id !== LOCAL_AUTH_ID && this.canCustomEdit && canEnableAuthProvider(configs, this.$rootGetters['features/get'](MULTIPLE_AUTH_PROVIDERS));
+  }
+
+  goToClone() {
+    this.currentRouter().push({
+      name:   'c-cluster-auth-config-create-provider',
+      params: {
+        cluster:  this.$rootGetters['clusterId'],
+        provider: providerKey(this._type),
+      },
+      query: { [CLONE_CONFIG]: this.id },
+    });
   }
 
   promptDisable() {

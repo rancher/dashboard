@@ -2,6 +2,7 @@ import {
   REMEMBERED_PROVIDER_KEY,
   canEnableAuthProvider,
   clearRememberedProviderId,
+  cloneableAuthConfigFields,
   configNameOfPrincipal,
   getRememberedProviderId,
   isValidAuthConfigName,
@@ -357,6 +358,65 @@ describe('fx: providerOfConfig', () => {
 
   it('should return the config name of a config that is not listed', () => {
     expect(providerOfConfig(getters, 'okta-3')).toStrictEqual('okta-3');
+  });
+});
+
+describe('fx: cloneableAuthConfigFields', () => {
+  const resourceFields = {
+    id:                  {},
+    name:                {},
+    enabled:             { type: 'boolean' },
+    accessMode:          { type: 'enum' },
+    allowedPrincipalIds: { type: 'array[string]' },
+    annotations:         { type: 'map[string]' },
+    status:              {},
+    hostname:            { type: 'string' },
+    clientId:            { type: 'string' },
+    clientSecret:        { type: 'password' },
+    privateKey:          { type: 'string' },
+    servers:             { type: 'array[string]' },
+    openLdapConfig:      { type: 'ldapFields' },
+    certificate:         { type: 'string' },
+  };
+  const source = {
+    id:                  'github',
+    name:                'github',
+    enabled:             true,
+    accessMode:          'restricted',
+    allowedPrincipalIds: ['github_user://1'],
+    annotations:         { 'field.cattle.io/description': 'Engineering' },
+    status:              { conditions: [] },
+    hostname:            'github.example.com',
+    clientId:            'abc',
+    clientSecret:        'cattle-global-data:githubconfig-clientsecret',
+    privateKey:          '-----BEGIN PRIVATE KEY-----',
+    servers:             ['ldap.example.com'],
+    openLdapConfig:      { servers: ['ldap.example.com'], serviceAccountPassword: 'hunter2' },
+    certificate:         null,
+    links:               { self: '/v3/authConfigs/github' },
+  };
+
+  it('should take the settings and leave out identity, enablement and secrets', () => {
+    expect(cloneableAuthConfigFields(source, resourceFields)).toStrictEqual({
+      hostname:       'github.example.com',
+      clientId:       'abc',
+      servers:        ['ldap.example.com'],
+      openLdapConfig: { servers: ['ldap.example.com'] },
+    });
+  });
+
+  it('should leave out a field the schema marks as a password', () => {
+    const fields = cloneableAuthConfigFields({ bindSecret: 'x', hostname: 'h' }, { bindSecret: { type: 'password' }, hostname: { type: 'string' } });
+
+    expect(fields).toStrictEqual({ hostname: 'h' });
+  });
+
+  it('should copy values rather than share them with the source', () => {
+    const fields = cloneableAuthConfigFields(source, resourceFields);
+
+    fields.servers.push('other.example.com');
+
+    expect(source.servers).toStrictEqual(['ldap.example.com']);
   });
 });
 

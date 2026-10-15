@@ -576,6 +576,9 @@ authConfig:
     limitReachedPrime: Another external provider is already enabled. The multiple-auth-providers feature flag is off, so one external auth provider can be enabled at a time. Disable the active provider to add a different one, or turn the flag on under Global Settings > Feature Flags to run several together.
     provider:
       title: 'Add {provider}'
+    clone:
+      title: 'Clone {name}'
+      notFound: '{name} is not an authentication provider that can be cloned from here.'
     name:
       label: Name
       required: A name is required.
