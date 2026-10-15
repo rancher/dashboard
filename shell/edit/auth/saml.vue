@@ -89,6 +89,19 @@ export default {
     const { t } = useI18n(store);
     const { field } = zodValidators(t);
 
+    const ldapEnabledRef = ref(false);
+    const ldapTlsEnabledRef = ref(false);
+
+    const ldapSchema = () => ({
+      hostname:                        field('authConfig.ldap.hostname.label').required(),
+      port:                            field('authConfig.ldap.port').required(),
+      certificate:                     ldapTlsEnabledRef.value ? field('authConfig.ldap.cert').required() : field(),
+      connectionTimeout:               field('authConfig.ldap.serverConnectionTimeout').required(),
+      serviceAccountDistinguishedName: field('authConfig.ldap.serviceAccountDN').required(),
+      serviceAccountPassword:          field('authConfig.ldap.serviceAccountPassword').required(),
+      userSearchBase:                  field('authConfig.ldap.userSearchBase.label').required(),
+    });
+
     const validationSchema = computed(() => toTypedSchema(
       z.object({
         displayNameField:   field('authConfig.saml.displayName').required(),
@@ -99,6 +112,7 @@ export default {
         spKey:              field('authConfig.saml.key.label').required(),
         spCert:             field('authConfig.saml.cert.label').required(),
         idpMetadataContent: field('authConfig.saml.metadata.label').required(),
+        ...(ldapEnabledRef.value ? ldapSchema() : {}),
       })
     ));
 
@@ -114,7 +128,9 @@ export default {
       showAllErrors.value = true;
     };
 
-    return { isFormValid, validateAllFields };
+    return {
+      isFormValid, validateAllFields, ldapEnabledRef, ldapTlsEnabledRef
+    };
   },
 
   data() {
@@ -202,6 +218,14 @@ export default {
       return hosts.join(',');
     },
 
+    ldapFieldsShown() {
+      return !!(this.supportsLDAPSearch && this.showLdap && this.model?.openLdapConfig);
+    },
+
+    ldapTlsEnabled() {
+      return !!(this.model?.openLdapConfig?.tls || this.model?.openLdapConfig?.starttls);
+    },
+
     ldapProtocol() {
       if (this.model?.openLdapConfig?.starttls) {
         return this.t('authConfig.ldap.protocols.starttls');
@@ -218,6 +242,18 @@ export default {
         // Use a spread of config, so that if don't make changes to the defaults if the user edits them
         this.model['openLdapConfig'] = { ...LDAP_DEFAULTS };
       }
+    },
+    ldapFieldsShown: {
+      handler(neu) {
+        this.ldapEnabledRef = neu;
+      },
+      immediate: true
+    },
+    ldapTlsEnabled: {
+      handler(neu) {
+        this.ldapTlsEnabledRef = neu;
+      },
+      immediate: true
     },
     // sloType is defined on shell/mixins/auth-config.js
     sloType(neu) {

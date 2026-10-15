@@ -431,4 +431,91 @@ describe('saml.vue', () => {
       expect(wrapper.text()).not.toContain('authConfig.saml.showLdap');
     });
   });
+
+  describe('LDAP search validation', () => {
+    const validLdapConfig = {
+      servers:                         ['ldap.example.com'],
+      port:                            389,
+      connectionTimeout:               5000,
+      tls:                             false,
+      starttls:                        false,
+      serviceAccountDistinguishedName: 'cn=admin,dc=example,dc=com',
+      serviceAccountPassword:          'secretpassword',
+      userSearchBase:                  'dc=example,dc=com',
+    };
+
+    let wrapper: VueWrapper<any, any>;
+
+    const mountWithLdap = async(provider: string, openLdapConfig: object, { prime = false, featureEnabled = false } = {}) => {
+      jest.spyOn(VersionModule, 'isRancherPrime').mockReturnValue(prime);
+
+      const options = mountOptionsForProvider(provider, { ...validModel, openLdapConfig });
+      const baseData = options.data;
+
+      (options.global.mocks.$store.getters as Record<string, unknown>)['features/get'] = (name: string) => name === 'adfs-ldap-search' && featureEnabled;
+
+      wrapper = mount(Saml, {
+        ...options,
+        data() {
+          return { ...baseData(), showLdap: true };
+        },
+      });
+      await flushPromises();
+      await wrapper.vm.validateAllFields();
+      await flushPromises();
+
+      return wrapper;
+    };
+
+    afterEach(() => {
+      wrapper?.unmount();
+    });
+
+    it('passes when the LDAP server fields are filled', async() => {
+      await mountWithLdap('okta', validLdapConfig);
+
+      expect(wrapper.vm.validationPassed).toBe(true);
+    });
+
+    it.each([
+      ['hostname', { servers: [] }],
+      ['port', { port: '' }],
+      ['connectionTimeout', { connectionTimeout: '' }],
+      ['serviceAccountDistinguishedName', { serviceAccountDistinguishedName: '' }],
+      ['serviceAccountPassword', { serviceAccountPassword: '' }],
+      ['userSearchBase', { userSearchBase: '' }],
+    ] as [string, object][])('fails when %s is empty', async(_field: string, override: object) => {
+      await mountWithLdap('okta', { ...validLdapConfig, ...override });
+
+      expect(wrapper.vm.validationPassed).toBe(false);
+    });
+
+    it('fails when TLS is enabled and the certificate is empty', async() => {
+      await mountWithLdap('shibboleth', {
+        ...validLdapConfig, tls: true, certificate: ''
+      });
+
+      expect(wrapper.vm.validationPassed).toBe(false);
+    });
+
+    it('passes when TLS is enabled and the certificate is provided', async() => {
+      await mountWithLdap('shibboleth', {
+        ...validLdapConfig, tls: true, certificate: '-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----'
+      });
+
+      expect(wrapper.vm.validationPassed).toBe(true);
+    });
+
+    it('fails for adfs when LDAP search is available and the LDAP fields are empty', async() => {
+      await mountWithLdap('adfs', { ...validLdapConfig, servers: [] }, { prime: true, featureEnabled: true });
+
+      expect(wrapper.vm.validationPassed).toBe(false);
+    });
+
+    it('ignores LDAP fields for adfs when LDAP search is not available', async() => {
+      await mountWithLdap('adfs', { ...validLdapConfig, servers: [] }, { prime: false, featureEnabled: true });
+
+      expect(wrapper.vm.validationPassed).toBe(true);
+    });
+  });
 });
