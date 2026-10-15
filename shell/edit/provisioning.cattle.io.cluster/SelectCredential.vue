@@ -94,9 +94,6 @@ export default {
       originalId:                    this.value,
       extensionValidation:           false,
       extensionCanGoBack:            false,
-      // CruResource reads resource.type when it is created
-      // an extension component has no rancher cloud credential to pass
-      extensionResource:             {},
     };
   },
 
@@ -204,6 +201,16 @@ export default {
       }
 
       return !!this.credentialId;
+    },
+
+    resource() {
+      if ( this.extensionComponent ) {
+        // CruResource requires a 'resource' prop and reads resource.type when it is created
+        // an extension component has no rancher cloud credential to pass
+        return {};
+      }
+
+      return this.newCredential;
     },
 
     showSelectExisting() {
@@ -337,7 +344,7 @@ export default {
     v-else
     :mode="mode"
     :validation-passed="validationPassed"
-    :resource="newCredential || extensionResource"
+    :resource="resource"
     :can-yaml="false"
     :cancel-event="true"
     :errors="errors"
