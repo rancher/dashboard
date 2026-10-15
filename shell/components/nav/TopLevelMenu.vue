@@ -2613,6 +2613,7 @@ export default {
     opacity: 1;
     max-width: 200px;
     width: 100%;
+    justify-content: center;
     transition: all $nav-open-duration $nav-easing;
     overflow: hidden;
     & IMG {
