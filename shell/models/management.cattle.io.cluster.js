@@ -1,4 +1,6 @@
-import { CATALOG, CLUSTER_BADGE, NODE_ARCHITECTURE, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
+import {
+  CATALOG, CLUSTER_BADGE, NODE_ARCHITECTURE, OPERATION_ANNOTATIONS, IMPORTED_CLUSTER_VERSION_MANAGEMENT
+} from '@shell/config/labels-annotations';
 import {
   NODE, FLEET, MANAGEMENT, CAPI, EXT,
   NORMAN,
@@ -412,6 +414,23 @@ export default class MgmtCluster extends SteveModel {
     const annotationEnabledOrDefault = annotationExists ? annotationEnabled : globalDefaultIsTrue;
 
     return this.isDayTwoOpsFeatureEnabled && isImportedRke2K3s && annotationEnabledOrDefault;
+  }
+
+  /**
+   * Whether Rancher manages the Kubernetes version of this imported cluster.
+   * Reads the `rancher.io/imported-cluster-version-management` annotation ('true', 'false' or 'system-default');
+   * when it is missing or 'system-default' the `imported-cluster-version-management` global setting applies.
+   * Mirrors the backend's importedclusterversionmanagement.Enabled.
+   */
+  get isVersionManagementEnabled() {
+    switch (this.metadata?.annotations?.[IMPORTED_CLUSTER_VERSION_MANAGEMENT]) {
+    case 'true':
+      return true;
+    case 'false':
+      return false;
+    default:
+      return this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT)?.value === 'true';
+    }
   }
 
   get isHarvester() {

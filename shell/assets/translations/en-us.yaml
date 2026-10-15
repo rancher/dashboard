@@ -6367,7 +6367,6 @@ promptRemoveApp:
 promptRestore:
   title: Restore Snapshot
   name: Name
-  date: Date
   fromS3: Restore from S3
   label: Snapshot
   placeholder: Select a snapshot to restore

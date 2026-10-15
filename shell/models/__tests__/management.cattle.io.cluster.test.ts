@@ -1,5 +1,7 @@
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
-import { CAPI, EXT } from '@shell/config/types';
+import { CAPI, EXT, MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
+import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annotations';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { downloadFile } from '@shell/utils/download';
@@ -527,6 +529,38 @@ describe('class MgmtCluster', () => {
       await cluster.pinCluster();
 
       expect(dispatch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('isVersionManagementEnabled', () => {
+    const createCluster = (annotation: string | undefined, globalSetting: string | undefined) => {
+      const byId = jest.fn((type: string, id: string) => {
+        if (type === MANAGEMENT.SETTING && id === SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT && globalSetting !== undefined) {
+          return { value: globalSetting };
+        }
+
+        return undefined;
+      });
+      const annotations = annotation === undefined ? {} : { [IMPORTED_CLUSTER_VERSION_MANAGEMENT]: annotation };
+
+      return new MgmtCluster({ metadata: { annotations } }, { rootGetters: { 'management/byId': byId } });
+    };
+
+    it.each([
+      ['true', 'false', true],
+      ['true', undefined, true],
+      ['false', 'true', false],
+      ['false', undefined, false],
+      ['system-default', 'true', true],
+      ['system-default', 'false', false],
+      ['system-default', undefined, false],
+      [undefined, 'true', true],
+      [undefined, 'false', false],
+      [undefined, undefined, false],
+      ['unexpected', 'true', true],
+      ['unexpected', 'false', false],
+    ])('annotation %p with global setting %p should be %p', (annotation, globalSetting, expected) => {
+      expect(createCluster(annotation, globalSetting).isVersionManagementEnabled).toBe(expected);
     });
   });
 });
