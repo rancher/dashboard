@@ -35,6 +35,16 @@ export type ExtensionProvisioningSectionProps =
   | { [key: string]: any }
   | ((context: { value: any, mode: string, provisioningCluster: any }) => { [key: string]: any });
 
+/**
+ * Props for the `extensionCredentialSection` component
+ *
+ * Either a plain object merged over the default props, or a function that receives the default props
+ * and returns an object of additional/overridden props
+ */
+export type ExtensionCredentialSectionProps =
+  | { [key: string]: any }
+  | ((context: { value: string | null, mode: string, provider: string, provisioningCluster: any, infrastructureCluster: any }) => { [key: string]: any });
+
 export type ClusterDetailTabs = {
   /**
    * RKE2 machine pool tabs
@@ -325,6 +335,16 @@ export interface IClusterProvisioner {
    * Props (or a function returning props) passed to `extensionProvisioningSection`
    */
   extensionProvisioningSectionProps?: ExtensionProvisioningSectionProps
+
+  /**
+   * Optional component that replaces the Rancher cloud credential step shown before the cluster form.
+   */
+  extensionCredentialSection?: Component
+
+  /**
+   * Props (or a function returning props) passed to `extensionCredentialSection`
+   */
+  extensionCredentialSectionProps?: ExtensionCredentialSectionProps
 
   /**
    * Indicates the provisioner manages upstream CAPI infrastructure resources directly.
