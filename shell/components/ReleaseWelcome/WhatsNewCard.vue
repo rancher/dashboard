@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed, PropType } from 'vue';
 import { useStore } from 'vuex';
+import { RcStatusBadge } from '@components/Pill';
 import { useI18n } from '@shell/composables/useI18n';
 import { WHATS_NEW_FEATURES } from '@shell/config/release-welcome';
 import { FirstRunFeature } from '@shell/utils/dynamic-content/types';
 
 const props = defineProps({
   /**
-   * Minor version of the release, e.g. '2.16'
+   * Version of the content, e.g. '2.16', or '2.16.1' for a patch entry
    */
   version: {
     type:     String,
@@ -48,10 +49,12 @@ const items = computed<FirstRunFeature[]>(() => props.features || WHATS_NEW_FEAT
         class="whats-new__title"
       >
         {{ t('releaseWelcome.whatsNew.title', {}, true) }}
-        <span
-          class="whats-new__version"
+        <RcStatusBadge
+          status="info"
           data-testid="release-welcome-version"
-        >{{ t('releaseWelcome.whatsNew.version', { version }) }}</span>
+        >
+          {{ t('releaseWelcome.whatsNew.version', { version }) }}
+        </RcStatusBadge>
       </h3>
       <a
         :href="releaseNotesUrl"
@@ -101,16 +104,6 @@ const items = computed<FirstRunFeature[]>(() => props.features || WHATS_NEW_FEAT
     font-size: 18px;
     font-weight: 600;
     line-height: 1.4;
-  }
-
-  &__version {
-    padding: 3px 10px;
-    border-radius: 100px;
-    background: var(--info-banner-bg);
-    color: var(--info);
-    font-size: 12px;
-    font-weight: 500;
-    line-height: normal;
   }
 
   &__features {

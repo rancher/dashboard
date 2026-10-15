@@ -1,9 +1,6 @@
 /**
- * Content of the welcome modal, shown once per minor release.
- *
- * Update WHATS_NEW_FEATURES for every minor release. The card is hidden when the list is empty.
- * The "What's new" features and the Prime promotion can be replaced after the release through dynamic content
- * (see shell/utils/dynamic-content/first-run.ts)
+ * Built-in content of the welcome modal. Update WHATS_NEW_FEATURES for every minor release (an empty list hides the card).
+ * Dynamic content can replace it after the release, see shell/utils/dynamic-content/first-run.ts
  */
 
 export interface WhatsNewFeature {

@@ -12,15 +12,10 @@ import { getVendor } from '@shell/config/private-label';
 import { isRancherPrime } from '@shell/config/version';
 import { SCC } from '@shell/store/features';
 import { isAdminUser } from '@shell/store/type-map';
-import { releaseWelcomeVersion } from '@shell/utils/release-welcome';
+import { releaseWelcomeVersion, runningVersion } from '@shell/utils/release-welcome';
 import { FirstRunFeature, FirstRunPrimePromo, FirstRunRegistration } from '@shell/utils/dynamic-content/types';
 
 defineProps({
-  componentTestid: {
-    type:    String,
-    default: 'release-welcome'
-  },
-
   /**
    * "What's new" features from dynamic content, the built-in features are shown when not set
    */
@@ -71,7 +66,9 @@ const store = useStore();
 const { t } = useI18n(store);
 
 const vendor = getVendor();
-const version = releaseWelcomeVersion() || '';
+const minorVersion = releaseWelcomeVersion() || '';
+// The subtitle names the exact running version, e.g. 2.16.1
+const version = runningVersion() || minorVersion;
 const isPrime = isRancherPrime();
 
 // Same access as the registration page added by the rancher-prime extension
@@ -138,7 +135,7 @@ const close = () => emit('close');
       </p>
 
       <WhatsNewCard
-        :version="matchedVersion || version"
+        :version="matchedVersion || minorVersion"
         :features="features"
       />
       <PrimeRegistrationCard

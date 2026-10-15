@@ -182,7 +182,7 @@ export default {
       return canSeeTokens && (this.isRancher || this.isSingleProduct);
     },
 
-    // Reopens the welcome modal shown after each minor release, so not for builds without one (e.g. dev)
+    // Reopens the welcome modal, not for builds without a version (e.g. dev)
     showWhatsNewLink() {
       return this.isRancher && !this.isSingleProduct && !!releaseWelcomeVersion();
     },

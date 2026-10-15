@@ -105,6 +105,7 @@ describe('dynamic content: first-run', () => {
       ['features that are not a list', { version: 1, releases: [{ version: '2.16', whatsNew: FEATURE }] }],
       ['a feature without a title', { version: 1, releases: [{ version: '2.16', whatsNew: [FEATURE, { id: 'tables', description: 'Tables' }] }] }],
       ['a feature with an empty description', { version: 1, releases: [{ version: '2.16', whatsNew: [{ ...FEATURE, description: '' }] }] }],
+      ['a feature with a whitespace-only title', { version: 1, releases: [{ version: '2.16', whatsNew: [{ ...FEATURE, title: '   ' }] }] }],
       ['a feature that is not an object', { version: 1, releases: [{ version: '2.16', whatsNew: ['Navigation'] }] }],
       ['a null release', { version: 1, releases: [null] }],
     ])('should return undefined for %s', (_, content) => {
@@ -145,6 +146,7 @@ describe('dynamic content: first-run', () => {
       ['an empty description', { ...PRIME_PROMO, description: '' }],
       ['products that are not a list', { ...PRIME_PROMO, products: 'Rancher Manager' }],
       ['an empty product', { ...PRIME_PROMO, products: ['Rancher Manager', ''] }],
+      ['a whitespace-only product', { ...PRIME_PROMO, products: ['Rancher Manager', ' \n '] }],
       ['no call to action', { ...PRIME_PROMO, cta: undefined }],
       ['a call to action without a label', { ...PRIME_PROMO, cta: { link: PRIME_PROMO.cta.link } }],
       ['an http link', { ...PRIME_PROMO, cta: { ...PRIME_PROMO.cta, link: 'http://www.suse.com' } }],
@@ -187,6 +189,7 @@ describe('dynamic content: first-run', () => {
       ['no card', undefined],
       ['no title', { ...REGISTRATION, title: undefined }],
       ['an empty description', { ...REGISTRATION, description: '' }],
+      ['a whitespace-only benefit', { ...REGISTRATION, benefits: [{ text: '  ' }] }],
       ['benefits that are not a list', { ...REGISTRATION, benefits: 'Support' }],
       ['a benefit without text', { ...REGISTRATION, benefits: [{ link: REGISTRATION.cta }] }],
       ['a benefit with an http link', { ...REGISTRATION, benefits: [{ text: 'Support', link: { action: 'Read', link: 'http://www.suse.com' } }] }],

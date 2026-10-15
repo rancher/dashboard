@@ -36,7 +36,7 @@ Cypress.on('uncaught:exception', (err, runnable) => {
 });
 
 /**
- * The welcome modal opens after login once per minor release and would cover the page under test.
+ * The welcome modal opens after login on a new version and would cover the page under test.
  * Report it as already read, unless a spec opts in with `Cypress.env('showReleaseWelcome', true)`.
  * Intercepts are cleared before every test, so register it for specs that log in within `before` too
  */
