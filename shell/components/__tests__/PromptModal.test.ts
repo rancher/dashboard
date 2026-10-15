@@ -129,6 +129,7 @@ describe('component: PromptModal', () => {
     window.structuredClone = (arg) => JSON.parse(JSON.stringify(arg));
 
     document.body.innerHTML = '<div id="modals"></div>';
+    const store = generateStore(component, { ownsModal: OWNS_MODAL.includes(component) });
     const wrapper = mount(PromptModal,
       {
         attachTo: document.body,
@@ -137,10 +138,10 @@ describe('component: PromptModal', () => {
         },
         global: {
           mocks: {
-            $store:      generateStore(component, { ownsModal: OWNS_MODAL.includes(component) }),
+            $store:      store,
             $fetchState: {}
           },
-          provide: { store: {} },
+          provide: { store },
           stubs:   { transition: false }
         }
       }

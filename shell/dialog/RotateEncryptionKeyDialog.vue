@@ -209,7 +209,7 @@ defineExpose({
     @primary-action="rotate"
   >
     <p>
-      {{ i18n.t('promptRotateEncryptionKey.description') }}
+      {{ i18n.t('promptRotateEncryptionKey.description', {}, true) }}
     </p>
 
     <Banner
