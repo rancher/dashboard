@@ -28,8 +28,8 @@ const RKE2_SERVICES = [
 const IMPORTED_RKE2_SERVICES = [...RKE2_SERVICES, 'supervisor'];
 
 describe('component: RotateCertificatesDialog', () => {
-  const createWrapper = (cluster: any, normanSchema: any = null) => {
-    const store = createStore({ getters: { 'rancher/schemaFor': () => () => normanSchema } });
+  const createWrapper = (cluster: any) => {
+    const store = createStore({});
 
     jest.spyOn(store, 'dispatch');
 
@@ -75,12 +75,6 @@ describe('component: RotateCertificatesDialog', () => {
       expect(vm.serviceNames).toContain('k3s-controller');
       expect(vm.serviceNames).toContain('k3s-server');
       expect(vm.serviceNames).not.toContain('rke2-server');
-    });
-
-    it('uses the Norman input schema for clusters rotated through the Norman action', () => {
-      const { vm } = createWrapper({}, { resourceFields: { services: { options: ['etcd', 'kubelet'] } } });
-
-      expect(vm.serviceNames).toStrictEqual(['etcd', 'kubelet']);
     });
   });
 
@@ -270,20 +264,6 @@ describe('component: RotateCertificatesDialog', () => {
       expect(cluster.spec.rkeConfig.rotateCertificates).toStrictEqual({ generation: 3, services: expected });
       expect(save).toHaveBeenCalledWith();
       expect(modal.onClose).toHaveBeenCalledTimes(1);
-    });
-
-    it.each([
-      ['all services, as null', true, [], null],
-      ['the selected services', false, ['etcd'], ['etcd']],
-    ])('calls the Norman rotateCertificates action with %s for other clusters', async(_, all, selected, expected) => {
-      const doAction = jest.fn().mockResolvedValue(undefined);
-      const { vm } = createWrapper({ mgmt: { doAction } });
-
-      vm.rotateAllServices = all;
-      vm.selectedServices = selected;
-      await vm.rotate();
-
-      expect(doAction).toHaveBeenCalledWith('rotateCertificates', { services: expected, caCertificates: false });
     });
   });
 });

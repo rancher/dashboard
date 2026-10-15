@@ -197,7 +197,7 @@ export default class ProvCluster extends SteveModel {
         action:  'rotateCertificates',
         label:   this.$rootGetters['i18n/t']('nav.rotateCertificates'),
         icon:    'icon icon-backup',
-        enabled: canDayTwoOps || (this.mgmt?.hasAction('rotateCertificates') && ready),
+        enabled: canDayTwoOps,
       }, {
         action:  'rotateEncryptionKey',
         label:   this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),

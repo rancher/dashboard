@@ -10,7 +10,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import Select from '@shell/components/form/Select.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { get, set } from '@shell/utils/object';
+import { set } from '@shell/utils/object';
 import { createOperationCR } from '@shell/utils/operation-cr';
 
 // How many selected services are shown as tokens before the rest collapse
@@ -48,39 +48,28 @@ const rotating = ref(false);
 const isImportedWithDayTwoOps = computed(() => !!props.cluster?.isImportedWithDayTwoOps);
 
 const serviceNames = computed<string[]>(() => {
-  if (props.cluster.isRke2 || isImportedWithDayTwoOps.value) {
-    const options = [
-      'admin',
-      'api-server',
-      'controller-manager',
-      'scheduler',
-      'cloud-controller',
-      'etcd',
-      'auth-proxy',
-      'kubelet',
-      'kube-proxy'
-    ];
+  const options = [
+    'admin',
+    'api-server',
+    'controller-manager',
+    'scheduler',
+    'cloud-controller',
+    'etcd',
+    'auth-proxy',
+    'kubelet',
+    'kube-proxy'
+  ];
 
-    if (props.cluster.isK3s) {
-      options.push('k3s-controller', 'k3s-server');
-    } else {
-      options.push('rke2-controller', 'rke2-server');
-    }
-    if (isImportedWithDayTwoOps.value) {
-      options.push('supervisor');
-    }
-
-    return options.sort();
+  if (props.cluster.isK3s) {
+    options.push('k3s-controller', 'k3s-server');
+  } else {
+    options.push('rke2-controller', 'rke2-server');
+  }
+  if (isImportedWithDayTwoOps.value) {
+    options.push('supervisor');
   }
 
-  // Clusters rotated through the Norman action get their service list from its input schema:
-  // type RotateCertificateInput struct {
-  //   CACertificates bool     `json:"caCertificates,omitempty"`
-  //   Services       []string `json:"services,omitempty" norman:"type=enum,options=etcd|kubelet|kube-apiserver|kube-proxy|kube-scheduler|kube-controller-manager"`
-  // }
-  const schema = store.getters['rancher/schemaFor']('rotatecertificateinput');
-
-  return get(schema, 'resourceFields.services.options') || [];
+  return options.sort();
 });
 
 const serviceOptions = computed<ServiceOption[]>(() => serviceNames.value.map((name) => ({ label: name, value: name })));
@@ -146,7 +135,7 @@ async function rotate() {
       }
 
       await createOperationCR(store.dispatch, OPERATION.CERTIFICATE_ROTATE, spec, namespace, namespace, { notifyGeneratedName: true });
-    } else if (props.cluster.isRke2) {
+    } else {
       // The Steve API doesn't support actions, so for RKE2 cluster cert rotation, we patch the cluster.
       const currentGeneration = props.cluster.spec?.rkeConfig?.rotateCertificates?.generation || 0;
 
@@ -156,12 +145,6 @@ async function rotate() {
       });
 
       await props.cluster.save();
-    } else {
-      // The Norman action needs services to be null, not empty, to rotate all of them
-      await props.cluster.mgmt.doAction('rotateCertificates', {
-        services:       services.length ? services : null,
-        caCertificates: false,
-      });
     }
 
     rotating.value = false;
