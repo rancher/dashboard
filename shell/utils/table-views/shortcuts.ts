@@ -22,8 +22,11 @@ export function registerTableViewShortcuts(owner: TableViewShortcutOwner): () =>
   };
 }
 
-export function runTableViewShortcut(action: TableViewShortcutAction, focused: Element | null = document.activeElement): void {
+/** Returns whether a list took the shortcut; when none did, the key is left to the browser */
+export function runTableViewShortcut(action: TableViewShortcutAction, focused: Element | null = document.activeElement): boolean {
   const owner = Array.from(owners).find((o) => o.owns(focused));
 
   owner?.run(action);
+
+  return !!owner;
 }
