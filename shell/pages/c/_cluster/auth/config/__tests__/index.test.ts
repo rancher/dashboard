@@ -114,7 +114,7 @@ describe('page: AuthConfigList', () => {
   it('should list a provider that has been added but switched off', () => {
     const wrapper = createWrapper({ configs: [localConfig, oktaConfig, disabledConfig] });
 
-    const github = wrapper.findAllComponents(AuthProviderRow)[1];
+    const github = wrapper.findAllComponents(AuthProviderRow).find((row) => row.props('meta') === 'github')!;
 
     expect(github.props('title')).toBe('GitHub');
     expect(github.props('status')).toBe('none');
@@ -469,6 +469,14 @@ describe('page: AuthConfigList', () => {
 
   // Rancher only clears out configs nobody set up, so one made before the
   // dashboard dropped its form for that provider can still be there.
+  // A provider added during the session is appended to the store, while the
+  // server lists them by name, so it would otherwise move on the next reload.
+  it('should list the providers by name, whatever order they were loaded in', () => {
+    const rows = createWrapper({ configs: [localConfig, oktaConfig, disabledConfig] }).findAllComponents(AuthProviderRow);
+
+    expect(rows.slice(0, 2).map((row) => row.props('meta'))).toStrictEqual(['github', 'okta-corp']);
+  });
+
   describe('a provider the dashboard has no form for', () => {
     it('should be left off the list', () => {
       const oidc = {

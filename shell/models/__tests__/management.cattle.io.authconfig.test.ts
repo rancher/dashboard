@@ -459,4 +459,75 @@ describe('class AuthConfig', () => {
       expect(disableAction(disabled).enabled).toBe(false);
     });
   });
+
+  describe('cloning', () => {
+    const cloneGetters = (configs: object[], { multipleAllowed = false, customEdit = true } = {}) => ({
+      ...rootGetters,
+      clusterId:                'local',
+      'management/all':         () => configs,
+      'features/get':           (name: string) => name === 'multiple-auth-providers' && multipleAllowed,
+      'type-map/hasCustomEdit': () => customEdit,
+    });
+    const makeClonable = (data: object, getters: object) => new AuthConfig({ type: 'management.cattle.io.authconfig', ...data }, { rootGetters: getters } as any);
+
+    it('should allow cloning a provider when another can be enabled', () => {
+      const configs = [{ id: 'local', enabled: true }, { id: 'github', enabled: false }];
+
+      expect(makeClonable({ id: 'github', _type: 'githubConfig' }, cloneGetters(configs)).canCloneConfig).toBe(true);
+    });
+
+    it('should not allow cloning local authentication', () => {
+      const configs = [{ id: 'local', enabled: true }];
+
+      expect(makeClonable({ id: 'local', _type: 'localConfig' }, cloneGetters(configs)).canCloneConfig).toBe(false);
+    });
+
+    it('should not allow cloning in community while a provider is enabled', () => {
+      const configs = [{ id: 'local', enabled: true }, { id: 'github', enabled: true }];
+
+      expect(makeClonable({ id: 'github', _type: 'githubConfig' }, cloneGetters(configs)).canCloneConfig).toBe(false);
+    });
+
+    it('should allow cloning an enabled provider when multiple are allowed', () => {
+      const configs = [{ id: 'local', enabled: true }, { id: 'github', enabled: true }];
+
+      expect(makeClonable({ id: 'github', _type: 'githubConfig' }, cloneGetters(configs, { multipleAllowed: true })).canCloneConfig).toBe(true);
+    });
+
+    it('should not allow cloning a provider without a form', () => {
+      const configs = [{ id: 'local', enabled: true }];
+
+      expect(makeClonable({ id: 'okta', _type: 'oktaConfig' }, cloneGetters(configs, { customEdit: false })).canCloneConfig).toBe(false);
+    });
+
+    it('should enable the inherited clone action by whether the config can be cloned', () => {
+      jest.spyOn(Resource.prototype, '_availableActions', 'get').mockReturnValue([{
+        action: 'goToClone', label: 'action.clone', icon: 'icon icon-copy', enabled: false
+      }]);
+
+      const config = makeClonable({ id: 'github', _type: 'githubConfig' }, cloneGetters([{ id: 'local', enabled: true }]));
+      const cloneAction = config._availableActions.find((a: any) => a.action === 'goToClone');
+
+      jest.restoreAllMocks();
+
+      expect(cloneAction?.enabled).toBe(true);
+    });
+
+    // A clone is added like any other config, so it starts on the create page
+    it('should open the create page for the provider, naming the config to clone', () => {
+      const push = jest.fn();
+
+      jest.spyOn(Resource.prototype, 'currentRouter').mockReturnValue({ push } as any);
+
+      makeClonable({ id: 'github-2', _type: 'githubConfig' }, cloneGetters([])).goToClone();
+
+      jest.restoreAllMocks();
+
+      expect(push).toHaveBeenCalledWith({
+        name:   'c-cluster-auth-config-create-provider',
+        params: { cluster: 'local', provider: 'github' },
+        query:  { cloneConfig: 'github-2' },
+      });
+    });
+  });
 });

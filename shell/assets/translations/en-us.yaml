@@ -548,11 +548,13 @@ authConfig:
       create: Add a provider
       learnMore: How external authentication works
     prime:
-      title: Configure more than one provider with Rancher Prime
-      description: Rancher Community allows for one external auth provider to be configured at a time. Disable the active provider to add a different one, or use Rancher Prime to run several together.
+      title: Run multiple auth providers at once with SUSE Rancher Prime
+      description: Rancher Community supports one external auth provider at a time, so disable the active one to switch. With <primeUrl>SUSE Rancher Prime</primeUrl> employees, contractors and partners can each sign in through the provider they already use, all active together.
+      action: Learn about SUSE Rancher Prime
     primeFlagOff:
-      title: Turn on multiple-auth-providers to configure more than one provider
-      description: The multiple-auth-providers feature flag is off, so one external auth provider can be enabled at a time. Disable the active provider to add a different one, or turn the flag on under Global Settings > Feature Flags to run several together.
+      title: Run multiple auth providers at once with the multiple-auth-providers feature flag
+      description: The multiple-auth-providers feature flag is off, so one external auth provider can be active at a time. Disable the active one to switch, or turn the flag on to let employees, contractors and partners each sign in through the provider they already use, all active together.
+      action: Go to Feature Flags
     disableLocal:
       label: Disable login with local users
       description: Users sign in through external providers only. Local accounts remain, but cannot be used to sign in.
@@ -576,6 +578,9 @@ authConfig:
     limitReachedPrime: Another external provider is already enabled. The multiple-auth-providers feature flag is off, so one external auth provider can be enabled at a time. Disable the active provider to add a different one, or turn the flag on under Global Settings > Feature Flags to run several together.
     provider:
       title: 'Add {provider}'
+    clone:
+      title: 'Clone {name}'
+      notFound: '{name} is not an authentication provider that can be cloned from here.'
     name:
       label: Name
       required: A name is required.
