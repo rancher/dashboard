@@ -174,6 +174,48 @@ describe('component: ResourceList, opened from a link to some of its states', ()
     expect(push).toHaveBeenCalledWith(expect.objectContaining({ query: { q: 'kept' } }));
   });
 
+  describe('linked to a name', () => {
+    const mountNamed = (tableViews: boolean) => {
+      const store = createStore({ schema: { id: 'pod' } });
+      const push = jest.fn();
+
+      Object.assign(store.getters, { 'features/get': () => tableViews, 'type-map/optionsFor': () => ({ showListMasthead: true }) });
+
+      const wrapper = shallowMount(ResourceList as any, {
+        data:   () => ({ rows: [], perfConfig: { incrementalLoading: { enabled: false } } }),
+        global: {
+          mocks: {
+            $store: store, $route: { params: { resource: 'pod' }, query: { nameFilter: 'nginx', q: 'kept' } }, $router: { push }, t: (key: string) => key
+          },
+          stubs: {
+            FailWhale: true, ResourceTable: true, ExtensionPanel: true, IconMessage: true, Loading: true, Masthead: { template: '<div><slot name="subHeader" /></div>' },
+          },
+        },
+      });
+
+      return { wrapper, push };
+    };
+
+    it('should say which name the list is filtered to without table views', () => {
+      const bar = mountNamed(false).wrapper.find('.state-filter-bar');
+
+      expect(bar.text()).toContain('resourceList.nameFilterApplied');
+      expect(bar.text()).toContain('nginx');
+    });
+
+    it('should clear the name, keeping the rest of the query', async() => {
+      const { wrapper, push } = mountNamed(false);
+
+      await wrapper.find('.state-filter-bar a').trigger('click');
+
+      expect(push).toHaveBeenCalledWith(expect.objectContaining({ query: { q: 'kept' } }));
+    });
+
+    it('should say nothing when the table views have the name', () => {
+      expect(mountNamed(true).wrapper.find('.state-filter-bar').exists()).toBe(false);
+    });
+  });
+
   it('should say nothing when the table views have the states', () => {
     const { wrapper } = mountList(true);
 

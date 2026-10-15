@@ -17,7 +17,7 @@ import { BadgeState } from '@components/BadgeState';
 import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { useStateColor } from '@shell/composables/useStateColor';
 import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
-import { STATE_FILTER_QUERY } from '@shell/config/query-params';
+import { NAME_FILTER_QUERY, STATE_FILTER_QUERY } from '@shell/config/query-params';
 
 export default {
   name: ResourceListComponentName,
@@ -213,6 +213,10 @@ export default {
       });
     },
 
+    activeNameFilter() {
+      // With table views the name is a term in the table's query instead
+      return isConfigurableTablesEnabled(this.$store) ? '' : this.$route?.query?.[NAME_FILTER_QUERY] || '';
+    },
   },
 
   methods: {
@@ -246,6 +250,13 @@ export default {
       const query = { ...this.$route.query };
 
       delete query[STATE_FILTER_QUERY];
+      this.$router.push({ ...this.$route, query });
+    },
+
+    clearNameFilter() {
+      const query = { ...this.$route.query };
+
+      delete query[NAME_FILTER_QUERY];
       this.$router.push({ ...this.$route, query });
     },
   },
@@ -359,10 +370,13 @@ export default {
       :load-indeterminate="loadIndeterminate"
     >
       <template
-        v-if="activeStateFilters.length"
+        v-if="activeStateFilters.length || activeNameFilter"
         #subHeader
       >
-        <div class="state-filter-bar text-muted">
+        <div
+          v-if="activeStateFilters.length"
+          class="state-filter-bar text-muted"
+        >
           {{ t('resourceList.stateFilterApplied') }}
           <BadgeState
             v-for="state in activeStateFilters"
@@ -375,6 +389,20 @@ export default {
           <a
             role="button"
             @click="clearStateFilter"
+          >
+            {{ t('resourceList.clearStateFilter') }}
+          </a>
+        </div>
+        <div
+          v-if="activeNameFilter"
+          class="state-filter-bar text-muted"
+        >
+          {{ t('resourceList.nameFilterApplied') }}
+          <span>{{ activeNameFilter }}</span>
+          <span>.</span>
+          <a
+            role="button"
+            @click="clearNameFilter"
           >
             {{ t('resourceList.clearStateFilter') }}
           </a>

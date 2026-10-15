@@ -6628,6 +6628,7 @@ resourceList:
   nsFilteringGeneric: "Please select a valid namespace or project option using the filter above."
   nsFilterToolTip: "Filtering is restricted to projects and namespaces"
   stateFilterApplied: "State filter applied:"
+  nameFilterApplied: "Name filter applied:"
   clearStateFilter: "Clear filter"
 resourceLoadingIndicator:
   loading: Loading
