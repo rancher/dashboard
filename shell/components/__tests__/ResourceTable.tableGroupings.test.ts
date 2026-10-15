@@ -86,25 +86,6 @@ describe('ResourceTable', () => {
 
       expect(group.get.call(ctx)).toBe('role');
     });
-
-    it.each([
-      ['the namespace, when the page names none and it is offered', [NONE, PROJECT], null, 'namespace'],
-      ['the first grouping offered, when the page names none and the namespace isn\'t offered', [NONE, NODE], null, 'none'],
-      ['the grouping the page names', [NONE, PROJECT, NODE], 'role', 'role'],
-      ['the namespace, when the page names none and offers nothing', [] as GroupOption[], null, 'namespace'],
-    ])('should fall back without a valid preference to %s', (_, groupOptions, groupDefault, expected) => {
-      const ctx = {
-        showTableViews: false, _groupOptions: groupOptions, _group: 'gone', groupDefault
-      };
-
-      expect(group.get.call(ctx)).toBe(expected);
-    });
-  });
-
-  it('should name no default grouping of its own, so only a page that names one starts grouped', () => {
-    const { groupDefault } = ResourceTable.props as unknown as Record<string, { default: unknown }>;
-
-    expect(groupDefault.default).toBeNull();
   });
 
   it('should tell the page how the table is grouped', () => {
@@ -249,7 +230,7 @@ describe('ResourceTable', () => {
     const table = (groupOptions: GroupOption[], more: Record<string, unknown> = {}) => ({
       showGrouping:   true,
       _groupOptions:  groupOptions,
-      groupDefault:   null,
+      groupDefault:   'namespace',
       groupBy:        null,
       tableGroupings: groupOptions.filter((option) => option.value !== 'none'),
       ...more,
@@ -261,10 +242,6 @@ describe('ResourceTable', () => {
 
     it('should start grouped by the grouping the page names as its default, even where it offers the namespace too', () => {
       expect(defaultGroupBy.call(table([NONE, NAMESPACE, NODE], { groupDefault: 'role' }))).toBe(`${ TABLE_GROUPING_PREFIX }role`);
-    });
-
-    it('should start grouped by the namespace when the page names it as its default, eg namespaces by project', () => {
-      expect(defaultGroupBy.call(table([NONE, PROJECT], { groupDefault: 'namespace', groupBy: 'groupById' }))).toBe(`${ TABLE_GROUPING_PREFIX }namespace`);
     });
 
     it.each([

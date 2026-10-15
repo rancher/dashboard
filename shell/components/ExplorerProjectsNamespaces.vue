@@ -493,7 +493,6 @@ export default {
       :group-by="projectGroupBy"
       :group-options="groupOptions"
       :groupable="true"
-      group-default="namespace"
       :sort-generation-fn="sortGenerationFn"
       :loading="loading"
       group-tooltip="resourceTable.groupBy.project"
