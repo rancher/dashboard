@@ -182,7 +182,8 @@ defineExpose({
     @primary-action="rotate"
   >
     <p>
-      {{ i18n.t('cluster.rotateCertificates.description') }}
+      <!-- raw: `{{ }}` already escapes, so the escaped form would show the quotes as &#39; -->
+      {{ i18n.t('cluster.rotateCertificates.description', {}, true) }}
     </p>
 
     <div>
