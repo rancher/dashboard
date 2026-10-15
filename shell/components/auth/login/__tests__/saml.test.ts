@@ -1,5 +1,12 @@
-import { shallowMount } from '@vue/test-utils';
+import { flushPromises, shallowMount } from '@vue/test-utils';
+import { RcButton } from '@components/RcButton';
 import Saml from '@shell/components/auth/login/saml.vue';
+
+const mockRoute: { query: Record<string, string> } = { query: {} };
+const mockStore = { dispatch: jest.fn() };
+
+jest.mock('vue-router', () => ({ useRoute: () => mockRoute }));
+jest.mock('vuex', () => ({ useStore: () => mockStore }));
 
 const VALID_QUERY = {
   cli:          'true',
@@ -8,21 +15,18 @@ const VALID_QUERY = {
   responseType: 'kubeconfig',
 };
 
-const createWrapper = (query: Record<string, string> = {}, dispatch = jest.fn()) => shallowMount(Saml, {
-  props: {
-    focusOnMount: false, name: 'shibboleth', type: 'shibbolethProvider'
-  },
-  global: {
+const createWrapper = (query: Record<string, string> = {}) => {
+  mockRoute.query = query;
+
+  return shallowMount(Saml, {
+    props: {
+      focusOnMount: false, name: 'shibboleth', type: 'shibbolethProvider'
+    },
     // The messages these tests are about live in the button's default slot, which
     // a stub drops, leaving nothing to read.
-    renderStubDefaultSlot: true,
-    mocks:                 {
-      t:      (key: string) => key,
-      $route: { query },
-      $store: { dispatch },
-    },
-  },
-});
+    global: { renderStubDefaultSlot: true },
+  });
+};
 
 describe('component: saml login', () => {
   describe('CLI login detection', () => {
@@ -99,12 +103,14 @@ describe('component: saml login', () => {
 
     it('should hand the cluster-scoped response type to the auth provider untouched', async() => {
       const query = { ...VALID_QUERY, responseType: 'kubeconfig_c-m-zx8p4nvt' };
-      const dispatch = jest.fn().mockResolvedValue({ idpRedirectUrl: 'https://mocksaml.com/api/saml/sso' });
-      const wrapper = createWrapper(query, dispatch);
+      const wrapper = createWrapper(query);
 
-      await wrapper.vm.login();
+      mockStore.dispatch = jest.fn().mockResolvedValue({ idpRedirectUrl: 'https://mocksaml.com/api/saml/sso' });
 
-      expect(dispatch).toHaveBeenCalledWith('auth/login', {
+      wrapper.findComponent(RcButton).vm.$emit('click');
+      await flushPromises();
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith('auth/login', {
         provider: 'shibboleth',
         body:     {
           finalRedirectUrl: window.location.origin,
