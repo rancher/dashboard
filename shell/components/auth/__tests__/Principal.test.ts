@@ -1,6 +1,7 @@
 import { flushPromises, mount, shallowMount, type VueWrapper } from '@vue/test-utils';
 import Principal from '@shell/components/auth/Principal.vue';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { RcIcon } from '@components/RcIcon';
 import { RcIconTooltip } from '@components/RcIconTooltip';
 
 describe('component: Principal', () => {
@@ -363,13 +364,13 @@ describe('component: Principal', () => {
       it('should show a question mark icon in place of the avatar', async() => {
         const wrapper = await mountUnresolved();
 
-        expect(wrapper.find('.avatar i').classes()).toContain('icon-question-mark');
+        expect(wrapper.find('.avatar').findComponent(RcIcon).props('type')).toStrictEqual('question-mark');
       });
 
       it('a11y: should hide the question mark icon from screen readers', async() => {
         const wrapper = await mountUnresolved();
 
-        expect(wrapper.find('.avatar i').attributes('aria-hidden')).toStrictEqual('true');
+        expect(wrapper.find('.avatar').findComponent(RcIcon).props('ariaHidden')).toBe(true);
       });
 
       it('should not render the name as an error', async() => {

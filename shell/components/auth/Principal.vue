@@ -1,10 +1,11 @@
 <script>
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { configNameOfPrincipal, providerOfConfig } from '@shell/utils/auth-providers';
+import { RcIcon } from '@components/RcIcon';
 import { RcIconTooltip } from '@components/RcIconTooltip';
 
 export default {
-  components: { RcIconTooltip },
+  components: { RcIcon, RcIconTooltip },
 
   props: {
     value: {
@@ -206,9 +207,9 @@ export default {
           class="empty"
           :class="{'text-muted': useMuted}"
         >
-          <i
-            class="icon icon-question-mark icon-lg"
-            aria-hidden="true"
+          <rc-icon
+            type="question-mark"
+            size="large"
           />
         </div>
       </div>
