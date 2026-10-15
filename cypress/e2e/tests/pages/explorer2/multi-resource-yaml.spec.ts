@@ -246,7 +246,8 @@ describe('Multi-resource YAML editor', { testIsolation: false, tags: ['@explorer
       multi.managementBanner().checkNotExists();
 
       readOnly.toggle();
-      readOnly.nodeLabels().contains(/^web-/).click();
+      // the select button, not its label: the button's `::after` covers the row, so cypress finds the label covered
+      readOnly.nodeLabels().contains(/^web-/).closest('.resource-graph-node-select').click();
 
       multi.checkReadOnly();
       multi.managementBanner().banner().should('contain', 'The Deployment web controls this resource');

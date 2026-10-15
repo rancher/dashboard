@@ -1,5 +1,5 @@
 import { WorkloadsDeploymentsListPagePo, WorkloadsDeploymentsCreatePagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
-import ResourceYamlPo from '@/cypress/e2e/po/components/resource-yaml.po';
+import MultiResourceYamlPo from '@/cypress/e2e/po/components/multi-resource-yaml.po';
 import { deploymentCreateRequest } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployment-create';
 import { qase } from '@/cypress/support/qase';
 
@@ -54,11 +54,11 @@ describe('Yaml Editor', { tags: ['@components', '@adminUser', '@standardUser'] }
       deploymentsListPage.listElementWithName(name).should('exist');
       deploymentsListPage.goToEditYamlPage(name);
 
-      const resourceYaml = new ResourceYamlPo();
+      // the deployment controls a ReplicaSet, a related resource, so Edit YAML shows the multi-resource editor
+      const multiResourceYaml = new MultiResourceYamlPo();
 
-      resourceYaml.body().should('be.visible').then(() => {
-        resourceYaml.footer().isVisible();
-      });
+      multiResourceYaml.codeMirror().checkVisible();
+      multiResourceYaml.footer().should('be.visible');
     }));
   });
 

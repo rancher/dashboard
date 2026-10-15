@@ -50,7 +50,7 @@ describe('Cluster List', { tags: ['@manager', '@adminUser'] }, () => {
     createRKE2ClusterPage.resourceDetail().createEditView().editClusterAsYaml();
     promptModal().checkVisible();
     promptModal().clickActionButton('Save and Continue');
-    createRKE2ClusterPage.waitForPage('type=custom&rkeType=rke2', 'basic');
+    createRKE2ClusterPage.waitForPage('type=custom&rkeType=rke2&as=yaml', 'basic');
     // provision cluster into a custom namespace
     createRKE2ClusterPage.resourceDetail().resourceYaml().codeMirror().value()
       .then((val) => {

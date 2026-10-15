@@ -99,6 +99,13 @@ export default class MultiResourceYamlPo extends ComponentPo {
     return this.self().find('[data-testid="multi-yaml-save"]');
   }
 
+  /**
+   * The row holding Cancel and Save All, below the resource graph and the editor
+   */
+  footer(): Cypress.Chainable {
+    return this.self().find('.multi-yaml-footer');
+  }
+
   cancel(): Cypress.Chainable {
     return this.self().find('[data-testid="multi-yaml-cancel"]');
   }

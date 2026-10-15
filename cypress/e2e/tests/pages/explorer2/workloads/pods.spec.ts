@@ -2,6 +2,7 @@ import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo, WorkLoadsPodEditPag
 // import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo, WorkloadsPodsCreatePagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
 import { createPodBlueprint, clonePodBlueprint } from '@/cypress/e2e/blueprints/explorer/workload-pods';
 import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
+import MultiResourceYamlPo from '@/cypress/e2e/po/components/multi-resource-yaml.po';
 // import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { generatePodsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/pods/pods-get';
@@ -390,17 +391,25 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodEditPage.waitForPage('mode=edit&as=yaml');
       cy.wait('@getPod');
 
+      // the pod refers to its service account, a related resource, so Edit YAML shows the multi-resource editor
+      const multiResourceYaml = new MultiResourceYamlPo();
+
       // clear the form
-      workloadsPodEditPage.resourceDetail().resourceYaml().codeMirror().set('');
+      multiResourceYaml.codeMirror().set('');
 
       // footer should maintain its position on the page
-      workloadsPodEditPage.resourceDetail().resourceYaml().footer().then(($el) => {
+      // the multi-resource editor's footer sits inside the padding of `.outlet`, which fills the viewport
+      multiResourceYaml.footer().then(($el) => {
         const elementRect = $el[0].getBoundingClientRect();
+        const outlet = $el[0].closest('.outlet') as HTMLElement;
+        const outletRect = outlet.getBoundingClientRect();
+        const outletContentBottom = outletRect.bottom - parseFloat(outlet.ownerDocument.defaultView.getComputedStyle(outlet).paddingBottom);
         const viewportHeight = Cypress.config('viewportHeight');
         const pageHeight = Cypress.$(cy.state('window')).height();
 
-        expect(elementRect.bottom).to.be.closeTo(pageHeight, 0.1);
-        expect(elementRect.bottom).to.be.closeTo(viewportHeight, 0.1);
+        expect(outletRect.bottom).to.be.closeTo(pageHeight, 0.1);
+        expect(outletRect.bottom).to.be.closeTo(viewportHeight, 0.1);
+        expect(elementRect.bottom).to.be.closeTo(outletContentBottom, 0.1);
       });
     }));
 
