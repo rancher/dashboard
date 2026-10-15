@@ -40,6 +40,55 @@ describe('sortableTable selection', () => {
   const rowA = { id: 'a' };
   const rowB = { id: 'b' };
 
+  it('should stop updating nested rows at a row containing a sub-table', () => {
+    const tableElement = document.createElement('table');
+    const tbody = document.createElement('tbody');
+    const addRow = (className: string, containsSubTable = false) => {
+      const row = document.createElement('tr');
+      const cell = document.createElement('td');
+
+      row.classList.add(className);
+      if (containsSubTable) {
+        const subTable = document.createElement('div');
+
+        subTable.classList.add('sub-table');
+        cell.append(subTable);
+      }
+      row.append(cell);
+      tbody.append(row);
+
+      return row;
+    };
+    const mainRow = addRow('main-row');
+    const checkboxCtrl = document.createElement('div');
+
+    checkboxCtrl.dataset.checkboxCtrl = '';
+    checkboxCtrl.dataset.nodeId = 'a';
+    mainRow.querySelector('td')?.append(checkboxCtrl);
+
+    const subRow = addRow('sub-row');
+    const additionalSubRow = addRow('additional-sub-row');
+    const nestedTableRow = addRow('sub-row', true);
+    const followingSubRow = addRow('sub-row');
+
+    tableElement.append(tbody);
+    Reflect.apply(methods.updateInput, { $el: tableElement }, [{ id: 'a' }, true, 'id']);
+
+    expect([
+      mainRow,
+      subRow,
+      additionalSubRow,
+      nestedTableRow,
+      followingSubRow,
+    ].map((row) => row.classList.contains('row-selected'))).toStrictEqual([
+      true,
+      true,
+      true,
+      false,
+      false,
+    ]);
+  });
+
   it('should unselect a plain row selected before', () => {
     const t = table();
 
