@@ -16,9 +16,8 @@ import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 // Cypress coerces numeric-looking CYPRESS_* values (e.g. "2.13") to numbers, so stringify it.
 const RANCHER_VERSION = String(Cypress.env('rancher_version') ?? '');
 
-// Older dashboard runtimes (2.10-2.13) differ from current in two spots that need an `if`:
-//  - the login flow doesn't drive the POST /v1-public/login that cy.login() waits on
-//  - the elemental machineregistration create form renders with a different (tabbed) layout
+// Older dashboard runtimes (2.10-2.13) render the elemental machineregistration create form with a
+// different (tabbed) layout.
 const LEGACY_DASHBOARD = ['2.10', '2.11', '2.12', '2.13'].includes(RANCHER_VERSION);
 
 // The oldest dashboards (2.10 / 2.11) don't surface the reload banner after a developer load and
@@ -33,20 +32,16 @@ const OLD_DEV_LOAD = ['2.10', '2.11'].includes(RANCHER_VERSION);
 const OLD_ACTION_MENU = RANCHER_VERSION === '2.10';
 
 /**
- * Log in, tolerating Rancher version differences in the login flow.
+ * Log in through the form, tolerating Rancher version differences in the login request.
  *
- * On the older dashboards (2.11 / 2.12 / 2.13, in this curl-bootstrapped setup) login doesn't drive
- * the POST /v1-public/login that the shared cy.login() waits on, so cy.login() times out even though
- * auth succeeds. There we submit the login form and validate by reaching an authenticated page
- * instead. All other versions use the standard cy.login() unchanged.
+ * cy.login() asserts the exact POST /v1-public/login body that a dashboard built from *this* branch
+ * sends, so it only holds when the UI under test is this branch's. This suite drives the stock UI
+ * shipped with each Rancher version, where that request differs: 2.10-2.13 post to
+ * /v3-public/localProviders/local?action=login instead, and 2.14 / 2.15 post to /v1-public/login
+ * without the `configName` added in #19495. Rather than track every shape, submit the form and
+ * validate by reaching an authenticated page.
  */
 const loginCompat = () => {
-  if (!LEGACY_DASHBOARD) {
-    cy.login();
-
-    return;
-  }
-
   const username = Cypress.env('username');
   const password = Cypress.env('password');
 
@@ -54,12 +49,15 @@ const loginCompat = () => {
     const loginPage = new LoginPagePo();
 
     LoginPagePo.goTo();
+    // Guard against the login page hanging on its loading spinner (see LoginPagePo.ensureFormReady -
+    // rancher/dashboard#19320), as cy.login() does. No-op on the happy path.
+    loginPage.ensureFormReady();
     loginPage.switchToLocal();
     loginPage.username().set(username);
     loginPage.password().set(password);
     loginPage.submit();
-    // Validate by leaving the login page. 2.13 posts to a different endpoint than the one
-    // cy.login() waits on, so a successful login is detected by navigating away from /auth/login.
+    // Success is detected by navigating away from /auth/login, not by asserting on the login
+    // request, whose shape varies across the versions under test.
     cy.location('pathname', { timeout: 120000 }).should('not.contain', '/auth/login');
   });
 
