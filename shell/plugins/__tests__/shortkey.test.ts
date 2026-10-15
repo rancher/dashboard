@@ -2,7 +2,7 @@ import ShortKey, { _internal } from '@shell/plugins/shortkey';
 import { SHORTKEY_PREVENT_SELECTORS } from '@shell/utils/dom';
 
 const {
-  handleHoldKeydown, handleHoldKeyup, releaseHeldKeys, availableElement
+  handleHoldKeydown, handleHoldKeyup, releaseHeldKeys, availableElement, handleClaimKeydown
 } = _internal;
 
 // shortkey.js is untyped, so `_internal.mapFunctions` widens to `{}` and can't be string-indexed. Describe
@@ -10,7 +10,7 @@ const {
 // verbatim) so the registry reads/writes are typed rather than implicit `any`.
 type ShortkeyBinding = {
   hold?: boolean; held?: boolean; once?: boolean; push?: boolean; focus?: boolean;
-  key?: string; propagte?: boolean; anywhere?: boolean; el?: HTMLElement[];
+  key?: string; propagte?: boolean; anywhere?: boolean; claim?: boolean; el?: HTMLElement[];
 };
 const mapFunctions = _internal.mapFunctions as Record<string, ShortkeyBinding>;
 
@@ -197,5 +197,57 @@ describe('shortkey app avoid list', () => {
     (document.getElementById('f') as HTMLElement).focus();
 
     expect(availableElement('ctrlk')).toBe(true);
+  });
+});
+
+// The `.claim` modifier: the binding's handler decides whether it takes the key, by calling preventDefault
+// on the `shortkey` event. Cmd+S on a table saves the view only with the focus in that table; anywhere else
+// the browser keeps the key, to save the page.
+describe('shortkey .claim modifier', () => {
+  const registry = _internal.mapFunctions as Record<string, ShortkeyBinding>;
+
+  const bindClaim = (take: boolean) => {
+    const el = document.createElement('button');
+    const handler = jest.fn((e: Event) => {
+      if (take) {
+        e.preventDefault();
+      }
+    });
+
+    el.addEventListener('shortkey', handler);
+    registry.metas = {
+      claim: true, key: 'mac', el: [el]
+    };
+
+    return handler;
+  };
+
+  beforeEach(() => {
+    Object.keys(registry).forEach((k) => delete registry[k]);
+  });
+
+  it('takes the key when the handler claims it', () => {
+    const handler = bindClaim(true);
+
+    expect(handleClaimKeydown('metas')).toBe(true);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the key to the browser when the handler passes', () => {
+    const handler = bindClaim(false);
+
+    expect(handleClaimKeydown('metas')).toBe(false);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not answer for a binding without the modifier', () => {
+    const el = document.createElement('button');
+    const handler = jest.fn();
+
+    el.addEventListener('shortkey', handler);
+    registry.metas = { key: 'mac', el: [el] };
+
+    expect(handleClaimKeydown('metas')).toBe(false);
+    expect(handler).not.toHaveBeenCalled();
   });
 });
