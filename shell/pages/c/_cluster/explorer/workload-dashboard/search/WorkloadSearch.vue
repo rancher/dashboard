@@ -132,6 +132,26 @@ function handleSearch(term: string): void {
   onSearch(term);
 }
 
+// Workload names can't contain whitespace, so keep it out of the search
+function onSearchBeforeInput(event: InputEvent): void {
+  const input = searchInput();
+  const text = event.data ?? event.dataTransfer?.getData('text/plain');
+
+  if (!input || event.target !== input || !text || !/\s/.test(text)) {
+    return;
+  }
+
+  event.preventDefault();
+
+  // Pasted or dropped text keeps its non-whitespace characters
+  const stripped = text.replace(/\s/g, '');
+
+  if (stripped) {
+    input.setRangeText(stripped, input.selectionStart ?? input.value.length, input.selectionEnd ?? input.value.length, 'end');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+}
+
 function onSearchBlur() {
   if (!keepOpenOnBlur.value) {
     return;
@@ -219,6 +239,7 @@ function onResultsFocusout(event: FocusEvent): void {
     @on-open="updateDropdownVisibleRows"
     @keydown="onResultsKeydown"
     @focusout="onResultsFocusout"
+    @beforeinput="onSearchBeforeInput"
   >
     <template #option="option">
       <b

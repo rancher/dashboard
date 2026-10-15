@@ -646,6 +646,120 @@ describe('component: WorkloadSearch', () => {
     });
   });
 
+  describe('keeping whitespace out of the search', () => {
+    function setUp(value = '', selectionStart = value.length, selectionEnd = selectionStart) {
+      const wrapper = createWrapper();
+      const input = wrapper.find('input.vs__search').element as HTMLInputElement;
+      const onInput = jest.fn();
+
+      input.value = value;
+      input.setSelectionRange(selectionStart, selectionEnd);
+      input.addEventListener('input', onInput);
+
+      return {
+        wrapper, input, onInput
+      };
+    }
+
+    function beforeInput(target: EventTarget, { data = null, dataTransferText }: { data?: string | null, dataTransferText?: string } = {}): InputEvent {
+      const event = new InputEvent('beforeinput', {
+        data, bubbles: true, cancelable: true
+      });
+
+      if (dataTransferText !== undefined) {
+        Object.defineProperty(event, 'dataTransfer', { value: { getData: (format: string) => (format === 'text/plain' ? dataTransferText : '') } });
+      }
+
+      target.dispatchEvent(event);
+
+      return event;
+    }
+
+    it.each([
+      ['a space', ' '],
+      ['a tab', '\t'],
+      ['a new line', '\n'],
+    ])('should cancel typing %s', (_, data) => {
+      const { input } = setUp('nginx');
+
+      expect(beforeInput(input, { data }).defaultPrevented).toBe(true);
+    });
+
+    it('should leave the search text unchanged when a space is typed', () => {
+      const { input } = setUp('nginx');
+
+      beforeInput(input, { data: ' ' });
+
+      expect(input.value).toStrictEqual('nginx');
+    });
+
+    it('should not change the search when a space is typed', () => {
+      const { input, onInput } = setUp('nginx');
+
+      beforeInput(input, { data: ' ' });
+
+      expect(onInput).not.toHaveBeenCalled();
+    });
+
+    it('should let other characters through', () => {
+      const { input } = setUp('nginx');
+
+      expect(beforeInput(input, { data: 'x' }).defaultPrevented).toBe(false);
+    });
+
+    it('should let deletions through', () => {
+      const { input } = setUp('nginx');
+
+      expect(beforeInput(input).defaultPrevented).toBe(false);
+    });
+
+    it('should insert pasted text without its whitespace at the cursor', () => {
+      const { input } = setUp('ngx', 2);
+
+      beforeInput(input, { data: ' i n\n' });
+
+      expect(input.value).toStrictEqual('nginx');
+    });
+
+    it('should replace the selected text with pasted text without its whitespace', () => {
+      const { input } = setUp('nfoox', 1, 4);
+
+      beforeInput(input, { data: ' gin ' });
+
+      expect(input.value).toStrictEqual('nginx');
+    });
+
+    it('should strip whitespace from text that only arrives in the data transfer', () => {
+      const { input } = setUp('');
+
+      beforeInput(input, { dataTransferText: ' nginx ' });
+
+      expect(input.value).toStrictEqual('nginx');
+    });
+
+    it('should change the search once when pasted text has whitespace', () => {
+      const { input, onInput } = setUp('');
+
+      beforeInput(input, { data: ' nginx ' });
+
+      expect(onInput).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not change the search when pasted text is only whitespace', () => {
+      const { input, onInput } = setUp('nginx');
+
+      beforeInput(input, { data: ' \t\n ' });
+
+      expect(onInput).not.toHaveBeenCalled();
+    });
+
+    it('should ignore whitespace entered outside the search input', () => {
+      const { wrapper } = setUp();
+
+      expect(beforeInput(wrapper.element, { data: ' ' }).defaultPrevented).toBe(false);
+    });
+  });
+
   describe('no options message', () => {
     it('should show the searching message while loading', () => {
       mockLoading.value = true;
