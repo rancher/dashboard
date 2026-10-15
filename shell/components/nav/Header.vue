@@ -964,11 +964,14 @@ export default {
       display: flex;
       height: 55px;
       margin-right: 8px;
+      max-width: 200px;
+      padding: 12px 0;
     }
 
     .side-menu-logo-img {
       object-fit: contain;
-      width: 200px;
+      max-width: 200px;
+      height: 36px;
     }
 
     > * {
