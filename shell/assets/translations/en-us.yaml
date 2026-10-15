@@ -2963,9 +2963,16 @@ cluster:
   rotateCertificates:
     label: Rotate Certificates
     modalTitle: Rotate Cluster Certificates
+    description: New certificates are issued and the affected services restart. The cluster shows as 'Updating' until rotation completes.
+    allServices: All services
+    selectedServices: Selected services
     services: Services
-    allServices: Rotate all service certificates
-    selectService: Rotate an individual service
+    placeholder: Select one or more services
+    reset: Reset
+    more: "+{count} more"
+    deselect: "Deselect {service}"
+    selectionSummary: "{count} of {total} services selected. Only these services restart."
+    rotate: Rotate Certificates
   toggle:
     v1: RKE1
     v2: RKE2/K3s

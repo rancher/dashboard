@@ -836,4 +836,57 @@ describe('class ProvCluster', () => {
       });
     });
   });
+
+  describe('rotateCertificates action', () => {
+    const rotateCertificatesAction = ({
+      isImportedWithDayTwoOps = true, isRke2 = false, ready = true, canUpdate = true
+    } = {}) => {
+      const cluster = new ProvCluster({ spec: isRke2 ? { rkeConfig: {} } : {} }, {
+        getters:     { schemaFor: jest.fn(() => ({})) },
+        rootGetters: { 'i18n/t': (key: string) => key },
+        dispatch:    jest.fn(),
+      });
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({
+        links: {}, hasAction: () => false, isReady: ready, isLocal: false
+      });
+      jest.spyOn(cluster, 'isImportedWithDayTwoOps', 'get').mockReturnValue(isImportedWithDayTwoOps);
+      jest.spyOn(cluster, 'canUpdate', 'get').mockReturnValue(canUpdate);
+      jest.spyOn(cluster, 'customProvisionerHelper', 'get').mockReturnValue(undefined);
+      jest.spyOn(Object.getPrototypeOf(Object.getPrototypeOf(cluster)), '_availableActions', 'get').mockReturnValue([]);
+
+      return cluster._availableActions.find((a: any) => a.action === 'rotateCertificates');
+    };
+
+    it('is enabled for a ready imported cluster with day 2 ops', () => {
+      expect(rotateCertificatesAction().enabled).toBe(true);
+    });
+
+    it('is enabled for a ready provisioned RKE2 cluster', () => {
+      expect(rotateCertificatesAction({ isImportedWithDayTwoOps: false, isRke2: true }).enabled).toBe(true);
+    });
+
+    it.each([
+      ['day 2 ops are not enabled for the imported cluster', { isImportedWithDayTwoOps: false }],
+      ['the cluster is not ready', { ready: false }],
+      ['the user cannot update the cluster', { canUpdate: false }],
+    ])('is disabled for an imported cluster when %s', (_, opts) => {
+      expect(rotateCertificatesAction(opts).enabled).toBe(false);
+    });
+  });
+
+  describe('rotateCertificates', () => {
+    it('should prompt RotateCertificatesDialog for this cluster', () => {
+      const ctx = { dispatch: jest.fn() };
+      const cluster = new ProvCluster({}, ctx);
+
+      cluster.rotateCertificates();
+
+      expect(ctx.dispatch).toHaveBeenCalledWith('promptModal', {
+        componentProps: { cluster },
+        component:      'RotateCertificatesDialog',
+        ownsModal:      true
+      });
+    });
+  });
 });

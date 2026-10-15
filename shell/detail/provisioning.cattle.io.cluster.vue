@@ -191,6 +191,7 @@ export default {
         OPERATION.ETCD_SNAPSHOT,
         OPERATION.ETCD_SNAPSHOT_RESTORE,
         OPERATION.ENCRYPTION_KEY_ROTATE,
+        OPERATION.CERTIFICATE_ROTATE,
       ];
 
       for (const opType of operationTypes) {
@@ -548,6 +549,7 @@ export default {
         OPERATION.ETCD_SNAPSHOT,
         OPERATION.ETCD_SNAPSHOT_RESTORE,
         OPERATION.ENCRYPTION_KEY_ROTATE,
+        OPERATION.CERTIFICATE_ROTATE,
       ];
 
       const allOps = [];
