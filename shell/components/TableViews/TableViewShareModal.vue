@@ -9,7 +9,7 @@ import { useStore } from 'vuex';
 import DetailText from '@shell/components/DetailText.vue';
 import RichTranslation from '@shell/components/RichTranslation.vue';
 import { RcButton } from '@components/RcButton';
-import { RcHeading } from '@components/RcHeading';
+import { RcModal } from '@components/RcModal';
 import { useI18n } from '@shell/composables/useI18n';
 import { importTableView, sharedTableType } from '@shell/utils/table-views/share';
 import type { SharedTableView } from '@shell/utils/table-views/share';
@@ -17,6 +17,8 @@ import type { SharedTableView } from '@shell/utils/table-views/share';
 // i18n-uses tableViews.share.*, tableViews.import.*
 
 const props = withDefaults(defineProps<{
+  /** `show` and the close handler, from the table that opens it */
+  modal: { show: boolean, onClose:() => void },
   mode: 'share' | 'import',
   /** The view as text, to share */
   value?: string,
@@ -34,7 +36,6 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
-  close: [],
   import: [view: SharedTableView],
 }>();
 
@@ -85,49 +86,42 @@ const doImport = () => {
 
   if (result && 'view' in result) {
     emit('import', result.view);
-    emit('close');
+    props.modal.onClose();
   }
 };
 </script>
 
 <template>
-  <div
+  <RcModal
+    v-bind="modal"
+    :title="t(`tableViews.${ mode }.title`)"
     class="share-modal"
     :data-testid="`table-views-${ mode }-modal`"
   >
-    <div class="share-content">
-      <RcHeading
-        :size="3"
-        class="share-title"
-        data-modal-title
-      >
-        {{ t(`tableViews.${ mode }.title`) }}
-      </RcHeading>
-      <RichTranslation
-        :k="introKey"
-        tag="p"
-        class="share-intro"
-      >
-        <template #b="{ content }">
-          <b v-clean-html="content" />
-        </template>
-      </RichTranslation>
-      <p
-        v-if="sharing && hasFilter"
-        class="share-intro"
-        data-testid="table-views-share-warning"
-      >
-        {{ t('tableViews.filterWarning', undefined, true) }}
-      </p>
+    <RichTranslation
+      :k="introKey"
+      tag="p"
+      class="share-intro"
+    >
+      <template #b="{ content }">
+        <b v-clean-html="content" />
+      </template>
+    </RichTranslation>
+    <p
+      v-if="sharing && hasFilter"
+      data-testid="table-views-share-warning"
+    >
+      {{ t('tableViews.filterWarning', undefined, true) }}
+    </p>
+    <DetailText
+      v-if="sharing"
+      :label="t('tableViews.share.label')"
+      :value="value"
+      :max-length="Infinity"
+      data-testid="table-views-share-text"
+    />
+    <div v-else>
       <DetailText
-        v-if="sharing"
-        :label="t('tableViews.share.label')"
-        :value="value"
-        :max-length="Infinity"
-        data-testid="table-views-share-text"
-      />
-      <DetailText
-        v-else
         v-model:value="pasted"
         :label="t('tableViews.share.label')"
         :copy="false"
@@ -148,17 +142,25 @@ const doImport = () => {
         {{ problem }}
       </p>
     </div>
-    <div class="share-actions">
+
+    <template
+      v-if="sharing"
+      #actions="{ close }"
+    >
       <RcButton
-        :variant="sharing ? 'primary' : 'link'"
+        variant="primary"
         size="large"
-        :data-testid="`table-views-${ mode }-close`"
-        @click="emit('close')"
+        data-testid="table-views-share-close"
+        @click="close"
       >
         {{ t('generic.close') }}
       </RcButton>
+    </template>
+    <template
+      v-else
+      #primary-action
+    >
       <RcButton
-        v-if="!sharing"
         variant="primary"
         size="large"
         :disabled="!canImport"
@@ -167,48 +169,16 @@ const doImport = () => {
       >
         {{ t('tableViews.import.import') }}
       </RcButton>
-    </div>
-  </div>
+    </template>
+  </RcModal>
 </template>
 
 <style lang="scss" scoped>
-.share-modal {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 40px;
-  padding: 24px;
-  min-width: 540px;
-  max-width: 860px;
+.share-intro b {
+  font-weight: 600;
+}
 
-  .share-content,
-  .share-actions {
-    align-self: stretch;
-  }
-
-  .share-title {
-    margin: 0 0 16px 0;
-    font-weight: 600;
-  }
-
-  .share-intro {
-    margin-bottom: 16px;
-    line-height: 20px;
-
-    b {
-      font-weight: 600;
-    }
-  }
-
-  .share-problem {
-    margin: 8px 0 0 0;
-  }
-
-  .share-actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 16px;
-  }
+.share-problem {
+  margin: 8px 0 0 0;
 }
 </style>

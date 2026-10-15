@@ -9,7 +9,6 @@ import {
 import type { ComponentPublicInstance } from 'vue';
 import { useStore } from 'vuex';
 
-import AppModal from '@shell/components/AppModal.vue';
 import TableViewExportModal from '@shell/components/TableViews/TableViewExportModal.vue';
 import TableViewShareModal from '@shell/components/TableViews/TableViewShareModal.vue';
 import { useDragReorder } from '@shell/composables/useDragReorder';
@@ -793,6 +792,9 @@ const closeModal = () => {
   modal.value = null;
 };
 
+/** The dialogs are only there while open */
+const modalFrame = { show: true, onClose: closeModal };
+
 /** The table's own tab included: copying it is how to start a view from the table as it comes */
 const duplicateTab = (tab: Tab) => {
   duplicateView(tab.view || { ...viewStateOf(), name: t('tableViews.tabs.all') });
@@ -1396,40 +1398,24 @@ onBeforeUnmount(() => {
     </div>
   </div>
 
-  <!-- The same modal the Export As... action opens through the modal manager, hence no frame of its own -->
-  <app-modal
+  <!-- Each draws its own RcModal, as the Export As... action's does through the modal manager -->
+  <TableViewExportModal
     v-if="modal && modal.kind === 'export'"
-    name="tableViewsExportModal"
-    :width="640"
-    height="auto"
-    :trigger-focus-trap="true"
-    @close="closeModal"
-  >
-    <TableViewExportModal
-      :count="modal.count"
-      :view-name="modal.name"
-      @close="closeModal"
-      @export="doExport"
-    />
-  </app-modal>
-  <app-modal
+    :modal="modalFrame"
+    :count="modal.count"
+    :view-name="modal.name"
+    @export="doExport"
+  />
+  <TableViewShareModal
     v-else-if="modal"
-    :name="modal.kind === 'share' ? 'tableViewsShareModal' : 'tableViewsImportModal'"
-    :width="640"
-    height="auto"
-    :trigger-focus-trap="true"
-    @close="closeModal"
-  >
-    <TableViewShareModal
-      :mode="modal.kind"
-      :value="modal.kind === 'share' ? modal.text : ''"
-      :has-filter="modal.kind === 'share' && modal.hasFilter"
-      :table-key="tableKey"
-      :into-new-view="modal.kind === 'import' && !modal.tabId"
-      @close="closeModal"
-      @import="importFromModal"
-    />
-  </app-modal>
+    :modal="modalFrame"
+    :mode="modal.kind"
+    :value="modal.kind === 'share' ? modal.text : ''"
+    :has-filter="modal.kind === 'share' && modal.hasFilter"
+    :table-key="tableKey"
+    :into-new-view="modal.kind === 'import' && !modal.tabId"
+    @import="importFromModal"
+  />
 </template>
 
 <style lang="scss" scoped>
