@@ -35,6 +35,16 @@ export type ExtensionProvisioningSectionProps =
   | { [key: string]: any }
   | ((context: { value: any, mode: string, provisioningCluster: any }) => { [key: string]: any });
 
+/**
+ * Props for the `extensionCredentialSection` component
+ *
+ * Either a plain object merged over the default props, or a function that receives the default props
+ * and returns an object of additional/overridden props
+ */
+export type ExtensionCredentialSectionProps =
+  | { [key: string]: any }
+  | ((context: { value: string | null, mode: string, provider: string, provisioningCluster: any, infrastructureCluster: any }) => { [key: string]: any });
+
 export type ClusterDetailTabs = {
   /**
    * RKE2 machine pool tabs
@@ -325,6 +335,36 @@ export interface IClusterProvisioner {
    * Props (or a function returning props) passed to `extensionProvisioningSection`
    */
   extensionProvisioningSectionProps?: ExtensionProvisioningSectionProps
+
+  /**
+   * Optional component that replaces the Rancher cloud credential step shown before the cluster form.
+   *
+   * Use this when the provider's credentials are not Rancher cloud credentials. When set:
+   * - the credential step is shown even if `cloud-credential` is registered as `false` for this provider
+   * - the value is never written to `spec.cloudCredentialSecretName` and is not looked up as a cloud credential
+   * - the value is passed on as `credentialId` to `extensionInfrastructureSection` and the machine config component
+   *
+   * The component is rendered above the step's Cancel / Continue footer. It should show its own loading state.
+   * It receives these props:
+   * - `value` - the current value, or null
+   * - `mode`, `provider`
+   * - `provisioningCluster`, `infrastructureCluster` - so the component can write its credential reference to them
+   * - `registerSave(fn)` - `fn` is called when Continue is clicked and resolves to a list of errors (empty on success)
+   * - `registerBack(fn)` - `fn` is called when the Select Existing button is clicked
+   *
+   * It emits:
+   * - `update:value` - a non-null value completes the step, hides the footer and shows the cluster form
+   * - `validationChanged(boolean)` - enables Continue
+   * - `canGoBackChanged(boolean)` (optional) - shows the Select Existing button
+   *
+   * When editing an existing cluster, set the initial value in a `registerInitHooks` hook (`this.credentialId = ...`)
+   */
+  extensionCredentialSection?: Component
+
+  /**
+   * Props (or a function returning props) passed to `extensionCredentialSection`
+   */
+  extensionCredentialSectionProps?: ExtensionCredentialSectionProps
 
   /**
    * Indicates the provisioner manages upstream CAPI infrastructure resources directly.

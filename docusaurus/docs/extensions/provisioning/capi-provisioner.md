@@ -18,11 +18,59 @@ These `IClusterProvisioner` members (see [Custom Cluster Provisioner](./overview
 - `clusterSchema` (a.k.a. `infrastructureClusterSchema`) — a getter returning the Norman schema for the infrastructure-cluster type, alongside `machineConfigSchema` for the machine-template type.
 - `extensionInfrastructureSection` / `extensionInfrastructureSectionProps` — the Vue component (and its props) rendered for infrastructure-cluster-specific config.
 - `extensionProvisioningSection` / `extensionProvisioningSectionProps` — a component for provisioning-cluster-level config/validation that is tied to the `provisioning.cattle.io.cluster`.
+- `extensionCredentialSection` / `extensionCredentialSectionProps` — a component that replaces the Rancher cloud credential step, for providers whose credentials are not Rancher cloud credentials. See [Credentials that are not Rancher cloud credentials](#credentials-that-are-not-rancher-cloud-credentials).
 - `createMachinePoolMachineConfig`, `saveMachinePoolConfigs`, `cleanupMachinePools` — override how machine-template resources are created/saved/cleaned up per pool. `saveMachinePoolConfigs` should set `provisioning.cattle.io.cluster.spec.rkeConfig.machinePools` to reference the newly created machine configs.
 - `registerInitHooks` / `registerSaveHooks` — register functions that run when the cluster form initializes or before the cluster is saved, typically to load or persist the infrastructure-cluster resource alongside the `provisioning.cattle.io.cluster`.
 
 See the inline documentation on `IClusterProvisioner` in [`shell/core/types-provisioning.ts`](https://github.com/rancher/dashboard/tree/master/shell/core/types-provisioning.ts) for the full signatures.
 
+## Credentials that are not Rancher cloud credentials
+
+By default the wizard starts with a credential step: the user picks or creates a Rancher cloud credential, and its id is written to `provisioning.cattle.io.cluster.spec.cloudCredentialSecretName`. Rancher cloud credentials are used by Rancher node drivers: they are not required to provision clusters using upstream CAPI infrastructure providers. A CAPI provider that authenticates some other way (for example an identity resource or a secret referenced from the infrastructure cluster) can replace the contents of that step with its own component through `extensionCredentialSection`.
+
+When `extensionCredentialSection` is defined:
+
+- the credential step will be shown even if `cloud-credential` is registered as `false` for the provider
+- the step keeps the Cancel / Continue footer used in built-in cluster provisioning flows; the extension component renders above it
+- the value the component emits is never written to `spec.cloudCredentialSecretName` and is not looked up as a cloud credential
+- the value is passed on as `credentialId` to `extensionInfrastructureSection` and to the provider's `machine-config` component
+
+### Props
+
+| Prop | Description |
+|---|---|
+| `value` | Current value, or `null` |
+| `mode`, `provider` | Form mode and provider id |
+| `provisioningCluster` | The `provisioning.cattle.io.cluster` being created or edited |
+| `infrastructureCluster` | The infrastructure cluster set up by `registerInitHooks`, so the component can write its credential reference (for example `spec.identityRef`) |
+| `registerSave(fn)` | `fn` is called when the user clicks Continue. It resolves to a list of errors, empty on success |
+| `registerBack(fn)` | `fn` is called when the user clicks Select Existing |
+
+`extensionCredentialSectionProps` adds props, either as an object or as a function that receives the props above and returns an object.
+
+### Events
+
+| Event | Description |
+|---|---|
+| `update:value` | A non-null value completes the step: the footer is hidden and the cluster form is shown. Emit `null` to return to the step |
+| `validationChanged(boolean)` | Enables Continue |
+| `canGoBackChanged(boolean)` | Optional. Shows the Select Existing button in the footer |
+
+The component should show its own loading state while it fetches.
+
+### Editing an existing cluster
+
+Set the initial value in a `registerInitHooks` hook, where `this` is the wizard:
+
+```ts
+registerInitHooks(registerInitHook: any): void {
+  registerInitHook(async function(this: any) {
+    this.infrastructureCluster = await loadInfrastructureCluster(this.value);
+    this.credentialId = credentialIdFrom(this.infrastructureCluster);
+  }, 'my-provider-init');
+}
+```
+
 ## Reference implementation
 
-[`rancher/prov-capi-ui-extensions`](https://github.com/rancher/prov-capi-ui-extensions) is a CAPI-backed provisioner extension for AWS (via Cluster API Provider AWS). Its `pkg/capa/provisioner.ts` implements every member above.
+[`rancher/prov-capi-ui-extensions`](https://github.com/rancher/prov-capi-ui-extensions) is a CAPI-backed provisioner extension for AWS (via Cluster API Provider AWS). Its `pkg/capa/provisioner.ts` implements every member above, except the custom credential component.

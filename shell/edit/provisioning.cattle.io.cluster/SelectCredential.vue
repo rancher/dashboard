@@ -41,10 +41,28 @@ export default {
     showingForm: {
       type:     Boolean,
       required: true,
-    }
+    },
+
+    /**
+     * a provisioner's `extensionCredentialSection`
+     * replaces the rancher cloud credential select and create form
+     */
+    extensionComponent: {
+      type:    [Object, Function],
+      default: null,
+    },
+
+    extensionComponentProps: {
+      type:    Object,
+      default: () => ({}),
+    },
   },
 
   async fetch() {
+    if ( this.extensionComponent ) {
+      return;
+    }
+
     this.allCredentials = await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
 
     const field = this.$store.getters['plugins/credentialFieldForDriver'](this.driverName);
@@ -73,8 +91,19 @@ export default {
       newCredential:                 null,
       credCustomComponentValidation: false,
       nameRequiredValidation:        false,
-      originalId:                    this.value
+      originalId:                    this.value,
+      extensionValidation:           false,
+      extensionCanGoBack:            false,
+      // CruResource reads resource.type when it is created
+      // an extension component has no rancher cloud credential to pass
+      extensionResource:             {},
     };
+  },
+
+  created() {
+    // set by the extension component through the `registerSave` and `registerBack` props
+    this.extensionSave = null;
+    this.extensionBack = null;
   },
 
   computed: {
@@ -162,6 +191,10 @@ export default {
     },
 
     validationPassed() {
+      if ( this.extensionComponent ) {
+        return this.extensionValidation;
+      }
+
       if ( this.credentialId === _NONE ) {
         return false;
       }
@@ -171,6 +204,14 @@ export default {
       }
 
       return !!this.credentialId;
+    },
+
+    showSelectExisting() {
+      if ( this.extensionComponent ) {
+        return this.extensionCanGoBack;
+      }
+
+      return this.isNew && !!this.options.length;
     },
   },
 
@@ -193,6 +234,11 @@ export default {
       if ( this.errors ) {
         clear(this.errors);
       }
+
+      if ( this.extensionComponent ) {
+        return this.saveExtension(btnCb);
+      }
+
       const fullCredential = cloneDeep(this.newCredential);
 
       if ( typeof this.$refs.create?.test === 'function' ) {
@@ -226,11 +272,56 @@ export default {
       }
     },
 
+    /**
+     * the extension's save function resolves to a list of errors, empty on success
+     */
+    async saveExtension(btnCb) {
+      if ( !this.extensionSave ) {
+        btnCb(false);
+
+        return;
+      }
+
+      try {
+        const errors = await this.extensionSave();
+
+        if ( errors?.length ) {
+          this.errors = errors;
+          btnCb(false);
+
+          return;
+        }
+
+        btnCb(true);
+      } catch (e) {
+        this.errors = [e];
+        btnCb(false);
+      }
+    },
+
+    registerExtensionSave(fn) {
+      this.extensionSave = fn;
+    },
+
+    registerExtensionBack(fn) {
+      this.extensionBack = fn;
+    },
+
+    updateExtensionValue(val) {
+      this.credentialId = val || _NONE;
+    },
+
     createValidationChanged(passed) {
       this.credCustomComponentValidation = passed;
     },
 
     backToExisting() {
+      if ( this.extensionComponent ) {
+        this.extensionBack?.();
+
+        return;
+      }
+
       this.credentialId = _NONE;
     },
     updateCredentialValue(key, value) {
@@ -246,7 +337,7 @@ export default {
     v-else
     :mode="mode"
     :validation-passed="validationPassed"
-    :resource="newCredential"
+    :resource="newCredential || extensionResource"
     :can-yaml="false"
     :cancel-event="true"
     :errors="errors"
@@ -257,7 +348,20 @@ export default {
     @cancel="cancel"
     @error="e=>errors = e"
   >
-    <div v-if="isNew">
+    <component
+      :is="extensionComponent"
+      v-if="extensionComponent"
+      v-bind="extensionComponentProps"
+      :value="isPicked ? credentialId : null"
+      :mode="mode"
+      :provider="provider"
+      :register-save="registerExtensionSave"
+      :register-back="registerExtensionBack"
+      @update:value="updateExtensionValue"
+      @validationChanged="(val) => extensionValidation = val"
+      @canGoBackChanged="(val) => extensionCanGoBack = val"
+    />
+    <div v-else-if="isNew">
       <Banner
         :label="t('cluster.credential.banner.createCredential', {length: options.length}, true)"
         color="info"
@@ -302,7 +406,7 @@ export default {
     </div>
 
     <template
-      v-if="isNew && options.length"
+      v-if="showSelectExisting"
       #footer-prefix
     >
       <button
