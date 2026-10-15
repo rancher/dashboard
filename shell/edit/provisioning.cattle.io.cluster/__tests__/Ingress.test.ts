@@ -377,12 +377,26 @@ describe('ingress.vue', () => {
       return options.find((o) => o.id === INGRESS_NGINX);
     };
 
-    it('disables the nginx card when creating a cluster with k8s >= v1.37.0', () => {
-      const nginx = nginxOption({ mode: _CREATE, kubernetesVersion: 'v1.37.0+rke2r1' });
+    it('omits the nginx card when creating a cluster with k8s >= v1.37.0', () => {
+      const wrapper = createWrapper({
+        value: TRAEFIK, mode: _CREATE, kubernetesVersion: 'v1.37.0+rke2r1'
+      });
+      const options = wrapper.findComponent({ name: 'IngressCards' }).props('options') as any[];
 
-      expect(nginx.disabled).toBe(true);
-      expect(nginx.content).toStrictEqual({ key: 'cluster.ingress.nginx.contentUnsupported' });
-      expect(nginx.doc).toStrictEqual({ url: 'https://www.kubernetes.dev/blog/2025/11/12/ingress-nginx-retirement/' });
+      expect(options.map((option) => option.id)).toStrictEqual([TRAEFIK]);
+    });
+
+    it('updates the create options when the Kubernetes version changes', async() => {
+      const wrapper = createWrapper({
+        value: TRAEFIK, mode: _CREATE, kubernetesVersion: 'v1.36.0+rke2r1'
+      });
+      const cards = wrapper.findComponent({ name: 'IngressCards' });
+
+      expect((cards.props('options') as any[]).map((option) => option.id)).toStrictEqual([TRAEFIK, INGRESS_NGINX]);
+
+      await wrapper.setProps({ kubernetesVersion: 'v1.37.0+rke2r1' });
+
+      expect((cards.props('options') as any[]).map((option) => option.id)).toStrictEqual([TRAEFIK]);
     });
 
     it('leaves the nginx card enabled with the default content/doc when k8s is below v1.37.0', () => {

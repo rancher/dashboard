@@ -108,7 +108,7 @@ const ingressSelection = computed(() => {
 const ingressOptions = computed(() => {
   return INGRESS_OPTIONS.filter((option) => {
     if (option.id === INGRESS_NGINX) {
-      return nginxSupported;
+      return nginxSupported && !(mode === _CREATE && isIngressDisableVersion.value);
     } else if (option.id === TRAEFIK) {
       return traefikSupported;
     } else if (option.id === INGRESS_DUAL) {
