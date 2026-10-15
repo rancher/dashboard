@@ -76,25 +76,6 @@ itself finds one and you still have a single copy to keep up to date.
 Commit all of it. It travels with the extension, so anyone who clones the
 repository gets the same guidance with no setup.
 
-:::note
-
-**Using Codex.** `AGENTS.md` is around 38 KB, and Codex truncates a project
-document at `project_doc_max_bytes`, which defaults to 32 KiB. Left alone, Codex
-reads most of the guidance but drops the last few KB, which is where the summary
-template and the table of common pitfalls sit. To get all of it, raise the limit
-in `~/.codex/config.toml`:
-
-```toml
-project_doc_max_bytes = 65536
-```
-
-Codex looks for `AGENTS.md` and not `GPT.md`. The `GPT.md` file is a pointer for
-anyone who opens it, and for tools that can be told to read it; in Codex that
-means adding it to `project_doc_fallback_filenames`. You do not need to do
-anything with it for Codex to pick up the guidance.
-
-:::
-
 ## As a skill
 
 A skill is loaded when it is relevant rather than sitting in context for the
