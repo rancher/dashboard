@@ -438,7 +438,7 @@ about:
     title: Versions
     component: Component
     version: Version
-    cli: CLI
+    cli: Rancher CLI
     helm: Helm
     machine: Machine
     rancher: Rancher
@@ -446,9 +446,9 @@ about:
   downloadImageList:
     title: Image Lists
   cli:
-    title: "{vendor} CLI"
-    description: The {vendor} CLI lets you manage clusters, projects and resources from the command line. Builds are available for a range of operating systems and architectures, and the documentation covers how to download and install them.
-    docsLink: View {vendor} CLI documentation
+    title: "Rancher CLI"
+    description: The Rancher CLI lets you manage clusters, projects and resources from the command line. Builds are available for a range of operating systems and architectures, and the documentation covers how to download and install them.
+    docsLink: View Rancher CLI documentation
   diagnostic:
     title: Diagnostics
     checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources. These may take a while to complete
