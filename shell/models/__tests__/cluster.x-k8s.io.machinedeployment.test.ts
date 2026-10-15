@@ -233,43 +233,6 @@ describe('class CapiMachineDeployment', () => {
     });
   });
 
-  describe('poolActions', () => {
-    it('should offer only the autoscaler action, without the inherited resource actions', () => {
-      const other = {
-        ...autoscalingPool(), name: 'pool2', machineConfigRef: { name: 'pool2-config' }
-      };
-      const { deployment } = createDeployment({ machinePools: [autoscalingPool(), other] });
-
-      jest.spyOn(Object.getPrototypeOf(Object.getPrototypeOf(deployment)), '_availableActions', 'get').mockReturnValue([{ action: 'promptRemove' }]);
-
-      expect(deployment.poolActions.map((a: any) => a.action)).toStrictEqual(['toggleAutoscalerPause']);
-
-      jest.restoreAllMocks();
-    });
-
-    it('should not read the inherited resource actions', () => {
-      const { deployment } = createDeployment({ machinePools: [autoscalingPool()] });
-      const inherited = jest.spyOn(Object.getPrototypeOf(Object.getPrototypeOf(deployment)), '_availableActions', 'get').mockImplementation(() => {
-        throw new Error('no router');
-      });
-
-      expect(() => deployment.poolActions).not.toThrow();
-      expect(inherited).not.toHaveBeenCalledWith();
-
-      jest.restoreAllMocks();
-    });
-
-    it('should offer nothing for a pool that does not autoscale', () => {
-      const { deployment } = createDeployment({ machinePools: [manualPool()] });
-
-      jest.spyOn(deployment, 'inClusterSpec', 'get').mockReturnValue(manualPool());
-
-      expect(deployment.poolActions).toStrictEqual([]);
-
-      jest.restoreAllMocks();
-    });
-  });
-
   describe('canPauseResumeAutoscaler', () => {
     it('should be false without the update permission on the cluster', () => {
       const other = {

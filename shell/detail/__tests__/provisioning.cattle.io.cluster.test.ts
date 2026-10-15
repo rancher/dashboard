@@ -1,7 +1,6 @@
 import { h } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import ProvisioningCattleIoCluster from '@shell/detail/provisioning.cattle.io.cluster.vue';
-import ActionMenuShell from '@shell/components/ActionMenuShell.vue';
 import * as TitleBarComposables from '@shell/components/Resource/Detail/TitleBar/composables';
 import * as MetadataComposables from '@shell/components/Resource/Detail/Metadata/composables';
 
@@ -312,7 +311,6 @@ describe('view: provisioning.cattle.io.cluster', () => {
       canPauseResumeAutoscaler:  true,
       showScalePool:             false,
       toggleAutoscalerPause:     jest.fn().mockResolvedValue(true),
-      poolActions:               [],
       ...overrides,
     });
 
@@ -400,6 +398,7 @@ describe('view: provisioning.cattle.io.cluster', () => {
 
       expect(toggle.find('i').classes()).toContain(expected.icon);
       expect(toggle.attributes('aria-disabled')).toStrictEqual(`${ expected.disabled }`);
+      expect(toggle.classes('disabled')).toStrictEqual(expected.disabled);
       expect(toggle.attributes('disabled')).toBeUndefined();
       expect(wrapper.find('[data-testid="scale-up-button"]').attributes('disabled')).toStrictEqual(expected.scaleDisabled ? '' : undefined);
     });
@@ -443,30 +442,6 @@ describe('view: provisioning.cattle.io.cluster', () => {
       const { wrapper } = await mountWithPool(autoscalingPool(), false);
 
       expect(wrapper.find('[data-testid="autoscaler-toggle-button"]').exists()).toBe(false);
-    });
-
-    it('should offer only the pool actions that are enabled in the pool action menu', async() => {
-      const toggleAction = { action: 'toggleAutoscalerPause', enabled: true };
-      const { wrapper } = await mountWithPool(autoscalingPool({ poolActions: [toggleAction, { action: 'other', enabled: false }] }));
-      const menu = wrapper.findComponent(ActionMenuShell);
-
-      expect(menu.props('customActions')).toStrictEqual([toggleAction]);
-      expect(menu.element.parentElement?.classList.contains('invisible')).toBe(false);
-    });
-
-    it('should run the pool action picked from the pool action menu', async() => {
-      const pool = autoscalingPool({ poolActions: [{ action: 'toggleAutoscalerPause', enabled: true }] });
-      const { wrapper } = await mountWithPool(pool);
-
-      wrapper.findComponent(ActionMenuShell).vm.$emit('action-invoked', { action: 'toggleAutoscalerPause' });
-
-      expect(pool.toggleAutoscalerPause).toHaveBeenCalledWith();
-    });
-
-    it('should hide the pool action menu for a pool with no actions', async() => {
-      const { wrapper } = await mountWithPool(autoscalingPool({ poolActions: [] }));
-
-      expect(wrapper.findComponent(ActionMenuShell).element.parentElement?.classList.contains('invisible')).toBe(true);
     });
 
     it('should render the row of a pool whose inherited resource actions cannot be built', async() => {

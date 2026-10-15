@@ -36,7 +36,6 @@ import DetailPage from '@shell/components/Resource/Detail/Page.vue';
 import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
 import ClusterPinControl from '@shell/components/ClusterPinControl.vue';
 import AutoscalerTab from '@shell/components/AutoscalerTab.vue';
-import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
 import { useDefaultMetadataForLegacyPagesProps } from '@shell/components/Resource/Detail/Metadata/composables';
@@ -70,7 +69,6 @@ export default {
   emits: ['input'],
 
   components: {
-    ActionMenu,
     AutoscalerTab,
     Banner,
     ResourceTable,
@@ -820,14 +818,6 @@ export default {
       }
     },
 
-    poolActions(pool) {
-      return (pool.poolActions || []).filter((action) => action.enabled);
-    },
-
-    invokePoolAction(pool, { action }) {
-      pool[action]();
-    },
-
     showPoolAction(event, pool) {
       this.$store.commit(`action-menu/show`, {
         resources: [pool],
@@ -1095,17 +1085,6 @@ export default {
                           :class="autoscalerToggle(group.ref).icon"
                         />
                       </button>
-                    </div>
-                    <div
-                      class="ml-10"
-                      :class="{ invisible: !poolActions(group.ref).length }"
-                    >
-                      <ActionMenu
-                        :custom-actions="poolActions(group.ref)"
-                        :button-aria-label="t('node.list.poolActionsAriaLabel', { name: group.ref.nameDisplay })"
-                        data-testid="pool-actions-button"
-                        @action-invoked="invokePoolAction(group.ref, $event)"
-                      />
                     </div>
                   </div>
                 </div>
@@ -1387,6 +1366,14 @@ $pool-control-gap: 4px;
       display: flex;
       gap: $pool-control-gap;
       justify-content: flex-end;
+
+      .btn.disabled {
+        &:hover, &:focus {
+          background-color: var(--disabled-bg);
+          border: solid 1px var(--disabled-bg);
+          color: var(--disabled-text);
+        }
+      }
     }
   }
 }
