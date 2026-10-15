@@ -1,15 +1,28 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { RcButton } from '@components/RcButton';
-import { ButtonVariant, ButtonSize } from '@components/RcButton/types';
+import { ButtonVariant, ButtonSize, ButtonColor, DeprecatedButtonVariant } from '@components/RcButton/types';
 import { RcIconTypeToClass } from '@components/RcIcon/types';
 
 const meta: Meta<typeof RcButton> = {
   component: RcButton,
   argTypes:  {
     variant: {
-      options:     ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'] as ButtonVariant[],
+      options: ['solid', 'outline', 'link', 'ghost', 'primary', 'secondary', 'tertiary', 'multiAction'] as (ButtonVariant | DeprecatedButtonVariant)[],
+      control: {
+        type:   'select',
+        labels: {
+          primary:     'primary (deprecated, use solid)',
+          secondary:   'secondary (deprecated, use outline)',
+          tertiary:    'tertiary (deprecated)',
+          multiAction: 'multiAction (deprecated)',
+        }
+      },
+      description: 'Determines the shape of the button. Solid for main actions, outline for supporting actions, link for navigation and ghost for transparent buttons. The values primary, secondary, tertiary and multiAction are deprecated, see the Deprecated Variants story.'
+    },
+    color: {
+      options:     ['primary', 'destructive'] as ButtonColor[],
       control:     { type: 'select' },
-      description: 'Determines the visual style and purpose of the button. Primary for main actions, secondary for supporting actions, tertiary for less prominent actions, link for navigation, multiAction for dropdown buttons, and ghost for transparent buttons.'
+      description: 'Colours the button independently of its shape. Destructive marks an irreversible action.'
     },
     size: {
       options:     ['small', 'medium', 'large'] as ButtonSize[],
@@ -49,7 +62,8 @@ export const Default: Story = {
     template: '<RcButton v-bind="args">Button Text</RcButton>',
   }),
   args: {
-    variant:  'primary',
+    variant:  'solid',
+    color:    'primary',
     size:     'medium',
     disabled: false,
   },
@@ -59,7 +73,7 @@ export const AllVariants: Story = {
   render: () => ({
     components: { RcButton },
     setup() {
-      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'];
+      const variants: ButtonVariant[] = ['solid', 'outline', 'link', 'ghost'];
 
       return { variants };
     },
@@ -74,11 +88,9 @@ export const AllVariants: Story = {
     controls: { disabled: true },
     docs:     {
       source: {
-        code: `<RcButton variant="primary">Primary</RcButton>
-<RcButton variant="secondary">Secondary</RcButton>
-<RcButton variant="tertiary">Tertiary</RcButton>
+        code: `<RcButton variant="solid">Solid</RcButton>
+<RcButton variant="outline">Outline</RcButton>
 <RcButton variant="link">Link</RcButton>
-<RcButton variant="multiAction">MultiAction</RcButton>
 <RcButton variant="ghost">Ghost</RcButton>`,
         language: 'html',
       }
@@ -90,7 +102,7 @@ export const DisabledVariants: Story = {
   render: () => ({
     components: { RcButton },
     setup() {
-      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'];
+      const variants: ButtonVariant[] = ['solid', 'outline', 'link', 'ghost'];
 
       return { variants };
     },
@@ -105,12 +117,97 @@ export const DisabledVariants: Story = {
     controls: { disabled: true },
     docs:     {
       source: {
-        code: `<RcButton variant="primary" :disabled="true">Primary</RcButton>
-<RcButton variant="secondary" :disabled="true">Secondary</RcButton>
-<RcButton variant="tertiary" :disabled="true">Tertiary</RcButton>
+        code: `<RcButton variant="solid" :disabled="true">Solid</RcButton>
+<RcButton variant="outline" :disabled="true">Outline</RcButton>
 <RcButton variant="link" :disabled="true">Link</RcButton>
-<RcButton variant="multiAction" :disabled="true">MultiAction</RcButton>
 <RcButton variant="ghost" :disabled="true">Ghost</RcButton>`,
+        language: 'html',
+      }
+    }
+  },
+};
+
+export const Colors: Story = {
+  render: () => ({
+    components: { RcButton },
+    setup() {
+      const rows: { variant: ButtonVariant, color: ButtonColor }[] = [
+        { variant: 'solid', color: 'primary' },
+        { variant: 'solid', color: 'destructive' },
+        { variant: 'outline', color: 'primary' },
+        { variant: 'outline', color: 'destructive' },
+      ];
+
+      return { rows };
+    },
+    template: `<div style="display: flex; flex-direction: column; gap: 16px; max-width: 800px;">
+      <div v-for="row in rows" :key="row.variant + row.color" style="display: flex; align-items: center; gap: 20px;">
+        <code style="min-width: 240px; font-size: 12px;">variant="{{ row.variant }}" color="{{ row.color }}"</code>
+        <RcButton :variant="row.variant" :color="row.color" size="medium">Button</RcButton>
+        <RcButton :variant="row.variant" :color="row.color" size="medium" :disabled="true">Disabled</RcButton>
+      </div>
+    </div>`,
+  }),
+  parameters: {
+    controls: { disabled: true },
+    docs:     {
+      description: { story: 'Shape and colour compose. Destructive marks an irreversible action, solid for the primary confirm and outline for the quieter form.' },
+      source:      {
+        code: `<RcButton variant="solid" color="primary">Save</RcButton>
+<RcButton variant="solid" color="destructive">Delete</RcButton>
+<RcButton variant="outline" color="primary">Cancel</RcButton>
+<RcButton variant="outline" color="destructive">Remove</RcButton>`,
+        language: 'html',
+      }
+    }
+  },
+};
+
+export const DeprecatedVariants: Story = {
+  render: () => ({
+    components: { RcButton },
+    setup() {
+      const deprecated: { variant: DeprecatedButtonVariant, replacement?: string, note: string }[] = [
+        {
+          variant: 'primary', replacement: '<RcButton variant="solid" color="primary">', note: 'A solid button in the primary colour.'
+        },
+        {
+          variant: 'secondary', replacement: '<RcButton variant="outline" color="primary">', note: 'Only ever an outlined primary button.'
+        },
+        { variant: 'tertiary', note: 'No replacement yet. Still renders exactly as it always has.' },
+        { variant: 'multiAction', note: 'No replacement yet. Still renders exactly as it always has.' },
+      ];
+
+      return { deprecated };
+    },
+    template: `<div style="max-width: 820px;">
+      <div style="border-left: 3px solid #D42B3A; background: #FDF3F3; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; line-height: 1.5;">
+        <strong>These values still work, but each one logs a console warning.</strong>
+        Describe a button with <code>variant</code> for its shape and <code>color</code> for its palette.
+      </div>
+      <div v-for="item in deprecated" :key="item.variant" style="display: flex; align-items: flex-start; gap: 20px; padding: 14px 0; border-bottom: 1px solid #DCDEE7;">
+        <div style="min-width: 150px;">
+          <code style="font-size: 13px;">{{ item.variant }}</code>
+          <div style="display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 3px; background: #D42B3A; color: #FFF; font-size: 10px; font-weight: 700; letter-spacing: .04em; vertical-align: middle;">DEPRECATED</div>
+        </div>
+        <RcButton :variant="item.variant" size="medium">{{ item.variant }}</RcButton>
+        <div style="flex: 1; font-size: 12px; line-height: 1.6;">
+          <div>{{ item.note }}</div>
+          <code v-if="item.replacement" style="font-size: 11px; opacity: .8;">{{ item.replacement }}</code>
+        </div>
+      </div>
+    </div>`,
+  }),
+  parameters: {
+    controls: { disabled: true },
+    docs:     {
+      description: { story: 'Variant values kept for compatibility. They render exactly as before and warn in the console, naming a replacement where one exists.' },
+      source:      {
+        code: `<!-- deprecated            replacement -->
+<RcButton variant="primary">     <RcButton variant="solid" color="primary">
+<RcButton variant="secondary">   <RcButton variant="outline" color="primary">
+<RcButton variant="tertiary">    no replacement yet
+<RcButton variant="multiAction"> no replacement yet`,
         language: 'html',
       }
     }
@@ -121,7 +218,7 @@ export const AsRouterLink: Story = {
   render: () => ({
     components: { RcButton },
     setup() {
-      const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'link'];
+      const variants: ButtonVariant[] = ['solid', 'outline', 'link'];
 
       return { variants };
     },
