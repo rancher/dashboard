@@ -6,6 +6,12 @@
   .selected {
     padding-top: $input-padding-lg;
   }
+
+  // Only matches dropdowns rendered in place (appendToBody false), align with the select's own border
+  .vs__dropdown-menu {
+    left: calc(-1 * var(--border-width));
+    width: calc(100% + 2 * var(--border-width));
+  }
 }
 
 .unlabeled-select:not(.in-input) {

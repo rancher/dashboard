@@ -36,7 +36,7 @@
   padding: $input-padding-sm 0;
   margin: 0;
   width: calc(100% + 4px);
-  max-height: 350px;
+  max-height: var(--vs-dropdown-max-height, 350px);
   min-width: 160px;
   overflow-y: auto;
   border: 1px solid var(--primary-border);

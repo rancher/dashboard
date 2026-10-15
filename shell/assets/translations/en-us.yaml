@@ -8071,6 +8071,14 @@ workloadDashboard:
     byState: By State
     byType: By Type
     byNamespace: By Namespace
+  search:
+    ariaLabel: Find workloads in the selected namespaces...
+    placeholder: Find workloads in the selected namespaces...
+    startTyping: Start typing to search
+    minCharacters: Type at least {count} characters to search
+    noMatch: No matching workloads
+    searching: Searching...
+    moreResults: "+ {count} more {type}"
   errors:
     noAccess: "No access to {type}"
     fetchType: "Failed to fetch {type}"
