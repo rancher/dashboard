@@ -4592,9 +4592,9 @@ releaseWelcome:
   logo: "{vendor} logo"
   close: Close
   titleCommunity: Welcome to {vendor} Community
-  titlePrime: Welcome to SUSE {vendor} Prime
+  titlePrime: Welcome to {vendor}
   subtitleCommunity: "{vendor} Community v{version} is up and running. Here's what's new in this release, and where to go next."
-  subtitlePrime: "{vendor} Prime v{version} is up and running."
+  subtitlePrime: "{vendor} v{version} is up and running."
   registerLead: To activate your subscription benefits, register this system on the
   registrationPage: Registration page
   newTab: (opens in a new tab)

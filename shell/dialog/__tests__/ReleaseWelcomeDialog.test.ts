@@ -37,7 +37,7 @@ const createWrapper = ({
       features, primePromo, registration, matchedVersion
     },
     global: {
-      mocks: { t: (key: string) => key },
+      mocks: { t: (key: string, args?: any) => (args?.version ? `${ key } ${ args.version }` : key) },
       stubs: { 'router-link': RouterLinkStub }
     }
   });
@@ -59,6 +59,15 @@ describe('component: ReleaseWelcomeDialog', () => {
     const wrapper = createWrapper({ prime });
 
     expect(wrapper.find('h2').text()).toStrictEqual(title);
+  });
+
+  it.each([
+    [false],
+    [true],
+  ])('should name the running patch version in the subtitle, Prime %p', (prime) => {
+    const wrapper = createWrapper({ prime, matchedVersion: '2.16' });
+
+    expect(byTestId(wrapper, 'release-welcome-subtitle').text()).toContain('2.16.1');
   });
 
   it('should mark the title as the dialog name', () => {

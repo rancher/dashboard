@@ -6,7 +6,7 @@ const homePage = new HomePagePo();
 const dialog = new ReleaseWelcomeDialogPo();
 const userMenu = new UserMenuPo();
 
-// Dev and head builds have no version, which never shows the modal
+// A fixed version, whatever the build under test
 const mockVersion = (version: string) => cy.intercept('GET', '/rancherversion', {
   statusCode: 200,
   body:       {

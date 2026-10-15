@@ -21,9 +21,8 @@ export function releaseWelcomeVersion(): string | undefined {
 }
 
 /**
- * The welcome modal is shown once per minor release: when the user has not read it for this minor version or a later one.
- * It's shown again after an upgrade to a version with its own entry in the dynamic content (e.g. a Prime patch).
- * Not shown in single product mode (e.g. Harvester), the content is about Rancher
+ * Shown once per minor release, and again after an upgrade to a version with its own dynamic content entry (e.g. a Prime patch).
+ * Not in single product mode (e.g. Harvester), the content is about Rancher
  */
 export async function shouldShowReleaseWelcome(getters: any, axios: any): Promise<boolean> {
   const version = runningVersion();
@@ -44,9 +43,6 @@ export async function shouldShowReleaseWelcome(getters: any, axios: any): Promis
 
 /**
  * Open the welcome modal and mark it as read, it can be reopened from the user menu
- *
- * The "What's new" features, the Prime promotion and the registration card can be updated after the release through dynamic
- * content, the built-in content is used otherwise
  */
 export async function openReleaseWelcome(commit: any, dispatch: any, getters: any, axios: any) {
   const version = runningVersion();

@@ -1,13 +1,7 @@
 /**
- * Content of the release welcome modal, fetched from the dynamic content endpoint
- *
- * The modal has its content built in, but it can be updated after a release through the 'first-run' document of each
- * distribution, published next to the dynamic content package (e.g. https://updates.rancher.io/rancher/community/first-run)
- *
- * Unlike the dynamic content package, the document is fetched straight away, when the modal is opened. When dynamic content
- * is disabled, or the document can't be fetched or has no valid content for the running version, the built-in content is used.
- * Each part ("What's new", the Prime promotion, the registration card) comes from the exact version (e.g. '2.16.1'), else
- * the minor version (e.g. '2.16'), else its built-in content, on its own
+ * Welcome modal content from the 'first-run' document of each distribution, published next to the dynamic content package
+ * (e.g. https://updates.rancher.io/rancher/community/first-run). Each part comes from the exact version entry (e.g. '2.16.1'),
+ * else the minor version entry (e.g. '2.16'), else the built-in content
  */
 
 import * as jsyaml from 'js-yaml';
@@ -54,7 +48,8 @@ async function fetchDocument(axios: any, url: string): Promise<Partial<FirstRunC
   return (jsyaml.load(res?.data || '') || {}) as Partial<FirstRunContent>;
 }
 
-const isText = (value: any): value is string => typeof value === 'string' && !!value;
+// Whitespace only would render an empty title or chip
+const isText = (value: any): value is string => typeof value === 'string' && !!value.trim();
 
 // Opened by the modal, so only secure links (no javascript: or data: URLs)
 const isCta = (cta: any): cta is CallToAction => isText(cta?.action) && isText(cta.link) && cta.link.startsWith('https://');
@@ -184,10 +179,8 @@ async function loadDocument(getters: any, axios: any): Promise<{ content: Partia
 }
 
 /**
- * Fetch the release welcome modal content for the running version from the dynamic content endpoint
- *
- * Each part comes from the exact version, else the minor version, else it's undefined and the built-in content is used.
- * Only the parts of the running distribution are returned: the Prime promotion for Community, the registration card for Prime
+ * Fetch the modal content for the running version: the Prime promotion for Community, the registration card for Prime.
+ * Undefined parts use the built-in content
  *
  * @param getters Store getters, to read the dynamic content settings
  * @param axios Axios instance

@@ -15,7 +15,11 @@ const REMOTE_FEATURES = [
 
 const createWrapper = (features?: any[]) => shallowMount(WhatsNewCard, {
   props:  { version: '2.16', features },
-  global: { mocks: { t: (key: string, args?: any) => (args?.version ? `${ key } ${ args.version }` : key) } },
+  global: {
+    mocks: { t: (key: string, args?: any) => (args?.version ? `${ key } ${ args.version }` : key) },
+    // Render the badge slot, the version sits inside it
+    stubs: { RcStatusBadge: { template: '<span><slot /></span>' } },
+  },
 });
 
 describe('component: WhatsNewCard', () => {
