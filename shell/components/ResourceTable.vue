@@ -21,6 +21,9 @@ import { runTableViewShortcut } from '@shell/utils/table-views/shortcuts';
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
 
+// A paginated list's namespace grouping - see STEVE_LIST_GROUPS
+const PAGINATED_NAMESPACE_GROUP = 'metadata.namespace';
+
 export const defaultTableSortGenerationFn = (schema, $store) => {
   if ( !schema ) {
     return null;
@@ -645,16 +648,17 @@ export default {
 
     /**
      * The grouping a view starts with: the one the page names as its default, eg cluster members by
-     * role, machines by pool; else none. The namespace is the `groupDefault` prop's own default, so it
-     * isn't taken as the page naming it. A list grouped by a field it is given, eg project members by
-     * project, keeps that
+     * role, machines by pool; else the namespace, whenever the list offers to group by it, as a
+     * paginated list does under its own name; else the first it offers, eg secrets by project. A list
+     * grouped by a field it is given, eg project members by project, keeps that
      */
     defaultGroupBy() {
-      if (!this.showGrouping || !this.groupDefault || this.groupDefault === DEFAULT_GROUP) {
+      if (!this.showGrouping) {
         return null;
       }
 
-      const start = this.tableGroupings.find((option) => option.value === this.groupDefault);
+      const offered = (value) => this.tableGroupings.find((option) => option.value === value);
+      const start = offered(this.groupDefault) || offered(DEFAULT_GROUP) || offered(PAGINATED_NAMESPACE_GROUP) || this.tableGroupings[0];
 
       if (!start || (this.groupBy && !start.field)) {
         return null;

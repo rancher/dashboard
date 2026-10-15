@@ -236,6 +236,23 @@ describe('ResourceTable', () => {
       ...more,
     });
 
+    it('should start grouped by namespace, as the grouping preference did', () => {
+      expect(defaultGroupBy.call(table([NONE, NAMESPACE]))).toBe(`${ TABLE_GROUPING_PREFIX }namespace`);
+    });
+
+    it('should start grouped by a paginated list\'s namespace grouping', () => {
+      const PAGINATED_NAMESPACE: GroupOption = {
+        value: 'metadata.namespace', field: 'metadata.namespace', hideColumn: 'namespace'
+      };
+
+      expect(defaultGroupBy.call(table([NONE, PAGINATED_NAMESPACE, NODE]))).toBe(`${ TABLE_GROUPING_PREFIX }metadata.namespace`);
+    });
+
+    it('should start grouped by a namespace grouping of the list\'s own, eg projects, whatever it is given', () => {
+      expect(defaultGroupBy.call(table([NONE, PROJECT]))).toBe(`${ TABLE_GROUPING_PREFIX }namespace`);
+      expect(defaultGroupBy.call(table([NONE, PROJECT], { groupBy: 'groupById' }))).toBe(`${ TABLE_GROUPING_PREFIX }namespace`);
+    });
+
     it('should start grouped by the grouping the list names as its default when it offers no namespace', () => {
       expect(defaultGroupBy.call(table([NONE, POOL], { groupDefault: 'poolId' }))).toBe(`${ TABLE_GROUPING_PREFIX }poolId`);
     });
@@ -244,14 +261,12 @@ describe('ResourceTable', () => {
       expect(defaultGroupBy.call(table([NONE, NAMESPACE, NODE], { groupDefault: 'role' }))).toBe(`${ TABLE_GROUPING_PREFIX }role`);
     });
 
+    it('should start grouped by the first grouping the list offers when it offers neither, after none', () => {
+      expect(defaultGroupBy.call(table([POOL, NODE], { groupDefault: 'other' }))).toBe(`${ TABLE_GROUPING_PREFIX }poolId`);
+      expect(defaultGroupBy.call(table([NONE, NODE]))).toBe(`${ TABLE_GROUPING_PREFIX }role`);
+    });
+
     it.each([
-      ['a namespaced list', table([NONE, NAMESPACE])],
-      ['a paginated namespaced list', table([NONE, {
-        value: 'metadata.namespace', field: 'metadata.namespace', hideColumn: 'namespace'
-      }, NODE])],
-      ['a list with a namespace grouping of its own, eg projects', table([NONE, PROJECT])],
-      ['a list with groupings but no default', table([NONE, NODE])],
-      ['a list whose default it does not offer', table([POOL, NODE], { groupDefault: 'other' })],
       ['a list that offers no grouping', table([NONE])],
       ['a list that can\'t be grouped', table([NONE, NAMESPACE], { showGrouping: false })],
       ['a list grouped by a field it is given, which keeps it', table([NONE, NAMESPACE], { groupBy: 'projectId' })],
