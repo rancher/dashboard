@@ -13,7 +13,7 @@ RANCHER_IMG_REGISTRY=
 RANCHER_IMG_NAMESPACE=rancher
 RANCHER_IMG_NAME=rancher
 
-USE_LOCAL_BRANCH_METADATA=true # branch_metadata usually just comes from `master`. if there are dependent changes in a PR and the local version is needed toggle this to `true`
+USE_LOCAL_BRANCH_METADATA=false # branch_metadata usually just comes from `master`. if there are dependent changes in a PR and the local version is needed toggle this to `true`
 
 # Host port mapping (configurable to avoid conflicts, e.g. with MCP Gateway on port 80)
 RANCHER_HOST_HTTP_PORT=${RANCHER_HOST_HTTP_PORT:-80}
