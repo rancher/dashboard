@@ -24,10 +24,13 @@ const props = withDefaults(defineProps<{
   tableKey?: string,
   /** Imported into a view added for it, rather than over one's settings */
   intoNewView?: boolean,
+  /** The shared view has a filter, whose names and values the text gives away */
+  hasFilter?: boolean,
 }>(), {
   value:       '',
   tableKey:    '',
   intoNewView: false,
+  hasFilter:   false,
 });
 
 const emit = defineEmits<{
@@ -109,6 +112,13 @@ const doImport = () => {
           <b v-clean-html="content" />
         </template>
       </RichTranslation>
+      <p
+        v-if="sharing && hasFilter"
+        class="share-intro"
+        data-testid="table-views-share-warning"
+      >
+        {{ t('tableViews.filterWarning', undefined, true) }}
+      </p>
       <DetailText
         v-if="sharing"
         :label="t('tableViews.share.label')"

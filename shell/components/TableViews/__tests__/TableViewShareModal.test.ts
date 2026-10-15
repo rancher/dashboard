@@ -12,7 +12,7 @@ const running: SharedTableView = {
   name: 'Running', query: 'state:running', columns: null, columnOrder: null, labelColumns: [], groupBy: null, sort: null, sortDescending: false
 };
 
-function mountModal(props: { mode: 'share' | 'import', value?: string, tableKey?: string, intoNewView?: boolean }) {
+function mountModal(props: { mode: 'share' | 'import', value?: string, tableKey?: string, intoNewView?: boolean, hasFilter?: boolean }) {
   const store = createStore({
     getters: {
       'type-map/labelFor': () => (schema: { id: string }) => `${ schema.id } list`,
@@ -45,6 +45,25 @@ describe('TableViewShareModal', () => {
       expect(field.find('.action-group button').text()).toContain('Copy');
       expect(field.find('[data-testid="detail-text-paste"]').exists()).toBe(false);
       expect(wrapper.find('[data-testid="table-views-import-confirm"]').exists()).toBe(false);
+    });
+
+    it('should warn that a filter\'s names and values are shared, when the view has one', () => {
+      const warning = mountModal({
+        mode: 'share', value: 'abc123', hasFilter: true
+      }).find('[data-testid="table-views-share-warning"]');
+
+      expect(warning.element.tagName).toBe('P');
+      expect(warning.text()).toContain('tableViews.filterWarning');
+    });
+
+    it('should not warn about a filter the view doesn\'t have', () => {
+      expect(mountModal({ mode: 'share', value: 'abc123' }).find('[data-testid="table-views-share-warning"]').exists()).toBe(false);
+    });
+
+    it('should not warn when importing', () => {
+      expect(mountModal({
+        mode: 'import', tableKey: 'pod', hasFilter: true
+      }).find('[data-testid="table-views-share-warning"]').exists()).toBe(false);
     });
 
     it('should close', async() => {

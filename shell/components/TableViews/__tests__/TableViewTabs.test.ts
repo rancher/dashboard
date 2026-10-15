@@ -669,7 +669,7 @@ describe('TableViewTabs', () => {
 
     interface SharedInternals extends TabsInternals {
       tabs: { id: string | null, shared?: boolean }[];
-      shareView(tab: { id: string | null, name: string, view?: TableViewSaved, shared?: boolean }): Promise<void>;
+      shareView(tab: { id: string | null, name: string, view?: TableViewSaved, shared?: boolean }): void;
       unshareView(tab: { id: string | null, name: string, view?: TableViewSaved, shared?: boolean }): Promise<void>;
       setDefaultView(tab: { id: string | null, name: string, view?: TableViewSaved, isDefaultTab?: boolean }): void;
     }
@@ -703,6 +703,7 @@ describe('TableViewTabs', () => {
       const created: { metadata: unknown, spec: Record<string, unknown> }[] = [];
       const fromError = jest.fn();
       const growl = jest.fn();
+      const prompts: { component: string, componentProps: Record<string, any> }[] = [];
       const written = order ? {
         views: [mine], defaultViewId, order
       } : { views: [mine], defaultViewId };
@@ -724,12 +725,13 @@ describe('TableViewTabs', () => {
           loaded:  (state, value) => (state.loaded = value),
         },
         actions: {
-          'prefs/set':          ({ commit }, { value }) => commit('write', value),
-          'growl/success':      (_ctx: unknown, payload: unknown) => growl(payload),
-          'growl/fromError':    (_ctx: unknown, payload: unknown) => fromError(payload),
-          'management/findAll': jest.fn(),
+          'prefs/set':              ({ commit }, { value }) => commit('write', value),
+          'growl/success':          (_ctx: unknown, payload: unknown) => growl(payload),
+          'growl/fromError':        (_ctx: unknown, payload: unknown) => fromError(payload),
+          'management/findAll':     jest.fn(),
+          'management/promptModal': (_ctx: unknown, payload: { component: string, componentProps: Record<string, any> }) => prompts.push(payload),
           // Saved into the store, as the api's answer is
-          'management/create':  ({ state, commit }, data: { metadata: { generateName: string }, spec: Record<string, unknown> }) => ({
+          'management/create':      ({ state, commit }, data: { metadata: { generateName: string }, spec: Record<string, unknown> }) => ({
             ...data,
             save: () => {
               if (failWrites) {
@@ -765,7 +767,7 @@ describe('TableViewTabs', () => {
       const entry = () => savedViewsByType<Entry>(store.state.stored).test;
 
       return {
-        wrapper, vm: wrapper.vm as unknown as SharedInternals, store, entry, saves, created, fromError, growl, configs: all
+        wrapper, vm: wrapper.vm as unknown as SharedInternals, store, entry, saves, created, fromError, growl, prompts, configs: all
       };
     }
 
@@ -878,10 +880,13 @@ describe('TableViewTabs', () => {
       });
 
       it('should share a view of the user\'s under its id, and keep its place', async() => {
-        const { vm, created, entry } = createWrapper({ defaultViewId: 'all' });
+        const {
+          vm, created, entry, prompts
+        } = createWrapper({ defaultViewId: 'all' });
         const before = vm.tabs.map((tab) => tab.id || 'all');
 
-        await vm.shareView(tabFor(mine));
+        vm.shareView(tabFor(mine));
+        await prompts[0].componentProps.applyAction();
 
         expect(created[0]).toStrictEqual({
           type:     'ui.cattle.io.tableconfiguration',
@@ -897,10 +902,35 @@ describe('TableViewTabs', () => {
         expect(entry().order).toStrictEqual(before);
       });
 
-      it('should keep the user\'s view when sharing it fails', async() => {
-        const { vm, entry, fromError } = createWrapper({ failWrites: true });
+      it('should ask before publishing, and publish nothing until confirmed', () => {
+        const { vm, created, prompts } = createWrapper();
 
-        await vm.shareView(tabFor(mine));
+        vm.shareView(tabFor(mine));
+
+        expect(prompts).toHaveLength(1);
+        expect(prompts[0].component).toBe('GenericPrompt');
+        expect(prompts[0].componentProps).toStrictEqual(expect.objectContaining({ title: 'tableViews.publish.title', applyMode: 'publish' }));
+        expect(created).toHaveLength(0);
+      });
+
+      it.each([
+        ['a filter', 'name:mine', 'tableViews.filterWarning'],
+        ['no filter', '', ''],
+      ])('should say what a view with %s gives away', (_, query, body) => {
+        const { vm, prompts } = createWrapper();
+
+        vm.shareView(tabFor({ ...mine, query }));
+
+        expect(prompts[0].componentProps.body).toBe(body);
+      });
+
+      it('should keep the user\'s view when sharing it fails', async() => {
+        const {
+          vm, entry, fromError, prompts
+        } = createWrapper({ failWrites: true });
+
+        vm.shareView(tabFor(mine));
+        await prompts[0].componentProps.applyAction();
 
         expect(entry().views.map((v) => v.id)).toStrictEqual(['own']);
         expect(fromError).toHaveBeenCalledWith(expect.objectContaining({ err: expect.any(Error) }));

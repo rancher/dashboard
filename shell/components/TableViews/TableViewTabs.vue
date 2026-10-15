@@ -140,7 +140,7 @@ const drafts = ref<Record<string, TableViewState>>({});
  */
 const modal = ref<
   { kind: 'export', name: string, count: number | null, view?: TableViewState } |
-  { kind: 'share', text: string } |
+  { kind: 'share', text: string, hasFilter: boolean } |
   { kind: 'import', tabId: string | null } |
   null
 >(null);
@@ -780,7 +780,9 @@ const openShare = (tab: Tab) => {
   // The tab on screen as it stands, another with any edits held for it
   const view: SharedTableView = { ...viewStateOf(tabState(tab)), name: tab.name };
 
-  modal.value = { kind: 'share', text: shareTableView(tableKey.value, view, persistenceIdOf(store.getters['prefs/get'](TABLE_VIEWS))) };
+  modal.value = {
+    kind: 'share', text: shareTableView(tableKey.value, view, persistenceIdOf(store.getters['prefs/get'](TABLE_VIEWS))), hasFilter: !!view.query
+  };
 };
 
 const openImport = (tab: Tab) => {
@@ -955,19 +957,32 @@ const deleteView = async(saved?: TableViewSaved) => {
 /** The strip's order as it stands, so a view moving between the user's and the shared keeps its place */
 const currentOrder = () => baseTabs.value.map(tabKey);
 
-/** Shared as saved; edits held on the tab stay edits */
-const shareView = async(tab: Tab) => {
+const publish = async(view: TableViewSaved) => {
+  const order = currentOrder();
+
+  if (await share(view)) {
+    persistOrder(order, savedViews.value.filter((v) => v.id !== view.id));
+  }
+};
+
+/** Shared as saved; edits held on the tab stay edits. Asked first, as everyone will see it */
+const shareView = (tab: Tab) => {
   const view = tab.view;
 
   if (!view || tab.shared) {
     return;
   }
 
-  const order = currentOrder();
-
-  if (await share(view)) {
-    persistOrder(order, savedViews.value.filter((v) => v.id !== view.id));
-  }
+  store.dispatch('management/promptModal', {
+    component:      'GenericPrompt',
+    componentProps: {
+      title:       t('tableViews.publish.title'),
+      // Only when there is a filter to give away
+      body:        view.query ? t('tableViews.filterWarning') : '',
+      applyMode:   'publish',
+      applyAction: () => publish(view),
+    },
+  });
 };
 
 /** Back to the user's alone: a view of their own first, so it is never lost if the cluster says no */
@@ -1408,6 +1423,7 @@ onBeforeUnmount(() => {
     <TableViewShareModal
       :mode="modal.kind"
       :value="modal.kind === 'share' ? modal.text : ''"
+      :has-filter="modal.kind === 'share' && modal.hasFilter"
       :table-key="tableKey"
       :into-new-view="modal.kind === 'import' && !modal.tabId"
       @close="closeModal"
