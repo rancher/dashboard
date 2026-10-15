@@ -944,7 +944,7 @@ export default {
     display: inline-block;
     border-radius: var(--border-radius);
 
-    &:focus, &.focused {
+    &:focus-visible {
       @include focus-outline;
     }
 

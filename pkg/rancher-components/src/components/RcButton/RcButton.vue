@@ -314,14 +314,6 @@ defineExpose({ focus });
       box-shadow: none;
     }
 
-    &:focus, &.focused {
-      @include focus-outline;
-      outline-offset: -2px;
-      background: transparent;
-      color: var(--link);
-      box-shadow: none;
-    }
-
     &:focus-visible {
       @include focus-outline;
       outline-offset: 2px;
@@ -338,11 +330,6 @@ defineExpose({ focus });
   &.variant-ghost {
     padding: 0;
     background-color: transparent;
-
-    &:focus, &.focused {
-      @include focus-outline;
-      outline-offset: 0;
-    }
 
     &:focus-visible {
       @include focus-outline;

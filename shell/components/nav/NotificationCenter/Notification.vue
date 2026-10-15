@@ -346,7 +346,7 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
       background-color: var(--notification-unread-bg);
     }
 
-    &:focus-visible, &:focus {
+    &:focus-visible {
       @include focus-outline;
       outline-offset: 0;
     }
