@@ -758,6 +758,73 @@ describe('component: WorkloadSearch', () => {
 
       expect(beforeInput(wrapper.element, { data: ' ' }).defaultPrevented).toBe(false);
     });
+
+    // jsdom has no execCommand, so the tests above cover browsers without it
+    describe('when the browser supports execCommand', () => {
+      const mockExecCommand = jest.fn();
+
+      beforeEach(() => {
+        mockExecCommand.mockReset();
+        Object.defineProperty(document, 'execCommand', { value: mockExecCommand, configurable: true });
+      });
+
+      afterEach(() => {
+        delete (document as any).execCommand;
+      });
+
+      it('should insert pasted text without its whitespace with execCommand to keep the undo history', () => {
+        mockExecCommand.mockReturnValue(true);
+        const { input } = setUp('ngx', 2);
+
+        beforeInput(input, { data: ' i n\n' });
+
+        expect(mockExecCommand).toHaveBeenCalledWith('insertText', false, 'in');
+      });
+
+      it('should not also insert the text itself when execCommand succeeds', () => {
+        mockExecCommand.mockReturnValue(true);
+        const { input } = setUp('ngx', 2);
+
+        beforeInput(input, { data: ' i n\n' });
+
+        expect(input.value).toStrictEqual('ngx');
+      });
+
+      it('should not change the search itself when execCommand succeeds', () => {
+        mockExecCommand.mockReturnValue(true);
+        const { input, onInput } = setUp('ngx', 2);
+
+        beforeInput(input, { data: ' i n\n' });
+
+        expect(onInput).not.toHaveBeenCalled();
+      });
+
+      it('should insert pasted text without its whitespace itself when execCommand fails', () => {
+        mockExecCommand.mockReturnValue(false);
+        const { input } = setUp('ngx', 2);
+
+        beforeInput(input, { data: ' i n\n' });
+
+        expect(input.value).toStrictEqual('nginx');
+      });
+
+      it('should change the search once when execCommand fails', () => {
+        mockExecCommand.mockReturnValue(false);
+        const { input, onInput } = setUp('ngx', 2);
+
+        beforeInput(input, { data: ' i n\n' });
+
+        expect(onInput).toHaveBeenCalledTimes(1);
+      });
+
+      it('should not use execCommand when pasted text is only whitespace', () => {
+        const { input } = setUp('nginx');
+
+        beforeInput(input, { data: ' \t\n ' });
+
+        expect(mockExecCommand).not.toHaveBeenCalled();
+      });
+    });
   });
 
   describe('no options message', () => {

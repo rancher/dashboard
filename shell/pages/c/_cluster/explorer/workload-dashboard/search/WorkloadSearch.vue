@@ -146,7 +146,8 @@ function onSearchBeforeInput(event: InputEvent): void {
   // Pasted or dropped text keeps its non-whitespace characters
   const stripped = text.replace(/\s/g, '');
 
-  if (stripped) {
+  // execCommand (unlike setRangeText) keeps the undo history, fall back if it's ever unsupported
+  if (stripped && !document.execCommand?.('insertText', false, stripped)) {
     input.setRangeText(stripped, input.selectionStart ?? input.value.length, input.selectionEnd ?? input.value.length, 'end');
     input.dispatchEvent(new Event('input', { bubbles: true }));
   }
