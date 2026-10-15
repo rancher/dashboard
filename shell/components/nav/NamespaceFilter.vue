@@ -1190,7 +1190,6 @@ export default {
 <style lang="scss">
   .v-popper__popper {
     .ns-filter-tooltip {
-      //background-color: var(--tooltip-bg);
       margin: -6px;
       padding: 6px;
 
