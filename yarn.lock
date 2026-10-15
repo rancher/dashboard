@@ -3261,10 +3261,10 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.2.tgz#78d476333d85d5b1c792e257bca74ba080da49a4"
   integrity sha512-b1UQwcEZ4yCnMCD8DAL1VlbvBJE9/IX4FTIp7BG1xYpf29SLazLSrqUkj4w7Y5y7cCVP6E5tcqqcI0xemPkHug==
 
-"@rancher/icons@2.0.64", "@rancher/icons@^2.0.64":
-  version "2.0.64"
-  resolved "https://registry.yarnpkg.com/@rancher/icons/-/icons-2.0.64.tgz#b082664a2b376996c92ffec6a22eb3c07a081621"
-  integrity sha512-J7cTumyV2S59fNGy6AMhb877Y+g6sUJ9SQ0lFMMAd8j8wEvjA8XzD2GBcCqPHMb+oozdNoo9JxAoRNrF+XATIg==
+"@rancher/icons@2.0.65", "@rancher/icons@^2.0.65":
+  version "2.0.65"
+  resolved "https://registry.yarnpkg.com/@rancher/icons/-/icons-2.0.65.tgz#83ef3c28a7a18cfa07c99a7a8895b5e7b6a29742"
+  integrity sha512-AmPjzeNfIPk8AeQa1PawJfUXQ7iCDYxbkmRCsr3N4Kbx7/Tudko85pcUjjCWXIFaqiYQjBfQVArgwXY1ji1MNw==
 
 "@replit/codemirror-vim-core@^0.1.0":
   version "0.1.0"

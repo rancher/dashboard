@@ -1,6 +1,6 @@
 {
   "name": "@rancher/shell",
-  "version": "3.0.14-rc.4",
+  "version": "3.0.14",
   "rancherVersion": "2.15",
   "description": "Rancher Dashboard Shell",
   "repository": "https://github.com/rancher/dashboard",
@@ -47,7 +47,7 @@
     "@lezer/highlight": "1.2.4",
     "@novnc/novnc": "1.2.0",
     "@popperjs/core": "2.11.8",
-    "@rancher/icons": "2.0.64",
+    "@rancher/icons": "2.0.65",
     "@replit/codemirror-vim": "6.4.0",
     "@smithy/fetch-http-handler": "5.1.1",
     "@types/is-url": "1.2.30",
