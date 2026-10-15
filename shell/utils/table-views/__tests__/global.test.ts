@@ -1,5 +1,5 @@
 import {
-  ALL_TAB_KEY, defaultViewIdFor, globalPageKey, globalViewsFor, mergeTabOrder, tabOrderFor, viewConfigName
+  ALL_TAB_KEY, defaultViewIdFor, globalPageKey, globalViewsFor, mergeTabOrder, tabOrderFor
 } from '@shell/utils/table-views/global';
 import type { GlobalTableViews, TableConfiguration } from '@shell/utils/table-views/global';
 import type { TableViewSaved } from '@shell/types/table-views';
@@ -159,19 +159,6 @@ describe('shared table views', () => {
 
     it('should be the table\'s own tab with no default anywhere', () => {
       expect(defaultViewIdFor(null, none, ['a'])).toBeNull();
-    });
-  });
-
-  describe('viewConfigName', () => {
-    it('should make a resource name from the page and the view id', () => {
-      expect(viewConfigName('management.cattle.io.cluster', 'AbC_12')).toBe('view-management-cattle-io-cluster-abc-12');
-    });
-
-    it('should keep the name within what a resource name allows', () => {
-      const name = viewConfigName('x'.repeat(400), 'y'.repeat(100));
-
-      expect(name.length).toBeLessThanOrEqual(253);
-      expect(name).toMatch(/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/);
     });
   });
 });

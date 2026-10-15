@@ -2,20 +2,22 @@
  * Views shared with everyone: TableConfiguration resources on the upstream cluster. A user's own
  * views stay in their preferences; these are read by everyone and written by those allowed to
  */
-import type { TableViewSaved } from '@shell/types/table-views';
+import type { TableViewSaved, TableViewsPageSettings } from '@shell/types/table-views';
 
 /** The key the table's own tab has in a tab order */
 export const ALL_TAB_KEY = 'all';
 
-export interface TableConfigurationSpec {
-  /** Page: a page's views, default and tab place, one per page. View: one view adding to a page */
-  type: 'Page' | 'View';
+/** Page: a page's views, default and tab place, one per page. View: one view adding to a page */
+export const TABLE_CONFIGURATION_TYPE = { PAGE: 'Page', VIEW: 'View' } as const;
+
+export type TableConfigurationType = typeof TABLE_CONFIGURATION_TYPE[keyof typeof TABLE_CONFIGURATION_TYPE];
+
+/** `defaultViewId` here is one of the page's views */
+export interface TableConfigurationSpec extends TableViewsPageSettings {
+  type: TableConfigurationType;
   /** A resource type, eg `pod`, or a page keeping views of its own, eg `home` */
   page: string;
   view?: TableViewSaved;
-  views?: TableViewSaved[];
-  defaultViewId?: string | null;
-  allIndex?: number;
 }
 
 export interface TableConfiguration {
@@ -58,8 +60,8 @@ const byAge = (a: TableConfiguration, b: TableConfiguration) => createdOf(a).loc
  */
 export function globalViewsFor(configs: TableConfiguration[] | null | undefined, pageKey: string): GlobalTableViews {
   const forPage = (configs || []).filter((config) => config?.spec?.page === pageKey);
-  const pageConfig = forPage.filter((config) => config.spec?.type === 'Page').sort(byAge)[0];
-  const viewConfigs = forPage.filter((config) => config.spec?.type === 'View' && config.spec.view?.id).sort(byAge);
+  const pageConfig = forPage.filter((config) => config.spec?.type === TABLE_CONFIGURATION_TYPE.PAGE).sort(byAge)[0];
+  const viewConfigs = forPage.filter((config) => config.spec?.type === TABLE_CONFIGURATION_TYPE.VIEW && config.spec.view?.id).sort(byAge);
 
   const views: GlobalTableView[] = [];
   const seen = new Set<string>();
@@ -179,11 +181,4 @@ export function defaultViewIdFor(personalDefault: string | null | undefined, glo
   }
 
   return global.defaultViewId && ids.includes(global.defaultViewId) ? global.defaultViewId : null;
-}
-
-/** A resource name for a View resource: lower case letters, digits and dashes, kept short */
-export function viewConfigName(pageKey: string, id: string): string {
-  const clean = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-
-  return `view-${ clean(pageKey).slice(0, 180) }-${ clean(id).slice(0, 60) }`.replace(/-+$/, '');
 }

@@ -5,13 +5,11 @@ import { useStore } from 'vuex';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { ALL_TAB_KEY, mergeTabOrder } from '@shell/utils/table-views/global';
 import { persistenceIdOf, savedViewsByType, savedViewsPref } from '@shell/utils/table-views/views';
-import type { TableViewSaved } from '@shell/types/table-views';
+import type { TableViewSaved, TableViewsPageSettings } from '@shell/types/table-views';
 
-interface SavedEntry {
+/** `defaultViewId` here can also be a shared view's id, or `all` for the table's own tab over the page's shared default */
+interface SavedEntry extends TableViewsPageSettings {
   views: TableViewSaved[];
-  /** A view's id, shared views' included, or `all` for the table's own tab over the page's shared default */
-  defaultViewId?: string | null;
-  allIndex?: number;
   /**
    * Every tab's key in the user's order, shared views' included. Only kept once there are shared
    * views; without them the views' order and `allIndex` say it all

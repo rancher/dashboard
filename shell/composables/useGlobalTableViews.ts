@@ -6,8 +6,8 @@ import { computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 
 import { UI } from '@shell/config/types';
-import { globalPageKey, globalViewsFor, viewConfigName } from '@shell/utils/table-views/global';
-import type { GlobalTableView, TableConfiguration } from '@shell/utils/table-views/global';
+import { globalPageKey, globalViewsFor, TABLE_CONFIGURATION_TYPE } from '@shell/utils/table-views/global';
+import type { GlobalTableView, TableConfiguration, TableConfigurationSpec } from '@shell/utils/table-views/global';
 import type { TableViewSaved } from '@shell/types/table-views';
 
 const TYPE = UI.TABLE_CONFIGURATION;
@@ -52,7 +52,7 @@ export function useGlobalTableViews(resourceType: () => string, page: () => stri
   const canRemove = (id?: string | null) => {
     const config = entryFor(id)?.config;
 
-    return !!(config?.spec?.type === 'Page' ? config.canUpdate : config?.canDelete);
+    return !!(config?.spec?.type === TABLE_CONFIGURATION_TYPE.PAGE ? config.canUpdate : config?.canDelete);
   };
 
   const failed = (err: unknown) => {
@@ -76,9 +76,9 @@ export function useGlobalTableViews(resourceType: () => string, page: () => stri
     try {
       const config = await store.dispatch('management/create', {
         type:     TYPE,
-        metadata: { name: viewConfigName(pageKey.value, view.id) },
+        metadata: { generateName: 'view-' },
         spec:     {
-          type: 'View', page: pageKey.value, view: compactView(view)
+          type: TABLE_CONFIGURATION_TYPE.VIEW, page: pageKey.value, view: compactView(view)
         },
       });
 
@@ -99,7 +99,7 @@ export function useGlobalTableViews(resourceType: () => string, page: () => stri
   const update = async(
     id: string,
     changes: Partial<TableViewSaved>,
-    edit?: (spec: NonNullable<TableConfiguration['spec']>) => void,
+    edit?: (spec: TableConfigurationSpec) => void,
     pageName?: string
   ): Promise<boolean> => {
     const config = pageName ? configs.value.find((c) => c.metadata?.name === pageName) : entryFor(id)?.config;
@@ -110,11 +110,11 @@ export function useGlobalTableViews(resourceType: () => string, page: () => stri
 
     try {
       const copy: SavableConfig = await store.dispatch('management/clone', { resource: config });
-      const spec = copy.spec as NonNullable<TableConfiguration['spec']>;
+      const spec = copy.spec as TableConfigurationSpec;
 
       if (edit) {
         edit(spec);
-      } else if (spec.type === 'Page') {
+      } else if (spec.type === TABLE_CONFIGURATION_TYPE.PAGE) {
         spec.views = (spec.views || []).map((view) => (view.id === id ? compactView({ ...view, ...changes }) : view));
       } else {
         spec.view = compactView({ ...(spec.view as TableViewSaved), ...changes });
@@ -145,15 +145,19 @@ export function useGlobalTableViews(resourceType: () => string, page: () => stri
     const view = entry.view;
 
     try {
-      if (entry.config.spec?.type !== 'Page') {
-        await (entry.config as SavableConfig).remove();
+      if (entry.config.spec?.type !== TABLE_CONFIGURATION_TYPE.PAGE) {
+        // Every View resource holding it: the same view published twice, eg from two browser tabs,
+        // would otherwise stay published through its copy
+        const copies = configs.value.filter((config) => config.spec?.type === TABLE_CONFIGURATION_TYPE.VIEW && config.spec.page === pageKey.value && config.spec.view?.id === id);
+
+        await Promise.all(copies.map((config) => (config as SavableConfig).remove()));
 
         return { ok: true, undo: canShare.value ? () => share(view) : undefined };
       }
 
       const name = entry.config.metadata?.name;
       const copy: SavableConfig = await store.dispatch('management/clone', { resource: entry.config });
-      const spec = copy.spec as NonNullable<TableConfiguration['spec']>;
+      const spec = copy.spec as TableConfigurationSpec;
       const at = (spec.views || []).findIndex((v) => v.id === id);
       const wasDefault = spec.defaultViewId === id;
       const movedAll = Number.isInteger(spec.allIndex) && at >= 0 && at < (spec.allIndex as number);

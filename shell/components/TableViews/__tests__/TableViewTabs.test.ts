@@ -729,7 +729,7 @@ describe('TableViewTabs', () => {
           'growl/fromError':    (_ctx: unknown, payload: unknown) => fromError(payload),
           'management/findAll': jest.fn(),
           // Saved into the store, as the api's answer is
-          'management/create':  ({ state, commit }, data: { metadata: { name: string }, spec: Record<string, unknown> }) => ({
+          'management/create':  ({ state, commit }, data: { metadata: { generateName: string }, spec: Record<string, unknown> }) => ({
             ...data,
             save: () => {
               if (failWrites) {
@@ -737,7 +737,8 @@ describe('TableViewTabs', () => {
               }
 
               created.push(data);
-              commit('configs', state.configs.concat([config(data.metadata.name, data.spec, true)]));
+              // Named by the api, from generateName
+              commit('configs', state.configs.concat([config(`${ data.metadata.generateName }${ state.configs.length }`, data.spec, true)]));
 
               return Promise.resolve();
             },
@@ -884,7 +885,7 @@ describe('TableViewTabs', () => {
 
         expect(created[0]).toStrictEqual({
           type:     'ui.cattle.io.tableconfiguration',
-          metadata: { name: 'view-test-own' },
+          metadata: { generateName: 'view-' },
           spec:     {
             type: 'View',
             page: 'test',
@@ -912,7 +913,7 @@ describe('TableViewTabs', () => {
         await growl.mock.calls[0][0].action.run();
 
         expect(created[0]).toStrictEqual(expect.objectContaining({
-          metadata: { name: 'view-test-sv' },
+          metadata: { generateName: 'view-' },
           spec:     expect.objectContaining({ type: 'View', view: expect.objectContaining({ id: 'sv' }) })
         }));
       });
@@ -982,6 +983,33 @@ describe('TableViewTabs', () => {
 
         expect(entry().views.map((v) => v.id)).toStrictEqual(['sv', 'own']);
         expect(configs[1].remove).toHaveBeenCalledWith();
+      });
+
+      it('should stop sharing a view published twice, eg from two browser tabs, by deleting both its resources', async() => {
+        const twice = config('single-copy', {
+          type: 'View', page: 'test', view: single
+        }, true);
+        const elsewhere = config('other-page', {
+          type: 'View', page: 'other', view: single
+        }, true);
+        const { vm, configs } = createWrapper({
+          configs: [
+            config('page', {
+              type: 'Page', page: 'test', views: [pageView], defaultViewId: 'pv'
+            }, true),
+            config('single', {
+              type: 'View', page: 'test', view: single
+            }, true),
+            twice,
+            elsewhere,
+          ]
+        });
+
+        await vm.unshareView(tabFor(single, true));
+
+        expect(configs[1].remove).toHaveBeenCalledWith();
+        expect(twice.remove).toHaveBeenCalledWith();
+        expect(elsewhere.remove).not.toHaveBeenCalled();
       });
 
       it('should give the view back to everyone when deleting its resource fails', async() => {
