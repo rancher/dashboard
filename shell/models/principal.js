@@ -3,6 +3,7 @@ import { md5 } from '@shell/utils/crypto';
 import { addParam } from '@shell/utils/url';
 import { ucFirst } from '@shell/utils/string';
 import NormanModel from '@shell/plugins/steve/norman-class';
+import { configNameOfPrincipal } from '@shell/utils/auth-providers';
 
 export default class Principal extends NormanModel {
   get avatarSrc() {
@@ -39,9 +40,14 @@ export default class Principal extends NormanModel {
     return null;
   }
 
+  get configName() {
+    return this.id ? configNameOfPrincipal(this.id) : null;
+  }
+
   get displayType() {
     const provider = this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.provider }"`, null, this.provider);
+    const type = `${ provider } ${ ucFirst(this.providerSpecificType) }`;
 
-    return `${ provider } ${ ucFirst(this.providerSpecificType) }`;
+    return this.configName && this.configName !== this.provider ? `${ type } (${ this.configName })` : type;
   }
 }

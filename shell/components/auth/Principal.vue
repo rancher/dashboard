@@ -1,5 +1,6 @@
 <script>
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { configNameOfPrincipal, providerOfConfig } from '@shell/utils/auth-providers';
 
 export default {
   props: {
@@ -106,7 +107,7 @@ export default {
       // user.provider: user.provider is aggregated across all of the user's
       // principalIds, so for a user with more than one it resolves to 'multiple'
       // (or the wrong driver) and mislabels the principal we're actually showing.
-      const provider = this.value.split(':')[0].split('_')[0].toLowerCase();
+      const provider = providerOfConfig(this.$store.getters, configNameOfPrincipal(this.value));
 
       return this.$store.dispatch('rancher/create', {
         type:          NORMAN.PRINCIPAL,

@@ -2,9 +2,11 @@ import {
   REMEMBERED_PROVIDER_KEY,
   canEnableAuthProvider,
   clearRememberedProviderId,
+  configNameOfPrincipal,
   getRememberedProviderId,
   isValidAuthConfigName,
   nextAuthConfigName,
+  providerOfConfig,
   resolveInitialProvider,
   setRememberedProviderId,
   toProviderOptions,
@@ -316,6 +318,45 @@ describe('fx: nextAuthConfigName', () => {
 
   it('should not be confused by another provider using the same suffix', () => {
     expect(nextAuthConfigName(['github', 'okta-2'], 'github')).toBe('github-2');
+  });
+});
+
+describe('fx: configNameOfPrincipal', () => {
+  it.each([
+    ['github_user://123', 'github'],
+    ['github-2_user://123', 'github-2'],
+    ['openldap-2_group://cn=admins,dc=example', 'openldap-2'],
+    ['local://u-abc', 'local'],
+    ['system://provisioning', 'system'],
+    ['AzureAD_user://abc', 'azuread'],
+  ])('should take the config name from %s', (principalId, expected) => {
+    expect(configNameOfPrincipal(principalId)).toStrictEqual(expected);
+  });
+});
+
+describe('fx: providerOfConfig', () => {
+  const getters = {
+    'rancher/byId': (type: string, id: string) => {
+      const drivers: Record<string, object> = {
+        github:     { id: 'github', type: 'githubProvider' },
+        'github-2': { id: 'github-2', type: 'githubProvider' },
+        corp:       { id: 'corp', type: 'keycloakOIDCProvider' },
+      };
+
+      return type === 'authProvider' ? drivers[id] : undefined;
+    }
+  };
+
+  it.each([
+    ['github', 'github'],
+    ['github-2', 'github'],
+    ['corp', 'keycloakoidc'],
+  ])('should resolve %s to its provider type', (configName, expected) => {
+    expect(providerOfConfig(getters, configName)).toStrictEqual(expected);
+  });
+
+  it('should return the config name of a config that is not listed', () => {
+    expect(providerOfConfig(getters, 'okta-3')).toStrictEqual('okta-3');
   });
 });
 

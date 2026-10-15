@@ -196,6 +196,24 @@ export const nextAuthConfigName = (takenIds: string[], key: string): string => {
   return `${ key }-${ suffix }`;
 };
 
+/**
+ * The authconfig a principal belongs to. Principal ids are prefixed with the
+ * config's name, not its provider type: `github-2_user://123` is a GitHub user of
+ * the `github-2` config.
+ */
+export const configNameOfPrincipal = (principalId: string): string => principalId.replace(/:.*$/, '').split('_')[0].toLowerCase();
+
+/**
+ * The provider type of an authconfig, looked up by name in the loaded
+ * `/v1-public/authproviders`. That only lists enabled configs, so the name is
+ * returned as is when the config isn't found.
+ */
+export const providerOfConfig = (getters: Record<string, any>, configName: string): string => {
+  const driver = getters['rancher/byId']('authProvider', configName);
+
+  return driver?.type ? providerKey(driver.type) : configName;
+};
+
 /** `metadata.name` is a DNS label, and Rancher rejects anything else. */
 export const isValidAuthConfigName = (name: string): boolean => /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(name) && name.length <= 63;
 
