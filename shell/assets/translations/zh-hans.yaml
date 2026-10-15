@@ -4223,6 +4223,7 @@ prefs:
 
 principal:
   loading: 正在加载&hellip;
+  error: 无法获取信息
   name: 名称
   loginName: 用户名
   type: 类型

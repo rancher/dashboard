@@ -41,6 +41,10 @@ export default {
 
     unresolvedName() {
       return this.value?.replace('://', ' ');
+    },
+
+    idProvider() {
+      return this.value.split(':')[0].split('_')[0].toLowerCase();
     }
   },
 
@@ -204,10 +208,10 @@ export default {
       <div class="avatar">
         <div
           class="empty"
-          :class="{'text-muted': useMuted}"
+          :class="{'text-muted': useMuted, 'round': idProvider === 'github'}"
         >
           <i
-            class="icon icon-user icon-lg"
+            class="icon icon-question-mark icon-lg"
             aria-hidden="true"
           />
         </div>
@@ -259,7 +263,11 @@ export default {
 
       DIV.empty {
         border: 1px solid var(--border);
-        line-height: $size;
+        width: $size;
+        height: $size;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       IMG {

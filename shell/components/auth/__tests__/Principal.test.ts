@@ -360,13 +360,25 @@ describe('component: Principal', () => {
         expect(wrapper.text()).not.toContain(unresolvedValue);
       });
 
-      it('should show a generic user icon in place of the avatar', async() => {
+      it('should show a question mark icon in place of the avatar', async() => {
         const wrapper = await mountUnresolved();
 
-        expect(wrapper.find('.avatar i').classes()).toContain('icon-user');
+        expect(wrapper.find('.avatar i').classes()).toContain('icon-question-mark');
       });
 
-      it('a11y: should hide the generic user icon from screen readers', async() => {
+      it.each([
+        ['github_team://8087745', true],
+        ['github_user://18697775', true],
+        ['okta_group://auditors', false],
+        ['openldap_group://cn=auditors,ou=groups,dc=example,dc=com', false],
+        ['local://u-abc123', false],
+      ])('should round the avatar of %p like a resolved principal: %p', async(id, round) => {
+        const wrapper = await mountUnresolved(id);
+
+        expect(wrapper.find('.avatar .empty').classes('round')).toStrictEqual(round);
+      });
+
+      it('a11y: should hide the question mark icon from screen readers', async() => {
         const wrapper = await mountUnresolved();
 
         expect(wrapper.find('.avatar i').attributes('aria-hidden')).toStrictEqual('true');
