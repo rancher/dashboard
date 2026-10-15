@@ -67,6 +67,14 @@ export default {
     usedLabel: {
       type:    String,
       default: null
+    },
+
+    /**
+     * Optional height of the bar in pixels. Defaults to the height of the PercentageBar component
+     */
+    barHeight: {
+      type:    Number,
+      default: undefined
     }
   },
   computed: {
@@ -124,6 +132,7 @@ export default {
       <PercentageBar
         :modelValue="percentageBarValue"
         :color-stops="colorStops"
+        :height="barHeight"
       />
     </div>
   </div>
@@ -151,12 +160,6 @@ export default {
         margin-right: 10px;
       }
     }
-  }
-
-  // Same height as the status bars in the resource cards
-  .percentage-bar :deep(.bar) {
-    height: 4px;
-    border-radius: 4px;
   }
 }
 </style>

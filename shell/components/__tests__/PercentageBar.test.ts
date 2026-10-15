@@ -29,4 +29,20 @@ describe('component: PercentageBar', () => {
     expect(val.text()).toBe('25%');
     expect(wrapper.vm.primaryColor).toBe('--warning');
   });
+
+  it('should not pass a height to the Bar when height is not provided', () => {
+    const wrapper = shallowMount(PercentageBar, { props: { modelValue: 25 } });
+
+    const barComponent = wrapper.findComponent(Bar);
+
+    expect(barComponent.props('height')).toBeUndefined();
+  });
+
+  it('should pass height to the Bar', () => {
+    const wrapper = shallowMount(PercentageBar, { props: { modelValue: 25, height: 4 } });
+
+    const barComponent = wrapper.findComponent(Bar);
+
+    expect(barComponent.props('height')).toStrictEqual(4);
+  });
 });

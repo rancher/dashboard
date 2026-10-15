@@ -16,6 +16,14 @@ export default {
     slices: {
       type:    Array,
       default: () => []
+    },
+    /**
+     * Optional height of the bar in pixels, its ends are fully rounded. When not set the height comes from
+     * the styles, so css overrides of `.bar` keep working
+     */
+    height: {
+      type:    Number,
+      default: undefined
     }
   },
   computed: {
@@ -26,7 +34,14 @@ export default {
       };
     },
     barStyle() {
-      return { backgroundColor: `var(${ this.secondaryColor })` };
+      const style = { backgroundColor: `var(${ this.secondaryColor })` };
+
+      if (this.height) {
+        style.height = `${ this.height }px`;
+        style.borderRadius = `${ this.height / 2 }px`;
+      }
+
+      return style;
     },
     sliceStyles() {
       return this.slices.map((slice) => ({

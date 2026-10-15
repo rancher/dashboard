@@ -139,6 +139,35 @@ describe('component: ConsumptionGauge', () => {
     expect(usedSpan.text()).toBe('Running');
   });
 
+  describe('bar height', () => {
+    it('should not pass a height to the PercentageBar when barHeight is not provided', () => {
+      const wrapper = mount(ConsumptionGauge, {
+        props: {
+          capacity: 100,
+          used:     50,
+        }
+      });
+
+      const percentageBar = wrapper.findComponent(PercentageBar);
+
+      expect(percentageBar.props('height')).toBeUndefined();
+    });
+
+    it('should pass barHeight to the PercentageBar', () => {
+      const wrapper = mount(ConsumptionGauge, {
+        props: {
+          capacity:  100,
+          used:      50,
+          barHeight: 4,
+        }
+      });
+
+      const percentageBar = wrapper.findComponent(PercentageBar);
+
+      expect(percentageBar.props('height')).toStrictEqual(4);
+    });
+  });
+
   it('passing slot TITLE should render correctly', () => {
     const colorStops = {
       0: '--success', 30: '--warning', 70: '--error'

@@ -55,6 +55,14 @@ export default {
     slices: {
       type:    Array,
       default: () => []
+    },
+
+    /**
+     * Optional height of the bar in pixels. Defaults to the height of the Bar component
+     */
+    height: {
+      type:    Number,
+      default: undefined
     }
   },
 
@@ -107,6 +115,7 @@ export default {
       :percentage="modelValue"
       :primary-color="primaryColor"
       :slices="slices"
+      :height="height"
     />
     <span
       v-if="showPercentage"
