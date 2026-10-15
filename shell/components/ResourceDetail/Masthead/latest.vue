@@ -1,6 +1,7 @@
 <script lang="ts">
 /* eslint-disable */
 import { Banner } from '@components/Banner';
+import FleetManagedBanner from '@shell/components/Resource/Detail/FleetManagedBanner.vue';
 import TitleBar from '@shell/components/Resource/Detail/TitleBar/index.vue';
 import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
 import Metadata from '@shell/components/Resource/Detail/Metadata/index.vue';
@@ -62,6 +63,10 @@ const store = useStore();
       class="new state-banner"
       v-bind="bannerProps"
       role="status"
+    />
+    <FleetManagedBanner
+      :resource="props.value"
+      class="new state-banner"
     />
     <Metadata
       v-bind="metadataProps"
