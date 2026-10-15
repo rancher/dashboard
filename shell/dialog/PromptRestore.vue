@@ -120,10 +120,6 @@ export default {
       return this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, mgmtClusterId);
     },
 
-    isImported() {
-      return !!(this.targetCluster?.isImported || this.targetMgmtCluster?.isImported);
-    },
-
     // Imported clusters with day 2 ops are restored via an operation CR rather than spec.rkeConfig.etcdSnapshotRestore
     isImportedWithDayTwoOps() {
       return !!(this.targetCluster?.isImportedWithDayTwoOps || this.targetMgmtCluster?.isDayTwoOpsEnabled);
@@ -136,10 +132,6 @@ export default {
       }
 
       return !!this.targetMgmtCluster?.isVersionManagementEnabled;
-    },
-
-    showRestoreMode() {
-      return !this.isImported || this.isImportedWithDayTwoOps;
     },
 
     clusterSnapshots() {
@@ -338,7 +330,6 @@ export default {
     </div>
 
     <RadioGroup
-      v-if="showRestoreMode"
       v-model:value="restoreMode"
       name="restoreMode"
       :label="t('promptRestore.restoreMode.label')"

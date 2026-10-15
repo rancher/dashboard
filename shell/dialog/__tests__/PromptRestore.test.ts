@@ -311,16 +311,6 @@ describe('component: PromptRestore', () => {
     });
 
     it.each([
-      ['rke2 cluster', rke2Cluster(), true],
-      ['imported cluster with day 2 ops', importedCluster(false), true],
-      ['imported cluster without day 2 ops', { ...importedCluster(true), isImportedWithDayTwoOps: false }, false],
-    ])('should decide whether to show the restore mode selector for an %s', (_desc, cluster, expected) => {
-      const wrapper = createWrapper([cluster]);
-
-      expect((wrapper.vm as any).showRestoreMode).toBe(expected);
-    });
-
-    it.each([
       ['rke2 cluster', rke2Cluster(), 'all'],
       ['imported cluster with version management enabled', importedCluster(true), 'all'],
       ['imported cluster with version management disabled', importedCluster(false), 'none'],
