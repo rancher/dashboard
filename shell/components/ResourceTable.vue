@@ -164,11 +164,12 @@ export default {
     },
 
     /**
-     * If the current preference for group isn't applicable, or not set, use this instead
+     * If the current preference for group isn't applicable, or not set, use this instead (else the
+     * namespace). Naming one, even the namespace, also starts the table's views grouped by it
      */
     groupDefault: {
       type:    String,
-      default: DEFAULT_GROUP,
+      default: null,
     },
 
     groupTooltip: {
@@ -542,11 +543,13 @@ export default {
           // Attempt to find the default option in available options...
           // if not use the first value in the options collection...
           // and if not that just fall back to the default
-          if (this._groupOptions.find((g) => g.value === this.groupDefault)) {
-            return this.groupDefault;
+          const groupDefault = this.groupDefault || DEFAULT_GROUP;
+
+          if (this._groupOptions.find((g) => g.value === groupDefault)) {
+            return groupDefault;
           }
 
-          return this._groupOptions[0]?.value || this.groupDefault || DEFAULT_GROUP;
+          return this._groupOptions[0]?.value || groupDefault;
         }
 
         return this._group;
@@ -645,12 +648,11 @@ export default {
 
     /**
      * The grouping a view starts with: the one the page names as its default, eg cluster members by
-     * role, machines by pool; else none. The namespace is the `groupDefault` prop's own default, so it
-     * isn't taken as the page naming it. A list grouped by a field it is given, eg project members by
-     * project, keeps that
+     * role, machines by pool, namespaces by project; else none. A list grouped by a field it is given,
+     * eg project members by project, keeps that
      */
     defaultGroupBy() {
-      if (!this.showGrouping || !this.groupDefault || this.groupDefault === DEFAULT_GROUP) {
+      if (!this.showGrouping || !this.groupDefault) {
         return null;
       }
 
