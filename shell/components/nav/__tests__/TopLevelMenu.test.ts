@@ -2799,6 +2799,31 @@ describe('topLevelMenu', () => {
         wrapper.unmount();
       });
 
+      it.each([
+        ['collapsed', false],
+        ['open', true],
+      ])('says nothing on a minor release in Community while the nav is %s, as the zero patch level is hidden', async(_state, shown) => {
+        const wrapper = mountNav('v2.16.0');
+        const vm = wrapper.vm as any;
+
+        vm.shown = shown;
+        await wrapper.vm.$nextTick();
+
+        expect(vm.versionTooltip.content).toBeUndefined();
+
+        wrapper.unmount();
+      });
+
+      it('carries the zero patch level of a minor release in Prime while the nav is collapsed', () => {
+        setVersionData({ RancherPrime: 'true' });
+
+        const wrapper = mountNav('v2.16.0');
+
+        expect((wrapper.vm as any).versionTooltip.content).toBe('v2.16.0');
+
+        wrapper.unmount();
+      });
+
       it('opens to the right, in the nav\'s own tooltip style', () => {
         const wrapper = mountNav('v2.16.0-f548dfa-head');
         const { placement, popperClass } = (wrapper.vm as any).versionTooltip;
