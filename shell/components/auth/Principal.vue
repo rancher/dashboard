@@ -41,10 +41,6 @@ export default {
 
     unresolvedName() {
       return this.value?.replace('://', ' ');
-    },
-
-    idProvider() {
-      return this.value.split(':')[0].split('_')[0].toLowerCase();
     }
   },
 
@@ -208,7 +204,7 @@ export default {
       <div class="avatar">
         <div
           class="empty"
-          :class="{'text-muted': useMuted, 'round': idProvider === 'github'}"
+          :class="{'text-muted': useMuted}"
         >
           <i
             class="icon icon-question-mark icon-lg"
