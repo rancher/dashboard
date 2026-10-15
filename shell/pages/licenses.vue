@@ -25,7 +25,11 @@ export default {
     try {
       const res = await fetch(LICENSES_URL);
 
-      if (res.status === 404) {
+      // A missing file can come back as a 200 with the app's index.html (SPA
+      // fallback) rather than a 404, so treat an HTML response as not found too.
+      const isHtml = !!res.headers?.get('content-type')?.includes('text/html');
+
+      if (res.status === 404 || (res.ok && isHtml)) {
         this.notFound = true;
       } else if (!res.ok) {
         this.errorStatus = res.status;
@@ -123,7 +127,7 @@ export default {
     <Banner
       v-if="notFound"
       color="warning"
-      :label="t('about.licenses.page.notFound', { file: 'licenses.json' })"
+      :label="t('about.licenses.page.notFound')"
     />
 
     <Banner

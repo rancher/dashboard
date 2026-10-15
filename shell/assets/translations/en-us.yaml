@@ -482,7 +482,7 @@ about:
     page:
       title: Open Source Licenses
       hint: Click a license to view its full text.
-      notFound: "{file} is not available in this build. Generate it by running `ANALYZE_LICENSES=true yarn build && node ./scripts/analyze-licenses -u` locally and rebuilding."
+      notFound: License information could not be loaded.
       error: "Failed to load licenses ({status}). Please try again later."
     table:
       package: Package
