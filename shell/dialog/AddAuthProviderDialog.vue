@@ -4,16 +4,18 @@ import {
 } from 'vue';
 import { useStore } from 'vuex';
 import debounce from 'lodash/debounce';
-import { Card } from '@components/Card';
 import { RcButton } from '@components/RcButton';
 import { RcTag } from '@components/Pill';
 import { RcItemCard } from '@components/RcItemCard';
+import { RcModal } from '@components/RcModal';
 import { useI18n } from '@shell/composables/useI18n';
 import AuthProviderLogo from '@shell/components/auth/AuthProviderLogo.vue';
 
 import type { AuthProviderType } from '@shell/utils/auth-providers';
 
 const props = defineProps<{
+  /** `show` and the `close` handler, from whoever owns this dialog's visibility. */
+  modal: { show: boolean; onClose:() => void };
   /** One entry per provider type the server supports. */
   rows: AuthProviderType[];
   /** Called with the chosen provider. */
@@ -23,8 +25,6 @@ const props = defineProps<{
   /** Whether more than one external provider can be enabled at once. */
   multipleAllowed?: boolean;
 }>();
-
-const emit = defineEmits<{(e: 'close'): void }>();
 
 const { t } = useI18n(useStore());
 
@@ -76,137 +76,131 @@ onBeforeUnmount(() => announce.cancel());
 
 const select = (id: string) => {
   props.selectCb(id);
-  emit('close');
+  props.modal.onClose();
 };
 </script>
 
 <template>
-  <Card
-    class="add-auth-provider"
-    :show-highlight-border="false"
+  <RcModal
+    v-bind="modal"
+    size="large"
+    :title="t('authConfig.add.title')"
+    data-testid="add-auth-provider"
   >
-    <template #title>
-      <h4 class="text-default-text">
-        {{ t('authConfig.add.title') }}
-      </h4>
-    </template>
+    <div class="add-auth-provider__body">
+      <p class="add-auth-provider__subtitle">
+        {{ subtitle }}
+      </p>
 
-    <template #body>
-      <div class="add-auth-provider__body">
-        <p class="add-auth-provider__subtitle">
-          {{ subtitle }}
-        </p>
+      <input
+        v-model="search"
+        type="search"
+        class="add-auth-provider__search"
+        :placeholder="t('authConfig.add.searchPlaceholder')"
+        :aria-label="t('authConfig.add.searchPlaceholder')"
+        data-testid="add-auth-provider-search"
+      >
 
-        <input
-          v-model="search"
-          type="search"
-          class="add-auth-provider__search"
-          :placeholder="t('authConfig.add.searchPlaceholder')"
-          :aria-label="t('authConfig.add.searchPlaceholder')"
-          data-testid="add-auth-provider-search"
+      <div
+        class="add-auth-provider__filters"
+        role="group"
+        :aria-labelledby="filterLabelId"
+      >
+        <span
+          :id="filterLabelId"
+          class="add-auth-provider__filter-label"
+        >{{ t('authConfig.add.filterLabel') }}</span>
+        <RcTag
+          :type="protocol === '' ? 'active' : 'inactive'"
+          class="add-auth-provider__filter"
+          role="button"
+          tabindex="0"
+          :aria-pressed="protocol === ''"
+          data-testid="add-auth-provider-filter-all"
+          @click="protocol = ''"
+          @keydown.enter="protocol = ''"
+          @keydown.space.prevent="protocol = ''"
         >
-
-        <div
-          class="add-auth-provider__filters"
-          role="group"
-          :aria-labelledby="filterLabelId"
+          {{ t('authConfig.add.filterAll') }}
+        </RcTag>
+        <RcTag
+          v-for="option in protocols"
+          :key="option.value"
+          :type="protocol === option.value ? 'active' : 'inactive'"
+          class="add-auth-provider__filter"
+          role="button"
+          tabindex="0"
+          :aria-pressed="protocol === option.value"
+          :data-testid="`add-auth-provider-filter-${ option.value }`"
+          @click="protocol = option.value"
+          @keydown.enter="protocol = option.value"
+          @keydown.space.prevent="protocol = option.value"
         >
-          <span
-            :id="filterLabelId"
-            class="add-auth-provider__filter-label"
-          >{{ t('authConfig.add.filterLabel') }}</span>
-          <RcTag
-            :type="protocol === '' ? 'active' : 'inactive'"
-            class="add-auth-provider__filter"
-            role="button"
-            tabindex="0"
-            :aria-pressed="protocol === ''"
-            data-testid="add-auth-provider-filter-all"
-            @click="protocol = ''"
-            @keydown.enter="protocol = ''"
-            @keydown.space.prevent="protocol = ''"
-          >
-            {{ t('authConfig.add.filterAll') }}
-          </RcTag>
-          <RcTag
-            v-for="option in protocols"
-            :key="option.value"
-            :type="protocol === option.value ? 'active' : 'inactive'"
-            class="add-auth-provider__filter"
-            role="button"
-            tabindex="0"
-            :aria-pressed="protocol === option.value"
-            :data-testid="`add-auth-provider-filter-${ option.value }`"
-            @click="protocol = option.value"
-            @keydown.enter="protocol = option.value"
-            @keydown.space.prevent="protocol = option.value"
-          >
-            {{ option.label }}
-          </RcTag>
-        </div>
-
-        <div
-          class="visually-hidden"
-          role="status"
-          aria-live="polite"
-          data-testid="add-auth-provider-announcement"
-        >
-          {{ announcement }}
-        </div>
-
-        <ul
-          v-if="filtered.length"
-          class="add-auth-provider__grid"
-        >
-          <li
-            v-for="row in filtered"
-            :key="row.id"
-          >
-            <rc-item-card
-              :id="row.id"
-              :value="row"
-              :header="{ title: { text: row.name } }"
-              variant="medium"
-              :clickable="true"
-              class="add-auth-provider__tile"
-              :data-testid="`add-auth-provider-tile-${ row.id }`"
-              @card-click="select(row.id)"
-            >
-              <template #item-card-image>
-                <AuthProviderLogo :icon="row.icon" />
-              </template>
-              <template #item-card-sub-header>
-                <RcTag
-                  type="inactive"
-                  :data-testid="`add-auth-provider-tile-protocol-${ row.id }`"
-                >
-                  {{ row.categoryLabel }}
-                </RcTag>
-              </template>
-            </rc-item-card>
-          </li>
-        </ul>
-        <p
-          v-else
-          class="add-auth-provider__empty"
-          data-testid="add-auth-provider-no-results"
-        >
-          {{ t('authConfig.add.noResults') }}
-        </p>
+          {{ option.label }}
+        </RcTag>
       </div>
-    </template>
 
-    <template #actions>
-      <div class="add-auth-provider__actions">
-        <rc-button
-          variant="link"
-          @click="emit('close')"
-        >
-          {{ t('generic.cancel') }}
-        </rc-button>
+      <div
+        class="visually-hidden"
+        role="status"
+        aria-live="polite"
+        data-testid="add-auth-provider-announcement"
+      >
+        {{ announcement }}
       </div>
+
+      <ul
+        v-if="filtered.length"
+        class="add-auth-provider__grid"
+      >
+        <li
+          v-for="row in filtered"
+          :key="row.id"
+        >
+          <rc-item-card
+            :id="row.id"
+            :value="row"
+            :header="{ title: { text: row.name } }"
+            variant="medium"
+            :clickable="true"
+            class="add-auth-provider__tile"
+            :data-testid="`add-auth-provider-tile-${ row.id }`"
+            @card-click="select(row.id)"
+          >
+            <template #item-card-image>
+              <AuthProviderLogo :icon="row.icon" />
+            </template>
+            <template #item-card-sub-header>
+              <RcTag
+                type="inactive"
+                :data-testid="`add-auth-provider-tile-protocol-${ row.id }`"
+              >
+                {{ row.categoryLabel }}
+              </RcTag>
+            </template>
+          </rc-item-card>
+        </li>
+      </ul>
+      <p
+        v-else
+        class="add-auth-provider__empty"
+        data-testid="add-auth-provider-no-results"
+      >
+        {{ t('authConfig.add.noResults') }}
+      </p>
+    </div>
+
+    <template #actions="{ cancel }">
+      <RcButton
+        variant="tertiary"
+        size="large"
+        data-testid="add-auth-provider-cancel"
+        @click="cancel"
+      >
+        {{ t('generic.cancel') }}
+      </RcButton>
     </template>
-  </Card>
+  </RcModal>
 </template>
 
 <style lang="scss" scoped>
@@ -215,10 +209,6 @@ $tile-focus-ring: 4px;
 $results-height: 400px;
 
 .add-auth-provider {
-  &.card-container {
-    box-shadow: none;
-  }
-
   &__body {
     display: flex;
     flex-direction: column;
@@ -271,13 +261,14 @@ $results-height: 400px;
     height: $results-height;
     overflow-y: auto;
 
-    // The list scrolls, so browsers make it focusable in its own right - give it
-    // the same ring as anything else you can tab to, rather than the default one.
+    // The list scrolls, so browsers make it focusable in its own right. Its ring
+    // sits inside, as on RcModal's own scrolling body, since the body clips
+    // anything further out than the tile ring's gutter.
     border-radius: var(--border-radius-lg);
 
     &:focus-visible {
       @include focus-outline;
-      outline-offset: 2px;
+      outline-offset: -2px;
     }
   }
 
@@ -298,12 +289,6 @@ $results-height: 400px;
     padding: $tile-focus-ring;
     color: var(--label-secondary);
     text-align: center;
-  }
-
-  &__actions {
-    display: flex;
-    justify-content: flex-end;
-    width: 100%;
   }
 }
 </style>
