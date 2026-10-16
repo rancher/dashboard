@@ -250,9 +250,26 @@ describe('Settings', { testIsolation: false }, () => {
   });
 
   it('can update ui-brand', { tags: ['@noPrime', '@globalSettings', '@adminUser'] }, () => {
-    // We probably want a better way to distinguish between rancher and suse logos. I'm doing this as part of the vue3 migration and trying to keep things as similar as possible.
-    const rancherLogoWidth = 167;
-    const suseRancherLogoWidth = 200;
+    // Rancher and SUSE logos can render at the same size, so compare the image source instead
+    let rancherHeaderLogoSrc: string;
+    let rancherBurgerLogoSrc: string;
+
+    HomePagePo.navTo();
+    burgerMenu.headerBrandLogoImage()
+      .should('be.visible')
+      .invoke('attr', 'src')
+      .then((src) => {
+        rancherHeaderLogoSrc = src;
+      });
+
+    BurgerMenuPo.toggle();
+    burgerMenu.brandLogoImage()
+      .should('be.visible')
+      .invoke('attr', 'src')
+      .then((src) => {
+        rancherBurgerLogoSrc = src;
+      });
+    BurgerMenuPo.toggle();
 
     // Update setting
     SettingsPagePo.navTo();
@@ -271,15 +288,15 @@ describe('Settings', { testIsolation: false }, () => {
     BurgerMenuPo.toggle();
     burgerMenu.brandLogoImage()
       .should('be.visible')
-      .invoke('outerWidth').then((str) => parseInt(str))
-      .should('eq', suseRancherLogoWidth);
+      .invoke('attr', 'src')
+      .should((src) => expect(src).to.not.eq(rancherBurgerLogoSrc));
     BurgerMenuPo.toggle();
 
     HomePagePo.navTo();
     burgerMenu.headerBrandLogoImage()
       .should('be.visible')
-      .invoke('outerWidth').then((str) => parseInt(str))
-      .should('eq', suseRancherLogoWidth);
+      .invoke('attr', 'src')
+      .should((src) => expect(src).to.not.eq(rancherHeaderLogoSrc));
     BurgerMenuPo.toggle();
 
     // Reset
@@ -297,12 +314,16 @@ describe('Settings', { testIsolation: false }, () => {
 
     // Check logos in top-level navigation header for updated logo
     HomePagePo.navTo();
-    burgerMenu.headerBrandLogoImage().should('be.visible').invoke('outerWidth').then((str) => parseInt(str))
-      .should('eq', rancherLogoWidth);
+    burgerMenu.headerBrandLogoImage()
+      .should('be.visible')
+      .invoke('attr', 'src')
+      .should((src) => expect(src).to.eq(rancherHeaderLogoSrc));
 
     BurgerMenuPo.toggle();
-    burgerMenu.brandLogoImage().should('be.visible').invoke('outerWidth').then((str) => parseInt(str))
-      .should('eq', rancherLogoWidth);
+    burgerMenu.brandLogoImage()
+      .should('be.visible')
+      .invoke('attr', 'src')
+      .should((src) => expect(src).to.eq(rancherBurgerLogoSrc));
 
     resetSettings.push('ui-brand');
   });
