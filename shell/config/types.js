@@ -68,6 +68,7 @@ export const SERVICE = 'service';
 export const SECRET = 'secret';
 export const SERVICE_ACCOUNT = 'serviceaccount';
 export const STORAGE_CLASS = 'storage.k8s.io.storageclass';
+export const VOLUME_ATTRIBUTES_CLASS = 'storage.k8s.io.volumeattributesclass';
 export const CSI_DRIVER = 'storage.k8s.io.csidriver';
 export const OBJECT_META = 'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta';
 export const NETWORK_ATTACHMENT = 'k8s.cni.cncf.io.networkattachmentdefinition';
@@ -281,7 +282,9 @@ export const EXT = {
 
 export const CAPI = {
   CAPI_CLUSTER:         'cluster.x-k8s.io.cluster',
+  CLUSTER_CLASS:        'cluster.x-k8s.io.clusterclass',
   MACHINE_DEPLOYMENT:   'cluster.x-k8s.io.machinedeployment',
+  MACHINE_POOL:         'cluster.x-k8s.io.machinepool',
   MACHINE_SET:          'cluster.x-k8s.io.machineset',
   MACHINE:              'cluster.x-k8s.io.machine',
   RANCHER_CLUSTER:      'provisioning.cattle.io.cluster',

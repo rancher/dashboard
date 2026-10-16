@@ -1,6 +1,28 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { CONFIG_MAP } from '@shell/config/types';
+import { relatedEntry, workloadsInNamespace } from '@shell/utils/related-resources';
 
 export default class ConfigMap extends SteveModel {
+  /**
+   * Related resources to show in the yaml editor
+   * Found here, as dependents:
+   * - the workloads in its namespace whose pods use it - the workload model's `usesResource`
+   *
+   * @param {import('@shell/core/types').RelatedResourcesFetchOptions} [options]
+   * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
+   */
+  async fetchModelRelatedResources({ dependents = true } = {}) {
+    if (!this.metadata?.uid || !dependents) {
+      return [];
+    }
+
+    const workloads = await workloadsInNamespace(this, this.metadata.namespace);
+
+    return workloads
+      .filter((workload) => workload.usesResource(CONFIG_MAP, this.metadata.name))
+      .map((workload) => relatedEntry(workload, { dependent: true }));
+  }
+
   get keysDisplay() {
     const keys = [
       ...Object.keys(this.data || []),

@@ -476,20 +476,6 @@ defineExpose({ view });
 
 <style lang="scss" scoped>
 .rc-code-mirror {
-  --rc-cm-bg: #FFFFFF;
-  --rc-cm-selection: #E0E0E0;
-  --rc-cm-key: #1A4FA8;
-  --rc-cm-string: #8A4B10;
-  --rc-cm-keyword: #9A2B94;
-  --rc-cm-comment: #5B616D;
-  --rc-cm-text: #16181D;
-  --rc-cm-gutter: #5B626C;
-  --rc-cm-fold-hover: #E8ECF2;
-  --rc-cm-active-line: rgba(0, 0, 0, 0.04);
-  --rc-cm-search-match: rgba(255, 213, 0, 0.4);
-  --rc-cm-search-match-selected: rgba(255, 140, 0, 0.5);
-  --rc-cm-color-scheme: light;
-
   // A column, so the editor shrinks to make room for the bottom panels strip in a fixed height
   display: flex;
   flex-direction: column;
@@ -724,21 +710,5 @@ defineExpose({ view });
       background-color: var(--primary);
     }
   }
-}
-
-.rc-code-mirror:is(.theme-dark *) {
-  --rc-cm-bg: #171C22;
-  --rc-cm-selection: #303030;
-  --rc-cm-key: #79B8FF;
-  --rc-cm-string: #E0A458;
-  --rc-cm-keyword: #E48AD8;
-  --rc-cm-comment: #9AA1AC;
-  --rc-cm-text: #E6E9EF;
-  --rc-cm-gutter: #9AA1AC;
-  --rc-cm-fold-hover: #3C4655;
-  --rc-cm-active-line: rgba(255, 255, 255, 0.04);
-  --rc-cm-search-match: rgba(255, 213, 0, 0.25);
-  --rc-cm-search-match-selected: rgba(255, 140, 0, 0.45);
-  --rc-cm-color-scheme: dark;
 }
 </style>

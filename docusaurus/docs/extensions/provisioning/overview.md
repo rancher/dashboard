@@ -23,17 +23,20 @@ Below is outline for the functionality the class provides, for detail about the 
 
 The class provides a way to...
 1. show a card for the new cluster type for the user to choose when selecting a provider
-1. handle custom machine configs that haven't necessarily been provided by the usual node driver way
-1. hooks to extend/override the cluster save process. Either..
+2. handle custom machine configs that haven't necessarily been provided by the usual node driver way
+3. hooks to extend/override the cluster save process. Either..
     - Override all of the cluster save process
     - Extend/Override parts of the cluster save process. This allows a lot of the boilerplate code to manage addons, member bindings, etc to run
       - run code before the cluster resource is saved
       - replace the code that saves the core cluster
       - run code after the cluster resource is saved
-1. show a custom label for the provider of the custom cluster
+4. show a custom label for the provider of the custom cluster
     - This is done by setting the `ui.rancher/provider` annotation in the cluster
     - It's used in the UI whenever showing the cluster's provider
-1. show custom tabs on the Detail page of the custom cluster
+5. show custom tabs on the Detail page of the custom cluster
+6. allow or prevent editing the YAML of the clusters it handles, with `canEditYaml(cluster)`
+    - By default only the YAML of an RKE2/K3s cluster can be edited
+    - The provisioner that handles a cluster is the one its edit page uses, for example the provisioner whose id is in the cluster's `ui.rancher/provider` annotation
 
 To make API calls from the UI to a third-party domain, use the **`shell.proxy` API** (`this.$shell.proxy`). It routes requests through Rancher's server-side `/meta/proxy` endpoint, avoiding browser CORS restrictions and keeping cloud credentials out of the browser.
 

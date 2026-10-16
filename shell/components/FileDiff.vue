@@ -36,7 +36,14 @@ export default {
     minHeight: {
       type:    Number,
       default: 200,
-    }
+    },
+
+    // how many lines of unchanged text to show
+    // above/below each change
+    context: {
+      type:    Number,
+      default: undefined,
+    },
   },
 
   mounted() {
@@ -55,7 +62,10 @@ export default {
       const patch = createPatch(
         this.filename,
         this.orig,
-        this.neu
+        this.neu,
+        undefined,
+        undefined,
+        this.context ? { context: this.context } : undefined
       );
       const configuration = {
         // UI

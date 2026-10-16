@@ -1,7 +1,8 @@
 import find from 'lodash/find';
-import { NODE, POD } from '@shell/config/types';
+import { NODE, POD, INGRESS } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { parse } from '@shell/utils/selector';
+import { findAllInNamespace, ingressServiceNames, relatedEntry, workloadsInNamespace } from '@shell/utils/related-resources';
 import { PaginationFilterEquality, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 // i18n-uses servicesPage.serviceTypes.clusterIp.*, servicesPage.serviceTypes.externalName.*, servicesPage.serviceTypes.headless.*
@@ -234,6 +235,33 @@ export default class Service extends SteveModel {
     const idx = view.lastIndexOf(`/`);
 
     return proxyUrlFromBase(view.slice(0, idx), scheme, this.metadata.name, port);
+  }
+
+  /**
+   * Related resources to show in the yaml editor
+   * Found here, as dependents so the tree does not take in the resources they use, all in its namespace:
+   * - the workloads it sends traffic to - the workload model's `isSelectedByService`
+   * - the Ingresses routing to it - `ingressServiceNames`
+   *
+   * @param {import('@shell/core/types').RelatedResourcesFetchOptions} [options]
+   * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
+   */
+  async fetchModelRelatedResources({ dependents = true } = {}) {
+    if (!this.metadata?.uid || !dependents) {
+      return [];
+    }
+
+    const namespace = this.metadata.namespace;
+
+    const [workloads, ingresses] = await Promise.all([
+      workloadsInNamespace(this, namespace),
+      findAllInNamespace(this, INGRESS, namespace),
+    ]);
+
+    return [
+      ...workloads.filter((workload) => workload.isSelectedByService(this)).map((workload) => relatedEntry(workload, { dependent: true })),
+      ...ingresses.filter((ingress) => ingressServiceNames(ingress).includes(this.metadata.name)).map((ingress) => relatedEntry(ingress, { dependent: true })),
+    ];
   }
 }
 

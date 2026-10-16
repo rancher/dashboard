@@ -20,6 +20,13 @@ export default class ResourceYamlPo extends ComponentPo {
     return CodeMirrorPo.bySelector(this.self(), '[data-testid="yaml-editor-code-mirror"]');
   }
 
+  /**
+   * The editor is read-only, as it is when the resource is viewed
+   */
+  checkReadOnly(readOnly = true): Cypress.Chainable {
+    return this.self().find('[data-testid="yaml-editor-code-mirror"] .cm-content').should('have.attr', 'contenteditable', String(!readOnly));
+  }
+
   cancel(): Cypress.Chainable {
     return this.self().find('button.role-secondary');
   }

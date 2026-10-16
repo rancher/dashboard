@@ -1,4 +1,4 @@
-import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
+import { handleConflict, saveWithConflictRetry } from '@shell/plugins/dashboard-store/normalize';
 import { handleConflictUseCases } from '@shell/plugins/dashboard-store/__tests__/utils/normalize-usecases';
 import actions from '@shell/plugins/steve/actions.js';
 import cloneDeep from 'lodash/cloneDeep';
@@ -219,5 +219,95 @@ describe('fn: handleConflict', () => {
 
     expect(typeof res !== 'boolean' ? result?.length : result).toStrictEqual(res);
     expect(currUserValue).toStrictEqual(expect.objectContaining(validationData));
+  });
+});
+
+describe('fn: saveWithConflictRetry', () => {
+  const CONFLICT = { _status: 409 };
+
+  /**
+   * A model holding `data`, with the store's copy `live`
+   *
+   * `save` resolves to each of `results` in turn, rejecting for an error
+   * methods are kept on the prototype, so the changesets only see the resource's fields
+   */
+  const userModel = (data: any, { live = null as any, results = [] as any[] } = {}) => {
+    const results$ = [...results];
+    const proto = {
+      $getters:     { byId: jest.fn(() => live) },
+      $dispatch:    jest.fn((_action: string, payload: any) => Promise.resolve(payload)),
+      $rootGetters: { 'i18n/t': jest.fn((key: string, params: any) => `${ key } - ${ JSON.stringify(params) }`), currentStore: () => 'cluster' },
+      $state:       { config: { namespace: 'cluster' } },
+      save:         jest.fn(() => {
+        const next = results$.shift();
+
+        return next?.error ? Promise.reject(next.error) : Promise.resolve(next);
+      }),
+    };
+
+    return Object.assign(Object.create(proto), { type: 'configmap', id: 'ns/a' }, data);
+  };
+
+  const initial = () => ({ metadata: { resourceVersion: '1', labels: {} } });
+
+  it('should resolve to the result of the save when there is no conflict', async() => {
+    const saved = { id: 'ns/a' };
+    const user = userModel(initial(), { results: [saved] });
+
+    expect(await saveWithConflictRetry(user, initial())).toBe(saved);
+    expect(user.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('should rethrow an error other than a 409, without calling `onConflict`', async() => {
+    const error = { _status: 500 };
+    const onConflict = jest.fn();
+    const user = userModel(initial(), { results: [{ error }] });
+
+    await expect(saveWithConflictRetry(user, initial(), { onConflict })).rejects.toBe(error);
+    expect(onConflict).toHaveBeenCalledTimes(0);
+  });
+
+  it('should rethrow a 409 when there is no initial value to merge against', async() => {
+    const user = userModel(initial(), { live: { metadata: { resourceVersion: '2' } }, results: [{ error: CONFLICT }] });
+
+    await expect(saveWithConflictRetry(user, null)).rejects.toBe(CONFLICT);
+  });
+
+  it('should merge a change made to another field and save again', async() => {
+    const live = { metadata: { resourceVersion: '2', labels: { background: 'yes' } } };
+    const onConflict = jest.fn();
+    const user = userModel({ metadata: { resourceVersion: '1', labels: { user: 'yes' } } }, { live, results: [{ error: CONFLICT }, { id: 'ns/a' }] });
+
+    await saveWithConflictRetry(user, initial(), { onConflict });
+
+    expect(user.save).toHaveBeenCalledTimes(2);
+    expect(user.metadata).toStrictEqual({ resourceVersion: '2', labels: { user: 'yes', background: 'yes' } });
+    expect(onConflict).toHaveBeenCalledTimes(0);
+  });
+
+  describe('when the server and the user changed the same field', () => {
+    const live = { metadata: { resourceVersion: '2', labels: { shared: 'server' } } };
+    const conflicting = () => userModel({ metadata: { resourceVersion: '1', labels: { shared: 'user', other: 'user' } } }, { live, results: [{ error: CONFLICT }] });
+
+    it('should throw the conflict errors without saving again', async() => {
+      const user = conflicting();
+
+      await expect(saveWithConflictRetry(user, initial())).rejects.toStrictEqual(['validation.conflict - {"fields":"metadata.labels.shared","fieldCount":1}']);
+      expect(user.save).toHaveBeenCalledTimes(1);
+    });
+
+    // the caller shows the merge, so the user can review it and save again
+    it('should call `onConflict` with the store\'s copy, once the user value holds the merge', async() => {
+      const user = conflicting();
+      let metadataWhenCalled: any;
+      const onConflict = jest.fn(() => {
+        metadataWhenCalled = JSON.parse(JSON.stringify(user.metadata));
+      });
+
+      await expect(saveWithConflictRetry(user, initial(), { onConflict })).rejects.toBeDefined();
+
+      expect(onConflict).toHaveBeenCalledWith(live);
+      expect(metadataWhenCalled).toStrictEqual({ resourceVersion: '2', labels: { shared: 'server', other: 'user' } });
+    });
   });
 });

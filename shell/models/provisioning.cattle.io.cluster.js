@@ -1,5 +1,5 @@
 import {
-  CAPI, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, LOCAL_CLUSTER,
+  CAPI, FLEET, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, LOCAL_CLUSTER,
   CONFIG_MAP, AUTOSCALER_CONFIG_MAP_ID,
   EVENT, OPERATION
 } from '@shell/config/types';
@@ -7,7 +7,10 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
-import { get, set } from '@shell/utils/object';
+import { clone, get, set } from '@shell/utils/object';
+import { isElementalMachinePool, machinePoolStoreFor, saveMachineConfigYaml, saveMachinePool } from '@shell/utils/machine-pools';
+import { findIfExists } from '@shell/utils/related-resources';
+import { getClusterProvisioner } from '@shell/utils/provider';
 import { compare } from '@shell/utils/version';
 import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -277,11 +280,31 @@ export default class ProvCluster extends SteveModel {
   }
 
   get canEditYaml() {
-    if (!this.isRke2) {
+    // the provisioner of an extension can decide for the clusters it handles, see `IClusterProvisioner.canEditYaml`
+    const editable = this.extensionProvisioner?.canEditYaml?.(this) ?? this.isRke2;
+
+    if (!editable) {
       return false;
     }
 
     return super.canEditYaml;
+  }
+
+  /**
+   * The provisioner from an extension that handles this cluster, as the cluster's edit page finds it
+   *
+   * @returns {import('@shell/core/types').IClusterProvisioner | undefined}
+   */
+  get extensionProvisioner() {
+    const context = {
+      dispatch:   this.$dispatch,
+      getters:    this.$getters,
+      axios:      this.$axios,
+      $extension: this.$extension,
+      t:          (...args) => this.t.apply(this, args),
+    };
+
+    return getClusterProvisioner(context, this);
   }
 
   get isHostedKubernetesProvider() {
@@ -389,7 +412,7 @@ export default class ProvCluster extends SteveModel {
 
   // identify v2 provisioning clusters created using upstream capi infrastructure providers instead of rancher/machine
   get isCapiWithoutExtension() {
-    return this.mgmt?.isCapiHybrid && !this.mgmt?.isCAPIProvider;
+    return this.mgmt?.isCapiHybrid && !this.mgmt?.usesCAPIExtension;
   }
 
   get mgmtClusterId() {
@@ -471,6 +494,117 @@ export default class ProvCluster extends SteveModel {
 
   get machinePoolDefaults() {
     return this.spec.rkeConfig?.machinePoolDefaults;
+  }
+
+  /**
+   * Related resources to show in the yaml editor
+   * Found here:
+   * - the machine configs of an RKE2/K3s cluster - `fetchMachineConfigRelatedResources`
+   * - the clusters representing this one in other apis, read-only - `fetchReadOnlyClusterRelatedResources`
+   *
+   * More are located using generic steve-model methods fetchOwnedRelatedResources:
+   * - The resources this cluster owns - `metadata.relationships`
+   *
+   * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
+   */
+  async fetchModelRelatedResources() {
+    const [machineConfigs, readOnly] = await Promise.all([
+      this.fetchMachineConfigRelatedResources(),
+      this.fetchReadOnlyClusterRelatedResources(),
+    ]);
+
+    return [...machineConfigs, ...readOnly];
+  }
+
+  /**
+   * The clusters representing this one in other apis, shown read-only
+   * - The cluster api Cluster - same namespace and name as this cluster
+   * - The management cluster - `metadata.relationships`
+   * - The fleet cluster - `metadata.relationships`
+   *
+   * Relationships are read in either direction: a management cluster can be the source of the
+   * relationship rather than its target
+   *
+   * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
+   */
+  async fetchReadOnlyClusterRelatedResources() {
+    if (!this.metadata?.uid) {
+      return [];
+    }
+
+    const related = [...this._relationshipsFor('any', 'to').ids, ...this._relationshipsFor('any', 'from').ids];
+    const idOf = (type) => related.find((r) => r.type === type)?.id;
+
+    const [capiCluster, managementCluster, fleetCluster] = await Promise.all([
+      findIfExists(this, CAPI.CAPI_CLUSTER, `${ this.metadata.namespace }/${ this.metadata.name }`),
+      findIfExists(this, MANAGEMENT.CLUSTER, idOf(MANAGEMENT.CLUSTER)),
+      findIfExists(this, FLEET.CLUSTER, idOf(FLEET.CLUSTER)),
+    ]);
+
+    return [
+      [capiCluster, 'resourceYaml.resourceGraph.groups.capiCluster'],
+      [managementCluster, 'resourceYaml.resourceGraph.groups.managementCluster'],
+      [fleetCluster, 'resourceYaml.resourceGraph.groups.fleetCluster'],
+    ]
+      .filter(([resource]) => !!resource)
+      .map(([resource, groupKey]) => ({
+        resource, groupKey, readOnly: true
+      }));
+  }
+
+  /**
+   * For an RKE2/K3s cluster, the machine configs of each machine pool
+   * - The machine config - `spec.rkeConfig.machinePools[].machineConfigRef`
+   *
+   * Saving a machine config runs the same steps as the cluster form, and writes any change to its
+   * machine pool into the cluster's YAML in the editor, to be saved with the cluster
+   *
+   * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
+   */
+  async fetchMachineConfigRelatedResources() {
+    const refs = (this.spec?.rkeConfig?.machinePools || [])
+      .map((pool) => pool.machineConfigRef)
+      .filter((ref) => ref?.kind && ref?.name);
+
+    if (!refs.length) {
+      return [];
+    }
+
+    const configs = await Promise.all(refs.map((ref) => findIfExists(
+      this,
+      // The ref's apiVersion can contain a version (`group/version`), which the type doesn't want
+      `${ ref.apiVersion?.split('/')[0] || CAPI.MACHINE_CONFIG_GROUP }.${ ref.kind.toLowerCase() }`,
+      `${ this.metadata.namespace }/${ ref.name }`,
+    )));
+
+    const store = machinePoolStoreFor(this);
+    const found = configs.filter((config) => !!config);
+
+    // base of the merge with the latest version from the server on save, keyed by machine config id
+    // one `save` serves every entry, including those for machine configs created in the editor
+    const initialConfigs = new Map(found.map((config) => [config.id, clone(config)]));
+
+    const save = async(ctx) => {
+      const saved = await saveMachineConfigYaml(ctx, store, (entry, clusterName) => saveMachinePool(entry, {
+        store,
+        clusterName,
+        initialConfig:      initialConfigs.get(ctx.resource.id),
+        isElementalCluster: isElementalMachinePool(entry.pool),
+      }));
+
+      // the save updates the store's copy, which is not always the machine config returned
+      initialConfigs.set(saved.id, clone(store.getters['management/byId'](saved.type, saved.id) || saved));
+
+      return saved;
+    };
+
+    return found.map((resource) => ({
+      resource,
+      groupKey: 'resourceYaml.resourceGraph.groups.machinePools',
+      save,
+      // the cluster is the controller of its machine configs, but does not overwrite edits to them
+      readOnly: false,
+    }));
   }
 
   set defaultHostnameLengthLimit(value) {

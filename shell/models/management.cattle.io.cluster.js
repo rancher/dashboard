@@ -19,7 +19,7 @@ import { requireAsset } from '@shell/utils/require-asset';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { commitAndReconcile, reportPinWriteFailure, setPinned } from '@shell/utils/cluster-pref-writer';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
-import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
+import { isHostedProvider, usesCAPIExtension } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import { SETTING } from '@shell/config/settings';
@@ -268,7 +268,7 @@ export default class MgmtCluster extends SteveModel {
     return !!capiMachines;
   }
 
-  get isCAPIProvider() {
+  get usesCAPIExtension() {
     if (!this.isCapiHybrid || !this.machineProvider) {
       return false;
     }
@@ -281,7 +281,7 @@ export default class MgmtCluster extends SteveModel {
       t:          (...args) => this.t.apply(this, args),
     };
 
-    return isCAPIProvider(context, this.machineProvider.toLowerCase());
+    return usesCAPIExtension(context, this.machineProvider.toLowerCase());
   }
 
   get isHostedKubernetesProvider() {

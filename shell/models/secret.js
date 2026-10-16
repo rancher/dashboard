@@ -5,7 +5,10 @@ import {
 import { GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { removeObjects } from '@shell/utils/array';
-import { MANAGEMENT, SERVICE_ACCOUNT, VIRTUAL_TYPES } from '@shell/config/types';
+import {
+  INGRESS, MANAGEMENT, SECRET, SERVICE_ACCOUNT, VIRTUAL_TYPES
+} from '@shell/config/types';
+import { findAllInNamespace, relatedEntry, workloadsInNamespace } from '@shell/utils/related-resources';
 import { SECRET_SCOPE, SECRET_QUERY_PARAMS } from '@shell/config/query-params';
 import { set } from '@shell/utils/object';
 import { NAME as MANAGER } from '@shell/config/product/manager';
@@ -692,5 +695,38 @@ export default class Secret extends SteveModel {
 
   get fullDetailPageOverride() {
     return true;
+  }
+
+  /**
+   * Related resources to show in the yaml editor
+   * Found here, as dependents, all in its namespace:
+   * - the workloads whose pods use it - the workload model's `usesResource`
+   * - the ServiceAccounts listing it - `secrets`, `imagePullSecrets`
+   * - the Ingresses naming it - `spec.tls[].secretName`
+   *
+   * @param {import('@shell/core/types').RelatedResourcesFetchOptions} [options]
+   * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
+   */
+  async fetchModelRelatedResources({ dependents = true } = {}) {
+    if (!this.metadata?.uid || !dependents) {
+      return [];
+    }
+
+    const namespace = this.metadata.namespace;
+    const name = this.metadata.name;
+
+    const [workloads, serviceAccounts, ingresses] = await Promise.all([
+      workloadsInNamespace(this, namespace),
+      findAllInNamespace(this, SERVICE_ACCOUNT, namespace),
+      findAllInNamespace(this, INGRESS, namespace),
+    ]);
+
+    const byName = (refs) => (refs || []).some((ref) => ref?.name === name);
+
+    return [
+      ...workloads.filter((workload) => workload.usesResource(SECRET, name)),
+      ...serviceAccounts.filter((account) => byName(account.secrets) || byName(account.imagePullSecrets)),
+      ...ingresses.filter((ingress) => (ingress.spec?.tls || []).some((tls) => tls?.secretName === name)),
+    ].map((resource) => relatedEntry(resource, { dependent: true }));
   }
 }

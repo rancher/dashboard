@@ -260,6 +260,16 @@ export interface IClusterProvisioner {
    */
   detailTabs: ClusterProvisionerDetailTabs;
 
+  /**
+   * Whether the YAML of a cluster this provisioner handles can be edited, in place of the default
+   *
+   * By default only the YAML of an RKE2/K3s cluster can be edited.
+   *
+   * @param cluster The cluster (`provisioning.cattle.io.cluster`)
+   * @returns true to offer Edit YAML for the cluster, false to offer View YAML only
+   */
+  canEditYaml?(cluster: any): boolean;
+
   /* --------------------------------------------------------------------------------------
    * Getters / Functions for Managing Machine Configs
   * --------------------------------------------------------------------------------------- */

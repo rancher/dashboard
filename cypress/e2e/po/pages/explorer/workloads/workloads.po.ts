@@ -234,6 +234,13 @@ export class WorkloadsListPageBasePo extends BaseListPagePo {
     return this.sortableTable().rowActionMenuOpen(elemName).getMenuItem('Edit Config').click();
   }
 
+  /**
+   * Open the configuration drawer of a workload, see `DetailDrawer`
+   */
+  showConfiguration(elemName: string) {
+    return this.sortableTable().rowActionMenuOpen(elemName).getMenuItem('Show Configuration').click();
+  }
+
   private workload() {
     return new WorkloadPagePo();
   }

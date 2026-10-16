@@ -17,6 +17,7 @@ import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 import { KIND } from '../config/elemental-types';
 import { KIND as HARVESTER_KIND } from '../config/harvester-manager-types';
 import CapiMachineRoot from '@shell/models/base-cluster.x-k8s.io';
+import { capiBootstrapDataSecret, relatedEntry } from '@shell/utils/related-resources';
 
 function snapshotAutoscalerFields(pool) {
   return AUTOSCALER_PAUSE_FIELDS.reduce((out, field) => {
@@ -43,6 +44,28 @@ function restoreAutoscalerFields(pool, snapshot) {
 }
 
 export default class CapiMachineDeployment extends CapiMachineRoot {
+  /**
+   * Related resources to show in the yaml editor
+   * 0-1 are found here:
+   * - the bootstrap data Secret, when no bootstrap config is used - `spec.template.spec.bootstrap.dataSecretName`
+   *
+   * 2 more are located using generic steve-model methods fetchSchemaRelatedResources:
+   * - The bootstrap config template - `spec.template.spec.bootstrap.configRef`
+   * - The infrastructure machine template - `spec.template.spec.infrastructureRef`
+   *
+   * @param {import('@shell/core/types').RelatedResourcesFetchOptions} [options]
+   * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
+   */
+  async fetchModelRelatedResources({ dependencies = true } = {}) {
+    if (!this.metadata?.uid || !dependencies) {
+      return [];
+    }
+
+    const secret = await capiBootstrapDataSecret(this, this.spec?.template?.spec, this.metadata.namespace);
+
+    return secret ? [relatedEntry(secret)] : [];
+  }
+
   get groupByPoolLabel() {
     return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.machinePool', { name: escapeHtml(this.nameDisplay) }) }`;
   }

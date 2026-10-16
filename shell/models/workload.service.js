@@ -1,15 +1,206 @@
 
 import { findBy } from '@shell/utils/array';
 import { TARGET_WORKLOADS, UI_MANAGED, HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { WORKLOAD_TYPES, SERVICE } from '@shell/config/types';
+import {
+  WORKLOAD_TYPES, SERVICE, POD, PVC, HPA, POD_DISRUPTION_BUDGET, NETWORK_POLICY
+} from '@shell/config/types';
 import { clone, get } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { shortenedImage } from '@shell/utils/string';
 import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { _MULTI } from '@shell/plugins/dashboard-store/actions';
+import {
+  apiGroupOf, findAllInNamespace, findIfExists, isClaimFromTemplate, podSpecReferences, relatedEntry, selectsLabels
+} from '@shell/utils/related-resources';
 
 export default class WorkloadService extends SteveModel {
   get stateDisplay() {
     return stateDisplay(this.state, true);
+  }
+
+  /**
+   * The template of the pods this workload creates. A CronJob nests it in its job template, and a
+   * pod is its own template
+   */
+  get podTemplate() {
+    if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+      return this.spec?.jobTemplate?.spec?.template;
+    }
+
+    return this.type === POD ? { metadata: this.metadata, spec: this.spec } : this.spec?.template;
+  }
+
+  get podReferences() {
+    return podSpecReferences(this.podTemplate?.spec);
+  }
+
+  get claimTemplates() {
+    return this.type === WORKLOAD_TYPES.STATEFUL_SET ? this.spec?.volumeClaimTemplates || [] : [];
+  }
+
+  claimTemplateFor(claimName) {
+    return this.claimTemplates.find((template) => isClaimFromTemplate(claimName, template.metadata?.name, this.metadata?.name));
+  }
+
+  /**
+   * The names of the claims created for a pod's generic ephemeral volumes, `<pod>-<volume>`
+   *
+   * See https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/#persistentvolumeclaim-naming
+   */
+  get ephemeralClaimNames() {
+    if (this.type !== POD) {
+      return [];
+    }
+
+    return (this.spec?.volumes || []).filter((volume) => volume?.ephemeral).map((volume) => `${ this.metadata?.name }-${ volume.name }`);
+  }
+
+  /**
+   * Do the pods of this workload use the resource of `type` named `name`?
+   *
+   * For a PersistentVolumeClaim that includes the claims a StatefulSet creates from its templates
+   *
+   * @param {string} type
+   * @param {string} name
+   * @returns {boolean}
+   */
+  usesResource(type, name) {
+    if (this.podReferences[type]?.has(name)) {
+      return true;
+    }
+
+    return type === PVC && (!!this.claimTemplateFor(name) || this.ephemeralClaimNames.includes(name));
+  }
+
+  /**
+   * Does the label selector select the pods of this workload?
+   *
+   * @param {Object} labelSelector `matchLabels` and `matchExpressions`
+   * @returns {boolean}
+   */
+  hasPodsSelectedBy(labelSelector) {
+    return selectsLabels(labelSelector, this.podTemplate?.metadata?.labels);
+  }
+
+  /**
+   * Does `service` send traffic to the pods of this workload?
+   *
+   * Either its selector selects them, it was created from this workload's container ports, or it
+   * is the governing Service of this StatefulSet
+   *
+   * @param {Object} service
+   * @returns {boolean}
+   */
+  isSelectedByService(service) {
+    if (service?.metadata?.namespace !== this.metadata?.namespace) {
+      return false;
+    }
+
+    return this.isServiceFromContainerPorts(service) ||
+      (this.type === WORKLOAD_TYPES.STATEFUL_SET && !!this.spec?.serviceName && service.metadata?.name === this.spec.serviceName) ||
+      this.hasPodsSelectedBy({ matchLabels: service.spec?.selector });
+  }
+
+  /**
+   * Does the HorizontalPodAutoscaler scale this workload?
+   *
+   * @param {Object} autoscaler
+   * @returns {boolean}
+   */
+  isScaleTargetOf(autoscaler) {
+    const target = autoscaler?.spec?.scaleTargetRef;
+
+    return autoscaler?.metadata?.namespace === this.metadata?.namespace &&
+      target?.kind === this.kind &&
+      target?.name === this.metadata?.name &&
+      apiGroupOf(target?.apiVersion) === apiGroupOf(this.apiVersion);
+  }
+
+  /**
+   * Related resources to show in the yaml editor, for a workload or a pod
+   * Found here:
+   * - the PersistentVolumeClaims created from a StatefulSet's templates - `spec.volumeClaimTemplates`
+   * - the PersistentVolumeClaims created for generic ephemeral volumes - `ephemeralClaimNames`
+   *
+   * Found here, as dependents:
+   * - the Services sending traffic to the pods - `isSelectedByService`
+   * - the HorizontalPodAutoscalers scaling the workload - `isScaleTargetOf`
+   * - the PodDisruptionBudgets and NetworkPolicies selecting the pods - `hasPodsSelectedBy`
+   *
+   * More are located using generic steve-model methods fetchSchemaRelatedResources:
+   * - The ConfigMaps and Secrets of volumes, `env` and `envFrom`
+   * - The PersistentVolumeClaims of volumes - `volumes[].persistentVolumeClaim.claimName`
+   * - The ServiceAccount - `serviceAccountName`
+   * - The image pull Secrets - `imagePullSecrets`
+   *
+   * Types the user can not access are skipped, as are named resources that do not exist
+   *
+   * @param {import('@shell/core/types').RelatedResourcesFetchOptions} [options]
+   * @returns {Promise<import('@shell/core/types').RelatedResource[]>}
+   */
+  async fetchModelRelatedResources({ dependencies = true, dependents = true } = {}) {
+    // a workload not yet created has no pods, so nothing is related to it yet
+    if (!this.metadata?.uid) {
+      return [];
+    }
+
+    const [uses, usedBy] = await Promise.all([
+      dependencies ? this.fetchRelatedDependencies() : [],
+      dependents ? this.fetchRelatedDependents() : [],
+    ]);
+
+    return [...uses, ...usedBy];
+  }
+
+  async fetchRelatedDependencies() {
+    const namespace = this.metadata.namespace;
+    const workload = this.nameDisplay;
+
+    const [ephemeralClaims, namespaceClaims] = await Promise.all([
+      Promise.all(this.ephemeralClaimNames.map((name) => findIfExists(this, PVC, `${ namespace }/${ name }`))),
+      this.claimTemplates.length ? findAllInNamespace(this, PVC, namespace) : [],
+    ]);
+
+    const claimEntry = (claim) => {
+      const template = this.claimTemplateFor(claim.metadata?.name)?.metadata?.name;
+
+      return relatedEntry(claim, { banner: template ? () => ({ label: this.t('resourceYaml.resourceGraph.banners.claimFromTemplate', { workload, template }) }) : undefined });
+    };
+
+    return [
+      ...ephemeralClaims.filter(Boolean).map(claimEntry),
+      ...namespaceClaims.filter((claim) => !!this.claimTemplateFor(claim.metadata?.name)).map(claimEntry),
+    ];
+  }
+
+  async fetchRelatedDependents() {
+    const namespace = this.metadata.namespace;
+    const workload = this.nameDisplay;
+
+    const [services, autoscalers, disruptionBudgets, networkPolicies] = await Promise.all([
+      findAllInNamespace(this, SERVICE, namespace),
+      this.type === POD ? [] : findAllInNamespace(this, HPA, namespace),
+      findAllInNamespace(this, POD_DISRUPTION_BUDGET, namespace),
+      findAllInNamespace(this, NETWORK_POLICY, namespace),
+    ]);
+
+    const serviceEntry = (service) => relatedEntry(service, {
+      dependent: true,
+      // if the user created this service through the workload form, warn them that editing the service via yaml will not automatically update the workload
+      banner:    this.isServiceFromContainerPorts(service) ? () => ({ color: 'warning', label: this.t('resourceYaml.resourceGraph.banners.serviceFromContainerPorts', { workload }) }) : undefined,
+    });
+
+    const autoscalerEntry = (autoscaler) => relatedEntry(autoscaler, {
+      dependent: true,
+      banner:    () => ({ color: 'warning', label: this.t('resourceYaml.resourceGraph.banners.autoscaler', { workload }) }),
+    });
+
+    return [
+      ...services.filter((service) => this.isSelectedByService(service)).map(serviceEntry),
+      ...autoscalers.filter((autoscaler) => this.isScaleTargetOf(autoscaler)).map(autoscalerEntry),
+      ...disruptionBudgets.filter((budget) => this.hasPodsSelectedBy(budget.spec?.selector)).map((resource) => relatedEntry(resource, { dependent: true })),
+      ...networkPolicies.filter((policy) => this.hasPodsSelectedBy(policy.spec?.podSelector)).map((resource) => relatedEntry(resource, { dependent: true })),
+    ];
   }
 
   async getPortsWithServiceType() {
@@ -82,6 +273,27 @@ export default class WorkloadService extends SteveModel {
   }
 
   async getServicesOwned(force = false) {
+    // services only select pods in their ns so we can assume the service we care will be in the same ns as this pod
+    // and avoid a cluster-wide fetch
+    const allSvc = await this.$dispatch('cluster/findAll', {
+      type: SERVICE,
+      opt:  {
+        force, load: _MULTI, namespaced: this.metadata.namespace
+      }
+    }, { root: true });
+
+    return (allSvc || []).filter((svc) => this.isServiceFromContainerPorts(svc));
+  }
+
+  /**
+   * Was `service` created from the container ports of this workload, by `servicesFromContainerPorts`?
+   *
+   * Matched on the selector those services are given, in either its steve or norman form
+   *
+   * @param {Object} service
+   * @returns {boolean}
+   */
+  isServiceFromContainerPorts(service) {
     const normanTypes = {
       [WORKLOAD_TYPES.REPLICA_SET]:  'replicaSet',
       [WORKLOAD_TYPES.DEPLOYMENT]:   'deployment',
@@ -96,9 +308,9 @@ export default class WorkloadService extends SteveModel {
       }-${ this.metadata.name }`;
 
     const steveSelectorValue = this.workloadSelector[selectorKey];
-    const allSvc = await this.$dispatch('cluster/findAll', { type: SERVICE, opt: { force } }, { root: true });
+    const value = (service?.spec?.selector || {})[selectorKey];
 
-    return (allSvc || []).filter((svc) => (svc.spec?.selector || {})[selectorKey] === steveSelectorValue || (svc.spec?.selector || {})[selectorKey] === normanSelectorValue );
+    return value === steveSelectorValue || value === normanSelectorValue;
   }
 
   get imageNames() {
