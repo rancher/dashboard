@@ -1121,6 +1121,10 @@ asyncButton:
     success: Paused Orchestration
     waiting: Pausing Orchestration
     description: New revisions will not be deployed because orchestration is temporarily paused. To deploy new revisions, resume orchestration.
+  publish:
+    action: Publish
+    success: Published
+    waiting: Publishing&hellip;
   refresh:
     action: ''
     actionIcon: refresh
@@ -7373,7 +7377,11 @@ tableViews:
     newViewName: Untitled
     deleted: View Deleted
     deletedMessage: The "{name}" view has been successfully deleted.
+    deletedSharedMessage: The "{name}" view has been unpublished and deleted.
     undo: Undo
+    shared: Published
+    share: Publish
+    unshare: Unpublish
   bulk:
     selected: "{count} Selected"
     deleteSelected: Delete Selected
@@ -7438,9 +7446,12 @@ tableViews:
       workspace: Workspace
       type: Type
   # A view as text: Share View hands it out, Import View takes it into a saved view, both in the same box
+  publish:
+    title: Publish this view to make it visible to all users.
+  filterWarning: Filter name and values are included and can reveal information such as resource or namespace names.
   share:
     title: Share View
-    intro: 'Copy this text and share it. Anyone with the text can import the view using <b>Import View</b>. It holds the view as it is now, unsaved changes included: columns, grouping, sort and filter. <b>The filter is included and can reveal information such as resource or namespace names.</b>'
+    intro: 'Copy this text and share it. Anyone with the text can import the view using <b>Import View</b>. It holds the view as it is now, unsaved changes included: columns, grouping, sort and filter.'
     label: View
   import:
     title: Import View
