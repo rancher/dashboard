@@ -11,7 +11,7 @@ import { BLANK_CLUSTER } from '@shell/store/store-types';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { isMac, KEY, shortcutLabel } from '@shell/utils/platform';
-import { getVersionInfo } from '@shell/utils/version';
+import { getVersionInfo, removePatchWhenZero } from '@shell/utils/version';
 import { SETTING } from '@shell/config/settings';
 import { getProductFromRoute } from '@shell/utils/router';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
@@ -375,7 +375,8 @@ export default {
     aboutText() {
       // If a version number (starts with 'v') then use that
       if (this.displayVersion.startsWith('v')) {
-        if (this.shown) {
+        // Show the patch level if the nav is expanded and we are not Community, otherwise continue with the shortened version as appropriate
+        if (this.shown && isRancherPrime()) {
           return this.displayVersion;
         }
 
@@ -394,10 +395,12 @@ export default {
     },
 
     versionTooltip() {
-      const labelSaysItAll = this.aboutText === this.fullVersion && !this.versionClipped;
+      // Community drops the zero patch level here too, so the tooltip doesn't bring back the '.0' the label hides
+      const tooltipVersion = removePatchWhenZero(this.fullVersion);
+      const labelSaysItAll = this.aboutText === tooltipVersion && !this.versionClipped;
 
       return {
-        content:     labelSaysItAll ? undefined : this.fullVersion,
+        content:     labelSaysItAll ? undefined : tooltipVersion,
         placement:   'right',
         popperClass: 'nav-tooltip',
       };
