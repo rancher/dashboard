@@ -336,7 +336,10 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       // select latest version and click install
       extensionsPo.installModal().selectVersionClick(1);
       extensionsPo.installModal().installButton().click();
-      cy.wait('@installHarvesterExtension').its('response.statusCode').should('eq', 201);
+      cy.wait('@installHarvesterExtension').then(({ response }) => {
+        // Include the body so a failure reports Rancher's error message, not just the status code.
+        expect(response?.statusCode, JSON.stringify(response?.body)).to.eq(201);
+      });
       // The app should switch to the Installed tab after install, but that navigation is
       // intermittent (the URL stays on #available); click it explicitly before waiting for it.
       extensionsPo.extensionTabInstalledClick();
@@ -437,7 +440,10 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         // select older version and click install
         extensionsPo.installModal().selectVersionClick(2, false);
         extensionsPo.installModal().installButton().click();
-        cy.wait('@installHarvesterExtension').its('response.statusCode').should('eq', 201);
+        cy.wait('@installHarvesterExtension').then(({ response }) => {
+          // Include the body so a failure reports Rancher's error message, not just the status code.
+          expect(response?.statusCode, JSON.stringify(response?.body)).to.eq(201);
+        });
         // As in the 7021 test: the switch to the Installed tab is intermittent, so click it explicitly.
         extensionsPo.extensionTabInstalledClick();
         extensionsPo.waitForPage(undefined, 'installed');
