@@ -130,7 +130,7 @@ describe('component: RcCodeMirror Vim keymap', () => {
 
   describe('search panel', () => {
     const field = () => wrapper.find<HTMLInputElement>('.cm-search input[name=search]').element;
-    const pressInPanel = (init: KeyboardEventInit) => field().dispatchEvent(new KeyboardEvent('keydown', {
+    const pressInPanel = (init: ConstructorParameters<typeof KeyboardEvent>[1]) => field().dispatchEvent(new KeyboardEvent('keydown', {
       bubbles: true, cancelable: true, ...init
     }));
 
