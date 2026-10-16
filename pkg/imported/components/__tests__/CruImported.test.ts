@@ -3,7 +3,7 @@ import { shallowMount } from '@vue/test-utils';
 import CruImported from '@pkg/imported/components/CruImported.vue';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { MANAGEMENT } from '@shell/config/types';
+import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { DAY_2_OPS_DEFAULT } from '@pkg/imported/util/shared';
 import { SETTING } from '@shell/config/settings';
 import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
@@ -500,13 +500,19 @@ describe('cruImported component', () => {
     };
 
     const createWrapper = ({
-      configKey = 'rke2Config', etcd = { ...ETCD } as object | null, isLocal = false, dayTwoOpsFlagEnabled = true, hasConfig = true
-    }: { configKey?: 'rke2Config' | 'k3sConfig', etcd?: object | null, isLocal?: boolean, dayTwoOpsFlagEnabled?: boolean, hasConfig?: boolean } = {}) => {
+      configKey = 'rke2Config', etcd = { ...ETCD } as object | null, isLocal = false, dayTwoOpsFlagEnabled = true, hasConfig = true, s3Backup = false, cloudCredentials = {},
+      dayTwoOps = 'true', dayTwoOpsGlobalSetting = false, etcdConfigInitialised = false
+    }: {
+      configKey?: 'rke2Config' | 'k3sConfig', etcd?: object | null, isLocal?: boolean, dayTwoOpsFlagEnabled?: boolean, hasConfig?: boolean, s3Backup?: boolean,
+      cloudCredentials?: Record<string, object>, dayTwoOps?: string, dayTwoOpsGlobalSetting?: boolean, etcdConfigInitialised?: boolean
+    } = {}) => {
       const config = hasConfig ? { kubernetesVersion: 'v1.33.5', ...(etcd ? { etcd } : {}) } : null;
+      const defaultNormanCluster = defaultSetup.data().normanCluster;
       const normanCluster = {
-        ...defaultSetup.data().normanCluster,
+        ...defaultNormanCluster,
+        annotations: { ...defaultNormanCluster.annotations, [OPERATION_ANNOTATIONS.ENABLED]: dayTwoOps },
         ...(config ? { [configKey]: config } : {}),
-        save: jest.fn(),
+        save:        jest.fn(),
       };
 
       return shallowMount(CruImported, {
@@ -519,6 +525,16 @@ describe('cruImported component', () => {
         },
         global: {
           ...defaultSetup.global,
+          mocks: {
+            ...defaultSetup.global.mocks,
+            $store: {
+              ...defaultSetup.global.mocks.$store,
+              getters: {
+                ...defaultSetup.global.mocks.$store.getters,
+                'rancher/byId': (_type: string, id: string) => (cloudCredentials[id] ? { decodedData: cloudCredentials[id] } : undefined),
+              }
+            }
+          },
           stubs: {
             ...defaultSetup.global.stubs,
             CruResource:    CruResourceStub,
@@ -528,7 +544,7 @@ describe('cruImported component', () => {
         },
         // `config` must be the same object as normanCluster.<rke2|k3s>Config, as set up in fetch()
         data: () => ({
-          normanCluster, config, dayTwoOpsFlagEnabled
+          normanCluster, config, dayTwoOpsFlagEnabled, s3Backup, dayTwoOpsGlobalSetting, etcdConfigInitialised
         } as any),
       });
     };
@@ -726,6 +742,210 @@ describe('cruImported component', () => {
       await (CruImported as any).fetch.call(wrapper.vm);
 
       expect(wrapper.vm.s3Backup).toBe(expected);
+    });
+
+    describe('when day 2 ops are disabled for the cluster', () => {
+      type DayTwoOpsOpts = { dayTwoOps: string, dayTwoOpsGlobalSetting?: boolean };
+
+      const DISABLED_CASES: [string, DayTwoOpsOpts][] = [
+        ['disabled for the cluster', { dayTwoOps: 'false', dayTwoOpsGlobalSetting: true }],
+        ['left to a disabled global default', { dayTwoOps: DAY_2_OPS_DEFAULT, dayTwoOpsGlobalSetting: false }],
+      ];
+      const VISIBILITY_CASES: [string, DayTwoOpsOpts, boolean][] = [
+        ['enabled for the cluster', { dayTwoOps: 'true' }, true],
+        ['left to an enabled global default', { dayTwoOps: DAY_2_OPS_DEFAULT, dayTwoOpsGlobalSetting: true }, true],
+        ...DISABLED_CASES.map(([name, opts]): [string, DayTwoOpsOpts, boolean] => [name, opts, false]),
+      ];
+
+      it.each(VISIBILITY_CASES)('should only show the etcd and s3 config when day 2 ops are %s', (_, opts, enabled) => {
+        const wrapper = createWrapper(opts);
+
+        expect(wrapper.vm.dayTwoOpsEnabled).toBe(enabled);
+        expect(wrapper.find('[data-testid="etcd-config"]').exists()).toBe(enabled);
+        expect(etcdForm(wrapper).exists()).toBe(enabled);
+        // the day 2 ops setting itself is still shown, so they can be enabled
+        expect(wrapper.findComponent({ name: 'DayTwoOps' }).exists()).toBe(true);
+      });
+
+      it.each(DISABLED_CASES)('should unset the etcd config on save when day 2 ops are %s', async(_, opts) => {
+        const wrapper = createWrapper({
+          ...opts, etcd: { ...ETCD, s3: { bucket: 'my-bucket' } }, s3Backup: true
+        });
+        const normanCluster = wrapper.vm.normanCluster as any;
+
+        await wrapper.vm.actuallySave();
+
+        expect('etcd' in normanCluster.rke2Config).toBe(false);
+        expect(normanCluster.rke2Config.kubernetesVersion).toBe('v1.33.5');
+        expect(normanCluster.save).toHaveBeenCalledWith({ replace: true });
+      });
+
+      it('should keep the etcd config, and not replace, on save when day 2 ops are enabled', async() => {
+        const wrapper = createWrapper({ dayTwoOps: 'true' });
+        const normanCluster = wrapper.vm.normanCluster as any;
+
+        await wrapper.vm.actuallySave();
+
+        expect(normanCluster.rke2Config.etcd).toStrictEqual(ETCD);
+        expect(normanCluster.save).toHaveBeenCalledWith({ replace: false });
+      });
+
+      it('should drop the default etcd config without a replace on save, when the cluster had no etcd config', async() => {
+        const wrapper = createWrapper({ dayTwoOps: 'false', etcdConfigInitialised: true });
+        const normanCluster = wrapper.vm.normanCluster as any;
+
+        await wrapper.vm.actuallySave();
+
+        expect('etcd' in normanCluster.rke2Config).toBe(false);
+        expect(normanCluster.save).toHaveBeenCalledWith({ replace: false });
+      });
+
+      it('should not replace on save when day 2 ops are disabled and there is no etcd config to unset', async() => {
+        const wrapper = createWrapper({ dayTwoOps: 'false', etcd: null });
+        const normanCluster = wrapper.vm.normanCluster as any;
+
+        await wrapper.vm.actuallySave();
+
+        expect(normanCluster.save).toHaveBeenCalledWith({ replace: false });
+      });
+
+      it('should not block saving an invalid etcd or s3 config, as it is hidden and unset', () => {
+        const wrapper = createWrapper({
+          dayTwoOps: 'false', etcd: { ...ETCD, s3: {} }, s3Backup: true
+        });
+
+        expect(wrapper.vm.s3ConfigValid).toBe(true);
+        expect(wrapper.findComponent(CruResourceStub).props('validationPassed')).toBe(true);
+      });
+    });
+
+    describe('s3 config validation, while RcS3Config may not be rendered (collapsed sections)', () => {
+      const CREDENTIAL = 'cattle-global-data:cc-1';
+      const withS3 = (s3: object) => ({ ...ETCD, s3 });
+
+      it.each([
+        ['a bucket is set', withS3({ bucket: 'my-bucket' }), {}, true],
+        ['no bucket is set, but the credential provides a default bucket', withS3({ cloudCredentialName: CREDENTIAL }), { [CREDENTIAL]: { defaultBucket: 'cred-bucket' } }, true],
+        ['no bucket is set, and the credential has no default bucket', withS3({ cloudCredentialName: CREDENTIAL }), { [CREDENTIAL]: {} }, false],
+        ['no bucket is set, and the credential is not loaded', withS3({ cloudCredentialName: CREDENTIAL }), {}, false],
+        ['the s3 config is empty', withS3({}), {}, false],
+        ['the endpoint is invalid', withS3({ bucket: 'my-bucket', endpoint: 'https://s3.example.com' }), {}, false],
+        ['the endpoint is valid', withS3({ bucket: 'my-bucket', endpoint: 's3.example.com' }), {}, true],
+      ])('should validate the s3 config when %s', (_, etcd, cloudCredentials, valid) => {
+        const wrapper = createWrapper({
+          etcd, s3Backup: true, cloudCredentials
+        });
+
+        expect(wrapper.vm.s3ConfigValid).toBe(valid);
+        expect(wrapper.findComponent(CruResourceStub).props('validationPassed')).toBe(valid);
+      });
+
+      it('should block saving an invalid s3 config even though the etcd config last reported as valid', () => {
+        const wrapper = createWrapper({ etcd: withS3({}), s3Backup: true });
+
+        expect(wrapper.vm.etcdConfigValid).toBe(true);
+        expect(wrapper.findComponent(CruResourceStub).props('validationPassed')).toBe(false);
+      });
+
+      it.each([
+        ['s3 backups are disabled', { etcd: withS3({}), s3Backup: false }],
+        ['day 2 ops are not shown', {
+          etcd: withS3({}), s3Backup: true, dayTwoOpsFlagEnabled: false
+        }],
+      ])('should not validate the s3 config when %s', (_, opts) => {
+        const wrapper = createWrapper(opts);
+
+        expect(wrapper.vm.s3ConfigValid).toBe(true);
+      });
+    });
+
+    describe('etcd config defaults on fetch', () => {
+      const DEFAULTS = {
+        disableSnapshots: false, s3: null, snapshotRetention: 5, snapshotScheduleCron: '0 */5 * * *'
+      };
+
+      const fetchWith = async(etcd: object | undefined) => {
+        const liveNormanCluster = { rke2Config: { kubernetesVersion: 'v1.33.5', ...(etcd ? { etcd } : {}) }, annotations: { [IMPORTED_CLUSTER_VERSION_MANAGEMENT]: 'system-default' } };
+        const dispatch = jest.fn((action: string) => Promise.resolve(action === 'rancher/clone' ? liveNormanCluster : {}));
+        const wrapper = shallowMount(CruImported, {
+          ...defaultSetup,
+          props: {
+            mode:  _EDIT,
+            value: {
+              id: 'c-abc', isRke1: true, isLocal: true, findNormanCluster: jest.fn().mockResolvedValue(liveNormanCluster)
+            }
+          },
+          global: {
+            ...defaultSetup.global,
+            mocks: {
+              ...defaultSetup.global.mocks,
+              $store: { ...defaultSetup.global.mocks.$store, dispatch }
+            }
+          },
+        });
+
+        await (CruImported as any).fetch.call(wrapper.vm);
+
+        return wrapper;
+      };
+
+      it.each([
+        ['has no etcd config', undefined],
+        ['has an empty etcd config', {}],
+        ['has an etcd config with only zero values', {
+          disableSnapshots: false, snapshotRetention: 0, snapshotScheduleCron: '', s3: null
+        }],
+      ])('should use the same defaults as a new RKE2 cluster when the cluster %s', async(_, etcd) => {
+        const wrapper = await fetchWith(etcd);
+
+        expect((wrapper.vm as any).config.etcd).toStrictEqual(DEFAULTS);
+        expect((wrapper.vm as any).normanCluster.rke2Config.etcd).toStrictEqual(DEFAULTS);
+        expect((wrapper.vm as any).normanCluster.rke2Config.kubernetesVersion).toBe('v1.33.5');
+        expect(wrapper.vm.etcdConfigInitialised).toBe(true);
+      });
+
+      it.each([
+        ['a schedule', { snapshotScheduleCron: '0 1 * * *' }],
+        ['a retention', { snapshotRetention: 3 }],
+        ['snapshots disabled', { disableSnapshots: true }],
+        ['an s3 config', { s3: { bucket: 'my-bucket' } }],
+      ])('should keep the cluster etcd config when it has %s', async(_, etcd) => {
+        const wrapper = await fetchWith(etcd);
+
+        expect((wrapper.vm as any).config.etcd).toStrictEqual(etcd);
+        expect(wrapper.vm.etcdConfigInitialised).toBe(false);
+      });
+    });
+
+    it.each([
+      ['has a cloud credential', { bucket: '', cloudCredentialName: 'cattle-global-data:cc-1' }, true],
+      ['has no cloud credential', { bucket: 'my-bucket' }, false],
+    ])('should load the s3 cloud credential on fetch when the s3 config %s', async(_, s3, loaded) => {
+      const liveNormanCluster = { rke2Config: { etcd: { ...ETCD, s3 } }, annotations: { [IMPORTED_CLUSTER_VERSION_MANAGEMENT]: 'system-default' } };
+      const dispatch = jest.fn((action: string) => Promise.resolve(action === 'rancher/clone' ? liveNormanCluster : {}));
+      const wrapper = shallowMount(CruImported, {
+        ...defaultSetup,
+        props: {
+          mode:  _EDIT,
+          value: {
+            id: 'c-abc', isRke1: true, isLocal: true, findNormanCluster: jest.fn().mockResolvedValue(liveNormanCluster)
+          }
+        },
+        global: {
+          ...defaultSetup.global,
+          mocks: {
+            ...defaultSetup.global.mocks,
+            $store: { ...defaultSetup.global.mocks.$store, dispatch }
+          }
+        },
+      });
+
+      dispatch.mockClear();
+      await (CruImported as any).fetch.call(wrapper.vm);
+
+      const findCredential = dispatch.mock.calls.find(([action]) => action === 'rancher/find') as unknown[] | undefined;
+
+      expect(findCredential?.[1]).toStrictEqual(loaded ? { type: NORMAN.CLOUD_CREDENTIAL, id: 'cattle-global-data:cc-1' } : undefined);
     });
   });
 });

@@ -19,6 +19,8 @@ import DayTwoOps from '@pkg/imported/components/DayTwoOps.vue';
 import RcACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/RcACE.vue';
 import RcEtcdSnapshotConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/RcEtcdSnapshotConfig.vue';
 import { NORMAN, MANAGEMENT, CAPI, HCI } from '@shell/config/types';
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
+import { RETENTION_DEFAULT } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 import RcKeyValue from '@shell/components/form/RcKeyValue.vue';
 import { Checkbox } from '@components/Form/Checkbox';
 import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types';
@@ -81,7 +83,9 @@ export default defineComponent({
 
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
       this.config = this.normanCluster.rke2Config || this.normanCluster.k3sConfig;
+      this.initEtcdConfig();
       this.s3Backup = !!this.config?.etcd?.s3;
+      await this.fetchS3CloudCredential();
       if ( this.normanCluster && isEmpty(this.normanCluster.localClusterAuthEndpoint) ) {
         set(this.normanCluster, 'localClusterAuthEndpoint', { enabled: false });
       }
@@ -144,6 +148,7 @@ export default defineComponent({
       selectedKubernetesVersion:                null,
       showDeprecatedPatchVersions:              false,
       s3Backup:                                 false,
+      etcdConfigInitialised:                    false,
       etcdConfigValid:                          true,
       dayTwoOpsGlobalSetting:                   false,
       dayTwoOpsFlagEnabled:                     false,
@@ -332,6 +337,30 @@ export default defineComponent({
     showDayTwoOps() {
       return this.hasConfig && this.canHaveDayTwoOps;
     },
+    /**
+     * Whether day 2 ops are enabled for this cluster, either explicitly or via the global default. The etcd config is
+     * only applied to the cluster while they are, so it's hidden (and unset on save) otherwise
+     */
+    dayTwoOpsEnabled() {
+      return this.dayTwoOps === 'true' || (this.dayTwoOps === DAY_2_OPS_DEFAULT && this.dayTwoOpsGlobalSetting);
+    },
+    /**
+     * RcSection doesn't render its content while collapsed, so RcS3Config (and its validation) isn't there when the
+     * etcd or S3 sections are collapsed. Validate the S3 config here too, with the same rules, so an invalid config
+     * can't be saved from a collapsed section.
+     */
+    s3ConfigValid() {
+      if (!this.showDayTwoOps || !this.dayTwoOpsEnabled || !this.s3Backup) {
+        return true;
+      }
+
+      const s3 = this.config?.etcd?.s3 || {};
+      const cloudCredential = s3.cloudCredentialName ? this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, s3.cloudCredentialName) : null;
+      const defaultBucket = cloudCredential?.decodedData?.defaultBucket;
+      const { awsStyleEndpoint } = formRulesGenerator(this.$store.getters['i18n/t'], { key: 'Value' });
+
+      return !!(s3.bucket || defaultBucket) && !awsStyleEndpoint(s3.endpoint);
+    },
     schedulingCustomizationVisible() {
       return !this.isLocal && (this.schedulingCustomizationFeatureEnabled || this.schedulingCustomizationOriginallyEnabled);
     },
@@ -341,8 +370,38 @@ export default defineComponent({
     async saveRoleBindings() {
       return saveRoleBindings(this.membershipUpdate, this.normanCluster.id);
     },
+
+    initEtcdConfig() {
+      const etcd = this.config?.etcd;
+
+      if (!this.config || (etcd && (etcd.snapshotScheduleCron || etcd.snapshotRetention || etcd.s3 || etcd.disableSnapshots))) {
+        return;
+      }
+
+      this.config.etcd = {
+        disableSnapshots:     false,
+        s3:                   null,
+        snapshotRetention:    RETENTION_DEFAULT,
+        snapshotScheduleCron: '0 */5 * * *',
+      };
+      this.etcdConfigInitialised = true;
+    },
+
+    unsetEtcdConfigIfDayTwoOpsDisabled() {
+      if (!this.showDayTwoOps || this.dayTwoOpsEnabled || typeof this.config?.etcd === 'undefined') {
+        return;
+      }
+
+      delete this.config.etcd;
+      this.s3Backup = false;
+      if (!this.etcdConfigInitialised) {
+        this.needsReplace = true;
+      }
+    },
     async actuallySave() {
       if (this.isEdit) {
+        this.unsetEtcdConfigIfDayTwoOpsDisabled();
+
         return await this.normanCluster.save({ replace: this.needsReplace });
       } else {
         await this.normanCluster.save();
@@ -466,6 +525,22 @@ export default defineComponent({
       this.dayTwoOpsGlobalSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
       this.dayTwoOpsOld = !this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] ? DAY_2_OPS_DEFAULT : this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED];
     },
+    /**
+     * Load the S3 cloud credential, so its default bucket is known to s3ConfigValid even if RcS3Config is never shown
+     */
+    async fetchS3CloudCredential() {
+      const cloudCredentialName = this.config?.etcd?.s3?.cloudCredentialName;
+
+      if (!cloudCredentialName) {
+        return;
+      }
+
+      try {
+        await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: cloudCredentialName });
+      } catch (e) {
+        // Without the credential its default bucket is unknown, so a bucket is required
+      }
+    },
     etcdChanged(neu) {
       // config is either normanCluster.rke2Config or normanCluster.k3sConfig, so this writes to <rke2|k3s>Config.etcd
       this.config.etcd = neu;
@@ -508,7 +583,7 @@ export default defineComponent({
     :can-yaml="false"
     :done-route="doneRoute"
     :errors="fvUnreportedValidationErrors"
-    :validation-passed="fvFormIsValid && (!showDayTwoOps || etcdConfigValid)"
+    :validation-passed="fvFormIsValid && (!showDayTwoOps || !dayTwoOpsEnabled || (etcdConfigValid && s3ConfigValid))"
     :show-toc="true"
     @error="e=>errors=e"
     @finish="save"
@@ -597,7 +672,10 @@ export default defineComponent({
           :old-value="dayTwoOpsOld"
           @update:value="(val)=>dayTwoOps=val"
         />
-        <RcContentGroup data-testid="etcd-config">
+        <RcContentGroup
+          v-if="dayTwoOpsEnabled"
+          data-testid="etcd-config"
+        >
           <RcEtcdSnapshotConfig
             :value="config.etcd"
             :mode="mode"
