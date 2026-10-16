@@ -586,7 +586,7 @@ describe('component: RcModal', () => {
 
       const wrapper = mountModal();
 
-      expect(document.querySelector('body > .rc-modal-overlay .rc-modal')).toBeTruthy();
+      expect(document.body.querySelector('.rc-modal-overlay .rc-modal')).toBeTruthy();
 
       wrapper.unmount();
     });
@@ -600,6 +600,17 @@ describe('component: RcModal', () => {
       await wrapper.setProps({ show: true });
 
       expect(dialog()).toBeTruthy();
+
+      wrapper.unmount();
+    });
+
+    // It fades out where it faded in, rather than jumping to the body mid-transition
+    it('should keep the modals container while it closes', async() => {
+      const wrapper = mountModal({ global: { stubs: { teleport: true } } });
+
+      await wrapper.setProps({ show: false });
+
+      expect(wrapper.find('teleport-stub').attributes('to')).toBe('#modals');
 
       wrapper.unmount();
     });

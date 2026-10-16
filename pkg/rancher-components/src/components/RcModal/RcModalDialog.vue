@@ -195,6 +195,9 @@ function onBackgroundClick() {
 // Room for a 2px focus ring around body content, including RadioButton's `left: -4px` label,
 // so the body's `overflow: auto` doesn't clip it
 $focus-ring-gutter: 6px;
+$enter-duration: 200ms;
+$leave-duration: 150ms;
+$dialog-offset: 8px;
 
 .rc-modal-overlay {
   --rc-modal-width: v-bind(width);
@@ -209,6 +212,34 @@ $focus-ring-gutter: 6px;
   justify-content: center;
   align-items: center;
   z-index: z-index('modalOverlay');
+}
+
+// The classes RcModal's transition puts on the overlay
+.rc-modal-overlay-enter-active {
+  transition: opacity $enter-duration ease-out;
+
+  .rc-modal {
+    transition: transform $enter-duration cubic-bezier(0.2, 0, 0, 1);
+  }
+}
+
+.rc-modal-overlay-leave-active {
+  transition: opacity $leave-duration ease-in;
+
+  .rc-modal {
+    transition: transform $leave-duration ease-in;
+  }
+}
+
+.rc-modal-overlay-enter-from,
+.rc-modal-overlay-leave-to {
+  opacity: 0;
+
+  @media (prefers-reduced-motion: no-preference) {
+    .rc-modal {
+      transform: translateY($dialog-offset) scale(0.98);
+    }
+  }
 }
 
 .rc-modal {
