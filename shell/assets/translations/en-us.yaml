@@ -4568,13 +4568,13 @@ landing:
 releaseWelcome:
   logo: "{vendor} logo"
   close: Close
-  titleCommunity: Welcome to {vendor} Community
-  titlePrime: Welcome to {vendor}
-  subtitleCommunity: "{vendor} Community v{version} is up and running. Here's what's new in this release, and where to go next."
+  title: Welcome to {vendor}
+  subtitleCommunity: "{vendor} v{version} is up and running. Here's what's new in this release, and where to go next."
   subtitlePrime: "{vendor} v{version} is up and running."
   registerLead: To activate your subscription benefits, register this system on the
   registrationPage: Registration page
   newTab: (opens in a new tab)
+  loading: Loading the release content
   reopenHint: You can reopen this any time from the user menu at the top right.
   goToDashboard: Go to Dashboard
   whatsNew:

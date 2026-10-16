@@ -63,6 +63,10 @@ const items = computed<FirstRunFeature[]>(() => props.features || WHATS_NEW_FEAT
         data-testid="release-welcome-release-notes"
       >
         {{ t('releaseWelcome.whatsNew.releaseNotes') }}
+        <i
+          class="icon icon-external-link"
+          aria-hidden="true"
+        />
         <span class="sr-only">{{ t('releaseWelcome.newTab') }}</span>
       </a>
     </div>
