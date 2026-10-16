@@ -170,8 +170,7 @@ describe('page: AuthConfigList', () => {
 
       expect(action).toBe('management/promptModal');
       expect(payload.component).toBe('AddAuthProviderDialog');
-      // A width with no unit is not valid CSS, and the modal silently falls back to 600px
-      expect(payload.modalWidth).toMatch(/(px|%)$/);
+      expect(payload.ownsModal).toBe(true);
       expect(payload.componentProps.rows).toStrictEqual(providerTypes);
     });
 
@@ -395,6 +394,17 @@ describe('page: AuthConfigList', () => {
 
       expect(feature.spec.value).toBe(true);
       expect(feature.save).toHaveBeenCalledWith();
+    });
+
+    it('should open the confirmation as a dialog that renders its own modal', async() => {
+      const wrapper = createWrapper({ feature: createFeature(false) });
+
+      await wrapper.findComponent(DisableLocalLoginCard).vm.$emit('update:value', true);
+
+      expect(wrapper.vm.$store.dispatch).toHaveBeenCalledWith('management/promptModal', expect.objectContaining({
+        component: 'DisableLocalLoginDialog',
+        ownsModal: true,
+      }));
     });
 
     it('should put the flag back and explain itself when the save fails', async() => {
