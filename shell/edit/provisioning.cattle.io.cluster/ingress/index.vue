@@ -27,6 +27,7 @@ interface Props {
   versionInfo: any;
   originalIngressController?: string | string[];
   kubernetesVersion?: string;
+  previousKubeVersion?: string;
 }
 const {
   mode = _CREATE,
@@ -38,7 +39,8 @@ const {
   userChartValues,
   versionInfo,
   originalIngressController = INGRESS_NONE,
-  kubernetesVersion
+  kubernetesVersion,
+  previousKubeVersion
 } = defineProps<Props>();
 
 const emit = defineEmits(['update:value', 'error', 'config-validation-changed', 'yaml-validation-changed', 'update-values']);
@@ -57,7 +59,9 @@ const showConfig = computed(() => !!versionInfo[traefikChart] || !!versionInfo[n
 const isIngressDisableVersion = computed(() => !!kubernetesVersion && semver.gte(kubernetesVersion, 'v1.37.0'));
 const showTransitioningBanner = computed(() => traefikSupported && !isIngressDisableVersion.value);
 const showNginxUpgradeBlocked = computed(() => isEdit.value && isIngressDisableVersion.value && ingressSelection.value === INGRESS_NGINX);
-const showNginxUpgradeWarning = computed(() => isEdit.value && isIngressDisableVersion.value && ingressSelection.value !== INGRESS_NGINX);
+const originalUsedNginx = computed(() => originalIngressController === INGRESS_NGINX || Array.isArray(originalIngressController));
+const crossesIngressDisableVersion = computed(() => isIngressDisableVersion.value && !!semver.valid(previousKubeVersion) && semver.lt(previousKubeVersion as string, 'v1.37.0'));
+const showNginxUpgradeWarning = computed(() => isEdit.value && crossesIngressDisableVersion.value && originalUsedNginx.value && ingressSelection.value !== INGRESS_NGINX);
 const showSelectedBanner = computed(() => (isEdit.value && ingressSelection.value !== TRAEFIK) || !!showTraefikBanner.value);
 
 // in traefik v40 the nginx key changed from kubernetesIngressNginx to kubernetesIngressNGINX

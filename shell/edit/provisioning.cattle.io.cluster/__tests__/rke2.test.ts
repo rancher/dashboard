@@ -689,20 +689,6 @@ describe('component: rke2', () => {
 
       expect((wrapper.vm as any).ingressNginxUnsupported).toBe(expected);
     });
-
-    it('prevents saving an upgrade while standalone nginx is selected', async() => {
-      const wrapper = createWrapper(_EDIT);
-      const done = jest.fn();
-      const save = jest.spyOn(wrapper.vm as any, 'save');
-
-      wrapper.vm.value.spec.kubernetesVersion = 'v1.37.0+rke2r1';
-      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER] = INGRESS_NGINX;
-
-      await (wrapper.vm as any)._doSaveOverride(done);
-
-      expect(done).toHaveBeenCalledWith(false);
-      expect(save).not.toHaveBeenCalled();
-    });
   });
 
   describe('method: showIpv6Warning', () => {

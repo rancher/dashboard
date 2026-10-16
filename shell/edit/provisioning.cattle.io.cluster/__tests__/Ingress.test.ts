@@ -423,13 +423,31 @@ describe('ingress.vue', () => {
       expect(options.find((o) => o.id === INGRESS_DUAL).disabled).toBe(false);
     });
 
-    it('warns that an edited cluster cannot return to standalone nginx after upgrading', () => {
+    it.each([
+      ['nginx moving to traefik', INGRESS_NGINX, TRAEFIK, 'v1.36.0+rke2r1', true],
+      ['nginx moving to dual', INGRESS_NGINX, [INGRESS_NGINX, TRAEFIK], 'v1.36.0+rke2r1', true],
+      ['dual staying dual', [INGRESS_NGINX, TRAEFIK], [INGRESS_NGINX, TRAEFIK], 'v1.36.0+rke2r1', true],
+      ['dual moving to traefik', [INGRESS_NGINX, TRAEFIK], TRAEFIK, 'v1.36.0+rke2r1', true],
+      ['traefik staying traefik', TRAEFIK, TRAEFIK, 'v1.36.0+rke2r1', false],
+      ['none staying none', INGRESS_NONE, INGRESS_NONE, 'v1.36.0+rke2r1', false],
+      ['dual already on 1.37', [INGRESS_NGINX, TRAEFIK], [INGRESS_NGINX, TRAEFIK], 'v1.37.0+rke2r1', false],
+      ['dual with no previous version', [INGRESS_NGINX, TRAEFIK], [INGRESS_NGINX, TRAEFIK], undefined, false],
+    ])('upgrade warning for %s: %p', (_, originalIngressController, value, previousKubeVersion, expected) => {
       const wrapper = createWrapper({
-        value: TRAEFIK, mode: _EDIT, kubernetesVersion: 'v1.37.0+rke2r1'
+        value, originalIngressController, previousKubeVersion, mode: _EDIT, kubernetesVersion: 'v1.37.0+rke2r1'
       });
       const banners = wrapper.findAllComponents({ name: 'Banner' });
 
-      expect(banners.some((banner) => banner.props('labelKey') === 'cluster.ingress.banners.nginxUpgradeWarning.label')).toBe(true);
+      expect(banners.some((banner) => banner.props('labelKey') === 'cluster.ingress.banners.nginxUpgradeWarning.label')).toBe(expected);
+    });
+
+    it('does not show the upgrade warning when the target version is below v1.37.0', () => {
+      const wrapper = createWrapper({
+        value: TRAEFIK, originalIngressController: INGRESS_NGINX, previousKubeVersion: 'v1.35.0+rke2r1', mode: _EDIT, kubernetesVersion: 'v1.36.0+rke2r1'
+      });
+      const banners = wrapper.findAllComponents({ name: 'Banner' });
+
+      expect(banners.some((banner) => banner.props('labelKey') === 'cluster.ingress.banners.nginxUpgradeWarning.label')).toBe(false);
     });
 
     it('shows the blocking message when an edited cluster still uses standalone nginx', () => {

@@ -1485,13 +1485,6 @@ export default {
     },
 
     async _doSaveOverride(btnCb) {
-      if (this.ingressNginxUnsupported) {
-        this.errors.push(this.t('cluster.ingress.banners.nginxUpgradeBlocked.label'));
-        btnCb(false);
-
-        return;
-      }
-
       // We cannot use the hook, because it is triggered on YAML toggle without restore initialized data
       this.agentConfigurationCleanup();
 
@@ -2262,6 +2255,7 @@ export default {
               :cloud-provider-options="cloudProviderOptions"
               :has-some-ipv6-pools="hasOnlyIpv6Pools"
               :original-ingress-controller="originalIngressController"
+              :previous-kube-version="liveValue?.spec?.kubernetesVersion"
               @update:value="$emit('input', $event)"
               @cilium-values-changed="handleCiliumValuesChanged"
               @enabled-system-services-changed="handleEnabledSystemServicesChanged"
