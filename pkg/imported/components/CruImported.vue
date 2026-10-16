@@ -276,15 +276,17 @@ export default defineComponent({
       return !!this.config;
     },
     showVersionManagement() {
-      return this.hasConfig;
+      // The local cluster's version management setting can be changed even though an embedded K3s local cluster never gets a config
+      return this.hasConfig || this.isLocal;
     },
     /**
      * While version management and Day 2 Operations are hidden because there's no rke2Config/k3sConfig yet (on import,
      * or until the imported cluster has registered), tell users how they'll be set (from the global settings), and that
-     * they can be configured once the cluster has been imported.
+     * they can be configured once the cluster has been imported. RKE1 clusters never get a config, and the local cluster has
+     * already been imported, so skip them.
      */
     configureAfterImportMessage() {
-      if (this.hasConfig || this.isRKE1) {
+      if (this.hasConfig || this.isRKE1 || this.isLocal) {
         return '';
       }
 

@@ -137,7 +137,6 @@ describe('cruImported component', () => {
 
       it.each([
         ['the day 2 ops feature is disabled', { dayTwoOpsFlagEnabled: false }],
-        ['the cluster is local', { isLocal: true }],
       ])('should only mention version management when %s', (_, opts) => {
         const wrapper = createImportWrapper({ ...opts, versionManagementGlobalSetting: false });
 
@@ -146,12 +145,12 @@ describe('cruImported component', () => {
     });
 
     describe('configure after import banner on edit', () => {
-      const createEditWrapper = ({ isRke1 = false, rke2Config = null as object | null } = {}) => shallowMount(CruImported, {
+      const createEditWrapper = ({ isRke1 = false, isLocal = false, rke2Config = null as object | null } = {}) => shallowMount(CruImported, {
         ...defaultSetup,
         props: {
           mode:  _EDIT,
           value: {
-            id: 'cluster-id', isRke1, isLocal: false, metadata: { namespace: 'fleet-default' }
+            id: 'cluster-id', isRke1, isLocal, metadata: { namespace: 'fleet-default' }
           }
         },
         data: () => ({
@@ -172,6 +171,20 @@ describe('cruImported component', () => {
 
         expect(wrapper.find('[data-testid="configure-after-import-banner"]').exists()).toBe(false);
         expect(wrapper.vm.configureAfterImportMessage).toBe('');
+      });
+
+      it('should not show the banner for the local cluster, which has already been imported', () => {
+        const wrapper = createEditWrapper({ isLocal: true });
+
+        expect(wrapper.find('[data-testid="configure-after-import-banner"]').exists()).toBe(false);
+        expect(wrapper.vm.configureAfterImportMessage).toBe('');
+      });
+
+      it('should still show version management for the local cluster without a rke2Config/k3sConfig (e.g. embedded K3s)', () => {
+        const wrapper = createEditWrapper({ isLocal: true });
+
+        expect(wrapper.vm.showVersionManagement).toBe(true);
+        expect(wrapper.vm.showDayTwoOps).toBe(false);
       });
 
       it('should not show the banner for RKE1 clusters, which never get a rke2Config/k3sConfig', () => {
