@@ -85,7 +85,7 @@ function generateStore(component: any, modalData: any = {}):any {
 }
 
 // Dialogs opened with `ownsModal`, which render their own RcModal and need PromptModal's `modal` prop
-const OWNS_MODAL: any[] = [DisableAuthProviderDialog, DisableLocalLoginDialog, RotateEncryptionKeyDialog];
+const OWNS_MODAL: any[] = [DisableAuthProviderDialog, DisableLastAuthProviderDialog, DisableLocalLoginDialog, RotateEncryptionKeyDialog];
 
 describe('component: PromptModal', () => {
   it.each([
