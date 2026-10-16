@@ -3,10 +3,6 @@ import Ingress from '@shell/edit/provisioning.cattle.io.cluster/ingress/index.vu
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { INGRESS_DUAL, TRAEFIK, INGRESS_NGINX, INGRESS_NONE } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
-const mockGetVersionData = jest.fn(() => ({ RancherPrime: 'false' }));
-
-jest.mock('@shell/config/version', () => ({ getVersionData: () => mockGetVersionData() }));
-
 jest.mock('vuex', () => ({
   useStore:   () => ({ getters: { 'i18n/t': (key: string) => key } }),
   mapGetters: () => ({ t: (key: string) => key })
@@ -49,15 +45,13 @@ jest.mock('@shell/edit/provisioning.cattle.io.cluster/shared', () => ({
     doc:       { url: 'https://docs.rke2.io/networking/networking_services?_highlight=ingress#ingress-controller' }
   },
   {
-    id:         'ingress-nginx',
-    image:      { src: '', alt: 'NGINX' },
-    header:     { title: { key: 'cluster.ingress.nginx.header' } },
-    subHeader:  { label: { key: 'cluster.ingress.legacy' } },
-    newContent: { key: 'cluster.ingress.nginx.contentCommunity' },
-    oldContent: { key: 'cluster.ingress.nginx.content' },
-    newDoc:     { url: 'https://www.suse.com/c/trade-the-ingress-nginx-retirement-for-up-to-2-years-of-rke2-support-stability/' },
-    oldDoc:     { url: 'https://www.kubernetes.dev/blog/2025/11/12/ingress-nginx-retirement/' },
-    prime:      true
+    id:                 'ingress-nginx',
+    image:              { src: '', alt: 'NGINX' },
+    header:             { title: { key: 'cluster.ingress.nginx.header' } },
+    subHeader:          { label: { key: 'cluster.ingress.legacy' } },
+    unsupportedContent: { key: 'cluster.ingress.nginx.contentUnsupported' },
+    content:            { key: 'cluster.ingress.nginx.content' },
+    doc:                { url: 'https://www.kubernetes.dev/blog/2025/11/12/ingress-nginx-retirement/' }
   },
   {
     id:        'dual',
@@ -147,6 +141,16 @@ describe('ingress.vue', () => {
     const emitted = wrapper.emitted('update:value') as [IngressValue][];
 
     expect(emitted[0]).toStrictEqual([INGRESS_NGINX]);
+  });
+
+  it('does not enable nginx on Kubernetes 1.37 when Traefik is unavailable', async() => {
+    const wrapper = createWrapper({
+      value: INGRESS_NONE, traefikSupported: false, kubernetesVersion: 'v1.37.0+rke2r1'
+    });
+
+    await wrapper.findComponent({ name: 'Checkbox' }).vm.$emit('update:value', true);
+
+    expect(wrapper.emitted('update:value')).toStrictEqual([[INGRESS_NONE]]);
   });
 
   it('selectIngress emits [INGRESS_NGINX, TRAEFIK] string value when INGRESS_DUAL is selected and previous value was ingress-nginx', () => {
@@ -365,12 +369,7 @@ describe('ingress.vue', () => {
     });
   });
 
-  describe('ingress-nginx prime-only restriction', () => {
-    // eslint-disable-next-line jest/no-hooks
-    afterEach(() => {
-      mockGetVersionData.mockReturnValue({ RancherPrime: 'false' });
-    });
-
+  describe('ingress-nginx restriction for Kubernetes 1.37', () => {
     const nginxOption = (props = {}) => {
       const wrapper = createWrapper({ value: TRAEFIK, ...props });
       const options = wrapper.findComponent({ name: 'IngressCards' }).props('options') as any[];
@@ -378,12 +377,26 @@ describe('ingress.vue', () => {
       return options.find((o) => o.id === INGRESS_NGINX);
     };
 
-    it('disables the nginx card and shows community content/doc on a non-prime instance creating a cluster with k8s >= v1.37.0', () => {
-      const nginx = nginxOption({ mode: _CREATE, kubernetesVersion: 'v1.37.0+rke2r1' });
+    it('omits the nginx card when creating a cluster with k8s >= v1.37.0', () => {
+      const wrapper = createWrapper({
+        value: TRAEFIK, mode: _CREATE, kubernetesVersion: 'v1.37.0+rke2r1'
+      });
+      const options = wrapper.findComponent({ name: 'IngressCards' }).props('options') as any[];
 
-      expect(nginx.disabled).toBe(true);
-      expect(nginx.content).toStrictEqual({ key: 'cluster.ingress.nginx.contentCommunity' });
-      expect(nginx.doc).toStrictEqual({ url: 'https://www.suse.com/c/trade-the-ingress-nginx-retirement-for-up-to-2-years-of-rke2-support-stability/' });
+      expect(options.map((option) => option.id)).toStrictEqual([TRAEFIK]);
+    });
+
+    it('updates the create options when the Kubernetes version changes', async() => {
+      const wrapper = createWrapper({
+        value: TRAEFIK, mode: _CREATE, kubernetesVersion: 'v1.36.0+rke2r1'
+      });
+      const cards = wrapper.findComponent({ name: 'IngressCards' });
+
+      expect((cards.props('options') as any[]).map((option) => option.id)).toStrictEqual([TRAEFIK, INGRESS_NGINX]);
+
+      await wrapper.setProps({ kubernetesVersion: 'v1.37.0+rke2r1' });
+
+      expect((cards.props('options') as any[]).map((option) => option.id)).toStrictEqual([TRAEFIK]);
     });
 
     it('leaves the nginx card enabled with the default content/doc when k8s is below v1.37.0', () => {
@@ -394,21 +407,66 @@ describe('ingress.vue', () => {
       expect(nginx.doc).toStrictEqual({ url: 'https://www.kubernetes.dev/blog/2025/11/12/ingress-nginx-retirement/' });
     });
 
-    it('leaves the nginx card enabled with the default content/doc on a prime instance even when k8s is >= v1.37.0', () => {
-      mockGetVersionData.mockReturnValue({ RancherPrime: 'true' });
-
-      const nginx = nginxOption({ mode: _CREATE, kubernetesVersion: 'v1.37.0+rke2r1' });
-
-      expect(nginx.disabled).toBe(false);
-      expect(nginx.content).toStrictEqual({ key: 'cluster.ingress.nginx.content' });
-      expect(nginx.doc).toStrictEqual({ url: 'https://www.kubernetes.dev/blog/2025/11/12/ingress-nginx-retirement/' });
-    });
-
-    it('does not apply the restriction outside of create mode', () => {
+    it('disables the nginx card when editing a cluster targeting k8s >= v1.37.0', () => {
       const nginx = nginxOption({ mode: _EDIT, kubernetesVersion: 'v1.37.0+rke2r1' });
 
-      expect(nginx.disabled).toBe(false);
-      expect(nginx.content).toStrictEqual({ key: 'cluster.ingress.nginx.content' });
+      expect(nginx.disabled).toBe(true);
+      expect(nginx.content).toStrictEqual({ key: 'cluster.ingress.nginx.contentUnsupported' });
+    });
+
+    it('keeps dual mode available when editing a cluster targeting k8s >= v1.37.0', () => {
+      const wrapper = createWrapper({
+        value: [INGRESS_NGINX, TRAEFIK], mode: _EDIT, kubernetesVersion: 'v1.37.0+rke2r1'
+      });
+      const options = wrapper.findComponent({ name: 'IngressCards' }).props('options') as any[];
+
+      expect(options.find((o) => o.id === INGRESS_DUAL).disabled).toBe(false);
+    });
+
+    it.each([
+      ['nginx moving to traefik', INGRESS_NGINX, TRAEFIK, 'v1.36.0+rke2r1', true],
+      ['nginx moving to dual', INGRESS_NGINX, [INGRESS_NGINX, TRAEFIK], 'v1.36.0+rke2r1', true],
+      ['dual staying dual', [INGRESS_NGINX, TRAEFIK], [INGRESS_NGINX, TRAEFIK], 'v1.36.0+rke2r1', true],
+      ['dual moving to traefik', [INGRESS_NGINX, TRAEFIK], TRAEFIK, 'v1.36.0+rke2r1', true],
+      ['traefik staying traefik', TRAEFIK, TRAEFIK, 'v1.36.0+rke2r1', false],
+      ['none staying none', INGRESS_NONE, INGRESS_NONE, 'v1.36.0+rke2r1', false],
+      ['dual already on 1.37', [INGRESS_NGINX, TRAEFIK], [INGRESS_NGINX, TRAEFIK], 'v1.37.0+rke2r1', false],
+      ['dual with no previous version', [INGRESS_NGINX, TRAEFIK], [INGRESS_NGINX, TRAEFIK], undefined, false],
+    ])('upgrade warning for %s: %p', (_, originalIngressController, value, previousKubeVersion, expected) => {
+      const wrapper = createWrapper({
+        value, originalIngressController, previousKubeVersion, mode: _EDIT, kubernetesVersion: 'v1.37.0+rke2r1'
+      });
+      const banners = wrapper.findAllComponents({ name: 'Banner' });
+
+      expect(banners.some((banner) => banner.props('labelKey') === 'cluster.ingress.banners.nginxUpgradeWarning.label')).toBe(expected);
+    });
+
+    it('does not show the upgrade warning when the target version is below v1.37.0', () => {
+      const wrapper = createWrapper({
+        value: TRAEFIK, originalIngressController: INGRESS_NGINX, previousKubeVersion: 'v1.35.0+rke2r1', mode: _EDIT, kubernetesVersion: 'v1.36.0+rke2r1'
+      });
+      const banners = wrapper.findAllComponents({ name: 'Banner' });
+
+      expect(banners.some((banner) => banner.props('labelKey') === 'cluster.ingress.banners.nginxUpgradeWarning.label')).toBe(false);
+    });
+
+    it('shows the blocking message when an edited cluster still uses standalone nginx', () => {
+      const wrapper = createWrapper({
+        value: INGRESS_NGINX, mode: _EDIT, kubernetesVersion: 'v1.37.0+rke2r1'
+      });
+      const banners = wrapper.findAllComponents({ name: 'Banner' });
+
+      expect(banners.some((banner) => banner.props('labelKey') === 'cluster.ingress.banners.nginxUpgradeBlocked.label')).toBe(true);
+    });
+
+    it('ignores selection of disabled nginx on k8s >= v1.37.0', async() => {
+      const wrapper = createWrapper({
+        value: TRAEFIK, mode: _EDIT, kubernetesVersion: 'v1.37.0+rke2r1'
+      });
+
+      await wrapper.findComponent({ name: 'IngressCards' }).vm.$emit('select', INGRESS_NGINX);
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
     });
 
     it('disables every card in view mode', () => {

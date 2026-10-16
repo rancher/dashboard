@@ -2895,7 +2895,7 @@ cluster:
     enableIngress: Install Ingress controller to enable external routing
     nginx:
       header: Ingress-NGINX
-      contentCommunity: This option is only available in SUSE Rancher Prime.
+      contentUnsupported: Ingress-NGINX is unavailable with Kubernetes 1.37 or later. Choose Traefik instead.
       content: Choose this only if your workloads are not yet ready for Traefik.
     dual:
       header: Dual Mode
@@ -2922,6 +2922,10 @@ cluster:
     banners:
       transitioning:
         label: Rancher is transitioning to Traefik as the default provider. While Ingress-NGINX remains available for migration purposes, we recommend moving workloads to Traefik to ensure long-term compatibility and support.
+      nginxUpgradeBlocked:
+        label: Kubernetes 1.37 or later cannot use standalone Ingress-NGINX. Select Traefik or Dual Mode before upgrading.
+      nginxUpgradeWarning:
+        label: After upgrading to Kubernetes 1.37 or later, you cannot switch back to standalone Ingress-NGINX.
       disabled:
         label: Without an Ingress controller, services in this cluster will not be reachable via external URLs or hostnames. You will need to manually configure an alternative routing solution to expose your workloads.
       selected:
