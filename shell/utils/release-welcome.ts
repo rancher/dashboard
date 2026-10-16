@@ -1,64 +1,52 @@
-import { defineAsyncComponent } from 'vue';
+import { markRaw } from 'vue';
 import semver from 'semver';
 import { getVersionData } from '@shell/config/version';
 import { READ_RELEASE_WELCOME } from '@shell/store/prefs';
-import { fetchFirstRunContent, hasExactFirstRunRelease } from '@shell/utils/dynamic-content/first-run';
+
+// Read like the release notes notification (shell/utils/release-notes.ts), without the build suffix (e.g. '-head')
+const parseVersion = () => semver.coerce(getVersionData().Version.split('-')[0]);
 
 /**
  * Running version of Rancher (e.g. '2.16.1'), or undefined when the version can't be parsed (e.g. dev builds)
  */
 export function runningVersion(): string | undefined {
-  return semver.coerce(getVersionData().Version)?.version;
+  return parseVersion()?.version;
 }
 
 /**
  * Minor version of the running Rancher (e.g. '2.16'), or undefined when the version can't be parsed (e.g. dev builds)
  */
 export function releaseWelcomeVersion(): string | undefined {
-  const version = semver.coerce(getVersionData().Version);
+  const version = parseVersion();
 
   return version ? `${ version.major }.${ version.minor }` : undefined;
 }
 
 /**
- * Shown once per minor release, and again after an upgrade to a version with its own dynamic content entry (e.g. a Prime patch).
+ * Shown on the first load and after an upgrade to a newer minor version, not after a patch.
  * Not in single product mode (e.g. Harvester), the content is about Rancher
  */
-export async function shouldShowReleaseWelcome(getters: any, axios: any): Promise<boolean> {
-  const version = runningVersion();
+export function shouldShowReleaseWelcome(getters: any): boolean {
+  const version = releaseWelcomeVersion();
 
   if (!version || getters['isSingleProduct']) {
     return false;
   }
 
-  // Older values only hold the minor version (e.g. '2.16'), read as its first patch
   const lastRead = semver.coerce(getters['prefs/get'](READ_RELEASE_WELCOME));
 
-  if (!lastRead || semver.lt(lastRead, `${ releaseWelcomeVersion() }.0`)) {
-    return true;
-  }
-
-  return semver.gt(version, lastRead) && hasExactFirstRunRelease(getters, axios, version);
+  return !lastRead || semver.lt(lastRead, `${ version }.0`);
 }
 
 /**
- * Open the welcome modal and mark it as read, it can be reopened from the user menu
+ * Open the welcome modal straight away, it loads its content itself, and mark it as read. It can be reopened from the user menu
  */
-export async function openReleaseWelcome(commit: any, dispatch: any, getters: any, axios: any) {
-  const version = runningVersion();
-  const {
-    features, matchedVersion, primePromo, registration
-  } = version ? await fetchFirstRunContent(getters, axios, version) : {};
+export async function openReleaseWelcome(commit: any, dispatch: any) {
+  const version = releaseWelcomeVersion();
+  // Loaded first: the ModalManager lets the dialog render its own RcModal when it sees its `modal` prop
+  const dialog = (await import('@shell/dialog/ReleaseWelcomeDialog.vue')).default;
 
-  commit('modal/openModal', {
-    component:      defineAsyncComponent(() => import('@shell/dialog/ReleaseWelcomeDialog.vue')),
-    componentProps: {
-      features, matchedVersion, primePromo, registration
-    },
-    modalWidth:          '900px',
-    // Only informative, so Escape and clicking outside close it too
-    closeOnClickOutside: true,
-  });
+  commit('modal/openModal', { component: markRaw(dialog) });
 
   if (version) {
     try {
@@ -70,8 +58,8 @@ export async function openReleaseWelcome(commit: any, dispatch: any, getters: an
   }
 }
 
-export async function showReleaseWelcomeIfNew(commit: any, dispatch: any, getters: any, axios: any) {
-  if (await shouldShowReleaseWelcome(getters, axios)) {
-    await openReleaseWelcome(commit, dispatch, getters, axios);
+export async function showReleaseWelcomeIfNew(commit: any, dispatch: any, getters: any) {
+  if (shouldShowReleaseWelcome(getters)) {
+    await openReleaseWelcome(commit, dispatch);
   }
 }

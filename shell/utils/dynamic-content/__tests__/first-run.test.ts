@@ -161,20 +161,11 @@ describe('dynamic content: first-run', () => {
     });
   });
 
-  describe('firstRunVersions', () => {
-    it.each([
-      ['an exact version', '2.16.1', ['2.16.1', '2.16']],
-      ['a minor version', '2.16', ['2.16']],
-    ])('should look up %s', (_, version, expected) => {
-      expect(firstRun.firstRunVersions(version)).toStrictEqual(expected);
-    });
-  });
-
   describe('firstRunRegistration', () => {
     const contentWith = (registration: any) => ({ version: 1, releases: [{ version: '2.16', registration }] });
 
     it('should return the registration card of the version', () => {
-      expect(firstRun.firstRunRegistration(contentWith(REGISTRATION), '2.16.0')).toStrictEqual(REGISTRATION);
+      expect(firstRun.firstRunRegistration(contentWith(REGISTRATION), '2.16')).toStrictEqual(REGISTRATION);
     });
 
     it('should drop unknown fields of the card', () => {
@@ -182,7 +173,7 @@ describe('dynamic content: first-run', () => {
         ...REGISTRATION, icon: 'star', benefits: [{ ...REGISTRATION.benefits[0], icon: 'star' }, REGISTRATION.benefits[1]]
       };
 
-      expect(firstRun.firstRunRegistration(contentWith(registration), '2.16.0')).toStrictEqual(REGISTRATION);
+      expect(firstRun.firstRunRegistration(contentWith(registration), '2.16')).toStrictEqual(REGISTRATION);
     });
 
     it.each([
@@ -197,40 +188,7 @@ describe('dynamic content: first-run', () => {
       ['no call to action', { ...REGISTRATION, cta: undefined }],
       ['a javascript call to action', { ...REGISTRATION, cta: { action: 'Open', link: 'javascript:alert(1)' } }],
     ])('should return undefined for %s', (_, registration) => {
-      expect(firstRun.firstRunRegistration(contentWith(registration), '2.16.0')).toBeUndefined();
-    });
-  });
-
-  describe('hasExactFirstRunRelease', () => {
-    beforeEach(() => {
-      axios.mockResolvedValue({ data: JSON.stringify({ version: 1, releases: [{ version: '2.16', whatsNew: [] }, { version: '2.16.1', whatsNew: [] }] }) });
-    });
-
-    it.each([
-      ['an exact version with an entry', '2.16.1', true],
-      ['an exact version without an entry', '2.16.2', false],
-      ['a minor version', '2.16', false],
-    ])('should report %s', async(_, version, expected) => {
-      expect(await firstRun.hasExactFirstRunRelease(getters, axios, version)).toStrictEqual(expected);
-    });
-
-    it('should not fetch the document for a minor version', async() => {
-      await firstRun.hasExactFirstRunRelease(getters, axios, '2.16');
-
-      expect(axios).toHaveBeenCalledTimes(0);
-    });
-
-    it('should report no entry when the document cannot be fetched', async() => {
-      axios.mockRejectedValue(new Error('Forbidden'));
-
-      expect(await firstRun.hasExactFirstRunRelease(getters, axios, '2.16.1')).toStrictEqual(false);
-    });
-
-    it('should share the request with the modal content', async() => {
-      await firstRun.hasExactFirstRunRelease(getters, axios, '2.16.1');
-      await firstRun.fetchFirstRunContent(getters, axios, '2.16.1');
-
-      expect(axios).toHaveBeenCalledTimes(1);
+      expect(firstRun.firstRunRegistration(contentWith(registration), '2.16')).toBeUndefined();
     });
   });
 
@@ -238,9 +196,7 @@ describe('dynamic content: first-run', () => {
     it('should return the content of the fetched document', async() => {
       const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
-      expect(content).toStrictEqual({
-        features: [FEATURE], matchedVersion: '2.16', primePromo: PRIME_PROMO
-      });
+      expect(content).toStrictEqual({ features: [FEATURE], primePromo: PRIME_PROMO });
     });
 
     it('should use each part of the document on its own', async() => {
@@ -255,9 +211,7 @@ describe('dynamic content: first-run', () => {
 
       const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
-      expect(content).toStrictEqual({
-        features: [FEATURE], matchedVersion: '2.16', primePromo: undefined
-      });
+      expect(content).toStrictEqual({ features: [FEATURE], primePromo: undefined });
     });
 
     it('should fetch the document without credentials', async() => {
@@ -286,9 +240,7 @@ describe('dynamic content: first-run', () => {
 
       const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
-      expect(content).toStrictEqual({
-        features: [FEATURE], matchedVersion: '2.16', primePromo: PRIME_PROMO
-      });
+      expect(content).toStrictEqual({ features: [FEATURE], primePromo: PRIME_PROMO });
     });
 
     it('should not fetch the document when dynamic content is disabled', async() => {
@@ -329,82 +281,37 @@ describe('dynamic content: first-run', () => {
 
       const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
-      expect(content).toStrictEqual({
-        features: undefined, matchedVersion: undefined, primePromo: undefined
-      });
+      expect(content).toStrictEqual({ features: undefined, primePromo: undefined });
     });
 
     it('should log the parts with no content for the version', async() => {
-      await firstRun.fetchFirstRunContent(getters, axios, '2.17.0');
+      await firstRun.fetchFirstRunContent(getters, axios, '2.17');
 
-      expect(mockLogger.info).toHaveBeenCalledWith('No valid whatsNew, primePromo for 2.17.0 in https://updates.rancher.io/rancher/community/first-run, using the built-in content');
+      expect(mockLogger.info).toHaveBeenCalledWith('No valid whatsNew, primePromo for 2.17 in https://updates.rancher.io/rancher/community/first-run, using the built-in content');
     });
 
     it('should not log when every part has content', async() => {
-      await firstRun.fetchFirstRunContent(getters, axios, '2.16.0');
+      await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
       expect(mockLogger.info).toHaveBeenCalledTimes(0);
     });
 
-    describe('with an exact version', () => {
-      const PATCH_FEATURE = {
-        id: 'patch', title: 'Patch', description: 'Only for 2.16.1'
-      };
-
+    describe('with an entry for a patch version', () => {
       beforeEach(() => {
         axios.mockResolvedValue({
           data: JSON.stringify({
             version:  1,
-            releases: [
-              {
-                version: '2.16', whatsNew: [FEATURE], primePromo: PRIME_PROMO
-              },
-              { version: '2.16.1', whatsNew: [PATCH_FEATURE] },
-            ]
+            releases: [{
+              version: '2.16.1', whatsNew: [FEATURE], primePromo: PRIME_PROMO
+            }]
           })
         });
       });
 
-      it('should use the exact version first', async() => {
-        const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16.1');
+      it('should not use it for its minor version', async() => {
+        const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
-        expect(content.features).toStrictEqual([PATCH_FEATURE]);
-      });
-
-      it('should report the exact version it used', async() => {
-        const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16.1');
-
-        expect(content.matchedVersion).toStrictEqual('2.16.1');
-      });
-
-      it('should use the minor version for the parts the exact version does not have', async() => {
-        const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16.1');
-
-        expect(content.primePromo).toStrictEqual(PRIME_PROMO);
-      });
-
-      it('should fall back to the minor version for other patches', async() => {
-        const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16.2');
-
-        expect(content).toStrictEqual({
-          features: [FEATURE], matchedVersion: '2.16', primePromo: PRIME_PROMO
-        });
-      });
-
-      it('should fall back to the minor version when the exact version is invalid', async() => {
-        axios.mockResolvedValue({
-          data: JSON.stringify({
-            version:  1,
-            releases: [
-              { version: '2.16', whatsNew: [FEATURE] },
-              { version: '2.16.1', whatsNew: [{ id: 'patch' }] },
-            ]
-          })
-        });
-
-        const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16.1');
-
-        expect(content.features).toStrictEqual([FEATURE]);
+        expect(content).toStrictEqual({ features: undefined, primePromo: undefined });
       });
     });
 
@@ -424,23 +331,21 @@ describe('dynamic content: first-run', () => {
       });
 
       it('should fetch the Prime document', async() => {
-        await firstRun.fetchFirstRunContent(getters, axios, '2.16.0');
+        await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
         expect(axios).toHaveBeenCalledWith(expect.objectContaining({ url: 'https://updates.rancher.io/rancher/prime/first-run' }));
       });
 
       it('should return the registration card and not the Prime promotion', async() => {
-        const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16.0');
+        const content = await firstRun.fetchFirstRunContent(getters, axios, '2.16');
 
-        expect(content).toStrictEqual({
-          features: [FEATURE], matchedVersion: '2.16', registration: REGISTRATION
-        });
+        expect(content).toStrictEqual({ features: [FEATURE], registration: REGISTRATION });
       });
 
       it('should log the Prime parts with no content for the version', async() => {
-        await firstRun.fetchFirstRunContent(getters, axios, '2.17.0');
+        await firstRun.fetchFirstRunContent(getters, axios, '2.17');
 
-        expect(mockLogger.info).toHaveBeenCalledWith('No valid whatsNew, registration for 2.17.0 in https://updates.rancher.io/rancher/prime/first-run, using the built-in content');
+        expect(mockLogger.info).toHaveBeenCalledWith('No valid whatsNew, registration for 2.17 in https://updates.rancher.io/rancher/prime/first-run, using the built-in content');
       });
     });
 

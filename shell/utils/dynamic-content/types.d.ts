@@ -165,7 +165,7 @@ export type FirstRunFeature = {
  * Release welcome modal content for a minor release
  */
 export type FirstRunRelease = {
-  version: string; // Minor version (e.g. '2.16', all its patches) or exact version (e.g. '2.16.1', wins over the minor version)
+  version: string; // Minor version, e.g. '2.16'
   whatsNew?: FirstRunFeature[];
   primePromo?: FirstRunPrimePromo; // Community only
   registration?: FirstRunRegistration; // Prime only
@@ -196,7 +196,6 @@ export type FirstRunRegistration = {
  */
 export type FirstRunReleaseContent = {
   features?: FirstRunFeature[];
-  matchedVersion?: string; // Version of the document the features come from, e.g. '2.16' or '2.16.1'
   primePromo?: FirstRunPrimePromo;
   registration?: FirstRunRegistration;
 };

@@ -2,12 +2,15 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
 export default class ReleaseWelcomeDialogPo extends ComponentPo {
   constructor() {
-    // The ModalManager replaces the dialog's own test id, so find it by class
-    super('.release-welcome');
+    super('[data-testid="release-welcome"]');
   }
 
   title() {
-    return this.self().find('[data-modal-title]');
+    return this.self().find('[data-testid="release-welcome-title"]');
+  }
+
+  loading() {
+    return this.self().find('[data-testid="release-welcome-loading"]');
   }
 
   whatsNew() {

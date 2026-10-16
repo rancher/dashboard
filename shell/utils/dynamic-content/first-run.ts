@@ -1,7 +1,7 @@
 /**
  * Welcome modal content from the 'first-run' document of each distribution, published next to the dynamic content package
- * (e.g. https://updates.rancher.io/rancher/community/first-run). Each part comes from the exact version entry (e.g. '2.16.1'),
- * else the minor version entry (e.g. '2.16'), else the built-in content
+ * (e.g. https://updates.rancher.io/rancher/community/first-run). Entries match the minor version strictly (e.g. '2.16'), a part
+ * with no valid entry uses the built-in content
  */
 
 import * as jsyaml from 'js-yaml';
@@ -74,18 +74,6 @@ function isRegistration(registration: any): registration is FirstRunRegistration
     isCta(registration.cta);
 }
 
-/**
- * Versions of the document that apply to the running version, in order: the exact version, then its minor version
- *
- * @param version Running version, e.g. '2.16.1' (or a minor version, e.g. '2.16')
- */
-export function firstRunVersions(version: string): string[] {
-  const [major, minor, patch] = version.split('.');
-  const minorVersion = `${ major }.${ minor }`;
-
-  return patch === undefined ? [minorVersion] : [version, minorVersion];
-}
-
 function findRelease(content: Partial<FirstRunContent> | undefined, version: string): FirstRunRelease | undefined {
   const releases = Array.isArray(content?.releases) ? content.releases : [];
 
@@ -93,7 +81,7 @@ function findRelease(content: Partial<FirstRunContent> | undefined, version: str
 }
 
 /**
- * First valid value of a part for the running version, from the exact version or else the minor version
+ * Valid value of a part for the minor version, copied so only the known fields are kept
  */
 function findPart<T>(
   content: Partial<FirstRunContent> | undefined,
@@ -101,16 +89,10 @@ function findPart<T>(
   part: keyof FirstRunRelease,
   isValid: (value: any) => boolean,
   copy: (value: any) => T
-): { value: T, version: string } | undefined {
-  for (const candidate of firstRunVersions(version)) {
-    const value = findRelease(content, candidate)?.[part];
+): T | undefined {
+  const value = findRelease(content, version)?.[part];
 
-    if (isValid(value)) {
-      return { value: copy(value), version: candidate };
-    }
-  }
-
-  return undefined;
+  return isValid(value) ? copy(value) : undefined;
 }
 
 const isFeatures = (features: any) => Array.isArray(features) && features.every(isFeature);
@@ -126,7 +108,7 @@ const copyCta = (cta: CallToAction) => ({ action: cta.action, link: cta.link });
  * Content is remote, so a list with any invalid feature is ignored as a whole
  */
 export function firstRunFeatures(content: Partial<FirstRunContent> | undefined, version: string): FirstRunFeature[] | undefined {
-  return findPart(content, version, 'whatsNew', isFeatures, copyFeatures)?.value;
+  return findPart(content, version, 'whatsNew', isFeatures, copyFeatures);
 }
 
 /**
@@ -138,7 +120,7 @@ export function firstRunPrimePromo(content: Partial<FirstRunContent> | undefined
     description: promo.description,
     products:    [...promo.products],
     cta:         copyCta(promo.cta),
-  }))?.value;
+  }));
 }
 
 /**
@@ -150,7 +132,7 @@ export function firstRunRegistration(content: Partial<FirstRunContent> | undefin
     description: registration.description,
     benefits:    registration.benefits.map(({ text, link }) => (link ? { text, link: copyCta(link) } : { text })),
     cta:         copyCta(registration.cta),
-  }))?.value;
+  }));
 }
 
 /**
@@ -184,7 +166,7 @@ async function loadDocument(getters: any, axios: any): Promise<{ content: Partia
  *
  * @param getters Store getters, to read the dynamic content settings
  * @param axios Axios instance
- * @param version Running version, e.g. '2.16.1'
+ * @param version Minor version, e.g. '2.16'
  */
 export async function fetchFirstRunContent(getters: any, axios: any, version: string): Promise<FirstRunReleaseContent> {
   const document = await loadDocument(getters, axios);
@@ -194,8 +176,7 @@ export async function fetchFirstRunContent(getters: any, axios: any, version: st
   }
 
   const { content, url, config } = document;
-  const features = findPart(content, version, 'whatsNew', isFeatures, copyFeatures);
-  const result: FirstRunReleaseContent = { features: features?.value, matchedVersion: features?.version };
+  const result: FirstRunReleaseContent = { features: firstRunFeatures(content, version) };
 
   if (config.prime) {
     result.registration = firstRunRegistration(content, version);
@@ -213,17 +194,4 @@ export async function fetchFirstRunContent(getters: any, axios: any, version: st
   }
 
   return result;
-}
-
-/**
- * Whether the document has an entry for this exact version (e.g. '2.16.1'), so the modal is shown again after a patch upgrade
- */
-export async function hasExactFirstRunRelease(getters: any, axios: any, version: string): Promise<boolean> {
-  if (firstRunVersions(version).length < 2) {
-    return false;
-  }
-
-  const document = await loadDocument(getters, axios);
-
-  return !!findRelease(document?.content, version);
 }

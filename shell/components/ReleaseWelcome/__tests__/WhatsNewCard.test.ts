@@ -81,4 +81,10 @@ describe('component: WhatsNewCard', () => {
       expect(wrapper.find('[data-testid="release-welcome-whats-new"]').exists()).toStrictEqual(false);
     });
   });
+
+  it('should mark the release notes as an external link', () => {
+    const wrapper = createWrapper();
+
+    expect(wrapper.find('[data-testid="release-welcome-release-notes"] .icon-external-link').attributes('aria-hidden')).toStrictEqual('true');
+  });
 });
