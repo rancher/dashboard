@@ -77,10 +77,12 @@ export default {
           class="background"
           :d="fullArc"
         />
+        <!-- eslint-disable local-rules/no-color-literal -->
         <path
           :style="{fill: `rgb(${progressColor[0]}, ${progressColor[1]}, ${progressColor[2]})`}"
           :d="arc"
         />
+        <!-- eslint-enable local-rules/no-color-literal -->
       </g>
     </svg>
   </div>
@@ -88,7 +90,7 @@ export default {
 
 <style scoped>
   .background{
-    fill:white;
+    fill:var(--color-white);
     opacity: 0.15;
   }
 </style>

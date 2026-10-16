@@ -167,7 +167,7 @@ export default {
 
     &>*, .icon-chevron-down {
       color: var(--primary);
-      background-color: rgba(0,0,0,0);
+      background-color: var(--color-black-a0);
     }
 
     &.bg-primary:hover {

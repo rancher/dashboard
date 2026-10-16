@@ -568,7 +568,7 @@ export default {
         &.dark-mode {
           border-radius: calc(2 * var(--border-radius));
           overflow: hidden;
-          background-color: white;
+          background-color: var(--color-white);
         }
 
         .plugin-icon-img {

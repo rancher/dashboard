@@ -280,7 +280,7 @@ export default {
         height: $logo;
         border-radius: calc(2 * var(--border-radius));
         overflow: hidden;
-        background-color: white;
+        background-color: var(--color-white);
 
         img {
           width: $logo - 4px;

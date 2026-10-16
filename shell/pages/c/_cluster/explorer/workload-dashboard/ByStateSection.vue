@@ -130,7 +130,7 @@ function toCardRows(rows: typeof props.layout.cards[0]['rows']) {
 
     @each $color in (error, warning, info, success, disabled) {
       &--#{$color} {
-        background: var(--#{$color}-banner-bg, rgba(var(--#{$color}-rgb), 0.1));
+        background: var(--#{$color}-banner-bg);
       }
     }
   }

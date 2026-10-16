@@ -233,6 +233,17 @@ export const eslintConfigBase = [
     },
   },
 
+  // Colors come from the design system tokens (pkg/rancher-components/src/components/design-system/colors.scss).
+  {
+    files:   ['**/*.{js,ts,vue}'],
+    ignores: testFiles,
+    rules:   { 'local-rules/no-color-literal': 'error' },
+  },
+  {
+    files: ['**/design-system/colors.ts'],
+    rules: { 'local-rules/no-color-literal': 'off' },
+  },
+
   // override: RcSeparator.vue is the sanctioned wrapper around <hr> (was `.eslintrc.default.js` overrides[0])
   {
     files: ['**/RcSeparator.vue'],

@@ -327,9 +327,9 @@ $transition-duration: 150ms;
     align-items: center;
   }
   .vs__search {
-    background-color: rgba(0, 0, 0, 0);
+    background-color: var(--color-black-a0);
     &:hover {
-      background-color: rgba(0, 0, 0, 0);
+      background-color: var(--color-black-a0);
     }
   }
   .vs__open-indicator {

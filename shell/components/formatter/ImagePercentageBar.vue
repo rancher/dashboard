@@ -72,7 +72,7 @@ export default {
   grid-template-columns: auto 80px;
   align-items: center;
   .progress {
-    background-color: darken(#EBEEF5, 15%);
+    background-color: var(--color-blue-183);
     width: 100%;
   }
   .progress-box {

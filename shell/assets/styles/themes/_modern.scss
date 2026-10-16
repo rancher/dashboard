@@ -1,100 +1,104 @@
-$grey-100   : #000000;
-$grey-90    : #141619;
-$grey-80    : #25282D;
-$grey-70    : #31353F;
-$grey-60    : #4A4D52;
-$grey-50    : #6C6F76;
-$grey-40    : #92959B;
-$grey-30    : #B6BAC2;
-$grey-20    : #DCDFE7;
-$grey-10    : #EEF0F4;
-$grey-5     : #F5F7FA;
-$grey-0     : #FFFFFF;
+@import "~@components/design-system/color-variables";
+
+$grey-100   : $color-black;
+$grey-90    : $color-gray-801;
+$grey-80    : $color-gray-725;
+$grey-70    : $color-gray-671;
+$grey-60    : $color-gray-581;
+$grey-50    : $color-gray-459;
+$grey-40    : $color-gray-331;
+$grey-30    : $color-gray-212;
+$grey-20    : $color-gray-96;
+$grey-10    : $color-gray-46;
+$grey-5     : $color-gray-25;
+$grey-0     : $color-white;
 
 // Local variables for reused colors
 //light main text
-$darkest   : #141419;
+$darkest   : $color-gray-806;
 
 //light secondary
-$darker    : #6C6C76;
+$darker    : $color-gray-466;
 
 //light disabled
-$dark      : #B6B6C2;
+$dark      : $color-gray-221;
 
 //light border and buttons
 $medium    : $grey-20;
 
 //light form control boundaries (inputs, dropdowns, checkboxes)
-$form-control-border : #84849A;
+$form-control-border : $color-blue-379;
 
 //light inputs
-$light     : #EEEFF4;
+$light     : $color-gray-48;
 
 //light sidebar and box
-$lighter   : #F4F5FA;
+$lighter   : $color-gray-29;
 
 //light body bg
-$lightest  : #FFFFFF;
+$lightest  : $color-white;
 
 //color for items that are not enabled
 $disabled  : $medium;
 
-$primary         : #2F68DF;
-$primary-150     : #1A2A4D;
-$primary-140     : #304778; // Active light
-$primary-120     : #3459A8;
-$primary-110     : #496192;
-$primary-80      : #4871C7;
-$primary-75      : #454F68; // Category active dark
-$primary-60      : #75A1FF;
-$primary-55      : #81AEFC;
-$primary-50      : #A7BFF1; // Active dark
-$primary-30      : #DBE4F9; // Tertiary hover light
-$primary-20      : #EDF2FC;
-$primary-15      : #EEF1F6; // Category active light
+$primary         : $color-blue-451;
+$primary-150     : $color-blue-709;
+$primary-140     : $color-blue-596; // Active light
+$primary-120     : $color-blue-521;
+$primary-110     : $color-blue-505;
+$primary-80      : $color-blue-438;
+$primary-75      : $color-blue-571; // Category active dark
+$primary-60      : $color-blue-282;
+$primary-55      : $color-blue-250;
+$primary-50      : $color-blue-196; // Active dark
+$primary-30      : $color-blue-82; // Tertiary hover light
+$primary-20      : $color-blue-40;
+$primary-15      : $color-blue-43; // Category active light
 
-$green-140    : #025937;
-$green-120    : #008657;
-$green-jungle : #30BA78;
-$green-80     : #42D29F;
-$green-60     : #83E1BE;
-$green-40     : #C0EFDE;
-$green-20     : #EAFAF4;
+$green-140    : $color-green-591;
+$green-120    : $color-green-453;
+$green-jungle : $color-green-299;
+$green-80     : $color-green-225;
+$green-60     : $color-green-158;
+$green-40     : $color-green-85;
+$green-20     : $color-green-28;
 
-$green-ui-40  : #D9E9E0;
-$green-ui-20  : #EFF6F2;
+$green-ui-40  : $color-green-80;
+$green-ui-20  : $color-green-33;
 
 $secondary       : $grey-50;
 $link            : $primary-80;
 
 // Status colors
-$success         : #007032;
-$warning         : #FFE47A;
-$error           : #B13333;
-$info            : #1F67DB;
+$success         : $color-green-523;
+$warning         : $color-yellow-80;
+$error           : $color-red-488;
+$info            : $color-blue-460;
 
 $contrasted-dark: $darkest !default;
 $contrasted-light: $lightest !default;
 
 // Text selection color for terminal window (we don't want this to change with the primary color)
 // The terminal alway uses a light background, so okay to use a fixed color
-$selected: rgba(#3D98D3, .5);
+$selected: $color-blue-349-a50;
 
-$drag-over: #DCDEE7;
+$drag-over: $color-gray-99;
 $body-bg  : $lightest;
 
 BODY, .theme-light {
 
   --primary                    : #{$primary};
-  --primary-text               : #{contrast-color($primary)};
-  --primary-hover-bg           : #{darken($primary, 10%)};
-  --primary-hover-text         : #{saturate($lightest, 20%)};
-  --primary-active-bg          : #{darken($primary, 25%)};
-  --primary-active-text        : #{contrast-color(darken($primary, 25%))};
+  --primary-text               : var(--color-white);
+  --primary-hover-bg           : var(--color-blue-529);
+  --primary-hover-text         : var(--color-white);
+  --primary-active-bg          : var(--color-blue-648);
+  --primary-active-text        : var(--color-white);
   --primary-border             : #{$primary};
-  --primary-banner-bg          : #{rgba($primary, 0.15)};
-  --primary-light-bg           : #{rgba($primary, 0.05)};
-  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
+  --primary-banner-bg          : var(--color-blue-451-a15);
+  --primary-light-bg           : var(--color-blue-451-a5);
+  --primary-keyboard-focus     : var(--color-blue-529);
+  --primary-held-bg            : var(--color-blue-451-a14);
+  --primary-wash-bg            : var(--color-blue-451-a15);
 
   --non-primary-hover: #{$primary-20};
 
@@ -118,13 +122,16 @@ BODY, .theme-light {
   --on-active         : #{$grey-0};
   --active-nav        : var(--primary-hover-bg);
   --on-active-nav     : var(--primary-text);
+  --active-muted      : var(--color-blue-521-a50);
+  --active-light-bg   : var(--color-blue-521-a12);
+  --on-active-muted   : var(--color-white-a65);
   --toggle-on-bg      : var(--active);
   --toggle-on-color   : var(--on-active);
   --toggle-off-bg     : #{$grey-5};
   --toggle-off-color  : #{$grey-50};
   --toggle-off-hover  : #{$grey-10};
 
-  --active-hover          : #{lighten($primary-120, 5%)};
+  --active-hover          : var(--color-blue-484);
   --category-active       : #{$primary-20};
   --category-active-hover : #{$grey-20};
 
@@ -148,16 +155,16 @@ BODY, .theme-light {
       }
   }
 
-  --link                    : #3458a8;
-  --link-text               : #{contrast-color($link)};
+  --link                    : var(--color-blue-523);
+  --link-text               : var(--color-white);
   --link-text-secondary     : #{$darker};
-  --link-hover-bg           : #{darken($link, 10%)};
-  --link-hover-text         : #{saturate($lightest, 20%)};
-  --link-active-bg          : #{darken($link, 25%)};
-  --link-active-text        : #{contrast-color(darken($link, 25%))};
+  --link-hover-bg           : var(--color-blue-521);
+  --link-hover-text         : var(--color-white);
+  --link-active-bg          : var(--color-blue-641);
+  --link-active-text        : var(--color-white);
   --link-border             : #{$link};
-  --link-banner-bg          : #{rgba($link, 0.15)};
-  --link-light-bg           : #{rgba($link, 0.05)};
+  --link-banner-bg          : var(--color-blue-438-a15);
+  --link-light-bg           : var(--color-blue-438-a5);
 
 
 
@@ -196,16 +203,16 @@ BODY, .theme-light {
   }
 
   --default                    : #{$light};
-  --default-text               : #{contrast-color($light)};
-  --default-hover-bg           : #{darken($light, 10%)};
-  --default-hover-text         : #{saturate($lightest, 20%)};
-  --default-active-bg          : #{darken($light, 25%)};
-  --default-active-text        : #{contrast-color(darken($light, 25%))};
+  --default-text               : var(--color-gray-806);
+  --default-hover-bg           : var(--color-gray-134);
+  --default-hover-text         : var(--color-white);
+  --default-active-bg          : var(--color-blue-270);
+  --default-active-text        : var(--color-gray-806);
   --default-border             : #{$light};
-  --default-banner-bg          : #{rgba($light, 0.15)};
-  --default-light-bg           : #{rgba($light, 0.05)};
-  --slider-light-bg            : #{rgba($lightest, 1)};
-  --slider-light-bg-right      : #{rgba($lightest, 0)};
+  --default-banner-bg          : var(--color-gray-48-a15);
+  --default-light-bg           : var(--color-gray-48-a5);
+  --slider-light-bg            : var(--color-white);
+  --slider-light-bg-right      : var(--color-white-a0);
 
 
   .text-default {
@@ -228,8 +235,8 @@ BODY, .theme-light {
       }
   }
 
-  --muted                      : #6A6A85;
-  --deemphasized               : #6C6C76;
+  --muted                      : var(--color-blue-466);
+  --deemphasized               : var(--color-gray-466);
 
   .text-muted {
     color: var(--muted) !important;
@@ -240,14 +247,14 @@ BODY, .theme-light {
   }
 
   --darker                    : #{$darker};
-  --darker-text               : #{contrast-color($darker)};
-  --darker-hover-bg           : #{darken($darker, 10%)};
-  --darker-hover-text         : #{saturate($lightest, 20%)};
-  --darker-active-bg          : #{darken($darker, 25%)};
-  --darker-active-text        : #{contrast-color(darken($darker, 25%))};
+  --darker-text               : var(--color-white);
+  --darker-hover-bg           : var(--color-gray-552);
+  --darker-hover-text         : var(--color-white);
+  --darker-active-bg          : var(--color-gray-693);
+  --darker-active-text        : var(--color-white);
   --darker-border             : #{$darker};
-  --darker-banner-bg          : #{rgba($darker, 0.15)};
-  --darker-light-bg           : #{rgba($darker, 0.05)};
+  --darker-banner-bg          : var(--color-gray-466-a15);
+  --darker-light-bg           : var(--color-gray-466-a5);
 
   .text-darker {
     color: var(--default) !important;
@@ -272,14 +279,14 @@ BODY, .theme-light {
 
 
   --success                    : #{$success};
-  --success-text               : #{contrast-color($success)};
-  --success-hover-bg           : #{darken($success, 10%)};
-  --success-hover-text         : #{saturate($lightest, 20%)};
-  --success-active-bg          : #{darken($success, 25%)};
-  --success-active-text        : #{contrast-color(darken($success, 25%))};
+  --success-text               : var(--color-white);
+  --success-hover-bg           : var(--color-green-685);
+  --success-hover-text         : var(--color-white);
+  --success-active-bg          : var(--color-black);
+  --success-active-text        : var(--color-white);
   --success-border             : #{$success};
-  --success-banner-bg          : #{rgba($success, 0.15)};
-  --success-light-bg           : #{rgba($success, 0.05)};
+  --success-banner-bg          : var(--color-green-523-a15);
+  --success-light-bg           : var(--color-green-523-a5);
 
   .text-success {
     color: var(--success) !important;
@@ -303,14 +310,14 @@ BODY, .theme-light {
 
 
   --info                    : #{$info};
-  --info-text               : #{contrast-color($info)};
-  --info-hover-bg           : #{darken($info, 10%)};
-  --info-hover-text         : #{saturate($lightest, 20%)};
-  --info-active-bg          : #{darken($info, 25%)};
-  --info-active-text        : #{contrast-color(darken($info, 25%))};
+  --info-text               : var(--color-white);
+  --info-hover-bg           : var(--color-blue-541);
+  --info-hover-text         : var(--color-white);
+  --info-active-bg          : var(--color-blue-671);
+  --info-active-text        : var(--color-white);
   --info-border             : #{$info};
-  --info-banner-bg          : #{rgba($info, 0.15)};
-  --info-light-bg           : #{rgba($info, 0.05)};
+  --info-banner-bg          : var(--color-blue-460-a15);
+  --info-light-bg           : var(--color-blue-460-a5);
 
   .text-info {
     color: var(--info) !important;
@@ -334,14 +341,14 @@ BODY, .theme-light {
 
 
   --warning                    : #{$warning};
-  --warning-text               : #{contrast-color($warning)};
-  --warning-hover-bg           : #{darken($warning, 10%)};
-  --warning-hover-text         : #{saturate($lightest, 20%)};
-  --warning-active-bg          : #{darken($warning, 25%)};
-  --warning-active-text        : #{contrast-color(darken($warning, 25%))};
+  --warning-text               : var(--color-gray-806);
+  --warning-hover-bg           : var(--color-yellow-105);
+  --warning-hover-text         : var(--color-white);
+  --warning-active-bg          : var(--color-yellow-150);
+  --warning-active-text        : var(--color-gray-806);
   --warning-border             : #{$warning};
-  --warning-banner-bg          : #{rgba($warning, 0.15)};
-  --warning-light-bg           : #{rgba($warning, 0.05)};
+  --warning-banner-bg          : var(--color-yellow-80-a15);
+  --warning-light-bg           : var(--color-yellow-80-a5);
 
   .text-warning {
     color: var(--warning) !important;
@@ -365,14 +372,14 @@ BODY, .theme-light {
 
 
   --error                    : #{$error};
-  --error-text               : #{contrast-color($error)};
-  --error-hover-bg           : #{darken($error, 10%)};
-  --error-hover-text         : #{saturate($lightest, 20%)};
-  --error-active-bg          : #{darken($error, 25%)};
-  --error-active-text        : #{contrast-color(darken($error, 25%))};
+  --error-text               : var(--color-white);
+  --error-hover-bg           : var(--color-red-572);
+  --error-hover-text         : var(--color-white);
+  --error-active-bg          : var(--color-red-707);
+  --error-active-text        : var(--color-white);
   --error-border             : #{$error};
-  --error-banner-bg          : #{rgba($error, 0.15)};
-  --error-light-bg           : #{rgba($error, 0.05)};
+  --error-banner-bg          : var(--color-red-488-a15);
+  --error-light-bg           : var(--color-red-488-a5);
 
 
   .text-error {
@@ -396,14 +403,14 @@ BODY, .theme-light {
   }
 
   --disabled : #{$disabled};
-  --disabled-text : #{contrast-color($disabled)};
-  --disabled-hover-bg : #{darken($disabled, 10%)};
-  --disabled-hover-text : #{saturate($lightest, 20%)};
-  --disabled-active-bg : #{darken($disabled, 25%)};
-  --disabled-active-text : #{contrast-color(darken($disabled, 25%))};
+  --disabled-text : var(--color-gray-806);
+  --disabled-hover-bg : var(--color-blue-182);
+  --disabled-hover-text : var(--color-white);
+  --disabled-active-bg : var(--color-blue-313);
+  --disabled-active-text : var(--color-gray-806);
   --disabled-border : #{$disabled};
-  --disabled-banner-bg : #{rgba($disabled, 0.15)};
-  --disabled-light-bg : #{rgba($disabled, 0.05)};
+  --disabled-banner-bg : var(--color-gray-96-a15);
+  --disabled-light-bg : var(--color-gray-96-a5);
 
 
   .text-disabled {
@@ -452,7 +459,7 @@ BODY, .theme-light {
   --nav-hover                  : #{$grey-10};
   --nav-active-hover           : var(--primary-active-bg);
   --nav-hover-top-level        : var(--nav-hover);
-  --nav-expander-hover         : #{darken($medium, 10%)};
+  --nav-expander-hover         : var(--color-blue-182);
   --nav-border                 : #{$medium};
   --nav-border-size            : 1px;
   --nav-icon-badge-bg          : #{$lightest};
@@ -463,7 +470,7 @@ BODY, .theme-light {
   --topmenu-bg                 : #{$lightest};
   --topmenu-text               : #{$darkest};
   --topmost-border             : #{$medium};
-  --topmost-shadow             : #{lighten($lightest, 10%)};
+  --topmost-shadow             : var(--color-white);
   --topmost-light-hover        : #{$light};
 
   --disabled-bg                : #{$disabled};
@@ -486,18 +493,24 @@ BODY, .theme-light {
 
   --modal-bg                   : #{$lightest};
   --modal-border               : #{$dark};
-  --subtle-overlay-bg          : #{rgba($lighter, 0.75)};
-  --overlay-bg                 : rgba(38, 42, 64, 0.35);
-  --shadow                     : #{rgba($medium, 0.85)};
+  --subtle-overlay-bg          : var(--color-gray-29-a75);
+  --overlay-bg                 : var(--color-blue-708-a35);
+  --subtle-hover-bg            : var(--color-gray-806-a10);
+  --subtle-active-bg           : var(--color-gray-806-a6);
+  --subtle-badge-bg            : var(--color-gray-806-a10);
+  --scroll-shadow              : var(--color-gray-806-a8);
+  --skeleton-bg                : var(--color-gray-806-a7);
+  --skeleton-highlight         : var(--color-gray-806-a15);
+  --shadow                     : var(--color-gray-96-a85);
 
   --checkbox-tick              : var(--on-active);
   --checkbox-border            : var(--active);
-  --checkbox-tick-disabled     : #{darken($disabled, 40%)};
+  --checkbox-tick-disabled     : var(--color-blue-449);
   --checkbox-disabled-bg       : #{$disabled};
   --checkbox-ticked-bg         : var(--active);
 
-  --drag-over-inner-bg         : #{rgba($drag-over, 0.9)};
-  --drag-over-outer-bg         : #{rgba($drag-over, 0)};
+  --drag-over-inner-bg         : var(--color-gray-99-a90);
+  --drag-over-outer-bg         : var(--color-gray-99-a0);
 
   --dropdown-bg                : #{$lightest};
   --dropdown-border            : #{$form-control-border};
@@ -515,7 +528,7 @@ BODY, .theme-light {
 
   --notification-unread-bg     : var(--primary-banner-bg);
 
-  --card-badge-text            : #ffffff;
+  --card-badge-text            : var(--color-white);
 
   // UNUSED?
   --card-header                : var(--primary-banner-bg);
@@ -525,23 +538,23 @@ BODY, .theme-light {
   --input-placeholder          : var(--muted);
   --input-border               : #{$form-control-border};
   --input-bg                   : var(--body-bg);
-  --input-bg-accent            : #{darken($light, 2%)};
+  --input-bg-accent            : var(--color-gray-65);
   --input-hover-bg             : var(--box-bg);
   --input-focus-bg             : var(--box-bg);
-  --input-disabled-text        : #{darken($disabled, 60%)};
-  --input-disabled-label       : #{darken($disabled, 40%)};
+  --input-disabled-text        : var(--color-blue-619);
+  --input-disabled-label       : var(--color-blue-449);
   --input-disabled-bg          : #{$disabled};
-  --input-disabled-border      : #{darken($medium, 10%)};
-  --input-disabled-placeholder : #{darken($medium, 15%)};
+  --input-disabled-border      : var(--color-blue-182);
+  --input-disabled-placeholder : var(--color-blue-224);
   --input-addon-bg             : #{$darker};
-  --input-hover-border         : #{darken($medium, 25%)};
+  --input-hover-border         : var(--color-blue-313);
 
   --label-secondary           : #{$darker};
 
   --progress-bg                : #{$medium};
   --progress-divider           : #{$medium};
 
-  --sortable-table-bg          : #{darken($grey-0, 5%)};
+  --sortable-table-bg          : var(--color-gray-39);
   --sortable-table-row-bg      : #{$grey-0};
   --sortable-table-header-bg   : #{$grey-5};
   --sortable-table-top-divider : var(--border);
@@ -552,7 +565,7 @@ BODY, .theme-light {
   --sortable-table-body-divider : #{$medium};
 
   --tag-primary                : #{$darkest};
-  --tag-bg                     : #EEEFF5;
+  --tag-bg                     : var(--color-gray-47);
 
   --popover-bg                 : var(--body-bg);
   --popover-border             : var(--border);
@@ -561,12 +574,12 @@ BODY, .theme-light {
   --tooltip-bg                 : #{$grey-60};
   --tooltip-border             : var(--tag-primary);
   --tooltip-text               : var(--body-bg);
-  --tooltip-bg-warning         : #{rgba($warning, 0.8)};
+  --tooltip-bg-warning         : var(--color-yellow-80-a80);
   --tooltip-text-warning       : var(--body-text);
 
   --tabbed-border              : #{$medium};
   --tabbed-sidebar-bg          : #{$lighter};
-  --tabbed-container-bg        : #{mix($light, $lighter, 15%)};
+  --tabbed-container-bg        : var(--color-gray-32);
 
   --yaml-editor-bg             : #{$lighter};
   --drawer-body-bg             : #{$lighter};
@@ -574,18 +587,18 @@ BODY, .theme-light {
   --diff-border                : var(--border);
   --diff-header-bg             : var(--nav-bg);
   --diff-header-border         : var(--border);
-  --diff-header                : #{rgba($darkest, 0.3)};
+  --diff-header                : var(--color-gray-806-a30);
   --diff-linenum-bg            : var(--nav-bg);
   --diff-linenum               : var(--muted);
   --diff-linenum-border        : var(--border);
   --diff-line-ins-bg           : $success;
-  --diff-line-del-bg           : #{rgba($error, 0.75)};
-  --diff-del-bg                : #{rgba($error, 0.3)};
+  --diff-line-del-bg           : var(--color-red-488-a75);
+  --diff-del-bg                : var(--color-red-488-a30);
   --diff-del-border            : #{$error};
-  --diff-ins-bg                : #{rgba($success, 0.3)};
-  --diff-ins-border            : #{rgba($success, 0.5)};
-  --diff-chg-ins               : #{rgba($success, 0.25)};
-  --diff-chg-del               : #{rgba($warning, 0.5)};
+  --diff-ins-bg                : var(--color-green-523-a30);
+  --diff-ins-border            : var(--color-green-523-a50);
+  --diff-chg-ins               : var(--color-green-523-a25);
+  --diff-chg-del               : var(--color-yellow-80-a50);
   --diff-empty-placeholder     : #{$lightest};
 
   --wm-tabs-bg                 : #{$medium};
@@ -598,10 +611,12 @@ BODY, .theme-light {
   --wm-border                  : var(--border);
   --wm-tab-height              : 29px;
 
-  --glance-bg-rgb              : 61, 152, 211;
+  // stylelint-disable-next-line local-rules/no-color-literal -- r, g, b triplets kept for extensions
+  --glance-bg-rgb              : #{red($color-blue-349)}, #{green($color-blue-349)}, #{blue($color-blue-349)};
   --glance-divider             : #{$medium};
 
-  --resource-gauge-back-circle : 255, 255, 255, 0.15;
+  // stylelint-disable-next-line local-rules/no-color-literal -- r, g, b triplets kept for extensions
+  --resource-gauge-back-circle : #{red($color-white)}, #{green($color-white)}, #{blue($color-white)}, 0.15;
 
   --simple-box-bg              : #{$grey-0};
   --simple-box-border          : #{$grey-20};
@@ -620,62 +635,64 @@ BODY, .theme-light {
 
   --gauge-divider              : #{$lightest};
   --gauge-zero                 : #{$medium};
-  --gauge-success-primary      : 150, 189, 127;
-  --gauge-success-secondary    : 190, 211, 172;
-  --gauge-warning-primary      : 238, 226, 176;
-  --gauge-warning-secondary    : 218, 195, 66;
-  --gauge-error-primary        : 249, 186, 171;
-  --gauge-error-secondary      : 239, 90, 83;
+  // stylelint-disable local-rules/no-color-literal -- r, g, b triplets kept for extensions
+  --gauge-success-primary      : #{red($color-green-246)}, #{green($color-green-246)}, #{blue($color-green-246)};
+  --gauge-success-secondary    : #{red($color-green-159)}, #{green($color-green-159)}, #{blue($color-green-159)};
+  --gauge-warning-primary      : #{red($color-yellow-90)}, #{green($color-yellow-90)}, #{blue($color-yellow-90)};
+  --gauge-warning-secondary    : #{red($color-yellow-186)}, #{green($color-yellow-186)}, #{blue($color-yellow-186)};
+  --gauge-error-primary        : #{red($color-red-157)}, #{green($color-red-157)}, #{blue($color-red-157)};
+  --gauge-error-secondary      : #{red($color-red-338)}, #{green($color-red-338)}, #{blue($color-red-338)};
 
-  --sizzle-0                   : 180, 210, 30;
-  --sizzle-1                   : 225, 45, 74;
-  --sizzle-2                   : 212, 66, 148;
-  --sizzle-3                   : 0, 169, 217;
-  --sizzle-4                   : 244, 136, 68;
-  --sizzle-5                   : 0, 147, 128;
-  --sizzle-6                   : 136, 81, 165;
-  --sizzle-7                   : 45, 47, 149;
-  --sizzle-8                   : 255, 235, 0;
+  --sizzle-0                   : #{red($color-green-187)}, #{green($color-green-187)}, #{blue($color-green-187)};
+  --sizzle-1                   : #{red($color-red-405)}, #{green($color-red-405)}, #{blue($color-red-405)};
+  --sizzle-2                   : #{red($color-pink-389)}, #{green($color-pink-389)}, #{blue($color-pink-389)};
+  --sizzle-3                   : #{red($color-blue-315)}, #{green($color-blue-315)}, #{blue($color-blue-315)};
+  --sizzle-4                   : #{red($color-orange-267)}, #{green($color-orange-267)}, #{blue($color-orange-267)};
+  --sizzle-5                   : #{red($color-blue-406)}, #{green($color-blue-406)}, #{blue($color-blue-406)};
+  --sizzle-6                   : #{red($color-purple-467)}, #{green($color-purple-467)}, #{blue($color-purple-467)};
+  --sizzle-7                   : #{red($color-blue-624)}, #{green($color-blue-624)}, #{blue($color-blue-624)};
+  --sizzle-8                   : #{red($color-yellow-73)}, #{green($color-yellow-73)}, #{blue($color-yellow-73)};
 
   --sizzle-success             : #{red($success)}, #{green($success)}, #{blue($success)};
   --sizzle-info                : #{red($info)},    #{green($info)},    #{blue($info)};
   --sizzle-warning             : #{red($warning)}, #{green($warning)}, #{blue($warning)};
   --sizzle-error               : #{red($error)},   #{green($error)},   #{blue($error)};
   --sizzle-unknown             : #{red($disabled)},#{green($disabled)},#{blue($disabled)};
+  // stylelint-enable local-rules/no-color-literal
 
   $rancher                     : $primary;
-  $partner                     : #FEA424;
-  $other                       : #614EA2;
+  $partner                     : $color-orange-209;
+  $other                       : $color-purple-515;
 
   --app-rancher-accent         : #{$rancher};
-  --app-rancher-accent-text    : #ffffff;
+  --app-rancher-accent-text    : var(--color-white);
 
   --app-partner-accent         : #{$partner};
-  --app-partner-accent-text    : black;
+  --app-partner-accent-text    : var(--color-black);
 
-  --app-color1-accent          : rgba(var(--sizzle-1), 1);
-  --app-color1-accent-text     : white;
+  --app-color1-accent          : var(--color-red-405);
+  --app-color1-accent-text     : var(--color-white);
 
-  --app-color2-accent          : rgba(var(--sizzle-2), 1);
-  --app-color2-accent-text     : white;
+  --app-color2-accent          : var(--color-pink-389);
+  --app-color2-accent-text     : var(--color-white);
 
-  --app-color3-accent          : rgba(var(--sizzle-3), 1);
-  --app-color3-accent-text     : white;
+  --app-color3-accent          : var(--color-blue-315);
+  --app-color3-accent-text     : var(--color-white);
 
-  --app-color4-accent          : rgba(var(--sizzle-4), 1);
-  --app-color4-accent-text     : white;
+  --app-color4-accent          : var(--color-orange-267);
+  --app-color4-accent-text     : var(--color-white);
 
-  --app-color5-accent          : rgba(var(--sizzle-5), 1);
-  --app-color5-accent-text     : white;
+  --app-color5-accent          : var(--color-blue-406);
+  --app-color5-accent-text     : var(--color-white);
 
-  --app-color6-accent          : rgba(var(--sizzle-6), 1);
-  --app-color6-accent-text     : white;
+  --app-color6-accent          : var(--color-purple-467);
+  --app-color6-accent-text     : var(--color-white);
 
-  --app-color7-accent          : rgba(var(--sizzle-7), 1);
-  --app-color7-accent-text     : white;
+  --app-color7-accent          : var(--color-blue-624);
+  --app-color7-accent-text     : var(--color-white);
 
-  --app-color8-accent          : rgba(var(--sizzle-8), 1);
-  --app-color8-accent-text     : white;
+  --app-color8-accent          : var(--color-yellow-73);
+  --app-color8-accent-text     : var(--color-white);
 
   --product-icon               : #{$darker};
   --product-icon-active        : #{$darkest};
@@ -689,25 +706,25 @@ BODY, .theme-light {
   --gap-lg                     : 24px;
 
   --click-badge-error          : #{$lightest};
-  --click-badge-error-bg       : #B13333;
-  --click-badge-error-border   : #7C0015;
+  --click-badge-error-bg       : var(--color-red-488);
+  --click-badge-error-border   : var(--color-red-630);
 
-  --click-badge-warning        : #473900;
-  --click-badge-warning-bg     : #FFE47A;
-  --click-badge-warning-border : #E5A200;
+  --click-badge-warning        : var(--color-yellow-651);
+  --click-badge-warning-bg     : var(--color-yellow-80);
+  --click-badge-warning-border : var(--color-orange-243);
 
-  --click-badge-success        : #007032;
-  --click-badge-success-bg     : #CEE4D7;
-  --click-badge-success-border : #1F7043;
+  --click-badge-success        : var(--color-green-523);
+  --click-badge-success-bg     : var(--color-green-101);
+  --click-badge-success-border : var(--color-green-515);
 
   --click-badge-info           : #{$lightest};
   --click-badge-info-bg        : #{$info};
-  --click-badge-info-border    : #2673A6;
+  --click-badge-info-border    : var(--color-blue-467);
   --bubble-bg                : #{$lighter};
 
 
   // These are meant to be the colors used within rancher-components. They will eventually be removed from shell once we have theming working in the components
-  --rc-info: #1D61CE;
+  --rc-info: var(--color-blue-485);
   --rc-info-secondary: #{$blue002};
 
   --rc-success: #{$green001};
@@ -746,16 +763,16 @@ BODY, .theme-light {
   --rc-image-color: #{$darkest};
 
   --warning-badge    : #{$warning};
-  --on-warning-banner : #{darken($warning, 60%)};
+  --on-warning-banner : var(--color-yellow-651);
 
-  --success-badge    : #{rgba($success, 0.10)};
+  --success-badge    : var(--color-green-523-a10);
   --on-success-banner : #{$success};
 
-  --info-badge    : #{rgba($info, 0.10)};
+  --info-badge    : var(--color-blue-460-a10);
   --on-info-banner : #{$info};
   
   --error-badge    :  #{$error};
-  --on-error-banner : #FFFFFF;
+  --on-error-banner : var(--color-white);
 
   --error-banner-text: #{$grey-100};
   --warning-banner-text: #{$grey-100};
@@ -765,33 +782,33 @@ BODY, .theme-dark {
   // Local variables for reused colors
 
   //dark sidebar
-  $darkest: #171C22;
+  $darkest: $color-gray-777;
 
   //dark body
-  $darker: #1b1c21;
+  $darker: $color-gray-772;
 
   //dark inputs
-  $dark: #27292e;
+  $dark: $color-gray-719;
 
   //dark borders and button
   $medium: $grey-60;
 
   // dark disabled,
-  $light: #6c6c76;
+  $light: $color-gray-466;
 
   //dark secondary
-  $lighter: #b6b6c2;
+  $lighter: $color-gray-221;
 
   // dark main text
-  $lightest: #ffffff;
+  $lightest: $color-white;
 
   // menu cluster description active+hover
-  $desc-light: #EEEFF4;
+  $desc-light: $color-gray-48;
 
-  $success         : #008F40;
-  $warning         : #EAC431;
-  $error           : #C63434;
-  $info            : #1F67DB;
+  $success         : $color-green-432;
+  $warning         : $color-yellow-170;
+  $error           : $color-red-450;
+  $info            : $color-blue-460;
 
   $secondary: $lighter;
   $disabled: $light;
@@ -800,21 +817,21 @@ BODY, .theme-dark {
   $contrasted-dark: $lightest !default;
   $contrasted-light: $darkest !default;
 
-  $drag-over: #DCDEE7;
-  $body-bg  : #25282F;
+  $drag-over: $color-gray-99;
+  $body-bg  : $color-gray-723;
 
-  $form-control-border : #6C7A8F;
+  $form-control-border : $color-blue-424;
 
-  $tertiary-hover-fill : #1E3C73;
+  $tertiary-hover-fill : $color-blue-635;
 
-  $slate: #4B4F6B;
+  $slate: $color-blue-564;
 
-  --body-border: #38404B;
-  --link       : #9BBFFD;
+  --body-border: var(--color-blue-631);
+  --link       : var(--color-blue-199);
 
   --primary-border: var(--link);
 
-  --non-primary-hover: #162D59;
+  --non-primary-hover: var(--color-blue-695);
 
   --secondary: var(--body-bg);
   --secondary-border: #{$primary-60};
@@ -836,7 +853,10 @@ BODY, .theme-dark {
   --on-active             : #{$grey-90};
   --active-nav            : var(--primary-hover-bg);
   --on-active-nav         : var(--primary-text);
-  --active-hover          : #{darken($primary-50, 5%)};
+  --active-muted          : var(--color-blue-196-a50);
+  --active-light-bg       : var(--color-blue-196-a12);
+  --on-active-muted       : var(--color-gray-801-a65);
+  --active-hover          : var(--color-blue-244);
   --category-active       : #{$primary-75};
   --category-active-hover : #{$grey-70};
 
@@ -849,22 +869,22 @@ BODY, .theme-dark {
   --slate: #{$slate};
 
   --default                    : #{$dark};
-  --default-text               : #FFFAFA;
-  --default-hover-bg           : #{darken($dark, 10%)};
-  --default-hover-text         : #{saturate($lightest, 20%)};
-  --default-active-bg          : #{darken($dark, 25%)};
-  --default-active-text        : #{contrast-color(darken($dark, 25%))};
+  --default-text               : var(--color-red-11);
+  --default-hover-bg           : var(--color-gray-826);
+  --default-hover-text         : var(--color-white);
+  --default-active-bg          : var(--color-black);
+  --default-active-text        : var(--color-white);
   --default-border             : #{$dark};
-  --default-banner-bg          : #{rgba($dark, 0.15)};
-  --default-light-bg           : #{rgba($dark, 0.05)};
-  --slider-light-bg            : #{rgba($darker, 1)};
-  --slider-light-bg-right      : #{rgba($darker, 0)};
+  --default-banner-bg          : var(--color-gray-719-a15);
+  --default-light-bg           : var(--color-gray-719-a5);
+  --slider-light-bg            : var(--color-gray-772);
+  --slider-light-bg-right      : var(--color-gray-772-a0);
 
-  --muted                      : #8F8F9C;
-  --deemphasized               : #B6B6C2;
+  --muted                      : var(--color-gray-346);
+  --deemphasized               : var(--color-gray-221);
 
   --body-bg                    : #{$body-bg};
-  --body-text                  : #FFFAFA;
+  --body-text                  : var(--color-red-11);
   --body-text-hover            : var(--body-text);
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$medium};
@@ -881,18 +901,18 @@ BODY, .theme-dark {
   // Header, Footer and Consent banner defaults
   --banner-text-color          : #{$lightest};
 
-  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l + 10));
+  --primary-keyboard-focus     : var(--color-blue-361);
 
   --nav-bg                     : #{$body-bg};
-  --nav-active                 : #333;
+  --nav-active                 : var(--color-gray-680);
   --nav-border                 : #{$medium};
-  --nav-hover                  : #{lighten($body-bg, 10%)};
+  --nav-hover                  : var(--color-blue-628);
   --nav-active-hover           : var(--primary-active-bg);
   --nav-hover-top-level        : var(--nav-hover);
   --nav-expander-hover         : var(--primary-banner-bg);
   --nav-icon-badge-bg          : #{$dark};
 
-  --disabled-bg                : #{darken($disabled, 10%)};
+  --disabled-bg                : var(--color-gray-552);
   --disabled-text              : #{$secondary};
   --box-bg                     : #{$darkest};
   --box-bg--inverted           : #{$grey-5};
@@ -903,7 +923,7 @@ BODY, .theme-dark {
   --topmenu-bg                 : #{$body-bg};
   --topmenu-text               : #{$lightest};
   --topmost-border             : #{$medium};
-  --topmost-shadow             : #{lighten($darkest, 5%)};
+  --topmost-shadow             : var(--color-gray-724);
   --topmost-light-hover        : #{$medium};
 
   --accent-btn                 : var(--primary-banner-bg);
@@ -912,20 +932,26 @@ BODY, .theme-dark {
 
   --modal-bg                   : #{$body-bg};
   --modal-border               : #{$medium};
-  --subtle-overlay-bg          : #{rgba($darkest, 0.75)};
-  --overlay-bg                 : rgba(47, 51, 61, .75);
-  --shadow                     : #{rgba($darkest, 0.9)};
+  --subtle-overlay-bg          : var(--color-gray-777-a75);
+  --overlay-bg                 : var(--color-gray-679-a75);
+  --subtle-hover-bg            : var(--color-red-11-a10);
+  --subtle-active-bg           : var(--color-red-11-a6);
+  --subtle-badge-bg            : var(--color-red-11-a10);
+  --scroll-shadow              : var(--color-red-11-a8);
+  --skeleton-bg                : var(--color-red-11-a7);
+  --skeleton-highlight         : var(--color-red-11-a15);
+  --shadow                     : var(--color-gray-777-a90);
 
   --checkbox-tick              : var(--on-active);
   --checkbox-border            : #{$form-control-border};
-  --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
+  --checkbox-tick-disabled     : var(--color-gray-45);
   --checkbox-disabled-bg       : #{$disabled};
   --checkbox-ticked-bg         : var(--active);
 
-  --drag-over-inner-bg         : #{rgba($drag-over, 0.9)};
-  --drag-over-outer-bg         : #{rgba($drag-over, 0)};
+  --drag-over-inner-bg         : var(--color-gray-99-a90);
+  --drag-over-outer-bg         : var(--color-gray-99-a0);
 
-  --dropdown-bg                : #{mix($medium, $dark, 10%)};
+  --dropdown-bg                : var(--color-gray-703);
   --dropdown-border            : #{$form-control-border};
   --dropdown-divider           : #{$light};
   --dropdown-text              : #{$lightest};
@@ -946,14 +972,14 @@ BODY, .theme-dark {
   --input-placeholder          : var(--muted);
   --input-border               : #{$form-control-border};
   --input-bg                   : var(--body-bg);
-  --input-bg-accent            : #{darken($dark, 3%)};
+  --input-bg-accent            : var(--color-gray-748);
   --input-hover-bg             : var(--box-bg);
   --input-focus-bg             : var(--box-bg);
-  --input-disabled-text        : #{darken($lightest, 50%)};
-  --input-disabled-label       : #{darken($lighter, 30%)};
-  --input-disabled-bg          : #{darken($disabled, 30%)};
-  --input-disabled-border      : #{darken($medium, 30%)};
-  --input-disabled-placeholder : #{darken($disabled, 10%)};
+  --input-disabled-text        : var(--color-gray-400);
+  --input-disabled-label       : var(--color-blue-483);
+  --input-disabled-bg          : var(--color-gray-743);
+  --input-disabled-border      : var(--color-gray-931);
+  --input-disabled-placeholder : var(--color-gray-552);
   --input-addon-bg             : #{$darker};
 
   --label-secondary           : #{$lighter};
@@ -961,12 +987,12 @@ BODY, .theme-dark {
   --progress-bg                : #{$medium};
   --progress-divider           : #{$lightest};
 
-  --sortable-table-bg           : #171C22;
+  --sortable-table-bg           : var(--color-gray-777);
   --sortable-table-row-bg       : var(--body-bg);
-  --sortable-table-header-bg    : #171C22;
+  --sortable-table-header-bg    : var(--color-gray-777);
   --sortable-table-top-divider  : var(--body-border);
-  --sortable-table-hover-bg     : #{lighten($body-bg, 5%)};
-  --sortable-table-selected-bg  : #3f4350;
+  --sortable-table-hover-bg     : var(--color-gray-675);
+  --sortable-table-selected-bg  : var(--color-blue-616);
   --sortable-table-group-label  : #{$grey-30};
 
   --tag-primary                : #{$lightest};
@@ -984,7 +1010,7 @@ BODY, .theme-dark {
 
   --tabbed-border              : #{$medium};
   --tabbed-sidebar-bg          : #{$darkest};
-  --tabbed-container-bg        : #{mix($medium, $dark, 20%)};
+  --tabbed-container-bg        : var(--color-gray-692);
 
   --yaml-editor-bg             : #{$darkest};
   --drawer-body-bg             : #{$darkest};
@@ -992,34 +1018,35 @@ BODY, .theme-dark {
   --diff-border                : var(--border);
   --diff-header-bg             : var(--nav-bg);
   --diff-header-border         : var(--border);
-  --diff-header                : #{rgba($darkest, 0.3)};
+  --diff-header                : var(--color-gray-777-a30);
   --diff-linenum-bg            : var(--nav-bg);
   --diff-linenum               : var(--muted);
   --diff-linenum-border        : var(--border);
   --diff-line-ins-bg           : $success;
-  --diff-line-del-bg           : #{rgba($error, 0.75)};
-  --diff-del-bg                : #{rgba($error, 0.3)};
+  --diff-line-del-bg           : var(--color-red-450-a75);
+  --diff-del-bg                : var(--color-red-450-a30);
   --diff-del-border            : #{$error};
-  --diff-ins-bg                : #{rgba($success, 0.3)};
-  --diff-ins-border            : #{rgba($success, 0.5)};
-  --diff-chg-ins               : #{rgba($success, 0.25)};
-  --diff-chg-del               : #{rgba($warning, 0.5)};
-  --diff-chg-dela               : #{rgba($warning, 1)};
+  --diff-ins-bg                : var(--color-green-432-a30);
+  --diff-ins-border            : var(--color-green-432-a50);
+  --diff-chg-ins               : var(--color-green-432-a25);
+  --diff-chg-del               : var(--color-yellow-170-a50);
+  --diff-chg-dela               : var(--color-yellow-170);
   --diff-empty-placeholder     : #{$darker};
 
 
-  --wm-tabs-bg                 : #{mix($medium, $dark, 10%)};
+  --wm-tabs-bg                 : var(--color-gray-703);
   --wm-tab-bg                  : #{$darkest};
   --wm-closer-hover-bg         : #{$medium};
   --wm-tab-active-bg           : #{$darker};
   --wm-title-bg                : #{$darkest};
   --wm-title-border            : #{$medium};
   --wm-body-bg                 : #{$darkest};
-  --wm-border                  : black;
+  --wm-border                  : var(--color-black);
 
   --glance-divider             : #{$medium};
 
-  --resource-gauge-back-circle : 74, 75, 82, 0.5;
+  // stylelint-disable-next-line local-rules/no-color-literal -- r, g, b triplets kept for extensions
+  --resource-gauge-back-circle : #{red($color-gray-586)}, #{green($color-gray-586)}, #{blue($color-gray-586)}, 0.5;
 
   --simple-box-bg              : var(--body-bg);
   --simple-box-border          : var(--body-border);
@@ -1036,13 +1063,15 @@ BODY, .theme-dark {
   --logs-highlight-bg          : var(--warning);
   --logs-text                  : var(--body-text);
 
-  --gauge-divider              : rgba(255, 255, 255, 0.3);
-  --gauge-success-primary      : 75, 95, 64;
-  --gauge-success-secondary    : 150, 189, 127;
-  --gauge-warning-primary      : 218, 195, 66;
-  --gauge-warning-secondary    : 109, 98, 33;
-  --gauge-error-primary        : 239, 90, 83;
-  --gauge-error-secondary      : 120, 45, 42;
+  --gauge-divider              : var(--color-white-a30);
+  // stylelint-disable local-rules/no-color-literal -- r, g, b triplets kept for extensions
+  --gauge-success-primary      : #{red($color-green-540)}, #{green($color-green-540)}, #{blue($color-green-540)};
+  --gauge-success-secondary    : #{red($color-green-246)}, #{green($color-green-246)}, #{blue($color-green-246)};
+  --gauge-warning-primary      : #{red($color-yellow-186)}, #{green($color-yellow-186)}, #{blue($color-yellow-186)};
+  --gauge-warning-secondary    : #{red($color-yellow-507)}, #{green($color-yellow-507)}, #{blue($color-yellow-507)};
+  --gauge-error-primary        : #{red($color-red-338)}, #{green($color-red-338)}, #{blue($color-red-338)};
+  --gauge-error-secondary      : #{red($color-red-595)}, #{green($color-red-595)}, #{blue($color-red-595)};
+  // stylelint-enable local-rules/no-color-literal
 
   --product-icon               : #{$lighter};
   --product-icon-active        : #{$lightest};
@@ -1052,23 +1081,23 @@ BODY, .theme-dark {
   --badge-state-disabled-border: #{$lighter};
 
   --click-badge-error          : #{$lightest};
-  --click-badge-error-bg       : #F43434;
-  --click-badge-error-border   : #FF8080;
+  --click-badge-error-bg       : var(--color-red-370);
+  --click-badge-error-border   : var(--color-red-256);
 
-  --click-badge-warning        : #662E00;
-  --click-badge-warning-bg     : #FFCA4D;
-  --click-badge-warning-border : #F2870D;
+  --click-badge-warning        : var(--color-orange-629);
+  --click-badge-warning-bg     : var(--color-yellow-136);
+  --click-badge-warning-border : var(--color-orange-274);
 
-  --click-badge-success        : #00FF32;
-  --click-badge-success-bg     : #354240;
-  --click-badge-success-border : #4DFF70;
+  --click-badge-success        : var(--color-green-132);
+  --click-badge-success-bg     : var(--color-blue-633);
+  --click-badge-success-border : var(--color-green-119);
   
   --click-badge-info           : #{$lightest};
   --click-badge-info-bg        : #{$info};
-  --click-badge-info-border    : #ACD2EC;
+  --click-badge-info-border    : var(--color-blue-155);
   --bubble-bg                  : #{$darkest};
 
-  $slate: #4B4F6B;
+  $slate: $color-blue-564;
 
   --slate: #{$slate};
 
@@ -1103,22 +1132,22 @@ BODY, .theme-dark {
   --rc-image-bg: #{$lightest};
   --rc-image-color: #{$darkest};
 
-  --error-text    : #FFAC99;
-  --warning-text  : #{contrast-color($warning)};
+  --error-text    : var(--color-red-180);
+  --warning-text  : var(--color-gray-806);
 
-  --success-badge     : #{rgba($success, 10%)};
-  --on-success-banner : #00B752;
+  --success-badge     : var(--color-green-432-a10);
+  --on-success-banner : var(--color-green-319);
 
-  --warning-badge     : #ffcc00;
-  --on-warning-banner : #{darken($warning, 60%)};
+  --warning-badge     : var(--color-yellow-135);
+  --on-warning-banner : var(--color-black);
 
-  --info-badge      : #{rgba($info, 30%)};
-  --on-info-banner  : #{lighten($info, 50%)};
+  --info-badge      : var(--color-blue-460-a30);
+  --on-info-banner  : var(--color-gray-9);
 
   --error-badge     :  #{$error};
-  --on-error-banner : #FFFFFF;
+  --on-error-banner : var(--color-white);
 
-  --error-banner-bg: #301D1D;
+  --error-banner-bg: var(--color-red-745);
 
   --warning-banner-text : #{$grey-0};
   --error-banner-text   : #{$grey-0};

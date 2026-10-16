@@ -80,6 +80,7 @@ export default {
     :plain="plain"
     @click="visitLocation()"
   >
+    <!-- eslint-disable local-rules/no-color-literal -->
     <div
       v-if="graphical"
       class="graphical"
@@ -98,6 +99,7 @@ export default {
         :percentage="100"
       />
     </div>
+    <!-- eslint-enable local-rules/no-color-literal -->
     <div class="data">
       <h1>{{ useful }}</h1>
       <label>{{ name }}</label>

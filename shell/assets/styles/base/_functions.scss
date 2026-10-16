@@ -3,6 +3,7 @@
 
 @function brightness($color) {
   @if type-of($color) == color {
+    // stylelint-disable-next-line local-rules/no-color-literal -- kept for extensions, which get these helpers in every component
     @return math.div(red($color) * 0.299 + green($color) * 0.587 + blue($color) * 0.114, 255) * 100%;
   }
   @else {
@@ -126,9 +127,11 @@
   $endPos: 100%;
   $end: 0;
 
+  // stylelint-disable local-rules/no-color-literal -- kept for extensions, which get these helpers in every component
   @return transparent linear-gradient(#{$angle},
       #{rgba($color, $start)} #{$startPos},
       #{rgba($color, $middle)} #{$middlePos},
       #{rgba($color, $end)} #{$endPos}
   ) 0% 0% no-repeat padding-box;
+  // stylelint-enable local-rules/no-color-literal
 }

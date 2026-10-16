@@ -66,8 +66,8 @@ const rancherSharedTheme = EditorView.theme({
     borderRadius:    '4px'
   },
   '.cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected]': {
-    color:           'var(--primary-text, #FFFFFF)',
-    backgroundColor: 'var(--primary, #3D98D3)'
+    color:           'var(--primary-text, var(--color-white))',
+    backgroundColor: 'var(--primary, var(--color-blue-349))'
   }
 });
 
@@ -106,7 +106,7 @@ const rancherSearchTheme = EditorView.theme({
     // Draw native controls such as the checkboxes for the editor's light or dark colors
     colorScheme:     'var(--rc-cm-color-scheme, light)'
   },
-  '.cm-panels-top':                   { borderBottom: '1px solid var(--border, #DCDEE7)' },
+  '.cm-panels-top':                   { borderBottom: '1px solid var(--border, var(--color-gray-99))' },
   // A page can stick the panel below the top of its scroll area (a modal's padding, for example), leaving code
   // visible as it scrolls past above the panel. Mute that code with a translucent layer above the panel, clipped
   // to the editor so it never covers the page above it. Tooltips are fixed, so the clip leaves them be.
@@ -118,7 +118,7 @@ const rancherSearchTheme = EditorView.theme({
     left:            '0',
     right:           '0',
     height:          '100vh',
-    backgroundColor: 'color-mix(in srgb, var(--rc-cm-bg) 75%, transparent)',
+    backgroundColor: 'var(--rc-cm-bg-mask)',
     backdropFilter:  'blur(2px)',
     pointerEvents:   'none'
   },
@@ -134,13 +134,13 @@ const rancherSearchTheme = EditorView.theme({
     boxSizing:        'border-box',
     minWidth:         '0',
     height:           '36px',
-    border:           '1px solid var(--input-border, #C4C8CF)',
+    border:           '1px solid var(--input-border, var(--color-gray-168))',
     borderRadius:     'var(--border-radius, 4px)',
     backgroundColor:  'var(--input-bg, transparent)',
-    '&:hover':        { borderColor: 'var(--input-hover-border, var(--input-border, #C4C8CF))' },
+    '&:hover':        { borderColor: 'var(--input-hover-border, var(--input-border, var(--color-gray-168)))' },
     '&:focus-within': {
-      borderColor: 'var(--primary-border, var(--primary, #3D98D3))',
-      boxShadow:   'inset 0 0 0 1px var(--primary-border, var(--primary, #3D98D3))'
+      borderColor: 'var(--primary-border, var(--primary, var(--color-blue-349)))',
+      boxShadow:   'inset 0 0 0 1px var(--primary-border, var(--primary, var(--color-blue-349)))'
     }
   },
   '.cm-panel.cm-search .cm-textfield': {
@@ -166,7 +166,7 @@ const rancherSearchTheme = EditorView.theme({
     height:     '100%',
     gap:        '2px',
     padding:    '0 4px',
-    color:      'var(--muted, #6B6D85)'
+    color:      'var(--muted, var(--color-blue-459))'
   },
   '.cm-search-count': {
     whiteSpace: 'nowrap',
@@ -188,13 +188,13 @@ const rancherSearchTheme = EditorView.theme({
     color:           'inherit',
     lineHeight:      '1',
     cursor:          'pointer',
-    '&:hover':       { color: 'var(--primary, #3D98D3)' },
+    '&:hover':       { color: 'var(--primary, var(--color-blue-349))' },
     '&:disabled':    { opacity: '0.4', cursor: 'default' }
   },
   '.cm-panel.cm-search .cm-search-controls [name=clear]': { fontSize: '12px' },
   '.cm-search-icon':                                      { padding: '0 5px' },
   '.cm-panel.cm-search button:focus-visible':             {
-    outline:       '2px solid var(--primary-keyboard-focus, #3D98D3)',
+    outline:       '2px solid var(--primary-keyboard-focus, var(--color-blue-349))',
     outlineOffset: '-2px'
   },
   '.cm-searchMatch':          { backgroundColor: 'var(--rc-cm-search-match)' },

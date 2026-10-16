@@ -963,7 +963,7 @@ defineExpose({
   border: 1px solid var(--border);
   border-radius: var(--border-radius-md);
   // Same shadow floating-vue's dropdown theme would have drawn, moved here so it scales with the panel.
-  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 30px var(--color-black-a10);
   overflow: hidden;
 
   .switcher-search {
@@ -1032,7 +1032,7 @@ defineExpose({
       height: 8px;
       margin-top: -8px;
       pointer-events: none;
-      background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--body-text) 8%, transparent) 100%);
+      background: linear-gradient(180deg, transparent 0%, var(--scroll-shadow) 100%);
       // Hidden by default; only the scroll-driven animation reveals it. On a non-scrollable list the
       // timeline is inactive and this base value wins — no stray shadow on a short list.
       opacity: 0;
@@ -1074,7 +1074,7 @@ defineExpose({
       height: 20px;
       padding: 0 8px;
       border-radius: 999px;
-      background: color-mix(in srgb, var(--body-text) 10%, transparent);
+      background: var(--subtle-badge-bg);
       font-size: 11px;
       font-weight: 600;
       line-height: 1;

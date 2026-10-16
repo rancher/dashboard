@@ -120,13 +120,13 @@ const themeSpec = {
     },
     ".cm-fat-cursor": {
         position: "absolute",
-        background: "#ff9696",
+        background: "var(--color-red-217)",
         border: "none",
         whiteSpace: "pre",
     },
     "&:not(.cm-focused) .cm-fat-cursor": {
         background: "none",
-        outline: "solid 1px #ff9696",
+        outline: "solid 1px var(--color-red-217)",
         color: "transparent !important",
     },
 };
@@ -197,13 +197,13 @@ const emacsStyle = /*@__PURE__*/EditorView.theme({
     },
     ".cm-vim-panel": {
         padding: "5px 10px",
-        backgroundColor: "#fffa8f",
+        backgroundColor: "var(--color-yellow-33)",
         fontFamily: "monospace",
     },
     ".cm-vim-panel input": {
         border: "none",
         outline: "none",
-        backgroundColor: "#fffa8f",
+        backgroundColor: "var(--color-yellow-33)",
     },
 });
 const emacsPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {

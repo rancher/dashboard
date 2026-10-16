@@ -1,0 +1,716 @@
+import { Meta } from "@storybook/addon-docs";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import computedColors from './color-primitives-computed.json';
+
+<Meta title="Foundation/Color Primitives" />
+
+export const USAGE = typeof __COLOR_USAGE__ === 'undefined' ? {} : __COLOR_USAGE__;
+
+export const UNPAINTED = new Set(typeof __UNPAINTED_VARIABLES__ === 'undefined' ? [] : __UNPAINTED_VARIABLES__);
+
+export const THEMES = {
+  light: ['theme-light', 'classic theme-light', 'suse theme-light'],
+  dark:  ['theme-dark', 'classic theme-dark', 'suse theme-dark'],
+};
+
+export const readPrimitives = () => {
+  const primitives = [];
+
+  for (const sheet of document.styleSheets) {
+    let rules = [];
+
+    try {
+      rules = sheet.cssRules;
+    } catch (e) {
+      continue;
+    }
+
+    for (const rule of rules) {
+      if (rule.selectorText !== ':root') {
+        continue;
+      }
+
+      for (const name of rule.style) {
+        if (name.startsWith('--color-') && !primitives.some((p) => p.name === name)) {
+          primitives.push({ name, value: rule.style.getPropertyValue(name).trim() });
+        }
+      }
+    }
+  }
+
+  return primitives;
+};
+
+export const themeVariableNames = () => {
+  const names = new Set();
+  const walk = (rules) => {
+    for (const rule of rules) {
+      if (rule.cssRules && !rule.selectorText) {
+        walk(rule.cssRules);
+      } else if (rule.style && /theme-(light|dark)|\.classic|\.suse/.test(rule.selectorText || '')) {
+        for (const name of rule.style) {
+          if (name.startsWith('--') && !name.startsWith('--color-')) {
+            names.add(name);
+          }
+        }
+      }
+    }
+  };
+
+  for (const sheet of document.styleSheets) {
+    try {
+      walk(sheet.cssRules);
+    } catch (e) {}
+  }
+
+  return [...names];
+};
+
+export const resolveThemes = (primitives) => {
+  const probe = document.createElement('span');
+
+  document.body.appendChild(probe);
+  const render = (value) => {
+    probe.style.color = '';
+    probe.style.color = value;
+
+    return probe.style.color ? getComputedStyle(probe).color : null;
+  };
+  const byColor = new Map(primitives.map((p) => [render(p.value), p.name]));
+  const colorsIn = (value) => {
+    if (/^\d+\s*,\s*\d+\s*,\s*\d+(\s*,\s*[\d.]+)?$/.test(value)) {
+      return [`rgba(${ value })`];
+    }
+
+    return value && CSS.supports('color', value) ? [value] : value.match(/#[0-9a-f]{3,8}\b|(rgba?|hsla?)\([^)]*\)/gi) || [];
+  };
+  const names = themeVariableNames();
+  const original = document.body.className;
+  const result = { light: new Set(), dark: new Set(), unpainted: {}, background: {} };
+
+  for (const [mode, classes] of Object.entries(THEMES)) {
+    for (const classNames of classes) {
+      document.body.className = classNames;
+      const style = getComputedStyle(document.body);
+
+      for (const name of names) {
+        for (const color of colorsIn(style.getPropertyValue(name).trim())) {
+          const primitive = byColor.get(render(color));
+
+          if (primitive && UNPAINTED.has(name)) {
+            (result.unpainted[primitive] ||= new Set()).add(name);
+          } else if (primitive) {
+            result[mode].add(primitive);
+          }
+        }
+      }
+      if (classNames.startsWith('theme-')) {
+        result.background[mode] = style.getPropertyValue('--body-bg').trim();
+      }
+    }
+  }
+  document.body.className = original;
+  probe.remove();
+
+  return result;
+};
+
+export const describeColor = (primitive, themes) => {
+  const usage = USAGE[primitive.name] || { uses: 0, files: {}, light: false, dark: false };
+
+  return {
+    ...primitive,
+    uses:      usage.uses,
+    files:     Object.entries(usage.files).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])),
+    light:     usage.light || themes.light.has(primitive.name),
+    dark:      usage.dark || themes.dark.has(primitive.name),
+    unpainted: [...themes.unpainted[primitive.name] || []].sort(),
+    computed:  computedColors.primitives[primitive.name] || [],
+    alpha:     /-a\d+$/.test(primitive.name),
+  };
+};
+
+export const themeLabel = ({ uses, light, dark }) => {
+  if (light && dark) {
+    return 'Light + dark';
+  }
+  if (light || dark) {
+    return light ? 'Light only' : 'Dark only';
+  }
+
+  return uses ? 'Not painted' : 'Unused';
+};
+
+export const groupByFamily = (primitives) => {
+  const groups = [];
+
+  for (const p of primitives) {
+    const family = p.name.match(/^--color-([a-z]+)/)[1];
+    const title = ['white', 'black'].includes(family) ? 'white and black' : family;
+    let group = groups.find((g) => g.title === title);
+
+    if (!group) {
+      group = { title, primitives: [] };
+      groups.push(group);
+    }
+    group.primitives.push(p);
+  }
+
+  return groups;
+};
+
+export const copyText = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (e) {
+    const area = document.createElement('textarea');
+
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.style.position = 'absolute';
+    area.style.left = '-9999px';
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand('copy');
+    area.remove();
+  }
+};
+
+export const useScreenshots = () => {
+  const [index, setIndex] = useState({});
+
+  useEffect(() => {
+    fetch('color-usage/index.json')
+      .then((response) => (response.ok ? response.json() : {}))
+      .then(setIndex)
+      .catch(() => setIndex({}));
+  }, []);
+
+  return index;
+};
+
+export const CopyButton = ({ name, children }) => {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    await copyText(name);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <button type="button" className="ds-copy" onClick={copy} aria-label={`Copy ${ name }`}>
+      {copied ? 'Copied' : children || 'Copy'}
+      <span className="ds-sr-only" aria-live="polite">{copied ? `Copied ${ name }` : ''}</span>
+    </button>
+  );
+};
+
+export const Chip = ({ color, background, large }) => (
+  <span className={`ds-chip${ large ? ' ds-chip--large' : '' }`}>
+    {color.alpha ? (
+      <>
+        <span className="ds-third ds-checker" title="Over a checkerboard"><span className="ds-fill" style={{ background: `var(${ color.name })` }} /></span>
+        <span className="ds-third" style={{ background: background.light }} title="Over the light theme background"><span className="ds-fill" style={{ background: `var(${ color.name })` }} /></span>
+        <span className="ds-third" style={{ background: background.dark }} title="Over the dark theme background"><span className="ds-fill" style={{ background: `var(${ color.name })` }} /></span>
+      </>
+    ) : (
+      <span className="ds-fill" style={{ background: `var(${ color.name })` }} />
+    )}
+  </span>
+);
+
+export const SunIcon = () => (
+  <svg viewBox="0 0 16 16" width="12" height="12">
+    <circle cx="8" cy="8" r="3" fill="currentColor" />
+    <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.5 1.5M11.5 11.5L13 13M3 13l1.5-1.5M11.5 4.5L13 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
+
+export const MoonIcon = () => (
+  <svg viewBox="0 0 16 16" width="12" height="12">
+    <path d="M13.5 10.2A6 6 0 0 1 5.8 2.5a6 6 0 1 0 7.7 7.7z" fill="currentColor" />
+  </svg>
+);
+
+export const themeMode = ({ light, dark }) => (light && dark ? 'both' : light ? 'light' : dark ? 'dark' : 'none');
+
+export const ThemeBadge = ({ color }) => (
+  <span className={`ds-theme ds-theme--${ themeMode(color) }`}>
+    {color.light && <span className="ds-theme-icon ds-theme-icon--light" aria-hidden="true"><SunIcon /></span>}
+    {color.dark && <span className="ds-theme-icon ds-theme-icon--dark" aria-hidden="true"><MoonIcon /></span>}
+    {themeLabel(color)}
+  </span>
+);
+
+export const Swatch = ({ color, background, onOpen }) => (
+  <div className="ds-card">
+    <button type="button" className="ds-swatch" onClick={() => onOpen(color.name)} aria-haspopup="dialog" aria-label={`${ color.name }, ${ color.value }: show where it is used`}>
+      <Chip color={color} background={background} />
+      <code>{color.name}</code>
+      <code>{color.value}</code>
+    </button>
+    <div className="ds-meta">
+      <span>{color.uses === 1 ? '1 use' : `${ color.uses } uses`}</span>
+      <ThemeBadge color={color} />
+      {color.computed.length > 0 && <span className="ds-computed">Computed</span>}
+      <CopyButton name={color.name} />
+    </div>
+  </div>
+);
+
+export const Eyedropper = ({ color, screenshot }) => {
+  const [x, y] = screenshot.tip;
+  const scale = screenshot.scale || 1;
+  const radians = screenshot.angle * Math.PI / 180;
+  const sx = x + 68 * scale * Math.cos(radians);
+  const sy = y + 68 * scale * Math.sin(radians);
+  const tube = 'M0 0 L6 -3 L26 -4 L26 4 L6 3 Z';
+  const fill = (value) => ({ fill: value });
+  const square = (half, rx, style) => <rect x={sx - half * scale} y={sy - half * scale} width={2 * half * scale} height={2 * half * scale} rx={rx * scale} style={style} />;
+
+  return (
+    <svg className="ds-eyedropper" viewBox={`0 0 ${ screenshot.width } ${ screenshot.height }`} aria-hidden="true">
+      <defs>
+        <pattern id="ds-eyedropper-checker" width="8" height="8" patternUnits="userSpaceOnUse">
+          <rect width="8" height="8" style={fill('var(--color-white)')} />
+          <rect width="4" height="4" style={fill('var(--color-gray-96)')} />
+          <rect x="4" y="4" width="4" height="4" style={fill('var(--color-gray-96)')} />
+        </pattern>
+      </defs>
+      <g transform={`translate(${ x } ${ y }) rotate(${ screenshot.angle }) scale(${ scale })`}>
+        <g style={{ fill: 'var(--color-white)', stroke: 'var(--color-white)', strokeWidth: 4, strokeLinejoin: 'round' }}>
+          <path d={tube} />
+          <rect x="26" y="-6" width="5" height="12" rx="1.5" />
+          <rect x="31" y="-7" width="19" height="14" rx="7" />
+        </g>
+        <path d={tube} style={fill('url(#ds-eyedropper-checker)')} />
+        <path d={tube} style={{ fill: `var(${ color.name })`, stroke: 'var(--color-gray-806)', strokeWidth: 1 }} />
+        <rect x="26" y="-6" width="5" height="12" rx="1.5" style={fill('var(--color-gray-466)')} />
+        <rect x="31" y="-7" width="19" height="14" rx="7" style={fill('var(--color-gray-806)')} />
+      </g>
+      {square(15, 7, fill('var(--color-gray-806)'))}
+      {square(14, 6, fill('var(--color-white)'))}
+      {square(11, 4, fill('url(#ds-eyedropper-checker)'))}
+      {square(11, 4, fill(`var(${ color.name })`))}
+    </svg>
+  );
+};
+
+export const Computations = ({ entries }) => {
+  const groups = [];
+
+  for (const e of entries) {
+    const key = `${ e.expression }|${ JSON.stringify(e.inputs) }`;
+    let group = groups.find((g) => g.key === key);
+
+    if (!group) {
+      group = { key, expression: e.expression, inputs: e.inputs, places: [] };
+      groups.push(group);
+    }
+    group.places.push(`${ e.file.split('/').pop() }${ e.themes ? ` (${ e.themes.join(', ') })` : '' }`);
+  }
+
+  return (
+    <ul className="ds-list">
+      {groups.map((g) => (
+        <li key={g.key}>
+          <code>{g.expression}</code>
+          {Object.entries(g.inputs).map(([input, value]) => (
+            <span key={input}> where <code>{input}</code> is <code>{value}</code></span>
+          ))}
+          <span className="ds-muted"> in {[...new Set(g.places)].join(', ')}</span>
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+export const Details = ({ color, background, screenshot, screenshots, onClose }) => {
+  const dialog = useRef(null);
+  const close = useRef(null);
+
+  useEffect(() => {
+    if (!dialog.current.open) {
+      dialog.current.showModal();
+      close.current.focus();
+    }
+  }, []);
+
+  return (
+    <dialog
+      ref={dialog}
+      className="ds-dialog"
+      aria-labelledby="ds-dialog-title"
+      onClose={onClose}
+      onClick={(event) => event.target === dialog.current && dialog.current.close()}
+    >
+      <div className="ds-dialog-body">
+        <div className="ds-dialog-header">
+          <h2 id="ds-dialog-title"><code>{color.name}</code></h2>
+          <button ref={close} type="button" className="ds-copy" onClick={() => dialog.current.close()}>Close</button>
+        </div>
+        <Chip color={color} background={background} large />
+        {color.alpha && <p className="ds-muted">Over a checkerboard, the light theme background and the dark theme background.</p>}
+        <dl className="ds-facts">
+          <dt>Value</dt><dd><code>{color.value}</code></dd>
+          <dt>Uses</dt><dd>{color.uses} in {color.files.length} {color.files.length === 1 ? 'file' : 'files'}</dd>
+          <dt>Themes</dt><dd><ThemeBadge color={color} /></dd>
+        </dl>
+        <CopyButton name={color.name}>Copy name</CopyButton>
+        <h3>In the app</h3>
+        {screenshot?.file ? (
+          <figure className="ds-screenshot">
+            <div className="ds-shot">
+              <img src={`color-usage/${ screenshot.file }`} alt={`${ color.name } as the ${ screenshot.property } of ${ screenshot.element } on ${ screenshot.page } in the ${ screenshot.theme } theme, with an eyedropper on it`} />
+              {screenshot.tip && <Eyedropper color={color} screenshot={screenshot} />}
+            </div>
+            <figcaption>
+              <code>{screenshot.property}</code> of <code>{screenshot.element}</code> on <code>{screenshot.page}</code>
+              {screenshot.how ? `, ${ screenshot.how }` : ''}, {screenshot.theme} theme.
+              {' '}<span className="ds-muted">{screenshot.pixels} pixels in the screenshot are this color.</span>
+            </figcaption>
+          </figure>
+        ) : (
+          <p className="ds-muted">
+            {!color.light && !color.dark ? (
+              color.unpainted.length ? (
+                <>Nothing paints it. Only {color.unpainted.map((v, i) => <span key={v}>{i ? ', ' : ''}<code>{v}</code></span>)} {color.unpainted.length === 1 ? 'holds' : 'hold'} it, and no style, template or script in shell or @rancher/components reads {color.unpainted.length === 1 ? 'that variable' : 'those variables'}.</>
+              ) : color.uses ? (
+                <>Nothing paints it. Only Sass variables in {color.files.map(([file], i) => <span key={file}>{i ? ', ' : ''}<code>{file.split('/').pop()}</code></span>)} refer to it, and nothing compiles them into CSS.</>
+              ) : 'Nothing references it.'
+            ) : screenshot?.reason ? screenshot.reason : (
+              <>
+                {screenshots ? 'Not seen on the pages ' : 'No screenshots in this build. Review builds get them from '}
+                <code>storybook/scripts/color-screenshots.mjs</code>{screenshots ? ' visits.' : '.'}
+              </>
+            )}
+          </p>
+        )}
+        {color.computed.length > 0 && (
+          <>
+            <h3>How it was computed</h3>
+            <p className="ds-muted">{computedColors.source}:</p>
+            <Computations entries={color.computed} />
+          </>
+        )}
+        <h3>Used in</h3>
+        {color.files.length ? (
+          <ul className="ds-list">
+            {color.files.map(([file, count]) => <li key={file}><code>{file}</code> <span className="ds-muted">({count})</span></li>)}
+          </ul>
+        ) : (
+          <p className="ds-muted">Nothing in shell or @rancher/components references it.</p>
+        )}
+      </div>
+    </dialog>
+  );
+};
+
+export const Primitives = () => {
+  const primitives = useMemo(readPrimitives, []);
+  const themes = useMemo(() => resolveThemes(primitives), [primitives]);
+  const colors = useMemo(() => primitives.map((p) => describeColor(p, themes)), [primitives, themes]);
+  const screenshots = useScreenshots();
+  const [open, setOpen] = useState(null);
+  const openColor = colors.find((c) => c.name === open);
+
+  return (
+    <div>
+      <p className="ds-legend">
+        {[{ light: true, dark: true, uses: 1 }, { light: true, uses: 1 }, { dark: true, uses: 1 }, { uses: 1 }].map((mode) => (
+          <span key={themeMode(mode)}>
+            {colors.filter((c) => themeMode(c) === themeMode(mode)).length} <ThemeBadge color={mode} />
+          </span>
+        ))}
+        <span>{colors.filter((c) => c.computed.length).length} <span className="ds-computed">Computed</span></span>
+      </p>
+      {groupByFamily(colors).map((group) => (
+        <div key={group.title}>
+          <h2 className="ds-family">{group.title} ({group.primitives.length})</h2>
+          <div className="ds-swatches">
+            {group.primitives.map((c) => <Swatch key={c.name} color={c} background={themes.background} onOpen={setOpen} />)}
+          </div>
+        </div>
+      ))}
+      {openColor && (
+        <Details color={openColor} background={themes.background} screenshot={screenshots[openColor.name]} screenshots={Object.keys(screenshots).length > 0} onClose={() => setOpen(null)} />
+      )}
+    </div>
+  );
+};
+
+<style>
+{`
+.ds-family {
+  text-transform: capitalize;
+}
+
+.ds-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.ds-card, .ds-dialog {
+  color: var(--color-gray-806);
+}
+
+.ds-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.ds-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ds-card code {
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.ds-chip {
+  position: relative;
+  display: flex;
+  height: 56px;
+  border: 1px solid var(--color-gray-96);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ds-chip--large {
+  height: 96px;
+  margin-bottom: 8px;
+}
+
+.ds-third {
+  flex: 1;
+}
+
+.ds-checker {
+  background: repeating-conic-gradient(var(--color-gray-96) 0% 25%, var(--color-white) 0% 50%) 50% / 16px 16px;
+}
+
+.ds-swatch:hover .ds-chip {
+  border-color: var(--color-gray-466);
+}
+
+.ds-swatch:focus-visible, .ds-copy:focus-visible {
+  outline: 2px solid var(--color-blue-451);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.ds-fill {
+  display: block;
+  flex: 1;
+  height: 100%;
+}
+
+.ds-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.ds-meta span, .ds-meta button {
+  font-size: 12px;
+}
+
+.ds-theme, .ds-computed {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  border: 1px solid var(--color-gray-96);
+  border-radius: 10px;
+}
+
+.ds-theme {
+  padding-left: 2px;
+}
+
+.ds-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 13px;
+}
+
+.ds-legend .ds-theme, .ds-legend .ds-computed {
+  font-size: 12px;
+}
+
+.ds-theme--both {
+  border-color: var(--color-gray-806);
+}
+
+.ds-theme--dark {
+  border-color: var(--color-gray-806);
+  background: var(--color-gray-806);
+  color: var(--color-white);
+}
+
+.ds-theme--none {
+  padding-left: 6px;
+  border-style: dashed;
+  border-color: var(--color-gray-466);
+  color: var(--color-gray-466);
+}
+
+.ds-theme-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.ds-theme-icon--light {
+  box-shadow: inset 0 0 0 1px var(--color-gray-96);
+  background: var(--color-white);
+  color: var(--color-orange-520);
+}
+
+.ds-theme-icon--dark {
+  background: var(--color-gray-806);
+  color: var(--color-yellow-80);
+}
+
+.ds-theme--both .ds-theme-icon--dark {
+  margin-left: -6px;
+}
+
+.ds-copy {
+  margin-left: auto;
+  min-height: 0;
+  height: auto;
+  padding: 0 6px;
+  line-height: 18px;
+  border: 1px solid var(--color-gray-96);
+  border-radius: 4px;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ds-dialog {
+  width: min(760px, 90vw);
+  max-height: 85vh;
+  padding: 0;
+  border: 1px solid var(--color-gray-96);
+  border-radius: 6px;
+}
+
+.ds-dialog::backdrop {
+  background: var(--color-black-a25);
+}
+
+.ds-dialog-body {
+  padding: 16px 20px;
+}
+
+.ds-dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ds-dialog-header h2 {
+  margin: 0;
+  border: 0;
+}
+
+.ds-dialog dl.ds-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 16px;
+  padding: 0;
+}
+
+.ds-dialog dl.ds-facts dt, .ds-dialog dl.ds-facts dd {
+  margin: 0;
+  padding: 0;
+  font-style: normal;
+}
+
+.ds-dialog dl.ds-facts dt {
+  font-weight: 600;
+}
+
+.ds-list {
+  padding-left: 18px;
+  font-size: 13px;
+}
+
+.ds-muted {
+  color: var(--color-gray-466);
+}
+
+.ds-screenshot {
+  margin: 0;
+}
+
+.ds-shot {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  border: 1px solid var(--color-gray-96);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ds-shot img {
+  display: block;
+  max-width: 100%;
+}
+
+.ds-eyedropper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ds-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+`}
+</style>
+
+# Color Primitives
+
+Use these as `var(--color-...)` instead of writing colors out or computing them from other colors. Click a swatch to see where the app paints the color: the eyedropper in the screenshot sits on a pixel of it.
+
+- `--color-<family>-<step>`: the step is (1 - OKLCH lightness) x 1000, so a higher step is darker.
+- `--color-<family>-<step>-a<n>`: the same color at n% opacity, shown over a checkerboard, the light theme background and the dark theme background.
+- **Uses** counts the references in shell and @rancher/components.
+- **Light + dark**, **Light only** and **Dark only** say which themes paint the color, through a theme variable or a component style. A sun marks the light theme and a moon the dark theme, and a color only the dark theme paints gets a dark badge. A dashed badge means nothing paints it: only a theme variable nothing reads, or a Sass variable that never reaches the CSS, refers to it.
+- **Computed** marks a color that master computed from another color (`darken()`, `color-mix()` and the like) before it became a primitive. The details say how.
+
+They are defined in `pkg/rancher-components/src/components/design-system/colors.scss`. A color that isn't here yet gets a new primitive in that file first.
+
+<Primitives />

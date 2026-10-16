@@ -1,25 +1,27 @@
 .classic {
   --primary                    : #{$primary};
-  --primary-text               : #{contrast-color($primary)};
-  --primary-hover-bg           : #{darken($primary, 10%)};
-  --primary-hover-text         : #{saturate($lightest, 20%)};
-  --primary-active-bg          : #{darken($primary, 25%)};
-  --primary-active-text        : #{contrast-color(darken($primary, 25%))};
+  --primary-text               : var(--color-white);
+  --primary-hover-bg           : var(--color-blue-434);
+  --primary-hover-text         : var(--color-white);
+  --primary-active-bg          : var(--color-blue-579);
+  --primary-active-text        : var(--color-white);
   --primary-border             : #{$primary};
-  --primary-banner-bg          : #{rgba($primary, 0.15)};
-  --primary-light-bg           : #{rgba($primary, 0.05)};
-  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
+  --primary-banner-bg          : var(--color-blue-349-a15);
+  --primary-light-bg           : var(--color-blue-349-a5);
+  --primary-keyboard-focus     : var(--color-blue-434);
+  --primary-held-bg            : var(--color-blue-349-a14);
+  --primary-wash-bg            : var(--color-blue-349-a15);
 
   --link                    : #{$link};
-  --link-text               : #{contrast-color($link)};
+  --link-text               : var(--color-white);
   --link-text-secondary     : #{$darker};
-  --link-hover-bg           : #{darken($link, 10%)};
-  --link-hover-text         : #{saturate($lightest, 20%)};
-  --link-active-bg          : #{darken($link, 25%)};
-  --link-active-text        : #{contrast-color(darken($link, 25%))};
+  --link-hover-bg           : var(--color-blue-434);
+  --link-hover-text         : var(--color-white);
+  --link-active-bg          : var(--color-blue-579);
+  --link-active-text        : var(--color-white);
   --link-border             : #{$link};
-  --link-banner-bg          : #{rgba($link, 0.15)};
-  --link-light-bg           : #{rgba($link, 0.05)};
+  --link-banner-bg          : var(--color-blue-349-a15);
+  --link-light-bg           : var(--color-blue-349-a5);
 
   --on-secondary: var(--primary);
   --secondary-border: var(--primary);
@@ -30,7 +32,7 @@
   --tertiary-header-hover     : var(--primary);
   --on-tertiary               : var(--primary);
   --on-tertiary-header        : var(--header-btn-text);
-  --on-tertiary-header-hover  : #fff;
+  --on-tertiary-header-hover  : var(--color-white);
   --on-tertiary-hover         : var(--lightest);
   --tertiary-hover            : var(--accent-btn);
   --tertiary-hover-app-bar    : var(--primary-hover-text);
@@ -39,6 +41,9 @@
   --active-nav    : var(--primary-hover-bg);
   --on-active     : #{$grey-0};
   --active-hover  : var(--primary-hover-bg);
+  --active-muted     : var(--color-blue-349-a50);
+  --active-light-bg  : var(--color-blue-349-a12);
+  --on-active-muted  : var(--color-white-a65);
 
   --category-active       : var(--nav-active);
   --category-active-hover : var(--nav-hover);

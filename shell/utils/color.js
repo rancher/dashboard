@@ -14,6 +14,7 @@ Primary color classes from _light.scss
 */
 
 import Color from 'color';
+import { COLOR_TOKENS } from '@components/design-system/colors';
 
 export function createCssVars(color, theme = 'light', name = 'primary') {
   const contrastOpts = theme === 'light' ? LIGHT_CONTRAST_COLORS : DARK_CONTRAST_COLORS;
@@ -46,6 +47,11 @@ export function createCssVars(color, theme = 'light', name = 'primary') {
       '--on-active-nav':     contrastColor(lighten(color, -10), contrastOpts),
       '--category-active':   opacity(color, 0.15),
       '--non-primary-hover': opacity(color, 0.1),
+      '--primary-held-bg':   opacity(color, 0.14),
+      '--primary-wash-bg':   opacity(color, 0.15),
+      '--active-muted':      opacity(color, 0.5),
+      '--active-light-bg':   opacity(color, 0.12),
+      '--on-active-muted':   opacity(contrastColor(color, contrastOpts), 0.65),
       // Secondary (outlined/ghost) buttons draw their border and text from these, which the
       // modern theme also bakes to a shade of the default primary color.
       '--secondary-border':  color,
@@ -94,20 +100,22 @@ dark theme
 $contrasted-dark: $lightest !default;  #ffffff;
 $contrasted-light: $darkest !default; #141419
 */
+const rgb = (token) => Color(COLOR_TOKENS[token]).rgb().string();
+
 const LIGHT_CONTRAST_COLORS = {
-  dark:  'rgb(20, 20, 25)',
-  light: 'rgb(255, 255, 255)'
+  dark:  rgb('--color-gray-806'),
+  light: rgb('--color-white')
 };
 
 const DARK_CONTRAST_COLORS = {
-  dark:  'rgb(255, 255, 255)',
-  light: 'rgb(20, 20, 25)',
+  dark:  rgb('--color-white'),
+  light: rgb('--color-gray-806'),
 
 };
 
 const STANDARD_COLORS = {
-  black: '#000000',
-  white: '#ffffff',
+  black: COLOR_TOKENS['--color-black'],
+  white: COLOR_TOKENS['--color-white'],
 };
 
 // contrastColor(color, {light, dark}) returns which of 2 options is higher contrast with color
@@ -135,7 +143,7 @@ export function textColor(color) {
                       (parseInt(rgb[1]) * 587) +
                       (parseInt(rgb[2]) * 114)) / 1000);
 
-  return (brightness > 125) ? 'black' : 'white';
+  return (brightness > 125) ? COLOR_TOKENS['--color-black'] : COLOR_TOKENS['--color-white'];
 }
 
 export function hexToRgb(hex) {

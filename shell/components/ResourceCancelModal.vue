@@ -120,7 +120,7 @@ export default {
     height: 50px;
 
     h4 {
-      color: white;
+      color: var(--color-white);
     }
   }
   .footer {

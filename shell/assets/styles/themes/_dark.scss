@@ -1,3 +1,4 @@
+@import "~@components/design-system/color-variables";
 @import "~shell/assets/styles/base/_color-classic.scss";
 @import "~shell/assets/styles/base/_variables-classic.scss";
 
@@ -6,28 +7,28 @@
     // Local variables for reused colors
 
     //dark sidebar
-    $darkest: #141419;
+    $darkest: $color-gray-806;
 
     //dark body
-    $darker: #1b1c21;
+    $darker: $color-gray-772;
 
     //dark inputs
-    $dark: #27292e;
+    $dark: $color-gray-719;
 
     //dark borders and button
-    $medium: #4a4b52;
+    $medium: $color-gray-586;
 
     // dark disabled,
-    $light: #6c6c76;
+    $light: $color-gray-466;
 
     //dark secondary
-    $lighter: #b6b6c2;
+    $lighter: $color-gray-221;
 
     // dark main text
-    $lightest: #ffffff;
+    $lightest: $color-white;
 
     // menu cluster description active+hover
-    $desc-light: #EEEFF4;
+    $desc-light: $color-gray-48;
 
     $secondary: $lighter;
     $disabled: $light;
@@ -36,26 +37,26 @@
     $contrasted-dark: $lightest !default;
     $contrasted-light: $darkest !default;
 
-    $drag-over: #DCDEE7;
+    $drag-over: $color-gray-99;
 
-    $slate: #4B4F6B;
+    $slate: $color-blue-564;
 
     --slate: #{$slate};
 
     --default                    : #{$dark};
     --default-text               : #{$light};
-    --default-hover-bg           : #{darken($dark, 10%)};
-    --default-hover-text         : #{saturate($lightest, 20%)};
-    --default-active-bg          : #{darken($dark, 25%)};
-    --default-active-text        : #{contrast-color(darken($dark, 25%))};
+    --default-hover-bg           : var(--color-gray-826);
+    --default-hover-text         : var(--color-white);
+    --default-active-bg          : var(--color-black);
+    --default-active-text        : var(--color-white);
     --default-border             : #{$dark};
-    --default-banner-bg          : #{rgba($dark, 0.15)};
-    --default-light-bg           : #{rgba($dark, 0.05)};
-    --slider-light-bg            : #{rgba($darker, 1)};
-    --slider-light-bg-right      : #{rgba($darker, 0)};
+    --default-banner-bg          : var(--color-gray-719-a15);
+    --default-light-bg           : var(--color-gray-719-a5);
+    --slider-light-bg            : var(--color-gray-772);
+    --slider-light-bg-right      : var(--color-gray-772-a0);
 
     --muted                      : #{$disabled};
-    --deemphasized               : #B6B6C2;
+    --deemphasized               : var(--color-gray-221);
 
     --body-bg                    : #{$darker};
     --body-text                  : #{$lightest};
@@ -75,14 +76,14 @@
     --banner-text-color          : #{$lightest};
 
     --nav-bg                     : #{$darkest};
-    --nav-active                 : #333;
+    --nav-active                 : var(--color-gray-680);
     --nav-border                 : #{$medium};
     --nav-hover                  : var(--primary);
     --nav-hover-top-level        : var(--primary-hover-bg);
     --nav-expander-hover         : var(--primary-banner-bg);
     --nav-icon-badge-bg          : #{$dark};
 
-    --disabled-bg                : #{darken($disabled, 10%)};
+    --disabled-bg                : var(--color-gray-552);
     --disabled-text              : #{$secondary};
     --box-bg                     : #{$darkest};
     --subtle-border              : #{$darkest};
@@ -91,7 +92,7 @@
     --topmenu-bg                 : #{$darkest};
     --topmenu-text               : #{$lightest};
     --topmost-border             : #{$medium};
-    --topmost-shadow             : #{lighten($darkest, 5%)};
+    --topmost-shadow             : var(--color-gray-757);
     --topmost-light-hover        : #{$medium};
 
     --accent-btn                 : var(--primary-banner-bg);
@@ -100,20 +101,26 @@
 
     --modal-bg                   : #{$dark};
     --modal-border               : #{$medium};
-    --subtle-overlay-bg          : #{rgba($darkest, 0.75)};
-    --overlay-bg                 : #{rgba($darkest, 0.75)};
-    --shadow                     : #{rgba($darkest, 0.9)};
+    --subtle-overlay-bg          : var(--color-gray-806-a75);
+    --overlay-bg                 : var(--color-gray-806-a75);
+    --subtle-hover-bg            : var(--color-white-a10);
+    --subtle-active-bg           : var(--color-white-a6);
+    --subtle-badge-bg            : var(--color-white-a10);
+    --scroll-shadow              : var(--color-white-a8);
+    --skeleton-bg                : var(--color-white-a7);
+    --skeleton-highlight         : var(--color-white-a15);
+    --shadow                     : var(--color-gray-806-a90);
 
     --checkbox-tick              : #{$lightest};
     --checkbox-border            : #{$medium};
-    --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
+    --checkbox-tick-disabled     : var(--color-gray-45);
     --checkbox-disabled-bg       : #{$disabled};
     --checkbox-ticked-bg         : var(--link);
 
-    --drag-over-inner-bg         : #{rgba($drag-over, 0.9)};
-    --drag-over-outer-bg         : #{rgba($drag-over, 0)};
+    --drag-over-inner-bg         : var(--color-gray-99-a90);
+    --drag-over-outer-bg         : var(--color-gray-99-a0);
 
-    --dropdown-bg                : #{mix($medium, $dark, 10%)};
+    --dropdown-bg                : var(--color-gray-705);
     --dropdown-border            : #{$light};
     --dropdown-divider           : #{$light};
     --dropdown-text              : #{$lightest};
@@ -134,14 +141,14 @@
     --input-placeholder          : #{$disabled};
     --input-border               : var(--border);
     --input-bg                   : var(--body-bg);
-    --input-bg-accent            : #{darken($dark, 3%)};
+    --input-bg-accent            : var(--color-gray-748);
     --input-hover-bg             : var(--box-bg);
     --input-focus-bg             : var(--box-bg);
-    --input-disabled-text        : #{darken($lightest, 50%)};
-    --input-disabled-label       : #{darken($lighter, 30%)};
-    --input-disabled-bg          : #{darken($disabled, 30%)};
-    --input-disabled-border      : #{darken($medium, 30%)};
-    --input-disabled-placeholder : #{darken($disabled, 10%)};
+    --input-disabled-text        : var(--color-gray-400);
+    --input-disabled-label       : var(--color-blue-483);
+    --input-disabled-bg          : var(--color-gray-743);
+    --input-disabled-border      : var(--color-gray-931);
+    --input-disabled-placeholder : var(--color-gray-552);
     --input-addon-bg             : #{$darker};
 
     --label-secondary           : #{$lighter};
@@ -149,7 +156,7 @@
     --progress-bg                : #{$medium};
     --progress-divider           : #{$lightest};
 
-    --sortable-table-bg          : #{lighten($darkest, 10%)};
+    --sortable-table-bg          : var(--color-gray-707);
     --sortable-table-row-bg      : #{$darker};;
     --sortable-table-header-bg   : #{$darkest};
     --sortable-table-top-divider : var(--border);
@@ -172,7 +179,7 @@
 
     --tabbed-border              : #{$medium};
     --tabbed-sidebar-bg          : #{$darkest};
-    --tabbed-container-bg        : #{mix($medium, $dark, 20%)};
+    --tabbed-container-bg        : var(--color-gray-692);
 
     --yaml-editor-bg             : #{$darkest};
     --drawer-body-bg             : #{$darkest};
@@ -180,34 +187,35 @@
     --diff-border                : var(--border);
     --diff-header-bg             : var(--nav-bg);
     --diff-header-border         : var(--border);
-    --diff-header                : #{rgba($darkest, 0.3)};
+    --diff-header                : var(--color-gray-806-a30);
     --diff-linenum-bg            : var(--nav-bg);
     --diff-linenum               : var(--muted);
     --diff-linenum-border        : var(--border);
     --diff-line-ins-bg           : $success;
-    --diff-line-del-bg           : #{rgba($error, 0.75)};
-    --diff-del-bg                : #{rgba($error, 0.3)};
+    --diff-line-del-bg           : var(--color-red-348-a75);
+    --diff-del-bg                : var(--color-red-348-a30);
     --diff-del-border            : #{$error};
-    --diff-ins-bg                : #{rgba($success, 0.3)};
-    --diff-ins-border            : #{rgba($success, 0.5)};
-    --diff-chg-ins               : #{rgba($success, 0.25)};
-    --diff-chg-del               : #{rgba($warning, 0.5)};
-    --diff-chg-dela               : #{rgba($warning, 1)};
+    --diff-ins-bg                : var(--color-green-374-a30);
+    --diff-ins-border            : var(--color-green-374-a50);
+    --diff-chg-ins               : var(--color-green-374-a25);
+    --diff-chg-del               : var(--color-yellow-186-a50);
+    --diff-chg-dela               : var(--color-yellow-186);
     --diff-empty-placeholder     : #{$darker};
 
 
-    --wm-tabs-bg                 : #{mix($medium, $dark, 10%)};
+    --wm-tabs-bg                 : var(--color-gray-705);
     --wm-tab-bg                  : #{$darkest};
     --wm-closer-hover-bg         : #{$medium};
     --wm-tab-active-bg           : #{$darker};
     --wm-title-bg                : #{$darkest};
     --wm-title-border            : #{$medium};
     --wm-body-bg                 : #{$darkest};
-    --wm-border                  : black;
+    --wm-border                  : var(--color-black);
 
     --glance-divider             : #{$medium};
 
-    --resource-gauge-back-circle : 74, 75, 82, 0.5;
+    // stylelint-disable-next-line local-rules/no-color-literal -- r, g, b triplets kept for extensions
+    --resource-gauge-back-circle : #{red($color-gray-586)}, #{green($color-gray-586)}, #{blue($color-gray-586)}, 0.5;
 
     --simple-box-bg              : #{$darker};
     --simple-box-border          : #{$medium};
@@ -224,13 +232,15 @@
     --logs-highlight-bg          : var(--warning);
     --logs-text                  : var(--body-text);
 
-    --gauge-divider              : rgba(255, 255, 255, 0.3);
-    --gauge-success-primary      : 75, 95, 64;
-    --gauge-success-secondary    : 150, 189, 127;
-    --gauge-warning-primary      : 218, 195, 66;
-    --gauge-warning-secondary    : 109, 98, 33;
-    --gauge-error-primary        : 239, 90, 83;
-    --gauge-error-secondary      : 120, 45, 42;
+    --gauge-divider              : var(--color-white-a30);
+    // stylelint-disable local-rules/no-color-literal -- r, g, b triplets kept for extensions
+    --gauge-success-primary      : #{red($color-green-540)}, #{green($color-green-540)}, #{blue($color-green-540)};
+    --gauge-success-secondary    : #{red($color-green-246)}, #{green($color-green-246)}, #{blue($color-green-246)};
+    --gauge-warning-primary      : #{red($color-yellow-186)}, #{green($color-yellow-186)}, #{blue($color-yellow-186)};
+    --gauge-warning-secondary    : #{red($color-yellow-507)}, #{green($color-yellow-507)}, #{blue($color-yellow-507)};
+    --gauge-error-primary        : #{red($color-red-338)}, #{green($color-red-338)}, #{blue($color-red-338)};
+    --gauge-error-secondary      : #{red($color-red-595)}, #{green($color-red-595)}, #{blue($color-red-595)};
+    // stylelint-enable local-rules/no-color-literal
 
     --product-icon               : #{$lighter};
     --product-icon-active        : #{$lightest};
@@ -240,23 +250,23 @@
     --badge-state-disabled-border: #{$lighter};
 
     --click-badge-error          : #{$lightest};
-    --click-badge-error-bg       : #F43434;
-    --click-badge-error-border   : #FF8080;
+    --click-badge-error-bg       : var(--color-red-370);
+    --click-badge-error-border   : var(--color-red-256);
 
-    --click-badge-warning        : #662E00;
-    --click-badge-warning-bg     : #FFCA4D;
-    --click-badge-warning-border : #F2870D;
+    --click-badge-warning        : var(--color-orange-629);
+    --click-badge-warning-bg     : var(--color-yellow-136);
+    --click-badge-warning-border : var(--color-orange-274);
 
-    --click-badge-success        : #00FF32;
-    --click-badge-success-bg     : #354240;
-    --click-badge-success-border : #4DFF70;
+    --click-badge-success        : var(--color-green-132);
+    --click-badge-success-bg     : var(--color-blue-633);
+    --click-badge-success-border : var(--color-green-119);
     
     --click-badge-info           : #{$lightest};
     --click-badge-info-bg        : #{$info};
-    --click-badge-info-border    : #ACD2EC;
+    --click-badge-info-border    : var(--color-blue-155);
     --bubble-bg                  : #{$darkest};
 
-    $slate: #4B4F6B;
+    $slate: $color-blue-564;
 
     --slate: #{$slate};
 

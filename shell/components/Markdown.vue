@@ -90,8 +90,8 @@ export default {
 
 .markdown {
     blockquote {
-      color: rgb(101, 109, 118);
-      border-left: 0.25em solid rgb(208, 215, 222);
+      color: var(--color-gray-469);
+      border-left: 0.25em solid var(--color-gray-124);
       padding: 0 1em;
       margin: 10px 8px 8px 8px;
     }
@@ -102,7 +102,7 @@ export default {
 
     TH {
       text-align: left;
-      border: 1px solid #e3e7eb;
+      border: 1px solid var(--color-gray-74);
     }
 
     table tr th {
@@ -123,7 +123,7 @@ export default {
       text-align: left;
       margin: 0;
       padding: 6px 13px;
-      border: 1px solid #e3e7eb;
+      border: 1px solid var(--color-gray-74);
     }
 
     table tr th :first-child, table tr td :first-child {

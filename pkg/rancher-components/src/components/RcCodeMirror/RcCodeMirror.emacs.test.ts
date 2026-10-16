@@ -262,6 +262,27 @@ describe('component: RcCodeMirror emacs keymap', () => {
     expect({ doc: view.state.doc.toString(), search: wrapper.find('.cm-search').exists() }).toStrictEqual({ doc: 'foo: bar\nnext: value', search: false });
   });
 
+  it.each([
+    ['.cm-fat-cursor', 'background', 'var(--color-red-217)'],
+    [':not(.cm-focused) .cm-fat-cursor', 'outline', 'solid 1px var(--color-red-217)'],
+    ['.cm-vim-panel', 'background-color', 'var(--color-yellow-33)'],
+    ['.cm-vim-panel input', 'background-color', 'var(--color-yellow-33)']
+  ])('gives %s a design system %s', (selector, property, value) => {
+    wrapper = shallowMount(RcCodeMirror, {
+      props:    { keymap: 'emacs', modelValue: 'foo' },
+      attachTo: document.body
+    }) as Wrapper;
+    const css = Array.from(document.querySelectorAll('style')).map((style) => style.textContent).join('\n');
+    const rule = [...css.matchAll(/([^{}]+)\{([^}]*)\}/g)].find(([, scoped]) => scoped.trim().replace(/^\.[^\s:]+\s*/, '') === selector);
+    const declarations = Object.fromEntries((rule?.[2] || '').split(';').filter((d) => d.includes(':')).map((d) => {
+      const colon = d.indexOf(':');
+
+      return [d.slice(0, colon).trim(), d.slice(colon + 1).trim()];
+    }));
+
+    expect(declarations[property]).toStrictEqual(value);
+  });
+
   // CodeMirror 5 Emacs bindings RcCodeMirror does not have yet. Moving one into EMACS_BINDINGS once it works
   // keeps it from regressing.
   describe('bindings missing since CodeMirror 5', () => {

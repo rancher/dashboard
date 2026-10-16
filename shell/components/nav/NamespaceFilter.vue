@@ -1161,7 +1161,7 @@ export default {
 
         .ns-value {
           align-items: center;
-          background-color: rgba(0,0,0,.05);
+          background-color: var(--color-black-a5);
           border: 1px solid var(--header-border);
           border-radius: 5px;
           color: var(--tag-text);
