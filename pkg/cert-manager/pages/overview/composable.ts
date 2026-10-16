@@ -60,9 +60,9 @@ export function useCertManagerOverview() {
   // ── Routing ──
 
   // Links to a resource list. With a `state`, the list opens filtered to it (`state:<state>` in its
-  // query), matched client-side on the same model `state` these buckets are built from - see
-  // table-headers.ts - so bucket and filter agree, including for states the backend does not store
-  // under `metadata.state.name` (expiring, ...).
+  // query, or by list/ without table views), matched client-side on the same model `state` these
+  // buckets are built from - see table-headers.ts - so bucket and filter agree, including for states
+  // the backend does not store under `metadata.state.name` (expiring, ...).
   const resourceRoute: OverviewRouteFn = (type: string, state?: string): RouteLocationRaw => ({
     name:   'c-cluster-product-resource',
     params: {
