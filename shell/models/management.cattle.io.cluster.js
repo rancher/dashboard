@@ -17,7 +17,7 @@ import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KEV1 } from './management.cattle.io.kontainerdriver';
 import { requireAsset } from '@shell/utils/require-asset';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
-import { commitAndReconcile, setPinned } from '@shell/utils/cluster-pref-writer';
+import { commitAndReconcile, reportPinWriteFailure, setPinned } from '@shell/utils/cluster-pref-writer';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
@@ -113,6 +113,10 @@ export default class MgmtCluster extends SteveModel {
       enabled:    this.$rootGetters['isRancher'] && this.canCreateKubeconfig,
       icon:       'icon icon-copy',
     });
+
+    // The Cluster Management list shows these only for a row with no provisioning cluster to take its actions
+    // from, such as a management cluster created directly.
+    out.unshift(...this.clusterPinActions());
 
     return out;
   }
@@ -847,6 +851,56 @@ export default class MgmtCluster extends SteveModel {
 
   unpinBulk(clusters) {
     return commitAndReconcile(this.clusterPrefDispatch, [setPinned(this.mgmtClusterIds(clusters), false)]);
+  }
+
+  /**
+   * The Pin and Unpin row and bulk actions. The provisioning cluster offers them through this too, so a
+   * selection that mixes the two still gets a single Pin and a single Unpin in the bulk bar.
+   */
+  clusterPinActions() {
+    const pinnable = !this.isLocal;
+
+    // Weighted, or the bulk bar splits the pair: unweighted it falls back to the order the actions are
+    // first met across the rows, and `unpinCluster` is enabled only on a pinned cluster.
+    return [{
+      action:     'pinCluster',
+      bulkAction: 'pinClusterBulk',
+      label:      this.t('cluster.pinAction'),
+      icon:       'icon icon-pin flip-x',
+      bulkable:   true,
+      enabled:    pinnable && !this.pinned,
+      weight:     2,
+    }, {
+      action:     'unpinCluster',
+      bulkAction: 'unpinClusterBulk',
+      label:      this.t('cluster.unpinAction'),
+      icon:       'icon icon-pin-outlined flip-x',
+      bulkable:   true,
+      enabled:    pinnable && this.pinned,
+      weight:     1,
+    }];
+  }
+
+  // A failed preference write RESOLVES with `{ type, status }` rather than throwing, and the optimistic
+  // pin is on screen by then — so it has to be reported, as `Pinned` reports the row control's write.
+  reportPin(write) {
+    return reportPinWriteFailure({ dispatch: this.clusterPrefDispatch }, this.t, write);
+  }
+
+  pinCluster() {
+    return this.reportPin(this.pin());
+  }
+
+  unpinCluster() {
+    return this.reportPin(this.unpin());
+  }
+
+  pinClusterBulk(items) {
+    return this.reportPin(this.pinBulk(items));
+  }
+
+  unpinClusterBulk(items) {
+    return this.reportPin(this.unpinBulk(items));
   }
 
   get canExplore() {

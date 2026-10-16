@@ -425,4 +425,108 @@ describe('class MgmtCluster', () => {
       expect(makeCluster(machinePools).isAutoscalerEnabled).toStrictEqual(expected);
     });
   });
+
+  describe('pin actions', () => {
+    const dispatch = jest.fn();
+
+    const mgmtCluster = (id: string, pinned: string[] = []) => new MgmtCluster({ id, links: {} }, {
+      dispatch,
+      rootGetters: {
+        'i18n/t':               (key: string) => key,
+        'prefs/get':            () => pinned,
+        'management/schemaFor': () => undefined,
+        isRancher:              true,
+      },
+    }) as any;
+
+    const actionsOf = (cluster: any) => {
+      jest.spyOn(Object.getPrototypeOf(MgmtCluster.prototype), '_availableActions', 'get').mockReturnValue([]);
+
+      return cluster._availableActions;
+    };
+
+    const pinAction = (cluster: any, action: string) => actionsOf(cluster).find((a: any) => a.action === action);
+
+    beforeEach(() => dispatch.mockClear());
+
+    it('offers the pin only while the cluster is unpinned, and the unpin only while it is pinned', () => {
+      const unpinned = mgmtCluster('c-a');
+      const pinned = mgmtCluster('c-a', ['c-a']);
+
+      expect(pinAction(unpinned, 'pinCluster').enabled).toBe(true);
+      expect(pinAction(unpinned, 'unpinCluster').enabled).toBe(false);
+      expect(pinAction(pinned, 'pinCluster').enabled).toBe(false);
+      expect(pinAction(pinned, 'unpinCluster').enabled).toBe(true);
+    });
+
+    it('offers neither for local', () => {
+      const local = mgmtCluster('local');
+
+      jest.spyOn(local, 'isLocal', 'get').mockReturnValue(true);
+
+      expect(pinAction(local, 'pinCluster').enabled).toBe(false);
+      expect(pinAction(local, 'unpinCluster').enabled).toBe(false);
+    });
+
+    it('matches the provisioning cluster pair, so a mixed selection shares one bulk Pin and Unpin', () => {
+      const bulk = actionsOf(mgmtCluster('c-a'))
+        .filter((a: any) => a.bulkable)
+        .sort((a: any, b: any) => (b.weight || 0) - (a.weight || 0));
+
+      expect(bulk.slice(0, 2).map(({ action, bulkAction }: any) => ({ action, bulkAction }))).toStrictEqual([
+        { action: 'pinCluster', bulkAction: 'pinClusterBulk' },
+        { action: 'unpinCluster', bulkAction: 'unpinClusterBulk' },
+      ]);
+    });
+
+    it.each([
+      ['pinCluster', 'pin'],
+      ['unpinCluster', 'unpin'],
+    ])('%s writes through %s', async(action, method) => {
+      const cluster = mgmtCluster('c-a');
+      const write = jest.spyOn(cluster, method).mockResolvedValue({});
+
+      await cluster[action]();
+
+      expect(write).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ['pinClusterBulk', 'pinBulk'],
+      ['unpinClusterBulk', 'unpinBulk'],
+    ])('%s hands the whole selection to %s, for one write', async(action, method) => {
+      const cluster = mgmtCluster('c-a');
+      const write = jest.spyOn(cluster, method).mockResolvedValue({});
+      const items = [{ id: 'c-a' }, { id: 'c-b' }];
+
+      await cluster[action](items);
+
+      expect(write).toHaveBeenCalledWith(items);
+    });
+
+    it.each([
+      ['pinCluster', 'pin'],
+      ['unpinCluster', 'unpin'],
+      ['pinClusterBulk', 'pinBulk'],
+      ['unpinClusterBulk', 'unpinBulk'],
+    ])('%s growls when the preference write is rejected', async(action, method) => {
+      const cluster = mgmtCluster('c-a');
+
+      jest.spyOn(cluster, method).mockResolvedValue({ type: 'error', status: 500 });
+
+      await cluster[action]([]);
+
+      expect(dispatch).toHaveBeenCalledWith('growl/fromError', expect.objectContaining({ title: 'nav.pinClusterError' }), { root: true });
+    });
+
+    it('stays quiet when the preference write lands', async() => {
+      const cluster = mgmtCluster('c-a');
+
+      jest.spyOn(cluster, 'pin').mockResolvedValue({});
+
+      await cluster.pinCluster();
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+  });
 });
