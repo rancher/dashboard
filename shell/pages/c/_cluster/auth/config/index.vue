@@ -16,6 +16,7 @@ import { HIDE_LOCAL_AUTH_PROVIDER, MULTIPLE_AUTH_PROVIDERS } from '@shell/store/
 import { MODE, _EDIT } from '@shell/config/query-params';
 import { LOCAL_AUTH_ID, UNSUPPORTED_AUTH_IDS, canWriteLocalAuthFeature, localAuthFeature } from '@shell/utils/auth';
 import { canEnableAuthProvider, toProviderTypes } from '@shell/utils/auth-providers';
+import { sortBy } from '@shell/utils/sort';
 
 const resource = MANAGEMENT.AUTH_CONFIG;
 
@@ -55,10 +56,11 @@ export default {
      * Every provider an admin has added. Nothing is pre-created, so a config that
      * exists is one somebody made, whether or not it is currently switched on.
      * Providers the dashboard has no form for are left out, as there is nothing
-     * an admin could do with their row.
+     * an admin could do with their row. Sorted as the server lists them, so one
+     * added during the session doesn't move on the next reload.
     */
     rows() {
-      return this.allConfigs.filter((c) => c.id !== LOCAL_AUTH_ID && !UNSUPPORTED_AUTH_IDS.includes(providerKey(c._type)));
+      return sortBy(this.allConfigs.filter((c) => c.id !== LOCAL_AUTH_ID && !UNSUPPORTED_AUTH_IDS.includes(providerKey(c._type))), 'id');
     },
 
     /**

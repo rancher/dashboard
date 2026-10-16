@@ -309,6 +309,11 @@ export default {
       if (!this.model.enabled) {
         this.applyDefaults();
       }
+
+      // After the defaults, which would otherwise reset what is being cloned
+      if (this.isCreate && this.authConfigCreate.cloneValues) {
+        Object.assign(this.model, clone(this.authConfigCreate.cloneValues));
+      }
     },
 
     /**

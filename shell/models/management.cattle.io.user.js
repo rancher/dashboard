@@ -1,6 +1,7 @@
 import { NORMAN, EXT } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import day from 'dayjs';
+import { configNameOfPrincipal, providerOfConfig } from '@shell/utils/auth-providers';
 
 export default class User extends SteveModel {
   // Preserve description
@@ -48,46 +49,35 @@ export default class User extends SteveModel {
     }
   }
 
+  get authConfigNames() {
+    const names = (this.principalIds || []).map(configNameOfPrincipal);
+
+    return [...new Set(names)].filter((name) => name !== 'system' && name !== 'local');
+  }
+
   get provider() {
-    const principals = this.principalIds || [];
-    let isSystem = false;
-    let isLocal = true;
-    let provider = '';
-
-    for ( const p of principals ) {
-      const idx = p.indexOf(':');
-      const driver = p.substr(0, idx).toLowerCase().split('_')[0];
-
-      if ( driver === 'system' ) {
-        isSystem = true;
-      } else if ( driver === 'local' ) {
-        // Do nothing, defaults to local
-      } else {
-        isLocal = false;
-
-        if ( provider ) {
-          provider = 'multiple';
-        } else {
-          provider = driver;
-        }
-      }
+    if ( this.isSystem ) {
+      return 'system';
     }
 
-    let key;
+    const configNames = this.authConfigNames;
 
-    if ( isSystem ) {
-      key = 'system';
-    } else if ( isLocal ) {
-      key = 'local';
-    } else {
-      key = provider;
+    if ( !configNames.length ) {
+      return 'local';
     }
 
-    return key;
+    if ( configNames.length > 1 ) {
+      return 'multiple';
+    }
+
+    return providerOfConfig(this.$rootGetters, configNames[0]);
   }
 
   get providerDisplay() {
-    return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.provider }"`, null, this.provider);
+    const provider = this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.provider }"`, null, this.provider);
+    const configNames = this.authConfigNames;
+
+    return configNames.length === 1 && configNames[0] !== this.provider ? `${ provider } (${ configNames[0] })` : provider;
   }
 
   /**

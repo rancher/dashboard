@@ -1,5 +1,6 @@
 import { configTypeForProvider, configTypeName, providerIcon, providerKey } from '@shell/models/management.cattle.io.authconfig';
 import { LOCAL_AUTH_ID, UNSUPPORTED_AUTH_IDS } from '@shell/utils/auth';
+import { clone } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 
 export const LOCAL_PROVIDER = 'localProvider';
@@ -195,6 +196,67 @@ export const nextAuthConfigName = (takenIds: string[], key: string): string => {
 
   return `${ key }-${ suffix }`;
 };
+
+/**
+ * The authconfig a principal belongs to. Principal ids are prefixed with the
+ * config's name, not its provider type: `github-2_user://123` is a GitHub user of
+ * the `github-2` config.
+ */
+export const configNameOfPrincipal = (principalId: string): string => principalId.replace(/:.*$/, '').split('_')[0].toLowerCase();
+
+/**
+ * The provider type of an authconfig, looked up by name in the loaded
+ * `/v1-public/authproviders`. That only lists enabled configs, so the name is
+ * returned as is when the config isn't found.
+ */
+export const providerOfConfig = (getters: Record<string, any>, configName: string): string => {
+  const driver = getters['rancher/byId']('authProvider', configName);
+
+  return driver?.type ? providerKey(driver.type) : configName;
+};
+
+/**
+ * Fields a cloned config does not take from its source: its identity, whether and
+ * to whom it is enabled, and anything secret.
+ */
+const UNCLONED_FIELDS = [
+  'id', 'name', 'type', 'baseType', 'links', 'actions', 'created', 'createdTS', 'creatorId', 'uuid', 'annotations', 'labels', 'status',
+  'ownerReferences', 'removed', 'enabled', 'accessMode', 'allowedPrincipalIds',
+];
+
+const SECRET_FIELDS = ['clientSecret', 'privateKey', 'applicationSecret', 'oauthCredential', 'serviceAccountCredential', 'serviceAccountPassword', 'spKey'];
+
+const withoutSecrets = (value: any): any => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return clone(value);
+  }
+
+  return Object.keys(value).reduce((out, key) => {
+    if (!SECRET_FIELDS.includes(key)) {
+      out[key] = withoutSecrets(value[key]);
+    }
+
+    return out;
+  }, {} as Record<string, any>);
+};
+
+/**
+ * The settings of a Norman authconfig that a new config can start from.
+ * Secrets are left out, whether the schema marks them as passwords or not and
+ * wherever they are nested, so the admin enters them again for the new config.
+ */
+export const cloneableAuthConfigFields = (
+  source: Record<string, any>,
+  resourceFields: Record<string, { type?: string }>,
+): Record<string, any> => Object.keys(resourceFields).reduce((fields, key) => {
+  const isSecret = resourceFields[key]?.type === 'password' || SECRET_FIELDS.includes(key);
+
+  if (!isSecret && !UNCLONED_FIELDS.includes(key) && source[key] !== undefined && source[key] !== null) {
+    fields[key] = withoutSecrets(source[key]);
+  }
+
+  return fields;
+}, {} as Record<string, any>);
 
 /** `metadata.name` is a DNS label, and Rancher rejects anything else. */
 export const isValidAuthConfigName = (name: string): boolean => /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(name) && name.length <= 63;

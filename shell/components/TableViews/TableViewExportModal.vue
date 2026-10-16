@@ -9,7 +9,7 @@ import { useStore } from 'vuex';
 import { RadioGroup } from '@components/Form/Radio';
 import RichTranslation from '@shell/components/RichTranslation.vue';
 import { RcButton } from '@components/RcButton';
-import { RcHeading } from '@components/RcHeading';
+import { RcModal } from '@components/RcModal';
 import { downloadFile } from '@shell/utils/download';
 import { escapeHtml } from '@shell/utils/string';
 import { exportColumnsFor, rowsToCsv, rowsToJson } from '@shell/utils/table-views/export';
@@ -34,6 +34,8 @@ interface ExportResource extends TableViewRow {
 }
 
 const props = withDefaults(defineProps<{
+  /** `show` and the close handler, from whoever opens it: the table, or the modal manager for a resource action */
+  modal: { show: boolean, onClose:() => void },
   /** null when the api couldn't count the view's query */
   count?: number | null,
   viewName?: string,
@@ -48,7 +50,6 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
-  close: [],
   export: [format: Format],
 }>();
 
@@ -180,7 +181,7 @@ const download = () => {
     const as = format.value;
     const columns = selectionColumns.value;
 
-    emit('close');
+    props.modal.onClose();
     // Running on with nothing on screen, so a failure the notification can't report is at least logged
     exportSelection(items, as, columns).catch((e) => console.error('Unable to export the selection', e)); // eslint-disable-line no-console
 
@@ -188,34 +189,28 @@ const download = () => {
   }
 
   emit('export', format.value);
-  emit('close');
+  props.modal.onClose();
 };
 </script>
 
 <template>
-  <div
+  <RcModal
+    v-bind="modal"
+    :title="title"
     class="export-modal"
     data-testid="table-views-export-modal"
   >
-    <div class="export-content">
-      <RcHeading
-        :size="3"
-        class="export-title"
-        data-modal-title
-      >
-        {{ title }}
-      </RcHeading>
-
-      <RichTranslation
-        :k="intro.k"
-        :args="intro.args"
-        tag="p"
-        class="export-intro"
-      >
-        <template #b="{ content }">
-          <b v-clean-html="content" />
-        </template>
-      </RichTranslation>
+    <RichTranslation
+      :k="intro.k"
+      :args="intro.args"
+      tag="p"
+      class="export-intro"
+    >
+      <template #b="{ content }">
+        <b v-clean-html="content" />
+      </template>
+    </RichTranslation>
+    <div>
       <RichTranslation
         k="tableViews.export.choose"
         tag="p"
@@ -225,11 +220,9 @@ const download = () => {
           <b v-clean-html="content" />
         </template>
       </RichTranslation>
-
       <RadioGroup
         v-model:value="format"
         name="table-views-export-format"
-        class="export-formats"
         :options="formatOptions"
         :row="true"
         :aria-label="title"
@@ -237,15 +230,7 @@ const download = () => {
       />
     </div>
 
-    <div class="export-actions">
-      <RcButton
-        variant="link"
-        size="large"
-        data-testid="table-views-export-cancel"
-        @click="emit('close')"
-      >
-        {{ t('generic.cancel') }}
-      </RcButton>
+    <template #primary-action>
       <RcButton
         variant="primary"
         size="large"
@@ -255,53 +240,16 @@ const download = () => {
       >
         {{ t('tableViews.export.download') }}
       </RcButton>
-    </div>
-  </div>
+    </template>
+  </RcModal>
 </template>
 
 <style lang="scss" scoped>
-.export-modal {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 40px;
-  padding: 24px;
-  min-width: 540px;
-  max-width: 860px;
+.export-modal b {
+  font-weight: 600;
+}
 
-  .export-content,
-  .export-actions {
-    align-self: stretch;
-  }
-
-  .export-title {
-    margin: 0 0 16px 0;
-    font-weight: 600;
-  }
-
-  .export-intro b,
-  .export-choose b {
-    font-weight: 600;
-  }
-
-  .export-intro {
-    margin-bottom: 16px;
-    line-height: 20px;
-  }
-
-  .export-choose {
-    margin-bottom: 16px;
-  }
-
-  .export-formats {
-    margin-bottom: 0;
-  }
-
-  .export-actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 16px;
-  }
+.export-choose {
+  margin-bottom: 8px;
 }
 </style>

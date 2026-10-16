@@ -20,6 +20,7 @@ export const GITHUB_REDIRECT = 'redirect_uri';
 
 // Auth Provider
 export const EDIT_CONFIG = 'editConfig';
+export const CLONE_CONFIG = 'cloneConfig';
 
 // General
 export const _FLAGGED = null; // The value for a key-only flag, like `?desc`

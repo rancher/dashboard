@@ -9,7 +9,7 @@ import { mapGetters } from 'vuex';
 import TabTitle from '@shell/components/TabTitle';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
-import { getVersionInfo } from '@shell/utils/version';
+import { getVersionInfo, removePatchWhenZero } from '@shell/utils/version';
 import { RcButton } from '@components/RcButton';
 import { RcHeading } from '@components/RcHeading';
 
@@ -25,7 +25,7 @@ export default {
     return {
       extensionType:     ExtensionPoint.PANEL,
       extensionLocation: PanelLocation.ABOUT_TOP,
-      dashboardVersion:  this.$config.dashboardVersion,
+      dashboardVersion:  removePatchWhenZero(this.$config.dashboardVersion),
       cliDocsUrl:        `${ DOCS_BASE }/reference-guides/cli-with-rancher/rancher-cli`,
       settings:          null,
       SETTING
@@ -34,7 +34,7 @@ export default {
   computed: {
     ...mapGetters(['releaseNotesUrl']),
     rancherVersion() {
-      return getVersionInfo(this.$store).fullVersion;
+      return removePatchWhenZero(getVersionInfo(this.$store).fullVersion);
     },
     appName() {
       return getVendor();

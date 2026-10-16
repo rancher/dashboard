@@ -208,6 +208,33 @@ describe('component: Principal', () => {
       });
     });
 
+    it('should take the provider type of a named config from the auth providers', async() => {
+      const namedValue = 'github-2_user://12345';
+      const user = {
+        principalIds: [namedValue], displayName: 'GH User', username: 'gh-user', isCurrentUser: false
+      };
+      const { $store, dispatch } = createStore({ users: [user], find: forbidden });
+
+      ($store.getters as any)['rancher/byId'] = (type: string, id: string) => (type === 'authProvider' && id === 'github-2' ? { id, type: 'githubProvider' } : null);
+
+      const wrapper = shallowMount(Principal, {
+        props:  { value: namedValue },
+        global: { mocks: { $fetchState: { pending: false }, $store } },
+      }) as VueWrapper<any, any>;
+
+      await wrapper.vm.loadData();
+
+      expect(dispatch).toHaveBeenCalledWith('rancher/create', {
+        type:          NORMAN.PRINCIPAL,
+        id:            namedValue,
+        principalType: 'user',
+        provider:      'github',
+        name:          'GH User',
+        loginName:     'gh-user',
+        me:            false,
+      });
+    });
+
     it('should resolve the display name from the matching user', async() => {
       const user = {
         principalIds: [value], displayName: 'Base User', username: 'base-user'

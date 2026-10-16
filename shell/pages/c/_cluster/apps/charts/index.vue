@@ -90,6 +90,9 @@ export default {
   },
 
   beforeUnmount() {
+    // Apps were only fetched to calculate chart statuses, drop them (and their watch) before leaving
+    this.$store.dispatch('cluster/forgetType', CATALOG_TYPES.APP);
+
     if (this.observer) {
       this.observer.disconnect();
     }
