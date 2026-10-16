@@ -250,26 +250,23 @@ describe('Settings', { testIsolation: false }, () => {
   });
 
   it('can update ui-brand', { tags: ['@noPrime', '@globalSettings', '@adminUser'] }, () => {
-    // Rancher and SUSE logos can render at the same size, so compare the image source instead
-    let rancherHeaderLogoSrc: string;
-    let rancherBurgerLogoSrc: string;
+    // Rancher and SUSE logos share a file name and can render at the same size, so compare the served SVG with the source asset (light or dark theme)
+    const rancherLogoFiles = ['shell/assets/images/pl/rancher-logo.svg', 'shell/assets/images/pl/dark/rancher-logo.svg'];
+    const suseLogoFiles = ['shell/assets/brand/suse/rancher-logo.svg', 'shell/assets/brand/suse/dark/rancher-logo.svg'];
 
-    HomePagePo.navTo();
-    burgerMenu.headerBrandLogoImage()
-      .should('be.visible')
-      .invoke('attr', 'src')
-      .then((src) => {
-        rancherHeaderLogoSrc = src;
-      });
-
-    BurgerMenuPo.toggle();
-    burgerMenu.brandLogoImage()
-      .should('be.visible')
-      .invoke('attr', 'src')
-      .then((src) => {
-        rancherBurgerLogoSrc = src;
-      });
-    BurgerMenuPo.toggle();
+    const checkLogo = (logo: Cypress.Chainable, [lightFile, darkFile]: string[]) => {
+      logo.should('be.visible')
+        .invoke('prop', 'src')
+        .then((src) => cy.request(src))
+        .its('body')
+        .then((body) => {
+          cy.readFile(lightFile).then((light) => {
+            cy.readFile(darkFile).then((dark) => {
+              expect(body === light || body === dark, `logo matches ${ lightFile } or ${ darkFile }`).to.eq(true);
+            });
+          });
+        });
+    };
 
     // Update setting
     SettingsPagePo.navTo();
@@ -286,17 +283,11 @@ describe('Settings', { testIsolation: false }, () => {
 
     // Check logos in top-level navigation header for updated logo
     BurgerMenuPo.toggle();
-    burgerMenu.brandLogoImage()
-      .should('be.visible')
-      .invoke('attr', 'src')
-      .should((src) => expect(src).to.not.eq(rancherBurgerLogoSrc));
+    checkLogo(burgerMenu.brandLogoImage(), suseLogoFiles);
     BurgerMenuPo.toggle();
 
     HomePagePo.navTo();
-    burgerMenu.headerBrandLogoImage()
-      .should('be.visible')
-      .invoke('attr', 'src')
-      .should((src) => expect(src).to.not.eq(rancherHeaderLogoSrc));
+    checkLogo(burgerMenu.headerBrandLogoImage(), suseLogoFiles);
     BurgerMenuPo.toggle();
 
     // Reset
@@ -314,16 +305,10 @@ describe('Settings', { testIsolation: false }, () => {
 
     // Check logos in top-level navigation header for updated logo
     HomePagePo.navTo();
-    burgerMenu.headerBrandLogoImage()
-      .should('be.visible')
-      .invoke('attr', 'src')
-      .should((src) => expect(src).to.eq(rancherHeaderLogoSrc));
+    checkLogo(burgerMenu.headerBrandLogoImage(), rancherLogoFiles);
 
     BurgerMenuPo.toggle();
-    burgerMenu.brandLogoImage()
-      .should('be.visible')
-      .invoke('attr', 'src')
-      .should((src) => expect(src).to.eq(rancherBurgerLogoSrc));
+    checkLogo(burgerMenu.brandLogoImage(), rancherLogoFiles);
 
     resetSettings.push('ui-brand');
   });
