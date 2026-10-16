@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 
 import TableViewTabs from '@shell/components/TableViews/TableViewTabs.vue';
+import TableViewPublishModal from '@shell/components/TableViews/TableViewPublishModal.vue';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { isViewDirty, selectedViewIdFor, savedViewsByType } from '@shell/utils/table-views/views';
 import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
@@ -703,7 +704,6 @@ describe('TableViewTabs', () => {
       const created: { metadata: unknown, spec: Record<string, unknown> }[] = [];
       const fromError = jest.fn();
       const growl = jest.fn();
-      const prompts: { component: string, componentProps: Record<string, any> }[] = [];
       const written = order ? {
         views: [mine], defaultViewId, order
       } : { views: [mine], defaultViewId };
@@ -725,13 +725,12 @@ describe('TableViewTabs', () => {
           loaded:  (state, value) => (state.loaded = value),
         },
         actions: {
-          'prefs/set':              ({ commit }, { value }) => commit('write', value),
-          'growl/success':          (_ctx: unknown, payload: unknown) => growl(payload),
-          'growl/fromError':        (_ctx: unknown, payload: unknown) => fromError(payload),
-          'management/findAll':     jest.fn(),
-          'management/promptModal': (_ctx: unknown, payload: { component: string, componentProps: Record<string, any> }) => prompts.push(payload),
+          'prefs/set':          ({ commit }, { value }) => commit('write', value),
+          'growl/success':      (_ctx: unknown, payload: unknown) => growl(payload),
+          'growl/fromError':    (_ctx: unknown, payload: unknown) => fromError(payload),
+          'management/findAll': jest.fn(),
           // Saved into the store, as the api's answer is
-          'management/create':      ({ state, commit }, data: { metadata: { generateName: string }, spec: Record<string, unknown> }) => ({
+          'management/create':  ({ state, commit }, data: { metadata: { generateName: string }, spec: Record<string, unknown> }) => ({
             ...data,
             save: () => {
               if (failWrites) {
@@ -767,7 +766,7 @@ describe('TableViewTabs', () => {
       const entry = () => savedViewsByType<Entry>(store.state.stored).test;
 
       return {
-        wrapper, vm: wrapper.vm as unknown as SharedInternals, store, entry, saves, created, fromError, growl, prompts, configs: all
+        wrapper, vm: wrapper.vm as unknown as SharedInternals, store, entry, saves, created, fromError, growl, configs: all
       };
     }
 
@@ -879,14 +878,23 @@ describe('TableViewTabs', () => {
         expect((saves[0].spec.views as TableViewSaved[])[0].query).toBe('name:changed');
       });
 
+      // Publish asks first, in a dialog of its own: confirming it is its `publish` event
+      const askPublish = async(wrapper: ReturnType<typeof createWrapper>['wrapper'], vm: SharedInternals, view: TableViewSaved) => {
+        vm.shareView(tabFor(view));
+        await wrapper.vm.$nextTick();
+
+        return wrapper.findComponent(TableViewPublishModal);
+      };
+      const flush = () => new Promise((resolve) => setTimeout(resolve));
+
       it('should share a view of the user\'s under its id, and keep its place', async() => {
         const {
-          vm, created, entry, prompts
+          wrapper, vm, created, entry
         } = createWrapper({ defaultViewId: 'all' });
         const before = vm.tabs.map((tab) => tab.id || 'all');
 
-        vm.shareView(tabFor(mine));
-        await prompts[0].componentProps.applyAction();
+        (await askPublish(wrapper, vm, mine)).vm.$emit('publish');
+        await flush();
 
         expect(created[0]).toStrictEqual({
           type:     'ui.cattle.io.tableconfiguration',
@@ -902,35 +910,29 @@ describe('TableViewTabs', () => {
         expect(entry().order).toStrictEqual(before);
       });
 
-      it('should ask before publishing, and publish nothing until confirmed', () => {
-        const { vm, created, prompts } = createWrapper();
+      it('should ask before publishing, and publish nothing until confirmed', async() => {
+        const { wrapper, vm, created } = createWrapper();
 
-        vm.shareView(tabFor(mine));
-
-        expect(prompts).toHaveLength(1);
-        expect(prompts[0].component).toBe('GenericPrompt');
-        expect(prompts[0].componentProps).toStrictEqual(expect.objectContaining({ title: 'tableViews.publish.title', applyMode: 'publish' }));
+        expect((await askPublish(wrapper, vm, mine)).exists()).toBe(true);
         expect(created).toHaveLength(0);
       });
 
       it.each([
-        ['a filter', 'name:mine', 'tableViews.filterWarning'],
-        ['no filter', '', ''],
-      ])('should say what a view with %s gives away', (_, query, body) => {
-        const { vm, prompts } = createWrapper();
+        ['a filter', 'name:mine', true],
+        ['no filter', '', false],
+      ])('should say whether a view with %s gives its filter away', async(_, query, hasFilter) => {
+        const { wrapper, vm } = createWrapper();
 
-        vm.shareView(tabFor({ ...mine, query }));
-
-        expect(prompts[0].componentProps.body).toBe(body);
+        expect((await askPublish(wrapper, vm, { ...mine, query })).props('hasFilter')).toBe(hasFilter);
       });
 
       it('should keep the user\'s view when sharing it fails', async() => {
         const {
-          vm, entry, fromError, prompts
+          wrapper, vm, entry, fromError
         } = createWrapper({ failWrites: true });
 
-        vm.shareView(tabFor(mine));
-        await prompts[0].componentProps.applyAction();
+        (await askPublish(wrapper, vm, mine)).vm.$emit('publish');
+        await flush();
 
         expect(entry().views.map((v) => v.id)).toStrictEqual(['own']);
         expect(fromError).toHaveBeenCalledWith(expect.objectContaining({ err: expect.any(Error) }));

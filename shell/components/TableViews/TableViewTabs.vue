@@ -11,6 +11,7 @@ import { useStore } from 'vuex';
 
 import TableViewExportModal from '@shell/components/TableViews/TableViewExportModal.vue';
 import TableViewShareModal from '@shell/components/TableViews/TableViewShareModal.vue';
+import TableViewPublishModal from '@shell/components/TableViews/TableViewPublishModal.vue';
 import { useDragReorder } from '@shell/composables/useDragReorder';
 import { useI18n } from '@shell/composables/useI18n';
 import { useSavedTableViews } from '@shell/composables/useSavedTableViews';
@@ -141,6 +142,7 @@ const modal = ref<
   { kind: 'export', name: string, count: number | null, view?: TableViewState } |
   { kind: 'share', text: string, hasFilter: boolean } |
   { kind: 'import', tabId: string | null } |
+  { kind: 'publish', view: TableViewSaved } |
   null
 >(null);
 
@@ -792,6 +794,12 @@ const closeModal = () => {
   modal.value = null;
 };
 
+const publishFromModal = () => {
+  if (modal.value?.kind === 'publish') {
+    publish(modal.value.view);
+  }
+};
+
 /** The dialogs are only there while open */
 const modalFrame = { show: true, onClose: closeModal };
 
@@ -975,16 +983,7 @@ const shareView = (tab: Tab) => {
     return;
   }
 
-  store.dispatch('management/promptModal', {
-    component:      'GenericPrompt',
-    componentProps: {
-      title:       t('tableViews.publish.title'),
-      // Only when there is a filter to give away
-      body:        view.query ? t('tableViews.filterWarning') : '',
-      applyMode:   'publish',
-      applyAction: () => publish(view),
-    },
-  });
+  modal.value = { kind: 'publish', view };
 };
 
 /** Back to the user's alone: a view of their own first, so it is never lost if the cluster says no */
@@ -1405,6 +1404,12 @@ onBeforeUnmount(() => {
     :count="modal.count"
     :view-name="modal.name"
     @export="doExport"
+  />
+  <TableViewPublishModal
+    v-else-if="modal && modal.kind === 'publish'"
+    :modal="modalFrame"
+    :has-filter="!!modal.view.query"
+    @publish="publishFromModal"
   />
   <TableViewShareModal
     v-else-if="modal"
