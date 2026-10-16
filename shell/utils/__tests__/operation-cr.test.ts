@@ -1,4 +1,4 @@
-import { createOperationCR } from '@shell/utils/operation-cr';
+import { createOperationCR, isOperationInProgress } from '@shell/utils/operation-cr';
 
 describe('util: operation-cr', () => {
   it('should dispatch create and save the operation resource', async() => {
@@ -53,5 +53,26 @@ describe('util: operation-cr', () => {
     const dispatch = jest.fn().mockRejectedValue(new Error('forbidden'));
 
     await expect(createOperationCR(dispatch, 'operation.test', {}, 'c-m-1', 'cluster-name')).rejects.toThrow('forbidden');
+  });
+});
+
+describe('util: isOperationInProgress', () => {
+  it.each([
+    ['Succeeded', false],
+    ['Failed', false],
+    ['Canceled', false],
+    ['Pending', true],
+    ['InProgress', true],
+    ['', true],
+  ])('should treat phase %p as in progress: %p', (phase, expected) => {
+    expect(isOperationInProgress({ status: { phase } })).toBe(expected);
+  });
+
+  it.each([
+    ['no status', {}],
+    ['a null status', { status: null }],
+    ['no operation', undefined],
+  ])('should treat %s as in progress', (_, operation) => {
+    expect(isOperationInProgress(operation)).toBe(true);
   });
 });

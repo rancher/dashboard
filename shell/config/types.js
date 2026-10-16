@@ -224,6 +224,7 @@ export const OPERATION = {
   ETCD_SNAPSHOT:         'operation.cattle.io.etcdsnapshotsave',
   ETCD_SNAPSHOT_RESTORE: 'operation.cattle.io.etcdsnapshotrestore',
   ENCRYPTION_KEY_ROTATE: 'operation.cattle.io.encryptionkeyrotation',
+  CERTIFICATE_ROTATE:    'operation.cattle.io.certificaterotation',
 };
 
 // --------------------------------------

@@ -172,6 +172,7 @@ export const OPERATION: {
     ETCD_SNAPSHOT: string;
     ETCD_SNAPSHOT_RESTORE: string;
     ENCRYPTION_KEY_ROTATE: string;
+    CERTIFICATE_ROTATE: string;
 };
 export const MANAGEMENT: {
     AUTH_CONFIG: string;
