@@ -5,7 +5,9 @@ const rootGetters = { 'i18n/t': (key: string) => key };
 
 describe('class: PVC', () => {
   describe('details', () => {
-    it('surfaces capacity, storage class and access modes', () => {
+    const contentFor = (pvc: any, label: string) => pvc.details.find((d: any) => d.label === label)?.content;
+
+    it('surfaces the bound capacity and access modes from status, and the storage class from spec', () => {
       const pvc = new PVC({
         type:     PVC_TYPE,
         metadata: { name: 'pvc-1', namespace: 'default' },
@@ -14,16 +16,36 @@ describe('class: PVC', () => {
           storageClassName: 'standard',
           accessModes:      ['ReadWriteOnce'],
         },
+        status: {
+          capacity:    { storage: '8Gi' },
+          accessModes: ['ReadWriteOnce', 'ReadOnlyMany'],
+        },
       }, {
         getters: {}, dispatch: jest.fn(), rootGetters
       });
 
-      const details = pvc.details;
-      const byLabel = (label: string) => details.find((d: any) => d.label === label)?.content;
+      expect(contentFor(pvc, 'persistentVolumeClaim.capacity')).toBe('8Gi');
+      expect(contentFor(pvc, 'persistentVolumeClaim.storageClass')).toBe('standard');
+      expect(contentFor(pvc, 'persistentVolumeClaim.accessModes')).toBe('ReadWriteOnce, ReadOnlyMany');
+    });
 
-      expect(byLabel('persistentVolumeClaim.capacity')).toBe('5Gi');
-      expect(byLabel('persistentVolumeClaim.storageClass')).toBe('standard');
-      expect(byLabel('persistentVolumeClaim.accessModes')).toBe('ReadWriteOnce');
+    it('leaves capacity and access modes empty while the claim is pending', () => {
+      const pvc = new PVC({
+        type:     PVC_TYPE,
+        metadata: { name: 'pvc-1', namespace: 'default' },
+        spec:     {
+          resources:        { requests: { storage: '5Gi' } },
+          storageClassName: 'standard',
+          accessModes:      ['ReadWriteOnce'],
+        },
+        status: { phase: 'Pending' },
+      }, {
+        getters: {}, dispatch: jest.fn(), rootGetters
+      });
+
+      expect(contentFor(pvc, 'persistentVolumeClaim.capacity')).toBeUndefined();
+      expect(contentFor(pvc, 'persistentVolumeClaim.accessModes')).toBeUndefined();
+      expect(contentFor(pvc, 'persistentVolumeClaim.storageClass')).toBe('standard');
     });
 
     it('links to the bound volume when one exists', () => {

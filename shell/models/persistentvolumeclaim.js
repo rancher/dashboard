@@ -67,10 +67,14 @@ export default class PVC extends SteveModel {
   }
 
   get details() {
+    // Capacity and access modes come from status to match the list columns. They describe the bound
+    // volume, so they stay empty while the claim is pending.
+    const accessModes = this.status?.accessModes || [];
+
     const out = [
       {
         label:   this.t('persistentVolumeClaim.capacity'),
-        content: this.spec?.resources?.requests?.storage,
+        content: this.status?.capacity?.storage,
       },
       {
         label:   this.t('persistentVolumeClaim.storageClass'),
@@ -78,7 +82,7 @@ export default class PVC extends SteveModel {
       },
       {
         label:   this.t('persistentVolumeClaim.accessModes'),
-        content: (this.spec?.accessModes || []).join(', '),
+        content: accessModes.length ? accessModes.join(', ') : undefined,
       },
     ];
 
