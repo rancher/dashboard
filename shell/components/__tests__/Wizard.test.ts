@@ -1,7 +1,95 @@
-import { mount } from '@vue/test-utils';
+import { shallowMount, mount, VueWrapper } from '@vue/test-utils';
 import Wizard from '@shell/components/Wizard.vue';
+import { RcButton } from '@components/RcButton';
+import AsyncButton from '@shell/components/AsyncButton.vue';
 
 describe('component: Wizard', () => {
+  let wrapper: VueWrapper<InstanceType<typeof Wizard>>;
+  const a11ySteps = [
+    {
+      name:  'step1',
+      label: 'Step 1',
+      ready: true
+    },
+    {
+      name:  'step2',
+      label: 'Step 2',
+      ready: true
+    }
+  ];
+
+  const mockT = jest.fn().mockReturnValue('some-string');
+
+  const mountOptions = {
+    props: {
+      steps:         a11ySteps,
+      initStepIndex: 0,
+      editFirstStep: true
+    },
+    global: {
+      mocks: {
+        $store: {
+          getters: {
+            'i18n/t':      mockT,
+            'i18n/exists': jest.fn().mockReturnValue(true)
+          }
+        },
+        t: mockT
+      }
+    }
+  };
+
+  it('a11y: footer buttons Cancel and Next should render with tabindex="0" for keyboard focus compatibility on step 1', () => {
+    wrapper = shallowMount(Wizard, {
+      ...mountOptions,
+      props: {
+        ...mountOptions.props,
+        initStepIndex: 0 // First step: renders Cancel and Next
+      }
+    });
+
+    // Scope to the footer so the step-sequence nav buttons aren't counted.
+    const rcButtons = wrapper.find('#wizard-footer-controls').findAllComponents(RcButton);
+
+    expect(rcButtons.length).toBe(2);
+    // First is Cancel, second is Next
+    expect(rcButtons.at(0)?.attributes('tabindex')).toStrictEqual('0');
+    expect(rcButtons.at(1)?.attributes('tabindex')).toStrictEqual('0');
+  });
+
+  it('a11y: footer buttons Cancel and Back should render with tabindex="0" on step 2', () => {
+    wrapper = shallowMount(Wizard, {
+      ...mountOptions,
+      props: {
+        ...mountOptions.props,
+        initStepIndex: 1 // Second/Final step: renders Cancel, Back, and Finish
+      }
+    });
+
+    // Scope to the footer so the step-sequence nav buttons aren't counted.
+    const rcButtons = wrapper.find('#wizard-footer-controls').findAllComponents(RcButton);
+
+    expect(rcButtons.length).toBe(2);
+    // First is Cancel, second is Back
+    expect(rcButtons.at(0)?.attributes('tabindex')).toStrictEqual('0');
+    expect(rcButtons.at(1)?.attributes('tabindex')).toStrictEqual('0');
+  });
+
+  it('a11y: footer button Finish should render with tabIndex=0 for keyboard focus compatibility on the final step', () => {
+    wrapper = shallowMount(Wizard, {
+      ...mountOptions,
+      props: {
+        ...mountOptions.props,
+        initStepIndex: 1 // Second/Final step: renders Cancel, Back, and Finish
+      }
+    });
+
+    const finishBtn = wrapper.findComponent(AsyncButton);
+
+    expect(finishBtn.exists()).toBe(true);
+    expect(finishBtn.props('tabIndex')).toStrictEqual(0);
+  });
+
   const steps = [
     {
       name: 'stepOne', label: 'One', ready: true
@@ -91,5 +179,45 @@ describe('component: Wizard', () => {
 
     expect(wrapper.findAll('.steps li.divider').map((d: any) => d.attributes('aria-hidden')))
       .toStrictEqual(['true', 'true']);
+  });
+
+  describe('full-height steps', () => {
+    const fullHeightSteps = [
+      {
+        name: 'stepOne', label: 'One', ready: true
+      },
+      {
+        name: 'stepTwo', label: 'Two', ready: true, fullHeight: true
+      },
+    ];
+
+    const mountFullHeight = (initStepIndex: number) => mount(Wizard, {
+      props:  { steps: fullHeightSteps, initStepIndex },
+      global: {
+        mocks: {
+          $store:  { getters: { 'i18n/t': jest.fn(), 'i18n/exists': jest.fn() } },
+          $route:  { query: {} },
+          $router: { applyQuery: jest.fn() },
+        },
+      },
+    });
+
+    it.each([
+      ['a full-height step', 1, true],
+      ['a step without the option', 0, false],
+    ])('should fill the wizard with the steps box on %s', (_, initStepIndex, filled) => {
+      const wrapper = mountFullHeight(initStepIndex);
+
+      expect(wrapper.find('.full-height-step').exists()).toBe(filled);
+    });
+
+    it.each([
+      ['stepOne', false],
+      ['stepTwo', true],
+    ])('should mark %p as full height only when it asks to be', (name, fullHeight) => {
+      const wrapper = mountFullHeight(fullHeightSteps.findIndex((s) => s.name === name));
+
+      expect(wrapper.find(`#step-container-${ name }`).classes('step-container__step--full-height')).toBe(fullHeight);
+    });
   });
 });

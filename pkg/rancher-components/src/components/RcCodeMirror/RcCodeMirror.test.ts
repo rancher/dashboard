@@ -1499,6 +1499,57 @@ describe('component: RcCodeMirror', () => {
     });
   });
 
+  describe('searchOpen', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('should open the search panel on mount', () => {
+      mountEditor({ modelValue: 'foo: bar', searchOpen: true });
+
+      expect(wrapper.find('.cm-panels-top .cm-search').exists()).toBe(true);
+    });
+
+    it('should leave the search panel closed by default', () => {
+      mountEditor({ modelValue: 'foo: bar' });
+
+      expect(wrapper.find('.cm-search').exists()).toBe(false);
+    });
+
+    it('should leave the search panel closed in the input variant', () => {
+      mountEditor({
+        modelValue: 'foo: bar', searchOpen: true, variant: 'input'
+      });
+
+      expect(wrapper.find('.cm-search').exists()).toBe(false);
+    });
+
+    it('should not take the focus', () => {
+      const button = document.createElement('button');
+
+      // The panel selects its field when it opens, which in a browser (unlike jsdom) also focuses it
+      jest.spyOn(HTMLInputElement.prototype, 'select').mockImplementation(function(this: HTMLInputElement) {
+        this.focus();
+      });
+      document.body.appendChild(button);
+      button.focus();
+      mountEditor({ modelValue: 'foo: bar', searchOpen: true });
+
+      expect(document.activeElement).toStrictEqual(button);
+      button.remove();
+    });
+
+    it('should close on Escape', () => {
+      mountEditor({ modelValue: 'foo: bar', searchOpen: true });
+
+      wrapper.find('.cm-search input[name=search]').element.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true, cancelable: true
+      }));
+
+      expect(wrapper.find('.cm-search').exists()).toBe(false);
+    });
+  });
+
   describe('search panel', () => {
     function openSearch(view: EditorView): KeyboardEvent {
       const event = new KeyboardEvent('keydown', {
