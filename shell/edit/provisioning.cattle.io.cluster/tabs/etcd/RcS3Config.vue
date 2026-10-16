@@ -74,7 +74,7 @@ export default {
           path: 'endpoint', rootObject: this.config, rules: ['awsStyleEndpoint']
         },
         {
-          path: 'bucket', rootObject: this.config, rules: ['required']
+          path: 'bucket', rootObject: this.config, rules: ['bucketRequired']
         },
       ]
     };
@@ -84,6 +84,16 @@ export default {
   },
 
   computed: {
+    /**
+     * The bucket can be left empty when the selected cloud credential provides a default bucket
+     */
+    fvExtraRules() {
+      return {
+        bucketRequired: (bucket) => {
+          return bucket || this.ccData.defaultBucket ? undefined : this.t('validation.required', { key: this.t('cluster.rke2.etcd.s3config.bucket.label') });
+        }
+      };
+    },
 
     ccData() {
       if ( this.config.cloudCredentialName ) {
@@ -107,8 +117,12 @@ export default {
     }
   },
   watch: {
-    fvFormIsValid(newValue) {
-      this.$emit('validationChanged', !!newValue);
+    // Immediate, so the parent knows the S3 config is already valid when it's (re)enabled (e.g. a credential default bucket)
+    fvFormIsValid: {
+      handler(newValue) {
+        this.$emit('validationChanged', !!newValue);
+      },
+      immediate: true
     },
     localRetentionCount(neu) {
       if (!this.differentRetention) {
@@ -157,7 +171,7 @@ export default {
           :mode="mode"
           :placeholder="ccData.defaultBucket"
           :required="!ccData.defaultBucket"
-          :rules="!ccData.defaultBucket ? fvGetAndReportPathRules('bucket') : []"
+          :rules="fvGetAndReportPathRules('bucket')"
           @update:value="update"
         />
       </div>
@@ -239,7 +253,7 @@ export default {
 
 <style lang="scss" scoped>
 // SelectOrCreateAuthSecret's first row has a hardcoded mt-20, RcContentGroup already spaces it
-.cloud-credential :deep(> :first-child) {
+.cloud-credential > :first-child {
   margin-top: 0 !important;
 }
 </style>

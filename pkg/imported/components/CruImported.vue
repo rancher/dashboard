@@ -81,7 +81,7 @@ export default defineComponent({
 
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
       this.config = this.normanCluster.rke2Config || this.normanCluster.k3sConfig;
-      this.s3Backup = !!this.config?.etcd?.s3?.bucket;
+      this.s3Backup = !!this.config?.etcd?.s3;
       if ( this.normanCluster && isEmpty(this.normanCluster.localClusterAuthEndpoint) ) {
         set(this.normanCluster, 'localClusterAuthEndpoint', { enabled: false });
       }

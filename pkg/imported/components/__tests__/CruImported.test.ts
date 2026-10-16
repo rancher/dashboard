@@ -687,7 +687,9 @@ describe('cruImported component', () => {
 
     it.each([
       ['an s3 bucket is configured', { ...ETCD, s3: { bucket: 'my-bucket' } }, true],
+      ['the s3 config has no bucket, as the cloud credential provides a default bucket', { ...ETCD, s3: { cloudCredentialName: 'cattle-global-data:cc-1' } }, true],
       ['no s3 config is set', ETCD, false],
+      ['the s3 config is missing', { ...ETCD, s3: undefined }, false],
     ])('should initialise the s3 backup toggle on fetch when %s', async(_, etcd, expected) => {
       const liveNormanCluster = { rke2Config: { etcd }, annotations: { [IMPORTED_CLUSTER_VERSION_MANAGEMENT]: 'system-default' } };
       const dispatch = jest.fn((action: string) => Promise.resolve(action === 'rancher/clone' ? liveNormanCluster : {}));

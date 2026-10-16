@@ -129,6 +129,39 @@ describe('component: RcS3Config', () => {
     });
   });
 
+  describe('validation', () => {
+    const CREDENTIAL = 'cattle-global-data:cc-1';
+
+    it.each([
+      ['a bucket is set', { bucket: 'my-bucket' }, {}, true],
+      ['no bucket is set, but the credential provides a default bucket', { cloudCredentialName: CREDENTIAL }, { defaultBucket: 'cred-bucket' }, true],
+      ['no bucket is set, and the credential has no default bucket', { cloudCredentialName: CREDENTIAL }, {}, false],
+      ['no bucket or credential is set', {}, {}, false],
+    ])('should be valid (%s): %p', (_, value, decodedData, valid) => {
+      const wrapper = createWrapper({ mode: 'edit', value }, { decodedData });
+
+      expect(wrapper.vm.fvFormIsValid).toBe(valid);
+    });
+
+    it('should report the bucket error only when there is no bucket and no credential default bucket', () => {
+      const withDefault = createWrapper({ value: { cloudCredentialName: CREDENTIAL } }, { decodedData: { defaultBucket: 'cred-bucket' } });
+      const withoutDefault = createWrapper({ value: { cloudCredentialName: CREDENTIAL } }, { decodedData: {} });
+
+      expect(withDefault.vm.fvGetPathErrors(['bucket'])).toStrictEqual([]);
+      expect(withoutDefault.vm.fvGetPathErrors(['bucket'])).toStrictEqual(['validation.required']);
+    });
+
+    it.each([
+      [{ bucket: 'my-bucket' }, {}, true],
+      [{ cloudCredentialName: CREDENTIAL }, { defaultBucket: 'cred-bucket' }, true],
+      [{}, {}, false],
+    ])('should emit its validity as soon as it is created, for %p', (value, decodedData, valid) => {
+      const wrapper = createWrapper({ value }, { decodedData });
+
+      expect(wrapper.emitted('validationChanged')?.[0]).toStrictEqual([valid]);
+    });
+  });
+
   describe('layout', () => {
     it('should stack its content with RcContentGroup instead of margin classes', () => {
       const wrapper = createWrapper();
