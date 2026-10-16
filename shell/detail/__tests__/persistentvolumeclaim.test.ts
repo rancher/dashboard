@@ -47,15 +47,47 @@ describe('persistentVolumeClaim detail composables', () => {
       expect(mountedPods.value).toStrictEqual(pods);
     });
 
+    it('reports loading until the pod fetch settles', async() => {
+      mockGetters['cluster/schemaFor'] = () => ({});
+      mockGetters['type-map/headersFor'] = () => [];
+
+      const pvc = { fetchMountedPods: jest.fn().mockResolvedValue([]) };
+      const { loading } = useMountedPods(pvc);
+
+      expect(loading.value).toBe(true);
+
+      await flushPromises();
+
+      expect(loading.value).toBe(false);
+    });
+
+    it('stops loading when the pod fetch fails', async() => {
+      mockGetters['cluster/schemaFor'] = () => ({});
+      mockGetters['type-map/headersFor'] = () => [];
+
+      const failure = Promise.reject(new Error('boom'));
+
+      failure.catch(() => {});
+
+      const pvc = { fetchMountedPods: jest.fn().mockReturnValue(failure) };
+      const { loading, mountedPods } = useMountedPods(pvc);
+
+      await flushPromises();
+
+      expect(loading.value).toBe(false);
+      expect(mountedPods.value).toStrictEqual([]);
+    });
+
     it('does not fetch and returns empty headers when the Pod schema is unavailable', () => {
       mockGetters['cluster/schemaFor'] = () => null;
 
       const pvc = { fetchMountedPods: jest.fn() };
-      const { podHeaders, mountedPods } = useMountedPods(pvc);
+      const { podHeaders, mountedPods, loading } = useMountedPods(pvc);
 
       expect(pvc.fetchMountedPods).not.toHaveBeenCalledWith();
       expect(podHeaders.value).toStrictEqual([]);
       expect(mountedPods.value).toStrictEqual([]);
+      expect(loading.value).toBe(false);
     });
   });
 });

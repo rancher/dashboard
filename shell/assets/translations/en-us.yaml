@@ -5443,7 +5443,6 @@ persistentVolume:
     storageClass: Storage Class
     claim:
       label: Claims
-      caption: "This volume is bound to the following PersistentVolumeClaim:"
       none: This volume is not bound to a PersistentVolumeClaim.
   pluginConfiguration:
     label: Plugin configuration
@@ -5766,7 +5765,6 @@ persistentVolumeClaim:
   detail:
     pods:
       label: Pods
-      caption: "The following Pods mount this PersistentVolumeClaim:"
       none: Could not find any Pods that mount this PersistentVolumeClaim.
   accessModes: Access Modes
   accessModesOptions:

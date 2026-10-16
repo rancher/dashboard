@@ -16,7 +16,9 @@ const { t } = useI18n(store);
 const pv = props.value;
 
 const defaultMastheadProps = useDefaultMastheadProps(pv);
-const { pvcSchema, pvcHeaders, claims } = useBoundPersistentVolumeClaim(pv);
+const {
+  pvcSchema, pvcHeaders, claims, loading
+} = useBoundPersistentVolumeClaim(pv);
 </script>
 
 <template>
@@ -32,12 +34,16 @@ const { pvcSchema, pvcHeaders, claims } = useBoundPersistentVolumeClaim(pv);
           :label="t('persistentVolume.detail.claim.label')"
           :weight="3"
         >
-          <p class="caption">
-            {{ claims.length ? t('persistentVolume.detail.claim.caption') : t('persistentVolume.detail.claim.none') }}
+          <p
+            v-if="!loading && !claims.length"
+            class="caption"
+          >
+            {{ t('persistentVolume.detail.claim.none') }}
           </p>
           <ResourceTable
-            v-if="claims.length"
+            v-else
             :rows="claims"
+            :loading="loading"
             :headers="pvcHeaders"
             key-field="id"
             :schema="pvcSchema"

@@ -16,7 +16,9 @@ const { t } = useI18n(store);
 const pvc = props.value;
 
 const defaultMastheadProps = useDefaultMastheadProps(pvc);
-const { podSchema, podHeaders, mountedPods } = useMountedPods(pvc);
+const {
+  podSchema, podHeaders, mountedPods, loading
+} = useMountedPods(pvc);
 </script>
 
 <template>
@@ -32,12 +34,16 @@ const { podSchema, podHeaders, mountedPods } = useMountedPods(pvc);
           :label="t('persistentVolumeClaim.detail.pods.label')"
           :weight="3"
         >
-          <p class="caption">
-            {{ mountedPods.length ? t('persistentVolumeClaim.detail.pods.caption') : t('persistentVolumeClaim.detail.pods.none') }}
+          <p
+            v-if="!loading && !mountedPods.length"
+            class="caption"
+          >
+            {{ t('persistentVolumeClaim.detail.pods.none') }}
           </p>
           <ResourceTable
-            v-if="mountedPods.length"
+            v-else
             :rows="mountedPods"
+            :loading="loading"
             :headers="podHeaders"
             key-field="id"
             :schema="podSchema"

@@ -21,16 +21,25 @@ export const useMountedPods = (pvc: any) => {
   const podSchema = computed(() => store.getters['cluster/schemaFor'](POD));
   const podHeaders = computed(() => (podSchema.value ? withoutNamespaceColumn(store.getters['type-map/headersFor'](podSchema.value)) : []));
   const mountedPods: Ref<any[]> = ref([]);
+  const loading = ref(!!podSchema.value);
 
   if (podSchema.value) {
-    pvc.fetchMountedPods().then((pods: any[]) => {
-      mountedPods.value = pods;
-    });
+    pvc.fetchMountedPods()
+      .then((pods: any[]) => {
+        mountedPods.value = pods;
+      })
+      .catch(() => {
+        mountedPods.value = [];
+      })
+      .finally(() => {
+        loading.value = false;
+      });
   }
 
   return {
     podSchema,
     podHeaders,
     mountedPods,
+    loading,
   };
 };

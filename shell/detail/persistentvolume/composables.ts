@@ -21,16 +21,25 @@ export const useBoundPersistentVolumeClaim = (pv: any) => {
   const pvcSchema = computed(() => store.getters['cluster/schemaFor'](PVC));
   const pvcHeaders = computed(() => (pvcSchema.value ? withoutNamespaceColumn(store.getters['type-map/headersFor'](pvcSchema.value)) : []));
   const claims: Ref<any[]> = ref([]);
+  const loading = ref(!!pvcSchema.value);
 
   if (pvcSchema.value) {
-    pv.fetchPersistentVolumeClaim().then((claim: any) => {
-      claims.value = claim ? [claim] : [];
-    });
+    pv.fetchPersistentVolumeClaim()
+      .then((claim: any) => {
+        claims.value = claim ? [claim] : [];
+      })
+      .catch(() => {
+        claims.value = [];
+      })
+      .finally(() => {
+        loading.value = false;
+      });
   }
 
   return {
     pvcSchema,
     pvcHeaders,
     claims,
+    loading,
   };
 };

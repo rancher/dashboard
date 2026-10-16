@@ -59,15 +59,47 @@ describe('persistentVolume detail composables', () => {
       expect(claims.value).toStrictEqual([]);
     });
 
+    it('reports loading until the claim fetch settles', async() => {
+      mockGetters['cluster/schemaFor'] = () => ({});
+      mockGetters['type-map/headersFor'] = () => [];
+
+      const pv = { fetchPersistentVolumeClaim: jest.fn().mockResolvedValue(null) };
+      const { loading } = useBoundPersistentVolumeClaim(pv);
+
+      expect(loading.value).toBe(true);
+
+      await flushPromises();
+
+      expect(loading.value).toBe(false);
+    });
+
+    it('stops loading when the claim fetch fails', async() => {
+      mockGetters['cluster/schemaFor'] = () => ({});
+      mockGetters['type-map/headersFor'] = () => [];
+
+      const failure = Promise.reject(new Error('boom'));
+
+      failure.catch(() => {});
+
+      const pv = { fetchPersistentVolumeClaim: jest.fn().mockReturnValue(failure) };
+      const { loading, claims } = useBoundPersistentVolumeClaim(pv);
+
+      await flushPromises();
+
+      expect(loading.value).toBe(false);
+      expect(claims.value).toStrictEqual([]);
+    });
+
     it('does not fetch and returns empty headers when the PVC schema is unavailable', () => {
       mockGetters['cluster/schemaFor'] = () => null;
 
       const pv = { fetchPersistentVolumeClaim: jest.fn() };
-      const { pvcHeaders, claims } = useBoundPersistentVolumeClaim(pv);
+      const { pvcHeaders, claims, loading } = useBoundPersistentVolumeClaim(pv);
 
       expect(pv.fetchPersistentVolumeClaim).not.toHaveBeenCalledWith();
       expect(pvcHeaders.value).toStrictEqual([]);
       expect(claims.value).toStrictEqual([]);
+      expect(loading.value).toBe(false);
     });
   });
 });
