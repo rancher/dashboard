@@ -33,6 +33,16 @@ export default {
       type:    Boolean,
       default: true,
     },
+
+    type: {
+      type:    String,
+      default: SECTION_TYPE.PRIMARY,
+    },
+
+    useRcButton: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   data() {
@@ -73,7 +83,7 @@ export default {
   <RcSection
     :title="t('generic.labelsAndAnnotations', {}, true)"
     mode="with-header"
-    :type="SECTION_TYPE.PRIMARY"
+    :type="type"
     :expandable="expandable"
     :expanded="expanded"
   >
@@ -95,6 +105,8 @@ export default {
         :show-label-title="false"
         :show-annotations="false"
         :show-system-keys="showSystemKeys"
+        :use-rc-button="useRcButton"
+        :add-icon="useRcButton ? 'icon-plus': ''"
         @input="$emit('input', $event)"
       />
     </RcSection>
@@ -111,6 +123,8 @@ export default {
         :show-labels="false"
         :show-annotation-title="false"
         :show-system-keys="showSystemKeys"
+        :use-rc-button="useRcButton"
+        :add-icon="useRcButton ? 'icon-plus': ''"
         @input="$emit('input', $event)"
       />
     </RcSection>
