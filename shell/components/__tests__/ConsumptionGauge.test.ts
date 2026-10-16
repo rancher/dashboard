@@ -139,8 +139,8 @@ describe('component: ConsumptionGauge', () => {
     expect(usedSpan.text()).toBe('Running');
   });
 
-  describe('bar height', () => {
-    it('should not pass a height to the PercentageBar when barHeight is not provided', () => {
+  describe('bar size', () => {
+    it('should not pass a size to the PercentageBar when barSize is not provided', () => {
       const wrapper = mount(ConsumptionGauge, {
         props: {
           capacity: 100,
@@ -150,21 +150,21 @@ describe('component: ConsumptionGauge', () => {
 
       const percentageBar = wrapper.findComponent(PercentageBar);
 
-      expect(percentageBar.props('height')).toBeUndefined();
+      expect(percentageBar.props('size')).toBeUndefined();
     });
 
-    it('should pass barHeight to the PercentageBar', () => {
+    it('should pass barSize to the PercentageBar', () => {
       const wrapper = mount(ConsumptionGauge, {
         props: {
-          capacity:  100,
-          used:      50,
-          barHeight: 4,
+          capacity: 100,
+          used:     50,
+          barSize:  'small',
         }
       });
 
       const percentageBar = wrapper.findComponent(PercentageBar);
 
-      expect(percentageBar.props('height')).toStrictEqual(4);
+      expect(percentageBar.props('size')).toStrictEqual('small');
     });
   });
 

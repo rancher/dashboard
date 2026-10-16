@@ -18,12 +18,12 @@ export default {
       default: () => []
     },
     /**
-     * Optional height of the bar in pixels, its ends are fully rounded. When not set the height comes from
-     * the styles, so css overrides of `.bar` keep working
+     * The Small (4px) or Medium (7px) size of the progress bar from the design system
      */
-    height: {
-      type:    Number,
-      default: undefined
+    size: {
+      type:      String,
+      default:   'medium',
+      validator: (value) => ['small', 'medium'].includes(value)
     }
   },
   computed: {
@@ -34,14 +34,7 @@ export default {
       };
     },
     barStyle() {
-      const style = { backgroundColor: `var(${ this.secondaryColor })` };
-
-      if (this.height) {
-        style.height = `${ this.height }px`;
-        style.borderRadius = `${ this.height / 2 }px`;
-      }
-
-      return style;
+      return { backgroundColor: `var(${ this.secondaryColor })` };
     },
     sliceStyles() {
       return this.slices.map((slice) => ({
@@ -56,6 +49,7 @@ export default {
 <template>
   <div
     class="bar"
+    :class="size"
     :style="barStyle"
   >
     <div
@@ -73,13 +67,19 @@ export default {
 
 <style lang="scss" scoped>
 .bar {
-    $height: 15px;
+    $medium-height: 7px;
+    $small-height: 4px;
 
     width: 100%;
-    height: $height;
-    border-radius: math.div($height, 2);
+    height: $medium-height;
+    border-radius: math.div($medium-height, 2);
     overflow: hidden;
     position: relative;
+
+    &.small {
+      height: $small-height;
+      border-radius: math.div($small-height, 2);
+    }
 
     .indicator {
         height: 100%;

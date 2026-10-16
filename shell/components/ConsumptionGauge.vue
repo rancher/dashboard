@@ -70,10 +70,10 @@ export default {
     },
 
     /**
-     * Optional height of the bar in pixels. Defaults to the height of the PercentageBar component
+     * Optional 'small' or 'medium' size of the bar. Defaults to the size of the PercentageBar component
      */
-    barHeight: {
-      type:    Number,
+    barSize: {
+      type:    String,
       default: undefined
     }
   },
@@ -132,7 +132,7 @@ export default {
       <PercentageBar
         :modelValue="percentageBarValue"
         :color-stops="colorStops"
-        :height="barHeight"
+        :size="barSize"
       />
     </div>
   </div>

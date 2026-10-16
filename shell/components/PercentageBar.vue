@@ -58,10 +58,10 @@ export default {
     },
 
     /**
-     * Optional height of the bar in pixels. Defaults to the height of the Bar component
+     * Optional 'small' or 'medium' size of the bar. Defaults to the size of the Bar component
      */
-    height: {
-      type:    Number,
+    size: {
+      type:    String,
       default: undefined
     }
   },
@@ -115,7 +115,7 @@ export default {
       :percentage="modelValue"
       :primary-color="primaryColor"
       :slices="slices"
-      :height="height"
+      :size="size"
     />
     <span
       v-if="showPercentage"
@@ -128,6 +128,7 @@ export default {
 .percentage-bar {
   display: flex;
   flex-direction: row;
+  align-items: center;
 
   .percentage-value {
     word-break: keep-all;

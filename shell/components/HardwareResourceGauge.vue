@@ -84,7 +84,7 @@ export default {
         :capacity="reserved.total"
         :used="reserved.useful"
         :color-stops="colorStops"
-        :bar-height="4"
+        bar-size="small"
       >
         <template #title>
           <span>
@@ -119,7 +119,7 @@ export default {
         :capacity="used.total"
         :used="used.useful"
         :color-stops="colorStops"
-        :bar-height="4"
+        bar-size="small"
       >
         <template #title>
           <span>

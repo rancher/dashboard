@@ -2,27 +2,37 @@ import { shallowMount } from '@vue/test-utils';
 import Bar from '@shell/components/graph/Bar.vue';
 
 describe('component: Bar', () => {
-  describe('height', () => {
-    // The default height comes from the styles, so css overrides of .bar keep working
-    it('should not set an inline height or border radius when height is not provided', () => {
+  describe('size', () => {
+    it('should render the medium size when size is not provided', () => {
       const wrapper = shallowMount(Bar, { props: { percentage: 50 } });
+
+      expect(wrapper.find('.bar').classes()).toStrictEqual(['bar', 'medium']);
+    });
+
+    it.each(['small', 'medium'])('should render the %s size', (size) => {
+      const wrapper = shallowMount(Bar, { props: { percentage: 50, size } });
+
+      expect(wrapper.find('.bar').classes()).toStrictEqual(['bar', size]);
+    });
+
+    // The height comes from the styles, so css overrides of .bar keep working
+    it('should not set an inline height', () => {
+      const wrapper = shallowMount(Bar, { props: { percentage: 50, size: 'small' } });
 
       const bar = wrapper.find('.bar').element as HTMLElement;
 
       expect(bar.style.height).toStrictEqual('');
-      expect(bar.style.borderRadius).toStrictEqual('');
     });
 
     it.each([
-      [4, '4px', '2px'],
-      [20, '20px', '10px'],
-    ])('should render a %ipx bar with height %s and border radius %s', (height, expectedHeight, expectedRadius) => {
-      const wrapper = shallowMount(Bar, { props: { percentage: 50, height } });
+      ['small', true],
+      ['medium', true],
+      ['large', false],
+      ['', false],
+    ])('should validate %p as a size: %p', (size, valid) => {
+      const validator = (Bar as any).props.size.validator;
 
-      const bar = wrapper.find('.bar').element as HTMLElement;
-
-      expect(bar.style.height).toStrictEqual(expectedHeight);
-      expect(bar.style.borderRadius).toStrictEqual(expectedRadius);
+      expect(validator(size)).toStrictEqual(valid);
     });
   });
 

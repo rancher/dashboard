@@ -87,12 +87,12 @@ describe('view: node detail', () => {
     'consumptionGauge.cpu',
     'consumptionGauge.memory',
     'consumptionGauge.pods',
-  ])('should render the %s gauge with a thin bar', (resourceKey) => {
+  ])('should render the %s gauge with a small bar', (resourceKey) => {
     const wrapper = createWrapper();
 
     const gauge = findGaugeByResource(wrapper, resourceKey);
 
-    expect(gauge!.props('barHeight')).toStrictEqual(4);
+    expect(gauge!.props('barSize')).toStrictEqual('small');
   });
 
   it('should pass the "running" translation key as usedlabel to the pods ConsumptionGauge', () => {

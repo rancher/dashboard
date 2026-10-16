@@ -221,7 +221,7 @@ export default {
         <ConsumptionGauge
           :capacity="value.cpuAllocatable"
           :used="value.cpuUsage"
-          :bar-height="4"
+          bar-size="small"
         />
       </Card>
       <Card :title="t('node.detail.glance.consumptionGauge.memory')">
@@ -229,7 +229,7 @@ export default {
           :capacity="value.ramAllocatable"
           :used="value.ramUsage"
           :number-formatter="memoryFormatter"
-          :bar-height="4"
+          bar-size="small"
         />
       </Card>
       <Card :title="t('node.detail.glance.consumptionGauge.pods')">
@@ -237,7 +237,7 @@ export default {
           :capacity="value.podCapacity"
           :used="value.podConsumed"
           :used-label="t('node.detail.glance.consumptionGauge.running')"
-          :bar-height="4"
+          bar-size="small"
         />
       </Card>
     </div>
