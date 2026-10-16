@@ -16,6 +16,7 @@ const createMockStore = ({
   workspaces = ['fleet-default'],
 }: StoreOptions = {}) => createStore({
   getters: {
+    'i18n/t':             () => (key: string) => (key === 'product.fleet' ? 'Continuous Delivery' : key),
     'features/get':       () => () => fleetEnabled,
     'management/canList': () => (type: string) => listable.includes(type),
     'management/all':     () => (type: string) => (type === FLEET.WORKSPACE ? workspaces : []).map((id) => ({ id })),
@@ -54,6 +55,12 @@ describe('component: FleetManagedBanner', () => {
 
       expect(findBanner(wrapper).exists()).toBe(true);
       expect(findBanner(wrapper).text()).toContain('resourceDetail.masthead.fleetManaged');
+    });
+
+    it('should name the product in the banner text', () => {
+      const wrapper = createWrapper(fleetResource());
+
+      expect(wrapper.find('[k="resourceDetail.masthead.fleetManaged"]').attributes('name')).toStrictEqual('Continuous Delivery');
     });
 
     it.each([

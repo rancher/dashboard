@@ -19,6 +19,8 @@ const props = defineProps<{ resource?: { metadata?: { labels?: Record<string, st
 
 const store = useStore();
 
+const productName = computed(() => store.getters['i18n/t'](`product.${ FLEET_NAME }`));
+
 const labels = computed(() => props.resource?.metadata?.labels || {});
 
 const isFleetManaged = computed(() => !!labels.value[FLEET_LABELS.MANAGED_BY_KIND]);
@@ -71,6 +73,7 @@ const sourceLocation = computed<RouteLocationRaw | undefined>(() => {
       <t
         k="resourceDetail.masthead.fleetManaged"
         :raw="true"
+        :name="productName"
       />
       <template v-if="sourceLocation">
         {{ ' ' }}
@@ -79,7 +82,7 @@ const sourceLocation = computed<RouteLocationRaw | undefined>(() => {
           class="secondary text-no-break"
           data-testid="fleet-managed-banner-link"
         >
-          {{ t('resourceDetail.masthead.fleetManagedLink') }}
+          {{ t('resourceDetail.masthead.fleetManagedLink', { name: productName }) }}
         </router-link>
       </template>
     </span>
