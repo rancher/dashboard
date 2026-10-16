@@ -121,6 +121,20 @@ describe('component: ReleaseWelcomeDialog', () => {
       expect(byTestId(wrapper, 'release-welcome-loading').exists()).toStrictEqual(true);
     });
 
+    it.each([
+      ['Community', { prime: false }, true],
+      ['a Prime admin', { prime: true }, true],
+      ['a Prime user who is not admin', { prime: true, admin: false }, false],
+    ])('should show a spinner for each card %s gets', (_, options, sideCard) => {
+      mockFetchFirstRunContent.mockReturnValue(new Promise(() => {}));
+      const wrapper = mount(options);
+
+      expect([
+        byTestId(wrapper, 'release-welcome-loading-whats-new').exists(),
+        byTestId(wrapper, 'release-welcome-loading-side').exists(),
+      ]).toStrictEqual([true, sideCard]);
+    });
+
     it('should not show the cards while the dynamic content loads', () => {
       mockFetchFirstRunContent.mockReturnValue(new Promise(() => {}));
       const wrapper = mount();

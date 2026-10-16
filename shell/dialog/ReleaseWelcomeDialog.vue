@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, PropType, ref } from 'vue';
+import {
+  computed, nextTick, onMounted, PropType, ref
+} from 'vue';
 import { useStore } from 'vuex';
 import { RcButton } from '@components/RcButton';
 import { RcModal } from '@components/RcModal';
@@ -48,15 +50,55 @@ const canRegister = computed(() => isPrime && isAdminUser(store.getters) && !!st
 // The vendor already names the edition, e.g. 'Rancher Community' or 'Rancher Prime'
 const title = computed(() => t('releaseWelcome.title', { vendor }));
 
+// A card shows next to "What's new": the registration card (Prime admins) or the Prime promotion (Community)
+const hasSideCard = computed(() => canRegister.value || !isPrime);
+
 // The modal opens straight away, the cards fade in once the dynamic content is fetched (or not, then the built-in content)
 const loading = ref(true);
 const content = ref<FirstRunReleaseContent>({});
+
+// The cards area grows or shrinks smoothly from the placeholders to the cards, instead of the modal jumping
+const cards = ref<HTMLElement | null>(null);
+const cardsHeight = ref('');
+
+const showCards = async() => {
+  const el = cards.value;
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+  if (!el || reducedMotion) {
+    loading.value = false;
+
+    return;
+  }
+
+  cardsHeight.value = `${ el.offsetHeight }px`;
+  loading.value = false;
+  await nextTick();
+
+  const target = `${ el.scrollHeight }px`;
+
+  if (target === cardsHeight.value) {
+    cardsHeight.value = '';
+
+    return;
+  }
+  requestAnimationFrame(() => {
+    cardsHeight.value = target;
+  });
+};
+
+// Back to the natural height, so the cards can still reflow (e.g. on resize)
+const onCardsTransitionEnd = (event: TransitionEvent) => {
+  if (event.target === cards.value && event.propertyName === 'height') {
+    cardsHeight.value = '';
+  }
+};
 
 onMounted(async() => {
   if (minorVersion) {
     content.value = await fetchFirstRunContent(store.getters, (store as any).$axios, minorVersion);
   }
-  loading.value = false;
+  await showCards();
 });
 
 const close = () => props.modal.onClose();
@@ -121,19 +163,38 @@ const close = () => props.modal.onClose();
     </p>
 
     <div
+      ref="cards"
       class="release-welcome__cards"
+      :class="{ 'release-welcome__cards--resizing': !!cardsHeight }"
+      :style="cardsHeight ? { height: cardsHeight } : undefined"
       :aria-busy="loading"
+      @transitionend="onCardsTransitionEnd"
     >
       <div
         v-if="loading"
-        class="release-welcome__loading"
+        class="release-welcome__cards-content"
         data-testid="release-welcome-loading"
       >
-        <i
-          class="icon icon-spinner icon-spin icon-lg"
-          aria-hidden="true"
-        />
         <span class="sr-only">{{ t('releaseWelcome.loading') }}</span>
+        <div
+          class="release-welcome__placeholder release-welcome__placeholder--whats-new"
+          data-testid="release-welcome-loading-whats-new"
+        >
+          <i
+            class="icon icon-spinner icon-spin icon-lg"
+            aria-hidden="true"
+          />
+        </div>
+        <div
+          v-if="hasSideCard"
+          class="release-welcome__placeholder release-welcome__placeholder--side"
+          data-testid="release-welcome-loading-side"
+        >
+          <i
+            class="icon icon-spinner icon-spin icon-lg"
+            aria-hidden="true"
+          />
+        </div>
       </div>
       <Transition
         name="release-welcome-fade"
@@ -204,16 +265,29 @@ const close = () => props.modal.onClose();
   }
 
   &__cards {
-    // Room for the spinner, so the modal doesn't jump from nothing to its full size
-    min-height: 200px;
+    transition: height 0.3s ease-in-out;
+
+    &--resizing {
+      overflow: hidden;
+    }
   }
 
-  &__loading {
+  // Average heights of the cards in the design, so the modal barely changes size when they arrive
+  &__placeholder {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 200px;
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-lg);
     color: var(--muted);
+
+    &--whats-new {
+      height: 272px;
+    }
+
+    &--side {
+      height: 256px;
+    }
   }
 
   &__cards-content {
@@ -245,7 +319,8 @@ const close = () => props.modal.onClose();
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .release-welcome-fade-enter-active {
+  .release-welcome-fade-enter-active,
+  .release-welcome__cards {
     transition: none;
   }
 }

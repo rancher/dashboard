@@ -59,6 +59,7 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     dialog.title().should('contain', 'Welcome to');
     dialog.whatsNew().should('be.visible');
     dialog.whatsNewFeatures().should('have.length', 4);
+    dialog.cardsSettled();
     dialog.primePromo().scrollIntoView().should('be.visible');
     dialog.primePromo().should('contain', 'Ready for production? Go Prime.');
 

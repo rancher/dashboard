@@ -13,6 +13,13 @@ export default class ReleaseWelcomeDialogPo extends ComponentPo {
     return this.self().find('[data-testid="release-welcome-loading"]');
   }
 
+  /**
+   * The cards area once it has finished growing from the loading placeholders to the cards
+   */
+  cardsSettled() {
+    return this.self().find('.release-welcome__cards').should('not.have.class', 'release-welcome__cards--resizing');
+  }
+
   whatsNew() {
     return cy.get('[data-testid="release-welcome-whats-new"]');
   }
