@@ -1,22 +1,19 @@
 import { shallowMount } from '@vue/test-utils';
-import { createStore } from 'vuex';
 import FleetManagedBadge from '@shell/components/Resource/Detail/FleetManagedBadge.vue';
-import { BadgeState } from '@components/BadgeState';
 import { FLEET } from '@shell/config/labels-annotations';
 
-const createWrapper = (resource?: object) => shallowMount(FleetManagedBadge, {
-  props:  { resource },
-  global: { plugins: [createStore({})] }
-});
+const createWrapper = (resource?: object) => shallowMount(FleetManagedBadge, { props: { resource } });
+
+const findBadge = (wrapper: ReturnType<typeof createWrapper>) => wrapper.find('[data-testid="fleet-managed-badge"]');
 
 describe('component: FleetManagedBadge', () => {
   it('should render a badge with the Fleet icon when the resource is managed by Fleet', () => {
     const wrapper = createWrapper({ metadata: { labels: { [FLEET.MANAGED_BY_KIND]: 'gitrepo' } } });
-    const badge = wrapper.findComponent(BadgeState);
+    const badge = findBadge(wrapper);
 
     expect(badge.exists()).toBe(true);
-    expect(badge.props('icon')).toStrictEqual('icon-fleet-alt');
-    expect(badge.props('label')).toStrictEqual('%resourceDetail.masthead.fleetManagedBadge%');
+    expect(badge.find('i').classes()).toContain('icon-fleet-alt');
+    expect(badge.text()).toStrictEqual('%resourceDetail.masthead.fleetManagedBadge%');
   });
 
   it.each([
@@ -26,6 +23,6 @@ describe('component: FleetManagedBadge', () => {
   ])('should not render when the resource has %s', (_, resource) => {
     const wrapper = createWrapper(resource);
 
-    expect(wrapper.findComponent(BadgeState).exists()).toBe(false);
+    expect(findBadge(wrapper).exists()).toBe(false);
   });
 });
