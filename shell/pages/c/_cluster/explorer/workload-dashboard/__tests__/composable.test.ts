@@ -299,6 +299,36 @@ describe('composable: useWorkloadDashboard', () => {
       expect((route as any).query).toBeUndefined();
       wrapper.unmount();
     });
+
+    it('should include name filter query when nameFilter is provided', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+      const route = result.resourceRoute('apps.deployment', undefined, 'nginx');
+
+      expect((route as any).query).toStrictEqual({ nameFilter: 'nginx' });
+      wrapper.unmount();
+    });
+
+    it('should include both state and name filter queries when both are provided', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+      const route = result.resourceRoute('apps.deployment', ['running'], 'nginx');
+
+      expect((route as any).query).toStrictEqual({ stateFilter: 'running', nameFilter: 'nginx' });
+      wrapper.unmount();
+    });
+
+    it('should not include query for an empty nameFilter', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+      const route = result.resourceRoute('apps.deployment', undefined, '');
+
+      expect((route as any).query).toBeUndefined();
+      wrapper.unmount();
+    });
   });
 
   describe('resetNamespaceFilter', () => {
@@ -575,6 +605,42 @@ describe('composable: useWorkloadDashboard', () => {
       expect(mockDispatch).toHaveBeenCalledWith('switchNamespaces', {
         ids: ['ns://cattle-system'],
         key: 'local',
+      });
+      wrapper.unmount();
+    });
+  });
+
+  describe('navigateToNamespace', () => {
+    it('should dispatch switchNamespaces with the namespace filter', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+      mockDispatch.mockClear();
+
+      result.navigateToNamespace('apps.deployment', 'cattle-system');
+
+      expect(mockDispatch).toHaveBeenCalledWith('switchNamespaces', {
+        ids: ['ns://cattle-system'],
+        key: 'local',
+      });
+      wrapper.unmount();
+    });
+
+    it('should navigate to the resource list for the type', async() => {
+      const { wrapper, result } = mountComposable();
+
+      await flushPromises();
+      mockRouterPush.mockClear();
+
+      result.navigateToNamespace('apps.deployment', 'cattle-system');
+
+      expect(mockRouterPush).toHaveBeenCalledWith({
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster:  'local',
+          product:  'explorer',
+          resource: 'apps.deployment',
+        },
       });
       wrapper.unmount();
     });

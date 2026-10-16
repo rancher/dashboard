@@ -7,8 +7,10 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 export default class GenericSamlPo extends PagePo {
+  // Adding a provider always creates a config of its own, so the form is reached
+  // through the create route rather than through an empty config's edit page.
   private static createPath(clusterId: string) {
-    return `/c/${ clusterId }/auth/config/genericsaml?mode=edit`;
+    return `/c/${ clusterId }/auth/config/create/genericsaml?mode=edit`;
   }
 
   static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {

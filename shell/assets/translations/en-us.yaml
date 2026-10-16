@@ -438,7 +438,7 @@ about:
     title: Versions
     component: Component
     version: Version
-    cli: CLI
+    cli: Rancher CLI
     helm: Helm
     machine: Machine
     rancher: Rancher
@@ -446,9 +446,9 @@ about:
   downloadImageList:
     title: Image Lists
   cli:
-    title: "{vendor} CLI"
-    description: The {vendor} CLI lets you manage clusters, projects and resources from the command line. Builds are available for a range of operating systems and architectures, and the documentation covers how to download and install them.
-    docsLink: View {vendor} CLI documentation
+    title: "Rancher CLI"
+    description: The Rancher CLI lets you manage clusters, projects and resources from the command line. Builds are available for a range of operating systems and architectures, and the documentation covers how to download and install them.
+    docsLink: View Rancher CLI documentation
   diagnostic:
     title: Diagnostics
     checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources. These may take a while to complete
@@ -532,6 +532,8 @@ addProjectMemberDialog:
   title: Add Project Member
 
 authConfig:
+  enableLimitReached: Another external provider is already enabled. Rancher Community allows for one external auth provider to be configured at a time. Disable the active provider to add a different one, or use Rancher Prime to run several together.
+  enableLimitReachedPrime: Another external provider is already enabled. The multiple-auth-providers feature flag is off, so one external auth provider can be enabled at a time. Disable the active provider to add a different one, or turn the flag on under Global Settings > Feature Flags to run several together.
   list:
     title: Authentication Providers
     description: Configure the identity providers people can use to log in to Rancher.
@@ -545,6 +547,14 @@ authConfig:
       description: Everyone logs in with a local Rancher account. Connect an identity provider so people can use their existing company credentials.
       create: Add a provider
       learnMore: How external authentication works
+    prime:
+      title: Run multiple auth providers at once with SUSE Rancher Prime
+      description: Rancher Community supports one external auth provider at a time, so disable the active one to switch. With <primeUrl>SUSE Rancher Prime</primeUrl> employees, contractors and partners can each sign in through the provider they already use, all active together.
+      action: Learn about SUSE Rancher Prime
+    primeFlagOff:
+      title: Run multiple auth providers at once with the multiple-auth-providers feature flag
+      description: The multiple-auth-providers feature flag is off, so one external auth provider can be active at a time. Disable the active one to switch, or turn the flag on to let employees, contractors and partners each sign in through the provider they already use, all active together.
+      action: Go to Feature Flags
     disableLocal:
       label: Disable login with local users
       description: Users sign in through external providers only. Local accounts remain, but cannot be used to sign in.
@@ -561,9 +571,29 @@ authConfig:
   access:
     title: '{provider} - Access'
     type: Type
+  create:
+    back: Authentication Providers
+    unknownProvider: '{provider} is not a provider this Rancher supports.'
+    limitReached: Another external provider is already enabled. Rancher Community allows for one external auth provider to be configured at a time. Disable the active provider to add a different one, or use Rancher Prime to run several together.
+    limitReachedPrime: Another external provider is already enabled. The multiple-auth-providers feature flag is off, so one external auth provider can be enabled at a time. Disable the active provider to add a different one, or turn the flag on under Global Settings > Feature Flags to run several together.
+    provider:
+      title: 'Add {provider}'
+    clone:
+      title: 'Clone {name}'
+      notFound: '{name} is not an authentication provider that can be cloned from here.'
+    name:
+      label: Name
+      required: A name is required.
+      invalid: Use lowercase letters, numbers and dashes, starting and ending with a letter or number.
+      taken: '{name} is already in use by another provider.'
+    descriptionField:
+      label: Description
+      placeholder: e.g. Engineering and support.
   add:
     title: Add an authentication provider
     subtitle: Select the provider to connect. Rancher supports one external provider, so this is the one users will log in with. To use a different one later you delete this and configure the new one.
+    subtitleMultiple: Select the provider to connect. More than one external provider can be enabled at a time, and users choose which one to log in with.
+    subtitlePrimeSingle: Select the provider to connect. The multiple-auth-providers feature flag is off, so one external provider can be enabled at a time. Turn the flag on under Global Settings > Feature Flags to run several together.
     searchPlaceholder: Search providers
     filterLabel: Protocol
     filterAll: All
@@ -2523,6 +2553,15 @@ cluster:
       validation:
         isAutoscalerMaxGreaterThanMin: The max machines count must be equal or exceed the min machine count.
       etcdControlPlaneWarning: We don't recommend using Autoscaler with machine pools that have the etcd or Control Plane roles. You can modify the yaml if you want to override the current value.
+      pause:
+        pausedBanner: Autoscaling is paused for this pool. It keeps these values and applies them again when you resume it on the cluster's Machine Pools tab.
+        pauseAction: Pause Autoscaler
+        resumeAction: Resume Autoscaler
+        rangeTooltip: 'Min {min}, Max {max}'
+        unconfiguredTooltip: Autoscaling is not configured for this pool. Set a machine count range in the pool configuration.
+        clusterPausedTooltip: Autoscaling is paused for the whole cluster.
+        lastPoolTooltip: This is the only pool left autoscaling. Pausing it would uninstall the autoscaler.
+        error: Error updating autoscaling for machine pool
     name:
       label: Pool Name
       notNamed: (Not Named)
@@ -4839,10 +4878,14 @@ login:
   loggingIn: Logging in...
   loggedIn: Logged in
   loginWithLocal: Log in with Local User
+  useProvider: Use a {provider} user
+  useNonLocal: Use a non-local user
   providers:
     heading: Choose how to sign in
     or: Or
+    choose: Choose another authentication provider
     chooseDifferent: Choose a different provider
+    menu: Authentication providers
     useLocal: Log in as a local user
     meta: "{vendor} · {protocol}"
     remember: Remember my choice on this device
@@ -5417,6 +5460,8 @@ node:
     nodeTaint: Taints
     scaleDown: Scale Pool Down
     scaleUp: Scale Pool Up
+    scaleDownAriaLabel: Scale down machine pool {name}
+    scaleUpAriaLabel: Scale up machine pool {name}
     poolDescription:
       noSize: No Size
       noLocation: No Location
@@ -6578,6 +6623,7 @@ resourceDetail:
         no {a {managedBy} app}
         yes {the {managedBy} app {appName}}
         other {a {managedBy} app}}; changes made here will likely be overwritten the next time {managedBy} runs.
+    fleetManaged: This resource is managed by <b>Fleet</b>. To make permanent changes, update the configuration in the source repository. Any manual changes made here will be overwritten during the next sync.
 resourceList:
   head:
     create: Create
@@ -6586,6 +6632,9 @@ resourceList:
   nsFiltering: "Please select one or more namespaces or projects using the filter above."
   nsFilteringGeneric: "Please select a valid namespace or project option using the filter above."
   nsFilterToolTip: "Filtering is restricted to projects and namespaces"
+  stateFilterApplied: "State filter applied:"
+  nameFilterApplied: "Name filter applied:"
+  clearStateFilter: "Clear filter"
 resourceLoadingIndicator:
   loading: Loading
 
@@ -7324,7 +7373,11 @@ tableViews:
     newViewName: Untitled
     deleted: View Deleted
     deletedMessage: The "{name}" view has been successfully deleted.
+    deletedSharedMessage: The "{name}" view has been unpublished and deleted.
     undo: Undo
+    shared: Published
+    share: Publish
+    unshare: Unpublish
   bulk:
     selected: "{count} Selected"
     deleteSelected: Delete Selected
@@ -7389,9 +7442,13 @@ tableViews:
       workspace: Workspace
       type: Type
   # A view as text: Share View hands it out, Import View takes it into a saved view, both in the same box
+  publish:
+    title: Publish
+    body: Publish this view to make it visible to all users.
+  filterWarning: Filter name and values are included and can reveal information such as resource or namespace names.
   share:
     title: Share View
-    intro: 'Copy this text and share it. Anyone with the text can import the view using <b>Import View</b>. It holds the view as it is now, unsaved changes included: columns, grouping, sort and filter. <b>The filter is included and can reveal information such as resource or namespace names.</b>'
+    intro: 'Copy this text and share it. Anyone with the text can import the view using <b>Import View</b>. It holds the view as it is now, unsaved changes included: columns, grouping, sort and filter.'
     label: View
   import:
     title: Import View
@@ -8030,6 +8087,14 @@ workloadDashboard:
     byState: By State
     byType: By Type
     byNamespace: By Namespace
+  search:
+    ariaLabel: Find workloads in the selected namespaces...
+    placeholder: Find workloads in the selected namespaces...
+    startTyping: Start typing to search
+    minCharacters: Type at least {count} characters to search
+    noMatch: No matching workloads
+    searching: Searching...
+    moreResults: "+ {count} more {type}"
   errors:
     noAccess: "No access to {type}"
     fetchType: "Failed to fetch {type}"

@@ -175,7 +175,7 @@ describe('Settings', { testIsolation: false }, () => {
     SettingsPagePo.navTo();
 
     cy.getRancherVersion().then((version) => {
-      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Global Settings - Settings' : 'Rancher - Global Settings - Settings';
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Global Settings - Settings' : 'Rancher Community - Global Settings - Settings';
 
       cy.title().should('eq', expectedTitle);
     });

@@ -1,6 +1,6 @@
 import {
   applyQuery, applyQueryExpression, fieldsFor, parseQuery,
-  parseQueryExpression, queryToServerFilters, replaceToken, rowsToCsv, stateQueryFor, tokenAt, validateQuery, valuesInUse,
+  parseQueryExpression, queryToServerFilters, replaceToken, rowsToCsv, queryFor, tokenAt, validateQuery, valuesInUse,
   coreFieldIdsFor, CORE_FIELD_IDS,
   moveInOrder,
   serverPathFor,
@@ -560,7 +560,7 @@ describe('fx: queryToServerFilters', () => {
   });
 });
 
-describe('fx: stateQueryFor', () => {
+describe('fx: queryFor', () => {
   it.each([
     ['one state', 'running', 'state:running'],
     ['several, as a link lists them', 'running,active', 'state:running state:active'],
@@ -568,11 +568,20 @@ describe('fx: stateQueryFor', () => {
     ['a state needing quotes', 'in progress', 'state:"in progress"'],
     ['a list of them', ['error', 'expired'], 'state:error state:expired'],
   ])('should give a term per state for %s', (_, states, expected) => {
-    expect(stateQueryFor(states)).toBe(expected);
+    expect(queryFor(states)).toBe(expected);
   });
 
   it.each([undefined, null, '', ',', 3])('should give nothing for %p', (states) => {
-    expect(stateQueryFor(states)).toBe('');
+    expect(queryFor(states)).toBe('');
+  });
+
+  it.each([
+    ['a name alone', undefined, 'nginx', 'name:nginx'],
+    ['a name after the states', 'running,active', 'nginx', 'state:running state:active name:nginx'],
+    ['a name needing quotes', undefined, 'my app', 'name:"my app"'],
+    ['an empty name left out', 'running', '', 'state:running'],
+  ])('should give a name term for %s', (_, states, name, expected) => {
+    expect(queryFor(states, name)).toBe(expected);
   });
 });
 

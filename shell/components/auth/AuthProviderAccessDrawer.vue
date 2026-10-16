@@ -49,6 +49,7 @@ const saveErrors = ref<string[]>([]);
 const model = computed(() => fetch.value.data);
 const title = computed(() => i18n.t('authConfig.access.title', { provider: props.resource.nameDisplay }));
 const mode = computed(() => (props.resource.canUpdate === false ? _VIEW : _EDIT));
+const canSave = computed(() => !!model.value && mode.value === _EDIT);
 const errors = computed(() => [
   ...(fetch.value.error ? exceptionToErrorsArray(fetch.value.error) : []),
   ...saveErrors.value,
@@ -76,6 +77,7 @@ const save = async(btnCb: AsyncButtonCallback) => {
 <template>
   <Drawer
     :ariaTarget="title"
+    :close-label="canSave ? i18n.t('generic.cancel') : undefined"
     @close="emit('close')"
   >
     <template #title>
@@ -116,7 +118,7 @@ const save = async(btnCb: AsyncButtonCallback) => {
     </template>
     <template #additional-actions>
       <AsyncButton
-        v-if="model && mode === 'edit'"
+        v-if="canSave"
         mode="edit"
         data-testid="auth-provider-access-save"
         @click="save"

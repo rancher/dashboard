@@ -20,6 +20,7 @@ export const GITHUB_REDIRECT = 'redirect_uri';
 
 // Auth Provider
 export const EDIT_CONFIG = 'editConfig';
+export const CLONE_CONFIG = 'cloneConfig';
 
 // General
 export const _FLAGGED = null; // The value for a key-only flag, like `?desc`
@@ -33,6 +34,7 @@ export const PAGE = 'page';
 
 // A list linked to some of its states, eg from an overview's counts: `a,b`. The table opens filtered to them
 export const STATE_FILTER_QUERY = 'stateFilter';
+export const NAME_FILTER_QUERY = 'nameFilter';
 
 // ResourceDetail/Yaml
 export const MODE = 'mode';

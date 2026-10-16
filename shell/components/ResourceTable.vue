@@ -167,11 +167,12 @@ export default {
     },
 
     /**
-     * If the current preference for group isn't applicable, or not set, use this instead
+     * If the current preference for group isn't applicable, or not set, use this instead (else the
+     * namespace). Naming one, even the namespace, also starts the table's views grouped by it
      */
     groupDefault: {
       type:    String,
-      default: DEFAULT_GROUP,
+      default: null,
     },
 
     groupTooltip: {
@@ -545,11 +546,13 @@ export default {
           // Attempt to find the default option in available options...
           // if not use the first value in the options collection...
           // and if not that just fall back to the default
-          if (this._groupOptions.find((g) => g.value === this.groupDefault)) {
-            return this.groupDefault;
+          const groupDefault = this.groupDefault || DEFAULT_GROUP;
+
+          if (this._groupOptions.find((g) => g.value === groupDefault)) {
+            return groupDefault;
           }
 
-          return this._groupOptions[0]?.value || this.groupDefault || DEFAULT_GROUP;
+          return this._groupOptions[0]?.value || groupDefault;
         }
 
         return this._group;
@@ -648,9 +651,10 @@ export default {
 
     /**
      * The grouping a view starts with: the one the page names as its default, eg cluster members by
-     * role, machines by pool; else the namespace, whenever the list offers to group by it, as a
-     * paginated list does under its own name; else the first it offers, eg secrets by project. A list
-     * grouped by a field it is given, eg project members by project, keeps that
+     * role, machines by pool, namespaces by project; else none, whenever the list offers to group by
+     * namespace, as a paginated list does under its own name; else the first it offers, eg app bundles
+     * by type, secrets by project. A list grouped by a field it is given, eg project members by
+     * project, keeps that
      */
     defaultGroupBy() {
       if (!this.showGrouping) {
@@ -658,7 +662,8 @@ export default {
       }
 
       const offered = (value) => this.tableGroupings.find((option) => option.value === value);
-      const start = offered(this.groupDefault) || offered(DEFAULT_GROUP) || offered(PAGINATED_NAMESPACE_GROUP) || this.tableGroupings[0];
+      const offersNamespace = offered(DEFAULT_GROUP) || offered(PAGINATED_NAMESPACE_GROUP);
+      const start = offered(this.groupDefault) || (offersNamespace ? null : this.tableGroupings[0]);
 
       if (!start || (this.groupBy && !start.field)) {
         return null;
@@ -751,8 +756,11 @@ export default {
 
   methods: {
     /** For whichever list holds the focus, which needn't be this one - see runTableViewShortcut */
-    tableViewShortcut(action) {
-      runTableViewShortcut(action);
+    /** Takes the key only for a table the focus is in, so elsewhere it stays the browser's */
+    tableViewShortcut(action, event) {
+      if (runTableViewShortcut(action)) {
+        event.preventDefault();
+      }
     },
 
     keyAction(action) {
@@ -976,22 +984,23 @@ export default {
 
     <template #shortkeys>
       <!-- The saved view shortcuts. Not `once`: macOS sends no keyup for a key pressed with Cmd held.
-           `anywhere`, as the query box has the focus while a view is being edited -->
+           `anywhere`, as the query box has the focus while a view is being edited. `claim`, so with the
+           focus outside the table the browser still saves the page (Cmd+S) or bookmarks it (Cmd+D) -->
       <template v-if="showTableViewTabs">
         <button
-          v-shortkey.anywhere="{windows: ['ctrl', 's'], mac: ['meta', 's']}"
+          v-shortkey.anywhere.claim="{windows: ['ctrl', 's'], mac: ['meta', 's']}"
           class="hide"
-          @shortkey="tableViewShortcut('saveChanges')"
+          @shortkey="tableViewShortcut('saveChanges', $event)"
         />
         <button
-          v-shortkey.anywhere="{windows: ['ctrl', 'shift', 's'], mac: ['meta', 'shift', 's']}"
+          v-shortkey.anywhere.claim="{windows: ['ctrl', 'shift', 's'], mac: ['meta', 'shift', 's']}"
           class="hide"
-          @shortkey="tableViewShortcut('openSaveAsNew')"
+          @shortkey="tableViewShortcut('openSaveAsNew', $event)"
         />
         <button
-          v-shortkey.anywhere="{windows: ['ctrl', 'd'], mac: ['meta', 'd']}"
+          v-shortkey.anywhere.claim="{windows: ['ctrl', 'd'], mac: ['meta', 'd']}"
           class="hide"
-          @shortkey="tableViewShortcut('duplicateCurrent')"
+          @shortkey="tableViewShortcut('duplicateCurrent', $event)"
         />
       </template>
       <!-- These act on the selection, so they need the table's actions -->

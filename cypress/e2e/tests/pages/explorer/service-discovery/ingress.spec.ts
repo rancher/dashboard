@@ -33,7 +33,7 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
     cy.get('@consoleWarn').should('not.be.calledWith', warnMsg);
 
     cy.getRancherVersion().then((version) => {
-      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Ingresses' : 'Rancher - local - Ingresses';
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Ingresses' : 'Rancher Community - local - Ingresses';
 
       cy.log(`Expected title is: ${ expectedTitle }`);
       cy.title().should('eq', expectedTitle);

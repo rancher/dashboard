@@ -8,6 +8,7 @@ import { useKubernetesVersions, getDefaultVersion } from '@shell/composables/use
 import { usePodSecurityAdmissionTemplates } from '@shell/composables/usePodSecurityAdmissionTemplates';
 import { useMachinePools, syncMachineConfigWithLatest } from '@shell/composables/useMachinePools';
 import { useRegistryConfig } from '@shell/composables/useRegistryConfig';
+import { useClusterMembership, saveRoleBindings } from '@shell/composables/useClusterMembership';
 import { normalizeName } from '@shell/utils/kube';
 import AccountAccess from '@shell/components/google/AccountAccess.vue';
 
@@ -38,7 +39,6 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 
-import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
 import semver from 'semver';
 
 import { CLOUD_CREDENTIAL_OVERRIDE } from '@shell/models/nodedriver';
@@ -65,7 +65,7 @@ import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
 import {
-  HARVESTER, RETENTION_DEFAULT, RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE
+  HARVESTER, RETENTION_DEFAULT, RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE, mergeExtensionSectionProps
 } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 import { mapGetters } from 'vuex';
 
@@ -137,6 +137,7 @@ export default {
       ...usePodSecurityAdmissionTemplates(),
       ...useMachinePools(),
       ...useRegistryConfig(props),
+      ...useClusterMembership(),
     };
   },
 
@@ -241,7 +242,6 @@ export default {
        * { [chartName:string]: { chart: json, readme: string, values: json } }
        */
       versionInfo:               {},
-      membershipUpdate:          {},
       userChartValues:           {},
       userChartValuesTemp:       {},
       addonsRev:                 0,
@@ -383,6 +383,11 @@ export default {
         this.mode === _VIEW
       ) {
         return false;
+      }
+
+      // takes precedence over a `cloud-credential: false` registration
+      if (this.extensionCredentialSection) {
+        return true;
       }
 
       // Check provider specific config
@@ -568,10 +573,6 @@ export default {
       return out;
     },
 
-    canManageMembers() {
-      return canViewClusterMembershipEditor(this.$store);
-    },
-
     isHarvesterDriver() {
       return this.$route.query.type === HARVESTER;
     },
@@ -619,6 +620,9 @@ export default {
     extensionProvisioningSection() {
       return this.extensionProvider?.extensionProvisioningSection || null;
     },
+    extensionCredentialSection() {
+      return this.extensionProvider?.extensionCredentialSection || null;
+    },
 
     extensionInfrastructureSectionProps() {
       const defaultProps = {
@@ -628,29 +632,11 @@ export default {
         provisioningCluster: this.value,
       };
 
-      const extensionProps = this.extensionProvider?.extensionInfrastructureSectionProps;
-
-      if (typeof extensionProps === 'function') {
-        const extensionContext = { ...defaultProps };
-
-        extensionContext.infrastructureCluster = this.infrastructureCluster;
-
-        let out;
-
-        try {
-          out = extensionProps(extensionContext);
-        } catch {
-          return defaultProps;
-        }
-
-        if (out && typeof out === 'object') {
-          return { ...defaultProps, ...out };
-        }
-      } else if (extensionProps && typeof extensionProps === 'object') {
-        return { ...defaultProps, ...extensionProps };
-      }
-
-      return defaultProps;
+      return mergeExtensionSectionProps(
+        defaultProps,
+        this.extensionProvider?.extensionInfrastructureSectionProps,
+        { ...defaultProps, infrastructureCluster: this.infrastructureCluster }
+      );
     },
 
     extensionProvisioningSectionProps() {
@@ -659,29 +645,34 @@ export default {
         mode:  this.mode,
       };
 
-      const extensionProps = this.extensionProvider?.extensionProvisioningSectionProps;
+      return mergeExtensionSectionProps(
+        defaultProps,
+        this.extensionProvider?.extensionProvisioningSectionProps,
+        { ...defaultProps, provisioningCluster: this.value }
+      );
+    },
 
-      if (typeof extensionProps === 'function') {
-        const extensionContext = { ...defaultProps };
-
-        extensionContext.provisioningCluster = this.value;
-
-        let out;
-
-        try {
-          out = extensionProps(extensionContext);
-        } catch {
-          return defaultProps;
-        }
-
-        if (out && typeof out === 'object') {
-          return { ...defaultProps, ...out };
-        }
-      } else if (extensionProps && typeof extensionProps === 'object') {
-        return { ...defaultProps, ...extensionProps };
+    /**
+     * props for `extensionCredentialSection`
+     * SelectCredential passes `value`, `mode` and `provider` itself
+     */
+    extensionCredentialSectionProps() {
+      if (!this.extensionCredentialSection) {
+        return {};
       }
 
-      return defaultProps;
+      const defaultProps = {
+        provisioningCluster:   this.value,
+        infrastructureCluster: this.infrastructureCluster,
+      };
+
+      return mergeExtensionSectionProps(
+        defaultProps,
+        this.extensionProvider?.extensionCredentialSectionProps,
+        {
+          ...defaultProps, value: this.credentialId || null, mode: this.mode, provider: this.provider
+        }
+      );
     },
 
     isHarvesterExternalCredential() {
@@ -796,6 +787,11 @@ export default {
     },
 
     credentialId(val) {
+      // the extension credential section value is not a rancher cloud credential
+      if (this.extensionCredentialSection) {
+        return;
+      }
+
       if (val) {
         this.credential = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.credentialId);
 
@@ -1357,9 +1353,7 @@ export default {
     async saveRoleBindings() {
       await this.value.waitForMgmt();
 
-      if (this.membershipUpdate.save) {
-        await this.membershipUpdate.save(this.value.mgmt.id);
-      }
+      return saveRoleBindings(this.membershipUpdate, this.value.mgmt.id);
     },
 
     async showIpv6Warning(hookContext) {
@@ -1781,10 +1775,6 @@ export default {
       return addonVersion ? `${ name }-${ addonVersion.version }` : name;
     },
 
-    onMembershipUpdate(update) {
-      this['membershipUpdate'] = update;
-    },
-
     generateYaml() {
       const resource = this.value;
       const inStore = this.$store.getters['currentStore'](resource);
@@ -2081,6 +2071,8 @@ export default {
         :provider="provider"
         :cancel="cancelCredential"
         :showing-form="showForm"
+        :extension-component="extensionCredentialSection"
+        :extension-component-props="extensionCredentialSectionProps"
         :default-on-cancel="true"
         data-testid="select-credential"
         class="mt-20"

@@ -6,6 +6,7 @@ import { toTypedSchema } from '@vee-validate/zod';
 import * as z from 'zod';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import AuthConfigIdentity from '@shell/components/auth/AuthConfigIdentity.vue';
 import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
@@ -28,6 +29,7 @@ const PKCE_S256 = 'S256';
 
 export default {
   components: {
+    AuthConfigIdentity,
     Banner,
     Loading,
     CruResource,
@@ -214,7 +216,9 @@ export default {
       this.$emit('validationChanged', !!newValue);
     },
 
-    'model.id': {
+    // A config's id is its own name (`cognito-2`), and a new one has none yet, so
+    // which OIDC provider the form is for comes from the mixin's provider key
+    NAME: {
       handler(newVal) {
         this.modelId = newVal;
       },
@@ -291,7 +295,7 @@ export default {
 
   methods: {
     updateEndpoints() {
-      const isKeycloak = this.model.id === 'keycloakoidc';
+      const isKeycloak = this.NAME === 'keycloakoidc';
 
       if (!this.oidcUrls.url) {
         this.model.issuer = '';
@@ -345,9 +349,17 @@ export default {
       @finish="save"
       @cancel="cancel"
     >
+      <AuthConfigIdentity
+        v-model:name="configName"
+        v-model:description="configDescription"
+        :name-fixed="configNameFixed"
+        :name-error="configNameError"
+      />
+
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <AuthBanner
           :t-args="tArgs"
+          :name="authConfigDisplayName"
           :disable="disable"
           :edit="goToEdit"
           :provider-id="model.id"

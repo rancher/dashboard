@@ -72,6 +72,7 @@
     "tmp": "0.2.7",
     "webpack-dev-server": "5.2.6",
     "qs": "6.16.0",
-    "fast-xml-parser": "5.11.1"
+    "fast-xml-parser": "5.11.1",
+    "basic-ftp": "6.2.2"
   }
 }

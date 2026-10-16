@@ -10,16 +10,18 @@ import {
   LABEL_FIELD_PREFIX, coreFieldIdsFor, fieldsFor, findField, headerFieldId, holdsDates, isIgnoredColumn, serverPathFor, summaryToValues
 } from '@shell/utils/table-views/fields';
 import { applyQueryExpression } from '@shell/utils/table-views/filter-rows';
-import { parseQuery, parseQueryExpression, stateQueryFor } from '@shell/utils/table-views/query';
+import { parseQuery, parseQueryExpression, queryFor } from '@shell/utils/table-views/query';
 import { queryToServerFilters } from '@shell/utils/table-views/server-filters';
 import { expandQuery } from '@shell/utils/table-views/query-fields';
 import { SEARCH_DEBOUNCE } from '@shell/config/search';
-import { STATE_FILTER_QUERY } from '@shell/config/query-params';
+import { NAME_FILTER_QUERY, STATE_FILTER_QUERY } from '@shell/config/query-params';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { DEFAULT_MANDATORY_SORT } from '@shell/components/SortableTable/sorting';
 import { sortBy } from '@shell/utils/sort';
 import { uniq } from '@shell/utils/array';
 import { NO_GROUPING, savedViewsByType } from '@shell/utils/table-views/views';
+import { defaultViewIdFor, globalPageKey, globalViewsFor } from '@shell/utils/table-views/global';
+import { UI } from '@shell/config/types';
 
 /** Most rows an "all matching" export will fetch - a limit on what the browser holds, not on the api */
 const EXPORT_ROW_LIMIT = 50000;
@@ -59,6 +61,26 @@ function savedViewsEntry(vm) {
   const typeEntry = Array.isArray(stored) ? { views: stored } : stored;
 
   return vm.tableViewsPage ? typeEntry?.pages?.[vm.tableViewsPage] : typeEntry;
+}
+
+/**
+ * The table's views shared with everyone, as far as the store has them; the tabs load them. Outside
+ * the component so `data` can ask
+ */
+function globalViewsOf(vm) {
+  const getters = vm.$store.getters;
+  const type = UI.TABLE_CONFIGURATION;
+  const configs = getters['management/schemaFor']?.(type) && getters['management/haveAll'](type) ? getters['management/all'](type) : [];
+
+  return globalViewsFor(configs, globalPageKey(vm.schema?.id || '', vm.tableViewsPage));
+}
+
+/** Every view the table's tabs show: shared, then the user's */
+function allViewsOf(vm, saved = savedViewsEntry(vm), shared = globalViewsOf(vm)) {
+  const sharedViews = shared.views.map((entry) => entry.view);
+  const sharedIds = new Set(sharedViews.map((view) => view.id));
+
+  return sharedViews.concat((saved?.views || []).filter((view) => !sharedIds.has(view.id)));
 }
 
 /** Whether a table would show the saved view tabs, table views allowing. Outside the component so `data` can ask */
@@ -122,18 +144,21 @@ export default {
   data() {
     /** @type {{ views: import('@shell/types/table-views').TableViewSaved[], defaultViewId: string|null }} */
     const saved = savedViewsEntry(this);
+    const shared = globalViewsOf(this);
+    const views = allViewsOf(this, saved, shared);
+    const defaultId = defaultViewIdFor(saved?.defaultViewId, shared, views.map((view) => view.id));
     /**
      * A link to some of the list's states, eg from an overview's counts, opens the table's own tab
      * filtered to them, rather than the default view
      */
-    const linkedQuery = wantsTableViewTabs(this) && isConfigurableTablesEnabled(this.$store) ? stateQueryFor(this.$route?.query?.[STATE_FILTER_QUERY]) : '';
+    const linkedQuery = wantsTableViewTabs(this) && isConfigurableTablesEnabled(this.$store) ? queryFor(this.$route?.query?.[STATE_FILTER_QUERY], this.$route?.query?.[NAME_FILTER_QUERY]) : '';
     /**
      * Only a table showing the saved view tabs opens on the default one. Another, eg a detail page's
      * Pods tab, would be filtered by a view it has no tab to show or leave
      *
      * @type {import('@shell/types/table-views').TableViewSaved|undefined}
      */
-    const defaultView = wantsTableViewTabs(this) && !linkedQuery ? (saved?.views || []).find((view) => view.id === saved?.defaultViewId) : undefined;
+    const defaultView = wantsTableViewTabs(this) && !linkedQuery ? views.find((view) => view.id === defaultId) : undefined;
 
     return {
       /**
@@ -810,7 +835,7 @@ export default {
 
 
     savedViews() {
-      return savedViewsEntry(this)?.views || [];
+      return allViewsOf(this);
     },
 
     /** Queries rather than views: two views filtering alike share one count */
@@ -877,6 +902,8 @@ export default {
       const query = { ...this.$route.query };
 
       delete query[STATE_FILTER_QUERY];
+      delete query[NAME_FILTER_QUERY];
+
       // The route's guards run for it too, and can fail, eg with the session ending
       this.$router.replace({
         path: this.$route.path, query, hash: this.$route.hash

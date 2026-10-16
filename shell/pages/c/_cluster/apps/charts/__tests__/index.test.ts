@@ -332,4 +332,15 @@ describe('page: Charts Index', () => {
       expect(!!result).toBe(false);
     });
   });
+
+  describe('hook: beforeUnmount', () => {
+    it('should forget installed apps', () => {
+      const dispatch = jest.fn();
+      const ctx = { $store: { dispatch } };
+
+      (Charts as any).beforeUnmount.call(ctx);
+
+      expect(dispatch).toHaveBeenCalledWith('cluster/forgetType', CATALOG.APP);
+    });
+  });
 });

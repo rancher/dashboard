@@ -20,6 +20,8 @@ type RcDropdownMenuComponentProps = {
   dataTestid?: string;
   resource?: Object;
   customActions?: DropdownOption[];
+  /** Forwarded to RcDropdown's `container` prop. */
+  container?: string | HTMLElement;
 }
 
 const props = defineProps <RcDropdownMenuComponentProps>();
@@ -102,6 +104,7 @@ const menuOptions = () => {
     :dropdown-aria-label="dropdownAriaLabel"
     :options="menuOptions()"
     :data-testid="dataTestid"
+    :container="container"
     @update:open="openChanged"
     @select="(e: MouseEvent, option: object) => execute(option, e)"
   />

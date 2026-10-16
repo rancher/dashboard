@@ -44,10 +44,10 @@ const ariaLabel = computed(() => i18n.t('component.drawer.chrome.ariaLabel.close
           <RcButton
             variant="secondary"
             size="large"
-            :aria-label="ariaLabel"
+            :aria-label="closeLabel ? undefined : ariaLabel"
             @click="emit('close')"
           >
-            {{ i18n.t('component.drawer.chrome.close') }}
+            {{ closeLabel || i18n.t('component.drawer.chrome.close') }}
           </RcButton>
           <slot name="additional-actions" />
         </div>
