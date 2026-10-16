@@ -22,9 +22,11 @@ exports[`component: TitleBar/index should match the full component snapshot 1`] 
           <!--v-if--><i class="icon icon-actions"></i>
           <!--v-if-->
         </button></div>
+      <!--teleport start-->
       <div class="popperContainer">
         <!--Empty container for mounting popper content-->
       </div>
+      <!--teleport end-->
     </div>
   </div>
   <div class="bottom description text-deemphasized">A test description</div>

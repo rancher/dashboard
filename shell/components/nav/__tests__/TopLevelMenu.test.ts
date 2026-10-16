@@ -10,6 +10,7 @@ import { SETTING } from '@shell/config/settings';
 import { defineComponent, nextTick } from 'vue';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { isMac } from '@shell/utils/platform';
+import { setVersionData } from '@shell/config/version';
 
 jest.mock('@shell/utils/pagination-wrapper', () => {
   return jest.fn().mockImplementation(() => {
@@ -2640,6 +2641,10 @@ describe('topLevelMenu', () => {
     });
   });
   describe('the version in the footer', () => {
+    afterEach(() => {
+      setVersionData({ RancherPrime: 'false' });
+    });
+
     const mountNav = (version: string) => {
       const store = generateStore([]);
 
@@ -2690,18 +2695,44 @@ describe('topLevelMenu', () => {
       wrapper.unmount();
     });
 
-    it('shows the whole version once the nav is open', async() => {
-      const wrapper = mountNav('v2.16.0-f548dfa-head');
-      const vm = wrapper.vm as any;
+    describe('in Prime', () => {
+      beforeEach(() => {
+        setVersionData({ RancherPrime: 'true' });
+      });
 
-      expect(vm.aboutText).toBe('v2.16.0');
+      afterEach(() => {
+      });
 
-      vm.shown = true;
-      await wrapper.vm.$nextTick();
+      it('shows the whole version once the nav is open', async() => {
+        const wrapper = mountNav('v2.16.0-f548dfa-head');
+        const vm = wrapper.vm as any;
 
-      expect(vm.aboutText).toBe('v2.16.0-f548dfa-head');
+        expect(vm.aboutText).toBe('v2.16.0');
 
-      wrapper.unmount();
+        vm.shown = true;
+        await wrapper.vm.$nextTick();
+
+        expect(vm.aboutText).toBe('v2.16.0-f548dfa-head');
+
+        wrapper.unmount();
+      });
+    });
+
+    describe('in Community', () => {
+      it.each([
+        ['a head build', 'v2.16.0-f548dfa-head', 'v2.16.0'],
+        ['a minor release', 'v2.16.0', 'v2.16'],
+      ])('keeps %s shortened to %s once the nav is open', async(_case, version, expected) => {
+        const wrapper = mountNav(version);
+        const vm = wrapper.vm as any;
+
+        vm.shown = true;
+        await wrapper.vm.$nextTick();
+
+        expect(vm.aboutText).toBe(expected);
+
+        wrapper.unmount();
+      });
     });
 
     describe('the tooltip', () => {
@@ -2713,7 +2744,9 @@ describe('topLevelMenu', () => {
         wrapper.unmount();
       });
 
-      it('is dropped once the open nav shows the version in full', async() => {
+      it('is dropped once the open nav shows the version in full in Prime', async() => {
+        setVersionData({ RancherPrime: 'true' });
+
         const wrapper = mountNav('v2.16.0-f548dfa-head');
         const vm = wrapper.vm as any;
 
@@ -2725,7 +2758,21 @@ describe('topLevelMenu', () => {
         wrapper.unmount();
       });
 
-      it('comes back when the ellipsis takes part of the version away', async() => {
+      it('stays once the nav is open in Community, as the label is still shortened', async() => {
+        const wrapper = mountNav('v2.16.0-f548dfa-head');
+        const vm = wrapper.vm as any;
+
+        vm.shown = true;
+        await wrapper.vm.$nextTick();
+
+        expect(vm.versionTooltip.content).toBe('v2.16.0-f548dfa-head');
+
+        wrapper.unmount();
+      });
+
+      it('comes back when the ellipsis takes part of the version away in Prime', async() => {
+        setVersionData({ RancherPrime: 'true' });
+
         const wrapper = mountNav('v2.16.0-f548dfa-head');
         const vm = wrapper.vm as any;
         const link = vm.$refs.versionLink.$el;
@@ -2748,6 +2795,31 @@ describe('topLevelMenu', () => {
         const wrapper = mountNav('v2.15.1');
 
         expect((wrapper.vm as any).versionTooltip.content).toBeUndefined();
+
+        wrapper.unmount();
+      });
+
+      it.each([
+        ['collapsed', false],
+        ['open', true],
+      ])('says nothing on a minor release in Community while the nav is %s, as the zero patch level is hidden', async(_state, shown) => {
+        const wrapper = mountNav('v2.16.0');
+        const vm = wrapper.vm as any;
+
+        vm.shown = shown;
+        await wrapper.vm.$nextTick();
+
+        expect(vm.versionTooltip.content).toBeUndefined();
+
+        wrapper.unmount();
+      });
+
+      it('carries the zero patch level of a minor release in Prime while the nav is collapsed', () => {
+        setVersionData({ RancherPrime: 'true' });
+
+        const wrapper = mountNav('v2.16.0');
+
+        expect((wrapper.vm as any).versionTooltip.content).toBe('v2.16.0');
 
         wrapper.unmount();
       });

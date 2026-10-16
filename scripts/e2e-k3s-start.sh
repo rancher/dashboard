@@ -5,7 +5,7 @@
 # ----------------------- Input
 # ---------------------------------
 
-USE_LOCAL_BRANCH_METADATA=true # branch_metadata usually just comes from `master`. if there are dependent changes in a PR and the local version is needed toggle this to `true`
+USE_LOCAL_BRANCH_METADATA=false # branch_metadata usually just comes from `master`. if there are dependent changes in a PR and the local version is needed toggle this to `true`
 KUBE_TYPE=${KUBE_TYPE:-K3S} # K3S or K3D
 OVERRIDE_UIS=${OVERRIDE_UIS:-true} # use UI bits supplied externally (e.g. by CI) rather than the built in UI bits
 TEST_BASE_URL=${TEST_BASE_URL:-https://127.0.0.1.sslip.io}
@@ -118,11 +118,20 @@ if [ "$KUBE_TYPE" = "K3S" ]; then
     exit 1
   fi
 
-  INSTALL_K3S_VERSION="$KUBE_VERSION" sh k3s-script
+  # --cluster-init runs k3s on embedded etcd in place of the default sqlite datastore
+  INSTALL_K3S_VERSION="$KUBE_VERSION" INSTALL_K3S_EXEC="server --cluster-init" sh k3s-script
   export KUBECONFIG=~/.kube/config
   mkdir ~/.kube 2> /dev/null
   sudo k3s kubectl config view --raw > "$KUBECONFIG"
   chmod 600 "$KUBECONFIG"
+
+  # The install returns once the k3s service has started, which can be before its API answers
+  echo "Waiting for the k3s API to be ready.........."
+  okay=0
+  until [ "$(kubectl get --raw /readyz 2> /dev/null)" == "ok" ] || [ $okay -ge 60 ]; do
+    okay=$((okay+1))
+    sleep 2
+  done
   
   echo "Installing helm.........."
   # Pin the get-helm-3 installer to a fixed release tag rather than `main`. `main` is a moving ref, so

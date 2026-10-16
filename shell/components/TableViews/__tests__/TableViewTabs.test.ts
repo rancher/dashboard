@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 
 import TableViewTabs from '@shell/components/TableViews/TableViewTabs.vue';
+import TableViewPublishModal from '@shell/components/TableViews/TableViewPublishModal.vue';
 import { TABLE_VIEWS } from '@shell/store/prefs';
 import { isViewDirty, selectedViewIdFor, savedViewsByType } from '@shell/utils/table-views/views';
 import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
@@ -651,6 +652,406 @@ describe('TableViewTabs', () => {
       const tabIds = wrapper.findAll('[role="tab"]').map((tab) => tab.attributes('id'));
 
       expect(owned).toStrictEqual(tabIds);
+    });
+  });
+
+  describe('views shared with everyone', () => {
+    const mine = makeView('own', 'Mine', { query: 'name:mine' });
+    const pageView = makeView('pv', 'Page view', { query: 'state:Running' });
+    const single = makeView('sv', 'Single view', { query: 'name:single' });
+
+    interface FakeConfig {
+      metadata: { name: string, creationTimestamp: string };
+      spec: Record<string, unknown>;
+      canUpdate: boolean;
+      canDelete: boolean;
+      remove: jest.Mock;
+    }
+
+    interface SharedInternals extends TabsInternals {
+      tabs: { id: string | null, shared?: boolean }[];
+      shareView(tab: { id: string | null, name: string, view?: TableViewSaved, shared?: boolean }): void;
+      unshareView(tab: { id: string | null, name: string, view?: TableViewSaved, shared?: boolean }): Promise<void>;
+      setDefaultView(tab: { id: string | null, name: string, view?: TableViewSaved, isDefaultTab?: boolean }): void;
+    }
+
+    beforeAll(() => {
+      Element.prototype.scrollIntoView = jest.fn();
+      Element.prototype.scrollTo = jest.fn();
+    });
+
+    const config = (name: string, spec: Record<string, unknown>, canEdit: boolean): FakeConfig => ({
+      metadata:  { name, creationTimestamp: '2026-01-01T00:00:00Z' },
+      spec,
+      canUpdate: canEdit,
+      canDelete: canEdit,
+      remove:    jest.fn().mockResolvedValue(undefined),
+    });
+
+    function createWrapper({
+      admin = true, configs = null as FakeConfig[] | null, view = { ...EMPTY }, initialViewId = undefined as string | undefined,
+      defaultViewId = null as string | null, failWrites = false, loaded = true, canCreate = null as boolean | null, order = null as string[] | null
+    } = {}) {
+      const all = configs || [
+        config('page', {
+          type: 'Page', page: 'test', views: [pageView], defaultViewId: 'pv'
+        }, admin),
+        config('single', {
+          type: 'View', page: 'test', view: single
+        }, admin),
+      ];
+      const saves: { spec: Record<string, unknown> }[] = [];
+      const created: { metadata: unknown, spec: Record<string, unknown> }[] = [];
+      const fromError = jest.fn();
+      const growl = jest.fn();
+      const written = order ? {
+        views: [mine], defaultViewId, order
+      } : { views: [mine], defaultViewId };
+      const store = createStore({
+        state: {
+          stored:  { test: written } as Record<string, unknown>,
+          configs: all,
+          loaded,
+        },
+        getters: {
+          'prefs/get':            (state) => (key: string) => (key === TABLE_VIEWS ? state.stored : undefined),
+          'management/schemaFor': () => () => ({ collectionMethods: (canCreate ?? admin) ? ['GET', 'POST'] : ['GET'] }),
+          'management/haveAll':   (state) => () => state.loaded,
+          'management/all':       (state) => () => state.configs,
+        },
+        mutations: {
+          write:   (state, value) => (state.stored = value),
+          configs: (state, value) => (state.configs = value),
+          loaded:  (state, value) => (state.loaded = value),
+        },
+        actions: {
+          'prefs/set':          ({ commit }, { value }) => commit('write', value),
+          'growl/success':      (_ctx: unknown, payload: unknown) => growl(payload),
+          'growl/fromError':    (_ctx: unknown, payload: unknown) => fromError(payload),
+          'management/findAll': jest.fn(),
+          // Saved into the store, as the api's answer is
+          'management/create':  ({ state, commit }, data: { metadata: { generateName: string }, spec: Record<string, unknown> }) => ({
+            ...data,
+            save: () => {
+              if (failWrites) {
+                return Promise.reject(new Error('denied'));
+              }
+
+              created.push(data);
+              // Named by the api, from generateName
+              commit('configs', state.configs.concat([config(`${ data.metadata.generateName }${ state.configs.length }`, data.spec, true)]));
+
+              return Promise.resolve();
+            },
+          }),
+          'management/clone': (_ctx: unknown, { resource }: { resource: FakeConfig }) => {
+            const copy = { ...resource, spec: JSON.parse(JSON.stringify(resource.spec)) };
+
+            return {
+              ...copy,
+              save: () => (failWrites ? Promise.reject(new Error('denied')) : Promise.resolve(saves.push(copy))),
+            };
+          },
+        },
+      });
+      const wrapper = mount(TableViewTabs, {
+        props: {
+          view, resourceType: 'test', initialViewId
+        },
+        global:  { plugins: [store] },
+        shallow: true,
+      });
+
+      type Entry = { views: TableViewSaved[], defaultViewId?: string, order?: string[] };
+      const entry = () => savedViewsByType<Entry>(store.state.stored).test;
+
+      return {
+        wrapper, vm: wrapper.vm as unknown as SharedInternals, store, entry, saves, created, fromError, growl, configs: all
+      };
+    }
+
+    const tabFor = (view: TableViewSaved, shared = false) => ({
+      id: view.id, name: view.name, view, shared
+    });
+
+    it('should show the shared views after the table\'s own tab, marked, and the user\'s after them', () => {
+      const { vm } = createWrapper({ defaultViewId: 'all' });
+
+      expect(vm.tabs.map((tab) => [tab.id, !!tab.shared])).toStrictEqual([[null, false], ['pv', true], ['sv', true], ['own', false]]);
+    });
+
+    it('should lead with the page\'s shared default when the user has none', () => {
+      const { vm } = createWrapper();
+
+      expect(vm.tabs[0].id).toBe('pv');
+    });
+
+    it('should open on the page\'s shared default when the shared views arrive after the list opened', async() => {
+      const { wrapper, store } = createWrapper({ loaded: false });
+
+      store.commit('loaded', true);
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.emitted<[TableViewState]>('update:view')?.pop()?.[0].query).toBe('state:Running');
+    });
+
+    it('should not move a list the user has already changed when the shared views arrive', async() => {
+      const { wrapper, store } = createWrapper({ loaded: false, view: { ...EMPTY, query: 'name:typed' } });
+
+      store.commit('loaded', true);
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.emitted('update:view')).toBeUndefined();
+    });
+
+    it('should not move the list when a shared default is set after the shared views were in', async() => {
+      const { wrapper, store } = createWrapper({
+        configs: [config('single', {
+          type: 'View', page: 'test', view: single
+        }, true)]
+      });
+
+      store.commit('configs', [
+        config('page', {
+          type: 'Page', page: 'test', views: [pageView], defaultViewId: 'pv'
+        }, true),
+        config('single', {
+          type: 'View', page: 'test', view: single
+        }, true),
+      ]);
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.emitted('update:view')).toBeUndefined();
+    });
+
+    it('should keep `all` as the user\'s choice of the table\'s own tab over a shared default', () => {
+      const { vm, entry } = createWrapper();
+
+      vm.setDefaultView({
+        id: null, name: 'All', isDefaultTab: true
+      });
+
+      expect(entry().defaultViewId).toBe('all');
+      expect(vm.tabs[0].id).toBeNull();
+    });
+
+    describe('for a user who can only read them', () => {
+      it('should not save changes over a shared view', async() => {
+        const { vm, saves } = createWrapper({
+          admin: false, view: { ...EMPTY, query: 'name:changed' }, initialViewId: 'sv'
+        });
+
+        vm.saveChanges(tabFor(single, true));
+        await Promise.resolve();
+
+        expect(saves).toHaveLength(0);
+        expect(vm.isDirty).toBe(true);
+      });
+
+      it('should not delete a shared view', async() => {
+        const { vm, configs } = createWrapper({ admin: false });
+
+        await vm.deleteView(single);
+
+        expect(configs[1].remove).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('for an administrator', () => {
+      it('should save changes over a shared view in its own resource', async() => {
+        const { vm, saves } = createWrapper({ view: { ...EMPTY, query: 'name:changed' }, initialViewId: 'sv' });
+
+        vm.saveChanges(tabFor(single, true));
+        await new Promise((resolve) => setTimeout(resolve));
+
+        expect(saves[0].spec.view).toStrictEqual({
+          id: 'sv', name: 'Single view', query: 'name:changed', labelColumns: [], sortDescending: false
+        });
+      });
+
+      it('should save changes over a view of the Page resource in its list', async() => {
+        const { vm, saves } = createWrapper({ view: { ...EMPTY, query: 'name:changed' }, initialViewId: 'pv' });
+
+        vm.saveChanges(tabFor(pageView, true));
+        await new Promise((resolve) => setTimeout(resolve));
+
+        expect((saves[0].spec.views as TableViewSaved[])[0].query).toBe('name:changed');
+      });
+
+      // Publish asks first, in a dialog of its own: confirming it is its `publish` event
+      const askPublish = async(wrapper: ReturnType<typeof createWrapper>['wrapper'], vm: SharedInternals, view: TableViewSaved) => {
+        vm.shareView(tabFor(view));
+        await wrapper.vm.$nextTick();
+
+        return wrapper.findComponent(TableViewPublishModal);
+      };
+      const flush = () => new Promise((resolve) => setTimeout(resolve));
+
+      it('should share a view of the user\'s under its id, and keep its place', async() => {
+        const {
+          wrapper, vm, created, entry
+        } = createWrapper({ defaultViewId: 'all' });
+        const before = vm.tabs.map((tab) => tab.id || 'all');
+
+        (await askPublish(wrapper, vm, mine)).vm.$emit('publish');
+        await flush();
+
+        expect(created[0]).toStrictEqual({
+          type:     'ui.cattle.io.tableconfiguration',
+          metadata: { generateName: 'view-' },
+          spec:     {
+            type: 'View',
+            page: 'test',
+            view: {
+              id: 'own', name: 'Mine', query: 'name:mine', labelColumns: []
+            }
+          },
+        });
+        expect(entry().order).toStrictEqual(before);
+      });
+
+      it('should ask before publishing, and publish nothing until confirmed', async() => {
+        const { wrapper, vm, created } = createWrapper();
+
+        expect((await askPublish(wrapper, vm, mine)).exists()).toBe(true);
+        expect(created).toHaveLength(0);
+      });
+
+      it.each([
+        ['a filter', 'name:mine', true],
+        ['no filter', '', false],
+      ])('should say whether a view with %s gives its filter away', async(_, query, hasFilter) => {
+        const { wrapper, vm } = createWrapper();
+
+        expect((await askPublish(wrapper, vm, { ...mine, query })).props('hasFilter')).toBe(hasFilter);
+      });
+
+      it('should keep the user\'s view when sharing it fails', async() => {
+        const {
+          wrapper, vm, entry, fromError
+        } = createWrapper({ failWrites: true });
+
+        (await askPublish(wrapper, vm, mine)).vm.$emit('publish');
+        await flush();
+
+        expect(entry().views.map((v) => v.id)).toStrictEqual(['own']);
+        expect(fromError).toHaveBeenCalledWith(expect.objectContaining({ err: expect.any(Error) }));
+      });
+
+      it('should offer to put a deleted View resource back, and create it again under its id', async() => {
+        const { vm, created, growl } = createWrapper();
+
+        await vm.deleteView(single);
+        await growl.mock.calls[0][0].action.run();
+
+        expect(created[0]).toStrictEqual(expect.objectContaining({
+          metadata: { generateName: 'view-' },
+          spec:     expect.objectContaining({ type: 'View', view: expect.objectContaining({ id: 'sv' }) })
+        }));
+      });
+
+      it('should put a view of the Page resource back in its place, with the default it was', async() => {
+        const {
+          vm, saves, growl, store
+        } = createWrapper({ defaultViewId: 'all' });
+
+        await vm.deleteView(pageView);
+
+        // The cluster's answer: the page as saved without it
+        store.commit('configs', [
+          config('page', {
+            type: 'Page', page: 'test', views: []
+          }, true),
+          config('single', {
+            type: 'View', page: 'test', view: single
+          }, true),
+        ]);
+        await growl.mock.calls[0][0].action.run();
+
+        expect(saves[0].spec.views).toStrictEqual([]);
+        expect(saves[0].spec.defaultViewId).toBeUndefined();
+        expect(saves[1].spec).toStrictEqual(expect.objectContaining({
+          views: [{
+            id: 'pv', name: 'Page view', query: 'state:Running', labelColumns: []
+          }],
+          defaultViewId: 'pv',
+        }));
+      });
+
+      it('should not offer the undo to a user who can delete a View resource but not create one', async() => {
+        const { vm, growl, configs } = createWrapper({ canCreate: false });
+
+        await vm.deleteView(single);
+
+        expect(configs[1].remove).toHaveBeenCalledWith();
+        expect(growl.mock.calls[0][0].action).toBeUndefined();
+      });
+
+      it('should put a view of the user\'s own back in its place in their order', async() => {
+        const { vm, growl, entry } = createWrapper({ order: ['all', 'own', 'pv', 'sv'] });
+
+        await vm.deleteView(mine);
+
+        expect(entry().order).toStrictEqual(['all', 'pv', 'sv']);
+
+        await growl.mock.calls[0][0].action.run();
+
+        expect(entry().order).toStrictEqual(['all', 'own', 'pv', 'sv']);
+      });
+
+      it('should delete a shared view for everyone, leaving the user\'s views alone', async() => {
+        const { vm, configs, entry } = createWrapper();
+
+        await vm.deleteView(single);
+
+        expect(configs[1].remove).toHaveBeenCalledWith();
+        expect(entry().views.map((v) => v.id)).toStrictEqual(['own']);
+      });
+
+      it('should stop sharing a view by making it the user\'s first, in its place, then deleting its resource', async() => {
+        const { vm, configs, entry } = createWrapper();
+
+        await vm.unshareView(tabFor(single, true));
+
+        expect(entry().views.map((v) => v.id)).toStrictEqual(['sv', 'own']);
+        expect(configs[1].remove).toHaveBeenCalledWith();
+      });
+
+      it('should stop sharing a view published twice, eg from two browser tabs, by deleting both its resources', async() => {
+        const twice = config('single-copy', {
+          type: 'View', page: 'test', view: single
+        }, true);
+        const elsewhere = config('other-page', {
+          type: 'View', page: 'other', view: single
+        }, true);
+        const { vm, configs } = createWrapper({
+          configs: [
+            config('page', {
+              type: 'Page', page: 'test', views: [pageView], defaultViewId: 'pv'
+            }, true),
+            config('single', {
+              type: 'View', page: 'test', view: single
+            }, true),
+            twice,
+            elsewhere,
+          ]
+        });
+
+        await vm.unshareView(tabFor(single, true));
+
+        expect(configs[1].remove).toHaveBeenCalledWith();
+        expect(twice.remove).toHaveBeenCalledWith();
+        expect(elsewhere.remove).not.toHaveBeenCalled();
+      });
+
+      it('should give the view back to everyone when deleting its resource fails', async() => {
+        const { vm, configs, entry } = createWrapper();
+
+        configs[1].remove.mockRejectedValue(new Error('denied'));
+        await vm.unshareView(tabFor(single, true));
+
+        expect(entry().views.map((v) => v.id)).toStrictEqual(['own']);
+      });
     });
   });
 });

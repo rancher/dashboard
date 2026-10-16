@@ -1,6 +1,7 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import OktaPo from '@/cypress/e2e/po/edit/auth/okta.po';
 import { AuthProvider, AuthProviderPo } from '@/cypress/e2e/po/pages/users-and-auth/authProvider.po';
+import { interceptAuthConfigCreate, interceptEnabledAuthConfig } from '@/cypress/e2e/blueprints/users/auth-config-stubs';
 
 const authClusterId = '_';
 const authProviderPo = new AuthProviderPo(authClusterId);
@@ -24,6 +25,10 @@ const groupIdAttribute = 'cn';
 
 const mockStatusCode = 200;
 
+const okta = {
+  name: 'okta', normanType: 'oktaConfig', collection: 'oktaConfigs', actions: ['testAndEnable', 'disable']
+};
+
 describe('Okta', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   beforeEach(() => {
     cy.login();
@@ -35,6 +40,8 @@ describe('Okta', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   });
 
   it('sends the principal identifier attributes in the LDAP search config when enabling Okta', () => {
+    interceptAuthConfigCreate(okta);
+
     // The SAML enable flow saves the config first, then calls testAndEnable, which is mocked to prevent the IdP redirect
     cy.intercept('PUT', 'v3/oktaConfigs/okta', (req) => {
       expect(req.body.openLdapConfig.userIDAttribute).to.equal(userIdAttribute);
@@ -74,25 +81,21 @@ describe('Okta', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   });
 
   it('keeps the principal identifier attributes editable once Okta is enabled', () => {
-    // Patch the real config so the page gets every field it expects, only marked as enabled
-    cy.intercept('GET', 'v3/authconfig/okta', (req) => {
-      req.continue((res) => {
-        res.body.enabled = true;
-        res.body.displayNameField = displayNameField;
-        res.body.userNameField = userNameField;
-        res.body.uidField = uidField;
-        res.body.groupsField = groupsField;
-        res.body.rancherApiHost = rancherApiHost;
-        res.body.openLdapConfig = {
-          ...res.body.openLdapConfig,
-          servers:          [ldapHostname],
-          port:             389,
-          userSearchBase,
-          userIDAttribute:  userIdAttribute,
-          groupIDAttribute: groupIdAttribute,
-        };
-      });
-    }).as('authConfig');
+    // Rancher only creates a config once one is added, so an enabled one is stood in
+    interceptEnabledAuthConfig(okta, {
+      displayNameField,
+      userNameField,
+      uidField,
+      groupsField,
+      rancherApiHost,
+      openLdapConfig: {
+        servers:          [ldapHostname],
+        port:             389,
+        userSearchBase,
+        userIDAttribute:  userIdAttribute,
+        groupIDAttribute: groupIdAttribute,
+      },
+    });
 
     OktaPo.goToEditConfig(authClusterId);
     cy.wait('@authConfig');

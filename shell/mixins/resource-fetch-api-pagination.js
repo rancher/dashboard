@@ -5,9 +5,41 @@ import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
 import paginationUtils from '@shell/utils/pagination-utils';
 import debounce from 'lodash/debounce';
-import { PaginationParamFilter, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
+import { PaginationParamFilter, PaginationFilterField, PaginationFilterEquality, PaginationArgs } from '@shell/types/store/pagination.types';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
+import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
+import { NAME_FILTER_QUERY, STATE_FILTER_QUERY } from '@shell/config/query-params';
+
+export function parseStateFilter(stateFilter) {
+  if (!stateFilter) {
+    return null;
+  }
+
+  const states = stateFilter.split(',').filter(Boolean);
+
+  if (!states.length) {
+    return null;
+  }
+
+  return [new PaginationFilterField({
+    field:    'metadata.state.name',
+    value:    states.join(','),
+    equality: PaginationFilterEquality.IN,
+  })];
+}
+
+export function parseNameFilter(nameFilter) {
+  if (!nameFilter) {
+    return null;
+  }
+
+  return [new PaginationFilterField({
+    field: 'metadata.name',
+    value: nameFilter,
+    exact: false,
+  })];
+}
 
 /**
  * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace
@@ -63,6 +95,12 @@ export default {
       }
     },
 
+    linkedFilterChanged() {
+      if (!isConfigurableTablesEnabled(this.$store)) {
+        this.paginationChanged(this.paginationFromList);
+      }
+    },
+
     /**
      * Primary point that handles changes from either a table or the namespace filter
      */
@@ -75,6 +113,10 @@ export default {
       const {
         page, perPage, filter, sort, descending, viewFilters
       } = event;
+      // With table views the states and name are terms in the table's query instead
+      const tableViews = isConfigurableTablesEnabled(this.$store);
+      const stateFilters = tableViews ? [] : parseStateFilter(this.$route?.query?.[STATE_FILTER_QUERY]) || [];
+      const nameFilters = tableViews ? [] : parseNameFilter(this.$route?.query?.[NAME_FILTER_QUERY]) || [];
       const searchFilters = filter.searchQuery ? filter.searchFields.map((field) => new PaginationFilterField({
         field,
         value: filter.searchQuery,
@@ -91,6 +133,8 @@ export default {
         projectsOrNamespaces: this.requestFilters.projectsOrNamespaces,
         filters:              [
           new PaginationParamFilter({ fields: searchFilters }),
+          new PaginationParamFilter({ fields: stateFilters }),
+          new PaginationParamFilter({ fields: nameFilters }),
           ...this.requestFilters.filters, // Apply the additional filters. these aren't from the user but from ns filtering
           ...(viewFilters || []), // Table views toolbar filters (AND'd with everything else)
         ]
@@ -312,6 +356,15 @@ export default {
 
     'requestFilters.projectsOrNamespaces'() {
       this.paginationChanged(this.paginationFromList);
+    },
+
+    // Clear filter, or Back, changes the states or name without opening the list again
+    [`$route.query.${ STATE_FILTER_QUERY }`]() {
+      this.linkedFilterChanged();
+    },
+
+    [`$route.query.${ NAME_FILTER_QUERY }`]() {
+      this.linkedFilterChanged();
     },
 
     /**

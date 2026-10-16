@@ -3,7 +3,7 @@ import semver from 'semver';
 import { MANAGEMENT } from '@shell/config/types';
 import { READ_WHATS_NEW, SEEN_WHATS_NEW } from '@shell/store/prefs';
 import { SETTING } from '@shell/config/settings';
-import { getVersionData } from '@shell/config/version';
+import { getVersionData, isRancherPrime } from '@shell/config/version';
 
 export function parse(str) {
   str = `${ str }`;
@@ -81,6 +81,15 @@ export function isDevBuild(version) {
   }
 
   return false;
+}
+
+// Remove the patch version when it is zero and Rancher is not Prime (so we show v2.16 rather than v2.16.0)
+export function removePatchWhenZero(version) {
+  if (!isRancherPrime() && version?.startsWith('v') && version.endsWith('.0')) {
+    return version.substr(0, version.length - 2);
+  }
+
+  return version;
 }
 
 export function getVersionInfo(store) {

@@ -25,6 +25,8 @@ const pinnable = computed(() => pinnableCluster(props.cluster));
   // Matched on `.icon` too, to outweigh the control's own `color: inherit` on specificity.
   .cluster-row-pin.icon {
     margin-left: 8px;
+    // A button's 40px min-height would set the name line's height and push the description down.
+    min-height: 0;
     opacity: 0;
     color: var(--muted);
     transition: opacity 0.1s ease;

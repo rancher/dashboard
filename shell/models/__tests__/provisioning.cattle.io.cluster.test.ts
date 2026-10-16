@@ -685,7 +685,7 @@ describe('class ProvCluster', () => {
 
     const provCluster = (mgmt: any) => {
       mgmt = {
-        links: {}, hasAction: () => false, ...mgmt
+        links: {}, hasAction: () => false, t: (key: string) => key, clusterPinActions: MgmtCluster.prototype.clusterPinActions, ...mgmt
       };
 
       const cluster = new ProvCluster({}, {
@@ -711,26 +711,26 @@ describe('class ProvCluster', () => {
     const pinAction = (cluster: any, action: string) => actionsOf(cluster).find((a: any) => a.action === action);
 
     it.each([
-      ['pinCluster', 'pin'],
-      ['unpinCluster', 'unpin'],
-    ])('%s delegates to the management cluster', (action, method) => {
-      const mgmt = { [method]: jest.fn() };
+      'pinCluster',
+      'unpinCluster',
+    ])('%s delegates to the management cluster', (action) => {
+      const mgmt = { [action]: jest.fn() };
 
       (provCluster(mgmt) as any)[action]();
 
-      expect(mgmt[method]).toHaveBeenCalledTimes(1);
+      expect(mgmt[action]).toHaveBeenCalledTimes(1);
     });
 
     it.each([
-      ['pinClusterBulk', 'pinBulk'],
-      ['unpinClusterBulk', 'unpinBulk'],
-    ])('%s hands the whole selection to the management cluster, for one write', (action, method) => {
-      const mgmt = { [method]: jest.fn() };
+      'pinClusterBulk',
+      'unpinClusterBulk',
+    ])('%s hands the whole selection to the management cluster, for one write', (action) => {
+      const mgmt = { [action]: jest.fn() };
       const items = [{ id: 'cluster-1' }, { id: 'cluster-2' }];
 
       (provCluster(mgmt) as any)[action](items);
 
-      expect(mgmt[method]).toHaveBeenCalledWith(items);
+      expect(mgmt[action]).toHaveBeenCalledWith(items);
     });
 
     it('offers the pin only while the cluster is unpinned, and the unpin only while it is pinned', () => {
@@ -748,27 +748,6 @@ describe('class ProvCluster', () => {
 
       expect(pinAction(local, 'pinCluster').enabled).toBe(false);
       expect(pinAction(local, 'unpinCluster').enabled).toBe(false);
-    });
-
-    it.each([
-      ['pinCluster', 'pin'],
-      ['unpinCluster', 'unpin'],
-      ['pinClusterBulk', 'pinBulk'],
-      ['unpinClusterBulk', 'unpinBulk'],
-    ])('%s growls when the preference write is rejected', async(action, method) => {
-      const mgmt = { [method]: jest.fn(() => Promise.resolve({ type: 'error', status: 500 })) };
-
-      await (provCluster(mgmt) as any)[action]([]);
-
-      expect(dispatch).toHaveBeenCalledWith('growl/fromError', expect.objectContaining({ title: 'nav.pinClusterError' }), { root: true });
-    });
-
-    it('stays quiet when the preference write lands', async() => {
-      const mgmt = { pin: jest.fn(() => Promise.resolve({})) };
-
-      await (provCluster(mgmt) as any).pinCluster();
-
-      expect(dispatch).not.toHaveBeenCalled();
     });
 
     it('leads the bulk actions, pin before unpin', () => {

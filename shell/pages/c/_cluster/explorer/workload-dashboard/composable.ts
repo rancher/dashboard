@@ -3,12 +3,11 @@ import {
 } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
-import { NAMESPACE, WORKLOAD_TYPES } from '@shell/config/types';
-import { STATE_FILTER_QUERY } from '@shell/config/query-params';
+import { WORKLOAD_TYPES } from '@shell/config/types';
+import { NAME_FILTER_QUERY, STATE_FILTER_QUERY } from '@shell/config/query-params';
 import type { StateColor } from '@shell/utils/style';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStateColor } from '@shell/composables/useStateColor';
-import { ALL_NAMESPACES } from '@shell/store/prefs';
 import {
   NAMESPACE_FILTER_ALL_USER,
   NAMESPACE_FILTER_ALL_SYSTEM,
@@ -19,6 +18,7 @@ import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import type { StatusSummaryCardItem } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/types';
 import { buildStatusSummaryCard, compareStateColors } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/utils';
 import type { StatusBreakdownCardItem } from '@shell/components/Resource/Detail/Card/StatusBreakdownCard/types';
+import { getWorkloadNamespaceFilterParams } from './namespaceFilter';
 import {
   WORKLOAD_DASHBOARD_RESOURCE_TYPES,
   type WorkloadDashboardSummaryEntry,
@@ -56,15 +56,7 @@ export function useWorkloadDashboard() {
   const namespaceFilterParam = ref('');
 
   function buildNamespaceFilterParam(): string {
-    const selection: string[] = store.getters['namespaceFilters'];
-    const { projectsOrNamespaces, filters } = stevePaginationUtils.createParamsFromNsFilter({
-      allNamespaces:                 store.getters['cluster/all'](NAMESPACE),
-      selection,
-      isAllNamespaces:               isAllNamespaces.value,
-      isLocalCluster:                store.getters['currentCluster']?.isLocal,
-      showReservedRancherNamespaces: store.getters['prefs/get'](ALL_NAMESPACES),
-      productHidesSystemNamespaces:  store.getters['currentProduct']?.hideSystemResources,
-    });
+    const { projectsOrNamespaces, filters } = getWorkloadNamespaceFilterParams(store);
 
     // Getting the first schema is sufficient since the namespace filter param structure is the same across all resource types
     const schema = WORKLOAD_DASHBOARD_RESOURCE_TYPES
@@ -325,7 +317,7 @@ export function useWorkloadDashboard() {
     });
   }
 
-  function resourceRoute(type: string, stateNames?: string[]): RouteLocationRaw {
+  function resourceRoute(type: string, stateNames?: string[], nameFilter?: string): RouteLocationRaw {
     const loc: { name: string; params: Record<string, string>; query?: Record<string, string> } = {
       name:   'c-cluster-product-resource',
       params: {
@@ -335,12 +327,28 @@ export function useWorkloadDashboard() {
       },
     };
 
+    const query: Record<string, string> = {};
+
     if (stateNames?.length) {
       // The list opens filtered to these, in its query
-      loc.query = { [STATE_FILTER_QUERY]: stateNames.join(',') };
+      query[STATE_FILTER_QUERY] = stateNames.join(',');
+    }
+
+    if (nameFilter) {
+      // The list opens filtered to this name, in its query
+      query[NAME_FILTER_QUERY] = nameFilter;
+    }
+
+    if (Object.keys(query).length) {
+      loc.query = query;
     }
 
     return loc;
+  }
+
+  function navigateToNamespace(type: string, namespace: string): void {
+    filterByNamespace(namespace);
+    router.push(resourceRoute(type));
   }
 
   // ── Fetching & polling ──
@@ -495,5 +503,6 @@ export function useWorkloadDashboard() {
     resetNamespaceFilter,
     filterByNamespace,
     resourceRoute,
+    navigateToNamespace,
   };
 }
