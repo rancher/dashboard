@@ -396,6 +396,32 @@ describe('component: Principal', () => {
 
         expect(wrapper.findComponent(RcIconTooltip).props('content')).toStrictEqual('%principal.unresolved%');
       });
+
+      it('should space the info icon from the id', async() => {
+        const wrapper = await mountUnresolved();
+
+        expect(wrapper.findComponent(RcIconTooltip).classes()).toContain('ml-5');
+      });
+
+      describe('and there is no principal id', () => {
+        it('should say the principal could not be fetched', async() => {
+          const wrapper = await mountUnresolved('');
+
+          expect(wrapper.find('.name').text()).toStrictEqual('%principal.error%');
+        });
+
+        it('should not show the info icon', async() => {
+          const wrapper = await mountUnresolved('');
+
+          expect(wrapper.findComponent(RcIconTooltip).exists()).toBe(false);
+        });
+
+        it('should still show the question mark icon in place of the avatar', async() => {
+          const wrapper = await mountUnresolved('');
+
+          expect(wrapper.find('.avatar').findComponent(RcIcon).props('type')).toStrictEqual('question-mark');
+        });
+      });
     });
   });
 });

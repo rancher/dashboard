@@ -6160,6 +6160,8 @@ prefs:
 
 principal:
   loading: Loading&hellip;
+  # Also shown by extensions built with an older shell, which bundle their own Principal.vue
+  error: Unable to fetch principal info
   unresolved: '{vendor} could not look up the name of this user or group, so its principal ID is shown instead.'
   name: Name
   loginName: Username

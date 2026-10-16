@@ -41,7 +41,7 @@ export default {
     },
 
     unresolvedName() {
-      return this.value?.replace('://', ' ');
+      return this.value ? this.value.replace('://', ' ') : this.t('principal.error');
     }
   },
 
@@ -215,7 +215,11 @@ export default {
       </div>
       <div class="name unresolved">
         {{ unresolvedName }}
-        <rc-icon-tooltip :content="t('principal.unresolved')" />
+        <rc-icon-tooltip
+          v-if="value"
+          class="ml-5"
+          :content="t('principal.unresolved')"
+        />
       </div>
     </template>
   </div>
