@@ -158,13 +158,12 @@ describe('class: WorkloadService PersistentVolumeClaim helpers', () => {
       }));
     });
 
-    it('falls back to a namespaced client-side filter when pagination is disabled', async() => {
-      const all = [
+    it('falls back to a namespaced fetch filtered by claim name when pagination is disabled', async() => {
+      const inNamespace = [
         { metadata: { name: 'pvc-a', namespace: 'default' } },
-        { metadata: { name: 'pvc-a', namespace: 'other' } }, // same name, different namespace
         { metadata: { name: 'pvc-z', namespace: 'default' } }, // not mounted by this workload
       ];
-      const dispatch = jest.fn().mockResolvedValue(all);
+      const dispatch = jest.fn().mockResolvedValue(inNamespace);
       const deployment = new WorkloadService({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
         metadata: { name: 'd', namespace: 'default' },
@@ -174,7 +173,7 @@ describe('class: WorkloadService PersistentVolumeClaim helpers', () => {
       });
 
       await expect(deployment.fetchPersistentVolumeClaims()).resolves.toStrictEqual([{ metadata: { name: 'pvc-a', namespace: 'default' } }]);
-      expect(dispatch).toHaveBeenCalledWith('findAll', { type: PVC });
+      expect(dispatch).toHaveBeenCalledWith('findAll', { type: PVC, opt: { namespaced: 'default' } });
     });
   });
 });

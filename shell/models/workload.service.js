@@ -55,7 +55,7 @@ export default class WorkloadService extends SteveModel {
    * Fetch the PersistentVolumeClaims mounted by this workload.
    *
    * The claim names are known up front so this filters server-side by name (SSP) when available,
-   * scoped to the workload's namespace, falling back to a namespaced client-side filter otherwise.
+   * scoped to the workload's namespace, falling back to a namespaced fetch and a client-side filter otherwise.
    */
   async fetchPersistentVolumeClaims() {
     const names = this.persistentVolumeClaimNames;
@@ -82,9 +82,9 @@ export default class WorkloadService extends SteveModel {
       return data;
     }
 
-    const all = await this.$dispatch('findAll', { type: PVC });
+    const inNamespace = await this.$dispatch('findAll', { type: PVC, opt: { namespaced: namespace } });
 
-    return all.filter((pvc) => pvc.metadata.namespace === namespace && names.includes(pvc.metadata.name));
+    return inNamespace.filter((pvc) => names.includes(pvc.metadata.name));
   }
 
   async getPortsWithServiceType() {
