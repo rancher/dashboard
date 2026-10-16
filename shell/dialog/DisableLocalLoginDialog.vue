@@ -74,7 +74,6 @@ const disable = (close: () => void) => {
 
       p {
         margin: 0;
-        line-height: 22px;
       }
     }
 
