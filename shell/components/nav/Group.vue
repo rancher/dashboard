@@ -73,13 +73,19 @@ export default {
     },
 
     isOverview() {
-      const overview = this.overviewChild;
+      const overviewRoute = this.overviewChild?.route;
 
-      if (overview?.route?.name) {
-        return this.$route.name === overview.route.name;
+      if (!overviewRoute?.name || this.$route.name !== overviewRoute.name) {
+        return false;
       }
 
-      return false;
+      // A route name can be shared by several nav items that are told apart only by their params
+      // (a legacy product whose pages all use `c-cluster-<product>-page`, for example), so the name
+      // on its own isn't enough. `cluster` is the exception: the stored route always carries the
+      // BLANK_CLUSTER placeholder rather than the cluster we're actually on (issue #19169).
+      const { params = {} } = filterLocationValidParams(this.$router, overviewRoute) || {};
+
+      return Object.entries(params).every(([key, value]) => key === 'cluster' || this.$route.params?.[key] === value);
     },
 
     // The expand/collapse state lives on the group itself rather than in this
@@ -418,21 +424,21 @@ export default {
       }
 
       &.active {
-        color: var(--on-active-nav, var(--primary-hover-text));
-        background-color: var(--active-nav, var(--primary-hover-bg));
+        color: var(--on-active);
+        background-color: var(--active);
 
         h6 {
           padding: 8px 0 8px 16px;
           font-weight: bold;
-          color: var(--on-active-nav, var(--primary-hover-text));
+          color: var(--on-active);
         }
 
         &:hover {
-          background-color: var(--nav-active-hover, var(--primary-hover-bg));
+          background-color: var(--active-hover);
         }
 
         ~ I {
-          color: var(--on-active-nav, var(--primary-hover-text));
+          color: var(--on-active);
         }
       }
       &:hover:not(.active) {
@@ -475,11 +481,11 @@ export default {
       }
 
       &.group-highlight {
-        background: var(--category-active, var(--nav-active));
+        background: var(--rc-section-background-secondary, var(--category-active, var(--nav-active)));
 
         .active.header {
           &:hover {
-            background-color: var(--nav-active-hover)
+            background-color: var(--active-hover)
           }
         }
 
@@ -537,16 +543,16 @@ export default {
     padding: 0;
 
     A, A I {
-      color: var(--on-active-nav, var(--primary-hover-text));
+      color: var(--on-active);
     }
 
     A {
-      color: var(--on-active-nav, var(--primary-hover-text));
-      background-color: var(--active-nav, var(--primary-hover-bg));
+      color: var(--on-active);
+      background-color: var(--active);
       font-weight: bold;
 
       &:hover {
-        background: var(--nav-active-hover);
+        background: var(--active-hover);
       }
     }
   }

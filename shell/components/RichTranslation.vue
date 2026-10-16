@@ -41,13 +41,17 @@ export default defineComponent({
       type:    String,
       default: 'span'
     },
+    /** Values for the placeholders. Escape any that could hold markup, or it will be read as a tag */
+    args: {
+      type:    Object,
+      default: () => ({})
+    },
   },
   setup(props, { slots }) {
     const store = useStore();
 
     return () => {
-    // Get the raw translation string, without any processing.
-      const rawStr = store.getters['i18n/t'](props.k, {}, true);
+      const rawStr = store.getters['i18n/t'](props.k, props.args);
 
       if (!rawStr || typeof rawStr !== 'string') {
         return h(props.tag, {}, [rawStr]);

@@ -41,6 +41,19 @@ describe('Settings Configuration', () => {
       expect(SETTING.UI_APPCO_ENABLED).toBe('ui-appco-enabled');
     });
 
+    it('should be included in ALLOWED_SETTINGS', () => {
+      expect(ALLOWED_SETTINGS).toHaveProperty(SETTING.UI_APPCO_ENABLED);
+    });
+
+    it('should be edited as radio buttons with an empty (None) option, and allow resetting to it', () => {
+      expect(ALLOWED_SETTINGS[SETTING.UI_APPCO_ENABLED]).toStrictEqual({
+        kind:     'enum',
+        display:  'radio',
+        options:  ['true', 'false', ''],
+        canReset: true,
+      });
+    });
+
     it('should not be included in PROVISIONING_SETTINGS', () => {
       expect(PROVISIONING_SETTINGS).not.toContain(SETTING.UI_APPCO_ENABLED);
     });

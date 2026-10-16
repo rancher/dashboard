@@ -6,6 +6,7 @@ import * as jsyaml from 'js-yaml';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { qase } from '@/cypress/support/qase';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 const chartBranch = `release-${ CURRENT_RANCHER_VERSION }`;
 const gitRepoUrl = 'https://github.com/rancher/charts';
@@ -144,7 +145,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: false, tags: [
     repositoriesPage.waitForPage();
     // Wait for the repo created above to render in the list before opening its action menu.
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Download YAML').click({ force: true });
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Export As...').click({ force: true });
+    new ExportModalPo().download();
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.repoName }.yaml`);
 
@@ -391,9 +393,16 @@ describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager',
     });
   });
 
-  qase(16279, it('can disable a repository', () => {
+  // Open the list and wait for this repo's row before using it, rather than reading the row while the
+  // list is still drawing.
+  const openListWithRepo = () => {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
+    repositoriesPage.sortableTable().rowElementWithName(repoName, LONG_TIMEOUT_OPT).should('exist');
+  };
+
+  qase(16279, it('can disable a repository', () => {
+    openListWithRepo();
     cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', repoName).then(() => {
       // Check if repository is already disabled, if so skip
       repositoriesPage.list().details(repoName, 1).then(($el) => {
@@ -441,8 +450,7 @@ describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager',
       (resp: Cypress.Response<any>) => resp?.body?.spec?.enabled === false,
     );
 
-    ChartRepositoriesPagePo.navTo();
-    repositoriesPage.waitForPage();
+    openListWithRepo();
     // After re-navigating to the list the state badge can take longer than the default
     // timeout to settle back to 'Disabled', so use a longer timeout (matches the 'can enable'
     // test's Active check below).
@@ -462,8 +470,7 @@ describe('Repository Disable/Enable', { testIsolation: false, tags: ['@manager',
 
   qase(16281, it('can enable a repository', () => {
     // Ensure repository exists before enabling
-    ChartRepositoriesPagePo.navTo();
-    repositoriesPage.waitForPage();
+    openListWithRepo();
     cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', repoName).then(() => {
       // Check if repository is already enabled, if so skip
       repositoriesPage.list().details(repoName, 1).then(($el) => {

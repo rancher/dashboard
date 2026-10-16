@@ -4,7 +4,7 @@ import { useStore } from 'vuex';
 import ResourcePopoverCard from '@shell/components/Resource/Detail/ResourcePopover/ResourcePopoverCard.vue';
 import RcStatusIndicator from '@components/Pill/RcStatusIndicator/RcStatusIndicator.vue';
 import { useI18n } from '@shell/composables/useI18n';
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import PopoverCard from '@shell/components/PopoverCard.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 
@@ -26,6 +26,10 @@ export interface Props {
    * Use this where many popovers can be shown at once, e.g. in a table
    */
   lazy?: boolean;
+  /**
+   * Wrap a long name over lines rather than truncating it, e.g. so it doesn't widen a table column
+   */
+  wrapName?: boolean;
 }
 </script>
 
@@ -33,10 +37,47 @@ export interface Props {
 const store = useStore();
 const i18n = useI18n(store);
 const props = withDefaults(defineProps<Props>(), {
-  currentStore: undefined, detailLocation: undefined, name: undefined, showStatus: true, lazy: false
+  currentStore: undefined, detailLocation: undefined, name: undefined, showStatus: true, lazy: false, wrapName: false
 });
 const card = ref<any>(null);
 const showPopover = ref<boolean>(false);
+
+const glanceResourcesLoading = ref<boolean>(false);
+let glanceResourcesAbort: AbortController | undefined;
+
+// Nothing shows them once the card has closed, so their requests don't need to finish
+const cancelGlanceResources = () => {
+  glanceResourcesAbort?.abort();
+  glanceResourcesAbort = undefined;
+  glanceResourcesLoading.value = false;
+};
+
+// Some cards show more than the resource itself, e.g. a node's CPU and memory usage comes from its metrics. It's fetched each
+// time the card opens so it's current, and the card shows it as loading meanwhile
+const fetchGlanceResources = async(resource: any) => {
+  if (!resource?.fetchGlanceResources) {
+    return;
+  }
+
+  cancelGlanceResources();
+
+  const abort = new AbortController();
+
+  glanceResourcesAbort = abort;
+  glanceResourcesLoading.value = true;
+
+  try {
+    await resource.fetchGlanceResources(abort.signal);
+  } catch (e) {
+    // The card can still show the resource without them
+  } finally {
+    // Only the latest fetch ends the loading, e.g. when the card is closed and opened again before the first one finishes
+    if (glanceResourcesAbort === abort) {
+      glanceResourcesAbort = undefined;
+      glanceResourcesLoading.value = false;
+    }
+  }
+};
 
 const fetch = useFetch(async() => {
   const currentStore = props.currentStore || store.getters['currentStore'](props.type);
@@ -45,6 +86,17 @@ const fetch = useFetch(async() => {
 
   return r;
 }, { immediate: !props.lazy });
+
+// The card's content is only mounted while the card is open, so this runs each time it opens with the resource loaded
+watch(card, (neu) => {
+  if (neu) {
+    fetchGlanceResources(fetch.value.data);
+  } else {
+    cancelGlanceResources();
+  }
+});
+
+onBeforeUnmount(cancelGlanceResources);
 
 // A lazy popover fetches the resource the first time the user hovers or focuses it
 const loadResource = () => {
@@ -88,6 +140,7 @@ const actionInvoked = () => {
   <PopoverCard
     v-if="!fetch.error || props.lazy"
     class="resource-popover"
+    :class="{ 'wrap-name': props.wrapName }"
     :card-title="nameDisplay"
     fallback-focus="[data-testid='resource-popover-action-menu'], [data-testid='resource-popover-loading'], [data-testid='resource-popover-error']"
     :show-popover-aria-label="i18n.t('component.resource.detail.glance.ariaLabel.showDetails', { name: nameDisplay, resource: resourceTypeLabel })"
@@ -128,6 +181,7 @@ const actionInvoked = () => {
         id="resource-popover-card"
         ref="card"
         :resource="fetch.data"
+        :usage-loading="glanceResourcesLoading"
         @action-invoked="actionInvoked"
       />
       <!-- Focusable so a card opened with the keyboard has somewhere to put focus -->
@@ -180,6 +234,18 @@ const actionInvoked = () => {
       text-overflow: ellipsis;
       white-space: nowrap;
       min-width: 0;
+    }
+  }
+
+  &.wrap-name {
+    :deep(.popover-card-target) {
+      width: 100%;
+      height: auto;
+    }
+
+    .display a {
+      white-space: normal;
+      overflow-wrap: break-word;
     }
   }
 

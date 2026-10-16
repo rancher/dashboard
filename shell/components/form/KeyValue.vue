@@ -262,8 +262,7 @@ export default {
 
     return {
       rows,
-      codeMirrorFocus: {},
-      lastUpdated:     null
+      lastUpdated: null
     };
   },
   computed: {
@@ -440,7 +439,7 @@ export default {
     },
     removeEmptyRows() {
       const cleaned = this.rows.filter((row) => {
-        return (row.value.length || row.key.length);
+        return (row[this.valueName]?.length || row[this.keyName]?.length);
       });
 
       this['rows'] = cleaned;
@@ -451,14 +450,18 @@ export default {
       if (!this.parseLinesFromFile) {
         this.add(name, value, this.displayValuesAsBinary);
       } else {
-        const lines = value.split('\n');
+        // Files saved on Windows use \r\n line endings
+        const lines = value.split(/\r?\n/);
 
         lines.forEach((line) => {
           // Ignore empty lines
-          if (line.length) {
-            const [key, value] = line.split('=');
+          if (line.trim().length) {
+            const separatorIndex = line.indexOf('=');
+            const key = separatorIndex === -1 ? line : line.substring(0, separatorIndex);
+            const value = separatorIndex === -1 ? '' : line.substring(separatorIndex + 1);
 
-            this.add(key, value);
+            // Like kubectl --from-env-file, whitespace in the value is kept as part of it
+            this.add(key.trim(), value);
           }
         });
 
@@ -582,12 +585,6 @@ export default {
     onInputMarkdownMultiline(idx, value) {
       this.rows = this.rows.map((row, i) => i === idx ? { ...row, value } : row);
       this.queueUpdate();
-    },
-    /**
-     * Set focus on CodeMirror fields
-     */
-    onFocusMarkdownMultiline(idx, value) {
-      this.codeMirrorFocus[idx] = value;
     },
     onValueFileSelected(idx, file) {
       const { name, value } = file;
@@ -807,7 +804,6 @@ export default {
                     v-if="valueMarkdownMultiline"
                     ref="cm"
                     data-testid="code-mirror-multiline-field"
-                    :class="{['focus']: codeMirrorFocus[i]}"
                     :value="row[valueName]"
                     :as-text-area="true"
                     :mode="mode"
@@ -815,7 +811,6 @@ export default {
                       screenReaderLabel: t('generic.ariaLabel.value', { index: i+1 })
                     }"
                     @onInput="onInputMarkdownMultiline(i, $event)"
-                    @onFocus="onFocusMarkdownMultiline(i, $event)"
                   />
                   <div
                     v-else-if="valueConcealed"

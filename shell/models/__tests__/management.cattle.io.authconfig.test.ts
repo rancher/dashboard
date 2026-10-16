@@ -1,4 +1,4 @@
-import AuthConfig, { configTypeForProvider, providerIcon, providerKey } from '@shell/models/management.cattle.io.authconfig';
+import AuthConfig, { configTypeForProvider, configTypeName, providerIcon, providerKey } from '@shell/models/management.cattle.io.authconfig';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
 import { requireAsset } from '@shell/utils/require-asset';
 
@@ -37,6 +37,26 @@ describe('fx: providerKey', () => {
 
   it.each(cases)('should normalise %p to %p', (input, expected) => {
     expect(providerKey(input)).toBe(expected);
+  });
+});
+
+describe('fx: configTypeName', () => {
+  // The server's casing cannot be derived from the key, so it is carried over
+  // from the provider identifier the catalogue was built from.
+  const cases: [string | null | undefined, string][] = [
+    ['githubProvider', 'githubConfig'],
+    ['azureADProvider', 'azureADConfig'],
+    ['keyCloakOIDCProvider', 'keyCloakOIDCConfig'],
+    ['activeDirectoryProvider', 'activeDirectoryConfig'],
+    // Already a config type, so there is nothing to swap
+    ['githubConfig', 'githubConfig'],
+    ['', ''],
+    [undefined, ''],
+    [null, ''],
+  ];
+
+  it.each(cases)('should turn %p into %p', (input, expected) => {
+    expect(configTypeName(input)).toBe(expected);
   });
 });
 
@@ -88,13 +108,16 @@ describe('fx: providerIcon', () => {
     expect(providerIcon('githubConfig')).toBe(providerIcon('githubProvider'));
   });
 
+  it.each(['localProvider', 'localConfig'])('should give %p the Rancher local mark', (type: string) => {
+    expect(providerIcon(type)).toBe('~shell/assets/images/vendor/local.svg');
+  });
+
   it('should fall back to an empty string when the vendor has no logo', () => {
-    // `local` has no vendor SVG, so `requireAsset` throws for it.
     jest.mocked(requireAsset).mockImplementationOnce(() => {
       throw new Error('Asset not found');
     });
 
-    expect(providerIcon('localProvider')).toBe('');
+    expect(providerIcon('unknownProvider')).toBe('');
   });
 
   it.each([undefined, null, ''])('should not throw for %p', (type) => {
@@ -152,14 +175,12 @@ describe('class AuthConfig', () => {
       expect(call[1].componentProps.name).toBe(config.nameDisplay);
     });
 
-    // AppModal drops a width carrying no unit and falls back to its own default,
-    // so the dialog would quietly render narrower than it was asked to be.
-    it('should ask for a width the modal can use', async() => {
+    it('should let the dialog render its own modal', async() => {
       const { config, dispatch } = makeDisableable({});
 
       await config.promptDisable();
 
-      expect(modalCall(dispatch)[1].modalWidth).toMatch(/(px|%)$/);
+      expect(modalCall(dispatch)[1].ownsModal).toBe(true);
     });
 
     it('should disable only once the dialog calls back', async() => {
@@ -259,6 +280,23 @@ describe('class AuthConfig', () => {
       expect(clone.save).toHaveBeenCalledWith();
     });
 
+    // A named multi-IdP config advertises `actions.disable` and then 404s on it,
+    // so the advertised action can only be treated as a hint.
+    it('should fall back when the advertised action is not honoured', async() => {
+      const clone = { enabled: true, save: jest.fn() };
+      const norman = {
+        hasAction: () => true,
+        doAction:  jest.fn().mockRejectedValue({ code: 'ActionNotAvailable', status: 404 }),
+      };
+      const { config } = makeDisableable(norman, clone);
+
+      await config.disable();
+
+      expect(norman.doAction).toHaveBeenCalledWith('disable');
+      expect(clone.enabled).toBe(false);
+      expect(clone.save).toHaveBeenCalledWith();
+    });
+
     it('should report a failure rather than leaving it uncaught', async() => {
       const norman = {
         hasAction: () => true,
@@ -290,6 +328,19 @@ describe('class AuthConfig', () => {
 
   // Auth configs are edited through their own route, so the inherited menu's
   // `goToEdit` would otherwise land on the generic resource page.
+  describe('canCustomEdit', () => {
+    it('should find the form for an instance of the provider', () => {
+      const config = new AuthConfig({ id: 'github-5', _type: 'githubConfig' }, {
+        rootGetters: {
+          ...rootGetters,
+          'type-map/hasCustomEdit': (type: string, subType: string) => subType === 'github',
+        }
+      } as any);
+
+      expect(config.canCustomEdit).toBe(true);
+    });
+  });
+
   describe('detailLocation', () => {
     it('should point at the auth config page for this config', () => {
       const config = new AuthConfig(
@@ -406,6 +457,77 @@ describe('class AuthConfig', () => {
 
       expect(disableAction(enabled).enabled).toBe(true);
       expect(disableAction(disabled).enabled).toBe(false);
+    });
+  });
+
+  describe('cloning', () => {
+    const cloneGetters = (configs: object[], { multipleAllowed = false, customEdit = true } = {}) => ({
+      ...rootGetters,
+      clusterId:                'local',
+      'management/all':         () => configs,
+      'features/get':           (name: string) => name === 'multiple-auth-providers' && multipleAllowed,
+      'type-map/hasCustomEdit': () => customEdit,
+    });
+    const makeClonable = (data: object, getters: object) => new AuthConfig({ type: 'management.cattle.io.authconfig', ...data }, { rootGetters: getters } as any);
+
+    it('should allow cloning a provider when another can be enabled', () => {
+      const configs = [{ id: 'local', enabled: true }, { id: 'github', enabled: false }];
+
+      expect(makeClonable({ id: 'github', _type: 'githubConfig' }, cloneGetters(configs)).canCloneConfig).toBe(true);
+    });
+
+    it('should not allow cloning local authentication', () => {
+      const configs = [{ id: 'local', enabled: true }];
+
+      expect(makeClonable({ id: 'local', _type: 'localConfig' }, cloneGetters(configs)).canCloneConfig).toBe(false);
+    });
+
+    it('should not allow cloning in community while a provider is enabled', () => {
+      const configs = [{ id: 'local', enabled: true }, { id: 'github', enabled: true }];
+
+      expect(makeClonable({ id: 'github', _type: 'githubConfig' }, cloneGetters(configs)).canCloneConfig).toBe(false);
+    });
+
+    it('should allow cloning an enabled provider when multiple are allowed', () => {
+      const configs = [{ id: 'local', enabled: true }, { id: 'github', enabled: true }];
+
+      expect(makeClonable({ id: 'github', _type: 'githubConfig' }, cloneGetters(configs, { multipleAllowed: true })).canCloneConfig).toBe(true);
+    });
+
+    it('should not allow cloning a provider without a form', () => {
+      const configs = [{ id: 'local', enabled: true }];
+
+      expect(makeClonable({ id: 'okta', _type: 'oktaConfig' }, cloneGetters(configs, { customEdit: false })).canCloneConfig).toBe(false);
+    });
+
+    it('should enable the inherited clone action by whether the config can be cloned', () => {
+      jest.spyOn(Resource.prototype, '_availableActions', 'get').mockReturnValue([{
+        action: 'goToClone', label: 'action.clone', icon: 'icon icon-copy', enabled: false
+      }]);
+
+      const config = makeClonable({ id: 'github', _type: 'githubConfig' }, cloneGetters([{ id: 'local', enabled: true }]));
+      const cloneAction = config._availableActions.find((a: any) => a.action === 'goToClone');
+
+      jest.restoreAllMocks();
+
+      expect(cloneAction?.enabled).toBe(true);
+    });
+
+    // A clone is added like any other config, so it starts on the create page
+    it('should open the create page for the provider, naming the config to clone', () => {
+      const push = jest.fn();
+
+      jest.spyOn(Resource.prototype, 'currentRouter').mockReturnValue({ push } as any);
+
+      makeClonable({ id: 'github-2', _type: 'githubConfig' }, cloneGetters([])).goToClone();
+
+      jest.restoreAllMocks();
+
+      expect(push).toHaveBeenCalledWith({
+        name:   'c-cluster-auth-config-create-provider',
+        params: { cluster: 'local', provider: 'github' },
+        query:  { cloneConfig: 'github-2' },
+      });
     });
   });
 });

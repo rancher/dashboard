@@ -10,3 +10,13 @@ import { Position } from '@shell/types/window-manager';
 export function tabBodyId(position: Position, id: string): string {
   return `wm-panel-body-${ position }-${ id.replace(/[^a-zA-Z0-9_-]/g, '-') }`;
 }
+
+/**
+ * Id of a window manager tab.
+ *
+ * The tab list's `aria-owns` has to resolve to the tabs, which aren't its
+ * children, so both sides build the id from here.
+ */
+export function tabId(position: Position, id: string): string {
+  return `wm-tab-${ position }-${ id.replace(/[^a-zA-Z0-9_-]/g, '-') }`;
+}

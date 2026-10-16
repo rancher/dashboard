@@ -9,6 +9,7 @@ import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { ociSecretCreateRequest } from '@/cypress/e2e/blueprints/explorer/storage/secret';
 import { qase } from '@/cypress/support/qase';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 const defaultWorkspace = 'fleet-default';
 const workspaceNameList: string[] = [];
@@ -361,6 +362,13 @@ describe('Workspaces', { testIsolation: false, tags: ['@fleet', '@adminUser'] },
     qase(8552, it('can create a fleet workspace', () => {
       const fleetWorkspaceCreateEditPage = new FleetWorkspaceCreateEditPo();
 
+      // testIsolation is off and the workspace name is fixed for the whole describe, so a retry of
+      // this test runs against the workspace the previous attempt already created and the create
+      // comes back 409 ("expected 409 to equal 201") - taking the rest of the CRUD tests with it.
+      // Remove any leftover, and wait for it to actually be gone before re-creating it.
+      cy.deleteRancherResource('v3', 'fleetWorkspaces', customWorkspace, false);
+      cy.waitForRancherResource('v3', 'fleetWorkspaces', customWorkspace, (resp: any) => resp?.status === 404, 10, { failOnStatusCode: false });
+
       cy.intercept('POST', '/v3/fleetworkspaces').as('createWorkspace');
 
       fleetWorkspacesListPage.goTo();
@@ -411,6 +419,10 @@ describe('Workspaces', { testIsolation: false, tags: ['@fleet', '@adminUser'] },
         expect(response?.statusCode).to.eq(201);
       });
       fleetWorkspacesListPage.waitForPage();
+      // The create returns before the new workspace is indexed and served to the list, so the row can
+      // be missing when it is first looked up ("Expected to find content: '<name>' ... but never
+      // did"). Confirm the workspace exists at the API level before reading the list.
+      cy.waitForRancherResource('v1', 'management.cattle.io.fleetworkspaces', customWorkspace, (resp: any) => resp?.status === 200, 20, { failOnStatusCode: false });
       fleetWorkspacesListPage.list().resourceTable().sortableTable()
         .rowWithName(customWorkspace)
         .checkVisible();
@@ -472,8 +484,9 @@ describe('Workspaces', { testIsolation: false, tags: ['@fleet', '@adminUser'] },
       fleetWorkspacesListPage.waitForPage();
       fleetWorkspacesListPage.list().resourceTable().sortableTable()
         .noRowsShouldNotExist();
-      fleetWorkspacesListPage.list().actionMenu(customWorkspace).getMenuItem('Download YAML')
+      fleetWorkspacesListPage.list().actionMenu(customWorkspace).getMenuItem('Export As...')
         .click();
+      new ExportModalPo().download();
 
       const downloadedFilename = path.join(downloadsFolder, `${ customWorkspace }.yaml`);
 

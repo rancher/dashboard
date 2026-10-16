@@ -1,5 +1,8 @@
 import { mount } from '@vue/test-utils';
+import { h, nextTick } from 'vue';
 import PromptModal from '@shell/components/PromptModal.vue';
+import AppModal from '@shell/components/AppModal.vue';
+import * as actionMenu from '@shell/store/action-menu';
 
 import GenericPrompt from '@shell/dialog/GenericPrompt.vue';
 import AddClusterMemberDialog from '@shell/dialog/AddClusterMemberDialog.vue';
@@ -42,13 +45,14 @@ jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
 });
 
-function generateStore(component: any):any {
+function generateStore(component: any, modalData: any = {}):any {
   return createStore({
     modules: { // promptModal
       'action-menu': {
         namespaced: true,
         state:      {
           modalData: {
+            ...modalData,
             closeOnClickOutside: true,
             resources:           [{ cluster: { isRke2: true, machines: [] } }], // ScaleMachineDownDialog
             componentProps:      {
@@ -130,15 +134,164 @@ describe('component: PromptModal', () => {
         },
         global: {
           mocks: {
-            $store:      generateStore(component),
+            $store:      generateStore(component, { ownsModal: component === DisableAuthProviderDialog }),
             $fetchState: {}
           },
-          stubs: { transition: false }
+          provide: { store: {} },
+          stubs:   { transition: false }
         }
       }
     );
 
     expect(wrapper.vm.opened).toBe(true);
     expect(wrapper.findComponent(component as any).exists()).toBe(true);
+  });
+});
+
+describe('component: PromptModal dialog resolution', () => {
+  const dialogMounted = jest.fn();
+
+  function generateReactiveStore() {
+    return createStore({
+      state:     { typeMapVersion: 0 },
+      mutations: { bumpTypeMap: (state: any) => state.typeMapVersion++ },
+      modules:   {
+        'action-menu': {
+          namespaced: true,
+          state:      { showModal: false, modalData: { component: 'TestDialog' } },
+          mutations:  {
+            setShowModal: (state: any, show: boolean) => (state.showModal = show),
+            setComponent: (state: any, component: string) => (state.modalData = { component }),
+          },
+        },
+      },
+      getters: {
+        'type-map/importDialog': (state: any) => (name: string) => ({
+          name,
+          typeMapVersion: state.typeMapVersion,
+          mounted:        dialogMounted,
+          render:         () => h('div'),
+        }),
+      },
+    });
+  }
+
+  function mountPromptModal(store: any) {
+    document.body.innerHTML = '<div id="modals"></div>';
+
+    return mount(PromptModal, {
+      attachTo: document.body,
+      global:   {
+        mocks: { $store: store },
+        stubs: { transition: false },
+      },
+    });
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should mount the dialog once when the type-map changes while it is open', async() => {
+    const store = generateReactiveStore();
+
+    mountPromptModal(store);
+    store.commit('action-menu/setShowModal', true);
+    await nextTick();
+
+    store.commit('bumpTypeMap');
+    await nextTick();
+
+    expect(dialogMounted).toHaveBeenCalledTimes(1);
+  });
+
+  it('should render a different dialog when the requested dialog changes', async() => {
+    const store = generateReactiveStore();
+    const wrapper = mountPromptModal(store);
+
+    store.commit('action-menu/setShowModal', true);
+    await nextTick();
+    store.commit('action-menu/setComponent', 'OtherDialog');
+    await nextTick();
+
+    expect(wrapper.findComponent({ name: 'OtherDialog' }).exists()).toBe(true);
+  });
+});
+
+describe('component: PromptModal dialogs that own their modal', () => {
+  const TestDialog = {
+    name:   'TestDialog',
+    props:  ['modal', 'resources', 'label'],
+    render: () => h('div'),
+  };
+
+  function mountPromptModal(modalData: any) {
+    const store = createStore<any>({
+      modules: { 'action-menu': { namespaced: true, ...actionMenu } },
+      getters: { 'type-map/importDialog': () => () => TestDialog },
+    });
+
+    document.body.innerHTML = '<div id="modals"></div>';
+
+    const wrapper = mount(PromptModal, {
+      attachTo: document.body,
+      global:   {
+        mocks: { $store: store },
+        stubs: { transition: false },
+      },
+    });
+
+    store.commit('action-menu/togglePromptModal', { component: 'TestDialog', ...modalData });
+
+    return { wrapper, store };
+  }
+
+  it('should render the dialog without wrapping it in a modal', async() => {
+    const { wrapper } = mountPromptModal({ ownsModal: true });
+
+    await nextTick();
+
+    expect(wrapper.findComponent(TestDialog).exists()).toBe(true);
+    expect(wrapper.findComponent(AppModal).exists()).toBe(false);
+  });
+
+  it('should keep wrapping a dialog that does not own its modal', async() => {
+    const { wrapper } = mountPromptModal({});
+
+    await nextTick();
+
+    expect(wrapper.findComponent(AppModal).findComponent(TestDialog).exists()).toBe(true);
+  });
+
+  it('should tell the dialog it is showing', async() => {
+    const { wrapper } = mountPromptModal({ ownsModal: true });
+
+    await nextTick();
+
+    expect(wrapper.findComponent(TestDialog).props('modal').show).toBe(true);
+  });
+
+  it('should pass the dialog its props and resources', async() => {
+    const resources = [{ id: 'a' }];
+    const { wrapper } = mountPromptModal({
+      ownsModal: true, resources, componentProps: { label: 'Okta' }
+    });
+
+    await nextTick();
+
+    const dialog = wrapper.findComponent(TestDialog);
+
+    expect(dialog.props('label')).toBe('Okta');
+    expect(dialog.props('resources')).toStrictEqual(resources);
+  });
+
+  it('should close the prompt in the store when the dialog asks to close', async() => {
+    const { wrapper, store } = mountPromptModal({ ownsModal: true });
+
+    await nextTick();
+    wrapper.findComponent(TestDialog).props('modal').onClose();
+    await nextTick();
+
+    expect(store.state['action-menu'].showModal).toBe(false);
   });
 });

@@ -11,7 +11,7 @@ import { BLANK_CLUSTER } from '@shell/store/store-types';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { isMac, KEY, shortcutLabel } from '@shell/utils/platform';
-import { getVersionInfo } from '@shell/utils/version';
+import { getVersionInfo, removePatchWhenZero } from '@shell/utils/version';
 import { SETTING } from '@shell/config/settings';
 import { getProductFromRoute } from '@shell/utils/router';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
@@ -19,6 +19,7 @@ import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { debounce } from 'lodash';
+import { SEARCH_DEBOUNCE } from '@shell/config/search';
 import { sameContents } from '@shell/utils/array';
 import { RcSeparator } from '@components/RcSeparator';
 import { commitAndReconcile, movePinned, reportPinWriteFailure } from '@shell/utils/cluster-pref-writer';
@@ -27,10 +28,6 @@ const DRAG_THRESHOLD = 4;
 const DRAG_SCROLL_EDGE = 32;
 const DRAG_SCROLL_MAX = 14;
 const PINNED_TOOLTIP_DISTANCE = 44;
-// Every search that fires re-measures the flyout, so the panel resizes under the cursor. At 200ms that
-// landed inside an ordinary typing rhythm and the height moved on almost every character; this sits past
-// it, so the list settles when you pause rather than while you are still typing.
-const SEARCH_DEBOUNCE = 400;
 
 export default {
   components: {
@@ -378,7 +375,8 @@ export default {
     aboutText() {
       // If a version number (starts with 'v') then use that
       if (this.displayVersion.startsWith('v')) {
-        if (this.shown) {
+        // Show the patch level if the nav is expanded and we are not Community, otherwise continue with the shortened version as appropriate
+        if (this.shown && isRancherPrime()) {
           return this.displayVersion;
         }
 
@@ -397,10 +395,12 @@ export default {
     },
 
     versionTooltip() {
-      const labelSaysItAll = this.aboutText === this.fullVersion && !this.versionClipped;
+      // Community drops the zero patch level here too, so the tooltip doesn't bring back the '.0' the label hides
+      const tooltipVersion = removePatchWhenZero(this.fullVersion);
+      const labelSaysItAll = this.aboutText === tooltipVersion && !this.versionClipped;
 
       return {
-        content:     labelSaysItAll ? undefined : this.fullVersion,
+        content:     labelSaysItAll ? undefined : tooltipVersion,
         placement:   'right',
         popperClass: 'nav-tooltip',
       };
@@ -1839,10 +1839,10 @@ export default {
     }
 
     &.is-active {
-      background: var(--active-nav, var(--primary-hover-bg));
+      background: var(--active);
 
       &:hover {
-        background: var(--active-hover, var(--primary-hover-bg));
+        background: var(--active-hover);
       }
     }
 
@@ -1878,11 +1878,11 @@ export default {
 
     // Current row: the control paints itself, so the sibling pin has to be told to match.
     &.is-active .pin.is-pinned {
-      color: var(--on-active, var(--primary-hover-text)) !important;
+      color: var(--on-active) !important;
     }
 
     &.is-active .pin:not(.is-pinned) {
-      color: color-mix(in srgb, var(--on-active, var(--primary-hover-text)) 65%, transparent) !important;
+      color: color-mix(in srgb, var(--on-active) 65%, transparent) !important;
     }
   }
 
@@ -2204,7 +2204,7 @@ export default {
       & .category {
         & a.router-link-active {
           &:hover {
-            color: var(--on-active-nav, var(--default));
+            color: var(--on-active);
           }
         }
       }
@@ -2338,38 +2338,38 @@ export default {
             outline-offset: -4px;
           }
 
-          background: var(--active-nav, var(--primary-hover-bg));
-          color: var(--on-active-nav, var(--primary-hover-text));
+          background: var(--active);
+          color: var(--on-active);
 
           svg {
-            fill: var(--on-active-nav, var(--primary-hover-text));
+            fill: var(--on-active);
           }
 
           i {
-            color: var(--on-active-nav, var(--primary-hover-text));
+            color: var(--on-active);
           }
 
           // Current row (selected): white name + pinned pin; light meta + light-grey not-pinned pin.
           // !important overrides the base black/muted name+pin invariants.
           .cluster-name > p {
-            color: var(--on-active-nav, var(--primary-hover-text)) !important;
+            color: var(--on-active) !important;
           }
           .pin.is-pinned {
-            color: var(--on-active-nav, var(--primary-hover-text)) !important;
+            color: var(--on-active) !important;
           }
           .pin:not(.is-pinned) {
-            color: color-mix(in srgb, var(--on-active-nav, var(--primary-hover-text)) 65%, transparent) !important;
+            color: color-mix(in srgb, var(--on-active) 65%, transparent) !important;
           }
 
           &:hover {
-            background: var(--nav-active-hover, var(--primary-hover-bg));
+            background: var(--active-hover);
 
             div {
-              color: var(--on-active-nav, var(--default));
+              color: var(--on-active);
             }
 
             svg {
-              fill: var(--on-active-nav, var(--primary-hover-text));
+              fill: var(--on-active);
             }
           }
         }

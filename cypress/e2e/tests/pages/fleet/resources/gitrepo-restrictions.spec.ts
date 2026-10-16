@@ -3,6 +3,7 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 // const localWorkspace = 'fleet-local';
 const defaultWorkspace = 'fleet-default';
@@ -167,8 +168,9 @@ describe('GitRepo Restrictions', { testIsolation: false, tags: ['@fleet', '@admi
       fleetRestrictionsListPage.waitForPage();
       // Re-select the workspace so the restriction is listed (see the Clone test above).
       headerPo.selectWorkspace(defaultWorkspace);
-      fleetRestrictionsListPage.list().actionMenu(customRestrictionName).getMenuItem('Download YAML')
+      fleetRestrictionsListPage.list().actionMenu(customRestrictionName).getMenuItem('Export As...')
         .click();
+      new ExportModalPo().download();
 
       const downloadedFilename = path.join(downloadsFolder, `${ customRestrictionName }.yaml`);
 

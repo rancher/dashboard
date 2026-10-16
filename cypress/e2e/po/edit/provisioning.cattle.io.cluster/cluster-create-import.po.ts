@@ -4,6 +4,7 @@ import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import BasicsRke2 from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/tabs/basics-tab-rke2.po';
 import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
+import RcSectionPo from '@/cypress/e2e/po/components/rc-section.po';
 
 /**
  * Covers core functionality that's common to the dashboard's import or create cluster pages
@@ -55,11 +56,14 @@ export default abstract class ClusterManagerCreateImportPagePo extends PagePo {
     return new BasicsRke2();
   }
 
-  accordion(index: number, label: string) {
-    return this.self().find(`.accordion-container:nth-of-type(${ index })`).contains(label);
+  section(title: string): RcSectionPo {
+    return RcSectionPo.byTitle(() => this.self(), title);
   }
 
-  toggleAccordion(index: number, label: string) {
-    return this.accordion(index, label).click();
+  /**
+   * Titles of the page's top-level sections, in order
+   */
+  sectionTitles() {
+    return RcSectionPo.topLevelTitles(() => this.self());
   }
 }

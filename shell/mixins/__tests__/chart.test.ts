@@ -29,9 +29,10 @@ describe('chartMixin', () => {
       const mockStore = {
         dispatch: jest.fn(() => Promise.resolve()),
         getters:  {
-          currentCluster: () => {},
-          isRancher:      () => true,
-          'catalog/repo': () => {
+          currentCluster:    () => {},
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
@@ -76,9 +77,10 @@ describe('chartMixin', () => {
       const mockStore = {
         dispatch: jest.fn(() => Promise.resolve()),
         getters:  {
-          currentCluster: () => {},
-          isRancher:      () => true,
-          'catalog/repo': () => {
+          currentCluster:    () => {},
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
@@ -116,9 +118,10 @@ describe('chartMixin', () => {
       const mockStore = {
         dispatch: jest.fn(() => Promise.resolve()),
         getters:  {
-          currentCluster: () => {},
-          isRancher:      () => true,
-          'catalog/repo': () => {
+          currentCluster:    () => {},
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
@@ -168,9 +171,10 @@ describe('chartMixin', () => {
           return Promise.resolve();
         }),
         getters: {
-          currentCluster: () => {},
-          isRancher:      () => true,
-          'catalog/repo': () => {
+          currentCluster:    () => {},
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
@@ -234,9 +238,10 @@ describe('chartMixin', () => {
           return Promise.resolve();
         }),
         getters: {
-          currentCluster: () => {},
-          isRancher:      () => true,
-          'catalog/repo': () => {
+          currentCluster:    () => {},
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
@@ -525,12 +530,13 @@ describe('chartMixin', () => {
       const mockStore = {
         dispatch: jest.fn(() => Promise.resolve()),
         getters:  {
-          currentCluster:  () => {},
-          isRancher:       () => true,
-          'catalog/repo':  () => () => 'repo',
-          'catalog/chart': () => ({ versions }),
-          'prefs/get':     () => (key: string) => true,
-          'i18n/t':        () => jest.fn()
+          currentCluster:    () => {},
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => () => 'repo',
+          'catalog/chart':   () => ({ versions }),
+          'prefs/get':       () => (key: string) => true,
+          'i18n/t':          () => jest.fn()
         }
       };
 
@@ -603,12 +609,13 @@ describe('chartMixin', () => {
       const mockStore = {
         dispatch: jest.fn(() => Promise.resolve()),
         getters:  {
-          currentCluster:  () => ({ workerOSs: ['linux'] }),
-          isRancher:       () => true,
-          'catalog/repo':  () => () => 'repo',
-          'catalog/chart': () => ({ versions }),
-          'prefs/get':     () => () => true,
-          'i18n/t':        () => jest.fn()
+          currentCluster:    () => ({ workerOSs: ['linux'] }),
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => () => 'repo',
+          'catalog/chart':   () => ({ versions }),
+          'prefs/get':       () => () => true,
+          'i18n/t':          () => jest.fn()
         }
       };
 
@@ -650,12 +657,13 @@ describe('chartMixin', () => {
       const mockStore = {
         dispatch: jest.fn(() => Promise.resolve()),
         getters:  {
-          currentCluster:  () => ({ workerOSs: ['linux'] }),
-          isRancher:       () => true,
-          'catalog/repo':  () => () => 'repo',
-          'catalog/chart': () => ({ versions }),
-          'prefs/get':     () => () => true,
-          'i18n/t':        () => jest.fn()
+          currentCluster:    () => ({ workerOSs: ['linux'] }),
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => () => 'repo',
+          'catalog/chart':   () => ({ versions }),
+          'prefs/get':       () => () => true,
+          'i18n/t':          () => jest.fn()
         }
       };
 
@@ -683,6 +691,71 @@ describe('chartMixin', () => {
       const result = wrapper.vm.mappedVersions;
 
       expect(result[0].label).toBe('1.0.0 (Current)');
+    });
+  });
+
+  describe('when the user cannot list apps', () => {
+    const mountWithCanList = (canList: boolean) => {
+      const canListMock = jest.fn(() => canList);
+      const mockStore = {
+        dispatch: jest.fn(() => Promise.resolve()),
+        getters:  {
+          currentCluster:    () => {},
+          isRancher:         () => true,
+          'cluster/canList': canListMock,
+          'catalog/repo':    () => 'repo',
+          'catalog/chart':   () => ({ versions: [] }),
+          'prefs/get':       () => false,
+        }
+      };
+
+      const DummyComponent = defineComponent({
+        mixins:   [ChartMixin],
+        template: '<div></div>',
+      });
+
+      const wrapper = mount(DummyComponent, {
+        global: {
+          mocks: {
+            $store: mockStore,
+            $route: { query: { chart: 'chart_name', repo: 'repo' } },
+            t:      (key: string) => key,
+          }
+        }
+      });
+
+      return {
+        wrapper, mockStore, canListMock
+      };
+    };
+
+    it('should check the list permission of apps', () => {
+      const { wrapper, canListMock } = mountWithCanList(false);
+
+      expect(wrapper.vm.canListApps).toStrictEqual(false);
+      expect(canListMock).toHaveBeenCalledWith(CATALOG.APP);
+    });
+
+    it('should return an error to show instead of the page', () => {
+      const { wrapper } = mountWithCanList(false);
+
+      expect(wrapper.vm.cannotListAppsError).toStrictEqual(new Error('catalog.charts.cannotListApps'));
+    });
+
+    it('should not return an error when the user can list apps', () => {
+      const { wrapper } = mountWithCanList(true);
+
+      expect(wrapper.vm.cannotListAppsError).toBeNull();
+    });
+
+    it('should not fetch apps or the chart', async() => {
+      const { wrapper, mockStore } = mountWithCanList(false);
+
+      await wrapper.vm.fetchChart();
+
+      expect(mockStore.dispatch).not.toHaveBeenCalledWith('cluster/findAll', { type: CATALOG.APP });
+      expect(mockStore.dispatch).not.toHaveBeenCalledWith('catalog/load');
+      expect(wrapper.vm.chart).toBeNull();
     });
   });
 });

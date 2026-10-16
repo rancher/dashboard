@@ -66,6 +66,15 @@ export default {
     modalSticky: {
       type:    Boolean,
       default: false,
+    },
+
+    /**
+     * The last `membership-update` this editor emitted. Pass it back so unsaved additions/removals are re-applied when the
+     * editor is remounted (e.g. it's within an RcSection that was collapsed), rather than reset to the saved bindings
+     */
+    pendingUpdate: {
+      type:    Object,
+      default: null,
     }
   },
 
@@ -85,6 +94,7 @@ export default {
   },
 
   async fetch() {
+    const pendingUpdate = this.pendingUpdate;
     const roleBindingRequestParams = { type: this.type, opt: { force: true } };
 
     if (this.type === NORMAN.PROJECT_ROLE_TEMPLATE_BINDING && this.parentId) {
@@ -110,7 +120,7 @@ export default {
 
     const [allBindings] = await Promise.all(userHydration);
 
-    const bindings = allBindings
+    let bindings = allBindings
       .filter((b) => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
 
     this['lastSavedBindings'] = [...bindings];
@@ -121,6 +131,15 @@ export default {
 
       defaultBinding.isDefaultBinding = true;
       bindings.push(defaultBinding);
+    }
+
+    if (pendingUpdate) {
+      const removedIds = (pendingUpdate.removedBindings || []).map((b) => b.id);
+
+      bindings = [
+        ...bindings.filter((b) => !b.id || !removedIds.includes(b.id)),
+        ...(pendingUpdate.newBindings || [])
+      ];
     }
 
     this['bindings'] = bindings;

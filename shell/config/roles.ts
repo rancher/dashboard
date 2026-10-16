@@ -158,7 +158,7 @@ export const SCOPED_RESOURCES = {
         // Core K8s API - Non-namespaced resources.
         // These resources do not have an API group.
         'APIGroups',
-        'Node',
+        'Nodes',
         'PersistentVolumes',
         'ResourceQuotas',
       ],
@@ -209,7 +209,7 @@ export const SCOPED_RESOURCES = {
       resources: [
         'CSIDrivers',
         'CSINodes',
-        'CSIStorageCapacitys',
+        'CSIStorageCapacities',
         'StorageClasses',
         'VolumeAttachments',
       ]
@@ -233,6 +233,7 @@ export const SCOPED_RESOURCES = {
         // Core K8s API - Namespaced resources
         // that are not in an API group.
         'ConfigMaps',
+        'Endpoints',
         'LimitRanges', // enumerates compute resource constraints in a project at the pod, container, image, image stream, and persistent volume claim level
         'Namespaces',
         'PersistentVolumeClaims',
@@ -319,11 +320,6 @@ export const SCOPED_RESOURCES = {
         'Ingresses',
         'IngressClasses',
         'NetworkPolicies',
-      ]
-    },
-    'io.k8s.api.discovery': {
-      resources: [
-        'Endpoints'
       ]
     },
     'discovery.k8s.io': {

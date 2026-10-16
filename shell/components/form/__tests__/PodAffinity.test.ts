@@ -63,4 +63,32 @@ describe('component: PodAffinity', () => {
 
     expect(wrapper.find('[data-testid="pod-affinity-weight-index0"]').exists()).toBeTruthy();
   });
+
+  it('should not add an empty affinity to a value that has none', () => {
+    const value = {};
+
+    mount(PodAffinity, {
+      props: { mode: _CREATE, value },
+      ...requiredSetup()
+    });
+
+    expect(value).toStrictEqual({});
+  });
+
+  it('should add the affinity to a value that has none when the terms are updated', () => {
+    const value = {};
+    const wrapper = mount(PodAffinity, {
+      props: { mode: _CREATE, value },
+      ...requiredSetup()
+    });
+
+    (wrapper.vm as any).update();
+
+    expect(value).toStrictEqual({
+      affinity: {
+        podAffinity:     { requiredDuringSchedulingIgnoredDuringExecution: [], preferredDuringSchedulingIgnoredDuringExecution: [] },
+        podAntiAffinity: { requiredDuringSchedulingIgnoredDuringExecution: [], preferredDuringSchedulingIgnoredDuringExecution: [] }
+      }
+    });
+  });
 });

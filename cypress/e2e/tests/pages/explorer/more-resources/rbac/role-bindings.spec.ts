@@ -58,11 +58,10 @@ describe('RoleBindings', { testIsolation: false, tags: ['@explorer', '@adminUser
       cy.wait('@roleBindingDataSmall');
 
       // group by namespace
-      roleBindingsPage.list().resourceTable().sortableTable().groupByButtons(1)
-        .click();
+      roleBindingsPage.list().resourceTable().sortableTable().groupBy('Namespace');
 
       //  check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Role', 'Users', 'Groups', 'Service Accounts', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Role', 'Users', 'Groups', 'Service Accounts', 'Age'];
 
       roleBindingsPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')

@@ -5,6 +5,8 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { createPayloadData, updatePayloadData } from '@/cypress/e2e/blueprints/cluster_management/pod-security-admissions-payload';
 import { qase } from '@/cypress/support/qase';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo();
@@ -103,11 +105,14 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
   qase(2196, it('can download YAML for a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
-    podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Download YAML').click({ force: true });
+    podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Export As...').click({ force: true });
+    new ExportModalPo().download();
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.podSecurityAdmissionsName }.yaml`);
 
-    cy.readFile(downloadedFilename).then((buffer) => {
+    // The click only starts the download; the browser writes the file asynchronously, so the
+    // default 10s is not always enough for it to appear on disk under CI load.
+    cy.readFile(downloadedFilename, LONG_TIMEOUT_OPT).then((buffer) => {
       const obj: any = jsyaml.load(buffer);
 
       // Basic checks on the downloaded YAML
@@ -120,6 +125,13 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
   qase(2194, it('can delete a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
+
+    // The clone this deletes is created by the previous test, and that create returns before the
+    // template is indexed and served to the list - reading the row straight away then fails with
+    // "Expected to find content: '<name>-clone' ... but never did". Confirm it exists at the API
+    // level, and let the list finish loading, before acting on the row.
+    cy.waitForRancherResource('v1', 'management.cattle.io.podsecurityadmissionconfigurationtemplates', `${ this.podSecurityAdmissionsName }-clone`, (resp: any) => resp?.status === 200, 20, { failOnStatusCode: false });
+    podSecurityAdmissionsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
     // check list details
     podSecurityAdmissionsPage.list().resourceTable().sortableTable().rowNames()

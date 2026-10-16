@@ -6,6 +6,7 @@ import { toTypedSchema } from '@vee-validate/zod';
 import * as z from 'zod';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import AuthConfigIdentity from '@shell/components/auth/AuthConfigIdentity.vue';
 import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
@@ -62,6 +63,7 @@ const SIGNATURE_METHODS = [
 
 export default {
   components: {
+    AuthConfigIdentity,
     Loading,
     CruResource,
     LabeledInput,
@@ -250,9 +252,17 @@ export default {
       @finish="save"
       @cancel="cancel"
     >
+      <AuthConfigIdentity
+        v-model:name="configName"
+        v-model:description="configDescription"
+        :name-fixed="configNameFixed"
+        :name-error="configNameError"
+      />
+
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <AuthBanner
           :t-args="tArgs"
+          :name="authConfigDisplayName"
           :disable="disable"
           :edit="goToEdit"
           :provider-id="model.id"
@@ -324,6 +334,12 @@ export default {
                 <tr><td>{{ t('authConfig.ldap.serviceAccountDN') }}:</td><td>{{ model.openLdapConfig.serviceAccountDistinguishedName }}</td></tr>
                 <tr><td>{{ t('authConfig.ldap.userSearchBase.label') }}:</td><td>{{ model.openLdapConfig.userSearchBase }}</td></tr>
                 <tr><td>{{ t('authConfig.ldap.groupSearchBase.label') }}:</td><td>{{ model.openLdapConfig.groupSearchBase }}</td></tr>
+                <tr v-if="model.openLdapConfig.userIDAttribute">
+                  <td>{{ t('authConfig.ldap.userIDAttribute') }}:</td><td>{{ model.openLdapConfig.userIDAttribute }}</td>
+                </tr>
+                <tr v-if="model.openLdapConfig.groupIDAttribute">
+                  <td>{{ t('authConfig.ldap.groupIDAttribute') }}:</td><td>{{ model.openLdapConfig.groupIDAttribute }}</td>
+                </tr>
               </tbody>
             </table>
           </template>
@@ -533,6 +549,7 @@ export default {
           <div class="row">
             <Checkbox
               v-model:value="showLdap"
+              data-testid="saml-show-ldap"
               :mode="mode"
               :label="t('authConfig.saml.showLdap')"
             />

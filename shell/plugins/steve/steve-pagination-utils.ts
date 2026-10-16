@@ -18,7 +18,9 @@ import {
   SECRET,
   CRD
 } from '@shell/config/types';
-import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
+import {
+  CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, DESCRIPTION, STORAGE, UI_PROJECT_SECRET_COPY
+} from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
@@ -232,6 +234,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'metadata.state.name' },
       { field: 'metadata.creationTimestamp' },
       { field: 'metadata.labels', startsWith: true },
+      { field: `metadata.annotations[${ DESCRIPTION }]` },
     ],
     [NODE]: [
       { field: 'status.nodeInfo.kubeletVersion' },
@@ -264,6 +267,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: `status.provider` },
       { field: `status.info.kubernetesVersion` },
       { field: `spec.fleetWorkspaceName` },
+      { field: 'status.allocatable.cpuRaw' },
+      { field: 'status.allocatable.memoryRaw' },
+      { field: 'status.allocatable.pods' },
+      { field: 'status.requested.pods' },
     ],
     [SECRET]: [
       { field: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]` },

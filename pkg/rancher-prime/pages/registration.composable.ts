@@ -20,7 +20,7 @@ interface RegistrationDashboard {
   product: string;
   mode: RegistrationMode | '--';
   expiration: string;
-  color: 'error' | 'success';
+  color: 'error' | 'success' | 'warning';
   message: string;
   status: 'valid' | 'error' | 'none';
   code: string | null;
@@ -97,7 +97,20 @@ const emptyRegistration: RegistrationDashboard = {
   status:     'none'
 };
 
+/**
+ * Displayed when the user cannot read the registration, as the state is unknown
+ */
+const forbiddenRegistration: RegistrationDashboard = {
+  ...emptyRegistration,
+  color:   'warning',
+  message: 'registration.list.table.badge.unknown',
+};
+
 const registrationBannerCases = {
+  forbidden: {
+    message: 'registration.banner.status.forbidden',
+    type:    'warning',
+  },
   none: {
     message: 'registration.banner.status.error',
     type:    'error',
@@ -152,9 +165,20 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   const errors = ref([] as string[]);
 
   /**
+   * Whether the user can read the registration secret and resources; actions are disabled otherwise
+   */
+  const canReadRegistration = ref(true);
+
+  /**
    * Displayed registration banner
    */
-  const registrationBanner = computed(() => registration.value.status === 'valid' ? registrationBannerCases.valid : registrationBannerCases.none);
+  const registrationBanner = computed(() => {
+    if (!canReadRegistration.value) {
+      return registrationBannerCases.forbidden;
+    }
+
+    return registration.value.status === 'valid' ? registrationBannerCases.valid : registrationBannerCases.none;
+  });
 
   /**
    * Retrieve and set registration related values based on the current secret
@@ -458,6 +482,36 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   };
 
   /**
+   * Check if the user can read the registration secret and resources.
+   * Schemas are hidden for types the user cannot access at all, while listing a namespace the user cannot read
+   * returns no secrets instead of an error, so a missing secret is fetched by id to tell 403 apart from 404.
+   * @param currentSecret secret found in the registration namespace, if any
+   */
+  const hasReadPermission = async(currentSecret: PartialSecret | null): Promise<boolean> => {
+    const schemaFor = store.getters['management/schemaFor'];
+
+    if (!schemaFor(SECRET) || !schemaFor(REGISTRATION_RESOURCE_NAME)) {
+      return false;
+    }
+
+    if (currentSecret) {
+      return true;
+    }
+
+    try {
+      await store.dispatch('management/find', {
+        type: SECRET,
+        id:   `${ REGISTRATION_NAMESPACE }/${ REGISTRATION_SECRET }`,
+        opt:  { force: true, watch: false }
+      });
+    } catch (error) {
+      return (error as { status?: number })?.status !== 403;
+    }
+
+    return true;
+  };
+
+  /**
    * Tracked timer used by waitForSecretDeleted so the pending wait can be cleared
    * when it completes (avoids leaking a setTimeout after the composable is done).
    */
@@ -662,6 +716,15 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const initRegistration = async() => {
     secret.value = await getSecret();
+    canReadRegistration.value = await hasReadPermission(secret.value);
+
+    if (!canReadRegistration.value) {
+      registration.value = forbiddenRegistration;
+      registrationStatus.value = null;
+
+      return;
+    }
+
     registrationCode.value = secret.value?.data?.regCode ? atob(secret.value.data.regCode) : null; // Get registration code from secret
     registrationStatus.value = await getRegistration();
     const message = getError();
@@ -679,6 +742,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     registerOffline,
     deregister,
     initRegistration,
+    canReadRegistration,
     errors,
     offlineRegistrationCertificate,
     registrationCode,

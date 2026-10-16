@@ -1,5 +1,7 @@
 <script lang="ts">
 import ResourceTable from '@shell/components/ResourceTable';
+import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
+import { STATE_FILTER_QUERY } from '@shell/config/query-params';
 
 /**
  * A resource list that filters client-side by the model `state` getter.
@@ -11,10 +13,11 @@ import ResourceTable from '@shell/components/ResourceTable';
  * into `rows` and we filter here by the same `state` getter the overview buckets are built from - so
  * bucket and filter always agree.
  *
- * `ResourceList` still renders the masthead, and its built-in `?stateFilter` badge bar ("Filtered to:
- * [Expiring] · clear") shows the active filter and clears it. This component supplies the missing
- * piece: actually narrowing the rows. Registered per type by thin wrappers in list/ (one per type
- * id); with no query param the list behaves normally.
+ * `ResourceList` still renders the masthead, and its built-in `?stateFilter` badge bar ("State filter
+ * applied: [Expiring]. Clear filter") shows the active filter and clears it. This component supplies
+ * the missing piece: actually narrowing the rows. Registered per type by thin wrappers in list/ (one
+ * per type id); with no query param, or with table views (which take the states into the table's
+ * query), the list behaves normally.
  */
 export default {
   name: 'ClientStateFilterList',
@@ -53,9 +56,10 @@ export default {
 
     /** The states to keep, from `?stateFilter=a,b`. Empty means "show everything". */
     stateFilter(): string[] {
-      const q = this.$route.query.stateFilter;
+      const q = this.$route.query[STATE_FILTER_QUERY];
 
-      return q ? String(q).split(',').filter(Boolean) : [];
+      // With table views the states are terms in the table's query instead
+      return q && !isConfigurableTablesEnabled(this.$store) ? String(q).split(',').filter(Boolean) : [];
     },
 
     filteredRows(): any[] {

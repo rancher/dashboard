@@ -2,7 +2,7 @@ import { Prec, StateEffect, StateField, MapMode, EditorSelection, Facet } from '
 import * as View from '@codemirror/view';
 import { EditorView, Direction, ViewPlugin, showPanel } from '@codemirror/view';
 import * as commands from '@codemirror/commands';
-import { completionStatus, startCompletion } from '@codemirror/autocomplete';
+import { completionStatus, deleteBracketPair, startCompletion } from '@codemirror/autocomplete';
 import { yamlLanguage } from '@codemirror/lang-yaml';
 
 // backwards compatibility for old versions not supporting getDrawSelectionConfig
@@ -404,7 +404,8 @@ class EmacsHandler {
         // control. Handling those is currently not supported in this handler
         if (!key)
             return undefined;
-        if (key == "Tab" && (modifier == "" || modifier == "S-") && !this.view.state.facet(emacsTabIndent))
+        // A read-only document has nothing to indent, so Tab and Shift-Tab move focus
+        if (key == "Tab" && (modifier == "" || modifier == "S-") && (!this.view.state.facet(emacsTabIndent) || this.view.state.readOnly))
             return undefined;
         var editor = this;
         var data = this.$data;
@@ -639,7 +640,7 @@ const emacsKeys = {
     "M-C-r": "findprevious",
     "S-M-5": "replace",
     // basic editing
-    "Backspace": commands.deleteCharBackward,
+    "Backspace": view => deleteBracketPair(view) || commands.deleteCharBackward(view),
     "Delete|C-d": commands.deleteCharForward,
     "Return|C-m": insertEmacsNewline,
     "C-j": view => !view.state.readOnly && commands.insertNewline(view),

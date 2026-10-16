@@ -62,11 +62,10 @@ describe('Service Accounts', { testIsolation: false, tags: ['@explorer', '@admin
       cy.wait('@serviceAccDataSmall');
 
       // group by namespace
-      serviceAccountsPagePo.list().resourceTable().sortableTable().groupByButtons(1)
-        .click();
+      serviceAccountsPagePo.list().resourceTable().sortableTable().groupBy('Namespace');
 
       //  check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Age'];
 
       serviceAccountsPagePo.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')

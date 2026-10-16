@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import { AUTH_TYPE, NORMAN, SECRET } from '@shell/config/types';
-import { set } from '@shell/utils/object';
+import { clone, set } from '@shell/utils/object';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import Loading from '@shell/components/Loading';
@@ -12,6 +12,11 @@ import { SECRET_TYPES, GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import FormValidation from '@shell/mixins/form-validation';
 import { toSeconds } from '@shell/utils/duration';
 import { getFleetPolicyDefaults } from '@shell/utils/fleet-policy';
+import {
+  existsInNamespace, fleetWorkspaceOptions, retargetToWorkspaceFromStore, sameReference, showFleetWorkspace
+} from '@shell/utils/fleet-workspace';
+import FleetUtils from '@shell/utils/fleet';
+import { HARVESTER_CONTAINER } from '@shell/store/features';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import GitRepoMetadataTab from '@shell/components/fleet/GitRepoMetadataTab.vue';
@@ -26,6 +31,8 @@ const DEFAULT_POLLING_INTERVAL = 60;
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
 const _SPECIFY = 'specify';
+
+const SECRET_KEYS = ['clientSecretName', 'helmSecretName', 'ociRegistrySecret'];
 
 export default {
   name: 'CruGitRepo',
@@ -112,7 +119,13 @@ export default {
           rules: ['urlRepository'],
         },
       ],
-      touched: null,
+      touched:             null,
+      // What the workspace's Policy filled in, so moving workspace swaps it for the new one's
+      policyDefaults:      {},
+      workspaceNotice:     '',
+      workspaceChange:     null,
+      // The references as they were before the first workspace change, and as the last change left them
+      workspaceReferences: null,
     };
   },
 
@@ -121,6 +134,10 @@ export default {
 
     _SPECIFY() {
       return _SPECIFY;
+    },
+
+    workspaceOptions() {
+      return fleetWorkspaceOptions(this.$store.state?.allWorkspaces, this.$store.state?.allNamespaces).map((opt) => opt.value);
     },
 
     isGithubDotComRepository() {
@@ -140,7 +157,7 @@ export default {
           label:          this.t('fleet.gitRepo.add.steps.metadata.label'),
           subtext:        this.t('fleet.gitRepo.add.steps.metadata.subtext'),
           descriptionKey: 'fleet.gitRepo.add.steps.metadata.description',
-          ready:          this.isView || (!!this.value.metadata.name && this.stepPathErrors('stepMetadata').length === 0),
+          ready:          this.isView || (!!this.value.metadata.name && !!this.value.metadata.namespace && this.stepPathErrors('stepMetadata').length === 0),
           weight:         1
         },
         {
@@ -199,9 +216,18 @@ export default {
       handler:   'updateTls',
       immediate: true
     },
-    workspace(neu) {
-      if ( this.isCreate ) {
+    workspace(neu, old) {
+      const namespace = this.value.metadata.namespace;
+
+      // Follow the header only until the user picks a workspace in the form
+      if ( this.isCreate && (namespace === old || !this.workspaceOptions.includes(namespace)) ) {
         set(this.value, 'metadata.namespace', neu);
+      }
+    },
+
+    'value.metadata.namespace'(neu, old) {
+      if ( this.isCreate && neu && old && neu !== old ) {
+        this.workspaceChange = this.moveToWorkspace(neu);
       }
     },
   },
@@ -211,8 +237,12 @@ export default {
     this.registerBeforeHook(this.doCreateSecrets, `registerAuthSecrets${ new Date().getTime() }`, 99);
     this.registerBeforeHook(this.updateBeforeSave);
 
-    if (this.realMode === _EDIT && this.workspace !== this.value.namespace) {
-      this.$store.commit('updateWorkspace', { value: this.value.namespace, getters: this.$store.getters });
+    if (this.realMode === _EDIT || this.realMode === _VIEW) {
+      showFleetWorkspace(this.$store, this.value.namespace);
+    }
+
+    if (this.isCreate) {
+      this.registerAfterHook(() => showFleetWorkspace(this.$store, this.value.metadata.namespace), 'showSavedWorkspace');
     }
   },
 
@@ -231,7 +261,88 @@ export default {
 
       if (clientSecretName) {
         set(this.value.spec, 'clientSecretName', clientSecretName);
+        this.policyDefaults = { clientSecretName };
       }
+    },
+
+    /**
+     * References are resolved in the resource's own workspace: drop the ones the new workspace
+     * does not have rather than let the save fail. One the user has not changed since is worked
+     * out again from what it was before the first change, so going back to a workspace brings
+     * back what was dropped on the way.
+     */
+    async moveToWorkspace(workspace) {
+      const spec = this.value.spec;
+
+      if (!this.workspaceReferences) {
+        const original = { targets: clone(spec.targets), helmRepoURLRegex: spec.helmRepoURLRegex };
+
+        SECRET_KEYS.forEach((key) => {
+          original[key] = spec[key] === this.policyDefaults[key] ? undefined : spec[key];
+        });
+        this.workspaceReferences = { original, last: clone(original) };
+      }
+
+      const { original, last } = this.workspaceReferences;
+      const removed = [];
+
+      const { targets, removedClusters, removedClusterGroups } = await retargetToWorkspaceFromStore(this.$store, this.referenceBase('targets', spec.targets), workspace);
+
+      spec.targets = targets;
+      last.targets = clone(targets);
+      removedClusters.forEach((name) => removed.push(this.t('fleet.workspaces.moved.cluster', { name })));
+      removedClusterGroups.forEach((name) => removed.push(this.t('fleet.workspaces.moved.clusterGroup', { name })));
+
+      if (this.targetsCreated) {
+        this.targetsCreated = FleetUtils.Application.getTargetMode(targets || [], workspace, this.$store.getters['features/get'](HARVESTER_CONTAINER));
+      }
+
+      for (const key of SECRET_KEYS) {
+        // An existing secret picked in the form is cached as `<namespace>/<name>` and would be put back
+        if (this.tempCachedValues[key]?.selected?.includes('/')) {
+          delete this.tempCachedValues[key];
+        }
+
+        const name = this.referenceBase(key, spec[key], this.policyDefaults[key]);
+
+        if (name && await existsInNamespace(this.$store, SECRET, workspace, name)) {
+          spec[key] = name;
+        } else {
+          delete spec[key];
+
+          if (name) {
+            removed.push(this.t('fleet.workspaces.moved.secret', { name }));
+          }
+        }
+        last[key] = spec[key];
+      }
+
+      if (spec.helmSecretName) {
+        if (spec.helmSecretName === original.helmSecretName && !spec.helmRepoURLRegex) {
+          spec.helmRepoURLRegex = original.helmRepoURLRegex;
+        }
+      } else if (!this.tempCachedValues.helmSecretName) {
+        this.toggleHelmRepoURLRegex(false);
+      }
+
+      this.policyDefaults = {};
+      await this.applyPolicyDefaults();
+
+      if (this.value.metadata.namespace === workspace) {
+        this.workspaceNotice = removed.length ? this.t('fleet.workspaces.moved.removed', { workspace, names: [...new Set(removed)].join(', ') }) : '';
+      }
+    },
+
+    /**
+     * What a reference is worked out from on a workspace change: its value from before the first
+     * change while it still holds what a change, or the workspace's Policy, put there, and the
+     * user's own value once they changed it.
+     */
+    referenceBase(field, current, filledIn) {
+      const { original, last } = this.workspaceReferences;
+      const untouched = sameReference(current, last[field]) || (!!filledIn && current === filledIn);
+
+      return untouched ? clone(original[field]) : current;
     },
 
     stepPathErrors(stepName) {
@@ -470,6 +581,8 @@ export default {
         return;
       }
 
+      await this.workspaceChange;
+
       await this.value.dryRunCreate({
         type:     this.value.type,
         metadata: {
@@ -515,6 +628,8 @@ export default {
         :mode="mode"
         :is-view="isView"
         :name-rules="fvGetAndReportPathRules('metadata.name')"
+        :workspace-options="workspaceOptions"
+        :workspace-notice="workspaceNotice"
         @input="$emit('input', $event)"
       />
     </template>
@@ -538,7 +653,7 @@ export default {
         :value="value"
         :mode="mode"
         :is-view="isView"
-        :workspace="workspace"
+        :workspace="value.metadata.namespace"
         :tls-mode="tlsMode"
         :tls-options="tlsOptions"
         :ca-bundle="caBundle"
@@ -580,8 +695,10 @@ export default {
     >
       <NameNsDescription
         :value="value"
-        :namespaced="false"
         :mode="mode"
+        namespace-label="nameNsDescription.workspace.label"
+        :namespace-options="workspaceOptions"
+        :namespace-create-allowed="false"
         @update:value="$emit('input', $event)"
       />
 
@@ -634,7 +751,7 @@ export default {
             :value="value"
             :mode="mode"
             :is-view="isView"
-            :workspace="workspace"
+            :workspace="value.metadata.namespace"
             :tls-mode="tlsMode"
             :tls-options="tlsOptions"
             :ca-bundle="caBundle"

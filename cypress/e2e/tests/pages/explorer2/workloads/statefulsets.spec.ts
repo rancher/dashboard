@@ -4,6 +4,7 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateStatefulSetsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/statefulsets/statefulsets-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -278,8 +279,14 @@ describe('StatefulSets', { testIsolation: false, tags: ['@explorer2', '@adminUse
       statefulSetListPage.goTo();
       statefulSetListPage.waitForPage();
 
+      // Filter the list down to this statefulset before looking for its row. The List tests above
+      // leave their statefulsets behind while their namespaces are still terminating, so the list
+      // can hold 20+ rows and paginates - the row for this one is then not rendered on the page
+      // shown, and the lookup fails on every retry.
+      statefulSetListPage.list().resourceTable().sortableTable().filter(statefulSetName);
+
       // Wait for the statefulset row to render before opening its action menu.
-      statefulSetListPage.list().resourceTable().sortableTable().rowElementWithName(statefulSetName)
+      statefulSetListPage.list().resourceTable().sortableTable().rowElementWithName(statefulSetName, MEDIUM_TIMEOUT_OPT)
         .should('be.visible');
 
       statefulSetListPage

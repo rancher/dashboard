@@ -16,6 +16,8 @@ import perfSettingsUtils from '@shell/utils/perf-setting.utils';
 import { BadgeState } from '@components/BadgeState';
 import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { useStateColor } from '@shell/composables/useStateColor';
+import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
+import { NAME_FILTER_QUERY, STATE_FILTER_QUERY } from '@shell/config/query-params';
 
 export default {
   name: ResourceListComponentName,
@@ -184,16 +186,18 @@ export default {
     },
 
     activeStateFilters() {
-      const raw = this.$route?.query?.stateFilter;
+      const raw = this.$route?.query?.[STATE_FILTER_QUERY];
 
-      if (!raw) {
+      // With table views the states are terms in the table's query instead
+      if (!raw || isConfigurableTablesEnabled(this.$store)) {
         return [];
       }
 
       const states = raw.split(',').filter(Boolean);
 
       return states.map((s) => {
-        const match = this.rows.find((row) => row.metadata?.state?.name === s);
+        // The model's own state too: the backend doesn't store every state, eg a certificate's `expiring`
+        const match = this.rows.find((row) => row.metadata?.state?.name === s || row.state === s);
 
         if (match) {
           return {
@@ -209,6 +213,10 @@ export default {
       });
     },
 
+    activeNameFilter() {
+      // With table views the name is a term in the table's query instead
+      return isConfigurableTablesEnabled(this.$store) ? '' : this.$route?.query?.[NAME_FILTER_QUERY] || '';
+    },
   },
 
   methods: {
@@ -241,7 +249,14 @@ export default {
     clearStateFilter() {
       const query = { ...this.$route.query };
 
-      delete query.stateFilter;
+      delete query[STATE_FILTER_QUERY];
+      this.$router.push({ ...this.$route, query });
+    },
+
+    clearNameFilter() {
+      const query = { ...this.$route.query };
+
+      delete query[NAME_FILTER_QUERY];
       this.$router.push({ ...this.$route, query });
     },
   },
@@ -355,10 +370,13 @@ export default {
       :load-indeterminate="loadIndeterminate"
     >
       <template
-        v-if="activeStateFilters.length"
+        v-if="activeStateFilters.length || activeNameFilter"
         #subHeader
       >
-        <div class="state-filter-bar text-muted">
+        <div
+          v-if="activeStateFilters.length"
+          class="state-filter-bar text-muted"
+        >
           {{ t('resourceList.stateFilterApplied') }}
           <BadgeState
             v-for="state in activeStateFilters"
@@ -371,6 +389,20 @@ export default {
           <a
             role="button"
             @click="clearStateFilter"
+          >
+            {{ t('resourceList.clearStateFilter') }}
+          </a>
+        </div>
+        <div
+          v-if="activeNameFilter"
+          class="state-filter-bar text-muted"
+        >
+          {{ t('resourceList.nameFilterApplied') }}
+          <span>{{ activeNameFilter }}</span>
+          <span>.</span>
+          <a
+            role="button"
+            @click="clearNameFilter"
           >
             {{ t('resourceList.clearStateFilter') }}
           </a>
@@ -412,6 +444,8 @@ export default {
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
       :external-pagination-enabled="canPaginate"
       :external-pagination-result="paginationResult"
+      :external-pagination-args="pagination"
+      :external-pagination-scope="paginationScope"
       @pagination-changed="paginationChanged"
     />
   </div>

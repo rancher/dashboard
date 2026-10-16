@@ -1,4 +1,6 @@
 import ClusterRepo from '../catalog.cattle.io.clusterrepo';
+import { MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 
 describe('clusterRepo', () => {
   let model: any;
@@ -113,6 +115,70 @@ describe('clusterRepo', () => {
     it('returns default formatted duration for OCI when not set', () => {
       model.spec = { url: 'oci://example.com/chart', insecurePlainHttp: false };
       expect(model.refreshIntervalDisplay).toStrictEqual('1d');
+    });
+  });
+
+  describe('isRancherSource', () => {
+    const build = (spec: any, name: string, systemCatalog?: string) => {
+      const byId = jest.fn((type: string, id: string) => {
+        if (type === MANAGEMENT.SETTING && id === SETTING.SYSTEM_CATALOG) {
+          return systemCatalog === undefined ? undefined : { value: systemCatalog };
+        }
+
+        return undefined;
+      });
+
+      return new ClusterRepo({ metadata: { name }, spec }, {
+        getters: {}, dispatch: jest.fn(), rootGetters: { 'management/byId': byId }
+      });
+    };
+
+    it('returns true for a *.rancher.io url regardless of environment', () => {
+      expect(build({ url: 'https://charts.rancher.io' }, 'rancher-charts', 'external').isRancherSource).toBe(true);
+    });
+
+    it('returns false for a mirrored url in a connected environment', () => {
+      expect(build({ url: 'https://internal-mirror.example.com/charts' }, 'rancher-charts', 'external').isRancherSource).toBe(false);
+    });
+
+    it.each([
+      'rancher-charts',
+      'rancher-partner-charts',
+    ])('returns true for a mirrored %p repo in an airgap environment', (name) => {
+      expect(build({ url: 'https://internal-mirror.example.com/charts' }, name, 'bundled').isRancherSource).toBe(true);
+    });
+
+    it('returns false for a mirrored repo with a non-rancher name in an airgap environment', () => {
+      expect(build({ url: 'https://internal-mirror.example.com/charts' }, 'my-charts', 'bundled').isRancherSource).toBe(false);
+    });
+
+    it('returns false when the system-catalog setting is not exactly bundled', () => {
+      expect(build({ url: 'https://internal-mirror.example.com/charts' }, 'rancher-charts', 'bundle').isRancherSource).toBe(false);
+    });
+
+    it('returns false when the system-catalog setting is missing', () => {
+      expect(build({ url: 'https://internal-mirror.example.com/charts' }, 'rancher-charts', undefined).isRancherSource).toBe(false);
+    });
+
+    describe('isAirgapMirror', () => {
+      it.each([
+        'rancher-charts',
+        'rancher-partner-charts',
+      ])('returns true for a mirrored %p repo in an airgap environment', (name) => {
+        expect(build({ url: 'https://internal-mirror.example.com/charts' }, name, 'bundled').isAirgapMirror).toBe(true);
+      });
+
+      it('returns false for a *.rancher.io url in an airgap environment', () => {
+        expect(build({ url: 'https://charts.rancher.io' }, 'rancher-charts', 'bundled').isAirgapMirror).toBe(false);
+      });
+
+      it('returns false for a mirrored repo in a connected environment', () => {
+        expect(build({ url: 'https://internal-mirror.example.com/charts' }, 'rancher-charts', 'external').isAirgapMirror).toBe(false);
+      });
+
+      it('returns false for a non-rancher name in an airgap environment', () => {
+        expect(build({ url: 'https://internal-mirror.example.com/charts' }, 'my-charts', 'bundled').isAirgapMirror).toBe(false);
+      });
     });
   });
 

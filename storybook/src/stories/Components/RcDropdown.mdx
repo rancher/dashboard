@@ -15,18 +15,21 @@ an `RcDropdownTrigger` and closes on selection, escape, tab, or clicking outside
 
 `RcDropdown` is a composition of building blocks:
 
-- **`RcDropdown`** &mdash; the root component. Place the trigger in its default slot
+- **`RcDropdown`** - the root component. Place the trigger in its default slot
   and the menu content in its `dropdownCollection` slot.
-- **`RcDropdownTrigger`** &mdash; a button (built on `RcButton`) that opens the menu.
+- **`RcDropdownTrigger`** - a button (built on `RcButton`) that opens the menu.
   Accepts the same props as `RcButton` (`variant`, `size`, icons, etc.) and the
   `before`/`default`/`after` slots.
-- **`RcDropdownItem`** &mdash; a clickable menu item. Supports a `disabled` prop and
+- **`RcDropdownItem`** - a clickable menu item. Supports a `disabled` prop and
   a `before` slot for icons.
-- **`RcDropdownItemCheckbox`** &mdash; a menu item with an embedded checkbox, for
-  toggleable options.
-- **`RcDropdownItemSelect`** &mdash; a menu item with an embedded `LabeledSelect`,
+- **`RcDropdownItemCheckbox`** - a menu item that is turned on and off, drawn
+  with a checkbox or, with `indicator="checkmark"`, a checkmark at its end.
+- **`RcDropdownItemRadio`** - a menu item that is one choice of several, marked
+  with a checkmark when it is the chosen one.
+- **`RcDropdownSubmenu`** - a menu item that opens a submenu beside the menu.
+- **`RcDropdownItemSelect`** - a menu item with an embedded `LabeledSelect`,
   for choosing one of several values without leaving the menu.
-- **`RcDropdownSeparator`** &mdash; a visual divider between groups of items.
+- **`RcDropdownSeparator`** - a visual divider between groups of items.
 
 ```html
 <RcDropdown aria-label="Row actions">
@@ -61,6 +64,138 @@ focus management.
 
 <Canvas of={RcDropdownStories.WithCheckboxAndSelectItems} />
 
+## Checkbox Indicators
+
+`RcDropdownItemCheckbox` draws a checkbox by default. With `indicator="checkmark"` a
+checked item is marked with a checkmark at its end instead, which suits a list of
+things shown and hidden, and the `before` slot (drawn only with this indicator)
+holds anything leading the label.
+Both work with `v-model` and keep the menu open for the next item.
+
+<Canvas of={RcDropdownStories.CheckboxIndicators} />
+
+```html
+<RcDropdownItemCheckbox v-model="column.checked" indicator="checkmark">
+  <template #before>
+    <i class="icon icon-folder" aria-hidden="true" />
+  </template>
+  Namespace
+</RcDropdownItemCheckbox>
+```
+
+## Radio Items
+
+`RcDropdownItemRadio` is one choice of several. Set `checked` on the chosen one and
+change the choice on `click`. The menu stays open, so it shows the choice made. When
+the menu holds other items as well, wrap the radios in an element with `role="group"`
+and an `aria-label`.
+
+<Canvas of={RcDropdownStories.RadioItems} />
+
+```html
+<RcDropdownItemRadio
+  v-for="option in densities"
+  :key="option.id"
+  :checked="option.id === density"
+  @click="density = option.id"
+>
+  {{ option.label }}
+</RcDropdownItemRadio>
+```
+
+## Commands for Checkable Items
+
+An `RcDropdownItem` closes the menu when it is activated. A command that changes the
+checkbox or radio items beside it, such as Select All or Reset, takes
+`acts-on-checkable-items` so the menu stays open and their new state shows. The focus
+stays on the command, so a screen reader hears nothing of the change: say what
+changed in an `aria-live` region.
+
+<Canvas of={RcDropdownStories.ActsOnCheckableItems} />
+
+```html
+<RcDropdownItem acts-on-checkable-items @click="selectAll">
+  Select All
+</RcDropdownItem>
+...
+<div class="sr-only" role="status" aria-live="polite">
+  {{ announcement }}
+</div>
+```
+
+## Submenus
+
+`RcDropdownSubmenu` is an item that opens a submenu beside its menu. Put the items in
+its `submenu` slot, and a value to show before the chevron (such as the label of the
+current choice, `groupLabel` below) in its `after` slot. The submenu opens to the
+right, or to the left with `side="left"` for a menu near the right edge of the page.
+
+<Canvas of={RcDropdownStories.Submenus} />
+
+```html
+<RcDropdownSubmenu side="left">
+  Group By
+  <template #after>
+    {{ groupLabel }}
+  </template>
+  <template #submenu>
+    <RcDropdownItemRadio
+      v-for="option in groupOptions"
+      :key="option.id"
+      :checked="option.id === groupBy"
+      @click="groupBy = option.id"
+    >
+      {{ option.label }}
+    </RcDropdownItemRadio>
+  </template>
+</RcDropdownSubmenu>
+```
+
+- A submenu opens on click, on hover, and with `Enter`, `Space` or `ArrowRight`
+  (and also `ArrowLeft` for `side="left"`). Opened from the keyboard, its first item
+  takes the focus.
+- `Escape` or `ArrowLeft` (and also `ArrowRight` for `side="left"`) closes it and
+  returns the focus to the item that opened it.
+- Moving the pointer from one submenu item to another switches submenus after a short
+  delay, so the pointer can cross the items in between on its way into an open
+  submenu.
+- Submenus are one level deep. An `RcDropdownSubmenu` inside a submenu is not drawn,
+  and logs a warning during development.
+
+## Opening Without a Trigger
+
+A menu that is not opened by an `RcDropdownTrigger` is opened and closed through
+`v-model:open`, and positioned against the element its `reference-node` function
+returns. Use it for a menu opened by something that cannot be a trigger, such as a
+table row or a keyboard shortcut. When a key opened it the first item takes the focus,
+and closing it with `Escape` or by choosing an item gives the focus back to whatever
+had it before the menu opened.
+
+<Canvas of={RcDropdownStories.OpenWithoutTrigger} />
+
+```html
+<RcButton
+  ref="button"
+  aria-haspopup="menu"
+  :aria-expanded="open"
+  @click="open = true"
+>
+  Row actions
+</RcButton>
+<RcDropdown
+  v-model:open="open"
+  aria-label="Row actions"
+  placement="bottom-start"
+  :reference-node="() => button?.$el"
+>
+  <template #dropdownCollection>
+    <RcDropdownItem>Edit</RcDropdownItem>
+  </template>
+</RcDropdown>
+```
+
+In the example, `Enter` or `Space` on the button moves the focus to Edit.
+
 ## Placement
 
 The `placement` prop controls where the menu appears relative to its trigger.
@@ -78,7 +213,10 @@ For data-driven action menus, `RcDropdownMenu` composes `RcDropdown`,
 ## Accessibility
 
 - The dropdown menu container has `role="menu"`; items rendered via `RcDropdownItem`
-  have `role="menuitem"`, and `RcDropdownItemCheckbox` has `role="menuitemcheckbox"`.
+  have `role="menuitem"`, `RcDropdownItemCheckbox` has `role="menuitemcheckbox"`, and
+  `RcDropdownItemRadio` has `role="menuitemradio"`.
+- An `RcDropdownSubmenu` item has `aria-haspopup="menu"` and `aria-expanded`, and its
+  label names the submenu it opens.
 - Arrow keys move focus between items, `Escape` closes the menu and returns focus to
   the trigger, and `Tab` closes the menu.
 - Always set `aria-label` on `RcDropdown` (and on `RcDropdownTrigger` when it has no

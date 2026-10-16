@@ -33,6 +33,7 @@ import {
   ProductChild
 } from '@shell/core/plugin-products-external';
 import { AdvancedProductConfigOptionsInternal } from '@shell/core/plugin-products-internal';
+import { HOME_LAYOUT } from '@shell/config/router/route-names';
 
 /** Registration IDs used for different extension points in the extensions catalog */
 export const EXT_IDS = {
@@ -48,6 +49,11 @@ export const EXT_IDS = {
    * string. If a global is not registered, the token name is used as the value.
    */
   I18N_GLOBAL:                      'l10n-global',
+  /**
+   * SUSE extensions can provide a function that returns additional query string
+   * params (telemetry) to be included in the dynamic content request
+   */
+  TELEMETRY:                        'telemetry',
 } as const;
 export type EXT_IDS_VALUES = (typeof EXT_IDS)[keyof typeof EXT_IDS];
 
@@ -360,7 +366,9 @@ export class Plugin implements IPlugin {
   }
 
   setHomePage(component: any) {
-    this.addRoute({
+    // The Home page lives under the home layout. Without a parent the route would be put under the
+    // 'default' layout, which renders nothing without a cluster - and the Home has none.
+    this.addRoute(HOME_LAYOUT, {
       name: 'home',
       path: '/home',
       component

@@ -1,5 +1,5 @@
 import {
-  AGE, CLUSTER_BADGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_PROVIDER, NAME as NAME_COL, STATE
+  AGE, CLUSTER_BADGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_MACHINES, MGMT_CLUSTER_PROVIDER, NAME as NAME_COL, STATE
 } from '@shell/config/table-headers';
 import {
   CAPI,
@@ -20,7 +20,7 @@ import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { markRaw } from 'vue';
 import {
-  STEVE_AGE_COL, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_MGMT_STATE_COL, STEVE_NAMESPACE_COL
+  STEVE_AGE_COL, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_MACHINES, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_MGMT_STATE_COL, STEVE_NAMESPACE_COL
 } from '@shell/config/pagination-table-headers';
 
 export const NAME = 'manager';
@@ -165,15 +165,8 @@ export function init(store) {
 
   weightGroup('advanced', -1, true);
 
-  const MACHINE_SUMMARY = {
-    name:      'summary',
-    labelKey:  'tableHeaders.machines',
-    sort:      false,
-    search:    false,
-    formatter: 'MachineSummaryGraph',
-    align:     'center',
-    width:     100,
-  };
+  // A machine deployment has no machine count to sort on
+  const MACHINE_SUMMARY = { ...MGMT_CLUSTER_MACHINES, sort: false };
 
   const EXPLORER = {
     name:                'explorer',
@@ -182,7 +175,10 @@ export function init(store) {
     align:               'right',
     width:               65,
     sort:                false,
-    search:              false
+    search:              false,
+    formatter:           'ClusterExplore',
+    // A button, not data
+    tableViews:          false,
   };
 
   headers(MANAGEMENT.CLUSTER, [
@@ -198,10 +194,7 @@ export function init(store) {
     CLUSTER_BADGE,
     MGMT_CLUSTER_PROVIDER,
     MGMT_CLUSTER_KUBE_VERSION,
-    {
-      ...MACHINE_SUMMARY,
-      sort: 'statusInfo.nodeCount'
-    },
+    MGMT_CLUSTER_MACHINES,
     AGE,
     EXPLORER,
   ], [
@@ -218,10 +211,7 @@ export function init(store) {
     CLUSTER_BADGE,
     STEVE_MGMT_CLUSTER_PROVIDER,
     STEVE_MGMT_CLUSTER_KUBE_VERSION,
-    {
-      ...MACHINE_SUMMARY,
-      sort: 'status.info.nodeCount'
-    },
+    STEVE_MGMT_CLUSTER_MACHINES,
     STEVE_AGE_COL,
     EXPLORER
   ]);

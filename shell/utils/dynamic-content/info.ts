@@ -10,6 +10,10 @@ import {
 import { SETTING } from '@shell/config/settings';
 import { getVersionData } from '@shell/config/version';
 import { SettingsInfo } from '@shell/utils/dynamic-content/types';
+import { EXT_IDS } from '@shell/core/plugin';
+import { TelemetryFunction, TelemetryParams } from '@shell/core/types';
+
+const MAX_TELEMETRY_LENGTH = 1024; // Max number of characters that extension telemetry can add to the query string
 
 const QS_VERSION = 'v1'; // Include a version number in the query string in case we want to version the set of params we are sending
 const UNKNOWN = 'unknown';
@@ -67,6 +71,7 @@ type SystemInfo = {
   screenSize: string;
   language: string;
   featureFlags: FeatureFlagInfos
+  telemetry: TelemetryParams;
 };
 
 /**
@@ -131,13 +136,13 @@ export class SystemInfoProvider {
 
     // Stats for installed extensions
     const uiExtensionList = getters['uiplugins/plugins'];
+    const suseExtensions = [
+      ...SUSE_EXTENSIONS,
+      ...settingsInfo?.suseExtensions || []
+    ];
     let extensions;
 
     if (uiExtensionList) {
-      const suseExtensions = [
-        ...SUSE_EXTENSIONS,
-        ...settingsInfo?.suseExtensions || []
-      ];
       const notBuiltIn = uiExtensionList.filter((e: any) => !e.builtin);
       const suseNames = notBuiltIn.filter((e: any) => suseExtensions.includes(e.name)).map((e: any) => e.name);
       const customCount = notBuiltIn.length - suseNames.length;
@@ -180,7 +185,52 @@ export class SystemInfoProvider {
       browserSize,
       language:           window.navigator?.language,
       featureFlags:       safeFfs,
+      telemetry:          this.getTelemetry(getters, uiExtensionList, suseExtensions),
     };
+  }
+
+  /**
+   * Collect telemetry params from SUSE extensions (built-in extensions and known SUSE extensions only)
+   *
+   * Each extension can register one or more telemetry functions that return a map of query string params.
+   * The first value provided for a given param wins - an extension can not change the value provided by another.
+   *
+   * Params with an empty name, or with a value that is not a string, number or boolean, are ignored.
+   */
+  private getTelemetry(getters: any, uiExtensionList: any[], suseExtensions: string[]): TelemetryParams {
+    const telemetry: TelemetryParams = {};
+
+    (uiExtensionList || [])
+      .filter((ext: any) => ext.builtin || suseExtensions.includes(ext.name))
+      .forEach((ext: any) => {
+        const fns = ext.types?.[EXT_IDS.TELEMETRY] || {};
+
+        Object.entries(fns).forEach(([name, fn]) => {
+          if (typeof fn !== 'function') {
+            return;
+          }
+
+          try {
+            const params = (fn as TelemetryFunction)(getters);
+
+            if (params && typeof params === 'object' && !Array.isArray(params)) {
+              Object.entries(params).forEach(([param, value]) => {
+                if (!param?.trim()) {
+                  return;
+                }
+
+                if (!(param in telemetry) && ['string', 'number', 'boolean'].includes(typeof value)) {
+                  telemetry[param] = value;
+                }
+              });
+            }
+          } catch (e) {
+            console.debug(`Cannot include telemetry "${ name }" from extension "${ ext.name }" in dynamic content request: `, e); // eslint-disable-line no-console
+          }
+        });
+      });
+
+    return telemetry;
   }
 
   // Helper to get all resources of a type only if they are available
@@ -249,6 +299,31 @@ export class SystemInfoProvider {
 
     Object.values(systemData.featureFlags).forEach((ff) => {
       params.push(`ff-` + `${ ff.param }=${ ff.value }`);
+    });
+
+    // Extension telemetry - these must not overwrite any of the params above and are limited in total size
+    const existing = new Set(params.map((p) => p.split('=')[0]));
+    let telemetryLength = 0;
+
+    Object.entries(systemData.telemetry || {}).forEach(([param, value]) => {
+      const key = encodeURIComponent(param);
+
+      if (!key || existing.has(key)) {
+        return;
+      }
+
+      const entry = `${ key }=${ encodeURIComponent(String(value)) }`;
+
+      // Note, + 1 accounts for the '&' separator
+      if (telemetryLength + entry.length + 1 > MAX_TELEMETRY_LENGTH) {
+        console.debug(`Telemetry param "${ param }" not included in dynamic content request - size limit reached`); // eslint-disable-line no-console
+
+        return;
+      }
+
+      telemetryLength += entry.length + 1;
+      existing.add(key);
+      params.push(entry);
     });
 
     return params.join('&');

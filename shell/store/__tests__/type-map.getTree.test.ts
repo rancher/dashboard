@@ -13,7 +13,8 @@ const schema = {
 
 // Minimal getters/rootGetters surface that `getTree` touches when building one
 // namespaced type in the "used" tree, with no search term.
-const typeMapGetters = () => ({
+const typeMapGetters = (hasCustomList = false) => ({
+  hasCustomList:       () => hasCustomList,
   isIgnored:           () => false,
   groupForBasicType:   () => false,
   groupLabelFor:       (s: any) => (typeof s === 'string' ? s : 'Workloads'),
@@ -23,19 +24,20 @@ const typeMapGetters = () => ({
   groupLabel:          () => undefined,
 });
 
-const rootGetters = (count: number) => ({
-  'i18n/current':  () => 'en',
-  'i18n/default':  () => 'en',
-  'i18n/exists':   () => false,
-  'i18n/t':        (k: string) => k,
-  productId:       () => 'explorer',
-  currentStore:    () => 'cluster',
-  'cluster/count': () => count,
+const rootGetters = (count: number, canList = true) => ({
+  'i18n/current':    () => 'en',
+  'i18n/default':    () => 'en',
+  'i18n/exists':     () => false,
+  'i18n/t':          (k: string) => k,
+  productId:         () => 'explorer',
+  currentStore:      () => 'cluster',
+  'cluster/count':   () => count,
+  'cluster/canList': () => canList,
 });
 
-const allTypes = () => ({
+const allTypes = (overrides = {}) => ({
   pod: {
-    name: 'pod', label: 'Pods', namespaced: true, schema
+    name: 'pod', label: 'Pods', namespaced: true, schema, ...overrides
   }
 });
 
@@ -46,6 +48,10 @@ const tree = (mode: string, count: number) => getters.getTree(
 )('explorer', mode, allTypes(), 'c1', null, null);
 
 const usedTree = (count: number) => tree(TYPE_MODES.USED, count);
+
+const unlistableTree = (mode: string, { hasCustomList = false, typeOverrides = {} } = {}) => getters.getTree(
+  {} as any, typeMapGetters(hasCustomList) as any, { $router: {} } as any, rootGetters(0, false) as any
+)('explorer', mode, allTypes(typeOverrides), 'c1', null, null);
 
 describe('type-map', () => {
   describe('getters', () => {
@@ -67,6 +73,30 @@ describe('type-map', () => {
 
           expect(groups.map((g) => g.name)).toStrictEqual([FAVORITE_GROUP]);
           expect(namesIn(groups[0].children)).toStrictEqual(['pod']);
+        });
+      });
+
+      describe('types the user cannot list', () => {
+        it.each([
+          TYPE_MODES.USED,
+          TYPE_MODES.FAVORITE,
+          TYPE_MODES.ALL,
+        ])("excludes a schema backed type in mode '%s'", (mode) => {
+          expect(namesIn(unlistableTree(mode))).not.toContain('pod');
+        });
+
+        it('includes a type with a custom list component', () => {
+          expect(namesIn(unlistableTree(TYPE_MODES.USED, { hasCustomList: true }))).toContain('pod');
+        });
+
+        it('includes a type with a custom route', () => {
+          const route = { name: 'c-cluster-product-custom', params: {} };
+
+          expect(namesIn(unlistableTree(TYPE_MODES.USED, { typeOverrides: { route } }))).toContain('pod');
+        });
+
+        it('includes a virtual type, which has no schema', () => {
+          expect(namesIn(unlistableTree(TYPE_MODES.USED, { typeOverrides: { schema: undefined } }))).toContain('pod');
         });
       });
     });

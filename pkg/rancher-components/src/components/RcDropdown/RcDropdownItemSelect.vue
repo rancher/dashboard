@@ -29,7 +29,9 @@ defineProps({
 });
 const emits = defineEmits(['click', 'select']);
 
-const { handleKeydown, handleActivate, scrollIntoView } = useDropdownItem();
+const {
+  handleKeydown, handleActivate, scrollIntoView, handleMouseenter
+} = useDropdownItem();
 
 const dropdownMenuItem = ref<HTMLDivElement | null>(null);
 const menuItemSelect = ref<LabeledSelectComponent | null>(null);
@@ -55,6 +57,7 @@ const focusMenuItem = () => {
     @keydown.enter.space="handleActivate"
     @keydown.up.down.prevent.stop="handleKeydown"
     @focusin="scrollIntoView"
+    @mouseenter="handleMouseenter"
   >
     <LabeledSelect
       ref="menuItemSelect"
@@ -83,7 +86,7 @@ const focusMenuItem = () => {
       cursor: pointer;
       background-color: var(--dropdown-hover-bg);
     }
-    &:focus-visible, &:focus {
+    &:focus-visible {
       @include focus-outline;
       outline-offset: 0;
     }

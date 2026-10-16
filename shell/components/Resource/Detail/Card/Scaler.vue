@@ -7,12 +7,22 @@ export interface Props {
   value?: number;
   min?: number;
   max?: number;
+  /**
+   * Blocks both buttons while leaving them focusable.
+   */
+  disabled?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  value: 0, min: undefined, max: undefined
+  value: 0, min: undefined, max: undefined, disabled: false
 });
 const emit = defineEmits(['decrease', 'increase']);
+
+const scale = (direction: 'decrease' | 'increase', value: number) => {
+  if (!props.disabled) {
+    emit(direction, value);
+  }
+};
 
 const store = useStore();
 const i18n = useI18n(store);
@@ -27,8 +37,9 @@ const i18n = useI18n(store);
       class="decrease"
       :aria-label="i18n.t('component.resource.detail.card.scaler.ariaLabel.decrease', {resourceName: props.ariaResourceName})"
       :disabled="!!props.min && (props.value <= props.min)"
+      :aria-disabled="props.disabled"
       data-testid="scaler-decrease"
-      @click="() => emit('decrease', props.value - 1)"
+      @click="scale('decrease', props.value - 1)"
     >
       <i class="icon icon-sm icon-minus" />
     </button>
@@ -42,8 +53,9 @@ const i18n = useI18n(store);
       class="increase"
       :aria-label="i18n.t('component.resource.detail.card.scaler.ariaLabel.increase', {resourceName: props.ariaResourceName})"
       :disabled="!!props.max && (props.value >= props.max)"
+      :aria-disabled="props.disabled"
       data-testid="scaler-increase"
-      @click="() => emit('increase', props.value + 1)"
+      @click="scale('increase', props.value + 1)"
     >
       <i class="icon icon-sm icon-plus" />
     </button>
@@ -81,7 +93,8 @@ const i18n = useI18n(store);
       background-color: var(--accent-btn);
     }
 
-    &[disabled] {
+    &[disabled],
+    &[aria-disabled='true'] {
       cursor: not-allowed;
       background: var(--disabled-bg);
       color: var(--disabled-text);

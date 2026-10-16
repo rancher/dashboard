@@ -6,12 +6,13 @@ import { uniq } from '@shell/utils/array';
  *
  * Can be overriden
  */
-const DEFAULT_MANDATORY_SORT = ['nameSort', 'id'];
+export const DEFAULT_MANDATORY_SORT = ['nameSort', 'id'];
 
 export default {
   computed: {
     sortFields() {
-      let fromGroup = ( this.groupBy ? this.groupSort || this.groupBy : null) || [];
+      const groupField = this.groupSort || (typeof this.groupBy === 'function' ? null : this.groupBy);
+      let fromGroup = ( this.groupBy ? groupField : null) || [];
       let fromColumn = [];
 
       const column = (this.columns || this.headers).find((x) => x && x.name && x.name.toLowerCase() === this.sortBy.toLowerCase());
@@ -123,7 +124,12 @@ export default {
   },
 
   watch: {
-    sortFields() {
+    sortFields(neu, old) {
+      // A computed array is new on every render; emitting for an unchanged sort refetches forever
+      if (neu?.join(',') === old?.join(',')) {
+        return;
+      }
+
       this.debouncedPaginationChanged();
     },
 

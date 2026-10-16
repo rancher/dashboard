@@ -10,6 +10,7 @@ import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import config from '@shell/edit/auth/ldap/config';
+import AuthConfigIdentity from '@shell/components/auth/AuthConfigIdentity.vue';
 import AuthConfig from '@shell/mixins/auth-config';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import Password from '@shell/components/form/Password';
@@ -22,6 +23,7 @@ const AUTH_TYPE = 'ldap';
 
 export default {
   components: {
+    AuthConfigIdentity,
     Loading,
     CruResource,
     LabeledInput,
@@ -84,7 +86,6 @@ export default {
 
   created() {
     this.tlsEnabledRef = !!(this.model?.tls || this.model?.starttls);
-    this.isActiveDirectoryRef = this.NAME === 'activedirectory';
     this.registerBeforeHook(this.validateAllFields, 'willSave');
   },
 
@@ -130,6 +131,12 @@ export default {
   },
 
   watch: {
+    NAME: {
+      handler(neu) {
+        this.isActiveDirectoryRef = neu === 'activedirectory';
+      },
+      immediate: true,
+    },
     'model.tls'(neu) {
       this.tlsEnabledRef = !!(neu || this.model?.starttls);
     },
@@ -159,9 +166,17 @@ export default {
       @finish="save"
       @cancel="cancel"
     >
+      <AuthConfigIdentity
+        v-model:name="configName"
+        v-model:description="configDescription"
+        :name-fixed="configNameFixed"
+        :name-error="configNameError"
+      />
+
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <AuthBanner
           :t-args="tArgs"
+          :name="authConfigDisplayName"
           :disable="disable"
           :edit="goToEdit"
           :provider-id="model.id"
@@ -169,6 +184,12 @@ export default {
           <template #rows>
             <tr><td>{{ t(`authConfig.ldap.table.server`) }}: </td><td>{{ serverUrl }}</td></tr>
             <tr><td>{{ t(`authConfig.ldap.table.clientId`) }}: </td><td>{{ model.serviceAccountDistinguishedName || model.serviceAccountUsername }}</td></tr>
+            <tr v-if="model.userIDAttribute">
+              <td>{{ t('authConfig.ldap.userIDAttribute') }}: </td><td>{{ model.userIDAttribute }}</td>
+            </tr>
+            <tr v-if="model.groupIDAttribute">
+              <td>{{ t('authConfig.ldap.groupIDAttribute') }}: </td><td>{{ model.groupIDAttribute }}</td>
+            </tr>
           </template>
         </AuthBanner>
 
@@ -192,6 +213,7 @@ export default {
           v-model:value="model"
           :type="NAME"
           :mode="mode"
+          :is-create="!model.enabled"
         />
 
         <h4>{{ t('authConfig.testAndEnable') }}</h4>
@@ -200,6 +222,7 @@ export default {
             <LabeledInput
               v-model:value="username"
               name="username"
+              data-testid="ldap-test-username"
               :label="t(`authConfig.${AUTH_TYPE}.username`)"
               :mode="mode"
               required
@@ -209,6 +232,7 @@ export default {
             <Password
               v-model:value="password"
               name="password"
+              data-testid="ldap-test-password"
               :label="t(`authConfig.${AUTH_TYPE}.password`)"
               :mode="mode"
               required

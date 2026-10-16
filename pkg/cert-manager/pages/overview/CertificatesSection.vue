@@ -5,9 +5,9 @@ import { RcButton } from '@components/RcButton';
 import RichTranslation from '@shell/components/RichTranslation.vue';
 import SubtleLink from '@shell/components/SubtleLink.vue';
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
+import StatusSummaryCard from '@shell/components/Resource/Detail/Card/StatusSummaryCard/index.vue';
 import { stateColorCssVar } from '@shell/utils/style';
 import type { RouteLocationRaw } from 'vue-router';
-import OverviewCard from './OverviewCard.vue';
 import { CERT_MANAGER_DOCS } from './composable';
 import type { OverviewStatusCard, ExpiringSoonRow } from './types';
 
@@ -39,7 +39,13 @@ const { t } = useI18n(useStore());
       </h4>
 
       <div class="card-grid">
-        <OverviewCard :card="summary" />
+        <StatusSummaryCard
+          :title="summary.title"
+          :total="summary.total"
+          :segments="summary.segments"
+          :rows="summary.rows"
+          :to="summary.to"
+        />
 
         <Card :title="t('certManager.overview.expiry.expiringSoon')">
           <ul

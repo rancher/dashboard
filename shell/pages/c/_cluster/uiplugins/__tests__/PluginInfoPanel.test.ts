@@ -1,6 +1,7 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import PluginInfoPanel from '@shell/pages/c/_cluster/uiplugins/PluginInfoPanel.vue';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { getPluginChartVersion } from '@shell/utils/uiplugins';
 
 jest.mock('@shell/config/uiplugins', () => ({
   ...jest.requireActual('@shell/config/uiplugins'),
@@ -8,6 +9,7 @@ jest.mock('@shell/config/uiplugins', () => ({
 }));
 
 jest.mock('@shell/utils/uiplugins', () => ({
+  ...jest.requireActual('@shell/utils/uiplugins'),
   getPluginChartVersionLabel: jest.fn((v) => v.version),
   getPluginChartVersion:      jest.fn(),
 }));
@@ -98,6 +100,123 @@ describe('component: PluginInfoPanel', () => {
       const label = wrapper.vm.getVersionLabel(version);
 
       expect(label).toBe('1.0.0 (plugins.labels.current)');
+    });
+  });
+
+  describe('versions list', () => {
+    const makeVersions = (versions: string[]) => versions.map((version) => ({
+      version, appVersion: version, isVersionCompatible: true, versionIncompatibilityData: {}
+    }));
+    const allVersions = makeVersions(['4.1.3', '4.1.2', '4.1.1', '4.1.0', '3.0.11', '3.0.8', '2.2.0', '2.1.12', '2.0.0']);
+    const versionStrings = (versions: any[]) => versions.map((v) => v.version);
+
+    beforeEach(() => {
+      wrapper = mountComponent();
+      (getPluginChartVersion as jest.Mock).mockReset();
+    });
+
+    describe('currentVersion', () => {
+      it('should resolve the installed version to its chart version', () => {
+        wrapper.vm.info = {
+          installed:        true,
+          installedVersion: '4.1.0',
+          versions:         [{
+            version: '0.4.10', appVersion: '4.1.0', isVersionCompatible: true, versionIncompatibilityData: {}
+          }]
+        };
+
+        expect(wrapper.vm.currentVersion).toBe('0.4.10');
+      });
+
+      it('should fall back to the installed version if no chart version matches it', () => {
+        wrapper.vm.info = {
+          installed: true, installedVersion: '4.1.0', versions: allVersions.slice(0, 1)
+        };
+
+        expect(wrapper.vm.currentVersion).toBe('4.1.0');
+      });
+
+      it('should use the pre-selected version if the extension is not installed', () => {
+        (getPluginChartVersion as jest.Mock).mockReturnValue('4.1.3');
+        wrapper.vm.info = { installed: false, versions: allVersions };
+
+        expect(wrapper.vm.currentVersion).toBe('4.1.3');
+      });
+    });
+
+    describe('displayedVersions', () => {
+      it('should only keep the latest version per minor around the installed version', () => {
+        wrapper.vm.info = {
+          installed: true, installedVersion: '4.1.0', versions: allVersions
+        };
+
+        expect(versionStrings(wrapper.vm.displayedVersions)).toStrictEqual(['4.1.3', '4.1.0', '3.0.11', '2.2.0']);
+      });
+
+      it('should always keep the selected version, even when it would be trimmed', () => {
+        wrapper.vm.info = {
+          installed: true, installedVersion: '4.1.0', versions: allVersions
+        };
+        wrapper.vm.infoVersion = '2.0.0';
+
+        expect(versionStrings(wrapper.vm.displayedVersions)).toStrictEqual(['4.1.3', '4.1.0', '3.0.11', '2.2.0', '2.0.0']);
+      });
+
+      it('should keep every version once all versions are shown', () => {
+        wrapper.vm.info = {
+          installed: true, installedVersion: '4.1.0', versions: allVersions
+        };
+        wrapper.vm.showAllVersions = true;
+
+        expect(versionStrings(wrapper.vm.displayedVersions)).toStrictEqual(versionStrings(allVersions));
+      });
+
+      it('should be empty if the extension has no versions', () => {
+        wrapper.vm.info = { installed: false, versions: [] };
+
+        expect(wrapper.vm.displayedVersions).toStrictEqual([]);
+      });
+    });
+
+    describe('hasHiddenVersions', () => {
+      it('should be true when versions were trimmed out of the list', () => {
+        wrapper.vm.info = {
+          installed: true, installedVersion: '4.1.0', versions: allVersions
+        };
+
+        expect(wrapper.vm.hasHiddenVersions).toBe(true);
+      });
+
+      it('should be false when there was nothing to trim', () => {
+        wrapper.vm.info = {
+          installed: true, installedVersion: '2.0.0', versions: makeVersions(['2.2.0', '2.1.12', '2.0.0'])
+        };
+
+        expect(wrapper.vm.hasHiddenVersions).toBe(false);
+      });
+
+      it('should be false once all versions are shown', () => {
+        wrapper.vm.info = {
+          installed: true, installedVersion: '4.1.0', versions: allVersions
+        };
+        wrapper.vm.showAllVersions = true;
+
+        expect(wrapper.vm.hasHiddenVersions).toBe(false);
+      });
+    });
+
+    it('should collapse the list again when the panel is opened for another extension', () => {
+      wrapper.vm.info = {
+        installed: true, installedVersion: '4.1.0', versions: allVersions
+      };
+      wrapper.vm.showAllVersions = true;
+
+      wrapper.vm.show({
+        installed: true, installedVersion: '4.1.0', versions: allVersions
+      });
+
+      expect(wrapper.vm.showAllVersions).toBe(false);
+      expect(versionStrings(wrapper.vm.displayedVersions)).toStrictEqual(['4.1.3', '4.1.0', '3.0.11', '2.2.0']);
     });
   });
 

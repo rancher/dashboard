@@ -1,5 +1,4 @@
 <script>
-
 import { defineComponent } from 'vue';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
@@ -14,7 +13,8 @@ import DayTwoOps from '@pkg/imported/components/DayTwoOps.vue';
 import Banner from '@components/Banner/Banner.vue';
 import { compare } from '@shell/utils/version';
 import { VERSION_MANAGEMENT_DEFAULT, DAY_2_OPS_DEFAULT as DEFAULT } from '@pkg/imported/util/shared.ts';
-
+import { RcContentGroup } from '@components/Layout';
+import { RcSection, SECTION_TYPE } from '@components/RcSection';
 export default defineComponent({
   name:       'Basics',
   components: {
@@ -23,7 +23,9 @@ export default defineComponent({
     LabeledInput,
     VersionManagement,
     Banner,
-    DayTwoOps
+    DayTwoOps,
+    RcContentGroup,
+    RcSection
   },
   props: {
     mode: {
@@ -107,10 +109,19 @@ export default defineComponent({
       }),
       type: Object,
     },
+    // The version picked by the user, and the deprecated patches toggle, so both survive this being remounted (e.g. within a collapsed RcSection)
+    selectedKubernetesVersion: {
+      type:    String,
+      default: null
+    },
+    showDeprecatedPatches: {
+      type:    Boolean,
+      default: false
+    },
 
   },
   emits: ['kubernetes-version-changed', 'drain-server-nodes-changed', 'server-concurrency-changed',
-    'drain-worker-nodes-changed', 'worker-concurrency-changed', 'enable-day-two-ops-changed', 'version-management-changed', 'input'],
+    'drain-worker-nodes-changed', 'worker-concurrency-changed', 'enable-day-two-ops-changed', 'version-management-changed', 'show-deprecated-patches-changed', 'input'],
   data() {
     const store = this.$store;
     const supportedVersionRange = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
@@ -118,8 +129,13 @@ export default defineComponent({
     const versionMismatch = false;
 
     return {
-      supportedVersionRange, originalVersion, showDeprecatedPatchVersions: false, kubernetesVersion: originalVersion, versionMismatch
+      supportedVersionRange, originalVersion, showDeprecatedPatchVersions: this.showDeprecatedPatches, kubernetesVersion: this.selectedKubernetesVersion || originalVersion, versionMismatch, SECTION_TYPE
     };
+  },
+  watch: {
+    showDeprecatedPatchVersions(neu) {
+      this.$emit('show-deprecated-patches-changed', neu);
+    }
   },
   created() {
     if ( !!this.config?.kubernetesVersion && !!this.value?.version?.gitVersion) {
@@ -157,57 +173,64 @@ export default defineComponent({
 
 </script>
 <template>
-  <div
-    v-if="showVersionInformation"
-  >
-    <Banner
-      v-if="versionMismatch"
-      label-key="imported.basics.versionMismatch"
-      color="warning"
-    />
-    <div class="row row-basics mb-20">
-      <div class="col-basics mr-10 span-6">
-        <LabeledSelect
-          v-model:value="kubernetesVersion"
-          data-testid="cruimported-kubernetesversion"
-          :mode="mode"
-          :options="versionOptions"
-          label-key="cluster.kubernetesVersion.label"
-          option-key="value"
-          option-label="label"
-          :disabled="versionInformationDisabled"
-          :loading="loadingVersions"
-          @update:value="$emit('kubernetes-version-changed', $event)"
+  <RcContentGroup>
+    <RcSection
+      v-if="showVersionManagement || showVersionInformation"
+      :title="t('imported.basics.versionManagement.title')"
+      mode="with-header"
+      :type="SECTION_TYPE.SECONDARY"
+      :expandable="true"
+    >
+      <VersionManagement
+        v-if="showVersionManagement"
+        :value="versionManagement"
+        :global-setting="versionManagementGlobalSetting"
+        :mode="mode"
+        :old-value="versionManagementOld"
+        :is-local="isLocal"
+        @version-management-changed="$emit('version-management-changed', $event)"
+      />
+      <RcContentGroup v-if="showVersionInformation">
+        <Banner
+          v-if="versionMismatch"
+          label-key="imported.basics.versionMismatch"
+          color="warning"
+          class="m-0"
         />
-      </div>
-      <div class="col-basics span-6 mt-15">
-        <Checkbox
-          v-model:value="showDeprecatedPatchVersions"
-          :mode="mode"
-          :label="t('cluster.kubernetesVersion.deprecatedPatches')"
-          :tooltip="t('cluster.kubernetesVersion.deprecatedPatchWarning')"
-          :disabled="versionInformationDisabled"
-          class="patch-version"
-        />
-      </div>
-    </div>
-  </div>
-  <VersionManagement
-    v-if="showVersionManagement"
-    :value="versionManagement"
-    :global-setting="versionManagementGlobalSetting"
-    :mode="mode"
-    :old-value="versionManagementOld"
-    :is-local="isLocal"
-    @version-management-changed="$emit('version-management-changed', $event)"
-  />
-  <div
-    v-if="showVersionInformation"
-    class="mt-10 mb-10"
-  >
-    <h3 v-t="'imported.upgradeStrategy.header'" />
-    <div class="col mt-10 mb-10">
-      <div class="col mt-5">
+        <div class="row row-basics align-center">
+          <div class="col-basics mr-10 span-6">
+            <LabeledSelect
+              v-model:value="kubernetesVersion"
+              data-testid="cruimported-kubernetesversion"
+              :mode="mode"
+              :options="versionOptions"
+              label-key="cluster.kubernetesVersion.label"
+              option-key="value"
+              option-label="label"
+              :disabled="versionInformationDisabled"
+              :loading="loadingVersions"
+              @update:value="$emit('kubernetes-version-changed', $event)"
+            />
+          </div>
+          <div class="col-basics span-6">
+            <Checkbox
+              v-model:value="showDeprecatedPatchVersions"
+              :mode="mode"
+              :label="t('cluster.kubernetesVersion.deprecatedPatches')"
+              :tooltip="t('cluster.kubernetesVersion.deprecatedPatchWarning')"
+              :disabled="versionInformationDisabled"
+              class="patch-version"
+            />
+          </div>
+        </div>
+      </RcContentGroup>
+      <RcSection
+        v-if="showVersionInformation"
+        :title="t('imported.upgradeStrategy.header')"
+        mode="with-header"
+        :type="SECTION_TYPE.SECONDARY"
+        :expandable="true"
+      >
         <Checkbox
           :value="upgradeStrategy.drainServerNodes"
           :mode="mode"
@@ -215,8 +238,6 @@ export default defineComponent({
           :disabled="versionInformationDisabled"
           @update:value="$emit('drain-server-nodes-changed', $event)"
         />
-      </div>
-      <div class="col mt-5">
         <Checkbox
           :value="upgradeStrategy.drainWorkerNodes"
           :mode="mode"
@@ -224,35 +245,33 @@ export default defineComponent({
           :disabled="versionInformationDisabled"
           @update:value="$emit('drain-worker-nodes-changed', $event)"
         />
-      </div>
-    </div>
-    <div class="row row-basics">
-      <div class="col-basics mr-10 span-6">
-        <LabeledInput
-          :value="upgradeStrategy.serverConcurrency"
-          :mode="mode"
-          :label="t('cluster.rke2.controlPlaneConcurrency.label')"
-          :rules="rules.concurrency"
-          :disabled="versionInformationDisabled"
-          required
-          class="mb-10"
-          @update:value="$emit('server-concurrency-changed', $event)"
-        />
-      </div>
-      <div class="col-basics span-6">
-        <LabeledInput
-          :value="upgradeStrategy.workerConcurrency"
-          :mode="mode"
-          :label="t('cluster.rke2.workerConcurrency.label')"
-          :rules="rules.concurrency"
-          :disabled="versionInformationDisabled"
-          required
-          class="mb-10"
-          @update:value="$emit('worker-concurrency-changed', $event)"
-        />
-      </div>
-    </div>
-  </div>
+        <div class="row row-basics">
+          <div class="col-basics mr-10 span-6">
+            <LabeledInput
+              :value="upgradeStrategy.serverConcurrency"
+              :mode="mode"
+              :label="t('cluster.rke2.controlPlaneConcurrency.label')"
+              :rules="rules.concurrency"
+              :disabled="versionInformationDisabled"
+              required
+              @update:value="$emit('server-concurrency-changed', $event)"
+            />
+          </div>
+          <div class="col-basics span-6">
+            <LabeledInput
+              :value="upgradeStrategy.workerConcurrency"
+              :mode="mode"
+              :label="t('cluster.rke2.workerConcurrency.label')"
+              :rules="rules.concurrency"
+              :disabled="versionInformationDisabled"
+              required
+              @update:value="$emit('worker-concurrency-changed', $event)"
+            />
+          </div>
+        </div>
+      </RcSection>
+    </RcSection>
+  </RcContentGroup>
   <DayTwoOps
     v-if="!isLocal && dayTwoOpsFlag"
     :value="dayTwoOps"

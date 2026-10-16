@@ -15,7 +15,7 @@ const rows = [
   { id: 'e', state: 'expired' },
 ];
 
-function mountWith(stateFilter?: string) {
+function mountWith(stateFilter?: string, tableViews = false) {
   return shallowMount(ListCertificate as any, {
     props: {
       resource: 'cert-manager.io.certificate',
@@ -25,7 +25,7 @@ function mountWith(stateFilter?: string) {
     global: {
       mocks: {
         $route: { query: stateFilter === undefined ? {} : { stateFilter } },
-        $store: { getters: { 'type-map/headersFor': () => HEADERS } },
+        $store: { getters: { 'type-map/headersFor': () => HEADERS, 'features/get': () => tableViews } },
       },
       stubs: { ResourceTable: true },
     },
@@ -73,5 +73,11 @@ describe('list: cert-manager.io.certificate', () => {
     const wrapper = mountWith(undefined);
 
     expect((wrapper.vm as any).headers).toStrictEqual(HEADERS);
+  });
+
+  it('leaves the states to the table views when they are on', () => {
+    const wrapper = mountWith('expiring', true);
+
+    expect((wrapper.vm as any).filteredRows).toStrictEqual(rows);
   });
 });

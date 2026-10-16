@@ -161,7 +161,10 @@ describe('component: RcCodeMirror emacs keymap', () => {
     }).toStrictEqual(expected);
   });
 
-  it.each(['C-s', 'C-r'])('does not open a search panel with %s', (keys) => {
+  it.each([
+    ['opens', 'C-s', true],
+    ['does not open', 'C-r', false]
+  ])('%s a search panel with %s', (_description, keys, opens) => {
     wrapper = shallowMount(RcCodeMirror, {
       props:    { keymap: 'emacs', modelValue: 'find me' },
       attachTo: document.body
@@ -171,7 +174,7 @@ describe('component: RcCodeMirror emacs keymap', () => {
     view.focus();
     view.contentDOM.dispatchEvent(keyEvent(keys));
 
-    expect(wrapper.find('.cm-search').exists()).toBe(false);
+    expect(wrapper.find('.cm-search').exists()).toBe(opens);
   });
 
   it.each(['Return', 'C-j', 'Tab', 'S-Tab', 'M-c', 'M-Space'])(

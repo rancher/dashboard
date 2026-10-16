@@ -7,6 +7,12 @@ const DEFAULT_TIMEOUT = 5000;
 
 const MAX_GROWLS = 5;
 
+/** Something the growl offers to do. Not kept in the notification centre: see forNotification */
+export interface GrowlAction {
+  label: string;
+  run: () => void;
+}
+
 /**
  * A growl on the stack, as built by the `add` mutation. `id` and `started` are
  * always set there, everything else comes from the data given to the actions.
@@ -31,6 +37,12 @@ export interface Growl {
    * Epoch ms before which the growl should not be closed.
    */
   earliestClose?: number;
+  /**
+   * - **{@link GrowlAction}**
+   *
+   * One thing the growl offers to do, eg undo
+   */
+  action?: GrowlAction;
 }
 
 export type GrowlData = Omit<Growl, 'id' | 'started'>;
@@ -42,6 +54,13 @@ export interface GrowlState {
 }
 
 type GrowlContext = ActionContext<GrowlState, any>;
+
+/** Everything but the action, whose callback can't be stored */
+function forNotification(data: GrowlData): Omit<GrowlData, 'action'> {
+  const { action, ...rest } = data;
+
+  return rest;
+}
 
 export const state = function(): GrowlState {
   return {
@@ -114,7 +133,7 @@ export const actions = {
   async success({ commit, dispatch }: GrowlContext, data: GrowlData) {
     // Send a notification for the growl
     const notification: string = await dispatch('notifications/fromGrowl', {
-      ...data,
+      ...forNotification(data),
       level: NotificationLevel.Success
     }, { root: true });
 
@@ -139,7 +158,7 @@ export const actions = {
   async warning({ commit, dispatch }: GrowlContext, data: GrowlData) {
     // Send a notification for the growl
     const notification: string = await dispatch('notifications/fromGrowl', {
-      ...data,
+      ...forNotification(data),
       level: NotificationLevel.Warning
     }, { root: true });
 
@@ -155,7 +174,7 @@ export const actions = {
   async error({ commit, dispatch }: GrowlContext, data: GrowlData) {
     // Send a notification for the growl
     const notification: string = await dispatch('notifications/fromGrowl', {
-      ...data,
+      ...forNotification(data),
       level: NotificationLevel.Error
     }, { root: true });
 

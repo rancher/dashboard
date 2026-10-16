@@ -8,10 +8,10 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import { AUTOSCALER_ENABLED } from '@shell/config/table-headers';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
+import { clusterPinnedQueryFields } from '@shell/utils/table-views/query-fields';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
 import { FilterArgs, PaginationArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
-import MachineSummaryGraph from '@shell/components/formatter/MachineSummaryGraph.vue';
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import ManagementClusterUtils from '@shell/list/utils/management.cattle.io.cluster.utils';
@@ -24,7 +24,6 @@ export default {
     Banner,
     PaginatedResourceTable,
     Masthead,
-    MachineSummaryGraph,
     RcButton,
   },
 
@@ -185,6 +184,20 @@ export default {
   },
 
   computed: {
+    /** `pinned:true` / `pinned:false`: the rows are management clusters, as the pins are */
+    pinnedQueryFields() {
+      return clusterPinnedQueryFields(this.$store, (key: string) => this.t(key), {
+        idPath: 'id', serverPath: 'metadata.name', total: this.clusterCount
+      });
+    },
+
+    /** The explorer's list is of provisioning clusters, which hold their management cluster's id */
+    provPinnedQueryFields() {
+      return clusterPinnedQueryFields(this.$store, (key: string) => this.t(key), {
+        idPath: 'status.clusterName', serverPath: 'status.clusterName', rows: this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER)
+      });
+    },
+
     isExplorer() {
       const product = this.$store.getters['currentProduct'];
 
@@ -278,6 +291,7 @@ export default {
     <template v-if="isExplorer">
       <PaginatedResourceTable
         :schema="provClusterSchema"
+        :query-fields="provPinnedQueryFields"
 
         :local-filter="filterProvRowsLocal"
         :api-filter="filterProvRowsApi"
@@ -307,6 +321,7 @@ export default {
 
       <PaginatedResourceTable
         :schema="mgmtClusterSchema"
+        :query-fields="pinnedQueryFields"
 
         :headers="headers"
         :pagination-headers="paginationHeaders"
@@ -324,35 +339,7 @@ export default {
         :namespaced="true"
 
         :data-testid="'cluster-list'"
-      >
-        <template #cell:summary="{row}">
-          <!-- Replace the MACHINE_SUMMARY columns contents... but only if there's no stateParts -->
-          <span v-if="!row.stateParts.length">{{ row.statusInfo.nodeCount || 0 }}</span>
-          <MachineSummaryGraph
-            v-else
-            :row="row"
-          />
-        </template>
-        <template #cell:explorer="{row}">
-          <!-- Align side nav cluster, home page name link and cluster management cluster explor buttons on canExplore -->
-          <rc-button
-            v-if="row.canExplore"
-            variant="secondary"
-            data-testid="cluster-manager-list-explore-management"
-            :to="{name: 'c-cluster', params: {cluster: row.id}}"
-          >
-            {{ t('cluster.explore') }}
-          </rc-button>
-          <rc-button
-            v-else
-            variant="secondary"
-            data-testid="cluster-manager-list-explore"
-            :disabled="true"
-          >
-            {{ t('cluster.explore') }}
-          </rc-button>
-        </template>
-      </PaginatedResourceTable>
+      />
     </template>
   </div>
 </template>

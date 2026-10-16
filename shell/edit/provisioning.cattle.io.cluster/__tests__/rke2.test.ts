@@ -1,25 +1,27 @@
 import { mount, shallowMount, VueWrapper } from '@vue/test-utils';
-import { SECRET } from '@shell/config/types';
-import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { NORMAN, SECRET } from '@shell/config/types';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import rke2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
+import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import { get } from '@shell/utils/object';
 import { rke2TestTable } from './utils/rke2-test-data';
 import {
-  RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE, RKE2_TRAEFIK
+  RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE, RKE2_TRAEFIK, mergeExtensionSectionProps
 } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
 jest.mock('@shell/edit/provisioning.cattle.io.cluster/shared', () => ({
-  RETENTION_DEFAULT:         5,
-  RKE2_INGRESS_NGINX:        'rke2-ingress-nginx',
-  RKE2_TRAEFIK:              'rke2-traefik',
-  INGRESS_NGINX:             'ingress-nginx',
-  INGRESS_CONTROLLER:        'ingress-controller',
-  TRAEFIK:                   'traefik',
-  HARVESTER:                 'harvester',
-  INGRESS_DUAL:              'dual',
-  INGRESS_NONE:              'none',
-  INGRESS_OPTIONS:           [],
-  INGRESS_MIGRATION_KB_LINK: 'mock-link'
+  RETENTION_DEFAULT:          5,
+  RKE2_INGRESS_NGINX:         'rke2-ingress-nginx',
+  RKE2_TRAEFIK:               'rke2-traefik',
+  INGRESS_NGINX:              'ingress-nginx',
+  INGRESS_CONTROLLER:         'ingress-controller',
+  TRAEFIK:                    'traefik',
+  HARVESTER:                  'harvester',
+  INGRESS_DUAL:               'dual',
+  INGRESS_NONE:               'none',
+  INGRESS_OPTIONS:            [],
+  INGRESS_MIGRATION_KB_LINK:  'mock-link',
+  mergeExtensionSectionProps: jest.fn((defaultProps) => defaultProps),
 }));
 
 /**
@@ -648,6 +650,30 @@ describe('component: rke2', () => {
 
       expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NGINX);
     });
+
+    it('should drop the rke2 ingress-controller setting when switching to a k3s version while creating', () => {
+      const wrapper = createWrapper(_CREATE);
+      const k3sVersion = 'v1.26.0+k3s1';
+
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER] = TRAEFIK;
+      wrapper.vm.value.isK3s = true;
+      wrapper.vm.value.spec.kubernetesVersion = k3sVersion;
+      (wrapper.vm as any).handleKubernetesChange(k3sVersion);
+
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBeUndefined();
+    });
+
+    it('should leave the ingress-controller setting of an existing k3s cluster alone', () => {
+      const wrapper = createWrapper(_EDIT);
+      const k3sVersion = 'v1.26.0+k3s1';
+
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER] = TRAEFIK;
+      wrapper.vm.value.isK3s = true;
+      wrapper.vm.value.spec.kubernetesVersion = k3sVersion;
+      (wrapper.vm as any).handleKubernetesChange(k3sVersion);
+
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(TRAEFIK);
+    });
   });
 
   describe('method: showIpv6Warning', () => {
@@ -1260,6 +1286,195 @@ describe('component: rke2', () => {
       (rke2.methods as any).setHarvesterDefaultCloudProvider.call(vm);
 
       expect(vm.agentConfig['cloud-provider-name']).toBe('');
+    });
+  });
+
+  describe('computed: needCredential (extension credential section)', () => {
+    const baseVm = {
+      provider:                   'testcredentials',
+      isElementalCluster:         false,
+      mode:                       _CREATE,
+      extensionCredentialSection: { name: 'CredentialSection' },
+      cloudCredentialsOverride:   false,
+      providerConfig:             undefined,
+    };
+
+    it('should return true when the provisioner has an extension credential section, even with cloud-credential registered as false', () => {
+      const vm = { ...baseVm } as any;
+
+      expect(rke2.computed!.needCredential.call(vm)).toBe(true);
+    });
+
+    it('should return false when cloud-credential is registered as false and there is no extension credential section', () => {
+      const vm = { ...baseVm, extensionCredentialSection: null } as any;
+
+      expect(rke2.computed!.needCredential.call(vm)).toBe(false);
+    });
+
+    it.each([
+      ['the custom provider', { provider: 'custom' }],
+      ['the import provider', { provider: 'import' }],
+      ['an elemental cluster', { isElementalCluster: true }],
+      ['view mode', { mode: _VIEW }],
+    ])('should return false for %s even with an extension credential section', (_, overrides) => {
+      const vm = { ...baseVm, ...overrides } as any;
+
+      expect(rke2.computed!.needCredential.call(vm)).toBe(false);
+    });
+  });
+
+  describe('watch: credentialId', () => {
+    const credentialId = 'cattle-global-data:cc-1';
+
+    const createVm = (extensionCredentialSection: any) => ({
+      extensionCredentialSection,
+      credentialId,
+      credential:        null,
+      isHarvesterDriver: false,
+      value:             { spec: {} as Record<string, any> },
+      $store:            { getters: { 'rancher/byId': jest.fn(() => ({ id: credentialId })) } },
+    });
+
+    const runWatch = (vm: ReturnType<typeof createVm>) => (rke2.watch as any).credentialId.call(vm, credentialId);
+
+    it('should not write spec.cloudCredentialSecretName when the provisioner has an extension credential section', () => {
+      const vm = createVm({ name: 'CredentialSection' });
+
+      runWatch(vm);
+
+      expect(vm.value.spec.cloudCredentialSecretName).toBeUndefined();
+    });
+
+    it('should not look up a cloud credential when the provisioner has an extension credential section', () => {
+      const vm = createVm({ name: 'CredentialSection' });
+
+      runWatch(vm);
+
+      expect(vm.$store.getters['rancher/byId']).not.toHaveBeenCalled();
+    });
+
+    it('should write spec.cloudCredentialSecretName when there is no extension credential section', () => {
+      const vm = createVm(null);
+
+      runWatch(vm);
+
+      expect(vm.value.spec.cloudCredentialSecretName).toBe(credentialId);
+    });
+
+    it('should look up the cloud credential when there is no extension credential section', () => {
+      const vm = createVm(null);
+
+      runWatch(vm);
+
+      expect(vm.$store.getters['rancher/byId']).toHaveBeenCalledWith(NORMAN.CLOUD_CREDENTIAL, credentialId);
+    });
+  });
+
+  describe('computed: extensionCredentialSectionProps', () => {
+    const cluster = { metadata: { name: 'test-cluster' } };
+    const infrastructureCluster = { kind: 'TestCredentialsCluster' };
+
+    const createVm = (extensionProvider: any, credentialId = 'ns/secret') => ({
+      extensionProvider,
+      extensionCredentialSection: extensionProvider?.extensionCredentialSection || null,
+      value:                      cluster,
+      infrastructureCluster,
+      credentialId,
+      mode:                       _CREATE,
+      provider:                   'testcredentials',
+    });
+
+    it('should return no props when there is no extension credential section', () => {
+      const vm = createVm(undefined) as any;
+
+      expect(rke2.computed!.extensionCredentialSectionProps.call(vm)).toStrictEqual({});
+    });
+
+    it('should merge the provisioner props over the provisioning and infrastructure clusters', () => {
+      const extensionProps = { namespace: 'merge-ns' };
+      const vm = createVm({ extensionCredentialSection: {}, extensionCredentialSectionProps: extensionProps }) as any;
+
+      rke2.computed!.extensionCredentialSectionProps.call(vm);
+
+      expect(mergeExtensionSectionProps).toHaveBeenCalledWith(
+        { provisioningCluster: cluster, infrastructureCluster },
+        extensionProps,
+        {
+          provisioningCluster: cluster, infrastructureCluster, value: 'ns/secret', mode: _CREATE, provider: 'testcredentials'
+        }
+      );
+    });
+
+    it('should pass null as the context value when there is no credential', () => {
+      const extensionProps = { namespace: 'null-value-ns' };
+      const vm = createVm({ extensionCredentialSection: {}, extensionCredentialSectionProps: extensionProps }, '') as any;
+
+      rke2.computed!.extensionCredentialSectionProps.call(vm);
+
+      expect(mergeExtensionSectionProps).toHaveBeenCalledWith(expect.any(Object), extensionProps, expect.objectContaining({ value: null }));
+    });
+
+    it('should return the merged props', () => {
+      const vm = createVm({ extensionCredentialSection: {} }) as any;
+
+      (mergeExtensionSectionProps as jest.Mock).mockReturnValueOnce({ merged: true });
+
+      expect(rke2.computed!.extensionCredentialSectionProps.call(vm)).toStrictEqual({ merged: true });
+    });
+  });
+
+  describe('template: credential step', () => {
+    const CredentialSection = { name: 'CredentialSection', template: '<div />' };
+
+    class CredentialProvisioner {
+      get extensionCredentialSection() {
+        return CredentialSection;
+      }
+
+      get extensionCredentialSectionProps() {
+        return { namespace: 'template-ns' };
+      }
+    }
+
+    const createWrapper = () => {
+      const $extension = { getDynamic: jest.fn((type: string) => (type === 'provisioner' ? CredentialProvisioner : undefined)) };
+
+      return mount(rke2, {
+        props: {
+          mode:  _CREATE,
+          value: {
+            spec:        { ...defaultSpec, kubernetesVersion: 'v1.25.0+rke2r1' },
+            agentConfig: { 'cloud-provider-name': 'any' }
+          },
+          selectedVersion: { agentArgs: mockAgentArgs },
+          provider:        'testcredentials',
+        },
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store: {
+              dispatch: () => jest.fn(), getters: defaultGetters, app: { $extension }
+            },
+            $extension,
+          },
+          stubs: defaultStubs,
+        },
+      });
+    };
+
+    it('should pass the provisioner extension credential section to SelectCredential', () => {
+      const wrapper = createWrapper();
+
+      expect(wrapper.findComponent(SelectCredential).props('extensionComponent')).toStrictEqual(CredentialSection);
+    });
+
+    it('should pass the extension credential section props to SelectCredential', () => {
+      const wrapper = createWrapper();
+
+      expect(wrapper.findComponent(SelectCredential).props('extensionComponentProps')).toStrictEqual({
+        provisioningCluster:   expect.any(Object),
+        infrastructureCluster: null,
+      });
     });
   });
 });

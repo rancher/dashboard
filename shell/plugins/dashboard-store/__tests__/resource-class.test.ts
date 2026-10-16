@@ -628,7 +628,7 @@ describe('class: Resource', () => {
     it('should not throw when currentCluster or currentProduct is undefined', () => {
       const resource = new Resource({
         type:     'test',
-        metadata: { creationTimestamp: '2024-01-01T00:00:00Z' }
+        metadata: { creationTimestamp: '2024-01-01T00:00:00Z', namespace: 'default' }
       }, {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
@@ -647,8 +647,94 @@ describe('class: Resource', () => {
       const namespaceItem = glance.find((item: any) => item.name === 'namespace');
 
       expect(namespaceItem!.formatter).toBeUndefined();
-      expect(namespaceItem!.formatterOpts!.to!.cluster).toBeUndefined();
-      expect(namespaceItem!.formatterOpts!.to!.product).toBeUndefined();
+      expect(namespaceItem!.formatterOpts!.to).toBeNull();
+    });
+
+    const glanceResource = (data: any, rootGetters: any = {}) => new Resource({
+      type: 'test', metadata: { creationTimestamp: '2024-01-01T00:00:00Z', ...data.metadata }, ...data
+    }, {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootState:   { $extension: { getPlugins: () => ({}) } },
+      rootGetters: {
+        'i18n/t':            (key: string) => key,
+        'type-map/labelFor': () => 'Test',
+        productId:           'explorer',
+        clusterId:           'local',
+        currentStore:        () => 'cluster',
+        'cluster/canList':   () => true,
+        ...rootGetters,
+      },
+    });
+
+    const glanceRow = (resource: any, name: string) => resource._glance.find((item: any) => item.name === name);
+
+    describe('namespace row', () => {
+      it('should show only the namespace, linked to its detail page', () => {
+        const row = glanceRow(glanceResource({ metadata: { namespace: 'popover-demo', name: 'frontend' } }), 'namespace');
+
+        expect({
+          formatter: row.formatter, to: row.formatterOpts.to, content: row.content
+        }).toStrictEqual({
+          formatter: 'Link',
+          to:        {
+            name:   'c-cluster-product-resource-id',
+            params: {
+              cluster: 'local', product: 'explorer', resource: 'namespace', id: 'popover-demo'
+            }
+          },
+          content: 'popover-demo'
+        });
+      });
+
+      it('should link to the location the resource gives for its namespace', () => {
+        const resource = glanceResource({ metadata: { namespace: 'fleet-default' } });
+
+        Object.defineProperty(resource, 'namespaceLocation', { get: () => ({ name: 'custom' }) });
+
+        expect(glanceRow(resource, 'namespace').formatterOpts.to).toStrictEqual({ name: 'custom' });
+      });
+
+      it('should not show the namespace row when the resource is not namespaced', () => {
+        expect(glanceRow(glanceResource({ metadata: {} }), 'namespace')).toBeUndefined();
+      });
+
+      it.each([
+        ['the user cannot list namespaces', { namespace: 'ns' }, { 'cluster/canList': () => false }],
+        ['the product hides the namespace location', { namespace: 'ns' }, { currentProduct: { hideNamespaceLocation: true } }],
+      ])('should not link the namespace when %s', (_: string, metadata: any, rootGetters: any) => {
+        const row = glanceRow(glanceResource({ metadata }, rootGetters), 'namespace');
+
+        expect([row.formatter, row.formatterOpts.to]).toStrictEqual([undefined, null]);
+      });
+
+      it('should not link the namespace when the resource says it is in a cluster the user cannot reach', () => {
+        const resource = glanceResource({ metadata: { namespace: 'ns' } });
+
+        Object.defineProperty(resource, 'namespaceLocation', { get: () => null });
+
+        expect(glanceRow(resource, 'namespace').formatter).toBeUndefined();
+      });
+    });
+
+    describe('state row', () => {
+      // The base class has no state getter, the steve one reads it from metadata.state.name
+      const stateRow = (state: any) => glanceRow(glanceResource({ state: state.name, metadata: { state } }), 'state').formatterOpts.row;
+
+      // e.g. a pod whose container keeps exiting with an error
+      it('should show an error state that steve marks as transitioning in the error colour', () => {
+        expect(stateRow({
+          name: 'error', error: false, transitioning: true
+        })).toStrictEqual({ stateDisplay: 'Error', stateBackground: 'bg-error' });
+      });
+
+      it.each([
+        ['a transitioning state that is not an error', { name: 'updating', transitioning: true }, 'Updating', 'bg-info'],
+        ['a state that is not transitioning', { name: 'running' }, 'Running', 'bg-success'],
+        ['an error state that steve marks as an error', { name: 'running', error: true }, 'Running', 'bg-error'],
+      ])('should show %s in its usual colour', (_, state, stateDisplay, stateBackground) => {
+        expect(stateRow(state)).toStrictEqual({ stateDisplay, stateBackground });
+      });
     });
   });
 

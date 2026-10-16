@@ -1,10 +1,73 @@
-import { flushPromises, mount } from '@vue/test-utils';
+import { flushPromises, mount, shallowMount } from '@vue/test-utils';
 import authConfigMixin from '@shell/mixins/auth-config';
 import childHook from '@shell/mixins/child-hook';
+import { setVersionData } from '@shell/config/version';
 //
 describe('mixin: authConfigMixin', () => {
+  describe('method: cancel', () => {
+    const FakeComponent = {
+      render() {},
+      mixins: [authConfigMixin, childHook],
+    };
+
+    const createInstance = (id: string, enabled: boolean, openedOnConfig: boolean) => {
+      const originalModel = {
+        id, enabled, accessMode: 'required'
+      };
+      const router = { push: jest.fn(), go: jest.fn() };
+      const instance = shallowMount(FakeComponent, {
+        data:   () => ({ model: { ...originalModel, accessMode: 'unrestricted' }, originalModel }),
+        global: {
+          mocks: {
+            $store:  { dispatch: jest.fn().mockResolvedValue(originalModel) },
+            $router: router,
+            $route:  {
+              params: { cluster: 'local', id },
+              query:  { mode: 'edit', editConfig: openedOnConfig ? 'true' : undefined },
+            },
+          },
+        },
+      }).vm as any;
+
+      return {
+        instance, router, originalModel
+      };
+    };
+
+    it.each(['github', 'github-2'])('should return to the provider list after cancelling Edit for %s', (id) => {
+      const { instance, router } = createInstance(id, true, true);
+
+      instance.cancel();
+
+      expect(router.push).toHaveBeenCalledWith({
+        name:   'c-cluster-auth-config',
+        params: { cluster: 'local' },
+      });
+    });
+
+    it('should restore the access view when editing started within the provider page', async() => {
+      const { instance, router, originalModel } = createInstance('github-2', true, false);
+
+      instance.goToEdit();
+      instance.cancel();
+      await flushPromises();
+
+      expect(instance.editConfig).toBe(false);
+      expect(instance.model).toStrictEqual(originalModel);
+      expect(router.push).not.toHaveBeenCalledWith(expect.anything());
+    });
+
+    it('should go back when cancelling a provider that is not enabled', () => {
+      const { instance, router } = createInstance('github-2', false, true);
+
+      instance.cancel();
+
+      expect(router.go).toHaveBeenCalledWith(-1);
+    });
+  });
+
   describe('method: save', () => {
-    const componentMock = (model: any) => ({
+    const componentMock = (model: any, query: Record<string, string> = { mode: 'edit' }, $router: any = undefined) => ({
       data: () => ({
         value: { configType: 'oidc' },
         model,
@@ -13,9 +76,10 @@ describe('mixin: authConfigMixin', () => {
       global:   {
         mocks: {
           $store: { dispatch: () => model },
+          $router,
           $route: {
-            params: { id: '123' },
-            query:  { mode: 'edit' },
+            params: { cluster: 'local', id: '123' },
+            query,
           },
         }
       }
@@ -23,7 +87,7 @@ describe('mixin: authConfigMixin', () => {
     const FakeComponent = {
       render() {},
       mixins:  [authConfigMixin, childHook],
-      methods: { applyHooks: jest.fn() },
+      methods: { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
     };
 
     it('should return error', async() => {
@@ -68,16 +132,51 @@ describe('mixin: authConfigMixin', () => {
 
       expect(instance.model.scope).toStrictEqual(scope);
     });
+
+    // The list's Edit action opens the page on the configuration, so once it is
+    // saved there is nothing left on the page to return to.
+    it('should return to the provider list once an edit opened from the list is saved', async() => {
+      const $router = { applyQuery: jest.fn(), replace: jest.fn() };
+      const model = {
+        enabled:  true,
+        doAction: jest.fn(),
+        save:     async() => {}
+      };
+      const instance = mount(FakeComponent, componentMock(model, { mode: 'edit', editConfig: 'true' }, $router)).vm as any;
+
+      await instance.save(jest.fn());
+
+      expect($router.replace).toHaveBeenCalledWith({
+        name:   'c-cluster-auth-config',
+        params: { cluster: 'local' },
+      });
+    });
+
+    it('should stay on the page when the edit started on the page', async() => {
+      const $router = { applyQuery: jest.fn(), replace: jest.fn() };
+      const model = {
+        enabled:  true,
+        doAction: jest.fn(),
+        save:     async() => {}
+      };
+      const instance = mount(FakeComponent, componentMock(model, { mode: 'edit' }, $router)).vm as any;
+
+      instance.goToEdit();
+      await instance.save(jest.fn());
+
+      expect($router.replace).not.toHaveBeenCalled();
+      expect(instance.editConfig).toBe(false);
+    });
   });
 
   describe('accessMode on enable', () => {
     const FakeComponent = {
       render() {},
       mixins:  [authConfigMixin, childHook],
-      methods: { applyHooks: jest.fn() },
+      methods: { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
     };
 
-    const createMock = (model: any, overrides: Record<string, any> = {}) => ({
+    const createMock = (model: any, overrides: Record<string, any> = {}, routeQuery: Record<string, string> = { mode: 'edit' }) => ({
       data: () => ({
         value: { configType: 'oidc' },
         model,
@@ -89,18 +188,19 @@ describe('mixin: authConfigMixin', () => {
           $store: { dispatch: () => model },
           $route: {
             params: { id: model.id || '123' },
-            query:  { mode: 'edit' },
+            query:  routeQuery,
           },
         }
       }
     });
 
     it.each([
-      'github',
-      'githubapp',
-    ])('should default accessMode to restricted for %s on enable', async(id) => {
+      ['github', 'githubConfig'],
+      ['githubapp', 'githubAppConfig'],
+    ])('should default accessMode to restricted for %s on enable', async(id, type) => {
       const model = {
         id,
+        type,
         enabled:        false,
         authConfigName: 'whatever',
         doAction:       jest.fn(),
@@ -117,6 +217,7 @@ describe('mixin: authConfigMixin', () => {
     it('should default accessMode to unrestricted for non-github oauth on enable', async() => {
       const model = {
         id:             'googleoauth',
+        type:           'googleOauthConfig',
         enabled:        false,
         authConfigName: 'whatever',
         doAction:       jest.fn(),
@@ -158,103 +259,772 @@ describe('mixin: authConfigMixin', () => {
 
       expect(instance.model.accessMode).toStrictEqual('unrestricted');
     });
+
+    it('should open the provider config editor when routed from the Edit action', () => {
+      const model = {
+        id: 'github-2', type: 'githubConfig', enabled: true
+      };
+      const instance = mount(FakeComponent, createMock(model, {}, { mode: 'edit', editConfig: 'true' })).vm as any;
+
+      expect(instance.editConfig).toBe(true);
+    });
   });
 
-  // An enabled provider opens on who may log in with it. Editing the provider
-  // itself is a state of the same page, so whoever links there has to ask for it.
-  describe('opening on the provider configuration', () => {
+  // Which config is being applied is read from the root of the request, so that
+  // it does not have to be dug out of the provider config nested inside it.
+  describe('description on save', () => {
     const FakeComponent = {
       render() {},
       mixins:  [authConfigMixin, childHook],
-      methods: { applyHooks: jest.fn() },
+      methods: { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
     };
 
-    const createMock = (query: Record<string, string>) => ({
-      data:   () => ({ value: { configType: 'oidc' }, model: {} }),
-      global: {
-        mocks: {
-          $store:  { dispatch: jest.fn() },
-          $router: { applyQuery: jest.fn() },
-          $route:  { params: { id: 'github' }, query },
+    // The config as testAndApply leaves it, still carrying the old description.
+    const createInstance = () => {
+      const saved: any[] = [];
+      const stored = {
+        id:          'activedirectory-2',
+        type:        'activeDirectoryConfig',
+        enabled:     true,
+        annotations: { 'field.cattle.io/description': 'Old description' },
+        save:        jest.fn(function(this: any) {
+          saved.push({ ...this.annotations });
+        }),
+      };
+      const model = {
+        ...stored,
+        annotations: { ...stored.annotations },
+        doAction:    jest.fn(),
+      };
+      const dispatch = jest.fn((action: string, payload: any) => {
+        if (action === 'rancher/find') {
+          return { ...stored, annotations: { ...stored.annotations } };
         }
-      }
+        if (action === 'rancher/clone') {
+          return payload.resource;
+        }
+        if (action === 'rancher/findAll') {
+          return [];
+        }
+
+        return undefined;
+      });
+      const instance = mount(FakeComponent, {
+        data:     () => ({ value: { configType: 'ldap' }, model }),
+        computed: { principal: () => ({ id: 'me' }) },
+        global:   {
+          mocks: {
+            $store: { dispatch, getters: {} },
+            $route: { params: { id: 'activedirectory-2' }, query: { mode: 'edit' } },
+          }
+        }
+      }).vm as any;
+
+      return { instance, saved };
+    };
+
+    it('should save a description changed while editing the config', async() => {
+      const { instance, saved } = createInstance();
+
+      instance.goToEdit();
+      instance.configDescription = 'New description';
+      await instance.save(jest.fn());
+
+      expect(saved).toStrictEqual([{ 'field.cattle.io/description': 'New description' }]);
     });
 
-    it.each([
-      ['asked for', { mode: 'edit', editConfig: 'true' }, true],
-      ['not asked for', { mode: 'edit' }, false],
-    ])('should edit the configuration when it is %s', (_case, query, expected) => {
-      const instance = mount(FakeComponent, createMock(query)).vm as any;
+    it('should save a description cleared while editing the config', async() => {
+      const { instance, saved } = createInstance();
 
-      expect(instance.openedOnConfig).toStrictEqual(expected);
-      expect(instance.editConfig).toStrictEqual(expected);
+      instance.goToEdit();
+      instance.configDescription = '';
+      await instance.save(jest.fn());
+
+      // Norman keeps a `field.cattle.io/` annotation the update leaves out
+      expect(saved).toStrictEqual([{ 'field.cattle.io/description': '' }]);
     });
   });
 
-  describe('method: cancel', () => {
+  describe('naming the config being applied', () => {
+    const createInstance = (toSave: any, model: any, id: string) => {
+      const FakeComponent = {
+        render() {},
+        mixins:   [authConfigMixin, childHook],
+        methods:  { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
+        computed: { toSave: () => toSave },
+      };
+
+      return mount(FakeComponent, {
+        data: () => ({
+          value: { configType: 'ldap' },
+          model,
+        }),
+        global: {
+          mocks: {
+            $store: { dispatch: (action: string) => (action === 'rancher/findAll' ? [] : model) },
+            $route: {
+              params: { id },
+              query:  { mode: 'edit' },
+            },
+          }
+        }
+      }).vm as any;
+    };
+
+    it('should name the config at the root of the request', async() => {
+      const model = {
+        id: 'github-2', type: 'githubConfig', enabled: false, doAction: jest.fn(), save: jest.fn()
+      };
+      const toSave = { enabled: true, githubConfig: model };
+      const instance = createInstance(toSave, model, 'github-2');
+
+      await instance.save(jest.fn());
+
+      expect(model.doAction).toHaveBeenCalledWith(
+        'testAndApply',
+        { ...toSave, configName: 'github-2' },
+        { redirectUnauthorized: false }
+      );
+    });
+
+    it('should leave the config a form filled in alone', async() => {
+      const model = {
+        id: 'github-2', type: 'githubConfig', enabled: false, doAction: jest.fn(), save: jest.fn()
+      };
+      const instance = createInstance({ enabled: true, githubConfig: model }, model, 'github-2');
+
+      await instance.save(jest.fn());
+
+      expect(model).not.toHaveProperty('configName');
+    });
+  });
+
+  // Adding a second provider of a type creates a config of its own. Nothing is
+  // written until the form saves, because `metadata.name` cannot be changed once
+  // the config exists.
+  describe('creating a provider', () => {
     const FakeComponent = {
       render() {},
       mixins:  [authConfigMixin, childHook],
-      methods: { applyHooks: jest.fn() },
+      methods: { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
     };
 
-    const createMock = (model: any, query: Record<string, string>, $router: any) => ({
-      data:   () => ({ value: { configType: 'oidc' }, model }),
-      global: {
-        mocks: {
-          $store: { dispatch: jest.fn().mockResolvedValue(model) },
-          $router,
-          $route: {
-            name:   'c-cluster-auth-config-id',
-            params: { cluster: 'local', id: 'github' },
-            query,
+    const createMock = (dispatch: jest.Mock, replace: jest.Mock, authConfigCreate: any) => ({
+      data: () => ({
+        value: { configType: 'oauth' },
+        model: {
+          clientId: 'client-id', clientSecret: 'shhh', enabled: false
+        },
+      }),
+      computed: { principal: () => ({ me: {} }) },
+      global:   {
+        provide: { authConfigCreate },
+        mocks:   {
+          $store:  { dispatch },
+          $router: { replace },
+          $route:  {
+            params: { cluster: 'local' },
+            query:  { mode: 'edit' },
           },
         }
       }
     });
 
-    const createRouter = () => ({
-      applyQuery: jest.fn(), push: jest.fn(), go: jest.fn()
+    const serverModel = () => ({
+      id:          'github-2',
+      type:        'githubConfig',
+      hostname:    'github.com',
+      tls:         true,
+      annotations: { 'field.cattle.io/description': 'Contractors' },
+      doAction:    jest.fn(),
+      save:        jest.fn(),
     });
 
-    // The configuration is the whole page when it's opened from the list, so
-    // there's nothing left on the page to cancel back to.
-    it('should return to the provider list when the page was opened on the configuration', () => {
-      const $router = createRouter();
-      const model = { enabled: true };
-      const instance = mount(FakeComponent, createMock(model, { mode: 'edit', editConfig: 'true' }, $router)).vm as any;
+    const createInstance = (overrides: any = {}) => {
+      const created = serverModel();
+      const dispatch = jest.fn((action: string, payload: any) => {
+        switch (action) {
+        case 'rancher/find': return created;
+        case 'rancher/clone': return { ...payload.resource };
+        case 'auth/test': return 'auth-code';
+        case 'rancher/findAll': return [];
+        default: return undefined;
+        }
+      });
+      const replace = jest.fn();
+      const authConfigCreate = {
+        name: 'github-2', normanType: 'githubConfig', takenIds: ['github'], ...overrides
+      };
 
-      instance.cancel();
+      return {
+        created,
+        dispatch,
+        replace,
+        instance: mount(FakeComponent, createMock(dispatch, replace, authConfigCreate)).vm as any,
+      };
+    };
 
-      expect($router.push).toHaveBeenCalledWith({
+    it('should create the config through the Kubernetes API', async() => {
+      const { instance, dispatch } = createInstance();
+
+      instance.configDescription = 'Contractors';
+      await instance.save(jest.fn());
+
+      expect(dispatch).toHaveBeenCalledWith('management/request', {
+        url:    '/k8s/clusters/local/apis/management.cattle.io/v3/authconfigs',
+        method: 'POST',
+        data:   {
+          apiVersion: 'management.cattle.io/v3',
+          kind:       'AuthConfig',
+          metadata:   { name: 'github-2', annotations: { 'field.cattle.io/description': 'Contractors' } },
+          type:       'githubConfig',
+          enabled:    false,
+        },
+      });
+    });
+
+    it('should leave out the description annotation when none was given', async() => {
+      const { instance, dispatch } = createInstance();
+
+      await instance.save(jest.fn());
+
+      const [, payload] = dispatch.mock.calls.find(([action]) => action === 'management/request') as any;
+
+      expect(payload.data.metadata).toStrictEqual({ name: 'github-2' });
+    });
+
+    it('should carry what was filled in onto the config the server created', async() => {
+      const { instance } = createInstance();
+
+      await instance.save(jest.fn());
+
+      expect(instance.model.clientId).toBe('client-id');
+      expect(instance.model.id).toBe('github-2');
+      expect(instance.authConfigName).toBe('github-2');
+    });
+
+    it('should return to the provider list once the new config is enabled', async() => {
+      const { instance, replace } = createInstance();
+
+      await instance.save(jest.fn());
+
+      expect(replace).toHaveBeenCalledWith({
         name:   'c-cluster-auth-config',
         params: { cluster: 'local' },
       });
     });
 
-    // Editing started on this page, so cancelling puts the page back as it was.
-    it('should show who may log in again when the edit started on the page', async() => {
-      const $router = createRouter();
-      const model = { enabled: true };
-      const instance = mount(FakeComponent, createMock(model, { mode: 'edit' }, $router)).vm as any;
+    it('should report a failed create and go no further', async() => {
+      const { instance, dispatch, replace } = createInstance();
+      const btnCb = jest.fn();
 
-      instance.goToEdit();
-      instance.cancel();
-      await flushPromises();
+      dispatch.mockImplementation((action: string) => {
+        if (action === 'management/request') {
+          throw new Error('already exists');
+        }
 
-      expect(instance.editConfig).toBe(false);
-      expect($router.push).not.toHaveBeenCalled();
+        return undefined;
+      });
+
+      await instance.save(btnCb);
+
+      expect(btnCb).toHaveBeenCalledWith(false);
+      expect(replace).not.toHaveBeenCalled();
+      expect(instance.errors.length).toBeGreaterThan(0);
     });
 
-    it('should go back to wherever a provider that is not enabled yet was picked from', () => {
-      const $router = createRouter();
-      const model = { enabled: false };
-      const instance = mount(FakeComponent, createMock(model, { mode: 'edit', editConfig: 'true' }, $router)).vm as any;
+    // The config is on the server once the create succeeds, so a failure picking
+    // it back up must not send the next save off to create it again.
+    describe('when the config cannot be picked back up', () => {
+      const failFirstFind = () => {
+        const setup = createInstance();
+        const { dispatch, created } = setup;
+        const implementation = dispatch.getMockImplementation() as any;
+        let finds = 0;
 
-      instance.cancel();
+        dispatch.mockImplementation((action: string, payload: any) => {
+          if (action === 'rancher/find' && finds++ === 0) {
+            throw new Error('not found');
+          }
 
-      expect($router.go).toHaveBeenCalledWith(-1);
-      expect($router.push).not.toHaveBeenCalled();
+          return implementation(action, payload);
+        });
+
+        return { ...setup, created };
+      };
+
+      const creates = (dispatch: jest.Mock) => dispatch.mock.calls.filter(([action]) => action === 'management/request').length;
+
+      it('should report the failure', async() => {
+        const { instance } = failFirstFind();
+        const btnCb = jest.fn();
+
+        await instance.save(btnCb);
+
+        expect(btnCb).toHaveBeenCalledWith(false);
+        expect(instance.errors.length).toBeGreaterThan(0);
+      });
+
+      it('should not create the config again on the next save', async() => {
+        const { instance, dispatch } = failFirstFind();
+
+        await instance.save(jest.fn());
+        await instance.save(jest.fn());
+
+        expect(creates(dispatch)).toBe(1);
+      });
+
+      it('should pick the config up on the next save', async() => {
+        const { instance } = failFirstFind();
+
+        await instance.save(jest.fn());
+        await instance.save(jest.fn());
+
+        expect(instance.errors).toStrictEqual([]);
+        expect(instance.model.id).toBe('github-2');
+      });
+
+      it('should hold the name once the config has been written', async() => {
+        const { instance } = failFirstFind();
+
+        await instance.save(jest.fn());
+
+        expect(instance.configNameFixed).toBe(true);
+      });
+    });
+  });
+
+  // Enabling can fail after the config has been written, and the form stays on the
+  // page to be corrected and saved again. By then the config exists, so its name is
+  // no longer the form's to choose.
+  // Rancher used to create a config for every provider with its defaults filled
+  // in. One added here starts empty unless the form fills them in itself.
+  describe('starting a new config', () => {
+    const FakeComponent = {
+      render() {},
+      mixins:  [authConfigMixin, childHook],
+      methods: { applyHooks: jest.fn() },
+    };
+
+    const schema = {
+      resourceFields: {
+        connectionTimeout: { type: 'int', default: 5000 },
+        port:              { type: 'int', default: 389 },
+        userObjectClass:   { type: 'string', default: 'inetOrgPerson' },
+        certificate:       { type: 'string', default: null },
+      },
+    };
+
+    const createInstance = (schemaFor: (type: string) => any = (type) => (type === 'openLdapConfig' ? schema : undefined)) => {
+      const dispatch = jest.fn((action: string, payload: any) => {
+        switch (action) {
+        case 'rancher/create': return Promise.resolve({ ...payload });
+        case 'rancher/clone': return Promise.resolve({ ...payload.resource });
+        case 'rancher/findAll': return Promise.resolve([]);
+        default: return Promise.resolve(undefined);
+        }
+      });
+
+      const instance = mount(FakeComponent, {
+        data:   () => ({ value: { configType: 'ldap' } }),
+        global: {
+          provide: {
+            authConfigCreate: {
+              name: 'openldap', normanType: 'openLdapConfig', takenIds: [], created: false
+            }
+          },
+          mocks: {
+            $store: { dispatch, getters: { 'rancher/schemaFor': schemaFor } },
+            $route: { params: { cluster: 'local' }, query: { mode: 'edit' } },
+          },
+        },
+      }).vm as any;
+
+      return { instance, dispatch };
+    };
+
+    it('should start from the values Rancher gives a config of its type', async() => {
+      const { instance, dispatch } = createInstance();
+
+      await instance.mixinFetch();
+
+      expect(dispatch).toHaveBeenCalledWith('rancher/create', {
+        connectionTimeout: 5000,
+        port:              389,
+        userObjectClass:   'inetOrgPerson',
+        type:              'openLdapConfig',
+      });
+    });
+
+    // The form cannot be enabled without it
+    it('should fill in the connection timeout an LDAP config requires', async() => {
+      const { instance } = createInstance();
+
+      await instance.mixinFetch();
+
+      expect(instance.model.connectionTimeout).toBe(5000);
+    });
+
+    it('should start empty when the type has no schema', async() => {
+      const { instance, dispatch } = createInstance(() => undefined);
+
+      await instance.mixinFetch();
+
+      expect(dispatch).toHaveBeenCalledWith('rancher/create', { type: 'openLdapConfig' });
+    });
+  });
+
+  describe('starting from a cloned config', () => {
+    const FakeComponent = {
+      render() {},
+      mixins:  [authConfigMixin, childHook],
+      methods: { applyHooks: jest.fn() },
+    };
+
+    const cloneValues = {
+      servers: ['ldap.example.com'], port: 636, starttls: true
+    };
+
+    const createInstance = () => mount(FakeComponent, {
+      data:   () => ({ value: { configType: 'ldap' } }),
+      global: {
+        provide: {
+          authConfigCreate: {
+            name: 'openldap-2', normanType: 'openLdapConfig', takenIds: ['openldap'], created: false, cloneValues
+          }
+        },
+        mocks: {
+          $store: {
+            dispatch: jest.fn((action: string, payload: any) => {
+              switch (action) {
+              case 'rancher/create': return Promise.resolve({ ...payload });
+              case 'rancher/clone': return Promise.resolve({ ...payload.resource });
+              case 'rancher/findAll': return Promise.resolve([]);
+              default: return Promise.resolve(undefined);
+              }
+            }),
+            getters: { 'rancher/schemaFor': () => undefined },
+          },
+          $route: { params: { cluster: 'local' }, query: { mode: 'edit' } },
+        },
+      },
+    }).vm as any;
+
+    // The defaults clear an LDAP config's servers, which is what is being cloned
+    it('should keep the cloned settings over the defaults', async() => {
+      const instance = createInstance();
+
+      await instance.mixinFetch();
+
+      expect({
+        servers: instance.model.servers, port: instance.model.port, starttls: instance.model.starttls
+      }).toStrictEqual(cloneValues);
+    });
+
+    it('should still apply the defaults the clone does not set', async() => {
+      const instance = createInstance();
+
+      await instance.mixinFetch();
+
+      expect(instance.model.accessMode).toBe('unrestricted');
+    });
+
+    it('should not share the cloned values with the form', async() => {
+      const instance = createInstance();
+
+      await instance.mixinFetch();
+      instance.model.servers.push('other.example.com');
+
+      expect(cloneValues.servers).toStrictEqual(['ldap.example.com']);
+    });
+  });
+
+  describe('a config that is still being added', () => {
+    const FakeComponent = {
+      render() {},
+      mixins:  [authConfigMixin, childHook],
+      methods: { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
+    };
+
+    const createInstance = (authConfigCreate: any, dispatch = jest.fn()) => mount(FakeComponent, {
+      data:   () => ({ value: { configType: 'oauth' }, model: { id: 'github-2' } }),
+      global: {
+        provide: authConfigCreate ? { authConfigCreate } : {},
+        mocks:   {
+          $store: { dispatch },
+          $route: { params: { cluster: 'local', id: 'github-2' }, query: { mode: 'edit' } },
+        }
+      }
+    }).vm as any;
+
+    const adding = (created: boolean) => ({
+      name: 'github-2', normanType: 'githubConfig', takenIds: ['github'], created
+    });
+
+    it('should let a config still being added be named', () => {
+      const instance = createInstance(adding(false));
+
+      instance.configName = 'github-super';
+
+      expect(instance.configNameFixed).toBe(false);
+      expect(instance.configName).toBe('github-super');
+    });
+
+    it('should refuse to rename a config that has been created', () => {
+      const instance = createInstance(adding(true));
+
+      instance.authConfigName = 'github-2';
+      instance.configName = 'github-super';
+
+      expect(instance.configNameFixed).toBe(true);
+      expect(instance.configName).toBe('github-2');
+    });
+
+    it('should settle the name of a config that already exists', () => {
+      expect(createInstance(null).configNameFixed).toBe(true);
+    });
+
+    // The form is filled in before the config exists, and reads the provider off
+    // what is being added rather than off a model or a route that cannot name it.
+    it('should know which provider is being added before the config exists', () => {
+      const instance = mount(FakeComponent, {
+        data:   () => ({ value: { configType: 'ldap' }, model: null }),
+        global: {
+          provide: {
+            authConfigCreate: {
+              name: 'ad-2', normanType: 'activeDirectoryConfig', created: false
+            }
+          },
+          mocks: {
+            $store: { dispatch: jest.fn() },
+            $route: { params: { cluster: 'local' }, query: { mode: 'edit' } },
+          }
+        }
+      }).vm as any;
+
+      expect(instance.NAME).toBe('activedirectory');
+    });
+
+    // There is nothing to pick up until the config has been written - asking for it
+    // by a name that does not exist yet is what took the form down.
+    it('should not go looking for a config that does not exist yet', async() => {
+      const dispatch = jest.fn();
+      const instance = createInstance(adding(false), dispatch);
+
+      await instance.reloadModel();
+
+      expect(dispatch).not.toHaveBeenCalledWith('rancher/find', expect.anything());
+    });
+
+    it('should pick the config back up once it has been created', async() => {
+      const dispatch = jest.fn(() => ({ id: 'github-2' }));
+      const instance = createInstance(adding(true), dispatch);
+
+      instance.authConfigName = 'github-2';
+      await instance.reloadModel();
+
+      expect(dispatch).toHaveBeenCalledWith('rancher/find', {
+        type: 'authconfig',
+        id:   'github-2',
+        opt:  { url: '/v3/authconfig/github-2', force: true },
+      });
+    });
+  });
+
+  // The API has no description field, so it lives in an annotation, and the form
+  // edits it the way it edits any other field of the config.
+  describe('configDescription', () => {
+    const FakeComponent = {
+      render() {},
+      mixins:  [authConfigMixin, childHook],
+      methods: { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
+    };
+
+    const createInstance = (model: any) => mount(FakeComponent, {
+      data:   () => ({ value: { configType: 'oauth' }, model }),
+      global: {
+        mocks: {
+          $store: { dispatch: jest.fn() },
+          $route: { params: { cluster: 'local', id: 'github-5' }, query: { mode: 'edit' } },
+        }
+      }
+    }).vm as any;
+
+    const model = (annotations: Record<string, string>) => ({
+      id: 'github-5', type: 'githubConfig', enabled: true, annotations
+    });
+
+    it('should read what the admin called this connection', () => {
+      const instance = createInstance(model({ 'field.cattle.io/description': 'Contractors' }));
+
+      expect(instance.configDescription).toBe('Contractors');
+    });
+
+    it('should be empty when the config has no description', () => {
+      const instance = createInstance(model({}));
+
+      expect(instance.configDescription).toBe('');
+    });
+
+    it('should write the description onto the config, to be saved with the rest of it', () => {
+      const instance = createInstance(model({ 'management.cattle.io/auth-provider-cleanup': 'unlocked' }));
+
+      instance.configDescription = 'Contractors';
+
+      expect(instance.model.annotations['field.cattle.io/description']).toBe('Contractors');
+      // ...without disturbing annotations that are not ours
+      expect(instance.model.annotations['management.cattle.io/auth-provider-cleanup']).toBe('unlocked');
+    });
+
+    it('should send the description empty when it has been cleared, as Norman keeps one left out', () => {
+      const instance = createInstance(model({ 'field.cattle.io/description': 'Contractors' }));
+
+      instance.configDescription = '';
+
+      expect(instance.model.annotations['field.cattle.io/description']).toBe('');
+    });
+
+    it('should not add an empty description to a config that never had one', () => {
+      const instance = createInstance(model({}));
+
+      instance.configDescription = '';
+
+      expect(instance.model.annotations).toStrictEqual({});
+    });
+  });
+
+  // The name is `metadata.name`, which the API rejects on update, so only a config
+  // that has yet to be created has a name the form can still argue with.
+  describe('configNameError', () => {
+    const FakeComponent = {
+      render() {},
+      mixins:  [authConfigMixin, childHook],
+      methods: { applyHooks: jest.fn(), canEnable: () => Promise.resolve(true) },
+    };
+
+    const createInstance = (authConfigCreate: any) => mount(FakeComponent, {
+      data:   () => ({ value: { configType: 'oauth' }, model: { id: 'github-2' } }),
+      global: {
+        provide: authConfigCreate ? { authConfigCreate } : {},
+        mocks:   {
+          $store: { dispatch: jest.fn() },
+          $route: { params: { cluster: 'local', id: 'github-2' }, query: { mode: 'edit' } },
+        }
+      }
+    }).vm as any;
+
+    const adding = (name: string) => ({
+      name, normanType: 'githubConfig', takenIds: ['github', 'okta'], created: false
+    });
+
+    it('should accept a free name', () => {
+      expect(createInstance(adding('github-2')).configNameError).toBeNull();
+    });
+
+    it.each([
+      ['it is empty', '', 'authConfig.create.name.required'],
+      ['it is not a DNS label', 'GitHub Two', 'authConfig.create.name.invalid'],
+      ['another config already has it', 'github', 'authConfig.create.name.taken'],
+    ])('should reject a name when %s', (_label, name, key) => {
+      // The test harness renders a translation key as `%key%`
+      expect(createInstance(adding(name)).configNameError).toContain(key);
+    });
+
+    it('should stop arguing once the config has been created', () => {
+      expect(createInstance({ ...adding(''), created: true }).configNameError).toBeNull();
+    });
+
+    it('should have nothing to say about a config that already exists', () => {
+      expect(createInstance(null).configNameError).toBeNull();
+    });
+  });
+
+  describe('the single enabled provider limit', () => {
+    const FakeComponent = {
+      render() {},
+      mixins:  [authConfigMixin, childHook],
+      methods: { applyHooks: jest.fn() },
+    };
+
+    const createInstance = ({ configs = [] as any[], multipleAllowed = false, enabled = false } = {}) => {
+      const model = {
+        id: 'azuread', enabled, doAction: jest.fn(), save: jest.fn()
+      };
+      const dispatch = jest.fn((action: string) => Promise.resolve(action === 'management/findAll' ? configs : model));
+
+      const instance = mount(FakeComponent, {
+        data:     () => ({ value: { configType: 'oauth' }, model }),
+        computed: { principal: () => ({ me: {} }) },
+        global:   {
+          mocks: {
+            $store: { dispatch, getters: { 'features/get': (name: string) => name === 'multiple-auth-providers' && multipleAllowed } },
+            $route: { params: { id: 'azuread' }, query: { mode: 'edit' } },
+            t:      (key: string) => key,
+          },
+        },
+      }).vm as any;
+
+      return {
+        instance, model, dispatch
+      };
+    };
+
+    it('should refuse to switch a provider on while another is enabled', async() => {
+      const { instance, model } = createInstance({ configs: [{ id: 'okta', enabled: true }] });
+      const btnCb = jest.fn();
+
+      await instance.save(btnCb);
+
+      expect(btnCb).toHaveBeenCalledWith(false);
+      expect(instance.errors).toStrictEqual(['authConfig.enableLimitReached']);
+      expect(model.doAction).not.toHaveBeenCalledWith(expect.anything(), expect.anything());
+    });
+
+    // Prime already has the feature; the flag being off is what to fix
+    it('should point Prime at the feature flag rather than at Prime', async() => {
+      setVersionData({ RancherPrime: 'true' });
+      const { instance } = createInstance({ configs: [{ id: 'okta', enabled: true }] });
+
+      await instance.save(jest.fn());
+      setVersionData({});
+
+      expect(instance.errors).toStrictEqual(['authConfig.enableLimitReachedPrime']);
+    });
+
+    it('should allow switching a provider on when no other is enabled', async() => {
+      const { instance } = createInstance({ configs: [{ id: 'local', enabled: true }, { id: 'okta', enabled: false }] });
+
+      expect(await instance.canEnable()).toBe(true);
+    });
+
+    it('should allow switching a provider on beside another when multiple are allowed', async() => {
+      const { instance } = createInstance({ configs: [{ id: 'okta', enabled: true }], multipleAllowed: true });
+
+      expect(await instance.canEnable()).toBe(true);
+    });
+
+    // The check reads the other providers from the server, and a failure there
+    // has to reach the form rather than leave the save button spinning.
+    it('should report a failure to read the other providers', async() => {
+      const { instance, model, dispatch } = createInstance();
+      const btnCb = jest.fn();
+
+      dispatch.mockImplementation((action: string) => (action === 'management/findAll' ? Promise.reject(Object.assign(new Error('network down'), { status: 503 })) : Promise.resolve(model)));
+
+      await instance.save(btnCb);
+
+      expect(btnCb).toHaveBeenCalledWith(false);
+      expect(instance.errors).toStrictEqual(['network down']);
+      expect(model.doAction).not.toHaveBeenCalledWith(expect.anything(), expect.anything());
+    });
+
+    it('should not check the limit when saving a provider that is already on', async() => {
+      const { instance, dispatch } = createInstance({ configs: [{ id: 'okta', enabled: true }], enabled: true });
+
+      await instance.save(jest.fn());
+
+      expect(dispatch).not.toHaveBeenCalledWith('management/findAll', expect.anything());
+      expect(instance.errors).not.toStrictEqual(['authConfig.enableLimitReached']);
     });
   });
 });

@@ -11,6 +11,7 @@ import { EXTRA_LONG_TIMEOUT_OPT, LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT, VERY_LONG
 import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import { qase } from '@/cypress/support/qase';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 const fleetClusterListPage = new FleetClusterListPagePo();
 const fleetAppBundlesListPage = new FleetApplicationListPagePo();
@@ -249,8 +250,9 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
     FleetClusterListPagePo.navTo();
     fleetClusterListPage.waitForPage();
     headerPo.selectWorkspace(namespace);
-    fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Download YAML')
+    fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Export As...')
       .click();
+    new ExportModalPo().download();
 
     const downloadedFilename = path.join(downloadsFolder, `${ clusterName }.yaml`);
 
@@ -494,7 +496,7 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
     const expectedHeadersDetailsView = ['State', 'Name', 'Type', 'Source', 'Target', 'Clusters Ready', 'Resources', 'Age'];
 
     // Select flat list
-    fleetClusterDetailsPage.appBundlesList().sortableTable().groupByButtons(0).click();
+    fleetClusterDetailsPage.appBundlesList().sortableTable().groupBy('None');
 
     fleetClusterDetailsPage.appBundlesList().sortableTable()
       .tableHeaderRow()

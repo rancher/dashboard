@@ -10,11 +10,19 @@ import { findBy } from '@shell/utils/array';
 import { ExtensionPoint, TableColumnLocation, TableLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
+import { dateText, fieldValue, monthLabel, stringifyValue } from '@shell/utils/table-views/fields';
+import ResourceTableViews, { TABLE_GROUPING_PREFIX } from '@shell/mixins/resource-table-views';
 import ResourceTableWatch from '@shell/mixins/resource-table-watch';
 import paginationUtils from '@shell/utils/pagination-utils';
+import TableViewControls from '@shell/components/TableViews/TableViewControls.vue';
+import TableViewTabs from '@shell/components/TableViews/TableViewTabs.vue';
+import { runTableViewShortcut } from '@shell/utils/table-views/shortcuts';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
+
+// A paginated list's namespace grouping - see STEVE_LIST_GROUPS
+const PAGINATED_NAMESPACE_GROUP = 'metadata.namespace';
 
 export const defaultTableSortGenerationFn = (schema, $store) => {
   if ( !schema ) {
@@ -45,14 +53,15 @@ export default {
 
   name: 'ResourceTable',
 
-  emits: ['clickedActionButton'],
+  emits: ['clickedActionButton', 'group-change'],
 
   components: {
-    ButtonGroup, SortableTable, ToggleSwitch
+    ButtonGroup, SortableTable, TableViewControls, TableViewTabs, ToggleSwitch
   },
 
   mixins: [
-    ResourceTableWatch
+    ResourceTableWatch,
+    ResourceTableViews
   ],
 
   props: {
@@ -130,11 +139,25 @@ export default {
       default: null
     },
 
+    /** Declared so a caller's value doesn't override the toolbar's - see `viewGroupSort` */
+    groupSort: {
+      type:    String,
+      default: null
+    },
+
     /**
      * Override any product based group options
      */
     groupOptions: {
       type:    Array,
+      default: null
+    },
+
+    /**
+     * Labels the page's own groupings, as SortableTable's `groupRef` does
+     */
+    groupRef: {
+      type:    [String, Function],
       default: null
     },
 
@@ -144,11 +167,12 @@ export default {
     },
 
     /**
-     * If the current preference for group isn't applicable, or not set, use this instead
+     * If the current preference for group isn't applicable, or not set, use this instead (else the
+     * namespace). Naming one, even the namespace, also starts the table's views grouped by it
      */
     groupDefault: {
       type:    String,
-      default: DEFAULT_GROUP,
+      default: null,
     },
 
     groupTooltip: {
@@ -223,6 +247,19 @@ export default {
       default: undefined,
     },
 
+    /** The owning list's pagination args, to export every matching row rather than the page */
+    externalPaginationArgs: {
+      type:    Object,
+      default: null
+    },
+
+    /** The namespace/project selection and the page's own filters, without the query */
+    externalPaginationScope: {
+      type:    Object,
+      default: null
+    },
+
+
   },
 
   data() {
@@ -231,15 +268,18 @@ export default {
 
     return {
       inStore,
+
       /**
        * Override the sortGenerationFn given changes in the rows we pass through to sortable table
        *
        * Primary purpose is to directly connect an iteration of `rows` with a sortGeneration string. This avoids
        * reactivity issues where `rows` hasn't yet changed but something like workspaces has (stale values stored against fresh key)
        */
-      sortGeneration:               undefined,
+      sortGeneration: undefined,
+
       listAutoRefreshToggleEnabled: paginationUtils.listAutoRefreshToggleEnabled({ rootGetters: this.$store.getters }),
-      hasSearchFilter:              false,
+
+      hasSearchFilter: false,
     };
   },
 
@@ -257,6 +297,13 @@ export default {
       immediate: true
     },
 
+    // For a page that draws itself differently while grouped, eg projects and namespaces
+    group: {
+      handler(neu) {
+        this.$emit('group-change', neu);
+      },
+      immediate: true
+    },
   },
 
   computed: {
@@ -287,7 +334,8 @@ export default {
     },
 
     showNamespaceColumn() {
-      const groupNamespaces = this.group === 'namespace';
+      // With the toolbar, grouping never takes a column away: the View menu decides the columns
+      const groupNamespaces = this.group === 'namespace' && !this.showTableViews;
       const out = !this.showGrouping || !groupNamespaces;
 
       return out;
@@ -417,7 +465,7 @@ export default {
         hideColumn = componentCustom?.hideColumn;
       }
 
-      if (hideColumn) {
+      if (hideColumn && !this.showTableViews) {
         const idx = headers.findIndex((header) => header.name === hideColumn);
 
         if ( idx >= 0 ) {
@@ -486,6 +534,11 @@ export default {
     // and it feels like a good UX to be able to keep the namespace/flat grouping across tables
     group: {
       get() {
+        // The toolbar says how the table is grouped, and a column grouping is none of these
+        if (this.showTableViews) {
+          return this.viewTableGrouping?.value || 'none';
+        }
+
         // Check group is valid
         const exists = this._groupOptions.find((g) => g.value === this._group);
 
@@ -493,11 +546,13 @@ export default {
           // Attempt to find the default option in available options...
           // if not use the first value in the options collection...
           // and if not that just fall back to the default
-          if (this._groupOptions.find((g) => g.value === this.groupDefault)) {
-            return this.groupDefault;
+          const groupDefault = this.groupDefault || DEFAULT_GROUP;
+
+          if (this._groupOptions.find((g) => g.value === groupDefault)) {
+            return groupDefault;
           }
 
-          return this._groupOptions[0]?.value || this.groupDefault || DEFAULT_GROUP;
+          return this._groupOptions[0]?.value || groupDefault;
         }
 
         return this._group;
@@ -519,6 +574,22 @@ export default {
     },
 
     computedGroupBy() {
+      // A toolbar group can be any field, including a label, so the key is a function
+      if (this.viewGroupField) {
+        const field = this.viewGroupField;
+        const empty = this.t('tableViews.group.empty');
+
+        if (field.byMonth) {
+          return (row) => {
+            const date = dateText(fieldValue(row, field));
+
+            return /^\d{4}-\d{2}/.test(date) ? date.slice(0, 7) : empty;
+          };
+        }
+
+        return (row) => stringifyValue(fieldValue(row, field)) || empty;
+      }
+
       // If we're not showing grouping options we shouldn't have a group by property
       if (!this.showGrouping) {
         return null;
@@ -548,6 +619,57 @@ export default {
       }
 
       return null;
+    },
+
+    /** A toolbar grouping's labels, eg a month by name; the page's own `group-ref` is for its own groupings */
+    computedGroupRef() {
+      const field = this.viewGroupField;
+      const groupBy = this.computedGroupBy;
+
+      if (!field || typeof groupBy !== 'function') {
+        return this.groupRef;
+      }
+
+      return field.byMonth ? (row) => monthLabel(groupBy(row)) : groupBy;
+    },
+
+    /**
+     * The groupings this list brings beyond grouping by a column, offered in the toolbar's Group By.
+     * None while the list says it can't be grouped, as the old buttons were hidden then. The plain
+     * namespace grouping stands in for the namespace column, as a paginated list's does: it groups by
+     * the resource's own namespace, which some lists' column doesn't show
+     */
+    tableGroupings() {
+      if (!this.showGrouping) {
+        return [];
+      }
+
+      return this._groupOptions
+        .filter((option) => option.value !== 'none')
+        .map((option) => (option.value === DEFAULT_GROUP && !option.field && !option.hideColumn ? { ...option, hideColumn: NAMESPACE.name } : option));
+    },
+
+    /**
+     * The grouping a view starts with: the one the page names as its default, eg cluster members by
+     * role, machines by pool, namespaces by project; else none, whenever the list offers to group by
+     * namespace, as a paginated list does under its own name; else the first it offers, eg app bundles
+     * by type, secrets by project. A list grouped by a field it is given, eg project members by
+     * project, keeps that
+     */
+    defaultGroupBy() {
+      if (!this.showGrouping) {
+        return null;
+      }
+
+      const offered = (value) => this.tableGroupings.find((option) => option.value === value);
+      const offersNamespace = offered(DEFAULT_GROUP) || offered(PAGINATED_NAMESPACE_GROUP);
+      const start = offered(this.groupDefault) || (offersNamespace ? null : this.tableGroupings[0]);
+
+      if (!start || (this.groupBy && !start.field)) {
+        return null;
+      }
+
+      return `${ TABLE_GROUPING_PREFIX }${ start.value }`;
     },
 
     _groupOptions() {
@@ -628,11 +750,19 @@ export default {
      * Whether we should show namespace counts in group tabs
      */
     showNamespaceCounts() {
-      return (this.group === 'namespace' || this.group === 'metadata.namespace') && this.isNamespaced && !this.hasSearchFilter;
+      return (this.group === 'namespace' || this.group === 'metadata.namespace') && this.isNamespaced && !this.hasSearchFilter && !this.viewGroupField;
     },
   },
 
   methods: {
+    /** For whichever list holds the focus, which needn't be this one - see runTableViewShortcut */
+    /** Takes the key only for a table the focus is in, so elsewhere it stays the browser's */
+    tableViewShortcut(action, event) {
+      if (runTableViewShortcut(action)) {
+        event.preventDefault();
+      }
+    },
+
     keyAction(action) {
       const table = this.$refs.table;
 
@@ -703,7 +833,8 @@ export default {
       }
 
       this.hasSearchFilter = !!arg?.filtering?.searchQuery;
-    }
+      this.recordSort(arg?.sorting);
+    },
   }
 };
 </script>
@@ -712,14 +843,17 @@ export default {
   <SortableTable
     ref="table"
     v-bind="$attrs"
-    :headers="_headers"
-    :rows="filteredRows"
-    :loading="loading"
-    :alt-loading="altLoading"
+    :headers="viewHeaders"
+    :rows="viewRows"
+    :loading="loading || viewSwitching"
+    :alt-loading="altLoading && !viewSwitching"
     :group-by="computedGroupBy"
+    :group-ref="computedGroupRef"
+    :group-sort="viewGroupSort"
     :group="group"
     :group-options="_groupOptions"
-    :search="search"
+    :search="showTableViews ? false : search"
+    :table-views-layout="showTableViews"
     :paging="true"
     :paging-params="parsedPagingParams"
     :paging-label="pagingLabel"
@@ -740,6 +874,10 @@ export default {
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     :external-pagination-enabled="externalPaginationEnabled"
     :external-pagination-result="externalPaginationResult"
+    :view-filters="appliedViewFilters"
+    :queried="showTableViews && viewTerms.length > 0"
+    :view-query="showTableViews ? settledQuery : null"
+    :aria-busy="viewBusy ? 'true' : undefined"
     :mandatory-sort="_mandatorySort"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
@@ -747,7 +885,24 @@ export default {
     @sortable-table-interaction="handleSortableTableInteraction"
   >
     <template
-      v-if="showGrouping && _groupOptions.length > 1"
+      v-if="showTableViewTabs"
+      #table-views
+    >
+      <TableViewTabs
+        :view="view"
+        :view-counts="tabCounts"
+        :match-count="viewMatchCount"
+        :resource-type="schema ? schema.id : ''"
+        :table-views-page="tableViewsPage"
+        :initial-view-id="openedViewId"
+        @update:view="openTabView"
+        @tab-queries="tabQueries = $event"
+        @export="handleExport"
+      />
+    </template>
+
+    <template
+      v-if="showGrouping && _groupOptions.length > 1 && !showTableViews"
       #header-middle
     >
       <slot name="more-header-middle" />
@@ -760,9 +915,28 @@ export default {
     </template>
 
     <template
-      v-if="showGrouping"
+      v-if="showGrouping || showTableViews"
       #header-right
     >
+      <TableViewControls
+        v-if="showTableViews"
+        :view="view"
+        :fields="viewQueryFields"
+        :group-fields="viewGroupFields"
+        :default-group-by="defaultGroupBy"
+        :filter-fields="viewFilterFields"
+        :date-fields="viewDateFieldIds"
+        :field-values="viewFieldValues"
+        :pending-fields="viewPendingFields"
+        :loading-values="fieldValuesLoading"
+        :rows="filteredRows"
+        :unsupported-fields="unsupportedViewFields"
+        :default-columns="defaultColumnIds"
+        :core-columns="coreColumnIds"
+        @update:view="view = $event"
+        @request-values="fetchFieldValues"
+        @refresh-values="refreshFieldValues"
+      />
       <slot
         name="header-right"
       />
@@ -795,9 +969,10 @@ export default {
       </div>
     </template>
 
-    <!-- Pass down templates provided by the caller -->
+    <!-- Pass down templates provided by the caller, except `header-right`, which this fills and
+         renders the caller's inside - Vue keeps the last template given for a slot name -->
     <template
-      v-for="(_, slot) of $slots"
+      v-for="(_, slot) of passthroughSlots"
       :key="slot"
       v-slot:[slot]="scope"
     >
@@ -808,12 +983,35 @@ export default {
     </template>
 
     <template #shortkeys>
+      <!-- The saved view shortcuts. Not `once`: macOS sends no keyup for a key pressed with Cmd held.
+           `anywhere`, as the query box has the focus while a view is being edited. `claim`, so with the
+           focus outside the table the browser still saves the page (Cmd+S) or bookmarks it (Cmd+D) -->
+      <template v-if="showTableViewTabs">
+        <button
+          v-shortkey.anywhere.claim="{windows: ['ctrl', 's'], mac: ['meta', 's']}"
+          class="hide"
+          @shortkey="tableViewShortcut('saveChanges', $event)"
+        />
+        <button
+          v-shortkey.anywhere.claim="{windows: ['ctrl', 'shift', 's'], mac: ['meta', 'shift', 's']}"
+          class="hide"
+          @shortkey="tableViewShortcut('openSaveAsNew', $event)"
+        />
+        <button
+          v-shortkey.anywhere.claim="{windows: ['ctrl', 'd'], mac: ['meta', 'd']}"
+          class="hide"
+          @shortkey="tableViewShortcut('duplicateCurrent', $event)"
+        />
+      </template>
+      <!-- These act on the selection, so they need the table's actions -->
       <button
+        v-if="_showBulkActions"
         v-shortkey.once="['e']"
         class="hide"
         @shortkey="keyAction('edit')"
       />
       <button
+        v-if="_showBulkActions"
         v-shortkey.once="['y']"
         class="hide"
         @shortkey="keyAction('yaml')"

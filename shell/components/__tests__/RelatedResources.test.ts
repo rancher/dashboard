@@ -14,12 +14,12 @@ const relationships = [
   },
 ];
 
-const createWrapper = () => {
+const createWrapper = (byId: (type: string, id: string) => any = () => undefined) => {
   const $store = {
     getters: {
       clusterId:           'local',
       currentStore:        () => 'cluster',
-      'cluster/byId':      () => undefined,
+      'cluster/byId':      byId,
       'cluster/schemaFor': (type: string) => ({ id: type }),
       'type-map/labelFor': (schema: any) => schema.id,
     }
@@ -112,5 +112,61 @@ describe('component: RelatedResources', () => {
 
     expect(cell.findComponent({ name: 'ResourcePopover' }).exists()).toBe(false);
     expect(cell.findComponent({ name: 'LinkDetail' }).props('value')).toStrictEqual('kube-root-ca.crt');
+  });
+
+  describe('state', () => {
+    const rowOf = (wrapper: any, id: string) => wrapper.vm.rows.find((row: any) => row.id === id);
+    const stateOf = (row: any) => ({
+      state: row.state, stateDisplay: row.stateDisplay, stateBackground: row.stateBackground
+    });
+
+    it("should show the resource's own state when it is loaded, like its popover and list", () => {
+      const pod = {
+        state: 'crashLoopBackOff', stateDisplay: 'CrashLoopBackOff', stateColor: 'text-info', stateBackground: 'bg-info'
+      };
+      const wrapper = createWrapper((type, id) => (type === POD && id === 'default/frontend-abcde' ? pod : undefined));
+
+      expect(stateOf(rowOf(wrapper, 'default/frontend-abcde'))).toStrictEqual({
+        state: 'crashLoopBackOff', stateDisplay: 'CrashLoopBackOff', stateBackground: 'bg-info'
+      });
+    });
+
+    it('should show the state of the relationship when the resource is not loaded', () => {
+      const wrapper = createWrapper();
+
+      expect(stateOf(rowOf(wrapper, 'default/frontend-abcde'))).toStrictEqual({
+        state: 'running', stateDisplay: 'Running', stateBackground: 'bg-success'
+      });
+    });
+
+    it('should show the resource as missing when neither it nor the relationship has a state', () => {
+      const wrapper = shallowMount(RelatedResources, {
+        props: {
+          value: {
+            metadata: {
+              relationships: [{
+                toType: POD, toId: 'default/gone', rel: 'owner'
+              }]
+            }
+          }
+        },
+        global: {
+          mocks: {
+            $store: {
+              getters: {
+                clusterId:           'local',
+                currentStore:        () => 'cluster',
+                'cluster/byId':      () => undefined,
+                'cluster/schemaFor': (type: string) => ({ id: type }),
+                'type-map/labelFor': (schema: any) => schema.id,
+              }
+            }
+          },
+          stubs: { ResourceTable: true },
+        },
+      });
+
+      expect(rowOf(wrapper, 'default/gone').state).toStrictEqual('missing');
+    });
   });
 });

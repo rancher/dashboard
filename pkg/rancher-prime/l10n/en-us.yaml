@@ -14,6 +14,7 @@ registration:
     status:
       success: System registration successfully activated.
       error: This system does not have an active registration.
+      forbidden: This user does not have permission to read secrets and registration.
 
   online:
     title: Online Registration
@@ -52,6 +53,7 @@ registration:
         progress: Deregistering
       badge:
         none: Unregistered
+        unknown: Unknown
         invalid: Invalid
         expired: Expired
         valid: Active

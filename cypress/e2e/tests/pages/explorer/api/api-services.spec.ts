@@ -23,7 +23,7 @@ describe('Cluster Explorer', { tags: ['@explorer', '@adminUser'] }, () => {
 
       cy.keyboardControls({ shiftKey: true, key: 'j' }, count);
 
-      sortableTable.selectedCountText().should('contain', `${ count } selected`);
+      sortableTable.selectedCountText().should(($el) => expect($el.text().toLowerCase()).to.contain(`${ count } selected`));
 
       sortableTable.selectedCount().should('eq', count);
     });

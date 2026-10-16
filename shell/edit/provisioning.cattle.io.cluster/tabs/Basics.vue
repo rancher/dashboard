@@ -372,6 +372,10 @@ export default {
 
     showIngress() {
       return !this.value?.isK3s;
+    },
+
+    showArgInfoWarning() {
+      return !this.haveArgInfo || ((!this.nginxChart || !this.traefikChart) && this.showIngress);
     }
   },
 
@@ -391,7 +395,7 @@ export default {
 <template>
   <div>
     <Banner
-      v-if="!haveArgInfo || ((!nginxChart || !traefikChart) && showIngress)"
+      v-if="showArgInfoWarning"
       color="warning"
       :label="t('cluster.banner.haveArgInfo')"
     />

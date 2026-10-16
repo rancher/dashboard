@@ -203,14 +203,8 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@mgmtNodesGet');
     aksDetailsPage.nodePoolTable().sortableTable().rowCount().should('eq', 2);
 
-    aksDetailsPage.groupByPoolToolTip().waitForTooltipWithText('Group by Pool');
-
-    aksDetailsPage.flatListToolTip().waitForTooltipWithText('Flat List');
-    aksDetailsPage.nodePoolTable().sortableTable().groupByButtons(1).click();
-
-    // node pool table should not have a 'group by namespace' button
-    aksDetailsPage.nodePoolTable().sortableTable().groupByButtons(2)
-      .should('not.exist');
+    // node pool table should offer grouping by pool
+    aksDetailsPage.nodePoolTable().sortableTable().groupBy('Pool');
 
     aksDetailsPage.nodePoolTable().sortableTable().groupRowCount('agentpool').should('eq', 1);
     aksDetailsPage.nodePoolTable().sortableTable().groupRowCount('pool1').should('eq', 1);
@@ -245,14 +239,8 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@mgmtNodesGet');
     eksDetailsPage.nodePoolTable().sortableTable().rowCount().should('eq', 3);
 
-    eksDetailsPage.groupByPoolToolTip().waitForTooltipWithText('Group by Pool');
-
-    eksDetailsPage.flatListToolTip().waitForTooltipWithText('Flat List');
-    eksDetailsPage.nodePoolTable().sortableTable().groupByButtons(1).click();
-
-    // node pool table should not have a 'group by namespace' button
-    eksDetailsPage.nodePoolTable().sortableTable().groupByButtons(2)
-      .should('not.exist');
+    // node pool table should offer grouping by pool
+    eksDetailsPage.nodePoolTable().sortableTable().groupBy('Pool');
 
     eksDetailsPage.nodePoolTable().sortableTable().groupRowCount('group1').should('eq', 2);
     eksDetailsPage.nodePoolTable().sortableTable().groupRowCount('group2').should('eq', 1);
@@ -285,14 +273,8 @@ describe('Hosted Cluster Details', { tags: ['@manager', '@adminUser'] }, () => {
     cy.wait('@mgmtNodesGet');
     gkeDetailsPage.nodePoolTable().sortableTable().rowCount().should('eq', 2);
 
-    gkeDetailsPage.groupByPoolToolTip().waitForTooltipWithText('Group by Pool');
-
-    gkeDetailsPage.flatListToolTip().waitForTooltipWithText('Flat List');
-    gkeDetailsPage.nodePoolTable().sortableTable().groupByButtons(1).click();
-
-    // node pool table should not have a 'group by namespace' button
-    gkeDetailsPage.nodePoolTable().sortableTable().groupByButtons(2)
-      .should('not.exist');
+    // node pool table should offer grouping by pool
+    gkeDetailsPage.nodePoolTable().sortableTable().groupBy('Pool');
 
     gkeDetailsPage.nodePoolTable().sortableTable().groupRowCount('group-1').should('eq', 1);
     gkeDetailsPage.nodePoolTable().sortableTable().groupRowCount('group-2').should('eq', 1);

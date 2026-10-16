@@ -178,6 +178,40 @@ describe('class Pod', () => {
     });
   });
 
+  describe('node row in details', () => {
+    const nodeName = 'ip-172-31-13-111';
+
+    const createPodOnNode = (): any => createPod({ spec: { nodeName }, status: { podIP: '10.42.0.1' } });
+
+    const nodeRow = (pod: any) => pod.details.find((detail: any) => detail.label === 'Node');
+
+    it('should keep the LinkName formatter for views of the details that do not use the popover', () => {
+      const row = nodeRow(createPodOnNode());
+
+      expect([row.formatter, row.formatterOpts, row.content]).toStrictEqual(['LinkName', { type: NODE, value: nodeName }, nodeName]);
+    });
+
+    it('should show a popover of the node in the masthead', () => {
+      const { valueOverride } = nodeRow(createPodOnNode());
+
+      expect(valueOverride.props).toStrictEqual({ type: NODE, value: nodeName });
+    });
+
+    it('should use the same popover component every time the details are worked out', () => {
+      const pod = createPodOnNode();
+
+      expect(nodeRow(pod).valueOverride.component).toBe(nodeRow(pod).valueOverride.component);
+    });
+
+    it('should not have a node row when the pod has not been scheduled', () => {
+      const pod = createPodOnNode();
+
+      pod.spec = {};
+
+      expect(nodeRow(pod)).toBeUndefined();
+    });
+  });
+
   describe('workloadTypeLabel', () => {
     it('should use the label of the owning workload type', () => {
       const pod = createPod();

@@ -3,12 +3,11 @@ import {
 } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
-import { NAMESPACE, WORKLOAD_TYPES } from '@shell/config/types';
+import { WORKLOAD_TYPES } from '@shell/config/types';
+import { NAME_FILTER_QUERY, STATE_FILTER_QUERY } from '@shell/config/query-params';
 import type { StateColor } from '@shell/utils/style';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStateColor } from '@shell/composables/useStateColor';
-import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
-import { ALL_NAMESPACES } from '@shell/store/prefs';
 import {
   NAMESPACE_FILTER_ALL_USER,
   NAMESPACE_FILTER_ALL_SYSTEM,
@@ -16,14 +15,16 @@ import {
   NAMESPACE_FILTER_NS_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
+import type { StatusSummaryCardItem } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/types';
+import { buildStatusSummaryCard, compareStateColors } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/utils';
+import type { StatusBreakdownCardItem } from '@shell/components/Resource/Detail/Card/StatusBreakdownCard/types';
+import { getWorkloadNamespaceFilterParams } from './namespaceFilter';
 import {
-  WORKLOAD_DASHBOARD_RESOURCE_TYPES, COLOR_ORDER,
+  WORKLOAD_DASHBOARD_RESOURCE_TYPES,
   type WorkloadDashboardSummaryEntry,
   type WorkloadDashboardEntry,
   type WorkloadDashboardStateCard,
   type WorkloadDashboardByStateLayout,
-  type WorkloadDashboardByTypeCard,
-  type WorkloadDashboardByNamespaceCard,
 } from './types';
 
 const WORKLOAD_DASHBOARD_ROUTE = 'c-cluster-explorer-workload-dashboard';
@@ -55,15 +56,7 @@ export function useWorkloadDashboard() {
   const namespaceFilterParam = ref('');
 
   function buildNamespaceFilterParam(): string {
-    const selection: string[] = store.getters['namespaceFilters'];
-    const { projectsOrNamespaces, filters } = stevePaginationUtils.createParamsFromNsFilter({
-      allNamespaces:                 store.getters['cluster/all'](NAMESPACE),
-      selection,
-      isAllNamespaces:               isAllNamespaces.value,
-      isLocalCluster:                store.getters['currentCluster']?.isLocal,
-      showReservedRancherNamespaces: store.getters['prefs/get'](ALL_NAMESPACES),
-      productHidesSystemNamespaces:  store.getters['currentProduct']?.hideSystemResources,
-    });
+    const { projectsOrNamespaces, filters } = getWorkloadNamespaceFilterParams(store);
 
     // Getting the first schema is sufficient since the namespace filter param structure is the same across all resource types
     const schema = WORKLOAD_DASHBOARD_RESOURCE_TYPES
@@ -234,28 +227,21 @@ export function useWorkloadDashboard() {
 
   // ── By Type cards ──
 
-  const byTypeCards = computed<WorkloadDashboardByTypeCard[]>(() => {
-    return workloadData.value.filter((w) => !w.error && w.total > 0).map((w) => {
-      const resources = Object.entries(w.stateCounts)
-        .sort(([a], [b]) => (COLOR_ORDER[toStateColor(a, w.type)] ?? 5) - (COLOR_ORDER[toStateColor(b, w.type)] ?? 5))
-        .map(([state, count]) => ({
-          stateDisplay:     stateDisplay(state, true),
-          stateId:          state,
-          stateSimpleColor: toStateColor(state, w.type),
-          count,
-        }));
-
-      return {
-        title: w.label,
-        type:  w.type,
-        resources,
-      };
-    });
+  const byTypeCards = computed<StatusSummaryCardItem[]>(() => {
+    return workloadData.value.filter((w) => !w.error && w.total > 0).map((w) => buildStatusSummaryCard({
+      key:    w.type,
+      title:  w.label,
+      to:     resourceRoute(w.type),
+      states: Object.entries(w.stateCounts).map(([name, count]) => ({
+        name, count, color: toStateColor(name, w.type)
+      })),
+      stateRoute: (name) => resourceRoute(w.type, [name]),
+    }));
   });
 
   // ── By Namespace cards ──
 
-  const byNamespaceCards = computed<WorkloadDashboardByNamespaceCard[]>(() => {
+  const byNamespaceCards = computed<StatusBreakdownCardItem[]>(() => {
     // namespace -> type -> color -> { count, stateNames }
     const nsMap: Record<string, Record<string, Record<string, { count: number; stateNames: Set<string> }>>> = {};
 
@@ -297,19 +283,21 @@ export function useWorkloadDashboard() {
           .map((type) => {
             const label = t(`typeLabel."${ type }"`, { count: 2 })?.trim() || type;
             const counts = Object.entries(typeMap[type])
-              .sort(([a], [b]) => (COLOR_ORDER[a] ?? 5) - (COLOR_ORDER[b] ?? 5))
+              .sort(([a], [b]) => compareStateColors(a, b))
               .map(([color, { count, stateNames }]) => ({
-                color:      color as StateColor,
+                color: color as StateColor,
                 count,
-                stateNames: Array.from(stateNames),
+                to:    resourceRoute(type, Array.from(stateNames)),
               }));
 
             return {
-              label, type, counts
+              key: type, label, to: resourceRoute(type), counts
             };
           });
 
-        return { title: ns, rows };
+        return {
+          key: ns, title: ns, rows, selectable: true
+        };
       });
   });
 
@@ -329,7 +317,7 @@ export function useWorkloadDashboard() {
     });
   }
 
-  function resourceRoute(type: string, stateNames?: string[]): RouteLocationRaw {
+  function resourceRoute(type: string, stateNames?: string[], nameFilter?: string): RouteLocationRaw {
     const loc: { name: string; params: Record<string, string>; query?: Record<string, string> } = {
       name:   'c-cluster-product-resource',
       params: {
@@ -339,16 +327,28 @@ export function useWorkloadDashboard() {
       },
     };
 
+    const query: Record<string, string> = {};
+
     if (stateNames?.length) {
-      loc.query = { stateFilter: stateNames.join(',') };
+      // The list opens filtered to these, in its query
+      query[STATE_FILTER_QUERY] = stateNames.join(',');
+    }
+
+    if (nameFilter) {
+      // The list opens filtered to this name, in its query
+      query[NAME_FILTER_QUERY] = nameFilter;
+    }
+
+    if (Object.keys(query).length) {
+      loc.query = query;
     }
 
     return loc;
   }
 
-  function navigateToNamespace(type: string, namespace: string, stateNames?: string[]): void {
+  function navigateToNamespace(type: string, namespace: string): void {
     filterByNamespace(namespace);
-    router.push(resourceRoute(type, stateNames));
+    router.push(resourceRoute(type));
   }
 
   // ── Fetching & polling ──

@@ -11,17 +11,17 @@ import { RcItemCard } from '@components/RcItemCard';
 import { useI18n } from '@shell/composables/useI18n';
 import AuthProviderLogo from '@shell/components/auth/AuthProviderLogo.vue';
 
-interface ProviderType {
-  id: string;
-  provider: string;
-  sideLabel: string;
-  configType: string;
-  icon: string;
-}
+import type { AuthProviderType } from '@shell/utils/auth-providers';
 
 const props = defineProps<{
-  rows: ProviderType[];
+  /** One entry per provider type the server supports. */
+  rows: AuthProviderType[];
+  /** Called with the chosen provider. */
   selectCb:(id: string) => void;
+  /** Whether this is Rancher Prime. */
+  prime?: boolean;
+  /** Whether more than one external provider can be enabled at once. */
+  multipleAllowed?: boolean;
 }>();
 
 const emit = defineEmits<{(e: 'close'): void }>();
@@ -29,6 +29,14 @@ const emit = defineEmits<{(e: 'close'): void }>();
 const { t } = useI18n(useStore());
 
 const filterLabelId = useId();
+
+const subtitle = computed(() => {
+  if (props.multipleAllowed) {
+    return t('authConfig.add.subtitleMultiple');
+  }
+
+  return props.prime ? t('authConfig.add.subtitlePrimeSingle') : t('authConfig.add.subtitle');
+});
 
 const ANNOUNCE_DELAY = 500;
 
@@ -38,20 +46,17 @@ const protocol = ref('');
 const protocols = computed(() => {
   const byType = new Map<string, string>();
 
-  props.rows
-    .filter((row) => row.configType)
-    .forEach((row) => byType.set(row.configType, row.sideLabel || row.configType));
+  props.rows.filter((row) => row.category).forEach((row) => byType.set(row.category, row.categoryLabel));
 
-  return Array.from(byType, ([value, label]) => ({ value, label }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+  return Array.from(byType, ([value, label]) => ({ value, label })).sort((a, b) => a.label.localeCompare(b.label));
 });
 
 const filtered = computed(() => {
   const term = search.value.trim().toLowerCase();
 
   return props.rows.filter((row) => {
-    const matchesProtocol = !protocol.value || row.configType === protocol.value;
-    const matchesTerm = !term || row.provider.toLowerCase().includes(term);
+    const matchesProtocol = !protocol.value || row.category === protocol.value;
+    const matchesTerm = !term || row.name.toLowerCase().includes(term);
 
     return matchesProtocol && matchesTerm;
   });
@@ -89,7 +94,7 @@ const select = (id: string) => {
     <template #body>
       <div class="add-auth-provider__body">
         <p class="add-auth-provider__subtitle">
-          {{ t('authConfig.add.subtitle') }}
+          {{ subtitle }}
         </p>
 
         <input
@@ -160,7 +165,7 @@ const select = (id: string) => {
             <rc-item-card
               :id="row.id"
               :value="row"
-              :header="{ title: { text: row.provider } }"
+              :header="{ title: { text: row.name } }"
               variant="medium"
               :clickable="true"
               class="add-auth-provider__tile"
@@ -175,7 +180,7 @@ const select = (id: string) => {
                   type="inactive"
                   :data-testid="`add-auth-provider-tile-protocol-${ row.id }`"
                 >
-                  {{ row.sideLabel }}
+                  {{ row.categoryLabel }}
                 </RcTag>
               </template>
             </rc-item-card>

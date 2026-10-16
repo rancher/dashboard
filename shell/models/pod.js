@@ -22,6 +22,9 @@ export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 7,
 };
 
+// Defined once so the component identity is stable; creating it in `details` remounts the link's popover, and closes its card, on every pod update
+const LinkNamePopover = markRaw(defineAsyncComponent(() => import('@shell/components/formatter/LinkNamePopover.vue')));
+
 export default class Pod extends WorkloadService {
   _os = undefined;
 
@@ -285,6 +288,8 @@ export default class Pod extends WorkloadService {
         formatter:     'LinkName',
         formatterOpts: { type: NODE, value: this.spec.nodeName },
         content:       this.spec.nodeName,
+        // The masthead shows a popover with the details of the node. Other views of the details use the LinkName formatter
+        valueOverride: { component: LinkNamePopover, props: { type: NODE, value: this.spec.nodeName } },
       });
     }
 

@@ -2,22 +2,42 @@ import { mount } from '@vue/test-utils';
 import DisableAuthProviderDialog from '@shell/dialog/DisableAuthProviderDialog.vue';
 import { Checkbox } from '@components/Form/Checkbox';
 
-const createWrapper = (props = {}) => mount(DisableAuthProviderDialog, { props: { name: 'okta-corp', ...props } });
+jest.mock('focus-trap', () => ({
+  createFocusTrap: jest.fn(() => ({
+    activate:   jest.fn(),
+    deactivate: jest.fn(),
+  })),
+}));
 
+const createWrapper = (props = {}) => mount(DisableAuthProviderDialog, {
+  props: {
+    name: 'okta-corp', modal: { show: true, onClose: jest.fn() }, ...props
+  },
+  global: { provide: { store: {} }, stubs: { teleport: true } },
+});
+
+const title = (wrapper: any) => wrapper.find('[data-testid="rc-modal-title"]');
 const confirmButton = (wrapper: any) => wrapper.find('[data-testid="disable-auth-provider-confirm-button"]');
-const cancelButton = (wrapper: any) => wrapper.find('[data-testid="disable-auth-provider-cancel-button"]');
+const cancelButton = (wrapper: any) => wrapper.find('[data-testid="rc-modal-cancel"]');
+const onClose = (wrapper: any) => wrapper.props('modal').onClose;
 
 describe('component: DisableAuthProviderDialog', () => {
   it('should name the provider being disabled', () => {
     const wrapper = createWrapper();
 
-    expect(wrapper.find('h3').text()).toBe('%authConfig.disable.title%');
+    expect(title(wrapper).text()).toBe('%authConfig.disable.title%');
   });
 
   it('should fall back to a generic title when the provider has no name', () => {
     const wrapper = createWrapper({ name: '' });
 
-    expect(wrapper.find('h3').text()).toBe('%authConfig.disable.titleGeneric%');
+    expect(title(wrapper).text()).toBe('%authConfig.disable.titleGeneric%');
+  });
+
+  it('should render nothing until it is told to show', () => {
+    const wrapper = createWrapper({ modal: { show: false, onClose: jest.fn() } });
+
+    expect(title(wrapper).exists()).toBe(false);
   });
 
   // The whole point of the dialog: disabling deletes everything stored for the
@@ -39,7 +59,7 @@ describe('component: DisableAuthProviderDialog', () => {
     await confirmButton(wrapper).trigger('click');
 
     expect(disableCb).not.toHaveBeenCalled();
-    expect(wrapper.emitted('close')).toBeUndefined();
+    expect(onClose(wrapper)).not.toHaveBeenCalled();
   });
 
   it('should run the callback once acknowledged and confirmed', async() => {
@@ -50,7 +70,7 @@ describe('component: DisableAuthProviderDialog', () => {
     await confirmButton(wrapper).trigger('click');
 
     expect(disableCb).toHaveBeenCalledWith();
-    expect(wrapper.emitted('close')).toHaveLength(1);
+    expect(onClose(wrapper)).toHaveBeenCalledTimes(1);
   });
 
   it('should close without disabling when cancelled', async() => {
@@ -60,7 +80,7 @@ describe('component: DisableAuthProviderDialog', () => {
     await cancelButton(wrapper).trigger('click');
 
     expect(disableCb).not.toHaveBeenCalled();
-    expect(wrapper.emitted('close')).toHaveLength(1);
+    expect(onClose(wrapper)).toHaveBeenCalledTimes(1);
   });
 
   // The confirming action is destructive, so it must not read as an ordinary

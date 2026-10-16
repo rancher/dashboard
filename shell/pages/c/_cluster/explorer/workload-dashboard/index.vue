@@ -8,9 +8,10 @@ import { DOCS_BASE } from '@shell/config/private-label';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import { useWorkloadDashboard } from './composable';
+import StatusSummaryCardSection from '@shell/components/Resource/Detail/Card/StatusSummaryCard/StatusSummaryCardSection.vue';
 import ByStateSection from './ByStateSection.vue';
-import ByTypeSection from './ByTypeSection.vue';
 import ByNamespaceSection from './ByNamespaceSection.vue';
+import WorkloadSearch from './search/WorkloadSearch.vue';
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -99,6 +100,12 @@ const {
           </div>
         </template>
       </Masthead>
+      <div class="workload-search-row">
+        <WorkloadSearch
+          :navigate-to-namespace="navigateToNamespace"
+          :resource-route="resourceRoute"
+        />
+      </div>
       <div class="workload-content">
         <!-- ━━━ By State ━━━ -->
         <div
@@ -115,18 +122,11 @@ const {
         </div>
 
         <!-- ━━━ By Type ━━━ -->
-        <div
-          class="section"
+        <StatusSummaryCardSection
+          :title="t('workloadDashboard.sections.byType')"
+          :cards="byTypeCards"
           data-testid="workload-dashboard-by-type"
-        >
-          <h4 class="m-0 text-deemphasized">
-            {{ t('workloadDashboard.sections.byType') }}
-          </h4>
-          <ByTypeSection
-            :cards="byTypeCards"
-            :resource-route="resourceRoute"
-          />
-        </div>
+        />
 
         <!-- ━━━ By Namespace ━━━ -->
         <div
@@ -138,7 +138,6 @@ const {
           </h4>
           <ByNamespaceSection
             :cards="byNamespaceCards"
-            :navigate-to-namespace="navigateToNamespace"
             :filter-by-namespace="filterByNamespace"
           />
         </div>
@@ -151,6 +150,10 @@ const {
 .workload-dashboard {
   display: flex;
   flex-direction: column;
+
+  .workload-search-row {
+    margin-bottom: 24px;
+  }
 
   .workload-content {
     display: flex;

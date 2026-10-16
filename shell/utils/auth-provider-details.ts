@@ -17,6 +17,12 @@ type Row = { label: string, value: unknown };
 
 type Builder = (config: AuthConfig, context: DetailContext) => Row[];
 
+/**
+ * The provider a config belongs to. A config's id is its own name (`github-2`),
+ * so the provider is read from its type, `githubConfig`.
+ */
+const providerOf = (config: AuthConfig): string => providerKey(config.type || config.id);
+
 const httpUrl = (config: AuthConfig): string => (config.hostname ? `${ config.tls ? 'https' : 'http' }://${ config.hostname }` : '');
 
 const ldapServer = (config: AuthConfig): string => {
@@ -43,7 +49,7 @@ const endSessionEndpoint = (config: AuthConfig): string => (config.logoutAllEnab
 
 const byProvider: Record<string, Builder> = {
   github: (config, { t }) => {
-    const prefix = `authConfig.${ providerKey(config.id) === 'githubapp' ? 'githubapp' : 'github' }`;
+    const prefix = `authConfig.${ providerOf(config) === 'githubapp' ? 'githubapp' : 'github' }`;
 
     return [
       { label: t(`${ prefix }.table.server`), value: httpUrl(config) },
@@ -92,7 +98,7 @@ const byCategory: Record<string, Builder> = {
       { label: t('authConfig.saml.groups'), value: config.groupsField },
     ];
 
-    if (providerKey(config.id) === 'genericsaml') {
+    if (providerOf(config) === 'genericsaml') {
       rows.push(
         { label: t('authConfig.saml.nameIDFormat'), value: config.nameIDFormat ? t(`authConfig.saml.nameIDFormatOptions.${ config.nameIDFormat }`) : '' },
         { label: t('authConfig.saml.signatureMethod'), value: config.signatureMethod },
@@ -133,8 +139,9 @@ export const authProviderDetails = (config: AuthConfig | null | undefined, t: Tr
     return [];
   }
 
-  const category = configTypeForProvider(config.id);
-  const build = byProvider[providerKey(config.id)] || byCategory[category];
+  const provider = providerOf(config);
+  const category = configTypeForProvider(provider);
+  const build = byProvider[provider] || byCategory[category];
 
   const type = category ? [{ label: t('authConfig.access.type'), value: t(`model.authConfig.description.${ category }`) }] : [];
   const rows = build ? build(config, { t, name }) : [];

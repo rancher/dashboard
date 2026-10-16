@@ -8,6 +8,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 const downloadsFolder = Cypress.config('downloadsFolder');
 
 const fakeProvClusterId = 'some-fake-cluster-id';
@@ -389,6 +390,53 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
       cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', `${ workspace }/clone-${ editRepoName }`);
     });
 
+    it('Can clone a git repo into another workspace, picked in the form', () => {
+      const targetWorkspace = 'fleet-local';
+      const cloneName = `ws-clone-${ editRepoName }`;
+      const gitRepoEditPage = new FleetGitRepoCreateEditPo(workspace, editRepoName);
+      // Page objects share one chain that moves with every lookup, so build each from the page again
+      const form = () => gitRepoEditPage.resourceDetail().createEditView();
+
+      cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', `${ targetWorkspace }/${ cloneName }`, false);
+
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
+
+      listPage.list().actionMenu(editRepoName).getMenuItem('Clone')
+        .click();
+      gitRepoEditPage.waitForPage('mode=clone');
+
+      // The header switcher stays put: the workspace is picked in the form
+      headerPo.workspaceSwitcher().self().find('.vs--disabled')
+        .should('exist');
+      form().nameNsDescription().namespace().select()
+        .checkOptionSelected(workspace);
+      form().nameNsDescription().selectNamespace(targetWorkspace);
+      form().nameNsDescription().namespace().select()
+        .checkOptionSelected(targetWorkspace);
+      form().nameNsDescription().name().set(cloneName);
+
+      form().nextPage();
+      form().nextPage();
+      form().nextPage();
+
+      cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('cloneGitRepo');
+      form().create();
+      cy.wait('@cloneGitRepo').then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(201);
+        expect(request.body.metadata).to.include({ name: cloneName, namespace: targetWorkspace });
+        expect(request.body.spec).to.include({ repo: repoInfo.repoUrl, branch: repoInfo.branch });
+      });
+
+      listPage.waitForPage();
+      headerPo.checkCurrentWorkspace(targetWorkspace);
+      listPage.list().rowWithName(cloneName).self()
+        .should('be.visible');
+
+      cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', `${ targetWorkspace }/${ cloneName }`);
+    });
+
     it('Can Edit Yaml', () => {
       const gitRepoEditPage = new FleetGitRepoCreateEditPo(workspace, editRepoName);
 
@@ -412,8 +460,9 @@ describe('Git Repo', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, (
       listPage.waitForPage();
       headerPo.selectWorkspace(workspace);
 
-      listPage.list().actionMenu(editRepoName).getMenuItem('Download YAML')
+      listPage.list().actionMenu(editRepoName).getMenuItem('Export As...')
         .click();
+      new ExportModalPo().download();
 
       const downloadedFilename = path.join(downloadsFolder, `${ editRepoName }.yaml`);
 
