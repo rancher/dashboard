@@ -91,7 +91,6 @@ describe('class: WorkloadService PersistentVolumeClaim helpers', () => {
         spec:     { template: { spec: { volumes: [{ name: 'v1', persistentVolumeClaim: { claimName: 'shared' } }] } } },
       }, storageCtx);
 
-      // volumeClaimTemplates create per-pod claims which only surface via the loaded pods
       (statefulSet as any).pods = [
         { spec: { volumes: [{ persistentVolumeClaim: { claimName: 'data-s-0' } }, { persistentVolumeClaim: { claimName: 'shared' } }] } },
         { spec: { volumes: [{ persistentVolumeClaim: { claimName: 'data-s-1' } }] } },
@@ -108,6 +107,58 @@ describe('class: WorkloadService PersistentVolumeClaim helpers', () => {
       }, storageCtx);
 
       expect(deployment.persistentVolumeClaimNames).toStrictEqual([]);
+    });
+  });
+
+  describe('persistentVolumeClaimTemplatePrefixes', () => {
+    it('builds a prefix per StatefulSet volumeClaimTemplate', () => {
+      const statefulSet = new WorkloadService({
+        type:     WORKLOAD_TYPES.STATEFUL_SET,
+        metadata: { name: 'web', namespace: 'default' },
+        spec:     { volumeClaimTemplates: [{ metadata: { name: 'data' } }, { metadata: { name: 'logs' } }] },
+      }, storageCtx);
+
+      expect(statefulSet.persistentVolumeClaimTemplatePrefixes).toStrictEqual(['data-web-', 'logs-web-']);
+    });
+
+    it('skips templates without a name', () => {
+      const statefulSet = new WorkloadService({
+        type:     WORKLOAD_TYPES.STATEFUL_SET,
+        metadata: { name: 'web', namespace: 'default' },
+        spec:     { volumeClaimTemplates: [{ metadata: {} }, { metadata: { name: 'data' } }] },
+      }, storageCtx);
+
+      expect(statefulSet.persistentVolumeClaimTemplatePrefixes).toStrictEqual(['data-web-']);
+    });
+
+    it('returns an empty array for workloads other than StatefulSets', () => {
+      const deployment = new WorkloadService({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'web', namespace: 'default' },
+        spec:     { volumeClaimTemplates: [{ metadata: { name: 'data' } }] },
+      }, storageCtx);
+
+      expect(deployment.persistentVolumeClaimTemplatePrefixes).toStrictEqual([]);
+    });
+  });
+
+  describe('isPersistentVolumeClaimFromTemplate', () => {
+    const statefulSet = new WorkloadService({
+      type:     WORKLOAD_TYPES.STATEFUL_SET,
+      metadata: { name: 'web', namespace: 'default' },
+      spec:     { volumeClaimTemplates: [{ metadata: { name: 'data' } }] },
+    }, storageCtx);
+
+    it.each([
+      ['data-web-0', true],
+      ['data-web-12', true],
+      ['data-web-api-0', false], // claim of another StatefulSet called web-api
+      ['data-web-', false],
+      ['data-web-0-backup', false],
+      ['logs-web-0', false],
+      ['data-other-0', false],
+    ])('%s -> %s', (claimName, expected) => {
+      expect(statefulSet.isPersistentVolumeClaimFromTemplate(claimName)).toBe(expected);
     });
   });
 
@@ -174,6 +225,81 @@ describe('class: WorkloadService PersistentVolumeClaim helpers', () => {
 
       await expect(deployment.fetchPersistentVolumeClaims()).resolves.toStrictEqual([{ metadata: { name: 'pvc-a', namespace: 'default' } }]);
       expect(dispatch).toHaveBeenCalledWith('findAll', { type: PVC, opt: { namespaced: 'default' } });
+    });
+
+    describe('statefulSet volumeClaimTemplates', () => {
+      const claim = (name: string) => ({ metadata: { name, namespace: 'default' } });
+
+      // Scaled down from 5 to 0, so there are no pods but all five claims are retained
+      const scaledDownStatefulSet = (paginationEnabled: boolean, dispatch: jest.Mock) => new WorkloadService({
+        type:     WORKLOAD_TYPES.STATEFUL_SET,
+        metadata: { name: 'web', namespace: 'default' },
+        spec:     {
+          replicas:             0,
+          template:             { spec: {} },
+          volumeClaimTemplates: [{ metadata: { name: 'data' } }],
+        },
+      }, {
+        getters: { schemaFor: () => ({}), paginationEnabled: () => paginationEnabled }, dispatch, rootGetters: {}
+      });
+
+      const retained = ['data-web-0', 'data-web-1', 'data-web-2', 'data-web-3', 'data-web-4'].map(claim);
+      const unrelated = [claim('data-web-api-0'), claim('other')];
+
+      it('finds retained template claims without pods when pagination is disabled', async() => {
+        const dispatch = jest.fn().mockResolvedValue([...retained, ...unrelated]);
+        const statefulSet = scaledDownStatefulSet(false, dispatch);
+
+        await expect(statefulSet.fetchPersistentVolumeClaims()).resolves.toStrictEqual(retained);
+        expect(dispatch).toHaveBeenCalledWith('findAll', { type: PVC, opt: { namespaced: 'default' } });
+      });
+
+      it('requests template claims by partial name when pagination is enabled', async() => {
+        const dispatch = jest.fn().mockResolvedValue({ data: [] });
+        const statefulSet = scaledDownStatefulSet(true, dispatch);
+
+        await statefulSet.fetchPersistentVolumeClaims();
+
+        const nameFilter = dispatch.mock.calls[0][1].opt.pagination.filters[1];
+
+        expect(nameFilter.fields.map((f: any) => ({
+          field: f.field, value: f.value, equality: f.equality
+        }))).toStrictEqual([
+          {
+            field: 'metadata.name', value: 'data-web-', equality: '~'
+          },
+        ]);
+      });
+
+      it('drops partial name matches that belong to another StatefulSet when pagination is enabled', async() => {
+        const dispatch = jest.fn().mockResolvedValue({ data: [...retained, claim('data-web-api-0')] });
+        const statefulSet = scaledDownStatefulSet(true, dispatch);
+
+        await expect(statefulSet.fetchPersistentVolumeClaims()).resolves.toStrictEqual(retained);
+      });
+
+      it('requests exact names and template prefixes in one filter group', async() => {
+        const dispatch = jest.fn().mockResolvedValue({ data: [] });
+        const statefulSet = new WorkloadService({
+          type:     WORKLOAD_TYPES.STATEFUL_SET,
+          metadata: { name: 'web', namespace: 'default' },
+          spec:     {
+            template:             { spec: { volumes: [{ persistentVolumeClaim: { claimName: 'shared' } }] } },
+            volumeClaimTemplates: [{ metadata: { name: 'data' } }],
+          },
+        }, {
+          getters: { schemaFor: () => ({}), paginationEnabled: () => true }, dispatch, rootGetters: {}
+        });
+
+        await statefulSet.fetchPersistentVolumeClaims();
+
+        const nameFilter = dispatch.mock.calls[0][1].opt.pagination.filters[1];
+
+        expect(nameFilter.fields.map((f: any) => ({ value: f.value, equality: f.equality }))).toStrictEqual([
+          { value: 'shared', equality: '=' },
+          { value: 'data-web-', equality: '~' },
+        ]);
+      });
     });
   });
 });
