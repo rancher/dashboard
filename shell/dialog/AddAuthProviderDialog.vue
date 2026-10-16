@@ -217,7 +217,6 @@ $results-height: 400px;
 
   &__subtitle {
     margin: 0;
-    color: var(--label-secondary);
   }
 
   &__search {

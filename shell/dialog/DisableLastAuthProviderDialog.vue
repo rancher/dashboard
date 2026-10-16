@@ -109,8 +109,6 @@ const restore = async() => {
 
     &__copy {
       margin: 0;
-      line-height: 22px;
-      color: var(--label-secondary);
     }
 
     &__locked,
