@@ -130,7 +130,7 @@ export default {
       <RcSection
         v-if="useRc"
         type="secondary"
-        :mode="canRemoveRow(scope.row, scope.i) ? 'with-header' : 'no-header'"
+        mode="with-header"
         :title="getTitle(scope)"
         :expandable="false"
       >
@@ -142,7 +142,7 @@ export default {
           #actions
         >
           <RcSectionActions
-            :actions="[{ icon: 'trash', ariaLabel: t('generic.ariaLabel.remove', { index: scope.i }), action: scope.remove }]"
+            :actions="[{ icon: 'trash', ariaLabel: t('generic.ariaLabel.remove', { index: scope.i+1 }), action: scope.remove }]"
             :data-testid="`remove-item-${scope.i}`"
           />
         </template>
