@@ -325,6 +325,8 @@ export default {
       }
     }
 
+    const havePage = getters.havePage(type);
+
     let streamStarted = false;
     let out;
 
@@ -385,7 +387,18 @@ export default {
       }
 
       return out;
-    } else if ( out.data ) {
+    }
+
+    if (!havePage && getters.havePage(type)) {
+      // Similar to `find`. A `findPage` may have returned whilst this request was in flight (e.g. the requester's page was
+      // left and the next page used findPage). The `findAll` would then clear the page state in the cache.
+      // If this has happened silently return (we don't care about result)
+      console.warn(`Prevented \`findAll\` action from polluting cache for type "${ type }" (currently represents a page).`); // eslint-disable-line no-console
+
+      return;
+    }
+
+    if ( out.data ) {
       if ( load === _MULTI ) {
         // This has the effect of adding the response to the store,
         // without replacing all the existing content for that type,
