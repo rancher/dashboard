@@ -199,9 +199,7 @@ export async function promptDisableAuthProvider({
   if (localLoginDisabled && (readFailed || isLastWayIn(configs, id, localLoginDisabled))) {
     return dispatch('management/promptModal', {
       component:      'DisableLastAuthProviderDialog',
-      modalWidth:     '640px',
-      height:         'auto',
-      styles:         'max-height: 100vh;',
+      ownsModal:      true,
       componentProps: {
         name,
         canRestore: canWriteLocalAuthFeature(getters),

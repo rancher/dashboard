@@ -20,8 +20,10 @@ const ANNOUNCE_DELAY = 500;
 
 const createWrapper = (props = {}) => mount(AddAuthProviderDialog, {
   props: {
-    rows, selectCb: jest.fn(), ...props
-  }
+    rows, selectCb: jest.fn(), modal: { show: true, onClose: jest.fn() }, ...props
+  },
+  attachTo: document.body,
+  global:   { stubs: { teleport: true } },
 });
 
 const tileNames = (wrapper: any) => wrapper
@@ -234,16 +236,16 @@ describe('component: AddAuthProviderDialog', () => {
     await wrapper.find('[data-testid="add-auth-provider-tile-github"]').trigger('click');
 
     expect(selectCb).toHaveBeenCalledWith('github');
-    expect(wrapper.emitted('close')).toHaveLength(1);
+    expect(wrapper.props('modal').onClose).toHaveBeenCalledWith();
   });
 
   it('should close without choosing when cancelled', async() => {
     const selectCb = jest.fn();
     const wrapper = createWrapper({ selectCb });
 
-    await wrapper.find('button.variant-link').trigger('click');
+    await wrapper.find('[data-testid="add-auth-provider-cancel"]').trigger('click');
 
     expect(selectCb).not.toHaveBeenCalled();
-    expect(wrapper.emitted('close')).toHaveLength(1);
+    expect(wrapper.props('modal').onClose).toHaveBeenCalledWith();
   });
 });
