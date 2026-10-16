@@ -2,9 +2,8 @@ import {
   ref, toValue, watch, type MaybeRefOrGetter, type Ref
 } from 'vue';
 import { useStore } from 'vuex';
-import { NAMESPACE } from '@shell/config/types';
-import { ALL_NAMESPACES } from '@shell/store/prefs';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
+import { getNamespaceFilterParams } from '@shell/utils/namespace-filter-params';
 
 /**
  * The steve query params (e.g. `filter=...&projectsornamespaces=...`) that apply the current namespace
@@ -19,14 +18,7 @@ export function useNamespaceFilterParam(types: MaybeRefOrGetter<string[]>): Ref<
   const param = ref('');
 
   function build(): string {
-    const { projectsOrNamespaces, filters } = stevePaginationUtils.createParamsFromNsFilter({
-      allNamespaces:                 store.getters['cluster/all'](NAMESPACE),
-      selection:                     store.getters['namespaceFilters'],
-      isAllNamespaces:               store.getters['isAllNamespaces'],
-      isLocalCluster:                store.getters['currentCluster']?.isLocal,
-      showReservedRancherNamespaces: store.getters['prefs/get'](ALL_NAMESPACES),
-      productHidesSystemNamespaces:  store.getters['currentProduct']?.hideSystemResources,
-    });
+    const { projectsOrNamespaces, filters } = getNamespaceFilterParams(store);
 
     const schema = toValue(types)
       .map((type) => store.getters['cluster/schemaFor'](type))

@@ -1,4 +1,4 @@
-import { getWorkloadNamespaceFilterParams } from '@shell/pages/c/_cluster/explorer/workload-dashboard/namespaceFilter';
+import { getNamespaceFilterParams } from '@shell/utils/namespace-filter-params';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { NAMESPACE } from '@shell/config/types';
 import { ALL_NAMESPACES } from '@shell/store/prefs';
@@ -26,7 +26,7 @@ function makeStore(overrides: Record<string, any> = {}) {
   return { getters } as any;
 }
 
-describe('fn: getWorkloadNamespaceFilterParams', () => {
+describe('fn: getNamespaceFilterParams', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -36,11 +36,11 @@ describe('fn: getWorkloadNamespaceFilterParams', () => {
 
     mockCreateParams.mockReturnValue(params);
 
-    expect(getWorkloadNamespaceFilterParams(makeStore())).toStrictEqual(params);
+    expect(getNamespaceFilterParams(makeStore())).toStrictEqual(params);
   });
 
   it('should build the params from the current store state', () => {
-    getWorkloadNamespaceFilterParams(makeStore());
+    getNamespaceFilterParams(makeStore());
 
     expect(mockCreateParams).toHaveBeenCalledWith({
       allNamespaces:                 namespaces,
@@ -55,7 +55,7 @@ describe('fn: getWorkloadNamespaceFilterParams', () => {
   it('should fetch all namespaces from the cluster store', () => {
     const store = makeStore();
 
-    getWorkloadNamespaceFilterParams(store);
+    getNamespaceFilterParams(store);
 
     expect(store.getters['cluster/all']).toHaveBeenCalledWith(NAMESPACE);
   });
@@ -63,13 +63,13 @@ describe('fn: getWorkloadNamespaceFilterParams', () => {
   it('should read the show reserved namespaces preference', () => {
     const store = makeStore();
 
-    getWorkloadNamespaceFilterParams(store);
+    getNamespaceFilterParams(store);
 
     expect(store.getters['prefs/get']).toHaveBeenCalledWith(ALL_NAMESPACES);
   });
 
   it('should pass undefined cluster and product values when there is no current cluster or product', () => {
-    getWorkloadNamespaceFilterParams(makeStore({ currentCluster: null, currentProduct: undefined }));
+    getNamespaceFilterParams(makeStore({ currentCluster: null, currentProduct: undefined }));
 
     expect(mockCreateParams).toHaveBeenCalledWith(expect.objectContaining({
       isLocalCluster:               undefined,
