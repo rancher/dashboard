@@ -62,12 +62,18 @@ export default {
       [
         {
           path:           'metadata.name',
+          rules:          ['required', 'subDomain'],
+          translationKey: 'nameNsDescription.name.label',
+        },
+        {
+          // Cloud credential names are not Kubernetes names
+          path:           'cloudCredentialName',
           rules:          ['required'],
           translationKey: 'nameNsDescription.name.label',
         },
         {
           path:           'metadata.namespace',
-          rules:          ['required'],
+          rules:          ['required', 'dnsLabel', 'noUpperCase'],
           translationKey: 'nameNsDescription.namespace.label',
         },
         {
@@ -292,6 +298,10 @@ export default {
       return this.$store.getters['prefs/get'](HIDE_SENSITIVE);
     },
 
+    nameRules() {
+      return this.getRules(this.isCloud ? 'cloudCredentialName' : 'metadata.name');
+    },
+
     dataTabHasError() {
       const topLevelFields = new Set(['metadata.name', 'metadata.namespace', 'secretType', 'secret._type']);
 
@@ -463,7 +473,7 @@ export default {
         :namespaced="!isCloud"
         :name-field-name="'metadata.name'"
         :namespace-field-name="'metadata.namespace'"
-        :rules="{ name: getRules('metadata.name'), namespace: getRules('metadata.namespace'), description: [] }"
+        :rules="{ name: nameRules, namespace: getRules('metadata.namespace'), description: [] }"
         @update:value="$emit('input', $event)"
       />
       <NameNsDescription
@@ -472,7 +482,7 @@ export default {
         :namespaced="false"
         :mode="mode"
         :name-field-name="'metadata.name'"
-        :rules="{ name: getRules('metadata.name'), namespace: [], description: [] }"
+        :rules="{ name: nameRules, namespace: [], description: [] }"
       >
         <template #project-selector>
           <LabeledSelect
