@@ -648,7 +648,7 @@ export default defineComponent({
     <div
       v-if="cronHint || subLabel"
       class="sub-label"
-      :class="{ 'sub-label-right': subLabelPosition === 'right', 'cron-hint': !!cronHint }"
+      :class="{ 'sub-label-right': subLabelPosition === 'right' }"
       data-testid="sub-label"
     >
       <div
@@ -672,17 +672,13 @@ export default defineComponent({
   position: relative;
 }
 
-// The cron hint is a single short sentence, so let it go past the edge of the
-// input instead of wrapping onto more lines and covering the content below
-.labeled-input .sub-label.cron-hint {
-  width: max-content;
-}
-
 .labeled-input .sub-label.sub-label-right {
   top: 50%;
   left: 100%;
   padding: 0 0 0 20px;
   transform: translateY(-50%);
+  // Use the free space next to the input instead of wrapping inside the input width
+  width: max-content;
 }
 
 .multiline-password:not(:focus) {

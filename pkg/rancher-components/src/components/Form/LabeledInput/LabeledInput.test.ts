@@ -59,17 +59,6 @@ describe('component: LabeledInput', () => {
 
       expect(subLabel.text()).toBe(hint);
     });
-
-    it('should mark the sub-label as a cron hint', () => {
-      const wrapper = mount(LabeledInput, {
-        propsData: { value: '0 * * * *', type: 'cron' },
-        mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
-      });
-
-      const subLabel = wrapper.find('[data-testid="sub-label"]');
-
-      expect(subLabel.classes()).toContain('cron-hint');
-    });
   });
 
   describe('subLabelPosition prop', () => {
@@ -103,17 +92,6 @@ describe('component: LabeledInput', () => {
       const subLabelElement = wrapper.find('[data-testid="sub-label"]');
 
       expect(subLabelElement.classes()).toContain('sub-label-right');
-    });
-
-    it('should not mark a plain sub-label as a cron hint', () => {
-      const wrapper = mount(LabeledInput, {
-        propsData: { value: 'some-value', subLabel: 'some-sublabel' },
-        mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
-      });
-
-      const subLabel = wrapper.find('[data-testid="sub-label"]');
-
-      expect(subLabel.classes()).not.toContain('cron-hint');
     });
 
     it.each([
