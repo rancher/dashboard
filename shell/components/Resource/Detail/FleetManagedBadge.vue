@@ -16,7 +16,7 @@ const isFleetManaged = computed(() => !!props.resource?.metadata?.labels?.[FLEET
   <BadgeState
     v-if="isFleetManaged"
     class="fleet-managed-badge"
-    icon="icon-fleet"
+    icon="icon-fleet-alt"
     :label="t('resourceDetail.masthead.fleetManagedBadge')"
     data-testid="fleet-managed-badge"
   />

@@ -15,7 +15,7 @@ describe('component: FleetManagedBadge', () => {
     const badge = wrapper.findComponent(BadgeState);
 
     expect(badge.exists()).toBe(true);
-    expect(badge.props('icon')).toStrictEqual('icon-fleet');
+    expect(badge.props('icon')).toStrictEqual('icon-fleet-alt');
     expect(badge.props('label')).toStrictEqual('%resourceDetail.masthead.fleetManagedBadge%');
   });
 
