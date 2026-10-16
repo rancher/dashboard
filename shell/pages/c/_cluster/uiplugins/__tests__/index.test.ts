@@ -1,5 +1,6 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import UiPluginsPage from '@shell/pages/c/_cluster/uiplugins/index.vue';
+import PluginInfoPanel from '@shell/pages/c/_cluster/uiplugins/PluginInfoPanel.vue';
 import {
   UI_PLUGIN_NAMESPACE,
   UI_PLUGIN_CHART_ANNOTATIONS,
@@ -72,6 +73,26 @@ describe('page: UI plugins/Extensions', () => {
 
   beforeEach(() => {
     wrapper = mountComponent();
+  });
+
+  describe('showPluginDetail', () => {
+    it('should open the extension in the shared slide-in, with its tags and the action handler', () => {
+      const slideIn = { open: jest.fn() };
+      const plugin = { name: 'my-extension', label: 'My Extension' };
+
+      wrapper = mountComponent({ $shell: { slideIn } });
+      wrapper.vm.showPluginDetail(plugin);
+
+      expect(slideIn.open).toHaveBeenCalledWith(PluginInfoPanel, {
+        props: {
+          info:     { ...plugin, tags: wrapper.vm.getFooterItems(plugin) },
+          onAction: wrapper.vm.handlePanelAction,
+        },
+        width:              'wide',
+        height:             'full',
+        closeOnRouteChange: ['name', 'params', 'query'],
+      });
+    });
   });
 
   describe('getPluginActions', () => {

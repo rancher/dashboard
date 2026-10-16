@@ -1,0 +1,133 @@
+<script setup lang="ts">
+/**
+ * The standard drawer: a header with the title and a close button, a tinted
+ * body, and a footer with a Close button followed by any additional actions.
+ *
+ * It fills its nearest positioned ancestor, which in the shell is the slide-in
+ * panel. Both close buttons emit `close`, and taking the drawer down stays the
+ * consumer's call.
+ */
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
+import RcButton from '@components/RcButton/RcButton.vue';
+import type { RcDrawerProps } from './types';
+
+const props = defineProps<RcDrawerProps>();
+
+defineEmits<{
+  close: [];
+}>();
+
+const store = useStore();
+const { t } = useI18n(store);
+
+const closeAriaLabel = computed(() => t('component.drawer.chrome.ariaLabel.close', { target: props.title }));
+</script>
+
+<template>
+  <div
+    class="rc-drawer"
+    role="dialog"
+    aria-modal="true"
+    :aria-label="title"
+  >
+    <div class="header">
+      <div
+        class="title"
+        data-testid="rc-drawer-title"
+      >
+        <!-- @slot The title, for when it needs more than the string the `title` prop takes. -->
+        <slot name="title">
+          {{ title }}
+        </slot>
+      </div>
+      <button
+        type="button"
+        class="btn role-link close"
+        :aria-label="closeAriaLabel"
+        data-testid="rc-drawer-close"
+        @click="$emit('close')"
+      >
+        <i class="icon icon-close" />
+      </button>
+    </div>
+    <div
+      class="body"
+      data-testid="rc-drawer-body"
+    >
+      <!-- @slot The drawer body. Put each section in an `RcDrawerCard`. -->
+      <slot />
+    </div>
+    <div
+      class="footer"
+      data-testid="rc-drawer-footer"
+    >
+      <RcButton
+        variant="secondary"
+        size="large"
+        :aria-label="closeLabel ? undefined : closeAriaLabel"
+        @click="$emit('close')"
+      >
+        {{ closeLabel || t('component.drawer.chrome.close') }}
+      </RcButton>
+      <!-- @slot Buttons after the Close button, such as the drawer's primary action. -->
+      <slot name="additional-actions" />
+    </div>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.rc-drawer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--header-height);
+    padding: 6px 16px;
+    background-color: var(--body-bg);
+    border-bottom: 1px solid var(--border);
+
+    .title {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-size: 16px;
+    }
+
+    .close {
+      display: inline-flex;
+      flex-shrink: 0;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      color: var(--body-text);
+    }
+  }
+
+  .body {
+    flex: 1;
+    overflow-y: scroll;
+    padding: 16px;
+    background-color: var(--drawer-body-bg);
+  }
+
+  .footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    height: 72px;
+    padding: 16px;
+    background-color: var(--body-bg);
+    border-top: 1px solid var(--border);
+  }
+}
+</style>

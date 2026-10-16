@@ -2,6 +2,7 @@
 import { mount } from '@vue/test-utils';
 import Install from '@shell/pages/c/_cluster/apps/charts/install.vue';
 import FailWhale from '@shell/components/FailWhale.vue';
+import ChartInfoDrawer from '@shell/pages/c/_cluster/apps/charts/ChartInfoDrawer.vue';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 const defaultStubs = {
@@ -657,30 +658,35 @@ describe('page: Install', () => {
     });
   });
 
-  describe('chart info slide in', () => {
-    // The slide in is always rendered and parked off screen. Its contents are only made visible to
-    // the browser (and so to find-in-page) via the `slideIn__show` class, so that class must track
-    // `showSlideIn` exactly.
-    it('should not mark the slide in as shown while it is closed', () => {
-      const wrapper = mountInstall({ data: () => ({ showSlideIn: false }) });
+  describe('chart info drawer', () => {
+    const versionInfo = { readme: 'README' };
 
-      expect(wrapper.find('.slideIn').classes()).not.toContain('slideIn__show');
+    const open = () => {
+      const slideIn = { open: jest.fn() };
+      const wrapper = mountInstall({ data: () => ({ versionInfo }), mocks: { $shell: { slideIn } } });
+
+      (wrapper.vm as any).showChartInfo();
+
+      return { wrapper, slideIn };
+    };
+
+    it('should open the chart info in the shared slide-in', () => {
+      const { slideIn } = open();
+
+      expect(slideIn.open).toHaveBeenCalledWith(ChartInfoDrawer, {
+        props:              { versionInfo, onDock: expect.any(Function) },
+        width:              'wide',
+        height:             'full',
+        closeOnRouteChange: ['name', 'params', 'query'],
+      });
     });
 
-    it('should mark the slide in as shown once it is opened', async() => {
-      const wrapper = mountInstall({ data: () => ({ showSlideIn: false }) });
+    it('should move the chart info to the window manager when the drawer asks to be docked', () => {
+      const { wrapper, slideIn } = open();
 
-      await wrapper.setData({ showSlideIn: true });
+      slideIn.open.mock.calls[0][1].props.onDock();
 
-      expect(wrapper.find('.slideIn').classes()).toContain('slideIn__show');
-    });
-
-    it('should stop marking the slide in as shown once it is closed again', async() => {
-      const wrapper = mountInstall({ data: () => ({ showSlideIn: true }) });
-
-      await wrapper.setData({ showSlideIn: false });
-
-      expect(wrapper.find('.slideIn').classes()).not.toContain('slideIn__show');
+      expect((wrapper.vm as any).$store.dispatch).toHaveBeenCalledWith('wm/open', expect.objectContaining({ component: 'ChartReadme', attrs: { versionInfo } }), { root: true });
     });
   });
 });

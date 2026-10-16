@@ -6,6 +6,7 @@ export interface SlideInPanelState {
   isClosing: boolean;
   component: Component | null;
   componentProps: Record<string, any>;
+  openCount: number;
 }
 
 let closeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -14,14 +15,16 @@ const state = (): SlideInPanelState => ({
   isOpen:         false,
   isClosing:      false,
   component:      null,
-  componentProps: {}
+  componentProps: {},
+  openCount:      0
 });
 
 const getters: GetterTree<SlideInPanelState, any> = {
   isOpen:         (state) => state.isOpen,
   isClosing:      (state) => state.isClosing,
   component:      (state) => state.component,
-  componentProps: (state) => state.componentProps
+  componentProps: (state) => state.componentProps,
+  openCount:      (state) => state.openCount
 };
 
 const mutations: MutationTree<SlideInPanelState> = {
@@ -29,6 +32,10 @@ const mutations: MutationTree<SlideInPanelState> = {
     if (closeTimer) {
       clearTimeout(closeTimer);
       closeTimer = null;
+    }
+
+    if (!state.isOpen) {
+      state.openCount++;
     }
 
     state.isClosing = false;

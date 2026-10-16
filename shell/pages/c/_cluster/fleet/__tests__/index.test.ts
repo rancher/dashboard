@@ -1,6 +1,7 @@
 import { mount, RouterLinkStub } from '@vue/test-utils';
 import Dashboard from '@shell/pages/c/_cluster/fleet/index.vue';
 import { FLEET } from '@shell/config/types';
+import ResourceDetails from '@shell/components/fleet/dashboard/ResourceDetails.vue';
 
 const fleetWorkspaces = [
   {
@@ -106,6 +107,29 @@ const requiredSetup = (computed = {}, dataProps = {}) => {
 };
 
 describe('component: FleetDashboard', () => {
+  it('should open the resource details in the slide-in without opting out of its focus trap', () => {
+    const setup = requiredSetup();
+    const slideIn = { open: jest.fn() };
+
+    setup.global.mocks.$shell = { slideIn };
+
+    const wrapper = mount(Dashboard, setup);
+    const value = { id: 'fleet-default/lots-a' };
+    const statePanel = { id: 'success' };
+    const workspace = { id: 'fleet-default' };
+
+    (wrapper.vm as any).showResourceDetails(value, statePanel, workspace, 'fleet-default/lots-a-0');
+
+    expect(slideIn.open).toHaveBeenCalledWith(ResourceDetails, {
+      props: {
+        value, statePanel, workspace
+      },
+      width:              'wide',
+      height:             'full',
+      closeOnRouteChange: ['name', 'params', 'query'],
+    });
+  });
+
   it('should render NoWorkspaces component when no workspaces are available and user has no permissions', async() => {
     const wrapper = mount(Dashboard, { ...requiredSetup() });
 

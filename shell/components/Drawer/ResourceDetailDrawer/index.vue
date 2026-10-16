@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Drawer from '@shell/components/Drawer/Chrome.vue';
+import { RcDrawer } from '@components/RcDrawer';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import Tabbed from '@shell/components/Tabbed/index.vue';
@@ -60,8 +60,8 @@ useResourceDetailDrawerProvider();
 
 </script>
 <template>
-  <Drawer
-    :ariaTarget="title"
+  <RcDrawer
+    :title="title"
     @close="emit('close')"
   >
     <template #title>
@@ -71,25 +71,23 @@ useResourceDetailDrawerProvider();
       />
       {{ title }}
     </template>
-    <template #body>
-      <Tabbed
-        :useHash="false"
-        :showExtensionTabs="false"
-        :componentTestid="componentTestid"
-        :remove-borders="true"
-        @changed="({selectedName}) => {activeTab = selectedName;}"
-      >
-        <ConfigTab
-          v-if="configTabProps"
-          v-bind="configTabProps"
-          :default-tab="props.defaultTab"
-        />
-        <YamlTab
-          v-if="yamlTabProps"
-          v-bind="yamlTabProps"
-        />
-      </Tabbed>
-    </template>
+    <Tabbed
+      :useHash="false"
+      :showExtensionTabs="false"
+      :componentTestid="componentTestid"
+      :remove-borders="true"
+      @changed="({selectedName}) => {activeTab = selectedName;}"
+    >
+      <ConfigTab
+        v-if="configTabProps"
+        v-bind="configTabProps"
+        :default-tab="props.defaultTab"
+      />
+      <YamlTab
+        v-if="yamlTabProps"
+        v-bind="yamlTabProps"
+      />
+    </Tabbed>
     <template #additional-actions>
       <RcButton
         v-if="canEdit"
@@ -102,5 +100,5 @@ useResourceDetailDrawerProvider();
         {{ action.label }}
       </RcButton>
     </template>
-  </Drawer>
+  </RcDrawer>
 </template>

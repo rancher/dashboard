@@ -5903,7 +5903,6 @@ plugins:
   incompatibleUiExtensionsApiVersion: "The latest version of this extension ({ version }) is not compatible with the current Extensions API version ({ required })."
   incompatibleHost: 'The latest version of this extension ({ version }) has a host of "{ required }" which is not compatible with this application "{ mainHost }".'
   currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
-  closePluginPanel: Close plugin description panel
   viewVersionDetails: View extension {name} version {version} details/Readme
   labels:
     isDeveloper: Developer Load
@@ -5951,8 +5950,6 @@ plugins:
       name: Extension module name
       persist: Persist extension by creating custom resource
   info:
-    actions: Actions
-    noActions: No actions available
     detail: Detail
     versions: Latest Versions
     showAllVersions: Show all
