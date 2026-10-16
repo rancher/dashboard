@@ -267,6 +267,7 @@ defineExpose({
       :key="i"
       class="m-0"
       color="error"
+      role="alert"
       :label="error"
     />
 

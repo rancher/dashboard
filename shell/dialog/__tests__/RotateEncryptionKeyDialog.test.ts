@@ -190,6 +190,19 @@ describe('component: RotateEncryptionKeyDialog', () => {
       expect(modal.onClose).not.toHaveBeenCalled();
     });
 
+    it('announces a failed rotation to assistive technology through an alert banner', async() => {
+      (createOperationCR as jest.Mock).mockRejectedValue({ status: 403, message: 'forbidden' });
+
+      const { wrapper, vm } = createWrapper(importedCluster(), { data: recentSnapshot() });
+
+      await vm.rotate();
+      await wrapper.vm.$nextTick();
+
+      const banner = wrapper.findAllComponents(Banner).find((b) => b.props('color') === 'error');
+
+      expect(banner?.props('role')).toBe('alert');
+    });
+
     it('should update generation and save for non-day-2 clusters', async() => {
       const save = jest.fn().mockResolvedValue(undefined);
       const cluster = {
