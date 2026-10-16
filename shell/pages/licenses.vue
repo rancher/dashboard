@@ -6,13 +6,6 @@ import Banner from '@components/Banner/Banner.vue';
 import LicenseSlideIn from '@shell/components/LicenseSlideIn.vue';
 import { RcButton } from '@components/RcButton';
 
-// Build the URL relative to the deployed router base — e.g. `/licenses.txt`
-// at root, `/dashboard/licenses.txt` when the app is served from /dashboard.
-// `routerBase` is injected by webpack DefinePlugin and always ends in `/`.
-// The content is JSON, but the file uses a .txt extension because some CDNs
-// don't serve .json files.
-const LICENSES_URL = `${ process.env.routerBase || '/' }licenses.txt`;
-
 export default {
   name: 'Licenses',
 
@@ -22,24 +15,15 @@ export default {
 
   async fetch() {
     this.loading = true;
-    this.notFound = false;
-    this.errorStatus = null;
+    this.error = null;
     try {
-      const res = await fetch(LICENSES_URL);
+      // Bundled with the app as its own async chunk, so it's only downloaded
+      // when this page is visited.
+      const licenses = await import(/* webpackChunkName: "licenses" */ '@shell/assets/licenses/licenses.json');
 
-      // A missing file can come back as a 200 with the app's index.html (SPA
-      // fallback) rather than a 404, so treat an HTML response as not found too.
-      const isHtml = !!res.headers?.get('content-type')?.includes('text/html');
-
-      if (res.status === 404 || (res.ok && isHtml)) {
-        this.notFound = true;
-      } else if (!res.ok) {
-        this.errorStatus = res.status;
-      } else {
-        this.data = await res.json();
-      }
+      this.data = licenses.default;
     } catch (e) {
-      this.errorStatus = e?.message || 'Network error';
+      this.error = e?.message || 'Unknown error';
     } finally {
       this.loading = false;
     }
@@ -47,11 +31,10 @@ export default {
 
   data() {
     return {
-      loading:     true,
-      data:        null,
-      notFound:    false,
-      errorStatus: null,
-      headers:     [
+      loading: true,
+      data:    null,
+      error:   null,
+      headers: [
         {
           name:     'name',
           labelKey: 'about.licenses.table.package',
@@ -127,15 +110,9 @@ export default {
     </h1>
 
     <Banner
-      v-if="notFound"
-      color="warning"
-      :label="t('about.licenses.page.notFound')"
-    />
-
-    <Banner
-      v-else-if="errorStatus"
+      v-if="error"
       color="error"
-      :label="t('about.licenses.page.error', { status: errorStatus })"
+      :label="t('about.licenses.page.error', { error })"
     />
 
     <template v-else>

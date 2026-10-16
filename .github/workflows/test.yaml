@@ -33,9 +33,9 @@ env:
   E2E_BUILD_DIST_EMBER_DIR: dist_ember
 
 jobs:
-  # Verify licenses.txt is up to date with the packages that end up in the
+  # Verify licenses.json is up to date with the packages that end up in the
   # bundle. Fails the PR when a dependency was added, removed, or upgraded
-  # without regenerating licenses.txt (see scripts/analyze-licenses).
+  # without regenerating licenses.json (see scripts/analyze-licenses).
   check-licenses:
     runs-on: ubuntu-latest
     steps:
@@ -46,7 +46,7 @@ jobs:
         uses: ./.github/actions/setup
       - name: Build with bundle analyzer
         run: ANALYZE_LICENSES=true yarn build
-      - name: Verify licenses.txt is up to date
+      - name: Verify licenses.json is up to date
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node ./scripts/analyze-licenses

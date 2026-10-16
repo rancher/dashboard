@@ -1,25 +1,17 @@
 import Licenses from '@shell/pages/licenses.vue';
 
+const LICENSES_MODULE = '@shell/assets/licenses/licenses.json';
+
 type FetchContext = {
   loading: boolean;
-  notFound: boolean;
-  errorStatus: string | number | null;
+  error: string | null;
   data: any;
 };
 
-const mockResponse = ({ status = 200, contentType = 'text/plain', body = {} }: { status?: number; contentType?: string | null; body?: any } = {}) => ({
-  status,
-  ok:      status >= 200 && status < 300,
-  headers: { get: (name: string) => (name.toLowerCase() === 'content-type' ? contentType : null) },
-  json:    jest.fn().mockResolvedValue(body)
-});
-
-const runFetch = async(response: any): Promise<FetchContext> => {
+const runFetch = async(): Promise<FetchContext> => {
   const thisContext: FetchContext = {
-    loading: false, notFound: false, errorStatus: null, data: null
+    loading: true, error: null, data: null
   };
-
-  global.fetch = jest.fn().mockResolvedValue(response);
 
   await (Licenses.fetch as () => Promise<void>).call(thisContext);
 
@@ -28,74 +20,69 @@ const runFetch = async(response: any): Promise<FetchContext> => {
 
 describe('page: Licenses', () => {
   describe('fetch', () => {
-    const originalFetch = global.fetch;
-
     afterEach(() => {
-      global.fetch = originalFetch;
+      jest.dontMock(LICENSES_MODULE);
+      jest.resetModules();
     });
 
-    it('stores the parsed licenses when the response is json', async() => {
-      const body = { packages: [], licenses: {} };
+    describe('when the bundled licenses load', () => {
+      const body = { packages: [{ name: 'pkg', license: 'MIT' }], licenses: {} };
 
-      const result = await runFetch(mockResponse({ body }));
+      beforeEach(() => {
+        jest.resetModules();
+        jest.doMock(LICENSES_MODULE, () => body);
+      });
 
-      expect(result.data).toStrictEqual(body);
+      it('stores the imported licenses', async() => {
+        const result = await runFetch();
+
+        expect(result.data).toStrictEqual(body);
+      });
+
+      it('does not set an error', async() => {
+        const result = await runFetch();
+
+        expect(result.error).toBeNull();
+      });
+
+      it('clears loading', async() => {
+        const result = await runFetch();
+
+        expect(result.loading).toBe(false);
+      });
     });
 
-    it('does not flag a json response as not found', async() => {
-      const result = await runFetch(mockResponse());
+    describe('when the licenses chunk fails to load', () => {
+      beforeEach(() => {
+        jest.resetModules();
+        jest.doMock(LICENSES_MODULE, () => {
+          throw new Error('Loading chunk licenses failed.');
+        });
+      });
 
-      expect(result.notFound).toBe(false);
+      it('reports the error message', async() => {
+        const result = await runFetch();
+
+        expect(result.error).toBe('Loading chunk licenses failed.');
+      });
+
+      it('does not store any data', async() => {
+        const result = await runFetch();
+
+        expect(result.data).toBeNull();
+      });
+
+      it('clears loading', async() => {
+        const result = await runFetch();
+
+        expect(result.loading).toBe(false);
+      });
     });
 
-    it('treats a 404 as not found', async() => {
-      const result = await runFetch(mockResponse({ status: 404, contentType: 'text/plain' }));
+    it('loads the committed licenses file', async() => {
+      const result = await runFetch();
 
-      expect(result.notFound).toBe(true);
-    });
-
-    it.each([
-      'text/html',
-      'text/html; charset=utf-8',
-    ])('treats a 200 with content type "%s" as not found', async(contentType) => {
-      const result = await runFetch(mockResponse({ contentType }));
-
-      expect(result.notFound).toBe(true);
-    });
-
-    it('does not parse the body of an html response', async() => {
-      const response = mockResponse({ contentType: 'text/html' });
-
-      const result = await runFetch(response);
-
-      expect(response.json).not.toHaveBeenCalled();
-      expect(result.data).toBeNull();
-    });
-
-    it('parses the body when no content type is returned', async() => {
-      const body = { packages: [], licenses: {} };
-
-      const result = await runFetch(mockResponse({ contentType: null, body }));
-
-      expect(result.data).toStrictEqual(body);
-    });
-
-    it('reports the status for other error responses', async() => {
-      const result = await runFetch(mockResponse({ status: 500, contentType: 'text/html' }));
-
-      expect(result.errorStatus).toBe(500);
-    });
-
-    it('does not flag an html error response as not found', async() => {
-      const result = await runFetch(mockResponse({ status: 500, contentType: 'text/html' }));
-
-      expect(result.notFound).toBe(false);
-    });
-
-    it('clears loading once the request completes', async() => {
-      const result = await runFetch(mockResponse());
-
-      expect(result.loading).toBe(false);
+      expect(Array.isArray(result.data.packages)).toBe(true);
     });
   });
 });

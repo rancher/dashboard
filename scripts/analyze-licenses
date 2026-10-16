@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
 /*
- * Reads dist/report.json (webpack-bundle-analyzer) and produces licenses.txt
- * (JSON content — see scripts/LICENSES.md for why the extension is .txt):
+ * Reads dist/report.json (webpack-bundle-analyzer) and produces licenses.json:
  * every node_modules package that appears in the bundle, with its name,
  * declared license, homepage URL, and a `licenseRef` into a deduplicated
  * `licenses` map containing the full license text (from LICENSE files, README
@@ -16,9 +15,9 @@
  * first-party packages are excluded entirely.
  *
  * Default mode compares the generated bundle against the committed
- * shell/static/licenses.txt and exits non-zero if it's out of date or if
- * any package uses a disallowed license. `-u` writes the bundle to the repo
- * root instead. The `check-licenses` CI job runs this script with no flags.
+ * shell/assets/licenses/licenses.json and exits non-zero if it's out of date
+ * or if any package uses a disallowed license. `-u` writes the bundle there
+ * instead. The `check-licenses` CI job runs this script with no flags.
  *
  * dist/report.json must already exist — run `ANALYZE_LICENSES=true yarn
  * build` first to produce it. The script exits non-zero with a hint when
@@ -34,7 +33,7 @@ const crypto = require('crypto');
 const ROOT = path.resolve(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
 const REPORT = path.join(DIST, 'report.json');
-const COMMITTED_LICENSES = path.join(ROOT, 'shell', 'static', 'licenses.txt');
+const COMMITTED_LICENSES = path.join(ROOT, 'shell', 'assets', 'licenses', 'licenses.json');
 const ROOT_PACKAGE_JSON = path.join(ROOT, 'package.json');
 const ALLOWED_LICENSES = ['MIT', 'Apache-2.0', 'BSD-3-Clause', 'ISC', 'BSD'];
 const ALLOWED_LICENSE_SET = new Set(ALLOWED_LICENSES);
@@ -51,7 +50,8 @@ const bg_red = '\x1b[41m';
 const USAGE = `Usage: analyze-licenses [options]
 
 Verifies the bundled packages match the committed
-shell/static/licenses.txt, and that every package uses an allowed license
+shell/assets/licenses/licenses.json, and that every package uses an allowed
+license
 (${ ALLOWED_LICENSES.join(', ') }).
 
 Requires dist/report.json from \`ANALYZE_LICENSES=true yarn build\` — the
@@ -59,7 +59,7 @@ script exits non-zero when that file is missing.
 
 Options:
   -u, --update        Write the generated bundle to
-                      shell/static/licenses.txt instead of
+                      shell/assets/licenses/licenses.json instead of
                       checking against it.
   -h, --help          Show this help.
 `;
@@ -694,7 +694,7 @@ function buildLicenseSummary(entries) {
 
 /*
  * Project an internal entry into the per-package shape written to
- * licenses.txt. Version is intentionally omitted from the shipped file —
+ * licenses.json. Version is intentionally omitted from the shipped file —
  * it's not something we want to expose in the bundle. `licenseField`, `home`
  * and `author` are only emitted when set.
  */
@@ -710,7 +710,7 @@ function licenseEntry(e) {
 }
 
 /*
- * Collapse entries that project to identical licenses.txt records. A package
+ * Collapse entries that project to identical licenses.json records. A package
  * installed at several versions yields one entry per copy, but version is
  * deliberately not shipped — so when two copies share a name, license and
  * license text there's nothing to tell the records apart and only one is
@@ -775,14 +775,14 @@ function parseArgs(argv) {
  */
 function failCheck(reason) {
   console.error('');
-  console.error(`${ bold }${ bg_red }${ white } licenses.txt is out of date ${ reset } ${ reason }`);
+  console.error(`${ bold }${ bg_red }${ white } licenses.json is out of date ${ reset } ${ reason }`);
   console.error('');
   console.error('  A dependency was added, removed, or upgraded without refreshing');
-  console.error(`  the committed ${ cyan }licenses.txt${ reset }. To fix, run locally and commit the result:`);
+  console.error(`  the committed ${ cyan }licenses.json${ reset }. To fix, run locally and commit the result:`);
   console.error('');
   console.error(`    ${ cyan }ANALYZE_LICENSES=true yarn build${ reset }`);
   console.error(`    ${ cyan }node ./scripts/analyze-licenses -u${ reset }`);
-  console.error(`    ${ cyan }git add shell/static/licenses.txt && git commit${ reset }`);
+  console.error(`    ${ cyan }git add shell/assets/licenses/licenses.json && git commit${ reset }`);
   console.error('');
   process.exit(1);
 }
@@ -808,8 +808,8 @@ function failMissingReport(update) {
 /*
  * Orchestrate the licenses pipeline: parse args, read the bundle report,
  * process licenses, and enforce the allow-list. Default mode compares the
- * generated bundle to the committed licenses.txt and fails on drift; `-u`
- * writes the bundle to shell/static/licenses.txt instead.
+ * generated bundle to the committed licenses.json and fails on drift; `-u`
+ * writes the bundle to shell/assets/licenses/licenses.json instead.
  */
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
@@ -861,7 +861,7 @@ async function main() {
       failCheck(`the generated bundle differs from ${ path.relative(ROOT, COMMITTED_LICENSES) }`);
     }
     console.log('');
-    console.log(`${ green }✓ licenses.txt is up to date${ reset }`);
+    console.log(`${ green }✓ licenses.json is up to date${ reset }`);
   }
 
   if (hasViolations) {

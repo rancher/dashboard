@@ -482,8 +482,7 @@ about:
     page:
       title: Open Source Licenses
       hint: Click a license to view its full text.
-      notFound: License information could not be loaded.
-      error: "Failed to load licenses ({status}). Please try again later."
+      error: "Failed to load licenses ({error}). Please try again later."
     table:
       package: Package
       license: License
