@@ -709,7 +709,8 @@ export default class ProvCluster extends SteveModel {
   rotateEncryptionKey(cluster = this) {
     this.$dispatch('promptModal', {
       componentProps: { cluster },
-      component:      'RotateEncryptionKeyDialog'
+      component:      'RotateEncryptionKeyDialog',
+      ownsModal:      true
     });
   }
 

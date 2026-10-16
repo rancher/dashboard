@@ -84,6 +84,9 @@ function generateStore(component: any, modalData: any = {}):any {
   });
 }
 
+// Dialogs opened with `ownsModal`, which render their own RcModal and need PromptModal's `modal` prop
+const OWNS_MODAL: any[] = [DisableAuthProviderDialog, RotateEncryptionKeyDialog];
+
 describe('component: PromptModal', () => {
   it.each([
     // current prompt modals at time of coding
@@ -126,6 +129,7 @@ describe('component: PromptModal', () => {
     window.structuredClone = (arg) => JSON.parse(JSON.stringify(arg));
 
     document.body.innerHTML = '<div id="modals"></div>';
+    const store = generateStore(component, { ownsModal: OWNS_MODAL.includes(component) });
     const wrapper = mount(PromptModal,
       {
         attachTo: document.body,
@@ -134,10 +138,10 @@ describe('component: PromptModal', () => {
         },
         global: {
           mocks: {
-            $store:      generateStore(component, { ownsModal: component === DisableAuthProviderDialog }),
+            $store:      store,
             $fetchState: {}
           },
-          provide: { store: {} },
+          provide: { store },
           stubs:   { transition: false }
         }
       }
