@@ -165,7 +165,7 @@ describe('component: PromptRestore', () => {
       }
     });
 
-    const wrapper = shallowMount(PromptRestore, { props: { resources: [importedCluster], modal: { show: true, onClose: jest.fn() } }, global: { mocks: { $store: store } } });
+    const wrapper = shallowMount(PromptRestore, { props: { resources: [importedCluster], modal: { show: true, onClose: jest.fn() } }, global: { mocks: { $store: store }, renderStubDefaultSlot: true } });
 
     await flushPromises();
     wrapper.vm.allSnapshots = {
@@ -181,6 +181,12 @@ describe('component: PromptRestore', () => {
     expect(growlSuccess).toHaveBeenCalledTimes(0);
     expect((wrapper.vm as any).errors).toStrictEqual(['forbidden']);
     expect(buttonDone).toHaveBeenCalledWith(false);
+
+    await wrapper.vm.$nextTick();
+    const banner = wrapper.findComponent({ name: 'Banner' });
+
+    expect(banner.props('label')).toBe('forbidden');
+    expect(banner.props('role')).toBe('alert');
   });
 
   it('should restore imported snapshot by resolving target cluster from store', async() => {

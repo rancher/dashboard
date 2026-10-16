@@ -342,6 +342,7 @@ export default {
       v-for="(err, i) in errors"
       :key="i"
       color="error"
+      role="alert"
       :label="err"
       class="restore-snapshot__error"
     />
