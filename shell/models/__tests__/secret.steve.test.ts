@@ -183,6 +183,94 @@ ${ part }`;
     });
   });
 
+  describe('save', () => {
+    const makeSecret = (data: any) => {
+      const dispatch = jest.fn().mockResolvedValue(undefined);
+      const secret = new Secret(data, {
+        dispatch,
+        getters: { schemaFor: () => undefined },
+      });
+
+      return { secret, dispatch };
+    };
+
+    it('patches only the labels and annotations of an existing helm release secret', async() => {
+      const { secret, dispatch } = makeSecret({
+        id:       'default/sh.helm.release.v1.app.v1',
+        _type:    TYPES.HELM_RELEASE,
+        links:    { update: 'update-url' },
+        metadata: { labels: { owner: 'helm' }, annotations: { a: 'b' } },
+        data:     {},
+      });
+
+      await secret.save();
+
+      expect(dispatch).toHaveBeenCalledWith('request', {
+        opt: {
+          url:     'update-url',
+          method:  'patch',
+          headers: { 'content-type': 'application/json-patch+json', accept: 'application/json' },
+          data:    [
+            {
+              op: 'add', path: '/metadata/labels', value: { owner: 'helm' }
+            },
+            {
+              op: 'add', path: '/metadata/annotations', value: { a: 'b' }
+            },
+          ]
+        },
+        type: undefined
+      });
+    });
+
+    it('patches empty labels and annotations when the helm release secret has none', async() => {
+      const { secret, dispatch } = makeSecret({
+        id: 'default/sh.helm.release.v1.app.v1', _type: TYPES.HELM_RELEASE, links: { update: 'update-url' }, metadata: {}
+      });
+
+      await secret.save();
+
+      expect(dispatch.mock.calls[0][1].opt.data).toStrictEqual([
+        {
+          op: 'add', path: '/metadata/labels', value: {}
+        },
+        {
+          op: 'add', path: '/metadata/annotations', value: {}
+        },
+      ]);
+    });
+
+    it.each([
+      ['a new helm release secret', { _type: TYPES.HELM_RELEASE }, 'post'],
+      ['an existing secret of another type', { id: 'default/my-secret', _type: TYPES.OPAQUE }, 'put'],
+    ])('sends the whole secret for %s', async(_, data, method) => {
+      const { secret, dispatch } = makeSecret({
+        ...data, links: { update: 'update-url' }, metadata: { name: 'my-secret' }, data: { foo: 'YmFy' }
+      });
+
+      await secret.save({ url: 'save-url' });
+
+      const { opt } = dispatch.mock.calls[0][1];
+
+      expect(opt.method).toBe(method);
+      expect(opt.data.data).toStrictEqual({ foo: 'YmFy' });
+    });
+
+    it('keeps an explicitly requested method for helm release secrets', async() => {
+      const { secret, dispatch } = makeSecret({
+        id: 'default/sh.helm.release.v1.app.v1', _type: TYPES.HELM_RELEASE, links: { update: 'update-url' }, metadata: {}
+      });
+      const data = { metadata: { labels: { foo: 'bar' } } };
+
+      await secret.save({
+        data, method: 'patch', headers: { 'content-type': 'application/merge-patch+json' }
+      });
+
+      expect(dispatch.mock.calls[0][1].opt.data).toStrictEqual(data);
+      expect(dispatch.mock.calls[0][1].opt.headers['content-type']).toBe('application/merge-patch+json');
+    });
+  });
+
   describe('doneRoute', () => {
     it('returns the manager route when the current product is the manager', () => {
       const secret = new Secret({}, { rootGetters: { currentProduct: { name: MANAGER } } });
@@ -231,6 +319,16 @@ ${ part }`;
       const secret = makeSecret({ links: { update: 'u' }, _type: TYPES.SERVICE_ACCT });
 
       expect(secret.canUpdate).toBe(false);
+    });
+
+    it.each([
+      ['the helm release type', { _type: TYPES.HELM_RELEASE }],
+      ['the helm owner label', { _type: TYPES.OPAQUE, metadata: { labels: { owner: 'helm' } } }],
+    ])('canUpdate is true but canEditYaml is false for helm release secrets identified by %s', (_, data) => {
+      const secret = makeSecret({ links: { update: 'u' }, ...data });
+
+      expect(secret.canUpdate).toBe(true);
+      expect(secret.canEditYaml).toBe(false);
     });
 
     it('canUpdate delegates to the update link and edit permission for other types', () => {
