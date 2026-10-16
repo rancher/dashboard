@@ -86,31 +86,28 @@ function matchingViewId(savedViews: TableViewSaved[], view: Partial<TableViewSta
 }
 
 /**
- * The saved view a tab bar shows as selected. `pickedViewId` is undefined before a pick, null for
- * the table's own tab. A pick wins, since two views can hold the same config; before one, the
- * config decides
+ * The saved view a tab bar shows as selected. `pickedViewId` is undefined before a pick and null for
+ * the table's own tab; either way the table's own tab is in front, whatever the table holds. A view
+ * picked that has gone since, eg deleted, gives way to one holding the same config
  */
 export function selectedViewIdFor(savedViews: TableViewSaved[], view: Partial<TableViewState>, pickedViewId?: string | null): string | null {
-  if (pickedViewId !== undefined) {
-    if (pickedViewId === null) {
-      return null;
-    }
-
-    return savedViews.find((v) => v.id === pickedViewId)?.id || matchingViewId(savedViews, view);
+  if (!pickedViewId) {
+    return null;
   }
 
-  return isViewModified(view) ? matchingViewId(savedViews, view) : null;
+  return savedViews.find((v) => v.id === pickedViewId)?.id || matchingViewId(savedViews, view);
 }
 
 export function isViewDirty(savedViews: TableViewSaved[], view: Partial<TableViewState>, pickedViewId?: string | null): boolean {
-  const editing = pickedViewId ? savedViews.find((v) => v.id === pickedViewId) : null;
+  // The table's own tab, before a pick too: changed from the table as it comes
+  if (!pickedViewId) {
+    return isViewModified(view);
+  }
+
+  const editing = savedViews.find((v) => v.id === pickedViewId);
 
   if (editing) {
     return !isSameViewConfig(editing, view);
-  }
-
-  if (pickedViewId === null) {
-    return isViewModified(view);
   }
 
   return !matchingViewId(savedViews, view) && isViewModified(view);
