@@ -177,11 +177,11 @@ async function remove() {
       gap: 10px;
     }
 
-    &__confirm.rc-button {
+    &__confirm.rc-button.variant-primary:not(:disabled) {
       background-color: var(--error);
       color: var(--error-text);
 
-      &:hover:not(:disabled) {
+      &:hover, &:focus {
         background-color: var(--error-hover-bg);
         color: var(--error-hover-text);
       }
