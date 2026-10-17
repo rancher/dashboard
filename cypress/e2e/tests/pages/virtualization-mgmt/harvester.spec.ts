@@ -468,9 +468,13 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         harvesterPo.updateOrInstallButton().click();
 
         // wait for update version update
-        cy.wait('@upgradeHarvesterExtension', LONG_TIMEOUT_OPT).then(({ request, response }) => {
-          expect(response?.statusCode).to.eq(201);
-          expect(request?.body?.charts[0].version).to.eq(versions[0]);
+        cy.wait('@upgradeHarvesterExtension', LONG_TIMEOUT_OPT).its('request.body.charts.0.version').should('eq', versions[0]);
+        // The app retries an upgrade that fails with a transient 500 (a Rancher replica's catalog index not
+        // caught up yet, see installHelmChartWithRetry in shell/utils/uiplugins.ts), so check the last attempt.
+        cy.get('@upgradeHarvesterExtension.all', LONG_TIMEOUT_OPT).should((upgrades: any) => {
+          const response = upgrades[upgrades.length - 1]?.response;
+
+          expect(response?.statusCode, JSON.stringify(response?.body)).to.eq(201);
         });
         cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT);
 
