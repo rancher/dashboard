@@ -161,6 +161,15 @@ describe('component: ResourcePopoverCard.vue', () => {
       w.unmount();
     });
 
+    it('should show the usage with a small bar', () => {
+      const w = withUsage([{
+        name: 'cpu', label: 'CPU', percentage: 42
+      }]);
+
+      expect(usageItem(w, 'cpu').findComponent(PercentageBar).props('size')).toStrictEqual('small');
+      w.unmount();
+    });
+
     it.each([
       ['missing', undefined],
       ['not a number', NaN],

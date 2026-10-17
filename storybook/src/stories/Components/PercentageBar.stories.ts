@@ -10,6 +10,12 @@ const meta: Meta<typeof PercentageBar> = {
         options: ['LESS', 'MORE'],
       },
     },
+    size: {
+      control: {
+        type:    'select',
+        options: ['small', 'medium'],
+      },
+    },
   },
 };
 
@@ -31,5 +37,13 @@ export const Percentage: Story = {
   args: {
     modelValue:     45,
     showPercentage: true,
+  },
+};
+
+export const Small: Story = {
+  ...Default,
+  args: {
+    modelValue: 45,
+    size:       'small',
   },
 };

@@ -5,10 +5,9 @@ import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 
 /**
  * The project/namespace filter params (from the header's namespace filter)
- * that scope the workload dashboard's own "by X" section requests. Shared
- * with the search feature so search results are scoped the same way.
+ * that scope steve list requests to the namespaces the user selected.
  */
-export function getWorkloadNamespaceFilterParams(store: Store<any>) {
+export function getNamespaceFilterParams(store: Store<any>) {
   const selection: string[] = store.getters['namespaceFilters'];
 
   return stevePaginationUtils.createParamsFromNsFilter({

@@ -2989,6 +2989,10 @@ clusterIndexPage:
   header: Cluster Dashboard
   resourceGauge:
     totalResources: Total Resources
+  resourceStatus:
+    unhealthy:
+      title: Other, Unhealthy Workloads
+      empty: No other unhealthy workloads
   sections:
     capacity:
       label: Capacity
@@ -5488,8 +5492,8 @@ node:
         used: Used
         amount: "{used} of {total} {unit}"
         cpu: CPU
-        memory: MEMORY
-        pods: PODS
+        memory: Memory
+        pods: Pods
         running: Running
       diskPressure: Disk Pressure
       kubelet: kubelet
@@ -10127,6 +10131,8 @@ component:
           actionMenu: Resource Actions - { resource }
           loading: Loading resource information
           loadingUsage: Loading usage
+  resourceStatusWidget:
+    loadError: Could not load the status
   cron:
     expressionEditor:
       label:
