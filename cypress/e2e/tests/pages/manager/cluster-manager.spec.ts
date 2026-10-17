@@ -436,6 +436,45 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
 
   describe('Imported', { tags: ['@jenkins', '@importedCluster', '@provisioning'] }, () => {
     const importClusterPage = new ClusterManagerImportGenericPagePo();
+    const DAY_2_OPS_FEATURE = 'imported-day-2-ops';
+
+    /**
+     * Report the imported day 2 ops feature as enabled to the UI, without changing it on the backend (enabling it for real
+     * installs the day 2 ops system agent on imported clusters). Must be called before the page is (re)loaded.
+     */
+    const enableDayTwoOpsFeatureInUi = () => {
+      const patch = (feature: any) => (feature?.id === DAY_2_OPS_FEATURE ? {
+        ...feature, spec: { ...feature.spec, value: true }, status: { ...feature.status, lockedValue: null }
+      } : feature);
+
+      cy.intercept('GET', '/v1/management.cattle.io.features?*', (req) => {
+        req.continue((res) => {
+          res.body.data = (res.body.data || []).map(patch);
+        });
+      });
+      cy.intercept('GET', `/v1/management.cattle.io.features/${ DAY_2_OPS_FEATURE }*`, (req) => {
+        req.continue((res) => {
+          res.body = patch(res.body);
+        });
+      });
+    };
+
+    /**
+     * The text of the banner shown on import, which says how the version management and day 2 ops global settings will
+     * apply to the cluster
+     */
+    const expectedConfigureAfterImportText = () => {
+      const state = (resp: Cypress.Response<any>) => (resp.body.value === 'true' ? 'enabled' : 'disabled');
+
+      return cy.getRancherResource('v1', 'management.cattle.io.settings', 'imported-cluster-version-management').then((versionManagementResp: Cypress.Response<any>) => {
+        return cy.getRancherResource('v1', 'management.cattle.io.settings', 'imported-cluster-day2-ops-enabled').then((dayTwoOpsResp: Cypress.Response<any>) => {
+          const versionManagement = state(versionManagementResp);
+          const dayTwoOps = state(dayTwoOpsResp);
+
+          return versionManagement === dayTwoOps ? `For RKE2 and K3s clusters, K8s Version Management and Day 2 Operations will be automatically ${ versionManagement } based on the corresponding global settings.` : `For RKE2 and K3s clusters, K8s Version Management will be automatically ${ versionManagement } and Day 2 Operations will be automatically ${ dayTwoOps } based on the corresponding global setting.`;
+        });
+      });
+    };
     const fqdn = 'fqdn';
     const cacert = 'cacert';
     const privateRegistry = 'registry.io';
@@ -445,6 +484,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
         importGenericName = createClusterTestName('import-generic');
         cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('getUsers');
         cy.intercept('POST', `/v3/${ importType }s`).as('importRequest');
+        enableDayTwoOpsFeatureInUi();
 
         clusterList.goTo();
         clusterList.checkIsCurrentPage();
@@ -458,16 +498,22 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
         cy.wait('@getUsers');
 
         // check sections are displayed or not, and in the right order
-        const importSections = ['Basics', 'Member Roles', 'Labels & Annotations', 'Registries', 'Advanced'];
+        // K8s version management and Day 2 Operations can only be configured once the cluster has been imported
+        const importSections = ['Member Roles', 'Labels & Annotations', 'Registries', 'Advanced'];
 
         importClusterPage.sectionTitles().should('deep.equal', importSections);
         importSections.forEach((title) => importClusterPage.section(title).self().scrollIntoView().should('be.visible'));
         importClusterPage.section('Networking').self().should('not.exist');
+        importClusterPage.section('K8s version management').self().should('not.exist');
+        importClusterPage.section('Day 2 Operations').self().should('not.exist');
 
         importClusterPage.nameNsDescription().name().checkVisible();
         importClusterPage.nameNsDescription().name().set(importGenericName);
-        // Issue #13614: Imported Cluster Version Mgmt: Conditionally show warning message
-        importClusterPage.versionManagementBanner().should('exist').and('be.visible');
+        // Version management and day 2 ops follow the global settings until the cluster has been imported
+        importClusterPage.versionManagementBanner().should('not.exist');
+        expectedConfigureAfterImportText().then((text) => {
+          importClusterPage.configureAfterImportBanner().should('be.visible').and('contain.text', text);
+        });
 
         importClusterPage.create();
 
@@ -547,6 +593,7 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
           const editImportedClusterPage = new ClusterManagerEditImportedPagePo(undefined, 'fleet-default', clusterId);
 
           cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('pageLoad');
+          enableDayTwoOpsFeatureInUi();
           clusterList.goTo();
           clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
 
@@ -556,10 +603,12 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
           cy.wait('@pageLoad');
 
           // check sections are properly displayed, and in the right order
-          const editSections = ['K3S Options', 'Member Roles', 'Labels & Annotations', 'Networking', 'Registries', 'Advanced'];
+          // the imported K3s cluster has registered (so has a k3sConfig), and day 2 ops are enabled, so both are shown
+          const editSections = ['K8s version management', 'Day 2 Operations', 'Member Roles', 'Labels & Annotations', 'Networking', 'Registries', 'Advanced'];
 
           editImportedClusterPage.sectionTitles().should('deep.equal', editSections);
           editSections.forEach((title) => editImportedClusterPage.section(title).self().scrollIntoView().should('be.visible'));
+          editImportedClusterPage.etcdAutomaticBackups().should('be.visible');
 
           // Issue #10432: Edit Cluster screen falsely gives impression imported cluster's name and description can be edited
           editImportedClusterPage.nameNsDescription().name().expectToBeDisabled();
@@ -707,8 +756,8 @@ describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUs
       editLocalClusterPage.nameNsDescription().name().value().should('eq', 'local' );
 
       // check sections are properly displayed, and in the right order
-      // for K3S local cluster its K3S Options
-      const localSections = ['K3S Options', 'Member Roles', 'Labels & Annotations', 'Registries', 'Advanced'];
+      // for K3S local cluster its K8s version management
+      const localSections = ['K8s version management', 'Member Roles', 'Labels & Annotations', 'Registries', 'Advanced'];
 
       editLocalClusterPage.sectionTitles().should('deep.equal', localSections);
       localSections.forEach((title) => editLocalClusterPage.section(title).self().scrollIntoView().should('be.visible'));

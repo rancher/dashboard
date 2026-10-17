@@ -15,8 +15,11 @@ import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembe
 import { useClusterMembership, saveRoleBindings } from '@shell/composables/useClusterMembership';
 import RcLabelsAndAnnotations from '@shell/components/RcLabelsAndAnnotations.vue';
 import Basics from '@pkg/imported/components/Basics.vue';
+import DayTwoOps from '@pkg/imported/components/DayTwoOps.vue';
 import RcACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/RcACE.vue';
+import RcEtcdSnapshotConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/RcEtcdSnapshotConfig.vue';
 import { NORMAN, MANAGEMENT, CAPI, HCI } from '@shell/config/types';
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
 import RcKeyValue from '@shell/components/form/RcKeyValue.vue';
 import { Checkbox } from '@components/Form/Checkbox';
 import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types';
@@ -46,11 +49,16 @@ const defaultCluster = {
   importedConfig: {}
 };
 
+// Rancher only applies the etcd fields that are set, and an imported cluster's etcd config is empty (or zero values) until configured
+function hasEtcdConfig(etcd) {
+  return !!etcd && !!(etcd.disableSnapshots || etcd.snapshotScheduleCron || etcd.snapshotRetention > 0 || etcd.s3);
+}
+
 export default defineComponent({
   name: 'CruImported',
 
   components: {
-    Basics, RcACE, Loading, CruResource, RcKeyValue, NameNsDescription, RcSection, Banner, ClusterMembershipEditor, RcLabelsAndAnnotations, Checkbox, RcSchedulingCustomization, RcPrivateRegistry, RcContentGroup
+    Basics, RcACE, Loading, CruResource, RcKeyValue, NameNsDescription, RcSection, Banner, ClusterMembershipEditor, RcLabelsAndAnnotations, Checkbox, RcSchedulingCustomization, RcPrivateRegistry, RcContentGroup, RcEtcdSnapshotConfig, DayTwoOps
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -79,6 +87,9 @@ export default defineComponent({
 
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
       this.config = this.normanCluster.rke2Config || this.normanCluster.k3sConfig;
+      this.clusterHasEtcdConfig = hasEtcdConfig(this.config?.etcd);
+      this.s3Backup = !!this.config?.etcd?.s3;
+      await this.fetchS3CloudCredential();
       if ( this.normanCluster && isEmpty(this.normanCluster.localClusterAuthEndpoint) ) {
         set(this.normanCluster, 'localClusterAuthEndpoint', { enabled: false });
       }
@@ -141,6 +152,8 @@ export default defineComponent({
       selectedKubernetesVersion:                null,
       showDeprecatedPatchVersions:              false,
       s3Backup:                                 false,
+      clusterHasEtcdConfig:                     false,
+      etcdConfigValid:                          true,
       dayTwoOpsGlobalSetting:                   false,
       dayTwoOpsFlagEnabled:                     false,
       fvFormRuleSets:                           [{
@@ -264,20 +277,41 @@ export default defineComponent({
       return this.value?.listLocation?.name;
     },
 
-    providerTabKey() {
-      if (this.isK3s) {
-        return this.t('imported.accordions.k3sOptions');
-      } else if (this.isRke2) {
-        return this.t('imported.accordions.rke2Options');
-      } else {
-        return this.t('imported.accordions.basics');
-      }
+    /**
+     * Version management and Day 2 Operations are configured on the cluster's rke2Config/k3sConfig, which only exists
+     * once an imported RKE2/K3s cluster has registered. So this also covers import (no config yet) and RKE1 (never has one).
+     */
+    hasConfig() {
+      return !!this.config;
     },
+    showVersionManagement() {
+      // The local cluster's version management setting can be changed even though an embedded K3s local cluster never gets a config
+      return this.hasConfig || this.isLocal;
+    },
+    /**
+     * While version management and Day 2 Operations are hidden because there's no rke2Config/k3sConfig yet (on import,
+     * or until the imported cluster has registered), tell users how they'll be set (from the global settings), and that
+     * they can be configured once the cluster has been imported. RKE1 clusters never get a config, and the local cluster has
+     * already been imported, so skip them.
+     */
+    configureAfterImportMessage() {
+      if (this.hasConfig || this.isRKE1 || this.isLocal) {
+        return '';
+      }
 
-    showBasics() {
-      const hasFieldsToShow = !!this.config || !!this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
+      const state = (enabled) => this.t(`imported.configureAfterImport.${ enabled ? 'enabled' : 'disabled' }`);
+      const versionManagementState = state(this.versionManagementGlobalSetting);
 
-      return (!this.isRKE1 && hasFieldsToShow) || this.isCreate;
+      if (!this.canHaveDayTwoOps) {
+        return this.t('imported.configureAfterImport.versionManagement', { versionManagement: versionManagementState });
+      }
+
+      // Only say "will be automatically <state>" once when both global settings agree
+      if (this.versionManagementGlobalSetting === this.dayTwoOpsGlobalSetting) {
+        return this.t('imported.configureAfterImport.versionManagementAndDayTwoOpsSame', { state: versionManagementState });
+      }
+
+      return this.t('imported.configureAfterImport.versionManagementAndDayTwoOps', { versionManagement: versionManagementState, dayTwoOps: state(this.dayTwoOpsGlobalSetting) });
     },
     enableInstanceDescription() {
       return this.isLocal || this.isCreate;
@@ -301,6 +335,36 @@ export default defineComponent({
     fleetAgentDeploymentCustomization() {
       return this.normanCluster.fleetAgentDeploymentCustomization || {};
     },
+    canHaveDayTwoOps() {
+      return !this.isLocal && this.dayTwoOpsFlagEnabled;
+    },
+    showDayTwoOps() {
+      return this.hasConfig && this.canHaveDayTwoOps;
+    },
+    /**
+     * Whether day 2 ops are enabled for this cluster, either explicitly or via the global default. The etcd config is
+     * only applied to the cluster while they are, so it's hidden (and unset on save) otherwise
+     */
+    dayTwoOpsEnabled() {
+      return this.dayTwoOps === 'true' || (this.dayTwoOps === DAY_2_OPS_DEFAULT && this.dayTwoOpsGlobalSetting);
+    },
+    /**
+     * RcSection doesn't render its content while collapsed, so RcS3Config (and its validation) isn't there when the
+     * etcd or S3 sections are collapsed. Validate the S3 config here too, with the same rules, so an invalid config
+     * can't be saved from a collapsed section.
+     */
+    s3ConfigValid() {
+      if (!this.showDayTwoOps || !this.dayTwoOpsEnabled || !this.s3Backup) {
+        return true;
+      }
+
+      const s3 = this.config?.etcd?.s3 || {};
+      const cloudCredential = s3.cloudCredentialName ? this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, s3.cloudCredentialName) : null;
+      const defaultBucket = cloudCredential?.decodedData?.defaultBucket;
+      const { awsStyleEndpoint } = formRulesGenerator(this.$store.getters['i18n/t'], { key: 'Value' });
+
+      return !!(s3.bucket || defaultBucket) && !awsStyleEndpoint(s3.endpoint);
+    },
     schedulingCustomizationVisible() {
       return !this.isLocal && (this.schedulingCustomizationFeatureEnabled || this.schedulingCustomizationOriginallyEnabled);
     },
@@ -310,8 +374,23 @@ export default defineComponent({
     async saveRoleBindings() {
       return saveRoleBindings(this.membershipUpdate, this.normanCluster.id);
     },
+
+    unsetEtcdConfigIfDayTwoOpsDisabled() {
+      if (!this.showDayTwoOps || this.dayTwoOpsEnabled || typeof this.config?.etcd === 'undefined') {
+        return;
+      }
+
+      delete this.config.etcd;
+      this.s3Backup = false;
+      // A replace is only needed to remove an etcd config the cluster already has
+      if (this.clusterHasEtcdConfig) {
+        this.needsReplace = true;
+      }
+    },
     async actuallySave() {
       if (this.isEdit) {
+        this.unsetEtcdConfigIfDayTwoOpsDisabled();
+
         return await this.normanCluster.save({ replace: this.needsReplace });
       } else {
         await this.normanCluster.save();
@@ -435,6 +514,26 @@ export default defineComponent({
       this.dayTwoOpsGlobalSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
       this.dayTwoOpsOld = !this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] ? DAY_2_OPS_DEFAULT : this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED];
     },
+    /**
+     * Load the S3 cloud credential, so its default bucket is known to s3ConfigValid even if RcS3Config is never shown
+     */
+    async fetchS3CloudCredential() {
+      const cloudCredentialName = this.config?.etcd?.s3?.cloudCredentialName;
+
+      if (!cloudCredentialName) {
+        return;
+      }
+
+      try {
+        await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: cloudCredentialName });
+      } catch (e) {
+        // Without the credential its default bucket is unknown, so a bucket is required
+      }
+    },
+    etcdChanged(neu) {
+      // config is either normanCluster.rke2Config or normanCluster.k3sConfig, so this writes to <rke2|k3s>Config.etcd
+      this.config.etcd = neu;
+    },
     setSchedulingCustomization({ event, agentType }) {
       if (event) {
         switch (agentType) {
@@ -473,7 +572,7 @@ export default defineComponent({
     :can-yaml="false"
     :done-route="doneRoute"
     :errors="fvUnreportedValidationErrors"
-    :validation-passed="fvFormIsValid"
+    :validation-passed="fvFormIsValid && (!showDayTwoOps || !dayTwoOpsEnabled || (etcdConfigValid && s3ConfigValid))"
     :show-toc="true"
     @error="e=>errors=e"
     @finish="save"
@@ -506,10 +605,17 @@ export default defineComponent({
           description-placeholder="cluster.description.placeholder"
           :rules="{name: fvGetAndReportPathRules('name')}"
         />
+        <Banner
+          v-if="configureAfterImportMessage"
+          color="info"
+          data-testid="configure-after-import-banner"
+        >
+          {{ configureAfterImportMessage }}
+        </Banner>
       </div>
       <RcSection
-        v-if="showBasics"
-        :title="providerTabKey"
+        v-if="showVersionManagement"
+        :title="t('imported.basics.versionManagement.title')"
         mode="with-header"
         :type="SECTION_TYPE.PRIMARY"
         expandable
@@ -523,15 +629,10 @@ export default defineComponent({
           :versions="allVersions"
           :default-version="defaultVersion"
           :loading-versions="loadingVersions"
-          :show-version-management="!isRKE1"
           :is-local="isLocal"
           :version-management-global-setting="versionManagementGlobalSetting"
-          :day-two-ops-global-setting="dayTwoOpsGlobalSetting"
-          :day-two-ops-flag="dayTwoOpsFlagEnabled"
           :version-management="versionManagement"
           :version-management-old="versionManagementOld"
-          :day-two-ops="dayTwoOps"
-          :day-two-ops-old="dayTwoOpsOld"
           :rules="{workerConcurrency: fvGetAndReportPathRules('workerConcurrency'), controlPlaneConcurrency: fvGetAndReportPathRules('controlPlaneConcurrency') }"
           :selected-kubernetes-version="selectedKubernetesVersion"
           :show-deprecated-patches="showDeprecatedPatchVersions"
@@ -542,8 +643,39 @@ export default defineComponent({
           @server-concurrency-changed="(val)=>upgradeStrategy.serverConcurrency = val"
           @worker-concurrency-changed="(val)=>upgradeStrategy.workerConcurrency = val"
           @version-management-changed="(val)=>versionManagement=val"
-          @enable-day-two-ops-changed="(val)=>dayTwoOps=val"
         />
+      </RcSection>
+      <RcSection
+        v-if="showDayTwoOps"
+        :title="t('imported.basics.dayTwoOpsEnabled.title')"
+        data-testid="day-two-ops-accordion"
+        mode="with-header"
+        :type="SECTION_TYPE.PRIMARY"
+        expandable
+        :expanded="true"
+      >
+        <DayTwoOps
+          :value="dayTwoOps"
+          :global-setting="dayTwoOpsGlobalSetting"
+          :mode="mode"
+          :old-value="dayTwoOpsOld"
+          @update:value="(val)=>dayTwoOps=val"
+        />
+        <RcContentGroup
+          v-if="dayTwoOpsEnabled"
+          data-testid="etcd-config"
+        >
+          <RcEtcdSnapshotConfig
+            :value="config.etcd"
+            :mode="mode"
+            :s3-backup="s3Backup"
+            :namespace="value.metadata.namespace"
+            :register-before-hook="registerBeforeHook"
+            @update:value="etcdChanged"
+            @s3-backup-changed="(val)=>s3Backup = val"
+            @validation-changed="(val)=>etcdConfigValid = val"
+          />
+        </RcContentGroup>
       </RcSection>
       <RcSection
         :title="t('members.memberRoles')"
