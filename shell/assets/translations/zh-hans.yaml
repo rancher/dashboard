@@ -1943,9 +1943,16 @@ cluster:
   rotateCertificates:
     label: 轮换证书
     modalTitle: 轮换集群证书
+    description: 将签发新证书，受影响的服务会重新启动。轮换完成前，集群状态显示为 'Updating'。
+    allServices: 所有服务
+    selectedServices: 选定的服务
     services: 服务
-    allServices: 轮换所有服务证书
-    selectService: 轮换单个服务证书
+    placeholder: 选择一个或多个服务
+    reset: 重置
+    more: "+{count} 个"
+    deselect: "取消选择 {service}"
+    selectionSummary: "已选择 {count}/{total} 个服务。仅这些服务会重新启动。"
+    rotate: 轮换证书
   toggle:
     v1: RKE1
     v2: RKE2/K3s
