@@ -61,6 +61,18 @@ export default defineComponent({
     },
 
     /**
+     * Where to show the sub-label (or the cron hint when type is cron),
+     * relative to the Labeled Input. Use right when there is free space next
+     * to the input, for example when the input is in a narrow column.
+     * @values bottom, right
+     */
+    subLabelPosition: {
+      type:      String,
+      default:   'bottom',
+      validator: (value: string) => ['bottom', 'right'].includes(value)
+    },
+
+    /**
      * The tooltip to display for the Labeled Input.
      */
     tooltip: {
@@ -636,6 +648,7 @@ export default defineComponent({
     <div
       v-if="cronHint || subLabel"
       class="sub-label"
+      :class="{ 'sub-label-right': subLabelPosition === 'right' }"
       data-testid="sub-label"
     >
       <div
@@ -657,6 +670,15 @@ export default defineComponent({
 <style scoped lang="scss">
 .labeled-input {
   position: relative;
+}
+
+.labeled-input .sub-label.sub-label-right {
+  top: 50%;
+  left: 100%;
+  padding: 0 0 0 20px;
+  transform: translateY(-50%);
+  // Use the free space next to the input instead of wrapping inside the input width
+  width: max-content;
 }
 
 .multiline-password:not(:focus) {

@@ -19,6 +19,11 @@ const meta: Meta<typeof LabeledInput> = {
     clearButtonLabel: { control: 'text' },
     required:         { control: 'boolean' },
     disabled:         { control: 'boolean' },
+    subLabel:         { control: 'text' },
+    subLabelPosition: {
+      control: 'select',
+      options: ['bottom', 'right'],
+    },
   },
 };
 
