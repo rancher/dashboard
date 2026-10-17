@@ -38,6 +38,7 @@ import FeatureFlagListDialog from '@shell/dialog/FeatureFlagListDialog.vue';
 import MoveNamespaceDialog from '@shell/dialog/MoveNamespaceDialog.vue';
 import ExtensionCatalogInstallDialog from '@shell/dialog/ExtensionCatalogInstallDialog.vue';
 import ExtensionCatalogUninstallDialog from '@shell/dialog/ExtensionCatalogUninstallDialog.vue';
+import RemoveOperationDialog from '@shell/dialog/RemoveOperationDialog.vue';
 
 import { createStore } from 'vuex';
 
@@ -85,7 +86,7 @@ function generateStore(component: any, modalData: any = {}):any {
 }
 
 // Dialogs opened with `ownsModal`, which render their own RcModal and need PromptModal's `modal` prop
-const OWNS_MODAL: any[] = [DisableAuthProviderDialog, RotateEncryptionKeyDialog];
+const OWNS_MODAL: any[] = [DisableAuthProviderDialog, RotateEncryptionKeyDialog, RemoveOperationDialog];
 
 describe('component: PromptModal', () => {
   it.each([
@@ -124,6 +125,7 @@ describe('component: PromptModal', () => {
     ['MoveNamespaceDialog', MoveNamespaceDialog],
     ['ExtensionCatalogInstallDialog', ExtensionCatalogInstallDialog],
     ['ExtensionCatalogUninstallDialog', ExtensionCatalogUninstallDialog],
+    ['RemoveOperationDialog', RemoveOperationDialog],
   ])('prompt Modal should render modal %p', (modalName, component) => {
     // mock structuredClone
     window.structuredClone = (arg) => JSON.parse(JSON.stringify(arg));

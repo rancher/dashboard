@@ -6378,6 +6378,17 @@ promptRemove:
 promptRemoveApp:
   removeCrd: "Delete the CRD associated with this app"
 
+promptRemoveOperation:
+  attemptingToRemove: You are attempting to delete {kind} operation
+  kind:
+    etcdSnapshotSave: a snapshot
+    etcdSnapshotRestore: a snapshot restore
+    encryptionKeyRotation: an encryption key rotation
+    certificateRotation: a certificate rotation
+  inProgress:
+    warning: This operation is in progress. Deleting it now may leave your cluster in an unstable state.
+    acknowledge: I understand that this cluster might need to be restored if this operation is interrupted
+
 promptRestore:
   title: Restore Snapshot
   name: Name
