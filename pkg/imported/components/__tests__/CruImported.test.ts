@@ -501,10 +501,10 @@ describe('cruImported component', () => {
 
     const createWrapper = ({
       configKey = 'rke2Config', etcd = { ...ETCD } as object | null, isLocal = false, dayTwoOpsFlagEnabled = true, hasConfig = true, s3Backup = false, cloudCredentials = {},
-      dayTwoOps = 'true', dayTwoOpsGlobalSetting = false, etcdConfigInitialised = false
+      dayTwoOps = 'true', dayTwoOpsGlobalSetting = false, clusterHasEtcdConfig = true
     }: {
       configKey?: 'rke2Config' | 'k3sConfig', etcd?: object | null, isLocal?: boolean, dayTwoOpsFlagEnabled?: boolean, hasConfig?: boolean, s3Backup?: boolean,
-      cloudCredentials?: Record<string, object>, dayTwoOps?: string, dayTwoOpsGlobalSetting?: boolean, etcdConfigInitialised?: boolean
+      cloudCredentials?: Record<string, object>, dayTwoOps?: string, dayTwoOpsGlobalSetting?: boolean, clusterHasEtcdConfig?: boolean
     } = {}) => {
       const config = hasConfig ? { kubernetesVersion: 'v1.33.5', ...(etcd ? { etcd } : {}) } : null;
       const defaultNormanCluster = defaultSetup.data().normanCluster;
@@ -544,7 +544,7 @@ describe('cruImported component', () => {
         },
         // `config` must be the same object as normanCluster.<rke2|k3s>Config, as set up in fetch()
         data: () => ({
-          normanCluster, config, dayTwoOpsFlagEnabled, s3Backup, dayTwoOpsGlobalSetting, etcdConfigInitialised
+          normanCluster, config, dayTwoOpsFlagEnabled, s3Backup, dayTwoOpsGlobalSetting, clusterHasEtcdConfig
         } as any),
       });
     };
@@ -790,8 +790,8 @@ describe('cruImported component', () => {
         expect(normanCluster.save).toHaveBeenCalledWith({ replace: false });
       });
 
-      it('should drop the default etcd config without a replace on save, when the cluster had no etcd config', async() => {
-        const wrapper = createWrapper({ dayTwoOps: 'false', etcdConfigInitialised: true });
+      it('should drop the etcd config without a replace on save, when the cluster had no etcd config', async() => {
+        const wrapper = createWrapper({ dayTwoOps: 'false', clusterHasEtcdConfig: false });
         const normanCluster = wrapper.vm.normanCluster as any;
 
         await wrapper.vm.actuallySave();
@@ -859,11 +859,7 @@ describe('cruImported component', () => {
       });
     });
 
-    describe('etcd config defaults on fetch', () => {
-      const DEFAULTS = {
-        disableSnapshots: false, s3: null, snapshotRetention: 5, snapshotScheduleCron: '0 */5 * * *'
-      };
-
+    describe('etcd config on fetch', () => {
       const fetchWith = async(etcd: object | undefined) => {
         const liveNormanCluster = { rke2Config: { kubernetesVersion: 'v1.33.5', ...(etcd ? { etcd } : {}) }, annotations: { [IMPORTED_CLUSTER_VERSION_MANAGEMENT]: 'system-default' } };
         const dispatch = jest.fn((action: string) => Promise.resolve(action === 'rancher/clone' ? liveNormanCluster : {}));
@@ -895,13 +891,11 @@ describe('cruImported component', () => {
         ['has an etcd config with only zero values', {
           disableSnapshots: false, snapshotRetention: 0, snapshotScheduleCron: '', s3: null
         }],
-      ])('should use the same defaults as a new RKE2 cluster when the cluster %s', async(_, etcd) => {
+      ])('should leave the etcd config unset, so the cluster keeps its own settings, when the cluster %s', async(_, etcd) => {
         const wrapper = await fetchWith(etcd);
 
-        expect((wrapper.vm as any).config.etcd).toStrictEqual(DEFAULTS);
-        expect((wrapper.vm as any).normanCluster.rke2Config.etcd).toStrictEqual(DEFAULTS);
-        expect((wrapper.vm as any).normanCluster.rke2Config.kubernetesVersion).toBe('v1.33.5');
-        expect(wrapper.vm.etcdConfigInitialised).toBe(true);
+        expect((wrapper.vm as any).normanCluster.rke2Config.etcd).toStrictEqual(etcd);
+        expect(wrapper.vm.clusterHasEtcdConfig).toBe(false);
       });
 
       it.each([
@@ -909,11 +903,11 @@ describe('cruImported component', () => {
         ['a retention', { snapshotRetention: 3 }],
         ['snapshots disabled', { disableSnapshots: true }],
         ['an s3 config', { s3: { bucket: 'my-bucket' } }],
-      ])('should keep the cluster etcd config when it has %s', async(_, etcd) => {
+      ])('should keep the cluster etcd config, and note that it has one, when it has %s', async(_, etcd) => {
         const wrapper = await fetchWith(etcd);
 
         expect((wrapper.vm as any).config.etcd).toStrictEqual(etcd);
-        expect(wrapper.vm.etcdConfigInitialised).toBe(false);
+        expect(wrapper.vm.clusterHasEtcdConfig).toBe(true);
       });
     });
 

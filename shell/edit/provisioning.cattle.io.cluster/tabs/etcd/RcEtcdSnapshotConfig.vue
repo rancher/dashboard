@@ -8,6 +8,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { RcSection, SECTION_TYPE } from '@components/RcSection';
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import RcS3Config from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/RcS3Config.vue';
+import { RETENTION_DEFAULT } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 import isEmpty from 'lodash/isEmpty';
 
 export interface EtcdSnapshotS3 {
@@ -55,6 +56,10 @@ const store = useStore();
 const { t } = useI18n(store);
 
 const etcd = computed<EtcdSnapshotConfigValue>(() => props.value || {});
+// An unset schedule/retention (empty, or 0 as returned for an imported cluster) isn't written to the cluster, which then
+// keeps its own settings. So show them empty, with the RKE2/K3s defaults as placeholders
+const SNAPSHOT_SCHEDULE_CRON_DISTRO_DEFAULT = '0 */12 * * *';
+const snapshotRetention = computed(() => etcd.value.snapshotRetention || undefined);
 const snapshotsEnabled = computed(() => etcd.value.disableSnapshots !== true);
 
 const disableSnapshotsOptions = computed(() => [
@@ -117,7 +122,7 @@ function disableSnapshotsChanged(disableSnapshots: boolean) {
         <LabeledInput
           :value="etcd.snapshotScheduleCron"
           type="cron"
-          placeholder="0 * * * *"
+          :placeholder="SNAPSHOT_SCHEDULE_CRON_DISTRO_DEFAULT"
           data-testid="etcd-snapshot-schedule-cron"
           :mode="mode"
           :label="t('cluster.rke2.etcd.snapshotScheduleCron.label')"
@@ -126,7 +131,8 @@ function disableSnapshotsChanged(disableSnapshots: boolean) {
       </div>
       <div class="col span-6">
         <UnitInput
-          :value="etcd.snapshotRetention ?? undefined"
+          :value="snapshotRetention"
+          :placeholder="RETENTION_DEFAULT"
           data-testid="etcd-snapshot-retention"
           :mode="mode"
           :label="t('cluster.rke2.etcd.snapshotRetention.label')"
@@ -158,7 +164,7 @@ function disableSnapshotsChanged(disableSnapshots: boolean) {
       <RcS3Config
         v-if="s3Backup"
         :value="etcd.s3 || undefined"
-        :local-retention-count="etcd.snapshotRetention ?? undefined"
+        :local-retention-count="snapshotRetention"
         :namespace="namespace"
         :register-before-hook="registerBeforeHook"
         :mode="mode"

@@ -252,4 +252,40 @@ describe('component: RcEtcdSnapshotConfig', () => {
       expect(section(wrapper, 'etcd-s3-backups')).toBeUndefined();
     });
   });
+
+  describe('unset schedule and retention', () => {
+    it.each([
+      ['empty', {
+        ...ETCD, snapshotScheduleCron: '', snapshotRetention: 0
+      }],
+      ['missing', {}],
+    ])('should show them %s, with the RKE2/K3s defaults as placeholders', (_, value) => {
+      const wrapper = createWrapper({ value, s3Backup: true });
+      const cron = wrapper.findComponent(LabeledInput);
+      const retention = wrapper.findComponent({ name: 'UnitInput' });
+
+      expect(cron.props('value')).toBeFalsy();
+      expect(cron.props('placeholder')).toBe('0 */12 * * *');
+      expect(retention.props('value')).toBeNull();
+      expect(retention.props('placeholder')).toBe(5);
+      // so S3 'same as local' retention falls back to the default too
+      expect(wrapper.findComponent({ name: 'RcS3Config' }).props('localRetentionCount')).toBeNull();
+    });
+
+    it('should show a set retention', () => {
+      const wrapper = createWrapper({ value: { ...ETCD, snapshotRetention: 3 } });
+
+      expect(wrapper.findComponent({ name: 'UnitInput' }).props('value')).toBe(3);
+    });
+
+    it('should not change the etcd config until it is edited', () => {
+      const wrapper = createWrapper({
+        value: {
+          ...ETCD, snapshotScheduleCron: '', snapshotRetention: 0
+        }
+      });
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
+    });
+  });
 });

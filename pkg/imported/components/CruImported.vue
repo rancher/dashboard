@@ -20,7 +20,6 @@ import RcACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/Rc
 import RcEtcdSnapshotConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/RcEtcdSnapshotConfig.vue';
 import { NORMAN, MANAGEMENT, CAPI, HCI } from '@shell/config/types';
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
-import { RETENTION_DEFAULT } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 import RcKeyValue from '@shell/components/form/RcKeyValue.vue';
 import { Checkbox } from '@components/Form/Checkbox';
 import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types';
@@ -49,6 +48,11 @@ const defaultCluster = {
   annotations:    {},
   importedConfig: {}
 };
+
+// Rancher only applies the etcd fields that are set, and an imported cluster's etcd config is empty (or zero values) until configured
+function hasEtcdConfig(etcd) {
+  return !!etcd && !!(etcd.disableSnapshots || etcd.snapshotScheduleCron || etcd.snapshotRetention > 0 || etcd.s3);
+}
 
 export default defineComponent({
   name: 'CruImported',
@@ -83,7 +87,7 @@ export default defineComponent({
 
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
       this.config = this.normanCluster.rke2Config || this.normanCluster.k3sConfig;
-      this.initEtcdConfig();
+      this.clusterHasEtcdConfig = hasEtcdConfig(this.config?.etcd);
       this.s3Backup = !!this.config?.etcd?.s3;
       await this.fetchS3CloudCredential();
       if ( this.normanCluster && isEmpty(this.normanCluster.localClusterAuthEndpoint) ) {
@@ -148,7 +152,7 @@ export default defineComponent({
       selectedKubernetesVersion:                null,
       showDeprecatedPatchVersions:              false,
       s3Backup:                                 false,
-      etcdConfigInitialised:                    false,
+      clusterHasEtcdConfig:                     false,
       etcdConfigValid:                          true,
       dayTwoOpsGlobalSetting:                   false,
       dayTwoOpsFlagEnabled:                     false,
@@ -371,22 +375,6 @@ export default defineComponent({
       return saveRoleBindings(this.membershipUpdate, this.normanCluster.id);
     },
 
-    initEtcdConfig() {
-      const etcd = this.config?.etcd;
-
-      if (!this.config || (etcd && (etcd.snapshotScheduleCron || etcd.snapshotRetention || etcd.s3 || etcd.disableSnapshots))) {
-        return;
-      }
-
-      this.config.etcd = {
-        disableSnapshots:     false,
-        s3:                   null,
-        snapshotRetention:    RETENTION_DEFAULT,
-        snapshotScheduleCron: '0 */5 * * *',
-      };
-      this.etcdConfigInitialised = true;
-    },
-
     unsetEtcdConfigIfDayTwoOpsDisabled() {
       if (!this.showDayTwoOps || this.dayTwoOpsEnabled || typeof this.config?.etcd === 'undefined') {
         return;
@@ -394,7 +382,8 @@ export default defineComponent({
 
       delete this.config.etcd;
       this.s3Backup = false;
-      if (!this.etcdConfigInitialised) {
+      // A replace is only needed to remove an etcd config the cluster already has
+      if (this.clusterHasEtcdConfig) {
         this.needsReplace = true;
       }
     },
