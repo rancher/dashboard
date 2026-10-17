@@ -46,6 +46,17 @@ describe('component: RcAgentConfiguration', () => {
     expect(wrapper.findComponent(RcContentGroupStub).exists()).toBe(true);
   });
 
+  it.each([
+    [AGENT_CONFIGURATION_TYPES.CLUSTER, '%cluster.agentConfig.tabs.cluster%'],
+    [AGENT_CONFIGURATION_TYPES.FLEET, '%cluster.agentConfig.tabs.fleet%'],
+  ])('should group the %p agent fields under a group named for the agent', (type, label) => {
+    const wrapper = mountComponent({ type });
+    const group = wrapper.findComponent(RcContentGroupStub);
+
+    expect(group.attributes('role')).toBe('group');
+    expect(group.attributes('aria-label')).toBe(label);
+  });
+
   it('should render the requests and limits, tolerations and affinity groups as secondary RcSections', () => {
     const wrapper = mountComponent();
 

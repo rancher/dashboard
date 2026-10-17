@@ -1147,5 +1147,35 @@ describe('cruImported component', () => {
       expect(vm.normanCluster.save).toHaveBeenCalledWith();
       expect(waitForProvisioning).toHaveBeenCalledWith();
     });
+
+    it.each([_EDIT, _CREATE])('should restore the empty agent configurations when saving in %p mode fails', async(mode) => {
+      const error = new Error('save failed');
+      const wrapper = mountWithCluster({
+        clusterAgentDeploymentCustomization: { appendTolerations: [], overrideResourceRequirements: { limits: { memory: '256Mi' } } },
+        fleetAgentDeploymentCustomization:   { appendTolerations: [] },
+        save:                                jest.fn().mockRejectedValue(error),
+      }, mode);
+      const vm = wrapper.vm as any;
+
+      await expect(vm.actuallySave()).rejects.toThrow(error);
+
+      expect(vm.normanCluster.clusterAgentDeploymentCustomization).toStrictEqual({ overrideResourceRequirements: { limits: { memory: '256Mi' } } });
+      expect(vm.normanCluster.fleetAgentDeploymentCustomization).toStrictEqual({});
+    });
+
+    it('should keep the Cluster and Fleet Agent sections after a failed save', async() => {
+      const wrapper = mountWithCluster({
+        clusterAgentDeploymentCustomization: {},
+        fleetAgentDeploymentCustomization:   {},
+        save:                                jest.fn().mockRejectedValue(new Error('save failed')),
+      });
+      const vm = wrapper.vm as any;
+
+      await expect(vm.actuallySave()).rejects.toThrow('save failed');
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('[data-testid="cluster-agent-config-accordion"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="fleet-agent-config-accordion"]').exists()).toBe(true);
+    });
   });
 });

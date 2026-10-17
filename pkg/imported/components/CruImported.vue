@@ -413,16 +413,24 @@ export default defineComponent({
     async actuallySave() {
       this.agentConfigurationCleanup();
 
-      if (this.isEdit) {
-        this.unsetEtcdConfigIfDayTwoOpsDisabled();
+      try {
+        if (this.isEdit) {
+          this.unsetEtcdConfigIfDayTwoOpsDisabled();
 
-        const replace = this.needsReplace || this.agentConfigurationHasRemovals();
+          const replace = this.needsReplace || this.agentConfigurationHasRemovals();
 
-        return await this.normanCluster.save({ replace });
-      } else {
-        await this.normanCluster.save();
+          return await this.normanCluster.save({ replace });
+        } else {
+          await this.normanCluster.save();
 
-        return await this.normanCluster.waitForProvisioning();
+          return await this.normanCluster.waitForProvisioning();
+        }
+      } catch (e) {
+        if (!this.isRKE1) {
+          this.ensureAgentConfiguration();
+        }
+
+        throw e;
       }
     },
 

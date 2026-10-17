@@ -183,6 +183,10 @@ export default {
       return this.mode === _EDIT;
     },
 
+    agentName() {
+      return this.t(`cluster.agentConfig.tabs.${ this.type }`);
+    },
+
     schedulingCustomizationVisible() {
       return this.schedulingCustomizationFeatureEnabled || this.schedulingCustomizationOriginallyEnabled;
     },
@@ -245,7 +249,10 @@ export default {
 </script>
 
 <template>
-  <RcContentGroup>
+  <RcContentGroup
+    role="group"
+    :aria-label="agentName"
+  >
     <RcSection
       :title="t('cluster.agentConfig.groups.podRequestsAndLimits')"
       mode="with-header"
