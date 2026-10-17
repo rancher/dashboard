@@ -28,6 +28,8 @@ const RKE2_SERVICES = [
 const IMPORTED_RKE2_SERVICES = [...RKE2_SERVICES, 'supervisor'];
 
 describe('component: RotateCertificatesDialog', () => {
+  const focusWrapper = jest.fn();
+
   const createWrapper = (cluster: any) => {
     const store = createStore({});
 
@@ -39,7 +41,10 @@ describe('component: RotateCertificatesDialog', () => {
       global: {
         plugins: [store],
         // shallowMount's own RcModal stub drops its slots, hiding the dialog body and Rotate button
-        stubs:   { RcModal: { template: '<div><slot /><slot name="primary-action" :primary-action="() => {}" /></div>' } }
+        stubs:   {
+          RcModal: { template: '<div><slot /><slot name="primary-action" :primary-action="() => {}" /></div>' },
+          Select:  { template: '<div />', methods: { focusWrapper } },
+        }
       },
     });
 
@@ -121,6 +126,18 @@ describe('component: RotateCertificatesDialog', () => {
 
       expect(vm.selectedServices).toStrictEqual([]);
       expect(vm.rotateDisabled).toBe(true);
+    });
+
+    it('moves focus to the services field on Reset, since Reset itself unmounts', async() => {
+      const { wrapper, vm } = createWrapper(importedCluster());
+
+      vm.rotateAllServices = false;
+      vm.selectedServices = ['api-server'];
+      await wrapper.vm.$nextTick();
+      await wrapper.find('[data-testid="rotate-certificates-reset"]').trigger('click');
+
+      expect(focusWrapper).toHaveBeenCalledWith();
+      expect(wrapper.find('[data-testid="rotate-certificates-reset"]').exists()).toBe(false);
     });
 
     it.each([

@@ -44,6 +44,7 @@ const rotateAllServices = ref(true);
 const selectedServices = ref<string[]>([]);
 const errors = ref<string[]>([]);
 const rotating = ref(false);
+const servicesSelect = ref<{ focusWrapper:() => void } | null>(null);
 
 const isImportedWithDayTwoOps = computed(() => !!props.cluster?.isImportedWithDayTwoOps);
 
@@ -96,6 +97,9 @@ function isSelected(option: ServiceOption) {
 
 function resetServices() {
   selectedServices.value = [];
+
+  // Reset unmounts once nothing is selected, so keep keyboard users in place on the field it cleared
+  servicesSelect.value?.focusWrapper();
 }
 
 function close() {
@@ -215,18 +219,19 @@ defineExpose({
               aria-hidden="true"
             >*</span>
           </label>
-          <a
+          <RcButton
             v-if="selectedServices.length"
-            href="#"
-            role="button"
+            variant="link"
+            size="small"
             data-testid="rotate-certificates-reset"
-            @click.prevent="resetServices"
+            @click="resetServices"
           >
             {{ i18n.t('cluster.rotateCertificates.reset') }}
-          </a>
+          </RcButton>
         </div>
 
         <Select
+          ref="servicesSelect"
           v-model:value="selectedServices"
           class="services__select"
           :options="serviceOptions"
@@ -331,11 +336,6 @@ defineExpose({
 
     &__select {
       width: 100%;
-
-      // The clear-all button duplicates the Reset link above the field
-      :deep() .vs__clear {
-        display: none;
-      }
     }
 
     &__more {

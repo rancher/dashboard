@@ -848,7 +848,7 @@ describe('class ProvCluster', () => {
       });
 
       jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({
-        links: {}, isReady: ready, isLocal: false
+        links: {}, isReady: ready, isLocal: false, clusterPinActions: () => []
       });
       jest.spyOn(cluster, 'isImportedWithDayTwoOps', 'get').mockReturnValue(isImportedWithDayTwoOps);
       jest.spyOn(cluster, 'canUpdate', 'get').mockReturnValue(canUpdate);
