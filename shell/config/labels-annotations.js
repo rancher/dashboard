@@ -18,6 +18,8 @@ export const AZURE_MIGRATED = 'auth.cattle.io/azuread-endpoint-migrated';
 export const WORKSPACE_ANNOTATION = 'objectset.rio.cattle.io/id';
 export const NODE_ARCHITECTURE = 'kubernetes.io/arch';
 export const IMPORTED_CLUSTER_VERSION_MANAGEMENT = 'rancher.io/imported-cluster-version-management';
+// Comma-separated restore modes (e.g. 'none,kubernetesVersion,all') an etcd snapshot can be restored with
+export const SNAPSHOT_RESTORE_MODE_OPTIONS = 'etcdsnapshot.rke.io/restore-mode-options';
 export const UI_PROJECT_SECRET = 'management.cattle.io/project-scoped-secret';
 export const UI_PROJECT_SECRET_COPY = 'management.cattle.io/project-scoped-secret-copy';
 export const UI_PROJECT_SECRET_CLUSTER = 'management.cattle.io/project-scoped-secret-cluster';

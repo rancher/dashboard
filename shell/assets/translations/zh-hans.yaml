@@ -4409,7 +4409,6 @@ promptRemoveApp:
 promptRestore:
   title: 还原快照
   name: 名称
-  date: 日期
   fromS3: 从 S3 恢复
   label: 快照
   placeholder: 选择要恢复的快照
