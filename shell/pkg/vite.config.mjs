@@ -106,7 +106,7 @@ export default function() {
       outDir:       process.env.PKG_DIST || path.join(maindir, 'dist-pkg', name),
       emptyOutDir:  false,
       sourcemap:    true,
-      cssCodeSplit: false,
+      cssCodeSplit: true,
       minify,
       lib:          {
         entry,
