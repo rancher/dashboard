@@ -59,6 +59,11 @@ export type EXT_IDS_VALUES = (typeof EXT_IDS)[keyof typeof EXT_IDS];
 
 export type ProductFunction = (plugin: IPlugin, store: any) => void;
 
+/**
+ * A module that defines a product in its `init` export
+ */
+export type ProductModule = { init: ProductFunction };
+
 export class Plugin implements IPlugin {
   public id: string;
   public name: string;
@@ -172,7 +177,7 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: ProductFunction | ProductMetadata | ProductMetadataSinglePage | string, config?: ProductChild[] | AdvancedProductConfigOptionsInternal, advancedProdConfig?: AdvancedProductConfigOptionsInternal): void {
+  addProduct(product: ProductFunction | ProductModule | ProductMetadata | ProductMetadataSinglePage | string, config?: ProductChild[] | AdvancedProductConfigOptionsInternal, advancedProdConfig?: AdvancedProductConfigOptionsInternal): void {
     let pluginProduct: PluginProduct;
 
     // Disambiguate: for string/SinglePage overloads, the 2nd arg is the advanced config, not pages
@@ -181,7 +186,7 @@ export class Plugin implements IPlugin {
 
     if (typeof product === 'string') {
       pluginProduct = PluginProduct.fromName(this, product, resolvedAdvConfig);
-    } else if (product?.name) {
+    } else if ((product as ProductMetadata)?.name) {
       if (!resolvedConfig) {
         pluginProduct = new PluginProduct(this, product as ProductMetadataSinglePage, [], resolvedAdvConfig);
       } else {

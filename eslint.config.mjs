@@ -210,9 +210,11 @@ export default [
   },
 
   {
-    files:   ['shell/**/*.{js,ts,vue}'],
+    files:   ['shell/**/*.{js,ts,vue}', 'pkg/**/*.{js,ts,vue}'],
     ignores: [
       ...testFiles,
+      'pkg/*/babel.config.js',
+      'pkg/*/vue.config.js',
       'shell/babel.config.js',
       'shell/vue.config.js',
       'shell/vue-config-helper.js',

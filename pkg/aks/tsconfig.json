@@ -9,6 +9,7 @@
     "moduleResolution": "node",
     "skipLibCheck": true,
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
@@ -50,7 +51,8 @@
     "**/*.d.ts",
     "**/*.tsx",
     "**/*.vue",
-    "../../shell/types/vue-shim.d.ts"
+    "../../shell/types/vue-shim.d.ts",
+    "../../shell/types/svg.d.ts"
   ],
   "exclude": [
     "../../node_modules"
