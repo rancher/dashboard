@@ -40,6 +40,7 @@
     "k3s:local:start": "./scripts/e2e-k3s-start.sh $RANCHER_VERSION_E2E",
     "k3s:local:logs": "E2E_RANCHER_LOG=$E2E_RANCHER_LOG ./scripts/e2e-k3s-logs",
     "build": "NODE_OPTIONS=--max_old_space_size=4096 ./node_modules/.bin/vue-cli-service build",
+    "build-coverage": "NODE_OPTIONS=--max_old_space_size=8192 ./node_modules/.bin/vue-cli-service build",
     "build:lib": "cd pkg/rancher-components && yarn build:lib",
     "analyze": "./node_modules/.bin/vue-cli-service build --report",
     "start": "./node_modules/.bin/vue-cli-service serve",
