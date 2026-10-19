@@ -46,6 +46,7 @@ const LabeledSelectStub = defineComponent({
     appendToBody:     { type: Boolean, default: true },
     filterable:       { type: Boolean, default: true },
     searchable:       { type: Boolean, default: false },
+    keepSearchOnBlur: { type: Boolean, default: false },
     optionKey:        { type: String, default: undefined },
     placeholder:      { type: String, default: undefined },
     visibleRows:      { type: Number, default: undefined },
@@ -56,8 +57,8 @@ const LabeledSelectStub = defineComponent({
     return { search: '', highlight: -1 };
   },
   methods: {
-    forceOpen(searchText: string) {
-      mockForceOpen(searchText);
+    forceOpen(...args: unknown[]) {
+      mockForceOpen(...args);
     },
     forceClose() {
       mockForceClose();
@@ -147,6 +148,12 @@ describe('component: WorkloadSearch', () => {
       const wrapper = createWrapper();
 
       expect(wrapper.findComponent(LabeledSelectStub).props('filterable')).toBe(false);
+    });
+
+    it('should keep the search text when the dropdown loses focus', () => {
+      const wrapper = createWrapper();
+
+      expect(wrapper.findComponent(LabeledSelectStub).props('keepSearchOnBlur')).toBe(true);
     });
 
     it('should key options by their unique id', () => {
@@ -458,7 +465,7 @@ describe('component: WorkloadSearch', () => {
       await wrapper.find('.actions').trigger('click');
     };
 
-    it('should reopen the dropdown with the last search term when opening the action menu blurs the search', async() => {
+    it('should reopen the dropdown with its search text when opening the action menu blurs the search', async() => {
       mockOptions.value = [makeResult('nginx')];
       const wrapper = createWrapper({ attach: true });
       const select = wrapper.findComponent(LabeledSelectStub);
@@ -467,21 +474,7 @@ describe('component: WorkloadSearch', () => {
       await clickActionsFromSearch(wrapper);
       select.vm.$emit('on-blur');
 
-      expect(mockForceOpen).toHaveBeenCalledWith('nginx');
-      wrapper.unmount();
-    });
-
-    it('should keep the last non-empty search term when vue-select clears the search on blur', async() => {
-      mockOptions.value = [makeResult('nginx')];
-      const wrapper = createWrapper({ attach: true });
-      const select = wrapper.findComponent(LabeledSelectStub);
-
-      select.vm.$emit('search', 'nginx');
-      select.vm.$emit('search', '');
-      await clickActionsFromSearch(wrapper);
-      select.vm.$emit('on-blur');
-
-      expect(mockForceOpen).toHaveBeenCalledWith('nginx');
+      expect(mockForceOpen).toHaveBeenCalledWith();
       wrapper.unmount();
     });
 
@@ -566,7 +559,7 @@ describe('component: WorkloadSearch', () => {
       await input.trigger('keydown', { key: 'Tab' });
       select.vm.$emit('on-blur');
 
-      expect(mockForceOpen).toHaveBeenCalledWith('nginx');
+      expect(mockForceOpen).toHaveBeenCalledWith();
       wrapper.unmount();
     });
 
