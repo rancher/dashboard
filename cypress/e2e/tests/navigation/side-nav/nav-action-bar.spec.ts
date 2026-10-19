@@ -70,8 +70,9 @@ describe('Side navigation: action bar', { tags: ['@navigation', '@adminUser'] },
     const actionBar = productNav.actionBar();
 
     // Make sure at least one group is expanded before collapsing
-    productNav.groups().not('.expanded').eq(0)
-      .should('be.visible')
+    productNav.groups().not('.expanded')
+      .find('i.toggle-accordion')
+      .first()
       .click();
     productNav.expandedGroup().should('have.length.gte', 1);
 

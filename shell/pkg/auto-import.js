@@ -7,10 +7,6 @@ const contextMap = contextFolders.reduce((map, obj) => {
   return map;
 }, {});
 
-function replaceAll(str, find, replace) {
-  return str.split(find).join(replace);
-}
-
 // Injected at the top of every generated importTypes() function.
 // Ensures both $extension (newer Rancher) and $plugin (older Rancher) are available on
 // Vue globalProperties *and* on the Vuex root state, regardless of which one the host
@@ -136,52 +132,9 @@ function generateTypeImport(pkg, dir) {
   return content;
 }
 
-// This function is used to generate the code to register models, edit, detail, list etc for a type
-// This is used when building for dev when plugins are loaded into the app for development - it uses require.context - which ensures
-// that any changes made will be picked up by hot module replacement. It will not respect code splitting, but this is okay
-// for development. Also note the top-level folders are not watched, so if you don't have a 'list' folder (for example), you must create it
-// and then restart the dev server for it to be picked up.
-function generateDynamicTypeImport(pkg, dir) {
-  const template = fs.readFileSync(path.join(__dirname, 'import.js'), { encoding: 'utf8' });
-  let content = 'export function importTypes($extension) { \n';
-
-  content += COMPAT_SHIM;
-
-  // Auto-import if the folder exists
-  contextFolders.forEach((f) => {
-    if (fs.existsSync(path.join(dir, f))) {
-      const safeName = f.replace(/\/|-/g, '_');
-      let genImport = replaceAll(template, 'NAME', safeName);
-
-      genImport = replaceAll(genImport, 'DIR', f );
-      const importType = (f === 'models') ? 'require' : 'import';
-      // Ensure i18n chunks are named with the request name (which will be the locale)
-      const chunk = (f === 'l10n') ? '[request]' : f;
-      let chunkName = `/* webpackChunkName: "${ chunk }" */ `;
-
-      // Don't use chunk names with require
-      if (importType === 'require') {
-        chunkName = '';
-      }
-
-      const ext = (f === 'l10n') ? '.yaml' : '';
-
-      genImport = replaceAll(genImport, 'BASE', pkg);
-      genImport = replaceAll(genImport, 'CHUNK', chunkName);
-      genImport = replaceAll(genImport, 'EXT', ext);
-      content += replaceAll(genImport, 'REQUIRE', importType);
-    }
-  });
-
-  content += `};\n`;
-
-  return content;
-}
-
 module.exports = {
   contextFolders,
   contextMap,
   generateTypeImport,
-  generateDynamicTypeImport,
   COMPAT_SHIM
 };
