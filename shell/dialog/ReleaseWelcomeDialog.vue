@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  computed, nextTick, onMounted, PropType, ref
+  computed, nextTick, onMounted, onUnmounted, PropType, ref
 } from 'vue';
 import { useStore } from 'vuex';
 import { RcButton } from '@components/RcButton';
@@ -18,6 +18,7 @@ import { isAdminUser } from '@shell/store/type-map';
 import { fetchFirstRunContent } from '@shell/utils/dynamic-content/first-run';
 import { FirstRunReleaseContent } from '@shell/utils/dynamic-content/types';
 import { releaseWelcomeVersion, runningVersion } from '@shell/utils/release-welcome';
+import { markSeenReleaseNotes } from '@shell/utils/version';
 
 const props = defineProps({
   /**
@@ -100,6 +101,8 @@ onMounted(async() => {
   }
   await showCards();
 });
+
+onUnmounted(() => markSeenReleaseNotes(store));
 
 const close = () => props.modal.onClose();
 </script>

@@ -1,5 +1,5 @@
 import { setVersionData } from '@shell/config/version';
-import { READ_RELEASE_WELCOME } from '@shell/store/prefs';
+import { SEEN_WHATS_NEW } from '@shell/store/prefs';
 import {
   openReleaseWelcome, releaseWelcomeVersion, runningVersion, shouldShowReleaseWelcome, showReleaseWelcomeIfNew
 } from '@shell/utils/release-welcome';
@@ -10,9 +10,9 @@ const setVersion = (version: string) => setVersionData({
   Version: version, RancherPrime: 'false', GitCommit: ''
 });
 
-const createGetters = (lastRead: string, isSingleProduct: any = undefined): any => ({
+const createGetters = (lastSeen: string, isSingleProduct: any = undefined): any => ({
   isSingleProduct,
-  'prefs/get': (key: string) => (key === READ_RELEASE_WELCOME ? lastRead : undefined),
+  'prefs/get': (key: string) => (key === SEEN_WHATS_NEW ? lastSeen : undefined),
 });
 
 describe('utils: release-welcome', () => {
@@ -60,18 +60,19 @@ describe('utils: release-welcome', () => {
 
   describe('shouldShowReleaseWelcome', () => {
     it.each([
-      ['never read', 'v2.16.0', '', true],
-      ['read for an older minor', 'v2.16.0', '2.15', true],
-      ['read for an older minor, as a full version', 'v2.16.2', '2.15.4', true],
-      ['read for this minor', 'v2.16.0', '2.16', false],
-      ['read for this minor, after a patch upgrade', 'v2.16.2', '2.16', false],
-      ['read for this minor, as a full version', 'v2.16.2', '2.16.1', false],
-      ['read for a newer minor', 'v2.16.0', '2.17', false],
-      ['read with an invalid value', 'v2.16.0', 'invalid', true],
-    ])('should handle a modal %s', (_, version, lastRead, expected) => {
+      ['never seen', 'v2.16.0', '', true],
+      ['seen for an older minor', 'v2.16.0', 'v2.15.4', true],
+      ['seen for an older minor, as a head build', 'v2.16.0', 'v2.15.0-abc1234-head', true],
+      ['seen for an older minor, below 10', 'v2.10.0', 'v2.9.3', true],
+      ['seen for this minor', 'v2.16.0', 'v2.16.0', false],
+      ['seen for this minor, after a patch upgrade', 'v2.16.2', 'v2.16.1', false],
+      ['seen for this minor, as a head build', 'v2.16.0-abc1234-head', 'v2.16.0-abc1234-head', false],
+      ['seen for a newer minor', 'v2.16.0', 'v2.17.0', false],
+      ['seen as 2.x.x', 'v2.16.0', '2.x.x', false],
+    ])('should handle release notes %s', (_, version, lastSeen, expected) => {
       setVersion(version);
 
-      expect(shouldShowReleaseWelcome(createGetters(lastRead))).toStrictEqual(expected);
+      expect(shouldShowReleaseWelcome(createGetters(lastSeen))).toStrictEqual(expected);
     });
 
     it('should not show the modal when the version cannot be parsed', () => {
@@ -92,7 +93,7 @@ describe('utils: release-welcome', () => {
       setVersion('v2.16.0');
       const commit = jest.fn();
 
-      await openReleaseWelcome(commit, jest.fn().mockResolvedValue(undefined));
+      await openReleaseWelcome(commit);
 
       expect(commit).toHaveBeenCalledWith('modal/openModal', { component: { name: 'ReleaseWelcomeDialog' } });
     });
@@ -101,65 +102,36 @@ describe('utils: release-welcome', () => {
       setVersion('dev');
       const commit = jest.fn();
 
-      await openReleaseWelcome(commit, jest.fn());
+      await openReleaseWelcome(commit);
 
       expect(commit).toHaveBeenCalledWith('modal/openModal', { component: { name: 'ReleaseWelcomeDialog' } });
-    });
-
-    it('should mark the modal as read for the running minor version', async() => {
-      setVersion('v2.16.1');
-      const dispatch = jest.fn().mockResolvedValue(undefined);
-
-      await openReleaseWelcome(jest.fn(), dispatch);
-
-      expect(dispatch).toHaveBeenCalledWith('prefs/set', { key: READ_RELEASE_WELCOME, value: '2.16' });
-    });
-
-    it('should not mark the modal as read when the version cannot be parsed', async() => {
-      setVersion('dev');
-      const dispatch = jest.fn();
-
-      await openReleaseWelcome(jest.fn(), dispatch);
-
-      expect(dispatch).toHaveBeenCalledTimes(0);
-    });
-
-    it('should keep the modal open when the preference cannot be saved', async() => {
-      setVersion('v2.16.0');
-      const error = new Error('forbidden');
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-      await expect(openReleaseWelcome(jest.fn(), jest.fn().mockRejectedValue(error))).resolves.toBeUndefined();
-      expect(warn).toHaveBeenCalledWith('Unable to mark the welcome modal as read', error);
     });
   });
 
   describe('showReleaseWelcomeIfNew', () => {
-    it('should open the modal when it was not read for this minor version', async() => {
+    it('should open the modal when the release notes were seen for an older minor version', async() => {
       setVersion('v2.16.0');
       const commit = jest.fn();
 
-      await showReleaseWelcomeIfNew(commit, jest.fn().mockResolvedValue(undefined), createGetters('2.15'));
+      await showReleaseWelcomeIfNew(commit, createGetters('v2.15.3'));
 
       expect(commit).toHaveBeenCalledTimes(1);
     });
 
-    it('should not open the modal when it was read for this minor version', async() => {
+    it('should not open the modal when the release notes were seen for this minor version', async() => {
       setVersion('v2.16.0');
       const commit = jest.fn();
-      const dispatch = jest.fn();
 
-      await showReleaseWelcomeIfNew(commit, dispatch, createGetters('2.16'));
+      await showReleaseWelcomeIfNew(commit, createGetters('v2.16.0'));
 
       expect(commit).toHaveBeenCalledTimes(0);
-      expect(dispatch).toHaveBeenCalledTimes(0);
     });
 
     it('should not open the modal again after a patch upgrade', async() => {
       setVersion('v2.16.2');
       const commit = jest.fn();
 
-      await showReleaseWelcomeIfNew(commit, jest.fn(), createGetters('2.16.1'));
+      await showReleaseWelcomeIfNew(commit, createGetters('v2.16.1'));
 
       expect(commit).toHaveBeenCalledTimes(0);
     });

@@ -7,12 +7,14 @@ import { setVersionData } from '@shell/config/version';
 import { REGISTRATION_ROUTE } from '@shell/config/release-welcome';
 import { SCC } from '@shell/store/features';
 import { fetchFirstRunContent } from '@shell/utils/dynamic-content/first-run';
+import { markSeenReleaseNotes } from '@shell/utils/version';
 
 let mockStore: any;
 
 jest.mock('vuex', () => ({ ...jest.requireActual('vuex'), useStore: () => mockStore }));
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 jest.mock('@shell/utils/dynamic-content/first-run', () => ({ fetchFirstRunContent: jest.fn() }));
+jest.mock('@shell/utils/version', () => ({ ...jest.requireActual('@shell/utils/version'), markSeenReleaseNotes: jest.fn() }));
 
 const mockFetchFirstRunContent = fetchFirstRunContent as jest.Mock;
 
@@ -74,6 +76,7 @@ const byTestId = (wrapper: any, id: string) => wrapper.find(`[data-testid="${ id
 describe('component: ReleaseWelcomeDialog', () => {
   beforeEach(() => {
     mockFetchFirstRunContent.mockReset();
+    (markSeenReleaseNotes as jest.Mock).mockClear();
     mockFetchFirstRunContent.mockResolvedValue({});
   });
 
@@ -289,5 +292,15 @@ describe('component: ReleaseWelcomeDialog', () => {
     await byTestId(wrapper, testId).trigger('click');
 
     expect(wrapper.props('modal').onClose).toHaveBeenCalledWith();
+  });
+
+  it('should mark the release notes as seen when it closes', async() => {
+    const wrapper = await createWrapper();
+
+    expect(markSeenReleaseNotes).toHaveBeenCalledTimes(0);
+
+    wrapper.unmount();
+
+    expect(markSeenReleaseNotes).toHaveBeenCalledWith(mockStore);
   });
 });

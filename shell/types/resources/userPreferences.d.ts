@@ -7,7 +7,6 @@ export interface UserPreferences {
   'last-visited': string,
   'ns-by-cluster': string,
   provisioner: string,
-  'read-release-welcome': string,
   'read-whatsnew': string,
   'seen-whatsnew': string,
   theme: string,
