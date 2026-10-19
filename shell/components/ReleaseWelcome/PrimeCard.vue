@@ -1,10 +1,10 @@
 <script setup lang="ts">
 // The card looks the same in every theme and brand: theme-dark provides the base variables and
-// theme-suse-prime (shell/assets/styles/themes/_suse-prime.scss) applies the SUSE Rancher Prime colours on top
+// suse-prime-surface (shell/assets/styles/themes/_suse.scss) applies the SUSE Rancher Prime colours on top
 </script>
 
 <template>
-  <section class="prime-card theme-dark theme-suse-prime">
+  <section class="prime-card theme-dark suse-prime-surface">
     <slot />
   </section>
 </template>

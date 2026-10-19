@@ -8,7 +8,7 @@ describe('component: PrimeCard', () => {
   it('should apply the SUSE Rancher Prime theme on top of the dark theme', () => {
     const wrapper = createWrapper();
 
-    expect(wrapper.classes()).toStrictEqual(['prime-card', 'theme-dark', 'theme-suse-prime']);
+    expect(wrapper.classes()).toStrictEqual(['prime-card', 'theme-dark', 'suse-prime-surface']);
   });
 
   it('should render the content', () => {

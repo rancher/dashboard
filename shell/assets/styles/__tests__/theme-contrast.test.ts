@@ -209,13 +209,13 @@ describe('theme colour contrast (WCAG 2.1 AA)', () => {
   });
 });
 
-describe('suse prime theme colour contrast (WCAG 2.1 AA)', () => {
+describe('suse prime surface colour contrast (WCAG 2.1 AA)', () => {
   let tokens: Tokens;
 
-  // `.theme-suse-prime` is applied on top of `.theme-dark` on an element, and wins over it by import order
+  // `.suse-prime-surface` is applied on top of `.theme-dark` on an element, and wins over it by import order
   beforeAll(() => {
     const { css } = sass.compileString(
-      `@import "base/functions"; @import "base/color"; @import "themes/modern"; @import "themes/suse-prime";`,
+      `@import "base/functions"; @import "base/color"; @import "themes/modern"; @import "themes/suse";`,
       {
         loadPaths:           [STYLES_DIR],
         quietDeps:           true,
@@ -226,7 +226,7 @@ describe('suse prime theme colour contrast (WCAG 2.1 AA)', () => {
     tokens = {
       ...blockTokens(css, /BODY, \.theme-light\s*\{([^{}]*)\}/g),
       ...blockTokens(css, /BODY, \.theme-dark\s*\{([^{}]*)\}/g),
-      ...blockTokens(css, /\.theme-suse-prime\s*\{([^{}]*)\}/g),
+      ...blockTokens(css, /\.suse-prime-surface\s*\{([^{}]*)\}/g),
     };
   });
 
