@@ -268,12 +268,9 @@ const tooltipSize = computed(() => (props.size === 'small' ? 'small' : 'medium')
   }
 }
 
+// The design pulls the label 6px closer to the value in view mode. Keeping the
+// edit spacing instead lines labels up across fields in different modes.
 .rc-field-view {
-  .rc-field-header {
-    padding-top: 6px;
-    margin-bottom: -6px;
-  }
-
   .rc-field-box {
     gap: 8px;
     padding: var(--rc-field-value-offset) var(--rc-field-padding-x) var(--rc-field-value-offset) calc(var(--rc-field-padding-x) + 1px);
