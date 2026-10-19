@@ -10063,6 +10063,10 @@ component:
         title: YAML
       configTab:
         title: Config
+  rcField:
+    reset: Reset
+    showMore: Show more
+    showLess: Show less
   resource:
     detail:
       copyToClipboard:
