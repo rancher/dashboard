@@ -6,6 +6,7 @@ import { rancherLoaders } from '../vite/loaders.mjs';
 import { vueParenthesisedDefaultExport } from '../vite/vue-compat.mjs';
 import { rancherRequireCompat } from '../vite/require-compat.mjs';
 import { shellClassFields } from '../vite/class-fields.mjs';
+import { injectStyles } from '../vite/inject-styles.mjs';
 import { INITIAL_CHUNK, loadChunksOnDemand } from './chunk-loader.mjs';
 import { replaceShellModules } from './replace-shell-modules.mjs';
 
@@ -17,34 +18,6 @@ const EXTERNALS = {
   jszip:     '__jszip',
   'js-yaml': '__jsyaml',
 };
-
-/**
- * Add the package's styles to the page when its script runs, rather than as a separate stylesheet, so that the
- * script is all Rancher has to load
- */
-function injectStyles() {
-  return {
-    name:    'rancher:pkg-inject-styles',
-    apply:   'build',
-    enforce: 'post',
-
-    generateBundle(options, bundle) {
-      const styles = Object.values(bundle).filter((file) => file.type === 'asset' && file.fileName.endsWith('.css'));
-      const entry = Object.values(bundle).find((file) => file.type === 'chunk' && file.isEntry);
-
-      if (!styles.length || !entry) {
-        return;
-      }
-
-      const css = styles.map((file) => file.source).join('\n');
-      const inject = `(function(){if(typeof document!=='undefined'){var s=document.createElement('style');s.appendChild(document.createTextNode(${ JSON.stringify(css) }));document.head.appendChild(s);}})();\n`;
-      const sourceMap = entry.code.lastIndexOf('//# sourceMappingURL=');
-
-      styles.forEach((file) => delete bundle[file.fileName]);
-      entry.code = sourceMap === -1 ? `${ entry.code }\n${ inject }` : `${ entry.code.slice(0, sourceMap) }${ inject }${ entry.code.slice(sourceMap) }`;
-    },
-  };
-}
 
 /**
  * Vite configuration that builds the UI package in the current directory as the script `<name>-<version>.umd.min.js`,

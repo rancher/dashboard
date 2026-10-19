@@ -14,7 +14,7 @@
   ],
   "types": "./types/index.d.ts",
   "scripts": {
-    "build:lib": "vue-cli-service build --skip-plugins eslint --target lib --name @rancher/components src/main.ts",
+    "build:lib": "vite build",
     "lint": "eslint --max-warnings 0 ."
   },
   "engines": {
@@ -41,11 +41,8 @@
     "@eslint/js": "10.0.1",
     "@typescript-eslint/eslint-plugin": "8.62.0",
     "@typescript-eslint/parser": "8.70.0",
-    "@vue/cli-plugin-babel": "5.0.9",
-    "@vue/cli-plugin-typescript": "5.0.9",
-    "@vue/cli-service": "5.0.9",
+    "@vitejs/plugin-vue": "6.0.10",
     "@vue/test-utils": "2.4.6",
-    "core-js": "3.50.0",
     "cron-validator": "1.4.0",
     "cronstrue": "2.53.0",
     "eslint": "10.8.1",
@@ -60,15 +57,14 @@
     "jsonpath-plus": "10.3.0",
     "neostandard": "0.13.0",
     "sass": "1.97.3",
-    "sass-loader": "12.6.0",
     "typescript": "5.6.3",
     "typescript-eslint": "8.62.0",
     "vee-validate": "4.15.0",
+    "vite": "8.3.4",
     "vue": "3.5.42",
     "vue-eslint-parser": "10.4.1"
   },
   "peerDependencies": {
-    "core-js": "3.50.0",
     "vue": "^3.2.13"
   }
 }
