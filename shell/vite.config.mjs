@@ -3,13 +3,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { EventEmitter } from 'node:events';
+import { searchForWorkspaceRoot } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { rancherIndexHtml } from './vite/index-html.mjs';
 import { rancherDynamicModules } from './vite/dynamic-modules.mjs';
 import { rancherLoaders } from './vite/loaders.mjs';
 import { vueParenthesisedDefaultExport } from './vite/vue-compat.mjs';
+import { rancherRequireCompat } from './vite/require-compat.mjs';
 import { rancherDevServer } from './vite/dev-server.mjs';
 import { rancherBundleReport } from './vite/bundle-report.mjs';
+import { rancherShellDependencies } from './vite/shell-dependencies.mjs';
+import { shellClassFields } from './vite/class-fields.mjs';
 import vueConfigHelper from './vue-config-helper.js';
 
 const require = createRequire(import.meta.url);
@@ -183,6 +187,7 @@ export default async function(dir, appConfig = {}) {
   EventEmitter.defaultMaxListeners = 20;
 
   const { SHELL_ABS, COMPONENTS_DIR } = getShellPaths(dir);
+  const ICONS_DIR = path.dirname(require.resolve('@rancher/icons/package.json', { paths: [SHELL_ABS] }));
   const excludes = appConfig.excludes || [];
 
   const includePkg = (name) => {
@@ -209,6 +214,7 @@ export default async function(dir, appConfig = {}) {
     base:      resourceBase || '/',
     publicDir: path.join(SHELL_ABS, 'static'),
     define:    getEnvVariables(routerBasePath, rancherEnv),
+    oxc:       shellClassFields,
 
     resolve: {
       alias: [
@@ -217,7 +223,7 @@ export default async function(dir, appConfig = {}) {
         { find: '~@shell', replacement: SHELL_ABS },
         { find: '~assets', replacement: path.join(SHELL_DIR, 'assets') },
         { find: '@components', replacement: COMPONENTS_DIR },
-        { find: '~@rancher/icons', replacement: path.dirname(require.resolve('@rancher/icons/package.json', { paths: [SHELL_ABS] })) },
+        { find: '~@rancher/icons', replacement: ICONS_DIR },
         { find: /^(\.\/)?node_modules\//, replacement: `${ path.join(dir, 'node_modules') }/` },
         { find: /^~(?=[@\w])/, replacement: '' },
         { find: '~', replacement: dir },
@@ -247,10 +253,12 @@ export default async function(dir, appConfig = {}) {
     plugins: [
       vueParenthesisedDefaultExport(),
       vue({ template: { compilerOptions: { whitespace: 'preserve' } } }),
+      rancherRequireCompat({ root: dir }),
       rancherIndexHtml({ root: dir, shellDir: SHELL_ABS }),
       rancherDynamicModules({ root: dir, includePkg }),
       rancherLoaders(),
       rancherDevServer({ api, shellRancherVersion: shellPkgData.rancherVersion }),
+      rancherShellDependencies({ root: dir, shellDir: SHELL_ABS }),
       ...await instrumentCode(),
       ...await analyzeBundles(outputDir),
       ...(process.env.ANALYZE_LICENSES === 'true' ? [rancherBundleReport({ root: dir })] : []),
@@ -272,6 +280,7 @@ export default async function(dir, appConfig = {}) {
         cert: fs.readFileSync(path.join(SHELL_DIR, 'server', 'server.crt')),
       },
       proxy: toViteProxy(getProxyConfig(appConfig.proxy)),
+      fs:    { allow: [searchForWorkspaceRoot(dir), ...[SHELL_ABS, COMPONENTS_DIR, ICONS_DIR].filter(fs.existsSync).map((folder) => fs.realpathSync(folder))] },
       watch: {
         ignored: [
           '**/node_modules/**',

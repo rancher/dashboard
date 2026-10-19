@@ -4,6 +4,8 @@ import vue from '@vitejs/plugin-vue';
 import { rancherDynamicModules } from '../vite/dynamic-modules.mjs';
 import { rancherLoaders } from '../vite/loaders.mjs';
 import { vueParenthesisedDefaultExport } from '../vite/vue-compat.mjs';
+import { rancherRequireCompat } from '../vite/require-compat.mjs';
+import { shellClassFields } from '../vite/class-fields.mjs';
 import { INITIAL_CHUNK, loadChunksOnDemand } from './chunk-loader.mjs';
 import { replaceShellModules } from './replace-shell-modules.mjs';
 
@@ -86,8 +88,9 @@ export default function() {
     define:    {
       'process.env.NODE_ENV': JSON.stringify('production'),
       'process.env':          JSON.stringify({ ...appEnv, NODE_ENV: 'production', BASE_URL: '/' }),
-      global:        'globalThis',
+      global:                 'globalThis',
     },
+    oxc: shellClassFields,
 
     resolve: {
       alias: [
@@ -118,6 +121,7 @@ export default function() {
     plugins: [
       vueParenthesisedDefaultExport(),
       vue(),
+      rancherRequireCompat({ root: maindir }),
       replaceShellModules(dir, import.meta.dirname),
       rancherDynamicModules({ root: maindir, includePkg: () => true }),
       rancherLoaders(),
