@@ -10067,6 +10067,9 @@ component:
     reset: Reset
     showMore: Show more
     showLess: Show less
+  rcInput:
+    clear: Clear
+    showPassword: Show password
   resource:
     detail:
       copyToClipboard:

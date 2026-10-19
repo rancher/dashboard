@@ -1,0 +1,53 @@
+import { Meta, Canvas, Controls } from '@storybook/blocks';
+import * as RcFieldGroupStories from './RcFieldGroup.stories';
+
+<Meta of={RcFieldGroupStories} />
+
+# RcFieldGroup
+
+`RcFieldGroup` gives every Rancher Components field inside it the same mode and
+disabled state, so a form sets them once rather than passing `mode` and
+`disabled` to each field. It renders nothing of its own.
+
+<Canvas of={RcFieldGroupStories.Default} />
+
+<Controls of={RcFieldGroupStories.Default} />
+
+## How a field resolves its state
+
+The closest value that is set wins:
+
+1. the field's own `mode` or `disabled` prop
+2. the nearest `RcFieldGroup`, or a component calling `provideFieldState`
+3. `edit` and enabled
+
+So a field can opt out of its group, and a group nested in another inherits
+whatever it leaves unset.
+
+<Canvas of={RcFieldGroupStories.ToggleModeAndDisabled} />
+
+## Nested groups
+
+<Canvas of={RcFieldGroupStories.NestedGroups} />
+
+## Providing state from a component
+
+A form component can call `provideFieldState` in its setup rather than wrapping
+its template in a group. Values may be plain, refs or getters.
+
+```ts
+import { provideFieldState } from '@rancher/components';
+
+const props = defineProps<{ mode: 'create' | 'edit' | 'view' }>();
+
+provideFieldState({
+  mode:     () => (props.mode === 'view' ? 'view' : 'edit'),
+  disabled: isSaving,
+});
+```
+
+<Canvas of={RcFieldGroupStories.ProvidedByAComposable} />
+
+A field built on `RcField` picks the state up automatically. A custom field
+reads it with `useFieldState(props)`, declaring `disabled` with a default of
+`undefined` so an unset prop does not mask the provided value.
