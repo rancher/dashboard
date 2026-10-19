@@ -22,6 +22,7 @@ const props = withDefaults(defineProps<RcInputUnitProps>(), {
   validationMessage: undefined,
   validationStatus:  'error',
   id:                undefined,
+  name:              undefined,
   type:              'text',
   placeholder:       undefined,
   resetValue:        undefined,

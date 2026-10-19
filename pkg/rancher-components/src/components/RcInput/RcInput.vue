@@ -6,6 +6,9 @@
  * `autocomplete`, `maxlength`, and listeners such as `@blur` reach it.
  * The `.number` and `.trim` modifiers work on `v-model`.
  *
+ * The input registers validation with the form when given a `name` inside
+ * vee-validate's `useForm`.
+ *
  * Example:
  *
  * <rc-input
@@ -17,6 +20,8 @@
  *   clearable
  * />
  *
+ * <rc-input v-model="name" name="name" label="Name" />
+ *
  * <rc-input v-model="host" label="Host">
  *   <template #suffix>
  *     <rc-icon type="globe" />
@@ -25,6 +30,7 @@
  */
 import { computed, ref, useAttrs } from 'vue';
 import RcField from '@components/RcField/RcField.vue';
+import { useFieldValidation } from '@components/RcField/useFieldValidation';
 import RcInputAction from './RcInputAction.vue';
 import type { RcInputAffixSlotProps, RcInputExpose, RcInputProps, RcInputValue } from './types';
 
@@ -43,6 +49,7 @@ const props = withDefaults(defineProps<RcInputProps>(), {
   validationMessage: undefined,
   validationStatus:  'error',
   id:                undefined,
+  name:              undefined,
   type:              'text',
   placeholder:       undefined,
   resetValue:        undefined,
@@ -88,6 +95,13 @@ const viewValue = computed(() => {
   return props.type === 'password' ? MASKED_VALUE : `${ model.value }`;
 });
 
+const validation = useFieldValidation({
+  name:              props.name,
+  value:             model,
+  validationMessage: () => props.validationMessage,
+  validationStatus:  () => props.validationStatus,
+});
+
 const input = ref<HTMLInputElement | null>(null);
 
 const clear = () => {
@@ -120,8 +134,8 @@ defineExpose<RcInputExpose>({
     :required="props.required"
     :tooltip="props.tooltip"
     :helper-text="props.helperText"
-    :validation-message="props.validationMessage"
-    :validation-status="props.validationStatus"
+    :validation-message="validation.message.value"
+    :validation-status="validation.status.value"
     :resettable="resettable"
     @reset="reset"
   >
@@ -146,12 +160,14 @@ defineExpose<RcInputExpose>({
           v-model="model"
           v-bind="inputAttrs"
           class="rc-input-control rc-field-control"
+          :name="props.name"
           :type="props.type"
           :placeholder="props.placeholder"
           :disabled="disabled"
           :required="required"
           :aria-invalid="invalid || undefined"
           :aria-describedby="describedbyWith(describedby)"
+          @blur="validation.onBlur"
         >
         <rc-input-action
           v-if="props.clearable && hasValue && !disabled"

@@ -52,6 +52,24 @@ Validation messages keep to one line. Validation messages render a "Show more" l
 
 <Canvas of={RcInputStories.LongValidationMessage} />
 
+## With vee-validate
+
+Register an input with `useForm` by giving an input a `name`; the form's schema validates the input.
+
+```ts
+const { handleSubmit } = useForm({
+  validationSchema: toTypedSchema(z.object({ name: z.string().min(1, 'Name is required') })),
+});
+```
+
+```html
+<RcInput v-model="name" name="name" label="Name" required />
+```
+
+The `validation-message` prop shows validation messages independent of the form schema/presence of errors. This can be used to show server errors such as a name that is already taken. An input without a `name` does not register for validation with `vee-validate`.
+
+<Canvas of={RcInputStories.WithVeeValidate} />
+
 ## Clear and Reset
 
 <Canvas of={RcInputStories.ClearAndReset} />

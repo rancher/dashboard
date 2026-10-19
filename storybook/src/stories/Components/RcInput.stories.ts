@@ -1,7 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { ref } from 'vue';
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+import { z } from 'zod';
 import { RcInput, RcInputPassword, RcInputSearch, RcInputUnit } from '@components/RcInput';
 import { RcIcon } from '@components/RcIcon';
+import { RcButton } from '@components/RcButton';
 
 const SIZES = ['small', 'medium', 'large'];
 
@@ -233,6 +237,43 @@ export const WithoutVisibleLabel: Story = {
       return { value: ref('') };
     },
     template: `<div style="${ column }"><RcInput v-model="value" aria-label="Namespace" placeholder="Namespace" /></div>`,
+  }),
+};
+
+export const WithVeeValidate: Story = {
+  render: () => ({
+    components: {
+      RcInput, RcInputPassword, RcInputUnit, RcButton
+    },
+    setup() {
+      const { handleSubmit, meta } = useForm({
+        validationSchema: toTypedSchema(z.object({
+          name:   z.string().min(1, 'Name is required').regex(/^[a-z0-9-]*$/, 'Use lowercase letters, numbers and hyphens'),
+          token:  z.string().min(8, 'Use at least 8 characters'),
+          memory: z.number({ invalid_type_error: 'Enter a number' }).min(4, 'Reserve at least 4 MiB'),
+        })),
+      });
+
+      const saved = ref('');
+      const save = handleSubmit((values) => {
+        saved.value = JSON.stringify(values);
+      });
+
+      return {
+        name: ref(''), token: ref(''), memory: ref(512), meta, save, saved
+      };
+    },
+    template: `
+      <form style="${ column }" novalidate @submit.prevent="save">
+        <RcInput v-model="name" name="name" label="Name" helper-text="Lowercase letters, numbers and hyphens." required />
+        <RcInputPassword v-model="token" name="token" label="Token" autocomplete="new-password" required />
+        <RcInputUnit v-model.number="memory" name="memory" type="number" label="Memory reservation" unit="MiB" />
+        <div style="display: flex; gap: 16px; align-items: center;">
+          <RcButton type="submit">Save</RcButton>
+          <span style="color: var(--input-label);">{{ meta.valid ? 'Valid' : 'Invalid' }}</span>
+        </div>
+        <code v-if="saved">Saved {{ saved }}</code>
+      </form>`,
   }),
 };
 

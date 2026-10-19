@@ -25,6 +25,7 @@ const props = withDefaults(defineProps<RcInputSearchProps>(), {
   validationMessage: undefined,
   validationStatus:  'error',
   id:                undefined,
+  name:              undefined,
   placeholder:       undefined,
   resetValue:        undefined,
 });

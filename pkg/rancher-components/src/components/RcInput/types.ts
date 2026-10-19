@@ -6,6 +6,11 @@ export type RcInputNativeType = 'text' | 'email' | 'number' | 'password' | 'sear
 
 export type RcInputProps = Omit<RcFieldProps, 'resettable'> & {
   type?: RcInputNativeType;
+  /**
+   * The native input's name. Registers the input for validation with
+   * vee-validate.
+   */
+  name?: string;
   placeholder?: string;
   /**
    * Shows a button to clear the input when it has a value
