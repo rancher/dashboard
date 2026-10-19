@@ -6,6 +6,7 @@ import { toTypedSchema } from '@vee-validate/zod';
 import * as z from 'zod';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import AuthConfigIdentity from '@shell/components/auth/AuthConfigIdentity.vue';
 import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
@@ -15,13 +16,15 @@ import { Banner } from '@components/Banner';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import AuthBanner from '@shell/components/auth/AuthBanner';
-import config, { OKTA, SHIBBOLETH } from '@shell/edit/auth/ldap/config';
+import config, { ADFS, OKTA, SHIBBOLETH } from '@shell/edit/auth/ldap/config';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { RcButton } from '@components/RcButton';
 import { useI18n } from '@shell/composables/useI18n';
 import { RcSeparator } from '@components/RcSeparator';
 import { zodValidators } from '@shell/utils/validators/zod-helpers';
+import { isRancherPrime } from '@shell/config/version';
+import { ADFS_LDAP_SEARCH } from '@shell/store/features';
 
 // Standard LDAP defaults
 const LDAP_DEFAULTS = {
@@ -62,6 +65,7 @@ const SIGNATURE_METHODS = [
 
 export default {
   components: {
+    AuthConfigIdentity,
     Loading,
     CruResource,
     LabeledInput,
@@ -85,6 +89,19 @@ export default {
     const { t } = useI18n(store);
     const { field } = zodValidators(t);
 
+    const ldapEnabledRef = ref(false);
+    const ldapTlsEnabledRef = ref(false);
+
+    const ldapSchema = () => ({
+      hostname:                        field('authConfig.ldap.hostname.label').required(),
+      port:                            field('authConfig.ldap.port').required(),
+      certificate:                     ldapTlsEnabledRef.value ? field('authConfig.ldap.cert').required() : field(),
+      connectionTimeout:               field('authConfig.ldap.serverConnectionTimeout').required(),
+      serviceAccountDistinguishedName: field('authConfig.ldap.serviceAccountDN').required(),
+      serviceAccountPassword:          field('authConfig.ldap.serviceAccountPassword').required(),
+      userSearchBase:                  field('authConfig.ldap.userSearchBase.label').required(),
+    });
+
     const validationSchema = computed(() => toTypedSchema(
       z.object({
         displayNameField:   field('authConfig.saml.displayName').required(),
@@ -95,6 +112,7 @@ export default {
         spKey:              field('authConfig.saml.key.label').required(),
         spCert:             field('authConfig.saml.cert.label').required(),
         idpMetadataContent: field('authConfig.saml.metadata.label').required(),
+        ...(ldapEnabledRef.value ? ldapSchema() : {}),
       })
     ));
 
@@ -110,7 +128,9 @@ export default {
       showAllErrors.value = true;
     };
 
-    return { isFormValid, validateAllFields };
+    return {
+      isFormValid, validateAllFields, ldapEnabledRef, ldapTlsEnabledRef
+    };
   },
 
   data() {
@@ -185,6 +205,10 @@ export default {
 
     // Does the auth provider support LDAP for search in addition to SAML?
     supportsLDAPSearch() {
+      if (this.NAME === ADFS) {
+        return isRancherPrime() && this.$store.getters['features/get'](ADFS_LDAP_SEARCH);
+      }
+
       return this.NAME === SHIBBOLETH || this.NAME === OKTA;
     },
 
@@ -192,6 +216,14 @@ export default {
       const hosts = this.model?.openLdapConfig.servers || [];
 
       return hosts.join(',');
+    },
+
+    ldapFieldsShown() {
+      return !!(this.supportsLDAPSearch && this.showLdap && this.model?.openLdapConfig);
+    },
+
+    ldapTlsEnabled() {
+      return !!(this.model?.openLdapConfig?.tls || this.model?.openLdapConfig?.starttls);
     },
 
     ldapProtocol() {
@@ -210,6 +242,18 @@ export default {
         // Use a spread of config, so that if don't make changes to the defaults if the user edits them
         this.model['openLdapConfig'] = { ...LDAP_DEFAULTS };
       }
+    },
+    ldapFieldsShown: {
+      handler(neu) {
+        this.ldapEnabledRef = neu;
+      },
+      immediate: true
+    },
+    ldapTlsEnabled: {
+      handler(neu) {
+        this.ldapTlsEnabledRef = neu;
+      },
+      immediate: true
     },
     // sloType is defined on shell/mixins/auth-config.js
     sloType(neu) {
@@ -250,9 +294,17 @@ export default {
       @finish="save"
       @cancel="cancel"
     >
+      <AuthConfigIdentity
+        v-model:name="configName"
+        v-model:description="configDescription"
+        :name-fixed="configNameFixed"
+        :name-error="configNameError"
+      />
+
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <AuthBanner
           :t-args="tArgs"
+          :name="authConfigDisplayName"
           :disable="disable"
           :edit="goToEdit"
           :provider-id="model.id"

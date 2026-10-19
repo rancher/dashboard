@@ -25,3 +25,18 @@ export async function createOperationCR(dispatch, type, spec, namespace, namePre
 
   return saved;
 }
+
+/**
+ * Phases in which a day 2 operation has finished and will not progress any further.
+ */
+export const OPERATION_TERMINAL_PHASES = ['Succeeded', 'Failed', 'Canceled'];
+
+/**
+ * Whether a day 2 operation CR has not yet reached a terminal phase (pending, in progress or not yet picked up by the controller).
+ *
+ * @param {?object} [operation] - The operation resource
+ * @returns {boolean}
+ */
+export function isOperationInProgress(operation) {
+  return !OPERATION_TERMINAL_PHASES.includes(operation?.status?.phase);
+}

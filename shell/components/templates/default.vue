@@ -10,7 +10,6 @@ import GrowlManager from '@shell/components/GrowlManager';
 import ModalManager from '@shell/components/ModalManager';
 import SlideInPanelManager from '@shell/components/SlideInPanelManager';
 import PromptRemove from '@shell/components/PromptRemove';
-import PromptRestore from '@shell/components/PromptRestore';
 import PromptModal from '@shell/components/PromptModal';
 import Header from '@shell/components/nav/Header';
 import Inactivity from '@shell/components/Inactivity';
@@ -32,7 +31,6 @@ export default {
 
   components: {
     PromptRemove,
-    PromptRestore,
     PromptModal,
     Header,
     ActionMenu,
@@ -200,7 +198,6 @@ export default {
         />
         <ActionMenu />
         <PromptRemove />
-        <PromptRestore />
         <PromptModal />
         <ModalManager />
         <button

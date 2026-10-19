@@ -15,7 +15,7 @@ describe('ConfigMap', { testIsolation: false, tags: ['@explorer2', '@adminUser']
     configMapListPage.baseResourceList().masthead().title().should('include', `ConfigMaps`);
 
     cy.getRancherVersion().then((version) => {
-      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - ConfigMaps' : 'Rancher - local - ConfigMaps';
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - ConfigMaps' : 'Rancher Community - local - ConfigMaps';
 
       cy.title().should('eq', expectedTitle);
     });

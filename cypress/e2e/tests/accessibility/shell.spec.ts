@@ -88,6 +88,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
       loginPage.waitForPage();
       cy.injectAxe();
       loginPage.localSelector().click();
+      loginPage.localeMenuItems().should('be.visible');
       cy.checkPageAccessibility();
     });
   });

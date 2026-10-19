@@ -36,7 +36,7 @@ describe('Project Secrets', { tags: ['@explorer2', '@adminUser'] }, () => {
     projectSecretsListPage.goTo();
     projectSecretsListPage.title().should('include', 'Project Secrets');
 
-    cy.title().should('eq', 'Rancher - local - Project Secrets');
+    cy.title().should('eq', 'Rancher Community - local - Project Secrets');
   }));
 
   qase(27179, it('creates a project-scoped secret and displays it in the list', () => {

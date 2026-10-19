@@ -1,8 +1,10 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { requireAsset } from '@shell/utils/require-asset';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
-import { EDIT_CONFIG } from '@shell/config/query-params';
-import { promptDisableAuthProvider } from '@shell/utils/auth';
+import { CLONE_CONFIG, EDIT_CONFIG } from '@shell/config/query-params';
+import { LOCAL_AUTH_ID, promptDisableAuthProvider } from '@shell/utils/auth';
+import { canEnableAuthProvider } from '@shell/utils/auth-providers';
+import { MULTIPLE_AUTH_PROVIDERS } from '@shell/store/features';
 
 /**
  * Normalises a provider identifier to a stable key.
@@ -12,6 +14,15 @@ import { promptDisableAuthProvider } from '@shell/utils/auth';
  * the schema calls it `githubConfig`.
  */
 export const providerKey = (type) => `${ type || '' }`.toLowerCase().replace(/(config|provider)$/, '');
+
+/**
+ * The type an authconfig of a provider carries, e.g. `githubProvider` -> `githubConfig`.
+ *
+ * `providerKey()` cannot be reversed - the casing is the server's, and it is not
+ * a casing anything could derive (`azureADConfig`, `keyCloakOIDCConfig`) - so the
+ * type is built from the provider identifier it came from rather than from the key.
+ */
+export const configTypeName = (type) => `${ type || '' }`.replace(/Provider$/, 'Config');
 
 /**
  * Auth provider categories, keyed by `providerKey()` so that either naming works.
@@ -76,6 +87,11 @@ export default class AuthConfig extends SteveModel {
     super.goToEdit({ [EDIT_CONFIG]: 'true', ...moreQuery });
   }
 
+  /**
+   * The base class parts each action from the next, which leaves a menu that is
+   * mostly rules. These read as two groups instead: what you can do with the
+   * config, and what takes it away.
+ */
   get _availableActions() {
     const inherited = super._availableActions.filter((a) => !a.divider);
     const disable = {
@@ -85,10 +101,34 @@ export default class AuthConfig extends SteveModel {
       enabled: this.enabled === true,
     };
 
-    const out = inherited.filter((a) => !destructive.includes(a.action));
+    const out = inherited
+      .filter((a) => !destructive.includes(a.action))
+      .map((a) => (a.action === 'goToClone' ? { ...a, enabled: this.canCloneConfig } : a));
     const away = [disable, ...inherited.filter((a) => destructive.includes(a.action))];
 
     return [...out, { divider: true }, ...away];
+  }
+
+  /**
+   * Auth configs can't be created through the generic resource pages, so the
+   * inherited Clone is never enabled. A clone is added like any other config,
+   * on the create page, which starts from this one's settings.
+   */
+  get canCloneConfig() {
+    const configs = this.$rootGetters['management/all'](MANAGEMENT.AUTH_CONFIG);
+
+    return this.id !== LOCAL_AUTH_ID && this.canCustomEdit && canEnableAuthProvider(configs, this.$rootGetters['features/get'](MULTIPLE_AUTH_PROVIDERS));
+  }
+
+  goToClone() {
+    this.currentRouter().push({
+      name:   'c-cluster-auth-config-create-provider',
+      params: {
+        cluster:  this.$rootGetters['clusterId'],
+        provider: providerKey(this._type),
+      },
+      query: { [CLONE_CONFIG]: this.id },
+    });
   }
 
   promptDisable() {
@@ -109,9 +149,7 @@ export default class AuthConfig extends SteveModel {
         opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ this.id }`, force: true },
       }, { root: true });
 
-      if (norman.hasAction('disable')) {
-        await norman.doAction('disable');
-      } else {
+      if (!await this.runDisableAction(norman)) {
         const clone = await this.$dispatch('rancher/clone', { resource: norman }, { root: true });
 
         clone.enabled = false;
@@ -129,6 +167,29 @@ export default class AuthConfig extends SteveModel {
     }
   }
 
+  async runDisableAction(norman) {
+    if (!norman.hasAction('disable')) {
+      return false;
+    }
+
+    try {
+      await norman.doAction('disable');
+
+      return true;
+    } catch (e) {
+      if ((e?.code || e?.data?.code) === 'ActionNotAvailable') {
+        return false;
+      }
+
+      throw e;
+    }
+  }
+
+  /**
+   * Auth configs are edited through their own route rather than the generic
+   * resource detail page, so the inherited action menu (`goToEdit`, `goToViewConfig`)
+   * and any detail links need pointing at it.
+   */
   get detailLocation() {
     return {
       name:   'c-cluster-auth-config-id',
@@ -139,16 +200,46 @@ export default class AuthConfig extends SteveModel {
     };
   }
 
+  /**
+   * Whether the form to edit this config exists.
+   *
+   * Forms are registered per provider, so the base class' lookup by id finds
+   * nothing for a config named anything other than its provider - which would
+   * take `Edit Config` off the menu for every instance but the first.
+   */
+  get canCustomEdit() {
+    return this.$rootGetters['type-map/hasCustomEdit'](this.type, providerKey(this._type));
+  }
+
+  /**
+   * Several configs of a provider all carry the provider's label, so an instance
+   * that is not the provider's own singleton is named as well - otherwise eight
+   * GitHub configs are eight identical page titles.
+   *
+   * The id rather than the description, which is a sentence about the config
+   * ("For contractors and partner organisations in the SUSE tenant.") and shown
+   * in its own right on the provider list. Naming the instance matters most on
+   * the disable confirmation, where the description would not say which of the
+   * eight is about to be deleted.
+   */
   get nameDisplay() {
-    return this.$rootGetters['i18n/withFallback'](`model.authConfig.name."${ this.id }"`, null, this.provider);
+    const label = this.$rootGetters['i18n/withFallback'](`model.authConfig.name."${ this.id }"`, null, this.provider);
+
+    if (this.id === providerKey(this._type)) {
+      return label;
+    }
+
+    return `${ label } — ${ this.id }`;
   }
 
   get provider() {
-    return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.id }"`, null, this.id);
+    // Keyed off `_type` rather than `id` so that several configs of the same
+    // provider (each with its own arbitrary name) all resolve to one label.
+    return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ providerKey(this._type) }"`, null, this.id);
   }
 
   get configType() {
-    return configTypeForProvider(this.id);
+    return configTypeForProvider(this._type);
   }
 
   get sideLabel() {
@@ -156,7 +247,7 @@ export default class AuthConfig extends SteveModel {
   }
 
   get icon() {
-    return providerIcon(this.id);
+    return providerIcon(this._type);
   }
 
   get state() {

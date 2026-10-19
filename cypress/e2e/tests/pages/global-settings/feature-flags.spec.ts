@@ -195,7 +195,7 @@ describe('Feature Flags', { testIsolation: false }, () => {
     it('validate feature flags table header content', () => {
       FeatureFlagsPagePo.navTo();
       // check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Description', 'Restart Rancher'];
+      const expectedHeaders = ['State', 'Name', 'Description', 'Restart Rancher Community'];
 
       featureFlagsPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')

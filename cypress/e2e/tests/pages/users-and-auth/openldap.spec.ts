@@ -1,6 +1,7 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import OpenLdapPo from '@/cypress/e2e/po/edit/auth/openldap.po';
 import { AuthProvider, AuthProviderPo } from '@/cypress/e2e/po/pages/users-and-auth/authProvider.po';
+import { interceptAuthConfigCreate, interceptEnabledAuthConfig } from '@/cypress/e2e/blueprints/users/auth-config-stubs';
 
 const authClusterId = '_';
 const authProviderPo = new AuthProviderPo(authClusterId);
@@ -17,6 +18,10 @@ const testPassword = 'secret';
 
 const mockStatusCode = 200;
 
+const openLdap = {
+  name: 'openldap', normanType: 'openLdapConfig', collection: 'openLdapConfigs', actions: ['testAndApply', 'disable']
+};
+
 describe('OpenLDAP', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   beforeEach(() => {
     cy.login();
@@ -28,6 +33,8 @@ describe('OpenLDAP', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   });
 
   it('sends the principal identifier attributes when enabling OpenLDAP', () => {
+    interceptAuthConfigCreate(openLdap);
+
     cy.intercept('POST', 'v3/openLdapConfigs/openldap?action=testAndApply', (req) => {
       expect(req.body.ldapConfig.userIDAttribute).to.equal(userIdAttribute);
       expect(req.body.ldapConfig.groupIDAttribute).to.equal(groupIdAttribute);
@@ -53,15 +60,13 @@ describe('OpenLDAP', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   });
 
   it('locks the principal identifier attributes once the provider is enabled', () => {
-    // Patch the real config so the page gets every field it expects, only marked as enabled
-    cy.intercept('GET', 'v3/authconfig/openldap', (req) => {
-      req.continue((res) => {
-        res.body.enabled = true;
-        res.body.servers = [hostname];
-        res.body.userIDAttribute = userIdAttribute;
-        res.body.groupIDAttribute = groupIdAttribute;
-      });
-    }).as('authConfig');
+    // Rancher only creates a config once one is added, so an enabled one is stood in
+    interceptEnabledAuthConfig(openLdap, {
+      servers:          [hostname],
+      port:             389,
+      userIDAttribute:  userIdAttribute,
+      groupIDAttribute: groupIdAttribute,
+    });
 
     OpenLdapPo.goToEditConfig(authClusterId);
     cy.wait('@authConfig');

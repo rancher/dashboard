@@ -17,19 +17,17 @@ describe('table views shortcuts', () => {
     const a = list(first);
     const b = list(second);
 
-    runTableViewShortcut('saveChanges', input);
-
+    expect(runTableViewShortcut('saveChanges', input)).toBe(true);
     expect(a.run).toHaveBeenCalledWith('saveChanges');
     expect(b.run).not.toHaveBeenCalled();
     a.unregister();
     b.unregister();
   });
 
-  it('should do nothing when the focus is in no list', () => {
+  it('should do nothing, and leave the key to the browser, when the focus is in no list', () => {
     const a = list(document.createElement('div'));
 
-    runTableViewShortcut('duplicateCurrent', document.body);
-
+    expect(runTableViewShortcut('duplicateCurrent', document.body)).toBe(false);
     expect(a.run).not.toHaveBeenCalled();
     a.unregister();
   });

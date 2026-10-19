@@ -11,6 +11,7 @@ import { useWorkloadDashboard } from './composable';
 import StatusSummaryCardSection from '@shell/components/Resource/Detail/Card/StatusSummaryCard/StatusSummaryCardSection.vue';
 import ByStateSection from './ByStateSection.vue';
 import ByNamespaceSection from './ByNamespaceSection.vue';
+import WorkloadSearch from './search/WorkloadSearch.vue';
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -26,6 +27,7 @@ const {
   resetNamespaceFilter,
   filterByNamespace,
   resourceRoute,
+  navigateToNamespace,
 } = useWorkloadDashboard();
 </script>
 
@@ -98,6 +100,12 @@ const {
           </div>
         </template>
       </Masthead>
+      <div class="workload-search-row">
+        <WorkloadSearch
+          :navigate-to-namespace="navigateToNamespace"
+          :resource-route="resourceRoute"
+        />
+      </div>
       <div class="workload-content">
         <!-- ━━━ By State ━━━ -->
         <div
@@ -142,6 +150,10 @@ const {
 .workload-dashboard {
   display: flex;
   flex-direction: column;
+
+  .workload-search-row {
+    margin-bottom: 24px;
+  }
 
   .workload-content {
     display: flex;

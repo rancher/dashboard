@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import Latest from '@shell/components/ResourceDetail/Masthead/latest.vue';
+import FleetManagedBanner from '@shell/components/Resource/Detail/FleetManagedBanner.vue';
 
 jest.mock('@shell/components/Resource/Detail/TitleBar/index.vue', () => ({
   name:     'TitleBar',
@@ -15,6 +16,11 @@ jest.mock('@shell/components/Resource/Detail/composables', () => ({ useResourceD
 jest.mock('@shell/components/Resource/Detail/Cards.vue', () => ({
   name:     'Cards',
   template: `<div data-testid="cards">Cards</div>`,
+  props:    ['resource']
+}));
+jest.mock('@shell/components/Resource/Detail/FleetManagedBanner.vue', () => ({
+  name:     'FleetManagedBanner',
+  template: `<div data-testid="fleet-managed-banner">FleetManagedBanner</div>`,
   props:    ['resource']
 }));
 jest.mock('@components/Banner', () => ({
@@ -81,5 +87,13 @@ describe('component: Masthead/latest', () => {
 
     expect(wrapper.find('[data-testid="title-bar"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="metadata"]').exists()).toBe(true);
+  });
+
+  it('should pass the resource to the FleetManagedBanner', () => {
+    const props = { value: { name: 'test-resource' } };
+
+    const wrapper = mount(Latest, { props, ...defaultMocks });
+
+    expect(wrapper.findComponent(FleetManagedBanner).props('resource')).toStrictEqual(props.value);
   });
 });

@@ -4,13 +4,21 @@ import AuthProviderAccessDrawer from '@shell/components/auth/AuthProviderAccessD
 import AuthProviderRow from '@shell/components/auth/AuthProviderRow.vue';
 import AuthProvidersEmptyState from '@shell/components/auth/AuthProvidersEmptyState.vue';
 import DisableLocalLoginCard from '@shell/components/auth/DisableLocalLoginCard.vue';
+import AuthProvidersPrimeNotice from '@shell/components/auth/AuthProvidersPrimeNotice.vue';
+
+jest.mock('@shell/config/version', () => ({ isRancherPrime: jest.fn(() => true) }));
+
+jest.mock('@shell/utils/require-asset', () => {
+  return { requireAsset: jest.fn((path: string) => path) };
+});
 
 const localConfig: any = { id: 'local', enabled: true };
 
 const oktaConfig = {
-  id:           'okta',
+  id:           'okta-corp',
+  _type:        'oktaConfig',
   enabled:      true,
-  nameDisplay:  'Okta',
+  nameDisplay:  'Okta (okta-corp)',
   provider:     'Okta',
   sideLabel:    'SAML',
   icon:         'okta.svg',
@@ -19,8 +27,24 @@ const oktaConfig = {
 };
 
 const disabledConfig = {
-  id: 'github', enabled: false, nameDisplay: 'github', provider: 'GitHub', sideLabel: 'OAuth'
+  id:           'github',
+  _type:        'githubConfig',
+  enabled:      false,
+  nameDisplay:  'github',
+  provider:     'GitHub',
+  sideLabel:    'OAuth',
+  stateDisplay: 'Inactive',
 };
+
+// The catalogue the add-provider picker is drawn from, as the server reports it
+const providerTypes = [
+  {
+    id: 'github', configTypeName: 'githubConfig', name: 'GitHub', category: 'oauth', categoryLabel: 'OAuth', icon: 'github.svg'
+  },
+  {
+    id: 'okta', configTypeName: 'oktaConfig', name: 'Okta', category: 'saml', categoryLabel: 'SAML', icon: 'okta.svg'
+  },
+];
 
 const createFeature = (value: boolean, lockedValue: boolean | null = null) => ({
   spec:   { value },
@@ -28,13 +52,17 @@ const createFeature = (value: boolean, lockedValue: boolean | null = null) => ({
   save:   jest.fn(),
 });
 
+// Whether the server has the `multiple-auth-providers` feature on
+let multipleAllowed = false;
+
 const createWrapper = ({
   configs = [localConfig, oktaConfig],
+  types = providerTypes,
   feature = createFeature(false),
   canUpdateFeature = true,
 } = {}) => shallowMount(AuthConfigList, {
-  // The page loads its configs in fetch(), which shallowMount does not run
-  data:   () => ({ allConfigs: configs } as any),
+  // The page loads both in fetch(), which shallowMount does not run
+  data:   () => ({ allConfigs: configs, providerTypes: types } as any),
   global: {
     mocks: {
       $route:      { params: { cluster: 'local' } },
@@ -43,9 +71,10 @@ const createWrapper = ({
         commit:   jest.fn(),
         dispatch: jest.fn(),
         getters:  {
-          'features/get':         () => feature.spec.value,
+          'features/get':         (name: string) => (name === 'multiple-auth-providers' ? multipleAllowed : feature.spec.value),
           'management/byId':      () => feature,
           'management/schemaFor': () => ({ resourceMethods: canUpdateFeature ? ['GET', 'PUT'] : ['GET'] }),
+          'i18n/withFallback':    (_key: string, _args: any, fallback: string) => fallback,
         },
       },
     },
@@ -60,8 +89,9 @@ describe('page: AuthConfigList', () => {
 
     // One for Okta, one for the local provider section
     expect(rows).toHaveLength(2);
+    // The provider's own label, with the config's name in the chip beside it
     expect(rows[0].props('title')).toBe('Okta');
-    expect(rows[0].props('meta')).toBe('okta');
+    expect(rows[0].props('meta')).toBe('okta-corp');
     expect(rows[0].props('chips')).toStrictEqual(['SAML']);
     expect(rows[0].props('icon')).toBe('okta.svg');
     expect(rows[0].props('statusLabel')).toBe('Active');
@@ -79,83 +109,60 @@ describe('page: AuthConfigList', () => {
     expect(wrapper.findAllComponents(AuthProviderRow)[0].props('description')).toBeUndefined();
   });
 
-  // Rancher pre-creates a disabled authconfig per supported provider; those are
-  // the picker's catalogue, not configured providers.
-  it('should keep unconfigured providers out of the list', () => {
+  // Nothing is pre-created any more, so a config that exists is one somebody
+  // added - hiding it while it is switched off would strand it.
+  it('should list a provider that has been added but switched off', () => {
     const wrapper = createWrapper({ configs: [localConfig, oktaConfig, disabledConfig] });
 
-    const titles = wrapper.findAllComponents(AuthProviderRow).map((row) => row.props('title'));
+    const github = wrapper.findAllComponents(AuthProviderRow).find((row) => row.props('meta') === 'github')!;
 
-    expect(titles).not.toContain('GitHub');
+    expect(github.props('title')).toBe('GitHub');
+    expect(github.props('status')).toBe('none');
+    expect(github.props('statusLabel')).toBe('Inactive');
   });
 
-  // The rule between rows parts one from the next, so a single external provider
-  // has nothing to be parted from.
-  it.each([
-    ['a single external provider is configured', [localConfig, oktaConfig], false],
-    ['multiple external providers are configured', [localConfig, oktaConfig, { ...oktaConfig, id: 'azuread' }], true],
-  ])('should draw the rule below the row when %s', (_label, configs, expected) => {
-    const wrapper = createWrapper({ configs });
-    const [externalRow] = wrapper.findAllComponents(AuthProviderRow);
-
-    expect(externalRow.props('divided')).toBe(expected);
+  it('should mark a provider that is switched on', () => {
+    expect(createWrapper().findAllComponents(AuthProviderRow)[0].props('status')).toBe('success');
   });
 
-  // The provider page opens on how the provider itself is configured, which is
-  // not what the row is about - who may log in with it is.
-  describe('opening a provider', () => {
-    it('should open the access panel rather than leave the page', async() => {
-      const wrapper = createWrapper();
-      const row = wrapper.findAllComponents(AuthProviderRow)[0];
+  it('should open the access panel when a provider row is selected', () => {
+    const wrapper = createWrapper();
+    const row = wrapper.findAllComponents(AuthProviderRow)[0];
 
-      expect(row.props('to')).toBeUndefined();
-      expect(row.props('selectable')).toBe(true);
+    expect(row.props('selectable')).toBe(true);
+    expect(row.props('to')).toBeUndefined();
 
-      await row.vm.$emit('select');
+    row.vm.$emit('select');
 
-      const [mutation, payload] = ((wrapper.vm as any).$store.commit as jest.Mock).mock.calls[0];
+    expect(((wrapper.vm as any).$store.commit as jest.Mock)).toHaveBeenCalledWith('slideInPanel/open', expect.objectContaining({
+      component:      AuthProviderAccessDrawer,
+      componentProps: expect.objectContaining({ resource: oktaConfig }),
+    }));
+  });
 
-      expect(mutation).toBe('slideInPanel/open');
-      expect(payload.component).toBe(AuthProviderAccessDrawer);
-      expect(payload.componentProps.resource).toStrictEqual(oktaConfig);
-    });
+  it('should size the add provider header action like resource list actions', () => {
+    multipleAllowed = true;
+    const wrapper = createWrapper();
 
-    it('should close the panel when it asks to be closed', async() => {
-      const wrapper = createWrapper();
+    multipleAllowed = false;
 
-      await wrapper.findAllComponents(AuthProviderRow)[0].vm.$emit('select');
-
-      const { onClose } = ((wrapper.vm as any).$store.commit as jest.Mock).mock.calls[0][1].componentProps;
-
-      onClose();
-
-      expect((wrapper.vm as any).$store.commit).toHaveBeenCalledWith('slideInPanel/close');
-    });
-
-    // The panel is a trap for focus while it is open, so focus has to have
-    // somewhere to go back to once it closes.
-    it('should send focus back to the row it was opened from', async() => {
-      const wrapper = createWrapper();
-
-      await wrapper.findAllComponents(AuthProviderRow)[0].vm.$emit('select');
-
-      const { returnFocusSelector } = ((wrapper.vm as any).$store.commit as jest.Mock).mock.calls[0][1].componentProps;
-
-      expect(returnFocusSelector).toBe('[data-testid="auth-config-row-okta"] .auth-provider-row__title');
-    });
+    expect(wrapper.find('[data-testid="auth-config-create"]').attributes('size')).toBe('large');
   });
 
   describe('adding a provider', () => {
-    it('should offer the providers that can be configured', () => {
-      const wrapper = createWrapper({
-        configs: [
-          localConfig,
-          // Pre-created but not configurable in the UI
-          { id: 'oidc', enabled: false },
-          disabledConfig,
-          oktaConfig,
-        ],
-      });
+    // With multiple providers allowed, these add alongside the enabled Okta config
+    beforeEach(() => {
+      multipleAllowed = true;
+    });
+
+    afterEach(() => {
+      multipleAllowed = false;
+    });
+
+    // The picker is for new entries, so it offers the provider types the server
+    // supports rather than anything read off the configs that already exist.
+    it('should offer the provider types the server supports', () => {
+      const wrapper = createWrapper();
 
       (wrapper.vm as any).promptAddProvider();
 
@@ -165,14 +172,25 @@ describe('page: AuthConfigList', () => {
       expect(payload.component).toBe('AddAuthProviderDialog');
       // A width with no unit is not valid CSS, and the modal silently falls back to 600px
       expect(payload.modalWidth).toMatch(/(px|%)$/);
-      expect(payload.componentProps.rows.map((r: any) => r.id)).toStrictEqual(['github', 'okta']);
+      expect(payload.componentProps.rows).toStrictEqual(providerTypes);
     });
 
-    // Rancher pre-creates an empty config per provider, so connecting to one
-    // configures the config that is already there.
-    it('should send the chosen provider to its own config page', () => {
+    it('should tell the picker whether this is Prime and how many providers can be enabled', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).promptAddProvider();
+
+      const { componentProps } = ((wrapper.vm as any).$store.dispatch as jest.Mock).mock.calls[0][1];
+
+      expect(componentProps.prime).toBe(true);
+      expect(componentProps.multipleAllowed).toBe(true);
+    });
+
+    // Every connection to a provider is a config of its own, and its name has to
+    // be settled before it can be created - there is no empty config waiting.
+    it('should send the chosen provider type to the add page', () => {
       const push = jest.fn();
-      const wrapper = createWrapper({ configs: [localConfig, disabledConfig] });
+      const wrapper = createWrapper();
 
       (wrapper.vm as any).$router = { push };
       (wrapper.vm as any).promptAddProvider();
@@ -182,19 +200,26 @@ describe('page: AuthConfigList', () => {
       selectCb('github');
 
       expect(push).toHaveBeenCalledWith({
-        name:   'c-cluster-auth-config-id',
-        params: { cluster: 'local', id: 'github' },
-        query:  { mode: 'edit' },
+        name:   'c-cluster-auth-config-create-provider',
+        params: { cluster: 'local', provider: 'github' },
       });
     });
 
-    // Rancher runs one external provider at a time, so there is nothing to add
-    // until the configured one is disabled.
-    it('should not offer to add another once one is configured', () => {
-      const wrapper = createWrapper();
+    it('should send a provider type that is already in use to the same page', () => {
+      const push = jest.fn();
+      const wrapper = createWrapper({ configs: [localConfig, oktaConfig] });
 
-      expect(wrapper.findComponent(AuthProvidersEmptyState).exists()).toBe(false);
-      expect(wrapper.find('[data-testid="auth-config-create"]').exists()).toBe(false);
+      (wrapper.vm as any).$router = { push };
+      (wrapper.vm as any).promptAddProvider();
+
+      const { selectCb } = ((wrapper.vm as any).$store.dispatch as jest.Mock).mock.calls[0][1].componentProps;
+
+      selectCb('okta');
+
+      expect(push).toHaveBeenCalledWith({
+        name:   'c-cluster-auth-config-create-provider',
+        params: { cluster: 'local', provider: 'okta' },
+      });
     });
   });
 
@@ -214,11 +239,19 @@ describe('page: AuthConfigList', () => {
       const wrapper = createWrapper({ configs: [localConfig] });
 
       expect(wrapper.findComponent(AuthProvidersEmptyState).exists()).toBe(true);
+      expect(wrapper.find('[data-testid="auth-config-create"]').exists()).toBe(false);
     });
 
     // Turning local login off with nothing to replace it locks everyone out.
     it('should not offer to disable local login', () => {
       const wrapper = createWrapper({ configs: [localConfig] });
+
+      expect(wrapper.findComponent(DisableLocalLoginCard).exists()).toBe(false);
+    });
+
+    // A provider that has been added but switched off cannot let anybody in either
+    it('should not offer to disable local login for a provider that is switched off', () => {
+      const wrapper = createWrapper({ configs: [localConfig, disabledConfig] });
 
       expect(wrapper.findComponent(DisableLocalLoginCard).exists()).toBe(false);
     });
@@ -233,114 +266,147 @@ describe('page: AuthConfigList', () => {
     });
   });
 
+  describe('the Rancher Prime notice', () => {
+    beforeEach(() => {
+      multipleAllowed = false;
+    });
+
+    it('should point community to Prime for more than one provider', () => {
+      multipleAllowed = false;
+
+      expect(createWrapper().findComponent(AuthProvidersPrimeNotice).exists()).toBe(true);
+    });
+
+    it('should tell the notice that this is Prime', () => {
+      multipleAllowed = false;
+
+      expect(createWrapper().findComponent(AuthProvidersPrimeNotice).props('prime')).toBe(true);
+    });
+
+    it('should not be shown when multiple providers are allowed', () => {
+      multipleAllowed = true;
+
+      expect(createWrapper().findComponent(AuthProvidersPrimeNotice).exists()).toBe(false);
+    });
+
+    it('should not be shown before any provider is configured', () => {
+      multipleAllowed = false;
+
+      expect(createWrapper({ configs: [localConfig] }).findComponent(AuthProvidersPrimeNotice).exists()).toBe(false);
+    });
+  });
+
+  describe('the community provider limit', () => {
+    const createButton = (wrapper: any) => wrapper.find('[data-testid="auth-config-create"]');
+
+    beforeEach(() => {
+      multipleAllowed = false;
+    });
+
+    it('should not offer to add a provider in community while one is enabled', () => {
+      multipleAllowed = false;
+
+      expect(createButton(createWrapper()).exists()).toBe(false);
+    });
+
+    it('should offer to add another provider when multiple are allowed', () => {
+      multipleAllowed = true;
+
+      expect(createButton(createWrapper()).exists()).toBe(true);
+    });
+
+    it('should not open the provider picker in community while a provider is enabled', () => {
+      multipleAllowed = false;
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).promptAddProvider();
+
+      expect(wrapper.vm.$store.dispatch).not.toHaveBeenCalledWith('management/promptModal', expect.anything());
+    });
+
+    it('should offer to add a provider in community when the configured one is switched off', () => {
+      multipleAllowed = false;
+
+      expect(createButton(createWrapper({ configs: [localConfig, disabledConfig] })).exists()).toBe(true);
+    });
+
+    it('should open the provider picker in community before any provider exists', () => {
+      multipleAllowed = false;
+      const wrapper = createWrapper({ configs: [localConfig] });
+
+      (wrapper.vm as any).promptAddProvider();
+
+      expect(wrapper.vm.$store.dispatch).toHaveBeenCalledWith('management/promptModal', expect.objectContaining({ component: 'AddAuthProviderDialog' }));
+    });
+
+    it('should open the provider picker when multiple are allowed and a provider is enabled', () => {
+      multipleAllowed = true;
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).promptAddProvider();
+
+      expect(wrapper.vm.$store.dispatch).toHaveBeenCalledWith('management/promptModal', expect.objectContaining({ component: 'AddAuthProviderDialog' }));
+    });
+  });
+
   describe('the local provider row', () => {
     const localRow = (wrapper: any) => wrapper.findAllComponents(AuthProviderRow)[1];
+
+    it('should show the Rancher local mark', () => {
+      expect(localRow(createWrapper()).props('icon')).toBe('~shell/assets/images/vendor/local.svg');
+    });
 
     it('should describe what local accounts are for', () => {
       expect(localRow(createWrapper()).props('description')).toBe('%authConfig.list.localRow.description%');
     });
 
-    // What local accounts are for stops being the point once they cannot be used.
-    it('should describe what became of local accounts once login is off', () => {
-      const wrapper = createWrapper({ feature: createFeature(true) });
-
-      expect(localRow(wrapper).props('description')).toBe('%authConfig.list.localRow.descriptionDisabled%');
-    });
-
     // An admin can annotate the local config the same as any other, and that
-    // wins over either piece of generic copy.
-    it.each([true, false])('should prefer a description set on the local config while disabled is %s', (disabled) => {
-      const wrapper = createWrapper({
-        configs: [{ ...localConfig, description: 'Break-glass only.' }, oktaConfig],
-        feature: createFeature(disabled),
-      });
+    // wins over the generic copy.
+    it('should prefer a description set on the local config', () => {
+      const wrapper = createWrapper({ configs: [{ ...localConfig, description: 'Break-glass only.' }, oktaConfig] });
 
       expect(localRow(wrapper).props('description')).toBe('Break-glass only.');
-    });
-
-    // The row is the one place that says local login is unusable, so it cannot
-    // read like every other active provider.
-    it('should mark the row as disabled once local login is off', () => {
-      const wrapper = createWrapper({ feature: createFeature(true) });
-
-      expect(localRow(wrapper).props('disabled')).toBe(true);
-      expect(localRow(wrapper).props('status')).toBe('error');
-      expect(localRow(wrapper).props('statusLabel')).toBe('%authConfig.list.localRow.disabled%');
-    });
-
-    it('should leave the row unmarked while local login works', () => {
-      const wrapper = createWrapper();
-
-      expect(localRow(wrapper).props('disabled')).toBe(false);
-      expect(localRow(wrapper).props('status')).toBe('success');
-      expect(localRow(wrapper).props('statusLabel')).toBe('%authConfig.list.localRow.active%');
     });
 
     // Local closes the page, so a rule under it parts it from nothing.
     it('should end the page without a rule under it', () => {
       const wrapper = createWrapper();
+      const rows = wrapper.findAllComponents(AuthProviderRow);
 
+      expect(rows[0].props('divided')).toBe(false);
       expect(localRow(wrapper).props('divided')).toBe(false);
     });
   });
 
   describe('disabling local login', () => {
-    const disableCbFrom = (wrapper: any) => {
-      const [action, payload] = (wrapper.vm.$store.dispatch as jest.Mock).mock.calls[0];
+    const confirmDisable = async(wrapper: any) => {
+      await wrapper.findComponent(DisableLocalLoginCard).vm.$emit('update:value', true);
 
-      expect(action).toBe('management/promptModal');
-      expect(payload.component).toBe('DisableLocalLoginDialog');
+      const modal = ((wrapper.vm as any).$store.dispatch as jest.Mock).mock.calls.find(([action]) => action === 'management/promptModal');
 
-      return payload.componentProps.disableCb;
+      await modal[1].componentProps.disableCb();
     };
 
-    // Leaving the external providers as the only way in is worth a confirmation,
-    // so the switch must not write the flag on its own.
-    it('should confirm before turning local login off', async() => {
+    it('should write the value straight to the feature flag', async() => {
       const feature = createFeature(false);
       const wrapper = createWrapper({ feature });
 
-      await wrapper.findComponent(DisableLocalLoginCard).vm.$emit('update:value', true);
-
-      expect(feature.spec.value).toBe(false);
-      expect(feature.save).not.toHaveBeenCalled();
-      expect(disableCbFrom(wrapper)).toEqual(expect.any(Function));
-    });
-
-    it('should write the flag once the dialog confirms', async() => {
-      const feature = createFeature(false);
-      const wrapper = createWrapper({ feature });
-
-      await wrapper.findComponent(DisableLocalLoginCard).vm.$emit('update:value', true);
-      await disableCbFrom(wrapper)();
+      await confirmDisable(wrapper);
 
       expect(feature.spec.value).toBe(true);
       expect(feature.save).toHaveBeenCalledWith();
     });
 
-    // Putting local login back is only ever a widening of the ways in, so there
-    // is nothing to warn about.
-    it('should write the value straight to the feature flag when turning it back on', async() => {
-      const feature = createFeature(true);
-      const wrapper = createWrapper({ feature });
-
-      await wrapper.findComponent(DisableLocalLoginCard).vm.$emit('update:value', false);
-
-      expect(feature.spec.value).toBe(false);
-      expect(feature.save).toHaveBeenCalledWith();
-      expect(wrapper.vm.$store.dispatch).not.toHaveBeenCalled();
-    });
-
     it('should put the flag back and explain itself when the save fails', async() => {
-      const feature = createFeature(true);
+      const feature = createFeature(false);
 
       feature.save.mockRejectedValue(new Error('nope'));
 
       const wrapper = createWrapper({ feature });
 
-      await wrapper.findComponent(DisableLocalLoginCard).vm.$emit('update:value', false);
+      await confirmDisable(wrapper);
 
-      expect(feature.spec.value).toBe(true);
+      expect(feature.spec.value).toBe(false);
       expect((wrapper.vm as any).toggleError).toBe('nope');
     });
 
@@ -354,6 +420,81 @@ describe('page: AuthConfigList', () => {
       const wrapper = createWrapper({ feature: createFeature(false, true) });
 
       expect(wrapper.findComponent(DisableLocalLoginCard).props('disabled')).toBe(true);
+    });
+  });
+
+  describe('when the provider types cannot be read', () => {
+    // Only the add dialog needs the provider types, so a failure to read them
+    // must not stop the configured providers being listed.
+    it('should still list the providers', async() => {
+      const vm: any = {
+        providerTypes: null,
+        $store:        {
+          dispatch: jest.fn((action: string) => (action === 'management/findAll' ? Promise.resolve([localConfig, oktaConfig]) : Promise.reject(new Error('Service Unavailable')))),
+          getters:  {},
+        },
+      };
+
+      vm.loadProviderTypes = (AuthConfigList as any).methods.loadProviderTypes.bind(vm);
+      await (AuthConfigList as any).fetch.call(vm);
+
+      expect(vm.allConfigs).toStrictEqual([localConfig, oktaConfig]);
+      expect(vm.providerTypes).toBeNull();
+    });
+
+    it('should read them again before opening the picker', async() => {
+      const wrapper = createWrapper({ configs: [localConfig], types: null as any });
+      const dispatch = wrapper.vm.$store.dispatch as jest.Mock;
+
+      dispatch.mockImplementation((action: string) => (action === 'auth/getAuthProviderTypes' ? Promise.resolve({ githubProvider: { Type: 'oauth' } }) : undefined));
+      await (wrapper.vm as any).promptAddProvider();
+
+      const [, payload] = dispatch.mock.calls.find(([action]) => action === 'management/promptModal');
+
+      expect(payload.componentProps.rows.map((row: any) => row.id)).toStrictEqual(['github']);
+    });
+
+    it('should report a second failure rather than open an empty picker', async() => {
+      const wrapper = createWrapper({ configs: [localConfig], types: null as any });
+      const dispatch = wrapper.vm.$store.dispatch as jest.Mock;
+      const err = new Error('Service Unavailable');
+
+      dispatch.mockImplementation((action: string) => (action === 'auth/getAuthProviderTypes' ? Promise.reject(err) : undefined));
+      await (wrapper.vm as any).promptAddProvider();
+
+      expect(dispatch).toHaveBeenCalledWith('growl/fromError', { title: '%generic.notification.title.error%', err });
+      expect(dispatch).not.toHaveBeenCalledWith('management/promptModal', expect.anything());
+    });
+  });
+
+  // Rancher only clears out configs nobody set up, so one made before the
+  // dashboard dropped its form for that provider can still be there.
+  // A provider added during the session is appended to the store, while the
+  // server lists them by name, so it would otherwise move on the next reload.
+  it('should list the providers by name, whatever order they were loaded in', () => {
+    const rows = createWrapper({ configs: [localConfig, oktaConfig, disabledConfig] }).findAllComponents(AuthProviderRow);
+
+    expect(rows.slice(0, 2).map((row) => row.props('meta'))).toStrictEqual(['github', 'okta-corp']);
+  });
+
+  describe('a provider the dashboard has no form for', () => {
+    it('should be left off the list', () => {
+      const oidc = {
+        id: 'oidc', _type: 'oidcConfig', enabled: false, nameDisplay: 'oidc'
+      };
+      const rows = createWrapper({ configs: [localConfig, oktaConfig, oidc] }).findAllComponents(AuthProviderRow);
+
+      // One for Okta, one for the local provider section
+      expect(rows).toHaveLength(2);
+    });
+
+    it('should still count as a way in', () => {
+      const oidc = {
+        id: 'oidc', _type: 'oidcConfig', enabled: true, nameDisplay: 'oidc'
+      };
+      const wrapper = createWrapper({ configs: [localConfig, oidc] });
+
+      expect(wrapper.findComponent(DisableLocalLoginCard).exists()).toBe(true);
     });
   });
 });

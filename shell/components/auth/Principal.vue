@@ -1,7 +1,12 @@
 <script>
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { configNameOfPrincipal, providerOfConfig } from '@shell/utils/auth-providers';
+import { RcIcon } from '@components/RcIcon';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 
 export default {
+  components: { RcIcon, RcIconTooltip },
+
   props: {
     value: {
       type:     String,
@@ -20,7 +25,7 @@ export default {
   },
 
   async fetch() {
-    this.loadData();
+    await this.loadData();
   },
 
   data() {
@@ -33,6 +38,10 @@ export default {
       const p = this.principal;
 
       return p.name && p.loginName && p.name.trim().toLowerCase() !== p.loginName.trim().toLowerCase();
+    },
+
+    unresolvedName() {
+      return this.value ? this.value.replace('://', ' ') : this.t('principal.error');
     }
   },
 
@@ -106,7 +115,7 @@ export default {
       // user.provider: user.provider is aggregated across all of the user's
       // principalIds, so for a user with more than one it resolves to 'multiple'
       // (or the wrong driver) and mislabels the principal we're actually showing.
-      const provider = this.value.split(':')[0].split('_')[0].toLowerCase();
+      const provider = providerOfConfig(this.$store.getters, configNameOfPrincipal(this.value));
 
       return this.$store.dispatch('rancher/create', {
         type:          NORMAN.PRINCIPAL,
@@ -198,18 +207,19 @@ export default {
           class="empty"
           :class="{'text-muted': useMuted}"
         >
-          <i class="icon icon-warning icon-lg" />
+          <rc-icon
+            type="question-mark"
+            size="large"
+          />
         </div>
       </div>
-      <div
-        v-t="'principal.error'"
-        class="name text-error"
-      />
-      <div
-        class="description"
-        :class="{'text-muted': useMuted}"
-      >
-        {{ value }}
+      <div class="name unresolved">
+        {{ unresolvedName }}
+        <rc-icon-tooltip
+          v-if="value"
+          class="ml-5"
+          :content="t('principal.unresolved')"
+        />
       </div>
     </template>
   </div>
@@ -254,7 +264,11 @@ export default {
 
       DIV.empty {
         border: 1px solid var(--border);
-        line-height: $size;
+        width: $size;
+        height: $size;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       IMG {
@@ -271,6 +285,11 @@ export default {
       grid-area: name;
       line-height: math.div($size, 2);
       overflow-wrap: anywhere;
+
+      &.unresolved {
+        grid-row: 1 / span 2;
+        align-self: center;
+      }
     }
 
     .description {

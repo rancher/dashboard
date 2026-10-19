@@ -39,6 +39,7 @@ exports[`component: ClusterSelectionFields should match snapshot with appco vari
       size="large"
       taggable="true"
       value="cluster-1"
+      visiblerowheight="18"
     />
   </div>
   <!-- Select by labels -->
@@ -104,6 +105,7 @@ exports[`component: ClusterSelectionFields should match snapshot with appco vari
       size="large"
       taggable="true"
       value=""
+      visiblerowheight="18"
     />
   </div>
 </div>
@@ -146,6 +148,7 @@ exports[`component: ClusterSelectionFields should match snapshot with default va
       size="large"
       taggable="true"
       value="cluster-1"
+      visiblerowheight="18"
     />
   </div>
   <!-- Select by labels -->
@@ -211,6 +214,7 @@ exports[`component: ClusterSelectionFields should match snapshot with default va
       size="large"
       taggable="true"
       value=""
+      visiblerowheight="18"
     />
   </div>
 </div>

@@ -1,5 +1,7 @@
 import MgmtCluster from '@shell/models/management.cattle.io.cluster';
-import { EXT } from '@shell/config/types';
+import { CAPI, EXT, MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
+import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annotations';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { downloadFile } from '@shell/utils/download';
@@ -400,6 +402,165 @@ describe('class MgmtCluster', () => {
 
       expect(mutations).toHaveLength(1);
       expect(mutations[0].apply(['c-a', 'c-z', 'c-b'])).toStrictEqual(['c-z']);
+    });
+  });
+
+  describe('isAutoscalerEnabled', () => {
+    const makeCluster = (machinePools: any[] | undefined) => {
+      const provCluster = machinePools === undefined ? undefined : { spec: { rkeConfig: { machinePools } } };
+
+      return new MgmtCluster({ id: 'c-a', metadata: { name: 'c-a' } }, {
+        rootGetters: { 'management/byId': (type: string) => (type === CAPI.RANCHER_CLUSTER ? provCluster : undefined) },
+        getters:     {},
+      });
+    };
+
+    it.each([
+      ['a pool with both bounds', [{ autoscalingMinSize: 1, autoscalingMaxSize: 4 }], true],
+      ['a pool with only a min bound', [{ autoscalingMinSize: 1 }], false],
+      ['a pool with only a max bound', [{ autoscalingMaxSize: 4 }], false],
+      ['one autoscaling pool among several', [{ quantity: 1 }, { autoscalingMinSize: 1, autoscalingMaxSize: 4 }], true],
+      ['no autoscaling pools', [{ quantity: 1 }], false],
+      ['no pools', [], false],
+      ['no provisioning cluster', undefined, false],
+    ])('should report %s', (_label, machinePools, expected) => {
+      expect(makeCluster(machinePools).isAutoscalerEnabled).toStrictEqual(expected);
+    });
+  });
+
+  describe('pin actions', () => {
+    const dispatch = jest.fn();
+
+    const mgmtCluster = (id: string, pinned: string[] = []) => new MgmtCluster({ id, links: {} }, {
+      dispatch,
+      rootGetters: {
+        'i18n/t':               (key: string) => key,
+        'prefs/get':            () => pinned,
+        'management/schemaFor': () => undefined,
+        isRancher:              true,
+      },
+    }) as any;
+
+    const actionsOf = (cluster: any) => {
+      jest.spyOn(Object.getPrototypeOf(MgmtCluster.prototype), '_availableActions', 'get').mockReturnValue([]);
+
+      return cluster._availableActions;
+    };
+
+    const pinAction = (cluster: any, action: string) => actionsOf(cluster).find((a: any) => a.action === action);
+
+    beforeEach(() => dispatch.mockClear());
+
+    it('offers the pin only while the cluster is unpinned, and the unpin only while it is pinned', () => {
+      const unpinned = mgmtCluster('c-a');
+      const pinned = mgmtCluster('c-a', ['c-a']);
+
+      expect(pinAction(unpinned, 'pinCluster').enabled).toBe(true);
+      expect(pinAction(unpinned, 'unpinCluster').enabled).toBe(false);
+      expect(pinAction(pinned, 'pinCluster').enabled).toBe(false);
+      expect(pinAction(pinned, 'unpinCluster').enabled).toBe(true);
+    });
+
+    it('offers neither for local', () => {
+      const local = mgmtCluster('local');
+
+      jest.spyOn(local, 'isLocal', 'get').mockReturnValue(true);
+
+      expect(pinAction(local, 'pinCluster').enabled).toBe(false);
+      expect(pinAction(local, 'unpinCluster').enabled).toBe(false);
+    });
+
+    it('matches the provisioning cluster pair, so a mixed selection shares one bulk Pin and Unpin', () => {
+      const bulk = actionsOf(mgmtCluster('c-a'))
+        .filter((a: any) => a.bulkable)
+        .sort((a: any, b: any) => (b.weight || 0) - (a.weight || 0));
+
+      expect(bulk.slice(0, 2).map(({ action, bulkAction }: any) => ({ action, bulkAction }))).toStrictEqual([
+        { action: 'pinCluster', bulkAction: 'pinClusterBulk' },
+        { action: 'unpinCluster', bulkAction: 'unpinClusterBulk' },
+      ]);
+    });
+
+    it.each([
+      ['pinCluster', 'pin'],
+      ['unpinCluster', 'unpin'],
+    ])('%s writes through %s', async(action, method) => {
+      const cluster = mgmtCluster('c-a');
+      const write = jest.spyOn(cluster, method).mockResolvedValue({});
+
+      await cluster[action]();
+
+      expect(write).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ['pinClusterBulk', 'pinBulk'],
+      ['unpinClusterBulk', 'unpinBulk'],
+    ])('%s hands the whole selection to %s, for one write', async(action, method) => {
+      const cluster = mgmtCluster('c-a');
+      const write = jest.spyOn(cluster, method).mockResolvedValue({});
+      const items = [{ id: 'c-a' }, { id: 'c-b' }];
+
+      await cluster[action](items);
+
+      expect(write).toHaveBeenCalledWith(items);
+    });
+
+    it.each([
+      ['pinCluster', 'pin'],
+      ['unpinCluster', 'unpin'],
+      ['pinClusterBulk', 'pinBulk'],
+      ['unpinClusterBulk', 'unpinBulk'],
+    ])('%s growls when the preference write is rejected', async(action, method) => {
+      const cluster = mgmtCluster('c-a');
+
+      jest.spyOn(cluster, method).mockResolvedValue({ type: 'error', status: 500 });
+
+      await cluster[action]([]);
+
+      expect(dispatch).toHaveBeenCalledWith('growl/fromError', expect.objectContaining({ title: 'nav.pinClusterError' }), { root: true });
+    });
+
+    it('stays quiet when the preference write lands', async() => {
+      const cluster = mgmtCluster('c-a');
+
+      jest.spyOn(cluster, 'pin').mockResolvedValue({});
+
+      await cluster.pinCluster();
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('isVersionManagementEnabled', () => {
+    const createCluster = (annotation: string | undefined, globalSetting: string | undefined) => {
+      const byId = jest.fn((type: string, id: string) => {
+        if (type === MANAGEMENT.SETTING && id === SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT && globalSetting !== undefined) {
+          return { value: globalSetting };
+        }
+
+        return undefined;
+      });
+      const annotations = annotation === undefined ? {} : { [IMPORTED_CLUSTER_VERSION_MANAGEMENT]: annotation };
+
+      return new MgmtCluster({ metadata: { annotations } }, { rootGetters: { 'management/byId': byId } });
+    };
+
+    it.each([
+      ['true', 'false', true],
+      ['true', undefined, true],
+      ['false', 'true', false],
+      ['false', undefined, false],
+      ['system-default', 'true', true],
+      ['system-default', 'false', false],
+      ['system-default', undefined, false],
+      [undefined, 'true', true],
+      [undefined, 'false', false],
+      [undefined, undefined, false],
+      ['unexpected', 'true', true],
+      ['unexpected', 'false', false],
+    ])('annotation %p with global setting %p should be %p', (annotation, globalSetting, expected) => {
+      expect(createCluster(annotation, globalSetting).isVersionManagementEnabled).toBe(expected);
     });
   });
 });

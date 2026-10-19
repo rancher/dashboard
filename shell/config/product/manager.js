@@ -87,6 +87,7 @@ export function init(store) {
   configureType(OPERATION.ETCD_SNAPSHOT, { isCreatable: false, isEditable: false });
   configureType(OPERATION.ETCD_SNAPSHOT_RESTORE, { isCreatable: false, isEditable: false });
   configureType(OPERATION.ENCRYPTION_KEY_ROTATE, { isCreatable: false, isEditable: false });
+  configureType(OPERATION.CERTIFICATE_ROTATE, { isCreatable: false, isEditable: false });
 
   configureType(CAPI.RANCHER_CLUSTER, {
     showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER]

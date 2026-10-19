@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * The vendor mark for an auth provider. Used by the login provider menu and the
- * auth provider list. Falls back to a padlock for the local auth provider.
+ * auth provider list. Falls back to a padlock for a provider without a logo.
  *
  * The mark is decorative so it is kept out of the accessibility tree.
  */

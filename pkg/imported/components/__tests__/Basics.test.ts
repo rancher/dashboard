@@ -7,8 +7,6 @@ const mountBasics = (props = {}) => {
       mode:                           'edit',
       value:                          { version: { gitVersion: 'v1.30.1+rke2r1' } },
       config:                         { kubernetesVersion: 'v1.30.1+rke2r1' },
-      dayTwoOpsGlobalSetting:         true,
-      dayTwoOpsFlag:                  true,
       versionManagementGlobalSetting: true,
       versionManagement:              'true',
       versionManagementOld:           'true',
@@ -52,6 +50,12 @@ describe('component: Basics', () => {
 
       expect(wrapper.vm.showDeprecatedPatchVersions).toStrictEqual(showDeprecatedPatches);
     });
+  });
+
+  it('should not render the Day 2 Operations config, which has its own section on the imported cluster page', () => {
+    const wrapper = mountBasics();
+
+    expect(wrapper.findComponent({ name: 'DayTwoOps' }).exists()).toBe(false);
   });
 
   it('should emit show-deprecated-patches-changed when the toggle changes', async() => {
