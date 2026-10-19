@@ -3,6 +3,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 const { spawnSync } = require('child_process');
+const viteUpdates = require('../migrate/tasks/viteUpdates');
 
 const baseFolder = path.resolve(path.join(__dirname, '..'));
 const dest = path.resolve('.');
@@ -39,16 +40,14 @@ if ( latestPackage.dependencies ) {
   console.warn('No dependencies found in latestPackage.'); // eslint-disable-line no-console
 }
 
-// Add in the webpack resolution
-appPackage.resolutions = appPackage.resolutions || {};
-appPackage.resolutions['**/webpack'] = '4';
-
 // Update the version of @rancher/shell
 const shellVersion = args[0];
 
 appPackage.dependencies['@rancher/shell'] = shellVersion;
 
 fs.writeFileSync(path.join(dest, 'package.json'), `${ JSON.stringify(appPackage, null, 2) }\n`);
+
+viteUpdates();
 
 spawnSync(`yarn`, ['install'], {
   cwd:   dest,

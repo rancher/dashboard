@@ -1,4 +1,10 @@
+const path = require('path');
+
 process.env.TZ = 'UTC';
+
+// Runs each file through the transformer named in its options after turning the shell's `import.meta.glob()` calls,
+// which Jest's CommonJS modules do not support, into `require()`s
+const SHELL_TRANSFORMER = '@rancher/shell/vite/jest-transformer.js';
 
 module.exports = {
   testEnvironment:        'jsdom',
@@ -16,9 +22,10 @@ module.exports = {
     '^~/(.*)$':                                                                      '<rootDir>/$1',
     '^@/(.*)$':                                                                      '<rootDir>/$1',
     '^@pkg/(.*)$':                                                                   '<rootDir>/pkg/$1',
+    '^@shell/(.*)\\?worker&inline$':                                                 '<rootDir>/node_modules/@rancher/shell/$1',
     '^@shell/(.*)$':                                                                 '<rootDir>/node_modules/@rancher/shell/$1',
     '^@components/(.*)$':                                                            '<rootDir>/node_modules/@rancher/shell/rancher-components/$1',
-    // Virtual module created by webpack at build time - see autoImportStub.js
+    // Virtual module created by the build - see autoImportStub.js
     '^@rancher/auto-import$':                                                        '<rootDir>/autoImportStub.js',
     '\\.(jpe?g|png|gif|webp|svg|mp4|webm|ogg|mp3|wav|flac|aac|woff2?|eot|ttf|otf)$': '<rootDir>/svgTransform.js',
   },
@@ -26,14 +33,17 @@ module.exports = {
   modulePathIgnorePatterns: ['<rootDir>/cypress/', '<rootDir>/dist-pkg/'],
 
   transform: {
-    '^.+\\.vue$':    '<rootDir>/vue3JestRegisterTs.js',
+    '^.+\\.vue$':    [SHELL_TRANSFORMER, { transformer: path.join(__dirname, 'vue3JestRegisterTs.js') }],
     // `sourceMap` - the scaffold's tsconfig turns source maps off, which makes @vue/vue3-jest hand
     // @babel/core an empty `inputSourceMap` that newer Babel versions reject. Re-enable for Jest only.
     // `isolatedModules` - skip full type checking during test runs; `yarn lint` / `tsc` cover that.
-    '^.+\\.tsx?$':   ['ts-jest', { tsconfig: { sourceMap: true, isolatedModules: true } }],
-    '^.+\\.m?jsx?$': ['babel-jest', {
-      configFile: false,
-      presets:    [['@babel/preset-env', { targets: { node: 'current' } }]]
+    '^.+\\.tsx?$':   [SHELL_TRANSFORMER, { transformer: 'ts-jest', options: { tsconfig: { sourceMap: true, isolatedModules: true } } }],
+    '^.+\\.m?jsx?$': [SHELL_TRANSFORMER, {
+      transformer: 'babel-jest',
+      options:     {
+        configFile: false,
+        presets:    [['@babel/preset-env', { targets: { node: 'current' } }]]
+      }
     }],
     '^.+\\.svg$': '<rootDir>/svgTransform.js'
   },
