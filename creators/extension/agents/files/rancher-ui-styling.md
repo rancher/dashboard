@@ -34,7 +34,7 @@ Two separate mechanisms. Know which one you are using.
 Defined on `BODY` by `shell/assets/styles/themes/_modern.scss` and re-declared under `.theme-dark`. Available everywhere with no import, and they re-resolve when the user switches theme. **This is the default choice for anything colour-related.**
 
 **2. SCSS variables (`$space-m`), functions (`z-index()`) and mixins (`@include clip`) — build time.**
-`shell/vue.config.js` prepends these to every `<style lang="scss">` block it compiles:
+`shell/vite.config.mjs` (and `shell/pkg/vite.config.mjs`, which builds packages) prepends these to every `<style lang="scss">` block it compiles:
 
 ```js
 additionalData: `
@@ -45,7 +45,7 @@ additionalData: `
 `
 ```
 
-An extension scaffolded by `@rancher/create-extension` re-exports that config (`require('@rancher/shell/vue.config')`), so **`$space-m`, `$max-width`, `z-index('tooltip')` and `@include clip` work in your `.vue` files with no `@import` line.** Anything outside those three files (`_color.scss`, `_spacing.scss`, theme files) you must import explicitly, e.g. `@import "~shell/assets/styles/base/_color.scss";`.
+An extension scaffolded by `@rancher/create-extension` builds with that config (its `vite.config.mjs` imports `@rancher/shell/vite.config.mjs`), so **`$space-m`, `$max-width`, `z-index('tooltip')` and `@include clip` work in your `.vue` files with no `@import` line.** Anything outside those three files (`_color.scss`, `_spacing.scss`, theme files) you must import explicitly, e.g. `@import "~shell/assets/styles/base/_color.scss";`.
 
 Do not re-import `_variables.scss` "just to be safe" — it is already there, and a second import in a component that also uses `@use` can trip Sass's load-order rules.
 
