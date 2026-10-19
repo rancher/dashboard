@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import PersistentVolume from '@shell/edit/persistentvolume/index.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import { VOLUME_PLUGINS } from '@shell/config/persistentVolume';
 
 describe('view: PersistentVolume', () => {
   it('should list enabled PV storage option if supported', () => {
@@ -101,5 +102,9 @@ describe('view: PersistentVolume', () => {
     });
 
     expect(wrapper.vm.plugin).toBe(plugin);
+  });
+
+  it.each(VOLUME_PLUGINS.map((plugin) => plugin.value))('should have a form for plugin %p', (plugin) => {
+    expect((PersistentVolume as any).methods.getComponent(plugin)).toBeDefined();
   });
 });

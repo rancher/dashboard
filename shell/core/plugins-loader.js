@@ -19,8 +19,7 @@ import * as cmVim from '@replit/codemirror-vim';
 
 // Load any plugins that are present as npm modules
 // The 'dynamic' module is generated in webpack to load each package
-
-const dynamicLoader = require('@rancher/dynamic');
+import dynamicLoader from '@rancher/dynamic';
 
 export default function({
   app,
@@ -30,7 +29,7 @@ export default function({
   $extension,
 }, inject) {
   if (dynamicLoader) {
-    dynamicLoader.default($extension);
+    dynamicLoader($extension);
   }
 
   // The libraries we build have Vue externalised, so we need to expose Vue as a global for
