@@ -22,7 +22,7 @@ export default {
 
   computed: {
     displayName() {
-      return loginDisplayName(this.t, this.name, this.type);
+      return loginDisplayName((key) => this.t(key), this.name, this.type);
     }
   },
 
