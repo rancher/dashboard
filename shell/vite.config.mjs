@@ -7,6 +7,7 @@ import vue from '@vitejs/plugin-vue';
 import { rancherIndexHtml } from './vite/index-html.mjs';
 import { rancherDynamicModules } from './vite/dynamic-modules.mjs';
 import { rancherLoaders } from './vite/loaders.mjs';
+import { vueParenthesisedDefaultExport } from './vite/vue-compat.mjs';
 import { rancherDevServer } from './vite/dev-server.mjs';
 import { rancherBundleReport } from './vite/bundle-report.mjs';
 import vueConfigHelper from './vue-config-helper.js';
@@ -244,6 +245,7 @@ export default async function(dir, appConfig = {}) {
     },
 
     plugins: [
+      vueParenthesisedDefaultExport(),
       vue({ template: { compilerOptions: { whitespace: 'preserve' } } }),
       rancherIndexHtml({ root: dir, shellDir: SHELL_ABS }),
       rancherDynamicModules({ root: dir, includePkg }),

@@ -3,6 +3,7 @@ import path from 'node:path';
 import vue from '@vitejs/plugin-vue';
 import { rancherDynamicModules } from '../vite/dynamic-modules.mjs';
 import { rancherLoaders } from '../vite/loaders.mjs';
+import { vueParenthesisedDefaultExport } from '../vite/vue-compat.mjs';
 import { INITIAL_CHUNK, loadChunksOnDemand } from './chunk-loader.mjs';
 import { replaceShellModules } from './replace-shell-modules.mjs';
 
@@ -115,6 +116,7 @@ export default function() {
     },
 
     plugins: [
+      vueParenthesisedDefaultExport(),
       vue(),
       replaceShellModules(dir, import.meta.dirname),
       rancherDynamicModules({ root: maindir, includePkg: () => true }),
