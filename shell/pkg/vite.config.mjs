@@ -3,6 +3,7 @@ import path from 'node:path';
 import vue from '@vitejs/plugin-vue';
 import { rancherDynamicModules } from '../vite/dynamic-modules.mjs';
 import { rancherLoaders } from '../vite/loaders.mjs';
+import { INITIAL_CHUNK, loadChunksOnDemand } from './chunk-loader.mjs';
 import { replaceShellModules } from './replace-shell-modules.mjs';
 
 // These modules will be externalised and not included with the build of a package library
@@ -43,9 +44,10 @@ function injectStyles() {
 }
 
 /**
- * Vite configuration that builds the UI package in the current directory as one script, `<name>-<version>.umd.min.js`,
- * which sets `window['<name>-<version>']` to the module the package's index exports, as Rancher expects. The shell
- * must be linked into the package's `.shell` folder (shell/scripts/build-pkg.sh does this).
+ * Vite configuration that builds the UI package in the current directory as the script `<name>-<version>.umd.min.js`,
+ * which sets `window['<name>-<version>']` to the module the package's index exports, as Rancher expects, and loads the
+ * package's lazily imported code from beside it when it is used. The shell must be linked into the package's `.shell`
+ * folder (shell/scripts/build-pkg.sh does this).
  *
  * The output folder and file name can be set with PKG_DIST and PKG_NAME, and PKG_FORMAT=umd leaves the script
  * unminified.
@@ -74,7 +76,7 @@ export default function() {
   const name = process.env.PKG_NAME || `${ pkg.name }-${ pkg.version }`;
   const minify = process.env.PKG_FORMAT !== 'umd';
   const entry = ['index.ts', 'index.js'].map((file) => path.join(dir, file)).find((file) => fs.existsSync(file));
-  const globalName = `__rancher_extension_${ name.replace(/\W/g, '_') }`;
+  const fileName = `${ name }.umd${ minify ? '.min' : '' }.js`;
   const appEnv = Object.fromEntries(Object.entries(process.env).filter(([key]) => key.startsWith('VUE_APP_')));
 
   return {
@@ -117,28 +119,29 @@ export default function() {
       replaceShellModules(dir, import.meta.dirname),
       rancherDynamicModules({ root: maindir, includePkg: () => true }),
       rancherLoaders(),
+      loadChunksOnDemand(name, fileName, EXTERNALS),
       injectStyles(),
     ],
 
     build: {
-      outDir:      process.env.PKG_DIST || path.join(maindir, 'dist-pkg', name),
-      emptyOutDir: false,
-      sourcemap:   true,
+      outDir:       process.env.PKG_DIST || path.join(maindir, 'dist-pkg', name),
+      emptyOutDir:  false,
+      sourcemap:    true,
+      cssCodeSplit: false,
       minify,
-      lib:         {
+      lib:          {
         entry,
-        name:     globalName,
-        formats:  ['iife'],
-        fileName: () => `${ name }.umd${ minify ? '.min' : '' }.js`,
+        formats:  ['cjs'],
+        fileName: () => fileName,
       },
       rolldownOptions: {
-        external:  Object.keys(EXTERNALS),
-        transform: { inject: { Buffer: ['buffer', 'Buffer'] } },
-        output:    {
-          globals:       EXTERNALS,
-          exports:       'named',
-          codeSplitting: false,
-          postFooter:    `(typeof window !== 'undefined' ? window : globalThis)[${ JSON.stringify(name) }] = ${ globalName };`,
+        external:     Object.keys(EXTERNALS),
+        transform:    { inject: { Buffer: ['buffer', 'Buffer'] } },
+        experimental: { nativeMagicString: true },
+        output:       {
+          exports:        'named',
+          chunkFileNames: `${ name }.umd${ minify ? '.min' : '' }.[name].[hash].js`,
+          codeSplitting:  { groups: [{ name: INITIAL_CHUNK, tags: ['$initial'], test: (id) => id !== entry }] },
         },
       },
     },
