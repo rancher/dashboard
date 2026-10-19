@@ -197,6 +197,11 @@ const getLoaders = (SHELL_ABS, dir) => [
       }
     ]
   },
+  // Stop xterm from thinking it runs in Node because of the process polyfill
+  {
+    test:   /[\\/]node_modules[\\/]@xterm[\\/]/,
+    loader: path.join(__dirname, 'vue-config-xterm-loader.js'),
+  },
   // Prevent warning in log with the md files in the content folder
   {
     test: /\.md$/,
