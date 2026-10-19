@@ -203,7 +203,7 @@ export default {
         <div
           v-if="isCronJob"
           id="cron-schedule-hint"
-          class="col span-6 cron-schedule-hint"
+          class="col span-9 cron-schedule-hint"
           data-testid="cron-schedule-hint"
           aria-live="polite"
         >
