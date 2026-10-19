@@ -225,6 +225,9 @@ export default [
       'shell/scripts/**',
       'shell/server/**',
     ],
-    rules: { '@typescript-eslint/no-require-imports': 'error' },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'error',
+      'no-restricted-globals':                 ['error', 'global', 'Buffer', 'setImmediate', 'clearImmediate', '__dirname', '__filename'],
+    },
   },
 ];
