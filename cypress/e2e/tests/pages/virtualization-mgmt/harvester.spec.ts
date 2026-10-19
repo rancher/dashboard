@@ -93,6 +93,62 @@ function installAgainIfAbandoned(): void {
   cy.then(() => pollForInstall(Date.now() + INSTALL_GIVE_UP_WINDOW_MS, MAX_REINSTALLS));
 }
 
+// A Rancher replica that has not indexed a just-added repository yet answers an install with this 500
+// (rancher/dashboard#17543). It clears once the replica catches up.
+const TRANSIENT_INDEX_ERROR = /failed to find chart.*version.*not\s*found/i;
+
+function isTransientIndexError(response: any): boolean {
+  return response?.statusCode === 500 && TRANSIENT_INDEX_ERROR.test(response?.body?.message || '');
+}
+
+/**
+ * Install the Harvester extension from the Available tab of the extensions page, through the install modal.
+ * `selectVersion` picks the version in the open modal. If the install fails with the transient catalog index
+ * 500, give a dashboard that retries it itself the time to do so, and otherwise open the modal and install
+ * again. Any other failure fails the test, with Rancher's error message.
+ */
+function installFromExtensionsPage(harvesterTitle: string, selectVersion: () => void, attemptsLeft = 3): void {
+  cy.get('@installHarvesterExtension.all').then((previousInstalls: any) => {
+    const previousCount = previousInstalls.length;
+
+    extensionsPo.goTo();
+    waitForExtensionTabs();
+    // goTo() lands on whichever tab the app defaults to, so switch to the Available tab explicitly.
+    extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(undefined, 'available', MEDIUM_TIMEOUT_OPT);
+    extensionsPo.loading().should('not.exist');
+
+    extensionsPo.extensionCardInstallClick(harvesterTitle);
+    // The modal is fixed-position, so checkVisible()'s scrollIntoView is pointless and detaches the
+    // subject while the dialog animates in - assert visibility without scrolling.
+    extensionsPo.installModal().checkVisible(undefined, { scrollIntoView: false });
+    selectVersion();
+    extensionsPo.installModal().installButton().click();
+
+    cy.wait('@installHarvesterExtension').then(({ response }) => {
+      if (isTransientIndexError(response) && attemptsLeft > 1) {
+        // A dashboard that retries this error itself does so within 15s (1s, 2s, 4s, 8s backoff).
+        cy.wait(20000); // eslint-disable-line cypress/no-unnecessary-waiting
+        cy.get('@installHarvesterExtension.all').then((installs: any) => {
+          const lastResponse = installs[installs.length - 1]?.response;
+
+          if (installs.length > previousCount + 1 && lastResponse?.statusCode === 201) {
+            return;
+          }
+
+          cy.log('Rancher has not indexed the chart version yet - installing again');
+          installFromExtensionsPage(harvesterTitle, selectVersion, attemptsLeft - 1);
+        });
+
+        return;
+      }
+
+      // Include the body so a failure reports Rancher's error message, not just the status code.
+      expect(response?.statusCode, JSON.stringify(response?.body)).to.eq(201);
+    });
+  });
+}
+
 /**
  * Wait until Rancher no longer serves the Harvester UIPlugin. It outlives the uninstalled app for a moment,
  * and while it exists the UI still loads the extension (e.g. reporting "repository is missing").
@@ -318,27 +374,9 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.createRancherResource('v1', 'catalog.cattle.io.apps/cattle-ui-plugin-system/harvester?action=uninstall', {}, false);
       cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', 'cattle-ui-plugin-system/harvester', (r: any) => r?.status === 404, 15, { failOnStatusCode: false });
 
-      extensionsPo.goTo();
-      waitForExtensionTabs();
-      // goTo() lands on whichever tab the app defaults to - once the Harvester extension is installed
-      // that is #installed, not #available - so explicitly switch to the Available tab before waiting
-      // for it, instead of assuming the URL hash is already #available.
-      extensionsPo.extensionTabAvailableClick();
-      extensionsPo.waitForPage(undefined, 'available', MEDIUM_TIMEOUT_OPT);
-      extensionsPo.loading().should('not.exist');
-
-      // click on install button on card
-      extensionsPo.extensionCardInstallClick(harvesterTitle);
-      // The modal is fixed-position, so checkVisible()'s scrollIntoView is pointless and detaches the
-      // subject while the dialog animates in - assert visibility without scrolling.
-      extensionsPo.installModal().checkVisible(undefined, { scrollIntoView: false });
-
-      // select latest version and click install
-      extensionsPo.installModal().selectVersionClick(1);
-      extensionsPo.installModal().installButton().click();
-      cy.wait('@installHarvesterExtension').then(({ response }) => {
-        // Include the body so a failure reports Rancher's error message, not just the status code.
-        expect(response?.statusCode, JSON.stringify(response?.body)).to.eq(201);
+      // install the latest version
+      installFromExtensionsPage(harvesterTitle, () => {
+        extensionsPo.installModal().selectVersionClick(1);
       });
       // The app should switch to the Installed tab after install, but that navigation is
       // intermittent (the URL stays on #available); click it explicitly before waiting for it.
@@ -418,32 +456,20 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.createRancherResource('v1', 'catalog.cattle.io.apps/cattle-ui-plugin-system/harvester?action=uninstall', {}, false);
       cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', 'cattle-ui-plugin-system/harvester', (r: any) => r?.status === 404, 15, { failOnStatusCode: false });
 
-      extensionsPo.goTo();
-      waitForExtensionTabs();
-      // goTo() lands on whichever tab the app defaults to - once the Harvester extension is installed
-      // that is #installed, not #available - so explicitly switch to the Available tab before waiting
-      // for it, instead of assuming the URL hash is already #available.
-      extensionsPo.extensionTabAvailableClick();
-      extensionsPo.waitForPage(undefined, 'available', MEDIUM_TIMEOUT_OPT);
-      extensionsPo.loading().should('not.exist');
+      let versions: string[] = [];
 
-      // click on install button on card
-      extensionsPo.extensionCardInstallClick(harvesterTitle);
-      // Fixed-position modal: assert visibility without scrolling (see the note in the 7021 test).
-      extensionsPo.installModal().checkVisible(undefined, { scrollIntoView: false });
-
-      // Note - We can't fetch version from `catalog.cattle.io.clusterrepos/harvester?link=index` given it won't filter out invalid extensions
-      // for example in rancher 2.12 the harvester 1.7.0 extension is invalid... however still returned... resulting in expected versions that don't exist as valid options
-
-      extensionsPo.installModal().versionLabelSelect().toggle();
-      extensionsPo.installModal().versionLabelSelect().getOptionsAsStrings().then((versions) => {
-        // select older version and click install
-        extensionsPo.installModal().selectVersionClick(2, false);
-        extensionsPo.installModal().installButton().click();
-        cy.wait('@installHarvesterExtension').then(({ response }) => {
-          // Include the body so a failure reports Rancher's error message, not just the status code.
-          expect(response?.statusCode, JSON.stringify(response?.body)).to.eq(201);
+      // install an older version
+      installFromExtensionsPage(harvesterTitle, () => {
+        // Note - We can't fetch version from `catalog.cattle.io.clusterrepos/harvester?link=index` given it won't filter out invalid extensions
+        // for example in rancher 2.12 the harvester 1.7.0 extension is invalid... however still returned... resulting in expected versions that don't exist as valid options
+        extensionsPo.installModal().versionLabelSelect().toggle();
+        extensionsPo.installModal().versionLabelSelect().getOptionsAsStrings().then((options) => {
+          versions = options;
         });
+        extensionsPo.installModal().selectVersionClick(2, false);
+      });
+
+      cy.then(() => {
         // As in the 7021 test: the switch to the Installed tab is intermittent, so click it explicitly.
         extensionsPo.extensionTabInstalledClick();
         extensionsPo.waitForPage(undefined, 'installed');

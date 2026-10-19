@@ -6,7 +6,7 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations
 import { UI_PLUGIN_NAMESPACE, isChartVersionHigher } from '@shell/config/uiplugins';
 import Banner from '@components/Banner/Banner.vue';
 import { SETTING } from '@shell/config/settings';
-import { getPluginChartVersionLabel } from '@shell/utils/uiplugins';
+import { getPluginChartVersionLabel, retryTransientChartAction } from '@shell/utils/uiplugins';
 import { RcHeading } from '@components/RcHeading';
 
 // Note: This dialog handles installation, upgrade and downgrade of a plugin
@@ -288,7 +288,8 @@ export default {
       const action = (exists || this.update) ? 'upgrade' : 'install';
 
       try {
-        const res = await repo.doAction(action, input);
+        // On a multi-replica Rancher the replica handling this may not have indexed a just-added repo yet
+        const res = await retryTransientChartAction(() => repo.doAction(action, input));
         const operationId = `${ res.operationNamespace }/${ res.operationName }`;
 
         this.closeDialog(plugin);

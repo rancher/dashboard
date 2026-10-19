@@ -4,6 +4,7 @@ import {
   installHelmChart,
   installHelmChartWithRetry,
   isTransientChartActionError,
+  retryTransientChartAction,
   INSTALL_ACTION_MAX_RETRIES,
 } from '@shell/utils/uiplugins';
 
@@ -395,6 +396,63 @@ describe('shell/utils/uiplugins', () => {
       await installHelmChartWithRetry(repo, chart, {}, 'cattle-ui-plugin-system', 'upgrade');
 
       expect(repo.doAction).toHaveBeenCalledWith('upgrade', expect.objectContaining({ namespace: 'cattle-ui-plugin-system' }));
+    });
+  });
+
+  describe('retryTransientChartAction', () => {
+    const transientError = { _status: 500, message: 'failed to find chartName harvester version 1.8.2: NotFound 404' };
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('returns the result of the action when it succeeds on the first try', async() => {
+      const runAction = jest.fn().mockResolvedValue({ id: 'ok' });
+
+      const result = await retryTransientChartAction(runAction);
+
+      expect(result).toStrictEqual({ id: 'ok' });
+      expect(runAction).toHaveBeenCalledTimes(1);
+    });
+
+    it('retries a transient error until the action succeeds', async() => {
+      const runAction = jest.fn()
+        .mockRejectedValueOnce(transientError)
+        .mockResolvedValueOnce({ id: 'ok-after-retry' });
+      const onRetry = jest.fn();
+
+      const promise = retryTransientChartAction(runAction, onRetry);
+
+      await jest.advanceTimersByTimeAsync(1000);
+
+      await expect(promise).resolves.toStrictEqual({ id: 'ok-after-retry' });
+      expect(runAction).toHaveBeenCalledTimes(2);
+      expect(onRetry).toHaveBeenCalledWith(1, INSTALL_ACTION_MAX_RETRIES);
+    });
+
+    it('throws a non-transient error without retrying', async() => {
+      const error = { _status: 500, message: 'permission denied' };
+      const runAction = jest.fn().mockRejectedValue(error);
+
+      await expect(retryTransientChartAction(runAction)).rejects.toBe(error);
+      expect(runAction).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws the transient error once all retries are used up', async() => {
+      const runAction = jest.fn().mockRejectedValue(transientError);
+
+      const promise = retryTransientChartAction(runAction);
+
+      promise.catch(() => {});
+
+      await jest.advanceTimersByTimeAsync(30000);
+
+      await expect(promise).rejects.toBe(transientError);
+      expect(runAction).toHaveBeenCalledTimes(INSTALL_ACTION_MAX_RETRIES + 1);
     });
   });
 });
