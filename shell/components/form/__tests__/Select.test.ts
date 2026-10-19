@@ -77,6 +77,30 @@ describe('select.vue', () => {
     expect(vSelectInput.attributes('aria-label')).toBe('-');
   });
 
+  it('a11y: should put aria-required on the combobox, not on the role-less v-select root', () => {
+    const wrapper = mount(SelectComponent, {
+      props: {
+        value:   'foo',
+        options: [{ label: 'Foo', value: 'foo' }],
+      },
+      attrs: { 'aria-required': true }
+    });
+
+    expect(wrapper.find('.unlabeled-select').attributes('aria-required')).toBe('true');
+    expect(wrapper.find('.v-select').attributes('aria-required')).toBeUndefined();
+  });
+
+  it('a11y: should not set aria-required on the combobox when it is not passed', () => {
+    const wrapper = mount(SelectComponent, {
+      props: {
+        value:   'foo',
+        options: [{ label: 'Foo', value: 'foo' }],
+      }
+    });
+
+    expect(wrapper.find('.unlabeled-select').attributes('aria-required')).toBeUndefined();
+  });
+
   it('a11y: should not set role listitem on the v-select root', () => {
     const wrapper = mount(SelectComponent, {
       props: {

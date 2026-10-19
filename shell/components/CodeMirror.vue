@@ -115,6 +115,13 @@ export default defineComponent({
       type:    Boolean,
       default: false
     },
+    /**
+     * Open the search panel on mount
+     */
+    searchOpen: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   data() {
@@ -343,6 +350,7 @@ export default defineComponent({
         :fold-gutter="foldGutter"
         :line-wrapping="lineWrapping"
         :keymap-indicator="showKeyMapBox"
+        :search-open="searchOpen"
         :linter="linter"
         :extensions="combinedExtensions"
         :aria-label="options.screenReaderLabel"

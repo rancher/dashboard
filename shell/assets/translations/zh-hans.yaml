@@ -1943,9 +1943,16 @@ cluster:
   rotateCertificates:
     label: 轮换证书
     modalTitle: 轮换集群证书
+    description: 将签发新证书，受影响的服务会重新启动。轮换完成前，集群状态显示为 'Updating'。
+    allServices: 所有服务
+    selectedServices: 选定的服务
     services: 服务
-    allServices: 轮换所有服务证书
-    selectService: 轮换单个服务证书
+    placeholder: 选择一个或多个服务
+    reset: 重置
+    more: "+{count} 个"
+    deselect: "取消选择 {service}"
+    selectionSummary: "已选择 {count}/{total} 个服务。仅这些服务会重新启动。"
+    rotate: 轮换证书
   toggle:
     v1: RKE1
     v2: RKE2/K3s
@@ -4409,7 +4416,6 @@ promptRemoveApp:
 promptRestore:
   title: 还原快照
   name: 名称
-  date: 日期
   fromS3: 从 S3 恢复
   label: 快照
   placeholder: 选择要恢复的快照
@@ -4430,9 +4436,17 @@ promptRollback:
 
 promptRotateEncryptionKey:
   title: 轮换加密密钥
-  description: 上次备份 {name} 的备份时间为 {date}
-  warning: 在继续操作前，请确保已成功完成集群的 ETCD 备份。
-  error: 未找到备份
+  description: 轮换会使用新密钥重新加密此集群中的所有 Secret。Control Plane 节点逐个重启期间，集群将显示为 “Updating”，这可能需要几分钟时间。
+  warning:
+    noBackup: 未找到此集群的 ETCD 快照。请先拍摄快照，待其完成后再轮换密钥，以便在轮换失败时还原集群。
+    outdated: "最新快照已是 {days} 天前拍摄的。如果轮换失败，此后所做的更改将无法还原。"
+  snapshotInfo:
+    title: 最新 ETCD 快照
+    viewSnapshots: 查看快照
+    taken: 拍摄于
+  rotateKeys: 轮换密钥
+  error:
+    unableToResolveTargetCluster: 无法解析加密密钥轮换的目标集群
 
 rancherAlertingDrivers:
   msTeams: 启用 Microsoft Teams 通知

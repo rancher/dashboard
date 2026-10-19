@@ -7,4 +7,8 @@ export default class ClusterManagerImportGenericPagePo extends ClusterManagerImp
   versionManagementBanner() {
     return this.self().find('[data-testid="version-management-banner"]');
   }
+
+  configureAfterImportBanner() {
+    return this.self().find('[data-testid="configure-after-import-banner"]');
+  }
 }

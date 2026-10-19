@@ -45,6 +45,15 @@ describe('composable: focusTrap', () => {
       expect(result.tagName).toStrictEqual('INPUT');
     });
 
+    it('skips elements taken out of the tab order', () => {
+      const container = document.createElement('div');
+
+      container.innerHTML = '<label><input type="checkbox" tabindex="-1" /><span tabindex="0" role="checkbox"></span></label>';
+      const result = getFirstFocusableElement(container);
+
+      expect(result.getAttribute('role')).toStrictEqual('checkbox');
+    });
+
     it('returns document.body when no focusable elements exist', () => {
       const container = document.createElement('div');
 

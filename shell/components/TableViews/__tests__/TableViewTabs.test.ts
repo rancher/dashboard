@@ -37,6 +37,7 @@ interface TabsInternals {
   discardChanges(tab: { id: string | null, name: string, view?: TableViewSaved }): void;
   saveChanges(tab: { id: string | null, name: string, view?: TableViewSaved }): void;
   openSaveAsNew(tab: { id: string | null, name: string, view?: TableViewSaved }): void;
+  applyView(saved: TableViewSaved | null): void;
   resetTab(tab: { id: string | null, name: string, view?: TableViewSaved, isDefaultTab?: boolean }): void;
   persistAll(views: TableViewSaved[], defaultViewId: string | null, allIndex?: number): void;
   openShare(tab: { id: string | null, name: string, view?: TableViewSaved, isDefaultTab?: boolean }): void;
@@ -67,9 +68,9 @@ describe('TableViewTabs', () => {
       expect(selectedViewIdFor(saved, { ...EMPTY }, null)).toBeNull();
     });
 
-    it('should select the view that changes add up to, before any tab is picked', () => {
-      // Nothing picked here, so the config is the only handle on it
-      expect(selectedViewIdFor(saved, applied, undefined)).toBe('aaa');
+    it('should keep the table\'s own tab in front before any tab is picked, even holding a saved view\'s config', () => {
+      // A filter typed on the table's own tab that happens to be a saved view's doesn't move to that view
+      expect(selectedViewIdFor(saved, applied, undefined)).toBeNull();
     });
 
     it('should select nothing on a fresh unmodified list', () => {
@@ -311,6 +312,29 @@ describe('TableViewTabs', () => {
       expect(vm.drafts.aaa?.query).toBe('state:Running name:x');
     });
 
+    it('should keep a filter typed on the table\'s own tab before any pick there, when it is a saved view\'s', async() => {
+      // `bbb` is saved with `name:foo`: typing the same on the table's own tab stays on that tab
+      const { vm, wrapper, shown } = createWrapper({ view: { ...EMPTY, query: 'name:foo' } });
+
+      expect(vm.selectedViewId).toBeNull();
+      expect(vm.isDirty).toBe(true);
+
+      vm.applyView(second);
+      await wrapper.setProps({ view: shown() });
+      vm.applyView(null);
+
+      expect(shown()?.query).toBe('name:foo');
+    });
+
+    it('should leave the changes on the table\'s own tab when it is saved as a new view before any tab is picked', () => {
+      const { vm, stored } = createWrapper({ view: { ...EMPTY, query: 'namespace:x' } });
+
+      vm.openSaveAsNew({ id: null, name: 'All' });
+
+      expect(stored()[2].query).toBe('namespace:x');
+      expect(vm.drafts.__default?.query).toBe('namespace:x');
+    });
+
     describe('resetting a tab to the table as it comes', () => {
       it('should clear the tab in front of everything, keeping it in front with unsaved changes', () => {
         const { vm, shown } = createWrapper({
@@ -391,13 +415,12 @@ describe('TableViewTabs', () => {
       };
 
       it('should replace the settings of the tab in front, as changes to save or discard, keeping its name', async() => {
-        // Opened on `aaa` by its config, with no pick: what is imported matches `bbb`'s config, which
-        // would otherwise take the selection over
+        // Opened on `aaa`: what is imported matches `bbb`'s config, which mustn't take the selection over
         const { id, name, ...firstState } = first;
         const { id: _, name: __, ...secondState } = second;
         const {
           vm, wrapper, stored, shown
-        } = createWrapper({ view: { ...EMPTY, ...firstState } });
+        } = createWrapper({ view: { ...EMPTY, ...firstState }, initialViewId: 'aaa' });
         const before = stored();
 
         expect(vm.selectedViewId).toBe('aaa');

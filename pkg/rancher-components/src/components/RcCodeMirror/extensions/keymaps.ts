@@ -16,12 +16,12 @@ import {
 import { foldKeymap, getIndentUnit, indentString } from '@codemirror/language';
 import { closeBracketsKeymap } from '@codemirror/autocomplete';
 import {
-  closeSearchPanel, openSearchPanel, search, searchKeymap, searchPanelOpen, selectNextOccurrence
+  closeSearchPanel, openSearchPanel, searchKeymap, searchPanelOpen, selectNextOccurrence
 } from '@codemirror/search';
 import { emacs } from '../vendor/codemirror-emacs';
 import { getCM, Vim, vim } from '@replit/codemirror-vim';
 import type { RcCodeMirrorKeymap, RcCodeMirrorVariant } from '../types';
-import { createSearchPanel } from './searchPanel';
+import { searchPanel } from './searchPanel';
 
 // CodeMirror 5 redid with both Shift-Mod-Z and Mod-Y on every platform. historyKeymap binds only Ctrl-Y on
 // Windows and only Cmd-Shift-Z on macOS.
@@ -106,9 +106,8 @@ const findKeymap = searchKeymap.filter(({ key }) => key && FIND_KEYS.includes(ke
   binding.key === 'Mod-f' ? { ...binding, run: toggleSearchPanel } : binding
 ));
 
-// Pages such as Edit YAML stick their own footer to the bottom of the scroll area, where it would cover a bottom
-// panel. The top of the editor is clear, and the panel sticks there while the page scrolls.
-const findPanel = search({ top: true, createPanel: createSearchPanel });
+// Vim has its own search, and Ctrl-F scrolls a page. Only the search panel takes these keys.
+const vimFindKeymap = findKeymap.filter(({ key }) => key !== 'Mod-f').map((binding) => ({ ...binding, scope: 'search-panel' }));
 
 // The fold gutter markers are not focusable, so folds need key bindings to be reachable from the keyboard
 export function getKeymapExtension(mode?: RcCodeMirrorKeymap, variant?: RcCodeMirrorVariant): Extension {
@@ -152,9 +151,11 @@ export function getKeymapExtension(mode?: RcCodeMirrorKeymap, variant?: RcCodeMi
         // Vim leaves Insert mode Enter to the browser, which adds a bare line break. Indent the new line as
         // the default keymap does, which also puts the cursor on its own indented line between brackets.
         { key: 'Enter', run: (view) => !!getCM(view)?.state.vim?.insertMode && insertNewlineAndIndent(view) },
+        ...(find ? vimFindKeymap : []),
         ...closeBracketsKeymap,
         ...foldKeymap
-      ])
+      ]),
+      ...(find ? [searchPanel] : [])
     ];
   }
 
@@ -175,7 +176,7 @@ export function getKeymapExtension(mode?: RcCodeMirrorKeymap, variant?: RcCodeMi
         ...redoKeymap,
         ...foldKeymap
       ]),
-      ...(find ? [findPanel] : [])
+      ...(find ? [searchPanel] : [])
     ];
   }
 
@@ -193,6 +194,6 @@ export function getKeymapExtension(mode?: RcCodeMirrorKeymap, variant?: RcCodeMi
       ...redoKeymap,
       ...foldKeymap
     ]),
-    ...(find ? [findPanel] : [])
+    ...(find ? [searchPanel] : [])
   ];
 }

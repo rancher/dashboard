@@ -14,6 +14,8 @@ export const EDITOR_MODES = {
 };
 
 export default {
+  name: 'YamlEditor',
+
   emits: ['update:value', 'newObject', 'onInput', 'onReady', 'validationChanged'],
 
   components: {
@@ -69,11 +71,27 @@ export default {
     },
 
     /**
+     * Diff against an empty `initialYamlValues` instead of treating it as no baseline
+     */
+    allowEmptyDiffBase: {
+      type:    Boolean,
+      default: false,
+    },
+
+    /**
      * Additional CodeMirror extensions, e.g. fold services. Only read on mount.
      */
     extensions: {
       type:    Array,
       default: () => [],
+    },
+
+    /**
+     * Open the search panel on mount
+     */
+    searchOpen: {
+      type:    Boolean,
+      default: false,
     },
   },
 
@@ -94,7 +112,7 @@ export default {
       original = initialYamlValues;
     }
 
-    if ( isEmpty(original) ) {
+    if ( isEmpty(original) && !this.allowEmptyDiffBase ) {
       original = value;
     }
 
@@ -214,6 +232,7 @@ export default {
       :options="codeMirrorOptions"
       :extensions="codeMirrorExtensions"
       :showKeyMapBox="true"
+      :search-open="searchOpen"
       :data-testid="componentTestid + '-code-mirror'"
       :mode="mode"
       @onInput="onInput"

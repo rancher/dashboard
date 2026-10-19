@@ -67,6 +67,14 @@ export default {
     usedLabel: {
       type:    String,
       default: null
+    },
+
+    /**
+     * Optional 'small' or 'medium' size of the bar. Defaults to the size of the PercentageBar component
+     */
+    barSize: {
+      type:    String,
+      default: undefined
     }
   },
   computed: {
@@ -124,12 +132,13 @@ export default {
       <PercentageBar
         :modelValue="percentageBarValue"
         :color-stops="colorStops"
+        :size="barSize"
       />
     </div>
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .consumption-gauge {
   .numbers {
     display: flex;

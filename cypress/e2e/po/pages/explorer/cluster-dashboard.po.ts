@@ -43,6 +43,15 @@ export default class ClusterDashboardPagePo extends PagePo {
     return new CertificatesPo();
   }
 
+  resourceStatusCards() {
+    return cy.get('[data-testid="cluster-dashboard-resource-status"]');
+  }
+
+  /** A status summary card (e.g. Deployments or Nodes), found by its title */
+  statusSummaryCard(title: string) {
+    return this.resourceStatusCards().find(`[data-testid="status-summary-card"][aria-label^="${ title }:"]`);
+  }
+
   clickCertificatesTab() {
     this.tabs().self().scrollIntoView();
 
