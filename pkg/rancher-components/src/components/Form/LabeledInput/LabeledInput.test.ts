@@ -61,48 +61,93 @@ describe('component: LabeledInput', () => {
     });
   });
 
-  describe('subLabelPosition prop', () => {
-    it.each([
-      ['cron', '0 * * * *', undefined],
-      ['text', 'some-value', 'some-sublabel'],
-    ])('for type %p should show the sub-label at the bottom by default', (type, value, subLabel) => {
+  describe('showCronHint prop', () => {
+    it('should not display the hint when showCronHint is false', () => {
       const wrapper = mount(LabeledInput, {
         propsData: {
-          value, type, subLabel
+          value: '0 * * * *', type: 'cron', showCronHint: false
         },
         mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
       });
 
-      const subLabelElement = wrapper.find('[data-testid="sub-label"]');
+      const subLabel = wrapper.find('[data-testid="sub-label"]');
 
-      expect(subLabelElement.classes()).not.toContain('sub-label-right');
+      expect(subLabel.exists()).toBe(false);
     });
 
-    it.each([
-      ['cron', '0 * * * *', undefined],
-      ['text', 'some-value', 'some-sublabel'],
-    ])('for type %p should show the sub-label on the right when set to right', (type, value, subLabel) => {
+    it('should display the sub-label when showCronHint is false', () => {
+      const subLabel = 'some-sublabel';
       const wrapper = mount(LabeledInput, {
         propsData: {
-          value, type, subLabel, subLabelPosition: 'right'
+          value: '0 * * * *', type: 'cron', showCronHint: false, subLabel
         },
         mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
       });
 
-      const subLabelElement = wrapper.find('[data-testid="sub-label"]');
-
-      expect(subLabelElement.classes()).toContain('sub-label-right');
+      expect(wrapper.find('[data-testid="sub-label"]').text()).toBe(subLabel);
     });
 
-    it.each([
-      ['bottom', true],
-      ['right', true],
-      ['left', false],
-    ])('should validate %p as %p', (position, isValid) => {
-      const props = LabeledInput.props as { subLabelPosition: { validator: (value: string) => boolean } };
-      const validator = props.subLabelPosition.validator;
+    it('should not add the hint to aria-describedby when showCronHint is false', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          value: '0 * * * *', type: 'cron', showCronHint: false
+        },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
 
-      expect(validator(position)).toBe(isValid);
+      expect(wrapper.find('input').attributes('aria-describedby')).toBeUndefined();
+    });
+  });
+
+  describe('cron-hint-change event', () => {
+    it.each([
+      [true],
+      [false],
+    ])('should emit the initial hint on creation when showCronHint is %p', (showCronHint) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          value: '0 * * * *', type: 'cron', showCronHint
+        },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      expect(wrapper.emitted('cron-hint-change')).toStrictEqual([['Every hour, every day']]);
+    });
+
+    it('should emit the new hint when the value changes', async() => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          value: '0 * * * *', type: 'cron', showCronHint: false
+        },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      await wrapper.setProps({ value: '@daily' });
+
+      expect(wrapper.emitted('cron-hint-change')).toStrictEqual([
+        ['Every hour, every day'],
+        ['At 12:00 AM, every day'],
+      ]);
+    });
+
+    it('should emit undefined when the value is cleared', async() => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { value: '0 * * * *', type: 'cron' },
+        mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      await wrapper.setProps({ value: '' });
+
+      expect(wrapper.emitted('cron-hint-change')?.[1]).toStrictEqual([undefined]);
+    });
+
+    it('should not emit a hint for other types', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { value: '0 * * * *', type: 'text' },
+        mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      expect(wrapper.emitted('cron-hint-change')).toBeUndefined();
     });
   });
 

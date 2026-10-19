@@ -20,10 +20,7 @@ const meta: Meta<typeof LabeledInput> = {
     required:         { control: 'boolean' },
     disabled:         { control: 'boolean' },
     subLabel:         { control: 'text' },
-    subLabelPosition: {
-      control: 'select',
-      options: ['bottom', 'right'],
-    },
+    showCronHint:     { control: 'boolean' },
   },
 };
 

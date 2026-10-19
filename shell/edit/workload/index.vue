@@ -30,6 +30,7 @@ export default {
     return {
       selectedName: null,
       errors:       [],
+      cronHint:     '',
       canNode,
       FORM_TYPES
     };
@@ -189,13 +190,24 @@ export default {
           <LabeledInput
             v-model:value="spec.schedule"
             type="cron"
-            sub-label-position="right"
             required
             :mode="mode"
             :label="t('workload.cronSchedule')"
             :rules="fvGetAndReportPathRules('spec.schedule')"
             placeholder="0 * * * *"
+            :show-cron-hint="false"
+            aria-describedby="cron-schedule-hint"
+            @cron-hint-change="cronHint = $event"
           />
+        </div>
+        <div
+          v-if="isCronJob"
+          id="cron-schedule-hint"
+          class="col span-6 cron-schedule-hint"
+          data-testid="cron-schedule-hint"
+          aria-live="polite"
+        >
+          {{ cronHint }}
         </div>
         <div
           v-if="isReplicable"
@@ -697,6 +709,11 @@ export default {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
+}
+
+.cron-schedule-hint {
+  align-self: center;
+  color: var(--input-label);
 }
 
 .type-placeholder {

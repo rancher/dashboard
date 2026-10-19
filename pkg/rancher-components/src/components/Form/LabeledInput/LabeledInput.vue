@@ -61,15 +61,13 @@ export default defineComponent({
     },
 
     /**
-     * Where to show the sub-label (or the cron hint when type is cron),
-     * relative to the Labeled Input. Use right when there is free space next
-     * to the input, for example when the input is in a narrow column.
-     * @values bottom, right
+     * Shows the human readable cron description under the input when type is
+     * cron. Set to false to show it somewhere else, using the cron-hint-change
+     * event to get the text.
      */
-    subLabelPosition: {
-      type:      String,
-      default:   'bottom',
-      validator: (value: string) => ['bottom', 'right'].includes(value)
+    showCronHint: {
+      type:    Boolean,
+      default: true
     },
 
     /**
@@ -175,7 +173,7 @@ export default defineComponent({
     }
   },
 
-  emits: ['change', 'update:value', 'blur', 'update:validation'],
+  emits: ['change', 'update:value', 'blur', 'update:validation', 'cron-hint-change'],
 
   setup(props, { emit }) {
     const {
@@ -272,7 +270,7 @@ export default defineComponent({
 
     ariaDescribedBy(): string | undefined {
       const inheritedDescribedBy = this.$attrs['aria-describedby'];
-      const internalDescribedBy = this.cronHint || this.subLabel ? this.describedById : undefined;
+      const internalDescribedBy = this.visibleCronHint || this.subLabel ? this.describedById : undefined;
 
       if (inheritedDescribedBy && internalDescribedBy) {
         return `${ inheritedDescribedBy } ${ internalDescribedBy }`;
@@ -352,6 +350,13 @@ export default defineComponent({
     },
 
     /**
+     * The cron hint to display under the Labeled Input, if any.
+     */
+    visibleCronHint(): string | undefined {
+      return this.showCronHint ? this.cronHint : undefined;
+    },
+
+    /**
      * The placeholder value for the Labeled Input.
      */
     _placeholder(): string {
@@ -378,6 +383,17 @@ export default defineComponent({
 
     className() {
       return this.class;
+    }
+  },
+
+  watch: {
+    cronHint: {
+      handler(hint: string | undefined) {
+        if (this.type === 'cron') {
+          this.$emit('cron-hint-change', hint);
+        }
+      },
+      immediate: true
     }
   },
 
@@ -646,18 +662,17 @@ export default defineComponent({
       :value="validationMessage"
     />
     <div
-      v-if="cronHint || subLabel"
+      v-if="visibleCronHint || subLabel"
       class="sub-label"
-      :class="{ 'sub-label-right': subLabelPosition === 'right' }"
       data-testid="sub-label"
     >
       <div
-        v-if="cronHint"
+        v-if="visibleCronHint"
         :id="describedById"
         role="alert"
-        :aria-label="cronHint"
+        :aria-label="visibleCronHint"
       >
-        {{ cronHint }}
+        {{ visibleCronHint }}
       </div>
       <div
         v-else-if="subLabel"
@@ -670,15 +685,6 @@ export default defineComponent({
 <style scoped lang="scss">
 .labeled-input {
   position: relative;
-}
-
-.labeled-input .sub-label.sub-label-right {
-  top: 50%;
-  left: 100%;
-  padding: 0 0 0 20px;
-  transform: translateY(-50%);
-  // Use the free space next to the input instead of wrapping inside the input width
-  width: max-content;
 }
 
 .multiline-password:not(:focus) {
