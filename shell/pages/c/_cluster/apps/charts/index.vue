@@ -780,7 +780,7 @@ export default {
               class="charts-sort-select"
             >
               <template #selected-option="{ label }">
-                <span class="mmr-1">{{ t('catalog.charts.sort.prefix') }}:</span>{{ label }}
+                <span class="mmr-1">{{ t('catalog.charts.sort.prefix') }}</span>{{ label }}
               </template>
 
               <template #option="{ label, kind }">
@@ -788,7 +788,7 @@ export default {
                   v-if="kind === 'group'"
                   class="mml-2 mmr-2"
                 >
-                  {{ label }}:
+                  {{ label }}
                 </span>
                 <span
                   v-else

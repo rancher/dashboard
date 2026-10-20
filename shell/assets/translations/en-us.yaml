@@ -1401,7 +1401,7 @@ catalog:
     resetFilters:
       title: Clear all filters
     sort:
-      prefix: Sort by
+      prefix: "Sort by:"
       recommended: Recommended
       lastUpdatedDesc: Last updated
       alphaAscending: Chart name, A → Z
@@ -5531,6 +5531,9 @@ node:
       pods: Pods
       taints: Taints
   actions:
+    cordon: Cordon
+    uncordon: Uncordon
+    sshShell: SSH Shell
     downloadSSHKey: Download SSH Key
     downloadNodeConfig: Download Keys
     scaleDown: Scale Down

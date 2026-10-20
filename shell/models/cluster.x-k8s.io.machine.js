@@ -61,7 +61,7 @@ export default class CapiMachine extends CapiMachineRoot {
       action:  'openSsh',
       enabled: !!this.links.shell && this.isRunning,
       icon:    'icon icon-chevron-right',
-      label:   'SSH Shell',
+      label:   this.t('node.actions.sshShell'),
     };
     const downloadKeys = {
       action:  'downloadKeys',

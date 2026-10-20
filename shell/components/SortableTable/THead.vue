@@ -148,11 +148,15 @@ export default {
       return this.howMuchSelected === SOME;
     },
     hasColumnWithSubLabel() {
-      return this.columns.some((col) => col.subLabel);
+      return this.columns.some((col) => this.subLabelFor(col));
     }
   },
 
   methods: {
+    subLabelFor(col) {
+      return col.subLabelKey ? this.t(col.subLabelKey) : col.subLabel;
+    },
+
     changeSort(e, col) {
       if ( !col.sort ) {
         return;
@@ -278,10 +282,10 @@ export default {
               :class="{ 'sr-only': col.labelVisuallyHidden }"
             />
             <span
-              v-if="col.subLabel"
+              v-if="subLabelFor(col)"
               class="text-muted text-no-break"
             >
-              {{ col.subLabel }}
+              {{ subLabelFor(col) }}
             </span>
           </div>
           <div

@@ -120,6 +120,24 @@ describe('component: THead', () => {
     ]);
   });
 
+  describe('sub label', () => {
+    it.each([
+      ['a translated subLabelKey', { subLabelKey: 'landing.clusters.distro' }, '%landing.clusters.distro%'],
+      ['a plain subLabel', { subLabel: 'Distro' }, 'Distro'],
+      ['subLabelKey over subLabel', { subLabelKey: 'landing.clusters.distro', subLabel: 'Distro' }, '%landing.clusters.distro%'],
+    ])('should show %s', (_label, col, expected) => {
+      const span = mountTHead({ columns: [{ ...NAME_COLUMN, ...col }] }).find('th .content > .text-muted');
+
+      expect(span.text()).toStrictEqual(expected);
+    });
+
+    it('should not render a sub label when the column has none', () => {
+      const wrapper = mountTHead();
+
+      expect(wrapper.find('th .content > .text-muted').exists()).toBe(false);
+    });
+  });
+
   describe('select all checkbox', () => {
     it('should use the label provided by the parent table', () => {
       const wrapper = mountTHead({
@@ -168,6 +186,7 @@ describe('translations for the named table headers', () => {
     ['sortableTable.expandColumnHeader', shell.sortableTable.expandColumnHeader],
     ['sortableTable.actionsColumnHeader', shell.sortableTable.actionsColumnHeader],
     ['tableHeaders.explore', shell.tableHeaders.explore],
+    ['landing.clusters.distro', shell.landing.clusters.distro],
     // names the harvester-manager column, which lives outside the file above
     ['harvesterManager.manage', harvesterManager.harvesterManager.manage],
   ])('should have a value for %p', (_key, value) => {

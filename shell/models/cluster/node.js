@@ -20,7 +20,7 @@ export default class ClusterNode extends SteveModel {
       action:   'cordon',
       enabled:  !!normanAction.cordon,
       icon:     'icon icon-pause',
-      label:    'Cordon',
+      label:    this.t('node.actions.cordon'),
       total:    1,
       bulkable: true
     };
@@ -29,7 +29,7 @@ export default class ClusterNode extends SteveModel {
       action:   'uncordon',
       enabled:  !!normanAction.uncordon,
       icon:     'icon icon-play',
-      label:    'Uncordon',
+      label:    this.t('node.actions.uncordon'),
       total:    1,
       bulkable: true
     };
@@ -55,7 +55,7 @@ export default class ClusterNode extends SteveModel {
       action:  'openSsh',
       enabled: !!this.provisionedMachine?.links?.shell,
       icon:    'icon icon-chevron-right',
-      label:   'SSH Shell',
+      label:   this.t('node.actions.sshShell'),
     };
 
     const downloadKeys = {
