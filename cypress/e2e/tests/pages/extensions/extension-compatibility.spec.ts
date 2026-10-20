@@ -99,6 +99,10 @@ const skipAboutTop = isSkip('skip_about_top');
 const skipClusterRke2 = isSkip('skip_cluster_create_rke2');
 // The legacy RESOURCE_DETAIL extension point only exists up until Rancher v2.14.0 (per the PDF).
 const skipResourceDetailLegacy = isSkip('skip_resource_detail_legacy');
+// Group 9's row action menu check drives the extension's own (bundled) sortable table. 2.10's page
+// chrome is too old to drive it reliably - the same reason 3.1/4.3 are skipped there - and 2.11 is
+// the oldest host still missing `window.__vueRouter`, so #18635 keeps a matrix row either way.
+const skipExtRowActionMenu = isSkip('skip_ext_row_action_menu');
 
 // On Linux/Windows CI the header-action shortcut combos use 'ctrl', on macOS they use 'meta'
 // (see shell/core/plugin-helpers.ts -> shortcutKey { windows: ['ctrl', x], mac: ['meta', x] }).
@@ -429,6 +433,13 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
     qase(50509, it('4.1 PanelLocation.RESOURCE_LIST', () => {
       goToReposTable();
       cy.contains('Just a sample banner to show that we can render anything here', LONG_TIMEOUT_OPT).should('be.visible');
+
+      // Second RESOURCE_LIST panel, stacked under the banner: an extension-bundled component whose
+      // setup() calls useRoute(). Hosts before 2.12 never set `window.__vueRouter`, which vue-router
+      // used to be externalised to, so this is where the compat stub's fallback gets exercised
+      // (rancher/dashboard#18635). Asserted here rather than in group 9 because this page and panel
+      // are already proven to render on every version in the matrix, including 2.10.
+      cy.get('[data-testid="extension-use-route-probe"]', MEDIUM_TIMEOUT_OPT).should('contain', 'USE ROUTE OK');
     }));
 
     qase(50510, it('4.2 PanelLocation.DETAILS_MASTHEAD & DETAILS_TOP (details)', () => {
@@ -622,6 +633,121 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       cy.contains('button', 'Create').click();
       cy.contains('demo-mach-inv-1', LONG_TIMEOUT_OPT).should('be.visible');
     }));
+  });
+
+  // ── Test Group 9: Cross-version host/shell contract ──
+
+  /**
+   * Regression cover for three bugs that only appear when an extension built against *this*
+   * branch's `@rancher/shell` is loaded into an older Rancher. In each case the code that runs is
+   * the copy of shell bundled into the extension, not the host's own - which is why the normal e2e
+   * run cannot see them and only this matrix can.
+   *
+   * - #18633 Models reach the extension manager through the Vuex root state. Hosts before 2.14 set
+   *   only `rootState.$plugin`, so `resource-class.js` -> `this.$extension.getPlugins()` threw as
+   *   soon as anything read a model's `detailLocation`. Fixed by the root-state half of the compat
+   *   shim in `shell/pkg/auto-import.js`, which also covers `steve-class.js` -> `modelExtensions`
+   *   and the extension validator lookup in `resource-class.js`.
+   * - #18634 `ResourceList/Masthead.vue` reads the manager in `data()`, which runs before that shim
+   *   can possibly have run, so a cold load of an extension list route white-screened. Fixed by the
+   *   optional-chained guard at the call site.
+   * - #18635 is covered by test 4.1 (the `useRoute` probe panel) and, for the `ActionMenuShell`
+   *   consumer specifically, by 9.3 below.
+   *
+   * These need a list page owned by the *extension* - elemental's own `ResourceList` page - with at
+   * least one row, so the group depends on the operator installed by 8.1 and the machine inventory
+   * created by 8.3, and runs last.
+   */
+  describe('Test Group 9: Cross-version host/shell contract', () => {
+    const MACHINE_INV_TYPE = 'elemental.cattle.io.machineinventory';
+    // Created by 8.3, which runs on every version in the matrix.
+    const MACHINE_INV_NAME = 'demo-mach-inv-1';
+    const MACHINE_INV_LIST_URL = `/elemental/c/_/${ MACHINE_INV_TYPE }`;
+
+    /**
+     * Full page load straight onto the extension's list route - the "hard refresh" case - with a
+     * console.error spy in place before the app boots. Vue reports errors thrown in `data()`,
+     * `setup()` and computed properties through console.error rather than letting them reach
+     * Cypress' uncaught:exception handler, so that spy is how these TypeErrors surface.
+     */
+    const coldLoadExtensionList = () => cy.visit(MACHINE_INV_LIST_URL, {
+      onBeforeLoad: (win) => {
+        cy.spy(win.console, 'error').as('consoleError');
+      }
+    });
+
+    const expectNoConsoleError = (pattern: RegExp) => {
+      cy.get('@consoleError').then((spy: any) => {
+        const matched = spy.getCalls()
+          .flatMap((call: any) => call.args)
+          .map((arg: any) => (arg instanceof Error ? `${ arg.message } ${ arg.stack }` : String(arg)))
+          .filter((text: string) => pattern.test(text));
+
+        expect(matched, `console.error entries matching ${ pattern }`).to.have.length(0);
+      });
+    };
+
+    /** The extension's own list, settled and showing the machine inventory row */
+    const extensionList = (): SortableTablePo => {
+      const table = new SortableTablePo(STANDARD_LIST);
+
+      table.checkLoadingIndicatorNotVisible();
+      table.rowElementWithName(MACHINE_INV_NAME, LONG_TIMEOUT_OPT, true).should('be.visible');
+
+      return table;
+    };
+
+    it('9.1 Extension model reaches the extension manager through the root state', () => {
+      coldLoadExtensionList();
+
+      const table = extensionList();
+
+      // `LinkDetail` only renders an <a> when `row.detailLocation` resolves. When the getter behind
+      // it threw, the cell fell back to plain text and every row link was dead.
+      table.detailsPageLinkWithName(MACHINE_INV_NAME, undefined, true)
+        .should('have.attr', 'href')
+        .and('match', new RegExp(`/elemental/c/_/${ MACHINE_INV_TYPE.replace(/\./g, '\\.') }/[^/]+/${ MACHINE_INV_NAME }$`));
+
+      // The extension's other two routes to the manager, surfaced as columns by the test extension.
+      // `modelExtensions` throws when the manager is missing; the validator lookup is optional
+      // chained and so fails silently - which is exactly why it needs asserting rather than
+      // relying on an error.
+      const row = () => table.rowWithName(MACHINE_INV_NAME, true).self();
+
+      row().should('contain', 'MODEL EXTENSION OK');
+      row().should('contain', 'PLUGIN VALIDATOR OK');
+
+      expectNoConsoleError(/getPlugins|getDynamic/);
+    });
+
+    it('9.2 Extension list route renders on a cold load (hard refresh)', () => {
+      coldLoadExtensionList();
+
+      // Masthead, create button and table all come from the extension's bundled ResourceList. If
+      // Masthead's data() throws, none of them render and the route is a blank page.
+      cy.get('header.with-subheader .title h1', LONG_TIMEOUT_OPT).should('be.visible').and('not.be.empty');
+      cy.contains('Create from YAML', MEDIUM_TIMEOUT_OPT).should('be.visible');
+      extensionList();
+
+      expectNoConsoleError(/getPlugins/);
+
+      // Contrast: the in-app path is the one that always worked. Asserting it after the cold load
+      // keeps a failure above attributable to the refresh rather than to a missing route or schema.
+      navToElementalEntry('Inventory of Machines');
+      cy.get('header.with-subheader .title h1', LONG_TIMEOUT_OPT).should('be.visible');
+    });
+
+    (skipExtRowActionMenu ? it.skip : it)('9.3 Row action menu renders on an extension list', () => {
+      coldLoadExtensionList();
+
+      const table = extensionList();
+
+      // The 3-dot button is `ActionMenuShell`. When `useRoute()` threw in its `setup()` the component
+      // never mounted, so the whole column was missing rather than merely misbehaving.
+      openRowActionMenu(table).self().find('[dropdown-menu-item]').should('have.length.greaterThan', 0);
+
+      expectNoConsoleError(/useRoute|__vueRouter/);
+    });
   });
 
   after(() => {
