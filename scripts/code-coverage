@@ -54,9 +54,6 @@ export TEST_INSTRUMENT=true
 export TEST_NO_SCREENSHOTS=true
 export TEST_NO_VIDEOS=true
 
-# Increase the maximum old space size for Node.js to prevent memory issues during the build process
-export NODE_OPTIONS=--max_old_space_size=8192
-
 echo "Start time: $(date)"TEST_SKIP=setup GREP_TAGS='@adminUser' yarn cy:run ${SHOW_BROWSER} | tee ${DIR}/e2e.log
 
 if [ $BUILD -eq 1 ]; then
@@ -64,7 +61,7 @@ if [ $BUILD -eq 1 ]; then
   echo -e "${CYAN}${BOLD}++ Building dashboard UI ...${RESET}"
 
   mkdir -p ${DASHBOARD_DIST}
-  TEST_INSTRUMENT=true ${DIR}/scripts/build-e2e
+  TEST_INSTRUMENT=true E2E_BUILD_CMD=build-coverage ${DIR}/scripts/build-e2e
 else
   echo -e "${CYAN}${BOLD}-- Skipping build${RESET}"
 fi
