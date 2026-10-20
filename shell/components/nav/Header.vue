@@ -187,6 +187,14 @@ export default {
       return this.isRancher && !this.isSingleProduct && !!releaseWelcomeVersion();
     },
 
+    showWhatsNewSeparator() {
+      return this.showWhatsNewLink && (this.showPreferencesLink || this.showAccountAndApiKeyLink);
+    },
+
+    showLogOutSeparator() {
+      return this.authEnabled && (this.showWhatsNewLink || this.showPreferencesLink || this.showAccountAndApiKeyLink);
+    },
+
     showPageActions() {
       return !this.featureRancherDesktop && this.pageActions && this.pageActions.length;
     },
@@ -822,32 +830,44 @@ export default {
               <rc-dropdown-separator />
             </template>
             <rc-dropdown-item
-              v-if="showPreferencesLink"
-              @click="$router.push({ name: 'prefs'})"
-            >
-              {{ t('nav.userMenu.preferences') }}
-            </rc-dropdown-item>
-            <rc-dropdown-item
-              v-if="showAccountAndApiKeyLink"
-              @click="$router.push({ name: 'account'})"
-            >
-              {{ t('nav.userMenu.accountAndKeys', {}, true) }}
-            </rc-dropdown-item>
-            <rc-dropdown-item
               v-if="showWhatsNewLink"
               data-testid="user-menu-whats-new"
               @click="openWhatsNew"
             >
               {{ t('nav.userMenu.whatsNew', {}, true) }}
             </rc-dropdown-item>
+            <rc-dropdown-separator
+              v-if="showWhatsNewSeparator"
+              data-testid="user-menu-separator-whats-new"
+            />
+            <rc-dropdown-item
+              v-if="showPreferencesLink"
+              data-testid="user-menu-preferences"
+              @click="$router.push({ name: 'prefs'})"
+            >
+              {{ t('nav.userMenu.preferences') }}
+            </rc-dropdown-item>
+            <rc-dropdown-item
+              v-if="showAccountAndApiKeyLink"
+              data-testid="user-menu-account"
+              @click="$router.push({ name: 'account'})"
+            >
+              {{ t('nav.userMenu.accountAndKeys', {}, true) }}
+            </rc-dropdown-item>
+            <rc-dropdown-separator
+              v-if="showLogOutSeparator"
+              data-testid="user-menu-separator-log-out"
+            />
             <rc-dropdown-item
               v-if="authEnabled && shouldShowSloLogoutModal"
+              data-testid="user-menu-log-out"
               @click="showSloModal"
             >
               {{ t('nav.userMenu.logOut') }}
             </rc-dropdown-item>
             <rc-dropdown-item
               v-else-if="authEnabled"
+              data-testid="user-menu-log-out"
               @click="$router.push(generateLogoutRoute)"
             >
               {{ t('nav.userMenu.logOut') }}

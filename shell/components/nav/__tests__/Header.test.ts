@@ -525,6 +525,22 @@ describe('component: Header', () => {
       expect(wrapper.find('[data-testid="user-menu-whats-new"]').exists()).toStrictEqual(false);
     });
 
+    it.each([
+      ['every item', { isRancher: true, 'auth/enabled': true }, true, true, ['user-menu-whats-new', 'user-menu-separator-whats-new', 'user-menu-preferences', 'user-menu-account', 'user-menu-separator-log-out', 'user-menu-log-out']],
+      ['no auth', { isRancher: true, 'auth/enabled': false }, true, true, ['user-menu-whats-new', 'user-menu-separator-whats-new', 'user-menu-preferences', 'user-menu-account']],
+      ['no preferences or account', { isRancher: true, 'auth/enabled': true }, false, false, ['user-menu-whats-new', 'user-menu-separator-log-out', 'user-menu-log-out']],
+      ['no what\'s new', { isRancher: false, 'auth/enabled': true }, true, false, ['user-menu-preferences', 'user-menu-separator-log-out', 'user-menu-log-out']],
+      ['only log out', { isRancher: false, 'auth/enabled': true }, false, false, ['user-menu-log-out']],
+    ])('should group the user menu with separators, %s', (_, getters, preferences, tokens, expected) => {
+      const wrapper = createWrapper({}, {
+        'management/schemaFor': () => (preferences ? { resourceMethods: ['PUT'] } : null),
+        'rancher/schemaFor':    () => (tokens ? {} : null),
+        ...getters,
+      });
+
+      expect(wrapper.findAll('[data-testid^="user-menu-"]').map((el) => el.attributes('data-testid'))).toStrictEqual(expected);
+    });
+
     it('should reopen the welcome modal', async() => {
       const open = jest.spyOn(releaseWelcome, 'openReleaseWelcome').mockResolvedValue(undefined);
       const wrapper = createWrapper({}, { isRancher: true });
