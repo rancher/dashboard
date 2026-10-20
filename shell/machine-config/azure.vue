@@ -97,7 +97,7 @@ const storageTypes = [
 ];
 
 export default {
-  emits: ['expandAdvanced', 'error'],
+  emits: ['expandAdvanced', 'error', 'validationChanged'],
 
   components: {
     ArrayList,
@@ -243,6 +243,14 @@ export default {
     'value.availabilityZone'(neu) {
       if (neu && (!this.value.managedDisks || !this.value.enablePublicIpStandardSku || !this.value.staticPublicIp)) {
         this.$emit('expandAdvanced');
+      }
+    },
+
+    'vmAvailabilityZoneWarning'(neu) {
+      if (neu) {
+        this.$emit('validationChanged', false);
+      } else {
+        this.$emit('validationChanged', true);
       }
     }
   },
