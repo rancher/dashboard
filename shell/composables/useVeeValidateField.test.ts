@@ -2,6 +2,8 @@ import {
   computed, defineComponent, nextTick, provide, ref
 } from 'vue';
 import { mount, flushPromises } from '@vue/test-utils';
+import { useForm } from 'vee-validate';
+import RcSection from '@components/RcSection/RcSection.vue';
 import { useVeeValidateField } from './useVeeValidateField';
 
 function createHarness(opts: {
@@ -154,6 +156,50 @@ describe('useVeeValidateField', () => {
       await flushPromises();
 
       expect(wrapper.vm.effectiveValidationMessage).toBeUndefined();
+    });
+  });
+
+  describe('reporting to a collapsed RcSection', () => {
+    const ICON = '[data-testid="rc-section-invalid-fields"]';
+
+    const mountInSection = async(opts: Parameters<typeof createHarness>[0]) => {
+      const Host = defineComponent({
+        components: { RcSection, Field: createHarness(opts) },
+        setup() {
+          useForm();
+        },
+        template: `
+          <RcSection type="primary" mode="with-header" title="Network" expandable :expanded="false">
+            <Field />
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      await flushPromises();
+
+      return wrapper;
+    };
+
+    it('should report a named field that fails validation, before it is touched', async() => {
+      const wrapper = await mountInSection({ name: 'subnet', rules: [(v) => (v ? undefined : 'Required')] });
+
+      expect(wrapper.find(ICON).exists()).toBe(true);
+    });
+
+    it('should not report a named field that passes validation', async() => {
+      const wrapper = await mountInSection({
+        name: 'subnet', value: 'set', rules: [(v) => (v ? undefined : 'Required')]
+      });
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should not report a field without a name', async() => {
+      const wrapper = await mountInSection({ name: null, rules: [() => 'Required'] });
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
     });
   });
 });

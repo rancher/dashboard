@@ -1,4 +1,6 @@
-import { ref } from 'vue';
+import { defineComponent, nextTick, ref } from 'vue';
+import { mount } from '@vue/test-utils';
+import RcSection from '@components/RcSection/RcSection.vue';
 import { useLabeledFormElement } from './useLabeledFormElement';
 
 describe('useLabeledFormElement', () => {
@@ -131,5 +133,55 @@ describe('useLabeledFormElement', () => {
     // When the field is not required, requiredField should be false
     props.value.required = false;
     expect(requiredField.value).toBe(false);
+  });
+
+  describe('reporting to a collapsed RcSection', () => {
+    const ICON = '[data-testid="rc-section-invalid-fields"]';
+    // Named `required`, which the composable treats as the required rule
+    const required = (v: unknown) => (v ? undefined : 'Required');
+
+    const mountInSection = async(props: Record<string, unknown>) => {
+      const Field = defineComponent({
+        setup() {
+          useLabeledFormElement({
+            mode: 'edit', value: '', required: false, disabled: false, rules: [], ...props
+          } as any, jest.fn());
+        },
+        template: '<input />',
+      });
+
+      const Host = defineComponent({
+        components: { RcSection, Field },
+        template:   `
+          <RcSection type="primary" mode="with-header" title="Network" expandable :expanded="false">
+            <Field />
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      await nextTick();
+
+      return wrapper;
+    };
+
+    it('should report a field whose rules fail, even before it is touched', async() => {
+      const wrapper = await mountInSection({ rules: [required] });
+
+      expect(wrapper.find(ICON).exists()).toBe(true);
+    });
+
+    it('should not report a field whose rules pass', async() => {
+      const wrapper = await mountInSection({ value: 'set', rules: [required] });
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should not report a field in view mode', async() => {
+      const wrapper = await mountInSection({ mode: 'view', rules: [required] });
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
   });
 });

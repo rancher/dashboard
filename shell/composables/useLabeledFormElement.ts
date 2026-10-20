@@ -3,6 +3,7 @@ import {
   EmitFn
 } from 'vue';
 import { _VIEW, _EDIT } from '@shell/config/query-params';
+import { useReportInvalidToSection } from '@components/RcSection/useSectionValidity';
 
 interface LabeledFormElementProps {
   mode: string;
@@ -129,6 +130,10 @@ export const useLabeledFormElement = (props: LabeledFormElementProps, emit: Emit
       return undefined;
     }
   });
+
+  // Unlike validationMessage, doesn't wait for the field to be touched: a collapsed section has to show
+  // invalid fields the user hasn't seen yet
+  useReportInvalidToSection(computed(() => !isView.value && props.rules.some((rule: any) => !!rule?.(props.value))));
 
   const onFocusLabeled = () => {
     raised.value = true;

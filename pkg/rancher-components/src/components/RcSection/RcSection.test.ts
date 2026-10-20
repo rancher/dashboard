@@ -1,8 +1,11 @@
-import { defineComponent, nextTick, onMounted, ref } from 'vue';
+import {
+  computed, defineComponent, nextTick, onMounted, ref
+} from 'vue';
 import { flushPromises, mount } from '@vue/test-utils';
 import { useField, useForm } from 'vee-validate';
 import RcContentGroup from '@components/Layout/RcContentGroup/RcContentGroup.vue';
 import RcSection from './RcSection.vue';
+import { useReportInvalidToSection } from './useSectionValidity';
 
 describe('component: RcSection', () => {
   const defaultProps = {
@@ -611,6 +614,190 @@ describe('component: RcSection', () => {
       await wrapper.find('.section-header').trigger('click');
 
       expect(mountCount).toStrictEqual(2);
+    });
+  });
+
+  describe('invalid fields indicator', () => {
+    const ICON = '[data-testid="rc-section-invalid-fields"]';
+
+    // A field that reports `invalid` to the section it is in, like LabeledInput does
+    const Field = defineComponent({
+      props: { invalid: { type: Boolean, default: false } },
+      setup(props) {
+        useReportInvalidToSection(computed(() => props.invalid));
+      },
+      template: '<input class="field" />',
+    });
+
+    // Fields report while the section renders, so the header updates on the next tick
+    const mountSection = async({
+      expanded = false, invalid = true, expandable = true, showField = true
+    } = {}) => {
+      const Host = defineComponent({
+        components: { RcSection, Field },
+        setup() {
+          return {
+            sectionExpanded: ref(expanded), fieldInvalid: ref(invalid), fieldShown: ref(showField), expandable
+          };
+        },
+        template: `
+          <RcSection
+            v-model:expanded="sectionExpanded"
+            type="primary"
+            mode="with-header"
+            title="Network"
+            :expandable="expandable"
+          >
+            <Field v-if="fieldShown" :invalid="fieldInvalid" />
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      await nextTick();
+
+      return wrapper;
+    };
+
+    it('should show a warning icon when a collapsed section has an invalid field', async() => {
+      const wrapper = await mountSection();
+
+      expect(wrapper.find(ICON).exists()).toBe(true);
+    });
+
+    it('should use the warning icon fields use', async() => {
+      const wrapper = await mountSection();
+
+      expect(wrapper.find(`${ ICON } .icon-warning`).exists()).toBe(true);
+    });
+
+    it('should explain the icon in its tooltip', async() => {
+      const wrapper = await mountSection();
+
+      expect(wrapper.findComponent({ name: 'RcIconTooltip' }).props('content')).toStrictEqual('%component.rcSection.invalidFields%');
+    });
+
+    it('should not show the icon when the section is expanded', async() => {
+      const wrapper = await mountSection({ expanded: true });
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should not show the icon when every field is valid', async() => {
+      const wrapper = await mountSection({ invalid: false });
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should not show the icon when the section is not expandable', async() => {
+      const wrapper = await mountSection({ expandable: false, expanded: false });
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should show the icon on collapse and hide it on expand', async() => {
+      const wrapper = await mountSection({ expanded: true });
+
+      await wrapper.find('.section-header').trigger('click');
+      expect(wrapper.find(ICON).exists()).toBe(true);
+
+      await wrapper.find('.section-header').trigger('click');
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should hide the icon once the field becomes valid', async() => {
+      const wrapper = await mountSection();
+
+      (wrapper.vm as unknown as { fieldInvalid: boolean }).fieldInvalid = false;
+      await nextTick();
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should hide the icon once the invalid field is removed', async() => {
+      const wrapper = await mountSection();
+
+      (wrapper.vm as unknown as { fieldShown: boolean }).fieldShown = false;
+      await nextTick();
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should not toggle the section when the icon is clicked', async() => {
+      const wrapper = await mountSection();
+
+      await wrapper.find(ICON).trigger('click');
+
+      expect(wrapper.find('.field').isVisible()).toBe(false);
+    });
+
+    it('should show the icon on a collapsed parent of a section with an invalid field', async() => {
+      const Host = defineComponent({
+        components: { RcSection, Field },
+        template:   `
+          <RcSection type="primary" mode="with-header" title="Outer" expandable :expanded="false" class="outer">
+            <RcSection type="secondary" mode="with-header" title="Inner" expandable>
+              <Field invalid />
+            </RcSection>
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      await nextTick();
+
+      expect(wrapper.find(`.outer > .section-header ${ ICON }`).exists()).toBe(true);
+    });
+
+    it('should not show the icon on an expanded parent of a collapsed section with an invalid field', async() => {
+      const Host = defineComponent({
+        components: { RcSection, Field },
+        template:   `
+          <RcSection type="primary" mode="with-header" title="Outer" expandable class="outer">
+            <RcSection type="secondary" mode="with-header" title="Inner" expandable :expanded="false" class="inner">
+              <Field invalid />
+            </RcSection>
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      await nextTick();
+
+      expect(wrapper.find(`.outer > .section-header ${ ICON }`).exists()).toBe(false);
+      expect(wrapper.find(`.inner > .section-header ${ ICON }`).exists()).toBe(true);
+    });
+
+    it('should show the icon for a real vee-validate field that fails validation', async() => {
+      const Required = defineComponent({
+        setup() {
+          const { errorMessage } = useField<string>('name', (v: unknown) => (v ? true : 'Required'), { validateOnMount: true });
+
+          useReportInvalidToSection(computed(() => !!errorMessage.value));
+        },
+        template: '<input />',
+      });
+
+      const Host = defineComponent({
+        components: { RcSection, Required },
+        setup() {
+          useForm();
+        },
+        template: `
+          <RcSection type="primary" mode="with-header" title="Network" expandable :expanded="false">
+            <Required />
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      await flushPromises();
+
+      expect(wrapper.find(ICON).exists()).toBe(true);
     });
   });
 });
