@@ -25,9 +25,12 @@ describe('CodeMirror editor shortcuts', { tags: ['@components', '@adminUser', '@
   const goDocEnd = () => cy.realPress(['Alt', 'Shift', '>']);
 
   // Put the cursor at the start of the document with the editor focused
+  // Click the first line: the middle of a long document is outside the editor's scroll area, so the click misses
   const focusDocStart = (value: string) => {
     editor().set(value);
-    editor().self().find('.cm-content').realClick();
+    editor().self().find('.cm-line').first()
+      .realClick();
+    editor().self().should('have.class', 'cm-focused');
     goDocStart();
   };
 
@@ -132,6 +135,8 @@ describe('CodeMirror editor shortcuts', { tags: ['@components', '@adminUser', '@
     focusDocStart(lines.join('\n'));
 
     cy.realPress(['Control', 'v']);
+    // Page down keeps the column the click left, so move to the line start before killing the line
+    cy.realPress(['Control', 'a']);
     cy.realPress(['Control', 'k']);
 
     editor().value().then((value: string) => {
@@ -225,7 +230,8 @@ describe('CodeMirror default (Sublime) shortcuts', { tags: ['@components', '@adm
   it('duplicates a line with Mod-Shift-D', () => {
     focusDocStart('alpha\nbeta');
 
-    cy.realPress([modKey, 'Shift', 'd']);
+    // Send the shifted letter, as a browser does. A lowercase 'd' with Shift held matches Mod-D first.
+    cy.realPress([modKey, 'Shift', 'D']);
 
     editor().value().should('eq', 'alpha\nalpha\nbeta');
   });
@@ -298,20 +304,21 @@ describe('CodeMirror Vim shortcuts', { tags: ['@components', '@adminUser', '@sta
     editor().value().should('eq', 'name: app\nreplicas: 2');
   });
 
-  it('writes a YAML list item, yanks it, pastes it, and undoes the paste', () => {
-    focusNormalModeAtStart('- name: app');
+  // A top level key, as the YAML language indents a line opened below a list item to the item's keys
+  it('writes a YAML key, yanks it, pastes it, and undoes the paste', () => {
+    focusNormalModeAtStart('name: app');
 
     cy.realPress('o');
-    cy.realType('- name: worker');
+    cy.realType('replicas: 2');
     cy.realPress('Escape');
-    editor().value().should('eq', '- name: app\n- name: worker');
+    editor().value().should('eq', 'name: app\nreplicas: 2');
 
     cy.realPress('y');
     cy.realPress('y');
     cy.realPress('p');
-    editor().value().should('eq', '- name: app\n- name: worker\n- name: worker');
+    editor().value().should('eq', 'name: app\nreplicas: 2\nreplicas: 2');
 
     cy.realPress('u');
-    editor().value().should('eq', '- name: app\n- name: worker');
+    editor().value().should('eq', 'name: app\nreplicas: 2');
   });
 });
