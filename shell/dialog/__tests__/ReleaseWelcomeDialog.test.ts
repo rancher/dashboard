@@ -22,9 +22,9 @@ const RouterLinkStub = {
   name: 'RouterLink', props: ['to'], template: '<a><slot /></a>'
 };
 
-// Renders the body and the actions, its attributes land on the root like on the dialog element
+// Renders the title, the body and the actions, its attributes land on the root like on the dialog element
 const RcModalStub = {
-  name: 'RcModal', props: ['show', 'size'], template: '<div><slot /><slot name="actions" /></div>'
+  name: 'RcModal', props: ['show', 'size'], template: '<div><div class="title"><slot name="title" /></div><slot /><slot name="actions" /></div>'
 };
 
 const PROMO = {
@@ -97,8 +97,10 @@ describe('component: ReleaseWelcomeDialog', () => {
 
   it('should name the modal after its title', async() => {
     const wrapper = await createWrapper();
+    const heading = wrapper.find('.title h2');
 
-    expect(wrapper.findComponent(RcModalStub).attributes('aria-label')).toStrictEqual('releaseWelcome.title');
+    expect(heading.text()).toStrictEqual('releaseWelcome.title');
+    expect(byTestId(wrapper, 'release-welcome-title').attributes('aria-hidden')).toStrictEqual('true');
   });
 
   it('should open the modal from the ModalManager state', async() => {
@@ -283,15 +285,18 @@ describe('component: ReleaseWelcomeDialog', () => {
     });
   });
 
-  it.each([
-    ['release-welcome-close'],
-    ['release-welcome-go-to-dashboard'],
-  ])('should close on %p', async(testId) => {
+  it('should close with the close button', async() => {
     const wrapper = await createWrapper();
 
-    await byTestId(wrapper, testId).trigger('click');
+    await byTestId(wrapper, 'release-welcome-close').trigger('click');
 
     expect(wrapper.props('modal').onClose).toHaveBeenCalledWith();
+  });
+
+  it('should open with the focus on the close button', async() => {
+    const wrapper = await createWrapper();
+
+    expect(byTestId(wrapper, 'release-welcome-close').attributes()).toHaveProperty('autofocus');
   });
 
   it('should mark the release notes as seen when it closes', async() => {

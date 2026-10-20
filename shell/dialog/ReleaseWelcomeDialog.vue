@@ -111,33 +111,25 @@ const close = () => props.modal.onClose();
     size="large"
     class="release-welcome"
     data-testid="release-welcome"
-    :aria-label="title"
   >
-    <header class="release-welcome__header">
+    <template #title>
+      <h2 class="sr-only">
+        {{ title }}
+      </h2>
       <BrandImage
         class="release-welcome__logo"
         file-name="rancher-logo.svg"
-        :alt="t('releaseWelcome.logo', { vendor })"
+        alt=""
       />
-      <RcButton
-        variant="ghost"
-        :aria-label="t('releaseWelcome.close')"
-        data-testid="release-welcome-close"
-        @click="close"
-      >
-        <i
-          class="icon icon-close"
-          aria-hidden="true"
-        />
-      </RcButton>
-    </header>
+    </template>
 
-    <h2
+    <p
       class="release-welcome__title"
       data-testid="release-welcome-title"
+      aria-hidden="true"
     >
       {{ title }}
-    </h2>
+    </p>
     <p
       v-if="isPrime"
       class="release-welcome__subtitle"
@@ -226,10 +218,11 @@ const close = () => props.modal.onClose();
         <span class="release-welcome__hint">{{ t('releaseWelcome.reopenHint') }}</span>
         <RcButton
           variant="primary"
-          data-testid="release-welcome-go-to-dashboard"
+          data-testid="release-welcome-close"
+          autofocus
           @click="close"
         >
-          {{ t('releaseWelcome.goToDashboard') }}
+          {{ t('releaseWelcome.close') }}
         </RcButton>
       </div>
     </template>
@@ -238,20 +231,15 @@ const close = () => props.modal.onClose();
 
 <style lang="scss" scoped>
 .release-welcome {
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-  }
-
   &__logo {
+    display: block;
     height: 28px;
   }
 
   &__title {
     margin: 0;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
     font-family: var(--title-font-family, inherit);
     font-size: 20px;
     font-weight: 500;

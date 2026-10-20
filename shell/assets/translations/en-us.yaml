@@ -4589,7 +4589,6 @@ landing:
   welcomeToRancher: 'Welcome to {vendor}'
 
 releaseWelcome:
-  logo: "{vendor} logo"
   close: Close
   title: Welcome to {vendor}
   subtitleCommunity: "{vendor} is up and running. Here's what's new in this release."
@@ -4599,7 +4598,6 @@ releaseWelcome:
   newTab: (opens in a new tab)
   loading: Loading the release content
   reopenHint: You can reopen this any time from the user menu at the top right.
-  goToDashboard: Go to Dashboard
   whatsNew:
     title: What's new in this release
     version: v{version}

@@ -43,8 +43,4 @@ export default class ReleaseWelcomeDialogPo extends ComponentPo {
   closeButton() {
     return cy.get('[data-testid="release-welcome-close"]');
   }
-
-  goToDashboardButton() {
-    return cy.get('[data-testid="release-welcome-go-to-dashboard"]');
-  }
 }

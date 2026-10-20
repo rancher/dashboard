@@ -74,7 +74,7 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
 
     cy.wait('@markSeen');
 
-    dialog.goToDashboardButton().click();
+    dialog.closeButton().click();
     dialog.checkNotExists();
 
     HomePagePo.goTo();
@@ -152,11 +152,12 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     dialog.checkNotExists();
   });
 
-  it('closes with the close button', () => {
+  it('opens with the focus on the close button, and closes with it', () => {
     seedSeenWhatsNew('');
 
     HomePagePo.goTo();
     dialog.checkVisible();
+    dialog.closeButton().should('have.focus');
     cy.wait('@markSeen');
 
     dialog.closeButton().click();
