@@ -519,20 +519,25 @@ describe('component: LabeledSelect', () => {
     });
   });
 
+  const forceOpenWithSearch = (wrapper: any, search: string) => {
+    wrapper.vm.$refs['select-input'].search = search;
+    wrapper.vm.forceOpen();
+  };
+
   describe('function: forceOpen', () => {
     it('should open the dropdown, including vue-select itself', () => {
       const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
 
-      wrapper.vm.forceOpen('opt');
+      wrapper.vm.forceOpen();
 
       expect(wrapper.vm.isOpen).toBe(true);
       expect((wrapper.vm.$refs['select-input'] as any).open).toBe(true);
     });
 
-    it('should restore the given search text in vue-select', () => {
+    it('should keep the search text in vue-select', () => {
       const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
 
-      wrapper.vm.forceOpen('opt');
+      forceOpenWithSearch(wrapper, 'opt');
 
       expect((wrapper.vm.$refs['select-input'] as any).search).toStrictEqual('opt');
     });
@@ -542,7 +547,7 @@ describe('component: LabeledSelect', () => {
     it('should close the dropdown, including vue-select itself', async() => {
       const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
 
-      wrapper.vm.forceOpen('opt');
+      forceOpenWithSearch(wrapper, 'opt');
       await wrapper.vm.$nextTick();
 
       wrapper.vm.forceClose();
@@ -554,7 +559,7 @@ describe('component: LabeledSelect', () => {
     it('should clear the search text in vue-select', async() => {
       const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
 
-      wrapper.vm.forceOpen('opt');
+      forceOpenWithSearch(wrapper, 'opt');
       await wrapper.vm.$nextTick();
 
       wrapper.vm.forceClose();
@@ -568,6 +573,208 @@ describe('component: LabeledSelect', () => {
       wrapper.unmount();
 
       expect(() => wrapper.vm.forceClose()).not.toThrow();
+    });
+  });
+
+  describe('keepSearchOnBlur prop', () => {
+    const createWrapper = (keepSearchOnBlur = true, { attachTo, ...props }: { attachTo?: HTMLElement } & Record<string, any> = {}) => mount(LabeledSelect, {
+      props: {
+        options: ['nginx', 'redis'], searchable: true, placeholder: 'Search', keepSearchOnBlur, ...props
+      },
+      attachTo,
+      global: { mocks: { $store: { getters: { 'i18n/t': (key: string, args: Record<string, string>) => `${ key }:${ args.search }` } } } },
+    });
+
+    const typeAndBlur = async(wrapper: ReturnType<typeof createWrapper>) => {
+      const input = wrapper.find('input.vs__search');
+
+      await input.trigger('focus');
+      await input.setValue('ngi');
+      await input.trigger('blur');
+
+      return input;
+    };
+
+    const lastSearch = (wrapper: ReturnType<typeof createWrapper>) => wrapper.emitted('search')?.at(-1)?.[0];
+
+    it('should clear the search text when the input loses focus without it', async() => {
+      const wrapper = createWrapper(false);
+      const input = await typeAndBlur(wrapper);
+
+      expect((input.element as HTMLInputElement).value).toStrictEqual('');
+    });
+
+    it('should show the search text in place of the placeholder when the input loses focus', async() => {
+      const wrapper = createWrapper();
+      const input = await typeAndBlur(wrapper);
+
+      expect(input.attributes('placeholder')).toStrictEqual('ngi');
+    });
+
+    it('should empty the search when the input loses focus', async() => {
+      const wrapper = createWrapper();
+
+      await typeAndBlur(wrapper);
+      await wrapper.vm.$nextTick();
+
+      expect(lastSearch(wrapper)).toStrictEqual('');
+    });
+
+    it('should restore the search text when the input is focused again', async() => {
+      const wrapper = createWrapper();
+      const input = await typeAndBlur(wrapper);
+
+      await input.trigger('focus');
+
+      expect((input.element as HTMLInputElement).value).toStrictEqual('ngi');
+    });
+
+    it('should restore the placeholder when the input is focused again', async() => {
+      const wrapper = createWrapper();
+      const input = await typeAndBlur(wrapper);
+
+      await input.trigger('focus');
+
+      expect(input.attributes('placeholder')).toStrictEqual('Search');
+    });
+
+    it('should search the restored text again when the input is focused again', async() => {
+      const wrapper = createWrapper();
+      const input = await typeAndBlur(wrapper);
+
+      await input.trigger('focus');
+      await wrapper.vm.$nextTick();
+
+      expect(lastSearch(wrapper)).toStrictEqual('ngi');
+    });
+
+    it('should clear the search text when Escape closes the dropdown without it', async() => {
+      const wrapper = createWrapper(false);
+      const input = wrapper.find('input.vs__search');
+
+      await input.trigger('focus');
+      await input.setValue('ngi');
+      await input.trigger('keydown', { keyCode: 27 });
+
+      expect((input.element as HTMLInputElement).value).toStrictEqual('');
+    });
+
+    it('should keep the search text when Escape closes the dropdown', async() => {
+      const wrapper = createWrapper();
+      const input = wrapper.find('input.vs__search');
+
+      await input.trigger('focus');
+      await input.setValue('ngi');
+      await input.trigger('keydown', { keyCode: 27 });
+
+      expect(input.attributes('placeholder')).toStrictEqual('ngi');
+    });
+
+    it('should clear the kept search text on Escape once the dropdown is closed', async() => {
+      const wrapper = createWrapper();
+
+      await typeAndBlur(wrapper);
+      await wrapper.find('.labeled-select').trigger('keydown.esc');
+
+      expect(wrapper.find('input.vs__search').attributes('placeholder')).toStrictEqual('Search');
+    });
+
+    it('should not let Escape reach the page when it clears the kept search text', async() => {
+      const wrapper = createWrapper(true, { attachTo: document.body });
+      const listener = jest.fn();
+
+      await typeAndBlur(wrapper);
+      document.addEventListener('keydown', listener);
+      await wrapper.find('.labeled-select').trigger('keydown.esc');
+      document.removeEventListener('keydown', listener);
+
+      expect(listener).toHaveBeenCalledTimes(0);
+      wrapper.unmount();
+    });
+
+    it('should let Escape reach the page when there is no kept search text', async() => {
+      const wrapper = createWrapper(true, { attachTo: document.body });
+      const listener = jest.fn();
+
+      document.addEventListener('keydown', listener);
+      await wrapper.find('.labeled-select').trigger('keydown.esc');
+      document.removeEventListener('keydown', listener);
+
+      expect(listener).toHaveBeenCalledWith(expect.any(KeyboardEvent));
+      wrapper.unmount();
+    });
+
+    it('should describe the kept search text on the select for assistive technology', async() => {
+      const wrapper = createWrapper();
+
+      await typeAndBlur(wrapper);
+
+      expect(wrapper.find('.labeled-select').attributes('aria-description')).toStrictEqual('labeledSelect.keptSearch:ngi');
+    });
+
+    it('should keep the search text when the dropdown is force closed', async() => {
+      const wrapper = createWrapper();
+
+      forceOpenWithSearch(wrapper, 'ngi');
+      await wrapper.vm.$nextTick();
+      wrapper.vm.forceClose();
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('input.vs__search').attributes('placeholder')).toStrictEqual('ngi');
+    });
+
+    it('should keep the search text when a click outside closes the dropdown while focus is elsewhere', async() => {
+      const wrapper = createWrapper();
+
+      forceOpenWithSearch(wrapper, 'ngi');
+      await wrapper.vm.$nextTick();
+      document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('input.vs__search').attributes('placeholder')).toStrictEqual('ngi');
+    });
+
+    it('should not keep the search text when an option is selected while focus is elsewhere', async() => {
+      const wrapper = createWrapper(true, { appendToBody: false });
+
+      forceOpenWithSearch(wrapper, 'ngi');
+      await wrapper.vm.$nextTick();
+      await wrapper.find('.vs__dropdown-option').trigger('click');
+
+      expect(wrapper.find('input.vs__search').attributes('placeholder')).toStrictEqual('Search');
+    });
+
+    it('should leave the search text in the input when a blur reopens the dropdown', async() => {
+      const elsewhere = document.createElement('button');
+
+      document.body.appendChild(elsewhere);
+
+      const wrapper = createWrapper(true, { attachTo: document.body, 'onOn-blur': () => wrapper.vm.forceOpen() });
+      const input = wrapper.find('input.vs__search');
+
+      (input.element as HTMLInputElement).focus();
+      await input.setValue('ngi');
+      elsewhere.focus();
+      await wrapper.vm.$nextTick();
+
+      expect((input.element as HTMLInputElement).value).toStrictEqual('ngi');
+      wrapper.unmount();
+      elsewhere.remove();
+    });
+
+    it('should leave the search text in the input while it has focus', async() => {
+      const wrapper = createWrapper(true, { attachTo: document.body });
+      const input = wrapper.find('input.vs__search');
+
+      (input.element as HTMLInputElement).focus();
+      await input.setValue('ngi');
+      wrapper.vm.isOpen = true;
+      await wrapper.vm.$nextTick();
+      wrapper.vm.isOpen = false;
+      await wrapper.vm.$nextTick();
+
+      expect((input.element as HTMLInputElement).value).toStrictEqual('ngi');
+      wrapper.unmount();
     });
   });
 

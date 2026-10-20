@@ -9,6 +9,7 @@ exports[`component: AppCoVersionSelect should match snapshot 1`] = `
   filterable="true"
   hovertooltip="true"
   instore="cluster"
+  keepsearchonblur="false"
   label="%fleet.helmOp.appCoConfig.chartVersion%"
   loading="false"
   localizedlabel="false"

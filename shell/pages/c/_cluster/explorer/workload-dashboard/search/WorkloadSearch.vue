@@ -75,10 +75,7 @@ function updateDropdownVisibleRows(): void {
 onMounted(() => window.addEventListener('resize', updateDropdownVisibleRows));
 onBeforeUnmount(() => window.removeEventListener('resize', updateDropdownVisibleRows));
 
-// Moving focus from the search input into a result (its action menu, or a link by keyboard) blurs the input, which
-// makes vue-select clear its search and close, unmounting the results with them. Remember enough to reopen it on that blur.
 const keepOpenOnBlur = ref(false);
-const lastSearchTerm = ref('');
 
 function searchInput(): HTMLInputElement | null {
   return searchRef.value?.$el?.querySelector('input.vs__search') || null;
@@ -125,13 +122,6 @@ function onActionsClick(event: MouseEvent) {
   }
 }
 
-function handleSearch(term: string): void {
-  if (term) {
-    lastSearchTerm.value = term;
-  }
-  onSearch(term);
-}
-
 // Workload names can't contain whitespace, so keep it out of the search
 function onSearchBeforeInput(event: InputEvent): void {
   const input = searchInput();
@@ -160,7 +150,7 @@ function onSearchBlur() {
 
   keepOpenOnBlur.value = false;
 
-  searchRef.value?.forceOpen(lastSearchTerm.value);
+  searchRef.value?.forceOpen();
 }
 
 function onActionInvoked(): void {
@@ -225,6 +215,7 @@ function onResultsFocusout(event: FocusEvent): void {
     :options="options"
     :searchable="true"
     :filterable="false"
+    :keep-search-on-blur="true"
     :append-to-body="false"
     :visible-rows="dropdownVisibleRows"
     :visible-row-height="dropdownVisibleRowHeight"
@@ -234,7 +225,7 @@ function onResultsFocusout(event: FocusEvent): void {
     :placeholder="t('workloadDashboard.search.placeholder')"
     :aria-label="t('workloadDashboard.search.ariaLabel')"
     data-testid="workload-dashboard-search"
-    @search="handleSearch"
+    @search="onSearch"
     @update:value="onSelect"
     @on-blur="onSearchBlur"
     @on-open="updateDropdownVisibleRows"
