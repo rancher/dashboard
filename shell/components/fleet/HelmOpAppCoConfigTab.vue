@@ -183,22 +183,17 @@ const appCoLockedSecrets = computed(() => {
 const isStandaloneAdvanced = computed(() => props.hideChartConfig && props.hideTarget && !props.hideAdvanced);
 const isStandaloneTarget = computed(() => props.hideChartConfig && !props.hideTarget && props.hideAdvanced);
 
-const advancedExpanded = ref(false);
-
 const advancedWrapperProps = computed(() => {
   if (isStandaloneAdvanced.value) {
     return {};
   }
 
   return {
-    title:               t('fleet.helmOp.appCoConfig.advanced'),
-    mode:                'with-header',
-    type:                'primary',
-    expandable:          true,
-    expanded:            advancedExpanded.value,
-    'onUpdate:expanded': (expanded: boolean) => {
-      advancedExpanded.value = expanded;
-    },
+    title:      t('fleet.helmOp.appCoConfig.advanced'),
+    mode:       'with-header',
+    type:       'primary',
+    expandable: true,
+    expanded:   false,
   };
 });
 
@@ -220,15 +215,6 @@ const refreshYamlEditor = () => {
     valuesTabRef.value?.refreshYaml?.();
   });
 };
-
-// RcSection keeps collapsed content mounted (hidden), so the values YAML
-// editor is laid out while invisible. Refresh it once the Advanced section
-// is shown so CodeMirror measures itself correctly.
-watch(advancedExpanded, (expanded) => {
-  if (expanded) {
-    refreshYamlEditor();
-  }
-});
 
 defineExpose({ refreshYamlEditor });
 

@@ -1,5 +1,6 @@
 <script>
 import * as d3 from 'd3';
+import { observeReveal } from '@components/utils/reveal';
 
 export default {
   props: {
@@ -26,27 +27,23 @@ export default {
   },
 
   data() {
-    return { dataSet: [this.inputDatum], isMounted: false };
+    return { dataSet: [this.inputDatum], containerSize: null };
   },
 
   computed: {
     graphWidth() {
-      if (!this.isMounted) {
+      if (!this.containerSize) {
         return 0;
       }
 
-      const divWidth = d3.select('.graphContainer').node().getBoundingClientRect().width;
-
-      return Math.max(this.width, divWidth);
+      return Math.max(this.width, this.containerSize.width);
     },
     graphHeight() {
-      if (!this.isMounted) {
+      if (!this.containerSize) {
         return 0;
       }
 
-      const divHeight = d3.select('.graphContainer').node().getBoundingClientRect().height;
-
-      return Math.max(this.height, divHeight);
+      return Math.max(this.height, this.containerSize.height);
     },
     scaleX() {
       return d3.scaleLinear().domain([0, 10]).range([0, this.graphWidth])
@@ -75,9 +72,22 @@ export default {
       //   this.drawLine();
     }
   },
-  // track when component is mounted to use d3 DOM reference
+  // measure once mounted to use d3 DOM reference
   mounted() {
-    this.isMounted = true;
+    this.measure();
+
+    // Mounted while hidden (e.g. in a collapsed RcSection) the size is 0, so measure again once shown
+    this.stopObservingReveal = observeReveal(this.$el, this.measure);
+  },
+  beforeUnmount() {
+    this.stopObservingReveal?.();
+  },
+  methods: {
+    measure() {
+      const { width, height } = this.$el.getBoundingClientRect();
+
+      this.containerSize = { width, height };
+    },
   },
 
 };

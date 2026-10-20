@@ -529,4 +529,88 @@ describe('component: RcSection', () => {
       expect(mountCount).toStrictEqual(1);
     });
   });
+
+  describe('unmountOnHide prop', () => {
+    it('should default unmountOnHide to false', () => {
+      const wrapper = mount(RcSection, { props: defaultProps });
+
+      expect(wrapper.props('unmountOnHide')).toBe(false);
+    });
+
+    it('should remove the content from the DOM when collapsed', () => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: false, unmountOnHide: true
+        },
+        slots: { default: '<p class="slot-content">Content</p>' },
+      });
+
+      expect(wrapper.find('.section-content').exists()).toBe(false);
+    });
+
+    it('should render the content when expanded', () => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: true, unmountOnHide: true
+        },
+        slots: { default: '<p class="slot-content">Content</p>' },
+      });
+
+      expect(wrapper.find('.slot-content').isVisible()).toBe(true);
+    });
+
+    it('should render the content after navigating to a collapsed section', async() => {
+      Element.prototype.scrollIntoView = jest.fn();
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: false, unmountOnHide: true
+        },
+        slots: { default: '<p class="slot-content">Content</p>' },
+      });
+
+      (wrapper.vm as unknown as { summary: { scrollTo: () => void } }).summary.scrollTo();
+      await nextTick();
+
+      expect(wrapper.find('.slot-content').isVisible()).toBe(true);
+    });
+
+    it('should remount the content when the section is collapsed and expanded again', async() => {
+      let mountCount = 0;
+
+      const Counted = defineComponent({
+        setup() {
+          onMounted(() => {
+            mountCount++;
+          });
+        },
+        template: '<p class="slot-content">Content</p>',
+      });
+
+      const Host = defineComponent({
+        components: { RcSection, Counted },
+        setup() {
+          return { sectionExpanded: ref(true) };
+        },
+        template: `
+          <RcSection
+            v-model:expanded="sectionExpanded"
+            type="primary"
+            mode="with-header"
+            title="Network"
+            expandable
+            unmount-on-hide
+          >
+            <Counted />
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      await wrapper.find('.section-header').trigger('click');
+      await wrapper.find('.section-header').trigger('click');
+
+      expect(mountCount).toStrictEqual(2);
+    });
+  });
 });

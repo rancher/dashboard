@@ -55,6 +55,11 @@
  *   </template>
  *   <p>Section content here</p>
  * </RcSection>
+ *
+ * A collapsed section keeps its content mounted but hidden, so form fields inside it keep validating.
+ * Content that sizes itself from the DOM on mount measures zero while hidden, and should measure again
+ * once shown (see observeReveal in @components/utils/reveal). Content that can't do this can set
+ * `unmountOnHide` to be unmounted while collapsed instead.
  */
 import {
   computed, inject, nextTick, provide, useTemplateRef, type Ref
@@ -66,7 +71,7 @@ import type { RcSectionProps, SectionBackground } from './types';
 
 const RC_SECTION_BG_KEY = 'rc-section-background';
 
-const props = withDefaults(defineProps<RcSectionProps>(), { title: '' });
+const props = withDefaults(defineProps<RcSectionProps>(), { title: '', unmountOnHide: false });
 
 const parentBackground = inject<Ref<SectionBackground> | null>(RC_SECTION_BG_KEY, null);
 
@@ -198,8 +203,10 @@ function toggle() {
       v-show (not v-if) keeps collapsed content mounted, so form fields inside
       it stay registered with their validation (e.g. vee-validate useField)
       and keep reporting errors while the section is collapsed.
+      unmountOnHide opts back into unmounting collapsed content.
     -->
     <div
+      v-if="expanded || !props.unmountOnHide"
       v-show="expanded"
       :class="contentClass"
     >
