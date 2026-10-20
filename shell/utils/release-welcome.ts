@@ -4,8 +4,13 @@ import { getVersionData } from '@shell/config/version';
 import { READ_WHATS_NEW } from '@shell/store/prefs';
 import { compare, parse } from '@shell/utils/version';
 
-// Read like the release notes notification (shell/utils/release-notes.ts), without the build suffix (e.g. '-head')
-const parseVersion = () => semver.coerce(getVersionData().Version.split('-')[0]);
+// Read like the release notes notification (shell/utils/release-notes.ts), without the build suffix (e.g. '-head'),
+// and only a version: a build from a commit reports the commit instead (e.g. '9bf6631da')
+const parseVersion = () => {
+  const version = getVersionData().Version.split('-')[0];
+
+  return /^v?\d+\.\d+/.test(version) ? semver.coerce(version) : null;
+};
 
 /**
  * Minor version of the running Rancher (e.g. '2.16'), or undefined when the version can't be parsed (e.g. dev builds)

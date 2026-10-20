@@ -36,6 +36,8 @@ describe('utils: release-welcome', () => {
       ['dev'],
       [''],
       ['master-head'],
+      ['9bf6631da'],
+      ['abc1234'],
     ])('should return undefined for the unparsable version %p', (version) => {
       setVersion(version);
 
