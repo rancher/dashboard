@@ -60,9 +60,9 @@ export default class Deployment extends Workload {
           spec: revision.spec.template.spec
         }
       }, {
-        op:    'replace',
-        path:  '/metadata/annotations',
-        value: { 'deployment.kubernetes.io/revision': revision.metadata.annotations['deployment.kubernetes.io/revision'] }
+        op:    'add',
+        path:  '/metadata/annotations/deployment.kubernetes.io~1revision',
+        value: revision.metadata.annotations?.['deployment.kubernetes.io/revision']
       }
     ];
 
