@@ -1,6 +1,8 @@
 import { setVersionData } from '@shell/config/version';
 import { READ_WHATS_NEW } from '@shell/store/prefs';
-import { openReleaseWelcome, releaseWelcomeVersion, shouldShowReleaseWelcome, showReleaseWelcomeIfNew } from '@shell/utils/release-welcome';
+import {
+  openReleaseWelcome, releaseWelcomeVersion, runningVersion, shouldShowReleaseWelcome, showReleaseWelcomeIfNew
+} from '@shell/utils/release-welcome';
 
 jest.mock('@shell/dialog/ReleaseWelcomeDialog.vue', () => ({ __esModule: true, default: { name: 'ReleaseWelcomeDialog' } }));
 
@@ -42,6 +44,21 @@ describe('utils: release-welcome', () => {
       setVersion(version);
 
       expect(releaseWelcomeVersion()).toBeUndefined();
+    });
+  });
+
+  describe('runningVersion', () => {
+    it.each([
+      ['v2.16.1', '2.16.1'],
+      ['v2.16.0-abc1234-head', '2.16.0'],
+      ['2.16.0-rc1', '2.16.0'],
+      ['dev', undefined],
+      ['9bf6631da', undefined],
+      ['', undefined],
+    ])('should return the version of %p', (version, expected) => {
+      setVersion(version);
+
+      expect(runningVersion()).toStrictEqual(expected);
     });
   });
 

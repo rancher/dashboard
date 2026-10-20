@@ -169,10 +169,13 @@ describe('component: ReleaseWelcomeDialog', () => {
     });
   });
 
-  it('should pass the minor version to the what\'s new card', async() => {
-    const wrapper = await createWrapper();
+  it.each([
+    ['the minor version on Community', false, '2.16'],
+    ['the patch version on Prime', true, '2.16.1'],
+  ])('should show %s in the what\'s new badge', async(_, prime, expected) => {
+    const wrapper = await createWrapper({ prime });
 
-    expect(wrapper.findComponent(WhatsNewCard).props('version')).toStrictEqual('2.16');
+    expect(wrapper.findComponent(WhatsNewCard).props('version')).toStrictEqual(expected);
   });
 
   it('should pass the features from dynamic content to the what\'s new card', async() => {

@@ -4600,7 +4600,7 @@ releaseWelcome:
   reopenHint: You can reopen this any time from the user menu at the top right.
   whatsNew:
     title: What's new in this release
-    version: v{version}
+    version: "{version}"
     releaseNotes: Release notes
     features:
       navigation:

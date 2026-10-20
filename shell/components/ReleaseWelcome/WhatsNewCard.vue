@@ -8,7 +8,7 @@ import { FirstRunFeature } from '@shell/utils/dynamic-content/types';
 
 const props = defineProps({
   /**
-   * Version of the content, e.g. '2.16', or '2.16.1' for a patch entry
+   * Version in the badge, e.g. '2.16', or '2.16.1' on Prime
    */
   version: {
     type:     String,

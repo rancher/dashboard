@@ -17,7 +17,7 @@ import { SCC } from '@shell/store/features';
 import { isAdminUser } from '@shell/store/type-map';
 import { fetchFirstRunContent } from '@shell/utils/dynamic-content/first-run';
 import { FirstRunReleaseContent } from '@shell/utils/dynamic-content/types';
-import { releaseWelcomeVersion } from '@shell/utils/release-welcome';
+import { releaseWelcomeVersion, runningVersion } from '@shell/utils/release-welcome';
 import { markReleaseNotesRead } from '@shell/utils/release-notes';
 
 const props = defineProps({
@@ -42,6 +42,7 @@ const { t } = useI18n(store);
 const vendor = getVendor();
 const minorVersion = releaseWelcomeVersion() || '';
 const isPrime = isRancherPrime();
+const badgeVersion = isPrime ? runningVersion() || minorVersion : minorVersion;
 
 // Same access as the registration page added by the rancher-prime extension
 const canRegister = computed(() => isPrime && isAdminUser(store.getters) && !!store.getters['features/get'](SCC));
@@ -198,7 +199,7 @@ const close = () => props.modal.onClose();
           class="release-welcome__cards-content"
         >
           <WhatsNewCard
-            :version="minorVersion"
+            :version="badgeVersion"
             :features="content.features"
           />
           <PrimeRegistrationCard

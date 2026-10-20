@@ -147,7 +147,7 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     cy.wait('@firstRun');
     dialog.checkVisible();
     dialog.whatsNewFeatures().should('have.length', 4);
-    dialog.whatsNewVersion().should('contain', 'v2.16');
+    dialog.whatsNewVersion().should('contain', '2.16').and('not.contain', 'v').and('not.contain', '2.16.1');
 
     dialog.closeButton().click();
     cy.wait('@markRead');
