@@ -33,7 +33,7 @@
     "@codemirror/view": "6.43.13",
     "@lezer/common": "1.5.3",
     "@lezer/highlight": "1.2.4",
-    "@rancher/icons": "^2.0.65",
+    "@rancher/icons": "^2.0.66",
     "@replit/codemirror-vim": "6.4.0",
     "lodash.debounce": "4.0.8"
   },

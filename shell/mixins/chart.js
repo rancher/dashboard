@@ -552,9 +552,9 @@ export default {
               await existingCRDApp.fetchValues(true);
 
               // spec.values are any non-default values the user configured
-              // the installation form should show these, as well as any default values from the chart
+              // the installation form should show these, as well as any default values from the target chart version
               const existingValues = clone(existingCRDApp.values || {});
-              const defaultValues = clone(existingCRDApp.chartValues || {});
+              const defaultValues = clone(crdVersionInfo.values || {});
 
               crdVersionInfo.existingValues = existingValues;
               crdVersionInfo.allValues = merge(defaultValues, existingValues);

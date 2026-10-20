@@ -4542,6 +4542,7 @@ labelSelect:
 labeledSelect:
   startTyping: Start typing to define an item
   pressEnter: Press enter to add "{input}"
+  keptSearch: 'Last search: {search}'
 
 landing:
   bannerImage: Homepage banner image
@@ -6679,7 +6680,9 @@ resourceDetail:
         no {a {managedBy} app}
         yes {the {managedBy} app {appName}}
         other {a {managedBy} app}}; changes made here will likely be overwritten the next time {managedBy} runs.
-    fleetManaged: This resource is managed by <b>Fleet</b>. To make permanent changes, update the configuration in the source repository. Any manual changes made here will be overwritten during the next sync.
+    fleetManaged: This resource is managed by <b>{name}</b>. To make permanent changes, update the configuration in the source repository. Any manual changes made here will be overwritten during the next sync.
+    fleetManagedLink: View in {name}
+    fleetManagedBadge: Managed
 resourceList:
   head:
     create: Create

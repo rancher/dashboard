@@ -3,6 +3,7 @@ import TitleBar, { TitleBarProps } from '@shell/components/Resource/Detail/Title
 import Metadata, { MetadataProps } from '@shell/components/Resource/Detail/Metadata/index.vue';
 import Cards from '@shell/components/Resource/Detail/Cards.vue';
 import FleetManagedBanner from '@shell/components/Resource/Detail/FleetManagedBanner.vue';
+import FleetManagedBadge from '@shell/components/Resource/Detail/FleetManagedBadge.vue';
 
 export interface MastheadProps {
   titleBarProps?: TitleBarProps;
@@ -26,10 +27,8 @@ const props = defineProps<MastheadProps>();
       >
         <slot name="additional-actions" />
       </template>
-      <template
-        v-if="$slots['title-suffix']"
-        #title-suffix
-      >
+      <template #title-suffix>
+        <FleetManagedBadge :resource="props.titleBarProps.resource" />
         <slot name="title-suffix" />
       </template>
     </TitleBar>
