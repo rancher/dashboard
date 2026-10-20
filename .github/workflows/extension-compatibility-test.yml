@@ -79,6 +79,9 @@ jobs:
             # #18635 keeps a matrix row regardless - 2.11 also lacks window.__vueRouter, and the
             # useRoute probe asserted in 4.1 runs here too.
             skip_ext_row_action_menu: "true"
+            # Resources API and Product Registration API are v2.15.0+
+            skip_resources_api: "true"
+            skip_product_registration: "true"
           # 2.11 is EOL: pinned to specific commit with known Docker Hub image.
           # The stgregistry.suse.com repo doesn't have commit-hash tagged images for 2.11.
           - rancher_version: "v2.11-df80b1315c63a6b1b4aa7f9a4ea22dff4b1e71e2-head"
@@ -97,6 +100,9 @@ jobs:
             skip_resource_detail_legacy: "false"
             skip_row_name_assert: "false"
             skip_ext_row_action_menu: "false"
+            # Resources API and Product Registration API are v2.15.0+
+            skip_resources_api: "true"
+            skip_product_registration: "true"
           - rancher_version: "v2.12-head"
             rancher_registry: "stgregistry.suse.com"
             kube_version: "v1.33.12+k3s1"
@@ -115,6 +121,9 @@ jobs:
             skip_resource_detail_legacy: "false"
             skip_row_name_assert: "false"
             skip_ext_row_action_menu: "false"
+            # Resources API and Product Registration API are v2.15.0+
+            skip_resources_api: "true"
+            skip_product_registration: "true"
           - rancher_version: "v2.13-head"
             rancher_registry: "stgregistry.suse.com"
             kube_version: "v1.34.8+k3s1"
@@ -130,6 +139,9 @@ jobs:
             skip_resource_detail_legacy: "false"
             skip_row_name_assert: "false"
             skip_ext_row_action_menu: "false"
+            # Resources API and Product Registration API are v2.15.0+
+            skip_resources_api: "true"
+            skip_product_registration: "true"
           - rancher_version: "v2.14-head"
             rancher_registry: ""
             kube_version: "v1.35.5+k3s1"
@@ -144,6 +156,9 @@ jobs:
             skip_resource_detail_legacy: "false"
             skip_row_name_assert: "false"
             skip_ext_row_action_menu: "false"
+            # Resources API and Product Registration API are v2.15.0+
+            skip_resources_api: "true"
+            skip_product_registration: "true"
           - rancher_version: "v2.15-head"
             rancher_registry: ""
             kube_version: "v1.36.2+k3s1"
@@ -164,6 +179,8 @@ jobs:
             # Remove this once the fix is backported to release-2.15 and the image re-pins.
             skip_row_name_assert: "true"
             skip_ext_row_action_menu: "false"
+            skip_resources_api: "false"
+            skip_product_registration: "false"
           - rancher_version: "head"
             rancher_registry: ""
             kube_version: "v1.36.1+k3s1"
@@ -178,6 +195,8 @@ jobs:
             skip_resource_detail_legacy: "true"
             skip_row_name_assert: "false"
             skip_ext_row_action_menu: "false"
+            skip_resources_api: "false"
+            skip_product_registration: "false"
 
     name: "Rancher ${{ matrix.version_label }}"
 
@@ -467,6 +486,8 @@ jobs:
           CYPRESS_skip_resource_detail_legacy: ${{ matrix.skip_resource_detail_legacy }}
           CYPRESS_skip_row_name_assert: ${{ matrix.skip_row_name_assert }}
           CYPRESS_skip_ext_row_action_menu: ${{ matrix.skip_ext_row_action_menu }}
+          CYPRESS_skip_resources_api: ${{ matrix.skip_resources_api }}
+          CYPRESS_skip_product_registration: ${{ matrix.skip_product_registration }}
           CYPRESS_rancher_version: ${{ matrix.version_label }}
         run: |
           yarn cy:run --spec cypress/e2e/tests/pages/extensions/extension-compatibility.spec.ts
