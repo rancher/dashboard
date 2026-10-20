@@ -11,6 +11,7 @@ const DEFAULT_TLS_PORT = 636;
 
 export const SHIBBOLETH = 'shibboleth';
 export const OKTA = 'okta';
+export const ADFS = 'adfs';
 export const OPEN_LDAP = 'openldap';
 export const FREE_IPA = 'freeipa';
 
@@ -65,7 +66,7 @@ export default {
   computed: {
     // Does the auth provider support LDAP for search in addition to SAML?
     isSamlProvider() {
-      return this.type === SHIBBOLETH || this.type === OKTA;
+      return this.type === SHIBBOLETH || this.type === OKTA || this.type === ADFS;
     },
 
     // Allow to enable user search just for these providers
@@ -150,20 +151,16 @@ export default {
         />
       </div>
 
-      <div class="col">
+      <div class="col span-2 tls-options">
         <Checkbox
           v-model:value="model.tls"
           :mode="mode"
-          class="full-height"
           :label="t('authConfig.ldap.tls')"
         />
-      </div>
-      <div class="col span-1">
         <Checkbox
           v-model:value="model.starttls"
           :tooltip="t('authConfig.ldap.starttls.tip')"
           :mode="mode"
-          class="full-height"
           :label="t('authConfig.ldap.starttls.label')"
         />
       </div>
@@ -422,6 +419,13 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .tls-options {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+  }
+
   .schema-container {
     display: flex;
     gap: 1.75%;

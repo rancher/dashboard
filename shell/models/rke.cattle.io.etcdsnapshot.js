@@ -1,6 +1,6 @@
 import NormanModel from '@shell/plugins/steve/norman-class';
 import { SNAPSHOT } from '@shell/config/labels-annotations';
-import { CAPI, DEFAULT_WORKSPACE } from '@shell/config/types';
+import { CAPI, DEFAULT_WORKSPACE, MANAGEMENT } from '@shell/config/types';
 import { get } from '@shell/utils/object';
 import { base64Decode } from '@shell/utils/crypto';
 import { ucFirst } from '@shell/utils/string';
@@ -49,12 +49,21 @@ export default class EtcdBackup extends NormanModel {
     return this.snapshotFile?.name || this.name;
   }
 
+  // Imported cluster snapshots live in the management cluster's namespace, so `cluster` can't find them
+  get resolvedCluster() {
+    return this.cluster || this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, this.spec?.clusterName);
+  }
+
+  get isDayTwoOpsEnabled() {
+    return !!this.resolvedCluster?.isDayTwoOpsEnabled;
+  }
+
   get restoreEnabled() {
-    return this.snapshotFile?.status === STATES_ENUM.SUCCESSFUL && !this.isSnapshotTooOld;
+    return this.isDayTwoOpsEnabled && this.snapshotFile?.status === STATES_ENUM.SUCCESSFUL && !this.isSnapshotTooOld;
   }
 
   get isSnapshotTooOld() {
-    return this.snapshotFile?.createdAt <= this.cluster?.metadata?.creationTimestamp;
+    return this.snapshotFile?.createdAt <= this.resolvedCluster?.metadata?.creationTimestamp;
   }
 
   get errorMessage() {

@@ -5,7 +5,7 @@ import Banner from '@components/Banner/Banner.vue';
 import { RadioGroup } from '@components/Form/Radio';
 import { useStore } from 'vuex';
 import { DAY_2_OPS_DEFAULT as DEFAULT } from '@pkg/imported/util/shared.ts';
-import { RcSection, SECTION_TYPE } from '@components/RcSection';
+import { RcContentGroup } from '@components/Layout';
 
 defineOptions({ name: 'DayTwoOps' });
 const props = defineProps({
@@ -74,12 +74,7 @@ const showBanner = computed(() => {
 </script>
 
 <template>
-  <RcSection
-    :title="t('imported.basics.dayTwoOpsEnabled.title')"
-    mode="with-header"
-    :type="SECTION_TYPE.SECONDARY"
-    :expandable="true"
-  >
+  <RcContentGroup>
     <p>
       {{ t('imported.basics.dayTwoOpsEnabled.description') }}
     </p>
@@ -109,5 +104,5 @@ const showBanner = computed(() => {
         class="summary"
       />
     </div>
-  </RcSection>
+  </RcContentGroup>
 </template>

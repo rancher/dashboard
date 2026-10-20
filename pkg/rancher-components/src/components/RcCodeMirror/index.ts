@@ -17,3 +17,4 @@ export {
   foldYamlPath,
   foldAllComments,
 } from './extensions/fold';
+export { searchPanel } from './extensions/searchPanel';

@@ -5,8 +5,8 @@ import debounce from 'lodash/debounce';
 import { useI18n } from '@shell/composables/useI18n';
 import { PaginationParamFilter, type PaginationParamProjectOrNamespace } from '@shell/types/store/pagination.types';
 import type { StateColor } from '@shell/utils/style';
+import { getNamespaceFilterParams } from '@shell/utils/namespace-filter-params';
 import { WORKLOAD_DASHBOARD_RESOURCE_TYPES } from '../types';
-import { getWorkloadNamespaceFilterParams } from '../namespaceFilter';
 import {
   WORKLOAD_SEARCH_DEBOUNCE_MS,
   WORKLOAD_SEARCH_MIN_CHARS,
@@ -121,7 +121,7 @@ export function useWorkloadSearch() {
     loading.value = true;
 
     try {
-      const namespaceFilter = getWorkloadNamespaceFilterParams(store);
+      const namespaceFilter = getNamespaceFilterParams(store);
       const results = await Promise.all(
         WORKLOAD_DASHBOARD_RESOURCE_TYPES.map((type) => fetchOptionsForType(type, term, namespaceFilter))
       );

@@ -752,7 +752,14 @@ export default {
             this.fvFormIsValid &&
             this.etcdConfigValid &&
             this.basicsValid &&
-            this.registryConfigValid;
+            this.registryConfigValid &&
+            !this.ingressNginxUnsupported;
+    },
+    ingressNginxUnsupported() {
+      return !this.isK3s &&
+        !!this.value.spec.kubernetesVersion &&
+        semver.gte(this.value.spec.kubernetesVersion, 'v1.37.0') &&
+        this.value.spec.rkeConfig.machineGlobalConfig?.[INGRESS_CONTROLLER] === INGRESS_NGINX;
     },
     nginxSupported() {
       if (this.serverArgs?.disable?.options.includes(RKE2_INGRESS_NGINX)) {
@@ -2250,6 +2257,7 @@ export default {
               :cloud-provider-options="cloudProviderOptions"
               :has-some-ipv6-pools="hasOnlyIpv6Pools"
               :original-ingress-controller="originalIngressController"
+              :previous-kube-version="liveValue?.spec?.kubernetesVersion"
               @update:value="$emit('input', $event)"
               @cilium-values-changed="handleCiliumValuesChanged"
               @enabled-system-services-changed="handleEnabledSystemServicesChanged"

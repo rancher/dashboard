@@ -46,6 +46,10 @@ export default class ClusterManagerEditImportedPagePo extends PagePo {
     return this.self().find('[data-testid="version-management-banner"]');
   }
 
+  etcdAutomaticBackups() {
+    return this.section('Day 2 Operations').content().find('[data-testid="etcd-automatic-backups"]');
+  }
+
   versionManagementRadioButton(): RadioGroupInputPo {
     return new RadioGroupInputPo('[data-testid="imported-version-management-radio"]');
   }

@@ -95,6 +95,7 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
         <span class="text-deemphasized">{{ item.label }}</span>
         <PercentageBar
           :model-value="barPercentage(item)"
+          size="small"
           aria-hidden="true"
         />
         <span
@@ -212,12 +213,6 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
       flex-direction: column;
       gap: 8px;
       min-width: 0;
-    }
-
-    // A thin bar, rather than the thick one used in tables
-    :deep(.bar) {
-      height: 4px;
-      border-radius: 2px;
     }
   }
 }

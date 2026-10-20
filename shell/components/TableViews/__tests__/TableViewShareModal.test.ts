@@ -12,7 +12,14 @@ const running: SharedTableView = {
   name: 'Running', query: 'state:running', columns: null, columnOrder: null, labelColumns: [], groupBy: null, sort: null, sortDescending: false
 };
 
-function mountModal(props: { mode: 'share' | 'import', value?: string, tableKey?: string, intoNewView?: boolean }) {
+// Draws its slots in place, as RcModal does, without the teleport
+const RcModalStub = {
+  props:    ['show', 'title'],
+  emits:    ['close'],
+  template: `<div :data-title="title"><slot /><slot name="actions" :close="() => $emit('close')"><button data-testid="rc-modal-cancel" @click="$emit('close')">Cancel</button><slot name="primary-action" /></slot></div>`,
+};
+
+function mountModal(props: { mode: 'share' | 'import', value?: string, tableKey?: string, intoNewView?: boolean, hasFilter?: boolean }) {
   const store = createStore({
     getters: {
       'type-map/labelFor': () => (schema: { id: string }) => `${ schema.id } list`,
@@ -22,10 +29,10 @@ function mountModal(props: { mode: 'share' | 'import', value?: string, tableKey?
   });
 
   return mount(TableViewShareModal, {
-    props,
+    props:  { modal: { show: true, onClose: jest.fn() }, ...props },
     global: {
       plugins: [store],
-      stubs:   { RichTranslation: true },
+      stubs:   { RichTranslation: true, RcModal: RcModalStub },
       // What the Copy and Paste buttons read their labels and announcements from
       mocks:   { $store: { getters: { 'i18n/exists': () => false, 'i18n/t': (key: string) => key } } },
     },
@@ -47,12 +54,38 @@ describe('TableViewShareModal', () => {
       expect(wrapper.find('[data-testid="table-views-import-confirm"]').exists()).toBe(false);
     });
 
+    it('should warn that a filter\'s names and values are shared, when the view has one', () => {
+      const warning = mountModal({
+        mode: 'share', value: 'abc123', hasFilter: true
+      }).find('[data-testid="table-views-share-warning"]');
+
+      expect(warning.element.tagName).toBe('P');
+      expect(warning.text()).toContain('tableViews.filterWarning');
+    });
+
+    it('should not warn about a filter the view doesn\'t have', () => {
+      expect(mountModal({ mode: 'share', value: 'abc123' }).find('[data-testid="table-views-share-warning"]').exists()).toBe(false);
+    });
+
+    it('should not warn when importing', () => {
+      expect(mountModal({
+        mode: 'import', tableKey: 'pod', hasFilter: true
+      }).find('[data-testid="table-views-share-warning"]').exists()).toBe(false);
+    });
+
+    it('should offer only Close, no Cancel', () => {
+      const wrapper = mountModal({ mode: 'share', value: 'abc123' });
+
+      expect(wrapper.find('[data-testid="table-views-share-close"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="rc-modal-cancel"]').exists()).toBe(false);
+    });
+
     it('should close', async() => {
       const wrapper = mountModal({ mode: 'share', value: 'abc123' });
 
       await wrapper.find('[data-testid="table-views-share-close"]').trigger('click');
 
-      expect(wrapper.emitted('close')).toHaveLength(1);
+      expect(wrapper.props('modal').onClose).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -71,6 +104,15 @@ describe('TableViewShareModal', () => {
     const problemOf = (wrapper: ReturnType<typeof importInto>) => wrapper.find('[data-testid="table-views-import-problem"]');
     const importButton = (wrapper: ReturnType<typeof importInto>) => wrapper.find('[data-testid="table-views-import-confirm"]');
 
+    it('should offer Cancel and Import, Cancel closing it', async() => {
+      const wrapper = importInto();
+
+      expect(importButton(wrapper).exists()).toBe(true);
+      await wrapper.find('[data-testid="rc-modal-cancel"]').trigger('click');
+
+      expect(wrapper.props('modal').onClose).toHaveBeenCalledTimes(1);
+    });
+
     it('should say nothing, and import nothing, while the box is empty', () => {
       const wrapper = importInto();
 
@@ -87,7 +129,7 @@ describe('TableViewShareModal', () => {
       await importButton(wrapper).trigger('click');
 
       expect(wrapper.emitted('import')?.[0]).toStrictEqual([running]);
-      expect(wrapper.emitted('close')).toHaveLength(1);
+      expect(wrapper.props('modal').onClose).toHaveBeenCalledTimes(1);
     });
 
     it.each([

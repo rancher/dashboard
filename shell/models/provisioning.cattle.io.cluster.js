@@ -157,7 +157,6 @@ export default class ProvCluster extends SteveModel {
     const ready = this.mgmt?.isReady;
 
     const canDayTwoOps = ready && this.isDayTwoOpsEnabled && this.canUpdate;
-    const canEditRKE2cluster = this.isRke2 && ready && this.canUpdate;
 
     const actions = [
       ...(this.mgmt?.clusterPinActions() || []),
@@ -198,7 +197,7 @@ export default class ProvCluster extends SteveModel {
         action:  'rotateCertificates',
         label:   this.$rootGetters['i18n/t']('nav.rotateCertificates'),
         icon:    'icon icon-backup',
-        enabled: canEditRKE2cluster || (this.mgmt?.hasAction('rotateCertificates') && ready),
+        enabled: canDayTwoOps,
       }, {
         action:  'rotateEncryptionKey',
         label:   this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
@@ -702,14 +701,16 @@ export default class ProvCluster extends SteveModel {
   rotateCertificates(cluster = this) {
     this.$dispatch('promptModal', {
       componentProps: { cluster },
-      component:      'RotateCertificatesDialog'
+      component:      'RotateCertificatesDialog',
+      ownsModal:      true
     });
   }
 
   rotateEncryptionKey(cluster = this) {
     this.$dispatch('promptModal', {
       componentProps: { cluster },
-      component:      'RotateEncryptionKeyDialog'
+      component:      'RotateEncryptionKeyDialog',
+      ownsModal:      true
     });
   }
 

@@ -192,7 +192,9 @@ function onBackgroundClick() {
 </template>
 
 <style lang="scss" scoped>
-$focus-ring-gutter: 4px;
+// Room for a 2px focus ring around body content, including RadioButton's `left: -4px` label,
+// so the body's `overflow: auto` doesn't clip it
+$focus-ring-gutter: 6px;
 
 .rc-modal-overlay {
   --rc-modal-width: v-bind(width);

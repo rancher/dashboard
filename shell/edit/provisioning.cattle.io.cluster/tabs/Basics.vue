@@ -116,6 +116,11 @@ export default {
       type:     [String, Array],
       required: false,
       default:  INGRESS_NONE
+    },
+
+    previousKubeVersion: {
+      type:    String,
+      default: undefined
     }
   },
 
@@ -647,6 +652,7 @@ export default {
       :version-info="versionInfo"
       :original-ingress-controller="originalIngressController"
       :kubernetes-version="value.spec.kubernetesVersion"
+      :previous-kube-version="previousKubeVersion"
       @update-values="(name, val) => $emit('update-values', name, val)"
       @error="$emit('error', $event)"
       @yaml-validation-changed="e => $emit('yaml-validation-changed', e)"

@@ -215,6 +215,8 @@ describe('Side Menu: main', () => {
       // Hover over the first cluster icon and check that the tooltip is shown with the correct content
       burgerMenuPo.firstClusterIcon().realHover();
       BurgerMenuPo.checkIconTooltipOn('local');
+      BurgerMenuPo.checkIconTooltipBorderIsTransparent();
+      burgerMenuPo.checkIconTooltipArrowMeetsIcon();
 
       // Open the menu
       BurgerMenuPo.toggle();
