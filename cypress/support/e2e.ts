@@ -64,10 +64,10 @@ const hideReleaseWelcome = () => {
         return;
       }
 
-      const seen = minorOf(prefs['seen-whatsnew']);
+      const read = minorOf(prefs['read-whatsnew']);
 
-      if (!seen || seen[0] < running[0] || (seen[0] === running[0] && seen[1] < running[1])) {
-        prefs['seen-whatsnew'] = `"${ running[0] }.${ running[1] }"`;
+      if (!read || read[0] < running[0] || (read[0] === running[0] && read[1] < running[1])) {
+        prefs['read-whatsnew'] = `"${ running[0] }.${ running[1] }"`;
       }
     });
   });

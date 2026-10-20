@@ -26,22 +26,22 @@ const PATCH_DOCUMENT = {
   releases: [{ version: '2.16.1', whatsNew: [feature('patch', 'Only for 2.16.1')] }]
 };
 
-const seedSeenWhatsNew = (seen: string) => {
-  cy.setUserPreference({ 'seen-whatsnew': JSON.stringify(seen) });
+const seedReadWhatsNew = (read: string) => {
+  cy.setUserPreference({ 'read-whatsnew': JSON.stringify(read) });
   cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-    if (req.body?.data?.['seen-whatsnew'] !== JSON.stringify(seen)) {
-      req.alias = 'markSeen';
+    if (req.body?.data?.['read-whatsnew'] !== JSON.stringify(read)) {
+      req.alias = 'markRead';
     }
   });
 };
 
-let seenWhatsNew: string;
+let readWhatsNew: string;
 
 describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
     cy.getRancherResource('v1', 'userpreferences').then((resp: Cypress.Response<any>) => {
-      seenWhatsNew = resp.body.data[0].data['seen-whatsnew'] ?? '""';
+      readWhatsNew = resp.body.data[0].data['read-whatsnew'] ?? '""';
     });
   });
 
@@ -61,7 +61,7 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
   });
 
   it('welcomes the user once per minor release', () => {
-    seedSeenWhatsNew('v2.15.3');
+    seedReadWhatsNew('v2.15.3');
 
     HomePagePo.goTo();
     dialog.checkVisible();
@@ -72,18 +72,23 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     dialog.primePromo().scrollIntoView().should('be.visible');
     dialog.primePromo().should('contain', 'Ready for production? Go Prime.');
 
-    cy.wait('@markSeen');
-
     dialog.closeButton().click();
     dialog.checkNotExists();
+    // Read like the release notes notification: the running version, without the build suffix
+    cy.wait('@markRead').its('request.body.data.read-whatsnew').should('eq', '"v2.16.0"');
 
     HomePagePo.goTo();
     homePage.waitForPage();
     dialog.checkNotExists();
+
+    const nc = homePage.notificationsCenter();
+
+    nc.toggle();
+    nc.getNotificationByName('release-notes').checkRead();
   });
 
   it('shows the content from dynamic content', () => {
-    seedSeenWhatsNew('');
+    seedReadWhatsNew('');
     cy.intercept('GET', '**/first-run', {
       statusCode: 200,
       body:       {
@@ -113,11 +118,13 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     dialog.primePromo().find('li').should('have.length', 1);
     dialog.primePromoExplore().should('have.attr', 'href', 'https://www.suse.com/remote');
     dialog.primePromoExplore().should('contain', 'Explore the remote offer');
-    cy.wait('@markSeen');
+
+    dialog.closeButton().click();
+    cy.wait('@markRead');
   });
 
   it('opens straight away and shows the content once it is loaded', () => {
-    seedSeenWhatsNew('');
+    seedReadWhatsNew('');
     cy.intercept('GET', '**/first-run', { statusCode: 404, delay: 2000 }).as('firstRun');
 
     HomePagePo.goTo();
@@ -126,11 +133,13 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     cy.wait('@firstRun');
     dialog.loading().should('not.exist');
     dialog.whatsNewFeatures().should('have.length', 4);
-    cy.wait('@markSeen');
+
+    dialog.closeButton().click();
+    cy.wait('@markRead');
   });
 
   it('uses the built-in content when the document only has an entry for the patch version', () => {
-    seedSeenWhatsNew('');
+    seedReadWhatsNew('');
     mockVersion('2.16.1');
     cy.intercept('GET', '**/first-run', { statusCode: 200, body: PATCH_DOCUMENT }).as('firstRun');
 
@@ -139,47 +148,71 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     dialog.checkVisible();
     dialog.whatsNewFeatures().should('have.length', 4);
     dialog.whatsNewVersion().should('contain', 'v2.16');
-    cy.wait('@markSeen');
+
+    dialog.closeButton().click();
+    cy.wait('@markRead');
   });
 
-  it('does not show again after a patch upgrade', () => {
-    seedSeenWhatsNew('2.16');
+  it('does not show again after a patch upgrade, the release notes notification does', () => {
+    seedReadWhatsNew('v2.16.0');
     mockVersion('2.16.1');
 
     HomePagePo.goTo();
     homePage.waitForPage();
-    cy.wait('@markSeen');
     dialog.checkNotExists();
+
+    const nc = homePage.notificationsCenter();
+
+    nc.toggle();
+    nc.getNotificationByName('release-notes').checkUnread();
   });
 
   it('opens with the focus on the close button, and closes with it', () => {
-    seedSeenWhatsNew('');
+    seedReadWhatsNew('');
 
     HomePagePo.goTo();
     dialog.checkVisible();
     dialog.closeButton().should('have.focus');
-    cy.wait('@markSeen');
 
     dialog.closeButton().click();
+    dialog.checkNotExists();
+    cy.wait('@markRead');
+  });
+
+  it('shows again on a reload until it is closed', () => {
+    seedReadWhatsNew('v2.15.3');
+
+    HomePagePo.goTo();
+    dialog.checkVisible();
+
+    cy.reload();
+    dialog.checkVisible();
+
+    dialog.closeButton().click();
+    dialog.checkNotExists();
+    cy.wait('@markRead');
+
+    cy.reload();
+    homePage.waitForPage();
     dialog.checkNotExists();
   });
 
   it('can be reopened from the user menu', () => {
-    seedSeenWhatsNew('2.16');
+    seedReadWhatsNew('v2.16.0');
 
     HomePagePo.goTo();
     homePage.waitForPage();
-    cy.wait('@markSeen');
     dialog.checkNotExists();
 
     userMenu.clickMenuItem('What\'s New');
     dialog.checkVisible();
+    dialog.closeButton().should('have.focus');
 
     cy.get('body').type('{esc}');
     dialog.checkNotExists();
   });
 
   after(() => {
-    cy.setUserPreference({ 'seen-whatsnew': seenWhatsNew });
+    cy.setUserPreference({ 'read-whatsnew': readWhatsNew });
   });
 });

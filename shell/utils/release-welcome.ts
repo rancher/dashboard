@@ -1,7 +1,7 @@
 import { markRaw } from 'vue';
 import semver from 'semver';
 import { getVersionData } from '@shell/config/version';
-import { SEEN_WHATS_NEW } from '@shell/store/prefs';
+import { READ_WHATS_NEW } from '@shell/store/prefs';
 import { compare, parse } from '@shell/utils/version';
 
 // Read like the release notes notification (shell/utils/release-notes.ts), without the build suffix (e.g. '-head')
@@ -27,10 +27,10 @@ export function shouldShowReleaseWelcome(getters: any): boolean {
     return false;
   }
 
-  const lastSeen = getters['prefs/get'](SEEN_WHATS_NEW);
-  const lastSeenMinor = parse(lastSeen).slice(0, 2).join('.');
+  const lastRead = getters['prefs/get'](READ_WHATS_NEW);
+  const lastReadMinor = parse(lastRead).slice(0, 2).join('.');
 
-  return !lastSeen || compare(lastSeenMinor, version) < 0;
+  return !lastRead || compare(lastReadMinor, version) < 0;
 }
 
 /**

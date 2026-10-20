@@ -1,5 +1,5 @@
 import { setVersionData } from '@shell/config/version';
-import { SEEN_WHATS_NEW } from '@shell/store/prefs';
+import { READ_WHATS_NEW } from '@shell/store/prefs';
 import { openReleaseWelcome, releaseWelcomeVersion, shouldShowReleaseWelcome, showReleaseWelcomeIfNew } from '@shell/utils/release-welcome';
 
 jest.mock('@shell/dialog/ReleaseWelcomeDialog.vue', () => ({ __esModule: true, default: { name: 'ReleaseWelcomeDialog' } }));
@@ -8,9 +8,9 @@ const setVersion = (version: string) => setVersionData({
   Version: version, RancherPrime: 'false', GitCommit: ''
 });
 
-const createGetters = (lastSeen: string, isSingleProduct: any = undefined): any => ({
+const createGetters = (lastRead: string, isSingleProduct: any = undefined): any => ({
   isSingleProduct,
-  'prefs/get': (key: string) => (key === SEEN_WHATS_NEW ? lastSeen : undefined),
+  'prefs/get': (key: string) => (key === READ_WHATS_NEW ? lastRead : undefined),
 });
 
 describe('utils: release-welcome', () => {
@@ -45,19 +45,19 @@ describe('utils: release-welcome', () => {
 
   describe('shouldShowReleaseWelcome', () => {
     it.each([
-      ['never seen', 'v2.16.0', '', true],
-      ['seen for an older minor', 'v2.16.0', 'v2.15.4', true],
-      ['seen for an older minor, as a head build', 'v2.16.0', 'v2.15.0-abc1234-head', true],
-      ['seen for an older minor, below 10', 'v2.10.0', 'v2.9.3', true],
-      ['seen for this minor', 'v2.16.0', 'v2.16.0', false],
-      ['seen for this minor, after a patch upgrade', 'v2.16.2', 'v2.16.1', false],
-      ['seen for this minor, as a head build', 'v2.16.0-abc1234-head', 'v2.16.0-abc1234-head', false],
-      ['seen for a newer minor', 'v2.16.0', 'v2.17.0', false],
-      ['seen as 2.x.x', 'v2.16.0', '2.x.x', false],
-    ])('should handle release notes %s', (_, version, lastSeen, expected) => {
+      ['never read', 'v2.16.0', '', true],
+      ['read for an older minor', 'v2.16.0', 'v2.15.0', true],
+      ['read for an older minor, on another patch', 'v2.16.2', 'v2.15.2', true],
+      ['read for an older minor, below 10', 'v2.10.0', 'v2.9.3', true],
+      ['read for this minor', 'v2.16.0', 'v2.16.0', false],
+      ['read for this minor, after a patch upgrade', 'v2.16.1', 'v2.16.0', false],
+      ['read for this minor, on a head build', 'v2.16.0-abc1234-head', 'v2.16.0', false],
+      ['read for a newer minor', 'v2.16.0', 'v2.17.0', false],
+      ['read as 2.x.x', 'v2.16.0', '2.x.x', false],
+    ])('should handle release notes %s', (_, version, lastRead, expected) => {
       setVersion(version);
 
-      expect(shouldShowReleaseWelcome(createGetters(lastSeen))).toStrictEqual(expected);
+      expect(shouldShowReleaseWelcome(createGetters(lastRead))).toStrictEqual(expected);
     });
 
     it('should not show the modal when the version cannot be parsed', () => {
@@ -94,7 +94,7 @@ describe('utils: release-welcome', () => {
   });
 
   describe('showReleaseWelcomeIfNew', () => {
-    it('should open the modal when the release notes were seen for an older minor version', async() => {
+    it('should open the modal when the release notes were read for an older minor version', async() => {
       setVersion('v2.16.0');
       const commit = jest.fn();
 
@@ -103,7 +103,7 @@ describe('utils: release-welcome', () => {
       expect(commit).toHaveBeenCalledTimes(1);
     });
 
-    it('should not open the modal when the release notes were seen for this minor version', async() => {
+    it('should not open the modal when the release notes were read for this minor version', async() => {
       setVersion('v2.16.0');
       const commit = jest.fn();
 

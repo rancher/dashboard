@@ -18,7 +18,7 @@ import { isAdminUser } from '@shell/store/type-map';
 import { fetchFirstRunContent } from '@shell/utils/dynamic-content/first-run';
 import { FirstRunReleaseContent } from '@shell/utils/dynamic-content/types';
 import { releaseWelcomeVersion } from '@shell/utils/release-welcome';
-import { markSeenReleaseNotes } from '@shell/utils/version';
+import { markReleaseNotesRead } from '@shell/utils/release-notes';
 
 const props = defineProps({
   /**
@@ -100,7 +100,7 @@ onMounted(async() => {
   await showCards();
 });
 
-onUnmounted(() => markSeenReleaseNotes(store));
+onUnmounted(() => markReleaseNotesRead(store.dispatch, store.getters));
 
 const close = () => props.modal.onClose();
 </script>

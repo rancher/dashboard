@@ -7,14 +7,14 @@ import { setVersionData } from '@shell/config/version';
 import { REGISTRATION_ROUTE } from '@shell/config/release-welcome';
 import { SCC } from '@shell/store/features';
 import { fetchFirstRunContent } from '@shell/utils/dynamic-content/first-run';
-import { markSeenReleaseNotes } from '@shell/utils/version';
+import { markReleaseNotesRead } from '@shell/utils/release-notes';
 
 let mockStore: any;
 
 jest.mock('vuex', () => ({ ...jest.requireActual('vuex'), useStore: () => mockStore }));
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 jest.mock('@shell/utils/dynamic-content/first-run', () => ({ fetchFirstRunContent: jest.fn() }));
-jest.mock('@shell/utils/version', () => ({ ...jest.requireActual('@shell/utils/version'), markSeenReleaseNotes: jest.fn() }));
+jest.mock('@shell/utils/release-notes', () => ({ markReleaseNotesRead: jest.fn() }));
 
 const mockFetchFirstRunContent = fetchFirstRunContent as jest.Mock;
 
@@ -38,8 +38,9 @@ const FEATURES = [{
 }];
 
 const createStore = ({ admin = true, scc = true } = {}): any => ({
-  $axios:  jest.fn(),
-  getters: {
+  $axios:   jest.fn(),
+  dispatch: jest.fn(),
+  getters:  {
     'management/schemaFor': () => ({ resourceMethods: admin ? ['PUT'] : ['GET'] }),
     'features/get':         (feature: string) => (feature === SCC ? scc : false),
   },
@@ -76,7 +77,7 @@ const byTestId = (wrapper: any, id: string) => wrapper.find(`[data-testid="${ id
 describe('component: ReleaseWelcomeDialog', () => {
   beforeEach(() => {
     mockFetchFirstRunContent.mockReset();
-    (markSeenReleaseNotes as jest.Mock).mockClear();
+    (markReleaseNotesRead as jest.Mock).mockClear();
     mockFetchFirstRunContent.mockResolvedValue({});
   });
 
@@ -299,13 +300,13 @@ describe('component: ReleaseWelcomeDialog', () => {
     expect(byTestId(wrapper, 'release-welcome-close').attributes()).toHaveProperty('autofocus');
   });
 
-  it('should mark the release notes as seen when it closes', async() => {
+  it('should mark the release notes as read when it closes, like their notification', async() => {
     const wrapper = await createWrapper();
 
-    expect(markSeenReleaseNotes).toHaveBeenCalledTimes(0);
+    expect(markReleaseNotesRead).toHaveBeenCalledTimes(0);
 
     wrapper.unmount();
 
-    expect(markSeenReleaseNotes).toHaveBeenCalledWith(mockStore);
+    expect(markReleaseNotesRead).toHaveBeenCalledWith(mockStore.dispatch, mockStore.getters);
   });
 });
