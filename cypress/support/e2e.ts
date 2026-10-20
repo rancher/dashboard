@@ -35,8 +35,6 @@ Cypress.on('uncaught:exception', (err, runnable) => {
   }
 });
 
-let runningVersion: string | undefined;
-
 const minorOf = (version?: string): number[] | undefined => version?.match(/^"?v?(\d+)\.(\d+)/)?.slice(1, 3).map(Number);
 
 /**
@@ -45,30 +43,26 @@ const minorOf = (version?: string): number[] | undefined => version?.match(/^"?v
  * Intercepts are cleared before every test, so register it for specs that log in within `before` too
  */
 const hideReleaseWelcome = () => {
-  cy.intercept('GET', '/rancherversion', (req) => {
-    req.continue((res) => {
-      runningVersion = res.body?.Version;
-    });
-  });
-
-  cy.intercept('GET', '/v1/userpreferences*', (req) => {
-    if (Cypress.env('showReleaseWelcome')) {
-      return;
-    }
-
-    req.continue((res) => {
-      const prefs = res.body?.data?.[0]?.data;
-      const running = minorOf(runningVersion);
-
-      if (!prefs || !running) {
+  cy.getRancherVersion().then(({ Version }) => {
+    cy.intercept('GET', '/v1/userpreferences*', (req) => {
+      if (Cypress.env('showReleaseWelcome')) {
         return;
       }
 
-      const read = minorOf(prefs['read-whatsnew']);
+      req.continue((res) => {
+        const prefs = res.body?.data?.[0]?.data;
+        const running = minorOf(Version);
 
-      if (!read || read[0] < running[0] || (read[0] === running[0] && read[1] < running[1])) {
-        prefs['read-whatsnew'] = `"${ running[0] }.${ running[1] }"`;
-      }
+        if (!prefs || !running) {
+          return;
+        }
+
+        const read = minorOf(prefs['read-whatsnew']);
+
+        if (!read || read[0] < running[0] || (read[0] === running[0] && read[1] < running[1])) {
+          prefs['read-whatsnew'] = `"${ running[0] }.${ running[1] }"`;
+        }
+      });
     });
   });
 };
