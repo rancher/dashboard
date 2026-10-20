@@ -135,7 +135,7 @@ export class HarvesterClusterDetailsPo extends PagePo {
     return new BaseResourceList(this.self()).masthead();
   }
 
-  title(options?: GetOptions) {
-    return this.masthead().title(options);
+  title() {
+    return this.masthead().title();
   }
 }

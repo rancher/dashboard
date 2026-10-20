@@ -5,8 +5,8 @@ export default class ResourceListMastheadPo extends ComponentPo {
     return this.self().get('.actions-container .actions .btn, [data-testid="masthead-action-menu"]', options);
   }
 
-  title(options?: GetOptions) {
-    return this.self().get('.title h1, .primaryheader h1, .title-bar h1.title', options).invoke('text');
+  title() {
+    return this.self().get('.title h1, .primaryheader h1, .title-bar h1.title').invoke('text');
   }
 
   createYaml() {

@@ -190,39 +190,9 @@ export function isTransientChartActionError(error: any): boolean {
 }
 
 /**
- * Run a chart install/upgrade action, retrying with exponential backoff when the failure looks like a
+ * Install/upgrade a Helm Chart, retrying with exponential backoff when the failure looks like a
  * transient catalog index cache miss (see isTransientChartActionError). Other errors are thrown
  * immediately without retrying.
- *
- * @param runAction Performs the action, e.g. a `doAction` on the chart's repository
- * @param onRetry Called before each retry with the attempt number and the max number of retries
- */
-export async function retryTransientChartAction<T>(
-  runAction: () => Promise<T>,
-  onRetry?: (attempt: number, maxAttempts: number) => void,
-): Promise<T> {
-  for (let attempt = 0; ; attempt++) {
-    try {
-      return await runAction();
-    } catch (error) {
-      if (attempt >= ACTION_RETRY_DELAYS.length || !isTransientChartActionError(error)) {
-        throw error;
-      }
-
-      const delay = ACTION_RETRY_DELAYS[attempt];
-      const nextAttempt = attempt + 1;
-
-      console.log(`Helm chart action failed, attempt ${ nextAttempt }, wait ${ delay / 1000 } second(s) and retry... `); // eslint-disable-line no-console
-
-      onRetry?.(nextAttempt, ACTION_RETRY_DELAYS.length);
-
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-}
-
-/**
- * Install/upgrade a Helm Chart, retrying transient catalog index cache misses (see retryTransientChartAction)
  *
  * @param onRetry Called before each retry with the attempt number and the max number of retries
  */
@@ -234,7 +204,24 @@ export async function installHelmChartWithRetry(
   action: Action = 'install',
   onRetry?: (attempt: number, maxAttempts: number) => void,
 ) {
-  return retryTransientChartAction(() => installHelmChart(repo, chart, values, namespace, action), onRetry);
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await installHelmChart(repo, chart, values, namespace, action);
+    } catch (error) {
+      if (attempt >= ACTION_RETRY_DELAYS.length || !isTransientChartActionError(error)) {
+        throw error;
+      }
+
+      const delay = ACTION_RETRY_DELAYS[attempt];
+      const nextAttempt = attempt + 1;
+
+      console.log(`Installing harvester helm chart failed, attempt ${ nextAttempt }, wait ${ delay / 1000 } second(s) and retry... `); // eslint-disable-line no-console
+
+      onRetry?.(nextAttempt, ACTION_RETRY_DELAYS.length);
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
 }
 
 /**
