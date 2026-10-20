@@ -110,10 +110,10 @@ describe('component: ReleaseWelcomeDialog', () => {
   it.each([
     [false],
     [true],
-  ])('should name the running patch version in the subtitle, Prime %p', async(prime) => {
+  ])('should not name the version in the subtitle, Prime %p', async(prime) => {
     const wrapper = await createWrapper({ prime });
 
-    expect(byTestId(wrapper, 'release-welcome-subtitle').text()).toContain('2.16.1');
+    expect(byTestId(wrapper, 'release-welcome-subtitle').text()).not.toContain('2.16');
   });
 
   describe('loading', () => {

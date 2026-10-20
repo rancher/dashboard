@@ -17,7 +17,7 @@ import { SCC } from '@shell/store/features';
 import { isAdminUser } from '@shell/store/type-map';
 import { fetchFirstRunContent } from '@shell/utils/dynamic-content/first-run';
 import { FirstRunReleaseContent } from '@shell/utils/dynamic-content/types';
-import { releaseWelcomeVersion, runningVersion } from '@shell/utils/release-welcome';
+import { releaseWelcomeVersion } from '@shell/utils/release-welcome';
 import { markSeenReleaseNotes } from '@shell/utils/version';
 
 const props = defineProps({
@@ -41,8 +41,6 @@ const { t } = useI18n(store);
 
 const vendor = getVendor();
 const minorVersion = releaseWelcomeVersion() || '';
-// The subtitle names the exact running version, e.g. 2.16.1
-const version = runningVersion() || minorVersion;
 const isPrime = isRancherPrime();
 
 // Same access as the registration page added by the rancher-prime extension
@@ -145,7 +143,7 @@ const close = () => props.modal.onClose();
       class="release-welcome__subtitle"
       data-testid="release-welcome-subtitle"
     >
-      {{ t('releaseWelcome.subtitlePrime', { vendor, version }) }}
+      {{ t('releaseWelcome.subtitlePrime', { vendor }) }}
       <template v-if="canRegister">
         {{ t('releaseWelcome.registerLead') }}
         <router-link
@@ -162,7 +160,7 @@ const close = () => props.modal.onClose();
       class="release-welcome__subtitle"
       data-testid="release-welcome-subtitle"
     >
-      {{ t('releaseWelcome.subtitleCommunity', { vendor, version }, true) }}
+      {{ t('releaseWelcome.subtitleCommunity', { vendor }, true) }}
     </p>
 
     <div

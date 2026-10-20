@@ -8,13 +8,6 @@ import { compare, parse } from '@shell/utils/version';
 const parseVersion = () => semver.coerce(getVersionData().Version.split('-')[0]);
 
 /**
- * Running version of Rancher (e.g. '2.16.1'), or undefined when the version can't be parsed (e.g. dev builds)
- */
-export function runningVersion(): string | undefined {
-  return parseVersion()?.version;
-}
-
-/**
  * Minor version of the running Rancher (e.g. '2.16'), or undefined when the version can't be parsed (e.g. dev builds)
  */
 export function releaseWelcomeVersion(): string | undefined {
