@@ -246,12 +246,15 @@ export default {
       }
     },
 
-    'vmAvailabilityZoneWarning'(neu) {
-      if (neu) {
-        this.$emit('validationChanged', false);
-      } else {
-        this.$emit('validationChanged', true);
-      }
+    vmAvailabilityZoneWarning: {
+      handler(neu) {
+        if (neu) {
+          this.$emit('validationChanged', false);
+        } else {
+          this.$emit('validationChanged', true);
+        }
+      },
+      immediate: true
     }
   },
 
