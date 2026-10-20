@@ -102,12 +102,27 @@ function isTransientIndexError(response: any): boolean {
 }
 
 /**
+ * Force Rancher to refresh a repository, as the Harvester page does before it installs (refreshHelmRepository
+ * in shell/utils/uiplugins.ts), and wait for it to be active again. This makes every replica re-index it.
+ */
+function forceRepositoryRefresh(repo: string): void {
+  cy.getRancherResource('v1', 'catalog.cattle.io.clusterrepos', repo).then((resp: Cypress.Response<any>) => {
+    const body = resp.body;
+
+    body.spec.forceUpdate = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+    cy.setRancherResource('v1', 'catalog.cattle.io.clusterrepos', repo, body);
+  });
+  cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', repo).should('eq', true);
+}
+
+/**
  * Install the Harvester extension from the Available tab of the extensions page, through the install modal.
  * `selectVersion` picks the version in the open modal. If the install fails with the transient catalog index
- * 500, give a dashboard that retries it itself the time to do so, and otherwise open the modal and install
- * again. Any other failure fails the test, with Rancher's error message.
+ * 500, give a dashboard that retries it itself the time to do so; otherwise force a refresh of the repository
+ * - waiting alone is not enough, a replica can stay behind for well over a minute - and install again. Any
+ * other failure fails the test, with Rancher's error message.
  */
-function installFromExtensionsPage(harvesterTitle: string, selectVersion: () => void, attemptsLeft = 3): void {
+function installFromExtensionsPage(harvesterTitle: string, repo: string, selectVersion: () => void, attemptsLeft = 3): void {
   cy.get('@installHarvesterExtension.all').then((previousInstalls: any) => {
     const previousCount = previousInstalls.length;
 
@@ -136,8 +151,9 @@ function installFromExtensionsPage(harvesterTitle: string, selectVersion: () => 
             return;
           }
 
-          cy.log('Rancher has not indexed the chart version yet - installing again');
-          installFromExtensionsPage(harvesterTitle, selectVersion, attemptsLeft - 1);
+          cy.log('Rancher has not indexed the chart version yet - refreshing the repository and installing again');
+          forceRepositoryRefresh(repo);
+          installFromExtensionsPage(harvesterTitle, repo, selectVersion, attemptsLeft - 1);
         });
 
         return;
@@ -375,7 +391,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', 'cattle-ui-plugin-system/harvester', (r: any) => r?.status === 404, 15, { failOnStatusCode: false });
 
       // install the latest version
-      installFromExtensionsPage(harvesterTitle, () => {
+      installFromExtensionsPage(harvesterTitle, chartRepo, () => {
         extensionsPo.installModal().selectVersionClick(1);
       });
       // The app should switch to the Installed tab after install, but that navigation is
@@ -459,7 +475,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       let versions: string[] = [];
 
       // install an older version
-      installFromExtensionsPage(harvesterTitle, () => {
+      installFromExtensionsPage(harvesterTitle, chartRepo, () => {
         // Note - We can't fetch version from `catalog.cattle.io.clusterrepos/harvester?link=index` given it won't filter out invalid extensions
         // for example in rancher 2.12 the harvester 1.7.0 extension is invalid... however still returned... resulting in expected versions that don't exist as valid options
         extensionsPo.installModal().versionLabelSelect().toggle();
