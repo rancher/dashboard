@@ -62,14 +62,14 @@
  * `unmountOnHide` to be unmounted while collapsed instead.
  *
  * Form fields report whether they are invalid to the section they are in (see useSectionValidity). A collapsed
- * section with invalid fields, including ones in nested sections, shows a warning icon in its header.
+ * section with invalid fields, including ones in nested sections, shows an error icon in its #errors slot. Filling
+ * the slot replaces the icon, and the slot's `invalid` prop says whether it would be shown.
  */
 import {
   computed, inject, nextTick, provide, useTemplateRef, type Ref
 } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
-import { RcIconTooltip } from '@components/RcIconTooltip';
 import { useInSummary } from '@shell/components/TableOfContents/composables';
 import type { RcSectionProps, SectionBackground } from './types';
 import { provideSectionValidity } from './useSectionValidity';
@@ -186,19 +186,19 @@ function toggle() {
           >
             <slot name="counter" />
           </div>
-          <span
-            v-if="showInvalid"
-            class="invalid-fields"
-            data-testid="rc-section-invalid-fields"
-            @click.stop
+          <slot
+            name="errors"
+            :invalid="showInvalid"
           >
-            <RcIconTooltip
-              icon-type="warning"
-              :content="t('component.rcSection.invalidFields')"
-              :label="t('generic.error')"
+            <RcIcon
+              v-if="showInvalid"
+              v-clean-tooltip="t('component.rcSection.invalidFields')"
+              type="error"
+              size="large"
+              status="error"
+              data-testid="rc-section-invalid-fields"
             />
-          </span>
-          <slot name="errors" />
+          </slot>
         </div>
       </div>
       <div
@@ -306,13 +306,6 @@ function toggle() {
 .counter {
   display: inline-flex;
   align-items: center;
-}
-
-// On a wrapper, as RcIconTooltip sets its own colour to inherit
-.invalid-fields {
-  display: inline-flex;
-  align-self: center;
-  color: var(--error);
 }
 
 // TODO: Considering removing specificity override when RcButton sizes are refactored (#18062)

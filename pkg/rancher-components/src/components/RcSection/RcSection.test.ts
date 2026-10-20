@@ -631,7 +631,7 @@ describe('component: RcSection', () => {
 
     // Fields report while the section renders, so the header updates on the next tick
     const mountSection = async({
-      expanded = false, invalid = true, expandable = true, showField = true
+      expanded = false, invalid = true, expandable = true, showField = true, attach = false
     } = {}) => {
       const Host = defineComponent({
         components: { RcSection, Field },
@@ -653,29 +653,57 @@ describe('component: RcSection', () => {
         `,
       });
 
-      const wrapper = mount(Host);
+      const wrapper = mount(Host, { attachTo: attach ? document.body : undefined });
 
       await nextTick();
 
       return wrapper;
     };
 
-    it('should show a warning icon when a collapsed section has an invalid field', async() => {
+    it('should show an error icon when a collapsed section has an invalid field', async() => {
       const wrapper = await mountSection();
 
       expect(wrapper.find(ICON).exists()).toBe(true);
     });
 
-    it('should use the warning icon fields use', async() => {
+    it('should use the error icon the #errors slot is documented with', async() => {
       const wrapper = await mountSection();
+      const icon = wrapper.findAllComponents({ name: 'RcIcon' }).find((c) => c.attributes('data-testid') === 'rc-section-invalid-fields');
 
-      expect(wrapper.find(`${ ICON } .icon-warning`).exists()).toBe(true);
+      expect({
+        type: icon?.props('type'), size: icon?.props('size'), status: icon?.props('status')
+      }).toStrictEqual({
+        type: 'error', size: 'large', status: 'error'
+      });
     });
 
     it('should explain the icon in its tooltip', async() => {
-      const wrapper = await mountSection();
+      const wrapper = await mountSection({ attach: true });
+      const describedBy = wrapper.find(ICON).attributes('aria-describedby');
 
-      expect(wrapper.findComponent({ name: 'RcIconTooltip' }).props('content')).toStrictEqual('%component.rcSection.invalidFields%');
+      expect(document.getElementById(describedBy as string)?.textContent).toStrictEqual('%component.rcSection.invalidFields%');
+      wrapper.unmount();
+    });
+
+    it('should let the #errors slot replace the icon', async() => {
+      const Host = defineComponent({
+        components: { RcSection, Field },
+        template:   `
+          <RcSection type="primary" mode="with-header" title="Network" expandable :expanded="false">
+            <template #errors="{ invalid }">
+              <span class="custom-error">{{ invalid }}</span>
+            </template>
+            <Field invalid />
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      await nextTick();
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+      expect(wrapper.find('.custom-error').text()).toStrictEqual('true');
     });
 
     it('should not show the icon when the section is expanded', async() => {
@@ -722,14 +750,6 @@ describe('component: RcSection', () => {
       await nextTick();
 
       expect(wrapper.find(ICON).exists()).toBe(false);
-    });
-
-    it('should not toggle the section when the icon is clicked', async() => {
-      const wrapper = await mountSection();
-
-      await wrapper.find(ICON).trigger('click');
-
-      expect(wrapper.find('.field').isVisible()).toBe(false);
     });
 
     it('should show the icon on a collapsed parent of a section with an invalid field', async() => {
