@@ -90,4 +90,93 @@ describe('class Deployment', () => {
       expect(deployment.replicaSetId).toStrictEqual(expected);
     });
   });
+
+  describe('rollBack', () => {
+    const cluster = { id: 'cluster-id' };
+    const revision = {
+      metadata: { annotations: { 'deployment.kubernetes.io/revision': '1' } },
+      spec:     {
+        template: {
+          metadata: {
+            labels: {
+              app:                 'any-app',
+              'pod-template-hash': 'any-hash',
+            },
+            annotations: {
+              'any-annotation':                    'any-value',
+              'deployment.kubernetes.io/revision': '1',
+            },
+          },
+          spec: { containers: [{ name: 'any-container', image: 'any-image' }] },
+        },
+      },
+    };
+
+    const getPatchBody = async() => {
+      const deployment = new Deployment({
+        id:       'any-namespace/any-name',
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: {
+          name:        'any-name',
+          namespace:   'any-namespace',
+          annotations: {
+            'deployment.kubernetes.io/revision': '2',
+            'field.cattle.io/description':       'any-description',
+            'custom-annotation':                 'custom-value',
+          },
+        },
+      });
+      const rollBackWorkload = jest.spyOn(deployment, 'rollBackWorkload').mockResolvedValue(undefined);
+
+      await deployment.rollBack(cluster, deployment, revision);
+
+      return rollBackWorkload.mock.calls[0][3];
+    };
+
+    it('should call rollBackWorkload with the deployments type', async() => {
+      const deployment = new Deployment({
+        id:       'any-namespace/any-name',
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'any-name', namespace: 'any-namespace' },
+      });
+      const rollBackWorkload = jest.spyOn(deployment, 'rollBackWorkload').mockResolvedValue(undefined);
+
+      await deployment.rollBack(cluster, deployment, revision);
+
+      expect(rollBackWorkload).toHaveBeenCalledWith(cluster, deployment, 'deployments', expect.any(Array));
+    });
+
+    it('should only update the revision annotation and keep other deployment annotations', async() => {
+      const body = await getPatchBody();
+
+      expect(body[1]).toStrictEqual({
+        op:    'add',
+        path:  '/metadata/annotations/deployment.kubernetes.io~1revision',
+        value: '1',
+      });
+    });
+
+    it('should not replace the whole deployment annotations object', async() => {
+      const body = await getPatchBody();
+
+      expect(body.find((op: any) => op.path === '/metadata/annotations')).toBeUndefined();
+    });
+
+    it('should replace the pod template with the revision spec', async() => {
+      const body = await getPatchBody();
+
+      expect(body[0]).toStrictEqual({
+        op:    'replace',
+        path:  '/spec/template',
+        value: {
+          metadata: {
+            creationTimestamp: null,
+            labels:            { app: 'any-app' },
+            annotations:       { 'any-annotation': 'any-value' },
+          },
+          spec: revision.spec.template.spec,
+        },
+      });
+    });
+  });
 });
