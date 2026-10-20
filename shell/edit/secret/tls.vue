@@ -28,18 +28,24 @@ export default {
       [
         {
           path:           'tls.key',
-          rules:          ['required'],
+          rules:          ['required', 'pemPrivateKey'],
+          translationKey: 'secret.certificate.privateKey',
+        },
+        {
+          // A blank key keeps the existing one when editing
+          path:           'tls.key.edit',
+          rules:          ['pemPrivateKey'],
           translationKey: 'secret.certificate.privateKey',
         },
         {
           path:           'tls.crt',
-          rules:          ['required'],
+          rules:          ['required', 'pemCertificate'],
           translationKey: 'secret.certificate.certificate',
         },
       ]
     );
 
-    return { getRules };
+    return { getRules, EDIT: _EDIT };
   },
 
   data() {
@@ -87,7 +93,7 @@ export default {
       required
       :label="t('secret.certificate.privateKey')"
       :mode="mode"
-      :rules="getRules('tls.key')"
+      :rules="getRules(mode === EDIT ? 'tls.key.edit' : 'tls.key')"
       :placeholder="t('secret.certificate.privateKeyPlaceholder')"
     />
     <FileSelectorTextArea
