@@ -6,6 +6,7 @@
   display: block !important;
   z-index: z-index('tooltip');
   max-width: 50vw;
+  border-color: transparent;
 
   .v-popper__inner {
     background: var(--tooltip-bg);
