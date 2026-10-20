@@ -338,6 +338,33 @@ export default {
 
       this.fetchStoreChart();
 
+      const hasAppQuery = this.query.appNamespace && this.query.appName;
+
+      // Look up the installed app before the chart check, so the app is still found when its chart is missing
+      if ( hasAppQuery ) {
+        // First check the URL query for an app name and namespace.
+        // Use those values to check for a catalog app resource.
+        // If found, set the form to edit mode. If not, set the
+        // form to create mode.
+
+        // This is a hard blocker - installing a new instance is NOT allowed.
+        this.canInstallNew = false;
+
+        try {
+          this.existing = await this.$store.dispatch('cluster/find', {
+            type: CATALOG.APP,
+            id:   `${ this.query.appNamespace }/${ this.query.appName }`,
+          });
+
+          await this.existing?.fetchValues(true);
+
+          this.mode = _EDIT;
+        } catch (e) {
+          this.mode = _CREATE;
+          this.existing = null;
+        }
+      }
+
       if ( !this.chart ) {
         return;
       }
@@ -403,29 +430,7 @@ export default {
         console.error('Unable to fetch VersionInfo: ', e); // eslint-disable-line no-console
       }
 
-      if ( this.query.appNamespace && this.query.appName ) {
-        // First check the URL query for an app name and namespace.
-        // Use those values to check for a catalog app resource.
-        // If found, set the form to edit mode. If not, set the
-        // form to create mode.
-
-        // This is a hard blocker - installing a new instance is NOT allowed.
-        this.canInstallNew = false;
-
-        try {
-          this.existing = await this.$store.dispatch('cluster/find', {
-            type: CATALOG.APP,
-            id:   `${ this.query.appNamespace }/${ this.query.appName }`,
-          });
-
-          await this.existing?.fetchValues(true);
-
-          this.mode = _EDIT;
-        } catch (e) {
-          this.mode = _CREATE;
-          this.existing = null;
-        }
-      } else {
+      if ( !hasAppQuery ) {
         const targetNamespace = this.version?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE];
         const targetName = this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
 
