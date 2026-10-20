@@ -6753,6 +6753,8 @@ secret:
   authentication: Authentication
   githubApp:
     label: GitHub App
+  helmRelease:
+    dataNotEditable: The data of a Helm release secret is managed by Helm and can't be viewed or edited here. You can still edit the labels, annotations and description.
   certificate:
     certificate: Certificate
     certificates: Certificates
