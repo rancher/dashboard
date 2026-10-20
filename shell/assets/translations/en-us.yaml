@@ -4605,7 +4605,7 @@ releaseWelcome:
     features:
       navigation:
         title: Improved navigation
-        description: Jump to any cluster with the new switcher (⌘K, Ctrl+K on Windows/Linux), plus a cleaner, reorganized side menu.
+        description: Jump to any cluster with the new switcher, plus a cleaner, reorganized side menu.
       tables:
         title: Smarter tables
         description: "Tables across the UI are super-charged in this release: advanced filtering, customizable columns and much faster performance on large lists."
