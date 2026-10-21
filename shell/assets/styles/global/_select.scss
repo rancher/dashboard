@@ -12,6 +12,12 @@
     left: calc(-1 * var(--border-width));
     width: calc(100% + 2 * var(--border-width));
   }
+
+  // The `inline` helper class makes the select display: inline, which Firefox gives no width as the
+  // dropdown's containing block, so the dropdown's percentage width above would collapse there
+  .v-select.inline {
+    display: block !important;
+  }
 }
 
 .unlabeled-select:not(.in-input) {
