@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, toRaw, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 
@@ -91,12 +91,22 @@ const execute = (action: any, event: MouseEvent, args?: any) => {
 
 const options = computed(() => store.getters['action-menu/optionsArray']);
 
+// The store holds the actions of one resource, the last whose menu opened. A menu still fading out after
+// another one opened keeps showing its own actions
+const ownOptions = ref<DropdownOption[]>([]);
+
+watch(options, (storeOptions) => {
+  if (toRaw(store.getters['action-menu/resources']?.[0]) === toRaw(props.resource)) {
+    ownOptions.value = storeOptions;
+  }
+}, { immediate: true });
+
 const menuOptions = () => {
   if (props.customActions && props.customActions.length > 0) {
     return props.customActions;
   }
 
-  return options.value;
+  return ownOptions.value;
 };
 </script>
 

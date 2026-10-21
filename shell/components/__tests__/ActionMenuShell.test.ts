@@ -1,14 +1,16 @@
+import { nextTick, reactive } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import ActionMenuShell from '@shell/components/ActionMenuShell.vue';
 import { RcDropdownMenu } from '@components/RcDropdown';
 
 const mockDispatch = jest.fn();
 const mockRoute = { name: 'some-route' };
+const mockGetters = reactive<Record<string, any>>({});
 
 jest.mock('vuex', () => ({
   ...jest.requireActual('vuex'),
   useStore: () => ({
-    getters:  { 'action-menu/optionsArray': [] },
+    getters:  mockGetters,
     dispatch: mockDispatch,
   }),
 }));
@@ -21,6 +23,37 @@ jest.mock('vue-router', () => ({
 describe('component: ActionMenuShell', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetters['action-menu/optionsArray'] = [];
+    mockGetters['action-menu/resources'] = [];
+  });
+
+  describe('options', () => {
+    const resource = { id: 'default/nginx' };
+    const other = { id: 'default/redis' };
+    const ownActions = [{ action: 'edit', label: 'Edit' }];
+
+    it('should show the actions of its resource', async() => {
+      const wrapper = shallowMount(ActionMenuShell, { props: { resource } });
+
+      mockGetters['action-menu/resources'] = [resource];
+      mockGetters['action-menu/optionsArray'] = ownActions;
+      await nextTick();
+
+      expect(wrapper.findComponent(RcDropdownMenu).props('options')).toStrictEqual(ownActions);
+    });
+
+    it('should keep its actions when another resource menu opens', async() => {
+      const wrapper = shallowMount(ActionMenuShell, { props: { resource } });
+
+      mockGetters['action-menu/resources'] = [resource];
+      mockGetters['action-menu/optionsArray'] = ownActions;
+      await nextTick();
+      mockGetters['action-menu/resources'] = [other];
+      mockGetters['action-menu/optionsArray'] = [{ action: 'delete', label: 'Delete' }];
+      await nextTick();
+
+      expect(wrapper.findComponent(RcDropdownMenu).props('options')).toStrictEqual(ownActions);
+    });
   });
 
   describe('container prop', () => {
