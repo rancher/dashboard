@@ -524,7 +524,7 @@ export default {
         </div>
         <div
           v-if="firstLogin"
-          class="first-login-message pl-10 pr-10"
+          class="first-login-message"
           :class="{'mt-30': !hasLoginMessage}"
           data-testid="first-login-message"
         >
@@ -564,7 +564,7 @@ export default {
           <form
             v-if="showLocal"
             class="login-column"
-            :class="{'mt-30': !hasLoginMessage}"
+            :class="{'mt-30': !hasLoginMessage || firstLogin}"
             @submit.prevent
           >
             <div class="mb-20">
@@ -746,7 +746,8 @@ export default {
     // The inputs, the submit button and the provider divider are one column, so
     // they share a width rather than each being sized by its own content.
     .login-column,
-    .login-alternatives {
+    .login-alternatives,
+    .first-login-message {
       width: var(--login-column-width);
       max-width: 100%;
       align-self: center;
