@@ -15,6 +15,8 @@ import { LABEL_FIELD_PREFIX, dateBuckets, valuesInUse } from '@shell/utils/table
 import {
   CONNECTIVES, NEGATORS, highlightQuery, isNegator, quoteIfNeeded, replaceToken, scanQuery, tokenAt
 } from '@shell/utils/table-views/query';
+import { createQueryHistory } from '@shell/utils/table-views/query-history';
+import { isMac } from '@shell/utils/platform';
 import type { TableViewField, TableViewRow } from '@shell/types/table-views';
 
 const MENU_VIEWPORT_MARGIN = 20;
@@ -60,7 +62,10 @@ const props = withDefaults(defineProps<{
   pendingFields?: string[],
   /** Ids of the fields whose values for suggesting are being asked for */
   loadingValues?: string[],
+  /** Changes as another view is put on the table: its query starts the undo history afresh */
+  historyKey?: number,
 }>(), {
+  historyKey:    0,
   value:         '',
   fields:        () => [],
   filterFields:  null,
@@ -122,6 +127,9 @@ let placeFrame = 0;
  * was typed
  */
 const domAhead = ref(false);
+
+/** Undo and redo of the box's own: the browser's can't follow contents rebuilt as they are highlighted */
+const queryHistory = createQueryHistory(props.value || '');
 
 const instanceId = `${ uid++ }`;
 
@@ -590,6 +598,7 @@ const onInput = () => {
   caret.value = readCaret() ?? text.length;
   pendingCaret.value = caret.value;
   domAhead.value = true;
+  queryHistory.record(text, caret.value, true);
   emit('update:value', text);
 };
 
@@ -631,6 +640,7 @@ const onPaste = (event: ClipboardEvent) => {
   pendingCaret.value = start + flat.length;
   // Written by us, so the box is the stale one
   domAhead.value = false;
+  queryHistory.record(next, pendingCaret.value, false);
   emit('update:value', next);
 };
 
@@ -686,6 +696,7 @@ const clear = () => {
   pendingCaret.value = 0;
   // Written by us, so the box is the stale one
   domAhead.value = false;
+  queryHistory.record('', 0, false);
   emit('update:value', '');
   focus();
 };
@@ -703,6 +714,7 @@ const pick = (suggestion?: Suggestion) => {
   pendingCaret.value = token ? token.start + suggestion.insert.length : caret.value + (next.length - value.length);
   // Written by us, so the box is the stale one
   domAhead.value = false;
+  queryHistory.record(next, pendingCaret.value, false);
   emit('update:value', next);
   focus();
 };
@@ -748,7 +760,54 @@ const onSuggestionHover = (index: number) => {
   activeIndex.value = index;
 };
 
+/** Steps the query back or on through the box's history */
+const travel = (back: boolean) => {
+  const entry = back ? queryHistory.undo() : queryHistory.redo();
+
+  if (!entry) {
+    return;
+  }
+
+  pendingCaret.value = entry.caret;
+  // Written by us, so the box is the stale one
+  domAhead.value = false;
+  emit('update:value', entry.text);
+};
+
+/** Cmd+Z / Cmd+Shift+Z on a Mac, Ctrl+Z / Ctrl+Shift+Z or Ctrl+Y elsewhere */
+const historyStep = (event: KeyboardEvent): 'undo' | 'redo' | null => {
+  const mod = isMac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
+  const key = event.key.toLowerCase();
+
+  if (!mod || event.altKey || composing.value) {
+    return null;
+  }
+
+  if (key === 'z') {
+    return event.shiftKey ? 'redo' : 'undo';
+  }
+
+  return !isMac && key === 'y' && !event.shiftKey ? 'redo' : null;
+};
+
+/** The Edit menu's Undo and Redo, which reach the box as input rather than keys */
+const onBeforeInput = (event: InputEvent) => {
+  if (event.inputType === 'historyUndo' || event.inputType === 'historyRedo') {
+    event.preventDefault();
+    travel(event.inputType === 'historyUndo');
+  }
+};
+
 const onKeyDown = (event: KeyboardEvent) => {
+  const step = historyStep(event);
+
+  if (step) {
+    event.preventDefault();
+    travel(step === 'undo');
+
+    return;
+  }
+
   if (event.key === 'Enter') {
     event.preventDefault();
   }
@@ -851,6 +910,16 @@ watch(showSuggestions, (open) => {
 /** `segments` is rebuilt on every row update; redrawing then would yank the caret */
 watch(segmentsKey, () => syncDom());
 
+// Another tab's query, a reset or a link: what came before it isn't this box's to undo back to
+watch(() => props.value || '', (value) => {
+  if (value !== queryHistory.current().text) {
+    queryHistory.reset(value);
+  }
+});
+
+// Another view put on the table, even one with the same query
+watch(() => props.historyKey, () => queryHistory.reset(props.value || ''));
+
 onMounted(() => {
   syncDom();
   // Capture, so it is seen before the browser decides what the press means
@@ -888,6 +957,7 @@ onBeforeUnmount(() => {
       data-testid="table-views-query"
       :data-placeholder="t('tableViews.query.placeholder')"
       :aria-label="t('tableViews.query.placeholder')"
+      @beforeinput="onBeforeInput"
       @input="onInput"
       @paste.prevent="onPaste"
       @compositionstart="composing = true"
