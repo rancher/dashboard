@@ -37,6 +37,23 @@ describe('component: ActionMenuShell', () => {
     });
   });
 
+  describe('open prop', () => {
+    it('should forward open to RcDropdownMenu', () => {
+      const wrapper = shallowMount(ActionMenuShell, { props: { open: true } });
+
+      expect(wrapper.findComponent(RcDropdownMenu).props('open')).toBe(true);
+    });
+
+    it('should emit update:open when the menu opens or closes', () => {
+      const wrapper = shallowMount(ActionMenuShell);
+
+      wrapper.findComponent(RcDropdownMenu).vm.$emit('update:open', true);
+      wrapper.findComponent(RcDropdownMenu).vm.$emit('update:open', false);
+
+      expect(wrapper.emitted('update:open')).toStrictEqual([[true], [false]]);
+    });
+  });
+
   describe('action-invoked event', () => {
     it('should emit action-invoked when an enabled action is selected', () => {
       const wrapper = shallowMount(ActionMenuShell);

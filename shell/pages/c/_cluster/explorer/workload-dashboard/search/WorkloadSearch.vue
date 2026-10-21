@@ -77,6 +77,18 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateDropdownVisible
 
 const keepOpenOnBlur = ref(false);
 
+// The result whose action menu is open. A click in a result never reaches the other menus' click outside
+// handling (the option stops it), so opening one menu has to close the last one here
+const openActionsFor = ref<string | null>(null);
+
+function onActionsOpen(option: WorkloadSearchOption, open: boolean): void {
+  if (open) {
+    openActionsFor.value = option.uniqueId;
+  } else if (openActionsFor.value === option.uniqueId) {
+    openActionsFor.value = null;
+  }
+}
+
 function searchInput(): HTMLInputElement | null {
   return searchRef.value?.$el?.querySelector('input.vs__search') || null;
 }
@@ -285,6 +297,9 @@ function onResultsFocusout(event: FocusEvent): void {
             button-size="small"
             :button-aria-label="t('sortableTable.tableActionsLabel', { resource: option.resource?.id || '' })"
             container="body"
+            :open="openActionsFor === option.uniqueId"
+            @update:open="onActionsOpen(option, $event)"
+            @vue:unmounted="onActionsOpen(option, false)"
             @action-invoked="onActionInvoked"
           />
         </span>

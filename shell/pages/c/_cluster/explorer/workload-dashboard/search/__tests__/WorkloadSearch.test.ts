@@ -522,6 +522,45 @@ describe('component: WorkloadSearch', () => {
 
       expect(mockForceClose).toHaveBeenCalledWith();
     });
+
+    it('should close the open action menu when another result opens its menu', async() => {
+      mockOptions.value = [makeResult('nginx'), makeResult('redis')];
+      const wrapper = createWrapper();
+      const [first, second] = wrapper.findAllComponents(ActionMenu);
+
+      first.vm.$emit('update:open', true);
+      await wrapper.vm.$nextTick();
+      second.vm.$emit('update:open', true);
+      await wrapper.vm.$nextTick();
+
+      expect(first.props('open')).toBe(false);
+      expect(second.props('open')).toBe(true);
+    });
+
+    it('should keep the open action menu when another result closes its menu', async() => {
+      mockOptions.value = [makeResult('nginx'), makeResult('redis')];
+      const wrapper = createWrapper();
+      const [first, second] = wrapper.findAllComponents(ActionMenu);
+
+      first.vm.$emit('update:open', true);
+      second.vm.$emit('update:open', false);
+      await wrapper.vm.$nextTick();
+
+      expect(first.props('open')).toBe(true);
+    });
+
+    it('should not reopen an action menu when its result comes back', async() => {
+      mockOptions.value = [makeResult('nginx')];
+      const wrapper = createWrapper();
+
+      wrapper.findComponent(ActionMenu).vm.$emit('update:open', true);
+      mockOptions.value = [];
+      await wrapper.vm.$nextTick();
+      mockOptions.value = [makeResult('nginx')];
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.findComponent(ActionMenu).props('open')).toBe(false);
+    });
   });
 
   describe('keyboard navigation into a result', () => {

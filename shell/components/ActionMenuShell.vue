@@ -22,6 +22,8 @@ type RcDropdownMenuComponentProps = {
   customActions?: DropdownOption[];
   /** Forwarded to RcDropdown's `container` prop. */
   container?: string | HTMLElement;
+  /** Forwarded to RcDropdown's `open` prop. */
+  open?: boolean;
 }
 
 const props = defineProps <RcDropdownMenuComponentProps>();
@@ -30,6 +32,8 @@ const openChanged = (event: boolean) => {
   if (event) {
     store.dispatch('action-menu/setResource', props.resource);
   }
+
+  emit('update:open', event);
 };
 
 export interface ActionMenuSelection {
@@ -40,7 +44,7 @@ export interface ActionMenuSelection {
   [key: string]: any;
 }
 
-const emit = defineEmits<{(event: 'action-invoked', payload?: ActionMenuSelection): void;}>();
+const emit = defineEmits<{(event: 'action-invoked', payload?: ActionMenuSelection): void; (event: 'update:open', open: boolean): void;}>();
 const route = useRoute();
 
 const execute = (action: any, event: MouseEvent, args?: any) => {
@@ -105,6 +109,7 @@ const menuOptions = () => {
     :options="menuOptions()"
     :data-testid="dataTestid"
     :container="container"
+    :open="open"
     @update:open="openChanged"
     @select="(e: MouseEvent, option: object) => execute(option, e)"
   />
