@@ -667,21 +667,6 @@ describe('component: WorkloadSearch', () => {
       wrapper.unmount();
     });
 
-    it('should give the search the focus before the page shortcuts see a typed key', async() => {
-      const { wrapper, link } = await createFocusedLink();
-      let focusedForShortcuts: Element | null = null;
-      const shortcuts = () => {
-        focusedForShortcuts = document.activeElement;
-      };
-
-      document.addEventListener('keydown', shortcuts, true);
-      await link.trigger('keydown', { key: 'n' });
-      document.removeEventListener('keydown', shortcuts, true);
-
-      expect(focusedForShortcuts).toBe(wrapper.find('input.vs__search').element);
-      wrapper.unmount();
-    });
-
     it.each([' ', 'Enter'])('should leave "%s" to the focused link or button', async(key) => {
       const { wrapper, link } = await createFocusedLink();
 

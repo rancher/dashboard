@@ -1,5 +1,5 @@
 import ShortKey, { _internal } from '@shell/plugins/shortkey';
-import { SHORTKEY_PREVENT_SELECTORS } from '@shell/utils/dom';
+import { IN_PLACE_DROPDOWN_SELECTOR, SHORTKEY_PREVENT_SELECTORS } from '@shell/utils/dom';
 
 const {
   handleHoldKeydown, handleHoldKeyup, releaseHeldKeys, availableElement, handleClaimKeydown
@@ -153,6 +153,20 @@ describe('shortkey .anywhere modifier', () => {
     document.body.innerHTML = '<div class="cluster-switcher-popper"></div>';
 
     expect(availableElement('metaj')).toBe(false);
+  });
+
+  it('treats an open in-place select dropdown as one of those containers', () => {
+    ShortKey.install({ directive: () => {} } as any, { prevent: ['input'], preventContainer: [IN_PLACE_DROPDOWN_SELECTOR] });
+    document.body.innerHTML = '<div class="v-select"><ul class="vs__dropdown-menu"></ul></div>';
+
+    expect(availableElement('metaj')).toBe(false);
+  });
+
+  it('does not treat a select dropdown appended to the body as one of those containers', () => {
+    ShortKey.install({ directive: () => {} } as any, { prevent: ['input'], preventContainer: [IN_PLACE_DROPDOWN_SELECTOR] });
+    document.body.innerHTML = '<div class="v-select"></div><ul class="vs__dropdown-menu"></ul>';
+
+    expect(availableElement('metaj')).toBe(true);
   });
 
   it('is false for a key nothing is bound to', () => {

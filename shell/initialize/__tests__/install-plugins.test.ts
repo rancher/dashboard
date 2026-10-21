@@ -1,6 +1,6 @@
 import { installPlugins } from '@shell/initialize/install-plugins';
 import ShortKey from '@shell/plugins/shortkey';
-import { MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR } from '@shell/utils/dom';
+import { IN_PLACE_DROPDOWN_SELECTOR, MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR } from '@shell/utils/dom';
 
 jest.mock('vue3-resize/dist/vue3-resize.css', () => ({}));
 jest.mock('floating-vue/dist/style.css', () => ({}));
@@ -16,6 +16,6 @@ describe('fx: installPlugins', () => {
 
     const shortKey = use.mock.calls.find(([plugin]) => plugin === ShortKey);
 
-    expect(shortKey?.[1].preventContainer).toStrictEqual([MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR, '.rc-modal']);
+    expect(shortKey?.[1].preventContainer).toStrictEqual([MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR, '.rc-modal', IN_PLACE_DROPDOWN_SELECTOR]);
   });
 });
