@@ -140,8 +140,10 @@ function onActionsClick(event: MouseEvent, option: WorkloadSearchOption) {
     keepOpenOnBlur.value = true;
   }
 
-  // Clicking the button of an open menu closes it, as the click doesn't reach the menu's click outside handling
+  // Clicking the button of an open menu closes it, as the click doesn't reach the menu's click outside handling.
+  // Focus goes back to the search first, else the menu hands it to the button, which then shows the keyboard focus ring
   if (actionsWereOpen) {
+    searchInput()?.focus();
     onActionsOpen(option, false);
   }
 }

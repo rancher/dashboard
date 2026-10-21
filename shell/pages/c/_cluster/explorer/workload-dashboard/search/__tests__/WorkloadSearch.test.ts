@@ -560,6 +560,18 @@ describe('component: WorkloadSearch', () => {
       expect(wrapper.findComponent(ActionMenu).props('open')).toBe(false);
     });
 
+    it('should give the focus back to the search when an action menu is closed by clicking its button', async() => {
+      mockOptions.value = [makeResult('nginx')];
+      const wrapper = createWrapper({ attach: true });
+
+      wrapper.findComponent(ActionMenu).vm.$emit('update:open', true);
+      await wrapper.vm.$nextTick();
+      await wrapper.find('.actions').trigger('click');
+
+      expect(document.activeElement).toBe(wrapper.find('input.vs__search').element);
+      wrapper.unmount();
+    });
+
     it('should keep an action menu open after the click that opens it', async() => {
       mockOptions.value = [makeResult('nginx')];
       const wrapper = createWrapper();
