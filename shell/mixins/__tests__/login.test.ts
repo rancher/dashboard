@@ -54,6 +54,26 @@ describe('mixin: login', () => {
 
       expect(wrapper.vm.displayName).toBe('oidc');
     });
+
+    // The i18n plugin's `t` reads the store off `this`, so it has to be called
+    // on the component rather than handed around unbound.
+    it('should call t with the component as this', () => {
+      const wrapper = shallowMount(Host, {
+        props: {
+          focusOnMount: false, name: 'github', type: 'githubProvider'
+        },
+        global: {
+          mocks: {
+            $store: { getters: { prefix: 'translated.' } },
+            t(this: { $store: { getters: { prefix: string } } }, key: string) {
+              return `${ this.$store.getters.prefix }${ key }`;
+            },
+          },
+        },
+      });
+
+      expect(wrapper.vm.displayName).toBe('translated.model.authConfig.provider.github');
+    });
   });
 
   describe('focus', () => {
