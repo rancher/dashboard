@@ -4,6 +4,7 @@ import Banner from '@components/Banner/Banner.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { randomStr } from '@shell/utils/string';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
@@ -296,7 +297,7 @@ describe('aks node pool component', () => {
         ...requiredSetup()
       });
 
-      wrapper.getComponent('[data-testid="aks-pool-az-select"]').vm.$emit('update:value', [...defaultZones]);
+      wrapper.getComponent<typeof LabeledSelect>('[data-testid="aks-pool-az-select"]').vm.$emit('update:value', [...defaultZones]);
       await wrapper.setProps({ canUseAvailabilityZones: false });
 
       expect(wrapper.props().pool.availabilityZones).toStrictEqual(defaultZones);
@@ -308,7 +309,7 @@ describe('aks node pool component', () => {
         ...requiredSetup()
       });
 
-      wrapper.getComponent('[data-testid="aks-pool-az-select"]').vm.$emit('update:value', []);
+      wrapper.getComponent<typeof LabeledSelect>('[data-testid="aks-pool-az-select"]').vm.$emit('update:value', []);
       await wrapper.setProps({ canUseAvailabilityZones: false });
       await wrapper.setProps({ canUseAvailabilityZones: true });
 
