@@ -124,13 +124,25 @@ function onNamespaceClick(event: MouseEvent, option: WorkloadSearchOption): void
   }
 }
 
-function onActionsClick(event: MouseEvent) {
+// Whether the clicked result's menu was already open, read before its button handles the click (which only opens)
+let actionsWereOpen = false;
+
+function onActionsClickCapture(option: WorkloadSearchOption): void {
+  actionsWereOpen = openActionsFor.value === option.uniqueId;
+}
+
+function onActionsClick(event: MouseEvent, option: WorkloadSearchOption) {
   // Prevent vue-select from treating this as selecting the option.
   event.stopPropagation();
   // Early enough, vue-select prevents mousedown in its dropdown so the input keeps focus until after this click.
   // Opened by keyboard, focus is already on the button so the input won't blur
   if (document.activeElement === searchInput()) {
     keepOpenOnBlur.value = true;
+  }
+
+  // Clicking the button of an open menu closes it, as the click doesn't reach the menu's click outside handling
+  if (actionsWereOpen) {
+    onActionsOpen(option, false);
   }
 }
 
@@ -290,7 +302,8 @@ function onResultsFocusout(event: FocusEvent): void {
         </div>
         <span
           class="actions"
-          @click="onActionsClick"
+          @click.capture="onActionsClickCapture(option)"
+          @click="onActionsClick($event, option)"
         >
           <ActionMenu
             :resource="option.resource"

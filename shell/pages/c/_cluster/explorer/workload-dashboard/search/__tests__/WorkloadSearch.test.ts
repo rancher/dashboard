@@ -549,6 +549,30 @@ describe('component: WorkloadSearch', () => {
       expect(first.props('open')).toBe(true);
     });
 
+    it('should close an open action menu when its button is clicked again', async() => {
+      mockOptions.value = [makeResult('nginx')];
+      const wrapper = createWrapper();
+
+      wrapper.findComponent(ActionMenu).vm.$emit('update:open', true);
+      await wrapper.vm.$nextTick();
+      await wrapper.find('.actions').trigger('click');
+
+      expect(wrapper.findComponent(ActionMenu).props('open')).toBe(false);
+    });
+
+    it('should keep an action menu open after the click that opens it', async() => {
+      mockOptions.value = [makeResult('nginx')];
+      const wrapper = createWrapper();
+      const button = wrapper.findComponent(ActionMenu).element as HTMLElement;
+
+      // The menu's own button opens it during the click, between the capture and bubble handlers
+      button.addEventListener('click', () => wrapper.findComponent(ActionMenu).vm.$emit('update:open', true));
+      button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.findComponent(ActionMenu).props('open')).toBe(true);
+    });
+
     it('should not reopen an action menu when its result comes back', async() => {
       mockOptions.value = [makeResult('nginx')];
       const wrapper = createWrapper();
