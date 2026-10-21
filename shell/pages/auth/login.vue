@@ -736,18 +736,19 @@ export default {
       width: var(--login-column-width);
       max-width: 100%;
       align-self: center;
+      flex-shrink: 0;
 
       display: flex;
-      justify-content: center;
-      align-items: center;
+      flex-direction: column;
+      gap: 10px;
 
       &--hasContent {
-        min-height: 70px;
+        margin-block: 20px;
       }
 
       .banner {
         width: 100%;
-        margin: 5px 0;
+        margin: 0;
       }
     }
 
