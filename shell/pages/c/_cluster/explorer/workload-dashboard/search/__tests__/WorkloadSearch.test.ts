@@ -572,23 +572,28 @@ describe('component: WorkloadSearch', () => {
       wrapper.unmount();
     });
 
-    it('should give the focus to the search and keep the results open when another result opens its menu', async() => {
+    it('should drop the focus from the open action menu, without focusing the search, when another result opens its menu', async() => {
       mockOptions.value = [makeResult('nginx'), makeResult('redis')];
       const wrapper = createWrapper({ attach: true });
       const [first, second] = wrapper.findAllComponents(ActionMenu);
       const button = second.element as HTMLElement;
+      const popper = document.createElement('div');
+      const menu = document.createElement('div');
+
+      popper.className = 'v-popper__popper';
+      menu.tabIndex = -1;
+      popper.appendChild(menu);
+      document.body.appendChild(popper);
 
       first.vm.$emit('update:open', true);
       await wrapper.vm.$nextTick();
+      menu.focus();
       button.addEventListener('click', () => second.vm.$emit('update:open', true));
       button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await wrapper.vm.$nextTick();
 
-      expect(document.activeElement).toBe(wrapper.find('input.vs__search').element);
-
-      wrapper.findComponent(LabeledSelectStub).vm.$emit('on-blur');
-
-      expect(mockForceOpen).toHaveBeenCalledTimes(1);
+      expect(document.activeElement).toBe(document.body);
+      popper.remove();
       wrapper.unmount();
     });
 

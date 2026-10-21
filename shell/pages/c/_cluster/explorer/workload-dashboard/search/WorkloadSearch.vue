@@ -138,15 +138,13 @@ function onActionsClick(event: MouseEvent, option: WorkloadSearchOption) {
     keepOpenOnBlur.value = true;
   }
 
-  // Else closing the open menu gives the focus to its button, which then shows the focus ring
-  if (openBeforeClick) {
+  // Else closing the open menu gives the focus to its button, which then shows the focus ring. Switching menus
+  // only drops it, as moving it to the search would flash the search box
+  if (openBeforeClick === option.uniqueId) {
     searchInput()?.focus();
-
-    if (openBeforeClick === option.uniqueId) {
-      onActionsOpen(option, false);
-    } else {
-      keepOpenOnBlur.value = true;
-    }
+    onActionsOpen(option, false);
+  } else if (openBeforeClick && document.activeElement?.closest('.v-popper__popper')) {
+    (document.activeElement as HTMLElement).blur();
   }
 }
 
