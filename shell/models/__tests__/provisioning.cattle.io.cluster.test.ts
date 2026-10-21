@@ -822,6 +822,59 @@ describe('class ProvCluster', () => {
     });
   });
 
+  describe('copyKubeConfig', () => {
+    const makeCluster = (copied: boolean | undefined) => {
+      const dispatch = jest.fn();
+      const cluster = new ProvCluster({}, { dispatch, rootGetters: { 'i18n/t': (key: string) => key } });
+      const mgmtCluster = new MgmtCluster({});
+
+      mgmtCluster.copyKubeConfig = jest.fn().mockResolvedValue(copied);
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(mgmtCluster);
+
+      return {
+        cluster, mgmtCluster, dispatch
+      };
+    };
+
+    it('should delegate to mgmt cluster copyKubeConfig method', async() => {
+      const { cluster, mgmtCluster } = makeCluster(true);
+
+      await cluster.copyKubeConfig();
+
+      expect(mgmtCluster.copyKubeConfig).toHaveBeenCalledWith();
+    });
+
+    it('should growl a success message when the kubeconfig was copied', async() => {
+      const { cluster, dispatch } = makeCluster(true);
+
+      await cluster.copyKubeConfig();
+
+      expect(dispatch).toHaveBeenCalledWith('growl/info', {
+        title:   'cluster.copiedConfig',
+        timeout: 3000,
+      }, { root: true });
+    });
+
+    it.each([false, undefined])('should not growl a success message when copy returns %s', async(copied) => {
+      const { cluster, dispatch } = makeCluster(copied);
+
+      await cluster.copyKubeConfig();
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('should not growl a success message when mgmt cluster is undefined', async() => {
+      const dispatch = jest.fn();
+      const cluster = new ProvCluster({}, { dispatch, rootGetters: { 'i18n/t': (key: string) => key } });
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(undefined);
+
+      await cluster.copyKubeConfig();
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+  });
+
   describe('rotateEncryptionKey', () => {
     it('should prompt RotateEncryptionKeyDialog for this cluster', () => {
       const ctx = { dispatch: jest.fn() };

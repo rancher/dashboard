@@ -31,9 +31,15 @@ describe('class MgmtCluster', () => {
     );
   });
 
+  const kubeConfigErrorGrowl = (message: string) => ['growl/error', {
+    title: 'cluster.kubeConfig.error.title',
+    message,
+  }, { root: true }];
+
   describe('copyKubeConfig', () => {
     let cluster: any;
     const mockGenerateKubeConfig = jest.fn();
+    const mockDispatch = jest.fn();
     const mockConfig = 'apiVersion: v1\nkind: Config\nclusters:\n- name: test-cluster';
 
     beforeEach(() => {
@@ -41,7 +47,7 @@ describe('class MgmtCluster', () => {
       cluster = new MgmtCluster({
         id:       'test-cluster-1',
         metadata: { name: 'test-cluster-1' }
-      });
+      }, { dispatch: mockDispatch, rootGetters: { 'i18n/t': (key: string) => key } });
       cluster.generateKubeConfig = mockGenerateKubeConfig;
     });
 
@@ -69,11 +75,65 @@ describe('class MgmtCluster', () => {
       await expect(cluster.copyKubeConfig()).resolves.not.toThrow();
       expect(copyTextToClipboard).not.toHaveBeenCalled();
     });
+
+    it('should return true when the kubeconfig was copied', async() => {
+      mockGenerateKubeConfig.mockResolvedValue(mockConfig);
+
+      await expect(cluster.copyKubeConfig()).resolves.toBe(true);
+    });
+
+    it('should return false when config generation returns null', async() => {
+      mockGenerateKubeConfig.mockResolvedValue(null);
+
+      await expect(cluster.copyKubeConfig()).resolves.toBe(false);
+    });
+
+    it('should return false when config generation fails', async() => {
+      mockGenerateKubeConfig.mockRejectedValue(new Error('Generation failed'));
+
+      await expect(cluster.copyKubeConfig()).resolves.toBe(false);
+    });
+
+    it('should growl the error message when config generation fails', async() => {
+      mockGenerateKubeConfig.mockRejectedValue(new Error('Generation failed'));
+
+      await cluster.copyKubeConfig();
+
+      expect(mockDispatch).toHaveBeenCalledWith(...kubeConfigErrorGrowl('Generation failed'));
+    });
+
+    it.each([
+      ['an empty 404 response', { data: '' }],
+      ['an undefined error', undefined],
+    ])('should growl a generic message for %s', async(_, err) => {
+      mockGenerateKubeConfig.mockRejectedValue(err);
+
+      await cluster.copyKubeConfig();
+
+      expect(mockDispatch).toHaveBeenCalledWith(...kubeConfigErrorGrowl('cluster.kubeConfig.error.requestFailed'));
+    });
+
+    it('should return false and growl when writing to the clipboard fails', async() => {
+      mockGenerateKubeConfig.mockResolvedValue(mockConfig);
+      (copyTextToClipboard as jest.Mock).mockRejectedValueOnce(new Error('Clipboard denied'));
+
+      await expect(cluster.copyKubeConfig()).resolves.toBe(false);
+      expect(mockDispatch).toHaveBeenCalledWith(...kubeConfigErrorGrowl('Clipboard denied'));
+    });
+
+    it('should not growl when the kubeconfig was copied', async() => {
+      mockGenerateKubeConfig.mockResolvedValue(mockConfig);
+
+      await cluster.copyKubeConfig();
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
   });
 
   describe('copyKubeConfigBulk', () => {
     let cluster: any;
     const mockGenerateKubeConfig = jest.fn();
+    const mockDispatch = jest.fn();
     const mockConfig = 'apiVersion: v1\nkind: Config\nclusters:\n- name: cluster-1\n- name: cluster-2';
 
     beforeEach(() => {
@@ -81,7 +141,7 @@ describe('class MgmtCluster', () => {
       cluster = new MgmtCluster({
         id:       'cluster-1',
         metadata: { name: 'cluster-1' }
-      });
+      }, { dispatch: mockDispatch, rootGetters: { 'i18n/t': (key: string) => key } });
       cluster.generateKubeConfig = mockGenerateKubeConfig;
     });
 
@@ -162,6 +222,19 @@ describe('class MgmtCluster', () => {
 
       await expect(cluster.copyKubeConfigBulk(items)).resolves.not.toThrow();
       expect(copyTextToClipboard).not.toHaveBeenCalled();
+    });
+
+    it('should return true when the kubeconfig was copied', async() => {
+      mockGenerateKubeConfig.mockResolvedValue(mockConfig);
+
+      await expect(cluster.copyKubeConfigBulk([{ id: 'cluster-1' }])).resolves.toBe(true);
+    });
+
+    it('should return false and growl when config generation fails', async() => {
+      mockGenerateKubeConfig.mockRejectedValue(new Error('Generation failed'));
+
+      await expect(cluster.copyKubeConfigBulk([{ id: 'cluster-1' }])).resolves.toBe(false);
+      expect(mockDispatch).toHaveBeenCalledWith(...kubeConfigErrorGrowl('Generation failed'));
     });
 
     it('should handle empty items array', async() => {
@@ -281,14 +354,62 @@ describe('class MgmtCluster', () => {
     });
   });
 
-  describe('downloadKubeConfigBulk', () => {
+  describe('downloadKubeConfig', () => {
     let cluster: any;
     const mockGenerateKubeConfig = jest.fn();
+    const mockDispatch = jest.fn();
     const mockConfig = 'apiVersion: v1\nkind: Config';
 
     beforeEach(() => {
       jest.clearAllMocks();
-      cluster = new MgmtCluster({ id: 'cluster-1' });
+      cluster = new MgmtCluster({
+        id:       'cluster-1',
+        metadata: { name: 'cluster-1' }
+      }, { dispatch: mockDispatch, rootGetters: { 'i18n/t': (key: string) => key } });
+      cluster.generateKubeConfig = mockGenerateKubeConfig;
+    });
+
+    it('should download a kubeconfig named after the cluster', async() => {
+      mockGenerateKubeConfig.mockResolvedValue(mockConfig);
+
+      await cluster.downloadKubeConfig();
+
+      expect(downloadFile).toHaveBeenCalledWith('cluster-1.yaml', mockConfig, 'application/yaml');
+    });
+
+    it('should not download a file when no config was generated', async() => {
+      mockGenerateKubeConfig.mockResolvedValue(undefined);
+
+      await cluster.downloadKubeConfig();
+
+      expect(downloadFile).not.toHaveBeenCalled();
+    });
+
+    it('should not download a file when config generation fails', async() => {
+      mockGenerateKubeConfig.mockRejectedValue(new Error('Generation failed'));
+
+      await expect(cluster.downloadKubeConfig()).resolves.toBeUndefined();
+      expect(downloadFile).not.toHaveBeenCalled();
+    });
+
+    it('should growl the error message when config generation fails', async() => {
+      mockGenerateKubeConfig.mockRejectedValue(new Error('Generation failed'));
+
+      await cluster.downloadKubeConfig();
+
+      expect(mockDispatch).toHaveBeenCalledWith(...kubeConfigErrorGrowl('Generation failed'));
+    });
+  });
+
+  describe('downloadKubeConfigBulk', () => {
+    let cluster: any;
+    const mockGenerateKubeConfig = jest.fn();
+    const mockDispatch = jest.fn();
+    const mockConfig = 'apiVersion: v1\nkind: Config';
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      cluster = new MgmtCluster({ id: 'cluster-1' }, { dispatch: mockDispatch, rootGetters: { 'i18n/t': (key: string) => key } });
       cluster.generateKubeConfig = mockGenerateKubeConfig;
     });
 
@@ -312,6 +433,14 @@ describe('class MgmtCluster', () => {
       await cluster.downloadKubeConfigBulk([]);
 
       expect(downloadFile).not.toHaveBeenCalled();
+    });
+
+    it('should not download a file and should growl when config generation fails', async() => {
+      mockGenerateKubeConfig.mockRejectedValue(new Error('Generation failed'));
+
+      await expect(cluster.downloadKubeConfigBulk([{ id: 'mgmt-1' }])).resolves.toBeUndefined();
+      expect(downloadFile).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(...kubeConfigErrorGrowl('Generation failed'));
     });
   });
 
