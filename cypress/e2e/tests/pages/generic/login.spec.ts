@@ -213,25 +213,34 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
 
       loginPage.username().checkVisible();
       loginPage.password().checkVisible();
-      // The form owns the panel, so the list collapses to a link.
-      loginPage.providerList().checkNotExists();
-      loginPage.chooseDifferentProvider().checkVisible();
+      // The list stays open beneath the form, without local in it.
+      loginPage.providerList().checkVisible();
+      loginPage.providerOption('local').checkNotExists();
+      loginPage.providerOption('gh-community').checkVisible();
     });
 
-    it('Brings the list back from the local form', () => {
+    it('Opens the list beneath a remembered local form without leaving it', () => {
       const loginPage = new LoginPagePo();
 
       loginPage.selectProvider('local');
+      loginPage.rememberProviderCheckbox().set();
+
+      stubProviders();
+      LoginPagePo.goTo();
+      cy.wait('@authProviders');
+
+      // A username and password form opens with the list collapsed to a link.
+      loginPage.username().checkVisible();
+      loginPage.providerList().checkNotExists();
       loginPage.chooseDifferentProvider().self().click();
 
       loginPage.providerList().checkVisible();
-      // The form gives way to the provider the page opened on, and local goes
-      // back to being one of the options.
-      loginPage.providerSubmitButton().shouldContainText('gh-community');
-      loginPage.providerOption('local').checkVisible();
+      loginPage.username().checkVisible();
+      loginPage.providerOption('local').checkNotExists();
 
       loginPage.selectProvider('okta-partner');
       loginPage.providerSubmitButton().shouldContainText('okta-partner');
+      loginPage.providerOption('local').checkVisible();
     });
 
     it('Reopens on the remembered provider', () => {

@@ -202,67 +202,62 @@ describe('page: login', () => {
       expect(wrapper.vm.showLocal).toBe(true);
     });
 
-    // A username and password form owns the panel, so the alternatives collapse
-    // to a "Choose a different provider" link until the user asks for them.
-    it('should collapse the list while the local form is showing', async() => {
+    // A username and password form opens on its own, so the alternatives start
+    // collapsed to a "Choose a different provider" link.
+    it('should open with the list collapsed on the local form', async() => {
+      window.localStorage.setItem(REMEMBERED_PROVIDER_KEY, 'local');
       const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
 
       await runFetch(wrapper);
-      wrapper.vm.selectProvider(wrapper.vm.providerOptions.find((o: any) => o.isLocal));
 
       expect(wrapper.vm.isCredentialForm).toBe(true);
       expect(wrapper.vm.hasProviderChoice).toBe(true);
       expect(wrapper.vm.showProviderList).toBe(false);
     });
 
-    it('should collapse the list for a directory provider, which asks for credentials too', async() => {
+    it('should open with the list collapsed on a directory provider, which asks for credentials too', async() => {
       const wrapper = createWrapper([LOCAL, AD, GITHUB]);
 
       await runFetch(wrapper);
-      wrapper.vm.selectProvider(wrapper.vm.providerOptions.find((o: any) => o.id === 'ad-corp'));
 
+      expect(wrapper.vm.selectedProviderId).toBe('ad-corp');
       expect(wrapper.vm.isCredentialForm).toBe(true);
       expect(wrapper.vm.showProviderList).toBe(false);
     });
 
     it('should reveal the list when a different provider is asked for', async() => {
-      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
+      const wrapper = createWrapper([LOCAL, AD, GITHUB]);
 
       await runFetch(wrapper);
-      wrapper.vm.selectProvider(wrapper.vm.providerOptions.find((o: any) => o.isLocal));
       wrapper.vm.expandProviderList();
 
       expect(wrapper.vm.showProviderList).toBe(true);
     });
 
-    // Leaving the form in place would sit it above the very list meant to
-    // replace it, so the panel drops back to the provider it opened on.
-    it('should step off the form when a different provider is asked for', async() => {
-      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
+    // Switching here would put the user on a provider they never picked, which
+    // for a second directory looks no different from the first.
+    it('should keep the provider on screen when a different provider is asked for', async() => {
+      const wrapper = createWrapper([LOCAL, AD, GITHUB]);
 
       await runFetch(wrapper);
-      wrapper.vm.selectProvider(wrapper.vm.providerOptions.find((o: any) => o.isLocal));
       wrapper.vm.expandProviderList();
 
-      expect(wrapper.vm.selectedProviderId).toBe('gh-community');
-      expect(wrapper.vm.showLocal).toBe(false);
-      expect(wrapper.vm.isCredentialForm).toBe(false);
+      expect(wrapper.vm.selectedProviderId).toBe('ad-corp');
+      expect(wrapper.vm.isCredentialForm).toBe(true);
     });
 
-    // Remembering local and then asking for the list would otherwise land back
-    // on the form the user is trying to leave.
-    it('should skip the remembered provider when it is the one on screen', async() => {
+    it('should keep the local form when a different provider is asked for', async() => {
       window.localStorage.setItem(REMEMBERED_PROVIDER_KEY, 'local');
       const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
 
       await runFetch(wrapper);
       wrapper.vm.expandProviderList();
 
-      expect(wrapper.vm.selectedProviderId).toBe('gh-community');
+      expect(wrapper.vm.selectedProviderId).toBe('local');
+      expect(wrapper.vm.showLocal).toBe(true);
     });
 
-    // The page is choosing here, not the user.
-    it('should not overwrite the remembered provider when it steps off the form', async() => {
+    it('should not touch the remembered provider when the list is revealed', async() => {
       window.localStorage.setItem(REMEMBERED_PROVIDER_KEY, 'local');
       const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
 
@@ -270,48 +265,29 @@ describe('page: login', () => {
       wrapper.vm.expandProviderList();
 
       expect(window.localStorage.getItem(REMEMBERED_PROVIDER_KEY)).toBe('local');
-    });
-
-    // The box is a statement about the provider on screen, so leaving it ticked
-    // against the one the page just stepped onto would claim a choice was saved
-    // that signing in from here would not honour.
-    it('should stop claiming to remember once it steps off the remembered provider', async() => {
-      window.localStorage.setItem(REMEMBERED_PROVIDER_KEY, 'local');
-      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
-
-      await runFetch(wrapper);
-
       expect(wrapper.vm.rememberProvider).toBe(true);
-
-      wrapper.vm.expandProviderList();
-
-      expect(wrapper.vm.selectedProviderId).toBe('gh-community');
-      expect(wrapper.vm.rememberProvider).toBe(false);
     });
 
-    // Ticking the box from here is the user choosing, so it saves the provider
-    // they are actually looking at rather than the one they arrived on.
-    it('should save the stepped-onto provider when the box is ticked again', async() => {
-      window.localStorage.setItem(REMEMBERED_PROVIDER_KEY, 'local');
-      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
-
-      await runFetch(wrapper);
-      wrapper.vm.expandProviderList();
-      wrapper.vm.setRememberProvider(true);
-
-      expect(window.localStorage.getItem(REMEMBERED_PROVIDER_KEY)).toBe('gh-community');
-    });
-
-    // Otherwise the list would stay open behind the next form.
-    it('should collapse the list again once a provider is chosen from it', async() => {
+    it('should keep the list open once a directory provider is chosen from it', async() => {
       const wrapper = createWrapper([LOCAL, AD, GITHUB]);
 
       await runFetch(wrapper);
-      wrapper.vm.selectProvider(wrapper.vm.providerOptions.find((o: any) => o.isLocal));
       wrapper.vm.expandProviderList();
+      wrapper.vm.selectProvider(wrapper.vm.providerOptions.find((o: any) => o.id === 'gh-community'));
       wrapper.vm.selectProvider(wrapper.vm.providerOptions.find((o: any) => o.id === 'ad-corp'));
 
-      expect(wrapper.vm.showProviderList).toBe(false);
+      expect(wrapper.vm.isCredentialForm).toBe(true);
+      expect(wrapper.vm.showProviderList).toBe(true);
+    });
+
+    it('should keep the list open once local is chosen from it', async() => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
+
+      await runFetch(wrapper);
+      wrapper.vm.selectProvider(wrapper.vm.providerOptions.find((o: any) => o.isLocal));
+
+      expect(wrapper.vm.showLocal).toBe(true);
+      expect(wrapper.vm.showProviderList).toBe(true);
     });
 
     it('should keep the list open for a provider that redirects away', async() => {

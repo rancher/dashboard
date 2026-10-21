@@ -325,11 +325,12 @@ export default {
     /**
      * Picking a provider only changes what the page is offering -- the user still
      * confirms with the primary button, so SSO, LDAP and local all behave alike.
+     * The list stays open, so the next pick is as close to hand as this one was.
      */
     selectProvider(option) {
       this.selectedProviderId = option.id;
       this.showLocal = option.isLocal;
-      this.listExpanded = false;
+      this.listExpanded = true;
 
       if (this.rememberProvider) {
         setRememberedProviderId(option.id);
@@ -356,22 +357,12 @@ export default {
       });
     },
 
+    /**
+     * Reveals the other providers beneath the form on screen. The selection is
+     * left alone: switching it here would put the user on a provider they never
+     * picked, which for a second directory looks no different from the first.
+     */
     expandProviderList() {
-      const alternatives = this.providerOptions.filter((option) => option.id !== this.selectedProviderId);
-      const fallback = resolveInitialProvider(alternatives, this.rememberedProviderId());
-
-      if (fallback) {
-        // Deliberately not `selectProvider`: the page is choosing here, not the
-        // user, so it must not overwrite what they asked to be remembered.
-        this.selectedProviderId = fallback.id;
-        this.showLocal = fallback.isLocal;
-
-        // The box speaks for the provider on screen, and the page has just
-        // stepped onto one the user didn't ask for - so it stops claiming a
-        // choice is saved. Only the saved id survives, for them to come back to.
-        this.rememberProvider = false;
-      }
-
       this.listExpanded = true;
 
       this.$nextTick(() => {
