@@ -194,37 +194,39 @@ const resultFocusables = 'a[href], button:not([disabled])';
 
 // Tab and Shift+Tab move focus from the search through the links and buttons of the highlighted result and back,
 // Escape goes back to the search
+// The arrow keys and typing in a result go back to the search, as they would there. On the window ahead of the page
+// shortcuts, which leave a key alone once the search has the focus, and the typed character then lands in it
+function onResultKeydownCapture(event: KeyboardEvent): void {
+  const input = searchInput();
+  const target = event.target as HTMLElement;
+
+  if (!input || target === input || !target.closest?.('.vs__dropdown-option') || !searchRef.value?.$el?.contains(target)) {
+    return;
+  }
+
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    const select = searchRef.value?.$refs['select-input'] as { typeAheadDown(): void; typeAheadUp(): void } | undefined;
+
+    event.preventDefault();
+    input.focus();
+
+    if (event.key === 'ArrowDown') {
+      select?.typeAheadDown();
+    } else {
+      select?.typeAheadUp();
+    }
+  } else if (event.key.length === 1 && event.key !== ' ' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    input.focus();
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onResultKeydownCapture, true));
+onBeforeUnmount(() => window.removeEventListener('keydown', onResultKeydownCapture, true));
+
 function onResultsKeydown(event: KeyboardEvent): void {
   const input = searchInput();
   const target = event.target as HTMLElement;
   const fromInput = target === input;
-
-  // The arrow keys and typing in a result go back to the search, as they would there
-  if (input && !fromInput && target.closest('.vs__dropdown-option')) {
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      const select = searchRef.value?.$refs['select-input'] as { typeAheadDown(): void; typeAheadUp(): void } | undefined;
-
-      event.preventDefault();
-      input.focus();
-
-      if (event.key === 'ArrowDown') {
-        select?.typeAheadDown();
-      } else {
-        select?.typeAheadUp();
-      }
-
-      return;
-    }
-
-    if (event.key.length === 1 && event.key !== ' ' && !event.ctrlKey && !event.metaKey && !event.altKey) {
-      // Moved during the key press, the character is typed in the search. Not a page shortcut either
-      event.stopPropagation();
-      input.focus();
-
-      return;
-    }
-  }
-
   const row = fromInput ? searchRef.value?.$el?.querySelector('.vs__dropdown-option--highlight') : target.closest('.vs__dropdown-option');
   const focusables: HTMLElement[] = row ? Array.from(row.querySelectorAll(resultFocusables)) : [];
 

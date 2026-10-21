@@ -667,15 +667,18 @@ describe('component: WorkloadSearch', () => {
       wrapper.unmount();
     });
 
-    it('should not let a typed key reach the page', async() => {
+    it('should give the search the focus before the page shortcuts see a typed key', async() => {
       const { wrapper, link } = await createFocusedLink();
-      const pageKeydown = jest.fn();
+      let focusedForShortcuts: Element | null = null;
+      const shortcuts = () => {
+        focusedForShortcuts = document.activeElement;
+      };
 
-      document.addEventListener('keydown', pageKeydown);
-      await link.trigger('keydown', { key: 'x' });
-      document.removeEventListener('keydown', pageKeydown);
+      document.addEventListener('keydown', shortcuts, true);
+      await link.trigger('keydown', { key: 'n' });
+      document.removeEventListener('keydown', shortcuts, true);
 
-      expect(pageKeydown).not.toHaveBeenCalled();
+      expect(focusedForShortcuts).toBe(wrapper.find('input.vs__search').element);
       wrapper.unmount();
     });
 
