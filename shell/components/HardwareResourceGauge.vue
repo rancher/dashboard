@@ -76,83 +76,87 @@ export default {
     class="hardware-resource-gauge"
     :title="name"
   >
-    <div
-      v-if="reserved && (reserved.total !== undefined || reserved.useful !== undefined)"
-      class="hw-gauge"
-    >
-      <ConsumptionGauge
-        :capacity="reserved.total"
-        :used="reserved.useful"
-        :color-stops="colorStops"
-        bar-size="small"
+    <div class="hw-gauges mmb-1">
+      <div
+        v-if="reserved && (reserved.total !== undefined || reserved.useful !== undefined)"
+        class="hw-gauge"
       >
-        <template #title>
-          <span>
-            {{ reservedTitle ?? t('clusterIndexPage.hardwareResourceGauge.reserved') }}
-            <span class="values text-muted">
-              <span v-if="reserved.formattedUseful">
-                {{ reserved.formattedUseful }}
-              </span>
-              <span v-else>
-                {{ maxDecimalPlaces(reserved.useful) }}
-              </span>
-              /
-              <span v-if="reserved.formattedTotal">
-                {{ reserved.formattedTotal }}
-              </span>
-              <span v-else>
-                {{ maxDecimalPlaces(reserved.total) }} {{ reserved.units }}
+        <ConsumptionGauge
+          :capacity="reserved.total"
+          :used="reserved.useful"
+          :color-stops="colorStops"
+          bar-size="small"
+        >
+          <template #title>
+            <span>
+              {{ reservedTitle ?? t('clusterIndexPage.hardwareResourceGauge.reserved') }}
+              <span class="values text-muted">
+                <span v-if="reserved.formattedUseful">
+                  {{ reserved.formattedUseful }}
+                </span>
+                <span v-else>
+                  {{ maxDecimalPlaces(reserved.useful) }}
+                </span>
+                /
+                <span v-if="reserved.formattedTotal">
+                  {{ reserved.formattedTotal }}
+                </span>
+                <span v-else>
+                  {{ maxDecimalPlaces(reserved.total) }} {{ reserved.units }}
+                </span>
               </span>
             </span>
-          </span>
-          <span>
-            {{ percentage(reserved) }}
-          </span>
-        </template>
-      </ConsumptionGauge>
-    </div>
-    <div
-      v-if="used && used.useful !== undefined"
-      class="hw-gauge"
-    >
-      <ConsumptionGauge
-        :capacity="used.total"
-        :used="used.useful"
-        :color-stops="colorStops"
-        bar-size="small"
+            <span>
+              {{ percentage(reserved) }}
+            </span>
+          </template>
+        </ConsumptionGauge>
+      </div>
+      <div
+        v-if="used && used.useful !== undefined"
+        class="hw-gauge"
       >
-        <template #title>
-          <span>
-            {{ usedTitle ?? t('clusterIndexPage.hardwareResourceGauge.used') }}
-            <span class="values text-muted">
-              <span v-if="used.formattedUseful">
-                {{ used.formattedUseful }}
-              </span>
-              <span v-else>
-                {{ maxDecimalPlaces(used.useful) }}
-              </span>
-              /
-              <span v-if="used.formattedTotal">
-                {{ used.formattedTotal }}
-              </span>
-              <span v-else>
-                {{ maxDecimalPlaces(used.total) }} {{ used.units }}
+        <ConsumptionGauge
+          :capacity="used.total"
+          :used="used.useful"
+          :color-stops="colorStops"
+          bar-size="small"
+        >
+          <template #title>
+            <span>
+              {{ usedTitle ?? t('clusterIndexPage.hardwareResourceGauge.used') }}
+              <span class="values text-muted">
+                <span v-if="used.formattedUseful">
+                  {{ used.formattedUseful }}
+                </span>
+                <span v-else>
+                  {{ maxDecimalPlaces(used.useful) }}
+                </span>
+                /
+                <span v-if="used.formattedTotal">
+                  {{ used.formattedTotal }}
+                </span>
+                <span v-else>
+                  {{ maxDecimalPlaces(used.total) }} {{ used.units }}
+                </span>
               </span>
             </span>
-          </span>
-          <span>
-            {{ percentage(used) }}
-          </span>
-        </template>
-      </ConsumptionGauge>
+            <span>
+              {{ percentage(used) }}
+            </span>
+          </template>
+        </ConsumptionGauge>
+      </div>
     </div>
   </Card>
 </template>
 
 <style lang="scss" scoped>
   .hardware-resource-gauge {
-    .hw-gauge:not(:first-of-type) {
-      margin-top: 20px;
+    .hw-gauges {
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap-lg);
     }
 
     .values {
