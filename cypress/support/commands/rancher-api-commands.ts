@@ -471,7 +471,7 @@ Cypress.Commands.add('userPreferences', (preferences: Partial<UserPreferences> =
             'last-visited':      '',
             'ns-by-cluster':     '',
             provisioner:         '',
-            'read-whatsnew':     '',
+            'read-whatsnew':     '2.x.x',
             'seen-whatsnew':     '2.x.x',
             theme:               '',
             ...preferences,

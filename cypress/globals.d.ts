@@ -73,6 +73,7 @@ export interface CreateResourceNameOptions {
 declare global {
   namespace Cypress {
     interface RancherVersion {
+      Version?: string;
       RancherPrime?: string;
     }
 
