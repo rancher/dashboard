@@ -112,18 +112,20 @@ describe('class Deployment', () => {
       },
     };
 
-    const getPatchBody = async() => {
+    const getPatchBody = async(metadata: object = {
+      annotations: {
+        'deployment.kubernetes.io/revision': '2',
+        'field.cattle.io/description':       'any-description',
+        'custom-annotation':                 'custom-value',
+      }
+    }) => {
       const deployment = new Deployment({
         id:       'any-namespace/any-name',
         type:     WORKLOAD_TYPES.DEPLOYMENT,
         metadata: {
-          name:        'any-name',
-          namespace:   'any-namespace',
-          annotations: {
-            'deployment.kubernetes.io/revision': '2',
-            'field.cattle.io/description':       'any-description',
-            'custom-annotation':                 'custom-value',
-          },
+          name:      'any-name',
+          namespace: 'any-namespace',
+          ...metadata,
         },
       });
       const rollBackWorkload = jest.spyOn(deployment, 'rollBackWorkload').mockResolvedValue(undefined);
@@ -160,6 +162,16 @@ describe('class Deployment', () => {
       const body = await getPatchBody();
 
       expect(body.find((op: any) => op.path === '/metadata/annotations')).toBeUndefined();
+    });
+
+    it('should add the annotations object when the deployment has no annotations', async() => {
+      const body = await getPatchBody({});
+
+      expect(body[1]).toStrictEqual({
+        op:    'add',
+        path:  '/metadata/annotations',
+        value: { 'deployment.kubernetes.io/revision': '1' },
+      });
     });
 
     it('should replace the pod template with the revision spec', async() => {
