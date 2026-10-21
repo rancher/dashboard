@@ -123,10 +123,10 @@ function onNamespaceClick(event: MouseEvent, option: WorkloadSearchOption): void
   }
 }
 
-let actionsWereOpen = false;
+let openBeforeClick: string | null = null;
 
-function onActionsClickCapture(option: WorkloadSearchOption): void {
-  actionsWereOpen = openActionsFor.value === option.uniqueId;
+function onActionsClickCapture(): void {
+  openBeforeClick = openActionsFor.value;
 }
 
 function onActionsClick(event: MouseEvent, option: WorkloadSearchOption) {
@@ -138,10 +138,15 @@ function onActionsClick(event: MouseEvent, option: WorkloadSearchOption) {
     keepOpenOnBlur.value = true;
   }
 
-  // Else closing gives the focus to the button, which then shows the focus ring
-  if (actionsWereOpen) {
+  // Else closing the open menu gives the focus to its button, which then shows the focus ring
+  if (openBeforeClick) {
     searchInput()?.focus();
-    onActionsOpen(option, false);
+
+    if (openBeforeClick === option.uniqueId) {
+      onActionsOpen(option, false);
+    } else {
+      keepOpenOnBlur.value = true;
+    }
   }
 }
 
@@ -301,7 +306,7 @@ function onResultsFocusout(event: FocusEvent): void {
         </div>
         <span
           class="actions"
-          @click.capture="onActionsClickCapture(option)"
+          @click.capture="onActionsClickCapture"
           @click="onActionsClick($event, option)"
         >
           <ActionMenu

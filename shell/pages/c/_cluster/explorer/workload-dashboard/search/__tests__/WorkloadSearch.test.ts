@@ -572,6 +572,26 @@ describe('component: WorkloadSearch', () => {
       wrapper.unmount();
     });
 
+    it('should give the focus to the search and keep the results open when another result opens its menu', async() => {
+      mockOptions.value = [makeResult('nginx'), makeResult('redis')];
+      const wrapper = createWrapper({ attach: true });
+      const [first, second] = wrapper.findAllComponents(ActionMenu);
+      const button = second.element as HTMLElement;
+
+      first.vm.$emit('update:open', true);
+      await wrapper.vm.$nextTick();
+      button.addEventListener('click', () => second.vm.$emit('update:open', true));
+      button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await wrapper.vm.$nextTick();
+
+      expect(document.activeElement).toBe(wrapper.find('input.vs__search').element);
+
+      wrapper.findComponent(LabeledSelectStub).vm.$emit('on-blur');
+
+      expect(mockForceOpen).toHaveBeenCalledTimes(1);
+      wrapper.unmount();
+    });
+
     it('should keep an action menu open after the click that opens it', async() => {
       mockOptions.value = [makeResult('nginx')];
       const wrapper = createWrapper();
