@@ -219,6 +219,7 @@ export default {
     <div class="mt-20 resources">
       <Card :title="t('node.detail.glance.consumptionGauge.cpu')">
         <ConsumptionGauge
+          class="mmb-1"
           :capacity="value.cpuAllocatable"
           :used="value.cpuUsage"
           bar-size="small"
@@ -226,6 +227,7 @@ export default {
       </Card>
       <Card :title="t('node.detail.glance.consumptionGauge.memory')">
         <ConsumptionGauge
+          class="mmb-1"
           :capacity="value.ramAllocatable"
           :used="value.ramUsage"
           :number-formatter="memoryFormatter"
@@ -234,6 +236,7 @@ export default {
       </Card>
       <Card :title="t('node.detail.glance.consumptionGauge.pods')">
         <ConsumptionGauge
+          class="mmb-1"
           :capacity="value.podCapacity"
           :used="value.podConsumed"
           :used-label="t('node.detail.glance.consumptionGauge.running')"

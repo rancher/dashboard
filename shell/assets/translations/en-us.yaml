@@ -343,6 +343,7 @@ nav:
   userMenu:
     preferences: Preferences
     accountAndKeys: Account & API Keys
+    whatsNew: What's New
     logOut: Log Out
     label: User menu
     button:
@@ -475,6 +476,24 @@ about:
     modal:
       title: Response times have not yet been generated.
       body: Generate response times to offer more specific information.
+  licenses:
+    title: Open Source Licenses
+    description: This dashboard is built on top of other open source software. Click below to view the full list of third-party packages and their licenses.
+    viewLicenses: View Licenses
+    page:
+      title: Open Source Licenses
+      hint: Click a license to view its full text.
+      error: "Failed to load licenses ({error}). Please try again later."
+    table:
+      package: Package
+      license: License
+      viewFor: "View {license} license text for {name}"
+    panel:
+      none: No license content is available for this package.
+      declaredAs: "Declared license: {license}"
+      rawLicense: "Original expression: {expression}"
+      author: "Author: {author}"
+      textLabel: License text
 
 accountAndKeys:
   title: Account and API Keys
@@ -4588,6 +4607,57 @@ landing:
       custom: "Take me to cluster:"
   welcomeToRancher: 'Welcome to {vendor}'
 
+releaseWelcome:
+  close: Close
+  title: Welcome to {vendor}
+  subtitleCommunity: "{vendor} is up and running. Here's what's new in this release."
+  subtitlePrime: "{vendor} is up and running."
+  registerLead: To activate your subscription benefits, register this system on the
+  registrationPage: Registration page
+  newTab: (opens in a new tab)
+  loading: Loading the release content
+  reopenHint: You can reopen this any time from the user menu at the top right.
+  whatsNew:
+    title: What's new in this release
+    version: "{version}"
+    releaseNotes: Release notes
+    features:
+      navigation:
+        title: Improved navigation
+        description: Jump to any cluster with the new switcher, plus a cleaner, reorganized side menu.
+      tables:
+        title: Smarter tables
+        description: "Tables across the UI are super-charged in this release: advanced filtering, customizable columns and much faster performance on large lists."
+      kubernetes:
+        title: Broader Kubernetes support
+        description: Provision and manage clusters on Kubernetes 1.33 across RKE2 and K3s.
+      hostedProvisioning:
+        title: Unified hosted provisioning
+        description: EKS, AKS and GKE provisioning now runs on the Cluster Provisioning v2 framework.
+  prime:
+    title: Ready for production? Go Prime.
+    description: "Everything in the community edition, plus 24×7 enterprise support, hardened images from a trusted registry, extended lifecycles and the full SUSE cloud-native suite:"
+    products:
+      manager: Rancher Manager
+      distributions: RKE2, k3k & K3s
+      fleet: SUSE Continuous Integration & Delivery
+      security: SUSE Security
+      storage: SUSE Storage
+      virtualization: SUSE Virtualization
+      observability: SUSE Observability
+      appCollection: Application Collection
+    explore: Explore SUSE Rancher Prime
+  registration:
+    title: Register to activate your Prime benefits
+    description: "Registering with SUSE Customer Center unlocks:"
+    benefits:
+      support: "24×7 support: open cases directly from your account"
+      appCollection: "Application Collection: curated, signed apps ready to deploy"
+      images: Hardened images from the Prime trusted registry
+      academy: "Rancher Academy: free certification courses for your team"
+    supportHandbook: Support handbook
+    open: Open SUSE Customer Center
+
 logging:
   clusterFlow:
     noOutputsBanner: There are no cluster outputs in the selected namespace.
@@ -6753,6 +6823,8 @@ secret:
   authentication: Authentication
   githubApp:
     label: GitHub App
+  helmRelease:
+    dataNotEditable: The data of a Helm release secret is managed by Helm and can't be viewed or edited here. You can still edit the labels, annotations and description.
   certificate:
     certificate: Certificate
     certificates: Certificates
