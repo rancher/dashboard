@@ -22,7 +22,6 @@ type RcDropdownMenuComponentProps = {
   customActions?: DropdownOption[];
   /** Forwarded to RcDropdown's `container` prop. */
   container?: string | HTMLElement;
-  /** Forwarded to RcDropdown's `open` prop. */
   open?: boolean;
 }
 
@@ -91,8 +90,7 @@ const execute = (action: any, event: MouseEvent, args?: any) => {
 
 const options = computed(() => store.getters['action-menu/optionsArray']);
 
-// The store holds the actions of one resource, the last whose menu opened. A menu still fading out after
-// another one opened keeps showing its own actions
+// The store only holds the actions of the last opened menu, so a menu keeps its own while it closes
 const ownOptions = ref<DropdownOption[]>([]);
 
 watch(options, (storeOptions) => {

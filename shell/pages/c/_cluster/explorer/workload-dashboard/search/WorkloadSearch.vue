@@ -77,8 +77,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateDropdownVisible
 
 const keepOpenOnBlur = ref(false);
 
-// The result whose action menu is open. A click in a result never reaches the other menus' click outside
-// handling (the option stops it), so opening one menu has to close the last one here
+// A click in a result never reaches the action menus' click outside handling, the option stops it
 const openActionsFor = ref<string | null>(null);
 
 function onActionsOpen(option: WorkloadSearchOption, open: boolean): void {
@@ -124,7 +123,6 @@ function onNamespaceClick(event: MouseEvent, option: WorkloadSearchOption): void
   }
 }
 
-// Whether the clicked result's menu was already open, read before its button handles the click (which only opens)
 let actionsWereOpen = false;
 
 function onActionsClickCapture(option: WorkloadSearchOption): void {
@@ -140,8 +138,7 @@ function onActionsClick(event: MouseEvent, option: WorkloadSearchOption) {
     keepOpenOnBlur.value = true;
   }
 
-  // Clicking the button of an open menu closes it, as the click doesn't reach the menu's click outside handling.
-  // Focus goes back to the search first, else the menu hands it to the button, which then shows the keyboard focus ring
+  // Else closing gives the focus to the button, which then shows the focus ring
   if (actionsWereOpen) {
     searchInput()?.focus();
     onActionsOpen(option, false);

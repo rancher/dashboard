@@ -577,7 +577,6 @@ describe('component: WorkloadSearch', () => {
       const wrapper = createWrapper();
       const button = wrapper.findComponent(ActionMenu).element as HTMLElement;
 
-      // The menu's own button opens it during the click, between the capture and bubble handlers
       button.addEventListener('click', () => wrapper.findComponent(ActionMenu).vm.$emit('update:open', true));
       button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await wrapper.vm.$nextTick();
