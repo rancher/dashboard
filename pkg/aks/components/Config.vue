@@ -32,6 +32,7 @@ import {
   getAKSVirtualNetworks, getAKSVMSizes, getAKSKubernetesVersions
   , regionsWithAvailabilityZones
 } from '../util/aks';
+import { DEFAULT_AVAILABILITY_ZONES } from '../util/aks-regions';
 import { parseTaint } from '../util/taints';
 import { NETWORKING_AUTH_MODES, defaultNodePool } from './CruAks.vue';
 import {
@@ -348,23 +349,25 @@ export default defineComponent({
           return allValid ? undefined : this.t('aks.errors.poolMinMax');
         },
 
-        availabilityZoneSupport: (zones: string[]) => {
-          if (this.canUseAvailabilityZones) {
-            return undefined;
-          }
-          let isUsingAvailabilityZones = false;
+        availabilityZoneSupport: (zones?: string[] | null) => {
+          const error = this.t('aks.errors.availabilityZones');
 
-          if (zones && zones.length) {
-            isUsingAvailabilityZones = true;
-          } else {
-            this.nodePools.forEach((pool: AKSNodePool) => {
-              if (pool.availabilityZones && pool.availabilityZones.length) {
-                isUsingAvailabilityZones = true;
-              }
-            });
+          // a single pool's input passes that pool's zones
+          if (zones !== undefined) {
+            return !this.canUseAvailabilityZones && zones?.length ? error : undefined;
           }
 
-          return this.canUseAvailabilityZones || !isUsingAvailabilityZones ? undefined : this.t('aks.errors.availabilityZones');
+          // form-level validation passes no value: check every pool
+          let allValid = true;
+
+          this.nodePools.forEach((pool: AKSNodePool) => {
+            const valid = this.canUseAvailabilityZones || !pool.availabilityZones?.length;
+
+            pool._validation['_validAZ'] = valid;
+            allValid = allValid && valid;
+          });
+
+          return allValid ? undefined : error;
         },
 
         poolMin: (min?:number) => {
@@ -893,7 +896,7 @@ export default defineComponent({
       }
 
       this.nodePools.push({
-        ...defaultNodePool, name: poolName, _id, mode, vmSize: this.defaultVmSize, availabilityZones: this.canUseAvailabilityZones ? ['1', '2', '3'] : [], orchestratorVersion: this.config.kubernetesVersion
+        ...defaultNodePool, name: poolName, _id, mode, vmSize: this.defaultVmSize, availabilityZones: this.canUseAvailabilityZones ? [...DEFAULT_AVAILABILITY_ZONES] : [], orchestratorVersion: this.config.kubernetesVersion
       });
 
       this.$nextTick(() => {
@@ -950,7 +953,7 @@ export default defineComponent({
       >
         <Tab
           v-for="(pool, i) in nodePools"
-          :key="i"
+          :key="pool._id"
           :weight="-1 * i"
           :name="pool._id || pool.name || ''"
           :label="pool.name || t('aks.nodePools.notNamed')"

@@ -32,6 +32,7 @@ import {
   getAKSRegions
   , regionsWithAvailabilityZones
 } from '../util/aks';
+import { DEFAULT_AVAILABILITY_ZONES } from '../util/aks-regions';
 
 import { diffUpstreamSpec, syncUpstreamConfig } from '@shell/utils/kontainer';
 import {
@@ -46,7 +47,7 @@ import cloneDeep from 'lodash/cloneDeep';
 const DEFAULT_REGION = 'eastus';
 
 export const defaultNodePool = {
-  availabilityZones:     ['1', '2', '3'],
+  availabilityZones:     [...DEFAULT_AVAILABILITY_ZONES],
   count:                 1,
   enableAutoScaling:     false,
   maxPods:               110,

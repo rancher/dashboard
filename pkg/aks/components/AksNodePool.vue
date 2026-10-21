@@ -14,6 +14,8 @@ import KeyValue from '@shell/components/form/KeyValue.vue';
 import Banner from '@components/Banner/Banner.vue';
 
 import { randomStr } from '@shell/utils/string';
+import isEqual from 'lodash/isEqual';
+import { DEFAULT_AVAILABILITY_ZONES } from '../util/aks-regions';
 
 export default defineComponent({
   name: 'AKSNodePool',
@@ -80,9 +82,10 @@ export default defineComponent({
       taints: (this.pool.nodeTaints || []).map((taint: string) => {
         return { taint, _id: randomStr() };
       }),
-      osDiskTypeOptions:       ['Managed', 'Ephemeral'] as AKSDiskType[],
-      modeOptions:             ['User', 'System'] as AKSPoolMode[],
-      availabilityZoneOptions: [{ label: 'zone 1', value: '1' }, { label: 'zone 2', value: '2' }, { label: 'zone 3', value: '3' }],
+      osDiskTypeOptions:        ['Managed', 'Ephemeral'] as AKSDiskType[],
+      modeOptions:              ['User', 'System'] as AKSPoolMode[],
+      availabilityZoneOptions:  [{ label: 'zone 1', value: '1' }, { label: 'zone 2', value: '2' }, { label: 'zone 3', value: '3' }],
+      touchedAvailabilityZones: false,
 
       originalOrchestratorVersion: this.pool.orchestratorVersion
     };
@@ -105,20 +108,22 @@ export default defineComponent({
       }
     },
 
-    validAZ(neu) {
-      // Written to the pool root rather than to `pool._validation`, where every other validity flag
-      // lives. Moving it would change which pools the parent form reports as invalid, so leave it.
-      (this.pool as AKSNodePool & { _validAZ?: boolean })._validAZ = neu;
-      this.$emit('update:value');
+    // when the region changes, keep untouched zones consistent with whether the region supports them
+    canUseAvailabilityZones(neu: boolean) {
+      if (this.touchedAvailabilityZones || !this.pool._isNewOrUnprovisioned) {
+        return;
+      }
+
+      if (!neu && isEqual(this.pool.availabilityZones, DEFAULT_AVAILABILITY_ZONES)) {
+        this.pool['availabilityZones'] = [];
+      } else if (neu && !this.pool.availabilityZones?.length) {
+        this.pool['availabilityZones'] = [...DEFAULT_AVAILABILITY_ZONES];
+      }
     }
   },
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
-
-    validAZ(): Boolean {
-      return !this.pool.availabilityZones || !this.pool.availabilityZones.length || this.canUseAvailabilityZones;
-    },
 
     isView() {
       return this.mode === _VIEW;
@@ -175,10 +180,6 @@ export default defineComponent({
 
       this['taints'] = neu;
       this.pool['nodeTaints'] = neu.map((taint) => taint.taint);
-    },
-
-    availabilityZonesSupport() {
-      return this.validAZ ? undefined : this.t('aks.errors.availabilityZones');
     },
 
     poolCountValidator() {
@@ -264,6 +265,8 @@ export default defineComponent({
           :disabled="!pool._isNewOrUnprovisioned || (!canUseAvailabilityZones && !(pool.availabilityZones && pool.availabilityZones.length))"
           :require-dirty="false"
           :rules="validationRules.az"
+          data-testid="aks-pool-az-select"
+          @update:value="touchedAvailabilityZones = true"
         />
       </div>
       <div class="col span-2">
