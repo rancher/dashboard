@@ -192,8 +192,6 @@ function onActionInvoked(): void {
 
 const resultFocusables = 'a[href], button:not([disabled])';
 
-// Tab and Shift+Tab move focus from the search through the links and buttons of the highlighted result and back,
-// Escape goes back to the search
 // The arrow keys and typing in a result go back to the search, as they would there. On the window ahead of the page
 // shortcuts, which leave a key alone once the search has the focus, and the typed character then lands in it
 function onResultKeydownCapture(event: KeyboardEvent): void {
@@ -223,6 +221,8 @@ function onResultKeydownCapture(event: KeyboardEvent): void {
 onMounted(() => window.addEventListener('keydown', onResultKeydownCapture, true));
 onBeforeUnmount(() => window.removeEventListener('keydown', onResultKeydownCapture, true));
 
+// Tab and Shift+Tab move focus from the search through the links and buttons of the highlighted result and back,
+// Escape goes back to the search
 function onResultsKeydown(event: KeyboardEvent): void {
   const input = searchInput();
   const target = event.target as HTMLElement;

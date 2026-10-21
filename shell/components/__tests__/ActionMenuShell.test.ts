@@ -54,6 +54,17 @@ describe('component: ActionMenuShell', () => {
 
       expect(wrapper.findComponent(RcDropdownMenu).props('options')).toStrictEqual(ownActions);
     });
+
+    it('should take the actions of a new resource the store already holds', async() => {
+      const wrapper = shallowMount(ActionMenuShell, { props: { resource: other } });
+
+      mockGetters['action-menu/resources'] = [resource];
+      mockGetters['action-menu/optionsArray'] = ownActions;
+      await nextTick();
+      await wrapper.setProps({ resource });
+
+      expect(wrapper.findComponent(RcDropdownMenu).props('options')).toStrictEqual(ownActions);
+    });
   });
 
   describe('container prop', () => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, toRaw, watch } from 'vue';
+import { computed, toRaw } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 
@@ -91,13 +91,14 @@ const execute = (action: any, event: MouseEvent, args?: any) => {
 const options = computed(() => store.getters['action-menu/optionsArray']);
 
 // The store only holds the actions of the last opened menu, so a menu keeps its own while it closes
-const ownOptions = ref<DropdownOption[]>([]);
-
-watch(options, (storeOptions) => {
+let lastOwnOptions: DropdownOption[] = [];
+const ownOptions = computed(() => {
   if (toRaw(store.getters['action-menu/resources']?.[0]) === toRaw(props.resource)) {
-    ownOptions.value = storeOptions;
+    lastOwnOptions = options.value;
   }
-}, { immediate: true });
+
+  return lastOwnOptions;
+});
 
 const menuOptions = () => {
   if (props.customActions && props.customActions.length > 0) {
