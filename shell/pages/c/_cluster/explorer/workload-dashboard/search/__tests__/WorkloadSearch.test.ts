@@ -10,6 +10,8 @@ const mockOnSearch = jest.fn();
 const mockOnSelect = jest.fn();
 const mockForceOpen = jest.fn();
 const mockForceClose = jest.fn();
+const mockTypeAheadDown = jest.fn();
+const mockTypeAheadUp = jest.fn();
 
 jest.mock('@shell/pages/c/_cluster/explorer/workload-dashboard/search/useWorkloadSearch', () => ({
   useWorkloadSearch: () => ({
@@ -37,9 +39,17 @@ jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => ({ t: mockT }) }
 // Renders each option through the component's #option slot (and #no-options when
 // there are none) so the row markup and its handlers can be exercised directly. Has
 // vue-select's search input and highlighted option classes for keyboard navigation.
+// vue-select inside LabeledSelect
+const VueSelectStub = defineComponent({
+  name:     'VueSelect',
+  methods:  { typeAheadDown: mockTypeAheadDown, typeAheadUp: mockTypeAheadUp },
+  template: '<span />',
+});
+
 const LabeledSelectStub = defineComponent({
-  name:  'LabeledSelect',
-  props: {
+  name:       'LabeledSelect',
+  components: { VueSelectStub },
+  props:      {
     options:          { type: Array, default: () => [] },
     selectable:       { type: Function, default: undefined },
     reduce:           { type: Function, default: undefined },
@@ -66,6 +76,7 @@ const LabeledSelectStub = defineComponent({
   },
   template: `
     <div>
+      <vue-select-stub ref="select-input" />
       <input class="vs__search">
       <div
         v-for="(option, index) in options"
@@ -123,7 +134,7 @@ function createWrapper({ attach = false } = {}) {
     props:    { navigateToNamespace, resourceRoute },
     attachTo: attach ? document.body : undefined,
     global:   {
-      stubs: { LabeledSelect: LabeledSelectStub },
+      stubs: { LabeledSelect: LabeledSelectStub, VueSelect: VueSelectStub },
       // Overrides the global `t` mock from jest.setup.js, which would otherwise shadow useI18n's
       mocks: { t: mockT },
     },
@@ -620,6 +631,61 @@ describe('component: WorkloadSearch', () => {
       await wrapper.vm.$nextTick();
 
       expect(wrapper.findComponent(ActionMenu).props('open')).toBe(false);
+    });
+  });
+
+  describe('keys pressed in a result', () => {
+    async function createFocusedLink() {
+      mockOptions.value = [makeResult('nginx')];
+      const wrapper = createWrapper({ attach: true });
+      const link = wrapper.find('a.namespace');
+
+      (link.element as HTMLElement).focus();
+
+      return { wrapper, link };
+    }
+
+    it.each([
+      ['ArrowDown', mockTypeAheadDown],
+      ['ArrowUp', mockTypeAheadUp],
+    ])('should go back to the search and move the highlight on %s', async(key, typeAhead) => {
+      const { wrapper, link } = await createFocusedLink();
+
+      await link.trigger('keydown', { key });
+
+      expect(document.activeElement).toBe(wrapper.find('input.vs__search').element);
+      expect(typeAhead).toHaveBeenCalledTimes(1);
+      wrapper.unmount();
+    });
+
+    it('should go back to the search when typing', async() => {
+      const { wrapper, link } = await createFocusedLink();
+
+      await link.trigger('keydown', { key: 'x' });
+
+      expect(document.activeElement).toBe(wrapper.find('input.vs__search').element);
+      wrapper.unmount();
+    });
+
+    it('should not let a typed key reach the page', async() => {
+      const { wrapper, link } = await createFocusedLink();
+      const pageKeydown = jest.fn();
+
+      document.addEventListener('keydown', pageKeydown);
+      await link.trigger('keydown', { key: 'x' });
+      document.removeEventListener('keydown', pageKeydown);
+
+      expect(pageKeydown).not.toHaveBeenCalled();
+      wrapper.unmount();
+    });
+
+    it.each([' ', 'Enter'])('should leave "%s" to the focused link or button', async(key) => {
+      const { wrapper, link } = await createFocusedLink();
+
+      await link.trigger('keydown', { key });
+
+      expect(document.activeElement).toBe(link.element);
+      wrapper.unmount();
     });
   });
 

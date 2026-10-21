@@ -125,26 +125,32 @@ function onNamespaceClick(event: MouseEvent, option: WorkloadSearchOption): void
 
 let openBeforeClick: string | null = null;
 
-function onActionsClickCapture(): void {
+// Before the button's own handler, by when the open menu has handed the focus to its button (focus ring). Switching
+// menus only drops it, as moving it to the search would flash the search box
+function onActionsClickCapture(option: WorkloadSearchOption): void {
   openBeforeClick = openActionsFor.value;
+
+  if (openBeforeClick === option.uniqueId) {
+    searchInput()?.focus();
+  } else if (openBeforeClick && document.activeElement?.closest('.v-popper__popper')) {
+    (document.activeElement as HTMLElement).blur();
+  }
 }
 
 function onActionsClick(event: MouseEvent, option: WorkloadSearchOption) {
   // Prevent vue-select from treating this as selecting the option.
   event.stopPropagation();
+
+  if (openBeforeClick === option.uniqueId) {
+    onActionsOpen(option, false);
+
+    return;
+  }
+
   // Early enough, vue-select prevents mousedown in its dropdown so the input keeps focus until after this click.
   // Opened by keyboard, focus is already on the button so the input won't blur
   if (document.activeElement === searchInput()) {
     keepOpenOnBlur.value = true;
-  }
-
-  // Else closing the open menu gives the focus to its button, which then shows the focus ring. Switching menus
-  // only drops it, as moving it to the search would flash the search box
-  if (openBeforeClick === option.uniqueId) {
-    searchInput()?.focus();
-    onActionsOpen(option, false);
-  } else if (openBeforeClick && document.activeElement?.closest('.v-popper__popper')) {
-    (document.activeElement as HTMLElement).blur();
   }
 }
 
@@ -192,6 +198,33 @@ function onResultsKeydown(event: KeyboardEvent): void {
   const input = searchInput();
   const target = event.target as HTMLElement;
   const fromInput = target === input;
+
+  // The arrow keys and typing in a result go back to the search, as they would there
+  if (input && !fromInput && target.closest('.vs__dropdown-option')) {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      const select = searchRef.value?.$refs['select-input'] as { typeAheadDown(): void; typeAheadUp(): void } | undefined;
+
+      event.preventDefault();
+      input.focus();
+
+      if (event.key === 'ArrowDown') {
+        select?.typeAheadDown();
+      } else {
+        select?.typeAheadUp();
+      }
+
+      return;
+    }
+
+    if (event.key.length === 1 && event.key !== ' ' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      // Moved during the key press, the character is typed in the search. Not a page shortcut either
+      event.stopPropagation();
+      input.focus();
+
+      return;
+    }
+  }
+
   const row = fromInput ? searchRef.value?.$el?.querySelector('.vs__dropdown-option--highlight') : target.closest('.vs__dropdown-option');
   const focusables: HTMLElement[] = row ? Array.from(row.querySelectorAll(resultFocusables)) : [];
 
@@ -304,7 +337,7 @@ function onResultsFocusout(event: FocusEvent): void {
         </div>
         <span
           class="actions"
-          @click.capture="onActionsClickCapture"
+          @click.capture="onActionsClickCapture(option)"
           @click="onActionsClick($event, option)"
         >
           <ActionMenu
