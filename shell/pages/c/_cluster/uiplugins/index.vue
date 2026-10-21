@@ -1038,7 +1038,7 @@ export default {
         if (chart) {
           const error = this.uiErrors[errorName];
 
-          chart.installedError = (error && typeof error === 'string') ? this.t(error) : '';
+          chart.installedError = (error && typeof error === 'string') ? this.t(error, null, true) : '';
         }
       });
 
