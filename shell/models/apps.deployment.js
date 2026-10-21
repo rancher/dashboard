@@ -35,6 +35,18 @@ export default class Deployment extends Workload {
   }
 
   async rollBack(cluster, deployment, revision) {
+    const revisionNumber = revision.metadata.annotations?.['deployment.kubernetes.io/revision'];
+    // A JSON Patch add on a nested key fails if the parent object is missing
+    const revisionPatch = deployment.metadata.annotations ? {
+      op:    'add',
+      path:  '/metadata/annotations/deployment.kubernetes.io~1revision',
+      value: revisionNumber
+    } : {
+      op:    'add',
+      path:  '/metadata/annotations',
+      value: { 'deployment.kubernetes.io/revision': revisionNumber }
+    };
+
     const body = [
       {
         op:    'replace',
@@ -59,11 +71,8 @@ export default class Deployment extends Workload {
           },
           spec: revision.spec.template.spec
         }
-      }, {
-        op:    'add',
-        path:  '/metadata/annotations/deployment.kubernetes.io~1revision',
-        value: revision.metadata.annotations?.['deployment.kubernetes.io/revision']
-      }
+      },
+      revisionPatch
     ];
 
     await this.rollBackWorkload(cluster, deployment, 'deployments', body);
