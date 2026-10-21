@@ -212,7 +212,7 @@ export default {
         warnings.unshift(this.t('gatekeeperIndex.deprecated', {}, true));
       }
 
-      if (this.existing && this.existing.upgradeAvailable === APP_UPGRADE_STATUS.NOT_APPLICABLE) {
+      if (this.isManagedApp) {
         const manager = this.existing?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MANAGED] || 'Rancher';
 
         warnings.unshift(this.t('catalog.install.warning.managed', {
@@ -290,6 +290,11 @@ export default {
 
     isChartTargeted() {
       return this.version?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE] && this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
+    },
+
+    // The installed app is managed by Rancher or Fleet, so upgrading it is not supported
+    isManagedApp() {
+      return this.existing?.upgradeAvailable === APP_UPGRADE_STATUS.NOT_APPLICABLE;
     },
 
     hasQuestions() {
