@@ -673,8 +673,20 @@ describe('component: RcSection', () => {
       expect({
         type: icon?.props('type'), size: icon?.props('size'), status: icon?.props('status')
       }).toStrictEqual({
-        type: 'error', size: 'large', status: 'error'
+        type: 'error', size: 'medium', status: 'error'
       });
+    });
+
+    it.each([
+      [{}, true],
+      [{ expanded: true }, false],
+      [{ invalid: false }, false],
+      [{ expandable: false }, false],
+    ])('should mark the table of contents entry invalid only when the header shows the icon (%o)', async(options, expected) => {
+      const wrapper = await mountSection(options);
+      const section = wrapper.findComponent(RcSection).vm as unknown as { summary: { invalid: { value: boolean } } };
+
+      expect({ toc: section.summary.invalid.value, header: wrapper.find(ICON).exists() }).toStrictEqual({ toc: expected, header: expected });
     });
 
     it('should explain the icon in its tooltip', async() => {

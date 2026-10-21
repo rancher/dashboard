@@ -63,7 +63,8 @@
  *
  * Form fields report whether they are invalid to the section they are in (see useSectionValidity). A collapsed
  * section with invalid fields, including ones in nested sections, shows an error icon in its #errors slot. Filling
- * the slot replaces the icon, and the slot's `invalid` prop says whether it would be shown.
+ * the slot replaces the icon, and the slot's `invalid` prop says whether it would be shown. The section's table of
+ * contents entry shows the same icon.
  */
 import {
   computed, inject, nextTick, provide, useTemplateRef, type Ref
@@ -120,6 +121,7 @@ const { summary } = useInSummary({
   label:      displayTitle,
   scrollTo,
   elementRef: sectionRef,
+  invalid:    showInvalid,
 });
 
 defineExpose({
