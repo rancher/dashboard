@@ -194,7 +194,7 @@ function toggle() {
               v-if="showInvalid"
               v-clean-tooltip="t('component.rcSection.invalidFields')"
               type="error"
-              size="large"
+              size="medium"
               status="error"
               data-testid="rc-section-invalid-fields"
             />
@@ -297,6 +297,7 @@ function toggle() {
 
 .title {
   display: inline-flex;
+  align-items: center;
   gap: 12px;
   font-size: 18px;
   line-height: 1.2;
