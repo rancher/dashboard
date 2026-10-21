@@ -108,17 +108,28 @@ export default defineComponent({
       }
     },
 
-    // when the region changes, keep untouched zones consistent with whether the region supports them
-    canUseAvailabilityZones(neu: boolean) {
-      if (this.touchedAvailabilityZones || !this.pool._isNewOrUnprovisioned) {
-        return;
-      }
+    // keep untouched zones consistent with whether the selected region supports them
+    canUseAvailabilityZones: {
+      handler(neu: boolean, old?: boolean) {
+        // in view mode a change would show zones that differ from the saved config
+        if (this.isView || this.touchedAvailabilityZones || !this.pool._isNewOrUnprovisioned) {
+          return;
+        }
 
-      if (!neu && isEqual(this.pool.availabilityZones, DEFAULT_AVAILABILITY_ZONES)) {
-        this.pool['availabilityZones'] = [];
-      } else if (neu && !this.pool.availabilityZones?.length) {
-        this.pool['availabilityZones'] = [...DEFAULT_AVAILABILITY_ZONES];
-      }
+        if (!neu) {
+          if (isEqual(this.pool.availabilityZones, DEFAULT_AVAILABILITY_ZONES)) {
+            this.pool['availabilityZones'] = [];
+          }
+
+          return;
+        }
+
+        // undefined on the initial run: add zones on a region change, not to pools loaded without zones
+        if (old !== undefined && !this.pool.availabilityZones?.length) {
+          this.pool['availabilityZones'] = [...DEFAULT_AVAILABILITY_ZONES];
+        }
+      },
+      immediate: true
     }
   },
 
