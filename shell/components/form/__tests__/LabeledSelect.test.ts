@@ -470,6 +470,20 @@ describe('component: LabeledSelect', () => {
     });
   });
 
+  describe('appendToBody prop', () => {
+    it('should mark the select as having an in-place dropdown when appendToBody is false', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'], appendToBody: false } });
+
+      expect(wrapper.find('.v-select').classes()).toContain('in-place-dropdown');
+    });
+
+    it('should not mark the select as having an in-place dropdown by default', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
+
+      expect(wrapper.find('.v-select').classes()).not.toContain('in-place-dropdown');
+    });
+  });
+
   describe('visibleRows and visibleRowHeight props', () => {
     // 10px top and bottom padding on the dropdown menu
     const menuPadding = 20;

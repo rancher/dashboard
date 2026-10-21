@@ -14,8 +14,9 @@
   }
 
   // The `inline` helper class makes the select display: inline, which Firefox gives no width as the
-  // dropdown's containing block, so the dropdown's percentage width above would collapse there
-  .v-select.inline {
+  // dropdown's containing block, so the dropdown's percentage width above would collapse there. Only for
+  // these, as a block select also takes up the negative margin of multi-selects below
+  .v-select.inline.in-place-dropdown {
     display: block !important;
   }
 }

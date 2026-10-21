@@ -666,7 +666,7 @@ export default {
       :close-on-select="false"
       :append-to-body="appendToBody"
       :calculate-position="positionDropdown"
-      :class="{ 'no-label': !(label || '').length}"
+      :class="{ 'no-label': !(label || '').length, 'in-place-dropdown': !appendToBody }"
       :style="dropdownStyle"
       :clearable="clearable"
       :disabled="isView || disabled || loading"
