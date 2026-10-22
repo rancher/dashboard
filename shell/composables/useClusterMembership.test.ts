@@ -1,7 +1,7 @@
-import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+import { canViewClusterMembershipEditor } from '@shell/utils/membership-permissions';
 import { useClusterMembership, saveRoleBindings } from '@shell/composables/useClusterMembership';
 
-jest.mock('@shell/components/form/Members/ClusterMembershipEditor.vue', () => ({ canViewClusterMembershipEditor: jest.fn() }));
+jest.mock('@shell/utils/membership-permissions', () => ({ canViewClusterMembershipEditor: jest.fn() }));
 
 const mockUseStore = jest.fn(() => ({ id: 'mock-store' }));
 

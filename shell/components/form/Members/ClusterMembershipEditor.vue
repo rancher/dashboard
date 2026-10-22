@@ -1,11 +1,10 @@
 <script>
 import { NORMAN } from '@shell/config/types';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
-import MembershipEditor, { canViewMembershipEditor } from '@shell/components/form/Members/MembershipEditor';
+import MembershipEditor from '@shell/components/form/Members/MembershipEditor';
 
-export function canViewClusterMembershipEditor(store) {
-  return canViewMembershipEditor(store);
-}
+// re-exported: extensions import this from this component
+export { canViewClusterMembershipEditor } from '@shell/utils/membership-permissions';
 
 export default {
   components: { MembershipEditor },
