@@ -1,5 +1,5 @@
 import PortalVue from 'portal-vue';
-import { IN_PLACE_DROPDOWN_SELECTOR, MODAL_CONTAINER_SELECTOR, SHORTKEY_PREVENT_SELECTORS, SWITCHER_POPPER_SELECTOR } from '@shell/utils/dom';
+import { MODAL_CONTAINER_SELECTOR, SHORTKEY_PREVENT_SELECTORS, SWITCHER_POPPER_SELECTOR } from '@shell/utils/dom';
 import Vue3Resize from 'vue3-resize';
 import FloatingVue from 'floating-vue';
 import 'vue3-resize/dist/vue3-resize.css';
@@ -43,7 +43,7 @@ export async function installPlugins(vueApp) {
     {
       prevent:          SHORTKEY_PREVENT_SELECTORS,
       // A surface that owns the screen silences the app's shortcuts while it is up.
-      preventContainer: [MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR, '.rc-modal', IN_PLACE_DROPDOWN_SELECTOR]
+      preventContainer: [MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR, '.rc-modal']
     });
   // Deprecated, for the editors of extensions built with a shell from before CodeMirror 6
   vueApp.component('Codemirror', CodeMirror5);

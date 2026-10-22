@@ -1,5 +1,5 @@
 import ShortKey, { _internal } from '@shell/plugins/shortkey';
-import { IN_PLACE_DROPDOWN_SELECTOR, SHORTKEY_PREVENT_SELECTORS } from '@shell/utils/dom';
+import { SHORTKEY_PREVENT_SELECTORS } from '@shell/utils/dom';
 
 const {
   handleHoldKeydown, handleHoldKeyup, releaseHeldKeys, availableElement, handleClaimKeydown
@@ -155,20 +155,6 @@ describe('shortkey .anywhere modifier', () => {
     expect(availableElement('metaj')).toBe(false);
   });
 
-  it('treats an open in-place select dropdown as one of those containers', () => {
-    ShortKey.install({ directive: () => {} } as any, { prevent: ['input'], preventContainer: [IN_PLACE_DROPDOWN_SELECTOR] });
-    document.body.innerHTML = '<div class="v-select"><ul class="vs__dropdown-menu"></ul></div>';
-
-    expect(availableElement('metaj')).toBe(false);
-  });
-
-  it('does not treat a select dropdown appended to the body as one of those containers', () => {
-    ShortKey.install({ directive: () => {} } as any, { prevent: ['input'], preventContainer: [IN_PLACE_DROPDOWN_SELECTOR] });
-    document.body.innerHTML = '<div class="v-select"></div><ul class="vs__dropdown-menu"></ul>';
-
-    expect(availableElement('metaj')).toBe(true);
-  });
-
   it('is false for a key nothing is bound to', () => {
     expect(availableElement('metaz')).toBe(false);
   });
@@ -199,6 +185,7 @@ describe('shortkey app avoid list', () => {
     ['a select', '<select id="f"></select>'],
     ['an editable CodeMirror 6 editor', '<div id="f" class="cm-content" contenteditable="true"></div>'],
     ['a read-only CodeMirror 6 editor', '<div id="f" class="cm-content" contenteditable="false" tabindex="0"></div>'],
+    ['a result of a select dropdown open in place', '<div class="v-select"><ul class="vs__dropdown-menu"><li><a id="f" href="#">ns</a></li></ul></div>'],
   ])('holds shortcuts back while focus is in %s', (_label, html) => {
     document.body.innerHTML = html;
     (document.getElementById('f') as HTMLElement).focus();
@@ -206,8 +193,12 @@ describe('shortkey app avoid list', () => {
     expect(availableElement('ctrlk')).toBe(false);
   });
 
-  it('lets shortcuts through from an element that does not own the keyboard', () => {
-    document.body.innerHTML = '<button id="f">x</button>';
+  it.each([
+    ['an element that does not own the keyboard', '<button id="f">x</button>'],
+    ['outside a select dropdown open in place', '<div class="v-select"><ul class="vs__dropdown-menu"><li>result</li></ul></div><button id="f">x</button>'],
+    ['a select dropdown appended to the body', '<div class="v-select"></div><ul class="vs__dropdown-menu"><li><a id="f" href="#">option</a></li></ul>'],
+  ])('lets shortcuts through from %s', (_label, html) => {
+    document.body.innerHTML = html;
     (document.getElementById('f') as HTMLElement).focus();
 
     expect(availableElement('ctrlk')).toBe(true);

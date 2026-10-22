@@ -25,12 +25,9 @@ export const MODAL_CONTAINER_SELECTOR = '#modal-container-element';
 export const SWITCHER_POPPER_CLASS = 'cluster-switcher-popper';
 export const SWITCHER_POPPER_SELECTOR = `.${ SWITCHER_POPPER_CLASS }`;
 
-// A select's dropdown open in place (not appended to the body), which answers the keys pressed in it
-export const IN_PLACE_DROPDOWN_SELECTOR = '.v-select > .vs__dropdown-menu';
-
 // Focused elements that own the keyboard, so the shortcut plugin (installed with these as `prevent`) lets
 // their keys through instead of firing app shortcuts. CodeMirror 6 takes focus on a contenteditable
 // `.cm-content` rather than a textarea, and read-only editors mark it contenteditable="false" but keep it
 // focusable, so any contenteditable value counts. Without it Ctrl+K opens the nav search instead of
-// reaching the editor's Emacs kill-line.
-export const SHORTKEY_PREVENT_SELECTORS = ['input', 'textarea', 'select', '[contenteditable]'];
+// reaching the editor's Emacs kill-line. A select's dropdown open in place handles the keys pressed in it too.
+export const SHORTKEY_PREVENT_SELECTORS = ['input', 'textarea', 'select', '[contenteditable]', '.v-select > .vs__dropdown-menu *'];
