@@ -896,7 +896,7 @@ export default defineComponent({
       }
 
       this.nodePools.push({
-        ...defaultNodePool, name: poolName, _id, mode, vmSize: this.defaultVmSize, availabilityZones: this.canUseAvailabilityZones ? [...DEFAULT_AVAILABILITY_ZONES] : [], orchestratorVersion: this.config.kubernetesVersion
+        ...defaultNodePool, name: poolName, _id, mode, vmSize: this.defaultVmSize, availabilityZones: this.canUseAvailabilityZones ? [...DEFAULT_AVAILABILITY_ZONES] : [], orchestratorVersion: this.config.kubernetesVersion, _validation: {}
       });
 
       this.$nextTick(() => {

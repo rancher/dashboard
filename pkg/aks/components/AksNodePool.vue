@@ -136,6 +136,13 @@ export default defineComponent({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
+    // a missing key would otherwise look like the form-level call, which checks every pool
+    availabilityZoneRules(): Array<(zones?: string[] | null) => string | undefined> {
+      const rules: Array<(zones: string[]) => string | undefined> = this.validationRules.az || [];
+
+      return rules.map((rule) => (zones?: string[] | null) => rule(zones ?? []));
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -275,7 +282,7 @@ export default defineComponent({
           :taggable="true"
           :disabled="!pool._isNewOrUnprovisioned || (!canUseAvailabilityZones && !(pool.availabilityZones && pool.availabilityZones.length))"
           :require-dirty="false"
-          :rules="validationRules.az"
+          :rules="availabilityZoneRules"
           data-testid="aks-pool-az-select"
           @update:value="touchedAvailabilityZones = true"
         />
