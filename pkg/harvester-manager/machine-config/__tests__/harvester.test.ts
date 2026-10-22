@@ -430,3 +430,147 @@ describe('component: harvester machine config - PCI devices', () => {
     });
   });
 });
+
+
+type Method = (this: unknown, ...args: unknown[]) => unknown;
+const { methods } = Harvester as unknown as { methods: Record<string, Method> };
+
+describe('harvester machine config: storage options', () => {
+  describe('updateDisk', () => {
+    it('should update the disk in place, so it keeps its identity', () => {
+      const disk: Record<string, unknown> = {
+        size: 10, cache: 'writeback', bootOrder: 2
+      };
+      const ctx = { disks: [disk], update: jest.fn() };
+
+      methods.updateDisk.call(ctx, 0, {
+        size: 10, io: 'threads', bootOrder: 2
+      });
+
+      expect(ctx.disks[0] === disk).toStrictEqual(true);
+      expect(disk).toStrictEqual({
+        size: 10, io: 'threads', bootOrder: 2
+      });
+      expect(ctx.update).toHaveBeenCalledWith();
+    });
+  });
+
+  describe('validatorDiskAndNetowrk', () => {
+    const run = (value: Record<string, unknown>, disks: Record<string, unknown>[] = [{ imageName: 'default/ubuntu', size: 40 }], isOldFormat = false) => {
+      const interfaces = [{ networkName: 'default/vlan', macAddress: '' }];
+      const ctx = {
+        value: {
+          diskInfo: JSON.stringify({ disks }), networkInfo: JSON.stringify({ interfaces }), ...value
+        },
+        disks,
+        interfaces,
+        isOldFormat,
+        t:                      (key: string) => key,
+        validatorRequiredField: (key: string) => `required ${ key }`,
+        validatorMinimumField:  (key: string) => `minimum ${ key }`,
+        $store:                 { getters: { 'i18n/t': (key: string) => key } },
+      };
+      const errors: string[] = [];
+
+      methods.validatorDiskAndNetowrk.call(ctx, errors);
+
+      return { errors, value: ctx.value };
+    };
+    const validate = (...args: Parameters<typeof run>) => run(...args).errors;
+    const INVALID_COUNT = 'cluster.credential.harvester.vmStorageOptions.ioThreadCount.invalid';
+
+    it.each([
+      ['supplementalPool', '', true],
+      ['supplementalPool', '0', true],
+      ['supplementalPool', '-1', true],
+      ['supplementalPool', '4', false],
+      ['auto', '0', false],
+      ['', '', false],
+    ])('policy %p with thread count %p should be invalid: %p', (ioThreadsPolicy, ioThreadCount, invalid) => {
+      expect(validate({ ioThreadsPolicy, ioThreadCount }).includes(INVALID_COUNT)).toStrictEqual(invalid);
+    });
+
+    // The form cannot produce these, so a pool that already has them saves as it is instead of blocking the cluster
+    it.each([
+      [{ bus: 'sata', dedicatedIOThread: true }],
+      [{ io: 'native', cache: 'writeback' }],
+    ])('should not block saving a disk with %p set outside the form', (options) => {
+      expect(validate({}, [{
+        imageName: 'default/ubuntu', size: 40, ...options
+      }])).toStrictEqual([]);
+    });
+  });
+
+  describe('validatorDiskAndNetowrk: disk options', () => {
+    const disksOf = (value: Record<string, unknown>) => JSON.parse(value.diskInfo as string).disks;
+    const run = (disk: Record<string, unknown>, isOldFormat: boolean) => {
+      const interfaces = [{ networkName: 'default/vlan', macAddress: '' }];
+      const ctx = {
+        value:                  { diskInfo: JSON.stringify({ disks: [disk] }), networkInfo: JSON.stringify({ interfaces }) } as Record<string, unknown>,
+        disks:                  [disk],
+        interfaces,
+        isOldFormat,
+        t:                      (key: string) => key,
+        validatorRequiredField: (key: string) => `required ${ key }`,
+        validatorMinimumField:  (key: string) => `minimum ${ key }`,
+        $store:                 { getters: { 'i18n/t': (key: string) => key } },
+      };
+      const errors: string[] = [];
+
+      methods.validatorDiskAndNetowrk.call(ctx, errors);
+
+      return { errors, value: ctx.value };
+    };
+
+    it('should convert an old format pool without options back to the old format', () => {
+      const { value } = run({
+        imageName: 'default/ubuntu', size: 40, bootOrder: 1
+      }, true);
+
+      expect(value.diskInfo).toBeUndefined();
+      expect(value.imageName).toStrictEqual('default/ubuntu');
+      expect(value.diskSize).toStrictEqual('40');
+    });
+
+    it('should keep the new format for an old format pool once a disk has options', () => {
+      const { value } = run({
+        imageName: 'default/ubuntu', size: 40, bootOrder: 1, cache: 'writeback'
+      }, true);
+
+      expect(disksOf(value)).toStrictEqual([{
+        imageName: 'default/ubuntu', size: 40, bootOrder: 1, cache: 'writeback'
+      }]);
+    });
+  });
+
+  describe('fetchHasStorageOptions', () => {
+    const run = async(pathExists: boolean, fail = false) => {
+      const fetchResourceFields = jest.fn().mockImplementation(() => (fail ? Promise.reject(new Error('no access')) : Promise.resolve()));
+      const ctx = {
+        hasStorageOptions: false,
+        $store:            {
+          getters: {
+            'management/schemaFor':          () => ({ fetchResourceFields }),
+            'management/pathExistsInSchema': () => pathExists,
+          }
+        },
+      };
+
+      await methods.fetchHasStorageOptions.call(ctx);
+
+      return ctx.hasStorageOptions;
+    };
+
+    it('should show the options when the driver schema has them', async() => {
+      expect(await run(true)).toStrictEqual(true);
+    });
+
+    it('should hide the options with a driver that does not support them', async() => {
+      expect(await run(false)).toStrictEqual(false);
+    });
+
+    it('should hide the options when the schema cannot be read', async() => {
+      expect(await run(true, true)).toStrictEqual(false);
+    });
+  });
+});

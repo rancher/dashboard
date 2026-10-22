@@ -2014,9 +2014,8 @@ cluster:
         addVMImage: Add VM Image
         storageClass: Storage Class
       storageOptions:
-        title: Storage Options
         profile:
-          label: Performance Profile
+          label: Storage Performance Profile
           tip: '"High Performance" disables the host cache, uses native AIO and gives the disk a dedicated I/O thread. Choose "Custom" to set each option yourself.'
           default: Default
           highPerformance: High Performance
@@ -2039,8 +2038,9 @@ cluster:
         dedicatedIOThread:
           label: Dedicated I/O Thread
           tip: Give this disk its own I/O thread instead of sharing one. Useful for disks with heavy I/O.
+        busWarning: 'This disk uses the {bus} bus. A dedicated I/O thread, and so the High Performance profile, needs the virtio bus.'
       vmStorageOptions:
-        title: Storage Options (I/O Threads and Multi-Queue)
+        title: Storage Performance
         description: These options apply to all volumes of the virtual machine.
         blockMultiQueue:
           label: Virtio Block Multi-Queue
