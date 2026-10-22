@@ -2186,6 +2186,7 @@ export default {
                   ref="pool"
                   :value="obj"
                   :cluster="value"
+                  :previous-kube-version="liveValue?.spec?.kubernetesVersion"
                   :mode="mode"
                   :provider="provider"
                   :credential-id="credentialId"
