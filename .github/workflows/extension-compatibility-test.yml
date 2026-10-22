@@ -72,6 +72,7 @@ jobs:
             skip_cluster_create_rke2: "true"
             # Legacy RESOURCE_DETAIL tab still works on 2.10
             skip_resource_detail_legacy: "false"
+            skip_row_name_assert: "false"
           # 2.11 is EOL: pinned to specific commit with known Docker Hub image.
           # The stgregistry.suse.com repo doesn't have commit-hash tagged images for 2.11.
           - rancher_version: "v2.11-df80b1315c63a6b1b4aa7f9a4ea22dff4b1e71e2-head"
@@ -88,6 +89,7 @@ jobs:
             skip_cluster_create_rke2: "true"
             # Legacy RESOURCE_DETAIL tab still works on 2.11
             skip_resource_detail_legacy: "false"
+            skip_row_name_assert: "false"
           - rancher_version: "v2.12-head"
             rancher_registry: "stgregistry.suse.com"
             kube_version: "v1.33.12+k3s1"
@@ -104,6 +106,7 @@ jobs:
             skip_cluster_create_rke2: "true"
             # Legacy RESOURCE_DETAIL tab still works on 2.12
             skip_resource_detail_legacy: "false"
+            skip_row_name_assert: "false"
           - rancher_version: "v2.13-head"
             rancher_registry: "stgregistry.suse.com"
             kube_version: "v1.34.8+k3s1"
@@ -117,6 +120,7 @@ jobs:
             skip_cluster_create_rke2: "false"
             # Legacy RESOURCE_DETAIL tab still works on 2.13
             skip_resource_detail_legacy: "false"
+            skip_row_name_assert: "false"
           - rancher_version: "v2.14-head"
             rancher_registry: ""
             kube_version: "v1.35.5+k3s1"
@@ -129,6 +133,7 @@ jobs:
             skip_cluster_create_rke2: "false"
             # Legacy RESOURCE_DETAIL tab is native to 2.14 - exercise it here
             skip_resource_detail_legacy: "false"
+            skip_row_name_assert: "false"
           - rancher_version: "v2.15-head"
             rancher_registry: ""
             kube_version: "v1.36.2+k3s1"
@@ -142,6 +147,12 @@ jobs:
             skip_about_top: "false"
             skip_cluster_create_rke2: "false"
             skip_resource_detail_legacy: "true"
+            # 2.15 ships dashboard v2.15.2, where an extension that registers a product through the
+            # Product Registration API blanks the Name column on explorer lists. Rows still load and
+            # filter, so the tests keep running - they just assert on the filtered row count instead
+            # of the name. `latest` ships UI master, which has the fix, so it keeps asserting by name.
+            # Remove this once the fix is backported to release-2.15 and the image re-pins.
+            skip_row_name_assert: "true"
           - rancher_version: "head"
             rancher_registry: ""
             kube_version: "v1.36.1+k3s1"
@@ -154,6 +165,7 @@ jobs:
             skip_cluster_create_rke2: "false"
             # Legacy RESOURCE_DETAIL tab is "up until v2.14" per the test spec - skip on 2.15
             skip_resource_detail_legacy: "true"
+            skip_row_name_assert: "false"
 
     name: "Rancher ${{ matrix.version_label }}"
 
@@ -258,6 +270,11 @@ jobs:
           yarn add @rancher/shell@${SHELL_VERSION} -W
           # Patch source for backward compatibility: guard methods that don't exist in older Rancher versions
           sed -i 's/\$plugin\.addTableHook(/typeof \$plugin.addTableHook === "function" \&\& \$plugin.addTableHook(/g' pkg/elemental/index.ts
+          # addModelExtension only exists from Rancher 2.11 (rancher/dashboard#11064). On 2.10 the
+          # unguarded call throws out of the extension's entry function, which Cypress sees as an
+          # uncaught app exception in the first `before each` - that aborts the whole suite, not just
+          # one test. 2.10 is EOL so there is nothing to fix host-side; make the probe a no-op there.
+          sed -i 's/\$plugin\.addModelExtension(/typeof \$plugin.addModelExtension === "function" \&\& \$plugin.addModelExtension(/g' pkg/elemental/index.ts
           yarn build-pkg elemental
           cp -r dist-pkg ${{ github.workspace }}/dist-pkg
           yarn config set registry ${DEFAULT_NPM_REGISTRY}
@@ -421,6 +438,7 @@ jobs:
           CYPRESS_skip_about_top: ${{ matrix.skip_about_top }}
           CYPRESS_skip_cluster_create_rke2: ${{ matrix.skip_cluster_create_rke2 }}
           CYPRESS_skip_resource_detail_legacy: ${{ matrix.skip_resource_detail_legacy }}
+          CYPRESS_skip_row_name_assert: ${{ matrix.skip_row_name_assert }}
           CYPRESS_rancher_version: ${{ matrix.version_label }}
         run: |
           yarn cy:run --spec cypress/e2e/tests/pages/extensions/extension-compatibility.spec.ts
