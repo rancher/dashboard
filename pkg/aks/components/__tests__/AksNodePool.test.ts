@@ -4,8 +4,9 @@ import Banner from '@components/Banner/Banner.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { randomStr } from '@shell/utils/string';
-import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
 import Taint from '@pkg/aks/components/Taint.vue';
 import { AKSPoolMode } from '@pkg/aks/types';
@@ -269,5 +270,95 @@ describe('aks node pool component', () => {
     });
 
     expect(countValidator).toHaveBeenCalledWith(-1, allowZeroCount);
+  });
+
+  describe('availability zones when region support changes', () => {
+    const defaultZones = ['1', '2', '3'];
+
+    it.each([
+      ['should remove the default zones when zones become unsupported', true, false, [...defaultZones], []],
+      ['should add the default zones when zones become supported', false, true, [], defaultZones],
+      ['should not remove non-default zones when zones become unsupported', true, false, ['1'], ['1']],
+      ['should not replace existing zones when zones become supported', false, true, ['2'], ['2']],
+    ])('%s, if the user has not edited the availability zones input', async(_, canUseAvailabilityZones, newCanUseAvailabilityZones, availabilityZones, expectedZones) => {
+      const wrapper = shallowMount(AksNodePool, {
+        props: { pool: { ...defaultPool, availabilityZones }, canUseAvailabilityZones },
+        ...requiredSetup()
+      });
+
+      await wrapper.setProps({ canUseAvailabilityZones: newCanUseAvailabilityZones });
+
+      expect(wrapper.props().pool.availabilityZones).toStrictEqual(expectedZones);
+    });
+
+    it('should not remove the zones when zones become unsupported if the user has edited the availability zones input', async() => {
+      const wrapper = shallowMount(AksNodePool, {
+        props: { pool: { ...defaultPool, availabilityZones: [] }, canUseAvailabilityZones: true },
+        ...requiredSetup()
+      });
+
+      wrapper.getComponent<typeof LabeledSelect>('[data-testid="aks-pool-az-select"]').vm.$emit('update:value', [...defaultZones]);
+      await wrapper.setProps({ canUseAvailabilityZones: false });
+
+      expect(wrapper.props().pool.availabilityZones).toStrictEqual(defaultZones);
+    });
+
+    it('should not add the default zones when zones become supported if the user has edited the availability zones input', async() => {
+      const wrapper = shallowMount(AksNodePool, {
+        props: { pool: { ...defaultPool, availabilityZones: [...defaultZones] }, canUseAvailabilityZones: true },
+        ...requiredSetup()
+      });
+
+      wrapper.getComponent<typeof LabeledSelect>('[data-testid="aks-pool-az-select"]').vm.$emit('update:value', []);
+      await wrapper.setProps({ canUseAvailabilityZones: false });
+      await wrapper.setProps({ canUseAvailabilityZones: true });
+
+      expect(wrapper.props().pool.availabilityZones).toStrictEqual([]);
+    });
+
+    it('should not change the zones of a provisioned pool when zones become unsupported', async() => {
+      const wrapper = shallowMount(AksNodePool, {
+        props: {
+          pool: {
+            ...defaultPool, availabilityZones: [...defaultZones], _isNewOrUnprovisioned: false
+          },
+          canUseAvailabilityZones: true
+        },
+        ...requiredSetup()
+      });
+
+      await wrapper.setProps({ canUseAvailabilityZones: false });
+
+      expect(wrapper.props().pool.availabilityZones).toStrictEqual(defaultZones);
+    });
+
+    it('should remove the default zones on mount if zones are unsupported', () => {
+      const wrapper = shallowMount(AksNodePool, {
+        props: { pool: { ...defaultPool, availabilityZones: [...defaultZones] }, canUseAvailabilityZones: false },
+        ...requiredSetup()
+      });
+
+      expect(wrapper.props().pool.availabilityZones).toStrictEqual([]);
+    });
+
+    it('should not add the default zones on mount if zones are supported and the pool has no zones', () => {
+      const wrapper = shallowMount(AksNodePool, {
+        props: { pool: { ...defaultPool, availabilityZones: [] }, canUseAvailabilityZones: true },
+        ...requiredSetup()
+      });
+
+      expect(wrapper.props().pool.availabilityZones).toStrictEqual([]);
+    });
+
+    it('should not remove the default zones on mount in view mode', () => {
+      const wrapper = shallowMount(AksNodePool, {
+        props: {
+          pool: { ...defaultPool, availabilityZones: [...defaultZones] }, canUseAvailabilityZones: false, mode: _VIEW
+        },
+        ...requiredSetup()
+      });
+
+      expect(wrapper.props().pool.availabilityZones).toStrictEqual(defaultZones);
+    });
   });
 });
