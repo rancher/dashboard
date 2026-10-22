@@ -101,8 +101,8 @@ Where `{reason}` is one of:
 
 ## Queue A — New issues to QA review
 
-1. List all open issues in this repository that were **moved to the QA Review column/state of the
-   UI project board in the last 24 hours**.
+1. List all open issues in this repository that were **moved to the QA Review column/state of this
+   repository in the last 24 hours**.
 2. Skip any entry that is a pull request.
 3. Skip any issue that matches the **Exclusion Rules** above; log each skipped issue.
 4. Skip any issue that already carries the label `bot/qa-reviewed`.
@@ -125,10 +125,10 @@ Where `{reason}` is one of:
        _This analysis was generated automatically based on the repository's QA review decision model._
        </details>
        ```
-     - Apply the labels `bot/qa-reviewed`, `bot/not-automatable`, and `bot/needs-manual-test`.
-     - Move the issue to **To Test**.
+     - Apply the labels `bot/qa-reviewed`, `bot/not-automatable`
+     - If `manual_test` is **true** , add label `bot/needs-manual-test`.
 
-   - If `is_automatable` is **true** and `automation_sufficient` is **true** and `manual_test` is **true**:
+   - If `automation_sufficient` is **true** and `manual_test` is **true**:
      - Post a comment using this exact format:
        ```
        <details>
@@ -138,7 +138,7 @@ Where `{reason}` is one of:
 
        </summary>
 
-       Automated tests appear sufficient for this issue.
+       Automated tests appear sufficient for this issue. A round of manual tests is still required.
 
        {analysis_markdown}
 
@@ -146,9 +146,8 @@ Where `{reason}` is one of:
        </details>
        ```
      - Apply the labels `bot/qa-reviewed`, `bot/test-automation-sufficient`, and `bot/needs-manual-test`.
-     - Move the issue to **To Test**.
 
-   - If `is_automatable` is **true** and `automation_sufficient` is **true** and `manual_test` is **false**:
+   - If `automation_sufficient` is **true** and `manual_test` is **false**:
      - Post a comment using this exact format:
        ```
        <details>
@@ -158,7 +157,7 @@ Where `{reason}` is one of:
 
        </summary>
 
-       Automated tests appear sufficient for this issue.
+       Automated tests appear sufficient for this issue. No manual tests required.
 
        {analysis_markdown}
 
@@ -166,10 +165,8 @@ Where `{reason}` is one of:
        </details>
        ```
      - Apply the labels `bot/qa-reviewed`, `bot/test-automation-sufficient`, and `bot/no-manual-test-needed`.
-     - Close the issue.
-     - Move the issue to **Done**.
 
-   - If `is_automatable` is **true** and `automation_sufficient` is **false**:
+   - If `automation_sufficient` is **false** and `manual_test` is **true**:
      - Post a comment using this exact format:
        ```
        <details open>
@@ -179,15 +176,39 @@ Where `{reason}` is one of:
 
        </summary>
 
-       Automated tests are not yet sufficient for this issue.
+       A round of manual tests is required. 
+       Automated tests are not yet sufficient for this issue. 
+
+       Please address the feedback from the QA Review Decision Model: 
 
        {suggestions_markdown}
 
        _This comment was generated automatically to highlight missing automated coverage and suggest next tests to add._
        </details>
        ```
-     - Apply the labels `bot/qa-reviewed` and `bot/needs-more-test-automation`.
-     - Move the issue to **Reopened**.
+     - Apply the labels `bot/qa-reviewed`, `bot/needs-more-test-automation`, and `bot/needs-manual-test`.
+
+  - If `automation_sufficient` is **false** and `manual_test` is **false**:
+     - Post a comment using this exact format:
+       ```
+       <details open>
+       <summary>
+
+       ### 🤖 QA review analysis
+
+       </summary>
+
+       No manual tests required. 
+       Automated tests are not yet sufficient for this issue. 
+       Please address the feedback from the QA Review Decision Model:
+
+       {suggestions_markdown}
+
+       _This comment was generated automatically to highlight missing automated coverage and suggest next tests to add._
+       </details>
+       ```
+     - Apply the labels `bot/qa-reviewed`, `bot/needs-more-test-automation`, and `bot/no-manual-test-needed`..
+     - Move the issue to **Reopened**
 
 Keep track of every issue number you process in Queue A so Queue B can skip them.
 
@@ -195,16 +216,14 @@ Keep track of every issue number you process in Queue A so Queue B can skip them
 
 ## Queue B — Re-evaluate previously QA-reviewed issues
 
-1. List all open issues in this repository that are labeled `bot/qa-reviewed` and also carry
-   either `bot/needs-more-test-automation` or `bot/needs-manual-test`, and were **updated in the
-   last 24 hours**.
+1. List all open issues in this repository that are labeled `bot/qa-reviewed` and were **moved to the 
+    QA Review column/state of this repository in the last 24 hours**.
 2. Skip any entry that is a pull request.
 3. Skip any issue that matches the **Exclusion Rules** above; log each skipped issue.
 4. Skip any issue whose number was already processed in Queue A during this run.
 5. For each remaining issue, retrieve its full comment list and find the **last comment posted by
    the bot** (`github-actions[bot]`).
 6. If the issue has label `bot/needs-more-test-automation`:
-   - Re-evaluate it against the **QA Review Decision Model** below.
    - Treat the content of the last bot `suggestions_markdown` comment as the previous requested
      automation gaps.
    - Compare newly linked or newly merged PRs since that comment against:
@@ -216,44 +235,52 @@ Keep track of every issue number you process in Queue A so Queue B can skip them
    - If there is a major feature change, design change, or implementation/refactor change that
      requires a fresh first-pass QA review:
      - Remove label `bot/qa-reviewed`.
-     - Add label `bot/manual-qa-review-required`.
-     - Leave the issue in **QA Review** so it can be handled again by Queue A on the next run.
-   - Else, count the total number of prior bot `suggestions_markdown` comments on the issue.
-     - If the count is **3 or more**:
-       - Add label `bot/manual-qa-review-required`.
-       - Leave the issue in **QA Review** for manual QA analysis.
+     - Add label `bot/major-change-detected`
+     - Post a comment using this exact format:
+       ```
+       <details open>
+       <summary>
+
+       ### 🤖 QA review analysis
+
+       </summary>
+
+       Major change or code refactor detected. Please, re-evaluate against the QA Decision Model.
+
+       {feature_change_markdown}
+
+       _This comment was generated automatically to summarize why a major change was detected._
+       </details>
+       ```   
+   - Else, count the total number of prior bot `suggestions_markdown` comments on the issue.      
      - If new test additions fully address the previous suggestions and no major change is found:
        - Remove label `bot/needs-more-test-automation`.
        - Apply label `bot/test-automation-sufficient`.
-       - Re-evaluate `manual_test` using the same criteria as Queue A.
+       - Re-evaluate `manual_test` using the same criteria as the QA Review Decision Model.
          - If `manual_test` is **false**:
            - Apply label `bot/no-manual-test-needed`.
-           - Close the issue.
-           - Move the issue to **Done**.
          - If `manual_test` is **true**:
-           - Apply label `bot/needs-manual-test`.
-           - Move the issue to **To Test**.
+           - Apply label `bot/needs-manual-test`
      - If there is still automation coverage to add and the issue does not have
-       `bot/manual-qa-review-required`:
+       `bot/major-change-detected`:
        - Post a new `suggestions_markdown` comment.
        - Leave label `bot/needs-more-test-automation` in place.
-       - Move the issue to **Reopened**.
+       - If the `suggestions_markdown` count is greater than 3, add label `bot/manual-qa-review-required`
 7. If the issue has label `bot/needs-manual-test`:
    - Inspect issue comments for manual QA evidence, especially comments that:
      - mention a Rancher version
-     - start with `validated in` or `verified in`
+     - start with `validated in` or `verified in` or `tests pass` or `tests fail`
      - include screenshots or screen recordings
      - explicitly say expected behavior was or was not accomplished
    - If there are no manual test reports:
-     - Move the issue to **To Test**.
+     - Add label `bot/manual-test-pending`.
    - If manual test reports show failures and there is still automation coverage to add:
      - Post a new `suggestions_markdown` comment unless `bot/manual-qa-review-required` is already present.
-     - Move the issue to **Reopened** unless a major feature or implementation change requires
-       `bot/manual-qa-review-required` instead.
+     - Keep label `bot/needs-more-test-automation`
    - If manual test reports show the feature works as expected, and the issue no longer has label
      `bot/needs-more-test-automation`:
-     - Close the issue.
-     - Move the issue to **Done**.
+     - Remove label `bot/needs-manual-test`
+     - Add label `bot/manual-test-pass`.
 
 ## QA Review Decision Model
 
@@ -270,6 +297,7 @@ An issue review produces three decisions:
    - explicit references (`Fixes #`, `Closes #`, `Refs #`)
    - timeline cross-links
    - branch/commit references from development activity
+   - linked pull requests
 3. For each linked PR that is merged or ready for QA review, inspect changed files and treat test
    file inspection as the PRIMARY evidence source.
 4. Prioritize direct inspection of test files in linked PRs, including:
@@ -291,8 +319,11 @@ An issue review produces three decisions:
 
 ### Automatable Assessment
 
-Set `is_automatable: false` when the issue is not a good candidate for meaningful automated
-coverage at this time. Examples include:
+Set `is_automatable: true` when the issue already has added tests or is a good candidate for meaningful automated
+coverage based on **Evidence Collection**.
+
+Set `is_automatable: false` when the issue does not have added tests and is not a good candidate for meaningful automated
+coverage at this time based on **Evidence Collection**. Examples include:
 
 - third-party integrations that cannot be reliably mocked or simulated in this repository
 - high-risk security flows where automation would require exposing secrets, tokens, credentials, or
@@ -300,25 +331,26 @@ coverage at this time. Examples include:
 - destructive or high-cost external operations that should not be automated in routine CI
 - infrastructure or environment gaps that make the automation path unreasonably brittle compared to
   the value of the test
-- product behavior whose only reliable verification currently depends on manual visual or external
-  system validation
+- product behavior whose only reliable verification currently depends on manual validation
+
+If `is_automatable: false`, skip the **Automation Sufficiency Analysis**. Verify the **Manual Test Analysis**.
 
 Do NOT set `is_automatable: false` just because the current PR forgot to add tests. Missing tests
 alone means `is_automatable: true` and `automation_sufficient: false`.
 
-### Automation Sufficiency Rules
+### Automation Sufficiency Analysis
 
 Set `automation_sufficient: true` only when all are true:
 
 1. `is_automatable` is **true**.
 2. Linked PR test files provide clear automated evidence related to the issue.
-3. At least one relevant unit or e2e test exists in `*test.ts`, `*spec.ts`, `__tests__/`, or
+3. At least one relevant unit or e2e test exists with `*test.ts`, `*spec.ts` file extension in `__tests__/`, or
    `cypress/` for the changed behavior.
-4. Those tests cover expected behavior, including the acceptance criteria, and at least one
+4. Those tests must cover expected behavior, including all the acceptance criteria, and at least one
    meaningful edge or failure path where applicable.
-5. Coverage confidence is high enough that manual-only verification is not the sole safeguard.
+5. Coverage confidence is high enough that manual verification can be skipped with no high risks.
 
-Otherwise, set `automation_sufficient: false`.
+Otherwise, when `is_automatable` is **true**, set `automation_sufficient: false` .
 
 If no linked PR exists, or linked PRs do not include relevant test files or patterns above, treat
 coverage as insufficient unless you have already determined the issue is not automatable.
@@ -338,7 +370,7 @@ Set `manual_test: true` whenever **any** of the following are true:
 - the behavior involves strong UI integration, such as complex navigation across multiple pages or
   heavy interaction among multiple UI elements
 - the automation coverage is good but still leaves meaningful user-facing risk uncovered
-- `is_automatable` is **false**
+- `is_automatable` is **false** and any of the above in this list is true
 
 Otherwise, set `manual_test: false`.
 
@@ -353,16 +385,23 @@ use manual testing where it materially reduces residual risk.
 
 - brief rationale for the decision
 - whether the issue is automatable
+- whether automation is sufficient
 - whether manual testing is recommended and why
 - specific test evidence found, including files, suites, or PR references when applicable
 - any residual risk to monitor
 
 `suggestions_markdown` must include:
 
-- 1-4 concrete automated test suggestions
+- at least 1 concrete automated test suggestion
 - explicit indication of whether each suggestion is `unit` or `e2e`
 - expected behavior each test should assert
 - identification of previous suggestions already addressed, when re-evaluating in Queue B
+
+`feature_change_markdown` must include:
+
+- brief rationale for the decision
+- specific code evidence found, including files, suites, or PR references when applicable
+- reference explicit comments mentioning a code refactor or change in acceptance criteria
 
 Do not ask the reporter questions in this workflow. Provide actionable suggestions directly.
 
@@ -374,10 +413,4 @@ For each processed issue, log one concise line:
 
 ```
 [processed] #{issue_number} — automatable={true|false} automation_sufficient={true|false} manual_test={true|false}
-```
-
-At the end, log a short summary:
-
-```
-[summary] considered={n} processed={n} skipped={n} automatable={n} not_automatable={n} sufficient={n} insufficient={n} manual_test={n}
 ```
