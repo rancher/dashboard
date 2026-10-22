@@ -145,15 +145,24 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
   // cluster and the resources are delete-then-create, so re-running on a retry is safe.
   let setupComplete = false;
 
+  /**
+   * Rancher head opens a "what's new" modal after a minor upgrade, which covers the page and makes
+   * the extensions menu unclickable. Setting the gating `read-whatsnew` preference does not
+   * reliably prevent it - the dialog is decided before preferences have loaded, so it reappears on
+   * a retry even once the preference is stored - so dismiss it when it is on screen. Older
+   * dashboards have no such dialog and this is a no-op there.
+   */
+  const dismissReleaseWelcome = () => {
+    cy.get('body').then(($body) => {
+      if ($body.find('[data-testid="release-welcome"]').length) {
+        cy.get('[data-testid="release-welcome-close"]').click({ force: true });
+        cy.get('[data-testid="release-welcome"]').should('not.exist');
+      }
+    });
+  };
+
   const runSetup = () => {
     loginCompat();
-
-    // Rancher head shows a "what's new" welcome modal on first login after a minor upgrade, which
-    // covers the extensions page menu and fails the very first test. It is gated on the
-    // `read-whatsnew` preference (shell/utils/release-welcome.ts), so mark it read rather than
-    // racing the dialog. A version above any real one keeps this working on future releases, and
-    // the preference is harmless on hosts that predate the modal.
-    cy.setUserPreference({ 'read-whatsnew': '99.99.99' });
 
     // Discover extension details from the locally-served catalog (serve-pkgs output)
     cy.request(`${ EXTENSION_SERVER_URL }/`).then((resp) => {
@@ -163,8 +172,9 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       extensionUrl = `${ EXTENSION_SERVER_URL }/${ moduleName }/${ ext.main }`;
     });
 
-    // Enable extension developer features
-    cy.setUserPreference({ 'plugin-developer': true });
+    // Enable extension developer features. `read-whatsnew` marks the release-welcome modal as seen
+    // (see dismissReleaseWelcome) - it does not reliably suppress it, but it costs nothing here.
+    cy.setUserPreference({ 'plugin-developer': true, 'read-whatsnew': '99.99.99' });
 
     if (OLD_DEV_LOAD) {
       // The oldest dashboards don't surface the reload banner after a developer load, so setup can
@@ -181,6 +191,7 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
     // itself slow/flaky on a fresh cluster.
     cy.visit(`/c/${ CLUSTER_ID }/explorer`);
     cy.get('.side-nav', { timeout: 120000 }).should('be.visible');
+    dismissReleaseWelcome();
 
     // Developer-load the extension
     const extensionsPo = new ExtensionsPagePo();
@@ -188,6 +199,7 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
     extensionsPo.goTo();
     // Long timeout - the uiplugins page can take a while to render right after boot.
     cy.get('[data-testid="extensions-page-title"]', { timeout: 120000 }).should('contain', 'Extensions');
+    dismissReleaseWelcome();
     extensionsPo.extensionMenuToggle();
     if (RANCHER_VERSION === '2.10') {
       // 2.10's older menu doesn't tag items with [dropdown-menu-item]; click the visible entry.
