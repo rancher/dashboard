@@ -769,6 +769,102 @@ describe('component: RcModal', () => {
     });
   });
 
+  // A disabled or hidden control keeps focus in Firefox (and jsdom), while Chrome drops it to
+  // <body>; `blur()` stands in for Chrome. jsdom ignores blur() on a disabled control, so the
+  // blur comes first, and the modal sees both changes together.
+  describe('focus lost inside the modal', () => {
+    const flushMutations = () => new Promise((resolve) => setTimeout(resolve));
+
+    const mountWithActions = () => mountModal({ slots: { actions: '<button class="cancel">Cancel</button><button class="confirm">Delete</button>' } });
+
+    const confirm = () => document.querySelector('.confirm') as HTMLButtonElement;
+
+    const disableFocusedConfirm = async(focusDropsToBody = true) => {
+      confirm().focus();
+      if (focusDropsToBody) {
+        confirm().blur();
+      }
+      confirm().disabled = true;
+      await flushMutations();
+    };
+
+    it.each([
+      ['drops focus to <body>', true],
+      ['leaves focus on the control', false],
+    ])('should move focus onto the dialog when the focused control is disabled and the browser %s', async(_, focusDropsToBody) => {
+      const wrapper = mountWithActions();
+
+      await disableFocusedConfirm(focusDropsToBody);
+
+      expect(document.activeElement).toStrictEqual(dialog());
+
+      wrapper.unmount();
+    });
+
+    it('should still close on Escape after the focused control is disabled', async() => {
+      const wrapper = mountWithActions();
+
+      await disableFocusedConfirm();
+      document.activeElement?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+      expect(wrapper.emitted('close')).toHaveLength(1);
+
+      wrapper.unmount();
+    });
+
+    it('should hand focus back to the control once it is enabled again', async() => {
+      const wrapper = mountWithActions();
+
+      await disableFocusedConfirm();
+      confirm().disabled = false;
+      await flushMutations();
+
+      expect(document.activeElement).toStrictEqual(confirm());
+
+      wrapper.unmount();
+    });
+
+    it('should leave focus where the user moved it while the control was disabled', async() => {
+      const wrapper = mountWithActions();
+      const cancel = document.querySelector('.cancel') as HTMLButtonElement;
+
+      await disableFocusedConfirm();
+      cancel.focus();
+      confirm().disabled = false;
+      await flushMutations();
+
+      expect(document.activeElement).toStrictEqual(cancel);
+
+      wrapper.unmount();
+    });
+
+    it('should move focus onto the dialog when the focused control is hidden', async() => {
+      const wrapper = mountWithActions();
+
+      confirm().focus();
+      confirm().hidden = true;
+      await flushMutations();
+
+      expect(document.activeElement).toStrictEqual(dialog());
+
+      wrapper.unmount();
+    });
+
+    it('should not take focus back from a control outside the modal', async() => {
+      const wrapper = mountWithActions();
+      const outside = document.createElement('button');
+
+      document.body.appendChild(outside);
+      confirm().focus();
+      outside.focus();
+      await flushMutations();
+
+      expect(document.activeElement).toStrictEqual(outside);
+
+      wrapper.unmount();
+    });
+  });
+
   describe('attributes', () => {
     it('should merge a fallthrough class onto the dialog, so consumers can still be selected', () => {
       const wrapper = mountModal({ attrs: { class: 'prompt-remove' } });
