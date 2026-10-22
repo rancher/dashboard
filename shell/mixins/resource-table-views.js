@@ -191,6 +191,9 @@ export default {
 
       countingInFlight: false,
 
+      /** A retake asked for mid-round, run once the round ends */
+      recountPending: false,
+
       view: {
         query:          linkedQuery || defaultView?.query || '',
         columns:        defaultView?.columns || null,
@@ -233,6 +236,9 @@ export default {
 
       /** The request in hand when the switch began: its answer is the old view's, whatever it filters by */
       viewSwitchFromArgs: null,
+
+      /** The request the last page answered: a fresh answer to the same one is the list changing on the server */
+      lastResultArgs: null,
 
       pendingViewFilters: [],
 
@@ -297,8 +303,8 @@ export default {
     },
 
     /**
-     * The only time every count is retaken. Not tied to the rows, which would blink counts to zero
-     * on every fetch
+     * Every count is retaken when the scope changes, or the list changes on the server (see
+     * `externalPaginationResult`). Not tied to the rows, which would blink counts to zero on every fetch
      */
     viewCountsScope() {
       this.debouncedRefreshViewCounts();
@@ -376,10 +382,16 @@ export default {
      * Only the response this view asked for ends the wait; one already in flight answers first.
      * Watched rather than `rows`, which is filled in place and never changes identity
      */
-    externalPaginationResult() {
+    externalPaginationResult(neu) {
       if (this.viewFiltersApplied && this.externalPaginationArgs !== this.viewSwitchFromArgs) {
         this.endViewSwitch();
       }
+
+      // Not a page turn, sort or filter: resources were added, changed or deleted
+      if (neu && this.externalPaginationArgs && this.externalPaginationArgs === this.lastResultArgs) {
+        this.debouncedRefreshViewCounts();
+      }
+      this.lastResultArgs = this.externalPaginationArgs;
     },
 
     /** Asked again for the page in hand, eg by a view sorting as the last one did: nothing more is coming */
@@ -1158,8 +1170,14 @@ export default {
       // A count stays until a fresh one replaces it, so none blink to zero
       const wanted = this.countableQueries.filter((query) => refresh || this.viewCounts[query] === undefined);
 
+      if (!wanted.length) {
+        return;
+      }
+
       // One round at a time, or mid-flight triggers ask again and supersede their own requests
-      if (!wanted.length || this.countingInFlight) {
+      if (this.countingInFlight) {
+        this.recountPending = this.recountPending || refresh;
+
         return;
       }
 
@@ -1169,6 +1187,12 @@ export default {
         await this.requestViewCounts(wanted);
       } finally {
         this.countingInFlight = false;
+      }
+
+      // The round counted the list as it was before the change
+      if (this.recountPending) {
+        this.recountPending = false;
+        await this.fetchViewCounts(true);
       }
     },
 
