@@ -848,7 +848,7 @@ export default {
 
       if (plugin.upgrade) {
         statuses.push({
-          icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
+          icon: 'icon-upgrade-alt', color: 'info', tooltip: { text: this.t('plugins.upgradeableTo', { version: plugin.upgrade }) }
         });
       }
 
@@ -990,11 +990,15 @@ export default {
         chart.installedVersion = pluginCR.version;
         chart.installing = this.installing[chart.id];
 
+        // an installed extension shows the version it is running, not the latest one on offer
+        const installedVersion = (chart.versions || []).find((v) => (v.appVersion ?? v.version) === pluginCR.version);
+
+        chart.displayVersion = installedVersion?.version ?? pluginCR.version;
+        chart.displayVersionLabel = installedVersion ? getPluginChartVersionLabel(installedVersion) : pluginCR.version;
+
         const latestInstallableVersion = chart.installableVersions?.[0];
 
         if (latestInstallableVersion && pluginCR.version !== (latestInstallableVersion.appVersion ?? latestInstallableVersion.version)) {
-          const installedVersion = (chart.installableVersions || []).find((v) => (v.appVersion ?? v.version) === pluginCR.version);
-
           if (installedVersion) {
             Object.assign(chart, this.extractCertificationFlags(installedVersion?.annotations));
           }

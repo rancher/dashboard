@@ -114,7 +114,8 @@ export default {
       }
 
       const selectedVersion = this.infoVersion;
-      const installedVersion = this.info.installedVersion;
+      // chart version vs chart version: info.installedVersion is the app version, which isn't comparable
+      const installedVersion = this.currentVersion;
 
       if (!this.info.installed) {
         if (this.info.installableVersions?.length) {
@@ -197,13 +198,15 @@ export default {
     },
 
     async loadPluginVersionInfo(version) {
-      const pluginChartVersion = getPluginChartVersion(this.info);
-
-      const versionName = version || pluginChartVersion || this.info.versions?.[0]?.version;
+      const versionName = version || this.currentVersion || this.info.versions?.[0]?.version;
 
       const isVersionNotCompatible = this.info.versions?.find((v) => versionName === (v.appVersion ?? v.version) && !v.isVersionCompatible);
 
-      if (!this.info.chart || isVersionNotCompatible) {
+      // the installed version stays selected even once it stops being compatible, otherwise the panel
+      // opens with nothing selected and no way to upgrade off it
+      const isInstalledVersion = this.info.installed && versionName === this.currentVersion;
+
+      if (!this.info.chart || (isVersionNotCompatible && !isInstalledVersion)) {
         return;
       }
 
@@ -272,7 +275,7 @@ export default {
     getVersionLabel(version) {
       const label = getPluginChartVersionLabel(version);
 
-      if (this.info.installed && version.version === this.info.installedVersion) {
+      if (this.info.installed && version.version === this.currentVersion) {
         return `${ label } (${ this.t('plugins.labels.current') })`;
       }
 
