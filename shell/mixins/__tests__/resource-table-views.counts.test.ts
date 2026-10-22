@@ -5,7 +5,6 @@ const { methods, watch } = ResourceTableViews as unknown as { methods: Record<st
 const resultArrived = watch.externalPaginationResult;
 const fetchViewCounts = methods.fetchViewCounts as (this: object, refresh?: boolean) => Promise<void>;
 
-/** A server side list showing one page, its tabs counted */
 function list() {
   const ctx = {
     serverSideTableViews:       true,

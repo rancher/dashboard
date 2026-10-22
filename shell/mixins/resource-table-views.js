@@ -191,7 +191,6 @@ export default {
 
       countingInFlight: false,
 
-      /** A retake asked for mid-round, run once the round ends */
       recountPending: false,
 
       view: {
@@ -237,7 +236,6 @@ export default {
       /** The request in hand when the switch began: its answer is the old view's, whatever it filters by */
       viewSwitchFromArgs: null,
 
-      /** The request the last page answered: a fresh answer to the same one is the list changing on the server */
       lastResultArgsKey: null,
 
       pendingViewFilters: [],
@@ -302,10 +300,7 @@ export default {
       known.forEach((field) => this.fetchFieldValues(field.id));
     },
 
-    /**
-     * Every count is retaken when the scope changes, or the list changes on the server (see
-     * `externalPaginationResult`). Not tied to the rows, which would blink counts to zero on every fetch
-     */
+    /** Not tied to the rows, which would blink counts to zero on every fetch */
     viewCountsScope() {
       this.debouncedRefreshViewCounts();
     },
@@ -387,8 +382,6 @@ export default {
         this.endViewSwitch();
       }
 
-      // Not a page turn, sort or filter: resources were added, changed or deleted. Compared by value, as
-      // the list rebuilds its request each time the table reports its paging
       const argsKey = this.externalPaginationArgs ? JSON.stringify(this.externalPaginationArgs) : null;
 
       if (neu && argsKey && argsKey === this.lastResultArgsKey) {
@@ -1192,7 +1185,6 @@ export default {
         this.countingInFlight = false;
       }
 
-      // The round counted the list as it was before the change
       if (this.recountPending) {
         this.recountPending = false;
         await this.fetchViewCounts(true);
