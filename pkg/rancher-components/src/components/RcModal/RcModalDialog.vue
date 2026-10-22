@@ -70,6 +70,33 @@ function initialFocus(): HTMLElement {
 
 let bodyResize: ResizeObserver | undefined;
 
+let lastFocused: HTMLElement | null = null;
+let parkedFrom: HTMLElement | null = null;
+let focusWatch: MutationObserver | undefined;
+
+function canHoldFocus(el: HTMLElement): boolean {
+  return el.isConnected && !el.matches(':disabled') && !el.closest('[inert], [hidden]') && (el.checkVisibility?.() ?? true);
+}
+
+function onFocusin(event: FocusEvent) {
+  if (event.target !== dialog.value) {
+    lastFocused = event.target as HTMLElement;
+    parkedFrom = null;
+  }
+}
+
+function checkFocus() {
+  const active = document.activeElement;
+
+  if (lastFocused && (active === lastFocused || active === document.body) && !canHoldFocus(lastFocused)) {
+    parkedFrom = lastFocused;
+    lastFocused = null;
+    dialog.value?.focus();
+  } else if (parkedFrom && active === dialog.value && canHoldFocus(parkedFrom)) {
+    parkedFrom.focus();
+  }
+}
+
 onMounted(() => {
   emit('open');
 
@@ -79,9 +106,19 @@ onMounted(() => {
     bodyResize = new ResizeObserver(measureBody);
     bodyResize.observe(body.value);
   }
+
+  if (dialog.value && typeof MutationObserver !== 'undefined') {
+    focusWatch = new MutationObserver(checkFocus);
+    focusWatch.observe(dialog.value, {
+      subtree: true, attributes: true, attributeFilter: ['disabled', 'hidden', 'inert', 'style', 'class']
+    });
+  }
 });
 
-onBeforeUnmount(() => bodyResize?.disconnect());
+onBeforeUnmount(() => {
+  bodyResize?.disconnect();
+  focusWatch?.disconnect();
+});
 
 useBasicSetupFocusTrap(`#${ dialogId }`, {
   ...DEFAULT_FOCUS_TRAP_OPTS,
@@ -139,6 +176,7 @@ function onBackgroundClick() {
       :aria-labelledby="hasTitle ? titleId : undefined"
       tabindex="-1"
       @keydown="onKeydown"
+      @focusin="onFocusin"
     >
       <div class="content">
         <RcHeading
