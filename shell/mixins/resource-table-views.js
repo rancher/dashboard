@@ -238,7 +238,7 @@ export default {
       viewSwitchFromArgs: null,
 
       /** The request the last page answered: a fresh answer to the same one is the list changing on the server */
-      lastResultArgs: null,
+      lastResultArgsKey: null,
 
       pendingViewFilters: [],
 
@@ -387,11 +387,14 @@ export default {
         this.endViewSwitch();
       }
 
-      // Not a page turn, sort or filter: resources were added, changed or deleted
-      if (neu && this.externalPaginationArgs && this.externalPaginationArgs === this.lastResultArgs) {
+      // Not a page turn, sort or filter: resources were added, changed or deleted. Compared by value, as
+      // the list rebuilds its request each time the table reports its paging
+      const argsKey = this.externalPaginationArgs ? JSON.stringify(this.externalPaginationArgs) : null;
+
+      if (neu && argsKey && argsKey === this.lastResultArgsKey) {
         this.debouncedRefreshViewCounts();
       }
-      this.lastResultArgs = this.externalPaginationArgs;
+      this.lastResultArgsKey = argsKey;
     },
 
     /** Asked again for the page in hand, eg by a view sorting as the last one did: nothing more is coming */

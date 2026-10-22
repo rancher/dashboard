@@ -11,7 +11,7 @@ function list() {
     serverSideTableViews:       true,
     viewFiltersApplied:         false,
     externalPaginationArgs:     { page: 1, filters: [] } as object,
-    lastResultArgs:             null as unknown,
+    lastResultArgsKey:          null as string | null,
     viewSwitchFromArgs:         null,
     endViewSwitch:              jest.fn(),
     debouncedRefreshViewCounts: jest.fn(),
@@ -39,6 +39,16 @@ describe('the tabs\' counts as the list changes', () => {
     const { ctx } = list();
 
     resultArrived.call(ctx, { count: 3 });
+    resultArrived.call(ctx, { count: 2 });
+
+    expect(ctx.debouncedRefreshViewCounts).toHaveBeenCalledTimes(1);
+  });
+
+  it('should count again when the request was rebuilt the same, between the two answers', () => {
+    const { ctx } = list();
+
+    resultArrived.call(ctx, { count: 3 });
+    ctx.externalPaginationArgs = { page: 1, filters: [] };
     resultArrived.call(ctx, { count: 2 });
 
     expect(ctx.debouncedRefreshViewCounts).toHaveBeenCalledTimes(1);
