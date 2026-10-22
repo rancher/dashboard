@@ -43,7 +43,16 @@ export class TopLevelPluginProduct extends BasePluginProduct {
     this.product = product;
 
     // register the product as a top-level product in the plugin object (will be needed for routes correction when on list views for top-level products)
-    plugin._registerTopLevelProduct();
+    // Tracked per product name: one plugin can register a top-level product *and* extend an
+    // existing one, and each needs its own answer. A plugin-wide flag made the extended
+    // product look top-level too, pointing its list rows at routes that were never registered.
+    plugin._registerTopLevelProduct(this.name);
+
+    // This release has no `startRouteWithProduct` opt-out - top-level products are always
+    // product-prefixed (`<product>/c/:cluster/...`). Recorded explicitly so the shared
+    // `isProductPrefixedTopLevel` helper resolves correctly, including the copy bundled into
+    // extensions built against a newer shell that reads the per-product flags first.
+    plugin._setStartRouteWithProduct(this.name, true);
 
     this.processConfigChildren();
 
