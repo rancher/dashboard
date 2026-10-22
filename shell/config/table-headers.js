@@ -1286,13 +1286,13 @@ export const AUTOSCALER_ENABLED = {
 };
 
 export const MGMT_CLUSTER_PROVIDER = {
-  name:      'provider',
-  labelKey:  'tableHeaders.provider',
-  subLabel:  'Distro',
-  value:     'statusInfo.machineProvider',
-  sort:      ['status.info.machineProvider', 'status.provider', 'status.driver'],
-  search:    ['status.info.machineProvider', 'status.provider', 'status.driver'],
-  formatter: 'ClusterProvider',
+  name:        'provider',
+  labelKey:    'tableHeaders.provider',
+  subLabelKey: 'landing.clusters.distro',
+  value:       'statusInfo.machineProvider',
+  sort:        ['status.info.machineProvider', 'status.provider', 'status.driver'],
+  search:      ['status.info.machineProvider', 'status.provider', 'status.driver'],
+  formatter:   'ClusterProvider',
 };
 
 export const MGMT_CLUSTER_KUBE_VERSION = {
