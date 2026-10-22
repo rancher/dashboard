@@ -35,6 +35,52 @@ const defaultProps = (overrides = {}) => ({
 const mountTHead = (overrides = {}) => shallowMount(THead, { props: defaultProps(overrides) });
 
 describe('component: THead', () => {
+  describe('sortedTableColsOptions', () => {
+    it('should include visible table options sorted by label without mutating the source', () => {
+      const tableColsOptions = [
+        { label: 'Zulu', isTableOption: true },
+        {
+          label: 'hidden', isTableOption: true, hide: true
+        },
+        { label: 'Alpha', isTableOption: true },
+        { label: 'Not an option', isTableOption: false },
+        { label: 'bravo', isTableOption: true },
+      ];
+      const originalOptions = [...tableColsOptions];
+      const wrapper = mountTHead({ tableColsOptions });
+
+      expect((wrapper.vm as any).sortedTableColsOptions).toStrictEqual([
+        { label: 'Alpha', isTableOption: true },
+        { label: 'bravo', isTableOption: true },
+        { label: 'Zulu', isTableOption: true },
+      ]);
+      expect(tableColsOptions).toStrictEqual(originalOptions);
+    });
+
+    it('should return an empty list when no table options are provided', () => {
+      const wrapper = mountTHead({ tableColsOptions: undefined });
+
+      expect((wrapper.vm as any).sortedTableColsOptions).toStrictEqual([]);
+    });
+  });
+
+  describe('isHeaderColumnVisible', () => {
+    it.each([
+      ['a regular visible column', { name: 'name' }, false, true],
+      ['a hidden column', { name: 'name', hide: true }, false, false],
+      ['a missing column', undefined, false, false],
+      ['a visible filtered column', { name: 'name', isColVisible: true }, true, true],
+      ['a filtered-out column', { name: 'name', isColVisible: false }, true, false],
+      ['a hidden filtered column', {
+        name: 'name', hide: true, isColVisible: true
+      }, true, false],
+    ])('should determine visibility for %s', (_label, col, hasAdvancedFiltering, expected) => {
+      const wrapper = mountTHead({ hasAdvancedFiltering });
+
+      expect((wrapper.vm as any).isHeaderColumnVisible(col)).toStrictEqual(expected);
+    });
+  });
+
   it.each([
     ['sub row expand', { subExpandColumn: true }, '%sortableTable.expandColumnHeader%'],
     ['row actions', { rowActions: true }, '%sortableTable.actionsColumnHeader%'],
