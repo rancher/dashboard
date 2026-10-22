@@ -15,7 +15,7 @@ import { LABEL_FIELD_PREFIX, dateBuckets, valuesInUse } from '@shell/utils/table
 import {
   CONNECTIVES, NEGATORS, highlightQuery, isNegator, quoteIfNeeded, replaceToken, scanQuery, tokenAt
 } from '@shell/utils/table-views/query';
-import { createQueryHistory } from '@shell/utils/table-views/query-history';
+import { changeOf, createQueryHistory } from '@shell/utils/table-views/query-history';
 import { isMac } from '@shell/utils/platform';
 import type { TableViewField, TableViewRow } from '@shell/types/table-views';
 
@@ -586,7 +586,8 @@ const syncCaret = () => {
 
 const focus = () => input.value?.focus();
 
-const onInput = () => {
+/** No event when a composition ends, which commits letters typed */
+const onInput = (event?: Event) => {
   if (composing.value) {
     return;
   }
@@ -598,7 +599,7 @@ const onInput = () => {
   caret.value = readCaret() ?? text.length;
   pendingCaret.value = caret.value;
   domAhead.value = true;
-  queryHistory.record(text, caret.value, true);
+  queryHistory.record(text, event ? changeOf((event as InputEvent).inputType) : 'insert');
   emit('update:value', text);
 };
 
@@ -640,7 +641,7 @@ const onPaste = (event: ClipboardEvent) => {
   pendingCaret.value = start + flat.length;
   // Written by us, so the box is the stale one
   domAhead.value = false;
-  queryHistory.record(next, pendingCaret.value, false);
+  queryHistory.record(next, 'other');
   emit('update:value', next);
 };
 
@@ -696,7 +697,7 @@ const clear = () => {
   pendingCaret.value = 0;
   // Written by us, so the box is the stale one
   domAhead.value = false;
-  queryHistory.record('', 0, false);
+  queryHistory.record('', 'other');
   emit('update:value', '');
   focus();
 };
@@ -714,7 +715,7 @@ const pick = (suggestion?: Suggestion) => {
   pendingCaret.value = token ? token.start + suggestion.insert.length : caret.value + (next.length - value.length);
   // Written by us, so the box is the stale one
   domAhead.value = false;
-  queryHistory.record(next, pendingCaret.value, false);
+  queryHistory.record(next, 'other');
   emit('update:value', next);
   focus();
 };
@@ -912,7 +913,7 @@ watch(segmentsKey, () => syncDom());
 
 // Another tab's query, a reset or a link: what came before it isn't this box's to undo back to
 watch(() => props.value || '', (value) => {
-  if (value !== queryHistory.current().text) {
+  if (value !== queryHistory.current()) {
     queryHistory.reset(value);
   }
 });
