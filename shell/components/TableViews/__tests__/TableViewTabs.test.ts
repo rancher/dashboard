@@ -278,7 +278,7 @@ describe('TableViewTabs', () => {
         expect(vm.isDirty).toBe(true);
       });
 
-      it('should save that tab\'s changes as a new view, and leave them on that tab too', () => {
+      it('should save that tab\'s changes as a new view, leaving that tab as saved', () => {
         const { vm, stored } = setup();
 
         vm.openSaveAsNew(tabFor(second));
@@ -287,7 +287,7 @@ describe('TableViewTabs', () => {
 
         expect(added.query).toBe('name:bar');
         expect(added.name).toContain('test');
-        expect(vm.drafts.bbb?.query).toBe('name:bar');
+        expect(vm.drafts.bbb).toBeUndefined();
         // The tab that was in front keeps its own changes for when it is gone back to
         expect(vm.drafts.aaa?.query).toBe('state:Running name:x');
       });
@@ -302,14 +302,14 @@ describe('TableViewTabs', () => {
       expect(stored()).toStrictEqual(before);
     });
 
-    it('should leave the changes on the tab in front when it is saved as a new view', () => {
+    it('should leave the tab in front as saved once its changes are saved as a new view', () => {
       const { vm, stored } = createWrapper({ view: { ...EMPTY, query: 'state:Running name:x' }, initialViewId: 'aaa' });
 
       vm.openSaveAsNew(tabFor(first));
 
       expect(stored()[2].query).toBe('state:Running name:x');
       expect(stored()[0].query).toBe('state:Running');
-      expect(vm.drafts.aaa?.query).toBe('state:Running name:x');
+      expect(vm.drafts.aaa).toBeUndefined();
     });
 
     it('should keep a filter typed on the table\'s own tab before any pick there, when it is a saved view\'s', async() => {
@@ -326,13 +326,13 @@ describe('TableViewTabs', () => {
       expect(shown()?.query).toBe('name:foo');
     });
 
-    it('should leave the changes on the table\'s own tab when it is saved as a new view before any tab is picked', () => {
+    it('should leave the table\'s own tab as it comes once its changes are saved as a new view, before any tab is picked', () => {
       const { vm, stored } = createWrapper({ view: { ...EMPTY, query: 'namespace:x' } });
 
       vm.openSaveAsNew({ id: null, name: 'All' });
 
       expect(stored()[2].query).toBe('namespace:x');
-      expect(vm.drafts.__default?.query).toBe('namespace:x');
+      expect(vm.drafts.__default).toBeUndefined();
     });
 
     describe('resetting a tab to the table as it comes', () => {

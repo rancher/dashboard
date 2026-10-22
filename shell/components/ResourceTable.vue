@@ -933,6 +933,7 @@ export default {
         :unsupported-fields="unsupportedViewFields"
         :default-columns="defaultColumnIds"
         :core-columns="coreColumnIds"
+        :history-key="tabViewChanges"
         @update:view="view = $event"
         @request-values="fetchFieldValues"
         @refresh-values="refreshFieldValues"

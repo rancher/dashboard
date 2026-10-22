@@ -596,7 +596,7 @@ const duplicateView = (saved: Omit<TableViewSaved, 'id'>) => {
 
 /**
  * Saves the tab with its unsaved changes as a new view, landing like a copy: in front, its name
- * open for typing. The tab they were copied from keeps them
+ * open for typing. The changes go with it, so the tab they were copied from is left as saved
  */
 const openSaveAsNew = (tab = selectedTab()) => {
   if (!tab || (!isTabDirty(tab) && pickedViewId.value === undefined)) {
@@ -604,6 +604,7 @@ const openSaveAsNew = (tab = selectedTab()) => {
   }
 
   duplicateView({ ...viewStateOf(tabState(tab)), name: tab.name });
+  forgetDraft(tab.id);
 };
 
 const saveChanges = (tab = selectedTab()) => {
