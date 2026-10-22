@@ -84,6 +84,26 @@ describe('the tabs\' counts as the list changes', () => {
     expect(ctx.recountPending).toBe(false);
   });
 
+  it('should not count every tab again after a mid-round call that only wants missing counts', async() => {
+    const { ctx } = list();
+    let finish = () => {};
+
+    ctx.countableQueries = ['', 'state:running', 'state:pending'];
+    ctx.requestViewCounts.mockImplementationOnce(() => new Promise<void>((resolve) => {
+      finish = resolve;
+    }));
+
+    const round = ctx.fetchViewCounts(true);
+
+    await ctx.fetchViewCounts();
+    expect(ctx.recountPending).toBe(false);
+
+    finish();
+    await round;
+
+    expect(ctx.requestViewCounts).toHaveBeenCalledTimes(1);
+  });
+
   it('should not count again after a round when nothing asked mid-round', async() => {
     const { ctx } = list();
 
