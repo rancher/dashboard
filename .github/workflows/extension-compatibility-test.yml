@@ -20,6 +20,13 @@ on:
         default: "compatibility-tests-version"
   schedule:
     - cron: "17 6 * * 1-5" # Every weekday (Mon-Fri) at 6:17am UTC
+  # TEMPORARY - REVERT BEFORE MERGE.
+  # workflow_dispatch only resolves a workflow that exists on the repo's default branch, and this
+  # fork's master does not have this file. A push trigger runs from the pushed branch itself, which
+  # is the only way to exercise this workflow from the fork while iterating on the PR.
+  push:
+    branches:
+      - fix-compat-tests2
 
 env:
   CATTLE_BOOTSTRAP_PASSWORD: password
@@ -36,9 +43,12 @@ jobs:
     runs-on: ubuntu-latest
     # Kill switch for the whole workflow: set the repo variable DISABLE_EXTENSION_COMPAT_TEST
     # to 'true' to stop it running (both the matrix and the Slack notifier) without deleting it.
+    # The `github.event_name == 'push'` clause is TEMPORARY - REVERT BEFORE MERGE, see the push
+    # trigger at the top of this file.
     if: >-
       vars.DISABLE_EXTENSION_COMPAT_TEST != 'true'
-      && (github.repository_owner == 'rancher' || github.event_name == 'workflow_dispatch')
+      && (github.repository_owner == 'rancher' || github.event_name == 'workflow_dispatch'
+        || github.event_name == 'push')
     strategy:
       fail-fast: false
       # Each matrix row installs its own k3s on its own runner, so the rows are independent.
