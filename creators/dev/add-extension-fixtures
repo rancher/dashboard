@@ -1,0 +1,584 @@
+#!/usr/bin/env node
+/* eslint-disable no-console */
+
+/**
+ * A development aid for testing the extension creator. NOT part of the published generator.
+ *
+ * It lives in `creators/dev/` rather than `creators/extension/` on purpose: `publish-shell.sh`
+ * packs `creators/extension` as `@rancher/create-extension` with `"files": ["**\/*"]`, so anything
+ * placed under that folder is shipped to npm. Keep this one directory up and it never is.
+ *
+ * Drops a realistic set of pages, components and unit tests into an extension created by
+ * `creators/extension/init`, so the generated scaffold can be exercised end to end:
+ *
+ *   yarn test            - composables, utils, components (shallow + full mount), pages, product
+ *   yarn lint            - every file added here must lint clean
+ *   tsc --noEmit         - root and package tsconfig
+ *   yarn build-pkg <pkg> - the fixtures are wired into a product, routes and a model
+ *   yarn dev             - the product shows up in the top-level nav
+ *
+ * The fixtures deliberately cover the things the starter test does not:
+ *   - a shell component that uses `defineProps<ImportedType>()` (needs vue3JestRegisterTs.js)
+ *   - the `@components/*` alias (needs the pkg tsconfig path to match the webpack alias)
+ *   - an svg import (needs svgTransform.js)
+ *   - a `models/` entry, which the extension build auto-registers
+ *
+ * Usage:
+ *   node creators/dev/add-extension-fixtures <app-dir> [--pkg <name>] [--unsafe-model-test] [--force]
+ *
+ *   <app-dir>             root of the generated application (defaults to the current directory)
+ *   --pkg <name>          which package under pkg/ to add to (defaults to the only one present)
+ *   --unsafe-model-test   also write a test *inside* models/, to demonstrate that the build
+ *                         registers it as a model and bundles it into the extension
+ *   --force               overwrite fixture files that already exist
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const args = process.argv.slice(2);
+let appDir = '';
+let pkgName = '';
+let unsafeModelTest = false;
+let force = false;
+
+for (let i = 0; i < args.length; i++) {
+  switch (args[i]) {
+  case '--pkg':
+    pkgName = args[++i] || '';
+    break;
+  case '--unsafe-model-test':
+    unsafeModelTest = true;
+    break;
+  case '--force':
+    force = true;
+    break;
+  case '--help':
+  case '-h':
+    console.log('Usage: node creators/dev/add-extension-fixtures <app-dir> [--pkg <name>] [--unsafe-model-test] [--force]');
+    process.exit(0);
+    break;
+  default:
+    if (!args[i].startsWith('-') && !appDir) {
+      appDir = args[i];
+    }
+  }
+}
+
+appDir = path.resolve(appDir || '.');
+
+const fail = (msg) => {
+  console.error(`Error: ${ msg }`);
+  process.exit(1);
+};
+
+if (!fs.existsSync(path.join(appDir, 'package.json'))) {
+  fail(`No package.json in ${ appDir }. Point this at the root of a generated extension application.`);
+}
+
+if (!fs.existsSync(path.join(appDir, 'jest.config.js'))) {
+  fail(`No jest.config.js in ${ appDir }. This application predates the unit test scaffolding.`);
+}
+
+const pkgRoot = path.join(appDir, 'pkg');
+
+if (!fs.existsSync(pkgRoot)) {
+  fail(`No pkg/ folder in ${ appDir }.`);
+}
+
+if (!pkgName) {
+  const candidates = fs.readdirSync(pkgRoot).filter((d) => fs.statSync(path.join(pkgRoot, d)).isDirectory());
+
+  if (candidates.length !== 1) {
+    fail(`Found ${ candidates.length } packages under pkg/ (${ candidates.join(', ') }). Pick one with --pkg <name>.`);
+  }
+
+  [pkgName] = candidates;
+}
+
+const pkgDir = path.join(pkgRoot, pkgName);
+
+if (!fs.existsSync(pkgDir)) {
+  fail(`No such package: pkg/${ pkgName }`);
+}
+
+// 'my-ext' -> 'myExt'. Used as the product name and route prefix.
+const productName = pkgName.replace(/[-_](\w)/g, (_, c) => c.toUpperCase()).replace(/^\w/, (c) => c.toLowerCase());
+
+console.log('');
+console.log(`Adding fixtures to pkg/${ pkgName } (product '${ productName }')`);
+
+const files = {};
+
+// ---------------------------------------------------------------------------- product + routing
+
+files['product.ts'] = `import { IPlugin } from '@shell/core/types';
+
+export const PRODUCT_NAME = '${ productName }';
+export const BLANK_CLUSTER = '_';
+
+export function init($extension: IPlugin, store: unknown): void {
+  const { product } = $extension.DSL(store, PRODUCT_NAME);
+
+  product({
+    icon:    'gear',
+    inStore: 'management',
+    weight:  100,
+    to:      {
+      name:   \`\${ PRODUCT_NAME }-c-cluster\`,
+      path:   \`/\${ PRODUCT_NAME }/c/:cluster/dashboard\`,
+      params: {
+        product: PRODUCT_NAME,
+        cluster: BLANK_CLUSTER,
+        pkg:     PRODUCT_NAME,
+      },
+    },
+  });
+}
+`;
+
+files['routing/extension-routing.ts'] = `import Dashboard from '../pages/index.vue';
+import { BLANK_CLUSTER, PRODUCT_NAME } from '../product';
+
+const routes = [
+  {
+    name:      \`\${ PRODUCT_NAME }-c-cluster\`,
+    path:      \`/\${ PRODUCT_NAME }/c/:cluster\`,
+    component: Dashboard,
+    meta:      {
+      product: PRODUCT_NAME,
+      cluster: BLANK_CLUSTER,
+      pkg:     PRODUCT_NAME,
+    },
+  },
+];
+
+export default routes;
+`;
+
+files['__tests__/product.test.ts'] = `import { IPlugin } from '@shell/core/types';
+import { init, PRODUCT_NAME } from '../product';
+
+describe('fx: product init', () => {
+  it('should register a top level product against the management store', () => {
+    const product = jest.fn();
+    const DSL = jest.fn(() => ({ product }));
+    const store = {};
+
+    init({ DSL } as unknown as IPlugin, store);
+
+    expect(DSL).toHaveBeenCalledWith(store, PRODUCT_NAME);
+    expect(product).toHaveBeenCalledWith(expect.objectContaining({
+      icon:    'gear',
+      inStore: 'management',
+      weight:  100,
+    }));
+  });
+
+  it('should point the product at the dashboard route', () => {
+    const product = jest.fn();
+    const to = expect.objectContaining({ name: \`\${ PRODUCT_NAME }-c-cluster\` });
+
+    init({ DSL: () => ({ product }) } as unknown as IPlugin, {});
+
+    expect(product).toHaveBeenCalledWith(expect.objectContaining({ to }));
+  });
+});
+`;
+
+files['__tests__/routing.test.ts'] = `import routes from '../routing/extension-routing';
+import { BLANK_CLUSTER, PRODUCT_NAME } from '../product';
+
+describe('fx: extension routing', () => {
+  it('should expose a single dashboard route', () => {
+    expect(routes).toHaveLength(1);
+  });
+
+  it('should name the route so the product can link to it', () => {
+    expect(routes[0].name).toStrictEqual(\`\${ PRODUCT_NAME }-c-cluster\`);
+    expect(routes[0].path).toStrictEqual(\`/\${ PRODUCT_NAME }/c/:cluster\`);
+  });
+
+  it('should tag the route with the product meta rancher needs', () => {
+    expect(routes[0].meta).toStrictEqual({
+      product: PRODUCT_NAME,
+      cluster: BLANK_CLUSTER,
+      pkg:     PRODUCT_NAME,
+    });
+  });
+});
+`;
+
+// ------------------------------------------------------------------------------ composable + util
+
+files['composables/useGreeting.ts'] = `import { computed, ref } from 'vue';
+import type { ComputedRef, Ref } from 'vue';
+
+interface UseGreeting {
+  name: Ref<string>;
+  greeting: ComputedRef<string>;
+}
+
+export function useGreeting(initialName = ''): UseGreeting {
+  const name = ref(initialName);
+  const greeting = computed(() => \`Hello, \${ name.value }!\`);
+
+  return { name, greeting };
+}
+`;
+
+files['composables/__tests__/useGreeting.test.ts'] = `import { useGreeting } from '../useGreeting';
+
+describe('fx: useGreeting', () => {
+  it('should greet the initial name', () => {
+    const { greeting } = useGreeting('World');
+
+    expect(greeting.value).toStrictEqual('Hello, World!');
+  });
+
+  it('should handle an empty name', () => {
+    const { greeting } = useGreeting();
+
+    expect(greeting.value).toStrictEqual('Hello, !');
+  });
+
+  it('should update the greeting reactively', () => {
+    const { name, greeting } = useGreeting('Alex');
+
+    name.value = 'World';
+
+    expect(greeting.value).toStrictEqual('Hello, World!');
+  });
+});
+`;
+
+files['utils/format.ts'] = `/** Title-case a hyphenated or underscored identifier, e.g. 'my-ext' -> 'My Ext'. */
+export function titleCase(value: string): string {
+  return value
+    .split(/[-_\\s]+/)
+    .filter((part) => !!part)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+`;
+
+files['utils/__tests__/format.test.ts'] = `import { titleCase } from '../format';
+
+describe('fx: titleCase', () => {
+  it.each([
+    ['my-ext', 'My Ext'],
+    ['my_ext', 'My Ext'],
+    ['my ext', 'My Ext'],
+    ['single', 'Single'],
+    ['', ''],
+    ['--a--b--', 'A B'],
+  ])('should turn %s into %s', (input, expected) => {
+    expect(titleCase(input)).toStrictEqual(expected);
+  });
+});
+`;
+
+// ------------------------------------------------------------------------------------- components
+
+files['assets/logo.svg'] = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <circle cx="8" cy="8" r="7" fill="currentColor" />
+</svg>
+`;
+
+// @rancher/shell declares '*.vue' and '*.yaml' but not asset modules, so importing an image from
+// TypeScript is a TS2307 until something declares it. Picked up by both tsconfigs: the package one
+// includes '**/*.d.ts', and the application one includes everything under the app root.
+files['types/assets.d.ts'] = `declare module '*.svg' {
+  const content: string;
+
+  export default content;
+}
+
+declare module '*.png' {
+  const content: string;
+
+  export default content;
+}
+`;
+
+// Imports Banner through the '@components' alias, LabeledSelect from shell (which pulls in
+// RcButton, a component that uses `defineProps<ImportedType>()`), and an svg asset.
+files['components/GreetingCard.vue'] = `<script lang="ts">
+import { defineComponent } from 'vue';
+import { Banner } from '@components/Banner';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import AsyncButton from '@shell/components/AsyncButton.vue';
+import logo from '../assets/logo.svg';
+import { useGreeting } from '../composables/useGreeting';
+import { titleCase } from '../utils/format';
+
+export default defineComponent({
+  name: 'GreetingCard',
+
+  components: {
+    AsyncButton,
+    Banner,
+    LabeledSelect
+  },
+
+  props: {
+    name: {
+      type:    String,
+      default: 'world'
+    },
+
+    flavours: {
+      type:    Array,
+      default: () => ['vanilla', 'chocolate']
+    }
+  },
+
+  setup(props) {
+    const { greeting } = useGreeting(titleCase(props.name));
+
+    return { greeting, logo };
+  },
+
+  data() {
+    return { selected: null };
+  }
+});
+</script>
+
+<template>
+  <div class="greeting-card">
+    <img
+      class="greeting-card__logo"
+      :src="logo"
+      alt=""
+    >
+    <h1 class="greeting-card__title">
+      {{ greeting }}
+    </h1>
+    <Banner
+      color="info"
+      :label="greeting"
+    />
+    <LabeledSelect
+      v-model:value="selected"
+      label="Flavour"
+      :options="flavours"
+    />
+    <AsyncButton />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.greeting-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  &__logo {
+    width: 16px;
+  }
+
+  &__title {
+    margin: 0;
+  }
+}
+</style>
+`;
+
+files['components/__tests__/GreetingCard.test.ts'] = `import { mount, shallowMount } from '@vue/test-utils';
+import GreetingCard from '../GreetingCard.vue';
+
+describe('component: GreetingCard', () => {
+  it('should title case the name into the greeting', () => {
+    const wrapper = shallowMount(GreetingCard, { props: { name: 'my-ext' } });
+
+    expect(wrapper.find('.greeting-card__title').text()).toStrictEqual('Hello, My Ext!');
+  });
+
+  it('should fall back to a default name', () => {
+    const wrapper = shallowMount(GreetingCard);
+
+    expect(wrapper.find('.greeting-card__title').text()).toStrictEqual('Hello, World!');
+  });
+
+  it('should stub its shell children when shallow mounted', () => {
+    const wrapper = shallowMount(GreetingCard);
+
+    expect(wrapper.findComponent({ name: 'LabeledSelect' }).exists()).toStrictEqual(true);
+  });
+
+  // The interesting one: a full mount compiles every shell component in the tree, including
+  // those declaring props via an imported type. This is what vue3JestRegisterTs.js exists for.
+  it('should render its shell children when fully mounted', () => {
+    const wrapper = mount(GreetingCard, { props: { name: 'deep' } });
+
+    expect(wrapper.find('.greeting-card__title').text()).toStrictEqual('Hello, Deep!');
+    expect(wrapper.find('.banner').exists()).toStrictEqual(true);
+  });
+});
+`;
+
+// ------------------------------------------------------------------------------------------ page
+
+files['pages/index.vue'] = `<script lang="ts">
+import { defineComponent } from 'vue';
+import GreetingCard from '../components/GreetingCard.vue';
+
+export default defineComponent({
+  name:       'DashboardPage',
+  components: { GreetingCard },
+
+  data() {
+    return { name: '${ pkgName }' };
+  }
+});
+</script>
+
+<template>
+  <div class="dashboard-page">
+    <GreetingCard :name="name" />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.dashboard-page {
+  padding: 20px;
+}
+</style>
+`;
+
+files['pages/__tests__/index.test.ts'] = `import { shallowMount } from '@vue/test-utils';
+import DashboardPage from '../index.vue';
+
+describe('page: DashboardPage', () => {
+  it('should pass the package name down to the greeting card', () => {
+    const wrapper = shallowMount(DashboardPage);
+
+    expect(wrapper.findComponent({ name: 'GreetingCard' }).props('name')).toStrictEqual('${ pkgName }');
+  });
+});
+`;
+
+// ------------------------------------------------------------- model (auto-imported by the build)
+
+files['models/example.ts'] = `import SteveModel from '@shell/plugins/steve/steve-class';
+
+export default class Example extends SteveModel {
+  // Resource data is merged onto the model at runtime. 'declare' tells TypeScript the field is
+  // there without emitting a class field - a real field would be defined as undefined and
+  // clobber the data, because this package compiles with target 'esnext'.
+  declare metadata?: { name?: string };
+
+  get displayLabel(): string {
+    return this.metadata?.name || 'example';
+  }
+}
+`;
+
+// Note the location: the model's test lives at the package root, NOT inside models/. Anything
+// placed inside an auto-imported folder is registered as an extension type by the build.
+files['__tests__/models.test.ts'] = `import Example from '../models/example';
+
+describe('model: Example', () => {
+  it('should use the resource name as its display label', () => {
+    const model = Object.create(Example.prototype);
+
+    Object.assign(model, { metadata: { name: 'my-resource' } });
+
+    expect(model.displayLabel).toStrictEqual('my-resource');
+  });
+
+  it('should fall back when the resource has no name', () => {
+    const model = Object.create(Example.prototype);
+
+    Object.assign(model, { metadata: {} });
+
+    expect(model.displayLabel).toStrictEqual('example');
+  });
+});
+`;
+
+files['l10n/en-us.yaml'] = `product:
+  ${ productName }: ${ pkgName }
+`;
+
+if (unsafeModelTest) {
+  // Intentionally wrong: demonstrates that the build registers this as a model and bundles it.
+  files['models/__tests__/example.test.ts'] = `import Example from '../example';
+
+describe('model: Example (deliberately misplaced)', () => {
+  it('should exist', () => {
+    expect(typeof Example).toStrictEqual('function');
+  });
+});
+`;
+}
+
+// ------------------------------------------------------------------------------------ write files
+
+let written = 0;
+let skipped = 0;
+
+Object.keys(files).sort().forEach((relative) => {
+  const dest = path.join(pkgDir, relative);
+
+  if (fs.existsSync(dest) && !force) {
+    console.log(`  Skipping (exists): ${ relative }`);
+    skipped++;
+
+    return;
+  }
+
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  fs.writeFileSync(dest, files[relative]);
+  console.log(`  Adding: ${ relative }`);
+  written++;
+});
+
+// ------------------------------------------------------------------ wire the product into index.ts
+
+const indexPath = path.join(pkgDir, 'index.ts');
+
+if (fs.existsSync(indexPath)) {
+  let index = fs.readFileSync(indexPath, 'utf8');
+  // The generated index.ts ships a commented-out `plugin.addProduct(...)`, so only an
+  // uncommented call counts as already wired.
+  const registersProduct = (src) => /^\s*plugin\.addProduct\(/m.test(src);
+
+  if (registersProduct(index)) {
+    console.log('  Skipping index.ts (already registers a product)');
+  } else {
+    index = index.replace(
+      `import { IPlugin } from '@shell/core/types';`,
+      `import { IPlugin } from '@shell/core/types';\nimport extensionRouting from './routing/extension-routing';`
+    );
+
+    index = index.replace(
+      /\n*\s*\/\/ Load a product\n\s*\/\/ plugin\.addProduct\(require\('\.\/product'\)\);\n/,
+      `\n\n  // Load a product\n  plugin.addProduct(require('./product'));\n\n  // Add Vue routes\n  plugin.addRoutes(extensionRouting);\n`
+    );
+
+    if (!registersProduct(index)) {
+      console.warn('  WARNING: could not wire the product into index.ts - add it by hand:');
+      console.warn(`      plugin.addProduct(require('./product'));`);
+      console.warn(`      plugin.addRoutes(extensionRouting);`);
+    } else {
+      fs.writeFileSync(indexPath, index);
+      console.log('  Updating: index.ts (addProduct + addRoutes)');
+    }
+  }
+}
+
+console.log('');
+console.log(`Done - ${ written } file(s) added, ${ skipped } skipped.`);
+console.log('');
+console.log('Now run, from the application root:');
+console.log('');
+console.log('  yarn test');
+console.log('  yarn lint');
+console.log('  ./node_modules/.bin/tsc --noEmit -p tsconfig.json');
+console.log(`  ./node_modules/.bin/tsc --noEmit -p pkg/${ pkgName }/tsconfig.json`);
+console.log(`  yarn build-pkg ${ pkgName }`);
+console.log('');
+
+/* eslint-enable no-console */
