@@ -294,6 +294,81 @@ describe('chartMixin', () => {
       expect(wrapper.vm.existing).toStrictEqual(installedApp);
       expect(wrapper.vm.mode).toStrictEqual('edit');
     });
+
+    describe('when the chart of an installed app cannot be found', () => {
+      const installedApp = { id: 'app-ns/app-name', fetchValues: jest.fn() };
+
+      const mountWithMissingChart = () => {
+        const mockStore = {
+          dispatch: jest.fn((action) => {
+            if (action === 'cluster/find') {
+              return Promise.resolve(installedApp);
+            }
+
+            return Promise.resolve();
+          }),
+          getters: {
+            currentCluster:    () => {},
+            isRancher:         () => true,
+            'cluster/canList': () => true,
+            'catalog/repo':    () => {
+              return () => 'repo';
+            },
+            'catalog/chart':   () => undefined,
+            'catalog/version': jest.fn(),
+            'prefs/get':       () => {},
+            'i18n/t':          () => jest.fn()
+          }
+        };
+
+        const DummyComponent = defineComponent({
+          mixins:   [ChartMixin],
+          template: '<div></div>',
+          data(): { mode: string | null } {
+            return { mode: null };
+          },
+        });
+
+        const wrapper = mount(
+          DummyComponent,
+          {
+            global: {
+              mocks: {
+                $store: mockStore,
+                $route: {
+                  query: {
+                    chart:     'missing-chart',
+                    namespace: 'app-ns',
+                    name:      'app-name'
+                  }
+                }
+              }
+            }
+          });
+
+        return { wrapper, mockStore };
+      };
+
+      it('should still find the existing app from the query', async() => {
+        const { wrapper, mockStore } = mountWithMissingChart();
+
+        await wrapper.vm.fetchChart();
+
+        expect(mockStore.dispatch).toHaveBeenCalledWith('cluster/find', {
+          type: CATALOG.APP,
+          id:   'app-ns/app-name'
+        });
+        expect(wrapper.vm.existing).toStrictEqual(installedApp);
+      });
+
+      it('should set the mode to edit', async() => {
+        const { wrapper } = mountWithMissingChart();
+
+        await wrapper.vm.fetchChart();
+
+        expect(wrapper.vm.mode).toStrictEqual('edit');
+      });
+    });
   });
 
   describe('action', () => {
