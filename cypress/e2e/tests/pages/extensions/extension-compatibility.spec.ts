@@ -283,7 +283,15 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
     });
     cy.get('[dropdown-menu-collection]:visible', MEDIUM_TIMEOUT_OPT).should('exist');
 
-    return table.rowActionMenu();
+    const actionMenu = table.rowActionMenu();
+
+    // The dropdown container appears before its items do. Without these waits a click can land on a
+    // menu that is still rendering and be silently dropped. Same waits `rowActionMenuOpen` does for
+    // by-name lookups (see sortable-table.po.ts).
+    actionMenu.checkNoActionsAvailable(false);
+    actionMenu.atLeastOneActiveMenuItem();
+
+    return actionMenu;
   };
 
   /** Navigate to the Services list, filter to the test service and return its (string-backed) table */
@@ -376,7 +384,7 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
 
       // By index rather than by name - the list is already filtered to this one service, and the
       // name is not selectable on every host (see `noRowNameAssert`). Same helper 3.1 uses.
-      openRowActionMenu(table).getMenuItem('Edit Config').click();
+      openRowActionMenu(table).getMenuItem('Edit Config').click({ force: true });
       clickDemoTabAndAssert('edit-page-id');
     }));
 
