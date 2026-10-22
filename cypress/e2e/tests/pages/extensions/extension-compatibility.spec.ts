@@ -148,6 +148,13 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
   const runSetup = () => {
     loginCompat();
 
+    // Rancher head shows a "what's new" welcome modal on first login after a minor upgrade, which
+    // covers the extensions page menu and fails the very first test. It is gated on the
+    // `read-whatsnew` preference (shell/utils/release-welcome.ts), so mark it read rather than
+    // racing the dialog. A version above any real one keeps this working on future releases, and
+    // the preference is harmless on hosts that predate the modal.
+    cy.setUserPreference({ 'read-whatsnew': '99.99.99' });
+
     // Discover extension details from the locally-served catalog (serve-pkgs output)
     cy.request(`${ EXTENSION_SERVER_URL }/`).then((resp) => {
       const ext = resp.body[0];
@@ -294,22 +301,6 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
     return actionMenu;
   };
 
-  /** Navigate to the Services list, filter to the test service and return its (string-backed) table */
-  const goToServicesList = (): SortableTablePo => {
-    const services = new ServicesPagePo(CLUSTER_ID);
-
-    services.goTo();
-    services.waitForPage();
-
-    const table = new SortableTablePo(STANDARD_LIST);
-
-    table.checkLoadingIndicatorNotVisible();
-    table.filter(svcName);
-    assertFilteredRow(table, svcName);
-
-    return table;
-  };
-
   /** Navigate to the Apps > Repositories list and return its (string-backed) table */
   const goToReposTable = (): SortableTablePo => {
     const repos = new ChartRepositoriesPagePo(CLUSTER_ID, 'apps');
@@ -380,11 +371,11 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
     }));
 
     qase(50503, conditionalIt('2.3 Tab RESOURCE_EDIT_PAGE', () => {
-      const table = goToServicesList();
-
-      // By index rather than by name - the list is already filtered to this one service, and the
-      // name is not selectable on every host (see `noRowNameAssert`). Same helper 3.1 uses.
-      openRowActionMenu(table).getMenuItem('Edit Config').click({ force: true });
+      // Visit the edit page directly, as 2.1 and 2.6 do for the detail page. Reaching it from the
+      // list via the row action does not work on Rancher 2.15, where a resource's detailLocation
+      // resolves to a route that does not exist (see `noRowNameAssert`). The tab is what this test
+      // asserts, and 4.3 still covers "Edit Config" from a list.
+      cy.visit(`/c/${ CLUSTER_ID }/explorer/service/${ NS }/${ svcName }?mode=edit`);
       clickDemoTabAndAssert('edit-page-id');
     }));
 
