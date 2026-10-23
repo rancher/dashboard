@@ -10187,6 +10187,13 @@ component:
         title: YAML
       configTab:
         title: Config
+  rcField:
+    reset: Reset
+    showMore: Show more
+    showLess: Show less
+  rcInput:
+    clear: Clear
+    showPassword: Show password
   resource:
     detail:
       copyToClipboard:

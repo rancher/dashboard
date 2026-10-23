@@ -34,10 +34,10 @@ describe('component: RcIconTooltip', () => {
       expect(wrapper.find('button').classes()).not.toContain('has-clean-tooltip');
     });
 
-    it('should ask RcButton for the box the local styles take back off', () => {
+    it('should ask RcButton to take its size from the text around it', () => {
       const wrapper = mount(RcIconTooltip, { props: { content: 'Pull secrets' } });
 
-      expect(wrapper.find('button').classes()).toEqual(expect.arrayContaining(['rc-button', 'btn', 'variant-ghost', 'btn-small']));
+      expect(wrapper.find('button').classes()).toEqual(expect.arrayContaining(['rc-button', 'btn', 'variant-ghost', 'btn-inherit']));
     });
   });
 
