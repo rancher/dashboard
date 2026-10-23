@@ -72,9 +72,10 @@ export default {
   },
 
   async fetch() {
-    // Determine the currently installed version, if any
+    // Determine the currently installed version, if any. The version options are chart versions, so
+    // match against the installed one in chart terms rather than against its app version
     if (this.plugin.installed) {
-      this.currentVersion = this.plugin.installedVersion;
+      this.currentVersion = this.plugin.installedChartVersion || this.plugin.installedVersion;
     }
 
     // Determine the initial version to select in the dropdown

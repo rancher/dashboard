@@ -429,6 +429,26 @@ export function getPluginChartVersionLabel(version: Version) {
 }
 
 /**
+ * Whether one version is newer than another. Unlike `isChartVersionHigher` this tolerates versions
+ * which can't be parsed as semver, falling back to a plain inequality rather than throwing.
+ *
+ * @param version The version to test
+ * @param otherVersion The version to test it against
+ * @returns boolean True when `version` is newer than `otherVersion`
+ */
+export function isNewerVersion(version?: string, otherVersion?: string): boolean {
+  if (!version || !otherVersion) {
+    return false;
+  }
+
+  if (!semver.valid(version) || !semver.valid(otherVersion)) {
+    return version !== otherVersion;
+  }
+
+  return semver.gt(version, otherVersion);
+}
+
+/**
  * Number of minor releases older than the current one shown in the extension versions list.
  * Anything older than that sits behind the "show all" disclosure.
  */

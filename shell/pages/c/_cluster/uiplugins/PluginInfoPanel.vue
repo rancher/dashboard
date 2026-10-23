@@ -76,12 +76,25 @@ export default {
      */
     currentVersion() {
       if (this.info?.installed) {
-        const installed = this.info.versions?.find((v) => this.info.installedVersion === (v.appVersion ?? v.version));
-
-        return installed?.version || this.info.installedVersion;
+        return this.info.installedChartVersion || this.info.installedVersion;
       }
 
       return getPluginChartVersion(this.info);
+    },
+
+    /**
+     * Chart version the panel selects when it opens. Normally the installed one, but that can be
+     * missing from the repo index once it's been pruned, in which case there's nothing to load a
+     * readme for and no upgrade on offer, so fall back to the latest installable version
+     */
+    defaultVersion() {
+      const versions = this.info?.versions || [];
+
+      if (versions.some((v) => v.version === this.currentVersion)) {
+        return this.currentVersion;
+      }
+
+      return this.info?.installableVersions?.[0]?.version || versions[0]?.version;
     },
 
     displayedVersions() {
@@ -198,15 +211,16 @@ export default {
     },
 
     async loadPluginVersionInfo(version) {
-      const versionName = version || this.currentVersion || this.info.versions?.[0]?.version;
+      const versionName = version || this.defaultVersion;
 
-      const isVersionNotCompatible = this.info.versions?.find((v) => versionName === (v.appVersion ?? v.version) && !v.isVersionCompatible);
+      // versionName is always a chart version, including when it comes from a click on the list
+      const selected = this.info.versions?.find((v) => v.version === versionName);
 
       // the installed version stays selected even once it stops being compatible, otherwise the panel
       // opens with nothing selected and no way to upgrade off it
       const isInstalledVersion = this.info.installed && versionName === this.currentVersion;
 
-      if (!this.info.chart || (isVersionNotCompatible && !isInstalledVersion)) {
+      if (!this.info.chart || (selected && !selected.isVersionCompatible && !isInstalledVersion)) {
         return;
       }
 
