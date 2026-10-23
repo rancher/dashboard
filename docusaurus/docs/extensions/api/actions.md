@@ -57,6 +57,7 @@ _Arguments_
 |`disabledTooltip`| String | Text for the tooltip while the button is disabled, saying why |
 |`disabledTooltipKey`| String | Same as "disabledTooltip" but allows for translation. Will superseed "disabledTooltip" |
 |`hidden`| Boolean | No button: the action is only its `shortcut`. Defaults to `false` |
+|`badge`| Function | Badge to display on the button. Should return an object with `count` and `color` properties, or `null` if no badge should be shown. Only available for `'ActionLocation.HEADER'` |
 |`invoke`| Function | function executed when action/button is clicked |
 
 Usage example for `'ActionLocation.HEADER'`:
@@ -90,6 +91,12 @@ plugin.addAction(
     svg:        require('@pkg/test-features/icons/rancher-desktop.svg'),
     enabled(ctx: any) {
       return true;
+    },
+    badge: () => {
+      return {
+        count: store.getters[`your-counter`],
+        color: 'success'
+      };
     },
     invoke(opts: any, resources: any) {
       console.log('action executed 2', this); // eslint-disable-line no-console
