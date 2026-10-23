@@ -90,6 +90,13 @@ export interface RcSectionProps {
   expanded?: boolean;
 
   /**
+   * Whether collapsed content is unmounted instead of hidden. Defaults to false,
+   * which keeps collapsed content mounted so form fields inside it stay
+   * registered with their validation. Only applies when `expandable` is true.
+   */
+  unmountOnHide?: boolean;
+
+  /**
    * The section title text. Can also be provided via the `title` slot.
    */
   title?: string;

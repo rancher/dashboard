@@ -2,6 +2,7 @@
 import * as d3 from 'd3';
 import { STATES } from '@shell/plugins/dashboard-store/resource-class';
 import { BadgeState } from '@components/BadgeState';
+import { observeReveal } from '@components/utils/reveal';
 
 export default {
   name:       'ForceDirectedTreeChart',
@@ -47,6 +48,7 @@ export default {
       simulation:                          undefined,
       isChartFirstRendered:                false,
       isChartFirstRenderAnimationFinished: false,
+      isZoomFitPending:                    false,
       moreInfo:                            {}
     };
   },
@@ -263,8 +265,13 @@ export default {
       const midY = chartCoordinates.y + height / 2;
 
       if (width === 0 || height === 0) {
+        // nothing to fit, or the chart is hidden (e.g. in a collapsed RcSection), in which case fit once shown
+        this.isZoomFitPending = true;
+
         return;
-      } // nothing to fit
+      }
+
+      this.isZoomFitPending = false;
 
       const scale = 1 / Math.max(width / (fullWidth - paddingBuffer), height / (fullHeight - paddingBuffer));
       const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
@@ -342,9 +349,17 @@ export default {
     this.svg = d3.select('#tree').append('svg')
       .attr('viewBox', `0 0 ${ this.fdcConfig.chartWidth } ${ this.fdcConfig.chartHeight }`)
       .attr('preserveAspectRatio', 'none');
+
+    this.stopObservingReveal = observeReveal(this.$el, () => {
+      if (this.isZoomFitPending) {
+        this.zoomFit();
+      }
+    });
   },
   unmounted() {
-    this.dataWatcher();
+    // only set when the user can view the chart
+    this.dataWatcher?.();
+    this.stopObservingReveal?.();
   },
 };
 </script>

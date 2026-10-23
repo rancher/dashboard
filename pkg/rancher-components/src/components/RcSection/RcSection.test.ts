@@ -1,7 +1,11 @@
-import { nextTick } from 'vue';
-import { mount } from '@vue/test-utils';
+import {
+  computed, defineComponent, nextTick, onMounted, ref
+} from 'vue';
+import { flushPromises, mount } from '@vue/test-utils';
+import { useField, useForm } from 'vee-validate';
 import RcContentGroup from '@components/Layout/RcContentGroup/RcContentGroup.vue';
 import RcSection from './RcSection.vue';
+import { useReportInvalidToSection } from './useSectionValidity';
 
 describe('component: RcSection', () => {
   const defaultProps = {
@@ -243,7 +247,16 @@ describe('component: RcSection', () => {
         slots: { default: '<p>Content</p>' },
       });
 
-      expect(wrapper.find('.section-content').exists()).toBe(false);
+      expect(wrapper.find('.section-content').isVisible()).toBe(false);
+    });
+
+    it('should keep the content in the DOM when expanded is false', () => {
+      const wrapper = mount(RcSection, {
+        props: { ...defaultProps, expanded: false },
+        slots: { default: '<p>Content</p>' },
+      });
+
+      expect(wrapper.find('.section-content').exists()).toBe(true);
     });
 
     it('should apply expandable-content class when expandable is true', () => {
@@ -330,7 +343,7 @@ describe('component: RcSection', () => {
       expect(wrapper.find('.rc-content-group').exists()).toBe(false);
     });
 
-    it('should not render the default slot content when collapsed', () => {
+    it('should not show the default slot content when collapsed', () => {
       const wrapper = mount(RcSection, {
         props: {
           ...defaultProps, expandable: true, expanded: false
@@ -338,7 +351,7 @@ describe('component: RcSection', () => {
         slots: { default: '<p class="test-content">Content</p>' },
       });
 
-      expect(wrapper.find('.test-content').exists()).toBe(false);
+      expect(wrapper.find('.test-content').isVisible()).toBe(false);
     });
 
     it('should keep several content groups as siblings the section can space apart', () => {
@@ -405,7 +418,7 @@ describe('component: RcSection', () => {
 
       await navigateTo(wrapper);
 
-      expect(wrapper.find('.slot-content').exists()).toBe(true);
+      expect(wrapper.find('.slot-content').isVisible()).toBe(true);
     });
 
     it('should not change the expanded state of a non-expandable section', async() => {
@@ -430,6 +443,393 @@ describe('component: RcSection', () => {
       await navigateTo(wrapper);
 
       expect(scrollIntoView).toHaveBeenCalledWith(true);
+    });
+  });
+
+  describe('collapsed content validation (#18850)', () => {
+    const REQUIRED = 'Required';
+
+    // A field that registers with the surrounding vee-validate form on mount
+    // and unregisters on unmount, like the fields of a real form.
+    let mountCount = 0;
+
+    const RequiredField = defineComponent({
+      name: 'RequiredField',
+      setup() {
+        onMounted(() => {
+          mountCount++;
+        });
+        const { value } = useField<string>('name', (v: unknown) => (v ? true : REQUIRED));
+
+        return { value };
+      },
+      template: '<input class="required-field" v-model="value" />',
+    });
+
+    const mountForm = (expanded: boolean) => {
+      let form!: ReturnType<typeof useForm>;
+
+      const Host = defineComponent({
+        components: { RcSection, RequiredField },
+        setup() {
+          form = useForm();
+          const sectionExpanded = ref(expanded);
+
+          return { sectionExpanded };
+        },
+        template: `
+          <RcSection
+            v-model:expanded="sectionExpanded"
+            type="primary"
+            mode="with-header"
+            title="Network"
+            expandable
+          >
+            <RequiredField />
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      return { wrapper, form: () => form };
+    };
+
+    it('should keep a field inside a collapsed section registered with the form', async() => {
+      const { form } = mountForm(false);
+
+      await flushPromises();
+
+      expect(Object.keys(form().values)).toStrictEqual(['name']);
+    });
+
+    it('should report the form as invalid when an invalid field is inside a collapsed section', async() => {
+      const { form } = mountForm(false);
+
+      const result = await form().validate();
+
+      expect(result.valid).toBe(false);
+    });
+
+    it('should report the form as invalid after collapsing a section holding an invalid field', async() => {
+      const { wrapper, form } = mountForm(true);
+
+      await wrapper.find('.section-header').trigger('click');
+      await flushPromises();
+
+      const result = await form().validate();
+
+      expect({ collapsed: !wrapper.find('.section-content').isVisible(), errors: result.errors }).toStrictEqual({ collapsed: true, errors: { name: REQUIRED } });
+    });
+
+    it('should not remount the content when the section is collapsed and expanded again', async() => {
+      mountCount = 0;
+      const { wrapper } = mountForm(true);
+
+      await wrapper.find('.section-header').trigger('click');
+      await wrapper.find('.section-header').trigger('click');
+
+      expect(mountCount).toStrictEqual(1);
+    });
+  });
+
+  describe('unmountOnHide prop', () => {
+    it('should default unmountOnHide to false', () => {
+      const wrapper = mount(RcSection, { props: defaultProps });
+
+      expect(wrapper.props('unmountOnHide')).toBe(false);
+    });
+
+    it('should remove the content from the DOM when collapsed', () => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: false, unmountOnHide: true
+        },
+        slots: { default: '<p class="slot-content">Content</p>' },
+      });
+
+      expect(wrapper.find('.section-content').exists()).toBe(false);
+    });
+
+    it('should render the content when expanded', () => {
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: true, unmountOnHide: true
+        },
+        slots: { default: '<p class="slot-content">Content</p>' },
+      });
+
+      expect(wrapper.find('.slot-content').isVisible()).toBe(true);
+    });
+
+    it('should render the content after navigating to a collapsed section', async() => {
+      Element.prototype.scrollIntoView = jest.fn();
+      const wrapper = mount(RcSection, {
+        props: {
+          ...defaultProps, expandable: true, expanded: false, unmountOnHide: true
+        },
+        slots: { default: '<p class="slot-content">Content</p>' },
+      });
+
+      (wrapper.vm as unknown as { summary: { scrollTo: () => void } }).summary.scrollTo();
+      await nextTick();
+
+      expect(wrapper.find('.slot-content').isVisible()).toBe(true);
+    });
+
+    it('should remount the content when the section is collapsed and expanded again', async() => {
+      let mountCount = 0;
+
+      const Counted = defineComponent({
+        setup() {
+          onMounted(() => {
+            mountCount++;
+          });
+        },
+        template: '<p class="slot-content">Content</p>',
+      });
+
+      const Host = defineComponent({
+        components: { RcSection, Counted },
+        setup() {
+          return { sectionExpanded: ref(true) };
+        },
+        template: `
+          <RcSection
+            v-model:expanded="sectionExpanded"
+            type="primary"
+            mode="with-header"
+            title="Network"
+            expandable
+            unmount-on-hide
+          >
+            <Counted />
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      await wrapper.find('.section-header').trigger('click');
+      await wrapper.find('.section-header').trigger('click');
+
+      expect(mountCount).toStrictEqual(2);
+    });
+  });
+
+  describe('invalid fields indicator', () => {
+    const ICON = '[data-testid="rc-section-invalid-fields"]';
+
+    // A field that reports `invalid` to the section it is in, like LabeledInput does
+    const Field = defineComponent({
+      props: { invalid: { type: Boolean, default: false } },
+      setup(props) {
+        useReportInvalidToSection(computed(() => props.invalid));
+      },
+      template: '<input class="field" />',
+    });
+
+    // Fields report while the section renders, so the header updates on the next tick
+    const mountSection = async({
+      expanded = false, invalid = true, expandable = true, showField = true, attach = false
+    } = {}) => {
+      const Host = defineComponent({
+        components: { RcSection, Field },
+        setup() {
+          return {
+            sectionExpanded: ref(expanded), fieldInvalid: ref(invalid), fieldShown: ref(showField), expandable
+          };
+        },
+        template: `
+          <RcSection
+            v-model:expanded="sectionExpanded"
+            type="primary"
+            mode="with-header"
+            title="Network"
+            :expandable="expandable"
+          >
+            <Field v-if="fieldShown" :invalid="fieldInvalid" />
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host, { attachTo: attach ? document.body : undefined });
+
+      await nextTick();
+
+      return wrapper;
+    };
+
+    it('should show an error icon when a collapsed section has an invalid field', async() => {
+      const wrapper = await mountSection();
+
+      expect(wrapper.find(ICON).exists()).toBe(true);
+    });
+
+    it('should use the error icon the #errors slot is documented with', async() => {
+      const wrapper = await mountSection();
+      const icon = wrapper.findAllComponents({ name: 'RcIcon' }).find((c) => c.attributes('data-testid') === 'rc-section-invalid-fields');
+
+      expect({
+        type: icon?.props('type'), size: icon?.props('size'), status: icon?.props('status')
+      }).toStrictEqual({
+        type: 'error', size: 'medium', status: 'error'
+      });
+    });
+
+    it.each([
+      [{}, true],
+      [{ expanded: true }, false],
+      [{ invalid: false }, false],
+      [{ expandable: false }, false],
+    ])('should mark the table of contents entry invalid only when the header shows the icon (%o)', async(options, expected) => {
+      const wrapper = await mountSection(options);
+      const section = wrapper.findComponent(RcSection).vm as unknown as { summary: { invalid: { value: boolean } } };
+
+      expect({ toc: section.summary.invalid.value, header: wrapper.find(ICON).exists() }).toStrictEqual({ toc: expected, header: expected });
+    });
+
+    it('should explain the icon in its tooltip', async() => {
+      const wrapper = await mountSection({ attach: true });
+      const describedBy = wrapper.find(ICON).attributes('aria-describedby');
+
+      expect(document.getElementById(describedBy as string)?.textContent).toStrictEqual('%component.rcSection.invalidFields%');
+      wrapper.unmount();
+    });
+
+    it('should let the #errors slot replace the icon', async() => {
+      const Host = defineComponent({
+        components: { RcSection, Field },
+        template:   `
+          <RcSection type="primary" mode="with-header" title="Network" expandable :expanded="false">
+            <template #errors="{ invalid }">
+              <span class="custom-error">{{ invalid }}</span>
+            </template>
+            <Field invalid />
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      await nextTick();
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+      expect(wrapper.find('.custom-error').text()).toStrictEqual('true');
+    });
+
+    it('should not show the icon when the section is expanded', async() => {
+      const wrapper = await mountSection({ expanded: true });
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should not show the icon when every field is valid', async() => {
+      const wrapper = await mountSection({ invalid: false });
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should not show the icon when the section is not expandable', async() => {
+      const wrapper = await mountSection({ expandable: false, expanded: false });
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should show the icon on collapse and hide it on expand', async() => {
+      const wrapper = await mountSection({ expanded: true });
+
+      await wrapper.find('.section-header').trigger('click');
+      expect(wrapper.find(ICON).exists()).toBe(true);
+
+      await wrapper.find('.section-header').trigger('click');
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should hide the icon once the field becomes valid', async() => {
+      const wrapper = await mountSection();
+
+      (wrapper.vm as unknown as { fieldInvalid: boolean }).fieldInvalid = false;
+      await nextTick();
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should hide the icon once the invalid field is removed', async() => {
+      const wrapper = await mountSection();
+
+      (wrapper.vm as unknown as { fieldShown: boolean }).fieldShown = false;
+      await nextTick();
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should show the icon on a collapsed parent of a section with an invalid field', async() => {
+      const Host = defineComponent({
+        components: { RcSection, Field },
+        template:   `
+          <RcSection type="primary" mode="with-header" title="Outer" expandable :expanded="false" class="outer">
+            <RcSection type="secondary" mode="with-header" title="Inner" expandable>
+              <Field invalid />
+            </RcSection>
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      await nextTick();
+
+      expect(wrapper.find(`.outer > .section-header ${ ICON }`).exists()).toBe(true);
+    });
+
+    it('should not show the icon on an expanded parent of a collapsed section with an invalid field', async() => {
+      const Host = defineComponent({
+        components: { RcSection, Field },
+        template:   `
+          <RcSection type="primary" mode="with-header" title="Outer" expandable class="outer">
+            <RcSection type="secondary" mode="with-header" title="Inner" expandable :expanded="false" class="inner">
+              <Field invalid />
+            </RcSection>
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      await nextTick();
+
+      expect(wrapper.find(`.outer > .section-header ${ ICON }`).exists()).toBe(false);
+      expect(wrapper.find(`.inner > .section-header ${ ICON }`).exists()).toBe(true);
+    });
+
+    it('should show the icon for a real vee-validate field that fails validation', async() => {
+      const Required = defineComponent({
+        setup() {
+          const { errorMessage } = useField<string>('name', (v: unknown) => (v ? true : 'Required'), { validateOnMount: true });
+
+          useReportInvalidToSection(computed(() => !!errorMessage.value));
+        },
+        template: '<input />',
+      });
+
+      const Host = defineComponent({
+        components: { RcSection, Required },
+        setup() {
+          useForm();
+        },
+        template: `
+          <RcSection type="primary" mode="with-header" title="Network" expandable :expanded="false">
+            <Required />
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      await flushPromises();
+
+      expect(wrapper.find(ICON).exists()).toBe(true);
     });
   });
 });

@@ -2,7 +2,8 @@
 /*
     Wrap d3 SVG charts in styled divs which preserve given aspect ratio
 */
-import * as d3 from 'd3';
+import { observeReveal } from '@components/utils/reveal';
+
 export default {
   props: {
     aspectRatio: {
@@ -11,27 +12,23 @@ export default {
     }
   },
   data() {
-    return { isMounted: false };
+    return { graphWidth: 0, graphHeight: 0 };
   },
-  computed: {
-    graphWidth() {
-      if (!this.isMounted) {
-        return 0;
-      }
-
-      return d3.select(this.$refs.outer).node().getBoundingClientRect().width;
-    },
-    graphHeight() {
-      if (!this.isMounted) {
-        return 0;
-      }
-
-      return d3.select(this.$refs.inner).node().getBoundingClientRect().height;
-    },
-  },
-  // track when component is mounted to use d3 DOM reference
+  // measure once mounted to use the DOM references
   mounted() {
-    this.isMounted = true;
+    this.measure();
+
+    // Mounted while hidden (e.g. in a collapsed RcSection) the size is 0, so measure again once shown
+    this.stopObservingReveal = observeReveal(this.$refs.outer, this.measure);
+  },
+  beforeUnmount() {
+    this.stopObservingReveal?.();
+  },
+  methods: {
+    measure() {
+      this.graphWidth = this.$refs.outer.getBoundingClientRect().width;
+      this.graphHeight = this.$refs.inner.getBoundingClientRect().height;
+    },
   },
 };
 </script>

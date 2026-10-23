@@ -65,6 +65,10 @@ const meta: Meta<typeof RcSection> = {
       control:     { type: 'boolean' },
       description: 'Whether the section is currently expanded. Supports v-model:expanded.',
     },
+    unmountOnHide: {
+      control:     { type: 'boolean' },
+      description: 'Whether collapsed content is unmounted instead of hidden. Defaults to false, which keeps collapsed content mounted so form fields inside it stay registered with their validation.',
+    },
     background: {
       options:     ['primary', 'secondary'] as SectionBackground[],
       control:     { type: 'select' },

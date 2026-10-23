@@ -2,6 +2,7 @@
 import { defineComponent, inject, PropType } from 'vue';
 import { debounce } from 'lodash';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { observeReveal } from '@components/utils/reveal';
 
 interface NonReactiveProps {
   queueResize(): void;
@@ -112,10 +113,12 @@ export default defineComponent({
 
   data() {
     return {
-      curHeight: this.minHeight,
-      overflow:  'hidden',
+      curHeight:           this.minHeight,
+      overflow:            'hidden',
       // Non-reactive: this is a DOM node reference. Vue won't wrap it.
-      mirror:    null as HTMLDivElement | null,
+      mirror:              null as HTMLDivElement | null,
+      // Stops re-measuring on reveal, see mounted()
+      stopObservingReveal: null as (() => void) | null,
     };
   },
 
@@ -167,6 +170,10 @@ export default defineComponent({
       this.autoSize();
     });
 
+    // Mounted while hidden (e.g. in a collapsed RcSection) the width is 0, so the text wraps
+    // every word onto its own line and the height comes out too tall. Measure again once shown.
+    this.stopObservingReveal = observeReveal(this.$refs.ta as HTMLElement, this.autoSize);
+
     // Width changes alter text wrapping, so the required height can change when
     // the window is resized. Opt-in via resizeOnValueChangeAndResizeWindow.
     if (this.resizeOnValueChangeAndResizeWindow) {
@@ -175,6 +182,8 @@ export default defineComponent({
   },
 
   beforeUnmount() {
+    this.stopObservingReveal?.();
+
     if (this.resizeOnValueChangeAndResizeWindow) {
       window.removeEventListener('resize', this.queueResize);
     }

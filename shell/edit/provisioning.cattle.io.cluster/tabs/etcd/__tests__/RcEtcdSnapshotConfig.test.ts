@@ -245,6 +245,31 @@ describe('component: RcEtcdSnapshotConfig', () => {
       expect(row?.classList.contains('has-cron-hint')).toBe(hasHint);
     });
 
+    // A collapsed RcSection keeps its content mounted, so the parent (e.g. CruImported) gets the s3 validation
+    // without the section being opened
+    it('should report the s3 validation while the Save Backups to S3 section is collapsed', () => {
+      const store = createStore({ getters: { 'i18n/t': () => (key: string) => key } });
+      const wrapper = shallowMount(RcEtcdSnapshotConfig, {
+        props: {
+          mode: _EDIT, value: { ...ETCD, s3: {} }, s3Backup: true, namespace: 'fleet-default', registerBeforeHook
+        },
+        global: {
+          plugins: [store],
+          stubs:   { RcSection: false },
+          mocks:   { t: (key: string) => key },
+        }
+      });
+      const s3Backups = wrapper.findAllComponents({ name: 'RcSection' }).find((c) => c.attributes('data-testid') === 'etcd-s3-backups');
+      const s3Config = wrapper.findComponent({ name: 'RcS3Config' });
+
+      expect(s3Backups?.props('expanded')).toBe(false);
+      expect(s3Config.exists()).toBe(true);
+
+      s3Config.vm.$emit('validationChanged', false);
+
+      expect(wrapper.emitted('validation-changed')).toStrictEqual([[false]]);
+    });
+
     it('should hide the Save Backups to S3 section when automatic backups are disabled', () => {
       const wrapper = createWrapper({ value: { ...ETCD, disableSnapshots: true } });
 
