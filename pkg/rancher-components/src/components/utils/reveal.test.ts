@@ -48,6 +48,13 @@ describe('utils: reveal', () => {
     FakeResizeObserver.instances = [];
     (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = FakeResizeObserver;
 
+    // reveal.ts calls onReveal on the next frame, run it straight away unless a test needs otherwise
+    jest.spyOn(globalThis, 'requestAnimationFrame').mockImplementation((cb) => {
+      cb(0);
+
+      return 0;
+    });
+
     // reveal.ts keeps one observer for the module, so each test needs a fresh copy
     jest.isolateModules(() => {
       ({ observeReveal } = require('./reveal'));
@@ -56,6 +63,49 @@ describe('utils: reveal', () => {
 
   afterEach(() => {
     globalThis.ResizeObserver = originalResizeObserver;
+    jest.restoreAllMocks();
+  });
+
+  it('should call onReveal on the next frame, not inside the observer callback', () => {
+    const frames: ((time: number) => void)[] = [];
+
+    jest.spyOn(globalThis, 'requestAnimationFrame').mockImplementation((cb) => {
+      frames.push(cb);
+
+      return frames.length;
+    });
+    const el = sized(0, 0);
+    const onReveal = jest.fn();
+
+    observeReveal(el, onReveal);
+    resize(el, 300, 40);
+    observer().fire(el);
+
+    expect(onReveal).not.toHaveBeenCalledWith();
+
+    frames.forEach((cb) => cb(0));
+
+    expect(onReveal).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not call onReveal on the next frame if observing stopped in between', () => {
+    const frames: ((time: number) => void)[] = [];
+
+    jest.spyOn(globalThis, 'requestAnimationFrame').mockImplementation((cb) => {
+      frames.push(cb);
+
+      return frames.length;
+    });
+    const el = sized(0, 0);
+    const onReveal = jest.fn();
+    const stop = observeReveal(el, onReveal);
+
+    resize(el, 300, 40);
+    observer().fire(el);
+    stop();
+    frames.forEach((cb) => cb(0));
+
+    expect(onReveal).not.toHaveBeenCalledWith();
   });
 
   it('should call onReveal when a hidden element is shown', () => {

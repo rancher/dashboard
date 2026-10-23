@@ -673,7 +673,7 @@ describe('component: RcSection', () => {
       expect({
         type: icon?.props('type'), size: icon?.props('size'), status: icon?.props('status')
       }).toStrictEqual({
-        type: 'error', size: 'medium', status: 'error'
+        type: 'error', size: 'large', status: 'error'
       });
     });
 

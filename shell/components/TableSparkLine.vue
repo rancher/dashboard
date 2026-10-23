@@ -1,6 +1,5 @@
 <script>
 import * as d3 from 'd3';
-import { observeReveal } from '@components/utils/reveal';
 
 export default {
   props: {
@@ -27,23 +26,27 @@ export default {
   },
 
   data() {
-    return { dataSet: [this.inputDatum], containerSize: null };
+    return { dataSet: [this.inputDatum], isMounted: false };
   },
 
   computed: {
     graphWidth() {
-      if (!this.containerSize) {
+      if (!this.isMounted) {
         return 0;
       }
 
-      return Math.max(this.width, this.containerSize.width);
+      const divWidth = d3.select('.graphContainer').node().getBoundingClientRect().width;
+
+      return Math.max(this.width, divWidth);
     },
     graphHeight() {
-      if (!this.containerSize) {
+      if (!this.isMounted) {
         return 0;
       }
 
-      return Math.max(this.height, this.containerSize.height);
+      const divHeight = d3.select('.graphContainer').node().getBoundingClientRect().height;
+
+      return Math.max(this.height, divHeight);
     },
     scaleX() {
       return d3.scaleLinear().domain([0, 10]).range([0, this.graphWidth])
@@ -72,22 +75,12 @@ export default {
       //   this.drawLine();
     }
   },
-  // measure once mounted to use d3 DOM reference
+  // track when component is mounted to use d3 DOM reference
+  // The size is measured once, on mount. Inside a collapsed RcSection, which keeps its content mounted but hidden,
+  // that size is 0, so to be used there this needs to measure again once shown (see observeReveal in
+  // @components/utils/reveal)
   mounted() {
-    this.measure();
-
-    // Mounted while hidden (e.g. in a collapsed RcSection) the size is 0, so measure again once shown
-    this.stopObservingReveal = observeReveal(this.$el, this.measure);
-  },
-  beforeUnmount() {
-    this.stopObservingReveal?.();
-  },
-  methods: {
-    measure() {
-      const { width, height } = this.$el.getBoundingClientRect();
-
-      this.containerSize = { width, height };
-    },
+    this.isMounted = true;
   },
 
 };

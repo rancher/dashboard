@@ -33,8 +33,10 @@ export function observeReveal(el: Element, onReveal: Listener): Listener {
 
     hidden.set(target, nowHidden);
 
+    // Deferred to the next frame: onReveal usually resizes the element (e.g. TextAreaAutoGrow), which inside this
+    // callback makes the browser report "ResizeObserver loop completed with undelivered notifications"
     if (wasHidden && !nowHidden) {
-      listeners.get(target)?.();
+      requestAnimationFrame(() => listeners.get(target)?.());
     }
   }));
 
