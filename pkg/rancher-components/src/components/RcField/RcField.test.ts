@@ -57,6 +57,13 @@ describe('component: RcField', () => {
       expect(wrapper.emitted('reset')).toStrictEqual([[]]);
     });
 
+    it('renders the Reset link without a label', () => {
+      const wrapper = mountField({ resettable: true });
+
+      expect(wrapper.find('.rc-field-reset').exists()).toBe(true);
+      expect(wrapper.find('.rc-field-label').exists()).toBe(false);
+    });
+
     it('hides the Reset link when disabled', () => {
       const wrapper = mountField({
         label: 'Name', resettable: true, disabled: true
@@ -79,8 +86,24 @@ describe('component: RcField', () => {
       });
 
       expect(wrapper.find('input').attributes('aria-describedby')).toStrictEqual('name-validation name-helper');
-      expect(wrapper.find('#name-validation').text()).toStrictEqual('Required');
+      expect(wrapper.find('#name-validation .rc-field-validation-message').text()).toStrictEqual('Required');
       expect(wrapper.find('#name-helper').text()).toStrictEqual('Lowercase only');
+    });
+
+    it('leaves the live region empty without a message', () => {
+      const wrapper = mountField({ helperText: 'Lowercase only' });
+      const announcer = wrapper.find('.rc-field-announcer');
+
+      expect(announcer.attributes('aria-live')).toStrictEqual('polite');
+      expect(announcer.text()).toStrictEqual('');
+    });
+
+    it('announces the validation message with its status', async() => {
+      const wrapper = mountField();
+
+      await wrapper.setProps({ validationMessage: 'Name is required' });
+
+      expect(wrapper.find('.rc-field-announcer').text()).toStrictEqual('%component.rcField.status.error% Name is required');
     });
 
     it.each([

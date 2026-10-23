@@ -13,21 +13,23 @@ export const VEE_SHOW_ALL_ERRORS_KEY = 'vee-show-all-errors';
  * Example:
  *
  * const { message, status, onBlur } = useFieldValidation({
- *   name:              props.name,
+ *   name:              () => props.name,
  *   value:             model,
  *   validationMessage: () => props.validationMessage,
  *   validationStatus:  () => props.validationStatus,
  * });
  *
- * @param options.name - The field's path in the form's values.
+ * @param options.name - The field's path in the form's values. A field is
+ * registered only when it has a name on setup, and then follows changes to
+ * the path, such as a row's index in a `useFieldArray`.
  */
 export const useFieldValidation = (options: {
-  name: string | undefined;
+  name: MaybeRefOrGetter<string | undefined>;
   value: MaybeRefOrGetter<unknown>;
   validationMessage: MaybeRefOrGetter<string | undefined>;
   validationStatus: MaybeRefOrGetter<RcFieldValidationStatus>;
 }) => {
-  if (!options.name) {
+  if (!toValue(options.name)) {
     return {
       message: computed(() => toValue(options.validationMessage)),
       status:  computed(() => toValue(options.validationStatus)),
@@ -39,7 +41,7 @@ export const useFieldValidation = (options: {
 
   const {
     value: fieldValue, errorMessage, meta, handleBlur
-  } = useField(options.name, undefined, {
+  } = useField(() => toValue(options.name) as string, undefined, {
     initialValue:    toValue(options.value),
     syncVModel:      false,
     validateOnMount: true,

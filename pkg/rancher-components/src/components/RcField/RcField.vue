@@ -56,6 +56,7 @@ const validationId = computed(() => `${ controlId.value }-validation`);
 const showValidation = computed(() => !!props.validationMessage && !isView.value);
 const showHelper = computed(() => !!props.helperText);
 const showReset = computed(() => props.resettable && !isView.value && !disabled.value);
+const showHeader = computed(() => !!props.label || showReset.value);
 
 const describedby = computed(() => {
   const ids = [
@@ -88,12 +89,13 @@ const tooltipSize = computed(() => (props.size === 'small' ? 'small' : 'medium')
     }"
   >
     <div
-      v-if="props.label"
+      v-if="showHeader"
       class="rc-field-header"
     >
       <div class="rc-field-label-wrapper">
         <component
           :is="isView ? 'span' : 'label'"
+          v-if="props.label"
           class="rc-field-label"
           :for="isView ? undefined : controlId"
         >
@@ -143,6 +145,16 @@ const tooltipSize = computed(() => (props.size === 'small' ? 'small' : 'medium')
       >
         {{ props.helperText }}
       </p>
+    </div>
+
+    <div
+      class="rc-field-announcer"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <template v-if="showValidation">
+        {{ t(`component.rcField.status.${ props.validationStatus }`) }} {{ props.validationMessage }}
+      </template>
     </div>
   </div>
 </template>
@@ -296,6 +308,19 @@ const tooltipSize = computed(() => (props.size === 'small' ? 'small' : 'medium')
   gap: 4px;
   font-size: var(--rc-field-meta-font-size);
   line-height: var(--rc-field-meta-line-height);
+}
+
+// Out of the flex flow so that it adds no gap while empty
+.rc-field-announcer {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
 .rc-field-helper {

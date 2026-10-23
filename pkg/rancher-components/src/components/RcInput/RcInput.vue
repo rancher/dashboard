@@ -96,7 +96,7 @@ const viewValue = computed(() => {
 });
 
 const validation = useFieldValidation({
-  name:              props.name,
+  name:              () => props.name,
   value:             model,
   validationMessage: () => props.validationMessage,
   validationStatus:  () => props.validationStatus,
@@ -113,6 +113,8 @@ const clear = () => {
 const reset = () => {
   model.value = props.resetValue;
   emit('reset');
+  // The Reset link goes away once the value matches
+  input.value?.focus();
 };
 
 defineExpose<RcInputExpose>({
@@ -141,6 +143,11 @@ defineExpose<RcInputExpose>({
   >
     <template #default="{ id, describedby, invalid, required, disabled, isView }">
       <template v-if="isView">
+        <slot
+          name="prefix"
+          :disabled="disabled"
+          :is-view="true"
+        />
         <span class="rc-input-view-value">{{ viewValue }}</span>
         <slot
           name="suffix"

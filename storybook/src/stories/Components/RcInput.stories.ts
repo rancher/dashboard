@@ -222,6 +222,9 @@ export const PrefixAndSuffix: Story = {
           </template>
         </RcInput>
         <RcInput v-model="host" label="Host, view mode" mode="view">
+          <template #prefix>
+            <RcIcon type="globe" size="medium" />
+          </template>
           <template #suffix="{ isView }">
             <span style="color: var(--input-label);">{{ isView ? '(external)' : ':443' }}</span>
           </template>

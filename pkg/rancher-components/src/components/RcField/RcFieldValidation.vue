@@ -44,9 +44,14 @@ const truncated = ref(false);
 const showToggle = computed(() => expanded.value || truncated.value);
 
 const measure = () => {
+  // An expanded message wraps, so it only measures as truncated while collapsed
+  if (expanded.value) {
+    return;
+  }
+
   const el = text.value;
 
-  truncated.value = !expanded.value && !!el && el.scrollWidth > el.clientWidth + 1;
+  truncated.value = !!el && el.scrollWidth > el.clientWidth + 1;
 };
 
 const toggle = () => {
@@ -87,9 +92,14 @@ watch(() => props.message, () => {
     />
     <span
       :id="props.id"
-      ref="text"
-      class="rc-field-validation-message"
-    >{{ props.message }}</span>
+      class="rc-field-validation-text"
+    >
+      <span class="rc-field-validation-status">{{ t(`component.rcField.status.${ props.status }`) + ' ' }}</span>
+      <span
+        ref="text"
+        class="rc-field-validation-message"
+      >{{ props.message }}</span>
+    </span>
     <rc-button
       v-if="showToggle"
       type="button"
@@ -130,6 +140,24 @@ watch(() => props.message, () => {
     // Centred on the first line rather than the whole message
     margin-top: calc((1lh - 14px) / 2);
   }
+}
+
+.rc-field-validation-text {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.rc-field-validation-status {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
 .rc-field-validation-message {

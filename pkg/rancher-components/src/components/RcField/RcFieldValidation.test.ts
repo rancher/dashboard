@@ -12,7 +12,8 @@ const measureAs = (widths: { scrollWidth: number, clientWidth: number }) => {
   clientWidth.mockReturnValue(widths.clientWidth);
 };
 
-const mountValidation = (props: Record<string, unknown> = {}) => mount(RcFieldValidation, {
+const mountValidation = (props: Record<string, unknown> = {}, options: { attachTo?: HTMLElement } = {}) => mount(RcFieldValidation, {
+  ...options,
   props: {
     id: 'name-validation', message: LONG, status: 'error', ...props
   }
@@ -24,11 +25,18 @@ describe('component: RcFieldValidation', () => {
     clientWidth = jest.spyOn(HTMLElement.prototype, 'clientWidth', 'get');
   });
 
-  it('puts the id on the message text alone', () => {
+  it('puts the id on the status and message text', () => {
     measureAs({ scrollWidth: 100, clientWidth: 100 });
     const wrapper = mountValidation();
 
-    expect(wrapper.find('#name-validation').text()).toStrictEqual(LONG);
+    expect(wrapper.find('#name-validation').text()).toStrictEqual(`%component.rcField.status.error% ${ LONG }`);
+  });
+
+  it.each(['error', 'warning', 'success', 'info'])('names the %s status for screen readers', (status) => {
+    measureAs({ scrollWidth: 100, clientWidth: 100 });
+    const wrapper = mountValidation({ status });
+
+    expect(wrapper.find('.rc-field-validation-status').text()).toStrictEqual(`%component.rcField.status.${ status }%`);
   });
 
   it.each([
@@ -92,6 +100,21 @@ describe('component: RcFieldValidation', () => {
 
       expect(wrapper.classes()).not.toContain('expanded');
       expect(wrapper.find('.rc-field-validation-toggle').text()).toStrictEqual('%component.rcField.showMore%');
+    });
+
+    it('keeps focus on the toggle when it collapses', async() => {
+      const wrapper = mountValidation({}, { attachTo: document.body });
+
+      await wrapper.vm.$nextTick();
+      await wrapper.find('.rc-field-validation-toggle').trigger('click');
+      const toggle = wrapper.find('.rc-field-validation-toggle').element as HTMLElement;
+
+      toggle.focus();
+      await wrapper.find('.rc-field-validation-toggle').trigger('click');
+      await flushPromises();
+
+      expect(document.activeElement).toBe(toggle);
+      wrapper.unmount();
     });
 
     it('collapses when the message changes', async() => {

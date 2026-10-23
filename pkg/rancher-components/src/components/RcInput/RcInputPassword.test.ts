@@ -39,6 +39,21 @@ describe('component: RcInputPassword', () => {
     expect(toggle.find('.rc-icon').classes()).toContain(`icon-${ icon }`);
   });
 
+  it('shows no toggle while disabled', () => {
+    const wrapper = mountPassword({ disabled: true });
+
+    expect(wrapper.find('.rc-input-action').exists()).toBe(false);
+  });
+
+  it('shows no toggle inside a disabled RcFieldGroup', () => {
+    const wrapper = mount(RcFieldGroup, {
+      props: { disabled: true },
+      slots: { default: () => h(RcInputPassword, { modelValue: 'secret' }) },
+    });
+
+    expect(wrapper.find('.rc-input-action').exists()).toBe(false);
+  });
+
   it('emits the typed value', async() => {
     const wrapper = mountPassword();
 

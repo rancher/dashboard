@@ -10067,6 +10067,11 @@ component:
     reset: Reset
     showMore: Show more
     showLess: Show less
+    status:
+      error: 'Error:'
+      warning: 'Warning:'
+      success: 'Success:'
+      info: 'Info:'
   rcInput:
     clear: Clear
     showPassword: Show password

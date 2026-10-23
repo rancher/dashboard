@@ -2,7 +2,7 @@ import {
   defineComponent, h, provide, ref, type Ref
 } from 'vue';
 import { flushPromises, mount } from '@vue/test-utils';
-import { useField, useForm } from 'vee-validate';
+import { useField, useFieldArray, useForm } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
 import { z } from 'zod';
 import RcInput from './RcInput.vue';
@@ -204,6 +204,40 @@ describe('rcInput with vee-validate', () => {
     await settle();
 
     expect(form.values).toStrictEqual({});
+    wrapper.unmount();
+  });
+
+  it('follows its path when a useFieldArray row above it is removed', async() => {
+    let form!: FormContext;
+    let removeFirst!: () => void;
+    const rows = ref([{ id: 1, host: 'rancher.io' }, { id: 2, host: 'example.com' }]);
+    const Form = defineComponent({
+      setup() {
+        form = useForm({ initialValues: { items: [{ host: 'rancher.io' }, { host: 'example.com' }] } });
+        const { remove } = useFieldArray('items');
+
+        removeFirst = () => {
+          remove(0);
+          rows.value.splice(0, 1);
+        };
+
+        return () => h('form', rows.value.map((row, i) => h(RcInput, {
+          key:                   row.id,
+          name:                  `items[${ i }].host`,
+          modelValue:            row.host,
+          'onUpdate:modelValue': (v: RcInputValue) => (row.host = v as string),
+        })));
+      },
+    });
+    const wrapper = mount(Form);
+
+    await settle();
+    removeFirst();
+    await settle();
+    await wrapper.find('input').setValue('example.org');
+    await settle();
+
+    expect(form.values).toStrictEqual({ items: [{ host: 'example.org' }] });
     wrapper.unmount();
   });
 

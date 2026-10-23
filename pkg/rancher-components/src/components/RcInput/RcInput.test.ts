@@ -147,6 +147,18 @@ describe('component: RcInput', () => {
       expect(wrapper.emitted('update:modelValue')).toStrictEqual([['local']]);
       expect(wrapper.emitted('reset')).toStrictEqual([[]]);
     });
+
+    it('moves focus to the input once the Reset link goes', async() => {
+      wrapper = mountInput({
+        label: 'Name', modelValue: 'rancher', resetValue: 'local', 'onUpdate:modelValue': (v: unknown) => wrapper.setProps({ modelValue: v })
+      }, { attachTo: document.body });
+
+      await wrapper.find('.rc-field-reset').trigger('click');
+
+      expect(wrapper.find('.rc-field-reset').exists()).toBe(false);
+      expect(document.activeElement).toBe(wrapper.find('input').element);
+      wrapper.unmount();
+    });
   });
 
   describe('view mode', () => {
@@ -187,10 +199,10 @@ describe('component: RcInput', () => {
       expect(wrapper.find('em').text()).toStrictEqual('true');
     });
 
-    it('does not render the prefix slot', () => {
-      wrapper = mountInput({ mode: 'view' }, { slots: { prefix: '<em>prefix</em>' } });
+    it('passes the view state to the prefix slot', () => {
+      wrapper = mountInput({ mode: 'view', modelValue: 'rancher' }, { slots: { prefix: '<template #prefix="{ isView }"><em>{{ isView }}</em></template>' } });
 
-      expect(wrapper.find('em').exists()).toBe(false);
+      expect(wrapper.find('em').text()).toStrictEqual('true');
     });
   });
 
