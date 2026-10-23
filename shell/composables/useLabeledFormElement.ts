@@ -3,7 +3,7 @@ import {
   EmitFn
 } from 'vue';
 import { _VIEW, _EDIT } from '@shell/config/query-params';
-import { useReportInvalidToSection } from '@components/RcSection/useSectionValidity';
+import { useReportInvalidToSection, useSectionShowErrors } from '@components/RcSection/useSectionValidity';
 
 interface LabeledFormElementProps {
   mode: string;
@@ -97,12 +97,14 @@ export const useLabeledFormElement = (props: LabeledFormElementProps, emit: Emit
     return props.disabled || isView.value;
   });
 
+  const sectionShowErrors = useSectionShowErrors();
+
   const validationMessage = computed(() => {
     const requiredRule = props.rules.find((rule: any) => rule?.name === 'required') as Function;
     const ruleMessages = [];
     const value = props.value;
 
-    if (requiredRule && blurred.value && !focused.value) {
+    if (requiredRule && ((blurred.value && !focused.value) || sectionShowErrors.value)) {
       const message = requiredRule(value);
 
       if (!!message) {
@@ -120,7 +122,7 @@ export const useLabeledFormElement = (props: LabeledFormElementProps, emit: Emit
       }
     }
 
-    if (ruleMessages.length > 0 && (blurred.value || focused.value || !props.requireDirty)) {
+    if (ruleMessages.length > 0 && (blurred.value || focused.value || !props.requireDirty || sectionShowErrors.value)) {
       emit('update:validation', false);
 
       return ruleMessages.join(', ');
@@ -131,9 +133,7 @@ export const useLabeledFormElement = (props: LabeledFormElementProps, emit: Emit
     }
   });
 
-  // Unlike validationMessage, doesn't wait for the field to be touched: a collapsed section has to show
-  // invalid fields the user hasn't seen yet
-  useReportInvalidToSection(computed(() => !isView.value && props.rules.some((rule: any) => !!rule?.(props.value))));
+  useReportInvalidToSection(computed(() => !isView.value && !!validationMessage.value));
 
   const onFocusLabeled = () => {
     raised.value = true;

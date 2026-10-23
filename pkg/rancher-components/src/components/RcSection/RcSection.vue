@@ -61,12 +61,14 @@
  * once shown (see observeReveal in @components/utils/reveal). Content that can't do this can set
  * `unmountOnHide` to be unmounted while collapsed instead.
  *
- * Form fields report whether they are invalid to the section they are in (see useSectionValidity). A collapsed
- * section with invalid fields, including ones in nested sections, shows an error icon in its #errors slot. Filling
- * the slot replaces the icon, and the slot's `invalid` prop says whether it would be shown.
+ * Form fields report whether they show an error to the section they are in (see useSectionValidity). A section with
+ * such fields, including ones in nested sections, shows an error icon in its #errors slot, expanded or not.
+ * Filling the slot replaces the icon, and the slot's `invalid` prop says whether it would be shown. The section's
+ * table of contents entry shows the same icon. Collapsing a section validates it: its fields show their errors
+ * from then on, without waiting to be touched.
  */
 import {
-  computed, inject, nextTick, provide, useTemplateRef, type Ref
+  computed, inject, nextTick, provide, useTemplateRef, watch, type Ref
 } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
@@ -94,9 +96,13 @@ provide(RC_SECTION_BG_KEY, resolvedBackground);
 
 const expanded = defineModel<boolean>('expanded', { default: true });
 
-const hasInvalid = provideSectionValidity();
+const { hasInvalid, validate } = provideSectionValidity();
 
-const showInvalid = computed(() => props.expandable && !expanded.value && hasInvalid.value);
+watch(expanded, (isExpanded) => {
+  if (!isExpanded) {
+    validate();
+  }
+});
 
 // Expose summary, name, and a display label on the component public instance so
 // TOC discovery can access component
@@ -120,6 +126,7 @@ const { summary } = useInSummary({
   label:      displayTitle,
   scrollTo,
   elementRef: sectionRef,
+  invalid:    hasInvalid,
 });
 
 defineExpose({
@@ -188,13 +195,13 @@ function toggle() {
           </div>
           <slot
             name="errors"
-            :invalid="showInvalid"
+            :invalid="hasInvalid"
           >
             <RcIcon
-              v-if="showInvalid"
+              v-if="hasInvalid"
               v-clean-tooltip="t('component.rcSection.invalidFields')"
               type="error"
-              size="medium"
+              size="large"
               status="error"
               data-testid="rc-section-invalid-fields"
             />

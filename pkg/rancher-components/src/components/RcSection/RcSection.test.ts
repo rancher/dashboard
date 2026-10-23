@@ -5,7 +5,7 @@ import { flushPromises, mount } from '@vue/test-utils';
 import { useField, useForm } from 'vee-validate';
 import RcContentGroup from '@components/Layout/RcContentGroup/RcContentGroup.vue';
 import RcSection from './RcSection.vue';
-import { useReportInvalidToSection } from './useSectionValidity';
+import { useReportInvalidToSection, useSectionShowErrors } from './useSectionValidity';
 
 describe('component: RcSection', () => {
   const defaultProps = {
@@ -673,8 +673,20 @@ describe('component: RcSection', () => {
       expect({
         type: icon?.props('type'), size: icon?.props('size'), status: icon?.props('status')
       }).toStrictEqual({
-        type: 'error', size: 'large', status: 'error'
+        type: 'error', size: 'medium', status: 'error'
       });
+    });
+
+    it.each([
+      [{}, true],
+      [{ expanded: true }, true],
+      [{ invalid: false }, false],
+      [{ expandable: false }, true],
+    ])('should mark the table of contents entry invalid only when the header shows the icon (%o)', async(options, expected) => {
+      const wrapper = await mountSection(options);
+      const section = wrapper.findComponent(RcSection).vm as unknown as { summary: { invalid: { value: boolean } } };
+
+      expect({ toc: section.summary.invalid.value, header: wrapper.find(ICON).exists() }).toStrictEqual({ toc: expected, header: expected });
     });
 
     it('should explain the icon in its tooltip', async() => {
@@ -706,10 +718,10 @@ describe('component: RcSection', () => {
       expect(wrapper.find('.custom-error').text()).toStrictEqual('true');
     });
 
-    it('should not show the icon when the section is expanded', async() => {
+    it('should show the icon when the section is expanded', async() => {
       const wrapper = await mountSection({ expanded: true });
 
-      expect(wrapper.find(ICON).exists()).toBe(false);
+      expect(wrapper.find(ICON).exists()).toBe(true);
     });
 
     it('should not show the icon when every field is valid', async() => {
@@ -718,20 +730,20 @@ describe('component: RcSection', () => {
       expect(wrapper.find(ICON).exists()).toBe(false);
     });
 
-    it('should not show the icon when the section is not expandable', async() => {
+    it('should show the icon when the section is not expandable', async() => {
       const wrapper = await mountSection({ expandable: false, expanded: false });
 
-      expect(wrapper.find(ICON).exists()).toBe(false);
+      expect(wrapper.find(ICON).exists()).toBe(true);
     });
 
-    it('should show the icon on collapse and hide it on expand', async() => {
+    it('should keep showing the icon across collapse and expand', async() => {
       const wrapper = await mountSection({ expanded: true });
 
       await wrapper.find('.section-header').trigger('click');
       expect(wrapper.find(ICON).exists()).toBe(true);
 
       await wrapper.find('.section-header').trigger('click');
-      expect(wrapper.find(ICON).exists()).toBe(false);
+      expect(wrapper.find(ICON).exists()).toBe(true);
     });
 
     it('should hide the icon once the field becomes valid', async() => {
@@ -771,7 +783,7 @@ describe('component: RcSection', () => {
       expect(wrapper.find(`.outer > .section-header ${ ICON }`).exists()).toBe(true);
     });
 
-    it('should not show the icon on an expanded parent of a collapsed section with an invalid field', async() => {
+    it('should show the icon on an expanded parent of a collapsed section with an invalid field', async() => {
       const Host = defineComponent({
         components: { RcSection, Field },
         template:   `
@@ -787,7 +799,7 @@ describe('component: RcSection', () => {
 
       await nextTick();
 
-      expect(wrapper.find(`.outer > .section-header ${ ICON }`).exists()).toBe(false);
+      expect(wrapper.find(`.outer > .section-header ${ ICON }`).exists()).toBe(true);
       expect(wrapper.find(`.inner > .section-header ${ ICON }`).exists()).toBe(true);
     });
 
@@ -818,6 +830,104 @@ describe('component: RcSection', () => {
       await flushPromises();
 
       expect(wrapper.find(ICON).exists()).toBe(true);
+    });
+  });
+
+  describe('validating on collapse', () => {
+    // Exposes whether the section has told its fields to show their errors
+    const Probe = defineComponent({
+      setup() {
+        return { showErrors: useSectionShowErrors() };
+      },
+      template: '<span class="probe">{{ showErrors }}</span>',
+    });
+
+    const mountNested = (outerExpanded = true) => mount(defineComponent({
+      components: { RcSection, Probe },
+      setup() {
+        return { outerExpanded: ref(outerExpanded) };
+      },
+      template: `
+        <RcSection v-model:expanded="outerExpanded" type="primary" mode="with-header" title="Outer" expandable class="outer">
+          <Probe class="outer-probe" />
+          <RcSection type="secondary" mode="with-header" title="Inner" expandable class="inner">
+            <Probe class="inner-probe" />
+          </RcSection>
+        </RcSection>
+      `,
+    }));
+
+    const probes = (wrapper: ReturnType<typeof mountNested>) => ({ outer: wrapper.find('.outer-probe').text(), inner: wrapper.find('.inner-probe').text() });
+
+    it('should not tell fields to show their errors before the section is collapsed', () => {
+      const wrapper = mountNested();
+
+      expect(probes(wrapper)).toStrictEqual({ outer: 'false', inner: 'false' });
+    });
+
+    it('should not tell fields to show their errors when the section starts collapsed', () => {
+      const wrapper = mountNested(false);
+
+      expect(probes(wrapper)).toStrictEqual({ outer: 'false', inner: 'false' });
+    });
+
+    it('should tell fields, including ones in nested sections, to show their errors once collapsed', async() => {
+      const wrapper = mountNested();
+
+      await wrapper.find('.outer > .section-header').trigger('click');
+
+      expect(probes(wrapper)).toStrictEqual({ outer: 'true', inner: 'true' });
+    });
+
+    it('should keep telling fields to show their errors after expanding again', async() => {
+      const wrapper = mountNested();
+
+      await wrapper.find('.outer > .section-header').trigger('click');
+      await wrapper.find('.outer > .section-header').trigger('click');
+
+      expect(probes(wrapper)).toStrictEqual({ outer: 'true', inner: 'true' });
+    });
+
+    it('should not tell fields of the parent section to show their errors when a nested section is collapsed', async() => {
+      const wrapper = mountNested();
+
+      await wrapper.find('.inner > .section-header').trigger('click');
+
+      expect(probes(wrapper)).toStrictEqual({ outer: 'false', inner: 'true' });
+    });
+
+    it('should not tell fields outside a section to show their errors', () => {
+      const wrapper = mount(Probe);
+
+      expect(wrapper.text()).toStrictEqual('false');
+    });
+
+    // e.g. enabling S3 backups adds the S3 fields to a section that was collapsed before
+    it('should not tell fields added after the section was collapsed to show their errors until it is collapsed again', async() => {
+      const wrapper = mount(defineComponent({
+        components: { RcSection, Probe },
+        setup() {
+          return { added: ref(false) };
+        },
+        template: `
+          <RcSection type="primary" mode="with-header" title="Backups" expandable>
+            <Probe class="existing-probe" />
+            <Probe v-if="added" class="added-probe" />
+          </RcSection>
+        `,
+      }));
+      const header = wrapper.find('.section-header');
+
+      await header.trigger('click');
+      await header.trigger('click');
+      (wrapper.vm as unknown as { added: boolean }).added = true;
+      await nextTick();
+
+      expect({ existing: wrapper.find('.existing-probe').text(), added: wrapper.find('.added-probe').text() }).toStrictEqual({ existing: 'true', added: 'false' });
+
+      await header.trigger('click');
+
+      expect(wrapper.find('.added-probe').text()).toStrictEqual('true');
     });
   });
 });

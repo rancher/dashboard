@@ -1,4 +1,6 @@
 <script setup>
+import RcIcon from '@components/RcIcon/RcIcon.vue';
+
 const props = defineProps({
   accordions: {
     type:     Array,
@@ -30,7 +32,15 @@ const handleScrollTo = (entry, event) => {
             class="btn role-link accordion-link toc-parent-link"
             @click="handleScrollTo(acc, $event)"
           >
-            {{ acc.label }}
+            <span>{{ acc.label }}</span>
+            <RcIcon
+              v-if="acc.invalid"
+              v-clean-tooltip="t('component.rcSection.invalidFields')"
+              type="error"
+              size="small"
+              status="error"
+              data-testid="toc-invalid-fields"
+            />
           </button>
           <span v-else>{{ acc.label }}</span>
           <template v-if="acc?.children?.length">
@@ -46,7 +56,15 @@ const handleScrollTo = (entry, event) => {
                   class="btn role-link accordion-link toc-child-link"
                   @click="handleScrollTo(childAcc, $event)"
                 >
-                  {{ childAcc.label }}
+                  <span>{{ childAcc.label }}</span>
+                  <RcIcon
+                    v-if="childAcc.invalid"
+                    v-clean-tooltip="t('component.rcSection.invalidFields')"
+                    type="error"
+                    size="small"
+                    status="error"
+                    data-testid="toc-invalid-fields"
+                  />
                 </button>
                 <span v-else>{{ childAcc.label }}</span>
               </li>
@@ -96,7 +114,9 @@ const handleScrollTo = (entry, event) => {
     overflow-wrap: anywhere;
     word-break: break-word;
     text-align: left;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: var(--gap);
     width: 100%;
   }
 

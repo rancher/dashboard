@@ -226,7 +226,7 @@ export default defineComponent({
             :value="upgradeStrategy.serverConcurrency"
             :mode="mode"
             :label="t('cluster.rke2.controlPlaneConcurrency.label')"
-            :rules="rules.concurrency"
+            :rules="rules.controlPlaneConcurrency"
             :disabled="versionInformationDisabled"
             required
             @update:value="$emit('server-concurrency-changed', $event)"
@@ -237,7 +237,7 @@ export default defineComponent({
             :value="upgradeStrategy.workerConcurrency"
             :mode="mode"
             :label="t('cluster.rke2.workerConcurrency.label')"
-            :rules="rules.concurrency"
+            :rules="rules.workerConcurrency"
             :disabled="versionInformationDisabled"
             required
             @update:value="$emit('worker-concurrency-changed', $event)"
