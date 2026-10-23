@@ -5,6 +5,7 @@ import TypeDescription from '@shell/components/TypeDescription';
 import { RcButton } from '@components/RcButton';
 import { get } from '@shell/utils/object';
 import { AS, _YAML } from '@shell/config/query-params';
+import { isProductPrefixedTopLevel } from '@shell/utils/extension-product-routing';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 import TabTitle from '@shell/components/TabTitle';
 
@@ -100,16 +101,17 @@ export default {
     let formRoute;
     let overrideCreateLocationByExtension = false;
     const plugins = this.$extension.getPlugins();
+    const currentProductId = this.$store.getters['productId'];
 
     Object.keys(plugins).forEach((key) => {
-      if (plugins[key].productNames.includes(this.$store.getters['productId'])) {
+      if (plugins[key].productNames.includes(currentProductId)) {
         currPluginName = key;
       }
     });
 
-    if (currPluginName && plugins[currPluginName]?.topLevelProduct) {
+    if (isProductPrefixedTopLevel(plugins[currPluginName], currentProductId)) {
       // override create route for extension resource lists
-      formRoute = { name: `${ this.$route.name }-create`, params: { ...params, product: this.$store.getters['productId'] } };
+      formRoute = { name: `${ this.$route.name }-create`, params: { ...params, product: currentProductId } };
       overrideCreateLocationByExtension = true;
     } else {
       // this was the original logic before the topLevelProduct override was added
