@@ -174,6 +174,13 @@ describe('component: Wizard', () => {
     expect(wrapper.find('.steps li.step.active').attributes('id')).toBe('stepTwo');
   });
 
+  it('should not submit the form the wizard is in from a step button', () => {
+    const wrapper = mountWizard();
+
+    // Enter in a text field clicks the form's first submit button, which would jump back to step 1
+    expect(stepButtons(wrapper).map((b: any) => b.attributes('type'))).toStrictEqual(['button', 'button', 'button']);
+  });
+
   it('should hide the dividers between steps from assistive technology', () => {
     const wrapper = mountWizard();
 
