@@ -2922,7 +2922,7 @@ cluster:
     nginx:
       header: Ingress-NGINX
       contentUnsupported: Ingress-NGINX is unavailable with Kubernetes 1.37 or later. Choose Traefik instead.
-      content: Choose this only if your workloads are not yet ready for Traefik.
+      content: Choose this only if your workloads are not yet ready for Traefik. Standalone Ingress-NGINX is unsupported with Kubernetes 1.37 or later.
     dual:
       header: Dual Mode
       content: Use this to safely test and migrate traffic from Ingress-NGINX to Traefik.
