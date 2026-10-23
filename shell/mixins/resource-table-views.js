@@ -191,6 +191,8 @@ export default {
 
       countingInFlight: false,
 
+      recountPending: false,
+
       view: {
         query:          linkedQuery || defaultView?.query || '',
         columns:        defaultView?.columns || null,
@@ -236,6 +238,8 @@ export default {
 
       /** The request in hand when the switch began: its answer is the old view's, whatever it filters by */
       viewSwitchFromArgs: null,
+
+      lastResultArgsKey: null,
 
       pendingViewFilters: [],
 
@@ -299,10 +303,7 @@ export default {
       known.forEach((field) => this.fetchFieldValues(field.id));
     },
 
-    /**
-     * The only time every count is retaken. Not tied to the rows, which would blink counts to zero
-     * on every fetch
-     */
+    /** Not tied to the rows, which would blink counts to zero on every fetch */
     viewCountsScope() {
       this.debouncedRefreshViewCounts();
     },
@@ -379,10 +380,17 @@ export default {
      * Only the response this view asked for ends the wait; one already in flight answers first.
      * Watched rather than `rows`, which is filled in place and never changes identity
      */
-    externalPaginationResult() {
+    externalPaginationResult(neu) {
       if (this.viewFiltersApplied && this.externalPaginationArgs !== this.viewSwitchFromArgs) {
         this.endViewSwitch();
       }
+
+      const argsKey = this.externalPaginationArgs ? JSON.stringify(this.externalPaginationArgs) : null;
+
+      if (neu && argsKey && argsKey === this.lastResultArgsKey) {
+        this.debouncedRefreshViewCounts();
+      }
+      this.lastResultArgsKey = argsKey;
     },
 
     /** Asked again for the page in hand, eg by a view sorting as the last one did: nothing more is coming */
@@ -1161,8 +1169,14 @@ export default {
       // A count stays until a fresh one replaces it, so none blink to zero
       const wanted = this.countableQueries.filter((query) => refresh || this.viewCounts[query] === undefined);
 
+      if (!wanted.length) {
+        return;
+      }
+
       // One round at a time, or mid-flight triggers ask again and supersede their own requests
-      if (!wanted.length || this.countingInFlight) {
+      if (this.countingInFlight) {
+        this.recountPending = this.recountPending || refresh;
+
         return;
       }
 
@@ -1172,6 +1186,11 @@ export default {
         await this.requestViewCounts(wanted);
       } finally {
         this.countingInFlight = false;
+      }
+
+      if (this.recountPending) {
+        this.recountPending = false;
+        await this.fetchViewCounts(true);
       }
     },
 
