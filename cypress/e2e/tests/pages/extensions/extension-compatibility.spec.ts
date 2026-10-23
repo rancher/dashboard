@@ -99,6 +99,15 @@ const skipAboutTop = isSkip('skip_about_top');
 const skipClusterRke2 = isSkip('skip_cluster_create_rke2');
 // The legacy RESOURCE_DETAIL extension point only exists up until Rancher v2.14.0 (per the PDF).
 const skipResourceDetailLegacy = isSkip('skip_resource_detail_legacy');
+// Group 9's row action menu check drives the extension's own (bundled) sortable table. 2.10's page
+// chrome is too old to drive it reliably - the same reason 3.1/4.3 are skipped there - and 2.11 is
+// the oldest host still missing `window.__vueRouter`, so #18635 keeps a matrix row either way.
+const skipExtRowActionMenu = isSkip('skip_ext_row_action_menu');
+// The Resources API (`$resources`) and the Product Registration API (`addProduct`/`extendProduct`)
+// both landed in Rancher 2.15, so groups 10 and 11 only run from there on. The extension itself
+// feature-detects and degrades on older hosts rather than failing to build.
+const skipResourcesApi = isSkip('skip_resources_api');
+const skipProductRegistration = isSkip('skip_product_registration');
 
 // On Linux/Windows CI the header-action shortcut combos use 'ctrl', on macOS they use 'meta'
 // (see shell/core/plugin-helpers.ts -> shortcutKey { windows: ['ctrl', x], mac: ['meta', x] }).
@@ -429,6 +438,13 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
     qase(50509, it('4.1 PanelLocation.RESOURCE_LIST', () => {
       goToReposTable();
       cy.contains('Just a sample banner to show that we can render anything here', LONG_TIMEOUT_OPT).should('be.visible');
+
+      // Second RESOURCE_LIST panel, stacked under the banner: an extension-bundled component whose
+      // setup() calls useRoute(). Hosts before 2.12 never set `window.__vueRouter`, which vue-router
+      // used to be externalised to, so this is where the compat stub's fallback gets exercised
+      // (rancher/dashboard#18635). Asserted here rather than in group 9 because this page and panel
+      // are already proven to render on every version in the matrix, including 2.10.
+      cy.get('[data-testid="extension-use-route-probe"]', MEDIUM_TIMEOUT_OPT).should('contain', 'USE ROUTE OK');
     }));
 
     qase(50510, it('4.2 PanelLocation.DETAILS_MASTHEAD & DETAILS_TOP (details)', () => {
@@ -622,6 +638,303 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       cy.contains('button', 'Create').click();
       cy.contains('demo-mach-inv-1', LONG_TIMEOUT_OPT).should('be.visible');
     }));
+  });
+
+  // ── Test Group 9: Cross-version host/shell contract ──
+
+  /**
+   * Regression cover for three bugs that only appear when an extension built against *this*
+   * branch's `@rancher/shell` is loaded into an older Rancher. In each case the code that runs is
+   * the copy of shell bundled into the extension, not the host's own - which is why the normal e2e
+   * run cannot see them and only this matrix can.
+   *
+   * - #18633 Models reach the extension manager through the Vuex root state. Hosts before 2.14 set
+   *   only `rootState.$plugin`, so `resource-class.js` -> `this.$extension.getPlugins()` threw as
+   *   soon as anything read a model's `detailLocation`. Fixed by the root-state half of the compat
+   *   shim in `shell/pkg/auto-import.js`, which also covers `steve-class.js` -> `modelExtensions`
+   *   and the extension validator lookup in `resource-class.js`.
+   * - #18634 `ResourceList/Masthead.vue` reads the manager in `data()`, which runs before that shim
+   *   can possibly have run, so a cold load of an extension list route white-screened. Fixed by the
+   *   optional-chained guard at the call site.
+   * - #18635 is covered by test 4.1 (the `useRoute` probe panel) and, for the `ActionMenuShell`
+   *   consumer specifically, by 9.3 below.
+   *
+   * These need a list page owned by the *extension* - elemental's own `ResourceList` page - with at
+   * least one row, so the group depends on the operator installed by 8.1 and the machine inventory
+   * created by 8.3, and runs last.
+   */
+  describe('Test Group 9: Cross-version host/shell contract', () => {
+    const MACHINE_INV_TYPE = 'elemental.cattle.io.machineinventory';
+    // Created by 8.3, which runs on every version in the matrix.
+    const MACHINE_INV_NAME = 'demo-mach-inv-1';
+    const MACHINE_INV_LIST_URL = `/elemental/c/_/${ MACHINE_INV_TYPE }`;
+
+    /**
+     * Full page load straight onto the extension's list route - the "hard refresh" case - with a
+     * console.error spy in place before the app boots. Vue reports errors thrown in `data()`,
+     * `setup()` and computed properties through console.error rather than letting them reach
+     * Cypress' uncaught:exception handler, so that spy is how these TypeErrors surface.
+     */
+    const coldLoadExtensionList = () => cy.visit(MACHINE_INV_LIST_URL, {
+      onBeforeLoad: (win) => {
+        cy.spy(win.console, 'error').as('consoleError');
+      }
+    });
+
+    const expectNoConsoleError = (pattern: RegExp) => {
+      cy.get('@consoleError').then((spy: any) => {
+        const matched = spy.getCalls()
+          .flatMap((call: any) => call.args)
+          .map((arg: any) => (arg instanceof Error ? `${ arg.message } ${ arg.stack }` : String(arg)))
+          .filter((text: string) => pattern.test(text));
+
+        expect(matched, `console.error entries matching ${ pattern }`).to.have.length(0);
+      });
+    };
+
+    /** The extension's own list, settled and showing the machine inventory row */
+    const extensionList = (): SortableTablePo => {
+      const table = new SortableTablePo(STANDARD_LIST);
+
+      table.checkLoadingIndicatorNotVisible();
+      table.rowElementWithName(MACHINE_INV_NAME, LONG_TIMEOUT_OPT, true).should('be.visible');
+
+      return table;
+    };
+
+    it('9.1 Extension model reaches the extension manager through the root state', () => {
+      coldLoadExtensionList();
+
+      const table = extensionList();
+
+      // `LinkDetail` only renders an <a> when `row.detailLocation` resolves. When the getter behind
+      // it threw, the cell fell back to plain text and every row link was dead.
+      table.detailsPageLinkWithName(MACHINE_INV_NAME, undefined, true)
+        .should('have.attr', 'href')
+        .and('match', new RegExp(`/elemental/c/_/${ MACHINE_INV_TYPE.replace(/\./g, '\\.') }/[^/]+/${ MACHINE_INV_NAME }$`));
+
+      // The extension's other two routes to the manager, surfaced as columns by the test extension.
+      // `modelExtensions` throws when the manager is missing; the validator lookup is optional
+      // chained and so fails silently - which is exactly why it needs asserting rather than
+      // relying on an error.
+      const row = () => table.rowWithName(MACHINE_INV_NAME, true).self();
+
+      row().should('contain', 'MODEL EXTENSION OK');
+      row().should('contain', 'PLUGIN VALIDATOR OK');
+
+      expectNoConsoleError(/getPlugins|getDynamic/);
+    });
+
+    it('9.2 Extension list route renders on a cold load (hard refresh)', () => {
+      coldLoadExtensionList();
+
+      // Masthead, create button and table all come from the extension's bundled ResourceList. If
+      // Masthead's data() throws, none of them render and the route is a blank page.
+      cy.get('header.with-subheader .title h1', LONG_TIMEOUT_OPT).should('be.visible').and('not.be.empty');
+      cy.contains('Create from YAML', MEDIUM_TIMEOUT_OPT).should('be.visible');
+      extensionList();
+
+      expectNoConsoleError(/getPlugins/);
+
+      // Contrast: the in-app path is the one that always worked. Asserting it after the cold load
+      // keeps a failure above attributable to the refresh rather than to a missing route or schema.
+      navToElementalEntry('Inventory of Machines');
+      cy.get('header.with-subheader .title h1', LONG_TIMEOUT_OPT).should('be.visible');
+    });
+
+    (skipExtRowActionMenu ? it.skip : it)('9.3 Row action menu renders on an extension list', () => {
+      coldLoadExtensionList();
+
+      const table = extensionList();
+
+      // The 3-dot button is `ActionMenuShell`. When `useRoute()` threw in its `setup()` the component
+      // never mounted, so the whole column was missing rather than merely misbehaving.
+      openRowActionMenu(table).self().find('[dropdown-menu-item]').should('have.length.greaterThan', 0);
+
+      expectNoConsoleError(/useRoute|__vueRouter/);
+    });
+  });
+
+  // ── Test Group 10: Resources API (Rancher 2.15+) ──
+
+  /**
+   * The Resources API (`$resources`, provided by `@shell/apis`) arrived in Rancher 2.15, so this
+   * whole group is gated off below that - see `skip_resources_api` in the workflow matrix.
+   *
+   * The extension's demo page drives the API and writes a single result string per probe, so each
+   * assertion here is just "click the probe, read the outcome". Keeping the API calls in the
+   * extension (rather than in `cy.window()` pokes) means they run through the extension's own
+   * bundle, which is the thing the compatibility matrix exists to exercise.
+   */
+  describe('Test Group 10: Resources API', () => {
+    const conditionalIt = skipResourcesApi ? it.skip : it;
+
+    /** Click a probe button and assert the single-line result it writes back. */
+    const runProbe = (id: string, expected: string) => {
+      cy.get(`[data-testid="resources-api-${ id }"]`, MEDIUM_TIMEOUT_OPT).scrollIntoView().click();
+      cy.get('[data-testid="resources-api-result"]', MEDIUM_TIMEOUT_OPT).should('contain', expected);
+    };
+
+    conditionalIt('10.1 Resources API is provided to the extension', () => {
+      navToElementalEntry('Resources API Demo');
+
+      // The page reports MISSING ON SUPPORTED HOST when the host version says 2.15+ but no
+      // `$resources` was injected - that wording distinguishes a regression from a version gap.
+      cy.get('[data-testid="resources-api-availability"]', LONG_TIMEOUT_OPT)
+        .should('be.visible')
+        .and('contain', 'RESOURCES API AVAILABLE');
+    });
+
+    conditionalIt('10.2 ClusterApi reads (find, findAll, findFiltered)', () => {
+      navToElementalEntry('Resources API Demo');
+
+      runProbe('cluster-find', `CLUSTER FIND OK: ${ cmName }`);
+      runProbe('cluster-find-all', 'CLUSTER FINDALL OK: true');
+      runProbe('cluster-find-all-opts', 'CLUSTER FINDALL OPTS OK: true');
+      // Transient paging returns a page object rather than an array; assert the prefix only, since
+      // the page length depends on how many pods the host happens to be running.
+      runProbe('cluster-find-filtered-transient', 'CLUSTER FINDFILTERED TRANSIENT OK:');
+      runProbe('cluster-find-filtered-page', 'CLUSTER FINDFILTERED PAGE OK: true');
+      runProbe('cluster-find-filtered-label', 'CLUSTER FINDFILTERED LABEL OK: true');
+    });
+
+    conditionalIt('10.3 ClusterApi writes (create, update, replace, delete)', () => {
+      navToElementalEntry('Resources API Demo');
+
+      // Ordered on purpose - update/replace/delete all act on the configmap that create makes.
+      runProbe('cluster-create', 'CLUSTER CREATE OK:');
+      runProbe('cluster-update', 'CLUSTER UPDATE OK: v2');
+      runProbe('cluster-replace', 'CLUSTER REPLACE OK: v3');
+      runProbe('cluster-delete', 'CLUSTER DELETE OK: true');
+    });
+
+    conditionalIt('10.4 MgmtApi reads (find, findAll, findFiltered)', () => {
+      navToElementalEntry('Resources API Demo');
+
+      runProbe('mgmt-find', 'MGMT FIND OK: server-url');
+      runProbe('mgmt-find-all', 'MGMT FINDALL OK: true');
+      runProbe('mgmt-find-filtered-transient', 'MGMT FINDFILTERED TRANSIENT OK:');
+      runProbe('mgmt-find-filtered-page', 'MGMT FINDFILTERED PAGE OK: true');
+      runProbe('mgmt-find-filtered-label', 'MGMT FINDFILTERED LABEL OK: true');
+    });
+
+    conditionalIt('10.5 Full CRUD lifecycles (cluster + management scoped)', () => {
+      navToElementalEntry('Resources API Demo');
+
+      // Each of these runs create -> update -> replace -> delete behind one click, so a pass means
+      // the whole lifecycle round-tripped against the host.
+      runProbe('cluster-crud', 'CLUSTER CRUD OK: v3');
+      runProbe('mgmt-crud', 'MGMT CRUD OK: v3');
+    });
+  });
+
+  // ── Test Group 11: Product Registration API (Rancher 2.15+) ──
+
+  /**
+   * The Product Registration API (`addProduct` / `extendProduct`) arrived in Rancher 2.15, so this
+   * whole group is gated off below that - see `skip_product_registration` in the workflow matrix.
+   *
+   * Product names are normalised by stripping dashes (`BasePluginProduct.normalizeProductName`),
+   * and new top-level products default to `startRouteWithProduct: true`, so `elemental-compat`
+   * routes as `/elementalcompat/c/_/<page>`. Page names keep their dashes. Entry into each product
+   * is by URL; everything after that is driven through the side nav, the way a user would.
+   */
+  describe('Test Group 11: Product Registration API', () => {
+    const conditionalIt = skipProductRegistration ? it.skip : it;
+
+    const COMPAT_PRODUCT_URL = '/elementalcompat/c/_/compat-overview';
+
+    /** Assert the probe page currently rendered is the one for `marker`. Exact match: several
+     * markers are prefixes of each other (e.g. "COMPAT GROUP DEFAULT" vs "... SIBLING"). */
+    const expectProdRegPage = (marker: string) => {
+      cy.get('[data-testid="prod-reg-probe"]', MEDIUM_TIMEOUT_OPT)
+        .should('be.visible')
+        .invoke('text')
+        .should('eq', `PRODREG PAGE OK: ${ marker }`);
+    };
+
+    /** Click a side-nav entry by its exact label. Group headers and leaves both render anchors. */
+    const clickNav = (label: string) => {
+      cy.get('.side-nav', LONG_TIMEOUT_OPT).should('exist');
+      cy.get('.side-nav').contains('a', new RegExp(`^\\s*${ label }\\s*$`), MEDIUM_TIMEOUT_OPT).click();
+    };
+
+    conditionalIt('11.1 New top-level product: landing page, nav tree and enable gating', () => {
+      cy.visit(COMPAT_PRODUCT_URL);
+
+      // The landing route is the highest-weighted child, which is the custom overview page.
+      expectProdRegPage('COMPAT OVERVIEW');
+
+      cy.get('.side-nav', LONG_TIMEOUT_OPT).should('exist');
+      ['Compat Overview', 'Compat Clusters', 'Compat Group Plain', 'Compat Group Overview', 'Compat Group Default', 'Compat Gated Visible']
+        .forEach((label) => cy.get('.side-nav').should('contain', label));
+
+      // `enable: { ifHaveType: 'elemental.compat.does.not.exist' }` can never hold, so this entry
+      // must not render at all - that is the gating, not just a disabled link.
+      cy.get('.side-nav').should('not.contain', 'Compat Gated Hidden');
+    });
+
+    conditionalIt('11.2 Resource page renders with its custom list config', () => {
+      cy.visit(COMPAT_PRODUCT_URL);
+      clickNav('Compat Clusters');
+
+      const table = new SortableTablePo(STANDARD_LIST);
+
+      table.checkLoadingIndicatorNotVisible();
+      // provisioning.cattle.io.cluster always has the `local` row on the test host.
+      table.rowElementWithName('local', LONG_TIMEOUT_OPT, true).should('be.visible');
+
+      // `listConfig.localHeaders` replaced the default columns, so the custom one must be present.
+      cy.contains('ProdReg Probe', MEDIUM_TIMEOUT_OPT).should('be.visible');
+      table.rowWithName('local', true).self().should('contain', 'PRODREG COLUMN OK');
+    });
+
+    conditionalIt('11.3 Groups: plain children, overview group, explicit default child', () => {
+      cy.visit(COMPAT_PRODUCT_URL);
+
+      // Group WITHOUT a component - the header is not a route of its own, clicking it expands the
+      // group and lands on the first child.
+      clickNav('Compat Group Plain');
+      expectProdRegPage('COMPAT CHILD A');
+      clickNav('Compat Child B');
+      expectProdRegPage('COMPAT CHILD B');
+
+      // Group WITH a component + enableOverviewPage - the header itself is a route.
+      clickNav('Compat Group Overview');
+      expectProdRegPage('COMPAT GROUP OVERVIEW');
+
+      // Group with sideMenu.default - the header opens the named child, not the first one.
+      clickNav('Compat Group Default');
+      expectProdRegPage('COMPAT GROUP DEFAULT');
+    });
+
+    conditionalIt('11.4 Gated page, single-page product and name-only product', () => {
+      cy.visit(COMPAT_PRODUCT_URL);
+
+      // `enable: { ifHaveType: 'provisioning.cattle.io.cluster' }` holds on the test host.
+      clickNav('Compat Gated Visible');
+      expectProdRegPage('COMPAT GATED VISIBLE');
+
+      // Single-page product: `component` on the metadata, no side menu, route is the product name.
+      cy.visit('/elementalcompatsingle');
+      expectProdRegPage('COMPAT SINGLE PAGE');
+
+      // Name-only overload: addProduct('elemental-compat-minimal') gets a default 'main' page.
+      cy.visit('/elementalcompatminimal/c/_/main');
+      cy.get('.side-nav', LONG_TIMEOUT_OPT).should('exist');
+    });
+
+    conditionalIt('11.5 Extending built-in products (explorer + manager)', () => {
+      // extendProduct generates `c/:cluster/<product>/<page>` routes against the host's own
+      // product, so these pages appear in the built-in side nav rather than a new one.
+      cy.visit(`/c/${ CLUSTER_ID }/explorer`);
+      clickNav('Elemental Compat Explorer Page');
+      expectProdRegPage('EXTEND EXPLORER OK');
+
+      cy.visit(`/c/${ CLUSTER_ID }/manager`);
+      clickNav('Elemental Compat Manager Page');
+      expectProdRegPage('EXTEND MANAGER OK');
+    });
   });
 
   after(() => {
