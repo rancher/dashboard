@@ -83,6 +83,7 @@ const sidebars = {
         'changelog',
         'support-matrix',
         'extensions-getting-started',
+        'building-with-ai',
         'folder-structure',
         'configuration',
         'unit-testing',

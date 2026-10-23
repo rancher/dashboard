@@ -1660,12 +1660,11 @@ export default class Resource {
     // Imported on demand, to keep the component out of every bundle
     const { default: TableViewExportModal } = await import('@shell/components/TableViews/TableViewExportModal.vue');
 
+    // It draws its own RcModal, so the modal manager hands it `modal` rather than framing it
     this.$ctx.commit('modal/openModal', {
-      component:           markRaw(TableViewExportModal),
-      componentProps:      { count: items.length, isSelection: true },
-      resources:           items,
-      closeOnClickOutside: true,
-      modalWidth:          '640px',
+      component:      markRaw(TableViewExportModal),
+      componentProps: { count: items.length, isSelection: true },
+      resources:      items,
     }, { root: true });
   }
 

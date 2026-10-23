@@ -15,6 +15,6 @@ export default class ExportModalPo extends ComponentPo {
   }
 
   cancel() {
-    return this.self().find('[data-testid="table-views-export-cancel"]').click();
+    return this.self().find('[data-testid="rc-modal-cancel"]').click();
   }
 }

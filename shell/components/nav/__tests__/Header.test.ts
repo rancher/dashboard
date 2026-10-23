@@ -3,6 +3,8 @@ import { isReactive, markRaw, ref } from 'vue';
 import Header from '@shell/components/nav/Header.vue';
 import ClusterBadge from '@shell/components/ClusterBadge.vue';
 import ClusterPinControl from '@shell/components/ClusterPinControl.vue';
+import * as releaseWelcome from '@shell/utils/release-welcome';
+import { setVersionData } from '@shell/config/version';
 
 describe('component: Header', () => {
   const defaultStoreMock = {
@@ -488,6 +490,65 @@ describe('component: Header', () => {
       const button = wrapper.find('[data-testid="extension-header-action-Open"]');
 
       expect(button.attributes('aria-expanded')).toBe('true');
+    });
+  });
+
+  describe('the what\'s new user menu item', () => {
+    beforeEach(() => {
+      setVersionData({
+        Version: 'v2.16.0', RancherPrime: 'false', GitCommit: ''
+      });
+    });
+
+    afterEach(() => {
+      setVersionData({
+        Version: '', RancherPrime: 'false', GitCommit: ''
+      });
+    });
+
+    it.each([
+      ['in Rancher', { isRancher: true, isSingleProduct: false }, true],
+      ['outside Rancher', { isRancher: false, isSingleProduct: false }, false],
+      ['in single product mode', { isRancher: true, isSingleProduct: { productNameKey: 'harvester', logoRoute: { name: 'c-cluster' } } }, false],
+    ])('should show the item %s: %p', (_, getters, expected) => {
+      const wrapper = createWrapper({}, getters);
+
+      expect(wrapper.find('[data-testid="user-menu-whats-new"]').exists()).toStrictEqual(expected);
+    });
+
+    it('should not show the item when the version has no minor release, e.g. dev builds', () => {
+      setVersionData({
+        Version: 'dev', RancherPrime: 'false', GitCommit: ''
+      });
+      const wrapper = createWrapper({}, { isRancher: true });
+
+      expect(wrapper.find('[data-testid="user-menu-whats-new"]').exists()).toStrictEqual(false);
+    });
+
+    it.each([
+      ['every item', { isRancher: true, 'auth/enabled': true }, true, true, ['user-menu-whats-new', 'user-menu-separator-whats-new', 'user-menu-preferences', 'user-menu-account', 'user-menu-separator-log-out', 'user-menu-log-out']],
+      ['no auth', { isRancher: true, 'auth/enabled': false }, true, true, ['user-menu-whats-new', 'user-menu-separator-whats-new', 'user-menu-preferences', 'user-menu-account']],
+      ['no preferences or account', { isRancher: true, 'auth/enabled': true }, false, false, ['user-menu-whats-new', 'user-menu-separator-log-out', 'user-menu-log-out']],
+      ['no what\'s new', { isRancher: false, 'auth/enabled': true }, true, false, ['user-menu-preferences', 'user-menu-separator-log-out', 'user-menu-log-out']],
+      ['only log out', { isRancher: false, 'auth/enabled': true }, false, false, ['user-menu-log-out']],
+    ])('should group the user menu with separators, %s', (_, getters, preferences, tokens, expected) => {
+      const wrapper = createWrapper({}, {
+        'management/schemaFor': () => (preferences ? { resourceMethods: ['PUT'] } : null),
+        'rancher/schemaFor':    () => (tokens ? {} : null),
+        ...getters,
+      });
+
+      expect(wrapper.findAll('[data-testid^="user-menu-"]').map((el) => el.attributes('data-testid'))).toStrictEqual(expected);
+    });
+
+    it('should reopen the welcome modal', async() => {
+      const open = jest.spyOn(releaseWelcome, 'openReleaseWelcome').mockResolvedValue(undefined);
+      const wrapper = createWrapper({}, { isRancher: true });
+
+      await wrapper.find('[data-testid="user-menu-whats-new"]').trigger('click');
+
+      expect(open).toHaveBeenCalledWith(wrapper.vm.$store.commit);
+      open.mockRestore();
     });
   });
 });

@@ -12,7 +12,7 @@
  *   );
  *
  *   const jsonCtx = import.meta.glob(
- *     '@shell/assets/**\/*.json',
+ *     ['@shell/assets/**\/*.json', '!@shell/assets/licenses/**'],
  *     { eager: true }
  *   );
  */
@@ -37,9 +37,11 @@ try {
   imgCtx = require.context('@shell/assets', true, /\.(svg|png|jpe?g|gif|ico|webp)$/);
 } catch (e) {}
 
+// licenses/ is excluded — it's large, and shell/pages/licenses.vue imports it on
+// demand so it stays in its own async chunk instead of the main bundle.
 try {
   // @ts-expect-error — require.context is a webpack compile-time transform, not visible to TypeScript
-  jsonCtx = require.context('@shell/assets', true, /\.json$/);
+  jsonCtx = require.context('@shell/assets', true, /^\.\/(?!licenses\/).*\.json$/);
 } catch (e) {}
 
 /**

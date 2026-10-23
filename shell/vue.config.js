@@ -10,6 +10,7 @@ const {
 const har = require('./server/har-file');
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const VirtualModulesPlugin = require('webpack-virtual-modules');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 // Suppress info level logging messages from http-proxy-middleware
 // This hides all of the "[HPM Proxy created] ..." messages
@@ -196,6 +197,11 @@ const getLoaders = (SHELL_ABS, dir) => [
         }
       }
     ]
+  },
+  // Stop xterm from thinking it runs in Node because of the process polyfill
+  {
+    test:   /[\\/]node_modules[\\/]@xterm[\\/]/,
+    loader: path.join(__dirname, 'vue-config-xterm-loader.js'),
   },
   // Prevent warning in log with the md files in the content folder
   {
@@ -598,6 +604,29 @@ module.exports = function(dir, appConfig = {}) {
         template: path.join(SHELL_ABS, '/public/index.html')
       }
     },
+
+    chainWebpack: (context) => {
+      // Only include the bundle analyzer when ANALYZE_LICENSES is set — the report.json
+      // it emits is what scripts/analyze-licenses reads to enumerate bundled packages.
+      if (process.env.ANALYZE_LICENSES !== 'true') return;
+
+      // Generate report.html (and stats.json) in the dist folder
+      context
+        .plugin('webpack-bundle-analyzer-html')
+        .use(BundleAnalyzerPlugin)
+        .init((Plugin) => new Plugin({
+          analyzerMode:      'static',
+          openAnalyzer:      false,
+          generateStatsFile: true
+        }));
+
+      // Generate report.json in the dist folder
+      context
+        .plugin('webpack-bundle-analyzer-json')
+        .use(BundleAnalyzerPlugin)
+        .init((Plugin) => new Plugin({ analyzerMode: 'json' }));
+    },
+
     configureWebpack(config) {
       // Keep NODE_ENV unchanged; webpack defaults this to 'development' in dev mode,
       // but dashboard tooling relies on our existing 'dev' value.
@@ -620,7 +649,7 @@ module.exports = function(dir, appConfig = {}) {
       config.plugins.push(createEnvVariablesPlugin(routerBasePath, rancherEnv));
       config.plugins.push(new NodePolyfillPlugin({ additionalAliases: ['process'] })); // required from Webpack 5 to polyfill node modules
 
-      // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
+      // The static assets need to be in the built assets directory in order to get served (primarily the favicon).
       config.plugins.push(new CopyWebpackPlugin({ patterns: [{ from: path.join(SHELL_ABS, 'static'), to: '.' }] }));
 
       config.plugins.push(new webpack.IgnorePlugin({ resourceRegExp: /\/__tests__\// }));

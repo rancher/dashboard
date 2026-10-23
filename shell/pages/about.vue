@@ -9,7 +9,7 @@ import { mapGetters } from 'vuex';
 import TabTitle from '@shell/components/TabTitle';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
-import { getVersionInfo } from '@shell/utils/version';
+import { getVersionInfo, removePatchWhenZero } from '@shell/utils/version';
 import { RcButton } from '@components/RcButton';
 import { RcHeading } from '@components/RcHeading';
 
@@ -25,7 +25,7 @@ export default {
     return {
       extensionType:     ExtensionPoint.PANEL,
       extensionLocation: PanelLocation.ABOUT_TOP,
-      dashboardVersion:  this.$config.dashboardVersion,
+      dashboardVersion:  removePatchWhenZero(this.$config.dashboardVersion),
       cliDocsUrl:        `${ DOCS_BASE }/reference-guides/cli-with-rancher/rancher-cli`,
       settings:          null,
       SETTING
@@ -34,7 +34,7 @@ export default {
   computed: {
     ...mapGetters(['releaseNotesUrl']),
     rancherVersion() {
-      return getVersionInfo(this.$store).fullVersion;
+      return removePatchWhenZero(getVersionInfo(this.$store).fullVersion);
     },
     appName() {
       return getVendor();
@@ -59,7 +59,7 @@ export default {
     class="about"
   >
     <BackLink :link="backLink" />
-    <div class="title-block mt-20 mb-40">
+    <div class="title-block mb-20">
       <h1>
         <TabTitle breadcrumb="vendor-only">
           {{ t('about.title') }}
@@ -172,6 +172,24 @@ export default {
         {{ t('about.versions.releaseNotes') }}
       </a>
     </p>
+
+    <RcHeading
+      :size="3"
+      class="open-source-licenses pt-40"
+    >
+      {{ t('about.licenses.title') }}
+    </RcHeading>
+    <p>{{ t('about.licenses.description') }}</p>
+    <rc-button
+      size="small"
+      :to="{ name: 'licenses' }"
+      class="mt-10 view-licenses"
+      data-testid="about__licenses_button"
+      :aria-label="t('about.licenses.viewLicenses')"
+    >
+      {{ t('about.licenses.viewLicenses') }}
+    </rc-button>
+
     <RcHeading
       :size="3"
       class="pt-40"
@@ -200,6 +218,10 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
+  }
+
+  .view-licenses {
+    width: fit-content;
   }
 
   table {

@@ -343,6 +343,7 @@ nav:
   userMenu:
     preferences: Preferences
     accountAndKeys: Account & API Keys
+    whatsNew: What's New
     logOut: Log Out
     label: User menu
     button:
@@ -475,6 +476,24 @@ about:
     modal:
       title: Response times have not yet been generated.
       body: Generate response times to offer more specific information.
+  licenses:
+    title: Open Source Licenses
+    description: This dashboard is built on top of other open source software. Click below to view the full list of third-party packages and their licenses.
+    viewLicenses: View Licenses
+    page:
+      title: Open Source Licenses
+      hint: Click a license to view its full text.
+      error: "Failed to load licenses ({error}). Please try again later."
+    table:
+      package: Package
+      license: License
+      viewFor: "View {license} license text for {name}"
+    panel:
+      none: No license content is available for this package.
+      declaredAs: "Declared license: {license}"
+      rawLicense: "Original expression: {expression}"
+      author: "Author: {author}"
+      textLabel: License text
 
 accountAndKeys:
   title: Account and API Keys
@@ -548,11 +567,13 @@ authConfig:
       create: Add a provider
       learnMore: How external authentication works
     prime:
-      title: Configure more than one provider with Rancher Prime
-      description: Rancher Community allows for one external auth provider to be configured at a time. Disable the active provider to add a different one, or use Rancher Prime to run several together.
+      title: Run multiple auth providers at once with SUSE Rancher Prime
+      description: Rancher Community supports one external auth provider at a time, so disable the active one to switch. With <primeUrl>SUSE Rancher Prime</primeUrl> employees, contractors and partners can each sign in through the provider they already use, all active together.
+      action: Learn about SUSE Rancher Prime
     primeFlagOff:
-      title: Turn on multiple-auth-providers to configure more than one provider
-      description: The multiple-auth-providers feature flag is off, so one external auth provider can be enabled at a time. Disable the active provider to add a different one, or turn the flag on under Global Settings > Feature Flags to run several together.
+      title: Run multiple auth providers at once with the multiple-auth-providers feature flag
+      description: The multiple-auth-providers feature flag is off, so one external auth provider can be active at a time. Disable the active one to switch, or turn the flag on to let employees, contractors and partners each sign in through the provider they already use, all active together.
+      action: Go to Feature Flags
     disableLocal:
       label: Disable login with local users
       description: Users sign in through external providers only. Local accounts remain, but cannot be used to sign in.
@@ -576,6 +597,9 @@ authConfig:
     limitReachedPrime: Another external provider is already enabled. The multiple-auth-providers feature flag is off, so one external auth provider can be enabled at a time. Disable the active provider to add a different one, or turn the flag on under Global Settings > Feature Flags to run several together.
     provider:
       title: 'Add {provider}'
+    clone:
+      title: 'Clone {name}'
+      notFound: '{name} is not an authentication provider that can be cloned from here.'
     name:
       label: Name
       required: A name is required.
@@ -1499,6 +1523,12 @@ catalog:
       chartOptions: Edit Options
       valuesYaml: Edit YAML
       diff: Compare Changes
+      chartDefaults:
+        label: Chart values
+        hint: Edit the chart default values with overrides, if any, overlayed below, exactly how Helm will resolve it. Only your changes, shown to the right, are saved. To unset a property, explicitly set it to “null”.
+      overrides:
+        label: Your values
+        hint: These values will override the chart default values. Only these values will be saved.
     slideIn:
       dock: Dock to shell
     steps:
@@ -1537,6 +1567,8 @@ catalog:
         label: Values
         subtext: Change how the App works
         description: Configure Values used by Helm that help define the App.
+        overridesDescription:
+          upgrade: Your values from {from} are applied on top of the {to} defaults, just like helm upgrade does.
         chartInfo:
           button: View Chart Info
           label: Chart Info
@@ -1969,6 +2001,11 @@ cluster:
           minimumAllocatable: It's highly recommended to select a vGPU with a number of allocatable devices greater than the number of nodes (Machine Count) to avoid "un-schedulable" errors after cluster updates.
         errors:
           notAllocatable: '[{vGpu}] vGPU device is not allocatable; required: {allocated}, allocatable: {allocatable}'
+      hostDevices:
+        warnings:
+          minimumAllocatable: It's highly recommended to select PCI devices with a number of allocatable devices greater than the number of nodes (Machine Count) to avoid "un-schedulable" errors after cluster updates. Devices that share an IOMMU group must all be selected together.
+        errors:
+          notAllocatable: '[{hostDevice}] PCI device is not allocatable; required: {allocated}, allocatable: {allocatable}'
       volume:
         title: Volumes
         volume: Volume
@@ -1976,6 +2013,50 @@ cluster:
         addVolume: Add Volume
         addVMImage: Add VM Image
         storageClass: Storage Class
+      storageOptions:
+        profile:
+          label: Storage Performance Profile
+          tip: '"High Performance" disables the host cache, uses native AIO and gives the disk a dedicated I/O thread. Choose "Custom" to set each option yourself.'
+          default: Default
+          highPerformance: High Performance
+          custom: Custom
+        highPerformanceTip: This disk will use no host cache, native AIO and a dedicated I/O thread.
+        cache:
+          label: Cache Mode
+          tip: 'How the host caches disk I/O. "None" is best for high-throughput guests on block storage, "WriteBack" favors performance and "WriteThrough" favors durability.'
+          default: Default (hypervisor)
+          none: None (no host cache)
+          writeback: WriteBack
+          writethrough: WriteThrough
+        io:
+          label: I/O Mode
+          tip: 'How QEMU submits I/O. "Native" (Linux AIO) has the lowest overhead and needs cache mode "None". "Threads" uses a host thread pool.'
+          default: Default (hypervisor)
+          native: Native (AIO)
+          threads: Threads
+          nativeTip: Native I/O mode needs the host cache disabled, so cache mode is set to None.
+        dedicatedIOThread:
+          label: Dedicated I/O Thread
+          tip: Give this disk its own I/O thread instead of sharing one. Useful for disks with heavy I/O.
+        busWarning: 'This disk uses the {bus} bus. A dedicated I/O thread, and so the High Performance profile, needs the virtio bus.'
+      vmStorageOptions:
+        title: Storage Performance
+        description: These options apply to all volumes of the virtual machine.
+        blockMultiQueue:
+          label: Virtio Block Multi-Queue
+          tip: Spread disk I/O over one queue per vCPU so that it is processed on multiple CPUs.
+        ioThreadsPolicy:
+          label: I/O Threads Policy
+          tip: '"Shared" uses one I/O thread for all disks. "Auto" spreads disks over a pool of threads. "Supplemental Pool" uses a fixed number of threads.'
+          default: Disabled (default)
+          shared: Shared
+          auto: Auto
+          supplementalPool: Supplemental Pool
+          sharedTip: A volume asks for a dedicated I/O thread, so the Shared policy will be used.
+        ioThreadCount:
+          label: I/O Thread Count
+          tip: Number of I/O threads in the supplemental pool.
+          invalid: I/O Thread Count must be at least 1 with the "Supplemental Pool" policy.
       reservedMemory: Reserved Memory
       sshUser: SSH User
       userData:
@@ -2890,7 +2971,7 @@ cluster:
     enableIngress: Install Ingress controller to enable external routing
     nginx:
       header: Ingress-NGINX
-      contentCommunity: This option is only available in SUSE Rancher Prime.
+      contentUnsupported: Ingress-NGINX is unavailable with Kubernetes 1.37 or later. Choose Traefik instead.
       content: Choose this only if your workloads are not yet ready for Traefik.
     dual:
       header: Dual Mode
@@ -2917,6 +2998,10 @@ cluster:
     banners:
       transitioning:
         label: Rancher is transitioning to Traefik as the default provider. While Ingress-NGINX remains available for migration purposes, we recommend moving workloads to Traefik to ensure long-term compatibility and support.
+      nginxUpgradeBlocked:
+        label: Kubernetes 1.37 or later cannot use standalone Ingress-NGINX. Select Traefik or Dual Mode before upgrading.
+      nginxUpgradeWarning:
+        label: After upgrading to Kubernetes 1.37 or later, you cannot switch back to standalone Ingress-NGINX.
       disabled:
         label: Without an Ingress controller, services in this cluster will not be reachable via external URLs or hostnames. You will need to manually configure an alternative routing solution to expose your workloads.
       selected:
@@ -2950,9 +3035,16 @@ cluster:
   rotateCertificates:
     label: Rotate Certificates
     modalTitle: Rotate Cluster Certificates
+    description: New certificates are issued and the affected services restart. The cluster shows as 'Updating' until rotation completes.
+    allServices: All services
+    selectedServices: Selected services
     services: Services
-    allServices: Rotate all service certificates
-    selectService: Rotate an individual service
+    placeholder: Select one or more services
+    reset: Reset
+    more: "+{count} more"
+    deselect: "Deselect {service}"
+    selectionSummary: "{count} of {total} services selected. Only these services restart."
+    rotate: Rotate Certificates
   toggle:
     v1: RKE1
     v2: RKE2/K3s
@@ -2976,6 +3068,10 @@ clusterIndexPage:
   header: Cluster Dashboard
   resourceGauge:
     totalResources: Total Resources
+  resourceStatus:
+    unhealthy:
+      title: Other, Unhealthy Workloads
+      empty: No other unhealthy workloads
   sections:
     capacity:
       label: Capacity
@@ -4514,6 +4610,7 @@ labelSelect:
 labeledSelect:
   startTyping: Start typing to define an item
   pressEnter: Press enter to add "{input}"
+  keptSearch: 'Last search: {search}'
 
 landing:
   bannerImage: Homepage banner image
@@ -4558,6 +4655,57 @@ landing:
       lastVisited: Take me to the area I last visited
       custom: "Take me to cluster:"
   welcomeToRancher: 'Welcome to {vendor}'
+
+releaseWelcome:
+  close: Close
+  title: Welcome to {vendor}
+  subtitleCommunity: "{vendor} is up and running. Here's what's new in this release."
+  subtitlePrime: "{vendor} is up and running."
+  registerLead: To activate your subscription benefits, register this system on the
+  registrationPage: Registration page
+  newTab: (opens in a new tab)
+  loading: Loading the release content
+  reopenHint: You can reopen this any time from the user menu at the top right.
+  whatsNew:
+    title: What's new in this release
+    version: "{version}"
+    releaseNotes: Release notes
+    features:
+      navigation:
+        title: Improved navigation
+        description: Jump to any cluster with the new switcher, plus a cleaner, reorganized side menu.
+      tables:
+        title: Smarter tables
+        description: "Tables across the UI are super-charged in this release: advanced filtering, customizable columns and much faster performance on large lists."
+      kubernetes:
+        title: Broader Kubernetes support
+        description: Provision and manage clusters on Kubernetes 1.33 across RKE2 and K3s.
+      hostedProvisioning:
+        title: Unified hosted provisioning
+        description: EKS, AKS and GKE provisioning now runs on the Cluster Provisioning v2 framework.
+  prime:
+    title: Ready for production? Go Prime.
+    description: "Everything in the community edition, plus 24×7 enterprise support, hardened images from a trusted registry, extended lifecycles and the full SUSE cloud-native suite:"
+    products:
+      manager: Rancher Manager
+      distributions: RKE2, k3k & K3s
+      fleet: SUSE Continuous Integration & Delivery
+      security: SUSE Security
+      storage: SUSE Storage
+      virtualization: SUSE Virtualization
+      observability: SUSE Observability
+      appCollection: Application Collection
+    explore: Explore SUSE Rancher Prime
+  registration:
+    title: Register to activate your Prime benefits
+    description: "Registering with SUSE Customer Center unlocks:"
+    benefits:
+      support: "24×7 support: open cases directly from your account"
+      appCollection: "Application Collection: curated, signed apps ready to deploy"
+      images: Hardened images from the Prime trusted registry
+      academy: "Rancher Academy: free certification courses for your team"
+    supportHandbook: Support handbook
+    open: Open SUSE Customer Center
 
 logging:
   clusterFlow:
@@ -5475,8 +5623,8 @@ node:
         used: Used
         amount: "{used} of {total} {unit}"
         cpu: CPU
-        memory: MEMORY
-        pods: PODS
+        memory: Memory
+        pods: Pods
         running: Running
       diskPressure: Disk Pressure
       kubelet: kubelet
@@ -5519,6 +5667,13 @@ notificationCenter:
   ariaLabel: 'Notification {title}: Press enter to interact'
 
 persistentVolume:
+  detail:
+    source: Source
+    reclaimPolicy: Reclaim Policy
+    storageClass: Storage Class
+    claim:
+      label: Claims
+      none: This volume is not bound to a PersistentVolumeClaim.
   pluginConfiguration:
     label: Plugin configuration
   plugin:
@@ -5837,6 +5992,10 @@ persistentVolume:
 
 persistentVolumeClaim:
   name: Persistent Volume Claim Name
+  detail:
+    pods:
+      label: Pods
+      none: Could not find any Pods that mount this PersistentVolumeClaim.
   accessModes: Access Modes
   accessModesOptions:
     singleNodeRW: Single-Node Read/Write
@@ -6155,7 +6314,9 @@ prefs:
 
 principal:
   loading: Loading&hellip;
+  # Also shown by extensions built with an older shell, which bundle their own Principal.vue
   error: Unable to fetch principal info
+  unresolved: '{vendor} could not look up the name of this user or group, so its principal ID is shown instead.'
   name: Name
   loginName: Username
   type: Type
@@ -6359,10 +6520,20 @@ promptRemove:
 promptRemoveApp:
   removeCrd: "Delete the CRD associated with this app"
 
+promptRemoveOperation:
+  attemptingToRemove: You are attempting to delete {kind} operation
+  kind:
+    etcdSnapshotSave: a snapshot
+    etcdSnapshotRestore: a snapshot restore
+    encryptionKeyRotation: an encryption key rotation
+    certificateRotation: a certificate rotation
+  inProgress:
+    warning: This operation is in progress. Deleting it now may leave your cluster in an unstable state.
+    acknowledge: I understand that this cluster might need to be restored if this operation is interrupted
+
 promptRestore:
   title: Restore Snapshot
   name: Name
-  date: Date
   fromS3: Restore from S3
   label: Snapshot
   placeholder: Select a snapshot to restore
@@ -6394,10 +6565,20 @@ promptRedeploy:
 
 promptRotateEncryptionKey:
   title: Rotate Encryption Keys
-  description: The last backup {name} was performed on {date}
-  warning: Before proceeding, ensure a successful ETCD backup of the cluster has been completed.
+  description: Rotation re-encrypts every secret in this cluster with a new key. The cluster shows as 'Updating' while control plane nodes restart one at a time, which can take several minutes.
+  warning:
+    noBackup: No etcd snapshot found for this cluster. Take a snapshot, then rotate the keys once it has completed, so you can restore the cluster if rotation fails.
+    outdated: |-
+      {days, plural,
+        one {The latest snapshot is # day old.}
+        other {The latest snapshot is # days old.}
+      } Changes made since then cannot be restored if rotation fails.
+  snapshotInfo:
+    title: Latest etcd snapshot
+    viewSnapshots: View snapshots
+    taken: Taken
+  rotateKeys: Rotate Keys
   error:
-    noBackup: No backup found
     unableToResolveTargetCluster: Unable to resolve target cluster for encryption key rotation
 
 rancherAlertingDrivers:
@@ -6618,7 +6799,9 @@ resourceDetail:
         no {a {managedBy} app}
         yes {the {managedBy} app {appName}}
         other {a {managedBy} app}}; changes made here will likely be overwritten the next time {managedBy} runs.
-    fleetManaged: This resource is managed by <b>Fleet</b>. To make permanent changes, update the configuration in the source repository. Any manual changes made here will be overwritten during the next sync.
+    fleetManaged: This resource is managed by <b>{name}</b>. To make permanent changes, update the configuration in the source repository. Any manual changes made here will be overwritten during the next sync.
+    fleetManagedLink: View in {name}
+    fleetManagedBadge: Managed
 resourceList:
   head:
     create: Create
@@ -6627,6 +6810,9 @@ resourceList:
   nsFiltering: "Please select one or more namespaces or projects using the filter above."
   nsFilteringGeneric: "Please select a valid namespace or project option using the filter above."
   nsFilterToolTip: "Filtering is restricted to projects and namespaces"
+  stateFilterApplied: "State filter applied:"
+  nameFilterApplied: "Name filter applied:"
+  clearStateFilter: "Clear filter"
 resourceLoadingIndicator:
   loading: Loading
 
@@ -6686,6 +6872,8 @@ secret:
   authentication: Authentication
   githubApp:
     label: GitHub App
+  helmRelease:
+    dataNotEditable: The data of a Helm release secret is managed by Helm and can't be viewed or edited here. You can still edit the labels, annotations and description.
   certificate:
     certificate: Certificate
     certificates: Certificates
@@ -7365,7 +7553,11 @@ tableViews:
     newViewName: Untitled
     deleted: View Deleted
     deletedMessage: The "{name}" view has been successfully deleted.
+    deletedSharedMessage: The "{name}" view has been unpublished and deleted.
     undo: Undo
+    shared: Published
+    share: Publish
+    unshare: Unpublish
   bulk:
     selected: "{count} Selected"
     deleteSelected: Delete Selected
@@ -7430,9 +7622,13 @@ tableViews:
       workspace: Workspace
       type: Type
   # A view as text: Share View hands it out, Import View takes it into a saved view, both in the same box
+  publish:
+    title: Publish
+    body: Publish this view to make it visible to all users.
+  filterWarning: Filter name and values are included and can reveal information such as resource or namespace names.
   share:
     title: Share View
-    intro: 'Copy this text and share it. Anyone with the text can import the view using <b>Import View</b>. It holds the view as it is now, unsaved changes included: columns, grouping, sort and filter. <b>The filter is included and can reveal information such as resource or namespace names.</b>'
+    intro: 'Copy this text and share it. Anyone with the text can import the view using <b>Import View</b>. It holds the view as it is now, unsaved changes included: columns, grouping, sort and filter.'
     label: View
   import:
     title: Import View
@@ -8318,6 +8514,8 @@ workload:
     cannotFindHttpRoutes: Could not find any HTTPRoutes that forward traffic to Services that select Pods in this workload.
     httpRouteListCaption: "The following HTTPRoutes forward traffic to Services that select Pods from this workload:"
     cannotViewHttpRoutesBecauseCannotViewServices: Could not find relevant HTTPRoutes due to lack of permission to view Services.
+    storage: Storage
+    cannotFindStorage: Could not find any PersistentVolumeClaims mounted by this workload.
     pods:
       title: Pods
   detailTop:
@@ -8419,6 +8617,8 @@ workload:
     activeDeadlineSecondsTip: The duration that the pod may be active before the system tries to mark it failed and kill associated containers.
     affinity:
       addNodeSelector: Add Node Selector
+      nodeSelectorTitle: "node-selector-{i}"
+      podSelectorTitle: "pod-selector-{i}"
       anyNode: Run pods on any available node
       affinityTitle: Run pods on nodes with pods matching these selectors
       antiAffinityTitle: Run pods on nodes without pods matching these selectors
@@ -9536,6 +9736,7 @@ advancedSettings:
     'auth-token-max-ttl-minutes': 'Max TTL (in minutes) for all tokens except those controlled by "auth-user-session-ttl-minutes" (user session tokens). When set to 0, the token never expires.'
     'kubeconfig-generate-token': 'Automatically generate tokens for users when a kubeconfig is requested.'
     'kubeconfig-default-token-ttl-minutes': 'TTL (in minutes) applied on all kubeconfig tokens. When set to 0, the token never expires.'
+    'kubeconfig-prefer-rancher-proxy': 'Preferred current context in downloaded Kubeconfig files for clusters with Authorized Cluster Endpoint (ACE) enabled.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
     'custom-notifications': Edit custom notifications
@@ -9554,6 +9755,9 @@ advancedSettings:
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
+    'kubeconfig-prefer-rancher-proxy':
+      false: ACE (Authorized Cluster Endpoint)
+      true: Rancher-proxied
     'ui-default-landing':
       ember: Cluster Manager
       vue: Cluster Explorer
@@ -10087,6 +10291,8 @@ component:
           actionMenu: Resource Actions - { resource }
           loading: Loading resource information
           loadingUsage: Loading usage
+  resourceStatusWidget:
+    loadError: Could not load the status
   cron:
     expressionEditor:
       label:

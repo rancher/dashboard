@@ -139,6 +139,12 @@ export default {
       provider = 'imported';
     }
 
+    // Exposed so extensions can bind an enhancement to a specific annotation on this cluster
+    // via the `context` param of their LocationConfig, which is a subset match
+    const annotations = this.value?.metadata?.annotations || {};
+
+    this.extCustomParams = { annotations };
+
     if (extClass) {
       this.extProvider = new extClass({
         dispatch:   this.$store.dispatch,
@@ -152,7 +158,7 @@ export default {
         ...this.extDetailTabs,
         ...this.extProvider.detailTabs
       };
-      this.extCustomParams = { provider };
+      this.extCustomParams = { provider, annotations };
     }
 
     // Support for a model extension
@@ -161,7 +167,7 @@ export default {
         ...this.extDetailTabs,
         ...this.value.customProvisionerHelper.detailTabs
       };
-      this.extCustomParams = { provider };
+      this.extCustomParams = { provider, annotations };
     }
 
     const schema = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
@@ -185,6 +191,7 @@ export default {
         OPERATION.ETCD_SNAPSHOT,
         OPERATION.ETCD_SNAPSHOT_RESTORE,
         OPERATION.ENCRYPTION_KEY_ROTATE,
+        OPERATION.CERTIFICATE_ROTATE,
       ];
 
       for (const opType of operationTypes) {
@@ -542,6 +549,7 @@ export default {
         OPERATION.ETCD_SNAPSHOT,
         OPERATION.ETCD_SNAPSHOT_RESTORE,
         OPERATION.ENCRYPTION_KEY_ROTATE,
+        OPERATION.CERTIFICATE_ROTATE,
       ];
 
       const allOps = [];

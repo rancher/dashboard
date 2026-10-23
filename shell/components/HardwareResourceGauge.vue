@@ -1,9 +1,9 @@
 <script>
 import ConsumptionGauge from '@shell/components/ConsumptionGauge';
-import SimpleBox from '@shell/components/SimpleBox';
+import Card from '@shell/components/Resource/Detail/Card/index.vue';
 
 export default {
-  components: { ConsumptionGauge, SimpleBox },
+  components: { ConsumptionGauge, Card },
   props:      {
     name: {
       type:     String,
@@ -59,11 +59,11 @@ export default {
 </script>
 
 <template>
-  <SimpleBox class="hardware-resource-gauge">
-    <div class="chart">
-      <h3>
-        {{ name }}
-      </h3>
+  <Card
+    class="hardware-resource-gauge"
+    :title="name"
+  >
+    <div class="hw-gauges mmb-1">
       <div
         v-if="reserved && (reserved.total !== undefined || reserved.useful !== undefined)"
         class="hw-gauge"
@@ -72,6 +72,7 @@ export default {
           :capacity="reserved.total"
           :used="reserved.useful"
           :color-stops="colorStops"
+          bar-size="small"
         >
           <template #title>
             <span>
@@ -106,6 +107,7 @@ export default {
           :capacity="used.total"
           :used="used.useful"
           :color-stops="colorStops"
+          bar-size="small"
         >
           <template #title>
             <span>
@@ -133,20 +135,15 @@ export default {
         </ConsumptionGauge>
       </div>
     </div>
-  </SimpleBox>
+  </Card>
 </template>
 
 <style lang="scss" scoped>
   .hardware-resource-gauge {
-    $spacing: 10px;
-    $large-spacing: $spacing * 1.5;
-
-    position: relative;
-    display: flex;
-    flex-direction: column;
-
-    .hw-gauge:not(:first-of-type) {
-      margin-top: 20px;
+    .hw-gauges {
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap-lg);
     }
 
     .values {

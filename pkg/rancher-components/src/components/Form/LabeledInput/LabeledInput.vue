@@ -61,6 +61,16 @@ export default defineComponent({
     },
 
     /**
+     * Shows the human readable cron description under the input when type is
+     * cron. Set to false to show it somewhere else, using the cron-hint-change
+     * event to get the text.
+     */
+    showCronHint: {
+      type:    Boolean,
+      default: true
+    },
+
+    /**
      * The tooltip to display for the Labeled Input.
      */
     tooltip: {
@@ -163,7 +173,7 @@ export default defineComponent({
     }
   },
 
-  emits: ['change', 'update:value', 'blur', 'update:validation'],
+  emits: ['change', 'update:value', 'blur', 'update:validation', 'cron-hint-change'],
 
   setup(props, { emit }) {
     const {
@@ -260,7 +270,7 @@ export default defineComponent({
 
     ariaDescribedBy(): string | undefined {
       const inheritedDescribedBy = this.$attrs['aria-describedby'];
-      const internalDescribedBy = this.cronHint || this.subLabel ? this.describedById : undefined;
+      const internalDescribedBy = this.visibleCronHint || this.subLabel ? this.describedById : undefined;
 
       if (inheritedDescribedBy && internalDescribedBy) {
         return `${ inheritedDescribedBy } ${ internalDescribedBy }`;
@@ -340,6 +350,13 @@ export default defineComponent({
     },
 
     /**
+     * The cron hint to display under the Labeled Input, if any.
+     */
+    visibleCronHint(): string | undefined {
+      return this.showCronHint ? this.cronHint : undefined;
+    },
+
+    /**
      * The placeholder value for the Labeled Input.
      */
     _placeholder(): string {
@@ -366,6 +383,17 @@ export default defineComponent({
 
     className() {
       return this.class;
+    }
+  },
+
+  watch: {
+    cronHint: {
+      handler(hint: string | undefined) {
+        if (this.type === 'cron') {
+          this.$emit('cron-hint-change', hint);
+        }
+      },
+      immediate: true
     }
   },
 
@@ -634,17 +662,17 @@ export default defineComponent({
       :value="validationMessage"
     />
     <div
-      v-if="cronHint || subLabel"
+      v-if="visibleCronHint || subLabel"
       class="sub-label"
       data-testid="sub-label"
     >
       <div
-        v-if="cronHint"
+        v-if="visibleCronHint"
         :id="describedById"
         role="alert"
-        :aria-label="cronHint"
+        :aria-label="visibleCronHint"
       >
-        {{ cronHint }}
+        {{ visibleCronHint }}
       </div>
       <div
         v-else-if="subLabel"

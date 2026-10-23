@@ -674,6 +674,71 @@ describe('mixin: authConfigMixin', () => {
     });
   });
 
+  describe('starting from a cloned config', () => {
+    const FakeComponent = {
+      render() {},
+      mixins:  [authConfigMixin, childHook],
+      methods: { applyHooks: jest.fn() },
+    };
+
+    const cloneValues = {
+      servers: ['ldap.example.com'], port: 636, starttls: true
+    };
+
+    const createInstance = () => mount(FakeComponent, {
+      data:   () => ({ value: { configType: 'ldap' } }),
+      global: {
+        provide: {
+          authConfigCreate: {
+            name: 'openldap-2', normanType: 'openLdapConfig', takenIds: ['openldap'], created: false, cloneValues
+          }
+        },
+        mocks: {
+          $store: {
+            dispatch: jest.fn((action: string, payload: any) => {
+              switch (action) {
+              case 'rancher/create': return Promise.resolve({ ...payload });
+              case 'rancher/clone': return Promise.resolve({ ...payload.resource });
+              case 'rancher/findAll': return Promise.resolve([]);
+              default: return Promise.resolve(undefined);
+              }
+            }),
+            getters: { 'rancher/schemaFor': () => undefined },
+          },
+          $route: { params: { cluster: 'local' }, query: { mode: 'edit' } },
+        },
+      },
+    }).vm as any;
+
+    // The defaults clear an LDAP config's servers, which is what is being cloned
+    it('should keep the cloned settings over the defaults', async() => {
+      const instance = createInstance();
+
+      await instance.mixinFetch();
+
+      expect({
+        servers: instance.model.servers, port: instance.model.port, starttls: instance.model.starttls
+      }).toStrictEqual(cloneValues);
+    });
+
+    it('should still apply the defaults the clone does not set', async() => {
+      const instance = createInstance();
+
+      await instance.mixinFetch();
+
+      expect(instance.model.accessMode).toBe('unrestricted');
+    });
+
+    it('should not share the cloned values with the form', async() => {
+      const instance = createInstance();
+
+      await instance.mixinFetch();
+      instance.model.servers.push('other.example.com');
+
+      expect(cloneValues.servers).toStrictEqual(['ldap.example.com']);
+    });
+  });
+
   describe('a config that is still being added', () => {
     const FakeComponent = {
       render() {},

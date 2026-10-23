@@ -37,8 +37,8 @@ export default class SortableTablePo extends ComponentPo {
     return el.getClientRects().length > 0;
   }
 
-  private rendered(selector: string) {
-    return cy.get(selector).filter((_, el) => this.isRendered(el));
+  private rendered(selector: string, options?: Partial<Cypress.Timeoutable>) {
+    return cy.get(selector, options).filter((_, el) => this.isRendered(el));
   }
 
   /**
@@ -157,6 +157,10 @@ export default class SortableTablePo extends ComponentPo {
 
   viewMenuButton() {
     return this.rendered('[data-testid="table-views-view-menu"]');
+  }
+
+  allViewTab(options?: Partial<Cypress.Timeoutable>) {
+    return this.rendered('[data-testid="table-views-tab-all"]', options);
   }
 
   /**

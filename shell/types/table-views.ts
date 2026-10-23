@@ -88,6 +88,16 @@ export interface TableViewSaved extends Partial<TableViewState> {
   name: string;
 }
 
+/**
+ * A page's views, which one opens first and where the table's own tab sits: what a user's
+ * preferences and a Page resource both keep for a page
+ */
+export interface TableViewsPageSettings {
+  views?: TableViewSaved[];
+  defaultViewId?: string | null;
+  allIndex?: number;
+}
+
 export interface TableViewAction {
   action: string;
   label?: string;

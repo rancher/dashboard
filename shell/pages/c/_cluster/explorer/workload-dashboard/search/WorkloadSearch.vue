@@ -75,10 +75,18 @@ function updateDropdownVisibleRows(): void {
 onMounted(() => window.addEventListener('resize', updateDropdownVisibleRows));
 onBeforeUnmount(() => window.removeEventListener('resize', updateDropdownVisibleRows));
 
-// Moving focus from the search input into a result (its action menu, or a link by keyboard) blurs the input, which
-// makes vue-select clear its search and close, unmounting the results with them. Remember enough to reopen it on that blur.
 const keepOpenOnBlur = ref(false);
-const lastSearchTerm = ref('');
+
+// A click in a result never reaches the action menus' click outside handling, the option stops it
+const openActionsFor = ref<string | null>(null);
+
+function onActionsOpen(option: WorkloadSearchOption, open: boolean): void {
+  if (open) {
+    openActionsFor.value = option.uniqueId;
+  } else if (openActionsFor.value === option.uniqueId) {
+    openActionsFor.value = null;
+  }
+}
 
 function searchInput(): HTMLInputElement | null {
   return searchRef.value?.$el?.querySelector('input.vs__search') || null;
@@ -115,21 +123,35 @@ function onNamespaceClick(event: MouseEvent, option: WorkloadSearchOption): void
   }
 }
 
-function onActionsClick(event: MouseEvent) {
+let openBeforeClick: string | null = null;
+
+// Before the button's own handler, by when the open menu has handed the focus to its button (focus ring). Switching
+// menus only drops it, as moving it to the search would flash the search box
+function onActionsClickCapture(option: WorkloadSearchOption): void {
+  openBeforeClick = openActionsFor.value;
+
+  if (openBeforeClick === option.uniqueId) {
+    searchInput()?.focus();
+  } else if (openBeforeClick && document.activeElement?.closest('.v-popper__popper')) {
+    (document.activeElement as HTMLElement).blur();
+  }
+}
+
+function onActionsClick(event: MouseEvent, option: WorkloadSearchOption) {
   // Prevent vue-select from treating this as selecting the option.
   event.stopPropagation();
+
+  if (openBeforeClick === option.uniqueId) {
+    onActionsOpen(option, false);
+
+    return;
+  }
+
   // Early enough, vue-select prevents mousedown in its dropdown so the input keeps focus until after this click.
   // Opened by keyboard, focus is already on the button so the input won't blur
   if (document.activeElement === searchInput()) {
     keepOpenOnBlur.value = true;
   }
-}
-
-function handleSearch(term: string): void {
-  if (term) {
-    lastSearchTerm.value = term;
-  }
-  onSearch(term);
 }
 
 // Workload names can't contain whitespace, so keep it out of the search
@@ -160,7 +182,7 @@ function onSearchBlur() {
 
   keepOpenOnBlur.value = false;
 
-  searchRef.value?.forceOpen(lastSearchTerm.value);
+  searchRef.value?.forceOpen();
 }
 
 function onActionInvoked(): void {
@@ -176,6 +198,31 @@ function onResultsKeydown(event: KeyboardEvent): void {
   const input = searchInput();
   const target = event.target as HTMLElement;
   const fromInput = target === input;
+
+  // The arrow keys and typing in a result go back to the search, as they would there
+  if (input && !fromInput && target.closest('.vs__dropdown-option')) {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      const select = searchRef.value?.$refs['select-input'] as { typeAheadDown(): void; typeAheadUp(): void } | undefined;
+
+      event.preventDefault();
+      input.focus();
+
+      if (event.key === 'ArrowDown') {
+        select?.typeAheadDown();
+      } else {
+        select?.typeAheadUp();
+      }
+
+      return;
+    }
+
+    if (event.key.length === 1 && event.key !== ' ' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      input.focus();
+
+      return;
+    }
+  }
+
   const row = fromInput ? searchRef.value?.$el?.querySelector('.vs__dropdown-option--highlight') : target.closest('.vs__dropdown-option');
   const focusables: HTMLElement[] = row ? Array.from(row.querySelectorAll(resultFocusables)) : [];
 
@@ -225,6 +272,7 @@ function onResultsFocusout(event: FocusEvent): void {
     :options="options"
     :searchable="true"
     :filterable="false"
+    :keep-search-on-blur="true"
     :append-to-body="false"
     :visible-rows="dropdownVisibleRows"
     :visible-row-height="dropdownVisibleRowHeight"
@@ -234,7 +282,7 @@ function onResultsFocusout(event: FocusEvent): void {
     :placeholder="t('workloadDashboard.search.placeholder')"
     :aria-label="t('workloadDashboard.search.ariaLabel')"
     data-testid="workload-dashboard-search"
-    @search="handleSearch"
+    @search="onSearch"
     @update:value="onSelect"
     @on-blur="onSearchBlur"
     @on-open="updateDropdownVisibleRows"
@@ -287,13 +335,17 @@ function onResultsFocusout(event: FocusEvent): void {
         </div>
         <span
           class="actions"
-          @click="onActionsClick"
+          @click.capture="onActionsClickCapture(option)"
+          @click="onActionsClick($event, option)"
         >
           <ActionMenu
             :resource="option.resource"
             button-size="small"
             :button-aria-label="t('sortableTable.tableActionsLabel', { resource: option.resource?.id || '' })"
             container="body"
+            :open="openActionsFor === option.uniqueId"
+            @update:open="onActionsOpen(option, $event)"
+            @vue:unmounted="onActionsOpen(option, false)"
             @action-invoked="onActionInvoked"
           />
         </span>

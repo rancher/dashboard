@@ -1356,6 +1356,34 @@ describe('page: UI plugins/Extensions', () => {
       expect(all[0]).toHaveProperty('installedError', 'plugins.error.load');
     });
 
+    it('should translate string UI errors without escaping html', () => {
+      const store = {
+        getters: {
+          'prefs/get':         jest.fn(),
+          'catalog/rawCharts': [],
+          'uiplugins/plugins': [],
+          'uiplugins/errors':  { 'my-plugin': 'plugins.error.developerPkg' },
+        },
+        dispatch: () => Promise.resolve(),
+      };
+      const tMock = jest.fn(t);
+
+      const w = shallowMount(UiPluginsPage, {
+        global: {
+          mocks: { $store: store, t: tMock },
+          stubs: { ActionMenu: { template: '<div />' } }
+        }
+      });
+
+      w.vm.errors = {};
+
+      const all = [{ name: 'my-plugin', id: 'repo/my-plugin' }];
+
+      w.vm.mergePluginErrors(all);
+
+      expect(tMock).toHaveBeenCalledWith('plugins.error.developerPkg', null, true);
+    });
+
     it('should set empty installedError for non-string UI errors', () => {
       const store = {
         getters: {

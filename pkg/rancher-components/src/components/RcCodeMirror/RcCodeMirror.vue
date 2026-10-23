@@ -63,6 +63,7 @@ import { getLanguageExtension } from './extensions/syntax';
 import { getKeymapExtension } from './extensions/keymaps';
 import { buildFoldExtension } from './extensions/fold';
 import { bottomPanelsExtension } from './extensions/panels';
+import { openSearchPanelQuietly } from './extensions/searchPanel';
 import { rancherInputTheme, rancherTheme } from './extensions/theme';
 import type { RcCodeMirrorKeymap, RcCodeMirrorProps, RcCodeMirrorTheme, RcCodeMirrorVariant } from './types';
 
@@ -81,7 +82,8 @@ const props = withDefaults(defineProps<RcCodeMirrorProps>(), {
   extensions:      undefined,
   foldOptions:     undefined,
   linter:          undefined,
-  keymapIndicator: false
+  keymapIndicator: false,
+  searchOpen:      false
 });
 
 const emit = defineEmits<{
@@ -325,6 +327,9 @@ onMounted(() => {
   });
 
   view.value = editorView;
+  if (props.searchOpen && props.variant !== 'input') {
+    openSearchPanelQuietly(editorView);
+  }
   emit('ready', editorView);
 });
 
@@ -476,8 +481,8 @@ defineExpose({ view });
 
 <style lang="scss" scoped>
 .rc-code-mirror {
-  --rc-cm-bg: var(--color-white);
-  --rc-cm-bg-mask: var(--color-white-a75);
+  --rc-cm-bg: var(--rc-section-background-secondary, var(--color-gray-25));
+  --rc-cm-bg-mask: var(--color-gray-25-a75);
   --rc-cm-selection: var(--color-gray-93);
   --rc-cm-key: var(--color-blue-552);
   --rc-cm-string: var(--color-orange-520);
@@ -645,13 +650,12 @@ defineExpose({ view });
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 4px;
 
       &:has(.rc-cm-fold-marker) {
         cursor: pointer;
       }
 
-      &:has(.rc-cm-fold-marker):hover {
+      &:hover .rc-cm-fold-marker {
         background-color: var(--rc-cm-fold-hover);
       }
     }
@@ -664,6 +668,7 @@ defineExpose({ view });
       height: 100%;
       box-sizing: border-box;
       padding: 0;
+      border-radius: 4px;
     }
 
     svg {

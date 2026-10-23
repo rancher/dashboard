@@ -55,6 +55,20 @@ describe('component: CodeMirror.vue', () => {
 
   };
 
+  describe('search panel', () => {
+    it('should pass searchOpen to RcCodeMirror', () => {
+      wrapper = shallowMount(CodeMirror, { ...mountOptions, props: { ...mountOptions.props, searchOpen: true } });
+
+      expect(wrapper.findComponent({ name: 'RcCodeMirror' }).props('searchOpen')).toBe(true);
+    });
+
+    it('should leave the search panel closed by default', () => {
+      wrapper = shallowMount(CodeMirror, mountOptions);
+
+      expect(wrapper.findComponent({ name: 'RcCodeMirror' }).props('searchOpen')).toBe(false);
+    });
+  });
+
   describe('keymap indicator', () => {
     it.each([
       [true, true],

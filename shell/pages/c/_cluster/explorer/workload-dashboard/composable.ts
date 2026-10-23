@@ -4,21 +4,20 @@ import {
 import { useStore } from 'vuex';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
 import { WORKLOAD_TYPES } from '@shell/config/types';
-import { NAME_FILTER_QUERY, STATE_FILTER_QUERY } from '@shell/config/query-params';
 import type { StateColor } from '@shell/utils/style';
+import { resourceListRoute, isValidSummaryResponse } from '@shell/utils/resource-state-summary';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStateColor } from '@shell/composables/useStateColor';
+import { useNamespaceFilterParam } from '@shell/composables/useNamespaceFilterParam';
 import {
   NAMESPACE_FILTER_ALL_USER,
   NAMESPACE_FILTER_ALL_SYSTEM,
   NAMESPACE_FILTER_P_FULL_PREFIX,
   NAMESPACE_FILTER_NS_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
-import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import type { StatusSummaryCardItem } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/types';
 import { buildStatusSummaryCard, compareStateColors } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/utils';
 import type { StatusBreakdownCardItem } from '@shell/components/Resource/Detail/Card/StatusBreakdownCard/types';
-import { getWorkloadNamespaceFilterParams } from './namespaceFilter';
 import {
   WORKLOAD_DASHBOARD_RESOURCE_TYPES,
   type WorkloadDashboardSummaryEntry,
@@ -53,35 +52,7 @@ export function useWorkloadDashboard() {
 
   const isAllNamespaces = computed<boolean>(() => store.getters['isAllNamespaces']);
 
-  const namespaceFilterParam = ref('');
-
-  function buildNamespaceFilterParam(): string {
-    const { projectsOrNamespaces, filters } = getWorkloadNamespaceFilterParams(store);
-
-    // Getting the first schema is sufficient since the namespace filter param structure is the same across all resource types
-    const schema = WORKLOAD_DASHBOARD_RESOURCE_TYPES
-      .map((type) => store.getters['cluster/schemaFor'](type))
-      .find((s) => !!s);
-
-    // To generate proper params path to be used
-    const path = stevePaginationUtils.createParamsForPagination({
-      schema,
-      opt: {
-        pagination: {
-          filters,
-          projectsOrNamespaces,
-          page: 1,
-          sort: [],
-        }
-      }
-    }) || '';
-
-    return path.replace(/page=\d+&?/g, '').replace(/pagesize=\d+&?/g, '').replace(/&$/, '');
-  }
-
-  watch(() => store.getters['namespaceFilters'], () => {
-    namespaceFilterParam.value = buildNamespaceFilterParam();
-  }, { immediate: true });
+  const namespaceFilterParam = useNamespaceFilterParam(WORKLOAD_DASHBOARD_RESOURCE_TYPES);
 
   // ── Subtitle ──
 
@@ -318,58 +289,12 @@ export function useWorkloadDashboard() {
   }
 
   function resourceRoute(type: string, stateNames?: string[], nameFilter?: string): RouteLocationRaw {
-    const loc: { name: string; params: Record<string, string>; query?: Record<string, string> } = {
-      name:   'c-cluster-product-resource',
-      params: {
-        cluster:  clusterId.value,
-        product:  'explorer',
-        resource: type,
-      },
-    };
-
-    const query: Record<string, string> = {};
-
-    if (stateNames?.length) {
-      // The list opens filtered to these, in its query
-      query[STATE_FILTER_QUERY] = stateNames.join(',');
-    }
-
-    if (nameFilter) {
-      // The list opens filtered to this name, in its query
-      query[NAME_FILTER_QUERY] = nameFilter;
-    }
-
-    if (Object.keys(query).length) {
-      loc.query = query;
-    }
-
-    return loc;
+    return resourceListRoute(clusterId.value, type, stateNames, nameFilter);
   }
 
   function navigateToNamespace(type: string, namespace: string): void {
     filterByNamespace(namespace);
     router.push(resourceRoute(type));
-  }
-
-  // ── Fetching & polling ──
-
-  /**
-   * Validates the shape of a successfully fetched response.
-   * - An empty/absent summary is only valid when there is also no `data`
-   *   (a populated `data` with no summary means we got the wrong response).
-   * - When a summary is present, every state entry under `counts` must
-   *   include a `total`; a count key without `total` is invalid.
-   */
-  function isValidResponse(res: { summary?: WorkloadDashboardSummaryEntry['summary']; data?: unknown }): boolean {
-    const summary = res?.summary;
-
-    if (!Array.isArray(summary) || summary.length === 0) {
-      // With no summary, the response is only valid when there is also no data.
-      return Array.isArray(res?.data) ? res.data.length === 0 : !res?.data;
-    }
-
-    return summary.every((item) => Object.values(item.counts || {})
-      .every((detail) => typeof detail?.total === 'number'));
   }
 
   function redirectToDeployment(): void {
@@ -415,7 +340,7 @@ export function useWorkloadDashboard() {
 
           const res = await store.dispatch('cluster/request', { url });
 
-          if (!hasInvalidResponse && !isValidResponse(res)) {
+          if (!hasInvalidResponse && !isValidSummaryResponse(res)) {
             hasInvalidResponse = true;
           }
 

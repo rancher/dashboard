@@ -9,6 +9,13 @@ import TableViewExportModal from '@shell/components/TableViews/TableViewExportMo
  * here - the translation getter hands back the key and what was put into it, so the key is what
  * these assert on.
  */
+// Draws its slots in place, as RcModal does, without the teleport
+const RcModalStub = {
+  props:    ['show', 'title'],
+  emits:    ['close'],
+  template: `<div :data-title="title"><slot /><slot name="actions" :close="() => $emit('close')"><button data-testid="rc-modal-cancel" @click="$emit('close')">Cancel</button><slot name="primary-action" /></slot></div>`,
+};
+
 describe('TableViewExportModal', () => {
   function mountWith(props: Record<string, unknown>) {
     const store = createStore({
@@ -19,9 +26,11 @@ describe('TableViewExportModal', () => {
     });
 
     return mount(TableViewExportModal, {
-      props:   { viewName: 'Imported Unavailable', ...props },
+      props: {
+        modal: { show: true, onClose: jest.fn() }, viewName: 'Imported Unavailable', ...props
+      },
       // The sentences are drawn by RichTranslation, so it has to render rather than be stubbed
-      global:  { plugins: [store], stubs: { RichTranslation: false } },
+      global:  { plugins: [store], stubs: { RichTranslation: false, RcModal: RcModalStub } },
       shallow: true,
     });
   }
@@ -86,15 +95,18 @@ describe('TableViewExportModal', () => {
         type: 'pod', nameDisplay: 'web', downloadYaml: jest.fn(), downloadYamlBulk: jest.fn(() => Promise.resolve()), ...props
       });
       const resources = [resource, ...others].map(row);
+      const onClose = jest.fn();
       const wrapper = mount(TableViewExportModal, {
         props: {
-          count: resources.length, isSelection: true, resources
+          modal: { show: true, onClose }, count: resources.length, isSelection: true, resources
         },
-        global:  { plugins: [store] },
+        global:  { plugins: [store], stubs: { RcModal: RcModalStub } },
         shallow: true,
       });
 
-      return { wrapper, calls };
+      return {
+        wrapper, calls, onClose
+      };
     };
 
     const flush = () => new Promise((resolve) => setTimeout(resolve));
@@ -104,11 +116,11 @@ describe('TableViewExportModal', () => {
       const downloadYaml = jest.fn(() => new Promise<void>((resolve) => {
         finish = resolve;
       }));
-      const { wrapper, calls } = mountSelection({ downloadYaml });
+      const { wrapper, calls, onClose } = mountSelection({ downloadYaml });
 
       await wrapper.find('[data-testid="table-views-export-download"]').trigger('click');
 
-      expect(wrapper.emitted('close')).toHaveLength(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
       await flush();
       expect(downloadYaml).toHaveBeenCalledTimes(1);
       expect(calls.map((c) => c.action)).toStrictEqual(['add']);

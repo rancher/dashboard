@@ -122,6 +122,15 @@ export default {
       type:    Boolean,
       default: true
     },
+    /**
+     * Keep the typed search when the dropdown closes without a selection. It is shown in place of
+     * the placeholder until the input is focused again, which searches it again, so it is meant for
+     * selects that do not show a selected value, such as a search box.
+     */
+    keepSearchOnBlur: {
+      type:    Boolean,
+      default: false
+    },
     noOptionsLabelKey: {
       type:    String,
       default: 'labelSelect.noOptions.empty'
@@ -246,6 +255,7 @@ export default {
     return {
       selectedVisibility:   'visible',
       shouldOpen:           true,
+      keptSearch:           '',
       labeledSelectLabelId: `ls-label-id-${ generateRandomAlphaString(12) }`,
       generatedUid:         `ls-uid-${ generateRandomAlphaString(12) }`
     };
@@ -289,6 +299,12 @@ export default {
   },
 
   watch: {
+    isOpen(open) {
+      if (!open) {
+        this.keepSearch();
+      }
+    },
+
     // vue-select only refreshes the selected option on options change when the value is truthy,
     // so a selected option with a falsy value ('', 0, false) would keep showing its old label.
     // Refresh it once per options change rather than looking it up on every label render.
@@ -350,6 +366,11 @@ export default {
     },
 
     onFocus() {
+      if (this.keptSearch) {
+        this.$refs['select-input'].search = this.keptSearch;
+        this.keptSearch = '';
+      }
+
       this.$emit('on-focus');
       this.selectedVisibility = 'hidden';
       this.onFocusLabeled();
@@ -443,35 +464,56 @@ export default {
       this.onClose();
     },
 
+    clearKeptSearch(event) {
+      if (this.keptSearch) {
+        event.stopPropagation();
+        this.keptSearch = '';
+      }
+    },
+
+    keepSearch() {
+      const select = this.$refs['select-input'];
+
+      if (!this.keepSearchOnBlur || !select?.search || document.activeElement === select.searchEl) {
+        return;
+      }
+
+      this.keptSearch = select.search;
+      select.search = '';
+    },
+
     /**
      * Force the dropdown shut and clear its search text, including
      * vue-select's own internal state - unlike `close()`, which only
      * updates this component's own `isOpen`/aria state. Needed when the
      * dropdown was reopened via direct `$refs['select-input']` access (e.g.
      * after a blur caused by opening a nested popover) and won't receive a
-     * normal close-triggering event.
+     * normal close-triggering event. With `keepSearchOnBlur` the search
+     * text is kept instead.
      */
     forceClose() {
       this.isOpen = false;
 
       if (this.$refs['select-input']) {
         this.$refs['select-input'].open = false;
-        this.$refs['select-input'].search = '';
+
+        if (!this.keepSearchOnBlur) {
+          this.$refs['select-input'].search = '';
+        }
       }
     },
 
     /**
-     * Force the dropdown open with the given search text, including
+     * Force the dropdown open, keeping its search text, including
      * vue-select's own internal open state. Needed to restore the dropdown
      * after a blur caused by opening a nested popover (e.g. an action menu)
-     * triggers vue-select's own blur handling to close/clear it.
+     * triggers vue-select's own blur handling to close it.
      */
-    forceOpen(searchText) {
+    forceOpen() {
       this.isOpen = true;
 
       if (this.$refs['select-input']) {
         this.$refs['select-input'].open = true;
-        this.$refs['select-input'].search = searchText;
       }
     },
 
@@ -587,8 +629,10 @@ export default {
     role="combobox"
     :aria-expanded="isOpen"
     :aria-describedby="$attrs['aria-describedby'] || undefined"
+    :aria-description="keptSearch ? t('labeledSelect.keptSearch', { search: keptSearch }) : undefined"
     :aria-required="requiredField"
     @click="clickSelect"
+    @keydown.self.esc="clearKeptSearch"
     @keydown.self.enter="clickSelect"
     @keydown.self.down.prevent="clickSelect"
     @keydown.self.space.prevent="clickSelect"
@@ -616,6 +660,7 @@ export default {
     </div>
     <v-select
       ref="select-input"
+      :clear-search-on-blur="keepSearchOnBlur ? () => false : undefined"
       v-bind="filteredAttrs"
       class="inline"
       :close-on-select="false"
@@ -630,7 +675,7 @@ export default {
       :label="optionLabel"
       :options="_options"
       :map-keydown="mappedKeys"
-      :placeholder="placeholder"
+      :placeholder="keptSearch || placeholder"
       :reduce="(x) => reduce(x)"
       :filterable="isFilterable"
       :filter="filterOptions"
@@ -646,7 +691,7 @@ export default {
       @search:focus="onFocus"
       @search="onSearch"
       @open="onOpen"
-      @close="onClose"
+      @close="onClose(); keepSearch()"
       @option:selecting="closeOnSelecting"
       @option:selected="close"
       @option:deselecting="$emit('deselecting', $event)"

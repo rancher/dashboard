@@ -219,6 +219,12 @@ export default {
       default: true
     },
 
+    searchMaxWidth: {
+      // Maximum width of the search input field
+      type:    Number,
+      default: 200,
+    },
+
     extraSearchFields: {
       // Additional fields that aren't defined in the headers to search in on each row
       type:    Array,
@@ -448,7 +454,8 @@ export default {
     hideManualRefreshButton: {
       type:    Boolean,
       default: false
-    }
+    },
+
   },
 
   data() {
@@ -679,7 +686,7 @@ export default {
       let span = 0;
 
       for ( let i = 0 ; i < this.columns.length ; i++ ) {
-        if (!this.columns[i].hide) {
+        if (this.isColumnVisible(this.columns[i])) {
           span++;
         }
       }
@@ -716,7 +723,10 @@ export default {
 
       // An extension's table keeps the masthead it was written for unless it asks for this one
       return isConfigurableTablesEnabled(this.$store) && !isExtensionTable({
-        providedShell: this.providedTableViewsShell, route: this.$route, extensions: this.$store?.state?.$extension
+        providedShell: this.providedTableViewsShell,
+        route:         this.$route,
+        extensions:    this.$store?.state?.$extension,
+        singleProduct: !!this.$store?.getters?.['isSingleProduct'],
       });
     },
 
@@ -1026,6 +1036,15 @@ export default {
       return item ? this.t('sortableTable.genericRowCheckbox', { item }) : this.t('sortableTable.genericRowCheckboxNoItem');
     },
 
+    isColumnVisible(col) {
+      if (!col || col.hide) {
+        return false;
+      }
+
+      // If the column has been hidden via the advanced filtering, it will have isColVisible set to false. The priority of isColVisible is higher than hide.
+      return !this.hasAdvancedFiltering || (this.hasAdvancedFiltering && col.isColVisible);
+    },
+
     valueFor(row, col, isLabel) {
       return columnValueFor(row, col, isLabel);
     },
@@ -1044,6 +1063,22 @@ export default {
       this.expanded = { ...this.expanded };
 
       return val;
+    },
+
+    expandAll() {
+      const expanded = {};
+
+      this.rows.forEach((row) => {
+        const key = row[this.keyField];
+
+        expanded[key] = true;
+      });
+
+      this.expanded = expanded;
+    },
+
+    collapseAll() {
+      this.expanded = {};
     },
 
     setBulkActionOfInterest(action) {
@@ -1203,6 +1238,7 @@ export default {
         v-if="showHeaderRow"
         class="fixed-header-actions"
         :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering, 'table-views-layout': useTableViewsLayout, 'no-top-row': tableViewsTopRowEmpty, 'no-views-row': tableViewsTabsEmpty}"
+        :style="{ '--sortable-table-search-max-width': `${searchMaxWidth}px` }"
       >
         <div
           :class="bulkActionsClass"
@@ -1343,7 +1379,11 @@ export default {
             @mouseleave="setBulkActionOfInterest"
           />
           <slot name="watch-controls" />
-          <slot name="header-right" />
+          <slot
+            name="header-right"
+            :expand-all="expandAll"
+            :collapse-all="collapseAll"
+          />
           <AsyncButton
             v-if="!hideManualRefreshButton && isTooManyItemsToAutoUpdate"
             mode="manual-refresh"
@@ -1559,7 +1599,7 @@ export default {
               <tr
                 class="main-row"
                 :data-testid="componentTestid + '-' + i + '-row'"
-                :class="{ 'has-sub-row': row.showSubRow}"
+                :class="{ 'has-sub-row': row.showSubRow, 'row-selected': selectedRows.includes(row.row) }"
                 :data-node-id="row.key"
                 :data-cant-run-bulk-action-of-interest="actionOfInterest && !row.canRunBulkActionOfInterest"
               >
@@ -1605,7 +1645,7 @@ export default {
                     :rowKey="row.key"
                   >
                     <td
-                      v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.col.isColVisible)"
+                      v-show="isColumnVisible(col.col)"
                       :key="col.col.name"
                       v-ui-context="col.col.name === 'state' ? { icon: 'icon-folder', hookable: true, value: row.row, tag: '__sortable-table-row', description: 'Row' } : undefined"
                       :data-title="col.col.label"
@@ -1701,6 +1741,7 @@ export default {
           <slot
             v-if="row.showSubRow"
             name="sub-row"
+            class="sub-row"
             :full-colspan="fullColspan"
             :row="row.row"
             :sub-matches="subMatches"
@@ -2058,6 +2099,10 @@ export default {
     text-align: left;
   }
 
+  .sub-row {
+    padding: 8px;
+  }
+
   .sortable-table {
     border-collapse: collapse;
     min-width: 400px;
@@ -2065,6 +2110,32 @@ export default {
     outline: 1px solid var(--border);
     background: var(--sortable-table-bg);
     border-radius: 4px;
+
+    .sub-row {
+      .sub-table {
+        padding: 16px 32px;
+        .sortable-table {
+          border-radius: 0 !important;
+          border: 0 !important;
+          outline: 0;
+          thead {
+            tr:hover {
+              background-color: var(--body-bg);
+            }
+          }
+        }
+      }
+      thead {
+        th {
+          font-weight: 600;
+        }
+      }
+      tbody {
+        tr {
+          border-bottom: 0;
+        }
+      }
+    }
 
     &.overflow-x {
       overflow-x: visible;
@@ -2103,18 +2174,22 @@ export default {
         }
 
         // if a main-row is hovered also hover it's sibling sub row. note - the reverse is handled in selection.js
-        &.main-row:not(.row-selected):hover + .sub-row {
+        &.main-row:not(.row-selected):hover + .sub-row:not(:has(.sub-table)) {
           background-color: var(--sortable-table-hover-bg);
         }
 
         // Case with only additional-sub-row
-        &.main-row:not(.row-selected):hover + .additional-sub-row {
+        &.main-row:not(.row-selected):hover + .additional-sub-row:not(:has(.sub-table)) {
           background-color: var(--sortable-table-hover-bg);
         }
 
         // Case with both additional-sub-row and sub-row
-        &.main-row:not(.row-selected):hover + .additional-sub-row + .sub-row{
+        &.main-row:not(.row-selected):hover + .additional-sub-row:not(:has(.sub-table)) + .sub-row:not(:has(.sub-table)) {
           background-color: var(--sortable-table-hover-bg);
+        }
+
+        &.sub-row:has(.sub-table):hover {
+          background-color: var(--body-bg);
         }
 
         &:last-of-type {
@@ -2281,7 +2356,7 @@ export default {
     z-index: z-index('fixedTableHeader');
     background: transparent;
     display: grid;
-    grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 200px);
+    grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, var(--sortable-table-search-max-width, 200px));
     grid-column-gap: 10px;
 
     &.advanced-filtering {

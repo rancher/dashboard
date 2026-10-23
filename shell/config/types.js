@@ -224,6 +224,7 @@ export const OPERATION = {
   ETCD_SNAPSHOT:         'operation.cattle.io.etcdsnapshotsave',
   ETCD_SNAPSHOT_RESTORE: 'operation.cattle.io.etcdsnapshotrestore',
   ENCRYPTION_KEY_ROTATE: 'operation.cattle.io.encryptionkeyrotation',
+  CERTIFICATE_ROTATE:    'operation.cattle.io.certificaterotation',
 };
 
 // --------------------------------------
@@ -374,7 +375,10 @@ export const COMPLIANCE = {
   REPORT:               'compliance.cattle.io.clusterscanreport'
 };
 
-export const UI = { NAV_LINK: 'ui.cattle.io.navlink' };
+export const UI = {
+  NAV_LINK:            'ui.cattle.io.navlink',
+  TABLE_CONFIGURATION: 'ui.cattle.io.tableconfiguration',
+};
 
 export const VIRTUAL_TYPES = {
   CLUSTER_MEMBERS:    'cluster-members',
@@ -390,6 +394,8 @@ export const HCI = {
   DASHBOARD:        'harvesterhci.io.dashboard',
   IMAGE:            'harvesterhci.io.virtualmachineimage',
   VGPU_DEVICE:      'devices.harvesterhci.io.vgpudevice',
+  PCI_DEVICE:       'devices.harvesterhci.io.pcidevice',
+  PCI_DEVICE_CLAIM: 'devices.harvesterhci.io.pcideviceclaim',
   SETTING:          'harvesterhci.io.setting',
   RESOURCE_QUOTA:   'harvesterhci.io.resourcequota',
   HARVESTER_CONFIG: 'rke-machine-config.cattle.io.harvesterconfig',

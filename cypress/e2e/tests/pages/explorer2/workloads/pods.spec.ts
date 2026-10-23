@@ -244,6 +244,25 @@ describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, (
         .checkNotExists();
     }));
 
+    it('should count the All tab again as a pod is created and deleted', () => {
+      const sortableTable = workloadsPodPage.list().resourceTable().sortableTable();
+
+      WorkloadsPodsListPagePo.navTo();
+      workloadsPodPage.waitForPage();
+      sortableTable.checkLoadingIndicatorNotVisible();
+
+      sortableTable.allViewTab().should('contain.text', '(').invoke('text').then((text) => {
+        const before = Number(/\((\d+)\)/.exec(text)?.[1]);
+
+        cy.createPod(nsName2, 'tab-count', SMALL_CONTAINER.image).then(({ body }) => {
+          sortableTable.allViewTab({ timeout: 30000 }).should('contain.text', `(${ before + 1 })`);
+
+          cy.deleteRancherResource('v1', 'pods', `${ nsName2 }/${ body.metadata.name }`);
+          sortableTable.allViewTab({ timeout: 60000 }).should('contain.text', `(${ before })`);
+        });
+      });
+    });
+
     after('clean up', () => {
       // Ensure the default rows per page value is set after running the tests
       cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');

@@ -10,7 +10,7 @@ exports[`component: HelmOpTargetOptionsSection should match snapshot in compact 
     <br />
      %generic.learnMoreAbout% 
     <a
-      href="https://fleet.rancher.io/next/reference/ref-crds#_bundledeploymentoptions"
+      href="https://fleet.rancher.io/reference/ref-crds#_bundledeploymentoptions"
       rel="noopener noreferrer nofollow"
       target="_blank"
     >
@@ -43,6 +43,7 @@ exports[`component: HelmOpTargetOptionsSection should match snapshot in compact 
       required="false"
       requiredirty="true"
       rules=""
+      showcronhint="true"
       type="text"
       value="sa-1"
     />
@@ -72,6 +73,7 @@ exports[`component: HelmOpTargetOptionsSection should match snapshot in compact 
       required="false"
       requiredirty="true"
       rules=""
+      showcronhint="true"
       type="text"
       value="ns-1"
     />
@@ -110,6 +112,7 @@ exports[`component: HelmOpTargetOptionsSection should match snapshot with defaul
       required="false"
       requiredirty="true"
       rules=""
+      showcronhint="true"
       type="text"
       value="sa-1"
     />
@@ -135,6 +138,7 @@ exports[`component: HelmOpTargetOptionsSection should match snapshot with defaul
       required="false"
       requiredirty="true"
       rules=""
+      showcronhint="true"
       type="text"
       value="ns-1"
     />

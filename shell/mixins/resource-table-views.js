@@ -20,6 +20,8 @@ import { DEFAULT_MANDATORY_SORT } from '@shell/components/SortableTable/sorting'
 import { sortBy } from '@shell/utils/sort';
 import { uniq } from '@shell/utils/array';
 import { NO_GROUPING, savedViewsByType } from '@shell/utils/table-views/views';
+import { defaultViewIdFor, globalPageKey, globalViewsFor } from '@shell/utils/table-views/global';
+import { UI } from '@shell/config/types';
 
 /** Most rows an "all matching" export will fetch - a limit on what the browser holds, not on the api */
 const EXPORT_ROW_LIMIT = 50000;
@@ -59,6 +61,26 @@ function savedViewsEntry(vm) {
   const typeEntry = Array.isArray(stored) ? { views: stored } : stored;
 
   return vm.tableViewsPage ? typeEntry?.pages?.[vm.tableViewsPage] : typeEntry;
+}
+
+/**
+ * The table's views shared with everyone, as far as the store has them; the tabs load them. Outside
+ * the component so `data` can ask
+ */
+function globalViewsOf(vm) {
+  const getters = vm.$store.getters;
+  const type = UI.TABLE_CONFIGURATION;
+  const configs = getters['management/schemaFor']?.(type) && getters['management/haveAll'](type) ? getters['management/all'](type) : [];
+
+  return globalViewsFor(configs, globalPageKey(vm.schema?.id || '', vm.tableViewsPage));
+}
+
+/** Every view the table's tabs show: shared, then the user's */
+function allViewsOf(vm, saved = savedViewsEntry(vm), shared = globalViewsOf(vm)) {
+  const sharedViews = shared.views.map((entry) => entry.view);
+  const sharedIds = new Set(sharedViews.map((view) => view.id));
+
+  return sharedViews.concat((saved?.views || []).filter((view) => !sharedIds.has(view.id)));
 }
 
 /** Whether a table would show the saved view tabs, table views allowing. Outside the component so `data` can ask */
@@ -122,6 +144,9 @@ export default {
   data() {
     /** @type {{ views: import('@shell/types/table-views').TableViewSaved[], defaultViewId: string|null }} */
     const saved = savedViewsEntry(this);
+    const shared = globalViewsOf(this);
+    const views = allViewsOf(this, saved, shared);
+    const defaultId = defaultViewIdFor(saved?.defaultViewId, shared, views.map((view) => view.id));
     /**
      * A link to some of the list's states, eg from an overview's counts, opens the table's own tab
      * filtered to them, rather than the default view
@@ -133,7 +158,7 @@ export default {
      *
      * @type {import('@shell/types/table-views').TableViewSaved|undefined}
      */
-    const defaultView = wantsTableViewTabs(this) && !linkedQuery ? (saved?.views || []).find((view) => view.id === saved?.defaultViewId) : undefined;
+    const defaultView = wantsTableViewTabs(this) && !linkedQuery ? views.find((view) => view.id === defaultId) : undefined;
 
     return {
       /**
@@ -166,6 +191,8 @@ export default {
 
       countingInFlight: false,
 
+      recountPending: false,
+
       view: {
         query:          linkedQuery || defaultView?.query || '',
         columns:        defaultView?.columns || null,
@@ -189,6 +216,9 @@ export default {
        */
       settledQuery: linkedQuery || defaultView?.query || '',
 
+      /** Counts the views the tabs put on the table, so the search box starts its undo afresh on each */
+      tabViewChanges: 0,
+
       debouncedSettleQuery: debounce(function(query) {
         this.settledQuery = query;
       }, SEARCH_DEBOUNCE),
@@ -208,6 +238,8 @@ export default {
 
       /** The request in hand when the switch began: its answer is the old view's, whatever it filters by */
       viewSwitchFromArgs: null,
+
+      lastResultArgsKey: null,
 
       pendingViewFilters: [],
 
@@ -271,10 +303,7 @@ export default {
       known.forEach((field) => this.fetchFieldValues(field.id));
     },
 
-    /**
-     * The only time every count is retaken. Not tied to the rows, which would blink counts to zero
-     * on every fetch
-     */
+    /** Not tied to the rows, which would blink counts to zero on every fetch */
     viewCountsScope() {
       this.debouncedRefreshViewCounts();
     },
@@ -351,10 +380,17 @@ export default {
      * Only the response this view asked for ends the wait; one already in flight answers first.
      * Watched rather than `rows`, which is filled in place and never changes identity
      */
-    externalPaginationResult() {
+    externalPaginationResult(neu) {
       if (this.viewFiltersApplied && this.externalPaginationArgs !== this.viewSwitchFromArgs) {
         this.endViewSwitch();
       }
+
+      const argsKey = this.externalPaginationArgs ? JSON.stringify(this.externalPaginationArgs) : null;
+
+      if (neu && argsKey && argsKey === this.lastResultArgsKey) {
+        this.debouncedRefreshViewCounts();
+      }
+      this.lastResultArgsKey = argsKey;
     },
 
     /** Asked again for the page in hand, eg by a view sorting as the last one did: nothing more is coming */
@@ -390,7 +426,10 @@ export default {
 
     inExtension() {
       return isExtensionTable({
-        providedShell: this.providedTableViewsShell, route: this.$route, extensions: this.$store?.state?.$extension
+        providedShell: this.providedTableViewsShell,
+        route:         this.$route,
+        extensions:    this.$store?.state?.$extension,
+        singleProduct: !!this.$store?.getters?.['isSingleProduct'],
       });
     },
 
@@ -810,7 +849,7 @@ export default {
 
 
     savedViews() {
-      return savedViewsEntry(this)?.views || [];
+      return allViewsOf(this);
     },
 
     /** Queries rather than views: two views filtering alike share one count */
@@ -1133,8 +1172,14 @@ export default {
       // A count stays until a fresh one replaces it, so none blink to zero
       const wanted = this.countableQueries.filter((query) => refresh || this.viewCounts[query] === undefined);
 
+      if (!wanted.length) {
+        return;
+      }
+
       // One round at a time, or mid-flight triggers ask again and supersede their own requests
-      if (!wanted.length || this.countingInFlight) {
+      if (this.countingInFlight) {
+        this.recountPending = this.recountPending || refresh;
+
         return;
       }
 
@@ -1144,6 +1189,11 @@ export default {
         await this.requestViewCounts(wanted);
       } finally {
         this.countingInFlight = false;
+      }
+
+      if (this.recountPending) {
+        this.recountPending = false;
+        await this.fetchViewCounts(true);
       }
     },
 
@@ -1390,6 +1440,7 @@ export default {
       this.debouncedSettleQuery.cancel();
       this.settledQuery = view?.query || '';
       this.view = view;
+      this.tabViewChanges += 1;
     },
 
 

@@ -54,6 +54,9 @@ There are a few options available to be passed as an argument to the `@rancher/e
 |           `-l`            | This will automatically add the [`.gitlab-ci.yml`](https://github.com/rancher/dashboard/blob/master/creators/extension/app/files/.gitlab-ci.yml) pipeline file for integration with GitLab                                                                                              |
 |           `-w`            | Does not add the Github workflow files [`build-extension-catalog.yml`, `build-extension-charts.yml`](https://github.com/rancher/dashboard/tree/master/creators/extension/app/files/.github/workflows) to be used as Github actions. These files will be added automatically by default. |
 |           `-t`            | Does not add the template folders automatically into the Extension package. These folders will be added automatically by default                                                                                                                                                        |
+|      `--skip-agents`      | Does not add the AI agent guidance (`AGENTS.md`, `CLAUDE.md` and the Rancher UI reference docs). These files are added automatically by default.                                                                                                                                       |
+|         `--agents`        | Adds only the AI agent guidance, into the current folder. Use this to add it to a development app you already have.                                                                                                                                                                     |
+|         `--skill`         | Adds the same guidance as a self-contained skill folder instead of `AGENTS.md`.                                                                                                                                                                                                         |
 
 
 - If you want the development app to have a different name than the extension package, you can use the `--app-name` (or `-a`) option:
@@ -81,6 +84,16 @@ npm init @rancher/extension@latest my-app -- --skeleton-only
 This will create only the development app, and you can later add extension packages as needed.
 
 This flexibility allows you to structure your development environment based on your specific needs, whether you're starting fresh or adding to an existing setup.
+
+### _AI agent guidance_
+
+Your development app is generated with guidance for AI coding agents working on
+Rancher UI Extensions, in an `AGENTS.md` file that most agents read without being
+configured. You can also take it as a skill instead, or skip it with
+`--skip-agents`.
+
+See **[Building with AI](./building-with-ai.md)** for what it contains and how to
+use it.
 
 ### Compatibility Note
 

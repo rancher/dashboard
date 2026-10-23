@@ -34,10 +34,11 @@ describe('page: AuthConfigCreateProvider', () => {
     const wrapper = createWrapper();
 
     expect(wrapper.vm.authConfigCreate).toStrictEqual({
-      name:       '',
-      normanType: '',
-      takenIds:   [],
-      created:    false,
+      name:        '',
+      normanType:  '',
+      takenIds:    [],
+      created:     false,
+      cloneValues: null,
     });
   });
 
@@ -170,6 +171,102 @@ describe('page: AuthConfigCreateProvider', () => {
       setVersionData({});
 
       expect(message).toBe('%authConfig.create.limitReachedPrime%');
+    });
+  });
+
+  describe('cloning a config', () => {
+    const configs = [
+      {
+        id: 'local', enabled: true, _type: 'localConfig'
+      },
+      {
+        id: 'github', enabled: false, _type: 'githubConfig', nameDisplay: 'GitHub'
+      },
+    ];
+    const source = {
+      id: 'github', enabled: false, hostname: 'github.example.com', clientId: 'abc', clientSecret: 'cattle-global-data:githubconfig-clientsecret'
+    };
+    const resourceFields = {
+      enabled: { type: 'boolean' }, hostname: { type: 'string' }, clientId: { type: 'string' }, clientSecret: { type: 'password' }
+    };
+
+    const runFetch = async(cloneId: string) => {
+      const ctx: any = {
+        provider:         'github',
+        cloneId,
+        cloneSource:      null,
+        authConfigCreate: {
+          name: '', normanType: '', takenIds: [], created: false, cloneValues: null
+        },
+        limitReached:  false,
+        value:         null,
+        editComponent: null,
+        $store:        {
+          dispatch: jest.fn((action: string) => {
+            switch (action) {
+            case 'management/findAll': return Promise.resolve(configs);
+            case 'auth/getAuthProviderTypes': return Promise.resolve({ githubProvider: { Type: 'oauth' } });
+            case 'rancher/find': return Promise.resolve(source);
+            default: return Promise.resolve({});
+            }
+          }),
+          getters: {
+            'i18n/withFallback':   (_key: string, _args: any, fallback: string) => fallback,
+            'type-map/importEdit': () => ({}),
+            'features/get':        () => false,
+            'rancher/schemaFor':   (type: string) => (type === 'githubConfig' ? { resourceFields } : undefined),
+          },
+        },
+      };
+
+      await (AuthConfigCreateProvider as any).fetch.call(ctx);
+
+      return ctx;
+    };
+
+    it('should start the new config from the settings of the one cloned', async() => {
+      const ctx = await runFetch('github');
+
+      expect(ctx.authConfigCreate.cloneValues).toStrictEqual({ hostname: 'github.example.com', clientId: 'abc' });
+    });
+
+    // The admin can review and rename it before it is written
+    it('should suggest the next free name for the clone', async() => {
+      const ctx = await runFetch('github');
+
+      expect(ctx.authConfigCreate.name).toBe('github-2');
+    });
+
+    it('should not clone a config of another provider', async() => {
+      const ctx = await runFetch('local');
+
+      expect(ctx.cloneSource).toBeNull();
+      expect(ctx.authConfigCreate.cloneValues).toBeNull();
+    });
+
+    const mountPage = (cloneSource: object | null) => shallowMount(AuthConfigCreateProvider, {
+      data: () => ({
+        type, value: {}, editComponent: {}, cloneSource
+      } as any),
+      global: {
+        mocks: {
+          $route:      { params: { cluster: 'local', provider: 'github' }, query: { cloneConfig: 'github' } },
+          $fetchState: { pending: false, error: null },
+          $store:      { dispatch: jest.fn(), getters: { 'i18n/withFallback': () => 'GitHub' } },
+        },
+      },
+    }) as any;
+
+    it('should title the page after the config being cloned', () => {
+      const wrapper = mountPage({ id: 'github', nameDisplay: 'GitHub' });
+
+      expect(wrapper.find('[data-testid="auth-config-create-title"]').text()).toBe('%authConfig.create.clone.title%');
+    });
+
+    it('should report a config that cannot be cloned on the error page', () => {
+      const wrapper = mountPage(null);
+
+      expect(wrapper.findComponent(FailWhale).props('error').message).toBe('%authConfig.create.clone.notFound%');
     });
   });
 });
