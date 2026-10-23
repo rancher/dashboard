@@ -7,18 +7,11 @@ export interface GetterSource {
 }
 
 export function isConfigurableTablesEnabled(store?: GetterSource | null): boolean {
-  const getters = store?.rootGetters || store?.getters;
-  const get = getters?.['features/get'];
+  const get = (store?.rootGetters || store?.getters)?.['features/get'];
 
   // No store to ask, eg a resource with a partial context: use the flag's default, on
   if (typeof get !== 'function') {
     return true;
-  }
-
-  // A standalone product, eg Harvester, runs an extension's package as its own, so the package keeps
-  // the tables it was written for, as it does when Rancher loads it as an extension
-  if (getters?.['isSingleProduct']) {
-    return false;
   }
 
   // An older Rancher running an extension built with this shell has no such flag, and its store throws
@@ -48,6 +41,8 @@ export interface ExtensionContext {
   providedShell?: object | null;
   route?: Record<string, any> | null;
   extensions?: { getPlugins?: () => Record<string, ExtensionPlugin> } | null;
+  /** The app runs as a standalone product (the `isSingleProduct` getter), eg Harvester */
+  singleProduct?: boolean;
 }
 
 /**
@@ -57,8 +52,17 @@ export interface ExtensionContext {
  *
  * Not by product: an extension that adds pages to a product of the dashboard's lists it among its
  * own, which would take the table views off the dashboard's pages there too
+ *
+ * A standalone product, eg Harvester, builds an extension's package into the app, so its tables count
+ * as the extension's: they can still ask for table views, table by table
  */
-export function isExtensionTable({ providedShell, route, extensions }: ExtensionContext): boolean {
+export function isExtensionTable({
+  providedShell, route, extensions, singleProduct
+}: ExtensionContext): boolean {
+  if (singleProduct) {
+    return true;
+  }
+
   if (providedShell && providedShell !== TABLE_VIEWS_SHELL) {
     return true;
   }

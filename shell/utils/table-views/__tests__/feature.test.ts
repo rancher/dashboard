@@ -25,15 +25,10 @@ describe('isConfigurableTablesEnabled', () => {
     expect(isConfigurableTablesEnabled({ getters: { 'features/get': unknown } })).toBe(false);
   });
 
-  it('should be off in a standalone product, eg Harvester, even with the flag on', () => {
+  it('should follow the flag in a standalone product too, whose tables decide for themselves', () => {
     const singleProduct = { productNameKey: 'harvester.productLabel' };
 
-    expect(isConfigurableTablesEnabled({ getters: { 'features/get': flag(true), isSingleProduct: singleProduct } })).toBe(false);
-    expect(isConfigurableTablesEnabled({ rootGetters: { 'features/get': flag(true), isSingleProduct: singleProduct } })).toBe(false);
-  });
-
-  it('should follow the flag in Rancher, which is not a single product', () => {
-    expect(isConfigurableTablesEnabled({ getters: { 'features/get': flag(true), isSingleProduct: false } })).toBe(true);
+    expect(isConfigurableTablesEnabled({ getters: { 'features/get': flag(true), isSingleProduct: singleProduct } })).toBe(true);
   });
 
   it('should ask the root getters of a store action\'s context', () => {
@@ -80,6 +75,12 @@ describe('isExtensionTable', () => {
 
     expect(isExtensionTable({
       providedShell: TABLE_VIEWS_SHELL, route: listed, extensions
+    })).toBe(true);
+  });
+
+  it('should count a table in a standalone product, which builds an extension\'s package into the app', () => {
+    expect(isExtensionTable({
+      providedShell: TABLE_VIEWS_SHELL, route: route(), extensions, singleProduct: true
     })).toBe(true);
   });
 

@@ -426,7 +426,10 @@ export default {
 
     inExtension() {
       return isExtensionTable({
-        providedShell: this.providedTableViewsShell, route: this.$route, extensions: this.$store?.state?.$extension
+        providedShell: this.providedTableViewsShell,
+        route:         this.$route,
+        extensions:    this.$store?.state?.$extension,
+        singleProduct: !!this.$store?.getters?.['isSingleProduct'],
       });
     },
 
