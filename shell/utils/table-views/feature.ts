@@ -7,11 +7,18 @@ export interface GetterSource {
 }
 
 export function isConfigurableTablesEnabled(store?: GetterSource | null): boolean {
-  const get = (store?.rootGetters || store?.getters)?.['features/get'];
+  const getters = store?.rootGetters || store?.getters;
+  const get = getters?.['features/get'];
 
   // No store to ask, eg a resource with a partial context: use the flag's default, on
   if (typeof get !== 'function') {
     return true;
+  }
+
+  // A standalone product, eg Harvester, runs an extension's package as its own, so the package keeps
+  // the tables it was written for, as it does when Rancher loads it as an extension
+  if (getters?.['isSingleProduct']) {
+    return false;
   }
 
   // An older Rancher running an extension built with this shell has no such flag, and its store throws

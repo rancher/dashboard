@@ -25,6 +25,17 @@ describe('isConfigurableTablesEnabled', () => {
     expect(isConfigurableTablesEnabled({ getters: { 'features/get': unknown } })).toBe(false);
   });
 
+  it('should be off in a standalone product, eg Harvester, even with the flag on', () => {
+    const singleProduct = { productNameKey: 'harvester.productLabel' };
+
+    expect(isConfigurableTablesEnabled({ getters: { 'features/get': flag(true), isSingleProduct: singleProduct } })).toBe(false);
+    expect(isConfigurableTablesEnabled({ rootGetters: { 'features/get': flag(true), isSingleProduct: singleProduct } })).toBe(false);
+  });
+
+  it('should follow the flag in Rancher, which is not a single product', () => {
+    expect(isConfigurableTablesEnabled({ getters: { 'features/get': flag(true), isSingleProduct: false } })).toBe(true);
+  });
+
   it('should ask the root getters of a store action\'s context', () => {
     const root = flag(false);
     const local = flag(true);
