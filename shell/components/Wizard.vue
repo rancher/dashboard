@@ -381,6 +381,7 @@ export default {
                     :class="{step: true, active: step.name === activeStep.name, disabled: !isAvailable(step)}"
                   >
                     <RcButton
+                      type="button"
                       variant="ghost"
                       class="controls"
                       :aria-current="step.name === activeStep.name ? 'step' : null"
