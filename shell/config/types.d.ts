@@ -315,6 +315,8 @@ export const HCI: {
     DASHBOARD: string;
     IMAGE: string;
     VGPU_DEVICE: string;
+    PCI_DEVICE: string;
+    PCI_DEVICE_CLAIM: string;
     SETTING: string;
     RESOURCE_QUOTA: string;
     HARVESTER_CONFIG: string;

@@ -89,3 +89,52 @@ describe('an extension\'s table', () => {
     });
   });
 });
+
+describe('a standalone product\'s table, eg Harvester', () => {
+  const singleProductStore = (isSingleProduct: object | false) => ({
+    getters: { ...store.getters, isSingleProduct },
+    state:   store.state,
+  });
+  const HARVESTER = { productNameKey: 'harvester.productLabel' };
+
+  describe('resourceTable', () => {
+    const { showTableViews, inExtension } = ResourceTableViews.computed;
+
+    // A standalone product builds the package into the app, so its tables get the app's own copy of the shell
+    function table(isSingleProduct: object | false, tableViews: boolean | null = null) {
+      const ctx: Record<string, unknown> = {
+        $store: singleProductStore(isSingleProduct), $route: { meta: {} }, schema: { id: 'pod' }, hasAdvancedFiltering: false, tableViews, providedTableViewsShell: TABLE_VIEWS_SHELL
+      };
+
+      Object.defineProperty(ctx, 'inExtension', { get: () => inExtension.call(ctx) });
+
+      return ctx;
+    }
+
+    it('should keep the table it was written for, as an extension does', () => {
+      expect(showTableViews.call(table(HARVESTER))).toBe(false);
+    });
+
+    it('should have table views once the table asks for them', () => {
+      expect(showTableViews.call(table(HARVESTER, true))).toBe(true);
+    });
+
+    it('should still have table views in Rancher, which is not a single product', () => {
+      expect(showTableViews.call(table(false))).toBe(true);
+    });
+  });
+
+  describe('sortableTable', () => {
+    const { useTableViewsLayout } = SortableTable.computed as unknown as Record<string, (this: object) => boolean>;
+
+    const table = (isSingleProduct: object | false, tableViewsLayout: boolean | null = null) => ({
+      $store: singleProductStore(isSingleProduct), $route: { meta: {} }, tableViewsLayout, providedTableViewsShell: TABLE_VIEWS_SHELL
+    });
+
+    it('should keep its masthead unless it asks for the table views one', () => {
+      expect(useTableViewsLayout.call(table(HARVESTER))).toBe(false);
+      expect(useTableViewsLayout.call(table(HARVESTER, true))).toBe(true);
+      expect(useTableViewsLayout.call(table(false))).toBe(true);
+    });
+  });
+});

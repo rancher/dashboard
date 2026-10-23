@@ -1,3 +1,5 @@
+export const DEFAULT_AVAILABILITY_ZONES: readonly string[] = ['1', '2', '3'];
+
 // Indexed by region name, which callers only have as a plain string, so the keys are not narrowed
 export const regionsWithAvailabilityZones: Record<string, boolean> = {
   australiaeast:      true,
