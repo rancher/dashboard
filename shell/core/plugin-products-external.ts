@@ -330,13 +330,13 @@ export interface IExtensionProducts {
    * Register a top-level product as a flag on the plugin
    * @internal - DO NOT USE - Internal API only
    */
-  _registerTopLevelProduct(): void;
+  _registerTopLevelProduct(productName?: string): void;
 
   /**
    *
    * @internal - DO NOT USE - Internal API only
    */
-  _setStartRouteWithProduct(value: boolean): void;
+  _setStartRouteWithProduct(productName: string, value: boolean): void;
 
   /**
    * Add a product to the sidebar, with children and a side menu for navigation for internal pages

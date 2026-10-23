@@ -49,7 +49,8 @@ export type ProductFunction = (plugin: IPlugin, store: any) => void;
 export class Plugin implements IPlugin {
   public id: string;
   public name: string;
-  public topLevelProduct = false;
+  public topLevelProducts: Set<string> = new Set();
+  public startRouteWithProductByProduct: Record<string, boolean> = {};
   public types: ExtensionManagerTypes = {};
   public l10n: { [key: string]: Function[] } = {};
   public modelExtensions: { [key: string]: Function[] } = {};
@@ -119,11 +120,33 @@ export class Plugin implements IPlugin {
     this._validators = vals;
   }
 
-  _registerTopLevelProduct() {
-    this.topLevelProduct = true;
+  /**
+   * @deprecated Use {@link topLevelProducts} and {@link startRouteWithProductByProduct}.
+   *
+   * Extensions built against earlier 2.15 releases bundle copies of `Masthead.vue` and
+   * `resource-class.js` that read this plugin-wide boolean straight off the host's `Plugin`
+   * instance, so it has to keep resolving here or those already-published extensions
+   * silently lose top-level product routing.
+   *
+   * Deliberately reproduces the old plugin-wide semantics: such a reader has no product
+   * context to pass, so this is the most it could ever have known.
+   */
+  get topLevelProduct(): boolean {
+    return this.topLevelProducts.size > 0;
   }
 
-  _setStartRouteWithProduct(_value: boolean): void {
+  _registerTopLevelProduct(productName?: string) {
+    // Guard: a missing name would add `undefined` to the set, making the deprecated
+    // `topLevelProduct` getter above report true for a product that was never registered.
+    if (productName) {
+      this.topLevelProducts.add(productName);
+    }
+  }
+
+  _setStartRouteWithProduct(productName: string, val: boolean) {
+    if (typeof productName === 'string') {
+      this.startRouteWithProductByProduct[productName] = val;
+    }
   }
 
   // Track which products the plugin creates
