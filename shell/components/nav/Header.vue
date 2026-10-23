@@ -30,6 +30,7 @@ import {
   RcDropdownSeparator,
   RcDropdownTrigger
 } from '@components/RcDropdown';
+import { RcCounterBadge } from '@components/Pill';
 import { SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 import { CLUSTER_SHELL } from '@shell/store/features';
 
@@ -51,6 +52,7 @@ export default {
     RcDropdownItem,
     RcDropdownSeparator,
     RcDropdownTrigger,
+    RcCounterBadge,
   },
 
   props: {
@@ -479,6 +481,25 @@ export default {
       return null;
     },
 
+    getExtensionActionBadge(action) {
+      if (!action) {
+        return null;
+      }
+
+      if (typeof action.badge === 'function') {
+        const badge = action.badge();
+
+        if (badge && typeof badge.count === 'number') {
+          return {
+            count: Math.max(0, badge.count || 0),
+            color: badge.color || 'success'
+          };
+        }
+      }
+
+      return null;
+    },
+
     async updateExtensionActionsEnabled() {
       for (const [i, action] of this.extensionHeaderActions.entries()) {
         this.extensionActionsEnabled[i] = await this.isActionEnabled(action);
@@ -760,13 +781,24 @@ export default {
             @shortkey="handleExtensionAction(action, $event)"
             @click="handleExtensionAction(action, $event)"
           >
-            <IconOrSvg
-              class="icon icon-lg"
-              :icon="action.icon"
-              :src="action.svg"
-              :img-alt="action.tooltipKey ? t(action.tooltipKey) : action.labelKey ? t(action.labelKey) : action.label ? action.label : t('generic.imageAlt')"
-              color="header"
-            />
+            <div class="extension-action-icon-container">
+              <IconOrSvg
+                class="icon icon-lg"
+                :icon="action.icon"
+                :src="action.svg"
+                :img-alt="action.tooltipKey ? t(action.tooltipKey) : action.labelKey ? t(action.labelKey) : action.label ? action.label : t('generic.imageAlt')"
+                color="header"
+              />
+              <RcCounterBadge
+                v-if="getExtensionActionBadge(action)?.count > 0"
+                :count="getExtensionActionBadge(action)?.count"
+                type="active"
+                :class="[
+                  'extension-action-badge',
+                  getExtensionActionBadge(action)?.color
+                ]"
+              />
+            </div>
           </button>
         </template>
       </div>
@@ -1252,4 +1284,36 @@ export default {
     }
   }
 
+  .extension-action-icon-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .extension-action-badge {
+    top: 7px;
+    position: absolute;
+    padding: 0 4px;
+    min-width: 18px;
+    height: 18px;
+    align-items: center;
+    line-height: unset;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    border: none;
+    border-radius: 50%;
+    z-index: 1000;
+
+    &.error {
+      background-color: var(--error);
+      color: var(--error-text);
+    }
+
+    &.success {
+      background-color: var(--success);
+      color: var(--success-text);
+    }
+  }
 </style>
