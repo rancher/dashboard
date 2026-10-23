@@ -529,23 +529,34 @@ jobs:
             const versions = ['2.10', '2.11', '2.12', '2.13', '2.14', '2.15', 'latest'];
 
             // Each matrix row is a job named "Rancher <version_label>"; read its conclusion.
-            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: context.runId,
-              per_page: 100,
-            });
-            const conclusionByLabel = {};
-            for (const job of jobs) {
-              const m = job.name.match(/^Rancher (.+)$/);
-              if (m) { conclusionByLabel[m[1].trim()] = job.conclusion; }
+            // This job can start a few seconds before the API records the last row's conclusion,
+            // so re-read until every row has one (up to a minute).
+            let conclusionByLabel = {};
+
+            for (let attempt = 0; attempt < 12; attempt++) {
+              const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: context.runId,
+                per_page: 100,
+              });
+
+              conclusionByLabel = {};
+              for (const job of jobs) {
+                const m = job.name.match(/^Rancher (.+)$/);
+                if (m) { conclusionByLabel[m[1].trim()] = job.conclusion; }
+              }
+
+              if (versions.every((v) => conclusionByLabel[v])) { break; }
+              await new Promise((resolve) => setTimeout(resolve, 5000));
             }
 
             const emoji = { success: '✅', failure: '❌', skipped: '⏭️', cancelled: '🚫' };
             let anyFail = false;
             const cells = versions.map((v) => {
               const c = conclusionByLabel[v];
-              if (c === 'failure' || c === 'cancelled') { anyFail = true; }
+              // A row with no conclusion is unknown, not passed - never let it report the run as green.
+              if (!c || c === 'failure' || c === 'cancelled') { anyFail = true; }
               return `${v} ${emoji[c] || '⚪'}`;
             });
 
