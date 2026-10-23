@@ -29,6 +29,20 @@ describe('component: RcDrawer', () => {
     expect(wrapper.find('[data-testid="rc-drawer-title"]').text()).toBe('my-config (ConfigMap)');
   });
 
+  it('should make the title a level 2 heading', () => {
+    const title = mountDrawer().find('[data-testid="rc-drawer-title"]');
+
+    expect(title.attributes('role')).toBe('heading');
+    expect(title.attributes('aria-level')).toBe('2');
+  });
+
+  it('should render header actions between the title and the close button, outside the heading', () => {
+    const wrapper = mountDrawer({ slots: { 'header-actions': '<button data-testid="expand">Expand</button>' } });
+    const header = [...wrapper.find('.header').element.children].map((el) => el.getAttribute('data-testid'));
+
+    expect(header).toStrictEqual(['rc-drawer-title', 'expand', 'rc-drawer-close']);
+  });
+
   it('should show the title slot in place of the title', () => {
     const wrapper = mountDrawer({ slots: { title: '<span data-testid="custom-title">Custom</span>' } });
 

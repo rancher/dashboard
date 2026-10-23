@@ -1010,6 +1010,7 @@ useShell().slideIn.open(ResourceDrawer, {
 **Notes:**
 - The slide-in returns focus to the element that opened the drawer; pass `returnFocusSelector` when that element is re-rendered while the drawer is open
 - Don't pass `title` to `slideIn.open` for a component that renders `RcDrawer`, or it is wrapped in a second drawer
+- Closing on `close` is new in Rancher 2.16. If the extension also supports older versions, pass `onClose: () => store.commit('slideInPanel/close')` in `props` too, or the X and Close buttons do nothing there
 - Keep drawer content supplementary; never put a full edit form inside a Drawer
 - The footer always has Close; put the drawer's own actions in `#additional-actions`
 
@@ -1024,7 +1025,7 @@ Pattern for context-sensitive help or documentation that slides in from the righ
 
 **Notes:**
 - Open it with `slideIn.open(...)` like any other drawer; the slide-in traps focus and closes it on Escape
-- Use the `#title` slot for anything richer than plain text, such as breadcrumbs, and keep the `title` prop as its plain-text name
+- Use the `#title` slot for anything richer than plain text, such as breadcrumbs, and keep the `title` prop as its plain-text name. Put controls such as expand all in `#header-actions`, outside the title's heading
 - Pass `closeOnRouteChange` when the panel should stay open across some route changes
 - Use for help docs, API reference, or kubectl explain output — content that users want alongside the form they're filling in
 

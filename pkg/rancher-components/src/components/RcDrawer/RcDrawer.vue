@@ -11,6 +11,7 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import RcButton from '@components/RcButton/RcButton.vue';
+import { RcHeading } from '@components/RcHeading';
 import type { RcDrawerProps } from './types';
 
 const props = defineProps<RcDrawerProps>();
@@ -33,15 +34,20 @@ const closeAriaLabel = computed(() => t('component.drawer.chrome.ariaLabel.close
     :aria-label="title"
   >
     <div class="header">
-      <div
+      <RcHeading
+        :size="4"
         class="title"
+        role="heading"
+        aria-level="2"
         data-testid="rc-drawer-title"
       >
-        <!-- @slot The title, for when it needs more than the string the `title` prop takes. -->
+        <!-- @slot The title, for when it needs more than the string the `title` prop takes. It renders inside the drawer's heading, so put no heading in it, and put buttons in `header-actions`. -->
         <slot name="title">
           {{ title }}
         </slot>
-      </div>
+      </RcHeading>
+      <!-- @slot Controls for the drawer's content that sit in the header, between the title and the close button. -->
+      <slot name="header-actions" />
       <button
         type="button"
         class="btn role-link close"
@@ -98,8 +104,8 @@ const closeAriaLabel = computed(() => t('component.drawer.chrome.ariaLabel.close
       align-items: center;
       flex: 1;
       min-width: 0;
+      margin: 0;
       overflow-wrap: anywhere;
-      font-size: 16px;
     }
 
     .close {
@@ -121,10 +127,11 @@ const closeAriaLabel = computed(() => t('component.drawer.chrome.ariaLabel.close
 
   .footer {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
     align-items: center;
     gap: 16px;
-    height: 72px;
+    min-height: 72px;
     padding: 16px;
     background-color: var(--body-bg);
     border-top: 1px solid var(--border);

@@ -246,12 +246,12 @@ export default {
           class="icon plugin-icon-img"
         >
       </div>
-      <h2
+      <span
         class="plugin-title"
         data-testid="extension-details-title"
       >
         {{ info.label }}
-      </h2>
+      </span>
     </template>
     <p class="plugin-description">
       {{ info.description }}
@@ -374,8 +374,6 @@ export default {
   }
 
   .plugin-title {
-    margin: 0;
-    font: inherit;
     text-transform: capitalize;
   }
 

@@ -27,6 +27,12 @@ const meta: Meta<typeof RcDrawer> = {
       control:     false,
       table:       { category: 'slots' },
     },
+    headerActionsSlot: {
+      name:        'header-actions',
+      description: 'Controls for the drawer\'s content that sit in the header, between the title and the close button.',
+      control:     false,
+      table:       { category: 'slots' },
+    },
     additionalActionsSlot: {
       name:        'additional-actions',
       description: 'Buttons after the Close button, such as the drawer\'s primary action.',

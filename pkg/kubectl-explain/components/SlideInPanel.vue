@@ -167,6 +167,8 @@ export default {
       >
         {{ t('kubectl-explain.title') }}
       </div>
+    </template>
+    <template #header-actions>
       <button
         v-if="!busy && !noResource && definition"
         type="button"
@@ -263,7 +265,6 @@ export default {
     justify-content: center;
     width: $size;
     height: $size;
-    margin-left: 8px;
     color: var(--body-text);
   }
 

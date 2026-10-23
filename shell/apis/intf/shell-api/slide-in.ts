@@ -24,9 +24,11 @@ export type SlideInHeight = 'default' | 'full';
 export interface SlideInConfig {
   /**
    *
-   * title for the Slide-In panel.
-   * When set, a header bar with the title and a close button is displayed.
-   * When omitted, no header is shown.
+   * Title for the Slide-In panel.
+   * When set, the component is wrapped in the standard drawer (`RcDrawer`): a header with the title
+   * and a close button, a body, and a footer with Close.
+   * When omitted, the component renders its own chrome. Leave it out for a component whose root is
+   * `RcDrawer`, or the component is wrapped in a second drawer.
    *
    */
   title?: string;
@@ -108,22 +110,28 @@ export interface SlideInApi {
    * Example:
    * ```ts
    * import { useShell } from '@shell/apis';
-   * import MyCustomSlideIn from '@/components/MyCustomSlideIn.vue';
+   * import MyDrawer from '@/components/MyDrawer.vue';
    *
    * const shell = useShell();
    *
-   * shell.slideIn.open(MyCustomSlideIn, {
-   *   title: 'Hello from SlideIn panel!'
+   * shell.slideIn.open(MyDrawer, {
+   *   width: 'wide',
+   *   props: { resource }
    * });
    * ```
    *
-   * The panel closes when the component emits `close`:
+   * Make `RcDrawer` from `@components/RcDrawer` the root of the component, and leave `title` out so
+   * it is not wrapped in a second drawer. The panel closes when the component emits `close`:
    *
    * ```ts
    * const emit = defineEmits<{ close: [] }>();
    *
    * emit('close');
    * ```
+   *
+   * Closing on `close` is new in Rancher 2.16. Before that nothing listens for it, so an extension
+   * that also runs on older versions passes a handler with the props:
+   * `props: { resource, onClose: () => store.commit('slideInPanel/close') }`.
    *
    * @param component
    * The Vue component to be displayed inside the slide in panel.

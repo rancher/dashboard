@@ -62,6 +62,12 @@ describe('component: PluginInfoPanel', () => {
       expect(drawer.find('[data-testid="extension-details-title"]').text()).toBe('My Extension');
     });
 
+    it('should leave the drawer title as the only heading in the header', () => {
+      const { drawer } = mountDrawer();
+
+      expect(drawer.find('[data-testid="rc-drawer-title"]').findAll('h1, h2, h3, h4, h5, h6, [role="heading"]')).toHaveLength(0);
+    });
+
     it('should emit close when the drawer is closed', async() => {
       const { drawer } = mountDrawer();
 

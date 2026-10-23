@@ -128,6 +128,13 @@ describe('component: SlideInPanel', () => {
       definition: { properties: {} },
     };
 
+    it('sits in the drawer header, outside the title heading', () => {
+      const { wrapper } = mountPanel({ get: pending, data: withDefinition });
+
+      expect(wrapper.find('.header > .expand-all').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="rc-drawer-title"] .expand-all').exists()).toBe(false);
+    });
+
     it('shows aria-expanded="false" when expandAll is false', () => {
       const { wrapper } = mountPanel({ get: pending, data: { ...withDefinition, expandAll: false } });
       const toggleBtn = wrapper.find('.expand-all');

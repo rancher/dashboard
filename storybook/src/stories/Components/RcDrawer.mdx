@@ -18,7 +18,8 @@ every drawer, so they all share one header, body and footer.
 
 | Slot | Renders |
 |---|---|
-| `title` | The header title. Defaults to the `title` prop, so most drawers only set the prop. |
+| `title` | The header title. Defaults to the `title` prop, so most drawers only set the prop. It renders inside the drawer's heading, so put no heading in it. |
+| `header-actions` | Controls for the drawer's content that sit in the header, between the title and the close button, such as an expand all button. |
 | default | The body. Text goes straight in; wrap a form or a table in an `RcDrawerCard`. |
 | `additional-actions` | Buttons after the footer's Close button. |
 
@@ -104,6 +105,8 @@ Show Configuration puts before the resource name.
 
 - The drawer is a modal dialog named by its `title`. The `title` slot does not
   change that, so set the prop to the slot's plain text.
+- The title is a level 2 heading, so screen reader users can jump to it like
+  any other section of the page. Buttons go in `header-actions`, outside it.
 - Both close buttons are labelled with the title, so a screen reader announces
   which drawer they close.
 
