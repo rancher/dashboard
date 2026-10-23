@@ -82,9 +82,10 @@ describe('component: PluginInfoPanel', () => {
 
     it('should not show upgrade/downgrade for the installed version when the chart version differs from the app version', () => {
       wrapper.vm.info = {
-        installed:        true,
-        installedVersion: '4.1.0',
-        versions:         [{ version: '0.4.10', appVersion: '4.1.0' }]
+        installed:             true,
+        installedVersion:      '4.1.0',
+        installedChartVersion: '0.4.10',
+        versions:              [{ version: '0.4.10', appVersion: '4.1.0' }]
       };
       wrapper.vm.infoVersion = '0.4.10';
       const actions = wrapper.vm.panelActions;
@@ -117,9 +118,10 @@ describe('component: PluginInfoPanel', () => {
 
     it('should append (current) to the chart version carrying the installed app version', () => {
       wrapper.vm.info = {
-        installed:        true,
-        installedVersion: '4.1.0',
-        versions:         [{ version: '0.4.10', appVersion: '4.1.0' }]
+        installed:             true,
+        installedVersion:      '4.1.0',
+        installedChartVersion: '0.4.10',
+        versions:              [{ version: '0.4.10', appVersion: '4.1.0' }]
       };
       const label = wrapper.vm.getVersionLabel({ version: '0.4.10', appVersion: '4.1.0' });
 
@@ -140,11 +142,12 @@ describe('component: PluginInfoPanel', () => {
     });
 
     describe('currentVersion', () => {
-      it('should resolve the installed version to its chart version', () => {
+      it('should use the installed chart version resolved for the item', () => {
         wrapper.vm.info = {
-          installed:        true,
-          installedVersion: '4.1.0',
-          versions:         [{
+          installed:             true,
+          installedVersion:      '4.1.0',
+          installedChartVersion: '0.4.10',
+          versions:              [{
             version: '0.4.10', appVersion: '4.1.0', isVersionCompatible: true, versionIncompatibilityData: {}
           }]
         };
@@ -152,7 +155,7 @@ describe('component: PluginInfoPanel', () => {
         expect(wrapper.vm.currentVersion).toBe('0.4.10');
       });
 
-      it('should fall back to the installed version if no chart version matches it', () => {
+      it('should fall back to the installed version for items built without a chart version', () => {
         wrapper.vm.info = {
           installed: true, installedVersion: '4.1.0', versions: allVersions.slice(0, 1)
         };
@@ -277,10 +280,11 @@ describe('component: PluginInfoPanel', () => {
 
     it('should select the installed chart version when it differs from the app version', () => {
       wrapper.vm.show({
-        installed:        true,
-        installedVersion: '4.1.0',
+        installed:             true,
+        installedVersion:      '4.1.0',
+        installedChartVersion: '0.4.10',
         chart,
-        versions:         [chartVersion('0.4.11', '4.1.1'), chartVersion('0.4.10', '4.1.0')]
+        versions:              [chartVersion('0.4.11', '4.1.1'), chartVersion('0.4.10', '4.1.0')]
       });
 
       expect(wrapper.vm.infoVersion).toBe('0.4.10');
@@ -315,6 +319,37 @@ describe('component: PluginInfoPanel', () => {
       });
 
       expect(wrapper.vm.infoVersion).toBeUndefined();
+      expect(dispatch).toHaveBeenCalledTimes(0);
+    });
+
+    it('should fall back to the latest installable version when the installed one has been pruned from the repo index', () => {
+      wrapper.vm.show({
+        installed:             true,
+        installedVersion:      '1.0.0',
+        installedChartVersion: '1.0.0',
+        chart,
+        versions:              [chartVersion('2.0.0', '2.0.0')],
+        installableVersions:   [chartVersion('2.0.0', '2.0.0')],
+      });
+
+      expect(wrapper.vm.infoVersion).toBe('2.0.0');
+      expect(dispatch).toHaveBeenCalledWith('catalog/getVersionInfo', { ...versionInfoArgs, versionName: '2.0.0' });
+      expect(wrapper.vm.panelActions.some((action: any) => action.action === 'upgrade')).toBe(true);
+    });
+
+    it('should not select an incompatible version whose chart version differs from its app version', () => {
+      wrapper.vm.show({
+        installed:           false,
+        chart,
+        versions:            [chartVersion('0.4.11', '4.1.1', false), chartVersion('0.4.10', '4.1.0')],
+        installableVersions: [chartVersion('0.4.10', '4.1.0')],
+      });
+      dispatch.mockClear();
+
+      // the version links are only disabled by class, so an incompatible one can still be clicked
+      wrapper.vm.loadPluginVersionInfo('0.4.11');
+
+      expect(wrapper.vm.infoVersion).toBe('0.4.10');
       expect(dispatch).toHaveBeenCalledTimes(0);
     });
 

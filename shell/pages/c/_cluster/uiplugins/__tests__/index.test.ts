@@ -126,11 +126,12 @@ describe('page: UI plugins/Extensions', () => {
 
     it('should return downgrade action for an installed plugin with older installable versions', () => {
       const plugin = {
-        installed:           true,
-        installableVersions: [{ version: '1.0.0' }, { version: '0.9.0' }],
-        builtin:             false,
-        upgrade:             null,
-        installedVersion:    '1.0.0',
+        installed:             true,
+        installableVersions:   [{ version: '1.0.0' }, { version: '0.9.0' }],
+        builtin:               false,
+        upgrade:               null,
+        installedVersion:      '1.0.0',
+        installedChartVersion: '1.0.0',
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
@@ -139,17 +140,44 @@ describe('page: UI plugins/Extensions', () => {
 
     it('should return all applicable actions (upgrade, downgrade, uninstall)', () => {
       const plugin = {
-        installed:           true,
-        installableVersions: [{ version: '1.1.0' }, { version: '1.0.0' }, { version: '0.9.0' }],
-        builtin:             false,
-        upgrade:             '1.1.0',
-        installedVersion:    '1.0.0',
+        installed:             true,
+        installableVersions:   [{ version: '1.1.0' }, { version: '1.0.0' }, { version: '0.9.0' }],
+        builtin:               false,
+        upgrade:               '1.1.0',
+        installedVersion:      '1.0.0',
+        installedChartVersion: '1.0.0',
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
       expect(actions.map((action: any) => action.action)).toContain('uninstall');
       expect(actions.map((action: any) => action.action)).toContain('upgrade');
       expect(actions.map((action: any) => action.action)).toContain('downgrade');
+    });
+
+    it('should not offer a downgrade from a chart whose app version is higher than its chart versions', () => {
+      const plugin = {
+        installed:             true,
+        builtin:               false,
+        installedVersion:      '4.1.0',
+        installedChartVersion: '0.4.10',
+        installableVersions:   [{ version: '0.4.11' }, { version: '0.4.10' }],
+      };
+      const actions = wrapper.vm.getPluginActions(plugin);
+
+      expect(actions.some((action: any) => action.action === 'downgrade')).toBe(false);
+    });
+
+    it('should offer a downgrade to a lower chart version', () => {
+      const plugin = {
+        installed:             true,
+        builtin:               false,
+        installedVersion:      '4.1.1',
+        installedChartVersion: '0.4.11',
+        installableVersions:   [{ version: '0.4.11' }, { version: '0.4.10' }],
+      };
+      const actions = wrapper.vm.getPluginActions(plugin);
+
+      expect(actions.some((action: any) => action.action === 'downgrade')).toBe(true);
     });
   });
 
@@ -906,20 +934,21 @@ describe('page: UI plugins/Extensions', () => {
       const result = wrapper.vm.buildLoadedPluginItem(plugin);
 
       expect(result).toStrictEqual({
-        name:                'my-plugin',
-        label:               'my-plugin',
-        description:         'Plugin description',
-        icon:                'plugin-icon.svg',
-        id:                  'my-plugin-id',
-        versions:            [],
-        displayVersion:      '1.2.3',
-        displayVersionLabel: '1.2.3',
-        installed:           true,
-        installedVersion:    '1.2.3',
-        builtin:             false,
-        primeOnly:           false,
-        experimental:        false,
-        certified:           false,
+        name:                  'my-plugin',
+        label:                 'my-plugin',
+        description:           'Plugin description',
+        icon:                  'plugin-icon.svg',
+        id:                    'my-plugin-id',
+        versions:              [],
+        displayVersion:        '1.2.3',
+        displayVersionLabel:   '1.2.3',
+        installed:             true,
+        installedVersion:      '1.2.3',
+        installedChartVersion: '1.2.3',
+        builtin:               false,
+        primeOnly:             false,
+        experimental:          false,
+        certified:             false,
       });
     });
 
@@ -1232,6 +1261,162 @@ describe('page: UI plugins/Extensions', () => {
 
         expect(all[0].displayVersion).toBe('1.0.0');
         expect(all[0].displayVersionLabel).toBe('1.0.0');
+      });
+
+      it('should resolve the installed app version into a chart version for the rest of the UI', () => {
+        const all: any[] = [chartWithVersions([
+          {
+            version: '0.4.11', appVersion: '4.1.1', annotations: {}
+          },
+          {
+            version: '0.4.10', appVersion: '4.1.0', annotations: {}
+          },
+        ])];
+
+        wireWrapper.vm.wirePluginCRToChart({ name: 'my-plugin', version: '4.1.0' }, all);
+
+        expect(all[0].installedChartVersion).toBe('0.4.10');
+      });
+
+      it('should fall back to the raw installed version when the repo index no longer lists it', () => {
+        const all: any[] = [chartWithVersions([{
+          version: '2.0.0', appVersion: '2.0.0', annotations: {}
+        }])];
+
+        wireWrapper.vm.wirePluginCRToChart({ name: 'my-plugin', version: '1.0.0' }, all);
+
+        expect(all[0].installedChartVersion).toBe('1.0.0');
+      });
+
+      it('should show the last updated date and icon of the installed version', () => {
+        const all: any[] = [{
+          ...chartWithVersions([
+            {
+              version: '2.0.0', appVersion: '2.0.0', annotations: {}, created: '2026-05-01T00:00:00Z', icon: 'new-icon.svg'
+            },
+            {
+              version: '1.0.0', appVersion: '1.0.0', annotations: {}, created: '2025-01-01T00:00:00Z', icon: 'old-icon.svg'
+            },
+          ]),
+          created: '2026-05-01T00:00:00Z',
+          icon:    'new-icon.svg',
+        }];
+
+        wireWrapper.vm.wirePluginCRToChart({ name: 'my-plugin', version: '1.0.0' }, all);
+
+        expect(all[0].created).toBe('2025-01-01T00:00:00Z');
+        expect(all[0].icon).toBe('old-icon.svg');
+      });
+
+      it('should keep the existing icon when the installed version has none of its own', () => {
+        const all: any[] = [{
+          ...chartWithVersions([
+            {
+              version: '2.0.0', appVersion: '2.0.0', annotations: {}, icon: 'chart-icon.svg'
+            },
+            {
+              version: '1.0.0', appVersion: '1.0.0', annotations: {}
+            },
+          ]),
+          icon: 'chart-icon.svg',
+        }];
+
+        wireWrapper.vm.wirePluginCRToChart({ name: 'my-plugin', version: '1.0.0' }, all);
+
+        expect(all[0].icon).toBe('chart-icon.svg');
+      });
+    });
+
+    describe('upgrade available', () => {
+      const apps = [{
+        metadata: {
+          name:      'my-plugin',
+          namespace: UI_PLUGIN_NAMESPACE,
+          labels:    { [CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME]: 'rancher-charts' }
+        },
+        spec: { chart: { metadata: { annotations: {} } } }
+      }];
+
+      const chartWith = (versions: any[], installableVersions: any[]) => ({
+        name:  'my-plugin',
+        chart: { repoName: 'rancher-charts' },
+        versions,
+        installableVersions,
+      });
+
+      beforeEach(() => {
+        wireWrapper = createWireWrapper(apps);
+      });
+
+      it('should not offer an upgrade to a version older than the one installed', () => {
+        // 2.0.0 is installed but has become incompatible, so only 1.0.0 is still installable
+        const all: any[] = [chartWith(
+          [
+            {
+              version: '2.0.0', appVersion: '2.0.0', annotations: {}, isVersionCompatible: false
+            },
+            {
+              version: '1.0.0', appVersion: '1.0.0', annotations: {}, isVersionCompatible: true
+            },
+          ],
+          [{
+            version: '1.0.0', appVersion: '1.0.0', annotations: {}
+          }]
+        )];
+
+        wireWrapper.vm.wirePluginCRToChart({ name: 'my-plugin', version: '2.0.0' }, all);
+
+        expect(all[0].upgrade).toBeUndefined();
+      });
+
+      it('should compare chart versions rather than app versions', () => {
+        const all: any[] = [chartWith(
+          [
+            {
+              version: '0.4.11', appVersion: '4.1.1', annotations: {}
+            },
+            {
+              version: '0.4.10', appVersion: '4.1.0', annotations: {}
+            },
+          ],
+          [{
+            version: '0.4.11', appVersion: '4.1.1', annotations: {}
+          }]
+        )];
+
+        wireWrapper.vm.wirePluginCRToChart({ name: 'my-plugin', version: '4.1.0' }, all);
+
+        expect(all[0].upgrade).toBe('4.1.1 (0.4.11)');
+      });
+
+      it('should compare app versions when the installed version is missing from the repo index', () => {
+        const all: any[] = [chartWith(
+          [{
+            version: '2.0.0', appVersion: '2.0.0', annotations: {}
+          }],
+          [{
+            version: '2.0.0', appVersion: '2.0.0', annotations: {}
+          }]
+        )];
+
+        wireWrapper.vm.wirePluginCRToChart({ name: 'my-plugin', version: '1.0.0' }, all);
+
+        expect(all[0].upgrade).toBe('2.0.0');
+      });
+
+      it('should not offer an upgrade when the installed version is the latest installable one', () => {
+        const all: any[] = [chartWith(
+          [{
+            version: '2.0.0', appVersion: '2.0.0', annotations: {}
+          }],
+          [{
+            version: '2.0.0', appVersion: '2.0.0', annotations: {}
+          }]
+        )];
+
+        wireWrapper.vm.wirePluginCRToChart({ name: 'my-plugin', version: '2.0.0' }, all);
+
+        expect(all[0].upgrade).toBeUndefined();
       });
     });
 
