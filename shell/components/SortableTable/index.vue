@@ -723,7 +723,10 @@ export default {
 
       // An extension's table keeps the masthead it was written for unless it asks for this one
       return isConfigurableTablesEnabled(this.$store) && !isExtensionTable({
-        providedShell: this.providedTableViewsShell, route: this.$route, extensions: this.$store?.state?.$extension
+        providedShell: this.providedTableViewsShell,
+        route:         this.$route,
+        extensions:    this.$store?.state?.$extension,
+        singleProduct: !!this.$store?.getters?.['isSingleProduct'],
       });
     },
 
