@@ -40,17 +40,17 @@ const mockAgentArgs = { 'cloud-provider-name': { options: [], profile: { options
 const mockServerArgs = { disable: { options: [] }, cni: { options: [] } };
 
 jest.mock('@shell/edit/provisioning.cattle.io.cluster/shared', () => ({
-  RETENTION_DEFAULT:         5,
-  RKE2_INGRESS_NGINX:        'rke2-ingress-nginx',
-  RKE2_TRAEFIK:              'rke2-traefik',
-  INGRESS_NGINX:             'ingress-nginx',
-  INGRESS_CONTROLLER:        'ingress-controller',
-  TRAEFIK:                   'traefik',
-  HARVESTER:                 'harvester',
-  INGRESS_DUAL:              'dual',
-  INGRESS_NONE:              'none',
-  INGRESS_OPTIONS:           [],
-  INGRESS_MIGRATION_KB_LINK: 'mock-link'
+  RETENTION_DEFAULT:           5,
+  RKE2_INGRESS_NGINX:          'rke2-ingress-nginx',
+  RKE2_TRAEFIK:                'rke2-traefik',
+  INGRESS_NGINX:               'ingress-nginx',
+  INGRESS_CONTROLLER:          'ingress-controller',
+  TRAEFIK:                     'traefik',
+  HARVESTER:                   'harvester',
+  INGRESS_DUAL:                'dual',
+  INGRESS_NONE:                'none',
+  INGRESS_OPTIONS:             [],
+  INGRESS_MIGRATION_DOCS_LINK: 'mock-link'
 }));
 const mockRke2Charts = {
   [RKE2_INGRESS_NGINX]: {},

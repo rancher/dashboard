@@ -35,7 +35,7 @@ export const INGRESS_OPTIONS = [
   }
 ];
 
-export const INGRESS_MIGRATION_KB_LINK = 'https://support.scc.suse.com/s/kb/How-to-migrate-the-Rancher-Ingress-to-Traefik-in-an-RKE2-cluster';
+export const INGRESS_MIGRATION_DOCS_LINK = 'https://docs.rke2.io/reference/ingress_migration';
 export const INGRESS_CLASS_DEFAULT = 'nginx';
 export const INGRESS_CONTROLLER_CLASS_DEFAULT = 'k8s.io/ingress-nginx';
 export const INGRESS_CLASS_MIGRATION = 'rke2-ingress-nginx-migration';

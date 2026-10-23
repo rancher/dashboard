@@ -2596,7 +2596,6 @@ cluster:
         other { {pool_name}: The provided values for {fields} were not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
       }
     rke1DeprecationMessage: 'Rancher Kubernetes Engine (RKE / RKE1) has reached end of life and these clusters are no longer supported. We recommend replatforming RKE1 clusters to RKE2 to ensure continued support and security updates. Learn more about the transition <a href="https://www.suse.com/support/kb/doc/?id=000021518" target="_blank" rel="noopener noreferrer nofollow">here</a>.'
-    nginxDeprecated: The NGINX controller is deprecated and will be removed in upcoming versions
   rke1Unsupported: RKE1 Clusters are no longer supported
 
   architecture:
@@ -2972,7 +2971,7 @@ cluster:
     nginx:
       header: Ingress-NGINX
       contentUnsupported: Ingress-NGINX is unavailable with Kubernetes 1.37 or later. Choose Traefik instead.
-      content: Choose this only if your workloads are not yet ready for Traefik.
+      content: Choose this only if your workloads are not yet ready for Traefik. Standalone Ingress-NGINX is unsupported with Kubernetes 1.37 or later.
     dual:
       header: Dual Mode
       content: Use this to safely test and migrate traffic from Ingress-NGINX to Traefik.
@@ -2999,14 +2998,14 @@ cluster:
       transitioning:
         label: Rancher is transitioning to Traefik as the default provider. While Ingress-NGINX remains available for migration purposes, we recommend moving workloads to Traefik to ensure long-term compatibility and support.
       nginxUpgradeBlocked:
-        label: Kubernetes 1.37 or later cannot use standalone Ingress-NGINX. Select Traefik or Dual Mode before upgrading.
+        label: Kubernetes 1.37 or later cannot use standalone Ingress-NGINX. Select Traefik or Dual Mode. We strongly recommend running in Dual Mode and confirming your workloads before upgrading. Please review our <docsUrl>migration documentation</docsUrl>.
       nginxUpgradeWarning:
         label: After upgrading to Kubernetes 1.37 or later, you cannot switch back to standalone Ingress-NGINX.
       disabled:
         label: Without an Ingress controller, services in this cluster will not be reachable via external URLs or hostnames. You will need to manually configure an alternative routing solution to expose your workloads.
       selected:
         ingress-nginx:
-          label: Ingress-NGINX is now deprecated and will be removed in a future release. To avoid service interruptions, please begin migrating your Ingress resources to Traefik. Please review our <docsUrl>migration documentation</docsUrl>.
+          label: Ingress-NGINX reached end of life in March 2026 and no longer receives fixes. It is unavailable with Kubernetes 1.37 or later. To avoid service interruptions, please begin migrating your Ingress resources to Traefik. Please review our <docsUrl>migration documentation</docsUrl>.
         traefik:
           label: Before switching to Traefik, please review our <docsUrl>migration documentation</docsUrl> to ensure your Ingress resources are updated to support Traefik’s configuration requirements.
         dual:
