@@ -8,9 +8,6 @@ import { get, set } from '@shell/utils/object';
 import { fetchProjectMembershipPermissions } from '@shell/utils/project-permissions';
 import { canViewMembershipEditor } from '@shell/utils/membership-permissions';
 
-// re-exported: extensions and other components import these from this component
-export { canViewMembershipEditor, canViewMembershipEditorList } from '@shell/utils/membership-permissions';
-
 function normalizeId(id) {
   return id?.replace(':', '/') || id;
 }
