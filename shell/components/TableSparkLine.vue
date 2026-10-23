@@ -76,6 +76,9 @@ export default {
     }
   },
   // track when component is mounted to use d3 DOM reference
+  // The size is measured once, on mount. Inside a collapsed RcSection, which keeps its content mounted but hidden,
+  // that size is 0, so to be used there this needs to measure again once shown (see observeReveal in
+  // @components/utils/reveal)
   mounted() {
     this.isMounted = true;
   },

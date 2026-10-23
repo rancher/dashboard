@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
+import * as reveal from '@components/utils/reveal';
 
 describe('component: TextAreaAutoGrow', () => {
   it('should recalculate its height when the value changes programmatically and resizeOnValueChangeAndResizeWindow is set', async() => {
@@ -211,6 +212,49 @@ describe('component: TextAreaAutoGrow', () => {
 
       expect(heightsSeen).not.toContain('1px');
       expect(heightsSeen).toContain('100px');
+    });
+  });
+
+  describe('when mounted while hidden', () => {
+    let stopObservingReveal: jest.Mock;
+    let observeReveal: jest.SpyInstance;
+
+    beforeEach(() => {
+      stopObservingReveal = jest.fn();
+      observeReveal = jest.spyOn(reveal, 'observeReveal').mockReturnValue(stopObservingReveal);
+    });
+
+    afterEach(() => {
+      observeReveal.mockRestore();
+    });
+
+    it('should watch the textarea for being shown', () => {
+      const wrapper = mount(TextAreaAutoGrow, { props: { value: '' } });
+
+      expect(observeReveal).toHaveBeenCalledWith(wrapper.find('textarea').element, expect.any(Function));
+    });
+
+    it('should recalculate its height when the textarea is shown', () => {
+      const component = TextAreaAutoGrow as unknown as { methods: Record<string, () => void> };
+      const autoSizeSpy = jest.spyOn(component.methods, 'autoSize');
+
+      mount(TextAreaAutoGrow, { props: { value: 'one-word' } });
+      autoSizeSpy.mockClear();
+
+      const onReveal = observeReveal.mock.calls[0][1] as () => void;
+
+      onReveal();
+
+      expect(autoSizeSpy).toHaveBeenCalledWith();
+      autoSizeSpy.mockRestore();
+    });
+
+    it('should stop watching the textarea when unmounted', () => {
+      const wrapper = mount(TextAreaAutoGrow, { props: { value: '' } });
+
+      wrapper.unmount();
+
+      expect(stopObservingReveal).toHaveBeenCalledWith();
     });
   });
 });
