@@ -57,6 +57,7 @@ jest.mock('@shell/core/productDebugger', () => ({
 function createMockPlugin(): IExtension {
   return {
     _registerTopLevelProduct:   jest.fn(),
+    _setStartRouteWithProduct:  jest.fn(),
     addRoute:                   jest.fn(),
     enableServerSidePagination: jest.fn(),
     DSL:                        jest.fn(),

@@ -375,6 +375,52 @@ describe('class: Resource', () => {
     });
   });
 
+  describe('getter: isProdRegistrationV2TopLevelProductResoure', () => {
+    // Regression for https://github.com/rancher/dashboard/issues/19678 - a plugin that registers
+    // its own top-level product AND extends `explorer` must not make core Explorer resources
+    // resolve to `explorer-c-cluster-resource-namespace-id`, a route that does not exist. That
+    // left `detailLocation` unresolvable, so the Name cell rendered blank and row actions were inert.
+    function serviceOnProduct(productId: string, plugin: any) {
+      return new Resource({
+        type: 'service', id: 'default/nginx', metadata: { namespace: 'default', name: 'nginx' }
+      }, {
+        getters:     { schemaFor: () => ({ attributes: { namespaced: true }, linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: {
+          'i18n/t': jest.fn(), productId, clusterId: 'local'
+        },
+        rootState: { $extension: { getPlugins: () => ({ 'my-extension': plugin }) } },
+      });
+    }
+
+    // One plugin, two products: its own top-level one, plus `explorer` which it only extends.
+    // `topLevelProduct` mirrors the real `Plugin`, where the deprecated getter reports true as
+    // soon as any top-level product is registered. It is what the pre-fix code read, so leaving
+    // it out would make these assertions pass against the broken implementation too.
+    const mixedPlugin = {
+      productNames:                   ['my-product', 'explorer'],
+      topLevelProducts:               new Set(['my-product']),
+      startRouteWithProductByProduct: { 'my-product': true },
+      topLevelProduct:                true,
+    };
+
+    it('should be true on the product the plugin registered as top-level', () => {
+      expect(serviceOnProduct('my-product', mixedPlugin).isProdRegistrationV2TopLevelProductResoure).toBe(true);
+    });
+
+    it('should be false on a core product the same plugin only extends', () => {
+      expect(serviceOnProduct('explorer', mixedPlugin).isProdRegistrationV2TopLevelProductResoure).toBe(false);
+    });
+
+    it('should keep detailLocation on the core route for an extended product', () => {
+      expect(serviceOnProduct('explorer', mixedPlugin).detailLocation.name).toBe('c-cluster-product-resource-namespace-id');
+    });
+
+    it('should keep listLocation on the core route for an extended product', () => {
+      expect(serviceOnProduct('explorer', mixedPlugin).listLocation.name).toBe('c-cluster-product-resource');
+    });
+  });
+
   describe('getter: resourceEvents', () => {
     it('should return events from the store', () => {
       const mockEvents = [{ type: 'Normal', reason: 'Test' }];
