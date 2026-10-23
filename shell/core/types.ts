@@ -147,6 +147,11 @@ export type Action = {
    * nothing else. Defaults to false: the action is a button.
    */
   hidden?: boolean;
+  /**
+   * Header actions: badge to display on the button.
+   * Contains the count and color of the badge.
+   */
+  badge?: () => { count: number, color: string } | null;
   invoke: (opts: ActionOpts, resources: any[], globals?: any) => void | boolean | Promise<boolean>;
 };
 
