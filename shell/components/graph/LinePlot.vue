@@ -165,21 +165,21 @@ export default {
 
     .line {
         fill: none;
-        stroke: #64399a;
+        stroke: var(--color-purple-553);
         stroke-width: 2px;
     }
 
     .data-circle {
-        fill: #1b1c21;
-        stroke: #64399a;
+        fill: var(--color-gray-772);
+        stroke: var(--color-purple-553);
     }
 
     g:nth-of-type(2n) *{
-          stroke: #306990;
+          stroke: var(--color-blue-500);
     }
 
     .grid .tick line {
-        stroke: white;
+        stroke: var(--color-white);
         opacity: 0.25;
     }
 

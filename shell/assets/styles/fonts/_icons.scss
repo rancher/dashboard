@@ -1,6 +1,8 @@
 
 @use "sass:math";
 
+@import "~@components/design-system/color-variables";
+
 @import "@rancher/icons/style.scss";
 
 // Animated Icons
@@ -30,7 +32,7 @@
 
 // FontAwesomeness
 $icon-li-width:         math.div(30em, 14) !default;
-$icon-inverse:          #fff !default;
+$icon-inverse:          $color-white !default;
 
 .icon {
   display: inline-block;

@@ -150,7 +150,7 @@ export default {
     right: -8px;
     font-size: 14px;
     color: var(--body-text);
-    background-color: #dddee6;
+    background-color: var(--color-gray-98);
     padding: 2px;
     border-radius: 2px;
   }

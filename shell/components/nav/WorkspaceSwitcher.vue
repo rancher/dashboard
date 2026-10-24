@@ -175,7 +175,7 @@ export default {
 }
 
 .filter :deep() .unlabeled-select .vs__dropdown-toggle {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--color-black-a5);
   border-radius: var(--border-radius);
   border: 1px solid var(--header-btn-bg);
   color: var(--header-btn-text);

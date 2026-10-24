@@ -481,18 +481,19 @@ defineExpose({ view });
 
 <style lang="scss" scoped>
 .rc-code-mirror {
-  --rc-cm-bg: var(--rc-section-background-secondary, #F5F7FA);
-  --rc-cm-selection: #E0E0E0;
-  --rc-cm-key: #1A4FA8;
-  --rc-cm-string: #8A4B10;
-  --rc-cm-keyword: #9A2B94;
-  --rc-cm-comment: #5B616D;
-  --rc-cm-text: #16181D;
-  --rc-cm-gutter: #5B626C;
-  --rc-cm-fold-hover: #E8ECF2;
-  --rc-cm-active-line: rgba(0, 0, 0, 0.04);
-  --rc-cm-search-match: rgba(255, 213, 0, 0.4);
-  --rc-cm-search-match-selected: rgba(255, 140, 0, 0.5);
+  --rc-cm-bg: var(--rc-section-background-secondary, var(--color-gray-25));
+  --rc-cm-bg-mask: var(--color-gray-25-a75);
+  --rc-cm-selection: var(--color-gray-93);
+  --rc-cm-key: var(--color-blue-552);
+  --rc-cm-string: var(--color-orange-520);
+  --rc-cm-keyword: var(--color-pink-500);
+  --rc-cm-comment: var(--color-blue-508);
+  --rc-cm-text: var(--color-gray-791);
+  --rc-cm-gutter: var(--color-gray-506);
+  --rc-cm-fold-hover: var(--color-gray-58);
+  --rc-cm-active-line: var(--color-black-a4);
+  --rc-cm-search-match: var(--color-yellow-117-a40);
+  --rc-cm-search-match-selected: var(--color-orange-249-a50);
   --rc-cm-color-scheme: light;
 
   // A column, so the editor shrinks to make room for the bottom panels strip in a fixed height
@@ -590,7 +591,7 @@ defineExpose({ view });
       color: var(--rc-cm-text);
       background-color: var(--rc-cm-bg);
       border: none;
-      border-bottom: 1px solid var(--border, #DCDEE7);
+      border-bottom: 1px solid var(--border, var(--color-gray-99));
     }
 
     :deep(.cm-vim-panel) {
@@ -732,18 +733,19 @@ defineExpose({ view });
 }
 
 .rc-code-mirror:is(.theme-dark *) {
-  --rc-cm-bg: #171C22;
-  --rc-cm-selection: #303030;
-  --rc-cm-key: #79B8FF;
-  --rc-cm-string: #E0A458;
-  --rc-cm-keyword: #E48AD8;
-  --rc-cm-comment: #9AA1AC;
-  --rc-cm-text: #E6E9EF;
-  --rc-cm-gutter: #9AA1AC;
-  --rc-cm-fold-hover: #3C4655;
-  --rc-cm-active-line: rgba(255, 255, 255, 0.04);
-  --rc-cm-search-match: rgba(255, 213, 0, 0.25);
-  --rc-cm-search-match-selected: rgba(255, 140, 0, 0.45);
+  --rc-cm-bg: var(--color-gray-777);
+  --rc-cm-bg-mask: var(--color-gray-777-a75);
+  --rc-cm-selection: var(--color-gray-691);
+  --rc-cm-key: var(--color-blue-231);
+  --rc-cm-string: var(--color-orange-239);
+  --rc-cm-keyword: var(--color-pink-247);
+  --rc-cm-comment: var(--color-gray-293);
+  --rc-cm-text: var(--color-gray-67);
+  --rc-cm-gutter: var(--color-gray-293);
+  --rc-cm-fold-hover: var(--color-blue-609);
+  --rc-cm-active-line: var(--color-white-a4);
+  --rc-cm-search-match: var(--color-yellow-117-a25);
+  --rc-cm-search-match-selected: var(--color-orange-249-a45);
   --rc-cm-color-scheme: dark;
 }
 </style>

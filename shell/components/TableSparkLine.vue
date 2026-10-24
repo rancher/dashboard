@@ -104,7 +104,7 @@ export default {
     }
     path {
         fill: none;
-        stroke: #6e3daa;
+        stroke: var(--color-purple-524);
         stroke-width: 1.5px
     }
 

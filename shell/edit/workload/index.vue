@@ -717,7 +717,7 @@ export default {
 }
 
 .type-placeholder {
-  color: white;
+  color: var(--color-white);
   font-size: 2.5em;
   height: 100%;
   width: 100%;

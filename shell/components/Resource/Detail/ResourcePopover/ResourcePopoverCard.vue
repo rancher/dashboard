@@ -164,7 +164,7 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
     }
 
     .btn.variant-link.rc-button.variant-ghost {
-      color: #141419;
+      color: var(--color-gray-806);
       padding: 0 12px;
       i {
         display: inline-flex;

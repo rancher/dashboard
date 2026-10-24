@@ -622,7 +622,7 @@ export default {
     .tab-badge {
       margin-left: 5px;
       background-color: var(--link);
-      color: #fff;
+      color: var(--color-white);
       border-radius: 6px;
       padding: 1px 7px;
       font-size: 11px;

@@ -1232,7 +1232,7 @@ $query-height: 32px;
     padding: 0 4px;
     border-radius: 4px;
     // Mixed from a live token: the compiled tints stay Rancher blue on a Prime install
-    background: color-mix(in srgb, var(--active, var(--primary)) 12%, transparent);
+    background: var(--active-light-bg);
     // `--link` keeps its blue in dark on Prime; `--active` follows the brand
     color: var(--active, var(--primary));
   }

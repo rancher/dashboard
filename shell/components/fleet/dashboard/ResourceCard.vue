@@ -8,6 +8,7 @@ import FleetUtils from '@shell/utils/fleet';
 import { FleetDashboardState, FleetResourceState } from '@shell/types/fleet';
 import suseAppCoLogo from '@shell/assets/images/content/suse.svg';
 import suseAppCoLogoDark from '@shell/assets/images/content/dark/suse.svg';
+import { COLOR_TOKENS } from '@components/design-system/colors';
 
 export default {
 
@@ -53,7 +54,7 @@ export default {
           return [{
             id:          state.id,
             icon:        'icon-warning',
-            customColor: '#DAC342',
+            customColor: COLOR_TOKENS['--color-yellow-186'],
             tooltip:     {},
             handleClick: () => {},
           }];

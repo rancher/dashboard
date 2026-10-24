@@ -2296,7 +2296,7 @@ export default {
       display: flex;
       justify-content: center;
       align-items: center;
-      background: #fff;
+      background: var(--color-white);
       border-radius: var(--border-radius);
 
       .logo {

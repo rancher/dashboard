@@ -689,7 +689,7 @@ watch(groupPanel, (panel) => {
     // Shown but unavailable: a fainter version of the shown colour rather than grey, which reads as
     // off
     &.locked {
-      color: color-mix(in srgb, var(--active, var(--primary)) 50%, transparent);
+      color: var(--active-muted);
       cursor: default;
 
       .column-handle { cursor: default; }
@@ -699,9 +699,9 @@ watch(groupPanel, (panel) => {
     &.held {
       position: relative;
       z-index: 1;
-      background: color-mix(in srgb, var(--primary) 14%, transparent);
+      background: var(--primary-held-bg);
       transform: scale(1.02);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+      box-shadow: 0 6px 16px var(--color-black-a28);
       transition: transform 0.2s $drag-displace-curve, box-shadow 0.2s $drag-displace-curve, background-color 0.2s $drag-displace-curve;
     }
   }

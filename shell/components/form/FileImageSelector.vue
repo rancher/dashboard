@@ -113,7 +113,7 @@ $logo: 60px;
     height: 100%;
     border-radius: calc(2 * var(--border-radius));
     overflow: hidden;
-    background-color: white;
+    background-color: var(--color-white);
 
     img {
       object-fit: contain;

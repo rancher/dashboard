@@ -82,9 +82,9 @@ withDefaults(defineProps<{
 .shimmer {
   background-image: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--body-text) 7%, transparent) 25%,
-    color-mix(in srgb, var(--body-text) 15%, transparent) 37%,
-    color-mix(in srgb, var(--body-text) 7%, transparent) 63%
+    var(--skeleton-bg) 25%,
+    var(--skeleton-highlight) 37%,
+    var(--skeleton-bg) 63%
   );
   background-size: 400% 100%;
   animation: switcher-shimmer 1.4s ease infinite;

@@ -25,7 +25,8 @@ import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import { SETTING } from '@shell/config/settings';
-const DEFAULT_BADGE_COLOR = '#707070';
+import { COLOR_TOKENS } from '@components/design-system/colors';
+const DEFAULT_BADGE_COLOR = COLOR_TOKENS['--color-gray-455'];
 
 // See translation file cluster.providers for list of providers
 // If the logo is not named with the provider name, add an override here

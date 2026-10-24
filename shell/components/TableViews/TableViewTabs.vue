@@ -1517,8 +1517,8 @@ onBeforeUnmount(() => {
         inset: 0 -12px;
         z-index: -1;
         border-radius: var(--border-radius);
-        background: color-mix(in srgb, var(--primary) 14%, transparent);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+        background: var(--primary-held-bg);
+        box-shadow: 0 6px 16px var(--color-black-a28);
       }
     }
   }
@@ -1530,7 +1530,7 @@ onBeforeUnmount(() => {
   }
 
   @keyframes view-tab-wash {
-    0%   { background: color-mix(in srgb, var(--primary) 15%, transparent); }
+    0%   { background: var(--primary-wash-bg); }
     100% { background: transparent; }
   }
 
@@ -1676,7 +1676,7 @@ onBeforeUnmount(() => {
         right: 100%;
         width: 8px;
         pointer-events: none;
-        background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--body-text) 8%, transparent) 100%);
+        background: linear-gradient(90deg, transparent 0%, var(--scroll-shadow) 100%);
         opacity: 0;
         animation: view-tab-scroll-shadow linear both;
         animation-timeline: scroll(nearest inline);

@@ -146,7 +146,7 @@ const emit = defineEmits<{
   :deep(.rc-button-split-trigger.variant-primary),
   :deep(.rc-button-split-trigger.variant-secondary),
   :deep(.rc-button-split-trigger.variant-tertiary) {
-    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    border-left: 1px solid var(--color-white-a30);
   }
 
   // Link/Ghost: subtle separator

@@ -1039,8 +1039,8 @@ export default {
         }
 
         .vs__selected {
-          background: rgba(255, 255, 255, 0.15);
-          border-color: rgba(255, 255, 255, 0.25);
+          background: var(--color-white-a15);
+          border-color: var(--color-white-a25);
         }
 
         .vs__deselect {
@@ -1102,11 +1102,11 @@ export default {
 
         &:hover {
           background: var(--tertiary-header-hover, var(--primary));
-          color: var(--on-tertiary-header-hover, #fff);
+          color: var(--on-tertiary-header-hover, var(--color-white));
         }
 
         &[disabled=disabled] {
-          background-color: rgba(0,0,0,0.25) !important;
+          background-color: var(--color-black-a25) !important;
           color: var(--header-btn-text) !important;
           opacity: 0.7;
         }

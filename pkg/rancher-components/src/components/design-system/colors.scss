@@ -1,0 +1,11 @@
+// Emits one custom property per color primitive in _color-variables.scss, e.g. --color-gray-96. See that file for
+// how primitives are named and added. shell/assets/styles/app.scss imports this file once; importing it anywhere
+// else would repeat the :root block.
+@use "sass:meta";
+@use "color-variables";
+
+:root {
+  @each $name, $value in meta.module-variables("color-variables") {
+    --#{$name}: #{$value};
+  }
+}

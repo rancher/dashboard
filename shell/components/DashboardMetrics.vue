@@ -2,6 +2,7 @@
 import DashboardOptions from '@shell/components/DashboardOptions';
 import GrafanaDashboard from '@shell/components/GrafanaDashboard';
 import { mapGetters } from 'vuex';
+import { COLOR_TOKENS } from '@components/design-system/colors';
 
 export default {
   components: { DashboardOptions, GrafanaDashboard },
@@ -43,7 +44,7 @@ export default {
   computed: {
     ...mapGetters(['prefs/theme']),
     graphBackgroundColor() {
-      return this.theme === 'dark' ? '#2e3035' : '#f3f4f9';
+      return this.theme === 'dark' ? COLOR_TOKENS['--color-gray-692'] : COLOR_TOKENS['--color-gray-32'];
     },
     theme() {
       return this['prefs/theme'];

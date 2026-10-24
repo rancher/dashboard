@@ -1,25 +1,30 @@
+@import "~@components/design-system/color-variables";
+
 .suse {
-  $green-jungle : #30BA78;
-  $light-green-jungle: #4DD192;
-  $lighter-green-jungle: #72EEB3;
+  $green-jungle : $color-green-299;
+  $light-green-jungle: $color-green-228;
+  $lighter-green-jungle: $color-green-138;
 
-  $jungle-120: #008657;
-  $jungle-140: #006B46;
+  $jungle-120: $color-green-453;
+  $jungle-140: $color-green-534;
 
-  $dark-tertiary-hover: #2A4F3C;
+  $dark-tertiary-hover: $color-green-606;
 
   --title-font-family : 'SUSE', 'Lato', sans-serif;
   
   &.theme-light {
     --primary: #{$jungle-120};
-    --primary-text: #FFFFFF;
+    --primary-text: var(--color-white);
     --primary-hover: #{$jungle-140};
     --primary-hover-bg: #{$jungle-140};
     --primary-active-bg: #{$green-140};
     --primary-active-text: #{$grey-0};
     --primary-border: #{$green-120};
+    --primary-keyboard-focus: var(--color-green-609);
+    --primary-held-bg: var(--color-green-453-a14);
+    --primary-wash-bg: var(--color-green-453-a15);
 
-    --link: #4871C7;
+    --link: var(--color-blue-438);
 
     --non-primary-text: #{$jungle-140};
     --non-primary-hover: #{$green-ui-20};
@@ -39,19 +44,21 @@
 
     --active: var(--primary-hover);
     --on-active: #{$grey-0};
+    --active-muted: var(--color-green-534-a50);
+    --active-light-bg: var(--color-green-534-a12);
     --active-hover: var(--primary-active-bg);
     --category-active: #{$green-ui-20};
     --category-active-hover: #{$green-ui-40};
 
     --checkbox-tick              : var(--on-active);
     --checkbox-border            : var(--body-border);
-    --checkbox-tick-disabled     : #{darken($disabled, 40%)};
+    --checkbox-tick-disabled     : var(--color-blue-458);
     --checkbox-disabled-bg       : #{$disabled};
     --checkbox-ticked-bg         : var(--active);
   }
 
   &.theme-dark {
-    --link: #9BBFFD;
+    --link: var(--color-blue-199);
 
     --primary: #{$light-green-jungle};
     --primary-text: #{$grey-90};
@@ -61,9 +68,12 @@
     --primary-active-bg: #{$green-40};
     --primary-active-text: #{$grey-90};
     --primary-border: #{$lighter-green-jungle};
+    --primary-keyboard-focus: var(--color-green-183);
+    --primary-held-bg: var(--color-green-228-a14);
+    --primary-wash-bg: var(--color-green-228-a15);
 
     --non-primary-text: #{$lighter-green-jungle};
-    --non-primary-hover: #1E372B;
+    --non-primary-hover: var(--color-green-688);
 
     --secondary: var(--body-bg);
     --secondary-border: var(--non-primary-text);
@@ -78,15 +88,17 @@
     --tertiary-hover: #{$dark-tertiary-hover};
     --tertiary-hover-app-bar: var(--non-primary-text);
 
-    $category-active:#303633;
+    $category-active:$color-green-674;
     --active: #{$green-40};
     --on-active: #{$grey-90};
+    --active-muted: var(--color-green-85-a50);
+    --active-light-bg: var(--color-green-85-a12);
     --active-hover: #{$green-60};
     --category-active: #{$category-active};
-    --category-active-hover: #{lighten($category-active, 10%)};
+    --category-active-hover: var(--color-green-574);
 
     --toggle-off-bg: #{$grey-70};
-    --sortable-table-selected-bg: #3f4350;
+    --sortable-table-selected-bg: var(--color-blue-616);
   }
 
   // SUSE Theme uses a smaller banner graphic
@@ -129,18 +141,18 @@
 // element's subtree is re-themed whatever the user's theme or brand. It's imported after the other
 // themes, so it wins over `.theme-dark` at the same specificity.
 .suse-prime-surface {
-  $pine: #0C322C;
-  $jungle: #30BA78;
-  $persimmon: #FE7C3F;
-  $light-persimmon: #FF9F72;
+  $pine: $color-blue-711;
+  $jungle: $color-green-299;
+  $persimmon: $color-red-272;
+  $light-persimmon: $color-orange-208;
 
   --title-font-family: 'SUSE', 'Lato', sans-serif;
   --border-radius: 0;
 
   --body-bg: #{$pine};
   --box-bg: #{$pine};
-  --body-text: #FFFFFF;
-  --muted: #{mix(#FFFFFF, $pine, 78%)};
+  --body-text: var(--color-white);
+  --muted: var(--color-blue-143);
   --link: #{$jungle};
   --success: #{$jungle};
 
@@ -152,7 +164,7 @@
   --primary-active-bg: #{$light-persimmon};
   --primary-active-text: #{$pine};
   --primary-border: #{$persimmon};
-  --primary-keyboard-focus: #FFFFFF;
+  --primary-keyboard-focus: var(--color-white);
 
   --rc-active-border: #{$jungle};
   --rc-inactive-border: #{$jungle};

@@ -972,7 +972,7 @@ export default {
           border-radius: 0;
 
           &::after {
-            color: #fff;
+            color: var(--color-white);
           }
         }
       }

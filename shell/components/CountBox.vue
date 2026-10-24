@@ -39,6 +39,7 @@ export default {
 
   methods: {
     customizePrimaryColorOpacity(opacity) {
+      // eslint-disable-next-line local-rules/no-color-literal
       return `rgba(var(${ this.primaryColorVar }), ${ opacity })`;
     },
 

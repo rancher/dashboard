@@ -58,6 +58,14 @@ export default {
       const total = this.warningCount + this.errorCount;
 
       return total > 0;
+    },
+    primaryStrokeColor() {
+      // eslint-disable-next-line local-rules/no-color-literal -- r, g, b triplet kept for extensions
+      return `rgba(var(${ this.primaryColorVar }))`;
+    },
+    secondaryStrokeColor() {
+      // eslint-disable-next-line local-rules/no-color-literal -- r, g, b triplet kept for extensions
+      return 'rgb(var(--resource-gauge-back-circle))';
     }
   },
   methods: {
@@ -86,14 +94,14 @@ export default {
     >
       <GraphCircle
         v-if="percentage > 0"
-        :primary-stroke-color="`rgba(var(${primaryColorVar}))`"
-        secondary-stroke-color="rgb(var(--resource-gauge-back-circle))"
+        :primary-stroke-color="primaryStrokeColor"
+        :secondary-stroke-color="secondaryStrokeColor"
         :percentage="percentage"
       />
       <GraphCircle
         v-if="percentage === 0"
-        :primary-stroke-color="`rgba(var(${primaryColorVar}))`"
-        secondary-stroke-color="rgb(var(--resource-gauge-back-circle))"
+        :primary-stroke-color="primaryStrokeColor"
+        :secondary-stroke-color="secondaryStrokeColor"
         class="zero"
         :percentage="100"
       />

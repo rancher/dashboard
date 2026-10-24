@@ -1,51 +1,53 @@
+@import "~@components/design-system/color-variables";
+
   // Local variables for reused colors
   //light main text
-  $darkest   : #141419;
+  $darkest   : $color-gray-806;
 
   //light secondary
-  $darker    : #6C6C76;
+  $darker    : $color-gray-466;
 
   //light disabled
-  $dark      : #B6B6C2;
+  $dark      : $color-gray-221;
 
   //light border and buttons
-  $medium    : #DCDEE7;
+  $medium    : $color-gray-99;
 
   //light inputs
-  $light     : #EEEFF4;
+  $light     : $color-gray-48;
 
   //light sidebar and box
-  $lighter   : #F4F5FA;
+  $lighter   : $color-gray-29;
 
   //light body bg
-  $lightest  : #FFFFFF;
+  $lightest  : $color-white;
 
   //color for items that are not enabled
   $disabled  : $medium;
 
-  $primary         : #3D98D3;
+  $primary         : $color-blue-349;
   $secondary       : $darker;
-  $link            : #3D98D3;
+  $link            : $color-blue-349;
 
   // Status colors
-  $success         : #5D995D;
-  $warning         : #DAC342;
-  $error           : #F64747;
-  $info            : #3D98D3;
+  $success         : $color-green-374;
+  $warning         : $color-yellow-186;
+  $error           : $color-red-348;
+  $info            : $color-blue-349;
 
   $contrasted-dark: $darkest !default;
   $contrasted-light: $lightest !default;
 
   // Text selection color for terminal window (we don't want this to change with the primary color)
   // The terminal alway uses a light background, so okay to use a fixed color
-  $selected: rgba(#3D98D3, .5);
+  $selected: $color-blue-349-a50;
 
-  $drag-over: #DCDEE7;
+  $drag-over: $color-gray-99;
 
-  $green-140    : #025937;
-  $green-120    : #008657;
-  $green-jungle : #30BA78;
-  $green-80     : #42D29F;
-  $green-60     : #83E1BE;
-  $green-40     : #C0EFDE;
-  $green-20     : #EAFAF4;
+  $green-140    : $color-green-591;
+  $green-120    : $color-green-453;
+  $green-jungle : $color-green-299;
+  $green-80     : $color-green-225;
+  $green-60     : $color-green-158;
+  $green-40     : $color-green-85;
+  $green-20     : $color-green-28;

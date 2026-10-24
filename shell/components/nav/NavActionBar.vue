@@ -667,7 +667,7 @@ const optionId = (index: number) => `jump-to-option-${ index }`;
   color: var(--dropdown-text);
   border: 1px solid var(--border);
   border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
-  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 4px 4px 8px var(--color-black-a4);
 }
 
 .jump-to-heading {

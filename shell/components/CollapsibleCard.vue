@@ -108,7 +108,7 @@ export default {
   }
 
   &-collapse-icon {
-    color: #B7B8BB;
+    color: var(--color-gray-217);
   }
 
   &-body {

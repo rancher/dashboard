@@ -549,7 +549,7 @@ table {
   list-style: none;
   margin: 0;
   padding: 0;
-  background-color: #FFF;
+  background-color: var(--color-white);
   border: 1px solid var(--body-text);
   height: 300px;
   overflow-x: hidden;
@@ -560,25 +560,25 @@ table {
     font-size: 12px;
     margin: 0;
     padding: 10px 20px;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid var(--color-gray-155);
 
     &.log {
-      color: #000;
+      color: var(--color-black);
     }
 
     &.warn {
-      background-color: LightGoldenRodYellow;
-      color: SaddleBrown;
+      background-color: var(--color-yellow-25);
+      color: var(--color-orange-529);
     }
 
     &.info {
-      background-color: Azure;
-      color: blue;
+      background-color: var(--color-blue-11);
+      color: var(--color-blue-548);
     }
 
     &.error {
-      background-color: MistyRose;
-      color: red;
+      background-color: var(--color-red-60);
+      color: var(--color-red-372);
     }
 
     &:last-child {
