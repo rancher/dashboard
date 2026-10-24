@@ -13,6 +13,10 @@ export class HarvesterClusterPagePo extends PagePo {
   // Shown in place of the install button when the automatic install has failed.
   private static readonly MANUAL_INSTALL_STEPS = '.extension-info .steps';
 
+  // Shown, with neither the install button nor the manual steps, when the install looked up the chart
+  // before the repository index listed it.
+  private static readonly MISSING_VERSION_WARNING = 'Could not find a compatible version';
+
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/harvesterManager/harvesterhci.io.management.cluster`;
   }
@@ -62,11 +66,12 @@ export class HarvesterClusterPagePo extends PagePo {
   }
 
   /**
-   * Whether the page shows that the automatic install failed: the manual install steps are shown in place
-   * of the install button. Does not retry, so a caller can poll it.
+   * Whether the page shows that the automatic install failed: either the manual install steps are shown in
+   * place of the install button, or no compatible version was found. Does not retry, so a caller can poll it.
    */
   isInstallAbandoned(): Cypress.Chainable<boolean> {
-    return this.self().then(($page) => $page.find(HarvesterClusterPagePo.MANUAL_INSTALL_STEPS).length > 0);
+    return this.self().then(($page) => $page.find(HarvesterClusterPagePo.MANUAL_INSTALL_STEPS).length > 0 ||
+      $page.find('.extension-warning').text().includes(HarvesterClusterPagePo.MISSING_VERSION_WARNING));
   }
 
   createHarvesterClusterForm(namespace?: string, id?: string): HarvesterClusterCreateEditPo {
