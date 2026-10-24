@@ -368,8 +368,8 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         waitForExtensionTabs();
         extensionsPo.loading().should('not.exist');
 
-        // check harvester version on card - should be the latest available version
-        extensionsPo.extensionCardVersion(harvesterTitle).should('contain', versions[0]);
+        // check harvester version on card - should be the installed version, not the latest available
+        extensionsPo.extensionCardVersion(harvesterTitle).should('contain', versions[1]);
 
         // hover checkmark - tooltip should have older version
         extensionsPo.extensionCardHeaderStatusTooltip(harvesterTitle, 1).waitForTooltipWithText(`Installed (${ versions[1] })`);

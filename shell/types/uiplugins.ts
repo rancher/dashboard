@@ -67,6 +67,12 @@ export type Plugin = {
     incompatibilityMessage: string;
     installableVersions: ChartVersion[];
     displayVersion: string;
+    /**
+     * The installed version expressed as a Helm Chart version, so it can be compared against the
+     * other version fields. Falls back to the raw installed version when the repo index no longer
+     * lists it. Only set when the extension is installed.
+     */
+    installedChartVersion?: string;
     pluginVersionLabel: string;
     icon?: string;
     helmError: boolean;

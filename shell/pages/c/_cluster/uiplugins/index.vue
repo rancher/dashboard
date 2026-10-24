@@ -35,7 +35,7 @@ import { RcItemCard } from '@components/RcItemCard';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter.vue';
 import versions from '@shell/utils/versions';
-import { getPluginChartVersionLabel } from '@shell/utils/uiplugins';
+import { getPluginChartVersionLabel, isNewerVersion } from '@shell/utils/uiplugins';
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -685,7 +685,7 @@ export default {
 
       if (plugin.installed) {
         const canUpdate = !!plugin.upgrade;
-        const canDowngrade = plugin.installableVersions?.some((v) => isChartVersionHigher(plugin.installedVersion, v.version));
+        const canDowngrade = plugin.installableVersions?.some((v) => isNewerVersion(plugin.installedChartVersion, v.version));
         const canUninstall = !plugin.builtin;
 
         if (canUpdate) {
@@ -848,7 +848,7 @@ export default {
 
       if (plugin.upgrade) {
         statuses.push({
-          icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
+          icon: 'icon-upgrade-alt', color: 'info', tooltip: { text: this.t('plugins.upgradeableTo', { version: plugin.upgrade }) }
         });
       }
 
@@ -948,19 +948,41 @@ export default {
       }
 
       return {
-        name:                plugin.name,
+        name:                  plugin.name,
         label,
-        description:         plugin.metadata?.description,
-        icon:                plugin.metadata?.icon,
-        id:                  plugin.id,
-        versions:            [],
-        displayVersion:      plugin.metadata?.version,
-        displayVersionLabel: plugin.metadata?.version || '-',
-        installed:           true,
-        installedVersion:    plugin.metadata?.version,
-        builtin:             !!plugin.builtin,
+        description:           plugin.metadata?.description,
+        icon:                  plugin.metadata?.icon,
+        id:                    plugin.id,
+        versions:              [],
+        displayVersion:        plugin.metadata?.version,
+        displayVersionLabel:   plugin.metadata?.version || '-',
+        installed:             true,
+        installedVersion:      plugin.metadata?.version,
+        installedChartVersion: plugin.metadata?.version,
+        builtin:               !!plugin.builtin,
         ...this.extractCertificationFlags(rancher?.annotations),
       };
+    },
+
+    /**
+     * Whether a newer version than the installed one can be installed. Compares chart versions,
+     * falling back to app versions when the installed version is no longer in the repo index and
+     * there is therefore no chart version to compare against
+     *
+     * @param latestInstallableVersion The newest version which can be installed, if any
+     * @param installedVersion The installed version as listed in the repo index, if still listed
+     * @param installedAppVersion The installed version as reported by the UIPlugin CR
+     */
+    isUpgradeAvailable(latestInstallableVersion, installedVersion, installedAppVersion) {
+      if (!latestInstallableVersion) {
+        return false;
+      }
+
+      if (installedVersion) {
+        return isNewerVersion(latestInstallableVersion.version, installedVersion.version);
+      }
+
+      return isNewerVersion(latestInstallableVersion.appVersion ?? latestInstallableVersion.version, installedAppVersion);
     },
 
     wirePluginCRToChart(pluginCR, all) {
@@ -990,15 +1012,26 @@ export default {
         chart.installedVersion = pluginCR.version;
         chart.installing = this.installing[chart.id];
 
+        // installedVersion holds an app version while every other version field holds a chart
+        // version, so resolve it once here for the card, the panel and the install dialog to share
+        const installedVersion = (chart.versions || []).find((v) => (v.appVersion ?? v.version) === pluginCR.version);
+
+        chart.installedChartVersion = installedVersion?.version ?? pluginCR.version;
+
+        // an installed extension is described by the version it is running, not the latest on offer
+        chart.displayVersion = chart.installedChartVersion;
+        chart.displayVersionLabel = installedVersion ? getPluginChartVersionLabel(installedVersion) : pluginCR.version;
+
+        if (installedVersion) {
+          chart.created = installedVersion.created;
+          chart.icon = installedVersion.icon || chart.icon;
+
+          Object.assign(chart, this.extractCertificationFlags(installedVersion.annotations));
+        }
+
         const latestInstallableVersion = chart.installableVersions?.[0];
 
-        if (latestInstallableVersion && pluginCR.version !== (latestInstallableVersion.appVersion ?? latestInstallableVersion.version)) {
-          const installedVersion = (chart.installableVersions || []).find((v) => (v.appVersion ?? v.version) === pluginCR.version);
-
-          if (installedVersion) {
-            Object.assign(chart, this.extractCertificationFlags(installedVersion?.annotations));
-          }
-
+        if (this.isUpgradeAvailable(latestInstallableVersion, installedVersion, pluginCR.version)) {
           chart.upgrade = getPluginChartVersionLabel(latestInstallableVersion);
         }
       } else {
@@ -1022,6 +1055,7 @@ export default {
           isDeveloper:             pluginCR.isDeveloper,
           installed:               true,
           installedVersion:        pluginCR.version,
+          installedChartVersion:   pluginCR.version,
           installing:              false,
           builtin:                 false,
           uiplugin:                pluginCR,
