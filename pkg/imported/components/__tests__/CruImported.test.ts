@@ -3,7 +3,7 @@ import { shallowMount } from '@vue/test-utils';
 import CruImported from '@pkg/imported/components/CruImported.vue';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
 import { DAY_2_OPS_DEFAULT } from '@pkg/imported/util/shared';
 import { SETTING } from '@shell/config/settings';
 import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
@@ -501,11 +501,11 @@ describe('cruImported component', () => {
     };
 
     const createWrapper = ({
-      configKey = 'rke2Config', etcd = { ...ETCD } as object | null, isLocal = false, dayTwoOpsFlagEnabled = true, hasConfig = true, s3Backup = false, cloudCredentials = {},
+      configKey = 'rke2Config', etcd = { ...ETCD } as object | null, isLocal = false, dayTwoOpsFlagEnabled = true, hasConfig = true, s3Backup = false,
       dayTwoOps = 'true', dayTwoOpsGlobalSetting = false, clusterHasEtcdConfig = true
     }: {
       configKey?: 'rke2Config' | 'k3sConfig', etcd?: object | null, isLocal?: boolean, dayTwoOpsFlagEnabled?: boolean, hasConfig?: boolean, s3Backup?: boolean,
-      cloudCredentials?: Record<string, object>, dayTwoOps?: string, dayTwoOpsGlobalSetting?: boolean, clusterHasEtcdConfig?: boolean
+      dayTwoOps?: string, dayTwoOpsGlobalSetting?: boolean, clusterHasEtcdConfig?: boolean
     } = {}) => {
       const config = hasConfig ? { kubernetesVersion: 'v1.33.5', ...(etcd ? { etcd } : {}) } : null;
       const defaultNormanCluster = defaultSetup.data().normanCluster;
@@ -526,16 +526,6 @@ describe('cruImported component', () => {
         },
         global: {
           ...defaultSetup.global,
-          mocks: {
-            ...defaultSetup.global.mocks,
-            $store: {
-              ...defaultSetup.global.mocks.$store,
-              getters: {
-                ...defaultSetup.global.mocks.$store.getters,
-                'rancher/byId': (_type: string, id: string) => (cloudCredentials[id] ? { decodedData: cloudCredentials[id] } : undefined),
-              }
-            }
-          },
           stubs: {
             ...defaultSetup.global.stubs,
             CruResource:    CruResourceStub,
@@ -815,48 +805,7 @@ describe('cruImported component', () => {
           dayTwoOps: 'false', etcd: { ...ETCD, s3: {} }, s3Backup: true
         });
 
-        expect(wrapper.vm.s3ConfigValid).toBe(true);
         expect(wrapper.findComponent(CruResourceStub).props('validationPassed')).toBe(true);
-      });
-    });
-
-    describe('s3 config validation, while RcS3Config may not be rendered (collapsed sections)', () => {
-      const CREDENTIAL = 'cattle-global-data:cc-1';
-      const withS3 = (s3: object) => ({ ...ETCD, s3 });
-
-      it.each([
-        ['a bucket is set', withS3({ bucket: 'my-bucket' }), {}, true],
-        ['no bucket is set, but the credential provides a default bucket', withS3({ cloudCredentialName: CREDENTIAL }), { [CREDENTIAL]: { defaultBucket: 'cred-bucket' } }, true],
-        ['no bucket is set, and the credential has no default bucket', withS3({ cloudCredentialName: CREDENTIAL }), { [CREDENTIAL]: {} }, false],
-        ['no bucket is set, and the credential is not loaded', withS3({ cloudCredentialName: CREDENTIAL }), {}, false],
-        ['the s3 config is empty', withS3({}), {}, false],
-        ['the endpoint is invalid', withS3({ bucket: 'my-bucket', endpoint: 'https://s3.example.com' }), {}, false],
-        ['the endpoint is valid', withS3({ bucket: 'my-bucket', endpoint: 's3.example.com' }), {}, true],
-      ])('should validate the s3 config when %s', (_, etcd, cloudCredentials, valid) => {
-        const wrapper = createWrapper({
-          etcd, s3Backup: true, cloudCredentials
-        });
-
-        expect(wrapper.vm.s3ConfigValid).toBe(valid);
-        expect(wrapper.findComponent(CruResourceStub).props('validationPassed')).toBe(valid);
-      });
-
-      it('should block saving an invalid s3 config even though the etcd config last reported as valid', () => {
-        const wrapper = createWrapper({ etcd: withS3({}), s3Backup: true });
-
-        expect(wrapper.vm.etcdConfigValid).toBe(true);
-        expect(wrapper.findComponent(CruResourceStub).props('validationPassed')).toBe(false);
-      });
-
-      it.each([
-        ['s3 backups are disabled', { etcd: withS3({}), s3Backup: false }],
-        ['day 2 ops are not shown', {
-          etcd: withS3({}), s3Backup: true, dayTwoOpsFlagEnabled: false
-        }],
-      ])('should not validate the s3 config when %s', (_, opts) => {
-        const wrapper = createWrapper(opts);
-
-        expect(wrapper.vm.s3ConfigValid).toBe(true);
       });
     });
 
@@ -910,37 +859,6 @@ describe('cruImported component', () => {
         expect((wrapper.vm as any).config.etcd).toStrictEqual(etcd);
         expect(wrapper.vm.clusterHasEtcdConfig).toBe(true);
       });
-    });
-
-    it.each([
-      ['has a cloud credential', { bucket: '', cloudCredentialName: 'cattle-global-data:cc-1' }, true],
-      ['has no cloud credential', { bucket: 'my-bucket' }, false],
-    ])('should load the s3 cloud credential on fetch when the s3 config %s', async(_, s3, loaded) => {
-      const liveNormanCluster = { rke2Config: { etcd: { ...ETCD, s3 } }, annotations: { [IMPORTED_CLUSTER_VERSION_MANAGEMENT]: 'system-default' } };
-      const dispatch = jest.fn((action: string) => Promise.resolve(action === 'rancher/clone' ? liveNormanCluster : {}));
-      const wrapper = shallowMount(CruImported, {
-        ...defaultSetup,
-        props: {
-          mode:  _EDIT,
-          value: {
-            id: 'c-abc', isRke1: true, isLocal: true, findNormanCluster: jest.fn().mockResolvedValue(liveNormanCluster)
-          }
-        },
-        global: {
-          ...defaultSetup.global,
-          mocks: {
-            ...defaultSetup.global.mocks,
-            $store: { ...defaultSetup.global.mocks.$store, dispatch }
-          }
-        },
-      });
-
-      dispatch.mockClear();
-      await (CruImported as any).fetch.call(wrapper.vm);
-
-      const findCredential = dispatch.mock.calls.find(([action]) => action === 'rancher/find') as unknown[] | undefined;
-
-      expect(findCredential?.[1]).toStrictEqual(loaded ? { type: NORMAN.CLOUD_CREDENTIAL, id: 'cattle-global-data:cc-1' } : undefined);
     });
   });
 

@@ -12,3 +12,4 @@ export type {
   RcSectionActionsProps,
   SectionBackground
 } from './types';
+export { useReportInvalidToSection, useSectionShowErrors } from './useSectionValidity';

@@ -262,6 +262,8 @@ export default {
       const midX = chartCoordinates.x + width / 2;
       const midY = chartCoordinates.y + height / 2;
 
+      // Inside a collapsed RcSection, which keeps its content mounted but hidden, the size is 0 and the fit is skipped
+      // for good. To be used there this needs to fit again once shown (see observeReveal in @components/utils/reveal)
       if (width === 0 || height === 0) {
         return;
       } // nothing to fit

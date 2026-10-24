@@ -8,7 +8,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { Banner } from '@components/Banner';
 import IngressCards from '@shell/edit/provisioning.cattle.io.cluster/ingress/IngressCards.vue';
 import {
-  INGRESS_OPTIONS, INGRESS_DUAL, TRAEFIK, INGRESS_NGINX, INGRESS_NONE, INGRESS_MIGRATION_KB_LINK, INGRESS_CLASS_DEFAULT, INGRESS_CONTROLLER_CLASS_DEFAULT, INGRESS_CLASS_MIGRATION, INGRESS_CONTROLLER_CLASS_MIGRATION
+  INGRESS_OPTIONS, INGRESS_DUAL, TRAEFIK, INGRESS_NGINX, INGRESS_NONE, INGRESS_MIGRATION_DOCS_LINK, INGRESS_CLASS_DEFAULT, INGRESS_CONTROLLER_CLASS_DEFAULT, INGRESS_CLASS_MIGRATION, INGRESS_CONTROLLER_CLASS_MIGRATION
 } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 import IngressConfiguration from '@shell/edit/provisioning.cattle.io.cluster/ingress/IngressConfiguration.vue';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
@@ -272,8 +272,21 @@ function updateYaml(component: any, value: any) {
   <Banner
     v-if="showNginxUpgradeBlocked"
     color="error"
-    label-key="cluster.ingress.banners.nginxUpgradeBlocked.label"
-  />
+  >
+    <RichTranslation k="cluster.ingress.banners.nginxUpgradeBlocked.label">
+      <template #docsUrl="{ content }">
+        <a
+          :href="`${INGRESS_MIGRATION_DOCS_LINK}`"
+          tabindex="0"
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+        >
+          {{ content }} <i class="icon icon-external-link" />
+          <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
+        </a>
+      </template>
+    </RichTranslation>
+  </Banner>
   <Banner
     v-else-if="showNginxUpgradeWarning"
     color="warning"
@@ -304,7 +317,7 @@ function updateYaml(component: any, value: any) {
       <RichTranslation :k="`cluster.ingress.banners.selected.${ingressSelection}.label`">
         <template #docsUrl="{ content }">
           <a
-            :href="`${INGRESS_MIGRATION_KB_LINK}`"
+            :href="`${INGRESS_MIGRATION_DOCS_LINK}`"
             tabindex="0"
             target="_blank"
             rel="noopener noreferrer nofollow"

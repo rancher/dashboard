@@ -11,7 +11,7 @@ jest.mock('vuex', () => ({
 jest.mock('@components/Banner', () => ({
   Banner: {
     name:     'Banner',
-    template: '<div class="banner-stub"></div>',
+    template: '<div class="banner-stub"><slot /></div>',
     props:    ['color', 'labelKey']
   }
 }));
@@ -59,7 +59,7 @@ jest.mock('@shell/edit/provisioning.cattle.io.cluster/shared', () => ({
     subHeader: { label: { key: 'cluster.ingress.migration' } },
     content:   { key: 'cluster.ingress.dual.content' }
   }],
-  INGRESS_MIGRATION_KB_LINK:          'mock-link',
+  INGRESS_MIGRATION_DOCS_LINK:        'mock-link',
   INGRESS_CONTROLLER_CLASS_MIGRATION: 'rke2.cattle.io/ingress-nginx-migration',
   INGRESS_CLASS_DEFAULT:              'rke2.cattle.io/ingress-nginx-default',
   INGRESS_CONTROLLER_CLASS_DEFAULT:   'rke2.cattle.io/ingress-nginx-controller-default',
@@ -454,9 +454,18 @@ describe('ingress.vue', () => {
       const wrapper = createWrapper({
         value: INGRESS_NGINX, mode: _EDIT, kubernetesVersion: 'v1.37.0+rke2r1'
       });
-      const banners = wrapper.findAllComponents({ name: 'Banner' });
+      const translations = wrapper.findAllComponents({ name: 'RichTranslation' });
 
-      expect(banners.some((banner) => banner.props('labelKey') === 'cluster.ingress.banners.nginxUpgradeBlocked.label')).toBe(true);
+      expect(translations.some((translation) => translation.props('k') === 'cluster.ingress.banners.nginxUpgradeBlocked.label')).toBe(true);
+    });
+
+    it('does not show the blocking message when an edited cluster uses dual mode', () => {
+      const wrapper = createWrapper({
+        value: [INGRESS_NGINX, TRAEFIK], mode: _EDIT, kubernetesVersion: 'v1.37.0+rke2r1'
+      });
+      const translations = wrapper.findAllComponents({ name: 'RichTranslation' });
+
+      expect(translations.some((translation) => translation.props('k') === 'cluster.ingress.banners.nginxUpgradeBlocked.label')).toBe(false);
     });
 
     it('ignores selection of disabled nginx on k8s >= v1.37.0', async() => {
