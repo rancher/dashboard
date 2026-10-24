@@ -52,7 +52,7 @@ _Arguments_
 |`tooltipKey`| String | Same as "tooltip" but allows for translation. Will superseed "tooltip" |
 |`shortcut`| String | Shortcut key bindings. Passed as a string (ex: m), for which the default will be `Ctrl+m` for Linux/Windows and `Meta+m` for Mac OS. Check examples below |
 |`icon`| String | icon name (based on [rancher icons](https://rancher.github.io/icons/)) |
-|`svg`| Function | icon based on a SVG file which can be included using `@require` |
+|`svg`| String | URL of an SVG icon, as returned by importing the SVG file (ex: `import icon from './icon.svg'`) |
 |`enabled`| Function | Whether the action/button is enabled or not. A function returning a boolean is checked again whenever the reactive state it reads changes; one returning a promise is checked on navigation |
 |`disabledTooltip`| String | Text for the tooltip while the button is disabled, saying why |
 |`disabledTooltipKey`| String | Same as "disabledTooltip" but allows for translation. Will superseed "disabledTooltip" |
@@ -122,7 +122,7 @@ _BULKABLE/GLOBAL TABLE ACTION_
 |`label`| String | Action label |
 |`labelKey`| String | Same as "label" but allows for translation. Will superseed "label" |
 |`icon`| String | icon name (based on [rancher icons](https://rancher.github.io/icons/)) |
-|`svg`| Function | icon based on a SVG file which can be included using `@require` |
+|`svg`| String | URL of an SVG icon, as returned by importing the SVG file (ex: `import icon from './icon.svg'`) |
 |`divider`| Boolean | Shows a line separator (divider) in actions menu |
 |`multiple`| Boolean | Whether the action/button is bulkable (can be performed on multiple list items) |
 |`enabled`| Function | Whether the action/button is enabled or not |

@@ -1,6 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 import Index from '../index.vue';
+import { RECEIVERS_TYPES } from '@shell/models/monitoring.coreos.com.receiver';
 
 describe('shell/edit/monitoring.coreos.com.receiver/index.vue', () => {
   const mockStore = (resourceFields = {}) => ({
@@ -154,5 +155,14 @@ describe('shell/edit/monitoring.coreos.com.receiver/index.vue', () => {
     expect(value.spec.email_configs[0].smarthost).toBe('smtp.example.com:587');
     expect(value.spec.email_configs[0].host).toBeUndefined();
     expect(value.spec.email_configs[0].port).toBeUndefined();
+  });
+
+  it.each(
+    RECEIVERS_TYPES
+      .filter((receiverType) => receiverType.name !== 'custom')
+      .flatMap((receiverType) => [receiverType.name, receiverType.banner, receiverType.addButton])
+      .filter(Boolean)
+  )('should have a form for %p', (name) => {
+    expect((Index as any).methods.getComponent(name)).toBeDefined();
   });
 });

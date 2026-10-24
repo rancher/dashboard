@@ -268,12 +268,12 @@ You'll notice that if you reload the Rancher UI, the extension is not persistent
 When we run `API=<Rancher Backend URL> yarn dev`, our test extension will be automatically loaded into the application - this allows us to develop
 the extension with hot-reloading. To test loading the extension dynamically, we can update configuration to tell Rancher not to include our extension.
 
-To do this, edit the file `vue.config.js` in the root `my-app` folder, and add the name of the package you want to exclude, such as:
+To do this, edit the file `vite.config.mjs` in the root `my-app` folder, and add the name of the package you want to exclude, such as:
 
 ```js
-const config = require('@rancher/shell/vue.config');
+import config from '@rancher/shell/vite.config.mjs';
 
-module.exports = config(__dirname, {
+export default config(import.meta.dirname, {
   excludes: ['my-app'],
 });
 ```

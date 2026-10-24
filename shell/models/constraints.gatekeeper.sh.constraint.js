@@ -46,7 +46,7 @@ export default class GateKeeperConstraint extends SteveModel {
   }
 
   async downloadViolations() {
-    const Papa = await import(/* webpackChunkName: "csv" */'papaparse');
+    const Papa = await import('papaparse');
 
     try {
       const violations = (this.violations || []).map((violation) => {

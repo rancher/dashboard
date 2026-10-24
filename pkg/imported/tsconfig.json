@@ -9,6 +9,7 @@
     "moduleResolution": "node",
     "skipLibCheck": true,
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
@@ -20,7 +21,6 @@
     ],
     "types": [
       "node",
-      "webpack-env",
       "@types/node",
       "@types/jest",
       "@types/lodash",
@@ -49,7 +49,9 @@
     "**/*.ts",
     "**/*.d.ts",
     "**/*.tsx",
-    "**/*.vue"
+    "**/*.vue",
+    "../../shell/types/svg.d.ts",
+    "../../shell/types/vite-env.d.ts"
   ],
   "exclude": [
     "../../node_modules"

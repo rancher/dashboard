@@ -89,8 +89,8 @@ The `API` value must point to a running Rancher instance. The dashboard will be 
 
 ## Unit test: Jest fails with Babel plugin errors
 
-**Symptom:** Jest throws errors about missing Babel plugins (e.g., `babel-plugin-istanbul`, `transform-require-context`) that are not installed in your extension.
+**Symptom:** Jest throws errors about missing Babel plugins (e.g., `babel-plugin-istanbul`) that are not installed in your extension.
 
-**Cause:** Jest is inheriting Rancher's webpack-oriented `babel.config.js`, which references plugins that are only installed inside `@rancher/shell`, not in your extension's `node_modules`.
+**Cause:** Jest is inheriting Rancher's `babel.config.js`, which references plugins that are only installed inside `@rancher/shell`, not in your extension's `node_modules`.
 
-**Fix:** Use `configFile: false` in the `babel-jest` transform inside `jest.config.js` (as described in the [unit testing guide](./unit-testing.md)). Do **not** modify or delete `babel.config.js` — it is required by the webpack dev server and build.
+**Fix:** Use `configFile: false` in the `babel-jest` transform inside `jest.config.js` (as described in the [unit testing guide](./unit-testing.md)). Do **not** delete `babel.config.js`: `@vue/vue3-jest` reads it when it compiles components.

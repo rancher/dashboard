@@ -7,7 +7,33 @@ import jsyaml from 'js-yaml';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor.vue';
 import { randomStr } from '@shell/utils/string';
-import { uniq } from '@shell/utils/array';
+import AwsElasticBlockStore from '@shell/edit/workload/storage/awsElasticBlockStore.vue';
+import AzureDisk from '@shell/edit/workload/storage/azureDisk.vue';
+import AzureFile from '@shell/edit/workload/storage/azureFile.vue';
+import Csi from '@shell/edit/workload/storage/csi/index.vue';
+import EmptyDir from '@shell/edit/workload/storage/emptyDir.vue';
+import GcePersistentDisk from '@shell/edit/workload/storage/gcePersistentDisk.vue';
+import HostPath from '@shell/edit/workload/storage/hostPath.vue';
+import Nfs from '@shell/edit/workload/storage/nfs.vue';
+import PersistentVolumeClaim from '@shell/edit/workload/storage/persistentVolumeClaim/index.vue';
+import Secret from '@shell/edit/workload/storage/secret.vue';
+import VsphereVolume from '@shell/edit/workload/storage/vsphereVolume.vue';
+
+const volumeComponents = {
+  awsElasticBlockStore:  AwsElasticBlockStore,
+  azureDisk:             AzureDisk,
+  azureFile:             AzureFile,
+  configMap:             Secret,
+  createPVC:             PersistentVolumeClaim,
+  csi:                   Csi,
+  emptyDir:              EmptyDir,
+  gcePersistentDisk:     GcePersistentDisk,
+  hostPath:              HostPath,
+  nfs:                   Nfs,
+  persistentVolumeClaim: PersistentVolumeClaim,
+  secret:                Secret,
+  vsphereVolume:         VsphereVolume,
+};
 
 export default {
   name: 'Storage',
@@ -92,24 +118,7 @@ export default {
      * Generated list of volumes
      */
     volumeTypeOptions() {
-      const excludedFiles = ['index', 'Mount', 'PVC', 'ContainerMountPaths'];
-      const defaultVolumeTypes = [
-        'csi',
-        'configMap',
-        'createPVC',
-        'persistentVolumeClaim'
-      ];
-      // Get all the custom volume types from the file names of this folder
-      const customVolumeTypes = require
-        .context('@shell/edit/workload/storage', false, /^.*\.vue$/)
-        .keys()
-        .map((path) => path.replace(/(\.\/)|(.vue)/g, '').split('/').findLast(() => true))
-        .filter((file) => !excludedFiles.includes(file));
-
-      return uniq([
-        ...customVolumeTypes,
-        ...defaultVolumeTypes
-      ])
+      return Object.keys(volumeComponents)
         .sort()
         .map((volumeType) => ({
           label:  this.t(`workload.storage.subtypes.${ volumeType }`),
@@ -182,28 +191,8 @@ export default {
       return type;
     },
 
-    // import component for volume type
     getComponent(type) {
-      switch (type) {
-      case 'configMap':
-        return require(`@shell/edit/workload/storage/secret.vue`).default;
-      case 'createPVC':
-      case 'persistentVolumeClaim':
-        return require(`@shell/edit/workload/storage/persistentVolumeClaim/index.vue`)
-          .default;
-      case 'csi':
-        return require(`@shell/edit/workload/storage/csi/index.vue`).default;
-
-      default: {
-        let component;
-
-        try {
-          component = require(`@shell/edit/workload/storage/${ type }.vue`).default;
-        } catch {}
-
-        return component;
-      }
-      }
+      return volumeComponents[type];
     },
 
     headerFor(type) {

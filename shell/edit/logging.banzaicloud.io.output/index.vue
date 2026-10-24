@@ -19,6 +19,51 @@ import { createYaml } from '@shell/utils/create-yaml';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { foldAllComments } from '@components/RcCodeMirror';
 import { unfoldCode } from '@codemirror/language';
+import AwsElasticsearchProvider from './providers/awsElasticsearch';
+import AzurestorageProvider from './providers/azurestorage';
+import CloudwatchProvider from './providers/cloudwatch';
+import DatadogProvider from './providers/datadog';
+import ElasticsearchProvider from './providers/elasticsearch';
+import FileProvider from './providers/file';
+import ForwardProvider from './providers/forward';
+import GcsProvider from './providers/gcs';
+import GelfProvider from './providers/gelf';
+import KafkaProvider from './providers/kafka';
+import KinesisStreamProvider from './providers/kinesisStream';
+import LogdnaProvider from './providers/logdna';
+import LogzProvider from './providers/logz';
+import LokiProvider from './providers/loki';
+import NewrelicProvider from './providers/newrelic';
+import OpensearchProvider from './providers/opensearch';
+import RedisProvider from './providers/redis';
+import S3Provider from './providers/s3';
+import SplunkHecProvider from './providers/splunkHec';
+import SumologicProvider from './providers/sumologic';
+import SyslogProvider from './providers/syslog';
+
+const providerComponents = {
+  awsElasticsearch: AwsElasticsearchProvider,
+  azurestorage:     AzurestorageProvider,
+  cloudwatch:       CloudwatchProvider,
+  datadog:          DatadogProvider,
+  elasticsearch:    ElasticsearchProvider,
+  file:             FileProvider,
+  forward:          ForwardProvider,
+  gcs:              GcsProvider,
+  gelf:             GelfProvider,
+  kafka:            KafkaProvider,
+  kinesisStream:    KinesisStreamProvider,
+  logdna:           LogdnaProvider,
+  logz:             LogzProvider,
+  loki:             LokiProvider,
+  newrelic:         NewrelicProvider,
+  opensearch:       OpensearchProvider,
+  redis:            RedisProvider,
+  s3:               S3Provider,
+  splunkHec:        SplunkHecProvider,
+  sumologic:        SumologicProvider,
+  syslog:           SyslogProvider,
+};
 
 export default {
   components: {
@@ -120,7 +165,7 @@ export default {
 
   methods: {
     getComponent(name) {
-      return require(`./providers/${ name }`).default;
+      return providerComponents[name];
     },
     launch(provider) {
       this.$refs.tabbed.select(provider.name);

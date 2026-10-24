@@ -916,6 +916,57 @@ describe('class: Resource', () => {
     });
   });
 
+  describe('method: showConfiguration', () => {
+    const createResource = (commit: jest.Mock) => new Resource({ type: 'test.resource' }, {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      commit,
+      rootGetters: { 'i18n/t': jest.fn() },
+    });
+
+    it('should open the resource detail drawer in the slide-in panel', () => {
+      const commit = jest.fn();
+      const resource = createResource(commit);
+
+      resource.showConfiguration('#return-focus', 'yaml');
+
+      expect(commit).toHaveBeenCalledWith('slideInPanel/open', {
+        component:      expect.any(Object),
+        componentProps: {
+          resource,
+          onClose:             expect.any(Function),
+          width:               'wide',
+          height:              'full',
+          closeOnRouteChange:  ['name', 'params', 'query'],
+          triggerFocusTrap:    true,
+          returnFocusSelector: '#return-focus',
+          defaultTab:          'yaml',
+        },
+      }, { root: true });
+    });
+
+    it('should load the ResourceDetailDrawer component', async() => {
+      const { default: ResourceDetailDrawer } = await import('@shell/components/Drawer/ResourceDetailDrawer/index.vue');
+      const commit = jest.fn();
+
+      createResource(commit).showConfiguration();
+
+      const { component } = commit.mock.calls[0][1];
+
+      expect(await component.__asyncLoader()).toBe(ResourceDetailDrawer);
+    });
+
+    it('should open the same component every time', () => {
+      const commit = jest.fn();
+      const resource = createResource(commit);
+
+      resource.showConfiguration();
+      resource.showConfiguration();
+
+      expect(commit.mock.calls[1][1].component).toBe(commit.mock.calls[0][1].component);
+    });
+  });
+
   describe('method: dryRunCreate', () => {
     const collectionUrl = '/v1/test.resources';
 

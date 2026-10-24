@@ -9,7 +9,7 @@
  * changes nothing.
  */
 import globals from 'globals';
-import { eslintConfigBase } from './eslint.config.base.mjs';
+import { eslintConfigBase, testFiles } from './eslint.config.base.mjs';
 
 // Vue `<script setup>` compiler macros (was `env: { 'vue/setup-compiler-macros': true }`).
 const compilerMacros = {
@@ -37,13 +37,10 @@ export default [
       '**/dist/',
       '**/dist-pkg/',
       '**/.DS_Store',
-      'shell/utils/dynamic-importer.js',
       '**/ksconfig.json',
       '**/storybook-static/',
-      'utils/dynamic-importer.js',
       'shell/assets/fonts/',
       'assets/fonts/',
-      'shell/pkg/import.js',
       'shell/types/shell/index.d.ts',
       // Vendored upstream code; publish-shell.sh also copies it into shell/rancher-components
       '**/RcCodeMirror/vendor/',
@@ -207,5 +204,30 @@ export default [
   {
     files: ['**/po/**/*.{js,ts,vue}'],
     rules: { '@typescript-eslint/explicit-module-boundary-types': 'off' },
+  },
+
+  {
+    files:   ['shell/**/*.{js,ts,vue}', 'pkg/**/*.{js,ts,vue}'],
+    ignores: [
+      ...testFiles,
+      'pkg/*/babel.config.js',
+      'shell/babel.config.js',
+      'shell/vue-config-helper.js',
+      'shell/vite/**',
+      'shell/pkg/auto-import.js',
+      'shell/pkg/babel.config.js',
+      'shell/pkg/shared-codemirror.js',
+      'shell/scripts/**',
+      'shell/server/**',
+    ],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'error',
+      'no-restricted-globals':                 ['error', 'global', 'Buffer', 'setImmediate', 'clearImmediate', '__dirname', '__filename'],
+      'no-restricted-properties':              ['error',
+        { object: 'require', property: 'context' },
+        { object: 'require', property: 'resolve' },
+        { object: 'module', property: 'hot' },
+      ],
+    },
   },
 ];
