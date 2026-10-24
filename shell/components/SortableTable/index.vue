@@ -2204,6 +2204,7 @@ export default {
           font-size: 13px;
           padding-top: 0;
           overflow-wrap: anywhere;
+          white-space: pre-wrap;
         }
       }
 
