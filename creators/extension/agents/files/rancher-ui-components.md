@@ -1016,23 +1016,23 @@ A composable floating dropdown menu. Use for non-resource-row action menus (for 
 
 ## Drawer
 
-**Import from:** `shell/components/Drawer/Chrome.vue`
+**Import from:** `@components/RcDrawer` (`RcDrawer`, and `RcDrawerCard` for a form or table section)
 **Also known as:** Side panel · Slide-out panel · Detail panel
 
-A slide-out panel anchored to the right side of the screen. Used to surface resource details, configuration previews, or help content without navigating away from the current page.
+A slide-out panel anchored to the right side of the screen. Used to surface resource details, configuration previews, or help content without navigating away from the current page. Make `RcDrawer` the root of your component and open it with `useShell().slideIn.open(...)`: the slide-in traps focus, closes on Escape or a click outside, and returns focus to the element that opened it. `shell/components/Drawer/Chrome.vue` is a deprecated wrapper around it.
 
 **Key props:**
-- `ariaTarget` (String, required) — ID of the element that triggered the drawer; used to return focus on close
-- `removeFooter` (Boolean) — Hide the footer slot
+- `title` (String, required) - the header text and the drawer's accessible name
+- `closeLabel` (String) - the footer close button's text, such as Cancel; defaults to Close
 
-**Events:** `@close`
+**Events:** `@close` - emit it from your component to close the slide-in. Closing on `close` is new in Rancher 2.16; for older versions also pass `onClose: () => store.commit('slideInPanel/close')` in `props`
 
-**Slots:** `#header`, `#title`, `#body`, `#footer`, `#additional-actions`
+**Slots:** default (the body), `#title` (renders inside the drawer's heading), `#header-actions` (buttons between the title and the close button), `#additional-actions`
 
 **Best practices:**
 - Use when the user benefits from seeing the main page and the panel simultaneously (e.g., inspecting an item while the list remains visible)
-- Always handle `@close` and return focus to the trigger element (`ariaTarget`) — keyboard users need focus restored
-- Use `#additional-actions` for secondary controls that should not compete visually with the primary `#footer` actions
+- Put text straight in the body; wrap a form or a table in `RcDrawerCard` to set it apart as a panel
+- Put the drawer's actions in `#additional-actions`, as `size="large"` buttons; they sit after the footer's Close button
 - Limit panel width to 40–50% of the viewport; content needing more space warrants a full page
 
 **Anti-patterns:**

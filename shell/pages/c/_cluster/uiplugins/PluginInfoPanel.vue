@@ -2,10 +2,8 @@
 import { mapGetters } from 'vuex';
 import ChartReadme from '@shell/components/ChartReadme';
 import LazyImage from '@shell/components/LazyImage';
-import { MANAGEMENT } from '@shell/config/types';
+import { RcDrawer } from '@components/RcDrawer';
 import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
-import { SETTING } from '@shell/config/settings';
-import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
 import { getPluginChartVersionLabel, getPluginChartVersion, getLatestPluginVersions } from '@shell/utils/uiplugins';
 import { isChartVersionHigher, uiPluginHasAnnotation } from '@shell/config/uiplugins';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -14,56 +12,48 @@ import RcButton from '@components/RcButton/RcButton.vue';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter.vue';
 
 export default {
-  emits: ['action'],
+  emits: ['action', 'close'],
 
-  async fetch() {
-    const bannerSetting = await this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
-    const { showHeader, bannerHeader } = JSON.parse(bannerSetting.value);
-
-    if (showHeader === 'true') {
-      const headerBannerFontSize = Number(bannerHeader?.fontSize?.split('px')[0] ?? 0);
-
-      this.headerBannerSize = headerBannerFontSize * 2;
-    }
-  },
   components: {
     Banner,
     ChartReadme,
+    RcDrawer,
     LazyImage,
     RcButton,
     AppChartCardFooter
   },
+
+  props: {
+    info: {
+      type:     Object,
+      required: true
+    }
+  },
+
   data() {
     return {
-      showSlideIn:      false,
-      info:             undefined,
-      infoVersion:      undefined,
-      versionInfo:      undefined,
-      versionError:     undefined,
-      defaultIcon:      genericPluginSvg,
-      headerBannerSize: 0,
-      isActive:         false,
-      showAllVersions:  false
+      infoVersion:     undefined,
+      versionInfo:     undefined,
+      versionError:    undefined,
+      defaultIcon:     genericPluginSvg,
+      showAllVersions: false
     };
-  },
-  created() {
-    useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.showSlideIn, '#slide-in-content-element');
   },
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
 
     errorMessage() {
-      return this.info?.installedError || (this.info?.helmError ? this.t('plugins.helmError') : null);
+      return this.info.installedError || (this.info.helmError ? this.t('plugins.helmError') : null);
     },
 
     warningMessages() {
       const warnings = [];
 
-      if (uiPluginHasAnnotation(this.info?.chart, CATALOG_ANNOTATIONS.DEPRECATED, 'true')) {
+      if (uiPluginHasAnnotation(this.info.chart, CATALOG_ANNOTATIONS.DEPRECATED, 'true')) {
         warnings.push(this.t('plugins.deprecatedExtension'));
       }
 
-      if (this.info?.incompatibilityMessage) {
+      if (this.info.incompatibilityMessage) {
         warnings.push(this.info.incompatibilityMessage);
       }
 
@@ -106,13 +96,12 @@ export default {
       return {};
     },
 
+    hasReadme() {
+      return !!(this.versionInfo?.readme || this.versionInfo?.appReadme);
+    },
+
     panelActions() {
       const actions = [];
-
-      if (!this.info) {
-        return actions;
-      }
-
       const selectedVersion = this.infoVersion;
       const installedVersion = this.info.installedVersion;
 
@@ -123,10 +112,17 @@ export default {
             action:  'install',
             role:    'primary',
             version: selectedVersion,
-            icon:    'icon-plus'
           });
         }
       } else {
+        if (!this.info.builtin) {
+          actions.push({
+            label:  this.t('plugins.uninstall.label'),
+            action: 'uninstall',
+            role:   'secondary',
+          });
+        }
+
         if (selectedVersion && installedVersion && selectedVersion !== installedVersion) {
           if (isChartVersionHigher(selectedVersion, installedVersion)) {
             actions.push({
@@ -134,7 +130,6 @@ export default {
               action:  'upgrade',
               role:    'primary',
               version: selectedVersion,
-              icon:    'icon-upgrade-alt'
             });
           } else {
             actions.push({
@@ -142,58 +137,21 @@ export default {
               action:  'downgrade',
               role:    'primary',
               version: selectedVersion,
-              icon:    'icon-downgrade-alt'
             });
           }
-        }
-
-        if (!this.info.builtin) {
-          actions.push({
-            label:  this.t('plugins.uninstall.label'),
-            action: 'uninstall',
-            role:   'secondary',
-            icon:   'icon-delete'
-          });
         }
       }
 
       return actions;
     }
   },
-  watch: {
-    showSlideIn: {
-      handler(neu) {
-        // we register the global event on slidein visibility
-        // so that it doesn't collide with other global events
-        if (neu) {
-          document.addEventListener('keyup', this.handleEscapeKey);
-        } else {
-          document.removeEventListener('keyup', this.handleEscapeKey);
-        }
-      },
-      immediate: true
-    }
+  created() {
+    this.loadPluginVersionInfo();
   },
   methods: {
     onButtonClick(button) {
       this.$emit('action', { ...button, plugin: this.info });
-      this.hide();
-    },
-
-    show(info) {
-      this.info = info;
-      this.showSlideIn = true;
-      this.version = null;
-      this.versionInfo = null;
-      this.versionError = null;
-      this.infoVersion = undefined;
-      this.showAllVersions = false;
-
-      this.loadPluginVersionInfo();
-    },
-
-    hide() {
-      this.showSlideIn = false;
+      this.$emit('close');
     },
 
     async loadPluginVersionInfo(version) {
@@ -253,22 +211,6 @@ export default {
       return { 'version-active': version.version === this.infoVersion, disabled: !version.isVersionCompatible };
     },
 
-    onEnter() {
-      this.isActive = true; // Set active state after the transition
-    },
-
-    onLeave() {
-      this.isActive = false; // Remove active state when fully closed
-    },
-
-    handleEscapeKey(event) {
-      event.stopPropagation();
-
-      if (event.key === 'Escape') {
-        this.hide();
-      }
-    },
-
     getVersionLabel(version) {
       const label = getPluginChartVersionLabel(version);
 
@@ -282,415 +224,216 @@ export default {
 };
 </script>
 <template>
-  <div
-    class="plugin-info-panel"
-    :style="`--banner-top-offset: ${headerBannerSize}px`"
+  <RcDrawer
+    :title="info.label"
+    @close="$emit('close')"
   >
-    <div
-      v-if="showSlideIn"
-      class="glass"
-      data-testid="extension-details-bg"
-      @click="hide()"
+    <template #title>
+      <div
+        class="plugin-icon"
+        :class="applyDarkModeBg"
+      >
+        <LazyImage
+          v-if="info.icon"
+          :initial-src="defaultIcon"
+          :error-src="defaultIcon"
+          :src="info.icon"
+          class="icon plugin-icon-img"
+        />
+        <img
+          v-else
+          :src="defaultIcon"
+          class="icon plugin-icon-img"
+        >
+      </div>
+      <span
+        class="plugin-title"
+        data-testid="extension-details-title"
+      >
+        {{ info.label }}
+      </span>
+    </template>
+    <p class="plugin-description">
+      {{ info.description }}
+    </p>
+    <AppChartCardFooter
+      v-if="info.tags && info.tags.length"
+      :items="info.tags"
+      class="plugin-tags-container"
     />
-    <transition
-      name="slide"
-      @after-enter="onEnter"
-      @after-leave="onLeave"
+    <Banner
+      v-for="(msg, i) in warningMessages"
+      :key="i"
+      color="warning"
     >
-      <aside
-        v-if="showSlideIn"
-        id="slide-in-content-element"
-        class="slideIn"
-        data-testid="extension-details"
-        :class="{'active': isActive}"
+      {{ msg }}
+    </Banner>
+
+    <Banner
+      v-if="errorMessage"
+      color="error"
+    >
+      {{ errorMessage }}
+    </Banner>
+
+    <div class="plugin-versions-container">
+      <h3>
+        {{ t('plugins.info.versions') }}
+      </h3>
+      <div v-if="!info.versions.length">
+        <div class="version-link version-active version-builtin">
+          {{ info.displayVersion }}
+        </div>
+      </div>
+      <div
+        v-else
+        class="plugin-versions"
       >
         <div
-          v-if="info"
-          class="plugin-info-content"
+          v-for="v in displayedVersions"
+          :key="`${v.name}-${v.version}`"
         >
-          <div class="plugin-header">
-            <div
-              class="plugin-icon"
-              :class="applyDarkModeBg"
-            >
-              <LazyImage
-                v-if="info.icon"
-                :initial-src="defaultIcon"
-                :error-src="defaultIcon"
-                :src="info.icon"
-                class="icon plugin-icon-img"
-              />
-              <img
-                v-else
-                :src="defaultIcon"
-                class="icon plugin-icon-img"
-              >
-            </div>
-            <div class="plugin-title">
-              <h2
-                class="slideIn__header"
-                data-testid="extension-details-title"
-              >
-                {{ info.label }}
-              </h2>
-              <p class="plugin-description">
-                {{ info.description }}
-              </p>
-            </div>
-            <div class="plugin-close">
-              <div class="slideIn__header__buttons">
-                <div
-                  class="slideIn__header__button"
-                  data-testid="extension-details-close"
-                  role="button"
-                  :aria-label="t('plugins.closePluginPanel')"
-                  tabindex="0"
-                  @click="hide()"
-                  @keydown.enter.space="hide()"
-                >
-                  <i class="icon icon-close" />
-                </div>
-              </div>
-            </div>
-          </div>
-          <AppChartCardFooter
-            v-if="info.tags && info.tags.length"
-            :items="info.tags"
-            class="plugin-tags-container"
-          />
-          <Banner
-            v-for="(msg, i) in warningMessages"
-            :key="i"
-            color="warning"
+          <a
+            v-clean-tooltip="handleVersionBtnTooltip(v)"
+            class="version-link"
+            :class="handleVersionBtnClass(v)"
+            :tabindex="!v.isVersionCompatible ? -1 : 0"
+            role="button"
+            :aria-label="t('plugins.viewVersionDetails', {name: v.name, version: v.version})"
+            @click="loadPluginVersionInfo(v.version)"
+            @keyup.enter.space="loadPluginVersionInfo(v.version)"
           >
-            {{ msg }}
-          </Banner>
-
-          <Banner
-            v-if="errorMessage"
-            color="error"
-          >
-            {{ errorMessage }}
-          </Banner>
-
-          <div class="plugin-versions-container">
-            <h3>
-              {{ t('plugins.info.versions') }}
-            </h3>
-            <div v-if="!info.versions.length">
-              <div class="version-link version-active version-builtin">
-                {{ info.displayVersion }}
-              </div>
-            </div>
-            <div
-              v-else
-              class="plugin-versions"
-            >
-              <div
-                v-for="v in displayedVersions"
-                :key="`${v.name}-${v.version}`"
-              >
-                <a
-                  v-clean-tooltip="handleVersionBtnTooltip(v)"
-                  class="version-link"
-                  :class="handleVersionBtnClass(v)"
-                  :tabindex="!v.isVersionCompatible ? -1 : 0"
-                  role="button"
-                  :aria-label="t('plugins.viewVersionDetails', {name: v.name, version: v.version})"
-                  @click="loadPluginVersionInfo(v.version)"
-                  @keyup.enter.space="loadPluginVersionInfo(v.version)"
-                >
-                  {{ getVersionLabel(v) }}
-                </a>
-              </div>
-              <div v-if="hasHiddenVersions">
-                <a
-                  class="version-link show-all-versions"
-                  data-testid="extension-details-show-all-versions"
-                  tabindex="0"
-                  role="button"
-                  @click="showAllVersions = true"
-                  @keyup.enter.space="showAllVersions = true"
-                >
-                  {{ t('plugins.info.showAllVersions') }}
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="plugin-actions-container">
-            <h3>
-              {{ t('plugins.info.actions') }}
-            </h3>
-            <div class="plugin-actions">
-              <template v-if="panelActions.length">
-                <RcButton
-                  v-for="btn in panelActions"
-                  :key="btn.action"
-                  class="mmr-3 mmb-3"
-                  size="large"
-                  :variant="btn.role"
-                  @click="onButtonClick(btn)"
-                >
-                  <i :class="['icon', btn.icon, 'mmr-2']" />{{ btn.label }}
-                </RcButton>
-              </template>
-              <div
-                v-else
-                class="no-actions"
-              >
-                {{ t('plugins.info.noActions') }}
-              </div>
-            </div>
-          </div>
-
-          <div v-if="versionError">
-            {{ t('plugins.info.versionError') }}
-          </div>
-          <h3 v-if="versionInfo">
-            {{ t('plugins.info.detail') }}
-          </h3>
-          <div
-            v-if="versionInfo"
-            class="plugin-info-detail"
-          >
-            <ChartReadme
-              v-if="versionInfo"
-              :version-info="versionInfo"
-            />
-          </div>
+            {{ getVersionLabel(v) }}
+          </a>
         </div>
-      </aside>
-    </transition>
-  </div>
+        <div v-if="hasHiddenVersions">
+          <a
+            class="version-link show-all-versions"
+            data-testid="extension-details-show-all-versions"
+            tabindex="0"
+            role="button"
+            @click="showAllVersions = true"
+            @keyup.enter.space="showAllVersions = true"
+          >
+            {{ t('plugins.info.showAllVersions') }}
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="versionError">
+      {{ t('plugins.info.versionError') }}
+    </div>
+    <template v-if="hasReadme">
+      <h3>
+        {{ t('plugins.info.detail') }}
+      </h3>
+      <ChartReadme :version-info="versionInfo" />
+    </template>
+    <template #additional-actions>
+      <RcButton
+        v-for="btn in panelActions"
+        :key="btn.action"
+        size="large"
+        :variant="btn.role"
+        @click="onButtonClick(btn)"
+      >
+        {{ btn.label }}
+      </RcButton>
+    </template>
+  </RcDrawer>
 </template>
 <style lang="scss" scoped>
-  .plugin-info-panel {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1;
+  h3 {
+    font-size: 14px;
+    margin-bottom: 12px;
+    color: var(--disabled-text);
+    text-transform: uppercase;
+  }
 
-    $slideout-width: 35%;
-    $slideout-width: 35%;
-    --banner-top-offset: 0;
-    $header-height: calc(54px + var(--banner-top-offset));
+  .plugin-icon {
+    flex-shrink: 0;
+    margin-right: 12px;
+    width: 40px;
+    height: 40px;
 
-    .glass {
-      z-index: 9;
-      position: fixed;
-      top: $header-height;
-      height: calc(100% - $header-height);
-      left: 0;
-      width: 100%;
-      opacity: 0;
+    &.dark-mode {
+      border-radius: calc(2 * var(--border-radius));
+      overflow: hidden;
+      background-color: white;
     }
 
-    .slideIn {
-      border-left: var(--header-border-size) solid var(--header-border);
-      position: fixed;
-      top: $header-height;
-      right: -$slideout-width;
-      height: calc(100% - $header-height);
-      background-color: var(--topmenu-bg);
-      width: $slideout-width;
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      padding: 12px;
+    .plugin-icon-img {
+      height: 36px;
+      width: 36px;
+      object-fit: contain;
+      position: relative;
+      top: 2px;
+      left: 2px;
+    }
+  }
 
-      &.active {
-        right: 0;
+  .plugin-title {
+    text-transform: capitalize;
+  }
+
+  .plugin-description {
+    font-size: 15px;
+    margin-bottom: 16px;
+  }
+
+  .plugin-tags-container,
+  .plugin-versions-container {
+    margin-bottom: 24px;
+  }
+
+  .banner.warning,
+  .banner.error {
+    margin-top: 0;
+    margin-bottom: 24px;
+  }
+
+  .plugin-versions {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .version-link {
+    cursor: pointer;
+    border: 1px solid var(--link);
+    padding: 2px 8px;
+    border-radius: 5px;
+    user-select: none;
+    margin: 0 4px 4px 0;
+    display: block;
+
+    &.version-active {
+      color: var(--link-text);
+      background: var(--link);
+    }
+
+    &.disabled {
+      cursor: not-allowed;
+      color: var(--disabled-text) !important;
+      background-color: var(--disabled-bg) !important;
+      border-color: var(--disabled-bg) !important;
+      text-decoration: none !important;
+    }
+
+    &.version-builtin {
+      display: inline-block;
+    }
+
+    &.show-all-versions {
+      border: none;
+
+      &:hover {
+        text-decoration: underline;
       }
+    }
 
-      /* Enter animation */
-      &.slide-enter-active {
-        transition: right 0.5s ease; /* Animates both enter and leave */
-      }
-
-      &.slide-leave-active {
-        transition: right 0.5s ease; /* Animates both enter and leave */
-      }
-
-      &.slide-enter-from,
-      &.slide-leave-to {
-        right: -$slideout-width; /* Off-screen position */
-      }
-
-      &.slide-enter-to,
-      &.slide-leave-from {
-        right: 0; /* Fully visible position */
-      }
-
-      &__header {
-        text-transform: capitalize;
-      }
-
-      .plugin-info-content {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-
-        .banner.warning,
-        .banner.error {
-          margin-top: 0;
-          margin-bottom: 32px;
-        }
-
-        .plugin-info-detail {
-          overflow: auto;
-        }
-      }
-
-      h3 {
-        font-size: 14px;
-        margin-bottom: 12px;
-        color: var(--disabled-text);
-        text-transform: uppercase;
-      }
-
-      .plugin-header {
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        padding-bottom: 16px;
-        margin-bottom: 16px;
-
-        .plugin-title {
-          flex: 1;
-        }
-      }
-
-      .plugin-icon {
-        font-size: 40px;
-        margin-right: 12px;
-        width: 44px;
-        height: 44px;
-
-        &.dark-mode {
-          border-radius: calc(2 * var(--border-radius));
-          overflow: hidden;
-          background-color: white;
-        }
-
-        .plugin-icon-img {
-          height: 40px;
-          width: 40px;
-          -o-object-fit: contain;
-          object-fit: contain;
-          position: relative;
-          top: 2px;
-          left: 2px;
-        }
-      }
-
-      .plugin-tags-container {
-        margin-top: -8px;
-      }
-
-      .plugin-tags-container,
-      .plugin-versions-container,
-      .plugin-actions-container {
-        margin-bottom: 24px;
-      }
-
-      .plugin-versions,
-      .plugin-actions {
-        display: flex;
-        flex-wrap: wrap;
-      }
-
-      .no-actions {
-        color: var(--disabled-text);
-      }
-
-      .plugin-description {
-        font-size: 15px;
-      }
-
-      .version-link {
-        cursor: pointer;
-        border: 1px solid var(--link);
-        padding: 2px 8px;
-        border-radius: 5px;
-        user-select: none;
-        margin: 0 4px 4px 0;
-        display: block;
-
-        &.version-active {
-          color: var(--link-text);
-          background: var(--link);
-        }
-
-        &.disabled {
-          cursor: not-allowed;
-          color: var(--disabled-text) !important;
-          background-color: var(--disabled-bg) !important;
-          border-color: var(--disabled-bg) !important;
-          text-decoration: none !important;
-        }
-
-        &.version-builtin {
-          display: inline-block;
-        }
-
-        &.show-all-versions {
-          border: none;
-
-          &:hover {
-            text-decoration: underline;
-          }
-        }
-
-        &:focus-visible {
-          @include focus-outline;
-        }
-      }
-
-      &__header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-
-        &__buttons {
-          display: flex;
-        }
-
-        &__button {
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 2px;
-
-          > i {
-            font-size: 20px;
-            opacity: 0.5;
-          }
-
-          &:hover {
-            background-color: var(--wm-closer-hover-bg);
-          }
-
-          &:focus-visible {
-            @include focus-outline;
-            outline-offset: -2px;
-          }
-        }
-      }
-
-      .chart-content__tabs {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-
-        height: 0;
-
-        padding-bottom: 12px;
-
-        :deep() .chart-readmes {
-          flex: 1;
-          overflow: auto;
-        }
-      }
+    &:focus-visible {
+      @include focus-outline;
     }
   }
 </style>

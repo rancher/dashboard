@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, watch, useTemplateRef } from 'vue';
+import {
+  computed, onBeforeUnmount, onMounted, watch, useTemplateRef
+} from 'vue';
 import { useStore } from 'vuex';
 import {
   DEFAULT_FOCUS_TRAP_OPTS,
@@ -7,6 +9,7 @@ import {
 } from '@shell/composables/focusTrap';
 import { isEqual } from 'lodash';
 import { useRouter } from 'vue-router';
+import { RcDrawer } from '@components/RcDrawer';
 
 const HEADER_HEIGHT = 55;
 
@@ -17,14 +20,17 @@ const WIDTH_MAP = {
 
 const HEIGHT_FULL = 'full';
 
+const CLOSE_SELECTOR = '[data-testid="rc-drawer-close"]';
+
 const slideInPanelManager = useTemplateRef('SlideInPanelManager');
-const slideInPanelManagerClose = useTemplateRef('SlideInPanelManagerClose');
 
 const store = useStore();
 const isOpen = computed(() => store.getters['slideInPanel/isOpen']);
 const isClosing = computed(() => store.getters['slideInPanel/isClosing']);
 const currentComponent = computed(() => store.getters['slideInPanel/component']);
 const currentProps = computed(() => store.getters['slideInPanel/componentProps']);
+const openCount = computed(() => store.getters['slideInPanel/openCount']);
+const panelProps = computed(() => ({ onClose: closePanel, ...currentProps.value }));
 
 const resolvedHeightMode = computed(() => {
   if (currentProps.value?.height) {
@@ -81,9 +87,6 @@ const panelWidth = computed(() => {
 
 const panelRight = computed(() => (isOpen.value ? '0' : `-${ panelWidth.value }`));
 
-const glassZIndex = computed(() => (isFullHeight.value ? 101 : undefined));
-const panelZIndex = computed(() => (isFullHeight.value ? 102 : undefined));
-
 const showHeader = computed(() => {
   // Deprecated: explicit showHeader takes precedence for backwards compat
   if (currentProps.value?.showHeader !== undefined) {
@@ -121,11 +124,10 @@ watch(
       }
 
       const panelEl = slideInPanelManager.value as HTMLElement;
-      const closeEl = slideInPanelManagerClose.value;
 
       const opts: any = {
         ...DEFAULT_FOCUS_TRAP_OPTS,
-        initialFocus:  closeEl || panelEl,
+        initialFocus:  () => panelEl.querySelector(CLOSE_SELECTOR) || panelEl,
         fallbackFocus: panelEl
       };
 
@@ -185,10 +187,27 @@ watch(
   { deep: true }
 );
 
-onBeforeUnmount(closePanel);
+onMounted(() => document.addEventListener('keydown', closeOnEscape));
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', closeOnEscape);
+  closePanel();
+});
 
 function closePanel() {
   store.commit('slideInPanel/close');
+}
+
+function closeOnEscape(event: KeyboardEvent) {
+  if (event.key !== 'Escape' || !isOpen.value) {
+    return;
+  }
+
+  const target = event.target as Node;
+
+  if (target === document.body || slideInPanelManager.value?.contains(target)) {
+    closePanel();
+  }
 }
 </script>
 
@@ -198,14 +217,12 @@ function closePanel() {
       id="slide-in-panel-manager"
       ref="SlideInPanelManager"
       tabindex="-1"
-      @keydown.escape="closePanel"
     >
       <div
         v-show="isOpen"
         data-testid="slide-in-glass"
         class="slide-in-glass"
         :class="{ 'slide-in-glass-open': isOpen }"
-        :style="{ zIndex: glassZIndex }"
         @click="closePanel"
       />
       <aside
@@ -219,33 +236,31 @@ function closePanel() {
           right: panelRight,
           top: panelTop,
           height: panelHeight,
-          zIndex: panelZIndex,
         }"
       >
-        <div
+        <RcDrawer
           v-if="showHeader"
-          class="header"
+          :title="panelTitle"
+          @close="closePanel"
         >
-          <div class="title">
-            {{ panelTitle }}
-          </div>
-          <i
-            ref="SlideInPanelManagerClose"
-            class="icon icon-close"
-            data-testid="slide-in-close"
-            role="button"
-            :aria-label="t('generic.close')"
-            :tabindex="isOpen ? 0 : -1"
-            @click="closePanel"
-            @keypress.enter="closePanel"
-            @keyup.space="closePanel"
-          />
-        </div>
-        <div class="main-panel">
           <component
             :is="currentComponent"
             v-if="isOpen || currentComponent"
-            v-bind="currentProps"
+            :key="openCount"
+            v-bind="panelProps"
+            data-testid="slide-in-panel-component"
+            class="dynamic-panel-content"
+          />
+        </RcDrawer>
+        <div
+          v-else
+          class="main-panel"
+        >
+          <component
+            :is="currentComponent"
+            v-if="isOpen || currentComponent"
+            :key="openCount"
+            v-bind="panelProps"
             data-testid="slide-in-panel-component"
             class="dynamic-panel-content"
           />
@@ -283,36 +298,6 @@ function closePanel() {
 
 .slide-in-open {
   right: 0;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-bottom: 1px solid var(--border);
-
-  .title {
-    flex: 1;
-    font-weight: bold;
-  }
-
-  .icon-close {
-    padding: 8px;
-    border-radius: 4px;
-    opacity: 0.7;
-    cursor: pointer;
-
-    &:hover {
-      background-color: var(--primary);
-      color: var(--primary-text);
-      opacity: 1;
-    }
-
-    &:focus-visible {
-      @include focus-outline;
-      outline-offset: 2px;
-    }
-  }
 }
 
 .main-panel {

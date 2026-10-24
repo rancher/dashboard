@@ -1,0 +1,126 @@
+import { Meta, Canvas, Controls } from '@storybook/blocks';
+import * as RcDrawerStories from './RcDrawer.stories';
+
+<Meta of={RcDrawerStories} />
+
+# RcDrawer
+
+`RcDrawer` is the standard drawer, the one Show Configuration opens. Use it for
+every drawer, so they all share one header, body and footer.
+
+<Canvas of={RcDrawerStories.Default} />
+
+<Controls of={RcDrawerStories.Default} />
+
+## The API
+
+`RcDrawer` takes a `title` and emits `close`. Everything else is a slot.
+
+| Slot | Renders |
+|---|---|
+| `title` | The header title. Defaults to the `title` prop, so most drawers only set the prop. It renders inside the drawer's heading, so put no heading in it. |
+| `header-actions` | Controls for the drawer's content that sit in the header, between the title and the close button, such as an expand all button. |
+| default | The body. Text goes straight in; wrap a form or a table in an `RcDrawerCard`. |
+| `additional-actions` | Buttons after the footer's Close button. |
+
+Both the header's close button and the footer's Close button emit `close`. The
+drawer never takes itself down: whatever opened it does that.
+
+Buttons in `additional-actions` should be `size="large"`, with
+`variant="primary"` for the drawer's main action, to match the Close button.
+
+```vue
+<script setup lang="ts">
+import { RcDrawer, RcButton } from '@rancher/components';
+
+const emit = defineEmits<{ close: [] }>();
+</script>
+
+<template>
+  <RcDrawer :title="title" @close="emit('close')">
+    ...
+    <template #additional-actions>
+      <RcButton variant="primary" size="large" @click="edit">Edit Config</RcButton>
+    </template>
+  </RcDrawer>
+</template>
+```
+
+Attributes that are not props land on the drawer's root element, so `class` and
+`data-testid` work as usual.
+
+## Opening it
+
+The drawer fills its nearest positioned ancestor. In the shell, that is the
+slide-in panel: make `RcDrawer` the root of your component and open the
+component with the slide-in API. The panel closes when the component emits
+`close`.
+
+```ts
+import { useShell } from '@shell/apis';
+import MyDrawer from '@/components/MyDrawer.vue';
+
+const shell = useShell();
+
+shell.slideIn.open(MyDrawer, {
+  width:  'wide',
+  height: 'full',
+  props:  { resource },
+});
+```
+
+`width: 'wide'` and `height: 'full'` open it the way Show Configuration does.
+
+Do not pass `title` to `slideIn.open` for a component that renders `RcDrawer`.
+A `title` tells the slide-in to wrap the component in a drawer of its own, so
+the content would sit inside a second drawer.
+
+## Cards
+
+Text, such as a readme or a description, goes straight in the body.
+
+`RcDrawerCard` sets a form or a table apart as a panel on the tinted body, the
+way Show Configuration shows its form. Space cards apart with the spacing
+utilities, for example `class="mmb-4"`.
+
+<Canvas of={RcDrawerStories.TallContent} />
+
+Content taller than the drawer scrolls inside the body, and the header and
+footer stay in view.
+
+## Footers
+
+With nothing in `additional-actions`, the footer holds just Close.
+
+<Canvas of={RcDrawerStories.CloseOnly} />
+
+## Titles that need markup
+
+Use the `title` slot when the title is more than a string, such as the state dot
+Show Configuration puts before the resource name.
+
+<Canvas of={RcDrawerStories.RichTitle} />
+
+## Accessibility
+
+- The drawer is a modal dialog named by its `title`. The `title` slot does not
+  change that, so set the prop to the slot's plain text.
+- The title is a level 2 heading, so screen reader users can jump to it like
+  any other section of the page. Buttons go in `header-actions`, outside it.
+- Both close buttons are labelled with the title, so a screen reader announces
+  which drawer they close.
+
+## Moving from `Chrome` and `DrawerCard`
+
+`@shell/components/Drawer/Chrome.vue` and `@shell/components/Drawer/DrawerCard.vue`
+now render `RcDrawer` and `RcDrawerCard`, and are deprecated. To move:
+
+| `Chrome` | `RcDrawer` |
+|---|---|
+| `aria-target` | `title` |
+| `#title` | `#title`, and only when the title needs markup |
+| `#body` | The default slot |
+| `#additional-actions` | `#additional-actions` |
+
+`Chrome`'s `#header` and `#footer` slots and its `remove-footer` prop are gone.
+Every drawer has the standard header and footer.

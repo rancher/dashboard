@@ -337,7 +337,6 @@ export default {
         width:              'wide',
         height:             'full',
         closeOnRouteChange: ['name', 'params', 'query'],
-        disableFocusTrap:   true,
       });
     },
 
