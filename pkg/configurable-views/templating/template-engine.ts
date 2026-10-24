@@ -1,0 +1,426 @@
+// Where the configurable pages are STORED: two labeled ConfigMaps in the local cluster's `default`
+// namespace, read and written through the management store (Steve `/v1/`).
+//
+//   templating-home    one key per PAGE, each holding every saved view of that page:
+//                        data.home              the Home
+//                        data.clusterDashboard  the cluster dashboard - one set of views for every
+//                                               cluster, whose widgets follow the cluster they are on
+//                      each shaped { global: <View>, users: { <uid>: <View> } }
+//   templating-config  data.enabled — the kill switch; 'false' turns the feature off, everywhere
+//
+// Two ConfigMaps rather than one so that writing the Home can never flip the switch. ConfigMaps in
+// `default` are a prototype's storage: per-user state belongs in a user preference and the published
+// view in a Setting, which is an open question on the pull request.
+
+import type { Store } from 'vuex';
+import { migrateViewSet } from './view-model';
+import type { View, ViewSet } from './types';
+
+type Getters = Store<unknown>['getters'];
+
+const CONFIGMAP = 'configmap';
+const NAMESPACE = 'default';
+
+// Every stored ConfigMap carries the marker; the type label tells them apart.
+// The marker keeps its old name on purpose. It is ON the stored ConfigMaps - every saved view and
+// the kill switch - so renaming it orphans all of them.
+const LABEL_MARKER = 'templates.rancher.io/ai-templating';
+const LABEL_TYPE = 'templates.rancher.io/type';
+const TYPE_CONFIG = 'config';
+/** A view in a ConfigMap of its own - what Liz writes when asked to build a page (see generatedViews). */
+const TYPE_VIEW = 'view';
+/** A widget Liz wrote the code of - a new kind of widget (see generatedWidgets). */
+const TYPE_WIDGET = 'widget';
+
+const CONFIG_NAME = 'templating-config';
+const HOME_CONFIG_NAME = 'templating-home';
+
+const configLabels = { [LABEL_MARKER]: 'true', [LABEL_TYPE]: TYPE_CONFIG };
+
+/** A page that can be configured, and the key its views are stored under in templating-home. */
+export type PageKey = 'home' | 'clusterDashboard';
+
+// This package's product, its pages, and the routes the Product API makes for them - kept here so
+// product.ts and routing/index.ts agree. The name has no dashes: the API takes them out of a
+// product's name, so its routes do not read as nested route names.
+export const PRODUCT_NAME = 'configurableviews';
+export const PAGE_SETTINGS = 'settings';
+export const PAGE_VIEWS = 'views';
+export const ROUTE_SETTINGS = `${ PRODUCT_NAME }-c-cluster-${ PAGE_SETTINGS }`;
+export const ROUTE_VIEWS = `${ PRODUCT_NAME }-c-cluster-${ PAGE_VIEWS }`;
+
+/** A ConfigMap as the management store hands it back: its fields, and `save`. */
+interface ConfigMapModel {
+  metadata: { name: string; labels?: Record<string, string> };
+  data?: Record<string, string>;
+  save(): Promise<unknown>;
+}
+
+/** What one page's key of `templating-home` holds, parsed. Views stay `unknown` until migrateViewSet has checked them. */
+export interface PageConfig {
+  global?: unknown;
+  users?: Record<string, unknown>;
+}
+
+/** The saved views as one user sees them. */
+export interface ViewScopes {
+  /** The organization's view, as stored (disabled or not) - what an editor edits. */
+  global: ViewSet | null;
+  /** This user's own view, as stored. */
+  user: ViewSet | null;
+  /** What actually renders: the user's if enabled, else the organization's if enabled, else none. */
+  resolved: ViewSet | null;
+  hasGlobal: boolean;
+  hasUser: boolean;
+  /**
+   * Views in ConfigMaps of their own, built by Liz: published to everyone, beside the organization's
+   * own (see generatedViews). Never part of `global`, so nothing written back to it copies them.
+   */
+  generated: View[];
+}
+
+// ---- reading ----------------------------------------------------------------------------------------
+
+function parse(json: string | undefined): PageConfig {
+  if (!json) {
+    return {};
+  }
+  try {
+    const out = JSON.parse(json);
+
+    return out && typeof out === 'object' ? out : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function cmNamed(getters: Getters, name: string): ConfigMapModel | undefined {
+  return getters['management/byId']?.(CONFIGMAP, `${ NAMESPACE }/${ name }`) ||
+    (getters['management/all']?.(CONFIGMAP) || []).find((cm: ConfigMapModel) => cm.metadata?.name === name && cm.metadata?.labels?.[LABEL_MARKER] === 'true');
+}
+
+/**
+ * Load this package's ConfigMaps into the management store - and only those.
+ *
+ * Through the shell's label-selector read, which filters on the SERVER. The query this replaced put
+ * `?labelSelector=` on `/v1/configmaps`, which Steve ignores: it returned every ConfigMap in the
+ * cluster, 349 of them and 7 MB on the development server, on every visit to the Home, to find 7.
+ *
+ * Never rejects: a failed read leaves the store as it was, and the Home shows what it last had.
+ */
+export async function fetchTemplatingConfigMaps(store: Store<unknown>): Promise<void> {
+  if (!store.getters['management/schemaFor'](CONFIGMAP)) {
+    return;
+  }
+
+  await store.dispatch('management/findLabelSelector', {
+    type:     CONFIGMAP,
+    matching: { namespace: NAMESPACE, labelSelector: { matchLabels: { [LABEL_MARKER]: 'true' } } },
+    opt:      { force: true },
+  }).catch(() => undefined);
+}
+
+function pageConfig(getters: Getters, page: PageKey): PageConfig {
+  const stored = cmNamed(getters, HOME_CONFIG_NAME)?.data?.[page];
+
+  if (stored !== undefined) {
+    return parse(stored);
+  }
+
+  // The Home used to live in the kill-switch ConfigMap. Still read there until the next save moves it.
+  return page === 'home' ? parse(cmNamed(getters, CONFIG_NAME)?.data?.home) : {};
+}
+
+/** A page's raw stored config ({ global, users }) - for the Configurable Views page's YAML editor. */
+export function getPageConfig(getters: Getters, page: PageKey = 'home'): PageConfig {
+  return pageConfig(getters, page);
+}
+
+/**
+ * The saved views split by scope, and the one THIS user sees: their own overrides the
+ * organization's, and a disabled view is skipped so the scope beneath it shows. Old stored shapes
+ * are migrated on read (see migrateViewSet).
+ */
+export function appliedViewScopes(getters: Getters, userId?: string | null, page: PageKey = 'home'): ViewScopes {
+  const home = pageConfig(getters, page);
+  const rawGlobal = home.global || null;
+  const rawUser = (userId && home.users?.[userId]) || null;
+
+  const global = rawGlobal ? migrateViewSet(rawGlobal) : null;
+  const user = rawUser ? migrateViewSet(rawUser) : null;
+  const userApplied = user && !user.disabled ? user : null;
+  const globalApplied = global && !global.disabled ? global : null;
+
+  return {
+    global,
+    user,
+    resolved:  userApplied || globalApplied,
+    hasGlobal: !!rawGlobal,
+    hasUser:   !!rawUser,
+    generated: generatedViews(getters, page),
+  };
+}
+
+// ---- views built by Liz ---------------------------------------------------------------------------
+
+/** The id a view in a ConfigMap of its own has: the ConfigMap's name, so it is stable and says where it is. */
+export const GENERATED_VIEW_PREFIX = 'cm:';
+
+export const isGeneratedView = (id: string | null | undefined): boolean => !!id?.startsWith(GENERATED_VIEW_PREFIX);
+
+/**
+ * The views in ConfigMaps of their own, for one page - what Liz writes when asked to build a page.
+ *
+ * One small ConfigMap per view (labels: the marker, and type `view`; data: `page` and `view`, the
+ * view as JSON), rather than an edit of templating-home: an agent creates a resource, which is one
+ * tool call it gets right, instead of rewriting one large JSON string everyone's views live in. Each
+ * is normalized exactly as a stored view is, and shown as published - removing it from everyone
+ * deletes its ConfigMap (see deleteGeneratedView).
+ */
+function viewMaps(getters: Getters, page: PageKey): ConfigMapModel[] {
+  return (getters['management/all']?.(CONFIGMAP) || [])
+    .filter((cm: ConfigMapModel & { metadata: { namespace?: string } }) => cm.metadata?.labels?.[LABEL_MARKER] === 'true' &&
+      cm.metadata?.labels?.[LABEL_TYPE] === TYPE_VIEW && (!cm.metadata.namespace || cm.metadata.namespace === NAMESPACE) &&
+      (cm.data?.page || 'home') === page);
+}
+
+export function generatedViews(getters: Getters, page: PageKey = 'home'): View[] {
+  return viewMaps(getters, page)
+    .flatMap((cm) => {
+      const raw = parse(cm.data?.view) as Record<string, unknown>;
+      const id = `${ GENERATED_VIEW_PREFIX }${ cm.metadata.name }`;
+      const [view] = migrateViewSet({
+        views: [{
+          ...raw, id, widgets: withStableIds(raw.widgets, id)
+        }]
+      }).views;
+
+      return view ? [view] : [];
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Ids for the widgets of a view in a ConfigMap of its own, where they have none - Liz and the examples
+ * leave them out. Made from the view and the widget's place, so they are the same every time the view
+ * is read: a new id each read would make the page take them for new widgets and draw them all again,
+ * every time the stored views are read (every few seconds).
+ */
+function withStableIds(widgets: unknown, prefix: string): unknown {
+  if (!Array.isArray(widgets)) {
+    return widgets;
+  }
+
+  return widgets.map((node, i) => {
+    if (!node || typeof node !== 'object') {
+      return node;
+    }
+
+    const n = node as Record<string, unknown>;
+    const nodeId = typeof n.id === 'string' && n.id ? n.id : `${ prefix }-w${ i }`;
+    const widget = n.widget && typeof n.widget === 'object' ? n.widget as Record<string, unknown> : null;
+
+    // A Tabs widget's tabs, and the widgets in them, get theirs the same way
+    const tabs = Array.isArray(widget?.tabs) ? (widget?.tabs as Record<string, unknown>[]).map((tab, t) => ({
+      ...tab,
+      id:      typeof tab?.id === 'string' && tab.id ? tab.id : `${ nodeId }-t${ t }`,
+      widgets: withStableIds(tab?.widgets, `${ nodeId }-t${ t }`),
+    })) : undefined;
+
+    return {
+      ...n, id: nodeId, ...(widget && tabs ? { widget: { ...widget, tabs } } : {})
+    };
+  });
+}
+
+/** Take a view Liz built away from everyone: its ConfigMap goes. */
+export async function deleteGeneratedView(store: Store<unknown>, id: string): Promise<void> {
+  const cm = cmNamed(store.getters, id.slice(GENERATED_VIEW_PREFIX.length)) as (ConfigMapModel & { remove(): Promise<unknown> }) | undefined;
+
+  if (cm) {
+    await cm.remove();
+  }
+}
+
+// ---- widgets Liz wrote --------------------------------------------------------------------------
+
+/** A widget whose code Liz wrote, from a ConfigMap of its own. */
+export interface GeneratedWidget {
+  /** The ConfigMap's name - what a view's widget names it by. */
+  name: string;
+  displayName: string;
+  description: string;
+  /** The widget, as a Vue single-file component. */
+  source: string;
+  created: string;
+}
+
+/**
+ * The widgets Liz wrote: ConfigMaps labelled type `widget`, each with `displayName`, `description` and
+ * `component` (a Vue single-file component). Their code only runs once an admin approves it (see
+ * widgetApprovals).
+ */
+export function generatedWidgets(getters: Getters): GeneratedWidget[] {
+  return (getters['management/all']?.(CONFIGMAP) || [])
+    .filter((cm: ConfigMapModel & { metadata: { namespace?: string } }) => cm.metadata?.labels?.[LABEL_MARKER] === 'true' &&
+      cm.metadata?.labels?.[LABEL_TYPE] === TYPE_WIDGET && (!cm.metadata.namespace || cm.metadata.namespace === NAMESPACE))
+    .map((cm: ConfigMapModel & { metadata: { creationTimestamp?: string } }) => ({
+      name:        cm.metadata.name,
+      displayName: cm.data?.displayName || cm.metadata.name,
+      description: cm.data?.description || '',
+      source:      cm.data?.component || '',
+      created:     cm.metadata.creationTimestamp || '',
+    }))
+    .sort((a: GeneratedWidget, b: GeneratedWidget) => a.displayName.localeCompare(b.displayName));
+}
+
+/**
+ * Which widgets' code an admin approved, and exactly which code: widget name -> the SHA-256 of the
+ * source approved. A widget runs only while its source still has that hash, so any change - by Liz
+ * or by hand - needs approving again. Kept beside the kill switch, in templating-config.
+ */
+export function widgetApprovals(getters: Getters): Record<string, string> {
+  const parsed = parse(cmNamed(getters, CONFIG_NAME)?.data?.approvedWidgets) as Record<string, unknown>;
+
+  return Object.fromEntries(Object.entries(parsed).filter(([, hash]) => typeof hash === 'string')) as Record<string, string>;
+}
+
+/** Approve a widget's code as it is now (its hash), or revoke the approval (null). */
+export async function setWidgetApproval(store: Store<unknown>, name: string, hash: string | null): Promise<void> {
+  const approvals = { ...widgetApprovals(store.getters) };
+
+  if (hash) {
+    approvals[name] = hash;
+  } else {
+    delete approvals[name];
+  }
+
+  const existing = cmNamed(store.getters, CONFIG_NAME);
+  const approvedWidgets = JSON.stringify(approvals);
+
+  if (existing) {
+    existing.data = { ...(existing.data || {}), approvedWidgets };
+    await existing.save();
+
+    return;
+  }
+
+  const cm: ConfigMapModel = await store.dispatch('management/create', {
+    type:     CONFIGMAP,
+    metadata: {
+      name: CONFIG_NAME, namespace: NAMESPACE, labels: configLabels
+    },
+    data: { approvedWidgets },
+  });
+
+  await cm.save();
+}
+
+/** Remove a widget Liz wrote: its ConfigMap goes, and its approval with it. */
+export async function deleteGeneratedWidget(store: Store<unknown>, name: string): Promise<void> {
+  const cm = cmNamed(store.getters, name) as (ConfigMapModel & { remove(): Promise<unknown> }) | undefined;
+
+  if (widgetApprovals(store.getters)[name]) {
+    await setWidgetApproval(store, name, null);
+  }
+  if (cm) {
+    await cm.remove();
+  }
+}
+
+// ---- the kill switch --------------------------------------------------------------------------------
+
+/** data.enabled === 'false' turns the feature off. Absent, or anything else, means on. */
+export function isTemplatingEnabled(getters: Getters): boolean {
+  return cmNamed(getters, CONFIG_NAME)?.data?.enabled !== 'false';
+}
+
+/** The URL's own switch: `?confviews=false`. */
+export const VIEWS_QUERY = 'confviews';
+
+/**
+ * Whether the URL turns the configurable pages off: `?confviews=false` shows Rancher's own page, as
+ * the kill switch does, but only for as long as it is in the URL - nothing is stored, and the switch
+ * itself is not touched.
+ */
+export function viewsOffInUrl(query: Record<string, unknown> | null | undefined): boolean {
+  const value = query?.[VIEWS_QUERY];
+
+  return (Array.isArray(value) ? value[0] : value) === 'false';
+}
+
+/** Set the kill switch - or flip it, with no argument. Resolves to the new state. */
+export async function toggleTemplating(store: Store<unknown>, enabled?: boolean): Promise<boolean> {
+  const desired = typeof enabled === 'boolean' ? enabled : !isTemplatingEnabled(store.getters);
+  const existing = cmNamed(store.getters, CONFIG_NAME);
+
+  if (existing) {
+    existing.data = { ...(existing.data || {}), enabled: desired ? 'true' : 'false' };
+    await existing.save();
+  } else {
+    const cm: ConfigMapModel = await store.dispatch('management/create', {
+      type:     CONFIGMAP,
+      metadata: {
+        name: CONFIG_NAME, namespace: NAMESPACE, labels: configLabels
+      },
+      data: { enabled: desired ? 'true' : 'false' },
+    });
+
+    await cm.save();
+  }
+
+  return desired;
+}
+
+// ---- writing ------------------------------------------------------------------------------------------
+
+/**
+ * Write one page's whole stored config to `templating-home`, creating it if needed. Each page is its
+ * own key, and the other pages' keys are written back as they were; nothing here touches the kill
+ * switch, which is a different ConfigMap.
+ */
+async function persistPage(store: Store<unknown>, page: PageKey, config: PageConfig): Promise<void> {
+  const existing = cmNamed(store.getters, HOME_CONFIG_NAME);
+
+  if (existing && existing.metadata.labels?.[LABEL_TYPE] === TYPE_CONFIG) {
+    existing.data = { ...(existing.data || {}), [page]: JSON.stringify(config) };
+    await existing.save();
+  } else {
+    const cm: ConfigMapModel = await store.dispatch('management/create', {
+      type:     CONFIGMAP,
+      metadata: {
+        name: HOME_CONFIG_NAME, namespace: NAMESPACE, labels: configLabels
+      },
+      data: { [page]: JSON.stringify(config) },
+    });
+
+    await cm.save();
+  }
+}
+
+/** Write a page's raw stored config - from the Configurable Views page's YAML editor. */
+export async function savePageConfig(store: Store<unknown>, config: PageConfig | null, page: PageKey = 'home'): Promise<void> {
+  await persistPage(store, page, config || {});
+}
+
+/** Save one scope's view of a page. `null` clears that scope. */
+export async function saveView(store: Store<unknown>, scope: 'global' | 'user', view: ViewSet | null, userId?: string | null, page: PageKey = 'home'): Promise<void> {
+  const home = pageConfig(store.getters, page);
+
+  if (scope === 'user') {
+    if (!userId) {
+      return;
+    }
+    if (view) {
+      home.users = { ...(home.users || {}), [userId]: view };
+    } else if (home.users) {
+      delete home.users[userId];
+    }
+  } else if (view) {
+    home.global = view;
+  } else {
+    delete home.global;
+  }
+
+  await persistPage(store, page, home);
+}
