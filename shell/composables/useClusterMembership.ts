@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
-import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+import { canViewClusterMembershipEditor } from '@shell/utils/membership-permissions';
 
 export interface MembershipUpdate {
   save?: (parentId: string) => Promise<void>;
