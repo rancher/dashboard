@@ -24,19 +24,28 @@ export default {
     }
   },
   data() {
-    this.value['httpConfig'] = this.value.httpConfig || {};
-    this.value['sendResolved'] = this.value.sendResolved || false;
+    return {
+      view: _VIEW,
+      none: '__[[NONE]]__',
+    };
+  },
+
+  computed: {
+    initialSecretKey() {
+      return this.value?.apiURL?.key ? this.value.apiURL.key : '';
+    },
+    initialSecretName() {
+      return this.value.apiURL?.name ? this.value.apiURL.name : '';
+    },
+  },
+
+  created() {
+    this.value.httpConfig = this.value.httpConfig || {};
+    this.value.sendResolved = this.value.sendResolved || false;
 
     if (this.mode === _CREATE) {
       this.value.text = this.value.text || '{{ template "slack.rancher.text" . }}';
     }
-
-    return {
-      view:              _VIEW,
-      initialSecretKey:  this.value?.apiURL?.key ? this.value.apiURL.key : '',
-      initialSecretName: this.value.apiURL?.name ? this.value.apiURL.name : '',
-      none:              '__[[NONE]]__',
-    };
   },
 
   methods: {
