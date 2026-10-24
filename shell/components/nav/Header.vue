@@ -16,7 +16,6 @@ import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
 
-import { allHash } from '@shell/utils/promise';
 import { ActionLocation, ExtensionPoint } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import IconOrSvg from '@shell/components/IconOrSvg';
@@ -76,6 +75,7 @@ export default {
       isUserMenuOpen:          false,
       isPageActionMenuOpen:    false,
       kubeConfigCopying:       false,
+      kubeConfigCopied:        false,
       shellShortcut,
       LOGGED_OUT,
       navHeaderRight:          null,
@@ -438,7 +438,7 @@ export default {
       });
     },
 
-    copyKubeConfig(event) {
+    async copyKubeConfig(event) {
       const button = event.target?.parentElement;
 
       if (this.kubeConfigCopying) {
@@ -451,17 +451,20 @@ export default {
         button.classList.add('header-btn-active');
       }
 
-      // Make sure we wait at least 1 second so that the user can see the visual indication that the config has been copied
-      allHash({
-        copy:     this.currentCluster.copyKubeConfig(),
-        minDelay: wait(1000),
-      }).finally(() => {
+      try {
+        // Only show the checkmark once the config has really been copied, then keep it for 1 second so the user can see it
+        if (await this.currentCluster.copyKubeConfig()) {
+          this.kubeConfigCopied = true;
+          await wait(1000);
+        }
+      } finally {
         this.kubeConfigCopying = false;
+        this.kubeConfigCopied = false;
 
         if (button) {
           button.classList.remove('header-btn-active');
         }
-      });
+      }
     },
 
     async handleExtensionAction(action, event) {
@@ -735,7 +738,7 @@ export default {
             @click="copyKubeConfig($event)"
           >
             <i
-              v-if="kubeConfigCopying"
+              v-if="kubeConfigCopied"
               class="icon icon-checkmark icon-lg"
             />
             <i

@@ -2139,6 +2139,7 @@ cluster:
     error:
       title: Unable to generate KubeConfig
       noClusters: No clusters could be resolved from the current selection. Refresh the page and try again.
+      requestFailed: The request to generate the KubeConfig failed. Try again.
   kubernetesVersion:
     label: Kubernetes Version
     current: (current)
