@@ -23,6 +23,10 @@ export default {
         return (val + ((end[i] - val) * this.progress / 100)).toFixed(0);
       });
     },
+    progressFill() {
+      // eslint-disable-next-line local-rules/no-color-literal -- computed from the progress until #19559
+      return `rgb(${ this.progressColor.join(', ') })`;
+    },
     outerRadius() {
       return this.graphWidth / 2;
     },
@@ -77,12 +81,10 @@ export default {
           class="background"
           :d="fullArc"
         />
-        <!-- eslint-disable local-rules/no-color-literal -->
         <path
-          :style="{fill: `rgb(${progressColor[0]}, ${progressColor[1]}, ${progressColor[2]})`}"
+          :style="{fill: progressFill}"
           :d="arc"
         />
-        <!-- eslint-enable local-rules/no-color-literal -->
       </g>
     </svg>
   </div>

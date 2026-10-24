@@ -233,7 +233,7 @@ export const eslintConfigBase = [
     },
   },
 
-  // Colors come from the design system tokens (pkg/rancher-components/src/components/design-system/colors.scss).
+  // Colors come from the design system tokens (pkg/rancher-components/src/components/design-system).
   {
     files:   ['**/*.{js,ts,vue}'],
     ignores: testFiles,

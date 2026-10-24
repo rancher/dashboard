@@ -1,5 +1,5 @@
 /**
- * The color primitives from colors.scss as concrete values, for code that cannot use `var(--color-*)`:
+ * The color primitives from _color-variables.scss as concrete values, for code that cannot use `var(--color-*)`:
  * color math, canvas and chart libraries, and documents that do not load the tokens, such as iframes.
  */
 export const COLOR_TOKENS = {

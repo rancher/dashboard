@@ -111,6 +111,20 @@ module.exports = function(dir) {
       config.plugins.unshift(new NodePolyfillPlugin()); // required from Webpack 5 to polyfill node modules
       // config.plugins.unshift(debug);
 
+      // Components use the design system color primitives, which hosts before Rancher 2.16 don't define: bundle them
+      // at zero specificity, so they fill in on those hosts and a newer host keeps its own values
+      const colorVariables = fs.readFileSync(path.join(COMPONENTS_DIR, 'design-system', '_color-variables.scss'), 'utf8');
+      const colorFallback = [...colorVariables.matchAll(/^\$(color-[\w-]+):\s*([^;]+);/gm)].map(([, name, value]) => `--${ name }: ${ value.trim() };`);
+
+      config.plugins.unshift(new VirtualModulesPlugin({ 'node_modules/@rancher/color-fallback.css': `:where(:root) { ${ colorFallback.join(' ') } }\n` }));
+      config.plugins.unshift({
+        apply(compiler) {
+          for (const entry of Object.values(compiler.options.entry)) {
+            entry.import = ['@rancher/color-fallback.css', ...entry.import];
+          }
+        }
+      });
+
       // These modules will be externalised and not included with the build of a package library
       // This helps reduce the package size, but these dependencies must be provided by the hosting application
       config.externals = {

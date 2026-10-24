@@ -20,6 +20,11 @@ describe('color-literals', () => {
       ['background', 'sizzle-gradient($success)', ['sizzle-gradient($success)']],
       ['background', 'color-mix(in srgb, var(--primary) 15%, transparent)', ['color-mix(in srgb, var(--primary) 15%, transparent)']],
       ['--app-color1-accent', 'rgba(var(--sizzle-1), 1)', ['rgba(var(--sizzle-1), 1)']],
+      ['background-image', 'linear-gradient(white, black)', ['white', 'black']],
+      ['border-image', 'linear-gradient(red, blue) 1', ['red', 'blue']],
+      ['filter', 'drop-shadow(0 0 2px black)', ['black']],
+      ['-webkit-box-shadow', '0 0 2px black', ['black']],
+      ['mask-image', 'linear-gradient(black, transparent)', ['black']],
     ])('reports %s: %s', (property, value, expected) => {
       expect(raws(findInCss(value, property))).toStrictEqual(expected);
     });
@@ -53,6 +58,8 @@ describe('color-literals', () => {
       ["'color-mix(in srgb, var(--rc-cm-bg) 75%, transparent)'", ['color-mix(in srgb, var(--rc-cm-bg) 75%, transparent)']],
       ['`rgba(var(${', ['rgba(var(']],
       ['`rgb(${', ['rgb(']],
+      ["'border: 1px solid red'", ['red']],
+      ["'color: SaddleBrown; background: white'", ['SaddleBrown', 'white']],
     ])('reports %s', (text, expected) => {
       expect(raws(findInString(text))).toStrictEqual(expected);
     });
@@ -65,6 +72,9 @@ describe('color-literals', () => {
       ["'Pick a color (optional)'"],
       ["'var(--primary-held-bg)'"],
       ["'rgb('"],
+      ["'red'"],
+      ["'Status: red'"],
+      ["'background: url(red.png)'"],
     ])('ignores %s', (text) => {
       expect(findInString(text)).toStrictEqual([]);
     });

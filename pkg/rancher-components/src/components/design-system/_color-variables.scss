@@ -1,4 +1,18 @@
-// The values of the color primitives. See colors.scss.
+// One primitive per color used in shell and pkg/rancher-components.
+// Browse and copy them in Storybook: https://rancher.github.io/storybook/?path=/docs/foundation-color-primitives--docs
+//
+// $color-<family>-<step>: step is (1 - OKLCH lightness) x 1000, rounded, so a higher step is darker. When that step
+// is taken in the family, the color takes the nearest free step that keeps the family in lightness order.
+// family is gray for colors with no visible hue, otherwise red, orange, yellow, green, blue, purple or pink.
+// $color-<family>-<step>-a<n>: the same color at n% opacity.
+//
+// colors.scss turns each variable into a custom property (--color-*), and colors.ts holds the same values for
+// code that cannot use var(). A new primitive goes here and in colors.ts; colors.test.ts checks they agree.
+// This file emits no CSS.
+//
+// Use these instead of writing colors out or computing them from other colors (darken(), rgba($x, 0.5),
+// color-mix() and the like). The local-rules/no-color-literal lint rule (ESLint and stylelint) rejects both in
+// shell and pkg/rancher-components.
 $color-white: #ffffff;
 $color-white-a0: rgba(255, 255, 255, 0);
 $color-white-a4: rgba(255, 255, 255, 0.04);

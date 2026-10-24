@@ -1,5 +1,6 @@
 import { Meta } from "@storybook/addon-docs";
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { COLOR_TOKENS } from '@components/design-system/colors';
 import computedColors from './color-primitives-computed.json';
 
 <Meta title="Foundation/Color Primitives" />
@@ -10,36 +11,10 @@ export const UNPAINTED = new Set(typeof __UNPAINTED_VARIABLES__ === 'undefined' 
 
 export const THEMES = {
   light: ['theme-light', 'classic theme-light', 'suse theme-light'],
-  dark:  ['theme-dark', 'classic theme-dark', 'suse theme-dark'],
+  dark:  ['theme-dark', 'classic theme-dark', 'suse theme-dark', 'theme-dark suse-prime-surface'],
 };
 
-export const readPrimitives = () => {
-  const primitives = [];
-
-  for (const sheet of document.styleSheets) {
-    let rules = [];
-
-    try {
-      rules = sheet.cssRules;
-    } catch (e) {
-      continue;
-    }
-
-    for (const rule of rules) {
-      if (rule.selectorText !== ':root') {
-        continue;
-      }
-
-      for (const name of rule.style) {
-        if (name.startsWith('--color-') && !primitives.some((p) => p.name === name)) {
-          primitives.push({ name, value: rule.style.getPropertyValue(name).trim() });
-        }
-      }
-    }
-  }
-
-  return primitives;
-};
+export const PRIMITIVES = Object.entries(COLOR_TOKENS).map(([name, value]) => ({ name, value }));
 
 export const themeVariableNames = () => {
   const names = new Set();
@@ -104,7 +79,7 @@ export const resolveThemes = (primitives) => {
           }
         }
       }
-      if (classNames.startsWith('theme-')) {
+      if (classNames === `theme-${ mode }`) {
         result.background[mode] = style.getPropertyValue('--body-bg').trim();
       }
     }
@@ -199,7 +174,7 @@ export const CopyButton = ({ name, children }) => {
   };
 
   return (
-    <button type="button" className="ds-copy" onClick={copy} aria-label={`Copy ${ name }`}>
+    <button type="button" className="ds-copy" onClick={copy} aria-label={`${ children || 'Copy' } ${ name }`}>
       {copied ? 'Copied' : children || 'Copy'}
       <span className="ds-sr-only" aria-live="polite">{copied ? `Copied ${ name }` : ''}</span>
     </button>
@@ -408,9 +383,8 @@ export const Details = ({ color, background, screenshot, screenshots, onClose })
 };
 
 export const Primitives = () => {
-  const primitives = useMemo(readPrimitives, []);
-  const themes = useMemo(() => resolveThemes(primitives), [primitives]);
-  const colors = useMemo(() => primitives.map((p) => describeColor(p, themes)), [primitives, themes]);
+  const themes = useMemo(() => resolveThemes(PRIMITIVES), []);
+  const colors = useMemo(() => PRIMITIVES.map((p) => describeColor(p, themes)), [themes]);
   const screenshots = useScreenshots();
   const [open, setOpen] = useState(null);
   const openColor = colors.find((c) => c.name === open);
@@ -705,12 +679,12 @@ export const Primitives = () => {
 
 Use these as `var(--color-...)` instead of writing colors out or computing them from other colors. Click a swatch to see where the app paints the color: the eyedropper in the screenshot sits on a pixel of it.
 
-- `--color-<family>-<step>`: the step is (1 - OKLCH lightness) x 1000, so a higher step is darker.
+- `--color-<family>-<step>`: the step is (1 - OKLCH lightness) x 1000, rounded, so a higher step is darker. When that step is taken in the family, the color takes the nearest free step that keeps the family in lightness order.
 - `--color-<family>-<step>-a<n>`: the same color at n% opacity, shown over a checkerboard, the light theme background and the dark theme background.
 - **Uses** counts the references in shell and @rancher/components.
 - **Light + dark**, **Light only** and **Dark only** say which themes paint the color, through a theme variable or a component style. A sun marks the light theme and a moon the dark theme, and a color only the dark theme paints gets a dark badge. A dashed badge means nothing paints it: only a theme variable nothing reads, or a Sass variable that never reaches the CSS, refers to it.
 - **Computed** marks a color that master computed from another color (`darken()`, `color-mix()` and the like) before it became a primitive. The details say how.
 
-They are defined in `pkg/rancher-components/src/components/design-system/colors.scss`. A color that isn't here yet gets a new primitive in that file first.
+They are defined in `pkg/rancher-components/src/components/design-system/_color-variables.scss`, with the same values in `colors.ts`. A color that isn't here yet gets a new primitive in both first.
 
 <Primitives />

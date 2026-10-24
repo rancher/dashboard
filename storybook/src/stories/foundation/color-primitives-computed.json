@@ -13,7 +13,7 @@
       {"expression":"darken($medium, 10%)","inputs":{"$medium":"--color-gray-96"},"file":"shell/assets/styles/themes/_modern.scss"}
     ],
     "--color-blue-183": [
-      {"expression":"darken(#EBEEF5, 15%)","inputs":{"#EBEEF5":"--color-gray-51"},"file":"shell/components/formatter/ImagePercentageBar.vue"}
+      {"expression":"darken(#EBEEF5, 15%)","inputs":{},"file":"shell/components/formatter/ImagePercentageBar.vue"}
     ],
     "--color-blue-186": [
       {"expression":"darken($disabled, 10%)","inputs":{"$disabled":"--color-gray-99"},"file":"shell/assets/styles/themes/_light.scss"},
@@ -183,6 +183,9 @@
     "--color-gray-134": [
       {"expression":"darken($light, 10%)","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_light.scss"},
       {"expression":"darken($light, 10%)","inputs":{"$light":"--color-gray-48"},"file":"shell/assets/styles/themes/_modern.scss"}
+    ],
+    "--color-gray-25-a75": [
+      {"expression":"color-mix(in srgb, var(--rc-cm-bg) 75%, transparent)","inputs":{"--rc-cm-bg":"--color-gray-25"},"file":"pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts","themes":["modern light","classic light","suse light"]}
     ],
     "--color-gray-29-a75": [
       {"expression":"rgba($lighter, 0.75)","inputs":{"$lighter":"--color-gray-29"},"file":"shell/assets/styles/themes/_light.scss"},
@@ -631,9 +634,6 @@
     ],
     "--color-white-a7": [
       {"expression":"color-mix(in srgb, var(--body-text) 7%, transparent)","inputs":{"--body-text":"--color-white"},"file":"shell/components/nav/ClusterSwitcherSkeleton.vue","themes":["classic dark"]}
-    ],
-    "--color-white-a75": [
-      {"expression":"color-mix(in srgb, var(--rc-cm-bg) 75%, transparent)","inputs":{"--rc-cm-bg":"--color-white"},"file":"pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts","themes":["modern light","classic light","suse light"]}
     ],
     "--color-white-a8": [
       {"expression":"color-mix(in srgb, var(--body-text) 8%, transparent)","inputs":{"--body-text":"--color-white"},"file":"shell/components/TableViews/TableViewTabs.vue","themes":["classic dark"]},

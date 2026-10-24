@@ -233,14 +233,18 @@
     --logs-text                  : var(--body-text);
 
     --gauge-divider              : var(--color-white-a30);
-    // stylelint-disable local-rules/no-color-literal -- r, g, b triplets kept for extensions
+    // stylelint-disable-next-line local-rules/no-color-literal -- r, g, b triplets kept for extensions
     --gauge-success-primary      : #{red($color-green-540)}, #{green($color-green-540)}, #{blue($color-green-540)};
+    // stylelint-disable-next-line local-rules/no-color-literal
     --gauge-success-secondary    : #{red($color-green-246)}, #{green($color-green-246)}, #{blue($color-green-246)};
+    // stylelint-disable-next-line local-rules/no-color-literal
     --gauge-warning-primary      : #{red($color-yellow-186)}, #{green($color-yellow-186)}, #{blue($color-yellow-186)};
+    // stylelint-disable-next-line local-rules/no-color-literal
     --gauge-warning-secondary    : #{red($color-yellow-507)}, #{green($color-yellow-507)}, #{blue($color-yellow-507)};
+    // stylelint-disable-next-line local-rules/no-color-literal
     --gauge-error-primary        : #{red($color-red-338)}, #{green($color-red-338)}, #{blue($color-red-338)};
+    // stylelint-disable-next-line local-rules/no-color-literal
     --gauge-error-secondary      : #{red($color-red-595)}, #{green($color-red-595)}, #{blue($color-red-595)};
-    // stylelint-enable local-rules/no-color-literal
 
     --product-icon               : #{$lighter};
     --product-icon-active        : #{$lightest};

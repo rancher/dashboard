@@ -13,7 +13,8 @@
  * and stays green enough to gate CI.
  *
  * The one policy rule is `local-rules/no-color-literal` (shell and @rancher/components only): colors come
- * from the design system tokens in pkg/rancher-components/src/components/design-system/colors.scss.
+ * from the design system tokens in pkg/rancher-components/src/components/design-system. A disable comment
+ * for it that no longer covers a color is reported, so pragmas go away with the colors they allowed.
  */
 
 // Value fragments that mean "this is SCSS/Vue syntax the CSS grammar can't parse".
@@ -27,7 +28,8 @@ const SCSS_VALUE_ESCAPES = [
 ];
 
 export default {
-  plugins:   ['./stylelint-local-rules/no-color-literal.mjs'],
+  plugins:                ['./stylelint-local-rules/no-color-literal.mjs'],
+  reportNeedlessDisables: [false, { except: ['local-rules/no-color-literal'] }],
   overrides: [
     {
       files:        ['**/*.scss'],
@@ -59,10 +61,12 @@ export default {
   // `ignoreFiles` can only subtract from the `lint:style` glob, so it lists only
   // directories that can appear *inside* it. `dist` is the one that matters:
   // `pkg/rancher-components` builds into `pkg/rancher-components/dist`, whose
-  // generated CSS would otherwise be linted. `node_modules` is stylelint's own
-  // default ignore, kept here for explicitness.
+  // generated CSS would otherwise be linted, and a local Storybook build copies
+  // the shell styles into `storybook/storybook-static`. `node_modules` is
+  // stylelint's own default ignore, kept here for explicitness.
   ignoreFiles: [
     '**/node_modules/**',
     '**/dist/**',
+    '**/storybook-static/**',
   ],
 };

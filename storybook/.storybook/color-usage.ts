@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import postcssScss from 'postcss-scss';
 
 /**
  * Where a design system color primitive is referenced: how many times, in which files, and which themes the
@@ -33,44 +34,23 @@ const unthemed = (headers: string[], property: string) => `${ headers.join(' ')
   .trim() } | ${ property }`;
 
 function scanStylesheet(source: string, themeVariables: boolean): Reference[] {
-  const css = source.replace(/\/\*[\s\S]*?\*\//g, blank).replace(/(^|[^:])\/\/[^\n]*/g, (m, p) => p + blank(m.slice(p.length)));
-  const matches = [...css.matchAll(REFERENCE)];
   const found: Reference[] = [];
-  const headers: string[] = [];
-  let segment = 0;
-  let next = 0;
 
-  for (let i = 0; i < css.length && next < matches.length; i++) {
-    while (next < matches.length && (matches[next].index as number) <= i) {
-      const property = css.slice(segment, matches[next].index).split(':')[0].trim();
-      const definesVariable = property.startsWith('--') || property.startsWith('$');
+  postcssScss.parse(source).walk((node) => {
+    const [property, value] = node.type === 'decl' ? [node.prop, node.value] : node.type === 'atrule' ? [`@${ node.name }`, node.params] : [];
+    const headers: string[] = [];
 
+    for (let parent = node.parent as any; parent?.type === 'rule' || parent?.type === 'atrule'; parent = parent.parent) {
+      headers.unshift(parent.type === 'rule' ? parent.selector : `@${ parent.name } ${ parent.params }`);
+    }
+    for (const match of value?.matchAll(REFERENCE) || []) {
       found.push({
-        name:  `--${ matches[next][1] }`,
-        theme: property.startsWith('$') || (themeVariables && definesVariable) ? null : themeOf(headers),
+        name:  `--${ match[1] }`,
+        theme: property.startsWith('$') || (themeVariables && property.startsWith('--')) ? null : themeOf(headers),
         key:   unthemed(headers, property),
       });
-      next++;
     }
-
-    if (css[i] === '#' && css[i + 1] === '{') {
-      for (let depth = 0, j = i + 1; j < css.length; j++) {
-        depth += css[j] === '{' ? 1 : css[j] === '}' ? -1 : 0;
-        if (depth === 0) {
-          i = j;
-          break;
-        }
-      }
-    } else if (css[i] === '{') {
-      headers.push(css.slice(segment, i).trim());
-      segment = i + 1;
-    } else if (css[i] === '}') {
-      headers.pop();
-      segment = i + 1;
-    } else if (css[i] === ';') {
-      segment = i + 1;
-    }
-  }
+  });
 
   return found.map((ref) => {
     if (ref.theme !== 'both') {
