@@ -2395,7 +2395,7 @@ cluster:
         tooltip: Kubernetes AWS Cloud Provider support requires an appropriate instance profile
       ami:
         label: AMI ID
-        placeholder: 'Default: A recent Ubuntu LTS'
+        placeholder: 'Default: openSUSE Leap 16.0, or a recent Ubuntu LTS where Leap is not available'
       sshUser:
         label: SSH Username for AMI
         placeholder: 'Default: ubuntu'
