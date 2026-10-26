@@ -238,5 +238,23 @@ describe('composables: IdentifyingFields', () => {
       expect(result?.value[0].valueOverride?.component).toStrictEqual(resource.details[0].formatter);
       expect(result?.value[0].valueOverride?.props).toStrictEqual({ value: resource.details[0].content, ...resource.details[0].formatterOpts });
     });
+
+    it('should pass the detail dataTestid through to the row', () => {
+      const resource = {
+        details: [{
+          label: 'LABEL', content: 'CONTENT', dataTestid: 'detail-testid'
+        }]
+      };
+      const result = useResourceDetails(resource);
+
+      expect(result?.value[0].dataTestid).toStrictEqual('detail-testid');
+    });
+
+    it('should leave the row dataTestid undefined when the detail has none', () => {
+      const resource = { details: [{ label: 'LABEL', content: 'CONTENT' }] };
+      const result = useResourceDetails(resource);
+
+      expect(result?.value[0].dataTestid).toBeUndefined();
+    });
   });
 });
