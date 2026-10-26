@@ -69,7 +69,7 @@ const hasActions = () => rendersContent(slots['additional-actions']?.());
           {{ title }}
         </slot>
       </RcHeading>
-      <!-- @slot Buttons that act on the drawer's content, such as Dock to shell or Expand all, between the title and the close button. Use a secondary or tertiary `RcButton` with a label. -->
+      <!-- @slot Icon buttons that act on the drawer's content, such as Dock to shell or Expand all, beside the close button. Size them like it, and give each an `aria-label` and a tooltip. -->
       <slot name="header-actions" />
       <button
         type="button"

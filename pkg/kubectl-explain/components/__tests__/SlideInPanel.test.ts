@@ -155,18 +155,18 @@ describe('component: SlideInPanel', () => {
       expect(toggleBtn.attributes('aria-expanded')).toBe('true');
     });
 
-    it('is labeled with the kubectl-explain.expandAll key when not yet expanded', () => {
+    it('uses kubectl-explain.expandAll key when not yet expanded', () => {
       const { wrapper } = mountPanel({ get: pending, data: { ...withDefinition, expandAll: false } });
       const toggleBtn = wrapper.find('.expand-all');
 
-      expect(toggleBtn.text()).toBe('kubectl-explain.expandAll');
+      expect(toggleBtn.attributes('aria-label')).toBe('kubectl-explain.expandAll');
     });
 
-    it('is labeled with the kubectl-explain.collapseAll key when expanded', () => {
+    it('uses kubectl-explain.collapseAll key when expanded', () => {
       const { wrapper } = mountPanel({ get: pending, data: { ...withDefinition, expandAll: true } });
       const toggleBtn = wrapper.find('.expand-all');
 
-      expect(toggleBtn.text()).toBe('kubectl-explain.collapseAll');
+      expect(toggleBtn.attributes('aria-label')).toBe('kubectl-explain.collapseAll');
     });
 
     it('toggles when clicked', async() => {

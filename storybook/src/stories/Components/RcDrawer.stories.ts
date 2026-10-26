@@ -29,7 +29,7 @@ const meta: Meta<typeof RcDrawer> = {
     },
     headerActionsSlot: {
       name:        'header-actions',
-      description: 'Buttons that act on the drawer\'s content, such as Dock to shell or Expand all, between the title and the close button. Use a secondary or tertiary `RcButton` with a label.',
+      description: 'Icon buttons that act on the drawer\'s content, such as Dock to shell or Expand all, beside the close button. Size them like it, and give each an `aria-label` and a tooltip.',
       control:     false,
       table:       { category: 'slots' },
     },
@@ -92,12 +92,20 @@ export const Default: Story = {
  */
 export const HeaderActions: Story = {
   render: (args: any) => ({
-    components: { RcDrawer, RcButton },
+    components: { RcDrawer },
     setup:      () => ({ args }),
     template:   `
       <RcDrawer v-bind="args">
         <template #header-actions>
-          <RcButton variant="secondary" left-icon="dock">Dock to shell</RcButton>
+          <button
+            type="button"
+            class="btn role-link"
+            aria-label="Dock to shell"
+            title="Dock to shell"
+            style="display: inline-flex; justify-content: center; width: 24px; height: 24px; color: var(--body-text);"
+          >
+            <i class="icon icon-dock" />
+          </button>
         </template>
         ${ text }
       </RcDrawer>

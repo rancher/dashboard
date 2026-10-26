@@ -1012,7 +1012,7 @@ useShell().slideIn.open(ResourceDrawer, {
 - Don't pass `title` to `slideIn.open` for a component that renders `RcDrawer`, or it is wrapped in a second drawer
 - Closing on `close` is new in Rancher 2.16. If the extension also supports older versions, pass `onClose: () => store.commit('slideInPanel/close')` in `props` too, or the X and Close buttons do nothing there
 - Keep drawer content supplementary; never put a full edit form inside a Drawer
-- Put the drawer's own actions in `#additional-actions`; the footer, with Close before them, only shows when there is one. Buttons that act on the content go in `#header-actions`, before the X
+- Put the drawer's own actions in `#additional-actions`; the footer, with Close before them, only shows when there is one. Icon buttons that act on the content go in `#header-actions`, beside the X
 
 ---
 

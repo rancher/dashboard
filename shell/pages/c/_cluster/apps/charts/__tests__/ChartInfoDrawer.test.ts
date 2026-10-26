@@ -25,7 +25,7 @@ describe('component: ChartInfoDrawer', () => {
   it('should offer Dock to shell in the header and have no footer', () => {
     const wrapper = createWrapper();
 
-    expect(wrapper.find('.header [data-testid="chart-info-dock"]').exists()).toBe(true);
+    expect(wrapper.find('.header [data-testid="chart-info-dock"]').attributes('aria-label')).toBe('catalog.install.slideIn.dock');
     expect(wrapper.find('[data-testid="rc-drawer-footer"]').exists()).toBe(false);
   });
 

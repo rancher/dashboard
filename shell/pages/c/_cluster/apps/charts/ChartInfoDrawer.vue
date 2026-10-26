@@ -3,7 +3,6 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 import ChartReadme from '@shell/components/ChartReadme.vue';
 import { RcDrawer } from '@components/RcDrawer';
-import RcButton from '@components/RcButton/RcButton.vue';
 import { useI18n } from '@shell/composables/useI18n';
 
 defineProps<{ versionInfo: Record<string, any> }>();
@@ -26,15 +25,28 @@ const dock = () => {
     @close="emit('close')"
   >
     <template #header-actions>
-      <RcButton
-        variant="secondary"
-        left-icon="dock"
+      <button
+        v-clean-tooltip="i18n.t('catalog.install.slideIn.dock')"
+        type="button"
+        class="btn role-link dock"
+        :aria-label="i18n.t('catalog.install.slideIn.dock')"
         data-testid="chart-info-dock"
         @click="dock"
       >
-        {{ i18n.t('catalog.install.slideIn.dock') }}
-      </RcButton>
+        <i class="icon icon-dock" />
+      </button>
     </template>
     <ChartReadme :version-info="versionInfo" />
   </RcDrawer>
 </template>
+
+<style lang="scss" scoped>
+.dock {
+  display: inline-flex;
+  flex-shrink: 0;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--body-text);
+}
+</style>

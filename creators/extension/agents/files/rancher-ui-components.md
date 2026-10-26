@@ -1033,7 +1033,7 @@ A slide-out panel anchored to the right side of the screen. Used to surface reso
 - Use when the user benefits from seeing the main page and the panel simultaneously (e.g., inspecting an item while the list remains visible)
 - Put text straight in the body; wrap a form or a table in `RcDrawerCard` to set it apart as a panel
 - Put the drawer's actions in `#additional-actions`, as `size="large"` buttons; they sit after the footer's Close button. A drawer with no action of its own has no footer
-- Put buttons that act on the content, such as Dock to shell or Expand all, in `#header-actions` as labeled secondary or tertiary `RcButton`s, before the X
+- Put buttons that act on the content, such as Dock to shell or Expand all, in `#header-actions` as icon buttons sized like the X beside them, each with an `aria-label` and a tooltip
 - Keep a button's icon when it moves into the drawer (`left-icon`)
 - Limit panel width to 40–50% of the viewport; content needing more space warrants a full page
 

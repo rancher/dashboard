@@ -1,14 +1,11 @@
 <script>
 import ExplainPanel from './ExplainPanel';
 import { RcDrawer } from '@components/RcDrawer';
-import { RcButton } from '@components/RcButton';
 import { expandOpenAPIDefinition, getOpenAPISchemaName, makeOpenAPIBreadcrumb } from '../open-api-utils.ts';
 import { openAPI } from '../open-api';
 
 export default {
-  components: {
-    ExplainPanel, RcButton, RcDrawer
-  },
+  components: { ExplainPanel, RcDrawer },
 
   emits: ['close'],
 
@@ -172,16 +169,17 @@ export default {
       </div>
     </template>
     <template #header-actions>
-      <RcButton
+      <button
         v-if="!busy && !noResource && definition"
-        variant="secondary"
-        left-icon="sort"
-        class="expand-all"
+        v-clean-tooltip="expandAll ? t('kubectl-explain.collapseAll') : t('kubectl-explain.expandAll')"
+        type="button"
+        class="btn role-link expand-all"
+        :aria-label="expandAll ? t('kubectl-explain.collapseAll') : t('kubectl-explain.expandAll')"
         :aria-expanded="expandAll"
         @click="toggleAll()"
       >
-        {{ expandAll ? t('kubectl-explain.collapseAll') : t('kubectl-explain.expandAll') }}
-      </RcButton>
+        <i class="icon icon-sort" />
+      </button>
     </template>
     <div
       ref="content"
@@ -261,7 +259,12 @@ export default {
   }
 
   .expand-all {
+    display: inline-flex;
     flex-shrink: 0;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: var(--body-text);
   }
 
   .content {
