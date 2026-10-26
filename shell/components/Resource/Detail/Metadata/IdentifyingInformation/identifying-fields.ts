@@ -178,7 +178,8 @@ export const useResourceDetails = (resource: any): undefined | ComputedRef<Row[]
         return {
           label:         detail.label,
           value:         detail.content,
-          valueOverride: extractValueOverride(detail)
+          valueOverride: extractValueOverride(detail),
+          dataTestid:    detail.dataTestid
         };
       });
   });

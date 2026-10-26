@@ -155,6 +155,18 @@ export class WorkloadDetailsPageBasePo extends BaseDetailPagePo {
 
     return this;
   }
+
+  clickStorageTab() {
+    return this.resourceDetail().tabs().clickTabWithName('storage');
+  }
+
+  storageTabPanel() {
+    return this.self().find('[data-testid="tab-panel-storage"]');
+  }
+
+  storageList() {
+    return this.resourceDetail().tabbedList('storage');
+  }
 }
 
 export class WorkloadsListPageBasePo extends BaseListPagePo {

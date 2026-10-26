@@ -49,24 +49,29 @@ export default class PV extends SteveModel {
   get details() {
     const out = [
       {
-        label:   this.t('persistentVolume.detail.source'),
-        content: this.source,
+        label:      this.t('persistentVolume.detail.source'),
+        content:    this.source,
+        dataTestid: 'pv-detail-source',
       },
       {
-        label:   this.t('persistentVolume.capacity.label'),
-        content: this.spec?.capacity?.storage,
+        label:      this.t('persistentVolume.capacity.label'),
+        content:    this.spec?.capacity?.storage,
+        dataTestid: 'pv-detail-capacity',
       },
       {
-        label:   this.t('persistentVolume.detail.reclaimPolicy'),
-        content: this.spec?.persistentVolumeReclaimPolicy,
+        label:      this.t('persistentVolume.detail.reclaimPolicy'),
+        content:    this.spec?.persistentVolumeReclaimPolicy,
+        dataTestid: 'pv-detail-reclaim-policy',
       },
       {
-        label:   this.t('persistentVolume.detail.storageClass'),
-        content: this.spec?.storageClassName,
+        label:      this.t('persistentVolume.detail.storageClass'),
+        content:    this.spec?.storageClassName,
+        dataTestid: 'pv-detail-storage-class',
       },
       {
-        label:   this.t('persistentVolume.customize.accessModes.label'),
-        content: (this.spec?.accessModes || []).join(', '),
+        label:      this.t('persistentVolume.customize.accessModes.label'),
+        content:    (this.spec?.accessModes || []).join(', '),
+        dataTestid: 'pv-detail-access-modes',
       },
     ];
 
