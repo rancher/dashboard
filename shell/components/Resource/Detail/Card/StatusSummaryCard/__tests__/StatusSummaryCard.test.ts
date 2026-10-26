@@ -72,6 +72,18 @@ describe('component: StatusSummaryCard', () => {
       expect(wrapper.findComponent(StatusBar).exists()).toStrictEqual(false);
     });
 
+    it('should render the gap below the status bar when there are segments', () => {
+      const wrapper = mountCard();
+
+      expect(wrapper.find('.body .vertical-gap').exists()).toStrictEqual(true);
+    });
+
+    it('should not render the gap when there are no segments', () => {
+      const wrapper = mountCard({ segments: [] });
+
+      expect(wrapper.find('.body .vertical-gap').exists()).toStrictEqual(false);
+    });
+
     it('should render one row per state', () => {
       const wrapper = mountCard();
 
@@ -109,6 +121,18 @@ describe('component: StatusSummaryCard', () => {
       const wrapper = mountCard({ rows: [], segments: [] }, { empty: '<span class="custom-empty">Nothing here</span>' });
 
       expect(wrapper.find('.custom-empty').text()).toStrictEqual('Nothing here');
+    });
+
+    it('should render the empty slot inside the empty wrapper', () => {
+      const wrapper = mountCard({ rows: [], segments: [] }, { empty: '<span class="custom-empty">Nothing here</span>' });
+
+      expect(wrapper.find('.empty .custom-empty').exists()).toStrictEqual(true);
+    });
+
+    it('should not render the empty wrapper when no empty slot is passed', () => {
+      const wrapper = mountCard({ rows: [], segments: [] });
+
+      expect(wrapper.find('.empty').exists()).toStrictEqual(false);
     });
 
     it('should not render the rows list when there are no rows', () => {

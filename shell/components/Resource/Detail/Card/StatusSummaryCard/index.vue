@@ -51,13 +51,14 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
     @click="handleClick"
     @keyup.enter="handleClick"
   >
-    <StatusBar
-      v-if="segments.length"
-      :segments="segments"
-      class="align-center"
-      aria-hidden="true"
-    />
-    <VerticalGap />
+    <template v-if="segments.length">
+      <StatusBar
+        :segments="segments"
+        class="align-center"
+        aria-hidden="true"
+      />
+      <VerticalGap />
+    </template>
     <ul
       v-if="rows.length"
       class="rows"
@@ -88,10 +89,12 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
         />
       </li>
     </ul>
-    <slot
-      v-else
-      name="empty"
-    />
+    <div
+      v-else-if="$slots.empty"
+      class="empty"
+    >
+      <slot name="empty" />
+    </div>
   </Card>
 </template>
 
@@ -124,10 +127,13 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
     gap: 4px;
   }
 
+  .status-row, .empty {
+    line-height: 24px;
+  }
+
   .status-row {
     display: flex;
     align-items: center;
-    line-height: 24px;
 
     .indicator {
       height: 4px;
