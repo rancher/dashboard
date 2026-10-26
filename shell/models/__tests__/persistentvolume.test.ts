@@ -30,6 +30,22 @@ describe('class: PV', () => {
       expect(byLabel('persistentVolume.detail.storageClass')).toBe('standard');
       expect(byLabel('persistentVolume.customize.accessModes.label')).toBe('ReadWriteOnce, ReadOnlyMany');
     });
+
+    it('gives each detail a data-testid', () => {
+      const pv = new PV({
+        type: PVC, metadata: { name: 'pv-1' }, spec: {}
+      }, {
+        getters: {}, dispatch: jest.fn(), rootGetters
+      });
+
+      expect(pv.details.map((d: any) => d.dataTestid)).toStrictEqual([
+        'pv-detail-source',
+        'pv-detail-capacity',
+        'pv-detail-reclaim-policy',
+        'pv-detail-storage-class',
+        'pv-detail-access-modes',
+      ]);
+    });
   });
 
   describe('fetchPersistentVolumeClaim', () => {
