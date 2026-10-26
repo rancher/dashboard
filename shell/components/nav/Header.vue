@@ -30,7 +30,6 @@ import {
   RcDropdownSeparator,
   RcDropdownTrigger
 } from '@components/RcDropdown';
-import { RcCounterBadge } from '@components/Pill';
 import { SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 import { CLUSTER_SHELL } from '@shell/store/features';
 import { openReleaseWelcome, releaseWelcomeVersion } from '@shell/utils/release-welcome';
@@ -53,7 +52,6 @@ export default {
     RcDropdownItem,
     RcDropdownSeparator,
     RcDropdownTrigger,
-    RcCounterBadge,
   },
 
   props: {
@@ -499,23 +497,12 @@ export default {
       return null;
     },
 
-    getExtensionActionBadge(action) {
-      if (!action) {
-        return null;
+    getExtensionNotificationIndicator(action) {
+      if (action && typeof action.showNotificationIndicator === 'function') {
+        return action.showNotificationIndicator() || false;
       }
 
-      if (typeof action.badge === 'function') {
-        const badge = action.badge();
-
-        if (badge && typeof badge.count === 'number') {
-          return {
-            count: Math.max(0, badge.count || 0),
-            color: badge.color || 'success'
-          };
-        }
-      }
-
-      return null;
+      return false;
     },
 
     async updateExtensionActionsEnabled() {
@@ -807,14 +794,9 @@ export default {
                 :img-alt="action.tooltipKey ? t(action.tooltipKey) : action.labelKey ? t(action.labelKey) : action.label ? action.label : t('generic.imageAlt')"
                 color="header"
               />
-              <RcCounterBadge
-                v-if="getExtensionActionBadge(action)?.count > 0"
-                :count="getExtensionActionBadge(action)?.count"
-                type="active"
-                :class="[
-                  'extension-action-badge',
-                  getExtensionActionBadge(action)?.color
-                ]"
+              <div
+                v-if="getExtensionNotificationIndicator(action)"
+                class="extension-action-icon-container-notification-indicator"
               />
             </div>
           </button>
@@ -1326,32 +1308,15 @@ export default {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-  }
 
-  .extension-action-badge {
-    top: -14px;
-    left: 14px;
-    position: absolute;
-    padding: 0 4px;
-    min-width: 18px;
-    height: 18px;
-    align-items: center;
-    line-height: unset;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: bold;
-    border: none;
-    border-radius: 50%;
-    z-index: 1000;
-
-    &.error {
+    &-notification-indicator {
+      position: absolute;
+      right: -8px;
+      top: -4px;
+      border-radius: 50%;
+      height: 8px;
+      width: 8px;
       background-color: var(--error);
-      color: var(--error-text);
-    }
-
-    &.success {
-      background-color: var(--success);
-      color: var(--success-text);
     }
   }
 </style>
