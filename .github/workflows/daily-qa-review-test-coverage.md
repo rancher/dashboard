@@ -3,23 +3,27 @@ on:
   schedule: daily
   workflow_dispatch:
 
-if: github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true'
+if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_QA_REVIEW != 'true'
 
 permissions:
   contents: read
-  issues: write
+  issues: read
   pull-requests: read
-  repository-projects: write
+  copilot-requests: write
 
 engine: copilot
 timeout-minutes: 30
 description: "AI-assisted daily QA review of issue automation sufficiency and manual test needs"
 
 tools:
+  bash: true
   github:
     toolsets:
       - default
+      - projects
     min-integrity: none
+    # The QA Review column lives on an org project, which GITHUB_TOKEN cannot read.
+    github-token: ${{ secrets.GH_AW_READ_PROJECT_TOKEN }}
 
 safe-outputs:
   add-comment:
@@ -36,6 +40,9 @@ safe-outputs:
       - bot/no-manual-test-needed
       - bot/not-automatable
       - bot/manual-qa-review-required
+      - bot/major-change-detected
+      - bot/manual-test-pending
+      - bot/manual-test-pass
     max: 100
     target: "*"
   remove-labels:
@@ -47,10 +54,11 @@ safe-outputs:
       - bot/no-manual-test-needed
       - bot/not-automatable
       - bot/manual-qa-review-required
+      - bot/major-change-detected
+      - bot/manual-test-pending
+      - bot/manual-test-pass
     max: 100
     target: "*"
-  close-issue:
-    max: 100
 
 ---
 
@@ -188,7 +196,7 @@ Where `{reason}` is one of:
        ```
      - Apply the labels `bot/qa-reviewed`, `bot/needs-more-test-automation`, and `bot/needs-manual-test`.
 
-  - If `automation_sufficient` is **false** and `manual_test` is **false**:
+   - If `automation_sufficient` is **false** and `manual_test` is **false**:
      - Post a comment using this exact format:
        ```
        <details open>
@@ -207,8 +215,7 @@ Where `{reason}` is one of:
        _This comment was generated automatically to highlight missing automated coverage and suggest next tests to add._
        </details>
        ```
-     - Apply the labels `bot/qa-reviewed`, `bot/needs-more-test-automation`, and `bot/no-manual-test-needed`..
-     - Move the issue to **Reopened**
+     - Apply the labels `bot/qa-reviewed`, `bot/needs-more-test-automation`, and `bot/no-manual-test-needed`.
 
 Keep track of every issue number you process in Queue A so Queue B can skip them.
 
@@ -251,8 +258,8 @@ Keep track of every issue number you process in Queue A so Queue B can skip them
 
        _This comment was generated automatically to summarize why a major change was detected._
        </details>
-       ```   
-   - Else, count the total number of prior bot `suggestions_markdown` comments on the issue.      
+       ```
+   - Else, count the total number of prior bot `suggestions_markdown` comments on the issue.
      - If new test additions fully address the previous suggestions and no major change is found:
        - Remove label `bot/needs-more-test-automation`.
        - Apply label `bot/test-automation-sufficient`.
@@ -316,6 +323,14 @@ An issue review produces three decisions:
    - happy path and at least most meaningful failure or edge cases covered
    - assertions verify user-visible behavior, not just snapshots or implementation details
    - tests are clearly tied to the acceptance criteria or issue scope
+8. Read the linked PR description for sections such as "Areas or cases that should be tested" and
+   "Areas which could experience regressions". Map each listed area to the test files that cover it
+   and record the areas with no automated coverage.
+9. Build the evidence inventory from ALL test files changed in ALL linked PRs (unit, component and
+   e2e) before concluding that something is not covered.
+10. Note where each test runs. Tests that run in jsdom or stub/mock the component under test (for
+    example a mocked formatter, translator or modal) do not verify real browser rendering, layout,
+    scrolling, theming, teleporting or focus behavior.
 
 ### Automatable Assessment
 
@@ -349,6 +364,9 @@ Set `automation_sufficient: true` only when all are true:
 4. Those tests must cover expected behavior, including all the acceptance criteria, and at least one
    meaningful edge or failure path where applicable.
 5. Coverage confidence is high enough that manual verification can be skipped with no high risks.
+6. When a wrong outcome is silently visible to the user and erodes trust (state reverting without
+   user action, overwritten or lost data, race conditions, wrong values saved), at least one test
+   must reproduce that specific scenario.
 
 Otherwise, when `is_automatable` is **true**, set `automation_sufficient: false` .
 
@@ -370,9 +388,19 @@ Set `manual_test: true` whenever **any** of the following are true:
 - the behavior involves strong UI integration, such as complex navigation across multiple pages or
   heavy interaction among multiple UI elements
 - the automation coverage is good but still leaves meaningful user-facing risk uncovered
+- the linked PR description lists areas to test or regression areas that have no automated coverage
+- the change alters shared model, store, or save/edit logic used by many resource types (for
+  example all secret types), so the regression surface is broad
+- When the change addresses a fix for a core trust violation (examples: data loss/instability that would cause repeated retries, confusion, and wrong environment settings). 
+   User-impact severity: High (trust-breaking, visible, reproducible under common timing)
+   If it's high user impact, automation must be flawless for no need of manual tests.
+- the behavior depends on real browser rendering, layout, scrolling, theming, modal teleporting or
+  focus, and the tests only run in jsdom or stub the component involved
 - `is_automatable` is **false** and any of the above in this list is true
 
-Otherwise, set `manual_test: false`.
+Otherwise, set `manual_test: false`. Typical `manual_test: false` cases, when the automated tests fully assert
+the behavior and the PR's Areas or Cases that should be tested section, are dev-time-only warnings, CI or workflow changes, deterministic parsing or
+formatting logic, and issues whose deliverable is itself an automated test.
 
 Be decisive. Do not block on perfect coverage, but require meaningful, risk-aligned automation and
 use manual testing where it materially reduces residual risk.
@@ -389,6 +417,12 @@ use manual testing where it materially reduces residual risk.
 - whether manual testing is recommended and why
 - specific test evidence found, including files, suites, or PR references when applicable
 - any residual risk to monitor
+- only claims that can be verified in the PR diff: cite a test only if it exists, never claim e2e
+  coverage when only unit or component tests exist, and explicitly say when a test asserts something it
+  mocks or stubs (for example exact rendered strings behind a mocked formatter) and when the test intercepts it.
+- what the cited tests do NOT assert
+- when automation is partial, each area from the PR description that is covered by which test, and
+  each area that is not covered
 
 `suggestions_markdown` must include:
 
@@ -396,6 +430,11 @@ use manual testing where it materially reduces residual risk.
 - explicit indication of whether each suggestion is `unit` or `e2e`
 - expected behavior each test should assert
 - identification of previous suggestions already addressed, when re-evaluating in Queue B
+- list the gaps that remain after checking every test file in every linked PR; never suggest a test
+  that already exists, and mention when a scenario is covered at unit or component level but not
+  e2e
+- for uncovered areas from the PR description, give a respective test suggestion (e2e, unit or component) and, when `manual_test` is true,
+  list the manual tests required based on the PR's Areas or cases that should be tested, and any ther relevant manual tests you can think of
 
 `feature_change_markdown` must include:
 
