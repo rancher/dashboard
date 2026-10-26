@@ -202,17 +202,32 @@ jobs:
         if: >-
           github.event.inputs.rancher_version == ''
           || github.event.inputs.rancher_version == matrix.rancher_version
+        env:
+          # Pinned: Verdaccio 7 (npm `latest` since 2026-10-25) dropped the legacy
+          # `PUT /-/user/:name` endpoint used below. The 6.x line is still maintained
+          # under the `latest-6` dist-tag.
+          VERDACCIO_VERSION: '6.11.1'
         run: |
-          which verdaccio > /dev/null 2>&1 || npm install -g verdaccio
+          npm ls -g --depth=0 "verdaccio@${VERDACCIO_VERSION}" > /dev/null 2>&1 \
+            || npm install -g "verdaccio@${VERDACCIO_VERSION}"
           verdaccio > verdaccio.log 2>&1 &
           sleep 10
           if [ -f ~/.config/verdaccio/htpasswd ]; then
             sed -i '/^admin:/d' ~/.config/verdaccio/htpasswd
           fi
-          curl -XPUT -H "Content-type: application/json" \
+          HTTP_CODE=$(curl -s -o login.json -w '%{http_code}' \
+            -XPUT -H "Content-type: application/json" \
             -d '{ "name": "admin", "password": "admin" }' \
-            'http://localhost:4873/-/user/admin' > login.json
-          TOKEN=$(jq -r .token login.json)
+            'http://localhost:4873/-/user/admin')
+          TOKEN=$(jq -r '.token // empty' login.json 2>/dev/null || true)
+          if [ -z "$TOKEN" ]; then
+            echo "Failed to get a Verdaccio auth token (HTTP ${HTTP_CODE}). Response was:"
+            cat login.json
+            echo
+            echo "Verdaccio log:"
+            cat verdaccio.log
+            exit 1
+          fi
           rm login.json
           cat > ~/.npmrc << EOF
           //127.0.0.1:4873/:_authToken="$TOKEN"

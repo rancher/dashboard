@@ -21,15 +21,20 @@ if [ "$1" == "-s" ]; then
 fi
 
 if [ $SKIP_SETUP == "false" ]; then
+  # Pinned: Verdaccio 7 (npm `latest` since 2026-10-25) dropped the legacy
+  # `PUT /-/user/:name` endpoint used below. The 6.x line is still maintained
+  # under the `latest-6` dist-tag.
+  VERDACCIO_VERSION="6.11.1"
+
   set +e
-  which verdaccio > /dev/null
+  npm ls -g --depth=0 "verdaccio@${VERDACCIO_VERSION}" > /dev/null 2>&1
   RET=$?
   set -e
 
   if [ $RET -ne 0 ]; then
-    echo "Verdaccio not installed"
+    echo "Verdaccio ${VERDACCIO_VERSION} not installed"
 
-    npm install -g verdaccio
+    npm install -g "verdaccio@${VERDACCIO_VERSION}"
   fi
 
   set +e
@@ -51,8 +56,15 @@ if [ $SKIP_SETUP == "false" ]; then
       sed -i.bak -e '/^admin:/d' ~/.config/verdaccio/htpasswd
     fi
 
-    curl -XPUT -H "Content-type: application/json" -d '{ "name": "admin", "password": "admin" }' 'http://localhost:4873/-/user/admin' > login.json
-    TOKEN=$(jq -r .token login.json)
+    HTTP_CODE=$(curl -s -o login.json -w '%{http_code}' -XPUT -H "Content-type: application/json" -d '{ "name": "admin", "password": "admin" }' 'http://localhost:4873/-/user/admin')
+    TOKEN=$(jq -r '.token // empty' login.json 2>/dev/null || true)
+
+    if [ -z "$TOKEN" ]; then
+      echo "Failed to get a Verdaccio auth token (HTTP ${HTTP_CODE}). Response was:"
+      cat login.json
+      exit 1
+    fi
+
     rm login.json
     cat > ~/.npmrc << EOF
 //127.0.0.1:4873/:_authToken="$TOKEN"

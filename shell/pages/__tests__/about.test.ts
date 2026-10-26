@@ -41,6 +41,7 @@ async function createWrapper(config: { dashboardVersion?: string } = { dashboard
         ExtensionPanel: { template: '<div />' },
         Loading:        { template: '<div />' },
         TabTitle:       { template: '<div><slot /></div>' },
+        RcHeading:      { template: '<div><slot /></div>' },
         'rc-button':    { template: '<button><slot /></button>' },
       },
     },
@@ -59,7 +60,31 @@ describe('page: about', () => {
       const link = wrapper.find('[data-testid="about__cli_docs_link"]');
 
       expect(link.attributes('href')).toBe(`${ DOCS_BASE }/reference-guides/cli-with-rancher/rancher-cli`);
-      expect(link.text()).toBe('%about.cli.docsLink%');
+      expect(link.text()).toStrictEqual('%about.cli.docsLink% %generic.opensInNewTab%');
+    });
+
+    it('should link to the new CLI GitHub repository', async() => {
+      const wrapper = await createWrapper();
+
+      const link = wrapper.find('[data-testid="about__new_cli_github_link"]');
+
+      expect(link.attributes('href')).toStrictEqual('https://github.com/rancher/rancher-cli');
+    });
+
+    it('should show the new CLI GitHub link text', async() => {
+      const wrapper = await createWrapper();
+
+      const link = wrapper.find('[data-testid="about__new_cli_github_link"]');
+
+      expect(link.text()).toStrictEqual('%about.cli.new.githubLink% %generic.opensInNewTab%');
+    });
+
+    it('should show a "new" badge next to the new CLI title', async() => {
+      const wrapper = await createWrapper();
+
+      const badge = wrapper.findComponent('[data-testid="about__new_cli_badge"]');
+
+      expect(badge.attributes('status')).toStrictEqual('success');
     });
 
     it('should not link to CLI binaries even when the cli-url settings are set', async() => {
