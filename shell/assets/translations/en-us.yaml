@@ -447,9 +447,14 @@ about:
   downloadImageList:
     title: Image Lists
   cli:
-    title: "Rancher CLI"
-    description: The Rancher CLI lets you manage clusters, projects and resources from the command line. Builds are available for a range of operating systems and architectures, and the documentation covers how to download and install them.
+    title: "Rancher CLI (legacy)"
+    description: This version of the Rancher CLI will be deprecated in a future release and will no longer receive new features. It remains fully supported for now, so existing scripts and automation keep working, but we recommend starting with the new Rancher CLI below.
     docsLink: View Rancher CLI documentation
+    new:
+      title: "New Rancher CLI (AI & Agent Edition)"
+      badge: New
+      description: The intelligent CLI built for AI, AI agents and autonomous Kubernetes.
+      githubLink: View on GitHub (rancher/rancher-cli)
   diagnostic:
     title: Diagnostics
     checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources. These may take a while to complete
