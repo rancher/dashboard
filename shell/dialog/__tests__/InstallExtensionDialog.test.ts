@@ -42,22 +42,11 @@ describe('component: InstallExtensionDialog', () => {
       expect(wrapper.vm.currentVersion).toBe('1.0.0');
     });
 
-    it('should set currentVersion to the installed chart version, not its app version', async() => {
-      const plugin = {
-        installed: true, installedVersion: '4.1.0', installedChartVersion: '0.4.10'
-      };
-
-      wrapper = mountComponent({ plugin });
-      await wrapper.vm.$options.fetch.call(wrapper.vm);
-      expect(wrapper.vm.currentVersion).toBe('0.4.10');
-    });
-
     it('should disable the installed version in the options when its app version differs', async() => {
       const plugin = {
-        installed:             true,
-        installedVersion:      '4.1.0',
-        installedChartVersion: '0.4.10',
-        installableVersions:   [{ version: '0.4.11', appVersion: '4.1.1' }, { version: '0.4.10', appVersion: '4.1.0' }],
+        installed:           true,
+        installedVersion:    '0.4.10',
+        installableVersions: [{ version: '0.4.11', appVersion: '4.1.1' }, { version: '0.4.10', appVersion: '4.1.0' }],
       };
 
       wrapper = mountComponent({ plugin, action: 'upgrade' });

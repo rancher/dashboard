@@ -1,5 +1,5 @@
 import type { Plugin, Version } from '@shell/types/uiplugins';
-import { getPluginChartVersion, getPluginChartVersionLabel, getLatestPluginVersions, isNewerVersion } from '../uiplugins';
+import { getPluginChartVersion, getPluginChartVersionLabel, getLatestPluginVersions } from '../uiplugins';
 
 function makePlugin(partial: Partial<Plugin>): Plugin {
   return {
@@ -80,33 +80,6 @@ describe('fx: getPluginChartVersionLabel', () => {
     const version = { version: '1.2.3', appVersion: '4.5.6' } as Version;
 
     expect(getPluginChartVersionLabel(version)).toBe('4.5.6 (1.2.3)');
-  });
-});
-
-describe('fx: isNewerVersion', () => {
-  it.each([
-    ['2.0.0', '1.0.0', true],
-    ['1.1.0', '1.0.9', true],
-    ['1.0.0', '2.0.0', false],
-    ['1.0.0', '1.0.0', false],
-    ['1.0.0-rc1', '0.9.0', true],
-  ])('compares %s against %s as %s', (version, otherVersion, expected) => {
-    expect(isNewerVersion(version, otherVersion)).toBe(expected);
-  });
-
-  it.each([
-    [undefined, '1.0.0'],
-    ['1.0.0', undefined],
-    [undefined, undefined],
-    ['', '1.0.0'],
-  ])('is false when either side is missing (%s, %s)', (version, otherVersion) => {
-    expect(isNewerVersion(version, otherVersion)).toBe(false);
-  });
-
-  it('falls back to inequality rather than throwing on versions which are not semver', () => {
-    expect(isNewerVersion('nightly', '1.0.0')).toBe(true);
-    expect(isNewerVersion('1.0.0', 'nightly')).toBe(true);
-    expect(isNewerVersion('nightly', 'nightly')).toBe(false);
   });
 });
 

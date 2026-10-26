@@ -126,12 +126,11 @@ describe('page: UI plugins/Extensions', () => {
 
     it('should return downgrade action for an installed plugin with older installable versions', () => {
       const plugin = {
-        installed:             true,
-        installableVersions:   [{ version: '1.0.0' }, { version: '0.9.0' }],
-        builtin:               false,
-        upgrade:               null,
-        installedVersion:      '1.0.0',
-        installedChartVersion: '1.0.0',
+        installed:           true,
+        installableVersions: [{ version: '1.0.0' }, { version: '0.9.0' }],
+        builtin:             false,
+        upgrade:             null,
+        installedVersion:    '1.0.0',
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
@@ -140,12 +139,11 @@ describe('page: UI plugins/Extensions', () => {
 
     it('should return all applicable actions (upgrade, downgrade, uninstall)', () => {
       const plugin = {
-        installed:             true,
-        installableVersions:   [{ version: '1.1.0' }, { version: '1.0.0' }, { version: '0.9.0' }],
-        builtin:               false,
-        upgrade:               '1.1.0',
-        installedVersion:      '1.0.0',
-        installedChartVersion: '1.0.0',
+        installed:           true,
+        installableVersions: [{ version: '1.1.0' }, { version: '1.0.0' }, { version: '0.9.0' }],
+        builtin:             false,
+        upgrade:             '1.1.0',
+        installedVersion:    '1.0.0',
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
@@ -156,11 +154,10 @@ describe('page: UI plugins/Extensions', () => {
 
     it('should not offer a downgrade from a chart whose app version is higher than its chart versions', () => {
       const plugin = {
-        installed:             true,
-        builtin:               false,
-        installedVersion:      '4.1.0',
-        installedChartVersion: '0.4.10',
-        installableVersions:   [{ version: '0.4.11' }, { version: '0.4.10' }],
+        installed:           true,
+        builtin:             false,
+        installedVersion:    '0.4.10',
+        installableVersions: [{ version: '0.4.11' }, { version: '0.4.10' }],
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
@@ -169,11 +166,10 @@ describe('page: UI plugins/Extensions', () => {
 
     it('should offer a downgrade to a lower chart version', () => {
       const plugin = {
-        installed:             true,
-        builtin:               false,
-        installedVersion:      '4.1.1',
-        installedChartVersion: '0.4.11',
-        installableVersions:   [{ version: '0.4.11' }, { version: '0.4.10' }],
+        installed:           true,
+        builtin:             false,
+        installedVersion:    '0.4.11',
+        installableVersions: [{ version: '0.4.11' }, { version: '0.4.10' }],
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
@@ -336,14 +332,28 @@ describe('page: UI plugins/Extensions', () => {
   describe('getStatuses', () => {
     it('should return "installed" status with version for installed, non-builtin plugins', () => {
       const plugin = {
-        installed:        true,
-        builtin:          false,
-        installing:       false,
-        installedVersion: '1.2.3',
+        installed:           true,
+        builtin:             false,
+        installing:          false,
+        installedVersion:    '1.2.3',
+        displayVersionLabel: '1.2.3',
       };
       const statuses = wrapper.vm.getStatuses(plugin);
 
       expect(statuses[0].tooltip.text).toBe('generic.installed (1.2.3)');
+    });
+
+    it('should name both versions in the installed tooltip when the app version differs', () => {
+      const plugin = {
+        installed:           true,
+        builtin:             false,
+        installing:          false,
+        installedVersion:    '0.4.10',
+        displayVersionLabel: '4.1.0 (0.4.10)',
+      };
+      const statuses = wrapper.vm.getStatuses(plugin);
+
+      expect(statuses[0].tooltip.text).toBe('generic.installed (4.1.0 (0.4.10))');
     });
 
     it('should return "upgradeable" status naming the latest version for plugins with an upgrade', () => {
@@ -934,21 +944,20 @@ describe('page: UI plugins/Extensions', () => {
       const result = wrapper.vm.buildLoadedPluginItem(plugin);
 
       expect(result).toStrictEqual({
-        name:                  'my-plugin',
-        label:                 'my-plugin',
-        description:           'Plugin description',
-        icon:                  'plugin-icon.svg',
-        id:                    'my-plugin-id',
-        versions:              [],
-        displayVersion:        '1.2.3',
-        displayVersionLabel:   '1.2.3',
-        installed:             true,
-        installedVersion:      '1.2.3',
-        installedChartVersion: '1.2.3',
-        builtin:               false,
-        primeOnly:             false,
-        experimental:          false,
-        certified:             false,
+        name:                'my-plugin',
+        label:               'my-plugin',
+        description:         'Plugin description',
+        icon:                'plugin-icon.svg',
+        id:                  'my-plugin-id',
+        versions:            [],
+        displayVersion:      '1.2.3',
+        displayVersionLabel: '1.2.3',
+        installed:           true,
+        installedVersion:    '1.2.3',
+        builtin:             false,
+        primeOnly:           false,
+        experimental:        false,
+        certified:           false,
       });
     });
 
@@ -1263,7 +1272,31 @@ describe('page: UI plugins/Extensions', () => {
         expect(all[0].displayVersionLabel).toBe('1.0.0');
       });
 
-      it('should resolve the installed app version into a chart version for the rest of the UI', () => {
+      it('should take the installed chart version from the installed app', () => {
+        const appsWithChartVersion = [{
+          metadata: {
+            name:      'my-plugin',
+            namespace: UI_PLUGIN_NAMESPACE,
+            labels:    { [CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME]: 'rancher-charts' }
+          },
+          spec: { chart: { metadata: { annotations: {}, version: '0.4.10' } } }
+        }];
+        const all: any[] = [chartWithVersions([
+          {
+            version: '0.4.11', appVersion: '4.1.1', annotations: {}
+          },
+          {
+            version: '0.4.10', appVersion: '4.1.0', annotations: {}
+          },
+        ])];
+
+        // the CR version is the app version, which is not what the versions list is keyed on
+        createWireWrapper(appsWithChartVersion).vm.wirePluginCRToChart({ name: 'my-plugin', version: '4.1.0' }, all);
+
+        expect(all[0].installedVersion).toBe('0.4.10');
+      });
+
+      it('should fall back to matching on app version when the app reports no chart version', () => {
         const all: any[] = [chartWithVersions([
           {
             version: '0.4.11', appVersion: '4.1.1', annotations: {}
@@ -1275,7 +1308,7 @@ describe('page: UI plugins/Extensions', () => {
 
         wireWrapper.vm.wirePluginCRToChart({ name: 'my-plugin', version: '4.1.0' }, all);
 
-        expect(all[0].installedChartVersion).toBe('0.4.10');
+        expect(all[0].installedVersion).toBe('0.4.10');
       });
 
       it('should fall back to the raw installed version when the repo index no longer lists it', () => {
@@ -1285,7 +1318,7 @@ describe('page: UI plugins/Extensions', () => {
 
         wireWrapper.vm.wirePluginCRToChart({ name: 'my-plugin', version: '1.0.0' }, all);
 
-        expect(all[0].installedChartVersion).toBe('1.0.0');
+        expect(all[0].installedVersion).toBe('1.0.0');
       });
 
       it('should show the last updated date and icon of the installed version', () => {

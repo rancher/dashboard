@@ -76,7 +76,7 @@ export default {
      */
     currentVersion() {
       if (this.info?.installed) {
-        return this.info.installedChartVersion || this.info.installedVersion;
+        return this.info.installedVersion;
       }
 
       return getPluginChartVersion(this.info);
@@ -127,7 +127,6 @@ export default {
       }
 
       const selectedVersion = this.infoVersion;
-      // chart version vs chart version: info.installedVersion is the app version, which isn't comparable
       const installedVersion = this.currentVersion;
 
       if (!this.info.installed) {

@@ -82,10 +82,9 @@ describe('component: PluginInfoPanel', () => {
 
     it('should not show upgrade/downgrade for the installed version when the chart version differs from the app version', () => {
       wrapper.vm.info = {
-        installed:             true,
-        installedVersion:      '4.1.0',
-        installedChartVersion: '0.4.10',
-        versions:              [{ version: '0.4.10', appVersion: '4.1.0' }]
+        installed:        true,
+        installedVersion: '0.4.10',
+        versions:         [{ version: '0.4.10', appVersion: '4.1.0' }]
       };
       wrapper.vm.infoVersion = '0.4.10';
       const actions = wrapper.vm.panelActions;
@@ -118,10 +117,9 @@ describe('component: PluginInfoPanel', () => {
 
     it('should append (current) to the chart version carrying the installed app version', () => {
       wrapper.vm.info = {
-        installed:             true,
-        installedVersion:      '4.1.0',
-        installedChartVersion: '0.4.10',
-        versions:              [{ version: '0.4.10', appVersion: '4.1.0' }]
+        installed:        true,
+        installedVersion: '0.4.10',
+        versions:         [{ version: '0.4.10', appVersion: '4.1.0' }]
       };
       const label = wrapper.vm.getVersionLabel({ version: '0.4.10', appVersion: '4.1.0' });
 
@@ -144,23 +142,14 @@ describe('component: PluginInfoPanel', () => {
     describe('currentVersion', () => {
       it('should use the installed chart version resolved for the item', () => {
         wrapper.vm.info = {
-          installed:             true,
-          installedVersion:      '4.1.0',
-          installedChartVersion: '0.4.10',
-          versions:              [{
+          installed:        true,
+          installedVersion: '0.4.10',
+          versions:         [{
             version: '0.4.10', appVersion: '4.1.0', isVersionCompatible: true, versionIncompatibilityData: {}
           }]
         };
 
         expect(wrapper.vm.currentVersion).toBe('0.4.10');
-      });
-
-      it('should fall back to the installed version for items built without a chart version', () => {
-        wrapper.vm.info = {
-          installed: true, installedVersion: '4.1.0', versions: allVersions.slice(0, 1)
-        };
-
-        expect(wrapper.vm.currentVersion).toBe('4.1.0');
       });
 
       it('should use the pre-selected version if the extension is not installed', () => {
@@ -280,11 +269,10 @@ describe('component: PluginInfoPanel', () => {
 
     it('should select the installed chart version when it differs from the app version', () => {
       wrapper.vm.show({
-        installed:             true,
-        installedVersion:      '4.1.0',
-        installedChartVersion: '0.4.10',
+        installed:        true,
+        installedVersion: '0.4.10',
         chart,
-        versions:              [chartVersion('0.4.11', '4.1.1'), chartVersion('0.4.10', '4.1.0')]
+        versions:         [chartVersion('0.4.11', '4.1.1'), chartVersion('0.4.10', '4.1.0')]
       });
 
       expect(wrapper.vm.infoVersion).toBe('0.4.10');
@@ -324,12 +312,11 @@ describe('component: PluginInfoPanel', () => {
 
     it('should fall back to the latest installable version when the installed one has been pruned from the repo index', () => {
       wrapper.vm.show({
-        installed:             true,
-        installedVersion:      '1.0.0',
-        installedChartVersion: '1.0.0',
+        installed:           true,
+        installedVersion:    '1.0.0',
         chart,
-        versions:              [chartVersion('2.0.0', '2.0.0')],
-        installableVersions:   [chartVersion('2.0.0', '2.0.0')],
+        versions:            [chartVersion('2.0.0', '2.0.0')],
+        installableVersions: [chartVersion('2.0.0', '2.0.0')],
       });
 
       expect(wrapper.vm.infoVersion).toBe('2.0.0');

@@ -35,7 +35,8 @@ import { RcItemCard } from '@components/RcItemCard';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter.vue';
 import versions from '@shell/utils/versions';
-import { getPluginChartVersionLabel, isNewerVersion } from '@shell/utils/uiplugins';
+import { compareChartVersions } from '@shell/utils/chart';
+import { getPluginChartVersionLabel } from '@shell/utils/uiplugins';
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -685,7 +686,7 @@ export default {
 
       if (plugin.installed) {
         const canUpdate = !!plugin.upgrade;
-        const canDowngrade = plugin.installableVersions?.some((v) => isNewerVersion(plugin.installedChartVersion, v.version));
+        const canDowngrade = plugin.installableVersions?.some((v) => compareChartVersions(plugin.installedVersion, v.version) > 0);
         const canUninstall = !plugin.builtin;
 
         if (canUpdate) {
@@ -854,7 +855,7 @@ export default {
 
       if (plugin.installed && !plugin.builtin && !plugin.installing) {
         statuses.push({
-          icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: `${ this.t('generic.installed') } (${ plugin.installedVersion })` }
+          icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: `${ this.t('generic.installed') } (${ plugin.displayVersionLabel })` }
         });
       }
 
@@ -948,41 +949,19 @@ export default {
       }
 
       return {
-        name:                  plugin.name,
+        name:                plugin.name,
         label,
-        description:           plugin.metadata?.description,
-        icon:                  plugin.metadata?.icon,
-        id:                    plugin.id,
-        versions:              [],
-        displayVersion:        plugin.metadata?.version,
-        displayVersionLabel:   plugin.metadata?.version || '-',
-        installed:             true,
-        installedVersion:      plugin.metadata?.version,
-        installedChartVersion: plugin.metadata?.version,
-        builtin:               !!plugin.builtin,
+        description:         plugin.metadata?.description,
+        icon:                plugin.metadata?.icon,
+        id:                  plugin.id,
+        versions:            [],
+        displayVersion:      plugin.metadata?.version,
+        displayVersionLabel: plugin.metadata?.version || '-',
+        installed:           true,
+        installedVersion:    plugin.metadata?.version,
+        builtin:             !!plugin.builtin,
         ...this.extractCertificationFlags(rancher?.annotations),
       };
-    },
-
-    /**
-     * Whether a newer version than the installed one can be installed. Compares chart versions,
-     * falling back to app versions when the installed version is no longer in the repo index and
-     * there is therefore no chart version to compare against
-     *
-     * @param latestInstallableVersion The newest version which can be installed, if any
-     * @param installedVersion The installed version as listed in the repo index, if still listed
-     * @param installedAppVersion The installed version as reported by the UIPlugin CR
-     */
-    isUpgradeAvailable(latestInstallableVersion, installedVersion, installedAppVersion) {
-      if (!latestInstallableVersion) {
-        return false;
-      }
-
-      if (installedVersion) {
-        return isNewerVersion(latestInstallableVersion.version, installedVersion.version);
-      }
-
-      return isNewerVersion(latestInstallableVersion.appVersion ?? latestInstallableVersion.version, installedAppVersion);
     },
 
     wirePluginCRToChart(pluginCR, all) {
@@ -1009,18 +988,20 @@ export default {
       if (chart) {
         chart.installed = true;
         chart.uiplugin = pluginCR;
-        chart.installedVersion = pluginCR.version;
         chart.installing = this.installing[chart.id];
 
-        // installedVersion holds an app version while every other version field holds a chart
-        // version, so resolve it once here for the card, the panel and the install dialog to share
-        const installedVersion = (chart.versions || []).find((v) => (v.appVersion ?? v.version) === pluginCR.version);
+        // the UIPlugin CR reports the app version, while every version field here is a chart
+        // version. The installed app knows which chart version is actually running, so prefer that
+        // and only fall back to matching on app version when there is no app to read it from
+        const appChartVersion = app?.spec?.chart?.metadata?.version;
+        const installedVersion = chart.versions?.find((v) => v.version === appChartVersion) ||
+          chart.versions?.find((v) => (v.appVersion ?? v.version) === pluginCR.version);
 
-        chart.installedChartVersion = installedVersion?.version ?? pluginCR.version;
+        chart.installedVersion = installedVersion?.version ?? appChartVersion ?? pluginCR.version;
 
         // an installed extension is described by the version it is running, not the latest on offer
-        chart.displayVersion = chart.installedChartVersion;
-        chart.displayVersionLabel = installedVersion ? getPluginChartVersionLabel(installedVersion) : pluginCR.version;
+        chart.displayVersion = chart.installedVersion;
+        chart.displayVersionLabel = installedVersion ? getPluginChartVersionLabel(installedVersion) : chart.installedVersion;
 
         if (installedVersion) {
           chart.created = installedVersion.created;
@@ -1031,7 +1012,7 @@ export default {
 
         const latestInstallableVersion = chart.installableVersions?.[0];
 
-        if (this.isUpgradeAvailable(latestInstallableVersion, installedVersion, pluginCR.version)) {
+        if (latestInstallableVersion && compareChartVersions(latestInstallableVersion.version, chart.installedVersion) > 0) {
           chart.upgrade = getPluginChartVersionLabel(latestInstallableVersion);
         }
       } else {
@@ -1055,7 +1036,6 @@ export default {
           isDeveloper:             pluginCR.isDeveloper,
           installed:               true,
           installedVersion:        pluginCR.version,
-          installedChartVersion:   pluginCR.version,
           installing:              false,
           builtin:                 false,
           uiplugin:                pluginCR,
