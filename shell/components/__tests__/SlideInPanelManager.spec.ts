@@ -360,7 +360,7 @@ describe('slideInPanelManager.vue with Teleport', () => {
       expect(chrome().querySelector('.body > [data-testid="slide-in-panel-component"]')).toBeTruthy();
     });
 
-    it('closes a titled panel from the close button in its footer', async() => {
+    it('closes a titled panel from the close button in its header', async() => {
       const closeMutation = jest.fn();
 
       store = createStore({
@@ -370,10 +370,17 @@ describe('slideInPanelManager.vue with Teleport', () => {
       factory();
       await nextTick();
 
-      (chrome().querySelector('.footer button') as HTMLElement).click();
+      (chrome().querySelector('[data-testid="rc-drawer-close"]') as HTMLElement).click();
       await nextTick();
 
       expect(closeMutation).toHaveBeenCalledWith({}, undefined);
+    });
+
+    it('gives a titled panel no footer, since it has no actions', async() => {
+      factory();
+      await nextTick();
+
+      expect(chrome().querySelector('[data-testid="rc-drawer-footer"]')).toBeNull();
     });
 
     it('leaves a panel without a title to render its own chrome', async() => {

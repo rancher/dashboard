@@ -1,11 +1,14 @@
 <script>
 import ExplainPanel from './ExplainPanel';
 import { RcDrawer } from '@components/RcDrawer';
+import { RcButton } from '@components/RcButton';
 import { expandOpenAPIDefinition, getOpenAPISchemaName, makeOpenAPIBreadcrumb } from '../open-api-utils.ts';
 import { openAPI } from '../open-api';
 
 export default {
-  components: { ExplainPanel, RcDrawer },
+  components: {
+    ExplainPanel, RcButton, RcDrawer
+  },
 
   emits: ['close'],
 
@@ -169,16 +172,16 @@ export default {
       </div>
     </template>
     <template #header-actions>
-      <button
+      <RcButton
         v-if="!busy && !noResource && definition"
-        type="button"
-        class="btn role-link expand-all"
-        :aria-label="expandAll ? t('kubectl-explain.collapseAll') : t('kubectl-explain.expandAll')"
+        variant="secondary"
+        left-icon="sort"
+        class="expand-all"
         :aria-expanded="expandAll"
         @click="toggleAll()"
       >
-        <i class="icon icon-sort" />
-      </button>
+        {{ expandAll ? t('kubectl-explain.collapseAll') : t('kubectl-explain.expandAll') }}
+      </RcButton>
     </template>
     <div
       ref="content"
@@ -258,14 +261,7 @@ export default {
   }
 
   .expand-all {
-    $size: 24px;
-
-    display: inline-flex;
     flex-shrink: 0;
-    justify-content: center;
-    width: $size;
-    height: $size;
-    color: var(--body-text);
   }
 
   .content {

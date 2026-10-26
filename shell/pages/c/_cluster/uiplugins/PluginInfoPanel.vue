@@ -84,6 +84,16 @@ export default {
       return getLatestPluginVersions(versions, this.currentVersion, [this.infoVersion]);
     },
 
+    versionInTitle() {
+      const selected = this.info?.versions?.find((v) => v.version === this.infoVersion);
+
+      return selected ? this.t('plugins.info.titleVersion', { version: this.getVersionLabel(selected) }) : '';
+    },
+
+    drawerTitle() {
+      return [this.info.label, this.versionInTitle].filter(Boolean).join(' ');
+    },
+
     hasHiddenVersions() {
       return this.displayedVersions.length < (this.info?.versions?.length || 0);
     },
@@ -111,6 +121,7 @@ export default {
             label:   this.t('catalog.chart.chartButton.action.install'),
             action:  'install',
             role:    'primary',
+            icon:    'plus',
             version: selectedVersion,
           });
         }
@@ -120,6 +131,7 @@ export default {
             label:  this.t('plugins.uninstall.label'),
             action: 'uninstall',
             role:   'secondary',
+            icon:   'trash',
           });
         }
 
@@ -129,6 +141,7 @@ export default {
               label:   this.t('catalog.chart.chartButton.action.upgrade'),
               action:  'upgrade',
               role:    'primary',
+              icon:    'upgrade-alt',
               version: selectedVersion,
             });
           } else {
@@ -136,6 +149,7 @@ export default {
               label:   this.t('catalog.chart.chartButton.action.downgrade'),
               action:  'downgrade',
               role:    'primary',
+              icon:    'downgrade-alt',
               version: selectedVersion,
             });
           }
@@ -225,7 +239,7 @@ export default {
 </script>
 <template>
   <RcDrawer
-    :title="info.label"
+    :title="drawerTitle"
     @close="$emit('close')"
   >
     <template #title>
@@ -249,9 +263,7 @@ export default {
       <span
         class="plugin-title"
         data-testid="extension-details-title"
-      >
-        {{ info.label }}
-      </span>
+      ><span class="plugin-name">{{ info.label }}</span>{{ versionInTitle ? ` ${ versionInTitle }` : '' }}</span>
     </template>
     <p class="plugin-description">
       {{ info.description }}
@@ -336,6 +348,7 @@ export default {
         :key="btn.action"
         size="large"
         :variant="btn.role"
+        :left-icon="btn.icon"
         @click="onButtonClick(btn)"
       >
         {{ btn.label }}
@@ -373,7 +386,7 @@ export default {
     }
   }
 
-  .plugin-title {
+  .plugin-name {
     text-transform: capitalize;
   }
 

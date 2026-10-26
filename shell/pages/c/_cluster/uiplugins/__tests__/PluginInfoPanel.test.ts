@@ -33,7 +33,7 @@ describe('component: PluginInfoPanel', () => {
   };
   const chart = { ...chartRef, versions: [] };
 
-  const mountDrawer = (info: Record<string, any> = {}) => {
+  const mountDrawer = (info: Record<string, any> = {}, translate: (key: string, args?: any) => string = t) => {
     const store = createStore();
 
     const drawer = mount(PluginInfoPanel, {
@@ -44,7 +44,7 @@ describe('component: PluginInfoPanel', () => {
       },
       global: {
         provide:    { store },
-        mocks:      { t, $store: store },
+        mocks:      { t: translate, $store: store },
         stubs:      { ChartReadme: true, LazyImage: true },
         directives: { cleanTooltip: () => {} },
       },
@@ -97,9 +97,77 @@ describe('component: PluginInfoPanel', () => {
       await drawer.findAll('.footer button')[1].trigger('click');
 
       expect(drawer.emitted('action')?.[0]).toStrictEqual([{
-        label: 'plugins.uninstall.label', action: 'uninstall', role: 'secondary', plugin: drawer.props('info')
+        label: 'plugins.uninstall.label', action: 'uninstall', role: 'secondary', icon: 'trash', plugin: drawer.props('info')
       }]);
       expect(drawer.emitted('close')).toHaveLength(1);
+    });
+  });
+
+  describe('title', () => {
+    const versions = [
+      {
+        name: 'my-extension', version: '1.1.0', isVersionCompatible: true
+      },
+      {
+        name: 'my-extension', version: '1.0.0', isVersionCompatible: true
+      },
+    ];
+
+    it('should be the extension name when no version is selected', () => {
+      const { drawer } = mountDrawer();
+
+      expect(drawer.find('[data-testid="extension-details-title"]').text()).toBe('My Extension');
+    });
+
+    it('should add the selected version to the title and the drawer name', async() => {
+      const { drawer } = mountDrawer({ versions });
+
+      drawer.vm.infoVersion = '1.1.0';
+      await drawer.vm.$nextTick();
+
+      expect(drawer.find('[data-testid="extension-details-title"]').text()).toBe('My Extension plugins.info.titleVersion');
+      expect(drawer.vm.drawerTitle).toBe('My Extension plugins.info.titleVersion');
+      expect(drawer.attributes('aria-label')).toBe('My Extension plugins.info.titleVersion');
+    });
+
+    it.each([
+      ['1.0.0', 'My Extension v1.0.0 (plugins.labels.current)'],
+      ['1.1.0', 'My Extension v1.1.0'],
+    ])('should title version %s of an extension on 1.0.0 as %s', async(selected, title) => {
+      const translate = (key: string, args?: any) => (key === 'plugins.info.titleVersion' ? `v${ args.version }` : key);
+      const { drawer } = mountDrawer({
+        versions, installed: true, installedVersion: '1.0.0'
+      }, translate);
+
+      drawer.vm.infoVersion = selected;
+      await drawer.vm.$nextTick();
+
+      expect(drawer.find('[data-testid="extension-details-title"]').text()).toBe(title);
+    });
+  });
+
+  describe('footer actions', () => {
+    it.each([
+      [{ installed: false, installableVersions: [{ version: '1.0.0' }] }, '1.0.0', ['plus']],
+      [{
+        installed: true, builtin: false, installedVersion: '1.0.0'
+      }, '1.1.0', ['trash', 'upgrade-alt']],
+      [{
+        installed: true, builtin: false, installedVersion: '1.1.0'
+      }, '1.0.0', ['trash', 'downgrade-alt']],
+    ])('should keep each action\'s icon (%j, selected %s)', async(info, selected, icons) => {
+      const { drawer } = mountDrawer(info);
+
+      drawer.vm.infoVersion = selected;
+      await drawer.vm.$nextTick();
+
+      expect(drawer.findAllComponents({ name: 'RcButton' }).filter((b) => b.element.closest('[data-testid="rc-drawer-footer"]')).slice(1).map((b) => b.props('leftIcon'))).toStrictEqual(icons);
+    });
+
+    it('should leave the footer out when the extension has no actions', () => {
+      const { drawer } = mountDrawer({ installed: true, builtin: true });
+
+      expect(drawer.find('[data-testid="rc-drawer-footer"]').exists()).toBe(false);
     });
   });
 

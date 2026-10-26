@@ -88,7 +88,6 @@ describe('page: UI plugins/Extensions', () => {
           info:     { ...plugin, tags: wrapper.vm.getFooterItems(plugin) },
           onAction: wrapper.vm.handlePanelAction,
         },
-        width:              'wide',
         height:             'full',
         closeOnRouteChange: ['name', 'params', 'query'],
       });

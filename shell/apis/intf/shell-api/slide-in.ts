@@ -26,7 +26,7 @@ export interface SlideInConfig {
    *
    * Title for the Slide-In panel.
    * When set, the component is wrapped in the standard drawer (`RcDrawer`): a header with the title
-   * and a close button, a body, and a footer with Close.
+   * and a close button, and a body.
    * When omitted, the component renders its own chrome. Leave it out for a component whose root is
    * `RcDrawer`, or the component is wrapped in a second drawer.
    *

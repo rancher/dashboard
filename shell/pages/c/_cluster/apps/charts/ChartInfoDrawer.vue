@@ -25,16 +25,16 @@ const dock = () => {
     :title="title"
     @close="emit('close')"
   >
-    <ChartReadme :version-info="versionInfo" />
-    <template #additional-actions>
+    <template #header-actions>
       <RcButton
         variant="secondary"
-        size="large"
+        left-icon="dock"
         data-testid="chart-info-dock"
         @click="dock"
       >
         {{ i18n.t('catalog.install.slideIn.dock') }}
       </RcButton>
     </template>
+    <ChartReadme :version-info="versionInfo" />
   </RcDrawer>
 </template>

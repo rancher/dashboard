@@ -6,7 +6,8 @@ import * as RcDrawerStories from './RcDrawer.stories';
 # RcDrawer
 
 `RcDrawer` is the standard drawer, the one Show Configuration opens. Use it for
-every drawer, so they all share one header, body and footer.
+every drawer, so they all share one header and body, and one footer for their
+actions.
 
 <Canvas of={RcDrawerStories.Default} />
 
@@ -19,15 +20,19 @@ every drawer, so they all share one header, body and footer.
 | Slot | Renders |
 |---|---|
 | `title` | The header title. Defaults to the `title` prop, so most drawers only set the prop. It renders inside the drawer's heading, so put no heading in it. |
-| `header-actions` | Controls for the drawer's content that sit in the header, between the title and the close button, such as an expand all button. |
+| `header-actions` | Buttons that act on the drawer's content, such as Dock to shell or Expand all, between the title and the close button. |
 | default | The body. Text goes straight in; wrap a form or a table in an `RcDrawerCard`. |
-| `additional-actions` | Buttons after the footer's Close button. |
+| `additional-actions` | The drawer's actions, after the footer's Close button. Without any, the drawer has no footer. |
 
 Both the header's close button and the footer's Close button emit `close`. The
 drawer never takes itself down: whatever opened it does that.
 
 Buttons in `additional-actions` should be `size="large"`, with
 `variant="primary"` for the drawer's main action, to match the Close button.
+Buttons in `header-actions` are secondary or tertiary `RcButton`s with a label,
+and an icon where one fits.
+
+Keep the icon a button had before it moved into the drawer, with `left-icon`.
 
 ```vue
 <script setup lang="ts">
@@ -88,11 +93,13 @@ utilities, for example `class="mmb-4"`.
 Content taller than the drawer scrolls inside the body, and the header and
 footer stay in view.
 
-## Footers
+## Header actions, and no footer
 
-With nothing in `additional-actions`, the footer holds just Close.
+A drawer with no action of its own has no footer: Close alone would only repeat
+the X, Escape and a click outside. A button that acts on the content, such as
+Dock to shell, goes in `header-actions`.
 
-<Canvas of={RcDrawerStories.CloseOnly} />
+<Canvas of={RcDrawerStories.HeaderActions} />
 
 ## Titles that need markup
 
@@ -107,7 +114,7 @@ Show Configuration puts before the resource name.
   change that, so set the prop to the slot's plain text.
 - The title is a level 2 heading, so screen reader users can jump to it like
   any other section of the page. Buttons go in `header-actions`, outside it.
-- Both close buttons are labelled with the title, so a screen reader announces
+- Both close buttons are labeled with the title, so a screen reader announces
   which drawer they close.
 
 ## Moving from `Chrome` and `DrawerCard`
@@ -123,4 +130,5 @@ now render `RcDrawer` and `RcDrawerCard`, and are deprecated. To move:
 | `#additional-actions` | `#additional-actions` |
 
 `Chrome`'s `#header` and `#footer` slots and its `remove-footer` prop are gone.
-Every drawer has the standard header and footer.
+Every drawer has the standard header, and the standard footer when it has
+actions.

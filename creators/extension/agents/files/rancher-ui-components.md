@@ -1023,7 +1023,7 @@ A slide-out panel anchored to the right side of the screen. Used to surface reso
 
 **Key props:**
 - `title` (String, required) - the header text and the drawer's accessible name
-- `closeLabel` (String) - the footer close button's text, such as Cancel; defaults to Close
+- `closeLabel` (String) - the footer close button's text, such as Cancel; defaults to Close. The footer only shows when the drawer has `#additional-actions`
 
 **Events:** `@close` - emit it from your component to close the slide-in. Closing on `close` is new in Rancher 2.16; for older versions also pass `onClose: () => store.commit('slideInPanel/close')` in `props`
 
@@ -1032,7 +1032,9 @@ A slide-out panel anchored to the right side of the screen. Used to surface reso
 **Best practices:**
 - Use when the user benefits from seeing the main page and the panel simultaneously (e.g., inspecting an item while the list remains visible)
 - Put text straight in the body; wrap a form or a table in `RcDrawerCard` to set it apart as a panel
-- Put the drawer's actions in `#additional-actions`, as `size="large"` buttons; they sit after the footer's Close button
+- Put the drawer's actions in `#additional-actions`, as `size="large"` buttons; they sit after the footer's Close button. A drawer with no action of its own has no footer
+- Put buttons that act on the content, such as Dock to shell or Expand all, in `#header-actions` as labeled secondary or tertiary `RcButton`s, before the X
+- Keep a button's icon when it moves into the drawer (`left-icon`)
 - Limit panel width to 40–50% of the viewport; content needing more space warrants a full page
 
 **Anti-patterns:**

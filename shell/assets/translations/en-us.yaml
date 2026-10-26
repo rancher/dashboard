@@ -6111,6 +6111,7 @@ plugins:
     detail: Detail
     versions: Latest Versions
     showAllVersions: Show all
+    titleVersion: "v{version}"
     versionError: Could not load version information
     requiresRancherPrime: "Requires Rancher Prime"
     requiresRancherVersion: "Requires Rancher {required}"

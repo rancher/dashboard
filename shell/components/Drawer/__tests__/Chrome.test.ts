@@ -32,7 +32,7 @@ describe('component: Drawer/Chrome', () => {
   });
 
   it('should label the footer close button with closeLabel', () => {
-    const wrapper = createWrapper({ closeLabel: 'Cancel' });
+    const wrapper = createWrapper({ closeLabel: 'Cancel' }, { 'additional-actions': '<button data-testid="extra">Save</button>' });
 
     expect(wrapper.find('.footer button').text()).toBe('Cancel');
   });
@@ -46,11 +46,17 @@ describe('component: Drawer/Chrome', () => {
   });
 
   it('should emit close from the footer close button', async() => {
-    const wrapper = createWrapper();
+    const wrapper = createWrapper({}, { 'additional-actions': '<button data-testid="extra">Save</button>' });
 
     await wrapper.find('.footer button').trigger('click');
 
     expect(wrapper.emitted('close')).toHaveLength(1);
+  });
+
+  it('should leave the footer out when there are no additional actions', () => {
+    const wrapper = createWrapper();
+
+    expect(wrapper.find('.footer').exists()).toBe(false);
   });
 
   it('should render additional actions after the footer close button', () => {

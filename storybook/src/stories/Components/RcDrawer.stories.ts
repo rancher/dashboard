@@ -29,13 +29,13 @@ const meta: Meta<typeof RcDrawer> = {
     },
     headerActionsSlot: {
       name:        'header-actions',
-      description: 'Controls for the drawer\'s content that sit in the header, between the title and the close button.',
+      description: 'Buttons that act on the drawer\'s content, such as Dock to shell or Expand all, between the title and the close button. Use a secondary or tertiary `RcButton` with a label.',
       control:     false,
       table:       { category: 'slots' },
     },
     additionalActionsSlot: {
       name:        'additional-actions',
-      description: 'Buttons after the Close button, such as the drawer\'s primary action.',
+      description: 'The drawer\'s actions, such as its primary action, after the footer\'s Close button. The footer only shows when there is one.',
       control:     false,
       table:       { category: 'slots' },
     },
@@ -86,15 +86,19 @@ export const Default: Story = {
 };
 
 /**
- * With nothing in `additional-actions`, the footer holds just the Close button.
- * Text, such as a chart's readme, goes straight in the body.
+ * A button that acts on the content sits in `header-actions`. With nothing in
+ * `additional-actions` there is no footer. Text, such as a chart's readme, goes
+ * straight in the body.
  */
-export const CloseOnly: Story = {
+export const HeaderActions: Story = {
   render: (args: any) => ({
-    components: { RcDrawer },
+    components: { RcDrawer, RcButton },
     setup:      () => ({ args }),
     template:   `
       <RcDrawer v-bind="args">
+        <template #header-actions>
+          <RcButton variant="secondary" left-icon="dock">Dock to shell</RcButton>
+        </template>
         ${ text }
       </RcDrawer>
     `,

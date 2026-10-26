@@ -1,13 +1,17 @@
 <script setup lang="ts">
 /**
  * The standard drawer: a header with the title and a close button, a tinted
- * body, and a footer with a Close button followed by any additional actions.
+ * body, and, when the drawer has actions, a footer with a Close button
+ * followed by them.
  *
  * It fills its nearest positioned ancestor, which in the shell is the slide-in
  * panel. Both close buttons emit `close`, and taking the drawer down stays the
  * consumer's call.
  */
-import { computed } from 'vue';
+import {
+  Comment, Fragment, Text, computed, useSlots
+} from 'vue';
+import type { VNode } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import RcButton from '@components/RcButton/RcButton.vue';
@@ -15,6 +19,7 @@ import { RcHeading } from '@components/RcHeading';
 import type { RcDrawerProps } from './types';
 
 const props = defineProps<RcDrawerProps>();
+const slots = useSlots();
 
 defineEmits<{
   close: [];
@@ -24,6 +29,24 @@ const store = useStore();
 const { t } = useI18n(store);
 
 const closeAriaLabel = computed(() => t('component.drawer.chrome.ariaLabel.close', { target: props.title }));
+
+const rendersContent = (nodes: VNode[] = []): boolean => nodes.some((node) => {
+  if (node.type === Comment) {
+    return false;
+  }
+
+  if (node.type === Fragment) {
+    return rendersContent(node.children as VNode[]);
+  }
+
+  if (node.type === Text) {
+    return !!String(node.children).trim();
+  }
+
+  return true;
+});
+
+const hasActions = () => rendersContent(slots['additional-actions']?.());
 </script>
 
 <template>
@@ -46,7 +69,7 @@ const closeAriaLabel = computed(() => t('component.drawer.chrome.ariaLabel.close
           {{ title }}
         </slot>
       </RcHeading>
-      <!-- @slot Controls for the drawer's content that sit in the header, between the title and the close button. -->
+      <!-- @slot Buttons that act on the drawer's content, such as Dock to shell or Expand all, between the title and the close button. Use a secondary or tertiary `RcButton` with a label. -->
       <slot name="header-actions" />
       <button
         type="button"
@@ -66,6 +89,7 @@ const closeAriaLabel = computed(() => t('component.drawer.chrome.ariaLabel.close
       <slot />
     </div>
     <div
+      v-if="hasActions()"
       class="footer"
       data-testid="rc-drawer-footer"
     >
@@ -77,7 +101,7 @@ const closeAriaLabel = computed(() => t('component.drawer.chrome.ariaLabel.close
       >
         {{ closeLabel || t('component.drawer.chrome.close') }}
       </RcButton>
-      <!-- @slot Buttons after the Close button, such as the drawer's primary action. -->
+      <!-- @slot The drawer's actions, such as its primary action, after the footer's Close button. The footer only shows when there is one. -->
       <slot name="additional-actions" />
     </div>
   </div>

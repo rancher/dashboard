@@ -263,7 +263,7 @@ describe('component: AuthProviderAccessDrawer', () => {
     expect(footerCloseButton(wrapper).attributes('aria-label')).toBeUndefined();
   });
 
-  it('should offer to close when there is nothing to save', async() => {
+  it('should leave the footer out when there is nothing to save', async() => {
     const { wrapper } = createWrapper({
       resource: {
         id: 'github', nameDisplay: 'GitHub', canUpdate: false
@@ -272,7 +272,7 @@ describe('component: AuthProviderAccessDrawer', () => {
 
     await flushPromises();
 
-    expect(footerCloseButton(wrapper).text()).toBe('component.drawer.chrome.close');
+    expect(footerCloseButton(wrapper).exists()).toBe(false);
   });
 
   it('should close the drawer when cancelled', async() => {

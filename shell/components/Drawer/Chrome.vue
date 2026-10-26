@@ -23,7 +23,10 @@ defineEmits(['close']);
       <slot name="title" />
     </template>
     <slot name="body" />
-    <template #additional-actions>
+    <template
+      v-if="$slots['additional-actions']"
+      #additional-actions
+    >
       <slot name="additional-actions" />
     </template>
   </RcDrawer>
