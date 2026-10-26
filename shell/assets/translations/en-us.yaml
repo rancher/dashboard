@@ -4678,7 +4678,7 @@ releaseWelcome:
         description: Jump to any cluster with the new switcher, plus a cleaner, reorganized side menu.
       rancher-cli:
         title: New CLI
-        description: A new, experimental CLI for Rancher Manger designed to be equally useful for terminal coding agents and administrative users.
+        description: A new, experimental CLI for Rancher Manager designed to be equally useful for terminal coding agents and administrative users.
       workload-search:
         title: Workload search
         description: Workloads Overview now has a search bar to let you quickly find specific resources.
