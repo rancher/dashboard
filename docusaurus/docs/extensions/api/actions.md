@@ -57,7 +57,7 @@ _Arguments_
 |`disabledTooltip`| String | v2.7.2 | Text for the tooltip while the button is disabled, saying why |
 |`disabledTooltipKey`| String | v2.7.2 | Same as "disabledTooltip" but allows for translation. Will superseed "disabledTooltip" |
 |`hidden`| Boolean | v2.7.2 | No button: the action is only its `shortcut`. Defaults to `false` |
-|`badge`| Function | v2.17 | Badge to display on the button. Should return an object with `count` and `color` properties, or `null` if no badge should be shown. Only available for `'ActionLocation.HEADER'` |
+|`showNotificationIndicator`| Function | v2.17 | Function that returns a boolean indicating whether to show the notification indicator. Only available for `'ActionLocation.HEADER'` |
 |`invoke`| Function | v2.7.2 | function executed when action/button is clicked |
 
 Usage example for `'ActionLocation.HEADER'`:
@@ -92,11 +92,8 @@ plugin.addAction(
     enabled(ctx: any) {
       return true;
     },
-    badge: () => {
-      return {
-        count: store.getters[`your-counter`],
-        color: 'success'
-      };
+    showNotificationIndicator: () => {
+      return store.getters[`unread-messages`] > 0;
     },
     invoke(opts: any, resources: any) {
       console.log('action executed 2', this); // eslint-disable-line no-console

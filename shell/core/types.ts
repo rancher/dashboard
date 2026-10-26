@@ -148,10 +148,9 @@ export type Action = {
    */
   hidden?: boolean;
   /**
-   * Header actions: badge to display on the button.
-   * Contains the count and color of the badge.
+   * Header actions: it shows a notification indicator (a small dot) on the button when the function returns true
    */
-  badge?: () => { count: number, color: string } | null;
+  showNotificationIndicator?: () => boolean;
   invoke: (opts: ActionOpts, resources: any[], globals?: any) => void | boolean | Promise<boolean>;
 };
 
