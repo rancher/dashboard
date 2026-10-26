@@ -122,12 +122,13 @@ export default {
       return this.providers.length > 1;
     },
 
-    isCredentialForm() {
-      return this.showLocal || this.selectedProvider?.category === 'ldap';
-    },
-
+    /**
+     * The list and the selected provider's login take turns on the panel: the
+     * page opens on the login, and the list stands in for it once the user asks
+     * for a different provider.
+     */
     showProviderList() {
-      return this.hasProviderList && (!this.isCredentialForm || this.listExpanded);
+      return this.hasProviderList && this.listExpanded;
     },
 
     /**
@@ -325,12 +326,12 @@ export default {
     /**
      * Picking a provider only changes what the page is offering -- the user still
      * confirms with the primary button, so SSO, LDAP and local all behave alike.
-     * The list stays open, so the next pick is as close to hand as this one was.
+     * The list gives way to that provider's login.
      */
     selectProvider(option) {
       this.selectedProviderId = option.id;
       this.showLocal = option.isLocal;
-      this.listExpanded = true;
+      this.listExpanded = false;
 
       if (this.rememberProvider) {
         setRememberedProviderId(option.id);
@@ -358,9 +359,8 @@ export default {
     },
 
     /**
-     * Reveals the other providers beneath the form on screen. The selection is
-     * left alone: switching it here would put the user on a provider they never
-     * picked, which for a second directory looks no different from the first.
+     * Swaps the login on screen for the list of providers. The selection is left
+     * alone, so a saved choice holds until the user picks something else.
      */
     expandProviderList() {
       this.listExpanded = true;
@@ -523,7 +523,7 @@ export default {
           />
         </div>
         <div
-          v-if="firstLogin"
+          v-if="firstLogin && !showProviderList"
           class="first-login-message"
           :class="{'mt-30': !hasLoginMessage}"
           data-testid="first-login-message"
@@ -545,7 +545,7 @@ export default {
         </div>
 
         <div
-          v-if="(!hasLocal || (hasLocal && !showLocal)) && selectedProvider && !selectedProvider.isLocal"
+          v-if="!showProviderList && !showLocal && selectedProvider && !selectedProvider.isLocal"
           class="login-column"
           :class="{'mt-30': !hasLoginMessage}"
         >
@@ -562,7 +562,7 @@ export default {
         </div>
         <template v-if="hasLocal">
           <form
-            v-if="showLocal"
+            v-if="showLocal && !showProviderList"
             class="login-column"
             :class="{'mt-30': !hasLoginMessage || firstLogin}"
             @submit.prevent
@@ -613,9 +613,10 @@ export default {
         </template>
         <div
           v-if="hasProviderChoice"
-          class="login-alternatives mt-20"
+          class="login-alternatives"
+          :class="showProviderList && !hasLoginMessage ? 'mt-30' : 'mt-20'"
         >
-          <OrDivider />
+          <OrDivider v-if="!showProviderList" />
           <!--
             Several external providers are weighed up in a list. One alongside
             local is a straight swap between two, offered as a link instead.
@@ -634,11 +635,10 @@ export default {
               </RcButton>
             </div>
             <template v-else>
+              <!-- The provider already chosen is listed too, as the way back to it. -->
               <AuthProviderList
                 ref="providerList"
-                class="mt-20"
                 :options="providerOptions"
-                :selected-id="selectedProviderId"
                 @select="selectProvider"
               />
               <div class="login-remember mt-20">
