@@ -731,7 +731,7 @@ export default class MgmtCluster extends SteveModel {
     return res.status?.value;
   }
 
-  kubeConfigError(err) {
+  growlKubeConfigError(err) {
     this.$dispatch('growl/error', {
       title:   this.t('cluster.kubeConfig.error.title'),
       message: err?.message || this.t('cluster.kubeConfig.error.requestFailed'),
@@ -746,7 +746,7 @@ export default class MgmtCluster extends SteveModel {
         downloadFile(`${ this.nameDisplay }.yaml`, config, 'application/yaml');
       }
     } catch (err) {
-      this.kubeConfigError(err);
+      this.growlKubeConfigError(err);
     }
   }
 
@@ -759,7 +759,7 @@ export default class MgmtCluster extends SteveModel {
         downloadFile('kubeconfig.yaml', config, 'application/yaml');
       }
     } catch (err) {
-      this.kubeConfigError(err);
+      this.growlKubeConfigError(err);
     }
   }
 
@@ -776,7 +776,7 @@ export default class MgmtCluster extends SteveModel {
         return true;
       }
     } catch (err) {
-      this.kubeConfigError(err);
+      this.growlKubeConfigError(err);
     }
 
     return false;
@@ -793,7 +793,7 @@ export default class MgmtCluster extends SteveModel {
         return true;
       }
     } catch (err) {
-      this.kubeConfigError(err);
+      this.growlKubeConfigError(err);
     }
 
     return false;
