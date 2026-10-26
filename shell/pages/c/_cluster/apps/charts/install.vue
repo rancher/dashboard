@@ -266,6 +266,8 @@ export default {
     /* If no chart by the given app name and namespace
      can be found, or if no version is found, do nothing. */
     if ( !this.chart || !this.query.versionName) {
+      this.updateStepOneReady();
+
       return;
     }
 
@@ -647,6 +649,11 @@ export default {
     },
 
     showSelectVersionOrChart() {
+      // Managed apps can't be moved to another chart, so don't offer the chart selector when their chart is missing
+      if (!this.chart && this.isManagedApp) {
+        return false;
+      }
+
       // Allow the user to choose a version if:
       // - the app exists (editing/upgrading)
       // - OR they've come from tools

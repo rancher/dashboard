@@ -6,6 +6,7 @@ import FailWhale from '@shell/components/FailWhale.vue';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { diff } from '@shell/utils/object';
 import { mergeOverrides } from '@shell/utils/chart-values';
+import { APP_UPGRADE_STATUS } from '@shell/store/catalog';
 
 const defaultStubs = {
   Loading:             true,
@@ -156,6 +157,45 @@ describe('page: Install', () => {
       (wrapper.vm as any).cancel();
 
       expect(mockReplace).toHaveBeenCalledWith(expectedLocation);
+    });
+  });
+
+  describe('showSelectVersionOrChart', () => {
+    const chart = { versions: [] };
+    const managedApp = { upgradeAvailable: APP_UPGRADE_STATUS.NOT_APPLICABLE };
+    const regularApp = { upgradeAvailable: APP_UPGRADE_STATUS.NO_UPGRADE };
+
+    it.each([
+      ['a regular app whose chart is found', regularApp, chart, true],
+      ['a regular app whose chart is missing', regularApp, null, true],
+      ['a managed app whose chart is found', managedApp, chart, true],
+      ['a managed app whose chart is missing', managedApp, null, false],
+    ])('should handle %s', (_, existing, chartValue, expected) => {
+      const wrapper = mountInstall({ data: () => ({ existing, chart: chartValue }) });
+
+      expect(!!wrapper.vm.showSelectVersionOrChart).toStrictEqual(expected);
+    });
+  });
+
+  describe('fetch() when the chart is missing', () => {
+    it('should disable the next button of the first step', async() => {
+      const wrapper = mountInstall({
+        data: () => ({
+          existing: {
+            metadata:         { namespace: 'app-ns', name: 'app-name' },
+            spec:             { name: 'app-name' },
+            upgradeAvailable: APP_UPGRADE_STATUS.NOT_APPLICABLE
+          },
+          chart: null,
+        })
+      });
+
+      jest.spyOn((wrapper.vm as any), 'fetchChart').mockImplementation().mockResolvedValue(undefined);
+      jest.spyOn((wrapper.vm as any), 'fetchAutoInstallInfo').mockImplementation().mockResolvedValue(undefined);
+
+      await Install.fetch.call(wrapper.vm);
+
+      expect(wrapper.vm.stepBasic.ready).toStrictEqual(false);
     });
   });
 

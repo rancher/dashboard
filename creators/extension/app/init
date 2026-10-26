@@ -5,10 +5,12 @@ const path = require('path');
 const fs = require('fs-extra');
 
 const targets = {
-  dev:   'NODE_ENV=dev ./node_modules/.bin/vue-cli-service serve',
-  build: './node_modules/.bin/vue-cli-service build',
-  lint:  './node_modules/@rancher/shell/scripts/lint --ext .js,.ts,.vue .',
-  clean: './node_modules/@rancher/shell/scripts/clean'
+  dev:       'NODE_ENV=dev ./node_modules/.bin/vue-cli-service serve',
+  build:     './node_modules/.bin/vue-cli-service build',
+  lint:      './node_modules/@rancher/shell/scripts/lint --ext .js,.ts,.vue .',
+  clean:     './node_modules/@rancher/shell/scripts/clean',
+  test:      'jest',
+  'test:ci': 'NODE_OPTIONS=--max_old_space_size=8192 jest --silent'
 };
 
 const files = [
@@ -19,7 +21,13 @@ const files = [
   '.nvmrc',
   '.yarnrc',
   'babel.config.js',
-  '.vscode/settings.json'
+  '.vscode/settings.json',
+  // Unit test setup
+  'jest.config.js',
+  'jest.setup.js',
+  'svgTransform.js',
+  'autoImportStub.js',
+  'vue3JestRegisterTs.js'
 ];
 
 console.log('');
@@ -109,6 +117,24 @@ if (creatorPkg._pkgs) {
   });
 }
 
+// The unit test toolchain (jest, ts-jest, @vue/test-utils, ...) lives in the devDependencies of
+// the application template. Merge in anything that is missing, so that running the app creator
+// over a folder that already has a package.json still gets it. A version that is already pinned
+// is left alone.
+const templatePkgData = fs.readFileSync(path.join(__dirname, 'app.package.json'));
+const templatePkg = JSON.parse(templatePkgData);
+
+if (templatePkg.devDependencies) {
+  pkg.devDependencies = pkg.devDependencies || {};
+
+  Object.keys(templatePkg.devDependencies).forEach((pkgName) => {
+    if (!pkg.devDependencies[pkgName]) {
+      pkg.devDependencies[pkgName] = templatePkg.devDependencies[pkgName];
+      console.log(`  Adding devDependency '${ pkgName }' to package.json`);
+    }
+  });
+}
+
 fs.writeFileSync(path.join(appFolder, 'package.json'), JSON.stringify(pkg, null, 2));
 
 // Add workflow folder if needed
@@ -124,7 +150,8 @@ if ( addWorkflowFolder ) {
   const workflowFiles = [
     'build-extension-catalog.yml',
     'build-extension-charts.yml',
-    'build-extensions-test.yml'
+    'build-extensions-test.yml',
+    'unit-tests.yml'
   ];
 
   workflowFiles.forEach((fileName) => {

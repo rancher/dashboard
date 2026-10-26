@@ -26,3 +26,4 @@ export { default as RcStatusBadge } from './components/Pill/RcStatusBadge';
 export { default as RcStatusIndicator } from './components/Pill/RcStatusIndicator';
 export { default as RcTag } from './components/Pill/RcTag';
 export * from './components/Form';
+export { observeReveal } from './components/utils/reveal';

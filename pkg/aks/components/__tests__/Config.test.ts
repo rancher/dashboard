@@ -485,6 +485,33 @@ describe('aks provisioning form', () => {
     expect(nodePoolNames({ t: (str:string) => str })(nodeName)).toBeUndefined();
   });
 
+  it.each([
+    ['should mark an added node pool with zones as invalid', 0, false],
+    ['should not mark an added node pool without zones as invalid', 1, true],
+  ])('%s when the region does not support availability zones', async(_, poolIndex, expectedValid) => {
+    const config = { ...DEFAULT_CLUSTER_CONFIG, nodePools: [] as AKSNodePool[] };
+    const wrapper = shallowMount(Config, {
+      props: {
+        config, value: {}, mode: _CREATE
+      },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, config);
+
+    wrapper.vm.addPool();
+    wrapper.vm.addPool();
+    wrapper.vm.nodePools[0].availabilityZones = ['1'];
+    wrapper.vm.nodePools[1].availabilityZones = [];
+
+    wrapper.setProps({ config: { ...wrapper.vm.config, resourceLocation: 'ukwest' } });
+    await flushPromises();
+
+    wrapper.vm.fvExtraRules.availabilityZoneSupport();
+
+    expect(wrapper.vm.nodePools[poolIndex]._validation._validAZ).toBe(expectedValid);
+  });
+
   it('should set the network plugin to azure when user defined routing is selected', async() => {
     const config = {
       dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'

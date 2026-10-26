@@ -6,23 +6,10 @@ import Loading from '@shell/components/Loading';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { get, set } from '@shell/utils/object';
 import { fetchProjectMembershipPermissions } from '@shell/utils/project-permissions';
+import { canViewMembershipEditor } from '@shell/utils/membership-permissions';
 
 function normalizeId(id) {
   return id?.replace(':', '/') || id;
-}
-
-export function canViewMembershipEditor(store, needsProject = false) {
-  return (!!store.getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING) || !needsProject) &&
-    !!store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE) &&
-    !!store.getters['rancher/schemaFor'](NORMAN.PRINCIPAL);
-}
-
-// Can the user VIEW the membership list (read-only)? Unlike `canViewMembershipEditor` (which gates
-// add/remove and needs the role-template + principal reads), viewing needs only the binding schema.
-export function canViewMembershipEditorList(store, needsProject = false) {
-  const bindingType = needsProject ? NORMAN.PROJECT_ROLE_TEMPLATE_BINDING : NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING;
-
-  return !!store.getters['rancher/schemaFor'](bindingType);
 }
 
 export default {

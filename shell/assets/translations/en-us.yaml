@@ -447,9 +447,14 @@ about:
   downloadImageList:
     title: Image Lists
   cli:
-    title: "Rancher CLI"
-    description: The Rancher CLI lets you manage clusters, projects and resources from the command line. Builds are available for a range of operating systems and architectures, and the documentation covers how to download and install them.
+    title: "Rancher CLI (legacy)"
+    description: This version of the Rancher CLI will be deprecated in a future release and will no longer receive new features. It remains fully supported for now, so existing scripts and automation keep working, but we recommend starting with the new Rancher CLI below.
     docsLink: View Rancher CLI documentation
+    new:
+      title: "New Rancher CLI (AI & Agent Edition)"
+      badge: New
+      description: The intelligent CLI built for AI, AI agents and autonomous Kubernetes.
+      githubLink: View on GitHub (rancher/rancher-cli)
   diagnostic:
     title: Diagnostics
     checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources. These may take a while to complete
@@ -2001,6 +2006,11 @@ cluster:
           minimumAllocatable: It's highly recommended to select a vGPU with a number of allocatable devices greater than the number of nodes (Machine Count) to avoid "un-schedulable" errors after cluster updates.
         errors:
           notAllocatable: '[{vGpu}] vGPU device is not allocatable; required: {allocated}, allocatable: {allocatable}'
+      hostDevices:
+        warnings:
+          minimumAllocatable: It's highly recommended to select PCI devices with a number of allocatable devices greater than the number of nodes (Machine Count) to avoid "un-schedulable" errors after cluster updates. Devices that share an IOMMU group must all be selected together.
+        errors:
+          notAllocatable: '[{hostDevice}] PCI device is not allocatable; required: {allocated}, allocatable: {allocatable}'
       volume:
         title: Volumes
         volume: Volume
@@ -2008,6 +2018,50 @@ cluster:
         addVolume: Add Volume
         addVMImage: Add VM Image
         storageClass: Storage Class
+      storageOptions:
+        profile:
+          label: Storage Performance Profile
+          tip: '"High Performance" disables the host cache, uses native AIO and gives the disk a dedicated I/O thread. Choose "Custom" to set each option yourself.'
+          default: Default
+          highPerformance: High Performance
+          custom: Custom
+        highPerformanceTip: This disk will use no host cache, native AIO and a dedicated I/O thread.
+        cache:
+          label: Cache Mode
+          tip: 'How the host caches disk I/O. "None" is best for high-throughput guests on block storage, "WriteBack" favors performance and "WriteThrough" favors durability.'
+          default: Default (hypervisor)
+          none: None (no host cache)
+          writeback: WriteBack
+          writethrough: WriteThrough
+        io:
+          label: I/O Mode
+          tip: 'How QEMU submits I/O. "Native" (Linux AIO) has the lowest overhead and needs cache mode "None". "Threads" uses a host thread pool.'
+          default: Default (hypervisor)
+          native: Native (AIO)
+          threads: Threads
+          nativeTip: Native I/O mode needs the host cache disabled, so cache mode is set to None.
+        dedicatedIOThread:
+          label: Dedicated I/O Thread
+          tip: Give this disk its own I/O thread instead of sharing one. Useful for disks with heavy I/O.
+        busWarning: 'This disk uses the {bus} bus. A dedicated I/O thread, and so the High Performance profile, needs the virtio bus.'
+      vmStorageOptions:
+        title: Storage Performance
+        description: These options apply to all volumes of the virtual machine.
+        blockMultiQueue:
+          label: Virtio Block Multi-Queue
+          tip: Spread disk I/O over one queue per vCPU so that it is processed on multiple CPUs.
+        ioThreadsPolicy:
+          label: I/O Threads Policy
+          tip: '"Shared" uses one I/O thread for all disks. "Auto" spreads disks over a pool of threads. "Supplemental Pool" uses a fixed number of threads.'
+          default: Disabled (default)
+          shared: Shared
+          auto: Auto
+          supplementalPool: Supplemental Pool
+          sharedTip: A volume asks for a dedicated I/O thread, so the Shared policy will be used.
+        ioThreadCount:
+          label: I/O Thread Count
+          tip: Number of I/O threads in the supplemental pool.
+          invalid: I/O Thread Count must be at least 1 with the "Supplemental Pool" policy.
       reservedMemory: Reserved Memory
       sshUser: SSH User
       userData:
@@ -2548,7 +2602,6 @@ cluster:
         other { {pool_name}: The provided values for {fields} were not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
       }
     rke1DeprecationMessage: 'Rancher Kubernetes Engine (RKE / RKE1) has reached end of life and these clusters are no longer supported. We recommend replatforming RKE1 clusters to RKE2 to ensure continued support and security updates. Learn more about the transition <a href="https://www.suse.com/support/kb/doc/?id=000021518" target="_blank" rel="noopener noreferrer nofollow">here</a>.'
-    nginxDeprecated: The NGINX controller is deprecated and will be removed in upcoming versions
   rke1Unsupported: RKE1 Clusters are no longer supported
 
   architecture:
@@ -2924,7 +2977,7 @@ cluster:
     nginx:
       header: Ingress-NGINX
       contentUnsupported: Ingress-NGINX is unavailable with Kubernetes 1.37 or later. Choose Traefik instead.
-      content: Choose this only if your workloads are not yet ready for Traefik.
+      content: Choose this only if your workloads are not yet ready for Traefik. Standalone Ingress-NGINX is unsupported with Kubernetes 1.37 or later.
     dual:
       header: Dual Mode
       content: Use this to safely test and migrate traffic from Ingress-NGINX to Traefik.
@@ -2951,14 +3004,14 @@ cluster:
       transitioning:
         label: Rancher is transitioning to Traefik as the default provider. While Ingress-NGINX remains available for migration purposes, we recommend moving workloads to Traefik to ensure long-term compatibility and support.
       nginxUpgradeBlocked:
-        label: Kubernetes 1.37 or later cannot use standalone Ingress-NGINX. Select Traefik or Dual Mode before upgrading.
+        label: Kubernetes 1.37 or later cannot use standalone Ingress-NGINX. Select Traefik or Dual Mode. We strongly recommend running in Dual Mode and confirming your workloads before upgrading. Please review our <docsUrl>migration documentation</docsUrl>.
       nginxUpgradeWarning:
         label: After upgrading to Kubernetes 1.37 or later, you cannot switch back to standalone Ingress-NGINX.
       disabled:
         label: Without an Ingress controller, services in this cluster will not be reachable via external URLs or hostnames. You will need to manually configure an alternative routing solution to expose your workloads.
       selected:
         ingress-nginx:
-          label: Ingress-NGINX is now deprecated and will be removed in a future release. To avoid service interruptions, please begin migrating your Ingress resources to Traefik. Please review our <docsUrl>migration documentation</docsUrl>.
+          label: Ingress-NGINX reached end of life in March 2026 and no longer receives fixes. It is unavailable with Kubernetes 1.37 or later. To avoid service interruptions, please begin migrating your Ingress resources to Traefik. Please review our <docsUrl>migration documentation</docsUrl>.
         traefik:
           label: Before switching to Traefik, please review our <docsUrl>migration documentation</docsUrl> to ensure your Ingress resources are updated to support Traefik’s configuration requirements.
         dual:
@@ -10313,6 +10366,8 @@ component:
         weekdaysAt0830: "At 30 minutes past the hour, every 1 hours, starting at 08:00 AM, Monday through Friday"
         marchToMayHourly: "Every hour, only in March, April, and May"
         every4Hours9to17: "At 0 minutes past the hour, every 4 hours, between 09:00 AM and 05:00 PM"
+  rcSection:
+    invalidFields: Some fields inside this section are invalid
 
 autoscaler:
   card:

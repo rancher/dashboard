@@ -12,10 +12,11 @@ import ExtensionPanel from '@shell/components/ExtensionPanel';
 import { getVersionInfo, removePatchWhenZero } from '@shell/utils/version';
 import { RcButton } from '@components/RcButton';
 import { RcHeading } from '@components/RcHeading';
+import { RcStatusBadge } from '@components/Pill';
 
 export default {
   components: {
-    BackLink, ExtensionPanel, Loading, TabTitle, RcButton, RcHeading
+    BackLink, ExtensionPanel, Loading, TabTitle, RcButton, RcHeading, RcStatusBadge
   },
   mixins: [BackRoute],
   async fetch() {
@@ -27,6 +28,7 @@ export default {
       extensionLocation: PanelLocation.ABOUT_TOP,
       dashboardVersion:  removePatchWhenZero(this.$config.dashboardVersion),
       cliDocsUrl:        `${ DOCS_BASE }/reference-guides/cli-with-rancher/rancher-cli`,
+      newCliRepoUrl:     'https://github.com/rancher/rancher-cli',
       settings:          null,
       SETTING
     };
@@ -207,6 +209,42 @@ export default {
         data-testid="about__cli_docs_link"
       >
         {{ t('about.cli.docsLink') }}
+        <i
+          class="icon icon-external-link"
+          aria-hidden="true"
+        />
+        <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
+      </a>
+    </p>
+
+    <RcHeading
+      :size="3"
+      class="new-cli-title pt-40"
+    >
+      {{ t('about.cli.new.title', null, true) }}
+      <RcStatusBadge
+        status="success"
+        data-testid="about__new_cli_badge"
+      >
+        {{ t('about.cli.new.badge') }}
+      </RcStatusBadge>
+    </RcHeading>
+    <p>
+      {{ t('about.cli.new.description') }}
+    </p>
+    <p class="pt-10">
+      <a
+        :href="newCliRepoUrl"
+        target="_blank"
+        rel="nofollow noopener noreferrer"
+        data-testid="about__new_cli_github_link"
+      >
+        {{ t('about.cli.new.githubLink') }}
+        <i
+          class="icon icon-external-link"
+          aria-hidden="true"
+        />
+        <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
       </a>
     </p>
   </div>
@@ -222,6 +260,12 @@ export default {
 
   .view-licenses {
     width: fit-content;
+  }
+
+  .new-cli-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
   table {

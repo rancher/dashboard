@@ -1,14 +1,16 @@
+import { nextTick, reactive } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import ActionMenuShell from '@shell/components/ActionMenuShell.vue';
 import { RcDropdownMenu } from '@components/RcDropdown';
 
 const mockDispatch = jest.fn();
 const mockRoute = { name: 'some-route' };
+const mockGetters = reactive<Record<string, any>>({});
 
 jest.mock('vuex', () => ({
   ...jest.requireActual('vuex'),
   useStore: () => ({
-    getters:  { 'action-menu/optionsArray': [] },
+    getters:  mockGetters,
     dispatch: mockDispatch,
   }),
 }));
@@ -21,6 +23,48 @@ jest.mock('vue-router', () => ({
 describe('component: ActionMenuShell', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetters['action-menu/optionsArray'] = [];
+    mockGetters['action-menu/resources'] = [];
+  });
+
+  describe('options', () => {
+    const resource = { id: 'default/nginx' };
+    const other = { id: 'default/redis' };
+    const ownActions = [{ action: 'edit', label: 'Edit' }];
+
+    it('should show the actions of its resource', async() => {
+      const wrapper = shallowMount(ActionMenuShell, { props: { resource } });
+
+      mockGetters['action-menu/resources'] = [resource];
+      mockGetters['action-menu/optionsArray'] = ownActions;
+      await nextTick();
+
+      expect(wrapper.findComponent(RcDropdownMenu).props('options')).toStrictEqual(ownActions);
+    });
+
+    it('should keep its actions when another resource menu opens', async() => {
+      const wrapper = shallowMount(ActionMenuShell, { props: { resource } });
+
+      mockGetters['action-menu/resources'] = [resource];
+      mockGetters['action-menu/optionsArray'] = ownActions;
+      await nextTick();
+      mockGetters['action-menu/resources'] = [other];
+      mockGetters['action-menu/optionsArray'] = [{ action: 'delete', label: 'Delete' }];
+      await nextTick();
+
+      expect(wrapper.findComponent(RcDropdownMenu).props('options')).toStrictEqual(ownActions);
+    });
+
+    it('should take the actions of a new resource the store already holds', async() => {
+      const wrapper = shallowMount(ActionMenuShell, { props: { resource: other } });
+
+      mockGetters['action-menu/resources'] = [resource];
+      mockGetters['action-menu/optionsArray'] = ownActions;
+      await nextTick();
+      await wrapper.setProps({ resource });
+
+      expect(wrapper.findComponent(RcDropdownMenu).props('options')).toStrictEqual(ownActions);
+    });
   });
 
   describe('container prop', () => {
@@ -34,6 +78,23 @@ describe('component: ActionMenuShell', () => {
       const wrapper = shallowMount(ActionMenuShell);
 
       expect(wrapper.findComponent(RcDropdownMenu).props('container')).toBeUndefined();
+    });
+  });
+
+  describe('open prop', () => {
+    it('should forward open to RcDropdownMenu', () => {
+      const wrapper = shallowMount(ActionMenuShell, { props: { open: true } });
+
+      expect(wrapper.findComponent(RcDropdownMenu).props('open')).toBe(true);
+    });
+
+    it('should emit update:open when the menu opens or closes', () => {
+      const wrapper = shallowMount(ActionMenuShell);
+
+      wrapper.findComponent(RcDropdownMenu).vm.$emit('update:open', true);
+      wrapper.findComponent(RcDropdownMenu).vm.$emit('update:open', false);
+
+      expect(wrapper.emitted('update:open')).toStrictEqual([[true], [false]]);
     });
   });
 

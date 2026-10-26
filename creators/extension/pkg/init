@@ -100,6 +100,56 @@ files.forEach((file) => {
   }
 });
 
+// A starting point for unit tests. Written here rather than copied from 'files' so that it is
+// only ever created alongside a brand new package, and never refreshed over a test the author
+// has written since.
+const exampleTest = `import { IPlugin } from '@shell/core/types';
+import extension from '../index';
+import packageJson from '../package.json';
+
+/**
+ * Stands in for the dashboard's extension manager.
+ *
+ * Any method your index.ts calls - addProduct, addRoutes, addPanel, addTableColumn, ... - is
+ * answered with a jest mock the first time it is read, so this keeps working as you register
+ * more things. Assert against them with \`expect(plugin.addProduct).toHaveBeenCalledWith(...)\`.
+ */
+const mockPlugin = (): IPlugin => {
+  const mocks: Record<string | symbol, unknown> = {};
+
+  return new Proxy({} as Record<string | symbol, unknown>, {
+    get(target, prop) {
+      if (prop in target) {
+        return target[prop];
+      }
+
+      mocks[prop] = mocks[prop] || jest.fn();
+
+      return mocks[prop];
+    }
+  }) as unknown as IPlugin;
+};
+
+describe('extension entry point', () => {
+  it('should expose the package.json metadata to the dashboard', () => {
+    const plugin = mockPlugin();
+
+    extension(plugin);
+
+    expect(plugin.metadata).toStrictEqual(packageJson);
+  });
+});
+`;
+
+const testFolder = path.join(pkgFolder, '__tests__');
+const testFile = path.join(testFolder, 'index.test.ts');
+
+if (!fs.existsSync(testFile)) {
+  console.log('  Adding file: __tests__/index.test.ts');
+  fs.ensureDirSync(testFolder);
+  fs.writeFileSync(testFile, exampleTest);
+}
+
 const topLevelRawdata = fs.readFileSync(path.join(folder, 'package.json'));
 const topLevelPkg = JSON.parse(topLevelRawdata);
 let updated = false;
@@ -128,6 +178,13 @@ if (!isNodeModulesShell) {
 
   // Update typeRoots
   tsconfig.compilerOptions.typeRoots = updateArray(tsconfig.compilerOptions.typeRoots);
+
+  // '@components' is the one alias that is not simply 'shell' in a different place: inside the
+  // dashboard repo it resolves to the rancher-components source, which is only copied into
+  // 'shell/rancher-components' when @rancher/shell is published.
+  if (tsconfig.compilerOptions.paths['@components/*']) {
+    tsconfig.compilerOptions.paths['@components/*'] = ['../../pkg/rancher-components/src/components/*'];
+  }
 
   fs.writeFileSync(path.join(pkgFolder, 'tsconfig.json'), JSON.stringify(tsconfig, null, 2));
   console.log('  Updated tsconfig.json for shell folder location');

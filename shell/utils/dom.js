@@ -29,5 +29,5 @@ export const SWITCHER_POPPER_SELECTOR = `.${ SWITCHER_POPPER_CLASS }`;
 // their keys through instead of firing app shortcuts. CodeMirror 6 takes focus on a contenteditable
 // `.cm-content` rather than a textarea, and read-only editors mark it contenteditable="false" but keep it
 // focusable, so any contenteditable value counts. Without it Ctrl+K opens the nav search instead of
-// reaching the editor's Emacs kill-line.
-export const SHORTKEY_PREVENT_SELECTORS = ['input', 'textarea', 'select', '[contenteditable]'];
+// reaching the editor's Emacs kill-line. A select's dropdown open in place handles the keys pressed in it too.
+export const SHORTKEY_PREVENT_SELECTORS = ['input', 'textarea', 'select', '[contenteditable]', '.v-select > .vs__dropdown-menu *'];

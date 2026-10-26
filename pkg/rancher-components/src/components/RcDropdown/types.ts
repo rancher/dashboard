@@ -78,4 +78,5 @@ export type RcDropdownMenuComponentProps = {
   dataTestid?: string;
   /** Forwarded to RcDropdown's `container` prop. */
   container?: string | HTMLElement;
+  open?: boolean;
 }

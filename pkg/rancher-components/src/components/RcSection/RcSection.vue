@@ -55,18 +55,30 @@
  *   </template>
  *   <p>Section content here</p>
  * </RcSection>
+ *
+ * A collapsed section keeps its content mounted but hidden, so form fields inside it keep validating.
+ * Content that sizes itself from the DOM on mount measures zero while hidden, and should measure again
+ * once shown (see observeReveal in @components/utils/reveal). Content that can't do this can set
+ * `unmountOnHide` to be unmounted while collapsed instead.
+ *
+ * Form fields report whether they show an error to the section they are in (see useSectionValidity). A section with
+ * such fields, including ones in nested sections, shows an error icon in its #errors slot, expanded or not.
+ * Filling the slot replaces the icon, and the slot's `invalid` prop says whether it would be shown. The section's
+ * table of contents entry shows the same icon. Collapsing a section validates it: its fields show their errors
+ * from then on, without waiting to be touched.
  */
 import {
-  computed, inject, nextTick, provide, useTemplateRef, type Ref
+  computed, inject, nextTick, provide, useTemplateRef, watch, type Ref
 } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 import { useInSummary } from '@shell/components/TableOfContents/composables';
 import type { RcSectionProps, SectionBackground } from './types';
+import { provideSectionValidity } from './useSectionValidity';
 
 const RC_SECTION_BG_KEY = 'rc-section-background';
 
-const props = withDefaults(defineProps<RcSectionProps>(), { title: '' });
+const props = withDefaults(defineProps<RcSectionProps>(), { title: '', unmountOnHide: false });
 
 const parentBackground = inject<Ref<SectionBackground> | null>(RC_SECTION_BG_KEY, null);
 
@@ -83,6 +95,14 @@ const resolvedBackground = computed<SectionBackground>(() => {
 provide(RC_SECTION_BG_KEY, resolvedBackground);
 
 const expanded = defineModel<boolean>('expanded', { default: true });
+
+const { hasInvalid, validate } = provideSectionValidity();
+
+watch(expanded, (isExpanded) => {
+  if (!isExpanded) {
+    validate();
+  }
+});
 
 // Expose summary, name, and a display label on the component public instance so
 // TOC discovery can access component
@@ -106,6 +126,7 @@ const { summary } = useInSummary({
   label:      displayTitle,
   scrollTo,
   elementRef: sectionRef,
+  invalid:    hasInvalid,
 });
 
 defineExpose({
@@ -172,7 +193,19 @@ function toggle() {
           >
             <slot name="counter" />
           </div>
-          <slot name="errors" />
+          <slot
+            name="errors"
+            :invalid="hasInvalid"
+          >
+            <RcIcon
+              v-if="hasInvalid"
+              v-clean-tooltip="t('component.rcSection.invalidFields')"
+              type="error"
+              size="large"
+              status="error"
+              data-testid="rc-section-invalid-fields"
+            />
+          </slot>
         </div>
       </div>
       <div
@@ -194,8 +227,15 @@ function toggle() {
         </div>
       </div>
     </div>
+    <!--
+      v-show (not v-if) keeps collapsed content mounted, so form fields inside
+      it stay registered with their validation (e.g. vee-validate useField)
+      and keep reporting errors while the section is collapsed.
+      unmountOnHide opts back into unmounting collapsed content.
+    -->
     <div
-      v-if="expanded"
+      v-if="expanded || !props.unmountOnHide"
+      v-show="expanded"
       :class="contentClass"
     >
       <slot />
@@ -264,6 +304,7 @@ function toggle() {
 
 .title {
   display: inline-flex;
+  align-items: center;
   gap: 12px;
   font-size: 18px;
   line-height: 1.2;

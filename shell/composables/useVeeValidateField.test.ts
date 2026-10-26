@@ -2,6 +2,8 @@ import {
   computed, defineComponent, nextTick, provide, ref
 } from 'vue';
 import { mount, flushPromises } from '@vue/test-utils';
+import { useForm } from 'vee-validate';
+import RcSection from '@components/RcSection/RcSection.vue';
 import { useVeeValidateField } from './useVeeValidateField';
 
 function createHarness(opts: {
@@ -154,6 +156,132 @@ describe('useVeeValidateField', () => {
       await flushPromises();
 
       expect(wrapper.vm.effectiveValidationMessage).toBeUndefined();
+    });
+  });
+
+  describe('reporting to an RcSection', () => {
+    const ICON = '[data-testid="rc-section-invalid-fields"]';
+
+    // Collapsing the section validates it, so fields show their errors
+    const mountInSection = async(opts: Parameters<typeof createHarness>[0], collapse = true) => {
+      const Host = defineComponent({
+        components: { RcSection, Field: createHarness(opts) },
+        setup() {
+          useForm();
+        },
+        template: `
+          <RcSection type="primary" mode="with-header" title="Network" expandable>
+            <Field />
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      if (collapse) {
+        await wrapper.find('.section-header').trigger('click');
+      }
+      await flushPromises();
+
+      return wrapper;
+    };
+
+    it('should report a named field that fails validation once the section is validated', async() => {
+      const wrapper = await mountInSection({ name: 'subnet', rules: [(v) => (v ? undefined : 'Required')] });
+
+      expect(wrapper.find(ICON).exists()).toBe(true);
+    });
+
+    it('should not report an untouched named field that fails validation before the section is validated', async() => {
+      const wrapper = await mountInSection({ name: 'subnet', rules: [(v) => (v ? undefined : 'Required')] }, false);
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should report an untouched named field that fails validation once the form shows all errors', async() => {
+      const Host = defineComponent({
+        components: { RcSection, Field: createHarness({ name: 'subnet', rules: [(v) => (v ? undefined : 'Required')] }) },
+        setup() {
+          useForm();
+          provide('vee-show-all-errors', ref(true));
+        },
+        template: `
+          <RcSection type="primary" mode="with-header" title="Network" expandable>
+            <Field />
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      await flushPromises();
+
+      expect(wrapper.find(ICON).exists()).toBe(true);
+    });
+
+    it('should not report a named field that passes validation', async() => {
+      const wrapper = await mountInSection({
+        name: 'subnet', value: 'set', rules: [(v) => (v ? undefined : 'Required')]
+      });
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+
+    it('should not report a field without a name', async() => {
+      const wrapper = await mountInSection({ name: null, rules: [() => 'Required'] });
+
+      expect(wrapper.find(ICON).exists()).toBe(false);
+    });
+  });
+
+  describe('showing errors once the RcSection is collapsed', () => {
+    const mountInSection = async(opts: Parameters<typeof createHarness>[0]) => {
+      const Field = createHarness(opts);
+      const Host = defineComponent({
+        components: { RcSection, Field },
+        setup() {
+          useForm();
+        },
+        template: `
+          <RcSection type="primary" mode="with-header" title="Network" expandable>
+            <Field />
+          </RcSection>
+        `,
+      });
+
+      const wrapper = mount(Host);
+
+      await flushPromises();
+
+      return { wrapper, field: () => wrapper.findComponent(Field).vm as unknown as { effectiveValidationMessage: unknown; valueRef: unknown } };
+    };
+
+    const required = (v: unknown) => (v ? undefined : 'Required');
+
+    it('does not show an untouched error before the section is collapsed', async() => {
+      const { field } = await mountInSection({ name: 'subnet', rules: [required] });
+
+      expect(field().effectiveValidationMessage).toBeUndefined();
+    });
+
+    it('shows an untouched error once the section is collapsed', async() => {
+      const { wrapper, field } = await mountInSection({ name: 'subnet', rules: [required] });
+
+      await wrapper.find('.section-header').trigger('click');
+
+      expect(field().effectiveValidationMessage).toBe('Required');
+    });
+
+    it('keeps showing the error after the section is expanded again, until it is corrected', async() => {
+      const { wrapper, field } = await mountInSection({ name: 'subnet', rules: [required] });
+
+      await wrapper.find('.section-header').trigger('click');
+      await wrapper.find('.section-header').trigger('click');
+      expect(field().effectiveValidationMessage).toBe('Required');
+
+      field().valueRef = 'subnet-0abc';
+      await flushPromises();
+      expect(field().effectiveValidationMessage).toBeUndefined();
     });
   });
 });

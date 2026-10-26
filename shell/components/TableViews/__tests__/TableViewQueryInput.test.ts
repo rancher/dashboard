@@ -93,6 +93,65 @@ describe('TableViewQueryInput', () => {
     expect(field?.querySelector('.suggestion-detail')?.textContent?.trim()).toBe('state');
   });
 
+  describe('undo and redo', () => {
+    const box = () => wrapper.find('[data-testid="table-views-query"]');
+    const last = () => wrapper.emitted<[string]>('update:value')?.slice(-1)[0]?.[0];
+    let now = 0;
+
+    beforeEach(() => {
+      now = 1000;
+      // A pause between each change, so each is a step of its own
+      jest.spyOn(Date, 'now').mockImplementation(() => (now += 5000));
+    });
+
+    afterEach(() => jest.restoreAllMocks());
+
+    it('should step back and on with Ctrl+Z, Ctrl+Shift+Z and Ctrl+Y', async() => {
+      mountWith({});
+      await type('state:active');
+      await type('state:active name:web');
+
+      await box().trigger('keydown', { key: 'z', ctrlKey: true });
+      expect(last()).toBe('state:active');
+      await wrapper.setProps({ value: 'state:active' });
+
+      await box().trigger('keydown', { key: 'z', ctrlKey: true });
+      expect(last()).toBe('');
+      await wrapper.setProps({ value: '' });
+
+      await box().trigger('keydown', {
+        key: 'Z', ctrlKey: true, shiftKey: true
+      });
+      expect(last()).toBe('state:active');
+      await wrapper.setProps({ value: 'state:active' });
+
+      await box().trigger('keydown', { key: 'y', ctrlKey: true });
+      expect(last()).toBe('state:active name:web');
+    });
+
+    it('should undo from the Edit menu, which comes as input rather than a key', async() => {
+      mountWith({});
+      await type('state:active');
+      await type('state:active name:web');
+
+      await box().trigger('beforeinput', { inputType: 'historyUndo' });
+
+      expect(last()).toBe('state:active');
+    });
+
+    it('should start afresh as another view is put on the table, even with the same query', async() => {
+      mountWith({});
+      await type('state:active');
+
+      const emitted = wrapper.emitted('update:value')?.length;
+
+      await wrapper.setProps({ historyKey: 1 });
+      await box().trigger('keydown', { key: 'z', ctrlKey: true });
+
+      expect(wrapper.emitted('update:value')).toHaveLength(emitted as number);
+    });
+  });
+
   describe('asking for a field\'s values again', () => {
     const refreshed = () => (wrapper.emitted('refresh-values') || []).map(([id]) => id);
 

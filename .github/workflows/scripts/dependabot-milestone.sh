@@ -14,8 +14,10 @@ set -eo pipefail
 #                     read from the workflow event.
 #   sweep           - process every open Dependabot PR.
 #
-# The branch-derived milestone and the retry label are always (re)applied to the
-# target open PR(s).
+# The branch-derived milestone only ever moves a PR forward: it is applied when the
+# PR has no milestone or an older version one, and never replaces a newer or
+# non-version milestone someone set by hand (e.g. pushing a PR out to the next
+# release). The retry label is always (re)applied to the target open PR(s).
 #
 # Environment:
 #   GH_TOKEN            - token with pull-requests:write (required, used by gh)
@@ -50,10 +52,21 @@ milestone_for_branch() {
   echo "$version"
 }
 
-# Assign the branch-derived milestone to a single PR
+# Succeeds when milestone title $1 is a strictly older version than $2 (both 'vX.Y.Z')
+is_older_version() {
+  local current="${1#v}"
+  local target="${2#v}"
+
+  [[ "$current" =~ ^[0-9]+(\.[0-9]+)*$ ]] || return 1
+  [ "$current" != "$target" ] &&
+    [ "$(printf '%s\n%s\n' "$current" "$target" | sort -V | head -n1)" = "$current" ]
+}
+
+# Assign the branch-derived milestone to a single PR, only moving it forward
 assign_milestone() {
   local number="$1"
   local branch="$2"
+  local current="$3"
   local version
 
   version=$(milestone_for_branch "$branch")
@@ -64,8 +77,12 @@ assign_milestone() {
     return 0
   fi
 
-  # '--milestone' takes the milestone title; re-applying the same one is a no-op
-  echo "  PR #${number}: setting milestone to '${version}' (base branch '${branch}')"
+  if [ -n "$current" ] && ! is_older_version "$current" "$version"; then
+    echo "  PR #${number}: keeping milestone '${current}' (branch milestone '${version}' is not newer)"
+    return 0
+  fi
+
+  echo "  PR #${number}: setting milestone to '${version}' (base branch '${branch}', was '${current:-none}')"
   gh pr edit "$number" --repo "$GITHUB_REPOSITORY" --milestone "$version"
 }
 
@@ -86,15 +103,16 @@ if [ "$MODE" = "sweep" ]; then
   # Fetch the list up front. Under 'set -e' a failure here (auth / API error)
   # aborts the job loudly instead of being silently swallowed by a pipeline.
   pr_list=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --author "$DEPENDABOT_AUTHOR" \
-    --limit 200 --json number,baseRefName --jq '.[] | [.number, .baseRefName] | @tsv')
+    --limit 200 --json number,baseRefName,milestone \
+    --jq '.[] | [.number, .baseRefName, (.milestone.title // "")] | @tsv')
 
-  # Process each PR ("<number>\t<baseBranch>"). Keep going past a single PR's
-  # failure so one bad PR can't stop the rest of the sweep; report at the end.
+  # Process each PR ("<number>\t<baseBranch>\t<milestone>"). Keep going past a single
+  # PR's failure so one bad PR can't stop the rest of the sweep; report at the end.
   failed=0
-  while IFS=$'\t' read -r number branch; do
+  while IFS=$'\t' read -r number branch current; do
     [ -z "$number" ] && continue
     echo "Processing Dependabot PR #${number}"
-    assign_milestone "$number" "$branch" || {
+    assign_milestone "$number" "$branch" "$current" || {
       echo "  ⚠️  PR #${number}: failed to set milestone, continuing"
       failed=1
     }
@@ -112,7 +130,10 @@ else
     exit 1
   fi
 
+  # A reopened PR may already carry a milestone that must not be moved backwards
+  current=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json milestone --jq '.milestone.title // ""')
+
   echo "Processing Dependabot PR #${PR_NUMBER} (base branch '${BASE_REF}')"
-  assign_milestone "$PR_NUMBER" "$BASE_REF"
+  assign_milestone "$PR_NUMBER" "$BASE_REF" "$current"
   add_retry_label "$PR_NUMBER"
 fi

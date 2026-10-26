@@ -19,7 +19,6 @@ import DayTwoOps from '@pkg/imported/components/DayTwoOps.vue';
 import RcACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/RcACE.vue';
 import RcEtcdSnapshotConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/RcEtcdSnapshotConfig.vue';
 import { NORMAN, MANAGEMENT, CAPI, HCI } from '@shell/config/types';
-import formRulesGenerator from '@shell/utils/validators/formRules/index';
 import RcKeyValue from '@shell/components/form/RcKeyValue.vue';
 import { Checkbox } from '@components/Form/Checkbox';
 import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types';
@@ -108,7 +107,6 @@ export default defineComponent({
       this.config = this.normanCluster.rke2Config || this.normanCluster.k3sConfig;
       this.clusterHasEtcdConfig = hasEtcdConfig(this.config?.etcd);
       this.s3Backup = !!this.config?.etcd?.s3;
-      await this.fetchS3CloudCredential();
       if ( this.normanCluster && isEmpty(this.normanCluster.localClusterAuthEndpoint) ) {
         set(this.normanCluster, 'localClusterAuthEndpoint', { enabled: false });
       }
@@ -369,23 +367,6 @@ export default defineComponent({
     dayTwoOpsEnabled() {
       return this.dayTwoOps === 'true' || (this.dayTwoOps === DAY_2_OPS_DEFAULT && this.dayTwoOpsGlobalSetting);
     },
-    /**
-     * RcSection doesn't render its content while collapsed, so RcS3Config (and its validation) isn't there when the
-     * etcd or S3 sections are collapsed. Validate the S3 config here too, with the same rules, so an invalid config
-     * can't be saved from a collapsed section.
-     */
-    s3ConfigValid() {
-      if (!this.showDayTwoOps || !this.dayTwoOpsEnabled || !this.s3Backup) {
-        return true;
-      }
-
-      const s3 = this.config?.etcd?.s3 || {};
-      const cloudCredential = s3.cloudCredentialName ? this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, s3.cloudCredentialName) : null;
-      const defaultBucket = cloudCredential?.decodedData?.defaultBucket;
-      const { awsStyleEndpoint } = formRulesGenerator(this.$store.getters['i18n/t'], { key: 'Value' });
-
-      return !!(s3.bucket || defaultBucket) && !awsStyleEndpoint(s3.endpoint);
-    },
     // Cluster/fleet agent deployment customization (requests/limits, tolerations, affinity and scheduling
     // customization) isn't supported for the local cluster (its agent is embedded in the Rancher pods) or RKE1 clusters
     showAgentConfiguration() {
@@ -549,22 +530,6 @@ export default defineComponent({
       this.dayTwoOpsGlobalSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
       this.dayTwoOpsOld = !this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] ? DAY_2_OPS_DEFAULT : this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED];
     },
-    /**
-     * Load the S3 cloud credential, so its default bucket is known to s3ConfigValid even if RcS3Config is never shown
-     */
-    async fetchS3CloudCredential() {
-      const cloudCredentialName = this.config?.etcd?.s3?.cloudCredentialName;
-
-      if (!cloudCredentialName) {
-        return;
-      }
-
-      try {
-        await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: cloudCredentialName });
-      } catch (e) {
-        // Without the credential its default bucket is unknown, so a bucket is required
-      }
-    },
     etcdChanged(neu) {
       // config is either normanCluster.rke2Config or normanCluster.k3sConfig, so this writes to <rke2|k3s>Config.etcd
       this.config.etcd = neu;
@@ -663,7 +628,7 @@ export default defineComponent({
     :can-yaml="false"
     :done-route="doneRoute"
     :errors="fvUnreportedValidationErrors"
-    :validation-passed="fvFormIsValid && (!showDayTwoOps || !dayTwoOpsEnabled || (etcdConfigValid && s3ConfigValid))"
+    :validation-passed="fvFormIsValid && (!showDayTwoOps || !dayTwoOpsEnabled || etcdConfigValid)"
     :show-toc="true"
     @error="e=>errors=e"
     @finish="save"
