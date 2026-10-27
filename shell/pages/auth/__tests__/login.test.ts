@@ -276,6 +276,21 @@ describe('page: login', () => {
       expect(wrapper.find('form').exists()).toBe(false);
     });
 
+    it.each([
+      ['below a message, leaving the gap to the banner', { [TIMED_OUT]: _FLAGGED }, []],
+      ['without a message, at the same offset as a login', {}, ['mt-30']],
+    ])('should place the list %s', async(_label, query, expected) => {
+      const wrapper = createWrapper([LOCAL, AD, GITHUB], query);
+
+      await runFetch(wrapper);
+      wrapper.vm.expandProviderList();
+      await wrapper.vm.$nextTick();
+
+      const classes = wrapper.find('.login-alternatives').classes();
+
+      expect(classes.filter((c) => /^mt-/.test(c))).toStrictEqual(expected);
+    });
+
     it('should list the provider already chosen, as the way back to it', async() => {
       const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB]);
 

@@ -131,6 +131,14 @@ export default {
       return this.hasProviderList && this.listExpanded;
     },
 
+    providerChoiceMarginClass() {
+      if (!this.showProviderList) {
+        return 'mt-20';
+      }
+
+      return this.hasLoginMessage ? '' : 'mt-30';
+    },
+
     /**
      * Index of the selected provider within `providers`, which `providerComponents`
      * is built in step with.
@@ -614,7 +622,7 @@ export default {
         <div
           v-if="hasProviderChoice"
           class="login-alternatives"
-          :class="showProviderList && !hasLoginMessage ? 'mt-30' : 'mt-20'"
+          :class="providerChoiceMarginClass"
         >
           <OrDivider v-if="!showProviderList" />
           <!--
