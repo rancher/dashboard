@@ -696,7 +696,11 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
     const MACHINE_INV_TYPE = 'elemental.cattle.io.machineinventory';
     // Created by 8.3, which runs on every version in the matrix.
     const MACHINE_INV_NAME = 'demo-mach-inv-1';
-    const MACHINE_INV_LIST_URL = `/elemental/c/_/${ MACHINE_INV_TYPE }`;
+    // Must be the real cluster id, not the `_` placeholder: on hosts before 2.14 the `c/_` form
+    // renders the product chrome but never resolves a cluster to list against, so the table comes
+    // back permanently empty while the nav count still reports the row. Group 8 reaches this same
+    // list through the side nav, which is why it only bites here.
+    const MACHINE_INV_LIST_URL = `/elemental/c/${ CLUSTER_ID }/${ MACHINE_INV_TYPE }`;
 
     /**
      * Full page load straight onto the extension's list route - the "hard refresh" case - with a
@@ -740,7 +744,7 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       // it threw, the cell fell back to plain text and every row link was dead.
       table.detailsPageLinkWithName(MACHINE_INV_NAME, undefined, true)
         .should('have.attr', 'href')
-        .and('match', new RegExp(`/elemental/c/_/${ MACHINE_INV_TYPE.replace(/\./g, '\\.') }/[^/]+/${ MACHINE_INV_NAME }$`));
+        .and('match', new RegExp(`/elemental/c/[^/]+/${ MACHINE_INV_TYPE.replace(/\./g, '\\.') }/[^/]+/${ MACHINE_INV_NAME }$`));
 
       // The extension's other two routes to the manager, surfaced as columns by the test extension.
       // `modelExtensions` throws when the manager is missing; the validator lookup is optional
@@ -882,10 +886,22 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
         .should('eq', `PRODREG PAGE OK: ${ marker }`);
     };
 
-    /** Click a side-nav entry by its exact label. Group headers and leaves both render anchors. */
+    /**
+     * Click a side-nav entry by its exact label.
+     *
+     * Matching the label element rather than the anchor, because the nav renders three shapes and
+     * only one of them is an anchor whose own text is the label (see `nav/Type.vue`, `nav/Group.vue`):
+     * - a leaf is `<a class="type-link">` wrapping `<span class="label">`, but a resource count is
+     *   appended *inside* that same anchor, so the anchor's text is e.g. "Compat Clusters1"
+     * - a group with an overview page is `<a><h6><span>`
+     * - a group without one is a plain `<h6><span>` with a click handler and no anchor at all
+     * The click bubbles to whichever handler owns the entry, so one selector drives all three.
+     */
     const clickNav = (label: string) => {
       cy.get('.side-nav', LONG_TIMEOUT_OPT).should('exist');
-      cy.get('.side-nav').contains('a', new RegExp(`^\\s*${ label }\\s*$`), MEDIUM_TIMEOUT_OPT).click();
+      cy.get('.side-nav')
+        .contains('.label, .header h6 span', new RegExp(`^\\s*${ label }\\s*$`), MEDIUM_TIMEOUT_OPT)
+        .click();
     };
 
     conditionalIt('11.1 New top-level product: landing page, nav tree and enable gating', () => {
@@ -905,21 +921,27 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
 
     conditionalIt('11.2 Resource page renders with its custom list config', () => {
       cy.visit(COMPAT_PRODUCT_URL);
+      // Settle on the landing page first - clicking the nav while the product is still registering
+      // its routes lands back on the overview.
+      expectProdRegPage('COMPAT OVERVIEW');
       clickNav('Compat Clusters');
 
       const table = new SortableTablePo(STANDARD_LIST);
 
       table.checkLoadingIndicatorNotVisible();
-      // provisioning.cattle.io.cluster always has the `local` row on the test host.
-      table.rowElementWithName('local', LONG_TIMEOUT_OPT, true).should('be.visible');
+      // provisioning.cattle.io.cluster always has exactly the `local` row on the test host, so the
+      // single row is the right row on hosts that blank the Name column too (see `noRowNameAssert`).
+      assertFilteredRow(table, 'local');
 
       // `listConfig.localHeaders` replaced the default columns, so the custom one must be present.
       cy.contains('ProdReg Probe', MEDIUM_TIMEOUT_OPT).should('be.visible');
-      table.rowWithName('local', true).self().should('contain', 'PRODREG COLUMN OK');
+      (noRowNameAssert ? table.rowElements().first() : table.rowWithName('local', true).self())
+        .should('contain', 'PRODREG COLUMN OK');
     });
 
     conditionalIt('11.3 Groups: plain children, overview group, explicit default child', () => {
       cy.visit(COMPAT_PRODUCT_URL);
+      expectProdRegPage('COMPAT OVERVIEW');
 
       // Group WITHOUT a component - the header is not a route of its own, clicking it expands the
       // group and lands on the first child.
@@ -939,6 +961,7 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
 
     conditionalIt('11.4 Gated page, single-page product and name-only product', () => {
       cy.visit(COMPAT_PRODUCT_URL);
+      expectProdRegPage('COMPAT OVERVIEW');
 
       // `enable: { ifHaveType: 'provisioning.cattle.io.cluster' }` holds on the test host.
       clickNav('Compat Gated Visible');
@@ -948,9 +971,12 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       cy.visit('/elementalcompatsingle');
       expectProdRegPage('COMPAT SINGLE PAGE');
 
-      // Name-only overload: addProduct('elemental-compat-minimal') gets a default 'main' page.
+      // Name-only overload: addProduct('elemental-compat-minimal') registers the product and its
+      // route resolves, but with no component and no child pages there is no page to render and
+      // no nav to build - the host falls back to its own placeholder. Assert the product chrome
+      // rather than a side nav, which only exists once a product has something to put in it.
       cy.visit('/elementalcompatminimal/c/_/main');
-      cy.get('.side-nav', LONG_TIMEOUT_OPT).should('exist');
+      cy.get('header', LONG_TIMEOUT_OPT).should('contain', 'elemental-compat-minimal');
     });
 
     conditionalIt('11.5 Extending built-in products (explorer + manager)', () => {
