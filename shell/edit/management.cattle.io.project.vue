@@ -13,7 +13,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { MANAGEMENT } from '@shell/config/types';
 import { NAME } from '@shell/config/product/explorer';
 import { PROJECT_ID, _VIEW, _CREATE, _EDIT } from '@shell/config/query-params';
-import ProjectMembershipEditor, { canViewProjectMembershipList } from '@shell/components/form/Members/ProjectMembershipEditor';
+import ProjectMembershipEditor, { canViewProjectMembershipEditor, canViewProjectMembershipList } from '@shell/components/form/Members/ProjectMembershipEditor';
 import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { Banner } from '@components/Banner';
@@ -34,8 +34,14 @@ export default {
   async fetch() {
     if (!this.isCreate && this.value.id) {
       const permissions = await fetchProjectMembershipPermissions(this.$store, this.value.id);
+      const permission = permissions[this.value.id];
 
-      this.membershipPermission = permissions[this.value.id] || {};
+      // a successful check always returns an entry for the project, so a missing one means it failed
+      if (permission) {
+        this.membershipPermission = permission;
+      } else {
+        this.membershipPermissionFailed = true;
+      }
     }
   },
 
@@ -63,7 +69,8 @@ export default {
       isQuotasValid:      true,
 
       // this project's member permissions; the binding schema only says what the user can do in *some* project
-      membershipPermission: {},
+      membershipPermission:       {},
+      membershipPermissionFailed: false,
     };
   },
   computed: {
@@ -72,11 +79,15 @@ export default {
     // Show the Members tab to anyone who can view this project's member list; add/remove are separately
     // gated on full manage rights, so a view-only user gets a read-only members view instead of no tab.
     canViewMembers() {
-      return canViewProjectMembershipList(this.$store) && (this.isCreate || !!this.membershipPermission.view);
+      return canViewProjectMembershipList(this.$store) &&
+        (this.isCreate || this.membershipPermissionFailed || !!this.membershipPermission.view);
     },
 
+    // Same rule as the members editor: add or remove on this project, plus the lookups its add flow needs
     canManageMembers() {
-      return !!this.membershipPermission.create;
+      const { create, remove } = this.membershipPermission;
+
+      return (!!create || !!remove) && canViewProjectMembershipEditor(this.$store);
     },
 
     // Nothing on the page is editable for a user who can neither update the project nor manage its members
@@ -197,7 +208,7 @@ export default {
 };
 </script>
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="!isCreate && $fetchState.pending" />
   <CruResource
     v-else
     class="project"
@@ -236,6 +247,11 @@ export default {
         :label="t('project.members.label')"
         :weight="10"
       >
+        <Banner
+          v-if="membershipPermissionFailed"
+          color="warning"
+          label-key="project.membersPermissionCheckFailed"
+        />
         <Banner
           v-if="showBannerForOnlyManagingMembers"
           color="info"

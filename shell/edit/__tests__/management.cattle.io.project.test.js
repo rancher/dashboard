@@ -1,6 +1,8 @@
 import { shallowMount } from '@vue/test-utils';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
+import { Banner } from '@components/Banner';
+import { MANAGEMENT } from '@shell/config/types';
 import ManagementCattleIoProject from '@shell/edit/management.cattle.io.project.vue';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { fetchProjectMembershipPermissions } from '@shell/utils/project-permissions';
@@ -147,11 +149,26 @@ describe('component: ManagementCattleIoProject', () => {
         'auth/principalId':  'local://user',
       },
     };
-    const mountWith = (value, mode = _EDIT) => shallowMount(ManagementCattleIoProject, {
+    const storeWithoutRoleTemplates = {
+      ...store,
+      getters: {
+        ...store.getters,
+        'management/schemaFor': (type) => (type === MANAGEMENT.ROLE_TEMPLATE ? undefined : {}),
+      },
+    };
+    const mountWith = (value, mode = _EDIT, $store = store) => shallowMount(ManagementCattleIoProject, {
       props: {
         ...defaultMountOptions.props, mode, value
       },
-      global: { mocks: { $store: store, $fetchState: { pending: false } } },
+      global: {
+        mocks:                 { $store, $fetchState: { pending: false } },
+        renderStubDefaultSlot: true,
+      },
+    });
+    const fetchWith = async(wrapper) => await wrapper.vm.$options.fetch.call(wrapper.vm);
+
+    beforeEach(() => {
+      jest.clearAllMocks();
     });
 
     it('should load the permissions for this project on fetch', async() => {
@@ -162,30 +179,33 @@ describe('component: ManagementCattleIoProject', () => {
       });
       const wrapper = mountWith(projectValue());
 
-      await wrapper.vm.$options.fetch.call(wrapper.vm);
+      await fetchWith(wrapper);
 
       expect(fetchProjectMembershipPermissions).toHaveBeenCalledWith(store, 'local/p-abc');
       expect(wrapper.vm.membershipPermission).toStrictEqual({
         create: true, remove: true, view: true
       });
+      expect(wrapper.vm.membershipPermissionFailed).toStrictEqual(false);
     });
 
     it('should not load permissions when creating a project', async() => {
-      fetchProjectMembershipPermissions.mockClear();
       const wrapper = mountWith(projectValue(), _CREATE);
 
-      await wrapper.vm.$options.fetch.call(wrapper.vm);
+      await fetchWith(wrapper);
 
       expect(fetchProjectMembershipPermissions).not.toHaveBeenCalled();
     });
 
     it.each([
-      ['can update the project', { update: 'update-link' }, {}, _EDIT],
-      ['can manage members', {}, { create: true }, _EDIT],
-      ['can only view members', {}, { view: true }, _VIEW],
-      ['has no member permissions', {}, {}, _VIEW],
-    ])('should use %s -> form mode', async(_, links, membershipPermission, expectedMode) => {
-      const wrapper = mountWith(projectValue(links));
+      ['can update the project', { update: 'update-link' }, {}, store, _EDIT],
+      ['can add and remove members', {}, { create: true, remove: true }, store, _EDIT],
+      ['can only add members', {}, { create: true }, store, _EDIT],
+      ['can only remove members', {}, { remove: true }, store, _EDIT],
+      ['can manage members but not read role templates', {}, { create: true, remove: true }, storeWithoutRoleTemplates, _VIEW],
+      ['can only view members', {}, { view: true }, store, _VIEW],
+      ['has no member permissions', {}, {}, store, _VIEW],
+    ])('should use form mode for a user who %s', async(_, links, membershipPermission, $store, expectedMode) => {
+      const wrapper = mountWith(projectValue(links), _EDIT, $store);
 
       await wrapper.setData({ membershipPermission });
 
@@ -203,6 +223,35 @@ describe('component: ManagementCattleIoProject', () => {
       await wrapper.setData({ membershipPermission });
 
       expect(wrapper.vm.canViewMembers).toStrictEqual(expected);
+    });
+
+    describe('when the permission check fails', () => {
+      beforeEach(() => {
+        fetchProjectMembershipPermissions.mockResolvedValue({});
+      });
+
+      it('should show the Members tab with a warning', async() => {
+        const wrapper = mountWith(projectValue());
+
+        await fetchWith(wrapper);
+
+        const warnings = wrapper.findAllComponents(Banner).filter((banner) => banner.props('color') === 'warning');
+
+        expect(wrapper.vm.membershipPermissionFailed).toStrictEqual(true);
+        expect(wrapper.vm.canViewMembers).toStrictEqual(true);
+        expect(warnings).toHaveLength(1);
+      });
+
+      it.each([
+        ['can update the project', { update: 'update-link' }, _EDIT],
+        ['cannot update the project', {}, _VIEW],
+      ])('should use form mode for a user who %s', async(_, links, expectedMode) => {
+        const wrapper = mountWith(projectValue(links));
+
+        await fetchWith(wrapper);
+
+        expect(wrapper.vm.formMode).toStrictEqual(expectedMode);
+      });
     });
   });
 
