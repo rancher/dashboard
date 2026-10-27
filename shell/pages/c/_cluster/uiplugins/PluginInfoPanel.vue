@@ -256,7 +256,6 @@ export default {
 <template>
   <RcDrawer
     :title="drawerTitle"
-    hide-footer-close
     @close="$emit('close')"
   >
     <template #title>
@@ -359,7 +358,7 @@ export default {
       </h3>
       <ChartReadme :version-info="versionInfo" />
     </template>
-    <template #additional-actions>
+    <template #footer>
       <RcButton
         v-for="btn in panelActions"
         :key="btn.action"

@@ -17,10 +17,6 @@ const meta: Meta<typeof RcDrawer> = {
       control:     { type: 'text' },
       description: 'The footer close button\'s text, such as Cancel when the drawer has an action to save. Defaults to Close. When set, the button is named by this text rather than by the drawer it closes.',
     },
-    hideFooterClose: {
-      control:     { type: 'boolean' },
-      description: 'Leaves the Close button out of the footer, for a drawer whose actions are all its footer needs. The header\'s close button still closes it.',
-    },
     close: {
       description: 'Emitted by the header close button and the footer Close button. The drawer stays open until the consumer takes it down.',
       table:       { category: 'events' },
@@ -34,6 +30,12 @@ const meta: Meta<typeof RcDrawer> = {
     headerActionsSlot: {
       name:        'header-actions',
       description: 'Icon buttons that act on the drawer\'s content, such as Dock to shell or Expand all, beside the close button. Size them like it, and give each an `aria-label` and a tooltip.',
+      control:     false,
+      table:       { category: 'slots' },
+    },
+    footerSlot: {
+      name:        'footer',
+      description: 'Replaces everything in the footer, for a drawer whose actions are all its footer needs. The footer only shows when it has content.',
       control:     false,
       table:       { category: 'slots' },
     },

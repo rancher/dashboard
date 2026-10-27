@@ -122,15 +122,18 @@ describe('component: RcDrawer', () => {
     expect(wrapper.find('[data-testid="rc-drawer-footer"]').exists()).toBe(false);
   });
 
-  it('should leave Close out of the footer when hideFooterClose is set', () => {
-    const wrapper = mount(RcDrawer, {
-      props: { title: 'Dev Extension', hideFooterClose: true },
-      slots: withAction,
-    });
+  it('should replace the footer with the footer slot', () => {
+    const wrapper = mountDrawer({ slots: { footer: '<button data-testid="uninstall">Uninstall</button>', ...withAction } });
     const buttons = wrapper.findAll('[data-testid="rc-drawer-footer"] button');
 
-    expect(buttons.map((b) => b.attributes('data-testid'))).toStrictEqual(['extra']);
+    expect(buttons.map((b) => b.attributes('data-testid'))).toStrictEqual(['uninstall']);
     expect(wrapper.find('[data-testid="rc-drawer-close"]').exists()).toBe(true);
+  });
+
+  it('should leave the footer out when the footer slot renders nothing', () => {
+    const wrapper = mountDrawer({ slots: { footer: '<button v-if="false">Uninstall</button>' } });
+
+    expect(wrapper.find('[data-testid="rc-drawer-footer"]').exists()).toBe(false);
   });
 
   it('should render additional actions after the footer close button', () => {

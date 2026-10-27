@@ -46,7 +46,7 @@ const rendersContent = (nodes: VNode[] = []): boolean => nodes.some((node) => {
   return true;
 });
 
-const hasActions = () => rendersContent(slots['additional-actions']?.());
+const hasFooter = () => rendersContent(slots.footer?.()) || rendersContent(slots['additional-actions']?.());
 </script>
 
 <template>
@@ -89,21 +89,23 @@ const hasActions = () => rendersContent(slots['additional-actions']?.());
       <slot />
     </div>
     <div
-      v-if="hasActions()"
+      v-if="hasFooter()"
       class="footer"
       data-testid="rc-drawer-footer"
     >
-      <RcButton
-        v-if="!hideFooterClose"
-        variant="secondary"
-        size="large"
-        :aria-label="closeLabel ? undefined : closeAriaLabel"
-        @click="$emit('close')"
-      >
-        {{ closeLabel || t('component.drawer.chrome.close') }}
-      </RcButton>
-      <!-- @slot The drawer's actions, such as its primary action, after the footer's Close button. The footer only shows when there is one. -->
-      <slot name="additional-actions" />
+      <!-- @slot Replaces everything in the footer, for a drawer whose actions are all its footer needs. The footer only shows when it has content. -->
+      <slot name="footer">
+        <RcButton
+          variant="secondary"
+          size="large"
+          :aria-label="closeLabel ? undefined : closeAriaLabel"
+          @click="$emit('close')"
+        >
+          {{ closeLabel || t('component.drawer.chrome.close') }}
+        </RcButton>
+        <!-- @slot The drawer's actions, such as its primary action, after the footer's Close button. The footer only shows when there is one. -->
+        <slot name="additional-actions" />
+      </slot>
     </div>
   </div>
 </template>
