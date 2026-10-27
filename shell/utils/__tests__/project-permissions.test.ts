@@ -76,8 +76,15 @@ describe('fetchProjectMembershipPermissions', () => {
       getters:  { 'management/schemaFor': jest.fn().mockReturnValue({ links: { collection: `/v3/schemas/${ PROJECT_SCHEMA }` } }) },
       dispatch: jest.fn().mockResolvedValue({
         data: [
-          { id: 'local/p-1', resourcePermissions: { [RTB]: { create: true, delete: true } } },
-          { id: 'local/p-2', resourcePermissions: { [RTB]: { create: false, delete: false } } },
+          {
+            id:                  'local/p-1',
+            resourcePermissions: {
+              [RTB]: {
+                create: true, delete: true, list: true
+              }
+            }
+          },
+          { id: 'local/p-2', resourcePermissions: { [RTB]: { list: true } } },
         ],
       }),
     };
@@ -85,8 +92,12 @@ describe('fetchProjectMembershipPermissions', () => {
     const result = await fetchProjectMembershipPermissions(store);
 
     expect(result).toStrictEqual({
-      'local/p-1': { create: true, remove: true },
-      'local/p-2': { create: false, remove: false },
+      'local/p-1': {
+        create: true, remove: true, view: true
+      },
+      'local/p-2': {
+        create: false, remove: false, view: true
+      },
     });
   });
 
@@ -98,10 +109,14 @@ describe('fetchProjectMembershipPermissions', () => {
 
     const result = await fetchProjectMembershipPermissions(store, 'local:p-abc');
 
-    expect(result).toStrictEqual({ 'local/p-abc': { create: true, remove: false } });
+    expect(result).toStrictEqual({
+      'local/p-abc': {
+        create: true, remove: false, view: false
+      }
+    });
   });
 
-  it('defaults create and remove to false when resourcePermissions for the RTB verb is missing', async() => {
+  it('defaults create, remove and view to false when resourcePermissions for the RTB verb is missing', async() => {
     const store = {
       getters:  { 'management/schemaFor': jest.fn().mockReturnValue({ links: { collection: `/v3/schemas/${ PROJECT_SCHEMA }` } }) },
       dispatch: jest.fn().mockResolvedValue({ data: [{ id: 'local/p-1', resourcePermissions: {} }] }),
@@ -109,7 +124,11 @@ describe('fetchProjectMembershipPermissions', () => {
 
     const result = await fetchProjectMembershipPermissions(store);
 
-    expect(result).toStrictEqual({ 'local/p-1': { create: false, remove: false } });
+    expect(result).toStrictEqual({
+      'local/p-1': {
+        create: false, remove: false, view: false
+      }
+    });
   });
 
   it('returns an empty object when response has neither a data array nor an id', async() => {

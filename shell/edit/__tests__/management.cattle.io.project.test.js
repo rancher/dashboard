@@ -2,7 +2,10 @@ import { shallowMount } from '@vue/test-utils';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import ManagementCattleIoProject from '@shell/edit/management.cattle.io.project.vue';
-import { _EDIT } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+import { fetchProjectMembershipPermissions } from '@shell/utils/project-permissions';
+
+jest.mock('@shell/utils/project-permissions', () => ({ fetchProjectMembershipPermissions: jest.fn() }));
 
 const mockStore = {
   getters: {
@@ -25,7 +28,7 @@ const defaultMountOptions = {
       metadata: { namespace: 'test-ns', annotations: {} },
     }
   },
-  global: { mocks: { $store: mockStore } }
+  global: { mocks: { $store: mockStore, $fetchState: { pending: false } } }
 };
 
 describe('component: ManagementCattleIoProject', () => {
@@ -127,6 +130,79 @@ describe('component: ManagementCattleIoProject', () => {
 
       expect(nameNsDescription.props('nameDisabled')).toStrictEqual(false);
       expect(nameNsDescription.props('descriptionDisabled')).toStrictEqual(false);
+    });
+  });
+
+  describe('per-project member permissions', () => {
+    const projectValue = (links = {}) => ({
+      ...defaultMountOptions.props.value,
+      id: 'local/p-abc',
+      links,
+    });
+    const store = {
+      ...mockStore,
+      getters: {
+        ...mockStore.getters,
+        'rancher/schemaFor': () => ({}),
+        'auth/principalId':  'local://user',
+      },
+    };
+    const mountWith = (value, mode = _EDIT) => shallowMount(ManagementCattleIoProject, {
+      props: {
+        ...defaultMountOptions.props, mode, value
+      },
+      global: { mocks: { $store: store, $fetchState: { pending: false } } },
+    });
+
+    it('should load the permissions for this project on fetch', async() => {
+      fetchProjectMembershipPermissions.mockResolvedValue({
+        'local/p-abc': {
+          create: true, remove: true, view: true
+        }
+      });
+      const wrapper = mountWith(projectValue());
+
+      await wrapper.vm.$options.fetch.call(wrapper.vm);
+
+      expect(fetchProjectMembershipPermissions).toHaveBeenCalledWith(store, 'local/p-abc');
+      expect(wrapper.vm.membershipPermission).toStrictEqual({
+        create: true, remove: true, view: true
+      });
+    });
+
+    it('should not load permissions when creating a project', async() => {
+      fetchProjectMembershipPermissions.mockClear();
+      const wrapper = mountWith(projectValue(), _CREATE);
+
+      await wrapper.vm.$options.fetch.call(wrapper.vm);
+
+      expect(fetchProjectMembershipPermissions).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['can update the project', { update: 'update-link' }, {}, _EDIT],
+      ['can manage members', {}, { create: true }, _EDIT],
+      ['can only view members', {}, { view: true }, _VIEW],
+      ['has no member permissions', {}, {}, _VIEW],
+    ])('should use %s -> form mode', async(_, links, membershipPermission, expectedMode) => {
+      const wrapper = mountWith(projectValue(links));
+
+      await wrapper.setData({ membershipPermission });
+
+      expect(wrapper.vm.formMode).toStrictEqual(expectedMode);
+      expect(wrapper.findComponent(CruResource).props('mode')).toStrictEqual(expectedMode);
+    });
+
+    it.each([
+      [{ view: true }, _EDIT, true],
+      [{}, _EDIT, false],
+      [{}, _CREATE, true],
+    ])('should show the Members tab for permissions %j in %s mode: %s', async(membershipPermission, mode, expected) => {
+      const wrapper = mountWith(projectValue(), mode);
+
+      await wrapper.setData({ membershipPermission });
+
+      expect(wrapper.vm.canViewMembers).toStrictEqual(expected);
     });
   });
 
