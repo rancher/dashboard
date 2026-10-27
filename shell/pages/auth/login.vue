@@ -575,9 +575,11 @@ export default {
             :class="{'mt-30': !hasLoginMessage || firstLogin}"
             @submit.prevent
           >
-            <div class="mb-20">
+            <div
+              v-if="!firstLogin"
+              class="mb-20"
+            >
               <LabeledInput
-                v-if="!firstLogin"
                 ref="username"
                 v-model:value.trim="username"
                 data-testid="local-login-username"

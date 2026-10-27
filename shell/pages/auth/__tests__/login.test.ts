@@ -543,6 +543,26 @@ describe('page: login', () => {
     });
   });
 
+  describe('first login', () => {
+    it('should not leave the username spacing behind once the username is hidden', async() => {
+      const wrapper = createWrapper([LOCAL]);
+
+      await runFetch(wrapper);
+      await wrapper.setData({ firstLogin: true });
+
+      expect(wrapper.find('[data-testid="local-login-username"]').exists()).toBe(false);
+      expect(wrapper.find('form > .mb-20').exists()).toBe(false);
+    });
+
+    it('should space the username from the password otherwise', async() => {
+      const wrapper = createWrapper([LOCAL]);
+
+      await runFetch(wrapper);
+
+      expect(wrapper.find('form > .mb-20 [data-testid="local-login-username"]').exists()).toBe(true);
+    });
+  });
+
   describe('a11y: landscape image', () => {
     it('should be decorative, so it is skipped by screen readers', () => {
       const wrapper = createWrapper([LOCAL]);
