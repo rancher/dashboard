@@ -121,15 +121,15 @@ Show Configuration puts before the resource name.
 ## Moving from `Chrome` and `DrawerCard`
 
 `@shell/components/Drawer/Chrome.vue` and `@shell/components/Drawer/DrawerCard.vue`
-now render `RcDrawer` and `RcDrawerCard`, and are deprecated. To move:
+are removed. Use `RcDrawer` and `RcDrawerCard` instead:
 
 | `Chrome` | `RcDrawer` |
 |---|---|
 | `aria-target` | `title` |
 | `#title` | `#title`, and only when the title needs markup |
 | `#body` | The default slot |
+| `#footer` | `#footer`, or `#additional-actions` to keep the Close button |
 | `#additional-actions` | `#additional-actions` |
 
-`Chrome`'s `#header` and `#footer` slots and its `remove-footer` prop are gone.
-Every drawer has the standard header, and the standard footer when it has
-actions.
+`Chrome`'s `#header` slot and its `remove-footer` prop have no replacement:
+every drawer has the standard header, and a footer only when it has content.

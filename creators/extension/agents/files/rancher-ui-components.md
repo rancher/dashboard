@@ -1019,7 +1019,7 @@ A composable floating dropdown menu. Use for non-resource-row action menus (for 
 **Import from:** `@components/RcDrawer` (`RcDrawer`, and `RcDrawerCard` for a form or table section)
 **Also known as:** Side panel · Slide-out panel · Detail panel
 
-A slide-out panel anchored to the right side of the screen. Used to surface resource details, configuration previews, or help content without navigating away from the current page. Make `RcDrawer` the root of your component and open it with `useShell().slideIn.open(...)`: the slide-in traps focus, closes on Escape or a click outside, and returns focus to the element that opened it. `shell/components/Drawer/Chrome.vue` is a deprecated wrapper around it.
+A slide-out panel anchored to the right side of the screen. Used to surface resource details, configuration previews, or help content without navigating away from the current page. Make `RcDrawer` the root of your component and open it with `useShell().slideIn.open(...)`: the slide-in traps focus, closes on Escape or a click outside, and returns focus to the element that opened it. It replaces `shell/components/Drawer/Chrome.vue` and `DrawerCard.vue`, which are removed.
 
 **Key props:**
 - `title` (String, required) - the header text and the drawer's accessible name
