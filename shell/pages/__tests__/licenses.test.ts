@@ -32,7 +32,7 @@ describe('page: Licenses', () => {
       return open;
     };
 
-    it('should open the license in a wide, full height drawer titled with the package name', () => {
+    it('should open the license in a narrow, full height drawer titled with the package name', () => {
       const content = { text: 'MIT License' };
       const open = openPanel({ 'mit-1': content });
 
@@ -45,7 +45,6 @@ describe('page: Licenses', () => {
           author:       'Jane Doe',
           content
         },
-        width:  'wide',
         height: 'full'
       });
     });
