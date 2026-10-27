@@ -132,6 +132,18 @@ describe('component: StatusBreakdownCard', () => {
       expect(wrapper.find('.custom-empty').text()).toStrictEqual('All good');
     });
 
+    it('should render the empty slot inside the empty wrapper', () => {
+      const wrapper = mountCard({ rows: [] }, { empty: '<span class="custom-empty">All good</span>' });
+
+      expect(wrapper.find('.empty .custom-empty').exists()).toStrictEqual(true);
+    });
+
+    it('should not render the empty wrapper when no empty slot is passed', () => {
+      const wrapper = mountCard({ rows: [] });
+
+      expect(wrapper.find('.empty').exists()).toStrictEqual(false);
+    });
+
     it('should not render the rows list when there are no rows', () => {
       const wrapper = mountCard({ rows: [] });
 

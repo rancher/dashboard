@@ -112,10 +112,12 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
         </span>
       </li>
     </ul>
-    <slot
-      v-else
-      name="empty"
-    />
+    <div
+      v-else-if="$slots.empty"
+      class="empty"
+    >
+      <slot name="empty" />
+    </div>
   </Card>
 </template>
 
@@ -143,10 +145,13 @@ function handleClick(e: MouseEvent | KeyboardEvent): void {
     gap: 4px;
   }
 
+  .breakdown-row, .empty {
+    line-height: 24px;
+  }
+
   .breakdown-row {
     display: flex;
     align-items: center;
-    line-height: 24px;
 
     .label {
       flex-grow: 1;
