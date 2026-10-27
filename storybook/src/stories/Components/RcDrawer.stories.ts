@@ -24,9 +24,18 @@ const meta: Meta<typeof RcDrawer> = {
       control:     false,
       table:       { category: 'slots' },
     },
-    headerActionsSlot: {
-      name:        'header-actions',
+    'header-actions': {
       description: 'Icon buttons that act on the drawer\'s content, such as Dock to shell or Expand all, beside the close button. Size them like it, and give each an `aria-label` and a tooltip.',
+      control:     false,
+      table:       { category: 'slots' },
+    },
+    default: {
+      description: 'The drawer body. Text goes straight in; wrap a form or a table in an `RcDrawerCard`.',
+      control:     false,
+      table:       { category: 'slots' },
+    },
+    'footer-actions': {
+      description: 'Replaces every footer button, Close included, for a drawer that lays out its own actions; it receives `close`, which closes the drawer.',
       control:     false,
       table:       { category: 'slots' },
     },
@@ -36,8 +45,7 @@ const meta: Meta<typeof RcDrawer> = {
       control:     false,
       table:       { category: 'slots' },
     },
-    additionalActionsSlot: {
-      name:        'additional-actions',
+    'additional-actions': {
       description: 'The drawer\'s actions, such as its primary action, after the footer\'s Close button. The footer only shows when there is one.',
       control:     false,
       table:       { category: 'slots' },

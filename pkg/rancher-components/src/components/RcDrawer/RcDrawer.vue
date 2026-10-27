@@ -48,7 +48,7 @@ const rendersContent = (nodes: VNode[] = []): boolean => nodes.some((node) => {
   return true;
 });
 
-const hasActions = () => rendersContent(slots['additional-actions']?.());
+const hasFooter = () => rendersContent(slots['footer-actions']?.({ close })) || rendersContent(slots['additional-actions']?.());
 </script>
 
 <template>
@@ -91,26 +91,32 @@ const hasActions = () => rendersContent(slots['additional-actions']?.());
       <slot />
     </div>
     <div
-      v-if="hasActions()"
+      v-if="hasFooter()"
       class="footer"
       data-testid="rc-drawer-footer"
     >
-      <!-- @slot The footer's Close button. Replace it when the drawer needs a different one, such as Cancel; it receives `close`, which closes the drawer. -->
+      <!-- @slot Replaces every footer button, Close included, for a drawer that lays out its own actions; it receives `close`, which closes the drawer. -->
       <slot
-        name="close"
+        name="footer-actions"
         :close="close"
       >
-        <RcButton
-          variant="secondary"
-          size="large"
-          :aria-label="closeAriaLabel"
-          @click="close"
+        <!-- @slot The footer's Close button. Replace it when the drawer needs a different one, such as Cancel; it receives `close`, which closes the drawer. -->
+        <slot
+          name="close"
+          :close="close"
         >
-          {{ t('component.drawer.chrome.close') }}
-        </RcButton>
+          <RcButton
+            variant="secondary"
+            size="large"
+            :aria-label="closeAriaLabel"
+            @click="close"
+          >
+            {{ t('component.drawer.chrome.close') }}
+          </RcButton>
+        </slot>
+        <!-- @slot The drawer's actions, such as its primary action, after the footer's Close button. The footer only shows when there is one. -->
+        <slot name="additional-actions" />
       </slot>
-      <!-- @slot The drawer's actions, such as its primary action, after the footer's Close button. The footer only shows when there is one. -->
-      <slot name="additional-actions" />
     </div>
   </div>
 </template>
