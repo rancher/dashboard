@@ -877,13 +877,19 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
 
     const COMPAT_PRODUCT_URL = '/elementalcompat/c/_/compat-overview';
 
-    /** Assert the probe page currently rendered is the one for `marker`. Exact match: several
-     * markers are prefixes of each other (e.g. "COMPAT GROUP DEFAULT" vs "... SIBLING"). */
+    /**
+     * Assert the probe page currently rendered is the one for `marker`. Exact match: several
+     * markers are prefixes of each other (e.g. "COMPAT GROUP DEFAULT" vs "... SIBLING").
+     *
+     * Both assertions hang off the `cy.get` so a retry re-runs the query. Reading the text with
+     * `.invoke('text')` instead would latch onto the element resolved on the first attempt, and
+     * navigating here replaces that node - leaving the retry re-reading the previous page's
+     * marker off a detached node until it times out.
+     */
     const expectProdRegPage = (marker: string) => {
       cy.get('[data-testid="prod-reg-probe"]', MEDIUM_TIMEOUT_OPT)
         .should('be.visible')
-        .invoke('text')
-        .should('eq', `PRODREG PAGE OK: ${ marker }`);
+        .and('have.text', `PRODREG PAGE OK: ${ marker }`);
     };
 
     /**
