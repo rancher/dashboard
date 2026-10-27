@@ -423,9 +423,7 @@ export default {
     openImport() {
       this.$store.dispatch('cluster/promptModal', {
         component:      'ImportDialog',
-        modalWidth:     '75%',
-        height:         'auto',
-        styles:         'max-height: 90vh;',
+        ownsModal:      true,
         componentProps: { cluster: this.currentCluster }
       });
     },
