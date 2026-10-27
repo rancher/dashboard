@@ -1024,6 +1024,7 @@ A slide-out panel anchored to the right side of the screen. Used to surface reso
 **Key props:**
 - `title` (String, required) - the header text and the drawer's accessible name
 - `closeLabel` (String) - the footer close button's text, such as Cancel; defaults to Close. The footer only shows when the drawer has `#additional-actions`
+- `hideFooterClose` (Boolean) - leave Close out of the footer when the drawer's actions are all it needs; the X still closes it
 
 **Events:** `@close` - emit it from your component to close the slide-in. Closing on `close` is new in Rancher 2.16; for older versions also pass `onClose: () => store.commit('slideInPanel/close')` in `props`
 

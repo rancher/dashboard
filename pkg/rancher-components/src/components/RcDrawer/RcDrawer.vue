@@ -94,6 +94,7 @@ const hasActions = () => rendersContent(slots['additional-actions']?.());
       data-testid="rc-drawer-footer"
     >
       <RcButton
+        v-if="!hideFooterClose"
         variant="secondary"
         size="large"
         :aria-label="closeLabel ? undefined : closeAriaLabel"

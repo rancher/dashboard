@@ -256,6 +256,7 @@ export default {
 <template>
   <RcDrawer
     :title="drawerTitle"
+    hide-footer-close
     @close="$emit('close')"
   >
     <template #title>

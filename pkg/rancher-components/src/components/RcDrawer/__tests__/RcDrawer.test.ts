@@ -122,6 +122,17 @@ describe('component: RcDrawer', () => {
     expect(wrapper.find('[data-testid="rc-drawer-footer"]').exists()).toBe(false);
   });
 
+  it('should leave Close out of the footer when hideFooterClose is set', () => {
+    const wrapper = mount(RcDrawer, {
+      props: { title: 'Dev Extension', hideFooterClose: true },
+      slots: withAction,
+    });
+    const buttons = wrapper.findAll('[data-testid="rc-drawer-footer"] button');
+
+    expect(buttons.map((b) => b.attributes('data-testid'))).toStrictEqual(['extra']);
+    expect(wrapper.find('[data-testid="rc-drawer-close"]').exists()).toBe(true);
+  });
+
   it('should render additional actions after the footer close button', () => {
     const wrapper = mountDrawer({ slots: withAction });
     const buttons = wrapper.findAll('[data-testid="rc-drawer-footer"] button');

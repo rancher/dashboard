@@ -12,4 +12,10 @@ export interface RcDrawerProps {
    * text rather than by the drawer it closes.
    */
   closeLabel?: string;
+
+  /**
+   * Leaves the Close button out of the footer, for a drawer whose actions are
+   * all its footer needs. The header's close button still closes it.
+   */
+  hideFooterClose?: boolean;
 }

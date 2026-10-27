@@ -84,7 +84,6 @@ describe('component: PluginInfoPanel', () => {
       await drawer.setData({ infoVersion: '1.1.0' });
 
       expect(drawer.findAll('.footer button').map((b) => b.text())).toStrictEqual([
-        'component.drawer.chrome.close',
         'plugins.uninstall.label',
         'catalog.chart.chartButton.action.upgrade',
       ]);
@@ -94,7 +93,7 @@ describe('component: PluginInfoPanel', () => {
       const info = { installed: true, builtin: false };
       const { drawer } = mountDrawer(info);
 
-      await drawer.findAll('.footer button')[1].trigger('click');
+      await drawer.findAll('.footer button')[0].trigger('click');
 
       expect(drawer.emitted('action')?.[0]).toStrictEqual([{
         label: 'plugins.uninstall.label', action: 'uninstall', role: 'secondary', icon: 'trash', plugin: drawer.props('info')
@@ -158,7 +157,13 @@ describe('component: PluginInfoPanel', () => {
 
       await drawer.setData({ infoVersion: selected });
 
-      expect(drawer.findAllComponents({ name: 'RcButton' }).filter((b) => b.element.closest('[data-testid="rc-drawer-footer"]')).slice(1).map((b) => b.props('leftIcon'))).toStrictEqual(icons);
+      expect(drawer.findAllComponents({ name: 'RcButton' }).filter((b) => b.element.closest('[data-testid="rc-drawer-footer"]')).map((b) => b.props('leftIcon'))).toStrictEqual(icons);
+    });
+
+    it('should leave Close out of the footer, since the header closes it', () => {
+      const { drawer } = mountDrawer({ installed: true, builtin: false });
+
+      expect(drawer.findAll('.footer button').map((b) => b.text())).toStrictEqual(['plugins.uninstall.label']);
     });
 
     it('should leave the footer out when the extension has no actions', () => {

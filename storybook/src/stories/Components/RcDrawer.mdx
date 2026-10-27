@@ -25,7 +25,9 @@ actions.
 | `additional-actions` | The drawer's actions, after the footer's Close button. Without any, the drawer has no footer. |
 
 Both the header's close button and the footer's Close button emit `close`. The
-drawer never takes itself down: whatever opened it does that.
+drawer never takes itself down: whatever opened it does that. Set
+`hide-footer-close` when the drawer's actions are all its footer needs, as the
+Extensions drawer does; the header's close button still closes it.
 
 Buttons in `additional-actions` should be `size="large"`, with
 `variant="primary"` for the drawer's main action, to match the Close button.
