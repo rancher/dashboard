@@ -431,7 +431,7 @@ export default {
                   :variant="btn.role"
                   @click="onButtonClick(btn)"
                 >
-                  <i :class="['icon', btn.icon, 'mmr-2']" />{{ btn.label }}
+                  <i :class="['icon', btn.icon]" />{{ btn.label }}
                 </RcButton>
               </template>
               <div
