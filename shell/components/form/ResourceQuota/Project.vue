@@ -170,6 +170,7 @@ export default {
     <div
       role="row"
       class="headers mb-10"
+      :class="{ 'headers-view': isView }"
     >
       <div
         role="columnheader"
@@ -251,6 +252,10 @@ export default {
     border-bottom: 1px solid var(--border);
     height: 30px;
     width: calc(100% - 75px);
+
+    &.headers-view {
+        width: 100%;
+    }
 
     div {
         width: 100%;
