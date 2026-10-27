@@ -164,7 +164,7 @@ describe('class Deployment', () => {
       });
     });
 
-    it('should keep ignored annotations from the deployment and restore the rest from the revision', async() => {
+    it('should keep the deployment annotations and take the change cause from the revision', async() => {
       const body = await getPatchBody({ annotations: deploymentAnnotations }, { annotations: revisionAnnotations });
 
       expect(body[1]).toStrictEqual({
@@ -174,42 +174,43 @@ describe('class Deployment', () => {
           'deployment.kubernetes.io/revision':                '2',
           'kubectl.kubernetes.io/last-applied-configuration': '{}',
           'kubernetes.io/change-cause':                       'deploy v1',
-          'field.cattle.io/description':                      'description v1',
+          'field.cattle.io/description':                      'description v2',
+          'added-after-revision':                             'any-value',
         },
       });
     });
 
-    it('should not take ignored annotations from the revision', async() => {
-      const body = await getPatchBody({ annotations: {} }, { annotations: { ...revisionAnnotations, 'deployment.kubernetes.io/revision-history': '1' } });
-
-      expect(body[1].value).toStrictEqual({
-        'kubernetes.io/change-cause':  'deploy v1',
-        'field.cattle.io/description': 'description v1',
-      });
-    });
-
-    it.each([
-      ['empty annotations, as set on the detail page', { annotations: {} }],
-      ['no annotations', {}],
-    ])('should add the revision annotations when the deployment has %s', async(_, deploymentMetadata) => {
-      const body = await getPatchBody(deploymentMetadata, { annotations: revisionAnnotations });
-
-      expect(body[1]).toStrictEqual({
-        op:    'add',
-        path:  '/metadata/annotations',
-        value: {
-          'kubernetes.io/change-cause':  'deploy v1',
-          'field.cattle.io/description': 'description v1',
-        },
-      });
-    });
-
-    it('should only keep ignored deployment annotations when the revision has no annotations', async() => {
-      const body = await getPatchBody({ annotations: deploymentAnnotations }, {});
+    it('should remove the change cause when the revision has none', async() => {
+      const body = await getPatchBody({ annotations: deploymentAnnotations }, { annotations: { 'deployment.kubernetes.io/revision': '1' } });
 
       expect(body[1].value).toStrictEqual({
         'deployment.kubernetes.io/revision':                '2',
         'kubectl.kubernetes.io/last-applied-configuration': '{}',
+        'field.cattle.io/description':                      'description v2',
+        'added-after-revision':                             'any-value',
+      });
+    });
+
+    it('should not change the deployment annotations on the model', async() => {
+      const annotations = { ...deploymentAnnotations };
+
+      await getPatchBody({ annotations }, {});
+
+      expect(annotations).toStrictEqual(deploymentAnnotations);
+    });
+
+    it.each([
+      ['empty annotations, as set on the detail page', { annotations: {} }, { annotations: revisionAnnotations }, { 'kubernetes.io/change-cause': 'deploy v1' }],
+      ['no annotations', {}, { annotations: revisionAnnotations }, { 'kubernetes.io/change-cause': 'deploy v1' }],
+      ['empty annotations and the revision has no change cause', { annotations: {} }, {}, {}],
+      ['no annotations and the revision has no change cause', {}, {}, {}],
+    ])('should add the annotations object when the deployment has %s', async(_, deploymentMetadata, revisionMetadata, expected) => {
+      const body = await getPatchBody(deploymentMetadata, revisionMetadata);
+
+      expect(body[1]).toStrictEqual({
+        op:    'add',
+        path:  '/metadata/annotations',
+        value: expected,
       });
     });
   });

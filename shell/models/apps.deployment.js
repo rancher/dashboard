@@ -10,6 +10,8 @@ const IGNORED_ANNOTATIONS = [
   'deprecated.deployment.rollback.to',
 ];
 
+const CHANGE_CAUSE_ANNOTATION = 'kubernetes.io/change-cause';
+
 const replicasRegEx = /Replicas: (\d+)/;
 
 export default class Deployment extends Workload {
@@ -35,22 +37,15 @@ export default class Deployment extends Workload {
   }
 
   async rollBack(cluster, deployment, revision) {
-    // Same as kubectl rollout undo: keep the ignored annotations from the deployment and restore the rest from the revision
-    const deploymentAnnotations = deployment.metadata?.annotations || {};
-    const revisionAnnotations = revision.metadata?.annotations || {};
-    const annotations = {};
+    // Keep the deployment annotations, but the change cause describes a revision so it must come from the restored one
+    const annotations = { ...deployment.metadata?.annotations };
+    const changeCause = revision.metadata?.annotations?.[CHANGE_CAUSE_ANNOTATION];
 
-    IGNORED_ANNOTATIONS.forEach((key) => {
-      if (key in deploymentAnnotations) {
-        annotations[key] = deploymentAnnotations[key];
-      }
-    });
-
-    Object.keys(revisionAnnotations).forEach((key) => {
-      if (!IGNORED_ANNOTATIONS.includes(key)) {
-        annotations[key] = revisionAnnotations[key];
-      }
-    });
+    if (changeCause === undefined) {
+      delete annotations[CHANGE_CAUSE_ANNOTATION];
+    } else {
+      annotations[CHANGE_CAUSE_ANNOTATION] = changeCause;
+    }
 
     const body = [
       {
