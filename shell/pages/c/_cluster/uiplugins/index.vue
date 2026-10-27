@@ -35,6 +35,7 @@ import { RcItemCard } from '@components/RcItemCard';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter.vue';
 import versions from '@shell/utils/versions';
+import { compareChartVersions } from '@shell/utils/chart';
 import { getPluginChartVersionLabel } from '@shell/utils/uiplugins';
 
 const MAX_DESCRIPTION_LENGTH = 200;
@@ -691,7 +692,7 @@ export default {
 
       if (plugin.installed) {
         const canUpdate = !!plugin.upgrade;
-        const canDowngrade = plugin.installableVersions?.some((v) => isChartVersionHigher(plugin.installedVersion, v.version));
+        const canDowngrade = plugin.installableVersions?.some((v) => compareChartVersions(plugin.installedVersion, v.version) > 0);
         const canUninstall = !plugin.builtin;
 
         if (canUpdate) {
@@ -854,13 +855,13 @@ export default {
 
       if (plugin.upgrade) {
         statuses.push({
-          icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
+          icon: 'icon-upgrade-alt', color: 'info', tooltip: { text: this.t('plugins.upgradeableTo', { version: plugin.upgrade }) }
         });
       }
 
       if (plugin.installed && !plugin.builtin && !plugin.installing) {
         statuses.push({
-          icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: `${ this.t('generic.installed') } (${ plugin.installedVersion })` }
+          icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: `${ this.t('generic.installed') } (${ plugin.displayVersionLabel })` }
         });
       }
 
@@ -993,18 +994,31 @@ export default {
       if (chart) {
         chart.installed = true;
         chart.uiplugin = pluginCR;
-        chart.installedVersion = pluginCR.version;
         chart.installing = this.installing[chart.id];
+
+        // the UIPlugin CR reports the app version, while every version field here is a chart
+        // version. The installed app knows which chart version is actually running, so prefer that
+        // and only fall back to matching on app version when there is no app to read it from
+        const appChartVersion = app?.spec?.chart?.metadata?.version;
+        const installedVersion = chart.versions?.find((v) => v.version === appChartVersion) ||
+          chart.versions?.find((v) => (v.appVersion ?? v.version) === pluginCR.version);
+
+        chart.installedVersion = installedVersion?.version ?? appChartVersion ?? pluginCR.version;
+
+        // an installed extension is described by the version it is running, not the latest on offer
+        chart.displayVersion = chart.installedVersion;
+        chart.displayVersionLabel = installedVersion ? getPluginChartVersionLabel(installedVersion) : chart.installedVersion;
+
+        if (installedVersion) {
+          chart.created = installedVersion.created;
+          chart.icon = installedVersion.icon || chart.icon;
+
+          Object.assign(chart, this.extractCertificationFlags(installedVersion.annotations));
+        }
 
         const latestInstallableVersion = chart.installableVersions?.[0];
 
-        if (latestInstallableVersion && pluginCR.version !== (latestInstallableVersion.appVersion ?? latestInstallableVersion.version)) {
-          const installedVersion = (chart.installableVersions || []).find((v) => (v.appVersion ?? v.version) === pluginCR.version);
-
-          if (installedVersion) {
-            Object.assign(chart, this.extractCertificationFlags(installedVersion?.annotations));
-          }
-
+        if (latestInstallableVersion && compareChartVersions(latestInstallableVersion.version, chart.installedVersion) > 0) {
           chart.upgrade = getPluginChartVersionLabel(latestInstallableVersion);
         }
       } else {

@@ -20,24 +20,24 @@ export interface WhatsNewFeature {
 
 export const WHATS_NEW_FEATURES: WhatsNewFeature[] = [
   {
-    id:             'navigation',
-    titleKey:       'releaseWelcome.whatsNew.features.navigation.title',
-    descriptionKey: 'releaseWelcome.whatsNew.features.navigation.description',
-  },
-  {
     id:             'tables',
     titleKey:       'releaseWelcome.whatsNew.features.tables.title',
     descriptionKey: 'releaseWelcome.whatsNew.features.tables.description',
   },
   {
-    id:             'kubernetes',
-    titleKey:       'releaseWelcome.whatsNew.features.kubernetes.title',
-    descriptionKey: 'releaseWelcome.whatsNew.features.kubernetes.description',
+    id:             'navigation',
+    titleKey:       'releaseWelcome.whatsNew.features.navigation.title',
+    descriptionKey: 'releaseWelcome.whatsNew.features.navigation.description',
   },
   {
-    id:             'hosted-provisioning',
-    titleKey:       'releaseWelcome.whatsNew.features.hostedProvisioning.title',
-    descriptionKey: 'releaseWelcome.whatsNew.features.hostedProvisioning.description',
+    id:             'rancher-cli',
+    titleKey:       'releaseWelcome.whatsNew.features.rancher-cli.title',
+    descriptionKey: 'releaseWelcome.whatsNew.features.rancher-cli.description',
+  },
+  {
+    id:             'workload-search',
+    titleKey:       'releaseWelcome.whatsNew.features.workload-search.title',
+    descriptionKey: 'releaseWelcome.whatsNew.features.workload-search.description',
   },
 ];
 

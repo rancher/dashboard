@@ -177,7 +177,7 @@ describe('component: PluginInfoPanel', () => {
     });
 
     it('should load the readme of the extension it is opened for', async() => {
-      const { drawer, store } = mountDrawer({ chart });
+      const { drawer, store } = mountDrawer({ chart, versions: [{ version: '1.0.0', isVersionCompatible: true }] });
 
       await flushPromises();
 
@@ -260,6 +260,19 @@ describe('component: PluginInfoPanel', () => {
       expect(actions.some((action: any) => action.action === 'upgrade')).toBe(false);
       expect(actions.some((action: any) => action.action === 'downgrade')).toBe(false);
     });
+
+    it('should not show upgrade/downgrade for the installed version when the chart version differs from the app version', () => {
+      wrapper = mountComponent({
+        installed:        true,
+        installedVersion: '0.4.10',
+        versions:         [{ version: '0.4.10', appVersion: '4.1.0' }]
+      });
+      wrapper.vm.infoVersion = '0.4.10';
+      const actions = wrapper.vm.panelActions;
+
+      expect(actions.some((action: any) => action.action === 'upgrade')).toBe(false);
+      expect(actions.some((action: any) => action.action === 'downgrade')).toBe(false);
+    });
   });
 
   describe('getVersionLabel', () => {
@@ -278,6 +291,17 @@ describe('component: PluginInfoPanel', () => {
 
       expect(label).toBe('1.0.0 (plugins.labels.current)');
     });
+
+    it('should append (current) to the chart version carrying the installed app version', () => {
+      wrapper = mountComponent({
+        installed:        true,
+        installedVersion: '0.4.10',
+        versions:         [{ version: '0.4.10', appVersion: '4.1.0' }]
+      });
+      const label = wrapper.vm.getVersionLabel({ version: '0.4.10', appVersion: '4.1.0' });
+
+      expect(label).toBe('0.4.10 (plugins.labels.current)');
+    });
   });
 
   describe('versions list', () => {
@@ -292,24 +316,16 @@ describe('component: PluginInfoPanel', () => {
     });
 
     describe('currentVersion', () => {
-      it('should resolve the installed version to its chart version', () => {
+      it('should use the installed chart version resolved for the item', () => {
         wrapper = mountComponent({
           installed:        true,
-          installedVersion: '4.1.0',
+          installedVersion: '0.4.10',
           versions:         [{
             version: '0.4.10', appVersion: '4.1.0', isVersionCompatible: true, versionIncompatibilityData: {}
           }]
         });
 
         expect(wrapper.vm.currentVersion).toBe('0.4.10');
-      });
-
-      it('should fall back to the installed version if no chart version matches it', () => {
-        wrapper = mountComponent({
-          installed: true, installedVersion: '4.1.0', versions: allVersions.slice(0, 1)
-        });
-
-        expect(wrapper.vm.currentVersion).toBe('4.1.0');
       });
 
       it('should use the pre-selected version if the extension is not installed', () => {
@@ -393,6 +409,124 @@ describe('component: PluginInfoPanel', () => {
 
       expect(wrapper.vm.showAllVersions).toBe(false);
       expect(versionStrings(wrapper.vm.displayedVersions)).toStrictEqual(['4.1.3', '4.1.0', '3.0.11', '2.2.0']);
+    });
+  });
+
+  describe('loadPluginVersionInfo', () => {
+    const dispatch = jest.fn();
+    const chart = {
+      repoType: 'cluster', repoName: 'rancher-charts', chartName: 'my-plugin', versions: []
+    };
+    const versionInfoArgs = {
+      repoType: 'cluster', repoName: 'rancher-charts', chartName: 'my-plugin'
+    };
+    const chartVersion = (version: string, appVersion: string, isVersionCompatible = true) => ({
+      version, appVersion, isVersionCompatible, versionIncompatibilityData: {}
+    });
+    const compatibleVersions = [chartVersion('2.0.0', '2.0.0'), chartVersion('1.0.0', '1.0.0')];
+
+    // opening the panel renders it, so the store needs the getters the template reads
+    const open = (info: Record<string, any>) => shallowMount(PluginInfoPanel, {
+      props:  { info: { label: 'My Extension', ...info } },
+      global: { mocks: { t, $store: { dispatch, getters: { 'prefs/theme': 'light' } } } }
+    });
+
+    beforeEach(() => {
+      dispatch.mockReset();
+      dispatch.mockResolvedValue({});
+      (getPluginChartVersion as jest.Mock).mockReset();
+    });
+
+    it('should select the installed version when the panel opens', () => {
+      wrapper = open({
+        installed: true, installedVersion: '1.0.0', chart, versions: compatibleVersions
+      });
+
+      expect(wrapper.vm.infoVersion).toBe('1.0.0');
+      expect(dispatch).toHaveBeenCalledWith('catalog/getVersionInfo', { ...versionInfoArgs, versionName: '1.0.0' });
+    });
+
+    it('should select the installed chart version when it differs from the app version', () => {
+      wrapper = open({
+        installed:        true,
+        installedVersion: '0.4.10',
+        chart,
+        versions:         [chartVersion('0.4.11', '4.1.1'), chartVersion('0.4.10', '4.1.0')]
+      });
+
+      expect(wrapper.vm.infoVersion).toBe('0.4.10');
+    });
+
+    it('should keep the installed version selected when it is no longer compatible', () => {
+      wrapper = open({
+        installed:        true,
+        installedVersion: '1.0.0',
+        chart,
+        versions:         [chartVersion('2.0.0', '2.0.0'), chartVersion('1.0.0', '1.0.0', false)]
+      });
+
+      expect(wrapper.vm.infoVersion).toBe('1.0.0');
+    });
+
+    it('should select the version that would be installed when the extension is not installed', () => {
+      (getPluginChartVersion as jest.Mock).mockReturnValue('2.0.0');
+
+      wrapper = open({
+        installed: false, chart, versions: compatibleVersions
+      });
+
+      expect(wrapper.vm.infoVersion).toBe('2.0.0');
+    });
+
+    it('should select nothing when the extension is not installed and its latest version is incompatible', () => {
+      (getPluginChartVersion as jest.Mock).mockReturnValue('2.0.0');
+
+      wrapper = open({
+        installed: false, chart, versions: [chartVersion('2.0.0', '2.0.0', false)]
+      });
+
+      expect(wrapper.vm.infoVersion).toBeUndefined();
+      expect(dispatch).toHaveBeenCalledTimes(0);
+    });
+
+    it('should fall back to the latest installable version when the installed one has been pruned from the repo index', () => {
+      wrapper = open({
+        installed:           true,
+        installedVersion:    '1.0.0',
+        chart,
+        versions:            [chartVersion('2.0.0', '2.0.0')],
+        installableVersions: [chartVersion('2.0.0', '2.0.0')],
+      });
+
+      expect(wrapper.vm.infoVersion).toBe('2.0.0');
+      expect(dispatch).toHaveBeenCalledWith('catalog/getVersionInfo', { ...versionInfoArgs, versionName: '2.0.0' });
+      expect(wrapper.vm.panelActions.some((action: any) => action.action === 'upgrade')).toBe(true);
+    });
+
+    it('should not select an incompatible version whose chart version differs from its app version', () => {
+      wrapper = open({
+        installed:           false,
+        chart,
+        versions:            [chartVersion('0.4.11', '4.1.1', false), chartVersion('0.4.10', '4.1.0')],
+        installableVersions: [chartVersion('0.4.10', '4.1.0')],
+      });
+      dispatch.mockClear();
+
+      // the version links are only disabled by class, so an incompatible one can still be clicked
+      wrapper.vm.loadPluginVersionInfo('0.4.11');
+
+      expect(wrapper.vm.infoVersion).toBe('0.4.10');
+      expect(dispatch).toHaveBeenCalledTimes(0);
+    });
+
+    it('should select the version the user picks from the list', () => {
+      wrapper = open({
+        installed: true, installedVersion: '1.0.0', chart, versions: compatibleVersions
+      });
+      wrapper.vm.loadPluginVersionInfo('2.0.0');
+
+      expect(wrapper.vm.infoVersion).toBe('2.0.0');
+      expect(dispatch).toHaveBeenCalledWith('catalog/getVersionInfo', { ...versionInfoArgs, versionName: '2.0.0' });
     });
   });
 
