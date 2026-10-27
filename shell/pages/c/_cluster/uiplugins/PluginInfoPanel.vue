@@ -358,7 +358,7 @@ export default {
       </h3>
       <ChartReadme :version-info="versionInfo" />
     </template>
-    <template #footer>
+    <template #additional-actions>
       <RcButton
         v-for="btn in panelActions"
         :key="btn.action"

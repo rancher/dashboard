@@ -398,6 +398,21 @@ describe('slideInPanelManager.vue with Teleport', () => {
   });
 
   describe('width preset', () => {
+    it('resolves width "medium" to 50%', async() => {
+      getters['slideInPanel/componentProps'] = () => ({ width: 'medium', title: 'Test' });
+      store = createStore({
+        getters,
+        mutations: { 'slideInPanel/close': jest.fn() }
+      });
+      factory();
+      await nextTick();
+
+      const slidePanel = document.querySelector('#slides .slide-in') as HTMLElement;
+      const styleAttr = slidePanel.getAttribute('style') || '';
+
+      expect(styleAttr).toContain('width: 50%');
+    });
+
     it('resolves width "wide" to 73%', async() => {
       getters['slideInPanel/componentProps'] = () => ({ width: 'wide', title: 'Test' });
       store = createStore({

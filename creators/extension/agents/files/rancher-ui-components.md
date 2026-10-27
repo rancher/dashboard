@@ -1027,7 +1027,7 @@ A slide-out panel anchored to the right side of the screen. Used to surface reso
 
 **Events:** `@close` - emit it from your component to close the slide-in. Closing on `close` is new in Rancher 2.16; for older versions also pass `onClose: () => store.commit('slideInPanel/close')` in `props`
 
-**Slots:** default (the body), `#title` (renders inside the drawer's heading), `#header-actions` (buttons between the title and the close button), `#additional-actions`, `#footer` (replaces the footer, Close included, when the drawer's actions are all it needs)
+**Slots:** default (the body), `#title` (renders inside the drawer's heading), `#header-actions` (buttons between the title and the close button), `#additional-actions`
 
 **Best practices:**
 - Use when the user benefits from seeing the main page and the panel simultaneously (e.g., inspecting an item while the list remains visible)

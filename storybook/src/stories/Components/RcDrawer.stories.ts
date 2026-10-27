@@ -33,12 +33,6 @@ const meta: Meta<typeof RcDrawer> = {
       control:     false,
       table:       { category: 'slots' },
     },
-    footerSlot: {
-      name:        'footer',
-      description: 'Replaces everything in the footer, for a drawer whose actions are all its footer needs. The footer only shows when it has content.',
-      control:     false,
-      table:       { category: 'slots' },
-    },
     additionalActionsSlot: {
       name:        'additional-actions',
       description: 'The drawer\'s actions, such as its primary action, after the footer\'s Close button. The footer only shows when there is one.',

@@ -4,9 +4,10 @@ import { Component } from 'vue';
  * Standard width presets for the Slide-In panel.
  *
  * - `'default'` — 33% of the viewport width
+ * - `'medium'` - 50% of the viewport width
  * - `'wide'` — 73% of the viewport width
  */
-export type SlideInWidth = 'default' | 'wide';
+export type SlideInWidth = 'default' | 'medium' | 'wide';
 
 /**
  * Standard height presets for the Slide-In panel.
@@ -37,6 +38,7 @@ export interface SlideInConfig {
    * Width preset for the Slide-In panel. Defaults to `'default'` (33%).
    *
    * - `'default'` — 33% of the viewport width
+   * - `'medium'` - 50% of the viewport width
    * - `'wide'` — 73% of the viewport width
    *
    */

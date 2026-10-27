@@ -15,6 +15,7 @@ const HEADER_HEIGHT = 55;
 
 const WIDTH_MAP = {
   default: '33%',
+  medium:  '50%',
   wide:    '73%'
 };
 

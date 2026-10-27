@@ -82,6 +82,7 @@ export default {
           author:       pkg.author,
           content
         },
+        width:  'medium',
         height: 'full'
       });
     }

@@ -598,6 +598,7 @@ export default {
           info:     { ...plugin, tags },
           onAction: this.handlePanelAction
         },
+        width:              'medium',
         height:             'full',
         closeOnRouteChange: ['name', 'params', 'query'],
       });
