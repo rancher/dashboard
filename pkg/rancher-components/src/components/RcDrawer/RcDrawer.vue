@@ -21,9 +21,11 @@ import type { RcDrawerProps } from './types';
 const props = defineProps<RcDrawerProps>();
 const slots = useSlots();
 
-defineEmits<{
+const emit = defineEmits<{
   close: [];
 }>();
+
+const close = () => emit('close');
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -76,7 +78,7 @@ const hasActions = () => rendersContent(slots['additional-actions']?.());
         class="btn role-link close"
         :aria-label="closeAriaLabel"
         data-testid="rc-drawer-close"
-        @click="$emit('close')"
+        @click="close"
       >
         <i class="icon icon-close" />
       </button>
@@ -93,14 +95,20 @@ const hasActions = () => rendersContent(slots['additional-actions']?.());
       class="footer"
       data-testid="rc-drawer-footer"
     >
-      <RcButton
-        variant="secondary"
-        size="large"
-        :aria-label="closeLabel ? undefined : closeAriaLabel"
-        @click="$emit('close')"
+      <!-- @slot The footer's Close button. Replace it when the drawer needs a different one, such as Cancel; it receives `close`, which closes the drawer. -->
+      <slot
+        name="close"
+        :close="close"
       >
-        {{ closeLabel || t('component.drawer.chrome.close') }}
-      </RcButton>
+        <RcButton
+          variant="secondary"
+          size="large"
+          :aria-label="closeAriaLabel"
+          @click="close"
+        >
+          {{ t('component.drawer.chrome.close') }}
+        </RcButton>
+      </slot>
       <!-- @slot The drawer's actions, such as its primary action, after the footer's Close button. The footer only shows when there is one. -->
       <slot name="additional-actions" />
     </div>

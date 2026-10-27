@@ -4,6 +4,7 @@ import { useStore } from 'vuex';
 import { Banner } from '@components/Banner';
 import AsyncButton, { AsyncButtonCallback } from '@shell/components/AsyncButton.vue';
 import { RcDrawer, RcDrawerCard } from '@components/RcDrawer';
+import { RcButton } from '@components/RcButton';
 import Loading from '@shell/components/Loading.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals.vue';
 import AuthProviderDetails from '@shell/components/auth/AuthProviderDetails.vue';
@@ -76,7 +77,6 @@ const save = async(btnCb: AsyncButtonCallback) => {
 <template>
   <RcDrawer
     :title="title"
-    :close-label="canSave ? i18n.t('generic.cancel') : undefined"
     @close="emit('close')"
   >
     <template #title>
@@ -113,6 +113,18 @@ const save = async(btnCb: AsyncButtonCallback) => {
         data-testid="auth-provider-access-principals"
       />
     </RcDrawerCard>
+    <template
+      v-if="canSave"
+      #close="{ close }"
+    >
+      <RcButton
+        variant="secondary"
+        size="large"
+        @click="close"
+      >
+        {{ i18n.t('generic.cancel') }}
+      </RcButton>
+    </template>
     <template #additional-actions>
       <AsyncButton
         v-if="canSave"

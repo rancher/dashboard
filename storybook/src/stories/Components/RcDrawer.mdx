@@ -23,6 +23,7 @@ actions.
 | `header-actions` | Buttons that act on the drawer's content, such as Dock to shell or Expand all, between the title and the close button. |
 | default | The body. Text goes straight in; wrap a form or a table in an `RcDrawerCard`. |
 | `additional-actions` | The drawer's actions, after the footer's Close button. Without any, the drawer has no footer. |
+| `close` | The footer's Close button. Replace it when the drawer needs a different one, such as Cancel; it receives `close`, which closes the drawer. |
 
 Both the header's close button and the footer's Close button emit `close`. The
 drawer never takes itself down: whatever opened it does that.
@@ -133,6 +134,7 @@ are removed. Use `RcDrawer` and `RcDrawerCard` instead:
 | `Chrome` | `RcDrawer` |
 |---|---|
 | `aria-target` | `title` |
+| `close-label` | `#close`, with your own button |
 | `#title` | `#title`, and only when the title needs markup |
 | `#body` | The default slot |
 | `#footer` | `#additional-actions`, after the footer's Close button |
