@@ -14,6 +14,20 @@ describe('project', () => {
     types: []
   };
 
+  describe('add resource button', () => {
+    it.each(['create', 'edit'])('should render in %s mode', (mode) => {
+      const wrapper: any = shallowMount(Project, { props: { ...defaultProps, mode } });
+
+      expect(wrapper.find('[data-testid="btn-add-resource"]').exists()).toBe(true);
+    });
+
+    it('should not render in view mode', () => {
+      const wrapper: any = shallowMount(Project, { props: { ...defaultProps, mode: 'view' } });
+
+      expect(wrapper.find('[data-testid="btn-add-resource"]').exists()).toBe(false);
+    });
+  });
+
   describe('created() spec parser', () => {
     it('should initialise resourceQuotas as an empty array when spec limits are empty', () => {
       const wrapper: any = shallowMount(Project, { props: defaultProps });

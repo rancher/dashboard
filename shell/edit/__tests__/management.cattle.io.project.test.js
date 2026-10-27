@@ -1,11 +1,13 @@
 import { shallowMount } from '@vue/test-utils';
 import CruResource from '@shell/components/CruResource';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
 import ManagementCattleIoProject from '@shell/edit/management.cattle.io.project.vue';
 import { _EDIT } from '@shell/config/query-params';
 
 const mockStore = {
   getters: {
     'management/schemaFor': () => ({}),
+    'rancher/schemaFor':    () => null,
     currentCluster:         () => ({ spec: { kubernetesVersion: 'v1.23.0' } }),
     isStandaloneHarvester:  () => false,
     currentProduct:         () => ({ inStore: 'rancher' }),
@@ -95,6 +97,36 @@ describe('component: ManagementCattleIoProject', () => {
 
       expect(wrapper.vm.value.spec.resourceQuota.limit).toStrictEqual({ limitsCpu: '500m', limitsMemory: '2Gi' });
       expect(wrapper.vm.value.spec.namespaceDefaultResourceQuota.limit).toStrictEqual({ limitsCpu: '250m', limitsMemory: '1Gi' });
+    });
+  });
+
+  describe('name and description', () => {
+    it('should be disabled in edit mode when the user cannot update the project', () => {
+      const wrapper = shallowMount(ManagementCattleIoProject, {
+        ...defaultMountOptions,
+        global: { ...defaultMountOptions.global, renderStubDefaultSlot: true },
+      });
+
+      const nameNsDescription = wrapper.findComponent(NameNsDescription);
+
+      expect(nameNsDescription.props('nameDisabled')).toStrictEqual(true);
+      expect(nameNsDescription.props('descriptionDisabled')).toStrictEqual(true);
+    });
+
+    it('should be enabled in edit mode when the user can update the project', () => {
+      const wrapper = shallowMount(ManagementCattleIoProject, {
+        ...defaultMountOptions,
+        props: {
+          ...defaultMountOptions.props,
+          value: { ...defaultMountOptions.props.value, links: { update: 'update-link' } },
+        },
+        global: { ...defaultMountOptions.global, renderStubDefaultSlot: true },
+      });
+
+      const nameNsDescription = wrapper.findComponent(NameNsDescription);
+
+      expect(nameNsDescription.props('nameDisabled')).toStrictEqual(false);
+      expect(nameNsDescription.props('descriptionDisabled')).toStrictEqual(false);
     });
   });
 

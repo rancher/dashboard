@@ -65,7 +65,7 @@ export default {
       return this.value?.links?.update;
     },
 
-    isDescriptionDisabled() {
+    isProjectReadOnly() {
       return (this.mode === _EDIT && !this.canEditProject) || false;
     },
 
@@ -189,7 +189,8 @@ export default {
       :mode="mode"
       :namespaced="false"
       description-key="spec.description"
-      :description-disabled="isDescriptionDisabled"
+      :name-disabled="isProjectReadOnly"
+      :description-disabled="isProjectReadOnly"
       name-key="spec.displayName"
       :normalize-name="false"
       :rules="{ name: fvGetAndReportPathRules('spec.displayName'), namespace: [], description: [] }"
