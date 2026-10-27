@@ -6063,6 +6063,7 @@ plugins:
   currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
   closePluginPanel: Close plugin description panel
   viewVersionDetails: View extension {name} version {version} details/Readme
+  upgradeableTo: "Upgradeable to { version }"
   labels:
     isDeveloper: Developer Load
     primeOnly: Prime only
