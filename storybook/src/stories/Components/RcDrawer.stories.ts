@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { RcDrawer, RcDrawerCard } from '@components/RcDrawer';
 import { RcButton } from '@components/RcButton';
+import { RcButtonSplit } from '@components/RcButtonSplit';
 import StateDot from '@shell/components/StateDot/index.vue';
 
 const meta: Meta<typeof RcDrawer> = {
@@ -161,4 +162,37 @@ export const TallContent: Story = {
     `,
   }),
   args: { title: 'nginx-config (ConfigMap) - Configuration' },
+};
+
+/**
+ * When a drawer has more actions than its footer has room for, such as in a
+ * narrow drawer, the main one goes on an `RcButtonSplit` and the rest go in its
+ * menu.
+ */
+export const SplitButton: Story = {
+  render: (args: any) => ({
+    components: { RcDrawer, RcButtonSplit },
+    setup:      () => ({
+      args,
+      items: [{ id: 'edit', label: 'Edit' }, { id: 'delete', label: 'Delete' }],
+    }),
+    template: `
+      <div style="position: absolute; top: 0; right: 0; bottom: 0; width: 420px; border-left: 1px solid var(--border);">
+        <RcDrawer v-bind="args">
+          <p>Reports a deviating state when the 95th percentile response time stays above 3 seconds.</p>
+          <template #additional-actions>
+            <RcButtonSplit
+              variant="primary"
+              size="large"
+              :items="items"
+              aria-label-trigger="More monitor actions"
+            >
+              Disable monitor
+            </RcButtonSplit>
+          </template>
+        </RcDrawer>
+      </div>
+    `,
+  }),
+  args: { title: 'HTTP - response time - is above 3 seconds' },
 };

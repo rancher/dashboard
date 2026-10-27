@@ -101,6 +101,14 @@ Dock to shell, goes in `header-actions`.
 
 <Canvas of={RcDrawerStories.HeaderActions} />
 
+## More actions than room
+
+When the footer has no room for every action, such as in a narrow drawer, put
+the main action on an `RcButtonSplit` in `additional-actions` and the rest in
+its menu.
+
+<Canvas of={RcDrawerStories.SplitButton} />
+
 ## Titles that need markup
 
 Use the `title` slot when the title is more than a string, such as the state dot
