@@ -12,6 +12,7 @@ import {
   canWriteLocalAuthFeature,
   restoreLocalLogin,
   promptDisableAuthProvider,
+  openAuthPopup,
 } from '@shell/utils/auth';
 import { onExtensionsReady } from '@shell/utils/uiplugins';
 
@@ -675,5 +676,120 @@ describe('fx: promptDisableAuthProvider', () => {
     await promptDisableAuthProvider(args);
 
     expect(modalArgs(args.dispatch).modalWidth).toMatch(/(px|%)$/);
+  });
+});
+
+describe('openAuthPopup', () => {
+  let mockWindowOpen: jest.SpyInstance;
+  let mockPopupWindow: { closed: boolean };
+  let MockBroadcastChannel: jest.Mock;
+  let bcInstance: { close: jest.Mock; onmessage: ((msgEvent: { data: string }) => void) | null };
+
+  beforeEach(() => {
+    Object.defineProperty(window, 'screen', {
+      configurable: true,
+      writable:     true,
+      value:        { width: 1920, height: 1080 },
+    });
+
+    mockPopupWindow = { closed: false };
+    mockWindowOpen = jest.spyOn(window, 'open').mockReturnValue(mockPopupWindow as unknown as Window);
+
+    bcInstance = { close: jest.fn(), onmessage: null };
+    MockBroadcastChannel = jest.fn(() => bcInstance);
+    (global as any).BroadcastChannel = MockBroadcastChannel;
+  });
+
+  afterEach(() => {
+    mockWindowOpen.mockRestore();
+    delete (window as any).onAuthTest;
+    jest.useRealTimers();
+  });
+
+  it('opens a popup window pointed at the given url', () => {
+    openAuthPopup('https://example.com/auth', 'github');
+
+    expect(mockWindowOpen).toHaveBeenCalledWith('https://example.com/auth', 'auth-test', expect.any(String));
+  });
+
+  it('opens a BroadcastChannel using the shared auth callback channel name', () => {
+    openAuthPopup('https://example.com/auth', 'github');
+
+    expect(MockBroadcastChannel).toHaveBeenCalledWith('rancher-auth-test-callback');
+  });
+
+  it('polls for window closure for a non-cognito provider', () => {
+    jest.useFakeTimers();
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
+
+    openAuthPopup('https://example.com/auth', 'github');
+
+    expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 500);
+  });
+
+  it('does not poll for window closure for the cognito provider', () => {
+    jest.useFakeTimers();
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
+
+    openAuthPopup('https://example.com/auth', 'cognito');
+
+    expect(setIntervalSpy).not.toHaveBeenCalled();
+  });
+
+  it('resolves with the code when window.onAuthTest is called without an error', async() => {
+    const promise = openAuthPopup('https://example.com/auth', 'github');
+
+    (window as any).onAuthTest(null, 'the-code');
+
+    await expect(promise).resolves.toStrictEqual('the-code');
+  });
+
+  it('closes the broadcast channel and removes window.onAuthTest once resolved', () => {
+    openAuthPopup('https://example.com/auth', 'github');
+
+    (window as any).onAuthTest(null, 'the-code');
+
+    expect(bcInstance.close).toHaveBeenCalledWith();
+    expect((window as any).onAuthTest).toBeUndefined();
+  });
+
+  it('rejects with the given error when window.onAuthTest is called with one', async() => {
+    const promise = openAuthPopup('https://example.com/auth', 'github');
+    const authError = new Error('denied');
+
+    (window as any).onAuthTest(authError, undefined);
+
+    await expect(promise).rejects.toStrictEqual(authError);
+  });
+
+  it('forwards a valid broadcast message to window.onAuthTest', async() => {
+    const promise = openAuthPopup('https://example.com/auth', 'github');
+
+    bcInstance.onmessage!({ data: JSON.stringify({ error: null, code: 'broadcast-code' }) });
+
+    await expect(promise).resolves.toStrictEqual('broadcast-code');
+  });
+
+  it('rejects and logs when the broadcast message cannot be parsed', async() => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const promise = openAuthPopup('https://example.com/auth', 'github');
+
+    bcInstance.onmessage!({ data: 'not-valid-json' });
+
+    await expect(promise).rejects.toThrow('Access was not authorized (invalid callback metadata)');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Unable to process message from auth broadcast channel', expect.any(SyntaxError));
+    consoleErrorSpy.mockRestore();
+  });
+
+  // Popup only ever invokes onClose with no arguments (see shell/utils/window.js), so the
+  // `e?.type === 'error'` detail-message branch in auth.js is never actually reached from here.
+  it('rejects with a generic message when the popup window closes', async() => {
+    jest.useFakeTimers();
+    const promise = openAuthPopup('https://example.com/auth', 'github');
+
+    mockPopupWindow.closed = true;
+    jest.advanceTimersByTime(500);
+
+    await expect(promise).rejects.toThrow('Access was not authorized');
   });
 });
