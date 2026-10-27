@@ -245,6 +245,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [POD]: [
       { field: 'spec.containers.image' },
       { field: 'spec.nodeName' },
+      { field: 'status.podIP' },
       { field: POD_RESTART_FIELD },
       { field: POD_LAST_RESTART_FIELD },
     ],
@@ -375,6 +376,26 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     }
 
     return path;
+  }
+
+  // Steve expects desc IP sorts as ip(-field), not -ip(field)
+  private formatSortParam(field: string, asc: boolean): string {
+    const converted = this.convertArrayPath(field);
+    const ipMatch = converted.match(/^ip\((.+)\)$/);
+
+    if (ipMatch) {
+      const inner = ipMatch[1].replace(/^-/, '');
+
+      return asc ? `ip(${ inner })` : `ip(-${ inner })`;
+    }
+
+    return `${ asc ? '' : '-' }${ converted }`;
+  }
+
+  private unwrapSortFunction(field: string): string {
+    const ipMatch = field.match(/^ip\((.+)\)$/);
+
+    return ipMatch ? ipMatch[1].replace(/^-/, '') : field;
   }
 
   public createSortForPagination(sortByPath: string): string {
@@ -512,9 +533,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
           const { field, reverse } = parseField(s.field);
           const asc = reverse ? !s.asc : s.asc;
 
-          this.validateField(validateFields, schema, field);
+          this.validateField(validateFields, schema, this.unwrapSortFunction(field));
 
-          return `${ asc ? '' : '-' }${ this.convertArrayPath(field) }`;
+          return this.formatSortParam(field, asc);
         })
         .join(',');
 
