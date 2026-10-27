@@ -781,6 +781,11 @@ export default {
     }
 
     .first-login-message {
+      code {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+      }
+
       .banner {
         margin-bottom: 0;
         border-left: 0;
