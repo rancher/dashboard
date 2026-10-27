@@ -122,8 +122,7 @@ describe('component: PluginInfoPanel', () => {
     it('should add the selected version to the title and the drawer name', async() => {
       const { drawer } = mountDrawer({ versions });
 
-      drawer.vm.infoVersion = '1.1.0';
-      await drawer.vm.$nextTick();
+      await drawer.setData({ infoVersion: '1.1.0' });
 
       expect(drawer.find('[data-testid="extension-details-title"]').text()).toBe('My Extension plugins.info.titleVersion');
       expect(drawer.vm.drawerTitle).toBe('My Extension plugins.info.titleVersion');
@@ -139,8 +138,7 @@ describe('component: PluginInfoPanel', () => {
         versions, installed: true, installedVersion: '1.0.0'
       }, translate);
 
-      drawer.vm.infoVersion = selected;
-      await drawer.vm.$nextTick();
+      await drawer.setData({ infoVersion: selected });
 
       expect(drawer.find('[data-testid="extension-details-title"]').text()).toBe(title);
     });
@@ -158,8 +156,7 @@ describe('component: PluginInfoPanel', () => {
     ])('should keep each action\'s icon (%j, selected %s)', async(info, selected, icons) => {
       const { drawer } = mountDrawer(info);
 
-      drawer.vm.infoVersion = selected;
-      await drawer.vm.$nextTick();
+      await drawer.setData({ infoVersion: selected });
 
       expect(drawer.findAllComponents({ name: 'RcButton' }).filter((b) => b.element.closest('[data-testid="rc-drawer-footer"]')).slice(1).map((b) => b.props('leftIcon'))).toStrictEqual(icons);
     });

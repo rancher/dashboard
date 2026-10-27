@@ -40,7 +40,7 @@ describe('component: RcDrawer', () => {
 
   it('should render header actions between the title and the close button, outside the heading', () => {
     const wrapper = mountDrawer({ slots: { 'header-actions': '<button data-testid="expand">Expand</button>' } });
-    const header = [...wrapper.find('.header').element.children].map((el) => el.getAttribute('data-testid'));
+    const header = Array.from(wrapper.find('.header').element.children).map((el) => el.getAttribute('data-testid'));
 
     expect(header).toStrictEqual(['rc-drawer-title', 'expand', 'rc-drawer-close']);
   });
