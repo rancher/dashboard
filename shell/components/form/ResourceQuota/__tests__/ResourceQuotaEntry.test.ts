@@ -138,6 +138,37 @@ describe('component: ResourceQuotaEntry', () => {
 
         expect(rule(value)).toBeUndefined();
       });
+
+      it('should return the duplicate error for a non-empty value when duplicate is true', () => {
+        const wrapper = createWrapper({ resourceType: TYPES.EXTENDED, duplicate: true });
+        const [rule] = (wrapper.vm as any).customTypeRules;
+
+        expect(rule('my-resource')).toBe('resourceQuota.errors.duplicateIdentifier');
+      });
+
+      it('should return the required error for an empty value even when duplicate is true', () => {
+        const wrapper = createWrapper({ resourceType: TYPES.EXTENDED, duplicate: true });
+        const [rule] = (wrapper.vm as any).customTypeRules;
+
+        expect(rule('')).toBe('resourceQuota.errors.customTypeRequired');
+      });
+
+      it('should follow updates to the duplicate prop', async() => {
+        const wrapper = createWrapper({ resourceType: TYPES.EXTENDED, duplicate: false });
+        const [rule] = (wrapper.vm as any).customTypeRules;
+
+        expect(rule('my-resource')).toBeUndefined();
+
+        await wrapper.setProps({ duplicate: true });
+
+        expect(rule('my-resource')).toBe('resourceQuota.errors.duplicateIdentifier');
+      });
+    });
+
+    it('should return an empty array for a standard type even when duplicate is true', () => {
+      const wrapper = createWrapper({ resourceType: 'configMaps', duplicate: true });
+
+      expect((wrapper.vm as any).customTypeRules).toStrictEqual([]);
     });
   });
 
