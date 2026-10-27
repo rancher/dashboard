@@ -245,6 +245,7 @@
     "mocha/js-yaml": "4.3.2",
     "mocha/diff": "5.2.2",
     "diff2html/diff": "5.2.2",
+    "@vue/compiler-sfc": "3.5.42",
     "webpack-dev-server": "5.2.6",
     "postcss": "8.5.26",
     "@tootallnate/once": "^2.0.1",

@@ -1,6 +1,5 @@
 <script>
 import { mapGetters } from 'vuex';
-import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import YamlEditor from '@shell/components/YamlEditor';
 import FileSelector from '@shell/components/form/FileSelector';
@@ -12,6 +11,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { NAMESPACE } from '@shell/config/types';
 import { NAME as NAME_COL, TYPE, NAMESPACE as NAMESPACE_COL, AGE } from '@shell/config/table-headers';
 import RcButton from '@components/RcButton/RcButton.vue';
+import { RcModal } from '@components/RcModal';
 
 export default {
   emits: ['close', 'onReadyYamlEditor'],
@@ -19,15 +19,19 @@ export default {
   components: {
     AsyncButton,
     Banner,
-    Card,
     YamlEditor,
     FileSelector,
     LabeledSelect,
     SortableTable,
-    RcButton
+    RcButton,
+    RcModal
   },
 
   props: {
+    modal: {
+      type:     Object,
+      required: true
+    },
     defaultNamespace: {
       type:    String,
       default: undefined
@@ -90,6 +94,7 @@ export default {
 
   methods: {
     close() {
+      this.modal.onClose();
       this.$emit('close');
     },
 
@@ -136,85 +141,87 @@ export default {
 </script>
 
 <template>
-  <Card
-    :show-highlight-border="false"
-    :show-separator="false"
+  <RcModal
+    :show="modal.show"
+    size="large"
     data-testid="import-yaml"
-    class="import-dialog-card"
+    class="import-dialog-modal"
+    @close="close"
   >
     <template #title>
-      <div style="display: block; width: 100%;">
-        <template v-if="done">
-          <h4 data-testid="import-yaml-success">
-            {{ t('import.success', {count: rows.length}) }}
-          </h4>
-        </template>
-        <template v-else>
-          <h4 v-t="'import.title'" />
-          <Banner
-            class="import-instruction-banner"
-            color="info"
-          >
-            <span class="banner-text">
-              {{ t('import.instructions', { resourceName: resourceNameLabel }) }}
-            </span>
-          </Banner>
-          <div class="row">
-            <div class="col span-6">
-              <FileSelector
-                :aria-label="t('generic.readFromFileArea', { area: t('import.title') })"
-                variant="secondary"
-                class="pull-left"
-                :label="t('generic.readFromFile')"
-                @selected="onFileSelected"
-              />
-            </div>
-            <div class="col span-6 namespace-col">
-              <label>{{ t('import.namespace') }}</label>
-              <LabeledSelect
-                v-model:value="selectedNamespace"
-                class="namespace-select"
-                :options="namespaceOptions"
-                size="medium"
-                mode="edit"
-              />
-            </div>
+      <span
+        v-if="done"
+        data-testid="import-yaml-success"
+      >
+        {{ t('import.success', {count: rows.length}) }}
+      </span>
+      <span v-else>
+        {{ t('import.title') }}
+      </span>
+    </template>
+    <div class="import-dialog-content">
+      <template v-if="!done">
+        <Banner
+          class="import-instruction-banner"
+          color="info"
+        >
+          <span class="banner-text">
+            {{ t('import.instructions', { resourceName: resourceNameLabel }) }}
+          </span>
+        </Banner>
+        <div class="row mb-24">
+          <div class="col span-6">
+            <FileSelector
+              :aria-label="t('generic.readFromFileArea', { area: t('import.title') })"
+              variant="secondary"
+              class="pull-left"
+              :label="t('generic.readFromFile')"
+              @selected="onFileSelected"
+            />
           </div>
-        </template>
-      </div>
-    </template>
-    <template #body>
-      <template v-if="done">
-        <div class="results">
-          <SortableTable
-            :rows="rows"
-            :headers="headers"
-            mode="view"
-            key-field="_key"
-            :search="false"
-            :paging="true"
-            :row-actions="false"
-            :table-actions="false"
-            :sub-rows-description="false"
-            @rowClick="rowClick"
-          />
+          <div class="col span-6 namespace-col">
+            <label>{{ t('import.namespace') }}</label>
+            <LabeledSelect
+              v-model:value="selectedNamespace"
+              class="namespace-select"
+              :options="namespaceOptions"
+              size="medium"
+              mode="edit"
+            />
+          </div>
         </div>
+        <YamlEditor
+          ref="yamleditor"
+          v-model:value="currentYaml"
+          class="yaml-editor"
+          @onReady="onReadyYamlEditor"
+        />
+        <Banner
+          v-for="(err, i) in errors"
+          :key="i"
+          color="error"
+          role="alert"
+          :label="err"
+        />
       </template>
-      <YamlEditor
+      <div
         v-else
-        ref="yamleditor"
-        v-model:value="currentYaml"
-        class="yaml-editor"
-        @onReady="onReadyYamlEditor"
-      />
-      <Banner
-        v-for="(err, i) in errors"
-        :key="i"
-        color="error"
-        role="alert"
-        :label="err"
-      />
-    </template>
+        class="results"
+      >
+        <SortableTable
+          :rows="rows"
+          :headers="headers"
+          mode="view"
+          key-field="_key"
+          :search="false"
+          :paging="true"
+          :row-actions="false"
+          :table-actions="false"
+          :sub-rows-description="false"
+          @rowClick="rowClick"
+        />
+      </div>
+    </div>
     <template #actions>
       <div
         v-if="done"
@@ -254,7 +261,7 @@ export default {
         />
       </div>
     </template>
-  </Card>
+  </RcModal>
 </template>
 
 <style lang='scss' scoped>
@@ -274,13 +281,24 @@ export default {
     }
   }
 
-  .import-dialog-card {
+  .import-dialog-modal {
     box-shadow: none;
     margin: 14px; // To combine with the 10px padding of the dialog to make it 24px by UX design
+    padding: 10px;
+    gap: 0;
+    width: 75%;
+    max-height: 90vh;
+  }
+
+  .import-dialog-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 8px;
   }
 
   .import-instruction-banner {
-    margin: 16px 0 24px 0;
+    margin: 0 0 24px 0;
   }
 
   .medium {
@@ -320,6 +338,9 @@ export default {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    padding-top: 20px; // add 20px padding to make it 40px from the bottom of the yaml window, as per UX design
+  }
+
+  .mb-24 {
+    margin-bottom: 24px;
   }
 </style>
