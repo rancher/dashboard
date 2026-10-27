@@ -93,89 +93,62 @@ describe('class Deployment', () => {
 
   describe('rollBack', () => {
     const cluster = { id: 'cluster-id' };
-    const revision = {
-      metadata: { annotations: { 'deployment.kubernetes.io/revision': '1' } },
-      spec:     {
-        template: {
-          metadata: {
-            labels: {
-              app:                 'any-app',
-              'pod-template-hash': 'any-hash',
-            },
-            annotations: {
-              'any-annotation':                    'any-value',
-              'deployment.kubernetes.io/revision': '1',
-            },
-          },
-          spec: { containers: [{ name: 'any-container', image: 'any-image' }] },
+    const template = {
+      metadata: {
+        labels: {
+          app:                 'any-app',
+          'pod-template-hash': 'any-hash',
+        },
+        annotations: {
+          'any-annotation':                    'any-value',
+          'deployment.kubernetes.io/revision': '1',
         },
       },
+      spec: { containers: [{ name: 'any-container', image: 'nginx:1.25' }] },
+    };
+    const revisionAnnotations = {
+      'deployment.kubernetes.io/revision': '1',
+      'kubernetes.io/change-cause':        'deploy v1',
+      'field.cattle.io/description':       'description v1',
+    };
+    const deploymentAnnotations = {
+      'deployment.kubernetes.io/revision':                '2',
+      'kubectl.kubernetes.io/last-applied-configuration': '{}',
+      'kubernetes.io/change-cause':                       'deploy v2',
+      'field.cattle.io/description':                      'description v2',
+      'added-after-revision':                             'any-value',
     };
 
-    const getPatchBody = async(metadata: object = {
-      annotations: {
-        'deployment.kubernetes.io/revision': '2',
-        'field.cattle.io/description':       'any-description',
-        'custom-annotation':                 'custom-value',
-      }
-    }) => {
-      const deployment = new Deployment({
-        id:       'any-namespace/any-name',
-        type:     WORKLOAD_TYPES.DEPLOYMENT,
-        metadata: {
-          name:      'any-name',
-          namespace: 'any-namespace',
-          ...metadata,
-        },
-      });
+    const createDeployment = (metadata: object) => new Deployment({
+      id:       'any-namespace/any-name',
+      type:     WORKLOAD_TYPES.DEPLOYMENT,
+      metadata: {
+        name:      'any-name',
+        namespace: 'any-namespace',
+        ...metadata,
+      },
+    });
+
+    const getPatchBody = async(deploymentMetadata: object, revisionMetadata: object) => {
+      const deployment = createDeployment(deploymentMetadata);
       const rollBackWorkload = jest.spyOn(deployment, 'rollBackWorkload').mockResolvedValue(undefined);
 
-      await deployment.rollBack(cluster, deployment, revision);
+      await deployment.rollBack(cluster, deployment, { metadata: revisionMetadata, spec: { template } });
 
       return rollBackWorkload.mock.calls[0][3];
     };
 
     it('should call rollBackWorkload with the deployments type', async() => {
-      const deployment = new Deployment({
-        id:       'any-namespace/any-name',
-        type:     WORKLOAD_TYPES.DEPLOYMENT,
-        metadata: { name: 'any-name', namespace: 'any-namespace' },
-      });
+      const deployment = createDeployment({ annotations: deploymentAnnotations });
       const rollBackWorkload = jest.spyOn(deployment, 'rollBackWorkload').mockResolvedValue(undefined);
 
-      await deployment.rollBack(cluster, deployment, revision);
+      await deployment.rollBack(cluster, deployment, { metadata: { annotations: revisionAnnotations }, spec: { template } });
 
       expect(rollBackWorkload).toHaveBeenCalledWith(cluster, deployment, 'deployments', expect.any(Array));
     });
 
-    it('should only update the revision annotation and keep other deployment annotations', async() => {
-      const body = await getPatchBody();
-
-      expect(body[1]).toStrictEqual({
-        op:    'add',
-        path:  '/metadata/annotations/deployment.kubernetes.io~1revision',
-        value: '1',
-      });
-    });
-
-    it('should not replace the whole deployment annotations object', async() => {
-      const body = await getPatchBody();
-
-      expect(body.find((op: any) => op.path === '/metadata/annotations')).toBeUndefined();
-    });
-
-    it('should add the annotations object when the deployment has no annotations', async() => {
-      const body = await getPatchBody({});
-
-      expect(body[1]).toStrictEqual({
-        op:    'add',
-        path:  '/metadata/annotations',
-        value: { 'deployment.kubernetes.io/revision': '1' },
-      });
-    });
-
-    it('should replace the pod template with the revision spec', async() => {
-      const body = await getPatchBody();
+    it('should replace the pod template with the revision template', async() => {
+      const body = await getPatchBody({ annotations: deploymentAnnotations }, { annotations: revisionAnnotations });
 
       expect(body[0]).toStrictEqual({
         op:    'replace',
@@ -186,8 +159,57 @@ describe('class Deployment', () => {
             labels:            { app: 'any-app' },
             annotations:       { 'any-annotation': 'any-value' },
           },
-          spec: revision.spec.template.spec,
+          spec: template.spec,
         },
+      });
+    });
+
+    it('should keep ignored annotations from the deployment and restore the rest from the revision', async() => {
+      const body = await getPatchBody({ annotations: deploymentAnnotations }, { annotations: revisionAnnotations });
+
+      expect(body[1]).toStrictEqual({
+        op:    'add',
+        path:  '/metadata/annotations',
+        value: {
+          'deployment.kubernetes.io/revision':                '2',
+          'kubectl.kubernetes.io/last-applied-configuration': '{}',
+          'kubernetes.io/change-cause':                       'deploy v1',
+          'field.cattle.io/description':                      'description v1',
+        },
+      });
+    });
+
+    it('should not take ignored annotations from the revision', async() => {
+      const body = await getPatchBody({ annotations: {} }, { annotations: { ...revisionAnnotations, 'deployment.kubernetes.io/revision-history': '1' } });
+
+      expect(body[1].value).toStrictEqual({
+        'kubernetes.io/change-cause':  'deploy v1',
+        'field.cattle.io/description': 'description v1',
+      });
+    });
+
+    it.each([
+      ['empty annotations, as set on the detail page', { annotations: {} }],
+      ['no annotations', {}],
+    ])('should add the revision annotations when the deployment has %s', async(_, deploymentMetadata) => {
+      const body = await getPatchBody(deploymentMetadata, { annotations: revisionAnnotations });
+
+      expect(body[1]).toStrictEqual({
+        op:    'add',
+        path:  '/metadata/annotations',
+        value: {
+          'kubernetes.io/change-cause':  'deploy v1',
+          'field.cattle.io/description': 'description v1',
+        },
+      });
+    });
+
+    it('should only keep ignored deployment annotations when the revision has no annotations', async() => {
+      const body = await getPatchBody({ annotations: deploymentAnnotations }, {});
+
+      expect(body[1].value).toStrictEqual({
+        'deployment.kubernetes.io/revision':                '2',
+        'kubectl.kubernetes.io/last-applied-configuration': '{}',
       });
     });
   });

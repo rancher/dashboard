@@ -35,17 +35,22 @@ export default class Deployment extends Workload {
   }
 
   async rollBack(cluster, deployment, revision) {
-    const revisionNumber = revision.metadata.annotations?.['deployment.kubernetes.io/revision'];
-    // A JSON Patch add on a nested key fails if the parent object is missing
-    const revisionPatch = deployment.metadata.annotations ? {
-      op:    'add',
-      path:  '/metadata/annotations/deployment.kubernetes.io~1revision',
-      value: revisionNumber
-    } : {
-      op:    'add',
-      path:  '/metadata/annotations',
-      value: { 'deployment.kubernetes.io/revision': revisionNumber }
-    };
+    // Same as kubectl rollout undo: keep the ignored annotations from the deployment and restore the rest from the revision
+    const deploymentAnnotations = deployment.metadata?.annotations || {};
+    const revisionAnnotations = revision.metadata?.annotations || {};
+    const annotations = {};
+
+    IGNORED_ANNOTATIONS.forEach((key) => {
+      if (key in deploymentAnnotations) {
+        annotations[key] = deploymentAnnotations[key];
+      }
+    });
+
+    Object.keys(revisionAnnotations).forEach((key) => {
+      if (!IGNORED_ANNOTATIONS.includes(key)) {
+        annotations[key] = revisionAnnotations[key];
+      }
+    });
 
     const body = [
       {
@@ -71,8 +76,12 @@ export default class Deployment extends Workload {
           },
           spec: revision.spec.template.spec
         }
-      },
-      revisionPatch
+      }, {
+        // add replaces the annotations if they exist and creates them if not
+        op:    'add',
+        path:  '/metadata/annotations',
+        value: annotations
+      }
     ];
 
     await this.rollBackWorkload(cluster, deployment, 'deployments', body);
