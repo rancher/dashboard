@@ -393,6 +393,16 @@ describe('oidc.vue', () => {
 
         expect(scopeList.props('disabledList')).toStrictEqual(['openid', 'email']);
       });
+
+      it('shows the missing required scopes message when a required scope is removed', async() => {
+        wrapper.vm.oidcScope = ['openid'];
+        await wrapper.vm.validateAllFields();
+        await flushPromises();
+
+        const banner = wrapper.findComponent(ArrayList).find('.validation-banner');
+
+        expect(banner.text()).toBe('authConfig.oidc.scope.missingRequired-{"scopes":"profile, email","count":2}');
+      });
     });
 
     // A config's id is its own name, and a new config has none yet, so the form
