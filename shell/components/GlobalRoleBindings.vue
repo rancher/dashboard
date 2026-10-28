@@ -7,7 +7,6 @@ import { _CREATE, _VIEW } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import { addObjects, isArray } from '@shell/utils/array';
 import { Card } from '@components/Card';
-import { fetchUserGroupPrincipals } from '@shell/utils/user-groups';
 
 // i18n-uses rbac.globalRoles.types.*.label
 // i18n-uses rbac.globalRoles.types.*.description
@@ -80,7 +79,9 @@ export default {
           this.globalRoleBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE_BINDING, opt: { force: true } });
 
           if (this.isUser) {
-            this.groupPrincipals = await fetchUserGroupPrincipals(this.$store, this.userId);
+            const user = this.$store.getters['management/byId'](MANAGEMENT.USER, this.userId);
+
+            this.groupPrincipals = await user?.fetchGroupPrincipals() || {};
           }
         }
 

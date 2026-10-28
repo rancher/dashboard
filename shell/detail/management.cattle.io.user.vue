@@ -6,7 +6,6 @@ import SortableTable from '@shell/components/SortableTable';
 import { MANAGEMENT } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
 import { NAME } from '@shell/config/table-headers';
-import { fetchUserGroupPrincipals } from '@shell/utils/user-groups';
 
 export default {
   emits: ['input'],
@@ -22,7 +21,7 @@ export default {
   ],
   async fetch() {
     // Roles bound to one of the user's groups apply to the user too, so those bindings are shown alongside the user's own
-    this.groupPrincipals = await fetchUserGroupPrincipals(this.$store, this.value.id);
+    this.groupPrincipals = await this.value.fetchGroupPrincipals();
 
     const canSeeGlobalRoles = !!this.$store.getters[`management/canList`](MANAGEMENT.GLOBAL_ROLE);
 

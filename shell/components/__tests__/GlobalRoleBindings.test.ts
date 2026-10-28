@@ -47,12 +47,9 @@ describe('component: GlobalRoleBindings', () => {
   /**
    * Mount the user's form and run its fetch
    */
-  const load = async({ globalRoleBindings = [] as Binding[], canSeeUserAttributes = true } = {}) => {
+  const load = async({ globalRoleBindings = [] as Binding[], groups = { [OPS_GROUP]: 'ops' } as Record<string, string> } = {}) => {
+    const user = { id: USER_ID, fetchGroupPrincipals: () => Promise.resolve(groups) };
     const dispatch = jest.fn((action: string, opt: { type?: string }) => {
-      if (action === 'management/find' && opt.type === MANAGEMENT.USER_ATTRIBUTE) {
-        return Promise.resolve({ GroupPrincipals: { openldap: { Items: [{ metadata: { name: OPS_GROUP }, displayName: 'ops' }] } } });
-      }
-
       if (action === 'management/findAll') {
         return Promise.resolve(opt.type === MANAGEMENT.GLOBAL_ROLE ? globalRoles : globalRoleBindings);
       }
@@ -69,8 +66,8 @@ describe('component: GlobalRoleBindings', () => {
           $store: {
             dispatch,
             getters: {
-              'i18n/t':               (key: string) => key,
-              'management/schemaFor': (type: string) => (type === MANAGEMENT.USER_ATTRIBUTE && !canSeeUserAttributes ? null : { id: type }),
+              'i18n/t':          (key: string) => key,
+              'management/byId': (type: string, id: string) => (type === MANAGEMENT.USER && id === USER_ID ? user : undefined),
             },
           },
           $fetchState: { pending: false },
@@ -147,10 +144,10 @@ describe('component: GlobalRoleBindings', () => {
     expect(wrapper.emitted('canLogIn')?.at(-1)).toStrictEqual([true]);
   });
 
-  it('only shows the user\'s own roles when the viewer cannot see UserAttributes', async() => {
+  it('only shows the user\'s own roles when the user has no groups', async() => {
     const { vm } = await load({
-      canSeeUserAttributes: false,
-      globalRoleBindings:   [
+      groups:             {},
+      globalRoleBindings: [
         {
           id: 'grb-1', globalRoleName: 'user', userName: USER_ID
         },

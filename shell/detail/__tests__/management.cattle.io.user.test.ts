@@ -28,14 +28,6 @@ interface UserDetail {
   tableHeaders: { gp: Column[], cr: Column[], pr: Column[] };
 }
 
-const userAttribute = {
-  id:              USER_ID,
-  GroupPrincipals: {
-    local:    { Items: null },
-    openldap: { Items: [{ metadata: { name: OPS_GROUP }, displayName: 'ops' }] },
-  },
-};
-
 const globalRoles = [
   { id: 'users-manage', isSpecial: false },
   { id: 'clusters-create', isSpecial: false },
@@ -55,16 +47,11 @@ describe('view: management.cattle.io.user', () => {
   const load = async({
     globalRoleBindings = [] as Binding[],
     clusterRoleBindings = [] as Binding[],
-    canSeeUserAttributes = true,
-    findUserAttribute = (): Promise<object> => Promise.resolve(userAttribute),
+    groups = { [OPS_GROUP]: 'ops' } as Record<string, string>,
   } = {}): Promise<UserDetail> => {
     const dispatch = jest.fn((action: string, opt: { type?: string, resource?: object }) => {
       if (action === 'rancher/clone') {
         return Promise.resolve({ ...opt.resource });
-      }
-
-      if (action === 'management/find' && opt.type === MANAGEMENT.USER_ATTRIBUTE) {
-        return findUserAttribute();
       }
 
       if (action === 'management/findAll') {
@@ -82,15 +69,14 @@ describe('view: management.cattle.io.user', () => {
     });
 
     const getters = {
-      'i18n/t':               (key: string) => key,
-      'i18n/exists':          () => true,
-      'management/canList':   () => true,
-      'management/schemaFor': (type: string) => (type === MANAGEMENT.USER_ATTRIBUTE && !canSeeUserAttributes ? null : { id: type }),
-      'management/all':       (type: string) => (type === MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING ? clusterRoleBindings : []),
+      'i18n/t':             (key: string) => key,
+      'i18n/exists':        () => true,
+      'management/canList': () => true,
+      'management/all':     (type: string) => (type === MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING ? clusterRoleBindings : []),
     };
 
     const wrapper = shallowMount(DetailUser, {
-      props:  { value: { id: USER_ID }, mode: 'view' },
+      props:  { value: { id: USER_ID, fetchGroupPrincipals: () => Promise.resolve(groups) }, mode: 'view' },
       global: {
         mocks: {
           $store:      { getters, dispatch },
@@ -148,12 +134,9 @@ describe('view: management.cattle.io.user', () => {
     expect(vm.isAdmin).toBe(false);
   });
 
-  it.each([
-    ['the viewer cannot see UserAttributes', { canSeeUserAttributes: false }],
-    ['the user has no UserAttribute', { findUserAttribute: () => Promise.reject(new Error('not found')) }],
-  ])('only shows direct bindings, without a Granted Via column, when %s', async(_, opts) => {
+  it('only shows direct bindings, without a Granted Via column, when the user has no groups', async() => {
     const vm = await load({
-      ...opts,
+      groups:             {},
       globalRoleBindings: [
         grb('clusters-create', { userName: USER_ID }),
         grb('users-manage', { groupPrincipalName: OPS_GROUP }),
