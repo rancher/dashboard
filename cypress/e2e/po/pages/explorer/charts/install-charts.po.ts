@@ -86,6 +86,11 @@ export class InstallChartPage extends PagePo {
     return CodeMirrorPo.bySelector(this.self(), '[data-testid="chart-values-defaults-code-mirror"]');
   }
 
+  /** The editable content of the chart-defaults pane, used to focus and blur it */
+  defaultsEditorContent() {
+    return this.self().find('[data-testid="chart-values-defaults-code-mirror"] .cm-content');
+  }
+
   footerControls() {
     return cy.get('#wizard-footer-controls');
   }
