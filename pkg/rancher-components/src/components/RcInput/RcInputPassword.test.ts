@@ -39,19 +39,22 @@ describe('component: RcInputPassword', () => {
     expect(toggle.find('.rc-icon').classes()).toContain(`icon-${ icon }`);
   });
 
-  it('shows no toggle while disabled', () => {
-    const wrapper = mountPassword({ disabled: true });
+  it('keeps a working toggle while disabled so a revealed secret can be masked again', async() => {
+    const wrapper = mountPassword({ disabled: true, revealed: true });
 
-    expect(wrapper.find('.rc-input-action').exists()).toBe(false);
+    await wrapper.find('.rc-input-action').trigger('click');
+
+    expect(wrapper.find('input').attributes('type')).toStrictEqual('password');
+    expect(wrapper.emitted('update:revealed')).toStrictEqual([[false]]);
   });
 
-  it('shows no toggle inside a disabled RcFieldGroup', () => {
+  it('keeps the toggle inside a disabled RcFieldGroup', () => {
     const wrapper = mount(RcFieldGroup, {
       props: { disabled: true },
       slots: { default: () => h(RcInputPassword, { modelValue: 'secret' }) },
     });
 
-    expect(wrapper.find('.rc-input-action').exists()).toBe(false);
+    expect(wrapper.find('.rc-input-action').exists()).toBe(true);
   });
 
   it('emits the typed value', async() => {

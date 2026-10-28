@@ -93,6 +93,7 @@ watch(() => props.message, () => {
     <span
       :id="props.id"
       class="rc-field-validation-text"
+      aria-atomic="true"
     >
       <span class="rc-field-validation-status">{{ t(`component.rcField.status.${ props.status }`) + ' ' }}</span>
       <span

@@ -48,9 +48,9 @@ defineExpose<RcInputExpose>({
     v-bind="props"
     :type="revealed ? 'text' : 'password'"
   >
-    <template #suffix="{ disabled, isView }">
+    <template #suffix="{ isView }">
       <rc-input-action
-        v-if="isView ? (model !== undefined && model !== null && model !== '') : !disabled"
+        v-if="!isView || (model !== undefined && model !== null && model !== '')"
         :icon="revealed ? 'hide' : 'show'"
         :label="t('component.rcInput.showPassword')"
         :aria-pressed="revealed"

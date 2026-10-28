@@ -129,15 +129,20 @@ const tooltipSize = computed(() => (props.size === 'small' ? 'small' : 'medium')
     </div>
 
     <div
-      v-if="showValidation || showHelper"
       class="rc-field-footer"
+      :class="{ 'rc-field-footer-empty': !showValidation && !showHelper }"
     >
-      <rc-field-validation
-        v-if="showValidation"
-        :id="validationId"
-        :message="props.validationMessage || ''"
-        :status="props.validationStatus"
-      />
+      <div
+        class="rc-field-live"
+        aria-live="polite"
+      >
+        <rc-field-validation
+          v-if="showValidation"
+          :id="validationId"
+          :message="props.validationMessage || ''"
+          :status="props.validationStatus"
+        />
+      </div>
       <p
         v-if="showHelper"
         :id="helperId"
@@ -145,16 +150,6 @@ const tooltipSize = computed(() => (props.size === 'small' ? 'small' : 'medium')
       >
         {{ props.helperText }}
       </p>
-    </div>
-
-    <div
-      class="rc-field-announcer"
-      aria-live="polite"
-      aria-atomic="true"
-    >
-      <template v-if="showValidation">
-        {{ t(`component.rcField.status.${ props.validationStatus }`) }} {{ props.validationMessage }}
-      </template>
     </div>
   </div>
 </template>
@@ -284,7 +279,6 @@ const tooltipSize = computed(() => (props.size === 'small' ? 'small' : 'medium')
 // edit spacing instead lines labels up across fields in different modes.
 .rc-field-view {
   .rc-field-box {
-    gap: 8px;
     padding: var(--rc-field-value-offset) var(--rc-field-padding-x) var(--rc-field-value-offset) calc(var(--rc-field-padding-x) + 1px);
     border: 0;
     background: none;
@@ -310,17 +304,10 @@ const tooltipSize = computed(() => (props.size === 'small' ? 'small' : 'medium')
   line-height: var(--rc-field-meta-line-height);
 }
 
-// Out of the flex flow so that it adds no gap while empty
-.rc-field-announcer {
+// Out of the flex flow so that an empty live region adds no gap
+.rc-field-footer-empty,
+.rc-field-live:empty {
   position: absolute;
-  overflow: hidden;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  border: 0;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
 }
 
 .rc-field-helper {

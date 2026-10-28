@@ -74,10 +74,10 @@ describe('component: RcField', () => {
   });
 
   describe('footer', () => {
-    it('renders no footer without a message or helper text', () => {
+    it('marks the footer empty without a message or helper text', () => {
       const wrapper = mountField();
 
-      expect(wrapper.find('.rc-field-footer').exists()).toBe(false);
+      expect(wrapper.find('.rc-field-footer').classes()).toContain('rc-field-footer-empty');
     });
 
     it('describes the control by its validation message then its helper text', () => {
@@ -92,18 +92,19 @@ describe('component: RcField', () => {
 
     it('leaves the live region empty without a message', () => {
       const wrapper = mountField({ helperText: 'Lowercase only' });
-      const announcer = wrapper.find('.rc-field-announcer');
+      const live = wrapper.find('.rc-field-live');
 
-      expect(announcer.attributes('aria-live')).toStrictEqual('polite');
-      expect(announcer.text()).toStrictEqual('');
+      expect(live.attributes('aria-live')).toStrictEqual('polite');
+      expect(live.text()).toStrictEqual('');
     });
 
-    it('announces the validation message with its status', async() => {
+    it('announces the validation message with its status without duplicating it', async() => {
       const wrapper = mountField();
 
       await wrapper.setProps({ validationMessage: 'Name is required' });
 
-      expect(wrapper.find('.rc-field-announcer').text()).toStrictEqual('%component.rcField.status.error% Name is required');
+      expect(wrapper.find('.rc-field-live').text()).toStrictEqual('%component.rcField.status.error% Name is required');
+      expect(wrapper.text()).toStrictEqual('%component.rcField.status.error% Name is required');
     });
 
     it.each([
