@@ -8,7 +8,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import SSHKnownHosts from '@shell/components/form/SSHKnownHosts';
 import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
-import { AUTH_TYPE, NORMAN, SECRET } from '@shell/config/types';
+import { AUTH_TYPE, NAMESPACE, NORMAN, SECRET } from '@shell/config/types';
 import { SECRET_TYPES, GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import { base64Encode } from '@shell/utils/crypto';
 import { addObjects, insertAt } from '@shell/utils/array';
@@ -27,6 +27,13 @@ const CREATABLE_AUTH_TYPES = [
   AUTH_TYPE._RKE,
   AUTH_TYPE._IMAGE_PULL_SECRET,
   AUTH_TYPE._GITHUB_APP,
+];
+
+// Auth types that can show a namespace select next to their inline fields
+const NAMESPACE_SELECT_AUTH_TYPES = [
+  AUTH_TYPE._SSH,
+  AUTH_TYPE._BASIC,
+  AUTH_TYPE._IMAGE_PULL_SECRET,
 ];
 
 export default {
@@ -79,6 +86,15 @@ export default {
     limitToNamespace: {
       type:    Boolean,
       default: true,
+    },
+
+    /**
+     * Let the user choose the namespace of a new SSH, HTTP Basic or Image Pull secret.
+     * The `namespace` prop is used as the default choice.
+     */
+    allowNamespaceSelect: {
+      type:    Boolean,
+      default: false,
     },
 
     generateName: {
@@ -303,6 +319,8 @@ export default {
 
       filterByNamespace: this.namespace && this.limitToNamespace,
 
+      createNamespace: this.namespace,
+
       publicKey:     '',
       privateKey:    '',
       sshKnownHosts: '',
@@ -515,9 +533,21 @@ export default {
       return out;
     },
 
+    showNamespaceSelect() {
+      return this.allowNamespaceSelect && NAMESPACE_SELECT_AUTH_TYPES.includes(this.selected);
+    },
+
+    namespaceOptions() {
+      return this.$store.getters[`${ this.inStore }/all`](NAMESPACE).map((ns) => ns.id).sort();
+    },
+
     firstCol() {
       if ( this.vertical ) {
         return '';
+      }
+
+      if ( this.showNamespaceSelect ) {
+        return 'col span-3';
       }
 
       if ( this.selected === AUTH_TYPE._SSH || this.selected === AUTH_TYPE._BASIC || this.selected === AUTH_TYPE._RKE || this.selected === AUTH_TYPE._S3 || this.selected === AUTH_TYPE._IMAGE_PULL_SECRET ) {
@@ -532,7 +562,13 @@ export default {
         return 'mt-20';
       }
 
-      return (this.selected === AUTH_TYPE._SSH) && this.showSshKnownHosts ? 'col span-3' : 'col span-4';
+      const withKnownHosts = (this.selected === AUTH_TYPE._SSH) && this.showSshKnownHosts;
+
+      if ( this.showNamespaceSelect ) {
+        return withKnownHosts ? 'col span-2' : 'col span-3';
+      }
+
+      return withKnownHosts ? 'col span-3' : 'col span-4';
     }
   },
 
@@ -548,6 +584,8 @@ export default {
     value:                   'updateSelectedFromValue',
 
     async namespace(ns) {
+      this.createNamespace = ns;
+
       if (ns && !this.selected.startsWith(`${ ns }/`)) {
         this.selected = AUTH_TYPE._NONE;
       }
@@ -696,7 +734,7 @@ export default {
           },
         });
       } else {
-        const metadata = { namespace: this.namespace };
+        const metadata = { namespace: this.allowNamespaceSelect ? this.createNamespace : this.namespace };
 
         if (this.clientGeneratedName) {
           metadata.name = this.clientGeneratedName;
@@ -814,6 +852,19 @@ export default {
           :loading="$fetchState.pending"
           :options="options"
           :selectable="option => !option.disabled"
+        />
+      </div>
+      <div
+        v-if="showNamespaceSelect"
+        :class="vertical ? 'mt-20' : 'col span-3'"
+      >
+        <LabeledSelect
+          v-model:value="createNamespace"
+          data-testid="auth-secret-namespace-select"
+          :mode="mode"
+          label-key="selectOrCreateAuthSecret.namespace"
+          :options="namespaceOptions"
+          :searchable="true"
         />
       </div>
       <template v-if="selected === SSH">
