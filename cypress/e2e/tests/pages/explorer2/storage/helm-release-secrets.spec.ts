@@ -141,6 +141,7 @@ describe('Helm release secrets', { testIsolation: false, tags: ['@explorer2', '@
   });
 
   after(() => {
+    cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
     cy.deleteNamespace([namespace]);
   });
 });
