@@ -11,7 +11,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Loading from '@shell/components/Loading';
 import S3 from '@shell/chart/rancher-backup/S3';
 import { mapGetters } from 'vuex';
-import { SECRET, BACKUP_RESTORE, CATALOG, COUNT } from '@shell/config/types';
+import { SECRET, BACKUP_RESTORE, CATALOG } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { NAMESPACE, _VIEW, _CREATE } from '@shell/config/query-params';
 import { sortBy } from '@shell/utils/sort';
@@ -67,7 +67,7 @@ export default {
     this.chartNamespace = BRORelease?.spec.namespace || '';
 
     if (!this.value.spec.resourceSetName) {
-      this.value.spec.resourceSetName = this.defaultExistingResourceSetOptionIds[0] || this.allResourceSets[0].id;
+      this.value.spec.resourceSetName = this.defaultExistingResourceSetOptionIds[0] || this.allResourceSets[0]?.id;
     }
 
     const computeResourceSetSelection = () => {
@@ -78,7 +78,7 @@ export default {
           return defaults[0];
         }
 
-        return this.allResourceSets[0].id;
+        return this.allResourceSets[0]?.id;
       }
 
       return this.defaultResourceSetOptionIds.includes(this.value?.spec?.resourceSetName) ? this.value?.spec?.resourceSetName : CUSTOM_RESOURCE_SET_ID;
@@ -129,12 +129,10 @@ export default {
       s3 = this.value.spec.storageLocation.s3;
     }
 
-    const counts = this.$store.getters[`cluster/all`](COUNT);
     const defaultResourceSetOptionIds = [DEFAULT_RANCHER_BACKUP_RESOURCE_SET_ID, FULL_RANCHER_BACKUP_RESOURCE_SET_ID];
 
     return {
       secrets:              [],
-      resourceSetCounts:    counts?.[0]?.counts?.[BACKUP_RESTORE.RESOURCE_SET]?.summary?.count,
       defaultResourceSetOptionIds,
       allResourceSets:      [],
       resourceSetSelection: null,
@@ -293,7 +291,7 @@ export default {
       :rules="{name: fvGetAndReportPathRules('metadata.name')}"
       @change="name=value.metadata.name"
     />
-    <template v-if="resourceSetCounts > 0">
+    <template v-if="allResourceSets.length > 0">
       <div class="bordered-section">
         <RadioGroup
           v-model:value="setSchedule"
