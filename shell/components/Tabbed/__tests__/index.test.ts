@@ -381,4 +381,33 @@ describe('component: Tabbed, side tab add/remove controls', () => {
     expect(wrapper.emitted('addTab')).toStrictEqual([[1]]);
     expect(wrapper.emitted('removeTab')).toStrictEqual([[1]]);
   });
+
+  it('should render and emit the clone control when enabled', async() => {
+    const wrapper = await mountTabs({
+      sideTabs:          true,
+      showTabsAddRemove: true,
+      showTabsClone:     true
+    });
+
+    const controls = wrapper.find('.tab-list-footer-controls').findAll('button');
+
+    expect(controls.map((button) => button.attributes('data-testid'))).toStrictEqual([
+      'tab-list-add',
+      'tab-list-clone',
+      'tab-list-remove'
+    ]);
+    expect(wrapper.find('[data-testid="tab-list-clone"]').attributes('aria-label')).toBe('tabs.cloneItem');
+
+    wrapper.vm.select('tab2');
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-testid="tab-list-clone"]').trigger('click');
+
+    expect(wrapper.emitted('cloneTab')).toStrictEqual([[1]]);
+  });
+
+  it('should not render the clone control when disabled', async() => {
+    const wrapper = await mountTabs({ sideTabs: true, showTabsAddRemove: true });
+
+    expect(wrapper.find('[data-testid="tab-list-clone"]').exists()).toBe(false);
+  });
 });
