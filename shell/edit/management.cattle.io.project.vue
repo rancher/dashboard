@@ -260,6 +260,7 @@ export default {
         <ProjectMembershipEditor
           :mode="formMode"
           :parent-id="value.id"
+          :membership-permission="isCreate ? null : membershipPermission"
           @has-owner-changed="onHasOwnerChanged"
           @membership-update="onMembershipUpdate"
         />

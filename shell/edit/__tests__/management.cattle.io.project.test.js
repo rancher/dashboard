@@ -2,6 +2,9 @@ import { shallowMount } from '@vue/test-utils';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { Banner } from '@components/Banner';
+import Loading from '@shell/components/Loading';
+import Tab from '@shell/components/Tabbed/Tab';
+import ProjectMembershipEditor from '@shell/components/form/Members/ProjectMembershipEditor';
 import { MANAGEMENT } from '@shell/config/types';
 import ManagementCattleIoProject from '@shell/edit/management.cattle.io.project.vue';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
@@ -156,6 +159,9 @@ describe('component: ManagementCattleIoProject', () => {
         'management/schemaFor': (type) => (type === MANAGEMENT.ROLE_TEMPLATE ? undefined : {}),
       },
     };
+    const canManage = {
+      create: true, remove: true, view: true
+    };
     const mountWith = (value, mode = _EDIT, $store = store) => shallowMount(ManagementCattleIoProject, {
       props: {
         ...defaultMountOptions.props, mode, value
@@ -182,9 +188,7 @@ describe('component: ManagementCattleIoProject', () => {
       await fetchWith(wrapper);
 
       expect(fetchProjectMembershipPermissions).toHaveBeenCalledWith(store, 'local/p-abc');
-      expect(wrapper.vm.membershipPermission).toStrictEqual({
-        create: true, remove: true, view: true
-      });
+      expect(wrapper.vm.membershipPermission).toStrictEqual(canManage);
       expect(wrapper.vm.membershipPermissionFailed).toStrictEqual(false);
     });
 
@@ -211,6 +215,7 @@ describe('component: ManagementCattleIoProject', () => {
 
       expect(wrapper.vm.formMode).toStrictEqual(expectedMode);
       expect(wrapper.findComponent(CruResource).props('mode')).toStrictEqual(expectedMode);
+      expect(wrapper.findComponent(NameNsDescription).props('mode')).toStrictEqual(expectedMode);
     });
 
     it.each([
@@ -223,6 +228,54 @@ describe('component: ManagementCattleIoProject', () => {
       await wrapper.setData({ membershipPermission });
 
       expect(wrapper.vm.canViewMembers).toStrictEqual(expected);
+      expect(wrapper.findAllComponents(Tab).some((tab) => tab.props('name') === 'members')).toStrictEqual(expected);
+    });
+
+    it.each([
+      ['can manage members', canManage, _EDIT],
+      ['can only view members', { view: true }, _VIEW],
+    ])('should pass this project\'s permissions and the form mode to the members editor for a user who %s', async(_, membershipPermission, expectedMode) => {
+      const wrapper = mountWith(projectValue());
+
+      await wrapper.setData({ membershipPermission });
+
+      const editor = wrapper.findComponent(ProjectMembershipEditor);
+
+      expect(editor.props('membershipPermission')).toStrictEqual(membershipPermission);
+      expect(editor.props('mode')).toStrictEqual(expectedMode);
+    });
+
+    it('should leave the members editor to its defaults when creating a project', () => {
+      const wrapper = mountWith(projectValue(), _CREATE);
+
+      expect(wrapper.findComponent(ProjectMembershipEditor).props('membershipPermission')).toBeNull();
+    });
+
+    it.each([
+      ['can manage members but not update the project', {}, canManage, true],
+      ['can update the project and manage members', { update: 'update-link' }, canManage, false],
+      ['can only view members', {}, { view: true }, false],
+    ])('should show the members-only banner when the user %s: %s', async(_, links, membershipPermission, expected) => {
+      const wrapper = mountWith(projectValue(links));
+
+      await wrapper.setData({ membershipPermission });
+
+      const infoBanners = wrapper.findAllComponents(Banner).filter((banner) => banner.props('color') === 'info');
+
+      expect(infoBanners).toHaveLength(expected ? 1 : 0);
+    });
+
+    it.each([
+      [_EDIT, true],
+      [_CREATE, false],
+    ])('in %s mode, should show a loading state while the permissions load: %s', (mode, expected) => {
+      const wrapper = shallowMount(ManagementCattleIoProject, {
+        props:  { mode, value: projectValue() },
+        global: { mocks: { $store: store, $fetchState: { pending: true } } },
+      });
+
+      expect(wrapper.findComponent(Loading).exists()).toStrictEqual(expected);
+      expect(wrapper.findComponent(CruResource).exists()).toStrictEqual(!expected);
     });
 
     describe('when the permission check fails', () => {
