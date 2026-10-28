@@ -3,6 +3,8 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
+import LabelsAnnotationsPo from '@/cypress/e2e/po/components/labels-annotations.po';
+import ActionMenuPo from '@/cypress/e2e/po/components/action-menu-shell.po';
 
 export class SecretsListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
@@ -56,5 +58,23 @@ export class SecretsCreateEditPo extends BaseDetailPagePo {
 
   constructor(clusterId: string, namespace?: string, id?: string) {
     super(SecretsCreateEditPo.createPath(clusterId, namespace, id));
+  }
+
+  helmReleaseBanner() {
+    return this.self().find('[data-testid="secret-helm-release-banner"]');
+  }
+
+  editAsYamlButton() {
+    return this.self().find('[data-testid="form-yaml"]');
+  }
+
+  labels() {
+    return new LabelsAnnotationsPo('[data-testid="tabbed-block"]').labels();
+  }
+
+  openMastheadActionMenu() {
+    this.self().find('[data-testid="masthead-action-menu"]').click();
+
+    return new ActionMenuPo('[dropdown-menu-collection]:visible');
   }
 }

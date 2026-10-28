@@ -183,6 +183,22 @@ ${ part }`;
     });
   });
 
+  describe('isHelmRelease', () => {
+    it.each([
+      [true, 'the helm release type', { _type: TYPES.HELM_RELEASE }],
+      [true, 'an opaque secret with the helm owner label', { _type: TYPES.OPAQUE, metadata: { labels: { owner: 'helm' } } }],
+      [false, 'an opaque secret without labels', { _type: TYPES.OPAQUE, metadata: {} }],
+      [false, 'an opaque secret without an owner label', { _type: TYPES.OPAQUE, metadata: { labels: { app: 'helm' } } }],
+      [false, 'an opaque secret with another owner', { _type: TYPES.OPAQUE, metadata: { labels: { owner: 'flux' } } }],
+      [false, 'an opaque secret with a helm owner in another case', { _type: TYPES.OPAQUE, metadata: { labels: { owner: 'Helm' } } }],
+      [false, 'a tls secret with another owner', { _type: TYPES.TLS, metadata: { labels: { owner: 'cert-manager' } } }],
+    ])('is %p for %s', (expected, _, data) => {
+      const secret = new Secret(data, { getters: { schemaFor: () => undefined } });
+
+      expect(secret.isHelmRelease).toBe(expected);
+    });
+  });
+
   describe('save', () => {
     const makeSecret = (data: any) => {
       const dispatch = jest.fn().mockResolvedValue(undefined);
