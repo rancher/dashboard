@@ -94,14 +94,13 @@ export default {
 
         scope: z.preprocess(
           (v) => (Array.isArray(v) ? v : []),
-          z.array(z.string()).refine(
-            (arr) => requiredScopes.value?.every((s) => arr.includes(s)),
-            (arr) => {
-              const missing = requiredScopes.value?.filter((s) => !arr.includes(s));
+          z.array(z.string()).superRefine((arr, ctx) => {
+            const missing = requiredScopes.value?.filter((s) => !arr.includes(s)) ?? [];
 
-              return { message: t('authConfig.oidc.scope.missingRequired', { scopes: missing?.join(', '), count: missing?.length }) };
+            if (missing.length) {
+              ctx.addIssue({ code: 'custom', message: t('authConfig.oidc.scope.missingRequired', { scopes: missing.join(', '), count: missing.length }) });
             }
-          )
+          })
         ),
       })
     ));
