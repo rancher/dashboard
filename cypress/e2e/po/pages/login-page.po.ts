@@ -33,23 +33,19 @@ export class LoginPagePo extends PagePo {
   }
 
   switchToLocal(): Cypress.Chainable {
-    const useLocal = this.useLocal();
-
     // TODO: We should have control over this instead of using a condition, as we want deterministic tests
-    return useLocal ? useLocal.click() : cy;
-  }
-
-  /**
-   * The way through to the local form, wherever the page has put it: a card in
-   * the provider list, or a link where a single external provider makes a list
-   * of two unnecessary. Absent when local is the only way in, because the form
-   * is already on screen.
-   */
-  useLocal() {
     return this.self().then(($page) => {
-      const elements = $page.find(LoginPagePo.USE_LOCAL_SELECTOR);
+      if ($page.find(LoginPagePo.LOCAL_USERNAME_SELECTOR).length) {
+        return;
+      }
 
-      return elements?.[0];
+      if ($page.find(LoginPagePo.USE_LOCAL_SELECTOR).length) {
+        cy.get(LoginPagePo.USE_LOCAL_SELECTOR).first().click();
+      } else if ($page.find(LoginPagePo.CHOOSE_PROVIDER_SELECTOR).length) {
+        // A collapsed list keeps local behind its link
+        this.openProviderList();
+        cy.get(LoginPagePo.LOCAL_OPTION_SELECTOR).click();
+      }
     });
   }
 
@@ -66,9 +62,10 @@ export class LoginPagePo extends PagePo {
   }
 
   /**
-   * The list of alternative providers. Rendered once there are several external
-   * providers to choose between; a single one alongside local is offered as a
-   * link instead.
+   * The list of providers. Offered once there are several external providers to
+   * choose between, and shown in place of the login once the user asks for a
+   * different provider; a single one alongside local is offered as a link
+   * instead.
    */
   providerList(): ComponentPo {
     return new ComponentPo('[data-testid="login-provider-list"]');
@@ -83,8 +80,7 @@ export class LoginPagePo extends PagePo {
   }
 
   /**
-   * A provider in the list, keyed by its authconfig name. The provider on the
-   * primary button is not repeated here.
+   * A provider in the list, keyed by its authconfig name.
    */
   providerOption(id: string): ComponentPo {
     return new ComponentPo(`[data-testid="login-provider-option-${ id }"]`);
@@ -95,12 +91,15 @@ export class LoginPagePo extends PagePo {
   }
 
   /**
-   * The link back off the local form: to the list where there is one, or
-   * straight to the single external provider where there is not. Shown in place
-   * of the list while a username and password form has the panel.
+   * The link off the login on screen: to the list where there is one, or
+   * straight to the single external provider where there is not.
    */
   chooseDifferentProvider(): ComponentPo {
-    return new ComponentPo('[data-testid="login-provider-choose"]');
+    return new ComponentPo(LoginPagePo.CHOOSE_PROVIDER_SELECTOR);
+  }
+
+  openProviderList(): Cypress.Chainable {
+    return this.chooseDifferentProvider().self().click();
   }
 
   rememberProviderCheckbox(): CheckboxInputPo {
@@ -111,8 +110,17 @@ export class LoginPagePo extends PagePo {
     return new ComponentPo('[data-testid="login-confirmation-accept-button"]', this.self());
   }
 
+  static readonly LOCAL_USERNAME_SELECTOR = '[data-testid="local-login-username"]';
+
+  static readonly CHOOSE_PROVIDER_SELECTOR = '[data-testid="login-provider-choose"]';
+
   static readonly LOCAL_OPTION_SELECTOR = '[data-testid="login-provider-option-local"]';
 
+  /**
+   * The way through to the local form, wherever the page has put it: a card in
+   * the provider list, or a link where a single external provider makes a list
+   * of two unnecessary.
+   */
   static readonly USE_LOCAL_SELECTOR = [
     LoginPagePo.LOCAL_OPTION_SELECTOR,
     '[data-testid="login-useLocal"]',
@@ -120,13 +128,14 @@ export class LoginPagePo extends PagePo {
 
   /**
    * Selectors that indicate the login page has rendered past its loading spinner. Kept in sync with
-   * the accessors above/below: welcomeMessage (.login-welcome), username, useLocal and
-   * confirmationAcceptButton.
+   * the accessors above/below: welcomeMessage (.login-welcome), username, the ways through to local,
+   * chooseDifferentProvider and confirmationAcceptButton.
    */
   static readonly FORM_READY_SELECTOR = [
     '.login-welcome',
-    '[data-testid="local-login-username"]',
+    LoginPagePo.LOCAL_USERNAME_SELECTOR,
     LoginPagePo.USE_LOCAL_SELECTOR,
+    LoginPagePo.CHOOSE_PROVIDER_SELECTOR,
     '[data-testid="login-confirmation-accept-button"]',
   ].join(', ');
 

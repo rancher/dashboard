@@ -122,12 +122,21 @@ export default {
       return this.providers.length > 1;
     },
 
-    isCredentialForm() {
-      return this.showLocal || this.selectedProvider?.category === 'ldap';
+    /**
+     * The list and the selected provider's login take turns on the panel: the
+     * page opens on the login, and the list stands in for it once the user asks
+     * for a different provider.
+     */
+    showProviderList() {
+      return this.hasProviderList && this.listExpanded;
     },
 
-    showProviderList() {
-      return this.hasProviderList && (!this.isCredentialForm || this.listExpanded);
+    providerChoiceMarginClass() {
+      if (!this.showProviderList) {
+        return 'mt-20';
+      }
+
+      return this.hasLoginMessage ? '' : 'mt-30';
     },
 
     /**
@@ -325,6 +334,7 @@ export default {
     /**
      * Picking a provider only changes what the page is offering -- the user still
      * confirms with the primary button, so SSO, LDAP and local all behave alike.
+     * The list gives way to that provider's login.
      */
     selectProvider(option) {
       this.selectedProviderId = option.id;
@@ -356,22 +366,11 @@ export default {
       });
     },
 
+    /**
+     * Swaps the login on screen for the list of providers. The selection is left
+     * alone, so a saved choice holds until the user picks something else.
+     */
     expandProviderList() {
-      const alternatives = this.providerOptions.filter((option) => option.id !== this.selectedProviderId);
-      const fallback = resolveInitialProvider(alternatives, this.rememberedProviderId());
-
-      if (fallback) {
-        // Deliberately not `selectProvider`: the page is choosing here, not the
-        // user, so it must not overwrite what they asked to be remembered.
-        this.selectedProviderId = fallback.id;
-        this.showLocal = fallback.isLocal;
-
-        // The box speaks for the provider on screen, and the page has just
-        // stepped onto one the user didn't ask for - so it stops claiming a
-        // choice is saved. Only the saved id survives, for them to come back to.
-        this.rememberProvider = false;
-      }
-
       this.listExpanded = true;
 
       this.$nextTick(() => {
@@ -532,8 +531,8 @@ export default {
           />
         </div>
         <div
-          v-if="firstLogin"
-          class="first-login-message pl-10 pr-10"
+          v-if="firstLogin && !showProviderList"
+          class="first-login-message"
           :class="{'mt-30': !hasLoginMessage}"
           data-testid="first-login-message"
         >
@@ -554,7 +553,7 @@ export default {
         </div>
 
         <div
-          v-if="(!hasLocal || (hasLocal && !showLocal)) && selectedProvider && !selectedProvider.isLocal"
+          v-if="!showProviderList && !showLocal && selectedProvider && !selectedProvider.isLocal"
           class="login-column"
           :class="{'mt-30': !hasLoginMessage}"
         >
@@ -571,14 +570,16 @@ export default {
         </div>
         <template v-if="hasLocal">
           <form
-            v-if="showLocal"
+            v-if="showLocal && !showProviderList"
             class="login-column"
-            :class="{'mt-30': !hasLoginMessage}"
+            :class="{'mt-30': !hasLoginMessage || firstLogin}"
             @submit.prevent
           >
-            <div class="mb-20">
+            <div
+              v-if="!firstLogin"
+              class="mb-20"
+            >
               <LabeledInput
-                v-if="!firstLogin"
                 ref="username"
                 v-model:value.trim="username"
                 data-testid="local-login-username"
@@ -622,9 +623,10 @@ export default {
         </template>
         <div
           v-if="hasProviderChoice"
-          class="login-alternatives mt-20"
+          class="login-alternatives"
+          :class="providerChoiceMarginClass"
         >
-          <OrDivider />
+          <OrDivider v-if="!showProviderList" />
           <!--
             Several external providers are weighed up in a list. One alongside
             local is a straight swap between two, offered as a link instead.
@@ -643,11 +645,10 @@ export default {
               </RcButton>
             </div>
             <template v-else>
+              <!-- The provider already chosen is listed too, as the way back to it. -->
               <AuthProviderList
                 ref="providerList"
-                class="mt-20"
                 :options="providerOptions"
-                :selected-id="selectedProviderId"
                 @select="selectProvider"
               />
               <div class="login-remember mt-20">
@@ -736,25 +737,27 @@ export default {
       width: var(--login-column-width);
       max-width: 100%;
       align-self: center;
+      flex-shrink: 0;
 
       display: flex;
-      justify-content: center;
-      align-items: center;
+      flex-direction: column;
+      gap: 10px;
 
       &--hasContent {
-        min-height: 70px;
+        margin-block: 20px;
       }
 
       .banner {
         width: 100%;
-        margin: 5px 0;
+        margin: 0;
       }
     }
 
     // The inputs, the submit button and the provider divider are one column, so
     // they share a width rather than each being sized by its own content.
     .login-column,
-    .login-alternatives {
+    .login-alternatives,
+    .first-login-message {
       width: var(--login-column-width);
       max-width: 100%;
       align-self: center;
@@ -778,6 +781,11 @@ export default {
     }
 
     .first-login-message {
+      code {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+      }
+
       .banner {
         margin-bottom: 0;
         border-left: 0;
