@@ -6681,6 +6681,11 @@ rbac:
     unknownRole:
         description: No description provided
     assignOnlyRole: This role is already assigned
+    groupRole: |-
+      {count, plural,
+        one {Granted by the user's group {groups}. To remove it, change the group's roles.}
+        other {Granted by the user's groups {groups}. To remove it, change the groups' roles.}
+      }
     role:
       admin:
         label: Administrator

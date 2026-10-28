@@ -7,6 +7,7 @@ import { _CREATE, _VIEW } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import { addObjects, isArray } from '@shell/utils/array';
 import { Card } from '@components/Card';
+import { fetchUserGroupPrincipals } from '@shell/utils/user-groups';
 
 // i18n-uses rbac.globalRoles.types.*.label
 // i18n-uses rbac.globalRoles.types.*.description
@@ -77,6 +78,10 @@ export default {
 
         if (!this.isCreate) {
           this.globalRoleBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE_BINDING, opt: { force: true } });
+
+          if (this.isUser) {
+            this.groupPrincipals = await fetchUserGroupPrincipals(this.$store, this.userId);
+          }
         }
 
         // Sort the global roles - use the order defined in 'globalPermissions' and then add the remaining roles after
@@ -116,6 +121,9 @@ export default {
       selectedRoles:         [],
       startingSelectedRoles: [],
       assignOnlyRoles:       {},
+      // The user's groups, and the roles bound to them. These apply to the user but can only be changed on the group
+      groupPrincipals:       {},
+      groupRoles:            {},
       roleChanges:           {}
     };
   },
@@ -170,6 +178,7 @@ export default {
       this.selectedRoles = [];
       this.startingSelectedRoles = [];
       this.assignOnlyRoles = {};
+      this.groupRoles = {};
       if (this.isCreate) {
         // Start with the new user default for each role
         this.selectDefaults();
@@ -199,6 +208,10 @@ export default {
           });
         });
 
+        if (this.isUser) {
+          this.updateGroupRoles();
+        }
+
         if (this.assignOnly && !this.selectedRoles.length) {
           // If we're assigning roles to a group that has no existing roles start with the default roles selected
           this.selectDefaults();
@@ -208,9 +221,31 @@ export default {
       // Force an update to pump out the initial state
       this.checkboxChanged();
     },
+    /**
+     * Check the roles bound to the user's groups. Unless also bound to the user they're disabled, there's no user binding to add or remove
+     */
+    updateGroupRoles() {
+      this.globalRoleBindings.forEach((grb) => {
+        const group = this.groupPrincipals[grb.groupPrincipalName];
+
+        if (group) {
+          this.groupRoles[grb.globalRoleName] = [...new Set([...(this.groupRoles[grb.globalRoleName] || []), group])];
+        }
+      });
+
+      Object.keys(this.groupRoles).forEach((roleId) => {
+        if (!this.selectedRoles.includes(roleId)) {
+          this.selectedRoles.push(roleId);
+        }
+      });
+    },
+    isGroupOnlyRole(roleId) {
+      return !!this.groupRoles[roleId] && !this.startingSelectedRoles.find((startingRole) => startingRole.roleId === roleId);
+    },
     checkboxChanged() {
       const addRoles = this.selectedRoles
-        .filter((selected) => !this.startingSelectedRoles.find((startingRole) => startingRole.roleId === selected));
+        .filter((selected) => !this.startingSelectedRoles.find((startingRole) => startingRole.roleId === selected))
+        .filter((selected) => !this.isGroupOnlyRole(selected));
       const removeBindings = this.startingSelectedRoles
         .filter((startingRole) => !this.selectedRoles.find((selected) => selected === startingRole.roleId))
         .map((startingRole) => startingRole.bindingId);
@@ -355,7 +390,7 @@ export default {
                 <Checkbox
                   v-model:value="selectedRoles"
                   :value-when-true="role.id"
-                  :disabled="!!assignOnlyRoles[role.id]"
+                  :disabled="!!assignOnlyRoles[role.id] || isGroupOnlyRole(role.id)"
                   :label="role.nameDisplay"
                   :description="role.descriptionDisplay"
                   :mode="mode"
@@ -369,6 +404,12 @@ export default {
                         v-if="!!assignOnlyRoles[role.id]"
                         v-clean-tooltip="t('rbac.globalRoles.assignOnlyRole')"
                         class="checkbox-info icon icon-info icon-lg"
+                      />
+                      <i
+                        v-else-if="groupRoles[role.id]"
+                        v-clean-tooltip="t('rbac.globalRoles.groupRole', { count: groupRoles[role.id].length, groups: groupRoles[role.id].join(', ') })"
+                        class="checkbox-info icon icon-info icon-lg"
+                        :data-testid="'grb-group-role-' + role.id"
                       />
                     </div>
                   </template>

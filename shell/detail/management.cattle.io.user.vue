@@ -6,6 +6,7 @@ import SortableTable from '@shell/components/SortableTable';
 import { MANAGEMENT } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
 import { NAME } from '@shell/config/table-headers';
+import { fetchUserGroupPrincipals } from '@shell/utils/user-groups';
 
 export default {
   emits: ['input'],
@@ -21,7 +22,7 @@ export default {
   ],
   async fetch() {
     // Roles bound to one of the user's groups apply to the user too, so those bindings are shown alongside the user's own
-    this.groupPrincipals = await this.fetchGroupPrincipals(this.value.id);
+    this.groupPrincipals = await fetchUserGroupPrincipals(this.$store, this.value.id);
 
     const canSeeGlobalRoles = !!this.$store.getters[`management/canList`](MANAGEMENT.GLOBAL_ROLE);
 
@@ -154,35 +155,6 @@ export default {
 
   },
   methods: {
-    /**
-     * The groups the user was in when they last logged in (or their memberships were refreshed), from their UserAttribute
-     *
-     * @returns map of group principal id to the group's display name. Empty if the user can't see UserAttributes
-     */
-    async fetchGroupPrincipals(userId) {
-      if (!this.$store.getters['management/schemaFor'](MANAGEMENT.USER_ATTRIBUTE)) {
-        return {};
-      }
-
-      try {
-        const userAttribute = await this.$store.dispatch('management/find', { type: MANAGEMENT.USER_ATTRIBUTE, id: userId });
-        const groups = Object.values(userAttribute?.GroupPrincipals || {}).flatMap((provider) => provider?.Items || []);
-
-        return groups.reduce((out, group) => {
-          const id = group?.metadata?.name;
-
-          if (id) {
-            out[id] = group.displayName || group.loginName || id;
-          }
-
-          return out;
-        }, {});
-      } catch (e) {
-        // A user that has never logged in has no UserAttribute
-        return {};
-      }
-    },
-
     isBoundToUser(binding, userId) {
       return binding.userName === userId || !!this.groupPrincipals[binding.groupPrincipalName];
     },
