@@ -471,6 +471,63 @@ describe('CruCatalogRepo - form validation', () => {
     expect(addRepositoryDisabled(wrapper)).toStrictEqual('true');
   });
 
+  it.each([
+    ['disables', 'https:/ /', 'true'],
+    ['disables', 'https:/charts.example.com', 'true'],
+    ['disables', 'charts.example.com', 'true'],
+    ['disables', 'oci://registry.example.com/charts', 'true'],
+    ['enables', 'http://10.0.0.1:8080/charts/', 'false'],
+  ])('%s Add Repository when the Helm index URL is %p', async(_, url, disabled) => {
+    const wrapper = createValidationWrapper({ url });
+
+    await flushPromises();
+
+    expect(addRepositoryDisabled(wrapper)).toStrictEqual(disabled);
+  });
+
+  it.each([
+    ['disables', 'https:/ /', 'true'],
+    ['disables', 'https//github.com/rancher/charts', 'true'],
+    ['disables', 'github.com/rancher/charts', 'true'],
+    ['enables', 'https://github.com/rancher/charts.git', 'false'],
+    ['enables', 'git@github.com:rancher/charts.git', 'false'],
+    ['enables', 'ssh://git@github.com/rancher/charts.git', 'false'],
+  ])('%s Add Repository when the Git repo URL is %p', async(_, gitRepo, disabled) => {
+    const wrapper = createValidationWrapper();
+
+    wrapper.vm.onTargetChange(CLUSTER_REPO_TYPES.GIT_REPO);
+    wrapper.vm.value.spec.gitRepo = gitRepo;
+    await flushPromises();
+
+    expect(addRepositoryDisabled(wrapper)).toStrictEqual(disabled);
+  });
+
+  it.each([
+    ['disables', 'oci:/ /', 'true'],
+    ['disables', 'https://registry.example.com/charts', 'true'],
+    ['disables', 'registry.example.com/charts', 'true'],
+    ['enables', 'oci://registry.example.com/charts', 'false'],
+    ['enables', 'oci://registry.example.com/charts/nginx:1.0.0', 'false'],
+  ])('%s Add Repository when the OCI URL is %p', async(_, url, disabled) => {
+    const wrapper = createValidationWrapper();
+
+    wrapper.vm.onTargetChange(CLUSTER_REPO_TYPES.OCI_URL);
+    wrapper.vm.value.spec.url = url;
+    await flushPromises();
+
+    expect(addRepositoryDisabled(wrapper)).toStrictEqual(disabled);
+  });
+
+  it('shows the repository URL error under the Helm index URL field', async() => {
+    const wrapper = createValidationWrapper({ url: 'https:/ /' });
+    const helmUrlInput = wrapper.findAllComponents({ name: 'LabeledInput' }).find((c) => c.props('name') === 'helmUrl');
+
+    await helmUrlInput?.find('input').trigger('blur');
+    await flushPromises();
+
+    expect(helmUrlInput?.findComponent({ name: 'LabeledTooltip' }).props('value')).toStrictEqual('validation.repository.url');
+  });
+
   it('disables Save when editing a repository whose URL has been cleared', async() => {
     const wrapper = createValidationWrapper({ url: 'https://charts.example.com' }, _EDIT);
 
