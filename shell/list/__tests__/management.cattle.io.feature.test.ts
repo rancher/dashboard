@@ -92,6 +92,7 @@ describe('list/management.cattle.io.feature', () => {
       const rows = [
         { metadata: { name: 'fleet' } },
         { metadata: { name: 'ui-configurable-dashboards' } },
+        { metadata: { name: 'hide-local-auth-provider' } },
         { metadata: { name: 'some-feature' } },
       ];
 
