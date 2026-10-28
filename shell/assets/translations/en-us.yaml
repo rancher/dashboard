@@ -7968,9 +7968,11 @@ user:
       tableHeaders:
         project: Project
     generic:
+      direct: Direct
       tableHeaders:
         role: Role
         granted: Granted
+        grantedVia: Granted Via
   edit:
     credentials:
       label: Credentials

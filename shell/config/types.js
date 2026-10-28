@@ -252,6 +252,7 @@ export const MANAGEMENT = {
   ROLE_TEMPLATE:                 'management.cattle.io.roletemplate',
   SETTING:                       'management.cattle.io.setting',
   USER:                          'management.cattle.io.user',
+  USER_ATTRIBUTE:                'management.cattle.io.userattribute',
   TOKEN:                         'management.cattle.io.token',
   GLOBAL_ROLE:                   'management.cattle.io.globalrole',
   GLOBAL_ROLE_BINDING:           'management.cattle.io.globalrolebinding',
