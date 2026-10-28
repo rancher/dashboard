@@ -36,6 +36,9 @@ const NAMESPACE_SELECT_AUTH_TYPES = [
   AUTH_TYPE._IMAGE_PULL_SECRET,
 ];
 
+// One line of text, so an empty key input is as tall as the selects and inputs next to it
+const KEY_INPUT_MIN_HEIGHT = 19;
+
 export default {
   name: 'SelectOrCreateAuthSecret',
 
@@ -337,6 +340,8 @@ export default {
       S3:                AUTH_TYPE._S3,
       RKE:               AUTH_TYPE._RKE,
       GITHUB_APP:        AUTH_TYPE._GITHUB_APP,
+
+      KEY_INPUT_MIN_HEIGHT,
     };
   },
 
@@ -877,6 +882,7 @@ export default {
             :rules="getRules('sshPublicKey')"
             :mode="mode"
             type="multiline"
+            :min-height="KEY_INPUT_MIN_HEIGHT"
             label-key="selectOrCreateAuthSecret.ssh.publicKey"
           />
         </div>
@@ -889,6 +895,7 @@ export default {
             :rules="getRules('sshPrivateKey')"
             :mode="mode"
             type="multiline"
+            :min-height="KEY_INPUT_MIN_HEIGHT"
             label-key="selectOrCreateAuthSecret.ssh.privateKey"
           />
         </div>

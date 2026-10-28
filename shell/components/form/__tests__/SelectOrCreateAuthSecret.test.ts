@@ -110,6 +110,15 @@ describe('component: SelectOrCreateAuthSecret', () => {
 
       expect(rule('value')).toStrictEqual(undefined);
     });
+
+    it.each([
+      'auth-secret-ssh-public-key',
+      'auth-secret-ssh-private-key',
+    ])('should give the %p textarea a one line minimum height', (testId) => {
+      const textArea = findCredentialInput(AUTH_TYPE._SSH, testId).findComponent({ name: 'TextAreaAutoGrow' });
+
+      expect(textArea.props('minHeight')).toStrictEqual(19);
+    });
   });
 
   describe('GitHub App auth', () => {
