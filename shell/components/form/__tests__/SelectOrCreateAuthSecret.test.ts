@@ -260,7 +260,6 @@ describe('component: SelectOrCreateAuthSecret', () => {
         props:  {
           mode:               _EDIT,
           namespace:          'cattle-system',
-          value:              null,
           registerBeforeHook: () => {},
           ...props,
         },
