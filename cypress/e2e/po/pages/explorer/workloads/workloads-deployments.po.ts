@@ -2,6 +2,8 @@ import { WorkloadsListPageBasePo, WorkloadsCreatePageBasePo, WorkloadDetailsPage
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import RedeployDialogPo from '@/cypress/e2e/po/components/workloads/redeploy-dialog.po';
+import RollbackDialogPo from '@/cypress/e2e/po/components/workloads/rollback-dialog.po';
+import ActionMenuPo from '@/cypress/e2e/po/components/action-menu-shell.po';
 
 type WorkloadType = 'workload' | 'pods' | 'apps.deployments' | 'replicasets' | 'daemonsets' | 'statefulsets' | 'jobs' | 'cronjobs';
 
@@ -16,6 +18,16 @@ export class WorkloadsDeploymentsDetailsPagePo extends WorkloadDetailsPageBasePo
 
   labelsAndAnnotationsTab() {
     return cy.get('[data-testid="btn-labels"]');
+  }
+
+  openMastheadActionMenu(): ActionMenuPo {
+    this.self().find('[data-testid="masthead-action-menu"]').click();
+
+    return new ActionMenuPo('[dropdown-menu-collection]:visible');
+  }
+
+  rollbackDialog(): RollbackDialogPo {
+    return new RollbackDialogPo();
   }
 }
 
@@ -35,6 +47,10 @@ export class WorkloadsDeploymentsListPagePo extends WorkloadsListPageBasePo {
 
   redeployDialog(): RedeployDialogPo {
     return new RedeployDialogPo();
+  }
+
+  rollbackDialog(): RollbackDialogPo {
+    return new RollbackDialogPo();
   }
 }
 
