@@ -1171,7 +1171,7 @@ describe('page: Install', () => {
 
         await wrapper.vm.finish(jest.fn());
 
-        expect(wrapper.vm.errors.map((e: { reason: string }) => e.reason)).toStrictEqual(['bad indentation of a mapping entry']);
+        expect((wrapper.vm as any).errors.map((e: { reason: string }) => e.reason)).toStrictEqual(['bad indentation of a mapping entry']);
       });
 
       it('does not send the install request', async() => {
