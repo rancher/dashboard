@@ -4,7 +4,6 @@ import { useForm } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
 import { z } from 'zod';
 import { RcInput, RcInputPassword, RcInputSearch, RcInputUnit } from '@components/RcInput';
-import { RcIcon } from '@components/RcIcon';
 import { RcButton } from '@components/RcButton';
 
 const SIZES = ['small', 'medium', 'large'];
@@ -207,7 +206,7 @@ export const ClearAndReset: Story = {
 
 export const PrefixAndSuffix: Story = {
   render: () => ({
-    components: { RcInput, RcIcon },
+    components: { RcInput },
     setup() {
       return { host: ref('rancher.example.com'), isView: ref(false) };
     },
@@ -215,7 +214,7 @@ export const PrefixAndSuffix: Story = {
       <div style="${ column }">
         <RcInput v-model="host" label="Host">
           <template #prefix>
-            <RcIcon type="globe" size="medium" />
+            <span style="color: var(--input-label);">https://</span>
           </template>
           <template #suffix="{ isView }">
             <span style="color: var(--input-label);">{{ isView ? '(external)' : ':443' }}</span>
@@ -223,7 +222,7 @@ export const PrefixAndSuffix: Story = {
         </RcInput>
         <RcInput v-model="host" label="Host, view mode" mode="view">
           <template #prefix>
-            <RcIcon type="globe" size="medium" />
+            <span style="color: var(--input-label);">https://</span>
           </template>
           <template #suffix="{ isView }">
             <span style="color: var(--input-label);">{{ isView ? '(external)' : ':443' }}</span>
