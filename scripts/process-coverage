@@ -20,7 +20,7 @@ const inputJSONs = [];
 // Ignore these files
 const ignoreFiles = [
   'babel.config.js',
-  'vue.config.js',
+  'vite.config.mjs',
   'vue-config-helper.js',
   'svgTransform.js',
   'jest.setup.js',

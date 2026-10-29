@@ -9,5 +9,6 @@ module.exports = {
   eslint:     [],
   vueSyntax:  [],
   style:      [],
+  vite:       [],
   total:      [],
 };

@@ -1,12 +1,11 @@
-import type { StorybookConfig } from '@storybook/vue3-webpack5';
-import NodePolyfillPlugin from 'node-polyfill-webpack-plugin';
-import fs from 'fs';
+import type { StorybookConfig } from '@storybook/vue3-vite';
 import path, { join, dirname } from 'path';
-import webpack from 'webpack';
 import remarkGfm from 'remark-gfm';
 import { colorUsage, unpaintedVariables } from './color-usage';
 
 const baseFolder = path.resolve(__dirname, '..', '..');
+const shellFolder = path.join(baseFolder, 'shell');
+const componentsFolder = path.join(baseFolder, 'pkg', 'rancher-components', 'src', 'components');
 
 /**
  * This function is used to resolve the absolute path of a package.
@@ -16,103 +15,25 @@ function getAbsolutePath(value: string): any {
   return dirname(require.resolve(join(value, 'package.json')));
 }
 
-const sassLoader = {
-  loader:  'sass-loader',
-  options: {
-    additionalData: `@use "sass:math"; @import '~shell/assets/styles/app.scss';`,
-    sassOptions:    {
-      importer: (url, prev, done) => {
-        if (url.indexOf('~/') === 0) {
-          const file = path.resolve(baseFolder, url.substr(2));
-
-          return fs.exists(file, (ok) => {
-            if (ok) {
-              return done({ file });
-            }
-
-            return done(null);
-          });
-        } else if (url.indexOf('@/node_modules') === 0) {
-          return done({ file: path.resolve(baseFolder, url.substr(2)) });
-        }
-
-        done(null);
-      }
-    }
-  },
-};
-
-/**
- * Replace js-modal and xterm imports with absolute paths
- * @param resource
- */
-const replaceModulePath = (resource) => {
-  const modulePathSplit = resource.request.split('!');
-  const modulePath = modulePathSplit.pop();
-
-  if (modulePath) {
-    const match = modulePath.match(/node_modules\/(.*)/);
-
-    if (match) {
-      modulePathSplit.push(path.join(baseFolder, match[0]));
-    } else {
-      modulePathSplit.push(modulePath);
-    }
-
-    resource.request = modulePathSplit.join('!');
-  }
-};
-
 /**
  * Add aliases
  * https://storybook.js.org/docs/writing-stories/mocking-data-and-modules/mocking-modules#builder-aliases
  */
-const webpackAliases = {
-  '~':           baseFolder,
-  '@':           baseFolder,
-  '@shell':      path.join(baseFolder, 'shell'),
-  '@components': path.join(baseFolder, 'pkg', 'rancher-components', 'src', 'components'),
-  '~shell':      path.join(baseFolder, 'shell'),
-};
-
-// Storybook's TypeScript loader emits CommonJS imports while the vendored Emacs
-// keymap uses ESM imports. Resolve both to the same CodeMirror modules so their
-// extension values share one @codemirror/state instance.
-const codemirrorAliases = Object.fromEntries([
-  'autocomplete', 'commands', 'lang-json', 'lang-yaml', 'language', 'search', 'state', 'view'
-].map((name) => {
-  const packageName = `@codemirror/${ name }`;
-
-  return [`${ packageName }$`, require.resolve(packageName).replace(/\.cjs$/, '.js')];
-}));
-
-const webpackLoaders = [
-  {
-    test:    /\.scss$/,
-    use:     ['style-loader', 'css-loader', sassLoader],
-    include: baseFolder,
-  },
-  // Map YAML to JSON
-  {
-    test:    /\.ya?ml$/i,
-    loader:  'js-yaml-loader',
-    options: { name: '[path][name].[ext]' },
-  }
-];
-
-const webpackPlugins = [
-  new NodePolyfillPlugin() as any,
-  // BREAKING CHANGE: webpack < 5 used to include polyfills for node.js core modules by default.
-  new webpack.NormalModuleReplacementPlugin(/js-modal|xterm|diff2html/, replaceModulePath),
-  new webpack.DefinePlugin({
-    __COLOR_USAGE__:         JSON.stringify(colorUsage(baseFolder)),
-    __UNPAINTED_VARIABLES__: JSON.stringify(unpaintedVariables(baseFolder)),
-  }),
+const aliases = [
+  { find: '~shell', replacement: shellFolder },
+  { find: '@shell', replacement: shellFolder },
+  { find: '~@shell', replacement: shellFolder },
+  { find: '@components', replacement: componentsFolder },
+  { find: '~@components', replacement: componentsFolder },
+  { find: '~@rancher/icons', replacement: path.join(baseFolder, 'node_modules', '@rancher', 'icons') },
+  { find: /^(\.\/)?node_modules\//, replacement: `${ path.join(baseFolder, 'node_modules') }/` },
+  { find: '~', replacement: baseFolder },
+  { find: '@', replacement: baseFolder },
 ];
 
 const config: StorybookConfig = {
   framework: {
-    name:    getAbsolutePath('@storybook/vue3-webpack5'),
+    name:    getAbsolutePath('@storybook/vue3-vite'),
     options: {}
   },
   staticDirs: ['../public', '../../shell/assets'],
@@ -125,7 +46,6 @@ const config: StorybookConfig = {
     getAbsolutePath('@storybook/addon-links'),
     getAbsolutePath('@storybook/addon-essentials'),
     getAbsolutePath('@storybook/addon-interactions'),
-    '@storybook/addon-webpack5-compiler-babel',
     getAbsolutePath('@storybook/addon-themes'),
     getAbsolutePath('storybook-addon-pseudo-states'),
     // Add support for table generation from markdown using MDX files
@@ -134,31 +54,41 @@ const config: StorybookConfig = {
       options: { mdxPluginOptions: { mdxCompileOptions: { remarkPlugins: [remarkGfm] } } },
     },
   ],
-  core:         { disableTelemetry: true },
-  docs:         {},
-  // https://storybook.js.org/docs/builders/webpack#import-a-custom-webpack-configuration
-  webpackFinal: (config: webpack.Configuration) => ({
-    ...config,
-    resolve: {
-      ...config.resolve,
-      alias: {
-        ...config.resolve?.alias,
-        ...webpackAliases,
-        ...codemirrorAliases,
-      }
-    },
-    module: {
-      ...config.module,
-      rules: [
-        ...config.module?.rules || [],
-        ...webpackLoaders,
-      ],
-    },
-    plugins: [
+  core:      { disableTelemetry: true },
+  docs:      {},
+  viteFinal: async(config) => {
+    const { mergeConfig } = await import('vite');
+    const { default: vue } = await import('@vitejs/plugin-vue');
+    const { rancherLoaders } = await import('../../shell/vite/loaders.mjs');
+    const { vueParenthesisedDefaultExport } = await import('../../shell/vite/vue-compat.mjs');
+
+    const plugins = [
+      vueParenthesisedDefaultExport(),
+      vue(),
+      rancherLoaders(),
       ...config.plugins || [],
-      ...webpackPlugins,
-    ]
-  }),
+    ];
+
+    return mergeConfig({ ...config, plugins }, {
+      define: {
+        __COLOR_USAGE__:         JSON.stringify(colorUsage(baseFolder)),
+        __UNPAINTED_VARIABLES__: JSON.stringify(unpaintedVariables(baseFolder)),
+      },
+      resolve: {
+        alias:      aliases,
+        dedupe:     ['vue', 'vuex'],
+        extensions: ['.mjs', '.js', '.jsx', '.vue', '.json', '.tsx', '.ts', '.scss'],
+      },
+      css: {
+        preprocessorOptions: {
+          scss: {
+            additionalData:      `@use "sass:math"; @import '~shell/assets/styles/app.scss';`,
+            silenceDeprecations: ['import', 'global-builtin', 'color-functions'],
+          },
+        },
+      },
+    });
+  },
 };
 
 export default config;
