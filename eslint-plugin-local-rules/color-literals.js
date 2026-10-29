@@ -6,6 +6,8 @@
  */
 const Color = require('color').default;
 
+const PRIMITIVES_FILE = 'pkg/rancher-components/src/components/design-system/_color-variables.scss';
+
 const NOT_COLORS = new Set(['transparent', 'currentcolor', 'inherit', 'initial', 'unset', 'revert', 'none']);
 
 const COLOR_PROPERTIES = /^(-webkit-)?(color|background(-color|-image)?|border(-(top|right|bottom|left|block|inline)(-(start|end))?)?(-color)?|border-image(-source)?|outline(-color)?|fill|stroke|stop-color|flood-color|lighting-color|caret-color|accent-color|column-rule(-color)?|text-decoration(-color)?|text-emphasis(-color)?|box-shadow|text-shadow|filter|backdrop-filter|mask(-image)?|scrollbar-color|text-fill-color|tap-highlight-color)$/i;
@@ -52,6 +54,38 @@ function isNamedColor(word) {
  */
 function isColorProperty(name) {
   return COLOR_PROPERTIES.test(name.replace(/[A-Z]/g, (c) => `-${ c.toLowerCase() }`));
+}
+
+/**
+ * The same key for every way of writing one color, such as `#FFF`, `white` and `rgb(255, 255, 255)`.
+ *
+ * @param {string} raw a color as written, or an `r, g, b` triplet
+ * @returns {string | null} the color as `r,g,b,a`, or null when it is computed rather than written out
+ */
+function colorKey(raw) {
+  const rgba = parseColor(RGB_TRIPLET.test(raw) ? `rgba(${ raw })` : raw);
+
+  return rgba ? rgba.join() : null;
+}
+
+/**
+ * The color primitives, by the key of their value.
+ *
+ * @param {string} scss the contents of `PRIMITIVES_FILE`
+ * @returns {Map<string, string>} each `colorKey` and the `--color-*` name of the first primitive with that value
+ */
+function primitivesByKey(scss) {
+  const primitives = new Map();
+
+  for (const [, name, value] of scss.matchAll(/^\$(color-[\w-]+)\s*:\s*([^;]+);/gm)) {
+    const key = colorKey(value);
+
+    if (key && !primitives.has(key)) {
+      primitives.set(key, `--${ name }`);
+    }
+  }
+
+  return primitives;
 }
 
 const MESSAGE = /^(?:Hard-coded|Computed) color "(.*)": /;
@@ -189,5 +223,5 @@ function findInCss(value, property = '') {
 }
 
 module.exports = {
-  findInString, findInCss, message, colorInMessage, isNamedColor, isColorProperty
+  PRIMITIVES_FILE, findInString, findInCss, message, colorInMessage, colorKey, primitivesByKey, isNamedColor, isColorProperty
 };
