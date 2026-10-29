@@ -1,15 +1,47 @@
-// Note: This file exists and ESLint is disabled on it in .eslintignore because it currently chokes on import()s
-// So it can be disabled just on this file that does nothing else, instead of every file that uses
-// an import with a variable in the path.
-
 import { defineAsyncComponent } from 'vue';
+
+const cloudCredentials = import.meta.glob(['../cloud-credential/**/*.{vue,js,ts}', '!**/__tests__/**', '!**/*.d.ts']);
+const machineConfigs = import.meta.glob(['../machine-config/**/*.{vue,js,ts}', '!**/__tests__/**', '!**/*.d.ts']);
+const logins = import.meta.glob(['../components/auth/login/**/*.{vue,js,ts}', '!**/__tests__/**', '!**/*.d.ts']);
+const charts = import.meta.glob(['../chart/**/*.{vue,js,ts}', '!**/__tests__/**', '!**/*.d.ts']);
+const lists = import.meta.glob(['../list/**/*.{vue,js,ts}', '!**/__tests__/**', '!**/*.d.ts']);
+const details = import.meta.glob(['../detail/**/*.{vue,js,ts}', '!**/__tests__/**', '!**/*.d.ts']);
+const edits = import.meta.glob(['../edit/**/*.{vue,js,ts}', '!**/__tests__/**', '!**/*.d.ts']);
+const dialogs = import.meta.glob(['../dialog/**/*.{vue,js,ts}', '!**/__tests__/**', '!**/*.d.ts']);
+const drawers = import.meta.glob(['../components/Drawer/**/*.{vue,js,ts}', '!**/__tests__/**', '!**/*.d.ts']);
+const windowComponents = import.meta.glob(['../components/Window/**/*.{vue,js,ts}', '!**/__tests__/**', '!**/*.d.ts']);
+const products = import.meta.glob(['../config/product/**/*.{js,ts}', '!**/__tests__/**', '!**/*.d.ts']);
+const translations = import.meta.glob('../assets/translations/*.yaml');
+const promptRemoves = import.meta.glob(['../promptRemove/**/*.{vue,js,ts}', '!**/__tests__/**', '!**/*.d.ts']);
+
+const SUFFIXES = ['', '.js', '.vue', '.ts', '/index.js', '/index.vue', '/index.ts'];
+
+function find(modules, folder, name) {
+  const suffix = SUFFIXES.find((s) => modules[`${ folder }/${ name }${ s }`]);
+
+  return suffix === undefined ? undefined : modules[`${ folder }/${ name }${ suffix }`];
+}
+
+function load(modules, folder, name) {
+  const loader = find(modules, folder, name);
+
+  return loader ? loader() : Promise.reject(new Error(`Cannot find module '${ folder }/${ name }'`));
+}
+
+function resolve(modules, folder, name) {
+  if (!find(modules, folder, name)) {
+    throw new Error(`Cannot find module '${ folder }/${ name }'`);
+  }
+
+  return `${ folder }/${ name }`;
+}
 
 export function importCloudCredential(name) {
   if (!name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "cloud-credential" */ `@shell/cloud-credential/${name}`));
+  return defineAsyncComponent(() => load(cloudCredentials, '../cloud-credential', name));
 }
 
 export function importMachineConfig(name) {
@@ -17,7 +49,7 @@ export function importMachineConfig(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "machine-config" */ `@shell/machine-config/${name}`));
+  return defineAsyncComponent(() => load(machineConfigs, '../machine-config', name));
 }
 
 export function importLogin(name) {
@@ -25,7 +57,7 @@ export function importLogin(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "login" */ `@shell/components/auth/login/${name}`));
+  return defineAsyncComponent(() => load(logins, '../components/auth/login', name));
 }
 
 export function importChart(name) {
@@ -33,7 +65,7 @@ export function importChart(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "chart" */ `@shell/chart/${name}`));
+  return defineAsyncComponent(() => load(charts, '../chart', name));
 }
 
 export function importList(name) {
@@ -41,7 +73,7 @@ export function importList(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "list" */ `@shell/list/${name}`));
+  return defineAsyncComponent(() => load(lists, '../list', name));
 }
 
 export function importDetail(name) {
@@ -49,7 +81,7 @@ export function importDetail(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "detail" */ `@shell/detail/${name}`));
+  return defineAsyncComponent(() => load(details, '../detail', name));
 }
 
 export function importEdit(name) {
@@ -57,7 +89,7 @@ export function importEdit(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "edit" */ `@shell/edit/${name}`));
+  return defineAsyncComponent(() => load(edits, '../edit', name));
 }
 
 export function importDialog(name) {
@@ -65,7 +97,7 @@ export function importDialog(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "dialog" */ `@shell/dialog/${name}`));
+  return defineAsyncComponent(() => load(dialogs, '../dialog', name));
 }
 
 export function importDrawer(name) {
@@ -73,7 +105,7 @@ export function importDrawer(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "drawer" */ `@shell/components/Drawer/${name}`));
+  return defineAsyncComponent(() => load(drawers, '../components/Drawer', name));
 }
 
 export function importWindowComponent(name) {
@@ -81,7 +113,7 @@ export function importWindowComponent(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "components" */ `@shell/components/Window/${name}`));
+  return defineAsyncComponent(() => load(windowComponents, '../components/Window', name));
 }
 
 export function loadProduct(name) {
@@ -90,15 +122,11 @@ export function loadProduct(name) {
   }
 
   // Note: directly returns the import, not a function
-  return import(/* webpackChunkName: "product" */ `@shell/config/product/${name}`);
+  return load(products, '../config/product', name);
 }
 
 export function listProducts() {
-  // We just want the .js or .ts files
-  const ctx = require.context('@shell/config/product', true, /\.\/.*\.[js|ts]/);
-  const products = ctx.keys().map(path => path.substr(2)).map(path => path.slice(0, -3));
-
-  return products;
+  return Object.keys(products).map((path) => path.replace('../config/product/', '').replace(/\.(js|ts)$/, ''));
 }
 
 export function loadTranslation(name) {
@@ -107,37 +135,41 @@ export function loadTranslation(name) {
   }
 
   // Note: directly returns the import, not a function
-  return import(/* webpackChunkName: "[request]" */ `@shell/assets/translations/${name}.yaml`);
+  return load(translations, '../assets/translations', `${ name }.yaml`);
 }
 
 export function importCustomPromptRemove(name) {
-  return defineAsyncComponent(() => import(/* webpackChunkName: "custom-prompt-remove" */ `@shell/promptRemove/${ name }`));
+  return defineAsyncComponent(() => load(promptRemoves, '../promptRemove', name));
 }
 
 export function resolveList(key) {
-  return require.resolve(`@shell/list/${ key }`);
+  return resolve(lists, '../list', key);
 }
 
 export function resolveChart(key) {
-  return require.resolve(`@shell/chart/${ key }`);
+  return resolve(charts, '../chart', key);
 }
 
 export function resolveEdit(key) {
-  return require.resolve(`@shell/edit/${ key }`);
+  return resolve(edits, '../edit', key);
 }
 
 export function resolveDetail(key) {
-  return require.resolve(`@shell/detail/${ key }`);
+  return resolve(details, '../detail', key);
 }
 
 export function resolveWindowComponent(key) {
-  return require.resolve(`@shell/components/Window/${ key }`);
+  return resolve(windowComponents, '../components/Window', key);
 }
 
 export function resolveMachineConfigComponent(key) {
-  return require.resolve(`@shell/machine-config/${ key }`);
+  return resolve(machineConfigs, '../machine-config', key);
 }
 
 export function resolveCloudCredentialComponent(key) {
-  return require.resolve(`@shell/cloud-credential/${ key }`);
+  return resolve(cloudCredentials, '../cloud-credential', key);
+}
+
+export function resolveCustomPromptRemove(key) {
+  return resolve(promptRemoves, '../promptRemove', key);
 }

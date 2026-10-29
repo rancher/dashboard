@@ -29,9 +29,37 @@ import * as uiContextModule from '../store/ui-context.ts';
 const VUEX_PROPERTIES = ['state', 'getters', 'actions', 'mutations'];
 
 let store = {};
+let root = rootModule;
+const modules = {
+  'action-menu.js':    actionMenuModule,
+  'auth.js':           authModule,
+  'aws.js':            awsModule,
+  'catalog.ts':        catalogModule,
+  'digitalocean.js':   digitaloceanModule,
+  'features.js':       featuresModule,
+  'github.js':         githubModule,
+  'gitlab.js':         gitlabModule,
+  'growl.ts':          growlModule,
+  'i18n.ts':           i18nModule,
+  'linode.js':         linodeModule,
+  'modal.ts':          modalModule,
+  'plugins.js':        pluginsModule,
+  'pnap.js':           pnapModule,
+  'prefs.ts':          prefsModule,
+  'resource-fetch.js': resourceFetchModule,
+  'slideInPanel.ts':   slideInPanelModule,
+  'type-map.js':       typeMapModule,
+  'uiplugins.ts':      uipluginsModule,
+  'wm.ts':             wmModule,
+  'customisation.js':  customisationModule,
+  'cru-resource.ts':   cruResourceModule,
+  'notifications.ts':  notificationsModule,
+  'cookies.ts':        cookiesModule,
+  'ui-context.ts':     uiContextModule,
+};
 
-(function updateModules() {
-  store = normalizeRoot(rootModule, 'store/index.js');
+function updateModules() {
+  store = normalizeRoot(root, 'store/index.js');
 
   // If store is an exported method = classic mode (deprecated)
 
@@ -42,71 +70,53 @@ let store = {};
   // Enforce store modules
   store.modules = store.modules || {};
 
-  resolveStoreModules(actionMenuModule, 'action-menu.js');
-  resolveStoreModules(authModule, 'auth.js');
-  resolveStoreModules(awsModule, 'aws.js');
-  resolveStoreModules(catalogModule, 'catalog.ts');
-  resolveStoreModules(digitaloceanModule, 'digitalocean.js');
-  resolveStoreModules(featuresModule, 'features.js');
-  resolveStoreModules(githubModule, 'github.js');
-  resolveStoreModules(gitlabModule, 'gitlab.js');
-  resolveStoreModules(growlModule, 'growl.ts');
-  resolveStoreModules(i18nModule, 'i18n.ts');
-  resolveStoreModules(linodeModule, 'linode.js');
-  resolveStoreModules(modalModule, 'modal.ts');
-  resolveStoreModules(pluginsModule, 'plugins.js');
-  resolveStoreModules(pnapModule, 'pnap.js');
-  resolveStoreModules(prefsModule, 'prefs.ts');
-  resolveStoreModules(resourceFetchModule, 'resource-fetch.js');
-  resolveStoreModules(slideInPanelModule, 'slideInPanel.ts');
-  resolveStoreModules(typeMapModule, 'type-map.js');
-  resolveStoreModules(uipluginsModule, 'uiplugins.ts');
-  resolveStoreModules(wmModule, 'wm.ts');
-  resolveStoreModules(customisationModule, 'customisation.js');
-  resolveStoreModules(cruResourceModule, 'cru-resource.ts');
-  resolveStoreModules(notificationsModule, 'notifications.ts');
-  resolveStoreModules(cookiesModule, 'cookies.ts');
-  resolveStoreModules(uiContextModule, 'ui-context.ts');
+  Object.entries(modules).forEach(([filename, moduleData]) => resolveStoreModules(moduleData, filename));
+}
 
-  // If the environment supports hot reloading...
+updateModules();
 
-  if (module.hot) {
-    // Whenever any Vuex module is updated...
-    module.hot.accept([
-      '../store/action-menu.js',
-      '../store/auth.js',
-      '../store/aws.js',
-      '../store/catalog.ts',
-      '../store/digitalocean.js',
-      '../store/features.js',
-      '../store/github.js',
-      '../store/gitlab.js',
-      '../store/growl.ts',
-      '../store/i18n.ts',
-      '../store/index.js',
-      '../store/linode.js',
-      '../store/modal.ts',
-      '../store/plugins.js',
-      '../store/pnap.js',
-      '../store/prefs.ts',
-      '../store/resource-fetch.js',
-      '../store/slideInPanel.ts',
-      '../store/type-map.js',
-      '../store/uiplugins.ts',
-      '../store/wm.ts',
-      '../store/customisation.js',
-      '../store/cru-resource.ts',
-      '../store/notifications.ts',
-      '../store/cookies.ts',
-      '../store/ui-context.ts',
-    ], () => {
-      // Update `root.modules` with the latest definitions.
-      updateModules();
-      // Trigger a hot update in the store.
-      window.$globalApp.$store.hotUpdate(store);
+// If the environment supports hot reloading...
+
+if (import.meta.hot) {
+  // Whenever any Vuex module is updated...
+  import.meta.hot.accept([
+    '../store/index.js',
+    '../store/action-menu.js',
+    '../store/auth.js',
+    '../store/aws.js',
+    '../store/catalog.ts',
+    '../store/digitalocean.js',
+    '../store/features.js',
+    '../store/github.js',
+    '../store/gitlab.js',
+    '../store/growl.ts',
+    '../store/i18n.ts',
+    '../store/linode.js',
+    '../store/modal.ts',
+    '../store/plugins.js',
+    '../store/pnap.js',
+    '../store/prefs.ts',
+    '../store/resource-fetch.js',
+    '../store/slideInPanel.ts',
+    '../store/type-map.js',
+    '../store/uiplugins.ts',
+    '../store/wm.ts',
+    '../store/customisation.js',
+    '../store/cru-resource.ts',
+    '../store/notifications.ts',
+    '../store/cookies.ts',
+    '../store/ui-context.ts',
+  ], ([newRoot, ...newModules]) => {
+    // Update `root.modules` with the latest definitions.
+    root = newRoot || root;
+    Object.keys(modules).forEach((filename, i) => {
+      modules[filename] = newModules[i] || modules[filename];
     });
-  }
-})();
+    updateModules();
+    // Trigger a hot update in the store.
+    window.$globalApp.$store.hotUpdate(store);
+  });
+}
 
 // extendStore
 export const extendStore = store instanceof Function ? store : () => {
