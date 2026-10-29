@@ -1,11 +1,37 @@
 import { createStore } from 'vuex';
+import * as rootModule from '../store/index.js';
+import * as actionMenuModule from '../store/action-menu.js';
+import * as authModule from '../store/auth.js';
+import * as awsModule from '../store/aws.js';
+import * as catalogModule from '../store/catalog.ts';
+import * as digitaloceanModule from '../store/digitalocean.js';
+import * as featuresModule from '../store/features.js';
+import * as githubModule from '../store/github.js';
+import * as gitlabModule from '../store/gitlab.js';
+import * as growlModule from '../store/growl.ts';
+import * as i18nModule from '../store/i18n.ts';
+import * as linodeModule from '../store/linode.js';
+import * as modalModule from '../store/modal.ts';
+import * as pluginsModule from '../store/plugins.js';
+import * as pnapModule from '../store/pnap.js';
+import * as prefsModule from '../store/prefs.ts';
+import * as resourceFetchModule from '../store/resource-fetch.js';
+import * as slideInPanelModule from '../store/slideInPanel.ts';
+import * as typeMapModule from '../store/type-map.js';
+import * as uipluginsModule from '../store/uiplugins.ts';
+import * as wmModule from '../store/wm.ts';
+import * as customisationModule from '../store/customisation.js';
+import * as cruResourceModule from '../store/cru-resource.ts';
+import * as notificationsModule from '../store/notifications.ts';
+import * as cookiesModule from '../store/cookies.ts';
+import * as uiContextModule from '../store/ui-context.ts';
 
 const VUEX_PROPERTIES = ['state', 'getters', 'actions', 'mutations'];
 
 let store = {};
 
 (function updateModules() {
-  store = normalizeRoot(require('../store/index.js'), 'store/index.js');
+  store = normalizeRoot(rootModule, 'store/index.js');
 
   // If store is an exported method = classic mode (deprecated)
 
@@ -16,31 +42,31 @@ let store = {};
   // Enforce store modules
   store.modules = store.modules || {};
 
-  resolveStoreModules(require('../store/action-menu.js'), 'action-menu.js');
-  resolveStoreModules(require('../store/auth.js'), 'auth.js');
-  resolveStoreModules(require('../store/aws.js'), 'aws.js');
-  resolveStoreModules(require('../store/catalog.ts'), 'catalog.ts');
-  resolveStoreModules(require('../store/digitalocean.js'), 'digitalocean.js');
-  resolveStoreModules(require('../store/features.js'), 'features.js');
-  resolveStoreModules(require('../store/github.js'), 'github.js');
-  resolveStoreModules(require('../store/gitlab.js'), 'gitlab.js');
-  resolveStoreModules(require('../store/growl.ts'), 'growl.ts');
-  resolveStoreModules(require('../store/i18n.ts'), 'i18n.ts');
-  resolveStoreModules(require('../store/linode.js'), 'linode.js');
-  resolveStoreModules(require('../store/modal.ts'), 'modal.ts');
-  resolveStoreModules(require('../store/plugins.js'), 'plugins.js');
-  resolveStoreModules(require('../store/pnap.js'), 'pnap.js');
-  resolveStoreModules(require('../store/prefs.ts'), 'prefs.ts');
-  resolveStoreModules(require('../store/resource-fetch.js'), 'resource-fetch.js');
-  resolveStoreModules(require('../store/slideInPanel.ts'), 'slideInPanel.ts');
-  resolveStoreModules(require('../store/type-map.js'), 'type-map.js');
-  resolveStoreModules(require('../store/uiplugins.ts'), 'uiplugins.ts');
-  resolveStoreModules(require('../store/wm.ts'), 'wm.ts');
-  resolveStoreModules(require('../store/customisation.js'), 'customisation.js');
-  resolveStoreModules(require('../store/cru-resource.ts'), 'cru-resource.ts');
-  resolveStoreModules(require('../store/notifications.ts'), 'notifications.ts');
-  resolveStoreModules(require('../store/cookies.ts'), 'cookies.ts');
-  resolveStoreModules(require('../store/ui-context.ts'), 'ui-context.ts');
+  resolveStoreModules(actionMenuModule, 'action-menu.js');
+  resolveStoreModules(authModule, 'auth.js');
+  resolveStoreModules(awsModule, 'aws.js');
+  resolveStoreModules(catalogModule, 'catalog.ts');
+  resolveStoreModules(digitaloceanModule, 'digitalocean.js');
+  resolveStoreModules(featuresModule, 'features.js');
+  resolveStoreModules(githubModule, 'github.js');
+  resolveStoreModules(gitlabModule, 'gitlab.js');
+  resolveStoreModules(growlModule, 'growl.ts');
+  resolveStoreModules(i18nModule, 'i18n.ts');
+  resolveStoreModules(linodeModule, 'linode.js');
+  resolveStoreModules(modalModule, 'modal.ts');
+  resolveStoreModules(pluginsModule, 'plugins.js');
+  resolveStoreModules(pnapModule, 'pnap.js');
+  resolveStoreModules(prefsModule, 'prefs.ts');
+  resolveStoreModules(resourceFetchModule, 'resource-fetch.js');
+  resolveStoreModules(slideInPanelModule, 'slideInPanel.ts');
+  resolveStoreModules(typeMapModule, 'type-map.js');
+  resolveStoreModules(uipluginsModule, 'uiplugins.ts');
+  resolveStoreModules(wmModule, 'wm.ts');
+  resolveStoreModules(customisationModule, 'customisation.js');
+  resolveStoreModules(cruResourceModule, 'cru-resource.ts');
+  resolveStoreModules(notificationsModule, 'notifications.ts');
+  resolveStoreModules(cookiesModule, 'cookies.ts');
+  resolveStoreModules(uiContextModule, 'ui-context.ts');
 
   // If the environment supports hot reloading...
 

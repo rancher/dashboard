@@ -13,9 +13,16 @@ import FormValidation from '@shell/mixins/form-validation';
 import { setBrand } from '@shell/config/private-label';
 import { keyBy, mapValues } from 'lodash';
 import { isLocalhost, isServerUrl } from '@shell/utils/validators/setting';
+import DeleteMachineOnFailureAfter from '@shell/edit/management.cattle.io.setting/delete-machine-on-failure-after.vue';
+import SystemDefaultRegistryPullSecrets from '@shell/edit/management.cattle.io.setting/system-default-registry-pull-secrets.vue';
 
 // RadioGroup's value prop casts an empty string to `true`, so an empty enum option needs a value of its own
 const EMPTY_ENUM_OPTION = '__empty__';
+
+const customEditComponents = {
+  [SETTING.DELETE_MACHINE_ON_FAILURE_AFTER]:      DeleteMachineOnFailureAfter,
+  [SETTING.SYSTEM_DEFAULT_REGISTRY_PULL_SECRETS]: SystemDefaultRegistryPullSecrets,
+};
 
 export default {
   components: {
@@ -65,13 +72,7 @@ export default {
       this.canReset = false;
     }
 
-    let component;
-
-    try {
-      component = require(`@shell/edit/management.cattle.io.setting/${ this.value.id }.vue`).default;
-    } catch {}
-
-    this.customEditComponent = component;
+    this.customEditComponent = customEditComponents[this.value.id];
   },
 
   computed: {

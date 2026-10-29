@@ -9,7 +9,7 @@
  * changes nothing.
  */
 import globals from 'globals';
-import { eslintConfigBase } from './eslint.config.base.mjs';
+import { eslintConfigBase, testFiles } from './eslint.config.base.mjs';
 
 // Vue `<script setup>` compiler macros (was `env: { 'vue/setup-compiler-macros': true }`).
 const compilerMacros = {
@@ -207,5 +207,27 @@ export default [
   {
     files: ['**/po/**/*.{js,ts,vue}'],
     rules: { '@typescript-eslint/explicit-module-boundary-types': 'off' },
+  },
+
+  {
+    files:   ['shell/**/*.{js,ts,vue}', 'pkg/**/*.{js,ts,vue}'],
+    ignores: [
+      ...testFiles,
+      'pkg/*/babel.config.js',
+      'pkg/*/vue.config.js',
+      'shell/babel.config.js',
+      'shell/vue.config.js',
+      'shell/vue-config-helper.js',
+      'shell/pkg/auto-import.js',
+      'shell/pkg/babel.config.js',
+      'shell/pkg/shared-codemirror.js',
+      'shell/pkg/vue.config.js',
+      'shell/scripts/**',
+      'shell/server/**',
+    ],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'error',
+      'no-restricted-globals':                 ['error', 'global', 'Buffer', 'setImmediate', 'clearImmediate', '__dirname', '__filename'],
+    },
   },
 ];

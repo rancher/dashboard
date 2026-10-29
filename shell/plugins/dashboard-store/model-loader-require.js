@@ -8,5 +8,6 @@
  * @returns Model for the given type
  */
 export default function modelLoaderRequire(type) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   return require(`@shell/models/${ type }`);
 }

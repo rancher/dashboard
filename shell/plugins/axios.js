@@ -1,4 +1,3 @@
-import https from 'https';
 import { CSRF } from '@shell/config/cookies';
 
 export default function({
@@ -24,10 +23,5 @@ export default function({
     if ( $axios.defaults.baseURL.startsWith('http://') ) {
       $axios.defaults.baseURL = $axios.defaults.baseURL.replace(/^http:/, 'https:');
     }
-
-    const insecureAgent = new https.Agent({ rejectUnauthorized: false });
-
-    $axios.defaults.httpsAgent = insecureAgent;
-    $axios.httpsAgent = insecureAgent;
   }
 }

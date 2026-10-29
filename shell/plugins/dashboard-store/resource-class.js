@@ -44,6 +44,8 @@ import { parse } from '@shell/utils/selector';
 import { useResourceCardRow, useResourceCardRowFromRelationships } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
 
+const ResourceDetailDrawer = markRaw(defineAsyncComponent(() => import('@shell/components/Drawer/ResourceDetailDrawer/index.vue')));
+
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
 const REMAP_STATE = {
@@ -945,7 +947,7 @@ export default class Resource {
     const onClose = () => this.$ctx.commit('slideInPanel/close', undefined, { root: true });
 
     this.$ctx.commit('slideInPanel/open', {
-      component:      require(`@shell/components/Drawer/ResourceDetailDrawer/index.vue`).default,
+      component:      ResourceDetailDrawer,
       componentProps: {
         resource:           this,
         onClose,
