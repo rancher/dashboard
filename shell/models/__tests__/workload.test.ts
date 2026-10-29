@@ -188,6 +188,17 @@ describe('class: Workload', () => {
 
       expect(workload.spec.replicas).toStrictEqual(7);
     });
+
+    it('should keep scaling and not mark it forbidden when the save is forbidden', async() => {
+      const workload = createWorkload(jest.fn().mockRejectedValue({ _status: 403 }));
+
+      Object.defineProperty(workload, 'pods', { get: () => [] });
+
+      await workload[method]().catch(() => {});
+
+      expect(workload.podsCard?.props.showScaling).toBe(true);
+      expect(Object.keys(workload)).not.toContain('_scaleForbidden');
+    });
   });
 
   describe.each([
