@@ -327,7 +327,12 @@ export default {
           key-field="id"
           :table-actions="false"
           :search="false"
-        />
+        >
+          <!-- Deleting a group's binding would take the role from every member. Direct rows render nothing here, so they keep the default menu -->
+          <template #row-actions="{ row }">
+            <span v-if="row.groupPrincipalName" />
+          </template>
+        </SortableTable>
       </Tab>
       <Tab
         v-if="projectBindings"
@@ -344,7 +349,12 @@ export default {
           key-field="id"
           :table-actions="false"
           :search="false"
-        />
+        >
+          <!-- Deleting a group's binding would take the role from every member. Direct rows render nothing here, so they keep the default menu -->
+          <template #row-actions="{ row }">
+            <span v-if="row.groupPrincipalName" />
+          </template>
+        </SortableTable>
       </Tab>
     </ResourceTabs>
   </div>

@@ -13,6 +13,7 @@ interface Binding {
   groupPrincipalName?: string;
   globalRoleName?: string;
   clusterName?: string;
+  projectId?: string;
   metadata?: { creationTimestamp: string };
 }
 
@@ -22,6 +23,8 @@ interface Column {
 }
 
 interface UserDetail {
+  $el: HTMLElement;
+  $nextTick: () => Promise<void>;
   globalBindings: { id: string, hasBound: boolean, grantedVia: string[] }[];
   clusterBindings: Binding[];
   isAdmin: boolean;
@@ -33,6 +36,12 @@ const globalRoles = [
   { id: 'clusters-create', isSpecial: false },
   { id: 'admin', isSpecial: false },
 ];
+
+// Renders each row's action slot, with a button standing in for the table's default action menu
+const SortableTableStub = {
+  props:    { rows: { type: Array, default: () => [] }, rowActions: { type: Boolean, default: true } },
+  template: `<div><div v-for="(row, i) in rows" :key="i" class="row"><slot v-if="rowActions" name="row-actions" :row="row"><button class="default-row-actions" /></slot></div></div>`,
+};
 
 const grb = (globalRoleName: string, subject: Binding): Binding => ({
   globalRoleName,
@@ -47,7 +56,9 @@ describe('view: management.cattle.io.user', () => {
   const load = async({
     globalRoleBindings = [] as Binding[],
     clusterRoleBindings = [] as Binding[],
+    projectRoleBindings = [] as Binding[],
     groups = { [OPS_GROUP]: 'ops' } as Record<string, string>,
+    stubs = { ResourceTabs: { template: '<div />' } } as Record<string, object>,
   } = {}): Promise<UserDetail> => {
     const dispatch = jest.fn((action: string, opt: { type?: string, resource?: object }) => {
       if (action === 'rancher/clone') {
@@ -72,7 +83,10 @@ describe('view: management.cattle.io.user', () => {
       'i18n/t':             (key: string) => key,
       'i18n/exists':        () => true,
       'management/canList': () => true,
-      'management/all':     (type: string) => (type === MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING ? clusterRoleBindings : []),
+      'management/all':     (type: string) => ({
+        [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: clusterRoleBindings,
+        [MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING]: projectRoleBindings,
+      }[type] || []),
     };
 
     const wrapper = shallowMount(DetailUser, {
@@ -84,7 +98,7 @@ describe('view: management.cattle.io.user', () => {
           $router:     { applyQuery: jest.fn() },
           $fetchState: { pending: false },
         },
-        stubs: { ResourceTabs: { template: '<div />' } },
+        stubs,
       },
     });
 
@@ -158,5 +172,24 @@ describe('view: management.cattle.io.user', () => {
 
     expect(vm.clusterBindings).toStrictEqual([direct, viaGroup]);
     expect(vm.clusterBindings.map(grantedVia)).toStrictEqual([DIRECT, 'ops']);
+  });
+
+  it('offers no row actions on cluster and project roles granted through a group', async() => {
+    const vm = await load({
+      clusterRoleBindings: [{ userName: USER_ID, clusterName: 'c-1' }, { groupPrincipalName: OPS_GROUP, clusterName: 'c-2' }],
+      projectRoleBindings: [{ groupPrincipalName: OPS_GROUP, projectId: 'c-1:p-1' }, { userName: USER_ID, projectId: 'c-1:p-2' }],
+      stubs:               {
+        ResourceTabs:  { template: '<div><slot /></div>' },
+        Tab:           { template: '<div><slot /></div>' },
+        SortableTable: SortableTableStub,
+      },
+    });
+
+    await vm.$nextTick();
+
+    const rows = Array.from(vm.$el.querySelectorAll('.row')).slice(globalRoles.length).map((row) => !!row.querySelector('.default-row-actions'));
+
+    // Cluster rows (direct, group), then project rows (group, direct)
+    expect(rows).toStrictEqual([true, false, false, true]);
   });
 });
