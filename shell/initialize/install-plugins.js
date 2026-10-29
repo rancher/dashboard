@@ -18,12 +18,13 @@ import * as intNumber from '@shell/directives/int-number';
 import dashboardClientInit from '@shell/plugins/dashboard-client-init';
 import plugin from '@shell/plugins/plugin';
 import pluginsLoader from '@shell/core/plugins-loader.js';
-import replaceAll from '@shell/plugins/replaceall';
+import '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
 import ShortKey from '@shell/plugins/shortkey';
 import { initUiApis } from '@shell/apis/impl/apis';
 
 import 'floating-vue/dist/style.css';
+import '@xterm/xterm/css/xterm.css';
 import { floatingVueOptions } from '@shell/plugins/floating-vue';
 
 import dynamicContent from '@shell/plugins/dynamic-content';
@@ -58,7 +59,6 @@ export async function installInjectedPlugins(app, vueApp) {
     axiosShell,
     intNumber,
     dashboardClientInit,
-    replaceAll,
     plugin,
     steveCreateWorker,
     dynamicContent,

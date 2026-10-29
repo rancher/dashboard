@@ -1,4 +1,6 @@
 <script>
+import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
+
 export default {
   name:   'EmptyProductPage',
   layout: 'plain',
@@ -20,7 +22,7 @@ export default {
     }
 
     return {
-      img: require('~shell/assets/images/generic-plugin.svg'),
+      img: genericPluginSvg,
       msg,
     };
   },

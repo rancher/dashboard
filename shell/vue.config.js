@@ -200,8 +200,9 @@ const getLoaders = (SHELL_ABS, dir) => [
   },
   // Stop xterm from thinking it runs in Node because of the process polyfill
   {
-    test:   /[\\/]node_modules[\\/]@xterm[\\/]/,
-    loader: path.join(__dirname, 'vue-config-xterm-loader.js'),
+    test:    /[\\/]node_modules[\\/]@xterm[\\/]/,
+    exclude: /\.css$/,
+    loader:  path.join(__dirname, 'vue-config-xterm-loader.js'),
   },
   // Prevent warning in log with the md files in the content folder
   {
@@ -591,7 +592,6 @@ module.exports = function(dir, appConfig = {}) {
             @import "~shell/assets/styles/base/_variables.scss";
             @import "~shell/assets/styles/base/_functions.scss";
             @import "~shell/assets/styles/base/_mixins.scss";
-            @import 'node_modules/@xterm/xterm/css/xterm.css';
           `,
           sassOptions: { charset: false }
         },

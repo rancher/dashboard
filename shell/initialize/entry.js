@@ -27,8 +27,8 @@ installDirectives(vueApp);
 // Bulk install Plugins. Note: Some are added within the App itself
 installPlugins(vueApp);
 
-if (!global.fetch) {
-  global.fetch = fetch;
+if (!globalThis.fetch) {
+  globalThis.fetch = fetch;
 }
 
 loadDebugger(vueApp);

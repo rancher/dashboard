@@ -1,5 +1,8 @@
-import { mount } from '@vue/test-utils';
+import { mount, shallowMount } from '@vue/test-utils';
+import { toRaw } from 'vue';
 import Settings from '@shell/edit/management.cattle.io.setting/index.vue';
+import DeleteMachineOnFailureAfter from '@shell/edit/management.cattle.io.setting/delete-machine-on-failure-after.vue';
+import SystemDefaultRegistryPullSecrets from '@shell/edit/management.cattle.io.setting/system-default-registry-pull-secrets.vue';
 import { SETTING } from '@shell/config/settings';
 import { RadioGroup } from '@components/Form/Radio';
 
@@ -160,5 +163,20 @@ describe('edit: management.cattle.io.setting with radio enum display', () => {
     await wrapper.findComponent(RadioGroup).vm.$emit('update:value', option);
 
     expect((wrapper.props('value') as any).value).toBe(expected);
+  });
+});
+
+describe('edit: management.cattle.io.setting custom editor', () => {
+  it.each([
+    [SETTING.DELETE_MACHINE_ON_FAILURE_AFTER, DeleteMachineOnFailureAfter],
+    [SETTING.SYSTEM_DEFAULT_REGISTRY_PULL_SECRETS, SystemDefaultRegistryPullSecrets],
+    [SETTING.PASSWORD_MIN_LENGTH, undefined],
+  ])('should pick the editor for %p', (id, expected) => {
+    const wrapper = shallowMount(Settings, {
+      props: { value: { id, value: '' } },
+      ...requiredSetup()
+    });
+
+    expect(toRaw(wrapper.vm.customEditComponent)).toStrictEqual(expected);
   });
 });

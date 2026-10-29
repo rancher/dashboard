@@ -2,6 +2,10 @@ import { shallowMount, VueWrapper } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import CruSecret from '@shell/edit/secret/index.vue';
 import GenericSecretData from '@shell/edit/secret/generic.vue';
+import Basic from '@shell/edit/secret/basic.vue';
+import Registry from '@shell/edit/secret/registry.vue';
+import Ssh from '@shell/edit/secret/ssh.vue';
+import Tls from '@shell/edit/secret/tls.vue';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 
@@ -91,5 +95,18 @@ describe('component: CruSecret', () => {
 
       expect(getRules).toHaveBeenCalledWith(path);
     });
+  });
+
+  it.each([
+    [TYPES.OPAQUE, GenericSecretData],
+    [TYPES.DOCKER_JSON, Registry],
+    [TYPES.TLS, Tls],
+    [TYPES.SSH, Ssh],
+    [TYPES.BASIC, Basic],
+  ])('should show the data form for secret type %p', (type, expected) => {
+    const { typeKey, dataComponent } = (CruSecret as any).computed;
+    const key = typeKey.call({ isCloud: false, value: { _type: type } });
+
+    expect(dataComponent.call({ typeKey: key })).toStrictEqual(expected);
   });
 });

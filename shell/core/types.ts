@@ -13,7 +13,7 @@ export interface PackageMetadata {
   name: string;
   version: string;
   description: string;
-  icon: string;
+  icon?: string;
 }
 
 // export interface Route {
@@ -133,7 +133,7 @@ export type Action = {
   disabledTooltipKey?: string;
   disabledTooltip?: string;
   shortcut?: string | ShortCutKey;
-  svg?: Function;
+  svg?: string;
   icon?: string;
   multiple?: boolean;
   /**
