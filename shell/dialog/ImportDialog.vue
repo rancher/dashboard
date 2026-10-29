@@ -145,7 +145,6 @@ export default {
     :show="modal.show"
     size="large"
     data-testid="import-yaml"
-    class="import-dialog-modal"
     @close="close"
   >
     <template #title>
@@ -159,7 +158,7 @@ export default {
         {{ t('import.title') }}
       </span>
     </template>
-    <div class="import-dialog-content">
+    <div>
       <template v-if="!done">
         <Banner
           class="import-instruction-banner"
@@ -227,14 +226,15 @@ export default {
         v-if="done"
         class="button-section"
       >
-        <button
+        <RcButton
+          variant="primary"
+          size="large"
           :aria-label="t('generic.close')"
-          class="btn role-primary"
           data-testid="import-yaml-close"
           @click="close"
         >
           {{ t('generic.close') }}
-        </button>
+        </RcButton>
       </div>
       <div
         v-else
@@ -279,22 +279,6 @@ export default {
         max-height: $max;
       }
     }
-  }
-
-  .import-dialog-modal {
-    box-shadow: none;
-    margin: 14px; // To combine with the 10px padding of the dialog to make it 24px by UX design
-    padding: 10px;
-    gap: 0;
-    width: 75%;
-    max-height: 90vh;
-  }
-
-  .import-dialog-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin-top: 8px;
   }
 
   .import-instruction-banner {
