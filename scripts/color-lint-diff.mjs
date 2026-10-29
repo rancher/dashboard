@@ -11,6 +11,9 @@
  * so moving code does not register as a new color, while a second copy of a baselined color in the same
  * file does.
  *
+ * It also fails when a color that is written out rather than computed has no primitive in
+ * `_color-variables.scss`, so that file lists every color in shell and @rancher/components.
+ *
  * Usage:
  *   node scripts/color-lint-diff.mjs            # check against baseline (CI)
  *   node scripts/color-lint-diff.mjs --update   # regenerate the baseline
@@ -19,23 +22,24 @@
 import { fileURLToPath } from 'node:url';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
+import colorLiterals from '../eslint-plugin-local-rules/color-literals.js';
 
 const REPO_ROOT = path.resolve(fileURLToPath(import.meta.url), '../..');
 const BASELINE_PATH = path.join(REPO_ROOT, 'scripts', 'color-lint-baseline.txt');
 const RULE = 'local-rules/no-color-literal';
 const SCOPES = ['shell', 'pkg/rancher-components'];
+const DESIGN_SYSTEM = `${ path.dirname(colorLiterals.PRIMITIVES_FILE) }/`;
 const ENTRY_RE = /^(.+?):(\d+): (.*)$/;
 
 const relative = (file) => path.relative(REPO_ROOT, file).split(path.sep).join('/');
 const keyOf = ({ file, color }) => `${ file }\0${ color }`;
 
 async function findColors() {
-  const [{ ESLint }, { default: stylelint }, { testFiles }, { default: stylelintConfig }, { default: colorLiterals }] = await Promise.all([
+  const [{ ESLint }, { default: stylelint }, { testFiles }, { default: stylelintConfig }] = await Promise.all([
     import('eslint'),
     import('stylelint'),
     import('../eslint.config.base.mjs'),
     import('../stylelint.config.mjs'),
-    import('../eslint-plugin-local-rules/color-literals.js'),
   ]);
   const colorOf = (text) => colorLiterals.colorInMessage(text) ?? text;
 
@@ -70,7 +74,9 @@ async function findColors() {
       }))),
   ];
 
-  return colors.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.color.localeCompare(b.color));
+  return colors
+    .filter(({ file }) => !file.startsWith(DESIGN_SYSTEM))
+    .sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.color.localeCompare(b.color));
 }
 
 /**
@@ -149,6 +155,20 @@ export function compare(baseline, current) {
   };
 }
 
+/**
+ * Find the colors that are written out but match no primitive. Computed colors can't be resolved here.
+ * @param {{ file: string, line: number, color: string }[]} colors The colors found.
+ * @param {Map<string, string>} primitives The primitives, as `primitivesByKey` returns them.
+ * @returns {{ file: string, line: number, color: string }[]} The colors with no primitive.
+ */
+export function missingPrimitives(colors, primitives) {
+  return colors.filter(({ color }) => {
+    const key = colorLiterals.colorKey(color);
+
+    return key && !primitives.has(key);
+  });
+}
+
 function readBaseline() {
   if (!existsSync(BASELINE_PATH)) {
     console.error(`No baseline found at ${ relative(BASELINE_PATH) }.`);
@@ -161,6 +181,12 @@ function readBaseline() {
 
 async function main() {
   const colors = await findColors();
+  const missing = missingPrimitives(colors, colorLiterals.primitivesByKey(readFileSync(path.join(REPO_ROOT, colorLiterals.PRIMITIVES_FILE), 'utf8')));
+  const reportMissing = () => {
+    console.error(`\n✖ ${ missing.length } color(s) with no primitive in ${ colorLiterals.PRIMITIVES_FILE }:\n`);
+    formatEntries(missing).forEach((entry) => console.error(`  ${ entry }`));
+    console.error('\nEvery color in shell and @rancher/components needs a primitive. Check with UX before adding a new color and giving it a name, then add a primitive for each color above and run \'yarn generate:colors\'.');
+  };
 
   if (process.argv.includes('--update')) {
     const header = [
@@ -172,6 +198,9 @@ async function main() {
 
     writeFileSync(BASELINE_PATH, `${ header }${ formatEntries(colors).join('\n') }\n`);
     console.log(`Wrote baseline with ${ colors.length } colors to ${ relative(BASELINE_PATH) }`);
+    if (missing.length) {
+      reportMissing();
+    }
     process.exit(0);
   }
 
@@ -184,6 +213,10 @@ async function main() {
     console.log(`✔ ${ fixedCount } baseline color(s) no longer present. Consider running 'yarn lint:colors:baseline' to lock in the improvement.`);
   }
 
+  if (missing.length) {
+    reportMissing();
+  }
+
   if (newCount > 0) {
     console.error(`\n✖ ${ newCount } new color(s) introduced:\n`);
     for (const { file, color, lines, allowed } of added) {
@@ -193,11 +226,14 @@ async function main() {
         lines.forEach((line) => console.error(`  ${ file }:${ line }: ${ color }`));
       }
     }
-    console.error('\nUse a theme variable, such as var(--primary), instead. If you decide to add the color, check with UX before adding it and giving it a name, then run \'yarn lint:colors:baseline\' and commit the updated baseline.');
+    console.error('\nUse a theme variable, such as var(--primary), instead. If you decide to add the color, check with UX before adding it and giving it a name, then give it a primitive if it has none, run \'yarn lint:colors:baseline\' and commit the updated baseline.');
+  }
+
+  if (newCount > 0 || missing.length) {
     process.exit(1);
   }
 
-  console.log('✔ No new colors.');
+  console.log('✔ No new colors, and every color has a primitive.');
   process.exit(0);
 }
 

@@ -1,6 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { compare, formatEntries, parseBaseline } from './color-lint-diff.mjs';
+import colorLiterals from '../eslint-plugin-local-rules/color-literals.js';
+import {
+  compare, formatEntries, missingPrimitives, parseBaseline
+} from './color-lint-diff.mjs';
 
 const THEME = 'shell/assets/styles/themes/_light.scss';
 const BUTTON = 'shell/components/Button.vue';
@@ -80,5 +83,26 @@ describe('parseBaseline', () => {
 
   it('rejects a line that is not file:line: color', () => {
     assert.throws(() => parseBaseline('shell/x.scss #fff'), /Malformed baseline line/);
+  });
+});
+
+describe('missingPrimitives', () => {
+  const primitives = colorLiterals.primitivesByKey('$color-white: #ffffff;\n$color-gray-806: #141419;\n$color-white-a15: rgba(255, 255, 255, 0.15);\n');
+  const at = (color) => ({
+    file: THEME, line: 1, color
+  });
+
+  for (const color of ['#FFF', 'white', 'rgb(20, 20, 25)', '255, 255, 255, 0.15']) {
+    it(`accepts ${ color }, which matches a primitive however it is written`, () => {
+      assert.deepStrictEqual(missingPrimitives([at(color)], primitives), []);
+    });
+  }
+
+  it('reports a color that matches no primitive', () => {
+    assert.deepStrictEqual(missingPrimitives([at('#123457')], primitives), [at('#123457')]);
+  });
+
+  it('skips computed colors, which it cannot resolve', () => {
+    assert.deepStrictEqual(missingPrimitives([at('darken($primary, 10%)'), at('rgba(var(--x), 0.5)')], primitives), []);
   });
 });
