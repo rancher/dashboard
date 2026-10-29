@@ -8,7 +8,7 @@ For the colour, spacing, radius and typography tokens these components are built
 
 ## Importing
 
-These aliases are preconfigured by the extension scaffold (tsconfig `paths` + webpack alias) — nothing to set up:
+These aliases are preconfigured by the extension scaffold (tsconfig `paths` + Vite alias), so there is nothing to set up:
 
 | Alias | Points at | Use for |
 |---|---|---|

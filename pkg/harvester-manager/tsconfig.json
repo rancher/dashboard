@@ -50,7 +50,8 @@
     "**/*.vue",
     "../../shell/core/types.ts",
     "../../shell/types/vue-shim.d.ts",
-    "../../shell/types/svg.d.ts"
+    "../../shell/types/svg.d.ts",
+    "../../shell/types/vite-env.d.ts"
   ],
   "exclude": [
     "node_modules"

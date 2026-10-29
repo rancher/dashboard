@@ -1,4 +1,4 @@
-import { COMPAT_SHIM, generateTypeImport, generateDynamicTypeImport } from '@shell/pkg/auto-import';
+import { COMPAT_SHIM } from '@shell/pkg/auto-import';
 
 /**
  * The extension manager. Only 'getPlugins' matters here - the shim uses it as the marker that
@@ -195,23 +195,5 @@ describe('fx: COMPAT_SHIM', () => {
 
       expect(jest.getTimerCount()).toBe(0);
     });
-  });
-});
-
-describe('fx: generateTypeImport', () => {
-  it('should inject the compat shim into the generated importTypes', () => {
-    const content = generateTypeImport('test-pkg', '/does/not/exist');
-
-    expect(content).toContain('export function importTypes($extension) {');
-    expect(content).toContain(COMPAT_SHIM);
-  });
-});
-
-describe('fx: generateDynamicTypeImport', () => {
-  it('should inject the compat shim into the generated importTypes', () => {
-    const content = generateDynamicTypeImport('test-pkg', '/does/not/exist');
-
-    expect(content).toContain('export function importTypes($extension) {');
-    expect(content).toContain(COMPAT_SHIM);
   });
 });

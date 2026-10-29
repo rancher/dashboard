@@ -19,7 +19,7 @@
  *
  * The fixtures deliberately cover the things the starter test does not:
  *   - a shell component that uses `defineProps<ImportedType>()` (needs vue3JestRegisterTs.js)
- *   - the `@components/*` alias (needs the pkg tsconfig path to match the webpack alias)
+ *   - the `@components/*` alias (needs the pkg tsconfig path to match the build's alias)
  *   - an svg import (needs svgTransform.js)
  *   - a `models/` entry, which the extension build auto-registers
  *
