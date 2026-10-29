@@ -13,7 +13,7 @@ import type { RcInputValue } from './types';
 const schema = toTypedSchema(z.object({
   name:   z.string().min(1, 'Name is required'),
   token:  z.string().min(8, 'At least 8 characters'),
-  memory: z.number({ invalid_type_error: 'Memory must be a number' }).min(4, 'At least 4 MiB'),
+  memory: z.number().min(4, 'At least 4 MiB'),
 }));
 
 type FormContext = ReturnType<typeof useForm>;
