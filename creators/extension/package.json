@@ -17,8 +17,6 @@
     "node": ">=24"
   },
   "_requires": [
-    "core-js",
-    "css-loader",
     "@types/lodash",
     "@rancher/components"
   ],
