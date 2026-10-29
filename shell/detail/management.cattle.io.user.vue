@@ -328,7 +328,6 @@ export default {
           :table-actions="false"
           :search="false"
         >
-          <!-- Deleting a group's binding would take the role from every member. Direct rows render nothing here, so they keep the default menu -->
           <template #row-actions="{ row }">
             <span v-if="row.groupPrincipalName" />
           </template>
@@ -350,7 +349,6 @@ export default {
           :table-actions="false"
           :search="false"
         >
-          <!-- Deleting a group's binding would take the role from every member. Direct rows render nothing here, so they keep the default menu -->
           <template #row-actions="{ row }">
             <span v-if="row.groupPrincipalName" />
           </template>
