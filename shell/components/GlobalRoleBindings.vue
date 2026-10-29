@@ -223,7 +223,7 @@ export default {
       this.checkboxChanged();
     },
     /**
-     * Check the roles bound to the user's groups. Unless also bound to the user they're disabled, there's no user binding to add or remove
+     * Note the roles bound to the user's groups. The checkboxes only change the user's own bindings, so these are only named in a tooltip
      */
     updateGroupRoles() {
       this.globalRoleBindings.forEach((grb) => {
@@ -233,33 +233,23 @@ export default {
           this.groupRoles[grb.globalRoleName] = [...new Set([...(this.groupRoles[grb.globalRoleName] || []), group])];
         }
       });
-
-      Object.keys(this.groupRoles).forEach((roleId) => {
-        if (!this.selectedRoles.includes(roleId)) {
-          this.selectedRoles.push(roleId);
-        }
-      });
     },
     roleTooltip(roleId) {
       if (this.assignOnlyRoles[roleId]) {
         return this.t('rbac.globalRoles.assignOnlyRole');
       }
 
-      if (this.isGroupOnlyRole(roleId)) {
-        const groups = this.groupRoles[roleId];
+      const groups = this.groupRoles[roleId];
 
+      if (groups) {
         return this.t('rbac.globalRoles.groupRole', { count: groups.length, groups: groups.join(', ') });
       }
 
       return null;
     },
-    isGroupOnlyRole(roleId) {
-      return !!this.groupRoles[roleId] && !this.startingSelectedRoles.find((startingRole) => startingRole.roleId === roleId);
-    },
     checkboxChanged() {
       const addRoles = this.selectedRoles
-        .filter((selected) => !this.startingSelectedRoles.find((startingRole) => startingRole.roleId === selected))
-        .filter((selected) => !this.isGroupOnlyRole(selected));
+        .filter((selected) => !this.startingSelectedRoles.find((startingRole) => startingRole.roleId === selected));
       const removeBindings = this.startingSelectedRoles
         .filter((startingRole) => !this.selectedRoles.find((selected) => selected === startingRole.roleId))
         .map((startingRole) => startingRole.bindingId);
@@ -404,7 +394,7 @@ export default {
                 <Checkbox
                   v-model:value="selectedRoles"
                   :value-when-true="role.id"
-                  :disabled="!!assignOnlyRoles[role.id] || isGroupOnlyRole(role.id)"
+                  :disabled="!!assignOnlyRoles[role.id]"
                   :label="role.nameDisplay"
                   :description="role.descriptionDisplay"
                   :tooltip="roleTooltip(role.id)"

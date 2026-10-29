@@ -6683,8 +6683,8 @@ rbac:
     assignOnlyRole: This role is already assigned
     groupRole: |-
       {count, plural,
-        one {Granted by the user's group {groups}. To remove it, change the group's roles.}
-        other {Granted by the user's groups {groups}. To remove it, change the groups' roles.}
+        one {The user also has this role through their group {groups}.}
+        other {The user also has this role through their groups {groups}.}
       }
     role:
       admin:

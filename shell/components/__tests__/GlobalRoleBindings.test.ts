@@ -40,7 +40,6 @@ interface RoleChanges {
 interface GlobalRoleBindingsVm {
   selectedRoles: string[];
   groupRoles: Record<string, string[]>;
-  isGroupOnlyRole: (roleId: string) => boolean;
   checkboxChanged: () => void;
   roleChanges: RoleChanges;
 }
@@ -83,7 +82,7 @@ describe('component: GlobalRoleBindings', () => {
     return { wrapper, vm: wrapper.vm as unknown as GlobalRoleBindingsVm };
   };
 
-  it('checks and disables a role that is only bound to one of the user\'s groups', async() => {
+  it('only checks the user\'s own roles and notes the roles bound to their groups', async() => {
     const { vm } = await load({
       globalRoleBindings: [
         {
@@ -98,29 +97,11 @@ describe('component: GlobalRoleBindings', () => {
       ]
     });
 
-    expect(vm.selectedRoles).toStrictEqual(['user', 'users-manage']);
+    expect(vm.selectedRoles).toStrictEqual(['user']);
     expect(vm.groupRoles).toStrictEqual({ 'users-manage': ['ops'] });
-    expect(vm.isGroupOnlyRole('users-manage')).toBe(true);
-    expect(vm.isGroupOnlyRole('user')).toBe(false);
   });
 
-  it('keeps a role enabled when it is bound to the user as well as their group', async() => {
-    const { vm } = await load({
-      globalRoleBindings: [
-        {
-          id: 'grb-1', globalRoleName: 'users-manage', userName: USER_ID
-        },
-        {
-          id: 'grb-2', globalRoleName: 'users-manage', groupPrincipalName: OPS_GROUP
-        },
-      ]
-    });
-
-    expect(vm.selectedRoles).toStrictEqual(['users-manage']);
-    expect(vm.isGroupOnlyRole('users-manage')).toBe(false);
-  });
-
-  it('does not report a change or add a user binding for a group role', async() => {
+  it('adds a user binding when a role the group already grants is checked', async() => {
     const { wrapper, vm } = await load({
       globalRoleBindings: [{
         id: 'grb-2', globalRoleName: 'users-manage', groupPrincipalName: OPS_GROUP
@@ -128,12 +109,11 @@ describe('component: GlobalRoleBindings', () => {
     });
 
     expect(wrapper.emitted('hasChanges')?.at(-1)).toStrictEqual([false]);
-    expect(vm.roleChanges.addRoles).toStrictEqual([]);
 
-    vm.selectedRoles.push('clusters-create');
+    vm.selectedRoles.push('users-manage');
     vm.checkboxChanged();
 
-    expect(vm.roleChanges.addRoles).toStrictEqual(['clusters-create']);
+    expect(vm.roleChanges.addRoles).toStrictEqual(['users-manage']);
     expect(vm.roleChanges.removeBindings).toStrictEqual([]);
   });
 
@@ -184,7 +164,7 @@ describe('component: GlobalRoleBindings', () => {
     expect(wrapper.emitted('canLogIn')?.at(-1)).toStrictEqual([true]);
   });
 
-  it('only gives a tooltip to a role that comes from the user\'s groups alone', async() => {
+  it('gives every role the user\'s groups grant a tooltip, and disables none of them', async() => {
     const { wrapper } = await load({
       globalRoleBindings: [
         {
@@ -204,12 +184,12 @@ describe('component: GlobalRoleBindings', () => {
 
     await nextTick();
 
-    const tooltips = Object.fromEntries(wrapper.findAllComponents(Checkbox).map((c) => [c.props('valueWhenTrue'), c.props('tooltip')]));
+    const checkboxes = Object.fromEntries(wrapper.findAllComponents(Checkbox).map((c) => [c.props('valueWhenTrue'), { tooltip: c.props('tooltip'), disabled: c.props('disabled') }]));
 
-    expect(tooltips).toStrictEqual({
-      user:              null,
-      'users-manage':    'rbac.globalRoles.groupRole',
-      'clusters-create': null,
+    expect(checkboxes).toStrictEqual({
+      user:              { tooltip: null, disabled: false },
+      'users-manage':    { tooltip: 'rbac.globalRoles.groupRole', disabled: false },
+      'clusters-create': { tooltip: 'rbac.globalRoles.groupRole', disabled: false },
     });
   });
 });
