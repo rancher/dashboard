@@ -48,7 +48,7 @@ The focus ring stays blue when the input has an error:
 
 <Canvas of={RcInputStories.Validation} />
 
-Validation messages keep to one line. Validation messages render a "Show more" link to expand the message contents when it is too long; "Show less" collapses an expanded message. Screen readers announce the whole message regardless of expanded state. Aim to keep messages short enough to fit on one line.
+Validation messages wrap to at most two lines, with the icon inline at the start of the first. A message too long for two lines is replaced by a generic summary of its status and a "Show more" button, which opens the full message in a popover. The popover takes the focus, and Escape, Tab or moving the focus away closes it. Screen readers announce the whole message either way. Aim to keep messages short enough to fit on one line.
 
 <Canvas of={RcInputStories.LongValidationMessage} />
 

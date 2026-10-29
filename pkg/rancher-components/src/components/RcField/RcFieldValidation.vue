@@ -2,16 +2,17 @@
 /**
  * A field's validation message and associated status icon.
  *
- * Validation messages keep to one line by default. When a message is too long
- * to fit in one line, a toggle to "Show more"/"Show less" is rendered to
- * expand/collapse the validation message content.
+ * Validation messages wrap to at most two lines. A message too long for two
+ * lines is replaced by a generic summary of its status, with a "Show more"
+ * button that opens the full message in a popover. Screen readers are given
+ * the full message either way.
  *
  * Example:
  *
  * <rc-field-validation id="name-validation" status="error" message="Name is required" />
  */
 import {
-  computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch
+  nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch
 } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
@@ -37,26 +38,41 @@ const props = defineProps<{
 }>();
 
 const text = useTemplateRef<HTMLElement>('text');
+const toggle = useTemplateRef<InstanceType<typeof RcButton>>('toggle');
+const dialog = useTemplateRef<HTMLElement>('dialog');
 
-const expanded = ref(false);
 const truncated = ref(false);
+const open = ref(false);
 
-const showToggle = computed(() => expanded.value || truncated.value);
+const summaryId = `${ props.id }-summary`;
+const popoverId = `${ props.id }-popover`;
 
 const measure = () => {
-  // An expanded message wraps, so it only measures as truncated while collapsed
-  if (expanded.value) {
+  const el = text.value;
+
+  truncated.value = !!el && el.scrollHeight > el.clientHeight + 1;
+};
+
+const close = (returnFocus = false) => {
+  open.value = false;
+
+  if (returnFocus) {
+    toggle.value?.focus();
+  }
+};
+
+// The popover's content renders as it first shows, after the event
+const focusDialog = () => nextTick(() => dialog.value?.focus());
+
+// The toggle closes the popover itself; leaving for anything else closes it here
+const onFocusout = (e: FocusEvent) => {
+  const next = e.relatedTarget as Node | null;
+
+  if (dialog.value?.contains(next) || toggle.value?.$el?.contains(next)) {
     return;
   }
 
-  const el = text.value;
-
-  truncated.value = !!el && el.scrollWidth > el.clientWidth + 1;
-};
-
-const toggle = () => {
-  expanded.value = !expanded.value;
-  nextTick(measure);
+  close();
 };
 
 let observer: ResizeObserver | undefined;
@@ -64,7 +80,7 @@ let observer: ResizeObserver | undefined;
 onMounted(() => {
   measure();
 
-  // The width the line has follows the form's, and with it whether the message fits
+  // The width the message has follows the form's, and with it whether the message fits
   if (typeof ResizeObserver !== 'undefined' && text.value) {
     observer = new ResizeObserver(measure);
     observer.observe(text.value);
@@ -74,7 +90,7 @@ onMounted(() => {
 onBeforeUnmount(() => observer?.disconnect());
 
 watch(() => props.message, () => {
-  expanded.value = false;
+  close();
   nextTick(measure);
 });
 </script>
@@ -82,7 +98,7 @@ watch(() => props.message, () => {
 <template>
   <div
     class="rc-field-validation"
-    :class="[`rc-field-validation-${ props.status }`, { expanded }]"
+    :class="[`rc-field-validation-${ props.status }`, { truncated }]"
   >
     <rc-icon
       class="rc-field-validation-icon"
@@ -101,52 +117,78 @@ watch(() => props.message, () => {
         class="rc-field-validation-message"
       >{{ props.message }}</span>
     </span>
-    <rc-button
-      v-if="showToggle"
-      type="button"
-      variant="link"
-      size="inherit"
-      class="rc-field-validation-toggle"
-      :aria-expanded="expanded"
-      :aria-controls="props.id"
-      @click="toggle"
+    <span
+      v-if="truncated"
+      class="rc-field-validation-summary"
     >
-      {{ expanded ? t('component.rcField.showLess') : t('component.rcField.showMore') }}
-    </rc-button>
+      <span
+        :id="summaryId"
+        aria-hidden="true"
+      >{{ t(`component.rcField.summary.${ props.status }`) }}</span>
+      {{ ' ' }}
+      <v-dropdown
+        class="rc-field-validation-more"
+        no-auto-focus
+        :triggers="[]"
+        :shown="open"
+        :auto-hide="false"
+        placement="bottom-start"
+        @apply-show="focusDialog"
+      >
+        <rc-button
+          ref="toggle"
+          type="button"
+          variant="link"
+          size="inherit"
+          class="rc-field-validation-toggle"
+          aria-haspopup="dialog"
+          :aria-expanded="open"
+          :aria-controls="open ? popoverId : undefined"
+          @click="open = !open"
+        >
+          {{ t('component.rcField.showMore') }}
+        </rc-button>
+        <template #popper>
+          <div
+            :id="popoverId"
+            ref="dialog"
+            role="dialog"
+            tabindex="-1"
+            class="rc-field-validation-popover"
+            :aria-labelledby="summaryId"
+            @focusout="onFocusout"
+            @keydown.escape.stop="close(true)"
+            @keydown.tab.prevent="close(true)"
+          >
+            {{ props.message }}
+          </div>
+        </template>
+      </v-dropdown>
+    </span>
   </div>
 </template>
 
 <style lang="scss" scoped>
+$icon-size: 14px;
+$icon-gap: 8px;
+
 .rc-field-validation {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  position: relative;
   font-weight: 700;
+  white-space: normal;
 
   @each $status in error, warning, success, info {
     &.rc-field-validation-#{$status} {
       color: var(--rc-#{$status});
     }
   }
-
-  &.expanded {
-    align-items: flex-start;
-  }
 }
 
+// Set into the first line's indent, so a second line wraps under it
 .rc-field-validation-icon {
-  flex-shrink: 0;
-
-  .expanded & {
-    // Centred on the first line rather than the whole message
-    margin-top: calc((1lh - 14px) / 2);
-  }
-}
-
-.rc-field-validation-text {
-  display: flex;
-  flex: 1 1 0;
-  min-width: 0;
+  position: absolute;
+  top: calc((1lh - #{$icon-size}) / 2);
+  left: 0;
 }
 
 .rc-field-validation-status {
@@ -161,20 +203,49 @@ watch(() => props.message, () => {
   white-space: nowrap;
 }
 
-.rc-field-validation-message {
-  overflow: hidden;
-  flex: 1 1 0;
-  min-width: 0;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.rc-field-validation-message,
+.rc-field-validation-summary {
+  display: block;
+  text-indent: $icon-size + $icon-gap;
+}
 
-  .expanded & {
-    overflow-wrap: anywhere;
-    white-space: normal;
+.rc-field-validation-message {
+  // Clamped so that it measures whether it needs more than two lines
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
+
+  // Kept laid out at the full width to measure, and readable by screen readers, but not seen
+  .truncated & {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    clip-path: inset(50%);
+    pointer-events: none;
   }
 }
 
-.rc-field-validation-toggle {
-  flex-shrink: 0;
+.rc-field-validation-more {
+  display: inline;
+  text-indent: 0;
+}
+
+.rc-field-validation-popover {
+  box-sizing: border-box;
+  max-width: 320px;
+  padding: 12px 16px;
+  color: var(--body-text);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+
+  &:focus-visible {
+    @include focus-outline;
+  }
 }
 </style>

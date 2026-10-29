@@ -10066,7 +10066,11 @@ component:
   rcField:
     reset: Reset
     showMore: Show more
-    showLess: Show less
+    summary:
+      error: There is a problem with this value.
+      warning: There is a warning about this value.
+      success: This value is valid.
+      info: There is a note about this value.
     status:
       error: 'Error:'
       warning: 'Warning:'

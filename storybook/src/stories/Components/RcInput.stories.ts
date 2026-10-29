@@ -297,6 +297,12 @@ export const LongValidationMessage: Story = {
           validation-message="The name must be unique within its namespace and contain only lowercase letters, numbers and hyphens."
           helper-text="The helper text wraps as usual."
         />
+        <RcInput
+          v-model="value"
+          label="Too long for two lines"
+          validation-message="The name must be unique within its namespace, contain only lowercase letters, numbers and hyphens, start and end with a letter or number, and be no longer than 63 characters so that it can be used as a DNS label."
+          helper-text="The helper text wraps as usual."
+        />
       </div>`,
   }),
 };
