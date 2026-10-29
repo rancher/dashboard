@@ -115,6 +115,25 @@
         "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.12/index.html",
         "ui-index": "https://releases.rancher.com/ui/release-2.12/index.html"
       }
+    },
+    "release-2.11": {
+      "milestone": {
+        "version": "v2.11.19",
+        "codeFreeze": true 
+      },
+      "e2e": {
+        "rancher-image": {
+          "registry": "stgregistry.suse.com",
+          "namespace": "rancher",
+          "name": "rancher",
+          "tag": "v2.11-head"
+        }
+      },
+      "rancher-rancher-repo": {
+        "branch": "release/v2.11",
+        "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.11/index.html",
+        "ui-index": "https://releases.rancher.com/ui/release-2.11/index.html"
+      }
     }
   }
 }
