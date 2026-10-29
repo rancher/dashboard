@@ -3,6 +3,8 @@ import { NORMAN } from '@shell/config/types';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import MembershipEditor from '@shell/components/form/Members/MembershipEditor';
 
+export { canViewClusterMembershipEditor } from '@shell/utils/membership-permissions';
+
 export default {
   components: { MembershipEditor },
 

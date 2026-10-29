@@ -307,7 +307,7 @@ ShortKey.keyDown = (pKey) => {
   }
 };
 
-if (process && process.env && process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test') {
   (function() {
     document.addEventListener('keydown', (pKey) => {
       const decodedKey = ShortKey.decodeKey(pKey);
