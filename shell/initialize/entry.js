@@ -5,6 +5,7 @@ import { loadDebugger, mountApp } from '@shell/initialize/entry-helpers';
 import { installDirectives } from '@shell/initialize/install-directives.js';
 import { installComponents } from '@shell/initialize/install-components.js';
 import { installPlugins } from '@shell/initialize/install-plugins.js';
+import { installModels } from '@shell/initialize/install-models.js';
 import App from '@shell/initialize/App.vue';
 import { createApp } from 'vue';
 import { TABLE_VIEWS_SHELL, TABLE_VIEWS_SHELL_KEY } from '@shell/utils/table-views/feature';
@@ -26,6 +27,8 @@ installDirectives(vueApp);
 
 // Bulk install Plugins. Note: Some are added within the App itself
 installPlugins(vueApp);
+
+installModels();
 
 if (!globalThis.fetch) {
   globalThis.fetch = fetch;
