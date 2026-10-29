@@ -101,12 +101,15 @@ watch(() => props.message, () => {
     class="rc-field-validation"
     :class="[`rc-field-validation-${ props.status }`, { truncated }]"
   >
-    <rc-icon
-      class="rc-field-validation-icon"
-      :type="ICONS[props.status]"
-      :status="props.status"
-      size="small"
-    />
+    <span class="rc-field-validation-icon">
+      <span class="rc-field-validation-glyph">
+        <rc-icon
+          :type="ICONS[props.status]"
+          :status="props.status"
+          size="small"
+        />
+      </span>
+    </span>
     <span
       :id="props.id"
       class="rc-field-validation-text"
@@ -185,11 +188,23 @@ $icon-gap: 8px;
   }
 }
 
-// Set into the first line's indent, so a second line wraps under it
+// Set into the first line's indent, so a second line wraps under it. The
+// wrapper's line has the same baseline as the message's first line.
 .rc-field-validation-icon {
   position: absolute;
-  top: calc((1lh - #{$icon-size}) / 2);
+  top: 0;
   left: 0;
+}
+
+// Centred on the message's capitals rather than its line, which for the small
+// size's short text sits the icon low. With overflow hidden its baseline is
+// its bottom edge, and it keeps the message's font for the cap height.
+.rc-field-validation-glyph {
+  display: inline-flex;
+  overflow: hidden;
+  width: $icon-size;
+  height: $icon-size;
+  vertical-align: calc(0.5cap - #{$icon-size} / 2);
 }
 
 .rc-field-validation-status {
@@ -250,3 +265,4 @@ $icon-gap: 8px;
   }
 }
 </style>
+

@@ -52,7 +52,7 @@ describe('component: RcFieldValidation', () => {
     const wrapper = mountValidation({ status });
 
     expect(wrapper.classes()).toContain(`rc-field-validation-${ status }`);
-    expect(wrapper.find('.rc-field-validation-icon').classes()).toContain(icon);
+    expect(wrapper.find('.rc-field-validation-icon .rc-icon').classes()).toContain(icon);
   });
 
   it('offers no toggle or summary while the message fits in two lines', () => {
