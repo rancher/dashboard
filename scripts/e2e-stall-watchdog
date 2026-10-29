@@ -6,10 +6,9 @@
 # quiet for E2E_STALL_MINUTES, this prints what the runner, Chrome and Rancher look like, kills the run
 # and retries once with the specs that had not finished.
 #
-# Usage: e2e-stall-watchdog "<cypress run command>" "<cypress run args to reuse on retry, without --spec>"
+# Usage: e2e-stall-watchdog "<cypress run command>"
 
 COMMAND="$1"
-RETRY_ARGS="$2"
 STALL_SECONDS=$(( ${E2E_STALL_MINUTES:-20} * 60 ))
 POLL_SECONDS=5
 LOG_DIR=$(mktemp -d)
@@ -23,7 +22,8 @@ print_diagnostics() {
   df -h / /tmp
 
   echo "--- Cypress and Chrome processes"
-  ps -eo pid,ppid,pgid,etimes,pcpu,rss,stat,args --forest | grep -iE 'cypress|chrome' | grep -v grep | cut -c1-250
+  # [c] keeps this grep out of the list without dropping the Cypress lines that contain grepTags
+  ps -eo pid,ppid,pgid,etimes,pcpu,rss,stat,args --forest | grep -iE '[c]ypress|[c]hrome' | cut -c1-250
 
   echo "--- Kernel OOM kills and crashes"
   sudo -n dmesg -T 2>/dev/null | grep -iE 'out of memory|killed process|segfault' | tail -n 20
@@ -40,12 +40,14 @@ print_diagnostics() {
   echo "::endgroup::"
 }
 
-# Runs a command in its own process group, streaming its output. Returns its exit code, or 124 when the
-# output stalled and the run was killed.
+# Runs a command in its own process group, streaming its output. Returns its exit code. When the output
+# stalls it kills the run and sets STALLED=1, since Cypress exits with its failed-test count and any exit
+# code could be a normal finish.
 run_attempt() {
   local cmd="$1" log="$2"
   local pid tail_pid size last_size=-1 quiet=0 longest=0
 
+  STALLED=0
   : > "$log"
   setsid bash -c "$cmd" > "$log" 2>&1 &
   pid=$!
@@ -66,6 +68,8 @@ run_attempt() {
     if [ "$quiet" -ge "$STALL_SECONDS" ]; then
       sleep 1
       echo "[watchdog] No Cypress output for ${quiet}s - stall detected"
+      # Shows on the run summary, which stays green when the retry recovers
+      echo "::warning title=Cypress stall::No Cypress output for ${quiet}s, see the [watchdog] lines in this job's log"
       print_diagnostics
       kill -TERM -- "-$pid" 2>/dev/null
       sleep 10
@@ -75,8 +79,9 @@ run_attempt() {
       wait "$pid" 2>/dev/null
       kill "$tail_pid" 2>/dev/null
       wait "$tail_pid" 2>/dev/null
+      STALLED=1
 
-      return 124
+      return 1
     fi
   done
 
@@ -89,19 +94,42 @@ run_attempt() {
   return $rc
 }
 
-# The spec list Cypress prints in its "Searched:" box, which wraps over several lines
-searched_specs() {
-  awk '
-    /│ Searched:/ { on = 1; sub(/.*│ Searched:/, ""); print; next }
-    on && (/│ [A-Za-z]/ || /└/) { exit }
-    on { sub(/^[^│]*│/, ""); print }
-  ' "$1" | sed 's/│//g' | tr -d ' \n'
+# Prints the spec file a "Running:" path names. Cypress cuts long paths short, so a path that is not a
+# file stands for the one file it starts.
+spec_file() {
+  local match matches=()
+
+  if [ -f "$1" ]; then
+    echo "$1"
+    return
+  fi
+  for match in "$1"*; do
+    [ -f "$match" ] && matches+=("$match")
+  done
+  [ "${#matches[@]}" = 1 ] && echo "${matches[0]}"
+}
+
+# "Running:" shows spec paths relative to the folder all the run's specs share. Prints that folder: the
+# one under cypress/e2e that holds every spec given, or nothing when no folder or more than one does.
+spec_root() {
+  local match root spec ok roots=()
+
+  while IFS= read -r match; do
+    root="${match%"$1"*}"
+    ok=true
+    for spec in "$@"; do
+      [ -n "$(spec_file "$root$spec")" ] || ok=false
+    done
+    [ "$ok" = true ] && [[ " ${roots[*]} " != *" $root "* ]] && roots+=("$root")
+  done < <(find cypress/e2e -type f -path "*/$1*")
+
+  [ "${#roots[@]}" = 1 ] && echo "${roots[0]}"
 }
 
 FIRST_LOG="$LOG_DIR/attempt-1.log"
 run_attempt "$COMMAND" "$FIRST_LOG"
 rc=$?
-[ "$rc" -ne 124 ] && exit "$rc"
+[ "$STALLED" = 0 ] && exit "$rc"
 
 # Cypress colours its output in CI, so parse a copy without the colour codes
 PLAIN_LOG="$LOG_DIR/attempt-1.plain.log"
@@ -109,30 +137,26 @@ sed -E 's/\x1b\[[0-9;]*m//g' "$FIRST_LOG" > "$PLAIN_LOG"
 
 # Every spec Cypress started except the last one finished
 mapfile -t started < <(grep -oE 'Running: +[^ ]+ +\([0-9]+ of [0-9]+\)' "$PLAIN_LOG" | awk '{ print $2 }')
-finished=()
-[ "${#started[@]}" -gt 1 ] && finished=("${started[@]:0:${#started[@]}-1}")
 failed_before=$(grep -oE 'Failing: +[0-9]+' "$PLAIN_LOG" | awk '{ s += $2 } END { print s + 0 }')
 
-retry_cmd="$COMMAND"
-spec_count=$(grep -oE 'Specs: +[0-9]+ found' "$PLAIN_LOG" | head -n 1 | awk '{ print $2 }')
-IFS=',' read -r -a all_specs <<< "$(searched_specs "$PLAIN_LOG")"
+# Keep the first attempt's videos and screenshots, which Cypress otherwise deletes when the retry starts.
+# Cypress reads one --config only, so everything the retry changes goes in this one.
+retry_config='"trashAssetsBeforeRuns":false'
 
-if [ "${#finished[@]}" -gt 0 ] && [ "${#all_specs[@]}" = "$spec_count" ] && [[ "${all_specs[*]}" != *'*'* ]]; then
-  remaining=()
-  for spec in "${all_specs[@]}"; do
-    done_already=false
-    for f in "${finished[@]}"; do
-      [[ "$spec" == "$f" || "$spec" == */"$f" ]] && done_already=true
-    done
-    [ "$done_already" = false ] && remaining+=("$spec")
+root=""
+[ "${#started[@]}" -gt 1 ] && root=$(spec_root "${started[@]}")
+
+if [ -n "$root" ]; then
+  finished=("${started[@]:0:${#started[@]}-1}")
+  excluded=""
+  for spec in "${finished[@]}"; do
+    excluded="$excluded,\"$(spec_file "$root$spec")\""
   done
-  remaining_list=$(IFS=','; echo "${remaining[*]}")
-  retry_cmd="cypress run --spec \"$remaining_list\" $RETRY_ARGS"
-  echo "[watchdog] ${#finished[@]} of $spec_count specs finished before the stall ($failed_before failing tests)"
+  retry_config="$retry_config,\"excludeSpecPattern\":[${excluded:1}]"
+  echo "[watchdog] ${#finished[@]} specs finished before the stall ($failed_before failing tests)"
 fi
 
-# Keep the first attempt's videos and screenshots, which Cypress otherwise deletes when the retry starts
-retry_cmd="$retry_cmd --config trashAssetsBeforeRuns=false"
+retry_cmd="$COMMAND --config '{$retry_config}'"
 
 # The mochawesome reporter clears its folder when a run starts, so keep the first attempt's reports
 [ -d "$REPORT_DIR" ] && mv "$REPORT_DIR" "$LOG_DIR/reports-attempt-1"
@@ -147,7 +171,7 @@ if ls "$LOG_DIR"/reports-attempt-1/.jsons/*.json >/dev/null 2>&1; then
   mv "$LOG_DIR"/reports-attempt-1/.jsons/*.json "$REPORT_DIR/attempt-1/"
 fi
 
-if [ "$rc" -eq 124 ]; then
+if [ "$STALLED" = 1 ]; then
   echo "[watchdog] Cypress stalled again on the retry - giving up"
   exit 1
 fi
