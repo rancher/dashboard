@@ -129,7 +129,7 @@ export default class ClusterScan extends SteveModel {
   async downloadLatestReport() {
     const reports = await this.getReports() || [];
     const report = sortBy(reports, 'metadata.creationTimestamp', true)[0];
-    const Papa = await import(/* webpackChunkName: "csv" */'papaparse');
+    const Papa = await import('papaparse');
 
     try {
       const testResults = (report.aggregatedTests || []).map((result) => {
@@ -150,7 +150,7 @@ export default class ClusterScan extends SteveModel {
     const toZip = {};
     const reports = await this.getReports() || [];
 
-    const Papa = await import(/* webpackChunkName: "csv" */'papaparse');
+    const Papa = await import('papaparse');
 
     reports.forEach((report) => {
       try {
@@ -211,7 +211,7 @@ export default class ClusterScan extends SteveModel {
         return empty;
       }
 
-      const jsyaml = await import(/* webpackChunkName: "js-yaml" */'js-yaml');
+      const jsyaml = await import('js-yaml');
       const parsed = jsyaml.load(raw) || {};
       const { checks = {}, ...rest } = parsed;
 
@@ -230,7 +230,7 @@ export default class ClusterScan extends SteveModel {
     try {
       const benchmark = await this._resolveBenchmark();
       const { metadata, decorations } = await this._resolveExportMetadata(benchmark);
-      const { generateXCCDFPerNode } = await import(/* webpackChunkName: "xccdf" */'@shell/utils/xccdf');
+      const { generateXCCDFPerNode } = await import('@shell/utils/xccdf');
 
       const parsed = report.parsedReport || {};
       const common = {
@@ -273,7 +273,7 @@ export default class ClusterScan extends SteveModel {
     try {
       const benchmark = await this._resolveBenchmark();
       const { metadata, decorations } = await this._resolveExportMetadata(benchmark);
-      const { generateXCCDFPerNode } = await import(/* webpackChunkName: "xccdf" */'@shell/utils/xccdf');
+      const { generateXCCDFPerNode } = await import('@shell/utils/xccdf');
 
       const hasParsedNodes = reports.some((report) => Object.entries(report.parsedReport?.nodes || {}).length);
 
