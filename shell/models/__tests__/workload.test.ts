@@ -208,11 +208,11 @@ describe('class: Workload', () => {
     const view = 'https://rancher/k8s/clusters/c-1/apis/apps/v1/namespaces/default/deployments/test-workload';
     const mockPod = { metadata: { name: 'pod-1', namespace: 'default' } };
 
-    const createWorkload = (dispatch: jest.Mock) => {
+    const createWorkload = (dispatch: jest.Mock, links: Record<string, string> = { view }) => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
         metadata: { name: 'test-workload', namespace: 'default' },
-        links:    { view },
+        links,
         spec:     { replicas }
       }, {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
@@ -244,6 +244,24 @@ describe('class: Workload', () => {
       });
       expect(workload.save).not.toHaveBeenCalled();
       expect(workload.spec.replicas).toStrictEqual(expected);
+    });
+
+    it('should patch the workload itself when the patch link is present', async() => {
+      const dispatch = jest.fn().mockResolvedValue({});
+      const workload = createWorkload(dispatch, { view, patch: 'https://rancher/v1/apps.deployments/default/test-workload' });
+
+      await workload[method]();
+
+      expect(dispatch).toHaveBeenCalledWith('request', {
+        opt: {
+          url:     view,
+          method:  'patch',
+          headers: { 'content-type': 'application/strategic-merge-patch+json' },
+          data:    { spec: { replicas: expected } },
+        },
+        type: WORKLOAD_TYPES.DEPLOYMENT,
+      });
+      expect(workload.save).not.toHaveBeenCalled();
     });
 
     it('should go back to the previous replica count when the patch fails', async() => {
