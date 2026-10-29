@@ -7019,6 +7019,7 @@ selectOrCreateAuthSecret:
     appId: GitHub App ID
     installationId: GitHub App Installation ID
     privateKey: GitHub App Private Key
+  namespace: Namespace
   namespaceGroup: "Namespace: {name}"
   chooseExisting: "Choose an existing secret:"
   createSsh: Create an SSH Key Secret
