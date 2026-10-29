@@ -15,7 +15,6 @@
     "preserveSymlinks": true,
     "types": [
       "node",
-      "webpack-env",
       "@types/node",
       "@types/jest",
     ],
