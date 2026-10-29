@@ -6,7 +6,6 @@
  *
  * <rc-input-action icon="close" :label="t('component.rcInput.clear')" size="medium" @click="clear" />
  */
-import { computed } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 import type { RcIconType } from '@components/RcIcon/types';
@@ -28,8 +27,6 @@ const props = withDefaults(defineProps<{
    */
   size?: RcFieldSize;
 }>(), { size: 'medium' });
-
-const iconSize = computed(() => (props.size === 'small' ? 'small' : 'medium'));
 </script>
 
 <template>
@@ -37,12 +34,29 @@ const iconSize = computed(() => (props.size === 'small' ? 'small' : 'medium'));
     type="button"
     variant="ghost"
     size="inherit"
-    class="rc-input-action"
+    :class="['rc-input-action', `rc-input-action-${ props.size }`]"
     :aria-label="props.label"
   >
     <rc-icon
       :type="props.icon"
-      :size="iconSize"
+      size="inherit"
     />
   </rc-button>
 </template>
+
+<style lang="scss" scoped>
+// RcIcon has no 12px size, so the icon takes the button's font size
+.rc-input-action {
+  &.rc-input-action-small {
+    font-size: 12px;
+  }
+
+  &.rc-input-action-medium {
+    font-size: 14px;
+  }
+
+  &.rc-input-action-large {
+    font-size: 16px;
+  }
+}
+</style>
