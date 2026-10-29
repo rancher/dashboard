@@ -1,5 +1,7 @@
+import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import GlobalRoleBindings from '@shell/components/GlobalRoleBindings.vue';
+import { Checkbox } from '@components/Form/Checkbox';
 import { MANAGEMENT } from '@shell/config/types';
 import { _EDIT } from '@shell/config/query-params';
 
@@ -72,6 +74,7 @@ describe('component: GlobalRoleBindings', () => {
           },
           $fetchState: { pending: false },
         },
+        stubs: { Card: { template: '<div><slot name="title" /><slot name="body" /></div>' } },
       },
     });
 
@@ -159,5 +162,54 @@ describe('component: GlobalRoleBindings', () => {
 
     expect(vm.selectedRoles).toStrictEqual(['user']);
     expect(vm.groupRoles).toStrictEqual({});
+  });
+
+  it('removes only the direct binding when a role the group also grants is unchecked, and the user can still log in', async() => {
+    const { wrapper, vm } = await load({
+      globalRoleBindings: [
+        {
+          id: 'grb-1', globalRoleName: 'user', userName: USER_ID
+        },
+        {
+          id: 'grb-2', globalRoleName: 'user', groupPrincipalName: OPS_GROUP
+        },
+      ]
+    });
+
+    vm.selectedRoles.splice(vm.selectedRoles.indexOf('user'), 1);
+    vm.checkboxChanged();
+
+    expect(vm.roleChanges.addRoles).toStrictEqual([]);
+    expect(vm.roleChanges.removeBindings).toStrictEqual(['grb-1']);
+    expect(wrapper.emitted('canLogIn')?.at(-1)).toStrictEqual([true]);
+  });
+
+  it('gives each checkbox a tooltip saying where a group role comes from', async() => {
+    const { wrapper } = await load({
+      globalRoleBindings: [
+        {
+          id: 'grb-1', globalRoleName: 'user', userName: USER_ID
+        },
+        {
+          id: 'grb-2', globalRoleName: 'users-manage', groupPrincipalName: OPS_GROUP
+        },
+        {
+          id: 'grb-3', globalRoleName: 'clusters-create', userName: USER_ID
+        },
+        {
+          id: 'grb-4', globalRoleName: 'clusters-create', groupPrincipalName: OPS_GROUP
+        },
+      ]
+    });
+
+    await nextTick();
+
+    const tooltips = Object.fromEntries(wrapper.findAllComponents(Checkbox).map((c) => [c.props('valueWhenTrue'), c.props('tooltip')]));
+
+    expect(tooltips).toStrictEqual({
+      user:              null,
+      'users-manage':    'rbac.globalRoles.groupRole',
+      'clusters-create': 'rbac.globalRoles.directAndGroupRole',
+    });
   });
 });

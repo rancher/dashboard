@@ -240,6 +240,21 @@ export default {
         }
       });
     },
+    roleTooltip(roleId) {
+      const groups = this.groupRoles[roleId];
+
+      if (this.assignOnlyRoles[roleId]) {
+        return this.t('rbac.globalRoles.assignOnlyRole');
+      }
+
+      if (groups) {
+        const key = this.isGroupOnlyRole(roleId) ? 'rbac.globalRoles.groupRole' : 'rbac.globalRoles.directAndGroupRole';
+
+        return this.t(key, { count: groups.length, groups: groups.join(', ') });
+      }
+
+      return null;
+    },
     isGroupOnlyRole(roleId) {
       return !!this.groupRoles[roleId] && !this.startingSelectedRoles.find((startingRole) => startingRole.roleId === roleId);
     },
@@ -306,7 +321,7 @@ export default {
 
       Object.values(this.sortedRoles).forEach((roles) => {
         roles.forEach((mappedRole) => {
-          if (this.selectedRoles.includes(mappedRole.id)) {
+          if (this.selectedRoles.includes(mappedRole.id) || this.groupRoles[mappedRole.id]) {
             addObjects(allRolesRules, mappedRole.rules || []);
           }
         });
@@ -394,27 +409,12 @@ export default {
                   :disabled="!!assignOnlyRoles[role.id] || isGroupOnlyRole(role.id)"
                   :label="role.nameDisplay"
                   :description="role.descriptionDisplay"
+                  :tooltip="roleTooltip(role.id)"
+                  use-body-text-color
                   :mode="mode"
                   :data-testId="'grb-checkbox-' + role.id"
                   @update:value="checkboxChanged"
-                >
-                  <template #label>
-                    <div class="checkbox-label-slot">
-                      <span class="checkbox-label">{{ role.nameDisplay }}</span>
-                      <i
-                        v-if="!!assignOnlyRoles[role.id]"
-                        v-clean-tooltip="t('rbac.globalRoles.assignOnlyRole')"
-                        class="checkbox-info icon icon-info icon-lg"
-                      />
-                      <i
-                        v-else-if="groupRoles[role.id]"
-                        v-clean-tooltip="t('rbac.globalRoles.groupRole', { count: groupRoles[role.id].length, groups: groupRoles[role.id].join(', ') })"
-                        class="checkbox-info icon icon-info icon-lg"
-                        :data-testid="'grb-group-role-' + role.id"
-                      />
-                    </div>
-                  </template>
-                </Checkbox>
+                />
               </div>
             </div>
           </template>
@@ -452,15 +452,6 @@ export default {
 
       &--global {
         grid-template-columns: 100%;
-      }
-
-      .checkbox-label {
-        &-slot {
-          display: inline-flex;
-          align-items: center;
-        }
-        color: var(--body-text);
-        margin: 0;
       }
     }
   }
