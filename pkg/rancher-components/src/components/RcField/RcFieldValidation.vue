@@ -137,6 +137,7 @@ watch(() => props.message, () => {
         :shown="open"
         :auto-hide="false"
         placement="bottom-start"
+        popper-class="rc-field-validation-popper"
         @apply-show="focusDialog"
       >
         <rc-button
@@ -252,7 +253,6 @@ $icon-gap: 8px;
 .rc-field-validation-popover {
   box-sizing: border-box;
   max-width: 320px;
-  padding: 12px 16px;
   color: var(--body-text);
   font-size: 14px;
   font-weight: 400;
@@ -266,3 +266,52 @@ $icon-gap: 8px;
 }
 </style>
 
+<style lang="scss">
+// The popper draws the border, so floating-vue's arrow, which expects it on
+// the inner box, leaves the caret without one. The caret is a border colored
+// triangle with a background colored one a pixel inside it.
+.v-popper__popper.rc-field-validation-popper {
+  $size: 7px;
+
+  .v-popper__arrow-outer,
+  .v-popper__arrow-inner {
+    left: 0;
+    border-width: $size;
+    visibility: visible;
+  }
+
+  &[data-popper-placement^='top'] {
+    .v-popper__arrow-outer,
+    .v-popper__arrow-inner {
+      border-bottom-width: 0;
+    }
+
+    .v-popper__arrow-outer {
+      top: 0;
+      border-top-color: var(--border);
+    }
+
+    .v-popper__arrow-inner {
+      top: -1px;
+      border-top-color: var(--popover-bg);
+    }
+  }
+
+  &[data-popper-placement^='bottom'] {
+    .v-popper__arrow-outer,
+    .v-popper__arrow-inner {
+      border-top-width: 0;
+    }
+
+    .v-popper__arrow-outer {
+      top: -$size;
+      border-bottom-color: var(--border);
+    }
+
+    .v-popper__arrow-inner {
+      top: 1px - $size;
+      border-bottom-color: var(--popover-bg);
+    }
+  }
+}
+</style>
