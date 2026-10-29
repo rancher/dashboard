@@ -6686,11 +6686,6 @@ rbac:
         one {Granted by the user's group {groups}. To remove it, change the group's roles.}
         other {Granted by the user's groups {groups}. To remove it, change the groups' roles.}
       }
-    directAndGroupRole: |-
-      {count, plural,
-        one {Also granted by the user's group {groups}. Unchecking it removes only the role assigned to the user.}
-        other {Also granted by the user's groups {groups}. Unchecking it removes only the role assigned to the user.}
-      }
     role:
       admin:
         label: Administrator

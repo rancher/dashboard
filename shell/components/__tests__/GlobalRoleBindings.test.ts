@@ -184,7 +184,7 @@ describe('component: GlobalRoleBindings', () => {
     expect(wrapper.emitted('canLogIn')?.at(-1)).toStrictEqual([true]);
   });
 
-  it('gives each checkbox a tooltip saying where a group role comes from', async() => {
+  it('only gives a tooltip to a role that comes from the user\'s groups alone', async() => {
     const { wrapper } = await load({
       globalRoleBindings: [
         {
@@ -209,7 +209,7 @@ describe('component: GlobalRoleBindings', () => {
     expect(tooltips).toStrictEqual({
       user:              null,
       'users-manage':    'rbac.globalRoles.groupRole',
-      'clusters-create': 'rbac.globalRoles.directAndGroupRole',
+      'clusters-create': null,
     });
   });
 });

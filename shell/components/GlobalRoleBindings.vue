@@ -241,16 +241,14 @@ export default {
       });
     },
     roleTooltip(roleId) {
-      const groups = this.groupRoles[roleId];
-
       if (this.assignOnlyRoles[roleId]) {
         return this.t('rbac.globalRoles.assignOnlyRole');
       }
 
-      if (groups) {
-        const key = this.isGroupOnlyRole(roleId) ? 'rbac.globalRoles.groupRole' : 'rbac.globalRoles.directAndGroupRole';
+      if (this.isGroupOnlyRole(roleId)) {
+        const groups = this.groupRoles[roleId];
 
-        return this.t(key, { count: groups.length, groups: groups.join(', ') });
+        return this.t('rbac.globalRoles.groupRole', { count: groups.length, groups: groups.join(', ') });
       }
 
       return null;
