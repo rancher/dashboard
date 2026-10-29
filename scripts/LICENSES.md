@@ -3,7 +3,7 @@
 The dashboard ships a `licenses.json` file listing every third-party npm
 package that ends up in the bundle, along with the full text of each
 package's license. The `/licenses` page in the app loads it with a dynamic
-`import()`, so webpack bundles it into its own async chunk — it's part of the
+`import()`, so the build puts it in its own async chunk; it's part of the
 app build (no separate file to serve or host) but is only downloaded when the
 page is opened.
 
@@ -15,7 +15,7 @@ not listed at all.
 
 - `shell/assets/licenses/licenses.json` — the committed bundle, imported by
   `shell/pages/licenses.vue`.
-- `scripts/analyze-licenses` — generates `licenses.json` from a webpack build.
+- `scripts/analyze-licenses` — generates `licenses.json` from a dashboard build.
 
 ## Shape
 
@@ -36,10 +36,12 @@ node ./scripts/analyze-licenses -u
 git add shell/assets/licenses/licenses.json
 ```
 
-`ANALYZE_LICENSES=true` tells [`shell/vue.config.js`](../shell/vue.config.js)
-to emit `dist/report.json` via `webpack-bundle-analyzer`. The script reads
-that report to enumerate the packages that actually made it into the bundle
-(transitive deps included), resolves each one's license text from — in
+`ANALYZE_LICENSES=true` tells [`shell/vite.config.mjs`](../shell/vite.config.mjs)
+to emit `dist/report.json` (see `shell/vite/bundle-report.mjs`), listing every
+module in the bundle and the source file of every asset in the shape of
+`webpack-bundle-analyzer`'s JSON report. The script reads that report to
+enumerate the packages that actually made it into the bundle (transitive deps
+included, and packages that only ship assets such as fonts), resolves each one's license text from — in
 order — its `LICENSE` file, its README's `License` section, or GitHub's
 Contents API, and (with `-u`) writes the result to
 `shell/assets/licenses/licenses.json`.
@@ -86,7 +88,7 @@ analyzer-enabled build and then the script with no flags on every PR. It:
 - fails when the freshly-generated bundle differs from the committed
   `licenses.json` (dependency drift), or
 - fails when any bundled package uses a license outside the allow-list
-  (`MIT`, `Apache-2.0`, `BSD-3-Clause`, `ISC`, `BSD`) or has no license
+  (`MIT`, `Apache-2.0`, `BSD-3-Clause`, `ISC`, `BSD`, `0BSD`) or has no license
   content after every fallback, including the generated notice.
 
 The failure message repeats the commands above.

@@ -15,7 +15,7 @@ const meta: Meta<typeof CodeMirror> = {
 export default meta;
 type Story = StoryObj<typeof CodeMirror>;
 
-export const editorValueExample = `{
+const editorValueExample = `{
   apiVersion: provisioning.cattle.io/v1
 kind: Cluster
 metadata:

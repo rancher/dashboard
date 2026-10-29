@@ -28,7 +28,7 @@ for (let index = 0; index < args.length; index++) {
     console.log(`Usage: ${ creatorPkg.name } [options] [extension-name]`);
     console.log('\nOptions:');
     console.log('  --help, -h          Show help');
-    console.log('  --migrate           Migrate an existing extension to Vue 3');
+    console.log('  --migrate           Migrate an existing extension to Vue 3 and Vite');
     console.log('  --update, -u        Update applications');
     console.log('  --app-name, -a      Specify the name of the application');
     console.log('  --skeleton-only, -s Create only the skeleton application');
@@ -176,7 +176,7 @@ try {
     }
 
     console.log(`Migrating extension to Vue 3...`);
-    execSync(`node ${ path.join(__dirname, 'migrate', 'init') } ${ args.join(' ') }`, { stdio: 'inherit' });
+    execSync(`node ${ path.join(__dirname, 'migrate', 'init') } --shell-version=${ shellVersion } ${ args.join(' ') }`, { stdio: 'inherit' });
 
     console.log('Migration completed successfully.');
     process.exit(0);

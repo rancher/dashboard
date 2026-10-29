@@ -1,3 +1,5 @@
+import { getters, actions, mutations } from '@shell/store/growl';
+
 export default  {
   namespaced: true,
   state: {
@@ -35,7 +37,7 @@ export default  {
     },
     ],
   },
-  getters: require("../../../shell/store/growl").getters,
-  actions: require("../../../shell/store/growl").actions,
-  mutations: require("../../../shell/store/growl").mutations
+  getters,
+  actions,
+  mutations
 }

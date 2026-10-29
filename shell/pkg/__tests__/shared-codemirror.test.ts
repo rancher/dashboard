@@ -1,8 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import {
-  CODEMIRROR_PACKAGES, packageDir, stubSource, stubModules, replacementFor
-} from '@shell/pkg/shared-codemirror';
+import { CODEMIRROR_PACKAGES, packageDir, stubSource, replacementFor } from '@shell/pkg/shared-codemirror';
 
 /**
  * Evaluates a stub as webpack would, with `require` resolving the bundled copy
@@ -77,7 +75,7 @@ describe('shared-codemirror', () => {
 
   describe('replacementFor', () => {
     it.each(CODEMIRROR_PACKAGES)('should replace %p with its stub', (pkg) => {
-      expect(Object.keys(stubModules())).toContain(`node_modules/${ replacementFor(pkg) }`);
+      expect(replacementFor(pkg)).toStrictEqual(`@rancher/shared-codemirror/${ pkg.replace('/', '__') }.js`);
     });
 
     it.each([
@@ -91,11 +89,5 @@ describe('shared-codemirror', () => {
 
   it('should not replace requests from a stub', () => {
     expect(replacementFor('@codemirror/view', '/app/node_modules/@rancher/shared-codemirror/@codemirror__view.js')).toBeUndefined();
-  });
-
-  describe('stubModules', () => {
-    it('should create a stub for every shared package', () => {
-      expect(Object.keys(stubModules())).toHaveLength(CODEMIRROR_PACKAGES.length);
-    });
   });
 });

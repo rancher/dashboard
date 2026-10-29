@@ -1,6 +1,6 @@
 import { createStore } from 'vuex'
 import IntlMessageFormat from 'intl-messageformat';
-const i18nStrings = require('@shell/assets/translations/en-us.yaml');
+import i18nStrings from '@shell/assets/translations/en-us.yaml';
 
 import { get } from '@shell/utils/object';
 

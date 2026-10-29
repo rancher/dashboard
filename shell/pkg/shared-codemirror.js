@@ -63,17 +63,6 @@ function stubSource(pkg) {
 }
 
 /**
- * Virtual modules, keyed by path, for every stub
- */
-function stubModules() {
-  return CODEMIRROR_PACKAGES.reduce((modules, pkg) => {
-    modules[`node_modules/${ stubModule(pkg) }`] = stubSource(pkg);
-
-    return modules;
-  }, {});
-}
-
-/**
  * The stub to replace the given module request with, or undefined if it isn't a shared package.
  * Requests from the stubs themselves load the real package
  */
@@ -86,5 +75,5 @@ function replacementFor(request, issuer = '') {
 }
 
 module.exports = {
-  CODEMIRROR_PACKAGES, packageDir, stubSource, stubModules, replacementFor
+  CODEMIRROR_PACKAGES, packageDir, stubSource, replacementFor
 };
