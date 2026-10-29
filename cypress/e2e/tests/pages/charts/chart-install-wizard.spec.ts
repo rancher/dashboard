@@ -145,6 +145,78 @@ describe('Charts Wizard', { testIsolation: false, tags: ['@charts', '@adminUser'
       installChartPage.diffView().find('.d2h-del').should('not.exist');
     });
 
+    describe('install request', () => {
+      // Fail the install on purpose, so the test checks the request without installing the app
+      const stubInstall = () => {
+        cy.intercept('POST', `/v1/catalog.cattle.io.clusterrepos/${ testChartsRepoName }?action=install`, (req) => {
+          req.reply({ statusCode: 500, body: { type: 'error', message: 'Install stubbed by e2e test' } });
+        }).as('installChart');
+      };
+
+      const editorText = ($cm: ArrayLike<HTMLElement>) => EditorView.findFromDOM($cm[0])?.state.doc.toString() || '';
+
+      it('keeps a deleted chart default and does not send it as null', () => {
+        ChartPage.navTo(undefined, 'rancher-demo');
+        chartPage.waitForChartHeader('rancher-demo', MEDIUM_TIMEOUT_OPT);
+        chartPage.goToInstall();
+
+        installChartPage.chartName().type('rancher-demo-delete');
+        installChartPage.nextPage().editYaml();
+
+        // Delete the whole service block in the Chart values pane, then leave the pane
+        installChartPage.defaultsEditorContent().focus();
+        installChartPage.defaultsEditor().value().then((values: string) => {
+          expect(values).to.match(/^service:$/m);
+
+          installChartPage.defaultsEditor().set(values.replace(/^service:\n(?: .*\n)*/m, ''));
+        });
+        installChartPage.defaultsEditorContent().blur();
+
+        // The deleted default shows again, as Helm still uses it, and is not an override
+        installChartPage.defaultsEditor().self().should(($cm) => {
+          expect(editorText($cm)).to.match(/^service:$/m);
+        });
+        installChartPage.overridesEditor().self().should(($cm) => {
+          expect(editorText($cm)).not.to.contain('service');
+        });
+
+        stubInstall();
+        installChartPage.installChart();
+
+        cy.wait('@installChart').then(({ request }) => {
+          const values = request.body.charts[0].values;
+
+          expect(values).not.to.have.property('service');
+          expect(JSON.stringify(values)).not.to.contain('null');
+        });
+      });
+
+      it('sends only the user\'s values, including an explicit null', () => {
+        ChartPage.navTo(undefined, 'rancher-demo');
+        chartPage.waitForChartHeader('rancher-demo', MEDIUM_TIMEOUT_OPT);
+        chartPage.goToInstall();
+
+        installChartPage.chartName().type('rancher-demo-overrides');
+        installChartPage.nextPage().editYaml();
+
+        installChartPage.overridesEditor().set('image:\n  pullSecrets:\n    - e2e-pull-secret\nservice:\n  type: null\n');
+
+        stubInstall();
+        installChartPage.installChart();
+
+        cy.wait('@installChart').then(({ request }) => {
+          const { global, ...values } = request.body.charts[0].values;
+
+          // global holds the Rancher values (cluster id, server url...) that are always sent
+          expect(global).to.have.property('cattle');
+          expect(values).to.deep.equal({
+            image:   { pullSecrets: ['e2e-pull-secret'] },
+            service: { type: null }
+          });
+        });
+      });
+    });
+
     after('clean up', () => {
       cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
     });

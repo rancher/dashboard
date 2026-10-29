@@ -462,6 +462,39 @@ describe('page: Install', () => {
       expect(sent).toStrictEqual({ service: { type: null } });
     });
 
+    it('applyYamlToValues returns an error and keeps the values when the YAML is invalid', () => {
+      const wrapper = mountWithYaml('service:\n  port: 9090\n bad: : :\n');
+
+      const { errors } = wrapper.vm.applyYamlToValues();
+
+      expect(errors.map((e: { reason: string }) => e.reason)).toStrictEqual(['bad indentation of a mapping entry']);
+      expect(wrapper.vm.chartValues).toStrictEqual({});
+    });
+
+    it('switching from the form to Edit YAML fills the overrides with only what the form changed', async() => {
+      const wrapper = mountInstall({
+        data: () => ({
+          repo:             { spec: {} },
+          currentCluster:   null,
+          serverUrlSetting: { value: '' },
+          versionInfo:      { values: versionInfoValues },
+          // The form changed service.port and a question added a key the chart doesn't have
+          chartValues:      {
+            ...versionInfoValues,
+            service:         { ...versionInfoValues.service, port: 9090 },
+            questionDefault: 'from-question',
+          },
+          valuesYaml:     '',
+          formYamlOption: 'FORM',
+        })
+      });
+
+      wrapper.vm.formYamlOption = 'YAML';
+      await wrapper.vm.$nextTick();
+
+      expect(jsyaml.load(wrapper.vm.valuesYaml)).toStrictEqual({ service: { port: 9090 }, questionDefault: 'from-question' });
+    });
+
     it('Compare Changes toggles the diff view without rewriting the overrides-only editor', async() => {
       const wrapper = mountWithYaml('image:\n  pullSecrets:\n    - application-collection\n');
       const overrides = wrapper.vm.valuesYaml;
@@ -1119,6 +1152,44 @@ describe('page: Install', () => {
         expect.anything(),
         expect.objectContaining({ url: expect.stringContaining('skipPullSecrets=true') })
       );
+    });
+
+    describe('with invalid YAML in the values editor', () => {
+      const createInvalidYamlWrapper = () => {
+        const result = createFinishWrapper({
+          versionInfo: { values: { service: { port: 80 } } },
+          valuesYaml:  'service:\n  port: 9090\n bad: : :\n',
+        });
+
+        (result.wrapper.vm.actionInput as jest.Mock).mockRestore();
+
+        return result;
+      };
+
+      it('shows the YAML error', async() => {
+        const { wrapper } = createInvalidYamlWrapper();
+
+        await wrapper.vm.finish(jest.fn());
+
+        expect((wrapper.vm as any).errors.map((e: { reason: string }) => e.reason)).toStrictEqual(['bad indentation of a mapping entry']);
+      });
+
+      it('does not send the install request', async() => {
+        const { wrapper, mockDoAction } = createInvalidYamlWrapper();
+
+        await wrapper.vm.finish(jest.fn());
+
+        expect(mockDoAction).not.toHaveBeenCalled();
+      });
+
+      it('marks the install button as failed', async() => {
+        const { wrapper } = createInvalidYamlWrapper();
+        const btnCb = jest.fn();
+
+        await wrapper.vm.finish(btnCb);
+
+        expect(btnCb).toHaveBeenCalledWith(false);
+      });
     });
   });
 
