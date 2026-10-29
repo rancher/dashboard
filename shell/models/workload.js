@@ -183,7 +183,11 @@ export default class Workload extends WorkloadService {
     set(this.spec, 'replicas', replicas);
 
     try {
-      await this.save();
+      if (this.canUpdate) {
+        await this.save();
+      } else {
+        await this.patch({ spec: { replicas } }, { url: `${ this.linkFor('view') }/scale` }, true);
+      }
     } catch (err) {
       if (err?._status === 409) {
         const reloadedReplicasUnchanged = this.spec.replicas === previous;
@@ -193,6 +197,10 @@ export default class Workload extends WorkloadService {
         }
       } else {
         set(this.spec, 'replicas', previous);
+      }
+
+      if (err?._status === 403 && !this.canUpdate) {
+        set(this, '_scaleForbidden', true);
       }
 
       throw err;
@@ -951,7 +959,9 @@ export default class Workload extends WorkloadService {
     }
 
     const scalingTypes = [WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET];
-    const canScale = this.canUpdate && scalingTypes.includes(this.type);
+    // Users without update may still be allowed to scale through the /scale subresource (as kubectl does).
+    // Steve does not report that permission, so offer scaling until the API refuses it.
+    const canScale = scalingTypes.includes(this.type) && (this.canUpdate || !this._scaleForbidden);
     const summaryData = this._summaries?.pods || null;
     const hasPods = this.pods?.length > 0;
     const hasSummary = summaryData?.count > 0;
