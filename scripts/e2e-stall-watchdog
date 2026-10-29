@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+# Runs a Cypress command and watches its output.
+#
+# Cypress can hang for good while it waits on Chrome (seen right after "Running: <spec>"). No Cypress
+# timeout covers that wait, so the job sits until GitHub cancels it after 6 hours. When the output goes
+# quiet for E2E_STALL_MINUTES, this prints what the runner, Chrome and Rancher look like, kills the run
+# and retries once with the specs that had not finished.
+#
+# Usage: e2e-stall-watchdog "<cypress run command>" "<cypress run args to reuse on retry, without --spec>"
+
+COMMAND="$1"
+RETRY_ARGS="$2"
+STALL_SECONDS=$(( ${E2E_STALL_MINUTES:-20} * 60 ))
+POLL_SECONDS=5
+LOG_DIR=$(mktemp -d)
+REPORT_DIR="cypress/reports"
+
+print_diagnostics() {
+  echo "::group::[watchdog] Diagnostics"
+  date -u
+  uptime
+  free -m
+  df -h / /tmp
+
+  echo "--- Cypress and Chrome processes"
+  ps -eo pid,ppid,pgid,etimes,pcpu,rss,stat,args --forest | grep -iE 'cypress|chrome' | grep -v grep | cut -c1-250
+
+  echo "--- Kernel OOM kills and crashes"
+  sudo -n dmesg -T 2>/dev/null | grep -iE 'out of memory|killed process|segfault' | tail -n 20
+
+  for port in $(ps -eo args | grep -oE -- '--remote-debugging-port=[0-9]+' | cut -d= -f2 | sort -u); do
+    echo "--- Chrome DevTools on port $port"
+    curl -s -m 5 "http://127.0.0.1:$port/json/version" || echo "No answer from /json/version"
+    curl -s -m 5 "http://127.0.0.1:$port/json/list" | grep -E '"(type|title|url)"' || echo "No answer from /json/list"
+  done
+
+  if [ -n "$API" ]; then
+    echo "--- Rancher /ping: $(curl -sk -m 10 -o /dev/null -w '%{http_code}' "$API/ping")"
+  fi
+  echo "::endgroup::"
+}
+
+# Runs a command in its own process group, streaming its output. Returns its exit code, or 124 when the
+# output stalled and the run was killed.
+run_attempt() {
+  local cmd="$1" log="$2"
+  local pid tail_pid size last_size=-1 quiet=0 longest=0
+
+  : > "$log"
+  setsid bash -c "$cmd" > "$log" 2>&1 &
+  pid=$!
+  tail -n +1 -f --pid="$pid" "$log" &
+  tail_pid=$!
+
+  while kill -0 "$pid" 2>/dev/null; do
+    sleep "$POLL_SECONDS"
+    size=$(stat -c %s "$log")
+    if [ "$size" = "$last_size" ]; then
+      quiet=$(( quiet + POLL_SECONDS ))
+      [ "$quiet" -gt "$longest" ] && longest=$quiet
+    else
+      quiet=0
+      last_size=$size
+    fi
+
+    if [ "$quiet" -ge "$STALL_SECONDS" ]; then
+      sleep 1
+      echo "[watchdog] No Cypress output for ${quiet}s - stall detected"
+      print_diagnostics
+      kill -TERM -- "-$pid" 2>/dev/null
+      sleep 10
+      kill -KILL -- "-$pid" 2>/dev/null
+      # Chrome is not always in Cypress' process group
+      pkill -KILL -f -- '--remote-debugging-port' 2>/dev/null
+      wait "$pid" 2>/dev/null
+      kill "$tail_pid" 2>/dev/null
+      wait "$tail_pid" 2>/dev/null
+
+      return 124
+    fi
+  done
+
+  wait "$pid"
+  local rc=$?
+
+  wait "$tail_pid" 2>/dev/null
+  echo "[watchdog] Longest quiet gap: ${longest}s"
+
+  return $rc
+}
+
+# The spec list Cypress prints in its "Searched:" box, which wraps over several lines
+searched_specs() {
+  awk '
+    /│ Searched:/ { on = 1; sub(/.*│ Searched:/, ""); print; next }
+    on && (/│ [A-Za-z]/ || /└/) { exit }
+    on { sub(/^[^│]*│/, ""); print }
+  ' "$1" | sed 's/│//g' | tr -d ' \n'
+}
+
+FIRST_LOG="$LOG_DIR/attempt-1.log"
+run_attempt "$COMMAND" "$FIRST_LOG"
+rc=$?
+[ "$rc" -ne 124 ] && exit "$rc"
+
+# Cypress colours its output in CI, so parse a copy without the colour codes
+PLAIN_LOG="$LOG_DIR/attempt-1.plain.log"
+sed -E 's/\x1b\[[0-9;]*m//g' "$FIRST_LOG" > "$PLAIN_LOG"
+
+# Every spec Cypress started except the last one finished
+mapfile -t started < <(grep -oE 'Running: +[^ ]+ +\([0-9]+ of [0-9]+\)' "$PLAIN_LOG" | awk '{ print $2 }')
+finished=()
+[ "${#started[@]}" -gt 1 ] && finished=("${started[@]:0:${#started[@]}-1}")
+failed_before=$(grep -oE 'Failing: +[0-9]+' "$PLAIN_LOG" | awk '{ s += $2 } END { print s + 0 }')
+
+retry_cmd="$COMMAND"
+spec_count=$(grep -oE 'Specs: +[0-9]+ found' "$PLAIN_LOG" | head -n 1 | awk '{ print $2 }')
+IFS=',' read -r -a all_specs <<< "$(searched_specs "$PLAIN_LOG")"
+
+if [ "${#finished[@]}" -gt 0 ] && [ "${#all_specs[@]}" = "$spec_count" ] && [[ "${all_specs[*]}" != *'*'* ]]; then
+  remaining=()
+  for spec in "${all_specs[@]}"; do
+    done_already=false
+    for f in "${finished[@]}"; do
+      [[ "$spec" == "$f" || "$spec" == */"$f" ]] && done_already=true
+    done
+    [ "$done_already" = false ] && remaining+=("$spec")
+  done
+  remaining_list=$(IFS=','; echo "${remaining[*]}")
+  retry_cmd="cypress run --spec \"$remaining_list\" $RETRY_ARGS"
+  echo "[watchdog] ${#finished[@]} of $spec_count specs finished before the stall ($failed_before failing tests)"
+fi
+
+# Keep the first attempt's videos and screenshots, which Cypress otherwise deletes when the retry starts
+retry_cmd="$retry_cmd --config trashAssetsBeforeRuns=false"
+
+# The mochawesome reporter clears its folder when a run starts, so keep the first attempt's reports
+[ -d "$REPORT_DIR" ] && mv "$REPORT_DIR" "$LOG_DIR/reports-attempt-1"
+
+echo "[watchdog] Retrying once: $retry_cmd"
+run_attempt "$retry_cmd" "$LOG_DIR/attempt-2.log"
+rc=$?
+
+# Its per-spec reports are in a hidden folder, which the artifact upload skips
+if ls "$LOG_DIR"/reports-attempt-1/.jsons/*.json >/dev/null 2>&1; then
+  mkdir -p "$REPORT_DIR/attempt-1"
+  mv "$LOG_DIR"/reports-attempt-1/.jsons/*.json "$REPORT_DIR/attempt-1/"
+fi
+
+if [ "$rc" -eq 124 ]; then
+  echo "[watchdog] Cypress stalled again on the retry - giving up"
+  exit 1
+fi
+
+if [ "$rc" -eq 0 ] && [ "$failed_before" -gt 0 ]; then
+  echo "[watchdog] The retry passed, but $failed_before tests failed before the stall"
+  exit 1
+fi
+
+exit "$rc"
