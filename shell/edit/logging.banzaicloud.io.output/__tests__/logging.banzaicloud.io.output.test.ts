@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import Banzai from '@shell/edit/logging.banzaicloud.io.output/index.vue';
+import { PROVIDERS } from '@shell/models/logging.banzaicloud.io.output';
 import { createStore } from 'vuex';
 
 const outputSchema = {
@@ -306,5 +307,9 @@ describe('view: logging.banzaicloud.io.output', () => {
 
     expect(wrapper.vm.initialBufferYaml).toContain('#chunk_limit_records: int');
     expect(wrapper.vm.bufferYaml).toContain('#chunk_limit_records: int');
+  });
+
+  it.each(PROVIDERS.map((provider) => provider.name))('should have a form for provider %p', (provider) => {
+    expect((Banzai as any).methods.getComponent(provider)).toBeDefined();
   });
 });

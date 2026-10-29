@@ -12,6 +12,41 @@ import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { PROVISIONER_OPTIONS } from '@shell/models/storage.k8s.io.storageclass';
 import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@shell/store/features';
 import { CSI_DRIVER, LONGHORN_DRIVER } from '@shell/config/types';
+import CustomProvisioner from './provisioners/custom';
+import HarvesterProvisioner from './provisioners/driver.harvesterhci.io';
+import LonghornProvisioner from './provisioners/driver.longhorn.io';
+import AwsEbsProvisioner from './provisioners/kubernetes.io/aws-ebs';
+import AzureDiskProvisioner from './provisioners/kubernetes.io/azure-disk';
+import AzureFileProvisioner from './provisioners/kubernetes.io/azure-file';
+import CinderProvisioner from './provisioners/kubernetes.io/cinder';
+import GcePdProvisioner from './provisioners/kubernetes.io/gce-pd';
+import GlusterfsProvisioner from './provisioners/kubernetes.io/glusterfs';
+import NoProvisioner from './provisioners/kubernetes.io/no-provisioner';
+import PortworxVolumeProvisioner from './provisioners/kubernetes.io/portworx-volume';
+import QuobyteProvisioner from './provisioners/kubernetes.io/quobyte';
+import RbdProvisioner from './provisioners/kubernetes.io/rbd';
+import ScaleioProvisioner from './provisioners/kubernetes.io/scaleio';
+import StorageosProvisioner from './provisioners/kubernetes.io/storageos';
+import VsphereVolumeProvisioner from './provisioners/kubernetes.io/vsphere-volume';
+
+const provisionerComponents = {
+  custom:                          CustomProvisioner,
+  'driver.harvesterhci.io':        HarvesterProvisioner,
+  'driver.longhorn.io':            LonghornProvisioner,
+  'kubernetes.io/aws-ebs':         AwsEbsProvisioner,
+  'kubernetes.io/azure-disk':      AzureDiskProvisioner,
+  'kubernetes.io/azure-file':      AzureFileProvisioner,
+  'kubernetes.io/cinder':          CinderProvisioner,
+  'kubernetes.io/gce-pd':          GcePdProvisioner,
+  'kubernetes.io/glusterfs':       GlusterfsProvisioner,
+  'kubernetes.io/no-provisioner':  NoProvisioner,
+  'kubernetes.io/portworx-volume': PortworxVolumeProvisioner,
+  'kubernetes.io/quobyte':         QuobyteProvisioner,
+  'kubernetes.io/rbd':             RbdProvisioner,
+  'kubernetes.io/scaleio':         ScaleioProvisioner,
+  'kubernetes.io/storageos':       StorageosProvisioner,
+  'kubernetes.io/vsphere-volume':  VsphereVolumeProvisioner,
+};
 
 export default {
   name:         'StorageClass',
@@ -171,7 +206,7 @@ export default {
       const isCustom = !PROVISIONER_OPTIONS.find((o) => o.value === name);
       const provisioner = isCustom ? 'custom' : name;
 
-      return require(`./provisioners/${ provisioner }`).default;
+      return provisionerComponents[provisioner];
     },
 
     updateProvisioner(event) {
