@@ -43,10 +43,10 @@ describe('component: RcFieldValidation', () => {
   });
 
   it.each([
-    ['error', 'icon-error'],
-    ['warning', 'icon-warning'],
-    ['success', 'icon-checkmark'],
-    ['info', 'icon-info'],
+    ['error', 'icon-alert-alt'],
+    ['warning', 'icon-alert-alt'],
+    ['success', 'icon-confirmation-alt'],
+    ['info', 'icon-notify-info'],
   ])('gives the %s status its icon and color', (status, icon) => {
     measureAs(FITS);
     const wrapper = mountValidation({ status });

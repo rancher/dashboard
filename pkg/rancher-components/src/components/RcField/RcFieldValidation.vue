@@ -20,10 +20,11 @@ import type { RcIconType } from '@components/RcIcon/types';
 import type { RcFieldValidationStatus } from './types';
 
 const ICONS: Record<RcFieldValidationStatus, RcIconType> = {
-  error:   'error',
-  warning: 'warning',
-  success: 'checkmark',
-  info:    'info',
+  error:   'alert-alt',
+  warning: 'alert-alt',
+  success: 'confirmation-alt',
+  // TODO: Use notify-alt once @rancher/icons has it
+  info:    'notify-info',
 };
 
 const props = defineProps<{
