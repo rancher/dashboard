@@ -118,6 +118,26 @@ describe('component: RcField', () => {
       expect(wrapper.find('.rc-field-validation').classes()).toContain(`rc-field-validation-${ validationStatus }`);
       expect(wrapper.find('input').attributes('data-invalid')).toStrictEqual(invalid);
     });
+
+    it.each(['error', 'warning', 'success', 'info'])('applies the %s status class while the message shows', (validationStatus) => {
+      const wrapper = mountField({ validationMessage: 'Message', validationStatus });
+
+      expect(wrapper.classes()).toContain(`rc-field-status-${ validationStatus }`);
+    });
+
+    it('applies no status class without a message', () => {
+      const wrapper = mountField({ validationStatus: 'warning' });
+
+      expect(wrapper.classes()).not.toContain('rc-field-status-warning');
+    });
+
+    it('applies no status class in view mode', () => {
+      const wrapper = mountField({
+        mode: 'view', validationMessage: 'Message', validationStatus: 'error'
+      });
+
+      expect(wrapper.classes()).not.toContain('rc-field-status-error');
+    });
   });
 
   it.each(['small', 'medium', 'large'])('applies the %s size class', (size) => {

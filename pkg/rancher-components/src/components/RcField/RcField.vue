@@ -84,6 +84,7 @@ const tooltipSize = computed(() => (props.size === 'small' ? 'small' : 'medium')
     class="rc-field"
     :class="{
       [`rc-field-${ props.size }`]: true,
+      [`rc-field-status-${ props.validationStatus }`]: showValidation,
       'rc-field-view': isView,
       'rc-field-disabled': disabled,
     }"
@@ -265,6 +266,12 @@ const tooltipSize = computed(() => (props.size === 'small' ? 'small' : 'medium')
   &:has(.rc-field-control:focus) {
     @include focus-outline;
     outline-offset: 1px;
+  }
+
+  @each $status in error, warning, success, info {
+    .rc-field-status-#{$status} & {
+      border-color: var(--rc-#{$status});
+    }
   }
 
   .rc-field-disabled & {
