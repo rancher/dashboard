@@ -20,7 +20,6 @@
     ],
     "types": [
       "node",
-      "webpack-env",
       "@types/node",
       "@types/jest",
       "@types/lodash",

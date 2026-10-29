@@ -30,7 +30,7 @@ export default {
   },
 
   async mounted() {
-    const marked = (await import(/* webpackChunkName: "markdown" */ 'marked'));
+    const marked = (await import('marked'));
 
     const renderer = new marked.Renderer();
     const linkRenderer = renderer.link;
