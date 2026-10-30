@@ -188,27 +188,18 @@ describe('class: Workload', () => {
 
       expect(workload.spec.replicas).toStrictEqual(7);
     });
-
-    it('should keep scaling and not mark it forbidden when the save is forbidden', async() => {
-      const workload = createWorkload(jest.fn().mockRejectedValue({ _status: 403 }));
-
-      Object.defineProperty(workload, 'pods', { get: () => [] });
-
-      await workload[method]().catch(() => {});
-
-      expect(workload.podsCard?.props.showScaling).toBe(true);
-      expect(Object.keys(workload)).not.toContain('_scaleForbidden');
-    });
   });
 
   describe.each([
     ['scaleUp', 2, 3],
     ['scaleDown', 2, 1],
-  ] as const)('method: %s without update permission', (method, replicas, expected) => {
+  ] as const)('method: %s by patching', (method, replicas, expected) => {
     const view = 'https://rancher/k8s/clusters/c-1/apis/apps/v1/namespaces/default/deployments/test-workload';
     const mockPod = { metadata: { name: 'pod-1', namespace: 'default' } };
 
-    const createWorkload = (dispatch: jest.Mock, links: Record<string, string> = { view }) => {
+    const patch = 'https://rancher/v1/apps.deployments/default/test-workload';
+
+    const createWorkload = (dispatch: jest.Mock, { links = { view } as Record<string, string>, canUpdate = false } = {}) => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
         metadata: { name: 'test-workload', namespace: 'default' },
@@ -221,13 +212,13 @@ describe('class: Workload', () => {
       });
 
       workload.save = jest.fn();
-      Object.defineProperty(workload, 'canUpdate', { get: () => false });
+      Object.defineProperty(workload, 'canUpdate', { get: () => canUpdate });
       Object.defineProperty(workload, 'pods', { get: () => [mockPod] });
 
       return workload;
     };
 
-    it('should patch the replica count through the scale subresource', async() => {
+    it('should patch the replica count through the scale subresource without patch or update', async() => {
       const dispatch = jest.fn().mockResolvedValue({});
       const workload = createWorkload(dispatch);
 
@@ -246,9 +237,12 @@ describe('class: Workload', () => {
       expect(workload.spec.replicas).toStrictEqual(expected);
     });
 
-    it('should patch the workload itself when the patch link is present', async() => {
+    it.each([
+      ['without update', false],
+      ['instead of saving when it can also update', true],
+    ])('should patch the workload itself through the view link %s', async(_, canUpdate) => {
       const dispatch = jest.fn().mockResolvedValue({});
-      const workload = createWorkload(dispatch, { view, patch: 'https://rancher/v1/apps.deployments/default/test-workload' });
+      const workload = createWorkload(dispatch, { links: { view, patch }, canUpdate });
 
       await workload[method]();
 
@@ -272,22 +266,38 @@ describe('class: Workload', () => {
       expect(workload.spec.replicas).toStrictEqual(replicas);
     });
 
-    it('should hide scaling once the scale subresource is forbidden', async() => {
+    it('should keep scaling when the scale subresource is forbidden', async() => {
       const workload = createWorkload(jest.fn().mockRejectedValue({ _status: 403 }));
 
-      expect(workload.podsCard?.props.showScaling).toBe(true);
-
       await workload[method]().catch(() => {});
 
-      expect(workload.podsCard?.props.showScaling).toBe(false);
+      expect(workload.podsCard?.props.showScaling).toBe(true);
     });
+  });
 
-    it('should keep scaling when the patch fails for another reason', async() => {
-      const workload = createWorkload(jest.fn().mockRejectedValue({ _status: 500 }));
+  describe('getter: canScale', () => {
+    it.each([
+      [WORKLOAD_TYPES.DEPLOYMENT, true],
+      [WORKLOAD_TYPES.STATEFUL_SET, true],
+      [WORKLOAD_TYPES.REPLICA_SET, true],
+      [WORKLOAD_TYPES.REPLICATION_CONTROLLER, true],
+      [WORKLOAD_TYPES.DAEMON_SET, false],
+      [WORKLOAD_TYPES.JOB, false],
+      [WORKLOAD_TYPES.CRON_JOB, false],
+    ])('should offer scaling on %s: %s, without update permission', (type, expected) => {
+      const workload = new Workload({
+        type,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     {}
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
 
-      await workload[method]().catch(() => {});
+      Object.defineProperty(workload, 'canUpdate', { get: () => false });
 
-      expect(workload.podsCard?.props.showScaling).toBe(true);
+      expect(workload.canScale).toBe(expected);
     });
   });
 
