@@ -4,6 +4,7 @@ import Banner from '@components/Banner/Banner.vue';
 import ResourceQuota from '@shell/components/form/ResourceQuota/ResourceQuotaEntry.vue';
 import { RcButton } from '@components/RcButton';
 import { uniqueId } from 'lodash';
+import { _VIEW } from '@shell/config/query-params';
 
 export default {
   emits: [
@@ -68,7 +69,13 @@ export default {
     );
   },
 
-  computed: { ...QUOTA_COMPUTED },
+  computed: {
+    ...QUOTA_COMPUTED,
+
+    isView() {
+      return this.mode === _VIEW;
+    },
+  },
 
   methods: {
     addResource() {
@@ -163,6 +170,7 @@ export default {
     <div
       role="row"
       class="headers mb-10"
+      :class="{ 'headers-view': isView }"
     >
       <div
         role="columnheader"
@@ -221,7 +229,10 @@ export default {
         @remove="removeResource"
       />
     </template>
-    <div class="project-quotas-footer">
+    <div
+      v-if="!isView"
+      class="project-quotas-footer"
+    >
       <rc-button
         variant="tertiary"
         data-testid="btn-add-resource"
@@ -241,6 +252,10 @@ export default {
     border-bottom: 1px solid var(--border);
     height: 30px;
     width: calc(100% - 75px);
+
+    &.headers-view {
+        width: 100%;
+    }
 
     div {
         width: 100%;

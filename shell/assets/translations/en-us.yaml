@@ -6363,6 +6363,7 @@ probe:
 
 project:
   membersEditOnly: Only permissions equal to or below those of the current user can be applied
+  membersPermissionCheckFailed: Could not check your permissions for this project's members. Reload the page to try again.
   members:
     label: Members
   containerDefaultResourceLimit: Container Default Resource Limit
