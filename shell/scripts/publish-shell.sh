@@ -67,7 +67,6 @@ function publish() {
     echo "Adding Rancher Components"
     rm -rf ./rancher-components
     cp -R ${BASE_DIR}/pkg/rancher-components/src/components ./rancher-components/
-    rm -rf ./rancher-components/design-system
   fi
 
   # Make a note of dependency versions, if required
