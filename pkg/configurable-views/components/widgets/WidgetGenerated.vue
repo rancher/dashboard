@@ -90,8 +90,12 @@ function dropStyles(): void {
   styles = [];
 }
 
-// Compiled again whenever the source or its approval changes; never when they do not match
-watch([source, approved], async([widget, approval]) => {
+// Compiled again whenever the source or its approval changes; never when they do not match. Watched
+// by the code itself, not the widget: the stored widgets are read again every few seconds, each read
+// a new object with the same code, which would compile it - and flash the spinner - every time.
+watch([() => source.value?.source ?? null, approved], async([code, approval]) => {
+  const widget = code === null ? null : source.value;
+
   compiled.value = null;
   error.value = '';
   dropStyles();
