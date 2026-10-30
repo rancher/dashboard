@@ -69,7 +69,7 @@ export function zodValidators(t: I18n['t']) {
         const hasIssue = requiredResult?.success === false ? requiredResult.error.issues[0] : (!v ? undefined : firstIssue(compiledTransforms, v));
 
         if (hasIssue) {
-          ctx.addIssue(hasIssue);
+          ctx.addIssue({ ...hasIssue });
         }
       })
     );

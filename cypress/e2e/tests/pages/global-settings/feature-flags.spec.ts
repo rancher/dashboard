@@ -211,7 +211,7 @@ describe('Feature Flags', { testIsolation: false }, () => {
         // derive the expected visible-row count by applying the SAME filter to the API response rather
         // than subtracting a fixed number. ('ui-sql-cache' has now been removed from the backend -
         // rancher/rancher#53996 - so it no longer appears and no longer needs filtering here.)
-        const hideFeatureFlags = ['fleet', 'ui-configurable-dashboards'];
+        const hideFeatureFlags = ['fleet', 'ui-configurable-dashboards', 'hide-local-auth-provider'];
         const featureCount = resp.body.data.filter((f: any) => !hideFeatureFlags.includes(f.metadata.name)).length;
 
         featureFlagsPage.list().resourceTable().sortableTable().checkRowCount(false, featureCount);
