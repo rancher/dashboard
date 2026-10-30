@@ -2303,6 +2303,11 @@ cluster:
     vsphere:
       hostOptions:
         any: Any
+      relativeValues: |-
+        {count, plural,
+          =1 { The value for {fields} is not a full path. It still works, but we recommend selecting the full path from the list. Changing it will re-provision the machines in this pool. }
+          other { The values for {fields} are not full paths. They still work, but we recommend selecting the full paths from the lists. Changing them will re-provision the machines in this pool. }
+        }
       vAppOptions:
         label: vApp Options
         description: Choose OVF environment properties

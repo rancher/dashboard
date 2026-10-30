@@ -280,6 +280,7 @@ export default {
       registryConfigValid:                      true,
       originalIngressController:                this.value.spec.rkeConfig.machineGlobalConfig?.[INGRESS_CONTROLLER] || INGRESS_NONE,
       infrastructureCluster:                    null,
+      machinePoolErrorMessages:                 [],
     };
   },
 
@@ -1949,13 +1950,10 @@ export default {
     },
 
     handleMachinePoolError(error) {
-      const errors = this.recordMachinePoolError(error);
+      const previousMessages = this.machinePoolErrorMessages;
 
-      if (!errors.length) {
-        return;
-      }
-
-      this.errors = errors;
+      this.machinePoolErrorMessages = this.recordMachinePoolError(error);
+      this.errors = [...(this.errors || []).filter((e) => !previousMessages.includes(e)), ...this.machinePoolErrorMessages];
     },
     handleS3BackupChanged(neu) {
       this.s3Backup = neu;
