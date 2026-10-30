@@ -56,8 +56,12 @@ export default {
     };
   },
   computed: {
+    hasPrometheusFederator() {
+      return this.$store.getters['hasPrometheusFederator'];
+    },
+
     canCreateProjectHelmChart() {
-      return !!(this?.projectHelmChartSchema?.collectionMethods || []).find((method) => method.toLowerCase() === 'post');
+      return this.hasPrometheusFederator && !!(this?.projectHelmChartSchema?.collectionMethods || []).find((method) => method.toLowerCase() === 'post');
     }
 
   }
@@ -78,6 +82,12 @@ export default {
       color="info"
       :label="t('monitoring.projectMonitoring.list.banner')"
     />
+    <Banner
+      v-if="!hasPrometheusFederator"
+      color="warning"
+      :label="t('monitoring.projectMonitoring.federatorNotInstalled')"
+      data-testid="project-monitoring-federator-not-installed"
+    />
     <!-- ToDo: figure out how to get this centered in the empty space -->
     <div
       v-if="rows.length === 0 && !loading"
@@ -95,7 +105,7 @@ export default {
           {{ t('monitoring.projectMonitoring.list.empty.canCreate') }}
         </div>
         <div
-          v-else
+          v-else-if="hasPrometheusFederator"
           class="text-large"
         >
           {{ t('monitoring.projectMonitoring.list.empty.cannotCreate') }}

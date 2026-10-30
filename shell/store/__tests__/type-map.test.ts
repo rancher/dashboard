@@ -1,6 +1,8 @@
 /* eslint-disable jest/max-nested-describe */
 
-import { TYPE_MODES, getters, mutations, DSL } from '../type-map';
+import {
+  TYPE_MODES, IF_HAVE, getters, mutations, DSL
+} from '../type-map';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import {
   COUNT,
@@ -363,6 +365,22 @@ describe('type-map', () => {
               const groups = getters.allTypes(state, testTypeMapGetters, rootState, rootGetters)(productName, modes);
 
               expect(groups).toStrictEqual(expectedTypes);
+            });
+
+            it.each([true, false])('ifHave prometheus federator (installed: %p)', (hasPrometheusFederator) => {
+              const {
+                state, typeMapGetters, rootState, rootGetters, productName, modes
+              } = createEnvBasicVirtual();
+              const virtual = { ...types.virtual, ifHave: IF_HAVE.PROMETHEUS_FEDERATOR };
+
+              const testState = {
+                ...state,
+                virtualTypes: { [productName]: [virtual] }
+              };
+
+              const groups = getters.allTypes(testState, typeMapGetters, rootState, { ...rootGetters, hasPrometheusFederator })(productName, modes);
+
+              expect(groups).toStrictEqual(hasPrometheusFederator ? setTypeMode(modes, { virt: { ...expectedMenuItems.virtual, ifHave: IF_HAVE.PROMETHEUS_FEDERATOR } }) : {});
             });
           });
 

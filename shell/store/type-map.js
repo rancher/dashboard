@@ -222,6 +222,7 @@ export const IF_HAVE = {
   ADMIN:                      'admin-user',
   MCM_DISABLED:               'mcm-disabled',
   NOT_STANDALONE_HARVESTER:   'not-standalone-harvester',
+  PROMETHEUS_FEDERATOR:       'prometheus-federator',
   // Show if the user can access cluster OR project role template bindings, so a project-only
   // member can reach the "Cluster and Project Members" nav, not just cluster-level ones.
   CLUSTER_OR_PROJECT_MEMBERS: 'cluster-or-project-members',
@@ -2075,6 +2076,9 @@ function ifHave(getters, option) {
   }
   case IF_HAVE.NOT_STANDALONE_HARVESTER: { // Not used by harvester extension...
     return !getters['isStandaloneHarvester'];
+  }
+  case IF_HAVE.PROMETHEUS_FEDERATOR: {
+    return getters['hasPrometheusFederator'];
   }
   case IF_HAVE.CLUSTER_OR_PROJECT_MEMBERS: {
     // Reachable if the user can access EITHER cluster OR project role template bindings.

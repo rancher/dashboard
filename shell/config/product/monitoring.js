@@ -4,9 +4,11 @@ import {
   STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, RECEIVER_PROVIDERS, CONFIGURED_RECEIVER
 } from '@shell/config/table-headers';
 import { getAllReceivers, getAllRoutes } from '@shell/utils/alertmanagerconfig';
+import { markRaw } from 'vue';
 
 export const NAME = 'monitoring';
 export const CHART_NAME = 'rancher-monitoring';
+export const PROJECT_MONITORS_VIRTUAL_TYPE = 'project-monitors';
 
 export function init(store) {
   const {
@@ -192,13 +194,30 @@ export function init(store) {
     weight: 1,
   });
 
+  // The ProjectHelmChart CRD outlives the Prometheus Federator chart, so its schema alone would keep this entry after an uninstall
+  virtualType({
+    labelKey:   `typeLabel."${ PROJECTHELMCHART }"`,
+    group:      'monitoring',
+    name:       PROJECT_MONITORS_VIRTUAL_TYPE,
+    namespaced: true,
+    ifHave:     IF_HAVE.PROMETHEUS_FEDERATOR,
+    route:      {
+      name:   'c-cluster-product-resource',
+      params: {
+        product:  NAME,
+        resource: PROJECTHELMCHART
+      }
+    }
+  });
+
   configureType('route-receiver', { showListMasthead: false });
   configureType('monitor', { showListMasthead: false });
+  configureType(PROJECT_MONITORS_VIRTUAL_TYPE, { custom: { countGetter: markRaw((getters) => getters['cluster/count']({ name: PROJECTHELMCHART })) } });
 
   basicType([
     'monitoring-overview',
     'monitor',
-    PROJECTHELMCHART,
+    PROJECT_MONITORS_VIRTUAL_TYPE,
   ]);
 
   basicType([
