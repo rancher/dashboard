@@ -4,6 +4,7 @@ import fs from 'fs';
 import path, { join, dirname } from 'path';
 import webpack from 'webpack';
 import remarkGfm from 'remark-gfm';
+import { colorUsage, unpaintedVariables } from './color-usage';
 
 const baseFolder = path.resolve(__dirname, '..', '..');
 
@@ -102,7 +103,11 @@ const webpackLoaders = [
 const webpackPlugins = [
   new NodePolyfillPlugin() as any,
   // BREAKING CHANGE: webpack < 5 used to include polyfills for node.js core modules by default.
-  new webpack.NormalModuleReplacementPlugin(/js-modal|xterm|diff2html/, replaceModulePath)
+  new webpack.NormalModuleReplacementPlugin(/js-modal|xterm|diff2html/, replaceModulePath),
+  new webpack.DefinePlugin({
+    __COLOR_USAGE__:         JSON.stringify(colorUsage(baseFolder)),
+    __UNPAINTED_VARIABLES__: JSON.stringify(unpaintedVariables(baseFolder)),
+  }),
 ];
 
 const config: StorybookConfig = {
