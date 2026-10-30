@@ -11,7 +11,7 @@ export default class GlobalRoleBindings extends ComponentPo {
   }
 
   globalOptions() {
-    return this.self().find('.checkbox-section--global .checkbox-label-slot .checkbox-label').then((els) => {
+    return this.self().find('.checkbox-section--global .checkbox-label').then((els) => {
       return Cypress.$.makeArray(els).map((el) => el.innerText);
     });
   }

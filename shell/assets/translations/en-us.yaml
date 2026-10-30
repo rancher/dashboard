@@ -6681,6 +6681,11 @@ rbac:
     unknownRole:
         description: No description provided
     assignOnlyRole: This role is already assigned
+    groupRole: |-
+      {count, plural,
+        one {The user also has this role through their group {groups}.}
+        other {The user also has this role through their groups {groups}.}
+      }
     role:
       admin:
         label: Administrator
@@ -7968,9 +7973,11 @@ user:
       tableHeaders:
         project: Project
     generic:
+      direct: Direct
       tableHeaders:
         role: Role
         granted: Granted
+        grantedVia: Granted Via
   edit:
     credentials:
       label: Credentials

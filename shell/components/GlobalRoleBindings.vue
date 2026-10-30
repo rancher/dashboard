@@ -77,6 +77,12 @@ export default {
 
         if (!this.isCreate) {
           this.globalRoleBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE_BINDING, opt: { force: true } });
+
+          if (this.isUser) {
+            const user = this.$store.getters['management/byId'](MANAGEMENT.USER, this.userId);
+
+            this.groupPrincipals = await user?.fetchGroupPrincipals() || {};
+          }
         }
 
         // Sort the global roles - use the order defined in 'globalPermissions' and then add the remaining roles after
@@ -116,6 +122,9 @@ export default {
       selectedRoles:         [],
       startingSelectedRoles: [],
       assignOnlyRoles:       {},
+      // The user's groups, and the roles bound to them. These apply to the user but can only be changed on the group
+      groupPrincipals:       {},
+      groupRoles:            {},
       roleChanges:           {}
     };
   },
@@ -170,6 +179,7 @@ export default {
       this.selectedRoles = [];
       this.startingSelectedRoles = [];
       this.assignOnlyRoles = {};
+      this.groupRoles = {};
       if (this.isCreate) {
         // Start with the new user default for each role
         this.selectDefaults();
@@ -199,6 +209,10 @@ export default {
           });
         });
 
+        if (this.isUser) {
+          this.updateGroupRoles();
+        }
+
         if (this.assignOnly && !this.selectedRoles.length) {
           // If we're assigning roles to a group that has no existing roles start with the default roles selected
           this.selectDefaults();
@@ -207,6 +221,31 @@ export default {
 
       // Force an update to pump out the initial state
       this.checkboxChanged();
+    },
+    /**
+     * Note the roles bound to the user's groups. The checkboxes only change the user's own bindings, so these are only named in a tooltip
+     */
+    updateGroupRoles() {
+      this.globalRoleBindings.forEach((grb) => {
+        const group = this.groupPrincipals[grb.groupPrincipalName];
+
+        if (group) {
+          this.groupRoles[grb.globalRoleName] = [...new Set([...(this.groupRoles[grb.globalRoleName] || []), group])];
+        }
+      });
+    },
+    roleTooltip(roleId) {
+      if (this.assignOnlyRoles[roleId]) {
+        return this.t('rbac.globalRoles.assignOnlyRole');
+      }
+
+      const groups = this.groupRoles[roleId];
+
+      if (groups) {
+        return this.t('rbac.globalRoles.groupRole', { count: groups.length, groups: groups.join(', ') });
+      }
+
+      return null;
     },
     checkboxChanged() {
       const addRoles = this.selectedRoles
@@ -270,7 +309,7 @@ export default {
 
       Object.values(this.sortedRoles).forEach((roles) => {
         roles.forEach((mappedRole) => {
-          if (this.selectedRoles.includes(mappedRole.id)) {
+          if (this.selectedRoles.includes(mappedRole.id) || this.groupRoles[mappedRole.id]) {
             addObjects(allRolesRules, mappedRole.rules || []);
           }
         });
@@ -358,21 +397,12 @@ export default {
                   :disabled="!!assignOnlyRoles[role.id]"
                   :label="role.nameDisplay"
                   :description="role.descriptionDisplay"
+                  :tooltip="roleTooltip(role.id)"
+                  use-body-text-color
                   :mode="mode"
                   :data-testId="'grb-checkbox-' + role.id"
                   @update:value="checkboxChanged"
-                >
-                  <template #label>
-                    <div class="checkbox-label-slot">
-                      <span class="checkbox-label">{{ role.nameDisplay }}</span>
-                      <i
-                        v-if="!!assignOnlyRoles[role.id]"
-                        v-clean-tooltip="t('rbac.globalRoles.assignOnlyRole')"
-                        class="checkbox-info icon icon-info icon-lg"
-                      />
-                    </div>
-                  </template>
-                </Checkbox>
+                />
               </div>
             </div>
           </template>
@@ -410,15 +440,6 @@ export default {
 
       &--global {
         grid-template-columns: 100%;
-      }
-
-      .checkbox-label {
-        &-slot {
-          display: inline-flex;
-          align-items: center;
-        }
-        color: var(--body-text);
-        margin: 0;
       }
     }
   }
