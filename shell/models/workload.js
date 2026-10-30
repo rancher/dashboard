@@ -1,7 +1,7 @@
 import { findBy, insertAt } from '@shell/utils/array';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import {
-  WORKLOAD_TYPES, SERVICE, INGRESS, POD, GATEWAY_API
+  WORKLOAD_TYPES, SCALABLE_WORKLOAD_TYPES, SERVICE, INGRESS, POD, GATEWAY_API
 } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import day from 'dayjs';
@@ -183,7 +183,15 @@ export default class Workload extends WorkloadService {
     set(this.spec, 'replicas', replicas);
 
     try {
-      await this.save();
+      // Steve's PATCH still checks update, so patch through the view link. Without patch or update, try the
+      // /scale subresource (as kubectl scale does): Steve does not report that permission, the API decides.
+      if (this.hasLink('patch')) {
+        await this.patch({ spec: { replicas } }, {}, true);
+      } else if (this.canUpdate) {
+        await this.save();
+      } else {
+        await this.patch({ spec: { replicas } }, { url: `${ this.linkFor('view') }/scale` }, true);
+      }
     } catch (err) {
       if (err?._status === 409) {
         const reloadedReplicasUnchanged = this.spec.replicas === previous;
@@ -225,6 +233,14 @@ export default class Workload extends WorkloadService {
       },
       { root: true });
     }
+  }
+
+  /**
+   * Scaling is offered on every scalable workload, not only with update: a user may also scale with patch on the
+   * workload or on its /scale subresource, and Steve does not report the latter. The API refuses users who can't.
+   */
+  get canScale() {
+    return Object.values(SCALABLE_WORKLOAD_TYPES).includes(this.type);
   }
 
   get state() {
@@ -951,7 +967,7 @@ export default class Workload extends WorkloadService {
     }
 
     const scalingTypes = [WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET];
-    const canScale = this.canUpdate && scalingTypes.includes(this.type);
+    const canScale = this.canScale && scalingTypes.includes(this.type);
     const summaryData = this._summaries?.pods || null;
     const hasPods = this.pods?.length > 0;
     const hasSummary = summaryData?.count > 0;
