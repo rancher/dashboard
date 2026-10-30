@@ -1,4 +1,4 @@
-import { shallowMount } from '@vue/test-utils';
+import { flushPromises, shallowMount } from '@vue/test-utils';
 import { isReactive, markRaw, ref } from 'vue';
 import Header from '@shell/components/nav/Header.vue';
 import ClusterBadge from '@shell/components/ClusterBadge.vue';
@@ -549,6 +549,78 @@ describe('component: Header', () => {
 
       expect(open).toHaveBeenCalledWith(wrapper.vm.$store.commit);
       open.mockRestore();
+    });
+  });
+
+  describe('the copy kubeconfig button', () => {
+    const withCluster = (copied: boolean) => {
+      const currentCluster = {
+        id: 'c-abc', nameDisplay: 'prod', spec: { displayName: 'prod' }, copyKubeConfig: jest.fn().mockResolvedValue(copied)
+      };
+      const wrapper = createWrapper({}, {
+        currentCluster,
+        currentProduct: { showClusterSwitcher: true },
+        'features/get': () => false,
+      });
+
+      return { wrapper, currentCluster };
+    };
+    const copyIcon = (wrapper: any) => wrapper.find('[data-testid="btn-copy-kubeconfig"] i');
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should copy the kubeconfig of the current cluster', async() => {
+      const { wrapper, currentCluster } = withCluster(true);
+
+      await wrapper.find('[data-testid="btn-copy-kubeconfig"]').trigger('click');
+
+      expect(currentCluster.copyKubeConfig).toHaveBeenCalledWith();
+    });
+
+    it('should show the checkmark when the kubeconfig was copied', async() => {
+      const { wrapper } = withCluster(true);
+
+      await wrapper.find('[data-testid="btn-copy-kubeconfig"]').trigger('click');
+      await flushPromises();
+
+      expect(copyIcon(wrapper).classes()).toContain('icon-checkmark');
+    });
+
+    it('should go back to the copy icon after the checkmark was shown', async() => {
+      const { wrapper } = withCluster(true);
+
+      await wrapper.find('[data-testid="btn-copy-kubeconfig"]').trigger('click');
+      await flushPromises();
+      jest.advanceTimersByTime(1000);
+      await flushPromises();
+
+      expect(copyIcon(wrapper).classes()).toContain('icon-copy');
+    });
+
+    it('should not show the checkmark when the copy failed', async() => {
+      const { wrapper } = withCluster(false);
+
+      await wrapper.find('[data-testid="btn-copy-kubeconfig"]').trigger('click');
+      await flushPromises();
+
+      expect(copyIcon(wrapper).classes()).toContain('icon-copy');
+    });
+
+    it('should allow another copy straight after a failed copy', async() => {
+      const { wrapper, currentCluster } = withCluster(false);
+      const button = wrapper.find('[data-testid="btn-copy-kubeconfig"]');
+
+      await button.trigger('click');
+      await flushPromises();
+      await button.trigger('click');
+
+      expect(currentCluster.copyKubeConfig).toHaveBeenCalledTimes(2);
     });
   });
 });
