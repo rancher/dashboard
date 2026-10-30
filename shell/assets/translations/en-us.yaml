@@ -5243,6 +5243,7 @@ monitoring:
   projectMonitoring:
     detail:
       error: "Unable to fetch Dashboard values with status: "
+    federatorNotInstalled: Prometheus Federator is not installed on this cluster. Install it from Apps to manage project monitoring.
     list:
       banner: Project Monitoring Configuration is stored in ProjectHelmChart resources
       empty:

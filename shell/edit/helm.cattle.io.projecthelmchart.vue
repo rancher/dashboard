@@ -7,7 +7,9 @@ import { CONFIG_MAP, NAMESPACE } from '@shell/config/types';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import Loading from '@shell/components/Loading';
+import { Banner } from '@components/Banner';
 import jsyaml from 'js-yaml';
+import { PROMETHEUS_FEDERATOR_SYSTEM_NAMESPACES_CONFIG_MAP } from '@shell/utils/monitoring';
 
 export default {
   components: {
@@ -16,7 +18,8 @@ export default {
     LabeledInput,
     Tabbed,
     Questions,
-    Loading
+    Loading,
+    Banner
   },
 
   mixins: [createEditView],
@@ -31,9 +34,25 @@ export default {
   },
 
   async fetch() {
+    let federatorSystemNamespacesConfigMap;
+
+    try {
+      federatorSystemNamespacesConfigMap = await this.$store.dispatch('cluster/find', {
+        type: CONFIG_MAP, id: PROMETHEUS_FEDERATOR_SYSTEM_NAMESPACES_CONFIG_MAP, opt: { force: true, watch: false }
+      });
+    } catch (e) { // a 404 means the federator isn't installed
+    }
+
+    this.$store.commit('hasPrometheusFederator', !!federatorSystemNamespacesConfigMap);
+
+    if (!federatorSystemNamespacesConfigMap) {
+      this.loading = false;
+
+      return;
+    }
+
     await this.$store.dispatch('catalog/load');
     const inStore = this.$store.getters['currentStore'](NAMESPACE);
-    const federatorSystemNamespacesConfigMap = await this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id: 'cattle-monitoring-system/prometheus-federator-system-namespaces' });
 
     this.systemNamespaces = JSON.parse(federatorSystemNamespacesConfigMap?.data?.['system-namespaces.json']);
 
@@ -84,6 +103,10 @@ export default {
   },
 
   computed: {
+    hasPrometheusFederator() {
+      return this.$store.getters['hasPrometheusFederator'];
+    },
+
     currentNamespace() {
       return this.namespaces.find((namespace) => namespace.id === this.value?.metadata?.namespace);
     }
@@ -111,8 +134,15 @@ export default {
 </script>
 
 <template>
+  <Loading v-if="loading" />
+  <Banner
+    v-else-if="!hasPrometheusFederator"
+    color="warning"
+    :label="t('monitoring.projectMonitoring.federatorNotInstalled')"
+    data-testid="project-monitoring-federator-not-installed"
+  />
   <CruResource
-    v-if="!loading"
+    v-else
     :done-route="doneRoute"
     :resource="value"
     :mode="mode"
@@ -156,7 +186,6 @@ export default {
       </div>
     </div>
   </CruResource>
-  <Loading v-else />
 </template>
 
 <style lang="scss" scoped>

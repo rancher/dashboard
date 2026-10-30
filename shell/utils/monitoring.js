@@ -30,6 +30,8 @@ export function haveV2Monitoring(getters) {
 
 export const CATTLE_MONITORING_NAMESPACE = 'cattle-monitoring-system';
 
+export const PROMETHEUS_FEDERATOR_SYSTEM_NAMESPACES_CONFIG_MAP = `${ CATTLE_MONITORING_NAMESPACE }/prometheus-federator-system-namespaces`;
+
 /**
  * Look up the installed Rancher monitoring app, preferring the new
  * `rancher-monitoring-dashboards` chart and falling back to the legacy
