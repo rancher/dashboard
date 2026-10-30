@@ -60,17 +60,17 @@ export default {
         },
         {
           path:           'gitRepo',
-          rules:          ['required'],
+          rules:          ['required', 'urlRepository'],
           translationKey: 'catalog.repo.gitRepo.label',
         },
         {
           path:           'helmUrl',
-          rules:          ['required'],
+          rules:          ['required', 'urlRepository'],
           translationKey: 'catalog.repo.url.label',
         },
         {
           path:           'ociUrl',
-          rules:          ['required'],
+          rules:          ['required', 'ociRegistry'],
           translationKey: 'catalog.repo.oci.urlLabel',
         },
       ]
