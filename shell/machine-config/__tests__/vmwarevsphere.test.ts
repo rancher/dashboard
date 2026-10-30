@@ -24,6 +24,7 @@ interface VSphereInstance {
   value: Record<string, unknown>;
   storageType: string;
   validationErrors: Record<string, string[] | undefined>;
+  relativeValuesWarning: string;
   dataCentersResults: LabelValue[] | null;
   dataStoresResults: LabelValue[] | null;
   libraryTemplatesResults: LabelValue[] | null;
@@ -301,12 +302,16 @@ describe('component: vmwarevsphere', () => {
 
     describe('values relative to the datacenter', () => {
       const datacenters = ['/dc1', '/dc2', '/folder1/dc3'];
-      const setupWith = (value: Record<string, unknown>) => {
+      const setupWith = (value: Record<string, unknown>, t?: jest.Mock) => {
         const wrapper = mount(vmwarevsphere, {
           ...defaultEditSetup,
           propsData: {
             ...defaultEditSetup.propsData,
             value: { ...defaultEditSetup.propsData.value, ...value }
+          },
+          global: {
+            ...defaultEditSetup.global,
+            mocks: { ...defaultEditSetup.global.mocks, ...(t ? { t } : {}) }
           }
         });
         const vm = asVSphere(wrapper);
@@ -360,6 +365,86 @@ describe('component: vmwarevsphere', () => {
         vm.resetValueIfNecessary(key, content, options);
 
         expect(content.filter((c) => c.value === value)).toHaveLength(1);
+      });
+
+      const relativeCases: [string, string, string, string[], string][] = [
+        ['datastore', 'ds1', 'dc1', ['/dc1/datastore/ds1'], '/dc1/datastore/ds1'],
+        ['hostsystem', '10.0.0.1', 'dc1', ['', '/dc1/host/cluster1/10.0.0.1'], '/dc1/host/cluster1/10.0.0.1'],
+        ['folder', 'folder1', '/dc1', ['', '/dc1/vm', '/dc1/vm/folder1'], '/dc1/vm/folder1'],
+        ['cloneFrom', 'template1', 'dc1', ['/dc1/vm/templates/template1'], '/dc1/vm/templates/template1'],
+      ];
+
+      it.each(relativeCases)('should add the %p value %p in datacenter %p as an option above %p', (key, value, datacenter, options, resolved) => {
+        const vm = setupWith({ datacenter, [key]: value });
+        const content = toContent(vm, key, options);
+
+        vm.resetValueIfNecessary(key, content, options);
+
+        const index = content.findIndex((c) => c.value === resolved);
+
+        expect(content.slice(index - 1, index + 1)).toStrictEqual([{ label: value, value }, { label: resolved, value: resolved }]);
+      });
+
+      it.each(relativeCases)('should warn that the %p value %p in datacenter %p is not a full path', (key, value, datacenter, options) => {
+        const t = jest.fn((key: string) => key);
+        const vm = setupWith({ datacenter, [key]: value }, t);
+
+        vm.resetValueIfNecessary(key, toContent(vm, key, options), options);
+
+        expect(vm.relativeValuesWarning).toStrictEqual('cluster.machineConfig.vsphere.relativeValues');
+        expect(t).toHaveBeenCalledWith('cluster.machineConfig.vsphere.relativeValues', { count: 1, fields: key });
+      });
+
+      it('should list every field that is not a full path in the warning', () => {
+        const t = jest.fn((key: string) => key);
+        const vm = setupWith({
+          datacenter: 'dc1', datastore: 'ds1', pool: 'cluster1/Resources'
+        }, t);
+
+        vm.resetValueIfNecessary('datastore', vm.mapPathOptionsToContent(['/dc1/datastore/ds1']), ['/dc1/datastore/ds1']);
+        vm.resetValueIfNecessary('pool', vm.mapPathOptionsToContent(['/dc1/host/cluster1/Resources']), ['/dc1/host/cluster1/Resources']);
+
+        expect(vm.relativeValuesWarning).toStrictEqual('cluster.machineConfig.vsphere.relativeValues');
+        expect(t).toHaveBeenCalledWith('cluster.machineConfig.vsphere.relativeValues', { count: 2, fields: 'datastore, pool' });
+      });
+
+      it.each([
+        ['/dc1/datastore/ds1', ['/dc1/datastore/ds1']],
+        ['missing', ['/dc1/datastore/ds1']],
+      ])('should NOT warn about the datastore value %p with the options %p', (datastore, options) => {
+        const vm = setupWith({ datacenter: '/dc1', datastore });
+
+        vm.resetValueIfNecessary('datastore', vm.mapPathOptionsToContent(options), options);
+
+        expect(vm.relativeValuesWarning).toStrictEqual('');
+      });
+
+      it('should NOT warn after the full path is selected', () => {
+        const vm = setupWith({ datacenter: '/dc1', datastore: 'ds1' });
+
+        vm.resetValueIfNecessary('datastore', vm.mapPathOptionsToContent(['/dc1/datastore/ds1']), ['/dc1/datastore/ds1']);
+        vm.value.datastore = '/dc1/datastore/ds1';
+
+        expect(vm.relativeValuesWarning).toStrictEqual('');
+      });
+
+      it('should show the warning banner', async() => {
+        const wrapper = mount(vmwarevsphere, {
+          ...defaultEditSetup,
+          propsData: {
+            ...defaultEditSetup.propsData,
+            value: {
+              ...defaultEditSetup.propsData.value, datacenter: '/dc1', datastore: 'ds1'
+            }
+          }
+        });
+        const vm = asVSphere(wrapper);
+
+        vm.dataCentersResults = vm.mapPathOptionsToContent(datacenters);
+        vm.resetValueIfNecessary('datastore', vm.mapPathOptionsToContent(['/dc1/datastore/ds1']), ['/dc1/datastore/ds1']);
+        await wrapper.vm.$nextTick();
+
+        expect(wrapper.find('[data-testid="relative-values-warning"]').exists()).toBe(true);
       });
 
       const invalidCases: [string, string, string | undefined, string[]][] = [
@@ -495,7 +580,7 @@ describe('component: vmwarevsphere', () => {
       expect(vm.validationErrors[poolId]).toBeUndefined();
     });
 
-    it('should select the datacenter option without changing the saved value', async() => {
+    it('should add the saved datacenter as an option above its full path', async() => {
       const dispatch = jest.fn().mockResolvedValue({ data: ['/dc1', '/folder1/dc3'] });
       const vm = asVSphere(mount(vmwarevsphere, setupWithStore('dc3', dispatch)));
 
@@ -503,8 +588,43 @@ describe('component: vmwarevsphere', () => {
 
       expect(vm.dataCentersResults).toStrictEqual([
         { label: '/dc1', value: '/dc1' },
-        { label: '/folder1/dc3', value: 'dc3' },
+        { label: 'dc3', value: 'dc3' },
+        { label: '/folder1/dc3', value: '/folder1/dc3' },
       ]);
+    });
+
+    it('should warn that the saved datacenter is not a full path', async() => {
+      const dispatch = jest.fn().mockResolvedValue({ data: ['/dc1', '/folder1/dc3'] });
+      const t = jest.fn((key: string) => key);
+      const setup = setupWithStore('dc3', dispatch);
+      const vm = asVSphere(mount(vmwarevsphere, { ...setup, global: { ...setup.global, mocks: { ...setup.global.mocks, t } } }));
+
+      await vm.loadDataCenters();
+
+      expect(vm.relativeValuesWarning).toStrictEqual('cluster.machineConfig.vsphere.relativeValues');
+      expect(t).toHaveBeenCalledWith('cluster.machineConfig.vsphere.relativeValues', { count: 1, fields: 'datacenter' });
+    });
+
+    it('should NOT warn about a datacenter with the full path', async() => {
+      const dispatch = jest.fn().mockResolvedValue({ data: ['/dc1', '/folder1/dc3'] });
+      const vm = asVSphere(mount(vmwarevsphere, setupWithStore('/folder1/dc3', dispatch)));
+
+      await vm.loadDataCenters();
+
+      expect(vm.relativeValuesWarning).toStrictEqual('');
+    });
+
+    it('should request datacenter resources with the full datacenter path after the datacenters load', async() => {
+      const dispatch = jest.fn().mockResolvedValue({ data: ['/dc1', '/folder1/dc3'] });
+      const vm = asVSphere(mount(vmwarevsphere, setupWithStore('dc3', dispatch)));
+
+      await vm.loadDataCenters();
+      await vm.loadDataStores();
+
+      expect(dispatch).toHaveBeenCalledWith('management/request', {
+        url:                  '/meta/vsphere/data-stores?cloudCredentialId=credentialId&dataCenter=/folder1/dc3',
+        redirectUnauthorized: false,
+      }, { root: true });
     });
 
     const invalidCases: [string, string[]][] = [

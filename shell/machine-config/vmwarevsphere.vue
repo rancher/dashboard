@@ -262,6 +262,7 @@ export default {
       ],
       osOptions:        OS_OPTIONS,
       validationErrors: {},
+      relativeValues:   {},
     };
   },
 
@@ -304,14 +305,22 @@ export default {
      * The full inventory path of the datacenter, e.g. 'dc1' => '/dc1'
      */
     resolvedDatacenter() {
-      // The label is the path. The value can be the saved datacenter, see loadDataCenters
-      const paths = (this.dataCentersResults || []).map((c) => c.label);
+      const paths = (this.dataCentersResults || []).map((c) => c.value);
 
       return findDatacenterPath(this.value.datacenter, paths);
     },
 
     datacenterPath() {
       return this.resolvedDatacenter || this.value.datacenter;
+    },
+
+    /**
+     * Warns about fields with a value that is not a full path, e.g. 'ds1' instead of '/dc1/datastore/ds1'
+     */
+    relativeValuesWarning() {
+      const fields = Object.keys(this.relativeValues).filter((key) => this.value[key] === this.relativeValues[key]);
+
+      return fields.length ? this.t('cluster.machineConfig.vsphere.relativeValues', { count: fields.length, fields: fields.join(', ') }) : '';
     },
 
     showTemplate() {
@@ -508,6 +517,7 @@ export default {
       const content = this.mapPathOptionsToContent(options);
       const datacenterPath = findDatacenterPath(this.value.datacenter, options || []);
       const valueInContent = datacenterPath && content.find((c) => c.value === datacenterPath);
+      const isRelative = !!valueInContent && datacenterPath !== this.value.datacenter;
 
       if (!valueInContent) {
         if (this.mode === _CREATE || this.poolCreateMode) {
@@ -520,11 +530,13 @@ export default {
           this.manageErrors(errorActions.CREATE, 'datacenter');
         }
       } else {
-        // Show the option as selected, without changing the saved value
-        valueInContent.value = this.value.datacenter;
+        if (isRelative) {
+          this.addSavedValueOption('datacenter', content, valueInContent);
+        }
         this.manageErrors(errorActions.DELETE, 'datacenter');
       }
 
+      this.setRelativeValue('datacenter', isRelative);
       set(this, 'dataCentersResults', content);
     },
 
@@ -778,6 +790,7 @@ export default {
     },
 
     resetValueIfNecessary(key, content, options, isArray = false) {
+      let isRelative = false;
       const isValueInContent = () => {
         if (isArray) {
           return this.value[key]?.every((value) => content.find((c) => c.value === value));
@@ -790,8 +803,8 @@ export default {
         const resolvedOption = this.findResolvedContent(key, this.value[key], content);
 
         if (resolvedOption) {
-          // Show the option as selected, without changing the saved value
-          resolvedOption.value = this.value[key];
+          this.addSavedValueOption(key, content, resolvedOption);
+          isRelative = true;
         }
 
         return !!resolvedOption;
@@ -817,6 +830,27 @@ export default {
       } else {
         this.manageErrors(errorActions.DELETE, key);
       }
+
+      this.setRelativeValue(key, isRelative);
+    },
+
+    /**
+     * Add the saved value as its own option above the option it resolves to, so the user can see both and select the full path
+     */
+    addSavedValueOption(key, content, resolvedOption) {
+      content.splice(content.indexOf(resolvedOption), 0, { label: this.value[key], value: this.value[key] });
+    },
+
+    setRelativeValue(key, isRelative) {
+      const relativeValues = { ...this.relativeValues };
+
+      if (isRelative) {
+        relativeValues[key] = this.value[key];
+      } else {
+        delete relativeValues[key];
+      }
+
+      this.relativeValues = relativeValues;
     },
 
     mapPathOptionsToContent(pathOptions) {
@@ -946,6 +980,12 @@ export default {
     </div>
   </div>
   <div v-else>
+    <Banner
+      v-if="relativeValuesWarning"
+      color="warning"
+      data-testid="relative-values-warning"
+      :label="relativeValuesWarning"
+    />
     <Card
       class="m-0 mt-20"
       :show-highlight-border="false"
