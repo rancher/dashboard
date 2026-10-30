@@ -44,8 +44,9 @@ async function findColors() {
   const colorOf = (text) => colorLiterals.colorInMessage(text) ?? text;
 
   const eslint = new ESLint({
-    cwd:            REPO_ROOT,
-    overrideConfig: {
+    cwd:               REPO_ROOT,
+    allowInlineConfig: false,
+    overrideConfig:    {
       files: ['**/*.{js,ts,vue}'], ignores: testFiles, rules: { [RULE]: 'error' }
     },
     ruleFilter: ({ ruleId }) => ruleId === RULE,
@@ -53,10 +54,11 @@ async function findColors() {
   const eslintResults = await eslint.lintFiles(SCOPES);
 
   const { results: stylelintResults } = await stylelint.lint({
-    files:         SCOPES.map((scope) => `${ scope }/**/*.{vue,scss,css}`),
-    cwd:           REPO_ROOT,
-    configBasedir: REPO_ROOT,
-    config:        {
+    files:          SCOPES.map((scope) => `${ scope }/**/*.{vue,scss,css}`),
+    cwd:            REPO_ROOT,
+    configBasedir:  REPO_ROOT,
+    ignoreDisables: true,
+    config:         {
       ...stylelintConfig, plugins: ['./stylelint-local-rules/no-color-literal.mjs'], rules: { [RULE]: true }
     },
   });
@@ -219,7 +221,9 @@ async function main() {
 
   if (newCount > 0) {
     console.error(`\n✖ ${ newCount } new color(s) introduced:\n`);
-    for (const { file, color, lines, allowed } of added) {
+    for (const {
+      file, color, lines, allowed
+    } of added) {
       if (allowed) {
         console.error(`  ${ file }: ${ color } on lines ${ lines.join(', ') } (the baseline allows ${ allowed })`);
       } else {
