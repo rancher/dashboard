@@ -166,18 +166,31 @@ export default defineComponent({
         return await this.value.save();
       }
 
-      Promise.reject(new Error(this.t('oidcclient.errors.performSecretAction')));
+      throw new Error(this.t('oidcclient.errors.performSecretAction'));
+    },
+
+    fetchClientSecret(force = false) {
+      if (this.clientSecretId && this.canFetchSecrets) {
+        this.$store.dispatch('management/find', {
+          type: SECRET, id: this.clientSecretId, opt: { force }
+        });
+      }
     },
   },
 
   watch: {
     clientSecretId: {
-      handler(neu) {
-        if (neu && this.canFetchSecrets) {
-          this.$store.dispatch('management/find', { type: SECRET, id: neu });
-        }
+      handler() {
+        this.fetchClientSecret();
       },
       immediate: true
+    },
+
+    hasStaleClientSecret(neu) {
+      // The backend updates the secret before the client status, so a stale value means our copy of the secret missed an update
+      if (neu) {
+        this.fetchClientSecret(true);
+      }
     }
   },
 
@@ -188,7 +201,7 @@ export default defineComponent({
 
     clientSecretId(): string {
       // We can either use `${ OIDC_SECRETS_NAMESPACE }/${ this.value.status.clientID }` directly, or attempt to find the secret owned by the client
-      return this.value.metadata.relationships.find((r: any) => r.rel === 'owner' && r.state === 'active' && r.toType === SECRET && r.toId.startsWith(OIDC_SECRETS_NAMESPACE))?.toId;
+      return this.value.metadata.relationships?.find((r: any) => r.rel === 'owner' && r.state === 'active' && r.toType === SECRET && r.toId.startsWith(OIDC_SECRETS_NAMESPACE))?.toId;
     },
 
     clientSecret(): Record<string, any> | undefined {
@@ -239,6 +252,14 @@ export default defineComponent({
       });
 
       return clientSecrets;
+    },
+
+    hasStaleClientSecret(): boolean {
+      if (!this.clientSecret) {
+        return false;
+      }
+
+      return this.clientSecrets.some((secret) => secret.displayFullSecret && !this.clientSecret?.decodedData?.[secret.id]?.endsWith(secret.lastFiveCharacters));
     },
 
     showSecrets(): boolean {
