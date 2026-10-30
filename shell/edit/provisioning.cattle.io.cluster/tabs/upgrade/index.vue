@@ -41,7 +41,7 @@ export default {
       {{ t('cluster.rke2.drain.deleteEmptyDir.warning', {}, true) }}
     </Banner>
     <div class="row">
-      <div class="col span-6">
+      <div class="col span-12">
         <h3>{{ t('cluster.rke2.controlPlaneConcurrency.header') }}</h3>
         <LabeledInput
           v-model:value="rkeConfig.upgradeStrategy.controlPlaneConcurrency"
@@ -55,7 +55,9 @@ export default {
           :mode="mode"
         />
       </div>
-      <div class="col span-6">
+    </div>
+    <div class="row mt-20">
+      <div class="col span-12">
         <h3>
           {{ t('cluster.rke2.workNode.label') }}
         </h3>
