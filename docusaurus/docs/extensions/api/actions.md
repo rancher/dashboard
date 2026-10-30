@@ -46,18 +46,19 @@ _Arguments_
 
 `options` config object. Admissable parameters for the `options` with `'ActionLocation.HEADER'` are:
 
-| Key | Type | Description |
-|---|---|---|
-|`tooltip`| String | Text for tooltip of button |
-|`tooltipKey`| String | Same as "tooltip" but allows for translation. Will superseed "tooltip" |
-|`shortcut`| String | Shortcut key bindings. Passed as a string (ex: m), for which the default will be `Ctrl+m` for Linux/Windows and `Meta+m` for Mac OS. Check examples below |
-|`icon`| String | icon name (based on [rancher icons](https://rancher.github.io/icons/)) |
-|`svg`| Function | icon based on a SVG file which can be included using `@require` |
-|`enabled`| Function | Whether the action/button is enabled or not. A function returning a boolean is checked again whenever the reactive state it reads changes; one returning a promise is checked on navigation |
-|`disabledTooltip`| String | Text for the tooltip while the button is disabled, saying why |
-|`disabledTooltipKey`| String | Same as "disabledTooltip" but allows for translation. Will superseed "disabledTooltip" |
-|`hidden`| Boolean | No button: the action is only its `shortcut`. Defaults to `false` |
-|`invoke`| Function | function executed when action/button is clicked |
+| Key | Type | Rancher Version | Description |
+|---|---|---|---|
+|`tooltip`| String | v2.7.2 | Text for tooltip of button |
+|`tooltipKey`| String | v2.7.2 | Same as "tooltip" but allows for translation. Will superseed "tooltip" |
+|`shortcut`| String | v2.7.2 | Shortcut key bindings. Passed as a string (ex: m), for which the default will be `Ctrl+m` for Linux/Windows and `Meta+m` for Mac OS. Check examples below |
+|`icon`| String | v2.7.2 | icon name (based on [rancher icons](https://rancher.github.io/icons/)) |
+|`svg`| Function | v2.7.2 | icon based on a SVG file which can be included using `@require` |
+|`enabled`| Function | v2.7.2 | Whether the action/button is enabled or not. A function returning a boolean is checked again whenever the reactive state it reads changes; one returning a promise is checked on navigation |
+|`disabledTooltip`| String | v2.7.2 | Text for the tooltip while the button is disabled, saying why |
+|`disabledTooltipKey`| String | v2.7.2 | Same as "disabledTooltip" but allows for translation. Will superseed "disabledTooltip" |
+|`hidden`| Boolean | v2.7.2 | No button: the action is only its `shortcut`. Defaults to `false` |
+|`showNotificationIndicator`| Function | v2.17 | Function that returns a boolean indicating whether to show the notification indicator. Only available for `'ActionLocation.HEADER'` |
+|`invoke`| Function | v2.7.2 | function executed when action/button is clicked |
 
 Usage example for `'ActionLocation.HEADER'`:
 
@@ -90,6 +91,9 @@ plugin.addAction(
     svg:        require('@pkg/test-features/icons/rancher-desktop.svg'),
     enabled(ctx: any) {
       return true;
+    },
+    showNotificationIndicator: () => {
+      return store.getters[`unread-messages`] > 0;
     },
     invoke(opts: any, resources: any) {
       console.log('action executed 2', this); // eslint-disable-line no-console
