@@ -15,6 +15,7 @@ import { get, set } from '@shell/utils/object';
 import { integerString, keyValueStrings } from '@shell/utils/computed';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { DEFAULT_VALUES, SENTINEL, OS_OPTIONS } from '@shell/machine-config/vmwarevsphere-config';
+import { findDatacenterPath, findResolvedOption, nameOnly, toDriverFolder } from '@shell/machine-config/vmwarevsphere-paths';
 
 const NULLABLE_EMPTY_FIELDS = ['contentLibrary', 'folder', 'hostsystem'];
 const VAPP_MODE = {
@@ -80,10 +81,6 @@ const networkToVappProperties = (props, network, i) => {
   );
 
   return props;
-};
-
-const nameOnly = (network) => {
-  return network.split('/').pop();
 };
 
 /**
@@ -295,6 +292,20 @@ export default {
       return this.disabled || this.mode === _VIEW;
     },
 
+    /**
+     * The full inventory path of the datacenter, e.g. 'dc1' => '/dc1'
+     */
+    resolvedDatacenter() {
+      // The label is the path. The value can be the saved datacenter, see loadDataCenters
+      const paths = (this.dataCentersResults || []).map((c) => c.label);
+
+      return findDatacenterPath(this.value.datacenter, paths);
+    },
+
+    datacenterPath() {
+      return this.resolvedDatacenter || this.value.datacenter;
+    },
+
     showTemplate() {
       return this.value.creationType === 'template';
     },
@@ -464,7 +475,8 @@ export default {
     async loadDataCenters() {
       const options = await this.requestOptions('data-centers');
       const content = this.mapPathOptionsToContent(options);
-      const valueInContent = content.find((c) => c.value === this.value.datacenter );
+      const datacenterPath = findDatacenterPath(this.value.datacenter, options || []);
+      const valueInContent = datacenterPath && content.find((c) => c.value === datacenterPath);
 
       if (!valueInContent) {
         if (this.mode === _CREATE || this.poolCreateMode) {
@@ -477,6 +489,8 @@ export default {
           this.manageErrors(errorActions.CREATE, 'datacenter');
         }
       } else {
+        // Show the option as selected, without changing the saved value
+        valueInContent.value = this.value.datacenter;
         this.manageErrors(errorActions.DELETE, 'datacenter');
       }
 
@@ -521,7 +535,7 @@ export default {
     async loadHosts() {
       set(this, 'hostsResults', null);
 
-      const options = await this.requestOptions('hosts', this.value.datacenter);
+      const options = await this.requestOptions('hosts', this.datacenterPath);
       const content = this.mapHostOptionsToContent(options);
 
       this.resetValueIfNecessary('hostsystem', content, options);
@@ -532,7 +546,7 @@ export default {
     async loadResourcePools() {
       set(this, 'resourcePoolsResults', null);
 
-      const options = await this.requestOptions('resource-pools', this.value.datacenter);
+      const options = await this.requestOptions('resource-pools', this.datacenterPath);
 
       const content = this.mapPathOptionsToContent(options);
 
@@ -544,7 +558,7 @@ export default {
     async loadDataStores() {
       set(this, 'dataStoresResults', null);
 
-      const options = await this.requestOptions('data-stores', this.value.datacenter);
+      const options = await this.requestOptions('data-stores', this.datacenterPath);
       const content = this.mapPathOptionsToContent(options);
 
       this.resetValueIfNecessary('datastore', content, options);
@@ -555,7 +569,7 @@ export default {
     async loadDataStoreClusters() {
       set(this, 'dataStoreClustersResults', null);
 
-      const options = await this.requestOptions('data-store-clusters', this.value.datacenter);
+      const options = await this.requestOptions('data-store-clusters', this.datacenterPath);
       const content = this.mapPathOptionsToContent(options);
 
       this.resetValueIfNecessary('datastoreCluster', content, options);
@@ -566,7 +580,7 @@ export default {
     async loadFolders() {
       set(this, 'foldersResults', null);
 
-      const options = await this.requestOptions('folders', this.value.datacenter);
+      const options = await this.requestOptions('folders', this.datacenterPath);
       const content = this.mapFolderOptionsToContent(options);
 
       this.resetValueIfNecessary('folder', content, options);
@@ -577,7 +591,7 @@ export default {
     async loadNetworks() {
       set(this, 'networksResults', null);
 
-      const options = await this.requestOptions('networks-extended', this.value.datacenter);
+      const options = await this.requestOptions('networks-extended', this.datacenterPath);
       const content = options.map((opt) => {
         return {
           label: `${ opt.name } (${ opt.moid })`, value: opt.moid, name: opt.name
@@ -593,7 +607,7 @@ export default {
     async loadContentLibraries() {
       set(this, 'contentLibrariesResults', null);
 
-      const options = await this.requestOptions('content-libraries', this.value.datacenter);
+      const options = await this.requestOptions('content-libraries', this.datacenterPath);
       const content = this.mapPathOptionsToContent(options)
         .filter((item) => item.value !== '');
 
@@ -611,7 +625,7 @@ export default {
         return [];
       }
 
-      const options = await this.requestOptions('library-templates', this.value.datacenter, contentLibrary);
+      const options = await this.requestOptions('library-templates', this.datacenterPath, contentLibrary);
       const content = this.mapPathOptionsToContent(options);
 
       if (this.showContentLibrary) {
@@ -624,7 +638,7 @@ export default {
     async loadVirtualMachines() {
       set(this, 'virtualMachinesResults', null);
 
-      const options = await this.requestOptions('virtual-machines', this.value.datacenter);
+      const options = await this.requestOptions('virtual-machines', this.datacenterPath);
 
       const content = this.mapPathOptionsToContent(options);
 
@@ -639,7 +653,7 @@ export default {
       try {
         set(this, 'templatesResults', null);
 
-        const options = await this.requestOptions('templates', this.value.datacenter);
+        const options = await this.requestOptions('templates', this.datacenterPath);
 
         const content = this.mapPathOptionsToContent(options);
 
@@ -680,7 +694,18 @@ export default {
           return this.value[key]?.every((value) => content.find((c) => c.value === value));
         }
 
-        return content.find((c) => c.value === this.value[key] );
+        if (content.find((c) => c.value === this.value[key])) {
+          return true;
+        }
+
+        const resolvedOption = this.findResolvedContent(key, this.value[key], content);
+
+        if (resolvedOption) {
+          // Show the option as selected, without changing the saved value
+          resolvedOption.value = this.value[key];
+        }
+
+        return !!resolvedOption;
       };
 
       if (!isValueInContent()) {
@@ -690,7 +715,8 @@ export default {
           [_EDIT, _VIEW].includes(this.mode) && // error messages should only be displayed in Edit or View mode
           !this.poolCreateMode && // almost identical to Create mode
           !isNullOrEmpty && // null and empty string are valid values for some fields e.g. contentLibrary, folder and hostsystem
-          !isArray; // this flag is used for network and tag fields, and should not display error for them
+          !isArray && // this flag is used for network and tag fields, and should not display error for them
+          !(key === 'contentLibrary' && !this.showContentLibrary); // contentLibrary is only used by the content library creation method
 
         if ((this.mode === _CREATE || this.poolCreateMode) && value !== SENTINEL) {
           set(this.value, key, value);
@@ -721,11 +747,27 @@ export default {
         } : c);
     },
 
+    /**
+     * The option the vSphere driver resolves a value to
+     */
+    findResolvedContent(key, value, content) {
+      if (!this.resolvedDatacenter) {
+        return undefined;
+      }
+
+      const options = content.filter((c) => typeof c.value === 'string');
+      const resolved = findResolvedOption(key, value, options.map((c) => c.value), this.value.datacenter, this.resolvedDatacenter);
+
+      return resolved === undefined ? undefined : options.find((c) => c.value === resolved);
+    },
+
     mapFolderOptionsToContent(folderOptions) {
-      return folderOptions.map((option) => ({
-        label: option || '\u00A0',
-        value: option || ''
-      }));
+      return folderOptions
+        .map((option) => ({
+          label: option || '\u00A0',
+          value: toDriverFolder(option, this.value.datacenter, this.resolvedDatacenter)
+        }))
+        .filter((c, i, all) => all.findIndex((o) => o.value === c.value) === i);
     },
 
     mapCustomAttributesToContent(customAttributes) {
@@ -757,13 +799,13 @@ export default {
 
     manageErrors(action = errorActions.CREATE, key) {
       if (action === errorActions.CREATE) {
-        const keys = [key, ...(this.validationErrors[this.poolId] || [])];
+        const keys = [key, ...(this.validationErrors[this.poolId] || []).filter((x) => x !== key)];
 
         this.validationErrors = Object.assign({}, this.validationErrors, { [this.poolId]: keys });
       }
 
       if (action === errorActions.DELETE && this.validationErrors[this.poolId]) {
-        this.validationErrors = Object.assign({}, this.validationErrors, { [this.poolId]: this.validationErrors[this.poolId].filter((x) => x === key) }) ;
+        this.validationErrors = Object.assign({}, this.validationErrors, { [this.poolId]: this.validationErrors[this.poolId].filter((x) => x !== key) }) ;
       }
     },
 
