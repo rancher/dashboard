@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import { RcDrawer, RcDrawerCard } from '@components/RcDrawer';
+import { RcDrawer, RcDrawerCard, RcDrawerFooter } from '@components/RcDrawer';
 import { RcButton } from '@components/RcButton';
 import { RcButtonSplit } from '@components/RcButtonSplit';
 import StateDot from '@shell/components/StateDot/index.vue';
@@ -34,19 +34,8 @@ const meta: Meta<typeof RcDrawer> = {
       control:     false,
       table:       { category: 'slots' },
     },
-    'footer-actions': {
-      description: 'Replaces every footer button, Close included, for a drawer that lays out its own actions; it receives `close`, which closes the drawer.',
-      control:     false,
-      table:       { category: 'slots' },
-    },
-    closeSlot: {
-      name:        'close',
-      description: 'The footer\'s Close button. Replace it when the drawer needs a different one, such as Cancel; it receives `close`, which closes the drawer.',
-      control:     false,
-      table:       { category: 'slots' },
-    },
-    'additional-actions': {
-      description: 'The drawer\'s actions, such as its primary action, after the footer\'s Close button. The footer only shows when there is one.',
+    footer: {
+      description: 'The footer, which only shows when this renders something. Put an `RcDrawerFooter` in it for the standard Close button and the drawer\'s actions, or lay out your own buttons; it receives `close`, which closes the drawer.',
       control:     false,
       table:       { category: 'slots' },
     },
@@ -75,20 +64,22 @@ const text = `
 
 /**
  * The drawer Show Configuration opens: the title and a close button in the
- * header, its form on a card over the tinted body, and a footer with Close
- * followed by the drawer's own actions.
+ * header, its form on a card over the tinted body, and an `RcDrawerFooter`
+ * with Close followed by the drawer's own actions.
  */
 export const Default: Story = {
   render: (args: any) => ({
     components: {
-      RcDrawer, RcDrawerCard, RcButton
+      RcDrawer, RcDrawerCard, RcDrawerFooter, RcButton
     },
     setup:    () => ({ args }),
     template: `
       <RcDrawer v-bind="args">
         ${ card }
-        <template #additional-actions>
-          <RcButton variant="primary" size="large">Edit Config</RcButton>
+        <template #footer>
+          <RcDrawerFooter>
+            <RcButton variant="primary" size="large">Edit Config</RcButton>
+          </RcDrawerFooter>
         </template>
       </RcDrawer>
     `,
@@ -98,7 +89,7 @@ export const Default: Story = {
 
 /**
  * A button that acts on the content sits in `header-actions`. With nothing in
- * `additional-actions` there is no footer. Text, such as a chart's readme, goes
+ * `footer` there is no footer. Text, such as a chart's readme, goes
  * straight in the body.
  */
 export const HeaderActions: Story = {
@@ -132,7 +123,7 @@ export const HeaderActions: Story = {
 export const RichTitle: Story = {
   render: (args: any) => ({
     components: {
-      RcDrawer, RcDrawerCard, RcButton, StateDot
+      RcDrawer, RcDrawerCard, RcDrawerFooter, RcButton, StateDot
     },
     setup:    () => ({ args }),
     template: `
@@ -142,8 +133,10 @@ export const RichTitle: Story = {
           {{ args.title }}
         </template>
         ${ card }
-        <template #additional-actions>
-          <RcButton variant="primary" size="large">Edit Config</RcButton>
+        <template #footer>
+          <RcDrawerFooter>
+            <RcButton variant="primary" size="large">Edit Config</RcButton>
+          </RcDrawerFooter>
         </template>
       </RcDrawer>
     `,
@@ -157,16 +150,20 @@ export const RichTitle: Story = {
  */
 export const TallContent: Story = {
   render: (args: any) => ({
-    components: { RcDrawer, RcButton },
-    setup:      () => ({ args }),
-    template:   `
+    components: {
+      RcDrawer, RcDrawerFooter, RcButton
+    },
+    setup:    () => ({ args }),
+    template: `
       <RcDrawer v-bind="args">
         <template v-for="n in 6" :key="n">
           <h3>Section {{ n }}</h3>
           <p>Text goes straight in the body, and the body scrolls when it runs past the footer.</p>
         </template>
-        <template #additional-actions>
-          <RcButton variant="primary" size="large">Edit Config</RcButton>
+        <template #footer>
+          <RcDrawerFooter>
+            <RcButton variant="primary" size="large">Edit Config</RcButton>
+          </RcDrawerFooter>
         </template>
       </RcDrawer>
     `,
@@ -181,8 +178,10 @@ export const TallContent: Story = {
  */
 export const SplitButton: Story = {
   render: (args: any) => ({
-    components: { RcDrawer, RcButtonSplit },
-    setup:      () => ({
+    components: {
+      RcDrawer, RcDrawerFooter, RcButtonSplit
+    },
+    setup: () => ({
       args,
       items: [{ id: 'edit', label: 'Edit' }, { id: 'delete', label: 'Delete' }],
     }),
@@ -190,19 +189,45 @@ export const SplitButton: Story = {
       <div style="position: absolute; top: 0; right: 0; bottom: 0; width: 420px; border-left: 1px solid var(--border);">
         <RcDrawer v-bind="args">
           <p>Reports a deviating state when the 95th percentile response time stays above 3 seconds.</p>
-          <template #additional-actions>
-            <RcButtonSplit
-              variant="primary"
-              size="large"
-              :items="items"
-              aria-label-trigger="More monitor actions"
-            >
-              Disable monitor
-            </RcButtonSplit>
+          <template #footer>
+            <RcDrawerFooter>
+              <RcButtonSplit
+                variant="primary"
+                size="large"
+                :items="items"
+                aria-label-trigger="More monitor actions"
+              >
+                Disable monitor
+              </RcButtonSplit>
+            </RcDrawerFooter>
           </template>
         </RcDrawer>
       </div>
     `,
   }),
   args: { title: 'HTTP - response time - is above 3 seconds' },
+};
+
+/**
+ * A drawer that needs a different pair of buttons, such as Cancel and Save,
+ * puts its own straight in `footer` and closes the drawer with the `close` it
+ * receives.
+ */
+export const CustomFooter: Story = {
+  render: (args: any) => ({
+    components: {
+      RcDrawer, RcDrawerCard, RcButton
+    },
+    setup:    () => ({ args }),
+    template: `
+      <RcDrawer v-bind="args">
+        ${ card }
+        <template #footer="{ close }">
+          <RcButton variant="secondary" size="large" @click="close">Cancel</RcButton>
+          <RcButton variant="primary" size="large">Save</RcButton>
+        </template>
+      </RcDrawer>
+    `,
+  }),
+  args: { title: 'GitHub - Access' },
 };

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RcDrawer } from '@components/RcDrawer';
+import { RcDrawer, RcDrawerFooter } from '@components/RcDrawer';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import Tabbed from '@shell/components/Tabbed/index.vue';
@@ -88,17 +88,18 @@ useResourceDetailDrawerProvider();
         v-bind="yamlTabProps"
       />
     </Tabbed>
-    <template #additional-actions>
-      <RcButton
-        v-if="canEdit"
-        variant="primary"
-        size="large"
-        :aria-label="action.ariaLabel"
-        :data-testid="editBttnDataTestId"
-        @click="action.action"
-      >
-        {{ action.label }}
-      </RcButton>
+    <template #footer>
+      <RcDrawerFooter v-if="canEdit">
+        <RcButton
+          variant="primary"
+          size="large"
+          :aria-label="action.ariaLabel"
+          :data-testid="editBttnDataTestId"
+          @click="action.action"
+        >
+          {{ action.label }}
+        </RcButton>
+      </RcDrawerFooter>
     </template>
   </RcDrawer>
 </template>

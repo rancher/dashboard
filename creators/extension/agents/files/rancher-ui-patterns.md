@@ -968,13 +968,13 @@ A typo in `component` fails silently — no modal, no error.
 Pattern for surfacing resource details or contextual content in a slide-out panel anchored to the right edge of the screen, without navigating away from the current page.
 
 **Used in:** `shell/components/Drawer/`, `shell/pages/c/_cluster/apps/charts/ChartInfoDrawer.vue`, list page row interactions
-**Core components:** `RcDrawer`, optionally `RcDrawerCard`, opened with the shell's slide-in
+**Core components:** `RcDrawer` and `RcDrawerFooter`, optionally `RcDrawerCard`, opened with the shell's slide-in
 
 **Skeleton:**
 ```vue
 <!-- ResourceDrawer.vue -->
 <script setup lang="ts">
-import { RcDrawer } from '@components/RcDrawer';
+import { RcDrawer, RcDrawerFooter } from '@components/RcDrawer';
 import { RcButton } from '@components/RcButton';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 
@@ -986,10 +986,12 @@ const emit = defineEmits<{ close: [] }>();
   <RcDrawer :title="props.resource.name" @close="emit('close')">
     <KeyValue :value="props.resource.metadata.labels" mode="view" title="Labels" />
 
-    <template #additional-actions>
-      <RcButton variant="primary" size="large" @click="props.resource.goToEdit()">
-        Edit
-      </RcButton>
+    <template #footer>
+      <RcDrawerFooter>
+        <RcButton variant="primary" size="large" @click="props.resource.goToEdit()">
+          Edit
+        </RcButton>
+      </RcDrawerFooter>
     </template>
   </RcDrawer>
 </template>
@@ -1012,7 +1014,7 @@ useShell().slideIn.open(ResourceDrawer, {
 - Don't pass `title` to `slideIn.open` for a component that renders `RcDrawer`, or it is wrapped in a second drawer
 - Closing on `close` is new in Rancher 2.16. If the extension also supports older versions, pass `onClose: () => store.commit('slideInPanel/close')` in `props` too, or the X and Close buttons do nothing there
 - Keep drawer content supplementary; never put a full edit form inside a Drawer
-- Put the drawer's own actions in `#additional-actions`; the footer, with Close before them, only shows when there is one. Icon buttons that act on the content go in `#header-actions`, beside the X
+- Put the drawer's own actions in an `RcDrawerFooter` in `#footer`, which puts Close before them. Leave `#footer` empty when there are none, and the drawer has no footer. Icon buttons that act on the content go in `#header-actions`, beside the X
 
 ---
 

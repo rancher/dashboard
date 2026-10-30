@@ -1,3 +1,5 @@
+import { Ref, ref } from 'vue';
+
 export interface RcDrawerProps {
   /**
    * The drawer title. Renders in the header and names the drawer for assistive
@@ -6,3 +8,13 @@ export interface RcDrawerProps {
    */
   title: string;
 }
+
+export type DrawerContext = {
+  close: () => void;
+  closeAriaLabel: Ref<string | undefined>;
+};
+
+export const defaultContext: DrawerContext = {
+  close:          () => null,
+  closeAriaLabel: ref(),
+};

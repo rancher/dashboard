@@ -14,6 +14,7 @@ export const ToggleSwitch: DefineComponent;
 export const RcButton: DefineComponent;
 export const RcDrawer: DefineComponent;
 export const RcDrawerCard: DefineComponent;
+export const RcDrawerFooter: DefineComponent;
 export const RcDropdown: DefineComponent;
 export const RcDropdownItem: DefineComponent;
 export const RcDropdownSeparator: DefineComponent;

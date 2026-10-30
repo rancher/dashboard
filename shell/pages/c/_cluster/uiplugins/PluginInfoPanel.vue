@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import ChartReadme from '@shell/components/ChartReadme';
 import LazyImage from '@shell/components/LazyImage';
-import { RcDrawer } from '@components/RcDrawer';
+import { RcDrawer, RcDrawerFooter } from '@components/RcDrawer';
 import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
 import { getPluginChartVersionLabel, getPluginChartVersion, getLatestPluginVersions } from '@shell/utils/uiplugins';
 import { isChartVersionHigher, uiPluginHasAnnotation } from '@shell/config/uiplugins';
@@ -18,6 +18,7 @@ export default {
     Banner,
     ChartReadme,
     RcDrawer,
+    RcDrawerFooter,
     LazyImage,
     RcButton,
     AppChartCardFooter
@@ -358,17 +359,19 @@ export default {
       </h3>
       <ChartReadme :version-info="versionInfo" />
     </template>
-    <template #additional-actions>
-      <RcButton
-        v-for="btn in panelActions"
-        :key="btn.action"
-        size="large"
-        :variant="btn.role"
-        :left-icon="btn.icon"
-        @click="onButtonClick(btn)"
-      >
-        {{ btn.label }}
-      </RcButton>
+    <template #footer>
+      <RcDrawerFooter v-if="panelActions.length">
+        <RcButton
+          v-for="btn in panelActions"
+          :key="btn.action"
+          size="large"
+          :variant="btn.role"
+          :left-icon="btn.icon"
+          @click="onButtonClick(btn)"
+        >
+          {{ btn.label }}
+        </RcButton>
+      </RcDrawerFooter>
     </template>
   </RcDrawer>
 </template>

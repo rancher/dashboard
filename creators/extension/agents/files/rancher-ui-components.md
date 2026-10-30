@@ -1016,7 +1016,7 @@ A composable floating dropdown menu. Use for non-resource-row action menus (for 
 
 ## Drawer
 
-**Import from:** `@components/RcDrawer` (`RcDrawer`, and `RcDrawerCard` for a form or table section)
+**Import from:** `@components/RcDrawer` (`RcDrawer`, `RcDrawerFooter` for the standard footer, and `RcDrawerCard` for a form or table section)
 **Also known as:** Side panel · Slide-out panel · Detail panel
 
 A slide-out panel anchored to the right side of the screen. Used to surface resource details, configuration previews, or help content without navigating away from the current page. Make `RcDrawer` the root of your component and open it with `useShell().slideIn.open(...)`: the slide-in traps focus, closes on Escape or a click outside, and returns focus to the element that opened it. It replaces `shell/components/Drawer/Chrome.vue` and `DrawerCard.vue`, which are removed.
@@ -1026,12 +1026,15 @@ A slide-out panel anchored to the right side of the screen. Used to surface reso
 
 **Events:** `@close` - emit it from your component to close the slide-in. Closing on `close` is new in Rancher 2.16; for older versions also pass `onClose: () => store.commit('slideInPanel/close')` in `props`
 
-**Slots:** default (the body), `#title` (renders inside the drawer's heading), `#header-actions` (buttons between the title and the close button), `#additional-actions` (the footer only shows when it has content), `#close` (replaces the footer's Close button, such as with Cancel; receives `close`), `#footer-actions` (replaces every footer button, Close included; receives `close`)
+**Slots:** default (the body), `#title` (renders inside the drawer's heading), `#header-actions` (buttons between the title and the close button), `#footer` (the footer, which only shows when it has content; receives `close`)
+
+**`RcDrawerFooter`:** the standard footer. Put it in `#footer`: it renders a Close button that closes the drawer, followed by its default slot, the drawer's actions
 
 **Best practices:**
 - Use when the user benefits from seeing the main page and the panel simultaneously (e.g., inspecting an item while the list remains visible)
 - Put text straight in the body; wrap a form or a table in `RcDrawerCard` to set it apart as a panel
-- Put the drawer's actions in `#additional-actions`, as `size="large"` buttons; they sit after the footer's Close button. A drawer with no action of its own has no footer
+- Put the drawer's actions in an `RcDrawerFooter` in `#footer`, as `size="large"` buttons; they sit after its Close button. A drawer with no action of its own has no footer, so give the `RcDrawerFooter` a `v-if` when the actions can be missing
+- For a footer that needs a different pair, such as Cancel and Save, put your own buttons straight in `#footer` and call the `close` it receives from Cancel
 - Put buttons that act on the content, such as Dock to shell or Expand all, in `#header-actions` as icon buttons sized like the X beside them, each with an `aria-label` and a tooltip
 - Keep a button's icon when it moves into the drawer (`left-icon`)
 - Limit panel width to 40–50% of the viewport; content needing more space warrants a full page

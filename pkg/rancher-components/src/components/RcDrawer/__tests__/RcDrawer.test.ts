@@ -15,7 +15,7 @@ const mountDrawer = ({ slots = {}, attrs = {} }: MountOptions = {}) => mount(RcD
   attrs,
 });
 
-const withAction = { 'additional-actions': '<button data-testid="extra">Edit Config</button>' };
+const withFooter = { footer: '<button data-testid="extra">Edit Config</button>' };
 
 describe('component: RcDrawer', () => {
   it('should be a modal dialog named by its title', () => {
@@ -65,63 +65,8 @@ describe('component: RcDrawer', () => {
     expect(wrapper.find('[data-testid="rc-drawer-body"] [data-testid="content"]').exists()).toBe(true);
   });
 
-  it('should name both close buttons after the drawer', () => {
-    const wrapper = mountDrawer({ slots: withAction });
-    const label = 'component.drawer.chrome.ariaLabel.close-{"target":"my-config (ConfigMap)"}';
-
-    expect(wrapper.find('[data-testid="rc-drawer-close"]').attributes('aria-label')).toBe(label);
-    expect(wrapper.find('[data-testid="rc-drawer-footer"] button').attributes('aria-label')).toBe(label);
-  });
-
-  it('should label the footer button Close', () => {
-    const wrapper = mountDrawer({ slots: withAction });
-
-    expect(wrapper.find('[data-testid="rc-drawer-footer"] button').text()).toBe('%component.drawer.chrome.close%');
-  });
-
-  it('should render the close slot in place of the footer Close button', () => {
-    const wrapper = mountDrawer({ slots: { close: '<button data-testid="cancel">Cancel</button>', ...withAction } });
-    const buttons = wrapper.findAll('[data-testid="rc-drawer-footer"] button');
-
-    expect(buttons.map((b) => b.attributes('data-testid'))).toStrictEqual(['cancel', 'extra']);
-  });
-
-  it('should give the close slot a close function that closes the drawer', async() => {
-    const wrapper = mountDrawer({
-      slots: {
-        close: ({ close }: { close: () => void }) => h('button', { 'data-testid': 'cancel', onClick: close }, 'Cancel'),
-        ...withAction
-      }
-    });
-
-    await wrapper.find('[data-testid="cancel"]').trigger('click');
-
-    expect(wrapper.emitted('close')).toHaveLength(1);
-  });
-
-  it('should replace every footer button with the footer-actions slot', () => {
-    const wrapper = mountDrawer({ slots: { 'footer-actions': '<button data-testid="only">Disable</button>', ...withAction } });
-    const buttons = wrapper.findAll('[data-testid="rc-drawer-footer"] button');
-
-    expect(buttons.map((b) => b.attributes('data-testid'))).toStrictEqual(['only']);
-  });
-
-  it('should show the footer for the footer-actions slot alone', () => {
-    const wrapper = mountDrawer({ slots: { 'footer-actions': '<button>Disable</button>' } });
-
-    expect(wrapper.find('[data-testid="rc-drawer-footer"]').exists()).toBe(true);
-  });
-
-  it('should give the footer-actions slot a close function that closes the drawer', async() => {
-    const wrapper = mountDrawer({ slots: { 'footer-actions': ({ close }: { close: () => void }) => h('button', { 'data-testid': 'cancel', onClick: close }, 'Cancel') } });
-
-    await wrapper.find('[data-testid="cancel"]').trigger('click');
-
-    expect(wrapper.emitted('close')).toHaveLength(1);
-  });
-
-  it('should keep the header close button when the close slot is used', () => {
-    const wrapper = mountDrawer({ slots: { close: '<button>Cancel</button>', ...withAction } });
+  it('should name the close button after the drawer', () => {
+    const wrapper = mountDrawer();
 
     expect(wrapper.find('[data-testid="rc-drawer-close"]').attributes('aria-label')).toBe('component.drawer.chrome.ariaLabel.close-{"target":"my-config (ConfigMap)"}');
   });
@@ -134,31 +79,29 @@ describe('component: RcDrawer', () => {
     expect(wrapper.emitted('close')).toHaveLength(1);
   });
 
-  it('should emit close from the footer close button', async() => {
-    const wrapper = mountDrawer({ slots: withAction });
+  it('should render the footer slot in the footer', () => {
+    const wrapper = mountDrawer({ slots: withFooter });
 
-    await wrapper.find('[data-testid="rc-drawer-footer"] button').trigger('click');
+    expect(wrapper.find('[data-testid="rc-drawer-footer"] [data-testid="extra"]').exists()).toBe(true);
+  });
+
+  it('should give the footer slot a close function that closes the drawer', async() => {
+    const wrapper = mountDrawer({ slots: { footer: ({ close }: { close: () => void }) => h('button', { 'data-testid': 'cancel', onClick: close }, 'Cancel') } });
+
+    await wrapper.find('[data-testid="cancel"]').trigger('click');
 
     expect(wrapper.emitted('close')).toHaveLength(1);
   });
 
   it.each([
-    ['there are no additional actions', {}],
-    ['the additional actions render nothing', { 'additional-actions': '<button v-if="false">Save</button>' }],
-    ['the only button would be a replaced close', { close: '<button>Cancel</button>' }],
-    ['the footer actions render nothing', { 'footer-actions': '<button v-if="false">Disable</button>' }],
+    ['there is no footer', {}],
+    ['the footer renders nothing', { footer: '<button v-if="false">Save</button>' }],
+    ['the footer renders an empty list', { footer: '<button v-for="n in 0" :key="n">Save</button>' }],
+    ['the footer renders only whitespace', { footer: ' ' }],
   ])('should leave the footer out when %s', (_label, slots) => {
     const wrapper = mountDrawer({ slots });
 
     expect(wrapper.find('[data-testid="rc-drawer-footer"]').exists()).toBe(false);
-  });
-
-  it('should render additional actions after the footer close button', () => {
-    const wrapper = mountDrawer({ slots: withAction });
-    const buttons = wrapper.findAll('[data-testid="rc-drawer-footer"] button');
-
-    expect(buttons).toHaveLength(2);
-    expect(buttons[1].attributes('data-testid')).toBe('extra');
   });
 
   it('should pass attributes to the dialog element', () => {

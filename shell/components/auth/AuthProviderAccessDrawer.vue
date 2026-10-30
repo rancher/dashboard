@@ -115,7 +115,7 @@ const save = async(btnCb: AsyncButtonCallback) => {
     </RcDrawerCard>
     <template
       v-if="canSave"
-      #close="{ close }"
+      #footer="{ close }"
     >
       <RcButton
         variant="secondary"
@@ -124,10 +124,7 @@ const save = async(btnCb: AsyncButtonCallback) => {
       >
         {{ i18n.t('generic.cancel') }}
       </RcButton>
-    </template>
-    <template #additional-actions>
       <AsyncButton
-        v-if="canSave"
         mode="edit"
         data-testid="auth-provider-access-save"
         @click="save"
