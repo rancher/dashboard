@@ -10192,6 +10192,22 @@ component:
         title: YAML
       configTab:
         title: Config
+  rcField:
+    reset: Reset
+    showMore: Show more
+    summary:
+      error: There is a problem with this value.
+      warning: There is a warning about this value.
+      success: This value is valid.
+      info: There is a note about this value.
+    status:
+      error: 'Error:'
+      warning: 'Warning:'
+      success: 'Success:'
+      info: 'Info:'
+  rcInput:
+    clear: Clear
+    showPassword: Show password
   resource:
     detail:
       copyToClipboard:

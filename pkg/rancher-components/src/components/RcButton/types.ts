@@ -30,8 +30,14 @@ export type ButtonVariantProps = {
 
 export type ButtonSize = 'small' | 'medium' | 'large';
 
+/**
+ * These variants can take their size from surrounding text and aren't required
+ * to draw their own box.
+ */
+export type ButtonInheritVariant = 'ghost' | 'link';
+
 export type ButtonSizeNewProps = {
-  size?: ButtonSize;
+  size?: ButtonSize | 'inherit';
 }
 
 /**

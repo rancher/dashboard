@@ -6,6 +6,11 @@
  * Example:
  *
  * <rc-button variant="primary" @click="doAction">Perform an Action</rc-button>
+ *
+ * Ghost and link buttons can take be sized based on their surrounding text. For
+ * example, an action that sits in a line of text or inside a field:
+ *
+ * <rc-button variant="link" size="inherit" @click="reset">Reset</rc-button>
  */
 import { computed, ref, resolveComponent, watchEffect } from 'vue';
 import {
@@ -14,6 +19,7 @@ import {
   ButtonVariantNewProps,
   ButtonSizeNewProps,
   ButtonSize,
+  ButtonInheritVariant,
   IconProps,
   NavigationProps,
 } from './types';
@@ -32,11 +38,14 @@ const buttonSizes: { size: keyof ButtonSizeProps, className: string }[] = [
   { size: 'small', className: 'btn-sm' },
 ];
 
-const buttonSizesNew: { size: ButtonSize, className: string }[] = [
+const buttonSizesNew: { size: ButtonSize | 'inherit', className: string }[] = [
   { size: 'small', className: 'btn-small' },
   { size: 'medium', className: 'btn-medium' },
   { size: 'large', className: 'btn-large' },
+  { size: 'inherit', className: 'btn-inherit' },
 ];
+
+const inheritVariants: ButtonInheritVariant[] = ['ghost', 'link'];
 
 const props = withDefaults(
   defineProps<
@@ -54,10 +63,23 @@ const props = withDefaults(
   }
 );
 
+const canInherit = computed(() => {
+  const variant = buttonVariants.find(({ variant }) => props[variant])?.variant || props.variant;
+
+  return inheritVariants.includes(variant as ButtonInheritVariant);
+});
+
+// Fall back to medium if a button variant does not support the `inherit` size
+const size = computed(() => (props.size === 'inherit' && !canInherit.value ? 'medium' : props.size));
+
 if (process.env.NODE_ENV !== 'production') {
   watchEffect(() => {
     if (props.to && props.href) {
       console.warn('[RcButton] "to" and "href" are mutually exclusive. Provide only one.'); // eslint-disable-line no-console
+    }
+
+    if (props.size === 'inherit' && !canInherit.value) {
+      console.warn('[RcButton] size="inherit" needs variant="ghost" or variant="link". Using size="medium" instead.'); // eslint-disable-line no-console
     }
   });
 }
@@ -121,7 +143,7 @@ const activeSizeClassName = computed(() => {
 
     return activeSize.className;
   } else {
-    const sizeConfig = buttonSizesNew.find(({ size }) => size === props.size);
+    const sizeConfig = buttonSizesNew.find((config) => config.size === size.value);
 
     return sizeConfig?.className || '';
   }
@@ -367,6 +389,29 @@ defineExpose({ focus });
 
       padding: var(--rc-button-padding, 0 12px);
       gap: 8px;
+    }
+  }
+
+  &.btn-inherit {
+    // Takes the size of the surrounding text. :not(.btn-sm) outranks the global
+    // .btn rule, which sets a 40px min-height and line-height.
+    &, &:not(.btn-sm) {
+      min-height: 0;
+      padding: var(--rc-button-padding, 0);
+      gap: 0.5em;
+      color: inherit;
+      font: inherit;
+      vertical-align: baseline;
+    }
+
+    &.variant-link {
+      color: var(--link);
+
+      &:hover, &._hover {
+        background: none;
+        color: var(--link);
+        text-decoration: underline;
+      }
     }
   }
 
