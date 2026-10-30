@@ -106,6 +106,9 @@ function createOptionHelpers(name) {
   };
 }
 
+// Returned for the response of a request when a newer request for the same resource was made
+const STALE_RESPONSE = Symbol('stale response');
+
 const errorActions = Object.freeze({
   CREATE: 'create',
   DELETE: 'delete',
@@ -137,6 +140,11 @@ export default {
       type:     Boolean,
       required: true,
     },
+  },
+
+  created() {
+    // The latest request id for each resource. Not reactive on purpose
+    this.latestRequestIds = {};
   },
 
   async fetch() {
@@ -440,7 +448,25 @@ export default {
 
   methods: {
     stringify,
+
+    /**
+     * Request the options of a resource. Returns STALE_RESPONSE when a newer request for the same resource was made
+     * in the meantime (e.g. after the datacenter changed), so an older response can't replace a newer one.
+     */
     async requestOptions(resource, dataCenter, library) {
+      const requestId = this.ignorePendingRequests(resource);
+      const options = await this.fetchOptions(resource, dataCenter, library);
+
+      return this.latestRequestIds[resource] === requestId ? options : STALE_RESPONSE;
+    },
+
+    ignorePendingRequests(resource) {
+      this.latestRequestIds[resource] = (this.latestRequestIds[resource] || 0) + 1;
+
+      return this.latestRequestIds[resource];
+    },
+
+    async fetchOptions(resource, dataCenter, library) {
       const datacenterLessResources = ['tag-categories', 'tags', 'data-centers', 'custom-attributes'];
 
       if (!this.credentialId || (!datacenterLessResources.includes(resource) && !dataCenter)) {
@@ -474,6 +500,11 @@ export default {
 
     async loadDataCenters() {
       const options = await this.requestOptions('data-centers');
+
+      if (options === STALE_RESPONSE) {
+        return;
+      }
+
       const content = this.mapPathOptionsToContent(options);
       const datacenterPath = findDatacenterPath(this.value.datacenter, options || []);
       const valueInContent = datacenterPath && content.find((c) => c.value === datacenterPath);
@@ -505,6 +536,11 @@ export default {
         const optionsPromise = this.requestOptions('tags');
 
         const [categories, options] = await Promise.all([categoriesPromise, optionsPromise]);
+
+        if (categories === STALE_RESPONSE || options === STALE_RESPONSE) {
+          return;
+        }
+
         const content = this.mapTagsToContent(options).map((option) => ({
           ...option,
           category: categories.find((c) => c.name === option.category)
@@ -525,6 +561,10 @@ export default {
 
         const options = await this.requestOptions('custom-attributes');
 
+        if (options === STALE_RESPONSE) {
+          return;
+        }
+
         set(this, 'attributeKeysResults', this.mapCustomAttributesToContent(options));
         this.haveAttributes = true;
       } catch (e) {
@@ -536,6 +576,11 @@ export default {
       set(this, 'hostsResults', null);
 
       const options = await this.requestOptions('hosts', this.datacenterPath);
+
+      if (options === STALE_RESPONSE) {
+        return;
+      }
+
       const content = this.mapHostOptionsToContent(options);
 
       this.resetValueIfNecessary('hostsystem', content, options);
@@ -548,6 +593,10 @@ export default {
 
       const options = await this.requestOptions('resource-pools', this.datacenterPath);
 
+      if (options === STALE_RESPONSE) {
+        return;
+      }
+
       const content = this.mapPathOptionsToContent(options);
 
       this.resetValueIfNecessary('pool', content, options);
@@ -559,6 +608,11 @@ export default {
       set(this, 'dataStoresResults', null);
 
       const options = await this.requestOptions('data-stores', this.datacenterPath);
+
+      if (options === STALE_RESPONSE) {
+        return;
+      }
+
       const content = this.mapPathOptionsToContent(options);
 
       this.resetValueIfNecessary('datastore', content, options);
@@ -570,6 +624,11 @@ export default {
       set(this, 'dataStoreClustersResults', null);
 
       const options = await this.requestOptions('data-store-clusters', this.datacenterPath);
+
+      if (options === STALE_RESPONSE) {
+        return;
+      }
+
       const content = this.mapPathOptionsToContent(options);
 
       this.resetValueIfNecessary('datastoreCluster', content, options);
@@ -581,6 +640,11 @@ export default {
       set(this, 'foldersResults', null);
 
       const options = await this.requestOptions('folders', this.datacenterPath);
+
+      if (options === STALE_RESPONSE) {
+        return;
+      }
+
       const content = this.mapFolderOptionsToContent(options);
 
       this.resetValueIfNecessary('folder', content, options);
@@ -592,6 +656,11 @@ export default {
       set(this, 'networksResults', null);
 
       const options = await this.requestOptions('networks-extended', this.datacenterPath);
+
+      if (options === STALE_RESPONSE) {
+        return;
+      }
+
       const content = options.map((opt) => {
         return {
           label: `${ opt.name } (${ opt.moid })`, value: opt.moid, name: opt.name
@@ -608,6 +677,11 @@ export default {
       set(this, 'contentLibrariesResults', null);
 
       const options = await this.requestOptions('content-libraries', this.datacenterPath);
+
+      if (options === STALE_RESPONSE) {
+        return;
+      }
+
       const content = this.mapPathOptionsToContent(options)
         .filter((item) => item.value !== '');
 
@@ -622,10 +696,17 @@ export default {
       const contentLibrary = this.value.contentLibrary;
 
       if (!contentLibrary) {
+        this.ignorePendingRequests('library-templates');
+
         return [];
       }
 
       const options = await this.requestOptions('library-templates', this.datacenterPath, contentLibrary);
+
+      if (options === STALE_RESPONSE) {
+        return;
+      }
+
       const content = this.mapPathOptionsToContent(options);
 
       if (this.showContentLibrary) {
@@ -639,6 +720,10 @@ export default {
       set(this, 'virtualMachinesResults', null);
 
       const options = await this.requestOptions('virtual-machines', this.datacenterPath);
+
+      if (options === STALE_RESPONSE) {
+        return;
+      }
 
       const content = this.mapPathOptionsToContent(options);
 
@@ -654,6 +739,10 @@ export default {
         set(this, 'templatesResults', null);
 
         const options = await this.requestOptions('templates', this.datacenterPath);
+
+        if (options === STALE_RESPONSE) {
+          return;
+        }
 
         const content = this.mapPathOptionsToContent(options);
 

@@ -1,4 +1,4 @@
-import { mount, shallowMount } from '@vue/test-utils';
+import { flushPromises, mount, shallowMount } from '@vue/test-utils';
 import vmwarevsphere from '@shell/machine-config/vmwarevsphere.vue';
 import { DEFAULT_VALUES, SENTINEL } from '@shell/machine-config/vmwarevsphere-config';
 
@@ -25,6 +25,8 @@ interface VSphereInstance {
   storageType: string;
   validationErrors: Record<string, string[] | undefined>;
   dataCentersResults: LabelValue[] | null;
+  dataStoresResults: LabelValue[] | null;
+  libraryTemplatesResults: LabelValue[] | null;
   mapPathOptionsToContent(pathOptions: PathOption[]): LabelValue[];
   mapHostOptionsToContent(hostOptions: PathOption[]): LabelValue[];
   mapFolderOptionsToContent(folderOptions: PathOption[]): LabelValue[];
@@ -34,6 +36,7 @@ interface VSphereInstance {
   manageErrors(action: string, key: string): void;
   loadDataCenters(): Promise<void>;
   loadDataStores(): Promise<void>;
+  loadLibraryTemplates(): Promise<void>;
   loadNetworks(): Promise<void>;
 }
 
@@ -543,6 +546,92 @@ describe('component: vmwarevsphere', () => {
         url:                  '/meta/vsphere/data-stores?cloudCredentialId=credentialId&dataCenter=unknown',
         redirectUnauthorized: false,
       }, { root: true });
+    });
+  });
+
+  describe('responses of earlier requests', () => {
+    type Resolve = (data: string[]) => void;
+
+    /**
+     * Requests for the given resource stay pending until resolved by the test, other requests return no options
+     */
+    const setupWithPendingRequests = (resource: string, value: Record<string, unknown>) => {
+      const pending: Resolve[] = [];
+      const dispatch = jest.fn((_action: string, { url }: { url: string }) => {
+        if (url.startsWith(`/meta/vsphere/${ resource }?`)) {
+          return new Promise((resolve) => pending.push((data) => resolve({ data })));
+        }
+
+        return Promise.resolve({ data: [] });
+      });
+      const wrapper = mount(vmwarevsphere, {
+        ...defaultEditSetup,
+        propsData: {
+          ...defaultEditSetup.propsData,
+          value: { ...defaultEditSetup.propsData.value, ...value }
+        },
+        global: {
+          ...defaultEditSetup.global,
+          mocks: {
+            ...defaultEditSetup.global.mocks,
+            $store: { getters: defaultGetters, dispatch }
+          }
+        }
+      });
+
+      return { vm: asVSphere(wrapper), pending };
+    };
+
+    it('should NOT replace the options with the response of an earlier request', async() => {
+      const { vm, pending } = setupWithPendingRequests('data-stores', { datacenter: '/dc1' });
+
+      await flushPromises();
+
+      const earlier = vm.loadDataStores();
+      const later = vm.loadDataStores();
+      const [resolveEarlier, resolveLater] = pending.slice(-2);
+
+      resolveLater(['/dc1/datastore/new']);
+      await later;
+      resolveEarlier(['/dc1/datastore/old']);
+      await earlier;
+
+      expect(vm.dataStoresResults).toStrictEqual([{ label: '/dc1/datastore/new', value: '/dc1/datastore/new' }]);
+    });
+
+    it('should use the response of the latest request when the responses arrive in order', async() => {
+      const { vm, pending } = setupWithPendingRequests('data-stores', { datacenter: '/dc1' });
+
+      await flushPromises();
+
+      const earlier = vm.loadDataStores();
+      const later = vm.loadDataStores();
+      const [resolveEarlier, resolveLater] = pending.slice(-2);
+
+      resolveEarlier(['/dc1/datastore/old']);
+      await earlier;
+      resolveLater(['/dc1/datastore/new']);
+      await later;
+
+      expect(vm.dataStoresResults).toStrictEqual([{ label: '/dc1/datastore/new', value: '/dc1/datastore/new' }]);
+    });
+
+    it('should NOT show the library templates of a content library that is no longer selected', async() => {
+      const { vm, pending } = setupWithPendingRequests('library-templates', {
+        datacenter: '/dc1', creationType: 'library', contentLibrary: 'library1'
+      });
+
+      await flushPromises();
+
+      const earlier = vm.loadLibraryTemplates();
+      const resolveEarlier = pending[pending.length - 1];
+
+      vm.value.contentLibrary = '';
+      await vm.loadLibraryTemplates();
+      resolveEarlier(['template1']);
+      await earlier;
+
+      expect(vm.libraryTemplatesResults).toBeNull();
     });
   });
 
