@@ -13,6 +13,7 @@ var script = document.currentScript;
 var base = script && script.src ? new URL('.', script.src).href : '';
 var file = function(id) { return id.replace(/^\\.\\//, ''); };
 var key = function(f) { return name + '/' + f; };
+empty.forEach(function(f) { chunks[key(f)] = function() {}; });
 function load(f) {
   if (chunks[key(f)]) { return Promise.resolve(); }
   if (loading[f]) { return loading[f]; }
@@ -219,10 +220,13 @@ export function loadChunksOnDemand(name, fileName, globals = {}) {
       }, {});
     },
 
-    writeBundle(options) {
+    writeBundle(options, bundle) {
       const read = (file) => fs.readFileSync(path.join(options.dir, file), 'utf8');
       const readMap = (file) => (fs.existsSync(path.join(options.dir, file)) ? JSON.parse(read(file)) : { version: 3, sources: [], names: [], mappings: '' });
-      const parts = [...initial, entry];
+      const empty = Object.keys(deps).filter((file) => !bundle[file]);
+      const written = (files) => files.filter((file) => !empty.includes(file));
+      const writtenDeps = Object.fromEntries(Object.entries(deps).map(([file, needed]) => [file, written(needed)]));
+      const parts = [...written(initial), entry];
       const sections = [];
       let code = '';
 
@@ -233,7 +237,7 @@ export function loadChunksOnDemand(name, fileName, globals = {}) {
         code += partCode;
       });
 
-      code += `window[${ JSON.stringify(name) }] = (function() {\nvar name = ${ JSON.stringify(name) };\nvar globals = ${ JSON.stringify(globals) };\nvar deps = ${ JSON.stringify(deps) };\n${ CHUNK_RUNTIME }\nreturn req(${ JSON.stringify(entry) });\n})();\n//# sourceMappingURL=${ fileName }.map\n`;
+      code += `window[${ JSON.stringify(name) }] = (function() {\nvar name = ${ JSON.stringify(name) };\nvar globals = ${ JSON.stringify(globals) };\nvar deps = ${ JSON.stringify(writtenDeps) };\nvar empty = ${ JSON.stringify(empty) };\n${ CHUNK_RUNTIME }\nreturn req(${ JSON.stringify(entry) });\n})();\n//# sourceMappingURL=${ fileName }.map\n`;
 
       parts.forEach((part) => {
         fs.rmSync(path.join(options.dir, part));
