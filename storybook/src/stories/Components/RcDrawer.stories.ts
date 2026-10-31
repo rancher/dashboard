@@ -96,6 +96,30 @@ export const Header: Story = {
 };
 
 /**
+ * A drawer that needs a different pair of buttons, such as Cancel and Save,
+ * puts its own straight in `footer` and closes the drawer with the `close` it
+ * receives.
+ */
+export const CustomFooter: Story = {
+  render: (args: any) => ({
+    components: {
+      RcDrawer, RcDrawerCard, RcButton
+    },
+    setup:    () => ({ args }),
+    template: `
+      <RcDrawer v-bind="args">
+        ${ card }
+        <template #footer="{ close }">
+          <RcButton variant="secondary" size="large" @click="close">Cancel</RcButton>
+          <RcButton variant="primary" size="large">Save</RcButton>
+        </template>
+      </RcDrawer>
+    `,
+  }),
+  args: { title: 'GitHub - Access' },
+};
+
+/**
  * The drawer Show Configuration opens: the title and a close button in the
  * header, its form on a card over the tinted body, and an `RcDrawerFooter`
  * with Close followed by the drawer's own actions.
@@ -182,28 +206,4 @@ export const SplitButton: Story = {
     `,
   }),
   args: { title: 'HTTP - response time - is above 3 seconds' },
-};
-
-/**
- * A drawer that needs a different pair of buttons, such as Cancel and Save,
- * puts its own straight in `footer` and closes the drawer with the `close` it
- * receives.
- */
-export const CustomFooter: Story = {
-  render: (args: any) => ({
-    components: {
-      RcDrawer, RcDrawerCard, RcButton
-    },
-    setup:    () => ({ args }),
-    template: `
-      <RcDrawer v-bind="args">
-        ${ card }
-        <template #footer="{ close }">
-          <RcButton variant="secondary" size="large" @click="close">Cancel</RcButton>
-          <RcButton variant="primary" size="large">Save</RcButton>
-        </template>
-      </RcDrawer>
-    `,
-  }),
-  args: { title: 'GitHub - Access' },
 };

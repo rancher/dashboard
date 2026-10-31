@@ -118,6 +118,21 @@ beside the X.
 This drawer has no action of its own, so it has no footer: Close alone would
 only repeat the X, Escape and a click outside.
 
+## A footer of your own
+
+When a drawer needs a different pair of buttons, such as Cancel and Save, put
+them straight in `footer` instead of an `RcDrawerFooter`, and close the drawer
+with the `close` the slot gives you.
+
+```vue
+<template #footer="{ close }">
+  <RcButton variant="secondary" size="large" @click="close">Cancel</RcButton>
+  <RcButton variant="primary" size="large" @click="save">Save</RcButton>
+</template>
+```
+
+<Canvas of={RcDrawerStories.CustomFooter} />
+
 ## Cards
 
 Text, such as a readme or a description, goes straight in the body.
@@ -138,21 +153,6 @@ the main action on an `RcButtonSplit` in the `RcDrawerFooter` and the rest in
 its menu.
 
 <Canvas of={RcDrawerStories.SplitButton} />
-
-## A footer of your own
-
-When a drawer needs a different pair of buttons, such as Cancel and Save, put
-them straight in `footer` instead of an `RcDrawerFooter`, and close the drawer
-with the `close` the slot gives you.
-
-```vue
-<template #footer="{ close }">
-  <RcButton variant="secondary" size="large" @click="close">Cancel</RcButton>
-  <RcButton variant="primary" size="large" @click="save">Save</RcButton>
-</template>
-```
-
-<Canvas of={RcDrawerStories.CustomFooter} />
 
 ## Accessibility
 
