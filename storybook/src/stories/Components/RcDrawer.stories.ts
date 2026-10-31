@@ -57,43 +57,24 @@ const text = `
 `;
 
 /**
- * The drawer Show Configuration opens: the title and a close button in the
- * header, its form on a card over the tinted body, and an `RcDrawerFooter`
- * with Close followed by the drawer's own actions.
+ * `RcDrawerHeader` is the header every drawer gets. Put one in `header`
+ * yourself when the title needs markup, such as a state dot, which goes in its
+ * default slot, or when the drawer has buttons that act on its content, which
+ * go in `actions` beside the X. The `title` prop still names the drawer, so
+ * keep it to the plain text of the title.
  */
-export const Default: Story = {
+export const Header: Story = {
   render: (args: any) => ({
     components: {
-      RcDrawer, RcDrawerCard, RcDrawerFooter, RcButton
+      RcDrawer, RcDrawerHeader, StateDot
     },
     setup:    () => ({ args }),
     template: `
       <RcDrawer v-bind="args">
-        ${ card }
-        <template #footer>
-          <RcDrawerFooter>
-            <RcButton variant="primary" size="large">Edit Config</RcButton>
-          </RcDrawerFooter>
-        </template>
-      </RcDrawer>
-    `,
-  }),
-  args: { title: 'nginx-config (ConfigMap) - Configuration' },
-};
-
-/**
- * A button that acts on the content goes in the `actions` of an
- * `RcDrawerHeader`. With nothing in `footer` there is no footer. Text, such as
- * a chart's readme, goes straight in the body.
- */
-export const HeaderActions: Story = {
-  render: (args: any) => ({
-    components: { RcDrawer, RcDrawerHeader },
-    setup:      () => ({ args }),
-    template:   `
-      <RcDrawer v-bind="args">
         <template #header>
           <RcDrawerHeader>
+            <StateDot color="success" class="mmr-3" />
+            {{ args.title }}
             <template #actions>
               <button
                 type="button"
@@ -111,27 +92,22 @@ export const HeaderActions: Story = {
       </RcDrawer>
     `,
   }),
-  args: { title: 'Chart Info' },
+  args: { title: 'rancher-logging - Chart Info' },
 };
 
 /**
- * What you put in an `RcDrawerHeader` replaces the title it shows. The `title`
- * prop still names the drawer, so keep it to the plain text of what you put in.
+ * The drawer Show Configuration opens: the title and a close button in the
+ * header, its form on a card over the tinted body, and an `RcDrawerFooter`
+ * with Close followed by the drawer's own actions.
  */
-export const RichTitle: Story = {
+export const Default: Story = {
   render: (args: any) => ({
     components: {
-      RcDrawer, RcDrawerCard, RcDrawerFooter, RcDrawerHeader, RcButton, StateDot
+      RcDrawer, RcDrawerCard, RcDrawerFooter, RcButton
     },
     setup:    () => ({ args }),
     template: `
       <RcDrawer v-bind="args">
-        <template #header>
-          <RcDrawerHeader>
-            <StateDot color="success" class="mmr-3" />
-            {{ args.title }}
-          </RcDrawerHeader>
-        </template>
         ${ card }
         <template #footer>
           <RcDrawerFooter>

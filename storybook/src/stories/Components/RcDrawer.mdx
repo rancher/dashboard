@@ -89,6 +89,35 @@ Do not pass `title` to `slideIn.open` for a component that renders `RcDrawer`.
 A `title` tells the slide-in to wrap the component in a drawer of its own, so
 the content would sit inside a second drawer.
 
+## The header
+
+Every drawer gets an `RcDrawerHeader` with its `title`. Put one in `header`
+yourself when the title needs markup, such as the state dot Show Configuration
+puts before the resource name, or when the drawer has buttons that act on its
+content, such as Dock to shell:
+
+```vue
+<template #header>
+  <RcDrawerHeader>
+    <StateDot :color="resource.stateSimpleColor" />
+    {{ title }}
+    <template #actions>
+      <button type="button" class="btn role-link" :aria-label="dockLabel" @click="dock">
+        <i class="icon icon-dock" />
+      </button>
+    </template>
+  </RcDrawerHeader>
+</template>
+```
+
+What goes in its default slot replaces the title it shows, and `actions` sit
+beside the X.
+
+<Canvas of={RcDrawerStories.Header} />
+
+This drawer has no action of its own, so it has no footer: Close alone would
+only repeat the X, Escape and a click outside.
+
 ## Cards
 
 Text, such as a readme or a description, goes straight in the body.
@@ -101,26 +130,6 @@ utilities, for example `class="mmb-4"`.
 
 Content taller than the drawer scrolls inside the body, and the header and
 footer stay in view.
-
-## Header actions, and no footer
-
-A drawer with no action of its own has no footer: Close alone would only repeat
-the X, Escape and a click outside. A button that acts on the content, such as
-Dock to shell, goes in the `actions` of an `RcDrawerHeader`.
-
-```vue
-<template #header>
-  <RcDrawerHeader>
-    <template #actions>
-      <button type="button" class="btn role-link" :aria-label="dockLabel" @click="dock">
-        <i class="icon icon-dock" />
-      </button>
-    </template>
-  </RcDrawerHeader>
-</template>
-```
-
-<Canvas of={RcDrawerStories.HeaderActions} />
 
 ## More actions than room
 
@@ -144,22 +153,6 @@ with the `close` the slot gives you.
 ```
 
 <Canvas of={RcDrawerStories.CustomFooter} />
-
-## Titles that need markup
-
-When the title is more than a string, such as the state dot Show Configuration
-puts before the resource name, put it in an `RcDrawerHeader`.
-
-```vue
-<template #header>
-  <RcDrawerHeader>
-    <StateDot :color="resource.stateSimpleColor" />
-    {{ title }}
-  </RcDrawerHeader>
-</template>
-```
-
-<Canvas of={RcDrawerStories.RichTitle} />
 
 ## Accessibility
 
