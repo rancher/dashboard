@@ -1,5 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import RcItemCardPo from '@/cypress/e2e/po/components/rc-item-card.po';
 import FilterPanelPo from '@/cypress/e2e/po/components/filter-panel.po';
@@ -23,6 +24,7 @@ export class ChartsPage extends PagePo {
     const sideNav = new ProductNavPo();
 
     burgerMenu.goToCluster(clusterId);
+    new ClusterDashboardPagePo(clusterId).waitForPage();
     sideNav.navToSideMenuGroupByLabel('Apps');
   }
 

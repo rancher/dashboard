@@ -14,13 +14,13 @@ function loadCodeMirror5() {
     console.warn('[CodeMirror] An extension is using CodeMirror 5, which is deprecated and will be removed. Rebuild the extension with a version of @rancher/shell that uses CodeMirror 6.'); // eslint-disable-line no-console
   }
 
-  return import(/* webpackChunkName: "codemirror" */ '@shell/plugins/codemirror');
+  return import('@shell/plugins/codemirror');
 }
 
 /**
  * The <Codemirror> component that CodeMirror 5 editors from older shells render
  */
-export const CodeMirror5 = defineAsyncComponent(() => import(/* webpackChunkName: "codemirror" */ 'codemirror-editor-vue3').then((m) => m.default));
+export const CodeMirror5 = defineAsyncComponent(() => import('codemirror-editor-vue3').then((m) => m.default));
 
 if ( !window.__codeMirrorLoader ) {
   window.__codeMirrorLoader = loadCodeMirror5;

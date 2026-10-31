@@ -240,6 +240,27 @@ function clone_repo_test_extension_build() {
   rm -rf node_modules
   yarn install --frozen-lockfile
 
+  case "${REPO_NAME}" in
+    kubewarden-ui) ALIAS="{ find: '@kubewarden', replacement: import.meta.dirname }" ;;
+    harvester-ui-extension) ALIAS="{ find: '@novnc/novnc', replacement: path.resolve(import.meta.dirname, '..', '..', 'node_modules', '@novnc', 'novnc') }" ;;
+    *) ALIAS="" ;;
+  esac
+
+  if [ -n "${ALIAS}" ] && [ ! -f pkg/${PKG_NAME}/vite.config.mjs ]; then
+    cat > pkg/${PKG_NAME}/vite.config.mjs <<EOF
+import path from 'node:path';
+import config from './.shell/pkg/vite.config.mjs';
+
+export default () => {
+  const viteConfig = config();
+
+  viteConfig.resolve.alias.unshift(${ALIAS});
+
+  return viteConfig;
+};
+EOF
+  fi
+
   # test build-pkg
   FORCE_COLOR=true yarn build-pkg $PKG_NAME | cat
 

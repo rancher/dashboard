@@ -4,6 +4,7 @@ import { MODAL_CONTAINER_SELECTOR, SWITCHER_POPPER_SELECTOR } from '@shell/utils
 
 jest.mock('vue3-resize/dist/vue3-resize.css', () => ({}));
 jest.mock('floating-vue/dist/style.css', () => ({}));
+jest.mock('@xterm/xterm/css/xterm.css', () => ({}));
 jest.mock('codemirror-editor-vue3', () => ({ InstallCodeMirror: {} }));
 jest.mock('@rancher/dynamic', () => ({}), { virtual: true });
 

@@ -25,6 +25,19 @@ import { clear, uniq } from '@shell/utils/array';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
+import BasicData from '@shell/edit/secret/basic';
+import GenericData from '@shell/edit/secret/generic';
+import RegistryData from '@shell/edit/secret/registry';
+import SshData from '@shell/edit/secret/ssh';
+import TlsData from '@shell/edit/secret/tls';
+
+const dataComponents = {
+  basic:    BasicData,
+  generic:  GenericData,
+  registry: RegistryData,
+  ssh:      SshData,
+  tls:      TlsData,
+};
 
 const creatableTypes = [
   TYPES.OPAQUE,
@@ -216,7 +229,7 @@ export default {
     },
 
     dataComponent() {
-      return require(`@shell/edit/secret/${ this.typeKey }`).default;
+      return dataComponents[this.typeKey];
     },
 
     driverName() {

@@ -1,51 +1,29 @@
 /**
  * Utility to replace dynamic require() calls for image/asset imports.
- *
- * Uses webpack's require.context to resolve assets at compile time,
- * then provides lookup functions by path.
- *
- * When migrating to Vite, replace the require.context calls below with:
- *
- *   const imgCtx = import.meta.glob(
- *     '@shell/assets/**\/*.{svg,png,jpg,jpeg,gif,ico,webp}',
- *     { eager: true, query: '?url', import: 'default' }
- *   );
- *
- *   const jsonCtx = import.meta.glob(
- *     ['@shell/assets/**\/*.json', '!@shell/assets/licenses/**'],
- *     { eager: true }
- *   );
  */
 
-// --- Webpack: require.context type declarations ---
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AssetContext = (key: string) => any;
 
-interface WebpackRequireContext {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (key: string): any;
-  keys(): string[];
-  resolve(key: string): string;
-  id: string;
+function contextFrom(modules: Record<string, unknown>): AssetContext {
+  return (key: string) => {
+    const mod = modules[key.replace(/^\.\//, '../assets/')];
+
+    if (mod === undefined) {
+      throw new Error(`Cannot find module '${ key }'`);
+    }
+
+    return mod;
+  };
 }
 
-// --- Webpack: require.context (compile-time transform) ---
-
-let imgCtx: WebpackRequireContext | null = null;
-let jsonCtx: WebpackRequireContext | null = null;
-
-try {
-  // @ts-expect-error — require.context is a webpack compile-time transform, not visible to TypeScript
-  imgCtx = require.context('@shell/assets', true, /\.(svg|png|jpe?g|gif|ico|webp)$/);
-} catch (e) {}
-
-// licenses/ is excluded — it's large, and shell/pages/licenses.vue imports it on
-// demand so it stays in its own async chunk instead of the main bundle.
-try {
-  // @ts-expect-error — require.context is a webpack compile-time transform, not visible to TypeScript
-  jsonCtx = require.context('@shell/assets', true, /^\.\/(?!licenses\/).*\.json$/);
-} catch (e) {}
+let imgCtx: AssetContext | null = contextFrom(import.meta.glob('../assets/**/*.{svg,png,jpg,jpeg,gif,ico,webp}', {
+  eager: true, query: '?url', import: 'default'
+}));
+let jsonCtx: AssetContext | null = contextFrom(import.meta.glob(['../assets/**/*.json', '!../assets/licenses/**'], { eager: true }));
 
 /**
- * Convert an asset path to a require.context key.
+ * Convert an asset path to a context key.
  *
  * Input:  '~shell/assets/images/providers/aws.svg' or '@shell/assets/images/providers/aws.svg'
  * Output: './images/providers/aws.svg'
@@ -98,7 +76,7 @@ if (typeof window !== 'undefined') {
 }
 
 // Exported for testing — allows injecting mock contexts
-export function _setContexts(img: WebpackRequireContext | null, json: WebpackRequireContext | null): void {
+export function _setContexts(img: AssetContext | null, json: AssetContext | null): void {
   imgCtx = img;
   jsonCtx = json;
 }

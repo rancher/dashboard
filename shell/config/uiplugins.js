@@ -2,7 +2,7 @@ import semver from 'semver';
 import { isRancherPrime } from '@shell/config/version';
 
 // Version of the plugin API supported
-// here we inject the current shell version that we read in vue.config
+// here we inject the current shell version that we read in vite.config.mjs
 export const UI_EXTENSIONS_API_VERSION = process.env.UI_EXTENSIONS_API_VERSION;
 
 export const UI_PLUGIN_HOST_APP = 'rancher-manager';

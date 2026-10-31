@@ -1,5 +1,9 @@
 import { mount } from '@vue/test-utils';
 import Storage from '@shell/edit//workload/storage/index.vue';
+import Secret from '@shell/edit/workload/storage/secret.vue';
+import PersistentVolumeClaim from '@shell/edit/workload/storage/persistentVolumeClaim/index.vue';
+import Csi from '@shell/edit/workload/storage/csi/index.vue';
+import Nfs from '@shell/edit/workload/storage/nfs.vue';
 
 describe('component: Storage', () => {
   describe.each([
@@ -102,5 +106,49 @@ describe('component: Storage', () => {
       awsElasticBlockStore: {},
       name:                 ''
     });
+  });
+
+  const createStorage = () => mount(Storage, {
+    props:  { savePvcHookName: '' },
+    global: {
+      mocks: {
+        t:      (text: string) => text,
+        $store: { getters: { 'i18n/t': jest.fn(), 'i18n/exists': jest.fn() } }
+      },
+    },
+  });
+
+  it('should list the volume types that can be added', () => {
+    const wrapper = createStorage();
+
+    expect(wrapper.vm.volumeTypeOptions.map((opt: { value: string }) => opt.value)).toStrictEqual([
+      'awsElasticBlockStore',
+      'azureDisk',
+      'azureFile',
+      'configMap',
+      'createPVC',
+      'csi',
+      'emptyDir',
+      'gcePersistentDisk',
+      'hostPath',
+      'nfs',
+      'persistentVolumeClaim',
+      'secret',
+      'vsphereVolume'
+    ]);
+  });
+
+  it.each([
+    ['configMap', Secret],
+    ['secret', Secret],
+    ['createPVC', PersistentVolumeClaim],
+    ['persistentVolumeClaim', PersistentVolumeClaim],
+    ['csi', Csi],
+    ['nfs', Nfs],
+    ['projected', undefined],
+  ])('should use the matching form for volume type %p', (volumeType, expected) => {
+    const wrapper = createStorage();
+
+    expect(wrapper.vm.getComponent(volumeType)).toStrictEqual(expected);
   });
 });

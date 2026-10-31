@@ -19,7 +19,7 @@ export default {
     try {
       // Bundled with the app as its own async chunk, so it's only downloaded
       // when this page is visited.
-      const licenses = await import(/* webpackChunkName: "licenses" */ '@shell/assets/licenses/licenses.json');
+      const licenses = await import('@shell/assets/licenses/licenses.json');
 
       this.data = licenses.default;
     } catch (e) {
