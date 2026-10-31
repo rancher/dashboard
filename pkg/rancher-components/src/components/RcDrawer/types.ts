@@ -10,11 +10,13 @@ export interface RcDrawerProps {
 }
 
 export type DrawerContext = {
+  title: Ref<string | undefined>;
   close: () => void;
   closeAriaLabel: Ref<string | undefined>;
 };
 
 export const defaultContext: DrawerContext = {
+  title:          ref(),
   close:          () => null,
   closeAriaLabel: ref(),
 };

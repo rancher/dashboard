@@ -13,7 +13,7 @@ export {
   RcDropdownMenu
 } from './components/RcDropdown';
 export {
-  RcDrawer, RcDrawerCard, RcDrawerFooter
+  RcDrawer, RcDrawerCard, RcDrawerFooter, RcDrawerHeader
 } from './components/RcDrawer';
 export { RcHeading } from './components/RcHeading';
 export { RcIcon } from './components/RcIcon';

@@ -39,24 +39,19 @@ describe('component: RcDrawer', () => {
     expect(title.attributes('aria-level')).toBe('2');
   });
 
-  it('should render header actions between the title and the close button, outside the heading', () => {
-    const wrapper = mountDrawer({ slots: { 'header-actions': '<button data-testid="expand">Expand</button>' } });
-    const header = Array.from(wrapper.find('.header').element.children).map((el) => el.getAttribute('data-testid'));
+  it('should render the header slot in place of the standard header', () => {
+    const wrapper = mountDrawer({ slots: { header: '<span data-testid="custom-header">Custom</span>' } });
 
-    expect(header).toStrictEqual(['rc-drawer-title', 'expand', 'rc-drawer-close']);
+    expect(wrapper.find('[data-testid="rc-drawer-header"] [data-testid="custom-header"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="rc-drawer-title"]').exists()).toBe(false);
   });
 
-  it('should show the title slot in place of the title', () => {
-    const wrapper = mountDrawer({ slots: { title: '<span data-testid="custom-title">Custom</span>' } });
+  it('should give the header slot a close function that closes the drawer', async() => {
+    const wrapper = mountDrawer({ slots: { header: ({ close }: { close: () => void }) => h('button', { 'data-testid': 'back', onClick: close }, 'Back') } });
 
-    expect(wrapper.find('[data-testid="rc-drawer-title"]').text()).toBe('Custom');
-    expect(wrapper.find('[data-testid="custom-title"]').exists()).toBe(true);
-  });
+    await wrapper.find('[data-testid="back"]').trigger('click');
 
-  it('should keep the title prop as its name when the title slot is used', () => {
-    const wrapper = mountDrawer({ slots: { title: '<a href="#">my-config</a>' } });
-
-    expect(wrapper.attributes('aria-label')).toBe('my-config (ConfigMap)');
+    expect(wrapper.emitted('close')).toHaveLength(1);
   });
 
   it('should render the default slot in the body', () => {

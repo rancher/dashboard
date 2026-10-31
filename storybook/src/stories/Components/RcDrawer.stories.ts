@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import { RcDrawer, RcDrawerCard, RcDrawerFooter } from '@components/RcDrawer';
+import { RcDrawer, RcDrawerCard, RcDrawerFooter, RcDrawerHeader } from '@components/RcDrawer';
 import { RcButton } from '@components/RcButton';
 import { RcButtonSplit } from '@components/RcButtonSplit';
 import StateDot from '@shell/components/StateDot/index.vue';
@@ -12,20 +12,14 @@ const meta: Meta<typeof RcDrawer> = {
   argTypes: {
     title: {
       control:     { type: 'text' },
-      description: 'The drawer title. Rendered in the header and used as the drawer\'s accessible name, also when the `title` slot replaces what the header shows.',
+      description: 'The drawer title. Rendered in the header and used as the drawer\'s accessible name, also when an `RcDrawerHeader` shows a richer title.',
     },
     close: {
-      description: 'Emitted by the header close button and the footer Close button. The drawer stays open until the consumer takes it down.',
+      description: 'Emitted by every close button, and by the `close` the `header` and `footer` slots receive. The drawer stays open until the consumer takes it down.',
       table:       { category: 'events' },
     },
-    titleSlot: {
-      name:        'title',
-      description: 'The title, for when it needs more than the string the `title` prop takes.',
-      control:     false,
-      table:       { category: 'slots' },
-    },
-    'header-actions': {
-      description: 'Icon buttons that act on the drawer\'s content, such as Dock to shell or Expand all, beside the close button. Size them like it, and give each an `aria-label` and a tooltip.',
+    header: {
+      description: 'The header. Defaults to an `RcDrawerHeader` with the drawer\'s title; put one in it yourself for a richer title or header actions. It receives `close`, which closes the drawer.',
       control:     false,
       table:       { category: 'slots' },
     },
@@ -88,26 +82,30 @@ export const Default: Story = {
 };
 
 /**
- * A button that acts on the content sits in `header-actions`. With nothing in
- * `footer` there is no footer. Text, such as a chart's readme, goes
- * straight in the body.
+ * A button that acts on the content goes in the `actions` of an
+ * `RcDrawerHeader`. With nothing in `footer` there is no footer. Text, such as
+ * a chart's readme, goes straight in the body.
  */
 export const HeaderActions: Story = {
   render: (args: any) => ({
-    components: { RcDrawer },
+    components: { RcDrawer, RcDrawerHeader },
     setup:      () => ({ args }),
     template:   `
       <RcDrawer v-bind="args">
-        <template #header-actions>
-          <button
-            type="button"
-            class="btn role-link"
-            aria-label="Dock to shell"
-            title="Dock to shell"
-            style="display: inline-flex; justify-content: center; width: 24px; height: 24px; color: var(--body-text);"
-          >
-            <i class="icon icon-dock" />
-          </button>
+        <template #header>
+          <RcDrawerHeader>
+            <template #actions>
+              <button
+                type="button"
+                class="btn role-link"
+                aria-label="Dock to shell"
+                title="Dock to shell"
+                style="display: inline-flex; justify-content: center; width: 24px; height: 24px; color: var(--body-text);"
+              >
+                <i class="icon icon-dock" />
+              </button>
+            </template>
+          </RcDrawerHeader>
         </template>
         ${ text }
       </RcDrawer>
@@ -117,20 +115,22 @@ export const HeaderActions: Story = {
 };
 
 /**
- * The `title` slot replaces what the header shows. The `title` prop still
- * names the drawer, so keep it to the slot's plain text.
+ * What you put in an `RcDrawerHeader` replaces the title it shows. The `title`
+ * prop still names the drawer, so keep it to the plain text of what you put in.
  */
 export const RichTitle: Story = {
   render: (args: any) => ({
     components: {
-      RcDrawer, RcDrawerCard, RcDrawerFooter, RcButton, StateDot
+      RcDrawer, RcDrawerCard, RcDrawerFooter, RcDrawerHeader, RcButton, StateDot
     },
     setup:    () => ({ args }),
     template: `
       <RcDrawer v-bind="args">
-        <template #title>
-          <StateDot color="success" class="mmr-3" />
-          {{ args.title }}
+        <template #header>
+          <RcDrawerHeader>
+            <StateDot color="success" class="mmr-3" />
+            {{ args.title }}
+          </RcDrawerHeader>
         </template>
         ${ card }
         <template #footer>

@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import ChartReadme from '@shell/components/ChartReadme';
 import LazyImage from '@shell/components/LazyImage';
-import { RcDrawer, RcDrawerFooter } from '@components/RcDrawer';
+import { RcDrawer, RcDrawerFooter, RcDrawerHeader } from '@components/RcDrawer';
 import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
 import { getPluginChartVersionLabel, getPluginChartVersion, getLatestPluginVersions } from '@shell/utils/uiplugins';
 import { isChartVersionHigher, uiPluginHasAnnotation } from '@shell/config/uiplugins';
@@ -19,6 +19,7 @@ export default {
     ChartReadme,
     RcDrawer,
     RcDrawerFooter,
+    RcDrawerHeader,
     LazyImage,
     RcButton,
     AppChartCardFooter
@@ -259,28 +260,30 @@ export default {
     :title="drawerTitle"
     @close="$emit('close')"
   >
-    <template #title>
-      <div
-        class="plugin-icon"
-        :class="applyDarkModeBg"
-      >
-        <LazyImage
-          v-if="info.icon"
-          :initial-src="defaultIcon"
-          :error-src="defaultIcon"
-          :src="info.icon"
-          class="icon plugin-icon-img"
-        />
-        <img
-          v-else
-          :src="defaultIcon"
-          class="icon plugin-icon-img"
+    <template #header>
+      <RcDrawerHeader>
+        <div
+          class="plugin-icon"
+          :class="applyDarkModeBg"
         >
-      </div>
-      <span
-        class="plugin-title"
-        data-testid="extension-details-title"
-      ><span class="plugin-name">{{ info.label }}</span>{{ versionInTitle ? ` ${ versionInTitle }` : '' }}</span>
+          <LazyImage
+            v-if="info.icon"
+            :initial-src="defaultIcon"
+            :error-src="defaultIcon"
+            :src="info.icon"
+            class="icon plugin-icon-img"
+          />
+          <img
+            v-else
+            :src="defaultIcon"
+            class="icon plugin-icon-img"
+          >
+        </div>
+        <span
+          class="plugin-title"
+          data-testid="extension-details-title"
+        ><span class="plugin-name">{{ info.label }}</span>{{ versionInTitle ? ` ${ versionInTitle }` : '' }}</span>
+      </RcDrawerHeader>
     </template>
     <p class="plugin-description">
       {{ info.description }}

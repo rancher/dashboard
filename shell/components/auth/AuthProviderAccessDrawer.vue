@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import { Banner } from '@components/Banner';
 import AsyncButton, { AsyncButtonCallback } from '@shell/components/AsyncButton.vue';
-import { RcDrawer, RcDrawerCard } from '@components/RcDrawer';
+import { RcDrawer, RcDrawerCard, RcDrawerHeader } from '@components/RcDrawer';
 import { RcButton } from '@components/RcButton';
 import Loading from '@shell/components/Loading.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals.vue';
@@ -79,13 +79,15 @@ const save = async(btnCb: AsyncButtonCallback) => {
     :title="title"
     @close="emit('close')"
   >
-    <template #title>
-      <AuthProviderLogo
-        :icon="resource.icon"
-        size="small"
-        class="title-logo"
-      />
-      {{ title }}
+    <template #header>
+      <RcDrawerHeader>
+        <AuthProviderLogo
+          :icon="resource.icon"
+          size="small"
+          class="title-logo"
+        />
+        {{ title }}
+      </RcDrawerHeader>
     </template>
     <AuthProviderDetails
       v-if="model"

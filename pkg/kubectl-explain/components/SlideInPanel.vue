@@ -1,11 +1,13 @@
 <script>
 import ExplainPanel from './ExplainPanel';
-import { RcDrawer } from '@components/RcDrawer';
+import { RcDrawer, RcDrawerHeader } from '@components/RcDrawer';
 import { expandOpenAPIDefinition, getOpenAPISchemaName, makeOpenAPIBreadcrumb } from '../open-api-utils.ts';
 import { openAPI } from '../open-api';
 
 export default {
-  components: { ExplainPanel, RcDrawer },
+  components: {
+    ExplainPanel, RcDrawer, RcDrawerHeader
+  },
 
   emits: ['close'],
 
@@ -133,53 +135,55 @@ export default {
     :title="t('kubectl-explain.title')"
     @close="$emit('close')"
   >
-    <template #title>
-      <nav
-        v-if="breadcrumbs && !noResource"
-        class="breadcrumbs"
-      >
-        <div
-          v-for="(b, i) in breadcrumbs"
-          :key="b.id"
+    <template #header>
+      <RcDrawerHeader>
+        <nav
+          v-if="breadcrumbs && !noResource"
+          class="breadcrumbs"
         >
-          <span
-            v-if="i > 0"
-            class="ml-5 mr-5"
-          >&gt;</span>
-          <span
-            v-if="i === breadcrumbs.length - 1"
-          >{{ b.name }}
-          </span>
-          <a
-            v-else
-            href="#"
-            class="breadcrumb-link"
-            role="button"
-            :aria-label="t('kubectl-explain.navigateToBreadcrumb', { breadcrumb: b.name })"
-            @click="navigate(breadcrumbs.slice(0, i + 1))"
-            @keydown.enter.space.stop.prevent="navigate(breadcrumbs.slice(0, i + 1))"
-          >{{ b.name }}</a>
+          <div
+            v-for="(b, i) in breadcrumbs"
+            :key="b.id"
+          >
+            <span
+              v-if="i > 0"
+              class="ml-5 mr-5"
+            >&gt;</span>
+            <span
+              v-if="i === breadcrumbs.length - 1"
+            >{{ b.name }}
+            </span>
+            <a
+              v-else
+              href="#"
+              class="breadcrumb-link"
+              role="button"
+              :aria-label="t('kubectl-explain.navigateToBreadcrumb', { breadcrumb: b.name })"
+              @click="navigate(breadcrumbs.slice(0, i + 1))"
+              @keydown.enter.space.stop.prevent="navigate(breadcrumbs.slice(0, i + 1))"
+            >{{ b.name }}</a>
+          </div>
+        </nav>
+        <div
+          v-else
+          class="title-text"
+        >
+          {{ t('kubectl-explain.title') }}
         </div>
-      </nav>
-      <div
-        v-else
-        class="title-text"
-      >
-        {{ t('kubectl-explain.title') }}
-      </div>
-    </template>
-    <template #header-actions>
-      <button
-        v-if="!busy && !noResource && definition"
-        v-clean-tooltip="expandAll ? t('kubectl-explain.collapseAll') : t('kubectl-explain.expandAll')"
-        type="button"
-        class="btn role-link expand-all"
-        :aria-label="expandAll ? t('kubectl-explain.collapseAll') : t('kubectl-explain.expandAll')"
-        :aria-expanded="expandAll"
-        @click="toggleAll()"
-      >
-        <i class="icon icon-sort" />
-      </button>
+        <template #actions>
+          <button
+            v-if="!busy && !noResource && definition"
+            v-clean-tooltip="expandAll ? t('kubectl-explain.collapseAll') : t('kubectl-explain.expandAll')"
+            type="button"
+            class="btn role-link expand-all"
+            :aria-label="expandAll ? t('kubectl-explain.collapseAll') : t('kubectl-explain.expandAll')"
+            :aria-expanded="expandAll"
+            @click="toggleAll()"
+          >
+            <i class="icon icon-sort" />
+          </button>
+        </template>
+      </RcDrawerHeader>
     </template>
     <div
       ref="content"

@@ -137,7 +137,7 @@ describe('component: SlideInPanel', () => {
     it('sits in the drawer header, outside the title heading', () => {
       const { wrapper } = mountPanel({ get: pending, data: withDefinition });
 
-      expect(wrapper.find('.header > .expand-all').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="rc-drawer-header"] .expand-all').exists()).toBe(true);
       expect(wrapper.find('[data-testid="rc-drawer-title"] .expand-all').exists()).toBe(false);
     });
 

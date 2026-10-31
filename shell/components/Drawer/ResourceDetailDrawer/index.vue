@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RcDrawer, RcDrawerFooter } from '@components/RcDrawer';
+import { RcDrawer, RcDrawerFooter, RcDrawerHeader } from '@components/RcDrawer';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import Tabbed from '@shell/components/Tabbed/index.vue';
@@ -64,12 +64,14 @@ useResourceDetailDrawerProvider();
     :title="title"
     @close="emit('close')"
   >
-    <template #title>
-      <StateDot
-        :color="resource.stateSimpleColor"
-        class="mmr-3"
-      />
-      {{ title }}
+    <template #header>
+      <RcDrawerHeader>
+        <StateDot
+          :color="resource.stateSimpleColor"
+          class="mmr-3"
+        />
+        {{ title }}
+      </RcDrawerHeader>
     </template>
     <Tabbed
       :useHash="false"

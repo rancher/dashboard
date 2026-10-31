@@ -968,7 +968,7 @@ A typo in `component` fails silently — no modal, no error.
 Pattern for surfacing resource details or contextual content in a slide-out panel anchored to the right edge of the screen, without navigating away from the current page.
 
 **Used in:** `shell/components/Drawer/`, `shell/pages/c/_cluster/apps/charts/ChartInfoDrawer.vue`, list page row interactions
-**Core components:** `RcDrawer` and `RcDrawerFooter`, optionally `RcDrawerCard`, opened with the shell's slide-in
+**Core components:** `RcDrawer` with `RcDrawerFooter` (and `RcDrawerHeader` for a richer header), optionally `RcDrawerCard`, opened with the shell's slide-in
 
 **Skeleton:**
 ```vue
@@ -1014,7 +1014,7 @@ useShell().slideIn.open(ResourceDrawer, {
 - Don't pass `title` to `slideIn.open` for a component that renders `RcDrawer`, or it is wrapped in a second drawer
 - Closing on `close` is new in Rancher 2.16. If the extension also supports older versions, pass `onClose: () => store.commit('slideInPanel/close')` in `props` too, or the X and Close buttons do nothing there
 - Keep drawer content supplementary; never put a full edit form inside a Drawer
-- Put the drawer's own actions in an `RcDrawerFooter` in `#footer`, which puts Close before them. Leave `#footer` empty when there are none, and the drawer has no footer. Icon buttons that act on the content go in `#header-actions`, beside the X
+- Put the drawer's own actions in an `RcDrawerFooter` in `#footer`, which puts Close before them. Leave `#footer` empty when there are none, and the drawer has no footer. Icon buttons that act on the content go in the `#actions` of an `RcDrawerHeader` in `#header`, beside the X
 
 ---
 
@@ -1027,7 +1027,7 @@ Pattern for context-sensitive help or documentation that slides in from the righ
 
 **Notes:**
 - Open it with `slideIn.open(...)` like any other drawer; the slide-in traps focus and closes it on Escape
-- Use the `#title` slot for anything richer than plain text, such as breadcrumbs, and keep the `title` prop as its plain-text name. Put controls such as expand all in `#header-actions`, outside the title's heading
+- Put an `RcDrawerHeader` in `#header` for anything richer than plain text, such as breadcrumbs, and keep the `title` prop as its plain-text name. Put controls such as expand all in its `#actions`, outside the title's heading
 - Pass `closeOnRouteChange` when the panel should stay open across some route changes
 - Use for help docs, API reference, or kubectl explain output — content that users want alongside the form they're filling in
 

@@ -7,7 +7,7 @@ import FleetApplicationSource from '@shell/components/formatter/FleetApplication
 import FleetClusters from '@shell/components/fleet/FleetClusters.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
-import { RcDrawer, RcDrawerCard } from '@components/RcDrawer';
+import { RcDrawer, RcDrawerCard, RcDrawerHeader } from '@components/RcDrawer';
 import suseAppCoLogo from '@shell/assets/images/content/suse.svg';
 import suseAppCoLogoDark from '@shell/assets/images/content/dark/suse.svg';
 
@@ -24,6 +24,7 @@ export default {
     Tab,
     RcDrawer,
     RcDrawerCard,
+    RcDrawerHeader,
   },
 
   props: {
@@ -89,32 +90,34 @@ export default {
     @close="$emit('close')"
   >
     <template
-      #title
+      #header
       :data-testid="'fleet-dashboard-resource-details-header'"
     >
-      <img
-        v-if="isSuseAppCollection"
-        class="suse-appco-icon mmr-3"
-        :src="suseAppCoIcon"
-        :alt="value.nameDisplay"
-      >
-      <i
-        v-else
-        class="icon-lg mmr-3"
-        :class="value.dashboardIcon"
-      />
-      <router-link
-        class="label"
-        :to="detailLocation"
-      >
-        {{ value.id }}
-      </router-link>
-      <i
-        v-if="statePanel.id !== 'success'"
-        class="ml-5 state-icon icon-lg"
-        :class="statePanel.icon"
-        :style="{ color: statePanel.color }"
-      />
+      <RcDrawerHeader>
+        <img
+          v-if="isSuseAppCollection"
+          class="suse-appco-icon mmr-3"
+          :src="suseAppCoIcon"
+          :alt="value.nameDisplay"
+        >
+        <i
+          v-else
+          class="icon-lg mmr-3"
+          :class="value.dashboardIcon"
+        />
+        <router-link
+          class="label"
+          :to="detailLocation"
+        >
+          {{ value.id }}
+        </router-link>
+        <i
+          v-if="statePanel.id !== 'success'"
+          class="ml-5 state-icon icon-lg"
+          :class="statePanel.icon"
+          :style="{ color: statePanel.color }"
+        />
+      </RcDrawerHeader>
     </template>
     <Tabbed
       v-bind="$attrs"
