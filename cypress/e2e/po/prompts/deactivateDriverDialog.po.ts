@@ -15,6 +15,6 @@ export default class DeactivateDriverDialogPo extends ComponentPo {
   }
 
   cancel() {
-    return cy.get('.role-secondary').click();
+    return cy.get('.variant-secondary').click();
   }
 }

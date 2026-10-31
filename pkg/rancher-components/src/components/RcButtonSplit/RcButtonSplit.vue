@@ -15,10 +15,10 @@
 import { RcButton } from '@components/RcButton';
 import { RcDropdown, RcDropdownItem, RcDropdownTrigger } from '@components/RcDropdown';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
-import { ButtonVariant, ButtonSize, IconProps } from '@components/RcButton/types';
+import { ButtonVariant, DeprecatedButtonVariant, ButtonSize, IconProps } from '@components/RcButton/types';
 import type { Placement } from 'floating-vue';
 
-type RcButtonSplitVariant = Exclude<ButtonVariant, 'link' | 'ghost' | 'multiAction'>;
+type RcButtonSplitVariant = Exclude<ButtonVariant | DeprecatedButtonVariant, 'link' | 'ghost' | 'multiAction'>;
 
 type RcButtonSplitItem = {
   id: string;
@@ -41,7 +41,7 @@ withDefaults(
   defineProps<RcButtonSplitProps>(),
   {
     disabled:          false,
-    variant:           'primary',
+    variant:           'solid',
     size:              'medium',
     ariaLabel:         undefined,
     ariaLabelTrigger:  undefined,
