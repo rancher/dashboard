@@ -70,7 +70,7 @@ describe('fx: loadChunksOnDemand', () => {
     });
 
     plugin.generateBundle({}, bundle);
-    plugin.writeBundle({ dir });
+    plugin.writeBundle({ dir }, bundle);
 
     (window as any).Vue = { version: '3' };
     jest.spyOn(document.head, 'appendChild').mockImplementation((element: any) => {
@@ -241,7 +241,7 @@ describe('fx: loadChunksOnDemand with a top-level await', () => {
       fs.writeFileSync(path.join(dir, chunk.fileName), plugin.renderChunk.call(context, code, chunk, {}, { chunks: meta, magicString: new MagicString(code) }).toString());
     });
     plugin.generateBundle.call(context, {}, bundle);
-    plugin.writeBundle({ dir });
+    plugin.writeBundle({ dir }, bundle);
   };
 
   beforeEach(() => {
@@ -292,5 +292,74 @@ describe('fx: loadChunksOnDemand with a top-level await', () => {
     const [entry, , ready] = AWAITING_CHUNKS;
 
     expect(() => build([{ ...entry, imports: ['pkg.ready.js'] }, ready])).toThrow('The package\'s index imports a module with a top-level `await` (/pkg/ready.js)');
+  });
+});
+
+describe('fx: loadChunksOnDemand with a chunk Vite removed for only holding CSS', () => {
+  const CSS_CHUNKS = [
+    {
+      fileName:  ENTRY,
+      isEntry:   true,
+      imports:   [],
+      moduleIds: ['/pkg/index.js'],
+      code:      'exports.default = function(plugin) {\n  plugin.load = () => Promise.resolve().then(() => require(\'./pkg.styled.js\'));\n};',
+    },
+    {
+      fileName: 'pkg.styled.js', isEntry: false, imports: [], moduleIds: ['/pkg/styled.js'], code: 'require(\'./pkg.shared.js\');\nexports.default = \'styled\';'
+    },
+    {
+      fileName: 'pkg.shared.js', isEntry: false, imports: [], moduleIds: ['/pkg/shared.css'], code: ''
+    },
+  ];
+
+  let dir: string;
+  let appended: string[];
+
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rancher-chunks-'));
+    appended = [];
+
+    const plugin: any = loadChunksOnDemand(NAME, ENTRY);
+    const bundle: Record<string, any> = {};
+
+    plugin.renderStart();
+    CSS_CHUNKS.forEach(({ code, ...chunk }) => {
+      fs.writeFileSync(path.join(dir, chunk.fileName), plugin.renderChunk(code, chunk, {}, { chunks: {}, magicString: magicString(code) }).toString());
+      bundle[chunk.fileName] = {
+        type: 'chunk', ...chunk, imports: chunk.fileName === 'pkg.styled.js' ? ['pkg.shared.js'] : []
+      };
+    });
+    plugin.generateBundle({}, bundle);
+    delete bundle['pkg.shared.js'];
+    fs.rmSync(path.join(dir, 'pkg.shared.js'));
+    plugin.writeBundle({ dir }, bundle);
+
+    jest.spyOn(document.head, 'appendChild').mockImplementation((element: any) => {
+      const file = element.src.split('/').pop();
+
+      appended.push(file);
+      new Function(fs.readFileSync(path.join(dir, file), 'utf8'))(); // eslint-disable-line no-new-func
+      element.onload();
+
+      return element;
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    fs.rmSync(dir, { recursive: true, force: true });
+    delete (window as any)[NAME];
+    delete (self as any).__rancherExtensionChunks;
+  });
+
+  it('should load a chunk that still requires it, without loading it', async() => {
+    const plugin: any = {};
+
+    Object.defineProperty(document, 'currentScript', { value: null, configurable: true });
+    new Function(fs.readFileSync(path.join(dir, ENTRY), 'utf8'))(); // eslint-disable-line no-new-func
+    (window as any)[NAME].default(plugin);
+
+    expect((await plugin.load()).default).toStrictEqual('styled');
+    expect(appended).toStrictEqual(['pkg.styled.js']);
   });
 });
