@@ -1,0 +1,184 @@
+import { Meta, Canvas, Controls } from '@storybook/blocks';
+import * as RcDrawerStories from './RcDrawer.stories';
+
+<Meta of={RcDrawerStories} />
+
+# RcDrawer
+
+`RcDrawer` is the standard drawer, the one Show Configuration opens. Use it for
+every drawer, with `RcDrawerHeader` and `RcDrawerFooter`, so they all share one
+header, body and footer.
+
+<Canvas of={RcDrawerStories.Default} />
+
+<Controls of={RcDrawerStories.Default} />
+
+## The API
+
+`RcDrawer` takes a `title` and emits `close`. Everything else is a slot.
+
+| Slot | Renders |
+|---|---|
+| `header` | The header. Defaults to an `RcDrawerHeader` with the `title`, so most drawers only set the prop. Put one in it yourself for a richer title or header actions; it receives `close`, which closes the drawer. |
+| default | The body. Text goes straight in; wrap a form or a table in an `RcDrawerCard`. |
+| `footer` | The footer. Put an `RcDrawerFooter` in it, or your own buttons; it receives `close`, which closes the drawer. Without anything in it, the drawer has no footer. |
+
+`RcDrawerHeader` is the standard header: the title, its `actions` and the close
+button. What you put in it replaces the title it shows, and its `actions` slot
+holds icon buttons that act on the drawer's content.
+
+`RcDrawerFooter` is the standard footer: a Close button, followed by whatever
+you put in it.
+
+The close buttons in both close the drawer they sit in and are named after it.
+Every close button emits `close`. The drawer never takes itself down: whatever
+opened it does that.
+
+Buttons in `RcDrawerFooter` should be `size="large"`, with `variant="primary"`
+for the drawer's main action, to match the Close button.
+Buttons in an `RcDrawerHeader`'s `actions` are icon buttons like the close
+button beside them, each with an `aria-label` and a tooltip that name it.
+
+Keep the icon a button had before it moved into the drawer, with `left-icon`.
+
+```vue
+<script setup lang="ts">
+import { RcDrawer, RcDrawerFooter, RcButton } from '@rancher/components';
+
+const emit = defineEmits<{ close: [] }>();
+</script>
+
+<template>
+  <RcDrawer :title="title" @close="emit('close')">
+    ...
+    <template #footer>
+      <RcDrawerFooter>
+        <RcButton variant="primary" size="large" @click="edit">Edit Config</RcButton>
+      </RcDrawerFooter>
+    </template>
+  </RcDrawer>
+</template>
+```
+
+Attributes that are not props land on the drawer's root element, so `class` and
+`data-testid` work as usual.
+
+## Opening it
+
+The drawer fills its nearest positioned ancestor. In the shell, that is the
+slide-in panel: make `RcDrawer` the root of your component and open the
+component with the slide-in API. The panel closes when the component emits
+`close`.
+
+```ts
+import { useShell } from '@shell/apis';
+import MyDrawer from '@/components/MyDrawer.vue';
+
+const shell = useShell();
+
+shell.slideIn.open(MyDrawer, {
+  width:  'wide',
+  height: 'full',
+  props:  { resource },
+});
+```
+
+`width: 'wide'` and `height: 'full'` open it the way Show Configuration does.
+
+Do not pass `title` to `slideIn.open` for a component that renders `RcDrawer`.
+A `title` tells the slide-in to wrap the component in a drawer of its own, so
+the content would sit inside a second drawer.
+
+## The header
+
+Every drawer gets an `RcDrawerHeader` with its `title`. Put one in `header`
+yourself when the title needs markup, such as the state dot Show Configuration
+puts before the resource name, or when the drawer has buttons that act on its
+content, such as Dock to shell:
+
+```vue
+<template #header>
+  <RcDrawerHeader>
+    <StateDot :color="resource.stateSimpleColor" />
+    {{ title }}
+    <template #actions>
+      <button type="button" class="btn role-link" :aria-label="dockLabel" @click="dock">
+        <i class="icon icon-dock" />
+      </button>
+    </template>
+  </RcDrawerHeader>
+</template>
+```
+
+What goes in its default slot replaces the title it shows, and `actions` sit
+beside the X.
+
+<Canvas of={RcDrawerStories.Header} />
+
+This drawer has no action of its own, so it has no footer: Close alone would
+only repeat the X, Escape and a click outside.
+
+## A footer of your own
+
+When a drawer needs a different pair of buttons, such as Cancel and Save, put
+them straight in `footer` instead of an `RcDrawerFooter`, and close the drawer
+with the `close` the slot gives you.
+
+```vue
+<template #footer="{ close }">
+  <RcButton variant="secondary" size="large" @click="close">Cancel</RcButton>
+  <RcButton variant="primary" size="large" @click="save">Save</RcButton>
+</template>
+```
+
+<Canvas of={RcDrawerStories.CustomFooter} />
+
+## Cards
+
+Text, such as a readme or a description, goes straight in the body.
+
+`RcDrawerCard` sets a form or a table apart as a panel on the tinted body, the
+way Show Configuration shows its form. Space cards apart with the spacing
+utilities, for example `class="mmb-4"`.
+
+<Canvas of={RcDrawerStories.TallContent} />
+
+Content taller than the drawer scrolls inside the body, and the header and
+footer stay in view.
+
+## More actions than room
+
+When the footer has no room for every action, such as in a narrow drawer, put
+the main action on an `RcButtonSplit` in the `RcDrawerFooter` and the rest in
+its menu.
+
+<Canvas of={RcDrawerStories.SplitButton} />
+
+## Accessibility
+
+- The drawer is a modal dialog named by its `title`. A richer title in an
+  `RcDrawerHeader` does not change that, so set the prop to its plain text.
+- The title is a level 2 heading, so screen reader users can jump to it like
+  any other section of the page. Buttons go in the header's `actions`, outside
+  it.
+- The close buttons in `RcDrawerHeader` and `RcDrawerFooter` are labeled with
+  the title, so a screen reader announces which drawer they close.
+
+## Moving from `Chrome` and `DrawerCard`
+
+`@shell/components/Drawer/Chrome.vue` and `@shell/components/Drawer/DrawerCard.vue`
+are removed. Use `RcDrawer`, `RcDrawerHeader`, `RcDrawerFooter` and
+`RcDrawerCard` instead:
+
+| `Chrome` | `RcDrawer` |
+|---|---|
+| `aria-target` | `title` |
+| `close-label` | `#footer`, with your own buttons |
+| `#title` | `#header` with an `RcDrawerHeader` around it, and only when the title needs markup |
+| `#header` | `#header` |
+| `#body` | The default slot |
+| `#footer` | `#footer` |
+| `#additional-actions` | `#footer`, wrapped in an `RcDrawerFooter` |
+
+`Chrome`'s `remove-footer` prop has no replacement: a drawer has a footer only
+when it has content.

@@ -7,13 +7,14 @@ import FleetApplicationSource from '@shell/components/formatter/FleetApplication
 import FleetClusters from '@shell/components/fleet/FleetClusters.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
-import Drawer from '@shell/components/Drawer/Chrome.vue';
-import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
+import { RcDrawer, RcDrawerCard, RcDrawerHeader } from '@components/RcDrawer';
 import suseAppCoLogo from '@shell/assets/images/content/suse.svg';
 import suseAppCoLogoDark from '@shell/assets/images/content/dark/suse.svg';
 
 export default {
   name: 'FleetDashboardResourceDetails',
+
+  emits: ['close'],
 
   components: {
     FleetResources,
@@ -21,8 +22,9 @@ export default {
     FleetClusters,
     Tabbed,
     Tab,
-    Drawer,
-    DrawerCard,
+    RcDrawer,
+    RcDrawerCard,
+    RcDrawerHeader,
   },
 
   props: {
@@ -78,112 +80,105 @@ export default {
       return this.$store.getters['prefs/theme'] === 'dark' ? suseAppCoLogoDark : suseAppCoLogo;
     }
 
-  },
-
-  methods: {
-    closePanel() {
-      this.$store.commit('slideInPanel/close');
-    }
   }
 };
 </script>
 
 <template>
-  <Drawer
-    :ariaTarget="value.id"
-    :removeFooter="true"
-    @close="closePanel"
+  <RcDrawer
+    :title="value.id"
+    @close="$emit('close')"
   >
     <template
-      #title
+      #header
       :data-testid="'fleet-dashboard-resource-details-header'"
     >
-      <img
-        v-if="isSuseAppCollection"
-        class="suse-appco-icon mmr-3"
-        :src="suseAppCoIcon"
-        :alt="value.nameDisplay"
-      >
-      <i
-        v-else
-        class="icon-lg mmr-3"
-        :class="value.dashboardIcon"
-      />
-      <router-link
-        class="label"
-        :to="detailLocation"
-      >
-        {{ value.id }}
-      </router-link>
-      <i
-        v-if="statePanel.id !== 'success'"
-        class="ml-5 state-icon icon-lg"
-        :class="statePanel.icon"
-        :style="{ color: statePanel.color }"
-      />
+      <RcDrawerHeader>
+        <img
+          v-if="isSuseAppCollection"
+          class="suse-appco-icon mmr-3"
+          :src="suseAppCoIcon"
+          :alt="value.nameDisplay"
+        >
+        <i
+          v-else
+          class="icon-lg mmr-3"
+          :class="value.dashboardIcon"
+        />
+        <router-link
+          class="label"
+          :to="detailLocation"
+        >
+          {{ value.id }}
+        </router-link>
+        <i
+          v-if="statePanel.id !== 'success'"
+          class="ml-5 state-icon icon-lg"
+          :class="statePanel.icon"
+          :style="{ color: statePanel.color }"
+        />
+      </RcDrawerHeader>
     </template>
-    <template #body>
-      <Tabbed
-        v-bind="$attrs"
-        :default-tab="'clusters'"
-        :resource="value"
-        :use-hash="true"
-        :remove-borders="true"
+    <Tabbed
+      v-bind="$attrs"
+      :default-tab="'clusters'"
+      :resource="value"
+      :use-hash="true"
+      :remove-borders="true"
+    >
+      <Tab
+        :label="t('fleet.dashboard.resourceDetails.clusters')"
+        name="clusters"
       >
-        <Tab
-          :label="t('fleet.dashboard.resourceDetails.clusters')"
-          name="clusters"
-        >
-          <DrawerCard>
-            <!-- One bundle's clusters, not the cluster list, so no saved view tabs -->
-            <FleetClusters
-              :table-view-tabs="false"
-              :schema="clusterSchema"
-              :rows="value.targetClusters"
-              :table-actions="false"
-              :row-actions="false"
-              :search="true"
-              :remove-sub-rows="true"
-              :ignore-filter="true"
-              paging-label="sortableTable.paging.resource"
-            />
-          </DrawerCard>
-        </Tab>
-        <Tab
-          :label="t('fleet.dashboard.resourceDetails.resources')"
-          name="resources"
-        >
-          <DrawerCard>
-            <!-- Statuses rather than a resource type, so the toolbar has to be asked for -->
-            <FleetResources
-              :table-views="true"
-              :table-view-tabs="false"
-              :rows="value.resourcesStatuses"
-              :cluster-id="clusterId"
-              :search="true"
-            />
-          </DrawerCard>
-        </Tab>
-        <Tab
-          :label="t('fleet.dashboard.resourceDetails.source')"
-          name="source"
-        >
-          <DrawerCard class="mmb-4">
-            <FleetApplicationSource
-              v-if="value.source.value"
-              :row="value"
-            />
-            <div
-              v-else
-              class="text-muted"
-            >
-              &mdash;
-            </div>
-          </DrawerCard>
-        </Tab>
-      </Tabbed>
-    </template>
-  </Drawer>
+        <RcDrawerCard>
+          <!-- One bundle's clusters, not the cluster list, so no saved view tabs -->
+          <FleetClusters
+            :table-view-tabs="false"
+            :schema="clusterSchema"
+            :rows="value.targetClusters"
+            :table-actions="false"
+            :row-actions="false"
+            :search="true"
+            :remove-sub-rows="true"
+            :ignore-filter="true"
+            paging-label="sortableTable.paging.resource"
+          />
+        </RcDrawerCard>
+      </Tab>
+      <Tab
+        :label="t('fleet.dashboard.resourceDetails.resources')"
+        name="resources"
+      >
+        <RcDrawerCard>
+          <!-- Statuses rather than a resource type, so the toolbar has to be asked for -->
+          <FleetResources
+            :table-views="true"
+            :table-view-tabs="false"
+            :rows="value.resourcesStatuses"
+            :cluster-id="clusterId"
+            :search="true"
+          />
+        </RcDrawerCard>
+      </Tab>
+      <Tab
+        :label="t('fleet.dashboard.resourceDetails.source')"
+        name="source"
+      >
+        <RcDrawerCard class="mmb-4">
+          <FleetApplicationSource
+            v-if="value.source.value"
+            :row="value"
+          />
+          <div
+            v-else
+            class="text-muted"
+          >
+            &mdash;
+          </div>
+        </RcDrawerCard>
+      </Tab>
+    </Tabbed>
+  </RcDrawer>
 </template>
 
 <style lang="scss" scoped>

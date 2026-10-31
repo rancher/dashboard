@@ -7,7 +7,7 @@ import { mapGetters } from 'vuex';
 import { markRaw } from 'vue';
 import { Banner } from '@components/Banner';
 import ButtonGroup from '@shell/components/ButtonGroup';
-import ChartReadme from '@shell/components/ChartReadme';
+import ChartInfoDrawer from '@shell/pages/c/_cluster/apps/charts/ChartInfoDrawer.vue';
 import { Checkbox } from '@components/Form/Checkbox';
 import FailWhale from '@shell/components/FailWhale';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -88,7 +88,6 @@ export default {
   components: {
     Banner,
     ButtonGroup,
-    ChartReadme,
     Checkbox,
     FailWhale,
     LabeledInput,
@@ -438,8 +437,6 @@ export default {
       showDiff:                               false,
       showValuesComponent:                    true,
       showQuestions:                          true,
-      showSlideIn:                            false,
-      slideInTrigger:                         null,
       shownReadmeWindows:                     [],
       showCommandStep:                        false,
       showCustomRegistryInput:                false,
@@ -894,7 +891,6 @@ export default {
       // When going back to app list, the query is empty and we don't want to refetch
       if ( !isEqual(neu, old) && Object.keys(neu).length > 0 ) {
         this.$fetch();
-        this.showSlideIn = false;
       }
     },
 
@@ -916,13 +912,6 @@ export default {
 
     async setImagePullSecretDataTrigger() {
       await this.setImagePullSecretData();
-    },
-
-    // preventScroll, or the browser scrolls the page to the drawer while it slides in
-    showSlideIn(neu) {
-      if (neu) {
-        this.$nextTick(() => this.$refs.slideInPanel?.focus?.({ preventScroll: true }));
-      }
     },
 
     preFormYamlOption(neu, old) {
@@ -1608,6 +1597,18 @@ export default {
       return opt?.chartNameDisplay;
     },
 
+    showChartInfo() {
+      this.$shell.slideIn.open(ChartInfoDrawer, {
+        props: {
+          versionInfo: this.versionInfo,
+          onDock:      this.showReadmeWindow
+        },
+        width:              'wide',
+        height:             'full',
+        closeOnRouteChange: ['name', 'params', 'query'],
+      });
+    },
+
     showReadmeWindow() {
       this.$store.dispatch('wm/open', {
         id:        this.readmeWindowName,
@@ -1617,27 +1618,6 @@ export default {
         attrs:     { versionInfo: this.versionInfo }
       }, { root: true });
       this.shownReadmeWindows.push(this.readmeWindowName);
-    },
-
-    toggleSlideIn(ev) {
-      if (this.showSlideIn) {
-        this.closeSlideIn();
-      } else {
-        this.slideInTrigger = ev?.currentTarget || null;
-        this.showSlideIn = true;
-      }
-    },
-
-    closeSlideIn() {
-      if (!this.showSlideIn) {
-        return;
-      }
-
-      this.showSlideIn = false;
-      this.$nextTick(() => {
-        this.slideInTrigger?.focus?.();
-        this.slideInTrigger = null;
-      });
     },
 
     updateStep(stepName, update) {
@@ -1991,7 +1971,7 @@ export default {
               type="button"
               class="btn bg-primary btn-sm"
               :disabled="!hasReadme || showingReadmeWindow"
-              @click="toggleSlideIn"
+              @click="showChartInfo"
             >
               {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
             </button>
@@ -2032,7 +2012,7 @@ export default {
             <button
               type="button"
               class="btn bg-primary btn-sm"
-              @click="toggleSlideIn"
+              @click="showChartInfo"
             >
               {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
             </button>
@@ -2213,48 +2193,6 @@ export default {
         </div>
       </template>
     </Wizard>
-    <div
-      ref="slideInPanel"
-      class="slideIn"
-      tabindex="-1"
-      :class="{'hide': false, 'slideIn__show': showSlideIn}"
-      :inert="!showSlideIn || null"
-      @keydown.esc="closeSlideIn"
-    >
-      <h2 class="slideIn__header">
-        {{ t('catalog.install.steps.helmValues.chartInfo.label') }}
-        <div class="slideIn__header__buttons">
-          <div
-            v-clean-tooltip="t('catalog.install.slideIn.dock')"
-            class="slideIn__header__button"
-            role="button"
-            tabindex="0"
-            :aria-label="t('catalog.install.slideIn.dock')"
-            @click="closeSlideIn(); showReadmeWindow()"
-            @keydown.enter.prevent="closeSlideIn(); showReadmeWindow()"
-            @keydown.space.prevent="closeSlideIn(); showReadmeWindow()"
-          >
-            <i class="icon icon-dock" />
-          </div>
-          <div
-            class="slideIn__header__button"
-            role="button"
-            tabindex="0"
-            :aria-label="t('generic.close')"
-            @click="closeSlideIn"
-            @keydown.enter.prevent="closeSlideIn"
-            @keydown.space.prevent="closeSlideIn"
-          >
-            <i class="icon icon-close" />
-          </div>
-        </div>
-      </h2>
-      <ChartReadme
-        v-if="hasReadme"
-        :version-info="versionInfo"
-        class="chart-content__tabs"
-      />
-    </div>
   </div>
 </template>
 
@@ -2356,81 +2294,6 @@ export default {
       }
 
     }
-  }
-
-  .slideIn {
-    $slideout-width: 35%;
-
-    border-left: var(--header-border-size) solid var(--header-border);
-    position: absolute;
-    top: 0;
-    right: -$slideout-width;
-    height: 100%;
-    background-color: var(--topmenu-bg);
-    width: $slideout-width;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-
-    padding: 10px;
-
-    // The panel is always rendered and parked off screen, so its contents stay in the DOM while
-    // it's closed. Skipping them keeps them out of the browser's find-in-page results (and out of
-    // the accessibility tree) until the panel is actually shown.
-    // `allow-discrete` delays the switch back to hidden until the slide out has finished, so the
-    // contents don't blank out mid transition. Without it the contents simply hide immediately.
-    content-visibility: hidden;
-
-    transition-property: right, content-visibility;
-    transition-duration: .5s;
-    transition-timing-function: ease;
-    transition-behavior: allow-discrete;
-
-    &__header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      &__buttons {
-        display: flex;
-      }
-
-      &__button {
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2px;
-        > i {
-          font-size: 20px;
-          opacity: 0.5;
-        }
-        &:hover {
-          background-color: var(--wm-closer-hover-bg);
-        }
-      }
-    }
-
-    .chart-content__tabs {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-
-      height: 0;
-
-      padding-bottom: 10px;
-
-      :deep() .chart-readmes {
-        flex: 1;
-        overflow: auto;
-      }
-    }
-
-    &__show {
-      right: 0;
-      content-visibility: visible;
-    }
-
   }
 
   .scroll {

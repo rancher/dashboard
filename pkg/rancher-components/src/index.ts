@@ -12,6 +12,9 @@ export {
   RcDropdownTrigger,
   RcDropdownMenu
 } from './components/RcDropdown';
+export {
+  RcDrawer, RcDrawerCard, RcDrawerFooter, RcDrawerHeader
+} from './components/RcDrawer';
 export { RcHeading } from './components/RcHeading';
 export { RcIcon } from './components/RcIcon';
 export { RcIconTooltip } from './components/RcIconTooltip';

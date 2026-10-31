@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Drawer from '@shell/components/Drawer/Chrome.vue';
+import { RcDrawer, RcDrawerFooter, RcDrawerHeader } from '@components/RcDrawer';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import Tabbed from '@shell/components/Tabbed/index.vue';
@@ -60,47 +60,48 @@ useResourceDetailDrawerProvider();
 
 </script>
 <template>
-  <Drawer
-    :ariaTarget="title"
+  <RcDrawer
+    :title="title"
     @close="emit('close')"
   >
-    <template #title>
-      <StateDot
-        :color="resource.stateSimpleColor"
-        class="mmr-3"
+    <template #header>
+      <RcDrawerHeader>
+        <StateDot
+          :color="resource.stateSimpleColor"
+          class="mmr-3"
+        />
+        {{ title }}
+      </RcDrawerHeader>
+    </template>
+    <Tabbed
+      :useHash="false"
+      :showExtensionTabs="false"
+      :componentTestid="componentTestid"
+      :remove-borders="true"
+      @changed="({selectedName}) => {activeTab = selectedName;}"
+    >
+      <ConfigTab
+        v-if="configTabProps"
+        v-bind="configTabProps"
+        :default-tab="props.defaultTab"
       />
-      {{ title }}
+      <YamlTab
+        v-if="yamlTabProps"
+        v-bind="yamlTabProps"
+      />
+    </Tabbed>
+    <template #footer>
+      <RcDrawerFooter v-if="canEdit">
+        <RcButton
+          variant="primary"
+          size="large"
+          :aria-label="action.ariaLabel"
+          :data-testid="editBttnDataTestId"
+          @click="action.action"
+        >
+          {{ action.label }}
+        </RcButton>
+      </RcDrawerFooter>
     </template>
-    <template #body>
-      <Tabbed
-        :useHash="false"
-        :showExtensionTabs="false"
-        :componentTestid="componentTestid"
-        :remove-borders="true"
-        @changed="({selectedName}) => {activeTab = selectedName;}"
-      >
-        <ConfigTab
-          v-if="configTabProps"
-          v-bind="configTabProps"
-          :default-tab="props.defaultTab"
-        />
-        <YamlTab
-          v-if="yamlTabProps"
-          v-bind="yamlTabProps"
-        />
-      </Tabbed>
-    </template>
-    <template #additional-actions>
-      <RcButton
-        v-if="canEdit"
-        variant="primary"
-        size="large"
-        :aria-label="action.ariaLabel"
-        :data-testid="editBttnDataTestId"
-        @click="action.action"
-      >
-        {{ action.label }}
-      </RcButton>
-    </template>
-  </Drawer>
+  </RcDrawer>
 </template>

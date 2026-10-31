@@ -73,17 +73,17 @@ export default {
       const ref = pkg.licenseRef;
       const content = ref ? this.licensesMap[ref] : null;
 
-      this.$store.commit('slideInPanel/open', {
-        component:      LicenseSlideIn,
-        componentProps: {
+      this.$shell.slideIn.open(LicenseSlideIn, {
+        props: {
+          packageName:  pkg.name,
           licenseId:    pkg.license,
           licenseField: pkg.licenseField,
           home:         pkg.home,
           author:       pkg.author,
-          content,
-          title:        pkg.name,
-          width:        'wide'
-        }
+          content
+        },
+        width:  'medium',
+        height: 'full'
       });
     }
   }
