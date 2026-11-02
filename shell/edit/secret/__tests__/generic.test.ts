@@ -60,7 +60,7 @@ describe('component: Generic.vue', () => {
 
     await flushPromises();
 
-    expect(Object.keys(wrapper.findComponent(KeyValueStub).props('keyErrors') || {})).toStrictEqual(['@##$']);
+    expect(wrapper.findComponent(KeyValueStub).props('keyErrors')).toStrictEqual({ '@##$': expect.stringContaining('validation.dataKey') });
   });
 
   it('should revalidate when the keys change', async() => {

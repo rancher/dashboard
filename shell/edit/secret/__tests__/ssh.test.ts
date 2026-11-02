@@ -110,14 +110,14 @@ describe('component: Ssh.vue validation', () => {
   });
 
   it.each([
-    ['ssh-publickey', { 'ssh-publickey': 'opa', 'ssh-privatekey': privateKey }, 'validation.sshPublicKey'],
-    ['ssh-privatekey', { 'ssh-publickey': publicKey, 'ssh-privatekey': 'op' }, 'validation.pemPrivateKey'],
-  ])('should invalidate the form when %p is not a valid key', async(field, decodedData, message) => {
+    ['ssh-publickey', { 'ssh-publickey': 'opa', 'ssh-privatekey': privateKey }, { 'ssh-publickey': expect.stringContaining('validation.sshPublicKey') }],
+    ['ssh-privatekey', { 'ssh-publickey': publicKey, 'ssh-privatekey': 'op' }, { 'ssh-privatekey': expect.stringContaining('validation.pemPrivateKey') }],
+  ])('should invalidate the form when %p is not a valid key', async(_, decodedData, errors) => {
     const wrapper = mountInForm(decodedData);
 
     await flushPromises();
 
     expect(wrapper.vm.isFormValid).toBe(false);
-    expect(wrapper.vm.veeErrors).toStrictEqual({ [field]: expect.stringContaining(message) });
+    expect(wrapper.vm.veeErrors).toStrictEqual(errors);
   });
 });

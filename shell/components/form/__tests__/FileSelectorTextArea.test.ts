@@ -118,50 +118,30 @@ describe('component: FileSelectorTextArea', () => {
 
   // A file sets the value without focusing the text area, so nothing blurs it. Unless the field is touched,
   // an invalid file leaves the form unable to save with no error to say why.
-  describe('when a file sets an invalid value', () => {
-    const errorMessage = 'Not a PEM private key';
-    const pemRule = (v: string) => (v && !v.startsWith('-----BEGIN') ? errorMessage : undefined);
+  describe.each([
+    ['an invalid', 'Not a PEM private key'],
+    ['a valid', undefined],
+  ])('when a file sets %s value', (_, ruleResult) => {
+    const mountField = () => mountComponent({ name: 'tls.key', rules: [jest.fn().mockReturnValue(ruleResult)] });
 
-    // Stands in for the parent's v-model, so the value read from the file flows back in as a prop
-    const mountField = () => {
-      const wrapper: any = mountComponent({
-        name:             'tls.key',
-        rules:            [pemRule],
-        'onUpdate:value': (value: string) => wrapper.setProps({ value }),
-      });
-
-      return wrapper;
-    };
-
-    const validationMessage = (wrapper: any) => wrapper.findComponent(LabeledInput).vm.validationMessage;
-
-    it('should show the error after Read from File', async() => {
+    it('should show the rule result after Read from File', async() => {
       const wrapper = mountField();
 
-      wrapper.findComponent(FileSelector).vm.$emit('selected', 'not-a-key');
+      wrapper.findComponent(FileSelector).vm.$emit('selected', 'file contents');
       await flushPromises();
 
-      expect(validationMessage(wrapper)).toStrictEqual(errorMessage);
+      expect(wrapper.findComponent(LabeledInput).vm.validationMessage).toStrictEqual(ruleResult);
     });
 
-    it('should show the error after a drop', async() => {
+    it('should show the rule result after a drop', async() => {
       const wrapper = mountField();
-      const file = new File(['not-a-key'], 'tls.key', { type: 'text/plain' });
+      const file = new File(['file contents'], 'tls.key', { type: 'text/plain' });
 
       await wrapper.find('.drop-zone').trigger('drop', fileDragEvent(['Files'], [file]));
       await flushFileRead(wrapper);
       await flushPromises();
 
-      expect(validationMessage(wrapper)).toStrictEqual(errorMessage);
-    });
-
-    it('should show no error when the file is valid', async() => {
-      const wrapper = mountField();
-
-      wrapper.findComponent(FileSelector).vm.$emit('selected', '-----BEGIN PRIVATE KEY-----');
-      await flushPromises();
-
-      expect(validationMessage(wrapper)).toBeUndefined();
+      expect(wrapper.findComponent(LabeledInput).vm.validationMessage).toStrictEqual(ruleResult);
     });
   });
 

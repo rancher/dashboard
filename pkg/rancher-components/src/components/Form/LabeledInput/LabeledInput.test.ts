@@ -718,39 +718,38 @@ describe('component: LabeledInput', () => {
 
     describe('touch', () => {
       const errorMessage = 'Field cannot be empty';
-      const notEmptyRule = (v: string) => (!v ? errorMessage : undefined);
 
-      const mountField = (value: string) => mount(LabeledInput, {
+      const mountField = (ruleResult?: string) => mount(LabeledInput, {
         propsData: {
           name:  'testField',
-          rules: [notEmptyRule],
-          value,
+          rules: [jest.fn().mockReturnValue(ruleResult)],
+          value: '',
         },
         mocks: i18nMock
       });
 
-      it('should show the error without the input being blurred', async() => {
-        const wrapper = mountField('');
+      it('should hide the error until the field is touched', async() => {
+        const wrapper = mountField(errorMessage);
 
-        expect(wrapper.vm.validationMessage).toBeUndefined();
-
-        wrapper.vm.touch();
         await flushPromises();
 
-        expect(wrapper.vm.validationMessage).toStrictEqual(errorMessage);
+        expect(wrapper.vm.validationMessage).toBeUndefined();
       });
 
-      it('should show no error when the value satisfies the rules', async() => {
-        const wrapper = mountField('valid value');
+      it.each([
+        ['the error when the rules fail', errorMessage],
+        ['no error when the rules pass', undefined],
+      ])('should show %s, without the input being blurred', async(_, ruleResult) => {
+        const wrapper = mountField(ruleResult);
 
         wrapper.vm.touch();
         await flushPromises();
 
-        expect(wrapper.vm.validationMessage).toBeUndefined();
+        expect(wrapper.vm.validationMessage).toStrictEqual(ruleResult);
       });
 
       it('should not emit blur', async() => {
-        const wrapper = mountField('');
+        const wrapper = mountField(errorMessage);
 
         wrapper.vm.touch();
         await flushPromises();
