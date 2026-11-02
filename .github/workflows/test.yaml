@@ -584,13 +584,9 @@ jobs:
           skippable: >-
             extract-e2e-runtime-rancher-version e2e-ui-build e2e-test a11y-test
             check-i18n check-i18n-links check-e2e-tags check-cypress-build
-          # a11y-test is not a required status check today, so folding it into this
-          # gate must not silently start blocking merges. Remove it from `soft`
-          # once the a11y ratchet has completed its soft-launch window.
-          #
           # check-i18n-links hits every external http link and exits non-zero on
           # any unreachable one, so it fails for reasons unrelated to the change
           # under test. `skippable` only excuses a `skipped` result, not a
           # `failure`, so it needs `soft` too — otherwise one dead doc site
           # blocks every merge through the only required check.
-          soft: a11y-test check-i18n-links
+          soft: check-i18n-links
