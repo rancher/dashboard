@@ -1914,6 +1914,265 @@ describe('prefs store', () => {
         expect(commit).toHaveBeenCalledWith('load', { key: DEV, value: true });
       });
     });
+
+    // The same race, driven step by step: every PUT is held until the test lets it land (or fail), so the
+    // store can be checked at each point a read can come in, instead of sampled along the way.
+    describe('quick successive sets, one save at a time', () => {
+      type HeldSave = { land: () => void, fail: (error: any) => void };
+
+      // PUTs gone out and not yet handed to the test, and every PUT not yet landed or failed.
+      let saves: HeldSave[] = [];
+      const unsettled = new Set<HeldSave>();
+
+      // Land whatever a failed test left held, or the shared write queue stays blocked for the tests after it.
+      afterEach(async() => {
+        for (let i = 0; i < 20; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+          if (!unsettled.size) {
+            break;
+          }
+          [...unsettled].forEach((save) => save.land());
+        }
+      });
+
+      const heldSaves = () => {
+        create(DEV, false, { parseJSON: true });
+        create(SHOW_PRE_RELEASE, false, { parseJSON: true });
+        create(ROWS_PER_PAGE, 100, { options: [10, 25, 50, 100], parseJSON: true });
+
+        let backend: Record<string, any> = {
+          [DEV]: 'false', [SHOW_PRE_RELEASE]: 'false', [ROWS_PER_PAGE]: '100'
+        };
+
+        saves = [];
+        const server: any = {
+          data: {},
+          save: jest.fn(() => {
+            // The PUT body is fixed when the request goes out.
+            const body = { ...server.data };
+
+            return new Promise<void>((resolve, reject) => {
+              const save: HeldSave = {
+                land: () => {
+                  unsettled.delete(save);
+                  backend = { ...body };
+                  resolve();
+                },
+                fail: (error) => {
+                  unsettled.delete(save);
+                  reject(error);
+                },
+              };
+
+              saves.push(save);
+              unsettled.add(save);
+            });
+          }),
+        };
+
+        const s: any = state();
+
+        s.data[DEV] = false;
+        s.data[SHOW_PRE_RELEASE] = false;
+        s.data[ROWS_PER_PAGE] = 100;
+
+        const commit = jest.fn((name: string, payload: any) => {
+          if (name === 'load') {
+            s.data[payload.key] = payload.value;
+          }
+        });
+        const ctx: any = {
+          state: s, commit, rootGetters: { 'auth/loggedIn': true }, rootState: {}
+        };
+        const dispatch: any = (action: string, payload?: any) => {
+          switch (action) {
+          case 'management/findAll':
+            server.data = { ...backend };
+
+            return Promise.resolve([server]);
+          case 'loadServer':
+            return actions.loadServer({ ...ctx, dispatch }, payload);
+          default:
+            return Promise.resolve();
+          }
+        };
+
+        return {
+          set:      (key: string, value: any) => actions.set({ ...ctx, dispatch }, { key, value }),
+          // A read outside the write queue, as the boot load or a page that refreshes preferences would do.
+          read:     () => actions.loadServer({ ...ctx, dispatch }, undefined),
+          // Runs every queued step up to the next PUT going out, and hands that PUT back.
+          nextSave: async() => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            return saves.shift();
+          },
+          changeOnServer: (key: string, value: string) => {
+            backend = { ...backend, [key]: value };
+          },
+          ui:       () => ({ [DEV]: s.data[DEV], [SHOW_PRE_RELEASE]: s.data[SHOW_PRE_RELEASE] }),
+          onServer: () => ({ [DEV]: JSON.parse(backend[DEV]), [SHOW_PRE_RELEASE]: JSON.parse(backend[SHOW_PRE_RELEASE]) }),
+          s,
+        };
+      };
+
+      describe('a read landing between queued writes', () => {
+        it('should not overwrite either value while the first PUT is still out', async() => {
+          const {
+            set, read, nextSave, ui
+          } = heldSaves();
+
+          const writes = [set(DEV, true), set(SHOW_PRE_RELEASE, true)];
+          const first = await nextSave();
+
+          // The server still holds false for both.
+          await read();
+
+          expect(ui()).toStrictEqual({ [DEV]: true, [SHOW_PRE_RELEASE]: true });
+
+          first?.land();
+          (await nextSave())?.land();
+          await Promise.all(writes);
+        });
+
+        it('should not overwrite the later value once the first write has landed', async() => {
+          const {
+            set, read, nextSave, ui
+          } = heldSaves();
+
+          const writes = [set(DEV, true), set(SHOW_PRE_RELEASE, true)];
+
+          (await nextSave())?.land();
+          const second = await nextSave();
+
+          // The server now holds the first value but not the second.
+          await read();
+
+          expect(ui()).toStrictEqual({ [DEV]: true, [SHOW_PRE_RELEASE]: true });
+
+          second?.land();
+          await Promise.all(writes);
+        });
+
+        // Shows the read above really commits what it reads, so the two tests above are not passing only
+        // because it commits nothing.
+        it('should still refresh a key with no write in flight', async() => {
+          const {
+            set, read, nextSave, changeOnServer, s
+          } = heldSaves();
+
+          const write = set(DEV, true);
+          const first = await nextSave();
+
+          changeOnServer(ROWS_PER_PAGE, '50');
+          await read();
+
+          expect(s.data[ROWS_PER_PAGE]).toStrictEqual(50);
+
+          first?.land();
+          await write;
+        });
+      });
+
+      describe('a save that rejects', () => {
+        const rejection = { type: 'error', status: 500 };
+
+        it('should resolve the failed write with the error', async() => {
+          const { set, nextSave } = heldSaves();
+
+          const write = set(DEV, true);
+
+          (await nextSave())?.fail(rejection);
+
+          expect(await write).toStrictEqual(rejection);
+        });
+
+        // Released exactly once: not at all leaves the key stuck in flight, so it never refreshes again and
+        // goes on showing a value the server never got.
+        it('should release the key, so a later read shows what the server holds', async() => {
+          const {
+            set, read, nextSave, ui, onServer
+          } = heldSaves();
+
+          const write = set(DEV, true);
+
+          (await nextSave())?.fail(rejection);
+          await write;
+          await read();
+
+          expect(onServer()).toStrictEqual({ [DEV]: false, [SHOW_PRE_RELEASE]: false });
+          expect(ui()).toStrictEqual({ [DEV]: false, [SHOW_PRE_RELEASE]: false });
+        });
+
+        // Released exactly once: twice would free the key while later writes to it are still queued, and the
+        // next GET would commit the server's copy over the value on screen.
+        it('should keep the key in flight for the writes still queued behind it', async() => {
+          const {
+            set, nextSave, ui, onServer
+          } = heldSaves();
+
+          const writes = [set(DEV, true), set(DEV, false), set(DEV, true)];
+
+          (await nextSave())?.fail(rejection);
+          const second = await nextSave();
+
+          expect(ui()).toStrictEqual({ [DEV]: true, [SHOW_PRE_RELEASE]: false });
+
+          second?.land();
+          const third = await nextSave();
+
+          expect(ui()).toStrictEqual({ [DEV]: true, [SHOW_PRE_RELEASE]: false });
+
+          third?.land();
+          const results = await Promise.all(writes);
+
+          expect(results).toStrictEqual([rejection, undefined, undefined]);
+          expect(onServer()).toStrictEqual({ [DEV]: true, [SHOW_PRE_RELEASE]: false });
+        });
+      });
+
+      // Each value of DEV is followed by a toggle of SHOW_PRE_RELEASE, so a read of the other key sits
+      // between every two writes of this one.
+      describe('a longer burst of toggles on one key', () => {
+        it.each([
+          [[true, false, true]],
+          [[true, false, true, false]],
+          [[true, false, true, false, true]],
+        ])('should show the last value at every step and on the server for %j', async(values: boolean[]) => {
+          const {
+            set, read, nextSave, changeOnServer, ui, onServer
+          } = heldSaves();
+
+          const writes: Promise<any>[] = [];
+
+          values.forEach((value, i) => {
+            writes.push(set(DEV, value));
+            writes.push(set(SHOW_PRE_RELEASE, i % 2 === 0));
+          });
+
+          const expected = { [DEV]: values[values.length - 1], [SHOW_PRE_RELEASE]: (values.length - 1) % 2 === 0 };
+          const seen: string[] = [];
+
+          for (let i = 0; i < writes.length; i++) {
+            const save = await nextSave();
+
+            await read();
+            seen.push(JSON.stringify(ui()));
+            save?.land();
+          }
+          await Promise.all(writes);
+
+          expect([...new Set(seen)]).toStrictEqual([JSON.stringify(expected)]);
+          expect(onServer()).toStrictEqual(expected);
+
+          // Every hold released: a change made elsewhere afterwards is picked up.
+          changeOnServer(DEV, JSON.stringify(!expected[DEV]));
+          await read();
+
+          expect(ui()[DEV]).toStrictEqual(!expected[DEV]);
+        });
+      });
+    });
   });
 });
 
