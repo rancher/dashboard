@@ -716,6 +716,49 @@ describe('component: LabeledInput', () => {
       expect(wrapper.vm.validationMessage).toBeUndefined();
     });
 
+    describe('touch', () => {
+      const errorMessage = 'Field cannot be empty';
+      const notEmptyRule = (v: string) => (!v ? errorMessage : undefined);
+
+      const mountField = (value: string) => mount(LabeledInput, {
+        propsData: {
+          name:  'testField',
+          rules: [notEmptyRule],
+          value,
+        },
+        mocks: i18nMock
+      });
+
+      it('should show the error without the input being blurred', async() => {
+        const wrapper = mountField('');
+
+        expect(wrapper.vm.validationMessage).toBeUndefined();
+
+        wrapper.vm.touch();
+        await flushPromises();
+
+        expect(wrapper.vm.validationMessage).toStrictEqual(errorMessage);
+      });
+
+      it('should show no error when the value satisfies the rules', async() => {
+        const wrapper = mountField('valid value');
+
+        wrapper.vm.touch();
+        await flushPromises();
+
+        expect(wrapper.vm.validationMessage).toBeUndefined();
+      });
+
+      it('should not emit blur', async() => {
+        const wrapper = mountField('');
+
+        wrapper.vm.touch();
+        await flushPromises();
+
+        expect(wrapper.emitted('blur')).toBeUndefined();
+      });
+    });
+
     it('with name prop: form-level validation schema error is shown when the form validates', async() => {
       const errorMessage = 'Username is required';
       const showAllErrors = ref(false);

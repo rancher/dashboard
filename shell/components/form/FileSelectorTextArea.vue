@@ -5,7 +5,7 @@
  * area. Used for pasted blobs such as certificates and private keys.
  */
 import {
-  computed, ref, useAttrs, useId, type StyleValue
+  computed, nextTick, ref, useAttrs, useId, type StyleValue
 } from 'vue';
 import { useStore } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
@@ -102,7 +102,16 @@ const isView = computed(() => props.mode === _VIEW);
 const isDropTarget = computed(() => !isView.value && !props.disabled);
 const isDragging = computed(() => dragDepth.value > 0);
 
-const onSelected = (contents: string) => emit('update:value', props.transformFile ? props.transformFile(contents) : contents);
+const input = ref<InstanceType<typeof LabeledInput> | null>(null);
+
+// A file sets the value without focusing the text area, so touch the field as a blur would, otherwise
+// an invalid file blocks saving with no error to say why. Wait for the new value to reach the input
+// first, so it is the one validated.
+const onSelected = async(contents: string) => {
+  emit('update:value', props.transformFile ? props.transformFile(contents) : contents);
+  await nextTick();
+  input.value?.touch();
+};
 
 const onError = (error: unknown) => {
   // `err`, not `error`: growl/fromError reads `err`, so the other spelling threw the detail away and
@@ -151,7 +160,7 @@ const onDrop = async(event: DragEvent) => {
   }
 
   try {
-    onSelected(await readFileContents(file));
+    await onSelected(await readFileContents(file));
   } catch (error) {
     onError(error);
   }
@@ -172,6 +181,7 @@ const onDrop = async(event: DragEvent) => {
       @drop="onDrop"
     >
       <LabeledInput
+        ref="input"
         v-bind="inputAttrs"
         :type="type"
         :value="value"
