@@ -53,6 +53,8 @@ jobs:
   # bundle. Fails the PR when a dependency was added, removed, or upgraded
   # without regenerating licenses.json (see scripts/analyze-licenses).
   check-licenses:
+    # PR-only. A full `yarn build`, too slow for the merge queue.
+    if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
@@ -521,7 +523,7 @@ jobs:
   # gate did not report until 22:31:55 — seventeen and a half minutes of queue
   # slot spent on an outcome already decided.
   #
-  # The aggregation is only load-bearing for the other eight. Those are
+  # The aggregation is only load-bearing for the other nine. Those are
   # legitimately `skipped` on merge_group, and `skipped` does not satisfy a
   # required check, so requiring them individually would stall every merge group
   # until the status-check timeout. Aggregate what skips; require what never
@@ -558,6 +560,7 @@ jobs:
       - i18n
       # PR-only. Legitimately `skipped` on merge_group, and skippable on PRs via
       # the ci/skip-e2e label.
+      - check-licenses
       - extract-e2e-runtime-rancher-version
       - e2e-ui-build
       - e2e-test
@@ -582,8 +585,8 @@ jobs:
         with:
           needs: ${{ toJSON(needs) }}
           skippable: >-
-            extract-e2e-runtime-rancher-version e2e-ui-build e2e-test a11y-test
-            check-i18n check-i18n-links check-e2e-tags check-cypress-build
+            check-licenses extract-e2e-runtime-rancher-version e2e-ui-build e2e-test
+            a11y-test check-i18n check-i18n-links check-e2e-tags check-cypress-build
           # check-i18n-links hits every external http link and exits non-zero on
           # any unreachable one, so it fails for reasons unrelated to the change
           # under test. `skippable` only excuses a `skipped` result, not a
