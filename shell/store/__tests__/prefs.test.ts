@@ -1997,20 +1997,51 @@ describe('prefs store', () => {
           }
         };
 
-        return {
-          set:      (key: string, value: any) => actions.set({ ...ctx, dispatch }, { key, value }),
-          // A read outside the write queue, as the boot load or a page that refreshes preferences would do.
-          read:     () => actions.loadServer({ ...ctx, dispatch }, undefined),
-          // Runs every queued step up to the next PUT going out, and hands that PUT back.
-          nextSave: async() => {
-            await new Promise((resolve) => setTimeout(resolve, 0));
+        const set = (key: string, value: any) => actions.set({ ...ctx, dispatch }, { key, value });
+        // A read outside the write queue, as the boot load or a page that refreshes preferences would do.
+        const read = () => actions.loadServer({ ...ctx, dispatch }, undefined);
+        const ui = () => ({ [DEV]: s.data[DEV], [SHOW_PRE_RELEASE]: s.data[SHOW_PRE_RELEASE] });
+        // Runs every queued step up to the point where nothing more can happen until a PUT lands.
+        const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-            return saves.shift();
+        // Runs every queued step up to the next PUT going out, and hands that PUT back.
+        const nextSave = async(): Promise<HeldSave> => {
+          await settle();
+          const save = saves.shift();
+
+          if (!save) {
+            throw new Error('No PUT went out');
+          }
+
+          return save;
+        };
+
+        return {
+          set,
+          read,
+          ui,
+          nextSave,
+          setAll:       (writes: Array<[string, any]>) => Promise.all(writes.map(([key, value]) => set(key, value))),
+          // Lets the PUTs land one by one, with a read just before each, and returns what the UI showed after
+          // every one of those reads.
+          landOneByOne: async() => {
+            const seen: Record<string, any>[] = [];
+
+            await settle();
+            while (saves.length) {
+              const save = saves.shift() as HeldSave;
+
+              await read();
+              seen.push(ui());
+              save.land();
+              await settle();
+            }
+
+            return seen;
           },
           changeOnServer: (key: string, value: string) => {
             backend = { ...backend, [key]: value };
           },
-          ui:       () => ({ [DEV]: s.data[DEV], [SHOW_PRE_RELEASE]: s.data[SHOW_PRE_RELEASE] }),
           onServer: () => ({ [DEV]: JSON.parse(backend[DEV]), [SHOW_PRE_RELEASE]: JSON.parse(backend[SHOW_PRE_RELEASE]) }),
           s,
         };
@@ -2030,8 +2061,8 @@ describe('prefs store', () => {
 
           expect(ui()).toStrictEqual({ [DEV]: true, [SHOW_PRE_RELEASE]: true });
 
-          first?.land();
-          (await nextSave())?.land();
+          first.land();
+          (await nextSave()).land();
           await Promise.all(writes);
         });
 
@@ -2042,7 +2073,7 @@ describe('prefs store', () => {
 
           const writes = [set(DEV, true), set(SHOW_PRE_RELEASE, true)];
 
-          (await nextSave())?.land();
+          (await nextSave()).land();
           const second = await nextSave();
 
           // The server now holds the first value but not the second.
@@ -2050,7 +2081,7 @@ describe('prefs store', () => {
 
           expect(ui()).toStrictEqual({ [DEV]: true, [SHOW_PRE_RELEASE]: true });
 
-          second?.land();
+          second.land();
           await Promise.all(writes);
         });
 
@@ -2069,7 +2100,7 @@ describe('prefs store', () => {
 
           expect(s.data[ROWS_PER_PAGE]).toStrictEqual(50);
 
-          first?.land();
+          first.land();
           await write;
         });
       });
@@ -2082,7 +2113,7 @@ describe('prefs store', () => {
 
           const write = set(DEV, true);
 
-          (await nextSave())?.fail(rejection);
+          (await nextSave()).fail(rejection);
 
           expect(await write).toStrictEqual(rejection);
         });
@@ -2096,7 +2127,7 @@ describe('prefs store', () => {
 
           const write = set(DEV, true);
 
-          (await nextSave())?.fail(rejection);
+          (await nextSave()).fail(rejection);
           await write;
           await read();
 
@@ -2113,17 +2144,17 @@ describe('prefs store', () => {
 
           const writes = [set(DEV, true), set(DEV, false), set(DEV, true)];
 
-          (await nextSave())?.fail(rejection);
+          (await nextSave()).fail(rejection);
           const second = await nextSave();
 
           expect(ui()).toStrictEqual({ [DEV]: true, [SHOW_PRE_RELEASE]: false });
 
-          second?.land();
+          second.land();
           const third = await nextSave();
 
           expect(ui()).toStrictEqual({ [DEV]: true, [SHOW_PRE_RELEASE]: false });
 
-          third?.land();
+          third.land();
           const results = await Promise.all(writes);
 
           expect(results).toStrictEqual([rejection, undefined, undefined]);
@@ -2131,45 +2162,76 @@ describe('prefs store', () => {
         });
       });
 
-      // Each value of DEV is followed by a toggle of SHOW_PRE_RELEASE, so a read of the other key sits
-      // between every two writes of this one.
+      // Up to seven writes, the other key's toggles between them. A read comes in before every PUT lands.
       describe('a longer burst of toggles on one key', () => {
-        it.each([
-          [[true, false, true]],
-          [[true, false, true, false]],
-          [[true, false, true, false, true]],
-        ])('should show the last value at every step and on the server for %j', async(values: boolean[]) => {
+        const devOnly = { [DEV]: true, [SHOW_PRE_RELEASE]: false };
+        const preReleaseOnly = { [DEV]: false, [SHOW_PRE_RELEASE]: true };
+        const neither = { [DEV]: false, [SHOW_PRE_RELEASE]: false };
+        const both = { [DEV]: true, [SHOW_PRE_RELEASE]: true };
+
+        const bursts: Array<{ description: string, writes: Array<[string, boolean]>, seen: object[], last: object, elsewhere: string, refreshed: object }> = [
+          {
+            description: 'false → true → false → true',
+            writes:      [[DEV, true], [DEV, false], [DEV, true]],
+            seen:        [devOnly, devOnly, devOnly],
+            last:        devOnly,
+            elsewhere:   'false',
+            refreshed:   neither,
+          },
+          {
+            description: 'false → true → false → true, the other key toggled in between',
+            writes:      [[DEV, true], [SHOW_PRE_RELEASE, true], [DEV, false], [SHOW_PRE_RELEASE, false], [DEV, true]],
+            seen:        [devOnly, devOnly, devOnly, devOnly, devOnly],
+            last:        devOnly,
+            elsewhere:   'false',
+            refreshed:   neither,
+          },
+          {
+            description: 'false → true → false → true → false, the other key toggled in between',
+            writes:      [[DEV, true], [SHOW_PRE_RELEASE, true], [DEV, false], [SHOW_PRE_RELEASE, false], [DEV, true], [SHOW_PRE_RELEASE, true], [DEV, false]],
+            seen:        [preReleaseOnly, preReleaseOnly, preReleaseOnly, preReleaseOnly, preReleaseOnly, preReleaseOnly, preReleaseOnly],
+            last:        preReleaseOnly,
+            elsewhere:   'true',
+            refreshed:   both,
+          },
+        ];
+
+        it.each(bursts)('should show the last values after every read: $description', async({ writes, seen }) => {
+          const { setAll, landOneByOne } = heldSaves();
+
+          const done = setAll(writes);
+
+          expect(await landOneByOne()).toStrictEqual(seen);
+
+          await done;
+        });
+
+        it.each(bursts)('should leave the last values on the server: $description', async({ writes, last }) => {
+          const { setAll, landOneByOne, onServer } = heldSaves();
+
+          const done = setAll(writes);
+
+          await landOneByOne();
+          await done;
+
+          expect(onServer()).toStrictEqual(last);
+        });
+
+        // Every hold released: a change made elsewhere afterwards is picked up.
+        it.each(bursts)('should refresh the key once the burst has landed: $description', async({ writes, elsewhere, refreshed }) => {
           const {
-            set, read, nextSave, changeOnServer, ui, onServer
+            setAll, landOneByOne, changeOnServer, read, ui
           } = heldSaves();
 
-          const writes: Promise<any>[] = [];
+          const done = setAll(writes);
 
-          values.forEach((value, i) => {
-            writes.push(set(DEV, value));
-            writes.push(set(SHOW_PRE_RELEASE, i % 2 === 0));
-          });
+          await landOneByOne();
+          await done;
 
-          const expected = { [DEV]: values[values.length - 1], [SHOW_PRE_RELEASE]: (values.length - 1) % 2 === 0 };
-          const seen: string[] = [];
-
-          for (let i = 0; i < writes.length; i++) {
-            const save = await nextSave();
-
-            await read();
-            seen.push(JSON.stringify(ui()));
-            save?.land();
-          }
-          await Promise.all(writes);
-
-          expect([...new Set(seen)]).toStrictEqual([JSON.stringify(expected)]);
-          expect(onServer()).toStrictEqual(expected);
-
-          // Every hold released: a change made elsewhere afterwards is picked up.
-          changeOnServer(DEV, JSON.stringify(!expected[DEV]));
+          changeOnServer(DEV, elsewhere);
           await read();
 
-          expect(ui()[DEV]).toStrictEqual(!expected[DEV]);
+          expect(ui()).toStrictEqual(refreshed);
         });
       });
     });
