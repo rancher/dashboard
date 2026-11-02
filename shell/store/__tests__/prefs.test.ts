@@ -1935,7 +1935,9 @@ describe('prefs store', () => {
         await enqueuePreferenceWrite(() => Promise.resolve());
       });
 
-      const heldSaves = () => {
+      // With `readBeforeEachLand`, no PUT is held for the test: a read comes in while each one is out, the UI
+      // is recorded in `seen`, then the PUT lands, and the queue moves on to the next write by itself.
+      const heldSaves = ({ readBeforeEachLand = false } = {}) => {
         create(DEV, false, { parseJSON: true });
         create(SHOW_PRE_RELEASE, false, { parseJSON: true });
         create(ROWS_PER_PAGE, 100, { options: [10, 25, 50, 100], parseJSON: true });
@@ -1947,6 +1949,7 @@ describe('prefs store', () => {
         saves = [];
         held = undefined;
         landAtOnce = false;
+        const seen: Record<string, any>[] = [];
         const server: any = {
           data: {},
           save: jest.fn(() => {
@@ -1968,6 +1971,15 @@ describe('prefs store', () => {
 
               if (landAtOnce) {
                 save.land();
+
+                return;
+              }
+
+              if (readBeforeEachLand) {
+                read().then(() => {
+                  seen.push(ui());
+                  save.land();
+                }, reject);
 
                 return;
               }
@@ -2029,28 +2041,12 @@ describe('prefs store', () => {
           read,
           ui,
           nextSave,
-          setAll:       (writes: Array<[string, any]>) => Promise.all(writes.map(([key, value]) => set(key, value))),
-          // Lets the PUTs land one by one, with a read just before each, and returns what the UI showed after
-          // every one of those reads.
-          landOneByOne: async() => {
-            const seen: Record<string, any>[] = [];
-
-            await settle();
-            while (saves.length) {
-              const save = saves.shift() as HeldSave;
-
-              await read();
-              seen.push(ui());
-              save.land();
-              await settle();
-            }
-
-            return seen;
-          },
+          setAll:         (writes: Array<[string, any]>) => Promise.all(writes.map(([key, value]) => set(key, value))),
           changeOnServer: (key: string, value: string) => {
             backend = { ...backend, [key]: value };
           },
           onServer: () => ({ [DEV]: JSON.parse(backend[DEV]), [SHOW_PRE_RELEASE]: JSON.parse(backend[SHOW_PRE_RELEASE]) }),
+          seen,
           s,
         };
       };
@@ -2205,22 +2201,17 @@ describe('prefs store', () => {
         ];
 
         it.each(bursts)('should show the last values after every read: $description', async({ writes, seen }) => {
-          const { setAll, landOneByOne } = heldSaves();
+          const { setAll, seen: seenAfterReads } = heldSaves({ readBeforeEachLand: true });
 
-          const done = setAll(writes);
+          await setAll(writes);
 
-          expect(await landOneByOne()).toStrictEqual(seen);
-
-          await done;
+          expect(seenAfterReads).toStrictEqual(seen);
         });
 
         it.each(bursts)('should leave the last values on the server: $description', async({ writes, last }) => {
-          const { setAll, landOneByOne, onServer } = heldSaves();
+          const { setAll, onServer } = heldSaves({ readBeforeEachLand: true });
 
-          const done = setAll(writes);
-
-          await landOneByOne();
-          await done;
+          await setAll(writes);
 
           expect(onServer()).toStrictEqual(last);
         });
@@ -2228,13 +2219,10 @@ describe('prefs store', () => {
         // Every hold released: a change made elsewhere afterwards is picked up.
         it.each(bursts)('should refresh the key once the burst has landed: $description', async({ writes, elsewhere, refreshed }) => {
           const {
-            setAll, landOneByOne, changeOnServer, read, ui
-          } = heldSaves();
+            setAll, changeOnServer, read, ui
+          } = heldSaves({ readBeforeEachLand: true });
 
-          const done = setAll(writes);
-
-          await landOneByOne();
-          await done;
+          await setAll(writes);
 
           changeOnServer(DEV, elsewhere);
           await read();
