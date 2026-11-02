@@ -1920,19 +1920,19 @@ describe('prefs store', () => {
     describe('quick successive sets, one save at a time', () => {
       type HeldSave = { land: () => void, fail: (error: any) => void };
 
-      // PUTs gone out and not yet handed to the test, and every PUT not yet landed or failed.
+      // PUTs gone out and not yet handed to the test.
       let saves: HeldSave[] = [];
-      const unsettled = new Set<HeldSave>();
+      // Writes run one at a time, so at most one PUT is out and not yet landed or failed.
+      let held: HeldSave | undefined;
+      // Set once a test is over: from then on a PUT lands as soon as it goes out.
+      let landAtOnce = false;
 
-      // Land whatever a failed test left held, or the shared write queue stays blocked for the tests after it.
+      // A test that fails half-way leaves a PUT held, and the shared write queue blocked behind it for the tests
+      // after it. Land that one, let every write still queued land straight away, and wait for the queue to empty.
       afterEach(async() => {
-        for (let i = 0; i < 20; i++) {
-          await new Promise((resolve) => setTimeout(resolve, 0));
-          if (!unsettled.size) {
-            break;
-          }
-          [...unsettled].forEach((save) => save.land());
-        }
+        landAtOnce = true;
+        held?.land();
+        await enqueuePreferenceWrite(() => Promise.resolve());
       });
 
       const heldSaves = () => {
@@ -1945,6 +1945,8 @@ describe('prefs store', () => {
         };
 
         saves = [];
+        held = undefined;
+        landAtOnce = false;
         const server: any = {
           data: {},
           save: jest.fn(() => {
@@ -1954,18 +1956,24 @@ describe('prefs store', () => {
             return new Promise<void>((resolve, reject) => {
               const save: HeldSave = {
                 land: () => {
-                  unsettled.delete(save);
+                  held = undefined;
                   backend = { ...body };
                   resolve();
                 },
                 fail: (error) => {
-                  unsettled.delete(save);
+                  held = undefined;
                   reject(error);
                 },
               };
 
+              if (landAtOnce) {
+                save.land();
+
+                return;
+              }
+
               saves.push(save);
-              unsettled.add(save);
+              held = save;
             });
           }),
         };
