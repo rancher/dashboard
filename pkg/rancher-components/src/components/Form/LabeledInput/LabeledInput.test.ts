@@ -716,6 +716,48 @@ describe('component: LabeledInput', () => {
       expect(wrapper.vm.validationMessage).toBeUndefined();
     });
 
+    describe('touch', () => {
+      const errorMessage = 'Field cannot be empty';
+
+      const mountField = (ruleResult?: string) => mount(LabeledInput, {
+        propsData: {
+          name:  'testField',
+          rules: [jest.fn().mockReturnValue(ruleResult)],
+          value: '',
+        },
+        mocks: i18nMock
+      });
+
+      it('should hide the error until the field is touched', async() => {
+        const wrapper = mountField(errorMessage);
+
+        await flushPromises();
+
+        expect(wrapper.vm.validationMessage).toBeUndefined();
+      });
+
+      it.each([
+        ['the error when the rules fail', errorMessage],
+        ['no error when the rules pass', undefined],
+      ])('should show %s, without the input being blurred', async(_, ruleResult) => {
+        const wrapper = mountField(ruleResult);
+
+        wrapper.vm.touch();
+        await flushPromises();
+
+        expect(wrapper.vm.validationMessage).toStrictEqual(ruleResult);
+      });
+
+      it('should not emit blur', async() => {
+        const wrapper = mountField(errorMessage);
+
+        wrapper.vm.touch();
+        await flushPromises();
+
+        expect(wrapper.emitted('blur')).toBeUndefined();
+      });
+    });
+
     it('with name prop: form-level validation schema error is shown when the form validates', async() => {
       const errorMessage = 'Username is required';
       const showAllErrors = ref(false);

@@ -525,10 +525,19 @@ export default defineComponent({
     onBlur(event: string | FocusEvent): void {
       this.$emit('blur', event);
       this.onBlurLabeled();
+      this.touch(event instanceof FocusEvent ? event : undefined);
+    },
+
+    /**
+     * Marks the field as touched and validates it, so its error shows. Blur
+     * does this, and so should anything that sets the value without focusing
+     * the input, e.g. reading it from a file.
+     */
+    touch(event?: FocusEvent): void {
       // Mark the field as touched in vee-validate without relying on its
       // 'validated-only' guard, then run validation unconditionally so
       // errors surface on the first blur (matching useLabeledFormElement behavior).
-      this.veeHandleBlur(event instanceof FocusEvent ? event : undefined, false);
+      this.veeHandleBlur(event, false);
       this.veeValidate();
     },
 

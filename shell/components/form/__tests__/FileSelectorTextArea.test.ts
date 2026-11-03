@@ -1,8 +1,9 @@
-import { mount } from '@vue/test-utils';
+import { flushPromises, mount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { _VIEW } from '@shell/config/query-params';
 
 const DROP_OVERLAY = '[data-testid="file-selector-text-area__drop-overlay"]';
@@ -113,6 +114,35 @@ describe('component: FileSelectorTextArea', () => {
     wrapper.findComponent(FileSelector).vm.$emit('selected', 'file contents');
 
     expect(wrapper.emitted('update:value')).toStrictEqual([['encoded:file contents']]);
+  });
+
+  // A file sets the value without focusing the text area, so nothing blurs it. Unless the field is touched,
+  // an invalid file leaves the form unable to save with no error to say why.
+  describe.each([
+    ['an invalid', 'Not a PEM private key'],
+    ['a valid', undefined],
+  ])('when a file sets %s value', (_, ruleResult) => {
+    const mountField = () => mountComponent({ name: 'tls.key', rules: [jest.fn().mockReturnValue(ruleResult)] });
+
+    it('should show the rule result after Read from File', async() => {
+      const wrapper = mountField();
+
+      wrapper.findComponent(FileSelector).vm.$emit('selected', 'file contents');
+      await flushPromises();
+
+      expect(wrapper.findComponent(LabeledInput).vm.validationMessage).toStrictEqual(ruleResult);
+    });
+
+    it('should show the rule result after a drop', async() => {
+      const wrapper = mountField();
+      const file = new File(['file contents'], 'tls.key', { type: 'text/plain' });
+
+      await wrapper.find('.drop-zone').trigger('drop', fileDragEvent(['Files'], [file]));
+      await flushFileRead(wrapper);
+      await flushPromises();
+
+      expect(wrapper.findComponent(LabeledInput).vm.validationMessage).toStrictEqual(ruleResult);
+    });
   });
 
   it('should show the drop overlay only while a file is dragged over the text area', async() => {
