@@ -76,8 +76,15 @@ jobs:
           cache: yarn
           node-version-file: '.nvmrc'
 
+      # Installs the calling extension, which may still use Yarn Classic, so this cannot use
+      # `install:ci`. Yarn Classic silently ignores `--immutable`.
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: |
+          if [ "$(yarn --version | cut -d. -f1)" -ge 2 ]; then
+            yarn install --immutable
+          else
+            yarn install --frozen-lockfile
+          fi
 
       - name: Parse Extension Name
         if: github.ref_type == 'tag' || inputs.is_test == 'true'

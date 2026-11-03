@@ -27,11 +27,11 @@ jobs:
         with:
           fetch-depth: 1
 
-        # Note - Cannot use the setup action here as it uses a different yarn install arg
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        # `install: false` - the build script below performs its own install
+      - name: Setup env
+        uses: ./.github/actions/setup
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          install: 'false'
 
         # Build a directory containing the dashboard that can be used with ui-dashboard-index
       - id: build-hosted
@@ -74,11 +74,11 @@ jobs:
         with:
           fetch-depth: 1
 
-        # Note - Cannot use the setup action here as it uses a different yarn install arg
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+        # `install: false` - the build script below performs its own install
+      - name: Setup env
+        uses: ./.github/actions/setup
         with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+          install: 'false'
 
         # Build a tar that will be picked up by rancher builds and embedded into it
       - id: build-embedded

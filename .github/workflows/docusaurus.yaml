@@ -13,13 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      - name: Setup env
+        uses: ./.github/actions/setup
         with:
-          node-version-file: '.nvmrc'
-          cache: yarn
+          working-directory: ./docusaurus
 
-      - name: Install dependencies
-        run: cd docusaurus/ && yarn install:ci
       - name: Build website
         run: cd docusaurus/ && yarn build
       - name: Add CNAME

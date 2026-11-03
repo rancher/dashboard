@@ -184,19 +184,11 @@ jobs:
           || github.event.inputs.rancher_version == matrix.rancher_version
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
-      - name: Setup Node.js
+      - name: Setup env
         if: >-
           github.event.inputs.rancher_version == ''
           || github.event.inputs.rancher_version == matrix.rancher_version
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
-        with:
-          node-version-file: '.nvmrc'
-
-      - name: Install packages
-        if: >-
-          github.event.inputs.rancher_version == ''
-          || github.event.inputs.rancher_version == matrix.rancher_version
-        run: yarn install --frozen-lockfile --ignore-engines
+        uses: ./.github/actions/setup
 
       - name: Install and start Verdaccio
         if: >-
@@ -251,7 +243,6 @@ jobs:
           shell/scripts/publish-shell.sh
           yarn build:lib
           npm set registry ${VERDACCIO_NPM_REGISTRY}
-          yarn config set registry ${VERDACCIO_NPM_REGISTRY}
           yarn publish:lib
 
       - name: Clone and build test extension
@@ -262,7 +253,6 @@ jobs:
           SHELL_VERSION="99.99.99"
           DEFAULT_NPM_REGISTRY="https://registry.npmjs.org/"
           VERDACCIO_NPM_REGISTRY="http://localhost:4873"
-          yarn config set registry ${DEFAULT_NPM_REGISTRY}
           git clone --depth 1 --branch ${{ github.event.inputs.extension_branch || 'compatibility-tests-version' }} \
             ${{ github.event.inputs.extension_repo || 'https://github.com/rancher/elemental-ui.git' }} /tmp/elemental-ui
           cd /tmp/elemental-ui
@@ -279,10 +269,11 @@ jobs:
             echo "No .nvmrc found in extension repo, using current Node $(node -v)"
           fi
           sed -i 's/\("version": "[0-9]*\.[0-9]*\.[0-9]*\)-[^"]*"/\1"/g' pkg/elemental/package.json
-          yarn install
-          yarn config set registry ${VERDACCIO_NPM_REGISTRY}
+          # everything but the shell comes from the public registry
+          yarn install --registry ${DEFAULT_NPM_REGISTRY}
           sed -i "s/\"\@rancher\/shell\": \"[0-9]*.[0-9]*.[0-9]*\",/\"\@rancher\/shell\": \"${SHELL_VERSION}\",/g" package.json
-          yarn add @rancher/shell@${SHELL_VERSION} -W
+          # installing new version of shell from the local Verdaccio registry
+          yarn add @rancher/shell@${SHELL_VERSION} -W --registry ${VERDACCIO_NPM_REGISTRY}
           # Patch source for backward compatibility: guard methods that don't exist in older Rancher versions
           sed -i 's/\$plugin\.addTableHook(/typeof \$plugin.addTableHook === "function" \&\& \$plugin.addTableHook(/g' pkg/elemental/index.ts
           # addModelExtension only exists from Rancher 2.11 (rancher/dashboard#11064). On 2.10 the
@@ -292,7 +283,6 @@ jobs:
           sed -i 's/\$plugin\.addModelExtension(/typeof \$plugin.addModelExtension === "function" \&\& \$plugin.addModelExtension(/g' pkg/elemental/index.ts
           yarn build-pkg elemental
           cp -r dist-pkg ${{ github.workspace }}/dist-pkg
-          yarn config set registry ${DEFAULT_NPM_REGISTRY}
           nvm use default
 
       - name: Start extension server

@@ -30,7 +30,7 @@ E2E_BUILD_CMD="${E2E_BUILD_CMD:-build}"
 
 if [ "$BUILD_DASHBOARD" == "true" ]; then
     echo "Building production build for e2e ..."
-    yarn install --frozen-lockfile
+    yarn install --immutable
 
     source scripts/version
     echo "BRANCH: ${COMMIT_BRANCH:-<none>}"

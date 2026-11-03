@@ -20,13 +20,13 @@ cp ${DIR}/shell/server/server.* ./cert
 
 if [ ! -d "${DIR}/dist/" ]; then
   pushd ${DIR}
-  yarn install --frozen-lockfile
+  yarn install --immutable
   yarn build
   popd
 fi
 
 if [ ! -d "node_modules" ]; then
-  yarn install --frozen-lockfile
+  yarn install --immutable
 fi
 
 rm -rf ui

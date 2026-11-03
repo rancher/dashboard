@@ -60,6 +60,16 @@ typings/
 # Yarn Integrity file
 .yarn-integrity
 
+# Yarn Berry - ignore generated artifacts, keep committable directories
+# (**/ so it applies to the root and the shell/storybook/docusaurus subprojects)
+**/.yarn/*
+!**/.yarn/patches
+!**/.yarn/plugins
+!**/.yarn/releases
+!**/.yarn/sdks
+!**/.yarn/versions
+.pnp.*
+
 # dotenv environment variables file
 .env
 

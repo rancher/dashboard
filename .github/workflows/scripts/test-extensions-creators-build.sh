@@ -31,16 +31,23 @@ validate_tagged_extension_creator() {
   echo "=> Current dir 1:"
   pwd
 
-  # setting up correct version of node  
+  # setting up correct version of node
   nvm install ${NODE_VERSION}
   nvm use ${NODE_VERSION}
+
+  # Corepack shims live in the active Node's bin directory, so they have to be
+  # re-installed after every nvm use to keep the Berry pin from packageManager
+  corepack enable
 
   # generate skeleton app
   npm init @rancher/extension@${TAG} ${SKELETON_APP_NAME} --app-name test-app | cat
   cd ${SKELETON_APP_NAME}
 
   # install dependencies
-  yarn install --frozen-lockfile
+  # --no-immutable is required: the skeleton ships enableImmutableInstalls, and CI
+  # sets it by default anyway, but Berry fails an immutable install when it would
+  # have to create the lockfile. No install in this script starts with one on disk.
+  yarn install --no-immutable
 
   # test build of pkg inside skeleton app
   yarn build-pkg ${SKELETON_APP_NAME} | cat
@@ -70,7 +77,7 @@ validate_tagged_extension_creator() {
     rm -rf node_modules
     rm -rf yarn.lock
 
-    yarn install --frozen-lockfile
+    yarn install --no-immutable
 
     cat package.json
 
@@ -85,6 +92,8 @@ validate_tagged_extension_creator() {
     nvm install v24
     nvm use v24
 
+    corepack enable
+
     npm init @rancher/extension -- --migrate
 
     # debug changes done via migration script
@@ -93,7 +102,7 @@ validate_tagged_extension_creator() {
     rm -rf node_modules
     rm -rf yarn.lock
 
-    yarn install --frozen-lockfile
+    yarn install --no-immutable
 
     yarn build-pkg ${SKELETON_APP_NAME} | cat
   fi
