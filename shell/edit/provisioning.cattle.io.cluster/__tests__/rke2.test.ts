@@ -1494,4 +1494,37 @@ describe('component: rke2', () => {
       });
     });
   });
+
+  describe('etcd tab', () => {
+    it.each([
+      [false, true],
+      [true, false],
+    ])('should show an error on the etcd tab when etcdConfigValid is %p: %p', async(etcdConfigValid, error) => {
+      const wrapper = mount(rke2, {
+        props: {
+          mode:  _CREATE,
+          value: {
+            spec:        { ...defaultSpec, kubernetesVersion: 'v1.25.0+rke2r1' },
+            agentConfig: { 'cloud-provider-name': 'any' }
+          },
+          selectedVersion: { agentArgs: mockAgentArgs },
+          provider:        'custom',
+        },
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
+            $extension: { getDynamic: jest.fn(() => undefined ) },
+          },
+          stubs: { ...defaultStubs, Tabbed: { template: '<div><slot /></div>' } },
+        },
+      });
+
+      await wrapper.setData({ etcdConfigValid });
+
+      const etcdTab = wrapper.findAllComponents({ name: 'Tab' }).find((tab) => tab.props('name') === 'etcd');
+
+      expect(etcdTab?.props('error')).toStrictEqual(error);
+    });
+  });
 });

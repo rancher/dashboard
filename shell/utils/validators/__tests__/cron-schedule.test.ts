@@ -1,5 +1,5 @@
 import cronstrue from 'cronstrue';
-import { cronSchedule, cronScheduleRule } from '@shell/utils/validators/cron-schedule';
+import { cronSchedule, cronScheduleRule, isValidCronSchedule } from '@shell/utils/validators/cron-schedule';
 
 jest.mock('cronstrue', () => ({ toString: jest.fn() }));
 
@@ -75,5 +75,29 @@ describe('cronSchedule', () => {
     cronSchedule('bad', mockGetters, errors);
 
     expect(errors).toStrictEqual(['existing error', 'validation.invalidCron']);
+  });
+});
+
+describe('isValidCronSchedule', () => {
+  it.each([
+    ['0 */5 * * *', true],
+    ['* * * * *', true],
+    ['0 0 * * 7', true],
+    ['0 0 * * MON', true],
+    ['0 0 ? * MON', true],
+    ['@yearly', true],
+    ['@annually', true],
+    ['@monthly', true],
+    ['@weekly', true],
+    ['@daily', true],
+    ['@midnight', true],
+    ['@hourly', true],
+    ['* * * * * *', false],
+    ['* * * *', false],
+    ['not-a-cron', false],
+    ['60 * * * *', false],
+    ['', false],
+  ])('should treat %p as valid: %p', (schedule, valid) => {
+    expect(isValidCronSchedule(schedule)).toStrictEqual(valid);
   });
 });
