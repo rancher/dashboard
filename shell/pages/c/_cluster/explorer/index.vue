@@ -715,7 +715,7 @@ export default {
         class="counted-nodes text-muted"
         data-testid="capacity-counted-nodes"
       >
-        {{ t('clusterIndexPage.sections.capacity.countedNodes', { counted: countedNodes.length, total: nodes.length }) }}
+        {{ t('clusterIndexPage.sections.capacity.countedNodes', { counted: countedNodes.length, total: nodes.length }, true) }}
       </span>
     </h3>
     <div
