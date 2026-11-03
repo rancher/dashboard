@@ -3079,6 +3079,7 @@ clusterIndexPage:
   sections:
     capacity:
       label: Capacity
+      countedNodes: "{counted} of {total} nodes. Cordoned nodes, and control plane or etcd nodes that don't run workloads, aren't counted"
     events:
       label: Events
       resource:
@@ -5625,6 +5626,7 @@ node:
     glance:
       consumptionGauge:
         used: Used
+        reserved: Reserved
         amount: "{used} of {total} {unit}"
         cpu: CPU
         memory: Memory

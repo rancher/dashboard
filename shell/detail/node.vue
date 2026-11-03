@@ -217,22 +217,38 @@ export default {
       />
     </div>
     <div class="mt-20 resources">
+      <!-- Like the cluster dashboard: reserved is what pods request out of the allocatable, used is the usage of the whole node out of its capacity -->
       <Card :title="t('node.detail.glance.consumptionGauge.cpu')">
-        <ConsumptionGauge
-          class="mmb-1"
-          :capacity="value.cpuAllocatable"
-          :used="value.cpuUsage"
-          bar-size="small"
-        />
+        <div class="gauges mmb-1">
+          <ConsumptionGauge
+            :capacity="value.cpuAllocatable"
+            :used="value.cpuReserved"
+            :used-label="t('node.detail.glance.consumptionGauge.reserved')"
+            bar-size="small"
+          />
+          <ConsumptionGauge
+            :capacity="value.cpuCapacity"
+            :used="value.cpuUsage"
+            bar-size="small"
+          />
+        </div>
       </Card>
       <Card :title="t('node.detail.glance.consumptionGauge.memory')">
-        <ConsumptionGauge
-          class="mmb-1"
-          :capacity="value.ramAllocatable"
-          :used="value.ramUsage"
-          :number-formatter="memoryFormatter"
-          bar-size="small"
-        />
+        <div class="gauges mmb-1">
+          <ConsumptionGauge
+            :capacity="value.ramAllocatable"
+            :used="value.ramReserved"
+            :used-label="t('node.detail.glance.consumptionGauge.reserved')"
+            :number-formatter="memoryFormatter"
+            bar-size="small"
+          />
+          <ConsumptionGauge
+            :capacity="value.ramCapacity"
+            :used="value.ramUsage"
+            :number-formatter="memoryFormatter"
+            bar-size="small"
+          />
+        </div>
       </Card>
       <Card :title="t('node.detail.glance.consumptionGauge.pods')">
         <ConsumptionGauge
@@ -333,5 +349,11 @@ export default {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--gap-md);
+}
+
+.gauges {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-lg);
 }
 </style>

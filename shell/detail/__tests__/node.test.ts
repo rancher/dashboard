@@ -27,9 +27,13 @@ describe('view: node detail', () => {
     },
     spec:               { taints: [] },
     pods:               [],
+    cpuCapacity:        5,
     cpuAllocatable:     4,
+    cpuReserved:        3,
     cpuUsage:           2,
+    ramCapacity:        9000,
     ramAllocatable:     8000,
+    ramReserved:        6000,
     ramUsage:           4000,
     podCapacity:        110,
     podConsumed:        5,
@@ -57,6 +61,10 @@ describe('view: node detail', () => {
 
   function findGaugeByResource(wrapper: ReturnType<typeof createWrapper>, resourceKey: string) {
     return findCardByResource(wrapper, resourceKey)?.findComponent(ConsumptionGauge);
+  }
+
+  function findGaugesByResource(wrapper: ReturnType<typeof createWrapper>, resourceKey: string) {
+    return findCardByResource(wrapper, resourceKey)?.findAllComponents(ConsumptionGauge) || [];
   }
 
   it.each([
@@ -104,22 +112,27 @@ describe('view: node detail', () => {
     expect(podsGauge!.attributes('usedlabel')).toContain('consumptionGauge.running');
   });
 
-  it('should NOT pass a usedlabel to the CPU ConsumptionGauge', () => {
+  // The same as the cluster dashboard: reserved is out of the allocatable, used out of the capacity
+  it.each([
+    ['consumptionGauge.cpu', [[4, 3], [5, 2]]],
+    ['consumptionGauge.memory', [[8000, 6000], [9000, 4000]]],
+  ])('should render the %s reserved gauge, then the used gauge, as [capacity, used] %p', (resourceKey, expected) => {
     const wrapper = createWrapper();
 
-    const cpuGauge = findGaugeByResource(wrapper, 'consumptionGauge.cpu');
+    const gauges = findGaugesByResource(wrapper, resourceKey);
 
-    expect(cpuGauge).toBeDefined();
-    expect(cpuGauge!.attributes('usedlabel')).toBeUndefined();
+    expect(gauges.map((gauge) => [gauge.props('capacity'), gauge.props('used')])).toStrictEqual(expected);
   });
 
-  it('should NOT pass a usedlabel to the Memory ConsumptionGauge', () => {
+  it.each([
+    'consumptionGauge.cpu',
+    'consumptionGauge.memory',
+  ])('should label the %s reserved gauge as reserved, and leave the used gauge with the default label', (resourceKey) => {
     const wrapper = createWrapper();
 
-    const memoryGauge = findGaugeByResource(wrapper, 'consumptionGauge.memory');
+    const [reserved, used] = findGaugesByResource(wrapper, resourceKey);
 
-    expect(memoryGauge).toBeDefined();
-    expect(memoryGauge!.attributes('usedlabel')).toBeUndefined();
+    expect([reserved.attributes('usedlabel'), used.attributes('usedlabel')]).toStrictEqual(['%node.detail.glance.consumptionGauge.reserved%', undefined]);
   });
 
   describe('memory ConsumptionGauge', () => {

@@ -28,8 +28,11 @@ export default {
   },
   computed: {
     indicatorStyle() {
+      // A width outside 0-100% isn't drawn as such, e.g. a negative one is dropped, which leaves the indicator full width
+      const width = Number.isFinite(this.percentage) ? Math.min(Math.max(this.percentage, 0), 100) : 0;
+
       return {
-        width:           `${ this.percentage }%`,
+        width:           `${ width }%`,
         backgroundColor: `var(${ this.primaryColor })`
       };
     },

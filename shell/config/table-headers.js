@@ -221,7 +221,7 @@ export const VERSION = {
 export const CPU = {
   name:      'cpu',
   labelKey:  'tableHeaders.cpu',
-  sort:      'cpuUsage',
+  sort:      'cpuUsageRatio',
   search:    false,
   value:     'cpuUsagePercentage',
   formatter: 'PercentageBar',
@@ -231,7 +231,7 @@ export const CPU = {
 export const RAM = {
   name:      'ram',
   labelKey:  'tableHeaders.ram',
-  sort:      'ramUsage',
+  sort:      'ramUsageRatio',
   search:    false,
   value:     'ramUsagePercentage',
   formatter: 'PercentageBar',

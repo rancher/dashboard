@@ -36,6 +36,20 @@ describe('component: Bar', () => {
     });
   });
 
+  it.each([
+    [50, '50%'],
+    [0, '0%'],
+    [100, '100%'],
+    [-5.62, '0%'],
+    [130, '100%'],
+    [NaN, '0%'],
+    [Infinity, '0%'],
+  ])('should draw a percentage of %p as an indicator %p wide', (percentage, width) => {
+    const wrapper = shallowMount(Bar, { props: { percentage } });
+
+    expect(wrapper.vm.indicatorStyle.width).toStrictEqual(width);
+  });
+
   it('should keep the secondary color as the bar background', () => {
     const wrapper = shallowMount(Bar, { props: { percentage: 50, secondaryColor: '--muted' } });
 

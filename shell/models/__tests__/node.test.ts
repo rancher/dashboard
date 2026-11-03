@@ -18,6 +18,82 @@ describe('class Node', () => {
     resetMocks();
   });
 
+  describe('usage and resources', () => {
+    const CONTROL_PLANE = 'node-role.kubernetes.io/control-plane';
+    const CONTROL_PLANE_OLD = 'node-role.kubernetes.io/controlplane';
+    const ETCD = 'node-role.kubernetes.io/etcd';
+    const WORKER = 'node-role.kubernetes.io/worker';
+
+    const createNode = ({
+      status = {}, spec = {}, labels = {}, metrics
+    }: any = {}) => new Node({
+      id:       'node-1',
+      metadata: {
+        name: 'node-1', labels, annotations: {}
+      },
+      spec,
+      status: {
+        allocatable: {
+          cpu: '3', memory: '6Gi', pods: '100'
+        },
+        capacity: {
+          cpu: '4', memory: '8Gi', pods: '110'
+        },
+        ...status
+      },
+    }, {
+      rootGetters: {
+        'cluster/byId': () => metrics,
+        currentCluster: { metadata: { labels: {} }, provisioner: 'k3s' },
+      }
+    });
+
+    it('should work out the CPU and memory usage percentages out of the capacity, rather than the allocatable', () => {
+      const node = createNode({ metrics: { usage: { cpu: '1', memory: '2Gi' } } });
+
+      expect([node.cpuUsagePercentage, node.ramUsagePercentage]).toStrictEqual(['25', '25']);
+    });
+
+    it('should sort by the CPU and memory usage out of the capacity', () => {
+      const node = createNode({ metrics: { usage: { cpu: '1', memory: '2Gi' } } });
+
+      expect([node.cpuUsageRatio, node.ramUsageRatio]).toStrictEqual([0.25, 0.25]);
+    });
+
+    it('should sort a node without a capacity as no usage', () => {
+      const node = createNode({ status: { capacity: {} }, metrics: { usage: { cpu: '1', memory: '2Gi' } } });
+
+      expect([node.cpuUsageRatio, node.ramUsageRatio]).toStrictEqual([0, 0]);
+    });
+
+    it.each([
+      [{ allocatable: { pods: '100' } }, 100],
+      [{ allocatable: {} }, 0],
+    ])('given the status %p, should have %p allocatable pods', (status, result) => {
+      const node = createNode({ status });
+
+      expect(node.podAllocatable).toStrictEqual(result);
+    });
+
+    it.each([
+      ['a worker', { [WORKER]: 'true' }, [], false, true],
+      ['a node without a role, e.g. in an imported cluster', {}, [], false, true],
+      ['a cordoned worker', { [WORKER]: 'true' }, [], true, false],
+      ['a control plane node without a taint, e.g. a k3s server', { [CONTROL_PLANE]: 'true', [ETCD]: 'true' }, [], false, true],
+      ['a control plane node tainted NoSchedule', { [CONTROL_PLANE]: 'true' }, [{ key: CONTROL_PLANE, effect: 'NoSchedule' }], false, false],
+      ['an etcd node tainted NoExecute', { [ETCD]: 'true' }, [{ key: ETCD, effect: 'NoExecute' }], false, false],
+      ['an RKE1 control plane node tainted NoSchedule', { [CONTROL_PLANE_OLD]: 'true' }, [{ key: CONTROL_PLANE_OLD, effect: 'NoSchedule' }], false, false],
+      ['a tainted control plane node that is also a worker', { [CONTROL_PLANE]: 'true', [WORKER]: 'true' }, [{ key: CONTROL_PLANE, effect: 'NoSchedule' }], false, true],
+      ['a control plane node tainted PreferNoSchedule', { [CONTROL_PLANE]: 'true' }, [{ key: CONTROL_PLANE, effect: 'PreferNoSchedule' }], false, true],
+      ['a control plane node with a taint of another key', { [CONTROL_PLANE]: 'true' }, [{ key: 'nvidia.com/gpu', effect: 'NoSchedule' }], false, true],
+      ['a worker with a NoSchedule taint of another key', { [WORKER]: 'true' }, [{ key: 'nvidia.com/gpu', effect: 'NoSchedule' }], false, true],
+    ])('should count %p in the cluster resources: %p %p, cordoned %p -> %p', (_, labels, taints, unschedulable, result) => {
+      const node = createNode({ labels, spec: { taints, unschedulable } });
+
+      expect(node.isCountedInClusterResources).toStrictEqual(result);
+    });
+  });
+
   describe('popover', () => {
     const RUNNING_PODS_COUNT = 'nodeRunningPods/local/node-1';
 

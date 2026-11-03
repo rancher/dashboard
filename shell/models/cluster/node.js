@@ -205,8 +205,19 @@ export default class ClusterNode extends SteveModel {
     return parseSi(this.status?.capacity?.cpu || '0');
   }
 
+  /**
+   * Usage is of the whole node, the system as well as pods, so it's a percentage of the capacity rather than of the allocatable,
+   * which only pods get. This is the same as `kubectl top node --show-capacity`
+   */
   get cpuUsagePercentage() {
-    return ((this.cpuUsage * 100) / this.cpuAllocatable).toString();
+    return ((this.cpuUsage * 100) / this.cpuCapacity).toString();
+  }
+
+  /**
+   * The Nodes list sorts by this rather than the percentage it shows, which is a string
+   */
+  get cpuUsageRatio() {
+    return this.cpuCapacity ? this.cpuUsage / this.cpuCapacity : 0;
   }
 
   get ramUsage() {
@@ -221,8 +232,15 @@ export default class ClusterNode extends SteveModel {
     return parseSi(this.status.capacity?.memory);
   }
 
+  /**
+   * Like `cpuUsagePercentage`, a percentage of the capacity
+   */
   get ramUsagePercentage() {
     return ((this.ramUsage * 100) / this.ramCapacity).toString();
+  }
+
+  get ramUsageRatio() {
+    return this.ramCapacity ? this.ramUsage / this.ramCapacity : 0;
   }
 
   get ramAllocatable() {
@@ -241,12 +259,8 @@ export default class ClusterNode extends SteveModel {
     return parseSi(this.podRequests?.pods || '0');
   }
 
-  get systemReservedRam() {
-    return Math.max(this.ramCapacity - this.ramAllocatable, 0);
-  }
-
-  get systemReservedCpu() {
-    return Math.max(this.cpuCapacity - this.cpuAllocatable, 0);
+  get podAllocatable() {
+    return parseSi(this.status?.allocatable?.pods || '0');
   }
 
   get podUsage() {
@@ -293,6 +307,31 @@ export default class ClusterNode extends SteveModel {
 
   get isSchedulable() {
     return !this.spec.unschedulable;
+  }
+
+  /**
+   * Whether the cluster dashboard counts the node in the cluster's CPU, memory and pods, the same way Rancher counts it in the
+   * cluster's status: every node except cordoned ones, and control plane or etcd nodes tainted to keep workloads off unless
+   * they're also workers.
+   *
+   * Roles come from the node's labels like Rancher reads them, rather than `isWorker`, which uses the management node when it's
+   * loaded. A node without a role label is a worker, e.g. in an imported cluster
+   */
+  get isCountedInClusterResources() {
+    if (!this.isSchedulable) {
+      return false;
+    }
+
+    const roles = [NODE_ROLES.ETCD, NODE_ROLES.CONTROL_PLANE, NODE_ROLES.CONTROL_PLANE_OLD, NODE_ROLES.WORKER];
+    const isWorker = NODE_ROLES.WORKER in this.labels || !roles.some((role) => role in this.labels);
+
+    if (isWorker) {
+      return true;
+    }
+
+    const serverRoles = [NODE_ROLES.ETCD, NODE_ROLES.CONTROL_PLANE, NODE_ROLES.CONTROL_PLANE_OLD];
+
+    return !(this.spec.taints || []).some((taint) => serverRoles.includes(taint.key) && ['NoSchedule', 'NoExecute'].includes(taint.effect));
   }
 
   get drainedState() {
