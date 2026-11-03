@@ -75,6 +75,12 @@ describe('class Node', () => {
       expect(node.podAllocatable).toStrictEqual(result);
     });
 
+    it('should have no CPU or memory when the status has none, so the cluster dashboard can still sum the nodes', () => {
+      const node = createNode({ status: { capacity: {}, allocatable: {} } });
+
+      expect([node.cpuCapacity, node.cpuAllocatable, node.ramCapacity, node.ramAllocatable]).toStrictEqual([0, 0, 0, 0]);
+    });
+
     it.each([
       ['a worker', { [WORKER]: 'true' }, [], false, true],
       ['a node without a role, e.g. in an imported cluster', {}, [], false, true],

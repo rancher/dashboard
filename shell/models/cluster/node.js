@@ -229,7 +229,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get ramCapacity() {
-    return parseSi(this.status.capacity?.memory);
+    return parseSi(this.status?.capacity?.memory || '0');
   }
 
   /**
@@ -244,7 +244,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get ramAllocatable() {
-    return parseSi(this.status?.allocatable?.memory);
+    return parseSi(this.status?.allocatable?.memory || '0');
   }
 
   get ramReserved() {

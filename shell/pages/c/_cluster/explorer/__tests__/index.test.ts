@@ -25,6 +25,7 @@ interface MockGetters {
   'cluster/inError': () => boolean;
   'cluster/schemaFor': jest.Mock;
   'cluster/canList': (type: string) => boolean;
+  'cluster/haveAll'?: (type: string) => boolean;
   'cluster/byId': () => object;
   'cluster/all': jest.Mock;
   'i18n/exists': jest.Mock;
@@ -347,12 +348,14 @@ describe('page: cluster dashboard', () => {
       { id: 'cordoned', usage: { cpu: '50', memory: '100Gi' } },
     ];
 
-    const createWrapper = ({ nodes = [node('counted-1', true), node('counted-2', true), node('cordoned', false, 25)], canListNodes = true } = {}) => {
+    const createWrapper = ({ nodes = [node('counted-1', true), node('counted-2', true), node('cordoned', false, 25)], canListNodes = true, nodesLoaded = true } = {}) => {
       const options = createMountOptions();
       const { getters } = options.global.mocks.$store;
 
       getters['cluster/schemaFor'] = jest.fn((type: string) => ((type === NODE && canListNodes) || type === METRIC.NODE ? { id: type } : undefined));
-      getters['cluster/all'] = jest.fn((type: string) => (type === NODE && canListNodes ? nodes : []));
+      getters['cluster/canList'] = jest.fn((type: string) => type === NODE && canListNodes);
+      getters['cluster/haveAll'] = jest.fn((type: string) => type === NODE && canListNodes && nodesLoaded);
+      getters['cluster/all'] = jest.fn((type: string) => (type === NODE && canListNodes && nodesLoaded ? nodes : []));
       getters.currentCluster.status = {
         provider:    'foo',
         allocatable: {
@@ -417,8 +420,11 @@ describe('page: cluster dashboard', () => {
       expect(wrapper.find('.hardware-resource-gauges').exists()).toBe(false);
     });
 
-    it('should take reserved and pods from the cluster status, without used, when the user can not list the nodes', async() => {
-      const wrapper = createWrapper({ canListNodes: false });
+    it.each([
+      ['the user can not list the nodes', { canListNodes: false }],
+      ['the nodes are not loaded, e.g. while loading or when they fail to', { nodesLoaded: false }],
+    ])('should take reserved and pods from the cluster status, without used, when %s', async(_, opts) => {
+      const wrapper = createWrapper(opts);
 
       await flushPromises();
 

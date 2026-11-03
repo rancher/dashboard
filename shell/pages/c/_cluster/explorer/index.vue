@@ -194,10 +194,11 @@ export default {
     },
 
     /**
-     * Without access to the nodes, e.g. as a project member, the cluster's CPU, memory and pods come from the cluster's status
+     * The cluster's CPU, memory and pods are summed over its nodes once they're all loaded. Until then, or if they can't be loaded,
+     * e.g. as a project member, they come from the cluster's status
      */
-    canListNodes() {
-      return !!this.$store.getters['cluster/schemaFor'](NODE);
+    haveNodes() {
+      return !!this.$store.getters['cluster/canList'](NODE) && this.$store.getters['cluster/haveAll'](NODE);
     },
 
     /**
@@ -310,7 +311,7 @@ export default {
     },
 
     hasStats() {
-      if (this.canListNodes) {
+      if (this.haveNodes) {
         return this.countedNodes.length > 0;
       }
 
@@ -347,7 +348,7 @@ export default {
      * Reserved is what the pods request, out of what the nodes can give pods: their allocatable
      */
     cpuReserved() {
-      const result = this.canListNodes ? {
+      const result = this.haveNodes ? {
         total:  this.nodeStats.cpuAllocatable,
         useful: this.nodeStats.cpuReserved,
       } : {
@@ -362,7 +363,7 @@ export default {
     },
 
     podsUsed() {
-      if (!this.canListNodes) {
+      if (!this.haveNodes) {
         return {
           total:  parseSi(this.currentCluster?.status?.allocatable?.pods || '0'),
           useful: parseSi(this.currentCluster?.status?.requested?.pods || '0'),
@@ -376,7 +377,7 @@ export default {
     },
 
     ramReserved() {
-      if (!this.canListNodes) {
+      if (!this.haveNodes) {
         return createMemoryValues(this.currentCluster?.status?.allocatable?.memory, this.currentCluster?.status?.requested?.memory);
       }
 
@@ -388,7 +389,7 @@ export default {
      * so there's no usage
      */
     metricAggregations() {
-      if (!this.canListNodes) {
+      if (!this.haveNodes) {
         return null;
       }
 
@@ -711,7 +712,7 @@ export default {
     >
       {{ t('clusterIndexPage.sections.capacity.label') }}
       <span
-        v-if="canListNodes && countedNodes.length < nodes.length"
+        v-if="haveNodes && countedNodes.length < nodes.length"
         class="counted-nodes text-muted"
         data-testid="capacity-counted-nodes"
       >
