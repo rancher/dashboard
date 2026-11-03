@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /*
- * Reads dist/report.json (webpack-bundle-analyzer) and produces licenses.json:
+ * Reads dist/report.json (written by the build, in webpack-bundle-analyzer's JSON shape) and produces licenses.json:
  * every node_modules package that appears in the bundle, with its name,
  * declared license, homepage URL, and a `licenseRef` into a deduplicated
  * `licenses` map containing the full license text (from LICENSE files, README
@@ -35,7 +35,7 @@ const DIST = path.join(ROOT, 'dist');
 const REPORT = path.join(DIST, 'report.json');
 const COMMITTED_LICENSES = path.join(ROOT, 'shell', 'assets', 'licenses', 'licenses.json');
 const ROOT_PACKAGE_JSON = path.join(ROOT, 'package.json');
-const ALLOWED_LICENSES = ['MIT', 'Apache-2.0', 'BSD-3-Clause', 'ISC', 'BSD'];
+const ALLOWED_LICENSES = ['MIT', 'Apache-2.0', 'BSD-3-Clause', 'ISC', 'BSD', '0BSD'];
 const ALLOWED_LICENSE_SET = new Set(ALLOWED_LICENSES);
 
 // ANSI colors, matching the convention used by scripts/check-i18n.
@@ -796,7 +796,7 @@ function failMissingReport(update) {
   console.error('');
   console.error(`${ bold }${ bg_red }${ white } ${ path.relative(ROOT, REPORT) } not found ${ reset }`);
   console.error('');
-  console.error(`  This script needs ${ cyan }dist/report.json${ reset } from webpack-bundle-analyzer.`);
+  console.error(`  This script needs ${ cyan }dist/report.json${ reset } from an analyzed build.`);
   console.error(`  Run the analyzer-enabled build first, then re-run this script:`);
   console.error('');
   console.error(`    ${ cyan }ANALYZE_LICENSES=true yarn build${ reset }`);

@@ -2,7 +2,7 @@
  * Global Jest setup for a Rancher UI extension.
  *
  * Registers the pieces of the dashboard runtime that shell components expect to be present
- * (i18n, tooltips, `v-select`, the shell directives) so components can be mounted in isolation,
+ * (the shell models, i18n, tooltips, `v-select`, the shell directives) so components can be mounted in isolation,
  * and polyfills the browser APIs that jsdom does not implement.
  */
 import { config } from '@vue/test-utils';
@@ -14,6 +14,9 @@ import cleanHtmlDirective from '@shell/directives/clean-html';
 import cleanTooltipDirective from '@shell/directives/clean-tooltip';
 import htmlStrippedAriaLabelDirective from '@shell/directives/strip-html-aria-label';
 import '@shell/plugins/replaceall';
+import { installModels } from '@shell/initialize/install-models';
+
+installModels();
 
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;

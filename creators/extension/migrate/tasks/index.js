@@ -6,6 +6,7 @@ const routerUpdates = require('./routerUpdates');
 const eslintUpdates = require('./eslintUpdates');
 const tsUpdates = require('./tsUpdates');
 const stylesUpdates = require('./stylesUpdates');
+const viteUpdates = require('./viteUpdates');
 
 module.exports = {
   packageUpdates,
@@ -16,4 +17,5 @@ module.exports = {
   eslintUpdates,
   tsUpdates,
   stylesUpdates,
+  viteUpdates,
 };

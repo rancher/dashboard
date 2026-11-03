@@ -116,19 +116,19 @@ export const mutations = {
 
 export const actions = {
   ec2Lib() {
-    return import(/* webpackChunkName: "aws-ec2" */ '@aws-sdk/client-ec2');
+    return import('@aws-sdk/client-ec2');
   },
 
   eksLib() {
-    return import(/* webpackChunkName: "aws-eks" */ '@aws-sdk/client-eks');
+    return import('@aws-sdk/client-eks');
   },
 
   kmsLib() {
-    return import(/* webpackChunkName: "aws-kms" */ '@aws-sdk/client-kms');
+    return import('@aws-sdk/client-kms');
   },
 
   iamLib() {
-    return import(/* webpackChunkName: "aws-iam" */ '@aws-sdk/client-iam');
+    return import('@aws-sdk/client-iam');
   },
 
   async ec2({ dispatch }, {
@@ -203,7 +203,7 @@ export const actions = {
     }
     const data = await dispatch('depaginateList', { client, cmd: 'describeInstanceTypes' });
 
-    const groups = (await import(/* webpackChunkName: "aws-data" */'@shell/assets/data/ec2-instance-groups.json')).default;
+    const groups = (await import('@shell/assets/data/ec2-instance-groups.json')).default;
     const list = [];
 
     for ( const row of data ) {
@@ -301,7 +301,7 @@ export const actions = {
   },
 
   async defaultRegions() {
-    const data = (await import(/* webpackChunkName: "aws-data" */'@shell/assets/data/aws-regions.json')).default;
+    const data = (await import('@shell/assets/data/aws-regions.json')).default;
 
     return data;
   }

@@ -191,7 +191,7 @@ export const createExtensionManager = (context) => {
     /**
      * Register a builtin extension that should be loaded
      *
-     * Used by the dynamic loader when a plugin is included in the build (see shell/vue.config.js)
+     * Used by the dynamic loader when a plugin is included in the build (see shell/vite/dynamic-modules.mjs)
      */
     registerBuiltinExtension(id, module) {
       builtin.push({ id, module });

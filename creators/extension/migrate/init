@@ -10,6 +10,7 @@ const {
   eslintUpdates,
   tsUpdates,
   stylesUpdates,
+  viteUpdates,
 } = require('./tasks');
 const params = require('./params');
 
@@ -30,6 +31,7 @@ const params = require('./params');
   eslintUpdates(params);
   tsUpdates(params);
   stylesUpdates(params);
+  viteUpdates(params);
 
   printLog();
   printCompletion();
