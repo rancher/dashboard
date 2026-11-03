@@ -3,6 +3,14 @@ import Type from '@shell/components/nav/Type';
 import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router';
 import { RcSeparator } from '@components/RcSeparator';
 
+// The indent scale for the side menu, shared by group headers and type links so that everything at
+// the same level of the tree lines up, whichever component renders it. Both numbers are the values
+// the menu has always used, kept so that adding deeper levels does not shift the existing ones:
+// a top level header sits at 16px, and a link below it at 26px (its 24px padding, plus the 5px
+// transparent border Group draws on it, less its own 3px negative margin).
+const BASE_INDENT = 16;
+const INDENT_STEP = 10;
+
 export default {
   name: 'Group',
 
@@ -49,6 +57,20 @@ export default {
   },
 
   computed: {
+    /** Indent of this group's own header, in px */
+    headerIndent() {
+      return BASE_INDENT + (this.depth * INDENT_STEP);
+    },
+
+    /**
+     * Indent of this group's children, in px. One level deeper than its own header, unless the
+     * header is hidden - a headerless group adds no visible level, so its children stay level
+     * with it rather than indenting under a header that was never drawn.
+     */
+    childIndent() {
+      return this.showHeader ? this.headerIndent + INDENT_STEP : this.headerIndent;
+    },
+
     isGroupActive() {
       return this.isOverview || (this.hasActiveRoute() && this.isExpanded && this.showHeader);
     },
@@ -249,6 +271,7 @@ export default {
   <div
     class="accordion"
     :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive }"
+    :style="{ '--nav-indent': `${ headerIndent }px` }"
   >
     <div
       v-if="showHeader || (!onlyHasOverview && canCollapse)"
@@ -290,12 +313,15 @@ export default {
             class="list-unstyled body root-depth"
             v-bind="$attrs"
           >
+            <!-- A childless group is promoted to a plain nav item, so its link sits at the
+                 group's own level rather than one level in -->
             <Type
 
               :key="id+'_' + group.name + '_type'"
               :is-root="depth == 0 && !showHeader"
               :type="group"
               :depth="depth"
+              :indent="headerIndent"
               @selected="selectType($event)"
             />
           </ul>
@@ -356,6 +382,7 @@ export default {
           :is-root="depth == 0 && !showHeader"
           :type="child"
           :depth="depth"
+          :indent="childIndent"
           @selected="selectType($event)"
         />
       </template>
@@ -377,7 +404,7 @@ export default {
       text-transform: none;
       font-size: 14px;
       height: 100%;
-      padding: 8px 0 8px 16px;
+      padding: 8px 0 8px var(--nav-indent, 16px);
       display: inline-flex;
       align-items: center;
     }
@@ -428,7 +455,7 @@ export default {
         background-color: var(--active);
 
         h6 {
-          padding: 8px 0 8px 16px;
+          padding: 8px 0 8px var(--nav-indent, 16px);
           font-weight: bold;
           color: var(--on-active);
         }
@@ -460,7 +487,7 @@ export default {
 
         > H6 {
           text-transform: none;
-          padding: 8px 0 8px 16px;
+          padding: 8px 0 8px var(--nav-indent, 16px);
         }
       }
 
@@ -496,27 +523,17 @@ export default {
         }
       }
 
-      .root-depth :deep() > .child.nav-type a {
-        padding-left: 14px;
-      }
     }
 
     &.depth-1 {
       > .accordion-item > .header {
-        padding-left: 20px;
         > H6 {
           line-height: 18px;
-          padding: 8px 0 7px 5px !important;
         }
-
       }
 
       .accordion-item > I {
         padding: 10px 7px 9px 7px !important;
-      }
-
-      &:deep() .type-link > .label {
-        padding-left: 10px;
       }
     }
 
@@ -525,7 +542,7 @@ export default {
         > H6 {
           // Child groups that aren't linked themselves
           display: inline-block;
-          padding: 5px 0 5px 5px;
+          padding: 5px 0 5px var(--nav-indent, 16px);
         }
       }
 

@@ -822,10 +822,14 @@ export const getters = {
         const isRoot = ( name === ROOT || name.startsWith(`${ ROOT }::`) );
 
         if ( name && name.includes('::') ) {
-          let parent;
+          // Every segment but the last is an ancestor group that has to exist before this one can
+          // hang off it. `split('::', 2)` used to be used here, which silently discarded everything
+          // past the second segment, so a three-deep path such as `a::b::c` created `c`'s children
+          // inside `b` and never created `c` at all.
+          const segments = name.split('::');
 
-          [parent, name] = name.split('::', 2);
-          tree = _ensureGroup(tree, parent);
+          name = segments.pop();
+          tree = segments.reduce((parent, segment) => _ensureGroup(parent, segment), tree);
         }
 
         // Translate if an entry exists

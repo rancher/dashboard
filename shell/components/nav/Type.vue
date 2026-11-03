@@ -7,6 +7,12 @@ import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router'
 
 const showFavoritesFor = [TYPE_MODES.FAVORITE, TYPE_MODES.USED];
 
+// Where a link's text sits relative to its own padding box: Group draws a 5px transparent left
+// border on every nav link (`.body > .child A`) and the link pulls itself 3px left with a negative
+// margin. Both are subtracted from `indent` so the text, rather than the box, lines up with the
+// group headers at the same level.
+const LINK_TEXT_OFFSET = 5 - 3;
+
 export default {
 
   components: { Favorite, TabTitle },
@@ -28,6 +34,16 @@ export default {
       type:    Number,
       default: 0,
     },
+
+    /**
+     * Left indent of this link in px, on the same scale Group indents its headers with, so a link
+     * lines up with the group headers that sit at the same level of the tree. Set by Group, which
+     * is the only thing that knows how deep this link sits.
+     */
+    indent: {
+      type:    Number,
+      default: null,
+    },
   },
 
   data() {
@@ -35,6 +51,10 @@ export default {
   },
 
   computed: {
+    indentStyle() {
+      return this.indent === null ? null : { paddingLeft: `${ this.indent - LINK_TEXT_OFFSET }px` };
+    },
+
     showFavorite() {
       return ( this.type.mode && this.near && showFavoritesFor.includes(this.type.mode) );
     },
@@ -117,6 +137,7 @@ export default {
         :aria-label="type.labelKey ? t(type.labelKey) : (type.labelDisplay || type.label)"
         :href="href"
         class="type-link"
+        :style="indentStyle"
         :aria-current="isActive ? 'page' : undefined"
         @click="selectType(); navigate($event);"
         @mouseenter="setNear(true)"
@@ -161,6 +182,7 @@ export default {
   >
     <a
       role="link"
+      :style="indentStyle"
       :href="type.link"
       :target="type.target"
       rel="noopener noreferrer nofollow"
@@ -221,6 +243,8 @@ export default {
       grid-column-gap: 5px;
       font-size: 14px;
       line-height: 24px;
+      // The left padding is a fallback only - Group sets it inline via the `indent` prop, which
+      // is what actually lines a link up with the group headers at the same level of the tree
       padding: 7.5px 7px 7.5px 10px;
       margin: 0 0 0 -3px;
       overflow: hidden;
@@ -256,26 +280,17 @@ export default {
       }
     }
 
+    // A link's `depth` is the depth of the group holding it, so a depth 0 link is a level 2 entry.
+    // Anything below that - a link inside a nested group, so level 3 and deeper - steps down a
+    // size. Group headers stay at 14px at every level, so a group reads as a heading next to the
+    // links beneath it.
     &.nav-type:not(.depth-0) {
-      A {
-        padding-left: 16px;
-      }
-
       :deep() .label I {
         padding-right: 2px;
       }
-    }
 
-    &.nav-type:is(.depth-1) {
       A {
         font-size: 13px;
-        padding-left: 23px;
-      }
-    }
-
-    &.nav-type:not(.depth-0):not(.depth-1) {
-      A {
-        padding-left: 14px;
       }
     }
   }

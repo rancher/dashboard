@@ -596,6 +596,63 @@ describe('component: Type', () => {
       expect(link.find('a').attributes('target')).toBe(defaultLinkTypeProp.target);
     });
   });
+
+  // Group owns the indent scale and passes the result down, because only it knows how deep a link
+  // sits. The 2px taken off every value is the 5px transparent left border Group draws on nav links
+  // minus the link's own -3px left margin, so that the text lines up with a group header, not the box.
+  describe('indentation', () => {
+    const storeMock = {
+      getters: {
+        currentStore:          () => 'cluster',
+        'cluster/count':       () => 1,
+        'type-map/optionsFor': () => {},
+      }
+    };
+
+    const mountType = (type: any, props: Record<string, unknown> = {}) => shallowMount(Type as any, {
+      props: { type, ...props },
+
+      global: {
+        directives: { cleanHtml: (identity: any) => identity },
+        mocks:      {
+          $store:  storeMock,
+          $router: { resolve: jest.fn((route: any) => ({ fullPath: route, path: route })) },
+          $route:  { fullPath: 'route', path: 'route' },
+        },
+        stubs: {
+          routerLink: createChildRenderingRouterLinkStub(),
+          Favorite:   { template: `<div class=${ favoriteClass } />` },
+        },
+      },
+    });
+
+    const routeType = { name: 'route-type', route: 'route' };
+    const linkType = { link: 'https://example.com', label: 'External' };
+
+    it.each([
+      [16, '14px'],
+      [26, '24px'],
+      [36, '34px'],
+      [46, '44px'],
+    ])('indents a link given indent %spx', (indent, expected) => {
+      const link = mountType(routeType, { indent }).find('a.type-link');
+
+      expect(link.attributes('style')).toBe(`padding-left: ${ expected };`);
+    });
+
+    it('leaves padding to the stylesheet when no indent is given', () => {
+      const link = mountType(routeType).find('a.type-link');
+
+      expect(link.attributes('style')).toBeUndefined();
+    });
+
+    // The external link variant renders its own anchor, which has to indent the same way
+    it('indents an external link too', () => {
+      const link = mountType(linkType, { indent: 36 }).find('li[data-testid="link-type"] a');
+
+      expect(link.attributes('style')).toBe('padding-left: 34px;');
+    });
+  });
 });
 
 jest.restoreAllMocks();

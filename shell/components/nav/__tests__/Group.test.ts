@@ -485,6 +485,94 @@ describe('component: Group', () => {
    * Type component — nesting an interactive element inside another interactive
    * element violates the nested-interactive WCAG rule.
    */
+  // Group headers and type links are rendered by different components, so they only line up if
+  // both are driven off one scale. The header reads `--nav-indent` off the accordion; links get
+  // the same scale handed to them as a prop, one level deeper.
+  describe('indentation', () => {
+    const mountGroup = (group: any, props: Record<string, unknown> = {}) => shallowMount(Group as any, {
+      props: {
+        group, canCollapse: true, idPrefix: '', ...props
+      },
+      global: {
+        stubs: { 'router-link': { template: '<a><slot /></a>' } },
+        mocks: {
+          $route: {
+            params: {}, path: '/x', fullPath: '/x', matched: []
+          },
+          $router: {
+            resolve:   jest.fn().mockReturnValue({ path: '/x', fullPath: '/x' }),
+            getRoutes: jest.fn().mockReturnValue([]),
+          },
+          t: (key: string) => key,
+        },
+      },
+    });
+
+    // Expanded, so the body holding the child links is actually rendered
+    const withChild = () => ({
+      name:     'g',
+      label:    'G',
+      expanded: true,
+      children: [{ name: 'leaf', route: { name: 'leaf', params: {} } }],
+    });
+
+    // 16px then 10px a level - the values the menu used before deeper levels were supported, so
+    // that adding them does not shift level 1 or level 2
+    it.each([
+      [0, '16px'],
+      [1, '26px'],
+      [2, '36px'],
+      [3, '46px'],
+    ])('indents the header of a depth %s group by %s', (depth, expected) => {
+      const wrapper = mountGroup(withChild(), { depth });
+
+      expect(wrapper.attributes('style')).toBe(`--nav-indent: ${ expected };`);
+    });
+
+    it.each([
+      [0, 26],
+      [1, 36],
+      [2, 46],
+    ])('puts the children of a depth %s group one level deeper, at %spx', (depth, expected) => {
+      const wrapper = mountGroup(withChild(), { depth });
+
+      expect(wrapper.findComponent(Type).props('indent')).toBe(expected);
+    });
+
+    // A headerless group draws no row of its own, so it must not indent its children for one
+    it('keeps children level with a group whose header is hidden', () => {
+      const wrapper = mountGroup(withChild(), { depth: 0, showHeader: false });
+
+      expect(wrapper.findComponent(Type).props('indent')).toBe(16);
+    });
+
+    // A childless group is promoted to a plain nav item, so its link stands in for the header
+    it('puts the link of a childless group at the header indent', () => {
+      const promoted = {
+        name: 'solo', label: 'Solo', route: { name: 'solo', params: {} }, children: []
+      };
+      const wrapper = mountGroup(promoted, { depth: 0 });
+
+      expect(wrapper.findComponent(Type).props('indent')).toBe(16);
+    });
+
+    // Type keys its font size off `depth`, where depth 0 is a level 2 link and anything deeper
+    // drops to 13px, so a link has to carry the depth of the group holding it
+    it.each([0, 1, 2])('passes its own depth %s on to its links', (depth) => {
+      const wrapper = mountGroup(withChild(), { depth });
+
+      expect(wrapper.findComponent(Type).props('depth')).toBe(depth);
+    });
+
+    // The whole point of the shared scale: a nested group header and a sibling link must match
+    it('gives a nested group header the same indent as a sibling link', () => {
+      const parent = mountGroup(withChild(), { depth: 0 });
+      const nested = mountGroup(withChild(), { depth: 1 });
+
+      expect(nested.attributes('style')).toBe(`--nav-indent: ${ parent.findComponent(Type).props('indent') }px;`);
+    });
+  });
+
   describe('header role and ARIA attributes (nested-interactive a11y fix)', () => {
     const routerMocks = {
       $route: {
