@@ -501,7 +501,7 @@ describe('class StevePaginationUtils', () => {
     });
   });
 
-  describe('method: formatSortParam', () => {
+  describe('method: createParamsForPagination sort', () => {
     it.each([
       ['metadata.name', true, 'metadata.name'],
       ['metadata.name', false, '-metadata.name'],
@@ -509,7 +509,20 @@ describe('class StevePaginationUtils', () => {
       ['ip(status.podIP)', true, 'ip(status.podIP)'],
       ['ip(status.podIP)', false, 'ip(-status.podIP)'],
     ])('formats %s asc=%s as %s', (field, asc, expected) => {
-      expect(stevePaginationUtils['formatSortParam'](field, asc)).toBe(expected);
+      const result = stevePaginationUtils.createParamsForPagination({
+        schema: {
+          id:         'pod',
+          attributes: { columns: [{ name: 'IP', field: '$.metadata.fields[5]' }] },
+        },
+        opt: {
+          pagination: {
+            pageSize: 10,
+            sort:     [{ field, asc }],
+          },
+        },
+      } as any);
+
+      expect(result).toBe(`pagesize=10&sort=${ expected }`);
     });
   });
 });

@@ -447,11 +447,12 @@ export function init(store) {
         sort:     [POD_RESTARTS_LAST_FIELD, POD_RESTARTS_COUNT_FIELD, 'metadata.name'],
       },
       {
-        name:   'ip',
-        label:  'IP',
-        value:  'status.podIP',
-        sort:   ['ip(status.podIP)'],
-        search: 'status.podIP',
+        name:     'ip',
+        labelKey: 'tableHeaders.iP',
+        value:    'metadata.fields.5',
+        sort:     ['ip(status.podIP)'],
+        search:   'status.podIP',
+        tooltip:  'tableHeaders.podIpTooltip',
       },
       {
         ...NODE_COL,

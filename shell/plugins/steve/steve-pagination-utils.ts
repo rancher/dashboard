@@ -371,26 +371,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     return path;
   }
 
-  // Steve expects desc IP sorts as ip(-field), not -ip(field)
-  private formatSortParam(field: string, asc: boolean): string {
-    const converted = this.convertArrayPath(field);
-    const ipMatch = converted.match(/^ip\((.+)\)$/);
-
-    if (ipMatch) {
-      const inner = ipMatch[1].replace(/^-/, '');
-
-      return asc ? `ip(${ inner })` : `ip(-${ inner })`;
-    }
-
-    return `${ asc ? '' : '-' }${ converted }`;
-  }
-
-  private unwrapSortFunction(field: string): string {
-    const ipMatch = field.match(/^ip\((.+)\)$/);
-
-    return ipMatch ? ipMatch[1].replace(/^-/, '') : field;
-  }
-
   public createSortForPagination(sortByPath: string): string {
     return this.convertArrayPath(sortByPath);
   }
@@ -525,10 +505,20 @@ class StevePaginationUtils extends NamespaceProjectFilters {
           // Use the same mechanism as local sorting to flip logic for asc/des
           const { field, reverse } = parseField(s.field);
           const asc = reverse ? !s.asc : s.asc;
+          // Steve expects desc IP sorts as ip(-field), not -ip(field)
+          const ipMatch = field.match(/^ip\((.+)\)$/);
 
-          this.validateField(validateFields, schema, this.unwrapSortFunction(field));
+          if (ipMatch) {
+            const inner = ipMatch[1].replace(/^-/, '');
 
-          return this.formatSortParam(field, asc);
+            this.validateField(validateFields, schema, inner);
+
+            return asc ? `ip(${ inner })` : `ip(-${ inner })`;
+          }
+
+          this.validateField(validateFields, schema, field);
+
+          return `${ asc ? '' : '-' }${ this.convertArrayPath(field) }`;
         })
         .join(',');
 

@@ -7256,6 +7256,7 @@ tableHeaders:
   podImages: Image
   podRestarts: Restarts
   podLastRestart: Last Restart
+  podIpTooltip: IP address of the pod
   pods: Pods
   pod-Selector: Pod-Selector
   providers: Providers
