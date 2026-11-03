@@ -11,7 +11,7 @@ variables:
   - podman login -u $REGISTRY_USER -p $REGISTRY_PASSWORD $REGISTRY
 
 .node-setup: &node-setup
-  # Download, verify, and install Node.js, npm, and yarn
+  # Download, verify, and install Node.js and npm, and enable Corepack for yarn
   - curl -O https://nodejs.org/download/release/${NODE_VERSION}/${NODE_DISTRO}.tar.gz
   - curl -O https://nodejs.org/download/release/${NODE_VERSION}/SHASUMS256.txt
   - grep "${NODE_DISTRO}.tar.gz" SHASUMS256.txt | sha256sum -c -
@@ -19,8 +19,8 @@ variables:
   - mv ${NODE_DISTRO} /usr/local/node
   - ln -s /usr/local/node/bin/node /usr/local/bin/node
   - ln -s /usr/local/node/bin/npm /usr/local/bin/npm
-  - npm install -g --unsafe-perm yarn
   - export PATH="/usr/local/node/bin:/root/.npm-global/bin:$PATH"
+  - corepack enable
 
 check_version_collisions:
   stage: check_version
@@ -61,7 +61,12 @@ build_and_release:
     - curl -sLf ${YQ_URL} -o /usr/bin/yq && chmod +x /usr/bin/yq
 
     # Install dependencies and build extension catalog
-    - yarn
+    - |
+      if [ "$(yarn --version | cut -d. -f1)" -ge 2 ]; then
+        yarn install --immutable
+      else
+        yarn install --frozen-lockfile
+      fi
     - yarn publish-pkgs -cl -r $REGISTRY -o $IMAGE_NAMESPACE
 
     # Push all images except the base image

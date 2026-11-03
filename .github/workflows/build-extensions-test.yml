@@ -132,10 +132,17 @@ jobs:
           node-version-file: .nvmrc
           cache: yarn
 
+      # Installs the calling extension, which may still use Yarn Classic, so this cannot use
+      # `install:ci`. Yarn Classic silently ignores `--immutable`.
       - name: Install Dependencies
         if: ${{ matrix.folder != '_skip_' }}
         shell: bash
-        run: npm run install:ci
+        run: |
+          if [ "$(yarn --version | cut -d. -f1)" -ge 2 ]; then
+            yarn install --immutable
+          else
+            yarn install --frozen-lockfile
+          fi
 
       - name: "Build extension: ${{ matrix.folder }}"
         if: ${{ matrix.folder != '_skip_' }}
