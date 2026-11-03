@@ -273,7 +273,8 @@ try {
   // console.log('Extension created successfully.');
 
   if (skeletonOnly || !isInsideSkeleton) {
-    console.log(`To begin, run: \n\n\tcd ${ appName } && yarn install\n`);
+    console.log(`To begin, run: \n\n\tcd ${ appName } && yarn install --no-immutable\n`);
+    console.log('Only this first install needs --no-immutable, to create yarn.lock. Commit it, then use plain `yarn install`.\n');
   }
 } catch (error) {
   console.error('Error creating extension:', error);

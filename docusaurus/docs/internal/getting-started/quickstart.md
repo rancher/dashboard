@@ -8,8 +8,10 @@ Prerequisites:
 
 * Node, at the version pinned in [`.nvmrc`](https://github.com/rancher/dashboard/blob/master/.nvmrc)
 
-* yarn:
-  ```npm install --global yarn```
+* Corepack enabled, so that it runs the Yarn version pinned in `package.json`:
+  ```corepack enable```
+
+  Yarn Classic installed with `npm install --global yarn` refuses to run in this repository.
 
 Run:
 

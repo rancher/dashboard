@@ -12,7 +12,7 @@ The following two concepts are important to understand for UI extension developm
 
 - **Node.js Version:**
   - For the latest version, you will need Node.js **version `v24`** (tested with `v24.14.0`).
-- Yarn package manager installed globally: `npm install -g yarn`.
+- Corepack enabled: `corepack enable`. The development app pins its Yarn version in the `packageManager` field of `package.json`, and Corepack runs that version. Yarn Classic installed with `npm install -g yarn` refuses to run in the development app.
 - Have a Rancher system up and running. See https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade
 
 ---
