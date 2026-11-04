@@ -12,18 +12,26 @@ jest.mock('@shell/mixins/resource-fetch', () => ({
   }
 }));
 
+jest.mock('@shell/config/private-label', () => ({
+  __esModule: true,
+  getVendor:  () => 'Test Vendor',
+}));
+
 // eslint-disable-next-line import/first
 import ManagementFeature from '@shell/list/management.cattle.io.feature.vue';
+// eslint-disable-next-line import/first
+import { RESTART, STATE } from '@shell/config/table-headers';
 
-const createMockStore = () => ({
+const createMockStore = (headers: any[] | undefined = []) => ({
   getters: {
-    'i18n/t':               (key: string) => key,
+    'i18n/t':               (key: string, args?: any) => (args ? `${ key }:${ JSON.stringify(args) }` : key),
     'management/schemaFor': () => ({ resourceMethods: ['PUT'] }),
+    'type-map/headersFor':  () => headers,
   },
   dispatch: jest.fn(),
 });
 
-const createWrapper = (rows: any[]) => {
+const createWrapper = (rows: any[], headers?: any[]) => {
   return shallowMount(ManagementFeature, {
     props: {
       resource: 'management.cattle.io.feature',
@@ -32,7 +40,7 @@ const createWrapper = (rows: any[]) => {
     data:   () => ({ rows }),
     global: {
       mocks: {
-        $store:      createMockStore(),
+        $store:      createMockStore(headers),
         $fetchState: { pending: false },
         $fetchType:  jest.fn(),
       },
@@ -102,6 +110,34 @@ describe('list/management.cattle.io.feature', () => {
 
       expect(filtered).toHaveLength(1);
       expect(filtered[0].metadata.name).toBe('some-feature');
+    });
+  });
+
+  describe('headers', () => {
+    it('should replace the restart header label with one that includes the vendor', () => {
+      const wrapper = createWrapper([{ metadata: { name: 'feature-a' }, nameDisplay: 'feature-a' }], [STATE, RESTART]);
+
+      const headers = (wrapper.vm as any).headers;
+
+      expect(headers[1]).toStrictEqual({
+        ...RESTART,
+        labelKey: undefined,
+        label:    'tableHeaders.restartSystem:{"vendor":"Test Vendor"}',
+      });
+    });
+
+    it('should leave non-restart headers unchanged', () => {
+      const wrapper = createWrapper([{ metadata: { name: 'feature-a' }, nameDisplay: 'feature-a' }], [STATE, RESTART]);
+
+      const headers = (wrapper.vm as any).headers;
+
+      expect(headers[0]).toStrictEqual(STATE);
+    });
+
+    it('should return an empty array when no headers are defined for the type', () => {
+      const wrapper = createWrapper([{ metadata: { name: 'feature-a' }, nameDisplay: 'feature-a' }], undefined);
+
+      expect((wrapper.vm as any).headers).toStrictEqual([]);
     });
   });
 });
