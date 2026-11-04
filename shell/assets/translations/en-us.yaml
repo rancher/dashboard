@@ -2905,6 +2905,7 @@ cluster:
         label: Automatic Backups
       snapshotScheduleCron:
         label: Cron Schedule
+        validationError: "Use a valid cron expression, such as 0 */5 * * * (every 5 hours) or @daily. The five fields are minute, hour, day of month, month and day of week (0-6, Sunday is 0)."
       snapshotRetention:
         label: Local snapshot retention count
         tooltip: Each backup records 1 snapshot per etcd node. If you specify 3 snapshots and you have 3 etcd nodes you will only retain 1 full backup.

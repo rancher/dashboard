@@ -8,33 +8,12 @@
  *
  * The component never mutates `value`, it emits a new etcd object via `update:value` on every change.
  */
-import { computed } from 'vue';
-import { useStore } from 'vuex';
-import { useI18n } from '@shell/composables/useI18n';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import S3Config from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/S3Config.vue';
-import isEmpty from 'lodash/isEmpty';
-
-export interface EtcdSnapshotS3 {
-  bucket?: string;
-  cloudCredentialName?: string | null;
-  endpoint?: string;
-  endpointCA?: string;
-  folder?: string;
-  region?: string;
-  retention?: number | null;
-  skipSSLVerify?: boolean;
-}
-
-export interface EtcdSnapshotConfigValue {
-  disableSnapshots?: boolean;
-  snapshotScheduleCron?: string;
-  snapshotRetention?: number | null;
-  s3?: EtcdSnapshotS3 | null;
-  [key: string]: unknown;
-}
+import { useEtcdSnapshotConfig } from '@shell/composables/useEtcdSnapshotConfig';
+import type { EtcdSnapshotConfigValue, EtcdSnapshotS3 } from '@shell/composables/useEtcdSnapshotConfig';
 
 defineOptions({ name: 'EtcdSnapshotConfig' });
 
@@ -58,41 +37,17 @@ const emit = defineEmits<{
   'validation-changed': [value: boolean];
 }>();
 
-const store = useStore();
-const { t } = useI18n(store);
-
-const etcd = computed<EtcdSnapshotConfigValue>(() => props.value || {});
-const snapshotsEnabled = computed(() => etcd.value.disableSnapshots !== true);
-
-const disableSnapshotsOptions = computed(() => [
-  { value: true, label: t('generic.disable') },
-  { value: false, label: t('generic.enable') },
-]);
-const s3BackupOptions = computed(() => [
-  { value: false, label: t('generic.disable') },
-  { value: true, label: t('generic.enable') },
-]);
-
-function update(changes: Partial<EtcdSnapshotConfigValue>) {
-  emit('update:value', { ...etcd.value, ...changes });
-}
-
-function s3BackupChanged(enabled: boolean) {
-  // Keep any existing s3 config when (re)enabling, otherwise editing a cluster with s3 defined would clear it
-  update({ s3: enabled ? (isEmpty(etcd.value.s3) ? {} : etcd.value.s3) : null });
-  emit('s3-backup-changed', enabled);
-  emit('validation-changed', !enabled);
-}
-
-function disableSnapshotsChanged(disableSnapshots: boolean) {
-  if (disableSnapshots) {
-    update({ disableSnapshots, s3: null });
-    emit('s3-backup-changed', false);
-    emit('validation-changed', true);
-  } else {
-    update({ disableSnapshots });
-  }
-}
+const {
+  etcd,
+  snapshotsEnabled,
+  disableSnapshotsOptions,
+  s3BackupOptions,
+  cronScheduleRules,
+  update,
+  s3BackupChanged,
+  disableSnapshotsChanged,
+  s3ValidationChanged,
+} = useEtcdSnapshotConfig(props, emit);
 </script>
 
 <template>
@@ -122,6 +77,8 @@ function disableSnapshotsChanged(disableSnapshots: boolean) {
           data-testid="etcd-snapshot-schedule-cron"
           :mode="mode"
           :label="t('cluster.rke2.etcd.snapshotScheduleCron.label')"
+          :rules="cronScheduleRules"
+          :require-dirty="false"
           @update:value="(snapshotScheduleCron: string) => update({ snapshotScheduleCron })"
         />
       </div>
@@ -159,7 +116,7 @@ function disableSnapshotsChanged(disableSnapshots: boolean) {
         :register-before-hook="registerBeforeHook"
         :mode="mode"
         @update:value="(s3: EtcdSnapshotS3) => update({ s3 })"
-        @validationChanged="(valid: boolean) => emit('validation-changed', valid)"
+        @validationChanged="s3ValidationChanged"
       />
     </template>
   </div>

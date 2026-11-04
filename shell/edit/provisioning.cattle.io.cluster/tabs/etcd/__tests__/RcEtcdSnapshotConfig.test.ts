@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import RcEtcdSnapshotConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/RcEtcdSnapshotConfig.vue';
@@ -140,16 +141,24 @@ describe('component: RcEtcdSnapshotConfig', () => {
       expect(lastUpdate(wrapper)).toStrictEqual({ snapshotRetention: 3 });
     });
 
-    it('should clear s3, disable s3 backups and report valid when snapshots are disabled', () => {
+    it('should clear s3, disable s3 backups and report valid when snapshots are disabled', async() => {
       const wrapper = createWrapper({ s3Backup: true, value: { ...ETCD, s3: { bucket: 'b' } } });
 
+      wrapper.findComponent({ name: 'RcS3Config' }).vm.$emit('validationChanged', false);
+      await nextTick();
       radioGroup(wrapper, 'etcd-disable-snapshots')?.vm.$emit('update:value', true);
+      await wrapper.setProps({
+        s3Backup: false,
+        value:    {
+          ...ETCD, disableSnapshots: true, s3: null
+        }
+      });
 
       expect(lastUpdate(wrapper)).toStrictEqual({
         ...ETCD, disableSnapshots: true, s3: null
       });
       expect(wrapper.emitted('s3-backup-changed')).toStrictEqual([[false]]);
-      expect(wrapper.emitted('validation-changed')).toStrictEqual([[true]]);
+      expect(wrapper.emitted('validation-changed')).toStrictEqual([[true], [false], [true]]);
     });
 
     it('should keep s3 and not touch s3 backups when snapshots are enabled', () => {
@@ -172,36 +181,43 @@ describe('component: RcEtcdSnapshotConfig', () => {
       ['no s3 config', null, {}],
       ['an empty s3 config', {}, {}],
       ['an existing s3 config', { bucket: 'existing' }, { bucket: 'existing' }],
-    ])('should initialise s3 when enabling s3 backups with %s', (_, s3, expected) => {
+    ])('should initialize s3 when enabling s3 backups with %s', async(_, s3, expected) => {
       const wrapper = createWrapper({ value: { ...ETCD, s3 } });
 
       radioGroup(wrapper, 'etcd-s3-backup')?.vm.$emit('update:value', true);
+      await wrapper.setProps({ s3Backup: true, value: { ...ETCD, s3: expected } });
 
       expect(lastUpdate(wrapper)).toStrictEqual({ ...ETCD, s3: expected });
       expect(wrapper.emitted('s3-backup-changed')).toStrictEqual([[true]]);
       // the s3 form needs a bucket, so it starts invalid
-      expect(wrapper.emitted('validation-changed')).toStrictEqual([[false]]);
+      expect(wrapper.emitted('validation-changed')).toStrictEqual([[true], [false]]);
     });
 
-    it('should clear s3 and report valid when disabling s3 backups', () => {
+    it('should clear s3 and report valid when disabling s3 backups', async() => {
       const wrapper = createWrapper({ s3Backup: true, value: { ...ETCD, s3: { bucket: 'b' } } });
 
+      wrapper.findComponent({ name: 'RcS3Config' }).vm.$emit('validationChanged', false);
+      await nextTick();
       radioGroup(wrapper, 'etcd-s3-backup')?.vm.$emit('update:value', false);
+      await wrapper.setProps({ s3Backup: false, value: { ...ETCD, s3: null } });
 
       expect(lastUpdate(wrapper)).toStrictEqual({ ...ETCD, s3: null });
       expect(wrapper.emitted('s3-backup-changed')).toStrictEqual([[false]]);
-      expect(wrapper.emitted('validation-changed')).toStrictEqual([[true]]);
+      expect(wrapper.emitted('validation-changed')).toStrictEqual([[true], [false], [true]]);
     });
 
-    it('should emit the s3 config and its validation from RcS3Config', () => {
+    it('should emit the s3 config and its validation from RcS3Config', async() => {
       const wrapper = createWrapper({ s3Backup: true, value: { ...ETCD, s3: {} } });
       const s3Config = wrapper.findComponent({ name: 'RcS3Config' });
 
       s3Config.vm.$emit('update:value', { bucket: 'new' });
+      s3Config.vm.$emit('validationChanged', false);
+      await nextTick();
       s3Config.vm.$emit('validationChanged', true);
+      await nextTick();
 
       expect(lastUpdate(wrapper)).toStrictEqual({ ...ETCD, s3: { bucket: 'new' } });
-      expect(wrapper.emitted('validation-changed')).toStrictEqual([[true]]);
+      expect(wrapper.emitted('validation-changed')).toStrictEqual([[true], [false], [true]]);
     });
   });
 
@@ -247,7 +263,7 @@ describe('component: RcEtcdSnapshotConfig', () => {
 
     // A collapsed RcSection keeps its content mounted, so the parent (e.g. CruImported) gets the s3 validation
     // without the section being opened
-    it('should report the s3 validation while the Save Backups to S3 section is collapsed', () => {
+    it('should report the s3 validation while the Save Backups to S3 section is collapsed', async() => {
       const store = createStore({ getters: { 'i18n/t': () => (key: string) => key } });
       const wrapper = shallowMount(RcEtcdSnapshotConfig, {
         props: {
@@ -266,8 +282,9 @@ describe('component: RcEtcdSnapshotConfig', () => {
       expect(s3Config.exists()).toBe(true);
 
       s3Config.vm.$emit('validationChanged', false);
+      await nextTick();
 
-      expect(wrapper.emitted('validation-changed')).toStrictEqual([[false]]);
+      expect(wrapper.emitted('validation-changed')).toStrictEqual([[true], [false]]);
     });
 
     it('should hide the Save Backups to S3 section when automatic backups are disabled', () => {
@@ -311,6 +328,30 @@ describe('component: RcEtcdSnapshotConfig', () => {
       });
 
       expect(wrapper.emitted('update:value')).toBeUndefined();
+    });
+  });
+
+  describe('validation', () => {
+    const INVALID_CRON = '* * * * * *';
+    const cronInput = (wrapper: VueWrapper<any>) => wrapper.findComponent(LabeledInput);
+
+    it('should report an invalid cron schedule', () => {
+      const wrapper = createWrapper({ value: { ...ETCD, snapshotScheduleCron: INVALID_CRON } });
+
+      expect(wrapper.emitted('validation-changed')).toStrictEqual([[false]]);
+    });
+
+    it('should pass the cron schedule rules to the cron schedule input', () => {
+      const wrapper = createWrapper();
+      const rules = cronInput(wrapper).props('rules') as ((value?: string) => string | undefined)[];
+
+      expect(rules.map((rule) => rule(INVALID_CRON))).toStrictEqual(['cluster.rke2.etcd.snapshotScheduleCron.validationError']);
+    });
+
+    it('should show the cron schedule error without waiting for the input to be touched', () => {
+      const wrapper = createWrapper();
+
+      expect(cronInput(wrapper).props('requireDirty')).toBe(false);
     });
   });
 });

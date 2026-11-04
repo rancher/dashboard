@@ -2290,6 +2290,7 @@ export default {
           <Tab
             name="etcd"
             label-key="cluster.tabs.etcd"
+            :error="!etcdConfigValid"
           >
             <Etcd
               v-model:value="localValue"
