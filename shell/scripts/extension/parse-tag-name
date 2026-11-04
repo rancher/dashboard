@@ -21,25 +21,26 @@ if [[ "${GITHUB_WORKFLOW_TYPE}" == "catalog" ]]; then
 # branch rather than a separate workflow input, and one release workflow can publish
 # both individual extensions and bundles.
 #
-# The bundle name may itself contain hyphens, so split off the fixed "bundle-" prefix
-# and the trailing version and treat everything in between as the name.
-elif [[ "${GITHUB_RELEASE_TAG}" == bundle-?*-?* ]]; then
-  TAG_BODY="${GITHUB_RELEASE_TAG#bundle-}"
-  BUNDLE_VERSION="${TAG_BODY##*-}"
-  BUNDLE_NAME="${TAG_BODY%-*}"
+# Both halves of the tag can contain hyphens - the name, and a prerelease version such
+# as 1.0.0-rc.1 - so the tag cannot be split on one. Rebuild the expected tag from each
+# declared bundle instead and compare whole strings, the way the chart branch below
+# matches against pkg/<name>.
+elif [[ "${GITHUB_RELEASE_TAG}" == bundle-* ]]; then
+  BUNDLE=$(jq -c --arg tag "${GITHUB_RELEASE_TAG}" \
+    '(.rancher.bundles // []) | map(select("bundle-" + .name + "-" + .version == $tag)) | .[0] // empty' package.json)
 
-  echo "Parsed as a bundle release: name '${BUNDLE_NAME}', version '${BUNDLE_VERSION}'"
-
-  MATCH=$(jq -r --arg n "${BUNDLE_NAME}" --arg v "${BUNDLE_VERSION}" \
-    '(.rancher.bundles // []) | map(select(.name == $n and .version == $v)) | length' package.json)
-
-  if [[ "${MATCH}" != "1" ]]; then
+  if [[ -z "${BUNDLE}" ]]; then
     echo -e "release tag doesn't match any bundle: ${GITHUB_RELEASE_TAG}"
-    echo -e "Looking for name '${BUNDLE_NAME}' at version '${BUNDLE_VERSION}' in rancher.bundles[] of the root package.json. Declared bundles:"
-    jq -r '(.rancher.bundles // [])[] | "  \(.name) \(.version)"' package.json
+    echo -e "Expected bundle-<name>-<version> for an entry in rancher.bundles[] of the root package.json. Declared bundles:"
+    jq -r '(.rancher.bundles // [])[] | "  bundle-\(.name)-\(.version)"' package.json
     gh run cancel ${GITHUB_RUN_ID}
     exit 1
   fi
+
+  BUNDLE_NAME=$(jq -r '.name' <<<"${BUNDLE}")
+  BUNDLE_VERSION=$(jq -r '.version' <<<"${BUNDLE}")
+
+  echo "Parsed as a bundle release: name '${BUNDLE_NAME}', version '${BUNDLE_VERSION}'"
 # Ensure "chart" workflow release tag name matches some pkg/<pkg-name>
 else
   NO_MATCHES="true"

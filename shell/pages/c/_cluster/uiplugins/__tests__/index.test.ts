@@ -1885,28 +1885,30 @@ describe('page: UI plugins/Extensions', () => {
     });
 
     const createWrapper = ({
-      rawCharts = {}, uiplugins = [], apps = [], plugins = []
+      rawCharts = {}, uiplugins = [], apps = [], plugins = [], errors = {}
     }: {
-      rawCharts?: Record<string, any>, uiplugins?: any[], apps?: any[], plugins?: any[]
-    } = {}) => {
+      rawCharts?: Record<string, any>, uiplugins?: any[], apps?: any[], plugins?: any[], errors?: Record<string, string>
+    } = {}): VueWrapper<any> => {
       const store = {
         getters: {
           'prefs/get':         jest.fn(),
           'catalog/rawCharts': rawCharts,
           'uiplugins/plugins': uiplugins,
-          'uiplugins/errors':  {},
+          'uiplugins/errors':  errors,
           'management/all':    () => apps,
           'i18n/withFallback': (_key: string, _fallback: null, repoName: string) => repoName,
         },
         dispatch: () => Promise.resolve(),
       };
 
+      // The page is an untyped .vue import, so without this `w.vm` widens to `never`
+      // and every property access on it is a type error
       const w = shallowMount(UiPluginsPage, {
         global: {
           mocks: { $store: store, t },
           stubs: { ActionMenu: { template: '<div />' } }
         }
-      });
+      }) as VueWrapper<any>;
 
       w.vm.installing = {};
       pluginListOf(w).plugins = plugins;
@@ -2165,27 +2167,189 @@ describe('page: UI plugins/Extensions', () => {
 
       it('should name the blocking bundle when an extension is already provided', () => {
         const w = createWrapper({ plugins: [crFor('runtime-enforcer', '0.1.1')] });
+        const card = singleCard('runtime-enforcer');
 
-        expect(w.vm.installConflictMessage(singleCard('runtime-enforcer'))).toContain(BUNDLE);
+        expect(w.vm.installConflictMessage(w.vm.installConflict(card), [])).toContain(BUNDLE);
       });
 
       it('should name the blocking members when a bundle is blocked', () => {
         const w = createWrapper({ plugins: [crFor('runtime-enforcer', '0.1.1', null)] });
+        const card = bundleCard(MEMBERS);
 
-        expect(w.vm.installConflictMessage(bundleCard(MEMBERS))).toContain('runtime-enforcer');
+        expect(w.vm.installConflictMessage(w.vm.installConflict(card), [])).toContain('runtime-enforcer');
       });
 
       it('should say nothing when there is no conflict', () => {
         const w = createWrapper({ plugins: [] });
+        const card = bundleCard(MEMBERS);
 
-        expect(w.vm.installConflictMessage(bundleCard(MEMBERS))).toBe('');
+        expect(w.vm.installConflictMessage(w.vm.installConflict(card), [])).toBe('');
+      });
+
+      /**
+       * The chart id is not what the admin reads on the card, so a message naming it
+       * sends them looking for something that is not on screen.
+       */
+      it('should name the blocker by its card title rather than its chart id', () => {
+        const w = createWrapper({ plugins: [crFor('runtime-enforcer', '0.1.1')] });
+        const card = singleCard('runtime-enforcer');
+        const all = [{ name: BUNDLE, label: 'SUSE Security' }];
+        const message = w.vm.installConflictMessage(w.vm.installConflict(card), all);
+
+        expect(message).toContain('SUSE Security');
+        expect(message).not.toContain(BUNDLE);
+      });
+
+      it('should fall back to the chart name when the blocker has no card', () => {
+        const w = createWrapper({ plugins: [crFor('runtime-enforcer', '0.1.1')] });
+        const card = singleCard('runtime-enforcer');
+
+        expect(w.vm.installConflictMessage(w.vm.installConflict(card), [])).toContain(BUNDLE);
       });
 
       it('should surface the reason on the card', () => {
         const w = createWrapper({ plugins: [crFor('runtime-enforcer', '0.1.1')] });
-        const statuses = w.vm.getStatuses(singleCard('runtime-enforcer'));
+        const card = { ...singleCard('runtime-enforcer'), installConflictMessage: 'blocked by the bundle' };
+        const statuses = w.vm.getStatuses(card);
 
-        expect(statuses.some((st: any) => st.color === 'error' && st.tooltip.text.length)).toBe(true);
+        expect(statuses.some((st: any) => st.color === 'error' && st.tooltip.text.includes('blocked by the bundle'))).toBe(true);
+      });
+
+      /**
+       * A second repository offering a bundle that is already installed must not report
+       * the bundle's own members as a conflict - they are installed by that bundle.
+       */
+      it('should not flag an installed bundle against its own members', () => {
+        const w = createWrapper({ plugins: [crFor(MEMBERS[0], '0.9.2'), crFor(MEMBERS[1], '0.1.1')] });
+
+        expect(w.vm.installConflict(bundleCard(MEMBERS))).toBeNull();
+      });
+
+      /**
+       * A later bundle version can add an extension the admin already runs standalone.
+       * Without this the upgrade is offered and then fails on Helm's ownership error.
+       */
+      it('should block upgrading a bundle into a member installed standalone', () => {
+        // The bundle currently ships MEMBERS; its next version adds 'network', which
+        // the admin already runs on its own
+        const w = createWrapper({ plugins: [...MEMBERS.map((m) => crFor(m, '0.9.2')), crFor('network', '0.1.1', null)] });
+        const installedBundle = {
+          ...bundleCard([...MEMBERS, 'network']),
+          installed:        true,
+          installedVersion: '1.0.0',
+          upgrade:          '1.0.2',
+        };
+        const actions = w.vm.getPluginActions(installedBundle);
+
+        expect(w.vm.installConflict(installedBundle)).toStrictEqual({ type: 'bundle', names: ['network'] });
+        expect(actions.some((a: any) => a.action === 'upgrade')).toBe(false);
+        expect(actions.some((a: any) => a.action === 'uninstall')).toBe(true);
+      });
+    });
+
+    describe('bundle card resilience', () => {
+      /**
+       * Removing the repository a bundle came from must not strand it: the extensions
+       * stay loaded, so without a card there is no way to uninstall them.
+       */
+      it('should keep one card for an installed bundle whose repo was removed', () => {
+        const app = appFor(BUNDLE, '1.0.1');
+
+        app.spec.chart.metadata.name = BUNDLE;
+        app.spec.chart.metadata.annotations = { [UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME]: 'SUSE Security' };
+
+        const w = createWrapper({
+          rawCharts: {},
+          uiplugins: MEMBERS.map((m) => loadedPlugin(m, '0.9.1')),
+          apps:      [app],
+          plugins:   MEMBERS.map((m) => crFor(m, '0.9.1')),
+        });
+        const cards = w.vm.available;
+
+        expect(cards).toHaveLength(1);
+        expect(cards[0].name).toBe(BUNDLE);
+        expect(cards[0].label).toBe('SUSE Security');
+        expect(cards[0].installed).toBe(true);
+        expect(cards[0].displayVersion).toBe('1.0.1');
+        expect(w.vm.getPluginActions(cards[0]).some((a: any) => a.action === 'uninstall')).toBe(true);
+      });
+
+      it('should offer no upgrade on a bundle recovered from the Helm release alone', () => {
+        const app = appFor(BUNDLE, '1.0.1');
+
+        app.spec.chart.metadata.name = BUNDLE;
+
+        const w = createWrapper({
+          apps:    [app],
+          plugins: MEMBERS.map((m) => crFor(m, '0.9.1')),
+        });
+
+        expect(w.vm.available[0].upgrade).toBeUndefined();
+      });
+
+      /**
+       * A broken member has no card of its own, so without this the bundle shows only
+       * the green Installed tick and nothing says an extension failed to load.
+       */
+      it('should show a member load error on the bundle card', () => {
+        const w = createWrapper({
+          rawCharts: bundleChart(),
+          uiplugins: MEMBERS.map((m) => loadedPlugin(m, '0.9.1')),
+          apps:      [appFor(BUNDLE, '1.0.0')],
+          plugins:   MEMBERS.map((m) => crFor(m, '0.9.1')),
+          errors:    { [MEMBERS[0]]: 'plugins.error.generic' },
+        });
+        const card = w.vm.available.find((c: any) => c.name === BUNDLE);
+
+        expect(card.installedError).toContain(MEMBERS[0]);
+        expect(w.vm.getStatuses(card).some((st: any) => st.color === 'error')).toBe(true);
+      });
+
+      it('should keep both members errors rather than letting the last win', () => {
+        const w = createWrapper({
+          rawCharts: bundleChart(),
+          uiplugins: MEMBERS.map((m) => loadedPlugin(m, '0.9.1')),
+          apps:      [appFor(BUNDLE, '1.0.0')],
+          plugins:   MEMBERS.map((m) => crFor(m, '0.9.1')),
+          errors:    { [MEMBERS[0]]: 'plugins.error.generic', [MEMBERS[1]]: 'plugins.error.generic' },
+        });
+        const card = w.vm.available.find((c: any) => c.name === BUNDLE);
+
+        expect(card.installedError).toContain(MEMBERS[0]);
+        expect(card.installedError).toContain(MEMBERS[1]);
+      });
+
+      /**
+       * A bundle can be offered by both its own gh-pages repo and ui-plugin-charts.
+       * Marking the wrong copy installed makes Upgrade pull from the wrong repository.
+       */
+      it('should mark the repo copy the bundle was actually installed from', () => {
+        const chartFor = (repoName: string) => ({
+          chartName:   BUNDLE,
+          repoName,
+          annotations: { [UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME]: 'SUSE Security' },
+          versions:    [{
+            version:     '1.0.0',
+            annotations: { 'catalog.cattle.io/ui-component': 'plugins' },
+          }],
+        });
+        const app = appFor(BUNDLE, '1.0.0');
+
+        app.spec.chart.metadata.annotations = { [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: 'second-repo' };
+
+        const w = createWrapper({
+          rawCharts: {
+            'first-repo/security':  chartFor('first-repo'),
+            'second-repo/security': chartFor('second-repo'),
+          },
+          uiplugins: MEMBERS.map((m) => loadedPlugin(m, '0.9.1')),
+          apps:      [app],
+          plugins:   MEMBERS.map((m) => crFor(m, '0.9.1')),
+        });
+        const installed = w.vm.available.filter((c: any) => c.name === BUNDLE && c.installed);
+
+        expect(installed).toHaveLength(1);
+        expect(installed[0].chart.repoName).toBe('second-repo');
       });
     });
 

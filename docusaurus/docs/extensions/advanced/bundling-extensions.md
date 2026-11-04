@@ -1,4 +1,13 @@
-# Bundling Extensions (requires Shell X.X.X or greater)
+# Bundling Extensions (requires Shell 3.0.15 or greater)
+
+:::warning
+Bundles require **Rancher 2.17 or later**. Earlier versions can install an umbrella
+chart, but their Extensions screen does not understand bundles — it shows the members
+as separate cards whose Uninstall removes nothing, leaving the bundle stuck on the
+cluster. Every bundle therefore carries `catalog.cattle.io/rancher-version` with a
+floor of 2.17 or later, which the build sets for you. See
+[the Rancher version floor](#the-rancher-version-floor).
+:::
 
 A repository with several related extensions normally publishes one chart per extension,
 so each appears as its own card on the Extensions screen and has to be installed,
@@ -48,7 +57,7 @@ extension repository — not in the per-package `package.json` files.
           "runtime-enforcer"
         ],
         "annotations": {
-          "catalog.cattle.io/rancher-version": ">= 2.11.0-0",
+          "catalog.cattle.io/rancher-version": ">= v2.17.0-0",
           "catalog.cattle.io/ui-extensions-version": ">= 3.0.0 < 4.0.0",
           "catalog.cattle.io/kube-version": ">= v1.16.0-0"
         }
@@ -94,16 +103,42 @@ bundle must declare its own ranges:
 
 ```json
 "annotations": {
-  "catalog.cattle.io/rancher-version": ">= 2.11.0-0",
-  "catalog.cattle.io/ui-extensions-version": ">= 3.0.0 < 4.0.0",
+  "catalog.cattle.io/rancher-version": ">= v2.17.0-0",
+  "catalog.cattle.io/ui-extensions-version": ">= 3.0.15 < 4.0.0",
   "catalog.cattle.io/kube-version": ">= v1.16.0-0",
   "catalog.cattle.io/prime-only": "true"
 }
 ```
 
 They should be the **intersection** of the members' ranges. If one member needs Rancher
-2.11 and another needs 2.12, the bundle needs `>= 2.12.0-0` — nothing checks this for
+2.17 and another needs 2.18, the bundle needs `>= v2.18.0-0` — nothing checks this for
 you.
+
+### The Rancher version floor
+
+`catalog.cattle.io/rancher-version` is the exception: its floor is always **2.17 or
+later**, and `build-extensions-bundle` raises it for you. If you declare a lower floor
+it is raised, if you declare none one is added, and if you declare 2.17 or later it is
+left alone. The build logs whenever it changes something, so update your
+`package.json` to match rather than relying on it.
+
+A few ranges cannot be raised safely and fail the build instead: a `~` or `^` range,
+because raising its floor past its own upper bound would leave a range nothing
+satisfies; an exact pin below 2.17; more than one lower bound; and anything that
+cannot be read as a version range.
+
+This is what keeps a bundle away from Rancher versions that cannot uninstall it, and
+it needs no change to those versions. Rancher filters chart versions by this
+annotation **server-side** — both the index it serves and the chart download itself —
+so an older Rancher never sees the bundle at all. That applies equally to airgapped
+installs fed from a catalog image, since a catalog image is consumed as an ordinary
+`ClusterRepo` and goes through the same filtering.
+
+:::note
+Installing the umbrella chart directly with Helm, against the published URL rather
+than through Rancher, bypasses this. So does downgrading Rancher below 2.17 while a
+bundle is installed, since nothing re-evaluates the chart. Neither is supported.
+:::
 
 ## Writing the README
 

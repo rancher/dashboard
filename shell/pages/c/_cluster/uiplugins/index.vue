@@ -369,6 +369,13 @@ export default {
         return installedByName[plugin.name] === plugin;
       });
 
+      // Resolved last, because the message names the other card the admin has to deal
+      // with and that card's title is only known once the whole list exists. Stored on
+      // the item so the card's tooltip and the info panel's banner read the same answer.
+      all.forEach((plugin) => {
+        plugin.installConflictMessage = this.installConflictMessage(this.installConflict(plugin), all);
+      });
+
       return sortBy(all, 'name', false);
     }
   },
@@ -470,8 +477,12 @@ export default {
               changes++;
             }
 
+            // A bundle's CRs are named after its members, so matching on the CR name
+            // alone never clears the bundle's own card and it spins until a reload
+            const bundleName = this.bundleMembership[plugin.name] || this.seenBundleMembers[plugin.name];
+
             (this.available || []).forEach((c) => {
-              if (c.name === plugin.name) {
+              if (c.name === plugin.name || (bundleName && c.name === bundleName)) {
                 this.updatePluginInstallStatus(c.id, false);
               }
             });
@@ -755,27 +766,38 @@ export default {
     },
 
     /**
-     * Why this extension cannot be installed right now, or null.
+     * Why this extension cannot be installed or upgraded right now, or null.
      *
      * An extension can only exist once on a cluster: the backend index is keyed by
      * plugin name, and the loader resolves `window[<name>-<version>]`. So a bundle and
      * a standalone copy of one of its members cannot both be installed - Helm would
      * reject the second with an ownership error on the shared UIPlugin. Catch it here
      * instead, while it can still be explained.
+     *
+     * Bundles are checked whether installed or not: a later bundle version can add a
+     * member the admin already runs standalone, and that upgrade fails the same way.
      */
     installConflict(plugin) {
-      if (plugin.installed || plugin.builtin) {
+      if (plugin.builtin) {
         return null;
       }
 
-      // Installing a bundle whose members are already installed by something else
+      // A bundle, installed or not, against the members it would bring in. Members this
+      // same bundle already owns are not a conflict - that is just the bundle being
+      // installed, or a second catalog copy of a bundle that is already installed.
       if (plugin.bundleMemberNames?.length) {
-        const conflicting = plugin.bundleMemberNames.filter((name) => this.installedExtensionNames.has(name));
+        const conflicting = plugin.bundleMemberNames.filter((name) => {
+          return this.installedExtensionNames.has(name) && this.bundleMembership[name] !== plugin.name;
+        });
 
         if (conflicting.length) {
           return { type: 'bundle', names: conflicting };
         }
 
+        return null;
+      }
+
+      if (plugin.installed) {
         return null;
       }
 
@@ -789,23 +811,34 @@ export default {
       return null;
     },
 
-    installConflictMessage(plugin) {
-      const conflict = this.installConflict(plugin);
+    /**
+     * The card title an admin sees for a chart name, so a conflict message names the
+     * card they have to act on rather than its chart id. Whatever a conflict names is
+     * installed, and installed things always have a card, so the fallback is only a
+     * guard against the list changing under us.
+     */
+    pluginLabelForName(name, all) {
+      return (all || []).find((c) => c.name === name)?.label || name;
+    },
 
+    installConflictMessage(conflict, all) {
       if (!conflict) {
         return '';
       }
 
-      const names = conflict.names.join(', ');
+      const names = conflict.names.map((name) => this.pluginLabelForName(name, all)).join(', ');
 
       return conflict.type === 'bundle' ? this.t('plugins.conflict.bundleBlocked', { names }, true) : this.t('plugins.conflict.memberBlocked', { name: names }, true);
     },
 
     getPluginActions(plugin) {
       const actions = [];
+      const conflict = this.installConflict(plugin);
 
       if (plugin.installed) {
-        const canUpdate = !!plugin.upgrade;
+        // A bundle whose next version would collide with a standalone extension cannot
+        // be upgraded into - Helm rejects it - so offer uninstall but not the upgrade
+        const canUpdate = !!plugin.upgrade && !conflict;
         const canDowngrade = plugin.installableVersions?.some((v) => compareChartVersions(plugin.installedVersion, v.version) > 0);
         const canUninstall = !plugin.builtin;
 
@@ -835,7 +868,7 @@ export default {
             icon:   'icon-delete',
           });
         }
-      } else if (plugin.installableVersions?.length && !this.installConflict(plugin)) {
+      } else if (plugin.installableVersions?.length && !conflict) {
         actions.push({
           label:   this.t('plugins.install.label'),
           action:  'install',
@@ -957,10 +990,8 @@ export default {
         tooltipMsgs.push(incompatibilityMsg);
       }
 
-      const conflictMsg = this.installConflictMessage(plugin);
-
-      if (conflictMsg) {
-        tooltipMsgs.push(conflictMsg);
+      if (plugin.installConflictMessage) {
+        tooltipMsgs.push(plugin.installConflictMessage);
       }
 
       if (tooltipMsgs.length) {
@@ -1101,17 +1132,30 @@ export default {
      * A bundle is a single Helm release whose subcharts each create their own UIPlugin
      * CR, so the CR name never matches the chart name and the standard lookup below
      * would spawn one orphan card per member. Resolve against the bundle instead, and
-     * never push a card of our own - the bundle has exactly one card by definition.
+     * never push more than one card - the bundle has exactly one by definition.
      */
     wireBundledPluginCRToChart(pluginCR, bundleName, all) {
       const app = this.apps.find((a) => a.metadata.name === bundleName && a.metadata.namespace === UI_PLUGIN_NAMESPACE);
-      const chart = all.find((c) => c.name === bundleName);
+      const originalRepoName = app?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME] || app?.metadata?.labels?.[CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME];
+
+      let chart;
+
+      // Two repos can offer the same bundle - a repository's own gh-pages and
+      // ui-plugin-charts both carry it - so mark the copy it was actually installed
+      // from, otherwise Upgrade on the wrong card pulls from the wrong repo
+      if (originalRepoName) {
+        chart = all.find((c) => c.name === bundleName && c.chart?.repoName === originalRepoName);
+      }
+
+      if (!chart) {
+        chart = all.find((c) => c.name === bundleName);
+      }
 
       if (!chart) {
         // The bundle's chart isn't in the catalog - the repo was removed, or it was
-        // installed from somewhere we can't see. Nothing to wire onto, and pushing a
-        // card per member here is exactly what we're avoiding, so bail.
-        return;
+        // installed from somewhere we can't see. Fall back to the Helm release so the
+        // bundle can still be uninstalled, as a standalone extension does below.
+        return this.pushBundleFallbackCard(pluginCR, bundleName, app, all);
       }
 
       chart.installed = true;
@@ -1144,6 +1188,52 @@ export default {
           compareChartVersions(latestInstallableVersion.version, chart.installedVersion) > 0) {
         chart.upgrade = getPluginChartVersionLabel(latestInstallableVersion);
       }
+    },
+
+    /**
+     * A card for an installed bundle whose chart is no longer in the catalog, built
+     * from the Helm release the way the standalone fallback is. Without it the bundle
+     * vanishes from the page while its extensions stay loaded, leaving no way to
+     * uninstall it. Only the first member reaches here - the card it pushes is what
+     * the lookup above finds for the rest, so they wire onto it normally.
+     */
+    pushBundleFallbackCard(pluginCR, bundleName, app, all) {
+      // Nothing to describe the bundle with, and a card per member is what this whole
+      // path exists to avoid, so leave it out rather than guess
+      if (!app) {
+        return;
+      }
+
+      const appChartMeta = app.spec?.chart?.metadata;
+      const appAnnotations = appChartMeta?.annotations || {};
+      const originalRepoName = appAnnotations[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME] || app.metadata?.labels?.[CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME];
+      const version = appChartMeta?.version;
+      let originalRepoDisplayName = null;
+
+      if (originalRepoName) {
+        originalRepoDisplayName = this.$store.getters['i18n/withFallback'](`catalog.repo.name."${ originalRepoName }"`, null, originalRepoName);
+      }
+
+      all.push({
+        name:                    bundleName,
+        label:                   appAnnotations[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || appChartMeta?.name || bundleName,
+        description:             appChartMeta?.description || '-',
+        icon:                    appChartMeta?.icon || appAnnotations['catalog.cattle.io/ui-icon'],
+        id:                      `${ bundleName }-${ version }`,
+        versions:                [],
+        displayVersion:          version,
+        displayVersionLabel:     version || '-',
+        isDeveloper:             false,
+        installed:               true,
+        isBundle:                true,
+        bundleMembers:           [pluginCR],
+        installedVersion:        version,
+        installing:              false,
+        builtin:                 false,
+        uiplugin:                pluginCR,
+        originalRepoNameDisplay: originalRepoDisplayName,
+        ...this.extractCertificationFlags(appAnnotations),
+      });
     },
 
     wirePluginCRToChart(pluginCR, all) {
@@ -1234,13 +1324,29 @@ export default {
     },
 
     mergePluginErrors(all) {
+      // A bundle member has no card of its own, so its load error has to land on the
+      // bundle's card - otherwise a broken member leaves no sign on the page at all.
+      // Several members can fail against the same card, so collect before assigning
+      // and name the member, since the card's own title says nothing about which broke.
+      const errorsByCard = {};
+
       Object.keys(this.uiErrors).forEach((errorName) => {
-        const chart = all.find((c) => c.name === errorName);
+        const cardName = this.bundleMembership[errorName] || this.seenBundleMembers[errorName] || errorName;
+        const error = this.uiErrors[errorName];
+        const message = (error && typeof error === 'string') ? this.t(error, null, true) : '';
+
+        errorsByCard[cardName] = errorsByCard[cardName] || [];
+
+        if (message) {
+          errorsByCard[cardName].push(cardName === errorName ? message : `${ errorName }: ${ message }`);
+        }
+      });
+
+      Object.keys(errorsByCard).forEach((cardName) => {
+        const chart = all.find((c) => c.name === cardName);
 
         if (chart) {
-          const error = this.uiErrors[errorName];
-
-          chart.installedError = (error && typeof error === 'string') ? this.t(error, null, true) : '';
+          chart.installedError = errorsByCard[cardName].join(' ');
         }
       });
 

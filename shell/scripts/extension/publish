@@ -195,18 +195,23 @@ fi
 # --------------------------------------------------------------------------------
 BUNDLE_NAME=""
 
-if [[ "${GITHUB_RELEASE_TAG}" == bundle-?*-?* ]]; then
-  BUNDLE_BODY="${GITHUB_RELEASE_TAG#bundle-}"
-  BUNDLE_NAME="${BUNDLE_BODY%-*}"
-  BUNDLE_VERSION="${BUNDLE_BODY##*-}"
+if [[ "${GITHUB_RELEASE_TAG}" == bundle-* ]]; then
+  # Matched whole rather than split on a hyphen, since both the bundle name and a
+  # prerelease version (1.0.0-rc.1) can contain one. Same rule as parse-tag-name.
+  BUNDLE_ENTRY=$(jq -c --arg tag "${GITHUB_RELEASE_TAG}" \
+    '(.rancher.bundles // []) | map(select("bundle-" + .name + "-" + .version == $tag)) | .[0] // empty' ${BASE_DIR}/package.json)
 
-  BUNDLE_MEMBERS=$(jq -r --arg n "${BUNDLE_NAME}" --arg v "${BUNDLE_VERSION}" \
-    '(.rancher.bundles // [])
-     | map(select(.name == $n and .version == $v))[0].packages // []
-     | join(" ")' ${BASE_DIR}/package.json)
+  if [[ -z "${BUNDLE_ENTRY}" ]]; then
+    echo -e "${YELLOW}Release tag ${BOLD}${GITHUB_RELEASE_TAG}${NORMAL} matches no entry in rancher.bundles[]${RESET}"
+    exit 1
+  fi
+
+  BUNDLE_NAME=$(jq -r '.name' <<<"${BUNDLE_ENTRY}")
+  BUNDLE_VERSION=$(jq -r '.version' <<<"${BUNDLE_ENTRY}")
+  BUNDLE_MEMBERS=$(jq -r '(.packages // []) | join(" ")' <<<"${BUNDLE_ENTRY}")
 
   if [[ -z "${BUNDLE_MEMBERS}" ]]; then
-    echo -e "${YELLOW}Release tag ${BOLD}${GITHUB_RELEASE_TAG}${NORMAL} matches no entry in rancher.bundles[]${RESET}"
+    echo -e "${YELLOW}Bundle ${BOLD}${BUNDLE_NAME}${NORMAL} declares no packages${RESET}"
     exit 1
   fi
 
