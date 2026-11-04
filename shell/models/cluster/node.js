@@ -317,14 +317,12 @@ export default class ClusterNode extends SteveModel {
       return false;
     }
 
-    const roles = [NODE_ROLES.ETCD, NODE_ROLES.CONTROL_PLANE, NODE_ROLES.CONTROL_PLANE_OLD, NODE_ROLES.WORKER];
-    const isWorker = NODE_ROLES.WORKER in this.labels || !roles.some((role) => role in this.labels);
+    const serverRoles = [NODE_ROLES.ETCD, NODE_ROLES.CONTROL_PLANE, NODE_ROLES.CONTROL_PLANE_OLD];
+    const isWorker = NODE_ROLES.WORKER in this.labels || !serverRoles.some((role) => role in this.labels);
 
     if (isWorker) {
       return true;
     }
-
-    const serverRoles = [NODE_ROLES.ETCD, NODE_ROLES.CONTROL_PLANE, NODE_ROLES.CONTROL_PLANE_OLD];
 
     return !(this.spec.taints || []).some((taint) => serverRoles.includes(taint.key) && ['NoSchedule', 'NoExecute'].includes(taint.effect));
   }
