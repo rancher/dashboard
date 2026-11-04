@@ -1,6 +1,5 @@
 <script>
-import ConsumptionGauge from '@shell/components/ConsumptionGauge';
-import Card from '@shell/components/Resource/Detail/Card/index.vue';
+import HardwareResourceGauge from '@shell/components/HardwareResourceGauge';
 import Alert from '@shell/components/Alert';
 import ResourceTable from '@shell/components/ResourceTable';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -14,7 +13,7 @@ import {
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import { METRIC, POD } from '@shell/config/types';
 import createEditView from '@shell/mixins/create-edit-view';
-import { formatSi } from '@shell/utils/units';
+import { createMemoryValues } from '@shell/utils/units';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
@@ -32,9 +31,8 @@ export default {
 
   components: {
     Alert,
-    Card,
-    ConsumptionGauge,
     DashboardMetrics,
+    HardwareResourceGauge,
     Loading,
     ResourceTabs,
     Tab,
@@ -152,20 +150,53 @@ export default {
 
     graphVars() {
       return { instance: `${ this.value.internalIp }:9796` };
+    },
+
+    podsUsed() {
+      return { total: this.value.podCapacity, useful: this.value.podConsumed };
+    },
+
+    cpuReserved() {
+      return this.cpuValues(this.value.cpuAllocatable, this.value.cpuReserved);
+    },
+
+    cpuUsed() {
+      return this.value.usage ? this.cpuValues(this.value.cpuCapacity, this.value.cpuUsage) : null;
+    },
+
+    ramReserved() {
+      return this.memoryValues(this.value.ramAllocatable, this.value.ramReserved);
+    },
+
+    ramUsed() {
+      return this.value.usage ? this.memoryValues(this.value.ramCapacity, this.value.ramUsage) : null;
     }
   },
 
   methods: {
+    cpuValues(total, useful) {
+      return {
+        total,
+        useful,
+        units: this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: total })
+      };
+    },
+
+    memoryValues(total, useful) {
+      return {
+        total,
+        useful,
+        formattedTotal:  this.memoryFormatter(total),
+        formattedUseful: this.memoryFormatter(useful)
+      };
+    },
+
     memoryFormatter(value) {
       // Each value is scaled independently, so it has to carry its own unit -
       // a node using 900MiB of 62GiB must not read "900 GiB of 62 GiB".
-      const formatOptions = {
-        increment:   1024,
-        suffix:      'iB',
-        firstSuffix: 'B',
-      };
+      const { useful, units } = createMemoryValues(value, value);
 
-      return formatSi(value, formatOptions);
+      return `${ useful } ${ units === 'iB' ? 'B' : units }`;
     },
 
     mapToStatus(isOk) {
@@ -217,48 +248,22 @@ export default {
       />
     </div>
     <div class="mt-20 resources">
-      <!-- Like the cluster dashboard: reserved is what pods request out of the allocatable, used is the usage of the whole node out of its capacity -->
-      <Card :title="t('node.detail.glance.consumptionGauge.cpu')">
-        <div class="gauges mmb-1">
-          <ConsumptionGauge
-            :capacity="value.cpuAllocatable"
-            :used="value.cpuReserved"
-            :used-label="t('node.detail.glance.consumptionGauge.reserved')"
-            bar-size="small"
-          />
-          <ConsumptionGauge
-            :capacity="value.cpuCapacity"
-            :used="value.cpuUsage"
-            bar-size="small"
-          />
-        </div>
-      </Card>
-      <Card :title="t('node.detail.glance.consumptionGauge.memory')">
-        <div class="gauges mmb-1">
-          <ConsumptionGauge
-            :capacity="value.ramAllocatable"
-            :used="value.ramReserved"
-            :used-label="t('node.detail.glance.consumptionGauge.reserved')"
-            :number-formatter="memoryFormatter"
-            bar-size="small"
-          />
-          <ConsumptionGauge
-            :capacity="value.ramCapacity"
-            :used="value.ramUsage"
-            :number-formatter="memoryFormatter"
-            bar-size="small"
-          />
-        </div>
-      </Card>
-      <Card :title="t('node.detail.glance.consumptionGauge.pods')">
-        <ConsumptionGauge
-          class="mmb-1"
-          :capacity="value.podCapacity"
-          :used="value.podConsumed"
-          :used-label="t('node.detail.glance.consumptionGauge.running')"
-          bar-size="small"
-        />
-      </Card>
+      <!-- The same cards as the cluster dashboard: reserved is what pods request out of the allocatable, used is the usage of the whole node out of its capacity -->
+      <HardwareResourceGauge
+        :name="t('node.detail.glance.consumptionGauge.cpu')"
+        :reserved="cpuReserved"
+        :used="cpuUsed"
+      />
+      <HardwareResourceGauge
+        :name="t('node.detail.glance.consumptionGauge.memory')"
+        :reserved="ramReserved"
+        :used="ramUsed"
+      />
+      <HardwareResourceGauge
+        :name="t('node.detail.glance.consumptionGauge.pods')"
+        :used="podsUsed"
+        :used-title="t('node.detail.glance.consumptionGauge.running')"
+      />
     </div>
     <div class="spacer" />
     <ResourceTabs
@@ -349,11 +354,5 @@ export default {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--gap-md);
-}
-
-.gauges {
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap-lg);
 }
 </style>

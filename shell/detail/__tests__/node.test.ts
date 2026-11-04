@@ -1,7 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import node from '@shell/detail/node.vue';
-import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
-import Card from '@shell/components/Resource/Detail/Card/index.vue';
+import HardwareResourceGauge from '@shell/components/HardwareResourceGauge.vue';
 
 describe('view: node detail', () => {
   const mockStore = {
@@ -27,6 +26,7 @@ describe('view: node detail', () => {
     },
     spec:               { taints: [] },
     pods:               [],
+    usage:              { cpu: '2', memory: '4000' },
     cpuCapacity:        5,
     cpuAllocatable:     4,
     cpuReserved:        3,
@@ -47,117 +47,75 @@ describe('view: node detail', () => {
   function createWrapper(nodeOverrides = {}) {
     return shallowMount(node, {
       props:  { value: { ...defaultNodeValue, ...nodeOverrides } },
-      global: {
-        mocks,
-        // Each gauge lives in a card's default slot, which a stub drops unless told otherwise
-        renderStubDefaultSlot: true,
-      },
+      global: { mocks },
     });
   }
 
-  function findCardByResource(wrapper: ReturnType<typeof createWrapper>, resourceKey: string) {
-    return wrapper.findAllComponents(Card).find((c) => c.props('title')?.includes(resourceKey));
+  function findGauge(wrapper: ReturnType<typeof createWrapper>, resourceKey: string) {
+    return wrapper.findAllComponents(HardwareResourceGauge).find((gauge) => gauge.props('name')?.includes(resourceKey))!;
   }
 
-  function findGaugeByResource(wrapper: ReturnType<typeof createWrapper>, resourceKey: string) {
-    return findCardByResource(wrapper, resourceKey)?.findComponent(ConsumptionGauge);
-  }
-
-  function findGaugesByResource(wrapper: ReturnType<typeof createWrapper>, resourceKey: string) {
-    return findCardByResource(wrapper, resourceKey)?.findAllComponents(ConsumptionGauge) || [];
-  }
-
-  it.each([
-    'consumptionGauge.cpu',
-    'consumptionGauge.memory',
-    'consumptionGauge.pods',
-  ])('should render the %s gauge inside a card titled with its resource name', (resourceKey) => {
+  it('should show the CPU, memory and pods, in that order', () => {
     const wrapper = createWrapper();
 
-    const gauge = findGaugeByResource(wrapper, resourceKey);
-
-    expect(gauge?.exists()).toStrictEqual(true);
+    expect(wrapper.findAllComponents(HardwareResourceGauge).map((gauge) => gauge.props('name'))).toStrictEqual([
+      '%node.detail.glance.consumptionGauge.cpu%',
+      '%node.detail.glance.consumptionGauge.memory%',
+      '%node.detail.glance.consumptionGauge.pods%',
+    ]);
   });
 
-  it.each([
-    'consumptionGauge.cpu',
-    'consumptionGauge.memory',
-    'consumptionGauge.pods',
-  ])('should NOT pass a resource name to the %s gauge, so the card title is not repeated', (resourceKey) => {
-    const wrapper = createWrapper();
+  it('should show the running pods out of the capacity, without reserved', () => {
+    const gauge = findGauge(createWrapper(), 'consumptionGauge.pods');
 
-    const gauge = findGaugeByResource(wrapper, resourceKey);
-
-    expect(gauge!.props('resourceName')).toStrictEqual('');
-  });
-
-  it.each([
-    'consumptionGauge.cpu',
-    'consumptionGauge.memory',
-    'consumptionGauge.pods',
-  ])('should render the %s gauge with a small bar', (resourceKey) => {
-    const wrapper = createWrapper();
-
-    const gauge = findGaugeByResource(wrapper, resourceKey);
-
-    expect(gauge!.props('barSize')).toStrictEqual('small');
-  });
-
-  it('should pass the "running" translation key as usedlabel to the pods ConsumptionGauge', () => {
-    const wrapper = createWrapper();
-
-    const podsGauge = findGaugeByResource(wrapper, 'consumptionGauge.pods');
-
-    expect(podsGauge).toBeDefined();
-    expect(podsGauge!.attributes('usedlabel')).toContain('consumptionGauge.running');
+    expect(gauge.props('used')).toStrictEqual({ total: 110, useful: 5 });
+    expect(gauge.props('usedTitle')).toContain('consumptionGauge.running');
+    expect(gauge.props('reserved')).toBeNull();
   });
 
   // The same as the cluster dashboard: reserved is out of the allocatable, used out of the capacity
-  it.each([
-    ['consumptionGauge.cpu', [[4, 3], [5, 2]]],
-    ['consumptionGauge.memory', [[8000, 6000], [9000, 4000]]],
-  ])('should render the %s reserved gauge, then the used gauge, as [capacity, used] %p', (resourceKey, expected) => {
-    const wrapper = createWrapper();
+  it('should show the reserved CPU out of the allocatable and the used CPU out of the capacity', () => {
+    const gauge = findGauge(createWrapper(), 'consumptionGauge.cpu');
 
-    const gauges = findGaugesByResource(wrapper, resourceKey);
+    expect([gauge.props('reserved')?.total, gauge.props('reserved')?.useful]).toStrictEqual([4, 3]);
+    expect([gauge.props('used')?.total, gauge.props('used')?.useful]).toStrictEqual([5, 2]);
+  });
 
-    expect(gauges.map((gauge) => [gauge.props('capacity'), gauge.props('used')])).toStrictEqual(expected);
+  it('should show the reserved memory out of the allocatable and the used memory out of the capacity', () => {
+    const gauge = findGauge(createWrapper(), 'consumptionGauge.memory');
+
+    expect([gauge.props('reserved')?.total, gauge.props('reserved')?.useful]).toStrictEqual([8000, 6000]);
+    expect([gauge.props('used')?.total, gauge.props('used')?.useful]).toStrictEqual([9000, 4000]);
   });
 
   it.each([
     'consumptionGauge.cpu',
     'consumptionGauge.memory',
-  ])('should label the %s reserved gauge as reserved, and leave the used gauge with the default label', (resourceKey) => {
-    const wrapper = createWrapper();
+  ])('should not show the used %s of a node without metrics, rather than a usage of 0, but still the reserved', (resourceKey) => {
+    const gauge = findGauge(createWrapper({ usage: undefined }), resourceKey);
 
-    const [reserved, used] = findGaugesByResource(wrapper, resourceKey);
-
-    expect([reserved.attributes('usedlabel'), used.attributes('usedlabel')]).toStrictEqual(['%node.detail.glance.consumptionGauge.reserved%', undefined]);
+    expect(gauge.props('used')).toBeNull();
+    expect(gauge.props('reserved')).not.toBeNull();
   });
 
-  describe('memory ConsumptionGauge', () => {
-    // The gauge renders a single unit label, taken from the total. The used and total values are
-    // scaled independently, so a shared label misreports any node whose usage is orders of
-    // magnitude below its capacity - 900MiB of 62GiB would read "900 GiB of 62 GiB".
-    it('should NOT pass a shared units label', () => {
-      const wrapper = createWrapper();
-
-      const memoryGauge = findGaugeByResource(wrapper, 'consumptionGauge.memory');
-
-      expect(memoryGauge!.props('units')).toBe('');
-    });
-
+  describe('memory', () => {
+    // The used and total values are scaled independently, so each carries its own unit -
+    // 900MiB of 62GiB would otherwise read "900 GiB of 62 GiB".
     it.each([
       ['scales each value on its own', 900 * 1024 ** 2, '900 MiB'],
       ['keeps used and total in step when they share a unit', 3.55 * 1024 ** 3, '3.55 GiB'],
       ['reads plain bytes as B rather than iB', 512, '512 B'],
-    ])('should pass a numberFormatter that %s', (_, value, expected) => {
-      const wrapper = createWrapper();
+      ['keeps two decimals like the cluster dashboard, so it adds up with the percentage', 15.42 * 1024 ** 3, '15.42 GiB'],
+    ])('should format the used amount so it %s', (_, ramUsage, expected) => {
+      const gauge = findGauge(createWrapper({ ramUsage }), 'consumptionGauge.memory');
 
-      const memoryGauge = findGaugeByResource(wrapper, 'consumptionGauge.memory');
-      const numberFormatter = memoryGauge!.props('numberFormatter') as (v: number) => string;
+      expect(gauge.props('used')?.formattedUseful).toStrictEqual(expected);
+    });
 
-      expect(numberFormatter(value as number)).toBe(expected);
+    it('should format the totals of used and reserved on their own', () => {
+      const gauge = findGauge(createWrapper({ ramCapacity: 8 * 1024 ** 3, ramAllocatable: 900 * 1024 ** 2 }), 'consumptionGauge.memory');
+
+      expect([gauge.props('used')?.formattedTotal, gauge.props('reserved')?.formattedTotal]).toStrictEqual(['8 GiB', '900 MiB']);
     });
   });
 });

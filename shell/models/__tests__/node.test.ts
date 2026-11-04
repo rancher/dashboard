@@ -54,6 +54,12 @@ describe('class Node', () => {
       expect([node.cpuUsagePercentage, node.ramUsagePercentage]).toStrictEqual(['25', '25']);
     });
 
+    it('should have no usage without metrics', () => {
+      const node = createNode();
+
+      expect([node.usage, node.cpuUsage, node.ramUsage]).toStrictEqual([undefined, 0, 0]);
+    });
+
     it('should sort by the CPU and memory usage out of the capacity', () => {
       const node = createNode({ metrics: { usage: { cpu: '1', memory: '2Gi' } } });
 

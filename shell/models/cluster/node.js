@@ -185,16 +185,23 @@ export default class ClusterNode extends SteveModel {
     return this.status.nodeInfo.kubeletVersion;
   }
 
-  get cpuUsage() {
+  /**
+   * The usage of the whole node, which it only has with metrics, e.g. not without a metrics server or when the node isn't reporting
+   */
+  get usage() {
     /*
       With EKS nodes that have been migrated from norman,
       cpu/memory usage is by the annotation `management.cattle.io/pod-requests`
     */
     if ( this.isFromNorman && this.provider === 'eks' ) {
-      return parseSi(this.podRequests.cpu || '0');
+      return this.podRequests;
     }
 
-    return parseSi(this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage?.cpu || '0');
+    return this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage;
+  }
+
+  get cpuUsage() {
+    return parseSi(this.usage?.cpu || '0');
   }
 
   get cpuAllocatable() {
@@ -221,11 +228,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get ramUsage() {
-    if ( this.isFromNorman && this.provider === 'eks' ) {
-      return parseSi(this.podRequests.memory || '0');
-    }
-
-    return parseSi(this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage?.memory || '0');
+    return parseSi(this.usage?.memory || '0');
   }
 
   get ramCapacity() {
