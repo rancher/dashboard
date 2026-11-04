@@ -1,4 +1,4 @@
-# Bundling Extensions (requires Shell 3.0.15 or greater)
+# Bundling Extensions (requires Shell 3.0.15 or greater + Rancher 2.17 or later)
 
 :::warning
 Bundles require **Rancher 2.17 or later**. Earlier versions can install an umbrella
