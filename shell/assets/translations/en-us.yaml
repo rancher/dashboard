@@ -3062,7 +3062,9 @@ clusterIndexPage:
     pods: Pods
     ram: Memory
     used: Used
+    usedTooltip: The amount in use right now, including by the system, out of the total capacity.
     reserved: Reserved
+    reservedTooltip: The amount pods have requested, out of what is available to pods, which is the total capacity minus what is set aside for the system.
     allocated: Allocated
     units:
       cores: |-

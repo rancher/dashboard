@@ -98,6 +98,16 @@ describe('view: node detail', () => {
     expect(gauge.props('reserved')).not.toBeNull();
   });
 
+  it.each([
+    'consumptionGauge.cpu',
+    'consumptionGauge.memory',
+  ])('should explain used and reserved on the %s gauge', (resourceKey) => {
+    const gauge = findGauge(createWrapper(), resourceKey);
+
+    expect(gauge.props('usedTooltip')).toContain('hardwareResourceGauge.usedTooltip');
+    expect(gauge.props('reservedTooltip')).toContain('hardwareResourceGauge.reservedTooltip');
+  });
+
   describe('memory', () => {
     // The used and total values are scaled independently, so each carries its own unit -
     // 900MiB of 62GiB would otherwise read "900 GiB of 62 GiB".

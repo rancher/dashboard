@@ -731,12 +731,16 @@ export default {
         :name="t('clusterIndexPage.hardwareResourceGauge.cores')"
         :reserved="cpuReserved"
         :used="cpuUsed"
+        :used-tooltip="t('clusterIndexPage.hardwareResourceGauge.usedTooltip')"
+        :reserved-tooltip="t('clusterIndexPage.hardwareResourceGauge.reservedTooltip')"
         :units="cpuReserved.units"
       />
       <HardwareResourceGauge
         :name="t('clusterIndexPage.hardwareResourceGauge.ram')"
         :reserved="ramReserved"
         :used="ramUsed"
+        :used-tooltip="t('clusterIndexPage.hardwareResourceGauge.usedTooltip')"
+        :reserved-tooltip="t('clusterIndexPage.hardwareResourceGauge.reservedTooltip')"
         :units="ramReserved.units"
       />
     </div>

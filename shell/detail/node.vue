@@ -253,11 +253,15 @@ export default {
         :name="t('node.detail.glance.consumptionGauge.cpu')"
         :reserved="cpuReserved"
         :used="cpuUsed"
+        :used-tooltip="t('clusterIndexPage.hardwareResourceGauge.usedTooltip')"
+        :reserved-tooltip="t('clusterIndexPage.hardwareResourceGauge.reservedTooltip')"
       />
       <HardwareResourceGauge
         :name="t('node.detail.glance.consumptionGauge.memory')"
         :reserved="ramReserved"
         :used="ramUsed"
+        :used-tooltip="t('clusterIndexPage.hardwareResourceGauge.usedTooltip')"
+        :reserved-tooltip="t('clusterIndexPage.hardwareResourceGauge.reservedTooltip')"
       />
       <HardwareResourceGauge
         :name="t('node.detail.glance.consumptionGauge.pods')"
