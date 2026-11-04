@@ -1,10 +1,11 @@
 import { shallowMount } from '@vue/test-utils';
 import ProjectHelmChartList from '@shell/list/helm.cattle.io.projecthelmchart.vue';
+import ResourceTable from '@shell/components/ResourceTable';
 import { HELM } from '@shell/config/types';
 
 const creatableSchema = { id: HELM.PROJECTHELMCHART, collectionMethods: ['GET', 'POST'] };
 
-const mountList = async(federatorMissing: boolean) => {
+const mountList = async(federatorMissing: boolean, rows: object[] = []) => {
   const wrapper = shallowMount(ProjectHelmChartList, {
     props:  { resource: HELM.PROJECTHELMCHART },
     global: {
@@ -17,7 +18,7 @@ const mountList = async(federatorMissing: boolean) => {
             'type-map/optionsFor':        () => ({}),
             'type-map/headersFor':        () => [],
             currentStore:                 () => 'cluster',
-            'cluster/all':                () => [],
+            'cluster/all':                () => rows,
             'cluster/schemaFor':          () => creatableSchema,
             'cluster/haveAll':            () => true,
             'cluster/haveSelector':       () => false,
@@ -34,7 +35,7 @@ const mountList = async(federatorMissing: boolean) => {
     },
   });
 
-  await wrapper.setData({ projectHelmChartSchema: creatableSchema });
+  await wrapper.setData({ projectHelmChartSchema: creatableSchema, fetchedResourceType: [{ type: HELM.PROJECTHELMCHART, currStore: 'cluster' }] });
 
   return wrapper;
 };
@@ -45,6 +46,16 @@ describe('list: helm.cattle.io.projecthelmchart', () => {
 
     expect(wrapper.vm.canCreateProjectHelmChart).toBe(false);
     expect(wrapper.find('[data-testid="project-monitoring-federator-not-installed"]').exists()).toBe(true);
+  });
+
+  it('should still list the project monitors left behind when the federator is not installed', async() => {
+    const rows = [{ id: 'cattle-project-p-abc/monitor' }];
+    const wrapper = await mountList(true, rows);
+
+    expect(wrapper.vm.canCreateProjectHelmChart).toBe(false);
+    expect(wrapper.find('[data-testid="project-monitoring-federator-not-installed"]').exists()).toBe(true);
+    expect(wrapper.findComponent(ResourceTable).props('rows')).toStrictEqual(rows);
+    expect(wrapper.find('.empty-list').exists()).toBe(false);
   });
 
   it('should offer to create a project monitor when the federator is installed', async() => {

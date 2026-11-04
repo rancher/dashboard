@@ -79,6 +79,25 @@ describe('edit: helm.cattle.io.projecthelmchart', () => {
     expect(wrapper.find('[data-testid="project-monitoring-federator-not-installed"]').exists()).toBe(false);
   });
 
+  it.each([
+    ['find returns nothing', undefined],
+    ['the config map has no content', { data: {} }],
+    ['the config map content is malformed', { data: { 'system-namespaces.json': '{' } }],
+  ])('should show the error instead of reporting the federator as missing when %s', async(_label, configMap) => {
+    const store = createStore(false, () => Promise.resolve(configMap));
+    const wrapper = mountProjectHelmChart(store);
+
+    await wrapper.vm.$options.fetch.call(wrapper.vm);
+    await flushPromises();
+
+    expect(store.commit).not.toHaveBeenCalledWith('federatorMissing', true);
+    expect(store.dispatch).not.toHaveBeenCalledWith('catalog/load');
+    expect(wrapper.vm.loading).toBe(false);
+    expect(wrapper.find('[data-testid="project-monitoring-federator-fetch-failed"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="project-monitoring-federator-not-installed"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="project-monitoring-form"]').exists()).toBe(false);
+  });
+
   it('should show the form when the federator is installed', async() => {
     const store = createStore(true, () => Promise.resolve(systemNamespacesConfigMap));
     const wrapper = mountProjectHelmChart(store);

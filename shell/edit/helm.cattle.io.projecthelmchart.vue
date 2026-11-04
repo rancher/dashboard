@@ -35,25 +35,21 @@ export default {
   },
 
   async fetch() {
-    let federatorSystemNamespacesConfigMap;
-
     try {
-      federatorSystemNamespacesConfigMap = await this.$store.dispatch('cluster/find', {
+      const federatorSystemNamespacesConfigMap = await this.$store.dispatch('cluster/find', {
         type: CONFIG_MAP, id: PROMETHEUS_FEDERATOR_SYSTEM_NAMESPACES_CONFIG_MAP, opt: { force: true, watch: false }
       });
+
+      // The request worked, even if `find` returns nothing because a page of config maps landed during it
+      this.$store.commit('federatorMissing', false);
+      this.systemNamespaces = JSON.parse(federatorSystemNamespacesConfigMap?.data?.['system-namespaces.json']);
     } catch (e) {
       // Only a 404 shows the federator isn't installed
-      if (e?.status !== 404) {
+      if (e?.status === 404) {
+        this.$store.commit('federatorMissing', true);
+      } else {
         this.fetchError = stringify(e);
-        this.loading = false;
-
-        return;
       }
-    }
-
-    this.$store.commit('federatorMissing', !federatorSystemNamespacesConfigMap);
-
-    if (!federatorSystemNamespacesConfigMap) {
       this.loading = false;
 
       return;
@@ -61,8 +57,6 @@ export default {
 
     await this.$store.dispatch('catalog/load');
     const inStore = this.$store.getters['currentStore'](NAMESPACE);
-
-    this.systemNamespaces = JSON.parse(federatorSystemNamespacesConfigMap?.data?.['system-namespaces.json']);
 
     this.namespaces = this.$store.getters[`${ inStore }/all`](NAMESPACE)
       .filter(this.namespaceFilter)
