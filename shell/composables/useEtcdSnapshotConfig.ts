@@ -3,7 +3,7 @@ import { useStore } from 'vuex';
 import isEmpty from 'lodash/isEmpty';
 import { useI18n } from '@shell/composables/useI18n';
 import { _VIEW } from '@shell/config/query-params';
-import { isValidCronSchedule } from '@shell/utils/validators/cron-schedule';
+import { isValidEtcdSnapshotSchedule } from '@shell/utils/validators/etcd-snapshot-schedule';
 
 export interface EtcdSnapshotS3 {
   bucket?: string;
@@ -61,7 +61,7 @@ export function useEtcdSnapshotConfig(props: EtcdSnapshotConfigProps, emit: Etcd
   ]);
 
   const cronScheduleRules = computed<((schedule?: string) => string | undefined)[]>(() => (props.mode === _VIEW ? [] : [
-    (schedule?: string) => (schedule && !isValidCronSchedule(schedule) ? t('cluster.rke2.etcd.snapshotScheduleCron.validationError') : undefined),
+    (schedule?: string) => (schedule && !isValidEtcdSnapshotSchedule(schedule) ? t('cluster.rke2.etcd.snapshotScheduleCron.validationError') : undefined),
   ]));
   const s3ConfigValid = ref(true);
   const snapshotConfigValid = computed(() => {

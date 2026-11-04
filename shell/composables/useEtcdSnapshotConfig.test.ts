@@ -34,8 +34,11 @@ describe('composable: useEtcdSnapshotConfig', () => {
     it.each([
       ['an invalid cron schedule', INVALID_CRON, false],
       ['an out of range cron schedule', '60 * * * *', false],
+      ['a day of week of 7', '0 0 * * 7', false],
       ['a valid cron schedule', '0 */5 * * *', true],
       ['a predefined schedule', '@daily', true],
+      ['an @every schedule', '@every 6h', true],
+      ['a schedule with a timezone', 'CRON_TZ=UTC 0 0 * * *', true],
       ['an empty cron schedule', '', true],
       ['no cron schedule', undefined, true],
     ])('should report %s (%p) as valid: %p', (_, snapshotScheduleCron, valid) => {
