@@ -6,7 +6,6 @@ import {
   RESTART,
   NAME_UNLINKED,
 } from '@shell/config/table-headers';
-import { getVendor } from '@shell/config/private-label';
 
 export const NAME = 'settings';
 
@@ -155,18 +154,12 @@ export function init(store) {
     canYaml:     true,
   });
 
-  // Change the restart header to 'Restart <VENDOR>' so that it is clearer what is being restarted
-  const t = store.getters['i18n/t'];
-
+  // The restart column label includes the vendor, which is resolved in the list component (the brand isn't known yet here)
   headers(MANAGEMENT.FEATURE, [
     STATE,
     NAME_UNLINKED,
     FEATURE_DESCRIPTION,
-    {
-      ...RESTART,
-      labelKey: undefined,
-      label:    t('tableHeaders.restartSystem', { vendor: getVendor() })
-    }
+    RESTART
   ]);
 
   hideBulkActions(MANAGEMENT.FEATURE, true);

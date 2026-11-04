@@ -3,6 +3,8 @@ import { mapGetters } from 'vuex';
 import ResourceTable from '@shell/components/ResourceTable';
 import { MANAGEMENT } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import { RESTART } from '@shell/config/table-headers';
+import { getVendor } from '@shell/config/private-label';
 
 const hideFeatureFlags = [
   'fleet', // Note - this is the id of the ff we want, not sure what FLEET in store/features is
@@ -42,6 +44,17 @@ export default {
       return this.rows.filter((x) => hideFeatureFlags.indexOf(x.metadata.name) === -1);
     },
 
+    headers() {
+      const headers = this.$store.getters['type-map/headersFor'](this.schema, false) || [];
+
+      // The vendor depends on the brand setting, so resolve the label at render time
+      return headers.map((h) => (h.name === RESTART.name ? {
+        ...h,
+        labelKey: undefined,
+        label:    this.t('tableHeaders.restartSystem', { vendor: getVendor() })
+      } : h));
+    },
+
     enableRowActions() {
       const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.FEATURE);
 
@@ -60,6 +73,7 @@ export default {
   <div>
     <ResourceTable
       :schema="schema"
+      :headers="headers"
       :rows="filteredRows"
       :row-actions="enableRowActions"
       :loading="loading"
