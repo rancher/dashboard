@@ -10,6 +10,7 @@ import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import jsyaml from 'js-yaml';
 import { PROMETHEUS_FEDERATOR_SYSTEM_NAMESPACES_CONFIG_MAP } from '@shell/utils/monitoring';
+import { stringify } from '@shell/utils/error';
 
 export default {
   components: {
@@ -40,10 +41,17 @@ export default {
       federatorSystemNamespacesConfigMap = await this.$store.dispatch('cluster/find', {
         type: CONFIG_MAP, id: PROMETHEUS_FEDERATOR_SYSTEM_NAMESPACES_CONFIG_MAP, opt: { force: true, watch: false }
       });
-    } catch (e) { // a 404 means the federator isn't installed
+    } catch (e) {
+      // Only a 404 shows the federator isn't installed
+      if (e?.status !== 404) {
+        this.fetchError = stringify(e);
+        this.loading = false;
+
+        return;
+      }
     }
 
-    this.$store.commit('hasPrometheusFederator', !!federatorSystemNamespacesConfigMap);
+    this.$store.commit('federatorMissing', !federatorSystemNamespacesConfigMap);
 
     if (!federatorSystemNamespacesConfigMap) {
       this.loading = false;
@@ -72,6 +80,7 @@ export default {
       systemNamespaces:           null,
       namespaces:                 [],
       loading:                    true,
+      fetchError:                 null,
       inStore:                    this.$store.getters['currentStore'](),
       selectedNamespaceQuestions: null,
     };
@@ -103,8 +112,8 @@ export default {
   },
 
   computed: {
-    hasPrometheusFederator() {
-      return this.$store.getters['hasPrometheusFederator'];
+    federatorMissing() {
+      return this.$store.getters['federatorMissing'];
     },
 
     currentNamespace() {
@@ -136,7 +145,13 @@ export default {
 <template>
   <Loading v-if="loading" />
   <Banner
-    v-else-if="!hasPrometheusFederator"
+    v-else-if="fetchError"
+    color="error"
+    :label="t('monitoring.projectMonitoring.federatorFetchFailed', { message: fetchError }, true)"
+    data-testid="project-monitoring-federator-fetch-failed"
+  />
+  <Banner
+    v-else-if="federatorMissing"
     color="warning"
     :label="t('monitoring.projectMonitoring.federatorNotInstalled')"
     data-testid="project-monitoring-federator-not-installed"

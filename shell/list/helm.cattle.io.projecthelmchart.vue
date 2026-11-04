@@ -56,12 +56,12 @@ export default {
     };
   },
   computed: {
-    hasPrometheusFederator() {
-      return this.$store.getters['hasPrometheusFederator'];
+    federatorMissing() {
+      return this.$store.getters['federatorMissing'];
     },
 
     canCreateProjectHelmChart() {
-      return this.hasPrometheusFederator && !!(this?.projectHelmChartSchema?.collectionMethods || []).find((method) => method.toLowerCase() === 'post');
+      return !this.federatorMissing && !!(this?.projectHelmChartSchema?.collectionMethods || []).find((method) => method.toLowerCase() === 'post');
     }
 
   }
@@ -83,7 +83,7 @@ export default {
       :label="t('monitoring.projectMonitoring.list.banner')"
     />
     <Banner
-      v-if="!hasPrometheusFederator"
+      v-if="federatorMissing"
       color="warning"
       :label="t('monitoring.projectMonitoring.federatorNotInstalled')"
       data-testid="project-monitoring-federator-not-installed"
@@ -105,7 +105,7 @@ export default {
           {{ t('monitoring.projectMonitoring.list.empty.canCreate') }}
         </div>
         <div
-          v-else-if="hasPrometheusFederator"
+          v-else-if="!federatorMissing"
           class="text-large"
         >
           {{ t('monitoring.projectMonitoring.list.empty.cannotCreate') }}

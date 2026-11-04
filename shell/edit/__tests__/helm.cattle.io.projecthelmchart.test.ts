@@ -7,7 +7,7 @@ import { PROMETHEUS_FEDERATOR_SYSTEM_NAMESPACES_CONFIG_MAP } from '@shell/utils/
 
 const systemNamespacesConfigMap = { data: { 'system-namespaces.json': '{"projectReleaseLabelValue": "p-system", "systemProjectLabelValues": []}' } };
 
-const createStore = (hasPrometheusFederator: boolean, find: () => Promise<any>) => {
+const createStore = (federatorMissing: boolean, find: () => Promise<any>) => {
   const store = {
     getters: {
       'i18n/t':      (text: string) => text,
@@ -15,12 +15,12 @@ const createStore = (hasPrometheusFederator: boolean, find: () => Promise<any>) 
       t:             (text: string) => text,
       currentStore:  () => 'cluster',
       'cluster/all': () => [],
-      hasPrometheusFederator,
+      federatorMissing,
     },
     dispatch: jest.fn((action: string) => (action === 'cluster/find' ? find() : Promise.resolve())),
     commit:   jest.fn((mutation: string, value: boolean) => {
-      if (mutation === 'hasPrometheusFederator') {
-        store.getters.hasPrometheusFederator = value;
+      if (mutation === 'federatorMissing') {
+        store.getters.federatorMissing = value;
       }
     }),
   };
@@ -43,20 +43,44 @@ const mountProjectHelmChart = ($store: ReturnType<typeof createStore>) => shallo
 
 describe('edit: helm.cattle.io.projecthelmchart', () => {
   it('should show a warning instead of loading forever when the federator has been uninstalled', async() => {
-    const store = createStore(true, () => Promise.reject(new Error('404')));
+    const store = createStore(false, () => Promise.reject(Object.assign(new Error('Not Found'), { status: 404 })));
     const wrapper = mountProjectHelmChart(store);
 
     await wrapper.vm.$options.fetch.call(wrapper.vm);
     await flushPromises();
 
-    expect(store.commit).toHaveBeenCalledWith('hasPrometheusFederator', false);
+    expect(store.commit).toHaveBeenCalledWith('federatorMissing', true);
     expect(store.dispatch).not.toHaveBeenCalledWith('catalog/load');
     expect(wrapper.find('[data-testid="project-monitoring-federator-not-installed"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="project-monitoring-form"]').exists()).toBe(false);
   });
 
+  it.each([403, 500])('should show the error and leave the flag alone when the config map request fails with a %p', async(status) => {
+    const store = createStore(false, () => Promise.reject(Object.assign(new Error('Failed'), { status })));
+    const wrapper = mountProjectHelmChart(store);
+
+    await wrapper.vm.$options.fetch.call(wrapper.vm);
+    await flushPromises();
+
+    expect(store.commit).not.toHaveBeenCalledWith('federatorMissing', expect.anything());
+    expect(wrapper.find('[data-testid="project-monitoring-federator-fetch-failed"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="project-monitoring-federator-not-installed"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="project-monitoring-form"]').exists()).toBe(false);
+  });
+
+  it('should show the error rather than an earlier not installed result', async() => {
+    const store = createStore(true, () => Promise.reject(Object.assign(new Error('Failed'), { status: 500 })));
+    const wrapper = mountProjectHelmChart(store);
+
+    await wrapper.vm.$options.fetch.call(wrapper.vm);
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="project-monitoring-federator-fetch-failed"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="project-monitoring-federator-not-installed"]').exists()).toBe(false);
+  });
+
   it('should show the form when the federator is installed', async() => {
-    const store = createStore(false, () => Promise.resolve(systemNamespacesConfigMap));
+    const store = createStore(true, () => Promise.resolve(systemNamespacesConfigMap));
     const wrapper = mountProjectHelmChart(store);
 
     await wrapper.vm.$options.fetch.call(wrapper.vm);
@@ -65,7 +89,7 @@ describe('edit: helm.cattle.io.projecthelmchart', () => {
     expect(store.dispatch).toHaveBeenCalledWith('cluster/find', {
       type: CONFIG_MAP, id: PROMETHEUS_FEDERATOR_SYSTEM_NAMESPACES_CONFIG_MAP, opt: { force: true, watch: false }
     });
-    expect(store.commit).toHaveBeenCalledWith('hasPrometheusFederator', true);
+    expect(store.commit).toHaveBeenCalledWith('federatorMissing', false);
     expect(wrapper.find('[data-testid="project-monitoring-federator-not-installed"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="project-monitoring-form"]').exists()).toBe(true);
   });

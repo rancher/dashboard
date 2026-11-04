@@ -538,9 +538,10 @@ export interface DSLReturnType {
   /**
    * Never show the specified type in the navigation
    * @param regexOrString String, string for a regex or a regex object to match against type names
+   * @param fn Conditional function that accepts getters and returns true if the type should be ignored
    * @returns {@link void}
    */
-  ignoreType: (regexOrString: string | RegExp) => void;
+  ignoreType: (regexOrString: string | RegExp, fn?: (getters: any) => boolean) => void;
 
   /**
    * Never show the specified group or any types in it

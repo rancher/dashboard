@@ -67,7 +67,7 @@
 //   group,                   -- Group to show
 //   asLabel                  -- Label to display the group as; false-y for top-level.
 // )
-// ignoreType(type)           Never show type
+// ignoreType(type, [fn])     Never show type, or only while fn(getters) returns true
 // weightType(                Set the weight (sorting) order of one or more types
 //   typeOrArrayOfTypes,
 //   weight,                  -- Higher numbers are shown first/higher up on the nav tree
@@ -222,7 +222,6 @@ export const IF_HAVE = {
   ADMIN:                      'admin-user',
   MCM_DISABLED:               'mcm-disabled',
   NOT_STANDALONE_HARVESTER:   'not-standalone-harvester',
-  PROMETHEUS_FEDERATOR:       'prometheus-federator',
   // Show if the user can access cluster OR project role template bindings, so a project-only
   // member can reach the "Cluster and Project Members" nav, not just cluster-level ones.
   CLUSTER_OR_PROJECT_MEMBERS: 'cluster-or-project-members',
@@ -312,8 +311,8 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/componentForType`, { match, replace });
     },
 
-    ignoreType(regexOrString) {
-      store.commit(`${ module }/ignoreType`, regexOrString);
+    ignoreType(regexOrString, cb) {
+      store.commit(`${ module }/ignoreType`, { regexOrString, cb });
     },
 
     ignoreGroup(regexOrString, cb) {
@@ -1447,7 +1446,9 @@ export const getters = {
 
       if ( !out ) {
         for ( const rule of state.typeIgnore ) {
-          if ( schema.id.match(stringToRegex(rule)) ) {
+          const type = isObject(rule) ? rule.type : rule;
+
+          if ( schema.id.match(stringToRegex(type)) && (!rule.cb || rule.cb(rootGetters)) ) {
             out = true;
             break;
           }
@@ -1745,9 +1746,13 @@ export const mutations = {
     }) : state.groupIgnore.push(regexToString(match));
   },
 
-  ignoreType(state, match) {
+  ignoreType(state, { regexOrString: match, cb }) {
     match = ensureRegex(match);
-    state.typeIgnore.push(regexToString(match));
+    // State shouldn't contain actual RegExp objects, because they don't serialize
+    cb ? state.typeIgnore.push({
+      type: regexToString(match),
+      cb
+    }) : state.typeIgnore.push(regexToString(match));
   },
 
   groupBy(state, { type, field }) {
@@ -2076,9 +2081,6 @@ function ifHave(getters, option) {
   }
   case IF_HAVE.NOT_STANDALONE_HARVESTER: { // Not used by harvester extension...
     return !getters['isStandaloneHarvester'];
-  }
-  case IF_HAVE.PROMETHEUS_FEDERATOR: {
-    return getters['hasPrometheusFederator'];
   }
   case IF_HAVE.CLUSTER_OR_PROJECT_MEMBERS: {
     // Reachable if the user can access EITHER cluster OR project role template bindings.

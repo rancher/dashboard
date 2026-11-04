@@ -259,7 +259,7 @@ export const state = () => {
     systemNamespaces:        [],
     isSingleProduct:         undefined,
     isRancherInHarvester:    false,
-    hasPrometheusFederator:  false,
+    federatorMissing:        false,
     targetRoute:             null,
     rootProduct:             undefined,
     $router:                 markRaw({}),
@@ -568,10 +568,11 @@ export const getters = {
   },
 
   /**
-   * Kept outside the resource cache, which may hold a page of config maps without the federator's one
+   * The ProjectHelmChart schema is there but the federator's config map isn't. Kept outside the resource cache, which
+   * may hold a page of config maps without the federator's one
    */
-  hasPrometheusFederator(state) {
-    return state.hasPrometheusFederator;
+  federatorMissing(state) {
+    return state.federatorMissing;
   },
 
   isVirtualCluster(state, getters) {
@@ -636,8 +637,8 @@ export const mutations = {
     state.isRancherInHarvester = neu;
   },
 
-  hasPrometheusFederator(state, neu) {
-    state.hasPrometheusFederator = neu;
+  federatorMissing(state, neu) {
+    state.federatorMissing = neu;
   },
 
   /**
@@ -1103,13 +1104,14 @@ export const actions = {
       counts:     dispatch('cluster/findAll', { type: COUNT }),
       namespaces: dispatch('cluster/findAll', { type: NAMESPACE }),
       navLinks:   !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
-      // A 404 just means the federator isn't installed
+      // Only a 404 shows the federator isn't installed. A 403 can also mean the chart's rbac.subjects were narrowed
       federator:  !!getters['cluster/schemaFor'](HELM.PROJECTHELMCHART) && dispatch('cluster/find', {
         type: CONFIG_MAP, id: PROMETHEUS_FEDERATOR_SYSTEM_NAMESPACES_CONFIG_MAP, opt: { watch: false }
-      }).catch(() => null),
+      }).catch((e) => (e?.status === 404 ? null : undefined)),
     });
 
-    commit('hasPrometheusFederator', !!res.federator);
+    // Without the schema nothing was fetched, and it arriving later is what shows the federator was installed
+    commit('federatorMissing', res.federator === null);
 
     await dispatch('cleanNamespaces');
 

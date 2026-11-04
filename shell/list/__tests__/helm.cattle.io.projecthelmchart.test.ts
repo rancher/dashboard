@@ -4,7 +4,7 @@ import { HELM } from '@shell/config/types';
 
 const creatableSchema = { id: HELM.PROJECTHELMCHART, collectionMethods: ['GET', 'POST'] };
 
-const mountList = async(hasPrometheusFederator: boolean) => {
+const mountList = async(federatorMissing: boolean) => {
   const wrapper = shallowMount(ProjectHelmChartList, {
     props:  { resource: HELM.PROJECTHELMCHART },
     global: {
@@ -24,7 +24,7 @@ const mountList = async(hasPrometheusFederator: boolean) => {
             'cluster/havePage':           () => false,
             'cluster/count':              () => 0,
             'resource-fetch/refreshFlag': false,
-            hasPrometheusFederator,
+            federatorMissing,
           },
           dispatch: jest.fn(),
         },
@@ -41,14 +41,14 @@ const mountList = async(hasPrometheusFederator: boolean) => {
 
 describe('list: helm.cattle.io.projecthelmchart', () => {
   it('should not offer to create a project monitor when the federator is not installed', async() => {
-    const wrapper = await mountList(false);
+    const wrapper = await mountList(true);
 
     expect(wrapper.vm.canCreateProjectHelmChart).toBe(false);
     expect(wrapper.find('[data-testid="project-monitoring-federator-not-installed"]').exists()).toBe(true);
   });
 
   it('should offer to create a project monitor when the federator is installed', async() => {
-    const wrapper = await mountList(true);
+    const wrapper = await mountList(false);
 
     expect(wrapper.vm.canCreateProjectHelmChart).toBe(true);
     expect(wrapper.find('[data-testid="project-monitoring-federator-not-installed"]').exists()).toBe(false);
