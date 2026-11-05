@@ -725,6 +725,20 @@ BODY, .theme-light {
   --rc-none: #{$gray004};
   --rc-none-secondary: #{$gray002};
 
+  --rc-bar-status-error: var(--error);
+  --rc-bar-status-warning: var(--warning);
+  --rc-bar-status-unknown: #BCC0D1;
+  --rc-bar-status-info: var(--info);
+  --rc-bar-status-success: var(--success);
+
+  --rc-bar-severity-critical: #A30000;
+  --rc-bar-severity-high: #E03231;
+  --rc-bar-severity-medium: #FD8D0D;
+  --rc-bar-severity-low: #FADA38;
+  --rc-bar-severity-none: #C3C6D5;
+
+  --rc-bar-track: #DDDEE7;
+
   --rc-primary-hover: #{$primary-120};
 
   --rc-active-background: #{$gray003};
