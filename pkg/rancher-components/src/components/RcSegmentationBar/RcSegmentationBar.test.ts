@@ -41,7 +41,7 @@ describe('component: RcSegmentationBar', () => {
     mockTranslate.mockImplementation(translateSegment);
   });
 
-  it('renders one element per visible segment', () => {
+  it('renders one element per segment', () => {
     const wrapper = mountBar();
 
     expect(wrapper.findAll('.segment')).toHaveLength(3);
@@ -68,12 +68,28 @@ describe('component: RcSegmentationBar', () => {
     ['NaN', NaN],
     ['infinite', Infinity],
     ['negative infinite', -Infinity],
-  ])('does not render a segment with a %s value', (_label, value) => {
+  ])('gives a segment with a %s value no width', (_label, value) => {
     const wrapper = mountBar({ segments: [segment(4), segment(value, 'error', 'Error')] });
 
-    expect(wrapper.findAll('.segment')).toHaveLength(1);
-    expect(wrapper.find('[data-testid="rc-segmentation-bar-segment-1"]').exists()).toBe(false);
-    expect(growValues(wrapper)).toStrictEqual([100]);
+    expect(growValues(wrapper)).toStrictEqual([100, 0]);
+  });
+
+  it.each([
+    ['zero', 0, true],
+    ['positive', 2, false],
+  ])('marks a segment with a %s value as empty: %s', (_label, value, empty) => {
+    const wrapper = mountBar({ segments: [segment(4), segment(value, 'error', 'Error')] });
+
+    expect(wrapper.find('[data-testid="rc-segmentation-bar-segment-1"]').classes('empty')).toBe(empty);
+  });
+
+  it('keeps the same element when a segment changes to and from zero', async() => {
+    const wrapper = mountBar({ segments: [segment(4), segment(0, 'error', 'Error')] });
+    const element = wrapper.find('[data-testid="rc-segmentation-bar-segment-1"]').element;
+
+    await wrapper.setProps({ segments: [segment(4), segment(4, 'error', 'Error')] });
+
+    expect(wrapper.find('[data-testid="rc-segmentation-bar-segment-1"]').element).toBe(element);
   });
 
   it.each([
@@ -136,7 +152,7 @@ describe('component: RcSegmentationBar', () => {
   ] as [string, RcSegment[]][])('renders an empty bar hidden from assistive technology when there are %s', (_label, segments) => {
     const wrapper = mountBar({ segments });
 
-    expect(wrapper.findAll('.segment')).toHaveLength(0);
+    expect(wrapper.findAll('.segment:not(.empty)')).toHaveLength(0);
     expect(wrapper.attributes('role')).toBeUndefined();
     expect(wrapper.attributes('aria-label')).toBeUndefined();
     expect(wrapper.attributes('aria-hidden')).toBe('true');

@@ -28,15 +28,18 @@ const props = withDefaults(defineProps<RcSegmentationBarProps>(), {
 const store = useStore();
 const { t } = useI18n(store);
 
-const visibleSegments = computed(() => {
-  const segments = props.segments
-    .map((segment, index) => ({ ...segment, index }))
-    .filter(({ value }) => Number.isFinite(value) && value > 0);
-  const largest = Math.max(...segments.map(({ value }) => value));
-  const total = segments.reduce((sum, { value }) => sum + value / largest, 0);
+const renderedSegments = computed(() => {
+  const segments = props.segments.map((segment, index) => ({
+    ...segment, index, visible: Number.isFinite(segment.value) && segment.value > 0
+  }));
+  const visible = segments.filter(({ visible }) => visible);
+  const largest = Math.max(...visible.map(({ value }) => value));
+  const total = visible.reduce((sum, { value }) => sum + value / largest, 0);
 
-  return segments.map((segment) => ({ ...segment, share: (segment.value / largest / total) * 100 }));
+  return segments.map((segment) => ({ ...segment, share: segment.visible ? (segment.value / largest / total) * 100 : 0 }));
 });
+
+const visibleSegments = computed(() => renderedSegments.value.filter(({ visible }) => visible));
 
 const summary = computed(() => {
   const locale = store?.getters?.['i18n/current']?.();
@@ -67,9 +70,10 @@ const accessibleName = computed(() => props.ariaLabel || summary.value);
     :aria-hidden="accessibleName ? undefined : 'true'"
   >
     <div
-      v-for="segment in visibleSegments"
+      v-for="segment in renderedSegments"
       :key="segment.index"
       class="segment"
+      :class="{ empty: !segment.visible }"
       :data-testid="`rc-segmentation-bar-segment-${ segment.index }`"
       :style="{ flexGrow: segment.share, '--segment-color': barColorValue(segment.color) }"
     />
@@ -79,7 +83,6 @@ const accessibleName = computed(() => props.ariaLabel || summary.value);
 <style lang="scss" scoped>
 .rc-segmentation-bar {
   display: flex;
-  gap: 1px;
   width: 100%;
   height: 4px;
   border-radius: 4px;
@@ -93,11 +96,23 @@ const accessibleName = computed(() => props.ariaLabel || summary.value);
 .segment {
   flex-shrink: 1;
   flex-basis: 0;
-  min-width: 1px;
+  min-width: 0;
   background-color: var(--segment-color);
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition: flex-grow 0.3s ease, margin-inline-start 0.3s ease, min-width 0.3s ease;
+  }
 
   @media (forced-colors: active) {
     forced-color-adjust: none;
+  }
+
+  &:not(.empty) {
+    min-width: 1px;
+  }
+
+  &:not(.empty) ~ &:not(.empty) {
+    margin-inline-start: 1px;
   }
 }
 </style>

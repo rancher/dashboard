@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { RcProgressBar } from '@components/RcProgressBar';
 import { RC_PROGRESS_BAR_SIZES } from '@components/RcProgressBar/types';
 import { BarSeverityColors, BarStatusColors } from '@components/utils/barColors';
@@ -10,7 +11,8 @@ const codeList = (names: string[]) => names.map((name) => `\`${ name }\``).join(
 const meta: Meta<typeof RcProgressBar> = {
   component:  RcProgressBar,
   parameters: {
-    docs: {
+    controls: { matchers: { color: /^$/ } },
+    docs:     {
       description: {
         component: `A horizontal bar showing how far a value has progressed between \`min\` and \`max\`, filled from the left.
 
@@ -188,6 +190,44 @@ export const CustomColor: Story = {
       description: { story: 'Blue is the default, but the fill can use any named palette color or a CSS custom property, depending on context.' },
       canvas:      { sourceState: 'shown' },
       source:      { code: colorTemplate },
+    },
+  },
+};
+
+const progressSteps = [10, 33, 75, 100];
+
+const transitionsTemplate = `<div style="width: 300px;">
+  <RcProgressBar size="medium" :value="value" aria-label="Upgrade progress" />
+</div>`;
+
+export const Transitions: Story = {
+  tags:   ['!autodocs'],
+  render: () => ({
+    components: { RcProgressBar },
+    setup() {
+      const value = ref(progressSteps[0]);
+      let timer: ReturnType<typeof setInterval>;
+
+      onMounted(() => {
+        let step = 0;
+
+        timer = setInterval(() => {
+          step = (step + 1) % progressSteps.length;
+          value.value = progressSteps[step];
+        }, 1500);
+      });
+
+      onUnmounted(() => clearInterval(timer));
+
+      return { value };
+    },
+    template: transitionsTemplate,
+  }),
+  parameters: {
+    controls: { disable: true },
+    docs:     {
+      canvas: { sourceState: 'shown' },
+      source: { code: transitionsTemplate },
     },
   },
 };

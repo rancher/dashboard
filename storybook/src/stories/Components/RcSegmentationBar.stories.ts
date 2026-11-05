@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { RcSegmentationBar } from '@components/RcSegmentationBar';
 import { RC_SEGMENTATION_BAR_SIZES } from '@components/RcSegmentationBar/types';
 import type { RcSegment } from '@components/RcSegmentationBar/types';
@@ -217,6 +218,50 @@ export const CustomAccessibleName: Story = {
       description: { story: 'Pass `ariaLabel` when the generated summary does not describe the bar well enough, for example to say what is being counted.' },
       canvas:      { sourceState: 'shown' },
       source:      { code: labelTemplate },
+    },
+  },
+};
+
+const statusSteps: number[][] = [
+  [0, 0, 8, 2, 0],
+  [1, 2, 3, 3, 1],
+  [1, 1, 0, 2, 6],
+  [0, 0, 0, 0, 10],
+];
+
+const transitionsTemplate = `<div style="width: 300px;">
+  <RcSegmentationBar size="medium" :segments="segments" />
+</div>`;
+
+export const Transitions: Story = {
+  tags:   ['!autodocs'],
+  render: () => ({
+    components: { RcSegmentationBar },
+    setup() {
+      const toSegments = (values: number[]): RcSegment[] => statusSegments.map((segment, i) => ({ ...segment, value: values[i] }));
+      const segments = ref(toSegments(statusSteps[0]));
+      let timer: ReturnType<typeof setInterval>;
+
+      onMounted(() => {
+        let step = 0;
+
+        timer = setInterval(() => {
+          step = (step + 1) % statusSteps.length;
+          segments.value = toSegments(statusSteps[step]);
+        }, 2000);
+      });
+
+      onUnmounted(() => clearInterval(timer));
+
+      return { segments };
+    },
+    template: transitionsTemplate,
+  }),
+  parameters: {
+    controls: { disable: true },
+    docs:     {
+      canvas: { sourceState: 'shown' },
+      source: { code: transitionsTemplate },
     },
   },
 };

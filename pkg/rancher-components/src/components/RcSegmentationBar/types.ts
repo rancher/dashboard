@@ -12,8 +12,8 @@ export interface RcSegment {
   /**
    * The amount this segment represents. Its share of the bar is its value over the sum of the
    * values of every visible segment, so the visible segments always fill the bar whatever their
-   * scale. Segments with a value of zero, a negative value, `NaN` or an infinite value are not
-   * shown.
+   * scale. Segments with a value of zero, a negative value, `NaN` or an infinite value take no
+   * space, and a segment changing to or from such a value grows or shrinks into place.
    */
   value: number;
 

@@ -85,6 +85,10 @@ const fillStyle = computed(() => ({
   height: 100%;
   background-color: var(--fill-color);
 
+  @media (prefers-reduced-motion: no-preference) {
+    transition: width 0.3s ease, background-color 0.3s ease;
+  }
+
   @media (forced-colors: active) {
     forced-color-adjust: none;
   }
