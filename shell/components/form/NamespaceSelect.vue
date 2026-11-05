@@ -7,6 +7,7 @@ import { NAMESPACE } from '@shell/config/types';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import LabeledSelectWithCreate from '@shell/components/form/LabeledSelectWithCreate.vue';
 import { useI18n } from '@shell/composables/useI18n';
+import { fetchNamespacesAllowingCreate } from '@shell/utils/namespace-permissions';
 import type { SelectOption } from '@shell/types/components/labeledSelect';
 import type { Validator } from '@shell/utils/validators/formRules/index';
 
@@ -49,6 +50,8 @@ interface Props {
   mapper?: Mapper | null;
   createNamespaceOverride?: boolean;
   createAllowed?: boolean;
+  /** schema id of the resource being created; in create mode only namespaces the user may create it in are listed */
+  resourceType?: string | null;
   rules?: Validator[];
   name?: string;
   appendToBody?: boolean;
@@ -71,6 +74,7 @@ const props = withDefaults(defineProps<Props>(), {
   mapper:                  null,
   createNamespaceOverride: false,
   createAllowed:           true,
+  resourceType:            null,
   rules:                   () => [],
   name:                    undefined,
   appendToBody:            false,
@@ -85,11 +89,37 @@ const { t } = useI18n(store);
 
 const isCreate = computed(() => props.mode === _CREATE);
 
-const allowedNamespaces = computed(() => store.getters.allowedNamespaces());
 const storeNamespaces = computed(() => store.getters.namespaces());
 const currentCluster = computed(() => store.getters.currentCluster);
 const inStore = computed(() => store.getters['currentStore']());
 const nsSchema = computed(() => store.getters[`${ inStore.value }/schemaFor`](NAMESPACE));
+
+const typeToCheck = computed(() => {
+  if (!isCreate.value || props.override || props.options || props.forceNamespace || !props.resourceType) {
+    return null;
+  }
+
+  return store.getters[`${ inStore.value }/schemaFor`](props.resourceType)?.attributes?.namespaced ? props.resourceType : null;
+});
+
+const namespacesAllowingCreate = ref<Set<string> | null>(null);
+const loadingNamespacesAllowingCreate = ref(false);
+
+watch(typeToCheck, async(type) => {
+  namespacesAllowingCreate.value = null;
+  loadingNamespacesAllowingCreate.value = !!type;
+
+  if (!type) {
+    return;
+  }
+
+  const allowed = await fetchNamespacesAllowingCreate(store, inStore.value, type);
+
+  if (type === typeToCheck.value) {
+    namespacesAllowingCreate.value = allowed;
+    loadingNamespacesAllowingCreate.value = false;
+  }
+}, { immediate: true });
 
 const canCreateNamespace = computed(() => {
   return (nsSchema.value?.collectionMethods || []).includes('POST') && currentCluster.value?.canUpdate;
@@ -109,9 +139,10 @@ const realNamespaceOptions = computed<SelectOption[]>(() => {
   } else if (props.options) {
     namespaces = props.options.map((ns) => (typeof ns === 'string' ? ns : (ns.name || ns.id))).filter(Boolean).sort() as string[];
   } else {
-    const namespaceObjs = isCreate.value ? allowedNamespaces.value : storeNamespaces.value;
+    const ids = Object.keys(storeNamespaces.value);
+    const allowed = namespacesAllowingCreate.value;
 
-    namespaces = Object.keys(namespaceObjs);
+    namespaces = allowed ? ids.filter((id) => allowed.has(id)) : ids;
   }
 
   const normalized: NormalizedNamespace[] = namespaces
@@ -227,6 +258,7 @@ const isReallyDisabled = computed(() => !!props.forceNamespace || props.disabled
     :create-label="t('namespace.createNamespace')"
     :create-placeholder="t(createPlaceholder)"
     :create-allowed="createAllowedHere"
+    :loading="loadingNamespacesAllowingCreate"
     :rules="rules"
     :append-to-body="appendToBody"
     :require-dirty="requireDirty"

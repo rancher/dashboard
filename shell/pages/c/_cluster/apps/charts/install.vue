@@ -462,6 +462,7 @@ export default {
       EDITOR_MODES,
       CLUSTER_REPO_APPCO_AUTH_GENERATE_NAME,
       PRIVATE_REGISTRY_CONTEXT,
+      SECRET,
       skipPullSecrets:                        false,
       registryPullSecret:                     null,
       stepBasic:                              {
@@ -1856,6 +1857,7 @@ export default {
             :name-ns-hidden="!showNameEditor"
             :force-namespace="forceNamespace"
             :namespace-new-allowed="namespaceNewAllowed"
+            :resource-type="SECRET"
             :extra-columns="showProject ? ['project'] : []"
             :show-spacer="false"
             :horizontal="false"
