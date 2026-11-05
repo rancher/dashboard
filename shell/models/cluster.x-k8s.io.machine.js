@@ -5,6 +5,7 @@ import { listNodeRoles } from '@shell/models/cluster/node';
 import { insertAt, findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { downloadUrl } from '@shell/utils/download';
+import { sortableNumericSuffix } from '@shell/utils/sort';
 import CapiMachineRoot from '@shell/models/base-cluster.x-k8s.io';
 
 /**
@@ -179,6 +180,10 @@ export default class CapiMachine extends CapiMachineRoot {
     }
 
     return kubeId;
+  }
+
+  get kubeNodeNameSort() {
+    return sortableNumericSuffix(this.status?.nodeRef?.name || '').toLowerCase();
   }
 
   get labels() {
