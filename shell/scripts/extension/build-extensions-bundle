@@ -190,15 +190,30 @@ version_below_floor() {
   [ "$(printf '%s\n%s\n' "${mm}" "${MIN_RANCHER_VERSION}" | sort -t. -k1,1n -k2,2n | head -1)" = "${mm}" ]
 }
 
+# Sortable weight for a version's major.minor.patch, for comparing two bounds against
+# each other. Prerelease and build metadata are ignored - they never decide whether a
+# range spanning whole minors is satisfiable.
+version_weight() {
+  local v="${1#v}" major minor patch
+
+  v="${v%%[-+]*}"
+  major="$(cut -d. -f1 <<<"${v}")"
+  minor="$(cut -d. -f2 -s <<<"${v}")"
+  patch="$(cut -d. -f3 -s <<<"${v}")"
+
+  printf '%d' "$(( ${major:-0} * 1000000 + ${minor:-0} * 1000 + ${patch:-0} ))"
+}
+
 # Echoes the range to publish. Exit codes report why a range cannot be raised:
 #   2 unparseable or an OR of ranges   3 tilde/caret   4 pin below the floor
-#   5 more than one lower bound
+#   5 more than one lower bound       6 upper bound leaves nothing satisfiable
 raise_rancher_version_floor() {
   local range="$1"
   local floor=">= v${MIN_RANCHER_VERSION}.0-0"
   local clause_re='^[[:space:]]*(>=|<=|!=|\^|~|>|<|=)?[[:space:]]*(v?[0-9]+(\.[0-9]+)*(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?)[[:space:]]*(.*)$'
   local work sep=" " out="" i
   local ops=() vers=() lower_count=0 lower_idx=-1 has_pin=0
+  local effective_lower lower_weight upper_weight
 
   # Nothing declared, so declare it
   if [ -z "${range//[[:space:]]/}" ]; then
@@ -260,6 +275,35 @@ raise_rancher_version_floor() {
     return 0
   fi
 
+  # The lower bound the published range will end up with, which is what any upper
+  # bound has to leave room above
+  if [ "${lower_count}" -eq 0 ] || version_below_floor "${vers[$lower_idx]}"; then
+    effective_lower="${MIN_RANCHER_VERSION}.0"
+  else
+    effective_lower="${vers[$lower_idx]}"
+  fi
+
+  # An upper bound at or below that leaves a range no Rancher can satisfy, and the
+  # extension would simply never appear. Same reason '~' and '^' are refused above:
+  # the only safe fix is the author's to make.
+  lower_weight="$(version_weight "${effective_lower}")"
+
+  for i in "${!ops[@]}"; do
+    case "${ops[$i]}" in
+      '<'|'<=')
+        upper_weight="$(version_weight "${vers[$i]}")"
+
+        if [ "${upper_weight}" -lt "${lower_weight}" ]; then
+          return 6
+        fi
+
+        if [ "${upper_weight}" -eq "${lower_weight}" ] && [ "${ops[$i]}" = "<" ]; then
+          return 6
+        fi
+        ;;
+    esac
+  done
+
   # Only upper bounds or exclusions, so a floor can simply go in front
   if [ "${lower_count}" -eq 0 ]; then
     printf '%s%s%s' "${floor}" "${sep}" "${range}"
@@ -307,6 +351,9 @@ if [ "${RAISE_STATUS}" != "0" ]; then
     4) echo -e "${YELLOW}  It pins an exact version below ${MIN_RANCHER_VERSION}, which cannot be raised${RESET}"
        echo -e "${YELLOW}  without changing which Rancher the bundle targets.${RESET}" ;;
     5) echo -e "${YELLOW}  It declares more than one lower bound.${RESET}" ;;
+    6) echo -e "${YELLOW}  Its upper bound is at or below ${MIN_RANCHER_VERSION}, so raising the floor would leave${RESET}"
+       echo -e "${YELLOW}  a range no Rancher satisfies and the bundle would never appear anywhere.${RESET}"
+       echo -e "${YELLOW}  Raise the upper bound, or drop it.${RESET}" ;;
   esac
 
   echo -e "${YELLOW}  Extension bundles need Rancher ${MIN_RANCHER_VERSION} or later - older versions can install${RESET}"

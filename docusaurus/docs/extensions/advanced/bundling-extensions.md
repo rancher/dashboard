@@ -122,10 +122,29 @@ it is raised, if you declare none one is added, and if you declare 2.17 or later
 left alone. The build logs whenever it changes something, so update your
 `package.json` to match rather than relying on it.
 
-A few ranges cannot be raised safely and fail the build instead: a `~` or `^` range,
-because raising its floor past its own upper bound would leave a range nothing
-satisfies; an exact pin below 2.17; more than one lower bound; and anything that
-cannot be read as a version range.
+Only the floor is ever touched, and only upwards. Raising it narrows the range you
+declared, which is safe. Widening it is not, so the build will never drop or move an
+upper bound to make a range work — where that would be the only fix, it fails and
+leaves the decision to you.
+
+So a range fails the build when **nothing from 2.17 onwards is left in it**:
+
+| Range | Result |
+| --- | --- |
+| `>= 2.11.0-0 < 2.18.0-0` | raised to `>= v2.17.0-0 < 2.18.0-0` |
+| `>= 2.11.0-0 <= 2.17.0` | raised, upper bound kept |
+| `< 2.20.0-0` | floor added |
+| `>= 2.11.0-0 < 2.17.0-0` | **fails** |
+| `>= 2.13.0-0 < 2.14.0-0` | **fails** |
+| `< 2.14.0-0` | **fails** |
+
+Three more shapes fail for the same reason, since none of them can be raised without
+changing what the author asked for: a `~` or `^` range, which carries its own upper
+bound; an exact pin below 2.17; and a range that is already contradictory before the
+floor is touched at all, such as `>= 2.18.0-0 < 2.14.0-0`.
+
+Two fail because they cannot be read unambiguously: more than one lower bound, and
+anything that is not a version range.
 
 This is what keeps a bundle away from Rancher versions that cannot uninstall it, and
 it needs no change to those versions. Rancher filters chart versions by this
