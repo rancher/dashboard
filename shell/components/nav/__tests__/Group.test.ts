@@ -516,13 +516,12 @@ describe('component: Group', () => {
       children: [{ name: 'leaf', route: { name: 'leaf', params: {} } }],
     });
 
-    // 16px then 10px a level - the values the menu used before deeper levels were supported, so
-    // that adding them does not shift level 1 or level 2
+    // 16px for a top level row, then 12px a level below it, the scale UX owns
     it.each([
       [0, '16px'],
-      [1, '26px'],
-      [2, '36px'],
-      [3, '46px'],
+      [1, '28px'],
+      [2, '40px'],
+      [3, '52px'],
     ])('indents the header of a depth %s group by %s', (depth, expected) => {
       const wrapper = mountGroup(withChild(), { depth });
 
@@ -530,9 +529,9 @@ describe('component: Group', () => {
     });
 
     it.each([
-      [0, 26],
-      [1, 36],
-      [2, 46],
+      [0, 28],
+      [1, 40],
+      [2, 52],
     ])('puts the children of a depth %s group one level deeper, at %spx', (depth, expected) => {
       const wrapper = mountGroup(withChild(), { depth });
 
@@ -556,8 +555,8 @@ describe('component: Group', () => {
       expect(wrapper.findComponent(Type).props('indent')).toBe(16);
     });
 
-    // Type keys its font size off `depth`, where depth 0 is a level 2 link and anything deeper
-    // drops to 13px, so a link has to carry the depth of the group holding it
+    // Type still keys the small per-level tweaks it makes off `depth` (icon spacing), so a link
+    // has to carry the depth of the group holding it
     it.each([0, 1, 2])('passes its own depth %s on to its links', (depth) => {
       const wrapper = mountGroup(withChild(), { depth });
 
@@ -570,6 +569,84 @@ describe('component: Group', () => {
       const nested = mountGroup(withChild(), { depth: 1 });
 
       expect(nested.attributes('style')).toBe(`--nav-indent: ${ parent.findComponent(Type).props('indent') }px;`);
+    });
+  });
+
+  // A group header that doesn't fit is ellipsised like any other nav row, so the full text has to
+  // be reachable on hover. jsdom does no layout, so the widths `isTruncated` reads are set by hand.
+  describe('truncated headers', () => {
+    const mountGroup = (group: any, props: Record<string, unknown> = {}) => shallowMount(Group as any, {
+      props: {
+        group, canCollapse: true, idPrefix: '', ...props
+      },
+      global: {
+        directives: { cleanHtml: (identity: any) => identity },
+        stubs:      { 'router-link': { template: '<a><slot /></a>' } },
+        mocks:      {
+          $route: {
+            params: {}, path: '/x', fullPath: '/x', matched: []
+          },
+          $router: {
+            resolve:   jest.fn().mockReturnValue({ path: '/x', fullPath: '/x' }),
+            getRoutes: jest.fn().mockReturnValue([]),
+          },
+          t: (key: string) => key,
+        },
+      },
+    });
+
+    const longGroup = () => ({
+      name:     'g',
+      label:    'A group name too long for the panel',
+      expanded: true,
+      children: [{ name: 'leaf', route: { name: 'leaf', params: {} } }],
+    });
+
+    const cutOffBy = (wrapper: any, scrollWidth: number, clientWidth: number) => {
+      const el = wrapper.vm.$refs.label as HTMLElement;
+
+      Object.defineProperty(el, 'scrollWidth', { configurable: true, value: scrollWidth });
+      Object.defineProperty(el, 'clientWidth', { configurable: true, value: clientWidth });
+
+      wrapper.vm.checkLabelTruncated();
+
+      return wrapper.vm.$nextTick();
+    };
+
+    it('offers no tooltip while the header fits', () => {
+      const wrapper = mountGroup({ ...longGroup(), label: 'Short' });
+
+      expect(wrapper.find('.header h6 span').classes()).not.toContain('has-clean-tooltip');
+    });
+
+    it('offers a tooltip once the header is cut off', async() => {
+      const wrapper = mountGroup(longGroup());
+
+      await cutOffBy(wrapper, 400, 120);
+
+      expect(wrapper.find('.header h6 span').classes()).toContain('has-clean-tooltip');
+    });
+
+    it('puts the whole header label in the tooltip', async() => {
+      const wrapper = mountGroup(longGroup());
+
+      await cutOffBy(wrapper, 400, 120);
+
+      expect((wrapper.vm as any).labelTooltip).toStrictEqual({ content: longGroup().label, placement: 'right' });
+    });
+
+    // The expander is drawn over the right hand end of the row, so the label needs to be told to
+    // stop short of it. The flag that reserves that room is the same one that renders the expander.
+    it('reserves room for the expander when there is one', () => {
+      const wrapper = mountGroup(longGroup());
+
+      expect(wrapper.classes()).toContain('has-toggle');
+    });
+
+    it('reserves no room for an expander on a group that cannot collapse', () => {
+      const wrapper = mountGroup(longGroup(), { canCollapse: false });
+
+      expect(wrapper.classes()).not.toContain('has-toggle');
     });
   });
 

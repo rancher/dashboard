@@ -1,15 +1,15 @@
 type Listener = () => void;
 
 /**
- * One observer for every cell watched: a table can hold hundreds of them, and one each would be
- * hundreds of observers
+ * One observer for every element watched: a table can hold hundreds of cells and the side menu
+ * a hundred labels, and one observer each would be hundreds of observers
  */
 const listeners = new Map<Element, Listener>();
 
 let observer: ResizeObserver | null = null;
 
 /** Calls `onResize` whenever `el` changes size, until the returned function is called */
-export function observeCellResize(el: Element, onResize: Listener): Listener {
+export function observeResize(el: Element, onResize: Listener): Listener {
   if (typeof ResizeObserver === 'undefined') {
     return () => {};
   }

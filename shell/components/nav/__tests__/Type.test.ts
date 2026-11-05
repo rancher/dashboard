@@ -598,8 +598,8 @@ describe('component: Type', () => {
   });
 
   // Group owns the indent scale and passes the result down, because only it knows how deep a link
-  // sits. The 2px taken off every value is the 5px transparent left border Group draws on nav links
-  // minus the link's own -3px left margin, so that the text lines up with a group header, not the box.
+  // sits. The value is used as-is: there is no transparent border or negative margin left on a nav
+  // link to correct for, so the padding puts the text exactly where the scale says it goes.
   describe('indentation', () => {
     const storeMock = {
       getters: {
@@ -630,10 +630,10 @@ describe('component: Type', () => {
     const linkType = { link: 'https://example.com', label: 'External' };
 
     it.each([
-      [16, '14px'],
-      [26, '24px'],
-      [36, '34px'],
-      [46, '44px'],
+      [16, '16px'],
+      [28, '28px'],
+      [40, '40px'],
+      [52, '52px'],
     ])('indents a link given indent %spx', (indent, expected) => {
       const link = mountType(routeType, { indent }).find('a.type-link');
 
@@ -648,9 +648,87 @@ describe('component: Type', () => {
 
     // The external link variant renders its own anchor, which has to indent the same way
     it('indents an external link too', () => {
-      const link = mountType(linkType, { indent: 36 }).find('li[data-testid="link-type"] a');
+      const link = mountType(linkType, { indent: 40 }).find('li[data-testid="link-type"] a');
 
-      expect(link.attributes('style')).toBe('padding-left: 34px;');
+      expect(link.attributes('style')).toBe('padding-left: 40px;');
+    });
+  });
+
+  // A nav label that doesn't fit is ellipsised, which hides the part of the name that tells two
+  // similar entries apart, so the full text has to be reachable on hover. jsdom does no layout, so
+  // the widths `isTruncated` reads are set by hand here.
+  describe('truncated labels', () => {
+    const storeMock = {
+      getters: {
+        currentStore:          () => 'cluster',
+        'cluster/count':       () => 1,
+        'type-map/optionsFor': () => {},
+      }
+    };
+
+    const mountType = (type: any) => shallowMount(Type as any, {
+      props:  { type },
+      global: {
+        directives: { cleanHtml: (identity: any) => identity },
+        mocks:      {
+          $store:  storeMock,
+          $router: { resolve: jest.fn((route: any) => ({ fullPath: route, path: route })) },
+          $route:  { fullPath: 'route', path: 'route' },
+        },
+        stubs: {
+          routerLink: createChildRenderingRouterLinkStub(),
+          Favorite:   { template: `<div class=${ favoriteClass } />` },
+        },
+      },
+    });
+
+    const cutOffBy = (wrapper: any, scrollWidth: number, clientWidth: number) => {
+      const el = wrapper.vm.$refs.label as HTMLElement;
+
+      Object.defineProperty(el, 'scrollWidth', { configurable: true, value: scrollWidth });
+      Object.defineProperty(el, 'clientWidth', { configurable: true, value: clientWidth });
+
+      wrapper.vm.checkLabelTruncated();
+
+      return wrapper.vm.$nextTick();
+    };
+
+    const longType = {
+      name: 'long', label: 'A resource name too long for the panel', route: 'route'
+    };
+
+    it('offers no tooltip while the label fits', () => {
+      const wrapper = mountType({
+        name: 'short', label: 'Short', route: 'route'
+      });
+
+      expect(wrapper.find('.label').classes()).not.toContain('has-clean-tooltip');
+    });
+
+    it('offers a tooltip once the label is cut off', async() => {
+      const wrapper = mountType(longType);
+
+      await cutOffBy(wrapper, 400, 120);
+
+      expect(wrapper.find('.label').classes()).toContain('has-clean-tooltip');
+    });
+
+    it('puts the whole label in the tooltip', async() => {
+      const wrapper = mountType(longType);
+
+      await cutOffBy(wrapper, 400, 120);
+
+      expect((wrapper.vm as any).labelTooltip).toStrictEqual({ content: longType.label, placement: 'right' });
+    });
+
+    // `labelDisplay` carries the nav search's <span class="highlight"> markup, which would end up
+    // in the tooltip verbatim if it were used as the source of the text
+    it('uses the plain label rather than the highlighted one', async() => {
+      const wrapper = mountType({ ...longType, labelDisplay: `A <span class="highlight">resource</span> name too long for the panel` });
+
+      await cutOffBy(wrapper, 400, 120);
+
+      expect((wrapper.vm as any).labelTooltip.content).toBe(longType.label);
     });
   });
 });
