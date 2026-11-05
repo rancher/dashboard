@@ -574,6 +574,18 @@ defineExpose({ view });
     min-height: 0;
   }
 
+  // CodeMirror only handles clicks on its content, which is as tall as the document. When a consumer gives
+  // .cm-editor a min-height, clicks on the empty area below a short document did nothing, so the content and
+  // gutters fill the editor
+  :deep(.cm-editor > .cm-scroller) {
+    flex-grow: 1;
+  }
+
+  :deep(.cm-scroller > .cm-content),
+  :deep(.cm-scroller > .cm-gutters) {
+    align-self: stretch;
+  }
+
   // Holds CodeMirror's bottom panels, such as Vim's command line, above the editor (see extensions/panels.ts)
   .rc-cm-bottom-panels {
     position: sticky;
