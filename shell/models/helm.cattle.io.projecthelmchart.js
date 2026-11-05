@@ -12,9 +12,8 @@ export default class ProjectHelmChart extends SteveModel {
   get projectId() {
     const inStore = this.$rootGetters['currentProduct'].inStore;
     const all = this.$rootGetters[`${ inStore }/all`](NAMESPACE);
-    const { projectId } = all.find((namespace) => namespace.id === this.metadata.namespace);
 
-    return projectId;
+    return all.find((namespace) => namespace.id === this.namespace)?.projectId;
   }
 
   get projectDisplayName() {
@@ -22,6 +21,10 @@ export default class ProjectHelmChart extends SteveModel {
     const project = this.$rootGetters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ this.projectId }`);
 
     return project?.spec.displayName;
+  }
+
+  get nameDisplay() {
+    return this.projectDisplayName || super.nameDisplay;
   }
 
   get namespaces() {
