@@ -7,7 +7,6 @@ import { NAMESPACE } from '@shell/config/types';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import LabeledSelectWithCreate from '@shell/components/form/LabeledSelectWithCreate.vue';
 import { useI18n } from '@shell/composables/useI18n';
-import { fetchNamespacesAllowingCreate } from '@shell/utils/namespace-permissions';
 import type { SelectOption } from '@shell/types/components/labeledSelect';
 import type { Validator } from '@shell/utils/validators/formRules/index';
 
@@ -50,7 +49,10 @@ interface Props {
   mapper?: Mapper | null;
   createNamespaceOverride?: boolean;
   createAllowed?: boolean;
-  /** schema id of the resource being created; in create mode only namespaces the user may create it in are listed */
+  /**
+   * schema id of the resource being created; in create mode only namespaces the user may create it in are listed, and
+   * an existing pre-selected namespace the user may not create it in is replaced by the first one listed (or cleared)
+   */
   resourceType?: string | null;
   rules?: Validator[];
   name?: string;
@@ -82,7 +84,7 @@ const props = withDefaults(defineProps<Props>(), {
   required:                false,
 });
 
-const emit = defineEmits<{(e: 'update:value', value: string): void, (e: 'isNamespaceNew', value: boolean): void}>();
+const emit = defineEmits<{(e: 'update:value', value: string | null): void, (e: 'isNamespaceNew', value: boolean): void}>();
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -104,22 +106,6 @@ const typeToCheck = computed(() => {
 
 const namespacesAllowingCreate = ref<Set<string> | null>(null);
 const loadingNamespacesAllowingCreate = ref(false);
-
-watch(typeToCheck, async(type) => {
-  namespacesAllowingCreate.value = null;
-  loadingNamespacesAllowingCreate.value = !!type;
-
-  if (!type) {
-    return;
-  }
-
-  const allowed = await fetchNamespacesAllowingCreate(store, inStore.value, type);
-
-  if (type === typeToCheck.value) {
-    namespacesAllowingCreate.value = allowed;
-    loadingNamespacesAllowingCreate.value = false;
-  }
-}, { immediate: true });
 
 const canCreateNamespace = computed(() => {
   return (nsSchema.value?.collectionMethods || []).includes('POST') && currentCluster.value?.canUpdate;
@@ -238,6 +224,69 @@ function onCancel() {
 
   emitChange(defaultNs);
 }
+
+async function fetchNamespacesAllowingCreate(type: string): Promise<Set<string> | null> {
+  const collection = nsSchema.value?.links?.collection;
+
+  if (!collection) {
+    return null;
+  }
+
+  try {
+    const res = await store.dispatch(`${ inStore.value }/request`, { url: `${ collection }?checkPermissions=${ type }&include=metadata.name` });
+    const namespaces: any[] = res?.data || [];
+
+    if (namespaces.some((ns) => !ns.resourcePermissions)) {
+      return null;
+    }
+
+    return new Set(namespaces
+      .filter((ns) => !!ns.resourcePermissions[type]?.create)
+      .map((ns) => ns.id));
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn(`Unable to check which namespaces allow creating ${ type }; listing all of them`, e);
+
+    return null;
+  }
+}
+
+function leaveNamespaceNotAllowingCreate(allowed: Set<string>) {
+  const current = namespace.value;
+
+  if (!current || allowed.has(current) || !store.getters[`${ inStore.value }/byId`](NAMESPACE, current)) {
+    return;
+  }
+
+  const firstAllowed = realNamespaceOptions.value[0]?.value;
+
+  if (firstAllowed) {
+    emitChange(firstAllowed);
+  } else {
+    namespace.value = null;
+    emit('update:value', null);
+  }
+}
+
+watch(typeToCheck, async(type) => {
+  namespacesAllowingCreate.value = null;
+  loadingNamespacesAllowingCreate.value = !!type;
+
+  if (!type) {
+    return;
+  }
+
+  const allowed = await fetchNamespacesAllowingCreate(type);
+
+  if (type === typeToCheck.value) {
+    namespacesAllowingCreate.value = allowed;
+    loadingNamespacesAllowingCreate.value = false;
+
+    if (allowed) {
+      leaveNamespaceNotAllowingCreate(allowed);
+    }
+  }
+}, { immediate: true });
 
 const createAllowedHere = computed(() => props.createAllowed && (canCreateNamespace.value || props.createNamespaceOverride));
 
