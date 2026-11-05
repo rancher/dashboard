@@ -467,7 +467,8 @@ export const getters = {
   },
 
   /**
-   * Return namespaces which the user can refer to create resources
+   * Return the active namespaces the user can update
+   * @deprecated Use `NamespaceSelect`'s `resourceType` prop, which checks create permission for the resource type per namespace
    * @returns Record<string, true>
    */
   allowedNamespaces(state, getters) {

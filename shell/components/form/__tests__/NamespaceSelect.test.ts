@@ -219,18 +219,19 @@ describe('namespaceSelect', () => {
       chartInstallAction: { attributes: {} },
     };
 
-    const permissionsSetup = (request: jest.Mock) => {
+    const EXISTING = ['can-create', 'also-can-create', 'read-only'];
+
+    const permissionsSetup = (request: jest.Mock, schemaOverrides: Record<string, object> = {}) => {
       const store = createStore({
         getters: {
-          'i18n/t':   () => (text: string) => text,
-          t:          () => (text: string) => text,
-          namespaces: () => () => ({
-            'can-create': { id: 'can-create' }, 'also-can-create': { id: 'also-can-create' }, 'read-only': { id: 'read-only' }
-          }),
+          'i18n/t':            () => (text: string) => text,
+          t:                   () => (text: string) => text,
+          namespaces:          () => () => Object.fromEntries(EXISTING.map((id) => [id, { id }])),
           allowedNamespaces:   () => () => ({}),
           currentCluster:      () => ({ canUpdate: true }),
           currentStore:        () => () => 'cluster',
-          'cluster/schemaFor': () => (type: string) => schemas[type],
+          'cluster/schemaFor': () => (type: string) => ({ ...schemas, ...schemaOverrides })[type],
+          'cluster/byId':      () => (_: string, id: string) => (EXISTING.includes(id) ? { id } : undefined),
           defaultNamespace:    () => 'default',
         },
         actions: {
@@ -242,14 +243,18 @@ describe('namespaceSelect', () => {
       return { global: { provide: { store }, components: { LabeledSelectWithCreate } } };
     };
 
-    const mountCreate = (request: jest.Mock, props: object = { resourceType: 'secret' }) => shallowMount(NamespaceSelect, {
-      ...permissionsSetup(request),
+    const mountCreate = (request: jest.Mock, props: object = { resourceType: 'secret' }, schemaOverrides = {}) => shallowMount(NamespaceSelect, {
+      ...permissionsSetup(request, schemaOverrides),
       props: {
         mode: _CREATE, noDefaultNamespace: true, ...props
       },
     });
 
     const optionValues = (wrapper: any) => wrapper.findComponent(LabeledSelectWithCreate).props('options').map((o: any) => o.value);
+
+    const requestAllowingCreateIn = (...allowed: string[]) => jest.fn().mockResolvedValue({ data: EXISTING.map((id) => ({ id, resourcePermissions: { secret: allowed.includes(id) ? { create: 'url' } : {} } })) });
+    const failingRequest = () => jest.fn().mockRejectedValue(new Error('boom'));
+    const requestIgnoringCheckPermissions = () => jest.fn().mockResolvedValue({ data: EXISTING.map((id) => ({ id })) });
 
     afterEach(() => {
       jest.restoreAllMocks();
@@ -288,9 +293,6 @@ describe('namespaceSelect', () => {
       expect(select.props('loading')).toStrictEqual(false);
     });
 
-    const failingRequest = () => jest.fn().mockRejectedValue(new Error('boom'));
-    const requestIgnoringCheckPermissions = () => jest.fn().mockResolvedValue({ data: [{ id: 'can-create' }, { id: 'read-only' }] });
-
     it.each([
       ['the request fails', failingRequest],
       ['the API does not support checkPermissions', requestIgnoringCheckPermissions],
@@ -319,6 +321,50 @@ describe('namespaceSelect', () => {
 
       expect(request).not.toHaveBeenCalled();
       expect(optionValues(wrapper)).toStrictEqual(['also-can-create', 'can-create', 'read-only']);
+    });
+
+    it('does not check permissions and lists every namespace when the namespace schema has no collection link', async() => {
+      const request = jest.fn();
+
+      const wrapper = mountCreate(request, { resourceType: 'secret' }, { namespace: { links: {} } });
+
+      await flushPromises();
+
+      expect(request).not.toHaveBeenCalled();
+      expect(optionValues(wrapper)).toStrictEqual(['also-can-create', 'can-create', 'read-only']);
+    });
+
+    it('moves a pre-selected namespace the user may not create in to the first one it may', async() => {
+      const wrapper = mountCreate(requestAllowingCreateIn('can-create', 'also-can-create'), { resourceType: 'secret', value: 'read-only' });
+
+      await flushPromises();
+
+      expect(wrapper.emitted('update:value')).toStrictEqual([['also-can-create']]);
+      expect(wrapper.findComponent(LabeledSelectWithCreate).props('value')).toStrictEqual('also-can-create');
+    });
+
+    it('clears a pre-selected namespace when the user may not create in any namespace', async() => {
+      const wrapper = mountCreate(requestAllowingCreateIn(), { resourceType: 'secret', value: 'read-only' });
+
+      await flushPromises();
+
+      expect(wrapper.emitted('update:value')).toStrictEqual([[null]]);
+      expect(wrapper.findComponent(LabeledSelectWithCreate).props('value')).toBeNull();
+    });
+
+    it.each([
+      ['the user may create in it', 'can-create', () => requestAllowingCreateIn('can-create')],
+      ['it does not exist yet', 'brand-new-ns', () => requestAllowingCreateIn('can-create')],
+      ['the permissions cannot be checked', 'read-only', failingRequest],
+    ])('keeps the pre-selected namespace when %s', async(_, value, createRequest) => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const wrapper = mountCreate(createRequest(), { resourceType: 'secret', value });
+
+      await flushPromises();
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
+      expect(wrapper.findComponent(LabeledSelectWithCreate).props('value')).toStrictEqual(value);
     });
 
     it.each<{ desc: string, props: object }>([
