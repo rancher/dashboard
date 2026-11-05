@@ -71,7 +71,9 @@ const groupChainTo = (nodes: any[], leafName: string): string[] | undefined => {
  * Basic tree for a single virtual type registered under `groupPath`, the `::` separated
  * hierarchy that `basicType(names, path)` records for a product's side menu.
  */
-const basicTree = (groupPath: string) => getters.getTree(
+// `getTree` builds its root with an empty `children`, so TS infers the tree it hands back as
+// `never[]`. The nodes are plain objects assembled in a .js store, so `any[]` is what they are.
+const basicTree = (groupPath: string): any[] => getters.getTree(
   {} as any,
   { ...typeMapGetters(), groupForBasicType: () => groupPath } as any,
   { $router: {} } as any,
