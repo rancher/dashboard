@@ -632,7 +632,7 @@ describe('component: Group', () => {
 
       await cutOffBy(wrapper, 400, 120);
 
-      expect((wrapper.vm as any).labelTooltip).toStrictEqual({ content: longGroup().label, placement: 'right' });
+      expect((wrapper.vm as any).labelTooltip).toStrictEqual({ content: longGroup().label, placement: 'top' });
     });
 
     // The expander is drawn over the right hand end of the row, so the label needs to be told to

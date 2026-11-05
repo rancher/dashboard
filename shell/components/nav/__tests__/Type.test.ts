@@ -718,7 +718,7 @@ describe('component: Type', () => {
 
       await cutOffBy(wrapper, 400, 120);
 
-      expect((wrapper.vm as any).labelTooltip).toStrictEqual({ content: longType.label, placement: 'right' });
+      expect((wrapper.vm as any).labelTooltip).toStrictEqual({ content: longType.label, placement: 'top' });
     });
 
     // `labelDisplay` carries the nav search's <span class="highlight"> markup, which would end up

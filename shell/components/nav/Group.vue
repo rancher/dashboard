@@ -70,9 +70,10 @@ export default {
     },
 
     // Only offered once the label has actually been cut off, so the rest of the menu doesn't
-    // sprout tooltips repeating what is already on screen
+    // sprout tooltips repeating what is already on screen. It sits above the row rather than
+    // beside it: to the right it would cover the row's own expander.
     labelTooltip() {
-      return this.labelTruncated ? { content: this.labelText, placement: 'right' } : undefined;
+      return this.labelTruncated ? { content: this.labelText, placement: 'top' } : undefined;
     },
 
     // The expander sits over the right hand end of the header row, so the label has to stop short
