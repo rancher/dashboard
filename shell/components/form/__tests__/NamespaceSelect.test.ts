@@ -343,19 +343,19 @@ describe('namespaceSelect', () => {
       expect(wrapper.findComponent(LabeledSelectWithCreate).props('value')).toStrictEqual('also-can-create');
     });
 
-    it('clears a pre-selected namespace when the user may not create in any namespace', async() => {
-      const wrapper = mountCreate(requestAllowingCreateIn(), { resourceType: 'secret', value: 'read-only' });
-
-      await flushPromises();
-
-      expect(wrapper.emitted('update:value')).toStrictEqual([[null]]);
-      expect(wrapper.findComponent(LabeledSelectWithCreate).props('value')).toBeNull();
+    const requestAllowingCreateOnlyOutsideTheList = () => jest.fn().mockResolvedValue({
+      data: [
+        ...EXISTING.map((id) => ({ id, resourcePermissions: { secret: {} } })),
+        { id: 'not-in-the-namespace-filter', resourcePermissions: { secret: { create: 'url' } } },
+      ]
     });
 
     it.each([
       ['the user may create in it', 'can-create', () => requestAllowingCreateIn('can-create')],
       ['it does not exist yet', 'brand-new-ns', () => requestAllowingCreateIn('can-create')],
       ['the permissions cannot be checked', 'read-only', failingRequest],
+      ['the user may not create in any namespace', 'read-only', () => requestAllowingCreateIn()],
+      ['the user may only create in namespaces that are not listed', 'read-only', requestAllowingCreateOnlyOutsideTheList],
     ])('keeps the pre-selected namespace when %s', async(_, value, createRequest) => {
       jest.spyOn(console, 'warn').mockImplementation(() => {});
 

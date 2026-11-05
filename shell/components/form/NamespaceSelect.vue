@@ -51,7 +51,7 @@ interface Props {
   createAllowed?: boolean;
   /**
    * schema id of the resource being created; in create mode only namespaces the user may create it in are listed, and
-   * an existing pre-selected namespace the user may not create it in is replaced by the first one listed (or cleared)
+   * an existing pre-selected namespace the user may not create it in is replaced by the first one listed, if any
    */
   resourceType?: string | null;
   rules?: Validator[];
@@ -84,7 +84,7 @@ const props = withDefaults(defineProps<Props>(), {
   required:                false,
 });
 
-const emit = defineEmits<{(e: 'update:value', value: string | null): void, (e: 'isNamespaceNew', value: boolean): void}>();
+const emit = defineEmits<{(e: 'update:value', value: string): void, (e: 'isNamespaceNew', value: boolean): void}>();
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -262,9 +262,6 @@ function leaveNamespaceNotAllowingCreate(allowed: Set<string>) {
 
   if (firstAllowed) {
     emitChange(firstAllowed);
-  } else {
-    namespace.value = null;
-    emit('update:value', null);
   }
 }
 
