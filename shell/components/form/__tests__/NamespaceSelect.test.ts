@@ -1,4 +1,4 @@
-import { shallowMount } from '@vue/test-utils';
+import { flushPromises, shallowMount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import NamespaceSelect from '../NamespaceSelect.vue';
 import LabeledSelectWithCreate from '@shell/components/form/LabeledSelectWithCreate.vue';
@@ -11,7 +11,6 @@ const requiredSetup = (customGetters = {}) => {
     getters: {
       'i18n/t':            () => (text: string) => text,
       t:                   () => (text: string) => text,
-      allowedNamespaces:   () => () => ({ 'ns-1': { id: 'ns-1' } }),
       namespaces:          () => () => ({ 'ns-1': { id: 'ns-1' }, 'ns-2': { id: 'ns-2' } }),
       currentCluster:      () => ({ canUpdate: true }),
       currentStore:        () => () => 'cluster',
@@ -208,6 +207,132 @@ describe('namespaceSelect', () => {
       const emittedUpdate = wrapper.emitted('update:value') || [];
 
       expect(emittedUpdate[emittedUpdate.length - 1]).toStrictEqual(['default']);
+    });
+  });
+
+  describe('namespaces offered when creating a resource', () => {
+    const NS_COLLECTION = '/v1/namespaces';
+
+    const schemas: Record<string, object> = {
+      namespace:          { links: { collection: NS_COLLECTION }, collectionMethods: ['POST'] },
+      secret:             { attributes: { namespaced: true } },
+      chartInstallAction: { attributes: {} },
+    };
+
+    const permissionsSetup = (request: jest.Mock) => {
+      const store = createStore({
+        getters: {
+          'i18n/t':   () => (text: string) => text,
+          t:          () => (text: string) => text,
+          namespaces: () => () => ({
+            'can-create': { id: 'can-create' }, 'also-can-create': { id: 'also-can-create' }, 'read-only': { id: 'read-only' }
+          }),
+          allowedNamespaces:   () => () => ({}),
+          currentCluster:      () => ({ canUpdate: true }),
+          currentStore:        () => () => 'cluster',
+          'cluster/schemaFor': () => (type: string) => schemas[type],
+          defaultNamespace:    () => 'default',
+        },
+        actions: {
+          'cru-resource/setCreateNamespace': mockSetCreateNamespace,
+          'cluster/request':                 (_: unknown, opt: unknown) => request(opt),
+        }
+      });
+
+      return { global: { provide: { store }, components: { LabeledSelectWithCreate } } };
+    };
+
+    const mountCreate = (request: jest.Mock, props: object = { resourceType: 'secret' }) => shallowMount(NamespaceSelect, {
+      ...permissionsSetup(request),
+      props: {
+        mode: _CREATE, noDefaultNamespace: true, ...props
+      },
+    });
+
+    const optionValues = (wrapper: any) => wrapper.findComponent(LabeledSelectWithCreate).props('options').map((o: any) => o.value);
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('lists the namespaces the user may create the resource in, even though it cannot update any of them', async() => {
+      const request = jest.fn().mockResolvedValue({
+        data: [
+          { id: 'can-create', resourcePermissions: { secret: { create: 'url' } } },
+          { id: 'also-can-create', resourcePermissions: { secret: { create: 'url', get: 'url' } } },
+          { id: 'read-only', resourcePermissions: { secret: { get: 'url' } } },
+        ]
+      });
+
+      const wrapper = mountCreate(request);
+
+      await flushPromises();
+
+      expect(optionValues(wrapper)).toStrictEqual(['also-can-create', 'can-create']);
+      expect(request).toHaveBeenCalledWith({ url: `${ NS_COLLECTION }?checkPermissions=secret&include=metadata.name` });
+    });
+
+    it('shows the select as loading until the permissions are known', async() => {
+      let resolveRequest: (value: unknown) => void = () => {};
+      const request = jest.fn().mockReturnValue(new Promise((resolve) => {
+        resolveRequest = resolve;
+      }));
+
+      const select = mountCreate(request).findComponent(LabeledSelectWithCreate);
+
+      expect(select.props('loading')).toStrictEqual(true);
+
+      resolveRequest({ data: [] });
+      await flushPromises();
+
+      expect(select.props('loading')).toStrictEqual(false);
+    });
+
+    const failingRequest = () => jest.fn().mockRejectedValue(new Error('boom'));
+    const requestIgnoringCheckPermissions = () => jest.fn().mockResolvedValue({ data: [{ id: 'can-create' }, { id: 'read-only' }] });
+
+    it.each([
+      ['the request fails', failingRequest],
+      ['the API does not support checkPermissions', requestIgnoringCheckPermissions],
+    ])('lists every namespace when %s', async(_, createRequest) => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const wrapper = mountCreate(createRequest());
+
+      await flushPromises();
+
+      expect(optionValues(wrapper)).toStrictEqual(['also-can-create', 'can-create', 'read-only']);
+      expect(wrapper.findComponent(LabeledSelectWithCreate).props('loading')).toStrictEqual(false);
+    });
+
+    it.each<{ desc: string, props: object }>([
+      { desc: 'editing', props: { mode: _EDIT, resourceType: 'secret' } },
+      { desc: 'no resource type is given', props: {} },
+      { desc: 'the type is not a namespaced resource', props: { resourceType: 'chartInstallAction' } },
+      { desc: 'the type has no schema', props: { resourceType: 'unknown' } },
+    ])('does not check permissions and lists every namespace when $desc', async({ props }) => {
+      const request = jest.fn();
+
+      const wrapper = mountCreate(request, props);
+
+      await flushPromises();
+
+      expect(request).not.toHaveBeenCalled();
+      expect(optionValues(wrapper)).toStrictEqual(['also-can-create', 'can-create', 'read-only']);
+    });
+
+    it.each<{ desc: string, props: object }>([
+      { desc: 'override', props: { override: ['given-ns'] } },
+      { desc: 'options', props: { options: ['given-ns'] } },
+      { desc: 'forceNamespace', props: { forceNamespace: 'given-ns' } },
+    ])('does not check permissions when the namespaces come from $desc', async({ props }) => {
+      const request = jest.fn();
+
+      mountCreate(request, { resourceType: 'secret', ...props });
+
+      await flushPromises();
+
+      expect(request).not.toHaveBeenCalled();
     });
   });
 
