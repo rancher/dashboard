@@ -233,5 +233,23 @@ describe.each([
       expect(selectors.namespaceAndPod.namespaceRule.element).toBeDefined();
       expect(selectors.namespaceAndPod.podRule.element).toBeDefined();
     });
+
+    it.each([
+      'podSelector',
+      'namespaceSelector',
+    ])('should leave the %p of the rule unchanged', async(selectorKey) => {
+      const selector = () => ({
+        matchLabels:      { aaa: 'aaa' },
+        matchExpressions: [{
+          key: 'aaa', operator: 'In', values: ['bbb']
+        }],
+      });
+
+      const value = { [selectorKey]: selector() };
+
+      await wrapper.setProps({ value });
+
+      expect(value[selectorKey]).toStrictEqual(selector());
+    });
   });
 });
