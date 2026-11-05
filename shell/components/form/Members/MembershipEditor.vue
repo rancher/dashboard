@@ -6,23 +6,10 @@ import Loading from '@shell/components/Loading';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { get, set } from '@shell/utils/object';
 import { fetchProjectMembershipPermissions } from '@shell/utils/project-permissions';
+import { canViewMembershipEditor } from '@shell/utils/membership-permissions';
 
 function normalizeId(id) {
   return id?.replace(':', '/') || id;
-}
-
-export function canViewMembershipEditor(store, needsProject = false) {
-  return (!!store.getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING) || !needsProject) &&
-    !!store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE) &&
-    !!store.getters['rancher/schemaFor'](NORMAN.PRINCIPAL);
-}
-
-// Can the user VIEW the membership list (read-only)? Unlike `canViewMembershipEditor` (which gates
-// add/remove and needs the role-template + principal reads), viewing needs only the binding schema.
-export function canViewMembershipEditorList(store, needsProject = false) {
-  const bindingType = needsProject ? NORMAN.PROJECT_ROLE_TEMPLATE_BINDING : NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING;
-
-  return !!store.getters['rancher/schemaFor'](bindingType);
 }
 
 export default {
@@ -66,6 +53,15 @@ export default {
     modalSticky: {
       type:    Boolean,
       default: false,
+    },
+
+    /**
+     * The last `membership-update` this editor emitted. Pass it back so unsaved additions/removals are re-applied when the
+     * editor is remounted (e.g. it's within an RcSection that was collapsed), rather than reset to the saved bindings
+     */
+    pendingUpdate: {
+      type:    Object,
+      default: null,
     }
   },
 
@@ -85,6 +81,7 @@ export default {
   },
 
   async fetch() {
+    const pendingUpdate = this.pendingUpdate;
     const roleBindingRequestParams = { type: this.type, opt: { force: true } };
 
     if (this.type === NORMAN.PROJECT_ROLE_TEMPLATE_BINDING && this.parentId) {
@@ -110,7 +107,7 @@ export default {
 
     const [allBindings] = await Promise.all(userHydration);
 
-    const bindings = allBindings
+    let bindings = allBindings
       .filter((b) => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
 
     this['lastSavedBindings'] = [...bindings];
@@ -121,6 +118,15 @@ export default {
 
       defaultBinding.isDefaultBinding = true;
       bindings.push(defaultBinding);
+    }
+
+    if (pendingUpdate) {
+      const removedIds = (pendingUpdate.removedBindings || []).map((b) => b.id);
+
+      bindings = [
+        ...bindings.filter((b) => !b.id || !removedIds.includes(b.id)),
+        ...(pendingUpdate.newBindings || [])
+      ];
     }
 
     this['bindings'] = bindings;

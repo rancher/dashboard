@@ -1,25 +1,27 @@
 import { mount, shallowMount, VueWrapper } from '@vue/test-utils';
-import { SECRET } from '@shell/config/types';
-import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { NORMAN, SECRET } from '@shell/config/types';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import rke2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
+import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import { get } from '@shell/utils/object';
 import { rke2TestTable } from './utils/rke2-test-data';
 import {
-  RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE, RKE2_TRAEFIK
+  RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE, RKE2_TRAEFIK, mergeExtensionSectionProps
 } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
 jest.mock('@shell/edit/provisioning.cattle.io.cluster/shared', () => ({
-  RETENTION_DEFAULT:         5,
-  RKE2_INGRESS_NGINX:        'rke2-ingress-nginx',
-  RKE2_TRAEFIK:              'rke2-traefik',
-  INGRESS_NGINX:             'ingress-nginx',
-  INGRESS_CONTROLLER:        'ingress-controller',
-  TRAEFIK:                   'traefik',
-  HARVESTER:                 'harvester',
-  INGRESS_DUAL:              'dual',
-  INGRESS_NONE:              'none',
-  INGRESS_OPTIONS:           [],
-  INGRESS_MIGRATION_KB_LINK: 'mock-link'
+  RETENTION_DEFAULT:           5,
+  RKE2_INGRESS_NGINX:          'rke2-ingress-nginx',
+  RKE2_TRAEFIK:                'rke2-traefik',
+  INGRESS_NGINX:               'ingress-nginx',
+  INGRESS_CONTROLLER:          'ingress-controller',
+  TRAEFIK:                     'traefik',
+  HARVESTER:                   'harvester',
+  INGRESS_DUAL:                'dual',
+  INGRESS_NONE:                'none',
+  INGRESS_OPTIONS:             [],
+  INGRESS_MIGRATION_DOCS_LINK: 'mock-link',
+  mergeExtensionSectionProps:  jest.fn((defaultProps) => defaultProps),
 }));
 
 /**
@@ -648,6 +650,47 @@ describe('component: rke2', () => {
 
       expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NGINX);
     });
+
+    it('should drop the rke2 ingress-controller setting when switching to a k3s version while creating', () => {
+      const wrapper = createWrapper(_CREATE);
+      const k3sVersion = 'v1.26.0+k3s1';
+
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER] = TRAEFIK;
+      wrapper.vm.value.isK3s = true;
+      wrapper.vm.value.spec.kubernetesVersion = k3sVersion;
+      (wrapper.vm as any).handleKubernetesChange(k3sVersion);
+
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBeUndefined();
+    });
+
+    it('should leave the ingress-controller setting of an existing k3s cluster alone', () => {
+      const wrapper = createWrapper(_EDIT);
+      const k3sVersion = 'v1.26.0+k3s1';
+
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER] = TRAEFIK;
+      wrapper.vm.value.isK3s = true;
+      wrapper.vm.value.spec.kubernetesVersion = k3sVersion;
+      (wrapper.vm as any).handleKubernetesChange(k3sVersion);
+
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(TRAEFIK);
+    });
+
+    it.each([
+      [_CREATE, 'v1.37.0+rke2r1', INGRESS_NGINX, true],
+      [_EDIT, 'v1.37.0+rke2r1', INGRESS_NGINX, true],
+      [_EDIT, 'v1.38.0+rke2r1', INGRESS_NGINX, true],
+      [_EDIT, 'v1.36.0+rke2r1', INGRESS_NGINX, false],
+      [_EDIT, 'v1.37.0+rke2r1', TRAEFIK, false],
+      [_EDIT, 'v1.37.0+rke2r1', [INGRESS_NGINX, TRAEFIK], false],
+      [_EDIT, 'v1.37.0+rke2r1', INGRESS_NONE, false],
+    ])('restricts standalone nginx for %s at %s with controller %p: %p', (mode, version, controller, expected) => {
+      const wrapper = createWrapper(mode as string);
+
+      wrapper.vm.value.spec.kubernetesVersion = version as string;
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER] = controller;
+
+      expect((wrapper.vm as any).ingressNginxUnsupported).toBe(expected);
+    });
   });
 
   describe('method: showIpv6Warning', () => {
@@ -982,212 +1025,15 @@ describe('component: rke2', () => {
     });
   });
 
-  // Characterization tests written ahead of extracting registry configuration into a composable.
-  describe('methods: initRegistry', () => {
-    const buildVm = (overrides: Record<string, any> = {}) => {
-      const { systemRegistryValue, ...rest } = overrides;
+  // fetchRke2Versions now lives in shell/composables/useKubernetesVersions.ts - see useKubernetesVersions.test.ts.
 
-      return {
-        agentConfig: {},
-        rkeConfig:   {},
-        ...rest,
-        $store:      { dispatch: jest.fn().mockResolvedValue({ value: systemRegistryValue ?? '' }) },
-      } as any;
-    };
+  // nodeTotals/hasRequiredNodes/unremovedMachinePools/hasOnlyIpv6Pools/hasDualStackPools/
+  // removeMachinePool/machinePoolValidationChanged now live in
+  // shell/composables/useMachinePools.ts - see useMachinePools.test.ts.
 
-    it('prefers the cluster-scoped registry over the global system registry', async() => {
-      const vm = buildVm({ agentConfig: { 'system-default-registry': 'cluster.registry.io' }, systemRegistryValue: 'global.registry.io' });
-
-      await (rke2.methods as any).initRegistry.call(vm);
-
-      expect(vm.registryHost).toBe('cluster.registry.io');
-    });
-
-    it('falls back to the global system registry when no cluster-scoped registry is set', async() => {
-      const vm = buildVm({ systemRegistryValue: 'global.registry.io' });
-
-      await (rke2.methods as any).initRegistry.call(vm);
-
-      expect(vm.registryHost).toBe('global.registry.io');
-      expect(vm.systemRegistry).toBe('global.registry.io');
-    });
-
-    it('initializes empty registries/configs/mirrors when none exist', async() => {
-      const vm = buildVm();
-
-      await (rke2.methods as any).initRegistry.call(vm);
-
-      expect(vm.rkeConfig.registries).toStrictEqual({ configs: {}, mirrors: {} });
-    });
-
-    it('picks up an existing auth secret for the resolved registry host and shows the custom registry input', async() => {
-      const vm = buildVm({
-        systemRegistryValue: 'my.registry.io',
-        rkeConfig:           { registries: { configs: { 'my.registry.io': { authConfigSecretName: 'my-secret' } } } },
-      });
-
-      await (rke2.methods as any).initRegistry.call(vm);
-
-      expect(vm.registrySecret).toBe('my-secret');
-      expect(vm.showCustomRegistryInput).toBe(true);
-    });
-
-    it('shows the advanced registry input when mirrors are configured', async() => {
-      const vm = buildVm({ rkeConfig: { registries: { mirrors: { 'docker.io': { endpoint: ['https://mirror.example.com'] } } } } });
-
-      await (rke2.methods as any).initRegistry.call(vm);
-
-      expect(vm.showCustomRegistryAdvancedInput).toBe(true);
-    });
-  });
-
-  describe('methods: setRegistryConfig', () => {
-    it('clears the override when there is no hostname and a system registry is set', () => {
-      const vm: any = {
-        registryHost: '', systemRegistry: 'global.registry.io', registrySecret: null, agentConfig: {}, value: { spec: {} }
-      };
-
-      (rke2.methods as any).setRegistryConfig.call(vm);
-
-      expect(vm.agentConfig['system-default-registry']).toBeUndefined();
-    });
-
-    it('clears the override when the hostname matches the system registry', () => {
-      const vm: any = {
-        registryHost: 'global.registry.io', systemRegistry: 'global.registry.io', registrySecret: null, agentConfig: {}, value: { spec: {} }
-      };
-
-      (rke2.methods as any).setRegistryConfig.call(vm);
-
-      expect(vm.agentConfig['system-default-registry']).toBeUndefined();
-    });
-
-    it('sets the override to the hostname when it differs from the system registry', () => {
-      const vm: any = {
-        registryHost: 'custom.registry.io', systemRegistry: 'global.registry.io', registrySecret: null, agentConfig: {}, value: { spec: {} }
-      };
-
-      (rke2.methods as any).setRegistryConfig.call(vm);
-
-      expect(vm.agentConfig['system-default-registry']).toBe('custom.registry.io');
-    });
-
-    it('sets the override to the hostname when there is no system registry', () => {
-      const vm: any = {
-        registryHost: 'custom.registry.io', systemRegistry: '', registrySecret: null, agentConfig: {}, value: { spec: {} }
-      };
-
-      (rke2.methods as any).setRegistryConfig.call(vm);
-
-      expect(vm.agentConfig['system-default-registry']).toBe('custom.registry.io');
-    });
-
-    it('creates rkeConfig with the basic auth config when none exists', () => {
-      const vm: any = {
-        registryHost: 'custom.registry.io', systemRegistry: '', registrySecret: 'my-secret', agentConfig: {}, value: { spec: {} }
-      };
-
-      (rke2.methods as any).setRegistryConfig.call(vm);
-
-      expect(vm.value.spec.rkeConfig.registries.configs['custom.registry.io']).toStrictEqual({
-        authConfigSecretName: 'my-secret', caBundle: null, insecureSkipVerify: false, tlsSecretName: null,
-      });
-    });
-
-    it('merges the basic auth config alongside existing registry configs', () => {
-      const vm: any = {
-        registryHost:   'custom.registry.io',
-        systemRegistry: '',
-        registrySecret: 'my-secret',
-        agentConfig:    {},
-        value:          { spec: { rkeConfig: { registries: { configs: { 'other.registry.io': { authConfigSecretName: 'other-secret' } } } } } },
-      };
-
-      (rke2.methods as any).setRegistryConfig.call(vm);
-
-      const configs = vm.value.spec.rkeConfig.registries.configs;
-
-      expect(Object.keys(configs).sort()).toStrictEqual(['custom.registry.io', 'other.registry.io']);
-    });
-
-    it('adds a configs entry alongside existing mirrors when no configs exist yet', () => {
-      const vm: any = {
-        registryHost:   'custom.registry.io',
-        systemRegistry: '',
-        registrySecret: 'my-secret',
-        agentConfig:    {},
-        value:          { spec: { rkeConfig: { registries: { mirrors: { 'docker.io': {} } } } } },
-      };
-
-      (rke2.methods as any).setRegistryConfig.call(vm);
-
-      expect(vm.value.spec.rkeConfig.registries.mirrors).toStrictEqual({ 'docker.io': {} });
-      expect(vm.value.spec.rkeConfig.registries.configs['custom.registry.io']).toBeDefined();
-    });
-  });
-
-  describe('methods: updateConfigs', () => {
-    it('initializes rkeConfig when missing and sets the configs', () => {
-      const vm: any = { value: { spec: {} } };
-      const configs = { 'registry.io': {} };
-
-      (rke2.methods as any).updateConfigs.call(vm, configs);
-
-      expect(vm.value.spec.rkeConfig.registries.configs).toBe(configs);
-    });
-
-    it('sets the configs on an existing rkeConfig', () => {
-      const vm: any = { value: { spec: { rkeConfig: { registries: {} } } } };
-      const configs = { 'registry.io': {} };
-
-      (rke2.methods as any).updateConfigs.call(vm, configs);
-
-      expect(vm.value.spec.rkeConfig.registries.configs).toBe(configs);
-    });
-  });
-
-  describe('methods: registry input handlers', () => {
-    it('updates the registry host', () => {
-      const vm: any = { registryHost: null };
-
-      (rke2.methods as any).handleRegistryHostChanged.call(vm, 'registry.io');
-
-      expect(vm.registryHost).toBe('registry.io');
-    });
-
-    it('updates the registry secret', () => {
-      const vm: any = { registrySecret: null };
-
-      (rke2.methods as any).handleRegistrySecretChanged.call(vm, 'my-secret');
-
-      expect(vm.registrySecret).toBe('my-secret');
-    });
-
-    describe('toggleCustomRegistry', () => {
-      it('sets showCustomRegistryInput and clears an existing host/secret', () => {
-        const vm: any = {
-          showCustomRegistryInput: false, registryHost: 'registry.io', registrySecret: 'secret', initRegistry: jest.fn(),
-        };
-
-        (rke2.methods as any).toggleCustomRegistry.call(vm, true);
-
-        expect(vm.showCustomRegistryInput).toBe(true);
-        expect(vm.registryHost).toBeNull();
-        expect(vm.registrySecret).toBeNull();
-        expect(vm.initRegistry).not.toHaveBeenCalled();
-      });
-
-      it('re-initializes the registry when there is no existing host', () => {
-        const vm: any = {
-          showCustomRegistryInput: false, registryHost: null, registrySecret: null, initRegistry: jest.fn(),
-        };
-
-        (rke2.methods as any).toggleCustomRegistry.call(vm, true);
-
-        expect(vm.initRegistry).toHaveBeenCalledWith();
-      });
-    });
-  });
+  // initRegistry/setRegistryConfig/updateConfigs/toggleCustomRegistry/handleRegistryHostChanged/
+  // handleRegistrySecretChanged now live in shell/composables/useRegistryConfig.ts - see
+  // useRegistryConfig.test.ts.
 
   // Characterization tests written ahead of extracting chart/addon value handling into a composable.
   describe('methods: getChartValue', () => {
@@ -1457,6 +1303,228 @@ describe('component: rke2', () => {
       (rke2.methods as any).setHarvesterDefaultCloudProvider.call(vm);
 
       expect(vm.agentConfig['cloud-provider-name']).toBe('');
+    });
+  });
+
+  describe('computed: needCredential (extension credential section)', () => {
+    const baseVm = {
+      provider:                   'testcredentials',
+      isElementalCluster:         false,
+      mode:                       _CREATE,
+      extensionCredentialSection: { name: 'CredentialSection' },
+      cloudCredentialsOverride:   false,
+      providerConfig:             undefined,
+    };
+
+    it('should return true when the provisioner has an extension credential section, even with cloud-credential registered as false', () => {
+      const vm = { ...baseVm } as any;
+
+      expect(rke2.computed!.needCredential.call(vm)).toBe(true);
+    });
+
+    it('should return false when cloud-credential is registered as false and there is no extension credential section', () => {
+      const vm = { ...baseVm, extensionCredentialSection: null } as any;
+
+      expect(rke2.computed!.needCredential.call(vm)).toBe(false);
+    });
+
+    it.each([
+      ['the custom provider', { provider: 'custom' }],
+      ['the import provider', { provider: 'import' }],
+      ['an elemental cluster', { isElementalCluster: true }],
+      ['view mode', { mode: _VIEW }],
+    ])('should return false for %s even with an extension credential section', (_, overrides) => {
+      const vm = { ...baseVm, ...overrides } as any;
+
+      expect(rke2.computed!.needCredential.call(vm)).toBe(false);
+    });
+  });
+
+  describe('watch: credentialId', () => {
+    const credentialId = 'cattle-global-data:cc-1';
+
+    const createVm = (extensionCredentialSection: any) => ({
+      extensionCredentialSection,
+      credentialId,
+      credential:        null,
+      isHarvesterDriver: false,
+      value:             { spec: {} as Record<string, any> },
+      $store:            { getters: { 'rancher/byId': jest.fn(() => ({ id: credentialId })) } },
+    });
+
+    const runWatch = (vm: ReturnType<typeof createVm>) => (rke2.watch as any).credentialId.call(vm, credentialId);
+
+    it('should not write spec.cloudCredentialSecretName when the provisioner has an extension credential section', () => {
+      const vm = createVm({ name: 'CredentialSection' });
+
+      runWatch(vm);
+
+      expect(vm.value.spec.cloudCredentialSecretName).toBeUndefined();
+    });
+
+    it('should not look up a cloud credential when the provisioner has an extension credential section', () => {
+      const vm = createVm({ name: 'CredentialSection' });
+
+      runWatch(vm);
+
+      expect(vm.$store.getters['rancher/byId']).not.toHaveBeenCalled();
+    });
+
+    it('should write spec.cloudCredentialSecretName when there is no extension credential section', () => {
+      const vm = createVm(null);
+
+      runWatch(vm);
+
+      expect(vm.value.spec.cloudCredentialSecretName).toBe(credentialId);
+    });
+
+    it('should look up the cloud credential when there is no extension credential section', () => {
+      const vm = createVm(null);
+
+      runWatch(vm);
+
+      expect(vm.$store.getters['rancher/byId']).toHaveBeenCalledWith(NORMAN.CLOUD_CREDENTIAL, credentialId);
+    });
+  });
+
+  describe('computed: extensionCredentialSectionProps', () => {
+    const cluster = { metadata: { name: 'test-cluster' } };
+    const infrastructureCluster = { kind: 'TestCredentialsCluster' };
+
+    const createVm = (extensionProvider: any, credentialId = 'ns/secret') => ({
+      extensionProvider,
+      extensionCredentialSection: extensionProvider?.extensionCredentialSection || null,
+      value:                      cluster,
+      infrastructureCluster,
+      credentialId,
+      mode:                       _CREATE,
+      provider:                   'testcredentials',
+    });
+
+    it('should return no props when there is no extension credential section', () => {
+      const vm = createVm(undefined) as any;
+
+      expect(rke2.computed!.extensionCredentialSectionProps.call(vm)).toStrictEqual({});
+    });
+
+    it('should merge the provisioner props over the provisioning and infrastructure clusters', () => {
+      const extensionProps = { namespace: 'merge-ns' };
+      const vm = createVm({ extensionCredentialSection: {}, extensionCredentialSectionProps: extensionProps }) as any;
+
+      rke2.computed!.extensionCredentialSectionProps.call(vm);
+
+      expect(mergeExtensionSectionProps).toHaveBeenCalledWith(
+        { provisioningCluster: cluster, infrastructureCluster },
+        extensionProps,
+        {
+          provisioningCluster: cluster, infrastructureCluster, value: 'ns/secret', mode: _CREATE, provider: 'testcredentials'
+        }
+      );
+    });
+
+    it('should pass null as the context value when there is no credential', () => {
+      const extensionProps = { namespace: 'null-value-ns' };
+      const vm = createVm({ extensionCredentialSection: {}, extensionCredentialSectionProps: extensionProps }, '') as any;
+
+      rke2.computed!.extensionCredentialSectionProps.call(vm);
+
+      expect(mergeExtensionSectionProps).toHaveBeenCalledWith(expect.any(Object), extensionProps, expect.objectContaining({ value: null }));
+    });
+
+    it('should return the merged props', () => {
+      const vm = createVm({ extensionCredentialSection: {} }) as any;
+
+      (mergeExtensionSectionProps as jest.Mock).mockReturnValueOnce({ merged: true });
+
+      expect(rke2.computed!.extensionCredentialSectionProps.call(vm)).toStrictEqual({ merged: true });
+    });
+  });
+
+  describe('template: credential step', () => {
+    const CredentialSection = { name: 'CredentialSection', template: '<div />' };
+
+    class CredentialProvisioner {
+      get extensionCredentialSection() {
+        return CredentialSection;
+      }
+
+      get extensionCredentialSectionProps() {
+        return { namespace: 'template-ns' };
+      }
+    }
+
+    const createWrapper = () => {
+      const $extension = { getDynamic: jest.fn((type: string) => (type === 'provisioner' ? CredentialProvisioner : undefined)) };
+
+      return mount(rke2, {
+        props: {
+          mode:  _CREATE,
+          value: {
+            spec:        { ...defaultSpec, kubernetesVersion: 'v1.25.0+rke2r1' },
+            agentConfig: { 'cloud-provider-name': 'any' }
+          },
+          selectedVersion: { agentArgs: mockAgentArgs },
+          provider:        'testcredentials',
+        },
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store: {
+              dispatch: () => jest.fn(), getters: defaultGetters, app: { $extension }
+            },
+            $extension,
+          },
+          stubs: defaultStubs,
+        },
+      });
+    };
+
+    it('should pass the provisioner extension credential section to SelectCredential', () => {
+      const wrapper = createWrapper();
+
+      expect(wrapper.findComponent(SelectCredential).props('extensionComponent')).toStrictEqual(CredentialSection);
+    });
+
+    it('should pass the extension credential section props to SelectCredential', () => {
+      const wrapper = createWrapper();
+
+      expect(wrapper.findComponent(SelectCredential).props('extensionComponentProps')).toStrictEqual({
+        provisioningCluster:   expect.any(Object),
+        infrastructureCluster: null,
+      });
+    });
+  });
+
+  describe('etcd tab', () => {
+    it.each([
+      [false, true],
+      [true, false],
+    ])('should show an error on the etcd tab when etcdConfigValid is %p: %p', async(etcdConfigValid, error) => {
+      const wrapper = mount(rke2, {
+        props: {
+          mode:  _CREATE,
+          value: {
+            spec:        { ...defaultSpec, kubernetesVersion: 'v1.25.0+rke2r1' },
+            agentConfig: { 'cloud-provider-name': 'any' }
+          },
+          selectedVersion: { agentArgs: mockAgentArgs },
+          provider:        'custom',
+        },
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
+            $extension: { getDynamic: jest.fn(() => undefined ) },
+          },
+          stubs: { ...defaultStubs, Tabbed: { template: '<div><slot /></div>' } },
+        },
+      });
+
+      await wrapper.setData({ etcdConfigValid });
+
+      const etcdTab = wrapper.findAllComponents({ name: 'Tab' }).find((tab) => tab.props('name') === 'etcd');
+
+      expect(etcdTab?.props('error')).toStrictEqual(error);
     });
   });
 });

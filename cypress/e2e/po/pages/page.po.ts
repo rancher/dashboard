@@ -132,8 +132,13 @@ export default class PagePo extends ComponentPo {
     return new HeaderPo();
   }
 
-  extensionScriptImport(name: string) {
-    return this.self().get(`[data-purpose="extension"]`).get(`[id*="${ name }"]`);
+  /**
+   * @param options optional Cypress options (e.g. a longer timeout). Extension scripts are fetched
+   * asynchronously after the app initialises, so callers asserting on one right after a reload may
+   * need longer than the default.
+   */
+  extensionScriptImport(name: string, options?: any) {
+    return this.self().get(`[data-purpose="extension"]`, options).get(`[id*="${ name }"]`, options);
   }
 
   /**

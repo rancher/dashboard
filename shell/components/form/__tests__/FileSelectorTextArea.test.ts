@@ -1,8 +1,9 @@
-import { mount } from '@vue/test-utils';
+import { flushPromises, mount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { _VIEW } from '@shell/config/query-params';
 
 const DROP_OVERLAY = '[data-testid="file-selector-text-area__drop-overlay"]';
@@ -115,6 +116,35 @@ describe('component: FileSelectorTextArea', () => {
     expect(wrapper.emitted('update:value')).toStrictEqual([['encoded:file contents']]);
   });
 
+  // A file sets the value without focusing the text area, so nothing blurs it. Unless the field is touched,
+  // an invalid file leaves the form unable to save with no error to say why.
+  describe.each([
+    ['an invalid', 'Not a PEM private key'],
+    ['a valid', undefined],
+  ])('when a file sets %s value', (_, ruleResult) => {
+    const mountField = () => mountComponent({ name: 'tls.key', rules: [jest.fn().mockReturnValue(ruleResult)] });
+
+    it('should show the rule result after Read from File', async() => {
+      const wrapper = mountField();
+
+      wrapper.findComponent(FileSelector).vm.$emit('selected', 'file contents');
+      await flushPromises();
+
+      expect(wrapper.findComponent(LabeledInput).vm.validationMessage).toStrictEqual(ruleResult);
+    });
+
+    it('should show the rule result after a drop', async() => {
+      const wrapper = mountField();
+      const file = new File(['file contents'], 'tls.key', { type: 'text/plain' });
+
+      await wrapper.find('.drop-zone').trigger('drop', fileDragEvent(['Files'], [file]));
+      await flushFileRead(wrapper);
+      await flushPromises();
+
+      expect(wrapper.findComponent(LabeledInput).vm.validationMessage).toStrictEqual(ruleResult);
+    });
+  });
+
   it('should show the drop overlay only while a file is dragged over the text area', async() => {
     const wrapper = mountComponent();
     const dropZone = wrapper.find('.drop-zone');
@@ -213,5 +243,64 @@ describe('component: FileSelectorTextArea', () => {
     await flushFileRead(wrapper);
 
     expect(wrapper.emitted('update:value')).toBeUndefined();
+  });
+
+  describe('the help text', () => {
+    const SUB_LABEL = '[data-testid="file-selector-text-area__sub-label"]';
+    const describedBy = (wrapper: any) => wrapper.find('textarea').attributes('aria-describedby');
+
+    it.each([
+      ['between the text area and the file selector when editing', {}, `.drop-zone + ${ SUB_LABEL } + .file-selector-row`],
+      ['directly under the text area in view mode', { mode: _VIEW }, `.drop-zone + ${ SUB_LABEL }`],
+    ])('should render %s', (_, props, selector) => {
+      const wrapper = mountComponent({ subLabel: 'Some help', ...props });
+
+      expect(wrapper.find(selector).exists()).toBe(true);
+    });
+
+    it('should not be rendered by the labeled input', () => {
+      const wrapper = mountComponent({ subLabel: 'Some help' });
+
+      expect(wrapper.find('.labeled-input [data-testid="sub-label"]').exists()).toBe(false);
+    });
+
+    it('should render the HTML it is given', () => {
+      const wrapper = mountComponent({ subLabel: 'Read the <a href="https://example.com/docs">docs</a>.' });
+
+      expect(wrapper.find(`${ SUB_LABEL } a`).attributes('href')).toBe('https://example.com/docs');
+    });
+
+    it.each([
+      ['is not set', undefined],
+      ['is empty', ''],
+    ])('should not render when it %s', (_, subLabel) => {
+      const wrapper = mountComponent({ subLabel });
+
+      expect(wrapper.find(SUB_LABEL).exists()).toBe(false);
+    });
+
+    it('should describe the text area', () => {
+      const wrapper = mountComponent({ subLabel: 'Some help' });
+
+      expect(wrapper.find(`${ SUB_LABEL }[id="${ describedBy(wrapper) }"]`).exists()).toBe(true);
+    });
+
+    it('should describe the text area alongside a description the caller supplies', () => {
+      const wrapper = mountComponent({ subLabel: 'Some help', 'aria-describedby': 'caller-hint' });
+
+      expect(describedBy(wrapper)).toBe(`caller-hint ${ wrapper.find(SUB_LABEL).attributes('id') }`);
+    });
+
+    it('should leave a description the caller supplies alone when there is no help text', () => {
+      const wrapper = mountComponent({ 'aria-describedby': 'caller-hint' });
+
+      expect(describedBy(wrapper)).toBe('caller-hint');
+    });
+
+    it('should not describe the text area when there is no help text', () => {
+      const wrapper = mountComponent();
+
+      expect(describedBy(wrapper)).toBeUndefined();
+    });
   });
 });

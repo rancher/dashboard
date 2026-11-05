@@ -343,6 +343,7 @@ nav:
   userMenu:
     preferences: Preferences
     accountAndKeys: Account & API Keys
+    whatsNew: What's New
     logOut: Log Out
     label: User menu
     button:
@@ -434,24 +435,26 @@ about:
   title: About
   versions:
     downloadImages: "Download {listName} images list"
-    downloadCli: "Download CLI for {os}: {file}"
     githubRepo: "Open GitHub repository for the {name} component"
     title: Versions
     component: Component
     version: Version
-    cli: CLI
+    cli: Rancher CLI
     helm: Helm
     machine: Machine
     rancher: Rancher
     releaseNotes: 'View release notes'
-  os:
-    mac: macOS
-    windows: Windows
-    linux: Linux
   downloadImageList:
     title: Image Lists
-  downloadCLI:
-    title: CLI Downloads
+  cli:
+    title: "Rancher CLI (legacy)"
+    description: This version of the Rancher CLI will be deprecated in a future release and will no longer receive new features. It remains fully supported for now, so existing scripts and automation keep working, but we recommend starting with the new Rancher CLI below.
+    docsLink: View Rancher CLI documentation
+    new:
+      title: "New Rancher CLI (AI & Agent Edition)"
+      badge: New
+      description: The intelligent CLI built for AI, AI agents and autonomous Kubernetes.
+      githubLink: View on GitHub (rancher/rancher-cli)
   diagnostic:
     title: Diagnostics
     checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources. These may take a while to complete
@@ -478,6 +481,24 @@ about:
     modal:
       title: Response times have not yet been generated.
       body: Generate response times to offer more specific information.
+  licenses:
+    title: Open Source Licenses
+    description: This dashboard is built on top of other open source software. Click below to view the full list of third-party packages and their licenses.
+    viewLicenses: View Licenses
+    page:
+      title: Open Source Licenses
+      hint: Click a license to view its full text.
+      error: "Failed to load licenses ({error}). Please try again later."
+    table:
+      package: Package
+      license: License
+      viewFor: "View {license} license text for {name}"
+    panel:
+      none: No license content is available for this package.
+      declaredAs: "Declared license: {license}"
+      rawLicense: "Original expression: {expression}"
+      author: "Author: {author}"
+      textLabel: License text
 
 accountAndKeys:
   title: Account and API Keys
@@ -535,6 +556,102 @@ addProjectMemberDialog:
   title: Add Project Member
 
 authConfig:
+  enableLimitReached: Another external provider is already enabled. Rancher Community allows for one external auth provider to be configured at a time. Disable the active provider to add a different one, or use Rancher Prime to run several together.
+  enableLimitReachedPrime: Another external provider is already enabled. The multiple-auth-providers feature flag is off, so one external auth provider can be enabled at a time. Disable the active provider to add a different one, or turn the flag on under Global Settings > Feature Flags to run several together.
+  list:
+    title: Authentication Providers
+    description: Configure the identity providers people can use to log in to Rancher.
+    create: Add provider
+    external: External Providers
+    local: Local Authentication
+    customiseLogin: Customise the login screen
+    docsUrl: '{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config'
+    empty:
+      title: No external providers configured
+      description: Everyone logs in with a local Rancher account. Connect an identity provider so people can use their existing company credentials.
+      create: Add a provider
+      learnMore: How external authentication works
+    prime:
+      title: Run multiple auth providers at once with SUSE Rancher Prime
+      description: Rancher Community supports one external auth provider at a time, so disable the active one to switch. With <primeUrl>SUSE Rancher Prime</primeUrl> employees, contractors and partners can each sign in through the provider they already use, all active together.
+      action: Learn about SUSE Rancher Prime
+    primeFlagOff:
+      title: Run multiple auth providers at once with the multiple-auth-providers feature flag
+      description: The multiple-auth-providers feature flag is off, so one external auth provider can be active at a time. Disable the active one to switch, or turn the flag on to let employees, contractors and partners each sign in through the provider they already use, all active together.
+      action: Go to Feature Flags
+    disableLocal:
+      label: Disable login with local users
+      description: Users sign in through external providers only. Local accounts remain, but cannot be used to sign in.
+      risk: Local login is off. If every external provider becomes unreachable, no one will be able to sign in and recovery requires command-line access to the cluster.
+    localRow:
+      title: Local authentication
+      chip: Built-in
+      description: Accounts for administrators. Use only when a provider is unavailable.
+      descriptionDisabled: Accounts still exist and keep their permissions, but cannot be used to log in.
+      meta: Rancher-managed accounts
+      active: Active
+      disabled: Disabled
+      manageUsers: Manage local users
+  access:
+    title: '{provider} - Access'
+    type: Type
+  create:
+    back: Authentication Providers
+    unknownProvider: '{provider} is not a provider this Rancher supports.'
+    limitReached: Another external provider is already enabled. Rancher Community allows for one external auth provider to be configured at a time. Disable the active provider to add a different one, or use Rancher Prime to run several together.
+    limitReachedPrime: Another external provider is already enabled. The multiple-auth-providers feature flag is off, so one external auth provider can be enabled at a time. Disable the active provider to add a different one, or turn the flag on under Global Settings > Feature Flags to run several together.
+    provider:
+      title: 'Add {provider}'
+    clone:
+      title: 'Clone {name}'
+      notFound: '{name} is not an authentication provider that can be cloned from here.'
+    name:
+      label: Name
+      required: A name is required.
+      invalid: Use lowercase letters, numbers and dashes, starting and ending with a letter or number.
+      taken: '{name} is already in use by another provider.'
+    descriptionField:
+      label: Description
+      placeholder: e.g. Engineering and support.
+  add:
+    title: Add an authentication provider
+    subtitle: Select the provider to connect. Rancher supports one external provider, so this is the one users will log in with. To use a different one later you delete this and configure the new one.
+    subtitleMultiple: Select the provider to connect. More than one external provider can be enabled at a time, and users choose which one to log in with.
+    subtitlePrimeSingle: Select the provider to connect. The multiple-auth-providers feature flag is off, so one external provider can be enabled at a time. Turn the flag on under Global Settings > Feature Flags to run several together.
+    searchPlaceholder: Search providers
+    filterLabel: Protocol
+    filterAll: All
+    noResults: No providers match your search.
+    resultCount: |-
+        {count , plural,
+          =1 { {count} provider matches your search. }
+          other { {count} providers match your search. }
+        }
+  disable:
+    action: Disable
+    title: 'Disable {name}?'
+    titleGeneric: Disable this authentication provider?
+    loggedOut: Any user currently signed in with this provider will be logged out and redirected to the login screen.
+    learnMore: Restoring access after disabling a provider
+    docsUrl: '{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config'
+    irreversible: This cannot be undone. Disabling deletes all resources stored for this provider.
+    acknowledge: I understand these users and permissions will be deleted
+    confirm: Disable and delete
+  disableLast:
+    title: 'Disable {name}?'
+    titleGeneric: Disable this authentication provider?
+    soleProvider: Local login is switched off and {name} is your only external provider. Disabling it now would leave no way to log in to Rancher.
+    remedy: Switch local login back on, then disable the provider. You can switch it off again once a new one is configured and working.
+    refusal: Rancher will not disable the last external provider while local login is off.
+    locked: Local login is locked off on this installation, so it cannot be switched back on from here. Restoring access requires command-line access to the cluster.
+    confirm: Turn local login back on
+  disableLocal:
+    title: Disable login with local users?
+    effect: From now on users sign in through external providers only. Local accounts are not deleted and keep their permissions, but they cannot be used to sign in.
+    recovery: You can switch this back off at any time from the provider list — but only while you can still sign in. If every external provider becomes unreachable while this is on, recovery requires command-line access to the cluster.
+    soleRoute: External providers become the only way to sign in, for every user including administrators.
+    acknowledge: I understand local accounts will no longer be able to sign in
+    confirm: Disable local login
   slo:
     sloTitle: Log Out behavior
     sloOptions:
@@ -542,7 +659,7 @@ authConfig:
       logoutAll: Log out of Rancher and {name} (includes all other applications registered with {name})
       choose: Allow the user to choose one of the above in an additional log out step
   accessMode:
-    label: 'Configure who should be able to login and use {vendor}'
+    label: 'Configure who should be able to login with this provider'
     required: Restrict access to only the authorized users & groups
     restricted: 'Allow members of clusters and projects, plus authorized users & groups'
     unrestricted: Allow any valid user
@@ -680,6 +797,7 @@ authConfig:
     cert: Certificate
     disabledStatusBitmask: Disabled Status Bitmask
     groupDNAttribute: Group DN Attribute
+    groupIDAttribute: Group Identifier Attribute
     groupMemberMappingAttribute: Group Member Mapping Attribute
     groupMemberUserAttribute: Group Member User Attribute
     groupSearchBase:
@@ -689,6 +807,10 @@ authConfig:
       label: Hostname/IP
       placeholder: eg server1,server2
       hint: Multiple servers can be specified as a comma separated list
+    idAttribute:
+      tip: Attribute whose value identifies the user or group in Rancher instead of its Distinguished Name, so that moving or renaming the entry in the directory keeps its permissions. Leave empty to use the Distinguished Name.
+      locked: Cannot be changed while the provider is enabled. Disable the provider to change it.
+      samlTip: Attribute whose value matches what the identity provider sends in the UID Field for users or the Groups Field for groups, so that search results match logged-in principals. Leave empty to use the Login Attribute for users and the Group DN Attribute for groups.
     loginAttribute: Login Attribute
     nameAttribute: Name Attribute
     nestedGroupMembership:
@@ -722,6 +844,7 @@ authConfig:
       tip: When enabled, Rancher will use the service account instead of the user account to search for users and groups.
     tls: TLS
     userEnabledAttribute: User Enabled Attribute
+    userIDAttribute: User Identifier Attribute
     userMemberAttribute: User Member Attribute
     userLoginFilter: User Login Filter
     userSearchBase:
@@ -879,9 +1002,6 @@ authConfig:
     disabled: 'The {provider} authentication provider is currently disabled.'
     enabled: 'The {provider} authentication provider is currently enabled.'
   testAndEnable: Test and Enable Authentication
-  noneEnabled: Local Authentication is always enabled, but you may select another additional authentication provider from those shown below.
-  localEnabled: '{vendor} is configured to allow access to accounts in its local database.'
-  manageLocal: Manage Accounts
 
 authGroups:
   actions:
@@ -1270,6 +1390,7 @@ catalog:
     windowsIncompatible: Linux only
     versionWindowsIncompatible: Linux only version
     header: Charts
+    cannotListApps: You do not have permission to list installed apps, which is required to view charts
     noCharts:
       title: No charts to show
       message: '<b>Tips:</b> undo the last filter you applied or <resetAllFilters>clear all filters</resetAllFilters>, and ensure you have the right <repositoriesUrl>repositories</repositoriesUrl> in place.'
@@ -1407,6 +1528,12 @@ catalog:
       chartOptions: Edit Options
       valuesYaml: Edit YAML
       diff: Compare Changes
+      chartDefaults:
+        label: Chart values
+        hint: Edit the chart default values with overrides, if any, overlayed below, exactly how Helm will resolve it. Only your changes, shown to the right, are saved. To unset a property, explicitly set it to “null”.
+      overrides:
+        label: Your values
+        hint: These values will override the chart default values. Only these values will be saved.
     slideIn:
       dock: Dock to shell
     steps:
@@ -1445,6 +1572,8 @@ catalog:
         label: Values
         subtext: Change how the App works
         description: Configure Values used by Helm that help define the App.
+        overridesDescription:
+          upgrade: Your values from {from} are applied on top of the {to} defaults, just like helm upgrade does.
         chartInfo:
           button: View Chart Info
           label: Chart Info
@@ -1529,6 +1658,20 @@ catalog:
       enableLabel: Enable Refresh Interval
     downloaded:
       label: Downloaded
+    detail:
+      overview: Overview
+      source: Source
+      type: Type
+      status: Status
+      authentication: Authentication
+      caBundle: CA Cert Bundle
+      exponentialBackOff: Exponential Back Off (min / max / retries)
+      charts:
+        label: Contents
+        view: View Charts
+        none: No contents available
+      extensions:
+        view: View Extensions
     error:
       refresh: Error refreshing repository
   tools:
@@ -1863,6 +2006,11 @@ cluster:
           minimumAllocatable: It's highly recommended to select a vGPU with a number of allocatable devices greater than the number of nodes (Machine Count) to avoid "un-schedulable" errors after cluster updates.
         errors:
           notAllocatable: '[{vGpu}] vGPU device is not allocatable; required: {allocated}, allocatable: {allocatable}'
+      hostDevices:
+        warnings:
+          minimumAllocatable: It's highly recommended to select PCI devices with a number of allocatable devices greater than the number of nodes (Machine Count) to avoid "un-schedulable" errors after cluster updates. Devices that share an IOMMU group must all be selected together.
+        errors:
+          notAllocatable: '[{hostDevice}] PCI device is not allocatable; required: {allocated}, allocatable: {allocatable}'
       volume:
         title: Volumes
         volume: Volume
@@ -1870,6 +2018,50 @@ cluster:
         addVolume: Add Volume
         addVMImage: Add VM Image
         storageClass: Storage Class
+      storageOptions:
+        profile:
+          label: Storage Performance Profile
+          tip: '"High Performance" disables the host cache, uses native AIO and gives the disk a dedicated I/O thread. Choose "Custom" to set each option yourself.'
+          default: Default
+          highPerformance: High Performance
+          custom: Custom
+        highPerformanceTip: This disk will use no host cache, native AIO and a dedicated I/O thread.
+        cache:
+          label: Cache Mode
+          tip: 'How the host caches disk I/O. "None" is best for high-throughput guests on block storage, "WriteBack" favors performance and "WriteThrough" favors durability.'
+          default: Default (hypervisor)
+          none: None (no host cache)
+          writeback: WriteBack
+          writethrough: WriteThrough
+        io:
+          label: I/O Mode
+          tip: 'How QEMU submits I/O. "Native" (Linux AIO) has the lowest overhead and needs cache mode "None". "Threads" uses a host thread pool.'
+          default: Default (hypervisor)
+          native: Native (AIO)
+          threads: Threads
+          nativeTip: Native I/O mode needs the host cache disabled, so cache mode is set to None.
+        dedicatedIOThread:
+          label: Dedicated I/O Thread
+          tip: Give this disk its own I/O thread instead of sharing one. Useful for disks with heavy I/O.
+        busWarning: 'This disk uses the {bus} bus. A dedicated I/O thread, and so the High Performance profile, needs the virtio bus.'
+      vmStorageOptions:
+        title: Storage Performance
+        description: These options apply to all volumes of the virtual machine.
+        blockMultiQueue:
+          label: Virtio Block Multi-Queue
+          tip: Spread disk I/O over one queue per vCPU so that it is processed on multiple CPUs.
+        ioThreadsPolicy:
+          label: I/O Threads Policy
+          tip: '"Shared" uses one I/O thread for all disks. "Auto" spreads disks over a pool of threads. "Supplemental Pool" uses a fixed number of threads.'
+          default: Disabled (default)
+          shared: Shared
+          auto: Auto
+          supplementalPool: Supplemental Pool
+          sharedTip: A volume asks for a dedicated I/O thread, so the Shared policy will be used.
+        ioThreadCount:
+          label: I/O Thread Count
+          tip: Number of I/O threads in the supplemental pool.
+          invalid: I/O Thread Count must be at least 1 with the "Supplemental Pool" policy.
       reservedMemory: Reserved Memory
       sshUser: SSH User
       userData:
@@ -1939,9 +2131,15 @@ cluster:
     commandInstructionsInsecure: 'If you get a &quot;certificate signed by unknown authority&quot; error, your {vendor} installation has a self-signed or untrusted SSL certificate.  Run the command below instead to bypass the certificate verification:'
     clusterRoleBindingInstructions: 'If you get permission errors creating some of the resources, your user may not have the <code>cluster-admin</code> role.  Use this command to apply it:'
     clusterRoleBindingCommand: 'kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user <your username from your kubeconfig>'
+  registration:
+    serverUrlMissing:
+      import: 'The <code>server-url</code> setting is not set, so {vendor} cannot include its URL in the commands below. Replace <code>&lt;SERVER_URL&gt;</code> with a URL this cluster can reach {vendor} on, or ask an administrator to set <code>server-url</code> in Global Settings.'
+      custom: 'The <code>server-url</code> setting is not set, so {vendor} cannot generate the registration command. Ask an administrator to set <code>server-url</code> in Global Settings.'
   explore: Explore
   importAction: Import Existing
   manageAction: Manage
+  pinAction: Pin
+  unpinAction: Unpin
   kubeConfig:
     error:
       title: Unable to generate KubeConfig
@@ -2403,7 +2601,6 @@ cluster:
         other { {pool_name}: The provided values for {fields} were not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
       }
     rke1DeprecationMessage: 'Rancher Kubernetes Engine (RKE / RKE1) has reached end of life and these clusters are no longer supported. We recommend replatforming RKE1 clusters to RKE2 to ensure continued support and security updates. Learn more about the transition <a href="https://www.suse.com/support/kb/doc/?id=000021518" target="_blank" rel="noopener noreferrer nofollow">here</a>.'
-    nginxDeprecated: The NGINX controller is deprecated and will be removed in upcoming versions
   rke1Unsupported: RKE1 Clusters are no longer supported
 
   architecture:
@@ -2436,6 +2633,15 @@ cluster:
       validation:
         isAutoscalerMaxGreaterThanMin: The max machines count must be equal or exceed the min machine count.
       etcdControlPlaneWarning: We don't recommend using Autoscaler with machine pools that have the etcd or Control Plane roles. You can modify the yaml if you want to override the current value.
+      pause:
+        pausedBanner: Autoscaling is paused for this pool. It keeps these values and applies them again when you resume it on the cluster's Machine Pools tab.
+        pauseAction: Pause Autoscaler
+        resumeAction: Resume Autoscaler
+        rangeTooltip: 'Min {min}, Max {max}'
+        unconfiguredTooltip: Autoscaling is not configured for this pool. Set a machine count range in the pool configuration.
+        clusterPausedTooltip: Autoscaling is paused for the whole cluster.
+        lastPoolTooltip: This is the only pool left autoscaling. Pausing it would uninstall the autoscaler.
+        error: Error updating autoscaling for machine pool
     name:
       label: Pool Name
       notNamed: (Not Named)
@@ -2699,6 +2905,7 @@ cluster:
         label: Automatic Backups
       snapshotScheduleCron:
         label: Cron Schedule
+        validationError: "Use a valid cron expression, such as 0 */5 * * * (every 5 hours) or @daily. The five fields are minute, hour, day of month, month and day of week (0-6, Sunday is 0)."
       snapshotRetention:
         label: Local snapshot retention count
         tooltip: Number of local snapshots to retain on each server node (per node, not cluster-wide).
@@ -2770,8 +2977,8 @@ cluster:
     enableIngress: Install Ingress controller to enable external routing
     nginx:
       header: Ingress-NGINX
-      contentCommunity: This option is only available in SUSE Rancher Prime.
-      content: Choose this only if your workloads are not yet ready for Traefik.
+      contentUnsupported: Ingress-NGINX is unavailable with Kubernetes 1.37 or later. Choose Traefik instead.
+      content: Choose this only if your workloads are not yet ready for Traefik. Standalone Ingress-NGINX is unsupported with Kubernetes 1.37 or later.
     dual:
       header: Dual Mode
       content: Use this to safely test and migrate traffic from Ingress-NGINX to Traefik.
@@ -2797,11 +3004,15 @@ cluster:
     banners:
       transitioning:
         label: Rancher is transitioning to Traefik as the default provider. While Ingress-NGINX remains available for migration purposes, we recommend moving workloads to Traefik to ensure long-term compatibility and support.
+      nginxUpgradeBlocked:
+        label: Kubernetes 1.37 or later cannot use standalone Ingress-NGINX. Select Traefik or Dual Mode. We strongly recommend running in Dual Mode and confirming your workloads before upgrading. Please review our <docsUrl>migration documentation</docsUrl>.
+      nginxUpgradeWarning:
+        label: After upgrading to Kubernetes 1.37 or later, you cannot switch back to standalone Ingress-NGINX.
       disabled:
         label: Without an Ingress controller, services in this cluster will not be reachable via external URLs or hostnames. You will need to manually configure an alternative routing solution to expose your workloads.
       selected:
         ingress-nginx:
-          label: Ingress-NGINX is now deprecated and will be removed in a future release. To avoid service interruptions, please begin migrating your Ingress resources to Traefik. Please review our <docsUrl>migration documentation</docsUrl>.
+          label: Ingress-NGINX reached end of life in March 2026 and no longer receives fixes. It is unavailable with Kubernetes 1.37 or later. To avoid service interruptions, please begin migrating your Ingress resources to Traefik. Please review our <docsUrl>migration documentation</docsUrl>.
         traefik:
           label: Before switching to Traefik, please review our <docsUrl>migration documentation</docsUrl> to ensure your Ingress resources are updated to support Traefik’s configuration requirements.
         dual:
@@ -2830,9 +3041,16 @@ cluster:
   rotateCertificates:
     label: Rotate Certificates
     modalTitle: Rotate Cluster Certificates
+    description: New certificates are issued and the affected services restart. The cluster shows as 'Updating' until rotation completes.
+    allServices: All services
+    selectedServices: Selected services
     services: Services
-    allServices: Rotate all service certificates
-    selectService: Rotate an individual service
+    placeholder: Select one or more services
+    reset: Reset
+    more: "+{count} more"
+    deselect: "Deselect {service}"
+    selectionSummary: "{count} of {total} services selected. Only these services restart."
+    rotate: Rotate Certificates
   toggle:
     v1: RKE1
     v2: RKE2/K3s
@@ -2856,6 +3074,10 @@ clusterIndexPage:
   header: Cluster Dashboard
   resourceGauge:
     totalResources: Total Resources
+  resourceStatus:
+    unhealthy:
+      title: Other, Unhealthy Workloads
+      empty: No other unhealthy workloads
   sections:
     capacity:
       label: Capacity
@@ -2932,10 +3154,29 @@ copyToClipboard:
   error: Error Copying
 
 codeMirror:
+  # Shown by CodeMirror 5 editors in extensions built with an older shell
   escapeText: Press Shift+Escape to blur from editor
+  leaveEditor: Press Escape, then Tab to leave the editor
+  foldLine: Fold line
+  unfoldLine: Unfold line
+  search:
+    find: Find
+    next: Next
+    previous: Previous
+    all: Select all
+    matchCase: Match case
+    regexp: Regular expression
+    byWord: Whole word
+    replaceField: Replace
+    replace: Replace
+    replaceAll: Replace all
+    close: Close search
+    clear: Clear search
+    count: "{current} of {total}"
   keymap:
     tooltip: Key mapping preference.
     indicatorToolip: "Key mapping: {name}"
+    hideIndicator: "Hide key mapping: {name}"
 
 cruResource:
   backToForm: Back to Form
@@ -3002,6 +3243,12 @@ drivers:
 
 detailText:
   copyAriaLabel: Copy {item} value to clipboard
+  paste:
+    ariaLabel: Paste a {item} value from the clipboard
+    action: Paste
+    waiting: Pasting...
+    success: Pasted!
+    error: Error Pasting
   collapse: Hide
   binary: '<Binary Data: {n, number} bytes>'
   empty: '<Empty>'
@@ -3249,6 +3496,13 @@ fleet:
       unknown: 'Unknown'
       notReady: Not Ready
       waitApplied: Wait Applied
+      notready: Not Ready
+      waitapplied: Wait Applied
+      errapplied: Err Applied
+      modified: Modified
+      outofsync: Out of Sync
+      pending: Pending
+      waitingfordependency: Waiting for Dependency
   clusterTargets:
     advancedConfigs: Advanced target configurations are defined, check the YAML file for further details.
     targetMode:
@@ -3688,6 +3942,7 @@ fleet:
     state: State
     cluster: Cluster
     error: Error
+    message: Message
     ready: Ready
     errors: Errors
   workspaces:
@@ -3697,6 +3952,12 @@ fleet:
     timeout: Workspace creation timeout. It's possible the workspace was created. We suggest checking the workspace page before trying to create another.
     remove:
       warning: "Deleting a Workspace also deletes all resources in the Workspace. This includes GitRepos but also Clusters.<br><br>Deleted Clusters will be removed from {vendor}, and if {vendor} manages the life-cycle of the Cluster it's underlying infrastructure will also be deleted."
+    moved:
+      removed: "Changing the workspace clears previous selections. The following items are not available in the {workspace} workspace and have been deselected: {names}."
+      cluster: "cluster {name}"
+      clusterGroup: "cluster group {name}"
+      secret: "secret {name}"
+      configMap: "config map {name}"
   restrictions:
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add
@@ -3707,6 +3968,62 @@ fleet:
           =0 { Adding namespaces here will create a GitRepoRestriction. }
           other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction}
         }"
+  policy:
+    name:
+      label: Policy name
+    serviceAccounts:
+      title: Service accounts
+      require:
+        label: Require service account
+        description: Enforces that a ServiceAccount is specified on targeted resources.
+      allowNamespaceCreation:
+        title: Namespace creation
+        label: Allow namespace creation
+        description: While a service account is required, Fleet does not create namespaces on downstream clusters, so target namespaces have to exist already. Allow it only where namespace creation is controlled by other means.
+        link: Namespace creation in the Fleet documentation
+      restrict:
+        all: Allow all service accounts
+        selected: Only allow selected service accounts
+        description: Restricts the set of service accounts that GitRepo, HelmOp and Bundle resources may reference.
+      allowed:
+        title: Select allowed service accounts
+        label: Allowed service accounts
+    gitRepo:
+      title: GitRepo Policy
+      defaultServiceAccount:
+        label: Default service account
+        description: This will be applied to GitRepo app bundles with no service account provided.
+      defaultSecret:
+        label: Default client secret
+        description: This will be applied to GitRepo app bundles with no client secret provided.
+      restrict:
+        all: Allow all client secrets
+        selected: Only allow selected client secrets
+        description: Restricts the set of clientSecretName values GitRepos may reference.
+      allowed:
+        title: Select allowed client secrets
+        label: Allowed client secrets
+    helmOp:
+      title: HelmOps Policy
+      defaultServiceAccount:
+        label: Default service account
+        description: This will be applied to HelmOps app bundles with no service account provided.
+      defaultSecret:
+        label: Default Helm secret
+        description: This will be applied to HelmOps app bundles with no Helm secret provided.
+      restrict:
+        all: Allow all Helm secrets
+        selected: Only allow selected Helm secrets
+        description: Restricts the set of credential secret names HelmOps may reference.
+      allowed:
+        title: Select allowed Helm secrets
+        label: Allowed Helm secrets
+    defaultServiceAccountNotAllowed: The selected default service account must be allowed in the policy.
+    defaultSecretNotAllowed: The selected default secret must be allowed in the policy.
+    placeholder:
+      serviceAccount: Select or enter a service account name
+      secret: Select or enter a secret name
+      allowList: Select or enter names
   configMaps:
     label: Config Maps
   secrets:
@@ -4299,6 +4616,7 @@ labelSelect:
 labeledSelect:
   startTyping: Start typing to define an item
   pressEnter: Press enter to add "{input}"
+  keptSearch: 'Last search: {search}'
 
 landing:
   bannerImage: Homepage banner image
@@ -4343,6 +4661,57 @@ landing:
       lastVisited: Take me to the area I last visited
       custom: "Take me to cluster:"
   welcomeToRancher: 'Welcome to {vendor}'
+
+releaseWelcome:
+  close: Close
+  title: Welcome to {vendor}
+  subtitleCommunity: "{vendor} is up and running. Here's what's new in this release."
+  subtitlePrime: "{vendor} is up and running."
+  registerLead: To activate your subscription benefits, register this system on the
+  registrationPage: Registration page
+  newTab: (opens in a new tab)
+  loading: Loading the release content
+  reopenHint: You can reopen this any time from the user menu at the top right.
+  whatsNew:
+    title: What's new in this release
+    version: "{version}"
+    releaseNotes: Release notes
+    features:
+      tables:
+        title: Super-charged tables
+        description: "Tables across the UI are now smarter, featuring advanced filtering, customizable columns and much faster performance on large lists."
+      navigation:
+        title: Improved navigation
+        description: Jump to any cluster with the new switcher, plus a cleaner, reorganized side menu.
+      rancher-cli:
+        title: New CLI
+        description: A new, experimental CLI for Rancher Manager designed to be equally useful for terminal coding agents and administrative users.
+      workload-search:
+        title: Workload search
+        description: Workloads Overview now has a search bar to let you quickly find specific resources.
+  prime:
+    title: Ready for production? Go Prime.
+    description: "Everything in the community edition, plus 24×7 enterprise support, hardened images from a trusted registry, extended lifecycles and the full SUSE cloud-native suite:"
+    products:
+      manager: Rancher Manager
+      distributions: RKE2, k3k & K3s
+      fleet: SUSE Continuous Integration & Delivery
+      security: SUSE Security
+      storage: SUSE Storage
+      virtualization: SUSE Virtualization
+      observability: SUSE Observability
+      appCollection: Application Collection
+    explore: Explore SUSE Rancher Prime
+  registration:
+    title: Register to activate your Prime benefits
+    description: "Registering with SUSE Customer Center unlocks:"
+    benefits:
+      support: "24×7 support: open cases directly from your account"
+      appCollection: "Application Collection: curated, signed apps ready to deploy"
+      images: Hardened images from the Prime trusted registry
+      academy: "Rancher Academy: free certification courses for your team"
+    supportHandbook: Support handbook
+    open: Open SUSE Customer Center
 
 logging:
   clusterFlow:
@@ -4658,10 +5027,14 @@ login:
   loggingIn: Logging in...
   loggedIn: Logged in
   loginWithLocal: Log in with Local User
+  useProvider: Use a {provider} user
+  useNonLocal: Use a non-local user
   providers:
     heading: Choose how to sign in
     or: Or
+    choose: Choose another authentication provider
     chooseDifferent: Choose a different provider
+    menu: Authentication providers
     useLocal: Log in as a local user
     meta: "{vendor} · {protocol}"
     remember: Remember my choice on this device
@@ -5044,7 +5417,7 @@ nameNsDescription:
     placeholder: ''
   workspace:
     label: Workspace
-    placeholder:
+    placeholder: Select a workspace
   description:
     label: Description
     placeholder: Any text you want that better describes this resource
@@ -5236,6 +5609,8 @@ node:
     nodeTaint: Taints
     scaleDown: Scale Pool Down
     scaleUp: Scale Pool Up
+    scaleDownAriaLabel: Scale down machine pool {name}
+    scaleUpAriaLabel: Scale up machine pool {name}
     poolDescription:
       noSize: No Size
       noLocation: No Location
@@ -5254,8 +5629,8 @@ node:
         used: Used
         amount: "{used} of {total} {unit}"
         cpu: CPU
-        memory: MEMORY
-        pods: PODS
+        memory: Memory
+        pods: Pods
         running: Running
       diskPressure: Disk Pressure
       kubelet: kubelet
@@ -5298,6 +5673,13 @@ notificationCenter:
   ariaLabel: 'Notification {title}: Press enter to interact'
 
 persistentVolume:
+  detail:
+    source: Source
+    reclaimPolicy: Reclaim Policy
+    storageClass: Storage Class
+    claim:
+      label: Claims
+      none: This volume is not bound to a PersistentVolumeClaim.
   pluginConfiguration:
     label: Plugin configuration
   plugin:
@@ -5616,6 +5998,10 @@ persistentVolume:
 
 persistentVolumeClaim:
   name: Persistent Volume Claim Name
+  detail:
+    pods:
+      label: Pods
+      none: Could not find any Pods that mount this PersistentVolumeClaim.
   accessModes: Access Modes
   accessModesOptions:
     singleNodeRW: Single-Node Read/Write
@@ -5679,6 +6065,7 @@ plugins:
   currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
   closePluginPanel: Close plugin description panel
   viewVersionDetails: View extension {name} version {version} details/Readme
+  upgradeableTo: "Upgradeable to { version }"
   labels:
     isDeveloper: Developer Load
     primeOnly: Prime only
@@ -5712,6 +6099,7 @@ plugins:
     kubeVersion: Unable to load Extension. The version installed is not compatible with the current Rancher kubernetes version
     load: An error occurred loading the code for this Extension
     developerPkg: This Extension has been loaded internally, so we won't load the external version
+    extendedProductMissing: This Extension adds pages to a product that is not available. Install the Extension that provides that product, or check that it loaded without errors
   success:
     title: Loaded extension {name}
     message: Extension was loaded successfully
@@ -5727,7 +6115,8 @@ plugins:
     actions: Actions
     noActions: No actions available
     detail: Detail
-    versions: Versions
+    versions: Latest Versions
+    showAllVersions: Show all
     versionError: Could not load version information
     requiresRancherPrime: "Requires Rancher Prime"
     requiresRancherVersion: "Requires Rancher {required}"
@@ -5932,7 +6321,9 @@ prefs:
 
 principal:
   loading: Loading&hellip;
+  # Also shown by extensions built with an older shell, which bundle their own Principal.vue
   error: Unable to fetch principal info
+  unresolved: '{vendor} could not look up the name of this user or group, so its principal ID is shown instead.'
   name: Name
   loginName: Username
   type: Type
@@ -6136,10 +6527,20 @@ promptRemove:
 promptRemoveApp:
   removeCrd: "Delete the CRD associated with this app"
 
+promptRemoveOperation:
+  attemptingToRemove: You are attempting to delete {kind} operation
+  kind:
+    etcdSnapshotSave: a snapshot
+    etcdSnapshotRestore: a snapshot restore
+    encryptionKeyRotation: an encryption key rotation
+    certificateRotation: a certificate rotation
+  inProgress:
+    warning: This operation is in progress. Deleting it now may leave your cluster in an unstable state.
+    acknowledge: I understand that this cluster might need to be restored if this operation is interrupted
+
 promptRestore:
   title: Restore Snapshot
   name: Name
-  date: Date
   fromS3: Restore from S3
   label: Snapshot
   placeholder: Select a snapshot to restore
@@ -6171,10 +6572,20 @@ promptRedeploy:
 
 promptRotateEncryptionKey:
   title: Rotate Encryption Keys
-  description: The last backup {name} was performed on {date}
-  warning: Before proceeding, ensure a successful ETCD backup of the cluster has been completed.
+  description: Rotation re-encrypts every secret in this cluster with a new key. The cluster shows as 'Updating' while control plane nodes restart one at a time, which can take several minutes.
+  warning:
+    noBackup: No etcd snapshot found for this cluster. Take a snapshot, then rotate the keys once it has completed, so you can restore the cluster if rotation fails.
+    outdated: |-
+      {days, plural,
+        one {The latest snapshot is # day old.}
+        other {The latest snapshot is # days old.}
+      } Changes made since then cannot be restored if rotation fails.
+  snapshotInfo:
+    title: Latest etcd snapshot
+    viewSnapshots: View snapshots
+    taken: Taken
+  rotateKeys: Rotate Keys
   error:
-    noBackup: No backup found
     unableToResolveTargetCluster: Unable to resolve target cluster for encryption key rotation
 
 rancherAlertingDrivers:
@@ -6395,6 +6806,9 @@ resourceDetail:
         no {a {managedBy} app}
         yes {the {managedBy} app {appName}}
         other {a {managedBy} app}}; changes made here will likely be overwritten the next time {managedBy} runs.
+    fleetManaged: This resource is managed by <b>{name}</b>. To make permanent changes, update the configuration in the source repository. Any manual changes made here will be overwritten during the next sync.
+    fleetManagedLink: View in {name}
+    fleetManagedBadge: Managed
 resourceList:
   head:
     create: Create
@@ -6404,6 +6818,7 @@ resourceList:
   nsFilteringGeneric: "Please select a valid namespace or project option using the filter above."
   nsFilterToolTip: "Filtering is restricted to projects and namespaces"
   stateFilterApplied: "State filter applied:"
+  nameFilterApplied: "Name filter applied:"
   clearStateFilter: "Clear filter"
 resourceLoadingIndicator:
   loading: Loading
@@ -6464,6 +6879,8 @@ secret:
   authentication: Authentication
   githubApp:
     label: GitHub App
+  helmRelease:
+    dataNotEditable: The data of a Helm release secret is managed by Helm and can't be viewed or edited here. You can still edit the labels, annotations and description.
   certificate:
     certificate: Certificate
     certificates: Certificates
@@ -7113,6 +7530,169 @@ storageClass:
       placeholder: Storage class name on the host [[Harvester]] cluster
       tooltip: By default the default storage class on the host [[Harvester]] cluster is used.
 
+tableViews:
+  tabs:
+    all: All
+    label: Saved views
+    newView: Add View
+    count: "{name} ({count})"
+  view:
+    label: View
+    unsaved: You have unsaved changes...
+    unsavedShort: Unsaved changes
+    discard: Discard Changes
+    saveChanges: Save Changes
+    saveAsNew: Save Changes to New View
+    groupBy: Group By
+    columnsConfiguration: Columns Configuration
+    columnsDefault: Default
+    columnsCount: "{shown} / {total}"
+    reset: Reset to Default
+  tab:
+    menu: View options
+    rename: Rename View
+    duplicate: Duplicate View
+    shareView: Share View
+    importView: Import View
+    copySuffix: (copy)
+    delete: Delete View
+    setDefault: Set as Default View
+    newViewName: Untitled
+    deleted: View Deleted
+    deletedMessage: The "{name}" view has been successfully deleted.
+    deletedSharedMessage: The "{name}" view has been unpublished and deleted.
+    undo: Undo
+    shared: Published
+    share: Publish
+    unshare: Unpublish
+  bulk:
+    selected: "{count} Selected"
+    deleteSelected: Delete Selected
+  query:
+    fields:
+      pinned: Pinned
+      clusterId: Cluster ID
+    placeholder: 'Filter across all columns or only specific ones (e.g. state:error)'
+    clear: Clear filter
+    inUse: "{count} in use"
+    label: Label
+    suggestions: Filter suggestions
+    loadingValues: Loading values…
+    suggestionsAvailable: |-
+      {count, plural,
+      one {1 suggestion available}
+      other {{count} suggestions available}
+      }
+    connective:
+      and: Both must match
+      or: Either can match
+      not: Leave these out
+    # What the toolbar says about a query it cannot read as written. Nothing here stops the query
+    # running - the table filters by as much of it as it can.
+    problem:
+      emptyValue: '<b>{label}</b> has no value to match.'
+      trailingOperator: 'The query ends with <b>{text}</b>.'
+      leadingJoiner: '<b>{text}</b> has nothing before it to join.'
+      consecutiveOperators: '<b>{text}</b> follows another operator.'
+      danglingNegation: '<b>{text}</b> on its own negates nothing.'
+      unbalancedQuote: 'A quote is opened and never closed.'
+      noTerms: 'There is nothing to filter by.'
+    # Shown when part of a query names something this list cannot be filtered by on the server
+    unsupported: |-
+      {count, plural,
+      one {<b>{fields}</b> cannot be filtered on this list, so that part of the query was ignored.}
+      other {<b>{fields}</b> cannot be filtered on this list, so those parts of the query were ignored.}
+      }
+  columns:
+    selectAll: Select All Columns
+    reset: Reset to Default
+    locked: This column cannot be hidden
+    reorder: Drag to reorder
+    moveKeys: '{modifier}+Up Arrow or {modifier}+Down Arrow moves it'
+    moved: '{label} moved to position {position} of {total}'
+    allShown: 'All {count} columns shown'
+    resetDone: Columns reset to the default
+  group:
+    none: None
+    resetDone: 'Grouping reset to {label}'
+    empty: (none)
+    # A list's own groupings, as the Group By menu names them
+    by:
+      namespace: Namespace
+      project: Project
+      node: Node
+      role: Role
+      cluster: Cluster
+      device: Device
+      pool: Pool
+      provider: Provider
+      workspace: Workspace
+      type: Type
+  # A view as text: Share View hands it out, Import View takes it into a saved view, both in the same box
+  publish:
+    title: Publish
+    body: Publish this view to make it visible to all users.
+  filterWarning: Filter name and values are included and can reveal information such as resource or namespace names.
+  share:
+    title: Share View
+    intro: 'Copy this text and share it. Anyone with the text can import the view using <b>Import View</b>. It holds the view as it is now, unsaved changes included: columns, grouping, sort and filter.'
+    label: View
+  import:
+    title: Import View
+    intro: "Paste the text of a view shared with you. It replaces this view's settings, including any unsaved changes, as changes you can save or discard."
+    # From the All tab, which can't be changed
+    introNew: 'Paste the text of a view shared with you. It is added as a new view, with its settings as changes you can save or discard.'
+    placeholder: Paste the view here
+    import: Import
+    invalid: This isn't a shared view. Check that the whole text was copied.
+    # `list` names the table the view was shared from, eg Pods
+    otherTable: This view was shared from the {list} list. Open Import View there to import it.
+    otherPage: This view was shared from the {list} list on another page. Open Import View there to import it.
+  export:
+    label: Export All View Contents
+    title: Export All View Contents
+    intro: 'You are about to <b>export all items ({count, number})</b> from the <b>{name}</b> view. Based on the format you choose below (e.g. CSV), the structure of the export will match the current view settings, if any (e.g. selected grouping method and / or columns configuration).'
+    # The same, once there is more than a page of rows to fetch and the wait is worth warning about
+    introSlow: 'You are about to <b>export all items ({count, number})</b> from the <b>{name}</b> view - depending on your connection, this might take a while. Based on the format you choose below (e.g. CSV), the structure of the export will match the current view settings, if any (e.g. selected grouping method and / or columns configuration).'
+    # A view the api could not count: exported all the same, with no number to put to it
+    introUncounted: 'You are about to <b>export all items</b> from the <b>{name}</b> view. Based on the format you choose below (e.g. CSV), the structure of the export will match the current view settings, if any (e.g. selected grouping method and / or columns configuration).'
+    choose: '<b>Please choose the export format</b> to continue...'
+    # What the same modal says when it was opened for a selection rather than for a whole view
+    selectionTitle: Export As...
+    selectionIntro: |-
+      You are about to <b>export {count, plural,
+      one {1 selected item}
+      other {{count, number} selected items}
+      }</b>. Based on the format you choose below (e.g. CSV), the structure of the export will match the current view settings, if any (e.g. selected grouping method and / or columns configuration).
+    selectionIntroSlow: 'You are about to <b>export {count, number} selected items</b> - depending on your connection, this might take a while. Based on the format you choose below (e.g. CSV), the structure of the export will match the current view settings, if any (e.g. selected grouping method and / or columns configuration).'
+    download: Download
+    format:
+      yaml: YAML
+      json: JSON
+      csv: CSV
+    # What the notification centre shows while the export runs, and what that entry becomes once
+    # it is done. The file can take a while, so the export is watched there rather than blocking.
+    notification:
+      title: Export in progress
+      message: Exporting all items from the {name} view as {format}...
+      doneTitle: Export completed
+      doneMessage: The {name} view has been exported to {file}.
+      failedTitle: Export failed
+      failedMessage: The {name} view could not be exported.
+      # The same for a selection exported from its rows' actions. `type` is what the rows are, as many as
+      # `count` (eg Pod, Pods), else `items`
+      selectionMessage: Exporting {count, number} selected {type} as {format}...
+      selectionDoneMessage: |-
+        {count, plural,
+        one {1 selected {type} has}
+        other {{count, number} selected {type} have}
+        } been exported to {file}.
+      selectionFailedMessage: |-
+        {count, plural,
+        one {The selected {type}}
+        other {The {count, number} selected {type}}
+        } could not be exported.
+      items: "{count, plural, one {item} other {items}}"
 tableHeaders:
   assuredConcurrencyShares: Assured Concurrency Shares
   autoscaler: Autoscaler
@@ -7121,6 +7701,7 @@ tableHeaders:
   accessModes: Access Modes
   address: Address
   age: Age
+  badge: Badge
   apiGroup: API Groups
   apikey: API Key
   available: Available
@@ -7535,6 +8116,10 @@ validation:
       valuesMustBeDefined: Rule [{index}] of {group} {rules} - value must be defined if operator is 'In' or 'NotIn'
   port: A port must be a number between 1 and 65535.
   path: '"{key}" must be an absolute path'
+  pemCertificate: '"{key}" must be a PEM encoded certificate'
+  pemPrivateKey: '"{key}" must be a PEM encoded private key'
+  sshPublicKey: '"{key}" must be an SSH public key, e.g. "ssh-ed25519 AAAA..."'
+  dataKey: '"{key}" must consist of alphanumeric characters, "-", "_" or "."'
   prometheusRule:
     noEdit: This Prometheus Rule may not be edited due to invalid characters in name.
     groups:
@@ -7693,6 +8278,14 @@ workloadDashboard:
     byState: By State
     byType: By Type
     byNamespace: By Namespace
+  search:
+    ariaLabel: Find workloads in the selected namespaces...
+    placeholder: Find workloads in the selected namespaces...
+    startTyping: Start typing to search
+    minCharacters: Type at least {count} characters to search
+    noMatch: No matching workloads
+    searching: Searching...
+    moreResults: "+ {count} more {type}"
   errors:
     noAccess: "No access to {type}"
     fetchType: "Failed to fetch {type}"
@@ -7932,6 +8525,8 @@ workload:
     cannotFindHttpRoutes: Could not find any HTTPRoutes that forward traffic to Services that select Pods in this workload.
     httpRouteListCaption: "The following HTTPRoutes forward traffic to Services that select Pods from this workload:"
     cannotViewHttpRoutesBecauseCannotViewServices: Could not find relevant HTTPRoutes due to lack of permission to view Services.
+    storage: Storage
+    cannotFindStorage: Could not find any PersistentVolumeClaims mounted by this workload.
     pods:
       title: Pods
   detailTop:
@@ -8025,6 +8620,7 @@ workload:
     containerImage: Container {name} - "Container Image" is required.
     containerName: Container - "Container Name" is required.
     localhostProfile: Container {name} - "Container Localhost Profile" is required when SeccompProfile Type is Localhost.
+    volumeMountPath: Container {name} - "Mount Point" is required.
   replicas: Replicas
   showTabs: 'Show Advanced Options'
   scheduling:
@@ -8032,6 +8628,8 @@ workload:
     activeDeadlineSecondsTip: The duration that the pod may be active before the system tries to mark it failed and kill associated containers.
     affinity:
       addNodeSelector: Add Node Selector
+      nodeSelectorTitle: "node-selector-{i}"
+      podSelectorTitle: "pod-selector-{i}"
       anyNode: Run pods on any available node
       affinityTitle: Run pods on nodes with pods matching these selectors
       antiAffinityTitle: Run pods on nodes without pods matching these selectors
@@ -9016,6 +9614,9 @@ action:
   clone: Clone
   disable: Disable
   download: Download YAML
+  # What the same action is called when the configurable tables feature is on, where it offers the
+  # other formats alongside the yaml it has always given
+  downloadExport: Export As...
   edit: Edit Config
   editYaml: Edit YAML
   enable: Enable
@@ -9137,6 +9738,7 @@ advancedSettings:
     'ui-dashboard-index': 'HTML index location for the {appName} UI.'
     'ui-offline-preferred': 'Controls whether UI assets are served locally by the server container or from the remote URL defined in the ui-dashboard-index setting. The `Dynamic` option will use local assets in production builds of {appName}.'
     'ui-pl': 'Private-Label company name.'
+    'ui-appco-enabled': 'Determines the visibility of SUSE Application Collection features, specifically the option to create App Bundles in Continuous Delivery and the preconfigured option to create an Application Collection repository.'
     'auth-user-info-max-age-seconds': 'The maximum age of a users auth tokens before an auth provider group membership sync will be performed.'
     'auth-user-info-resync-cron': 'Default cron schedule for resyncing auth provider group memberships.'
     'cluster-template-enforcement': 'Non-admins will be restricted to launching clusters via preapproved RKE Templates only.'
@@ -9145,6 +9747,7 @@ advancedSettings:
     'auth-token-max-ttl-minutes': 'Max TTL (in minutes) for all tokens except those controlled by "auth-user-session-ttl-minutes" (user session tokens). When set to 0, the token never expires.'
     'kubeconfig-generate-token': 'Automatically generate tokens for users when a kubeconfig is requested.'
     'kubeconfig-default-token-ttl-minutes': 'TTL (in minutes) applied on all kubeconfig tokens. When set to 0, the token never expires.'
+    'kubeconfig-prefer-rancher-proxy': 'Preferred current context in downloaded Kubeconfig files for clusters with Authorized Cluster Endpoint (ACE) enabled.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
     'custom-notifications': Edit custom notifications
@@ -9163,6 +9766,9 @@ advancedSettings:
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
+    'kubeconfig-prefer-rancher-proxy':
+      false: ACE (Authorized Cluster Endpoint)
+      true: Rancher-proxied
     'ui-default-landing':
       ember: Cluster Manager
       vue: Cluster Explorer
@@ -9181,6 +9787,15 @@ advancedSettings:
     'agent-tls-mode':
       strict: 'Strict'
       system-store: 'System Store'
+    'ui-appco-enabled':
+      'true': 'True'
+      'false': 'False'
+      none: None (default)
+  enumDescription:
+    'ui-appco-enabled':
+      'true': Always shows these features.
+      'false': Always hides these features. Useful for air-gapped installations that cannot reach the Application Collection registry.
+      none: Inherits behavior from the system-catalog setting. Features are hidden if the catalog is “bundled” (serving only bundled charts) and shown otherwise.
   provisioning:
     header: Cluster Provisioning
 
@@ -9326,6 +9941,8 @@ resourceQuota:
   helpText: Configure how much of the resources the namespace as a whole can consume.
   helpTextDetail: The amount of resources the namespace as a whole can consume.
   helpTextHarvester: VMs need to reserve additional memory overhead.
+  invalidAnnotation: The {annotation} annotation on this namespace is malformed, so its resource quota could not be read. Saving will replace it with the limits below.
+  invalidAnnotationDetail: The {annotation} annotation on this namespace is malformed. Its resource quota could not be read, so no limits are shown.
   custom: Custom
   resourceIdentifier:
     placeholder: e.g. configmaps
@@ -9613,6 +10230,15 @@ component:
           rows:
             conditions: Conditions
             events: Events
+        statusBreakdownCard:
+          ariaLabel:
+            count: '{count} {label}, {color}'
+          color:
+            error: Error
+            warning: Warning
+            info: Info
+            success: Success
+            disabled: Disabled
         extrasCard:
           title: Extras
           message: 'Consider installing additional <extensionsLink>extensions</extensionsLink> and / or <clusterToolsLink>cluster tools</clusterToolsLink> to enrich your Rancher experience.'
@@ -9656,9 +10282,28 @@ component:
         namespace: Namespace
         project: Project
         type: Type
+        ready: Ready
+        restarts: Restarts
+        podRestarts: Pod Restarts
+        endpoints: Endpoints
+        podIp: Pod IP
+        workload: Workload
+        node: Node
+        loadError: Unable to load the details of this resource
+        externalIp: External IP
+        internalIp: Internal IP
+        version: Version
+        os: OS
+        cpu: CPU
+        memory: Memory
+        pods: Pods
         ariaLabel:
           showDetails: Show Resource Information about { resource } named { name }
           actionMenu: Resource Actions - { resource }
+          loading: Loading resource information
+          loadingUsage: Loading usage
+  resourceStatusWidget:
+    loadError: Could not load the status
   cron:
     expressionEditor:
       label:
@@ -9727,6 +10372,8 @@ component:
         weekdaysAt0830: "At 30 minutes past the hour, every 1 hours, starting at 08:00 AM, Monday through Friday"
         marchToMayHourly: "Every hour, only in March, April, and May"
         every4Hours9to17: "At 0 minutes past the hour, every 4 hours, between 09:00 AM and 05:00 PM"
+  rcSection:
+    invalidFields: Some fields inside this section are invalid
 
 autoscaler:
   card:

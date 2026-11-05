@@ -6,10 +6,10 @@ export default class NodeDriversListPo extends BaseResourceList {
   }
 
   activate() {
-    return cy.getId('sortable-table-activate');
+    return this.resourceTable().sortableTable().bulkAction('activate');
   }
 
   deactivate() {
-    return cy.getId('sortable-table-deactivate');
+    return this.resourceTable().sortableTable().bulkAction('deactivate');
   }
 }

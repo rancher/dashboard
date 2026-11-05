@@ -23,6 +23,58 @@ Components in the dialog folder are used within the `PromptModal` component. Dis
 |component| String | Optional- the name of the custom modal component|
 |modalWidth| String CSS Property | Desired width of the modal (default 600px)|
 |modalSticky| Boolean | Whether or not to apply sticky positioning (default false)| 
+|ownsModal| Boolean | Optional - the component renders its own `RcModal` and is not wrapped in the default modal (default false). Rancher `2.16` and onwards|
+
+### Dialogs that render their own modal
+
+> Available from Rancher `2.16` and onwards
+
+By default `PromptModal` wraps the component in a modal, so the component only supplies the content. A component can render `RcModal` itself instead, which gives it the standard title, body and actions layout. Open it with `ownsModal: true`:
+
+```ts
+this.$store.dispatch('management/promptModal', {
+  component:      'MyDialog',
+  ownsModal:      true,
+  componentProps: { name: 'my-resource' }
+});
+```
+
+The component receives a `modal` prop holding `show` and `onClose`, and spreads it onto `RcModal`:
+
+```html
+<script setup lang="ts">
+import { RcModal } from '@components/RcModal';
+import { RcButton } from '@components/RcButton';
+
+defineProps<{
+  modal: { show: boolean; onClose: () => void };
+  name: string;
+}>();
+</script>
+
+<template>
+  <RcModal
+    v-bind="modal"
+    :title="`Remove ${ name }?`"
+    size="small"
+  >
+    <p>This cannot be undone.</p>
+    <template #primary-action="{ close }">
+      <RcButton
+        variant="primary"
+        size="large"
+        @click="close"
+      >
+        Remove
+      </RcButton>
+    </template>
+  </RcModal>
+</template>
+```
+
+`modalWidth` and `modalSticky` do not apply to such a dialog. Set `size` on `RcModal` instead.
+
+A Rancher older than `2.16` ignores `ownsModal`, wraps the dialog in the default modal and passes it no `modal` prop, so the dialog renders empty. An extension that uses it should require Rancher `>= 2.16.0` through the `catalog.cattle.io/rancher-version` annotation, see [Version compatibility](./advanced/version-compatibility.md).
 
 ## formatters 
 This is not a top-level folder in the shell, which uses `/components/formatter`, but a top-level `formatters` directory works the same way in an extension as the shell `formatter` directory does. Formatters are used to format data within tables.

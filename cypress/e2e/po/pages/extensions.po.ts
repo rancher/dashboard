@@ -47,8 +47,15 @@ export default class ExtensionsPagePo extends PagePo {
     return this.self().get('.data-loading');
   }
 
-  waitForTabs() {
-    return this.extensionTabs.checkVisible(LONG_TIMEOUT_OPT);
+  /**
+   * Wait for the extension tabs, which only render once the page has finished loading.
+   *
+   * The tab bar is at the top of the page, so assert it without scrolling: checkVisible() scrolls by
+   * default, and the page re-renders the tabs while it finishes loading, which detaches the element
+   * mid-scroll ("the page updated as a result of this command").
+   */
+  waitForTabs(): Cypress.Chainable<boolean> {
+    return this.extensionTabs.checkVisible(LONG_TIMEOUT_OPT, { scrollIntoView: false });
   }
 
   /**
@@ -232,6 +239,20 @@ export default class ExtensionsPagePo extends PagePo {
     return menu.clickMenuItemIfPresent(actionLabel);
   }
 
+  /**
+   * Check the card's action menu offers `actionLabel`, then close the menu again. Waits for the
+   * version-dependent actions (Upgrade, Downgrade), which appear once the chart repo versions load.
+   */
+  checkActionOffered(extensionTitle: string, actionLabel: string): void {
+    this.loading().should('not.exist');
+    const card = this.extensionCard(extensionTitle, LONG_TIMEOUT_OPT);
+
+    card.self().should('be.visible');
+    card.openActionMenu().getMenuItem(actionLabel, LONG_TIMEOUT_OPT).should('exist');
+    cy.get('body').type('{esc}');
+    ActionMenuPo.checkNoActionMenuIsVisible();
+  }
+
   extensionCardVersion(extensionTitle: string): Cypress.Chainable<string> {
     return this.extensionCard(extensionTitle).self().find('[data-testid="app-chart-card-sub-header-item"]').first()
       .invoke('text');
@@ -309,12 +330,20 @@ export default class ExtensionsPagePo extends PagePo {
     // Wait for the tab to render before clicking it. The tabs load asynchronously,
     // and unlike the 'Available' tab this one had no guard, so it would flake when
     // the tab button hadn't rendered within the default retry window.
+    //
+    // The timeout on .contains() below only covers that query: allTabs() first looks up the tabs
+    // container with the default timeout, and fails there ("extension-tabs" never found) when the
+    // page is still mounting after a fresh load. Wait for the container itself first.
+    this.waitForTabs();
     this.extensionTabs.allTabs().contains('Installed', MEDIUM_TIMEOUT_OPT).should('be.visible');
 
     return this.extensionTabs.clickTabWithName('installed');
   }
 
   extensionTabAvailableClick(): Cypress.Chainable {
+    // As above: wait for the tabs container, which allTabs() would otherwise look up with the default
+    // timeout before the longer one on .contains() ever applies.
+    this.waitForTabs();
     this.extensionTabs.allTabs().contains('Available', MEDIUM_TIMEOUT_OPT).should('be.visible');
 
     return this.extensionTabs.clickTabWithName('available');
@@ -376,6 +405,11 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   // ------------------ Import Extension Catalog modal ------------------
+  /** The catalogs page's own button, above its table: not one of the table's bulk actions */
+  importExtensionCatalogClick(): Cypress.Chainable {
+    return cy.getId('extensions-catalog-load-dialog').click();
+  }
+
   importExtensionCatalogModal(): Cypress.Chainable {
     return this.self().get('.plugin-install-dialog');
   }

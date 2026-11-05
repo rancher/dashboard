@@ -15,7 +15,11 @@ export default {
     mode: {
       type:    String,
       default: 'create'
-    }
+    },
+    rules: {
+      type:    Object,
+      default: () => ({})
+    },
   },
 
   computed: { ...mapGetters({ t: 'i18n/t' }) },
@@ -29,6 +33,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="value.name"
+          :rules="rules.name"
           :required="true"
           :mode="mode"
           :label="t('workload.storage.volumeName')"
@@ -41,7 +46,6 @@ export default {
           v-model:value="value.vsphereVolume.storagePolicyID"
           :mode="mode"
           :label="t('workload.storage.csi.storagePolicyID')"
-          :required="true"
         />
       </div>
       <div class="col span-6">
@@ -56,6 +60,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="value.vsphereVolume.volumePath"
+          :rules="rules['vsphereVolume.volumePath']"
           :mode="mode"
           :label="t('workload.storage.csi.volumePath')"
           :required="true"

@@ -40,6 +40,7 @@ Owners are recorded as GitHub team handles rather than individuals. Teams can be
 | [`neuvector/manager`](https://github.com/neuvector/manager) | `@neuvector/nv-ui` | NeuVector UI. Has its own populated `CODEOWNERS` |
 | [`neuvector/manager-ext`](https://github.com/neuvector/manager-ext) | `@rancher/ui` | NeuVector UI Extension for Rancher |
 | [`rancher-sandbox/rancher-ai-llm-mock`](https://github.com/rancher-sandbox/rancher-ai-llm-mock) | `@rancher/ui` | LLM mock server for AI Assistant E2E tests |
+| [`rancher/ui-configurable-views`](https://github.com/rancher/ui-configurable-views) | `@rancher/ui` | Rancher UI Extension for managing configurable views |
 
 ## Adding a repository
 

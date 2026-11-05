@@ -2,6 +2,8 @@
 import TitleBar, { TitleBarProps } from '@shell/components/Resource/Detail/TitleBar/index.vue';
 import Metadata, { MetadataProps } from '@shell/components/Resource/Detail/Metadata/index.vue';
 import Cards from '@shell/components/Resource/Detail/Cards.vue';
+import FleetManagedBanner from '@shell/components/Resource/Detail/FleetManagedBanner.vue';
+import FleetManagedBadge from '@shell/components/Resource/Detail/FleetManagedBadge.vue';
 
 export interface MastheadProps {
   titleBarProps?: TitleBarProps;
@@ -25,7 +27,22 @@ const props = defineProps<MastheadProps>();
       >
         <slot name="additional-actions" />
       </template>
+      <template #title-suffix>
+        <FleetManagedBadge :resource="props.titleBarProps.resource" />
+        <slot name="title-suffix" />
+      </template>
     </TitleBar>
+    <!--
+      Optional banner between the title and the metadata - the slot a page uses to surface a state
+      error the way the legacy masthead did. The new masthead has no banner of its own, so adopters
+      pass one in here (see useResourceDetailBannerProps).
+    -->
+    <slot name="banner" />
+    <FleetManagedBanner
+      v-if="props.titleBarProps"
+      class="fleet-managed-banner"
+      :resource="props.titleBarProps.resource"
+    />
     <Metadata
       v-if="props.metadataProps"
       class="metadata-section"
@@ -49,6 +66,11 @@ const props = defineProps<MastheadProps>();
   .cards-section {
     margin: 0;
     margin-bottom: 24px;
+  }
+
+  .fleet-managed-banner {
+    margin: 0;
+    margin-top: 16px;
   }
 }
 </style>

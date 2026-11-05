@@ -10,13 +10,14 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { createPodBlueprint } from '@/cypress/e2e/blueprints/explorer/workload-pods';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { qase } from '@/cypress/support/qase';
+import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 
 // Cypress coerces numeric-looking CYPRESS_* values (e.g. "2.13") to numbers, so stringify it.
 const RANCHER_VERSION = String(Cypress.env('rancher_version') ?? '');
 
-// Older dashboard runtimes (2.10-2.13) differ from current in two spots that need an `if`:
-//  - the login flow doesn't drive the POST /v1-public/login that cy.login() waits on
-//  - the elemental machineregistration create form renders with a different (tabbed) layout
+// Older dashboard runtimes (2.10-2.13) render the elemental machineregistration create form with a
+// different (tabbed) layout.
 const LEGACY_DASHBOARD = ['2.10', '2.11', '2.12', '2.13'].includes(RANCHER_VERSION);
 
 // The oldest dashboards (2.10 / 2.11) don't surface the reload banner after a developer load and
@@ -31,20 +32,16 @@ const OLD_DEV_LOAD = ['2.10', '2.11'].includes(RANCHER_VERSION);
 const OLD_ACTION_MENU = RANCHER_VERSION === '2.10';
 
 /**
- * Log in, tolerating Rancher version differences in the login flow.
+ * Log in through the form, tolerating Rancher version differences in the login request.
  *
- * On the older dashboards (2.11 / 2.12 / 2.13, in this curl-bootstrapped setup) login doesn't drive
- * the POST /v1-public/login that the shared cy.login() waits on, so cy.login() times out even though
- * auth succeeds. There we submit the login form and validate by reaching an authenticated page
- * instead. All other versions use the standard cy.login() unchanged.
+ * cy.login() asserts the exact POST /v1-public/login body that a dashboard built from *this* branch
+ * sends, so it only holds when the UI under test is this branch's. This suite drives the stock UI
+ * shipped with each Rancher version, where that request differs: 2.10-2.13 post to
+ * /v3-public/localProviders/local?action=login instead, and 2.14 / 2.15 post to /v1-public/login
+ * without the `configName` added in #19495. Rather than track every shape, submit the form and
+ * validate by reaching an authenticated page.
  */
 const loginCompat = () => {
-  if (!LEGACY_DASHBOARD) {
-    cy.login();
-
-    return;
-  }
-
   const username = Cypress.env('username');
   const password = Cypress.env('password');
 
@@ -52,12 +49,15 @@ const loginCompat = () => {
     const loginPage = new LoginPagePo();
 
     LoginPagePo.goTo();
+    // Guard against the login page hanging on its loading spinner (see LoginPagePo.ensureFormReady -
+    // rancher/dashboard#19320), as cy.login() does. No-op on the happy path.
+    loginPage.ensureFormReady();
     loginPage.switchToLocal();
     loginPage.username().set(username);
     loginPage.password().set(password);
     loginPage.submit();
-    // Validate by leaving the login page. 2.13 posts to a different endpoint than the one
-    // cy.login() waits on, so a successful login is detected by navigating away from /auth/login.
+    // Success is detected by navigating away from /auth/login, not by asserting on the login
+    // request, whose shape varies across the versions under test.
     cy.location('pathname', { timeout: 120000 }).should('not.contain', '/auth/login');
   });
 
@@ -99,6 +99,21 @@ const skipAboutTop = isSkip('skip_about_top');
 const skipClusterRke2 = isSkip('skip_cluster_create_rke2');
 // The legacy RESOURCE_DETAIL extension point only exists up until Rancher v2.14.0 (per the PDF).
 const skipResourceDetailLegacy = isSkip('skip_resource_detail_legacy');
+// Unlike the other flags this is not about a missing extension point. On Rancher 2.15 an extension
+// that registers a product through the Product Registration API blanks the Name column on explorer
+// lists, so a row can be found and acted on but never matches its own name. Set on 2.15 only; drop
+// it (and assertFilteredRow) once the fix is backported to release-2.15.
+const noRowNameAssert = isSkip('skip_row_name_assert');
+
+/**
+ * Assert the list filter left exactly the one row we created.
+ *
+ * Matches on the name where the host renders it, and falls back to a row count where it doesn't -
+ * see `noRowNameAssert`. Every caller filters on a unique name first, so one row means the right row.
+ */
+const assertFilteredRow = (table: SortableTablePo, name: string) => (
+  noRowNameAssert ? table.rowElements().should('have.length', 1) : table.rowElementWithName(name).should('be.visible')
+);
 
 // On Linux/Windows CI the header-action shortcut combos use 'ctrl', on macOS they use 'meta'
 // (see shell/core/plugin-helpers.ts -> shortcutKey { windows: ['ctrl', x], mac: ['meta', x] }).
@@ -130,6 +145,22 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
   // cluster and the resources are delete-then-create, so re-running on a retry is safe.
   let setupComplete = false;
 
+  /**
+   * Rancher head opens a "what's new" modal after a minor upgrade, which covers the page and makes
+   * the extensions menu unclickable. Setting the gating `read-whatsnew` preference does not
+   * reliably prevent it - the dialog is decided before preferences have loaded, so it reappears on
+   * a retry even once the preference is stored - so dismiss it when it is on screen. Older
+   * dashboards have no such dialog and this is a no-op there.
+   */
+  const dismissReleaseWelcome = () => {
+    cy.get('body').then(($body) => {
+      if ($body.find('[data-testid="release-welcome"]').length) {
+        cy.get('[data-testid="release-welcome-close"]').click({ force: true });
+        cy.get('[data-testid="release-welcome"]').should('not.exist');
+      }
+    });
+  };
+
   const runSetup = () => {
     loginCompat();
 
@@ -141,8 +172,9 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       extensionUrl = `${ EXTENSION_SERVER_URL }/${ moduleName }/${ ext.main }`;
     });
 
-    // Enable extension developer features
-    cy.setUserPreference({ 'plugin-developer': true });
+    // Enable extension developer features. `read-whatsnew` marks the release-welcome modal as seen
+    // (see dismissReleaseWelcome) - it does not reliably suppress it, but it costs nothing here.
+    cy.setUserPreference({ 'plugin-developer': true, 'read-whatsnew': '99.99.99' });
 
     if (OLD_DEV_LOAD) {
       // The oldest dashboards don't surface the reload banner after a developer load, so setup can
@@ -159,6 +191,7 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
     // itself slow/flaky on a fresh cluster.
     cy.visit(`/c/${ CLUSTER_ID }/explorer`);
     cy.get('.side-nav', { timeout: 120000 }).should('be.visible');
+    dismissReleaseWelcome();
 
     // Developer-load the extension
     const extensionsPo = new ExtensionsPagePo();
@@ -166,6 +199,7 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
     extensionsPo.goTo();
     // Long timeout - the uiplugins page can take a while to render right after boot.
     cy.get('[data-testid="extensions-page-title"]', { timeout: 120000 }).should('contain', 'Extensions');
+    dismissReleaseWelcome();
     extensionsPo.extensionMenuToggle();
     if (RANCHER_VERSION === '2.10') {
       // 2.10's older menu doesn't tag items with [dropdown-menu-item]; click the visible entry.
@@ -268,23 +302,15 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
     });
     cy.get('[dropdown-menu-collection]:visible', MEDIUM_TIMEOUT_OPT).should('exist');
 
-    return table.rowActionMenu();
-  };
+    const actionMenu = table.rowActionMenu();
 
-  /** Navigate to the Services list, filter to the test service and return its (string-backed) table */
-  const goToServicesList = (): SortableTablePo => {
-    const services = new ServicesPagePo(CLUSTER_ID);
+    // The dropdown container appears before its items do. Without these waits a click can land on a
+    // menu that is still rendering and be silently dropped. Same waits `rowActionMenuOpen` does for
+    // by-name lookups (see sortable-table.po.ts).
+    actionMenu.checkNoActionsAvailable(false);
+    actionMenu.atLeastOneActiveMenuItem();
 
-    services.goTo();
-    services.waitForPage();
-
-    const table = new SortableTablePo(STANDARD_LIST);
-
-    table.checkLoadingIndicatorNotVisible();
-    table.filter(svcName);
-    table.rowElementWithName(svcName).should('be.visible');
-
-    return table;
+    return actionMenu;
   };
 
   /** Navigate to the Apps > Repositories list and return its (string-backed) table */
@@ -305,7 +331,7 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
   // ── Test Group 1: ActionLocation.HEADER ──
 
   describe('Test Group 1: ActionLocation.HEADER', () => {
-    it('1.1 Header Action Button 1 (click + CMD+M shortcut)', () => {
+    qase(50499, it('1.1 Header Action Button 1 (click + CMD+M shortcut)', () => {
       cy.visit('/home');
       cy.window().then((win) => cy.spy(win.console, 'log').as('consoleLog'));
 
@@ -317,9 +343,9 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       cy.get('@consoleLog').then((spy: any) => spy.resetHistory());
       cy.get('body').type(`${ MOD_KEY }m`);
       cy.get('@consoleLog').should('be.calledWithMatch', /action executed 1/);
-    });
+    }));
 
-    it('1.2 Header Action Button 2 (click + CMD+B shortcut)', () => {
+    qase(50500, it('1.2 Header Action Button 2 (click + CMD+B shortcut)', () => {
       cy.visit(`/c/${ CLUSTER_ID }/explorer`);
       cy.window().then((win) => cy.spy(win.console, 'log').as('consoleLog'));
 
@@ -331,7 +357,7 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       cy.get('@consoleLog').then((spy: any) => spy.resetHistory());
       cy.get('body').type(`${ MOD_KEY }b`);
       cy.get('@consoleLog').should('be.calledWithMatch', /action executed 2/);
-    });
+    }));
   });
 
   // ── Test Group 2: Tab Extension Points ──
@@ -339,13 +365,13 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
   describe('Test Group 2: Tab Extension Points', () => {
     const conditionalIt = skipTabDetailPage ? it.skip : it;
 
-    conditionalIt('2.1 Tab RESOURCE_DETAIL_PAGE', () => {
+    qase(50501, conditionalIt('2.1 Tab RESOURCE_DETAIL_PAGE', () => {
       // Visit the service detail (view) page directly - clicking the name link can land on edit.
       cy.visit(`/c/${ CLUSTER_ID }/explorer/service/${ NS }/${ svcName }`);
       clickDemoTabAndAssert('detail-page-id');
-    });
+    }));
 
-    conditionalIt('2.2 Tab RESOURCE_CREATE_PAGE', () => {
+    qase(50502, conditionalIt('2.2 Tab RESOURCE_CREATE_PAGE', () => {
       const services = new ServicesPagePo(CLUSTER_ID);
 
       services.goTo();
@@ -354,46 +380,48 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
 
       cy.contains('Cluster IP', MEDIUM_TIMEOUT_OPT).click();
       clickDemoTabAndAssert('create-page-id');
-    });
+    }));
 
-    conditionalIt('2.3 Tab RESOURCE_EDIT_PAGE', () => {
-      const table = goToServicesList();
-
-      table.rowActionMenuOpen(svcName).getMenuItem('Edit Config').click();
+    qase(50503, conditionalIt('2.3 Tab RESOURCE_EDIT_PAGE', () => {
+      // Visit the edit page directly, as 2.1 and 2.6 do for the detail page. Reaching it from the
+      // list via the row action does not work on Rancher 2.15, where a resource's detailLocation
+      // resolves to a route that does not exist (see `noRowNameAssert`). The tab is what this test
+      // asserts, and 4.3 still covers "Edit Config" from a list.
+      cy.visit(`/c/${ CLUSTER_ID }/explorer/service/${ NS }/${ svcName }?mode=edit`);
       clickDemoTabAndAssert('edit-page-id');
-    });
+    }));
 
-    conditionalIt('2.4 Tab RESOURCE_SHOW_CONFIGURATION', () => {
+    qase(50504, conditionalIt('2.4 Tab RESOURCE_SHOW_CONFIGURATION', () => {
       cy.visit(`/c/${ CLUSTER_ID }/explorer/service/${ NS }/${ svcName }`);
       cy.contains('Show Configuration', MEDIUM_TIMEOUT_OPT).click();
       clickDemoTabAndAssert('show-configuration-id');
-    });
+    }));
 
-    (skipClusterRke2 ? it.skip : it)('2.5 Tab CLUSTER_CREATE_RKE2', () => {
+    qase(50505, (skipClusterRke2 ? it.skip : it)('2.5 Tab CLUSTER_CREATE_RKE2', () => {
       cy.visit(`/c/${ CLUSTER_ID }/manager/provisioning.cattle.io.cluster/create?type=custom#basic`);
       // Wait for the RKE2 config form's tab bar to render before looking for the extension tab.
       cy.get('[data-testid="tabbed"], .tabbed', LONG_TIMEOUT_OPT).should('exist');
       clickDemoTabAndAssert('cluster-create-rke2-id');
-    });
+    }));
 
     // Version conditional: the legacy RESOURCE_DETAIL TabLocation is the one extension point that
     // differs between the tested versions. It is native to 2.14 (skip_resource_detail_legacy=false)
     // and skipped on 2.15/latest (skip_resource_detail_legacy=true) per the test spec's
     // "legacy - up until rancher v2.14.0" note. All other tests run identically on both versions.
-    (skipResourceDetailLegacy ? it.skip : it)('2.6 Tab RESOURCE_DETAIL (legacy, up to v2.14)', () => {
+    qase(50506, (skipResourceDetailLegacy ? it.skip : it)('2.6 Tab RESOURCE_DETAIL (legacy, up to v2.14)', () => {
       // Visit the pod detail page directly (as 2.1 does for services). Navigating via the pods list
       // raced the post-filter table re-render: the row-link click was intermittently swallowed, so we
       // never left the list and the extension's detail tab never rendered ("btn-pod-detail-id" not
       // found). Direct navigation removes that race - the tab is still what the test asserts.
       cy.visit(`/c/${ CLUSTER_ID }/explorer/pod/${ NS }/${ podName }`);
       clickDemoTabAndAssert('pod-detail-id');
-    });
+    }));
   });
 
   // ── Test Group 3: ActionLocation.TABLE ──
 
   describe('Test Group 3: ActionLocation.TABLE', () => {
-    (OLD_ACTION_MENU ? it.skip : it)('3.1 Table Action (row actions, non-bulkable + bulkable)', () => {
+    qase(50507, (OLD_ACTION_MENU ? it.skip : it)('3.1 Table Action (row actions, non-bulkable + bulkable)', () => {
       const table = goToReposTable();
 
       cy.window().then((win) => cy.spy(win.console, 'log').as('consoleLog'));
@@ -405,9 +433,9 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       // "Demo bulkable action" as a row action
       openRowActionMenu(table).getMenuItem('Demo bulkable action').click({ force: true });
       cy.get('@consoleLog').should('be.calledWithMatch', /table action executed 2/);
-    });
+    }));
 
-    it('3.2 Table Action (bulkable, via selection + bulk bar)', () => {
+    qase(50508, it('3.2 Table Action (bulkable, via selection + bulk bar)', () => {
       // Wide viewport so the bulk action button renders inline (it collapses into a dropdown otherwise)
       cy.viewport(1920, 1080);
 
@@ -420,18 +448,18 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
 
       table.bulkActionButton('Demo bulkable action').should('be.visible').and('not.be.disabled').click();
       cy.get('@consoleLog').should('be.calledWithMatch', /table action executed 2/);
-    });
+    }));
   });
 
   // ── Test Group 4: PanelLocation Extension Points ──
 
   describe('Test Group 4: PanelLocation Extension Points', () => {
-    it('4.1 PanelLocation.RESOURCE_LIST', () => {
+    qase(50509, it('4.1 PanelLocation.RESOURCE_LIST', () => {
       goToReposTable();
       cy.contains('Just a sample banner to show that we can render anything here', LONG_TIMEOUT_OPT).should('be.visible');
-    });
+    }));
 
-    it('4.2 PanelLocation.DETAILS_MASTHEAD & DETAILS_TOP (details)', () => {
+    qase(50510, it('4.2 PanelLocation.DETAILS_MASTHEAD & DETAILS_TOP (details)', () => {
       const table = goToReposTable();
 
       table.row(0).self().find('a')
@@ -439,35 +467,35 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
         .click();
       cy.contains('This is a generic masthead component example', MEDIUM_TIMEOUT_OPT).should('be.visible');
       cy.contains('This is an example on DetailTop').should('be.visible');
-    });
+    }));
 
-    (OLD_ACTION_MENU ? it.skip : it)('4.3 PanelLocation.DETAILS_MASTHEAD & DETAILS_TOP (edit)', () => {
+    qase(50511, (OLD_ACTION_MENU ? it.skip : it)('4.3 PanelLocation.DETAILS_MASTHEAD & DETAILS_TOP (edit)', () => {
       const table = goToReposTable();
 
       openRowActionMenu(table).getMenuItem('Edit Config').click({ force: true });
       cy.contains('This is a generic masthead component example', MEDIUM_TIMEOUT_OPT).should('be.visible');
       cy.contains('This is another component example for masthead details - edit view').should('be.visible');
-    });
+    }));
 
-    (skipAboutTop ? it.skip : it)('4.4 PanelLocation.ABOUT_TOP', () => {
+    qase(50512, (skipAboutTop ? it.skip : it)('4.4 PanelLocation.ABOUT_TOP', () => {
       cy.visit('/about');
       cy.contains('Just a sample banner to show that we can render anything here', LONG_TIMEOUT_OPT).should('be.visible');
-    });
+    }));
   });
 
   // ── Test Group 5: CLUSTER_DASHBOARD_CARD ──
 
   describe('Test Group 5: CLUSTER_DASHBOARD_CARD', () => {
-    it('5.1 Dashboard Card', () => {
+    qase(50513, it('5.1 Dashboard Card', () => {
       cy.visit(`/c/${ CLUSTER_ID }/explorer`);
       cy.contains('Demo card title 1', LONG_TIMEOUT_OPT).should('be.visible');
-    });
+    }));
   });
 
   // ── Test Group 6: Table Hook & Table Columns ──
 
   describe('Test Group 6: Table Hook & Table Columns', () => {
-    (skipTableHook ? it.skip : it)('6.1 Table Hook (load, filter, sort)', () => {
+    qase(50514, (skipTableHook ? it.skip : it)('6.1 Table Hook (load, filter, sort)', () => {
       // The extension's table hook logs via console.error (see elemental index.ts).
       // The spy must be attached before the table renders so the initial hook call is captured.
       cy.visit(`/c/${ CLUSTER_ID }/explorer/pod`, {
@@ -480,7 +508,7 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
 
       table.checkLoadingIndicatorNotVisible();
       table.filter(podName);
-      table.rowElementWithName(podName).should('be.visible');
+      assertFilteredRow(table, podName);
 
       // on initial load
       cy.get('@consoleError').should('be.calledWithMatch', /TABLE HOOK TRIGGERED/);
@@ -495,9 +523,9 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       cy.get('@consoleError').then((spy: any) => spy.resetHistory());
       table.self().find('thead tr th').contains('Name').click();
       cy.get('@consoleError').should('be.calledWithMatch', /TABLE HOOK TRIGGERED/);
-    });
+    }));
 
-    it('6.2 Add Table Column 1 - Custom Formatter', () => {
+    qase(50515, it('6.2 Add Table Column 1 - Custom Formatter', () => {
       const secrets = new SecretsListPagePo(CLUSTER_ID);
 
       secrets.goTo();
@@ -507,13 +535,13 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
 
       table.checkLoadingIndicatorNotVisible();
       table.filter(secretName);
-      table.rowElementWithName(secretName).should('be.visible');
+      assertFilteredRow(table, secretName);
 
       cy.contains('Extension Col - Example 1', MEDIUM_TIMEOUT_OPT).should('be.visible');
       cy.contains('Formatter: Custom Cell Value 1').should('be.visible');
-    });
+    }));
 
-    it('6.3 Add Table Column 2 - Pagination', () => {
+    qase(50516, it('6.3 Add Table Column 2 - Pagination', () => {
       const configMaps = new ConfigMapListPagePo(CLUSTER_ID);
 
       configMaps.goTo();
@@ -526,7 +554,7 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       table.rowElementWithName(cmName).should('be.visible');
 
       cy.contains('Extension Col - Example 2', MEDIUM_TIMEOUT_OPT).should('be.visible');
-    });
+    }));
   });
 
   // ── Test Group 7: Shell API Tests ──
@@ -534,28 +562,28 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
   describe('Test Group 7: Shell API Tests', () => {
     const conditionalIt = skipShellApi ? it.skip : it;
 
-    conditionalIt('7.1 Slide-in API', () => {
+    qase(50517, conditionalIt('7.1 Slide-in API', () => {
       navToElementalEntry('shell-api-demo');
       cy.contains('Test Slide-in API', MEDIUM_TIMEOUT_OPT).click();
       cy.contains('Hello from SlideIn panel!').should('be.visible');
-    });
+    }));
 
-    conditionalIt('7.2 Modal API', () => {
+    qase(50518, conditionalIt('7.2 Modal API', () => {
       navToElementalEntry('shell-api-demo');
       cy.contains('Test Modal API', MEDIUM_TIMEOUT_OPT).click();
       cy.contains('Sample general title').should('be.visible');
       cy.contains('Cancel').should('be.visible');
       cy.contains('Add').should('be.visible');
-    });
+    }));
 
-    conditionalIt('7.3 Notification API', () => {
+    qase(50519, conditionalIt('7.3 Notification API', () => {
       navToElementalEntry('shell-api-demo');
       cy.contains('Test Notification API', MEDIUM_TIMEOUT_OPT).click();
       cy.contains('Some notification title').should('be.visible');
       cy.contains('Hello world! Success!').should('be.visible');
-    });
+    }));
 
-    conditionalIt('7.4 System API', () => {
+    qase(50520, conditionalIt('7.4 System API', () => {
       navToElementalEntry('shell-api-demo');
       cy.contains('Test System API', MEDIUM_TIMEOUT_OPT).click();
       cy.contains('gitCommit').should('be.visible');
@@ -564,13 +592,13 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       cy.contains('isRancherPrime').should('be.visible');
       cy.contains('kubernetesVersion').should('be.visible');
       cy.contains('rancherVersion').should('be.visible');
-    });
+    }));
   });
 
   // ── Test Group 8: Elemental Extension Tests ──
 
   describe('Test Group 8: Elemental Extension Tests', () => {
-    it('8.1 Elemental Extension Setup', () => {
+    qase(50521, it('8.1 Elemental Extension Setup', () => {
       navToElementalEntry('Dashboard');
       cy.contains('Install Elemental Operator', MEDIUM_TIMEOUT_OPT).click();
       cy.contains('button', 'Next').click();
@@ -583,12 +611,12 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       cy.get('.closer').click();
       navToElementalEntry('Dashboard');
       cy.contains('OS Management Dashboard', LONG_TIMEOUT_OPT).should('be.visible');
-    });
+    }));
 
     // Version conditional: on the older dashboard runtimes (2.12 / 2.13) the machineregistration
     // create form renders with a different (tabbed) layout, so the standard name + save create flow
     // doesn't navigate to the resource. The create-via-YAML path (8.3) still covers create there.
-    (LEGACY_DASHBOARD ? it.skip : it)('8.2 Elemental EDIT/CREATE Interface', () => {
+    qase(50522, (LEGACY_DASHBOARD ? it.skip : it)('8.2 Elemental EDIT/CREATE Interface', () => {
       navToElementalEntry('Registration Endpoint');
       // Exact match so we don't accidentally hit "Create from YAML"
       cy.contains(/^Create$/, MEDIUM_TIMEOUT_OPT).click();
@@ -609,21 +637,19 @@ describe('Extension Compatibility', { tags: ['@extensionsCompatibility', '@admin
       // Name is reliably visible as a row in the list view
       navToElementalEntry('Registration Endpoint');
       cy.contains('demo-reg-endpoint-1', LONG_TIMEOUT_OPT).should('be.visible');
-    });
+    }));
 
-    it('8.3 Elemental EDIT/CREATE YAML Interface', () => {
+    qase(50523, it('8.3 Elemental EDIT/CREATE YAML Interface', () => {
       navToElementalEntry('Inventory of Machines');
       cy.contains('Create from YAML', MEDIUM_TIMEOUT_OPT).click();
 
-      cy.get('.CodeMirror', LONG_TIMEOUT_OPT).then(($cm) => {
-        const cm = ($cm[0] as any).CodeMirror;
+      const codeMirror = CodeMirrorPo.first(LONG_TIMEOUT_OPT);
 
-        cm.setValue(cm.getValue().replace('#string', 'demo-mach-inv-1'));
-      });
+      codeMirror.value().then((value: string) => codeMirror.set(value.replace('#string', 'demo-mach-inv-1')));
 
       cy.contains('button', 'Create').click();
       cy.contains('demo-mach-inv-1', LONG_TIMEOUT_OPT).should('be.visible');
-    });
+    }));
   });
 
   after(() => {

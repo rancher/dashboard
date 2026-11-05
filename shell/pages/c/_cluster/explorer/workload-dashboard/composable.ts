@@ -3,27 +3,27 @@ import {
 } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
-import { NAMESPACE, WORKLOAD_TYPES } from '@shell/config/types';
+import { WORKLOAD_TYPES } from '@shell/config/types';
 import type { StateColor } from '@shell/utils/style';
+import { resourceListRoute, isValidSummaryResponse } from '@shell/utils/resource-state-summary';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStateColor } from '@shell/composables/useStateColor';
-import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
-import { ALL_NAMESPACES } from '@shell/store/prefs';
+import { useNamespaceFilterParam } from '@shell/composables/useNamespaceFilterParam';
 import {
   NAMESPACE_FILTER_ALL_USER,
   NAMESPACE_FILTER_ALL_SYSTEM,
   NAMESPACE_FILTER_P_FULL_PREFIX,
   NAMESPACE_FILTER_NS_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
-import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
+import type { StatusSummaryCardItem } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/types';
+import { buildStatusSummaryCard, compareStateColors } from '@shell/components/Resource/Detail/Card/StatusSummaryCard/utils';
+import type { StatusBreakdownCardItem } from '@shell/components/Resource/Detail/Card/StatusBreakdownCard/types';
 import {
-  WORKLOAD_DASHBOARD_RESOURCE_TYPES, COLOR_ORDER,
+  WORKLOAD_DASHBOARD_RESOURCE_TYPES,
   type WorkloadDashboardSummaryEntry,
   type WorkloadDashboardEntry,
   type WorkloadDashboardStateCard,
   type WorkloadDashboardByStateLayout,
-  type WorkloadDashboardByTypeCard,
-  type WorkloadDashboardByNamespaceCard,
 } from './types';
 
 const WORKLOAD_DASHBOARD_ROUTE = 'c-cluster-explorer-workload-dashboard';
@@ -52,43 +52,7 @@ export function useWorkloadDashboard() {
 
   const isAllNamespaces = computed<boolean>(() => store.getters['isAllNamespaces']);
 
-  const namespaceFilterParam = ref('');
-
-  function buildNamespaceFilterParam(): string {
-    const selection: string[] = store.getters['namespaceFilters'];
-    const { projectsOrNamespaces, filters } = stevePaginationUtils.createParamsFromNsFilter({
-      allNamespaces:                 store.getters['cluster/all'](NAMESPACE),
-      selection,
-      isAllNamespaces:               isAllNamespaces.value,
-      isLocalCluster:                store.getters['currentCluster']?.isLocal,
-      showReservedRancherNamespaces: store.getters['prefs/get'](ALL_NAMESPACES),
-      productHidesSystemNamespaces:  store.getters['currentProduct']?.hideSystemResources,
-    });
-
-    // Getting the first schema is sufficient since the namespace filter param structure is the same across all resource types
-    const schema = WORKLOAD_DASHBOARD_RESOURCE_TYPES
-      .map((type) => store.getters['cluster/schemaFor'](type))
-      .find((s) => !!s);
-
-    // To generate proper params path to be used
-    const path = stevePaginationUtils.createParamsForPagination({
-      schema,
-      opt: {
-        pagination: {
-          filters,
-          projectsOrNamespaces,
-          page: 1,
-          sort: [],
-        }
-      }
-    }) || '';
-
-    return path.replace(/page=\d+&?/g, '').replace(/pagesize=\d+&?/g, '').replace(/&$/, '');
-  }
-
-  watch(() => store.getters['namespaceFilters'], () => {
-    namespaceFilterParam.value = buildNamespaceFilterParam();
-  }, { immediate: true });
+  const namespaceFilterParam = useNamespaceFilterParam(WORKLOAD_DASHBOARD_RESOURCE_TYPES);
 
   // ── Subtitle ──
 
@@ -234,28 +198,21 @@ export function useWorkloadDashboard() {
 
   // ── By Type cards ──
 
-  const byTypeCards = computed<WorkloadDashboardByTypeCard[]>(() => {
-    return workloadData.value.filter((w) => !w.error && w.total > 0).map((w) => {
-      const resources = Object.entries(w.stateCounts)
-        .sort(([a], [b]) => (COLOR_ORDER[toStateColor(a, w.type)] ?? 5) - (COLOR_ORDER[toStateColor(b, w.type)] ?? 5))
-        .map(([state, count]) => ({
-          stateDisplay:     stateDisplay(state, true),
-          stateId:          state,
-          stateSimpleColor: toStateColor(state, w.type),
-          count,
-        }));
-
-      return {
-        title: w.label,
-        type:  w.type,
-        resources,
-      };
-    });
+  const byTypeCards = computed<StatusSummaryCardItem[]>(() => {
+    return workloadData.value.filter((w) => !w.error && w.total > 0).map((w) => buildStatusSummaryCard({
+      key:    w.type,
+      title:  w.label,
+      to:     resourceRoute(w.type),
+      states: Object.entries(w.stateCounts).map(([name, count]) => ({
+        name, count, color: toStateColor(name, w.type)
+      })),
+      stateRoute: (name) => resourceRoute(w.type, [name]),
+    }));
   });
 
   // ── By Namespace cards ──
 
-  const byNamespaceCards = computed<WorkloadDashboardByNamespaceCard[]>(() => {
+  const byNamespaceCards = computed<StatusBreakdownCardItem[]>(() => {
     // namespace -> type -> color -> { count, stateNames }
     const nsMap: Record<string, Record<string, Record<string, { count: number; stateNames: Set<string> }>>> = {};
 
@@ -297,19 +254,21 @@ export function useWorkloadDashboard() {
           .map((type) => {
             const label = t(`typeLabel."${ type }"`, { count: 2 })?.trim() || type;
             const counts = Object.entries(typeMap[type])
-              .sort(([a], [b]) => (COLOR_ORDER[a] ?? 5) - (COLOR_ORDER[b] ?? 5))
+              .sort(([a], [b]) => compareStateColors(a, b))
               .map(([color, { count, stateNames }]) => ({
-                color:      color as StateColor,
+                color: color as StateColor,
                 count,
-                stateNames: Array.from(stateNames),
+                to:    resourceRoute(type, Array.from(stateNames)),
               }));
 
             return {
-              label, type, counts
+              key: type, label, to: resourceRoute(type), counts
             };
           });
 
-        return { title: ns, rows };
+        return {
+          key: ns, title: ns, rows, selectable: true
+        };
       });
   });
 
@@ -329,47 +288,13 @@ export function useWorkloadDashboard() {
     });
   }
 
-  function resourceRoute(type: string, stateNames?: string[]): RouteLocationRaw {
-    const loc: { name: string; params: Record<string, string>; query?: Record<string, string> } = {
-      name:   'c-cluster-product-resource',
-      params: {
-        cluster:  clusterId.value,
-        product:  'explorer',
-        resource: type,
-      },
-    };
-
-    if (stateNames?.length) {
-      loc.query = { stateFilter: stateNames.join(',') };
-    }
-
-    return loc;
+  function resourceRoute(type: string, stateNames?: string[], nameFilter?: string): RouteLocationRaw {
+    return resourceListRoute(clusterId.value, type, stateNames, nameFilter);
   }
 
-  function navigateToNamespace(type: string, namespace: string, stateNames?: string[]): void {
+  function navigateToNamespace(type: string, namespace: string): void {
     filterByNamespace(namespace);
-    router.push(resourceRoute(type, stateNames));
-  }
-
-  // ── Fetching & polling ──
-
-  /**
-   * Validates the shape of a successfully fetched response.
-   * - An empty/absent summary is only valid when there is also no `data`
-   *   (a populated `data` with no summary means we got the wrong response).
-   * - When a summary is present, every state entry under `counts` must
-   *   include a `total`; a count key without `total` is invalid.
-   */
-  function isValidResponse(res: { summary?: WorkloadDashboardSummaryEntry['summary']; data?: unknown }): boolean {
-    const summary = res?.summary;
-
-    if (!Array.isArray(summary) || summary.length === 0) {
-      // With no summary, the response is only valid when there is also no data.
-      return Array.isArray(res?.data) ? res.data.length === 0 : !res?.data;
-    }
-
-    return summary.every((item) => Object.values(item.counts || {})
-      .every((detail) => typeof detail?.total === 'number'));
+    router.push(resourceRoute(type));
   }
 
   function redirectToDeployment(): void {
@@ -415,7 +340,7 @@ export function useWorkloadDashboard() {
 
           const res = await store.dispatch('cluster/request', { url });
 
-          if (!hasInvalidResponse && !isValidResponse(res)) {
+          if (!hasInvalidResponse && !isValidSummaryResponse(res)) {
             hasInvalidResponse = true;
           }
 

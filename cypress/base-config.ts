@@ -4,6 +4,7 @@ import websocketTasks from './support/utils/webSocket-utils';
 import { CypressFailedAttempt, formatFailedCypressAttempt } from './support/utils/retry-logging';
 import path from 'path';
 import * as os from 'os';
+import * as fs from 'fs';
 const { removeDirectory } = require('cypress-delete-downloads-folder');
 const { beforeRunHook, afterRunHook } = require('cypress-mochawesome-reporter/lib');
 
@@ -64,6 +65,8 @@ const DEFAULT_USERNAME = 'admin';
 const username = process.env.TEST_USERNAME || DEFAULT_USERNAME;
 const apiUrl = process.env.API || (baseUrl.endsWith('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl);
 const rancherVersion = process.env.RANCHER_VERSION;
+const noPassedVideos = process.env.TEST_NO_PASSED_VIDEOS === 'true';
+const passedSpecVideo = path.join(__dirname, 'support', 'assets', 'passed-spec.mp4');
 
 if (process.env.TEST_A11Y) {
   testDirs = ['accessibility'];
@@ -260,6 +263,24 @@ const baseConfig = defineConfig({
             await afterRunHook();
           } catch (error) {
             console.error(error); // eslint-disable-line no-console
+          }
+        });
+
+        on('after:spec', (spec, results) => {
+          if (!noPassedVideos || !results?.video) {
+            return;
+          }
+
+          const hasFailedAttempt = (results.tests || []).some((test) => test.attempts.some((attempt) => attempt.state === 'failed'));
+
+          if (results.error || results.stats?.failures || hasFailedAttempt) {
+            return;
+          }
+
+          if (fs.existsSync(passedSpecVideo)) {
+            fs.copyFileSync(passedSpecVideo, results.video);
+          } else {
+            fs.rmSync(results.video, { force: true });
           }
         });
       }

@@ -57,8 +57,15 @@ export default {
       return this.group.children?.length > 0;
     },
 
+    // Finds the overview child regardless of its position in the children array.
+    // The new product registration API (PR #17990) pushes the overview last in navNames,
+    // so it may not be at index 0 after weight-based reordering.
+    overviewChild() {
+      return this.group.children?.find((child) => child.overview) || null;
+    },
+
     hasOverview() {
-      return this.group.children?.[0]?.overview;
+      return !!this.overviewChild;
     },
 
     onlyHasOverview() {
@@ -66,20 +73,19 @@ export default {
     },
 
     isOverview() {
-      if (this.group.children && this.group.children.length > 0) {
-        const grp = this.group.children[0];
-        const overviewRoute = grp?.route;
+      const overviewRoute = this.overviewChild?.route;
 
-        if (overviewRoute && grp.overview) {
-          const validRoute = filterLocationValidParams(this.$router, overviewRoute || {});
-          const route = this.$router.resolve(validRoute);
-
-          // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
-          return this.$route.path === route?.path;
-        }
+      if (!overviewRoute?.name || this.$route.name !== overviewRoute.name) {
+        return false;
       }
 
-      return false;
+      // A route name can be shared by several nav items that are told apart only by their params
+      // (a legacy product whose pages all use `c-cluster-<product>-page`, for example), so the name
+      // on its own isn't enough. `cluster` is the exception: the stored route always carries the
+      // BLANK_CLUSTER placeholder rather than the cluster we're actually on (issue #19169).
+      const { params = {} } = filterLocationValidParams(this.$router, overviewRoute) || {};
+
+      return Object.entries(params).every(([key, value]) => key === 'cluster' || this.$route.params?.[key] === value);
     },
 
     // The expand/collapse state lives on the group itself rather than in this
@@ -96,7 +102,7 @@ export default {
     },
 
     headerRoute() {
-      return filterLocationValidParams(this.$router, this.group.children[0].route);
+      return filterLocationValidParams(this.$router, this.overviewChild.route);
     }
   },
 
@@ -266,7 +272,7 @@ export default {
           <router-link
             v-if="hasOverview && hasChildren"
             :to="headerRoute"
-            :exact="group.children[0].exact"
+            :exact="overviewChild.exact"
           >
             <h6>
               <span v-clean-html="group.labelDisplay || group.label" />
@@ -418,21 +424,21 @@ export default {
       }
 
       &.active {
-        color: var(--on-active-nav, var(--primary-hover-text));
-        background-color: var(--active-nav, var(--primary-hover-bg));
+        color: var(--on-active);
+        background-color: var(--active);
 
         h6 {
           padding: 8px 0 8px 16px;
           font-weight: bold;
-          color: var(--on-active-nav, var(--primary-hover-text));
+          color: var(--on-active);
         }
 
         &:hover {
-          background-color: var(--nav-active-hover, var(--primary-hover-bg));
+          background-color: var(--active-hover);
         }
 
         ~ I {
-          color: var(--on-active-nav, var(--primary-hover-text));
+          color: var(--on-active);
         }
       }
       &:hover:not(.active) {
@@ -475,11 +481,11 @@ export default {
       }
 
       &.group-highlight {
-        background: var(--category-active, var(--nav-active));
+        background: var(--rc-section-background-secondary, var(--category-active, var(--nav-active)));
 
         .active.header {
           &:hover {
-            background-color: var(--nav-active-hover)
+            background-color: var(--active-hover)
           }
         }
 
@@ -537,16 +543,16 @@ export default {
     padding: 0;
 
     A, A I {
-      color: var(--on-active-nav, var(--primary-hover-text));
+      color: var(--on-active);
     }
 
     A {
-      color: var(--on-active-nav, var(--primary-hover-text));
-      background-color: var(--active-nav, var(--primary-hover-bg));
+      color: var(--on-active);
+      background-color: var(--active);
       font-weight: bold;
 
       &:hover {
-        background: var(--nav-active-hover);
+        background: var(--active-hover);
       }
     }
   }

@@ -66,6 +66,12 @@ export default {
       default: null,
     },
 
+    // Resolve components by subtype when the resource id is an instance name.
+    subTypeOverride: {
+      type:    String,
+      default: null,
+    },
+
     parentRouteOverride: {
       type:    String,
       default: null,
@@ -107,8 +113,9 @@ export default {
     // know about:  view, edit, create (stage, import and clone become "create")
     const mode = ([_CLONE, _IMPORT, _STAGE].includes(realMode) ? _CREATE : realMode);
 
-    const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resourceType, id);
-    const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resourceType, id);
+    const subType = this.subTypeOverride || id;
+    const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resourceType, subType);
+    const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resourceType, subType);
 
     const schemas = store.getters[`${ inStore }/all`](SCHEMA);
 
@@ -431,17 +438,15 @@ export default {
      * the route parameters or the instance's resourceOverride property.
      */
     configureResource(userId = '', resourceOverride = null) {
-      const id = userId || this.$route.params.id;
+      const subType = userId || this.subTypeOverride || this.$route.params.id;
       const resource = resourceOverride || this.resourceOverride || this.$route.params.resource;
       const options = this.$store.getters[`type-map/optionsFor`](resource);
 
       const detailResource = options.resourceDetail || options.resource || resource;
       const editResource = options.resourceEdit || options.resource || resource;
 
-      // FIXME: These aren't right... signature is (rawType, subType).. not (rawType, resourceId)
-      // Remove id? How does subtype get in (cluster/node)
-      this.detailComponent = this.$store.getters['type-map/importDetail'](detailResource, id);
-      this.editComponent = this.$store.getters['type-map/importEdit'](editResource, id);
+      this.detailComponent = this.$store.getters['type-map/importDetail'](detailResource, subType);
+      this.editComponent = this.$store.getters['type-map/importEdit'](editResource, subType);
     }
   }
 };

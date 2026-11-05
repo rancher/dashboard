@@ -77,13 +77,14 @@ package() {
   fi
   echo -e "Container build: ${RUNTIME}"
 
-  REGISTRY=${REGISTRY} ORG=${REGISTRY_ORG} REPO=${IMAGE_PREFIX}${PKG} TAG=${PKG_VERSION} RUNTIME=${RUNTIME} ./scripts/package
+  REGISTRY=${REGISTRY} ORG=${REGISTRY_ORG} REPO=${IMAGE_PREFIX}${PKG} TAG=${PKG_VERSION} RUNTIME=${RUNTIME} ./scripts/package || exit 1
 
   if [ "${PUSH}" == "--push" ]; then
     echo -e "${CYAN}Pushing container image ...${RESET}"
 
     # Ensure that you do not overwrite production images
-    if [[ "${REGISTRY_ORG}" == "rancher" ]]; then
+    # but allow overwriting 'head' images
+    if [[ "${REGISTRY_ORG}" == "rancher" ]] && [[ "${PKG_VERSION}" != "head" ]]; then
       IMAGE=${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${PKG}:${PKG_VERSION}
       if ${RUNTIME} manifest inspect ${IMAGE} 2>&1 1>/dev/null; then
         echo -e "${RED}${BOLD}Cannot overwrite production image ${IMAGE_PREFIX}${PKG} since it already exists${RESET}"
@@ -91,7 +92,7 @@ package() {
       fi
     fi
 
-    ${RUNTIME} push ${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${PKG}:${PKG_VERSION}
+    ${RUNTIME} push ${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${PKG}:${PKG_VERSION} || exit 1
   fi
 }
 

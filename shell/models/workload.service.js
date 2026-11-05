@@ -1,15 +1,127 @@
 
 import { findBy } from '@shell/utils/array';
 import { TARGET_WORKLOADS, UI_MANAGED, HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { WORKLOAD_TYPES, SERVICE } from '@shell/config/types';
+import { WORKLOAD_TYPES, SERVICE, PVC } from '@shell/config/types';
 import { clone, get } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { shortenedImage } from '@shell/utils/string';
 import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { FilterArgs, PaginationFilterEquality, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default class WorkloadService extends SteveModel {
   get stateDisplay() {
     return stateDisplay(this.state, true);
+  }
+
+  /**
+   * The pod spec that carries the volumes for this workload (or a standalone Pod).
+   */
+  get storagePodSpec() {
+    if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+      return this.spec?.jobTemplate?.spec?.template?.spec;
+    }
+
+    // Workloads nest the pod spec under spec.template.spec; a standalone Pod stores it natively
+    return this.spec?.template?.spec ?? this.spec;
+  }
+
+  /**
+   * Names of the PersistentVolumeClaims mounted by this workload.
+   *
+   * Claims referenced directly by the pod template are always included, along with any claims the
+   * workload's pods mount (these need to be loaded via fetchPods). Claims a StatefulSet creates from
+   * its volumeClaimTemplates are covered by persistentVolumeClaimTemplatePrefixes.
+   */
+  get persistentVolumeClaimNames() {
+    const names = new Set();
+    const addClaims = (volumes) => {
+      (volumes || []).forEach((volume) => {
+        const claimName = volume?.persistentVolumeClaim?.claimName;
+
+        if (claimName) {
+          names.add(claimName);
+        }
+      });
+    };
+
+    addClaims(this.storagePodSpec?.volumes);
+
+    (this.pods || []).forEach((pod) => addClaims(pod.spec?.volumes));
+
+    return [...names];
+  }
+
+  /**
+   * Name prefixes of the PersistentVolumeClaims a StatefulSet creates from its volumeClaimTemplates.
+   *
+   * Kubernetes names these claims `<template>-<statefulset>-<ordinal>`, so they can be found without
+   * the pods. The claims are retained when the StatefulSet scales down, which is when the pods can't
+   * be used to find them.
+   */
+  get persistentVolumeClaimTemplatePrefixes() {
+    if (this.type !== WORKLOAD_TYPES.STATEFUL_SET) {
+      return [];
+    }
+
+    return (this.spec?.volumeClaimTemplates || [])
+      .map((template) => template?.metadata?.name)
+      .filter(Boolean)
+      .map((templateName) => `${ templateName }-${ this.metadata.name }-`);
+  }
+
+  /**
+   * Whether a claim name was generated from one of this StatefulSet's volumeClaimTemplates.
+   *
+   * The ordinal check stops a prefix like `data-web-` matching claims of another StatefulSet
+   * called `web-api` (`data-web-api-0`).
+   */
+  isPersistentVolumeClaimFromTemplate(claimName) {
+    return this.persistentVolumeClaimTemplatePrefixes.some((prefix) => claimName.startsWith(prefix) && /^\d+$/.test(claimName.slice(prefix.length)));
+  }
+
+  /**
+   * Fetch the PersistentVolumeClaims mounted by this workload.
+   *
+   * Filters server-side (SSP) when available, by exact name for known claims and by partial name for
+   * StatefulSet template claims, scoped to the workload's namespace. Falls back to a namespaced fetch
+   * otherwise. Either way the results are matched client-side to drop partial name false positives.
+   */
+  async fetchPersistentVolumeClaims() {
+    const names = this.persistentVolumeClaimNames;
+    const prefixes = this.persistentVolumeClaimTemplatePrefixes;
+
+    if ((!names.length && !prefixes.length) || !this.$getters['schemaFor'](PVC)) {
+      return [];
+    }
+
+    const namespace = this.metadata.namespace;
+    let claims;
+
+    if (this.$getters['paginationEnabled']?.(PVC)) {
+      const nameFields = [
+        ...names.map((name) => new PaginationFilterField({ field: 'metadata.name', value: name })),
+        ...prefixes.map((prefix) => new PaginationFilterField({
+          field: 'metadata.name', value: prefix, equality: PaginationFilterEquality.CONTAINS
+        })),
+      ];
+      const opt = {
+        pagination: new FilterArgs({
+          filters: [
+            PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: namespace }),
+            PaginationParamFilter.createMultipleFields(nameFields),
+          ],
+        }),
+        transient: true,
+      };
+
+      const { data = [] } = await this.$dispatch('findPage', { type: PVC, opt });
+
+      claims = data;
+    } else {
+      claims = await this.$dispatch('findAll', { type: PVC, opt: { namespaced: namespace } });
+    }
+
+    return (claims || []).filter((pvc) => names.includes(pvc.metadata.name) || this.isPersistentVolumeClaimFromTemplate(pvc.metadata.name));
   }
 
   async getPortsWithServiceType() {

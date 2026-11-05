@@ -6,7 +6,6 @@ import ArrayList from '@shell/components/form/ArrayList';
 import { Checkbox } from '@components/Form/Checkbox';
 import { NORMAN } from '@shell/config/types';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
-import { _CREATE } from '@shell/config/query-params';
 import { Banner } from '@components/Banner';
 
 export default {
@@ -32,6 +31,11 @@ export default {
     isDualStack: {
       type:    Boolean,
       default: false
+    },
+
+    poolCreateMode: {
+      type:    Boolean,
+      default: true
     },
   },
 
@@ -123,12 +127,6 @@ export default {
     }
   },
 
-  computed: {
-    isCreate() {
-      return this.mode === _CREATE;
-    }
-  },
-
   methods: {
     stringify,
 
@@ -140,8 +138,8 @@ export default {
       }
     },
 
-    updateTags() {
-      this.value.tags = this.tags.join();
+    updateTags(tags) {
+      this.value.tags = tags.join();
     }
   },
 };
@@ -226,15 +224,15 @@ export default {
     <div class="row mt-20">
       <div class="col span-6">
         <ArrayList
-          v-model:value="tags"
+          :value="tags"
           :mode="mode"
           :protip="false"
           :title="t('cluster.machineConfig.digitalocean.tags.label')"
           :value-placeholder="t('cluster.machineConfig.digitalocean.tags.placeholder')"
-          :disabled="!isCreate"
-          :add-allowed="isCreate"
-          :remove-allowed="isCreate"
-          @input="updateTags"
+          :disabled="!poolCreateMode"
+          :add-allowed="poolCreateMode"
+          :remove-allowed="poolCreateMode"
+          @update:value="updateTags"
         />
       </div>
     </div>

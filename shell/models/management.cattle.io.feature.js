@@ -1,4 +1,5 @@
 import { ONE_WAY } from '@shell/config/features';
+import { isRancherPrime } from '@shell/config/version';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 
 export default class Feature extends HybridModel {
@@ -6,7 +7,19 @@ export default class Feature extends HybridModel {
     return this.enabled ? 'active' : 'off';
   }
 
+  /**
+   * A Prime feature is always off on a build that is not Prime, whatever its
+   * value says - Rancher ignores it there.
+   */
+  get primeUnavailable() {
+    return !!this.status?.prime && !isRancherPrime();
+  }
+
   get enabled() {
+    if (this.primeUnavailable) {
+      return false;
+    }
+
     // If lockedValue is not null, then this is the value that the flag is locked to, so that should be used
     if (this.status && this.status.lockedValue !== null) {
       return this.status.lockedValue;
@@ -43,7 +56,7 @@ export default class Feature extends HybridModel {
     // User can not disable or enable if the feature flag is locked
     // Note: lockedValue is the value that the feature flag is locked to, so it can be true or false
     // It can also be null, which indicates that the feature flag is not locked
-    enableAction.enabled = enableAction.enabled && (this.status && this.status.lockedValue === null);
+    enableAction.enabled = enableAction.enabled && (this.status && this.status.lockedValue === null) && !this.primeUnavailable;
 
     out.unshift(enableAction);
 

@@ -1,13 +1,18 @@
 <script>
-import { Card } from '@components/Card';
+import { Banner } from '@components/Banner';
+import { Checkbox } from '@components/Form/Checkbox';
+import { RcButton } from '@components/RcButton';
+import { RcIcon } from '@components/RcIcon';
+import { RcModal } from '@components/RcModal';
 
 export default {
-  name: 'PromptRemove',
+  name: 'DisableAuthProviderDialog',
 
-  emits: ['disable', 'close'],
+  components: {
+    Banner, Checkbox, RcButton, RcIcon, RcModal
+  },
 
-  components: { Card },
-  props:      {
+  props: {
     /**
      * Inherited global identifier prefix for tests
      * Define a term based on the parent component to avoid conflicts on multiple components
@@ -16,85 +21,143 @@ export default {
       type:    String,
       default: 'disable-auth-provider'
     },
+
+    /**
+     * `show` and the `close` handler, from whoever owns this dialog's visibility
+     */
+    modal: {
+      type:     Object,
+      required: true
+    },
+
+    name: {
+      type:    String,
+      default: ''
+    },
+
     disableCb: {
       type:    Function,
       default: () => {}
     }
   },
+
+  data() {
+    return { acknowledged: false };
+  },
+
+  computed: {
+    title() {
+      return this.name ? this.t('authConfig.disable.title', { name: this.name }) : this.t('authConfig.disable.titleGeneric');
+    }
+  },
+
   methods: {
-    close() {
-      this.$emit('close');
-    },
-    disable() {
+    disable(close) {
+      if (!this.acknowledged) {
+        return;
+      }
+
       this.disableCb();
-      this.$emit('close');
+      close();
     }
   }
 };
 </script>
 
 <template>
-  <Card
-    class="disable-auth-provider"
-    :show-highlight-border="false"
+  <RcModal
+    v-bind="modal"
+    :title="title"
   >
-    <template #title>
-      <h4 class="text-default-text">
-        {{ t('promptRemove.title') }}
-      </h4>
-    </template>
-    <template #body>
-      <div class="mb-10">
-        <p v-clean-html="t('promptRemove.attemptingToRemoveAuthConfig', null, true)" />
-      </div>
-    </template>
-    <template #actions>
-      <button
-        class="btn role-secondary"
-        @click="close"
+    <div class="disable-auth-provider__body">
+      <p class="disable-auth-provider__aftermath">
+        {{ t('authConfig.disable.loggedOut') }}
+      </p>
+
+      <a
+        :href="t('authConfig.disable.docsUrl')"
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+        class="disable-auth-provider__link"
       >
-        {{ t('generic.cancel') }}
-      </button>
-      <div class="spacer" />
-      <button
-        class="btn role-primary bg-error ml-10"
+        {{ t('authConfig.disable.learnMore') }}
+        <RcIcon
+          type="external-link"
+          size="medium"
+        />
+      </a>
+
+      <Banner
+        color="error"
+        class="disable-auth-provider__warning"
+      >
+        <p>{{ t('authConfig.disable.irreversible') }}</p>
+        <Checkbox
+          v-model:value="acknowledged"
+          :label="t('authConfig.disable.acknowledge')"
+          :data-testid="componentTestid + '-acknowledge'"
+        />
+      </Banner>
+    </div>
+
+    <template #primary-action="{ close }">
+      <RcButton
+        variant="primary"
+        size="large"
+        class="disable-auth-provider__confirm"
+        :disabled="!acknowledged"
         :data-testid="componentTestid + '-confirm-button'"
-        @click="disable"
+        @click="disable(close)"
       >
-        {{ t('generic.disable') }}
-      </button>
+        {{ t('authConfig.disable.confirm') }}
+      </RcButton>
     </template>
-  </Card>
+  </RcModal>
 </template>
 
-<style lang='scss'>
+<style lang='scss' scoped>
   .disable-auth-provider {
-    &.card-container {
-      box-shadow: none;
-    }
-    #confirm {
-      width: 90%;
-      margin-left: 3px;
-    }
-
-    .remove-modal {
-        border-radius: var(--border-radius);
-        overflow: scroll;
-        max-height: 100vh;
-        & ::-webkit-scrollbar-corner {
-          background: rgba(0,0,0,0);
-        }
-    }
-
-    .actions {
-      text-align: right;
-    }
-
-    .card-actions {
+    &__body {
       display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
 
-      .spacer {
-        flex: 1;
+    &__aftermath {
+      margin: 0;
+      line-height: 22px;
+      color: var(--label-secondary);
+    }
+
+    &__link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    &__warning {
+      width: 100%;
+      margin: 0;
+
+      :deep(.banner__content) {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        p {
+          margin: 0;
+        }
+      }
+    }
+
+    &__confirm.rc-button {
+      background-color: var(--error);
+      color: var(--error-text);
+
+      &:hover:not(:disabled) {
+        background-color: var(--error-hover-bg);
+        color: var(--error-hover-text);
       }
     }
   }

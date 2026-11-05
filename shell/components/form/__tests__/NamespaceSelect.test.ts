@@ -210,4 +210,41 @@ describe('namespaceSelect', () => {
       expect(emittedUpdate[emittedUpdate.length - 1]).toStrictEqual(['default']);
     });
   });
+
+  describe('create option', () => {
+    it.each<{ desc: string, props: { createAllowed?: boolean, createNamespaceOverride?: boolean }, getters: object, expected: boolean }>([
+      {
+        desc: 'the user can create namespaces', props: {}, getters: {}, expected: true
+      },
+      {
+        desc: 'createAllowed is false', props: { createAllowed: false }, getters: {}, expected: false
+      },
+      {
+        desc: 'createAllowed is false despite createNamespaceOverride', props: { createAllowed: false, createNamespaceOverride: true }, getters: {}, expected: false
+      },
+      {
+        desc: 'the user cannot create namespaces', props: {}, getters: { currentCluster: () => ({ canUpdate: false }) }, expected: false
+      },
+    ])('is offered ($expected) when $desc', ({ props, getters, expected }) => {
+      const wrapper = shallowMount(NamespaceSelect, {
+        ...requiredSetup(getters),
+        props,
+      });
+
+      expect(wrapper.findComponent(LabeledSelectWithCreate).props('createAllowed')).toStrictEqual(expected);
+    });
+
+    it.each([
+      ['the user can create namespaces', {}, {}, true],
+      ['createAllowed is false', { createAllowed: false }, {}, false],
+      ['the user cannot create namespaces', {}, { currentCluster: () => ({ canUpdate: false }) }, false],
+    ])('can be cleared only when a namespace can be created: %s', (_, props, getters, expected) => {
+      const wrapper = shallowMount(NamespaceSelect, {
+        ...requiredSetup(getters),
+        props,
+      });
+
+      expect(wrapper.findComponent(LabeledSelectWithCreate).props('clearable')).toStrictEqual(expected);
+    });
+  });
 });

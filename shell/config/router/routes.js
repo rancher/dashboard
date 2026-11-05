@@ -4,6 +4,7 @@ import {
   CAPI, MANAGEMENT, BACKUP_RESTORE, COMPLIANCE, VIRTUAL_TYPES
 } from '@shell/config/types';
 import { NAME as AUTH } from '@shell/config/product/auth';
+import { HOME_LAYOUT } from '@shell/config/router/route-names';
 
 // All these imports are related to the install-redirect.js navigation guard.
 import { installRedirectRouteMeta } from '@shell/config/router/navigation-guards/install-redirect';
@@ -53,6 +54,8 @@ export default [
   {
     path:      '/',
     component: () => interopDefault(import('@shell/components/templates/home.vue')),
+    // Named so the Home page can be replaced as its child - see setHomePage in shell/core/plugin.ts
+    name:      HOME_LAYOUT,
     meta:      { requiresAuthentication: true },
     children:  [
       {
@@ -87,6 +90,11 @@ export default [
         path:      '/diagnostic',
         component: () => interopDefault(import('@shell/pages/diagnostic.vue')),
         name:      'diagnostic'
+      },
+      {
+        path:      '/licenses',
+        component: () => interopDefault(import('@shell/pages/licenses.vue')),
+        name:      'licenses'
       },
       {
         path:      '/prefs',
@@ -352,6 +360,10 @@ export default [
         path:      '/c/:cluster/auth/config',
         component: () => interopDefault(import('@shell/pages/c/_cluster/auth/config/index.vue')),
         name:      'c-cluster-auth-config'
+      }, {
+        path:      '/c/:cluster/auth/config/create/:provider',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/auth/config/create/_provider.vue')),
+        name:      'c-cluster-auth-config-create-provider'
       }, {
         path:      '/c/:cluster/auth/roles',
         component: () => interopDefault(import('@shell/pages/c/_cluster/auth/roles/index.vue')),

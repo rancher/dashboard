@@ -43,8 +43,7 @@ describe('Namespace picker', { testIsolation: false }, () => {
     cy.wait('@getPods');
 
     // group by namespace
-    workloadsPodPage.list().resourceTable().sortableTable().groupByButtons(1)
-      .click();
+    workloadsPodPage.list().resourceTable().sortableTable().groupBy('Namespace');
 
     // Wait for the namespace picker to be ready before interacting with it
     namespacePicker.namespaceDropdown().should('be.visible');

@@ -139,6 +139,12 @@ export interface ActionFindPageArgs extends ActionCoreFindOptions {
 
   /**
    * @internal
+   * Who is asking, so a list's page requests only supersede its own
+   */
+  requesterId?: string,
+
+  /**
+   * @internal
    * Specifies the name to use if we should save the count returned in the paginated request
    */
   saveCountAs?: string,

@@ -151,3 +151,59 @@ export type DynamicContent = {
   announcements: Announcement[],
   settings?: Partial<SettingsInfo>,
 };
+
+/**
+ * Feature listed in the "What's new" card of the release welcome modal
+ */
+export type FirstRunFeature = {
+  id: string; // Unique id, used for test ids
+  title: string;
+  description: string;
+};
+
+/**
+ * Release welcome modal content for a minor release
+ */
+export type FirstRunRelease = {
+  version: string; // Minor version, e.g. '2.16'
+  whatsNew?: FirstRunFeature[];
+  primePromo?: FirstRunPrimePromo; // Community only
+  registration?: FirstRunRegistration; // Prime only
+};
+
+/**
+ * Rancher Prime promotion of the release welcome modal, shown to Community installations
+ */
+export type FirstRunPrimePromo = {
+  title: string;
+  description: string;
+  products: string[];
+  cta: CallToAction; // The link must be https
+};
+
+/**
+ * Registration card of the release welcome modal, shown to Prime admins
+ */
+export type FirstRunRegistration = {
+  title: string;
+  description: string;
+  benefits: { text: string; link?: CallToAction }[];
+  cta: CallToAction; // The links must be https
+};
+
+/**
+ * Release welcome modal content for the running version: each part is undefined when the built-in content should be used
+ */
+export type FirstRunReleaseContent = {
+  features?: FirstRunFeature[];
+  primePromo?: FirstRunPrimePromo;
+  registration?: FirstRunRegistration;
+};
+
+/**
+ * Main type for the release welcome modal content that is retrieved from the dynamic content endpoint ('first-run' document)
+ */
+export type FirstRunContent = {
+  version: number;
+  releases: FirstRunRelease[];
+};

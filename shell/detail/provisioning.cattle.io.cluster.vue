@@ -34,11 +34,14 @@ import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeploym
 import { isAlternate } from '@shell/utils/platform';
 import DetailPage from '@shell/components/Resource/Detail/Page.vue';
 import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
+import ClusterPinControl from '@shell/components/ClusterPinControl.vue';
 import AutoscalerTab from '@shell/components/AutoscalerTab.vue';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
 import { useDefaultMetadataForLegacyPagesProps } from '@shell/components/Resource/Detail/Metadata/composables';
 import { computed } from 'vue';
+import { importCommands, isServerUrlMissing } from '@shell/utils/cluster-registration';
+import { SETTING } from '@shell/config/settings';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -80,6 +83,7 @@ export default {
     MachineSummaryGraph,
     DetailPage,
     Masthead,
+    ClusterPinControl,
   },
 
   props: {
@@ -135,6 +139,12 @@ export default {
       provider = 'imported';
     }
 
+    // Exposed so extensions can bind an enhancement to a specific annotation on this cluster
+    // via the `context` param of their LocationConfig, which is a subset match
+    const annotations = this.value?.metadata?.annotations || {};
+
+    this.extCustomParams = { annotations };
+
     if (extClass) {
       this.extProvider = new extClass({
         dispatch:   this.$store.dispatch,
@@ -148,7 +158,7 @@ export default {
         ...this.extDetailTabs,
         ...this.extProvider.detailTabs
       };
-      this.extCustomParams = { provider };
+      this.extCustomParams = { provider, annotations };
     }
 
     // Support for a model extension
@@ -157,7 +167,7 @@ export default {
         ...this.extDetailTabs,
         ...this.value.customProvisionerHelper.detailTabs
       };
-      this.extCustomParams = { provider };
+      this.extCustomParams = { provider, annotations };
     }
 
     const schema = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
@@ -181,6 +191,7 @@ export default {
         OPERATION.ETCD_SNAPSHOT,
         OPERATION.ETCD_SNAPSHOT_RESTORE,
         OPERATION.ENCRYPTION_KEY_ROTATE,
+        OPERATION.CERTIFICATE_ROTATE,
       ];
 
       for (const opType of operationTypes) {
@@ -538,6 +549,7 @@ export default {
         OPERATION.ETCD_SNAPSHOT,
         OPERATION.ETCD_SNAPSHOT_RESTORE,
         OPERATION.ENCRYPTION_KEY_ROTATE,
+        OPERATION.CERTIFICATE_ROTATE,
       ];
 
       const allOps = [];
@@ -691,6 +703,18 @@ export default {
       return false;
     },
 
+    serverUrlSetting() {
+      return this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SERVER_URL);
+    },
+
+    serverUrlMissing() {
+      return isServerUrlMissing(this.serverUrlSetting, this.clusterToken);
+    },
+
+    importCommands() {
+      return importCommands(this.serverUrlSetting, this.clusterToken);
+    },
+
     isClusterReady() {
       return this.value.mgmt?.isReady;
     },
@@ -731,8 +755,12 @@ export default {
       return this.extDetailTabs?.conditions;
     },
 
+    isAutoscalerFeatureEnabled() {
+      return isAutoscalerFeatureFlagEnabled(this.$store);
+    },
+
     showAutoScalerTab() {
-      return isAutoscalerFeatureFlagEnabled(this.$store) && this.value.hasAccessToAutoscalerConfigMap && this.extDetailTabs.autoscaler;
+      return this.isAutoscalerFeatureEnabled && this.value.hasAccessToAutoscalerConfigMap && this.extDetailTabs.autoscaler;
     }
   },
 
@@ -755,6 +783,43 @@ export default {
       }
     },
 
+    autoscalerToggle(pool) {
+      if (!this.isAutoscalerFeatureEnabled || !this.value.hasLink('update')) {
+        return null;
+      }
+
+      const t = (key, args) => this.t(`cluster.machinePool.autoscaler.pause.${ key }`, args);
+      const scaling = pool.isAutoscalerEnabled && !pool.isClusterAutoscalerPaused;
+      const range = pool.autoscalerRange;
+
+      if (!pool.isAutoscalerManaged) {
+        return {
+          icon:      'icon-play',
+          disabled:  true,
+          ariaLabel: t('unconfiguredTooltip'),
+          tooltip:   t('unconfiguredTooltip')
+        };
+      }
+
+      const reason = pool.isClusterAutoscalerPaused ? 'clusterPausedTooltip' : 'lastPoolTooltip';
+
+      if (scaling) {
+        return {
+          icon:      'icon-pause',
+          disabled:  !pool.canPauseResumeAutoscaler,
+          ariaLabel: t('pauseAction'),
+          tooltip:   `${ pool.canPauseResumeAutoscaler ? t('pauseAction') : t(reason) }<br>${ t('rangeTooltip', range) }`
+        };
+      }
+
+      return {
+        icon:      'icon-play',
+        disabled:  !pool.canPauseResumeAutoscaler,
+        ariaLabel: t('resumeAction'),
+        tooltip:   pool.canPauseResumeAutoscaler ? `${ t('resumeAction') }<br>${ t('rangeTooltip', range) }` : t(reason)
+      };
+    },
+
     async takeSnapshot(btnCb) {
       try {
         await this.value.takeSnapshot();
@@ -766,6 +831,12 @@ export default {
       } catch (err) {
         this.$store.dispatch('growl/fromError', { title: 'Error creating snapshot', err });
         btnCb(false);
+      }
+    },
+
+    toggleAutoscaler(pool) {
+      if (pool.canPauseResumeAutoscaler) {
+        pool.toggleAutoscalerPause();
       }
     },
 
@@ -883,6 +954,9 @@ export default {
   <DetailPage :loading="$fetchState.pending">
     <template #top-area>
       <Masthead v-bind="customMastheadProps">
+        <template #title-suffix>
+          <ClusterPinControl :cluster="value" />
+        </template>
         <template #additional-actions>
           <button
             data-testid="detail-explore-button"
@@ -983,7 +1057,7 @@ export default {
                     </div>
                   </div>
                   <div
-                    v-if="group.ref && !group.ref.isAutoscalerEnabled"
+                    v-if="group.ref"
                     class="right group-header-buttons mr-20"
                   >
                     <MachineSummaryGraph
@@ -992,28 +1066,48 @@ export default {
                       :horizontal="true"
                       class="mr-20"
                     />
-                    <template v-if="value.hasLink('update') && group.ref.showScalePool">
+                    <div class="pool-scale-controls">
+                      <template v-if="value.hasLink('update') && group.ref.showScalePool">
+                        <button
+                          v-clean-tooltip="{ content: t('node.list.scaleDown'), triggers: ['hover', 'focus'] }"
+                          :disabled="group.ref.isAutoscalerEnabled || !group.ref.canScaleDownPool()"
+                          :aria-label="t('node.list.scaleDownAriaLabel', { name: group.ref.nameDisplay })"
+                          type="button"
+                          class="btn btn-sm role-secondary"
+                          data-testid="scale-down-button"
+                          @click="toggleScaleDownModal($event, group.ref)"
+                        >
+                          <i class="icon icon-sm icon-minus" />
+                        </button>
+                        <button
+                          v-clean-tooltip="{ content: t('node.list.scaleUp'), triggers: ['hover', 'focus'] }"
+                          :disabled="group.ref.isAutoscalerEnabled || !group.ref.canScaleUpPool()"
+                          :aria-label="t('node.list.scaleUpAriaLabel', { name: group.ref.nameDisplay })"
+                          type="button"
+                          class="btn btn-sm role-secondary"
+                          data-testid="scale-up-button"
+                          @click="group.ref.scalePool(1)"
+                        >
+                          <i class="icon icon-sm icon-plus" />
+                        </button>
+                      </template>
                       <button
-                        v-clean-tooltip="t('node.list.scaleDown')"
-                        :disabled="!group.ref.canScaleDownPool()"
+                        v-if="autoscalerToggle(group.ref)"
+                        v-clean-tooltip="{ content: autoscalerToggle(group.ref).tooltip, triggers: ['hover', 'focus'] }"
+                        :aria-disabled="autoscalerToggle(group.ref).disabled"
+                        :aria-label="autoscalerToggle(group.ref).ariaLabel"
                         type="button"
                         class="btn btn-sm role-secondary"
-                        data-testid="scale-down-button"
-                        @click="toggleScaleDownModal($event, group.ref)"
+                        :class="{ disabled: autoscalerToggle(group.ref).disabled }"
+                        data-testid="autoscaler-toggle-button"
+                        @click="toggleAutoscaler(group.ref)"
                       >
-                        <i class="icon icon-sm icon-minus" />
+                        <i
+                          class="icon icon-sm"
+                          :class="autoscalerToggle(group.ref).icon"
+                        />
                       </button>
-                      <button
-                        v-clean-tooltip="t('node.list.scaleUp')"
-                        :disabled="!group.ref.canScaleUpPool()"
-                        type="button"
-                        class="btn btn-sm role-secondary ml-10"
-                        data-testid="scale-up-button"
-                        @click="group.ref.scalePool(1)"
-                      >
-                        <i class="icon icon-sm icon-plus" />
-                      </button>
-                    </template>
+                    </div>
                   </div>
                 </div>
               </template>
@@ -1170,6 +1264,12 @@ export default {
               color="warning"
               :label="t('cluster.import.warningBanner')"
             />
+            <Banner
+              v-if="serverUrlMissing"
+              color="warning"
+              :label-key="value.isCustom ? 'cluster.registration.serverUrlMissing.custom' : 'cluster.registration.serverUrlMissing.import'"
+              data-testid="registration-server-url-missing"
+            />
             <CustomCommand
               v-if="value.isCustom"
               :cluster-token="clusterToken"
@@ -1179,7 +1279,7 @@ export default {
             <template v-else>
               <h4 v-clean-html="t('cluster.import.commandInstructions', null, true)" />
               <CopyCode class="m-10 p-10">
-                {{ clusterToken.command }}
+                {{ importCommands.command }}
               </CopyCode>
 
               <h4
@@ -1187,7 +1287,7 @@ export default {
                 class="mt-10"
               />
               <CopyCode class="m-10 p-10">
-                {{ clusterToken.insecureCommand }}
+                {{ importCommands.insecureCommand }}
               </CopyCode>
 
               <h4
@@ -1259,6 +1359,8 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+$pool-control-gap: 4px;
+
 .main-row .no-entries {
   text-align: center;
 }
@@ -1286,6 +1388,21 @@ export default {
   .group-header-buttons {
     align-items: center;
     display: flex;
+
+    .pool-scale-controls {
+      align-items: center;
+      display: flex;
+      gap: $pool-control-gap;
+      justify-content: flex-end;
+
+      .btn.disabled {
+        &:hover, &:focus {
+          background-color: var(--disabled-bg);
+          border: solid 1px var(--disabled-bg);
+          color: var(--disabled-text);
+        }
+      }
+    }
   }
 }
 

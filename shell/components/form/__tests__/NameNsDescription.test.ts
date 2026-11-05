@@ -223,6 +223,22 @@ describe('nameNsDescription', () => {
     expect(lastEmittedValue.spec.myNs).toStrictEqual('new-ns');
   });
 
+  it.each([
+    [undefined, true],
+    [false, false],
+  ])('passes namespaceCreateAllowed %p to the namespace select as createAllowed %p', (namespaceCreateAllowed, expected) => {
+    const wrapper = shallowMount(NameNsDescription, {
+      ...requiredSetup(),
+      props: {
+        value: { metadata: { name: 'test-name', namespace: 'test-ns' } },
+        mode:  _CREATE,
+        ...(namespaceCreateAllowed === undefined ? {} : { namespaceCreateAllowed }),
+      },
+    });
+
+    expect(wrapper.findComponent({ name: 'NamespaceSelect' }).attributes('create-allowed')).toStrictEqual(`${ expected }`);
+  });
+
   it('persists forceNamespace into value.metadata.namespace immediately on mount', () => {
     const value = { metadata: { name: 'test-name', namespace: '' } };
     const wrapper = shallowMount(NameNsDescription, {

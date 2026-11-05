@@ -45,6 +45,8 @@ export default [
       'assets/fonts/',
       'shell/pkg/import.js',
       'shell/types/shell/index.d.ts',
+      // Vendored upstream code; publish-shell.sh also copies it into shell/rancher-components
+      '**/RcCodeMirror/vendor/',
       '**/build/',
       '**/public/',
       'pkg/**/node_modules/',

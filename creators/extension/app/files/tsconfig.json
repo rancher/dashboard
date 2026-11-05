@@ -23,6 +23,12 @@
       ],
       "@shell/*": [
         "./node_modules/@rancher/shell/*"
+      ],
+      "@components/*": [
+        "./node_modules/@rancher/shell/rancher-components/*"
+      ],
+      "@pkg/*": [
+        "./pkg/*"
       ]
     },
     "typeRoots": [
@@ -31,10 +37,12 @@
     ],
     "types": [
       "@types/node",
-      "cypress",
+      "@types/jest",
       "rancher",
       "shell"
-    ]
+    ],
+    "skipLibCheck": true,
+    "resolveJsonModule": true
   },
   "exclude": [
     "node_modules"

@@ -8,10 +8,10 @@ export function DSLRegistrationsPerProduct(store, prodName) {
     'basicTypeWeights',
     'groupDefaultTypes',
     'groupLabels',
-    // 'headers',
-    // 'spoofedTypes',
-    // 'typeOptions',
-    // 'typeWeights'
+    'headers',
+    'spoofedTypes',
+    'typeOptions',
+    'typeWeights'
   ];
 
   Object.keys(typeMapData).forEach((dataType) => {

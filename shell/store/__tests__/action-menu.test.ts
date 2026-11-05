@@ -15,11 +15,9 @@ describe('action-menu store', () => {
       expect(s.elem).toStrictEqual(null);
       expect(s.event).toStrictEqual(null);
       expect(s.showPromptRemove).toStrictEqual(false);
-      expect(s.showPromptRestore).toStrictEqual(false);
       expect(s.showModal).toStrictEqual(false);
       expect(s.performCallbackData).toStrictEqual(undefined);
       expect(s.toRemove).toStrictEqual([]);
-      expect(s.toRestore).toStrictEqual([]);
       expect(s.modalData).toStrictEqual({});
     });
 
@@ -318,47 +316,6 @@ describe('action-menu store', () => {
         mutations.togglePromptRemove(s, resources as any);
 
         expect(s.toRemove).toBe(resources);
-      });
-    });
-
-    describe('togglePromptRestore', () => {
-      it('sets showPromptRestore=false and toRestore=[] when resources is null', () => {
-        const s = state();
-
-        s.showPromptRestore = true;
-        mutations.togglePromptRestore(s, null as any);
-
-        expect(s.showPromptRestore).toStrictEqual(false);
-        expect(s.toRestore).toStrictEqual([]);
-      });
-
-      it('toggles showPromptRestore to true and wraps single resource', () => {
-        const s = state();
-        const resource = { id: 'r1' };
-
-        mutations.togglePromptRestore(s, resource as any);
-
-        expect(s.showPromptRestore).toStrictEqual(true);
-        expect(s.toRestore).toStrictEqual([resource]);
-      });
-
-      it('toggles showPromptRestore back to false on second call', () => {
-        const s = state();
-        const resource = { id: 'r1' };
-
-        mutations.togglePromptRestore(s, resource as any);
-        mutations.togglePromptRestore(s, resource as any);
-
-        expect(s.showPromptRestore).toStrictEqual(false);
-      });
-
-      it('keeps array resources without wrapping', () => {
-        const s = state();
-        const resources = [{ id: 'r1' }, { id: 'r2' }];
-
-        mutations.togglePromptRestore(s, resources as any);
-
-        expect(s.toRestore).toBe(resources);
       });
     });
 

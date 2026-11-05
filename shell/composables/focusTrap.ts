@@ -12,7 +12,8 @@ export function getFirstFocusableElement(element:any = document):any {
   const filteredFocusableElements:any = [];
 
   focusableElements.forEach((el:any) => {
-    if (!el.hasAttribute('disabled')) {
+    // tabindex="-1" takes a control out of the tab order (e.g. the native input Checkbox hides behind its styled box)
+    if (!el.hasAttribute('disabled') && el.getAttribute('tabindex') !== '-1') {
       filteredFocusableElements.push(el);
     }
   });

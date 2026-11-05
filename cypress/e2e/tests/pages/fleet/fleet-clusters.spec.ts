@@ -11,6 +11,7 @@ import { EXTRA_LONG_TIMEOUT_OPT, LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT, VERY_LONG
 import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import { qase } from '@/cypress/support/qase';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 const fleetClusterListPage = new FleetClusterListPagePo();
 const fleetAppBundlesListPage = new FleetApplicationListPagePo();
@@ -146,7 +147,7 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
     fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 7).should('contain.text', '—');
   }));
 
-  it('check all tabs are available in the details view', () => {
+  qase(9692, it('check all tabs are available in the details view', () => {
     // testing https://github.com/rancher/dashboard/issues/11155
     const fleetClusterDetailsPage = new FleetClusterDetailsPo(namespace, clusterName);
 
@@ -162,9 +163,9 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
     fleetClusterDetailsPage.clusterTabs().tabNames().each((el, i) => {
       expect(el).to.include(tabs[i]);
     });
-  });
+  }));
 
-  it('adding git repo should add bundles on downstream cluster (deployments added)', () => {
+  qase(9693, it('adding git repo should add bundles on downstream cluster (deployments added)', () => {
     cy.getClusterIdByName(clusterName).then((clusterId) => {
       const deploymentsList = new WorkloadsDeploymentsListPagePo(clusterId);
       const deployments = 'nginx-keep';
@@ -174,9 +175,9 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
 
       deploymentsList.details(deployments, 1).contains('Active', { timeout: 15000 });
     });
-  });
+  }));
 
-  it('can Pause', () => {
+  qase(9694, it('can Pause', () => {
     // go to fleet clusters
     FleetClusterListPagePo.navTo();
     fleetClusterListPage.waitForPage();
@@ -196,9 +197,9 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
 
     // check cluster state
     fleetClusterListPage.resourceTableDetails(clusterName, 1).contains('Paused', LONG_TIMEOUT_OPT);
-  });
+  }));
 
-  it('can Unpause', () => {
+  qase(9695, it('can Unpause', () => {
     // go to fleet clusters
     FleetClusterListPagePo.navTo();
     fleetClusterListPage.waitForPage();
@@ -218,9 +219,9 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
 
     // check cluster state
     fleetClusterListPage.resourceTableDetails(clusterName, 1).contains('Active', LONG_TIMEOUT_OPT);
-  });
+  }));
 
-  it('can Edit Config', () => {
+  qase(9696, it('can Edit Config', () => {
     // go to fleet clusters
     FleetClusterListPagePo.navTo();
     fleetClusterListPage.waitForPage();
@@ -241,16 +242,17 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
         expect(response?.body.metadata.annotations).to.have.property('field.cattle.io/description', `${ clusterName }-fleet-desc`);
       });
     fleetClusterListPage.waitForPage();
-  });
+  }));
 
-  it('can Download YAML', () => {
+  qase(9697, it('can Download YAML', () => {
     cy.deleteDownloadsFolder();
 
     FleetClusterListPagePo.navTo();
     fleetClusterListPage.waitForPage();
     headerPo.selectWorkspace(namespace);
-    fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Download YAML')
+    fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Export As...')
       .click();
+    new ExportModalPo().download();
 
     const downloadedFilename = path.join(downloadsFolder, `${ clusterName }.yaml`);
 
@@ -263,9 +265,9 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
       expect(obj.metadata.annotations['objectset.rio.cattle.io/owner-name']).to.equal(clusterName);
       expect(obj.metadata.annotations['objectset.rio.cattle.io/owner-namespace']).to.equal(namespace);
     });
-  });
+  }));
 
-  it('can assign cluster to different fleet workspaces', () => {
+  qase(9698, it('can assign cluster to different fleet workspaces', () => {
     // create workspace
     cy.createRancherResource('v3', 'fleetworkspaces', `{"type":"fleetworkspace","name":"${ customWorkspace }","annotations":{},"labels":{}}`).then(() => {
       removeWorkspace = true;
@@ -324,9 +326,9 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
     headerPo.selectWorkspace(namespace);
     cy.wait('@changeWorkspace');
     fleetClusterListPage.resourceTableDetails(clusterName, 2).isVisible();
-  });
+  }));
 
-  it('removing git repo should remove bundles on downstream cluster (deployments removed)', () => {
+  qase(9699, it('removing git repo should remove bundles on downstream cluster (deployments removed)', () => {
     cy.getClusterIdByName(clusterName).then((clusterId) => {
       const deploymentsList = new WorkloadsDeploymentsListPagePo(clusterId);
 
@@ -340,9 +342,9 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
       deploymentsList.sortableTable().checkLoadingIndicatorNotVisible();
       deploymentsList.sortableTable().checkRowCount(true, 1, LONG_TIMEOUT_OPT);
     });
-  });
+  }));
 
-  it('cluster should be removed from fleet cluster list once deleted', () => {
+  qase(9700, it('cluster should be removed from fleet cluster list once deleted', () => {
     if (removeCluster) {
       //  delete cluster
       cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, clusterName);
@@ -356,7 +358,7 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
       .checkLoadingIndicatorNotVisible();
     fleetClusterListPage.list().resourceTable().sortableTable()
       .checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
-  });
+  }));
 
   after('clean up', () => {
     if (removeCluster) {
@@ -399,12 +401,12 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
     headerPo.selectWorkspace(workspace);
   });
 
-  it('should be able to list clusters in local workspace', () => {
+  qase(9701, it('should be able to list clusters in local workspace', () => {
     fleetClusterListPage.list().resourceTable().sortableTable()
       .checkRowCount(false, 1);
-  });
+  }));
 
-  it('Git Repos Tab Add Repository button takes you to the correct page', () => {
+  qase(9702, it('Git Repos Tab Add Repository button takes you to the correct page', () => {
     // testing https://github.com/rancher/dashboard/issues/11198
     const fleetClusterDetailsPage = new FleetClusterDetailsPo(workspace, 'local');
     const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
@@ -426,9 +428,9 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
     gitRepoCreatePage.mastheadTitle().then((title) => {
       expect(title.replace(/\s+/g, ' ')).to.contain('App Bundle: Create');
     });
-  });
+  }));
 
-  it('should only display action menu with allowed actions only', () => {
+  qase(9703, it('should only display action menu with allowed actions only', () => {
     // Ensure table is fully loaded before interacting with action menu
     fleetClusterListPage.list().resourceTable().sortableTable().checkVisible();
     fleetClusterListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
@@ -454,9 +456,9 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
     disabledActions.forEach((action) => {
       constActionMenu.getMenuItem(action).should('not.exist');
     });
-  });
+  }));
 
-  it('check table headers are available in list and details view', { tags: ['@adminUser'] }, () => {
+  qase(9704, it('check table headers are available in list and details view', { tags: ['@adminUser'] }, () => {
     const clusterName = 'local';
 
     // create gitrepo
@@ -494,7 +496,7 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
     const expectedHeadersDetailsView = ['State', 'Name', 'Type', 'Source', 'Target', 'Clusters Ready', 'Resources', 'Age'];
 
     // Select flat list
-    fleetClusterDetailsPage.appBundlesList().sortableTable().groupByButtons(0).click();
+    fleetClusterDetailsPage.appBundlesList().sortableTable().groupBy('None');
 
     fleetClusterDetailsPage.appBundlesList().sortableTable()
       .tableHeaderRow()
@@ -502,7 +504,7 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
       .each((el, i) => {
         expect(el.text().trim()).to.eq(expectedHeadersDetailsView[i]);
       });
-  });
+  }));
 
   after('clean up', () => {
     if (toRemove) {
@@ -526,7 +528,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.login();
   });
 
-  it('should display fleet clusters list page', () => {
+  qase(18457, it('should display fleet clusters list page', () => {
     cy.intercept('GET', '/v1/fleet.cattle.io.clusters?*').as('fleetClustersGet');
 
     fleetClusterListPage.goTo();
@@ -542,7 +544,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
     // takes percy snapshot.
     cy.percySnapshot('fleet clusters list page');
-  });
+  }));
 
   after(() => {
     cy.restoreProductDefaultTestTheme();

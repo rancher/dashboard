@@ -8,10 +8,12 @@ import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { catchTargetPageException } from '@/cypress/support/utils/exception-utils';
+import { qase } from '@/cypress/support/qase';
 
 const namespaceFilter = new NamespaceFilterPo();
 const cluster = 'local';
 let removeExtensions = false;
+let extensionDowngraded = false;
 
 const DISABLED_CACHE_EXTENSION_NAME = 'large-extension';
 // const DISABLED_CACHE_EXTENSION_MENU_LABEL = 'Large-extension';
@@ -36,25 +38,32 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     catchTargetPageException(['Failed call', 'Network Error']);
   });
 
-  it('should go to the available tab by default and preserve active tab on reload', () => {
+  qase(14839, it('should go to the available tab by default and preserve active tab on reload', () => {
     const extensionsPo = new ExtensionsPagePo();
+
+    // The tab fragment in the URL is written by the tabs component once it mounts, and after a fresh
+    // load that can take longer than waitForPage allows - the URL then still has no fragment. Wait for
+    // the tabs before reading it each time the page is (re)loaded.
 
     // With no extensions installed, should default to "Available"
     extensionsPo.goTo();
+    extensionsPo.waitForTabs();
     extensionsPo.waitForPage(undefined, 'available');
 
     // Preserve active tab on reload
     cy.setUserPreference({ 'plugin-developer': true });
     extensionsPo.goTo(); // reload to get pref
+    extensionsPo.waitForTabs();
     extensionsPo.waitForPage(undefined, 'available');
     extensionsPo.extensionTabBuiltinClick();
     extensionsPo.waitForPage(undefined, 'builtin');
     cy.reload();
+    extensionsPo.waitForTabs();
     extensionsPo.waitForPage(undefined, 'builtin');
     cy.setUserPreference({ 'plugin-developer': false });
-  });
+  }));
 
-  it('should show built-in extensions only when configured', () => {
+  qase(7277, it('should show built-in extensions only when configured', () => {
     const extensionsPo = new ExtensionsPagePo();
     const pluginVersion = '1.0.0';
 
@@ -105,9 +114,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionDetailsCloseClick();
 
     cy.setUserPreference({ 'plugin-developer': false });
-  });
+  }));
 
-  it('add repository', () => {
+  qase(3800, it('add repository', () => {
     // This should be in a `before` however is flaky. Move it to an `it` to let cypress retry
     const extensionsPo = new ExtensionsPagePo();
 
@@ -119,9 +128,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', GIT_REPO_NAME).then(() => {
       removeExtensions = true;
     });
-  });
+  }));
 
-  it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', { tags: '@prime' }, () => {
+  qase(5814, it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', { tags: '@prime' }, () => {
     cy.getRancherResource('v3', 'setting', 'display-add-extension-repos-banner', undefined).then((resp: Cypress.Response<any>) => {
       const notFound = resp.status === 404;
       const requiredValue = resp.body?.value === '';
@@ -152,17 +161,17 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.goTo();
     extensionsPo.waitForTitle();
 
-    // if rancher prime, title should be Rancher Prime - Extensions, otherewise Rancher - Extensions
+    // if rancher prime, title should be Rancher Prime - Extensions, otherwise Rancher Community - Extensions
     cy.getRancherVersion(true).then((version) => {
-      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Extensions' : 'Rancher - Extensions';
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Extensions' : 'Rancher Community - Extensions';
 
       cy.title().should('eq', expectedTitle);
     });
 
     extensionsPo.repoBanner().checkVisible();
-  });
+  }));
 
-  it('Should check the feature flag', () => {
+  qase(3554, it('Should check the feature flag', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -192,9 +201,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     cy.wait('@getFeatureFlag').then(() => {
       extensionsPo.extensionTabs.checkVisible();
     });
-  });
+  }));
 
-  it('using "Add Rancher Repositories" should add a new repository (Partners repo)', () => {
+  qase(1498, it('using "Add Rancher Repositories" should add a new repository (Partners repo)', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -219,6 +228,18 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // add the partners repo - confirm the modal actually opened before clicking Add, otherwise a
     // missed menu interaction would no-op the Add click and leave the repo unadded (row-not-found).
     extensionsPo.addReposModal().should('be.visible');
+    // Known issue rancher/dashboard#19326: the dialog decides which repos to add in an async fetch,
+    // and until that returns every option is unticked - but Add is not disabled while it runs. A click
+    // in that window adds nothing and the dialog closes as if it had worked, so the repo is never
+    // created ("expected false to equal true" below). Wait until the partners option is resolved:
+    // ticked when the repo is missing, or marked as already installed when a previous attempt added it.
+    extensionsPo.addReposModal().should(($modal) => {
+      const option = Cypress.$($modal).find('[data-testid="add-extensions-repos-modal-add-partners-repo"]');
+      const ticked = option.find('[aria-checked="true"]').length > 0;
+      const installed = option.parent().find('.checkbox-info').length > 0;
+
+      expect(ticked || installed, 'partners repo option resolved by the dialog').to.eq(true);
+    });
     extensionsPo.addReposModalAddClick();
     extensionsPo.addReposModal().should('not.exist');
 
@@ -236,9 +257,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
     appRepoList.sortableTable().noRowsShouldNotExist();
     appRepoList.sortableTable().rowElementWithName(UI_PLUGINS_PARTNERS_REPO_URL).should('exist');
-  });
+  }));
 
-  it('New repos banner should only appear once (after dismiss should NOT appear again)', () => {
+  qase(1494, it('New repos banner should only appear once (after dismiss should NOT appear again)', () => {
     cy.getRancherResource('v3', 'setting', 'display-add-extension-repos-banner').then((resp: Cypress.Response<any>) => {
       const notFound = resp.status === 404;
       const requiredValue = resp.body?.value === 'true';
@@ -294,9 +315,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForTitle();
     extensionsPo.loading().should('not.exist');
     extensionsPo.repoBanner().checkNotExists();
-  });
+  }));
 
-  it('Should toggle the extension details', () => {
+  qase(1495, it('Should toggle the extension details', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -325,9 +346,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // clicking outside the details tab should also close it
     extensionsPo.extensionDetailsBgClick();
     extensionsPo.extensionDetails().should('not.be.visible');
-  });
+  }));
 
-  it('Should install an extension', () => {
+  qase(1502, it('Should install an extension', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -381,9 +402,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionCardClick(EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
     extensionsPo.extensionDetailsCloseClick();
-  });
+  }));
 
-  it('Should not display installed extensions within the available tab', () => {
+  qase(1497, it('Should not display installed extensions within the available tab', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -397,9 +418,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.waitForPage(undefined, 'available');
     cy.contains(`[data-testid="extension-card-${ EXTENSION_NAME }"]`).should('not.exist');
-  });
+  }));
 
-  it('Should upgrade an extension version', () => {
+  qase(14840, it('Should upgrade an extension version', () => {
     cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=upgrade`).as('upgradeExtension');
     const extensionsPo = new ExtensionsPagePo();
 
@@ -431,16 +452,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
       extensionsPo.extensionReloadBanner().should('be.visible');
       extensionsPo.extensionReloadClick();
 
-      // [CREATE ISSUE TO INVESTIGATE] Clicking the extension reload banner re-initialises the whole app
-      // and intermittently lands on the extensions page with the tabs container never mounting
-      // ("extension-tabs not found"). The reload should reliably re-render the extensions page (or
-      // recover) rather than occasionally leaving it half-mounted.
-      //
-      // The extension reload re-initialises the whole app and occasionally lands on a page where the
-      // tabs container never mounts (seen as "extension-tabs not found"). A fresh navigation to the
-      // extensions page recovers deterministically off a clean load before we wait for the tabs.
-      extensionsPo.goTo();
-      extensionsPo.waitForPage();
+      // The reload re-initialises the app, so wait for the tabs to mount again before using them.
       extensionsPo.waitForTabs();
     });
 
@@ -449,9 +461,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionTabInstalledClick();
     extensionsPo.waitForPage(undefined, 'installed');
     extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
-  });
+  }));
 
-  it('Should downgrade an extension version', () => {
+  qase(14841, it('Should downgrade an extension version', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -460,23 +472,47 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionTabInstalledClick();
     extensionsPo.waitForPage(undefined, 'installed');
 
-    // click on the downgrade button on card
-    // this will downgrade to the immediate previous version
-    extensionsPo.extensionCardDowngradeClick(EXTENSION_NAME);
-    extensionsPo.installModal().installButton().click();
+    // Retry-safe: an attempt can send the downgrade and still fail afterwards. Downgrading again on the
+    // retry takes the extension two versions back, and the script-import test below then never sees its
+    // script load. Only downgrade once per run.
+    if (!extensionDowngraded) {
+      cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=upgrade`).as('downgradeExtension');
 
-    // let's check the extension reload banner and reload the page
-    extensionsPo.extensionReloadBanner().should('be.visible');
-    extensionsPo.extensionReloadClick();
+      // click on the downgrade button on card
+      // this will downgrade to the immediate previous version
+      extensionsPo.extensionCardDowngradeClick(EXTENSION_NAME);
+      extensionsPo.installModal().installButton().click();
+      cy.wait('@downgradeExtension', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 201)
+        .then(() => {
+          extensionDowngraded = true;
+        });
+
+      // The reload banner follows the helm app settling, so wait for that first, then reload the page
+      // through the banner.
+      cy.waitForRancherResource(
+        'v1',
+        'catalog.cattle.io.apps',
+        `${ UI_PLUGIN_NAMESPACE }/${ EXTENSION_NAME }`,
+        (resp: any) => resp?.status === 200 && resp?.body?.metadata?.state?.transitioning === false,
+        40,
+        { failOnStatusCode: false }
+      );
+      extensionsPo.extensionReloadBanner().should('be.visible');
+      extensionsPo.extensionReloadClick();
+    }
 
     // make sure extension card is on the installed tab and is visible
     extensionsPo.extensionTabInstalledClick();
     extensionsPo.waitForPage(undefined, 'installed');
     extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
-  });
+
+    // The upgrade test left the extension on the latest version, so only the downgrade makes the card
+    // offer Upgrade again. A retry skips the downgrade above, and this still checks it took effect.
+    extensionsPo.checkActionOffered(EXTENSION_NAME, 'Upgrade');
+  }));
 
   // ui-plugin-operator updated cache disabled threshold to 30mb as per https://github.com/rancher/rancher/pull/47565
-  it('An extension larger than 30mb, which will trigger cacheState disabled, should install and work fine', () => {
+  qase(6584, it('An extension larger than 30mb, which will trigger cacheState disabled, should install and work fine', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     // Retry-safe start (testIsolation is off, so a failed attempt LEAKS the install): an attempt can
@@ -574,11 +610,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     namespaceFilter.clickOptionByLabel('All Namespaces');
     namespaceFilter.closeDropdown();
 
-    uiPluginsPo.resourceTable().sortableTable().groupByButtons(1).click();
+    uiPluginsPo.resourceTable().sortableTable().groupBy('Namespace');
     uiPluginsPo.cacheState(DISABLED_CACHE_EXTENSION_NAME).should('contain.text', 'disabled');
-  });
+  }));
 
-  it('Should respect authentication when importing extension scripts', () => {
+  qase(3194, it('Should respect authentication when importing extension scripts', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -589,6 +625,13 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // first (idempotent - a no-op when it is not installed), then re-open a clean Extensions page
     // (the helper leaves the extension details view open).
     uninstallExtensionIdempotently(extensionsPo, UNAUTHENTICATED_EXTENSION_NAME);
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
+
+    // This test asserts that the authenticated extension's script is imported, but that extension
+    // is installed by an earlier test in this file - make sure it is actually installed rather than
+    // assuming the earlier test's state survived.
+    ensureExtensionInstalled(extensionsPo, EXTENSION_NAME);
     extensionsPo.goTo();
     extensionsPo.waitForPage();
 
@@ -618,15 +661,31 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
       { failOnStatusCode: false }
     );
 
+    // The authenticated extension must be settled too, not just the one installed above: the earlier
+    // upgrade/downgrade tests in this file re-install it, and if its helm app is still transitioning
+    // when the page reloads, its plugin is not served yet and its script is never imported - the
+    // uk-locale script then loads while the clock one never appears ("[id*=\"clock\"]" never found).
+    cy.waitForRancherResource(
+      'v1',
+      'catalog.cattle.io.apps',
+      `${ UI_PLUGIN_NAMESPACE }/${ EXTENSION_NAME }`,
+      (resp: any) => resp?.status === 200 && resp?.body?.metadata?.state?.transitioning === false,
+      40,
+      { failOnStatusCode: false }
+    );
+
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
     extensionsPo.extensionReloadClick();
+    // The reloaded page can take longer than the default timeout to leave "Loading...", so wait for the
+    // tabs, which only render once it has loaded, rather than the indicator.
+    extensionsPo.waitForTabs();
     extensionsPo.waitForPage(undefined, 'installed');
-    extensionsPo.loading().should('not.exist');
 
-    // make sure both extensions have been imported
-    extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
-    extensionsPo.extensionScriptImport(EXTENSION_NAME).should('exist');
+    // make sure both extensions have been imported. The reload re-initialises the app and each
+    // plugin's script is fetched asynchronously afterwards, so allow the long timeout.
+    extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME, LONG_TIMEOUT_OPT).should('exist');
+    extensionsPo.extensionScriptImport(EXTENSION_NAME, LONG_TIMEOUT_OPT).should('exist');
 
     cy.logout();
 
@@ -646,7 +705,36 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForTitle();
     extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
     extensionsPo.extensionScriptImport(EXTENSION_NAME).should('exist');
-  });
+  }));
+
+  const ensureExtensionInstalled = (extensionsPo: ExtensionsPagePo, extensionName: string) => {
+    // Idempotent across retries and across earlier tests in this file. This spec runs with
+    // testIsolation off, so an extension installed by an earlier test can be gone by the time a
+    // later test asserts on its imported script - an earlier failure, or a retry that ran an
+    // uninstall, both leave it uninstalled and the assertion then fails on a script that was never
+    // imported. Install it only when it is not already there.
+    const installIt = () => {
+      extensionsPo.installExtensionFromCatalog(extensionName, GIT_REPO_NAME, `ensureInstall-${ extensionName }`);
+      extensionsPo.goTo();
+      extensionsPo.waitForPage();
+    };
+
+    extensionsPo.checkForExtensionTab('installed').then((installedTabRendered) => {
+      if (!installedTabRendered) {
+        installIt();
+
+        return;
+      }
+
+      extensionsPo.extensionTabInstalledClick();
+      extensionsPo.waitForPage(undefined, 'installed');
+      extensionsPo.checkForExtensionCardWithName(extensionName).then((isInstalled) => {
+        if (!isInstalled) {
+          installIt();
+        }
+      });
+    });
+  };
 
   const uninstallExtensionIdempotently = (extensionsPo: ExtensionsPagePo, extensionName: string) => {
     // Idempotent across retries: an attempt can uninstall the extension and then fail
@@ -669,6 +757,18 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
         extensionsPo.extensionCardUninstallClick(extensionName);
         extensionsPo.extensionUninstallModal().should('be.visible');
         extensionsPo.uninstallModalUninstallClick();
+        // The reload banner only follows once the extension's app has really been removed, and the
+        // dialog closes the same way whether or not it removed anything - so a banner that never
+        // comes says nothing about why. Wait for the app to be gone at the API level first: that is
+        // the real precondition, and if it never happens the log shows the uninstall did not take.
+        cy.waitForRancherResource(
+          'v1',
+          'catalog.cattle.io.apps',
+          `${ UI_PLUGIN_NAMESPACE }/${ extensionName }`,
+          (resp: any) => resp?.status === 404,
+          40,
+          { failOnStatusCode: false }
+        );
         extensionsPo.extensionReloadBanner().should('be.visible');
         extensionsPo.extensionReloadClick();
       });
@@ -681,7 +781,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionDetailsTitle().should('contain', extensionName);
   };
 
-  it('Should uninstall extensions', () => {
+  qase(3195, it('Should uninstall extensions', () => {
     // Because we logged out in the previous test this one will also have to use an uncached login
     cy.login(undefined, undefined, false);
     const extensionsPo = new ExtensionsPagePo();
@@ -691,9 +791,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForTabs();
 
     uninstallExtensionIdempotently(extensionsPo, EXTENSION_NAME);
-  });
+  }));
 
-  it('Should uninstall unauthenticated extensions', () => {
+  qase(6585, it('Should uninstall unauthenticated extensions', () => {
     // Because we logged out in the previous test this one will also have to use an uncached login
     cy.login(undefined, undefined, false);
     const extensionsPo = new ExtensionsPagePo();
@@ -703,9 +803,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForTabs();
 
     uninstallExtensionIdempotently(extensionsPo, UNAUTHENTICATED_EXTENSION_NAME);
-  });
+  }));
 
-  it('Should uninstall un-cached extensions', () => {
+  qase(3931, it('Should uninstall un-cached extensions', () => {
     // Because we logged out in the previous test this one will also have to use an uncached login
     cy.login(undefined, undefined, false);
     const extensionsPo = new ExtensionsPagePo();
@@ -749,7 +849,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // well over the default window to appear under CI load; wait longer before clicking it.
     extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME, LONG_TIMEOUT_OPT);
     extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
-  });
+  }));
 
   after(() => {
     if ( removeExtensions ) {

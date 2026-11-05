@@ -33,3 +33,13 @@ jobs:
 
       - name: Check PR Milestone against Branch Config
         run: ./.github/workflows/scripts/pr-check-milestone.sh
+
+  validate-linked-issue:
+    name: Linked Issue
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+
+      - name: Check PR fixes an issue or has the QA/None label
+        run: node ./.github/workflows/scripts/pr-check-linked-issue.js

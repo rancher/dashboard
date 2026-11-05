@@ -3,6 +3,7 @@ import {
 } from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/identifying-fields';
 import { NAMESPACE, FLEET, MANAGEMENT } from '@shell/config/types';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
+import { reactive } from 'vue';
 
 /**
  * `Row.valueOverride.props` (see `IdentifyingInformation/index.vue`) is declared
@@ -61,6 +62,18 @@ describe('composables: IdentifyingFields', () => {
       expect(result?.value.value).toStrictEqual(resource.namespace);
       expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.namespace');
       expect(result?.value.valueDataTestid).toStrictEqual('masthead-subheader-namespace');
+    });
+
+    it('should keep the same ResourcePopover component when the resource updates', () => {
+      mockStore.getters['cluster/canList'] = () => true;
+      const resource = reactive({ namespace: 'NAMESPACE', namespaceLocation: 'LOCATION' });
+      const result = useNamespace(resource);
+      const component = result?.value.valueOverride?.component;
+
+      resource.namespaceLocation = 'UPDATED_LOCATION';
+
+      expect(popoverProps(result?.value.valueOverride?.props).detailLocation).toStrictEqual('UPDATED_LOCATION');
+      expect(result?.value.valueOverride?.component).toBe(component);
     });
 
     it('should return a plain text namespace row when user cannot canList namespaces', () => {
@@ -172,6 +185,20 @@ describe('composables: IdentifyingFields', () => {
       expect(popoverProps(result?.value.valueOverride?.props).id).toStrictEqual(resource.project.id);
       expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.project');
     });
+
+    it('should keep the same ResourcePopover component when the project updates', () => {
+      const resource = reactive({
+        type:    NAMESPACE,
+        project: { id: 'ID', nameDisplay: 'PROJECT' }
+      });
+      const result = useProject(resource);
+      const component = result?.value.valueOverride?.component;
+
+      resource.project = { id: 'ID', nameDisplay: 'UPDATED_PROJECT' };
+
+      expect(result?.value.value).toStrictEqual('UPDATED_PROJECT');
+      expect(result?.value.valueOverride?.component).toBe(component);
+    });
   });
 
   describe('useResourceDetails', () => {
@@ -210,6 +237,24 @@ describe('composables: IdentifyingFields', () => {
       expect(result?.value[0].value).toStrictEqual(resource.details[0].content);
       expect(result?.value[0].valueOverride?.component).toStrictEqual(resource.details[0].formatter);
       expect(result?.value[0].valueOverride?.props).toStrictEqual({ value: resource.details[0].content, ...resource.details[0].formatterOpts });
+    });
+
+    it('should pass the detail dataTestid through to the row', () => {
+      const resource = {
+        details: [{
+          label: 'LABEL', content: 'CONTENT', dataTestid: 'detail-testid'
+        }]
+      };
+      const result = useResourceDetails(resource);
+
+      expect(result?.value[0].dataTestid).toStrictEqual('detail-testid');
+    });
+
+    it('should leave the row dataTestid undefined when the detail has none', () => {
+      const resource = { details: [{ label: 'LABEL', content: 'CONTENT' }] };
+      const result = useResourceDetails(resource);
+
+      expect(result?.value[0].dataTestid).toBeUndefined();
     });
   });
 });

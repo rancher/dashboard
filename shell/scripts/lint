@@ -72,6 +72,20 @@ function runFlat() {
   exit(spawnSync(process.execPath, [bin, ...args], { stdio: 'inherit', cwd }).status);
 }
 
+// Extra legacy ESLint packages an extension declares (plugins/configs its `.eslintrc.*` references
+// that the base toolchain doesn't ship), e.g. in its package.json:
+//   "@rancher/shell": { "eslintLegacyPackages": { "eslint-plugin-jest": "^24" } }
+function extraLegacyPackages(dir) {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8'));
+    const extras = pkg['@rancher/shell'] && pkg['@rancher/shell'].eslintLegacyPackages;
+
+    return (extras && typeof extras === 'object') ? extras : {};
+  } catch (e) {
+    return {};
+  }
+}
+
 // Legacy `.eslintrc.*` -> the isolated ESLint 7 toolchain in `@rancher/shell/eslint-legacy`.
 function runLegacy() {
   const legacyDir = path.resolve(__dirname, '..', 'eslint-legacy');
@@ -89,6 +103,29 @@ function runLegacy() {
 
     if (install.status !== 0 || !fs.existsSync(legacyBin)) {
       fail('Could not prepare the legacy ESLint toolchain (see npm output above). This step needs network access and a writable node_modules.', install.status || 1);
+    }
+  }
+
+
+  // Install any extra packages the extension declared INTO the isolated toolchain, so they resolve
+  // against this ESLint 7 (not the flat-config ESLint 10 hoisted in the project, which would crash
+  // on the legacy eslintrc API). Kept out of the base package.json via --no-save; re-added on demand.
+  const extras = extraLegacyPackages(cwd);
+  const missing = Object.entries(extras)
+    .filter(([name]) => !fs.existsSync(path.join(legacyModules, ...name.split('/'))))
+    .map(([name, spec]) => `${ name }@${ spec }`);
+
+  if (missing.length) {
+    console.error(`[@rancher/shell lint] installing extension-declared legacy ESLint packages: ${ missing.join(', ') }`);
+
+    const add = spawnSync(
+      'npm',
+      ['install', '--no-save', '--no-audit', '--no-fund', '--legacy-peer-deps', '--loglevel=error', ...missing],
+      { stdio: 'inherit', cwd: legacyDir }
+    );
+
+    if (add.status !== 0) {
+      fail('Could not install the declared `eslintLegacyPackages` (see npm output above).', add.status || 1);
     }
   }
 

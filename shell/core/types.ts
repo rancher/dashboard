@@ -129,12 +129,24 @@ export type Action = {
   labelKey?: string;
   tooltipKey?: string;
   tooltip?: string;
+  /** Header actions: the tooltip while the action is disabled, saying why. */
+  disabledTooltipKey?: string;
+  disabledTooltip?: string;
   shortcut?: string | ShortCutKey;
   svg?: Function;
   icon?: string;
   multiple?: boolean;
+  /**
+   * Whether the action can be used. For a header action, a function returning a boolean is asked
+   * again whenever the reactive state it reads changes; one returning a promise, on navigation.
+   */
   enabled?: Function | boolean;
   ariaExpanded?: boolean | (() => boolean);
+  /**
+   * Header actions: no button, only the `shortcut` - for an action that is a keyboard shortcut and
+   * nothing else. Defaults to false: the action is a button.
+   */
+  hidden?: boolean;
   invoke: (opts: ActionOpts, resources: any[], globals?: any) => void | boolean | Promise<boolean>;
 };
 
@@ -182,9 +194,13 @@ export type LocationConfig = {
   /**
    * Context specific params.
    *
-   * Components can provide additional context specific params that this value must match
+   * Components can provide additional context specific params that this value must match.
+   *
+   * Matched as a subset, recursively: only the keys named here have to match, and the context
+   * may carry others. Values may be nested objects, so an enhancement can bind to a single
+   * entry of a map the component provides (eg. one of a resource's annotations).
    */
-  context?: { [key: string]: string},
+  context?: { [key: string]: any },
 };
 
 /**
@@ -212,6 +228,12 @@ export interface HeaderOptions {
   name?: string;
 
   /**
+   * `false` for a column that isn't data, eg a button: table views leaves it out of Columns, Group
+   * By, the query and exports
+   */
+  tableViews?: boolean;
+
+  /**
    * A string that will show in the table column as a header
    */
   label?: string;
@@ -222,9 +244,11 @@ export interface HeaderOptions {
   labelKey?: string;
 
   /**
-   * A string which represents the path to access the value from the row object i.e. `row.meta.value`.
+   * How the cell's value is resolved: either a string path into the row (i.e. `metadata.name`), or
+   * a function given the row that returns the value to display. Under server-side pagination a
+   * function is display-only - `sort`/`search` must still be string paths to indexed fields.
    */
-  value?: string;
+  value?: string | ((row: any) => any);
 
   /**
    * A string which represents the path to access the value from the row object which we'll use to sort i.e. `row.meta.value`
@@ -233,14 +257,30 @@ export interface HeaderOptions {
 
   /**
    * A string which represents the path to access the value from the row object which we'll use to search i.e. `row.meta.value`.
-   * It can be false to disable searching on this field
+   * A column can name more than one path, as `sort` can. It can be false to disable searching on this field
    */
-  search?: string | boolean;
+  search?: string | boolean | string[];
 
   /**
    * Number of pixels the column should be in the table
    */
   width?: number;
+
+  /**
+   * Number of pixels the column's cells narrow to at most, however little room the table has
+   */
+  minWidth?: number;
+
+  /**
+   * Number of pixels the column's cells widen to at most. Longer text wraps
+   */
+  maxWidth?: number;
+
+  /**
+   * Number of lines a cell shows at most. Text that needs more ends in an ellipsis, and the whole
+   * text is offered as a tooltip
+   */
+  lineClamp?: number;
 
   /**
    * The name of a custom formatter. The available formatters can bee seen in `@rancher/shell/components/formatter`
@@ -279,6 +319,19 @@ export type PaginationTableColumn = PaginationHeaderOptions;
  * External extension configuration for @PaginationSettingsStores
  */
 export type ServerSidePaginationExtensionConfig = PaginationSettingsStores;
+
+/**
+ * Telemetry values returned by an extension's telemetry function - a map of query string param name to value
+ */
+export type TelemetryParams = { [param: string]: string | number | boolean };
+
+/**
+ * Function registered by an extension (via `plugin.register('telemetry', name, fn)`) that returns
+ * additional query string params to send with the dynamic content request
+ *
+ * @param getters Store getters, so that the extension can access the store to generate its values
+ */
+export type TelemetryFunction = (getters: any) => TelemetryParams;
 
 export interface ConfigureTypeOptions {
   /**
@@ -694,6 +747,11 @@ export interface IExtension extends IExtensionProducts {
    * localisations. The value can be a string or a function returning a string.
    * If no global is registered for a given name, the token's name is used as
    * the value.
+   *
+   * A special type `'telemetry'` can be used by SUSE extensions to register a function
+   * (see `TelemetryFunction`) that returns a map of additional query string params to be
+   * sent with the dynamic content request. These params can not overwrite any of the
+   * params that are already sent. Telemetry functions from non-SUSE extensions are ignored.
    *
    * @param {String} type type of thing to register, e.g. 'edit'
    * @param {String} name unique name of 'something'

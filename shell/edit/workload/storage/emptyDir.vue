@@ -26,6 +26,10 @@ export default {
         return {};
       }
     },
+    rules: {
+      type:    Object,
+      default: () => ({})
+    },
   },
   data() {
     return {
@@ -56,6 +60,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="value.name"
+          :rules="rules.name"
           :required="true"
           :mode="mode"
           :label="t('workload.storage.volumeName')"

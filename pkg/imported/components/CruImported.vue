@@ -9,14 +9,17 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import CruResource from '@shell/components/CruResource.vue';
 import Loading from '@shell/components/Loading.vue';
-import Accordion from '@components/Accordion/Accordion.vue';
+import { RcSection, SECTION_TYPE } from '@components/RcSection';
 import Banner from '@components/Banner/Banner.vue';
-import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
-import Labels from '@shell/components/form/Labels.vue';
+import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+import { useClusterMembership, saveRoleBindings } from '@shell/composables/useClusterMembership';
+import RcLabelsAndAnnotations from '@shell/components/RcLabelsAndAnnotations.vue';
 import Basics from '@pkg/imported/components/Basics.vue';
-import ACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/ACE';
+import DayTwoOps from '@pkg/imported/components/DayTwoOps.vue';
+import RcACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/RcACE.vue';
+import RcEtcdSnapshotConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/RcEtcdSnapshotConfig.vue';
 import { NORMAN, MANAGEMENT, CAPI, HCI } from '@shell/config/types';
-import KeyValue from '@shell/components/form/KeyValue';
+import RcKeyValue from '@shell/components/form/RcKeyValue.vue';
 import { Checkbox } from '@components/Form/Checkbox';
 import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types';
 import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@shell/store/features';
@@ -27,16 +30,36 @@ import { AGENT_CONFIGURATION_TYPES, SETTING } from '@shell/config/settings';
 
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import genericImportedClusterValidators from '../util/validators';
-import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
+import RcPrivateRegistry from '@shell/components/form/RcPrivateRegistry.vue';
 import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
 import { IMPORTED_CLUSTER_VERSION_MANAGEMENT, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT, DAY_2_OPS_DEFAULT } from '@pkg/imported/util/shared.ts';
-import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
+import RcAgentConfiguration from '@shell/components/form/RcAgentConfiguration.vue';
 import { IMPORTED_DAY_2_OPS } from '@shell/config/features';
+import { RcContentGroup } from '@components/Layout';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
+const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
+const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
+
+/**
+ * Whether any object key present in `original` is missing from `current` (recursing into nested objects, but not
+ * into arrays, which are always sent whole). A norman PUT merges nested objects, so a removed key is only dropped
+ * server side when the request replaces the whole object.
+ */
+function hasRemovedKeys(original, current) {
+  if (!original || typeof original !== 'object' || Array.isArray(original)) {
+    return false;
+  }
+
+  if (!current || typeof current !== 'object' || Array.isArray(current)) {
+    return Object.keys(original).length > 0;
+  }
+
+  return Object.keys(original).some((k) => !(k in current) || hasRemovedKeys(original[k], current[k]));
+}
 const defaultCluster = {
   agentEnvVars:   [],
   labels:         {},
@@ -44,11 +67,16 @@ const defaultCluster = {
   importedConfig: {}
 };
 
+// Rancher only applies the etcd fields that are set, and an imported cluster's etcd config is empty (or zero values) until configured
+function hasEtcdConfig(etcd) {
+  return !!etcd && !!(etcd.disableSnapshots || etcd.snapshotScheduleCron || etcd.snapshotRetention > 0 || etcd.s3);
+}
+
 export default defineComponent({
   name: 'CruImported',
 
   components: {
-    Basics, ACE, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox, SchedulingCustomization, PrivateRegistry
+    Basics, RcACE, Loading, CruResource, RcKeyValue, NameNsDescription, RcSection, Banner, ClusterMembershipEditor, RcLabelsAndAnnotations, Checkbox, RcAgentConfiguration, RcPrivateRegistry, RcContentGroup, RcEtcdSnapshotConfig, DayTwoOps
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -77,6 +105,8 @@ export default defineComponent({
 
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
       this.config = this.normanCluster.rke2Config || this.normanCluster.k3sConfig;
+      this.clusterHasEtcdConfig = hasEtcdConfig(this.config?.etcd);
+      this.s3Backup = !!this.config?.etcd?.s3;
       if ( this.normanCluster && isEmpty(this.normanCluster.localClusterAuthEndpoint) ) {
         set(this.normanCluster, 'localClusterAuthEndpoint', { enabled: false });
       }
@@ -106,8 +136,19 @@ export default defineComponent({
       this.schedulingCustomizationFeatureEnabled = sc.schedulingCustomizationFeatureEnabled;
       this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
       this.errors = this.errors.concat(sc.errors);
+      if (!this.isRKE1) {
+        this.agentConfigurationOriginal = cloneDeep({
+          [CLUSTER_AGENT_CUSTOMIZATION]: this.normanCluster[CLUSTER_AGENT_CUSTOMIZATION],
+          [FLEET_AGENT_CUSTOMIZATION]:   this.normanCluster[FLEET_AGENT_CUSTOMIZATION],
+        });
+        this.ensureAgentConfiguration();
+      }
       await this.initDayTwoOps();
     }
+  },
+
+  setup() {
+    return useClusterMembership();
   },
 
   data() {
@@ -115,7 +156,6 @@ export default defineComponent({
       normanCluster:                            { name: '', importedConfig: { privateRegistryURL: null } },
       PRIVATE_REGISTRY_CONTEXT,
       loadingVersions:                          false,
-      membershipUpdate:                         {},
       config:                                   null,
       allVersions:                              [],
       defaultVersion:                           '',
@@ -130,9 +170,15 @@ export default defineComponent({
       fleetAgentDefaultPDB:                     null,
       // When disabling clusterAgentDeploymentCustomization, we need to replace the whole object
       needsReplace:                             false,
-      clusterAgentDefaultPriorityClassHash:     SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
+      // The agent deployment customizations as loaded, used to work out whether saving an edit needs to replace them
+      agentConfigurationOriginal:               {},
       privateRegistryEnabled:                   false,
+      privateRegistryAuthDraft:                 null,
+      selectedKubernetesVersion:                null,
+      showDeprecatedPatchVersions:              false,
       s3Backup:                                 false,
+      clusterHasEtcdConfig:                     false,
+      etcdConfigValid:                          true,
       dayTwoOpsGlobalSetting:                   false,
       dayTwoOpsFlagEnabled:                     false,
       fvFormRuleSets:                           [{
@@ -150,6 +196,7 @@ export default defineComponent({
       }
       ],
       AGENT_CONFIGURATION_TYPES,
+      SECTION_TYPE
     };
   },
 
@@ -255,24 +302,41 @@ export default defineComponent({
       return this.value?.listLocation?.name;
     },
 
-    canManageMembers() {
-      return canViewClusterMembershipEditor(this.$store);
+    /**
+     * Version management and Day 2 Operations are configured on the cluster's rke2Config/k3sConfig, which only exists
+     * once an imported RKE2/K3s cluster has registered. So this also covers import (no config yet) and RKE1 (never has one).
+     */
+    hasConfig() {
+      return !!this.config;
     },
-
-    providerTabKey() {
-      if (this.isK3s) {
-        return this.t('imported.accordions.k3sOptions');
-      } else if (this.isRke2) {
-        return this.t('imported.accordions.rke2Options');
-      } else {
-        return this.t('imported.accordions.basics');
+    showVersionManagement() {
+      // The local cluster's version management setting can be changed even though an embedded K3s local cluster never gets a config
+      return this.hasConfig || this.isLocal;
+    },
+    /**
+     * While version management and Day 2 Operations are hidden because there's no rke2Config/k3sConfig yet (on import,
+     * or until the imported cluster has registered), tell users how they'll be set (from the global settings), and that
+     * they can be configured once the cluster has been imported. RKE1 clusters never get a config, and the local cluster has
+     * already been imported, so skip them.
+     */
+    configureAfterImportMessage() {
+      if (this.hasConfig || this.isRKE1 || this.isLocal) {
+        return '';
       }
-    },
 
-    showBasics() {
-      const hasFieldsToShow = !!this.config || !!this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
+      const state = (enabled) => this.t(`imported.configureAfterImport.${ enabled ? 'enabled' : 'disabled' }`);
+      const versionManagementState = state(this.versionManagementGlobalSetting);
 
-      return (!this.isRKE1 && hasFieldsToShow) || this.isCreate;
+      if (!this.canHaveDayTwoOps) {
+        return this.t('imported.configureAfterImport.versionManagement', { versionManagement: versionManagementState });
+      }
+
+      // Only say "will be automatically <state>" once when both global settings agree
+      if (this.versionManagementGlobalSetting === this.dayTwoOpsGlobalSetting) {
+        return this.t('imported.configureAfterImport.versionManagementAndDayTwoOpsSame', { state: versionManagementState });
+      }
+
+      return this.t('imported.configureAfterImport.versionManagementAndDayTwoOps', { versionManagement: versionManagementState, dayTwoOps: state(this.dayTwoOpsGlobalSetting) });
     },
     enableInstanceDescription() {
       return this.isLocal || this.isCreate;
@@ -290,33 +354,64 @@ export default defineComponent({
         }
       } : null;
     },
-    clusterAgentDeploymentCustomization() {
-      return this.normanCluster.clusterAgentDeploymentCustomization || {};
+    canHaveDayTwoOps() {
+      return !this.isLocal && this.dayTwoOpsFlagEnabled;
     },
-    fleetAgentDeploymentCustomization() {
-      return this.normanCluster.fleetAgentDeploymentCustomization || {};
+    showDayTwoOps() {
+      return this.hasConfig && this.canHaveDayTwoOps;
     },
-    schedulingCustomizationVisible() {
-      return !this.isLocal && (this.schedulingCustomizationFeatureEnabled || this.schedulingCustomizationOriginallyEnabled);
+    /**
+     * Whether day 2 ops are enabled for this cluster, either explicitly or via the global default. The etcd config is
+     * only applied to the cluster while they are, so it's hidden (and unset on save) otherwise
+     */
+    dayTwoOpsEnabled() {
+      return this.dayTwoOps === 'true' || (this.dayTwoOps === DAY_2_OPS_DEFAULT && this.dayTwoOpsGlobalSetting);
+    },
+    // Cluster/fleet agent deployment customization (requests/limits, tolerations, affinity and scheduling
+    // customization) isn't supported for the local cluster (its agent is embedded in the Rancher pods) or RKE1 clusters
+    showAgentConfiguration() {
+      return !this.isLocal && !this.isRKE1;
     },
   },
 
   methods: {
-    onMembershipUpdate(update) {
-      this.membershipUpdate = update;
-    },
     async saveRoleBindings() {
-      if (this.membershipUpdate.save) {
-        await this.membershipUpdate.save(this.normanCluster.id);
+      return saveRoleBindings(this.membershipUpdate, this.normanCluster.id);
+    },
+
+    unsetEtcdConfigIfDayTwoOpsDisabled() {
+      if (!this.showDayTwoOps || this.dayTwoOpsEnabled || typeof this.config?.etcd === 'undefined') {
+        return;
+      }
+
+      delete this.config.etcd;
+      this.s3Backup = false;
+      // A replace is only needed to remove an etcd config the cluster already has
+      if (this.clusterHasEtcdConfig) {
+        this.needsReplace = true;
       }
     },
     async actuallySave() {
-      if (this.isEdit) {
-        return await this.normanCluster.save({ replace: this.needsReplace });
-      } else {
-        await this.normanCluster.save();
+      this.agentConfigurationCleanup();
 
-        return await this.normanCluster.waitForProvisioning();
+      try {
+        if (this.isEdit) {
+          this.unsetEtcdConfigIfDayTwoOpsDisabled();
+
+          const replace = this.needsReplace || this.agentConfigurationHasRemovals();
+
+          return await this.normanCluster.save({ replace });
+        } else {
+          await this.normanCluster.save();
+
+          return await this.normanCluster.waitForProvisioning();
+        }
+      } catch (e) {
+        if (!this.isRKE1) {
+          this.ensureAgentConfiguration();
+        }
+
+        throw e;
       }
     },
 
@@ -369,6 +464,7 @@ export default defineComponent({
     },
 
     kubernetesVersionChanged(val) {
+      this.selectedKubernetesVersion = val;
       if ( !this.isK3s ) {
         this.normanCluster.rke2Config.kubernetesVersion = val;
       } else {
@@ -434,6 +530,10 @@ export default defineComponent({
       this.dayTwoOpsGlobalSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
       this.dayTwoOpsOld = !this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED] ? DAY_2_OPS_DEFAULT : this.normanCluster.annotations[OPERATION_ANNOTATIONS.ENABLED];
     },
+    etcdChanged(neu) {
+      // config is either normanCluster.rke2Config or normanCluster.k3sConfig, so this writes to <rke2|k3s>Config.etcd
+      this.config.etcd = neu;
+    },
     setSchedulingCustomization({ event, agentType }) {
       if (event) {
         switch (agentType) {
@@ -459,6 +559,62 @@ export default defineComponent({
         }
       }
     },
+
+    /**
+     * Ensure we have empty models for the two agent configurations, so the Cluster/Fleet Agent sections always
+     * have an object to bind to
+     */
+    ensureAgentConfiguration() {
+      if (!this.normanCluster[CLUSTER_AGENT_CUSTOMIZATION]) {
+        this.normanCluster[CLUSTER_AGENT_CUSTOMIZATION] = {};
+      }
+
+      if (!this.normanCluster[FLEET_AGENT_CUSTOMIZATION]) {
+        this.normanCluster[FLEET_AGENT_CUSTOMIZATION] = {};
+      }
+    },
+
+    /**
+     * Recursively clean an agent configuration object, so we only send values when the user has configured something
+     */
+    cleanAgentConfiguration(model, key) {
+      if (!model || !model[key]) {
+        return;
+      }
+
+      const v = model[key];
+
+      if (Array.isArray(v) && v.length === 0) {
+        delete model[key];
+      } else if (v && typeof v === 'object') {
+        Object.keys(v).forEach((k) => {
+          // prevent cleanup of "namespaceSelector" when an empty object because it represents all namespaces in pod/node affinity
+          // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#podaffinityterm-v1-core
+          if (k !== 'namespaceSelector') {
+            this.cleanAgentConfiguration(v, k);
+          }
+        });
+
+        if (Object.keys(v).length === 0) {
+          delete model[key];
+        }
+      }
+    },
+
+    /**
+     * Clean both agent configuration objects before save
+     */
+    agentConfigurationCleanup() {
+      this.cleanAgentConfiguration(this.normanCluster, CLUSTER_AGENT_CUSTOMIZATION);
+      this.cleanAgentConfiguration(this.normanCluster, FLEET_AGENT_CUSTOMIZATION);
+    },
+
+    /**
+     * Whether the user removed something from either agent configuration that was there when the form loaded
+     */
+    agentConfigurationHasRemovals() {
+      return [CLUSTER_AGENT_CUSTOMIZATION, FLEET_AGENT_CUSTOMIZATION].some((key) => hasRemovedKeys(this.agentConfigurationOriginal?.[key], this.normanCluster[key]));
+    },
   }
 });
 </script>
@@ -472,7 +628,7 @@ export default defineComponent({
     :can-yaml="false"
     :done-route="doneRoute"
     :errors="fvUnreportedValidationErrors"
-    :validation-passed="fvFormIsValid"
+    :validation-passed="fvFormIsValid && (!showDayTwoOps || !dayTwoOpsEnabled || etcdConfigValid)"
     :show-toc="true"
     @error="e=>errors=e"
     @finish="save"
@@ -505,12 +661,21 @@ export default defineComponent({
           description-placeholder="cluster.description.placeholder"
           :rules="{name: fvGetAndReportPathRules('name')}"
         />
+        <Banner
+          v-if="configureAfterImportMessage"
+          color="info"
+          data-testid="configure-after-import-banner"
+        >
+          {{ configureAfterImportMessage }}
+        </Banner>
       </div>
-      <Accordion
-        v-if="showBasics"
-        :title="providerTabKey"
-        :open-initially="true"
-        class="mb-20 accordion"
+      <RcSection
+        v-if="showVersionManagement"
+        :title="t('imported.basics.versionManagement.title')"
+        mode="with-header"
+        :type="SECTION_TYPE.PRIMARY"
+        expandable
+        :expanded="true"
       >
         <Basics
           :value="normanCluster"
@@ -520,176 +685,229 @@ export default defineComponent({
           :versions="allVersions"
           :default-version="defaultVersion"
           :loading-versions="loadingVersions"
-          :show-version-management="!isRKE1"
           :is-local="isLocal"
           :version-management-global-setting="versionManagementGlobalSetting"
-          :day-two-ops-global-setting="dayTwoOpsGlobalSetting"
-          :day-two-ops-flag="dayTwoOpsFlagEnabled"
           :version-management="versionManagement"
           :version-management-old="versionManagementOld"
-          :day-two-ops="dayTwoOps"
-          :day-two-ops-old="dayTwoOpsOld"
           :rules="{workerConcurrency: fvGetAndReportPathRules('workerConcurrency'), controlPlaneConcurrency: fvGetAndReportPathRules('controlPlaneConcurrency') }"
+          :selected-kubernetes-version="selectedKubernetesVersion"
+          :show-deprecated-patches="showDeprecatedPatchVersions"
           @kubernetes-version-changed="kubernetesVersionChanged"
+          @show-deprecated-patches-changed="(val)=>showDeprecatedPatchVersions = val"
           @drain-server-nodes-changed="(val)=>upgradeStrategy.drainServerNodes = val"
           @drain-worker-nodes-changed="(val)=>upgradeStrategy.drainWorkerNodes = val"
           @server-concurrency-changed="(val)=>upgradeStrategy.serverConcurrency = val"
           @worker-concurrency-changed="(val)=>upgradeStrategy.workerConcurrency = val"
           @version-management-changed="(val)=>versionManagement=val"
-          @enable-day-two-ops-changed="(val)=>dayTwoOps=val"
         />
-      </Accordion>
-      <Accordion
-        class="mb-20 accordion"
-        title-key="members.memberRoles"
-        :open-initially="true"
+      </RcSection>
+      <RcSection
+        v-if="showDayTwoOps"
+        :title="t('imported.basics.dayTwoOpsEnabled.title')"
+        data-testid="day-two-ops-accordion"
+        mode="with-header"
+        :type="SECTION_TYPE.PRIMARY"
+        expandable
+        :expanded="true"
       >
-        <Banner
-          v-if="isLocal"
-          color="warning"
-          label-key="imported.memberRoles.localBanner"
-        />
-        <Banner
-          v-if="isEdit"
-          color="info"
-        >
-          {{ t('cluster.memberRoles.removeMessage') }}
-        </Banner>
-        <ClusterMembershipEditor
-          v-if="canManageMembers"
+        <DayTwoOps
+          :value="dayTwoOps"
+          :global-setting="dayTwoOpsGlobalSetting"
           :mode="mode"
-          :parent-id="normanCluster.id ? normanCluster.id : null"
-          @membership-update="onMembershipUpdate"
+          :old-value="dayTwoOpsOld"
+          @update:value="(val)=>dayTwoOps=val"
         />
-      </Accordion>
-      <Accordion
-        v-if="schedulingCustomizationVisible"
-        class="mb-20 accordion"
-        title-key="cluster.agentConfig.tabs.agentsScheduling"
-        :open-initially="false"
-      >
-        {{ t('cluster.agentConfig.groups.agentsScheduling.text') }}
-
-        <!-- Hardcoding the HASH because it is the first of the parameters inline -->
-        <router-link
-          :to="{ name: 'c-cluster-settings', hash: `#${clusterAgentDefaultPriorityClassHash}` }"
-          target="_blank"
-          rel="noopener"
+        <RcContentGroup
+          v-if="dayTwoOpsEnabled"
+          data-testid="etcd-config"
         >
-          {{ t('cluster.agentConfig.groups.agentsScheduling.textLink') }}
-          <i
-            class="icon icon-external-link"
-            :alt="t('kubectl-explain.externalLink')"
+          <RcEtcdSnapshotConfig
+            :value="config.etcd"
+            :mode="mode"
+            :s3-backup="s3Backup"
+            :namespace="value.metadata.namespace"
+            :register-before-hook="registerBeforeHook"
+            @update:value="etcdChanged"
+            @s3-backup-changed="(val)=>s3Backup = val"
+            @validation-changed="(val)=>etcdConfigValid = val"
           />
-        </router-link>
-        .
-        <div class="spacer-small" />
-        <h3>{{ t('cluster.agentConfig.groups.agentsScheduling.label') }}</h3>
-        <SchedulingCustomization
-          :value="clusterAgentDeploymentCustomization.schedulingCustomization"
-          :mode="mode"
-          :type="AGENT_CONFIGURATION_TYPES.CLUSTER"
-          :feature="schedulingCustomizationFeatureEnabled"
-          :default-p-c="clusterAgentDefaultPC"
-          :default-p-d-b="clusterAgentDefaultPDB"
-          :checkbox-with-only-agent-name="true"
-          @scheduling-customization-changed="setSchedulingCustomization"
-        />
-        <SchedulingCustomization
-          :value="fleetAgentDeploymentCustomization.schedulingCustomization"
-          :mode="mode"
-          :type="AGENT_CONFIGURATION_TYPES.FLEET"
-          :feature="schedulingCustomizationFeatureEnabled"
-          :default-p-c="fleetAgentDefaultPC"
-          :default-p-d-b="fleetAgentDefaultPDB"
-          :checkbox-with-only-agent-name="true"
-          @scheduling-customization-changed="setSchedulingCustomization"
-        />
-      </Accordion>
-      <Accordion
-        class="mb-20 accordion"
-        title-key="imported.accordions.labels"
-        :open-initially="false"
+        </RcContentGroup>
+      </RcSection>
+      <RcSection
+        :title="t('members.memberRoles')"
+        mode="with-header"
+        :type="SECTION_TYPE.PRIMARY"
+        expandable
+        :expanded="true"
       >
-        <Labels
-          v-model:value="normanCluster"
-          :mode="mode"
-        />
-      </Accordion>
-      <Accordion
+        <RcContentGroup>
+          <Banner
+            v-if="isLocal"
+            color="warning"
+            label-key="imported.memberRoles.localBanner"
+            class="m-0"
+          />
+          <Banner
+            v-if="isEdit"
+            color="info"
+            class="m-0"
+          >
+            {{ t('cluster.memberRoles.removeMessage') }}
+          </Banner>
+          <ClusterMembershipEditor
+            v-if="canManageMembers"
+            :mode="mode"
+            :parent-id="normanCluster.id ? normanCluster.id : null"
+            :pending-update="membershipUpdate"
+            @membership-update="onMembershipUpdate"
+          />
+        </RcContentGroup>
+      </RcSection>
+      <RcLabelsAndAnnotations
+        :mode="mode"
+        :value="normanCluster"
+        expandable
+        :expanded="false"
+      />
+      <RcSection
         v-if="!isCreate && !isRKE1 && (!isLocal || enableNetworkPolicySupported)"
-        class="mb-20 accordion"
-        title-key="imported.accordions.networking"
+        :title="t('imported.accordions.networking')"
         data-testid="network-accordion"
-        :open-initially="false"
+        mode="with-header"
+        :type="SECTION_TYPE.PRIMARY"
+        expandable
+        :expanded="false"
       >
         <div
           v-if="enableNetworkPolicySupported"
-          class="mb-20"
         >
-          <Banner
-            v-if="!!normanCluster.enableNetworkPolicy"
-            color="info"
-            label-key="imported.network.banner"
-          />
-          <Checkbox
-            v-model:value="normanCluster.enableNetworkPolicy"
-            :mode="mode"
-            :label="t('cluster.rke2.enableNetworkPolicy.label')"
-          />
+          <RcContentGroup>
+            <Banner
+              v-if="!!normanCluster.enableNetworkPolicy"
+              color="info"
+              label-key="imported.network.banner"
+              class="m-0"
+            />
+            <Checkbox
+              v-model:value="normanCluster.enableNetworkPolicy"
+              :mode="mode"
+              :label="t('cluster.rke2.enableNetworkPolicy.label')"
+            />
+          </RcContentGroup>
         </div>
-        <div v-if="!isLocal">
-          <h3>{{ t('cluster.tabs.ace') }}</h3>
-          <ACE
+        <RcSection
+          v-if="!isLocal"
+          :title="t('cluster.tabs.ace')"
+          mode="with-header"
+          :type="SECTION_TYPE.SECONDARY"
+          expandable
+        >
+          <RcACE
             v-model:value="normanCluster.localClusterAuthEndpoint"
             :mode="mode"
             @local-cluster-auth-endpoint-changed="enableLocalClusterAuthEndpoint"
             @ca-certs-changed="(val)=>normanCluster.localClusterAuthEndpoint.caCerts = val"
             @fqdn-changed="(val)=>normanCluster.localClusterAuthEndpoint.fqdn = val"
           />
-        </div>
-      </Accordion>
-      <Accordion
+        </RcSection>
+      </RcSection>
+      <RcSection
         v-if="!isRKE1"
-        class="mb-20 accordion"
-        title-key="imported.accordions.registries"
-        data-testid="registries-accordion"
-        :open-initially="false"
+        :title="t('imported.accordions.advanced')"
+        data-testid="advanced-accordion"
+        mode="with-header"
+        :type="SECTION_TYPE.PRIMARY"
+        expandable
+        :expanded="false"
       >
-        <PrivateRegistry
-          v-model:value="normanCluster.importedConfig.privateRegistryURL"
-          v-model:pull-secret="pullSecrets"
-          v-model:enabled="privateRegistryEnabled"
-          :context="PRIVATE_REGISTRY_CONTEXT.IMPORTING"
-          :mode="mode"
-          :rules="fvGetAndReportPathRules('privateRegistry')"
-          :register-before-hook="registerBeforeHook"
-          checkbox-test-id="private-registry-enable-checkbox"
-          input-test-id="private-registry-url"
-        />
-      </Accordion>
-      <Accordion
-        v-if="!isRKE1"
-        class="mb-20 accordion"
-        title-key="imported.accordions.advanced"
-        :open-initially="false"
-      >
-        <h3>
-          {{ t('imported.agentEnv.header') }}
-        </h3>
-        <KeyValue
-          v-model:value="normanCluster.agentEnvVars"
-          :mode="mode"
-          key-name="name"
-          :as-map="false"
-          :preserve-keys="['valueFrom']"
-          :supported="(row) => typeof row.valueFrom === 'undefined'"
-          :read-allowed="true"
-          :value-can-be-empty="true"
-          :key-label="t('cluster.agentEnvVars.keyLabel')"
-          :parse-lines-from-file="true"
-        />
-      </Accordion>
+        <RcSection
+          :title="t('imported.accordions.registries')"
+          data-testid="registries-accordion"
+          mode="with-header"
+          :type="SECTION_TYPE.SECONDARY"
+          expandable
+          :expanded="true"
+        >
+          <RcPrivateRegistry
+            v-model:value="normanCluster.importedConfig.privateRegistryURL"
+            v-model:pull-secret="pullSecrets"
+            v-model:enabled="privateRegistryEnabled"
+            v-model:auth-secret-draft="privateRegistryAuthDraft"
+            :context="PRIVATE_REGISTRY_CONTEXT.IMPORTING"
+            :mode="mode"
+            :rules="fvGetAndReportPathRules('privateRegistry')"
+            :register-before-hook="registerBeforeHook"
+            checkbox-test-id="private-registry-enable-checkbox"
+            input-test-id="private-registry-url"
+          />
+        </RcSection>
+        <RcSection
+          :title="t('imported.agentEnv.header')"
+          mode="with-header"
+          :type="SECTION_TYPE.SECONDARY"
+          expandable
+          :expanded="true"
+        >
+          <RcKeyValue
+            v-model:value="normanCluster.agentEnvVars"
+            :mode="mode"
+            key-name="name"
+            :as-map="false"
+            :preserve-keys="['valueFrom']"
+            :supported="(row) => typeof row.valueFrom === 'undefined'"
+            :read-allowed="true"
+            :value-can-be-empty="true"
+            :key-label="t('cluster.agentEnvVars.keyLabel')"
+            :parse-lines-from-file="true"
+          />
+        </RcSection>
+        <RcSection
+          v-if="showAgentConfiguration && normanCluster.clusterAgentDeploymentCustomization"
+          :title="t('cluster.agentConfig.tabs.cluster')"
+          data-testid="cluster-agent-config-accordion"
+          mode="with-header"
+          :type="SECTION_TYPE.SECONDARY"
+          expandable
+          :expanded="true"
+        >
+          <RcAgentConfiguration
+            v-model:value="normanCluster.clusterAgentDeploymentCustomization"
+            data-testid="imported-cluster-agent-config"
+            :type="AGENT_CONFIGURATION_TYPES.CLUSTER"
+            :mode="mode"
+            :show-tolerations="false"
+            :show-affinity="false"
+            :scheduling-customization-feature-enabled="schedulingCustomizationFeatureEnabled"
+            :scheduling-customization-originally-enabled="schedulingCustomizationOriginallyEnabled"
+            :default-p-c="clusterAgentDefaultPC"
+            :default-p-d-b="clusterAgentDefaultPDB"
+            @scheduling-customization-changed="setSchedulingCustomization"
+          />
+        </RcSection>
+        <RcSection
+          v-if="showAgentConfiguration && normanCluster.fleetAgentDeploymentCustomization"
+          :title="t('cluster.agentConfig.tabs.fleet')"
+          data-testid="fleet-agent-config-accordion"
+          mode="with-header"
+          :type="SECTION_TYPE.SECONDARY"
+          expandable
+          :expanded="true"
+        >
+          <RcAgentConfiguration
+            v-model:value="normanCluster.fleetAgentDeploymentCustomization"
+            data-testid="imported-fleet-agent-config"
+            :type="AGENT_CONFIGURATION_TYPES.FLEET"
+            :mode="mode"
+            :show-tolerations="false"
+            :show-affinity="false"
+            :scheduling-customization-feature-enabled="schedulingCustomizationFeatureEnabled"
+            :scheduling-customization-originally-enabled="schedulingCustomizationOriginallyEnabled"
+            :default-p-c="fleetAgentDefaultPC"
+            :default-p-d-b="fleetAgentDefaultPDB"
+            @scheduling-customization-changed="setSchedulingCustomization"
+          />
+        </RcSection>
+      </RcSection>
     </div>
   </CruResource>
 </template>

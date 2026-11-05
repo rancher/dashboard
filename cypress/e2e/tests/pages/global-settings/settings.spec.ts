@@ -7,6 +7,8 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { settings } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
+import { qase } from '@/cypress/support/qase';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 // If there's more than one cluster the currentCluster used in links can be different to `local`
 const settingsClusterId = '_';
@@ -45,7 +47,7 @@ describe('Settings', { testIsolation: false }, () => {
     }
   });
 
-  it('Inactivity ::: can update the setting "auth-user-session-idle-ttl-minutes" and should show the the inactivity modal', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(15448, it('Inactivity ::: can update the setting "auth-user-session-idle-ttl-minutes" and should show the the inactivity modal', { tags: ['@globalSettings', '@adminUser'] }, () => {
     let callCountGet = 0;
     let callCountPut = 0;
 
@@ -167,25 +169,25 @@ describe('Settings', { testIsolation: false }, () => {
 
     newSettingsPage.waitForUrlPathWithoutContext();
     newSettingsPage.settingsValue(sessionIdleSetting).contains(settingsOriginal[sessionIdleSetting].default);
-  });
+  }));
 
-  it('has the correct title', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2511, it('has the correct title', { tags: ['@globalSettings', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
 
     cy.getRancherVersion().then((version) => {
-      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Global Settings - Settings' : 'Rancher - Global Settings - Settings';
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Global Settings - Settings' : 'Rancher Community - Global Settings - Settings';
 
       cy.title().should('eq', expectedTitle);
     });
-  });
+  }));
 
-  it('has the correct banner text', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(7387, it('has the correct banner text', { tags: ['@globalSettings', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
 
     settingsPage.settingBanner().banner().contains(BANNER_TEXT);
-  });
+  }));
 
-  it('can update engine-iso-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2021, it('can update engine-iso-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('engine-iso-url');
@@ -225,9 +227,9 @@ describe('Settings', { testIsolation: false }, () => {
     settingsPage.modifiedLabel('engine-iso-url').should('not.exist'); // modified label should not display after reset
 
     resetSettings.push('engine-iso-url');
-  });
+  }));
 
-  it('can update password-min-length', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2020, it('can update password-min-length', { tags: ['@globalSettings', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
     settingsPage.waitForUrlPathWithoutContext();
 
@@ -265,9 +267,9 @@ describe('Settings', { testIsolation: false }, () => {
     settingsPage.settingsValue('password-min-length').contains(settingsOriginal['password-min-length'].default);
 
     resetSettings.push('password-min-length');
-  });
+  }));
 
-  it('can update ingress-ip-domain', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2015, it('can update ingress-ip-domain', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('ingress-ip-domain');
@@ -303,9 +305,9 @@ describe('Settings', { testIsolation: false }, () => {
     settingsPage.settingsValue('ingress-ip-domain').contains(settingsOriginal['ingress-ip-domain'].default);
 
     resetSettings.push('ingress-ip-domain');
-  });
+  }));
 
-  it('can update auth-user-info-max-age-seconds', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2022, it('can update auth-user-info-max-age-seconds', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-info-max-age-seconds');
@@ -341,9 +343,9 @@ describe('Settings', { testIsolation: false }, () => {
     settingsPage.settingsValue('auth-user-info-max-age-seconds').contains(settingsOriginal['auth-user-info-max-age-seconds'].default);
 
     resetSettings.push('auth-user-info-max-age-seconds');
-  });
+  }));
 
-  it('can update auth-user-session-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2025, it('can update auth-user-session-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-session-ttl-minutes');
@@ -379,9 +381,9 @@ describe('Settings', { testIsolation: false }, () => {
     settingsPage.settingsValue('auth-user-session-ttl-minutes').contains(settingsOriginal['auth-user-session-ttl-minutes'].default);
 
     resetSettings.push('auth-user-session-ttl-minutes');
-  });
+  }));
 
-  it('can update auth-token-max-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2016, it('can update auth-token-max-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     userMenu.getMenuItem('Account & API Keys').should('be.visible'); // Flaky test. Check required menu item visible (and not hidden later on due to content of test)
     userMenu.self().click();
 
@@ -420,9 +422,9 @@ describe('Settings', { testIsolation: false }, () => {
     settingsPage.settingsValue('auth-token-max-ttl-minutes').contains(settingsOriginal['auth-token-max-ttl-minutes'].default);
 
     resetSettings.push('auth-token-max-ttl-minutes');
-  });
+  }));
 
-  it('can update agent-tls-mode', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(3978, it('can update agent-tls-mode', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('agent-tls-mode');
@@ -457,9 +459,9 @@ describe('Settings', { testIsolation: false }, () => {
     // settingsPage.settingsValue('agent-tls-mode').should('have.text', 'Strict');
 
     resetSettings.push('agent-tls-mode');
-  });
+  }));
 
-  it('can update kubeconfig-default-token-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2008, it('can update kubeconfig-default-token-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('kubeconfig-default-token-ttl-minutes');
@@ -495,9 +497,9 @@ describe('Settings', { testIsolation: false }, () => {
     settingsPage.settingsValue('kubeconfig-default-token-ttl-minutes').contains(settingsOriginal['kubeconfig-default-token-ttl-minutes'].default);
 
     resetSettings.push('kubeconfig-default-token-ttl-minutes');
-  });
+  }));
 
-  it('can update auth-user-info-resync-cron', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2018, it('can update auth-user-info-resync-cron', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-info-resync-cron');
@@ -533,9 +535,9 @@ describe('Settings', { testIsolation: false }, () => {
     settingsPage.settingsValue('auth-user-info-resync-cron').contains(settingsOriginal['auth-user-info-resync-cron'].default);
 
     resetSettings.push('auth-user-info-resync-cron');
-  });
+  }));
 
-  it('can update kubeconfig-generate-token', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  qase(2009, it('can update kubeconfig-generate-token', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('kubeconfig-generate-token');
@@ -568,9 +570,12 @@ describe('Settings', { testIsolation: false }, () => {
 
     clusterList.goTo();
     clusterList.waitForPage();
-    // Wait for the cluster list to finish loading before opening the row action menu. Acting on a
-    // still-loading list fails to find [data-testid="cluster-list"], and with testIsolation off that
-    // mid-test failure wedges the app so later retries cannot even open the side menu to navTo.
+    // Saving kubeconfig-generate-token twice above leaves the backend re-reading settings, so this
+    // first render of Cluster Management regularly needs longer than the default 10s - without this
+    // the list container itself is never found. Wait for it explicitly, because with testIsolation
+    // off that mid-test failure wedges the app and later retries cannot even open the side menu.
+    clusterList.list().checkVisible(LONG_TIMEOUT_OPT);
+    // Then wait for the list to finish loading before opening the row action menu.
     clusterList.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
     clusterList.list().actionMenu('local').getMenuItem('Download KubeConfig').click();
@@ -591,7 +596,7 @@ describe('Settings', { testIsolation: false }, () => {
     });
 
     resetSettings.push('kubeconfig-generate-token');
-  });
+  }));
 
   after(() => {
     // Revert all settings to their original, but don't spam the backend with settings changes

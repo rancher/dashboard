@@ -35,7 +35,7 @@ export default class Kubectl extends ComponentPo {
   }
 
   closeTerminalByTabName(name: string) {
-    return this.self().get(`[aria-label="${ name }"] [data-testid="wm-tab-close-button"]`).click();
+    return this.self().get(`[aria-label="${ name }"] + [data-testid="wm-tab-close-button"]`).click();
   }
 
   waitForTerminalToBeVisible() {

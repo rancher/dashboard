@@ -1,6 +1,7 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import AmazonCognitoPo from '@/cypress/e2e/po/edit/auth/cognito.po';
 import { AuthProvider, AuthProviderPo } from '@/cypress/e2e/po/pages/users-and-auth/authProvider.po';
+import { interceptAuthConfigCreate } from '@/cypress/e2e/blueprints/users/auth-config-stubs';
 
 const authClusterId = '_';
 const authProviderPo = new AuthProviderPo(authClusterId);
@@ -25,13 +26,16 @@ describe('Amazon Cognito', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   });
 
   it('can navigate Auth Provider and select Amazon Cognito', () => {
-    cognitoPo.mastheadTitle().should('include', `Amazon Cognito`);
+    authProviderPo.createTitle().should('contain', 'Amazon Cognito');
 
     cognitoPo.cognitoBanner().should('be.visible');
     cognitoPo.permissionsWarningBanner().should('be.visible');
   });
 
   it('sends correct request to create Amazon Cognito auth provider', () => {
+    interceptAuthConfigCreate({
+      name: 'cognito', normanType: 'cognitoConfig', collection: 'cognitoConfigs', actions: ['configureTest', 'testAndApply', 'disable']
+    });
     cy.intercept('POST', 'v3/cognitoConfigs/cognito?action=configureTest', (req) => {
       expect(req.body.enabled).to.equal(false);
       expect(req.body.id).to.equal('cognito');

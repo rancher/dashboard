@@ -1,4 +1,4 @@
-import { UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
+import { DESCRIPTION, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import {
   STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, OBJECT,
   EVENT_LAST_SEEN_TIME,
@@ -8,6 +8,11 @@ import {
   WORKLOAD_HEALTH_SCALE,
   MGMT_CLUSTER_PROVIDER,
   MGMT_CLUSTER_KUBE_VERSION,
+  MGMT_CLUSTER_CPU,
+  MGMT_CLUSTER_MACHINES,
+  DESCRIPTION_ANNOTATION_COL,
+  MGMT_CLUSTER_MEMORY,
+  MGMT_CLUSTER_PODS,
   AUTOSCALER_ENABLED
 } from '@shell/config/table-headers';
 
@@ -121,6 +126,20 @@ export const STEVE_MGMT_CLUSTER_KUBE_VERSION = {
   sort:   'status.info.kubernetesVersion',
   search: 'status.info.kubernetesVersion',
 };
+
+export const STEVE_MGMT_CLUSTER_CPU = { ...MGMT_CLUSTER_CPU };
+
+export const STEVE_MGMT_CLUSTER_MACHINES = { ...MGMT_CLUSTER_MACHINES, sort: 'status.info.nodeCount' };
+
+export const STEVE_DESCRIPTION_ANNOTATION_COL = {
+  ...DESCRIPTION_ANNOTATION_COL,
+  sort:   `metadata.annotations[${ DESCRIPTION }]`,
+  search: `metadata.annotations[${ DESCRIPTION }]`,
+};
+
+export const STEVE_MGMT_CLUSTER_MEMORY = { ...MGMT_CLUSTER_MEMORY };
+
+export const STEVE_MGMT_CLUSTER_PODS = { ...MGMT_CLUSTER_PODS };
 
 export const STEVE_AUTOSCALER_ENABLED = {
   ...AUTOSCALER_ENABLED,

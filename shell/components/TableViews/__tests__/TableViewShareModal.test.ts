@@ -1,0 +1,185 @@
+import { mount } from '@vue/test-utils';
+import { createStore } from 'vuex';
+
+import TableViewShareModal from '@shell/components/TableViews/TableViewShareModal.vue';
+import { readTextFromClipboard } from '@shell/utils/clipboard';
+import { shareTableView } from '@shell/utils/table-views/share';
+import type { SharedTableView } from '@shell/utils/table-views/share';
+
+jest.mock('@shell/utils/clipboard', () => ({ readTextFromClipboard: jest.fn(), copyTextToClipboard: jest.fn() }));
+
+const running: SharedTableView = {
+  name: 'Running', query: 'state:running', columns: null, columnOrder: null, labelColumns: [], groupBy: null, sort: null, sortDescending: false
+};
+
+// Draws its slots in place, as RcModal does, without the teleport
+const RcModalStub = {
+  props:    ['show', 'title'],
+  emits:    ['close'],
+  template: `<div :data-title="title"><slot /><slot name="actions" :close="() => $emit('close')"><button data-testid="rc-modal-cancel" @click="$emit('close')">Cancel</button><slot name="primary-action" /></slot></div>`,
+};
+
+function mountModal(props: { mode: 'share' | 'import', value?: string, tableKey?: string, intoNewView?: boolean, hasFilter?: boolean }) {
+  const store = createStore({
+    getters: {
+      'type-map/labelFor': () => (schema: { id: string }) => `${ schema.id } list`,
+      'i18n/exists':       () => () => false,
+      'i18n/t':            () => (key: string) => key,
+    }
+  });
+
+  return mount(TableViewShareModal, {
+    props:  { modal: { show: true, onClose: jest.fn() }, ...props },
+    global: {
+      plugins: [store],
+      stubs:   { RichTranslation: true, RcModal: RcModalStub },
+      // What the Copy and Paste buttons read their labels and announcements from
+      mocks:   { $store: { getters: { 'i18n/exists': () => false, 'i18n/t': (key: string) => key } } },
+    },
+  });
+}
+
+const flush = () => new Promise((resolve) => setTimeout(resolve));
+
+describe('TableViewShareModal', () => {
+  describe('sharing', () => {
+    it('should show the view as text to copy, which can\'t be edited, and only a close button', () => {
+      const wrapper = mountModal({ mode: 'share', value: 'abc123' });
+      const field = wrapper.find('[data-testid="table-views-share-text"]');
+
+      expect(field.find('[data-testid="detail-top_html"]').text()).toBe('abc123');
+      expect(field.find('textarea').exists()).toBe(false);
+      expect(field.find('.action-group button').text()).toContain('Copy');
+      expect(field.find('[data-testid="detail-text-paste"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="table-views-import-confirm"]').exists()).toBe(false);
+    });
+
+    it('should warn that a filter\'s names and values are shared, when the view has one', () => {
+      const warning = mountModal({
+        mode: 'share', value: 'abc123', hasFilter: true
+      }).find('[data-testid="table-views-share-warning"]');
+
+      expect(warning.element.tagName).toBe('P');
+      expect(warning.text()).toContain('tableViews.filterWarning');
+    });
+
+    it('should not warn about a filter the view doesn\'t have', () => {
+      expect(mountModal({ mode: 'share', value: 'abc123' }).find('[data-testid="table-views-share-warning"]').exists()).toBe(false);
+    });
+
+    it('should not warn when importing', () => {
+      expect(mountModal({
+        mode: 'import', tableKey: 'pod', hasFilter: true
+      }).find('[data-testid="table-views-share-warning"]').exists()).toBe(false);
+    });
+
+    it('should offer only Close, no Cancel', () => {
+      const wrapper = mountModal({ mode: 'share', value: 'abc123' });
+
+      expect(wrapper.find('[data-testid="table-views-share-close"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="rc-modal-cancel"]').exists()).toBe(false);
+    });
+
+    it('should close', async() => {
+      const wrapper = mountModal({ mode: 'share', value: 'abc123' });
+
+      await wrapper.find('[data-testid="table-views-share-close"]').trigger('click');
+
+      expect(wrapper.props('modal').onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it.each([
+    ['sharing', { mode: 'share' as const, value: 'abc' }, 'tableViews.share.intro'],
+    ['importing over a view\'s settings', { mode: 'import' as const, tableKey: 'pod' }, 'tableViews.import.intro'],
+    ['importing into a view added for it', {
+      mode: 'import' as const, tableKey: 'pod', intoNewView: true
+    }, 'tableViews.import.introNew'],
+  ])('should say what %s does', (_, props, key) => {
+    expect(mountModal(props).find('rich-translation-stub').attributes('k')).toBe(key);
+  });
+
+  describe('importing', () => {
+    const importInto = (tableKey = 'pod') => mountModal({ mode: 'import', tableKey });
+    const problemOf = (wrapper: ReturnType<typeof importInto>) => wrapper.find('[data-testid="table-views-import-problem"]');
+    const importButton = (wrapper: ReturnType<typeof importInto>) => wrapper.find('[data-testid="table-views-import-confirm"]');
+
+    it('should offer Cancel and Import, Cancel closing it', async() => {
+      const wrapper = importInto();
+
+      expect(importButton(wrapper).exists()).toBe(true);
+      await wrapper.find('[data-testid="rc-modal-cancel"]').trigger('click');
+
+      expect(wrapper.props('modal').onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('should say nothing, and import nothing, while the box is empty', () => {
+      const wrapper = importInto();
+
+      expect(problemOf(wrapper).exists()).toBe(false);
+      expect(importButton(wrapper).attributes('disabled')).toBeDefined();
+    });
+
+    it('should import the view pasted in, and close', async() => {
+      const wrapper = importInto();
+
+      await wrapper.find('[data-testid="table-views-import-text"] textarea').setValue(shareTableView('pod', running));
+      expect(problemOf(wrapper).exists()).toBe(false);
+
+      await importButton(wrapper).trigger('click');
+
+      expect(wrapper.emitted('import')?.[0]).toStrictEqual([running]);
+      expect(wrapper.props('modal').onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ['text that isn\'t a view', 'hello', 'tableViews.import.invalid'],
+      ['a view shared from another list', shareTableView('apps.deployment', running), 'tableViews.import.otherTable-{"list":"apps.deployment list"}'],
+      ['a view shared from the same list on another page', shareTableView('pod@home', running), 'tableViews.import.otherPage-{"list":"pod list"}'],
+    ])('should say what is wrong with %s, and not import it', async(_, text, problem) => {
+      const wrapper = importInto();
+
+      await wrapper.find('[data-testid="table-views-import-text"] textarea').setValue(text);
+
+      expect(problemOf(wrapper).text()).toBe(problem);
+      expect(wrapper.find('[data-testid="table-views-import-text"] textarea').attributes('aria-invalid')).toBe('true');
+      expect(importButton(wrapper).attributes('disabled')).toBeDefined();
+    });
+
+    it('should paste the clipboard into the box', async() => {
+      jest.mocked(readTextFromClipboard).mockResolvedValueOnce(shareTableView('pod', running));
+      const wrapper = importInto();
+
+      await wrapper.find('[data-testid="detail-text-paste"]').trigger('click');
+      await flush();
+
+      expect((wrapper.find('[data-testid="table-views-import-text"] textarea').element as HTMLTextAreaElement).value).toBe(shareTableView('pod', running));
+      expect(wrapper.find('[data-testid="detail-text-paste"]').text()).toContain('detailText.paste.success');
+      expect(importButton(wrapper).attributes('disabled')).toBeUndefined();
+    });
+
+    it('should say nothing was pasted from an empty clipboard, leaving the box as it was', async() => {
+      jest.mocked(readTextFromClipboard).mockResolvedValueOnce('');
+      const wrapper = importInto();
+
+      await wrapper.find('[data-testid="table-views-import-text"] textarea').setValue('typed');
+      await wrapper.find('[data-testid="detail-text-paste"]').trigger('click');
+      await flush();
+
+      expect(wrapper.find('[data-testid="detail-text-paste"]').text()).toContain('detailText.paste.error');
+      expect((wrapper.find('[data-testid="table-views-import-text"] textarea').element as HTMLTextAreaElement).value).toBe('typed');
+    });
+
+    it('should say the paste failed when the clipboard can\'t be read, leaving the box as it was', async() => {
+      jest.mocked(readTextFromClipboard).mockRejectedValueOnce(new Error('denied'));
+      const wrapper = importInto();
+
+      await wrapper.find('[data-testid="table-views-import-text"] textarea').setValue('typed');
+      await wrapper.find('[data-testid="detail-text-paste"]').trigger('click');
+      await flush();
+
+      expect(wrapper.find('[data-testid="detail-text-paste"]').text()).toContain('detailText.paste.error');
+      expect((wrapper.find('[data-testid="table-views-import-text"] textarea').element as HTMLTextAreaElement).value).toBe('typed');
+    });
+  });
+});

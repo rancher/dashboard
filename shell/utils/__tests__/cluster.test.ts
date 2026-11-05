@@ -1,5 +1,5 @@
 import {
-  abbreviateClusterName, _addonConfigPreserveFilter, addonConfigPreserve, clusterFilterSignature, isLocalClusterHidden
+  abbreviateClusterName, _addonConfigPreserveFilter, addonConfigPreserve, clusterChip, clusterFilterSignature, isLocalClusterHidden, pinnableCluster
 } from '@shell/utils/cluster';
 import { diff } from '@shell/utils/object';
 import { MANAGEMENT } from '@shell/config/types';
@@ -495,5 +495,57 @@ describe('fx: clusterFilterSignature', () => {
     const prov = clusterFilterSignature(filterStore({ hideLocal: 'true' }), false);
 
     expect(prov).not.toStrictEqual(mgmt);
+  });
+});
+
+describe('fx: clusterChip', () => {
+  const mgmt = {
+    nameDisplay: 'prod', ready: true, isLocal: false, isHarvester: false, badge: { text: 'live' }, iconColor: '#fff', pinned: true
+  };
+
+  it('should carry the chip fields off a management cluster, naming it as the chip expects', () => {
+    expect(clusterChip(mgmt)).toStrictEqual({
+      label: 'prod', ready: true, isLocal: false, isHarvester: false, badge: { text: 'live' }, iconColor: '#fff', pinned: true
+    });
+  });
+
+  it('should read through a provisioning cluster to its management cluster', () => {
+    expect(clusterChip({ nameDisplay: 'prov', mgmt })).toMatchObject({ label: 'prod', pinned: true });
+  });
+});
+
+describe('fx: pinnableCluster', () => {
+  const pin = jest.fn();
+  const unpin = jest.fn();
+  const cluster = (over = {}) => ({
+    nameDisplay: 'prod', isLocal: false, pinned: false, pin, unpin, ...over
+  });
+
+  it('should shape the cluster for the pin control', () => {
+    expect(pinnableCluster(cluster())).toMatchObject({ pinned: false, label: 'prod' });
+  });
+
+  it('should toggle the cluster it was given', () => {
+    const pinnable = pinnableCluster(cluster()) as any;
+
+    pinnable.pin();
+    pinnable.unpin();
+
+    expect(pin).toHaveBeenCalledTimes(1);
+    expect(unpin).toHaveBeenCalledTimes(1);
+  });
+
+  it('should reach the management cluster behind a provisioning cluster', () => {
+    expect(pinnableCluster({ nameDisplay: 'prov', mgmt: cluster({ pinned: true }) })).toMatchObject({ pinned: true, label: 'prod' });
+  });
+
+  it.each([
+    ['nothing', undefined],
+    ['local', {
+      nameDisplay: 'local', isLocal: true, pin: jest.fn()
+    }],
+    ['a row that cannot pin itself', { nameDisplay: 'other' }],
+  ])('should offer no pin for %s', (_label, row) => {
+    expect(pinnableCluster(row)).toBeNull();
   });
 });

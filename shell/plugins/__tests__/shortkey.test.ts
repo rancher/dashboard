@@ -1,7 +1,8 @@
 import ShortKey, { _internal } from '@shell/plugins/shortkey';
+import { SHORTKEY_PREVENT_SELECTORS } from '@shell/utils/dom';
 
 const {
-  handleHoldKeydown, handleHoldKeyup, releaseHeldKeys, availableElement
+  handleHoldKeydown, handleHoldKeyup, releaseHeldKeys, availableElement, handleClaimKeydown
 } = _internal;
 
 // shortkey.js is untyped, so `_internal.mapFunctions` widens to `{}` and can't be string-indexed. Describe
@@ -9,7 +10,7 @@ const {
 // verbatim) so the registry reads/writes are typed rather than implicit `any`.
 type ShortkeyBinding = {
   hold?: boolean; held?: boolean; once?: boolean; push?: boolean; focus?: boolean;
-  key?: string; propagte?: boolean; anywhere?: boolean; el?: HTMLElement[];
+  key?: string; propagte?: boolean; anywhere?: boolean; claim?: boolean; el?: HTMLElement[];
 };
 const mapFunctions = _internal.mapFunctions as Record<string, ShortkeyBinding>;
 
@@ -156,5 +157,102 @@ describe('shortkey .anywhere modifier', () => {
 
   it('is false for a key nothing is bound to', () => {
     expect(availableElement('metaz')).toBe(false);
+  });
+});
+
+// The element avoid list the app installs with. CodeMirror 6 focuses a contenteditable `.cm-content`
+// rather than a textarea, so without `[contenteditable]` on the list Ctrl+K opened the nav search
+// instead of reaching the editor's Emacs kill-line.
+describe('shortkey app avoid list', () => {
+  const registry = _internal.mapFunctions as Record<string, ShortkeyBinding>;
+
+  beforeAll(() => {
+    ShortKey.install({ directive: () => {} } as any, { prevent: SHORTKEY_PREVENT_SELECTORS, preventContainer: [] });
+  });
+
+  beforeEach(() => {
+    Object.keys(registry).forEach((k) => delete registry[k]);
+    registry.ctrlk = { key: 'windows', el: [document.createElement('div')] };
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it.each([
+    ['a text input', '<input id="f" />'],
+    ['a textarea', '<textarea id="f"></textarea>'],
+    ['a select', '<select id="f"></select>'],
+    ['an editable CodeMirror 6 editor', '<div id="f" class="cm-content" contenteditable="true"></div>'],
+    ['a read-only CodeMirror 6 editor', '<div id="f" class="cm-content" contenteditable="false" tabindex="0"></div>'],
+    ['a result of a select dropdown open in place', '<div class="v-select"><ul class="vs__dropdown-menu"><li><a id="f" href="#">ns</a></li></ul></div>'],
+  ])('holds shortcuts back while focus is in %s', (_label, html) => {
+    document.body.innerHTML = html;
+    (document.getElementById('f') as HTMLElement).focus();
+
+    expect(availableElement('ctrlk')).toBe(false);
+  });
+
+  it.each([
+    ['an element that does not own the keyboard', '<button id="f">x</button>'],
+    ['outside a select dropdown open in place', '<div class="v-select"><ul class="vs__dropdown-menu"><li>result</li></ul></div><button id="f">x</button>'],
+    ['a select dropdown appended to the body', '<div class="v-select"></div><ul class="vs__dropdown-menu"><li><a id="f" href="#">option</a></li></ul>'],
+  ])('lets shortcuts through from %s', (_label, html) => {
+    document.body.innerHTML = html;
+    (document.getElementById('f') as HTMLElement).focus();
+
+    expect(availableElement('ctrlk')).toBe(true);
+  });
+});
+
+// The `.claim` modifier: the binding's handler decides whether it takes the key, by calling preventDefault
+// on the `shortkey` event. Cmd+S on a table saves the view only with the focus in that table; anywhere else
+// the browser keeps the key, to save the page.
+describe('shortkey .claim modifier', () => {
+  const registry = _internal.mapFunctions as Record<string, ShortkeyBinding>;
+
+  const bindClaim = (take: boolean) => {
+    const el = document.createElement('button');
+    const handler = jest.fn((e: Event) => {
+      if (take) {
+        e.preventDefault();
+      }
+    });
+
+    el.addEventListener('shortkey', handler);
+    registry.metas = {
+      claim: true, key: 'mac', el: [el]
+    };
+
+    return handler;
+  };
+
+  beforeEach(() => {
+    Object.keys(registry).forEach((k) => delete registry[k]);
+  });
+
+  it('takes the key when the handler claims it', () => {
+    const handler = bindClaim(true);
+
+    expect(handleClaimKeydown('metas')).toBe(true);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the key to the browser when the handler passes', () => {
+    const handler = bindClaim(false);
+
+    expect(handleClaimKeydown('metas')).toBe(false);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not answer for a binding without the modifier', () => {
+    const el = document.createElement('button');
+    const handler = jest.fn();
+
+    el.addEventListener('shortkey', handler);
+    registry.metas = { key: 'mac', el: [el] };
+
+    expect(handleClaimKeydown('metas')).toBe(false);
+    expect(handler).not.toHaveBeenCalled();
   });
 });

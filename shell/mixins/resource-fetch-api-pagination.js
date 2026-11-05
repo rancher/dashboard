@@ -8,6 +8,8 @@ import debounce from 'lodash/debounce';
 import { PaginationParamFilter, PaginationFilterField, PaginationFilterEquality, PaginationArgs } from '@shell/types/store/pagination.types';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
+import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
+import { NAME_FILTER_QUERY, STATE_FILTER_QUERY } from '@shell/config/query-params';
 
 export function parseStateFilter(stateFilter) {
   if (!stateFilter) {
@@ -24,6 +26,18 @@ export function parseStateFilter(stateFilter) {
     field:    'metadata.state.name',
     value:    states.join(','),
     equality: PaginationFilterEquality.IN,
+  })];
+}
+
+export function parseNameFilter(nameFilter) {
+  if (!nameFilter) {
+    return null;
+  }
+
+  return [new PaginationFilterField({
+    field: 'metadata.name',
+    value: nameFilter,
+    exact: false,
   })];
 }
 
@@ -81,6 +95,12 @@ export default {
       }
     },
 
+    linkedFilterChanged() {
+      if (!isConfigurableTablesEnabled(this.$store)) {
+        this.paginationChanged(this.paginationFromList);
+      }
+    },
+
     /**
      * Primary point that handles changes from either a table or the namespace filter
      */
@@ -91,9 +111,12 @@ export default {
 
       this.paginationFromList = event;
       const {
-        page, perPage, filter, sort, descending
+        page, perPage, filter, sort, descending, viewFilters
       } = event;
-      const stateFilters = parseStateFilter(this.$route?.query?.stateFilter) || [];
+      // With table views the states and name are terms in the table's query instead
+      const tableViews = isConfigurableTablesEnabled(this.$store);
+      const stateFilters = tableViews ? [] : parseStateFilter(this.$route?.query?.[STATE_FILTER_QUERY]) || [];
+      const nameFilters = tableViews ? [] : parseNameFilter(this.$route?.query?.[NAME_FILTER_QUERY]) || [];
       const searchFilters = filter.searchQuery ? filter.searchFields.map((field) => new PaginationFilterField({
         field,
         value: filter.searchQuery,
@@ -111,7 +134,9 @@ export default {
         filters:              [
           new PaginationParamFilter({ fields: searchFilters }),
           new PaginationParamFilter({ fields: stateFilters }),
+          new PaginationParamFilter({ fields: nameFilters }),
           ...this.requestFilters.filters, // Apply the additional filters. these aren't from the user but from ns filtering
+          ...(viewFilters || []), // Table views toolbar filters (AND'd with everything else)
         ]
       });
 
@@ -194,6 +219,25 @@ export default {
       }
 
       return this.canPaginate ? this.pPagination : '';
+    },
+
+    /**
+     * The list's scope without the query. Not `pagination` minus the view's filters: that is
+     * debounced, so it lags the query being typed
+     *
+     * @returns {{page: number, sort: object[], filters: PaginationParamFilter[], projectsOrNamespaces: string[]}}
+     */
+    paginationScope() {
+      // A copy, because `apiFilter` appends to it; shaped like a full request for the same reason
+      const scope = {
+        page:                 1,
+        sort:                 [],
+        filters:              [...this.requestFilters.filters],
+        projectsOrNamespaces: this.requestFilters.projectsOrNamespaces,
+      };
+
+      // Eg the cluster list's, which keeps harvester clusters out
+      return this.apiFilter ? this.apiFilter(scope) : scope;
     },
 
     /**
@@ -312,6 +356,15 @@ export default {
 
     'requestFilters.projectsOrNamespaces'() {
       this.paginationChanged(this.paginationFromList);
+    },
+
+    // Clear filter, or Back, changes the states or name without opening the list again
+    [`$route.query.${ STATE_FILTER_QUERY }`]() {
+      this.linkedFilterChanged();
+    },
+
+    [`$route.query.${ NAME_FILTER_QUERY }`]() {
+      this.linkedFilterChanged();
     },
 
     /**

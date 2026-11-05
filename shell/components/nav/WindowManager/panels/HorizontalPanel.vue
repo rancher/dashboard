@@ -3,9 +3,9 @@ import { PropType } from 'vue';
 import { RcButton } from '@components/RcButton';
 import { RcIcon } from '@components/RcIcon';
 import { BOTTOM } from '@shell/utils/position';
-import { Position } from '@shell/types/window-manager';
+import { Position, Tab } from '@shell/types/window-manager';
 import TabBodyContainer from './TabBodyContainer.vue';
-import { tabBodyId } from './tab-body';
+import { tabBodyId, tabId } from './tab-body';
 import usePanelHandler from '../composables/usePanelHandler';
 
 const props = defineProps({
@@ -49,11 +49,14 @@ const {
     <div
       v-if="isTabsHeaderEnabled"
       :class="['tabs', { 'tab-bar-highlight': dragOverTabBarActive }]"
-      role="tablist"
       @dragover="onTabBarDragOver"
       @dragleave="onTabBarDragLeave"
       @drop="onTabBarDrop"
     >
+      <div
+        role="tablist"
+        :aria-owns="tabs.map((tab: Tab) => tabId(props.position, tab.id)).join(' ')"
+      />
       <div
         v-for="(tab, i) in tabs"
         :key="i"
@@ -63,29 +66,34 @@ const {
           'draggable': !lockedPosition,
         }"
         :draggable="tab.id === activeTab[props.position] && !lockedPosition"
-        role="tab"
-        :aria-selected="tab.id === activeTab[props.position]"
-        :aria-label="tab.label"
-        :aria-controls="tabBodyId(props.position, tab.id)"
-        tabindex="0"
         @click="setTabActive({ position: props.position, id: tab.id })"
-        @keyup.enter.space="setTabActive({ position: props.position, id: tab.id })"
         @dragstart="onDragPositionStart({ event: $event, tab })"
         @dragend="onDragPositionEnd({ event: $event, tab })"
       >
-        <i
-          v-if="tab.icon"
-          class="icon"
-          :class="{
-            ['icon-'+ tab.icon]: true,
-          }"
-          :alt="t('wm.tabIcon')"
-        />
-        <span
-          class="tab-label"
+        <div
+          :id="tabId(props.position, tab.id)"
+          class="tab-title"
+          role="tab"
+          :aria-selected="tab.id === activeTab[props.position]"
+          :aria-label="tab.label"
+          :aria-controls="tabBodyId(props.position, tab.id)"
+          tabindex="0"
+          @keyup.enter.space="setTabActive({ position: props.position, id: tab.id })"
         >
-          {{ tab.label }}
-        </span>
+          <i
+            v-if="tab.icon"
+            class="icon"
+            :class="{
+              ['icon-'+ tab.icon]: true,
+            }"
+            :alt="t('wm.tabIcon')"
+          />
+          <span
+            class="tab-label"
+          >
+            {{ tab.label }}
+          </span>
+        </div>
         <RcButton
           data-testid="wm-tab-close-button"
           variant="ghost"
@@ -170,12 +178,23 @@ const {
         border-top: 1px solid var(--wm-border);
         border-right: 1px solid var(--wm-border);
         border-left: 1px solid var(--wm-border);
-        padding: 5px 10px;
+        padding: 0 10px 0 0;
         overflow: hidden;
         text-overflow: ellipsis;
         margin: 0;
         display: flex;
         min-width: 0;
+
+        .tab-title {
+          display: flex;
+          min-width: 0;
+          padding: 5px 5px 5px 10px;
+
+          &:focus-visible {
+            @include focus-outline;
+            outline-offset: -2px;
+          }
+        }
 
         .tab-label {
           overflow: hidden;
@@ -193,13 +212,7 @@ const {
           cursor: grab;
         }
 
-        &:focus-visible {
-          @include focus-outline;
-          outline-offset: -3px;
-        }
-
         .closer {
-          margin-left: 5px;
           border: 1px solid var(--body-text);
           border-radius: var(--border-radius);
           line-height: 12px;

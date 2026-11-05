@@ -1,4 +1,4 @@
-import { STATES } from '@shell/plugins/dashboard-store/resource-class';
+import { STATES, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { FLEET } from '@shell/config/types';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
@@ -64,7 +64,7 @@ export const graphConfig = {
   parseData:   (data) => {
     const bundles = data.bundles.map((bundle) => {
       const bundleLowercaseState = bundle.state ? bundle.state.toLowerCase() : 'unknown';
-      const bundleStateColor = STATES[bundleLowercaseState].color;
+      const bundleStateColor = STATES[bundleLowercaseState]?.color || STATES[STATES_ENUM.UNKNOWN].color;
 
       const appChild = {
         id:             bundle.id,
@@ -82,7 +82,7 @@ export const graphConfig = {
 
       bds.forEach((bd) => {
         const bdLowercaseState = bd.state ? bd.state.toLowerCase() : 'unknown';
-        const bdStateColor = STATES[bdLowercaseState]?.color;
+        const bdStateColor = STATES[bdLowercaseState]?.color || STATES[STATES_ENUM.UNKNOWN].color;
 
         const cluster = data.clustersList.find((cluster) => {
           const clusterString = `${ cluster.namespace }-${ cluster.name }`;
@@ -108,7 +108,7 @@ export const graphConfig = {
     });
 
     const appLowercaseState = data.state ? data.state.toLowerCase() : 'unknown';
-    const appStateColor = STATES[appLowercaseState].color;
+    const appStateColor = STATES[appLowercaseState]?.color || STATES[STATES_ENUM.UNKNOWN].color;
 
     return {
       id:             data.id,
@@ -245,9 +245,11 @@ export const graphConfig = {
     });
 
     if (data.errorMsg) {
+      const isError = data.stateColor === STATES[STATES_ENUM.ERROR].color;
+
       moreInfo.push({
-        type:     'single-error',
-        labelKey: 'fleet.fdc.error',
+        type:     isError ? 'single-error' : 'single-message',
+        labelKey: isError ? 'fleet.fdc.error' : 'fleet.fdc.message',
         value:    data.errorMsg
       });
     }

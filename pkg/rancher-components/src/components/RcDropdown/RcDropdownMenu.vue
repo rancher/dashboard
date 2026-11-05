@@ -23,6 +23,8 @@ const hasOptions = (options: DropdownOption[]) => {
 <template>
   <rc-dropdown
     :aria-label="dropdownAriaLabel"
+    :container="container"
+    :open="open"
     @update:open="(e: boolean) => emit('update:open', e)"
   >
     <rc-dropdown-trigger

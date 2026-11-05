@@ -99,4 +99,18 @@ describe('component: Mount', () => {
     expect(result).toStrictEqual({ volumeMounts: [{ name: newName, mountPath }] });
     expect(inputElement.value).toBe(mountPath);
   });
+
+  it('should validate each mount path with the given rules', () => {
+    const rules = [jest.fn()];
+    const wrapper = mount(Mount, {
+      props: {
+        name: 'test', container: {}, rules
+      },
+      global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
+    });
+
+    const pathInput = wrapper.find('[data-testid="mount-path-0"]').findComponent(LabeledInput);
+
+    expect(pathInput.props('rules')).toStrictEqual(rules);
+  });
 });

@@ -22,6 +22,8 @@ cd $(dirname $0)/..
 
 OUTPUT_DIR="${E2E_BUILD_DIST_DIR:-dist}"
 
+E2E_BUILD_CMD="${E2E_BUILD_CMD:-build}"
+
 # Note - When fetching dashboard / ui from CDN
 # we can't pull the `latest` or `latest2` directory and we don't build a tar.gz for latest builds...
 # ...so just fetch the latest index.html which references latest CDN bits
@@ -35,7 +37,7 @@ if [ "$BUILD_DASHBOARD" == "true" ]; then
     echo "TAG: ${GIT_TAG:-<none>}"
 
     echo "Building..."
-    COMMIT=${COMMIT} VERSION=${VERSION} OUTPUT_DIR=$OUTPUT_DIR ROUTER_BASE='/dashboard/' RESOURCE_BASE='/dashboard/' yarn run build
+    COMMIT=${COMMIT} VERSION=${VERSION} OUTPUT_DIR=$OUTPUT_DIR ROUTER_BASE='/dashboard/' RESOURCE_BASE='/dashboard/' yarn run ${E2E_BUILD_CMD}
 else
     curl https://releases.rancher.com/dashboard/latest/index.html -k -o $OUTPUT_DIR/index.html
 fi

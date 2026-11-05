@@ -21,6 +21,8 @@ import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store
 const RKE1_ALLOWED_ACTIONS = [
   'promptRemove',
   'openShell',
+  'pinCluster',
+  'unpinCluster',
   'downloadKubeConfig',
   'copyKubeConfig',
   'download',
@@ -155,9 +157,9 @@ export default class ProvCluster extends SteveModel {
     const ready = this.mgmt?.isReady;
 
     const canDayTwoOps = ready && this.isDayTwoOpsEnabled && this.canUpdate;
-    const canEditRKE2cluster = this.isRke2 && ready && this.canUpdate;
 
     const actions = [
+      ...(this.mgmt?.clusterPinActions() || []),
       // Note: Actions are not supported in the Steve API, so we check
       // available actions for RKE1 clusters, but not RKE2 clusters.
       {
@@ -195,7 +197,7 @@ export default class ProvCluster extends SteveModel {
         action:  'rotateCertificates',
         label:   this.$rootGetters['i18n/t']('nav.rotateCertificates'),
         icon:    'icon icon-backup',
-        enabled: canEditRKE2cluster || (this.mgmt?.hasAction('rotateCertificates') && ready),
+        enabled: canDayTwoOps,
       }, {
         action:  'rotateEncryptionKey',
         label:   this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
@@ -363,7 +365,12 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isK3s() {
-    return this.mgmt?.isK3s;
+    if (this.mgmt) {
+      return this.mgmt.isK3s;
+    }
+
+    // No management cluster yet (e.g. the create flow), fall back to the selected kubernetes version
+    return (this.spec?.kubernetesVersion || '').includes('k3s');
   }
 
   get isRke2() {
@@ -585,6 +592,22 @@ export default class ProvCluster extends SteveModel {
     return this.mgmt?.copyKubeConfigBulk(items);
   }
 
+  pinCluster() {
+    return this.mgmt?.pinCluster();
+  }
+
+  unpinCluster() {
+    return this.mgmt?.unpinCluster();
+  }
+
+  pinClusterBulk(items) {
+    return this.mgmt?.pinClusterBulk(items);
+  }
+
+  unpinClusterBulk(items) {
+    return this.mgmt?.unpinClusterBulk(items);
+  }
+
   async snapshotAction() {
     try {
       await this.takeSnapshot();
@@ -678,14 +701,16 @@ export default class ProvCluster extends SteveModel {
   rotateCertificates(cluster = this) {
     this.$dispatch('promptModal', {
       componentProps: { cluster },
-      component:      'RotateCertificatesDialog'
+      component:      'RotateCertificatesDialog',
+      ownsModal:      true
     });
   }
 
   rotateEncryptionKey(cluster = this) {
     this.$dispatch('promptModal', {
       componentProps: { cluster },
-      component:      'RotateEncryptionKeyDialog'
+      component:      'RotateEncryptionKeyDialog',
+      ownsModal:      true
     });
   }
 

@@ -13,7 +13,7 @@ export default class ProvClusterListPo extends BaseResourceList {
   }
 
   downloadKubeConfig() {
-    return cy.getId('sortable-table-downloadKubeConfig');
+    return this.resourceTable().sortableTable().bulkAction('downloadKubeConfig');
   }
 
   details(name: string, index: number) {
@@ -28,8 +28,12 @@ export default class ProvClusterListPo extends BaseResourceList {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(2);
   }
 
+  badge(clusterName: string) {
+    return this.resourceTable().sortableTable().rowWithName(clusterName).column(3);
+  }
+
   version(clusterName: string) {
-    return this.resourceTable().sortableTable().rowWithName(clusterName).column(4);
+    return this.resourceTable().sortableTable().rowWithName(clusterName).column(5);
   }
 
   provider(clusterName: string) {
@@ -54,7 +58,16 @@ export default class ProvClusterListPo extends BaseResourceList {
       .get('[data-testid="cluster-manager-list-explore-management"]');
   }
 
-  actionMenu(clusterName: string) {
-    return this.resourceTable().sortableTable().rowActionMenuOpen(clusterName);
+  pin(clusterName: string) {
+    return this.resourceTable().sortableTable().rowWithName(clusterName)
+      .self()
+      .find('[data-testid="cluster-row-pin"]');
+  }
+
+  /**
+   * @param resourceRowsOnly see `SortableTablePo.rowElementWithName`
+   */
+  actionMenu(clusterName: string, resourceRowsOnly = false) {
+    return this.resourceTable().sortableTable().rowActionMenuOpen(clusterName, undefined, resourceRowsOnly);
   }
 }

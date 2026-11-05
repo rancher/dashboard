@@ -1,4 +1,5 @@
-import { isDevBuild, getReleaseNotesURL } from '@shell/utils/version';
+import { isDevBuild, getReleaseNotesURL, removePatchWhenZero } from '@shell/utils/version';
+import { setVersionData } from '@shell/config/version';
 
 describe('fx: isDevBuild', () => {
   it.each([
@@ -67,6 +68,44 @@ describe('fx: getReleaseNotesURL', () => {
     it('should handle version with v prefix', () => {
       expect(getReleaseNotesURL(true, 'v2.8.0')).toBe('https://documentation.suse.com/cloudnative/rancher-manager/v2.8/en/release-notes/v2.8.0.html');
       expect(getReleaseNotesURL(true, 'v2.10.3')).toBe('https://documentation.suse.com/cloudnative/rancher-manager/v2.10/en/release-notes/v2.10.3.html');
+    });
+  });
+});
+
+describe('fx: removePatchWhenZero', () => {
+  describe('in Community', () => {
+    beforeEach(() => {
+      setVersionData({ RancherPrime: 'false' });
+    });
+
+    it.each([
+      ['v2.16.0', 'v2.16'],
+      ['v2.16.1', 'v2.16.1'],
+      ['v2.16.10', 'v2.16.10'],
+      ['v2.16.0-f548dfa-head', 'v2.16.0-f548dfa-head'],
+      ['2.16.0', '2.16.0'],
+      ['head', 'head'],
+      ['', ''],
+    ])('should turn %p into %p', (version: string, expected: string) => {
+      expect(removePatchWhenZero(version)).toBe(expected);
+    });
+
+    it.each([undefined, null])('should return %p unchanged', (version) => {
+      expect(removePatchWhenZero(version)).toBe(version);
+    });
+  });
+
+  describe('in Prime', () => {
+    beforeEach(() => {
+      setVersionData({ RancherPrime: 'true' });
+    });
+
+    afterEach(() => {
+      setVersionData({ RancherPrime: 'false' });
+    });
+
+    it('should keep the zero patch level', () => {
+      expect(removePatchWhenZero('v2.16.0')).toBe('v2.16.0');
     });
   });
 });

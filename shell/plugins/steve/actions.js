@@ -315,8 +315,12 @@ export default {
     }
   },
 
-  promptRestore({ commit, state }, resources ) {
-    commit('action-menu/togglePromptRestore', resources, { root: true });
+  promptRestore({ dispatch }, resources ) {
+    return dispatch('promptModal', {
+      component: 'PromptRestore',
+      ownsModal: true,
+      resources,
+    });
   },
 
   async resourceAction({ getters, dispatch }, {

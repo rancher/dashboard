@@ -5,6 +5,7 @@ import {
   setSetting,
   getPerformanceSetting,
   isProviderEnabled,
+  isSuseAppCollectionEnabled,
 } from '../settings';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { MANAGEMENT } from '@shell/config/types';
@@ -378,5 +379,41 @@ describe('setSetting', () => {
       type: MANAGEMENT.SETTING,
       id:   'my-setting',
     });
+  });
+});
+
+describe('isSuseAppCollectionEnabled', () => {
+  const createStore = (settings: Record<string, string> = {}) => ({
+    getters: {
+      'management/byId': (type: string, id: string) => {
+        return type === MANAGEMENT.SETTING && settings[id] !== undefined ? { value: settings[id] } : undefined;
+      },
+    },
+  });
+
+  it.each([
+    [undefined, undefined, true],
+    [undefined, 'external', true],
+    [undefined, 'bundled', false],
+    ['', undefined, true],
+    ['', 'external', true],
+    ['', 'bundled', false],
+    ['true', undefined, true],
+    ['true', 'external', true],
+    ['true', 'bundled', true],
+    ['false', undefined, false],
+    ['false', 'external', false],
+    ['false', 'bundled', false],
+  ])('returns the expected value (ui-appco-enabled: %p, system-catalog: %p)', (appCoEnabled, systemCatalog, expected) => {
+    const settings: Record<string, string> = {};
+
+    if (appCoEnabled !== undefined) {
+      settings[SETTING.UI_APPCO_ENABLED] = appCoEnabled;
+    }
+    if (systemCatalog !== undefined) {
+      settings[SETTING.SYSTEM_CATALOG] = systemCatalog;
+    }
+
+    expect(isSuseAppCollectionEnabled(createStore(settings) as any)).toBe(expected);
   });
 });

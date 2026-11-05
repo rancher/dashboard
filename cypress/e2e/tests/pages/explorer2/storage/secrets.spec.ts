@@ -13,7 +13,7 @@ describe('Secrets', { testIsolation: false, tags: ['@explorer2', '@adminUser', '
     secretsListPage.title().should('include', 'Secrets');
 
     cy.getRancherVersion().then((version) => {
-      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Secrets' : 'Rancher - local - Secrets';
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Secrets' : 'Rancher Community - local - Secrets';
 
       cy.title().should('eq', expectedTitle);
     });

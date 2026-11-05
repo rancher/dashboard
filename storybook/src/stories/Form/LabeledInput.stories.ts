@@ -19,6 +19,8 @@ const meta: Meta<typeof LabeledInput> = {
     clearButtonLabel: { control: 'text' },
     required:         { control: 'boolean' },
     disabled:         { control: 'boolean' },
+    subLabel:         { control: 'text' },
+    showCronHint:     { control: 'boolean' },
   },
 };
 

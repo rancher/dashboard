@@ -2,6 +2,7 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RcButton } from '@components/RcButton';
 import AsyncButton from '@shell/components/AsyncButton';
+import Password from '@shell/components/form/Password';
 import Login from '@shell/mixins/login';
 import loadPlugins from '@shell/plugins/plugin';
 
@@ -9,7 +10,7 @@ export default {
   emits: ['error', 'showInputs'],
 
   components: {
-    LabeledInput, RcButton, AsyncButton
+    LabeledInput, RcButton, AsyncButton, Password
   },
   mixins: [Login],
 
@@ -25,6 +26,18 @@ export default {
   },
 
   methods: {
+    /**
+     * The open form starts at its first field, as the local form does; the
+     * closed one only has its button.
+     */
+    focus() {
+      if (this.open) {
+        this.$refs.username?.focus();
+      } else {
+        this.$refs.btn?.focus();
+      }
+    },
+
     async login(buttonCb) {
       try {
         this.err = null;
@@ -61,15 +74,17 @@ export default {
     <template v-if="open">
       <div class="mb-20">
         <LabeledInput
+          ref="username"
           v-model:value="username"
+          data-testid="ldap-login-username"
           :label="t('login.username')"
           autocomplete="username"
         />
       </div>
       <div class="mb-20">
-        <LabeledInput
+        <Password
           v-model:value="password"
-          type="password"
+          data-testid="ldap-login-password"
           :label="t('login.password')"
           autocomplete="current-password"
         />

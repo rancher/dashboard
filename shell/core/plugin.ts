@@ -32,6 +32,8 @@ import {
   StandardProductName,
   ProductChild
 } from '@shell/core/plugin-products-external';
+import { AdvancedProductConfigOptionsInternal } from '@shell/core/plugin-products-internal';
+import { HOME_LAYOUT } from '@shell/config/router/route-names';
 
 /** Registration IDs used for different extension points in the extensions catalog */
 export const EXT_IDS = {
@@ -47,6 +49,11 @@ export const EXT_IDS = {
    * string. If a global is not registered, the token name is used as the value.
    */
   I18N_GLOBAL:                      'l10n-global',
+  /**
+   * SUSE extensions can provide a function that returns additional query string
+   * params (telemetry) to be included in the dynamic content request
+   */
+  TELEMETRY:                        'telemetry',
 } as const;
 export type EXT_IDS_VALUES = (typeof EXT_IDS)[keyof typeof EXT_IDS];
 
@@ -55,7 +62,8 @@ export type ProductFunction = (plugin: IPlugin, store: any) => void;
 export class Plugin implements IPlugin {
   public id: string;
   public name: string;
-  public topLevelProduct = false;
+  public topLevelProducts: Set<string> = new Set();
+  public startRouteWithProductByProduct: Record<string, boolean> = {};
   public types: ExtensionManagerTypes = {};
   public l10n: { [key: string]: Function[] } = {};
   public modelExtensions: { [key: string]: Function[] } = {};
@@ -125,11 +133,33 @@ export class Plugin implements IPlugin {
     this._validators = vals;
   }
 
-  _registerTopLevelProduct() {
-    this.topLevelProduct = true;
+  /**
+   * @deprecated Use {@link topLevelProducts} and {@link startRouteWithProductByProduct}.
+   *
+   * Rancher 2.15 exposed a single plugin-wide `topLevelProduct` boolean. Extensions built
+   * against that release bundled copies of `Masthead.vue` and `resource-class.js` that read
+   * it straight off the host's `Plugin` instance, so it has to keep resolving here or those
+   * already-published extensions silently lose top-level product routing on 2.16+.
+   *
+   * Deliberately reproduces the old plugin-wide semantics: a 2.15 reader has no product
+   * context to pass, so this is the most it could ever have known.
+   */
+  get topLevelProduct(): boolean {
+    return this.topLevelProducts.size > 0;
   }
 
-  _setStartRouteWithProduct(_value: boolean): void {
+  _registerTopLevelProduct(productName?: string) {
+    // Guard: a missing name would add `undefined` to the set, making the deprecated
+    // `topLevelProduct` getter above report true for a product that was never registered.
+    if (productName) {
+      this.topLevelProducts.add(productName);
+    }
+  }
+
+  _setStartRouteWithProduct(productName: string, val: boolean) {
+    if (typeof productName === 'string') {
+      this.startRouteWithProductByProduct[productName] = val;
+    }
   }
 
   // Track which products the plugin creates
@@ -142,16 +172,20 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: ProductFunction | ProductMetadata | ProductMetadataSinglePage | string, pages?: ProductChild[]): void {
+  addProduct(product: ProductFunction | ProductMetadata | ProductMetadataSinglePage | string, config?: ProductChild[] | AdvancedProductConfigOptionsInternal, advancedProdConfig?: AdvancedProductConfigOptionsInternal): void {
     let pluginProduct: PluginProduct;
 
+    // Disambiguate: for string/SinglePage overloads, the 2nd arg is the advanced config, not pages
+    const resolvedConfig = Array.isArray(config) ? config : undefined;
+    const resolvedAdvConfig = Array.isArray(config) ? advancedProdConfig : config as AdvancedProductConfigOptionsInternal | undefined;
+
     if (typeof product === 'string') {
-      pluginProduct = PluginProduct.fromName(this, product);
+      pluginProduct = PluginProduct.fromName(this, product, resolvedAdvConfig);
     } else if (product?.name) {
-      if (!pages) {
-        pluginProduct = new PluginProduct(this, product, []);
+      if (!resolvedConfig) {
+        pluginProduct = new PluginProduct(this, product as ProductMetadataSinglePage, [], resolvedAdvConfig);
       } else {
-        pluginProduct = new PluginProduct(this, product, pages);
+        pluginProduct = new PluginProduct(this, product as ProductMetadata, resolvedConfig, resolvedAdvConfig);
       }
     } else {
       this.products.push(product as ProductFunction);
@@ -168,10 +202,10 @@ export class Plugin implements IPlugin {
     this.productConfigs.push(pluginProduct);
   }
 
-  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild): void {
+  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild, advancedProdConfig?: AdvancedProductConfigOptionsInternal): void {
     const arrayConfig = Array.isArray(config) ? config : [config];
 
-    this.productConfigs.push(new PluginProduct(this, product, arrayConfig));
+    this.productConfigs.push(new PluginProduct(this, product, arrayConfig, advancedProdConfig));
   }
 
   addLocale(locale: string, label: string): void {
@@ -332,7 +366,9 @@ export class Plugin implements IPlugin {
   }
 
   setHomePage(component: any) {
-    this.addRoute({
+    // The Home page lives under the home layout. Without a parent the route would be put under the
+    // 'default' layout, which renders nothing without a cluster - and the Home has none.
+    this.addRoute(HOME_LAYOUT, {
       name: 'home',
       path: '/home',
       component

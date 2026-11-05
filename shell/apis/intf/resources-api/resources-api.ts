@@ -13,13 +13,19 @@ import { ResourceInstance } from './resource-instance';
  * Used by both cluster-scoped and management-scoped APIs, and can be extended
  * by custom store implementations (e.g. Harvester, Epinio).
  *
+ * The examples below all use `resources.cluster`. Every method works the same way on the other
+ * APIs, so substitute the one you need - `resources.mgmt` for management resources, for example.
+ *
  * @example
  * ```ts
  * import { useResources, K8S } from '@shell/apis';
  *
  * const resources = useResources();
  *
- * const deployment = await resources.cluster.find(K8S.DEPLOYMENT, 'default/my-app');
+ * // Substitute `resources.cluster` for the API you want, e.g. `resources.mgmt` for management resources
+ * const api = resources.cluster;
+ *
+ * const deployment = await api.find(K8S.DEPLOYMENT, 'default/my-app');
  * ```
  */
 export interface ResourcesApi {
@@ -39,11 +45,14 @@ export interface ResourcesApi {
    *
    * const resources = useResources();
    *
+   * // Substitute `resources.cluster` for the API you want, e.g. `resources.mgmt` for management resources
+   * const api = resources.cluster;
+   *
    * // Namespaced resource - ID must be in "namespace/name" format
-   * const pod = await resources.cluster.find(K8S.POD, 'default/my-pod-123');
+   * const pod = await api.find(K8S.POD, 'default/my-pod-123');
    *
    * // Cluster-scoped resource - ID is just the name
-   * const node = await resources.cluster.find(K8S.NODE, 'worker-1');
+   * const node = await api.find(K8S.NODE, 'worker-1');
    * ```
    */
   find<T = Record<string, any>, I = ResourceInstance<T>>(
@@ -69,7 +78,10 @@ export interface ResourcesApi {
    *
    * const resources = useResources();
    *
-   * const pods = await resources.cluster.findFiltered(K8S.POD, {
+   * // Substitute `resources.cluster` for the API you want, e.g. `resources.mgmt` for management resources
+   * const api = resources.cluster;
+   *
+   * const pods = await api.findFiltered(K8S.POD, {
    *   transient: true,
    *   pagination: {
    *     page: 1,
@@ -102,7 +114,10 @@ export interface ResourcesApi {
    *
    * const resources = useResources();
    *
-   * const pods = await resources.cluster.findFiltered(K8S.POD, {
+   * // Substitute `resources.cluster` for the API you want, e.g. `resources.mgmt` for management resources
+   * const api = resources.cluster;
+   *
+   * const pods = await api.findFiltered(K8S.POD, {
    *   pagination: {
    *     page: 1,
    *     pageSize: 10,
@@ -132,7 +147,10 @@ export interface ResourcesApi {
    *
    * const resources = useResources();
    *
-   * const pods = await resources.cluster.findFiltered(K8S.POD, {
+   * // Substitute `resources.cluster` for the API you want, e.g. `resources.mgmt` for management resources
+   * const api = resources.cluster;
+   *
+   * const pods = await api.findFiltered(K8S.POD, {
    *   labelSelector: { matchLabels: { type: 'my-type' } }
    * });
    * ```
@@ -165,7 +183,11 @@ export interface ResourcesApi {
    * import { useResources, K8S } from '@shell/apis';
    *
    * const resources = useResources();
-   * const allPods = await resources.cluster.findAll(K8S.POD, {
+   *
+   * // Substitute `resources.cluster` for the API you want, e.g. `resources.mgmt` for management resources
+   * const api = resources.cluster;
+   *
+   * const allPods = await api.findAll(K8S.POD, {
    *   namespaced: ['default', 'kube-system']
    * });
    * ```
@@ -192,7 +214,10 @@ export interface ResourcesApi {
    *
    * const resources = useResources();
    *
-   * const configMap = await resources.cluster.create({
+   * // Substitute `resources.cluster` for the API you want, e.g. `resources.mgmt` for management resources
+   * const api = resources.cluster;
+   *
+   * const configMap = await api.create({
    *   type:     K8S.CONFIG_MAP,
    *   metadata: { name: 'my-config', namespace: 'default' },
    *   data:     { key: 'value' }
@@ -204,10 +229,14 @@ export interface ResourcesApi {
   ): Promise<I>;
 
   /**
-   * Applies a partial update to a resource using HTTP PATCH (merge-patch).
+   * Applies a partial update to a resource using HTTP PATCH.
    *
    * Only the fields provided in `data` are sent to the server.
    * This is a raw HTTP operation — it does not check permissions or update the store cache.
+   *
+   * Strategic merge patch is attempted first, which merges list fields by key. Resources that
+   * reject it (CRDs, which is most of Rancher) are retried with merge patch, which replaces list
+   * fields instead.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
@@ -222,7 +251,10 @@ export interface ResourcesApi {
    *
    * const resources = useResources();
    *
-   * const result = await resources.cluster.update(K8S.CONFIG_MAP, 'default/my-config', {
+   * // Substitute `resources.cluster` for the API you want, e.g. `resources.mgmt` for management resources
+   * const api = resources.cluster;
+   *
+   * const result = await api.update(K8S.CONFIG_MAP, 'default/my-config', {
    *   someField: { newKey: 'newValue' }
    * });
    * ```
@@ -251,10 +283,14 @@ export interface ResourcesApi {
    * import { useResources, K8S } from '@shell/apis';
    *
    * const resources = useResources();
-   * const configMapData = await resources.cluster.find(K8S.CONFIG_MAP, 'default/my-config');
+   *
+   * // Substitute `resources.cluster` for the API you want, e.g. `resources.mgmt` for management resources
+   * const api = resources.cluster;
+   *
+   * const configMapData = await api.find(K8S.CONFIG_MAP, 'default/my-config');
    * configMapData.someField = { newKey: 'newValue' };
    *
-   * const result = await resources.cluster.replace(K8S.CONFIG_MAP, 'default/my-config', configMapData);
+   * const result = await api.replace(K8S.CONFIG_MAP, 'default/my-config', configMapData);
    * ```
    */
   replace<T = Record<string, any>, I = SteveResource<T>>(
@@ -277,7 +313,10 @@ export interface ResourcesApi {
    *
    * const resources = useResources();
    *
-   * await resources.cluster.delete(K8S.CONFIG_MAP, 'default/my-config');
+   * // Substitute `resources.cluster` for the API you want, e.g. `resources.mgmt` for management resources
+   * const api = resources.cluster;
+   *
+   * await api.delete(K8S.CONFIG_MAP, 'default/my-config');
    * ```
    */
   delete(

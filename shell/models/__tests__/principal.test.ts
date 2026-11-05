@@ -29,4 +29,25 @@ describe('class Principal', () => {
       expect(principal.avatarSrc).toMatch(/^data:image\/png;base64,/);
     });
   });
+
+  describe('displayType', () => {
+    const labels: Record<string, string> = {
+      'model.authConfig.provider."github"': 'GitHub',
+      'model.authConfig.provider."local"':  'Local',
+    };
+    const rootGetters = { 'i18n/withFallback': (key: string, _: unknown, fallback: string) => labels[key] || fallback };
+    const create = (data: object) => new (Principal as unknown as new (data: object, ctx: object) => Principal)(data, { rootGetters });
+
+    it.each([
+      ['github_user://123', 'github', 'GitHub User'],
+      ['github-2_user://123', 'github', 'GitHub User (github-2)'],
+      ['github-2_team://456', 'github', 'GitHub Team (github-2)'],
+    ])('should label %s as %s', (id, provider, expected) => {
+      expect(create({ id, provider }).displayType).toStrictEqual(expected);
+    });
+
+    it('should not name the config of a local principal', () => {
+      expect(create({ id: 'local://u-abc', provider: 'local' }).displayType.trim()).toStrictEqual('Local');
+    });
+  });
 });

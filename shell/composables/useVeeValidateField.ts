@@ -2,6 +2,7 @@ import { computed, inject, ref, watch } from 'vue';
 import type { Ref } from 'vue';
 import { useField } from 'vee-validate';
 import { generateRandomAlphaString } from '@shell/utils/string';
+import { useReportInvalidToSection, useSectionShowErrors } from '@components/RcSection/useSectionValidity';
 
 interface UseVeeValidateFieldOptions {
   name: Ref<string | null | undefined>;
@@ -50,8 +51,13 @@ export function useVeeValidateField({
     }
   });
 
+  const sectionShowErrors = useSectionShowErrors();
+  const showVeeError = computed(() => !!name.value && !!veeError.value && (veeMeta.touched || showAllErrors.value || sectionShowErrors.value));
+
+  useReportInvalidToSection(showVeeError);
+
   const effectiveValidationMessage = computed(() => {
-    if (name.value && veeError.value && (veeMeta.touched || showAllErrors.value)) {
+    if (showVeeError.value) {
       return veeError.value;
     }
 

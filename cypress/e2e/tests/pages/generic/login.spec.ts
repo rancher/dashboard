@@ -125,33 +125,44 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
       cy.wait('@authProviders');
     });
 
-    it('Offers a provider list instead of one button per provider', () => {
+    it('Opens on a provider\'s login with the list behind a link', () => {
       const loginPage = new LoginPagePo();
 
       loginPage.waitForPage();
-      loginPage.providerSubmitButton().checkVisible();
-      loginPage.providerList().checkVisible();
+      loginPage.providerSubmitButton().shouldContainText('gh-community');
+      loginPage.providerList().checkNotExists();
+      loginPage.chooseDifferentProvider().checkVisible();
 
       // The old per-provider button stack is gone.
       cy.get('[data-testid="login-provider-submit"]').should('have.length', 1);
     });
 
-    it('Lists the remaining providers, plus local, on the page', () => {
+    it('Shows only the list once a different provider is asked for', () => {
       const loginPage = new LoginPagePo();
 
-      loginPage.waitForPage();
+      loginPage.openProviderList();
 
+      loginPage.providerList().checkVisible();
+      loginPage.providerSubmitButton().checkNotExists();
+      loginPage.chooseDifferentProvider().checkNotExists();
+    });
+
+    it('Lists every provider, plus local', () => {
+      const loginPage = new LoginPagePo();
+
+      loginPage.openProviderList();
+
+      // The provider the page opened on is listed as the way back to it.
+      loginPage.providerOption('gh-community').checkVisible();
       loginPage.providerOption('okta-corp').checkVisible();
       loginPage.providerOption('okta-partner').checkVisible();
       loginPage.providerOption('local').checkVisible();
-      // The provider on the primary button is not offered twice.
-      loginPage.providerOption('gh-community').checkNotExists();
     });
 
     it('Describes a provider with the words the admin gave it', () => {
       const loginPage = new LoginPagePo();
 
-      loginPage.waitForPage();
+      loginPage.openProviderList();
 
       loginPage.providerOption('okta-partner').shouldContainText('Partners and contractors.');
     });
@@ -160,7 +171,7 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
     it('Keeps local out of the scrolling part of the list', () => {
       const loginPage = new LoginPagePo();
 
-      loginPage.waitForPage();
+      loginPage.openProviderList();
 
       loginPage.providerScrollList().checkVisible();
       loginPage.providerScrollList().self().find('[data-testid="login-provider-option-okta-corp"]').should('exist');
@@ -174,10 +185,11 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
     it('Puts every provider in the list in the keyboard tab order', () => {
       const loginPage = new LoginPagePo();
 
-      loginPage.waitForPage();
+      loginPage.openProviderList();
 
       loginPage.providerList().self().find('[data-testid^="login-provider-option-"]').should(($options) => {
         expect($options.toArray().map((el) => el.getAttribute('data-testid'))).to.deep.equal([
+          'login-provider-option-gh-community',
           'login-provider-option-okta-corp',
           'login-provider-option-okta-partner',
           'login-provider-option-local',
@@ -190,55 +202,64 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
         });
       });
 
-      // Focus still lands where it is put, which is what the list's own focus()
-      // relies on when the page reveals it.
-      loginPage.providerOption('okta-corp').self().focus();
-      cy.focused().should('have.attr', 'data-testid', 'login-provider-option-okta-corp');
+      // The page hands focus to the list when it opens it.
+      cy.focused().should('have.attr', 'data-testid', 'login-provider-option-gh-community');
     });
 
-    it('Changes the primary button when another provider is chosen', () => {
+    it('Swaps the list for the chosen provider\'s login', () => {
       const loginPage = new LoginPagePo();
 
+      loginPage.openProviderList();
       loginPage.selectProvider('okta-partner');
 
       loginPage.providerSubmitButton().shouldContainText('okta-partner');
+      loginPage.providerList().checkNotExists();
+      loginPage.chooseDifferentProvider().checkVisible();
       // Choosing a provider must not log the user in on its own.
       cy.url().should('include', '/auth/login');
     });
 
-    it('Reveals the local form when local is chosen', () => {
+    it('Swaps the list for the local form when local is chosen', () => {
       const loginPage = new LoginPagePo();
 
+      loginPage.openProviderList();
       loginPage.selectProvider('local');
 
       loginPage.username().checkVisible();
       loginPage.password().checkVisible();
-      // The form owns the panel, so the list collapses to a link.
       loginPage.providerList().checkNotExists();
       loginPage.chooseDifferentProvider().checkVisible();
     });
 
-    it('Brings the list back from the local form', () => {
+    it('Swaps a remembered local form for the list', () => {
       const loginPage = new LoginPagePo();
 
+      loginPage.openProviderList();
+      loginPage.rememberProviderCheckbox().set();
       loginPage.selectProvider('local');
-      loginPage.chooseDifferentProvider().self().click();
+
+      stubProviders();
+      LoginPagePo.goTo();
+      cy.wait('@authProviders');
+
+      loginPage.username().checkVisible();
+      loginPage.providerList().checkNotExists();
+      loginPage.openProviderList();
 
       loginPage.providerList().checkVisible();
-      // The form gives way to the provider the page opened on, and local goes
-      // back to being one of the options.
-      loginPage.providerSubmitButton().shouldContainText('gh-community');
-      loginPage.providerOption('local').checkVisible();
+      loginPage.username().checkNotExists();
 
       loginPage.selectProvider('okta-partner');
       loginPage.providerSubmitButton().shouldContainText('okta-partner');
+      loginPage.username().checkNotExists();
     });
 
     it('Reopens on the remembered provider', () => {
       const loginPage = new LoginPagePo();
 
-      loginPage.selectProvider('okta-partner');
+      loginPage.openProviderList();
       loginPage.rememberProviderCheckbox().set();
+      loginPage.selectProvider('okta-partner');
 
       stubProviders();
       LoginPagePo.goTo();
@@ -250,8 +271,10 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
     it('Falls back to the first provider once the choice is forgotten', () => {
       const loginPage = new LoginPagePo();
 
-      loginPage.selectProvider('okta-partner');
+      loginPage.openProviderList();
       loginPage.rememberProviderCheckbox().set();
+      loginPage.selectProvider('okta-partner');
+      loginPage.openProviderList();
       loginPage.rememberProviderCheckbox().set();
 
       stubProviders();

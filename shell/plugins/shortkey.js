@@ -32,6 +32,10 @@ const bindValue = (value, el, binding, vnode) => {
   // `anywhere` keeps the binding live while focus is in a text field. For the shortcut that CLOSES the
   // panel whose search box holds the caret, the avoid list would otherwise make it a one-way trip.
   const anywhere = binding.modifiers.anywhere === true;
+  // `claim` leaves the key to the browser unless the handler takes it, by calling preventDefault on the
+  // `shortkey` event. For a shortcut that means something only with the focus in one place, such as Cmd+S
+  // in a table: elsewhere on the page the browser's own Cmd+S still saves the page.
+  const claim = binding.modifiers.claim === true;
   const focus = !binding.modifiers.focus === true;
   const once = binding.modifiers.once === true;
   const propagte = binding.modifiers.propagte === true;
@@ -43,7 +47,7 @@ const bindValue = (value, el, binding, vnode) => {
     objAvoided.push(el);
   } else {
     mappingFunctions({
-      b: value, push, once, focus, propagte, hold, anywhere, el: vnode.el
+      b: value, push, once, focus, propagte, hold, anywhere, claim, el: vnode.el
     });
   }
 };
@@ -278,6 +282,25 @@ const releaseHeldKeys = () => {
   });
 };
 
+// Asks a `claim` binding whether it takes the key: returns true when its handler called preventDefault on
+// the `shortkey` event, and false (the key stays the browser's) when it isn't a claim binding or passed
+const handleClaimKeydown = (decodedKey) => {
+  const fn = mapFunctions[decodedKey];
+
+  if (!fn || !fn.claim) {
+    return false;
+  }
+
+  const e = new CustomEvent('shortkey', { bubbles: false, cancelable: true });
+
+  if (fn.key) {
+    e.srcKey = fn.key;
+  }
+  fn.el[fn.el.length - 1].dispatchEvent(e);
+
+  return e.defaultPrevented;
+};
+
 ShortKey.keyDown = (pKey) => {
   if ((!mapFunctions[pKey].once && !mapFunctions[pKey].push) || (mapFunctions[pKey].push && !keyPressed)) {
     dispatchShortkeyEvent(pKey);
@@ -297,6 +320,14 @@ if (process && process.env && process.env.NODE_ENV !== 'test') {
 
       // Check avoidable elements
       if (availableElement(decodedKey)) {
+        if (mapFunctions[decodedKey].claim) {
+          if (handleClaimKeydown(decodedKey)) {
+            pKey.preventDefault();
+            pKey.stopPropagation();
+          }
+
+          return;
+        }
         if (!mapFunctions[decodedKey].propagte) {
           pKey.preventDefault();
           pKey.stopPropagation();
@@ -320,7 +351,7 @@ if (process && process.env && process.env.NODE_ENV !== 'test') {
         return;
       }
 
-      if (availableElement(decodedKey)) {
+      if (availableElement(decodedKey) && !mapFunctions[decodedKey].claim) {
         if (!mapFunctions[decodedKey].propagte) {
           pKey.preventDefault();
           pKey.stopPropagation();
@@ -344,7 +375,7 @@ if (process && process.env && process.env.NODE_ENV !== 'test') {
 }
 
 const mappingFunctions = ({
-  b, push, once, focus, propagte, hold, anywhere, el
+  b, push, once, focus, propagte, hold, anywhere, claim, el
 }) => {
   for (const key in b) {
     const k = ShortKey.encodeKey(b[key]);
@@ -359,6 +390,7 @@ const mappingFunctions = ({
       focus,
       hold,
       anywhere,
+      claim,
       key,
       // Preserve any in-progress held state across a re-bind so a re-render mid-hold doesn't reset it.
       held:     existing ? existing.held : false,
@@ -395,5 +427,5 @@ export default ShortKey;
 // Exposed for unit tests — the global keydown/keyup listeners above are disabled under NODE_ENV=test, so
 // tests drive the hold logic through these directly (mapFunctions is the registry the directive fills).
 export const _internal = {
-  mapFunctions, handleHoldKeydown, handleHoldKeyup, releaseHeldKeys, dispatchHoldEvent, availableElement
+  mapFunctions, handleHoldKeydown, handleHoldKeyup, releaseHeldKeys, dispatchHoldEvent, availableElement, handleClaimKeydown
 };

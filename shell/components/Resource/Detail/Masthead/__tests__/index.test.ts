@@ -3,6 +3,7 @@ import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
 import TitleBar from '@shell/components/Resource/Detail/TitleBar/index.vue';
 import Metadata from '@shell/components/Resource/Detail/Metadata/index.vue';
 import Cards from '@shell/components/Resource/Detail/Cards.vue';
+import FleetManagedBanner from '@shell/components/Resource/Detail/FleetManagedBanner.vue';
 
 jest.mock('@shell/utils/clipboard', () => ({ copyTextToClipboard: jest.fn() }));
 
@@ -28,9 +29,10 @@ describe('component: Masthead/index', () => {
 
   const globalStubs = {
     stubs: {
-      TitleBar: true,
-      Metadata: true,
-      Cards:    true
+      TitleBar:           true,
+      Metadata:           true,
+      Cards:              true,
+      FleetManagedBanner: true
     }
   };
 
@@ -116,5 +118,49 @@ describe('component: Masthead/index', () => {
     expect(wrapper.findComponent(TitleBar).exists()).toBe(false);
     expect(wrapper.findComponent(Metadata).exists()).toBe(false);
     expect(wrapper.findComponent(Cards).exists()).toBe(false);
+  });
+
+  it('should render content passed to the banner slot', () => {
+    const wrapper = mount(Masthead, {
+      props:  defaultProps,
+      global: globalStubs,
+      slots:  { banner: '<div class="test-banner">error</div>' }
+    });
+
+    expect(wrapper.find('.test-banner').exists()).toBe(true);
+  });
+
+  it('should render the banner slot between the title bar and the metadata', () => {
+    const wrapper = mount(Masthead, {
+      props:  defaultProps,
+      global: globalStubs,
+      slots:  { banner: '<div class="test-banner">error</div>' }
+    });
+
+    const html = wrapper.html();
+    const titleBarIndex = html.indexOf('title-bar-stub');
+    const bannerIndex = html.indexOf('test-banner');
+    const metadataIndex = html.indexOf('metadata-stub');
+
+    expect(titleBarIndex).toBeLessThan(bannerIndex);
+    expect(bannerIndex).toBeLessThan(metadataIndex);
+  });
+
+  it('should pass the resource from titleBarProps to the FleetManagedBanner', () => {
+    const wrapper = mount(Masthead, {
+      props:  defaultProps,
+      global: globalStubs
+    });
+
+    expect(wrapper.findComponent(FleetManagedBanner).props('resource')).toStrictEqual(mockResource);
+  });
+
+  it('should not render the FleetManagedBanner when titleBarProps is not provided', () => {
+    const wrapper = mount(Masthead, {
+      props:  { metadataProps: defaultProps.metadataProps },
+      global: globalStubs
+    });
+
+    expect(wrapper.findComponent(FleetManagedBanner).exists()).toBe(false);
   });
 });

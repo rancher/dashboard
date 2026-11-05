@@ -305,4 +305,32 @@ describe('class HelmOp', () => {
       expect(instance.applicationType).toStrictEqual('HelmOp');
     });
   });
+
+  describe('applyDefaults', () => {
+    interface Data {
+      metadata: { namespace?: string };
+      spec: { helm?: object, correctDrift?: object };
+    }
+
+    const ctx = { rootGetters: { workspace: 'fleet-default' } };
+
+    it('puts a new resource in the header workspace, with drift correction off', () => {
+      const data: Data = { metadata: {}, spec: { helm: {} } };
+
+      new HelmOp(data, ctx).applyDefaults();
+
+      expect(data.metadata.namespace).toBe('fleet-default');
+      expect(data.spec.correctDrift).toStrictEqual({ enabled: false });
+    });
+
+    it('keeps the workspace and drift correction of a cloned resource', () => {
+      const correctDrift = { enabled: true, force: true };
+      const data: Data = { metadata: { namespace: 'team-a' }, spec: { helm: {}, correctDrift } };
+
+      new HelmOp(data, ctx).applyDefaults();
+
+      expect(data.metadata.namespace).toBe('team-a');
+      expect(data.spec.correctDrift).toStrictEqual(correctDrift);
+    });
+  });
 });

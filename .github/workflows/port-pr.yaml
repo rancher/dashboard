@@ -61,7 +61,7 @@ jobs:
            fi
 
       - name: Checkout scripts
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           token: ${{ steps.generate-token.outputs.token }}
           sparse-checkout: .github/workflows/scripts

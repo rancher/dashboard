@@ -55,12 +55,12 @@ yarn a11y:test       # run the ratchet unit tests
 Exit codes: `0` clean / soft mode / `--update` ok · `1` new violations (hard mode) ·
 `2` the report cannot support a trustworthy comparison.
 
-Enforcement is **opt-in**: the gate reports without failing unless
-`A11Y_RATCHET_ENFORCE` is exactly `true`. Every other value — unset, empty, `false`,
-`0` — is report-only, so a missing or mistyped repo variable can never turn the gate
-on by accident. `--soft` forces report-only regardless. Soft mode also downgrades the
-exit-2 cases below to a warning, so during the rollout the gate cannot redden a job
-for any reason. `--update` ignores soft mode: writing a hollow baseline would
+The script itself enforces only when `A11Y_RATCHET_ENFORCE` is exactly `true`; every
+other value (unset, empty, `false`, `0`) is report-only, so local runs never fail on
+violations unless asked to. CI sets it to `true` by default (see
+[Enforcement](#enforcement)). `--soft` forces report-only regardless. Soft mode also
+downgrades the exit-2 cases below to a warning, so a report-only run cannot redden a
+job for any reason. `--update` ignores soft mode: writing a hollow baseline would
 silently lower the ratchet, so a bad report is always fatal there.
 
 ## Completeness
@@ -80,19 +80,13 @@ prevent that false green:
   that step — a red one means the run itself broke. The report is still uploaded on
   failure, so nothing is lost.
 
-## Rollout (soft launch → hard fail)
+## Enforcement
 
-The CI step reads the `A11Y_RATCHET_ENFORCE` repo variable:
-
-1. **Soft launch:** leave `A11Y_RATCHET_ENFORCE` unset (or set it to anything other
-   than `true`). New violations are reported in the job log but do **not** fail the
-   build.
-2. **Watch a few runs.** The baseline shipped here was seeded from a real green
-   `a11y-test` run rather than a local render, which avoids day-one false positives,
-   but a soft window confirms it is stable across runs before it starts blocking.
-   If it needs refreshing, re-seed from CI (see below) — never from a local render.
-3. **Flip to enforcing:** set `A11Y_RATCHET_ENFORCE` to `true`. From then on, new
-   violations hard-fail the `a11y-test` job. This is a variable flip — no code change.
+The `a11y-test` job enforces the gate: a new violation fails the job. The CI step
+passes `A11Y_RATCHET_ENFORCE` as the repo variable of the same name, defaulting to
+`true` when it is unset. To drop back to report-only without a code change (for
+example while a flaky rule is investigated), set the `A11Y_RATCHET_ENFORCE` repo
+variable to `false`. Delete the variable to enforce again.
 
 To **re-seed from CI**: download the `accessibility-report` artifact from a green
 `a11y-test` run into `cypress/accessibility/`, run `yarn a11y:baseline`, review the

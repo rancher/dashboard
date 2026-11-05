@@ -1,8 +1,11 @@
 <script>
 import { get } from '@shell/utils/object';
 import { isConditionReadyAndWaiting } from '@shell/plugins/dashboard-store/resource-class';
+import ClusterRowPin from '@shell/components/ClusterRowPin.vue';
 
 export default {
+  components: { ClusterRowPin },
+
   props: {
     value: {
       type:    String,
@@ -83,6 +86,7 @@ export default {
       class="conditions-alert-icon icon-error icon-lg"
       data-testid="conditions-has-error-icon"
     />
+    <ClusterRowPin :cluster="row" />
   </span>
 </template>
 
@@ -93,7 +97,7 @@ export default {
   }
   .conditions-alert-icon {
     color: var(--error);
-    margin-left: 4px;
+    margin-left: 8px;
   }
   :deep() {
     .labeled-tooltip, .status-icon {
@@ -110,7 +114,7 @@ export default {
   }
   .rke1-unsupported-icon {
     color: var(--warning);
-    margin-left: 4px;
+    margin-left: 8px;
     font-size: 14px;
   }
 </style>

@@ -87,6 +87,12 @@ export class HeaderPo extends ComponentPo {
     return this.kubectlExplain().trigger('mouseenter');
   }
 
+  hideKubectlExplainTooltip(): Cypress.Chainable {
+    this.kubectlExplain().trigger('mouseleave', { force: true });
+
+    return cy.get('.v-popper--theme-tooltip.v-popper__popper--shown').should('not.exist');
+  }
+
   getKubectlExplainTooltipContent(): Cypress.Chainable {
     return cy.get('.v-popper--theme-tooltip .v-popper__inner');
   }

@@ -16,6 +16,14 @@ export default {
     slices: {
       type:    Array,
       default: () => []
+    },
+    /**
+     * The Small (4px) or Medium (7px) size of the progress bar from the design system
+     */
+    size: {
+      type:      String,
+      default:   'medium',
+      validator: (value) => ['small', 'medium'].includes(value)
     }
   },
   computed: {
@@ -41,6 +49,7 @@ export default {
 <template>
   <div
     class="bar"
+    :class="size"
     :style="barStyle"
   >
     <div
@@ -58,13 +67,19 @@ export default {
 
 <style lang="scss" scoped>
 .bar {
-    $height: 15px;
+    $medium-height: 7px;
+    $small-height: 4px;
 
     width: 100%;
-    height: $height;
-    border-radius: math.div($height, 2);
+    height: $medium-height;
+    border-radius: math.div($medium-height, 2);
     overflow: hidden;
     position: relative;
+
+    &.small {
+      height: $small-height;
+      border-radius: math.div($small-height, 2);
+    }
 
     .indicator {
         height: 100%;

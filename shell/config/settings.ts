@@ -20,6 +20,11 @@ interface GlobalSetting {
     customFormatter?: string,
     from?: string,
     kind?: string,
+    /**
+     * How an `enum` setting is edited: a select (the default) or radio buttons. Only radio buttons support an empty
+     * option (`''`), labelled by the `none` key in `advancedSettings.enum.<id>`.
+     */
+    display?: 'radio',
     options?: string[]
     readOnly?: boolean,
     agent?: typeof AGENT_CONFIGURATION_TYPES.CLUSTER | typeof AGENT_CONFIGURATION_TYPES.FLEET,
@@ -51,6 +56,7 @@ export const SETTING = {
   AUTH_TOKEN_MAX_TTL_MINUTES:                    'auth-token-max-ttl-minutes',
   KUBECONFIG_GENERATE_TOKEN:                     'kubeconfig-generate-token',
   KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES:          'kubeconfig-default-token-ttl-minutes',
+  KUBECONFIG_PREFER_RANCHER_PROXY:               'kubeconfig-prefer-rancher-proxy',
   ENGINE_ISO_URL:                                'engine-iso-url',
   FIRST_LOGIN:                                   'first-login',
   INGRESS_IP_DOMAIN:                             'ingress-ip-domain',
@@ -127,6 +133,16 @@ export const SETTING = {
   DYNAMIC_CONTENT_ENDPOINT:                      'ui-content-endpoint',
   IMPORTED_CLUSTER_DAY2_OPS_DEFAULT:             'imported-cluster-day2-ops-enabled',
   DELETE_MACHINE_ON_FAILURE_AFTER:               'delete-machine-on-failure-after',
+  /**
+   * Rancher's catalog mode (`CATTLE_SYSTEM_CATALOG`), either `external` or `bundled`. `bundled` means Rancher only
+   * serves bundled/airgap charts. Read-only (set by the backend), so not in ALLOWED_SETTINGS.
+   */
+  SYSTEM_CATALOG:                                'system-catalog',
+  /**
+   * Controls the SUSE Application Collection features in the UI: `true` always shows them, `false` never does and
+   * empty (the default) falls back to SYSTEM_CATALOG, showing them unless it is `bundled`.
+   */
+  UI_APPCO_ENABLED:                              'ui-appco-enabled',
 } as const;
 
 // These are the settings that are allowed to be edited via the UI
@@ -162,6 +178,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.AUTH_TOKEN_MAX_TTL_MINUTES]:           {},
   [SETTING.KUBECONFIG_GENERATE_TOKEN]:            { kind: 'boolean' },
   [SETTING.KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES]: { kind: 'integer' },
+  [SETTING.KUBECONFIG_PREFER_RANCHER_PROXY]:      { kind: 'enum', options: ['false', 'true'] },
   [SETTING.AUTH_USER_INFO_RESYNC_CRON]:           {},
   [SETTING.SERVER_URL]:                           { kind: 'url', canReset: true },
   [SETTING.RKE_METADATA_CONFIG]:                  { kind: 'json' },
@@ -171,6 +188,12 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.UI_OFFLINE_PREFERRED]:                 {
     kind:    'enum',
     options: ['dynamic', 'true', 'false']
+  },
+  [SETTING.UI_APPCO_ENABLED]: {
+    kind:     'enum',
+    display:  'radio',
+    options:  ['true', 'false', ''],
+    canReset: true,
   },
   [SETTING.BRAND]:              { canReset: true },
   [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },

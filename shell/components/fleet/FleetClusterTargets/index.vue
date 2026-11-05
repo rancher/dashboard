@@ -187,7 +187,8 @@ export default {
         },
       ];
 
-      if (this.clustersOptions.length) {
+      // Targets picked by label or group stay selectable in a workspace with no clusters
+      if (this.clustersOptions.length || this.targetMode === 'clusters') {
         out.push({
           label: this.t('fleet.clusterTargets.targetMode.clusters'),
           value: 'clusters'

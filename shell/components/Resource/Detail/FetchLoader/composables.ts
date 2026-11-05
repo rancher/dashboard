@@ -1,7 +1,14 @@
 import { computed, ref, toValue } from 'vue';
 
-export const useFetch = <T>(fetch: () => Promise<T>) => {
-  const loading = ref<boolean>(true);
+export interface UseFetchOptions {
+  /**
+   * Call the fetch function straight away. When false nothing is fetched until `load` is called
+   */
+  immediate?: boolean;
+}
+
+export const useFetch = <T>(fetch: () => Promise<T>, { immediate = true }: UseFetchOptions = {}) => {
+  const loading = ref<boolean>(immediate);
   const refreshing = ref<boolean>(false);
   const data = ref<T>();
   const error = ref<any>();
@@ -29,12 +36,17 @@ export const useFetch = <T>(fetch: () => Promise<T>) => {
     refreshing.value = false;
   };
 
-  load();
+  // Existing callers fetch as soon as they're set up. Popovers in list rows pass immediate: false and call load on first
+  // hover or focus, so a page of rows doesn't send one request per row before anyone looks at a card
+  if (immediate) {
+    load();
+  }
 
   return computed(() => ({
     loading:    loading.value,
     data:       data.value,
     error:      error.value,
+    load,
     refresh,
     refreshing: refreshing.value
   }));

@@ -330,6 +330,31 @@ describe('class ProvCluster', () => {
     );
   });
 
+  describe('isK3s', () => {
+    it.each([
+      ['a k3s management cluster', { status: { provider: 'k3s' } }, 'v1.35.0+rke2r1', true],
+      ['an rke2 management cluster', { status: { provider: 'rke2' } }, 'v1.35.0+k3s1', false],
+    ])('should use the management cluster when there is one (%s)', (_, mgmtData, kubernetesVersion, expected) => {
+      const cluster = new ProvCluster({ spec: { kubernetesVersion, rkeConfig: {} } });
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(new MgmtCluster(mgmtData));
+
+      expect(cluster.isK3s).toBe(expected);
+    });
+
+    it.each([
+      ['v1.35.0+k3s1', true],
+      ['v1.35.0+rke2r1', false],
+      [undefined, false],
+    ])('without a management cluster (e.g. when creating), should use kubernetes version %p', (kubernetesVersion, expected) => {
+      const cluster = new ProvCluster({ spec: { kubernetesVersion, rkeConfig: {} } });
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(null);
+
+      expect(cluster.isK3s).toBe(expected);
+    });
+  });
+
   describe('supportsWindows', () => {
     const testCases = [
       {
@@ -655,6 +680,94 @@ describe('class ProvCluster', () => {
     });
   });
 
+  describe('pin / unpin', () => {
+    const dispatch = jest.fn();
+
+    const provCluster = (mgmt: any) => {
+      mgmt = {
+        links: {}, hasAction: () => false, t: (key: string) => key, clusterPinActions: MgmtCluster.prototype.clusterPinActions, ...mgmt
+      };
+
+      const cluster = new ProvCluster({}, {
+        getters:     { schemaFor: jest.fn(() => ({})) },
+        rootGetters: { 'i18n/t': (key: string) => key },
+        dispatch,
+      });
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(mgmt);
+
+      return cluster;
+    };
+
+    beforeEach(() => dispatch.mockClear());
+
+    const actionsOf = (cluster: any) => {
+      jest.spyOn(Object.getPrototypeOf(Object.getPrototypeOf(cluster)), '_availableActions', 'get').mockReturnValue([]);
+      jest.spyOn(cluster, 'customProvisionerHelper', 'get').mockReturnValue(undefined);
+
+      return cluster._availableActions;
+    };
+
+    const pinAction = (cluster: any, action: string) => actionsOf(cluster).find((a: any) => a.action === action);
+
+    it.each([
+      'pinCluster',
+      'unpinCluster',
+    ])('%s delegates to the management cluster', (action) => {
+      const mgmt = { [action]: jest.fn() };
+
+      (provCluster(mgmt) as any)[action]();
+
+      expect(mgmt[action]).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      'pinClusterBulk',
+      'unpinClusterBulk',
+    ])('%s hands the whole selection to the management cluster, for one write', (action) => {
+      const mgmt = { [action]: jest.fn() };
+      const items = [{ id: 'cluster-1' }, { id: 'cluster-2' }];
+
+      (provCluster(mgmt) as any)[action](items);
+
+      expect(mgmt[action]).toHaveBeenCalledWith(items);
+    });
+
+    it('offers the pin only while the cluster is unpinned, and the unpin only while it is pinned', () => {
+      const unpinned = provCluster({ pinned: false, isLocal: false });
+      const pinned = provCluster({ pinned: true, isLocal: false });
+
+      expect(pinAction(unpinned, 'pinCluster').enabled).toBe(true);
+      expect(pinAction(unpinned, 'unpinCluster').enabled).toBe(false);
+      expect(pinAction(pinned, 'pinCluster').enabled).toBe(false);
+      expect(pinAction(pinned, 'unpinCluster').enabled).toBe(true);
+    });
+
+    it('offers neither for local', () => {
+      const local = provCluster({ pinned: false, isLocal: true });
+
+      expect(pinAction(local, 'pinCluster').enabled).toBe(false);
+      expect(pinAction(local, 'unpinCluster').enabled).toBe(false);
+    });
+
+    it('leads the bulk actions, pin before unpin', () => {
+      const bulk = actionsOf(provCluster({ pinned: false, isLocal: false }))
+        .filter((a: any) => a.bulkable)
+        .sort((a: any, b: any) => (b.weight || 0) - (a.weight || 0))
+        .map((a: any) => a.action);
+
+      expect(bulk.slice(0, 2)).toStrictEqual(['pinCluster', 'unpinCluster']);
+    });
+
+    it('keeps the pin on an RKE1 cluster, which cannot take most other actions', () => {
+      const cluster = provCluster({ pinned: false, isLocal: false });
+
+      jest.spyOn(cluster, 'isRke1', 'get').mockReturnValue(true);
+
+      expect(pinAction(cluster, 'pinCluster').enabled).toBe(true);
+    });
+  });
+
   describe('copyKubeConfigBulk', () => {
     it('should delegate to mgmt cluster copyKubeConfigBulk method', async() => {
       const mockCopyKubeConfigBulk = jest.fn().mockResolvedValue(undefined);
@@ -706,6 +819,74 @@ describe('class ProvCluster', () => {
 
       expect(mockCopyKubeConfigBulk).toHaveBeenCalledWith(items);
       expect(mockCopyKubeConfigBulk).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('rotateEncryptionKey', () => {
+    it('should prompt RotateEncryptionKeyDialog for this cluster', () => {
+      const ctx = { dispatch: jest.fn() };
+      const cluster = new ProvCluster({}, ctx);
+
+      cluster.rotateEncryptionKey();
+
+      expect(ctx.dispatch).toHaveBeenCalledWith('promptModal', {
+        componentProps: { cluster },
+        component:      'RotateEncryptionKeyDialog',
+        ownsModal:      true
+      });
+    });
+  });
+
+  describe('rotateCertificates action', () => {
+    const rotateCertificatesAction = ({
+      isImportedWithDayTwoOps = true, isRke2 = false, ready = true, canUpdate = true
+    } = {}) => {
+      const cluster = new ProvCluster({ spec: isRke2 ? { rkeConfig: {} } : {} }, {
+        getters:     { schemaFor: jest.fn(() => ({})) },
+        rootGetters: { 'i18n/t': (key: string) => key },
+        dispatch:    jest.fn(),
+      });
+
+      jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue({
+        links: {}, isReady: ready, isLocal: false, clusterPinActions: () => []
+      });
+      jest.spyOn(cluster, 'isImportedWithDayTwoOps', 'get').mockReturnValue(isImportedWithDayTwoOps);
+      jest.spyOn(cluster, 'canUpdate', 'get').mockReturnValue(canUpdate);
+      jest.spyOn(cluster, 'customProvisionerHelper', 'get').mockReturnValue(undefined);
+      jest.spyOn(Object.getPrototypeOf(Object.getPrototypeOf(cluster)), '_availableActions', 'get').mockReturnValue([]);
+
+      return cluster._availableActions.find((a: any) => a.action === 'rotateCertificates');
+    };
+
+    it('is enabled for a ready imported cluster with day 2 ops', () => {
+      expect(rotateCertificatesAction().enabled).toBe(true);
+    });
+
+    it('is enabled for a ready provisioned RKE2 cluster', () => {
+      expect(rotateCertificatesAction({ isImportedWithDayTwoOps: false, isRke2: true }).enabled).toBe(true);
+    });
+
+    it.each([
+      ['day 2 ops are not enabled for the imported cluster', { isImportedWithDayTwoOps: false }],
+      ['the cluster is not ready', { ready: false }],
+      ['the user cannot update the cluster', { canUpdate: false }],
+    ])('is disabled for an imported cluster when %s', (_, opts) => {
+      expect(rotateCertificatesAction(opts).enabled).toBe(false);
+    });
+  });
+
+  describe('rotateCertificates', () => {
+    it('should prompt RotateCertificatesDialog for this cluster', () => {
+      const ctx = { dispatch: jest.fn() };
+      const cluster = new ProvCluster({}, ctx);
+
+      cluster.rotateCertificates();
+
+      expect(ctx.dispatch).toHaveBeenCalledWith('promptModal', {
+        componentProps: { cluster },
+        component:      'RotateCertificatesDialog',
+        ownsModal:      true
+      });
     });
   });
 });

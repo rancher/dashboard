@@ -7,12 +7,13 @@ import FormValidation from '@shell/mixins/form-validation';
 import { useKubernetesVersions, getDefaultVersion } from '@shell/composables/useKubernetesVersions';
 import { usePodSecurityAdmissionTemplates } from '@shell/composables/usePodSecurityAdmissionTemplates';
 import { useMachinePools, syncMachineConfigWithLatest } from '@shell/composables/useMachinePools';
+import { useRegistryConfig } from '@shell/composables/useRegistryConfig';
+import { useClusterMembership, saveRoleBindings } from '@shell/composables/useClusterMembership';
 import { normalizeName } from '@shell/utils/kube';
 import AccountAccess from '@shell/components/google/AccountAccess.vue';
 
 import {
   CAPI,
-  MANAGEMENT,
   NAMESPACE,
   NORMAN,
   SCHEMA,
@@ -28,7 +29,7 @@ import {
   clone, diff, set, get, isEmpty, mergeWithReplace
 } from '@shell/utils/object';
 import { labelForAddon, initSchedulingCustomization, addonConfigPreserve } from '@shell/utils/cluster';
-import { AGENT_CONFIGURATION_TYPES, SETTING } from '@shell/config/settings';
+import { AGENT_CONFIGURATION_TYPES } from '@shell/config/settings';
 
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
@@ -38,7 +39,6 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 
-import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
 import semver from 'semver';
 
 import { CLOUD_CREDENTIAL_OVERRIDE } from '@shell/models/nodedriver';
@@ -65,7 +65,7 @@ import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
 import {
-  HARVESTER, RETENTION_DEFAULT, RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE
+  HARVESTER, RETENTION_DEFAULT, RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE, mergeExtensionSectionProps
 } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 import { mapGetters } from 'vuex';
 
@@ -136,6 +136,8 @@ export default {
       ...useKubernetesVersions(props),
       ...usePodSecurityAdmissionTemplates(),
       ...useMachinePools(),
+      ...useRegistryConfig(props),
+      ...useClusterMembership(),
     };
   },
 
@@ -226,12 +228,12 @@ export default {
     const isGoogle = this.provider === GOOGLE;
 
     return {
-      loadedOnce:                      false,
-      lastIdx:                         0,
-      credentialId:                    '',
-      credential:                      null,
-      initialMachinePoolsValues:       {},
-      s3Backup:                        false,
+      loadedOnce:                false,
+      lastIdx:                   0,
+      credentialId:              '',
+      credential:                null,
+      initialMachinePoolsValues: {},
+      s3Backup:                  false,
       /**
        * All info related to a specific version of the chart
        *
@@ -239,17 +241,11 @@ export default {
        *
        * { [chartName:string]: { chart: json, readme: string, values: json } }
        */
-      versionInfo:                     {},
-      membershipUpdate:                {},
-      systemRegistry:                  null,
-      registryHost:                    null,
-      showCustomRegistryInput:         false,
-      showCustomRegistryAdvancedInput: false,
-      registrySecret:                  null,
-      userChartValues:                 {},
-      userChartValuesTemp:             {},
-      addonsRev:                       0,
-      fvFormRuleSets:                  [{
+      versionInfo:               {},
+      userChartValues:           {},
+      userChartValuesTemp:       {},
+      addonsRev:                 0,
+      fvFormRuleSets:            [{
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange:                    {},
@@ -258,7 +254,7 @@ export default {
       busy:                                     false,
       infrastructureClusterValid:               true,
       provisioningClusterValid:                 true,
-      addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
+      addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether the code editor's yaml lint passed)
       stackPreferenceError:                     false, //  spec.networking.stackPreference is validated in conjunction with hasOnlyIpv6Pools
       allNamespaces:                            [],
       extensionTabs:                            getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
@@ -387,6 +383,11 @@ export default {
         this.mode === _VIEW
       ) {
         return false;
+      }
+
+      // takes precedence over a `cloud-credential: false` registration
+      if (this.extensionCredentialSection) {
+        return true;
       }
 
       // Check provider specific config
@@ -572,10 +573,6 @@ export default {
       return out;
     },
 
-    canManageMembers() {
-      return canViewClusterMembershipEditor(this.$store);
-    },
-
     isHarvesterDriver() {
       return this.$route.query.type === HARVESTER;
     },
@@ -623,6 +620,9 @@ export default {
     extensionProvisioningSection() {
       return this.extensionProvider?.extensionProvisioningSection || null;
     },
+    extensionCredentialSection() {
+      return this.extensionProvider?.extensionCredentialSection || null;
+    },
 
     extensionInfrastructureSectionProps() {
       const defaultProps = {
@@ -632,29 +632,11 @@ export default {
         provisioningCluster: this.value,
       };
 
-      const extensionProps = this.extensionProvider?.extensionInfrastructureSectionProps;
-
-      if (typeof extensionProps === 'function') {
-        const extensionContext = { ...defaultProps };
-
-        extensionContext.infrastructureCluster = this.infrastructureCluster;
-
-        let out;
-
-        try {
-          out = extensionProps(extensionContext);
-        } catch {
-          return defaultProps;
-        }
-
-        if (out && typeof out === 'object') {
-          return { ...defaultProps, ...out };
-        }
-      } else if (extensionProps && typeof extensionProps === 'object') {
-        return { ...defaultProps, ...extensionProps };
-      }
-
-      return defaultProps;
+      return mergeExtensionSectionProps(
+        defaultProps,
+        this.extensionProvider?.extensionInfrastructureSectionProps,
+        { ...defaultProps, infrastructureCluster: this.infrastructureCluster }
+      );
     },
 
     extensionProvisioningSectionProps() {
@@ -663,29 +645,34 @@ export default {
         mode:  this.mode,
       };
 
-      const extensionProps = this.extensionProvider?.extensionProvisioningSectionProps;
+      return mergeExtensionSectionProps(
+        defaultProps,
+        this.extensionProvider?.extensionProvisioningSectionProps,
+        { ...defaultProps, provisioningCluster: this.value }
+      );
+    },
 
-      if (typeof extensionProps === 'function') {
-        const extensionContext = { ...defaultProps };
-
-        extensionContext.provisioningCluster = this.value;
-
-        let out;
-
-        try {
-          out = extensionProps(extensionContext);
-        } catch {
-          return defaultProps;
-        }
-
-        if (out && typeof out === 'object') {
-          return { ...defaultProps, ...out };
-        }
-      } else if (extensionProps && typeof extensionProps === 'object') {
-        return { ...defaultProps, ...extensionProps };
+    /**
+     * props for `extensionCredentialSection`
+     * SelectCredential passes `value`, `mode` and `provider` itself
+     */
+    extensionCredentialSectionProps() {
+      if (!this.extensionCredentialSection) {
+        return {};
       }
 
-      return defaultProps;
+      const defaultProps = {
+        provisioningCluster:   this.value,
+        infrastructureCluster: this.infrastructureCluster,
+      };
+
+      return mergeExtensionSectionProps(
+        defaultProps,
+        this.extensionProvider?.extensionCredentialSectionProps,
+        {
+          ...defaultProps, value: this.credentialId || null, mode: this.mode, provider: this.provider
+        }
+      );
     },
 
     isHarvesterExternalCredential() {
@@ -765,7 +752,14 @@ export default {
             this.fvFormIsValid &&
             this.etcdConfigValid &&
             this.basicsValid &&
-            this.registryConfigValid;
+            this.registryConfigValid &&
+            !this.ingressNginxUnsupported;
+    },
+    ingressNginxUnsupported() {
+      return !this.isK3s &&
+        !!this.value.spec.kubernetesVersion &&
+        semver.gte(this.value.spec.kubernetesVersion, 'v1.37.0') &&
+        this.value.spec.rkeConfig.machineGlobalConfig?.[INGRESS_CONTROLLER] === INGRESS_NGINX;
     },
     nginxSupported() {
       if (this.serverArgs?.disable?.options.includes(RKE2_INGRESS_NGINX)) {
@@ -800,6 +794,11 @@ export default {
     },
 
     credentialId(val) {
+      // the extension credential section value is not a rancher cloud credential
+      if (this.extensionCredentialSection) {
+        return;
+      }
+
       if (val) {
         this.credential = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.credentialId);
 
@@ -1361,9 +1360,7 @@ export default {
     async saveRoleBindings() {
       await this.value.waitForMgmt();
 
-      if (this.membershipUpdate.save) {
-        await this.membershipUpdate.save(this.value.mgmt.id);
-      }
+      return saveRoleBindings(this.membershipUpdate, this.value.mgmt.id);
     },
 
     async showIpv6Warning(hookContext) {
@@ -1785,119 +1782,6 @@ export default {
       return addonVersion ? `${ name }-${ addonVersion.version }` : name;
     },
 
-    onMembershipUpdate(update) {
-      this['membershipUpdate'] = update;
-    },
-
-    async initRegistry() {
-      // Check for an existing cluster scoped registry
-      const clusterRegistry = this.agentConfig?.['system-default-registry'] || '';
-
-      // Check for the global registry
-      this.systemRegistry = (await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.SYSTEM_DEFAULT_REGISTRY })).value || '';
-
-      // The order of precedence is to use the cluster scoped registry
-      // if it exists, then use the global scoped registry as a fallback
-      if (clusterRegistry) {
-        this.registryHost = clusterRegistry;
-      } else {
-        this.registryHost = this.systemRegistry;
-      }
-
-      let registrySecret = null;
-      let regs = this.rkeConfig.registries;
-
-      if (!regs) {
-        regs = {};
-        this.rkeConfig.registries = regs;
-      }
-
-      if (!regs.configs) {
-        regs.configs = {};
-      }
-
-      if (!regs.mirrors) {
-        regs.mirrors = {};
-      }
-
-      const config = regs.configs[this.registryHost];
-
-      if (config) {
-        registrySecret = config.authConfigSecretName;
-      }
-
-      this.registrySecret = registrySecret;
-
-      const hasMirrorsOrAuthConfig = Object.keys(regs.configs).length > 0 || Object.keys(regs.mirrors).length > 0;
-
-      if (this.registryHost || registrySecret) {
-        this.showCustomRegistryInput = true;
-      }
-
-      if (hasMirrorsOrAuthConfig) {
-        this.showCustomRegistryAdvancedInput = true;
-      }
-    },
-
-    setRegistryConfig() {
-      const hostname = (this.registryHost || '').trim();
-
-      if (this.systemRegistry) {
-        // Empty string overrides the system default to nothing
-        this.agentConfig['system-default-registry'] = '';
-      } else {
-        // No need to set anything
-        this.agentConfig['system-default-registry'] = undefined;
-      }
-      if (!hostname || hostname === this.systemRegistry) {
-        // Undefined removes the key which uses the global setting without hardcoding it into the config
-        this.agentConfig['system-default-registry'] = undefined;
-      } else {
-        this.agentConfig['system-default-registry'] = hostname;
-      }
-
-      if (hostname && this.registrySecret) {
-        // For a registry with basic auth, but no mirrors,
-        // add a single registry config with the basic auth secret.
-        const basicAuthConfig = {
-          [hostname]: {
-            authConfigSecretName: this.registrySecret,
-            caBundle:             null,
-            insecureSkipVerify:   false,
-            tlsSecretName:        null,
-          }
-        };
-
-        const rkeConfig = this.value.spec.rkeConfig;
-
-        if (!rkeConfig) {
-          this.value.spec.rkeConfig = { registries: { configs: basicAuthConfig } };
-        } else if (rkeConfig.registries.configs && Object.keys(rkeConfig.registries.configs).length > 0) {
-          // If some existing authentication secrets are already configured
-          // for registry mirrors, the basic auth is added to the existing ones.
-          const existingConfigs = rkeConfig.registries.configs;
-
-          this.value.spec.rkeConfig.registries.configs = { ...basicAuthConfig, ...existingConfigs };
-        } else {
-          const existingMirrorAndAuthConfig = this.value.spec.rkeConfig.registries;
-
-          this.value.spec.rkeConfig.registries = {
-            ...existingMirrorAndAuthConfig,
-            configs: basicAuthConfig
-          };
-        }
-      }
-    },
-
-    updateConfigs(configs) {
-      // Update authentication configuration
-      // for each mirror
-      if (!this.value.spec?.rkeConfig) {
-        this.value.spec.rkeConfig = { registries: {} };
-      }
-      this.value.spec.rkeConfig.registries.configs = configs;
-    },
-
     generateYaml() {
       const resource = this.value;
       const inStore = this.$store.getters['currentStore'](resource);
@@ -1958,15 +1842,6 @@ export default {
         }
       }
       this.setHarvesterDefaultCloudProvider();
-    },
-    toggleCustomRegistry(neu) {
-      this.showCustomRegistryInput = neu;
-      if (this.registryHost) {
-        this.registryHost = null;
-        this.registrySecret = null;
-      } else {
-        this.initRegistry();
-      }
     },
 
     /**
@@ -2040,6 +1915,9 @@ export default {
             this.serverConfig[INGRESS_CONTROLLER] = INGRESS_NONE;
           }
         }
+      } else if (this.isCreate) {
+        // Switching from an RKE2 to a K3s version while creating, drop the RKE2 only setting
+        delete this.serverConfig[INGRESS_CONTROLLER];
       }
     },
 
@@ -2093,13 +1971,6 @@ export default {
     handleConfigEtcdExposeMetricsChanged(neu) {
       this.serverConfig['etcd-expose-metrics'] = neu;
     },
-    handleRegistryHostChanged(neu) {
-      this.registryHost = neu;
-    },
-    handleRegistrySecretChanged(neu) {
-      this.registrySecret = neu;
-    },
-
     handleFlannelMasqChanged(neu) {
       if (neu || neu === false) {
         this.serverConfig['flannel-ipv6-masq'] = neu;
@@ -2207,6 +2078,8 @@ export default {
         :provider="provider"
         :cancel="cancelCredential"
         :showing-form="showForm"
+        :extension-component="extensionCredentialSection"
+        :extension-component-props="extensionCredentialSectionProps"
         :default-on-cancel="true"
         data-testid="select-credential"
         class="mt-20"
@@ -2384,6 +2257,7 @@ export default {
               :cloud-provider-options="cloudProviderOptions"
               :has-some-ipv6-pools="hasOnlyIpv6Pools"
               :original-ingress-controller="originalIngressController"
+              :previous-kube-version="liveValue?.spec?.kubernetesVersion"
               @update:value="$emit('input', $event)"
               @cilium-values-changed="handleCiliumValuesChanged"
               @enabled-system-services-changed="handleEnabledSystemServicesChanged"
@@ -2416,6 +2290,7 @@ export default {
           <Tab
             name="etcd"
             label-key="cluster.tabs.etcd"
+            :error="!etcdConfigValid"
           >
             <Etcd
               v-model:value="localValue"

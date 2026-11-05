@@ -5,10 +5,14 @@ import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst, randomStr } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
+import { valueFor as columnValueFor } from '@shell/utils/table-columns';
+import { isExtensionTable, isConfigurableTablesEnabled, TABLE_VIEWS_SHELL_KEY } from '@shell/utils/table-views/feature';
+import { RcButton } from '@components/RcButton';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
 import ActionDropdown from '@shell/components/ActionDropdown';
+import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
 import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
 import THead from './THead';
@@ -25,13 +29,18 @@ import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import TableSelectionActions from '@shell/components/TableViews/TableSelectionActions.vue';
+import LimitedCell from '@shell/components/SortableTable/LimitedCell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
-import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
-import { RcButton } from '@components/RcButton';
 import { useTabCountUpdater } from '@shell/components/form/ResourceTabs/composable';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
+
+/** A cell's content as it is, for a column with no `minWidth`, `maxWidth` or `lineClamp` */
+const CellContent = (_props, { slots }) => slots.default?.();
+
+CellContent.props = ['limits'];
 
 // @TODO:
 // Fixed header/scrolling
@@ -63,13 +72,19 @@ export default {
     Checkbox,
     AsyncButton,
     ActionDropdown,
+    ActionDropdownShell,
     LabeledSelect,
     LabeledInput,
     ButtonMultiAction,
     ActionMenu,
-    ActionDropdownShell,
+    TableSelectionActions,
+    LimitedCell,
+    CellContent,
+    // Only rendered with the table views feature off
     RcButton,
   },
+
+  inject: { providedTableViewsShell: { from: TABLE_VIEWS_SHELL_KEY, default: null } },
 
   mixins: [
     filtering,
@@ -125,13 +140,14 @@ export default {
     },
 
     groupBy: {
-      // Field to group rows by, row[groupBy] must be something that can be a map key
-      type:    String,
+      // Field to group rows by, row[groupBy] must be something that can be a map key. Or a function
+      // of the row, for keys that aren't a simple path
+      type:    [String, Function],
       default: null
     },
     groupRef: {
       // Object to provide as the reference for rendering the grouping row
-      type:    String,
+      type:    [String, Function],
       default: null,
     },
     groupSort: {
@@ -151,6 +167,33 @@ export default {
       // Show bulk table actions
       type:    Boolean,
       default: true
+    },
+
+    /** The view's server side filters, sent with the page and sort on `pagination-changed` */
+    viewFilters: {
+      type:    Array,
+      default: () => []
+    },
+
+    /** The rows were already narrowed by a query from outside the table, so none left means no matches */
+    queried: {
+      type:    Boolean,
+      default: false
+    },
+
+    /** The table views query filtering the rows, which extension table hooks get as the search query */
+    viewQuery: {
+      type:    String,
+      default: null
+    },
+
+    /**
+     * Lay the masthead out for the table views toolbar. Unset, the feature flag decides; `false`
+     * keeps the original masthead
+     */
+    tableViewsLayout: {
+      type:    Boolean,
+      default: null
     },
 
     rowActions: {
@@ -174,6 +217,12 @@ export default {
       // Show search input to filter rows
       type:    Boolean,
       default: true
+    },
+
+    searchMaxWidth: {
+      // Maximum width of the search input field
+      type:    Number,
+      default: 200,
     },
 
     extraSearchFields: {
@@ -405,7 +454,8 @@ export default {
     hideManualRefreshButton: {
       type:    Boolean,
       default: false
-    }
+    },
+
   },
 
   data() {
@@ -466,6 +516,20 @@ export default {
   },
 
   watch: {
+    /** Back to the first page: the old filter's page three is not the new one's */
+    viewFilters(neu, old) {
+      if (JSON.stringify(neu || []) === JSON.stringify(old || [])) {
+        return;
+      }
+
+      this.setPage(1);
+      this.debouncedPaginationChanged();
+    },
+
+    viewQuery() {
+      this.debouncedPaginationChanged();
+    },
+
     eventualSearchQuery: debounce(function(q) {
       this.searchQuery = q;
 
@@ -622,7 +686,7 @@ export default {
       let span = 0;
 
       for ( let i = 0 ; i < this.columns.length ; i++ ) {
-        if (!this.columns[i].hide) {
+        if (this.isColumnVisible(this.columns[i])) {
           span++;
         }
       }
@@ -643,11 +707,35 @@ export default {
     },
 
     noResults() {
-      return !!this.searchQuery && this.pagedRows.length === 0;
+      return (!!this.searchQuery || this.queried) && this.pagedRows.length === 0;
     },
 
     noRows() {
       return !this.noResults && (this.rows || []).length === 0;
+    },
+
+    useTableViewsLayout() {
+      const stated = this.tableViewsLayout;
+
+      if (stated !== null && stated !== undefined) {
+        return stated;
+      }
+
+      // An extension's table keeps the masthead it was written for unless it asks for this one
+      return isConfigurableTablesEnabled(this.$store) && !isExtensionTable({
+        providedShell: this.providedTableViewsShell,
+        route:         this.$route,
+        extensions:    this.$store?.state?.$extension,
+        singleProduct: !!this.$store?.getters?.['isSingleProduct'],
+      });
+    },
+
+    tableViewsTopRowEmpty() {
+      return this.useTableViewsLayout && !this.$slots['header-left'] && !this.$slots['header-middle'];
+    },
+
+    tableViewsTabsEmpty() {
+      return this.useTableViewsLayout && !this.$slots['table-views'];
     },
 
     showHeaderRow() {
@@ -751,6 +839,15 @@ export default {
     displayRows() {
       const rows = [];
       const columnFormmatterIDs = this.columnFormmatterIDs;
+      const limits = {};
+
+      this.columns.forEach((c) => {
+        if (c.minWidth || c.maxWidth || c.lineClamp) {
+          limits[c.name] = {
+            minWidth: c.minWidth, maxWidth: c.maxWidth, lineClamp: c.lineClamp
+          };
+        }
+      });
 
       this.groupedRows.forEach((grp) => {
         const group = {
@@ -808,6 +905,7 @@ export default {
               live:      c.formatter?.startsWith('Live') || c.liveUpdates,
               label:     this.labelFor(c),
               dasherize: columnFormmatterIDs[c.formatter] || '',
+              limits:    limits[c.name],
             });
           });
         });
@@ -938,36 +1036,17 @@ export default {
       return item ? this.t('sortableTable.genericRowCheckbox', { item }) : this.t('sortableTable.genericRowCheckboxNoItem');
     },
 
+    isColumnVisible(col) {
+      if (!col || col.hide) {
+        return false;
+      }
+
+      // If the column has been hidden via the advanced filtering, it will have isColVisible set to false. The priority of isColVisible is higher than hide.
+      return !this.hasAdvancedFiltering || (this.hasAdvancedFiltering && col.isColVisible);
+    },
+
     valueFor(row, col, isLabel) {
-      if (typeof col.value === 'function') {
-        return col.value(row);
-      }
-
-      if (isLabel) {
-        if (row.metadata?.labels && row.metadata?.labels[col.label]) {
-          return row.metadata?.labels[col.label];
-        }
-
-        return '';
-      }
-
-      // Use to debug table columns using expensive value getters
-      // console.warn(`Performance: Table valueFor: ${ col.name } ${ col.value }`); // eslint-disable-line no-console
-
-      const expr = col.value || col.name;
-
-      if (!expr) {
-        console.error('No path has been defined for this column, unable to get value of cell', col); // eslint-disable-line no-console
-
-        return '';
-      }
-      const out = get(row, expr);
-
-      if ( out === null || out === undefined ) {
-        return '';
-      }
-
-      return out;
+      return columnValueFor(row, col, isLabel);
     },
 
     isExpanded(row) {
@@ -984,6 +1063,22 @@ export default {
       this.expanded = { ...this.expanded };
 
       return val;
+    },
+
+    expandAll() {
+      const expanded = {};
+
+      this.rows.forEach((row) => {
+        const key = row[this.keyField];
+
+        expanded[key] = true;
+      });
+
+      this.expanded = expanded;
+    },
+
+    collapseAll() {
+      this.expanded = {};
     },
 
     setBulkActionOfInterest(action) {
@@ -1099,7 +1194,7 @@ export default {
         },
         filtering: {
           searchFields: this.searchFields,
-          searchQuery:  this.searchQuery
+          searchQuery:  this.viewQuery ?? this.searchQuery
         },
         sorting: {
           sort:       this.sortFields,
@@ -1119,8 +1214,9 @@ export default {
           searchFields: this.searchFields,
           searchQuery:  this.searchQuery
         },
-        sort:       this.sortFields,
-        descending: this.descending
+        sort:        this.sortFields,
+        descending:  this.descending,
+        viewFilters: this.viewFilters
       });
     }
   }
@@ -1130,6 +1226,7 @@ export default {
 <template>
   <div
     ref="container"
+    :class="{ 'has-table-views': useTableViewsLayout }"
     :data-testid="componentTestid + '-list-container'"
   >
     <div
@@ -1140,14 +1237,15 @@ export default {
       <div
         v-if="showHeaderRow"
         class="fixed-header-actions"
-        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering}"
+        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering, 'table-views-layout': useTableViewsLayout, 'no-top-row': tableViewsTopRowEmpty, 'no-views-row': tableViewsTabsEmpty}"
+        :style="{ '--sortable-table-search-max-width': `${searchMaxWidth}px` }"
       >
         <div
           :class="bulkActionsClass"
           class="bulk"
         >
           <slot name="header-left">
-            <template v-if="tableActions">
+            <template v-if="tableActions && !useTableViewsLayout">
               <RcButton
                 v-for="(act) in availableActions"
                 :id="act.action"
@@ -1241,6 +1339,13 @@ export default {
         >
           <slot name="header-middle" />
         </div>
+        <!-- After the top row in source order too, so tabbing reaches the page's buttons first -->
+        <div
+          v-if="useTableViewsLayout && !tableViewsTabsEmpty"
+          class="table-views-row"
+        >
+          <slot name="table-views" />
+        </div>
 
         <div
           v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || $slots['header-right']"
@@ -1263,8 +1368,22 @@ export default {
               <div class="bg" />
             </li>
           </ul>
+          <TableSelectionActions
+            v-if="useTableViewsLayout && tableActions"
+            :actions="availableActions"
+            :count="selectedRows.length"
+            :action-tooltip="actionTooltip"
+            :testid="componentTestid"
+            @click="applyTableAction"
+            @mouseover="setBulkActionOfInterest"
+            @mouseleave="setBulkActionOfInterest"
+          />
           <slot name="watch-controls" />
-          <slot name="header-right" />
+          <slot
+            name="header-right"
+            :expand-all="expandAll"
+            :collapse-all="collapseAll"
+          />
           <AsyncButton
             v-if="!hideManualRefreshButton && isTooManyItemsToAutoUpdate"
             mode="manual-refresh"
@@ -1480,7 +1599,7 @@ export default {
               <tr
                 class="main-row"
                 :data-testid="componentTestid + '-' + i + '-row'"
-                :class="{ 'has-sub-row': row.showSubRow}"
+                :class="{ 'has-sub-row': row.showSubRow, 'row-selected': selectedRows.includes(row.row) }"
                 :data-node-id="row.key"
                 :data-cant-run-bulk-action-of-interest="actionOfInterest && !row.canRunBulkActionOfInterest"
               >
@@ -1526,7 +1645,7 @@ export default {
                     :rowKey="row.key"
                   >
                     <td
-                      v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.col.isColVisible)"
+                      v-show="isColumnVisible(col.col)"
                       :key="col.col.name"
                       v-ui-context="col.col.name === 'state' ? { icon: 'icon-folder', hookable: true, value: row.row, tag: '__sortable-table-row', description: 'Row' } : undefined"
                       :data-title="col.col.label"
@@ -1535,48 +1654,53 @@ export default {
                       :class="{['col-'+col.dasherize]: !!col.col.formatter, [col.col.breakpoint]: !!col.col.breakpoint, ['skip-select']: col.col.skipSelect}"
                       :width="col.col.width"
                     >
-                      <slot
-                        :name="'cell:' + col.col.name"
-                        :row="row.row"
-                        :col="col.col"
-                        :value="col.value"
+                      <component
+                        :is="col.limits ? 'LimitedCell' : 'CellContent'"
+                        :limits="col.limits"
                       >
-                        <component
-                          :is="col.component"
-                          v-if="col.component && col.needRef"
-                          ref="column"
-                          :value="col.value"
+                        <slot
+                          :name="'cell:' + col.col.name"
                           :row="row.row"
                           :col="col.col"
-                          :get-custom-detail-link="getCustomDetailLink"
-                          v-bind="col.col.formatterOpts"
-                          :row-key="row.key"
-                        />
-                        <component
-                          :is="col.component"
-                          v-else-if="col.component"
                           :value="col.value"
-                          :row="row.row"
-                          :col="col.col"
-                          v-bind="col.col.formatterOpts"
-                          :row-key="row.key"
-                        />
-                        <component
-                          :is="col.col.formatter"
-                          v-else-if="col.col.formatter"
-                          :value="col.value"
-                          :row="row.row"
-                          :col="col.col"
-                          v-bind="col.col.formatterOpts"
-                          :row-key="row.key"
-                        />
-                        <template v-else-if="col.value !== ''">
-                          {{ col.formatted }}
-                        </template>
-                        <template v-else-if="col.col.dashIfEmpty">
-                          <span class="text-muted">&mdash;</span>
-                        </template>
-                      </slot>
+                        >
+                          <component
+                            :is="col.component"
+                            v-if="col.component && col.needRef"
+                            ref="column"
+                            :value="col.value"
+                            :row="row.row"
+                            :col="col.col"
+                            :get-custom-detail-link="getCustomDetailLink"
+                            v-bind="col.col.formatterOpts"
+                            :row-key="row.key"
+                          />
+                          <component
+                            :is="col.component"
+                            v-else-if="col.component"
+                            :value="col.value"
+                            :row="row.row"
+                            :col="col.col"
+                            v-bind="col.col.formatterOpts"
+                            :row-key="row.key"
+                          />
+                          <component
+                            :is="col.col.formatter"
+                            v-else-if="col.col.formatter"
+                            :value="col.value"
+                            :row="row.row"
+                            :col="col.col"
+                            v-bind="col.col.formatterOpts"
+                            :row-key="row.key"
+                          />
+                          <template v-else-if="col.value !== ''">
+                            {{ col.formatted }}
+                          </template>
+                          <template v-else-if="col.col.dashIfEmpty">
+                            <span class="text-muted">&mdash;</span>
+                          </template>
+                        </slot>
+                      </component>
                     </td>
                   </slot>
                 </template>
@@ -1617,6 +1741,7 @@ export default {
           <slot
             v-if="row.showSubRow"
             name="sub-row"
+            class="sub-row"
             :full-colspan="fullColspan"
             :row="row.row"
             :sub-matches="subMatches"
@@ -1753,8 +1878,9 @@ export default {
         class="hide"
         @shortkey="focusPrevious($event, true)"
       />
-      <slot name="shortkeys" />
     </template>
+    <!-- Outside the actions: a list without any, such as Home's, still has shortcuts of its own -->
+    <slot name="shortkeys" />
   </div>
 </template>
 
@@ -1973,6 +2099,10 @@ export default {
     text-align: left;
   }
 
+  .sub-row {
+    padding: 8px;
+  }
+
   .sortable-table {
     border-collapse: collapse;
     min-width: 400px;
@@ -1980,6 +2110,32 @@ export default {
     outline: 1px solid var(--border);
     background: var(--sortable-table-bg);
     border-radius: 4px;
+
+    .sub-row {
+      .sub-table {
+        padding: 16px 32px;
+        .sortable-table {
+          border-radius: 0 !important;
+          border: 0 !important;
+          outline: 0;
+          thead {
+            tr:hover {
+              background-color: var(--body-bg);
+            }
+          }
+        }
+      }
+      thead {
+        th {
+          font-weight: 600;
+        }
+      }
+      tbody {
+        tr {
+          border-bottom: 0;
+        }
+      }
+    }
 
     &.overflow-x {
       overflow-x: visible;
@@ -2018,18 +2174,22 @@ export default {
         }
 
         // if a main-row is hovered also hover it's sibling sub row. note - the reverse is handled in selection.js
-        &.main-row:not(.row-selected):hover + .sub-row {
+        &.main-row:not(.row-selected):hover + .sub-row:not(:has(.sub-table)) {
           background-color: var(--sortable-table-hover-bg);
         }
 
         // Case with only additional-sub-row
-        &.main-row:not(.row-selected):hover + .additional-sub-row {
+        &.main-row:not(.row-selected):hover + .additional-sub-row:not(:has(.sub-table)) {
           background-color: var(--sortable-table-hover-bg);
         }
 
         // Case with both additional-sub-row and sub-row
-        &.main-row:not(.row-selected):hover + .additional-sub-row + .sub-row{
+        &.main-row:not(.row-selected):hover + .additional-sub-row:not(:has(.sub-table)) + .sub-row:not(:has(.sub-table)) {
           background-color: var(--sortable-table-hover-bg);
+        }
+
+        &.sub-row:has(.sub-table):hover {
+          background-color: var(--body-bg);
         }
 
         &:last-of-type {
@@ -2174,6 +2334,13 @@ export default {
     grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 350px);
   }
 
+  // A hovered state chip can be left at z-index('loading'), eg by the AI extension, and the toolbar's
+  // menus open inside this header, so the header sits just above it. Ties with the window manager and
+  // the nav toolbar's menu go to them, as they come later in the page
+  .has-table-views .sortable-table-header {
+    z-index: calc(#{z-index('loading')} + 1);
+  }
+
   $header-padding: 20px;
   .sub-header-row {
     padding: 0 0 calc($header-padding / 2) 0;
@@ -2189,11 +2356,85 @@ export default {
     z-index: z-index('fixedTableHeader');
     background: transparent;
     display: grid;
-    grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 200px);
+    grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, var(--sortable-table-search-max-width, 200px));
     grid-column-gap: 10px;
 
     &.advanced-filtering {
       grid-template-columns: [bulk] auto [middle] minmax(min-content, auto) [search] minmax(min-content, auto);
+    }
+
+    // Table views mode: the page's masthead, then the view tabs, then the filter and selection
+    // actions
+    &.table-views-layout {
+      grid-template-columns: [left] auto [middle] minmax(0, 1fr);
+      grid-template-areas:
+        "bulk   middle"
+        "views  views"
+        "filter filter";
+      align-items: center;
+      // 16 down to the tabs; the filter row adds the extra 8 on each side of it
+      row-gap: 16px;
+      padding-bottom: 24px;
+
+      &.no-top-row {
+        grid-template-areas:
+          "views  views"
+          "filter filter";
+
+        .bulk {
+          display: none;
+        }
+      }
+
+      &.no-views-row {
+        grid-template-areas:
+          "bulk   middle"
+          "filter filter";
+      }
+
+      &.no-top-row.no-views-row {
+        grid-template-areas: "filter filter";
+
+        .bulk {
+          display: none;
+        }
+      }
+
+      .bulk {
+        grid-area: bulk;
+        height: 32px;
+      }
+
+      .middle {
+        grid-area: middle;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        height: 32px;
+      }
+      .table-views-row { grid-area: views; }
+
+      .search {
+        grid-area: filter;
+        display: flex;
+        align-items: flex-start;
+        align-self: start;
+        // A minimum, top aligned: the filter grows a line underneath for a query problem
+        min-height: 32px;
+        margin-top: 8px;
+        justify-content: flex-start;
+        gap: 10px;
+        max-width: none;
+        width: 100%;
+        margin-left: 0;
+        text-align: left;
+
+        // `.row`'s clearfix pseudo elements would be flex items, adding a gap before the filter
+        &::before,
+        &::after {
+          display: none;
+        }
+      }
     }
 
     .bulk {

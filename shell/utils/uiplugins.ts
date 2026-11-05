@@ -1,3 +1,4 @@
+import semver from 'semver';
 import { matchesSomeRegex } from '@shell/utils/string';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
@@ -425,4 +426,60 @@ export function getPluginChartVersionLabel(version: Version) {
   if (version.appVersion === version.version) return `${ version.version }`;
 
   return `${ version.appVersion } (${ version.version })`;
+}
+
+/**
+ * Number of minor releases older than the current one shown in the extension versions list.
+ * Anything older than that sits behind the "show all" disclosure.
+ */
+const OLDER_MINOR_RELEASES_SHOWN = 2;
+
+/**
+ * Keys a chart version by its major/minor release, falling back to the raw version string when
+ * it can't be parsed as semver.
+ */
+function minorReleaseKey(version: Version): string {
+  const parsed = semver.parse(version.version) || semver.coerce(version.version);
+
+  return parsed ? `${ parsed.major }.${ parsed.minor }` : version.version;
+}
+
+/**
+ * Trims the chart versions shown for an extension down to the ones worth a quick glance: the
+ * latest version of every minor release newer than the current one, the current version itself,
+ * and the latest version of the two minor releases before it.
+ *
+ * @param versions All chart versions for the extension, sorted newest to oldest
+ * @param currentVersion Chart version the list is anchored on (the installed one, or the one the panel pre-selects when nothing is installed)
+ * @param pinnedVersions Chart versions which must be shown whatever the criteria above
+ * @returns The versions to show, in the order they were given in
+ */
+export function getLatestPluginVersions(
+  versions: Version[] = [],
+  currentVersion?: string,
+  pinnedVersions: (string | undefined)[] = []
+): Version[] {
+  const latestPerMinorRelease: Version[] = [];
+  const minorReleases = new Set<string>();
+
+  // versions come in newest to oldest, so the first one seen for a minor release is its latest
+  versions.forEach((version) => {
+    const key = minorReleaseKey(version);
+
+    if (!minorReleases.has(key)) {
+      minorReleases.add(key);
+      latestPerMinorRelease.push(version);
+    }
+  });
+
+  const current = versions.find((version) => version.version === currentVersion);
+  const currentIndex = current ? latestPerMinorRelease.findIndex((version) => minorReleaseKey(version) === minorReleaseKey(current)) : 0;
+
+  const shown = new Set([
+    ...latestPerMinorRelease.slice(0, currentIndex + 1 + OLDER_MINOR_RELEASES_SHOWN).map((version) => version.version),
+    ...pinnedVersions,
+    currentVersion
+  ]);
+
+  return versions.filter((version) => shown.has(version.version));
 }

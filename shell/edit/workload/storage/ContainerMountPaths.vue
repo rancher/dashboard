@@ -35,6 +35,12 @@ export default {
         return {};
       },
     },
+
+    // validators for each mount path
+    rules: {
+      type:    Array,
+      default: () => [],
+    },
   },
 
   data() {
@@ -150,6 +156,7 @@ export default {
           :container="container"
           :name="props.row.value.name"
           :mode="mode"
+          :rules="rules"
           :data-testid="`container-storage-mount-${props.i}`"
         />
       </template>

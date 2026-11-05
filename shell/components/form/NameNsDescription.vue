@@ -121,6 +121,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    namespaceCreateAllowed: {
+      type:    Boolean,
+      default: true,
+    },
     descriptionLabel: {
       type:    String,
       default: 'nameNsDescription.description.label',
@@ -161,6 +165,11 @@ export default {
     nameColSpan: {
       type:    Number,
       default: 3,
+    },
+    // falls back to span-3 if extra cols are defined, otherwise span-6
+    descriptionColSpan: {
+      type:     Number,
+      required: false
     },
     noBottomMargin: {
       type:    Boolean,
@@ -356,6 +365,7 @@ export default {
         :options="namespaceOptions"
         :mapper="namespaceMapper"
         :create-namespace-override="createNamespaceOverride"
+        :create-allowed="namespaceCreateAllowed"
         :placeholder="namespacePlaceholder"
         :create-placeholder="namespaceCreatePlaceholder"
         :rules="rules.namespace"
@@ -392,7 +402,7 @@ export default {
     <div
       v-show="!descriptionHidden"
       :data-testid="componentTestid + '-description'"
-      :class="['col', extraColumns.length > 0 ? 'span-3' : 'span-6']"
+      :class="['col', descriptionColSpan ? `span-${descriptionColSpan}` : extraColumns.length > 0 ? 'span-3' : 'span-6']"
     >
       <LabeledInput
         key="description"

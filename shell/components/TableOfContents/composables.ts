@@ -1,7 +1,7 @@
 import debounce from 'lodash/debounce';
 import { randomStr } from '@shell/utils/string';
 import {
-  computed, inject, onMounted, onUnmounted, provide, ref, watch
+  computed, inject, onMounted, onUnmounted, provide, ref, toRaw, watch
 } from 'vue';
 import type {
   ComputedRef,
@@ -12,6 +12,7 @@ import type {
 type SummaryInfo = {
   id: string;
   label?: ComputedRef<string> | string;
+  invalid?: ComputedRef<boolean> | boolean;
   scrollTo?: () => void;
 };
 
@@ -26,6 +27,7 @@ type SummaryEntry = {
   node: VNode;
   children: SummaryEntry[];
   label?: string | ComputedRef<string>;
+  invalid?: boolean | ComputedRef<boolean>;
   scrollTo?: () => void;
   component?: SummaryComponent;
 };
@@ -78,6 +80,8 @@ export function useFormSummary(rootComponentRef: Readonly<Ref<HTMLElement | null
         node:     node as VNode,
         children: [],
         ...summary,
+        // summary is read through a reactive proxy, which would copy invalid's current value instead of the computed
+        invalid:  toRaw(summary).invalid,
         scrollTo: component ? () => scrollToComponent(component) : undefined
       };
 
@@ -214,8 +218,14 @@ export function useFormSummary(rootComponentRef: Readonly<Ref<HTMLElement | null
  *   a `ComputedRef<string>`.
  * @param options.elementRef - A template ref pointing to the component's root element.
  *   Used by the ToC system to locate this component during DOM tree traversal.
+ * @param options.invalid - Optional. When true, the ToC entry shows an error icon.
  */
-export function useInSummary(options: { scrollTo: () => void; label: ComputedRef<string> | string; elementRef: Readonly<Ref<HTMLElement | null>> }) {
+export function useInSummary(options: {
+  scrollTo: () => void;
+  label: ComputedRef<string> | string;
+  elementRef: Readonly<Ref<HTMLElement | null>>;
+  invalid?: ComputedRef<boolean>;
+}) {
   const {
     registerComponent = () => {},
     unRegisterComponent = () => {},
@@ -223,10 +233,14 @@ export function useInSummary(options: { scrollTo: () => void; label: ComputedRef
     updateComponentLabel = () => false
   } = inject<FormSummaryContext>(FORM_SUMMARY_KEY) || {};
 
-  const { scrollTo, label, elementRef } = options;
+  const {
+    scrollTo, label, elementRef, invalid
+  } = options;
 
   const summaryID = randomStr();
-  const summary: SummaryInfo = { id: summaryID, scrollTo };
+  const summary: SummaryInfo = {
+    id: summaryID, scrollTo, invalid
+  };
 
   // Wrap a plain string in a computed so the type is always ComputedRef<string>.
   summary.label = typeof label === 'string' ? computed(() => label) : label;

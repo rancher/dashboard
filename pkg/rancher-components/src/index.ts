@@ -6,6 +6,7 @@ export { Banner } from './components/Banner';
 export { StringList } from './components/StringList';
 export {
   RcDropdown,
+  RcDropdownGroup,
   RcDropdownItem,
   RcDropdownSeparator,
   RcDropdownTrigger,
@@ -15,11 +16,14 @@ export { RcHeading } from './components/RcHeading';
 export { RcIcon } from './components/RcIcon';
 export { RcIconTooltip } from './components/RcIconTooltip';
 export { RcContentGroup } from './components/Layout';
+export { RcModal, useModal } from './components/RcModal';
 export { RcSection } from './components/RcSection';
 export { RcSeparator } from './components/RcSeparator';
 export { RcItemCard, RcItemCardAction } from './components/RcItemCard';
+export * from './components/RcCodeMirror';
 export { default as RcCounterBadge } from './components/Pill/RcCounterBadge';
 export { default as RcStatusBadge } from './components/Pill/RcStatusBadge';
 export { default as RcStatusIndicator } from './components/Pill/RcStatusIndicator';
 export { default as RcTag } from './components/Pill/RcTag';
 export * from './components/Form';
+export { observeReveal } from './components/utils/reveal';

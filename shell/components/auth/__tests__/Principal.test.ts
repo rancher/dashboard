@@ -1,6 +1,8 @@
-import { mount, shallowMount, type VueWrapper } from '@vue/test-utils';
+import { flushPromises, mount, shallowMount, type VueWrapper } from '@vue/test-utils';
 import Principal from '@shell/components/auth/Principal.vue';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { RcIcon } from '@components/RcIcon';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 
 describe('component: Principal', () => {
   it('should render the component', () => {
@@ -66,6 +68,29 @@ describe('component: Principal', () => {
     await wrapper.setProps({ value: 'second' });
 
     expect(wrapper.vm.principal.name).toStrictEqual('second name');
+  });
+
+  it('should keep fetching while the principal lookup is in flight', async() => {
+    const wrapper: VueWrapper<any, any> = shallowMount(Principal, {
+      props:  { value: 'github_team://8087745' },
+      global: {
+        mocks: {
+          $fetchState: { pending: true },
+          $store:      {
+            getters:  { 'rancher/byId': () => null },
+            dispatch: () => new Promise(() => {}),
+          },
+        },
+      },
+    });
+    let fetched = false;
+
+    (Principal as any).fetch.call(wrapper.vm).then(() => {
+      fetched = true;
+    });
+    await flushPromises();
+
+    expect(fetched).toBe(false);
   });
 
   it('should encode the principal id with valid UTF-8 percent-encoding when fetching', async() => {
@@ -208,6 +233,33 @@ describe('component: Principal', () => {
       });
     });
 
+    it('should take the provider type of a named config from the auth providers', async() => {
+      const namedValue = 'github-2_user://12345';
+      const user = {
+        principalIds: [namedValue], displayName: 'GH User', username: 'gh-user', isCurrentUser: false
+      };
+      const { $store, dispatch } = createStore({ users: [user], find: forbidden });
+
+      ($store.getters as any)['rancher/byId'] = (type: string, id: string) => (type === 'authProvider' && id === 'github-2' ? { id, type: 'githubProvider' } : null);
+
+      const wrapper = shallowMount(Principal, {
+        props:  { value: namedValue },
+        global: { mocks: { $fetchState: { pending: false }, $store } },
+      }) as VueWrapper<any, any>;
+
+      await wrapper.vm.loadData();
+
+      expect(dispatch).toHaveBeenCalledWith('rancher/create', {
+        type:          NORMAN.PRINCIPAL,
+        id:            namedValue,
+        principalType: 'user',
+        provider:      'github',
+        name:          'GH User',
+        loginName:     'gh-user',
+        me:            false,
+      });
+    });
+
     it('should resolve the display name from the matching user', async() => {
       const user = {
         principalIds: [value], displayName: 'Base User', username: 'base-user'
@@ -257,6 +309,119 @@ describe('component: Principal', () => {
       await wrapper.vm.loadData();
 
       expect(wrapper.vm.principal).toBeNull();
+    });
+
+    it('should not show the unresolved info icon once the principal is built from a user', async() => {
+      const user = {
+        principalIds: [value], displayName: 'Base User', username: 'base-user'
+      };
+      const { $store } = createStore({ users: [user], find: forbidden });
+      const wrapper = mountComponent($store);
+
+      await wrapper.vm.loadData();
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.findComponent(RcIconTooltip).exists()).toBe(false);
+    });
+
+    describe('and no user matches the principal id', () => {
+      const unresolvedValue = 'github_team://8087745';
+
+      const mountUnresolved = async(id: string = unresolvedValue): Promise<VueWrapper<any, any>> => {
+        const { $store } = createStore({ find: forbidden });
+        const wrapper = shallowMount(Principal, {
+          props:  { value: id },
+          global: { mocks: { $fetchState: { pending: false }, $store } },
+        }) as VueWrapper<any, any>;
+
+        await wrapper.vm.loadData();
+
+        return wrapper;
+      };
+
+      beforeEach(() => {
+        jest.spyOn(console, 'debug').mockImplementation(() => {});
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+      });
+
+      it.each([
+        ['github_team://8087745', 'github_team 8087745'],
+        ['github_user://18697775', 'github_user 18697775'],
+        ['okta_user://test', 'okta_user test'],
+        ['u-abc123', 'u-abc123'],
+      ])('should show %p as %p', async(id, expected) => {
+        const wrapper = await mountUnresolved(id);
+
+        expect(wrapper.find('.name').text()).toStrictEqual(expected);
+      });
+
+      it('should not render the raw principal id', async() => {
+        const wrapper = await mountUnresolved();
+
+        expect(wrapper.text()).not.toContain(unresolvedValue);
+      });
+
+      it('should show a question mark icon in place of the avatar', async() => {
+        const wrapper = await mountUnresolved();
+
+        expect(wrapper.find('.avatar').findComponent(RcIcon).props('type')).toStrictEqual('question-mark');
+      });
+
+      it('a11y: should hide the question mark icon from screen readers', async() => {
+        const wrapper = await mountUnresolved();
+
+        expect(wrapper.find('.avatar').findComponent(RcIcon).props('ariaHidden')).toBe(true);
+      });
+
+      it('should not render the name as an error', async() => {
+        const wrapper = await mountUnresolved();
+
+        expect(wrapper.find('.text-error').exists()).toBe(false);
+      });
+
+      it('should not show a warning icon', async() => {
+        const wrapper = await mountUnresolved();
+
+        expect(wrapper.find('.icon-warning').exists()).toBe(false);
+      });
+
+      it('should show an info icon next to the name', async() => {
+        const wrapper = await mountUnresolved();
+
+        expect(wrapper.find('.name').findComponent(RcIconTooltip).exists()).toBe(true);
+      });
+
+      it('should explain why the principal id is shown in the info icon tooltip', async() => {
+        const wrapper = await mountUnresolved();
+
+        expect(wrapper.findComponent(RcIconTooltip).props('content')).toStrictEqual('%principal.unresolved%');
+      });
+
+      it('should space the info icon from the id', async() => {
+        const wrapper = await mountUnresolved();
+
+        expect(wrapper.findComponent(RcIconTooltip).classes()).toContain('ml-5');
+      });
+
+      describe('and there is no principal id', () => {
+        it('should say the principal could not be fetched', async() => {
+          const wrapper = await mountUnresolved('');
+
+          expect(wrapper.find('.name').text()).toStrictEqual('%principal.error%');
+        });
+
+        it('should not show the info icon', async() => {
+          const wrapper = await mountUnresolved('');
+
+          expect(wrapper.findComponent(RcIconTooltip).exists()).toBe(false);
+        });
+
+        it('should still show the question mark icon in place of the avatar', async() => {
+          const wrapper = await mountUnresolved('');
+
+          expect(wrapper.find('.avatar').findComponent(RcIcon).props('type')).toStrictEqual('question-mark');
+        });
+      });
     });
   });
 });

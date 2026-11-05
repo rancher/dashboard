@@ -2,7 +2,7 @@ import actions from '@shell/plugins/steve/actions';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 
-const { fetchResourceSummary, cleanForDownload } = actions;
+const { fetchResourceSummary, cleanForDownload, promptRestore } = actions as any;
 
 const YAML = `apiVersion: v1
 kind: ConfigMap
@@ -230,6 +230,21 @@ describe('steve: actions:', () => {
       expect(result).toContain('name: my-configmap');
       // legacy callers never asked to edit, so server-managed fields remain
       expect(result).toContain('uid:');
+    });
+  });
+
+  describe('promptRestore', () => {
+    it('should open the restore snapshot dialog, which renders its own RcModal, for the given resources', async() => {
+      const dispatch = jest.fn();
+      const resources = [{ id: 'fleet-default/cluster' }];
+
+      await promptRestore({ dispatch }, resources);
+
+      expect(dispatch).toHaveBeenCalledWith('promptModal', {
+        component: 'PromptRestore',
+        ownsModal: true,
+        resources,
+      });
     });
   });
 });

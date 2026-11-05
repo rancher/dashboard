@@ -7,6 +7,7 @@ import { base64Decode } from '@shell/utils/crypto';
 import loadPlugins from '@shell/plugins/plugin';
 import { LOGIN_ERRORS } from '@shell/store/auth';
 import { AUTH_BROADCAST_CHANNEL_NAME } from '@shell/utils/auth';
+import { providerKey } from '@shell/models/management.cattle.io.authconfig';
 
 const samlProviders = ['ping', 'adfs', 'keycloak', 'okta', 'shibboleth', 'genericsaml'];
 
@@ -101,7 +102,9 @@ export default {
       return;
     }
 
-    const { test, provider, nonce } = parsed;
+    const {
+      test, provider, providerType, nonce
+    } = parsed;
 
     if (test) {
       return;
@@ -132,7 +135,8 @@ export default {
       let errCode = err;
 
       // If the provider is OAUTH, then the client error is not that the credentials are wrong, but that the user is not authorized
-      if (oauthProviders.includes(provider) && err === LOGIN_ERRORS.CLIENT_UNAUTHORIZED) {
+      // Note `provider` is a config name, so the kind of provider comes from `providerType`
+      if (oauthProviders.includes(providerKey(providerType || provider)) && err === LOGIN_ERRORS.CLIENT_UNAUTHORIZED) {
         errCode = LOGIN_ERRORS.USER_UNAUTHORIZED;
       }
 

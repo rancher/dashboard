@@ -16,11 +16,10 @@
     "typeRoots": [
       "../../node_modules",
       "../../node_modules/@rancher/shell/types"
-    ],    
+    ],
     "types": [
-      "node",
-      "webpack-env",
       "@types/node",
+      "@types/webpack-env",
       "@types/jest",
       "@types/lodash",
       "rancher",
@@ -37,9 +36,10 @@
         "../../node_modules/@rancher/shell/*"
       ],
       "@components/*": [
-        "@rancher/components/*"
+        "../../node_modules/@rancher/shell/rancher-components/*"
       ]
-    }
+    },
+    "resolveJsonModule": true
   },
   "include": [
     "**/*.ts",

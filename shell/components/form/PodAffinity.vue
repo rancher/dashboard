@@ -75,6 +75,15 @@ export default {
       default: false,
       type:    Boolean
     },
+
+    /**
+     * Use the RcSection/RcButton components in place of the legacy
+     * InfoBox/`btn` markup for the term container, add and remove buttons
+     */
+    useRc: {
+      default: false,
+      type:    Boolean
+    },
   },
 
   data() {
@@ -170,10 +179,7 @@ export default {
   },
 
   created() {
-    if (!this.value[this.field]) {
-      this.value[this.field] = {};
-    }
-    const { podAffinity = {}, podAntiAffinity = {} } = this.value[this.field];
+    const { podAffinity = {}, podAntiAffinity = {} } = this.value[this.field] || {};
     const allAffinityTerms = [...(podAffinity.preferredDuringSchedulingIgnoredDuringExecution || []), ...(podAffinity.requiredDuringSchedulingIgnoredDuringExecution || [])].map((term) => {
       let out = clone(term);
 
@@ -249,6 +255,9 @@ export default {
         }
       });
 
+      if (!this.value[this.field]) {
+        this.value[this.field] = {};
+      }
       Object.assign(this.value[this.field], { podAffinity, podAntiAffinity });
       this.$emit('update', this.value);
     },
@@ -346,10 +355,11 @@ export default {
     <div class="col span-12">
       <ArrayListGrouped
         v-model:value="allSelectorTerms"
-        class="mt-20"
         :default-add-value="defaultAddValue"
         :mode="mode"
         :add-label="addLabel"
+        :use-rc="useRc"
+        :get-item-title="(r)=>t('workload.scheduling.affinity.podSelectorTitle', { i: r.i })"
         @remove="remove"
       >
         <template #default="props">
@@ -417,6 +427,8 @@ export default {
             :type="pod"
             :value="get(props.row.value, 'labelSelector.matchExpressions')"
             :show-remove="false"
+            :use-rc="useRc"
+            :add-icon="useRc ? 'icon-plus' : ''"
             :data-testid="`pod-affinity-expressions-index${props.i}`"
             @update:value="e=>updateLabelSelector(e, props)"
           />

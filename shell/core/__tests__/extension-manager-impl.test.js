@@ -1,5 +1,10 @@
 import { reactive, isReactive } from 'vue';
 import { DEVELOPER_LOAD_NAME_SUFFIX, createExtensionManager } from '@shell/core/extension-manager-impl';
+import {
+  getExtensionProductRouting,
+  registerExtensionProductRouting,
+  resetExtensionProductRouting,
+} from '@shell/core/plugin-products-route-registry';
 
 // Mock external dependencies
 jest.mock('@shell/store/type-map', () => ({ productsLoaded: jest.fn().mockReturnValue(true) }));
@@ -424,6 +429,225 @@ describe('extension Manager', () => {
       expect(mockStore.dispatch).not.toHaveBeenCalledWith('uiplugins/addPlugin', expect.anything());
 
       consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('removePlugin', () => {
+    const OWNED_PRODUCT = 'ownedprod';
+    const EXTENDED_PRODUCT = 'extendedprod';
+
+    /**
+     * Loads a builtin plugin that owns one product and extends another, both of them registered
+     * in the route registry. The extended product's entry stands in for another extension owning it.
+     */
+    function loadPluginOwningAndExtending(id) {
+      registerExtensionProductRouting(OWNED_PRODUCT, true);
+      registerExtensionProductRouting(EXTENDED_PRODUCT, true);
+
+      const mockModule = {
+        default: jest.fn().mockImplementation((plugin) => {
+          plugin.productNames = [OWNED_PRODUCT, EXTENDED_PRODUCT];
+          plugin.productConfigs = [
+            {
+              newProduct: true, productName: OWNED_PRODUCT, apply: jest.fn()
+            },
+            {
+              newProduct: false, productName: EXTENDED_PRODUCT, apply: jest.fn()
+            },
+          ];
+        })
+      };
+
+      manager.registerBuiltinExtension(id, mockModule);
+      manager.loadBuiltinExtensions();
+    }
+
+    beforeEach(() => {
+      resetExtensionProductRouting();
+      // Both products are registered, so neither registration waits
+      mockStore.getters['type-map/productByName'] = (name) => ({ name, extendable: true });
+    });
+
+    it('forgets the routing of a product the plugin owns', async() => {
+      loadPluginOwningAndExtending('route-owner');
+
+      await manager.removePlugin('route-owner');
+
+      expect(getExtensionProductRouting(OWNED_PRODUCT)).toBeUndefined();
+    });
+
+    it('keeps the routing of a product the plugin only extends', async() => {
+      loadPluginOwningAndExtending('route-extender');
+
+      await manager.removePlugin('route-extender');
+
+      expect(getExtensionProductRouting(EXTENDED_PRODUCT)).toStrictEqual({ startRouteWithProduct: true, hasResourceRoutes: false });
+    });
+  });
+
+  describe('product extends waiting for their product', () => {
+    const PRODUCT = 'acmeprod';
+
+    let registered;
+    let consoleErrorSpy;
+
+    /** A product registration as `Plugin` holds it. Applying one that adds a product registers it. */
+    function productConfig(productName, newProduct) {
+      return {
+        newProduct,
+        productName,
+        apply: jest.fn().mockImplementation(() => {
+          if (newProduct) {
+            registered.add(productName);
+          }
+        }),
+      };
+    }
+
+    function loadBuiltin(id, ...productConfigs) {
+      const mockModule = {
+        default: jest.fn().mockImplementation((plugin) => {
+          plugin.productConfigs = productConfigs;
+        })
+      };
+
+      manager.registerBuiltinExtension(id, mockModule);
+      manager.loadBuiltinExtensions();
+    }
+
+    beforeEach(() => {
+      registered = new Set();
+      mockStore.getters['type-map/productByName'] = (name) => (registered.has(name) ? { name, extendable: true } : undefined);
+      consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    });
+
+    afterEach(() => {
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('does not apply an extend whose product is not registered yet', () => {
+      const extend = productConfig(PRODUCT, false);
+
+      loadBuiltin('extender', extend);
+
+      expect(extend.apply).not.toHaveBeenCalled();
+    });
+
+    it('applies a waiting extend once its product is registered', () => {
+      const extend = productConfig(PRODUCT, false);
+
+      loadBuiltin('extender', extend);
+      loadBuiltin('owner', productConfig(PRODUCT, true));
+
+      expect(extend.apply).toHaveBeenCalledWith(expect.objectContaining({ name: 'extender' }), mockStore, expect.any(Function));
+    });
+
+    it('applies a waiting extend after the product it extends', () => {
+      const extend = productConfig(PRODUCT, false);
+      const add = productConfig(PRODUCT, true);
+
+      loadBuiltin('extender', extend);
+      loadBuiltin('owner', add);
+
+      expect(extend.apply.mock.invocationCallOrder[0]).toBeGreaterThan(add.apply.mock.invocationCallOrder[0]);
+    });
+
+    it('finds the product when the extend passed its name with dashes', () => {
+      const extend = productConfig('acme-prod', false);
+
+      loadBuiltin('extender', extend);
+      loadBuiltin('owner', productConfig(PRODUCT, true));
+
+      expect(extend.apply).toHaveBeenCalledWith(expect.objectContaining({ name: 'extender' }), mockStore, expect.any(Function));
+    });
+
+    it('flags an extension when an extend is still waiting after every extension was applied', () => {
+      loadBuiltin('extender', productConfig(PRODUCT, false));
+
+      manager.loadProducts();
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith('uiplugins/setError', { name: 'extender', error: 'plugins.error.extendedProductMissing' });
+    });
+
+    it('does not flag an extension again for an extend it was already flagged for', () => {
+      loadBuiltin('extender', productConfig(PRODUCT, false));
+
+      manager.reportPendingExtends();
+      manager.reportPendingExtends();
+
+      expect(mockStore.dispatch.mock.calls.filter(([action]) => action === 'uiplugins/setError')).toHaveLength(1);
+    });
+
+    it('clears the flag once the product the extend was waiting for is registered', () => {
+      loadBuiltin('extender', productConfig(PRODUCT, false));
+      manager.reportPendingExtends();
+
+      loadBuiltin('owner', productConfig(PRODUCT, true));
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith('uiplugins/setError', { name: 'extender', error: false });
+    });
+
+    it('stops waiting on behalf of an extension that is removed', async() => {
+      const extend = productConfig(PRODUCT, false);
+
+      loadBuiltin('extender', extend);
+      await manager.removePlugin('extender');
+      loadBuiltin('owner', productConfig(PRODUCT, true));
+
+      expect(extend.apply).not.toHaveBeenCalled();
+    });
+
+    it('flags an extension whose product registration throws, instead of throwing', () => {
+      const broken = productConfig(PRODUCT, true);
+
+      broken.apply.mockImplementation(() => {
+        throw new Error('broken');
+      });
+
+      loadBuiltin('broken', broken);
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith('uiplugins/setError', { name: 'broken', error: 'plugins.error.generic' });
+    });
+
+    it('still applies the products of other extensions when one throws', () => {
+      const broken = productConfig('brokenprod', true);
+      const working = productConfig(PRODUCT, true);
+
+      broken.apply.mockImplementation(() => {
+        throw new Error('broken');
+      });
+
+      loadBuiltin('broken', broken);
+      loadBuiltin('working', working);
+      working.apply.mockClear();
+
+      manager.loadProducts();
+
+      expect(working.apply).toHaveBeenCalledWith(expect.objectContaining({ name: 'working' }), mockStore, expect.any(Function));
+    });
+
+    describe('routes added late', () => {
+      /** The function an extend is given to add routes to vue-router straight away */
+      function getAddLateRoutes() {
+        const extend = productConfig(PRODUCT, false);
+
+        loadBuiltin('owner', productConfig(PRODUCT, true));
+        loadBuiltin('extender', extend);
+
+        return extend.apply.mock.calls[0][2];
+      }
+
+      it('counts the times routes were added', () => {
+        getAddLateRoutes()([{ route: { name: 'late-route' } }]);
+
+        expect(manager.lateRoutesAdded).toBe(1);
+      });
+
+      it('does not count an empty list of routes', () => {
+        getAddLateRoutes()([]);
+
+        expect(manager.lateRoutesAdded).toBe(0);
+      });
     });
   });
 

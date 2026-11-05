@@ -2,6 +2,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import MachinesPagePo from '@/cypress/e2e/po/pages/cluster-manager/machines.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 describe('Machines', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const machinesPage = new MachinesPagePo();
@@ -90,7 +91,8 @@ describe('Machines', { testIsolation: false, tags: ['@manager', '@adminUser'] },
   it('can download YAML', function() {
     MachinesPagePo.navTo();
     machinesPage.waitForPage();
-    machinesPage.list().actionMenu(this.machineName).getMenuItem('Download YAML').click({ force: true });
+    machinesPage.list().actionMenu(this.machineName).getMenuItem('Export As...').click({ force: true });
+    new ExportModalPo().download();
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.machineName }.yaml`);
 

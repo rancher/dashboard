@@ -3,6 +3,7 @@ import { defineComponent } from 'vue';
 import { RcDropdown } from '@components/RcDropdown';
 
 const vDropdownMock = defineComponent({
+  props:    { shown: Boolean },
   template: `
     <div class="popper">
       <slot name="popper" />
@@ -11,6 +12,13 @@ const vDropdownMock = defineComponent({
 });
 
 describe('component: RcDropdown.vue', () => {
+  it('should open when mounted open', () => {
+    const wrapper = mount(RcDropdown, { props: { open: true }, global: { components: { 'v-dropdown': vDropdownMock } } });
+
+    expect(wrapper.findComponent(vDropdownMock).props('shown')).toBe(true);
+    expect(wrapper.emitted('update:open')).toStrictEqual([[true]]);
+  });
+
   it('should not change the height if the dropdown fits within the screen', async() => {
     Object.defineProperty(window, 'innerHeight', { value: 800 });
 
@@ -75,6 +83,66 @@ describe('component: RcDropdown.vue', () => {
     expect(dropdownTarget.style.height).toBe('693px');
   });
 
+  it('should scroll in the popper\'s box once cut to the screen, so nothing reaching over the menu\'s padding is clipped', async() => {
+    Object.defineProperty(window, 'innerHeight', { value: 400 });
+
+    const innerMock = defineComponent({
+      props:    { shown: Boolean },
+      template: `
+        <div class="popper">
+          <div class="v-popper__inner">
+            <slot name="popper" />
+          </div>
+        </div>
+      `,
+    });
+    const wrapper = mount(RcDropdown, { global: { components: { 'v-dropdown': innerMock } } });
+    const dropdownTarget = wrapper.find('[dropdown-menu-collection]').element as HTMLElement;
+    const inner = wrapper.find('.v-popper__inner').element as HTMLElement;
+
+    Object.defineProperty(dropdownTarget, 'getBoundingClientRect', {
+      value: () => ({
+        top: 200, bottom: 700, height: 500
+      })
+    });
+
+    await wrapper.findComponent(innerMock).vm.$emit('apply-show');
+    await wrapper.vm.$nextTick();
+
+    expect(dropdownTarget.style.height).toBe('168px');
+    expect(inner.style.overflowY).toBe('auto');
+    expect(dropdownTarget.style.overflowY).toBe('');
+  });
+
+  it('should stop scrolling the popper\'s box, and drop the height it was cut to, once an opening fits again', async() => {
+    Object.defineProperty(window, 'innerHeight', { value: 400 });
+
+    const innerMock = defineComponent({
+      props:    { shown: Boolean },
+      template: '<div class="popper"><div class="v-popper__inner"><slot name="popper" /></div></div>',
+    });
+    const wrapper = mount(RcDropdown, { global: { components: { 'v-dropdown': innerMock } } });
+    const dropdownTarget = wrapper.find('[dropdown-menu-collection]').element as HTMLElement;
+    const inner = wrapper.find('.v-popper__inner').element as HTMLElement;
+    let rect = {
+      top: 200, bottom: 700, height: 500
+    };
+
+    Object.defineProperty(dropdownTarget, 'getBoundingClientRect', { value: () => rect });
+
+    await wrapper.findComponent(innerMock).vm.$emit('apply-show');
+    expect(inner.style.overflowY).toBe('auto');
+    expect(dropdownTarget.style.height).not.toBe('');
+
+    rect = {
+      top: 100, bottom: 200, height: 100
+    };
+    await wrapper.findComponent(innerMock).vm.$emit('apply-show');
+
+    expect(inner.style.overflowY).toBe('');
+    expect(dropdownTarget.style.height).toBe('');
+  });
+
   it('should apply correct height if dropdown exceeds both top and bottom edges', async() => {
     Object.defineProperty(window, 'innerHeight', { value: 400 });
 
@@ -94,5 +162,68 @@ describe('component: RcDropdown.vue', () => {
     await wrapper.vm.$nextTick();
 
     expect(dropdownTarget.style.height).toBe('368px');
+  });
+
+  describe('container prop', () => {
+    afterEach(() => {
+      document.body.innerHTML = '';
+    });
+
+    it('should render the popper container in place when no container is provided', () => {
+      const wrapper = mount(RcDropdown, { global: { components: { 'v-dropdown': vDropdownMock } } });
+
+      expect(wrapper.find('.popperContainer').exists()).toBe(true);
+      expect(document.body.querySelector(':scope > .popperContainer')).toBeNull();
+
+      wrapper.unmount();
+    });
+
+    it('should teleport the popper container to the body when container is "body"', () => {
+      const wrapper = mount(RcDropdown, {
+        props:  { container: 'body' },
+        global: { components: { 'v-dropdown': vDropdownMock } },
+      });
+
+      expect(wrapper.find('.popperContainer').exists()).toBe(false);
+      expect(document.body.querySelector(':scope > .popperContainer')).not.toBeNull();
+
+      wrapper.unmount();
+    });
+
+    it('should teleport the popper container into a given element', () => {
+      const target = document.createElement('div');
+
+      document.body.appendChild(target);
+
+      const wrapper = mount(RcDropdown, {
+        props:  { container: target },
+        global: { components: { 'v-dropdown': vDropdownMock } },
+      });
+
+      expect(target.querySelector(':scope > .popperContainer')).not.toBeNull();
+
+      wrapper.unmount();
+    });
+
+    it('should still mount the popper inside the teleported popper container', async() => {
+      const vDropdownWithContainer = defineComponent({
+        props:    { container: { type: Object, default: null } },
+        template: '<div class="popper" />',
+      });
+
+      const wrapper = mount(RcDropdown, {
+        props:  { container: 'body' },
+        global: { components: { 'v-dropdown': vDropdownWithContainer } },
+      });
+
+      // The container ref is only populated once the first render has run
+      await wrapper.vm.$nextTick();
+
+      const teleported = document.body.querySelector(':scope > .popperContainer');
+
+      expect(wrapper.findComponent(vDropdownWithContainer).props('container')).toBe(teleported);
+
+      wrapper.unmount();
+    });
   });
 });

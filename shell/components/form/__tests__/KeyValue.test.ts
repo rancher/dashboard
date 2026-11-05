@@ -643,6 +643,24 @@ describe('component: KeyValue', () => {
       });
     });
 
+    describe('remove column header', () => {
+      it('names the remove column for assistive technology', () => {
+        const wrapper = mountKV({ value: { k1: 'v1' }, asMap: true });
+        const header = wrapper.find('[role="columnheader"][aria-colindex="3"]');
+
+        expect(header.find('.sr-only').text()).toStrictEqual('%generic.remove%');
+      });
+
+      it('keeps the remove column named when removeLabel is blank for an icon-only button', () => {
+        const wrapper = mountKV({
+          value: { k1: 'v1' }, asMap: true, removeLabel: ' '
+        });
+        const header = wrapper.find('[role="columnheader"][aria-colindex="3"]');
+
+        expect(header.find('.sr-only').text()).toStrictEqual('%generic.remove%');
+      });
+    });
+
     describe('no-data placeholder in view mode', () => {
       it('placeholder cells have aria-rowindex="1" and sequential aria-colindex', () => {
         const wrapper = mountKV({ value: {}, mode: 'view' });
@@ -653,6 +671,99 @@ describe('component: KeyValue', () => {
         expect(cells[1].attributes('aria-rowindex')).toStrictEqual('1');
         expect(cells[1].attributes('aria-colindex')).toStrictEqual('2');
       });
+    });
+  });
+
+  describe('onFileSelected with parseLinesFromFile', () => {
+    const mountWithFileParsing = (props = {}) => mount(KeyValue, {
+      props: {
+        value:              [],
+        mode:               'edit',
+        asMap:              false,
+        keyName:            'name',
+        valueCanBeEmpty:    true,
+        parseLinesFromFile: true,
+        ...props,
+      },
+      global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
+    });
+
+    const rowsOf = (wrapper: any) => wrapper.vm.rows.map((row: any) => ({ name: row.name, value: row.value }));
+
+    it.each([
+      ['unix line endings', 'FOO=bar\nBAZ=qux\n'],
+      ['DOS line endings', 'FOO=bar\r\nBAZ=qux\r\n'],
+      ['mixed line endings', 'FOO=bar\r\nBAZ=qux\n'],
+      ['whitespace around the keys', '  FOO =bar\n\tBAZ\t=qux\n'],
+    ])('should parse key value pairs from a file with %s', (_, value) => {
+      const wrapper = mountWithFileParsing();
+
+      (wrapper.vm as any).onFileSelected({ name: 'env.txt', value });
+
+      expect(rowsOf(wrapper)).toStrictEqual([
+        { name: 'FOO', value: 'bar' },
+        { name: 'BAZ', value: 'qux' },
+      ]);
+    });
+
+    it.each([
+      ['unix line endings', 'FOO= bar  \n'],
+      ['DOS line endings', 'FOO= bar  \r\n'],
+    ])('should keep whitespace in the value from a file with %s', (_, value) => {
+      const wrapper = mountWithFileParsing();
+
+      (wrapper.vm as any).onFileSelected({ name: 'env.txt', value });
+
+      expect(rowsOf(wrapper)).toStrictEqual([{ name: 'FOO', value: ' bar  ' }]);
+    });
+
+    it.each([
+      ['unix line endings', 'FOO=bar\n\n  \nBAZ=qux\n'],
+      ['DOS line endings', 'FOO=bar\r\n\r\n  \r\nBAZ=qux\r\n'],
+    ])('should ignore blank lines in a file with %s', (_, value) => {
+      const wrapper = mountWithFileParsing();
+
+      (wrapper.vm as any).onFileSelected({ name: 'env.txt', value });
+
+      expect(rowsOf(wrapper)).toStrictEqual([
+        { name: 'FOO', value: 'bar' },
+        { name: 'BAZ', value: 'qux' },
+      ]);
+    });
+
+    it('should keep everything after the first "=" as the value', () => {
+      const wrapper = mountWithFileParsing();
+
+      (wrapper.vm as any).onFileSelected({ name: 'env.txt', value: 'OPTS=a=b=c\r\n' });
+
+      expect(rowsOf(wrapper)).toStrictEqual([{ name: 'OPTS', value: 'a=b=c' }]);
+    });
+
+    it('should keep a line without "=" as a key with an empty value', () => {
+      const wrapper = mountWithFileParsing();
+
+      (wrapper.vm as any).onFileSelected({ name: 'env.txt', value: 'FOO\r\n' });
+
+      expect(rowsOf(wrapper)).toStrictEqual([{ name: 'FOO', value: '' }]);
+    });
+
+    it('should keep a key with an empty value', () => {
+      const wrapper = mountWithFileParsing();
+
+      (wrapper.vm as any).onFileSelected({ name: 'env.txt', value: 'FOO=\r\nBAR=baz\r\n' });
+
+      expect(rowsOf(wrapper)).toStrictEqual([
+        { name: 'FOO', value: '' },
+        { name: 'BAR', value: 'baz' },
+      ]);
+    });
+
+    it('should remove existing empty rows after parsing', () => {
+      const wrapper = mountWithFileParsing({ value: [{ name: '', value: '' }] });
+
+      (wrapper.vm as any).onFileSelected({ name: 'env.txt', value: 'FOO=bar\r\n' });
+
+      expect(rowsOf(wrapper)).toStrictEqual([{ name: 'FOO', value: 'bar' }]);
     });
   });
 

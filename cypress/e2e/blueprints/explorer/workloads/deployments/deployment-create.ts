@@ -97,7 +97,6 @@ export const deploymentCreateRequest = {
         initContainers:   [],
         imagePullSecrets: [],
         volumes:          [],
-        affinity:         {},
         securityContext:  { seccompProfile: { type: 'RuntimeDefault' } }
       },
       metadata: {

@@ -4,6 +4,7 @@ import { addObject, addObjects, findBy } from '@shell/utils/array';
 import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { convertSelectorObj, matches, matching } from '@shell/utils/selector';
+import FleetUtils from '@shell/utils/fleet';
 
 export default class FleetBundle extends SteveModel {
   get lastUpdateTime() {
@@ -117,43 +118,24 @@ export default class FleetBundle extends SteveModel {
     return out;
   }
 
-  get stateDescription() {
-    const error = this.stateObj?.error || false;
-    const message = this.stateObj?.message;
-
-    return error ? ucFirst(message) : '';
+  get readyCondition() {
+    return this.status?.conditions?.find((c) => c.type === 'Ready');
   }
 
   get stateObj() {
-    const errorState = this.status?.conditions?.find((item) => {
-      const { error, message } = item;
-      const errState = !!error;
+    return FleetUtils.resourceStateObj(this.metadata?.state) || {};
+  }
 
-      /**
-       * error.trainsitioning = true when error applied. So checking non existance of tranistioning is not enough.
-       * {
-       *  "error": true,
-       *    "lastUpdateTime": "2022-03-03T08:28:15Z",
-       *    "message": "ErrApplied(1) [Cluster test-do/c-b5rsv: rendered manifests contain a resource that already exists. Unable to continue with install: Service \"frontend\" in namespace \"fleet-mc-helm-kustomize-example\" exists and cannot be imported into the current release: invalid ownership metadata; annotation validation error: key \"meta.helm.sh/release-name\" must equal \"sf-mchk-multi-cluster-helm-kustomize\": current value is \"test-bug-multi-cluster-helm-kustomize\"]; NotReady(1) [Cluster test-do/c-5fhtx]; deployment.apps fleet-mc-helm-kustomize-example/redis-master [progressing] Deployment does not have minimum availability., Available: 0/1; deployment.apps shavin/frontend extra; deployment.apps shavin/redis-master extra; deployment.apps shavin/redis-slave extra; service.v1 shavin/frontend extra",
-       *    "status": "False",
-       *    "transitioning": true,
-       *    "type": "Ready"
-       *    },
-       */
-      const hasErrorMessage =
-        message?.toLowerCase().includes('errapplied') ||
-        message?.toLowerCase().includes('error');
+  /**
+   * The Ready condition carries the only human readable account of why a bundle is not ready, so it is
+   * used for the description. Its `error` and `transitioning` flags are not used: the backend raises both
+   * for every state that is not Ready, which would present states such as WaitingForDependency - a bundle
+   * held back by a dependency, not a failure - as an error.
+   */
+  get stateDescription() {
+    const { status, message } = this.readyCondition || {};
 
-      return errState && hasErrorMessage;
-    });
-
-    if (errorState) {
-      errorState.name = errorState.message?.toLowerCase().includes('errapplied') ? 'errapplied' : 'error';
-
-      return errorState;
-    }
-
-    return { ...this.metadata.state };
+    return status !== 'True' && message ? ucFirst(message) : '';
   }
 
   get groupByLabel() {

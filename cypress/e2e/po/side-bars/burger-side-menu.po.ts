@@ -118,6 +118,19 @@ export default class BurgerMenuPo extends ComponentPo {
     return cy.get('.v-popper__popper .v-popper__inner').should('be.visible').and('contain.text', content);
   }
 
+  static checkIconTooltipBorderIsTransparent(): Cypress.Chainable {
+    return cy.get('.v-popper--theme-tooltip.v-popper__popper--shown').should('have.css', 'border-top-color', 'rgba(0, 0, 0, 0)');
+  }
+
+  checkIconTooltipArrowMeetsIcon(): Cypress.Chainable {
+    return this.firstClusterIcon().should(($icon) => {
+      const $arrow = Cypress.$('.v-popper--theme-tooltip.v-popper__popper--shown .v-popper__arrow-outer');
+
+      expect($arrow).to.have.length(1);
+      expect($arrow[0].getBoundingClientRect().left).to.be.closeTo($icon[0].getBoundingClientRect().right, 0.5);
+    });
+  }
+
   static checkIconTooltipOff(): Cypress.Chainable {
     return cy.get('body').find('.v-popper__popper').should('not.exist');
   }

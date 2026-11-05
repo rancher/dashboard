@@ -1,0 +1,194 @@
+<script>
+import Loading from '@shell/components/Loading';
+import SortableTable from '@shell/components/SortableTable';
+import TabTitle from '@shell/components/TabTitle';
+import Banner from '@components/Banner/Banner.vue';
+import LicenseSlideIn from '@shell/components/LicenseSlideIn.vue';
+import { RcButton } from '@components/RcButton';
+
+export default {
+  name: 'Licenses',
+
+  components: {
+    Banner, Loading, RcButton, SortableTable, TabTitle
+  },
+
+  async fetch() {
+    this.loading = true;
+    this.error = null;
+    try {
+      // Bundled with the app as its own async chunk, so it's only downloaded
+      // when this page is visited.
+      const licenses = await import(/* webpackChunkName: "licenses" */ '@shell/assets/licenses/licenses.json');
+
+      this.data = licenses.default;
+    } catch (e) {
+      this.error = e?.message || 'Unknown error';
+    } finally {
+      this.loading = false;
+    }
+  },
+
+  data() {
+    return {
+      loading: true,
+      data:    null,
+      error:   null,
+      headers: [
+        {
+          name:     'name',
+          labelKey: 'about.licenses.table.package',
+          value:    'name',
+          sort:     ['name']
+        },
+        {
+          name:     'license',
+          labelKey: 'about.licenses.table.license',
+          value:    'license',
+          sort:     ['license', 'name'],
+          width:    200
+        }
+      ]
+    };
+  },
+
+  computed: {
+    rows() {
+      const pkgs = this.data?.packages || [];
+
+      return pkgs.map((p, i) => ({
+        ...p,
+        _key:    `${ p.name }#${ i }`,
+        license: p.license || 'unknown'
+      }));
+    },
+
+    licensesMap() {
+      return this.data?.licenses || {};
+    }
+  },
+
+  methods: {
+    openPanel(pkg) {
+      const ref = pkg.licenseRef;
+      const content = ref ? this.licensesMap[ref] : null;
+
+      this.$store.commit('slideInPanel/open', {
+        component:      LicenseSlideIn,
+        componentProps: {
+          licenseId:    pkg.license,
+          licenseField: pkg.licenseField,
+          home:         pkg.home,
+          author:       pkg.author,
+          content,
+          title:        pkg.name,
+          width:        'wide'
+        }
+      });
+    }
+  }
+};
+</script>
+
+<template>
+  <Loading v-if="loading" />
+  <div
+    v-else
+    class="licenses-page"
+  >
+    <h1 class="breadcrumb-title mt-20">
+      <router-link
+        :to="{ name: 'about' }"
+        class="crumb"
+      >
+        {{ t('about.title') }}
+      </router-link>
+      <span class="separator">/</span>
+      <TabTitle breadcrumb="vendor-only">
+        {{ t('about.licenses.page.title') }}
+      </TabTitle>
+    </h1>
+
+    <Banner
+      v-if="error"
+      color="error"
+      :label="t('about.licenses.page.error', { error })"
+    />
+
+    <template v-else>
+      <p class="summary color-fg-muted mb-20">
+        {{ t('about.licenses.page.hint') }}
+      </p>
+
+      <SortableTable
+        :rows="rows"
+        :headers="headers"
+        key-field="_key"
+        mode="view"
+        :search="true"
+        :paging="true"
+        :row-actions="false"
+        :table-actions="false"
+        default-sort-by="name"
+        class="licenses-table"
+      >
+        <template #col:name="{ row }">
+          <td>
+            <RcButton
+              variant="link"
+              class="package-link"
+              :aria-label="t('about.licenses.table.viewFor', { license: row.license, name: row.name })"
+              @click="openPanel(row)"
+            >
+              {{ row.name }}
+            </RcButton>
+          </td>
+        </template>
+      </SortableTable>
+    </template>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.licenses-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+
+  .breadcrumb-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0 0 10px 0;
+
+    .crumb {
+      color: var(--link);
+    }
+
+    .separator {
+      color: var(--muted);
+      font-weight: normal;
+    }
+  }
+
+  .summary {
+    font-size: 13px;
+  }
+
+  // RcButton's own scoped styles size it as a standalone button. In a table
+  // cell the package name has to sit inline with the rest of the row, so the
+  // padding and min-height are reset here — the element and variant classes
+  // are in the selector to match the component's specificity.
+  button.rc-button.variant-link.package-link {
+    padding: 0;
+    height: auto;
+    min-height: 0;
+    line-height: inherit;
+    text-align: left;
+  }
+
+  .licenses-table {
+    margin-bottom: 16px;
+  }
+}
+</style>

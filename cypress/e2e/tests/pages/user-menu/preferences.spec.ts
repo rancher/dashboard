@@ -10,6 +10,7 @@ import ResourceYamlEditorPagePo from '@/cypress/e2e/po/pages/explorer/yaml-edito
 import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { qase } from '@/cypress/support/qase';
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 // import TooltipPo from '@/cypress/e2e/po/components/tooltip.po'; // Used in the below commented test
 
@@ -27,10 +28,6 @@ const LANGUAGE_TEST = 'Can select a language';
 
 describe('User can update their preferences', () => {
   beforeEach(() => {
-    // Unrelated to preferences: logging out resets the store while the Prime registration extension
-    // is still resolving, and its rejection is unhandled. Remove once rancher/dashboard#19172 is fixed.
-    cy.on('uncaught:exception', (err) => (err.message.includes(`Schemas aren't loaded yet`) ? false : undefined));
-
     cy.login();
   });
 
@@ -43,7 +40,7 @@ describe('User can update their preferences', () => {
     }
   });
 
-  it('Can navigate to Preferences Page', { tags: ['@userMenu', '@adminUser', '@standardUser', '@flaky'] }, () => {
+  qase(1405, it('Can navigate to Preferences Page', { tags: ['@userMenu', '@adminUser', '@standardUser', '@flaky'] }, () => {
     /*
     Open user menu and navigate to Preferences page
     Verify url includes endpoint '/prefs'
@@ -55,9 +52,9 @@ describe('User can update their preferences', () => {
     prefPage.waitForPage();
     prefPage.checkIsCurrentPage();
     prefPage.title();
-  });
+  }));
 
-  it(LANGUAGE_TEST, { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  qase(1406, it(LANGUAGE_TEST, { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select language
     */
@@ -121,9 +118,9 @@ describe('User can update their preferences', () => {
     header.showKubectlExplainTooltip();
     header.getKubectlExplainTooltipContent().contains('Describe Resource');
     // EO test https://github.com/rancher/dashboard/issues/10153
-  });
+  }));
 
-  it('Can select a theme', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  qase(1416, it('Can select a theme', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select theme and verify that its highlighted
     Validate http request's payload & response contain correct values per selection
@@ -146,9 +143,9 @@ describe('User can update their preferences', () => {
       });
       prefPage.themeButtons().isSelected(key);
     }
-  });
+  }));
 
-  it('Can select date format', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  qase(1412, it('Can select date format', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select each option
     Validate http request's payload & response contain correct values per selection
@@ -176,9 +173,9 @@ describe('User can update their preferences', () => {
       });
       prefPage.dateFormateDropdownMenu().isClosed();
     }
-  });
+  }));
 
-  it('Can select time format', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  qase(1414, it('Can select time format', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select each option
     Validate http request's payload & response contain correct values per selection
@@ -203,9 +200,9 @@ describe('User can update their preferences', () => {
       });
       prefPage.timeFormateDropdownMenu().isClosed();
     }
-  });
+  }));
 
-  it('Can select Table Rows per Page', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  qase(1409, it('Can select Table Rows per Page', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select each option
     Validate http request's payload & response contain correct values per selection
@@ -233,9 +230,9 @@ describe('User can update their preferences', () => {
       prefPage.perPageDropdownMenu().isClosed();
       prefPage.perPageDropdownMenu().checkOptionSelected(key);
     }
-  });
+  }));
 
-  it('Can select Confirmation Setting', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  qase(1411, it('Can select Confirmation Setting', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select the checkbox
     Validate http request's payload & response contain correct values per selection
@@ -258,9 +255,9 @@ describe('User can update their preferences', () => {
       expect(response?.body.data).to.have.property('scale-pool-prompt', 'false');
     });
     prefPage.scalingDownPromptCheckbox().isUnchecked();
-  });
+  }));
 
-  it('Can select Enable "View in API"', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  qase(1408, it('Can select Enable "View in API"', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select the checkbox and verify 'View in API' is enabled
     Deselect the checkbox and verify 'View in API' is hidden
@@ -314,9 +311,9 @@ describe('User can update their preferences', () => {
     repoList.actionMenu('Partners');
     repoList.resourceTable().sortableTable().rowActionMenu().getMenuItem('View in API')
       .should('not.exist');
-  });
+  }));
 
-  it('Can select Show system Namespaces managed by Rancher (not intended for editing or deletion)', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  qase(1413, it('Can select Show system Namespaces managed by Rancher (not intended for editing or deletion)', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select checkbox option
     Validate http request's payload & response contain correct values per selection
@@ -339,9 +336,9 @@ describe('User can update their preferences', () => {
       expect(response?.body.data).to.have.property('all-namespaces', 'false');
     });
     prefPage.allNamespacesCheckbox().isUnchecked();
-  });
+  }));
 
-  it('Can select Enable Dark/Light Theme keyboard shortcut toggle (shift+T)', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  qase(1410, it('Can select Enable Dark/Light Theme keyboard shortcut toggle (shift+T)', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select checkbox option
     Validate http request's payload & response contain correct values per selection
@@ -364,9 +361,9 @@ describe('User can update their preferences', () => {
       expect(response?.body.data).to.have.property('theme-shortcut', 'false');
     });
     prefPage.themeShortcutCheckbox().isUnchecked();
-  });
+  }));
 
-  it('Can select Hide All Type Description Boxes', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  qase(1407, it('Can select Hide All Type Description Boxes', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select the checkbox and verify description banner hidden
     Deselect the checkbox and verify description banner displays
@@ -396,9 +393,9 @@ describe('User can update their preferences', () => {
     featureFlagsPage.goTo();
     featureFlagsPage.waitForPage();
     banners.self().should('exist');
-  });
+  }));
 
-  it('Can select a YAML Editor Key Mapping option', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  qase(1415, it('Can select a YAML Editor Key Mapping option', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select key mapping option
     Validate http request's payload & response contain correct values per selection
@@ -421,9 +418,9 @@ describe('User can update their preferences', () => {
       });
       prefPage.keymapButtons().isSelected(key);
     }
-  });
+  }));
 
-  it('YAML Editor does not show any indicator for default keyboard mapping', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  qase(7275, it('YAML Editor does not show any indicator for default keyboard mapping', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     prefPage.goTo();
     prefPage.keymapButtons().checkVisible();
 
@@ -433,7 +430,7 @@ describe('User can update their preferences', () => {
     yamlEditor.waitForPage();
 
     yamlEditor.keyboardMappingIndicator().checkNotExists();
-  });
+  }));
 
   // it.skip('[Vue3 Skip]: YAML Editor does show any indicator for non-default keyboard mapping', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
   //   prefPage.goTo();
@@ -460,7 +457,7 @@ describe('User can update their preferences', () => {
   //   prefPage.keymapButtons().set(NORMAL_HUMAN);
   // });
 
-  it('Can select a Helm Charts option', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  qase(1418, it('Can select a Helm Charts option', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
     Select Helm Charts mapping option
     Validate http request's payload & response contain correct values per selection
@@ -482,7 +479,7 @@ describe('User can update their preferences', () => {
       });
       prefPage.helmButtons().isSelected(key);
     }
-  });
+  }));
 
   // You want this to be last, there's some issues with logging in and logging out without sessions
 
@@ -540,36 +537,34 @@ describe('User can update their preferences', () => {
     });
     prefPage.landingPageRadioBtn().isChecked(parseInt(key.index));
 
-    // Verify that an auth redirect works (a user visits a page while not authorized and will be redirect to that page after loggin in, only active when "Take me to the area I last visited" is selected)
-    if (key.index === '1') {
-      const redirectUrl = '/c/local/explorer/node';
+    // Verify that an auth redirect works (a user visits a page while not authorized and will be redirected to that page after logging in, whatever the landing page option)
+    const redirectUrl = '/c/local/explorer/node';
 
-      const attemptAuthRedirect = () => {
-        userMenu.clickMenuItem('Log Out');
-        cy.url().should('contain', 'auth/login?logged-out');
+    const attemptAuthRedirect = () => {
+      userMenu.clickMenuItem('Log Out');
+      cy.url().should('contain', 'auth/login?logged-out');
 
-        cy.visit(redirectUrl);
-        cy.url().should('contain', 'auth/login?timed-out');
+      cy.visit(redirectUrl);
+      cy.url().should('contain', 'auth/login?timed-out');
 
-        cy.login(undefined, undefined, false, true);
-        cy.url().should('not.contain', 'auth/login');
-      };
+      cy.login(undefined, undefined, false, true);
+      cy.url().should('not.contain', 'auth/login');
+    };
 
-      attemptAuthRedirect();
-      // Wait for the redirect chain to settle on either the expected page or the home page.
-      // A transient failure fetching preferences after login lands the user on the home page
-      // instead - retry the flow once to recover (authRedirect only lives in the store, so
-      // the whole timed-out flow needs to run again)
-      cy.location('pathname', MEDIUM_TIMEOUT_OPT).should('match', new RegExp(`(/home|${ redirectUrl })`));
-      cy.location('pathname').then((pathname) => {
-        if (pathname.endsWith('/home')) {
-          attemptAuthRedirect();
-        }
-      });
-      cy.url().should('contain', redirectUrl);
-      prefPage.goTo();
-      prefPage.landingPageRadioBtn().checkVisible();
-    }
+    attemptAuthRedirect();
+    // Wait for the redirect chain to settle on either the expected page or the landing page.
+    // A transient failure fetching preferences after login lands the user on the landing page
+    // instead - retry the flow once to recover (authRedirect only lives in the store, so
+    // the whole timed-out flow needs to run again)
+    cy.location('pathname', MEDIUM_TIMEOUT_OPT).should('match', new RegExp(`(/home|${ key.page }|${ redirectUrl })`));
+    cy.location('pathname').then((pathname) => {
+      if (!pathname.endsWith(redirectUrl)) {
+        attemptAuthRedirect();
+      }
+    });
+    cy.url().should('contain', redirectUrl);
+    prefPage.goTo();
+    prefPage.landingPageRadioBtn().checkVisible();
 
     // Verify the option functions after a login
     userMenu.clickMenuItem('Log Out');
@@ -588,21 +583,21 @@ describe('User can update their preferences', () => {
     cy.url().should('contain', key.page);
   }
 
-  it('Can select login landing page - home page', { tags: ['@userMenu', '@adminUser'] }, () => {
+  qase(7280, it('Can select login landing page - home page', { tags: ['@userMenu', '@adminUser'] }, () => {
     testLandingPageOption({
       index: '0', value: '"home"', page: '/home'
     });
-  });
+  }));
 
-  it('Can select login landing page - last visited', { tags: ['@userMenu', '@adminUser'] }, () => {
+  qase(7281, it('Can select login landing page - last visited', { tags: ['@userMenu', '@adminUser'] }, () => {
     testLandingPageOption( {
       index: '1', value: '"last-visited"', page: '/prefs'
     });
-  });
+  }));
 
-  it('Can select login landing page - specific cluster', { tags: ['@userMenu', '@adminUser'] }, () => {
+  qase(7282, it('Can select login landing page - specific cluster', { tags: ['@userMenu', '@adminUser'] }, () => {
     testLandingPageOption({ // This option only works when there is an existing local cluster
       index: '2', value: '{\"name\":\"c-cluster\",\"params\":{\"cluster\":\"local\"}}', page: '/explore'
     });
-  });
+  }));
 });

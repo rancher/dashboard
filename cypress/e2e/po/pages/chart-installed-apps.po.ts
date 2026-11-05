@@ -2,6 +2,7 @@ import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 const terminal = new Kubectl();
 
@@ -25,6 +26,15 @@ export default class ChartInstalledAppsListPagePo extends BaseListPagePo {
     return new ResourceTablePo('[data-testid="installed-app-catalog-list"]');
   }
 
+  /**
+   * The name cell of the installed app with exactly this name. Looking a row up by name
+   * (rowElementWithName) matches part of the name, so 'rancher-logging' would also find
+   * 'rancher-logging-crd'. Use with should('exist') / should('not.exist').
+   */
+  appNameCell(name: string, options?: GetOptions) {
+    return this.appsList().self().contains('td.col-link-detail', new RegExp(`^\\s*${ Cypress._.escapeRegExp(name) }\\s*$`), options);
+  }
+
   waitForInstallCloseTerminal(interceptName: string, installableParts: Array<String>) {
     cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('be.oneOf', [200, 201]);
 
@@ -41,7 +51,18 @@ export default class ChartInstalledAppsListPagePo extends BaseListPagePo {
     this.appsList().self(LONG_TIMEOUT_OPT).should('be.visible');
 
     installableParts.forEach((item:string) => {
-      this.appsList().resourceTableDetails(item, 1).should('contain', 'Deployed');
+      // The row renders as soon as the app resource exists, but its state badge only flips to
+      // Deployed once Helm has finished rolling the release out, which under CI load takes longer
+      // than the default timeout - the chart specs then fail on "expected <td...> to contain
+      // 'Deployed'".
+      //
+      // The wait has to be on the query that finds the text: an assertion inherits the timeout of
+      // the last query before it, and an index step such as .eq() carries none, so a timeout given
+      // to the row lookup never reaches a .should() made on the cell.
+      this.appsList().self().contains('tr', item, LONG_TIMEOUT_OPT)
+        .within(() => {
+          cy.contains('td', 'Deployed', LONG_TIMEOUT_OPT).should('exist');
+        });
     });
 
     // timeout to give time for everything to be setup, otherwise the extension

@@ -1,11 +1,21 @@
 import type { Status } from '@components/utils/status';
 import type { RcIconType } from '@components/RcIcon/types';
 
-export type SectionType = 'primary' | 'secondary';
+export const SECTION_TYPE = {
+  PRIMARY:   'primary',
+  SECONDARY: 'secondary',
+} as const;
+
+export type SectionType = typeof SECTION_TYPE[keyof typeof SECTION_TYPE];
 
 export type SectionMode = 'with-header' | 'no-header';
 
-export type SectionBackground = 'primary' | 'secondary';
+export const SECTION_BACKGROUND = {
+  PRIMARY:   'primary',
+  SECONDARY: 'secondary',
+} as const;
+
+export type SectionBackground = typeof SECTION_BACKGROUND[keyof typeof SECTION_BACKGROUND];
 
 // ---------------------------------------------------------------------------
 // Badge helpers
@@ -78,6 +88,13 @@ export interface RcSectionProps {
    * Supports `v-model:expanded`.
    */
   expanded?: boolean;
+
+  /**
+   * Whether collapsed content is unmounted instead of hidden. Defaults to false,
+   * which keeps collapsed content mounted so form fields inside it stay
+   * registered with their validation. Only applies when `expandable` is true.
+   */
+  unmountOnHide?: boolean;
 
   /**
    * The section title text. Can also be provided via the `title` slot.

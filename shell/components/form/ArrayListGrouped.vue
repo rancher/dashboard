@@ -1,12 +1,16 @@
 <script>
+import { mapGetters } from 'vuex';
 import ArrayList from '@shell/components/form/ArrayList';
 import InfoBox from '@shell/components/InfoBox';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { RcSection, RcSectionActions } from '@components/RcSection';
 
 export default {
   name:       'ArrayListGrouped',
-  components: { ArrayList, InfoBox },
-  props:      {
+  components: {
+    ArrayList, InfoBox, RcSection, RcSectionActions
+  },
+  props: {
     /**
      * Allow to remove items by value or computation
      */
@@ -44,14 +48,36 @@ export default {
         return {};
       },
     },
+
+    /**
+     * Use the RcSection/RcButton components in place of the legacy
+     * InfoBox/`btn` markup for the group container, add and remove buttons
+     */
+    useRc: {
+      type:    Boolean,
+      default: false,
+    },
+
+    /**
+     * Only relevant when useRc is true
+     * Function to get a title to use in the RcSection component for each element
+     * This function will be invoked with the arraylist slot props object and should return a string
+     */
+    getItemTitle: {
+      type:     Function,
+      required: false
+    }
   },
 
   emits: ['update:value', 'add', 'remove'],
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
     isView() {
       return this.mode === _VIEW;
-    }
+    },
+
   },
 
   methods: {
@@ -69,11 +95,23 @@ export default {
 
       return this.canRemove;
     },
+
+
+    getTitle(scope) {
+      if ( this.getItemTitle && typeof this.getItemTitle === 'function' ) {
+        return this.getItemTitle(scope);
+      }
+
+      return '';
+    }
   }
 };
 </script>
 
 <template>
+  <!-- remove IS allowed when useRc is true, but it is controlled by this component instead.
+    remove-allow=false removes css rules that add space for a remove button to the right of each item
+  -->
   <ArrayList
     class="array-list-grouped"
     :value="value"
@@ -81,18 +119,42 @@ export default {
     :add-allowed="canAdd && !isView"
     :mode="mode"
     :initial-empty-row="initialEmptyRow"
+    :use-rc-button="useRc"
+    :remove-allowed="!useRc"
+    :add-icon="useRc ? 'icon-plus' : ''"
     @update:value="$emit('update:value', $event)"
     @add="$emit('add')"
     @remove="$emit('remove', $event)"
   >
     <template v-slot:columns="scope">
-      <InfoBox>
+      <RcSection
+        v-if="useRc"
+        type="secondary"
+        mode="with-header"
+        :title="getTitle(scope)"
+        :expandable="false"
+      >
+        <div>
+          <slot v-bind="scope" />
+        </div>
+        <template
+          v-if="canRemoveRow(scope.row, scope.i)"
+          #actions
+        >
+          <RcSectionActions
+            :actions="[{ icon: 'trash', ariaLabel: t('generic.ariaLabel.remove', { index: scope.i+1 }), action: scope.remove }]"
+            :data-testid="`remove-item-${scope.i}`"
+          />
+        </template>
+      </RcSection>
+      <InfoBox v-else>
         <slot v-bind="scope" />
       </InfoBox>
     </template>
     <template v-slot:remove-button="scope">
+      <!-- when useRc is set the remove action is rendered in the RcSection header instead -->
       <button
-        v-if="canRemoveRow(scope.row, scope.i)"
+        v-if="!useRc && canRemoveRow(scope.row, scope.i)"
         type="button"
         class="btn role-link close btn-sm"
         :data-testid="`remove-item-${scope.i}`"

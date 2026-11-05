@@ -164,6 +164,52 @@ describe('proxyApiImpl', () => {
       );
     });
 
+    it('should pass data through to management/request as the axios request body', async() => {
+      mockDispatch.mockResolvedValue({});
+
+      await proxyApi.request({
+        url:    new URL('https://api.example.com/v1/items'),
+        method: 'POST',
+        data:   { hello: 'world' },
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        'management/request',
+        expect.objectContaining({ method: 'POST', data: { hello: 'world' } }),
+        { root: true }
+      );
+
+      // `body` is ignored by axios, so it must not be used in place of `data`
+      expect(mockDispatch.mock.calls[0][1]).not.toHaveProperty('body');
+    });
+
+    it.each([
+      ['false', false],
+      ['zero', 0],
+      ['an empty string', ''],
+      ['null', null],
+    ])('should send a body of %s rather than dropping it', async(_label, data) => {
+      mockDispatch.mockResolvedValue({});
+
+      await proxyApi.request({
+        url: new URL('https://api.example.com/v1/items'), method: 'PUT', data
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        'management/request',
+        expect.objectContaining({ data }),
+        { root: true }
+      );
+    });
+
+    it('should not set data when no body is supplied', async() => {
+      mockDispatch.mockResolvedValue({});
+
+      await proxyApi.request({ url: new URL('https://api.example.com/v1/items') });
+
+      expect(mockDispatch.mock.calls[0][1]).not.toHaveProperty('data');
+    });
+
     it('should return the response directly when no postProcess is set', async() => {
       const mockResponse = { items: ['a', 'b'] };
 

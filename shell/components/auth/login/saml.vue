@@ -1,64 +1,83 @@
-<script>
+<script setup lang="ts">
+import { computed, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 import { RcButton } from '@components/RcButton';
-import Login from '@shell/mixins/login';
-export default {
-  components: { RcButton },
-  mixins:     [Login],
+import { useI18n } from '@shell/composables/useI18n';
+import { useLogin } from '@shell/composables/useLogin';
 
-  methods: {
-    async login() {
-      const { requestId, publicKey, responseType } = this.$route.query;
+const KUBECONFIG_RESPONSE_TYPE = 'kubeconfig';
 
-      const res = await this.$store.dispatch('auth/login', {
-        provider: this.name,
-        body:     {
-          finalRedirectUrl: window.location.origin,
-          requestId,
-          publicKey,
-          responseType
-        }
-      });
-
-      const { idpRedirectUrl } = res;
-
-      window.location.href = idpRedirectUrl;
-    },
+const props = defineProps({
+  focusOnMount: {
+    type:     Boolean,
+    required: true,
   },
+  name: {
+    type:     String,
+    required: true,
+  },
+  type: {
+    type:     String,
+    required: true,
+  },
+});
 
-  computed: {
-    // If any of the 3 params is specified, this is a CLI login
-    isCLILogin() {
-      const {
-        cli,
-        requestId,
-        publicKey,
-        responseType
-      } = this.$route.query;
+const route = useRoute();
+const store = useStore();
+const { t } = useI18n(store);
 
-      return cli || publicKey || responseType || requestId;
-    },
-    // If this is a CLI login, we must have the correct respone type and the other params must not be empty
-    invalidCLILogin() {
-      const { requestId, publicKey, responseType } = this.$route.query;
+const btn = ref<InstanceType<typeof RcButton> | null>(null);
+const { displayName, focus } = useLogin(props, btn);
 
-      if (this.isCLILogin) {
-        return responseType !== 'kubeconfig' || !requestId || !publicKey;
-      }
+const queryParam = (key: string): string => {
+  const value = route.query[key];
 
-      return false;
-    },
-    cliLoginCode() {
-      const { requestId } = this.$route.query;
-
-      return requestId;
-    },
-    warningMessageKey() {
-      const { cli } = this.$route.query;
-
-      return cli === 'true' ? 'login.cli.warning' : 'login.cli.warningLegacy';
-    }
-  }
+  return typeof value === 'string' ? value : '';
 };
+
+// If any of the CLI params is specified, this is a CLI login
+const isCLILogin = computed(() => !!(queryParam('cli') || queryParam('publicKey') || queryParam('responseType') || queryParam('requestId')));
+
+// The CLI asks for `kubeconfig` when no cluster is given and `kubeconfig_<clusterId>`
+// when one is, which Rancher splits back apart on the first underscore
+const validResponseType = computed(() => {
+  const responseType = queryParam('responseType');
+  const separator = responseType.indexOf('_');
+
+  if (separator === -1) {
+    return responseType === KUBECONFIG_RESPONSE_TYPE;
+  }
+
+  return responseType.slice(0, separator) === KUBECONFIG_RESPONSE_TYPE && !!responseType.slice(separator + 1);
+});
+
+// If this is a CLI login, we must have the correct response type and the other params must not be empty
+const invalidCLILogin = computed(() => isCLILogin.value && (!validResponseType.value || !queryParam('requestId') || !queryParam('publicKey')));
+
+const cliLoginCode = computed(() => queryParam('requestId'));
+
+const warningMessageKey = computed(() => (queryParam('cli') === 'true' ? 'login.cli.warning' : 'login.cli.warningLegacy'));
+
+const login = async() => {
+  const { requestId, publicKey, responseType } = route.query;
+
+  const res = await store.dispatch('auth/login', {
+    provider: props.name,
+    body:     {
+      finalRedirectUrl: window.location.origin,
+      requestId,
+      publicKey,
+      responseType
+    }
+  });
+
+  const { idpRedirectUrl } = res;
+
+  window.location.href = idpRedirectUrl;
+};
+
+defineExpose({ focus });
 </script>
 
 <template>

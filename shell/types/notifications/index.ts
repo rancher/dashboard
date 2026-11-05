@@ -123,6 +123,12 @@ export type EncryptedNotification = {
   data?: any;
 };
 
+const ENCRYPTED: Record<keyof EncryptedNotification, true> = {
+  title: true, message: true, level: true, primaryAction: true, secondaryAction: true, preference: true, handlerName: true, data: true
+};
+
+export const ENCRYPTED_FIELDS = Object.keys(ENCRYPTED) as (keyof EncryptedNotification)[];
+
 /**
  * Type for Notification that is sent
  */

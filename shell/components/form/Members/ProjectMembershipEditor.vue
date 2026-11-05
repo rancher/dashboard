@@ -1,7 +1,9 @@
 <script>
 import { NORMAN } from '@shell/config/types';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
-import MembershipEditor, { canViewMembershipEditor, canViewMembershipEditorList } from '@shell/components/form/Members/MembershipEditor';
+import MembershipEditor from '@shell/components/form/Members/MembershipEditor';
+import { canViewMembershipEditor, canViewMembershipEditorList } from '@shell/utils/membership-permissions';
+
 
 export function canViewProjectMembershipEditor(store) {
   return canViewMembershipEditor(store, true);

@@ -7,7 +7,7 @@ export default class ResourceTablePo extends ComponentPo {
   }
 
   downloadYamlButton() {
-    return cy.getId('sortable-table-download');
+    return this.sortableTable().bulkAction('download');
   }
 
   snapshotNowButton() {
@@ -29,10 +29,11 @@ export default class ResourceTablePo extends ComponentPo {
    * Navigates to the detail page for a given resource name
    * @param name
    * @param selector
+   * @param resourceRowsOnly see `SortableTablePo.rowElementWithName`
    * @returns
    */
-  goToDetailsPage(name: string, selector?: string) {
-    return this.sortableTable().detailsPageLinkWithName(name, selector)
+  goToDetailsPage(name: string, selector?: string, resourceRowsOnly = false) {
+    return this.sortableTable().detailsPageLinkWithName(name, selector, resourceRowsOnly)
       .click();
   }
 }

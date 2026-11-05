@@ -6,7 +6,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import genericPluginSvg from '~shell/assets/images/generic-plugin.svg';
 import { SETTING } from '@shell/config/settings';
 import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
-import { getPluginChartVersionLabel, getPluginChartVersion } from '@shell/utils/uiplugins';
+import { getPluginChartVersionLabel, getPluginChartVersion, getLatestPluginVersions } from '@shell/utils/uiplugins';
 import { isChartVersionHigher, uiPluginHasAnnotation } from '@shell/config/uiplugins';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import Banner from '@components/Banner/Banner.vue';
@@ -42,7 +42,8 @@ export default {
       versionError:     undefined,
       defaultIcon:      genericPluginSvg,
       headerBannerSize: 0,
-      isActive:         false
+      isActive:         false,
+      showAllVersions:  false
     };
   },
   created() {
@@ -69,6 +70,47 @@ export default {
       return warnings;
     },
 
+    /**
+     * Chart version the versions list is anchored on: the installed one, or the one the panel
+     * pre-selects when the extension isn't installed
+     */
+    currentVersion() {
+      if (this.info?.installed) {
+        return this.info.installedVersion;
+      }
+
+      return getPluginChartVersion(this.info);
+    },
+
+    /**
+     * Chart version the panel selects when it opens. Normally the installed one, but that can be
+     * missing from the repo index once it's been pruned, in which case there's nothing to load a
+     * readme for and no upgrade on offer, so fall back to the latest installable version
+     */
+    defaultVersion() {
+      const versions = this.info?.versions || [];
+
+      if (versions.some((v) => v.version === this.currentVersion)) {
+        return this.currentVersion;
+      }
+
+      return this.info?.installableVersions?.[0]?.version || versions[0]?.version;
+    },
+
+    displayedVersions() {
+      const versions = this.info?.versions || [];
+
+      if (this.showAllVersions) {
+        return versions;
+      }
+
+      return getLatestPluginVersions(versions, this.currentVersion, [this.infoVersion]);
+    },
+
+    hasHiddenVersions() {
+      return this.displayedVersions.length < (this.info?.versions?.length || 0);
+    },
+
     applyDarkModeBg() {
       if (this.theme === 'dark') {
         return { 'dark-mode': true };
@@ -85,7 +127,7 @@ export default {
       }
 
       const selectedVersion = this.infoVersion;
-      const installedVersion = this.info.installedVersion;
+      const installedVersion = this.currentVersion;
 
       if (!this.info.installed) {
         if (this.info.installableVersions?.length) {
@@ -158,6 +200,7 @@ export default {
       this.versionInfo = null;
       this.versionError = null;
       this.infoVersion = undefined;
+      this.showAllVersions = false;
 
       this.loadPluginVersionInfo();
     },
@@ -167,13 +210,16 @@ export default {
     },
 
     async loadPluginVersionInfo(version) {
-      const pluginChartVersion = getPluginChartVersion(this.info);
+      const versionName = version || this.defaultVersion;
 
-      const versionName = version || pluginChartVersion || this.info.versions?.[0]?.version;
+      // versionName is always a chart version, including when it comes from a click on the list
+      const selected = this.info.versions?.find((v) => v.version === versionName);
 
-      const isVersionNotCompatible = this.info.versions?.find((v) => versionName === (v.appVersion ?? v.version) && !v.isVersionCompatible);
+      // the installed version stays selected even once it stops being compatible, otherwise the panel
+      // opens with nothing selected and no way to upgrade off it
+      const isInstalledVersion = this.info.installed && versionName === this.currentVersion;
 
-      if (!this.info.chart || isVersionNotCompatible) {
+      if (!this.info.chart || (selected && !selected.isVersionCompatible && !isInstalledVersion)) {
         return;
       }
 
@@ -242,7 +288,7 @@ export default {
     getVersionLabel(version) {
       const label = getPluginChartVersionLabel(version);
 
-      if (this.info.installed && version.version === this.info.installedVersion) {
+      if (this.info.installed && version.version === this.currentVersion) {
         return `${ label } (${ this.t('plugins.labels.current') })`;
       }
 
@@ -357,7 +403,7 @@ export default {
               class="plugin-versions"
             >
               <div
-                v-for="v in info.versions"
+                v-for="v in displayedVersions"
                 :key="`${v.name}-${v.version}`"
               >
                 <a
@@ -371,6 +417,18 @@ export default {
                   @keyup.enter.space="loadPluginVersionInfo(v.version)"
                 >
                   {{ getVersionLabel(v) }}
+                </a>
+              </div>
+              <div v-if="hasHiddenVersions">
+                <a
+                  class="version-link show-all-versions"
+                  data-testid="extension-details-show-all-versions"
+                  tabindex="0"
+                  role="button"
+                  @click="showAllVersions = true"
+                  @keyup.enter.space="showAllVersions = true"
+                >
+                  {{ t('plugins.info.showAllVersions') }}
                 </a>
               </div>
             </div>
@@ -389,7 +447,7 @@ export default {
                   :variant="btn.role"
                   @click="onButtonClick(btn)"
                 >
-                  <i :class="['icon', btn.icon, 'mmr-2']" />{{ btn.label }}
+                  <i :class="['icon', btn.icon]" />{{ btn.label }}
                 </RcButton>
               </template>
               <div
@@ -588,6 +646,14 @@ export default {
 
         &.version-builtin {
           display: inline-block;
+        }
+
+        &.show-all-versions {
+          border: none;
+
+          &:hover {
+            text-decoration: underline;
+          }
         }
 
         &:focus-visible {

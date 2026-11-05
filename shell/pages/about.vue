@@ -4,18 +4,19 @@ import BackLink from '@shell/components/BackLink';
 import BackRoute from '@shell/mixins/back-link';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
-import { getVendor } from '@shell/config/private-label';
+import { getVendor, DOCS_BASE } from '@shell/config/private-label';
 import { mapGetters } from 'vuex';
 import TabTitle from '@shell/components/TabTitle';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
-import { getVersionInfo } from '@shell/utils/version';
+import { getVersionInfo, removePatchWhenZero } from '@shell/utils/version';
 import { RcButton } from '@components/RcButton';
 import { RcHeading } from '@components/RcHeading';
+import { RcStatusBadge } from '@components/Pill';
 
 export default {
   components: {
-    BackLink, ExtensionPanel, Loading, TabTitle, RcButton, RcHeading
+    BackLink, ExtensionPanel, Loading, TabTitle, RcButton, RcHeading, RcStatusBadge
   },
   mixins: [BackRoute],
   async fetch() {
@@ -25,7 +26,9 @@ export default {
     return {
       extensionType:     ExtensionPoint.PANEL,
       extensionLocation: PanelLocation.ABOUT_TOP,
-      dashboardVersion:  this.$config.dashboardVersion,
+      dashboardVersion:  removePatchWhenZero(this.$config.dashboardVersion),
+      cliDocsUrl:        `${ DOCS_BASE }/reference-guides/cli-with-rancher/rancher-cli`,
+      newCliRepoUrl:     'https://github.com/rancher/rancher-cli',
       settings:          null,
       SETTING
     };
@@ -33,7 +36,7 @@ export default {
   computed: {
     ...mapGetters(['releaseNotesUrl']),
     rancherVersion() {
-      return getVersionInfo(this.$store).fullVersion;
+      return removePatchWhenZero(getVersionInfo(this.$store).fullVersion);
     },
     appName() {
       return getVendor();
@@ -46,30 +49,7 @@ export default {
     },
     dockerMachineVersion() {
       return this.settings.find((s) => s.id === SETTING.VERSION_MACHINE);
-    },
-    downloads() {
-      return [
-        this.createOSOption('about.os.mac', 'icon-apple', this.settings?.find((s) => s.id === SETTING.CLI_URL.DARWIN)?.value),
-        this.createOSOption('about.os.linux', 'icon-linux', this.settings?.find((s) => s.id === SETTING.CLI_URL.LINUX)?.value),
-        this.createOSOption('about.os.windows', 'icon-windows', this.settings?.find((s) => s.id === SETTING.CLI_URL.WINDOWS)?.value)
-      ];
-    },
-    downloadCli() {
-      return this.downloads.filter((d) => !!d.cliLink);
     }
-  },
-  methods: {
-    createOSOption(label, icon, cliLink) {
-      const slash = cliLink?.lastIndexOf('/');
-
-      return {
-        label,
-        icon,
-        cliLink,
-        cliFile: slash >= 0 ? cliLink.substr(slash + 1, cliLink.length - 1) : cliLink
-      };
-    },
-
   }
 };
 </script>
@@ -81,7 +61,7 @@ export default {
     class="about"
   >
     <BackLink :link="backLink" />
-    <div class="title-block mt-20 mb-40">
+    <div class="title-block mb-20">
       <h1>
         <TabTitle breadcrumb="vendor-only">
           {{ t('about.title') }}
@@ -151,7 +131,7 @@ export default {
             role="link"
             :aria-label="t('about.versions.githubRepo', {name: t(`about.versions.cli`) })"
           >
-            {{ appName }} {{ t("about.versions.cli") }}
+            {{ t("about.versions.cli") }}
           </a>
         </td><td>{{ cliVersion.value }}</td>
       </tr>
@@ -194,35 +174,79 @@ export default {
         {{ t('about.versions.releaseNotes') }}
       </a>
     </p>
-    <template v-if="downloadCli.length">
-      <RcHeading
-        :size="3"
-        class="pt-40"
+
+    <RcHeading
+      :size="3"
+      class="open-source-licenses pt-40"
+    >
+      {{ t('about.licenses.title') }}
+    </RcHeading>
+    <p>{{ t('about.licenses.description') }}</p>
+    <rc-button
+      size="small"
+      :to="{ name: 'licenses' }"
+      class="mt-10 view-licenses"
+      data-testid="about__licenses_button"
+      :aria-label="t('about.licenses.viewLicenses')"
+    >
+      {{ t('about.licenses.viewLicenses') }}
+    </rc-button>
+
+    <RcHeading
+      :size="3"
+      class="pt-40"
+    >
+      {{ t('about.cli.title') }}
+    </RcHeading>
+    <p>
+      {{ t('about.cli.description') }}
+    </p>
+    <p class="pt-10">
+      <a
+        :href="cliDocsUrl"
+        target="_blank"
+        rel="nofollow noopener noreferrer"
+        data-testid="about__cli_docs_link"
       >
-        {{ t('about.downloadCLI.title') }}
-      </RcHeading>
-      <table>
-        <tr
-          v-for="(d, i) in downloadCli"
-          :key="i"
-          class="link"
-        >
-          <th>
-            <div class="os">
-              <i :class="`icon ${d.icon} mr-5`" /> {{ t(d.label) }}
-            </div>
-          </th>
-          <td>
-            <a
-              v-if="d.cliLink"
-              :href="d.cliLink"
-              role="link"
-              :aria-label="t('about.versions.downloadCli', { os: t(d.label), file: d.cliFile })"
-            >{{ d.cliFile }}</a>
-          </td>
-        </tr>
-      </table>
-    </template>
+        {{ t('about.cli.docsLink') }}
+        <i
+          class="icon icon-external-link"
+          aria-hidden="true"
+        />
+        <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
+      </a>
+    </p>
+
+    <RcHeading
+      :size="3"
+      class="new-cli-title pt-40"
+    >
+      {{ t('about.cli.new.title', null, true) }}
+      <RcStatusBadge
+        status="success"
+        data-testid="about__new_cli_badge"
+      >
+        {{ t('about.cli.new.badge') }}
+      </RcStatusBadge>
+    </RcHeading>
+    <p>
+      {{ t('about.cli.new.description') }}
+    </p>
+    <p class="pt-10">
+      <a
+        :href="newCliRepoUrl"
+        target="_blank"
+        rel="nofollow noopener noreferrer"
+        data-testid="about__new_cli_github_link"
+      >
+        {{ t('about.cli.new.githubLink') }}
+        <i
+          class="icon icon-external-link"
+          aria-hidden="true"
+        />
+        <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
+      </a>
+    </p>
   </div>
 </template>
 
@@ -232,6 +256,16 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
+  }
+
+  .view-licenses {
+    width: fit-content;
+  }
+
+  .new-cli-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
   table {
@@ -261,11 +295,6 @@ export default {
 
     a {
       cursor: pointer;
-    }
-
-    .os {
-      display: flex;
-      align-items: center;
     }
   }
 }

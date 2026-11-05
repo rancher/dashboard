@@ -7,11 +7,14 @@ import { SteveResource } from '@shell/apis/intf/resources-api/resource-base';
  */
 export interface ResourceInstanceApi {
   /**
-   * Applies a partial update to a resource using HTTP PATCH
-   * with merge-patch semantics (`application/strategic-merge-patch+json`).
+   * Applies a partial update to a resource using HTTP PATCH.
    *
    * Only the fields provided in `data` are sent to the server — the rest of the resource
    * remains unchanged. The server response is merged back into this instance.
+   *
+   * `application/strategic-merge-patch+json` is attempted first, which merges list fields by key.
+   * Resources that reject it (CRDs, which is most of Rancher) are retried with
+   * `application/merge-patch+json`, which replaces list fields instead.
    *
    * Requires edit permissions (`canEdit`).
    *

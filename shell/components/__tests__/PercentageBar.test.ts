@@ -29,4 +29,20 @@ describe('component: PercentageBar', () => {
     expect(val.text()).toBe('25%');
     expect(wrapper.vm.primaryColor).toBe('--warning');
   });
+
+  it('should use the default size of the Bar when size is not provided', () => {
+    const wrapper = shallowMount(PercentageBar, { props: { modelValue: 25 } });
+
+    const barComponent = wrapper.findComponent(Bar);
+
+    expect(barComponent.props('size')).toStrictEqual('medium');
+  });
+
+  it('should pass size to the Bar', () => {
+    const wrapper = shallowMount(PercentageBar, { props: { modelValue: 25, size: 'small' } });
+
+    const barComponent = wrapper.findComponent(Bar);
+
+    expect(barComponent.props('size')).toStrictEqual('small');
+  });
 });

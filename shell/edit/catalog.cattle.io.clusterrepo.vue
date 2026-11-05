@@ -1,4 +1,7 @@
 <script lang="ts">
+import { useStore } from 'vuex';
+import { useFormValidation } from '@shell/composables/useFormValidation';
+import { useI18n } from '@shell/composables/useI18n';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import AsyncButton from '@shell/components/AsyncButton.vue';
 import Footer from '@shell/components/form/Footer.vue';
@@ -15,6 +18,7 @@ import {
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { getVersionData } from '@shell/config/version';
+import { isSuseAppCollectionEnabled } from '@shell/utils/settings';
 import { SECONDS_PER, secondsToLargestUnit } from '@shell/utils/duration';
 import { RcItemCard } from '@components/RcItemCard';
 import { _CREATE, _EDIT, TARGET, _VIEW } from '@shell/config/query-params.js';
@@ -43,6 +47,38 @@ export default {
 
   mixins: [CreateEditView],
 
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+    const { getRules, isFormValid } = useFormValidation(
+      t,
+      [
+        {
+          path:           'metadata.name',
+          rules:          ['required'],
+          translationKey: 'nameNsDescription.name.label',
+        },
+        {
+          path:           'gitRepo',
+          rules:          ['required'],
+          translationKey: 'catalog.repo.gitRepo.label',
+        },
+        {
+          path:           'helmUrl',
+          rules:          ['required'],
+          translationKey: 'catalog.repo.url.label',
+        },
+        {
+          path:           'ociUrl',
+          rules:          ['required'],
+          translationKey: 'catalog.repo.oci.urlLabel',
+        },
+      ]
+    );
+
+    return { getRules, isFormValid };
+  },
+
   data() {
     // Determine the cluster repo type based on existing values (for edit mode)
     let clusterRepoType = '';
@@ -55,35 +91,12 @@ export default {
       clusterRepoType = CLUSTER_REPO_TYPES.HELM_URL;
     }
 
-    const clusterRepoTargets = [
-      {
-        id:      CLUSTER_REPO_TYPES.HELM_URL,
-        header:  { title: { key: 'catalog.repo.target.http.title' } },
-        image:   { icon: 'helm' as RcIconType, alt: { key: 'catalog.repo.target.http.title' } },
-        content: { key: 'catalog.repo.target.http.description' },
-      },
-      {
-        id:      CLUSTER_REPO_TYPES.GIT_REPO,
-        header:  { title: { key: 'catalog.repo.target.git.title' } },
-        image:   { icon: 'git' as RcIconType, alt: { key: 'catalog.repo.target.git.title' } },
-        content: { key: 'catalog.repo.target.git.description' },
-      },
-      {
-        id:      CLUSTER_REPO_TYPES.OCI_URL,
-        header:  { title: { key: 'catalog.repo.target.oci.title' } },
-        image:   { src: requireAsset('@shell/assets/images/providers/oci-open-containers.svg'), alt: { key: 'catalog.repo.target.oci.title' } },
-        content: { key: 'catalog.repo.target.oci.description' },
-      },
-    ];
+    // Only an existing SUSE App Collection repo keeps its card whatever the ui-appco-enabled setting says, so that it
+    // can still be edited. A clone of one starts as a plain OCI repository when the setting hides the card.
+    const isExistingAppCoRepo = [_EDIT, _VIEW].includes(this.realMode) && clusterRepoType === CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION;
 
-    // Only show SUSE App Collection option for RancherPrime
-    if (getVersionData()?.RancherPrime === 'true') {
-      clusterRepoTargets.push({
-        id:      CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION,
-        header:  { title: { key: 'catalog.repo.target.suseAppCollection.title' } },
-        image:   { src: requireAsset('@shell/assets/images/content/suse.svg'), alt: { key: 'catalog.repo.target.suseAppCollection.title' } },
-        content: { key: 'catalog.repo.target.suseAppCollection.description' },
-      });
+    if (clusterRepoType === CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION && !isExistingAppCoRepo && !isSuseAppCollectionEnabled(this.$store)) {
+      clusterRepoType = CLUSTER_REPO_TYPES.OCI_URL;
     }
 
     const storedInterval = this.value.spec.refreshInterval;
@@ -111,7 +124,7 @@ export default {
       getVersionData,
       isView:              this.mode === _VIEW,
       isCreate:            this.mode === _CREATE,
-      clusterRepoTargets,
+      isExistingAppCoRepo,
       previousName:        '',
       previousDescription: '',
       refreshEnabled,
@@ -124,13 +137,48 @@ export default {
     // When creating a new repo with a target query parameter, initialize the form properly
     const targetFromQuery = this.mode === _CREATE ? this.$route.query[TARGET] : null;
 
-    if (targetFromQuery && Object.values(CLUSTER_REPO_TYPES).includes(targetFromQuery)) {
+    if (targetFromQuery && this.clusterRepoTargets.some(({ id }) => id === targetFromQuery)) {
       // Trigger onTargetChange to properly initialize form fields for the selected target
       this.onTargetChange(targetFromQuery);
     }
   },
 
   computed: {
+    clusterRepoTargets() {
+      const targets = [
+        {
+          id:      CLUSTER_REPO_TYPES.HELM_URL,
+          header:  { title: { key: 'catalog.repo.target.http.title' } },
+          image:   { icon: 'helm' as RcIconType, alt: { key: 'catalog.repo.target.http.title' } },
+          content: { key: 'catalog.repo.target.http.description' },
+        },
+        {
+          id:      CLUSTER_REPO_TYPES.GIT_REPO,
+          header:  { title: { key: 'catalog.repo.target.git.title' } },
+          image:   { icon: 'git' as RcIconType, alt: { key: 'catalog.repo.target.git.title' } },
+          content: { key: 'catalog.repo.target.git.description' },
+        },
+        {
+          id:      CLUSTER_REPO_TYPES.OCI_URL,
+          header:  { title: { key: 'catalog.repo.target.oci.title' } },
+          image:   { src: requireAsset('@shell/assets/images/providers/oci-open-containers.svg'), alt: { text: '' } },
+          content: { key: 'catalog.repo.target.oci.description' },
+        },
+      ];
+
+      // Only show SUSE App Collection option for RancherPrime, when the ui-appco-enabled setting allows it
+      if (getVersionData()?.RancherPrime === 'true' && (this.isExistingAppCoRepo || isSuseAppCollectionEnabled(this.$store))) {
+        targets.push({
+          id:      CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION,
+          header:  { title: { key: 'catalog.repo.target.suseAppCollection.title' } },
+          image:   { src: requireAsset('@shell/assets/images/content/suse.svg'), alt: { text: '' } },
+          content: { key: 'catalog.repo.target.suseAppCollection.description' },
+        });
+      }
+
+      return targets;
+    },
+
     inStore() {
       return this.$store.getters['currentProduct']?.inStore || MANAGEMENT;
     },
@@ -166,6 +214,15 @@ export default {
 
       return this.$store.getters[`${ this.inStore }/all`](NAMESPACE)[0]?.id;
     }
+  },
+
+  watch: {
+    clusterRepoTargets(targets: { id: string }[]) {
+      // The ui-appco-enabled setting can hide the selected card while the form is open
+      if (!targets.some(({ id }) => id === this.clusterRepoType)) {
+        this.onTargetChange(CLUSTER_REPO_TYPES.HELM_URL);
+      }
+    },
   },
 
   methods: {
@@ -321,6 +378,8 @@ export default {
       :mode="mode"
       :namespaced="isNamespaced"
       :name-col-span="6"
+      name-field-name="metadata.name"
+      :rules="{ name: getRules('metadata.name'), namespace: [], description: [] }"
       @update:value="$emit('input', $event)"
     />
 
@@ -340,7 +399,9 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model:value.trim="value.spec.gitRepo"
+            name="gitRepo"
             :required="true"
+            :rules="getRules('gitRepo')"
             :label="t('catalog.repo.gitRepo.label')"
             :placeholder="t('catalog.repo.gitRepo.placeholder', {}, true)"
             :mode="mode"
@@ -363,7 +424,9 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model:value.trim="value.spec.url"
+            name="ociUrl"
             :required="true"
+            :rules="getRules('ociUrl')"
             :label="t('catalog.repo.oci.urlLabel')"
             :placeholder="t('catalog.repo.oci.placeholder', {}, true)"
             :mode="mode"
@@ -376,7 +439,9 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model:value.trim="value.spec.url"
+            name="ociUrl"
             :required="true"
+            :rules="getRules('ociUrl')"
             :label="t('catalog.repo.oci.urlLabel')"
             :placeholder="t('catalog.repo.oci.placeholder', {}, true)"
             :mode="mode"
@@ -392,7 +457,9 @@ export default {
       >
         <LabeledInput
           v-model:value.trim="value.spec.url"
+          name="helmUrl"
           :required="true"
+          :rules="getRules('helmUrl')"
           :label="t('catalog.repo.url.label')"
           :placeholder="t('catalog.repo.url.placeholder', {}, true)"
           :mode="mode"
@@ -545,6 +612,7 @@ export default {
       data-testid="clusterrepo-footer"
       :mode="mode"
       :errors="errors"
+      :disable-save="!isFormValid"
       @save="save"
       @done="done"
     >
@@ -554,6 +622,7 @@ export default {
       >
         <AsyncButton
           :action-label="t('catalog.repo.add')"
+          :disabled="!isFormValid"
           @click="save"
         />
       </template>

@@ -25,9 +25,6 @@ const { title, rows } = defineProps<Props>();
 .resource-rows {
     display: flex;
     flex-direction: column;
-
-    & > *:not(:first-of-type) {
-        margin-top: 4px;
-    }
+    gap: 4px;
 }
 </style>

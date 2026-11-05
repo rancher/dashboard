@@ -47,6 +47,10 @@ export default {
       default: false,
       type:    Boolean
     },
+    rules: {
+      type:    Object,
+      default: () => ({})
+    },
   },
 
   computed: {
@@ -134,6 +138,7 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model:value="value.name"
+            :rules="rules.name"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.volumeName')"
@@ -153,6 +158,7 @@ export default {
           <LabeledSelect
             v-if="type==='secret'"
             v-model:value="value[type].secretName"
+            :rules="rules['secret.secretName']"
             :options="secretNames"
             :mode="mode"
             :required="true"
@@ -162,6 +168,7 @@ export default {
           <LabeledSelect
             v-else-if="type==='configMap'"
             v-model:value="value[type].name"
+            :rules="rules['configMap.name']"
             :options="configMapNames"
             :required="true"
             :mode="mode"

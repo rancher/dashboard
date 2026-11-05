@@ -22,7 +22,10 @@ export default {
 
         this.isOpen = false;
         vm.open = false;
-        vm.search = '';
+
+        if (!this.keepSearchOnBlur) {
+          vm.search = '';
+        }
 
         this.$refs.select.focus();
 

@@ -70,11 +70,10 @@ describe('PersistentVolumeClaims', { testIsolation: false, tags: ['@explorer2', 
       cy.wait(`@${ tag }`);
 
       // group by namespace
-      persistentVolumeClaimsPage.list().resourceTable().sortableTable().groupByButtons(1)
-        .click();
+      persistentVolumeClaimsPage.list().resourceTable().sortableTable().groupBy('Namespace');
 
       //  check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Status', 'Volume', 'Capacity', 'Access Modes', 'Storage Class', 'VolumeAttributesClass', 'Volume Mode', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Status', 'Volume', 'Capacity', 'Access Modes', 'Storage Class', 'VolumeAttributesClass', 'Volume Mode', 'Age'];
 
       persistentVolumeClaimsPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')

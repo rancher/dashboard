@@ -169,6 +169,49 @@ export function filterHiddenLocalCluster(mgmtClusters, store) {
   });
 }
 
+/**
+ * Shape a cluster for the nav's chip, which takes the plain object the app bar builds rather than a
+ * model — spreading a model would drop the getters the chip reads.
+ *
+ * @param {*} cluster a management or provisioning cluster
+ * @returns {*} the fields the chip renders
+ */
+export function clusterChip(cluster) {
+  const target = cluster?.mgmt || cluster || {};
+
+  return {
+    label:       target.nameDisplay,
+    ready:       target.ready,
+    isLocal:     target.isLocal,
+    isHarvester: target.isHarvester,
+    badge:       target.badge,
+    iconColor:   target.iconColor,
+    pinned:      target.pinned,
+  };
+}
+
+/**
+ * Shape a cluster for the nav's pin control, or null where there is nothing to pin: `local` holds a
+ * fixed slot on the shelf, and a row that cannot pin itself has no toggle to offer.
+ *
+ * @param {*} cluster a management or provisioning cluster
+ * @returns {*} the pin control's cluster, or null when it cannot be pinned
+ */
+export function pinnableCluster(cluster) {
+  const target = cluster?.mgmt || cluster;
+
+  if (!target || target.isLocal || typeof target.pin !== 'function') {
+    return null;
+  }
+
+  return {
+    pinned: target.pinned,
+    label:  target.nameDisplay,
+    pin:    () => target.pin(),
+    unpin:  () => target.unpin(),
+  };
+}
+
 const clusterNameSegments = /([A-Za-z]+|\d+)/g;
 
 /**

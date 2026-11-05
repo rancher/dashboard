@@ -9,9 +9,11 @@ const enabledByDefault = true;
 
 export const useIsNewDetailPageEnabled = () => {
   const route = useRoute();
+  // Resolved here, in setup: `useStore` only works while a component is being set up or rendered, but the
+  // computed below is also re-evaluated from the scheduler when a dependency changes (e.g. a setting is loaded)
+  const store = useStore();
 
   return computed(() => {
-    const store = useStore();
     const { fullVersion } = getVersionInfo(store);
 
     const coerced = semver.coerce(fullVersion) || { version: '0.0.0' };

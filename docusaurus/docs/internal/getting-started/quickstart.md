@@ -6,7 +6,7 @@ To get started running the UI for development:
 
 Prerequisites:
 
-* Node 20 (later versions are currently not supported)
+* Node, at the version pinned in [`.nvmrc`](https://github.com/rancher/dashboard/blob/master/.nvmrc)
 
 * yarn:
   ```npm install --global yarn```

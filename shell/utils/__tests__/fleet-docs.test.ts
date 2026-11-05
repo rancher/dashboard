@@ -1,4 +1,4 @@
-import { getDownstreamResourcesDocsUrl, getBundleDeploymentOptionsDocsUrl, getGitRepoRestrictionMigrationDocsUrl } from '@shell/utils/fleet-docs';
+import { getDownstreamResourcesDocsUrl, getBundleDeploymentOptionsDocsUrl, getPolicyNamespaceCreationDocsUrl, getGitRepoRestrictionMigrationDocsUrl } from '@shell/utils/fleet-docs';
 import { getVersionData, isRancherPrime } from '@shell/config/version';
 
 // The docs URLs depend on the running Rancher version and whether it's a Prime install, both
@@ -82,6 +82,23 @@ describe('fleet-docs utils', () => {
     it('should fall back to the SUSE "next" CRD reference for dev/head builds when Prime', () => {
       mockVersionData('master-head', true);
       expect(getBundleDeploymentOptionsDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/next/en/reference/ref-crds.html#_bundledeploymentoptions');
+    });
+  });
+
+  describe('getPolicyNamespaceCreationDocsUrl (community only, with anchor)', () => {
+    it('should use the community docs (with anchor) at the root on a later release', () => {
+      mockVersionData('v2.15.1', false);
+      expect(getPolicyNamespaceCreationDocsUrl()).toStrictEqual('https://fleet.rancher.io/explanations/multi-tenancy#_namespace_creation');
+    });
+
+    it('should use the community "next" docs (with anchor) on the release that introduced them', () => {
+      mockVersionData('v2.15.0', false);
+      expect(getPolicyNamespaceCreationDocsUrl()).toStrictEqual('https://fleet.rancher.io/next/explanations/multi-tenancy#_namespace_creation');
+    });
+
+    it('should stay on the community docs when Prime, as there is no SUSE counterpart', () => {
+      mockVersionData('v2.15.1', true);
+      expect(getPolicyNamespaceCreationDocsUrl()).toStrictEqual('https://fleet.rancher.io/explanations/multi-tenancy#_namespace_creation');
     });
   });
 

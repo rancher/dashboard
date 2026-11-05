@@ -4,6 +4,9 @@ import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { createPayloadData, updatePayloadData } from '@/cypress/e2e/blueprints/cluster_management/pod-security-admissions-payload';
+import { qase } from '@/cypress/support/qase';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo();
@@ -18,15 +21,15 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
     cy.viewport(1380, 720);
     cy.createE2EResourceName('podsecurityadmissions').as('podSecurityAdmissionsName');
   });
-  it('can open "Edit as YAML"', () => {
+  qase(4943, it('can open "Edit as YAML"', () => {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.create();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().editAsYaml().click();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().yamlEditor().checkExists();
-  });
+  }));
 
-  it('can create a policy security admission', function() {
+  qase(2198, it('can create a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.create();
@@ -56,9 +59,9 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
 
     // check list details
     podSecurityAdmissionsPage.list().details(this.podSecurityAdmissionsName, 1).should('be.visible');
-  });
+  }));
 
-  it('can edit a policy security admission', function() {
+  qase(2199, it('can edit a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Edit Config').click();
@@ -84,9 +87,9 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
 
     // check list details
     podSecurityAdmissionsPage.list().details(`${ this.podSecurityAdmissionsName }-description-edit`, 1).should('be.visible');
-  });
+  }));
 
-  it('can clone a policy security admission', function() {
+  qase(2195, it('can clone a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
     podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Clone').click();
@@ -97,16 +100,19 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
 
     // check list details
     podSecurityAdmissionsPage.list().details(`${ this.podSecurityAdmissionsName }-clone`, 1).should('be.visible');
-  });
+  }));
 
-  it('can download YAML for a policy security admission', function() {
+  qase(2196, it('can download YAML for a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
-    podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Download YAML').click({ force: true });
+    podSecurityAdmissionsPage.list().actionMenu(this.podSecurityAdmissionsName).getMenuItem('Export As...').click({ force: true });
+    new ExportModalPo().download();
 
     const downloadedFilename = path.join(downloadsFolder, `${ this.podSecurityAdmissionsName }.yaml`);
 
-    cy.readFile(downloadedFilename).then((buffer) => {
+    // The click only starts the download; the browser writes the file asynchronously, so the
+    // default 10s is not always enough for it to appear on disk under CI load.
+    cy.readFile(downloadedFilename, LONG_TIMEOUT_OPT).then((buffer) => {
       const obj: any = jsyaml.load(buffer);
 
       // Basic checks on the downloaded YAML
@@ -114,11 +120,18 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
       expect(obj.metadata.name).to.equal(this.podSecurityAdmissionsName);
       expect(obj.kind).to.equal('PodSecurityAdmissionConfigurationTemplate');
     });
-  });
+  }));
 
-  it('can delete a policy security admission', function() {
+  qase(2194, it('can delete a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
+
+    // The clone this deletes is created by the previous test, and that create returns before the
+    // template is indexed and served to the list - reading the row straight away then fails with
+    // "Expected to find content: '<name>-clone' ... but never did". Confirm it exists at the API
+    // level, and let the list finish loading, before acting on the row.
+    cy.waitForRancherResource('v1', 'management.cattle.io.podsecurityadmissionconfigurationtemplates', `${ this.podSecurityAdmissionsName }-clone`, (resp: any) => resp?.status === 200, 20, { failOnStatusCode: false });
+    podSecurityAdmissionsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
     // check list details
     podSecurityAdmissionsPage.list().resourceTable().sortableTable().rowNames()
@@ -138,9 +151,9 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
         podSecurityAdmissionsPage.waitForPage();
         cy.contains(`${ this.podSecurityAdmissionsName }-clone`).should('not.exist');
       });
-  });
+  }));
 
-  it('can delete a policy security admission via bulk actions', function() {
+  qase(2197, it('can delete a policy security admission via bulk actions', function() {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
 
@@ -164,7 +177,7 @@ describe('Pod Security Admissions', { testIsolation: false, tags: ['@manager', '
         podSecurityAdmissionsPage.waitForPage();
         cy.contains(this.podSecurityAdmissionsName).should('not.exist');
       });
-  });
+  }));
 });
 
 describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
@@ -173,7 +186,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.applyDefaultTestTheme();
   });
 
-  it('should display Pod Security Admissions list page', () => {
+  qase(18426, it('should display Pod Security Admissions list page', () => {
     const podSecurityAdmissionsPage = new PodSecurityAdmissionsPagePo();
 
     PodSecurityAdmissionsPagePo.goTo('_');
@@ -188,7 +201,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
 
     // takes percy snapshot.
     cy.percySnapshot('Pod Security Admissions list page');
-  });
+  }));
 
   after(() => {
     cy.restoreProductDefaultTestTheme();

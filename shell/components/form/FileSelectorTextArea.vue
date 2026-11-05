@@ -4,7 +4,9 @@
  * either with the "Read from File" button or by dropping a file onto the text
  * area. Used for pasted blobs such as certificates and private keys.
  */
-import { computed, ref, useAttrs, type StyleValue } from 'vue';
+import {
+  computed, nextTick, ref, useAttrs, useId, type StyleValue
+} from 'vue';
 import { useStore } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import FileSelector, { readFileContents } from '@shell/components/form/FileSelector.vue';
@@ -20,6 +22,8 @@ const props = withDefaults(defineProps<{
   value?: string;
   label?: string;
   labelKey?: string;
+  /** Help text shown below the text area, above the "Read from File" button. May contain HTML. */
+  subLabel?: string;
   placeholder?: string;
   placeholderKey?: string;
   mode?: string;
@@ -45,6 +49,7 @@ const props = withDefaults(defineProps<{
   value:              '',
   label:              undefined,
   labelKey:           undefined,
+  subLabel:           undefined,
   placeholder:        undefined,
   placeholderKey:     undefined,
   mode:               undefined,
@@ -77,6 +82,9 @@ const fileSelectorAttrs = computed(() => (props.fileSelectorTestid ? { 'data-tes
 const rootClass = computed(() => attrs.class as string | string[] | Record<string, boolean> | undefined);
 const rootStyle = computed(() => attrs.style as StyleValue);
 
+const subLabelId = useId();
+const describedBy = computed(() => [attrs['aria-describedby'], props.subLabel && subLabelId].filter(Boolean).join(' ') || undefined);
+
 // Nested elements fire their own dragenter/dragleave, so count entries and
 // exits rather than toggling a boolean, otherwise the overlay flickers.
 const dragDepth = ref(0);
@@ -94,7 +102,16 @@ const isView = computed(() => props.mode === _VIEW);
 const isDropTarget = computed(() => !isView.value && !props.disabled);
 const isDragging = computed(() => dragDepth.value > 0);
 
-const onSelected = (contents: string) => emit('update:value', props.transformFile ? props.transformFile(contents) : contents);
+const input = ref<InstanceType<typeof LabeledInput> | null>(null);
+
+// A file sets the value without focusing the text area, so touch the field as a blur would, otherwise
+// an invalid file blocks saving with no error to say why. Wait for the new value to reach the input
+// first, so it is the one validated.
+const onSelected = async(contents: string) => {
+  emit('update:value', props.transformFile ? props.transformFile(contents) : contents);
+  await nextTick();
+  input.value?.touch();
+};
 
 const onError = (error: unknown) => {
   // `err`, not `error`: growl/fromError reads `err`, so the other spelling threw the detail away and
@@ -143,7 +160,7 @@ const onDrop = async(event: DragEvent) => {
   }
 
   try {
-    onSelected(await readFileContents(file));
+    await onSelected(await readFileContents(file));
   } catch (error) {
     onError(error);
   }
@@ -164,6 +181,7 @@ const onDrop = async(event: DragEvent) => {
       @drop="onDrop"
     >
       <LabeledInput
+        ref="input"
         v-bind="inputAttrs"
         :type="type"
         :value="value"
@@ -179,6 +197,7 @@ const onDrop = async(event: DragEvent) => {
         :min-height="minHeight"
         :max-height="maxHeight"
         :resize-on-value-change-and-resize-window="true"
+        :aria-describedby="describedBy"
         @update:value="$emit('update:value', $event)"
       />
       <div
@@ -189,6 +208,13 @@ const onDrop = async(event: DragEvent) => {
         <span>{{ t('fileSelectorTextArea.dropToReplace') }}</span>
       </div>
     </div>
+    <div
+      v-if="subLabel"
+      :id="subLabelId"
+      v-clean-html="subLabel"
+      class="sub-label"
+      data-testid="file-selector-text-area__sub-label"
+    />
     <div
       v-if="!isView"
       class="file-selector-row"
@@ -248,6 +274,11 @@ const onDrop = async(event: DragEvent) => {
       // Keeps the message to the design's compact, centred two-line measure
       max-width: 210px;
     }
+  }
+
+  .sub-label {
+    padding-top: 4px;
+    color: var(--input-label);
   }
 
   .file-selector-row {

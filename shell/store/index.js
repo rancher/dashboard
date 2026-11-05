@@ -40,6 +40,7 @@ import paginationUtils from '@shell/utils/pagination-utils';
 import { addReleaseNotesNotification } from '@shell/utils/release-notes';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { fetchAndProcessDynamicContent } from '@shell/utils/dynamic-content';
+import { showReleaseWelcomeIfNew } from '@shell/utils/release-welcome';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -872,6 +873,9 @@ export const actions = {
       await addReleaseNotesNotification(dispatch, getters);
 
       fetchAndProcessDynamicContent(dispatch, getters, this.$axios);
+
+      // Welcome users to a new minor release, once
+      showReleaseWelcomeIfNew(commit, getters);
     }
 
     if (systemNamespaces) {
@@ -887,10 +891,9 @@ export const actions = {
     });
 
     if ( res[FLEET.WORKSPACE] ) {
-      commit('updateWorkspace', {
+      dispatch('restoreWorkspace', {
         value: getters['prefs/get'](WORKSPACE),
-        all:   res[FLEET.WORKSPACE],
-        getters
+        all:   res[FLEET.WORKSPACE]
       });
     }
 
@@ -1306,6 +1309,21 @@ export const actions = {
 
   showWorkspaceSwitcher({ commit }, value) {
     commit('showWorkspaceSwitcher', value);
+  },
+
+  // Corrects the selection in use only. The stored preference is deliberately left alone, so a list
+  // that has not caught up yet - right after creating a workspace - can never cost the user their choice.
+  restoreWorkspace({ commit, getters, state }, { value, all }) {
+    commit('updateWorkspace', {
+      value, all: all || state.allWorkspaces, getters
+    });
+  },
+
+  // Sets the selection without correcting it against anything. For callers that already know which
+  // value they want and whose options the store cannot see - the workspace-annotated namespaces the
+  // switcher falls back to when the user has no permission to list workspaces.
+  setWorkspace({ commit, getters }, { value }) {
+    commit('updateWorkspace', { value, getters });
   },
 
   ...gcActions

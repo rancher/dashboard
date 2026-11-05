@@ -55,6 +55,14 @@ export default {
     slices: {
       type:    Array,
       default: () => []
+    },
+
+    /**
+     * Optional 'small' or 'medium' size of the bar. Defaults to the size of the Bar component
+     */
+    size: {
+      type:    String,
+      default: undefined
     }
   },
 
@@ -107,6 +115,7 @@ export default {
       :percentage="modelValue"
       :primary-color="primaryColor"
       :slices="slices"
+      :size="size"
     />
     <span
       v-if="showPercentage"
@@ -119,6 +128,7 @@ export default {
 .percentage-bar {
   display: flex;
   flex-direction: row;
+  align-items: center;
 
   .percentage-value {
     word-break: keep-all;

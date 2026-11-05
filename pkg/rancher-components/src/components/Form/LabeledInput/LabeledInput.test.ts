@@ -61,6 +61,96 @@ describe('component: LabeledInput', () => {
     });
   });
 
+  describe('showCronHint prop', () => {
+    it('should not display the hint when showCronHint is false', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          value: '0 * * * *', type: 'cron', showCronHint: false
+        },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      const subLabel = wrapper.find('[data-testid="sub-label"]');
+
+      expect(subLabel.exists()).toBe(false);
+    });
+
+    it('should display the sub-label when showCronHint is false', () => {
+      const subLabel = 'some-sublabel';
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          value: '0 * * * *', type: 'cron', showCronHint: false, subLabel
+        },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      expect(wrapper.find('[data-testid="sub-label"]').text()).toBe(subLabel);
+    });
+
+    it('should not add the hint to aria-describedby when showCronHint is false', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          value: '0 * * * *', type: 'cron', showCronHint: false
+        },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      expect(wrapper.find('input').attributes('aria-describedby')).toBeUndefined();
+    });
+  });
+
+  describe('cron-hint-change event', () => {
+    it.each([
+      [true],
+      [false],
+    ])('should emit the initial hint on creation when showCronHint is %p', (showCronHint) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          value: '0 * * * *', type: 'cron', showCronHint
+        },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      expect(wrapper.emitted('cron-hint-change')).toStrictEqual([['Every hour, every day']]);
+    });
+
+    it('should emit the new hint when the value changes', async() => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          value: '0 * * * *', type: 'cron', showCronHint: false
+        },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      await wrapper.setProps({ value: '@daily' });
+
+      expect(wrapper.emitted('cron-hint-change')).toStrictEqual([
+        ['Every hour, every day'],
+        ['At 12:00 AM, every day'],
+      ]);
+    });
+
+    it('should emit undefined when the value is cleared', async() => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { value: '0 * * * *', type: 'cron' },
+        mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      await wrapper.setProps({ value: '' });
+
+      expect(wrapper.emitted('cron-hint-change')?.[1]).toStrictEqual([undefined]);
+    });
+
+    it('should not emit a hint for other types', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { value: '0 * * * *', type: 'text' },
+        mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      expect(wrapper.emitted('cron-hint-change')).toBeUndefined();
+    });
+  });
+
   describe('type "integer"', () => {
     const i18nMock = { $store: { getters: { 'i18n/t': jest.fn() } } };
 
@@ -624,6 +714,48 @@ describe('component: LabeledInput', () => {
 
       expect(wrapper.find('.labeled-input').classes()).not.toContain('error');
       expect(wrapper.vm.validationMessage).toBeUndefined();
+    });
+
+    describe('touch', () => {
+      const errorMessage = 'Field cannot be empty';
+
+      const mountField = (ruleResult?: string) => mount(LabeledInput, {
+        propsData: {
+          name:  'testField',
+          rules: [jest.fn().mockReturnValue(ruleResult)],
+          value: '',
+        },
+        mocks: i18nMock
+      });
+
+      it('should hide the error until the field is touched', async() => {
+        const wrapper = mountField(errorMessage);
+
+        await flushPromises();
+
+        expect(wrapper.vm.validationMessage).toBeUndefined();
+      });
+
+      it.each([
+        ['the error when the rules fail', errorMessage],
+        ['no error when the rules pass', undefined],
+      ])('should show %s, without the input being blurred', async(_, ruleResult) => {
+        const wrapper = mountField(ruleResult);
+
+        wrapper.vm.touch();
+        await flushPromises();
+
+        expect(wrapper.vm.validationMessage).toStrictEqual(ruleResult);
+      });
+
+      it('should not emit blur', async() => {
+        const wrapper = mountField(errorMessage);
+
+        wrapper.vm.touch();
+        await flushPromises();
+
+        expect(wrapper.emitted('blur')).toBeUndefined();
+      });
     });
 
     it('with name prop: form-level validation schema error is shown when the form validates', async() => {

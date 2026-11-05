@@ -304,7 +304,8 @@ export default {
   },
   computed: {
     deClassedAttrs() {
-      const { class: _, ...rest } = this.$attrs;
+      // aria-required only belongs on the combobox wrapper; on v-select's role-less div it's an invalid ARIA attribute
+      const { class: _, 'aria-required': __, ...rest } = this.$attrs;
 
       return rest;
     }
@@ -332,6 +333,7 @@ export default {
     :aria-label="$attrs['aria-label'] || undefined"
     :aria-labelledby="$attrs['aria-labelledby'] || undefined"
     :aria-describedby="$attrs['aria-describedby'] || undefined"
+    :aria-required="$attrs['aria-required'] || undefined"
     @click="clickSelect"
     @keydown.self.enter="clickSelect"
     @keydown.self.down.prevent="clickSelect"

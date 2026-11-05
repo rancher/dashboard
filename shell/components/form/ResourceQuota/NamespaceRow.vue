@@ -3,6 +3,7 @@ import Select from '@shell/components/form/Select';
 import UnitInput from '@shell/components/form/UnitInput';
 import PercentageBar from '@shell/components/PercentageBar';
 import { formatSi, parseSi } from '@shell/utils/units';
+import { _VIEW } from '@shell/config/query-params';
 import { ROW_COMPUTED } from './shared';
 
 export default {
@@ -58,6 +59,10 @@ export default {
   },
 
   mounted() {
+    if (this.mode === _VIEW) {
+      return;
+    }
+
     // We want to update the value first so that the value will be rounded to the project limit.
     // This is relevant when switching projects. If the value is 1200 and the project that it was
     // switched to only has capacity for 800 more this will force the value to be set to 800.

@@ -135,6 +135,102 @@ describe('component: LabeledSelect', () => {
         // Component is from a library and class is not going to be changed
         expect(wrapper.find('.vs__selected').text()).toBe(translation);
       });
+
+      it.each([
+        ['empty string', ''],
+        ['zero', 0],
+        ['false', false],
+      ])('using new label with a falsy value (%s)', async(_, value) => {
+        const wrapper = mount(LabeledSelect, { props: { value, options: [{ label: 'Foo', value }] } });
+
+        await wrapper.setProps({ options: [{ label: 'Baz', value }] });
+
+        expect(wrapper.find('.vs__selected').text()).toBe('Baz');
+      });
+
+      it('using new label with a null value matching an empty string option', async() => {
+        const wrapper = mount(LabeledSelect, { props: { value: null as any, options: [{ label: 'Foo', value: '' }] } });
+
+        await wrapper.setProps({ options: [{ label: 'Baz', value: '' }] });
+
+        expect(wrapper.find('.vs__selected').text()).toBe('Baz');
+      });
+
+      it('using new custom key label with a falsy value', async() => {
+        const customLabelKey = 'bananas';
+        const wrapper = mount(LabeledSelect, {
+          props: {
+            value:       '',
+            optionLabel: customLabelKey,
+            options:     [{ [customLabelKey]: 'Foo', value: '' }],
+          }
+        });
+
+        await wrapper.setProps({ options: [{ [customLabelKey]: 'Baz', value: '' }] });
+
+        expect(wrapper.find('.vs__selected').text()).toBe('Baz');
+      });
+
+      it('using translated value with a falsy value', async() => {
+        const i18nMap: Record<string, string> = { Baz: 'bananas' };
+        const wrapper = mount(LabeledSelect, {
+          props: {
+            value:          '',
+            localizedLabel: true,
+            options:        [{ label: 'Foo', value: '' }],
+          },
+          global: { mocks: { $store: { getters: { 'i18n/t': (text: string) => i18nMap[text] } } } }
+        });
+
+        await wrapper.setProps({ options: [{ label: 'Baz', value: '' }] });
+
+        expect(wrapper.find('.vs__selected').text()).toBe('bananas');
+      });
+
+      // An array value is always truthy, so vue-select refreshes it itself: this guards against a regression only
+      it('using new label in multiple mode with a falsy item', async() => {
+        const wrapper = mount(LabeledSelect, {
+          props: { value: [''], options: [{ label: 'Foo', value: '' }] },
+          attrs: { multiple: true }
+        });
+
+        await wrapper.setProps({ options: [{ label: 'Baz', value: '' }] });
+
+        expect(wrapper.find('.vs__selected').text()).toBe('Baz');
+      });
+
+      it('showing no label when a falsy value is no longer in the options', async() => {
+        const wrapper = mount(LabeledSelect, { props: { value: '', options: [{ label: 'Foo', value: '' }] } });
+
+        await wrapper.setProps({ options: [{ label: 'Baz', value: 'baz' }] });
+
+        expect(wrapper.find('.vs__selected').exists()).toBe(false);
+      });
+
+      it('showing no label when options become empty with a falsy value', async() => {
+        const wrapper = mount(LabeledSelect, { props: { value: '', options: [{ label: 'Foo', value: '' }] } });
+
+        await wrapper.setProps({ options: [] });
+
+        expect(wrapper.find('.vs__selected').exists()).toBe(false);
+      });
+
+      // Earlier fixes looked the option up on every label render, which was O(n²) with long lists (#9668)
+      it('reducing each option once, not once per option pair, when options change with a falsy value', async() => {
+        const count = 1000;
+        const createOptions = (prefix: string) => Array.from({ length: count }, (_, i) => ({ label: `${ prefix } ${ i }`, value: i ? `value-${ i }` : '' }));
+        const reduce = jest.fn((option: any) => (option && typeof option === 'object' ? option.value : option));
+        const wrapper = mount(LabeledSelect, {
+          props: {
+            value: '', reduce, options: createOptions('Foo')
+          }
+        });
+
+        reduce.mockClear();
+        await wrapper.setProps({ options: createOptions('Baz') });
+
+        expect(reduce).toHaveBeenCalledTimes(count);
+      });
     });
   });
 
@@ -374,6 +470,314 @@ describe('component: LabeledSelect', () => {
     });
   });
 
+  describe('visibleRows and visibleRowHeight props', () => {
+    // 10px top and bottom padding on the dropdown menu
+    const menuPadding = 20;
+
+    it('should not set a dropdown max height when visibleRows is not provided', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
+
+      expect(wrapper.vm.dropdownStyle).toBeUndefined();
+    });
+
+    it('should not set a dropdown max height when visibleRows is 0', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'], visibleRows: 0 } });
+
+      expect(wrapper.vm.dropdownStyle).toBeUndefined();
+    });
+
+    it('should size the dropdown using the default row height when only visibleRows is provided', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'], visibleRows: 5 } });
+
+      expect(wrapper.vm.dropdownStyle).toStrictEqual({ '--vs-dropdown-max-height': `${ 5 * 18 + menuPadding }px` });
+    });
+
+    it.each([
+      [7, 40, 7 * 40 + menuPadding],
+      [7.5, 40, 7.5 * 40 + menuPadding],
+      [1, 24, 24 + menuPadding],
+    ])('should size the dropdown for %s rows of %spx', (visibleRows, visibleRowHeight, expected) => {
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          options: ['Option1'], visibleRows, visibleRowHeight
+        }
+      });
+
+      expect(wrapper.vm.dropdownStyle).toStrictEqual({ '--vs-dropdown-max-height': `${ expected }px` });
+    });
+
+    it('should apply the dropdown max height to the vue-select element', () => {
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          options: ['Option1'], visibleRows: 2, visibleRowHeight: 40
+        }
+      });
+
+      const style = (wrapper.find('.v-select').element as HTMLElement).style;
+
+      expect(style.getPropertyValue('--vs-dropdown-max-height')).toStrictEqual(`${ 2 * 40 + menuPadding }px`);
+    });
+  });
+
+  const forceOpenWithSearch = (wrapper: any, search: string) => {
+    wrapper.vm.$refs['select-input'].search = search;
+    wrapper.vm.forceOpen();
+  };
+
+  describe('function: forceOpen', () => {
+    it('should open the dropdown, including vue-select itself', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
+
+      wrapper.vm.forceOpen();
+
+      expect(wrapper.vm.isOpen).toBe(true);
+      expect((wrapper.vm.$refs['select-input'] as any).open).toBe(true);
+    });
+
+    it('should keep the search text in vue-select', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
+
+      forceOpenWithSearch(wrapper, 'opt');
+
+      expect((wrapper.vm.$refs['select-input'] as any).search).toStrictEqual('opt');
+    });
+  });
+
+  describe('function: forceClose', () => {
+    it('should close the dropdown, including vue-select itself', async() => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
+
+      forceOpenWithSearch(wrapper, 'opt');
+      await wrapper.vm.$nextTick();
+
+      wrapper.vm.forceClose();
+
+      expect(wrapper.vm.isOpen).toBe(false);
+      expect((wrapper.vm.$refs['select-input'] as any).open).toBe(false);
+    });
+
+    it('should clear the search text in vue-select', async() => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
+
+      forceOpenWithSearch(wrapper, 'opt');
+      await wrapper.vm.$nextTick();
+
+      wrapper.vm.forceClose();
+
+      expect((wrapper.vm.$refs['select-input'] as any).search).toStrictEqual('');
+    });
+
+    it('should not throw when vue-select is not rendered', () => {
+      const wrapper = mount(LabeledSelect, { props: { options: ['Option1'] } });
+
+      wrapper.unmount();
+
+      expect(() => wrapper.vm.forceClose()).not.toThrow();
+    });
+  });
+
+  describe('keepSearchOnBlur prop', () => {
+    const createWrapper = (keepSearchOnBlur = true, { attachTo, ...props }: { attachTo?: HTMLElement } & Record<string, any> = {}) => mount(LabeledSelect, {
+      props: {
+        options: ['nginx', 'redis'], searchable: true, placeholder: 'Search', keepSearchOnBlur, ...props
+      },
+      attachTo,
+      global: { mocks: { $store: { getters: { 'i18n/t': (key: string, args: Record<string, string>) => `${ key }:${ args.search }` } } } },
+    });
+
+    const typeAndBlur = async(wrapper: ReturnType<typeof createWrapper>) => {
+      const input = wrapper.find('input.vs__search');
+
+      await input.trigger('focus');
+      await input.setValue('ngi');
+      await input.trigger('blur');
+
+      return input;
+    };
+
+    const lastSearch = (wrapper: ReturnType<typeof createWrapper>) => wrapper.emitted('search')?.at(-1)?.[0];
+
+    it('should clear the search text when the input loses focus without it', async() => {
+      const wrapper = createWrapper(false);
+      const input = await typeAndBlur(wrapper);
+
+      expect((input.element as HTMLInputElement).value).toStrictEqual('');
+    });
+
+    it('should show the search text in place of the placeholder when the input loses focus', async() => {
+      const wrapper = createWrapper();
+      const input = await typeAndBlur(wrapper);
+
+      expect(input.attributes('placeholder')).toStrictEqual('ngi');
+    });
+
+    it('should empty the search when the input loses focus', async() => {
+      const wrapper = createWrapper();
+
+      await typeAndBlur(wrapper);
+      await wrapper.vm.$nextTick();
+
+      expect(lastSearch(wrapper)).toStrictEqual('');
+    });
+
+    it('should restore the search text when the input is focused again', async() => {
+      const wrapper = createWrapper();
+      const input = await typeAndBlur(wrapper);
+
+      await input.trigger('focus');
+
+      expect((input.element as HTMLInputElement).value).toStrictEqual('ngi');
+    });
+
+    it('should restore the placeholder when the input is focused again', async() => {
+      const wrapper = createWrapper();
+      const input = await typeAndBlur(wrapper);
+
+      await input.trigger('focus');
+
+      expect(input.attributes('placeholder')).toStrictEqual('Search');
+    });
+
+    it('should search the restored text again when the input is focused again', async() => {
+      const wrapper = createWrapper();
+      const input = await typeAndBlur(wrapper);
+
+      await input.trigger('focus');
+      await wrapper.vm.$nextTick();
+
+      expect(lastSearch(wrapper)).toStrictEqual('ngi');
+    });
+
+    it('should clear the search text when Escape closes the dropdown without it', async() => {
+      const wrapper = createWrapper(false);
+      const input = wrapper.find('input.vs__search');
+
+      await input.trigger('focus');
+      await input.setValue('ngi');
+      await input.trigger('keydown', { keyCode: 27 });
+
+      expect((input.element as HTMLInputElement).value).toStrictEqual('');
+    });
+
+    it('should keep the search text when Escape closes the dropdown', async() => {
+      const wrapper = createWrapper();
+      const input = wrapper.find('input.vs__search');
+
+      await input.trigger('focus');
+      await input.setValue('ngi');
+      await input.trigger('keydown', { keyCode: 27 });
+
+      expect(input.attributes('placeholder')).toStrictEqual('ngi');
+    });
+
+    it('should clear the kept search text on Escape once the dropdown is closed', async() => {
+      const wrapper = createWrapper();
+
+      await typeAndBlur(wrapper);
+      await wrapper.find('.labeled-select').trigger('keydown.esc');
+
+      expect(wrapper.find('input.vs__search').attributes('placeholder')).toStrictEqual('Search');
+    });
+
+    it('should not let Escape reach the page when it clears the kept search text', async() => {
+      const wrapper = createWrapper(true, { attachTo: document.body });
+      const listener = jest.fn();
+
+      await typeAndBlur(wrapper);
+      document.addEventListener('keydown', listener);
+      await wrapper.find('.labeled-select').trigger('keydown.esc');
+      document.removeEventListener('keydown', listener);
+
+      expect(listener).toHaveBeenCalledTimes(0);
+      wrapper.unmount();
+    });
+
+    it('should let Escape reach the page when there is no kept search text', async() => {
+      const wrapper = createWrapper(true, { attachTo: document.body });
+      const listener = jest.fn();
+
+      document.addEventListener('keydown', listener);
+      await wrapper.find('.labeled-select').trigger('keydown.esc');
+      document.removeEventListener('keydown', listener);
+
+      expect(listener).toHaveBeenCalledWith(expect.any(KeyboardEvent));
+      wrapper.unmount();
+    });
+
+    it('should describe the kept search text on the select for assistive technology', async() => {
+      const wrapper = createWrapper();
+
+      await typeAndBlur(wrapper);
+
+      expect(wrapper.find('.labeled-select').attributes('aria-description')).toStrictEqual('labeledSelect.keptSearch:ngi');
+    });
+
+    it('should keep the search text when the dropdown is force closed', async() => {
+      const wrapper = createWrapper();
+
+      forceOpenWithSearch(wrapper, 'ngi');
+      await wrapper.vm.$nextTick();
+      wrapper.vm.forceClose();
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('input.vs__search').attributes('placeholder')).toStrictEqual('ngi');
+    });
+
+    it('should keep the search text when a click outside closes the dropdown while focus is elsewhere', async() => {
+      const wrapper = createWrapper();
+
+      forceOpenWithSearch(wrapper, 'ngi');
+      await wrapper.vm.$nextTick();
+      document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('input.vs__search').attributes('placeholder')).toStrictEqual('ngi');
+    });
+
+    it('should not keep the search text when an option is selected while focus is elsewhere', async() => {
+      const wrapper = createWrapper(true, { appendToBody: false });
+
+      forceOpenWithSearch(wrapper, 'ngi');
+      await wrapper.vm.$nextTick();
+      await wrapper.find('.vs__dropdown-option').trigger('click');
+
+      expect(wrapper.find('input.vs__search').attributes('placeholder')).toStrictEqual('Search');
+    });
+
+    it('should leave the search text in the input when a blur reopens the dropdown', async() => {
+      const elsewhere = document.createElement('button');
+
+      document.body.appendChild(elsewhere);
+
+      const wrapper = createWrapper(true, { attachTo: document.body, 'onOn-blur': () => wrapper.vm.forceOpen() });
+      const input = wrapper.find('input.vs__search');
+
+      (input.element as HTMLInputElement).focus();
+      await input.setValue('ngi');
+      elsewhere.focus();
+      await wrapper.vm.$nextTick();
+
+      expect((input.element as HTMLInputElement).value).toStrictEqual('ngi');
+      wrapper.unmount();
+      elsewhere.remove();
+    });
+
+    it('should leave the search text in the input while it has focus', async() => {
+      const wrapper = createWrapper(true, { attachTo: document.body });
+      const input = wrapper.find('input.vs__search');
+
+      (input.element as HTMLInputElement).focus();
+      await input.setValue('ngi');
+      wrapper.vm.isOpen = true;
+      await wrapper.vm.$nextTick();
+      wrapper.vm.isOpen = false;
+      await wrapper.vm.$nextTick();
+
+      expect((input.element as HTMLInputElement).value).toStrictEqual('ngi');
+      wrapper.unmount();
+    });
+  });
+
   describe('function: clickSelect', () => {
     it('should open dropdown when clickSelect is called and not disabled', async() => {
       const label = 'Foo';
@@ -504,6 +908,29 @@ describe('component: LabeledSelect', () => {
 
       expect(wrapper.emitted('update:value')).toBeUndefined();
       expect(wrapper.vm.isOpen).toBe(false);
+    });
+
+    it.each([
+      [true, true, true],
+      [true, false, false],
+      [false, true, false],
+    ])('given searchable %p and clicking the search input %p, should leave an open dropdown open: %p', async(searchable, clickSearchInput, expectedOpen) => {
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value:   'foo',
+          options: [{ label: 'Foo', value: 'foo' }],
+          searchable,
+          mode:    _EDIT
+        }
+      });
+
+      wrapper.vm.isOpen = true;
+      const searchEl = (wrapper.vm.$refs['select-input'] as any).searchEl;
+
+      wrapper.vm.clickSelect({ target: clickSearchInput ? searchEl : wrapper.element });
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.isOpen).toBe(expectedOpen);
     });
   });
 

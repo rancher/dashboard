@@ -2,6 +2,7 @@
 import { Card } from '@components/Card';
 import AsyncButton from '@shell/components/AsyncButton';
 import { IS_SSO, LOGGED_OUT } from '@shell/config/query-params';
+import { providerKey } from '@shell/models/management.cattle.io.authconfig';
 
 export default {
   emits: ['close'],
@@ -17,7 +18,7 @@ export default {
 
   computed: {
     name() {
-      return this.t(`model.authConfig.provider."${ this.authProvider?.id }"`);
+      return this.t(`model.authConfig.provider."${ providerKey(this.authProvider?.type || this.authProvider?.id) }"`);
     }
   },
 

@@ -9,6 +9,9 @@ module.exports = {
   testEnvironmentOptions: { customExportConditions: ['node', 'node-addons'] },
   setupFilesAfterEnv:     ['./jest.setup.js'],
   watchman:               false,
+  // Workers are reused for the whole run and their heap keeps growing (to ~4GB each in CI),
+  // which runs the 16GB GitHub runner out of memory. Replace a worker once it passes 1GB.
+  workerIdleMemoryLimit:  '1GB',
 
   // tell Jest to handle `*.vue` files
   moduleFileExtensions: ['js', 'mjs', 'json', 'vue', 'ts'],
@@ -44,8 +47,9 @@ module.exports = {
   ],
   transformIgnorePatterns: [
     // intl-messageformat (and its @formatjs/* deps) are ESM-only as of v11 ("type":"module"),
-    // so Jest must transpile them instead of ignoring them like the rest of node_modules.
-    '/node_modules/(?!(color|color-string|color-convert|color-name|vee-validate|@vee-validate|clipboard-polyfill|intl-messageformat|@formatjs)/)',
+    // so Jest must transpile them instead of ignoring them like the rest of node_modules. The same
+    // goes for @replit/codemirror-vim-core, which @replit/codemirror-vim's CJS build requires.
+    '/node_modules/(?!(color|color-string|color-convert|color-name|vee-validate|@vee-validate|clipboard-polyfill|intl-messageformat|@formatjs|@replit/codemirror-vim-core)/)',
   ],
 
   // Babel
@@ -68,6 +72,7 @@ module.exports = {
     '<rootDir>/shell/**/*.{vue,ts,js}',
     '<rootDir>/pkg/rancher-components/src/components/**/*.{vue,ts,js}',
     '!<rootDir>/shell/scripts/',
+    '!**/vendor/**',
   ],
   coveragePathIgnorePatterns: [
     '\\.d\\.ts'

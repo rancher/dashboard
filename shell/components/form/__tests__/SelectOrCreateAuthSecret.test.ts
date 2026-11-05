@@ -1,10 +1,13 @@
 import { mount } from '@vue/test-utils';
+import { createStore } from 'vuex';
 import { _EDIT } from '@shell/config/query-params';
 import { AUTH_TYPE } from '@shell/config/types';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
 
 const requiredSetup = () => {
-  return { global: { mocks: { $fetchState: {} } } };
+  const store = createStore({ getters: { 'i18n/t': () => (key: string) => key } });
+
+  return { global: { plugins: [store], mocks: { $fetchState: {} } } };
 };
 
 describe('component: SelectOrCreateAuthSecret', () => {
@@ -65,6 +68,48 @@ describe('component: SelectOrCreateAuthSecret', () => {
     const expectedLabelKey = isGithubDotComRepository ? 'selectOrCreateAuthSecret.basic.passwordPersonalAccessToken' : 'selectOrCreateAuthSecret.basic.password';
 
     expect(passwordLabeledInput!.props('labelKey')).toBe(expectedLabelKey);
+  });
+
+  describe('credential fields', () => {
+    const credentialFields = [
+      [AUTH_TYPE._SSH, 'auth-secret-ssh-public-key', 'selectOrCreateAuthSecret.ssh.publicKey'],
+      [AUTH_TYPE._SSH, 'auth-secret-ssh-private-key', 'selectOrCreateAuthSecret.ssh.privateKey'],
+      [AUTH_TYPE._BASIC, 'auth-secret-basic-username', 'selectOrCreateAuthSecret.basic.username'],
+      [AUTH_TYPE._BASIC, 'auth-secret-basic-password', 'selectOrCreateAuthSecret.basic.password'],
+    ];
+
+    const findCredentialInput = (selected: string, testId: string) => {
+      const wrapper = mount(SelectOrCreateAuthSecret, {
+        ...requiredSetup(),
+        props: {
+          mode:               _EDIT,
+          namespace:          'default',
+          value:              {},
+          registerBeforeHook: () => {},
+        },
+        data() {
+          return { selected } as any;
+        }
+      });
+
+      return wrapper.findAllComponents({ name: 'LabeledInput' }).find((c) => c.vm.$attrs['data-testid'] === testId)!;
+    };
+
+    it.each(credentialFields)('should mark the %p %p field as required', (selected, testId) => {
+      expect(findCredentialInput(selected, testId).props('required')).toStrictEqual(true);
+    });
+
+    it.each(credentialFields)('should report the %p %p field as required when empty', (selected, testId, labelKey) => {
+      const [rule] = findCredentialInput(selected, testId).props('rules');
+
+      expect(rule('')).toStrictEqual(`validation.required-${ JSON.stringify({ key: labelKey }) }`);
+    });
+
+    it.each(credentialFields)('should accept a value in the %p %p field', (selected, testId) => {
+      const [rule] = findCredentialInput(selected, testId).props('rules');
+
+      expect(rule('value')).toStrictEqual(undefined);
+    });
   });
 
   describe('GitHub App auth', () => {

@@ -167,6 +167,8 @@ export default defineComponent({
 
       :external-pagination-enabled="canPaginate"
       :external-pagination-result="paginationResult"
+      :external-pagination-args="pagination"
+      :external-pagination-scope="paginationScope"
 
       @pagination-changed="paginationChanged"
     >

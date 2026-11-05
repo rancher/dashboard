@@ -35,6 +35,41 @@ Cypress.on('uncaught:exception', (err, runnable) => {
   }
 });
 
+const minorOf = (version?: string): number[] | undefined => version?.match(/^"?v?(\d+)\.(\d+)/)?.slice(1, 3).map(Number);
+
+/**
+ * The welcome modal opens after login on a new version and would cover the page under test.
+ * Report it as already read, unless a spec opts in with `Cypress.env('showReleaseWelcome', true)`.
+ * Intercepts are cleared before every test, so register it for specs that log in within `before` too
+ */
+const hideReleaseWelcome = () => {
+  cy.getRancherVersion().then(({ Version }) => {
+    cy.intercept('GET', '/v1/userpreferences*', (req) => {
+      if (Cypress.env('showReleaseWelcome')) {
+        return;
+      }
+
+      req.continue((res) => {
+        const prefs = res.body?.data?.[0]?.data;
+        const running = minorOf(Version);
+
+        if (!prefs || !running) {
+          return;
+        }
+
+        const read = minorOf(prefs['read-whatsnew']);
+
+        if (!read || read[0] < running[0] || (read[0] === running[0] && read[1] < running[1])) {
+          prefs['read-whatsnew'] = `"${ running[0] }.${ running[1] }"`;
+        }
+      });
+    });
+  });
+};
+
+before(hideReleaseWelcome);
+beforeEach(hideReleaseWelcome);
+
 require('cypress-terminal-report/src/installLogsCollector')({
   collectTypes:            ['cons:log', 'cons:info', 'cons:warn', 'cons:error', 'cy:log', 'cy:request', 'cy:xhr'],
   // Enable logging of before and after all

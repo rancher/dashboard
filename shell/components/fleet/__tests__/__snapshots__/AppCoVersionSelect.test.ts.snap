@@ -9,11 +9,13 @@ exports[`component: AppCoVersionSelect should match snapshot 1`] = `
   filterable="true"
   hovertooltip="true"
   instore="cluster"
+  keepsearchonblur="false"
   label="%fleet.helmOp.appCoConfig.chartVersion%"
   loading="false"
   localizedlabel="false"
   lockedoptions=""
   mode="edit"
+  mutedvalue="false"
   nooptionslabelkey="labelSelect.noOptions.empty"
   optionkey="value"
   optionlabel="label"
@@ -27,5 +29,6 @@ exports[`component: AppCoVersionSelect should match snapshot 1`] = `
   selectable="[Function]"
   size="large"
   value="1.2.0"
+  visiblerowheight="18"
 />
 `;

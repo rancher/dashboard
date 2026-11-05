@@ -19,12 +19,14 @@ exports[`component: ClusterSelectionFields should match snapshot with appco vari
       filterable="true"
       hovertooltip="true"
       instore="cluster"
+      keepsearchonblur="false"
       label="%fleet.clusterTargets.clusters.byName.label%"
       loading="false"
       localizedlabel="false"
       lockedoptions=""
       mode="edit"
       multiple="true"
+      mutedvalue="false"
       nooptionslabelkey="labelSelect.noOptions.empty"
       optionlabel="label"
       options="[object Object]"
@@ -38,6 +40,7 @@ exports[`component: ClusterSelectionFields should match snapshot with appco vari
       size="large"
       taggable="true"
       value="cluster-1"
+      visiblerowheight="18"
     />
   </div>
   <!-- Select by labels -->
@@ -83,12 +86,14 @@ exports[`component: ClusterSelectionFields should match snapshot with appco vari
       filterable="true"
       hovertooltip="true"
       instore="cluster"
+      keepsearchonblur="false"
       label="%fleet.clusterTargets.clusterGroups.byName.label%"
       loading="false"
       localizedlabel="false"
       lockedoptions=""
       mode="edit"
       multiple="true"
+      mutedvalue="false"
       nooptionslabelkey="labelSelect.noOptions.empty"
       optionlabel="label"
       options=""
@@ -102,6 +107,7 @@ exports[`component: ClusterSelectionFields should match snapshot with appco vari
       size="large"
       taggable="true"
       value=""
+      visiblerowheight="18"
     />
   </div>
 </div>
@@ -124,12 +130,14 @@ exports[`component: ClusterSelectionFields should match snapshot with default va
       filterable="true"
       hovertooltip="true"
       instore="cluster"
+      keepsearchonblur="false"
       label="%fleet.clusterTargets.clusters.byName.label%"
       loading="false"
       localizedlabel="false"
       lockedoptions=""
       mode="edit"
       multiple="true"
+      mutedvalue="false"
       nooptionslabelkey="labelSelect.noOptions.empty"
       optionlabel="label"
       options="[object Object]"
@@ -143,6 +151,7 @@ exports[`component: ClusterSelectionFields should match snapshot with default va
       size="large"
       taggable="true"
       value="cluster-1"
+      visiblerowheight="18"
     />
   </div>
   <!-- Select by labels -->
@@ -188,12 +197,14 @@ exports[`component: ClusterSelectionFields should match snapshot with default va
       filterable="true"
       hovertooltip="true"
       instore="cluster"
+      keepsearchonblur="false"
       label="%fleet.clusterTargets.clusterGroups.byName.label%"
       loading="false"
       localizedlabel="false"
       lockedoptions=""
       mode="edit"
       multiple="true"
+      mutedvalue="false"
       nooptionslabelkey="labelSelect.noOptions.empty"
       optionlabel="label"
       options=""
@@ -207,6 +218,7 @@ exports[`component: ClusterSelectionFields should match snapshot with default va
       size="large"
       taggable="true"
       value=""
+      visiblerowheight="18"
     />
   </div>
 </div>

@@ -757,6 +757,7 @@ export default {
             class="table-panel"
           >
             <FleetApplications
+              :table-view-tabs="false"
               :workspace="workspace.id"
               :rows="tableResources[workspace.id]"
               :schema="{
@@ -970,10 +971,6 @@ export default {
 
             p {
               font-size: small;
-
-              .icon {
-                line-height: -1px;
-              }
             }
           }
         }

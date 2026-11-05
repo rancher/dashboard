@@ -1,7 +1,10 @@
 import { shallowMount } from '@vue/test-utils';
-import { isReactive, markRaw } from 'vue';
+import { isReactive, markRaw, ref } from 'vue';
 import Header from '@shell/components/nav/Header.vue';
-import { isMac } from '@shell/utils/platform';
+import ClusterBadge from '@shell/components/ClusterBadge.vue';
+import ClusterPinControl from '@shell/components/ClusterPinControl.vue';
+import * as releaseWelcome from '@shell/utils/release-welcome';
+import { setVersionData } from '@shell/config/version';
 
 describe('component: Header', () => {
   const defaultStoreMock = {
@@ -285,106 +288,24 @@ describe('component: Header', () => {
       'features/get': () => false,
     }, { getDynamic: jest.fn() }, {}, stubs);
 
-    // A stand-in for the pin control that records the toggle, so these tests assert the shortcut reaches
-    // it rather than re-testing the control itself.
-    const pinStub = (toggle: jest.Mock) => ({ Pinned: { template: '<span />', methods: { toggle } } });
+    it('hands the cluster being explored to the pin control', () => {
+      const currentCluster = cluster();
 
-    it('offers a pin for the cluster being explored', () => {
-      const vm = withCluster(cluster()).vm as any;
-
-      expect(vm.pinnableCluster).toMatchObject({ pinned: false, label: 'prod' });
+      expect(withCluster(currentCluster).findComponent(ClusterPinControl).props('cluster')).toStrictEqual(currentCluster);
     });
 
-    // `local` holds a fixed slot in the nav and is filtered out of PINNED, so a pin on it would be an
-    // affordance that changes nothing.
-    it.each([
-      ['local', cluster({ isLocal: true, nameDisplay: 'local' })],
-      ['no cluster', null],
-    ])('offers no pin for %s', (_label, currentCluster) => {
-      expect((withCluster(currentCluster).vm as any).pinnableCluster).toBeNull();
-    });
-
-    it('names the action for the state the pin is in', () => {
-      // The suite renders keys rather than copy, so match the key each state resolves to.
-      expect((withCluster(cluster()).vm as any).pinTooltip).toContain('nav.header.pinCluster');
-      expect((withCluster(cluster({ pinned: true })).vm as any).pinTooltip).toContain('nav.header.unpinCluster');
-    });
-
-    // The tooltip advertises the shortcut, so the label has to name the key the handler below listens
-    // for — Alt, which a Mac keyboard calls Option and prints ⌥.
-    // The label and the announced name have to name the keys the binding actually registers, or the
-    // tooltip and a screen reader advertise a shortcut that does nothing.
-    it('advertises the keys it binds', () => {
-      const vm = withCluster(cluster()).vm as any;
-
-      expect(vm.pinShortcutKeys).toStrictEqual({ windows: ['alt', 'p'], mac: ['meta', 'shift', 'p'] });
-      // Whichever platform this runs on, the label and the announced name describe the same combo. Keyed
-      // off the platform rather than off the label's own text: comparing against the label meant a change
-      // to how it is WRITTEN silently sent this assertion down the other platform's branch.
-      expect(vm.pinShortcutLabel).toBe(isMac ? '⌘-Shift-P' : 'Alt-P');
-      expect(vm.pinAriaShortcut).toBe(isMac ? 'Meta+Shift+P' : 'Alt+P');
-    });
-
-    describe('the pin shortcut', () => {
-      // Matching, and staying out of text fields, is the `v-shortkey` directive's job — this handler runs
-      // only once the directive has decided the shortcut fired.
-      it('toggles the pin through the control, so the write and the animation stay on one path', () => {
-        const toggle = jest.fn();
-        const vm = withCluster(cluster(), pinStub(toggle)).vm as any;
-
-        vm.onPinShortcut();
-
-        expect(toggle).toHaveBeenCalledWith();
-      });
-
-      it('does nothing on a cluster that cannot be pinned', () => {
-        const toggle = jest.fn();
-        const vm = withCluster(cluster({ isLocal: true }), pinStub(toggle)).vm as any;
-
-        vm.onPinShortcut();
-
-        expect(toggle).not.toHaveBeenCalled();
-      });
-    });
-
-    // The shortcut fires from anywhere on the page, so the toggle usually lands with focus somewhere
-    // else and the control's own `aria-pressed` is never spoken. The live region covers that case —
-    // and stays quiet when the control DOES have focus, or the change would be announced twice.
-    describe('announcing the toggle', () => {
-      const ctx = (focused = false) => {
-        const el = document.createElement('button');
-
-        if (focused) {
-          document.body.appendChild(el);
-          el.focus();
+    it('places the pin after the cluster badge', () => {
+      const wrapper = withCluster(cluster({
+        badge: {
+          text: 'live', color: '#fff', textColor: '#000'
         }
+      }));
+      const children = Array.from(wrapper.find('.cluster').element.children);
+      const badge = children.indexOf(wrapper.findComponent(ClusterBadge).element);
+      const pin = children.indexOf(wrapper.findComponent(ClusterPinControl).element);
 
-        return {
-          pinAnnouncement: '',
-          $refs:           { clusterPin: { $el: el } },
-          t:               (key: string, args: any) => `${ key }:${ JSON.stringify(args) }`,
-          $nextTick:       (fn: () => void) => fn(),
-        };
-      };
-
-      it.each([
-        ['pinned', true, 'nav.switcher.aria.pinnedCluster'],
-        ['unpinned', false, 'nav.switcher.aria.unpinnedCluster'],
-      ])('should announce a cluster being %s when the pin does not hold focus', (_l, pinned, key) => {
-        const c = ctx();
-
-        (Header as any).methods.announcePin.call(c, { label: 'prod' }, pinned);
-
-        expect(c.pinAnnouncement).toStrictEqual(`${ key }:{"cluster":"prod"}`);
-      });
-
-      it('should stay silent when the pin itself has focus', () => {
-        const c = ctx(true);
-
-        (Header as any).methods.announcePin.call(c, { label: 'prod' }, true);
-
-        expect(c.pinAnnouncement).toStrictEqual('');
-      });
+      expect(badge).toBeGreaterThan(-1);
+      expect(pin).toBeGreaterThan(badge);
     });
   });
 
@@ -405,6 +326,97 @@ describe('component: Header', () => {
       const wrapper = createWrapper({}, {}, { getDynamic: jest.fn(() => undefined) });
 
       expect((wrapper.vm as any).navHeaderRight).toBeNull();
+    });
+  });
+
+  describe('extensionHeaderActionsEnabled', () => {
+    it('follows a synchronous enabled as the state it reads changes', async() => {
+      const wrapper = createWrapper();
+      const locked = ref(false);
+
+      (wrapper.vm as any).extensionHeaderActions = [{
+        label: 'Bar', invoke: jest.fn(), enabled: () => !locked.value
+      }];
+
+      expect((wrapper.vm as any).extensionHeaderActionsEnabled).toStrictEqual([true]);
+
+      locked.value = true;
+
+      expect((wrapper.vm as any).extensionHeaderActionsEnabled).toStrictEqual([false]);
+
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('[data-testid="extension-header-action-Bar"]').attributes('disabled')).toBeDefined();
+    });
+
+    it('leaves an async enabled to the check made on navigation', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [{
+        label: 'Async', invoke: jest.fn(), enabled: () => Promise.resolve(true)
+      }];
+      (wrapper.vm as any).extensionActionsEnabled = { 0: false };
+
+      expect((wrapper.vm as any).extensionHeaderActionsEnabled).toStrictEqual([false]);
+    });
+
+    it('treats an action with no enabled as enabled once checked, and a boolean as given', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        { label: 'Plain', invoke: jest.fn() },
+        {
+          label: 'Off', invoke: jest.fn(), enabled: false
+        },
+      ];
+      (wrapper.vm as any).extensionActionsEnabled = { 0: true, 1: true };
+
+      expect((wrapper.vm as any).extensionHeaderActionsEnabled).toStrictEqual([true, false]);
+    });
+
+    it('says why a disabled action is disabled, when it gives a reason', () => {
+      const wrapper = createWrapper();
+      const action = {
+        label: 'Bar', invoke: jest.fn(), tooltip: 'Views bar', disabledTooltip: 'Not while editing'
+      };
+
+      expect((wrapper.vm as any).handleExtensionTooltip(action, false)).toBe('Not while editing');
+      expect((wrapper.vm as any).handleExtensionTooltip(action, true)).toBe('Views bar ');
+      expect((wrapper.vm as any).handleExtensionTooltip({ ...action, disabledTooltip: undefined }, false)).toBe('Views bar ');
+    });
+  });
+
+  describe('hidden extension header actions', () => {
+    it('draws no button for a hidden action, only its shortcut', async() => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        {
+          label: 'Switch', invoke: jest.fn(), hidden: true, shortcutKey: { windows: ['ctrl', 'shift', '>'], mac: ['meta', 'shift', '>'] }
+        },
+        { label: 'Bar', invoke: jest.fn() },
+      ];
+
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('[data-testid="extension-header-action-Switch"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="extension-header-shortcut-Switch"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="extension-header-action-Bar"]').exists()).toBe(true);
+    });
+
+    it('runs a hidden action from its shortcut', async() => {
+      const wrapper = createWrapper();
+      const invoke = jest.fn();
+
+      (wrapper.vm as any).extensionHeaderActions = [{
+        label: 'Switch', invoke, hidden: true
+      }];
+
+      await wrapper.vm.$nextTick();
+      await wrapper.find('[data-testid="extension-header-shortcut-Switch"]').trigger('shortkey');
+      await new Promise((resolve) => setTimeout(resolve));
+
+      expect(invoke).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -478,6 +490,65 @@ describe('component: Header', () => {
       const button = wrapper.find('[data-testid="extension-header-action-Open"]');
 
       expect(button.attributes('aria-expanded')).toBe('true');
+    });
+  });
+
+  describe('the what\'s new user menu item', () => {
+    beforeEach(() => {
+      setVersionData({
+        Version: 'v2.16.0', RancherPrime: 'false', GitCommit: ''
+      });
+    });
+
+    afterEach(() => {
+      setVersionData({
+        Version: '', RancherPrime: 'false', GitCommit: ''
+      });
+    });
+
+    it.each([
+      ['in Rancher', { isRancher: true, isSingleProduct: false }, true],
+      ['outside Rancher', { isRancher: false, isSingleProduct: false }, false],
+      ['in single product mode', { isRancher: true, isSingleProduct: { productNameKey: 'harvester', logoRoute: { name: 'c-cluster' } } }, false],
+    ])('should show the item %s: %p', (_, getters, expected) => {
+      const wrapper = createWrapper({}, getters);
+
+      expect(wrapper.find('[data-testid="user-menu-whats-new"]').exists()).toStrictEqual(expected);
+    });
+
+    it('should not show the item when the version has no minor release, e.g. dev builds', () => {
+      setVersionData({
+        Version: 'dev', RancherPrime: 'false', GitCommit: ''
+      });
+      const wrapper = createWrapper({}, { isRancher: true });
+
+      expect(wrapper.find('[data-testid="user-menu-whats-new"]').exists()).toStrictEqual(false);
+    });
+
+    it.each([
+      ['every item', { isRancher: true, 'auth/enabled': true }, true, true, ['user-menu-whats-new', 'user-menu-separator-whats-new', 'user-menu-preferences', 'user-menu-account', 'user-menu-separator-log-out', 'user-menu-log-out']],
+      ['no auth', { isRancher: true, 'auth/enabled': false }, true, true, ['user-menu-whats-new', 'user-menu-separator-whats-new', 'user-menu-preferences', 'user-menu-account']],
+      ['no preferences or account', { isRancher: true, 'auth/enabled': true }, false, false, ['user-menu-whats-new', 'user-menu-separator-log-out', 'user-menu-log-out']],
+      ['no what\'s new', { isRancher: false, 'auth/enabled': true }, true, false, ['user-menu-preferences', 'user-menu-separator-log-out', 'user-menu-log-out']],
+      ['only log out', { isRancher: false, 'auth/enabled': true }, false, false, ['user-menu-log-out']],
+    ])('should group the user menu with separators, %s', (_, getters, preferences, tokens, expected) => {
+      const wrapper = createWrapper({}, {
+        'management/schemaFor': () => (preferences ? { resourceMethods: ['PUT'] } : null),
+        'rancher/schemaFor':    () => (tokens ? {} : null),
+        ...getters,
+      });
+
+      expect(wrapper.findAll('[data-testid^="user-menu-"]').map((el) => el.attributes('data-testid'))).toStrictEqual(expected);
+    });
+
+    it('should reopen the welcome modal', async() => {
+      const open = jest.spyOn(releaseWelcome, 'openReleaseWelcome').mockResolvedValue(undefined);
+      const wrapper = createWrapper({}, { isRancher: true });
+
+      await wrapper.find('[data-testid="user-menu-whats-new"]').trigger('click');
+
+      expect(open).toHaveBeenCalledWith(wrapper.vm.$store.commit);
+      open.mockRestore();
     });
   });
 });

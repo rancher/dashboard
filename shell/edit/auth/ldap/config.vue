@@ -11,6 +11,7 @@ const DEFAULT_TLS_PORT = 636;
 
 export const SHIBBOLETH = 'shibboleth';
 export const OKTA = 'okta';
+export const ADFS = 'adfs';
 export const OPEN_LDAP = 'openldap';
 export const FREE_IPA = 'freeipa';
 
@@ -65,12 +66,27 @@ export default {
   computed: {
     // Does the auth provider support LDAP for search in addition to SAML?
     isSamlProvider() {
-      return this.type === SHIBBOLETH || this.type === OKTA;
+      return this.type === SHIBBOLETH || this.type === OKTA || this.type === ADFS;
     },
 
     // Allow to enable user search just for these providers
     isSearchAllowed() {
       return this.type === OPEN_LDAP || this.type === FREE_IPA;
+    },
+
+    // LDAP and AD build principal IDs from the identifier attributes, so they are fixed once the provider
+    // is enabled. SAML providers get their principal IDs from the assertion, and the LDAP search attributes
+    // only have to match it, so they stay editable.
+    idAttributeLocked() {
+      return !this.isSamlProvider && !this.isCreate;
+    },
+
+    idAttributeTooltip() {
+      if (this.isSamlProvider) {
+        return this.t('authConfig.ldap.idAttribute.samlTip');
+      }
+
+      return this.idAttributeLocked ? this.t('authConfig.ldap.idAttribute.locked') : this.t('authConfig.ldap.idAttribute.tip');
     }
   },
 
@@ -111,6 +127,7 @@ export default {
         <LabeledInput
           v-model:value="hostname"
           name="hostname"
+          data-testid="ldap-hostname"
           required
           :mode="mode"
           :hoover-tooltip="true"
@@ -123,6 +140,7 @@ export default {
         <LabeledInput
           :value="model.port"
           name="port"
+          data-testid="ldap-port"
           type="number"
           required
           :min="0"
@@ -133,20 +151,16 @@ export default {
         />
       </div>
 
-      <div class="col">
+      <div class="col span-2 tls-options">
         <Checkbox
           v-model:value="model.tls"
           :mode="mode"
-          class="full-height"
           :label="t('authConfig.ldap.tls')"
         />
-      </div>
-      <div class="col span-1">
         <Checkbox
           v-model:value="model.starttls"
           :tooltip="t('authConfig.ldap.starttls.tip')"
           :mode="mode"
-          class="full-height"
           :label="t('authConfig.ldap.starttls.label')"
         />
       </div>
@@ -189,6 +203,7 @@ export default {
         <LabeledInput
           v-model:value="model.serviceAccountUsername"
           name="serviceAccountUsername"
+          data-testid="ldap-service-account-username"
           required
           :mode="mode"
           :label="t('authConfig.ldap.serviceAccountDN')"
@@ -202,6 +217,7 @@ export default {
         <LabeledInput
           v-model:value="model.serviceAccountDistinguishedName"
           name="serviceAccountDistinguishedName"
+          data-testid="ldap-service-account-dn"
           required
           :mode="mode"
           :label="t('authConfig.ldap.serviceAccountDN')"
@@ -211,6 +227,7 @@ export default {
         <LabeledInput
           v-model:value="model.serviceAccountPassword"
           name="serviceAccountPassword"
+          data-testid="ldap-service-account-password"
           required
           type="password"
           :mode="mode"
@@ -255,6 +272,7 @@ export default {
         <LabeledInput
           v-model:value="model.userSearchBase"
           name="userSearchBase"
+          data-testid="ldap-user-search-base"
           required
           :mode="mode"
           :label="t('authConfig.ldap.userSearchBase.label')"
@@ -297,6 +315,14 @@ export default {
           v-model:value="model.userLoginAttribute"
           :mode="mode"
           :label="t('authConfig.ldap.loginAttribute')"
+        />
+        <LabeledInput
+          v-model:value="model.userIDAttribute"
+          data-testid="ldap-user-id-attribute"
+          :mode="mode"
+          :disabled="idAttributeLocked"
+          :label="t('authConfig.ldap.userIDAttribute')"
+          :tooltip="idAttributeTooltip"
         />
         <LabeledInput
           v-model:value="model.userMemberAttribute"
@@ -343,6 +369,14 @@ export default {
           :label="t('authConfig.ldap.nameAttribute')"
         />
         <LabeledInput
+          v-model:value="model.groupIDAttribute"
+          data-testid="ldap-group-id-attribute"
+          :mode="mode"
+          :disabled="idAttributeLocked"
+          :label="t('authConfig.ldap.groupIDAttribute')"
+          :tooltip="idAttributeTooltip"
+        />
+        <LabeledInput
           v-model:value="model.groupMemberUserAttribute"
           :mode="mode"
           :label="t('authConfig.ldap.groupMemberUserAttribute')"
@@ -385,6 +419,13 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .tls-options {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+  }
+
   .schema-container {
     display: flex;
     gap: 1.75%;

@@ -25,12 +25,14 @@ import Import from './Import.vue';
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
 import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
 import { privateRegistryRequired } from '@shell/utils/validators/private-registry';
-import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+import { useClusterMembership, saveRoleBindings } from '@shell/composables/useClusterMembership';
 import type { AKSDiskType, AKSNodePool, AKSPoolMode, AKSConfig } from '../types/index';
 import {
   getAKSRegions
   , regionsWithAvailabilityZones
 } from '../util/aks';
+import { DEFAULT_AVAILABILITY_ZONES } from '../util/aks-regions';
 
 import { diffUpstreamSpec, syncUpstreamConfig } from '@shell/utils/kontainer';
 import {
@@ -45,7 +47,7 @@ import cloneDeep from 'lodash/cloneDeep';
 const DEFAULT_REGION = 'eastus';
 
 export const defaultNodePool = {
-  availabilityZones:     ['1', '2', '3'],
+  availabilityZones:     [...DEFAULT_AVAILABILITY_ZONES],
   count:                 1,
   enableAutoScaling:     false,
   maxPods:               110,
@@ -206,6 +208,10 @@ export default defineComponent({
     }
   },
 
+  setup() {
+    return useClusterMembership();
+  },
+
   data() {
     const store = this.$store as Store<any>;
     // This setting is used by RKE1 AKS GKE and EKS - rke2/k3s have a different mechanism for fetching supported versions
@@ -217,7 +223,6 @@ export default defineComponent({
       normanCluster:          { name: '', importedConfig: { privateRegistryURL: null } } as any,
       nodePools:              [] as AKSNodePool[],
       config:                 { } as AKSConfig,
-      membershipUpdate:       {} as any,
       originalVersion:        '',
       privateRegistryEnabled: false,
 
@@ -324,10 +329,6 @@ export default defineComponent({
       return this.value?.id || null;
     },
 
-    canManageMembers(): Boolean {
-      return canViewClusterMembershipEditor(this.$store);
-    },
-
     CREATE(): string {
       return _CREATE;
     },
@@ -404,14 +405,8 @@ export default defineComponent({
       }
     },
 
-    onMembershipUpdate(update: any): void {
-      this['membershipUpdate'] = update;
-    },
-
     async saveRoleBindings(): Promise<void> {
-      if (this.membershipUpdate.save) {
-        await this.membershipUpdate.save(this.normanCluster.id);
-      }
+      return saveRoleBindings(this.membershipUpdate, this.normanCluster.id);
     },
 
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details

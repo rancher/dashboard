@@ -30,6 +30,7 @@ export default {
     return {
       selectedName: null,
       errors:       [],
+      cronHint:     '',
       canNode,
       FORM_TYPES
     };
@@ -37,10 +38,14 @@ export default {
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
+    containersImmutable() {
+      return this.isPod && !this.isCreate;
+    },
+
     isFormValid() {
       const hasContainerErrors = this.allContainers.some(this.hasContainerError);
 
-      return this.fvFormIsValid && !hasContainerErrors;
+      return this.fvFormIsValid && !hasContainerErrors && !this.tabErrors.podStorage && !this.tabErrors.volumeClaimTemplates;
     },
 
     serviceOptions() {
@@ -190,7 +195,19 @@ export default {
             :label="t('workload.cronSchedule')"
             :rules="fvGetAndReportPathRules('spec.schedule')"
             placeholder="0 * * * *"
+            :show-cron-hint="false"
+            aria-describedby="cron-schedule-hint"
+            @cron-hint-change="cronHint = $event"
           />
+        </div>
+        <div
+          v-if="isCronJob"
+          id="cron-schedule-hint"
+          class="col span-9 cron-schedule-hint"
+          data-testid="cron-schedule-hint"
+          aria-live="polite"
+        >
+          {{ cronHint }}
         </div>
         <div
           v-if="isReplicable"
@@ -256,7 +273,7 @@ export default {
                 #tab-header-right
               >
                 <button
-                  v-if="allContainers.length > 1 && !isView"
+                  v-if="allContainers.length > 1 && !isView && !containersImmutable"
                   type="button"
                   class="btn-sm role-link"
                   @click="removeContainer(tab)"
@@ -273,6 +290,7 @@ export default {
                     <LabeledInput
                       v-model:value="allContainers[i].name"
                       :mode="mode"
+                      :disabled="containersImmutable"
                       :label="t('workload.container.containerName')"
                       required
                       :rules="containerNameRules"
@@ -281,6 +299,7 @@ export default {
                   <div class="col span-6">
                     <RadioGroup
                       :mode="mode"
+                      :disabled="containersImmutable"
                       :value="allContainers[i]._init"
                       name="initContainer"
                       :options="[true, false]"
@@ -419,9 +438,11 @@ export default {
               :label="t('workload.storage.title')"
               name="storage"
               :weight="tabWeightMap['storage']"
+              :error="!!tab.error.storage"
             >
               <ContainerMountPaths
                 v-model:container="allContainers[i]"
+                :rules="volumeMountPathRules"
                 :value="podTemplateSpec"
                 :namespace="value.metadata.namespace"
                 :register-before-hook="registerBeforeHook"
@@ -481,7 +502,7 @@ export default {
           :label="t('workload.tabs.labels.pod')"
           :name="'pod'"
           :weight="98"
-          :error="tabErrors.podSecurityContext"
+          :error="tabErrors.podSecurityContext || tabErrors.podStorage || tabErrors.volumeClaimTemplates"
         >
           <Tabbed
             name="podTabs"
@@ -493,11 +514,13 @@ export default {
               :label="t('workload.storage.title')"
               name="storage-pod"
               :weight="tabWeightMap['storage']"
+              :error="tabErrors.podStorage"
               @active="$refs.storage.refresh()"
             >
               <Storage
                 ref="storage"
                 v-model:value="podTemplateSpec"
+                :rules="volumeRules"
                 :namespace="value.metadata.namespace"
                 :register-before-hook="registerBeforeHook"
                 :mode="mode"
@@ -622,10 +645,12 @@ export default {
               :label="t('workload.container.titles.volumeClaimTemplates')"
               name="volumeClaimTemplates-pod"
               :weight="tabWeightMap['volumeClaimTemplates']"
+              :error="tabErrors.volumeClaimTemplates"
             >
               <VolumeClaimTemplate
                 v-model:value="spec"
                 :mode="mode"
+                :mount-path-rules="volumeMountPathRules"
               />
             </Tab>
             <Tab
@@ -664,7 +689,7 @@ export default {
         <template #tab-row-extras>
           <div class="tablist-controls">
             <button
-              v-if="!isView"
+              v-if="!isView && !containersImmutable"
               type="button"
               class="btn-sm role-link"
               data-testid="workload-button-add-container"
@@ -684,6 +709,11 @@ export default {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
+}
+
+.cron-schedule-hint {
+  align-self: center;
+  color: var(--input-label);
 }
 
 .type-placeholder {

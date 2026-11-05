@@ -219,3 +219,47 @@ describe('addReleaseNotesNotification', () => {
     });
   });
 });
+
+describe('markReleaseNotesRead', () => {
+  let markReleaseNotesRead: any;
+
+  const getters = ({ notification, lastReadVersion = '' }: { notification?: any, lastReadVersion?: string } = {}) => ({
+    'notifications/item': (id: string) => (notification?.id === id ? notification : undefined),
+    'prefs/get':          (key: string) => (key === READ_WHATS_NEW_KEY ? lastReadVersion : ''),
+  });
+
+  beforeEach(() => {
+    jest.resetModules();
+    jest.mock('@shell/config/version', () => ({ getVersionData: () => ({ Version: MOCK_VERSION_WITH_SUFFIX }) }));
+    markReleaseNotesRead = require('@shell/utils/release-notes').markReleaseNotesRead;
+  });
+
+  it('marks the notification for the running version as read, which saves its preference', async() => {
+    const dispatch = jest.fn(() => Promise.resolve());
+
+    await markReleaseNotesRead(dispatch, getters({ notification: { id: CURRENT_ID, read: false } }));
+
+    expect(dispatch).toHaveBeenCalledWith('notifications/markRead', CURRENT_ID);
+    expect(dispatch).toHaveBeenCalledTimes(1);
+  });
+
+  it('saves the preference like the notification does when there is no notification', async() => {
+    const dispatch = jest.fn(() => Promise.resolve());
+
+    await markReleaseNotesRead(dispatch, getters({ lastReadVersion: '2.8.0' }));
+
+    expect(dispatch).toHaveBeenCalledWith('prefs/set', { key: READ_WHATS_NEW_KEY, value: MOCK_VERSION });
+    expect(dispatch).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['the notification is already read', { notification: { id: CURRENT_ID, read: true }, lastReadVersion: MOCK_VERSION }],
+    ['the preference already has the running version', { lastReadVersion: MOCK_VERSION }],
+  ])('does nothing when %s', async(_, state) => {
+    const dispatch = jest.fn(() => Promise.resolve());
+
+    await markReleaseNotesRead(dispatch, getters(state));
+
+    expect(dispatch).toHaveBeenCalledTimes(0);
+  });
+});

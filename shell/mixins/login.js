@@ -1,4 +1,4 @@
-import { providerKey } from '@shell/models/management.cattle.io.authconfig';
+import { loginDisplayName } from '@shell/composables/useLogin';
 
 export default {
   props: {
@@ -22,16 +22,7 @@ export default {
 
   computed: {
     displayName() {
-      const key = providerKey(this.type);
-      // `t` yields undefined for a provider nothing has been translated for, so
-      // the key stands in - the same fallback the provider list is built with.
-      const providerString = this.t(`model.authConfig.provider.${ key }`) || key;
-
-      // A config named after its provider is the provider as far as anyone
-      // signing in is concerned, so it is labelled with the vendor's name. One
-      // an admin has named is labelled with the name they gave it, which is the
-      // only thing telling it apart from its siblings.
-      return this.name?.toLowerCase() === key ? providerString : this.name;
+      return loginDisplayName((key) => this.t(key), this.name, this.type);
     }
   },
 
@@ -43,7 +34,6 @@ export default {
 
   methods: {
     focus() {
-      // SAML's control is absent while a CLI login is being rejected.
       this.$refs.btn?.focus();
     },
   },

@@ -51,6 +51,41 @@ describe('component: Scaler', () => {
     expect(wrapper.find('.increase').element.attributes.getNamedItem('disabled')).toBeTruthy();
   });
 
+  it.each(['decrease', 'increase'])('should mark %s as aria-disabled when disabled', async(direction) => {
+    const wrapper = mount(Scaler, {
+      props: {
+        ariaResourceName, value: 2, disabled: true
+      },
+      global
+    });
+
+    expect(wrapper.find(`.${ direction }`).attributes('aria-disabled')).toStrictEqual('true');
+  });
+
+  it.each(['decrease', 'increase'])('should keep %s focusable when disabled', async(direction) => {
+    const wrapper = mount(Scaler, {
+      props: {
+        ariaResourceName, value: 2, disabled: true
+      },
+      global
+    });
+
+    expect(wrapper.find(`.${ direction }`).attributes('disabled')).toBeUndefined();
+  });
+
+  it.each(['decrease', 'increase'])('should not emit @%s when disabled', async(direction) => {
+    const wrapper = mount(Scaler, {
+      props: {
+        ariaResourceName, value: 2, disabled: true
+      },
+      global
+    });
+
+    await wrapper.find(`.${ direction }`).trigger('click');
+
+    expect(wrapper.emitted()).not.toHaveProperty(direction);
+  });
+
   it('should render aria labels', async() => {
     const wrapper = mount(Scaler, {
       props: {

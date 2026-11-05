@@ -61,7 +61,7 @@ if [ $BUILD -eq 1 ]; then
   echo -e "${CYAN}${BOLD}++ Building dashboard UI ...${RESET}"
 
   mkdir -p ${DASHBOARD_DIST}
-  TEST_INSTRUMENT=true ${DIR}/scripts/build-e2e
+  TEST_INSTRUMENT=true E2E_BUILD_CMD=build-coverage ${DIR}/scripts/build-e2e
 else
   echo -e "${CYAN}${BOLD}-- Skipping build${RESET}"
 fi

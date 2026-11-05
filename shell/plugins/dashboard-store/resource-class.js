@@ -12,7 +12,7 @@ import {
   AS,
   MODE
 } from '@shell/config/query-params';
-import { EVENT } from '@shell/config/types';
+import { EVENT, NAMESPACE } from '@shell/config/types';
 import { VIEW_IN_API, DEV } from '@shell/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
 import CustomValidators from '@shell/utils/custom-validators';
@@ -21,6 +21,7 @@ import { clone, get } from '@shell/utils/object';
 import { eachLimit } from '@shell/utils/promise';
 import { sortableNumericSuffix } from '@shell/utils/sort';
 import { escapeHtml, ucFirst } from '@shell/utils/string';
+import { isProductPrefixedTopLevel } from '@shell/utils/extension-product-routing';
 import {
   validateChars,
   validateDnsLikeTypes,
@@ -41,6 +42,7 @@ import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
 import { useResourceCardRow, useResourceCardRowFromRelationships } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -56,7 +58,8 @@ const REMAP_STATE = {
   waitcheckin:              'Wait Check-In',
   off:                      'Disabled',
   waitingforinfrastructure: 'Waiting for Infra',
-  waitingfornoderef:        'Waiting for Node Ref'
+  waitingfornoderef:        'Waiting for Node Ref',
+  waitingfordependency:     'Waiting for Dependency'
 };
 
 const DEFAULT_COLOR = 'warning';
@@ -66,99 +69,100 @@ const DEFAULT_WAIT_INTERVAL = 1000;
 const DEFAULT_WAIT_TIMEOUT = 30000;
 
 export const STATES_ENUM = {
-  IN_USE:           'in-use',
-  IN_PROGRESS:      'in-progress',
-  PENDING_ROLLBACK: 'pending-rollback',
-  PENDING_UPGRADE:  'pending-upgrade',
-  ABORTED:          'aborted',
-  ACTIVATING:       'activating',
-  ACTIVE:           'active',
-  AVAILABLE:        'available',
-  BACKED_UP:        'backedup',
-  BOUND:            'bound',
-  BUILDING:         'building',
-  COMPLETED:        'completed',
-  CORDONED:         'cordoned',
-  CANCELLED:        'cancelled',
-  COUNT:            'count',
-  CREATED:          'created',
-  CREATING:         'creating',
-  DEACTIVATING:     'deactivating',
-  DEGRADED:         'degraded',
-  DENIED:           'denied',
-  DEPLOYED:         'deployed',
-  DEPLOYING:        'deploying',
-  DISABLED:         'disabled',
-  DISCONNECTED:     'disconnected',
-  DRAINED:          'drained',
-  DRAINING:         'draining',
-  ENABLED:          'enabled',
-  ERR_APPLIED:      'errapplied',
-  ERROR:            'error',
-  ERRORING:         'erroring',
-  ERRORS:           'errors',
-  EXPIRED:          'expired',
-  EXPIRING:         'expiring',
-  FAIL:             'fail',
-  FAILED:           'failed',
-  HEALTHY:          'healthy',
-  INACTIVE:         'inactive',
-  INFO:             'info',
-  INITIALIZING:     'initializing',
-  INPROGRESS:       'inprogress',
-  LOCKED:           'locked',
-  MIGRATING:        'migrating',
-  MISSING:          'missing',
-  MODIFIED:         'modified',
-  NOT_APPLICABLE:   'notApplicable',
-  NOT_APLLIED:      'notapplied',
-  NOT_READY:        'notready',
-  OFF:              'off',
-  ORPHANED:         'orphaned',
-  OTHER:            'other',
-  OUT_OF_SYNC:      'outofsync',
-  ON_GOING:         'on-going',
-  PASS:             'pass',
-  PASSED:           'passed',
-  PAUSED:           'paused',
-  PENDING:          'pending',
-  PROVISIONING:     'provisioning',
-  PROVISIONED:      'provisioned',
-  PURGED:           'purged',
-  PURGING:          'purging',
-  READY:            'ready',
-  RECONNECTING:     'reconnecting',
-  REGISTERING:      'registering',
-  REINITIALIZING:   'reinitializing',
-  RELEASED:         'released',
-  REMOVED:          'removed',
-  REMOVING:         'removing',
-  REQUESTED:        'requested',
-  RESTARTING:       'restarting',
-  RESTORING:        'restoring',
-  RESIZING:         'resizing',
-  RUNNING:          'running',
-  SKIP:             'skip',
-  SKIPPED:          'skipped',
-  STARTING:         'starting',
-  STOPPED:          'stopped',
-  STOPPING:         'stopping',
-  SUCCEEDED:        'succeeded',
-  SUCCESS:          'success',
-  SUCCESSFUL:       'successful',
-  SUPERSEDED:       'superseded',
-  SUSPENDED:        'suspended',
-  UNAVAILABLE:      'unavailable',
-  UNHEALTHY:        'unhealthy',
-  UNINSTALLED:      'uninstalled',
-  UNINSTALLING:     'uninstalling',
-  UNKNOWN:          'unknown',
-  UNTRIGGERED:      'untriggered',
-  UPDATING:         'updating',
-  WAIT_APPLIED:     'waitapplied',
-  WAIT_CHECKIN:     'waitcheckin',
-  WAITING:          'waiting',
-  WARNING:          'warning',
+  IN_USE:                 'in-use',
+  IN_PROGRESS:            'in-progress',
+  PENDING_ROLLBACK:       'pending-rollback',
+  PENDING_UPGRADE:        'pending-upgrade',
+  ABORTED:                'aborted',
+  ACTIVATING:             'activating',
+  ACTIVE:                 'active',
+  AVAILABLE:              'available',
+  BACKED_UP:              'backedup',
+  BOUND:                  'bound',
+  BUILDING:               'building',
+  COMPLETED:              'completed',
+  CORDONED:               'cordoned',
+  CANCELLED:              'cancelled',
+  COUNT:                  'count',
+  CREATED:                'created',
+  CREATING:               'creating',
+  DEACTIVATING:           'deactivating',
+  DEGRADED:               'degraded',
+  DENIED:                 'denied',
+  DEPLOYED:               'deployed',
+  DEPLOYING:              'deploying',
+  DISABLED:               'disabled',
+  DISCONNECTED:           'disconnected',
+  DRAINED:                'drained',
+  DRAINING:               'draining',
+  ENABLED:                'enabled',
+  ERR_APPLIED:            'errapplied',
+  ERROR:                  'error',
+  ERRORING:               'erroring',
+  ERRORS:                 'errors',
+  EXPIRED:                'expired',
+  EXPIRING:               'expiring',
+  FAIL:                   'fail',
+  FAILED:                 'failed',
+  HEALTHY:                'healthy',
+  INACTIVE:               'inactive',
+  INFO:                   'info',
+  INITIALIZING:           'initializing',
+  INPROGRESS:             'inprogress',
+  LOCKED:                 'locked',
+  MIGRATING:              'migrating',
+  MISSING:                'missing',
+  MODIFIED:               'modified',
+  NOT_APPLICABLE:         'notApplicable',
+  NOT_APLLIED:            'notapplied',
+  NOT_READY:              'notready',
+  OFF:                    'off',
+  ORPHANED:               'orphaned',
+  OTHER:                  'other',
+  OUT_OF_SYNC:            'outofsync',
+  ON_GOING:               'on-going',
+  PASS:                   'pass',
+  PASSED:                 'passed',
+  PAUSED:                 'paused',
+  PENDING:                'pending',
+  PROVISIONING:           'provisioning',
+  PROVISIONED:            'provisioned',
+  PURGED:                 'purged',
+  PURGING:                'purging',
+  READY:                  'ready',
+  RECONNECTING:           'reconnecting',
+  REGISTERING:            'registering',
+  REINITIALIZING:         'reinitializing',
+  RELEASED:               'released',
+  REMOVED:                'removed',
+  REMOVING:               'removing',
+  REQUESTED:              'requested',
+  RESTARTING:             'restarting',
+  RESTORING:              'restoring',
+  RESIZING:               'resizing',
+  RUNNING:                'running',
+  SKIP:                   'skip',
+  SKIPPED:                'skipped',
+  STARTING:               'starting',
+  STOPPED:                'stopped',
+  STOPPING:               'stopping',
+  SUCCEEDED:              'succeeded',
+  SUCCESS:                'success',
+  SUCCESSFUL:             'successful',
+  SUPERSEDED:             'superseded',
+  SUSPENDED:              'suspended',
+  UNAVAILABLE:            'unavailable',
+  UNHEALTHY:              'unhealthy',
+  UNINSTALLED:            'uninstalled',
+  UNINSTALLING:           'uninstalling',
+  UNKNOWN:                'unknown',
+  UNTRIGGERED:            'untriggered',
+  UPDATING:               'updating',
+  WAIT_APPLIED:           'waitapplied',
+  WAIT_CHECKIN:           'waitcheckin',
+  WAITING:                'waiting',
+  WAITING_FOR_DEPENDENCY: 'waitingfordependency',
+  WARNING:                'warning',
 };
 
 export function mapStateToEnum(statusString) {
@@ -441,6 +445,9 @@ export const STATES = {
   },
   [STATES_ENUM.WAITING]: {
     color: 'info', icon: 'tag', label: 'Waiting', compoundIcon: 'info'
+  },
+  [STATES_ENUM.WAITING_FOR_DEPENDENCY]: {
+    color: 'info', icon: 'tag', label: 'Waiting for Dependency', compoundIcon: 'info'
   },
   [STATES_ENUM.WARNING]: {
     color: 'warning', icon: 'error', label: 'Warning', compoundIcon: 'warning'
@@ -857,6 +864,10 @@ export default class Resource {
     }, `link=${ name }`, undefined, undefined);
   }
 
+  condition(condition) {
+    return findBy((this.status?.conditions || []), 'type', condition);
+  }
+
   hasCondition(condition) {
     return this.isCondition(condition, null);
   }
@@ -866,7 +877,7 @@ export default class Resource {
       return false;
     }
 
-    const entry = findBy((this.status.conditions || []), 'type', condition);
+    const entry = this.condition(condition);
 
     if ( !entry ) {
       return false;
@@ -977,7 +988,7 @@ export default class Resource {
         action:  this.canUpdate ? 'goToEdit' : 'goToViewConfig',
         label:   this.t(this.canUpdate ? 'action.edit' : 'action.view'),
         icon:    'icon icon-edit',
-        enabled: this.canCustomEdit,
+        enabled: this.canCustomEdit && (this.canUpdate || !showConfigEnabled), // Hide "View Config" when "Show Configuration" is available since it already includes config viewing
       },
       {
         action:  this.canEditYaml ? 'goToEditYaml' : 'goToViewYaml',
@@ -994,7 +1005,7 @@ export default class Resource {
       { divider: true },
       {
         action:     'download',
-        label:      this.t('action.download'),
+        label:      this.t(this.configurableTables ? 'action.downloadExport' : 'action.download'),
         icon:       'icon icon-download',
         bulkable:   true,
         bulkAction: 'downloadBulk',
@@ -1254,6 +1265,11 @@ export default class Resource {
    */
   processSaveResponse(res, opt = {}) { }
 
+  /**
+   * Allow to notify the user of the name generated for this resource, once it has been created
+   */
+  notifyGeneratedName() { }
+
   async _save(opt = { }) {
     const forNew = !this.id;
     let errors;
@@ -1426,15 +1442,17 @@ export default class Resource {
     // this is for the new extension product registration model
     let currPluginName = '';
     const plugins = this.$extension.getPlugins();
+    const currentProductId = this.$rootGetters['productId'];
 
     Object.keys(plugins).forEach((key) => {
-      if (plugins[key].productNames.includes(this.$rootGetters['productId'])) {
+      if (plugins[key].productNames.includes(currentProductId)) {
         currPluginName = key;
       }
     });
 
-    // the flag "topLevelProduct" only exists in the V2 product registration model
-    return plugins[currPluginName]?.topLevelProduct || false;
+    // Resolved per-product, so a single plugin registering several products (some top-level,
+    // some extending) gets the correct answer for whichever product is currently active.
+    return isProductPrefixedTopLevel(plugins[currPluginName], currentProductId);
   }
 
   get listLocation() {
@@ -1622,16 +1640,49 @@ export default class Resource {
     this.currentRouter().push(location);
   }
 
-  async download() {
+  get configurableTables() {
+    return isConfigurableTablesEnabled({ rootGetters: this.$rootGetters });
+  }
+
+  /**
+   * With configurable tables on this asks for a format; YAML is the download it has always been. The
+   * action keeps its name either way, since models hide or keep it by name
+   */
+  download() {
+    return this.configurableTables ? this.openExportModal([this]) : this.downloadYaml();
+  }
+
+  downloadBulk(items) {
+    return this.configurableTables ? this.openExportModal(items) : this.downloadYamlBulk(items);
+  }
+
+  async openExportModal(items) {
+    // Imported on demand, to keep the component out of every bundle
+    const { default: TableViewExportModal } = await import('@shell/components/TableViews/TableViewExportModal.vue');
+
+    // It draws its own RcModal, so the modal manager hands it `modal` rather than framing it
+    this.$ctx.commit('modal/openModal', {
+      component:      markRaw(TableViewExportModal),
+      componentProps: { count: items.length, isSelection: true },
+      resources:      items,
+    }, { root: true });
+  }
+
+  async downloadYaml() {
     const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
     const data = await this.cleanForDownload(value.data);
 
     downloadFile(`${ this.nameDisplay }.yaml`, data, 'application/yaml');
   }
 
-  async downloadBulk(items) {
+  /**
+   * @param items the resources to write into the zip
+   * @param onProgress called with (done, total), as it is one request per resource
+   */
+  async downloadYamlBulk(items, onProgress) {
     const files = {};
     const names = [];
+    let done = 0;
 
     for ( const item of items ) {
       let name = `${ item.nameDisplay }.yaml`;
@@ -1650,6 +1701,7 @@ export default class Resource {
         const cleanedYaml = await this.cleanForDownload(yaml);
 
         files[`resources/${ names[idx] }`] = cleanedYaml;
+        onProgress?.(++done, items.length);
       });
     });
 
@@ -2052,32 +2104,13 @@ export default class Resource {
 
   get _glance() {
     const type = this.parentNameOverride || this.$rootGetters['type-map/labelFor'](this.schema);
-    let toRoute = null;
-
-    if (this.isProdRegistrationV2TopLevelProductResoure) {
-      toRoute = {
-        name:   `${ this.$rootGetters['productId'] }-c-cluster-resource-id`,
-        params: {
-          product:  this.$rootGetters['currentProduct']?.id,
-          cluster:  this.$rootGetters['currentCluster']?.id,
-          resource: this.type,
-        }
-      };
-    } else {
-      toRoute = {
-        name:     `c-cluster-product-resource-id`,
-        product:  this.$rootGetters['currentProduct']?.id,
-        cluster:  this.$rootGetters['currentCluster']?.id,
-        resource: this.type
-      };
-    }
 
     return [
       {
         name:          'state',
         label:         this.t('component.resource.detail.glance.state'),
         formatter:     'BadgeStateFormatter',
-        formatterOpts: { row: this },
+        formatterOpts: { row: { stateDisplay: this.stateDisplay, stateBackground: this.glanceStateBackground } },
         content:       this.stateDisplay
       },
       {
@@ -2089,17 +2122,18 @@ export default class Resource {
         },
         content: type
       },
-      {
+      // A resource that isn't namespaced has no namespace row
+      ...(this.metadata?.namespace ? [{
         name:          'namespace',
         label:         this.t('component.resource.detail.glance.namespace'),
-        formatter:     this.$rootGetters['currentProduct']?.id && this.$rootGetters['currentCluster']?.id ? 'Link' : undefined,
+        formatter:     this.glanceNamespaceLocation ? 'Link' : undefined,
         formatterOpts: {
-          to:      toRoute,
+          to:      this.glanceNamespaceLocation,
           row:     {},
           options: { internal: true }
         },
-        content: this.namespacedName
-      },
+        content: this.metadata.namespace
+      }] : []),
       {
         name:      'age',
         label:     this.t('component.resource.detail.glance.age'),
@@ -2107,6 +2141,40 @@ export default class Resource {
         content:   this.creationTimestamp
       }
     ];
+  }
+
+  // Steve marks a resource that keeps failing, e.g. a pod in CrashLoopBackOff, as transitioning, which would show its
+  // error state in the colour of an update in progress
+  get glanceStateBackground() {
+    if (this.stateObj?.transitioning && colorForState.call(this, this.state) === 'text-error') {
+      return 'bg-error';
+    }
+
+    return this.stateBackground;
+  }
+
+  // Like the masthead, link the namespace when the user can list namespaces and it's in a cluster they can reach
+  get glanceNamespaceLocation() {
+    const namespace = this.metadata?.namespace;
+    const inStore = this.$rootGetters['currentStore']?.(NAMESPACE);
+
+    if (!namespace || !inStore || !this.$rootGetters[`${ inStore }/canList`]?.(NAMESPACE)) {
+      return null;
+    }
+
+    if (this.namespaceLocation === null || this.$rootGetters['currentProduct']?.hideNamespaceLocation) {
+      return null;
+    }
+
+    return this.namespaceLocation || {
+      name:   'c-cluster-product-resource-id',
+      params: {
+        cluster:  this.$rootGetters['clusterId'],
+        product:  this.$rootGetters['productId'],
+        resource: NAMESPACE,
+        id:       namespace
+      }
+    };
   }
 
   get t() {

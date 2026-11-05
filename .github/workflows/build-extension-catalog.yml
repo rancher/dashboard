@@ -81,7 +81,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Parse Extension Name
-        if: github.ref_type == 'tag' || inputs.is_test == 'true'
+        if: (github.ref_type == 'tag' || inputs.is_test == 'true') && inputs.tagged_release != 'head'
         id: parsed-name
         env:
           GH_TOKEN: ${{ github.token }}

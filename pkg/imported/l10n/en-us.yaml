@@ -4,6 +4,12 @@ imported:
   label: Imported
   agentEnv:
     header: Agent Environment Variables
+  configureAfterImport:
+    versionManagement: For RKE2 and K3s clusters, K8s Version Management will be automatically {versionManagement} based on the corresponding global setting. This behavior can be modified and configured once the cluster has been imported.
+    versionManagementAndDayTwoOps: For RKE2 and K3s clusters, K8s Version Management will be automatically {versionManagement} and Day 2 Operations will be automatically {dayTwoOps} based on the corresponding global settings. This behavior can be modified and configured once the cluster has been imported.
+    versionManagementAndDayTwoOpsSame: For RKE2 and K3s clusters, K8s Version Management and Day 2 Operations will be automatically {state} based on the corresponding global settings. This behavior can be modified and configured once the cluster has been imported.
+    enabled: enabled
+    disabled: disabled
   basics:
     versionMismatch: "There is a mismatch between the expected and the current versions of the cluster. This usually happens if the imported cluster was upgraded outside of this Rancher instance. Managing the cluster version via Rancher and external means at the same time is not supported and may cause unexpected behavior and failures. <br>Please consider disabling the version management feature if the cluster has been upgraded externally."
     versionManagement:
@@ -56,13 +62,10 @@ imported:
     banner: The imported cluster must support Kubernetes NetworkPolicy resources for Project Network Isolation to be enforced
   accordions:
     advanced: Advanced
-    basics: Basics
     upgrade: Upgrade Strategy
     networking: Networking
     registries: Registries
     labels: Labels and Annotations
-    k3sOptions: K3S Options
-    rke2Options: RKE2 Options
   upgradeStrategy:
     header: Upgrade Strategy
   errors:

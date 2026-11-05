@@ -70,11 +70,13 @@ exports[`component: General rendering & initial state should render with default
               filterable="true"
               hovertooltip="true"
               instore="cluster"
+              keepsearchonblur="false"
               label="auditPolicy.general.verbosity.level.label"
               loading="false"
               localizedlabel="false"
               lockedoptions=""
               mode="create"
+              mutedvalue="false"
               nooptionslabelkey="labelSelect.noOptions.empty"
               optionlabel="label"
               options="[object Object],[object Object],[object Object],[object Object]"
@@ -87,6 +89,7 @@ exports[`component: General rendering & initial state should render with default
               selectable="[Function]"
               size="large"
               value="0"
+              visiblerowheight="18"
             />
           </div>
         </div>

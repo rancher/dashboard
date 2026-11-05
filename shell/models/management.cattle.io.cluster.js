@@ -1,22 +1,25 @@
-import { CATALOG, CLUSTER_BADGE, NODE_ARCHITECTURE, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
+import {
+  CATALOG, CLUSTER_BADGE, NODE_ARCHITECTURE, OPERATION_ANNOTATIONS, IMPORTED_CLUSTER_VERSION_MANAGEMENT
+} from '@shell/config/labels-annotations';
 import {
   NODE, FLEET, MANAGEMENT, CAPI, EXT,
   NORMAN,
   HCI
 } from '@shell/config/types';
-import { insertAt, removeObject, uniq } from '@shell/utils/array';
+import { insertAt, uniq } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
 import { isEmpty, isEqual } from '@shell/utils/object';
 import { HARVESTER_NAME as HARVESTER, IMPORTED_DAY_2_OPS } from '@shell/config/features';
+import { isMachinePoolAutoscaling } from '@shell/utils/autoscaler-utils';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KEV1 } from './management.cattle.io.kontainerdriver';
 import { requireAsset } from '@shell/utils/require-asset';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
-import { commitAndReconcile } from '@shell/utils/cluster-pref-writer';
+import { commitAndReconcile, reportPinWriteFailure, setPinned } from '@shell/utils/cluster-pref-writer';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
@@ -112,6 +115,10 @@ export default class MgmtCluster extends SteveModel {
       enabled:    this.$rootGetters['isRancher'] && this.canCreateKubeconfig,
       icon:       'icon icon-copy',
     });
+
+    // The Cluster Management list shows these only for a row with no provisioning cluster to take its actions
+    // from, such as a management cluster created directly.
+    out.unshift(...this.clusterPinActions());
 
     return out;
   }
@@ -409,6 +416,23 @@ export default class MgmtCluster extends SteveModel {
     return this.isDayTwoOpsFeatureEnabled && isImportedRke2K3s && annotationEnabledOrDefault;
   }
 
+  /**
+   * Whether Rancher manages the Kubernetes version of this imported cluster.
+   * Reads the `rancher.io/imported-cluster-version-management` annotation ('true', 'false' or 'system-default');
+   * when it is missing or 'system-default' the `imported-cluster-version-management` global setting applies.
+   * Mirrors the backend's importedclusterversionmanagement.Enabled.
+   */
+  get isVersionManagementEnabled() {
+    switch (this.metadata?.annotations?.[IMPORTED_CLUSTER_VERSION_MANAGEMENT]) {
+    case 'true':
+      return true;
+    case 'false':
+      return false;
+    default:
+      return this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT)?.value === 'true';
+    }
+  }
+
   get isHarvester() {
     return isHarvesterCluster(this);
   }
@@ -669,6 +693,11 @@ export default class MgmtCluster extends SteveModel {
    * cluster, so the ids need to be de-duplicated (spec.clusters is a set)
    */
   kubeConfigClusterIds(items = []) {
+    return this.mgmtClusterIds(items);
+  }
+
+  // A cluster management row hands over a provisioning cluster, so resolve either kind.
+  mgmtClusterIds(items = []) {
     return uniq(items.map((item) => item.mgmt?.id || item.id).filter((id) => !!id));
   }
 
@@ -821,18 +850,7 @@ export default class MgmtCluster extends SteveModel {
    * serialized writer so this write can't race the store's cluster-navigation write and 409.
    */
   pin() {
-    return commitAndReconcile(this.clusterPrefDispatch, [{
-      key:   PINNED_CLUSTERS,
-      apply: (pinned) => {
-        const current = Array.isArray(pinned) ? pinned : [];
-
-        // At the TOP of the shelf, which renders this pref in order. A cluster is pinned to keep it to
-        // hand, so it goes where the hand is — appending buried each new pin under everything pinned
-        // before it, furthest from the pointer and first to be scrolled out of a long shelf.
-        // Re-pinning an already-pinned cluster moves it up rather than duplicating it.
-        return [this.id, ...current.filter((id) => id !== this.id)];
-      },
-    }]);
+    return this.pinBulk([this]);
   }
 
   /**
@@ -843,16 +861,65 @@ export default class MgmtCluster extends SteveModel {
    * cluster-navigation write and 409.
    */
   unpin() {
-    return commitAndReconcile(this.clusterPrefDispatch, [{
-      key:   PINNED_CLUSTERS,
-      apply: (pinned) => {
-        const next = [...(Array.isArray(pinned) ? pinned : [])];
+    return this.unpinBulk([this]);
+  }
 
-        removeObject(next, this.id);
+  pinBulk(clusters) {
+    return commitAndReconcile(this.clusterPrefDispatch, [setPinned(this.mgmtClusterIds(clusters), true)]);
+  }
 
-        return next;
-      },
-    }]);
+  unpinBulk(clusters) {
+    return commitAndReconcile(this.clusterPrefDispatch, [setPinned(this.mgmtClusterIds(clusters), false)]);
+  }
+
+  /**
+   * The Pin and Unpin row and bulk actions. The provisioning cluster offers them through this too, so a
+   * selection that mixes the two still gets a single Pin and a single Unpin in the bulk bar.
+   */
+  clusterPinActions() {
+    const pinnable = !this.isLocal;
+
+    // Weighted, or the bulk bar splits the pair: unweighted it falls back to the order the actions are
+    // first met across the rows, and `unpinCluster` is enabled only on a pinned cluster.
+    return [{
+      action:     'pinCluster',
+      bulkAction: 'pinClusterBulk',
+      label:      this.t('cluster.pinAction'),
+      icon:       'icon icon-pin flip-x',
+      bulkable:   true,
+      enabled:    pinnable && !this.pinned,
+      weight:     2,
+    }, {
+      action:     'unpinCluster',
+      bulkAction: 'unpinClusterBulk',
+      label:      this.t('cluster.unpinAction'),
+      icon:       'icon icon-pin-outlined flip-x',
+      bulkable:   true,
+      enabled:    pinnable && this.pinned,
+      weight:     1,
+    }];
+  }
+
+  // A failed preference write RESOLVES with `{ type, status }` rather than throwing, and the optimistic
+  // pin is on screen by then — so it has to be reported, as `Pinned` reports the row control's write.
+  reportPin(write) {
+    return reportPinWriteFailure({ dispatch: this.clusterPrefDispatch }, this.t, write);
+  }
+
+  pinCluster() {
+    return this.reportPin(this.pin());
+  }
+
+  unpinCluster() {
+    return this.reportPin(this.unpin());
+  }
+
+  pinClusterBulk(items) {
+    return this.reportPin(this.pinBulk(items));
+  }
+
+  unpinClusterBulk(items) {
+    return this.reportPin(this.unpinBulk(items));
   }
 
   get canExplore() {
@@ -889,9 +956,7 @@ export default class MgmtCluster extends SteveModel {
       return false;
     }
 
-    return !!this.provCluster.spec?.rkeConfig?.machinePools?.some((pool) => {
-      return typeof pool.autoscalingMinSize !== 'undefined' || typeof pool.autoscalingMaxSize !== 'undefined';
-    });
+    return !!this.provCluster.spec?.rkeConfig?.machinePools?.some((pool) => isMachinePoolAutoscaling(pool));
   }
 
   _statusInfoWarned = false;

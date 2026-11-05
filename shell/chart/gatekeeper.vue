@@ -57,13 +57,17 @@ export default {
       </div>
     </div>
 
-    <template v-if="crdValues">
-      <!-- gatekeeper versions <1.0.2 do not have this option -->
-      <Checkbox
-        v-if="crdValues.enableRuntimeDefaultSeccompProfile ||crdValues.enableRuntimeDefaultSeccompProfile === false"
-        v-model:value="crdValues.enableRuntimeDefaultSeccompProfile"
-        :label="t('gatekeeperInstall.runtimeDefaultSeccompProfile')"
-      />
-    </template>
+    <!-- gatekeeper versions <1.0.2 do not have this option -->
+    <div
+      v-if="crdValues && (crdValues.enableRuntimeDefaultSeccompProfile || crdValues.enableRuntimeDefaultSeccompProfile === false)"
+      class="row mmt-3"
+    >
+      <div class="col span-6">
+        <Checkbox
+          v-model:value="crdValues.enableRuntimeDefaultSeccompProfile"
+          :label="t('gatekeeperInstall.runtimeDefaultSeccompProfile')"
+        />
+      </div>
+    </div>
   </div>
 </template>

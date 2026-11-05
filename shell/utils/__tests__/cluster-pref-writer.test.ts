@@ -1,4 +1,4 @@
-import { movePinned, prependRecent, recordClusterNavigation } from '@shell/utils/cluster-pref-writer';
+import { movePinned, prependRecent, recordClusterNavigation, setPinned } from '@shell/utils/cluster-pref-writer';
 import { CLUSTER, PINNED_CLUSTERS, RECENT_CLUSTERS, RECENT_CLUSTERS_FETCHED } from '@shell/store/prefs';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 
@@ -97,6 +97,35 @@ describe('fx: cluster-pref-writer', () => {
       getters, dispatch, writes, calls, data: clientData
     };
   };
+
+  describe('setPinned', () => {
+    it('pins the whole selection at the top of the shelf, in the order given', () => {
+      const { key, apply } = setPinned(['c-a', 'c-b'], true);
+
+      expect(key).toBe(PINNED_CLUSTERS);
+      expect(apply(['c-z'])).toStrictEqual(['c-a', 'c-b', 'c-z']);
+    });
+
+    it('moves an already-pinned cluster rather than pinning it twice', () => {
+      expect(setPinned(['c-a'], true).apply(['c-z', 'c-a'])).toStrictEqual(['c-a', 'c-z']);
+    });
+
+    it('unpins the whole selection, leaving the rest in place', () => {
+      expect(setPinned(['c-a', 'c-b'], false).apply(['c-a', 'c-z', 'c-b'])).toStrictEqual(['c-z']);
+    });
+
+    it('does not mutate the input list', () => {
+      const input = ['c-z'];
+
+      setPinned(['c-a'], true).apply(input);
+
+      expect(input).toStrictEqual(['c-z']);
+    });
+
+    it('tolerates a non-array value', () => {
+      expect(setPinned(['c-a'], true).apply(undefined as any)).toStrictEqual(['c-a']);
+    });
+  });
 
   describe('movePinned', () => {
     // A drag says one thing: this cluster, this position. Writing the shelf's whole order instead asserted

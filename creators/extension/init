@@ -5,6 +5,7 @@ const { execSync, spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const creatorPkg = require('./package.json');
+const { createAgentsFiles, createSkillFiles } = require('./agents/init');
 
 const args = process.argv.slice(2);
 let extensionName = '';
@@ -13,6 +14,9 @@ let migrate = false;
 let updateOnly = false;
 let skeletonOnly = false;
 let ignoreShellDepCheck = false; // Ignore the check for @rancher/shell dependency (Only used for testing)
+let skipAgents = false; // Don't add AGENTS.md and friends to the skeleton application
+let agentsOnly = false; // Add the agent guidance to the current folder and nothing else
+let skillOnly = false; // Add the agent guidance as a skill folder, rather than AGENTS.md
 let tagUsed = ''; // To store the inferred tag
 
 for (let index = 0; index < args.length; index++) {
@@ -28,6 +32,9 @@ for (let index = 0; index < args.length; index++) {
     console.log('  --update, -u        Update applications');
     console.log('  --app-name, -a      Specify the name of the application');
     console.log('  --skeleton-only, -s Create only the skeleton application');
+    console.log('  --skip-agents       Do not add AGENTS.md and the Rancher UI reference docs');
+    console.log('  --agents            Only add AGENTS.md and the reference docs, to the current folder');
+    console.log('  --skill             Add the guidance as a skill folder instead of AGENTS.md');
     console.log('\nNote: When using "npm init", pass "--" before options:');
     console.log('  npm init @rancher/extension@latest my-ext -- --app-name my-app');
     process.exit(0);
@@ -52,6 +59,15 @@ for (let index = 0; index < args.length; index++) {
   case '-s':
     skeletonOnly = true;
     break;
+  case '--skip-agents':
+    skipAgents = true;
+    break;
+  case '--agents':
+    agentsOnly = true;
+    break;
+  case '--skill':
+    skillOnly = true;
+    break;
   case '-i':
     ignoreShellDepCheck = true;
     break;
@@ -61,6 +77,18 @@ for (let index = 0; index < args.length; index++) {
       appName = appName || extensionName;
     }
   }
+}
+
+// Adding the guidance to a folder that already exists needs nothing else from the
+// creator - no extension name, no npm lookups - so handle it and get out
+if ((agentsOnly || skillOnly) && !extensionName && !updateOnly && !skeletonOnly && !migrate) {
+  if (skillOnly) {
+    createSkillFiles(process.cwd());
+  } else {
+    createAgentsFiles(process.cwd());
+  }
+
+  process.exit(0);
 }
 
 if (!extensionName && !updateOnly && !skeletonOnly && !migrate) {
@@ -198,6 +226,13 @@ try {
   } else if (isInsideSkeleton) {
     // If skeleton exists, ensure the working directory is set correctly
     process.chdir(skeletonPath);
+  }
+
+  // Add the agent guidance to the skeleton, in whichever shape was asked for
+  if (skillOnly) {
+    createSkillFiles(skeletonPath);
+  } else if (!skipAgents) {
+    createAgentsFiles(skeletonPath);
   }
 
   if (skeletonOnly) {

@@ -4,6 +4,7 @@ import { PropType } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { RcItemCard, RcItemCardAction } from '@components/RcItemCard';
+import { TRAEFIK } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
 interface IngressCard {
   id: string;
@@ -49,7 +50,7 @@ const { t } = useI18n(store);
       @card-click="emit('select', card.id)"
     >
       <template
-        v-once
+        v-if="card.id !== TRAEFIK || options.length > 1"
         #item-card-sub-header
       >
         <p class="ingress-card-sub-header">
