@@ -240,6 +240,7 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
     });
 
     it('can create an Ingress targeting a headless service and wait for Active state', () => {
+      cy.viewport(1440, 900);
       const headlessServiceName = Cypress._.uniqueId(`headless-svc-${ Date.now().toString() }`);
       const ingressHeadlessName = Cypress._.uniqueId(`ingress-headless-${ Date.now().toString() }`);
 
