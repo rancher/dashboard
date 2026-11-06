@@ -3,6 +3,12 @@ import { shallowMount } from '@vue/test-utils';
 import ProvisioningCattleIoCluster from '@shell/detail/provisioning.cattle.io.cluster.vue';
 import * as TitleBarComposables from '@shell/components/Resource/Detail/TitleBar/composables';
 import * as MetadataComposables from '@shell/components/Resource/Detail/Metadata/composables';
+import ResourceTable from '@shell/components/ResourceTable.vue';
+import CapiMachine from '@shell/models/cluster.x-k8s.io.machine';
+import MgmtNode from '@shell/models/management.cattle.io.node';
+import { MANAGEMENT_NODE } from '@shell/config/labels-annotations';
+import { sortBy } from '@shell/utils/sort';
+import { get } from '@shell/utils/object';
 
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
@@ -649,6 +655,94 @@ describe('view: provisioning.cattle.io.cluster', () => {
       const copyCodes = wrapper.findAllComponents({ name: 'CopyCode' }).map((c) => c.text());
 
       expect(copyCodes.slice(0, 2)).toStrictEqual([populatedToken.command, populatedToken.insecureCommand]);
+    });
+  });
+
+  describe('machine tables', () => {
+    const mgmtClusterId = 'c-m-abc123';
+    const nodeNamesByMachineName = {
+      'custom-a': 'worker-10', 'custom-b': 'worker-2', 'custom-c': 'worker-1'
+    };
+    const machineNodes = Object.entries(nodeNamesByMachineName);
+
+    const tables: Record<string, { tab: string, value: object, data: object }> = {
+      'CAPI machine': {
+        tab:   'machine-pools',
+        value: {
+          isRke2:   true,
+          machines: machineNodes.map(([name, nodeName]) => new CapiMachine({ metadata: { name }, status: { nodeRef: { name: nodeName } } })),
+        },
+        data: { haveMachines: true },
+      },
+      'management node': {
+        tab:   'node-pools',
+        value: { mgmtClusterId, machines: [] },
+        data:  {
+          haveNodes: true,
+          allNodes:  machineNodes.map(([name, nodeName]) => new MgmtNode({
+            id: `${ mgmtClusterId }/${ name }`, metadata: { name, labels: { [MANAGEMENT_NODE.NODE_NAME]: nodeName } }, spec: {}
+          })),
+        },
+      },
+    };
+
+    const mountMachineTable = async(table: string) => {
+      const { tab, value, data } = tables[table];
+      const slotStub = {
+        render() {
+          return h('div', (this as any).$slots.default?.());
+        }
+      };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props: {
+          value: {
+            name: 'c1', isCustom: true, spec: {}, pools: [], hasLink: () => true, ...value
+          }
+        },
+        global: {
+          mocks: {
+            ...mocks,
+            $store: {
+              ...mockStore,
+              dispatch: jest.fn(),
+              getters:  {
+                ...mockStore.getters,
+                'features/get': () => false,
+                'i18n/exists':  () => true,
+              },
+            },
+          },
+          stubs: {
+            DetailPage: {
+              render() {
+                return h('div', (this as any).$slots['bottom-area']?.());
+              }
+            },
+            ResourceTabs: slotStub,
+            Tab:          slotStub,
+          },
+        },
+      });
+
+      await wrapper.setData({ machineTemplates: [], ...data });
+
+      return wrapper.find(`[name="${ tab }"]`).findComponent(ResourceTable);
+    };
+
+    it.each(Object.keys(tables))('should sort the %s table by the Node column by default', async(table) => {
+      const resourceTable = await mountMachineTable(table);
+
+      expect(resourceTable.attributes('default-sort-by')).toStrictEqual('node-name');
+    });
+
+    it.each(Object.keys(tables))('should sort the %s table\'s Node column in natural order', async(table) => {
+      const resourceTable = await mountMachineTable(table);
+      const headers = resourceTable.props('headers') as { name: string, sort: string, value: string }[];
+      const nodeColumn = headers.find((header) => header.name === 'node-name');
+      const nodeNames = sortBy(resourceTable.props('rows'), nodeColumn?.sort).map((row: object) => get(row, nodeColumn?.value));
+
+      expect(nodeNames).toStrictEqual(['worker-1', 'worker-2', 'worker-10']);
     });
   });
 });

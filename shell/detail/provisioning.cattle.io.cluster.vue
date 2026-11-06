@@ -600,7 +600,7 @@ export default {
         {
           name:          'node-name',
           labelKey:      'tableHeaders.machineNodeName',
-          sort:          'status.nodeRef.name',
+          sort:          'kubeNodeNameSort',
           value:         'status.nodeRef.name',
           formatter:     'LinkDetail',
           formatterOpts: { reference: 'kubeNodeDetailLocation' },
@@ -631,7 +631,7 @@ export default {
         {
           name:          'node-name',
           labelKey:      'tableHeaders.machineNodeName',
-          sort:          'kubeNodeName',
+          sort:          'kubeNodeNameSort',
           value:         'kubeNodeName',
           formatter:     'LinkDetail',
           formatterOpts: { reference: 'kubeNodeDetailLocation' },
@@ -1014,7 +1014,7 @@ export default {
               :rows="machines"
               :schema="machineSchema"
               :headers="machineHeaders"
-              default-sort-by="name"
+              default-sort-by="node-name"
               group-ref="pool"
               :group-default="machineGroupOption.value"
               :group-sort="['pool.nameDisplay']"
@@ -1124,6 +1124,7 @@ export default {
               :schema="mgmtNodeSchema"
               :headers="mgmtNodeSchemaHeaders"
               :rows="nodes"
+              default-sort-by="node-name"
               group-ref="pool"
               :group-default="poolGroupOption.value"
               :group-sort="['pool.nameDisplay']"
