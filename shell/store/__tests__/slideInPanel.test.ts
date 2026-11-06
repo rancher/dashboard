@@ -29,7 +29,8 @@ describe('slideInPanel store', () => {
         isOpen:         false,
         isClosing:      false,
         component:      null,
-        componentProps: {}
+        componentProps: {},
+        openCount:      0
       });
     });
   });
@@ -59,10 +60,35 @@ describe('slideInPanel store', () => {
 
       expect(getters.componentProps(state, {}, {}, {})).toStrictEqual(props);
     });
+
+    it('returns openCount from state', () => {
+      const state = createState({ openCount: 3 });
+
+      expect(getters.openCount(state, {}, {}, {})).toStrictEqual(3);
+    });
   });
 
   describe('mutations', () => {
     describe('open', () => {
+      it('counts an open after a close, so a panel reopened while it is still closing is a new one', () => {
+        const state = createState();
+
+        mutations.open(state, { component: MockComponentA as any });
+        mutations.close(state);
+        mutations.open(state, { component: MockComponentA as any });
+
+        expect(state.openCount).toStrictEqual(2);
+      });
+
+      it('does not count an open that updates a panel which is already open', () => {
+        const state = createState();
+
+        mutations.open(state, { component: MockComponentA as any });
+        mutations.open(state, { component: MockComponentA as any, componentProps: { title: 'Updated' } });
+
+        expect(state.openCount).toStrictEqual(1);
+      });
+
       it('sets isOpen to true and stores component and props', () => {
         const state = createState();
         const props = { title: 'Test Panel' };

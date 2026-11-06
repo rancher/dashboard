@@ -1,9 +1,9 @@
-import { shallowMount } from '@vue/test-utils';
+import { mount, flushPromises } from '@vue/test-utils';
 import SlideInPanel from '@pkg/kubectl-explain/components/SlideInPanel.vue';
+import { getOpenAPISchemaName, makeOpenAPIBreadcrumb } from '@pkg/kubectl-explain/open-api-utils';
+import { openAPI } from '@pkg/kubectl-explain/open-api';
 
-jest.mock('@shell/composables/focusTrap', () => ({ useWatcherBasedSetupFocusTrapWithDestroyIncluded: jest.fn() }));
-
-jest.mock('@pkg/kubectl-explain/slide-in', () => ({ isExplainPanelOpen: { value: false } }));
+jest.mock('@pkg/kubectl-explain/open-api', () => ({ openAPI: { get: jest.fn() } }));
 
 jest.mock('@pkg/kubectl-explain/open-api-utils.ts', () => ({
   expandOpenAPIDefinition: jest.fn(),
@@ -11,71 +11,119 @@ jest.mock('@pkg/kubectl-explain/open-api-utils.ts', () => ({
   makeOpenAPIBreadcrumb:   jest.fn(),
 }));
 
-const globalMocks = {
-  mocks: { t: (key: string) => key },
-  stubs: { ExplainPanel: { template: '<div />' } },
-};
+const NAME = 'io.k8s.api.core.v1.Pod';
 
-function mountPanel(dataOverrides: Record<string, unknown> = {}) {
-  return shallowMount(SlideInPanel as any, {
-    global: globalMocks,
+const openApiData = { definitions: { [NAME]: { description: 'A pod.', properties: {} } } };
+
+const pending = () => new Promise(() => {});
+
+function mountPanel({
+  props = { schema: { id: 'pod' }, cluster: 'local' } as Record<string, unknown>,
+  get = () => Promise.resolve(openApiData) as Promise<unknown>,
+  data = {} as Record<string, unknown>,
+} = {}) {
+  const store = { dispatch: jest.fn() };
+
+  (openAPI.get as jest.Mock).mockImplementation(get);
+
+  const wrapper = mount(SlideInPanel as any, {
+    props,
     data() {
-      return { ...dataOverrides };
+      return { ...data };
+    },
+    global: {
+      provide: { store },
+      mocks:   { $store: store, t: (key: string) => key },
+      stubs:   { ExplainPanel: { template: '<div class="explain-panel-stub" />' } },
     },
   });
+
+  return { wrapper, store };
 }
 
 describe('component: SlideInPanel', () => {
-  describe('dialog semantics', () => {
-    it('renders the dialog on an element that permits role="dialog"', () => {
-      const wrapper = mountPanel();
-      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
+  beforeEach(() => {
+    (getOpenAPISchemaName as jest.Mock).mockReturnValue(NAME);
+    (makeOpenAPIBreadcrumb as jest.Mock).mockImplementation((id: string) => ({ id, name: 'Pod' }));
+    Element.prototype.scrollIntoView = jest.fn();
+  });
 
-      expect(panel.element.tagName).toStrictEqual('DIV');
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  describe('drawer', () => {
+    it('renders in the standard drawer, named from the kubectl-explain.title key', () => {
+      const { wrapper } = mountPanel();
+
+      expect(wrapper.attributes('role')).toBe('dialog');
+      expect(wrapper.attributes('aria-label')).toBe('kubectl-explain.title');
     });
 
-    it('has role="dialog"', () => {
-      const wrapper = mountPanel();
-      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
+    it('has no footer, since it has no actions', () => {
+      const { wrapper } = mountPanel();
 
-      expect(panel.attributes('role')).toBe('dialog');
+      expect(wrapper.find('[data-testid="rc-drawer-footer"]').exists()).toBe(false);
     });
 
-    it('has aria-modal="true"', () => {
-      const wrapper = mountPanel();
-      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
+    it('emits close when the drawer is closed', async() => {
+      const { wrapper } = mountPanel();
 
-      expect(panel.attributes('aria-modal')).toBe('true');
-    });
+      await wrapper.find('[data-testid="rc-drawer-close"]').trigger('click');
 
-    it('has aria-hidden="true" when panel is closed', () => {
-      const wrapper = mountPanel({ isOpen: false });
-      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
-
-      expect(panel.attributes('aria-hidden')).toBe('true');
-    });
-
-    it('has aria-hidden="false" when panel is open', () => {
-      const wrapper = mountPanel({ isOpen: true });
-      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
-
-      expect(panel.attributes('aria-hidden')).toBe('false');
-    });
-
-    it('has aria-label from kubectl-explain.title key', () => {
-      const wrapper = mountPanel();
-      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
-
-      expect(panel.attributes('aria-label')).toBe('kubectl-explain.title');
+      expect(wrapper.emitted('close')).toHaveLength(1);
     });
   });
 
-  describe('close button', () => {
-    it('has aria-label from kubectl-explain.close key', () => {
-      const wrapper = mountPanel();
-      const closeBtn = wrapper.find('[data-testid="slide-in-panel-close-resource-explain"]');
+  describe('loading the definition', () => {
+    it('fetches the OpenAPI data for the cluster it was opened for', () => {
+      const { store } = mountPanel({ props: { schema: { id: 'pod' }, cluster: 'c-abc12' } });
 
-      expect(closeBtn.attributes('aria-label')).toBe('kubectl-explain.close');
+      expect(openAPI.get).toHaveBeenCalledWith('c-abc12', store.dispatch);
+    });
+
+    it('shows a spinner until the data arrives', () => {
+      const { wrapper } = mountPanel({ get: pending });
+
+      expect(wrapper.find('.icon-spinner').exists()).toBe(true);
+      expect(wrapper.find('.explain-panel-stub').exists()).toBe(false);
+    });
+
+    it('shows the definition once the data arrives', async() => {
+      const { wrapper } = mountPanel();
+
+      await flushPromises();
+
+      expect(wrapper.find('.icon-spinner').exists()).toBe(false);
+      expect(wrapper.find('.explain-panel-stub').exists()).toBe(true);
+      expect(wrapper.find('.breadcrumbs').text()).toBe('Pod');
+    });
+
+    it('scrolls back to the top once the definition is shown', async() => {
+      jest.useFakeTimers();
+      mountPanel();
+
+      await flushPromises();
+      jest.advanceTimersByTime(100);
+
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: 'start' });
+    });
+
+    it('shows the load error when the request fails', async() => {
+      const { wrapper } = mountPanel({ get: () => Promise.reject(new Error('nope')) });
+
+      await flushPromises();
+
+      expect(wrapper.find('.select-resource').text()).toBe('kubectl-explain.errors.load');
+    });
+
+    it('shows the not found message when there is no schema for the page', async() => {
+      const { wrapper } = mountPanel({ props: { schema: undefined, cluster: 'local' } });
+
+      await flushPromises();
+
+      expect(wrapper.find('.select-resource').text()).toBe('kubectl-explain.errors.notFound');
+      expect(wrapper.find('.title-text').text()).toBe('kubectl-explain.title');
     });
   });
 
@@ -86,84 +134,60 @@ describe('component: SlideInPanel', () => {
       definition: { properties: {} },
     };
 
+    it('sits in the drawer header, outside the title heading', () => {
+      const { wrapper } = mountPanel({ get: pending, data: withDefinition });
+
+      expect(wrapper.find('[data-testid="rc-drawer-header"] .expand-all').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="rc-drawer-title"] .expand-all').exists()).toBe(false);
+    });
+
     it('shows aria-expanded="false" when expandAll is false', () => {
-      const wrapper = mountPanel({ ...withDefinition, expandAll: false });
-      const toggleBtn = wrapper.find('.icon-sort');
+      const { wrapper } = mountPanel({ get: pending, data: { ...withDefinition, expandAll: false } });
+      const toggleBtn = wrapper.find('.expand-all');
 
       expect(toggleBtn.attributes('aria-expanded')).toBe('false');
     });
 
     it('shows aria-expanded="true" when expandAll is true', () => {
-      const wrapper = mountPanel({ ...withDefinition, expandAll: true });
-      const toggleBtn = wrapper.find('.icon-sort');
+      const { wrapper } = mountPanel({ get: pending, data: { ...withDefinition, expandAll: true } });
+      const toggleBtn = wrapper.find('.expand-all');
 
       expect(toggleBtn.attributes('aria-expanded')).toBe('true');
     });
 
     it('uses kubectl-explain.expandAll key when not yet expanded', () => {
-      const wrapper = mountPanel({ ...withDefinition, expandAll: false });
-      const toggleBtn = wrapper.find('.icon-sort');
+      const { wrapper } = mountPanel({ get: pending, data: { ...withDefinition, expandAll: false } });
+      const toggleBtn = wrapper.find('.expand-all');
 
       expect(toggleBtn.attributes('aria-label')).toBe('kubectl-explain.expandAll');
     });
 
     it('uses kubectl-explain.collapseAll key when expanded', () => {
-      const wrapper = mountPanel({ ...withDefinition, expandAll: true });
-      const toggleBtn = wrapper.find('.icon-sort');
+      const { wrapper } = mountPanel({ get: pending, data: { ...withDefinition, expandAll: true } });
+      const toggleBtn = wrapper.find('.expand-all');
 
       expect(toggleBtn.attributes('aria-label')).toBe('kubectl-explain.collapseAll');
     });
 
+    it('toggles when clicked', async() => {
+      const { wrapper } = mountPanel({ get: pending, data: { ...withDefinition, expandAll: false } });
+
+      await wrapper.find('.expand-all').trigger('click');
+
+      expect(wrapper.find('.expand-all').attributes('aria-expanded')).toBe('true');
+    });
+
     it('is not rendered while loading', () => {
-      const wrapper = mountPanel({
-        busy:       true,
-        noResource: false,
-        definition: { properties: {} }
+      const { wrapper } = mountPanel({
+        get:  pending,
+        data: {
+          busy:       true,
+          noResource: false,
+          definition: { properties: {} }
+        }
       });
 
-      expect(wrapper.find('.icon-sort').exists()).toBe(false);
-    });
-  });
-
-  // The panel is never unmounted - closing it only slides it off-screen - so it has to be marked
-  // `inert` while closed. Otherwise tabbing past the last element of the page moves focus into the
-  // off-screen panel, which is also flagged as `aria-hidden`, so nothing gets announced.
-  describe('keyboard focus containment', () => {
-    const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
-
-    it('holds focusable elements that need to be taken out of the tab order while closed', () => {
-      const wrapper = mountPanel({ isOpen: false });
-      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
-
-      expect(panel.element.querySelectorAll(FOCUSABLE).length).toBeGreaterThan(0);
-    });
-
-    it('is inert while closed', () => {
-      const wrapper = mountPanel({ isOpen: false });
-      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
-
-      expect(panel.attributes('inert')).toBeDefined();
-    });
-
-    it('is not inert while open', () => {
-      const wrapper = mountPanel({ isOpen: true });
-      const panel = wrapper.find('[data-testid="slide-in-panel-resource-explain"]');
-
-      expect(panel.attributes('inert')).toBeUndefined();
-    });
-
-    it('becomes inert again after being opened and then closed', async() => {
-      const wrapper = mountPanel();
-
-      (wrapper.vm as any).open();
-      await wrapper.vm.$nextTick();
-
-      expect(wrapper.find('[data-testid="slide-in-panel-resource-explain"]').attributes('inert')).toBeUndefined();
-
-      (wrapper.vm as any).close();
-      await wrapper.vm.$nextTick();
-
-      expect(wrapper.find('[data-testid="slide-in-panel-resource-explain"]').attributes('inert')).toBeDefined();
+      expect(wrapper.find('.expand-all').exists()).toBe(false);
     });
   });
 });

@@ -1,12 +1,19 @@
 <script>
 import Markdown from '@shell/components/Markdown';
+import { RcDrawer } from '@components/RcDrawer';
 
 export default {
   name: 'LicenseSlideIn',
 
-  components: { Markdown },
+  components: { Markdown, RcDrawer },
+
+  emits: ['close'],
 
   props: {
+    packageName: {
+      type:     String,
+      required: true
+    },
     licenseId: {
       type:    String,
       default: null
@@ -44,75 +51,74 @@ export default {
 </script>
 
 <template>
-  <div class="license-slide-in">
-    <header class="meta-header">
-      <span
-        v-if="licenseId"
-        class="license-badge"
-      >{{ licenseId }}</span>
-      <div
-        v-if="licenseField && licenseField !== licenseId"
-        class="raw-license"
-      >
-        {{ t('about.licenses.panel.rawLicense', { expression: licenseField }) }}
-      </div>
-      <a
-        v-if="home"
-        :href="home"
-        target="_blank"
-        rel="nofollow noopener noreferrer"
-        class="home-link"
-      >
-        {{ home }}
-      </a>
-      <div
-        v-if="author"
-        class="author"
-      >
-        {{ t('about.licenses.panel.author', { author }) }}
-      </div>
-    </header>
+  <RcDrawer
+    :title="packageName"
+    @close="$emit('close')"
+  >
+    <div class="license-slide-in">
+      <header class="meta-header">
+        <span
+          v-if="licenseId"
+          class="license-badge"
+        >{{ licenseId }}</span>
+        <div
+          v-if="licenseField && licenseField !== licenseId"
+          class="raw-license"
+        >
+          {{ t('about.licenses.panel.rawLicense', { expression: licenseField }) }}
+        </div>
+        <a
+          v-if="home"
+          :href="home"
+          target="_blank"
+          rel="nofollow noopener noreferrer"
+          class="home-link"
+        >
+          {{ home }}
+        </a>
+        <div
+          v-if="author"
+          class="author"
+        >
+          {{ t('about.licenses.panel.author', { author }) }}
+        </div>
+      </header>
 
-    <!--
-      The license body is the panel's scroll container, so it takes focus in
-      the tab order: without it a keyboard user can't scroll a long license.
-      `role="region"` gives the scrolled area an accessible name.
-    -->
-    <Markdown
-      v-if="markdownText"
-      :value="markdownText"
-      class="license-body"
-      tabindex="0"
-      role="region"
-      :aria-label="t('about.licenses.panel.textLabel')"
-    />
-    <pre
-      v-else-if="plainText"
-      class="license-body license-body-text"
-      tabindex="0"
-      role="region"
-      :aria-label="t('about.licenses.panel.textLabel')"
-    >{{ plainText }}</pre>
-    <div
-      v-else
-      class="empty"
-    >
-      {{ t('about.licenses.panel.none') }}
-      <p
-        v-if="licenseId"
-        class="declared"
+      <Markdown
+        v-if="markdownText"
+        :value="markdownText"
+        class="license-body"
+        tabindex="0"
+        role="region"
+        :aria-label="t('about.licenses.panel.textLabel')"
+      />
+      <pre
+        v-else-if="plainText"
+        class="license-body license-body-text"
+        tabindex="0"
+        role="region"
+        :aria-label="t('about.licenses.panel.textLabel')"
+      >{{ plainText }}</pre>
+      <div
+        v-else
+        class="empty"
       >
-        {{ t('about.licenses.panel.declaredAs', { license: licenseId }) }}
-      </p>
+        {{ t('about.licenses.panel.none') }}
+        <p
+          v-if="licenseId"
+          class="declared"
+        >
+          {{ t('about.licenses.panel.declaredAs', { license: licenseId }) }}
+        </p>
+      </div>
     </div>
-  </div>
+  </RcDrawer>
 </template>
 
 <style lang="scss" scoped>
 .license-slide-in {
   display: flex;
   flex-direction: column;
-  height: 100%;
   gap: 12px;
 }
 
@@ -152,10 +158,6 @@ export default {
 }
 
 .license-body {
-  flex: 1;
-  overflow: auto;
-  padding-right: 4px;
-
   // The container is focusable so it can be scrolled by keyboard — it needs a
   // visible ring when it gets there. Inset so it isn't clipped by the scroll
   // container's own edge.

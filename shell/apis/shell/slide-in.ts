@@ -31,14 +31,28 @@ export class SlideInApiImpl implements SlideInApi {
    * Example:
    * ```ts
    * import { useShell } from '@shell/apis';
-   * import MyCustomSlideIn from '@/components/MyCustomSlideIn.vue';
+   * import MyDrawer from '@/components/MyDrawer.vue';
    *
    * const shell = useShell();
    *
-   * shell.slideIn.open(MyCustomSlideIn, {
-   *   title: 'Hello from SlideIn panel!'
+   * shell.slideIn.open(MyDrawer, {
+   *   width: 'wide',
+   *   props: { resource }
    * });
    * ```
+   *
+   * Make `RcDrawer` from `@components/RcDrawer` the root of the component, and leave `title` out so
+   * it is not wrapped in a second drawer. The panel closes when the component emits `close`:
+   *
+   * ```ts
+   * const emit = defineEmits<{ close: [] }>();
+   *
+   * emit('close');
+   * ```
+   *
+   * Closing on `close` is new in Rancher 2.16. Before that nothing listens for it, so an extension
+   * that also runs on older versions passes a handler with the props:
+   * `props: { resource, onClose: () => store.commit('slideInPanel/close') }`.
    *
    * @param component - A Vue component (imported SFC, functional component, etc.) to be rendered in the panel.
    * @param config - Slide-In configuration object

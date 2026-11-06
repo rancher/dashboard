@@ -1,12 +1,32 @@
 import { shallowMount } from '@vue/test-utils';
 import LicenseSlideIn from '@shell/components/LicenseSlideIn.vue';
+import { RcDrawer } from '@components/RcDrawer';
 
 const mount = (props = {}) => shallowMount(LicenseSlideIn, {
-  props,
-  global: { mocks: { t: (key: string, args: any) => `${ key }${ args ? `-${ JSON.stringify(args) }` : '' }` } }
+  props:  { packageName: 'left-pad', ...props },
+  global: {
+    mocks:                 { t: (key: string, args: any) => `${ key }${ args ? `-${ JSON.stringify(args) }` : '' }` },
+    renderStubDefaultSlot: true
+  }
 });
 
 describe('component: LicenseSlideIn', () => {
+  describe('drawer', () => {
+    it('should title the drawer with the package name', () => {
+      const wrapper = mount();
+
+      expect(wrapper.findComponent(RcDrawer).props('title')).toBe('left-pad');
+    });
+
+    it('should emit close when the drawer is closed', () => {
+      const wrapper = mount();
+
+      wrapper.findComponent(RcDrawer).vm.$emit('close');
+
+      expect(wrapper.emitted('close')).toHaveLength(1);
+    });
+  });
+
   describe('meta header', () => {
     it('should show the license id and home page link', () => {
       const wrapper = mount({ licenseId: 'MIT', home: 'https://github.com/o/p' });
@@ -68,8 +88,6 @@ describe('component: LicenseSlideIn', () => {
       expect(wrapper.find('.declared').text()).toBe('about.licenses.panel.declaredAs-{"license":"MIT"}');
     });
 
-    // The body is the panel's scroll container, so a keyboard user needs to be
-    // able to tab to it and scroll a license that doesn't fit on screen.
     it.each([
       ['markdown', { markdown: '# No license file shipped' }],
       ['plain text', { text: 'MIT License' }]

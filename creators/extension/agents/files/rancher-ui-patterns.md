@@ -967,77 +967,68 @@ A typo in `component` fails silently — no modal, no error.
 
 Pattern for surfacing resource details or contextual content in a slide-out panel anchored to the right edge of the screen, without navigating away from the current page.
 
-**Used in:** `shell/components/Drawer/`, detail pages, list page row interactions
-**Core components:** `Drawer` (Chrome.vue), optionally `DrawerCard`
+**Used in:** `shell/components/Drawer/`, `shell/pages/c/_cluster/apps/charts/ChartInfoDrawer.vue`, list page row interactions
+**Core components:** `RcDrawer` with `RcDrawerFooter` (and `RcDrawerHeader` for a richer header), optionally `RcDrawerCard`, opened with the shell's slide-in
 
 **Skeleton:**
 ```vue
+<!-- ResourceDrawer.vue -->
+<script setup lang="ts">
+import { RcDrawer, RcDrawerFooter } from '@components/RcDrawer';
+import { RcButton } from '@components/RcButton';
+import KeyValue from '@shell/components/form/KeyValue.vue';
+
+const props = defineProps<{ resource: any }>();
+const emit = defineEmits<{ close: [] }>();
+</script>
+
 <template>
-  <div>
-    <!-- Trigger in list page or table row -->
-    <button :id="triggerId" @click="showDrawer = true">
-      View details
-    </button>
+  <RcDrawer :title="props.resource.name" @close="emit('close')">
+    <KeyValue :value="props.resource.metadata.labels" mode="view" title="Labels" />
 
-    <Drawer
-      v-if="showDrawer"
-      :aria-target="triggerId"
-      @close="showDrawer = false"
-    >
-      <template #title>
-        {{ resource.name }}
-      </template>
-
-      <template #body>
-        <KeyValue :value="resource.metadata.labels" mode="view" title="Labels" />
-      </template>
-
-      <template #footer>
-        <button class="btn role-secondary" @click="showDrawer = false">
-          Close
-        </button>
-        <button class="btn role-primary" @click="navigateToEdit">
+    <template #footer>
+      <RcDrawerFooter>
+        <RcButton variant="primary" size="large" @click="props.resource.goToEdit()">
           Edit
-        </button>
-      </template>
-    </Drawer>
-  </div>
+        </RcButton>
+      </RcDrawerFooter>
+    </template>
+  </RcDrawer>
 </template>
 ```
 
+```ts
+// In the list page or table row that opens it
+import { useShell } from '@shell/apis';
+import ResourceDrawer from './ResourceDrawer.vue';
+
+useShell().slideIn.open(ResourceDrawer, {
+  props:  { resource },
+  width:  'wide',
+  height: 'full'
+});
+```
+
 **Notes:**
-- Set the trigger button's `id` and pass it as `ariaTarget` — required for returning focus on close
+- The slide-in returns focus to the element that opened the drawer; pass `returnFocusSelector` when that element is re-rendered while the drawer is open
+- Don't pass `title` to `slideIn.open` for a component that renders `RcDrawer`, or it is wrapped in a second drawer
+- Closing on `close` is new in Rancher 2.16. If the extension also supports older versions, pass `onClose: () => store.commit('slideInPanel/close')` in `props` too, or the X and Close buttons do nothing there
 - Keep drawer content supplementary; never put a full edit form inside a Drawer
-- Use `#additional-actions` for secondary controls that should sit visually separate from the main `#footer` buttons
+- Put the drawer's own actions in an `RcDrawerFooter` in `#footer`, which puts Close before them. Leave `#footer` empty when there are none, and the drawer has no footer. Icon buttons that act on the content go in the `#actions` of an `RcDrawerHeader` in `#header`, beside the X
 
 ---
 
 ## Slide-In Context Help Panel
 
-Pattern for a resizable context-sensitive help or documentation panel that slides in from the right without blocking the main content. Lighter than a Drawer — typically driven by a keyboard shortcut or help icon, not a resource selection.
+Pattern for context-sensitive help or documentation that slides in from the right, typically driven by a keyboard shortcut or help icon rather than a resource selection. It is a [Drawer](#drawer--side-panel) with the help content in its body.
 
-**Used in:** `pkg/kubectl-explain/components/SlideInPanel.vue`, `pkg/kubectl-explain/components/ExplainPanel.vue`
-**Core components:** Custom `SlideInPanel` + `ExplainPanel` (extension pattern)
-
-**Structure:**
-```vue
-<template>
-  <div class="slide-in-panel" :class="{ open: isOpen }" :style="panelStyle">
-    <div class="panel-header">
-      <button @click="close">Close</button>
-      <div class="resize-handle" @mousedown="startResize" />
-    </div>
-    <div class="panel-body">
-      <slot />
-    </div>
-  </div>
-</template>
-```
+**Used in:** `pkg/kubectl-explain/slide-in.js`, `pkg/kubectl-explain/components/SlideInPanel.vue`, `pkg/kubectl-explain/components/ExplainPanel.vue`
+**Core components:** `RcDrawer` + `ExplainPanel`, opened with the shell's slide-in
 
 **Notes:**
-- Implement resize support via `mousedown` + document `mousemove` listeners — cap min/max width in CSS
-- Trap focus inside the panel when open (keyboard accessibility)
-- Drive open/close state from the extension's store module, not local component state, so the panel persists across route changes
+- Open it with `slideIn.open(...)` like any other drawer; the slide-in traps focus and closes it on Escape
+- Put an `RcDrawerHeader` in `#header` for anything richer than plain text, such as breadcrumbs, and keep the `title` prop as its plain-text name. Put controls such as expand all in its `#actions`, outside the title's heading
+- Pass `closeOnRouteChange` when the panel should stay open across some route changes
 - Use for help docs, API reference, or kubectl explain output — content that users want alongside the form they're filling in
 
 ---
