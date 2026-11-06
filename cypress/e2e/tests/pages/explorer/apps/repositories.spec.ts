@@ -1,5 +1,6 @@
 import ReposListPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
+import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
@@ -154,6 +155,41 @@ describe('Apps', () => {
           .should('exist');
         appRepoCreate.authSelectOrCreate().authSelect().getOptions().contains('Create an SSH Key Secret')
           .should('not.exist');
+      });
+
+      it('Should block creating a repo with an invalid URL', function() {
+        appRepoList.create();
+
+        const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
+        const helmUrlInput = new LabeledInputPo('[data-testid="clusterrepo-helm-url-input"]');
+        const gitRepoInput = new LabeledInputPo('[data-testid="clusterrepo-git-repo-input"]');
+        const ociUrlInput = new LabeledInputPo('[data-testid="clusterrepo-oci-url-input"]');
+
+        appRepoCreate.waitForPage();
+        appRepoCreate.nameNsDescription().name().set(this.helmRepoDupeName);
+
+        appRepoCreate.enterHelmIndexURL('https:/ /');
+        helmUrlInput.self().blur();
+        helmUrlInput.validationMessage().should('contain', 'It must be a valid HTTP(s) or SSH URL');
+        appRepoCreate.create().expectToBeDisabled();
+        appRepoCreate.enterHelmIndexURL('https://charts.rancher.io');
+        appRepoCreate.create().expectToBeEnabled();
+
+        appRepoCreate.selectRcItemCard('git-repo');
+        appRepoCreate.enterGitRepoName('https:/ /');
+        gitRepoInput.self().blur();
+        gitRepoInput.validationMessage().should('contain', 'It must be a valid HTTP(s) or SSH URL');
+        appRepoCreate.create().expectToBeDisabled();
+        appRepoCreate.enterGitRepoName('https://github.com/rancher/charts');
+        appRepoCreate.create().expectToBeEnabled();
+
+        appRepoCreate.selectRcItemCard('oci-url');
+        appRepoCreate.enterOciURL('oci:/ /');
+        ociUrlInput.self().blur();
+        ociUrlInput.validationMessage().should('contain', 'It must be a valid OCI URL');
+        appRepoCreate.create().expectToBeDisabled();
+        appRepoCreate.enterOciURL('oci://test.rancher.io/charts/mychart');
+        appRepoCreate.create().expectToBeEnabled();
       });
     });
 
