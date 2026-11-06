@@ -1,10 +1,10 @@
-import { EditorSelection } from '@codemirror/state';
 import { EditorView, ViewPlugin } from '@codemirror/view';
 
 /**
- * CodeMirror only handles clicks on its content, which is as tall as the document. When a consumer gives
- * `.cm-editor` a min-height, the scroller fills the space below a short document and clicks there did nothing.
- * This places the cursor at the end of the document instead, extending the selection on shift-click.
+ * CodeMirror only handles presses on its content, which is as tall as the document. When a consumer gives
+ * `.cm-editor` a min-height, the scroller fills the space below a short document and presses there did nothing.
+ * This hands those presses to CodeMirror's own mouse handling, so a click places the cursor at the end of the
+ * document and dragging, shift-click and double-click select just as they do on the text.
  *
  * The content can't simply be stretched to fill the editor: CodeMirror works out which lines are visible from the
  * content's bounding box, so a content box shorter than the document stops rendering lines once scrolled past it.
@@ -14,16 +14,8 @@ export function handleClickBelowContent(view: EditorView, event: MouseEvent): bo
     return false;
   }
 
-  const end = view.state.doc.length;
-  const anchor = event.shiftKey ? view.state.selection.main.anchor : end;
-
   event.preventDefault();
-  view.dispatch({
-    selection:      EditorSelection.single(anchor, end),
-    scrollIntoView: true,
-    userEvent:      'select.pointer'
-  });
-  view.focus();
+  view.contentDOM.dispatchEvent(new MouseEvent('mousedown', event));
 
   return true;
 }
