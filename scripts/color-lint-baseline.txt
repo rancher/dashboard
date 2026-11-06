@@ -1,0 +1,748 @@
+# Auto-generated color lint baseline. Do not edit by hand.
+# Regenerate with: yarn lint:colors:baseline
+# Total colors: 745
+pkg/rancher-components/src/components/RcButtonSplit/RcButtonSplit.vue:149: rgba(255, 255, 255, 0.3)
+pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:69: #FFFFFF
+pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:70: #3D98D3
+pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:109: #DCDEE7
+pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:121: color-mix(in srgb, var(--rc-cm-bg) 75%, transparent)
+pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:137: #C4C8CF
+pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:140: #C4C8CF
+pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:142: #3D98D3
+pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:143: #3D98D3
+pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:169: #6B6D85
+pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:191: #3D98D3
+pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:197: #3D98D3
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:484: #F5F7FA
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:485: #E0E0E0
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:486: #1A4FA8
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:487: #8A4B10
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:488: #9A2B94
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:489: #5B616D
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:490: #16181D
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:491: #5B626C
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:492: #E8ECF2
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:493: rgba(0, 0, 0, 0.04)
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:494: rgba(255, 213, 0, 0.4)
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:495: rgba(255, 140, 0, 0.5)
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:593: #DCDEE7
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:735: #171C22
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:736: #303030
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:737: #79B8FF
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:738: #E0A458
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:739: #E48AD8
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:740: #9AA1AC
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:741: #E6E9EF
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:742: #9AA1AC
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:743: #3C4655
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:744: rgba(255, 255, 255, 0.04)
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:745: rgba(255, 213, 0, 0.25)
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:746: rgba(255, 140, 0, 0.45)
+pkg/rancher-components/src/components/RcDropdown/RcDropdown.vue:275: rgba(0, 0, 0, 0.15)
+pkg/rancher-components/src/components/RcDropdown/RcDropdown.vue:275: rgba(0, 0, 0, 0.25)
+shell/assets/styles/base/_color-classic.scss:3: #141419
+shell/assets/styles/base/_color-classic.scss:6: #6C6C76
+shell/assets/styles/base/_color-classic.scss:9: #B6B6C2
+shell/assets/styles/base/_color-classic.scss:12: #DCDEE7
+shell/assets/styles/base/_color-classic.scss:15: #EEEFF4
+shell/assets/styles/base/_color-classic.scss:18: #F4F5FA
+shell/assets/styles/base/_color-classic.scss:21: #FFFFFF
+shell/assets/styles/base/_color-classic.scss:26: #3D98D3
+shell/assets/styles/base/_color-classic.scss:28: #3D98D3
+shell/assets/styles/base/_color-classic.scss:31: #5D995D
+shell/assets/styles/base/_color-classic.scss:32: #DAC342
+shell/assets/styles/base/_color-classic.scss:33: #F64747
+shell/assets/styles/base/_color-classic.scss:34: #3D98D3
+shell/assets/styles/base/_color-classic.scss:41: rgba(#3D98D3, .5)
+shell/assets/styles/base/_color-classic.scss:43: #DCDEE7
+shell/assets/styles/base/_color-classic.scss:45: #025937
+shell/assets/styles/base/_color-classic.scss:46: #008657
+shell/assets/styles/base/_color-classic.scss:47: #30BA78
+shell/assets/styles/base/_color-classic.scss:48: #42D29F
+shell/assets/styles/base/_color-classic.scss:49: #83E1BE
+shell/assets/styles/base/_color-classic.scss:50: #C0EFDE
+shell/assets/styles/base/_color-classic.scss:51: #EAFAF4
+shell/assets/styles/base/_color.scss:13: #1F67DB
+shell/assets/styles/base/_color.scss:14: #DFE6F2
+shell/assets/styles/base/_color.scss:15: #297DB4
+shell/assets/styles/base/_color.scss:17: #007032
+shell/assets/styles/base/_color.scss:18: #DCE7E1
+shell/assets/styles/base/_color.scss:20: #FFE47A
+shell/assets/styles/base/_color.scss:21: #473900
+shell/assets/styles/base/_color.scss:23: #B13333
+shell/assets/styles/base/_color.scss:24: #F2E0E0
+shell/assets/styles/base/_color.scss:26: #EDEFF3
+shell/assets/styles/base/_color.scss:27: #DCDEE4
+shell/assets/styles/base/_color.scss:28: #FFF
+shell/assets/styles/base/_color.scss:29: #6C6C76
+shell/assets/styles/base/_color.scss:30: #4A4B52
+shell/assets/styles/base/_color.scss:31: #1b1c21
+shell/assets/styles/base/_color.scss:32: #161C24
+shell/assets/styles/base/_color.scss:33: #262831
+shell/assets/styles/base/_color.scss:34: #6C6C77
+shell/assets/styles/base/_color.scss:35: #B6B6C3
+shell/assets/styles/base/_functions.scss:6: blue($color)
+shell/assets/styles/base/_functions.scss:6: green($color)
+shell/assets/styles/base/_functions.scss:6: red($color)
+shell/assets/styles/base/_functions.scss:130: rgba($color, $start)
+shell/assets/styles/base/_functions.scss:131: rgba($color, $middle)
+shell/assets/styles/base/_functions.scss:132: rgba($color, $end)
+shell/assets/styles/base/_mixins.scss:68: contrast-color($background-color, $dark, $light)
+shell/assets/styles/base/_mixins.scss:80: lighten($bg,20%)
+shell/assets/styles/base/_variables-classic.scss:3: contrast-color($primary)
+shell/assets/styles/base/_variables-classic.scss:4: darken($primary, 10%)
+shell/assets/styles/base/_variables-classic.scss:5: saturate($lightest, 20%)
+shell/assets/styles/base/_variables-classic.scss:6: darken($primary, 25%)
+shell/assets/styles/base/_variables-classic.scss:7: contrast-color(darken($primary, 25%))
+shell/assets/styles/base/_variables-classic.scss:9: rgba($primary, 0.15)
+shell/assets/styles/base/_variables-classic.scss:10: rgba($primary, 0.05)
+shell/assets/styles/base/_variables-classic.scss:11: hsl(from var(--primary) h s calc(l - 10))
+shell/assets/styles/base/_variables-classic.scss:14: contrast-color($link)
+shell/assets/styles/base/_variables-classic.scss:16: darken($link, 10%)
+shell/assets/styles/base/_variables-classic.scss:17: saturate($lightest, 20%)
+shell/assets/styles/base/_variables-classic.scss:18: darken($link, 25%)
+shell/assets/styles/base/_variables-classic.scss:19: contrast-color(darken($link, 25%))
+shell/assets/styles/base/_variables-classic.scss:21: rgba($link, 0.15)
+shell/assets/styles/base/_variables-classic.scss:22: rgba($link, 0.05)
+shell/assets/styles/base/_variables-classic.scss:33: #fff
+shell/assets/styles/fonts/_icons.scss:33: #fff
+shell/assets/styles/global/_cards.scss:66: white
+shell/assets/styles/global/_table.scss:42: #ffffff
+shell/assets/styles/themes/_dark.scss:9: #141419
+shell/assets/styles/themes/_dark.scss:12: #1b1c21
+shell/assets/styles/themes/_dark.scss:15: #27292e
+shell/assets/styles/themes/_dark.scss:18: #4a4b52
+shell/assets/styles/themes/_dark.scss:21: #6c6c76
+shell/assets/styles/themes/_dark.scss:24: #b6b6c2
+shell/assets/styles/themes/_dark.scss:27: #ffffff
+shell/assets/styles/themes/_dark.scss:30: #EEEFF4
+shell/assets/styles/themes/_dark.scss:39: #DCDEE7
+shell/assets/styles/themes/_dark.scss:41: #4B4F6B
+shell/assets/styles/themes/_dark.scss:47: darken($dark, 10%)
+shell/assets/styles/themes/_dark.scss:48: saturate($lightest, 20%)
+shell/assets/styles/themes/_dark.scss:49: darken($dark, 25%)
+shell/assets/styles/themes/_dark.scss:50: contrast-color(darken($dark, 25%))
+shell/assets/styles/themes/_dark.scss:52: rgba($dark, 0.15)
+shell/assets/styles/themes/_dark.scss:53: rgba($dark, 0.05)
+shell/assets/styles/themes/_dark.scss:54: rgba($darker, 1)
+shell/assets/styles/themes/_dark.scss:55: rgba($darker, 0)
+shell/assets/styles/themes/_dark.scss:58: #B6B6C2
+shell/assets/styles/themes/_dark.scss:78: #333
+shell/assets/styles/themes/_dark.scss:85: darken($disabled, 10%)
+shell/assets/styles/themes/_dark.scss:94: lighten($darkest, 5%)
+shell/assets/styles/themes/_dark.scss:103: rgba($darkest, 0.75)
+shell/assets/styles/themes/_dark.scss:104: rgba($darkest, 0.75)
+shell/assets/styles/themes/_dark.scss:105: rgba($darkest, 0.9)
+shell/assets/styles/themes/_dark.scss:109: lighten($disabled, 50%)
+shell/assets/styles/themes/_dark.scss:113: rgba($drag-over, 0.9)
+shell/assets/styles/themes/_dark.scss:114: rgba($drag-over, 0)
+shell/assets/styles/themes/_dark.scss:116: mix($medium, $dark, 10%)
+shell/assets/styles/themes/_dark.scss:137: darken($dark, 3%)
+shell/assets/styles/themes/_dark.scss:140: darken($lightest, 50%)
+shell/assets/styles/themes/_dark.scss:141: darken($lighter, 30%)
+shell/assets/styles/themes/_dark.scss:142: darken($disabled, 30%)
+shell/assets/styles/themes/_dark.scss:143: darken($medium, 30%)
+shell/assets/styles/themes/_dark.scss:144: darken($disabled, 10%)
+shell/assets/styles/themes/_dark.scss:152: lighten($darkest, 10%)
+shell/assets/styles/themes/_dark.scss:175: mix($medium, $dark, 20%)
+shell/assets/styles/themes/_dark.scss:183: rgba($darkest, 0.3)
+shell/assets/styles/themes/_dark.scss:188: rgba($error, 0.75)
+shell/assets/styles/themes/_dark.scss:189: rgba($error, 0.3)
+shell/assets/styles/themes/_dark.scss:191: rgba($success, 0.3)
+shell/assets/styles/themes/_dark.scss:192: rgba($success, 0.5)
+shell/assets/styles/themes/_dark.scss:193: rgba($success, 0.25)
+shell/assets/styles/themes/_dark.scss:194: rgba($warning, 0.5)
+shell/assets/styles/themes/_dark.scss:195: rgba($warning, 1)
+shell/assets/styles/themes/_dark.scss:199: mix($medium, $dark, 10%)
+shell/assets/styles/themes/_dark.scss:206: black
+shell/assets/styles/themes/_dark.scss:210: 74, 75, 82, 0.5
+shell/assets/styles/themes/_dark.scss:227: rgba(255, 255, 255, 0.3)
+shell/assets/styles/themes/_dark.scss:228: 75, 95, 64
+shell/assets/styles/themes/_dark.scss:229: 150, 189, 127
+shell/assets/styles/themes/_dark.scss:230: 218, 195, 66
+shell/assets/styles/themes/_dark.scss:231: 109, 98, 33
+shell/assets/styles/themes/_dark.scss:232: 239, 90, 83
+shell/assets/styles/themes/_dark.scss:233: 120, 45, 42
+shell/assets/styles/themes/_dark.scss:243: #F43434
+shell/assets/styles/themes/_dark.scss:244: #FF8080
+shell/assets/styles/themes/_dark.scss:246: #662E00
+shell/assets/styles/themes/_dark.scss:247: #FFCA4D
+shell/assets/styles/themes/_dark.scss:248: #F2870D
+shell/assets/styles/themes/_dark.scss:250: #00FF32
+shell/assets/styles/themes/_dark.scss:251: #354240
+shell/assets/styles/themes/_dark.scss:252: #4DFF70
+shell/assets/styles/themes/_dark.scss:256: #ACD2EC
+shell/assets/styles/themes/_dark.scss:259: #4B4F6B
+shell/assets/styles/themes/_light.scss:61: contrast-color($light)
+shell/assets/styles/themes/_light.scss:62: darken($light, 10%)
+shell/assets/styles/themes/_light.scss:63: saturate($lightest, 20%)
+shell/assets/styles/themes/_light.scss:64: darken($light, 25%)
+shell/assets/styles/themes/_light.scss:65: contrast-color(darken($light, 25%))
+shell/assets/styles/themes/_light.scss:67: rgba($light, 0.15)
+shell/assets/styles/themes/_light.scss:68: rgba($light, 0.05)
+shell/assets/styles/themes/_light.scss:69: rgba($lightest, 1)
+shell/assets/styles/themes/_light.scss:70: rgba($lightest, 0)
+shell/assets/styles/themes/_light.scss:94: #6C6C76
+shell/assets/styles/themes/_light.scss:105: contrast-color($darker)
+shell/assets/styles/themes/_light.scss:106: darken($darker, 10%)
+shell/assets/styles/themes/_light.scss:107: saturate($lightest, 20%)
+shell/assets/styles/themes/_light.scss:108: darken($darker, 25%)
+shell/assets/styles/themes/_light.scss:109: contrast-color(darken($darker, 25%))
+shell/assets/styles/themes/_light.scss:111: rgba($darker, 0.15)
+shell/assets/styles/themes/_light.scss:112: rgba($darker, 0.05)
+shell/assets/styles/themes/_light.scss:137: contrast-color($success)
+shell/assets/styles/themes/_light.scss:138: darken($success, 10%)
+shell/assets/styles/themes/_light.scss:139: saturate($lightest, 20%)
+shell/assets/styles/themes/_light.scss:140: darken($success, 25%)
+shell/assets/styles/themes/_light.scss:141: contrast-color(darken($success, 25%))
+shell/assets/styles/themes/_light.scss:143: rgba($success, 0.15)
+shell/assets/styles/themes/_light.scss:144: rgba($success, 0.05)
+shell/assets/styles/themes/_light.scss:168: contrast-color($info)
+shell/assets/styles/themes/_light.scss:169: darken($info, 10%)
+shell/assets/styles/themes/_light.scss:170: saturate($lightest, 20%)
+shell/assets/styles/themes/_light.scss:171: darken($info, 25%)
+shell/assets/styles/themes/_light.scss:172: contrast-color(darken($info, 25%))
+shell/assets/styles/themes/_light.scss:174: rgba($info, 0.15)
+shell/assets/styles/themes/_light.scss:175: rgba($info, 0.05)
+shell/assets/styles/themes/_light.scss:199: contrast-color($warning)
+shell/assets/styles/themes/_light.scss:200: darken($warning, 10%)
+shell/assets/styles/themes/_light.scss:201: saturate($lightest, 20%)
+shell/assets/styles/themes/_light.scss:202: darken($warning, 25%)
+shell/assets/styles/themes/_light.scss:203: contrast-color(darken($warning, 25%))
+shell/assets/styles/themes/_light.scss:205: rgba($warning, 0.15)
+shell/assets/styles/themes/_light.scss:206: rgba($warning, 0.05)
+shell/assets/styles/themes/_light.scss:230: contrast-color($error)
+shell/assets/styles/themes/_light.scss:231: darken($error, 10%)
+shell/assets/styles/themes/_light.scss:232: saturate($lightest, 20%)
+shell/assets/styles/themes/_light.scss:233: darken($error, 25%)
+shell/assets/styles/themes/_light.scss:234: contrast-color(darken($error, 25%))
+shell/assets/styles/themes/_light.scss:236: rgba($error, 0.15)
+shell/assets/styles/themes/_light.scss:237: rgba($error, 0.05)
+shell/assets/styles/themes/_light.scss:261: contrast-color($disabled)
+shell/assets/styles/themes/_light.scss:262: darken($disabled, 10%)
+shell/assets/styles/themes/_light.scss:263: saturate($lightest, 20%)
+shell/assets/styles/themes/_light.scss:264: darken($disabled, 25%)
+shell/assets/styles/themes/_light.scss:265: contrast-color(darken($disabled, 25%))
+shell/assets/styles/themes/_light.scss:267: rgba($disabled, 0.15)
+shell/assets/styles/themes/_light.scss:268: rgba($disabled, 0.05)
+shell/assets/styles/themes/_light.scss:314: darken($medium, 10%)
+shell/assets/styles/themes/_light.scss:325: lighten($lightest, 10%)
+shell/assets/styles/themes/_light.scss:346: rgba($lighter, 0.75)
+shell/assets/styles/themes/_light.scss:347: rgba(38, 42, 64, 0.35)
+shell/assets/styles/themes/_light.scss:348: rgba($medium, 0.85)
+shell/assets/styles/themes/_light.scss:352: darken($disabled, 40%)
+shell/assets/styles/themes/_light.scss:356: rgba($drag-over, 0.9)
+shell/assets/styles/themes/_light.scss:357: rgba($drag-over, 0)
+shell/assets/styles/themes/_light.scss:375: #ffffff
+shell/assets/styles/themes/_light.scss:382: darken($disabled, 10%)
+shell/assets/styles/themes/_light.scss:385: darken($light, 2%)
+shell/assets/styles/themes/_light.scss:388: darken($disabled, 60%)
+shell/assets/styles/themes/_light.scss:389: darken($disabled, 40%)
+shell/assets/styles/themes/_light.scss:391: darken($medium, 10%)
+shell/assets/styles/themes/_light.scss:392: darken($medium, 15%)
+shell/assets/styles/themes/_light.scss:394: darken($medium, 25%)
+shell/assets/styles/themes/_light.scss:401: darken($lightest, 5%)
+shell/assets/styles/themes/_light.scss:414: #EEEFF5
+shell/assets/styles/themes/_light.scss:423: rgba($warning, 0.8)
+shell/assets/styles/themes/_light.scss:428: mix($light, $lighter, 15%)
+shell/assets/styles/themes/_light.scss:436: rgba($darkest, 0.3)
+shell/assets/styles/themes/_light.scss:441: rgba($error, 0.75)
+shell/assets/styles/themes/_light.scss:442: rgba($error, 0.3)
+shell/assets/styles/themes/_light.scss:444: rgba($success, 0.3)
+shell/assets/styles/themes/_light.scss:445: rgba($success, 0.5)
+shell/assets/styles/themes/_light.scss:446: rgba($success, 0.25)
+shell/assets/styles/themes/_light.scss:447: rgba($warning, 0.5)
+shell/assets/styles/themes/_light.scss:460: 61, 152, 211
+shell/assets/styles/themes/_light.scss:463: 255, 255, 255, 0.15
+shell/assets/styles/themes/_light.scss:482: 150, 189, 127
+shell/assets/styles/themes/_light.scss:483: 190, 211, 172
+shell/assets/styles/themes/_light.scss:484: 238, 226, 176
+shell/assets/styles/themes/_light.scss:485: 218, 195, 66
+shell/assets/styles/themes/_light.scss:486: 249, 186, 171
+shell/assets/styles/themes/_light.scss:487: 239, 90, 83
+shell/assets/styles/themes/_light.scss:489: 180, 210, 30
+shell/assets/styles/themes/_light.scss:490: 225, 45, 74
+shell/assets/styles/themes/_light.scss:491: 212, 66, 148
+shell/assets/styles/themes/_light.scss:492: 0, 169, 217
+shell/assets/styles/themes/_light.scss:493: 244, 136, 68
+shell/assets/styles/themes/_light.scss:494: 0, 147, 128
+shell/assets/styles/themes/_light.scss:495: 136, 81, 165
+shell/assets/styles/themes/_light.scss:496: 45, 47, 149
+shell/assets/styles/themes/_light.scss:497: 255, 235, 0
+shell/assets/styles/themes/_light.scss:499: blue($success)
+shell/assets/styles/themes/_light.scss:499: green($success)
+shell/assets/styles/themes/_light.scss:499: red($success)
+shell/assets/styles/themes/_light.scss:500: blue($info)
+shell/assets/styles/themes/_light.scss:500: green($info)
+shell/assets/styles/themes/_light.scss:500: red($info)
+shell/assets/styles/themes/_light.scss:501: blue($warning)
+shell/assets/styles/themes/_light.scss:501: green($warning)
+shell/assets/styles/themes/_light.scss:501: red($warning)
+shell/assets/styles/themes/_light.scss:502: blue($error)
+shell/assets/styles/themes/_light.scss:502: green($error)
+shell/assets/styles/themes/_light.scss:502: red($error)
+shell/assets/styles/themes/_light.scss:503: blue($disabled)
+shell/assets/styles/themes/_light.scss:503: green($disabled)
+shell/assets/styles/themes/_light.scss:503: red($disabled)
+shell/assets/styles/themes/_light.scss:506: #FEA424
+shell/assets/styles/themes/_light.scss:507: #614EA2
+shell/assets/styles/themes/_light.scss:510: #ffffff
+shell/assets/styles/themes/_light.scss:513: black
+shell/assets/styles/themes/_light.scss:515: rgba(var(--sizzle-1), 1)
+shell/assets/styles/themes/_light.scss:516: white
+shell/assets/styles/themes/_light.scss:518: rgba(var(--sizzle-2), 1)
+shell/assets/styles/themes/_light.scss:519: white
+shell/assets/styles/themes/_light.scss:521: rgba(var(--sizzle-3), 1)
+shell/assets/styles/themes/_light.scss:522: white
+shell/assets/styles/themes/_light.scss:524: rgba(var(--sizzle-4), 1)
+shell/assets/styles/themes/_light.scss:525: white
+shell/assets/styles/themes/_light.scss:527: rgba(var(--sizzle-5), 1)
+shell/assets/styles/themes/_light.scss:528: white
+shell/assets/styles/themes/_light.scss:530: rgba(var(--sizzle-6), 1)
+shell/assets/styles/themes/_light.scss:531: white
+shell/assets/styles/themes/_light.scss:533: rgba(var(--sizzle-7), 1)
+shell/assets/styles/themes/_light.scss:534: white
+shell/assets/styles/themes/_light.scss:536: rgba(var(--sizzle-8), 1)
+shell/assets/styles/themes/_light.scss:537: white
+shell/assets/styles/themes/_light.scss:551: #B13333
+shell/assets/styles/themes/_light.scss:552: #7C0015
+shell/assets/styles/themes/_light.scss:554: #473900
+shell/assets/styles/themes/_light.scss:555: #FFE47A
+shell/assets/styles/themes/_light.scss:556: #E5A200
+shell/assets/styles/themes/_light.scss:558: #007032
+shell/assets/styles/themes/_light.scss:559: #CEE4D7
+shell/assets/styles/themes/_light.scss:560: #1F7043
+shell/assets/styles/themes/_light.scss:564: #2673A6
+shell/assets/styles/themes/_modern.scss:1: #000000
+shell/assets/styles/themes/_modern.scss:2: #141619
+shell/assets/styles/themes/_modern.scss:3: #25282D
+shell/assets/styles/themes/_modern.scss:4: #31353F
+shell/assets/styles/themes/_modern.scss:5: #4A4D52
+shell/assets/styles/themes/_modern.scss:6: #6C6F76
+shell/assets/styles/themes/_modern.scss:7: #92959B
+shell/assets/styles/themes/_modern.scss:8: #B6BAC2
+shell/assets/styles/themes/_modern.scss:9: #DCDFE7
+shell/assets/styles/themes/_modern.scss:10: #EEF0F4
+shell/assets/styles/themes/_modern.scss:11: #F5F7FA
+shell/assets/styles/themes/_modern.scss:12: #FFFFFF
+shell/assets/styles/themes/_modern.scss:16: #141419
+shell/assets/styles/themes/_modern.scss:19: #6C6C76
+shell/assets/styles/themes/_modern.scss:22: #B6B6C2
+shell/assets/styles/themes/_modern.scss:28: #84849A
+shell/assets/styles/themes/_modern.scss:31: #EEEFF4
+shell/assets/styles/themes/_modern.scss:34: #F4F5FA
+shell/assets/styles/themes/_modern.scss:37: #FFFFFF
+shell/assets/styles/themes/_modern.scss:42: #2F68DF
+shell/assets/styles/themes/_modern.scss:43: #1A2A4D
+shell/assets/styles/themes/_modern.scss:44: #304778
+shell/assets/styles/themes/_modern.scss:45: #3459A8
+shell/assets/styles/themes/_modern.scss:46: #496192
+shell/assets/styles/themes/_modern.scss:47: #4871C7
+shell/assets/styles/themes/_modern.scss:48: #454F68
+shell/assets/styles/themes/_modern.scss:49: #75A1FF
+shell/assets/styles/themes/_modern.scss:50: #81AEFC
+shell/assets/styles/themes/_modern.scss:51: #A7BFF1
+shell/assets/styles/themes/_modern.scss:52: #DBE4F9
+shell/assets/styles/themes/_modern.scss:53: #EDF2FC
+shell/assets/styles/themes/_modern.scss:54: #EEF1F6
+shell/assets/styles/themes/_modern.scss:56: #025937
+shell/assets/styles/themes/_modern.scss:57: #008657
+shell/assets/styles/themes/_modern.scss:58: #30BA78
+shell/assets/styles/themes/_modern.scss:59: #42D29F
+shell/assets/styles/themes/_modern.scss:60: #83E1BE
+shell/assets/styles/themes/_modern.scss:61: #C0EFDE
+shell/assets/styles/themes/_modern.scss:62: #EAFAF4
+shell/assets/styles/themes/_modern.scss:64: #D9E9E0
+shell/assets/styles/themes/_modern.scss:65: #EFF6F2
+shell/assets/styles/themes/_modern.scss:71: #007032
+shell/assets/styles/themes/_modern.scss:72: #FFE47A
+shell/assets/styles/themes/_modern.scss:73: #B13333
+shell/assets/styles/themes/_modern.scss:74: #1F67DB
+shell/assets/styles/themes/_modern.scss:81: rgba(#3D98D3, .5)
+shell/assets/styles/themes/_modern.scss:83: #DCDEE7
+shell/assets/styles/themes/_modern.scss:89: contrast-color($primary)
+shell/assets/styles/themes/_modern.scss:90: darken($primary, 10%)
+shell/assets/styles/themes/_modern.scss:91: saturate($lightest, 20%)
+shell/assets/styles/themes/_modern.scss:92: darken($primary, 25%)
+shell/assets/styles/themes/_modern.scss:93: contrast-color(darken($primary, 25%))
+shell/assets/styles/themes/_modern.scss:95: rgba($primary, 0.15)
+shell/assets/styles/themes/_modern.scss:96: rgba($primary, 0.05)
+shell/assets/styles/themes/_modern.scss:97: hsl(from var(--primary) h s calc(l - 10))
+shell/assets/styles/themes/_modern.scss:127: lighten($primary-120, 5%)
+shell/assets/styles/themes/_modern.scss:151: #3458a8
+shell/assets/styles/themes/_modern.scss:152: contrast-color($link)
+shell/assets/styles/themes/_modern.scss:154: darken($link, 10%)
+shell/assets/styles/themes/_modern.scss:155: saturate($lightest, 20%)
+shell/assets/styles/themes/_modern.scss:156: darken($link, 25%)
+shell/assets/styles/themes/_modern.scss:157: contrast-color(darken($link, 25%))
+shell/assets/styles/themes/_modern.scss:159: rgba($link, 0.15)
+shell/assets/styles/themes/_modern.scss:160: rgba($link, 0.05)
+shell/assets/styles/themes/_modern.scss:199: contrast-color($light)
+shell/assets/styles/themes/_modern.scss:200: darken($light, 10%)
+shell/assets/styles/themes/_modern.scss:201: saturate($lightest, 20%)
+shell/assets/styles/themes/_modern.scss:202: darken($light, 25%)
+shell/assets/styles/themes/_modern.scss:203: contrast-color(darken($light, 25%))
+shell/assets/styles/themes/_modern.scss:205: rgba($light, 0.15)
+shell/assets/styles/themes/_modern.scss:206: rgba($light, 0.05)
+shell/assets/styles/themes/_modern.scss:207: rgba($lightest, 1)
+shell/assets/styles/themes/_modern.scss:208: rgba($lightest, 0)
+shell/assets/styles/themes/_modern.scss:231: #6A6A85
+shell/assets/styles/themes/_modern.scss:232: #6C6C76
+shell/assets/styles/themes/_modern.scss:243: contrast-color($darker)
+shell/assets/styles/themes/_modern.scss:244: darken($darker, 10%)
+shell/assets/styles/themes/_modern.scss:245: saturate($lightest, 20%)
+shell/assets/styles/themes/_modern.scss:246: darken($darker, 25%)
+shell/assets/styles/themes/_modern.scss:247: contrast-color(darken($darker, 25%))
+shell/assets/styles/themes/_modern.scss:249: rgba($darker, 0.15)
+shell/assets/styles/themes/_modern.scss:250: rgba($darker, 0.05)
+shell/assets/styles/themes/_modern.scss:275: contrast-color($success)
+shell/assets/styles/themes/_modern.scss:276: darken($success, 10%)
+shell/assets/styles/themes/_modern.scss:277: saturate($lightest, 20%)
+shell/assets/styles/themes/_modern.scss:278: darken($success, 25%)
+shell/assets/styles/themes/_modern.scss:279: contrast-color(darken($success, 25%))
+shell/assets/styles/themes/_modern.scss:281: rgba($success, 0.15)
+shell/assets/styles/themes/_modern.scss:282: rgba($success, 0.05)
+shell/assets/styles/themes/_modern.scss:306: contrast-color($info)
+shell/assets/styles/themes/_modern.scss:307: darken($info, 10%)
+shell/assets/styles/themes/_modern.scss:308: saturate($lightest, 20%)
+shell/assets/styles/themes/_modern.scss:309: darken($info, 25%)
+shell/assets/styles/themes/_modern.scss:310: contrast-color(darken($info, 25%))
+shell/assets/styles/themes/_modern.scss:312: rgba($info, 0.15)
+shell/assets/styles/themes/_modern.scss:313: rgba($info, 0.05)
+shell/assets/styles/themes/_modern.scss:337: contrast-color($warning)
+shell/assets/styles/themes/_modern.scss:338: darken($warning, 10%)
+shell/assets/styles/themes/_modern.scss:339: saturate($lightest, 20%)
+shell/assets/styles/themes/_modern.scss:340: darken($warning, 25%)
+shell/assets/styles/themes/_modern.scss:341: contrast-color(darken($warning, 25%))
+shell/assets/styles/themes/_modern.scss:343: rgba($warning, 0.15)
+shell/assets/styles/themes/_modern.scss:344: rgba($warning, 0.05)
+shell/assets/styles/themes/_modern.scss:368: contrast-color($error)
+shell/assets/styles/themes/_modern.scss:369: darken($error, 10%)
+shell/assets/styles/themes/_modern.scss:370: saturate($lightest, 20%)
+shell/assets/styles/themes/_modern.scss:371: darken($error, 25%)
+shell/assets/styles/themes/_modern.scss:372: contrast-color(darken($error, 25%))
+shell/assets/styles/themes/_modern.scss:374: rgba($error, 0.15)
+shell/assets/styles/themes/_modern.scss:375: rgba($error, 0.05)
+shell/assets/styles/themes/_modern.scss:399: contrast-color($disabled)
+shell/assets/styles/themes/_modern.scss:400: darken($disabled, 10%)
+shell/assets/styles/themes/_modern.scss:401: saturate($lightest, 20%)
+shell/assets/styles/themes/_modern.scss:402: darken($disabled, 25%)
+shell/assets/styles/themes/_modern.scss:403: contrast-color(darken($disabled, 25%))
+shell/assets/styles/themes/_modern.scss:405: rgba($disabled, 0.15)
+shell/assets/styles/themes/_modern.scss:406: rgba($disabled, 0.05)
+shell/assets/styles/themes/_modern.scss:455: darken($medium, 10%)
+shell/assets/styles/themes/_modern.scss:466: lighten($lightest, 10%)
+shell/assets/styles/themes/_modern.scss:489: rgba($lighter, 0.75)
+shell/assets/styles/themes/_modern.scss:490: rgba(38, 42, 64, 0.35)
+shell/assets/styles/themes/_modern.scss:491: rgba($medium, 0.85)
+shell/assets/styles/themes/_modern.scss:495: darken($disabled, 40%)
+shell/assets/styles/themes/_modern.scss:499: rgba($drag-over, 0.9)
+shell/assets/styles/themes/_modern.scss:500: rgba($drag-over, 0)
+shell/assets/styles/themes/_modern.scss:518: #ffffff
+shell/assets/styles/themes/_modern.scss:528: darken($light, 2%)
+shell/assets/styles/themes/_modern.scss:531: darken($disabled, 60%)
+shell/assets/styles/themes/_modern.scss:532: darken($disabled, 40%)
+shell/assets/styles/themes/_modern.scss:534: darken($medium, 10%)
+shell/assets/styles/themes/_modern.scss:535: darken($medium, 15%)
+shell/assets/styles/themes/_modern.scss:537: darken($medium, 25%)
+shell/assets/styles/themes/_modern.scss:544: darken($grey-0, 5%)
+shell/assets/styles/themes/_modern.scss:555: #EEEFF5
+shell/assets/styles/themes/_modern.scss:564: rgba($warning, 0.8)
+shell/assets/styles/themes/_modern.scss:569: mix($light, $lighter, 15%)
+shell/assets/styles/themes/_modern.scss:577: rgba($darkest, 0.3)
+shell/assets/styles/themes/_modern.scss:582: rgba($error, 0.75)
+shell/assets/styles/themes/_modern.scss:583: rgba($error, 0.3)
+shell/assets/styles/themes/_modern.scss:585: rgba($success, 0.3)
+shell/assets/styles/themes/_modern.scss:586: rgba($success, 0.5)
+shell/assets/styles/themes/_modern.scss:587: rgba($success, 0.25)
+shell/assets/styles/themes/_modern.scss:588: rgba($warning, 0.5)
+shell/assets/styles/themes/_modern.scss:601: 61, 152, 211
+shell/assets/styles/themes/_modern.scss:604: 255, 255, 255, 0.15
+shell/assets/styles/themes/_modern.scss:623: 150, 189, 127
+shell/assets/styles/themes/_modern.scss:624: 190, 211, 172
+shell/assets/styles/themes/_modern.scss:625: 238, 226, 176
+shell/assets/styles/themes/_modern.scss:626: 218, 195, 66
+shell/assets/styles/themes/_modern.scss:627: 249, 186, 171
+shell/assets/styles/themes/_modern.scss:628: 239, 90, 83
+shell/assets/styles/themes/_modern.scss:630: 180, 210, 30
+shell/assets/styles/themes/_modern.scss:631: 225, 45, 74
+shell/assets/styles/themes/_modern.scss:632: 212, 66, 148
+shell/assets/styles/themes/_modern.scss:633: 0, 169, 217
+shell/assets/styles/themes/_modern.scss:634: 244, 136, 68
+shell/assets/styles/themes/_modern.scss:635: 0, 147, 128
+shell/assets/styles/themes/_modern.scss:636: 136, 81, 165
+shell/assets/styles/themes/_modern.scss:637: 45, 47, 149
+shell/assets/styles/themes/_modern.scss:638: 255, 235, 0
+shell/assets/styles/themes/_modern.scss:640: blue($success)
+shell/assets/styles/themes/_modern.scss:640: green($success)
+shell/assets/styles/themes/_modern.scss:640: red($success)
+shell/assets/styles/themes/_modern.scss:641: blue($info)
+shell/assets/styles/themes/_modern.scss:641: green($info)
+shell/assets/styles/themes/_modern.scss:641: red($info)
+shell/assets/styles/themes/_modern.scss:642: blue($warning)
+shell/assets/styles/themes/_modern.scss:642: green($warning)
+shell/assets/styles/themes/_modern.scss:642: red($warning)
+shell/assets/styles/themes/_modern.scss:643: blue($error)
+shell/assets/styles/themes/_modern.scss:643: green($error)
+shell/assets/styles/themes/_modern.scss:643: red($error)
+shell/assets/styles/themes/_modern.scss:644: blue($disabled)
+shell/assets/styles/themes/_modern.scss:644: green($disabled)
+shell/assets/styles/themes/_modern.scss:644: red($disabled)
+shell/assets/styles/themes/_modern.scss:647: #FEA424
+shell/assets/styles/themes/_modern.scss:648: #614EA2
+shell/assets/styles/themes/_modern.scss:651: #ffffff
+shell/assets/styles/themes/_modern.scss:654: black
+shell/assets/styles/themes/_modern.scss:656: rgba(var(--sizzle-1), 1)
+shell/assets/styles/themes/_modern.scss:657: white
+shell/assets/styles/themes/_modern.scss:659: rgba(var(--sizzle-2), 1)
+shell/assets/styles/themes/_modern.scss:660: white
+shell/assets/styles/themes/_modern.scss:662: rgba(var(--sizzle-3), 1)
+shell/assets/styles/themes/_modern.scss:663: white
+shell/assets/styles/themes/_modern.scss:665: rgba(var(--sizzle-4), 1)
+shell/assets/styles/themes/_modern.scss:666: white
+shell/assets/styles/themes/_modern.scss:668: rgba(var(--sizzle-5), 1)
+shell/assets/styles/themes/_modern.scss:669: white
+shell/assets/styles/themes/_modern.scss:671: rgba(var(--sizzle-6), 1)
+shell/assets/styles/themes/_modern.scss:672: white
+shell/assets/styles/themes/_modern.scss:674: rgba(var(--sizzle-7), 1)
+shell/assets/styles/themes/_modern.scss:675: white
+shell/assets/styles/themes/_modern.scss:677: rgba(var(--sizzle-8), 1)
+shell/assets/styles/themes/_modern.scss:678: white
+shell/assets/styles/themes/_modern.scss:692: #B13333
+shell/assets/styles/themes/_modern.scss:693: #7C0015
+shell/assets/styles/themes/_modern.scss:695: #473900
+shell/assets/styles/themes/_modern.scss:696: #FFE47A
+shell/assets/styles/themes/_modern.scss:697: #E5A200
+shell/assets/styles/themes/_modern.scss:699: #007032
+shell/assets/styles/themes/_modern.scss:700: #CEE4D7
+shell/assets/styles/themes/_modern.scss:701: #1F7043
+shell/assets/styles/themes/_modern.scss:705: #2673A6
+shell/assets/styles/themes/_modern.scss:710: #1D61CE
+shell/assets/styles/themes/_modern.scss:749: darken($warning, 60%)
+shell/assets/styles/themes/_modern.scss:751: rgba($success, 0.10)
+shell/assets/styles/themes/_modern.scss:754: rgba($info, 0.10)
+shell/assets/styles/themes/_modern.scss:758: #FFFFFF
+shell/assets/styles/themes/_modern.scss:768: #171C22
+shell/assets/styles/themes/_modern.scss:771: #1b1c21
+shell/assets/styles/themes/_modern.scss:774: #27292e
+shell/assets/styles/themes/_modern.scss:780: #6c6c76
+shell/assets/styles/themes/_modern.scss:783: #b6b6c2
+shell/assets/styles/themes/_modern.scss:786: #ffffff
+shell/assets/styles/themes/_modern.scss:789: #EEEFF4
+shell/assets/styles/themes/_modern.scss:791: #008F40
+shell/assets/styles/themes/_modern.scss:792: #EAC431
+shell/assets/styles/themes/_modern.scss:793: #C63434
+shell/assets/styles/themes/_modern.scss:794: #1F67DB
+shell/assets/styles/themes/_modern.scss:803: #DCDEE7
+shell/assets/styles/themes/_modern.scss:804: #25282F
+shell/assets/styles/themes/_modern.scss:806: #6C7A8F
+shell/assets/styles/themes/_modern.scss:808: #1E3C73
+shell/assets/styles/themes/_modern.scss:810: #4B4F6B
+shell/assets/styles/themes/_modern.scss:812: #38404B
+shell/assets/styles/themes/_modern.scss:813: #9BBFFD
+shell/assets/styles/themes/_modern.scss:817: #162D59
+shell/assets/styles/themes/_modern.scss:839: darken($primary-50, 5%)
+shell/assets/styles/themes/_modern.scss:852: #FFFAFA
+shell/assets/styles/themes/_modern.scss:853: darken($dark, 10%)
+shell/assets/styles/themes/_modern.scss:854: saturate($lightest, 20%)
+shell/assets/styles/themes/_modern.scss:855: darken($dark, 25%)
+shell/assets/styles/themes/_modern.scss:856: contrast-color(darken($dark, 25%))
+shell/assets/styles/themes/_modern.scss:858: rgba($dark, 0.15)
+shell/assets/styles/themes/_modern.scss:859: rgba($dark, 0.05)
+shell/assets/styles/themes/_modern.scss:860: rgba($darker, 1)
+shell/assets/styles/themes/_modern.scss:861: rgba($darker, 0)
+shell/assets/styles/themes/_modern.scss:863: #8F8F9C
+shell/assets/styles/themes/_modern.scss:864: #B6B6C2
+shell/assets/styles/themes/_modern.scss:867: #FFFAFA
+shell/assets/styles/themes/_modern.scss:884: hsl(from var(--primary) h s calc(l + 10))
+shell/assets/styles/themes/_modern.scss:887: #333
+shell/assets/styles/themes/_modern.scss:889: lighten($body-bg, 10%)
+shell/assets/styles/themes/_modern.scss:895: darken($disabled, 10%)
+shell/assets/styles/themes/_modern.scss:906: lighten($darkest, 5%)
+shell/assets/styles/themes/_modern.scss:915: rgba($darkest, 0.75)
+shell/assets/styles/themes/_modern.scss:916: rgba(47, 51, 61, .75)
+shell/assets/styles/themes/_modern.scss:917: rgba($darkest, 0.9)
+shell/assets/styles/themes/_modern.scss:921: lighten($disabled, 50%)
+shell/assets/styles/themes/_modern.scss:925: rgba($drag-over, 0.9)
+shell/assets/styles/themes/_modern.scss:926: rgba($drag-over, 0)
+shell/assets/styles/themes/_modern.scss:928: mix($medium, $dark, 10%)
+shell/assets/styles/themes/_modern.scss:949: darken($dark, 3%)
+shell/assets/styles/themes/_modern.scss:952: darken($lightest, 50%)
+shell/assets/styles/themes/_modern.scss:953: darken($lighter, 30%)
+shell/assets/styles/themes/_modern.scss:954: darken($disabled, 30%)
+shell/assets/styles/themes/_modern.scss:955: darken($medium, 30%)
+shell/assets/styles/themes/_modern.scss:956: darken($disabled, 10%)
+shell/assets/styles/themes/_modern.scss:964: #171C22
+shell/assets/styles/themes/_modern.scss:966: #171C22
+shell/assets/styles/themes/_modern.scss:968: lighten($body-bg, 5%)
+shell/assets/styles/themes/_modern.scss:969: #3f4350
+shell/assets/styles/themes/_modern.scss:987: mix($medium, $dark, 20%)
+shell/assets/styles/themes/_modern.scss:995: rgba($darkest, 0.3)
+shell/assets/styles/themes/_modern.scss:1000: rgba($error, 0.75)
+shell/assets/styles/themes/_modern.scss:1001: rgba($error, 0.3)
+shell/assets/styles/themes/_modern.scss:1003: rgba($success, 0.3)
+shell/assets/styles/themes/_modern.scss:1004: rgba($success, 0.5)
+shell/assets/styles/themes/_modern.scss:1005: rgba($success, 0.25)
+shell/assets/styles/themes/_modern.scss:1006: rgba($warning, 0.5)
+shell/assets/styles/themes/_modern.scss:1007: rgba($warning, 1)
+shell/assets/styles/themes/_modern.scss:1011: mix($medium, $dark, 10%)
+shell/assets/styles/themes/_modern.scss:1018: black
+shell/assets/styles/themes/_modern.scss:1022: 74, 75, 82, 0.5
+shell/assets/styles/themes/_modern.scss:1039: rgba(255, 255, 255, 0.3)
+shell/assets/styles/themes/_modern.scss:1040: 75, 95, 64
+shell/assets/styles/themes/_modern.scss:1041: 150, 189, 127
+shell/assets/styles/themes/_modern.scss:1042: 218, 195, 66
+shell/assets/styles/themes/_modern.scss:1043: 109, 98, 33
+shell/assets/styles/themes/_modern.scss:1044: 239, 90, 83
+shell/assets/styles/themes/_modern.scss:1045: 120, 45, 42
+shell/assets/styles/themes/_modern.scss:1055: #F43434
+shell/assets/styles/themes/_modern.scss:1056: #FF8080
+shell/assets/styles/themes/_modern.scss:1058: #662E00
+shell/assets/styles/themes/_modern.scss:1059: #FFCA4D
+shell/assets/styles/themes/_modern.scss:1060: #F2870D
+shell/assets/styles/themes/_modern.scss:1062: #00FF32
+shell/assets/styles/themes/_modern.scss:1063: #354240
+shell/assets/styles/themes/_modern.scss:1064: #4DFF70
+shell/assets/styles/themes/_modern.scss:1068: #ACD2EC
+shell/assets/styles/themes/_modern.scss:1071: #4B4F6B
+shell/assets/styles/themes/_modern.scss:1106: #FFAC99
+shell/assets/styles/themes/_modern.scss:1107: contrast-color($warning)
+shell/assets/styles/themes/_modern.scss:1109: rgba($success, 10%)
+shell/assets/styles/themes/_modern.scss:1110: #00B752
+shell/assets/styles/themes/_modern.scss:1112: #ffcc00
+shell/assets/styles/themes/_modern.scss:1113: darken($warning, 60%)
+shell/assets/styles/themes/_modern.scss:1115: rgba($info, 30%)
+shell/assets/styles/themes/_modern.scss:1116: lighten($info, 50%)
+shell/assets/styles/themes/_modern.scss:1119: #FFFFFF
+shell/assets/styles/themes/_modern.scss:1121: #301D1D
+shell/assets/styles/themes/_suse.scss:2: #30BA78
+shell/assets/styles/themes/_suse.scss:3: #4DD192
+shell/assets/styles/themes/_suse.scss:4: #72EEB3
+shell/assets/styles/themes/_suse.scss:6: #008657
+shell/assets/styles/themes/_suse.scss:7: #006B46
+shell/assets/styles/themes/_suse.scss:9: #2A4F3C
+shell/assets/styles/themes/_suse.scss:15: #FFFFFF
+shell/assets/styles/themes/_suse.scss:22: #4871C7
+shell/assets/styles/themes/_suse.scss:48: darken($disabled, 40%)
+shell/assets/styles/themes/_suse.scss:54: #9BBFFD
+shell/assets/styles/themes/_suse.scss:66: #1E372B
+shell/assets/styles/themes/_suse.scss:81: #303633
+shell/assets/styles/themes/_suse.scss:86: lighten($category-active, 10%)
+shell/assets/styles/themes/_suse.scss:89: #3f4350
+shell/assets/styles/themes/_suse.scss:132: #0C322C
+shell/assets/styles/themes/_suse.scss:133: #30BA78
+shell/assets/styles/themes/_suse.scss:134: #FE7C3F
+shell/assets/styles/themes/_suse.scss:135: #FF9F72
+shell/assets/styles/themes/_suse.scss:142: #FFFFFF
+shell/assets/styles/themes/_suse.scss:143: mix(#FFFFFF, $pine, 78%)
+shell/assets/styles/themes/_suse.scss:155: #FFFFFF
+shell/assets/styles/vendor/vue-select.scss:330: rgba(0, 0, 0, 0)
+shell/assets/styles/vendor/vue-select.scss:332: rgba(0, 0, 0, 0)
+shell/components/ActionDropdown.vue:170: rgba(0,0,0,0)
+shell/components/ClusterIconMenu.vue:153: #dddee6
+shell/components/CollapsibleCard.vue:111: #B7B8BB
+shell/components/CountBox.vue:42: rgba(var(
+shell/components/CountGauge.vue:89: rgba(var(
+shell/components/CountGauge.vue:90: rgb(var(--resource-gauge-back-circle))
+shell/components/CountGauge.vue:95: rgba(var(
+shell/components/CountGauge.vue:96: rgb(var(--resource-gauge-back-circle))
+shell/components/DashboardMetrics.vue:46: #2e3035
+shell/components/DashboardMetrics.vue:46: #f3f4f9
+shell/components/ExplorerMembers.vue:482: rgba(0, 0, 0, 0.05)
+shell/components/fleet/dashboard/ResourceCard.vue:56: #DAC342
+shell/components/form/FileImageSelector.vue:116: white
+shell/components/form/GitPicker.vue:572: rgba(112, 128, 144, 0.1)
+shell/components/form/GitPicker.vue:583: #3c3c3c
+shell/components/form/GitPicker.vue:587: #fff
+shell/components/form/LabeledSelect.vue:975: #fff
+shell/components/formatter/ClusterLink.vue:113: red
+shell/components/formatter/ImagePercentageBar.vue:75: darken(#EBEEF5, 15%)
+shell/components/GradientBox.vue:56: rgba(var(
+shell/components/GrafanaDashboard.vue:34: #1b1c21
+shell/components/graph/Circle.vue:162: red
+shell/components/graph/LinePlot.vue:168: #64399a
+shell/components/graph/LinePlot.vue:173: #1b1c21
+shell/components/graph/LinePlot.vue:174: #64399a
+shell/components/graph/LinePlot.vue:178: #306990
+shell/components/graph/LinePlot.vue:182: white
+shell/components/graph/ProgressArc.vue:81: rgb(
+shell/components/graph/ProgressArc.vue:91: white
+shell/components/HardwareResourceGauge.vue:60: rgba(var(
+shell/components/Markdown.vue:93: rgb(101, 109, 118)
+shell/components/Markdown.vue:94: rgb(208, 215, 222)
+shell/components/Markdown.vue:105: #e3e7eb
+shell/components/Markdown.vue:126: #e3e7eb
+shell/components/nav/ClusterSwitcher.vue:966: rgba(0, 0, 0, 0.1)
+shell/components/nav/ClusterSwitcher.vue:1035: color-mix(in srgb, var(--body-text) 8%, transparent)
+shell/components/nav/ClusterSwitcher.vue:1077: color-mix(in srgb, var(--body-text) 10%, transparent)
+shell/components/nav/ClusterSwitcherRow.vue:149: color-mix(in srgb, var(--body-text) 10%, transparent)
+shell/components/nav/ClusterSwitcherRow.vue:184: color-mix(in srgb, var(--body-text) 6%, transparent)
+shell/components/nav/ClusterSwitcherSkeleton.vue:85: color-mix(in srgb, var(--body-text) 7%, transparent)
+shell/components/nav/ClusterSwitcherSkeleton.vue:86: color-mix(in srgb, var(--body-text) 15%, transparent)
+shell/components/nav/ClusterSwitcherSkeleton.vue:87: color-mix(in srgb, var(--body-text) 7%, transparent)
+shell/components/nav/Header.vue:1042: rgba(255, 255, 255, 0.15)
+shell/components/nav/Header.vue:1043: rgba(255, 255, 255, 0.25)
+shell/components/nav/Header.vue:1105: #fff
+shell/components/nav/Header.vue:1109: rgba(0,0,0,0.25)
+shell/components/nav/NamespaceFilter.vue:1164: rgba(0,0,0,.05)
+shell/components/nav/NavActionBar.vue:670: rgba(0, 0, 0, 0.04)
+shell/components/nav/TopLevelMenu.vue:1770: color-mix(in srgb, var(--body-text) 10%, transparent)
+shell/components/nav/TopLevelMenu.vue:1885: color-mix(in srgb, var(--on-active) 65%, transparent)
+shell/components/nav/TopLevelMenu.vue:1904: color-mix(in srgb, var(--primary) 15%, transparent)
+shell/components/nav/TopLevelMenu.vue:1932: color-mix(in srgb, var(--primary) 15%, transparent)
+shell/components/nav/TopLevelMenu.vue:1958: color-mix(in srgb, var(--primary) 14%, transparent)
+shell/components/nav/TopLevelMenu.vue:1969: rgba(0, 0, 0, 0.28)
+shell/components/nav/TopLevelMenu.vue:2361: color-mix(in srgb, var(--on-active) 65%, transparent)
+shell/components/nav/TopLevelMenu.vue:2437: color-mix(in srgb, var(--body-text) 8%, transparent)
+shell/components/nav/WorkspaceSwitcher.vue:178: rgba(0, 0, 0, 0.05)
+shell/components/PopoverCard.vue:194: rgba(0, 0, 0, 0.04)
+shell/components/PromptModal.vue:175: rgba(0,0,0,0)
+shell/components/Resource/Detail/ResourcePopover/ResourcePopoverCard.vue:167: #141419
+shell/components/ResourceCancelModal.vue:123: white
+shell/components/SelectIconGrid.vue:283: white
+shell/components/Tabbed/index.vue:625: #fff
+shell/components/TableSparkLine.vue:107: #6e3daa
+shell/components/TableViews/TableViewControls.vue:692: color-mix(in srgb, var(--active, var(--primary)) 50%, transparent)
+shell/components/TableViews/TableViewControls.vue:702: color-mix(in srgb, var(--primary) 14%, transparent)
+shell/components/TableViews/TableViewControls.vue:704: rgba(0, 0, 0, 0.28)
+shell/components/TableViews/TableViewQueryInput.vue:1235: color-mix(in srgb, var(--active, var(--primary)) 12%, transparent)
+shell/components/TableViews/TableViewTabs.vue:1520: color-mix(in srgb, var(--primary) 14%, transparent)
+shell/components/TableViews/TableViewTabs.vue:1521: rgba(0, 0, 0, 0.28)
+shell/components/TableViews/TableViewTabs.vue:1533: color-mix(in srgb, var(--primary) 15%, transparent)
+shell/components/TableViews/TableViewTabs.vue:1679: color-mix(in srgb, var(--body-text) 8%, transparent)
+shell/dialog/OidcClientSecretDialog.vue:101: rgba(0,0,0,0)
+shell/edit/logging.banzaicloud.io.output/index.vue:361: white
+shell/edit/monitoring.coreos.com.alertmanagerconfig/receiverConfig.vue:422: white
+shell/edit/monitoring.coreos.com.receiver/index.vue:337: white
+shell/edit/workload/index.vue:720: white
+shell/mixins/brand.js:112: rgb(0,0,0)
+shell/models/management.cattle.io.cluster.js:28: #707070
+shell/pages/c/_cluster/apps/charts/chart.vue:820: #fff
+shell/pages/c/_cluster/apps/charts/install.vue:2299: #fff
+shell/pages/c/_cluster/explorer/workload-dashboard/ByStateSection.vue:133: rgba(var(--#{$color}-rgb), 0.1)
+shell/pages/c/_cluster/fleet/graph/config.js:10: #FFF
+shell/pages/c/_cluster/fleet/graph/config.js:14: #fff
+shell/pages/c/_cluster/fleet/graph/config.js:16: #fff
+shell/pages/c/_cluster/fleet/graph/config.js:18: #FFF
+shell/pages/c/_cluster/fleet/graph/config.js:20: #fff
+shell/pages/c/_cluster/uiplugins/PluginInfoPanel.vue:587: white
+shell/pages/diagnostic.vue:552: #FFF
+shell/pages/diagnostic.vue:563: #ccc
+shell/pages/diagnostic.vue:566: #000
+shell/pages/diagnostic.vue:570: LightGoldenRodYellow
+shell/pages/diagnostic.vue:571: SaddleBrown
+shell/pages/diagnostic.vue:575: Azure
+shell/pages/diagnostic.vue:576: blue
+shell/pages/diagnostic.vue:580: MistyRose
+shell/pages/diagnostic.vue:581: red
+shell/utils/color.js:98: rgb(20, 20, 25)
+shell/utils/color.js:99: rgb(255, 255, 255)
+shell/utils/color.js:103: rgb(255, 255, 255)
+shell/utils/color.js:104: rgb(20, 20, 25)
+shell/utils/color.js:109: #000000
+shell/utils/color.js:110: #ffffff
+shell/utils/fleet.ts:121: #F64747
+shell/utils/fleet.ts:129: #DAC342
+shell/utils/fleet.ts:137: #5D995D
+shell/utils/fleet.ts:145: #3d98d3
+shell/utils/svg-filter.js:11: rgb(
