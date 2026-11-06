@@ -387,6 +387,27 @@ describe('page: cluster dashboard', () => {
       expect([wrapper.vm.ramUsed?.total, wrapper.vm.ramUsed?.useful]).toStrictEqual([16, 1]);
     });
 
+    it('should say used only covers the nodes with metrics when a counted node has none', async() => {
+      const wrapper = createWrapper({ nodes: [node('counted-1', true), node('counted-2', true), node('no-metrics', true, 1, null), cordoned] });
+
+      await flushPromises();
+
+      expect(wrapper.vm.reportingNodes).toStrictEqual(2);
+      expect(wrapper.find('[data-testid="capacity-reporting-nodes"]').exists()).toBe(true);
+    });
+
+    it.each([
+      ['every counted node has metrics', [node('counted-1', true), node('counted-2', true)]],
+      ['only a node that is not counted has no metrics', [node('counted-1', true), node('cordoned-no-metrics', false, 1, null)]],
+      ['no counted node has metrics, so used is left out', [node('no-metrics-1', true, 1, null), node('no-metrics-2', true, 1, null)]],
+    ])('should not say used only covers some nodes when %s', async(_, nodes) => {
+      const wrapper = createWrapper({ nodes });
+
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="capacity-reporting-nodes"]').exists()).toBe(false);
+    });
+
     it('should leave used out when no counted node has metrics', async() => {
       const wrapper = createWrapper({ nodes: [node('no-metrics-1', true, 1, null), node('no-metrics-2', true, 1, null), cordoned] });
 

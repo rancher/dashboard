@@ -390,10 +390,17 @@ export default {
     },
 
     /**
-     * A node only has usage with metrics, and without the nodes there's nothing to add up
+     * How many of the counted nodes have metrics. A node only has usage with them, the others add none
+     */
+    reportingNodes() {
+      return this.countedNodes.filter((node) => node.usage).length;
+    },
+
+    /**
+     * Without the nodes there's nothing to add up
      */
     hasUsage() {
-      return this.haveNodes && this.countedNodes.some((node) => node.usage);
+      return this.haveNodes && this.reportingNodes > 0;
     },
 
     /**
@@ -701,6 +708,13 @@ export default {
         data-testid="capacity-counted-nodes"
       >
         {{ t('clusterIndexPage.sections.capacity.countedNodes', { counted: countedNodes.length, total: nodes.length }, true) }}
+      </span>
+      <span
+        v-if="hasUsage && reportingNodes < countedNodes.length"
+        class="counted-nodes text-muted"
+        data-testid="capacity-reporting-nodes"
+      >
+        {{ t('clusterIndexPage.sections.capacity.reportingNodes', { reporting: reportingNodes, counted: countedNodes.length }, true) }}
       </span>
     </h3>
     <div
