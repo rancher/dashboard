@@ -12,9 +12,15 @@ export {
   RcDropdownTrigger,
   RcDropdownMenu
 } from './components/RcDropdown';
+export {
+  RcField, RcFieldGroup, provideFieldState, useFieldState
+} from './components/RcField';
 export { RcHeading } from './components/RcHeading';
 export { RcIcon } from './components/RcIcon';
 export { RcIconTooltip } from './components/RcIconTooltip';
+export {
+  RcInput, RcInputPassword, RcInputSearch, RcInputUnit
+} from './components/RcInput';
 export { RcContentGroup } from './components/Layout';
 export { RcModal, useModal } from './components/RcModal';
 export { RcSection } from './components/RcSection';

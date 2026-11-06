@@ -12,9 +12,9 @@ const meta: Meta<typeof RcButton> = {
       description: 'Determines the visual style and purpose of the button. Primary for main actions, secondary for supporting actions, tertiary for less prominent actions, link for navigation, multiAction for dropdown buttons, and ghost for transparent buttons.'
     },
     size: {
-      options:     ['small', 'medium', 'large'] as ButtonSize[],
+      options:     ['small', 'medium', 'large', 'inherit'],
       control:     { type: 'select' },
-      description: 'Determines the size of the button. Medium is the default size for most use cases.'
+      description: 'Determines the size of the button. Medium is the default size for most use cases. `inherit` takes the size of the surrounding text, and needs the `ghost` or `link` variant. Other variants fall back to medium.'
     },
     leftIcon: {
       options:     ['', ...Object.keys(RcIconTypeToClass)],
@@ -204,6 +204,42 @@ export const WithIcons: Story = {
 <RcButton variant="tertiary" right-icon="chevronDown">Dropdown</RcButton>
 <RcButton variant="primary" left-icon="download" right-icon="chevronRight">Download</RcButton>
 <RcButton variant="ghost" left-icon="edit">Edit</RcButton>`,
+        language: 'html',
+      }
+    }
+  },
+};
+
+export const InheritSize: Story = {
+  render: () => ({
+    components: { RcButton },
+    setup() {
+      return {
+        lines: [
+          { label: '10px', style: 'font-size: 10px; line-height: 15px; font-weight: 700;' },
+          { label: '12px', style: 'font-size: 12px; line-height: 18px;' },
+          { label: '14px', style: 'font-size: 14px; line-height: 21px;' },
+          { label: '20px', style: 'font-size: 20px; line-height: 28px;' },
+        ],
+      };
+    },
+    template: `
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <p v-for="line in lines" :key="line.label" :style="line.style + ' margin: 0; color: var(--body-text);'">
+          {{ line.label }} text with an inline
+          <RcButton variant="link" size="inherit">link button</RcButton>
+          and a ghost icon button
+          <RcButton variant="ghost" size="inherit" aria-label="Copy" left-icon="copy" />
+          on the same line.
+        </p>
+      </div>`,
+  }),
+  parameters: {
+    controls: { disabled: true },
+    docs:     {
+      source: {
+        code: `<RcButton variant="link" size="inherit" @click="reset">Reset</RcButton>
+<RcButton variant="ghost" size="inherit" aria-label="Copy" left-icon="copy" />`,
         language: 'html',
       }
     }

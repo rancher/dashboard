@@ -13,7 +13,7 @@
 import { computed } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
-import { RcIconType } from '@components/RcIcon/types';
+import { RcIconSize, RcIconType } from '@components/RcIcon/types';
 import type { IconTooltipContent } from './types';
 
 const TOOLTIP_TRIGGERS = ['hover', 'touch', 'focus', 'click'];
@@ -35,10 +35,16 @@ const props = withDefaults(defineProps<{
    * The icon to draw.
    */
   iconType?: RcIconType,
+
+  /**
+   * The size of the icon.
+   */
+  size?: RcIconSize,
 }>(), {
   content:  null,
   label:    undefined,
   iconType: 'info',
+  size:     'small',
 });
 
 const tooltip = computed(() => {
@@ -57,25 +63,14 @@ const tooltip = computed(() => {
     v-clean-tooltip="tooltip"
     type="button"
     variant="ghost"
-    size="small"
+    size="inherit"
     class="rc-icon-tooltip"
     :aria-label="label || t('generic.moreInfo')"
   >
-    <rc-icon :type="iconType" />
+    <rc-icon
+      :type="iconType"
+      :size="size"
+    />
   </rc-button>
 </template>
 
-<style lang="scss" scoped>
-.rc-icon-tooltip {
-  color: inherit;
-}
-
-.rc-icon-tooltip.rc-button.btn.btn-small {
-  --rc-button-padding: 0;
-
-  min-height: 0;
-  font-size: inherit;
-  line-height: inherit;
-  vertical-align: baseline;
-}
-</style>
