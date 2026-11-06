@@ -1,6 +1,7 @@
 <script>
 import ConsumptionGauge from '@shell/components/ConsumptionGauge';
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
+import { USAGE_COLOR_STOPS } from '@shell/utils/color';
 
 export default {
   components: { ConsumptionGauge, Card },
@@ -47,9 +48,7 @@ export default {
   },
   computed: {
     colorStops() {
-      return {
-        0: '--success', 30: '--warning', 70: '--error'
-      };
+      return USAGE_COLOR_STOPS;
     }
   },
   methods: {
