@@ -280,6 +280,37 @@ describe('component: SideNav', () => {
       expect(navStateStorage.save).toHaveBeenCalledWith(expect.objectContaining({ more_gone: true, more: false }));
     });
 
+    it('prefers the state on screen over the saved state, which can lag behind it', () => {
+      navStateStorage.load.mockReturnValue({ more: true, more_networking: false });
+
+      const wrapper = mountNav();
+      const current = navTree();
+
+      current[2].expanded = true;
+      current[2].children[0].expanded = true;
+      navGroups(wrapper, current);
+
+      const rebuilt = navTree();
+
+      (wrapper.vm as any).stampNavState(rebuilt);
+
+      expect(rebuilt[2].children[0].expanded).toBe(true);
+    });
+
+    it('restores the saved state of a group that was not on screen before the rebuild', () => {
+      navStateStorage.load.mockReturnValue({ istio: true });
+
+      const wrapper = mountNav();
+
+      navGroups(wrapper, navTree().filter((g) => g.name !== 'istio'));
+
+      const rebuilt = navTree();
+
+      (wrapper.vm as any).stampNavState(rebuilt);
+
+      expect(rebuilt[3].expanded).toBe(true);
+    });
+
     it.each([
       ['nothing is saved', null],
       ['the saved state has no entry for it', { workloads: true }],
@@ -339,6 +370,43 @@ describe('component: SideNav', () => {
 
       groups[0].vm.$emit('close');
       expect(navStateStorage.save).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('rebuilding the nav outside the explorer', () => {
+    const groupByName = (name: string) => (groups: any[]) => groups.find((g) => g.name === name);
+    const nestedGroup = (groups: any[]) => groupByName('more')(groups).children[0];
+
+    beforeEach(() => {
+      mockStore.state.clusterReady = true;
+      getters.isExplorer = false;
+      getters.productId = 'fleet';
+      getters.rootProduct = { name: 'fleet' };
+      getters.currentProduct = { name: 'fleet', inStore: 'management' };
+      getters['management/all'] = () => [];
+      getters['type-map/allTypes'] = () => ({});
+      getters['type-map/getTree'] = () => navTree();
+      registerProducts([{ name: 'fleet', inStore: 'management' }]);
+    });
+
+    afterEach(() => {
+      mockStore.state.clusterReady = false;
+      getters.isExplorer = true;
+      delete getters['management/all'];
+      delete getters['type-map/allTypes'];
+      delete getters['type-map/getTree'];
+    });
+
+    it.each([
+      ['a group', groupByName('workloads')],
+      ['a nested group', nestedGroup],
+    ])('keeps %s the user expanded, though nothing is saved', (_, find) => {
+      const wrapper = mountNav();
+
+      find(navGroups(wrapper)).expanded = true;
+      (wrapper.vm as any).getGroups();
+
+      expect(find(navGroups(wrapper)).expanded).toBe(true);
     });
   });
 
