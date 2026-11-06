@@ -328,9 +328,13 @@ describe('page: cluster dashboard', () => {
   describe('capacity', () => {
     const GiB = 1024 ** 3;
 
-    const node = (id: string, counted: boolean, size = 1) => ({
+    // The usage of each node is below what's set aside for the system (capacity - allocatable), which used to be taken off it
+    const node = (id: string, counted: boolean, size = 1, usage: { cpu: number, memory: number } | null = { cpu: 0.5, memory: GiB }) => ({
       id,
       isCountedInClusterResources: counted,
+      usage,
+      cpuUsage:                    usage?.cpu ?? 0,
+      ramUsage:                    usage?.memory ?? 0,
       cpuCapacity:                 4 * size,
       cpuAllocatable:              3 * size,
       cpuReserved:                 1 * size,
@@ -341,14 +345,9 @@ describe('page: cluster dashboard', () => {
       podReserved:                 10 * size,
     });
 
-    // The usage of each node is below what's set aside for the system (capacity - allocatable), which used to be taken off it
-    const metrics = [
-      { id: 'counted-1', usage: { cpu: '500m', memory: '1Gi' } },
-      { id: 'counted-2', usage: { cpu: '500m', memory: '1Gi' } },
-      { id: 'cordoned', usage: { cpu: '50', memory: '100Gi' } },
-    ];
+    const cordoned = node('cordoned', false, 25, { cpu: 50, memory: 100 * GiB });
 
-    const createWrapper = ({ nodes = [node('counted-1', true), node('counted-2', true), node('cordoned', false, 25)], canListNodes = true, nodesLoaded = true } = {}) => {
+    const createWrapper = ({ nodes = [node('counted-1', true), node('counted-2', true), cordoned], canListNodes = true, nodesLoaded = true } = {}) => {
       const options = createMountOptions();
       const { getters } = options.global.mocks.$store;
 
@@ -365,7 +364,7 @@ describe('page: cluster dashboard', () => {
           cpu: '2', memory: '4Gi', pods: '20'
         },
       };
-      options.global.mocks.$store.dispatch = jest.fn((action: string, { type }: { type?: string } = {}) => Promise.resolve(action === 'cluster/findAll' && type === METRIC.NODE ? metrics : []));
+      options.global.mocks.$store.dispatch = jest.fn(() => Promise.resolve([]));
 
       return shallowMount(Dashboard, options);
     };
@@ -380,12 +379,20 @@ describe('page: cluster dashboard', () => {
     });
 
     it('should add no usage for a counted node without metrics, and keep its capacity in the total', async() => {
-      const wrapper = createWrapper({ nodes: [node('counted-1', true), node('no-metrics', true)] });
+      const wrapper = createWrapper({ nodes: [node('counted-1', true), node('no-metrics', true, 1, null)] });
 
       await flushPromises();
 
       expect([wrapper.vm.cpuUsed?.total, wrapper.vm.cpuUsed?.useful]).toStrictEqual([8, 0.5]);
       expect([wrapper.vm.ramUsed?.total, wrapper.vm.ramUsed?.useful]).toStrictEqual([16, 1]);
+    });
+
+    it('should leave used out when no counted node has metrics', async() => {
+      const wrapper = createWrapper({ nodes: [node('no-metrics-1', true, 1, null), node('no-metrics-2', true, 1, null), cordoned] });
+
+      await flushPromises();
+
+      expect([wrapper.vm.cpuUsed, wrapper.vm.ramUsed]).toStrictEqual([null, null]);
     });
 
     it('should work out reserved as the requests of the counted nodes out of their allocatable', async() => {

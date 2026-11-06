@@ -34,7 +34,6 @@ import { allDashboardsExist } from '@shell/utils/grafana';
 import EtcdInfoBanner from '@shell/components/EtcdInfoBanner';
 import metricPoller from '@shell/mixins/metric-poller';
 import HardwareResourceGauge from '@shell/components/HardwareResourceGauge';
-import { isEmpty } from '@shell/utils/object';
 import ConfigBadge from './ConfigBadge';
 import EventsTable from './EventsTable';
 import ResourceStatusCards from './resource-status/ResourceStatusCards.vue';
@@ -139,7 +138,6 @@ export default {
       fleetAgentResource:      'loading',
       disconnected:            false,
       events:                  [],
-      nodeMetrics:             [],
       showClusterMetrics:      false,
       showK8sMetrics:          false,
       showEtcdMetrics:         false,
@@ -318,11 +316,16 @@ export default {
       return this.currentCluster?.status?.allocatable?.cpu !== '0' && this.currentCluster?.status?.requested?.cpu !== '0';
     },
 
+    /**
+     * The same values the Nodes list shows for each node, added up over the counted nodes
+     */
     nodeStats() {
       const initialAggregation = {
+        cpuUsage:       0,
         cpuCapacity:    0,
         cpuAllocatable: 0,
         cpuReserved:    0,
+        ramUsage:       0,
         ramCapacity:    0,
         ramAllocatable: 0,
         ramReserved:    0,
@@ -331,9 +334,11 @@ export default {
       };
 
       return this.countedNodes.reduce((agg, node) => {
+        agg.cpuUsage += node.cpuUsage;
         agg.cpuCapacity += node.cpuCapacity;
         agg.cpuAllocatable += node.cpuAllocatable;
         agg.cpuReserved += node.cpuReserved;
+        agg.ramUsage += node.ramUsage;
         agg.ramCapacity += node.ramCapacity;
         agg.ramAllocatable += node.ramAllocatable;
         agg.ramReserved += node.ramReserved;
@@ -385,31 +390,10 @@ export default {
     },
 
     /**
-     * The usage of the counted nodes. Without the nodes the metrics can't be matched to the nodes the cluster's status is summed over,
-     * so there's no usage
+     * A node only has usage with metrics, and without the nodes there's nothing to add up
      */
-    metricAggregations() {
-      if (!this.haveNodes) {
-        return null;
-      }
-
-      const metrics = this.nodeMetrics.filter((nodeMetrics) => this.countedNodes.some((node) => node.id === nodeMetrics.id));
-
-      const initialAggregation = {
-        cpu:    0,
-        memory: 0
-      };
-
-      if (isEmpty(metrics)) {
-        return null;
-      }
-
-      return metrics.reduce((agg, metric) => {
-        agg.cpu += parseSi(metric.usage.cpu);
-        agg.memory += parseSi(metric.usage.memory);
-
-        return agg;
-      }, initialAggregation);
+    hasUsage() {
+      return this.haveNodes && this.countedNodes.some((node) => node.usage);
     },
 
     /**
@@ -417,7 +401,7 @@ export default {
      * node detail. It's not out of the allocatable, which only pods get
      */
     cpuUsed() {
-      if (!this.metricAggregations) {
+      if (!this.hasUsage) {
         return null;
       }
 
@@ -425,17 +409,17 @@ export default {
 
       return {
         total,
-        useful: this.metricAggregations.cpu,
+        useful: this.nodeStats.cpuUsage,
         units:  this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: total })
       };
     },
 
     ramUsed() {
-      if (!this.metricAggregations) {
+      if (!this.hasUsage) {
         return null;
       }
 
-      return createMemoryValues(this.nodeStats.ramCapacity, this.metricAggregations.memory);
+      return createMemoryValues(this.nodeStats.ramCapacity, this.nodeStats.ramUsage);
     },
 
     hasMonitoring() {
@@ -570,7 +554,7 @@ export default {
 
     // Used by metric-poller mixin
     async loadMetrics() {
-      this.nodeMetrics = await fetchClusterResources(this.$store, METRIC.NODE, { force: true } );
+      await fetchClusterResources(this.$store, METRIC.NODE, { force: true } );
     },
 
     // Events/Alerts tab changed
