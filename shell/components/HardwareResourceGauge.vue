@@ -1,6 +1,7 @@
 <script>
 import ConsumptionGauge from '@shell/components/ConsumptionGauge';
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
+import { USAGE_COLOR_STOPS } from '@shell/utils/color';
 
 export default {
   components: { ConsumptionGauge, Card },
@@ -25,6 +26,11 @@ export default {
       default: null
     },
 
+    usedTooltip: {
+      type:    String,
+      default: null
+    },
+
     reserved: {
       type:    Object,
       default: null
@@ -33,13 +39,16 @@ export default {
     reservedTitle: {
       type:    String,
       default: null
+    },
+
+    reservedTooltip: {
+      type:    String,
+      default: null
     }
   },
   computed: {
     colorStops() {
-      return {
-        0: '--success', 30: '--warning', 70: '--error'
-      };
+      return USAGE_COLOR_STOPS;
     }
   },
   methods: {
@@ -90,6 +99,15 @@ export default {
           <template #title>
             <span>
               {{ reservedTitle ?? t('clusterIndexPage.hardwareResourceGauge.reserved') }}
+              <i
+                v-if="reservedTooltip"
+                v-clean-tooltip="{ content: reservedTooltip, triggers: ['hover', 'touch', 'focus'] }"
+                class="icon icon-info text-muted"
+                role="img"
+                tabindex="0"
+                :aria-label="reservedTooltip"
+                data-testid="hardware-resource-gauge-reserved-tooltip"
+              />
               <span class="values text-muted">
                 <span v-if="reserved.formattedUseful">
                   {{ reserved.formattedUseful }}
@@ -125,6 +143,15 @@ export default {
           <template #title>
             <span>
               {{ usedTitle ?? t('clusterIndexPage.hardwareResourceGauge.used') }}
+              <i
+                v-if="usedTooltip"
+                v-clean-tooltip="{ content: usedTooltip, triggers: ['hover', 'touch', 'focus'] }"
+                class="icon icon-info text-muted"
+                role="img"
+                tabindex="0"
+                :aria-label="usedTooltip"
+                data-testid="hardware-resource-gauge-used-tooltip"
+              />
               <span class="values text-muted">
                 <span v-if="used.formattedUseful">
                   {{ used.formattedUseful }}
@@ -157,6 +184,10 @@ export default {
       display: flex;
       flex-direction: column;
       gap: var(--gap-lg);
+    }
+
+    .icon-info {
+      margin-left: 4px;
     }
 
     .values {

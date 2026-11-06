@@ -1,8 +1,8 @@
 import { mergeWithReplace } from '@shell/utils/object';
 import Dashboard from '@shell/pages/c/_cluster/explorer/index.vue';
-import { shallowMount } from '@vue/test-utils';
+import { flushPromises, shallowMount } from '@vue/test-utils';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
-import { WORKLOAD_TYPES } from '@shell/config/types';
+import { METRIC, NODE, WORKLOAD_TYPES } from '@shell/config/types';
 
 interface MockCluster {
   id: string;
@@ -10,6 +10,8 @@ interface MockCluster {
   status: {
     provider: string;
     componentStatuses?: { name: string, conditions: unknown }[];
+    allocatable?: Record<string, string>;
+    requested?: Record<string, string>;
   };
   isLocal?: boolean;
   /** Folded in from the management-cluster fixtures via `mergeWithReplace`. */
@@ -23,6 +25,7 @@ interface MockGetters {
   'cluster/inError': () => boolean;
   'cluster/schemaFor': jest.Mock;
   'cluster/canList': (type: string) => boolean;
+  'cluster/haveAll'?: (type: string) => boolean;
   'cluster/byId': () => object;
   'cluster/all': jest.Mock;
   'i18n/exists': jest.Mock;
@@ -319,6 +322,154 @@ describe('page: cluster dashboard', () => {
       const element = wrapper.find(`[data-testid="${ label }__label"]`).element;
 
       expect(element.textContent).toContain(text);
+    });
+  });
+
+  describe('capacity', () => {
+    const GiB = 1024 ** 3;
+
+    // The usage of each node is below what's set aside for the system (capacity - allocatable), which used to be taken off it
+    const node = (id: string, counted: boolean, size = 1, usage: { cpu: number, memory: number } | null = { cpu: 0.5, memory: GiB }) => ({
+      id,
+      isCountedInClusterResources: counted,
+      usage,
+      cpuUsage:                    usage?.cpu ?? 0,
+      ramUsage:                    usage?.memory ?? 0,
+      cpuCapacity:                 4 * size,
+      cpuAllocatable:              3 * size,
+      cpuReserved:                 1 * size,
+      ramCapacity:                 8 * GiB * size,
+      ramAllocatable:              6 * GiB * size,
+      ramReserved:                 2 * GiB * size,
+      podAllocatable:              100 * size,
+      podReserved:                 10 * size,
+    });
+
+    const cordoned = node('cordoned', false, 25, { cpu: 50, memory: 100 * GiB });
+
+    const createWrapper = ({ nodes = [node('counted-1', true), node('counted-2', true), cordoned], canListNodes = true, nodesLoaded = true } = {}) => {
+      const options = createMountOptions();
+      const { getters } = options.global.mocks.$store;
+
+      getters['cluster/schemaFor'] = jest.fn((type: string) => ((type === NODE && canListNodes) || type === METRIC.NODE ? { id: type } : undefined));
+      getters['cluster/canList'] = jest.fn((type: string) => type === NODE && canListNodes);
+      getters['cluster/haveAll'] = jest.fn((type: string) => type === NODE && canListNodes && nodesLoaded);
+      getters['cluster/all'] = jest.fn((type: string) => (type === NODE && canListNodes && nodesLoaded ? nodes : []));
+      getters.currentCluster.status = {
+        provider:    'foo',
+        allocatable: {
+          cpu: '6', memory: '12Gi', pods: '200'
+        },
+        requested: {
+          cpu: '2', memory: '4Gi', pods: '20'
+        },
+      };
+      options.global.mocks.$store.dispatch = jest.fn(() => Promise.resolve([]));
+
+      return shallowMount(Dashboard, options);
+    };
+
+    it('should work out used as the usage of the counted nodes out of their capacity', async() => {
+      const wrapper = createWrapper();
+
+      await flushPromises();
+
+      expect([wrapper.vm.cpuUsed?.total, wrapper.vm.cpuUsed?.useful]).toStrictEqual([8, 1]);
+      expect([wrapper.vm.ramUsed?.total, wrapper.vm.ramUsed?.useful]).toStrictEqual([16 * GiB, 2 * GiB]);
+      expect([wrapper.vm.ramUsed?.formattedUseful, wrapper.vm.ramUsed?.formattedTotal]).toStrictEqual(['2', '16 GiB']);
+    });
+
+    it('should add no usage for a counted node without metrics, and keep its capacity in the total', async() => {
+      const wrapper = createWrapper({ nodes: [node('counted-1', true), node('no-metrics', true, 1, null)] });
+
+      await flushPromises();
+
+      expect([wrapper.vm.cpuUsed?.total, wrapper.vm.cpuUsed?.useful]).toStrictEqual([8, 0.5]);
+      expect([wrapper.vm.ramUsed?.total, wrapper.vm.ramUsed?.useful]).toStrictEqual([16 * GiB, GiB]);
+    });
+
+    it('should say used only covers the nodes with metrics when a counted node has none', async() => {
+      const wrapper = createWrapper({ nodes: [node('counted-1', true), node('counted-2', true), node('no-metrics', true, 1, null), cordoned] });
+
+      await flushPromises();
+
+      expect(wrapper.vm.reportingNodes).toStrictEqual(2);
+      expect(wrapper.find('[data-testid="capacity-reporting-nodes"]').exists()).toBe(true);
+    });
+
+    it.each([
+      ['every counted node has metrics', [node('counted-1', true), node('counted-2', true)]],
+      ['only a node that is not counted has no metrics', [node('counted-1', true), node('cordoned-no-metrics', false, 1, null)]],
+      ['no counted node has metrics, so used is left out', [node('no-metrics-1', true, 1, null), node('no-metrics-2', true, 1, null)]],
+    ])('should not say used only covers some nodes when %s', async(_, nodes) => {
+      const wrapper = createWrapper({ nodes });
+
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="capacity-reporting-nodes"]').exists()).toBe(false);
+    });
+
+    it('should leave used out when no counted node has metrics', async() => {
+      const wrapper = createWrapper({ nodes: [node('no-metrics-1', true, 1, null), node('no-metrics-2', true, 1, null), cordoned] });
+
+      await flushPromises();
+
+      expect([wrapper.vm.cpuUsed, wrapper.vm.ramUsed]).toStrictEqual([null, null]);
+    });
+
+    it('should work out reserved as the requests of the counted nodes out of their allocatable', async() => {
+      const wrapper = createWrapper();
+
+      await flushPromises();
+
+      expect([wrapper.vm.cpuReserved.total, wrapper.vm.cpuReserved.useful]).toStrictEqual([6, 2]);
+      expect([wrapper.vm.ramReserved.total, wrapper.vm.ramReserved.useful]).toStrictEqual([12 * GiB, 4 * GiB]);
+    });
+
+    it('should work out the pods of the counted nodes out of their allocatable pods', async() => {
+      const wrapper = createWrapper();
+
+      await flushPromises();
+
+      expect(wrapper.vm.podsUsed).toStrictEqual({ total: 200, useful: 20 });
+    });
+
+    it('should say how many nodes are counted when some are not', async() => {
+      const wrapper = createWrapper();
+
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="capacity-counted-nodes"]').exists()).toBe(true);
+    });
+
+    it('should not say how many nodes are counted when they all are', async() => {
+      const wrapper = createWrapper({ nodes: [node('counted-1', true), node('counted-2', true)] });
+
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="capacity-counted-nodes"]').exists()).toBe(false);
+    });
+
+    it('should not show the capacity when no node is counted', async() => {
+      const wrapper = createWrapper({ nodes: [node('cordoned', false)] });
+
+      await flushPromises();
+
+      expect(wrapper.find('.hardware-resource-gauges').exists()).toBe(false);
+    });
+
+    it.each([
+      ['the user can not list the nodes', { canListNodes: false }],
+      ['the nodes are not loaded, e.g. while loading or when they fail to', { nodesLoaded: false }],
+    ])('should take reserved and pods from the cluster status, without used, when %s', async(_, opts) => {
+      const wrapper = createWrapper(opts);
+
+      await flushPromises();
+
+      expect([wrapper.vm.cpuReserved.total, wrapper.vm.cpuReserved.useful]).toStrictEqual([6, 2]);
+      expect([wrapper.vm.ramReserved.total, wrapper.vm.ramReserved.useful]).toStrictEqual([12 * GiB, 4 * GiB]);
+      expect(wrapper.vm.podsUsed).toStrictEqual({ total: 200, useful: 20 });
+      expect([wrapper.vm.cpuUsed, wrapper.vm.ramUsed]).toStrictEqual([null, null]);
     });
   });
 });

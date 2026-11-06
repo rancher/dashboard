@@ -20,7 +20,7 @@ import {
 import { setPromiseResult } from '@shell/utils/promise';
 import AlertTable from '@shell/components/AlertTable';
 import { Banner } from '@components/Banner';
-import { parseSi, createMemoryValues } from '@shell/utils/units';
+import { parseSi, createMemoryGaugeValues } from '@shell/utils/units';
 import {
   NAME,
   ROLES,
@@ -34,7 +34,6 @@ import { allDashboardsExist } from '@shell/utils/grafana';
 import EtcdInfoBanner from '@shell/components/EtcdInfoBanner';
 import metricPoller from '@shell/mixins/metric-poller';
 import HardwareResourceGauge from '@shell/components/HardwareResourceGauge';
-import { isEmpty } from '@shell/utils/object';
 import ConfigBadge from './ConfigBadge';
 import EventsTable from './EventsTable';
 import ResourceStatusCards from './resource-status/ResourceStatusCards.vue';
@@ -122,10 +121,6 @@ export default {
       // It's not enough to check that the grafana links are working for the current user; embedded cluster-level dashboards should only be shown if the user can view the grafana endpoint
       // https://github.com/rancher/dashboard/issues/9792
       setPromiseResult(canViewGrafanaLink(this.$store), this, 'canViewMetrics', 'Determine Grafana Permission');
-
-      if (this.currentCluster.isLocal && this.$store.getters['management/schemaFor'](MANAGEMENT.NODE)) {
-        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
-      }
     }
   },
 
@@ -143,7 +138,6 @@ export default {
       fleetAgentResource:      'loading',
       disconnected:            false,
       events:                  [],
-      nodeMetrics:             [],
       showClusterMetrics:      false,
       showK8sMetrics:          false,
       showEtcdMetrics:         false,
@@ -169,7 +163,6 @@ export default {
     this.$store.dispatch('cluster/forgetType', NODE);
     this.$store.dispatch('cluster/forgetType', ENDPOINTS); // Used by AlertTable to get alerts when v2 monitoring is installed
     this.$store.dispatch('cluster/forgetType', METRIC.NODE);
-    this.$store.dispatch('cluster/forgetType', MANAGEMENT.NODE);
     this.$store.dispatch('cluster/forgetType', WORKLOAD_TYPES.DEPLOYMENT);
 
     clearInterval(this.interval);
@@ -198,16 +191,19 @@ export default {
       return this.$store.getters['cluster/all'](NODE);
     },
 
-    schedulableWorkerNodes() {
-      return this.nodes?.filter((node) => {
-        return node.isSchedulable && node.isWorker;
-      });
+    /**
+     * The cluster's CPU, memory and pods are summed over its nodes once they're all loaded. Until then, or if they can't be loaded,
+     * e.g. as a project member, they come from the cluster's status
+     */
+    haveNodes() {
+      return !!this.$store.getters['cluster/canList'](NODE) && this.$store.getters['cluster/haveAll'](NODE);
     },
 
-    schedulableNodes() {
-      return this.nodes?.filter((node) => {
-        return node.isSchedulable;
-      });
+    /**
+     * The nodes the cluster's CPU, memory and pods are summed over. Rancher sums the cluster's status over the same nodes
+     */
+    countedNodes() {
+      return (this.nodes || []).filter((node) => node.isCountedInClusterResources);
     },
 
     mgmtNodes() {
@@ -312,47 +308,57 @@ export default {
       return this.getAgentStatus(resources);
     },
 
-    hasSchedulableWorkerNodes() {
-      return this.schedulableWorkerNodes?.length > 0;
-    },
-
     hasStats() {
-      return this.hasSchedulableWorkerNodes || (this.currentCluster?.status?.allocatable?.cpu !== '0' && this.currentCluster?.status?.requested?.cpu !== '0');
+      if (this.haveNodes) {
+        return this.countedNodes.length > 0;
+      }
+
+      return this.currentCluster?.status?.allocatable?.cpu !== '0' && this.currentCluster?.status?.requested?.cpu !== '0';
     },
 
-    workerStatsAggregation() {
+    /**
+     * The same values the Nodes list shows for each node, added up over the counted nodes
+     */
+    nodeStats() {
       const initialAggregation = {
-        ramAllocatable:    0,
-        cpuAllocatable:    0,
-        ramReserved:       0,
-        cpuReserved:       0,
-        podReserved:       0,
-        podCapacity:       0,
-        systemReservedRam: 0,
-        systemReservedCpu: 0
+        cpuUsage:       0,
+        cpuCapacity:    0,
+        cpuAllocatable: 0,
+        cpuReserved:    0,
+        ramUsage:       0,
+        ramCapacity:    0,
+        ramAllocatable: 0,
+        ramReserved:    0,
+        podAllocatable: 0,
+        podReserved:    0,
       };
 
-      return this.schedulableWorkerNodes?.reduce((agg, node) => {
-        agg.ramAllocatable += node.ramAllocatable;
+      return this.countedNodes.reduce((agg, node) => {
+        agg.cpuUsage += node.cpuUsage;
+        agg.cpuCapacity += node.cpuCapacity;
         agg.cpuAllocatable += node.cpuAllocatable;
-        agg.ramReserved += node.ramReserved;
         agg.cpuReserved += node.cpuReserved;
+        agg.ramUsage += node.ramUsage;
+        agg.ramCapacity += node.ramCapacity;
+        agg.ramAllocatable += node.ramAllocatable;
+        agg.ramReserved += node.ramReserved;
+        agg.podAllocatable += node.podAllocatable;
         agg.podReserved += node.podReserved;
-        agg.podCapacity += node.podCapacity;
-        agg.systemReservedCpu += node.systemReservedCpu;
-        agg.systemReservedRam += node.systemReservedRam;
 
         return agg;
       }, initialAggregation);
     },
 
+    /**
+     * Reserved is what the pods request, out of what the nodes can give pods: their allocatable
+     */
     cpuReserved() {
-      const result = !this.hasSchedulableWorkerNodes ? {
+      const result = this.haveNodes ? {
+        total:  this.nodeStats.cpuAllocatable,
+        useful: this.nodeStats.cpuReserved,
+      } : {
         total:  parseSi(this.currentCluster?.status?.allocatable?.cpu),
         useful: parseSi(this.currentCluster?.status?.requested?.cpu),
-      } : {
-        total:  this.workerStatsAggregation?.cpuAllocatable,
-        useful: this.workerStatsAggregation?.cpuReserved,
       };
 
       return {
@@ -362,7 +368,7 @@ export default {
     },
 
     podsUsed() {
-      if (!this.hasSchedulableWorkerNodes) {
+      if (!this.haveNodes) {
         return {
           total:  parseSi(this.currentCluster?.status?.allocatable?.pods || '0'),
           useful: parseSi(this.currentCluster?.status?.requested?.pods || '0'),
@@ -370,67 +376,57 @@ export default {
       }
 
       return {
-        total:  this.workerStatsAggregation?.podCapacity || parseSi('0'),
-        useful: this.workerStatsAggregation?.podReserved || parseSi('0'),
+        total:  this.nodeStats.podAllocatable,
+        useful: this.nodeStats.podReserved,
       };
     },
 
     ramReserved() {
-      if (!this.hasSchedulableWorkerNodes) {
-        return createMemoryValues(this.currentCluster?.status?.allocatable?.memory, this.currentCluster?.status?.requested?.memory);
+      if (!this.haveNodes) {
+        return createMemoryGaugeValues(this.currentCluster?.status?.allocatable?.memory, this.currentCluster?.status?.requested?.memory);
       }
 
-      return createMemoryValues(this.workerStatsAggregation?.ramAllocatable, this.workerStatsAggregation?.ramReserved);
+      return createMemoryGaugeValues(this.nodeStats.ramAllocatable, this.nodeStats.ramReserved);
     },
 
-    metricAggregations() {
-      const metrics = this.nodeMetrics.filter((nodeMetrics) => {
-        if (this.hasSchedulableWorkerNodes) {
-          return !!this.schedulableWorkerNodes?.find((nd) => nd.id === nodeMetrics.id);
-        }
-
-        return !!this.schedulableNodes?.find((nd) => nd.id === nodeMetrics.id);
-      });
-
-      const initialAggregation = {
-        cpu:    0,
-        memory: 0
-      };
-
-      if (isEmpty(metrics)) {
-        return null;
-      }
-
-      return metrics.reduce((agg, metric) => {
-        agg.cpu += parseSi(metric.usage.cpu);
-        agg.memory += parseSi(metric.usage.memory);
-
-        return agg;
-      }, initialAggregation);
+    /**
+     * How many of the counted nodes have metrics. A node only has usage with them, the others add none
+     */
+    reportingNodes() {
+      return this.countedNodes.filter((node) => node.usage).length;
     },
 
+    /**
+     * Without the nodes there's nothing to add up
+     */
+    hasUsage() {
+      return this.haveNodes && this.reportingNodes > 0;
+    },
+
+    /**
+     * Used is the usage of the whole nodes, the system as well as pods, so it's out of their capacity, like on the Nodes list and
+     * node detail. It's not out of the allocatable, which only pods get
+     */
     cpuUsed() {
-      if (!this.metricAggregations) {
+      if (!this.hasUsage) {
         return null;
       }
 
-      const total = !this.hasSchedulableWorkerNodes ? parseSi(this.currentCluster?.status?.allocatable?.cpu) : this.workerStatsAggregation?.cpuAllocatable;
+      const total = this.nodeStats.cpuCapacity;
 
       return {
         total,
-        useful: this.metricAggregations?.cpu - this.workerStatsAggregation?.systemReservedCpu,
+        useful: this.nodeStats.cpuUsage,
         units:  this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: total })
       };
     },
 
     ramUsed() {
-      if (!this.metricAggregations) {
+      if (!this.hasUsage) {
         return null;
       }
 
-      const total = !this.hasSchedulableWorkerNodes ? this.currentCluster?.status?.allocatable?.memory : this.workerStatsAggregation?.ramAllocatable;
-
-      return createMemoryValues(total, this.metricAggregations?.memory - this.workerStatsAggregation?.systemReservedRam);
+      return createMemoryGaugeValues(this.nodeStats.ramCapacity, this.nodeStats.ramUsage);
     },
 
     hasMonitoring() {
@@ -565,7 +561,7 @@ export default {
 
     // Used by metric-poller mixin
     async loadMetrics() {
-      this.nodeMetrics = await fetchClusterResources(this.$store, METRIC.NODE, { force: true } );
+      await fetchClusterResources(this.$store, METRIC.NODE, { force: true } );
     },
 
     // Events/Alerts tab changed
@@ -706,6 +702,20 @@ export default {
       class="mmt-7 mmb-4 text-deemphasized"
     >
       {{ t('clusterIndexPage.sections.capacity.label') }}
+      <span
+        v-if="haveNodes && countedNodes.length < nodes.length"
+        class="counted-nodes text-muted"
+        data-testid="capacity-counted-nodes"
+      >
+        {{ t('clusterIndexPage.sections.capacity.countedNodes', { counted: countedNodes.length, total: nodes.length }, true) }}
+      </span>
+      <span
+        v-if="hasUsage && reportingNodes < countedNodes.length"
+        class="counted-nodes text-muted"
+        data-testid="capacity-reporting-nodes"
+      >
+        {{ t('clusterIndexPage.sections.capacity.reportingNodes', { reporting: reportingNodes, counted: countedNodes.length }, true) }}
+      </span>
     </h3>
     <div
       v-if="hasStats"
@@ -719,12 +729,16 @@ export default {
         :name="t('clusterIndexPage.hardwareResourceGauge.cores')"
         :reserved="cpuReserved"
         :used="cpuUsed"
+        :used-tooltip="t('clusterIndexPage.hardwareResourceGauge.usedTooltip')"
+        :reserved-tooltip="t('clusterIndexPage.hardwareResourceGauge.reservedTooltip')"
         :units="cpuReserved.units"
       />
       <HardwareResourceGauge
         :name="t('clusterIndexPage.hardwareResourceGauge.ram')"
         :reserved="ramReserved"
         :used="ramUsed"
+        :used-tooltip="t('clusterIndexPage.hardwareResourceGauge.usedTooltip')"
+        :reserved-tooltip="t('clusterIndexPage.hardwareResourceGauge.reservedTooltip')"
         :units="ramReserved.units"
       />
     </div>
@@ -843,6 +857,12 @@ export default {
 .hardware-resource-gauges {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--gap-md);
+}
+
+.counted-nodes {
+  font-size: 14px;
+  font-weight: normal;
+  margin-left: 10px;
 }
 
 .extension-card-container {

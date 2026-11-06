@@ -4,6 +4,7 @@ import {
   parseSi,
   createMemoryFormat,
   createMemoryValues,
+  createMemoryGaugeValues,
   UNITS,
   FRACTIONAL,
   MEMORY_PARSE_RULES,
@@ -369,6 +370,32 @@ describe('units', () => {
       expect(fmt.firstSuffix).toStrictEqual(base.firstSuffix);
       expect(fmt.suffix).toStrictEqual(base.suffix);
       expect(fmt.maxPrecision).toStrictEqual(base.maxPrecision);
+    });
+  });
+
+  describe('createMemoryGaugeValues', () => {
+    it('should keep the exact values for the percentage, and show them rounded in the unit of the total', () => {
+      const result = createMemoryGaugeValues(1536 * 1024 ** 2, 1023 * 1024 ** 2);
+
+      expect(result).toStrictEqual({
+        total:           1536 * 1024 ** 2,
+        useful:          1023 * 1024 ** 2,
+        formattedTotal:  '1.5 GiB',
+        formattedUseful: '1',
+        units:           'GiB',
+      });
+    });
+
+    it('should read the values the cluster status has them', () => {
+      const result = createMemoryGaugeValues('2Gi', '1Gi');
+
+      expect([result.total, result.useful, result.formattedUseful, result.formattedTotal]).toStrictEqual([2 * 1024 ** 3, 1024 ** 3, '1', '2 GiB']);
+    });
+
+    it('should show no values as zero', () => {
+      const result = createMemoryGaugeValues(null as any, undefined as any);
+
+      expect([result.total, result.useful, result.formattedUseful]).toStrictEqual([0, 0, '0']);
     });
   });
 

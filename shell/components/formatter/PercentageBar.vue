@@ -1,5 +1,6 @@
 <script>
 import PercentageBarComponent from '../PercentageBar';
+import { USAGE_COLOR_STOPS } from '@shell/utils/color';
 
 /**
  * This is a wrapper around the PercentageBar component which provides the interface
@@ -24,6 +25,10 @@ export default {
   computed: {
     percentage() {
       return Number.parseFloat(this.value);
+    },
+
+    colorStops() {
+      return USAGE_COLOR_STOPS;
     }
   }
 };
@@ -37,5 +42,6 @@ export default {
     v-else
     :modelValue="percentage"
     :show-percentage="true"
+    :color-stops="colorStops"
   />
 </template>

@@ -6,6 +6,7 @@ import { mount, VueWrapper } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import ResourcePopoverCard from '@shell/components/Resource/Detail/ResourcePopover/ResourcePopoverCard.vue';
 import PercentageBar from '@shell/components/PercentageBar.vue';
+import { USAGE_COLOR_STOPS } from '@shell/utils/color';
 
 describe('component: ResourcePopoverCard.vue', () => {
   let wrapper: VueWrapper<any>;
@@ -167,6 +168,7 @@ describe('component: ResourcePopoverCard.vue', () => {
       }]);
 
       expect(usageItem(w, 'cpu').findComponent(PercentageBar).props('size')).toStrictEqual('small');
+      expect(usageItem(w, 'cpu').findComponent(PercentageBar).props('colorStops')).toStrictEqual(USAGE_COLOR_STOPS);
       w.unmount();
     });
 

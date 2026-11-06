@@ -13,7 +13,7 @@ import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell
 
 import {
   CAPI,
-  MANAGEMENT, METRIC, NODE, NORMAN, POD
+  MANAGEMENT, METRIC, NODE, NORMAN
 } from '@shell/config/types';
 import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
@@ -56,9 +56,6 @@ export default defineComponent({
 
   data() {
     return {
-      // Pods required for `Pods` column's running pods metrics
-      // podConsumedUsage = podConsumed / podConsumedUsage. podConsumed --> pods. allPods.filter((pod) => pod.spec.nodeName === this.name)
-      canViewPods:        !!this.$store.getters[`cluster/schemaFor`](POD),
       // Norman node required for Drain/Cordon/Uncordon action
       canViewNormanNodes: !!this.$store.getters[`rancher/schemaFor`](NORMAN.NODE),
       // Mgmt Node required to find Norman node
@@ -71,11 +68,7 @@ export default defineComponent({
   },
 
   beforeUnmount() {
-    // Stop watching pods, nodes and node metrics
-    if (this.canViewPods) {
-      this.$store.dispatch('cluster/forgetType', POD);
-    }
-
+    // Stop watching nodes and node metrics
     this.$store.dispatch('cluster/forgetType', NODE);
     this.$store.dispatch('cluster/forgetType', METRIC.NODE);
   },
@@ -102,22 +95,20 @@ export default defineComponent({
     },
 
     headers() {
-      // This is all about adding the pods column... if the user can see pods
+      // This is all about adding the pods column
       const headers = [...this.$store.getters['type-map/headersFor'](this.schema, false)];
 
-      if (this.canViewPods) {
-        headers.splice(headers.length - 1, 0, {
-          ...PODS,
-          breakpoint: COLUMN_BREAKPOINTS.DESKTOP,
-          getValue:   (row: any) => row.podConsumedUsage
-        });
-      }
+      headers.splice(headers.length - 1, 0, {
+        ...PODS,
+        breakpoint: COLUMN_BREAKPOINTS.DESKTOP,
+        getValue:   (row: any) => row.podUsagePercentage
+      });
 
       return headers;
     },
 
     paginationHeaders() {
-      // This is all about adding the pods column... if the user can see pods
+      // This is all about adding the pods column
 
       if (!this.canPaginate) {
         return [];
@@ -126,15 +117,13 @@ export default defineComponent({
       const paginationHeaders = [...this.$store.getters['type-map/headersFor'](this.schema, true)];
 
       if (paginationHeaders) {
-        if (this.canViewPods) {
-          paginationHeaders.splice(paginationHeaders.length - 1, 0, {
-            ...PODS,
-            breakpoint: COLUMN_BREAKPOINTS.DESKTOP,
-            sort:       false,
-            search:     false,
-            getValue:   (row: any) => row.podConsumedUsage
-          });
-        }
+        paginationHeaders.splice(paginationHeaders.length - 1, 0, {
+          ...PODS,
+          breakpoint: COLUMN_BREAKPOINTS.DESKTOP,
+          sort:       false,
+          search:     false,
+          getValue:   (row: any) => row.podUsagePercentage
+        });
 
         return paginationHeaders;
       } else {
@@ -207,11 +196,6 @@ export default defineComponent({
         promises.push(this.$store.dispatch(`management/findAll`, { type: CAPI.MACHINE }));
       }
 
-      if (this.canViewPods) {
-        // No need to block on this
-        this.$store.dispatch(`cluster/findAll`, { type: POD });
-      }
-
       await Promise.all(promises);
     },
 
@@ -277,23 +261,6 @@ export default defineComponent({
 
           this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE, opt });
         }
-      }
-
-      if (this.canViewPods) {
-        // Note - fetching pods for current page could be a LOT still (probably max of 3k - 300 pods per node x 100 nodes in a page)
-        const opt: ActionFindPageArgs = {
-          force,
-          pagination: new FilterArgs({
-            filters: PaginationParamFilter.createMultipleFields(
-              page.map((r: any) => new PaginationFilterField({
-                field: 'spec.nodeName',
-                value: r.id,
-              }))
-            )
-          })
-        };
-
-        this.$store.dispatch(`cluster/findPage`, { type: POD, opt });
       }
 
       // Fetch metrics given the current page
