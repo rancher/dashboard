@@ -379,6 +379,15 @@ describe('page: cluster dashboard', () => {
       expect([wrapper.vm.ramUsed?.total, wrapper.vm.ramUsed?.useful]).toStrictEqual([16, 2]);
     });
 
+    it('should add no usage for a counted node without metrics, and keep its capacity in the total', async() => {
+      const wrapper = createWrapper({ nodes: [node('counted-1', true), node('no-metrics', true)] });
+
+      await flushPromises();
+
+      expect([wrapper.vm.cpuUsed?.total, wrapper.vm.cpuUsed?.useful]).toStrictEqual([8, 0.5]);
+      expect([wrapper.vm.ramUsed?.total, wrapper.vm.ramUsed?.useful]).toStrictEqual([16, 1]);
+    });
+
     it('should work out reserved as the requests of the counted nodes out of their allocatable', async() => {
       const wrapper = createWrapper();
 

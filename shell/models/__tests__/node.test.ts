@@ -25,11 +25,11 @@ describe('class Node', () => {
     const WORKER = 'node-role.kubernetes.io/worker';
 
     const createNode = ({
-      status = {}, spec = {}, labels = {}, metrics
+      status = {}, spec = {}, labels = {}, metrics, annotations = {}
     }: any = {}) => new Node({
       id:       'node-1',
       metadata: {
-        name: 'node-1', labels, annotations: {}
+        name: 'node-1', labels, annotations
       },
       spec,
       status: {
@@ -41,12 +41,7 @@ describe('class Node', () => {
         },
         ...status
       },
-    }, {
-      rootGetters: {
-        'cluster/byId': () => metrics,
-        currentCluster: { metadata: { labels: {} }, provisioner: 'k3s' },
-      }
-    });
+    }, { rootGetters: { 'cluster/byId': () => metrics } });
 
     it('should work out the CPU and memory usage percentages out of the capacity, rather than the allocatable', () => {
       const node = createNode({ metrics: { usage: { cpu: '1', memory: '2Gi' } } });
@@ -58,6 +53,14 @@ describe('class Node', () => {
       const node = createNode();
 
       expect([node.usage, node.cpuUsage, node.ramUsage]).toStrictEqual([undefined, 0, 0]);
+    });
+
+    it('should only get the usage from the metrics, what the pods request is the reserved', () => {
+      const annotations = { 'management.cattle.io/pod-requests': JSON.stringify({ cpu: '3', memory: '6Gi' }) };
+      const node = createNode({ annotations });
+
+      expect([node.usage, node.cpuUsage, node.ramUsage]).toStrictEqual([undefined, 0, 0]);
+      expect([node.cpuReserved, node.ramReserved]).toStrictEqual([3, 6 * 1024 ** 3]);
     });
 
     it('should sort by the CPU and memory usage out of the capacity', () => {

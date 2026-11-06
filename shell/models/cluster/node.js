@@ -189,14 +189,6 @@ export default class ClusterNode extends SteveModel {
    * The usage of the whole node, which it only has with metrics, e.g. not without a metrics server or when the node isn't reporting
    */
   get usage() {
-    /*
-      With EKS nodes that have been migrated from norman,
-      cpu/memory usage is by the annotation `management.cattle.io/pod-requests`
-    */
-    if ( this.isFromNorman && this.provider === 'eks' ) {
-      return this.podRequests;
-    }
-
     return this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage;
   }
 
@@ -689,10 +681,6 @@ export default class ClusterNode extends SteveModel {
     }
 
     return null;
-  }
-
-  get isFromNorman() {
-    return (this.$rootGetters['currentCluster'].metadata.labels || {})['cattle.io/creator'] === 'norman';
   }
 
   get provider() {
