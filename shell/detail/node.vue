@@ -13,7 +13,7 @@ import {
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import { METRIC, POD } from '@shell/config/types';
 import createEditView from '@shell/mixins/create-edit-view';
-import { createMemoryValues } from '@shell/utils/units';
+import { createMemoryGaugeValues } from '@shell/utils/units';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
@@ -165,11 +165,11 @@ export default {
     },
 
     ramReserved() {
-      return this.memoryValues(this.value.ramAllocatable, this.value.ramReserved);
+      return createMemoryGaugeValues(this.value.ramAllocatable, this.value.ramReserved);
     },
 
     ramUsed() {
-      return this.value.usage ? this.memoryValues(this.value.ramCapacity, this.value.ramUsage) : null;
+      return this.value.usage ? createMemoryGaugeValues(this.value.ramCapacity, this.value.ramUsage) : null;
     }
   },
 
@@ -180,23 +180,6 @@ export default {
         useful,
         units: this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: total })
       };
-    },
-
-    memoryValues(total, useful) {
-      return {
-        total,
-        useful,
-        formattedTotal:  this.memoryFormatter(total),
-        formattedUseful: this.memoryFormatter(useful)
-      };
-    },
-
-    memoryFormatter(value) {
-      // Each value is scaled independently, so it has to carry its own unit -
-      // a node using 900MiB of 62GiB must not read "900 GiB of 62 GiB".
-      const { useful, units } = createMemoryValues(value, value);
-
-      return `${ useful } ${ units === 'iB' ? 'B' : units }`;
     },
 
     mapToStatus(isOk) {
@@ -355,7 +338,7 @@ export default {
 <style lang="scss" scoped>
 .resources {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--gap-md);
 }
 </style>

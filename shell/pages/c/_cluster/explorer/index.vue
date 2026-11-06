@@ -20,7 +20,7 @@ import {
 import { setPromiseResult } from '@shell/utils/promise';
 import AlertTable from '@shell/components/AlertTable';
 import { Banner } from '@components/Banner';
-import { parseSi, createMemoryValues } from '@shell/utils/units';
+import { parseSi, createMemoryGaugeValues } from '@shell/utils/units';
 import {
   NAME,
   ROLES,
@@ -383,10 +383,10 @@ export default {
 
     ramReserved() {
       if (!this.haveNodes) {
-        return createMemoryValues(this.currentCluster?.status?.allocatable?.memory, this.currentCluster?.status?.requested?.memory);
+        return createMemoryGaugeValues(this.currentCluster?.status?.allocatable?.memory, this.currentCluster?.status?.requested?.memory);
       }
 
-      return createMemoryValues(this.nodeStats.ramAllocatable, this.nodeStats.ramReserved);
+      return createMemoryGaugeValues(this.nodeStats.ramAllocatable, this.nodeStats.ramReserved);
     },
 
     /**
@@ -426,7 +426,7 @@ export default {
         return null;
       }
 
-      return createMemoryValues(this.nodeStats.ramCapacity, this.nodeStats.ramUsage);
+      return createMemoryGaugeValues(this.nodeStats.ramCapacity, this.nodeStats.ramUsage);
     },
 
     hasMonitoring() {

@@ -108,24 +108,15 @@ describe('view: node detail', () => {
     expect(gauge.props('reservedTooltip')).toContain('hardwareResourceGauge.reservedTooltip');
   });
 
+  // The same as the cluster dashboard, so one node reads the same on both
   describe('memory', () => {
-    // The used and total values are scaled independently, so each carries its own unit -
-    // 900MiB of 62GiB would otherwise read "900 GiB of 62 GiB".
-    it.each([
-      ['scales each value on its own', 900 * 1024 ** 2, '900 MiB'],
-      ['keeps used and total in step when they share a unit', 3.55 * 1024 ** 3, '3.55 GiB'],
-      ['reads plain bytes as B rather than iB', 512, '512 B'],
-      ['keeps two decimals like the cluster dashboard, so it adds up with the percentage', 15.42 * 1024 ** 3, '15.42 GiB'],
-    ])('should format the used amount so it %s', (_, ramUsage, expected) => {
-      const gauge = findGauge(createWrapper({ ramUsage }), 'consumptionGauge.memory');
+    it('should show used and reserved in the unit of their total', () => {
+      const gauge = findGauge(createWrapper({
+        ramCapacity: 62 * 1024 ** 3, ramUsage: 900 * 1024 ** 2, ramAllocatable: 800 * 1024 ** 2, ramReserved: 500 * 1024 ** 2
+      }), 'consumptionGauge.memory');
 
-      expect(gauge.props('used')?.formattedUseful).toStrictEqual(expected);
-    });
-
-    it('should format the totals of used and reserved on their own', () => {
-      const gauge = findGauge(createWrapper({ ramCapacity: 8 * 1024 ** 3, ramAllocatable: 900 * 1024 ** 2 }), 'consumptionGauge.memory');
-
-      expect([gauge.props('used')?.formattedTotal, gauge.props('reserved')?.formattedTotal]).toStrictEqual(['8 GiB', '900 MiB']);
+      expect([gauge.props('used')?.formattedUseful, gauge.props('used')?.formattedTotal]).toStrictEqual(['0.88', '62 GiB']);
+      expect([gauge.props('reserved')?.formattedUseful, gauge.props('reserved')?.formattedTotal]).toStrictEqual(['500', '800 MiB']);
     });
   });
 });

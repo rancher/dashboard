@@ -375,7 +375,8 @@ describe('page: cluster dashboard', () => {
       await flushPromises();
 
       expect([wrapper.vm.cpuUsed?.total, wrapper.vm.cpuUsed?.useful]).toStrictEqual([8, 1]);
-      expect([wrapper.vm.ramUsed?.total, wrapper.vm.ramUsed?.useful]).toStrictEqual([16, 2]);
+      expect([wrapper.vm.ramUsed?.total, wrapper.vm.ramUsed?.useful]).toStrictEqual([16 * GiB, 2 * GiB]);
+      expect([wrapper.vm.ramUsed?.formattedUseful, wrapper.vm.ramUsed?.formattedTotal]).toStrictEqual(['2', '16 GiB']);
     });
 
     it('should add no usage for a counted node without metrics, and keep its capacity in the total', async() => {
@@ -384,7 +385,7 @@ describe('page: cluster dashboard', () => {
       await flushPromises();
 
       expect([wrapper.vm.cpuUsed?.total, wrapper.vm.cpuUsed?.useful]).toStrictEqual([8, 0.5]);
-      expect([wrapper.vm.ramUsed?.total, wrapper.vm.ramUsed?.useful]).toStrictEqual([16, 1]);
+      expect([wrapper.vm.ramUsed?.total, wrapper.vm.ramUsed?.useful]).toStrictEqual([16 * GiB, GiB]);
     });
 
     it('should say used only covers the nodes with metrics when a counted node has none', async() => {
@@ -422,7 +423,7 @@ describe('page: cluster dashboard', () => {
       await flushPromises();
 
       expect([wrapper.vm.cpuReserved.total, wrapper.vm.cpuReserved.useful]).toStrictEqual([6, 2]);
-      expect([wrapper.vm.ramReserved.total, wrapper.vm.ramReserved.useful]).toStrictEqual([12, 4]);
+      expect([wrapper.vm.ramReserved.total, wrapper.vm.ramReserved.useful]).toStrictEqual([12 * GiB, 4 * GiB]);
     });
 
     it('should work out the pods of the counted nodes out of their allocatable pods', async() => {
@@ -466,7 +467,7 @@ describe('page: cluster dashboard', () => {
       await flushPromises();
 
       expect([wrapper.vm.cpuReserved.total, wrapper.vm.cpuReserved.useful]).toStrictEqual([6, 2]);
-      expect([wrapper.vm.ramReserved.total, wrapper.vm.ramReserved.useful]).toStrictEqual([12, 4]);
+      expect([wrapper.vm.ramReserved.total, wrapper.vm.ramReserved.useful]).toStrictEqual([12 * GiB, 4 * GiB]);
       expect(wrapper.vm.podsUsed).toStrictEqual({ total: 200, useful: 20 });
       expect([wrapper.vm.cpuUsed, wrapper.vm.ramUsed]).toStrictEqual([null, null]);
     });
