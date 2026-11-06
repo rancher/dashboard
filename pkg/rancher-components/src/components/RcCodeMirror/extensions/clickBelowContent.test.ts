@@ -27,7 +27,7 @@ describe('extensions: clickBelowContent', () => {
     jest.restoreAllMocks();
   });
 
-  function mousedown(target: Element, init: MouseEventInit = {}): MouseEvent {
+  function mousedown(target: Element, init: ConstructorParameters<typeof MouseEvent>[1] = {}): MouseEvent {
     const event = new MouseEvent('mousedown', {
       bubbles: true, cancelable: true, button: 0, clientY: 300, ...init
     });
