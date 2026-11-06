@@ -168,6 +168,7 @@ export default {
       <AsyncButton
         mode="add"
         class="ml-10"
+        :disabled="$fetchState.pending"
         @click="doAddRepos"
       />
     </div>

@@ -2,6 +2,7 @@ import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import { UI_PLUGINS_REPOS } from '@shell/config/uiplugins';
 import AddExtensionReposDialog from '@shell/dialog/AddExtensionReposDialog.vue';
+import AsyncButton from '@shell/components/AsyncButton.vue';
 const mockedStore = () => {
   return {
     getters: {
@@ -67,6 +68,38 @@ describe('component: AddExtensionReposDialog', () => {
 
     expect(rancherCheckbox.exists()).toBe(true);
     expect(partnersCheckbox.exists()).toBe(true);
+
+    wrapper.unmount();
+  });
+
+  it.each([true, false])('should set the Add button disabled to match the dialog fetch pending state (%p)', (pending) => {
+    const wrapper = mount(AddExtensionReposDialog, {
+      global: {
+        mocks: {
+          $store:      mockedStore(),
+          $fetchState: { pending },
+        },
+      }
+    });
+
+    expect(wrapper.findComponent(AsyncButton).props('disabled')).toStrictEqual(pending);
+
+    wrapper.unmount();
+  });
+
+  it('should NOT close when Add is clicked while the dialog is still loading', async() => {
+    const wrapper = mount(AddExtensionReposDialog, {
+      global: {
+        mocks: {
+          $store:      mockedStore(),
+          $fetchState: { pending: true },
+        },
+      }
+    });
+
+    await wrapper.findComponent(AsyncButton).trigger('click');
+
+    expect(wrapper.emitted('close')).toBeUndefined();
 
     wrapper.unmount();
   });
