@@ -7,10 +7,6 @@ import { parseSi } from '@shell/utils/units';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { LOCAL } from '@shell/config/query-params';
-import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
-
-// Prefix of the saved count of running pods on a node, see `glancePodConsumedUsage`
-const RUNNING_PODS_COUNT = 'nodeRunningPods';
 
 export default class ClusterNode extends SteveModel {
   get _availableActions() {
@@ -262,18 +258,12 @@ export default class ClusterNode extends SteveModel {
     return calculatePercentage(this.status.allocatable?.pods, this.status.capacity?.pods);
   }
 
-  get podConsumedUsage() {
-    return ((this.podConsumed / this.podCapacity) * 100).toString();
-  }
-
-  get podCapacity() {
-    return parseSi(this.status.capacity?.pods);
-  }
-
-  get podConsumed() {
-    const runningPods = this.pods.filter((pod) => pod.state === 'running');
-
-    return runningPods.length || 0;
+  /**
+   * The pods on the node that haven't finished, which take up a place on it whatever their state, out of how many it can run. This
+   * is the same as `kubectl describe node`
+   */
+  get podUsagePercentage() {
+    return ((this.podReserved * 100) / this.podAllocatable).toString();
   }
 
   get podRequests() {
@@ -524,124 +514,27 @@ export default class ClusterNode extends SteveModel {
       {
         name:       'pods',
         label:      this.t('component.resource.detail.glance.pods'),
-        percentage: listPercentage(this.glancePodConsumedUsage)
+        percentage: listPercentage(this.podUsagePercentage)
       },
     ];
   }
 
   /**
-   * The same as podConsumedUsage, which the Nodes list shows. The pods in the store are only counted when every pod is loaded,
-   * otherwise the running pods on the node are counted by the API, see `fetchRunningPods`
-   */
-  get glancePodConsumedUsage() {
-    if (this.hasAllPods) {
-      return this.podConsumedUsage;
-    }
-
-    const running = this.$rootGetters['cluster/getSavedCount'](this.runningPodsCountName);
-
-    return running === undefined ? undefined : ((running / this.podCapacity) * 100).toString();
-  }
-
-  /**
-   * Every pod of the cluster is in the store, e.g. the Nodes list loaded them, so the running pods on the node can be counted there
-   */
-  get hasAllPods() {
-    return !this.$rootGetters['cluster/paginationEnabled'](POD) && !!this.$rootGetters['cluster/haveAll'](POD);
-  }
-
-  /**
-   * Saved counts are kept when the user changes cluster, so the name includes the cluster
-   */
-  get runningPodsCountName() {
-    return `${ RUNNING_PODS_COUNT }/${ this.$rootGetters['clusterId'] }/${ this.id }`;
-  }
-
-  /**
-   * Fetch what the node's popover card shows besides the node: its metrics, for CPU and memory usage, and its running pods
+   * Fetch what the node's popover card shows besides the node: its metrics, for CPU and memory usage
    *
-   * @param {AbortSignal} [signal] cancels the requests, e.g. when the card closes before they finish
+   * @param {AbortSignal} [signal] cancels the request, e.g. when the card closes before it finishes
    */
   async fetchGlanceResources(signal) {
-    const promises = [];
-
     if (this.$rootGetters['cluster/schemaFor'](METRIC.NODE)) {
       // Metrics can't be watched, the card fetches them each time it opens
-      promises.push(this.$dispatch('cluster/find', {
+      await this.$dispatch('cluster/find', {
         type: METRIC.NODE,
         id:   this.id,
         opt:  {
           force: true, watch: false, signal
         }
-      }, { root: true }));
+      }, { root: true });
     }
-
-    if (this.$rootGetters['cluster/schemaFor'](POD)) {
-      promises.push(this.fetchRunningPods(signal));
-    }
-
-    // Wait for every request, so the card only stops loading once it has all it can show
-    const failed = (await Promise.allSettled(promises)).find((result) => result.status === 'rejected');
-
-    if (failed) {
-      throw failed.reason;
-    }
-  }
-
-  /**
-   * Count the running pods on the node, the same way the Nodes list does, without storing the pods
-   *
-   * @param {AbortSignal} [signal] cancels the request
-   */
-  async fetchRunningPods(signal) {
-    if (this.hasAllPods) {
-      return;
-    }
-
-    try {
-      if (this.$rootGetters['cluster/paginationEnabled'](POD)) {
-        // It isn't stored as a page of pods, which would replace e.g. the page shown by the Pods list
-        await this.$dispatch('cluster/findPage', {
-          type: POD,
-          opt:  {
-            transient:   true,
-            saveCountAs: this.runningPodsCountName,
-            signal,
-            pagination:  new PaginationArgs({
-              page:     1,
-              pageSize: 1,
-              filters:  [
-                PaginationParamFilter.createSingleField({ field: 'spec.nodeName', value: this.id }),
-                PaginationParamFilter.createSingleField({ field: 'metadata.state.name', value: 'running' }),
-              ]
-            })
-          }
-        }, { root: true });
-
-        return;
-      }
-
-      // A one-off request rather than loading every pod of the cluster into the store. Steve only returns the pods the user can
-      // see, like the Nodes list. Without the SQL cache the filter matches part of the name, so the node is checked again here
-      const collectionUrl = this.$rootGetters['cluster/urlFor'](POD);
-      const url = `${ collectionUrl }${ collectionUrl.includes('?') ? '&' : '?' }filter=spec.nodeName=${ encodeURIComponent(this.name) }`;
-      const res = await this.$dispatch('cluster/request', { url, signal }, { root: true });
-      const running = (res?.data || []).filter((pod) => pod.spec?.nodeName === this.name && pod.metadata?.state?.name === 'running');
-
-      this.saveRunningPodsCount(running.length);
-    } catch (e) {
-      // Show the count as unknown rather than an old one. A cancelled request says nothing about the count, so the card shows
-      // the last one while it fetches it again
-      if (!signal?.aborted) {
-        this.saveRunningPodsCount(undefined);
-      }
-
-      throw e;
-    }
-  }
-
-  saveRunningPodsCount(count) {
-    this.$ctx.commit('cluster/setSavedCount', { name: this.runningPodsCountName, count }, { root: true });
   }
 
   get pods() {

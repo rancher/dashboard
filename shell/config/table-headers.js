@@ -249,9 +249,9 @@ export const PRINCIPAL = {
 export const PODS = {
   name:      'pods',
   labelKey:  'tableHeaders.pods',
-  sort:      'podConsumed',
+  sort:      'podReserved',
   search:    false,
-  value:     (row) => row.podConsumedUsage,
+  value:     (row) => row.podUsagePercentage,
   formatter: 'PercentageBar',
   width:     120,
 };

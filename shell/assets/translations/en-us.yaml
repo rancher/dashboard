@@ -5633,7 +5633,6 @@ node:
         cpu: CPU
         memory: Memory
         pods: Pods
-        running: Running
       diskPressure: Disk Pressure
       kubelet: kubelet
       memoryPressure: Memory Pressure

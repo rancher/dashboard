@@ -153,7 +153,7 @@ export default {
     },
 
     podsUsed() {
-      return { total: this.value.podCapacity, useful: this.value.podConsumed };
+      return { total: this.value.podAllocatable, useful: this.value.podReserved };
     },
 
     cpuReserved() {
@@ -266,7 +266,6 @@ export default {
       <HardwareResourceGauge
         :name="t('node.detail.glance.consumptionGauge.pods')"
         :used="podsUsed"
-        :used-title="t('node.detail.glance.consumptionGauge.running')"
       />
     </div>
     <div class="spacer" />

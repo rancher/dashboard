@@ -35,8 +35,8 @@ describe('view: node detail', () => {
     ramAllocatable:     8000,
     ramReserved:        6000,
     ramUsage:           4000,
-    podCapacity:        110,
-    podConsumed:        5,
+    podAllocatable:     110,
+    podReserved:        5,
     isPidPressureOk:    true,
     isDiskPressureOk:   true,
     isMemoryPressureOk: true,
@@ -65,11 +65,11 @@ describe('view: node detail', () => {
     ]);
   });
 
-  it('should show the running pods out of the capacity, without reserved', () => {
+  it('should show the pods out of the allocatable, like the cluster dashboard, without reserved', () => {
     const gauge = findGauge(createWrapper(), 'consumptionGauge.pods');
 
     expect(gauge.props('used')).toStrictEqual({ total: 110, useful: 5 });
-    expect(gauge.props('usedTitle')).toContain('consumptionGauge.running');
+    expect(gauge.props('usedTitle')).toBeNull();
     expect(gauge.props('reserved')).toBeNull();
   });
 
