@@ -70,4 +70,44 @@ describe('component: Upgrading', () => {
 
     expect(wrapper.emitted('input')).toHaveLength(1);
   });
+
+  describe('daemonSet', () => {
+    const type = WORKLOAD_TYPES.DAEMON_SET;
+
+    it('should display maxSurge and maxUnavailable inputs', () => {
+      const wrapper = mount(Upgrading, { props: { type } });
+
+      expect(wrapper.find('[data-testid="input-policy-surge"]').findAllComponents({ name: 'InputWithSelect' })).toHaveLength(2);
+    });
+
+    it.each([
+      [10, 0],
+      ['30%', 0],
+    ])('should keep maxSurge %p and maxUnavailable %p when another field changes', (maxSurge, maxUnavailable) => {
+      const value = { updateStrategy: { type: 'RollingUpdate', rollingUpdate: { maxSurge, maxUnavailable } } };
+      const wrapper = mount(Upgrading, { props: { type, value } });
+
+      wrapper.vm.minReadySeconds = 5;
+      wrapper.vm.update();
+
+      expect(wrapper.props('value')?.minReadySeconds).toBe(5);
+      expect(wrapper.props('value')?.updateStrategy.rollingUpdate).toStrictEqual({ maxSurge, maxUnavailable });
+    });
+
+    it('should default maxSurge to 0 when there is no updateStrategy', () => {
+      const wrapper = mount(Upgrading, { props: { type, value: {} } });
+
+      wrapper.vm.update();
+
+      expect(wrapper.props('value')?.updateStrategy.rollingUpdate.maxSurge).toBe(0);
+    });
+
+    it('should set typed maxSurge into updateStrategy', () => {
+      const wrapper = mount(Upgrading, { props: { type, value: {} } });
+
+      wrapper.vm.updateWithUnits({ selected: 'Pods', text: 3 }, 'maxSurge');
+
+      expect(wrapper.props('value')?.updateStrategy.rollingUpdate.maxSurge).toBe(3);
+    });
+  });
 });
