@@ -10373,6 +10373,8 @@ component:
         every4Hours9to17: "At 0 minutes past the hour, every 4 hours, between 09:00 AM and 05:00 PM"
   rcSection:
     invalidFields: Some fields inside this section are invalid
+  rcSegmentationBar:
+    segment: '{label}: {value}'
 
 autoscaler:
   card:
